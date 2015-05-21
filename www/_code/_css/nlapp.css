@@ -1,0 +1,490 @@
+/*-----------------------------------------------------------------------------------------*
+ * overrides
+ *-----------------------------------------------------------------------------------------*/
+.disable-user-behavior {
+    -webkit-touch-callout: default;
+}
+
+/* nl specific css */
+/*-----------------------------------------------------------------------------------------*
+ * Internal scroll bar
+ *-----------------------------------------------------------------------------------------*/
+nl-internal-scroll > ng-transclude {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+}
+
+nl-internal-scroll > ng-transclude::-webkit-scrollbar {
+    width: 5px;
+}
+
+nl-internal-scroll > ng-transclude::-webkit-scrollbar-track {
+    background: #DDDDDD;
+}
+
+nl-internal-scroll > ng-transclude::-webkit-scrollbar-thumb {
+    background: #AAAAAA;
+    box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.4);
+}
+
+nl-internal-scroll > ng-transclude::-webkit-scrollbar-thumb:hover {
+    background: #777777;
+    box-shadow: inset 2px 0 0 rgba(255, 255, 255, 0.4);
+}
+
+/*-----------------------------------------------------------------------------------------*
+ * page animations
+ *-----------------------------------------------------------------------------------------*/
+.nl-anim-pg-down.ng-hide-add,
+.nl-anim-pg-down.ng-hide-remove,
+.nl-anim-pg-up.ng-hide-add,
+.nl-anim-pg-up.ng-hide-remove,
+.nl-anim-pg-same.ng-hide-add,
+.nl-anim-pg-same.ng-hide-remove {
+    transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+}
+
+/*-----------------------------------------------------------------------------------------*/
+.nl-anim-pg-down.ng-hide-add {
+    transform:translateY(0);
+}
+
+.nl-anim-pg-down.ng-hide-add.ng-hide-add-active { 
+    transform:translateY(-100%);
+}
+
+.nl-anim-pg-down.ng-hide-remove {
+    transform:translateY(100%);
+}
+
+.nl-anim-pg-down.ng-hide-remove.ng-hide-remove-active {
+    transform:translateY(0);
+}
+
+/*-----------------------------------------------------------------------------------------*/
+.nl-anim-pg-up.ng-hide-add {
+    transform:translateY(0);
+}
+
+.nl-anim-pg-up.ng-hide-add.ng-hide-add-active { 
+    transform:translateY(100%);
+}
+
+.nl-anim-pg-up.ng-hide-remove {
+    transform:translateY(-100%);
+}
+
+.nl-anim-pg-up.ng-hide-remove.ng-hide-remove-active {
+    transform:translateY(0);
+}
+
+/*-----------------------------------------------------------------------------------------*/
+.nl-anim-pg-same.ng-hide-add {
+    transform:translateY(0);
+}
+
+.nl-anim-pg-same.ng-hide-add.ng-hide-add-active { 
+    transform:translateY(0);
+}
+
+.nl-anim-pg-same.ng-hide-remove {
+    transform:translateY(0);
+}
+
+.nl-anim-pg-same.ng-hide-remove.ng-hide-remove-active {
+    transform:translateY(0);
+}
+
+/*-----------------------------------------------------------------------------------------*
+ * nlapp genetic
+ *-----------------------------------------------------------------------------------------*/
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    position: relative;
+    line-height: 1;
+    font-family: Verdana, Helvetica, Arial, sans-serif;
+}
+
+/*-----------------------------------------------------------------------------------------*
+ * applayout.html elements
+ *-----------------------------------------------------------------------------------------*/
+#nl-pagecanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    width: auto;
+    height: auto;
+}
+
+#nl-topbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background-color: #403050;
+    background-image: linear-gradient(to bottom,#403050,#807090);
+    font-size: 100%;
+    color: #ffffff; 
+}
+
+#nl-logo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 40px;
+    width: 120px;
+    cursor: pointer;
+}
+
+#nl-header {
+    position: absolute;
+    padding: 8px 4px;
+    left: 124px;
+    right: 32px;
+    height: 40px;
+    width: auto;
+    font-size: 120%;
+    text-align: center;
+}
+
+#nl-header small {
+    font-size: 70%;
+}
+
+#nl-header small a {
+    color: #FFFF80;
+}
+
+#nl-header small a:hover {
+    color: #FF8080;
+}
+
+.nl-textellipsis {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+#nl-menuicon {
+    position: absolute;
+    top: 8px;
+    right: 4px;
+    height: 24px;
+    width: 24px;
+    border-radius: 4px;
+    z-index: 4;
+    cursor: pointer;
+}
+
+#nl-menubar {
+    position: absolute;
+    top: 40px;
+    bottom: 24px;
+    right: 0;
+    width: 32px;
+}
+
+.nl-menuitem {
+    width: 24px;
+    height: 24px;
+    margin: 4px;
+    cursor: pointer;
+}
+
+.nl-menuitem:hover {
+    box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+}
+
+#nl-body {
+    position: absolute;
+    top: 44px;
+    bottom: 4px;
+    left: 4px;
+    right: 46px;
+}
+
+#nl-inner-body {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    box-shadow: 1px 1px 5px 0 #807090;
+}
+
+/*-----------------------------------------------------------------------------------------*
+ * applayout.html elements: full page view
+ *-----------------------------------------------------------------------------------------*/
+.fullpage {
+    -webkit-transition:0.3s linear all;
+    transition:0.3s linear all;
+}
+
+.borderpage {
+    -webkit-transition:0.3s linear all;
+    transition:0.3s linear all;
+}
+
+#nl-menuicon.fullpage {
+    background-color: #403050;
+    opacity: 0.2;
+}
+
+#nl-menuicon.fullpage:hover {
+    opacity: 1;
+    box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+}
+
+#nl-body.fullpage {
+    top: 4px;
+    right: 4px;
+}
+
+#nl-topbar.fullpage {
+    height: 0;
+    opacity: 0;
+}
+
+#nl-menubar.fullpage, #nl-pageno.fullpage, nl-scrollbar.fullpage {
+    width: 0;
+    opacity: 0;
+}
+
+/*-----------------------------------------------------------------------------------------*
+ * nl-scrollbar directive
+ *-----------------------------------------------------------------------------------------*/
+nl-scrollbar {
+    position: absolute;
+    top: 42px;
+    bottom: 2px;
+    right: 32px;
+    width: 10px;
+}
+
+nl-scrollbar:hover {
+    z-index: 5;
+}
+
+#nl-scrolltop, #nl-scrollbottom {
+    position: absolute;
+    width: 0; 
+    height: 0; 
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+}
+
+#nl-scrolltop {
+    top: 0;
+    border-bottom: 10px solid #AAAAAA;
+}
+
+#nl-scrolltop:hover {
+    border-bottom: 10px solid #777777;
+}
+
+#nl-scrollbottom {
+    bottom: 0;
+    border-top: 10px solid #AAAAAA;
+}
+
+#nl-scrollbottom:hover {
+    border-top: 10px solid #777777;
+}
+
+#nl-scrollarea {
+    position: absolute;
+    width: 100%;
+    top: 12px;
+    bottom: 12px;
+}
+
+#nl-scrollup, #nl-scrollthumb, #nl-scrolldown {
+    position: absolute;
+    width: 100%;
+}
+
+#nl-scrollup {
+    top: 0;
+    background-color: #DDDDDD;
+}
+
+#nl-scrolldown {
+    bottom: 0;
+    background-color: #DDDDDD;
+}
+
+#nl-scrollthumb {
+    background-color: #AAAAAA;
+}
+
+#nl-scrollthumb:hover {
+    background-color: #777777;
+}
+
+#nl-scrollthumbhint {
+    position: absolute;
+    top: 0;
+    right: 120%;
+    display: none;
+    word-break: keep-all;
+    z-index: 5;
+}
+
+#nl-pageno {
+    position: absolute;
+    bottom: 0;
+    right: -32px;
+    height: 24px;
+    z-index: 4;
+}
+
+#nl-scrollthumbhint, #nl-pageno {
+    min-width: 24px;
+    width: auto;
+
+    color: #FFFFFF;
+    background-color: #403050;
+    border-radius: 50%;
+    text-align: center;
+    padding: 4px 4px;
+    font-size: 12px;
+
+    border: 2px solid #FFFFFF;
+}
+
+nl-scrollbar:hover #nl-pageno {
+    z-index: -1;
+}
+
+/*-----------------------------------------------------------------------------------------*
+ * nl-card
+ *-----------------------------------------------------------------------------------------*/
+nl-cards {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.nl-card-page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.nl-card-table {
+    width: 100%;
+    height: 100%;
+}
+
+.nl-card-table TD {
+    vertical-align: middle;
+}
+
+.nl-card {
+    display: inline-block;
+    text-align: center;
+    position: relative;
+    
+    /* Stuff changed in javascript*/
+    height: 200px;
+    width: 300px;
+    font-size: 100%;
+}
+
+.nl-card-holder {
+    position: absolute;
+    top: 5%;
+    left: 5%;
+    height: 90%;
+    width: 90%;
+    
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 rgba(170,170,255,0.1), 0 0 5px rgba(128,128,255,0.8);
+}
+
+.nl-card-header {
+    position: absolute;
+    top: 2%;
+    left: 2%;
+    height: 10%;
+    width: 96%;
+    font-size: 120%;
+    color: #000077;
+    text-decoration: none;
+}
+
+a.nl-card-header:hover {
+    text-decoration: underline;
+}
+
+.nl-card-img {
+    position: absolute;
+    top: 23%;
+    left: 2%;
+    height: 54%;
+    width: 36%;
+    text-align: center;
+}
+
+.nl-card-img img {
+    height: 100%;
+    width: 100%;
+}
+
+.nl-card-img:hover {
+    box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+}
+
+.nl-card-desc {
+    position: absolute;
+    top: 16%;
+    left: 42%;
+    height: 68%;
+    width: 56%;
+    font-size: 110%;
+    text-align: left;
+}
+
+.nl-card-links {
+    position: absolute;
+    height: 10%;
+    bottom: 2%;
+    left: 2%;
+    right: 2%;
+    font-size: 120%;
+}
+
+/*-----------------------------------------------------------------------------------------*
+ * nl-lesson
+ *-----------------------------------------------------------------------------------------*/
+.nl-lesson {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: green;
+}
+
+.nl-page {
+    position: absolute;
+    left: 0;
+    right: 10px;
+    height: 100%;
+    background-color: green;
+}
+

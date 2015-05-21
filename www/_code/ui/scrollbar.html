@@ -1,0 +1,33 @@
+<div id='nl-scrolltop' on-tap='scrollUp($event)'>
+</div>
+
+<div id='nl-scrollarea'>
+    <div id='nl-scrollup' 
+         on-tap='scrollUp($event)'
+         ng-style="{height:pageNoData.thumbTop + '%'}">
+    </div>
+    
+    <div id='nl-scrollthumb' 
+         on-touch='onTouch($event)' on-drag='onScroll($event)' on-release='onRelease($event)'
+         on-swipe-up='scrollUp($event)'
+         on-swipe-down='scrollDown($event)'
+         ng-style="{top:pageNoData.thumbTop + '%', height:pageNoData.thumbHeight + '%'}">
+        <div id='nl-scrollthumbhint'>
+            {{scrollingPageNo}}/{{pageNoData.totalPages}}
+        </div>
+    </div>
+    
+    <div id='nl-scrolldown' 
+         on-tap='scrollDown($event)'
+         ng-style="{height:(100 - pageNoData.thumbTop - pageNoData.thumbHeight) + '%'}">
+    </div>
+</div>
+
+<div id='nl-scrollbottom' on-tap='scrollDown($event)'>
+</div>
+
+
+<div id='nl-pageno' ng-show='isMenuShown && pageNoData.totalPages>1' 
+     ng-class='{fullpage:!isMenuShown, borderpage:isMenuShown}'>
+    {{pageNoData.currentPage}}
+</div>

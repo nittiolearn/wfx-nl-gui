@@ -1,0 +1,4 @@
+www/js/.*
+coverage/.*
+platforms/.*
+node_modules/.*

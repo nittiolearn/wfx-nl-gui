@@ -1,0 +1,29 @@
+<ion-view view-title="Create lesson">
+    <ion-content style='text-align: center'>
+        <form ng-submit="create()">
+            <div class="list">
+                <label class="item item-input">
+                    <span class="input-label">Lesson Id</span>
+                    <input type="number" min=0 ng-model='lessonId'>
+                </label>
+                <label class="item item-input"> 
+                    <span class="input-label">Content</span>
+                    <textarea ng-model='content'></textarea>
+                </label>
+                <label class="item">
+                    <button class="button button-block button-positive" type="submit">
+                        Create
+                    </button>
+                </label>
+            </div>
+        </form>
+        <div style='text-align: left; margin: 5px 25px;'>
+            <b>Lesson id:</b> {{lessonId}}
+            <hr/>
+            <b>content:</b>
+            <div>{{content}}</div>
+            <hr/>
+            <b>Status:</b> {{message}}
+        </div>
+    </ion-content>
+</ion-view>
