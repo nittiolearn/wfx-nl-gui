@@ -1,8 +1,0 @@
-<div nl-loading='content' nl-load-done='onLoaded' class='nl-lesson'>
-    <div class='nl-page' ng-class='pageNoData.pageAnim'
-         ng-repeat='page in content.pages'
-         ng-show='$index + 1 == pageNoData.currentPage'>
-        <H1>Page - {{$index + 1}}</H1>
-        <P ng-repeat='section in page.sections'>{{section.text}}</P>
-    </div>
-</div>

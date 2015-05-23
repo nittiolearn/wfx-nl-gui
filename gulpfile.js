@@ -14,8 +14,8 @@ var streamqueue = require('streamqueue');
 var inPaths = {
     lib: './www/_extern/',
     html : './www/_code/**/*.html',
-    css : './www/_code/_css/*.css',
-    scss : './www/_code/_css/*.scss',
+    css : './www/_code/css/*.css',
+    scss : './www/_code/css/*.scss',
     js : './www/_code/**/*.js'
 };
 
@@ -47,7 +47,7 @@ gulp.task('clean', function(done) {
 gulp.task('nl_copy', ['nl_copy_extjs', 'nl_copy_extfonts', 'nl_copy_nittioold_ext', 'nl_copy_nittioold']);
 
 gulp.task('nl_copy_extjs', function(done) {
-    var extFiles = [inPaths.lib + 'ionic/js/ionic.bundle.min.js',
+    var extFiles = [inPaths.lib + 'ionic/js/ionic.bundle.js',
                     inPaths.lib + 'ydn-db/ydn.db-isw-core-qry.*'];
     gulp.src(extFiles)
     .pipe(gulp.dest(outPath))

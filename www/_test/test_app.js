@@ -8,8 +8,8 @@ function thisWillBeCalled() {
     return 6;
 }
 
-describe("A suite", function() {
-    it("contains spec with an expectation", function() {
+describe('A suite', function() {
+    it('contains spec with an expectation', function() {
         thisWillBeCalled();
         expect(true).toBe(true);
     });

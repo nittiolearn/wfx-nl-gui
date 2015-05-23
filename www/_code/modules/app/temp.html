@@ -1,0 +1,57 @@
+<style>
+    .mytable {
+        width: 100%; line-spacing:150%; font-size: 150%;
+    }
+    
+    .mytable TH {
+        text-align: left;
+    }
+
+    .mytable TD, .mytable TH {
+        border: 2px solid white;
+        padding: 4px;
+        background-color: #DDFFAA;
+    }
+
+    .mytable TH {
+        background-color: #BBFF99;
+    }
+    
+    .buttons input, .buttons button {
+        margin: 5px;
+        display:inline;
+    }
+    
+    .buttons input {
+        border-bottom: 2px dashed #777777;
+    }
+    
+    .buttons {
+        margin: 10px;
+        padding: 10px;
+        border: 1px solid black;
+    }
+    
+</style>
+
+<nl-internal-scroll page-no-data='pageNoData' style='backgroud-color:green'>
+    <div class='buttons'>
+        <span>nLessons: </span><input type='number' ng-model='lessoncnt'></input>
+        <span>nAssigns: </span><input type='number' ng-model='assigncnt'></input>
+        <button ng-click='updateDummyData()'>Update Dummy Data</button>
+    </div>
+    <h2>dummy_method1</h2>
+    <table class='mytable'>
+        <tr><th>#</th><th>Attribute</th><th>Value</th></tr>
+        <tr ng-repeat='avp in httpResult1'>
+            <td>{{$index+1}}</td><td>{{avp.attr}}</td><td>{{avp.val}}</td>
+        </tr>
+    </table>
+    <h2>dummy_method2</h2>
+    <table class='mytable'>
+        <tr><th>#</th><th>Attribute</th><th>Value</th></tr>
+        <tr ng-repeat='avp in httpResult2'>
+            <td>{{$index+1}}</td><td>{{avp.attr}}</td><td>{{avp.val}}</td>
+        </tr>
+    </table>
+</nl-internal-scroll>
