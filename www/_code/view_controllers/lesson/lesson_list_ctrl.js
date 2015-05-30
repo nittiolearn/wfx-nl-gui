@@ -1,7 +1,8 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// Lesson module
+// lesson_list_ctrl.js:
+// Controllers at lesson list level
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.lesson_list_ctrl', [])
@@ -17,7 +18,7 @@ function config($stateProvider, $urlRouterProvider) {
         url : '/lesson/:listtype',
         views : {
             'appContent' : {
-                templateUrl : 'lib_ui/cardsview.html',
+                templateUrl : 'lib_ui/cards/cardsview.html',
                 controller : 'nl.LessonListCtrl'
             }
         }
@@ -25,24 +26,24 @@ function config($stateProvider, $urlRouterProvider) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var LessonListCtrl = ['nlLog', 'nlRes', 'nlServerApi', '$scope', 
-function(nlLog, nlRes, nlServerApi, $scope) {
+var LessonListCtrl = ['nl', 'nlServerApi', '$scope', 
+function(nl, nlServerApi, $scope) {
     $scope.title = 'View Approved Lessons';
     $scope.cards = [];
 
     nlServerApi.getLessonList('approved', null).then(function(result) {
         console.log('getLessonList success:', result);
-        _updateCards($scope.cards, result, nlRes);
+        _updateCards($scope.cards, result, nl);
         $scope.onCardsRepaginate();
     }, function(error) {
         console.log('getLessonList failed:', error);
     });
 }];
 
-function _updateCards(cards, lessons, nlRes) {
+function _updateCards(cards, lessons, nl) {
     for(var i=0; i<lessons.length; i++) {
         var l = lessons[i];
-        var card = {title:l.name, icon: nlRes.lessonIcon(l.image), url:'#/app/lesson_view/' + l.id};
+        var card = {title:l.name, icon: nl.url.lessonIcon(l.image), url:'#/app/lesson_view/' + l.id};
         card.desc = l.description;
         cards.push(card);
     }    

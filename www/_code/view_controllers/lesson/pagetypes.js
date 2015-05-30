@@ -1,7 +1,8 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// Collection of all lesson modules
+// pagetypes.js:
+// lesson page types module
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     console.log('nl.lesson.pagetypes');
@@ -13,10 +14,10 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var PageTypeSrv = ['nlLog', 
-function(nlLog) {
+var PageTypeSrv = ['nl', 
+function(nl) {
     this.createNew = function(oPage) {
-        var pt = new PageType(nlLog);
+        var pt = new PageType(nl);
         pt.init(oPage);
         return pt;
     };
@@ -33,8 +34,8 @@ var ANSWERED_YES = 2;
 // PageType is the externally exported class which abstracts the functionality of this
 // Java script. With each page in a lesson, a PageType object will be created and attached.
 //-------------------------------------------------------------------------------------------------
-function PageType(nlLog) {
-    this.nlLog = nlLog;
+function PageType(nl) {
+    this.nl = nl;
     
     // Externally used methods
     this.init = PageType_init;

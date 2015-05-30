@@ -1,7 +1,8 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// Lesson module
+// lesson_ctrl.js:
+// Controllers at lesson level
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.lesson_ctrl', [])
@@ -18,7 +19,7 @@ function config($stateProvider, $urlRouterProvider) {
         url : '/lesson_create',
         views : {
             'appContent' : {
-                templateUrl : 'modules/lesson/lesson_create.html',
+                templateUrl : 'view_controllers/lesson/lesson_create.html',
                 controller : 'nl.LessonCreateCtrl'
             }
         }
@@ -27,7 +28,7 @@ function config($stateProvider, $urlRouterProvider) {
         url : '/lesson_view/:lessonId',
         views : {
             'appContent' : {
-                templateUrl : 'modules/lesson/player.html',
+                templateUrl : 'view_controllers/lesson/player.html',
                 controller : 'nl.LessonCtrl'
             }
         }
@@ -35,8 +36,8 @@ function config($stateProvider, $urlRouterProvider) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var LessonCreateCtrl = ['nlLog', 'nlRes', 'nlDb', '$scope', 'nlDummy',
-function(nlLog, nlRes, nlDb, $scope, nlDummy) {
+var LessonCreateCtrl = ['nl', '$scope', 'nlDummy',
+function(nl, $scope, nlDummy) {
     $scope.lessonId = 0;
     
     $scope.content = angular.toJson(nlDummy.getSampleContent(0));
@@ -45,7 +46,7 @@ function(nlLog, nlRes, nlDb, $scope, nlDummy) {
         var lessonId = this.lessonId;
         var content = angular.fromJson(this.content);
         $scope.message = 'Writing to db ' + lessonId;
-        var db = nlDb.get();
+        var db = nl.db.get();
         db.put('lesson', content, lessonId)
         .then(function(key) {
             $scope.message = 'wrote to db ' + key;         
@@ -56,10 +57,10 @@ function(nlLog, nlRes, nlDb, $scope, nlDummy) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var LessonCtrl = ['nlLog', 'nlRes', 'nlDb', '$scope', '$stateParams',
-function(nlLog, nlRes, nlDb, $scope, $stateParams) {
+var LessonCtrl = ['nl', '$scope', '$stateParams',
+function(nl, $scope, $stateParams) {
     $scope.lessonId = parseInt($stateParams.lessonId);
-    nlLog.debug('Enter LessonCtrl: ' + $scope.lessonId);
+    nl.log.debug('Enter LessonCtrl: ' + $scope.lessonId);
 }];
 
 //-------------------------------------------------------------------------------------------------

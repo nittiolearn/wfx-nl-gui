@@ -1,7 +1,8 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// UI collection module
+// temp.js:
+// Temp module for experimentation
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.temp', [])
@@ -17,7 +18,7 @@ function($stateProvider, $urlRouterProvider) {
         url : '/temp',
         views : {
             'appContent' : {
-                templateUrl : 'modules/app/temp.html',
+                templateUrl : 'view_controllers/temp.html',
                 controller : 'nl.TempCtrl'
             }
         }
@@ -25,15 +26,15 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlDummy = ['nlLog', 'nlRes', 'nlDb',
-function(nlLog, nlRes, nlDb) {
+var NlDummy = ['nl',
+function(nl) {
     this.getSampleContent = function(lessonId) {
         return _getSampleContent(lessonId);
     };
     
     this.populateDummyData = function(nLesson, nAssign) {
         console.log('db.populateDummyData:', nLesson, nAssign);
-        var db = nlDb.get();
+        var db = nl.db.get();
         for (var i=0; i<nLesson; i++) {
             _createDummyLesson(db, i);
         }
@@ -81,14 +82,14 @@ function _randElem(arr) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var TempCtrl = ['nlLog', 'nlRes', '$scope', '$stateParams', '$location', '$http', 'nlDb', 'nlDummy',
-function(nlLog, nlRes, $scope, $stateParams, $location, $http, nlDb, nlDummy) {
-    //_ajaxRequest(method1, $scope, 'httpResult1', $http);
-    //_ajaxRequest(method2, $scope, 'httpResult2', $http);
+var TempCtrl = ['nl', '$scope', '$stateParams', '$location', 'nlDummy',
+function(nl, $scope, $stateParams, $location, nlDummy) {
+    //_ajaxRequest(nl, method1, $scope, 'httpResult1');
+    //_ajaxRequest(nl, method2, $scope, 'httpResult2');
     $scope.lessoncnt=10;
     $scope.assigncnt=10;
     $scope.updateDummyData = function() {
-        nlDb.clearDb();
+        nl.db.clearDb();
         nlDummy.populateDummyData(this.lessoncnt, this.assigncnt);
     };
     
@@ -98,8 +99,8 @@ var server = 'https://65-dot-nittio-org.appspot.com';
 var method1 = '/default/dummy_method.json';
 var method2 = '/default/dummy_method2.json';
 
-function _ajaxRequest(method, $scope, resultVar, $http) {
-    $http.get(server + method, {cache: false})
+function _ajaxRequest(nl, method, $scope, resultVar) {
+    nl.http.get(server + method, {cache: false})
     .success(function(data, status, headers, config) {
         console.log('_ajaxRequest HTTP success: ', method, data, status, headers, config);
         $scope[resultVar] = [];

@@ -24,7 +24,7 @@ function config($stateProvider, $urlRouterProvider) {
 //-----------------------------------------------------------------------------
 // Main controller
 //-----------------------------------------------------------------------------
-function LoginCtrl($scope, $ionicModal, $timeout) {
+function LoginCtrl(nl, $scope, $ionicModal) {
     // Form data for the login modal
     $scope.value = 'Munni';
     $scope.loginData = {};
@@ -52,7 +52,7 @@ function LoginCtrl($scope, $ionicModal, $timeout) {
 
         // Simulate a login delay. Remove this and replace with your login
         // code if using a login system
-        $timeout(function() {
+        nl.timeout(function() {
             $scope.closeLogin();
         }, 1000);
     };

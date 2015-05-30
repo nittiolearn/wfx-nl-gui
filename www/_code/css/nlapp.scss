@@ -24,3 +24,71 @@ $ionicons-font-path: "lib/ionic/fonts" !default;
 // Include all of Ionic
 @import "www/_extern/ionic/scss/ionic";
 
+/*-----------------------------------------------------------------------------------------*
+ * nl specific definitions used in overriding ionic defaults
+ *-----------------------------------------------------------------------------------------*/
+
+//-----------------------------------------------------------------------------------------
+// Dialog Box animations
+@-webkit-keyframes nlDropDown {
+  from {
+    @include transform(translate(0, -100%));
+    opacity: 1; 
+  }
+  to {
+    @include transform(translate(0, 0));
+    opacity: 1; 
+  }
+}
+
+@keyframes nlDropDown {
+  from {
+    @include transform(translate(0, -100%));
+    opacity: 1; 
+  }
+  to {
+    @include transform(translate(0, 0));
+    opacity: 1; 
+  }
+}
+
+@-webkit-keyframes nlRaiseUp {
+  from {
+    @include transform(translate(0, 0));
+    opacity: 1; 
+  }
+  to {
+    @include transform(translate(0, -100%));
+    opacity: 0; 
+  }
+}
+
+@keyframes nlRaiseUp {
+  from {
+    @include transform(translate(0, 0));
+    opacity: 1; 
+  }
+  to {
+    @include transform(translate(0, -100%));
+    opacity: 0; 
+  }
+}
+
+/*-----------------------------------------------------------------------------------------*
+ * overriding some ionic defaults
+ *-----------------------------------------------------------------------------------------*/
+$animation-duration: 200ms !default;
+
+.popup-container {
+  &.active .popup {
+    //@include animation-name(nlDropDown);
+    @include animation-duration($animation-duration);
+  }
+
+  &.popup-hidden .popup {
+    //@include animation-name(nlRaiseUp);
+    @include animation-duration($animation-duration);
+  }
+}
+
+

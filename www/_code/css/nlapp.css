@@ -1,8 +1,14 @@
 /*-----------------------------------------------------------------------------------------*
  * overrides
  *-----------------------------------------------------------------------------------------*/
-.disable-user-behavior {
-    -webkit-touch-callout: default;
+.loading-container .loading {
+    padding: 2%;
+    border-radius: 50%;
+    z-index: 8;
+}
+
+.loading-container {
+    z-index: 8;
 }
 
 /* nl specific css */
@@ -16,20 +22,20 @@ nl-internal-scroll > ng-transclude {
     overflow-y: auto;
 }
 
-nl-internal-scroll > ng-transclude::-webkit-scrollbar {
+.nl-thin-scroll::-webkit-scrollbar {
     width: 5px;
 }
 
-nl-internal-scroll > ng-transclude::-webkit-scrollbar-track {
+.nl-thin-scroll::-webkit-scrollbar-track {
     background: #DDDDDD;
 }
 
-nl-internal-scroll > ng-transclude::-webkit-scrollbar-thumb {
+.nl-thin-scroll::-webkit-scrollbar-thumb {
     background: #AAAAAA;
     box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.4);
 }
 
-nl-internal-scroll > ng-transclude::-webkit-scrollbar-thumb:hover {
+.nl-thin-scroll::-webkit-scrollbar-thumb:hover {
     background: #777777;
     box-shadow: inset 2px 0 0 rgba(255, 255, 255, 0.4);
 }
@@ -40,9 +46,7 @@ nl-internal-scroll > ng-transclude::-webkit-scrollbar-thumb:hover {
 .nl-anim-pg-down.ng-hide-add,
 .nl-anim-pg-down.ng-hide-remove,
 .nl-anim-pg-up.ng-hide-add,
-.nl-anim-pg-up.ng-hide-remove,
-.nl-anim-pg-same.ng-hide-add,
-.nl-anim-pg-same.ng-hide-remove {
+.nl-anim-pg-up.ng-hide-remove {
     transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
 }
 
@@ -133,7 +137,6 @@ body {
     height: 40px;
     background-color: #403050;
     background-image: linear-gradient(to bottom,#403050,#807090);
-    font-size: 100%;
     color: #ffffff; 
 }
 
@@ -367,6 +370,122 @@ nl-scrollbar:hover #nl-pageno {
 }
 
 /*-----------------------------------------------------------------------------------------*
+ * nl-dlg
+ *-----------------------------------------------------------------------------------------*/
+.nl-dlg .popup {
+    position: absolute;
+    top: 40px;
+    left: 40px;
+    right: 40px;
+    bottom: 40px;
+    width: auto;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 2px 2px 10px 5px #402000;
+    text-align: left;
+    opacity: 0.5;
+    background-color: #FFFFFF;
+}
+
+.nl-dlg .popup-head {
+    position: absolute;
+    top: 0;
+    height: 0;
+}
+
+.nl-dlg .popup-body {
+    position: absolute;
+    top: 0;
+    bottom: 40px;
+    height: auto;
+    width: 100%;
+    padding: 0 0 4px 0;
+}
+
+.nl-dlg-header {
+    position: absolute;
+    height: 32px;
+    width: 100%;
+    background-color: #E06000;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
+.nl-dlg-title {
+    font-size: 120%;
+    text-align: center;
+    color: white;
+    padding: 8px 4px;
+    line-height: 120%;
+}
+
+.nl-dlg-title-help, .nl-dlg-title-close  {
+    position: absolute;
+    top: 4px;
+    height: 24px;
+    width: 24px;
+    cursor:pointer;
+}
+
+.nl-dlg-title-help {
+    right: 32px;
+}
+
+.nl-dlg-title-close {
+    right: 4px;
+}
+
+.nl-dlg-help {
+    background-color: #E5FF80;
+    border-radius: 4px;
+    padding: 8px;
+    margin: 8px;
+    box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
+}
+
+.nl-dlg-body {
+    position: absolute;
+    top: 40px;
+    bottom: 40px;
+    height: auto;
+    width: 100%;
+    overflow:auto;
+}
+
+.nl-dlg-content > div {
+    margin: 1%;
+    width: 98%;
+}
+
+.nl-dlg-content > table {
+    text-align: center;
+    margin: 1%;
+    width: 98%;
+}
+
+.nl-dlg .popup-buttons {
+    position: absolute;
+    height: 40px;
+    bottom: 0;
+    width: 100%;
+    border-top: 1px solid #D05000;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.nl-dlg .popup-buttons button {
+    text-align: center;
+    margin: 4px;
+    color: #FFFFFF;
+    background: #D05000;
+}
+
+.nl-dlg .popup-buttons button:hover, .nl-dlg .popup-buttons button:focus {
+    color: #FFFFFF;
+    background: #B03000;
+}
+
+/*-----------------------------------------------------------------------------------------*
  * nl-card
  *-----------------------------------------------------------------------------------------*/
 nl-cards {
@@ -477,7 +596,7 @@ a.nl-card-header:hover {
     left: 0;
     height: 100%;
     width: 100%;
-    background-color: red;
+    font-size: 36px;
 }
 
 .nl-page {
@@ -486,10 +605,33 @@ a.nl-card-header:hover {
     left: 1%;
     height: 98%;
     width: 98%;
-    background-color: blue;
+    border: 1px dashed blue;
 }
 
 .nl-section {
+}
+
+.nl-section > .nl-sec-view {
     position: absolute;
     background-color: green;
+}
+
+.nl-section > .nl-sec-text {
+    position: absolute;
+    background: none;
+    border: 1px solid red;
+    border-radius: 8px;
+    opacity: 0.8;
+    line-height: 100%;
+    resize: none;
+}
+
+.nl-section > .nl-sec-text:active {
+    opacity: 1;
+}
+
+.nl-section > .nl-sec-templ {
+}
+
+.nl-section > .nl-sec-lc {
 }

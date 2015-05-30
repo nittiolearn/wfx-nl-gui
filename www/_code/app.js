@@ -3,19 +3,16 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// Main application module with controllers for the layout and the home dashboard
+// app.js:
+// Main application module with controllers for the overall layout
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     _patchToIonicRightClickIssue();
     
-    var deps = ['ionic', 'nl.html_fragments', 'nl.utils', 'nl.server_api', 'nl.db'];
-    deps = deps.concat(['nl.ui', 'nl.assign', 'nl.lesson']);
-    deps = deps.concat(['nl.temp']);
-
+    var deps = ['ionic', 'nl.html_fragments', 'nl.lib', 'nl.lib_ui', 'nl.server_api', 'nl.view_controllers'];
     angular.module('nl.app', deps)
     .config(configFn)
     .controller('nl.AppCtrl', AppCtrl)
-    .controller('nl.HomeCtrl', HomeCtrl)
     .run(['$ionicPlatform', function($ionicPlatform) {
         $ionicPlatform.ready(onIonicReady);
     }]);
@@ -54,18 +51,8 @@ function($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
     $stateProvider.state('app', {
         cache: true,
         url : '/app',
-        templateUrl : 'modules/app/applayout.html',
+        templateUrl : 'applayout.html',
         controller : 'nl.AppCtrl'
-    });
-    $stateProvider.state('app.home', {
-        cache: true,
-        url : '/home',
-        views : {
-            'appContent' : {
-                templateUrl : 'lib_ui/cardsview.html',
-                controller : 'nl.HomeCtrl'
-            }
-        }
     });
 }];
 
@@ -83,18 +70,18 @@ function onIonicReady() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var AppCtrl = ['nlLog', 'nlRes', '$scope', '$stateParams', '$location', 'nlPageNoSrv', 'nlKeyboardHandler', 
-function(nlLog, nlRes, $scope, $stateParams, $location, nlPageNoSrv, nlKeyboardHandler) {
+var AppCtrl = ['nl', '$scope', '$stateParams', '$location', 'nlDlg', 'nlKeyboardHandler', 
+function(nl, $scope, $stateParams, $location, nlDlg, nlKeyboardHandler) {
     $scope.logo = 'img/top-logo.png';
     $scope.title = 'Nittio Learn';
     $scope.subTitle = 'TODO 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 ';
     $scope.subTitle = '';
-    $scope.pageNoData = nlPageNoSrv;
+    $scope.pageNoData = nl.pgno;
     $scope.pageNoData.totalPages = 1;
     $scope.pageNoData.currentPage = 1;
 
     $scope.isMenuShown = true;
-    _updateMenuState(nlRes, $scope);
+    _updateMenuState(nl, $scope);
 
     $scope.onHomeClick = function() {
         $location.path('#');
@@ -102,59 +89,40 @@ function(nlLog, nlRes, $scope, $stateParams, $location, nlPageNoSrv, nlKeyboardH
 
     $scope.onMenuClick = function() {
         $scope.isMenuShown = !($scope.isMenuShown);
-        _updateMenuState(nlRes, $scope);
+        _updateMenuState(nl, $scope);
     };
 
+    var dlg = nlDlg.create($scope, 'lib_ui/dlg/testdlg.html');
+    dlg.showRecursive = function(level) {
+        dlg.show([{text: 'Reshow-' + level, onTap: function(e) {
+            dlg.showRecursive(level+1);
+            e.preventDefault();
+        }}]);
+    };
+    
     $scope.menuitems = [
-        {img: nlRes.menuIcon('home.png'), alt:'home', title:'Home', handler: function() {
+        {img: nl.url.menuIcon('home.png'), alt:'home', title:'Home', handler: function() {
             $scope.onHomeClick();
-        }}, {img: nlRes.menuIcon('help.png'), alt:'help', title:'Help', handler: function() {
-            nlLog.debug('TODO: onHelpClick');
-        }}, {img: nlRes.menuIcon('login.png'), alt:'login', title:'Login', handler: function() {
-            nlLog.debug('TODO: onLoginClick');
+        }}, {img: nl.url.menuIcon('help.png'), alt:'help', title:'Help', handler: function() {
+            nl.log.debug('TODO: onHelpClick');
+            dlg.showRecursive(2);
+        }}, {img: nl.url.menuIcon('login.png'), alt:'login', title:'Login', handler: function() {
+            nl.log.debug('TODO: onLoginClick');
         }}];
     
     $scope.onKeyDown = nlKeyboardHandler.onKeyDown;
     $scope.onSwipe = nlKeyboardHandler.onSwipe;
 }];
 
-function _updateMenuState(nlRes, $scope) {
+function _updateMenuState(nl, $scope) {
     if ($scope.isMenuShown) {
-        $scope.menuicon = nlRes.menuIcon('menuhide.png');
+        $scope.menuicon = nl.url.menuIcon('menuhide.png');
         $scope.menuicontext = 'Hide Menu';        
     } else {
-        $scope.menuicon = nlRes.menuIcon('menushow.png');
+        $scope.menuicon = nl.url.menuIcon('menushow.png');
         $scope.menuicontext = 'Show Menu';
     }
 }
-
-//-------------------------------------------------------------------------------------------------
-var HomeCtrl = ['nlLog', 'nlRes', '$scope', '$stateParams', 'nlServerApi',
-function(nlLog, nlRes, $scope, $stateParams, nlServerApi) {
-    $scope.title = 'Nittio Learn';
-    $scope.cards = nlServerApi.getDashboardCards();
-
-    $scope.onHold = function(event) {
-        console.log('onHold');
-        event.preventDefault();
-        return false;
-    };
-    $scope.onTap = function(event) {
-        console.log('onTap');
-        event.preventDefault();
-        return false;
-    };
-    $scope.onDoubleTap = function($event) {
-        console.log('onDoubleTap');
-        $event.preventDefault();
-        return false;
-    };
-    $scope.onTouch = function($event) {
-        console.log('onTouch');
-        $event.preventDefault();
-        return false;
-    };
-}];
 
 module_init();
 })();

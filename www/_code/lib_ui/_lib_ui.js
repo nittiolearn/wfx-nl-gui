@@ -1,10 +1,11 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// Collection of all lesson modules
+// _lib_ui.js:
+// Module summarizing the list of modiles in lib_ui folder
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-    angular.module('nl.lesson', ['nl.lesson_list_ctrl', 'nl.lesson_ctrl', 'nl.lesson.player', 'nl.lesson.pagetypes']);
+    angular.module('nl.lib_ui', ['nl.ui.dlg', 'nl.ui.cards', 'nl.ui.scroll', 'nl.ui.utils']);
 }
 
 //-------------------------------------------------------------------------------------------------

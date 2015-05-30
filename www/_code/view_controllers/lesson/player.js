@@ -1,7 +1,8 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// Collection of all lesson modules
+// player.js:
+// Lesson player module
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     console.log('nl.lesson.player.js');
@@ -10,8 +11,8 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var PlayerDirective = ['$timeout', 'nlUtils', 'nlPageNoSrv', 'nlScrollbarSrv', 'nlServerApi', 'nlPageType',
-function($timeout, nlUtils, nlPageNoSrv, nlScrollbarSrv, nlServerApi, nlPageType) {
+var PlayerDirective = ['nl', 'nlScrollbarSrv', 'nlServerApi', 'nlPageType',
+function(nl, nlScrollbarSrv, nlServerApi, nlPageType) {
     return {
         restrict: 'E',
         transclude: true,
@@ -20,7 +21,7 @@ function($timeout, nlUtils, nlPageNoSrv, nlScrollbarSrv, nlServerApi, nlPageType
             launchCtx: '@',
             pageNoData: '='
         },
-        templateUrl: 'modules/lesson/player_directive.html',
+        templateUrl: 'view_controllers/lesson/player_directive.html',
         link: function($scope, iElem, iAttrs) {
             $scope.lesson = null;
             nlServerApi.getLesson($scope.lessonId).then(function(oLesson) {
@@ -34,12 +35,13 @@ function($timeout, nlUtils, nlPageNoSrv, nlScrollbarSrv, nlServerApi, nlPageType
             $scope.onLoaded = function() {
                 // TODO - is this needed?
             };
-            nlUtils.onViewEnter($scope.$parent, function() {
+            nl.router.onViewEnter($scope.$parent, function() {
                 console.log('view enter');
                 if ($scope.lesson == null) return;
                 nlScrollbarSrv.setTotal($scope.lesson.pages.length);
                 nlScrollbarSrv.gotoPage(1);
             });
+            
          }
     };
 }];
@@ -60,6 +62,7 @@ function _launchMode(lesson, checkValues) {
 //-------------------------------------------------------------------------------------------------
 function Lesson(oLesson, launchCtx, playerServices) {
     _Lesson_init(this, oLesson, launchCtx, playerServices);
+    this.changeMode = _Lesson_changeMode;
 }
 
 function _Lesson_init(self, oLesson, launchCtx, playerServices) {
@@ -71,6 +74,15 @@ function _Lesson_init(self, oLesson, launchCtx, playerServices) {
     for (var i = 0; i < self.oLesson.pages.length; i++) {
         self.pages.push(new Page(self, self.oLesson.pages[i]));
     }
+
+    self.showView = true;
+    self.showText = false;
+}
+
+function _Lesson_changeMode() {
+    var self = this;
+    self.showText = self.showView;
+    self.showView = !self.showView;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -110,7 +122,7 @@ function _randSet(nSize, randPosArray) {
         ret.push(i);
     }
 
-    randLen = randPosArray.length;
+    var randLen = randPosArray.length;
     for (var pos = 0; pos < randLen; pos++) {
         var i = randPosArray[pos];
         var j = randPosArray[Math.floor(Math.random() * randLen)];
@@ -138,9 +150,8 @@ function _Section_init(self, lesson, page, oSection, secNo, secPosShuffled) {
     self.secNo = secNo; // Original position
     self.secPosShuffled = secPosShuffled; // Position after randomizing
     self.styleAlign = self.page.pt.getSectionHalign(self.secNo);
-    self.styleSec = self.page.pt.getSectionPos(self.secNo);
-    self.styleSecTextPos = self.page.pt.getSectionPos(self.secNo);
-    self.styleSecViewPos = self.page.pt.getSectionPos(self.secPosShuffled);
+    self.styleTextPos = self.page.pt.getSectionPos(self.secNo);
+    self.styleViewPos = self.page.pt.getSectionPos(self.secPosShuffled);
 }
 
 //-------------------------------------------------------------------------------------------------

@@ -10,6 +10,8 @@ var angularTemplCache = require('gulp-angular-templatecache');
 var minifyHtml = require('gulp-minify-html');
 var uglify = require('gulp-uglify');
 var streamqueue = require('streamqueue');
+var print = require('gulp-print');
+var order = require('gulp-order');
 
 var inPaths = {
     lib: './www/_extern/',
@@ -105,6 +107,7 @@ gulp.task('nl_css', function(done) {
 
 gulp.task('nl_js', function(done) {
     gulp.src(inPaths.js)
+    .pipe(order())
     .pipe(concat('nl.bundle.js'))
     .pipe(gulp.dest(outPath))
     //.pipe(uglify())
