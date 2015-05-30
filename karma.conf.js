@@ -15,8 +15,10 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'www/_extern/ionic/js/ionic.bundle.min.js',
-      'www/_extern/ydn-db/ydn.db-isw-core-qry.js',
+      'www/js/ionic.bundle.min.js',
+      'www/js/ydn.db-isw-core-qry.js',
+      'www/js/nl.html_fragments.min.js',
+      'node_modules/angular-mocks/angular-mocks.js',
       'www/_code/**/*.js',
       'www/_test/**/*.js'
     ],

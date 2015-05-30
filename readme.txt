@@ -37,6 +37,15 @@ Needed first time setup steps:
 7. Run "npm install" to update the needed node modules.
 8. Run "gulp rebuild" to build the nittioapp first time.
 
+Syncing your code to latest code
+================================
+1. Open TortoiseHg Workbench
+2. Synchronize repository content
+   - Click the tool bar icon with hover text "Pull incomming changes from selected URL"
+3. Open a shell/command prompt into the root folder of repository (nittioapp folder).
+4. Run "npm install" to update the needed node modules.
+5. Run "gulp rebuild" to build the nittioapp first time.
+
 Running the app on your machine
 ===============================
 1. Open a shell/command prompt into the root folder of repository (nittioapp folder).
@@ -45,8 +54,9 @@ Running the app on your machine
 Unit testing the app on your machine
 ====================================
 1. Open a shell/command prompt into the root folder of repository (nittioapp folder).
-2. Run "karma start karma.conf.js" to run all unit testcases.
-3. Under [nittioapp folder]/coverage folder you will see a directory per browser. Go into Chrome folder
+2. Run "gulp karma" to run all unit testcases in chrome browser.
+3. Once all tests are through, "gulp karma_all" to run all unit testcases in all configured browsers.
+4. Under [nittioapp folder]/coverage folder you will see a directory per browser. Go into Chrome folder
    and click on index.html. This shows the code coverage achieved with your tests.
 
 Setting up android platform

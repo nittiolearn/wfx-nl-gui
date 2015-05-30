@@ -1,17 +1,36 @@
-console.log('Hello 1');
+"use strict";
 
-function thisWillBeCalled() {
-    var a=1;
-    for (var i=0; i<100; i++) {
-        a=a+1;
-    }
-    return 6;
-}
+describe('Test suite for app.js', function() {
+    beforeEach(angular.mock.module('nl.app'));
 
-describe('A suite', function() {
-    it('contains spec with an expectation', function() {
-        thisWillBeCalled();
-        expect(true).toBe(true);
+    var location = null;
+    describe('Test sub-suite for nl.AppCtrl', function() {
+        var $scope = null;
+        beforeEach(angular.mock.inject(function($controller, $rootScope, nl, $stateParams, 
+                                                $location, nlDlg, nlKeyboardHandler) {
+            var c = $controller;
+            $scope = $rootScope.$new();
+            location = $location;
+            var controller = $controller('nl.AppCtrl', {
+                'nl' : nl,
+                '$scope' : $scope,
+                '$stateParams' : $stateParams,
+                '$location' : $location,
+                'nlDlg' : nlDlg,
+                'nlKeyboardHandler' : nlKeyboardHandler
+            });
+        }));
+
+        it('nl.AppCtrl should set logo', function() {
+            expect($scope.logo).toBe('img/top-logo.png');
+        });
+        it('nl.AppCtrl should set title', function() {
+            expect($scope.title).toBe('Nittio Learn');
+        });
+        it('nl.AppCtrl should set location onHomeClick', function() {
+            $scope.onHomeClick();
+            expect(location.path()).toBe('/#');
+        });
     });
-}); 
+});
 

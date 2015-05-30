@@ -12,13 +12,22 @@ var uglify = require('gulp-uglify');
 var streamqueue = require('streamqueue');
 var print = require('gulp-print');
 var order = require('gulp-order');
+var karma = require('gulp-karma');
 
 var inPaths = {
     lib: './www/_extern/',
     html : './www/_code/**/*.html',
     css : './www/_code/css/*.css',
     scss : './www/_code/css/*.scss',
-    js : './www/_code/**/*.js'
+    js : './www/_code/**/*.js',
+    karma : [
+      'www/js/ionic.bundle.min.js',
+      'www/js/ydn.db-isw-core-qry.js',
+      'www/js/nl.html_fragments.min.js',
+      'node_modules/angular-mocks/angular-mocks.js',
+      'www/_code/**/*.js',
+      'www/_test/**/*.js'
+    ]
 };
 
 var outPath = './www/js/';
@@ -28,7 +37,9 @@ function swallowError(error) {
     this.emit('end');
 }
 
-gulp.task('default', ['nl_html', 'nl_css', 'nl_js', 'nl_watch']);
+gulp.task('default', ['build', 'nl_watch']);
+gulp.task('build', ['nl_html', 'nl_css', 'nl_js']);
+gulp.task('rebuild', ['nl_copy', 'build']);
 
 gulp.task('nl_watch', function() {
     gulp.watch(inPaths.html, ['nl_html']);
@@ -37,7 +48,6 @@ gulp.task('nl_watch', function() {
     gulp.watch(inPaths.js, ['nl_js']);
 });
 
-gulp.task('rebuild', ['nl_copy', 'nl_html', 'nl_css', 'nl_js']);
 
 gulp.task('clean', function(done) {
     delFiles([outPath + '*'], function(err, deletedFiles) {
@@ -114,5 +124,24 @@ gulp.task('nl_js', function(done) {
     //.on('error', swallowError)
     //.pipe(rename({extname : '.min.js'}))
     //.pipe(gulp.dest(outPath))
+    .on('end', done);
+});
+
+gulp.task('karma', function(done) {
+    gulp.src(inPaths.karma)
+    .pipe(karma({
+        configFile: 'karma.conf.js',
+        action: 'run',
+        browsers: ['Chrome']
+    }))
+    .on('end', done);
+});
+
+gulp.task('karma_all', function(done) {
+    gulp.src(inPaths.karma)
+    .pipe(karma({
+        configFile: 'karma.conf.js',
+        action: 'run'
+    }))
     .on('end', done);
 });
