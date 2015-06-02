@@ -226,9 +226,9 @@ gulp.task('nittio_clean', function(done) {
     });
 });
 
-gulp.task('nittio_build', ['nittio_copy_res', 'nittio_copy_icon', 'nittio_copy_template', 'nittio_copy_script', 'nittio_generate_index']);
+gulp.task('nittio_build', ['build', 'nittio_copy_res', 'nittio_copy_icon', 'nittio_copy_template', 'nittio_copy_script', 'nittio_generate_index']);
 
-gulp.task('nittio_watch', ['build', 'nittio_build', 'nl_watch'], function() {
+gulp.task('nittio_watch', ['nittio_build', 'nl_watch'], function() {
     //------------------------------------------------------------------------------------------
     // Adding stuff does not work - so no point watch below folders
     //gulp.watch(inResourcePath('res'), ['nittio_copy_res']);
