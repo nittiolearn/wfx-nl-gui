@@ -43,7 +43,7 @@ function(nl, nlServerApi, $scope) {
 function _updateCards(cards, lessons, nl) {
     for(var i=0; i<lessons.length; i++) {
         var l = lessons[i];
-        var card = {title:l.name, icon: nl.url.lessonIcon(l.image), url:'#/app/lesson_view/' + l.id};
+        var card = {title:l.name, icon: nl.url.lessonIconUrl(l.image), url:'#/app/lesson_view/' + l.id};
         card.desc = l.description;
         cards.push(card);
     }    

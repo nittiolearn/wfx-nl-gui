@@ -13,6 +13,12 @@ var streamqueue = require('streamqueue');
 var print = require('gulp-print');
 var order = require('gulp-order');
 var karma = require('gulp-karma');
+var htmlreplace = require('gulp-html-replace');
+
+//-------------------------------------------------------------------------------------------------
+var SERVER_URL = '/';
+var VERSIONS = {script:'v65', res:'v39', icon:'v41', template:'v35'};
+//-------------------------------------------------------------------------------------------------
 
 var inPaths = {
     lib: './www/_extern/',
@@ -20,6 +26,7 @@ var inPaths = {
     css : './www/_code/css/*.css',
     scss : './www/_code/css/*.scss',
     js : './www/_code/**/*.js',
+    htmlTemplate: './www/_htmlTemplate/',
     karma : [
       'www/js/ionic.bundle.min.js',
       'www/js/ydn.db-isw-core-qry.js',
@@ -30,7 +37,10 @@ var inPaths = {
     ]
 };
 
-var outPath = './www/js/';
+var outPath = './www/static/nittio_script_v65/nlappjs/';
+var outUrlPath = '/static/nittio_script_v65/nlappjs/';
+var nittioPath = '../nittio/applications/nittiolearn/static/nittio_script_v65/nlappjs';
+var nittioViewPath = '../nittio/applications/nittiolearn/views/nittioapp';
 
 function swallowError(error) {
     console.log(error.toString());
@@ -38,7 +48,7 @@ function swallowError(error) {
 }
 
 gulp.task('default', ['build', 'nl_watch']);
-gulp.task('build', ['nl_html', 'nl_css', 'nl_js']);
+gulp.task('build', ['nl_html', 'nl_css', 'nl_js', 'nl_updateindexhtml']);
 gulp.task('rebuild', ['nl_copy', 'build']);
 
 gulp.task('nl_watch', function() {
@@ -145,3 +155,39 @@ gulp.task('karma_all', function(done) {
     }))
     .on('end', done);
 });
+
+gulp.task('nittio', ['nl_updateindexhtml_nittio'], function(done) {
+    gulp.src(outPath + '**')
+    .pipe(gulp.dest(nittioPath))
+    .on('end', done);
+});
+
+gulp.task('nl_updateindexhtml_nittio', function(done) {
+    var nittioUrlPrefix = "{{=mutils.scriptUrl('";
+    var nittioUrlSuffix = "')}}";
+    updateIndexHtml(done, nittioViewPath, nittioUrlPrefix, nittioUrlSuffix);
+});
+
+gulp.task('nl_updateindexhtml', function(done) {
+    updateIndexHtml(done, './www', outUrlPath);
+});
+
+function updateIndexHtml(done, dest, prefix, suffix) {
+    var jsList = [];
+    jsList.push(prefix + 'ydn.db-isw-core-qry.js' + suffix);
+    jsList.push(prefix + 'ionic.bundle.js' + suffix);
+    if (suffix === undefined) jsList.push('cordova.js');
+    jsList.push(prefix + 'nl.html_fragments.min.js' + suffix);
+    jsList.push(prefix + 'nl.bundle.js' + suffix);
+    
+    gulp.src(inPaths.htmlTemplate + 'index_templ.html')
+    .pipe(htmlreplace({nl_server_info: {
+                           src: [[SERVER_URL, VERSIONS.script, VERSIONS.res, VERSIONS.icon, VERSIONS.template]], 
+                           tpl: "<script>var NL_SERVER_INFO = {url: '%s', basePath: 'static/', versions: {script:'%s', res:'%s', icon:'%s', template:'%s'}}; var nl={}; </script>"},
+                       css: [prefix + 'nl.bundle.css' + suffix],
+                       js: jsList}))
+    .pipe(rename('index.html'))
+    .pipe(gulp.dest(dest))
+    .on('end', done);
+}
+

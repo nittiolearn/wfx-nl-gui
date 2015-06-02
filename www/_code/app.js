@@ -101,12 +101,12 @@ function(nl, $scope, $stateParams, $location, nlDlg, nlKeyboardHandler) {
     };
     
     $scope.menuitems = [
-        {img: nl.url.menuIcon('home.png'), alt:'home', title:'Home', handler: function() {
+        {img: nl.url.resUrl('general/home.png'), alt:'home', title:'Home', handler: function() {
             $scope.onHomeClick();
-        }}, {img: nl.url.menuIcon('help.png'), alt:'help', title:'Help', handler: function() {
+        }}, {img: nl.url.resUrl('general/help.png'), alt:'help', title:'Help', handler: function() {
             nl.log.debug('TODO: onHelpClick');
             dlg.showRecursive(2);
-        }}, {img: nl.url.menuIcon('login.png'), alt:'login', title:'Login', handler: function() {
+        }}, {img: nl.url.resUrl('general/top-logedin.png'), alt:'login', title:'Login', handler: function() {
             nl.log.debug('TODO: onLoginClick');
         }}];
     
@@ -116,10 +116,10 @@ function(nl, $scope, $stateParams, $location, nlDlg, nlKeyboardHandler) {
 
 function _updateMenuState(nl, $scope) {
     if ($scope.isMenuShown) {
-        $scope.menuicon = nl.url.menuIcon('menuhide.png');
+        $scope.menuicon = nl.url.resUrl('general/menuhide.png');
         $scope.menuicontext = 'Hide Menu';        
     } else {
-        $scope.menuicon = nl.url.menuIcon('menushow.png');
+        $scope.menuicon = nl.url.resUrl('general/menushow.png');
         $scope.menuicontext = 'Show Menu';
     }
 }

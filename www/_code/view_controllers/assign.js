@@ -28,7 +28,7 @@ function config($stateProvider, $urlRouterProvider) {
         url : '/assign_new/:assignid',
         views : {
             'appContent' : {
-                templateUrl : 'lib_ui/dlg/testdlg.html',
+                templateUrl : 'lib_ui/utils/todo.html',
                 controller : 'nl.AssignDoCtrl'
             }
         }
@@ -55,14 +55,14 @@ function(nl, $scope, $stateParams) {
     if (assigntype !== 'new') {
         $scope.cards = [];
         for(var i=0; i<100; i++) {
-            var card = {title:'Past assignment ' + i, icon: nl.url.dashboardIcon('past_assign.png'), url:'#/app/assign_past/' + i};
+            var card = {title:'Past assignment ' + i, icon: nl.url.resUrl('dashboard/assign.png'), url:'#/app/assign_past/' + i};
             card.desc ='Remarks of assignment ' + i;
             $scope.cards.push(card);
         }
     } else {
         $scope.cards = [];
         for(var i=0; i<100; i++) {
-            var card = {title:'New assignment ' + i, icon: nl.url.dashboardIcon('new_assign.png'), url:'#/app/assign_new/' + i};
+            var card = {title:'New assignment ' + i, icon: nl.url.resUrl('dashboard/assign.png'), url:'#/app/assign_new/' + i};
             card.desc ='Remarks of assignment ' + i;
             $scope.cards.push(card);
         }
