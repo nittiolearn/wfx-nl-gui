@@ -113,6 +113,7 @@ function NlUrl(nl) {
     };
 
     this.lessonIconUrl = function(iconName) {
+        console.log('lessonIconUrl:', iconName);
         return resFolder('icon', iconName);
     };
 
