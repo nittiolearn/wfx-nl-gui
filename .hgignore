@@ -1,4 +1,5 @@
-www/js/.*
+www/index.html
+www/static/nittio_script_.*
 coverage/.*
 platforms/.*
 node_modules/.*
