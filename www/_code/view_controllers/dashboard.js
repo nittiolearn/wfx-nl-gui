@@ -26,9 +26,9 @@ function($stateProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var HomeCtrl = ['nl', '$scope', '$stateParams', 'nlServerApi',
-function(nl, $scope, $stateParams, nlServerApi) {
-    $scope.title = 'Nittio Learn';
+var HomeCtrl = ['nl', '$scope', '$rootScope', '$stateParams', 'nlServerApi',
+function(nl, $scope, $rootScope, $stateParams, nlServerApi) {
+    $rootScope.pageTitle = nl.t('Home dashboard');
     $scope.cards = nlServerApi.getDashboardCards();
 
     $scope.onHold = function(event) {

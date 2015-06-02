@@ -44,14 +44,14 @@ function config($stateProvider, $urlRouterProvider) {
     });
 }
 
-var pageTitles = {'new': 'New Assignments', 'past': 'Past Assignments'};
+var pageTitles = {'new': 'New assignments', 'past': 'Past assignments'};
 
 //-------------------------------------------------------------------------------------------------
-var AssignListCtrl = ['nl', '$scope', '$stateParams',
-function(nl, $scope, $stateParams) {
+var AssignListCtrl = ['nl', '$scope', '$rootScope', '$stateParams',
+function(nl, $scope, $rootScope, $stateParams) {
     var assigntype = $stateParams.assigntype;
     if (!(assigntype in pageTitles)) assigntype = 'new';
-    $scope.title = pageTitles[assigntype];
+    $rootScope.pageTitle = nl.t(pageTitles[assigntype]);
     if (assigntype !== 'new') {
         $scope.cards = [];
         for(var i=0; i<100; i++) {
@@ -70,10 +70,10 @@ function(nl, $scope, $stateParams) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var AssignDoCtrl = ['nl', '$scope', '$stateParams',
-function(nl, $scope, $stateParams) {
+var AssignDoCtrl = ['nl', '$scope', '$rootScope', '$stateParams',
+function(nl, $scope, $rootScope, $stateParams) {
     var assignid = parseInt($stateParams.assignid);
-    $scope.title = 'Do assignment: ' + assignid;
+    $rootScope.pageTitle = nl.t('Do assignment: {}', assignid);
 }];
 
 module_init();

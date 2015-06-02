@@ -11,8 +11,8 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var Nl = ['$log', '$http', '$timeout', '$location',
-function($log, $http, $timeout, $location) {
+var Nl = ['$log', '$http', '$timeout', '$location', '$window',
+function($log, $http, $timeout, $location, $window) {
     //---------------------------------------------------------------------------------------------
     // All logging calls within nittioapp is made via nl.log
     this.log = $log;
@@ -29,6 +29,10 @@ function($log, $http, $timeout, $location) {
     // All $location calls within nittioapp is made via nl.location
     this.location = $location;
 
+    //---------------------------------------------------------------------------------------------
+    // All $window calls within nittioapp is made via nl.window
+    this.window = $window;
+    
     //---------------------------------------------------------------------------------------------
     // Formatting and translating Utilities
     var formatter = new Formatter();
@@ -117,10 +121,9 @@ function NlUrl(nl) {
     };
 
     function resFolder(folder, iconName) {
-        var ret = nl.fmt2('{}nittio_{}_{}/{}',
+        var ret = nl.fmt2('{}{}nittio_{}_{}/{}',
                           NL_SERVER_INFO.url, NL_SERVER_INFO.basePath, 
-                          folder,
-                          NL_SERVER_INFO.versions[folder], iconName);
+                          folder, NL_SERVER_INFO.versions[folder], iconName);
         console.log('resFolder:', ret);
         return ret;
     }

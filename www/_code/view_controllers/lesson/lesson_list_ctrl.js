@@ -26,9 +26,9 @@ function config($stateProvider, $urlRouterProvider) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var LessonListCtrl = ['nl', 'nlServerApi', '$scope', 
-function(nl, nlServerApi, $scope) {
-    $scope.title = 'View Approved Lessons';
+var LessonListCtrl = ['nl', 'nlServerApi', '$scope', '$rootScope',
+function(nl, nlServerApi, $scope, $rootScope) {
+    $rootScope.pageTitle = nl.t('View approved lessons');
     $scope.cards = [];
 
     nlServerApi.getLessonList('approved', null).then(function(result) {

@@ -1,3 +1,4 @@
+<ion-view view-title='{{windowTitle()}}'>
 <style>
     .mytable {
         width: 100%; line-spacing:150%; font-size: 150%;
@@ -40,6 +41,7 @@
         <span>nAssigns: </span><input type='number' ng-model='assigncnt'></input>
         <button ng-click='updateDummyData()'>Update Dummy Data</button>
     </div>
+
     <h2>dummy_method1</h2>
     <table class='mytable'>
         <tr><th>#</th><th>Attribute</th><th>Value</th></tr>
@@ -47,6 +49,7 @@
             <td>{{$index+1}}</td><td>{{avp.attr}}</td><td>{{avp.val}}</td>
         </tr>
     </table>
+
     <h2>dummy_method2</h2>
     <table class='mytable'>
         <tr><th>#</th><th>Attribute</th><th>Value</th></tr>
@@ -54,4 +57,11 @@
             <td>{{$index+1}}</td><td>{{avp.attr}}</td><td>{{avp.val}}</td>
         </tr>
     </table>
+
+    <h2>Some Junk Text to get scroll bar</h2>
+    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 </nl-internal-scroll>
+</ion-view>

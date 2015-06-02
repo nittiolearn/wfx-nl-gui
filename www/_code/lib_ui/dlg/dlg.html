@@ -1,7 +1,7 @@
 <div class='nl-dlg-header'>
     <span class='nl-dlg-title'>{{title}}</span>
-    <img ng-src='img/waiting.gif' class='nl-dlg-title-help' ng-click='onHelp()'/>
-    <img ng-src='img/dashboard/home.png' class='nl-dlg-title-close' ng-click='onClose($event)'/>
+    <img ng-src='{{imgBasePath}}general/waiting.gif' class='nl-dlg-title-help' ng-click='onHelp()'/>
+    <img ng-src='{{imgBasePath}}quick-links/home.png' class='nl-dlg-title-close' ng-click='onClose($event)'/>
 </div>
 <div class='nl-dlg-help' ng-show='showHelp'></div>
 <ng-transclude>

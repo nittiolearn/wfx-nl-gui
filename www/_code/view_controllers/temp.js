@@ -82,8 +82,9 @@ function _randElem(arr) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var TempCtrl = ['nl', '$scope', '$stateParams', '$location', 'nlDummy',
-function(nl, $scope, $stateParams, $location, nlDummy) {
+var TempCtrl = ['nl', '$scope', '$rootScope', '$stateParams', '$location', 'nlDummy',
+function(nl, $scope, $rootScope, $stateParams, $location, nlDummy) {
+    $rootScope.pageTitle = nl.t('Temp playground');
     //_ajaxRequest(nl, method1, $scope, 'httpResult1');
     //_ajaxRequest(nl, method2, $scope, 'httpResult2');
     $scope.lessoncnt=10;

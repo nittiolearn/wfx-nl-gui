@@ -70,12 +70,18 @@ function onIonicReady() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var AppCtrl = ['nl', '$scope', '$stateParams', '$location', 'nlDlg', 'nlKeyboardHandler', 
-function(nl, $scope, $stateParams, $location, nlDlg, nlKeyboardHandler) {
-    $scope.logo = 'img/top-logo.png';
-    $scope.title = 'Nittio Learn';
-    $scope.subTitle = 'TODO 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 ';
-    $scope.subTitle = '';
+var AppCtrl = ['nl', '$scope', '$rootScope', '$stateParams', '$location', 'nlDlg', 'nlKeyboardHandler', 
+function(nl, $scope, $rootScope, $stateParams, $location, nlDlg, nlKeyboardHandler) {
+    $rootScope.imgBasePath = nl.url.resUrl();
+    $rootScope.pageTitle = '';
+    $rootScope.pageSubTitle = '';
+    $rootScope.windowTitle = function() {
+        var prefix = nl.t('Nittio Learn');
+        if ($rootScope.pageTitle == '') return prefix;
+        return prefix + ' - ' + $rootScope.pageTitle;
+    };
+    
+    $scope.logo = nl.url.resUrl('general/top-logo1.png');
     $scope.pageNoData = nl.pgno;
     $scope.pageNoData.totalPages = 1;
     $scope.pageNoData.currentPage = 1;

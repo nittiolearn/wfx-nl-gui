@@ -36,8 +36,9 @@ function config($stateProvider, $urlRouterProvider) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var LessonCreateCtrl = ['nl', '$scope', 'nlDummy',
-function(nl, $scope, nlDummy) {
+var LessonCreateCtrl = ['nl', '$scope', '$rootScope', 'nlDummy',
+function(nl, $scope, $rootScope, nlDummy) {
+    $rootScope.pageTitle = nl.t('Create new lesson');
     $scope.lessonId = 0;
     
     $scope.content = angular.toJson(nlDummy.getSampleContent(0));
@@ -57,8 +58,9 @@ function(nl, $scope, nlDummy) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var LessonCtrl = ['nl', '$scope', '$stateParams',
-function(nl, $scope, $stateParams) {
+var LessonCtrl = ['nl', '$scope', '$rootScope', '$stateParams',
+function(nl, $scope, $rootScope, $stateParams) {
+    $rootScope.pageTitle = nl.t('View lesson');
     $scope.lessonId = parseInt($stateParams.lessonId);
     nl.log.debug('Enter LessonCtrl: ' + $scope.lessonId);
 }];

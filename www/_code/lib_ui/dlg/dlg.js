@@ -53,8 +53,8 @@ function Dialog(nl, $ionicPopup, $ionicLoading, $scope, template) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var DlgDirective = ['nl', '$window', 'nlScrollbarSrv',
-function(nl, $window, nlScrollbarSrv) {
+var DlgDirective = ['nl', '$window', '$rootScope', 'nlScrollbarSrv',
+function(nl, $window, $rootScope, nlScrollbarSrv) {
     return {
         restrict: 'E',
         transclude: true,
@@ -65,6 +65,7 @@ function(nl, $window, nlScrollbarSrv) {
         },
         link: function($scope, iElem, iAttrs) {
             $scope.showHelp = false;
+            $scope.imgBasePath = $rootScope.imgBasePath;
             var iTrans = iElem.find('ng-transclude');
             var oldHelpElem = _findChildWithClass(iTrans, 'nl-dlg-help');
             var oldContentElem = _findChildWithClass(iTrans, 'nl-dlg-content');

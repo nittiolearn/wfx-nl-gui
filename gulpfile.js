@@ -173,17 +173,20 @@ gulp.task('nl_updateindexhtml', function(done) {
 });
 
 function updateIndexHtml(done, dest, prefix, suffix) {
+    if (suffix === undefined) suffix = '';
+
     var jsList = [];
     jsList.push(prefix + 'ydn.db-isw-core-qry.js' + suffix);
     jsList.push(prefix + 'ionic.bundle.js' + suffix);
-    if (suffix === undefined) jsList.push('cordova.js');
+    if (suffix === '') jsList.push('cordova.js');
     jsList.push(prefix + 'nl.html_fragments.min.js' + suffix);
     jsList.push(prefix + 'nl.bundle.js' + suffix);
+    
     
     gulp.src(inPaths.htmlTemplate + 'index_templ.html')
     .pipe(htmlreplace({nl_server_info: {
                            src: [[SERVER_URL, VERSIONS.script, VERSIONS.res, VERSIONS.icon, VERSIONS.template]], 
-                           tpl: "<script>var NL_SERVER_INFO = {url: '%s', basePath: 'static/', versions: {script:'%s', res:'%s', icon:'%s', template:'%s'}}; var nl={}; </script>"},
+                           tpl: "<script>var NL_SERVER_INFO = {url: '%s', basePath: 'static/', versions: {script:'%s', res:'%s', icon:'%s', template:'%s'}};</script>"},
                        css: [prefix + 'nl.bundle.css' + suffix],
                        js: jsList}))
     .pipe(rename('index.html'))
