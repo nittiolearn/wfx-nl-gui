@@ -108,6 +108,7 @@ gulp.task('nl_copy_nittioold', function(done) {
 
 gulp.task('nl_html', function(done) {
     gulp.src(inPaths.html)
+    .pipe(order())
     .pipe(angularTemplCache({filename: 'nl.html_fragments.js', module:'nl.html_fragments', standalone:true}))
     //.pipe(minifyHtml({empty:true, cdata:true, conditional:true, quotes:true, loose:true}))
     //.pipe(gulp.dest(outPath))
