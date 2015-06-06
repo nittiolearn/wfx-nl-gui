@@ -51,7 +51,7 @@ var AssignListCtrl = ['nl', '$scope', '$rootScope', '$stateParams',
 function(nl, $scope, $rootScope, $stateParams) {
     var assigntype = $stateParams.assigntype;
     if (!(assigntype in pageTitles)) assigntype = 'new';
-    $rootScope.pageTitle = nl.t(pageTitles[assigntype]);
+    nl.pginfo.pageTitle = nl.t(pageTitles[assigntype]);
     if (assigntype !== 'new') {
         $scope.cards = [];
         for(var i=0; i<100; i++) {
@@ -73,7 +73,7 @@ function(nl, $scope, $rootScope, $stateParams) {
 var AssignDoCtrl = ['nl', '$scope', '$rootScope', '$stateParams',
 function(nl, $scope, $rootScope, $stateParams) {
     var assignid = parseInt($stateParams.assignid);
-    $rootScope.pageTitle = nl.t('Do assignment: {}', assignid);
+    nl.pginfo.pageTitle = nl.t('Do assignment: {}', assignid);
 }];
 
 module_init();

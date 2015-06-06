@@ -28,7 +28,7 @@ function($stateProvider) {
 //-------------------------------------------------------------------------------------------------
 var HomeCtrl = ['nl', '$scope', '$rootScope', '$stateParams', 'nlServerApi',
 function(nl, $scope, $rootScope, $stateParams, nlServerApi) {
-    $rootScope.pageTitle = nl.t('Home dashboard');
+    nl.pginfo.pageTitle = nl.t('Home dashboard');
     $scope.cards = nlServerApi.getDashboardCards();
 
     $scope.onHold = function(event) {
