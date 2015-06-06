@@ -18,7 +18,7 @@ function(nl, $window, nlScrollbarSrv) {
         templateUrl: 'lib_ui/cards/cards.html',
         scope: {
             cards: '=',
-            pageNoData: '='
+            pgInfo: '='
         },
         link: function($scope, iElem, iAttrs) {
             $scope.pages = [];
@@ -78,7 +78,7 @@ function _paginateCards(nl, $scope, cardsContainer, nlScrollbarSrv) {
         }
     }
     nlScrollbarSrv.setTotal(pageCount);
-    if (nl.pgno.currentPage > pageCount) {
+    if (nl.pginfo.currentPage > pageCount) {
         nlScrollbarSrv.gotoPage(pageCount);
     }
 }

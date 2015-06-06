@@ -1,14 +1,14 @@
 <div id='nl-pagecanvas'>
-    <img id='nl-menuicon' ng-src='{{menuicon}}' alt='menuicon' title='{{menuicontext}}' ng-click='onMenuClick()' ng-class='{fullpage:!isMenuShown, borderpage:isMenuShown}'/>
-    <nav id='nl-topbar' ng-show='isMenuShown' ng-class='{fullpage:!isMenuShown, borderpage:isMenuShown}'>
+    <img id='nl-menuicon' ng-src='{{menuicon}}' alt='menuicon' title='{{menuicontext}}' ng-click='onMenuClick()' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'/>
+    <nav id='nl-topbar' ng-show='pgInfo.isMenuShown' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
         <img id='nl-logo' ng-src='{{logo}}' alt='Nittio Learn' title='Home (Ctrl+Home)' ng-click='onHomeClick()'/>
-        <span id='nl-header' class='nl-textellipsis'>{{pageTitle}} <small>{{pageSubTitle}}</small></span>
+        <span id='nl-header' class='nl-textellipsis'>{{pgInfo.pageTitle}} <small>{{pgInfo.pageSubTitle}}</small></span>
     </nav>
-    <nl-scrollbar ng-show='isMenuShown && pageNoData.totalPages>1' ng-class='{fullpage:!isMenuShown, borderpage:isMenuShown}' is-menu-shown='isMenuShown' page-no-data='pageNoData'></nl-scrollbar>
-    <div id='nl-menubar' ng-show='isMenuShown' ng-class='{fullpage:!isMenuShown, borderpage:isMenuShown}'>
+    <nl-scrollbar ng-show='pgInfo.isMenuShown && pgInfo.totalPages>1' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}' is-menu-shown='pgInfo.isMenuShown' pg-info='pgInfo'></nl-scrollbar>
+    <div id='nl-menubar' ng-show='pgInfo.isMenuShown' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
         <img ng-repeat='menuitem in menuitems' class='nl-menuitem' ng-src='{{menuitem.img}}' alt='{{menuitem.alt}}' title='{{menuitem.title}}' ng-click='menuitem.handler()'/>
     </div>
-    <div id='nl-body' ng-class='{fullpage:!isMenuShown, borderpage:isMenuShown}'>
+    <div id='nl-body' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
         <div id='nl-inner-body' tabindex='0' 
              ng-keydown="onKeyDown($event)" 
              on-swipe-up="onSwipe($event)" on-swipe-down="onSwipe($event)">

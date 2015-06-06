@@ -65,8 +65,8 @@ function($log, $http, $timeout, $location, $window) {
     this.router = new NlRouter();
     
     //---------------------------------------------------------------------------------------------
-    // Page number data related to current view.
-    this.pgno = new NlPgNo();
+    // Page title, window title and page number related information pertaining to the current view.
+    this.pginfo = new NlPageInfo();
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -162,12 +162,17 @@ function NlRouter() {
 }
 
 //-------------------------------------------------------------------------------------------------
-function NlPgNo() {
+function NlPageInfo() {
     this.totalPages = 1;
     this.currentPage = 1;
     this.thumbHeight = 100;
     this.thumbTop = 0;
     this.pageAnim = 'nl-anim-pg-same';
+    
+    this.pageSubTitle ='';
+    this.pageTitle ='';
+
+    this.isMenuShown = true;
 }
 
 //-------------------------------------------------------------------------------------------------

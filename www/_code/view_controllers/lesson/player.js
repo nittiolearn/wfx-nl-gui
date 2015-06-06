@@ -19,7 +19,7 @@ function(nl, nlScrollbarSrv, nlServerApi, nlPageType) {
         scope : {
             lessonId: '=',
             launchCtx: '@',
-            pageNoData: '='
+            pgInfo: '='
         },
         templateUrl: 'view_controllers/lesson/player_directive.html',
         link: function($scope, iElem, iAttrs) {

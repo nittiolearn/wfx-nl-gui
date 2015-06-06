@@ -73,20 +73,25 @@ function onIonicReady() {
 var AppCtrl = ['nl', '$scope', '$rootScope', '$stateParams', '$location', 'nlDlg', 'nlKeyboardHandler', 
 function(nl, $scope, $rootScope, $stateParams, $location, nlDlg, nlKeyboardHandler) {
     $rootScope.imgBasePath = nl.url.resUrl();
-    $rootScope.pageTitle = '';
-    $rootScope.pageSubTitle = '';
+    $rootScope.pgInfo = nl.pginfo;
     $rootScope.windowTitle = function() {
         var prefix = nl.t('Nittio Learn');
-        if ($rootScope.pageTitle == '') return prefix;
-        return prefix + ' - ' + $rootScope.pageTitle;
+        if (nl.pginfo.pageTitle == '') return prefix;
+        return prefix + ' - ' + nl.pginfo.pageTitle;
     };
     
+    $rootScope.menuitems = [
+        {img: nl.url.resUrl('general/help.png'), alt:nl.t('help'), title:nl.t('Help'), handler: function() {
+            nl.log.debug('TODO: onHelpClick');
+            dlg.showRecursive(2);
+        }}, 
+        {img: nl.url.resUrl('general/top-logedin.png'), alt:'login', title:nl.t('Login'), handler: function() {
+            nl.log.debug('TODO: onLoginClick');
+        }}
+    ];
+    
     $scope.logo = nl.url.resUrl('general/top-logo1.png');
-    $scope.pageNoData = nl.pgno;
-    $scope.pageNoData.totalPages = 1;
-    $scope.pageNoData.currentPage = 1;
 
-    $scope.isMenuShown = true;
     _updateMenuState(nl, $scope);
 
     $scope.onHomeClick = function() {
@@ -94,7 +99,7 @@ function(nl, $scope, $rootScope, $stateParams, $location, nlDlg, nlKeyboardHandl
     };
 
     $scope.onMenuClick = function() {
-        $scope.isMenuShown = !($scope.isMenuShown);
+        nl.pginfo.isMenuShown = !(nl.pginfo.isMenuShown);
         _updateMenuState(nl, $scope);
     };
 
@@ -106,22 +111,12 @@ function(nl, $scope, $rootScope, $stateParams, $location, nlDlg, nlKeyboardHandl
         }}]);
     };
     
-    $scope.menuitems = [
-        {img: nl.url.resUrl('general/home.png'), alt:'home', title:'Home', handler: function() {
-            $scope.onHomeClick();
-        }}, {img: nl.url.resUrl('general/help.png'), alt:'help', title:'Help', handler: function() {
-            nl.log.debug('TODO: onHelpClick');
-            dlg.showRecursive(2);
-        }}, {img: nl.url.resUrl('general/top-logedin.png'), alt:'login', title:'Login', handler: function() {
-            nl.log.debug('TODO: onLoginClick');
-        }}];
-    
     $scope.onKeyDown = nlKeyboardHandler.onKeyDown;
     $scope.onSwipe = nlKeyboardHandler.onSwipe;
 }];
 
 function _updateMenuState(nl, $scope) {
-    if ($scope.isMenuShown) {
+    if (nl.pginfo.isMenuShown) {
         $scope.menuicon = nl.url.resUrl('general/menuhide.png');
         $scope.menuicontext = 'Hide Menu';        
     } else {
