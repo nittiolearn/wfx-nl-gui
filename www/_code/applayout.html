@@ -5,8 +5,8 @@
         <span id='nl-header' class='nl-textellipsis'>{{pgInfo.pageTitle}} <small>{{pgInfo.pageSubTitle}}</small></span>
     </nav>
     <nl-scrollbar ng-show='pgInfo.isMenuShown && pgInfo.totalPages>1' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}' is-menu-shown='pgInfo.isMenuShown' pg-info='pgInfo'></nl-scrollbar>
-    <div id='nl-menubar' ng-show='pgInfo.isMenuShown' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
-        <img ng-repeat='menuitem in menuitems' class='nl-menuitem' ng-src='{{menuitem.img}}' alt='{{menuitem.alt}}' title='{{menuitem.title}}' ng-click='menuitem.handler()'/>
+    <div id='nl-menubar' class='nl-thin-scroll' ng-show='pgInfo.isMenuShown' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
+        <img ng-repeat='menuitem in getMenuItems()' class='nl-menuitem' ng-src='{{menuitem.img}}' alt='{{menuitem.title}}' title='{{menuitem.title}}' ng-click='menuitem.handler()'/>
     </div>
     <div id='nl-body' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
         <div id='nl-inner-body' tabindex='0' 

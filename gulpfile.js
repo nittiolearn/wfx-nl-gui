@@ -17,7 +17,7 @@ var htmlreplace = require('gulp-html-replace');
 
 //-------------------------------------------------------------------------------------------------
 var SERVER_URL = '/';
-var VERSIONS = {script:'v65', res:'v39', icon:'v41', template:'v35'};
+var VERSIONS = {script:'v66', res:'v39', icon:'v41', template:'v35'};
 //-------------------------------------------------------------------------------------------------
 
 var inPaths = {
@@ -39,6 +39,7 @@ var inPaths = {
 
 var outUrlPath = '/static/nittio_script_' + VERSIONS.script + '/nlappjs/';
 var outPath = './www' + outUrlPath;
+var outCleaningPath = './www/static/nittio_script_*';
 
 function swallowError(error) {
     console.log(error.toString());
@@ -62,7 +63,7 @@ gulp.task('nl_watch', function() {
 
 
 gulp.task('clean', function(done) {
-    delFiles([outPath + '*'], function(err, deletedFiles) {
+    delFiles([outCleaningPath], function(err, deletedFiles) {
         if (err) console.log('Error while deleting:', err);
         if (deletedFiles) console.log('' + deletedFiles.length + ' File(s) deleted.');
     });

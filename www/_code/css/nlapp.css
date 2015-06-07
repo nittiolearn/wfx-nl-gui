@@ -195,6 +195,7 @@ body {
     bottom: 24px;
     right: 0;
     width: 32px;
+    overflow-y: auto;
 }
 
 .nl-menuitem {

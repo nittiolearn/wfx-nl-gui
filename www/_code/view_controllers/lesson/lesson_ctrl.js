@@ -63,6 +63,54 @@ function(nl, $scope, $rootScope, $stateParams) {
     nl.pginfo.pageTitle = nl.t('View lesson');
     $scope.lessonId = parseInt($stateParams.lessonId);
     nl.log.debug('Enter LessonCtrl: ' + $scope.lessonId);
+
+    nl.menu.onViewEnter($scope, function() {
+        nl.menu.addViewMenuItem('Change to preview mode (Alt+T)', 'toolbar-edit/toggle.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Add Page (Alt+Insert)', 'toolbar-edit/addpage.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Delete/Cut Page (Alt+Del)', 'toolbar-edit/delpage.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Change Page type', 'toolbar-edit/changepagetype.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Page Properties (Alt-P)', 'toolbar-edit/pageprops.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Page Organizer (Alt+O)', 'toolbar-edit/pageorg.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Lesson Properties', 'toolbar-edit/props.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Change Look', 'toolbar-edit/look.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Save (Ctrl+S)', 'toolbar-edit/save.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Manage Comments', 'toolbar-edit/comments1.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Invite for Review', 'toolbar-edit/revinvite.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Approve', 'toolbar-edit/approve.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Insert Image', 'toolbar-edit/addimage.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Raw Edit', 'toolbar-edit/raw.png', function() {
+            // TODO
+        });
+    });
+
+
+
 }];
 
 //-------------------------------------------------------------------------------------------------

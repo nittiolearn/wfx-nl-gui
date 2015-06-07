@@ -67,6 +67,10 @@ function($log, $http, $timeout, $location, $window) {
     //---------------------------------------------------------------------------------------------
     // Page title, window title and page number related information pertaining to the current view.
     this.pginfo = new NlPageInfo();
+
+    //---------------------------------------------------------------------------------------------
+    // Menu bar for the current view
+    this.menu = new NlMenu(this);
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -173,6 +177,48 @@ function NlPageInfo() {
     this.pageTitle ='';
 
     this.isMenuShown = true;
+}
+
+//-------------------------------------------------------------------------------------------------
+function NlMenu(nl) {
+    var appmenu = [];
+    var viewmenu = [];
+
+    this.getMenuItems = function() {
+        return appmenu.concat(viewmenu);
+    };
+
+    this.onViewEnter = function($scope, fn) {
+        var self = this;
+        nl.router.onViewEnter($scope, fn);
+    
+        nl.router.onViewLeave($scope, function() {
+            self.clearViewMenu();
+        });
+    };
+
+    this.clearAppMenu = function() {
+        appmenu = [];
+    };
+    
+    this.clearViewMenu = function() {
+        viewmenu = [];
+    };
+    
+    this.addAppMenuItem = function(title, img, handler) {
+        addMenuItem(appmenu, title, img, handler);
+    };
+
+    this.addViewMenuItem = function(title, img, handler) {
+        addMenuItem(viewmenu, title, img, handler);
+    };
+    
+    function addMenuItem(menu, title, img, handler) {
+        title = nl.t(title);
+        img = nl.url.resUrl(img);
+        menu.push({img:img, title:title, handler:handler});
+    }
+    
 }
 
 //-------------------------------------------------------------------------------------------------

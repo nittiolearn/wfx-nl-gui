@@ -74,21 +74,25 @@ var AppCtrl = ['nl', '$scope', '$rootScope', '$stateParams', '$location', 'nlDlg
 function(nl, $scope, $rootScope, $stateParams, $location, nlDlg, nlKeyboardHandler) {
     $rootScope.imgBasePath = nl.url.resUrl();
     $rootScope.pgInfo = nl.pginfo;
+
     $rootScope.windowTitle = function() {
         var prefix = nl.t('Nittio Learn');
         if (nl.pginfo.pageTitle == '') return prefix;
         return prefix + ' - ' + nl.pginfo.pageTitle;
     };
+
+    $scope.getMenuItems = function() {
+        return nl.menu.getMenuItems();
+    };
     
-    $rootScope.menuitems = [
-        {img: nl.url.resUrl('general/help.png'), alt:nl.t('help'), title:nl.t('Help'), handler: function() {
-            nl.log.debug('TODO: onHelpClick');
-            dlg.showRecursive(2);
-        }}, 
-        {img: nl.url.resUrl('general/top-logedin.png'), alt:'login', title:nl.t('Login'), handler: function() {
-            nl.log.debug('TODO: onLoginClick');
-        }}
-    ];
+    nl.menu.clearAppMenu();
+    nl.menu.addAppMenuItem('Help', 'general/help.png', function() {
+        nl.log.debug('TODO: onHelpClick');
+        dlg.showRecursive(2);
+    });
+    nl.menu.addAppMenuItem('Login', 'general/top-logedin.png', function() {
+        nl.log.debug('TODO: onLoginClick');
+    });
     
     $scope.logo = nl.url.resUrl('general/top-logo1.png');
 
