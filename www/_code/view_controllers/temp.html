@@ -32,7 +32,15 @@
         padding: 10px;
         border: 1px solid black;
     }
-    
+
+    nl-img-reader {
+        border: 1px solid red;
+        min-height: 100px;
+        display: block;
+        line-spacing:150%; font-size: 150%;
+        margin: 10px;
+        padding: 10px;
+    }
 </style>
 
 <nl-internal-scroll page-info='nl.pgInfo' style='backgroud-color:green'>
@@ -42,6 +50,8 @@
         <button ng-click='updateDummyData()'>Update Dummy Data</button>
     </div>
 
+    <nl-img-reader></nl-img-reader>
+    
     <h2>dummy_method1</h2>
     <table class='mytable'>
         <tr><th>#</th><th>Attribute</th><th>Value</th></tr>

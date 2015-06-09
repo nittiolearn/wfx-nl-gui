@@ -8,6 +8,7 @@ function module_init() {
     angular.module('nl.temp', [])
     .config(configFn)
     .service('nlDummy', NlDummy)
+    .directive('nlImgReader', NlImgReaderDirective)
     .controller('nl.TempCtrl', TempCtrl);
 }
 
@@ -93,7 +94,6 @@ function(nl, $scope, $rootScope, $stateParams, $location, nlDummy) {
         nl.db.clearDb();
         nlDummy.populateDummyData(this.lessoncnt, this.assigncnt);
     };
-    
 }];
 
 var server = 'https://65-dot-nittio-org.appspot.com';
@@ -111,6 +111,57 @@ function _ajaxRequest(nl, method, $scope, resultVar) {
     }).error(function(data, status, headers, config) {
         console.log('_ajaxRequest HTTP failed: ', method, data, status, headers, config);
     });
+}
+
+//-------------------------------------------------------------------------------------------------
+var NlImgReaderDirective = [
+function() {
+    console.warn('NlImgReaderDirective: ');
+    return {
+        restrict: 'E',
+        templateUrl: 'view_controllers/img_reader.html',
+        scope: {
+            nlFileRead: "@"
+        },
+        link: function (scope, element, attributes) {
+            console.warn('NlImgReaderDirective linking: ', scope);
+            scope.imgFiles = [];
+
+            var children = element.children();
+            var imgInput = angular.element(children[0]);
+            var imgListDiv = angular.element(children[1]);
+
+            imgInput.bind("change", function (event) {
+                console.warn('NlImgReaderDirective changed: ', event);
+                scope.$apply(function () {
+                    scope.imgFiles = event.target.files;
+                    console.log(scope);
+                    _updateImageSection(imgListDiv, event.target.files);
+                });
+            });
+        }
+    };
+}];
+
+function _updateImageSection(imgListDiv, imgList) {
+    imgListDiv.html('');
+    var ulElem = angular.element('<ul/>');
+    imgListDiv.append(ulElem);
+    for (var i = 0; i < imgList.length; i++) {
+        var liElem = angular.element('<li/>');
+        ulElem.append(liElem);
+
+        var imgElem = angular.element('<img/>');
+        imgElem.attr('src', window.URL.createObjectURL(imgList[i]));
+        imgElem.attr('height', 60);
+        imgElem.attr('onload', function() {
+            window.URL.revokeObjectURL(this.src);
+        });
+        liElem.append(imgElem);
+        var infoElem = angular.element('<span/>');
+        infoElem.html(imgList[i].name + ": " + imgList[i].size + " bytes");
+        liElem.append(infoElem);
+    }
 }
 
 //-------------------------------------------------------------------------------------------------
