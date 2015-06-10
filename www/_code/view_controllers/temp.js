@@ -30,20 +30,21 @@ function($stateProvider, $urlRouterProvider) {
 var NlDummy = ['nl', 'nlLessonHelperSrv',
 function(nl, nlLessonHelperSrv) {
     this.getSampleContent = function(lessonId) {
-        return _getSampleContent(lessonId, nlLessonHelperSrv);
+        return _getSampleContent(lessonId, 10, nlLessonHelperSrv);
     };
     
-    this.populateDummyData = function(nLesson, nAssign) {
-        console.log('db.populateDummyData:', nLesson, nAssign);
+    this.populateDummyData = function(nLesson, nPages) {
+        console.log('db.populateDummyData:', nLesson, nPages);
         var db = nl.db.get();
         for (var i=0; i<nLesson; i++) {
-            _createDummyLesson(db, i, nlLessonHelperSrv);
+            _createDummyLesson(db, i, nPages, nlLessonHelperSrv);
         }
     };
 }];
 
-function _createDummyLesson(db, i, nlLessonHelperSrv) {
-    var l = _getSampleContent(i, nlLessonHelperSrv);
+function _createDummyLesson(db, i, nPages, nlLessonHelperSrv) {
+    var maxPages = 1 + Math.round(Math.random()*nPages*2);
+    var l = _getSampleContent(i, maxPages, nlLessonHelperSrv);
     db.put('lesson', l, l.id)
     .then(function(key) {
         console.log('wrote to db ' + key);         
@@ -59,7 +60,7 @@ var someStrings = ['H1 Hello', 'This is some other section text', 'some thing el
 var images = ['commerce-economics-piggybank.png', 'commerce-economics-profitbag.png', 'chemistry-molecules-color.png', 
 'Eng4.png', 'Frog.png'];
 
-function _getSampleContent(i, nlLessonHelperSrv) {
+function _getSampleContent(i, maxPages, nlLessonHelperSrv) {
     var l={};
     l.id = i;
     l.name = 'Lesson Name: ' + i;
@@ -68,7 +69,7 @@ function _getSampleContent(i, nlLessonHelperSrv) {
     l.subject = 'Subject 1';
     l.description = 'Description of lesson ' + i + ' - ' + _randElem(someStrings);
     l.pages = [];
-    for(var p=0; p<i+1; p++) {
+    for(var p=0; p<maxPages; p++) {
         var pt = _randElem(pageTypes);
         var sections = [];
         for (var s=0; s<pt[1]; s++) {
@@ -91,11 +92,11 @@ function(nl, $scope, $rootScope, $stateParams, $location, nlDummy) {
     nl.pginfo.pageTitle = nl.t('Temp playground');
     //_ajaxRequest(nl, method1, $scope, 'httpResult1');
     //_ajaxRequest(nl, method2, $scope, 'httpResult2');
-    $scope.lessoncnt=10;
-    $scope.assigncnt=10;
+    $scope.lessoncnt=100;
+    $scope.pagecnt=10;
     $scope.updateDummyData = function() {
         nl.db.clearDb();
-        nlDummy.populateDummyData(this.lessoncnt, this.assigncnt);
+        nlDummy.populateDummyData(this.lessoncnt, this.pagecnt);
     };
 }];
 

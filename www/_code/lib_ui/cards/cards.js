@@ -61,7 +61,6 @@ function _cacheCardsIcons($scope, nl) {
 function _cacheCardIcon($scope, card, nl) {
     nl.url.getCachedUrl(card.icon)
     .then(function(imgUrl) {
-        console.log('cardIconUrl: ', imgUrl);
         $scope.$apply(function() {
             card.iconUrl = imgUrl;
         });

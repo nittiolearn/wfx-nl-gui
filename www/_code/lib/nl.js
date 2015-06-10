@@ -11,8 +11,8 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var Nl = ['$log', '$http', '$timeout', '$location', '$window',
-function($log, $http, $timeout, $location, $window) {
+var Nl = ['$log', '$http', '$timeout', '$location', '$window', '$rootScope',
+function($log, $http, $timeout, $location, $window, $rootScope) {
     //---------------------------------------------------------------------------------------------
     // All logging calls within nittioapp is made via nl.log
     this.log = $log;
@@ -53,6 +53,12 @@ function($log, $http, $timeout, $location, $window) {
     };
 
     //---------------------------------------------------------------------------------------------
+    // Cache Factory
+    this.createCache = function(cacheMaxSize, onRemoveFn) {
+        return new LruCache(cacheMaxSize, onRemoveFn);
+    };
+    
+    //---------------------------------------------------------------------------------------------
     // All URL getters
     this.url = new NlUrl(this);
     
@@ -70,7 +76,7 @@ function($log, $http, $timeout, $location, $window) {
 
     //---------------------------------------------------------------------------------------------
     // Menu bar for the current view
-    this.menu = new NlMenu(this);
+    this.menu = new NlMenu(this, $rootScope);
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -111,7 +117,40 @@ function Formatter() {
 }
 
 //-------------------------------------------------------------------------------------------------
+// Intention is to implement a LRU. For now this cleanup 80% of random entries when the maxSize
+// is reached! When a entry is cleaned up, onRemoveFn is called with key and value of entry being
+// removed from Cache.
+function LruCache(maxSize, onRemoveFn) {
+    
+    this.entryDict = {};
+
+    this.put = function(key, value) {
+        this.reduceIfNeeded();
+        this.entryDict[key] = value;
+    };
+    
+    this.get = function(key) {
+        if (!(key in this.entryDict)) return undefined;
+        return this.entryDict[key];
+    };
+
+    this.reduceIfNeeded = function() {
+        var entryDictKeys = Object.keys(this.entryDict);
+        if (entryDictKeys.length < maxSize) return;
+        var toRemove = Math.round(maxSize*0.8);
+        for (var k in this.entryDict) {
+            if (toRemove <= 0) break;
+            toRemove--;
+            var v = this.entryDict[k];
+            if (onRemoveFn !== undefined) onRemoveFn(k, v);
+            delete this.entryDict[k];
+        }
+    };
+}
+
+//-------------------------------------------------------------------------------------------------
 function NlUrl(nl) {
+    
     this.resUrl = function(iconName) {
         return resFolder('res', iconName);
     };
@@ -128,50 +167,67 @@ function NlUrl(nl) {
         var ret = nl.fmt2('{}{}nittio_{}_{}/{}',
                           NL_SERVER_INFO.url, NL_SERVER_INFO.basePath, 
                           folder, NL_SERVER_INFO.versions[folder], iconName);
-        console.log('resFolder:', ret);
         return ret;
     }
 
+    var urlCache = nl.createCache(1000, function(k, v) {
+        var localUrl = URL.revokeObjectURL(v);
+    });
+
     this.getCachedUrl = function(url) {
         return new Promise(function(resolve, reject) {
+            
+            // TODO-MUNNI
+            //resolve(url);
+            //return;
+            
+            var localUrl = urlCache.get(url);
+            if (localUrl !== undefined) {
+                resolve(localUrl);
+                return;
+            }
             var db = nl.db.get();
             db.get('resource', url)
             .then(function(resource) {
                 if (resource !== undefined) {
-                    resolveResource(resource, resolve, nl);
+                    resolveResource(url, resource, resolve, nl);
                     return;
                 }
-                loadResouceUrl(url, db, resolve, reject);
+                loadResouceUrl(url, db, resolve);
             }, function(e) {
                 console.log('getCachedUrl from db failed', e);
-                loadResouceUrl(url, db, resolve, reject);
+                loadResouceUrl(url, db, resolve);
             });
         });
-    }
+    };
 
-    function loadResouceUrl(url, db, resolve, reject) {
+    function loadResouceUrl(url, db, resolve) {
         nl.http.get(url, {cache: false, responseType: 'blob'})
         .success(function(data, status, headers, config) {
             console.log('loadResouceUrl success: ', url, data, status, headers, config);
             var resource = {id:url, res:data};
             db.put('resource', resource, url)
             .then(function(key) {
-                resolveResource(resource, resolve, nl);           
+                resolveResource(url, resource, resolve, nl);           
             }, function(e) {
                 console.log('loadResouceUrl db.put failed', e);
-                resolveResource(resource, resolve, nl);           
+                resolveResource(url, resource, resolve, nl);           
             });
         }).error(function(data, status, headers, config) {
-            console.log('loadResouceUrl failed: ', url, data, status, headers, config);
-            reject(data);
+            console.error('loadResouceUrl failed: ', url, data, status, headers, config);
+            resolveUncachedResource(url, resolve);
         });
     }
 
-    function resolveResource(resource, resolve, nl) {
+    function resolveResource(url, resource, resolve, nl) {
         var URL = window.URL || window.webkitURL;
         var localUrl = URL.createObjectURL(resource.res);
-        // When will revokeObjectURL be called?
+        urlCache.put(url, localUrl);
         resolve(localUrl);
+    }
+
+    function resolveUncachedResource(url, resolve) {
+        resolve(url);
     }
 }
 
@@ -218,7 +274,7 @@ function NlPageInfo() {
 }
 
 //-------------------------------------------------------------------------------------------------
-function NlMenu(nl) {
+function NlMenu(nl, $rootScope) {
     var appmenu = [];
     var viewmenu = [];
 
@@ -252,9 +308,13 @@ function NlMenu(nl) {
     };
     
     function addMenuItem(menu, title, img, handler) {
-        title = nl.t(title);
-        img = nl.url.resUrl(img);
-        menu.push({img:img, title:title, handler:handler});
+        var menuItem = {title:nl.t(title), handler:handler};
+        nl.url.getCachedUrl(nl.url.resUrl(img)).then(function(url) {
+            $rootScope.$apply(function() {
+                menuItem.img = url;
+            });
+        });
+        menu.push(menuItem);
     }
     
 }

@@ -55,7 +55,6 @@ function(nl) {
             var db = nl.db.get();
             var key_range = ydn.db.KeyRange.lowerBound(0);
             var q = db.values('lesson', key_range, 100).then(function(dbLessons) {
-                console.log('getLessonList: got result', dbLessons);
                 if (dbLessons === undefined) {
                     reject('dbLessons === undefined');
                     return;

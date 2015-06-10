@@ -10,6 +10,7 @@ function module_init() {
         config($stateProvider, $urlRouterProvider);
     }])
     .controller('nl.LessonCreateCtrl', LessonCreateCtrl)
+    .controller('nl.LessonEditCtrl', LessonEditCtrl)
     .controller('nl.LessonCtrl', LessonCtrl);
 }
 
@@ -21,6 +22,15 @@ function config($stateProvider, $urlRouterProvider) {
             'appContent' : {
                 templateUrl : 'view_controllers/lesson/lesson_create.html',
                 controller : 'nl.LessonCreateCtrl'
+            }
+        }
+    });
+    $stateProvider.state('app.lesson_edit', {
+        url : '/lesson_edit/:lessonId',
+        views : {
+            'appContent' : {
+                templateUrl : 'view_controllers/lesson/lesson_create.html',
+                controller : 'nl.LessonEditCtrl'
             }
         }
     });
@@ -40,6 +50,7 @@ var LessonCreateCtrl = ['nl', '$scope', '$rootScope', 'nlDummy',
 function(nl, $scope, $rootScope, nlDummy) {
     nl.pginfo.pageTitle = nl.t('Create new lesson');
     $scope.lessonId = 0;
+    $scope.button_name = 'Create';
     
     $scope.content = angular.toJson(nlDummy.getSampleContent(0));
     $scope.message = '';
@@ -53,6 +64,45 @@ function(nl, $scope, $rootScope, nlDummy) {
             $scope.message = 'wrote to db ' + key;         
         }, function(e) {
             $scope.message = 'error writing to db ' +  e.stack;         
+        });
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
+var LessonEditCtrl = ['nl', '$scope', '$rootScope', 'nlDummy', '$stateParams',
+function(nl, $scope, $rootScope, nlDummy, $stateParams) {
+    var lessonId = parseInt($stateParams.lessonId);
+
+    nl.pginfo.pageTitle = nl.t('Edit lesson - {}', lessonId);
+    $scope.lessonId = lessonId;
+    $scope.button_name = 'Save';
+    
+    var db = nl.db.get();
+    db.get('lesson', lessonId)
+    .then(function(lesson) {
+        if (lesson === undefined) {
+            reject('getLesson failed: lesson === undefined');
+            return;                    
+        }
+        $scope.$apply(function() {
+            $scope.content = angular.toJson(lesson);
+        });
+    });
+
+    $scope.message = '';
+    $scope.create = function() {
+        var lessonId = this.lessonId;
+        var content = angular.fromJson(this.content);
+        $scope.message = 'Writing to db ' + lessonId;
+        db.put('lesson', content, lessonId)
+        .then(function(key) {
+            $scope.$apply(function() {
+                $scope.message = 'wrote to db ' + key;         
+            });
+        }, function(e) {
+            $scope.$apply(function() {
+                $scope.message = 'error writing to db ' +  e.stack;         
+            });
         });
     };
 }];

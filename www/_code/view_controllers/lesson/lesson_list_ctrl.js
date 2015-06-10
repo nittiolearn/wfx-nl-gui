@@ -26,25 +26,25 @@ function config($stateProvider, $urlRouterProvider) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var LessonListCtrl = ['nl', 'nlServerApi', '$scope', '$rootScope',
-function(nl, nlServerApi, $scope, $rootScope) {
+var LessonListCtrl = ['nl', 'nlServerApi', '$scope', '$rootScope', 'nlLessonHelperSrv',
+function(nl, nlServerApi, $scope, $rootScope, nlLessonHelperSrv) {
     nl.pginfo.pageTitle = nl.t('View approved lessons');
     $scope.cards = [];
 
     nlServerApi.getLessonList('approved', null).then(function(result) {
-        console.log('getLessonList success:', result);
-        _updateCards($scope.cards, result, nl);
+        _updateCards($scope.cards, result, nl, nlLessonHelperSrv);
         $scope.reInitCards();
     }, function(error) {
         console.log('getLessonList failed:', error);
     });
 }];
 
-function _updateCards(cards, lessons, nl) {
+function _updateCards(cards, lessons, nl, nlLessonHelperSrv) {
     for(var i=0; i<lessons.length; i++) {
         var l = lessons[i];
-        var card = {title:l.name, icon: nl.url.lessonIconUrl(l.image), url:'#/app/lesson_view/' + l.id};
-        card.desc = l.description;
+        
+        var card = {title:l.name, icon: nlLessonHelperSrv.getIconUrl(l.image), url:'#/app/lesson_view/' + l.id};
+        card.desc = '<a href="#/app/lesson_edit/' + l.id + '">Edit</a><br/>' + l.description;
         cards.push(card);
     }    
 }

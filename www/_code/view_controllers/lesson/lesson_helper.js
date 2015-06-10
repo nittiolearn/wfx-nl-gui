@@ -31,7 +31,7 @@ function(nl) {
                 url = urlPart;
             });
         } else {
-            url = nl.lessonIconUrl(iconId);
+            url = nl.url.lessonIconUrl(iconId);
         }
         return url;
     };
@@ -41,7 +41,7 @@ function(nl) {
         if (markupParser.check(templateId, 'img:')) {
             markupParser.parse(templateId, 'img:', function(urlPart, avpairs) {
                 ret.url = urlPart;
-                for(var k in avparis) ret.bgShade = k;
+                for(var k in avpairs) ret.bgShade = k;
             });
         } else if (templateId in _bgTemplateDir) {
             var t = _bgTemplateDir[templateId];
