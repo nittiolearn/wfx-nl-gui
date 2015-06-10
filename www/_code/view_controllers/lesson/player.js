@@ -11,8 +11,8 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var PlayerDirective = ['nl', 'nlScrollbarSrv', 'nlServerApi', 'nlPageType',
-function(nl, nlScrollbarSrv, nlServerApi, nlPageType) {
+var PlayerDirective = ['nl', 'nlScrollbarSrv', 'nlServerApi', 'nlPageType', 'nlLessonHelperSrv',
+function(nl, nlScrollbarSrv, nlServerApi, nlPageType, nlLessonHelperSrv) {
     return {
         restrict: 'E',
         transclude: true,
@@ -23,11 +23,24 @@ function(nl, nlScrollbarSrv, nlServerApi, nlPageType) {
         },
         templateUrl: 'view_controllers/lesson/player_directive.html',
         link: function($scope, iElem, iAttrs) {
+            _initMenus(nl, $scope.$parent, $scope);
             $scope.lesson = null;
+            $scope.bgImgUrl = null;
             nlServerApi.getLesson($scope.lessonId).then(function(oLesson) {
                 console.log('Got the lesson', oLesson);
+
                 var playerServices = {nlPageType:nlPageType};
                 $scope.lesson = new Lesson(oLesson, $scope.launchCtx, playerServices);
+                
+                var bgInfo = nlLessonHelperSrv.getBackgroundUrlInfo(oLesson.template);
+                iElem.addClass(bgInfo.bgShade);
+                nl.url.getCachedUrl(bgInfo.url)
+                .then(function(imgUrl) {
+                    $scope.$apply(function() {
+                        $scope.bgImgUrl = imgUrl;
+                    });
+                });
+
                 nlScrollbarSrv.setTotal($scope.lesson.pages.length);
                 nlScrollbarSrv.gotoPage(1);
             });
@@ -45,6 +58,54 @@ function(nl, nlScrollbarSrv, nlServerApi, nlPageType) {
          }
     };
 }];
+
+function _initMenus(nl, $scope, $dirScope) {
+    nl.menu.onViewEnter($scope, function() {
+        nl.menu.addViewMenuItem('Change to preview mode (Alt+T)', 'toolbar-edit/toggle.png', function() {
+            // TODO
+            $dirScope.lesson.changeMode();
+        });
+        nl.menu.addViewMenuItem('Add Page (Alt+Insert)', 'toolbar-edit/addpage.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Delete/Cut Page (Alt+Del)', 'toolbar-edit/delpage.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Change Page type', 'toolbar-edit/changepagetype.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Page Properties (Alt-P)', 'toolbar-edit/pageprops.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Page Organizer (Alt+O)', 'toolbar-edit/pageorg.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Lesson Properties', 'toolbar-edit/props.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Change Look', 'toolbar-edit/look.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Save (Ctrl+S)', 'toolbar-edit/save.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Manage Comments', 'toolbar-edit/comments1.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Invite for Review', 'toolbar-edit/revinvite.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Approve', 'toolbar-edit/approve.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Insert Image', 'toolbar-edit/addimage.png', function() {
+            // TODO
+        });
+        nl.menu.addViewMenuItem('Raw Edit', 'toolbar-edit/raw.png', function() {
+            // TODO
+        });
+    });
+}
 
 //-------------------------------------------------------------------------------------------------
 // Helpers

@@ -34,7 +34,7 @@ function(nl, nlServerApi, $scope, $rootScope) {
     nlServerApi.getLessonList('approved', null).then(function(result) {
         console.log('getLessonList success:', result);
         _updateCards($scope.cards, result, nl);
-        $scope.onCardsRepaginate();
+        $scope.reInitCards();
     }, function(error) {
         console.log('getLessonList failed:', error);
     });

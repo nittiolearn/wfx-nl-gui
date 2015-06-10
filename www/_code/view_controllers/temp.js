@@ -27,23 +27,23 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlDummy = ['nl',
-function(nl) {
+var NlDummy = ['nl', 'nlLessonHelperSrv',
+function(nl, nlLessonHelperSrv) {
     this.getSampleContent = function(lessonId) {
-        return _getSampleContent(lessonId);
+        return _getSampleContent(lessonId, nlLessonHelperSrv);
     };
     
     this.populateDummyData = function(nLesson, nAssign) {
         console.log('db.populateDummyData:', nLesson, nAssign);
         var db = nl.db.get();
         for (var i=0; i<nLesson; i++) {
-            _createDummyLesson(db, i);
+            _createDummyLesson(db, i, nlLessonHelperSrv);
         }
     };
 }];
 
-function _createDummyLesson(db, i) {
-    var l = _getSampleContent(i);
+function _createDummyLesson(db, i, nlLessonHelperSrv) {
+    var l = _getSampleContent(i, nlLessonHelperSrv);
     db.put('lesson', l, l.id)
     .then(function(key) {
         console.log('wrote to db ' + key);         
@@ -59,11 +59,12 @@ var someStrings = ['H1 Hello', 'This is some other section text', 'some thing el
 var images = ['commerce-economics-piggybank.png', 'commerce-economics-profitbag.png', 'chemistry-molecules-color.png', 
 'Eng4.png', 'Frog.png'];
 
-function _getSampleContent(i) {
+function _getSampleContent(i, nlLessonHelperSrv) {
     var l={};
     l.id = i;
     l.name = 'Lesson Name: ' + i;
-    l.image = _randElem(images);
+    l.image = _randElem(nlLessonHelperSrv.getIconList(), 1).id;
+    l.template = _randElem(nlLessonHelperSrv.getBgTemplateList(), 1).id;
     l.subject = 'Subject 1';
     l.description = 'Description of lesson ' + i + ' - ' + _randElem(someStrings);
     l.pages = [];
@@ -78,8 +79,10 @@ function _getSampleContent(i) {
     return l;
 }
 
-function _randElem(arr) {
-    return arr[Math.round(Math.random()*(arr.length-1))];
+function _randElem(arr, nStart) {
+    if (nStart === undefined) nStart = 0;
+    var nMax = arr.length -1 - nStart;
+    return arr[Math.round(Math.random()*nMax+nStart)];
 }
 
 //-------------------------------------------------------------------------------------------------

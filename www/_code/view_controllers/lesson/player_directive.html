@@ -1,20 +1,39 @@
+<Style>
+    .delete-later-ptinfo {
+        background: grey; 
+        z-index:3; 
+        position:absolute; 
+        right:0; 
+        bottom:0;
+        opacity: 0.5;
+        cursor: pointer;
+    }
+
+    .delete-later-ptinfo:hover {
+        opacity: 1;
+    }
+    
+</Style>
 <div nl-loading='lesson' nl-load-done='onLoaded' class='nl-player'>
     <div class='nl-page' ng-class='pgInfo.pageAnim'
          ng-repeat='page in lesson.pages'
          ng-show='$index + 1 == pgInfo.currentPage'>
-        <div ng-click='lesson.changeMode();'
-             style='background: grey; z-index:3; position:absolute; right:0; bottom:0'>
-            Page No: {{$index + 1}}, PT: {{page.oPage.type}}
-        </div>
-        <div class='nl-section' ng-repeat='section in page.sections' ng-style='section.styleAlign'>
-            <div class='nl-sec-view' ng-style='section.styleViewPos'
-                 ng-show='lesson.showView'>
-                <b>{{$index}}: </b> {{section.oSection.text}}
+        <img ng-src='{{bgImgUrl}}' class='nl-bg-img-style'>
+        <div class='nl-page-holder'>
+            <div class='nl-section' ng-repeat='section in page.sections' ng-style='section.styleAlign'>
+                <div class='nl-sec-view' ng-style='section.styleViewPos'
+                     ng-show='lesson.showView'>
+                    <b>{{$index}}: </b> {{section.oSection.text}}
+                </div>
+                <textarea class='nl-sec-text' ng-model='section.oSection.text'
+                          ng-style='section.styleTextPos'
+                          ng-show='lesson.showText'>
+                </textarea>
             </div>
-            <textarea class='nl-sec-text' ng-model='section.oSection.text'
-                      ng-style='section.styleTextPos'
-                      ng-show='lesson.showText'>
-            </textarea>
+        </div>
+        <div ng-click='lesson.changeMode();'
+             class='delete-later-ptinfo'>
+            Page No: {{$index + 1}}, PT: {{page.oPage.type}}
         </div>
     </div>
 </div>

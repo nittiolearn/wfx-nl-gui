@@ -8,8 +8,8 @@
                         <a ng-if='card.url' href='{{card.url}}' class='nl-card-header'>{{card.title}}</a>
                         <div ng-if='!card.url' class='nl-card-header'>{{card.title}}</div>
                 
-                        <a ng-if='card.url' href='{{card.url}}' class='nl-card-img'><img ng-src='{{card.icon}}' nl-no-ctx-menu nl-retain-ar></img></a>
-                        <div ng-if='!card.url' class='nl-card-img'><img ng-src='{{card.icon}}' nl-no-ctx-menu></img></div>
+                        <a ng-if='card.url' href='{{card.url}}' class='nl-card-img'><img ng-src='{{card.iconUrl}}' nl-no-ctx-menu nl-retain-ar></img></a>
+                        <div ng-if='!card.url' class='nl-card-img'><img ng-src='{{card.iconUrl}}' nl-no-ctx-menu></img></div>
                 
                         <div class='nl-card-desc' ng-click='loading()'>{{card.desc}}</div>
                         <div class='nl-card-links'></div>    

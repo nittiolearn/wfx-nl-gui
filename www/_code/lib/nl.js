@@ -117,7 +117,6 @@ function NlUrl(nl) {
     };
 
     this.lessonIconUrl = function(iconName) {
-        console.log('lessonIconUrl:', iconName);
         return resFolder('icon', iconName);
     };
 
@@ -132,16 +131,55 @@ function NlUrl(nl) {
         console.log('resFolder:', ret);
         return ret;
     }
+
+    this.getCachedUrl = function(url) {
+        return new Promise(function(resolve, reject) {
+            var db = nl.db.get();
+            db.get('resource', url)
+            .then(function(resource) {
+                if (resource !== undefined) {
+                    resolveResource(resource, resolve, nl);
+                    return;
+                }
+                loadResouceUrl(url, db, resolve, reject);
+            }, function(e) {
+                console.log('getCachedUrl from db failed', e);
+                loadResouceUrl(url, db, resolve, reject);
+            });
+        });
+    }
+
+    function loadResouceUrl(url, db, resolve, reject) {
+        nl.http.get(url, {cache: false, responseType: 'blob'})
+        .success(function(data, status, headers, config) {
+            console.log('loadResouceUrl success: ', url, data, status, headers, config);
+            var resource = {id:url, res:data};
+            db.put('resource', resource, url)
+            .then(function(key) {
+                resolveResource(resource, resolve, nl);           
+            }, function(e) {
+                console.log('loadResouceUrl db.put failed', e);
+                resolveResource(resource, resolve, nl);           
+            });
+        }).error(function(data, status, headers, config) {
+            console.log('loadResouceUrl failed: ', url, data, status, headers, config);
+            reject(data);
+        });
+    }
+
+    function resolveResource(resource, resolve, nl) {
+        var URL = window.URL || window.webkitURL;
+        var localUrl = URL.createObjectURL(resource.res);
+        // When will revokeObjectURL be called?
+        resolve(localUrl);
+    }
 }
 
 //-------------------------------------------------------------------------------------------------
 function NlDb() {
-    var lessonSchema = {
-      name: 'lesson',
-      key: 'id',
-      autoIncrement: false
-    };
-    var schema = {stores: [lessonSchema], version: 1};
+    var lessonSchema = { name: 'lesson', key: 'id', autoIncrement: false};
+    var resourceSchema = { name: 'resource', key: 'id', autoIncrement: false};
+    var schema = {stores: [lessonSchema, resourceSchema], version: 1};
     var db = new ydn.db.Storage('nl_db', schema);
     
     this.get = function() {

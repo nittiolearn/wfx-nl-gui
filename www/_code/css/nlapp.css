@@ -597,24 +597,45 @@ a.nl-card-header:hover {
     left: 0;
     height: 100%;
     width: 100%;
-    font-size: 36px;
+    font-size: 20px;
+    color: #FFFFFF;
+}
+
+.bglight .nl-player {
+    color: #000000;
 }
 
 .nl-page {
     position: absolute;
-    top: 1%;
-    left: 1%;
-    height: 98%;
-    width: 98%;
-    border: 1px dashed blue;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
 }
 
-.nl-section {
+.nl-bg-img-style {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    box-shadow: 1px 1px 5px 0 #807090;
+    border-radius: 8px;
+    z-index: -1;
+    outline: none;
+}
+
+.nl-page-holder {
+    position: absolute;
+    left: 4%;
+    top: 6%;
+    width: 92%;
+    height: 86%;
 }
 
 .nl-section > .nl-sec-view {
     position: absolute;
-    background-color: green;
+    //background-color: green;
 }
 
 .nl-section > .nl-sec-text {

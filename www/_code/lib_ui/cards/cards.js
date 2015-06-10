@@ -22,12 +22,9 @@ function(nl, $window, nlScrollbarSrv) {
         },
         link: function($scope, iElem, iAttrs) {
             $scope.pages = [];
-            angular.element($window).on('resize', function() {
-                $scope.$parent.onCardsRepaginate();
-            });
             nl.timeout(function() {
                 // TODO - might not be needed if all callers call repaginate!
-                $scope.$parent.onCardsRepaginate();
+                $scope.$parent.reInitCards();
             }); // 0 timeout - just executes after DOM rendering is complete
             
             nl.router.onViewEnter($scope.$parent, function() {
@@ -36,14 +33,40 @@ function(nl, $window, nlScrollbarSrv) {
                 nlScrollbarSrv.gotoPage(1);
             });
             
-            $scope.$parent.onCardsRepaginate = function() {
+            $scope.$parent.reInitCards = function() {
+                _cacheCardsIcons($scope, nl);
+                _repaginateCards();
+            };
+            
+            angular.element($window).on('resize', function() {
+                _repaginateCards();
+            });
+
+            function _repaginateCards() {
                 $scope.$apply(function() {
                     _paginateCards(nl, $scope, iElem, nlScrollbarSrv);
                 });
-            };
+            }
          }
     };
 }];
+
+function _cacheCardsIcons($scope, nl) {
+    for(var i=0; i<$scope.cards.length; i++) {
+        var card = $scope.cards[i];
+        _cacheCardIcon($scope, card, nl);
+    }
+}
+
+function _cacheCardIcon($scope, card, nl) {
+    nl.url.getCachedUrl(card.icon)
+    .then(function(imgUrl) {
+        console.log('cardIconUrl: ', imgUrl);
+        $scope.$apply(function() {
+            card.iconUrl = imgUrl;
+        });
+    });
+}
 
 function _paginateCards(nl, $scope, cardsContainer, nlScrollbarSrv) {
     console.log('_paginateCards called');
