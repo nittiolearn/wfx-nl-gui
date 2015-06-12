@@ -5,7 +5,6 @@
 // lesson page types module
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-    console.log('nl.lesson.pagetypes');
     angular.module('nl.lesson.pagetypes', [])
     .service('nlPageType', PageTypeSrv);
     
@@ -2111,7 +2110,6 @@ module_init();
 }());
 
 function npagetypes() {
-console.log('pagetypes1.js');
 
 function _initPageTypeFieldsForEditor() {
     var intrObj = jQuery('#l_interactiontype');
