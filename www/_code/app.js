@@ -70,12 +70,12 @@ function onIonicReady() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var AppCtrl = ['nl', '$scope', '$rootScope', '$stateParams', '$location', 'nlDlg', 'nlKeyboardHandler', 
-function(nl, $scope, $rootScope, $stateParams, $location, nlDlg, nlKeyboardHandler) {
-    $rootScope.imgBasePath = nl.url.resUrl();
-    $rootScope.pgInfo = nl.pginfo;
+var AppCtrl = ['nl', '$scope', '$stateParams', '$location', 'nlDlg', 'nlKeyboardHandler', 
+function(nl, $scope, $stateParams, $location, nlDlg, nlKeyboardHandler) {
+    nl.rootScope.imgBasePath = nl.url.resUrl();
+    nl.rootScope.pgInfo = nl.pginfo;
 
-    $rootScope.windowTitle = function() {
+    nl.rootScope.windowTitle = function() {
         var prefix = nl.t('Nittio Learn');
         if (nl.pginfo.pageTitle == '') return prefix;
         return prefix + ' - ' + nl.pginfo.pageTitle;
@@ -106,10 +106,15 @@ function(nl, $scope, $rootScope, $stateParams, $location, nlDlg, nlKeyboardHandl
         nl.pginfo.isMenuShown = !(nl.pginfo.isMenuShown);
         _updateMenuState(nl, $scope);
     };
+    
+    $scope.getRecentLogs = function () {
+        return nl.log.getRecentLogs();
+    };
+    $scope.filter = '';
 
     var dlg = nlDlg.create($scope, 'lib_ui/dlg/testdlg.html');
     dlg.showRecursive = function(level) {
-        dlg.show([{text: 'Reshow-' + level, onTap: function(e) {
+        dlg.show([{text: 'Reshow-Level-' + level, onTap: function(e) {
             dlg.showRecursive(level+1);
             e.preventDefault();
         }}]);

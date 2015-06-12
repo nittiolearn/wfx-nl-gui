@@ -16,7 +16,6 @@ function(nl, $ionicPopup, $ionicPopover, $ionicLoading) {
     this.create = function($scope, template) {
         return new Dialog(nl, $ionicPopup, $ionicLoading, $scope, template);
         $scope.onClose = function() {
-            console.log('self.help()');
         };
     };
 }];
@@ -26,11 +25,11 @@ function Dialog(nl, $ionicPopup, $ionicLoading, $scope, template) {
     self.dlg = null;
     
     $scope.onHelp = function() {
-        console.log('self.help()');
+        nl.log.debug('Dialog: onHelp() clicked');
     };
     
     $scope.$on('$destroy', function() {
-        nl.log.debug('$scope.$on($destroy)');
+        nl.log.debug('Dialog: $scope.$on($destroy)');
         self.dlg.remove();
         self.dlg = null;
     });
@@ -53,8 +52,8 @@ function Dialog(nl, $ionicPopup, $ionicLoading, $scope, template) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var DlgDirective = ['nl', '$window', '$rootScope', 'nlScrollbarSrv',
-function(nl, $window, $rootScope, nlScrollbarSrv) {
+var DlgDirective = ['nl', '$window', 'nlScrollbarSrv',
+function(nl, $window, nlScrollbarSrv) {
     return {
         restrict: 'E',
         transclude: true,
@@ -65,7 +64,7 @@ function(nl, $window, $rootScope, nlScrollbarSrv) {
         },
         link: function($scope, iElem, iAttrs) {
             $scope.showHelp = false;
-            $scope.imgBasePath = $rootScope.imgBasePath;
+            $scope.imgBasePath = nl.rootScope.imgBasePath;
             var iTrans = iElem.find('ng-transclude');
             var oldHelpElem = _findChildWithClass(iTrans, 'nl-dlg-help');
             var oldContentElem = _findChildWithClass(iTrans, 'nl-dlg-content');
@@ -85,7 +84,7 @@ function(nl, $window, $rootScope, nlScrollbarSrv) {
             $scope.onClose = function($event) {
                 $scope.$parent.onClose();
             };
-            console.log('DlgDirective');
+            nl.log.debug('DlgDirective linked');
         }
     };
 }];

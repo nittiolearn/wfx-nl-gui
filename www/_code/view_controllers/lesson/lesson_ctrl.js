@@ -46,8 +46,8 @@ function config($stateProvider, $urlRouterProvider) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var LessonCreateCtrl = ['nl', '$scope', '$rootScope', 'nlDummy',
-function(nl, $scope, $rootScope, nlDummy) {
+var LessonCreateCtrl = ['nl', '$scope', 'nlDummy',
+function(nl, $scope, nlDummy) {
     nl.pginfo.pageTitle = nl.t('Create new lesson');
     $scope.lessonId = 0;
     $scope.button_name = 'Create';
@@ -69,8 +69,8 @@ function(nl, $scope, $rootScope, nlDummy) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var LessonEditCtrl = ['nl', '$scope', '$rootScope', 'nlDummy', '$stateParams',
-function(nl, $scope, $rootScope, nlDummy, $stateParams) {
+var LessonEditCtrl = ['nl', '$scope', 'nlDummy', '$stateParams',
+function(nl, $scope, nlDummy, $stateParams) {
     var lessonId = parseInt($stateParams.lessonId);
 
     nl.pginfo.pageTitle = nl.t('Edit lesson - {}', lessonId);
@@ -108,8 +108,8 @@ function(nl, $scope, $rootScope, nlDummy, $stateParams) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var LessonCtrl = ['nl', '$scope', '$rootScope', '$stateParams',
-function(nl, $scope, $rootScope, $stateParams) {
+var LessonCtrl = ['nl', '$scope', '$stateParams',
+function(nl, $scope, $stateParams) {
     nl.pginfo.pageTitle = nl.t('View lesson');
     $scope.lessonId = parseInt($stateParams.lessonId);
     nl.log.debug('Enter LessonCtrl: ' + $scope.lessonId);

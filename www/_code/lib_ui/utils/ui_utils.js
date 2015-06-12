@@ -21,14 +21,14 @@ function(nl, $window, $ionicLoading, $parse) {
             'nlLoadDone': '='
         },
         link: function($scope, iElem, iAttrs) {
-            console.log('link of LoadingDirective');
+            nl.log.debug('link of LoadingDirective');
             if (!$scope.nlLoading) {
                 $ionicLoading.show({
                     templateUrl : 'lib_ui/utils/waiting.html'
                 });
             }
             var unregister = $scope.$watch('nlLoading', function(newVal, oldVal) {
-                console.log('Watch success: ', newVal, oldVal);
+                nl.log.debug('Watch success: ', newVal, oldVal);
                 if (newVal) {
                     $ionicLoading.hide();
                     unregister();

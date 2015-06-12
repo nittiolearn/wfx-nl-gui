@@ -5,7 +5,6 @@
 // Lesson player module
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-    console.log('nl.lesson.player.js');
     angular.module('nl.lesson.player', [])
     .directive('nlPlayer', PlayerDirective);
 }
@@ -27,7 +26,7 @@ function(nl, nlScrollbarSrv, nlServerApi, nlPageType, nlLessonHelperSrv) {
             $scope.lesson = null;
             $scope.bgImgUrl = null;
             nlServerApi.getLesson($scope.lessonId).then(function(oLesson) {
-                console.log('Got the lesson', oLesson);
+                nl.log.debug('Got the lesson', oLesson);
 
                 var playerServices = {nlPageType:nlPageType};
                 $scope.lesson = new Lesson(oLesson, $scope.launchCtx, playerServices);
@@ -36,9 +35,7 @@ function(nl, nlScrollbarSrv, nlServerApi, nlPageType, nlLessonHelperSrv) {
                 iElem.addClass(bgInfo.bgShade);
                 nl.url.getCachedUrl(bgInfo.url)
                 .then(function(imgUrl) {
-                    $scope.$apply(function() {
-                        $scope.bgImgUrl = imgUrl;
-                    });
+                    $scope.bgImgUrl = imgUrl;
                 });
 
                 nlScrollbarSrv.setTotal($scope.lesson.pages.length);
@@ -49,7 +46,7 @@ function(nl, nlScrollbarSrv, nlServerApi, nlPageType, nlLessonHelperSrv) {
                 // TODO - is this needed?
             };
             nl.router.onViewEnter($scope.$parent, function() {
-                console.log('view enter');
+                nl.log.debug('PlayerDirective: view enter');
                 if ($scope.lesson == null) return;
                 nlScrollbarSrv.setTotal($scope.lesson.pages.length);
                 nlScrollbarSrv.gotoPage(1);
@@ -220,8 +217,6 @@ module_init();
 }());
 
 function nlesson() {
-    console.log('nittiolesson.js');
-
 	//#############################################################################################
 	// Lesson - 	models one lesson. 
 	// Page - 		models one page in a lesson

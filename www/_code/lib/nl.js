@@ -11,15 +11,15 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var Nl = ['$log', '$http', '$timeout', '$location', '$window', '$rootScope',
-function($log, $http, $timeout, $location, $window, $rootScope) {
-    //---------------------------------------------------------------------------------------------
-    // All logging calls within nittioapp is made via nl.log
-    this.log = $log;
-
+var Nl = ['$log', '$http', '$q', '$timeout', '$location', '$window', '$rootScope',
+function($log, $http, $q, $timeout, $location, $window, $rootScope) {
     //---------------------------------------------------------------------------------------------
     // All http calls within nittioapp is made via nl.http
     this.http = $http;
+
+    //---------------------------------------------------------------------------------------------
+    // All $q/promise calls within nittioapp is made via nl.q
+    this.q = $q;
 
     //---------------------------------------------------------------------------------------------
     // All timeout calls within nittioapp is made via nl.timeout
@@ -33,6 +33,10 @@ function($log, $http, $timeout, $location, $window, $rootScope) {
     // All $window calls within nittioapp is made via nl.window
     this.window = $window;
     
+    //---------------------------------------------------------------------------------------------
+    // All $window calls within nittioapp is made via nl.window
+    this.rootScope = $rootScope;
+
     //---------------------------------------------------------------------------------------------
     // Formatting and translating Utilities
     var formatter = new Formatter();
@@ -54,17 +58,21 @@ function($log, $http, $timeout, $location, $window, $rootScope) {
 
     //---------------------------------------------------------------------------------------------
     // Cache Factory
-    this.createCache = function(cacheMaxSize, onRemoveFn) {
-        return new LruCache(cacheMaxSize, onRemoveFn);
+    this.createCache = function(cacheMaxSize, cacheLowWaterMark, onRemoveFn) {
+        return new LruCache(cacheMaxSize, cacheLowWaterMark, onRemoveFn);
     };
     
+    //---------------------------------------------------------------------------------------------
+    // All logging calls within nittioapp is made via nl.log
+    this.log = new NlLog(this, $log, 1000, 800);
+
     //---------------------------------------------------------------------------------------------
     // All URL getters
     this.url = new NlUrl(this);
     
     //---------------------------------------------------------------------------------------------
     // All DB access
-    this.db = new NlDb();
+    this.db = new NlDb(this);
 
     //---------------------------------------------------------------------------------------------
     // View enter exit handlers
@@ -76,15 +84,21 @@ function($log, $http, $timeout, $location, $window, $rootScope) {
 
     //---------------------------------------------------------------------------------------------
     // Menu bar for the current view
-    this.menu = new NlMenu(this, $rootScope);
+    this.menu = new NlMenu(this);
 }];
 
 //-------------------------------------------------------------------------------------------------
+function _sliceArguments(args, startPos) {
+    var ret = [];
+    for(var i=startPos; i < args.length; i++) ret.push(args[i]);
+    return ret;
+}
+
 function Formatter() {
     this.t = function(args) {
         // TODO-MUNNI - actual translation needed
         var strFmt = args[0];
-        var ret = _fmt2Impl(strFmt, _getArgs(args));
+        var ret = _fmt2Impl(strFmt, _sliceArguments(args, 1));
         return ret;
     };
     
@@ -95,19 +109,13 @@ function Formatter() {
     };
     
     this.fmt2 = function(args) {
-        return _fmt2Impl(args[0], _getArgs(args));
+        return _fmt2Impl(args[0], _sliceArguments(args, 1));
     };
     
     this.escape = function(input) {
         return String(input).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     };
 
-    function _getArgs(args) {
-        var args1 = [];
-        for(var i=1; i<args.length; i++) args1.push(args[i]); 
-        return args1;
-    }
-    
     function _fmt2Impl(strFmt, args) {
         var i = 0;
         return strFmt.replace(/{}/g, function() {
@@ -120,7 +128,7 @@ function Formatter() {
 // Intention is to implement a LRU. For now this cleanup 80% of random entries when the maxSize
 // is reached! When a entry is cleaned up, onRemoveFn is called with key and value of entry being
 // removed from Cache.
-function LruCache(maxSize, onRemoveFn) {
+function LruCache(maxSize, lowWaterMark, onRemoveFn) {
     
     this.entryDict = {};
 
@@ -137,7 +145,7 @@ function LruCache(maxSize, onRemoveFn) {
     this.reduceIfNeeded = function() {
         var entryDictKeys = Object.keys(this.entryDict);
         if (entryDictKeys.length < maxSize) return;
-        var toRemove = Math.round(maxSize*0.8);
+        var toRemove = maxSize - lowWaterMark;
         for (var k in this.entryDict) {
             if (toRemove <= 0) break;
             toRemove--;
@@ -146,6 +154,59 @@ function LruCache(maxSize, onRemoveFn) {
             delete this.entryDict[k];
         }
     };
+}
+
+//-------------------------------------------------------------------------------------------------
+function NlLog(nl, $log, maxLogCount, lowWaterMark) {
+
+    this.log = function() {
+        logImpl('log', $log.log, arguments);
+    };
+    
+    this.debug = function(args) {
+        logImpl('debug', $log.debug, arguments);
+    };
+
+    this.info = function(args) {
+        logImpl('info', $log.info, arguments);
+    };
+
+    this.warn = function(args) {
+        logImpl('warn', $log.warn, arguments);
+    };
+
+    this.error = function(args) {
+        logImpl('error', $log.error, arguments);
+    };
+    
+    this.getRecentLogs = function() {
+        return recentLogs;
+    };
+    
+    var recentLogs = [];
+    var logId = 0;
+    function logImpl(level, logFn, args) {
+        var msg = args[0];
+        var logArgs = _sliceArguments(args, 1); 
+        if (logArgs.length > 0) {
+            logFn(msg, logArgs);
+        } else {
+            logFn(msg);
+        }
+        if (recentLogs === null) return;
+        logId++;
+
+        var argsJson = '';
+        try {
+            argsJson = angular.toJson(logArgs);
+        } catch (e) {
+            argsJson = 'angular.toJson error: ' + e.message;
+        }
+        recentLogs.push({pos: logId, logtime: new Date(), level:level, msg:msg, args:argsJson});
+        if (recentLogs.length < maxLogCount) return;
+        var toRemove = maxLogCount - lowWaterMark;
+        recentLogs.splice(0, toRemove);
+    }
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -170,19 +231,19 @@ function NlUrl(nl) {
         return ret;
     }
 
-    var urlCache = nl.createCache(1000, function(k, v) {
-        var localUrl = URL.revokeObjectURL(v);
+    var urlCache = nl.createCache(1000, 500, function(k, v) {
+        URL.revokeObjectURL(v);
     });
 
     this.getCachedUrl = function(url) {
-        return new Promise(function(resolve, reject) {
-            
+        return nl.q(function(resolve, reject) {
             // TODO-MUNNI
-            //resolve(url);
+            //resolveUncachedResource(url, resolve);
             //return;
             
             var localUrl = urlCache.get(url);
             if (localUrl !== undefined) {
+                nl.log.debug('getCachedUrl found in urlCache: ', url, localUrl);
                 resolve(localUrl);
                 return;
             }
@@ -190,49 +251,62 @@ function NlUrl(nl) {
             db.get('resource', url)
             .then(function(resource) {
                 if (resource !== undefined) {
+                    nl.log.debug('getCachedUrl found resource in db: ', url);
                     resolveResource(url, resource, resolve, nl);
                     return;
                 }
+                nl.log.debug('getCachedUrl not found resource in db: ', url);
                 loadResouceUrl(url, db, resolve);
             }, function(e) {
-                console.log('getCachedUrl from db failed', e);
+                nl.log.debug('getCachedUrl getting resource from db failed: ', url);
                 loadResouceUrl(url, db, resolve);
             });
+            nl.log.debug('getCachedUrl fired db.get', url);
         });
     };
 
     function loadResouceUrl(url, db, resolve) {
         nl.http.get(url, {cache: false, responseType: 'blob'})
         .success(function(data, status, headers, config) {
-            console.log('loadResouceUrl success: ', url, data, status, headers, config);
+            nl.log.debug('loadResouceUrl success: ', url, status, headers, config);
             var resource = {id:url, res:data};
             db.put('resource', resource, url)
             .then(function(key) {
+                nl.log.debug('loadResouceUrl store in DB success: ', key);
                 resolveResource(url, resource, resolve, nl);           
             }, function(e) {
-                console.log('loadResouceUrl db.put failed', e);
+                nl.log.warn('loadResouceUrl store in DB failed: ', e);
                 resolveResource(url, resource, resolve, nl);           
             });
+            nl.log.debug('loadResouceUrl initiated put', url);
         }).error(function(data, status, headers, config) {
-            console.error('loadResouceUrl failed: ', url, data, status, headers, config);
+            nl.log.warn('loadResouceUrl failed: ', url, data, status, headers, config);
             resolveUncachedResource(url, resolve);
         });
     }
 
     function resolveResource(url, resource, resolve, nl) {
+        nl.log.debug('resolveResource enter: ', url);
         var URL = window.URL || window.webkitURL;
+        nl.log.debug('resolveResource before 1 createObjectURL: ');
+        nl.log.debug('resolveResource before 2 createObjectURL: ', URL);
         var localUrl = URL.createObjectURL(resource.res);
+        nl.log.debug('resolveResource success: ', url, localUrl);
+        
+        var oldLocalUrl = urlCache.get(url);
+        if (oldLocalUrl !== undefined) URL.revokeObjectURL(oldLocalUrl);
         urlCache.put(url, localUrl);
         resolve(localUrl);
     }
 
     function resolveUncachedResource(url, resolve) {
+        nl.log.debug('resolveUncachedResource: ', url);
         resolve(url);
     }
 }
 
 //-------------------------------------------------------------------------------------------------
-function NlDb() {
+function NlDb(nl) {
     var lessonSchema = { name: 'lesson', key: 'id', autoIncrement: false};
     var resourceSchema = { name: 'resource', key: 'id', autoIncrement: false};
     var schema = {stores: [lessonSchema, resourceSchema], version: 1};
@@ -243,7 +317,7 @@ function NlDb() {
     };
     
     this.clearDb = function() {
-        console.log('db.clear');
+        nl.log.warn('db.clear');
         db.clear();
     };
 }
@@ -274,7 +348,7 @@ function NlPageInfo() {
 }
 
 //-------------------------------------------------------------------------------------------------
-function NlMenu(nl, $rootScope) {
+function NlMenu(nl) {
     var appmenu = [];
     var viewmenu = [];
 
@@ -310,9 +384,7 @@ function NlMenu(nl, $rootScope) {
     function addMenuItem(menu, title, img, handler) {
         var menuItem = {title:nl.t(title), handler:handler};
         nl.url.getCachedUrl(nl.url.resUrl(img)).then(function(url) {
-            $rootScope.$apply(function() {
-                menuItem.img = url;
-            });
+            menuItem.img = url;
         });
         menu.push(menuItem);
     }

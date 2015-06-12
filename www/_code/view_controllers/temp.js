@@ -34,22 +34,22 @@ function(nl, nlLessonHelperSrv) {
     };
     
     this.populateDummyData = function(nLesson, nPages) {
-        console.log('db.populateDummyData:', nLesson, nPages);
+        nl.log.debug('db.populateDummyData:', nLesson, nPages);
         var db = nl.db.get();
         for (var i=0; i<nLesson; i++) {
-            _createDummyLesson(db, i, nPages, nlLessonHelperSrv);
+            _createDummyLesson(nl, db, i, nPages, nlLessonHelperSrv);
         }
     };
 }];
 
-function _createDummyLesson(db, i, nPages, nlLessonHelperSrv) {
+function _createDummyLesson(nl, db, i, nPages, nlLessonHelperSrv) {
     var maxPages = 1 + Math.round(Math.random()*nPages*2);
     var l = _getSampleContent(i, maxPages, nlLessonHelperSrv);
     db.put('lesson', l, l.id)
     .then(function(key) {
-        console.log('wrote to db ' + key);         
+        nl.log.debug('wrote to db ' + key);         
     }, function(e) {
-        console.log('error writing to db ', e);         
+        nl.log.debug('error writing to db ', e);         
     });
 }
 
@@ -87,17 +87,21 @@ function _randElem(arr, nStart) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var TempCtrl = ['nl', '$scope', '$rootScope', '$stateParams', '$location', 'nlDummy',
-function(nl, $scope, $rootScope, $stateParams, $location, nlDummy) {
+var TempCtrl = ['nl', '$scope', '$stateParams', '$location', 'nlDummy',
+function(nl, $scope, $stateParams, $location, nlDummy) {
     nl.pginfo.pageTitle = nl.t('Temp playground');
     //_ajaxRequest(nl, method1, $scope, 'httpResult1');
     //_ajaxRequest(nl, method2, $scope, 'httpResult2');
     $scope.lessoncnt=100;
     $scope.pagecnt=10;
     $scope.updateDummyData = function() {
+        $scope.updateStatus = 'Update in progress: clearing old db ...';
         nl.db.clearDb();
+        $scope.updateStatus = 'Update in progress: populating db ...';
         nlDummy.populateDummyData(this.lessoncnt, this.pagecnt);
+        $scope.updateStatus = 'Update done.';
     };
+    $scope.updateStatus = 'Update not initiated';
 }];
 
 var server = 'https://65-dot-nittio-org.appspot.com';
@@ -107,20 +111,20 @@ var method2 = '/default/dummy_method2.json';
 function _ajaxRequest(nl, method, $scope, resultVar) {
     nl.http.get(server + method, {cache: false})
     .success(function(data, status, headers, config) {
-        console.log('_ajaxRequest HTTP success: ', method, data, status, headers, config);
+        nl.log.debug('_ajaxRequest HTTP success: ', method, data, status, headers, config);
         $scope[resultVar] = [];
         for (var d in data.result) {
             $scope[resultVar].push({attr:d, val:data.result[d]});
         }
     }).error(function(data, status, headers, config) {
-        console.log('_ajaxRequest HTTP failed: ', method, data, status, headers, config);
+        nl.log.debug('_ajaxRequest HTTP failed: ', method, data, status, headers, config);
     });
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlImgReaderDirective = [
-function() {
-    console.warn('NlImgReaderDirective: ');
+var NlImgReaderDirective = ['nl',
+function(nl) {
+    nl.log.warn('NlImgReaderDirective: ');
     return {
         restrict: 'E',
         templateUrl: 'view_controllers/img_reader.html',
@@ -128,7 +132,7 @@ function() {
             nlFileRead: "@"
         },
         link: function (scope, element, attributes) {
-            console.warn('NlImgReaderDirective linking: ', scope);
+            nl.log.warn('NlImgReaderDirective linking: ', scope);
             scope.imgFiles = [];
 
             var children = element.children();
@@ -136,10 +140,10 @@ function() {
             var imgListDiv = angular.element(children[1]);
 
             imgInput.bind("change", function (event) {
-                console.warn('NlImgReaderDirective changed: ', event);
+                nl.log.warn('NlImgReaderDirective changed: ', event);
                 scope.$apply(function () {
                     scope.imgFiles = event.target.files;
-                    console.log(scope);
+                    nl.log.debug(scope);
                     _updateImageSection(imgListDiv, event.target.files);
                 });
             });

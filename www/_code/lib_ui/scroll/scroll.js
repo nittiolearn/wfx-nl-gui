@@ -67,13 +67,13 @@ function(nl, $window, nlScrollbarSrv) {
             pgInfo: '='
         },
         link: function($scope, iElem, iAttrs) {
-            console.log('link of InternalScrollDirective');
+            nl.log.debug('link of InternalScrollDirective');
             if (!$scope.pgInfo) return;
-            console.log('link of InternalScrollDirective of outer most');
+            nl.log.debug('link of InternalScrollDirective of outer most');
             nlScrollbarSrv.setTotal(1);
             nlScrollbarSrv.gotoPage(1);
             nl.router.onViewEnter($scope.$parent, function() {
-                console.log('view enter');
+                nl.log.debug('InternalScrollDirective: view enter');
                 nlScrollbarSrv.setTotal(1);
                 nlScrollbarSrv.gotoPage(1);
             });
@@ -96,7 +96,7 @@ function(nl) {
     };
 
     this.gotoPage = function(newPage, bAnimation) {
-        console.log('gotoPage: ' + newPage);
+        nl.log.debug('gotoPage: ' + newPage);
         if (bAnimation === undefined) bAnimation = false;
         if (newPage < 1) newPage=1;
         else if (newPage > nl.pginfo.totalPages) {
@@ -107,7 +107,7 @@ function(nl) {
         nl.timeout(function() {
             nl.pginfo.currentPage=newPage;
             self.updateThumbTop(nl.pginfo.currentPage);
-            console.log('nl.pginfo: ', nl.pginfo);
+            nl.log.debug('nl.pginfo: ', nl.pginfo);
         }); // 0 timeout - first the ng-class needs to be updated; in next cycle update page number
 
     };
@@ -166,7 +166,7 @@ function(nl, nlScrollbarSrv, nlKeyboardHandler) {
             };
             
             nlKeyboardHandler.setKeyHandler(function ($event) {
-                console.log('TODO: scroller.onKeyDown: ', $event.keyCode, $event.ctrlKey, $event.altKey, $event.shiftKey);
+                nl.log.debug('TODO: scroller.onKeyDown: ', $event.keyCode, $event.ctrlKey, $event.altKey, $event.shiftKey);
                 if (nlKeyboardHandler.UP($event) || nlKeyboardHandler.PAGEUP($event)) {
                     nlScrollbarSrv.gotoPage(nl.pginfo.currentPage-1);
                 } else if (nlKeyboardHandler.DOWN($event) || nlKeyboardHandler.PAGEDOWN($event)) {
@@ -184,7 +184,7 @@ function(nl, nlScrollbarSrv, nlKeyboardHandler) {
                 } else if ($event.gesture.direction === 'down') {
                     nlScrollbarSrv.gotoPage(nl.pginfo.currentPage-1, true);
                 }
-                console.log('TODO: scroller.swipeHandler: ', $event);
+                nl.log.debug('TODO: scroller.swipeHandler: ', $event);
             });
             
             var scrollOngoing = false;
@@ -197,7 +197,7 @@ function(nl, nlScrollbarSrv, nlKeyboardHandler) {
                 
                 var pxMaxDelta = scrollArea[0].offsetHeight - scrollThumb[0].offsetHeight;
                 pxDeltaPerPage = pxMaxDelta/nl.pginfo.totalPages;
-                console.log(pxMaxDelta, pxDeltaPerPage);
+                nl.log.debug(pxMaxDelta, pxDeltaPerPage);
             };
             
             $scope.onScroll = function($event) {
@@ -205,7 +205,7 @@ function(nl, nlScrollbarSrv, nlKeyboardHandler) {
                 var deltaPages = Math.round($event.gesture.deltaY/pxDeltaPerPage);
 
                 var pageNo = nl.pginfo.currentPage + deltaPages;
-                console.log($event.gesture.deltaY, pxDeltaPerPage, deltaPages, nl.pginfo.currentPage, pageNo);
+                nl.log.debug($event.gesture.deltaY, pxDeltaPerPage, deltaPages, nl.pginfo.currentPage, pageNo);
                 if (pageNo > nl.pginfo.totalPages) pageNo = nl.pginfo.totalPages;
                 if (pageNo < 1) pageNo = 1;
                 $scope.scrollingPageNo = pageNo;

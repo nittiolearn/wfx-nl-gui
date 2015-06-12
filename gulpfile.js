@@ -16,6 +16,7 @@ var karma = require('gulp-karma');
 var htmlreplace = require('gulp-html-replace');
 
 //-------------------------------------------------------------------------------------------------
+//var SERVER_URL = 'http://192.168.0.3:8000/';
 var SERVER_URL = '/';
 var VERSIONS = {script:'v66', res:'v39', icon:'v41', template:'v35'};
 //-------------------------------------------------------------------------------------------------
@@ -37,8 +38,8 @@ var inPaths = {
     ]
 };
 
-var outUrlPath = '/static/nittio_script_' + VERSIONS.script + '/nlappjs/';
-var outPath = './www' + outUrlPath;
+var outUrlPath = 'static/nittio_script_' + VERSIONS.script + '/nlappjs/';
+var outPath = './www/' + outUrlPath;
 var outCleaningPath = './www/static/nittio_script_*';
 
 function swallowError(error) {
@@ -142,7 +143,7 @@ gulp.task('nl_js', function(done) {
 });
 
 gulp.task('nl_generate_index', function(done) {
-    generateIndexHtml(done, './www', outUrlPath);
+    generateIndexHtml(done, './www', SERVER_URL + outUrlPath);
 });
 
 function generateIndexHtml(done, dest, prefix, suffix) {
@@ -196,16 +197,16 @@ gulp.task('karma_all', function(done) {
 //-------------------------------------------------------------------------------------------------
 // Nittio deployments
 //-------------------------------------------------------------------------------------------------
-var nittioBasePath = '../nittio/applications/nittiolearn';
+var nittioBasePath = '../nittio/applications/nittiolearn/';
 var nittioScriptPath = nittioBasePath + outUrlPath;
-var nittioViewPath = nittioBasePath + '/views/nittioapp';
+var nittioViewPath = nittioBasePath + 'views/nittioapp';
 
 function resourcePath(resType) {
-    return '/static/nittio_' + resType + '_' + VERSIONS[resType] + '/';
+    return 'static/nittio_' + resType + '_' + VERSIONS[resType] + '/';
 }
 
 function inResourcePath(resType) {
-    return './www' + resourcePath(resType) + '**';
+    return './www/' + resourcePath(resType) + '**';
 }
 
 function nittioResourcePath(resType) {

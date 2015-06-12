@@ -26,28 +26,28 @@ function($stateProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var HomeCtrl = ['nl', '$scope', '$rootScope', '$stateParams', 'nlServerApi',
-function(nl, $scope, $rootScope, $stateParams, nlServerApi) {
+var HomeCtrl = ['nl', '$scope', '$stateParams', 'nlServerApi',
+function(nl, $scope, $stateParams, nlServerApi) {
     nl.pginfo.pageTitle = nl.t('Home dashboard');
     $scope.cards = nlServerApi.getDashboardCards();
 
     $scope.onHold = function(event) {
-        console.log('onHold');
+        nl.log.debug('onHold');
         event.preventDefault();
         return false;
     };
     $scope.onTap = function(event) {
-        console.log('onTap');
+        nl.log.debug('onTap');
         event.preventDefault();
         return false;
     };
     $scope.onDoubleTap = function($event) {
-        console.log('onDoubleTap');
+        nl.log.debug('onDoubleTap');
         $event.preventDefault();
         return false;
     };
     $scope.onTouch = function($event) {
-        console.log('onTouch');
+        nl.log.debug('onTouch');
         $event.preventDefault();
         return false;
     };

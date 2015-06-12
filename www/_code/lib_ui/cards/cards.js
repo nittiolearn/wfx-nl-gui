@@ -28,7 +28,7 @@ function(nl, $window, nlScrollbarSrv) {
             }); // 0 timeout - just executes after DOM rendering is complete
             
             nl.router.onViewEnter($scope.$parent, function() {
-                console.log('view enter1');
+                nl.log.debug('CardsDirective: view enter');
                 nlScrollbarSrv.setTotal($scope.pages.length);
                 nlScrollbarSrv.gotoPage(1);
             });
@@ -39,13 +39,13 @@ function(nl, $window, nlScrollbarSrv) {
             };
             
             angular.element($window).on('resize', function() {
-                _repaginateCards();
+                $scope.$apply(function() {
+                    _repaginateCards();
+                });
             });
 
             function _repaginateCards() {
-                $scope.$apply(function() {
-                    _paginateCards(nl, $scope, iElem, nlScrollbarSrv);
-                });
+                _paginateCards(nl, $scope, iElem, nlScrollbarSrv);
             }
          }
     };
@@ -61,14 +61,12 @@ function _cacheCardsIcons($scope, nl) {
 function _cacheCardIcon($scope, card, nl) {
     nl.url.getCachedUrl(card.icon)
     .then(function(imgUrl) {
-        $scope.$apply(function() {
-            card.iconUrl = imgUrl;
-        });
+        card.iconUrl = imgUrl;
     });
 }
 
 function _paginateCards(nl, $scope, cardsContainer, nlScrollbarSrv) {
-    console.log('_paginateCards called');
+    nl.log.debug('_paginateCards called');
     var dimension = _getCardDimension(cardsContainer);
     var cardsPerRow = Math.max(1, Math.floor(cardsContainer[0].offsetWidth / dimension.w));
     var rowsPerPage = Math.max(1, Math.floor(cardsContainer[0].offsetHeight / dimension.h));

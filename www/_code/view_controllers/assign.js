@@ -47,8 +47,8 @@ function config($stateProvider, $urlRouterProvider) {
 var pageTitles = {'new': 'New assignments', 'past': 'Past assignments'};
 
 //-------------------------------------------------------------------------------------------------
-var AssignListCtrl = ['nl', '$scope', '$rootScope', '$stateParams',
-function(nl, $scope, $rootScope, $stateParams) {
+var AssignListCtrl = ['nl', '$scope', '$stateParams',
+function(nl, $scope, $stateParams) {
     var assigntype = $stateParams.assigntype;
     if (!(assigntype in pageTitles)) assigntype = 'new';
     nl.pginfo.pageTitle = nl.t(pageTitles[assigntype]);
@@ -70,8 +70,8 @@ function(nl, $scope, $rootScope, $stateParams) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var AssignDoCtrl = ['nl', '$scope', '$rootScope', '$stateParams',
-function(nl, $scope, $rootScope, $stateParams) {
+var AssignDoCtrl = ['nl', '$scope', '$stateParams',
+function(nl, $scope, $stateParams) {
     var assignid = parseInt($stateParams.assignid);
     nl.pginfo.pageTitle = nl.t('Do assignment: {}', assignid);
 }];

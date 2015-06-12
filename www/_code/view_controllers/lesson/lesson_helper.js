@@ -5,7 +5,6 @@
 // Lesson player module
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-    console.log('nl.lesson_helper.js');
     angular.module('nl.lesson_helper', [])
     .service('nlLessonHelperSrv', LessonHelperSrv);
 }

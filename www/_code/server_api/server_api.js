@@ -46,7 +46,7 @@ function(nl) {
     
     //----------------------------------------------------------------------------------------------
     this.getLessonList = function(type, filter) {
-        return new Promise(function(resolve, reject) {
+        return nl.q(function(resolve, reject) {
             if (type !== 'approved') {
                 reject('type !== approved');
                 return;
@@ -69,7 +69,7 @@ function(nl) {
 
     //----------------------------------------------------------------------------------------------
     this.getLesson = function(lessonId) {
-        return new Promise(function(resolve, reject) {
+        return nl.q(function(resolve, reject) {
             var db = nl.db.get();
             db.get('lesson', lessonId).then(function(lesson) {
                 if (lesson === undefined) {

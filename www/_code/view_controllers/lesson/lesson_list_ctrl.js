@@ -26,8 +26,8 @@ function config($stateProvider, $urlRouterProvider) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var LessonListCtrl = ['nl', 'nlServerApi', '$scope', '$rootScope', 'nlLessonHelperSrv',
-function(nl, nlServerApi, $scope, $rootScope, nlLessonHelperSrv) {
+var LessonListCtrl = ['nl', 'nlServerApi', '$scope', 'nlLessonHelperSrv',
+function(nl, nlServerApi, $scope, nlLessonHelperSrv) {
     nl.pginfo.pageTitle = nl.t('View approved lessons');
     $scope.cards = [];
 
@@ -35,7 +35,7 @@ function(nl, nlServerApi, $scope, $rootScope, nlLessonHelperSrv) {
         _updateCards($scope.cards, result, nl, nlLessonHelperSrv);
         $scope.reInitCards();
     }, function(error) {
-        console.log('getLessonList failed:', error);
+        nl.log.debug('getLessonList failed:', error);
     });
 }];
 
