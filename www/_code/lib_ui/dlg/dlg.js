@@ -11,49 +11,42 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var DlgSrv = ['nl', '$ionicPopup', '$ionicPopover', '$ionicLoading',
-function(nl, $ionicPopup, $ionicPopover, $ionicLoading) {
+var DlgSrv = ['nl', '$ionicPopup',
+function(nl, $ionicPopup) {
     this.create = function($scope, template) {
-        return new Dialog(nl, $ionicPopup, $ionicLoading, $scope, template);
-        $scope.onClose = function() {
-        };
+        return new Dialog(nl, $ionicPopup, $scope, template);
     };
 }];
 
-function Dialog(nl, $ionicPopup, $ionicLoading, $scope, template) {
-    var self = this;
-    self.dlg = null;
-    
-    $scope.onHelp = function() {
-        nl.log.debug('Dialog: onHelp() clicked');
-    };
-    
-    $scope.$on('$destroy', function() {
-        nl.log.debug('Dialog: $scope.$on($destroy)');
-        self.dlg.remove();
-        self.dlg = null;
-    });
+function Dialog(nl, $ionicPopup, $scope, template) {
+    this.show = function(otherButtons, closeButton) {
+        var myscope = $scope.$new();
 
-    self.show = function(otherButtons, closeButton) {
         if (otherButtons === undefined) otherButtons = [];
         if (closeButton === undefined) closeButton = {text: 'Close'};
         otherButtons.push(closeButton);
-        self.dlg = $ionicPopup.show({
+        var mypopup = $ionicPopup.show({
             title: '', subTitle: '', cssClass: 'nl-dlg',
             templateUrl: template,
-            scope: $scope,
+            scope: myscope,
             buttons: otherButtons
         });
-    };
 
-    self.close = function() {
-        self.dlg.close();
+        myscope.onCloseDlg = function($event) {
+            mypopup.close();
+        };
+
+        mypopup.then(function(result) {
+            myscope.$destroy();
+        });
+        
+        return mypopup;
     };
 }
 
 //-------------------------------------------------------------------------------------------------
-var DlgDirective = ['nl', '$window', 'nlScrollbarSrv',
-function(nl, $window, nlScrollbarSrv) {
+var DlgDirective = ['nl', '$window', 'nlScrollbarSrv', 'nlKeyboardHandler',
+function(nl, $window, nlScrollbarSrv, nlKeyboardHandler) {
     return {
         restrict: 'E',
         transclude: true,
@@ -81,9 +74,14 @@ function(nl, $window, nlScrollbarSrv) {
             $scope.onHelp = function() {
                 $scope.showHelp = !$scope.showHelp;
             };
-            $scope.onClose = function($event) {
-                $scope.$parent.onClose();
-            };
+            
+            newBody.attr('tabindex', 0);
+            newBody.bind('keydown', function($event) {
+                if (!nlKeyboardHandler.ESC($event)) return true;
+                nl.log.debug('escaping ...');
+                $scope.$parent.onCloseDlg($event);
+                return false;
+            });
             nl.log.debug('DlgDirective linked');
         }
     };

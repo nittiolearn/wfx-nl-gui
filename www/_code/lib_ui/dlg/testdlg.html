@@ -21,7 +21,7 @@
     <div class='nl-dlg-help'><div>This is the actual help</div></div>
     <div class='nl-dlg-content'>
         <div class='filter'>
-            <span>Filter: </span><input type='text' ng-model='filter'>
+            <span>Filter: </span><input type='text' ng-model='filter' autofocus>
             <h2>{{(getRecentLogs() | filter:filter).length}} of {{getRecentLogs().length}} logs displayed.</h2>
         </div>
         <table class='Mytable'>

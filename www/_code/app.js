@@ -88,7 +88,6 @@ function(nl, $scope, $stateParams, $location, nlDlg, nlKeyboardHandler) {
     nl.menu.clearAppMenu();
     nl.menu.addAppMenuItem('Help', 'general/help.png', function() {
         nl.log.debug('TODO: onHelpClick');
-        dlg.showRecursive(2);
     });
     nl.menu.addAppMenuItem('Login', 'general/top-logedin.png', function() {
         nl.log.debug('TODO: onLoginClick');
@@ -112,14 +111,6 @@ function(nl, $scope, $stateParams, $location, nlDlg, nlKeyboardHandler) {
     };
     $scope.filter = '';
 
-    var dlg = nlDlg.create($scope, 'lib_ui/dlg/testdlg.html');
-    dlg.showRecursive = function(level) {
-        dlg.show([{text: 'Reshow-Level-' + level, onTap: function(e) {
-            dlg.showRecursive(level+1);
-            e.preventDefault();
-        }}]);
-    };
-    
     $scope.onKeyDown = nlKeyboardHandler.onKeyDown;
     $scope.onSwipe = nlKeyboardHandler.onSwipe;
 }];

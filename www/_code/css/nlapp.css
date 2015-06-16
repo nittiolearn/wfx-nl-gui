@@ -413,27 +413,29 @@ nl-scrollbar:hover #nl-pageno {
 }
 
 .nl-dlg-title {
-    font-size: 120%;
-    text-align: center;
-    color: white;
-    padding: 8px 4px;
-    line-height: 120%;
-}
-
-.nl-dlg-title-help, .nl-dlg-title-close  {
     position: absolute;
     top: 4px;
+    left: 4px;
+    height: 24px;
+    right: 32px;
+    text-align: center;
+
+    font-size: 120%;
+    line-height: 120%;
+    color: white;
+    overflow-y: auto;
+}
+
+.nl-dlg-title-help {
+    position: absolute;
+    top: 4px;
+    right: 4px;
     height: 24px;
     width: 24px;
     cursor:pointer;
 }
 
 .nl-dlg-title-help {
-    right: 32px;
-}
-
-.nl-dlg-title-close {
-    right: 4px;
 }
 
 .nl-dlg-help {
@@ -547,7 +549,7 @@ nl-cards {
     text-decoration: none;
 }
 
-a.nl-card-header:hover {
+a.nl-card-header:hover, a.nl-card-header:focus {
     text-decoration: underline;
 }
 
@@ -565,7 +567,7 @@ a.nl-card-header:hover {
     width: 100%;
 }
 
-.nl-card-img:hover {
+.nl-card-img:hover, .nl-card-img:focus {
     box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
 }
 
