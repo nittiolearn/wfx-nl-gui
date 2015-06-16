@@ -45,6 +45,9 @@
 
 <nl-internal-scroll page-info='nl.pgInfo' style='backgroud-color:green'>
     <div class='buttons'>
+        <button ng-click='showLogViewer()'>View Logs</button>
+    </div>
+    <div class='buttons'>
         <span>nLessons: </span><input type='number' ng-model='lessoncnt'></input>
         <span>nAvgPagesPerLesson: </span><input type='number' ng-model='pagecnt'></input>
         <button ng-click='updateDummyData()'>Update Dummy Data</button>

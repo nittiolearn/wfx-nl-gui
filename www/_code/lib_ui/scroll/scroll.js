@@ -27,6 +27,7 @@ function(nl) {
         return $event.keyCode == key;
     };
     
+    this.F1 = function($event, modifiers) { return this.CHECK($event, 112, modifiers);};
     this.ESC = function($event, modifiers) { return this.CHECK($event, 27, modifiers);};
     this.UP = function($event, modifiers) { return this.CHECK($event, 38, modifiers);};
     this.DOWN = function($event, modifiers) { return this.CHECK($event, 40, modifiers);};
@@ -167,6 +168,9 @@ function(nl, nlScrollbarSrv, nlKeyboardHandler) {
             
             nlKeyboardHandler.setKeyHandler(function ($event) {
                 nl.log.debug('TODO: scroller.onKeyDown: ', $event.keyCode, $event.ctrlKey, $event.altKey, $event.shiftKey);
+                nl.log.info('TODO: scroller.onKeyDown: ', $event.keyCode, $event.ctrlKey, $event.altKey, $event.shiftKey);
+                nl.log.warn('TODO: scroller.onKeyDown: ', $event.keyCode, $event.ctrlKey, $event.altKey, $event.shiftKey);
+                nl.log.error('TODO: scroller.onKeyDown: ', $event.keyCode, $event.ctrlKey, $event.altKey, $event.shiftKey);
                 if (nlKeyboardHandler.UP($event) || nlKeyboardHandler.PAGEUP($event)) {
                     nlScrollbarSrv.gotoPage(nl.pginfo.currentPage-1);
                 } else if (nlKeyboardHandler.DOWN($event) || nlKeyboardHandler.PAGEDOWN($event)) {

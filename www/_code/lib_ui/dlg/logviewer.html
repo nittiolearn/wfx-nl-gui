@@ -1,0 +1,77 @@
+<style>
+    .nl-log-dlg-table TD, .nl-log-dlg-table TH {
+        text-align: left;
+        border: 1px solid black;
+        padding: 5px;
+    }
+
+    .nl-log-dlg-table TH {
+        font-weight: bold;
+        border: 1px solid black;
+        padding: 5px;
+    }
+    
+    .nl-log-dlg-box, .nl-log-dlg-box input {
+        border: 1px solid black;
+        padding: 5px;
+    }
+        
+    .nl-log-dlg-config TD {
+        text-align: left;
+        border-bottom: 1px dotted black;
+        padding: 5px;
+    }
+
+    .nl-log-dlg-config TD.PARAM {
+        background: #77FF77;
+    }
+
+</style>
+
+<nl-dlg title='Log Viewer'>
+    <nl-dlg-help>Use this window to view and configure console logs from the application code.</nl-dlg-help>
+    <nl-dlg-content>
+        <div><button ng-click='toggleLogConfig(this)'>{{showHideLable}}</button></div>
+        <table class='nl-log-dlg-config' ng-show='showLogConfig'>
+            <tr>
+                <td>Store logs</td>
+                <td><input type='checkbox' ng-model='logConfig.storeLogs'></input></td>
+            </tr>
+            <tr>
+                <td>Current log level</td>
+                <td>
+                    <select ng-model="logConfig.currentLogLevel" convert-to-number>
+                        <option ng-repeat='opt in logConfig.LOG_LEVEL_TEXTS' value="{{$index}}" ng-selected="$index == logConfig.currentLogLevel">{{opt}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Max log count</td>
+                <td><input type='number' ng-model='logConfig.maxLogCount'></input></td>
+            </tr>
+            <tr>
+                <td>Low water mark</td>
+                <td><input type='number' ng-model='logConfig.lowWaterMark'></input></td>
+            </tr>
+            <tr>
+                <td>Total available logs</td>
+                <td>{{logConfig.getRecentLogs().length}} <button ng-click='logConfig.clearLogs()'>Clear Logs</button></td>
+            </tr>
+        </table>
+
+        <div class='nl-log-dlg-box'>
+            <span>Filter: </span><input type='text' ng-model='filter' autofocus>
+            <h2>{{(logConfig.getRecentLogs() | filter:filter).length}} of {{logConfig.getRecentLogs().length}} logs displayed.</h2>
+        </div>
+        <table class='nl-log-dlg-table'>
+            <tr><th>Pos</th><th>Time</th><th>Level</th><th>Msg</th><th>Params</th></tr>
+            <tr ng-repeat='log in logs = (logConfig.getRecentLogs() | filter:filter)'>
+                <td>{{log.pos}}</td>
+                <td>{{log.logtime}}</td>
+                <td>{{log.level}}</td>
+                <td>{{log.msg}}</td>
+                <td>{{log.args}}</td>
+            </tr>
+        </table>
+    </nl-dlg-content>
+</nl-dlg>

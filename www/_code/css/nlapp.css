@@ -435,15 +435,17 @@ nl-scrollbar:hover #nl-pageno {
     cursor:pointer;
 }
 
-.nl-dlg-title-help {
-}
-
-.nl-dlg-help {
+nl-dlg-help {
     background-color: #E5FF80;
     border-radius: 4px;
     padding: 8px;
     margin: 8px;
     box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
+    display: block;
+}
+
+.nl-dlg-help-hidden nl-dlg-help {
+    display: none;
 }
 
 .nl-dlg-body {
@@ -455,12 +457,12 @@ nl-scrollbar:hover #nl-pageno {
     overflow:auto;
 }
 
-.nl-dlg-content > div {
+nl-dlg-content > div {
     margin: 1%;
     width: 98%;
 }
 
-.nl-dlg-content > table {
+nl-dlg-content > table {
     text-align: center;
     margin: 1%;
     width: 98%;

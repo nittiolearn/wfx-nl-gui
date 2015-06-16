@@ -56,45 +56,31 @@ function(nl, $window, nlScrollbarSrv, nlKeyboardHandler) {
             title: '@'
         },
         link: function($scope, iElem, iAttrs) {
-            $scope.showHelp = false;
+            $scope.helpHidden = true;
             $scope.imgBasePath = nl.rootScope.imgBasePath;
-            var iTrans = iElem.find('ng-transclude');
-            var oldHelpElem = _findChildWithClass(iTrans, 'nl-dlg-help');
-            var oldContentElem = _findChildWithClass(iTrans, 'nl-dlg-content');
-            var newHelpElem = _findChildWithClass(iElem, 'nl-dlg-help');
-            if (oldHelpElem) {
-                oldHelpElem.remove();
-                newHelpElem.append(oldHelpElem.children());
-            }
-            var newBody = angular.element('<div class="nl-dlg-body"/>');
-            newBody.append(newHelpElem);
-            newBody.append(oldContentElem);
-            iTrans.html('');
-            iTrans.append(newBody);
             $scope.onHelp = function() {
-                $scope.showHelp = !$scope.showHelp;
+                $scope.helpHidden = !$scope.helpHidden;
             };
-            
-            newBody.attr('tabindex', 0);
-            newBody.bind('keydown', function($event) {
-                if (!nlKeyboardHandler.ESC($event)) return true;
-                nl.log.debug('escaping ...');
-                $scope.$parent.onCloseDlg($event);
-                return false;
+
+            iElem.attr('tabindex', '0');
+            iElem.bind('keyup', function($event) {
+                if (nlKeyboardHandler.ESC($event)) {
+                    $scope.$parent.onCloseDlg($event);
+                    return false;
+                } else if (nlKeyboardHandler.F1($event, {ctrl: true})) {
+                    console.log('F1:', $event);
+                    $scope.$apply(function() {
+                        $scope.onHelp();
+                    });
+                    return false;
+                }
+                return true;
             });
             nl.log.debug('DlgDirective linked');
         }
     };
 }];
 
-function _findChildWithClass(elem, cls) {
-    var children = elem.children();
-    for (var i=0; i<children.length; i++) {
-        var child = angular.element(children[i]);
-        if (child.hasClass(cls)) return child;
-    }
-    return null;
-}
 //-------------------------------------------------------------------------------------------------
 module_init();
 })();

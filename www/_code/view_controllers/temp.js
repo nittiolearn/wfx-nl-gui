@@ -87,13 +87,14 @@ function _randElem(arr, nStart) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var TempCtrl = ['nl', '$scope', '$stateParams', '$location', 'nlDummy',
-function(nl, $scope, $stateParams, $location, nlDummy) {
+var TempCtrl = ['nl', '$scope', '$stateParams', '$location', 'nlDummy', 'nlDlg',
+function(nl, $scope, $stateParams, $location, nlDummy, nlDlg) {
     nl.pginfo.pageTitle = nl.t('Temp playground');
     //_ajaxRequest(nl, method1, $scope, 'httpResult1');
     //_ajaxRequest(nl, method2, $scope, 'httpResult2');
     $scope.lessoncnt=100;
     $scope.pagecnt=10;
+    $scope.updateStatus = 'Update not initiated';
     $scope.updateDummyData = function() {
         $scope.updateStatus = 'Update in progress: clearing old db ...';
         nl.db.clearDb();
@@ -101,7 +102,28 @@ function(nl, $scope, $stateParams, $location, nlDummy) {
         nlDummy.populateDummyData(this.lessoncnt, this.pagecnt);
         $scope.updateStatus = 'Update done.';
     };
-    $scope.updateStatus = 'Update not initiated';
+
+    $scope.logConfig = nl.log.getConfig();
+    $scope.showLogViewer = function() {
+        var logViewer = nlDlg.create($scope, 'lib_ui/dlg/logviewer.html');
+        logViewer.show();
+    };
+
+    $scope.showLogConfig = false;
+    updateShowHideLable();
+    $scope.toggleLogConfig = function() {
+        $scope.showLogConfig = !$scope.showLogConfig;
+        updateShowHideLable();
+    };
+    
+    function updateShowHideLable() {
+        if ($scope.showLogConfig) {
+            $scope.showHideLable = 'Hide log config';
+            return;
+        }
+        $scope.showHideLable = 'Show log config';
+    }
+
 }];
 
 var server = 'https://65-dot-nittio-org.appspot.com';

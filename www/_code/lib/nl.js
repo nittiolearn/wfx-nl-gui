@@ -64,7 +64,7 @@ function($log, $http, $q, $timeout, $location, $window, $rootScope) {
     
     //---------------------------------------------------------------------------------------------
     // All logging calls within nittioapp is made via nl.log
-    this.log = new NlLog(this, $log, 1000, 800);
+    this.log = new NlLog($log);
 
     //---------------------------------------------------------------------------------------------
     // All URL getters
@@ -157,35 +157,57 @@ function LruCache(maxSize, lowWaterMark, onRemoveFn) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function NlLog(nl, $log, maxLogCount, lowWaterMark) {
+function NlLog($log) {
 
-    this.log = function() {
-        logImpl('log', $log.log, arguments);
-    };
-    
+    // Can be generously sprayed around during initial testing - but remember to remove them
+    // after initial development
     this.debug = function(args) {
-        logImpl('debug', $log.debug, arguments);
+        logImpl(config.LOG_LEVEL.DEBUG, $log.debug, arguments);
     };
 
+    // Aroud entry / exit of different views
     this.info = function(args) {
-        logImpl('info', $log.info, arguments);
+        logImpl(config.LOG_LEVEL.INFO, $log.info, arguments);
     };
 
+    // Some failures which can be expected during operations
     this.warn = function(args) {
-        logImpl('warn', $log.warn, arguments);
+        logImpl(config.LOG_LEVEL.WARN, $log.warn, arguments);
     };
 
+    // Some failures which indicates likely code errors
     this.error = function(args) {
-        logImpl('error', $log.error, arguments);
+        logImpl(config.LOG_LEVEL.ERROR, $log.error, arguments);
     };
     
-    this.getRecentLogs = function() {
-        return recentLogs;
+    // Used by Log GUI only
+    this.getConfig = function() {
+        return config;
     };
     
+    //---------------------------------------------------------------------------------------------
+    // Private stuff
     var recentLogs = [];
+    var config = {
+        LOG_LEVEL: {DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3},
+        LOG_LEVEL_TEXTS: ['debug', 'info', 'warn', 'error'],
+        storeLogs: true,
+        maxLogCount: 1000,
+        lowWaterMark: 800,
+        getRecentLogs: function() {
+            return recentLogs;
+        },
+        clearLogs: function() {
+            recentLogs = [];
+        }
+    };
+    config.currentLogLevel = config.LOG_LEVEL.DEBUG;
+    
     var logId = 0;
+
     function logImpl(level, logFn, args) {
+        if (level < config.currentLogLevel) return;
+
         var msg = args[0];
         var logArgs = _sliceArguments(args, 1); 
         if (logArgs.length > 0) {
@@ -193,18 +215,19 @@ function NlLog(nl, $log, maxLogCount, lowWaterMark) {
         } else {
             logFn(msg);
         }
-        if (recentLogs === null) return;
+
+        if (!config.storeLogs) return;
         logId++;
 
         var argsJson = '';
         try {
             argsJson = angular.toJson(logArgs);
         } catch (e) {
-            argsJson = 'angular.toJson error: ' + e.message;
+            argsJson = 'angular.toJson() failed: ' + e.message;
         }
-        recentLogs.push({pos: logId, logtime: new Date(), level:level, msg:msg, args:argsJson});
-        if (recentLogs.length < maxLogCount) return;
-        var toRemove = maxLogCount - lowWaterMark;
+        recentLogs.push({pos: logId, logtime: new Date(), level:config.LOG_LEVEL_TEXTS[level], msg:msg, args:argsJson});
+        if (recentLogs.length < config.maxLogCount) return;
+        var toRemove = config.maxLogCount - config.lowWaterMark;
         recentLogs.splice(0, toRemove);
     }
 }

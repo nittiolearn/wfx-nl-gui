@@ -106,11 +106,6 @@ function(nl, $scope, $stateParams, $location, nlDlg, nlKeyboardHandler) {
         _updateMenuState(nl, $scope);
     };
     
-    $scope.getRecentLogs = function () {
-        return nl.log.getRecentLogs();
-    };
-    $scope.filter = '';
-
     $scope.onKeyDown = nlKeyboardHandler.onKeyDown;
     $scope.onSwipe = nlKeyboardHandler.onSwipe;
 }];
