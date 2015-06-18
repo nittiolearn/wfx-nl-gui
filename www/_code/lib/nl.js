@@ -236,20 +236,28 @@ function NlLog($log) {
 function NlUrl(nl) {
     
     this.resUrl = function(iconName) {
-        return resFolder('res', iconName);
+        return clientResFolder('res', iconName);
     };
 
     this.lessonIconUrl = function(iconName) {
-        return resFolder('icon', iconName);
+        return serverResFolder('icon', iconName);
     };
 
     this.bgImgUrl = function(iconName) {
-        return resFolder('template', iconName);
+        return serverResFolder('template', iconName);
     };
 
-    function resFolder(folder, iconName) {
+    function clientResFolder(folder, iconName) {
+        return resFolder(folder, iconName, '/');
+    }
+
+    function serverResFolder(folder, iconName) {
+        return resFolder(folder, iconName, NL_SERVER_INFO.url);
+    }
+    
+    function resFolder(folder, iconName, serverUrl) {
         var ret = nl.fmt2('{}{}nittio_{}_{}/{}',
-                          NL_SERVER_INFO.url, NL_SERVER_INFO.basePath, 
+                          serverUrl, NL_SERVER_INFO.basePath, 
                           folder, NL_SERVER_INFO.versions[folder], iconName);
         return ret;
     }
@@ -281,7 +289,7 @@ function NlUrl(nl) {
                 nl.log.debug('getCachedUrl not found resource in db: ', url);
                 loadResouceUrl(url, db, resolve);
             }, function(e) {
-                nl.log.debug('getCachedUrl getting resource from db failed: ', url);
+                nl.log.debug('getCachedUrl getting resource from db failed: ', url, e);
                 loadResouceUrl(url, db, resolve);
             });
             nl.log.debug('getCachedUrl fired db.get', url);
@@ -293,14 +301,19 @@ function NlUrl(nl) {
         .success(function(data, status, headers, config) {
             nl.log.debug('loadResouceUrl success: ', url, status, headers, config);
             var resource = {id:url, res:data};
-            db.put('resource', resource, url)
-            .then(function(key) {
-                nl.log.debug('loadResouceUrl store in DB success: ', key);
+            try {
+                db.put('resource', resource, url)
+                .then(function(key) {
+                    nl.log.debug('loadResouceUrl store in DB success: ', key);
+                    resolveResource(url, resource, resolve, nl);           
+                }, function(e) {
+                    nl.log.warn('loadResouceUrl store in DB failed: ', e);
+                    resolveResource(url, resource, resolve, nl);           
+                });
+            } catch (e) {
+                nl.log.error('loadResouceUrl store in DB failed with exception: ', e);
                 resolveResource(url, resource, resolve, nl);           
-            }, function(e) {
-                nl.log.warn('loadResouceUrl store in DB failed: ', e);
-                resolveResource(url, resource, resolve, nl);           
-            });
+            }
             nl.log.debug('loadResouceUrl initiated put', url);
         }).error(function(data, status, headers, config) {
             nl.log.warn('loadResouceUrl failed: ', url, data, status, headers, config);
@@ -311,9 +324,15 @@ function NlUrl(nl) {
     function resolveResource(url, resource, resolve, nl) {
         nl.log.debug('resolveResource enter: ', url);
         var URL = window.URL || window.webkitURL;
-        nl.log.debug('resolveResource before 1 createObjectURL: ');
         nl.log.debug('resolveResource before 2 createObjectURL: ', URL);
-        var localUrl = URL.createObjectURL(resource.res);
+        var localUrl = null;
+        try {
+            localUrl = URL.createObjectURL(resource.res);
+        } catch (e) {
+            nl.log.error('resolveResource createObjectURL exception: ', e);
+            resolve(url);
+            return;
+        }
         nl.log.debug('resolveResource success: ', url, localUrl);
         
         var oldLocalUrl = urlCache.get(url);
@@ -332,7 +351,7 @@ function NlUrl(nl) {
 function NlDb(nl) {
     var lessonSchema = { name: 'lesson', key: 'id', autoIncrement: false};
     var resourceSchema = { name: 'resource', key: 'id', autoIncrement: false};
-    var schema = {stores: [lessonSchema, resourceSchema], version: 1};
+    var schema = {stores: [lessonSchema, resourceSchema], version: 2};
     var db = new ydn.db.Storage('nl_db', schema);
     
     this.get = function() {
@@ -405,10 +424,7 @@ function NlMenu(nl) {
     };
     
     function addMenuItem(menu, title, img, handler) {
-        var menuItem = {title:nl.t(title), handler:handler};
-        nl.url.getCachedUrl(nl.url.resUrl(img)).then(function(url) {
-            menuItem.img = url;
-        });
+        var menuItem = {title:nl.t(title), handler:handler, img:nl.url.resUrl(img)};
         menu.push(menuItem);
     }
     
