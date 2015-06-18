@@ -68,9 +68,9 @@ function(nl, $window, nlScrollbarSrv) {
             pgInfo: '='
         },
         link: function($scope, iElem, iAttrs) {
-            nl.log.debug('link of InternalScrollDirective');
+            nl.log.debug('link of InternalScrollDirective', $scope);
             if (!$scope.pgInfo) return;
-            nl.log.debug('link of InternalScrollDirective of outer most');
+            nl.log.debug('link of InternalScrollDirective after scope check');
             nlScrollbarSrv.setTotal(1);
             nlScrollbarSrv.gotoPage(1);
             nl.router.onViewEnter($scope.$parent, function() {
@@ -146,17 +146,14 @@ function(nl, nlScrollbarSrv, nlKeyboardHandler) {
         scope: {
           pgInfo: '='
         },
-        link: function($scope, scrollBarElem, scrollBarAttrs) {
+        link: function($scope, scrollBar, scrollBarAttrs) {
 
-            var children = scrollBarElem.children();
-            var scrollArea = angular.element(children[1]);
-            var scrollElems = scrollArea.children();
-            var pageNo = angular.element(children[3]);
-            
-            var scrollUp = angular.element(scrollElems[0]);
-            var scrollThumb = angular.element(scrollElems[1]);
-            var scrollDown = angular.element(scrollElems[2]);
+            var children = scrollBar.children();
+            var scrollUp = angular.element(children[0]);
+            var scrollThumb = angular.element(children[1]);
+            var scrollDown = angular.element(children[2]);
             var scrollHint = angular.element(scrollThumb.children()[0]);
+            var pageNo = angular.element(children[3]);
             
             $scope.scrollUp = function($event) {
                 nlScrollbarSrv.gotoPage(nl.pginfo.currentPage-1, true);
@@ -199,7 +196,7 @@ function(nl, nlScrollbarSrv, nlKeyboardHandler) {
                 $scope.scrollingPageNo = nl.pginfo.currentPage;
                 scrollHint.css({display: 'block'});
                 
-                var pxMaxDelta = scrollArea[0].offsetHeight - scrollThumb[0].offsetHeight;
+                var pxMaxDelta = scrollBar[0].offsetHeight - scrollThumb[0].offsetHeight;
                 pxDeltaPerPage = pxMaxDelta/nl.pginfo.totalPages;
                 nl.log.debug(pxMaxDelta, pxDeltaPerPage);
             };

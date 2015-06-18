@@ -25,10 +25,13 @@ var deleteFolderRecursive = function(removePath) {
 };
 
 var deleteStaticFolder = function() {
-    var iosPlatformsDir = path.resolve(__dirname, '../../platforms/ios/www/static');
-    var androidPlatformsDir = path.resolve(__dirname, '../../platforms/android/assets/www/static');
-    deleteFolderRecursive(iosPlatformsDir);
-    deleteFolderRecursive(androidPlatformsDir);
+    var deleteFolders = ['/www/static/nittio_icon_v41', '/www/static/nittio_template_v35']
+    for (var i in deleteFolders) {
+        var iosPlatformsDir = path.resolve(__dirname, '../../platforms/ios' + deleteFolders[i]);
+        var androidPlatformsDir = path.resolve(__dirname, '../../platforms/android/assets' + deleteFolders[i]);
+        deleteFolderRecursive(iosPlatformsDir);
+        deleteFolderRecursive(androidPlatformsDir);
+    }
 };
 
 //-------------------------------------------------------------------------------------------------

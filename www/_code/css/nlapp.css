@@ -11,6 +11,10 @@
     z-index: 8;
 }
 
+ion-nav-view, ion-view {
+    border-radius: 8px;
+}
+
 /* nl specific css */
 /*-----------------------------------------------------------------------------------------*
  * Internal scroll bar
@@ -23,7 +27,8 @@ nl-internal-scroll > ng-transclude {
 }
 
 .nl-thin-scroll::-webkit-scrollbar {
-    width: 5px;
+    width: 8px;
+    height: 8px;
 }
 
 .nl-thin-scroll::-webkit-scrollbar-track {
@@ -194,7 +199,7 @@ body {
     top: 40px;
     bottom: 24px;
     right: 0;
-    width: 32px;
+    width: 40px;
     overflow-y: auto;
 }
 
@@ -214,7 +219,7 @@ body {
     top: 44px;
     bottom: 4px;
     left: 4px;
-    right: 46px;
+    right: 52px;
 }
 
 #nl-inner-body {
@@ -224,6 +229,7 @@ body {
     height: 100%;
     width: 100%;
     box-shadow: 1px 1px 5px 0 #807090;
+    border-radius: 8px;
 }
 
 /*-----------------------------------------------------------------------------------------*
@@ -269,47 +275,13 @@ body {
  *-----------------------------------------------------------------------------------------*/
 nl-scrollbar {
     position: absolute;
-    top: 42px;
-    bottom: 2px;
-    right: 32px;
-    width: 10px;
+    top: 44px;
+    bottom: 4px;
+    right: 40px;
+    width: 8px;
 }
 
-nl-scrollbar:hover {
-    z-index: 5;
-}
-
-#nl-scrolltop, #nl-scrollbottom {
-    position: absolute;
-    width: 0; 
-    height: 0; 
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-}
-
-#nl-scrolltop {
-    top: 0;
-    border-bottom: 10px solid #AAAAAA;
-}
-
-#nl-scrolltop:hover {
-    border-bottom: 10px solid #777777;
-}
-
-#nl-scrollbottom {
-    bottom: 0;
-    border-top: 10px solid #AAAAAA;
-}
-
-#nl-scrollbottom:hover {
-    border-top: 10px solid #777777;
-}
-
-#nl-scrollarea {
-    position: absolute;
-    width: 100%;
-    top: 12px;
-    bottom: 12px;
+nl-scrollbar:hover, nl-scrollbar:focus {
 }
 
 #nl-scrollup, #nl-scrollthumb, #nl-scrolldown {
@@ -331,7 +303,7 @@ nl-scrollbar:hover {
     background-color: #AAAAAA;
 }
 
-#nl-scrollthumb:hover {
+#nl-scrollthumb:hover, #nl-scrollthumb:focus {
     background-color: #777777;
 }
 
@@ -569,7 +541,7 @@ a.nl-card-header:hover, a.nl-card-header:focus {
     width: 100%;
 }
 
-.nl-card-img:hover, .nl-card-img:focus {
+a.nl-card-img:hover, a.nl-card-img:focus {
     box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
 }
 

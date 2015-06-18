@@ -123,6 +123,15 @@ function(nl, $scope, $stateParams, $location, nlDummy, nlDlg) {
         }
         $scope.showHideLable = 'Show log config';
     }
+    
+    var url = nl.url.resUrl('general/home.png');
+    nl.url.getCachedUrl(url).then(function(localUrl) {
+        nl.log.error('Got cached url: ', url, localUrl);
+        $scope.homeIcon = localUrl;
+    }, function(err) {
+        nl.log.error('Error getting cached url: ', err);
+        $scope.homeIcon = url;
+    });
 
 }];
 

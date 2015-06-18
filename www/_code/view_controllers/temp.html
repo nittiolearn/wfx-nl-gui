@@ -41,9 +41,15 @@
         margin: 10px;
         padding: 10px;
     }
+    
+    .homeIcon {
+        width: 100px;
+        height: 100px;
+        border: 1px dotted red;
+    }
 </style>
 
-<nl-internal-scroll page-info='nl.pgInfo' style='backgroud-color:green'>
+<nl-internal-scroll pg-info='pgInfo' style='backgroud-color:green'>
     <div class='buttons'>
         <button ng-click='showLogViewer()'>View Logs</button>
     </div>
@@ -53,6 +59,8 @@
         <button ng-click='updateDummyData()'>Update Dummy Data</button>
     </div>
     <div>{{updateStatus}}</div>
+    
+    <img class='homeIcon' ng-src='{{homeIcon}}'>
 
     <nl-img-reader></nl-img-reader>
     

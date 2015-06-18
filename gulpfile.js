@@ -14,6 +14,7 @@ var print = require('gulp-print');
 var order = require('gulp-order');
 var karma = require('gulp-karma');
 var htmlreplace = require('gulp-html-replace');
+var runSequence = require('run-sequence');
 
 //-------------------------------------------------------------------------------------------------
 //var SERVER_URL = 'http://192.168.0.3:8000/';
@@ -229,7 +230,11 @@ gulp.task('nittio_clean', function(done) {
     });
 });
 
-gulp.task('nittio_build', ['build', 'nittio_copy_res', 'nittio_copy_icon', 'nittio_copy_template', 'nittio_copy_script', 'nittio_generate_index']);
+gulp.task('nittio_build', function(done) {
+    runSequence('build',
+                ['nittio_copy_res', 'nittio_copy_icon', 'nittio_copy_template', 'nittio_copy_script', 'nittio_generate_index'],
+                done);
+});
 
 gulp.task('nittio_watch', ['nittio_build', 'nl_watch'], function() {
     //------------------------------------------------------------------------------------------
