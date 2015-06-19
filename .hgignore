@@ -3,3 +3,4 @@ www/static/nittio_script_.*
 coverage/.*
 platforms/.*
 node_modules/.*
+www/_test_dependencies/.*

@@ -118,6 +118,7 @@ gulp.task('nl_html', function(done) {
     .pipe(uglify())
     .pipe(rename({extname : '.min.js'}))
     .pipe(gulp.dest(outPath))
+    .pipe(gulp.dest('./www/_test_dependencies'))
     .on('end', done);
 });
 
@@ -170,7 +171,16 @@ function generateIndexHtml(done, dest, prefix, suffix) {
                        }))
     .pipe(rename('index.html'))
     .pipe(gulp.dest(dest))
-    .on('end', done);
+    .on('end', function() {
+        gulp.src(inPaths.htmlTemplate + 'index_templ.js')
+        .pipe(htmlreplace({nl_server_info: {
+                               src: [[SERVER_URL, VERSIONS.script, VERSIONS.res, VERSIONS.icon, VERSIONS.template]], 
+                               tpl: "var NL_SERVER_INFO = {url: '%s', basePath: 'static/', versions: {script:'%s', res:'%s', icon:'%s', template:'%s'}};"},
+                           }))
+        .pipe(rename('index_html.js'))
+        .pipe(gulp.dest('./www/_test_dependencies'))
+        .on('end', done);
+    });
 }
 
 //-------------------------------------------------------------------------------------------------
