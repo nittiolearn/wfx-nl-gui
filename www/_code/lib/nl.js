@@ -11,8 +11,12 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var Nl = ['$log', '$http', '$q', '$timeout', '$location', '$window', '$rootScope',
-function($log, $http, $q, $timeout, $location, $window, $rootScope) {
+var Nl = ['nlLog', '$http', '$q', '$timeout', '$location', '$window', '$rootScope',
+function(nlLog, $http, $q, $timeout, $location, $window, $rootScope) {
+    //---------------------------------------------------------------------------------------------
+    // All logging calls within nittioapp is made via nl.log
+    this.log = nlLog;
+
     //---------------------------------------------------------------------------------------------
     // All http calls within nittioapp is made via nl.http
     this.http = $http;
@@ -62,10 +66,6 @@ function($log, $http, $q, $timeout, $location, $window, $rootScope) {
         return new LruCache(cacheMaxSize, cacheLowWaterMark, onRemoveFn);
     };
     
-    //---------------------------------------------------------------------------------------------
-    // All logging calls within nittioapp is made via nl.log
-    this.log = new NlLog($log);
-
     //---------------------------------------------------------------------------------------------
     // All URL getters
     this.url = new NlUrl(this);

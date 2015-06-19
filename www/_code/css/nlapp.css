@@ -426,7 +426,7 @@ nl-dlg-help {
     bottom: 40px;
     height: auto;
     width: 100%;
-    overflow:auto;
+    overflow-y:auto;
 }
 
 nl-dlg-content > div {

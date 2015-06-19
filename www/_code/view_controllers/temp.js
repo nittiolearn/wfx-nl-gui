@@ -87,8 +87,8 @@ function _randElem(arr, nStart) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var TempCtrl = ['nl', '$scope', '$stateParams', '$location', 'nlDummy', 'nlDlg',
-function(nl, $scope, $stateParams, $location, nlDummy, nlDlg) {
+var TempCtrl = ['nl', '$scope', '$stateParams', '$location', 'nlDummy', 'nlDlg', 'nlLogViewer',
+function(nl, $scope, $stateParams, $location, nlDummy, nlDlg, nlLogViewer) {
     nl.pginfo.pageTitle = nl.t('Temp playground');
     //_ajaxRequest(nl, method1, $scope, 'httpResult1');
     //_ajaxRequest(nl, method2, $scope, 'httpResult2');
@@ -103,27 +103,10 @@ function(nl, $scope, $stateParams, $location, nlDummy, nlDlg) {
         $scope.updateStatus = 'Update done.';
     };
 
-    $scope.logConfig = nl.log.getConfig();
     $scope.showLogViewer = function() {
-        var logViewer = nlDlg.create($scope, 'lib_ui/dlg/logviewer.html');
-        logViewer.show();
+        nlLogViewer.show($scope);
     };
 
-    $scope.showLogConfig = false;
-    updateShowHideLable();
-    $scope.toggleLogConfig = function() {
-        $scope.showLogConfig = !$scope.showLogConfig;
-        updateShowHideLable();
-    };
-    
-    function updateShowHideLable() {
-        if ($scope.showLogConfig) {
-            $scope.showHideLable = 'Hide log config';
-            return;
-        }
-        $scope.showHideLable = 'Show log config';
-    }
-    
     var url = nl.url.resUrl('general/home.png');
     nl.url.getCachedUrl(url).then(function(localUrl) {
         nl.log.error('Got cached url: ', url, localUrl);
