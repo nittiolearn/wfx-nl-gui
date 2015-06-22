@@ -91,4 +91,13 @@ $animation-duration: 200ms !default;
   }
 }
 
+textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"] {
+  padding-left: 8px;
+  padding-right: 8px;
+  background-color: #EEEEFF;
+  border-radius: 4px;
+  display:inline;
+  margin:4px;
+}
+
 

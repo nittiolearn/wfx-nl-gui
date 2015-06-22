@@ -111,13 +111,9 @@ function LogImpl() {
     //---------------------------------------------------------------------------------------------
     // Log GUI related methods
     this.showLogViewer = function(nlDlg, $scope) {
-        var logViewerScope = $scope.$new();
-        logViewerScope.logConfig = this;
-
-        var logViewerDlg = nlDlg.create(logViewerScope, 'lib/logviewer.html');
-        logViewerDlg.show().then(function() {
-            logViewerScope.$destroy();
-        });
+        var logViewerDlg = nlDlg.create($scope);
+        logViewerDlg.scope.logConfig = this;
+        logViewerDlg.show('lib/logviewer.html');
     };
 
     this.clearLogs = function() {

@@ -70,8 +70,8 @@ function onIonicReady() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var AppCtrl = ['nl', '$scope', '$stateParams', '$location', 'nlDlg', 'nlKeyboardHandler', 
-function(nl, $scope, $stateParams, $location, nlDlg, nlKeyboardHandler) {
+var AppCtrl = ['nl', '$scope', '$stateParams', '$location', 'nlDlg', 'nlKeyboardHandler', 'nlUserDlg',
+function(nl, $scope, $stateParams, $location, nlDlg, nlKeyboardHandler, nlUserDlg) {
     nl.rootScope.imgBasePath = nl.url.resUrl();
     nl.rootScope.pgInfo = nl.pginfo;
 
@@ -90,7 +90,7 @@ function(nl, $scope, $stateParams, $location, nlDlg, nlKeyboardHandler) {
         nl.log.debug('TODO: onHelpClick');
     });
     nl.menu.addAppMenuItem('Login', 'general/top-logedin.png', function() {
-        nl.log.debug('TODO: onLoginClick');
+        nlUserDlg.show($scope);
     });
     
     $scope.logo = nl.url.resUrl('general/top-logo1.png');

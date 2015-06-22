@@ -11,37 +11,54 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
+// Usage:
+// var dlg = nlDlg.create($scope);
+// dlg.scope.whatEverVarableReferedInTemplate = 'WhatEverValue';
+// dlg.show().then(function() {
+//     nl.log('Dialog Box closed'); 
+// });
+// Always create local variable and call show together! Cannot call show multiple times on same object!
 var DlgSrv = ['nl', '$ionicPopup',
 function(nl, $ionicPopup) {
-    this.create = function($scope, template) {
-        return new Dialog(nl, $ionicPopup, $scope, template);
+    this.create = function(parentScope) {
+        return new Dialog(nl, $ionicPopup, parentScope);
     };
 }];
 
-function Dialog(nl, $ionicPopup, $scope, template) {
-    this.show = function(otherButtons, closeButton) {
-        var myscope = $scope.$new();
+function Dialog(nl, $ionicPopup, parentScope) {
+    this.scope = parentScope.$new();
+    this.scope.nlDlgForms = {};
 
+    this.show = function(template, otherButtons, closeButton) {
         if (otherButtons === undefined) otherButtons = [];
         if (closeButton === undefined) closeButton = {text: 'Close'};
         otherButtons.push(closeButton);
         var mypopup = $ionicPopup.show({
             title: '', subTitle: '', cssClass: 'nl-dlg',
             templateUrl: template,
-            scope: myscope,
+            scope: this.scope,
             buttons: otherButtons
         });
 
-        myscope.onCloseDlg = function($event) {
+        this.scope.onCloseDlg = function($event) {
             mypopup.close();
         };
 
         mypopup.then(function(result) {
-            myscope.$destroy();
+            this.scope.$destroy();
+            this.scope = null;
         });
         
         return mypopup;
     };
+    
+    this.isValid = function() {
+        for(var i in this.scope.nlDlgForms) {
+            if (this.scope.nlDlgForms[i].$valid) continue;
+            return false;
+        }
+        return true;
+    }
 }
 
 //-------------------------------------------------------------------------------------------------
