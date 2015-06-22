@@ -19,7 +19,7 @@ function($stateProvider, $urlRouterProvider) {
         url : '/temp',
         views : {
             'appContent' : {
-                templateUrl : 'view_controllers/temp.html',
+                templateUrl : 'view_controllers/temp/temp.html',
                 controller : 'nl.TempCtrl'
             }
         }
@@ -107,6 +107,19 @@ function(nl, $scope, $stateParams, $location, nlDummy, nlDlg, nlLogViewer) {
         nlLogViewer.show($scope);
     };
 
+    $scope.showTestDlg = function() {
+        var testDlg = nlDlg.create($scope);
+        testDlg.scope.dlgForms = {};
+        testDlg.scope.username = 'username.grpid';
+        testDlg.show('view_controllers/temp/testdlg.html', [], {text: 'Close', onTap: function(e) {
+            if (testDlg.scope.dlgForms.testForm.$valid) return 'All Ok';
+            alert('Form not valid');
+            e.preventDefault();
+        }}).then(function(res) {
+            alert('Dialog returned: ' + res);
+        });
+    };
+
     var url = nl.url.resUrl('general/home.png');
     nl.url.getCachedUrl(url).then(function(localUrl) {
         nl.log.error('Got cached url: ', url, localUrl);
@@ -141,7 +154,7 @@ function(nl) {
     nl.log.warn('NlImgReaderDirective: ');
     return {
         restrict: 'E',
-        templateUrl: 'view_controllers/img_reader.html',
+        templateUrl: 'view_controllers/temp/img_reader.html',
         scope: {
             nlFileRead: "@"
         },

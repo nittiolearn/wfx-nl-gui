@@ -1,0 +1,11 @@
+<nl-dlg title='Login'>
+    <nl-dlg-help>Enter your user name and password to login</nl-dlg-help>
+    <nl-dlg-content>
+        <div>Valid: {{myForm.$valid}}</div>
+        <table ng-form='userDlgForm'>
+            <tr><td>Username</td><td><input type='text' ng-model='username' required></td></tr>
+            <tr><td>Passowrd</td><td><input type='password' ng-model='password' required></td></tr>
+            <tr><td>Remember me (for 30 days)</td><td><input type='checkbox' ng-model='remember'></td></tr>
+        </table>
+    </nl-dlg-content>
+</nl-dlg>

@@ -1,0 +1,26 @@
+<nl-dlg title='Login'>
+    <nl-dlg-help>Enter your user name and password to login</nl-dlg-help>
+    <nl-dlg-content>
+    <div>Valid: {{dlgForms.testForm.$valid}}</div>
+    <div>
+    <form novalidate name='dlgForms.testForm' class='css-form'>
+        <table style='width:100%'>
+            <tr><td>Username</td><td><input type='text' ng-model='username' name='username' required></td></tr>
+            <tr><td>Passowrd</td><td><input type='password' ng-model='password' required></td></tr>
+            <tr><td>Remember me (for 30 days)</td><td><input type='checkbox' ng-model='remember'></td></tr>
+            <tr><td>DateTime-Local</td><td><input type="datetime-local"></td></tr>
+            <tr><td>Date</td><td><input type="date"></td></tr>
+            <tr><td>Time</td><td><input type="time"></td></tr>
+            <tr><td>Month</td><td><input type="month"></td></tr>
+            <tr><td>Week</td><td><input type="week"></td></tr>
+            <tr><td>Number</td><td><input type="number"></td></tr>
+            <tr><td>Email</td><td><input type="email"></td></tr>
+            <tr><td>Url</td><td><input type="url"></td></tr>
+            <tr><td>Tel</td><td><input type="tel"></td></tr>
+            <tr><td>Color</td><td><input type="color"></td></tr>
+        </table>
+    </form>
+    <pre>form = {{dlgForms.testForm | json}}</pre>
+    </div>
+    </nl-dlg-content>
+</nl-dlg>
