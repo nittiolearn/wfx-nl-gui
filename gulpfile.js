@@ -19,7 +19,7 @@ var runSequence = require('run-sequence');
 //-------------------------------------------------------------------------------------------------
 //var SERVER_URL = 'http://192.168.0.3:8000/';
 var SERVER_URL = '/';
-var VERSIONS = {script:'v66', res:'v39', icon:'v41', template:'v35'};
+var VERSIONS = {script:'v67', res:'v39', icon:'v41', template:'v35'};
 //-------------------------------------------------------------------------------------------------
 
 var inPaths = {

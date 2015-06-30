@@ -110,7 +110,8 @@ function(nl, $scope, $stateParams, $location, nlDummy, nlDlg, nlLogViewer) {
     $scope.showTestDlg = function() {
         var testDlg = nlDlg.create($scope);
         testDlg.scope.dlgForms = {};
-        testDlg.scope.username = 'username.grpid';
+        var data = {username: 'username.grpid', remember: true};
+        testDlg.scope.data = data;
         testDlg.show('view_controllers/temp/testdlg.html', [], {text: 'Close', onTap: function(e) {
             if (testDlg.scope.dlgForms.testForm.$valid) return 'All Ok';
             alert('Form not valid');
