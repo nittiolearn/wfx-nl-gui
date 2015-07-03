@@ -1,4 +1,5 @@
 www/index.html
+www/static/_external/.*
 www/static/nittio_script_.*
 coverage/.*
 platforms/.*

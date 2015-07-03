@@ -10,7 +10,8 @@ ydn.db-isw-core-qry.js
        |\----------------> Web SQL support  (Option 2)
        \-----------------> Index DB support (Option 1)
 
-ydn.db-isw-core-qry-dev.js (unminified version)
+ydn.db-isw-core-qry.js and ydn.db-isw-core-qry.min.js are same files (minified)
+ydn.db-isw-core-qry-dev.js (unminified version is not downloaded)
 
 Download page: http://dev.yathit.com/ydn-db/downloads.html
 More details at: http://dev.yathit.com/ydn-db/doc/setup/setup.html
