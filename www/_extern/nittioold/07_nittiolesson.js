@@ -1,52 +1,4 @@
-(function() {
-    
-    function module_init() {
-        //-----------------------------------------------------------------------------
-        // Main module of Nittio App and its dependencies
-        //-----------------------------------------------------------------------------
-        angular.module('njsold.nittiolesson', [])
-        .service('njsold.LessonService', LessonService);
-    }
-    
-    function LessonService() {
-
-        this.lessonId = null;
-        this.domContainer = null;
-        this.content = null;
-
-        this.initPlayer = function(lessonId, launchCtx, domContainer) {
-            var lessonService = this;
-
-            lessonService.lessonId = lessonId;
-            lessonService.domContainer = domContainer;
-            lessonService.content = null;
-
-            var lessonSchema = {
-                name : 'lesson',
-                key : 'id',
-                autoIncrement : false
-            };
-            var schema = {
-                stores : [lessonSchema],
-                version : 1
-            };
-            var db = new ydn.db.Storage('njs_db', schema);
-            
-            db.get('lesson', lessonService.lessonId).then(function(record) {
-                if (record === undefined) return;
-                _launchPlayer(lessonService, record.content);
-            }, function(e) {
-                console.log('error reading db ', e.stack);
-            }); 
-        }
-    };
-
-    function _launchPlayer(lessonService, content) {
-        lessonService.content = content;
-        console.log('LessonService: ', lessonService);
-        //nlesson.init('view', 'bglight');
-    }
-
+nlesson = function() {
 	//#############################################################################################
 	// Lesson - 	models one lesson. 
 	// Page - 		models one page in a lesson
@@ -67,6 +19,7 @@
 	// Class modelling a Lesson
 	//#############################################################################################
 	function Lesson() {
+
 		// Getters for basic properties
 		this.getCurrentPageNo = Lesson_getCurrentPageNo;
 		this.getCurrentPageId = Lesson_getCurrentPageId;
@@ -188,7 +141,7 @@
 		this.init();
 		
 		// Clearup Zodi flag and remember to reRenderAsReport the ones cleared in do mode
-		//this.zodiCompletedPages = this.renderCtx.playerGetZodiChangesPages(this);
+		this.zodiCompletedPages = this.renderCtx.playerGetZodiChangesPages(this);
 		this.createHtmlDom();
 	}
 
@@ -1380,6 +1333,4 @@
 		showCommentIndicator : showCommentIndicator,
 		doModeToggle : doModeToggle
 	};
-    
-    module_init();
-})(); 
+}(); 

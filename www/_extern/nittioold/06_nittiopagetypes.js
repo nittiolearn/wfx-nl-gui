@@ -1896,8 +1896,8 @@ npagetypes = function() {
 		{'id' : 'FILL', 'desc' : 'Fill in the blanks', 'default_aligntype' : 'option', 'beh' : BehFib},
 		{'id' : 'DESC', 'desc' : 'Descriptive', 'default_aligntype' : 'option', 'beh' : BehDesc},
 		{'id' : 'PARTFILL', 'desc' : 'Fill in the parts', 'default_aligntype' : 'option', 'beh' : BehFibParts},
-		{'id' : 'QUESTIONNAIRE', 'bleedingEdge' : true, 'desc' : 'Questionnaire', 'default_aligntype' : 'content', 'beh' : BehQuestionnaire},
-		{'id' : 'MANYQUESTIONS', 'bleedingEdge' : true, 'desc' : 'Many questions', 'default_aligntype' : 'content', 'beh' : BehManyQuestions}
+		{'id' : 'QUESTIONNAIRE', 'desc' : 'Questionnaire', 'default_aligntype' : 'content', 'beh' : BehQuestionnaire},
+		{'id' : 'MANYQUESTIONS', 'bleedingEdge' : false, 'desc' : 'Many questions', 'default_aligntype' : 'content', 'beh' : BehManyQuestions}
 	];
 
 	//#############################################################################################
