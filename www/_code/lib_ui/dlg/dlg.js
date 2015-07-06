@@ -44,9 +44,10 @@ function Dialog(nl, $ionicPopup, parentScope) {
             mypopup.close();
         };
 
+        self = this;
         mypopup.then(function(result) {
-            this.scope.$destroy();
-            this.scope = null;
+            self.scope.$destroy();
+            self.scope = null;
         });
         
         return mypopup;
