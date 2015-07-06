@@ -63,7 +63,7 @@ gulp.task('rebuild', ['nl_copy_ext', 'build']);
 //-------------------------------------------------------------------------------------------------
 // Rebuilding complete project including external libraries
 //-------------------------------------------------------------------------------------------------
-gulp.task('nl_copy_ext', ['nl_copy_extjs', 'nl_copy_extfonts', 'nl_copy_extjs_old']);
+gulp.task('nl_copy_ext', ['nl_copy_extjs', 'nl_copy_extfonts']);
 
 gulp.task('nl_copy_extjs', function(done) {
     var extFiles = [inPaths.extern + 'ionic/js/ionic.bundle.js',
@@ -76,16 +76,6 @@ gulp.task('nl_copy_extjs', function(done) {
 gulp.task('nl_copy_extfonts', function(done) {
     gulp.src(inPaths.extern + 'ionic/fonts/*')
     .pipe(gulp.dest(outPaths.folderExtern + 'lib/ionic/fonts'))
-    .on('end', done);
-});
-
-gulp.task('nl_copy_extjs_old', function(done) {
-    gulp.src(inPaths.extern + 'nittioold_ext/*.js')
-    .pipe(concat('nittioold_ext.bundle.js'))
-    .pipe(gulp.dest(outPaths.folderExtern))
-    .pipe(uglify()).on('error', swallowError)
-    .pipe(rename({extname : '.min.js'}))
-    .pipe(gulp.dest(outPaths.folderExtern))
     .on('end', done);
 });
 
