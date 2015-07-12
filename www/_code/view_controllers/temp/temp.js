@@ -123,7 +123,7 @@ function(nl, $scope, $stateParams, $location, nlDummy, nlDlg, nlLogViewer) {
 
     var url = nl.url.resUrl('general/home.png');
     nl.url.getCachedUrl(url).then(function(localUrl) {
-        nl.log.error('Got cached url: ', url, localUrl);
+        nl.log.debug('Got cached url: ', url, localUrl);
         $scope.homeIcon = localUrl;
     }, function(err) {
         nl.log.error('Error getting cached url: ', err);

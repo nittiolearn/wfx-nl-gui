@@ -66,7 +66,7 @@ function LogImpl() {
     // Runtime data
     this.logId = 0;
     this.recentLogs = [];
-    this.currentLogLevel = this.LOG_LEVEL.DEBUG;
+    this.currentLogLevel = this.LOG_LEVEL.ERROR;
 
     //---------------------------------------------------------------------------------------------
     // Log viewer related data

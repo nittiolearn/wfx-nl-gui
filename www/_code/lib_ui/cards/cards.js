@@ -59,10 +59,7 @@ function _cacheCardsIcons($scope, nl) {
 }
 
 function _cacheCardIcon($scope, card, nl) {
-    nl.url.getCachedUrl(card.icon)
-    .then(function(imgUrl) {
-        card.iconUrl = imgUrl;
-    });
+    card.iconUrl = card.icon;
 }
 
 function _paginateCards(nl, $scope, cardsContainer, nlScrollbarSrv) {

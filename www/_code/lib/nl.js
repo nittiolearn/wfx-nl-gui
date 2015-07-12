@@ -268,10 +268,6 @@ function NlUrl(nl) {
 
     this.getCachedUrl = function(url) {
         return nl.q(function(resolve, reject) {
-            // TODO-MUNNI
-            //resolveUncachedResource(url, resolve);
-            //return;
-            
             var localUrl = urlCache.get(url);
             if (localUrl !== undefined) {
                 nl.log.debug('getCachedUrl found in urlCache: ', url, localUrl);

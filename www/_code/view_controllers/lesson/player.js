@@ -32,10 +32,7 @@ function(nl, nlScrollbarSrv, nlServerApi, nlLessonHelperSrv) {
                 
                 var bgInfo = nlLessonHelperSrv.getBackgroundUrlInfo(oLesson.template);
                 iElem.addClass(bgInfo.bgShade);
-                nl.url.getCachedUrl(bgInfo.url)
-                .then(function(imgUrl) {
-                    $scope.bgImgUrl = imgUrl;
-                });
+                $scope.bgImgUrl = bgInfo.url;
 
                 nlScrollbarSrv.setTotal($scope.lesson.pages.length);
                 nlScrollbarSrv.gotoPage(1);
