@@ -98,7 +98,7 @@ After a version of nittio is uploaded into live, do the following steps to creat
    - gulpfile.js: Increment the version number (e.g. v66 -> v67)
    - gulp clean
    - gulp rebuild
-   - gulp nittio
+   - gulp nittio_build
 3. Check in changes in both folders; push changes to remote
 
 NittioApp folder structure
