@@ -28,7 +28,8 @@ function($stateProvider) {
 //-------------------------------------------------------------------------------------------------
 var HomeCtrl = ['nl', '$scope', '$stateParams', 'nlServerApi',
 function(nl, $scope, $stateParams, nlServerApi) {
-    nl.pginfo.pageTitle = nl.t('Home dashboard');
+    nl.pginfo.pageTitle = nl.t('Home Dashboard');
+    //TODO-MUNNI nl.pginfo.pageSubTitle = nl.t('User: {}', 'Nittio Admin');
     $scope.cards = nlServerApi.getDashboardCards();
 }];
 

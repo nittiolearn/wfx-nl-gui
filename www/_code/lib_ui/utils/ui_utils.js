@@ -5,7 +5,7 @@
 // Collection of assorted ui utilities
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-    angular.module('nl.ui.utils', [])
+    angular.module('nl.ui.utils', ['nl.ui.keyboard'])
     .directive('nlLoading', LoadingDirective)
     .directive('nlNoCtxMenu', NoCtxMenuDirective)
     .directive('nlRetainAr', RetainArDirective);

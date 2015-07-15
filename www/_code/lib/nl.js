@@ -79,7 +79,7 @@ function(nlLog, $http, $q, $timeout, $location, $window, $rootScope) {
     this.router = new NlRouter();
     
     //---------------------------------------------------------------------------------------------
-    // Page title, window title and page number related information pertaining to the current view.
+    // Page title, window title and menushown pertaining to the current view.
     this.pginfo = new NlPageInfo();
 
     //---------------------------------------------------------------------------------------------
@@ -154,82 +154,6 @@ function LruCache(maxSize, lowWaterMark, onRemoveFn) {
             delete this.entryDict[k];
         }
     };
-}
-
-//-------------------------------------------------------------------------------------------------
-function NlLog($log) {
-
-    // Can be generously sprayed around during initial testing - but remember to remove them
-    // after initial development
-    this.debug = function(args) {
-        logImpl(config.LOG_LEVEL.DEBUG, $log.debug, arguments);
-    };
-
-    // Aroud entry / exit of different views
-    this.info = function(args) {
-        logImpl(config.LOG_LEVEL.INFO, $log.info, arguments);
-    };
-
-    // Some failures which can be expected during operations
-    this.warn = function(args) {
-        logImpl(config.LOG_LEVEL.WARN, $log.warn, arguments);
-    };
-
-    // Some failures which indicates likely code errors
-    this.error = function(args) {
-        logImpl(config.LOG_LEVEL.ERROR, $log.error, arguments);
-    };
-    
-    // Used by Log GUI only
-    this.getConfig = function() {
-        return config;
-    };
-    
-    //---------------------------------------------------------------------------------------------
-    // Private stuff
-    var recentLogs = [];
-    var config = {
-        LOG_LEVEL: {DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3},
-        LOG_LEVEL_TEXTS: ['debug', 'info', 'warn', 'error'],
-        storeLogs: true,
-        maxLogCount: 1000,
-        lowWaterMark: 800,
-        getRecentLogs: function() {
-            return recentLogs;
-        },
-        clearLogs: function() {
-            recentLogs = [];
-        }
-    };
-    config.currentLogLevel = config.LOG_LEVEL.DEBUG;
-    
-    var logId = 0;
-
-    function logImpl(level, logFn, args) {
-        if (level < config.currentLogLevel) return;
-
-        var msg = args[0];
-        var logArgs = _sliceArguments(args, 1); 
-        if (logArgs.length > 0) {
-            logFn(msg, logArgs);
-        } else {
-            logFn(msg);
-        }
-
-        if (!config.storeLogs) return;
-        logId++;
-
-        var argsJson = '';
-        try {
-            argsJson = angular.toJson(logArgs);
-        } catch (e) {
-            argsJson = 'angular.toJson() failed: ' + e.message;
-        }
-        recentLogs.push({pos: logId, logtime: new Date(), level:config.LOG_LEVEL_TEXTS[level], msg:msg, args:argsJson});
-        if (recentLogs.length < config.maxLogCount) return;
-        var toRemove = config.maxLogCount - config.lowWaterMark;
-        recentLogs.splice(0, toRemove);
-    }
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -381,7 +305,6 @@ function NlPageInfo() {
     
     this.pageSubTitle ='';
     this.pageTitle ='';
-
     this.isMenuShown = true;
 }
 

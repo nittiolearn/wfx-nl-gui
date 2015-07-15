@@ -1,22 +1,12 @@
-<div class='nl-card-page' ng-class='pgInfo.pageAnim' 
-     ng-repeat="page in pages" ng-show='$index + 1 == pgInfo.currentPage'>
-    <table class='nl-card-table'>
-        <tr ng-repeat="row in page">
-            <td ng-repeat="card in row">
-                <div class='nl-card' ng-style="{height: h + 'px', width: w + 'px', 'font-size': fs + '%'}">
-                    <div class='nl-card-holder' ng-hide='card.dummy'>
-                        <a ng-if='card.url' href='{{card.url}}' class='nl-card-header'>{{card.title}}</a>
-                        <div ng-if='!card.url' class='nl-card-header'>{{card.title}}</div>
-                
-                        <a ng-if='card.url' href='{{card.url}}' class='nl-card-img'><img ng-src='{{card.iconUrl}}' nl-no-ctx-menu nl-retain-ar></img></a>
-                        <div ng-if='!card.url' class='nl-card-img'><img ng-src='{{card.iconUrl}}' nl-no-ctx-menu></img></div>
-                
-                        <div class='nl-card-desc' ng-bind-html='card.desc'></div>
-                        <div class='nl-card-links'></div>    
-                    </div>
-                </div>
-            </td>
-        </tr>
-    </table>
-</div>
+<div class='nl-card' ng-repeat="card in cards" ng-style="{height: h + 'px', width: w + 'px', 'font-size': fs + '%', 'margin-left': ml + 'px'}">
+    <div class='nl-card-holder'>
+        <a ng-if='card.url' href='{{card.url}}' class='nl-card-header'>{{card.title}}</a>
+        <div ng-if='!card.url' class='nl-card-header'>{{card.title}}</div>
 
+        <a ng-if='card.url' href='{{card.url}}' class='nl-card-img'><img ng-src='{{card.icon}}' nl-no-ctx-menu nl-retain-ar></img></a>
+        <div ng-if='!card.url' class='nl-card-img'><img ng-src='{{card.icon}}' nl-no-ctx-menu></img></div>
+
+        <div class='nl-card-desc' ng-bind-html='card.desc'></div>
+        <div class='nl-card-links'></div>    
+    </div>
+</div>

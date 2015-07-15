@@ -12,17 +12,20 @@
 }
 
 ion-nav-view, ion-view {
-    border-radius: 8px;
+    /*border-radius: 8px;*/
 }
 
 /* nl specific css */
 /*-----------------------------------------------------------------------------------------*
- * Internal scroll bar
+ * Thin scroll bar
  *-----------------------------------------------------------------------------------------*/
-nl-internal-scroll > ng-transclude {
+.nl-full {
     position: absolute;
     width: 100%;
     height: 100%;
+}
+
+.nl-thin-scroll {
     overflow-y: auto;
 }
 
@@ -117,7 +120,8 @@ html, body {
 
 body {
     position: relative;
-    line-height: 1;
+    font-stretch: inherit;
+    line-height: inherit;
     font-family: Verdana, Helvetica, Arial, sans-serif;
 }
 
@@ -151,14 +155,33 @@ body {
     left: 0;
     height: 40px;
     width: 120px;
-    cursor: pointer;
+}
+
+#nl-logo img {
+    max-width: 120px; 
+    max-height: 40px;
+}
+
+#nl-top-menu {
+    position: absolute;
+    top: 0;
+    right: 2px;
+    height: 40px;
+    width: 120px;
+    padding: 8px 2px;
+    text-align: right;
+}
+
+#nl-top-menu img {
+    width: 24px;
+    height: 24px;
 }
 
 #nl-header {
     position: absolute;
     padding: 8px 4px;
     left: 124px;
-    right: 32px;
+    right: 124px;
     height: 40px;
     width: auto;
     font-size: 120%;
@@ -183,43 +206,12 @@ body {
     overflow: hidden;
 }
 
-#nl-menuicon {
-    position: absolute;
-    top: 8px;
-    right: 4px;
-    height: 24px;
-    width: 24px;
-    border-radius: 4px;
-    z-index: 4;
-    cursor: pointer;
-}
-
-#nl-menubar {
-    position: absolute;
-    top: 40px;
-    bottom: 24px;
-    right: 0;
-    width: 40px;
-    overflow-y: auto;
-}
-
-.nl-menuitem {
-    width: 24px;
-    height: 24px;
-    margin: 4px;
-    cursor: pointer;
-}
-
-.nl-menuitem:hover {
-    box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
-}
-
 #nl-body {
     position: absolute;
     top: 44px;
     bottom: 4px;
     left: 4px;
-    right: 52px;
+    right: 4px;
 }
 
 #nl-inner-body {
@@ -228,8 +220,6 @@ body {
     left: 0;
     height: 100%;
     width: 100%;
-    box-shadow: 1px 1px 5px 0 #807090;
-    border-radius: 8px;
 }
 
 /*-----------------------------------------------------------------------------------------*
@@ -245,101 +235,13 @@ body {
     transition:0.3s linear all;
 }
 
-#nl-menuicon.fullpage {
-    background-color: #403050;
-    opacity: 0.2;
-}
-
-#nl-menuicon.fullpage:hover {
-    opacity: 1;
-    box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
-}
-
 #nl-body.fullpage {
     top: 4px;
-    right: 4px;
 }
 
 #nl-topbar.fullpage {
     height: 0;
     opacity: 0;
-}
-
-#nl-menubar.fullpage, #nl-pageno.fullpage, nl-scrollbar.fullpage {
-    width: 0;
-    opacity: 0;
-}
-
-/*-----------------------------------------------------------------------------------------*
- * nl-scrollbar directive
- *-----------------------------------------------------------------------------------------*/
-nl-scrollbar {
-    position: absolute;
-    top: 44px;
-    bottom: 4px;
-    right: 40px;
-    width: 8px;
-}
-
-nl-scrollbar:hover, nl-scrollbar:focus {
-}
-
-#nl-scrollup, #nl-scrollthumb, #nl-scrolldown {
-    position: absolute;
-    width: 100%;
-}
-
-#nl-scrollup {
-    top: 0;
-    background-color: #DDDDDD;
-}
-
-#nl-scrolldown {
-    bottom: 0;
-    background-color: #DDDDDD;
-}
-
-#nl-scrollthumb {
-    background-color: #AAAAAA;
-}
-
-#nl-scrollthumb:hover, #nl-scrollthumb:focus {
-    background-color: #777777;
-}
-
-#nl-scrollthumbhint {
-    position: absolute;
-    top: 0;
-    right: 120%;
-    display: none;
-    word-break: keep-all;
-    z-index: 5;
-}
-
-#nl-pageno {
-    position: absolute;
-    bottom: 0;
-    right: -32px;
-    height: 24px;
-    z-index: 4;
-}
-
-#nl-scrollthumbhint, #nl-pageno {
-    min-width: 24px;
-    width: auto;
-
-    color: #FFFFFF;
-    background-color: #403050;
-    border-radius: 50%;
-    text-align: center;
-    padding: 4px 4px;
-    font-size: 12px;
-
-    border: 2px solid #FFFFFF;
-}
-
-nl-scrollbar:hover #nl-pageno {
-    z-index: -1;
 }
 
 /*-----------------------------------------------------------------------------------------*
@@ -473,23 +375,6 @@ nl-cards {
     height: 100%;
 }
 
-.nl-card-page {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-}
-
-.nl-card-table {
-    width: 100%;
-    height: 100%;
-}
-
-.nl-card-table TD {
-    vertical-align: middle;
-}
-
 .nl-card {
     display: inline-block;
     text-align: center;
@@ -562,74 +447,4 @@ a.nl-card-img:hover, a.nl-card-img:focus {
     left: 2%;
     right: 2%;
     font-size: 120%;
-}
-
-/*-----------------------------------------------------------------------------------------*
- * nl-player
- *-----------------------------------------------------------------------------------------*/
-.nl-player {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-    font-size: 20px;
-    color: #FFFFFF;
-}
-
-.bglight .nl-player {
-    color: #000000;
-}
-
-.nl-page {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-}
-
-.nl-bg-img-style {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-    box-shadow: 1px 1px 5px 0 #807090;
-    border-radius: 8px;
-    z-index: -1;
-    outline: none;
-}
-
-.nl-page-holder {
-    position: absolute;
-    left: 4%;
-    top: 6%;
-    width: 92%;
-    height: 86%;
-}
-
-.nl-section > .nl-sec-view {
-    position: absolute;
-    //background-color: green;
-}
-
-.nl-section > .nl-sec-text {
-    position: absolute;
-    background: none;
-    border: 1px solid red;
-    border-radius: 8px;
-    opacity: 0.8;
-    line-height: 100%;
-    resize: none;
-}
-
-.nl-section > .nl-sec-text:active {
-    opacity: 1;
-}
-
-.nl-section > .nl-sec-templ {
-}
-
-.nl-section > .nl-sec-lc {
 }

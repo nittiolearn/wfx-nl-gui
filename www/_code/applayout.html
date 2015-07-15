@@ -1,13 +1,15 @@
 <div id='nl-pagecanvas'>
-    <img id='nl-menuicon' ng-src='{{menuicon}}' alt='menuicon' title='{{menuicontext}}' ng-click='onMenuClick()' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'/>
     <nav id='nl-topbar' ng-show='pgInfo.isMenuShown' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
-        <img id='nl-logo' ng-src='{{logo}}' alt='Nittio Learn' title='Home (Ctrl+Home)' ng-click='onHomeClick()'/>
+        <a id='logo' href='/'>
+            <img ng-src='{{logo}}' alt='Nittio Learn' title='{{homeMenuTitle}}'/>
+        </a>
         <span id='nl-header' class='nl-textellipsis'>{{pgInfo.pageTitle}} <small>{{pgInfo.pageSubTitle}}</small></span>
+        <nav id='nl-top-menu'>
+            <a href='/info/training'><img ng-src='{{helpMenuIcon}}' alt='Help' title='{{helpMenuTitle}}'/></a>
+            <a href='#/app/home'><img ng-src='{{homeMenuIcon}}' alt='Home' title='{{homeMenuTitle}}'/></a>
+            <a href='#/app/lesson/approved'><img ng-src='{{userMenuIcon}}' alt='User' title='{{userMenuTitle}}'/></a>
+        </nav>
     </nav>
-    <nl-scrollbar ng-show='pgInfo.isMenuShown && pgInfo.totalPages>1' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}' is-menu-shown='pgInfo.isMenuShown' pg-info='pgInfo'></nl-scrollbar>
-    <div id='nl-menubar' class='nl-thin-scroll' ng-show='pgInfo.isMenuShown' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
-        <img ng-repeat='menuitem in getMenuItems()' class='nl-menuitem' ng-src='{{menuitem.img}}' alt='{{menuitem.title}}' title='{{menuitem.title}}' ng-click='menuitem.handler()'/>
-    </div>
     <div id='nl-body' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
         <div id='nl-inner-body' tabindex='0' 
              ng-keydown="onKeyDown($event)" 

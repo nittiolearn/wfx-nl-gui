@@ -74,6 +74,7 @@ var AppCtrl = ['nl', '$scope', '$stateParams', '$location', 'nlDlg', 'nlKeyboard
 function(nl, $scope, $stateParams, $location, nlDlg, nlKeyboardHandler, nlUserDlg) {
     nl.rootScope.imgBasePath = nl.url.resUrl();
     nl.rootScope.pgInfo = nl.pginfo;
+    nl.rootScope.scrollInfo = nl.scrollinfo; // TODO-MUNNI - remove
 
     nl.rootScope.windowTitle = function() {
         var prefix = nl.t('Nittio Learn');
@@ -81,44 +82,17 @@ function(nl, $scope, $stateParams, $location, nlDlg, nlKeyboardHandler, nlUserDl
         return prefix + ' - ' + nl.pginfo.pageTitle;
     };
 
-    $scope.getMenuItems = function() {
-        return nl.menu.getMenuItems();
-    };
-    
-    nl.menu.clearAppMenu();
-    nl.menu.addAppMenuItem('Help', 'general/help.png', function() {
-        nl.log.debug('TODO: onHelpClick');
-    });
-    nl.menu.addAppMenuItem('Login', 'general/top-logedin.png', function() {
-        nlUserDlg.show($scope);
-    });
-    
     $scope.logo = nl.url.resUrl('general/top-logo1.png');
+    $scope.helpMenuIcon = nl.url.resUrl('general/help.png');
+    $scope.helpMenuTitle = nl.t('Help');
+    $scope.homeMenuIcon = nl.url.resUrl('general/home.png');
+    $scope.homeMenuTitle = nl.t('Home');
+    $scope.userMenuIcon = nl.url.resUrl('general/top-logedin.png');
+    $scope.userMenuTitle = nl.t('User: {}', ''); // TODO-MUNNI - user name
 
-    _updateMenuState(nl, $scope);
-
-    $scope.onHomeClick = function() {
-        $location.path('#');
-    };
-
-    $scope.onMenuClick = function() {
-        nl.pginfo.isMenuShown = !(nl.pginfo.isMenuShown);
-        _updateMenuState(nl, $scope);
-    };
-    
     $scope.onKeyDown = nlKeyboardHandler.onKeyDown;
     $scope.onSwipe = nlKeyboardHandler.onSwipe;
 }];
-
-function _updateMenuState(nl, $scope) {
-    if (nl.pginfo.isMenuShown) {
-        $scope.menuicon = nl.url.resUrl('general/menuhide.png');
-        $scope.menuicontext = 'Hide Menu';        
-    } else {
-        $scope.menuicon = nl.url.resUrl('general/menushow.png');
-        $scope.menuicontext = 'Show Menu';
-    }
-}
 
 module_init();
 })();

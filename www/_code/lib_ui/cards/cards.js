@@ -10,121 +10,52 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var CardsDirective = ['nl', '$window', 'nlScrollbarSrv',
-function(nl, $window, nlScrollbarSrv) {
+var CardsDirective = ['nl', '$window',
+function(nl, $window) {
     return {
         restrict: 'E',
         transclude: true,
         templateUrl: 'lib_ui/cards/cards.html',
         scope: {
-            cards: '=',
-            pgInfo: '='
+            cards: '='
         },
         link: function($scope, iElem, iAttrs) {
-            $scope.pages = [];
             nl.timeout(function() {
-                // TODO - might not be needed if all callers call repaginate!
-                $scope.$parent.reInitCards();
+                _updateCardDimensions($scope, iElem);
             }); // 0 timeout - just executes after DOM rendering is complete
-            
-            nl.router.onViewEnter($scope.$parent, function() {
-                nl.log.debug('CardsDirective: view enter');
-                nlScrollbarSrv.setTotal($scope.pages.length);
-                nlScrollbarSrv.gotoPage(1);
-            });
-            
-            $scope.$parent.reInitCards = function() {
-                _cacheCardsIcons($scope, nl);
-                _repaginateCards();
-            };
             
             angular.element($window).on('resize', function() {
                 $scope.$apply(function() {
-                    _repaginateCards();
+                    _updateCardDimensions($scope, iElem);
                 });
             });
-
-            function _repaginateCards() {
-                _paginateCards(nl, $scope, iElem, nlScrollbarSrv);
-            }
          }
     };
 }];
 
-function _cacheCardsIcons($scope, nl) {
-    for(var i=0; i<$scope.cards.length; i++) {
-        var card = $scope.cards[i];
-        _cacheCardIcon($scope, card, nl);
-    }
-}
-
-function _cacheCardIcon($scope, card, nl) {
-    card.iconUrl = card.icon;
-}
-
-function _paginateCards(nl, $scope, cardsContainer, nlScrollbarSrv) {
-    nl.log.debug('_paginateCards called');
-    var dimension = _getCardDimension(cardsContainer);
-    var cardsPerRow = Math.max(1, Math.floor(cardsContainer[0].offsetWidth / dimension.w));
-    var rowsPerPage = Math.max(1, Math.floor(cardsContainer[0].offsetHeight / dimension.h));
-    var cardsPerPage = cardsPerRow*rowsPerPage;
-
-    var pageCount = Math.max(1, Math.ceil($scope.cards.length/cardsPerPage));
-
-    $scope.w = dimension.w;
-    $scope.h = dimension.h;
-    $scope.fs = dimension.fs;
+function _updateCardDimensions($scope, cardsContainer) {
+    var w = _getCardWidth(cardsContainer);
+    $scope.w = w;
+    $scope.h = _defCardAr*w;
+    $scope.fs = w/_defCardWidth*100;
     
-    $scope.pages = [];
-    for(var p=0; p<pageCount; p++) {
-        var page = [];
-        $scope.pages.push(page);
-        for (var r=0; r<rowsPerPage; r++) {
-            var begin = p*cardsPerPage + r*cardsPerRow;
-            if (begin >= $scope.cards.length) {
-                page.push(_dummyRow(cardsPerRow));
-                continue;
-            }
-            var end = begin + cardsPerRow;
-            if (end > $scope.cards.length) end = $scope.cards.length;
-            var row = $scope.cards.slice(begin, end);
-            if (end - begin < cardsPerRow) {
-                for (var d=end-begin; d<cardsPerRow; d++) row.push(_dummyCard());
-            }
-            page.push(row);
-        }
-    }
-    nlScrollbarSrv.setTotal(pageCount);
-    if (nl.pginfo.currentPage > pageCount) {
-        nlScrollbarSrv.gotoPage(pageCount);
-    }
-}
-
-function _dummyCard() {
-    return {dummy:true};
-}
-
-function _dummyRow(nCards) {
-    var row = [];
-    for (var i=0; i<nCards; i++) row.push(_dummyCard());
-    return row;
+    var cardsPerRow = Math.floor(cardsContainer[0].offsetWidth / w);
+    var margins = cardsPerRow+1;
+    $scope.ml = (cardsContainer[0].offsetWidth - w*cardsPerRow) / margins;
 }
 
 var _defCardWidth = 300;
 var _defCardAr = 2/3;
-function _getCardDimension(cardsContainer) {
+function _getCardWidth(cardsContainer) {
     var w = _defCardWidth;
+
     var contWidth = cardsContainer[0].offsetWidth;
-    if (contWidth < w) w = contWidth;
-    var h = _defCardAr*w;
     var contHeight = cardsContainer[0].offsetHeight;
-    if (contHeight < h) {
-        h = contHeight;
-        w = contHeight/_defCardAr;
-    }
+
+    if (contWidth < w) w = contWidth;
+    if (contHeight < _defCardAr*w) w = contHeight/_defCardAr;
     
-    var perc = w/_defCardWidth*100;
-    return {w:w, h:h, fs:perc};
+    return w;
 }
 
 //-------------------------------------------------------------------------------------------------

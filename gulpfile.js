@@ -318,12 +318,12 @@ gulp.task('nittio_copy_script_int', function(done) {
 gulp.task('nittio_generate_index', function(done) {
     var nittioUrlSuffix = "')}}";
     var fixes = {
-        jsExtPrefix: "{{=mutils.nlExtScriptPath('",
-        jsExtSuffix: nittioUrlSuffix,
-        jsIntPrefix: "{{=mutils.nlIntScriptPath('",
-        jsIntSuffix: nittioUrlSuffix,
-        cssPrefix: "{{=mutils.nlIntCssPath('",
-        cssSuffix: nittioUrlSuffix
+        jsExtPrefix: SERVER_URL + outPaths.urlExtern,
+        jsExtSuffix: '.js',
+        jsIntPrefix: SERVER_URL + outPaths.urlScript,
+        jsIntSuffix: '.js',
+        cssPrefix: SERVER_URL + outPaths.urlScript,
+        cssSuffix: '.css'
     };
     generateIndexHtml(done, nittioPaths.view, fixes, false);
 });
