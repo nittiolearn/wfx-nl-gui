@@ -660,6 +660,13 @@ function Dialog() {
 		_dlgUpdate(title, content, buttons, cancelButton);
 	};
 	
+    this.updateBodyWithIframe = function(iframeUrl) {
+        var dlgBody = jQuery('#' + _dlgId);
+        dlgBody.html('');
+        var newBody = jQuery(njs_helper.fmt2("<iframe src='{}' class='full-iframe'/>", iframeUrl));
+        dlgBody.append(newBody);
+    };
+    
 	this.closeOnEscape = function(bCloseOnEscape) {
 		_closeOnEscape = bCloseOnEscape;
 	};

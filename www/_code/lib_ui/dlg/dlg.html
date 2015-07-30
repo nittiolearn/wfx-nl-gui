@@ -1,6 +1,3 @@
-<div class='nl-dlg-header'>
-    <span class='nl-dlg-title'>{{title}}</span>
-    <img ng-src='{{imgBasePath}}general/help.png' class='nl-dlg-title-help' ng-click='onHelp()'/>
-</div>
-<div class='nl-dlg-body nl-thin-scroll' ng-transclude ng-class='{"nl-dlg-help-hidden": helpHidden}'>
+<img ng-src='{{imgBasePath}}general/help.png' class='nl-dlg-title-help' ng-click='onHelp()'/>
+<div ng-transclude ng-class='{"nl-dlg-help-hidden": helpHidden}'>
 </div>

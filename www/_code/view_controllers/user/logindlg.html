@@ -1,11 +1,32 @@
-<nl-dlg title='Login'>
-    <nl-dlg-help>Enter your user name and password to login</nl-dlg-help>
+<nl-dlg title='Sign In'>
+    <nl-dlg-help>
+        <h2>Sigining in</h2> 
+        <p>Enter your username and password to sign in.</p>
+        <h2>Lost password?</h2>
+        <p>If you forgot your password, click on the "Lost Password" link. </p>
+        <h2>Remember me</h2>
+        <p>Clicking on "Remember me" will keep you signed in for 30 days or till you explicitly sign out.</p>
+        <p>If your are using a shared system please do not click on "Remember me" and remember to Sign out after your use.</p>
+    </nl-dlg-help>
     <nl-dlg-content>
-        <div>Valid: {{myForm.$valid}}</div>
-        <table ng-form='userDlgForm'>
-            <tr><td>Username</td><td><input type='text' ng-model='username' required></td></tr>
-            <tr><td>Passowrd</td><td><input type='password' ng-model='password' required></td></tr>
-            <tr><td>Remember me (for 30 days)</td><td><input type='checkbox' ng-model='remember'></td></tr>
+        <style>
+            .well_spaced {
+                padding:15px 0 0 5px;
+            }
+        </style>
+        <h2 ng-show='msg'>{{msg}}</h2>
+        <table>
+            <tr nl-form-input fieldname='Username' fieldmodel='username' fieldtype='text'></tr>
+            <tr nl-form-input fieldname='Password' fieldmodel='password' fieldtype='password'></tr>
+            <tr><td></td><td class='well_spaced'>
+                <input type='checkbox' ng-model='data.remember' ng-class='{"nl-dlg-field-error": error.remember}'
+                       tabindex="-1">
+                <span>Remember me (for 30 days)</span>
+            </td></tr>
+            <tr><td></td><td class='well_spaced'>
+                <p><a href='/auth/pwlost' tabindex="-1">Lost Password?</a></p>
+            </td></tr>
         </table>
+        <br/>
     </nl-dlg-content>
 </nl-dlg>

@@ -41,7 +41,7 @@ function _ignoreIfRightMouseUp(e) {
 var configFn = ['$stateProvider', '$urlRouterProvider', '$ionicConfigProvider',
 function($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
     
-    $ionicConfigProvider.views.transition('ios');
+    $ionicConfigProvider.views.transition('none');
     //$ionicConfigProvider.views.forwardCache(true);
     $ionicConfigProvider.views.maxCache(0);
     
@@ -70,28 +70,69 @@ function onIonicReady() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var AppCtrl = ['nl', '$scope', '$stateParams', '$location', 'nlDlg', 'nlKeyboardHandler', 'nlUserDlg',
-function(nl, $scope, $stateParams, $location, nlDlg, nlKeyboardHandler, nlUserDlg) {
+var AppCtrl = ['nl', '$scope', 'nlKeyboardHandler', 'nlServerApi', 'nlRouter',
+function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter) {
     nl.rootScope.imgBasePath = nl.url.resUrl();
     nl.rootScope.pgInfo = nl.pginfo;
-    nl.rootScope.scrollInfo = nl.scrollinfo; // TODO-MUNNI - remove
+    
+    var homeUrl = nl.url.getAppUrl() + '#/app/home';
 
-    nl.rootScope.windowTitle = function() {
-        var prefix = nl.t('Nittio Learn');
-        if (nl.pginfo.pageTitle == '') return prefix;
-        return prefix + ' - ' + nl.pginfo.pageTitle;
-    };
-
-    $scope.logo = nl.url.resUrl('general/top-logo1.png');
+    $scope.userMenuItems = [];
     $scope.helpMenuIcon = nl.url.resUrl('general/help.png');
     $scope.helpMenuTitle = nl.t('Help');
     $scope.homeMenuIcon = nl.url.resUrl('general/home.png');
     $scope.homeMenuTitle = nl.t('Home');
-    $scope.userMenuIcon = nl.url.resUrl('general/top-logedin.png');
-    $scope.userMenuTitle = nl.t('User: {}', ''); // TODO-MUNNI - user name
+    $scope.userMenuIcon = nl.url.resUrl('general/top-login.png');
+    $scope.logedIn = false;
+    $scope.homeUrl = homeUrl;
+    
+    // Called from child scope on page enter
+    $scope.onPageEnter = function(userInfo) {
+        nl.log.debug('app:onPageEnter');
+        $scope.logo = userInfo.groupicon == '' ? nl.url.resUrl('general/top-logo1.png') : userInfo.groupicon;
+        var bLoggedIn = (userInfo.username != '');
+        $scope.userMenuItems = [];
+        if (bLoggedIn) {
+            $scope.logedIn = true;
+            $scope.homeUrl = homeUrl;
+            $scope.userMenuIcon = nl.url.resUrl('general/top-logedin.png');
+            if (nlRouter.isPermitted(userInfo, 'change_password')) {
+                $scope.userMenuItems.push({name: 'changepw', title: nl.t(' Change Password'), 
+                    icon: nl.url.resUrl('general/login-pwdchange.png'),
+                    url: '/auth/changepw'});
+            }
+            $scope.userMenuItems.push({name: 'logout', title: nl.t(' Sign Out'),
+                icon: nl.url.resUrl('general/login-signout.png'),
+                url: '#/app/logout_now'});
+        } else {
+            $scope.logedIn = false;
+            $scope.homeUrl = '/';
+            $scope.userMenuIcon = nl.url.resUrl('general/top-login.png');
+            $scope.userMenuItems.push({name: 'login', title: nl.t(' Sign In'), 
+                icon: nl.url.resUrl('general/login-signin.png'),
+                url: '#/app/login_now'});
+            $scope.userMenuItems.push({name: 'pwlost', title: nl.t(' Sign Out'),
+                icon: nl.url.resUrl('general/login-pwdlost.png'),
+                url: '/auth/pwlost'});
+        }
+    };
+    
+    $scope.showUserMenu = false;
+    $scope.onUserMenu = function(e) {
+        $scope.showUserMenu = !$scope.showUserMenu;
+        event.stopImmediatePropagation();
+        return false;
+    };
+    
+    $scope.onCanvasClick = function(e) {
+        $scope.showUserMenu = false;
+    };
 
-    $scope.onKeyDown = nlKeyboardHandler.onKeyDown;
-    $scope.onSwipe = nlKeyboardHandler.onSwipe;
+    $scope.onKeyDown = function(e) {
+        if (!nlKeyboardHandler.ESC(e)) return;
+        $scope.showUserMenu = false;
+    };
+    
 }];
 
 module_init();

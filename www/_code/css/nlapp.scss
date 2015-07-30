@@ -15,8 +15,12 @@ $royal:                           #886aea !default;
 $dark:                            #444 !default;
 */
 
-$energized:                       #403050 !default;
-$positive:                        #E06000 !default;
+$nltopbar:                        #403050 !default; // Top Bar Bg-Color
+$nltopbar1:                       #807090 !default; // Top Bar Bg-Color gradiant
+$nldlgbar:                        #E06000 !default; // Dialog Box header Bg-Color
+
+$energized:                       $nltopbar;
+$positive:                        $nldlgbar;
 
 // The path for our ionicons font files, relative to the built CSS in www/css
 $ionicons-font-path: "lib/ionic/fonts" !default;
@@ -24,12 +28,13 @@ $ionicons-font-path: "lib/ionic/fonts" !default;
 // Include all of Ionic
 @import "www/_extern/ionic/scss/ionic";
 
-/*-----------------------------------------------------------------------------------------*
- * nl specific definitions used in overriding ionic defaults
- *-----------------------------------------------------------------------------------------*/
+//-------------------------------------------------------------------------------------------
+// nl specific definitions used in overriding ionic defaults
+//-------------------------------------------------------------------------------------------
 
-//-----------------------------------------------------------------------------------------
-// Dialog Box animations
+/*-----------------------------------------------------------------------------------------*
+ * Dialog Box animations
+ *-----------------------------------------------------------------------------------------*/
 @-webkit-keyframes nlDropDown {
   from {
     @include transform(translate(0, -100%));
@@ -74,11 +79,79 @@ $ionicons-font-path: "lib/ionic/fonts" !default;
   }
 }
 
+//-------------------------------------------------------------------------------------------
+// overriding some ionic defaults
+//-------------------------------------------------------------------------------------------
+
 /*-----------------------------------------------------------------------------------------*
- * overriding some ionic defaults
+ * Generic Overrides
+ *-----------------------------------------------------------------------------------------*/
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  position: relative;
+  font-stretch: inherit;
+  line-height: inherit;
+  font-family: Verdana, Helvetica, Arial, sans-serif;
+}
+
+textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"] {
+  padding-left: 8px;
+  padding-right: 8px;
+  background-color: #EEEEFF;
+  border-radius: 4px;
+  display:inline;
+  margin:4px;
+}
+
+ion-nav-view, ion-view {
+  /*border-radius: 8px;*/
+}
+
+ol, ul {
+    display: inline-block;
+    text-align: left;
+    word-wrap: break-word;
+    margin-left: 18px;
+}
+
+ol>li {
+    -webkit-margin-start: 1em;
+    margin-left: 1em;
+}
+
+ul>ol, ol>ol {
+    margin-left: 1.8em;
+}
+
+ol {
+    list-style-type: decimal;
+}
+
+ul {
+    list-style-type: disc;
+}
+
+ul ul {
+    list-style-type: square;
+}
+
+ul ul ul {
+    list-style-type: circle;
+}
+
+ul ul, ul ol, ol ol, ol ul {
+    display: block;
+}
+
+/*-----------------------------------------------------------------------------------------*
+ * Popup-container specific overrides
  *-----------------------------------------------------------------------------------------*/
 $animation-duration: 200ms !default;
-
 .popup-container {
   &.active .popup {
     //@include animation-name(nlDropDown);
@@ -91,13 +164,562 @@ $animation-duration: 200ms !default;
   }
 }
 
-textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"] {
-  padding-left: 8px;
-  padding-right: 8px;
-  background-color: #EEEEFF;
-  border-radius: 4px;
-  display:inline;
-  margin:4px;
+/*-----------------------------------------------------------------------------------------*
+ * Loading-background specific overrides
+ *-----------------------------------------------------------------------------------------*/
+.loading-container .loading {
+  padding: 2%;
+  border-radius: 50%;
 }
 
+.loading-container {
+    pointer-events: none;
+}
 
+//-----------------------------------------------------------------------------------------
+// nl specific styling - lib_ui modules
+//-----------------------------------------------------------------------------------------
+.nl-20 {
+    width: 20%;
+}
+
+.nl-border-bottom {
+    border-bottom: 1px dotted black;
+}
+
+.nl-bg-red {
+    background-color: rgba(255, 0, 0, 0.3);
+}
+
+/*-----------------------------------------------------------------------------------------*
+ * Thin scroll bar
+ *-----------------------------------------------------------------------------------------*/
+.nl-hide {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.nl-full {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.nl-thin-scroll {
+  overflow-y: auto;
+  &::-webkit-scrollbar {
+    width:  8px;
+    height: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #DDDDDD;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #AAAAAA;
+    box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.4);
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: #777777;
+    box-shadow: inset 2px 0 0 rgba(255, 255, 255, 0.4);
+  }
+}
+
+/*-----------------------------------------------------------------------------------------*
+ * page animations
+ *-----------------------------------------------------------------------------------------*/
+.nl-anim-pg-down.ng-hide-add,
+.nl-anim-pg-down.ng-hide-remove,
+.nl-anim-pg-up.ng-hide-add,
+.nl-anim-pg-up.ng-hide-remove {
+  transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+}
+
+/*-----------------------------------------------------------------------------------------*/
+.nl-anim-pg-down.ng-hide-add {
+  transform:translateY(0);
+}
+
+.nl-anim-pg-down.ng-hide-add.ng-hide-add-active { 
+  transform:translateY(-100%);
+}
+
+.nl-anim-pg-down.ng-hide-remove {
+  transform:translateY(100%);
+}
+
+.nl-anim-pg-down.ng-hide-remove.ng-hide-remove-active {
+  transform:translateY(0);
+}
+
+/*-----------------------------------------------------------------------------------------*/
+.nl-anim-pg-up.ng-hide-add {
+  transform:translateY(0);
+}
+
+.nl-anim-pg-up.ng-hide-add.ng-hide-add-active { 
+  transform:translateY(100%);
+}
+
+.nl-anim-pg-up.ng-hide-remove {
+  transform:translateY(-100%);
+}
+
+.nl-anim-pg-up.ng-hide-remove.ng-hide-remove-active {
+  transform:translateY(0);
+}
+
+/*-----------------------------------------------------------------------------------------*/
+.nl-anim-pg-same.ng-hide-add {
+  transform:translateY(0);
+}
+
+.nl-anim-pg-same.ng-hide-add.ng-hide-add-active { 
+  transform:translateY(0);
+}
+
+.nl-anim-pg-same.ng-hide-remove {
+  transform:translateY(0);
+}
+
+.nl-anim-pg-same.ng-hide-remove.ng-hide-remove-active {
+  transform:translateY(0);
+}
+
+/*-----------------------------------------------------------------------------------------*
+ * nl-dlg styles
+ *-----------------------------------------------------------------------------------------*/
+.nl-dlg {
+
+  .popup {
+    width: auto;
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 4px;
+    box-shadow: 2px 2px 10px 5px #402000;
+    text-align: left;
+    background-color: #FFFFFF;
+  }
+ 
+  .popup-head {
+    background-color: $nldlgbar;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    padding: 8px 32px 8px 8px;
+    min-height: 32px;
+    overflow: hidden;
+  }
+
+  .popup-body {
+    @extend .nl-thin-scroll;
+    min-width: 200px;
+    min-height: 140px;
+  }
+
+  .popup-head * {
+    color: #FFFFFF;
+  }
+
+  .popup-buttons {
+    height: 52px;
+    min-height: 52px;
+    width: 100%;
+    padding: 8px;
+    border-top: 1px solid #D05000;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+
+    .button {
+      text-align: center;
+      color: #FFFFFF;
+      background: #D05000;
+      min-height: 36px;
+      height: 36px;
+      margin-right: 8px;
+      
+      &:last-child {
+        margin-right: 0;
+      }
+
+      &:hover, &:focus {
+        color: #FFFFFF;
+        background: #B03000;
+      }
+    }
+  }
+}
+
+.nl-dlg-title-help {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  height: 24px;
+  width: 24px;
+  cursor:pointer;
+}
+
+nl-dlg-help {
+  background-color: #E5FF80;
+  border-radius: 4px;
+  padding: 8px;
+  margin: 8px;
+  box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
+  display: block;
+}
+
+.nl-dlg-help-hidden nl-dlg-help {
+  display: none;
+}
+
+.nl-dlgform {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.nl-dlgform-body {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  bottom: 56px;
+}
+
+.nl-dlgform .popup-buttons {
+  position: absolute;
+  bottom: 0;
+}
+
+/*-----------------------------------------------------------------------------------------*
+ * nl-dlg-field styles
+ *-----------------------------------------------------------------------------------------*/
+.nl-dlg-field-name {
+  text-align: right;
+  padding-right: 10px;
+  width: 20%;
+}
+
+.nl-dlg-field-value {
+  text-align: left;
+  padding: 4px;
+}
+
+.nl-dlg-field-value input {
+  margin: 0;
+}
+
+.nl-dlg-field-value input[type='checkbox'], .nl-dlg-field-value input[type='radio'],
+.popup-container input[type='checkbox'], .popup-container input[type='radio'] {
+  width: auto;
+  margin: 10px 5px;
+}
+
+input.nl-dlg-field-error {
+  border: 1px solid #FF0000;
+}
+
+.nl-dlg-field-errormsg {
+  padding: 5px;
+  color: red;
+}
+
+/*-----------------------------------------------------------------------------------------*
+ * nl-dlg.popupStatus
+ *-----------------------------------------------------------------------------------------*/
+#statusBox {
+  z-index: $z-index-popup;
+  border-radius: 8px;
+  box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
+  position: absolute;
+  bottom: 1%;
+  left: 1%;
+  height: auto;
+  width: auto;
+  max-width: 40%;
+  background: #403050;
+  color: #ffffff;
+  padding: 8px;
+  cursor: pointer;
+  div {
+    height: auto;
+    max-height: 50px;
+    overflow: hidden;
+  }
+}
+
+/*-----------------------------------------------------------------------------------------*
+ * nl-card
+ *-----------------------------------------------------------------------------------------*/
+nl-cards {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.nl-card {
+  display: inline-block;
+  text-align: center;
+  position: relative;
+  margin-top: 20px;
+  
+  /* Stuff changed in javascript*/
+  height: 240px;
+  width: 360px;
+  font-size: 100%;
+  line-height: 170%;
+}
+
+.nl-card a {
+  text-decoration: none;
+  color: #000077;
+}
+
+.nl-card a:hover, .nl-card a:focus {
+  text-decoration: underline;
+}
+
+.nl-card-holder {
+  position: absolute;
+  top: 8%;
+  left: 8%;
+  height: 84%;
+  width: 84%;
+  
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 rgba(170,170,255,0.1), 0 0 20px rgba(128,128,255,0.8);
+}
+
+.nl-card-header {
+  position: absolute;
+  top: 2%;
+  left: 2%;
+  height: 10%;
+  width: 96%;
+  font-size: 130%;
+  color: #000077;
+}
+
+.nl-card-img {
+  position: absolute;
+  top: 27.5%;
+  left: 2%;
+  height: 45%;
+  width: 30%;
+  text-align: center;
+}
+
+.nl-card-img img {
+  height: 100%;
+  width: 100%;
+}
+
+a.nl-card-img:hover, a.nl-card-img:focus {
+  box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+}
+
+.nl-card-desc {
+  position: absolute;
+  top: 18%;
+  left: 36%;
+  height: 68%;
+  width: 62%;
+  font-size: 100%;
+  text-align: left;
+  overflow: hidden;
+}
+
+.nl-card-links {
+  position: absolute;
+  height: 10%;
+  bottom: 2%;
+  left: 2%;
+  right: 2%;
+  font-size: 100%;
+  text-align: center;
+}
+
+.nl-card-links > span {
+  cursor:pointer;
+  color: #000077;
+  padding: 0 4px 0 0;
+  border-right: 1px solid #0000FF;
+  
+  &:last-child {
+    border-right: none;
+  }
+}
+
+.nl-card-details-dlg {
+  &> img {
+    float: right;
+  }
+  table {
+    margin: 10px 0;
+    width: 100%;
+  }
+
+  td {
+    padding: 4px;
+  }
+}
+
+//-----------------------------------------------------------------------------------------
+// Overall page layout styling
+//-----------------------------------------------------------------------------------------
+
+/*-----------------------------------------------------------------------------------------*
+ * applayout.html elements
+ *-----------------------------------------------------------------------------------------*/
+#nl-pagecanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  width: auto;
+  height: auto;
+}
+
+#nl-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background-color: $nltopbar;
+  background-image: linear-gradient(to bottom,$nltopbar,$nltopbar1);
+  color: #ffffff; 
+}
+
+#nl-logo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 40px;
+  width: 120px;
+}
+
+#nl-logo img {
+  max-width: 120px; 
+  max-height: 40px;
+}
+
+#nl-top-menu {
+  position: absolute;
+  top: 0;
+  right: 2px;
+  height: 40px;
+  width: 120px;
+  padding: 8px 2px;
+  text-align: right;
+}
+
+#nl-top-menu img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+#nl-header {
+  position: absolute;
+  padding: 8px 4px;
+  left: 124px;
+  right: 124px;
+  height: 40px;
+  width: auto;
+  font-size: 120%;
+  text-align: center;
+}
+
+#nl-header small {
+  font-size: 70%;
+}
+
+#nl-header small a {
+  color: #FFFF80;
+}
+
+#nl-header small a:hover {
+  color: #FF8080;
+}
+
+.nl-textellipsis {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+#nl-user-menu {
+  position: absolute;
+  top: 45px;
+  right: 5px; 
+  width: 100px;
+  padding: 0;
+
+  background-color: #C0B0D0;
+  border-radius: 8px;
+  box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
+    
+  z-index: $z-index-popup;
+  text-align: center;
+
+  img {
+    width: 90px;
+    height: 55px;
+    margin: 2px 0 0 0;
+    cursor:pointer;
+    border-bottom: #A090B0 solid 1px;
+    &:hover {
+        box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
+    }
+  }
+}
+
+#nl-body {
+  position: absolute;
+  top: 44px;
+  bottom: 4px;
+  left: 4px;
+  right: 4px;
+}
+
+#nl-inner-body {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+}
+
+/*-----------------------------------------------------------------------------------------*
+ * applayout.html elements: full page view
+ *-----------------------------------------------------------------------------------------*/
+.fullpage {
+  -webkit-transition:0.3s linear all;
+  transition:0.3s linear all;
+}
+
+.borderpage {
+  -webkit-transition:0.3s linear all;
+  transition:0.3s linear all;
+}
+
+#nl-body.fullpage {
+  top: 4px;
+}
+
+#nl-topbar.fullpage {
+  height: 0;
+  opacity: 0;
+}
+
+//-----------------------------------------------------------------------------------------
+// Modules under view_controllers
+//-----------------------------------------------------------------------------------------

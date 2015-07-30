@@ -10,8 +10,8 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var CardsDirective = ['nl', '$window',
-function(nl, $window) {
+var CardsDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
     return {
         restrict: 'E',
         transclude: true,
@@ -24,32 +24,43 @@ function(nl, $window) {
                 _updateCardDimensions($scope, iElem);
             }); // 0 timeout - just executes after DOM rendering is complete
             
-            angular.element($window).on('resize', function() {
+            angular.element(nl.window).on('resize', function() {
                 $scope.$apply(function() {
                     _updateCardDimensions($scope, iElem);
                 });
             });
+
+            $scope.onLinkClicked = function(card, link) {
+                if (link != 'details') return;
+                var detailsDlg = nlDlg.create($scope);
+                detailsDlg.scope.card = card;
+                detailsDlg.show('lib_ui/cards/details_dlg.html');
+            };
          }
     };
 }];
 
+var SCROLL_WIDTH = 8;
 function _updateCardDimensions($scope, cardsContainer) {
     var w = _getCardWidth(cardsContainer);
     $scope.w = w;
     $scope.h = _defCardAr*w;
     $scope.fs = w/_defCardWidth*100;
     
-    var cardsPerRow = Math.floor(cardsContainer[0].offsetWidth / w);
+    // It seems indeterminstic when scroll bar width is computed.
+    // So clientWidth is not a solution here. offsetWidth - scrollBarWidth is used here.
+    var contWidth = cardsContainer[0].offsetWidth - SCROLL_WIDTH;
+    var cardsPerRow = Math.floor(contWidth / w);
     var margins = cardsPerRow+1;
-    $scope.ml = (cardsContainer[0].offsetWidth - w*cardsPerRow) / margins;
+    $scope.ml = (contWidth - w*cardsPerRow) / margins;
 }
 
-var _defCardWidth = 300;
+var _defCardWidth = 360;
 var _defCardAr = 2/3;
 function _getCardWidth(cardsContainer) {
     var w = _defCardWidth;
 
-    var contWidth = cardsContainer[0].offsetWidth;
+    var contWidth = cardsContainer[0].offsetWidth - SCROLL_WIDTH;
     var contHeight = cardsContainer[0].offsetHeight;
 
     if (contWidth < w) w = contWidth;

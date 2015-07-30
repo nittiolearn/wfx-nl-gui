@@ -1,12 +1,23 @@
-<div class='nl-card' ng-repeat="card in cards" ng-style="{height: h + 'px', width: w + 'px', 'font-size': fs + '%', 'margin-left': ml + 'px'}">
-    <div class='nl-card-holder'>
-        <a ng-if='card.url' href='{{card.url}}' class='nl-card-header'>{{card.title}}</a>
+<div ng-show="cards" class='nl-card' ng-repeat="card in cards.cardlist" ng-style="{height: h + 'px', width: w + 'px', 'font-size': fs + '%', 'margin-left': ml + 'px'}">
+    <div class='nl-card-holder {{card.style}}'>
+        <a ng-if='card.url' ng-href='{{card.url}}' class='nl-card-header'>{{card.title}}</a>
         <div ng-if='!card.url' class='nl-card-header'>{{card.title}}</div>
 
-        <a ng-if='card.url' href='{{card.url}}' class='nl-card-img'><img ng-src='{{card.icon}}' nl-no-ctx-menu nl-retain-ar></img></a>
+        <a ng-if='card.url' ng-href='{{card.url}}' class='nl-card-img'><img ng-src='{{card.icon}}' nl-no-ctx-menu nl-retain-ar></img></a>
         <div ng-if='!card.url' class='nl-card-img'><img ng-src='{{card.icon}}' nl-no-ctx-menu></img></div>
 
-        <div class='nl-card-desc' ng-bind-html='card.desc'></div>
-        <div class='nl-card-links'></div>    
+        <div class='nl-card-desc'>
+            <ul ng-show='card.children.length>0' style='background-color2: green'>
+                <li ng-repeat='child in card.children' ng-if='$index < 4'>
+                    <a ng-if='child.url' ng-href='{{child.url}}'>{{child.title}}</a>
+                    <span ng-if='!child.url'>{{child.title}}</span>
+                </li>
+            </ul>
+            <div><b ng-if='card.children.length>4'>Click details for more</b></div>
+            <div ng-show='card.children.length==0' ng-bind-html='card.help'></div>
+        </div>
+        <div class='nl-card-links'>
+            <span ng-repeat='link in card.links' ng-click='onLinkClicked(card, link)'>{{link}}</span>
+        </div>    
     </div>
 </div>

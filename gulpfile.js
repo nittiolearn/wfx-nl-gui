@@ -45,6 +45,8 @@ outPaths.urlScript = 'static/nittio_script_' + VERSIONS.script + '/';
 outPaths.urlExtern = 'static/_external/';
 outPaths.folderScript = './www/' + outPaths.urlScript;
 outPaths.folderExtern = './www/' + outPaths.urlExtern;
+outPaths.urlManifest = 'static/';
+outPaths.folderManifest = './www/' + outPaths.urlManifest;
 outPaths.cleanup = ['./www/static/nittio_script_*', './www/static/_external'];
 
 function swallowError(error) {
@@ -95,7 +97,9 @@ gulp.task('nl_html', function(done) {
 });
 
 gulp.task('nl_css', function(done) {
-    streamqueue({ objectMode: true }, gulp.src(inPaths.scss).pipe(sass()), gulp.src(inPaths.css))
+    streamqueue({ objectMode: true }, 
+                gulp.src(inPaths.scss).pipe(sass()).on('error', swallowError), 
+                gulp.src(inPaths.css))
     .pipe(concat('nl.bundle.css'))
     .pipe(gulp.dest(outPaths.folderScript))
     .pipe(minifyCss({keepSpecialComments : 0})).on('error', swallowError)
@@ -130,6 +134,7 @@ gulp.task('nl_generate_index', function(done) {
 function generateIndexHtml(done, dest, fixes, includeCordova) {
     if (includeCordova === undefined) includeCordova = false;
     
+    var serverType = includeCordova ? 'local' : 'nittio';
     var extFiles = ['ydn.db-isw-core-qry', 'ionic.bundle'];
     var intFiles = ['nl.html_fragments', 'nl.bundle'];
     var cssFiles = ['nl.bundle'];
@@ -144,8 +149,8 @@ function generateIndexHtml(done, dest, fixes, includeCordova) {
     
     gulp.src(inPaths.htmlTemplate + 'index_templ.html')
     .pipe(htmlreplace({nl_server_info: {
-                           src: [[SERVER_URL, VERSIONS.script, VERSIONS.res, VERSIONS.icon, VERSIONS.template]], 
-                           tpl: "<script>var NL_SERVER_INFO = {url: '%s', basePath: 'static/', versions: {script:'%s', res:'%s', icon:'%s', template:'%s'}};</script>"},
+                           src: [[serverType, SERVER_URL, VERSIONS.script, VERSIONS.res, VERSIONS.icon, VERSIONS.template]], 
+                           tpl: "<script>var NL_SERVER_INFO = {serverType: '%s', url: '%s', versions: {script:'%s', res:'%s', icon:'%s', template:'%s'}};</script>"},
                        css: {
                            src: cssList,
                            tpl: '<link rel="stylesheet" href="%s">'},
@@ -158,13 +163,30 @@ function generateIndexHtml(done, dest, fixes, includeCordova) {
     .on('end', function() {
         gulp.src(inPaths.htmlTemplate + 'index_templ.js')
         .pipe(htmlreplace({nl_server_info: {
-                               src: [[SERVER_URL, VERSIONS.script, VERSIONS.res, VERSIONS.icon, VERSIONS.template]], 
-                               tpl: "var NL_SERVER_INFO = {url: '%s', basePath: 'static/', versions: {script:'%s', res:'%s', icon:'%s', template:'%s'}};"},
+                               src: [[serverType, SERVER_URL, VERSIONS.script, VERSIONS.res, VERSIONS.icon, VERSIONS.template]], 
+                               tpl: "var NL_SERVER_INFO = {serverType: '%s', url: '%s', versions: {script:'%s', res:'%s', icon:'%s', template:'%s'}};"},
                            }))
         .pipe(rename('index_html.js'))
         .pipe(gulp.dest('./www/_test_dependencies'))
         .on('end', done);
     });
+}
+
+gulp.task('nl_update_manifest', function(done) {
+    updateManifest(done, outPaths.folderManifest, true);
+});
+
+function updateManifest(done, dest, isLocal) {
+    var timestamp = (new Date()).getTime();
+    var baseUrl = isLocal ? '/' : '/nittioapp';
+    gulp.src(inPaths.htmlTemplate + 'manifest_templ.appcache')
+    .pipe(htmlreplace({manifest_data: {
+                           src: [[baseUrl, VERSIONS.script, timestamp]], 
+                           tpl: '%s # version: %s (%s)'}
+                       }))
+    .pipe(rename('manifest.appcache'))
+    .pipe(gulp.dest(dest))
+    .on('end', done);
 }
 
 gulp.task('nl_js_old', function(done) {
@@ -242,6 +264,7 @@ var nittioPaths = {};
 nittioPaths.base = '../nittio/applications/nittiolearn/';
 nittioPaths.script = nittioPaths.base + outPaths.urlScript;
 nittioPaths.extern = nittioPaths.base + outPaths.urlExtern;
+nittioPaths.manifest = nittioPaths.base + outPaths.urlManifest;
 nittioPaths.view = nittioPaths.base + 'views/nittioapp';
 
 function resourcePath(resType) {
@@ -326,4 +349,8 @@ gulp.task('nittio_generate_index', function(done) {
         cssSuffix: '.css'
     };
     generateIndexHtml(done, nittioPaths.view, fixes, false);
+});
+
+gulp.task('nittio_update_manifest', function(done) {
+    updateManifest(done, nittioPaths.manifest, false);
 });

@@ -5,7 +5,7 @@
 // All view controllers are listed here
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-    angular.module('nl.view_controllers', ['nl.dashboard', 'nl.user', 'nl.temp']);
+    angular.module('nl.view_controllers', ['nl.dashboard', 'nl.user', 'nl.forum', 'nl.temp']);
 }
 
 //-------------------------------------------------------------------------------------------------

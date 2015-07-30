@@ -1,0 +1,14 @@
+<nl-dlg title='{{card.title}}'>
+    <nl-dlg-help>You can access additional information about a card by clicking the 'details' link on bottom of the card if available.</nl-dlg-help>
+    <nl-dlg-content class='nl-card-details-dlg'>
+        <img ng-src='{{card.icon}}'></img>
+        <div class='nl-details-dlg-body' ng-bind-html='card.details.help'>
+        </div>
+        <table ng-if='card.details.multiLineLinks'>
+            <tr ng-repeat='link in card.details.links' class='nl-border-bottom'>
+                <td class='nl-20'><a ng-href='{{link.url}}'>{{link.title}}</a></td>
+                <td>{{link.help}}</td>
+            </tr>
+        </table>
+    </nl-dlg-content>
+</nl-dlg>

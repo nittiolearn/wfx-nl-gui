@@ -18,12 +18,12 @@ function(nlLog, $http, $q, $timeout, $location, $window, $rootScope) {
     this.log = nlLog;
 
     //---------------------------------------------------------------------------------------------
-    // All http calls within nittioapp is made via nl.http
-    this.http = $http;
-
-    //---------------------------------------------------------------------------------------------
     // All $q/promise calls within nittioapp is made via nl.q
     this.q = $q;
+
+    //---------------------------------------------------------------------------------------------
+    // All http calls within nittioapp is made via nl.http
+    this.http = $http;
 
     //---------------------------------------------------------------------------------------------
     // All timeout calls within nittioapp is made via nl.timeout
@@ -59,7 +59,15 @@ function(nlLog, $http, $q, $timeout, $location, $window, $rootScope) {
     this.escape = function(input) {
         return formatter.escape(input);
     };
+    
+    this.fmtDate = function(d) {
+        return formatter.fmtDate(d);
+    };
 
+    this.fmtDateStr = function(dateStr) {
+        return formatter.fmtDate(dateStr);
+    };
+    
     //---------------------------------------------------------------------------------------------
     // Cache Factory
     this.createCache = function(cacheMaxSize, cacheLowWaterMark, onRemoveFn) {
@@ -67,24 +75,17 @@ function(nlLog, $http, $q, $timeout, $location, $window, $rootScope) {
     };
     
     //---------------------------------------------------------------------------------------------
-    // All URL getters
-    this.url = new NlUrl(this);
-    
-    //---------------------------------------------------------------------------------------------
     // All DB access
     this.db = new NlDb(this);
 
     //---------------------------------------------------------------------------------------------
-    // View enter exit handlers
-    this.router = new NlRouter();
+    // All URL getters
+    this.url = new NlUrl(this);
     
     //---------------------------------------------------------------------------------------------
     // Page title, window title and menushown pertaining to the current view.
     this.pginfo = new NlPageInfo();
 
-    //---------------------------------------------------------------------------------------------
-    // Menu bar for the current view
-    this.menu = new NlMenu(this);
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -116,11 +117,29 @@ function Formatter() {
         return String(input).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     };
 
+    this.fmtDateStr = function(dateStr) {
+        // Convert date to iso 8061 format if needed (e.g. "2014-04-28 23:09:00" ==> "2014-04-28T23:09:00Z")
+        if(dateStr.indexOf('Z')==-1) dateStr=dateStr.replace(' ','T')+'Z';
+        var d = new Date(dateStr);
+        if (isNaN(d.valueOf())) return dateStr;
+        return this.fmtDate(d);
+    };
+
+    this.fmtDate = function(d) {
+        return _fmt2Impl('{}-{}-{} {}:{}', [d.getFullYear(), _pad2(d.getMonth()+1), _pad2(d.getDate()), 
+                    _pad2(d.getHours()), _pad2(d.getMinutes())]);
+    };
+
     function _fmt2Impl(strFmt, args) {
         var i = 0;
         return strFmt.replace(/{}/g, function() {
             return typeof args[i] != 'undefined' ? args[i++] : '';
         });
+    }
+    
+    function _pad2(num) {
+        var s = "00" + num;
+        return s.substr(s.length-2);
     }
 }
 
@@ -157,8 +176,31 @@ function LruCache(maxSize, lowWaterMark, onRemoveFn) {
 }
 
 //-------------------------------------------------------------------------------------------------
+function NlDb(nl) {
+    var configSchema = { name: 'config', key: 'id', autoIncrement: false};
+    var lessonSchema = { name: 'lesson', key: 'id', autoIncrement: false};
+    var resourceSchema = { name: 'resource', key: 'id', autoIncrement: false};
+    var schema = {stores: [configSchema, lessonSchema, resourceSchema], version: 3};
+    var db = new ydn.db.Storage('nl_db', schema);
+    
+    this.get = function() {
+        return db;
+    };
+    
+    this.clearDb = function() {
+        nl.log.warn('db.clear');
+        db.clear();
+    };
+}
+    
+//-------------------------------------------------------------------------------------------------
 function NlUrl(nl) {
     
+    this.getAppUrl = function() {
+        if (NL_SERVER_INFO.serverType == 'local') return '/';
+        return '/nittioapp';
+    };
+
     this.resUrl = function(iconName) {
         return clientResFolder('res', iconName);
     };
@@ -180,11 +222,14 @@ function NlUrl(nl) {
     }
     
     function resFolder(folder, iconName, serverUrl) {
-        var ret = nl.fmt2('{}{}nittio_{}_{}/{}',
-                          serverUrl, NL_SERVER_INFO.basePath, 
-                          folder, NL_SERVER_INFO.versions[folder], iconName);
+        var ret = nl.fmt2('{}static/nittio_{}_{}/{}',
+                          serverUrl, folder, NL_SERVER_INFO.versions[folder], iconName);
         return ret;
     }
+    
+    this.ajaxUrl = function(ajaxPath) {
+        return nl.fmt2('{}{}', NL_SERVER_INFO.url, ajaxPath);
+    };
 
     var urlCache = nl.createCache(1000, 500, function(k, v) {
         URL.revokeObjectURL(v);
@@ -268,34 +313,6 @@ function NlUrl(nl) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function NlDb(nl) {
-    var lessonSchema = { name: 'lesson', key: 'id', autoIncrement: false};
-    var resourceSchema = { name: 'resource', key: 'id', autoIncrement: false};
-    var schema = {stores: [lessonSchema, resourceSchema], version: 2};
-    var db = new ydn.db.Storage('nl_db', schema);
-    
-    this.get = function() {
-        return db;
-    };
-    
-    this.clearDb = function() {
-        nl.log.warn('db.clear');
-        db.clear();
-    };
-}
-    
-//-------------------------------------------------------------------------------------------------
-function NlRouter() {
-    this.onViewEnter = function($scope, fn) {
-        $scope.$on('$ionicView.afterEnter', fn);
-    };
-
-    this.onViewLeave = function($scope, fn) {
-        $scope.$on('$ionicView.beforeLeave', fn);
-    };
-}
-
-//-------------------------------------------------------------------------------------------------
 function NlPageInfo() {
     this.totalPages = 1;
     this.currentPage = 1;
@@ -303,50 +320,14 @@ function NlPageInfo() {
     this.thumbTop = 0;
     this.pageAnim = 'nl-anim-pg-same';
     
-    this.pageSubTitle ='';
+    this.username ='';
     this.pageTitle ='';
+    this.pageSubTitle ='';
+    this.windowTitle ='Nittio Learn';
     this.isMenuShown = true;
-}
-
-//-------------------------------------------------------------------------------------------------
-function NlMenu(nl) {
-    var appmenu = [];
-    var viewmenu = [];
-
-    this.getMenuItems = function() {
-        return appmenu.concat(viewmenu);
-    };
-
-    this.onViewEnter = function($scope, fn) {
-        var self = this;
-        nl.router.onViewEnter($scope, fn);
+    this.isPageShown = true;
     
-        nl.router.onViewLeave($scope, function() {
-            self.clearViewMenu();
-        });
-    };
-
-    this.clearAppMenu = function() {
-        appmenu = [];
-    };
-    
-    this.clearViewMenu = function() {
-        viewmenu = [];
-    };
-    
-    this.addAppMenuItem = function(title, img, handler) {
-        addMenuItem(appmenu, title, img, handler);
-    };
-
-    this.addViewMenuItem = function(title, img, handler) {
-        addMenuItem(viewmenu, title, img, handler);
-    };
-    
-    function addMenuItem(menu, title, img, handler) {
-        var menuItem = {title:nl.t(title), handler:handler, img:nl.url.resUrl(img)};
-        menu.push(menuItem);
-    }
-    
+    this.statusPopup = false;
 }
 
 //-------------------------------------------------------------------------------------------------

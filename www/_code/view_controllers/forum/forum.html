@@ -1,0 +1,49 @@
+<style>
+    .forum-msg-new {
+        padding: 4px;
+    }
+    .forum-msg-new textarea {
+        width: 100%;
+        height: 10em;
+        margin: 0;
+        padding: 4px;
+    }
+    .forum-buttons {
+        padding: 4px 4px 4px 0;
+    }
+    .forum-msg-header {
+        padding: 4px;
+        background-color: #EEEEEE;
+    }
+    .forum-icon {
+        width: 16px;
+        height: 16px;   
+    }
+    .forum-msg-user, .forum-msg-time, .forum-msg-buttons {
+        padding: 4px;
+    }
+    .forum-msg-time {
+        float: right;
+    }
+    .forum-msg-body {
+        padding: 4px;
+    }
+</style>
+
+<div class='nl-thin-scroll nl-full'>
+    <div class='forum-msg-new' >
+        <textarea ng-model='newContent' placeholder='Type your new post to the forum'></textarea>
+        <div class='forum-buttons'>
+            <button ng-click='postNew()'>Post New</button>
+            <button ng-click='syncMessages()'>Sync</button>
+        </div>
+    </div>
+    <div class='forum-msg' ng-repeat='msg in msgs'>
+        <div class='forum-msg-header'>
+            <img class='forum-icon' ng-src='{{getUserIcon(msg)}}'/><span class='forum-msg-user'>{{msg.userName}}</span>
+            <span class='forum-msg-time'>{{fmtDate(msg.timestamp)}}</span>
+            <span class='forum-msg-buttons'></span>
+        </div>
+        <div class='forum-msg-body'>{{msg.text}}</div>
+    </div>
+</div>

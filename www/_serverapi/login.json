@@ -1,0 +1,38 @@
+{
+    "_userInfo": {
+        "username": "admin.nittio", 
+        "displayname": "Admin - Local Testing", 
+        "groupicon": "", 
+        "dashboard": [
+            {"title": "Welcome", "icon": "http://www.clker.com/cliparts/7/3/c/1/13058340101743275858friends.svg.thumb.png", "url": "", "help": "Welcome to local testing of NittioApp. You are seeing dummy elements", "children": [], "style": "nl-bg-red"},
+            {"title": "Temp", "url": "#/app/temp", "help": "Temp page", "icon": "http://www.clker.com/cliparts/7/4/f/d/11949844781852506509desk_lamp_gerald_g._01.svg.thumb.png", "children": []},
+            {"title": "Forum", "url": "#/app/forum", "help": "Forum page", "icon": "http://www.clker.com/cliparts/X/k/g/D/F/I/forum-th.png", "children": []},
+            {"title": "General 01", "url": "#/app/temp", "help": "General page", "icon": "http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png", "children": []},
+            {"title": "General 02", "url": "#/app/temp", "help": "General page", "icon": "http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png", "children": []},
+            {"title": "General 03", "url": "#/app/temp", "help": "General page", "icon": "http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png", "children": []},
+            {"title": "General 04", "url": "#/app/temp", "help": "General page", "icon": "http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png", "children": []},
+            {"title": "General 05", "url": "#/app/temp", "help": "General page", "icon": "http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png", "children": []},
+            {"title": "General 06", "url": "#/app/temp", "help": "General page", "icon": "http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png", "children": []},
+            {"title": "General 07", "url": "#/app/temp", "help": "General page", "icon": "http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png", "children": []},
+            {"title": "General 08", "url": "#/app/temp", "help": "General page", "icon": "http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png", "children": []},
+            {"title": "General 09", "url": "#/app/temp", "help": "General page", "icon": "http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png", "children": []},
+            {"title": "General 10", "url": "#/app/temp", "help": "General page", "icon": "http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png", "children": []},
+            {"title": "General 11", "url": "#/app/temp", "help": "General page", "icon": "http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png", "children": []},
+            {"title": "General 12", "url": "#/app/temp", "help": "General page", "icon": "http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png", "children": []},
+            {"title": "General 13", "url": "#/app/temp", "help": "General page", "icon": "http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png", "children": []},
+            {"title": "General 14", "url": "#/app/temp", "help": "General page", "icon": "http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png", "children": []},
+            {"title": "General 15", "url": "#/app/temp", "help": "General page", "icon": "http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png", "children": []},
+            {"title": "General 16", "url": "#/app/temp", "help": "General page", "icon": "http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png", "children": []},
+            {"title": "General 17", "url": "#/app/temp", "help": "General page", "icon": "http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png", "children": []},
+            {"title": "General 18", "url": "#/app/temp", "help": "General page", "icon": "http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png", "children": []},
+            {"title": "General 19", "url": "#/app/temp", "help": "General page", "icon": "http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png", "children": []}
+        ], 
+        "usericon": "", 
+        "termAccess": "allowed", 
+        "permissions": {"basic_access": true, "admin_user": true, "admin_group": true}
+    },
+    "_status": -1,
+    "_result": {
+        "eulaWarning": "none"
+    }
+}

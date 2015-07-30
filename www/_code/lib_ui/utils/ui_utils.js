@@ -12,8 +12,8 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var LoadingDirective = ['nl', '$window', '$ionicLoading', '$parse',
-function(nl, $window, $ionicLoading, $parse) {
+var LoadingDirective = ['nl', '$window', 'nlDlg', '$parse',
+function(nl, $window, nlDlg, $parse) {
     return {
         restrict: 'A',
         scope: {
@@ -23,14 +23,12 @@ function(nl, $window, $ionicLoading, $parse) {
         link: function($scope, iElem, iAttrs) {
             nl.log.debug('link of LoadingDirective');
             if (!$scope.nlLoading) {
-                $ionicLoading.show({
-                    templateUrl : 'lib_ui/utils/waiting.html'
-                });
+                nlDlg.showLoadingScreen();
             }
             var unregister = $scope.$watch('nlLoading', function(newVal, oldVal) {
                 nl.log.debug('Watch success: ', newVal, oldVal);
                 if (newVal) {
-                    $ionicLoading.hide();
+                    nlDlg.hideLoadingScreen();
                     unregister();
                     $parse($scope.nlLoadDone)();
                 }

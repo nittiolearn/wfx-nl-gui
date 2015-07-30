@@ -14,7 +14,6 @@ function module_init() {
 //-------------------------------------------------------------------------------------------------
 var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
-    // TODO-MUNNI: Make a checin of logged in user first
     $stateProvider.state('app.temp', {
         url : '/temp',
         views : {
@@ -27,11 +26,25 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var TempCtrl = ['nl', '$scope', '$stateParams', '$location', 'nlDlg', 'nlLogViewer',
-function(nl, $scope, $stateParams, $location, nlDlg, nlLogViewer) {
-    nl.pginfo.pageTitle = nl.t('Temp playground');
-    //_ajaxRequest(nl, method1, $scope, 'httpResult1');
-    //_ajaxRequest(nl, method2, $scope, 'httpResult2');
+var TempCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', '$location', 'nlDlg', 'nlLogViewer', 'nlServerApi',
+function(nl, nlRouter, $scope, $stateParams, $location, nlDlg, nlLogViewer, nlServerApi) {
+    function _onPageEnter(userInfo) {
+        return nl.q(function(resolve, reject) {
+            nl.pginfo.pageTitle = nl.t('Temp playground');
+            //_ajaxRequest(nl, method1, $scope, 'httpResult1');
+            //_ajaxRequest(nl, method2, $scope, 'httpResult2');
+            var url = nl.url.resUrl('general/home.png');
+            nl.url.getCachedUrl(url).then(function(localUrl) {
+                nl.log.debug('Got cached url: ', url, localUrl);
+                $scope.homeIcon = localUrl;
+            }, function(err) {
+                nl.log.error('Error getting cached url: ', err);
+                $scope.homeIcon = url;
+            });
+            resolve(true);
+        });
+    }
+    nlRouter.initContoller($scope, '', _onPageEnter);
 
     $scope.showLogViewer = function() {
         nlLogViewer.show($scope);
@@ -45,21 +58,11 @@ function(nl, $scope, $stateParams, $location, nlDlg, nlLogViewer) {
         testDlg.show('view_controllers/temp/testdlg.html', [], {text: 'Close', onTap: function(e) {
             if (testDlg.scope.dlgForms.testForm.$valid) return 'All Ok';
             alert('Form not valid');
-            e.preventDefault();
+            //e.preventDefault();
         }}).then(function(res) {
             alert('Dialog returned: ' + res);
         });
     };
-
-    var url = nl.url.resUrl('general/home.png');
-    nl.url.getCachedUrl(url).then(function(localUrl) {
-        nl.log.debug('Got cached url: ', url, localUrl);
-        $scope.homeIcon = localUrl;
-    }, function(err) {
-        nl.log.error('Error getting cached url: ', err);
-        $scope.homeIcon = url;
-    });
-
 }];
 
 var server = 'https://65-dot-nittio-org.appspot.com';
