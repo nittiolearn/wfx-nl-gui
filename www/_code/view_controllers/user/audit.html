@@ -1,0 +1,28 @@
+<div class='nl-thin-scroll nl-full'>
+<span class='nl-dlg-field-name'>Events Till</span>
+<span class='nl-dlg-field-value'>
+    <input type='text' ng-model='data.eventsTill' placeholder='YYYY-MM-DD hh:mm:ss.sss (in your local time)' title='YYYY-MM-DD hh:mm:ss.sss (in your local time zone)'
+           ng-class='{"nl-dlg-field-error": error.eventsTill}' tabindex='0' autofocus>
+    <button ng-click='onRetreive()'>Retreive</button>
+    <div ng-show='error.eventsTill' class='nl-dlg-field-errormsg'>{{error.eventsTill}}</div>
+</span>
+
+<table class='nl-table'>
+    <tr>
+        <th>User Name</th>
+        <th>Event Time</th>
+        <th>Client IP</th>
+        <th>Session Id</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr ng-repeat='record in records'>
+        <td>{{record.username}}</td>
+        <td>{{record.updated}}</td>
+        <td>{{record.clientip}}</td>
+        <td>{{record.sessionid}}</td>
+        <td>{{record.type}}</td>
+        <td>{{record.description}}</td>
+    </tr>
+</table>
+</div>

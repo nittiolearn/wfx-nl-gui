@@ -63,10 +63,28 @@ function(nl, $ionicPopup, $ionicLoading) {
         loadingTimeoutPromise = null;
         $ionicLoading.hide();
     };
+
+    var _dlgList = {};
+    this.closeAll = function() {
+        for(var dlgId in _dlgList) {
+            _dlgList[dlgId].close();
+        }
+        _dlgList = {};
+    };
+    
+    this.addVisibleDlg = function(dlgId, dlg) {
+        _dlgList[dlgId] = dlg;
+    };
+
+    this.removeVisibleDlg = function(dlgId) {
+        if (dlgId in _dlgList) delete _dlgList[dlgId];
+    };
 }];
 
+var _uniqueId = 0;
 function Dialog(nl, $ionicPopup, parentScope, nlDlg) {
     this.scope = parentScope.$new();
+    this.uniqueId = _uniqueId++;
     
     this.show = function(template, otherButtons, closeButton, destroyAfterShow) {
         if (destroyAfterShow === undefined) destroyAfterShow = true;
@@ -76,6 +94,7 @@ function Dialog(nl, $ionicPopup, parentScope, nlDlg) {
         if (closeButton === undefined) closeButton = {text: nl.t('Close')};
         otherButtons.push(closeButton);
         nlDlg.hideLoadingScreen();
+        nlDlg.addVisibleDlg(self.uniqueId, self);
         var mypopup = $ionicPopup.show({
             title: '', subTitle: '', cssClass: 'nl-dlg',
             templateUrl: template,
@@ -96,6 +115,7 @@ function Dialog(nl, $ionicPopup, parentScope, nlDlg) {
         };
 
         mypopup.then(function(result) {
+            nlDlg.removeVisibleDlg(self.uniqueId);
             if (!destroyAfterShow) return;
             self.destroy();
         });

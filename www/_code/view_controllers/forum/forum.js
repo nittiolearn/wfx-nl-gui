@@ -44,7 +44,7 @@ function(nl, nlRouter, $scope) {
     nlRouter.initContoller($scope, '', _onPageEnter);
 
     $scope.fmtDate = function(d) {
-        return nl.fmtDate(d);
+        return nl.fmt.date2Str(d);
     };
     
     $scope.getUserIcon = function(msg) {

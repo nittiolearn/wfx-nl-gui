@@ -32,8 +32,8 @@ function _patchToIonicRightClickIssue() {
 }
 function _ignoreIfRightMouseUp(e) {
     if (e.which !== 3) return true;
-    e.stopImmediatePropagation();
-    e.preventDefault();
+    if (e) e.stopImmediatePropagation();
+    if (e) e.preventDefault();
     return false;
 }
 
@@ -120,7 +120,7 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter) {
     $scope.showUserMenu = false;
     $scope.onUserMenu = function(e) {
         $scope.showUserMenu = !$scope.showUserMenu;
-        event.stopImmediatePropagation();
+        if (e) e.stopImmediatePropagation();
         return false;
     };
     

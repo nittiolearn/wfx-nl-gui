@@ -63,6 +63,7 @@ function(nl, nlDlg, nlServerApi) {
 
     function _onPageLeave($scope, pageUrl, pageLeaveFn) {
         nl.pginfo.pageSubTitle = '';
+        nlDlg.closeAll();
         if (pageLeaveFn) pageLeaveFn();
     }
     
@@ -103,6 +104,8 @@ function Permission(nl) {
         '/app/home': {login: true, permission: 'basic_access', termRestriction: TR_OPEN}, 
         '/app/login_now': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/app/logout_now': {login: false, permission: '', termRestriction: TR_OPEN},
+        '/app/audit': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
+        '/app/impersonate': {login: true, permission: 'admin_impersonate_grp', termRestriction: TR_CLOSED},
         '/app/temp': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         '/app/forum': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
 

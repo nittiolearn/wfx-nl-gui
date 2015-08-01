@@ -65,6 +65,22 @@ function(nl, nlDlg, nlConfig) {
     this.eulaAck = function() {
         return server.post('_serverapi/eula_ack.json', {});
     };
+
+    this.getAuditData = function(updatedTill, limitBy) {
+        var data = {};
+        if (updatedTill !== undefined && updatedTill !== null) data.updatedTill = updatedTill;
+        if (limitBy !== undefined && limitBy !== null) data.limitBy = limitBy;
+        return server.post('_serverapi/get_audit_data.json', data);
+    };
+
+    this.impersonate = function(username) {
+        return server.post('_serverapi/impersonate.json', {username:username}, true);
+    };
+
+    this.impersonateEnd = function() {
+        return server.post('_serverapi/impersonate_end.json', {}, true);
+    };
+
 }];
 
 function NlServerInterface(nl, nlDlg, nlConfig) {

@@ -57,8 +57,7 @@ function(nl, nlRouter, $scope, $stateParams, $location, nlDlg, nlLogViewer, nlSe
         testDlg.scope.data = data;
         testDlg.show('view_controllers/temp/testdlg.html', [], {text: 'Close', onTap: function(e) {
             if (testDlg.scope.dlgForms.testForm.$valid) return 'All Ok';
-            alert('Form not valid');
-            //e.preventDefault();
+            //if (e) e.preventDefault();
         }}).then(function(res) {
             alert('Dialog returned: ' + res);
         });

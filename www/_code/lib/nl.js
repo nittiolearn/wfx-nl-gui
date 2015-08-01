@@ -43,31 +43,16 @@ function(nlLog, $http, $q, $timeout, $location, $window, $rootScope) {
 
     //---------------------------------------------------------------------------------------------
     // Formatting and translating Utilities
-    var formatter = new Formatter();
+    this.fmt = new Formatter();
+
     this.t = function() {
-        return formatter.t(arguments);
+        return this.fmt.t(arguments);
     };
 
-    this.fmt1 = function(strFmt, args) {
-        return formatter.fmt1(strFmt, args);
-    };
-    
     this.fmt2 = function() {
-        return formatter.fmt2(arguments);
+        return this.fmt.fmt2(arguments);
     };
 
-    this.escape = function(input) {
-        return formatter.escape(input);
-    };
-    
-    this.fmtDate = function(d) {
-        return formatter.fmtDate(d);
-    };
-
-    this.fmtDateStr = function(dateStr) {
-        return formatter.fmtDate(dateStr);
-    };
-    
     //---------------------------------------------------------------------------------------------
     // Cache Factory
     this.createCache = function(cacheMaxSize, cacheLowWaterMark, onRemoveFn) {
@@ -117,19 +102,26 @@ function Formatter() {
         return String(input).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     };
 
-    this.fmtDateStr = function(dateStr) {
+    this.json2Date = function(dateStr) {
         // Convert date to iso 8061 format if needed (e.g. "2014-04-28 23:09:00" ==> "2014-04-28T23:09:00Z")
         if(dateStr.indexOf('Z')==-1) dateStr=dateStr.replace(' ','T')+'Z';
-        var d = new Date(dateStr);
-        if (isNaN(d.valueOf())) return dateStr;
-        return this.fmtDate(d);
+        return new Date(dateStr);
     };
-
-    this.fmtDate = function(d) {
-        return _fmt2Impl('{}-{}-{} {}:{}', [d.getFullYear(), _pad2(d.getMonth()+1), _pad2(d.getDate()), 
+    
+    this.date2Str = function(d, accurate) {
+        var ret = _fmt2Impl('{}-{}-{} {}:{}', [d.getFullYear(), _pad2(d.getMonth()+1), _pad2(d.getDate()), 
                     _pad2(d.getHours()), _pad2(d.getMinutes())]);
+        if (!accurate) return ret;
+        ret += _fmt2Impl(':{}.{}', [_pad2(d.getSeconds()), _pad3(d.getMilliseconds())]);
+        return ret;
     };
 
+    this.jsonDate2Str = function(dateStr, accurate) {
+        var d = this.json2Date(dateStr);
+        if (isNaN(d.valueOf())) return dateStr;
+        return this.date2Str(d, accurate);
+    };
+    
     function _fmt2Impl(strFmt, args) {
         var i = 0;
         return strFmt.replace(/{}/g, function() {
@@ -140,6 +132,11 @@ function Formatter() {
     function _pad2(num) {
         var s = "00" + num;
         return s.substr(s.length-2);
+    }
+
+    function _pad3(num) {
+        var s = "000" + num;
+        return s.substr(s.length-3);
     }
 }
 
