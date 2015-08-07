@@ -48,19 +48,13 @@ function(nl, $ionicPopup, $ionicLoading) {
         return $ionicPopup.confirm(data);        
     };
     
-    var loadingTimeoutPromise = null;
-    this.showLoadingScreen = function(timeout) {
-        if (timeout === undefined) timeout=0;
-        if (loadingTimeoutPromise) nl.timeout.cancel(loadingTimeoutPromise);
-        loadingTimeoutPromise = nl.timeout(function() {
-            loadingTimeoutPromise = null;
-            $ionicLoading.show({templateUrl : 'lib_ui/utils/waiting.html'});
-        }, timeout);
+    this.showLoadingScreen = function(delay) {
+        var loadingInfo = {templateUrl : 'lib_ui/utils/waiting.html', hideOnStateChange: true};
+        if (delay !== undefined) loadingInfo.delay = delay;
+        $ionicLoading.show(loadingInfo);
     };
 
     this.hideLoadingScreen = function() {
-        if (loadingTimeoutPromise) nl.timeout.cancel(loadingTimeoutPromise);
-        loadingTimeoutPromise = null;
         $ionicLoading.hide();
     };
 

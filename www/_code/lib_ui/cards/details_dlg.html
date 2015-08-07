@@ -1,7 +1,7 @@
 <nl-dlg title='{{card.title}}'>
     <nl-dlg-help>You can access additional information about a card by clicking the 'details' link on bottom of the card if available.</nl-dlg-help>
     <nl-dlg-content class='nl-card-details-dlg'>
-        <img ng-src='{{card.icon}}'></img>
+        <img ng-src='{{card.icon}}' tabindex='0' autofocus></img>
         <div class='nl-details-dlg-body' ng-bind-html='card.details.help'>
         </div>
         <table ng-if='card.details.multiLineLinks'>

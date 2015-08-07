@@ -33,7 +33,13 @@ function(nl, nlDlg, nlServerApi) {
     
     function _onPageEnter($scope, pageUrl, pageEnterFn) {
         nl.pginfo.isPageShown = false;
-        nlDlg.showLoadingScreen(1000);
+        nlDlg.showLoadingScreen(200);
+        var protocol = nl.location.protocol().toLowerCase();
+        console.log('protocol=', protocol);
+        if (protocol.indexOf('file') >= 0) {
+            nlDlg.hideLoadingScreen();
+            return; // Progress wheel keeps on spinning
+        }
         _getUserInfo(pageUrl).then(function(userInfo) {
             nl.pginfo.username = (userInfo.username == '') ? '' : userInfo.displayname;
             var pagePerm = permission.getPermObj(pageUrl);
@@ -62,6 +68,7 @@ function(nl, nlDlg, nlServerApi) {
     }
 
     function _onPageLeave($scope, pageUrl, pageLeaveFn) {
+        nl.pginfo.isPageShown = false;
         nl.pginfo.pageSubTitle = '';
         nlDlg.closeAll();
         if (pageLeaveFn) pageLeaveFn();
@@ -73,14 +80,14 @@ function(nl, nlDlg, nlServerApi) {
     }
     
     function _done(rerouteToUrl) {
-        nlDlg.hideLoadingScreen();
-        nl.pginfo.isPageShown = true;
-        nl.pginfo.windowTitle = _getWindowTitle();
-
         var params = nl.location.search();
         nl.pginfo.isMenuShown = (!('hidemenu' in params));
-        
+        nlDlg.hideLoadingScreen();
+
         if (rerouteToUrl != null) nl.location.url(rerouteToUrl);
+        
+        nl.pginfo.isPageShown = true;
+        nl.pginfo.windowTitle = _getWindowTitle();
         return true;
     }
 

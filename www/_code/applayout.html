@@ -1,4 +1,5 @@
-<div id='nl-pagecanvas' ng-click='onCanvasClick($event)' ng-keydown="onKeyDown($event)" tabindex='0'>
+<div id='nl-pagecanvas' ng-click='onCanvasClick($event)' ng-keydown="onKeyDown($event)" tabindex='0'
+    ng-class='{"nl-show":pgInfo.isPageShown}'>
     <nav id='nl-topbar' ng-show='pgInfo.isMenuShown' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
         <a id='nl-logo' ng-href='{{homeUrl}}'>
             <img ng-src='{{logo}}' ng-show='logo' title='{{homeMenuTitle}}'/>
@@ -14,13 +15,10 @@
                 <img ng-src='{{item.icon}}' alt='{{item.name}}' title='{{item.title}}'/>
             </a>
         </nav>
-
     </nav>
     <div id='nl-body' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
-        <div id='nl-inner-body' ng-class="{'nl-hide':!pgInfo.isPageShown}">
             <ion-nav-view name='appContent'>
             </ion-nav-view>
-        </div>
     </div>
     <div id='statusBox' ng-show='pgInfo.statusPopup' ng-click='pgInfo.statusPopup=false'> 
         <div>{{pgInfo.statusPopup}}</div>

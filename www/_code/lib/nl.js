@@ -322,7 +322,7 @@ function NlPageInfo() {
     this.pageSubTitle ='';
     this.windowTitle ='Nittio Learn';
     this.isMenuShown = true;
-    this.isPageShown = true;
+    this.isPageShown = false;
     
     this.statusPopup = false;
 }

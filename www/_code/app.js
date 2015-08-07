@@ -31,9 +31,9 @@ function _patchToIonicRightClickIssue() {
     });
 }
 function _ignoreIfRightMouseUp(e) {
-    if (e.which !== 3) return true;
-    if (e) e.stopImmediatePropagation();
-    if (e) e.preventDefault();
+    if (!e || e.which !== 3) return true;
+    e.stopImmediatePropagation();
+    e.preventDefault();
     return false;
 }
 
