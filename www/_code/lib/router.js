@@ -35,7 +35,6 @@ function(nl, nlDlg, nlServerApi) {
         nl.pginfo.isPageShown = false;
         nlDlg.showLoadingScreen(200);
         var protocol = nl.location.protocol().toLowerCase();
-        console.log('protocol=', protocol);
         if (protocol.indexOf('file') >= 0) {
             nlDlg.hideLoadingScreen();
             return; // Progress wheel keeps on spinning
