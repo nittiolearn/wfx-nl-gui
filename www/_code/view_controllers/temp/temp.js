@@ -120,10 +120,13 @@ function _updateImageSection(imgListDiv, imgList) {
         ulElem.append(liElem);
 
         var imgElem = angular.element('<img/>');
-        imgElem.attr('src', window.URL.createObjectURL(imgList[i]));
+        var URL = window.URL || window.webkitURL;
+        var url = URL.createObjectURL(imgList[i]);
+        imgElem.attr('src', url);
         imgElem.attr('height', 60);
         imgElem.attr('onload', function() {
-            window.URL.revokeObjectURL(this.src);
+            console.log('TODO - onload function needs to be angularized: ', url);
+            URL.revokeObjectURL(url);
         });
         liElem.append(imgElem);
         var infoElem = angular.element('<span/>');

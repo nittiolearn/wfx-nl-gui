@@ -21,7 +21,7 @@ function(nl, nlDlg, nlConfig) {
 
     this.getUserInfoFromServer = function() {
         return nl.q(function(resolve, reject) {
-            server.post('_serverapi/ping.json', {}).then(function() {
+            _ping().then(function() {
                 server.getUserInfoFromCache().then(resolve);
             }, reject);
         });
@@ -51,15 +51,11 @@ function(nl, nlDlg, nlConfig) {
     };
     
     this.login = function(data) {
-        return server.post('_serverapi/login.json', data, true);
+        return _postAndSaveEula('_serverapi/login.json', data, false);
     };
 
     this.logout = function() {
         return server.post('_serverapi/logout.json', {}, true, true);
-    };
-
-    this.ping = function() {
-        return server.post('_serverapi/ping.json', {}, true, true);
     };
 
     this.eulaAck = function() {
@@ -74,13 +70,29 @@ function(nl, nlDlg, nlConfig) {
     };
 
     this.impersonate = function(username) {
-        return server.post('_serverapi/impersonate.json', {username:username}, true);
+        return _postAndSaveEula('_serverapi/impersonate.json', {username:username}, false);
     };
 
     this.impersonateEnd = function() {
         return server.post('_serverapi/impersonate_end.json', {}, true);
     };
+    
+    function _ping() {
+        return _postAndSaveEula('_serverapi/ping.json', {}, true);
+    }
 
+    function _postAndSaveEula(url, data, noPopup) {
+        return nl.q(function(resolve, reject) {
+            server.post(url, data, true, noPopup)
+            .then(function(result) {
+                nlConfig.saveToDb("EULA_INFO", result, function() {
+                    resolve(result);
+                });
+            }, function() {
+                reject();
+            });
+        });
+    }
 }];
 
 function NlServerInterface(nl, nlDlg, nlConfig) {

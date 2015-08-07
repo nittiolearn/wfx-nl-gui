@@ -70,22 +70,28 @@ function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
     
     function _eulaWarning() {
         nlConfig.loadFromDb('EULA_INFO', function(eulaInfo) {
-            var warningType = eulaInfo.eulaWarning;
-            if (warningType == 'none') return;
-            var title = (warningType == 'new') ? nl.t('Welcome') : nl.t('Terms of services is updated');
-            
-            nlDlg.popupConfirm({title:title, templateUrl:'view_controllers/dashboard/eula.html', 
-                                okText: nl.t('Acknowledge'), cancelText: nl.t('Read Later')})
-            .then(function(res) {
-                if (!res) return;
-                nlServerApi.eulaAck().then(function () {
-                    nlDlg.popupStatus('Thanks for acknowledging');
-                    eulaInfo.eulaWarning = 'none';
-                    nlConfig.saveToDb('EULA_INFO', eulaInfo);
-                });
+            if (eulaInfo == null) {
+                userInfo = _defaultUserInfo();
+            }
+            _eulaWarningImpl(eulaInfo);
+        });
+    }
+    
+    function _eulaWarningImpl(eulaInfo) {
+        var warningType = eulaInfo.eulaWarning;
+        if (warningType == 'none') return;
+        var title = (warningType == 'new') ? nl.t('Welcome') : nl.t('Terms of services is updated');
+        
+        nlDlg.popupConfirm({title:title, templateUrl:'view_controllers/dashboard/eula.html', 
+                            okText: nl.t('Acknowledge'), cancelText: nl.t('Read Later')})
+        .then(function(res) {
+            if (!res) return;
+            nlServerApi.eulaAck().then(function () {
+                nlDlg.popupStatus('Thanks for acknowledging');
+                eulaInfo.eulaWarning = 'none';
+                nlConfig.saveToDb('EULA_INFO', eulaInfo);
             });
         });
-
     }
 
 }];

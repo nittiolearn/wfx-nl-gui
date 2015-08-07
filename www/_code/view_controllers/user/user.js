@@ -168,28 +168,26 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
     }
     
     function _onLoginSuccess(data) {
-        nlConfig.saveToDb("EULA_INFO", data, function() {
-            nlServerApi.getUserInfoFromCache().then(function(userInfo) {
-                loginDlg.destroy();
-                nlDlg.hideLoadingScreen();
-    
-                var nextUrl = _getNextUrl(nl.location.search());
-                if (!nextUrl.samePage) {
-                    nl.window.location.href = nextUrl.url;
-                    return;
-                }
-                
-                if (isLogin) {
-                    var msg = nl.t('Welcome {}', userInfo.displayname);
-                    nlDlg.popupStatus(msg);
+        nlServerApi.getUserInfoFromCache().then(function(userInfo) {
+            loginDlg.destroy();
+            nlDlg.hideLoadingScreen();
+
+            var nextUrl = _getNextUrl(nl.location.search());
+            if (!nextUrl.samePage) {
+                nl.window.location.href = nextUrl.url;
+                return;
+            }
+            
+            if (isLogin) {
+                var msg = nl.t('Welcome {}', userInfo.displayname);
+                nlDlg.popupStatus(msg);
+                nl.location.url(nextUrl.url);
+            } else {
+                var msg = nl.t('Impersonated as {}. Remember to logout as soon you are done!', userInfo.username);
+                nlDlg.popupAlert({title:'Impersonated!', template:msg}).then(function() {
                     nl.location.url(nextUrl.url);
-                } else {
-                    var msg = nl.t('Impersonated as {}. Remember to logout as soon you are done!', userInfo.username);
-                    nlDlg.popupAlert({title:'Impersonated!', template:msg}).then(function() {
-                        nl.location.url(nextUrl.url);
-                    });
-                }
-            });
+                });
+            }
         });
     }
 
