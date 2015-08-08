@@ -70,10 +70,11 @@ function onIonicReady() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var AppCtrl = ['nl', '$scope', 'nlKeyboardHandler', 'nlServerApi', 'nlRouter',
-function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter) {
+var AppCtrl = ['nl', '$scope', 'nlKeyboardHandler', 'nlServerApi', 'nlRouter', 'nlLogViewer',
+function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
     nl.rootScope.imgBasePath = nl.url.resUrl();
     nl.rootScope.pgInfo = nl.pginfo;
+    nlLogViewer.showOnStartupIfRequired($scope);
     
     var homeUrl = nl.url.getAppUrl() + '#/app/home';
 

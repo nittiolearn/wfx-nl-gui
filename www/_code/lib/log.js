@@ -15,8 +15,8 @@ function module_init() {
 var logImpl = new LogImpl();
 
 //-------------------------------------------------------------------------------------------------
-var NlLog = ['$log',
-function($log) {
+var NlLog = ['$log', '$location',
+function($log, $location) {
     
     // Can be generously sprayed around during initial testing - but remember to remove them
     // after initial development
@@ -38,16 +38,21 @@ function($log) {
     this.error = function() {
         logImpl.log(logImpl.LOG_LEVEL.ERROR, $log.error, arguments);
     };
+    
+    logImpl.initDebugUrl($location);
 }];
     
 //-------------------------------------------------------------------------------------------------
-var NlLogViewer = ['nlDlg',
-function(nlDlg) {
+var NlLogViewer = ['nl', 'nlDlg',
+function(nl, nlDlg) {
     // Used by Log GUI only
     this.show = function($scope) {
         logImpl.showLogViewer(nlDlg, $scope);
     };
     
+    this.showOnStartupIfRequired = function($scope) {
+        logImpl.showLogViewerOnStartupIfRequired(nl, nlDlg, $scope);
+    };
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -72,6 +77,8 @@ function LogImpl() {
     // Log viewer related data
     this.showLogConfig = false;
     this.showHideLable = '';
+    this.showOnStartup = false;
+    this.startupTimeout = 10*1000;
     
     //---------------------------------------------------------------------------------------------
     // Logging related methods
@@ -116,6 +123,23 @@ function LogImpl() {
         logViewerDlg.show('lib/logviewer.html');
     };
 
+    this.initDebugUrl = function($location) {
+        var params = $location.search();
+        if (!('loglevel' in params)) return;
+        this.currentLogLevel= parseInt(params.loglevel);
+        this.showOnStartup = true;
+        if ('logtimeout' in params) this.startupTimeout = parseInt(params.logtimeout);
+    };
+
+    this.showLogViewerOnStartupIfRequired = function(nl, nlDlg, $scope) {
+        var self = this;
+        if (!self.showOnStartup) return;
+        self.showOnStartup = false;
+        nl.timeout(function() {
+            self.showLogViewer(nlDlg, $scope);
+        }, self.startupTimeout); // 10 seconds by default
+    };
+    
     this.clearLogs = function() {
         this.recentLogs = [];
     };
