@@ -29,6 +29,7 @@ var ForumCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', '$location', 'nlDlg
 function(nl, nlRouter, $scope) {
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
+            nl.log.debug('ForumCtrl:onPageEnter - enter');
             nl.pginfo.pageTitle = nl.t('Forum');
             $scope.msgs = [];
             var nMsgs = getRand(10, 15);
@@ -38,6 +39,7 @@ function(nl, nlRouter, $scope) {
                 $scope.msgs.push(getRandomMessage(timestamp + (nMsgs-i)*1000*3600 + 1000*getRand(0, 3000)));
             }
             $scope.newContent ='';
+            nl.log.debug('ForumCtrl:onPageEnter - done');
             resolve(true);
         });
     }

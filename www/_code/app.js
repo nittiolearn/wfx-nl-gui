@@ -72,6 +72,7 @@ function onIonicReady() {
 //-------------------------------------------------------------------------------------------------
 var AppCtrl = ['nl', '$scope', 'nlKeyboardHandler', 'nlServerApi', 'nlRouter', 'nlLogViewer',
 function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
+    nl.log.info('UserAgent: ', navigator.userAgent);
     nl.rootScope.imgBasePath = nl.url.resUrl();
     nl.rootScope.pgInfo = nl.pginfo;
     nlLogViewer.showOnStartupIfRequired($scope);
@@ -89,7 +90,7 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
     
     // Called from child scope on page enter
     $scope.onPageEnter = function(userInfo) {
-        nl.log.debug('app:onPageEnter');
+        nl.log.debug('app:onPageEnter - enter');
         $scope.logo = userInfo.groupicon == '' ? nl.url.resUrl('general/top-logo1.png') : userInfo.groupicon;
         var bLoggedIn = (userInfo.username != '');
         $scope.userMenuItems = [];
@@ -116,6 +117,7 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
                 icon: nl.url.resUrl('general/login-pwdlost.png'),
                 url: '/auth/pwlost'});
         }
+        nl.log.debug('app:onPageEnter - done');
     };
     
     $scope.showUserMenu = false;

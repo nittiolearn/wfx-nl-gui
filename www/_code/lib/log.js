@@ -43,15 +43,14 @@ function($log, $location) {
 }];
     
 //-------------------------------------------------------------------------------------------------
-var NlLogViewer = ['nl', 'nlDlg',
-function(nl, nlDlg) {
-    // Used by Log GUI only
+var NlLogViewer = ['nl', 'nlDlg', 'nlServerApi', 
+function(nl, nlDlg, nlServerApi) {
     this.show = function($scope) {
-        logImpl.showLogViewer(nlDlg, $scope);
+        _showLogViewer(nl, nlDlg, nlServerApi, $scope);
     };
     
     this.showOnStartupIfRequired = function($scope) {
-        logImpl.showLogViewerOnStartupIfRequired(nl, nlDlg, $scope);
+        _showLogViewerOnStartupIfRequired(nl, nlDlg, nlServerApi, $scope);
     };
 }];
 
@@ -116,37 +115,13 @@ function LogImpl() {
     }
 
     //---------------------------------------------------------------------------------------------
-    // Log GUI related methods
-    this.showLogViewer = function(nlDlg, $scope) {
-        var logViewerDlg = nlDlg.create($scope);
-        logViewerDlg.scope.logConfig = this;
-        logViewerDlg.show('lib/logviewer.html');
-    };
-
+    // Log GUI related init method
     this.initDebugUrl = function($location) {
         var params = $location.search();
         if (!('loglevel' in params)) return;
         this.currentLogLevel= parseInt(params.loglevel);
         this.showOnStartup = true;
         if ('logtimeout' in params) this.startupTimeout = parseInt(params.logtimeout);
-    };
-
-    this.showLogViewerOnStartupIfRequired = function(nl, nlDlg, $scope) {
-        var self = this;
-        if (!self.showOnStartup) return;
-        self.showOnStartup = false;
-        nl.timeout(function() {
-            self.showLogViewer(nlDlg, $scope);
-        }, self.startupTimeout); // 10 seconds by default
-    };
-    
-    this.clearLogs = function() {
-        this.recentLogs = [];
-    };
-    
-    this.toggleLogConfig = function() {
-        this.showLogConfig = !this.showLogConfig;
-        this.updateShowHideLable();
     };
 
     this.updateShowHideLable = function() {
@@ -158,6 +133,38 @@ function LogImpl() {
     this.updateShowHideLable();
     
 }
+
+function _showLogViewer(nl, nlDlg, nlServerApi, $scope) {
+    var logViewerDlg = nlDlg.create($scope);
+    logViewerDlg.scope.logConfig = logImpl;
+
+    logViewerDlg.scope.toggleLogConfig = function() {
+        logImpl.showLogConfig = !logImpl.showLogConfig;
+        logImpl.updateShowHideLable();
+    };
+
+    logViewerDlg.scope.clearLogs = function() {
+        logImpl.recentLogs = [];
+    };
+
+    logViewerDlg.scope.sendMail = function() {
+        nlDlg.popupAlert({title:'Send Mail', template:'TODO'});
+    };
+    logViewerDlg.scope.exportToCsv = function() {
+        nlDlg.popupAlert({title:'Export to CSV', template:'TODO'});
+    };
+
+    logViewerDlg.show('lib/logviewer.html');
+}
+
+function _showLogViewerOnStartupIfRequired(nl, nlDlg, nlServerApi, $scope) {
+    if (!logImpl.showOnStartup) return;
+    logImpl.showOnStartup = false;
+    nl.timeout(function() {
+        _showLogViewer(nl, nlDlg, nlServerApi, $scope);
+    }, logImpl.startupTimeout); // 10 seconds by default
+}
+    
 
 //-------------------------------------------------------------------------------------------------
 module_init();

@@ -20,8 +20,10 @@ function(nl, nlDlg, nlConfig) {
     };
 
     this.getUserInfoFromServer = function() {
+        nl.log.debug('server_api: getUserInfoFromServer - enter');
         return nl.q(function(resolve, reject) {
             _ping().then(function() {
+                nl.log.debug('server_api: getUserInfoFromServer - done');
                 server.getUserInfoFromCache().then(resolve);
             }, reject);
         });
@@ -51,18 +53,22 @@ function(nl, nlDlg, nlConfig) {
     };
     
     this.login = function(data) {
+        nl.log.debug('server_api: login');
         return _postAndSaveEula('_serverapi/login.json', data, false);
     };
 
     this.logout = function() {
+        nl.log.debug('server_api: logout');
         return server.post('_serverapi/logout.json', {}, true, true);
     };
 
     this.eulaAck = function() {
+        nl.log.debug('server_api: eulaAck');
         return server.post('_serverapi/eula_ack.json', {});
     };
 
     this.getAuditData = function(updatedTill, limitBy) {
+        nl.log.debug('server_api: getAuditData');
         var data = {};
         if (updatedTill !== undefined && updatedTill !== null) data.updatedTill = updatedTill;
         if (limitBy !== undefined && limitBy !== null) data.limitBy = limitBy;
@@ -70,10 +76,12 @@ function(nl, nlDlg, nlConfig) {
     };
 
     this.impersonate = function(username) {
+        nl.log.debug('server_api: impersonate');
         return _postAndSaveEula('_serverapi/impersonate.json', {username:username}, false);
     };
 
     this.impersonateEnd = function() {
+        nl.log.debug('server_api: impersonateEnd');
         return server.post('_serverapi/impersonate_end.json', {}, true);
     };
     

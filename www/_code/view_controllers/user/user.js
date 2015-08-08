@@ -57,11 +57,13 @@ function($stateProvider) {
 //-------------------------------------------------------------------------------------------------
 var LoginCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlConfig',
 function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig) {
+    nl.log.debug('LoginCtrl - enter');
     _loginControllerImpl(true, nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig);
 }];
     
 var ImpersonateCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlConfig',
 function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig) {
+    nl.log.debug('ImpersonateCtrl - enter');
     _loginControllerImpl(false, nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig);
 }];
 
@@ -71,6 +73,7 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
 
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
+            nl.log.debug('_loginControllerImpl:onPageEnter - enter');
             var username = userInfo.username;
             if (isLogin) {
                 nl.pginfo.pageTitle = nl.t('Sign In');
@@ -85,6 +88,7 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
             loginDlg.scope.data = {username: username, password: '', remember: false};
             loginDlg.scope.error = {};
 
+            nl.log.debug('_loginControllerImpl:onPageEnter - done');
             resolve(true);
             _showLoginDlg();
         });
@@ -192,6 +196,7 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
     }
 
     function _onLoginFailed(data) {
+        nl.log.warn('_onLoginFailed');
         nlDlg.hideLoadingScreen();
         _showLoginDlg();
     }
@@ -202,6 +207,7 @@ var LogoutCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg',
 function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
+            nl.log.debug('LogoutCtrl:onPageEnter - enter');
             nl.pginfo.pageTitle = nl.t('Signing out - please wait ...');
             var bImp = ('impersonatedBy' in userInfo);
             var fn = (bImp) ? nlServerApi.impersonateEnd : nlServerApi.logout;
@@ -212,10 +218,12 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
                     } else {
                         nlDlg.popupStatus(nl.t('You have been signed out from the system'));
                     }
+                    nl.log.debug('LogoutCtrl:onPageEnter - done');
                     nl.location.url('/app/login_now?msg=logout');
                     resolve(true);
                 });
             }, function(reason) {
+                nl.log.warn('LogoutCtrl: Error signing out from the system');
                 var title = nl.t('Error signing out from the system');
                 var template = nl.t('Reason: {}', reason);
                 nlDlg.popupAlert({title:title, template:template}).then(function() {
@@ -236,11 +244,14 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
     $scope.error = {};
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
+            nl.log.debug('LogoutCtrl:onPageEnter - enter');
             nl.pginfo.pageTitle = nl.t('Audit records');
             _getAuditData(null).then(function(data) {
+                nl.log.debug('LogoutCtrl:onPageEnter - done');
                 resolve(true);
             });
         }, function(reason) {
+            nl.log.warn('LogoutCtrl:onPageEnter - loading failed');
             resolve(true);
         });
     }

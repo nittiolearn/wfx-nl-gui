@@ -30,6 +30,7 @@ var TempCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', '$location', 'nlDlg'
 function(nl, nlRouter, $scope, $stateParams, $location, nlDlg, nlLogViewer, nlServerApi) {
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
+            nl.log.debug('TempCtrl:onPageEnter - enter');
             nl.pginfo.pageTitle = nl.t('Temp playground');
             //_ajaxRequest(nl, method1, $scope, 'httpResult1');
             //_ajaxRequest(nl, method2, $scope, 'httpResult2');
@@ -41,6 +42,7 @@ function(nl, nlRouter, $scope, $stateParams, $location, nlDlg, nlLogViewer, nlSe
                 nl.log.error('Error getting cached url: ', err);
                 $scope.homeIcon = url;
             });
+            nl.log.debug('TempCtrl:onPageEnter - done');
             resolve(true);
         });
     }
@@ -84,7 +86,7 @@ function _ajaxRequest(nl, method, $scope, resultVar) {
 //-------------------------------------------------------------------------------------------------
 var NlImgReaderDirective = ['nl',
 function(nl) {
-    nl.log.warn('NlImgReaderDirective: ');
+    nl.log.debug('NlImgReaderDirective: ');
     return {
         restrict: 'E',
         templateUrl: 'view_controllers/temp/img_reader.html',
@@ -92,7 +94,7 @@ function(nl) {
             nlFileRead: "@"
         },
         link: function (scope, element, attributes) {
-            nl.log.warn('NlImgReaderDirective linking: ', scope);
+            nl.log.debug('NlImgReaderDirective linking: ', scope);
             scope.imgFiles = [];
 
             var children = element.children();
@@ -100,7 +102,7 @@ function(nl) {
             var imgListDiv = angular.element(children[1]);
 
             imgInput.bind("change", function (event) {
-                nl.log.warn('NlImgReaderDirective changed: ', event);
+                nl.log.debug('NlImgReaderDirective changed: ', event);
                 scope.$apply(function () {
                     scope.imgFiles = event.target.files;
                     nl.log.debug(scope);

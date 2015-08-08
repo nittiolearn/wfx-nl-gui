@@ -27,6 +27,7 @@ function(nl, $ionicPopup, $ionicLoading) {
     
     var statusTimeoutPromise = null;
     this.popupStatus = function(msg) {
+        nl.log.debug('Dialog.popupStatus: ', msg);
         nl.pginfo.statusPopup = msg;
         if (statusTimeoutPromise) nl.timeout.cancel(statusTimeoutPromise);
         statusTimeoutPromise = nl.timeout(function() {
@@ -36,6 +37,7 @@ function(nl, $ionicPopup, $ionicLoading) {
     };
 
     this.popupAlert = function(data) {
+        nl.log.debug('Dialog.popupAlert: ', data.title);
         data.cssClass = 'nl-dlg';
         if (!('okText' in data)) data.okText = nl.t('Close');
         this.hideLoadingScreen();
@@ -43,18 +45,21 @@ function(nl, $ionicPopup, $ionicLoading) {
     };
 
     this.popupConfirm = function(data) {
+        nl.log.debug('Dialog.popupConfirm: ', data.title);
         data.cssClass = 'nl-dlg';
         this.hideLoadingScreen();
         return $ionicPopup.confirm(data);        
     };
     
     this.showLoadingScreen = function(delay) {
+        nl.log.debug('Dialog.showLoadingScreen: ', delay);
         var loadingInfo = {templateUrl : 'lib_ui/utils/waiting.html', hideOnStateChange: true};
         if (delay !== undefined) loadingInfo.delay = delay;
         $ionicLoading.show(loadingInfo);
     };
 
     this.hideLoadingScreen = function() {
+        nl.log.debug('Dialog.hideLoadingScreen');
         $ionicLoading.hide();
     };
 
@@ -81,6 +86,7 @@ function Dialog(nl, $ionicPopup, parentScope, nlDlg) {
     this.uniqueId = _uniqueId++;
     
     this.show = function(template, otherButtons, closeButton, destroyAfterShow) {
+        nl.log.debug('Dialog.show enter: ', template);
         if (destroyAfterShow === undefined) destroyAfterShow = true;
         var self = this;
         

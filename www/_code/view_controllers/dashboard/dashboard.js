@@ -30,10 +30,12 @@ var HomeCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlCo
 function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
+            nl.log.debug('HomeCtrl:onPageEnter - enter');
             nl.pginfo.pageTitle = nl.t('Home Dashboard');
             nl.pginfo.pageSubTitle = nl.fmt2('({})', userInfo.displayname);
             $scope.cards = _getDashboardCards(userInfo);
             _eulaWarning();
+            nl.log.debug('HomeCtrl:onPageEnter - done');
             resolve(true);
         });
     }
@@ -82,11 +84,13 @@ function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
         if (warningType == 'none') return;
         var title = (warningType == 'new') ? nl.t('Welcome') : nl.t('Terms of services is updated');
         
+        nl.log.debug('_eulaWarningImpl: asking for confirmation');
         nlDlg.popupConfirm({title:title, templateUrl:'view_controllers/dashboard/eula.html', 
                             okText: nl.t('Acknowledge'), cancelText: nl.t('Read Later')})
         .then(function(res) {
             if (!res) return;
             nlServerApi.eulaAck().then(function () {
+                nl.log.debug('_eulaWarningImpl: confirmed');
                 nlDlg.popupStatus('Thanks for acknowledging');
                 eulaInfo.eulaWarning = 'none';
                 nlConfig.saveToDb('EULA_INFO', eulaInfo);

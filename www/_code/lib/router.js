@@ -32,6 +32,7 @@ function(nl, nlDlg, nlServerApi) {
     };
     
     function _onPageEnter($scope, pageUrl, pageEnterFn) {
+        nl.log.debug('router.onPageEnter: ', nl.location.url());
         nl.pginfo.isPageShown = false;
         nlDlg.showLoadingScreen(200);
         var protocol = nl.location.protocol().toLowerCase();
@@ -67,6 +68,7 @@ function(nl, nlDlg, nlServerApi) {
     }
 
     function _onPageLeave($scope, pageUrl, pageLeaveFn) {
+        nl.log.debug('router.onPageLeave: ', nl.location.url());
         nl.pginfo.isPageShown = false;
         nl.pginfo.pageSubTitle = '';
         nlDlg.closeAll();
