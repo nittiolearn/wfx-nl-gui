@@ -34,14 +34,7 @@ function(nl, nlRouter, $scope, $stateParams, $location, nlDlg, nlLogViewer, nlSe
             nl.pginfo.pageTitle = nl.t('Temp playground');
             //_ajaxRequest(nl, method1, $scope, 'httpResult1');
             //_ajaxRequest(nl, method2, $scope, 'httpResult2');
-            var url = nl.url.resUrl('general/home.png');
-            nl.url.getCachedUrl(url).then(function(localUrl) {
-                nl.log.debug('Got cached url: ', url, localUrl);
-                $scope.homeIcon = localUrl;
-            }, function(err) {
-                nl.log.error('Error getting cached url: ', err);
-                $scope.homeIcon = url;
-            });
+            $scope.homeIcon = nl.url.resUrl('general/home.png');
             nl.log.debug('TempCtrl:onPageEnter - done');
             resolve(true);
         });
