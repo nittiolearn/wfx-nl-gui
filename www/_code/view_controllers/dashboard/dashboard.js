@@ -64,6 +64,9 @@ function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
     function _updateDetails(cardlist) {
         for(var i=0; i<cardlist.length; i++) {
             var card = cardlist[i];
+            if (NL_SERVER_INFO.serverType == 'local' && card.url.indexOf('/nittioapp#') == 0) {
+                card.url = card.url.substring(10);
+            }
             card.details = {help: card.help, links: card.children, 
                             multiLineLinks: true, columnValues: []};
             card.links = [nl.t('details')];
