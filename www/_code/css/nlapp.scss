@@ -214,7 +214,7 @@ $animation-duration: 200ms !default;
 }
 
 .nl-thin-scroll {
-  overflow-y: auto;
+  overflow: auto;
   &::-webkit-scrollbar {
     width:  8px;
     height: 8px;
@@ -595,11 +595,9 @@ a.nl-card-img:hover, a.nl-card-img:focus {
   width: auto;
   height: auto;
 
-  opacity: 0;
-  pointer-events: none;
-  &.nl-show {
-    opacity: 1;
-    pointer-events: auto; 
+  &.nl-hide {
+    opacity: 0;
+    pointer-events: none; 
   }
 }
 

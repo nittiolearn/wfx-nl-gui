@@ -1,5 +1,5 @@
 <div id='nl-pagecanvas' ng-click='onCanvasClick($event)' ng-keydown="onKeyDown($event)" tabindex='0'
-    ng-class='{"nl-show":pgInfo.isPageShown}'>
+    ng-class='{"nl-hide":!pgInfo.isPageShown}'>
     <nav id='nl-topbar' ng-show='pgInfo.isMenuShown' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
         <a id='nl-logo' ng-href='{{homeUrl}}'>
             <img ng-src='{{logo}}' ng-show='logo' title='{{homeMenuTitle}}'/>
