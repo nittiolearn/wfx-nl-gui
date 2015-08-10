@@ -89,7 +89,7 @@ function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
                             okText: nl.t('Acknowledge'), cancelText: nl.t('Read Later')})
         .then(function(res) {
             if (!res) return;
-            nlServerApi.eulaAck().then(function () {
+            nlServerApi.authEulaAck().then(function () {
                 nl.log.debug('_eulaWarningImpl: confirmed');
                 nlDlg.popupStatus('Thanks for acknowledging');
                 eulaInfo.eulaWarning = 'none';

@@ -15,22 +15,81 @@ function(nl, nlDlg, nlConfig) {
     
     var server = new NlServerInterface(nl, nlDlg, nlConfig);
 
+    //---------------------------------------------------------------------------------------------
+    // Common methods
+    //---------------------------------------------------------------------------------------------
     this.getUserInfoFromCache = function() {
         return server.getUserInfoFromCache();
     };
 
-    this.getUserInfoFromServer = function() {
-        nl.log.debug('server_api: getUserInfoFromServer - enter');
-        return nl.q(function(resolve, reject) {
-            _ping().then(function() {
-                nl.log.debug('server_api: getUserInfoFromServer - done');
-                server.getUserInfoFromCache().then(resolve);
-            }, reject);
-        });
+    this.getUserInfoFromCacheOrServer = function() {
+        return _getUserInfoFromCacheOrServer(this);
+    };
+    
+    //---------------------------------------------------------------------------------------------
+    // Auth Module
+    //---------------------------------------------------------------------------------------------
+    this.authLogin = function(data) {
+        return _postAndSaveEula('_serverapi/auth_login.json', data, false);
     };
 
-    this.getUserInfoFromCacheOrServer = function() {
-        var self = this;
+    this.authLogout = function() {
+        return server.post('_serverapi/auth_logout.json', {}, true, true);
+    };
+
+    this.authEulaAck = function() {
+        return server.post('_serverapi/auth_eula_ack.json', {});
+    };
+
+    this.authImpersonate = function(username) {
+        return _postAndSaveEula('_serverapi/auth_impersonate.json', {username:username}, false);
+    };
+
+    this.authImpersonateEnd = function() {
+        return server.post('_serverapi/auth_impersonate_end.json', {}, true);
+    };
+    
+    this.authGetAuditData = function(updatedTill, limitBy) {
+        var data = {};
+        if (updatedTill !== undefined && updatedTill !== null) data.updatedTill = updatedTill;
+        if (limitBy !== undefined && limitBy !== null) data.limitBy = limitBy;
+        return server.post('_serverapi/auth_get_audit_data.json', data);
+    };
+    
+    //---------------------------------------------------------------------------------------------
+    // Course Module
+    //---------------------------------------------------------------------------------------------
+    this.courseGetList = function(mine) {
+        // returns list of courseObjects
+        return server.post('_serverapi/course_get_list.json', {mine: mine});
+    };
+    
+    this.courseGet = function(courseId) {
+        // return: courseObject
+        return server.post('_serverapi/course_get.json', {courseid: courseId});
+    };
+    
+    this.courseCreate = function(data) {
+        // data: name, description, icon, content
+        // return: courseId
+        return server.post('_serverapi/course_create.json', data);
+    };
+    
+    this.courseModify = function(data) {
+        // data: courseId, name, description, icon, content, publish
+        // return: courseId
+        return server.post('_serverapi/course_modify.json', data);
+    };
+    
+    this.courseDelete = function(courseId) {
+        // return: true/false
+        return server.post('_serverapi/course_delete.json', {courseid: courseId});
+    };
+    
+    //---------------------------------------------------------------------------------------------
+    // Private methods
+    //---------------------------------------------------------------------------------------------
+    function _getUserInfoFromCacheOrServer() {
         return nl.q(function(resolve, reject) {
             // First attempt in cache!
             server.getUserInfoFromCache().then(function(userInfo) {
@@ -46,47 +105,24 @@ function(nl, nlDlg, nlConfig) {
                         return;
                     }
                     // Third attempt: get from server
-                    self.getUserInfoFromServer().then(resolve, reject);
+                    _getUserInfoFromServer().then(resolve, reject);
                 });
             });
         });
     };
-    
-    this.login = function(data) {
-        nl.log.debug('server_api: login');
-        return _postAndSaveEula('_serverapi/login.json', data, false);
-    };
 
-    this.logout = function() {
-        nl.log.debug('server_api: logout');
-        return server.post('_serverapi/logout.json', {}, true, true);
-    };
+    function _getUserInfoFromServer() {
+        nl.log.debug('server_api: getUserInfoFromServer - enter');
+        return nl.q(function(resolve, reject) {
+            _ping().then(function() {
+                nl.log.debug('server_api: getUserInfoFromServer - done');
+                server.getUserInfoFromCache().then(resolve);
+            }, reject);
+        });
+    }
 
-    this.eulaAck = function() {
-        nl.log.debug('server_api: eulaAck');
-        return server.post('_serverapi/eula_ack.json', {});
-    };
-
-    this.getAuditData = function(updatedTill, limitBy) {
-        nl.log.debug('server_api: getAuditData');
-        var data = {};
-        if (updatedTill !== undefined && updatedTill !== null) data.updatedTill = updatedTill;
-        if (limitBy !== undefined && limitBy !== null) data.limitBy = limitBy;
-        return server.post('_serverapi/get_audit_data.json', data);
-    };
-
-    this.impersonate = function(username) {
-        nl.log.debug('server_api: impersonate');
-        return _postAndSaveEula('_serverapi/impersonate.json', {username:username}, false);
-    };
-
-    this.impersonateEnd = function() {
-        nl.log.debug('server_api: impersonateEnd');
-        return server.post('_serverapi/impersonate_end.json', {}, true);
-    };
-    
     function _ping() {
-        return _postAndSaveEula('_serverapi/ping.json', {}, true);
+        return _postAndSaveEula('_serverapi/auth_ping.json', {}, true);
     }
 
     function _postAndSaveEula(url, data, noPopup) {
@@ -101,6 +137,7 @@ function(nl, nlDlg, nlConfig) {
             });
         });
     }
+
 }];
 
 function NlServerInterface(nl, nlDlg, nlConfig) {
@@ -136,7 +173,7 @@ function NlServerInterface(nl, nlDlg, nlConfig) {
                 data._u = reloadUserInfo ? 'NOT_DEFINED' : userInfo.username;
                 data._v = NL_SERVER_INFO.versions.script;
                 url = NL_SERVER_INFO.url + url;
-                var ret = _postImpl(url, data)
+                _postImpl(url, data)
                 .success(function(data, status, headers, config) {
                     _processResponse(self, data, status, resolve, reject, noPopup);
                 }).error(function(data, status, headers, config) {
@@ -153,6 +190,7 @@ function NlServerInterface(nl, nlDlg, nlConfig) {
     }
     
     function _postImpl(url, data) {
+        nl.log.info('server_api: posting: ', url);
         if (NL_SERVER_INFO.serverType == 'local') return nl.http.get(url); // For local testing
         return nl.http.post(url, data);
     }

@@ -1,16 +1,15 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// lesson_ctrl.js:
-// Controllers at lesson level
+// auth.js: Controllers for authentication related functions
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-    angular.module('nl.user', [])
+    angular.module('nl.auth', [])
     .config(configFn)
-    .controller('nl.User.LoginCtrl', LoginCtrl)
-    .controller('nl.User.LogoutCtrl', LogoutCtrl)
-    .controller('nl.User.ImpersonateCtrl', ImpersonateCtrl)
-    .controller('nl.User.AuditCtrl', AuditCtrl);
+    .controller('nl.auth.LoginCtrl', LoginCtrl)
+    .controller('nl.auth.LogoutCtrl', LogoutCtrl)
+    .controller('nl.auth.ImpersonateCtrl', ImpersonateCtrl)
+    .controller('nl.auth.AuditCtrl', AuditCtrl);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -21,7 +20,7 @@ function($stateProvider) {
         views : {
             'appContent' : {
                 template : '',
-                controller : 'nl.User.LoginCtrl'
+                controller : 'nl.auth.LoginCtrl'
             }
         }
     });
@@ -30,7 +29,7 @@ function($stateProvider) {
         views : {
             'appContent' : {
                 template : '',
-                controller : 'nl.User.LogoutCtrl'
+                controller : 'nl.auth.LogoutCtrl'
             }
         }
     });
@@ -39,7 +38,7 @@ function($stateProvider) {
         views : {
             'appContent' : {
                 template : '',
-                controller : 'nl.User.ImpersonateCtrl'
+                controller : 'nl.auth.ImpersonateCtrl'
             }
         }
     });
@@ -47,8 +46,8 @@ function($stateProvider) {
         url : '/audit',
         views : {
             'appContent' : {
-                templateUrl : 'view_controllers/user/audit.html',
-                controller : 'nl.User.AuditCtrl'
+                templateUrl : 'view_controllers/auth/audit.html',
+                controller : 'nl.auth.AuditCtrl'
             }
         }
     });
@@ -110,9 +109,9 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
             nlDlg.showLoadingScreen();
             loginDlg.close(false);
             if (isLogin) {
-                nlServerApi.login(loginDlg.scope.data).then(_onLoginSuccess, _onLoginFailed);
+                nlServerApi.authLogin(loginDlg.scope.data).then(_onLoginSuccess, _onLoginFailed);
             } else {
-                nlServerApi.impersonate(loginDlg.scope.data.username).then(_onLoginSuccess, _onLoginFailed);
+                nlServerApi.authImpersonate(loginDlg.scope.data.username).then(_onLoginSuccess, _onLoginFailed);
             }
         }};
         var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
@@ -121,7 +120,7 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
             loginDlg.destroy();
             nl.window.location.href = '/';
         }};
-        loginDlg.show('view_controllers/user/logindlg.html', [loginButton], cancelButton, false);
+        loginDlg.show('view_controllers/auth/logindlg.html', [loginButton], cancelButton, false);
     }
     
     function _getMsg(params) {
@@ -210,7 +209,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
             nl.log.debug('LogoutCtrl:onPageEnter - enter');
             nl.pginfo.pageTitle = nl.t('Signing out - please wait ...');
             var bImp = ('impersonatedBy' in userInfo);
-            var fn = (bImp) ? nlServerApi.impersonateEnd : nlServerApi.logout;
+            var fn = (bImp) ? nlServerApi.authImpersonateEnd : nlServerApi.authLogout;
             fn($scope.data).then(function(data) {
                 nlServerApi.getUserInfoFromCache().then(function(userInfo) {
                     if (bImp) {
@@ -271,7 +270,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
     };
     
     function _getAuditData(till) {
-        return nlServerApi.getAuditData(till).then(function(data) {
+        return nlServerApi.authGetAuditData(till).then(function(data) {
             for (var i=0; i<data.length; i++) {
                 data[i].updated = nl.fmt.jsonDate2Str(data[i].updated, true);
                 if (data[i].type in AUDIT_TYPES) data[i].type = AUDIT_TYPES[data[i].type];

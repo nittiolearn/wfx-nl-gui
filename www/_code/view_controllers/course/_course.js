@@ -1,11 +1,10 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// _view_controllers.js:
-// All view controllers are listed here
+// auth.js: Controllers for authentication related functions
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-    angular.module('nl.view_controllers', ['nl.auth', 'nl.dashboard', 'nl.course', 'nl.forum', 'nl.temp']);
+    angular.module('nl.course', []);
 }
 
 //-------------------------------------------------------------------------------------------------
