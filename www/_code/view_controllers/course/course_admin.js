@@ -25,215 +25,137 @@ function($stateProvider, $urlRouterProvider) {
 
 var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg',
 function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
-	var serverApi = _getServerApi(nlServerApi, nl);
+	var courseDict = {};
+	var my = false;
 	function _onPageEnter(userInfo) {
 		return nl.q(function(resolve, reject) {
 			nl.pginfo.pageTitle = nl.t('Courses');
-			var courseCards = serverApi.getCourseList();
-			// var card = [];
-			// for(var key in courseCards) {
-				// card.push({id: courseCards.id, title: courseCards.name, icon: courseCards.icon, url: courseCards.url,
-				// children : courseCards.children, style : courseCards.style});
-			// }
-			// console.log(card);
-			console.log(courseCards);
-			$scope.cards = _getCourseCards(courseCards);
-			resolve(true);
+			courseDict = {};
+
+	        var params = nl.location.search();
+	        my = ('my' in params) ? parseInt(params.my) == 1: false;
+
+			nlServerApi.courseGetList().then(function(courseList) {
+				nl.log.debug('Got courses: ', courseList.length);
+				$scope.cards = _getCourseCards(courseList);
+				resolve(true);
+			});
 		});
 	}
-
 	nlRouter.initContoller($scope, '', _onPageEnter);
 
-	function _getCourseCards(courseCards) {
-		var ret = {
-			columnNames : [],
-			cardlist : courseCards
-		};
-		_updateDetails(ret.cardlist);
-		return ret;
-	}
-
-	function _updateDetails(cardlist) {
-		for (var i = 1; i < cardlist.length; i++) {
-			var card = cardlist[i];
-			card.details = {
-				help : card.help,
-				links : card.children,
-				multiLineLinks : false,
-				columnValues : []
-			};
-			card.modify = {
-				help : card.help,
-				links : card.children,
-				multiLineLinks : true,
-				columnValues : []
-			};
-			card.delet = {
-				help : card.help,
-				links : card.children,
-				multiLineLinks : true,
-				columnValues : []
-			};
-
-			card.links = [ nl.t('modify'), nl.t('details'), nl.t('delete')];
+    $scope.onCardInternalUrlClicked = function(internalUrl) {
+		if (internalUrl === 'course_create') {
+			_createCourse();
 		}
-	}
+    };
 
-	$scope.onLinkClicked = function(card, link) {
-		if (link == 'modify') {
-			var modifyDlg = nlDlg.create($scope);
-			modifyDlg.scope.card = card;
-			var createButton = {
-				text : nl.t('Create'),
-				onTap : function(e) {
-					e.preventDefault();
-					modifyDlg.close(false);
-					nlDlg.showLoadingScreen(1000);
-				}
-			};
-			var cancelButton = {
-				text : nl.t('Cancel')
-			};
-			modifyDlg.show('view_controllers/course/coursecreatedlg.html',
-			[createButton], cancelButton,  false);
+	$scope.onCardLinkClicked = function(card, linkid) {
+		if (linkid === 'course_modify') {
+			_modifyCourse(card.courseId);
+		} else if (linkid === 'course_delete') {
+			_deleteCourse(card.courseId);
 		}
 	};
-}];
-
-function _getServerApi(nlServerApi, nl) {
-	return new nlDummyServerApi(nl);
-	//return nlServerApi();
-}
-
-function nlDummyServerApi(nl) {
-	this.getCourseList = function() {
-		var courseCards = [{
-			"id" : "1",
-			"title" : "Create",
-			"url" : "#/app/course_create",
-			"icon" : "http://www.clker.com/cliparts/0/o/y/h/1/H/folder-new-th.png",
-			"children" : [{
-				"id" : "",
-				"title" : "Create a new course",
-				"url" : "#/app/course_create",
-				"icon" : "http://www.clker.com/cliparts/b/0/2/7/1348606952503171588New%20Folder%20Icon.svg.med.png",
-				"children" : []
-			}],
-			"style" : "nl-bg-blue"
-		}, {
-			"id" : "",
-			"title" : "Course1",
-			"description" : "this is my first course",
-			"content" : "content",
-			"owner" : "naveen.headstart",
-			"ownerName" : "Naveen Kumar",
-			"groupName" : "Head Start",
-			"updatedBy" : "sachin.headstart",
-			"updatedByName" : "sachin",
-			"created" : "8/8/2015",
-			"updated" : "9/8/2015",		
-			"url" : "#/app/course1",
-			"icon" : "http://www.clker.com/cliparts/0/2/9/6/1194985788390709558hotel_icon_golf_course_g_01.svg.thumb.png",
-			"children" : []
-		}, {
-			"id" : "",
-			"title" : "Course2",
-			"description" : "this is my first course",
-			"content" : "content",
-			"owner" : "naveen.headstart",
-			"ownerName" : "Naveen",
-			"groupName" : "jumbo kids",
-			"updatedBy" : "sachin.jumbo",
-			"updatedByName" : "sachin",
-			"created" : "8/8/2015",
-			"updated" : "9/8/2015",		
-			"url" : "#/app/course2",
-			"icon" : "http://www.clker.com/cliparts/3/d/H/b/r/G/free-course-th.png",
-			"children" : []
-		}, {
-			"id" : "",
-			"title" : "Course3",
-			"description" : "this is my first course",
-			"content" : "content",
-			"owner" : "naveen.headstart",
-			"ownerName" : "Naveen Kumar",
-			"groupName" : "Nittio Learn",
-			"updatedBy" : "sachin.nittio",
-			"updatedByName" : "sachin",
-			"created" : "8/8/2015",
-			"updated" : "9/8/2015",		
-			"url" : "#/app/course3",
-			"icon" : "http://www.clker.com/cliparts/3/f/a/e/12588368191287315303laurenth2_ozone_troposph_rique.svg.thumb.png",
-			"children" : []
-		}, {
-			"id" : "",
-			"title" : "Course4",
-			"description" : "this is my first course",
-			"content" : "content",
-			"owner" : "naveen.headstart",
-			"ownerName" : "Naveen Kumar",
-			"groupName" : "Ever green",
-			"updatedBy" : "sachin.evergreen",
-			"updatedByName" : "Bunna",
-			"created" : "8/8/2015",
-			"updated" : "9/8/2015",		
-			"url" : "#/app/course4",
-			"icon" : "http://www.clker.com/cliparts/d/E/O/T/F/Q/globe-th.png",
-			"children" : []
-		}];
-		return courseCards;
-	};
-};
-
-var CourseCreateCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
-	var createCourseDlg = nlDlg.create($scope);
-
-	function _onPageEnter(userInfo) {
-		return nl.q(function(resolve, reject) {
-			nl.pginfo.pageTitle = nl.t('Create a new course');
-			createCourseDlg.scope.data = {
-				name : 'naveen',
-				icon : '',
-				description : 'hi',
-				structure : ''
-			};
-			resolve(true);
-			_showCourseCreateDlg();
-		});
+	
+	function _getCourseCards(courseList) {
+		var cards = [];
+		_addStaticCard(cards);
+		_addCreatedCard(cards);
+		for (var i = 0; i < courseList.length; i++) {
+			var course = courseList[i];
+			courseDict[course.id] = course;
+			var card = {courseId: course.id,
+						title: course.name, 
+						icon: course.icon, 
+						url: nl.fmt2('#/app/course_view?id={}', course.id),
+						help: course.description,
+						content: course.content, 
+						children: []};
+			card.details = {help: card.help, avps: _getAvps(course)};
+			card.links = [{id: 'course_modify', text: nl.t('modify')},
+						  {id: 'course_delete', text: nl.t('delete')},
+						  {id: 'details', text: nl.t('details')}];
+			cards.push(card);
+		}
+		return cards;
+	}
+	
+	function _getAvps(course) {
+		var avps = [];
+		avps.push({attr: nl.t('Name'), val: course.name});
+		avps.push({attr: nl.t('Author'), val: course.authorname});
+		avps.push({attr: nl.t('Group'), val: course.grpname});
+		avps.push({attr: nl.t('Updated by'), val: course.updated_by_name});
+		avps.push({attr: nl.t('Created on'), val: course.created});
+		avps.push({attr: nl.t('Updated on'), val: course.updated});
+		avps.push({attr: nl.t('Published on'), val: course.published});
+		avps.push({attr: nl.t('Is published?'), val: course.is_published});
+		avps.push({attr: nl.t('Description'), val: course.description});
+		return avps;
 	}
 
-	function _onPageLeave() {
-		createCourseDlg.close(false);
+	function _addStaticCard(cards) {
+		var card = {title: nl.t('Create'), 
+					icon: 'http://www.clker.com/cliparts/0/o/y/h/1/H/folder-new-th.png', 
+					urlInternal: 'course_create',
+					help: nl.t('You can create a new course by clicking on this card'), 
+					children: [], style: 'nl-bg-blue'};
+		card.links = [];
+		cards.push(card);
 	}
 
+	function _createCourse() {
+		// Show the create form
+		// onTap of create button: call server api
+		// then of serverapi - _addCreatedCard
+		nlDlg.popupAlert({title:'TODO', template:'Create to be implemented'});
+	}
+	
+	function _addCreatedCard(cards) {
+		// add element to cards as well as courseDict
+		var card = {title: nl.t('Create'), 
+					icon: 'http://www.clker.com/cliparts/0/o/y/h/1/H/folder-new-th.png', 
+					urlInternal: 'course_create',
+					help: nl.t('You can create a new course by clicking on this card'), 
+					children: [], style: 'nl-bg-blue'};
+		card.links = [];
+		cards.push(card);		
+	}
 
-	nlRouter.initContoller($scope, '', _onPageEnter, _onPageLeave);
-
-	function _showCourseCreateDlg() {
-		var createButton = {
-			text : nl.t('Create'),
+	function _deleteCourse(courseId) {
+		nlDlg.popupAlert({title:nl.fmt2('TODO: delete {}', courseId), 
+						template:'Delete to be implemented'});
+	}
+	
+	function _modifyCourse(courseId) {
+		var course = courseDict[courseId];
+		var modifyDlg = nlDlg.create($scope);
+		modifyDlg.scope.data = {name: course.name, icon: course.icon, 
+								description: course.description, content: course.content};
+		var saveButton = {
+			text : nl.t('Save'),
 			onTap : function(e) {
-				e.preventDefault();
-				createCourseDlg.close(false);
-				nlDlg.showLoadingScreen(1000);
+				nlDlg.popupAlert({title:'TODO', template:'Actual save to be implemented'});
 			}
 		};
+		
+		var publishButton = {
+			text : nl.t('Publish'),
+			onTap : function(e) {
+				e.preventDefault();
+				modifyDlg.close(false);
+				nlDlg.popupAlert({title:'TODO', tempate:'Actual publish to be implemented'});
+			}
+		};
+
 		var cancelButton = {
 			text : nl.t('Cancel')
-			// onTap : function(e) {
-				// e.preventDefault();
-				// createCourseDlg.destroy();
-                // nl.window.location.href = '/';			
-			//}
 		};
-		createCourseDlg.show('view_controllers/course/coursecreatedlg.html', 
-			[createButton], cancelButton, false);
+		modifyDlg.show('view_controllers/course/coursecreatedlg.html',
+		[saveButton, publishButton], cancelButton,  false);
 	}
 }];
-var CourseModifyCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg',
-	function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
-		
-	}];
+
 module_init();
 })();

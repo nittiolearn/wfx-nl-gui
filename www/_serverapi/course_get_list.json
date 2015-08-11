@@ -3,7 +3,7 @@
     "_result": [{
         "id": 1, 
         "name": "Sample Course 1", 
-        "icon": "dummy_icon", 
+        "icon": "http://www.clker.com/cliparts/0/e/a/b/14392452881881441371cat6-md.png", 
         "description": "This is description of sampe course", 
         "authorname": "Nittio Admin", 
         "grpname": "Nittio (nittio)", 
@@ -12,13 +12,13 @@
         "updated": "2015-08-10T11:09:27", 
         "published": "2015-08-10T11:09:27", 
         "is_published": true,
-        "content": "[]", 
+        "content": "[hello]", 
         "published_content": "[]" 
     },
     {
         "id": 2, 
         "name": "Sample Course 2", 
-        "icon": "dummy_icon", 
+        "icon": "http://www.clker.com/cliparts/0/e/a/b/14392452881881441371cat6-md.png", 
         "description": "This is description of sampe course", 
         "authorname": "Nittio Admin", 
         "grpname": "Nittio (nittio)", 
@@ -33,7 +33,7 @@
     {
         "id": 3, 
         "name": "Sample Course 3", 
-        "icon": "dummy_icon", 
+        "icon": "http://www.clker.com/cliparts/0/e/a/b/14392452881881441371cat6-md.png", 
         "description": "This is description of sampe course", 
         "authorname": "Nittio Admin", 
         "grpname": "Nittio (nittio)", 
@@ -48,7 +48,7 @@
     {
         "id": 4, 
         "name": "Sample Course 4", 
-        "icon": "dummy_icon", 
+        "icon": "http://www.clker.com/cliparts/0/e/a/b/14392452881881441371cat6-md.png", 
         "description": "This is description of sampe course", 
         "authorname": "Nittio Admin", 
         "grpname": "Nittio (nittio)", 

@@ -3,7 +3,7 @@
     "_result": {
         "id": 1, 
         "name": "Sample Course 1", 
-        "icon": "dummy_icon", 
+        "icon": "http://www.clker.com/cliparts/0/e/a/b/14392452881881441371cat6-md.png", 
         "description": "This is description of sampe course", 
         "authorname": "Nittio Admin", 
         "grpname": "Nittio (nittio)", 

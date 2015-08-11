@@ -4,10 +4,13 @@
         <img ng-src='{{card.icon}}' tabindex='0' autofocus></img>
         <div class='nl-details-dlg-body' ng-bind-html='card.details.help'>
         </div>
-        <table ng-if='card.details.multiLineLinks'>
-            <tr ng-repeat='link in card.details.links' class='nl-border-bottom'>
-                <td class='nl-20'><a ng-href='{{link.url}}'>{{link.title}}</a></td>
-                <td>{{link.help}}</td>
+        <table>
+            <tr ng-repeat='avp in card.details.avps' class='nl-border-bottom'>
+                <td class='nl-20'>
+                	<a ng-href='{{avp.url}}' ng-if='avp.url'>{{avp.attr}}</a>
+	                <span ng-if='!avp.url'>{{avp.attr}}</span>
+                </td>
+                <td>{{avp.val}}</td>
             </tr>
         </table>
     </nl-dlg-content>

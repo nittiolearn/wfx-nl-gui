@@ -29,10 +29,14 @@ function(nl, nlDlg) {
                     _updateCardDimensions($scope, iElem);
                 });
             });
+            
+            $scope.onCardInternalUrlClicked = function(internalUrl) {
+				$scope.$parent.onCardInternalUrlClicked(internalUrl);
+            };
 
-            $scope.onLinkClicked = function(card, link) {
-				if (link !== 'details') {
-					$scope.$parent.onLinkClicked(card, link);
+            $scope.onCardLinkClicked = function(card, linkid) {
+				if (linkid !== 'details') {
+					$scope.$parent.onCardLinkClicked(card, linkid);
 					return;
 				}
                 var detailsDlg = nlDlg.create($scope);

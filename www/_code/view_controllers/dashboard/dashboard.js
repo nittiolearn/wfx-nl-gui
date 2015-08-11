@@ -56,20 +56,29 @@ function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
                     style: 'nl-bg-red', children: []});
         }
         var cards  = unauthorizedItems.concat(userInfo.dashboard);
-        var ret = {columnNames: [], cardlist: cards};
-        _updateDetails(ret.cardlist);
-        return ret;
+        _updateDetails(cards);
+        return cards;
     }
 
-    function _updateDetails(cardlist) {
-        for(var i=0; i<cardlist.length; i++) {
-            var card = cardlist[i];
-            if (NL_SERVER_INFO.serverType == 'local' && card.url.indexOf('/nittioapp#') == 0) {
-                card.url = card.url.substring(10);
+    function _updateDetails(cards) {
+        for(var i=0; i<cards.length; i++) {
+            var card = cards[i];
+            _updatedUrl(card);
+            var avps = [];
+            for (var j=0; j<card.children.length; j++) {
+            	var child = card.children[j];
+	            _updatedUrl(child);
+            	var avp = {attr:child.title, val:child.help, url:child.url};
+            	avps.push(avp);
             }
-            card.details = {help: card.help, links: card.children, 
-                            multiLineLinks: true, columnValues: []};
-            card.links = [nl.t('details')];
+            card.details = {help: card.help, avps: avps};
+            card.links = [{id: 'details', text: nl.t('details')}];
+        }
+    }
+
+    function _updatedUrl(card) {
+        if (NL_SERVER_INFO.serverType == 'local' && card.url.indexOf('/nittioapp#') == 0) {
+            card.url = card.url.substring(10);
         }
     }
     
