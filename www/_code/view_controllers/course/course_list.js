@@ -1,11 +1,11 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// course_admin.js:
+// course_list.js:
 // course module
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-	angular.module('nl.course_admin', [])
+	angular.module('nl.course_list', [])
 	.config(configFn)
 	.controller('nl.CourseListCtrl', CourseListCtrl);
 }
@@ -23,8 +23,8 @@ function($stateProvider, $urlRouterProvider) {
 		}});
 }];
 
-var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
+var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlCourse', 'nlDlg',
+function(nl, nlRouter, $scope, nlCourse, nlDlg) {
 	var courseDict = {};
 	var my = false;
 	function _onPageEnter(userInfo) {
@@ -35,7 +35,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 	        var params = nl.location.search();
 	        my = ('my' in params) ? parseInt(params.my) == 1: false;
 
-			nlServerApi.courseGetList().then(function(courseList) {
+			nlCourse.courseGetList(my).then(function(courseList) {
 				nl.log.debug('Got courses: ', courseList.length);
 				$scope.cards = _getCourseCards(courseList);
 				resolve(true);
@@ -65,10 +65,12 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 		for (var i = 0; i < courseList.length; i++) {
 			var course = courseList[i];
 			courseDict[course.id] = course;
+			var url = nl.fmt2('#/app/course_view?id={}', course.id);
+			if (!my) url += '&published=1';
 			var card = {courseId: course.id,
 						title: course.name, 
 						icon: course.icon, 
-						url: nl.fmt2('#/app/course_view?id={}', course.id),
+						url: url,
 						help: course.description,
 						content: course.content, 
 						children: []};

@@ -29,10 +29,10 @@
 </style>
 <div class='nl-thin-scroll nl-full'>
 	<table style="width:100%">
-		<tr class='nl-cv-module' ng-repeat="module in courseInfo.content" ng-show="module.visible">
-			<td><span class='nl-cv-indent' ng-repeat="x in module.indent"></span>
-				<img ng-src='{{getIcon(module)}}'></img>
-				<span ng-class-odd="'nl-cv-odd'" ng-click='onClick(module)'>{{module.name}}</span>
+		<tr class='nl-cv-module' ng-repeat="cm in content" ng-show="cm.visible">
+			<td><span class='nl-cv-indent' ng-repeat="x in cm.indent"></span>
+				<img ng-src='{{getIcon(cm)}}'></img>
+				<span ng-class-odd="'nl-cv-odd'" ng-click='onClick(cm)'>{{cm.name}}</span>
 			</td>
 		</tr>
 	</table>
