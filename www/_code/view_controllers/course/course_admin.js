@@ -87,9 +87,9 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 		avps.push({attr: nl.t('Author'), val: course.authorname});
 		avps.push({attr: nl.t('Group'), val: course.grpname});
 		avps.push({attr: nl.t('Updated by'), val: course.updated_by_name});
-		avps.push({attr: nl.t('Created on'), val: course.created});
-		avps.push({attr: nl.t('Updated on'), val: course.updated});
-		avps.push({attr: nl.t('Published on'), val: course.published});
+		avps.push({attr: nl.t('Created on'),  val: nl.fmt.jsonDate2Str(course.created)});
+		avps.push({attr: nl.t('Updated on'), val: nl.fmt.jsonDate2Str(course.updated)});
+		avps.push({attr: nl.t('Published on'), val: nl.fmt.jsonDate2Str(course.published)});
 		avps.push({attr: nl.t('Is published?'), val: course.is_published});
 		avps.push({attr: nl.t('Description'), val: course.description});
 		return avps;
