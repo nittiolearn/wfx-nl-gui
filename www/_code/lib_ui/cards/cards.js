@@ -31,7 +31,10 @@ function(nl, nlDlg) {
             });
 
             $scope.onLinkClicked = function(card, link) {
-                if (link != 'details') return;
+				if (link !== 'details') {
+					$scope.$parent.onLinkClicked(card, link);
+					return;
+				}
                 var detailsDlg = nlDlg.create($scope);
                 detailsDlg.scope.card = card;
                 detailsDlg.show('lib_ui/cards/details_dlg.html');

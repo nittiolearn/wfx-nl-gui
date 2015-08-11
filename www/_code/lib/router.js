@@ -105,6 +105,7 @@ function Permission(nl) {
         '/app/logout_now': {login: false, permission: '', termRestriction: TR_OPEN},
         '/app/temp': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         '/app/forum': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
+        '/app/course_list': {login: true, permission: 'course_assign', termRestriction: TR_CLOSED},
 
         // Operation permissions
         'change_password': {login: true, permission: 'change_password', termRestriction: TR_RESTRICTED} 

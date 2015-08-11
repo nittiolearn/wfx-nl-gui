@@ -190,7 +190,9 @@ $animation-duration: 200ms !default;
 .nl-bg-red {
     background-color: rgba(255, 0, 0, 0.3);
 }
-
+.nl-bg-blue {
+    background-color: rgba(0, 0, 255, 0.3);
+}
 /*-----------------------------------------------------------------------------------------*
  * Thin scroll bar
  *-----------------------------------------------------------------------------------------*/
@@ -548,7 +550,7 @@ a.nl-card-img:hover, a.nl-card-img:focus {
 .nl-card-links > span {
   cursor:pointer;
   color: #000077;
-  padding: 0 4px 0 0;
+  padding: 0 4px 0 4px;
   border-right: 1px solid #0000FF;
   
   &:last-child {

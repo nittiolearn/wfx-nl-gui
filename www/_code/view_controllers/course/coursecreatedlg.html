@@ -1,0 +1,37 @@
+<style>
+	.nl-cl-description {
+		text-align: right;
+		vertical-align: top;
+		padding-top: 10px;
+	}
+	.nl-cl-textarea { 
+    	height:90%;
+    	padding-right: 1%;
+    }
+    p {
+    	color: #000077;
+    }
+</style>
+<nl-dlg title='modify a course'>
+<!-- <div ng-if="!card.style" title='Modify a course'></div> -->	<nl-dlg-help>
+		<h4 style="color:blue">Lesson Help</h4>
+		<p>Enter appropriate lesson name to create lesson.</p>
+		<h4 style="color:blue">Icon</h4>
+		<p>Select the Icon required.</p>
+		<h4 style="color:blue">Description</h4>
+		<p>Enter descriptions of course.</p>
+	</nl-dlg-help>
+	<nl-dlg-content>
+		<table>
+			<tr nl-form-input fieldname='Name' fieldmodel='name' fieldtype='text'></tr>
+			<tr nl-form-input fieldname='Image' fieldmodel='icon' fieldtype='text'></tr>
+			<tr><td class='nl-cl-description' >Course description</td>
+				<td class='nl-cl-textarea' ><textarea cols='90' rows='6' ng-model='data.description' spellcheck="true" placeholder='Enter description here'></textarea></td>
+			</textarea></tr>
+			<tr><td class='nl-cl-description' >Course structure</td>
+				<td  class='nl-cl-textarea' ><textarea cols='90' rows='6' ng-model='data.structure' spellcheck="true" placeholder='Enter course structure here'></textarea></td>
+			</textarea></tr>
+		</table>
+		<br/>
+	</nl-dlg-content>
+</nl-dlg>
