@@ -30,10 +30,12 @@ var HomeCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlCo
 function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
+            nl.log.debug('HomeCtrl:onPageEnter - enter');
             nl.pginfo.pageTitle = nl.t('Home Dashboard');
             nl.pginfo.pageSubTitle = nl.fmt2('({})', userInfo.displayname);
             $scope.cards = _getDashboardCards(userInfo);
             _eulaWarning();
+            nl.log.debug('HomeCtrl:onPageEnter - done');
             resolve(true);
         });
     }
@@ -62,6 +64,9 @@ function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
     function _updateDetails(cardlist) {
         for(var i=0; i<cardlist.length; i++) {
             var card = cardlist[i];
+            if (NL_SERVER_INFO.serverType == 'local' && card.url.indexOf('/nittioapp#') == 0) {
+                card.url = card.url.substring(10);
+            }
             card.details = {help: card.help, links: card.children, 
                             multiLineLinks: true, columnValues: []};
             card.links = [nl.t('details')];
@@ -70,22 +75,30 @@ function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
     
     function _eulaWarning() {
         nlConfig.loadFromDb('EULA_INFO', function(eulaInfo) {
-            var warningType = eulaInfo.eulaWarning;
-            if (warningType == 'none') return;
-            var title = (warningType == 'new') ? nl.t('Welcome') : nl.t('Terms of services is updated');
-            
-            nlDlg.popupConfirm({title:title, templateUrl:'view_controllers/dashboard/eula.html', 
-                                okText: nl.t('Acknowledge'), cancelText: nl.t('Read Later')})
-            .then(function(res) {
-                if (!res) return;
-                nlServerApi.eulaAck().then(function () {
-                    nlDlg.popupStatus('Thanks for acknowledging');
-                    eulaInfo.eulaWarning = 'none';
-                    nlConfig.saveToDb('EULA_INFO', eulaInfo);
-                });
+            if (eulaInfo == null) {
+                userInfo = _defaultUserInfo();
+            }
+            _eulaWarningImpl(eulaInfo);
+        });
+    }
+    
+    function _eulaWarningImpl(eulaInfo) {
+        var warningType = eulaInfo.eulaWarning;
+        if (warningType == 'none') return;
+        var title = (warningType == 'new') ? nl.t('Welcome') : nl.t('Terms of services is updated');
+        
+        nl.log.debug('_eulaWarningImpl: asking for confirmation');
+        nlDlg.popupConfirm({title:title, templateUrl:'view_controllers/dashboard/eula.html', 
+                            okText: nl.t('Acknowledge'), cancelText: nl.t('Read Later')})
+        .then(function(res) {
+            if (!res) return;
+            nlServerApi.authEulaAck().then(function () {
+                nl.log.debug('_eulaWarningImpl: confirmed');
+                nlDlg.popupStatus('Thanks for acknowledging');
+                eulaInfo.eulaWarning = 'none';
+                nlConfig.saveToDb('EULA_INFO', eulaInfo);
             });
         });
-
     }
 
 }];

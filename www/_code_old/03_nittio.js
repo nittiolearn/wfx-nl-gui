@@ -737,9 +737,6 @@ nittio = function() {
 			if (g_slides != null) g_slides.activate(window.location.hash);
 
 			_initMoreAndLogView();
-			var jOnstart = jQuery('#onstart').val();
-			onStart = jQuery.parseJSON(jOnstart);
-			if (onStart.cmdLine != '') eval(onStart.cmdLine);
 		});
 	}
 
@@ -773,25 +770,6 @@ nittio = function() {
 		return g_staticVersion;
 	}
 	
-	function eula_warning(title) {
-	    var msg = '<div>By using Nittio Learn and/or publishing content, you agree to be bound by the terms of service. ';
-	    msg += 'Please read and acknowledge the <b><a href="/info/eula">terms of service</a></b> before using Nittio Learn.</div>';
-	    var ackButton = {id: 'ack', text: 'Acknowledge', fn: function() {
-			njs_helper.Dialog.popdown(function() {
-				var chain = new njs_helper.AsyncFunctionChain();
-				var ajax = new njs_helper.AjaxInChain(chain);
-				chain.add(function() {
-					ajax.send('/info/eula_ack.json', {});
-				});
-				chain.add(function() {
-					njs_helper.Dialog.popupStatus('Thanks for acknowledging');
-				});
-			});
-	    }}; 
-	    var cancelButton = {id: 'later', text: 'Read Later'};
-	    njs_helper.Dialog.popup(title, msg, [ackButton], cancelButton);
-	}
-
 	var printCallbackArray = [];
 	function printHandler(fn){
 		printCallbackArray.push(fn);
@@ -862,9 +840,6 @@ nittio = function() {
 
 		resizeImagesToAspectRatio : resizeImagesToAspectRatio,
 
-		// Eula
-		eula_warning: eula_warning,
-		
 		//Print
 		onPrint: onPrint,
 		printHandler: printHandler,

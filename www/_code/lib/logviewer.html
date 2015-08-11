@@ -19,7 +19,7 @@
 <nl-dlg title='Log Viewer'>
     <nl-dlg-help>Use this window to view and configure console logs from the application code.</nl-dlg-help>
     <nl-dlg-content>
-        <div><button ng-click='logConfig.toggleLogConfig()'>{{logConfig.showHideLable}}</button></div>
+        <div><button ng-click='toggleLogConfig()'>{{logConfig.showHideLable}}</button></div>
         <table class='nl-log-dlg-config' ng-show='logConfig.showLogConfig'>
             <tr>
                 <td>Store logs</td>
@@ -43,7 +43,11 @@
             </tr>
             <tr>
                 <td>Total available logs</td>
-                <td>{{logConfig.recentLogs.length}} <button ng-click='logConfig.clearLogs()'>Clear Logs</button></td>
+                <td>{{logConfig.recentLogs.length}} 
+                    <button ng-click='clearLogs()'>Clear Logs</button>
+                    <button ng-click='sendMail()'>Send Mail</button>
+                    <button ng-click='exportToCsv()'>Export to CSV</button>
+                </td>
             </tr>
         </table>
 

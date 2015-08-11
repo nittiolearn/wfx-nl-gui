@@ -1126,6 +1126,11 @@ div.njs_pdf_holder.inline_obj {
 div.pgSecView {
 	font-size: 1em;
 	display: none;
+
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
 }
 
 .pgSecView .questionnaire, .pgSecView select {

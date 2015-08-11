@@ -27,6 +27,7 @@ function(nl, $ionicPopup, $ionicLoading) {
     
     var statusTimeoutPromise = null;
     this.popupStatus = function(msg) {
+        nl.log.debug('Dialog.popupStatus: ', msg);
         nl.pginfo.statusPopup = msg;
         if (statusTimeoutPromise) nl.timeout.cancel(statusTimeoutPromise);
         statusTimeoutPromise = nl.timeout(function() {
@@ -36,6 +37,7 @@ function(nl, $ionicPopup, $ionicLoading) {
     };
 
     this.popupAlert = function(data) {
+        nl.log.debug('Dialog.popupAlert: ', data.title);
         data.cssClass = 'nl-dlg';
         if (!('okText' in data)) data.okText = nl.t('Close');
         this.hideLoadingScreen();
@@ -43,32 +45,48 @@ function(nl, $ionicPopup, $ionicLoading) {
     };
 
     this.popupConfirm = function(data) {
+        nl.log.debug('Dialog.popupConfirm: ', data.title);
         data.cssClass = 'nl-dlg';
         this.hideLoadingScreen();
         return $ionicPopup.confirm(data);        
     };
     
-    var loadingTimeoutPromise = null;
-    this.showLoadingScreen = function(timeout) {
-        if (timeout === undefined) timeout=0;
-        if (loadingTimeoutPromise) nl.timeout.cancel(loadingTimeoutPromise);
-        loadingTimeoutPromise = nl.timeout(function() {
-            loadingTimeoutPromise = null;
-            $ionicLoading.show({templateUrl : 'lib_ui/utils/waiting.html'});
-        }, timeout);
+    this.showLoadingScreen = function(delay) {
+        nl.log.debug('Dialog.showLoadingScreen: ', delay);
+        var loadingInfo = {templateUrl : 'lib_ui/utils/waiting.html', hideOnStateChange: true};
+        if (delay !== undefined) loadingInfo.delay = delay;
+        $ionicLoading.show(loadingInfo);
     };
 
     this.hideLoadingScreen = function() {
-        if (loadingTimeoutPromise) nl.timeout.cancel(loadingTimeoutPromise);
-        loadingTimeoutPromise = null;
+        nl.log.debug('Dialog.hideLoadingScreen');
         $ionicLoading.hide();
+    };
+
+    var _dlgList = {};
+    this.closeAll = function() {
+        for(var dlgId in _dlgList) {
+            _dlgList[dlgId].close();
+        }
+        _dlgList = {};
+    };
+    
+    this.addVisibleDlg = function(dlgId, dlg) {
+        _dlgList[dlgId] = dlg;
+    };
+
+    this.removeVisibleDlg = function(dlgId) {
+        if (dlgId in _dlgList) delete _dlgList[dlgId];
     };
 }];
 
+var _uniqueId = 0;
 function Dialog(nl, $ionicPopup, parentScope, nlDlg) {
     this.scope = parentScope.$new();
+    this.uniqueId = _uniqueId++;
     
     this.show = function(template, otherButtons, closeButton, destroyAfterShow) {
+        nl.log.debug('Dialog.show enter: ', template);
         if (destroyAfterShow === undefined) destroyAfterShow = true;
         var self = this;
         
@@ -76,6 +94,7 @@ function Dialog(nl, $ionicPopup, parentScope, nlDlg) {
         if (closeButton === undefined) closeButton = {text: nl.t('Close')};
         otherButtons.push(closeButton);
         nlDlg.hideLoadingScreen();
+        nlDlg.addVisibleDlg(self.uniqueId, self);
         var mypopup = $ionicPopup.show({
             title: '', subTitle: '', cssClass: 'nl-dlg',
             templateUrl: template,
@@ -96,6 +115,7 @@ function Dialog(nl, $ionicPopup, parentScope, nlDlg) {
         };
 
         mypopup.then(function(result) {
+            nlDlg.removeVisibleDlg(self.uniqueId);
             if (!destroyAfterShow) return;
             self.destroy();
         });

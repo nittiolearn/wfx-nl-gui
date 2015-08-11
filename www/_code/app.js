@@ -31,7 +31,7 @@ function _patchToIonicRightClickIssue() {
     });
 }
 function _ignoreIfRightMouseUp(e) {
-    if (e.which !== 3) return true;
+    if (!e || e.which !== 3) return true;
     e.stopImmediatePropagation();
     e.preventDefault();
     return false;
@@ -70,10 +70,12 @@ function onIonicReady() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var AppCtrl = ['nl', '$scope', 'nlKeyboardHandler', 'nlServerApi', 'nlRouter',
-function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter) {
+var AppCtrl = ['nl', '$scope', 'nlKeyboardHandler', 'nlServerApi', 'nlRouter', 'nlLogViewer',
+function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
+    nl.log.info('UserAgent: ', navigator.userAgent);
     nl.rootScope.imgBasePath = nl.url.resUrl();
     nl.rootScope.pgInfo = nl.pginfo;
+    nlLogViewer.showOnStartupIfRequired($scope);
     
     var homeUrl = nl.url.getAppUrl() + '#/app/home';
 
@@ -88,7 +90,7 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter) {
     
     // Called from child scope on page enter
     $scope.onPageEnter = function(userInfo) {
-        nl.log.debug('app:onPageEnter');
+        nl.log.debug('app:onPageEnter - enter');
         $scope.logo = userInfo.groupicon == '' ? nl.url.resUrl('general/top-logo1.png') : userInfo.groupicon;
         var bLoggedIn = (userInfo.username != '');
         $scope.userMenuItems = [];
@@ -115,12 +117,13 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter) {
                 icon: nl.url.resUrl('general/login-pwdlost.png'),
                 url: '/auth/pwlost'});
         }
+        nl.log.debug('app:onPageEnter - done');
     };
     
     $scope.showUserMenu = false;
     $scope.onUserMenu = function(e) {
         $scope.showUserMenu = !$scope.showUserMenu;
-        event.stopImmediatePropagation();
+        if (e) e.stopImmediatePropagation();
         return false;
     };
     

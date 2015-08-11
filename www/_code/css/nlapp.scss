@@ -90,6 +90,7 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  @include user-select(text); 
 }
 
 body {
@@ -193,14 +194,22 @@ $animation-duration: 200ms !default;
 .nl-bg-blue {
     background-color: rgba(0, 0, 255, 0.3);
 }
+
+.nl-table {
+  margin-top: 10px;
+  width: 100%;
+  td, th {
+    padding: 4px;
+    border: 1px solid black;
+  }
+  th {
+    font-weight: bold; 
+  }
+}
+
 /*-----------------------------------------------------------------------------------------*
  * Thin scroll bar
  *-----------------------------------------------------------------------------------------*/
-.nl-hide {
-    opacity: 0;
-    pointer-events: none;
-}
-
 .nl-full {
   position: absolute;
   width: 100%;
@@ -208,7 +217,7 @@ $animation-duration: 200ms !default;
 }
 
 .nl-thin-scroll {
-  overflow-y: auto;
+  overflow: auto;
   &::-webkit-scrollbar {
     width:  8px;
     height: 8px;
@@ -561,6 +570,7 @@ a.nl-card-img:hover, a.nl-card-img:focus {
 .nl-card-details-dlg {
   &> img {
     float: right;
+    max-height: 100px;
   }
   table {
     margin: 10px 0;
@@ -587,6 +597,17 @@ a.nl-card-img:hover, a.nl-card-img:focus {
   right: 0;
   width: auto;
   height: auto;
+
+  &.nl-hide {
+    opacity: 0;
+    pointer-events: none; 
+  }
+}
+
+@media print {
+  #nl-pagecanvas {
+    display: none !important;
+  }
 }
 
 #nl-topbar {
@@ -692,13 +713,6 @@ a.nl-card-img:hover, a.nl-card-img:focus {
   right: 4px;
 }
 
-#nl-inner-body {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-}
 
 /*-----------------------------------------------------------------------------------------*
  * applayout.html elements: full page view

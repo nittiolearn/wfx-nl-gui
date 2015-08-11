@@ -45,12 +45,12 @@ function(nl) {
     
     this.onKeyDown = function($event) {
         if (keyHandler) keyHandler($event);
-        $event.stopImmediatePropagation();
+        if ($event) $event.stopImmediatePropagation();
     };
 
     this.onSwipe = function($event) {
         if (swipeHandler) swipeHandler($event);
-        $event.stopImmediatePropagation();
+        if ($event) $event.stopImmediatePropagation();
     };
 }];
 

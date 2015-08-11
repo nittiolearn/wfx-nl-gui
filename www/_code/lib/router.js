@@ -32,8 +32,14 @@ function(nl, nlDlg, nlServerApi) {
     };
     
     function _onPageEnter($scope, pageUrl, pageEnterFn) {
+        nl.log.debug('router.onPageEnter: ', nl.location.url());
         nl.pginfo.isPageShown = false;
-        nlDlg.showLoadingScreen(1000);
+        nlDlg.showLoadingScreen(200);
+        var protocol = nl.location.protocol().toLowerCase();
+        if (protocol.indexOf('file') >= 0) {
+            nlDlg.hideLoadingScreen();
+            return; // Progress wheel keeps on spinning
+        }
         _getUserInfo(pageUrl).then(function(userInfo) {
             nl.pginfo.username = (userInfo.username == '') ? '' : userInfo.displayname;
             var pagePerm = permission.getPermObj(pageUrl);
@@ -62,7 +68,10 @@ function(nl, nlDlg, nlServerApi) {
     }
 
     function _onPageLeave($scope, pageUrl, pageLeaveFn) {
+        nl.log.debug('router.onPageLeave: ', nl.location.url());
+        nl.pginfo.isPageShown = false;
         nl.pginfo.pageSubTitle = '';
+        nlDlg.closeAll();
         if (pageLeaveFn) pageLeaveFn();
     }
     
@@ -72,14 +81,14 @@ function(nl, nlDlg, nlServerApi) {
     }
     
     function _done(rerouteToUrl) {
-        nlDlg.hideLoadingScreen();
-        nl.pginfo.isPageShown = true;
-        nl.pginfo.windowTitle = _getWindowTitle();
-
         var params = nl.location.search();
         nl.pginfo.isMenuShown = (!('hidemenu' in params));
-        
+        nlDlg.hideLoadingScreen();
+
         if (rerouteToUrl != null) nl.location.url(rerouteToUrl);
+        
+        nl.pginfo.isPageShown = true;
+        nl.pginfo.windowTitle = _getWindowTitle();
         return true;
     }
 
@@ -103,6 +112,8 @@ function Permission(nl) {
         '/app/home': {login: true, permission: 'basic_access', termRestriction: TR_OPEN}, 
         '/app/login_now': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/app/logout_now': {login: false, permission: '', termRestriction: TR_OPEN},
+        '/app/audit': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
+        '/app/impersonate': {login: true, permission: 'admin_impersonate_grp', termRestriction: TR_CLOSED},
         '/app/temp': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         '/app/forum': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
         '/app/course_list': {login: true, permission: 'course_assign', termRestriction: TR_CLOSED},

@@ -1,0 +1,63 @@
+{
+    "_status": -1,
+    "_result": [{
+        "id": 1, 
+        "name": "Sample Course 1", 
+        "icon": "dummy_icon", 
+        "description": "This is description of sampe course", 
+        "authorname": "Nittio Admin", 
+        "grpname": "Nittio (nittio)", 
+        "updated_by_name": "Nittio Admin", 
+        "created": "2015-08-10T11:09:27", 
+        "updated": "2015-08-10T11:09:27", 
+        "published": "2015-08-10T11:09:27", 
+        "is_published": true,
+        "content": "[]", 
+        "published_content": "[]" 
+    },
+    {
+        "id": 2, 
+        "name": "Sample Course 2", 
+        "icon": "dummy_icon", 
+        "description": "This is description of sampe course", 
+        "authorname": "Nittio Admin", 
+        "grpname": "Nittio (nittio)", 
+        "updated_by_name": "Nittio Admin", 
+        "created": "2015-08-10T11:09:27", 
+        "updated": "2015-08-10T11:09:27", 
+        "published": "2015-08-10T11:09:27", 
+        "is_published": true,
+        "content": "[]", 
+        "published_content": "[]" 
+    },
+    {
+        "id": 3, 
+        "name": "Sample Course 3", 
+        "icon": "dummy_icon", 
+        "description": "This is description of sampe course", 
+        "authorname": "Nittio Admin", 
+        "grpname": "Nittio (nittio)", 
+        "updated_by_name": "Nittio Admin", 
+        "created": "2015-08-10T11:09:27", 
+        "updated": "2015-08-10T11:09:27", 
+        "published": "2015-08-10T11:09:27", 
+        "is_published": true,
+        "content": "[]", 
+        "published_content": "[]" 
+    },
+    {
+        "id": 4, 
+        "name": "Sample Course 4", 
+        "icon": "dummy_icon", 
+        "description": "This is description of sampe course", 
+        "authorname": "Nittio Admin", 
+        "grpname": "Nittio (nittio)", 
+        "updated_by_name": "Nittio Admin", 
+        "created": "2015-08-10T11:09:27", 
+        "updated": "2015-08-10T11:09:27", 
+        "published": "2015-08-10T11:09:27", 
+        "is_published": true,
+        "content": "[]", 
+        "published_content": "[]" 
+    }]
+}

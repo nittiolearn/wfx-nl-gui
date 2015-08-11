@@ -1,26 +1,24 @@
-<div id='nl-pagecanvas' ng-click='onCanvasClick($event)' ng-keydown="onKeyDown($event)" tabindex='0'>
+<div id='nl-pagecanvas' ng-click='onCanvasClick($event)' ng-keydown="onKeyDown($event)" tabindex='0'
+    ng-class='{"nl-hide":!pgInfo.isPageShown}'>
     <nav id='nl-topbar' ng-show='pgInfo.isMenuShown' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
         <a id='nl-logo' ng-href='{{homeUrl}}'>
-            <img ng-src='{{logo}}' alt='Nittio Learn' title='{{homeMenuTitle}}'/>
+            <img ng-src='{{logo}}' ng-show='logo' title='{{homeMenuTitle}}'/>
         </a>
         <span id='nl-header' class='nl-textellipsis'>{{pgInfo.pageTitle}} <small>{{pgInfo.pageSubTitle}}</small></span>
         <nav id='nl-top-menu'>
             <a href='/info/training' ng-show='logedIn'><img ng-src='{{helpMenuIcon}}' alt='Help' title='{{helpMenuTitle}}'/></a>
             <a ng-href='{{homeUrl}}'><img ng-src='{{homeMenuIcon}}' alt='Home' title='{{homeMenuTitle}}'/></a>
-            <img ng-src='{{userMenuIcon}}' alt='User' title='{{pgInfo.username}}' ng-click='onUserMenu()'/></a>
+            <img ng-src='{{userMenuIcon}}' alt='User' title='{{pgInfo.username}}' ng-click='onUserMenu($event)'/></a>
         </nav>
         <nav id='nl-user-menu' ng-show='showUserMenu'>
             <a ng-repeat='item in userMenuItems' ng-href='{{item.url}}'>
                 <img ng-src='{{item.icon}}' alt='{{item.name}}' title='{{item.title}}'/>
             </a>
         </nav>
-
     </nav>
     <div id='nl-body' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
-        <div id='nl-inner-body' ng-class="{'nl-hide':!pgInfo.isPageShown}">
             <ion-nav-view name='appContent'>
             </ion-nav-view>
-        </div>
     </div>
     <div id='statusBox' ng-show='pgInfo.statusPopup' ng-click='pgInfo.statusPopup=false'> 
         <div>{{pgInfo.statusPopup}}</div>
