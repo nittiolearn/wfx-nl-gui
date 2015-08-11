@@ -1,8 +1,9 @@
 {
     "_status": -1,
-    "_result": true, 
+    "_result": true,
     "_userInfo": {
-        "username": "", 
+    "username": "",
+        "dashboard": [],
         "groupicon": ""
     }
 }

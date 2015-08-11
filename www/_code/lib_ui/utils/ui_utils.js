@@ -6,10 +6,16 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.ui.utils', ['nl.ui.keyboard'])
+    .service('nlUi', UIService)
     .directive('nlLoading', LoadingDirective)
     .directive('nlNoCtxMenu', NoCtxMenuDirective)
     .directive('nlRetainAr', RetainArDirective);
 }
+
+//-------------------------------------------------------------------------------------------------
+var UIService = ['nl', '$window', 'nlDlg', '$parse',
+function(nl, $window, nlDlg, $parse) {
+}];
 
 //-------------------------------------------------------------------------------------------------
 var LoadingDirective = ['nl', '$window', 'nlDlg', '$parse',
@@ -46,7 +52,7 @@ function(nl, $window) {
         link: function(scope, iElem, iAttrs) {
             iElem.off('contextmenu');
             iElem.on('contextmenu', function(event) {
-                event.preventDefault();
+                if (event) event.preventDefault();
                 return false;
             });
         }

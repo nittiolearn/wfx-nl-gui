@@ -14,40 +14,23 @@ var NlConfig = ['nl',
 function(nl) {
     
     this.saveToDb = function(key, data, resolve) {
-        try {
-            var db = nl.db.get();
-            db.put('config', data, key)
-            .then(function(key) {
-                nl.log.debug('saveToDb success: ', key);
-                if (resolve) resolve();
-            }, function(e) {
-                nl.log.error('saveToDb failed: ', e);
-                if (resolve) resolve();
-            });
-        } catch (e) {
-            nl.log.error('_saveToDb exception: ', e);
-            if (resolve) resolve();
-        }
+        nl.db.put('config', data, key).then(function(key) {
+            if (resolve) resolve(true);
+        }, function(e) {
+            if (resolve) resolve(false);
+        });
     };
 
     this.loadFromDb = function(key, resolve) {
-        try {
-            var db = nl.db.get();
-            db.get('config', key)
-            .then(function(data) {
-                if (data === undefined) {
-                    resolve(null);
-                    return;
-                }
-                resolve(data);
-            }, function(e) {
-                nl.log.info('loadFromDb from db failed: ', e);
+        nl.db.get('config', key).then(function(data) {
+            if (data === undefined) {
                 resolve(null);
-            });
-        } catch (e) {
-            nl.log.error('loadFromDb exception: ', e);
+                return;
+            }
+            resolve(data);
+        }, function(e) {
             resolve(null);
-        }
+        });
     };
 }];
 

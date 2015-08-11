@@ -29,9 +29,16 @@ function(nl, nlDlg) {
                     _updateCardDimensions($scope, iElem);
                 });
             });
+            
+            $scope.onCardInternalUrlClicked = function(internalUrl) {
+				$scope.$parent.onCardInternalUrlClicked(internalUrl);
+            };
 
-            $scope.onLinkClicked = function(card, link) {
-                if (link != 'details') return;
+            $scope.onCardLinkClicked = function(card, linkid) {
+				if (linkid !== 'details') {
+					$scope.$parent.onCardLinkClicked(card, linkid);
+					return;
+				}
                 var detailsDlg = nlDlg.create($scope);
                 detailsDlg.scope.card = card;
                 detailsDlg.show('lib_ui/cards/details_dlg.html');

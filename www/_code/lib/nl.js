@@ -43,31 +43,16 @@ function(nlLog, $http, $q, $timeout, $location, $window, $rootScope) {
 
     //---------------------------------------------------------------------------------------------
     // Formatting and translating Utilities
-    var formatter = new Formatter();
+    this.fmt = new Formatter();
+
     this.t = function() {
-        return formatter.t(arguments);
+        return this.fmt.t(arguments);
     };
 
-    this.fmt1 = function(strFmt, args) {
-        return formatter.fmt1(strFmt, args);
-    };
-    
     this.fmt2 = function() {
-        return formatter.fmt2(arguments);
+        return this.fmt.fmt2(arguments);
     };
 
-    this.escape = function(input) {
-        return formatter.escape(input);
-    };
-    
-    this.fmtDate = function(d) {
-        return formatter.fmtDate(d);
-    };
-
-    this.fmtDateStr = function(dateStr) {
-        return formatter.fmtDate(dateStr);
-    };
-    
     //---------------------------------------------------------------------------------------------
     // Cache Factory
     this.createCache = function(cacheMaxSize, cacheLowWaterMark, onRemoveFn) {
@@ -117,19 +102,26 @@ function Formatter() {
         return String(input).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     };
 
-    this.fmtDateStr = function(dateStr) {
+    this.json2Date = function(dateStr) {
         // Convert date to iso 8061 format if needed (e.g. "2014-04-28 23:09:00" ==> "2014-04-28T23:09:00Z")
         if(dateStr.indexOf('Z')==-1) dateStr=dateStr.replace(' ','T')+'Z';
-        var d = new Date(dateStr);
-        if (isNaN(d.valueOf())) return dateStr;
-        return this.fmtDate(d);
+        return new Date(dateStr);
     };
-
-    this.fmtDate = function(d) {
-        return _fmt2Impl('{}-{}-{} {}:{}', [d.getFullYear(), _pad2(d.getMonth()+1), _pad2(d.getDate()), 
+    
+    this.date2Str = function(d, accurate) {
+        var ret = _fmt2Impl('{}-{}-{} {}:{}', [d.getFullYear(), _pad2(d.getMonth()+1), _pad2(d.getDate()), 
                     _pad2(d.getHours()), _pad2(d.getMinutes())]);
+        if (!accurate) return ret;
+        ret += _fmt2Impl(':{}.{}', [_pad2(d.getSeconds()), _pad3(d.getMilliseconds())]);
+        return ret;
     };
 
+    this.jsonDate2Str = function(dateStr, accurate) {
+        var d = this.json2Date(dateStr);
+        if (isNaN(d.valueOf())) return dateStr;
+        return this.date2Str(d, accurate);
+    };
+    
     function _fmt2Impl(strFmt, args) {
         var i = 0;
         return strFmt.replace(/{}/g, function() {
@@ -140,6 +132,11 @@ function Formatter() {
     function _pad2(num) {
         var s = "00" + num;
         return s.substr(s.length-2);
+    }
+
+    function _pad3(num) {
+        var s = "000" + num;
+        return s.substr(s.length-3);
     }
 }
 
@@ -178,19 +175,99 @@ function LruCache(maxSize, lowWaterMark, onRemoveFn) {
 //-------------------------------------------------------------------------------------------------
 function NlDb(nl) {
     var configSchema = { name: 'config', key: 'id', autoIncrement: false};
-    var lessonSchema = { name: 'lesson', key: 'id', autoIncrement: false};
-    var resourceSchema = { name: 'resource', key: 'id', autoIncrement: false};
-    var schema = {stores: [configSchema, lessonSchema, resourceSchema], version: 3};
-    var db = new ydn.db.Storage('nl_db', schema);
+    var schema = {stores: [configSchema], version: 4};
+    var ydnDb = new ydn.db.Storage('nl_db', schema);
+    var db = null;
     
-    this.get = function() {
-        return db;
+    this.get = function(storeName, dbId) {
+        var traceData = nl.fmt2('get {}.{}', storeName, dbId);
+        return _connectAndExecute(traceData, function() {
+            return db.get(storeName, dbId);
+        });
+    };
+
+    this.put = function(storeName, value, dbId) {
+        var traceData = nl.fmt2('put {}.{}', storeName, dbId);
+        return _connectAndExecute(traceData, function() {
+            return db.put(storeName, value, dbId);
+        });
+    };
+
+    this.clear = function() {
+        return _connectAndExecute('clear', function() {
+            return db.clear();
+        });
     };
     
-    this.clearDb = function() {
-        nl.log.warn('db.clear');
-        db.clear();
+    function _connectAndExecute(traceData, dbFn) {
+        return nl.q(function(resolve, reject) {
+            if (db !== null) return _execute(traceData, dbFn, resolve, reject);
+            ydnDb.onReady(function(e) {
+                if (db !== null) return _execute(traceData, dbFn, resolve, reject);
+                if (!e) {
+                    nl.log.info('NlDB DB is ready');
+                    db = ydnDb;
+                    return _execute(traceData, dbFn, resolve, reject);
+                }
+                if (e.target.error) nl.log.error('NlDB Error: ' + e.target.error.name + ' ' + e.target.error.message);
+                nl.log.error('NlDB Error: ', e);
+                db = new DbDummy();
+                return _execute(traceData, dbFn, resolve, reject);
+            });
+        });
     };
+
+    function _execute(traceData, dbFn, resolve, reject) {
+        try {
+            nl.log.debug('nlDb._execute enter: ', traceData);
+            dbFn().then(function(result) {
+                if (result === undefined) {
+                    nl.log.info('nlDb._execute returned undefined: ', traceData);
+                } else {
+                    nl.log.debug('nlDb._execute done: ', traceData);
+                }
+                resolve(result);
+            }, function(e) {
+                nl.log.warn('nlDb._execute error: ', traceData, e);
+                reject(e);
+            });
+        } catch (e) {
+            nl.log.error('nlDb._execute exception: ', traceData, e);
+            reject(e);
+        }
+        nl.log.debug('nlDb._execute initiated: ', traceData);
+        return true;
+    }
+    
+    // For devices where YDN-DB is not supported!
+    function DbDummy() {
+        var dbStore = {};
+        this.get = function(storeName, dbId) {
+            return nl.q(function(resolve, reject) {
+                var key = nl.fmt2('{}.{}', storeName, dbId);
+                if (!(key in dbStore)) {
+                    resolve(undefined);
+                    return;
+                }
+                resolve(dbStore[key]);
+            });
+        };
+
+        this.put = function(storeName, value, dbId) {
+            return nl.q(function(resolve, reject) {
+                var key = nl.fmt2('{}.{}', storeName, dbId);
+                dbStore[key] = value;
+                resolve(true);
+            });
+        };
+
+        this.clear = function() {
+            return nl.q(function(resolve, reject) {
+                dbStore = {};
+                resolve(true);
+            });
+        };
+    }
 }
     
 //-------------------------------------------------------------------------------------------------
@@ -243,42 +320,30 @@ function NlUrl(nl) {
                 resolve(localUrl);
                 return;
             }
-            var db = nl.db.get();
-            db.get('resource', url)
-            .then(function(resource) {
+            nl.db.get('resource', url).then(function(resource) {
                 if (resource !== undefined) {
-                    nl.log.debug('getCachedUrl found resource in db: ', url);
                     resolveResource(url, resource, resolve, nl);
                     return;
                 }
-                nl.log.debug('getCachedUrl not found resource in db: ', url);
-                loadResouceUrl(url, db, resolve);
+                loadResouceUrl(url, resolve);
             }, function(e) {
-                nl.log.debug('getCachedUrl getting resource from db failed: ', url, e);
-                loadResouceUrl(url, db, resolve);
+                loadResouceUrl(url, resolve);
             });
             nl.log.debug('getCachedUrl fired db.get', url);
         });
     };
 
-    function loadResouceUrl(url, db, resolve) {
+    function loadResouceUrl(url, resolve) {
         nl.http.get(url, {cache: false, responseType: 'blob'})
         .success(function(data, status, headers, config) {
             nl.log.debug('loadResouceUrl success: ', url, status, headers, config);
             var resource = {id:url, res:data};
-            try {
-                db.put('resource', resource, url)
-                .then(function(key) {
-                    nl.log.debug('loadResouceUrl store in DB success: ', key);
-                    resolveResource(url, resource, resolve, nl);           
-                }, function(e) {
-                    nl.log.warn('loadResouceUrl store in DB failed: ', e);
-                    resolveResource(url, resource, resolve, nl);           
-                });
-            } catch (e) {
-                nl.log.error('loadResouceUrl store in DB failed with exception: ', e);
+            nl.db.put('resource', resource, url)
+            .then(function(key) {
                 resolveResource(url, resource, resolve, nl);           
-            }
+            }, function(e) {
+                resolveResource(url, resource, resolve, nl);           
+            });
             nl.log.debug('loadResouceUrl initiated put', url);
         }).error(function(data, status, headers, config) {
             nl.log.warn('loadResouceUrl failed: ', url, data, status, headers, config);
@@ -325,7 +390,7 @@ function NlPageInfo() {
     this.pageSubTitle ='';
     this.windowTitle ='Nittio Learn';
     this.isMenuShown = true;
-    this.isPageShown = true;
+    this.isPageShown = false;
     
     this.statusPopup = false;
 }
