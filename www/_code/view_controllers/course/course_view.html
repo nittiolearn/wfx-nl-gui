@@ -1,0 +1,39 @@
+<style>
+	.nl-cv-module {
+		font-size: 100%;
+		background-color: #DDDDDD;
+		border: 1px solid #FFFFFF;
+	}
+
+	.nl-cv-module td {
+		padding: 10px;
+	}
+
+	.nl-cv-module td * {
+		vertical-align: middle;
+	}
+
+	.nl-cv-indent {
+		padding: 0 0.6em;
+	}
+	.nl-cv-module img {
+		height: 24px;
+		width: 24px;
+	}
+	.nl-cv-module td span:last-child {
+		cursor: pointer;
+	}
+	.nl-cv-odd{
+		color:red;
+	}
+</style>
+<div class='nl-thin-scroll nl-full'>
+	<table style="width:100%">
+		<tr class='nl-cv-module' ng-repeat="module in courseInfo.content" ng-show="module.visible">
+			<td><span class='nl-cv-indent' ng-repeat="x in module.indent"></span>
+				<img ng-src='{{getIcon(module)}}'></img>
+				<span ng-class-odd="'nl-cv-odd'" ng-click='onClick(module)'>{{module.name}}</span>
+			</td>
+		</tr>
+	</table>
+</div>
