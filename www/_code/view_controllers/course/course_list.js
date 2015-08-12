@@ -39,6 +39,8 @@ function(nl, nlRouter, $scope, nlCourse, nlDlg) {
 				nl.log.debug('Got courses: ', courseList.length);
 				$scope.cards = _getCourseCards(courseList);
 				resolve(true);
+			}, function(reason) {
+                resolve(false);
 			});
 		});
 	}
@@ -129,7 +131,7 @@ function(nl, nlRouter, $scope, nlCourse, nlDlg) {
 			var course = courseDict[courseId];
 			$scope.dlgTitle = nl.t('Modify course');
 			modifyDlg.scope.data = {name: course.name, icon: course.icon, 
-									description: course.description, content: angular.toJson(course.content)};
+									description: course.description, content: angular.toJson(course.content, 2)};
 		} else {
 			$scope.dlgTitle = nl.t('Create a new course');
 			modifyDlg.scope.data = {name: '', icon: '', 
@@ -141,7 +143,7 @@ function(nl, nlRouter, $scope, nlCourse, nlDlg) {
 		var saveButton = {
 			text : saveName,
 			onTap : function(e) {
-				_onCouseSave(modifyDlg, courseId, false);
+				_onCourseSave(modifyDlg, courseId, false);
 			}
 		};
 		buttons.push(saveButton);
@@ -150,7 +152,7 @@ function(nl, nlRouter, $scope, nlCourse, nlDlg) {
 			var publishButton = {
 				text : nl.t('Publish'),
 				onTap : function(e) {
-					_onCouseSave(modifyDlg, courseId, true);
+					_onCourseSave(modifyDlg, courseId, true);
 				}
 			};
 			buttons.push(publishButton);
@@ -163,7 +165,7 @@ function(nl, nlRouter, $scope, nlCourse, nlDlg) {
 			buttons, cancelButton, false);
 	}
 
-	function _onCouseSave(modifyDlg, courseId, bPublish) {
+	function _onCourseSave(modifyDlg, courseId, bPublish) {
 		nlDlg.showLoadingScreen();
 
 		var data = {
@@ -173,13 +175,13 @@ function(nl, nlRouter, $scope, nlCourse, nlDlg) {
 			content: modifyDlg.scope.data.content 
 		};
 		
-		if (courseId != null) data.id = courseId;
+		if (courseId != null) data.courseid = courseId;
 		if (bPublish) data.publish = true;
 		var crModFn = (courseId != null) ? nlCourse.courseModify: nlCourse.courseCreate;
 		crModFn(data).then(function(courseId) {
 			nlDlg.hideLoadingScreen();
 			nlDlg.popupAlert({title:'TODO', template:'Actual adjusting of cards to be implemented'});
-		});	
+        });
 	}
 
 }];
