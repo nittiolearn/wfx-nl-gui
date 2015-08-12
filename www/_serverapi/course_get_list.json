@@ -10,7 +10,7 @@
         "updated_by_name": "Nittio Admin", 
         "created": "2015-08-10T11:09:27", 
         "updated": "2015-08-10T11:09:27", 
-        "published": "2015-08-10T11:09:27", 
+        "published": null, 
         "is_published": true,
         "content": [
 			{"id":"1","name":"Month 1 Course Module - latest change","type":"module","icon":"module"},

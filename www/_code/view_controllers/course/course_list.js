@@ -46,18 +46,18 @@ function(nl, nlRouter, $scope, nlCourse, nlDlg) {
 
     $scope.onCardInternalUrlClicked = function(internalUrl) {
 		if (internalUrl === 'course_create') {
-			_createCourse();
+			_createOrModifyCourse(null);
 		}
     };
 
 	$scope.onCardLinkClicked = function(card, linkid) {
 		if (linkid === 'course_modify') {
-			_modifyCourse(card.courseId);
+			_createOrModifyCourse(card.courseId);
 		} else if (linkid === 'course_delete') {
 			_deleteCourse(card.courseId);
 		}
 	};
-	
+	$scope.select = ['hello', 'hai', 'naveen'];
 	function _getCourseCards(courseList) {
 		var cards = [];
 		_addStaticCard(cards);
@@ -89,74 +89,99 @@ function(nl, nlRouter, $scope, nlCourse, nlDlg) {
 		avps.push({attr: nl.t('Author'), val: course.authorname});
 		avps.push({attr: nl.t('Group'), val: course.grpname});
 		avps.push({attr: nl.t('Updated by'), val: course.updated_by_name});
-		avps.push({attr: nl.t('Created on'),  val: nl.fmt.jsonDate2Str(course.created)});
-		avps.push({attr: nl.t('Updated on'), val: nl.fmt.jsonDate2Str(course.updated)});
-		avps.push({attr: nl.t('Published on'), val: nl.fmt.jsonDate2Str(course.published)});
+		avps.push({attr: nl.t('Created on'),  val: _formatDate(course.created)});
+		avps.push({attr: nl.t('Updated on'), val: _formatDate(course.updated)});
+		avps.push({attr: nl.t('Published on'), val: _formatDate(course.published)});
 		avps.push({attr: nl.t('Is published?'), val: course.is_published});
 		avps.push({attr: nl.t('Description'), val: course.description});
 		return avps;
 	}
 
+	function _formatDate(jsonDate) {
+		if (jsonDate) return nl.fmt.jsonDate2Str(jsonDate);
+		return '-';
+	}
+
 	function _addStaticCard(cards) {
 		var card = {title: nl.t('Create'), 
 					icon: 'http://www.clker.com/cliparts/0/o/y/h/1/H/folder-new-th.png', 
-					urlInternal: 'course_create',
+					internalUrl: 'course_create',
 					help: nl.t('You can create a new course by clicking on this card'), 
 					children: [], style: 'nl-bg-blue'};
 		card.links = [];
 		cards.push(card);
 	}
 
-	function _createCourse() {
-		// Show the create form
-		// onTap of create button: call server api
-		// then of serverapi - _addCreatedCard
-		nlDlg.popupAlert({title:'TODO', template:'Create to be implemented'});
-	}
-	
 	function _addCreatedCard(cards) {
-		// add element to cards as well as courseDict
-		var card = {title: nl.t('Create'), 
-					icon: 'http://www.clker.com/cliparts/0/o/y/h/1/H/folder-new-th.png', 
-					urlInternal: 'course_create',
-					help: nl.t('You can create a new course by clicking on this card'), 
-					children: [], style: 'nl-bg-blue'};
-		card.links = [];
-		cards.push(card);		
 	}
 
 	function _deleteCourse(courseId) {
-		nlDlg.popupAlert({title:nl.fmt2('TODO: delete {}', courseId), 
-						template:'Delete to be implemented'});
+		nlDlg.showLoadingScreen();
+		nlCourse.courseDelete(courseId).then(function(status) {
+			nlDlg.hideLoadingScreen();
+			nlDlg.popupAlert({title:'TODO', template:'Actual adjusting of cards to be implemented'});
+		});	
 	}
 	
-	function _modifyCourse(courseId) {
-		var course = courseDict[courseId];
+	function _createOrModifyCourse(courseId) {
 		var modifyDlg = nlDlg.create($scope);
-		modifyDlg.scope.data = {name: course.name, icon: course.icon, 
-								description: course.description, content: course.content};
-		var saveButton = {
-			text : nl.t('Save'),
-			onTap : function(e) {
-				nlDlg.popupAlert({title:'TODO', template:'Actual save to be implemented'});
-			}
-		};
+		if (courseId !== null) {
+			var course = courseDict[courseId];
+			$scope.dlgTitle = nl.t('Modify course');
+			modifyDlg.scope.data = {name: course.name, icon: course.icon, 
+									description: course.description, content: angular.toJson(course.content)};
+		} else {
+			$scope.dlgTitle = nl.t('Create a new course');
+			modifyDlg.scope.data = {name: '', icon: '', 
+									description: '', content: ''};
+		}
 		
-		var publishButton = {
-			text : nl.t('Publish'),
+		var buttons = [];
+		var saveName = (courseId !== null) ? nl.t('Save') : nl.t('Create');
+		var saveButton = {
+			text : saveName,
 			onTap : function(e) {
-				e.preventDefault();
-				modifyDlg.close(false);
-				nlDlg.popupAlert({title:'TODO', tempate:'Actual publish to be implemented'});
+				_onCouseSave(modifyDlg, courseId, false);
 			}
 		};
+		buttons.push(saveButton);
+		
+		if (courseId !== null) {
+			var publishButton = {
+				text : nl.t('Publish'),
+				onTap : function(e) {
+					_onCouseSave(modifyDlg, courseId, true);
+				}
+			};
+			buttons.push(publishButton);
+		}
 
 		var cancelButton = {
 			text : nl.t('Cancel')
 		};
 		modifyDlg.show('view_controllers/course/coursecreatedlg.html',
-		[saveButton, publishButton], cancelButton,  false);
+			buttons, cancelButton, false);
 	}
+
+	function _onCouseSave(modifyDlg, courseId, bPublish) {
+		nlDlg.showLoadingScreen();
+
+		var data = {
+			name: modifyDlg.scope.data.name, 
+			icon: modifyDlg.scope.data.icon, 
+			description: modifyDlg.scope.data.description,
+			content: modifyDlg.scope.data.content 
+		};
+		
+		if (courseId != null) data.id = courseId;
+		if (bPublish) data.publish = true;
+		var crModFn = (courseId != null) ? nlCourse.courseModify: nlCourse.courseCreate;
+		crModFn(data).then(function(courseId) {
+			nlDlg.hideLoadingScreen();
+			nlDlg.popupAlert({title:'TODO', template:'Actual adjusting of cards to be implemented'});
+		});	
+	}
+
 }];
 
 module_init();
