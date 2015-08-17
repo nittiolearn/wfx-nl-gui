@@ -18,6 +18,39 @@ function module_init() {
     }]);
 }
 
+var v = 
+{
+    "isBleedingEdge": true, 
+    "allowedgroups": ["nittio", "demo", "interlaced"],
+    "favourites": [
+        {
+            "type": "modify", "id": "favourites1", 
+            "title": "Lesson 1", "desc": "Description of lesson 1", 
+            "url" : "/lesson/view/5680613487017984", 
+            "icon": "http://www.clker.com/cliparts/c/b/b/a/14395703001877181299images-th.png"
+        }, 
+        {
+            "type": "new", "id": "favourites1_child", "parentid": "favourites1", 
+            "desc": "Lesson 1", "title": "Description of lesson 1", 
+            "url" : "/lesson/search"
+        },
+        {
+            "type": "modify", "id": "favourites2", 
+            "title": "Lesson 2", "desc": "Description of lesson 2", 
+            "url" : "/lesson/search", 
+            "icon": "http://www.clker.com/cliparts/C/d/4/c/d/Q/strandball-beachball-ball-surf-green-th.png"
+        },
+        {
+            "type": "new", id": "favourites2_child", "parentid": "favourites2", 
+            "desc": "Lesson 2", "title": "Description of lesson 2", 
+            "url" : "/lesson/search"
+        },
+        {"type": "hide", "id": "wsheet"},
+        {"type": "hide", "id": "assign_desk"}
+    ]
+}
+;
+
 //-------------------------------------------------------------------------------------------------
 // Background:
 // Ionic has a code to handle 'mouseup' event (as part of scroll bar implementation) which does
