@@ -86,6 +86,27 @@ function(nl, nlDlg, nlConfig) {
         return server.post('_serverapi/course_delete.json', {courseid: courseId});
     };
     
+    this.courseGetAssignmentList = function(mine) {
+        // returns list of courseAssignmentObjects
+        return server.post('_serverapi/course_get_assignment_list.json', {mine: mine});
+    };
+
+
+    this.courseGetAssignmentReportList = function(assignid) {
+        // returns list of courseReportObjects
+        return server.post('_serverapi/course_get_assignment_report_list.json', {assignid: assignid});
+    };
+
+    this.courseGetMyReportList = function() {
+        // returns list of courseReportObjects
+        return server.post('_serverapi/course_get_my_report_list.json', {});
+    };
+
+    this.courseGetReport = function(repid, mine) {
+        // returns list of courseObjects
+        return server.post('_serverapi/course_get_report.json', {repid: repid, mine: mine});
+    };
+
     //---------------------------------------------------------------------------------------------
     // Private methods
     //---------------------------------------------------------------------------------------------

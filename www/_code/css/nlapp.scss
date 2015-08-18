@@ -163,6 +163,11 @@ $animation-duration: 200ms !default;
     //@include animation-name(nlRaiseUp);
     @include animation-duration($animation-duration);
   }
+
+  input[type='checkbox'], input[type='radio'] {
+    width: auto;
+    margin: 10px 5px;
+  }
 }
 
 /*-----------------------------------------------------------------------------------------*
@@ -200,11 +205,33 @@ $animation-duration: 200ms !default;
   width: 100%;
   td, th {
     padding: 4px;
-    border: 1px solid black;
   }
   th {
     font-weight: bold; 
   }
+}
+
+.nl-table-border {
+  td, th {
+    border: 1px solid black;
+  }
+}
+
+.nl-clickable {
+  cursor: pointer;
+  &:hover, &:focus {
+    text-decoration: underline;
+  }
+}
+
+img.nl-clickable {
+  &:hover, &:focus {
+    box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+  }
+}
+
+.nl-fixed-width {
+  font-family: Courier;
 }
 
 /*-----------------------------------------------------------------------------------------*
@@ -418,16 +445,21 @@ nl-dlg-help {
 .nl-dlg-field-value {
   text-align: left;
   padding: 4px;
-}
-
-.nl-dlg-field-value input {
-  margin: 0;
-}
-
-.nl-dlg-field-value input[type='checkbox'], .nl-dlg-field-value input[type='radio'],
-.popup-container input[type='checkbox'], .popup-container input[type='radio'] {
-  width: auto;
-  margin: 10px 5px;
+  input {
+    margin: 0;
+  }
+  input[type='checkbox'], input[type='radio'] {
+    width: auto;
+    margin: 10px 5px;
+  }
+  textarea {
+    margin: 0;
+    height: 10em;
+    resize: none;
+  }
+  textarea.small {
+    height: 5em;
+  }
 }
 
 input.nl-dlg-field-error {
@@ -571,14 +603,6 @@ a.nl-card-img:hover, a.nl-card-img:focus {
   &> img {
     float: right;
     max-height: 100px;
-  }
-  table {
-    margin: 10px 0;
-    width: 100%;
-  }
-
-  td {
-    padding: 4px;
   }
 }
 

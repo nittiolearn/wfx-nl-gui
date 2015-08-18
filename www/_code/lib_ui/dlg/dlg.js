@@ -8,7 +8,8 @@ function module_init() {
     angular.module('nl.ui.dlg', [])
     .service('nlDlg', DlgSrv)
     .directive('nlDlg', DlgDirective)
-    .directive('nlFormInput', FormInputDirective);
+    .directive('nlFormInput', FormInputDirective)
+    .directive('nlFormTextarea', FormTextareaDirective);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -47,8 +48,17 @@ function(nl, $ionicPopup, $ionicLoading) {
     this.popupConfirm = function(data) {
         nl.log.debug('Dialog.popupConfirm: ', data.title);
         data.cssClass = 'nl-dlg';
+        var okText = 'okText' in data ? data.okText : nl.t('OK');
+        var okButton = {text: okText, onTap: function(e) {
+        	return true;
+        }};
+        var cancelText = 'cancelText' in data ? data.cancelText : nl.t('Cancel');
+        var cancelButton = {text: cancelText, onTap: function(e) {
+        	return false;
+        }};
+        data.buttons = [okButton, cancelButton];
         this.hideLoadingScreen();
-        return $ionicPopup.confirm(data);        
+        return $ionicPopup.show(data);
     };
     
     this.showLoadingScreen = function(delay) {
@@ -180,17 +190,27 @@ function(nl, $window, nlKeyboardHandler) {
 //-------------------------------------------------------------------------------------------------
 var FormInputDirective = ['nl',
 function(nl) {
+    return _formFieldDirectiveImpl(nl, 'lib_ui/dlg/forminput.html');
+}];
+
+var FormTextareaDirective = ['nl',
+function(nl) {
+    return _formFieldDirectiveImpl(nl, 'lib_ui/dlg/formtextarea.html');
+}];
+
+function _formFieldDirectiveImpl(nl, templateUrl) {
     return {
         restrict: 'A',
-        templateUrl: 'lib_ui/dlg/forminput.html',
+        templateUrl: templateUrl,
         scope: {
             fieldname: '@',
             fieldmodel: '@',
             fieldtype: '@',
+            fieldcls: '@',
             tabindex: '@'
         }
     };
-}];
+}
 
 //-------------------------------------------------------------------------------------------------
 module_init();

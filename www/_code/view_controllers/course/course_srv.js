@@ -32,6 +32,22 @@ function(nl, nlServerApi) {
     this.courseDelete = function(courseId) {
     	return nlServerApi.courseDelete(courseId);
     };
+
+	this.courseGetAssignmentList = function(mine) {
+    	return nlServerApi.courseGetAssignmentList(mine);
+	};
+	
+	this.courseGetAssignmentReportList = function(assignid) {
+    	return nlServerApi.courseGetAssignmentReportList(assignid);
+	};
+	
+	this.courseGetMyReportList = function() {
+    	return nlServerApi.courseGetMyReportList();
+	};
+	
+	this.courseGetReport = function(repid, mine) {
+    	return nlServerApi.courseGetReport(repid, mine);
+	};
 }];
 
 module_init();

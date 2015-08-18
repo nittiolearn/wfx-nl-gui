@@ -116,11 +116,14 @@ function Permission(nl) {
         '/app/impersonate': {login: true, permission: 'admin_impersonate_grp', termRestriction: TR_CLOSED},
         '/app/temp': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         '/app/forum': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
-        '/app/course_list': {login: true, permission: 'course_assign', termRestriction: TR_CLOSED},
-        '/app/course_view': {login: true, permission: 'course_assign', termRestriction: TR_CLOSED},
+        '/app/course_list': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},
+        '/app/course_assign_list': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},
+		'/app/course_report_list': {login:true, permission: 'course_do', termRestriction: TR_CLOSED},
+        '/app/course_view': {login: true, permission: 'course_do', termRestriction: TR_CLOSED},
 
         // Operation permissions
-        'change_password': {login: true, permission: 'change_password', termRestriction: TR_RESTRICTED} 
+        'change_password': {login: true, permission: 'change_password', termRestriction: TR_RESTRICTED},
+        'course_assign': {login: true, permission: 'course_assign', termRestriction: TR_CLOSED} 
     };
     
     var openPages = {'/app/login_now': 1, '/app/logout_now': 1};

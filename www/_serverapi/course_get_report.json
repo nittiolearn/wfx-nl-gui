@@ -1,0 +1,111 @@
+{
+    "_status": -1,
+    "_result": {
+        "max_duration": null,
+        "student": 1,
+        "published_content": [
+            {
+                "icon": "module",
+                "type": "module",
+                "id": "1",
+                "name": "Month 1 Course Module - latest change"
+            }, {
+                "icon": "lesson",
+                "type": "lesson",
+                "id": "1.1",
+                "name": "Properties of Light",
+                "refid": 1231
+            }, {
+                "icon": "quiz",
+                "type": "lesson",
+                "id": "1.2",
+                "name": "Reflection Quiz",
+                "refid": 1232
+            }, {
+                "icon": "quiz",
+                "type": "lesson",
+                "id": "1.3",
+                "name": "Refraction Quiz",
+                "refid": 1233
+            }, {
+                "icon": "module",
+                "type": "module",
+                "id": "2",
+                "name": "Month 2 Course Module"
+            }, {
+                "icon": "lesson",
+                "type": "lesson",
+                "id": "2.1",
+                "name": "Electricity introduction",
+                "refid": 123
+            }, {
+                "icon": "module",
+                "type": "module",
+                "id": "2.2",
+                "name": "Parallel Circuit"
+            }, {
+                "icon": "lesson",
+                "type": "lesson",
+                "id": "2.2.1",
+                "name": "Parallel Circuit Introduction",
+                "refid": 1231
+            }, {
+                "icon": "quiz",
+                "type": "lesson",
+                "id": "2.2.2",
+                "name": "Parallel Circuit Quiz",
+                "refid": 1232
+            }, {
+                "icon": "lesson",
+                "type": "lesson",
+                "id": "2.3",
+                "name": "Series Circuit",
+                "refid": 123
+            }, {
+                "icon": "module",
+                "type": "module",
+                "id": "3",
+                "name": "Month 3 Course Module"
+            }
+        ],
+        "grpname": "Nittio (nittio)",
+        "not_before": null,
+        "grp": 1,
+        "courseid": 2,
+        "id": 2,
+        "icon": "http://www.clker.com/cliparts/0/e/a/b/14392452881881441371cat6-md.png",
+        "updated": "2015-08-17T11:51:33",
+        "studentname": "Nittio Admin",
+        "published": true,
+        "courseauthor": "Nittio Admin",
+        "learnmode": 2,
+        "remarks": "",
+        "name": "Sample Course1",
+        "assignid": 1,
+        "sender": 1,
+        "created": "2015-08-17T11:51:33",
+        "not_after": null,
+        "lessonReports": {
+            "1231": {
+                "started": "2015-08-17 11:52:55",
+                "completed": true,
+                "ended": "2015-08-17 11:58:23",
+                "score": 10,
+                "reportId": "2358",
+                "maxScore": 52
+            },
+            "1232": {
+                "started": "2015-08-17 11:52:55",
+                "completed": false,
+                "score": 10,
+                "reportId": "2358",
+                "maxScore": 100
+            }
+            "1233": {
+                "reportId": "2358",
+            }
+        },
+        "assigned_to": "Teachers(16 of 16 users)",
+        "sendername": "Nittio Admin"
+    }
+}
