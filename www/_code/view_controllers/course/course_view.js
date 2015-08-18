@@ -6,7 +6,7 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
 	angular.module('nl.course_view', [])
-	.config(configFn).controller('nl.courseViewCtrl', NlCourseViewCtrl);
+	.config(configFn).controller('nl.CourseViewCtrl', NlCourseViewCtrl);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -17,7 +17,7 @@ function($stateProvider, $urlRouterProvider) {
 		views : {
 			'appContent' : {
 				templateUrl : 'view_controllers/course/course_view.html',
-				controller : 'nl.courseViewCtrl'
+				controller : 'nl.CourseViewCtrl'
 			}
 		}
 	});
@@ -41,8 +41,19 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 				for(var i=0; i<content.length; i++) {
 					_initModule(content[i]);
 				}
-				nl.pginfo.pageTitle = nl.t('Course View: {}', course.name);
+				nl.pginfo.pageTitle = nl.t('Course View: {} ', course.name);
 				$scope.content = content;
+				var lessons = [];
+				$scope.lessons=[{"refid":"123","score":"100", "maxscore":"100"},
+					{"refid":"124", "score":"100", "maxscore":"100"},
+					{"refid":"125", "score":"80", "maxscore":"100"},
+					{"refid":"126", "score":"70", "maxscore":"100"},
+					{"refid":"127", "score":"50", "maxscore":"100"}
+				];
+				var statusIcon={};
+				$scope.statusIcon={
+					'stIcon': nl.url.resUrl('general/tick.png')
+				};
 				resolve(true);
 			});
 		});
@@ -51,10 +62,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 	nlRouter.initContoller($scope, '', _onPageEnter);
 
 	var _icons = {
-		//'module': nl.url.resUrl('general/cm-module.png'),
-		'module': 'http://www.clker.com/cliparts/e/9/1/5/11949844541225832782box_with_folders_nicu_bu_01.svg.thumb.png',
-		'lesson': 'http://www.clker.com/cliparts/e/3/0/f/11949896971812381266light_bulb_karl_bartel_01.svg.thumb.png',
-		'quiz': 'http://www.clker.com/cliparts/9/9/f/4/119498595413718994help-books-aj.svg_aj_ash_01.svg.thumb.png'
+		'module': nl.url.resUrl('general/cm-module.png'),
+		'lesson': nl.url.resUrl('general/cm-lesson.png'),
+		'quiz': nl.url.resUrl('general/cm-quiz.png')
 	};
 
 	$scope.getIcon = function(cm) {
@@ -66,9 +76,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 	$scope.onClick = function(cm) {
 		if (cm.type === 'lesson') {
             nl.window.location.href = nl.fmt2('/lesson/view/{}', cm.refid);
-			return;
 		}
-		_toggleModule(cm);
+		else if(cm.type === 'quiz') {
+			nl.window.location.href = nl.fmt2('/quiz/view/{}');
+		}
+		else if(cm.type === 'module') {
+			_toggleModule(cm);	
+		}
 	};
 	
 	function _initModule(cm) {
@@ -77,15 +91,29 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 		for (var j=0; j<idParts.length-1; j++) {
 			cm.indent.push(j);
 		}
+		cm.isOpen = (cm.indent.length === 0);
 		cm.visible = (cm.indent.length <= 1);
 	}
-	
+	 
 	function _toggleModule(cm) {
-		var myId = cm.id;
+		var bOpen = !cm.isOpen;
 		for (var i=0; i<$scope.content.length; i++) {
 			var m = $scope.content[i];
-			if (m.id.indexOf(myId) !== 0 || m.id === myId) continue;
-			m.visible = !m.visible;
+			if (m.id.indexOf(cm.id) !== 0) continue;
+			
+			if (m.id === cm.id) {
+				m.isOpen = bOpen;
+				m.visible = true;
+				continue;
+			} 
+			
+			if (m.indent.length === cm.indent.length + 1) {
+				m.isOpen = false;
+				m.visible = bOpen;
+				continue;
+			}
+			m.isOpen = false;
+			m.visible = false;
 		}
 	}
 }];
