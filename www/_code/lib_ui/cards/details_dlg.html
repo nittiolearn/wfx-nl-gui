@@ -4,7 +4,7 @@
         <img ng-src='{{card.icon}}' tabindex='0' autofocus></img>
         <div class='nl-details-dlg-body' ng-bind-html='card.details.help'>
         </div>
-        <table>
+        <table class='nl-table'>
             <tr ng-repeat='avp in card.details.avps' class='nl-border-bottom'>
                 <td class='nl-20'>
                 	<a ng-href='{{avp.url}}' ng-if='avp.url'>{{avp.attr}}</a>

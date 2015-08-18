@@ -1,21 +1,24 @@
+
 <div ng-show="cards" class='nl-card' ng-repeat="card in cards" ng-style="{height: h + 'px', width: w + 'px', 'font-size': fs + '%', 'margin-left': ml + 'px'}">
     <div class='nl-card-holder {{card.style}}'>
         <a ng-if='card.url' ng-href='{{card.url}}' class='nl-card-header'>{{card.title}}</a>
         <div ng-if='!card.url' class='nl-card-header'>
         	<span ng-if='card.internalUrl'
         		  ng-click='onCardInternalUrlClicked(card.internalUrl)'
-        		  ng-class='nl-clickable'>{{card.title}}</span>
+        		  class='nl-clickable'>{{card.title}}</span>
         	<span ng-if='!card.internalUrl'>{{card.title}}</span>
         </div>
 
-        <a ng-if='card.url' ng-href='{{card.url}}' class='nl-card-img'><img ng-src='{{card.icon}}' nl-no-ctx-menu nl-retain-ar></img></a>
+        <a ng-if='card.url' ng-href='{{card.url}}' class='nl-card-img'><img ng-src='{{card.icon}}' nl-no-ctx-menu></img></a>
         <div ng-if='!card.url' class='nl-card-img'>
         	<img ng-if='card.internalUrl'
         		 ng-click='onCardInternalUrlClicked(card.internalUrl)'
-        		 ng-class='nl-clickable'
+        		 class='nl-clickable'
         		 ng-src='{{card.icon}}'
         		 nl-no-ctx-menu></img>
-        	<img ng-if='!card.internalUrl'ng-src='{{card.icon}}' nl-no-ctx-menu></img>
+        	<img ng-if='!card.internalUrl'
+        		 ng-src='{{card.icon}}'
+        		 nl-no-ctx-menu></img>
         </div>
 
         <div class='nl-card-desc'>
