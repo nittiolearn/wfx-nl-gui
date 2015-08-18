@@ -37,7 +37,7 @@
                 "type": "lesson",
                 "id": "2.1",
                 "name": "Electricity introduction",
-                "refid": 123
+                "refid": 1234
             }, {
                 "icon": "module",
                 "type": "module",
@@ -48,19 +48,19 @@
                 "type": "lesson",
                 "id": "2.2.1",
                 "name": "Parallel Circuit Introduction",
-                "refid": 1231
+                "refid": 1235
             }, {
                 "icon": "quiz",
                 "type": "lesson",
                 "id": "2.2.2",
                 "name": "Parallel Circuit Quiz",
-                "refid": 1232
+                "refid": 1236
             }, {
                 "icon": "lesson",
                 "type": "lesson",
                 "id": "2.3",
                 "name": "Series Circuit",
-                "refid": 123
+                "refid": 1237
             }, {
                 "icon": "module",
                 "type": "module",
@@ -96,13 +96,34 @@
             },
             "1232": {
                 "started": "2015-08-17 11:52:55",
-                "completed": false,
+                "completed": true,
                 "score": 10,
                 "reportId": "2358",
                 "maxScore": 100
-            }
+            },
             "1233": {
+                "started": "2015-08-17 11:52:55",
+                "completed": true,
+                "score": 72,
                 "reportId": "2358",
+                "maxScore": 100
+            },
+            "1234": {
+                "started": "2015-08-17 11:52:55",
+                "completed": true,
+                "score": 65,
+                "reportId": "2358",
+                "maxScore": 110
+            },
+            "1235": {
+                "started": "2015-08-17 11:52:55",
+                "completed": false,
+                "score": 68,
+                "reportId": "2358",
+                "maxScore": 120
+            },
+            "1236": {
+                "reportId": "2358"
             }
         },
         "assigned_to": "Teachers(16 of 16 users)",

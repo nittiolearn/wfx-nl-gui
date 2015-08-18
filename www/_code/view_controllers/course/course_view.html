@@ -1,50 +1,22 @@
 <style>
-	.nl-cv-table {
-		float: left;
-	}
-	.nl-cv-module {
-		font-size: 100%;
-		background-color: #DDDDDD;
-		border: 1px solid #FFFFFF;
-	}
-	.nl-cv-module td {
-		padding: 10px;
-	}
-	.nl-cv-module td * {
-		vertical-align: middle;
-	}
 	.nl-cv-indent {
 		padding: 0 0.6em;
-	}
-	.nl-cv-module img {
-		height: 24px;
-		width: 24px;
-	}
-	.nl-lesson-details {
-		float: right;
-	}
-	.nl-lesson-details span:first-child {
-		color : #009000;
-	}
-	.nl-cv-details {
-		cursor : pointer;
-		text-decoration: underline;
 	}
 </style>
 
 <div class='nl-thin-scroll nl-full'>
-	<table style="width:90%" class="nl-cv-table">
-		<tr class='nl-cv-module' ng-repeat="cm in content" ng-show="cm.visible">
-			<td>
+	<table class="nl-table nl-table-styled">
+		<tr ng-repeat="cm in content" ng-show="cm.visible">
+			<td ng-click='onClick(cm)' class='nl-clickable'>
 				<span class='nl-cv-indent' ng-repeat="x in cm.indent"></span>
-				<img ng-src='{{getIcon(cm)}}'>
-				<span class="nl-cv-details" ng-click='onClick(cm)'>{{cm.name}}</span>
-				<span ng-repeat="lesson in lessons">
-					<span class="nl-lesson-details" ng-if='(cm.refid==lesson.refid)'>
-						<span ng-if='lesson.score===lesson.maxscore'><img ng-src='{{statusIcon.stIcon}}'></span>
-						<span ng-if='lesson.score!==lesson.maxscore'>{{lesson.score}} </span>
-					</span>
-				</span>
+				<img class='nl-icon' ng-src='{{getIcon(cm)}}'>
+				<span class="nl-cv-details">{{cm.name}}</span>
+			</td>
+			<td ng-if='showScore'>
+				<span>&nbsp;</span>
+				<img ng-if='cm.statusIcon' ng-src='{{cm.statusIcon}}'>
+				<span>&nbsp;</span>
+				<span ng-if='cm.scoreText'>{{cm.scoreText}}</span>
 			</td>
 		</tr>
 	</table>

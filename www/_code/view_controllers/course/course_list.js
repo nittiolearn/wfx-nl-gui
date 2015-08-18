@@ -200,21 +200,19 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg) {
 				url: url,
 				help: report.remarks,
 				children: []};
-		card.details = {help: card.help, avps: _getReportAvps(report)};
+		card.details = {help: card.help, avps: _getReportAvps(report, isReport)};
 		card.links = [{id: 'details', text: nl.t('details')}];
 		return card;
 	}
 
 	function  _getReportAvps(report, isReport) {
 		var assignedTo = report.assigned_to;
-		if (isReport) {
-			assignedTo = nl.fmt2('{} - {}', report.studentname, report.assigned_to);
-		}
 		var avps = [];
 		_addAvp(avps, 'Name', report.name);
 		_addAvp(avps, 'Course Author', report.courseauthor);
 		_addAvp(avps, 'Assigned by', report.sendername);
 		_addAvp(avps, 'Assigned to', assignedTo);
+		if (isReport) _addAvp(avps, 'Report of', report.studentname);
 		_addAvp(avps, 'Group', report.grpname);
 		_addAvp(avps, 'Created on', report.created, 'date');
 		_addAvp(avps, 'Updated on', report.updated, 'date');

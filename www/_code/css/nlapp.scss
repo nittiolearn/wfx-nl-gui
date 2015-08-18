@@ -206,14 +206,19 @@ $animation-duration: 200ms !default;
   td, th {
     padding: 4px;
   }
+  td *, th * {
+    vertical-align: middle;
+  }
   th {
     font-weight: bold; 
   }
 }
 
-.nl-table-border {
+.nl-table-styled {
   td, th {
-    border: 1px solid black;
+    text-align: left;
+    background-color: #EEEEFF;
+    border: 1px solid #FFFFFF;
   }
 }
 
@@ -668,7 +673,7 @@ a.nl-card-img:hover, a.nl-card-img:focus {
   text-align: right;
 }
 
-#nl-top-menu img {
+img.nl-icon, #nl-top-menu img {
   width: 24px;
   height: 24px;
   cursor: pointer;
