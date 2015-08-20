@@ -238,7 +238,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg) {
 
 	function _addStaticCard(cards) {
 		var card = {title: nl.t('Create'), 
-					icon: 'http://www.clker.com/cliparts/0/o/y/h/1/H/folder-new-th.png', 
+					icon: nl.url.resUrl('dashboard/course_create.png'), 
 					internalUrl: 'course_create',
 					help: nl.t('You can create a new course by clicking on this card'), 
 					children: [], style: 'nl-bg-blue'};
@@ -320,26 +320,28 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg) {
 			description: modifyDlg.scope.data.description,
 			content: modifyDlg.scope.data.content 
 		};
-		if (courseId !== null) modifiedData.courseId = courseId;
+		if (courseId !== null) modifiedData.courseid = courseId;
 		if (bPublish) modifiedData.publish = true;
 		var crModFn = (courseId != null) ? nlCourse.courseModify: nlCourse.courseCreate;
 		crModFn(modifiedData).then(function(course) {
 			nlDlg.hideLoadingScreen();
 		    _updateCourseForTesting(course, modifiedData);
 		    var card = _createCourseCard(course);
-			var pos = (courseId === null) ? 1 : _getCardPosition(course.courseId);
-			var delLen = (courseId === null) ? 0 : 1;
-			$scope.cards.splice(pos, delLen, card);			
+		    if (courseId !== null) {
+                var pos = _getCardPosition(course.id);
+                $scope.cards.splice(pos, 1);
+		    }
+			$scope.cards.splice(1, 0, card);			
 		});
 	}
 
 	var uniqueId = 100;
 	function _updateCourseForTesting(course, modifiedData) {
 		if (NL_SERVER_INFO.serverType !== 'local') return;
-		if ('courseId' in modifiedData) {
-			course.courseId = modifiedData.courseId;
+		if ('courseid' in modifiedData) {
+			course.id = modifiedData.courseid;
 		} else {
-			course.courseId = uniqueId++;
+			course.id = uniqueId++;
 		}
 		course.name  = modifiedData.name;
 		course.icon  = modifiedData.icon;

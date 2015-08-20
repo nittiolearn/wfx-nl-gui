@@ -33,7 +33,9 @@ function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
             nl.log.debug('HomeCtrl:onPageEnter - enter');
             nl.pginfo.pageTitle = nl.t('Home Dashboard');
             nl.pginfo.pageSubTitle = nl.fmt2('({})', userInfo.displayname);
-            $scope.cards = _getDashboardCards(userInfo);
+            var params = nl.location.search();
+            var parent = ('parent' in params) ? params.parent : null;
+            $scope.cards = _getDashboardCards(userInfo, parent);
             _eulaWarning();
             nl.log.debug('HomeCtrl:onPageEnter - done');
             resolve(true);
@@ -42,22 +44,37 @@ function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
 
     nlRouter.initContoller($scope, '', _onPageEnter);
 
-    function _getDashboardCards(userInfo) {
-        var unauthorizedItems = [];
+    function _getDashboardCards(userInfo, parent) {
+        var unauthorizedCards = parent ? [] : _getUnauthorizedCards(userInfo);
+        var mainCards = _getChildCards(userInfo.dashboard, parent);
+        var cards  = unauthorizedCards.concat(mainCards);
+        _updateDetails(cards);
+        return cards;
+    }
+
+    function _getUnauthorizedCards(userInfo) {
+        var unauthorizedCards = [];
         if (userInfo.termAccess == 'none') {
-            unauthorizedItems.push(
+            unauthorizedCards.push(
                 {title: nl.t('Access not allowed'), icon: nl.url.resUrl('dashboard/warning.png'), url: '', 
                     help: nl.t('<p>Access is not allowed from this device.</p><p>You will only be able to access the help desk from this device.</p><p>If you think this device should not be restricted, please contact your administrator.</p>'), 
                     style: 'nl-bg-red', children: []});
         } else if (userInfo.termAccess == 'restricted') {
-            unauthorizedItems.push(
+            unauthorizedCards.push(
                 {title: nl.t('Restricted access'), icon: nl.url.resUrl('dashboard/warning.png'), url: '', 
                     help: nl.t('<p>You have only restricted access from this device.</p><p>You will only be able to access few of the features.</p><p>If you think this device should not be restricted, please contact your administrator.</p>'), 
                     style: 'nl-bg-red', children: []});
         }
-        var cards  = unauthorizedItems.concat(userInfo.dashboard);
-        _updateDetails(cards);
-        return cards;
+        return unauthorizedCards;
+    }
+    
+    function _getChildCards(dashboard, parent) {
+        if (!parent) return dashboard;
+        for (var i=0; i < dashboard.length; i++) {
+            var card = dashboard[i];
+            if (card.linkId == parent) return card.children;
+        }
+        return [];
     }
 
     function _updateDetails(cards) {

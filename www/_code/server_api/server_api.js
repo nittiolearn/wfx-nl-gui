@@ -64,20 +64,20 @@ function(nl, nlDlg, nlConfig) {
         return server.post('_serverapi/course_get_list.json', {mine: mine});
     };
     
-    this.courseGet = function(courseId) {
+    this.courseGet = function(courseId, published) {
         // return: courseObject
-        return server.post('_serverapi/course_get.json', {courseid: courseId});
+        return server.post('_serverapi/course_get.json', {courseid: courseId, published: published});
     };
     
     this.courseCreate = function(data) {
         // data: name, description, icon, content
-        // return: courseId
+        // return: courseObject
         return server.post('_serverapi/course_create.json', data);
     };
     
     this.courseModify = function(data) {
         // data: courseId, name, description, icon, content, publish
-        // return: courseId
+        // return: courseObject
         return server.post('_serverapi/course_modify.json', data);
     };
     
@@ -105,6 +105,11 @@ function(nl, nlDlg, nlConfig) {
     this.courseGetReport = function(repid, mine) {
         // returns list of courseObjects
         return server.post('_serverapi/course_get_report.json', {repid: repid, mine: mine});
+    };
+
+    this.courseCreateLessonReport = function(repid, refid) {
+        // returns the updated course report object
+        return server.post('_serverapi/course_create_lesson_report.json', {repid: repid, refid: refid});
     };
 
     //---------------------------------------------------------------------------------------------

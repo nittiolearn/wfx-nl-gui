@@ -17,8 +17,8 @@ function(nl, nlServerApi) {
     	return nlServerApi.courseGetList(mine);
     };
 
-    this.courseGet = function(courseId) {
-    	return nlServerApi.courseGet(courseId);
+    this.courseGet = function(courseId, published) {
+    	return nlServerApi.courseGet(courseId, published);
     };
     
     this.courseCreate = function(data) {
@@ -48,6 +48,11 @@ function(nl, nlServerApi) {
 	this.courseGetReport = function(repid, mine) {
     	return nlServerApi.courseGetReport(repid, mine);
 	};
+
+    this.courseCreateLessonReport = function(repid, refid) {
+        return nlServerApi.courseCreateLessonReport(repid, refid);
+    };
+
 }];
 
 module_init();

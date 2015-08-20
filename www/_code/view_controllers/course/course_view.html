@@ -7,17 +7,17 @@
 <div class='nl-thin-scroll nl-full'>
 	<table class="nl-table nl-table-styled">
 		<tr ng-repeat="cm in content" ng-show="cm.visible">
-			<td ng-click='onClick(cm)' class='nl-clickable'>
-				<span class='nl-cv-indent' ng-repeat="x in cm.indent"></span>
-				<img class='nl-icon' ng-src='{{getIcon(cm)}}'>
-				<span class="nl-cv-details">{{cm.name}}</span>
+			<td ng-click='onClick(cm)' class=''>
+				<span class='nl-cv-indent' ng-repeat="x in getIndentation(cm)"></span>
+				<img class='nl-icon nl-clickable' ng-src='{{getIcon(cm)}}'>
+				<span class='nl-cv-details nl-clickable'>{{cm.name}}</span>
 			</td>
-			<td ng-if='showScore'>
-				<span>&nbsp;</span>
+			<td ng-if='showStatusIcon'>
 				<img ng-if='cm.statusIcon' ng-src='{{cm.statusIcon}}'>
-				<span>&nbsp;</span>
-				<span ng-if='cm.scoreText'>{{cm.scoreText}}</span>
 			</td>
+            <td>
+                <span ng-if='cm.statusText'>{{cm.statusText}}</span>
+            </td>
 		</tr>
 	</table>
 </div>
