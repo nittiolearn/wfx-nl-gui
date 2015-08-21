@@ -290,7 +290,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg) {
 		var saveButton = {
 			text : saveName,
 			onTap : function(e) {
-				_onCourseSave($scope, modifyDlg, courseId, false);
+				_onCourseSave(e, $scope, modifyDlg, courseId, false);
 			}
 		};
 		buttons.push(saveButton);
@@ -299,7 +299,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg) {
 			var publishButton = {
 				text : nl.t('Publish'),
 				onTap : function(e) {
-					_onCourseSave($scope, modifyDlg, courseId, true);
+					_onCourseSave(e, $scope, modifyDlg, courseId, true);
 				}
 			};
 			buttons.push(publishButton);
@@ -312,7 +312,11 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg) {
 			buttons, cancelButton, false);
 	}
 	
-	function _onCourseSave($scope, modifyDlg, courseId, bPublish) {
+	function _onCourseSave(e, $scope, modifyDlg, courseId, bPublish) {
+	    if(!_validateInputs(modifyDlg.scope)) {
+	        if(e) e.preventDefault();
+	        return;
+	    }
 		nlDlg.showLoadingScreen();
 		var modifiedData = {
 			name: modifyDlg.scope.data.name, 
@@ -335,6 +339,66 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg) {
 		});
 	}
 
+    function _validateInputs(scope) {
+        scope.error = {};
+        if(!scope.data.name) return _validateFail(scope, 'name', 'Course name is mandatory');
+        if(!scope.data.icon) return _validateFail(scope, 'icon', 'Course icon URL is mandatory');
+        if(!scope.data.content) return _validateFail(scope, 'content', 'Course content is mandatory');
+
+        try {
+            var courseContent = angular.fromJson(scope.data.content);
+            return _validateContent(scope, courseContent);            
+        } catch (error) {
+            scope.error.content = nl.t('Error parsing JSON: {}. Try http://www.jsoneditoronline.org to debug more', error.toString());
+            return false;
+        }
+    }
+
+    function _validateContent(scope, courseContent) {
+        if (!angular.isArray(courseContent)) return _validateFail(scope, 'content', 
+            'Course content is needs to be a JSON array []');
+        if (courseContent.length < 1) return _validateFail(scope, 'content', 
+            'Atleast one course module object is expected in the content');
+
+        var uniqueIds = {};
+        for(var i=0; i<courseContent.length; i++){
+            var module = courseContent[i];
+            if (!module.id) return _validateModuleFail(scope, module, '"id" is mandatory');
+            if (!module.name) return _validateModuleFail(scope, module, '"name" is mandatory');
+            if (!module.type) return _validateModuleFail(scope, module, '"type" is mandatory');
+            if (module.id in uniqueIds) return _validateModuleFail(scope, module, '"id" has to be unique');
+            uniqueIds[module.id] = module.type;
+            var parentId = _getParentId(module.id);
+            if (parentId) {
+                if (!(parentId in uniqueIds)) return _validateModuleFail(scope, module, 'parent module needs to be above this module');
+                if (uniqueIds[parentId] != 'module') return _validateModuleFail(scope, module, 'parent needs to be of type "module"');
+            }
+
+            if(module.type == 'module') continue;
+            if(module.type !== 'lesson') return _validateModuleFail(scope, module, '"type" has to be "module" or "lesson".');
+            if(!module.refid) return _validateModuleFail(scope, module, '"refid" is mandatory for "type": "lesson"');
+            if(!module.refid) return _validateModuleFail(scope, module, '"refid" is mandatory for "type": "lesson"');
+            if(!angular.isNumber(module.refid)) return _validateModuleFail(scope, module, '"refid" should be a number - not a string');
+        }
+        return true;
+    }
+    
+    function _getParentId(idStr) {
+        var parents = idStr.split('.');
+        parents.pop(); // Remove the last entry
+        return parents.join('.');
+    }
+    
+    function _validateModuleFail(scope, module, errMsg) {
+        scope.error['content'] = nl.t('{}: module - {}', nl.t(errMsg), angular.toJson(module));
+        return false;
+    }
+
+    function _validateFail(scope, attr, errMsg) {
+        scope.error[attr] = nl.t(errMsg);
+        return false;
+    }
+    
 	var uniqueId = 100;
 	function _updateCourseForTesting(course, modifiedData) {
 		if (NL_SERVER_INFO.serverType !== 'local') return;
@@ -346,7 +410,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg) {
 		course.name  = modifiedData.name;
 		course.icon  = modifiedData.icon;
 		course.description  = modifiedData.description;
-		course.content  = modifiedData.content;
+		course.content  = angular.fromJson(modifiedData.content);
 	}
 
 	function _getCardPosition(courseId) {
