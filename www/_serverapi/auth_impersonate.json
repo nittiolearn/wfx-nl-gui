@@ -1,37 +1,440 @@
 {
-    "_status": -1,
-    "_result": {"eulaWarning": "none"},
-    "_userInfo": {
-        "username": "admin.nittio",
-        "displayname": "Admin - Local Testing",
-        "termAccess": "allowed",
-        "groupicon": "",
-        "usericon": "",
-        "dashboard": [
-            {"title": "Welcome", "icon": "http://www.clker.com/cliparts/7/3/c/1/13058340101743275858friends.svg.thumb.png", "url": "", "help": "Welcome to local testing of NittioApp. You are seeing dummy elements", "children": [], "style": "nl-bg-red"},
-            {"url": "/nittioapp#/app/course_list", "icon": "/static/nittio_res_v39/dashboard/admin.png", "children": [{"url": "/nittioapp#/app/course_list", "icon": "/static/nittio_res_v39/dashboard/admin.png", "children": [], "help": "View all courses defined in the group. Assign courses to classes/users.", "title": "View published"}, {"url": "/nittioapp#/app/course_assign_list", "icon": "/static/nittio_res_v39/dashboard/admin.png", "children": [], "help": "View all assigned courses to classes/users.", "title": "View assigned"}, {"url": "/nittioapp#/app/course_list?my=1", "icon": "/static/nittio_res_v39/dashboard/admin.png", "children": [], "help": "View all courses defined by current user. Create new course. Modify or delete courses created by you. Assign courses to classes/users.", "title": "Edit courses"}, {"url": "/nittioapp#/app/course_report_list", "icon": "/static/nittio_res_v39/dashboard/admin.png", "children": [], "help": "View all courses defined by current user. Create new course. Modify or delete courses created by you. Assign courses to classes/users.", "title": "My courses"}], "help": "Define and manage courses.", "title": "Courses"},
-            {"url": "/admin_user/home#/", "icon": "/static/nittio_res_v39/dashboard/admin.png", "children": [{"url": "/admin_user/user_view#/", "icon": "/static/nittio_res_v39/dashboard/users.png", "children": [], "help": "View list of users in your group. Modify user properties.", "title": "Manage users"}, {"url": "/admin_user/user_create#/", "icon": "/static/nittio_res_v39/dashboard/cruser.png", "children": [], "help": "Create a new users.", "title": "New user"}, {"url": "/admin_user/user_bulkupdate#/", "icon": "/static/nittio_res_v39/dashboard/bulkupdate.png", "children": [], "help": "Bulk export/import of users of the group.", "title": "Bulk update"}, {"url": "/admin_group/group_view/selfadmin#/", "icon": "/static/nittio_res_v39/dashboard/admin.png", "children": [], "help": "Manage and customize group and sub-groups.", "title": "Manage group"}, {"url": "/nittioapp#/app/impersonate", "icon": "/static/nittio_res_v39/dashboard/bulkupdate.png", "children": [], "help": "Impersonate as another user", "title": "Impersonate as user"}, {"url": "/nittioapp#/app/audit", "icon": "/static/nittio_res_v39/dashboard/bulkupdate.png", "children": [], "help": "View audit logs of your group", "title": "View audit logs"}], "help": "Manage users, terminals and group properties from here.", "title": "Admin Panel"},
-            {"title": "Temp", "url": "#/app/temp", "help": "Temp page", "icon": "http://www.clker.com/cliparts/7/4/f/d/11949844781852506509desk_lamp_gerald_g._01.svg.thumb.png", "children": []},
-            {"title": "Forum", "url": "#/app/forum", "help": "Forum page", "icon": "http://www.clker.com/cliparts/X/k/g/D/F/I/forum-th.png", "children": []},
-            {"url": "/admin_group/group_view#/", "icon": "/static/nittio_res_v39/dashboard/admin.png", "children": [{"url": "/admin_group/group_view#/", "icon": "/static/nittio_res_v39/dashboard/groups.png", "children": [], "help": "View list of groups. Modify user properties.", "title": "Manage groups"}, {"url": "/admin_group/group_create#/", "icon": "/static/nittio_res_v39/dashboard/crgroup.png", "children": [], "help": "Create new group.", "title": "New group"}, {"url": "/admin_group/group_bulkupdate#/", "icon": "/static/nittio_res_v39/dashboard/bulkupdate.png", "children": [], "help": "Bulk export/import of groups.", "title": "Bulk update"}, {"url": "/nittio_admin/extras#/", "icon": "/static/nittio_res_v39/dashboard/admin.png", "children": [], "help": "Lot of extra features belonging to Nittio Admin", "title": "Extras"}], "help": "Manage groups from here.", "title": "Admin Groups"},
-            {"url": "/info/training#/", "icon": "/static/nittio_res_v39/dashboard/help.png", "children": [{"url": "/info/training#/", "icon": "/static/nittio_res_v39/dashboard/helptraining.png", "children": [], "help": "Get started using Nittio Learn - access the online traning material here.", "title": "Training resources"}, {"url": "/info/more#/", "icon": "/static/nittio_res_v39/dashboard/helpabout.png", "children": [], "help": "Basic information on what Nittio Learn is and how you can benifit from it.", "title": "About Nittio Learn"}, {"url": "/info/help_issue_new#/", "icon": "/static/nittio_res_v39/dashboard/helpcrissue.png", "children": [], "help": "Have a question? Found a bug? Report here.", "title": "Report issue or ask a question"}, {"url": "/info/eula#/", "icon": "/static/nittio_res_v39/dashboard/helpabunt.png", "children": [], "help": "See terms and conditions of Nittio Learn", "title": "Terms of service"}], "help": "Help desk provides you access to training materials and option to ask questions/report issues.", "title": "Help Desk"},
-            {"url": "/lesson/search#/", "icon": "/static/nittio_res_v39/dashboard/wsheet.png", "children": [{"url": "/lesson/search#/", "icon": "/static/nittio_res_v39/dashboard/allwsheet.png", "children": [], "help": "View lessons which are approved - search easily based on name, subject, grade, author, description and keywords. Use them to teach.", "title": "View approved"}, {"url": "/lesson/create1#/", "icon": "/static/nittio_res_v39/dashboard/crnewwsheet.png", "children": [], "help": "Create new lesson or worksheet. You can embed interactive pages like mutiple choice and match the following even in your lessons. This way you can make your class room interactive. The same lesson can be sent out as assignment for students to revise and self-learn.", "title": "Create new"}, {"url": "/lesson/my#/", "icon": "/static/nittio_res_v39/dashboard/mywsheet.png", "children": [], "help": "Manage lessons and worksheets created by you. You can edit your lessons from here.", "title": "My content"}, {"url": "/lesson/review/1#/", "icon": "/static/nittio_res_v39/dashboard/revwsheet.png", "children": [], "help": "View all lessons available for review. Send comments and interact online with the author of the lesson or worksheet.", "title": "Review"}, {"url": "/lesson/manage_approved#/", "icon": "/static/nittio_res_v39/dashboard/manwsheet.png", "children": [], "help": "Manage all approved lessons. Disapprove the lessons.", "title": "Manage approved"}, {"url": "/pagecategories/view#/", "icon": "/static/nittio_res_v39/dashboard/pagecategories.png", "children": [], "help": "View, export and import page categories. Every page in a learning app can be categorized with these pre-configured categories. These are helpful to structure information and also search for learning apps containing pages of given categories.", "title": "Page Categories"}], "help": "It is very easy to create interative and engaging lessons. The lessons and worksheet can be used for different purposes: classroom teaching, assignments, student self-learning and revision at home.", "title": "Content Corner"},
-            {"url": "/assignment/home#/", "icon": "/static/nittio_res_v39/dashboard/assign.png", "children": [{"url": "/assignment/sent_by_me#/", "icon": "/static/nittio_res_v39/dashboard/assign.png", "children": [], "help": "View all assignments you have sent out. See summary report and details. Once the student completes the assignment, results are updated in real time.", "title": "View assignment status"}, {"url": "/assignment/create#/", "icon": "/static/nittio_res_v39/dashboard/crassign.png", "children": [], "help": "Dispatch a lesson or worksheet as a assignment to whole class.", "title": "Send assignment"}, {"url": "/assignment/manage#/", "icon": "/static/nittio_res_v39/dashboard/crassign.png", "children": [], "help": "View and manage all assignments of your group", "title": "Manage assignments"}, {"url": "/assignment/assigned_to_me#/", "icon": "/static/nittio_res_v39/dashboard/newassign.png", "children": [], "help": "View new assignments - complete them.", "title": "New assignments"}, {"url": "/assignment/assigned_to_me/past#/", "icon": "/static/nittio_res_v39/dashboard/pastassign.png", "children": [], "help": "View your completed assignments.", "title": "Past assignments"}, {"url": "/assignment/shared_with_me#/", "icon": "/static/nittio_res_v39/dashboard/crassign.png", "children": [], "help": "View report created by other users which are shared with me", "title": "Reports shared with me"}], "help": "Manage your assignment from here.", "title": "Assignment Desk"}, 
-            {"url": "/reports/class_rep#/", "icon": "/static/nittio_res_v39/dashboard/reports.png", "children": [{"url": "/reportbook/view_rep_book#/", "icon": "/static/nittio_res_v39/dashboard/clsreports.png", "children": [], "help": "View the created report book.", "title": "Report Books"}, {"url": "/reports/class_rep#/", "icon": "/static/nittio_res_v39/dashboard/clsreports.png", "children": [], "help": "View class level report across subjects and students.", "title": "Class report"}, {"url": "/reports/subject_rep#/", "icon": "/static/nittio_res_v39/dashboard/subreports.png", "children": [], "help": "View subject level report across students.", "title": "Subject report"}, {"url": "/reports/student_rep#/", "icon": "/static/nittio_res_v39/dashboard/stureports.png", "children": [], "help": "View student level report across subjects.", "title": "Student report"}], "help": "View reports summarised at various levels by the Nittio Learn Smart Analytics Engine. Derive insight into the learning process.", "title": "Report Center"},
-            {"url": "/resource/myreslist#/", "icon": "/static/nittio_res_v39/dashboard/resource.png", "children": [{"url": "/resource/resadd#/", "icon": "/static/nittio_res_v39/dashboard/crresource.png", "children": [], "help": "Upload a new resource here.", "title": "Upload resource"}, {"url": "/resource/myreslist#/", "icon": "/static/nittio_res_v39/dashboard/resource.png", "children": [], "help": "View all resources you uploaded here.", "title": "My resources"}, {"url": "/resource/reslist#/", "icon": "/static/nittio_res_v39/dashboard/resource.png", "children": [], "help": "View all resources you uploaded in your group.", "title": "All resources"}], "help": "Did not find the image you are looking for? Upload new image and manage them here.", "title": "Resource Repository"}, 
-            {"url": "/book/my#/", "icon": "/static/nittio_res_v39/dashboard/wsheet.png", "children": [{"url": "/book/my#/", "icon": "/static/nittio_res_v39/dashboard/allwsheet.png", "children": [], "help": "View my books.", "title": "View books"}, {"url": "/book/create#/", "icon": "/static/nittio_res_v39/dashboard/allwsheet.png", "children": [], "help": "Create a book.", "title": "Create Book"}], "help": "View, create, modify, review and manage books. It is very easy to stick your interactive lessons and worksheets into books.", "title": "Books"}
+  "_status": -1,
+  "_result": {
+    "eulaWarning": "none"
+  },
+  "_userInfo": {
+    "username": "admin.nittio",
+    "displayname": "Nittio Admin",
+    "termAccess": "allowed",
+    "groupicon": "/static/nittio_res_v39/general/top-logo1.png",
+    "dashboard": [
+      {
+        "help": "Manage groups from here.",
+        "title": "Admin Groups",
+        "url": "/admin_group/group_view#/",
+        "linkId": "groupadmin",
+        "children": [
+          {
+            "help": "View list of groups. Modify user properties.",
+            "title": "Manage groups",
+            "url": "/admin_group/group_view#/",
+            "linkId": "admin_group",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/groups.png"
+          },
+          {
+            "help": "Create new group.",
+            "title": "New group",
+            "url": "/admin_group/group_create#/",
+            "linkId": "admin_group_create",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/crgroup.png"
+          },
+          {
+            "help": "Bulk export/import of groups.",
+            "title": "Bulk update",
+            "url": "/admin_group/group_bulkupdate#/",
+            "linkId": "admin_group_bulk",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/bulkupdate.png"
+          },
+          {
+            "help": "Lot of extra features belonging to Nittio Admin",
+            "title": "Extras",
+            "url": "/nittio_admin/extras#/",
+            "linkId": "admin_group_extras",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/admin.png"
+          }
         ],
-        "permissions": {
-            "admin_basic": true, "lesson_create": true, "view_reportbook": true, 
-            "assignment_manage": true, "lesson_approve": true, "can_autologin": false, 
-            "admin_group": true, "nittio_support": true, "admin_user": true, 
-            "access_anywhere": "Full", "lesson_print": true, "admin_impersonate_grp": true, 
-            "assignment_send": true, "assignment_do": true, "report_view": true, 
-            "report_my": false, "admin_user_bulk": true, "lesson_view": true, 
-            "lesson_review": true, "basic_access": true, "lesson_create_adv": true, 
-            "admin_impersonate_all": true, "create_reportbook": true, "change_password": true, 
-            "course_create": true, "course_assign": true, "course_review": true, "course_do": true, 
-            "admin_group_selfadmin": true, "admin_terminal": true
-        }
+        "icon": "/static/nittio_res_v39/dashboard/admin.png"
+      },
+      {
+        "help": "Help desk provides you access to training materials and option to ask questions/report issues.",
+        "title": "Help Desk",
+        "url": "/info/training#/",
+        "linkId": "help",
+        "children": [
+          {
+            "help": "Get started using Nittio Learn - access the online traning material here.",
+            "title": "Training resources",
+            "url": "/info/training#/",
+            "linkId": "help_training",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/helptraining.png"
+          },
+          {
+            "help": "Basic information on what Nittio Learn is and how you can benifit from it.",
+            "title": "About Nittio Learn",
+            "url": "/info/more#/",
+            "linkId": "help_about",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/helpabout.png"
+          },
+          {
+            "help": "Have a question? Found a bug? Report here.",
+            "title": "Report issue or ask a question",
+            "url": "/info/help_issue_new#/",
+            "linkId": "help_issue_new",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/helpcrissue.png"
+          },
+          {
+            "help": "See terms and conditions of Nittio Learn",
+            "title": "Terms of service",
+            "url": "/info/eula#/",
+            "linkId": "help_eula",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/helpabunt.png"
+          }
+        ],
+        "icon": "/static/nittio_res_v39/dashboard/help.png"
+      },
+      {
+        "help": "Do courses assigned to you. Authorized users will be able to create and manage courses from here.",
+        "title": "Courses",
+        "url": "/nittioapp#/app/course_report_list?my=1",
+        "linkId": "course",
+        "children": [
+          {
+            "help": "View all courses defined by current user. Create new course. Modify or delete courses created by you. Assign courses to classes/users.",
+            "title": "Create and edit courses",
+            "url": "/nittioapp#/app/course_list?my=1",
+            "linkId": "course_view_my",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/course.png"
+          },
+          {
+            "help": "View all courses defined in the group. Assign courses to classes/users.",
+            "title": "Published courses",
+            "url": "/nittioapp#/app/course_list",
+            "linkId": "course_view_published",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/course.png"
+          },
+          {
+            "help": "View all course assignments sent in the group. View courses reports of individual users.",
+            "title": "Course assignments",
+            "url": "/nittioapp#/app/course_assign_list",
+            "linkId": "course_view_assigned",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/course.png"
+          },
+          {
+            "help": "View all courses assigned to current user. Do the courses.",
+            "title": "My courses",
+            "url": "/nittioapp#/app/course_report_list?my=1",
+            "linkId": "course_do",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/course.png"
+          }
+        ],
+        "icon": "/static/nittio_res_v39/dashboard/course.png"
+      },
+      {
+        "help": "It is very easy to create interative and engaging lessons. The lessons and worksheet can be used for different purposes: classroom teaching, assignments, student self-learning and revision at home.",
+        "title": "Content Corner",
+        "url": "/lesson/search#/",
+        "linkId": "wsheet",
+        "children": [
+          {
+            "help": "View lessons which are approved - search easily based on name, subject, grade, author, description and keywords. Use them to teach.",
+            "title": "View approved",
+            "url": "/lesson/search#/",
+            "linkId": "ws_view_approved",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/allwsheet.png"
+          },
+          {
+            "help": "Create new lesson or worksheet. You can embed interactive pages like mutiple choice and match the following even in your lessons. This way you can make your class room interactive. The same lesson can be sent out as assignment for students to revise and self-learn.",
+            "title": "Create new",
+            "url": "/lesson/create1#/",
+            "linkId": "ws_create",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/crnewwsheet.png"
+          },
+          {
+            "help": "Manage lessons and worksheets created by you. You can edit your lessons from here.",
+            "title": "My content",
+            "url": "/lesson/my#/",
+            "linkId": "ws_my",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/mywsheet.png"
+          },
+          {
+            "help": "View all lessons available for review. Send comments and interact online with the author of the lesson or worksheet.",
+            "title": "Review",
+            "url": "/lesson/review/1#/",
+            "linkId": "ws_review",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/revwsheet.png"
+          },
+          {
+            "help": "Manage all approved lessons. Disapprove the lessons.",
+            "title": "Manage approved",
+            "url": "/lesson/manage_approved#/",
+            "linkId": "ws_manage",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/manwsheet.png"
+          },
+          {
+            "help": "View, export and import page categories. Every page in a learning app can be categorized with these pre-configured categories. These are helpful to structure information and also search for learning apps containing pages of given categories.",
+            "title": "Page Categories",
+            "url": "/pagecategories/view#/",
+            "linkId": "pagecategories",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/pagecategories.png"
+          }
+        ],
+        "icon": "/static/nittio_res_v39/dashboard/wsheet.png"
+      },
+      {
+        "help": "Manage your assignment from here.",
+        "title": "Assignment Desk",
+        "url": "/assignment/home#/",
+        "linkId": "assign_desk",
+        "children": [
+          {
+            "help": "View all assignments you have sent out. See summary report and details. Once the student completes the assignment, results are updated in real time.",
+            "title": "View assignment status",
+            "url": "/assignment/sent_by_me#/",
+            "linkId": "ad_view",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/assign.png"
+          },
+          {
+            "help": "Dispatch a lesson or worksheet as a assignment to whole class.",
+            "title": "Send assignment",
+            "url": "/assignment/create#/",
+            "linkId": "ad_create",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/crassign.png"
+          },
+          {
+            "help": "View and manage all assignments of your group",
+            "title": "Manage assignments",
+            "url": "/assignment/manage#/",
+            "linkId": "ad_manage",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/crassign.png"
+          },
+          {
+            "help": "View new assignments - complete them.",
+            "title": "New assignments",
+            "url": "/assignment/assigned_to_me#/",
+            "linkId": "ad_new",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/newassign.png"
+          },
+          {
+            "help": "View your completed assignments.",
+            "title": "Past assignments",
+            "url": "/assignment/assigned_to_me/past#/",
+            "linkId": "ad_past",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/pastassign.png"
+          },
+          {
+            "help": "View report created by other users which are shared with me",
+            "title": "Reports shared with me",
+            "url": "/assignment/shared_with_me#/",
+            "linkId": "ad_shared",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/crassign.png"
+          }
+        ],
+        "icon": "/static/nittio_res_v39/dashboard/assign.png"
+      },
+      {
+        "help": "View reports summarised at various levels by the Nittio Learn Smart Analytics Engine. Derive insight into the learning process.",
+        "title": "Report Center",
+        "url": "/reports/class_rep#/",
+        "linkId": "reports",
+        "children": [
+          {
+            "help": "View the created report book.",
+            "title": "Report Books",
+            "url": "/reportbook/view_rep_book#/",
+            "linkId": "view_rep_book",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/clsreports.png"
+          },
+          {
+            "help": "View class level report across subjects and students.",
+            "title": "Class report",
+            "url": "/reports/class_rep#/",
+            "linkId": "rep_class",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/clsreports.png"
+          },
+          {
+            "help": "View subject level report across students.",
+            "title": "Subject report",
+            "url": "/reports/subject_rep#/",
+            "linkId": "rep_sub",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/subreports.png"
+          },
+          {
+            "help": "View student level report across subjects.",
+            "title": "Student report",
+            "url": "/reports/student_rep#/",
+            "linkId": "rep_stu",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/stureports.png"
+          }
+        ],
+        "icon": "/static/nittio_res_v39/dashboard/reports.png"
+      },
+      {
+        "help": "Did not find the image you are looking for? Upload new image and manage them here.",
+        "title": "Resource Repository",
+        "url": "/resource/myreslist#/",
+        "linkId": "resources",
+        "children": [
+          {
+            "help": "Upload a new resource here.",
+            "title": "Upload resource",
+            "url": "/resource/resadd#/",
+            "linkId": "res_upload",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/crresource.png"
+          },
+          {
+            "help": "View all resources you uploaded here.",
+            "title": "My resources",
+            "url": "/resource/myreslist#/",
+            "linkId": "res_list",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/resource.png"
+          },
+          {
+            "help": "View all resources you uploaded in your group.",
+            "title": "All resources",
+            "url": "/resource/reslist#/",
+            "linkId": "res_list",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/resource.png"
+          }
+        ],
+        "icon": "/static/nittio_res_v39/dashboard/resource.png"
+      },
+      {
+        "help": "Manage users, terminals and group properties from here.",
+        "title": "Admin Panel",
+        "url": "/admin_user/home#/",
+        "linkId": "admin",
+        "children": [
+          {
+            "help": "View list of users in your group. Modify user properties.",
+            "title": "Manage users",
+            "url": "/admin_user/user_view#/",
+            "linkId": "admin_user",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/users.png"
+          },
+          {
+            "help": "Create a new users.",
+            "title": "New user",
+            "url": "/admin_user/user_create#/",
+            "linkId": "admin_user_create",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/cruser.png"
+          },
+          {
+            "help": "Bulk export/import of users of the group.",
+            "title": "Bulk update",
+            "url": "/admin_user/user_bulkupdate#/",
+            "linkId": "admin_user_bulk",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/bulkupdate.png"
+          },
+          {
+            "help": "Manage and customize group and sub-groups.",
+            "title": "Manage group",
+            "url": "/admin_group/group_view/selfadmin#/",
+            "linkId": "admin_user_subgroupview",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/admin.png"
+          },
+          {
+            "help": "View audit logs of your group",
+            "title": "View audit logs",
+            "url": "/nittioapp#/app/audit",
+            "linkId": "admin_audit_view",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/bulkupdate.png"
+          },
+          {
+            "help": "Impersonate another user - use very deligently only for debuggin issues",
+            "title": "Impersonate another user",
+            "url": "/nittioapp#/app/impersonate",
+            "linkId": "admin_impersonate",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/bulkupdate.png"
+          }
+        ],
+        "icon": "/static/nittio_res_v39/dashboard/admin.png"
+      },
+      {
+        "help": "View, create, modify, review and manage books. It is very easy to stick your interactive lessons and worksheets into books.",
+        "title": "Books",
+        "url": "/book/my#/",
+        "linkId": "book",
+        "children": [
+          {
+            "help": "View my books.",
+            "title": "View books",
+            "url": "/book/my#/",
+            "linkId": "book_my",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/allwsheet.png"
+          },
+          {
+            "help": "Create a book.",
+            "title": "Create Book",
+            "url": "/book/create#/",
+            "linkId": "book_create",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/allwsheet.png"
+          }
+        ],
+        "icon": "/static/nittio_res_v39/dashboard/wsheet.png"
+      }
+    ],
+    "usericon": "",
+    "permissions": {
+      "admin_basic": true,
+      "lesson_create": true,
+      "view_reportbook": true,
+      "assignment_manage": true,
+      "lesson_approve": true,
+      "can_autologin": false,
+      "admin_group": true,
+      "nittio_support": true,
+      "admin_user": true,
+      "access_anywhere": "Full",
+      "lesson_print": true,
+      "admin_impersonate_grp": true,
+      "assignment_send": true,
+      "assignment_do": true,
+      "report_view": true,
+      "report_my": false,
+      "admin_user_bulk": true,
+      "course_do": true,
+      "lesson_view": true,
+      "lesson_review": true,
+      "course_create": true,
+      "basic_access": true,
+      "lesson_create_adv": true,
+      "admin_impersonate_all": true,
+      "create_reportbook": true,
+      "course_assign": true,
+      "change_password": true,
+      "admin_group_selfadmin": true,
+      "admin_terminal": true,
+      "course_review": true
     }
+  }
 }
