@@ -1,0 +1,37 @@
+<a ng-if='card.url' ng-href='{{card.url}}' class='nl-card-header'>{{card.title}}</a>
+<div ng-if='!card.url' class='nl-card-header'>
+	<span ng-if='card.internalUrl'
+		  ng-click='onCardInternalUrlClicked(card.internalUrl)'
+		  class='nl-clickable'>{{card.title}}</span>
+	<span ng-if='!card.internalUrl'>{{card.title}}</span>
+</div>
+
+<a ng-if='card.url' ng-href='{{card.url}}' class='nl-card-img'><img ng-src='{{card.icon}}' nl-no-ctx-menu></img></a>
+<div ng-if='!card.url' class='nl-card-img'>
+	<img ng-if='card.internalUrl'
+		 ng-click='onCardInternalUrlClicked(card.internalUrl)'
+		 class='nl-clickable'
+		 ng-src='{{card.icon}}'
+		 nl-no-ctx-menu></img>
+	<img ng-if='!card.internalUrl'
+		 ng-src='{{card.icon}}'
+		 nl-no-ctx-menu></img>
+</div>
+
+<div class='nl-card-desc'>
+    <ul ng-show='card.children.length>0' style='background-color2: green'>
+        <li ng-repeat='child in card.children' ng-if='$index < 4'>
+            <a ng-if='child.url' ng-href='{{child.url}}'>{{child.title}}</a>
+            <span ng-if='!child.url && child.internalUrl'
+            	  ng-click='onCardInternalUrlClicked(child.internalUrl)'
+            	  ng-class='nl-clickable'>{{child.title}}
+            </span>
+            <span ng-if='!child.url && !child.internalUrl'>{{child.title}}</span>
+        </li>
+    </ul>
+    <div><b ng-if='card.children.length>4'>Click details for more</b></div>
+    <div ng-show='card.children.length==0' ng-bind-html='card.help'></div>
+</div>
+<div class='nl-card-links'>
+    <span ng-repeat='link in card.links' ng-click='onCardLinkClicked(card, link.id)'>{{link.text}}</span>
+</div>    

@@ -35,7 +35,8 @@ function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
             nl.pginfo.pageSubTitle = nl.fmt2('({})', userInfo.displayname);
             var params = nl.location.search();
             var parent = ('parent' in params) ? params.parent : null;
-            $scope.cards = _getDashboardCards(userInfo, parent);
+            $scope.cards = {};
+            $scope.cards.cardlist = _getDashboardCards(userInfo, parent);
             _eulaWarning();
             nl.log.debug('HomeCtrl:onPageEnter - done');
             resolve(true);

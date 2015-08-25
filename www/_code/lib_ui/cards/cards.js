@@ -6,10 +6,26 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.ui.cards', [])
-    .directive('nlCards', CardsDirective);
+    .service('nlCardsSrv', CardsSrv)
+    .directive('nlCards', CardsDirective)
+    .directive('nlCard', CardDirective);
 }
 
 //-------------------------------------------------------------------------------------------------
+var CardsSrv = ['nl',
+function(nl) {
+	this.getEmptyCard = function(emptyCard) {
+		var card = (emptyCard) ? emptyCard : {};
+		if (!card.title) card.title = nl.t('Nothing to display');
+		if (!card.help) card.help = nl.t('There is no data to display');
+		if (!card.icon) card.icon = nl.url.resUrl('dashboard/empty_list.png');
+		card.links = [];
+		card.style = 'nl-bg-blue';
+		card.children = [];
+		return card;
+	};
+}];
+
 var CardsDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
     return {
@@ -35,13 +51,7 @@ function(nl, nlDlg) {
             };
 
             $scope.onCardLinkClicked = function(card, linkid) {
-				if (linkid !== 'details') {
-					$scope.$parent.onCardLinkClicked(card, linkid);
-					return;
-				}
-                var detailsDlg = nlDlg.create($scope);
-                detailsDlg.scope.card = card;
-                detailsDlg.show('lib_ui/cards/details_dlg.html');
+				$scope.$parent.onCardLinkClicked(card, linkid);
             };
          }
     };
@@ -76,6 +86,32 @@ function _getCardWidth(cardsContainer) {
     return w;
 }
 
+var CardDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return {
+        restrict: 'E',
+        transclude: true,
+        templateUrl: 'lib_ui/cards/card.html',
+        scope: {
+            card: '='
+        },
+        link: function($scope, iElem, iAttrs) {
+            $scope.onCardInternalUrlClicked = function(internalUrl) {
+            	$scope.$parent.onCardInternalUrlClicked(internalUrl);
+            };
+
+            $scope.onCardLinkClicked = function(card, linkid) {
+				if (linkid !== 'details') {
+	            	$scope.$parent.onCardLinkClicked(card, linkid);
+					return;
+				}
+                var detailsDlg = nlDlg.create($scope);
+                detailsDlg.scope.card = card;
+                detailsDlg.show('lib_ui/cards/details_dlg.html');
+            };
+         }
+    };
+}];
 //-------------------------------------------------------------------------------------------------
 module_init();
 })();
