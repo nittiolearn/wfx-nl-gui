@@ -222,6 +222,10 @@ $animation-duration: 200ms !default;
   }
 }
 
+.nl-center, td.nl-center, div.nl-center, span.nl-center {
+  text-align : center;
+}
+
 .nl-clickable {
   cursor: pointer;
   &:hover, &:focus {
@@ -552,6 +556,9 @@ nl-cards {
   width: 96%;
   font-size: 130%;
   color: #000077;
+  white-space: nowrap;
+  text-overflow : ellipsis;
+  overflow : hidden;
 }
 
 .nl-card-img {
