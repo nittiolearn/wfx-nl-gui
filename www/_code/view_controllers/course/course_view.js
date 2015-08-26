@@ -74,7 +74,7 @@ function ModeHandler(nl, nlCourse, nlDlg) {
         if (this.mode === MODES.REPORT_VIEW) {
             if (!reportInfo || !reportInfo.completed) return _popupAlert('Not completed', 
                 'This learning module is not yet completed. You may view the report once it is completed.');
-            return _redirectTo('/lesson/view_report_assign/{}', reportInfo.reportId);
+            return _redirectTo('/lesson/review_report_assign/{}', reportInfo.reportId);
         }
         
         // do mode

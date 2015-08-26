@@ -135,15 +135,15 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 	}
 	
 	function _getCards(userInfo, resultList, nlCardsSrv) {
-		if (resultList.length === 0) {
-			return [_getEmptyCard(nlCardsSrv)];
-		}
 		var cards = [];
 		if (type === 'course' && my) _addStaticCard(cards);
 		for (var i = 0; i < resultList.length; i++) {
 			var card = _createCard(resultList[i], userInfo);
 			cards.push(card);
 		}
+        if (cards.length === 0) {
+            return [_getEmptyCard(nlCardsSrv)];
+        }
 		return cards;
 	}
 	
@@ -220,11 +220,12 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 		_addAvp(avps, 'Group', report.grpname);
 		_addAvp(avps, 'Created on', report.created, 'date');
 		_addAvp(avps, 'Updated on', report.updated, 'date');
-		_addAvp(avps, 'Is published?', report.is_published, 'boolean');
+		_addAvp(avps, 'Report published?', report.published, 'boolean');
 		_addAvp(avps, 'Remarks', report.remarks);
 		_addAvp(avps, 'Start time', report.not_before, 'date');
 		_addAvp(avps, 'End time', report.not_after, 'date');
-		_addAvp(avps, 'Max duration', report.max_duration);
+        _addAvp(avps, 'Max duration', report.max_duration);
+        _addAvp(avps, 'Discussion forum', report.forum, 'boolean');
 		return avps;
 	}
 
