@@ -38,11 +38,11 @@
         <p>Assume a module with "id": "1" has three lessons/quizes defined under it. Then the children's id is derived from the parent. First, second and third child id should begin with "1.". For example "id":"1.1", "id":"1.2".</p>
 <pre>[
     {"id": "1", "name": "module name", "type":"module", "icon":"module"},
-    {"id":"1.1", "name": "lesson/quiz/module", "type":"lesson/quiz/module", "icon": "lesson/quiz/module", "refid": "1234"},
-    {"id":"1.2", "name": "lesson/quiz/module", "type":"lesson/quiz/module", "icon":"lesson/quiz/module", "refid": 1234 },
-    {"id":"1.2.1", "name": "lesson/quiz/module", "type":"lesson/quiz/module", "icon":"lesson/quiz/module", "refid": 12345 },
-    {"id":"1.2.2", "name": "lesson/quiz/module", "type":"lesson/quiz/module", "icon":"lesson/quiz/module", "refid": 12346 },
-    {"id":"1.3", "name": "lesson/quiz/module", "type":"lesson/quiz/module", "icon":"lesson/quiz/module", "refid": 1235 }
+    {"id":"1.1", "name": "lesson name", "type":"lesson", "icon": "lesson", "refid": "1234"},
+    {"id":"1.2", "name": "module name", "type":"module", "icon":"module"},
+    {"id":"1.2.1", "name": "lesson name", "type":"lesson", "icon":"lesson", "refid": 12345 },
+    {"id":"1.2.2", "name": "quiz name", "type":"lesson", "icon":"quiz", "refid": 12346 },
+    {"id":"1.3", "name": "quiz name", "type":"lesson", "icon":"quiz", "refid": 1235 }
 ]</pre>
         
         <h3>Defining icons for the course modules</h3>
