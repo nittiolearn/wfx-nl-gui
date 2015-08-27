@@ -111,6 +111,19 @@ function(nl, nlDlg, nlConfig) {
         // returns the updated course report object
         return server.post('_serverapi/course_create_lesson_report.json', {repid: repid, refid: refid});
     };
+    
+    //---------------------------------------------------------------------------------------------
+    // Forum methods
+    //---------------------------------------------------------------------------------------------
+    this.forumCreateMsg = function(data) {
+        // returns list of forumMessages
+        return server.post('_serverapi/forum_create_msg.json', data);
+    };
+    
+    this.forumGetMsgs = function(data) {
+        // returns list of forumMessages
+        return server.post('_serverapi/forum_get_msgs.json', data);
+    };
 
     //---------------------------------------------------------------------------------------------
     // Private methods
