@@ -4,46 +4,62 @@
     }
     .forum-msg-new textarea {
         width: 100%;
-        height: 10em;
-        margin: 0;
+        height: 2em;
         padding: 4px;
     }
     .forum-buttons {
-        padding: 4px 4px 4px 0;
+        padding: 2px 4px 2px 2px;
     }
     .forum-msg-header {
         padding: 4px;
-        background-color: #EEEEEE;
+        background-color:#EFDFFF;
     }
     .forum-icon {
         width: 16px;
         height: 16px;   
     }
+    .forum-msg-user {
+    	color:blue;
+    }
     .forum-msg-user, .forum-msg-time, .forum-msg-buttons {
         padding: 4px;
     }
     .forum-msg-time {
-        float: right;
+    	padding:0 10px 0 0;
+        text-align: right;
     }
     .forum-msg-body {
-        padding: 4px;
+     	padding:4px;   
+    }
+    .forum-msg-title {
+    	font-size : 150%;
+    	padding : 4px;
+    	color:#333366;
+    	text-align:center;
+    	text-decoration:underline;
+    }
+    .forum-msg-text {
+    	padding:4px 4px 4px 25px;
     }
 </style>
 
 <div class='nl-thin-scroll nl-full'>
-    <div class='forum-msg-new' >
+	<div class='forum-msg-new'>
+    	<textarea ng-model='newTitle' placeholder='Type your message title'></textarea>
         <textarea ng-model='newContent' placeholder='Type your new post to the forum'></textarea>
         <div class='forum-buttons'>
-            <button ng-click='postNew()'>Post New</button>
+            <button ng-click='postNew()'> Post Message </button>
             <button ng-click='syncMessages()'>Sync</button>
         </div>
     </div>
-    <div class='forum-msg' ng-repeat='msg in msgs'>
-        <div class='forum-msg-header'>
-            <img class='forum-icon' ng-src='{{getUserIcon(msg)}}'/><span class='forum-msg-user'>{{msg.userName}}</span>
-            <span class='forum-msg-time'>{{fmtDate(msg.timestamp)}}</span>
-            <span class='forum-msg-buttons'></span>
-        </div>
-        <div class='forum-msg-body'>{{msg.text}}</div>
-    </div>
+	<div class="forum-msg-title"><b>{{title}}</b></div>
+    <table width="100%" ng-repeat='msg in msgs'>
+    	<tr class="forum-msg-header">
+    		<td class='forum-msg-user' width="40%"><img class='forum-icon' ng-src='{{getUserIcon(msg)}}'/> {{msg.authorname}} </td>
+    		<td class="forum-msg-time">{{fmtDate(msg.updated) | date:'medium'}}</td>
+    	</tr>
+    	<tr class="forum-msg-body">
+    		<td class="forum-msg-text" colspan="3">{{msg.text}}</td>
+    	</tr>
+    </table>
 </div>

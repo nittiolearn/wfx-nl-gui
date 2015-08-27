@@ -75,6 +75,11 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 			_initParams();
 			nl.pginfo.pageTitle = _getPageTitle();
 			_listingFunction().then(function(resultList) {
+				if (resultList.length === 1 && type === 'report' && assignId === 0) {
+					var url1 = nl.fmt2('/app/course_view?id={}&mode=do', resultList[0].id);
+					nl.location.url(url1);
+					return;
+				}
 				nl.log.debug('Got result: ', resultList.length);
 				$scope.cards = {};
 				$scope.cards.cardlist = _getCards(userInfo, resultList, nlCardsSrv);

@@ -1,99 +1,102 @@
 (function() {
 
-//-------------------------------------------------------------------------------------------------
-// temp.js:
-// Temp module for experimentation
-//-------------------------------------------------------------------------------------------------
-function module_init() {
-    angular.module('nl.forum', [])
-    .config(configFn)
-    .controller('nl.ForumCtrl', ForumCtrl);
-}
+	//-------------------------------------------------------------------------------------------------
+	// forum.js:
+	// Forum module for experimentation
+	//-------------------------------------------------------------------------------------------------
+	function module_init() {
+		angular.module('nl.forum', [])
+		.config(configFn).controller('nl.ForumCtrl', ForumCtrl);
+	}
 
-//-------------------------------------------------------------------------------------------------
-var configFn = ['$stateProvider', '$urlRouterProvider',
-function($stateProvider, $urlRouterProvider) {
-    $stateProvider.state('app.forum', {
-        url : '/forum',
-        views : {
-            'appContent' : {
-                templateUrl : 'view_controllers/forum/forum.html',
-                controller : 'nl.ForumCtrl'
-            }
-        }
-    });
-}];
+	//-------------------------------------------------------------------------------------------------
+	var configFn = ['$stateProvider', '$urlRouterProvider',
+	function($stateProvider, $urlRouterProvider) {
+		$stateProvider.state('app.forum', {
+			url : '/forum',
+			views : {
+				'appContent' : {
+					templateUrl : 'view_controllers/forum/forum.html',
+					controller : 'nl.ForumCtrl'
+				}
+			}
+		});
+	}];
 
-//-------------------------------------------------------------------------------------------------
-var ForumCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', '$location', 'nlDlg', 'nlLogViewer',
-function(nl, nlRouter, $scope) {
-    function _onPageEnter(userInfo) {
-        return nl.q(function(resolve, reject) {
-            nl.log.debug('ForumCtrl:onPageEnter - enter');
-            nl.pginfo.pageTitle = nl.t('Forum');
-            $scope.msgs = [];
-            var nMsgs = getRand(10, 15);
-            var d = new Date();
-            var timestamp = d.getTime() - 5*24*3600*1000; // 5 days ago
-            for(var i=0; i<nMsgs; i++) {
-                $scope.msgs.push(getRandomMessage(timestamp + (nMsgs-i)*1000*3600 + 1000*getRand(0, 3000)));
-            }
-            $scope.newContent ='';
-            nl.log.debug('ForumCtrl:onPageEnter - done');
-            resolve(true);
-        });
-    }
-    nlRouter.initContoller($scope, '', _onPageEnter);
+	//-------------------------------------------------------------------------------------------------
+	var ForumCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlServerApi',
+	function(nl, nlRouter, $scope, nlDlg, nlServerApi) {
+		var serverParams = {};
+		function _onPageEnter(userInfo) {
+			return nl.q(function(resolve, reject) {
+				var params = nl.location.search();
+				if (!('forumtype' in params) || !('refid' in params)) {
+					resolve(false);
+					return false;
+				}
+				serverParams.forumtype = params.forumtype;
+				serverParams.refid = params.refid;
+				serverParams.secid = ('secid' in params) ? params.secid : 0;
+				nlServerApi.forumGetMsgs(serverParams).then(function(forumInfo) {
+					nl.pginfo.pageTitle = forumInfo.forumName;
+					$scope.msgs = forumInfo.msgs;
+					$scope.tittle = forumInfo.msgs.title;
+					resolve(true);
+				});
+				$scope.newTitle = '';
+				$scope.newContent = '';
+			});
+		}
+		nlRouter.initContoller($scope, '', _onPageEnter);
+		$scope.fmtDate = function(msgDate) {
+			return nl.fmt.jsonDate2Str(msgDate);
+		};
 
-    $scope.fmtDate = function(d) {
-        return nl.fmt.date2Str(d);
-    };
-    
-    $scope.getUserIcon = function(msg) {
-        return nl.url.resUrl('general/top-logedin.png');
-    };
+		$scope.getUserIcon = function(msg) {
+			return nl.url.resUrl('general/top-logedin.png');
+		};
 
-    $scope.postNew = function() {
-        if ($scope.newContent === '') return;
-        var msg = {userName: 'Me', timestamp: new Date(), text: $scope.newContent};
-        $scope.msgs.splice(0, 0, msg);
-        $scope.newContent ='';
-    };
+		$scope.postNew = function() {
+			if ($scope.newTitle === '') return;
+			var params = {};
+			angular.copy(serverParams, params);
+			params.title = $scope.newTitle;
+			params.text  = $scope.newContent;
+			$scope.newContent = '';
+			$scope.newTitle = '';
+			nlServerApi.forumCreateMsg(params).then(function(forumInfo) {
+				nl.pginfo.pageTitle = forumInfo.forumName;
+				$scope.msgs = forumInfo.msgs;
+				var currDate = new Date();
+				var d = currDate;
+				var currMonth = d.getMonth();
+				currMonth+=1;
+				if(currMonth<10) currMonth = "0"+currMonth;
+				var todDate = d.getDate();
+				if(todDate<10) todDate = "0"+todDate;
+				var hour = d.getHours();
+				var minutes = d.getMinutes();
+				var seconds = d.getSeconds();
+				if(hour>=12 && minutes>0 && seconds>0){
+					if(hour === 12 || hour === 24 ) hour = "00";
+					else if(hour>12) hour = hour-12;
+				}
+				if(hour<10) hour = "0"+hour;
+				if(minutes<10) minutes = "0"+minutes;
+				currDate = d.getFullYear()+"-"+currMonth+"-"+todDate+"  "+hour+":"+minutes;
+				var msg = {authorname:'Me', title:params.title,updated:currDate , text: params.text};
+				var len=$scope.msgs.length;
+        		$scope.msgs.splice(0, 0, msg);
+		        $scope.title = params.title;
+				$scope.text = params.text;
+			});
+		};
+		
+		$scope.syncMessages = function() {
+        	var msg = {authorname: 'Admin', timestamp: new Date(), text: 'Sync is not implemented yet'};
+		};
+	}];
 
-    $scope.syncMessages = function() {
-        var msg = {userName: 'Admin', timestamp: new Date(), text: 'Sync is not implemented yet'};
-        $scope.msgs.splice(0, 0, msg);
-    };
-    
-}];
-
-var userNames = ['Uma Sivaji', 'Fadena Fransis', 'Priya K', 'Partha Roy', 'AK Singh', 'Srikamala', 'Ritu Chabra'];
-var texts = ['Possitive reinforcement methods have worked much more effectively in my class for most of the students. For some however, I needed to use some mild punishments.',
-'Power is of two kinds. One is obtained by the fear of punishment and the other by acts of love. Power based on love is a thousand times more effective and permanent then the one derived from fear of punishment.', 
-'If people are good only because they fear punishment, and hope for reward, then we are a sorry lot indeed.', 
-'Behavior management is used when an individual tries to stop problem behavior from another individual. Behavior modification and behavior therapy are two ways to help with behavior management.',
-'Positive reinforcement, negative reinforcement, positive and negative punishment are all forms of Operant Conditioning. Reinforcements are when you try to increase behavior, either positively or negatively.',
-'Abraham Maslow is a very well-known humanist psychologist with his work for hierarchy needs, in this he describes that humans have basic needs, and they are not met, that individual will not desire anything else.',
-'The highest point on Maslow’s pyramid is self-actualization which Maslow argues is the goal in which we do not reach.',
-'I prefer the carrot and stick approach.'
-];
-
-function getRandomMessage(timestamp) {
-    return {
-        userName: getRandFromArray(userNames), 
-        timestamp: new Date(timestamp), 
-        text: getRandFromArray(texts)
-    };
-}
-
-function getRandFromArray(arr) {
-    return arr[getRand(0, arr.length-1)];
-}
-
-function getRand(min, max) {
-    return min + Math.floor(Math.random()*(max-min+1));
-}
-
-//-------------------------------------------------------------------------------------------------
-module_init();
+	//-------------------------------------------------------------------------------------------------
+	module_init();
 })();
