@@ -115,11 +115,11 @@ function Permission(nl) {
         '/app/audit': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         '/app/impersonate': {login: true, permission: 'admin_impersonate_grp', termRestriction: TR_CLOSED},
         '/debug': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
-        '/app/forum': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
+        '/app/forum': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},
         '/app/course_list': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},
         '/app/course_assign_list': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},
-		'/app/course_report_list': {login:true, permission: 'course_do', termRestriction: TR_CLOSED},
-        '/app/course_view': {login: true, permission: 'course_do', termRestriction: TR_CLOSED},
+		'/app/course_report_list': {login:true, permission: 'course_do', termRestriction: TR_RESTRICTED},
+        '/app/course_view': {login: true, permission: 'course_do', termRestriction: TR_RESTRICTED},
 
         // Operation permissions
         'change_password': {login: true, permission: 'change_password', termRestriction: TR_RESTRICTED},

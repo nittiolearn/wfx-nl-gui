@@ -288,6 +288,9 @@ function NlServerInterface(nl, nlDlg, nlConfig) {
     
     function _processResponse(self, data, status, resolve, reject, noPopup) {
         nl.log.debug('_processResponse:', data, status);
+        if (data == null || data == undefined) {
+            data = {_errorMsg: nl.t('Error connecting to the server')};
+        }
         if (angular.isString(data)) {
             data = {_errorMsg: data};
         }
