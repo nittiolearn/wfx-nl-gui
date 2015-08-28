@@ -18,6 +18,7 @@ $dark:                            #444 !default;
 $nltopbar:                        #403050 !default; // Top Bar Bg-Color
 $nltopbar1:                       #807090 !default; // Top Bar Bg-Color gradiant
 $nldlgbar:                        #E06000 !default; // Dialog Box header Bg-Color
+$nlgrey:                          #EEEEFF !default; // Mild border
 
 $energized:                       $nltopbar;
 $positive:                        $nldlgbar;
@@ -103,7 +104,7 @@ body {
 textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"] {
   padding-left: 8px;
   padding-right: 8px;
-  background-color: #EEEEFF;
+  background-color: $nlgrey;
   border-radius: 4px;
   display:inline;
   margin:4px;
@@ -217,7 +218,7 @@ $animation-duration: 200ms !default;
 .nl-table-styled {
   td, th {
     text-align: left;
-    background-color: #EEEEFF;
+    background-color: $nlgrey;
     border: 1px solid #FFFFFF;
   }
 }
@@ -368,34 +369,38 @@ img.nl-clickable {
   .popup-head * {
     color: #FFFFFF;
   }
+}
 
-  .popup-buttons {
-    height: 52px;
-    min-height: 52px;
-    width: 100%;
-    padding: 8px;
-    border-top: 1px solid #D05000;
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
+.popup-buttons {
+  height: 52px;
+  min-height: 52px;
+  width: 100%;
+  padding: 8px;
+  border-top: 1px solid #D05000;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
 
-    .button {
-      text-align: center;
+  .button {
+    text-align: center;
+    color: #FFFFFF;
+    background: #D05000;
+    min-height: 36px;
+    height: 36px;
+    margin-right: 8px;
+    
+    &:last-child {
+      margin-right: 0;
+    }
+
+    &:hover, &:focus {
       color: #FFFFFF;
-      background: #D05000;
-      min-height: 36px;
-      height: 36px;
-      margin-right: 8px;
-      
-      &:last-child {
-        margin-right: 0;
-      }
-
-      &:hover, &:focus {
-        color: #FFFFFF;
-        background: #B03000;
-      }
+      background: #B03000;
     }
   }
+}
+
+.popup-buttons.no-border {
+  border-top: none;
 }
 
 .nl-dlg-title-help {
@@ -775,3 +780,55 @@ img.nl-icon, #nl-top-menu img {
 //-----------------------------------------------------------------------------------------
 // Modules under view_controllers
 //-----------------------------------------------------------------------------------------
+
+/*-----------------------------------------------------------------------------------------*
+ * forum elements
+ *-----------------------------------------------------------------------------------------*/
+.nl-forum {
+  padding: 8px;
+  .nl-forum-new {
+    border: 1px solid $nlgrey;
+    margin-bottom: 8px;
+    table, input, textarea {
+      width: 100%;
+    }
+  }
+  .nl-forum-msg {
+    .nl-forum-header {
+      margin-bottom: 4px;
+      padding: 4px;
+      background-color: $nlgrey;
+      
+      img {
+        width: 16px;
+        height: 16px;   
+      }
+
+      .nl-forum-title {
+        width: 70%;
+        font-size: 130%;
+        color: $nldlgbar;
+      }
+      .nl-forum-time {
+        text-align: right;
+      }
+    }
+    
+    .nl-forum-header-child {
+      background-color: transparent;
+      border-top: 1px solid $nlgrey;
+    }
+    
+    .nl-forum-content {
+      margin-top: 0;
+      padding: 4px;
+    }
+  }
+}
+
+/*-----------------------------------------------------------------------------------------*
+ * course_view elements
+ *-----------------------------------------------------------------------------------------*/
+.nl-cv-indent {
+    padding: 0 0.6em;
+}

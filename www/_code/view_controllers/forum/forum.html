@@ -1,65 +1,32 @@
-<style>
-    .forum-msg-new {
-        padding: 4px;
-    }
-    .forum-msg-new textarea {
-        width: 100%;
-        height: 2em;
-        padding: 4px;
-    }
-    .forum-buttons {
-        padding: 2px 4px 2px 2px;
-    }
-    .forum-msg-header {
-        padding: 4px;
-        background-color:#EFDFFF;
-    }
-    .forum-icon {
-        width: 16px;
-        height: 16px;   
-    }
-    .forum-msg-user {
-    	color:blue;
-    }
-    .forum-msg-user, .forum-msg-time, .forum-msg-buttons {
-        padding: 4px;
-    }
-    .forum-msg-time {
-    	padding:0 10px 0 0;
-        text-align: right;
-    }
-    .forum-msg-body {
-     	padding:4px;   
-    }
-    .forum-msg-title {
-    	font-size : 150%;
-    	padding : 4px;
-    	color:#333366;
-    	text-align:center;
-    	text-decoration:underline;
-    }
-    .forum-msg-text {
-    	padding:4px 4px 4px 25px;
-    }
-</style>
-
-<div class='nl-thin-scroll nl-full'>
-	<div class='forum-msg-new'>
-    	<textarea ng-model='newTitle' placeholder='Type your message title'></textarea>
-        <textarea ng-model='newContent' placeholder='Type your new post to the forum'></textarea>
-        <div class='forum-buttons'>
-            <button ng-click='postNew()'> Post Message </button>
-            <button ng-click='syncMessages()'>Sync</button>
-        </div>
+<div class='nl-thin-scroll nl-full nl-forum'>
+    <div class='popup-buttons no-border' ng-hide='postNewDlg.visible'>
+        <button ng-hide='hidePostNewButton' ng-click='showPostNewDlg()' class='button'>Post new message</button>
+        <button ng-click='showHideAllMessageDetails()' class='button'>{{showHideAllButtonName}}</button>
+        <button ng-click='refreshDataFromServer()' class='button'>Refresh</button>
     </div>
-	<div class="forum-msg-title"><b>{{title}}</b></div>
-    <table width="100%" ng-repeat='msg in msgs'>
-    	<tr class="forum-msg-header">
-    		<td class='forum-msg-user' width="40%"><img class='forum-icon' ng-src='{{getUserIcon(msg)}}'/> {{msg.authorname}} </td>
-    		<td class="forum-msg-time">{{fmtDate(msg.updated) | date:'medium'}}</td>
-    	</tr>
-    	<tr class="forum-msg-body">
-    		<td class="forum-msg-text" colspan="3">{{msg.text}}</td>
-    	</tr>
-    </table>
+    <nl-forum-input ng-show='postNewDlg.visible'></nl-forum-input>
+    <div ng-repeat='msg in msgs' class='nl-forum-msg'>
+        <div class='nl-forum-header row row-center nl-clickable'
+             ng-click='showHideMessageDetails(msg)'
+             ng-class='{"nl-forum-header-child" : msg.indentationLevel > 0}'
+             ng-hide='msg.hidden_title'>
+            <span ng-show='msg.indentationLevel != 0' class='nl-cv-indent'></span>
+            <span class='col'><img ng-src='{{getUserIcon(msg)}}'/>{{msg.authorname}}</span>
+            <span ng-show='msg.indentationLevel == 0'
+                  class='nl-forum-title col col-67'
+                  ng-bind-html='msg.title'></span>
+            <span class='nl-forum-time col'>{{fmtDate(msg.updated)}}</span>
+        </div>
+        <div class='nl-forum-content row row-center' ng-hide='msg.hidden_text'>
+            <span ng-show='msg.indentationLevel != 0' class='nl-cv-indent'></span>
+            <span class='col col-80' ng-bind-html='msg.text'></span>
+            <span ng-show='msg.indentationLevel == 0' class='col' style='text-align: right'>
+                <button ng-click='reply(msg)'>Reply</button>
+            </span>
+        </div>
+        <nl-forum-input ng-show='msg.showReplyDlg'></nl-forum-input>
+    </div>
+    <div ng-if='msgs.length == 0' class='nl-forum-msg'>
+        <h3>There is no message to display.</h3>
+    </div>
 </div>
