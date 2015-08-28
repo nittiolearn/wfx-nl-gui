@@ -34,11 +34,11 @@ function(nl, nlDlg, nlServerApi) {
     function _onPageEnter($scope, pageUrl, pageEnterFn) {
         nl.log.debug('router.onPageEnter: ', nl.location.url());
         nl.pginfo.isPageShown = false;
-        nlDlg.showLoadingScreen(200);
+        nlDlg.showLoadingScreen(0);
         var protocol = nl.location.protocol().toLowerCase();
         if (protocol.indexOf('file') >= 0) {
             nlDlg.hideLoadingScreen();
-            return; // Progress wheel keeps on spinning
+            return; // Empty page
         }
         _getUserInfo(pageUrl).then(function(userInfo) {
             nl.pginfo.username = (userInfo.username == '') ? '' : userInfo.displayname;

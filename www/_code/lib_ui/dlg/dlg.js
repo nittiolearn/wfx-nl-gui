@@ -63,7 +63,7 @@ function(nl, $ionicPopup, $ionicLoading) {
     
     this.showLoadingScreen = function(delay) {
         nl.log.debug('Dialog.showLoadingScreen: ', delay);
-        var loadingInfo = {templateUrl : 'lib_ui/utils/waiting.html', hideOnStateChange: true};
+        var loadingInfo = {templateUrl : 'lib_ui/utils/waiting.html', hideOnStateChange: false};
         if (delay !== undefined) loadingInfo.delay = delay;
         $ionicLoading.show(loadingInfo);
     };

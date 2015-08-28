@@ -235,17 +235,12 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 	}
 
 	function _addAvp(avps, fieldName, fieldValue, fmtType) {
-		if (fmtType == 'date') fieldValue = _formatDate(fieldValue);
+		if (fmtType == 'date') fieldValue = nl.fmt.jsonDate2Str(fieldValue);
 		if (fmtType == 'boolean') fieldValue = fieldValue ? nl.t('Yes') : nl.t('No');
 		if (!fieldValue) fieldValue = '-';
 		avps.push({attr: nl.t(fieldName), val: fieldValue});
 	}
 	
-	function _formatDate(jsonDate) {
-		if (jsonDate) return nl.fmt.jsonDate2Str(jsonDate);
-		return '-';
-	}
-
 	function _addStaticCard(cards) {
 		var card = {title: nl.t('Create'), 
 					icon: nl.url.resUrl('dashboard/course_create.png'), 

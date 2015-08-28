@@ -117,6 +117,7 @@ function Formatter() {
     };
 
     this.jsonDate2Str = function(dateStr, accurate) {
+        if (!dateStr) return '-';
         var d = this.json2Date(dateStr);
         if (isNaN(d.valueOf())) return dateStr;
         return this.date2Str(d, accurate);
