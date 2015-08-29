@@ -807,7 +807,6 @@ img.nl-icon, #nl-top-menu img {
       .nl-forum-title {
         width: 70%;
         font-size: 130%;
-        color: $nldlgbar;
       }
       .nl-forum-time {
         text-align: right;
@@ -817,6 +816,7 @@ img.nl-icon, #nl-top-menu img {
     .nl-forum-header-child {
       background-color: transparent;
       border-top: 1px solid $nlgrey;
+      color: blue;
     }
     
     .nl-forum-content {
