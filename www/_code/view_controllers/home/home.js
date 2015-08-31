@@ -5,7 +5,7 @@
 // home dashboard
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-    angular.module('nl.dashboard', [])
+    angular.module('nl.home', [])
     .config(configFn)
     .controller('nl.HomeCtrl', HomeCtrl);
 }

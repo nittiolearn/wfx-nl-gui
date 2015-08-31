@@ -123,6 +123,13 @@ function Formatter() {
         return this.date2Str(d, accurate);
     };
     
+	this.addAvp = function(avps, fieldName, fieldValue, fmtType) {
+		if (fmtType == 'date') fieldValue = this.jsonDate2Str(fieldValue);
+		if (fmtType == 'boolean') fieldValue = fieldValue ? nl.t('Yes') : nl.t('No');
+		if (!fieldValue) fieldValue = '-';
+		avps.push({attr: this.t(fieldName), val: fieldValue});
+	};
+	
     function _fmt2Impl(strFmt, args) {
         var i = 0;
         return strFmt.replace(/{}/g, function() {

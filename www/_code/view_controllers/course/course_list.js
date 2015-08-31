@@ -182,15 +182,15 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 	
 	function  _getCourseAvps(course) {
 		var avps = [];
-		_addAvp(avps, 'Name', course.name);
-		_addAvp(avps, 'Author', course.authorname);
-		_addAvp(avps, 'Group', course.grpname);
-		_addAvp(avps, 'Updated by', course.updated_by_name);
-		_addAvp(avps, 'Created on', course.created, 'date');
-		_addAvp(avps, 'Updated on', course.updated, 'date');
-		_addAvp(avps, 'Published on', course.published, 'date');
-		_addAvp(avps, 'Is published?', course.is_published, 'boolean');
-		_addAvp(avps, 'Description', course.description);
+		nl.fmt.addAvp(avps, 'Name', course.name);
+		nl.fmt.addAvp(avps, 'Author', course.authorname);
+		nl.fmt.addAvp(avps, 'Group', course.grpname);
+		nl.fmt.addAvp(avps, 'Updated by', course.updated_by_name);
+		nl.fmt.addAvp(avps, 'Created on', course.created, 'date');
+		nl.fmt.addAvp(avps, 'Updated on', course.updated, 'date');
+		nl.fmt.addAvp(avps, 'Published on', course.published, 'date');
+		nl.fmt.addAvp(avps, 'Is published?', course.is_published, 'boolean');
+		nl.fmt.addAvp(avps, 'Description', course.description);
 		return avps;
 	}
 
@@ -217,30 +217,23 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 	function  _getReportAvps(report, isReport) {
 		var assignedTo = report.assigned_to;
 		var avps = [];
-		_addAvp(avps, 'Name', report.name);
-		_addAvp(avps, 'Course Author', report.courseauthor);
-		_addAvp(avps, 'Assigned by', report.sendername);
-		_addAvp(avps, 'Assigned to', assignedTo);
-		if (isReport) _addAvp(avps, 'Report of', report.studentname);
-		_addAvp(avps, 'Group', report.grpname);
-		_addAvp(avps, 'Created on', report.created, 'date');
-		_addAvp(avps, 'Updated on', report.updated, 'date');
-		_addAvp(avps, 'Report published?', report.published, 'boolean');
-		_addAvp(avps, 'Remarks', report.remarks);
-		_addAvp(avps, 'Start time', report.not_before, 'date');
-		_addAvp(avps, 'End time', report.not_after, 'date');
-        _addAvp(avps, 'Max duration', report.max_duration);
-        _addAvp(avps, 'Discussion forum', report.forum, 'boolean');
+		nl.fmt.addAvp(avps, 'Name', report.name);
+		nl.fmt.addAvp(avps, 'Course Author', report.courseauthor);
+		nl.fmt.addAvp(avps, 'Assigned by', report.sendername);
+		nl.fmt.addAvp(avps, 'Assigned to', assignedTo);
+		if (isReport) nl.fmt.addAvp(avps, 'Report of', report.studentname);
+		nl.fmt.addAvp(avps, 'Group', report.grpname);
+		nl.fmt.addAvp(avps, 'Created on', report.created, 'date');
+		nl.fmt.addAvp(avps, 'Updated on', report.updated, 'date');
+		nl.fmt.addAvp(avps, 'Report published?', report.published, 'boolean');
+		nl.fmt.addAvp(avps, 'Remarks', report.remarks);
+		nl.fmt.addAvp(avps, 'Start time', report.not_before, 'date');
+		nl.fmt.addAvp(avps, 'End time', report.not_after, 'date');
+        nl.fmt.addAvp(avps, 'Max duration', report.max_duration);
+        nl.fmt.addAvp(avps, 'Discussion forum', report.forum, 'boolean');
 		return avps;
 	}
 
-	function _addAvp(avps, fieldName, fieldValue, fmtType) {
-		if (fmtType == 'date') fieldValue = nl.fmt.jsonDate2Str(fieldValue);
-		if (fmtType == 'boolean') fieldValue = fieldValue ? nl.t('Yes') : nl.t('No');
-		if (!fieldValue) fieldValue = '-';
-		avps.push({attr: nl.t(fieldName), val: fieldValue});
-	}
-	
 	function _addStaticCard(cards) {
 		var card = {title: nl.t('Create'), 
 					icon: nl.url.resUrl('dashboard/course_create.png'), 
