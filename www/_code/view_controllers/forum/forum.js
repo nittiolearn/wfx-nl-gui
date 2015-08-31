@@ -241,7 +241,7 @@ function MessageManager(nl) {
             if (groupSort !== 0) return groupSort;
             var levelSort = a.indentationLevel - b.indentationLevel;
             if (levelSort !== 0) return levelSort;
-            return (b.sortKey - a.sortKey);
+            return (a.sortKey - b.sortKey);
         });
     }
     
