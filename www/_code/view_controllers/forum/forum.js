@@ -35,8 +35,8 @@ function(nl) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var ForumCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlServerApi',
-function(nl, nlRouter, $scope, nlDlg, nlServerApi) {
+var ForumCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlServerApi', 'nlMarkup',
+function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
 	var serverParams = {};
 	var messageMgr = new MessageManager(nl);
 	
@@ -132,6 +132,8 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi) {
             msgs[i].hidden_title = (msgs[i].indentationLevel) ? !bShow : false;
             msgs[i].hidden_text = !bShow;
             msgs[i].showReplyDlg = false;
+            var retData = {lessPara: true};
+            msgs[i].htmlMarkup = nlMarkup.getHtml(msgs[i].text, retData);
         }
         $scope.expanded = bShow;
         $scope.showHideAllButtonName = $scope.expanded ? nl.t('Colapse all') : nl.t('Expand all');

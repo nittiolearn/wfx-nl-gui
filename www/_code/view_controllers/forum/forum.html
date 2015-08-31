@@ -6,20 +6,20 @@
     </div>
     <nl-forum-input ng-show='postNewDlg.visible'></nl-forum-input>
     <div ng-repeat='msg in msgs' class='nl-forum-msg'>
-        <div class='nl-forum-header row row-center nl-clickable'
+        <div class='nl-forum-header row row-center'
              ng-click='showHideMessageDetails(msg)'
              ng-class='{"nl-forum-header-child" : msg.indentationLevel > 0}'
              ng-hide='msg.hidden_title'>
             <span ng-show='msg.indentationLevel != 0' class='nl-cv-indent'></span>
-            <span class='col'><img ng-src='{{getUserIcon(msg)}}'/>{{msg.authorname}}</span>
+            <span class='col'><img ng-src='{{getUserIcon(msg)}}'/> <span class='nl-clickable'>{{msg.authorname}}</span></span>
             <span ng-show='msg.indentationLevel == 0'
-                  class='nl-forum-title col col-67'
+                  class='nl-forum-title nl-clickable col col-67'
                   ng-bind-html='msg.title'></span>
             <span class='nl-forum-time col'>{{fmtDate(msg.updated)}}</span>
         </div>
         <div class='nl-forum-content row row-center' ng-hide='msg.hidden_text'>
             <span ng-show='msg.indentationLevel != 0' class='nl-cv-indent'></span>
-            <span class='col col-80' ng-bind-html='msg.text'></span>
+            <span class='col col-80' ng-bind-html='msg.htmlMarkup'></span>
             <span ng-show='msg.indentationLevel == 0' class='col' style='text-align: right'>
                 <button ng-click='reply(msg)'>Reply</button>
             </span>
