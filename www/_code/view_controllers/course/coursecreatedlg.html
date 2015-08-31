@@ -1,29 +1,29 @@
 <nl-dlg title='{{dlgTitle}}'>
     <nl-dlg-help>
-        <p><b>Define the course properties.</b></p>
+        <p><b>Define the course properties</b></p>
         <ul>
             <li><b>name:</b> Mandatory - enter a name for your course.</li>
             <li><b>image:</b> Mandatory - enter a URL for the course icon that will be displayed when this course is searched.</li>
             <li><b>description:</b> Provide a short description which will help others in the group to understand the purpose of this course.</li>
-            <li><b>content:</b> Mandatory - course content in JSON format(look following format for reference).</li>
+            <li><b>content:</b> Mandatory - course content in JSON format. The format for the course content is described below.</li>
         </ul>
         
         <h2>Course content JSON format</h2>
-        <p>Course is an array of course modules. Each course module describes a lesson, a quiz or a module/folder which futher containes lessons, quizes and modules.</p>
+        <p>Course is an array of course-modules. Each course-module describes a lesson, a quiz or a module/folder which futher containes lessons, quizes and modules.</p>
         <p><b>Hint:</b> <a href='http://www.jsoneditoronline.org/'>http://www.jsoneditoronline.org/</a> provides a good tool for editing JSON strings.</p>
 
-        <h3>Attribures of course module</h3>
-        <p>Ever course module must contain the attributes "id", "name" and "type". "id" unniquely indentifies the course-module. All these attributes are strings. Example:</p>
+        <h3>Attribures of course-module</h3>
+        <p>Every course-module must contain the attributes "id", "name" and "type". "id" uniquely indentifies the course-module. All these attributes are strings. Example:</p>
 <pre>[
-  {"id": "1", "name": "course module sample 1", "type": "module"},
-  {"id": "2", "name": "course module sample 2", "type": "module"}
+  {"id": "1", "name": "course-module sample 1", "type": "module"},
+  {"id": "2", "name": "course-module sample 2", "type": "module"}
 ]</pre>
 
-        <h3>Course module types</h3>
-        <p>Each course module can be of type "module" or a "lesson".<p></p>
+        <h3>Course-module types</h3>
+        <p>Each course-module can be of type "module" or a "lesson".<p></p>
         <ul>
-            <li>"lesson" is a leaf node in the tree. Clicking on this will open the lesson. When defining a couse-module of "type": "lesson", the attribute "refid" needs to be provided. This is the lessonid if the lesson to be launched when clicking on the link.</li>
-            <li>"module" is just a container/folder within the course to organize set of other modules and lessons.</li>
+            <li>"lesson" is a leaf node in the tree. Clicking on this will open the lesson. When defining a couse-module of "type": "lesson", the attribute "refid" needs to be provided. This is the lessonid of the lesson to be launched when the link is clicked.</li>
+            <li>"module" is a container/folder within the course to organize set of other modules and lessons.</li>
         </ul>
 <pre>[
   {"id": "lesson1", "name": "Lesson 1", "type": "lesson", "refid": 1231},
@@ -45,7 +45,7 @@
     {"id":"1.3", "name": "quiz name", "type":"lesson", "icon":"quiz", "refid": 1235 }
 ]</pre>
         
-        <h3>Defining icons for the course modules</h3>
+        <h3>Defining icons for the course-modules</h3>
         <p>"icon" field is not mandatory to be specified. By default, the icon is chosen depending on the "type".</p>
         <p>Course icon can be customised by providing an image url. Three predefined icons are provided: "module", "lesson" and "quiz" which may be used instead of specifying full icon url.</p>
 <pre>[
