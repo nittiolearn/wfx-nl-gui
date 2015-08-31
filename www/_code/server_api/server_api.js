@@ -124,6 +124,31 @@ function(nl, nlDlg, nlConfig) {
         // returns list of forumMessages
         return server.post('_serverapi/forum_get_msgs.json', data);
     };
+    
+    //---------------------------------------------------------------------------------------------
+    // Dashboard customization methods
+    //---------------------------------------------------------------------------------------------
+    this.dashboardGetList = function(mine) {
+        // return: list of dashboardObjects
+        return server.post('_serverapi/dashboard_get_list.json', {mine : mine});
+    };
+    
+	this.dashboardCreate = function(data) {
+        // data: description, content
+        // return: new dashboardObject
+        return server.post('_serverapi/dashboard_create.json', data);
+    };
+    
+    this.dashboardModify = function(data) {
+        // data: dbid, description, content, publish
+        // return: modified dashboardObject
+        return server.post('_serverapi/dashboard_modify.json', data);
+    };
+    
+    this.dashboardDelete = function(dbid) {
+        // returns true/false
+        return server.post('_serverapi/dashboard_delete.json', {dbid: dbid});
+    };
 
     //---------------------------------------------------------------------------------------------
     // Private methods
