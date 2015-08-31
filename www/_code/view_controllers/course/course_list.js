@@ -354,7 +354,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 
     function _validateContent(scope, courseContent) {
         if (!angular.isArray(courseContent)) return _validateFail(scope, 'content', 
-            'Course content is needs to be a JSON array []');
+            'Course content needs to be a JSON array []');
         if (courseContent.length < 1) return _validateFail(scope, 'content', 
             'Atleast one course module object is expected in the content');
 

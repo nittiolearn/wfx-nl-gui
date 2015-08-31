@@ -125,9 +125,9 @@ function Formatter() {
     
 	this.addAvp = function(avps, fieldName, fieldValue, fmtType) {
 		if (fmtType == 'date') fieldValue = this.jsonDate2Str(fieldValue);
-		if (fmtType == 'boolean') fieldValue = fieldValue ? nl.t('Yes') : nl.t('No');
+		if (fmtType == 'boolean') fieldValue = fieldValue ? this.t(['Yes']) : this.t(['No']);
 		if (!fieldValue) fieldValue = '-';
-		avps.push({attr: this.t(fieldName), val: fieldValue});
+		avps.push({attr: this.t([fieldName]), val: fieldValue});
 	};
 	
     function _fmt2Impl(strFmt, args) {
