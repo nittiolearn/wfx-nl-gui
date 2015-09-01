@@ -45,7 +45,51 @@
             <tr><td>logedin</td><td></td><td></td><td>No action. Can be accessed after login.</td></tr>
             <tr><td>restricted</td><td></td><td></td><td>No action. Can be accessed after login from restricted terminal.</td></tr>
             <tr><td>authorized</td><td></td><td></td><td>No action. Can be accessed after login from authorhized terminal.</td></tr>
-            <tr><td>grpadmin.view</td><td>/admin_group/group_view/</td><td>admin_group</td><td></td></tr>
+            <tr><td>grpadmin.view</td><td>/admin_group/group_view/</td><td>admin_group</td><td>Group administration only for admin.nittio</td></tr>
+            <tr><td>grpadmin.create</td><td>/admin_group/group_create/</td><td>admin_group</td><td></td></tr>
+            <tr><td>grpadmin.bulk</td><td>/admin_group/group_bulkupdate/</td><td>admin_group</td><td></td></tr>
+            <tr><td>grpadmin.extras</td><td>/nittio_admin/extras/</td><td>admin_group</td><td></td></tr>
+            <tr><td>help.training</td><td>/info/training/</td><td>basic_access</td><td>Help card is accessible for all logged in users.</td></tr>
+            <tr><td> help.about </td><td>/info/more/</td><td> </td><td>Accessible for even if no user is logged in</td></tr>
+            <tr><td> help.issue </td><td>/info/help_issue_new/</td><td> basic_access</td><td></td></tr>
+            <tr><td> help.eula </td><td>/info/eula/</td><td> basic_access</td><td></td></tr>
+            <tr><td> mentor_desk.mentor </td><td>/nittioapp#/app/forum?forumtype=1&refid=0</td><td> #is_mentor </td><td>Mentor view</td></tr>
+            <tr><td> mentor_desk.mentee</td><td>/nittioapp#/app/forum?forumtype=1&refid=1</td><td> #is_mentee </td><td>Mentee view - accessible from restricted terminals as well</td></tr>
+            <tr><td> course.view_my</td><td>/nittioapp#/app/course_list?my=1</td><td> course_review </td><td>Course card items</td></tr>
+			<tr><td> course.view_published</td><td>/nittioapp#/app/course_list</td><td> </td><td></td></tr>
+			<tr><td> course.view_assigned</td><td>/nittioapp#/app/course_assign_list</td><td> course_review </td><td></td></tr>
+			<tr><td> course.view_do</td><td>/nittioapp#/app/course_list?my=1</td><td> course_do</td><td>Accessible from restricted terminals as well</td></tr>
+			<tr><td> lesson.view_approved </td><td>/lesson/search/</td><td>basic_access</td><td></td></tr>
+			<tr><td> lesson.create</td><td>/lesson/create1/</td><td>lesson_create</td><td></td></tr>
+			<tr><td> lesson.my</td><td>/lesson/my/</td><td>lesson_create</td><td></td></tr>
+			<tr><td> lesson.review</td><td>/lesson/review/{}.format(mlesson.REV_STATE_OPEN)</td><td>learn_review</td><td></td></tr>
+			<tr><td> lesson.manage</td><td>/lesson/manage_approved/</td><td>lesson_approve</td><td></td></tr>
+			<tr><td> lesson.pagecategories</td><td>/ pagecategories /view/</td><td>lesson_create</td><td></td></tr>
+			<tr><td>assign_desk</td><td> /assignment/home/</td><td> basic_access</td><td>Assignment desk items</td></tr>
+			<tr><td>assign_desk.view</td><td> /assignment/sent_by_me/</td><td> assignment_send</td><td></td></tr>
+			<tr><td>assign_desk.create</td><td> /assignment/create/</td><td> assignment_send</td><td></td></tr>
+			<tr><td>assign_desk.manage</td><td> /assignment/manage/</td><td> assignment_manage</td><td></td></tr>
+			<tr><td>assign_desk.new</td><td> /assignment/assigned_to_me/</td><td> assignment_do</td><td>Accessible from restricted terminals as well</td></tr>
+			<tr><td>assign_desk.past</td><td> /assignment/assigned_to_me/</td><td> assignment_do</td><td>Accessible from restricted terminals as well</td></tr>
+			<tr><td>assign_desk.shared</td><td> /assignment/shared_with_me/</td><td> basic_access</td><td></td></tr>
+			<tr><td>reports.view_rep_book</td><td>/reportbook/view_rep_book/</td><td>view_reportbook</td><td>Report card</td></tr>
+			<tr><td>reports.rep_class</td><td>/reports/class_rep/</td><td>report_view</td><td></td></tr>
+			<tr><td>reports.rep_sub</td><td>/reports/subject_rep /</td><td>report_view</td><td></td></tr>
+			<tr><td>reports.rep_stu</td><td>/reports/student_rep/</td><td>report_view</td><td></td></tr>
+			<tr><td>reports.stu_my</td><td>/reports/student_view/</td><td>report_my</td><td></td></tr>
+			<tr><td>res.upload</td><td>/resource/resadd/</td><td>lesson_create</td><td>Resouce card</td></tr>
+			<tr><td>res.my</td><td>/resource/myreslist/</td><td>lesson_create</td><td></td></tr>
+			<tr><td>res.list</td><td>/resource/reslist/</td><td>admin_user</td><td></td></tr>
+			<tr><td>admin</td><td>/admin_user/home/</td><td>admin_basic</td><td>User administration accessible for all group admins</td></tr>
+			<tr><td>admin.view</td><td>/admin_user/user_view/</td><td>admin_user</td><td></td></tr>
+			<tr><td>admin.create</td><td>/admin_user/user_create/</td><td>admin_user</td><td></td></tr>
+			<tr><td>admin.bulk</td><td>/admin_user/user_bulkupdate/</td><td>admin_user_bulk</td><td></td></tr>
+			<tr><td>admin.termauth</td><td>/admin_user/term_authorization/</td><td>admin_terminal</td><td></td></tr>
+			<tr><td>admin.subgroupview</td><td>/admin_group/group_view/selfadmin</td><td>and:admin_group_selfadmin,#is_parent_group</td><td></td></tr>
+			<tr><td>admin.audit</td><td>/nittioapp#/app/audit</td><td>admin_user</td><td></td></tr>
+			<tr><td>admin.custom_dashboards</td><td>/nittioapp#/app/dashboard?my=0</td><td>admin_user</td><td></td></tr>
+			<tr><td>admin.custom_dashboards_my</td><td>/nittioapp#/app/dashboard?my=1</td><td>admin_user</td><td></td></tr>
+			<tr><td>admin.impersonate</td><td>/nittioapp#/app/impersonate</td><td>admin_ impersonate_grp</td><td></td></tr>
         </table>
         
         <h3>Defining icon for a card / link</h3>
@@ -58,7 +102,7 @@
   {"linkid": "card3", ... , "icon": "{resurl}/general/waiting.gif"},
   {"linkid": "card4", ... , "icon": "{iconurl}/BlueBalloons.png"}
 ]
-        </pre>
+		</pre>
             
         <h3>Extending the URL</h3>
         <p>'urlParams' attribute may be specified to extent the URL. When specified, the 'URL' from action parameter is suffixed with the urlParams to form the complete URL</p>
@@ -72,7 +116,7 @@
   "urlParams": "?custype=8"
  }
 ]
-        </pre>
+		</pre>
     </nl-dlg-help>
     <nl-dlg-content>
         <table class='nl-table'>
