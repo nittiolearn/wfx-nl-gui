@@ -47,16 +47,18 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 	
 	$scope.onCardInternalUrlClicked = function(internalUrl) {
 		if (internalUrl === 'dashboard_create') {
-			_createOrModifyDashboard($scope, null);
+			_createOrModifyDashboard($scope, null, false);
 		}
     };
 	
 	$scope.onCardLinkClicked = function(card, linkid) {
 		if (linkid === 'dashboard_modify') {
-			_createOrModifyDashboard($scope, card.dashboardId);
-		} else if (linkid === 'dashboard_delete') {
-			_deleteDashboard($scope, card.dashboardId);
-		}
+			_createOrModifyDashboard($scope, card.dashboardId, false);
+		} else if (linkid === 'dashboard_content') {
+            _createOrModifyDashboard($scope, card.dashboardId, true);
+        } else if (linkid === 'dashboard_delete') {
+            _deleteDashboard($scope, card.dashboardId);
+        }
 	};
 
 	function _getCustomDashboardCards(resultList) {
@@ -71,9 +73,11 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 	
 	function _createCustomDashboardCard(dashboard){
 		cardDict[dashboard.id] = dashboard;
+        var url = nl.fmt2('#/app/dashboard_view?dbid={}', dashboard.id);
 		var createList = {
 			dashboardId : dashboard.id,
 			title : dashboard.description,
+			url: url,
 			icon : nl.url.resUrl('dashboard/defgroup.png'),
 			help : nl.t('<P>Author: {}</P><P>Group:{}</P>', dashboard.authorname, dashboard.grpname),
 			children :[]
@@ -83,6 +87,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 		if (my) {
 			createList.links.push({id: "dashboard_modify", text: nl.t('modify')});
 			createList.links.push({id: "dashboard_delete", text: nl.t('delete')});
+		} else {
+            createList.links.push({id: "dashboard_content", text: nl.t('content')});
 		}
 		createList.links.push({id: 'details', text: nl.t('details')}); 
 		return createList;
@@ -90,7 +96,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 	
 	function  _getDashboardAvps(dashboard) {
 		var avps = [];
-		nl.fmt.addAvp(avps, 'Author', dashboard.authorname);
+        nl.fmt.addAvp(avps, 'ID', dashboard.id);
+        nl.fmt.addAvp(avps, 'Author', dashboard.authorname);
 		nl.fmt.addAvp(avps, 'Group', dashboard.grpname);
 		nl.fmt.addAvp(avps, 'Updated by', dashboard.updated_by_name);
 		nl.fmt.addAvp(avps, 'Created on', dashboard.created, 'date');
@@ -111,29 +118,31 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 		cards.push(card);
 	}
 	
-	function _createOrModifyDashboard($scope, dashboardId) {
+	function _createOrModifyDashboard($scope, dashboardId, readonly) {
 		var modifyDlg = nlDlg.create($scope);
         modifyDlg.scope.error = {};
 		if (dashboardId !== null) {
 			var dashboard = cardDict[dashboardId];
-			$scope.dlgTitle = nl.t('Modify dashboard');
-			modifyDlg.scope.data = {description: dashboard.description, content: angular.toJson(dashboard.content, 2)};
+			$scope.dlgTitle = readonly? nl.t('View dashboard content') : nl.t('Modify dashboard');
+			modifyDlg.scope.data = {description: dashboard.description, content: angular.toJson(dashboard.content, 2), readonly: readonly};
 		} else {
 			$scope.dlgTitle = nl.t('Create a new dashboard');
-			modifyDlg.scope.data = {description: '', content: ''};
+			modifyDlg.scope.data = {description: '', content: '', readonly: readonly};
 		}
 		
 		var buttons = [];
 		var saveName = (dashboardId !== null) ? nl.t('Save') : nl.t('Create');
-		var saveButton = {
-			text : saveName,
-			onTap : function(e) {
-				_onDashboardSave(e, $scope, modifyDlg, dashboardId, false);
-			}
-		};
-		buttons.push(saveButton);
+		if (!readonly) {
+            var saveButton = {
+                text : saveName,
+                onTap : function(e) {
+                    _onDashboardSave(e, $scope, modifyDlg, dashboardId, false);
+                }
+            };
+            buttons.push(saveButton);
+		}
 		
-		if (dashboardId !== null) {
+		if (!readonly && dashboardId !== null) {
 			var publishButton = {
 				text : nl.t('Publish'),
 				onTap : function(e) {
@@ -144,7 +153,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 		}
 
 		var cancelButton = {
-			text : nl.t('Cancel')
+			text : readonly ? nl.t('Close') : nl.t('Cancel')
 		};
 		modifyDlg.show('view_controllers/dashboard/dashboard_create_dlg.html',
 			buttons, cancelButton, false);
@@ -160,7 +169,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 			content: modifyDlg.scope.data.content,
 			publish: bPublish 
 		};
-		if (dashboardId !== null) modifiedData.dashboardid = dashboardId;
+		if (dashboardId !== null) modifiedData.dbid = dashboardId;
 		var crModFn = (dashboardId != null) ? nlServerApi.dashboardModify: nlServerApi.dashboardCreate;
 		crModFn(modifiedData).then(function(dashboard) {
 			nlDlg.hideLoadingScreen();

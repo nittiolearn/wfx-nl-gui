@@ -92,13 +92,38 @@
         "icon": "/static/nittio_res_v39/dashboard/help.png"
       },
       {
+        "help": "Ask questions to your mentor and view their responses. Mentors will be able to interact with their mentees/puple from here.",
+        "title": "Mentor Desk",
+        "url": "/nittioapp#/app/forum?forumtype=1&refid=1",
+        "linkId": "mentor_desk",
+        "children": [
+          {
+            "help": "Mentors will be able to interact with their mentees/puple from here.",
+            "title": "View questions from mentees",
+            "url": "/nittioapp#/app/forum?forumtype=1&refid=0",
+            "linkId": "mentor",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/mentor_desk.png"
+          },
+          {
+            "help": "Ask questions to your mentor and view their responses.",
+            "title": "Ask questions and view responses",
+            "url": "/nittioapp#/app/forum?forumtype=1&refid=1",
+            "linkId": "mentee",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/mentor_desk.png"
+          }
+        ],
+        "icon": "/static/nittio_res_v39/dashboard/mentor_desk.png"
+      },
+      {
         "help": "Do courses assigned to you. Authorized users will be able to create and manage courses from here.",
         "title": "Courses",
         "url": "/nittioapp#/app/course_report_list?my=1",
         "linkId": "course",
         "children": [
           {
-            "help": "View all courses defined by current user. Create new course. Modify or delete courses created by you. Assign courses to classes/users.",
+            "help": "View all courses defined by current user. Create new course. Modify or delete courses created by you.",
             "title": "Create and edit courses",
             "url": "/nittioapp#/app/course_list?my=1",
             "linkId": "course_view_my",
@@ -363,6 +388,22 @@
             "title": "View audit logs",
             "url": "/nittioapp#/app/audit",
             "linkId": "admin_audit_view",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/bulkupdate.png"
+          },
+          {
+            "help": "View customized dashboards across groups",
+            "title": "View customized dashboards",
+            "url": "/nittioapp#/app/dashboard?my=0",
+            "linkId": "custom_dashboards",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/bulkupdate.png"
+          },
+          {
+            "help": "Create new customized dashboard or edit customized dashboard created by you",
+            "title": "Create / edit customized dashboards",
+            "url": "/nittioapp#/app/dashboard?my=1",
+            "linkId": "custom_dashboards_my",
             "children": [],
             "icon": "/static/nittio_res_v39/dashboard/bulkupdate.png"
           },

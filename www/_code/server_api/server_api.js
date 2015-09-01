@@ -150,6 +150,11 @@ function(nl, nlDlg, nlConfig) {
         return server.post('_serverapi/dashboard_delete.json', {dbid: dbid});
     };
 
+    this.dashboardGetCards = function(dbid) {
+        // return: list of dashboardObjects
+        return server.post('_serverapi/dashboard_get_cards.json', {dbid: dbid});
+    };
+
     //---------------------------------------------------------------------------------------------
     // Private methods
     //---------------------------------------------------------------------------------------------

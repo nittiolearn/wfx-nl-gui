@@ -121,6 +121,7 @@ function Permission(nl) {
 		'/app/course_report_list': {login:true, permission: 'course_do', termRestriction: TR_RESTRICTED},
         '/app/course_view': {login: true, permission: 'course_do', termRestriction: TR_RESTRICTED},
         '/app/dashboard': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
+        '/app/dashboard_view': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
 
         // Operation permissions
         'change_password': {login: true, permission: 'change_password', termRestriction: TR_RESTRICTED},

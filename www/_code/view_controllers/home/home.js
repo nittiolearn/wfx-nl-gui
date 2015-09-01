@@ -7,7 +7,8 @@
 function module_init() {
     angular.module('nl.home', [])
     .config(configFn)
-    .controller('nl.HomeCtrl', HomeCtrl);
+    .controller('nl.HomeCtrl', HomeCtrl)
+    .controller('nl.DashboardViewCtrl', DashboardViewCtrl);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -23,31 +24,61 @@ function($stateProvider) {
             }
         }
     });
+    $stateProvider.state('app.dashboard_view', {
+        cache: true,
+        url : '/dashboard_view',
+        views : {
+            'appContent' : {
+                templateUrl : 'lib_ui/cards/cardsview.html',
+                controller : 'nl.DashboardViewCtrl'
+            }
+        }
+    });
 }];
 
 //-------------------------------------------------------------------------------------------------
 var HomeCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlConfig', 'nlDlg',
 function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
+    HomeCtrlImpl(true, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg);
+}];
+
+var DashboardViewCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlConfig', 'nlDlg',
+function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
+    HomeCtrlImpl(false, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg);
+}];
+
+//-------------------------------------------------------------------------------------------------
+function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
-            nl.log.debug('HomeCtrl:onPageEnter - enter');
-            nl.pginfo.pageTitle = nl.t('Home Dashboard');
-            nl.pginfo.pageSubTitle = nl.fmt2('({})', userInfo.displayname);
             var params = nl.location.search();
             var parent = ('parent' in params) ? params.parent : null;
-            $scope.cards = {};
-            $scope.cards.cardlist = _getDashboardCards(userInfo, parent);
-            _eulaWarning();
-            nl.log.debug('HomeCtrl:onPageEnter - done');
-            resolve(true);
+            var dbid = ('dbid' in params) ? params.dbid : null;
+            if (!isHome && dbid) {
+                nlServerApi.dashboardGetCards(dbid).then(function(dashboardCards) {
+                    nl.pginfo.pageTitle = nl.t('Custom Dashboard: {}', dashboardCards.description);
+                    _initDashboardCards(userInfo, parent, dashboardCards.dashboard, resolve);
+                });
+            } else {
+                nl.pginfo.pageTitle = nl.t('Home Dashboard');
+                nl.pginfo.pageSubTitle = nl.fmt2('({})', userInfo.displayname);
+                _initDashboardCards(userInfo, parent, userInfo.dashboard, resolve);
+            }
         });
     }
 
     nlRouter.initContoller($scope, '', _onPageEnter);
 
-    function _getDashboardCards(userInfo, parent) {
+    function _initDashboardCards(userInfo, parent, cardListFromServer, resolve) {
+        $scope.cards = {};
+        $scope.cards.cardlist = _getDashboardCards(userInfo, parent, cardListFromServer);
+        _eulaWarning();
+        resolve(true);
+    }
+    
+    function _getDashboardCards(userInfo, parent, cardListFromServer) {
         var unauthorizedCards = parent ? [] : _getUnauthorizedCards(userInfo);
-        var mainCards = _getChildCards(userInfo.dashboard, parent);
+        var mainCards = _getChildCards(cardListFromServer, parent);
         var cards  = unauthorizedCards.concat(mainCards);
         _updateDetails(cards);
         return cards;
@@ -128,7 +159,7 @@ function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
         });
     }
 
-}];
+};
 
 module_init();
 })();
