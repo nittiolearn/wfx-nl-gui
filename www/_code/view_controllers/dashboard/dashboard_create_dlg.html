@@ -1,8 +1,83 @@
 <nl-dlg title='{{dlgTitle}}'>
+    <nl-dlg-help>
+        <h2>Dashboard properties</h2>
+        <ul>
+            <li><b>description:</b> Mandatory - provide a short description which will help others to understand the purpose of this dashboard.</li>
+            <li><b>content:</b> Mandatory - dashboard content in JSON format as described below.</li>
+        </ul>
+        
+        <h2>Dashboard content JSON format</h2>
+        <p>Dashboard is an array of objects.</p>
+        <p><b>Hint:</b> <a href='http://www.jsoneditoronline.org/'>http://www.jsoneditoronline.org/</a> provides a good tool for editing JSON strings.</p>
+
+        <h3>An example</h3>
+        <p> The attributes 'linkid', 'action' and 'title' are mandatory attributes. 'icon', 'help' and 'urlParams' are optional.</p>
+        <pre>
+[
+ {
+  "linkid": "card1", 
+  "action": "lesson.view_approved",
+  "title": "Card 1 Title",
+  "icon": "http://icon_path.png", 
+  "help": "Card 1 Help",
+  "urlParams": "?custype=8"
+ }
+]
+        </pre>
+        
+        <h3>Defining dashboard cards and links (parent/child relationship)</h3>
+        <pre>
+[
+  {"linkid": "card1", "action": "lesson.view_approved", "title": "Card 1 Title"},
+  {"linkid": "card1.link1", "action": "lesson.create", "title": "Link 1 Title"},
+  {"linkid": "card1.link2", "action": "lesson.view_approved", "title": "Link 2 Title"},
+  {"linkid": "card2", "action": "lesson.view_approved", "title": "Card 2 Title"},
+]
+        </pre>
+        <p><b>"parentid.childid"</b>: linkid attribute is used to determine parent child relationship. linkid of the child element should always begin with the id of parent element and a ".".</p>
+        <p>In the above example, 2 cards are specified: 'card1' and 'card2'. 'card1' contains 2 links: 'link1' and 'link2'. 'card2' is empty.</p>
+
+        <h3>'action' attribute</h3>
+        <p>Permission for the card/link and the URL is derived from the 'action' attribute. One of the predefined list from the server can be used for this attribute.</p>
+        <table class='nl-table nl-table-styled'>
+            <tr><td>Action</td><td>URL</td><td>Permission</td><td>Remarks</td></tr>
+            <tr><td>none</td><td></td><td></td><td>No action. Can be accessed even without login.</td></tr>
+            <tr><td>logedin</td><td></td><td></td><td>No action. Can be accessed after login.</td></tr>
+            <tr><td>restricted</td><td></td><td></td><td>No action. Can be accessed after login from restricted terminal.</td></tr>
+            <tr><td>authorized</td><td></td><td></td><td>No action. Can be accessed after login from authorhized terminal.</td></tr>
+            <tr><td>grpadmin.view</td><td>/admin_group/group_view/</td><td>admin_group</td><td></td></tr>
+        </table>
+        
+        <h3>Defining icon for a card / link</h3>
+        <p>'icon' attribute is optional. If not specified, the default is admin.png (same as admin panel icon). It could be an external URL or an nittio resource URL or with place holders ({resurl}, {iconurl}) to access default Nittio resources and icons.</p>
+        <pre>
+[
+  {"linkid": "card1", ... , "icon": "http://path/to/icon.png"},
+  {"linkid": "card2", ... , "icon": "/resource/resview/123456-aax.png"},
+  {"linkid": "card3", ... , "icon": "{resurl}/dashboard/about.png"},
+  {"linkid": "card3", ... , "icon": "{resurl}/general/waiting.gif"},
+  {"linkid": "card4", ... , "icon": "{iconurl}/BlueBalloons.png"}
+]
+        </pre>
+            
+        <h3>Extending the URL</h3>
+        <p>'urlParams' attribute may be specified to extent the URL. When specified, the 'URL' from action parameter is suffixed with the urlParams to form the complete URL</p>
+        <pre>
+[
+ ...
+ {"linkid": "card1.link3", 
+  "action": "lesson.view_approved",
+  "title": "Link 3 Title",
+  "help": "Link 3 Help",
+  "urlParams": "?custype=8"
+ }
+]
+        </pre>
+    </nl-dlg-help>
     <nl-dlg-content>
         <table class='nl-table'>
-            <tr nl-form-textarea fieldname='Card description' fieldmodel='description' fieldcls='small'></tr>
-            <tr nl-form-textarea fieldname='Card content' fieldmodel='content' fieldcls='nl-fixed-width'></tr>
+            <tr ng-if='!data.readonly' nl-form-textarea fieldname='description' fieldmodel='description' fieldcls='small'></tr>
+            <tr nl-form-textarea fieldname='content' fieldmodel='content' fieldcls='nl-fixed-width'></tr>
         </table>
         <br/>
     </nl-dlg-content>
