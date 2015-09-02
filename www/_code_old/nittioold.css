@@ -1751,3 +1751,215 @@ div.pgSecView.answer_wrong.bright {
 	color: #000000;
 }
 
+/*
+ * Standard styling available for all groups - to be embedded inside the content
+ * <i class='red bold'>Your text</i>
+ */
+
+/* Some colors */
+i.red {
+    font-style: normal;
+    color: #FF0000;
+}
+
+i.maroon {
+    font-style: normal;
+    color: #80000;
+}
+
+i.orange {
+    font-style: normal;
+    color: #E06000;
+}
+
+i.green {
+    font-style: normal;
+    color: #008000;    
+}
+
+i.lime {
+    font-style: normal;
+    color: #00FF00;    
+}
+
+i.blue {
+    font-style: normal;
+    color: #0000FF;
+}
+
+i.indigo {
+    font-style: normal;
+    color: #4B0082;    
+}
+
+i.yellow {
+    font-style: normal;
+    color: #FFFF00;    
+}
+
+i.bold {
+    font-style: normal;
+    font-weight: 900;
+}
+
+/* Fixing font size in pixels */
+i.fsize48 {
+    font-style: normal;
+    font-size: 48px;
+}
+
+i.fsize40 {
+    font-style: normal;
+    font-size: 40px;
+}
+
+i.fsize32 {
+    font-style: normal;
+    font-size: 32px;
+}
+
+i.fsize24 {
+    font-style: normal;
+    font-size: 24px;
+}
+
+i.fsize16 {
+    font-style: normal;
+    font-size: 16px;
+}
+
+/* Fixing relative font sizes */
+i.size50 {
+    font-style: normal;
+    line-height: 100%;
+    font-size: 50%;
+}
+
+i.size60 {
+    font-style: normal;
+    line-height: 100%;
+    font-size: 60%;
+}
+
+i.size70 {
+    font-style: normal;
+    line-height: 100%;
+    font-size: 70%;
+}
+
+i.size80 {
+    font-style: normal;
+    line-height: 100%;
+    font-size: 80%;
+}
+
+i.size90 {
+    font-style: normal;
+    line-height: 100%;
+    font-size: 90%;
+}
+
+i.size110 {
+    font-style: normal;
+    line-height: 100%;
+    font-size: 110%;
+}
+
+i.size120 {
+    font-style: normal;
+    line-height: 100%;
+    font-size: 120%;
+}
+
+i.size130 {
+    font-style: normal;
+    line-height: 100%;
+    font-size: 130%;
+}
+
+i.size140 {
+    font-style: normal;
+    line-height: 100%;
+    font-size: 140%;
+}
+
+i.size150 {
+    font-style: normal;
+    line-height: 100%;
+    font-size: 150%;
+}
+
+i.size200 {
+    font-style: normal;
+    line-height: 100%;
+    font-size: 200%;
+}
+
+i.size250 {
+    font-style: normal;
+    line-height: 100%;
+    font-size: 250%;
+}
+
+i.size300 {
+    font-style: normal;
+    line-height: 100%;
+    font-size: 300%;
+}
+
+i.size400 {
+    font-style: normal;
+    line-height: 100%;
+    font-size: 400%;
+}
+
+i.size500 {
+    font-style: normal;
+    line-height: 100%;
+    font-size: 500%;
+}
+
+/* Font-families */
+i.verdana { 
+    font-style: normal;
+    font-family: Verdana,Geneva,sans-serif; 
+}
+
+i.trebuchet { 
+    font-style: normal;
+    font-family: Trebuchet MS,Lucida Grande,Lucida Sans Unicode,Lucida Sans,Tahoma,sans-serif; 
+}
+
+i.geneva { 
+    font-style: normal;
+    font-family: Geneva,Tahoma,Verdana,sans-serif; 
+}
+
+i.arial { 
+    font-style: normal;
+    font-family: Arial,Helvetica Neue,Helvetica,sans-serif; 
+}
+
+i.courier_new { 
+    font-style: normal;
+    font-family: Courier New,Courier,Lucida Sans Typewriter,Lucida Typewriter,monospace; 
+}
+
+i.papyrus { 
+    font-style: normal;
+    font-family: Papyrus,fantasy; 
+}
+
+i.brush { 
+    font-family: Brush Script MT,cursive; 
+}
+
+i.comic_sans { 
+    font-style: normal;
+    font-family: "Comic Sans MS";
+}
+
+/* Finally italics for the i*/
+i.italic {
+    font-style: italic;
+}
