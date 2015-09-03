@@ -39,6 +39,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
             	$scope.cards = {};
             	$scope.cards.cardlist = _getCustomDashboardCards(resultList);
             	resolve(true);	
+            }, function(error) {
+                resolve(false);
             });
 		});
 	}
@@ -73,7 +75,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 	
 	function _createCustomDashboardCard(dashboard){
 		cardDict[dashboard.id] = dashboard;
-        var url = nl.fmt2('#/app/dashboard_view?dbid={}', dashboard.id);
+        var url = nl.fmt2('#/app/dashboard_view?dbid={}&published={}', dashboard.id, my ? 0: 1);
 		var createList = {
 			dashboardId : dashboard.id,
 			title : dashboard.description,

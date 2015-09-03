@@ -144,6 +144,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
                 }
      			$scope.content = content;
 				resolve(true);
+			}, function(error) {
+			    resolve(false);
 			});
 		});
 	}

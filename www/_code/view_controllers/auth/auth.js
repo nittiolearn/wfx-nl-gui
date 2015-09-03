@@ -89,7 +89,9 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
 
             nl.log.debug('_loginControllerImpl:onPageEnter - done');
             resolve(true);
-            _showLoginDlg();
+            nl.timeout(function() {
+                _showLoginDlg();
+            });
         });
     }
     function _onPageLeave() {
@@ -243,15 +245,15 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
     $scope.error = {};
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
-            nl.log.debug('LogoutCtrl:onPageEnter - enter');
+            nl.log.debug('AuditCtrl:onPageEnter - enter');
             nl.pginfo.pageTitle = nl.t('Audit records');
             _getAuditData(null).then(function(data) {
-                nl.log.debug('LogoutCtrl:onPageEnter - done');
+                nl.log.debug('AuditCtrl:onPageEnter - done');
                 resolve(true);
+            }, function(reason) {
+                nl.log.warn('AuditCtrl:onPageEnter - loading failed');
+                resolve(false);
             });
-        }, function(reason) {
-            nl.log.warn('LogoutCtrl:onPageEnter - loading failed');
-            resolve(true);
         });
     }
     nlRouter.initContoller($scope, '', _onPageEnter);

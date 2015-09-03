@@ -54,8 +54,9 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
             var params = nl.location.search();
             var parent = ('parent' in params) ? params.parent : null;
             var dbid = ('dbid' in params) ? params.dbid : null;
+            var published = (params.published == true);
             if (!isHome && dbid) {
-                nlServerApi.dashboardGetCards(dbid).then(function(dashboardCards) {
+                nlServerApi.dashboardGetCards(dbid, published).then(function(dashboardCards) {
                     nl.pginfo.pageTitle = nl.t('Custom Dashboard: {}', dashboardCards.description);
                     _initDashboardCards(userInfo, parent, dashboardCards.dashboard, resolve);
                 });
@@ -146,7 +147,7 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
         var title = (warningType == 'new') ? nl.t('Welcome') : nl.t('Terms of services is updated');
         
         nl.log.debug('_eulaWarningImpl: asking for confirmation');
-        nlDlg.popupConfirm({title:title, templateUrl:'view_controllers/dashboard/eula.html', 
+        nlDlg.popupConfirm({title:title, templateUrl:'view_controllers/home/eula.html', 
                             okText: nl.t('Acknowledge'), cancelText: nl.t('Read Later')})
         .then(function(res) {
             if (!res) return;

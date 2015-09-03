@@ -57,6 +57,8 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
 			nlServerApi.forumGetMsgs(serverParams).then(function(forumInfo) {
 			    _updateForumData(forumInfo);
 				resolve(true);
+			}, function(error) {
+			    resolve(false);
 			});
 		});
 	}
