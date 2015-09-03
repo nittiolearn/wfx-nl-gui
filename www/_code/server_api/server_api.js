@@ -191,7 +191,7 @@ function(nl, nlDlg, nlConfig) {
     }
 
     function _ping() {
-        return _postAndSaveEula('_serverapi/auth_ping.json', {}, true);
+        return _postAndSaveEula('_serverapi/auth_ping.json', {}, false);
     }
 
     function _postAndSaveEula(url, data, noPopup) {
@@ -319,7 +319,7 @@ function NlServerInterface(nl, nlDlg, nlConfig) {
     function _processResponse(self, data, status, resolve, reject, noPopup) {
         nl.log.debug('_processResponse:', data, status);
         if (data == null || data == undefined) {
-            data = {_errorMsg: nl.t('Error connecting to the server')};
+            data = {_errorMsg: nl.t('Error connecting to the server. Please check if your internet connection is working.')};
         }
         if (angular.isString(data)) {
             data = {_errorMsg: data};

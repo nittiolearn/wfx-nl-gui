@@ -85,7 +85,10 @@ function(nl, nlDlg, nlServerApi) {
         nl.pginfo.isMenuShown = (!('hidemenu' in params));
         nlDlg.hideLoadingScreen();
 
-        if (rerouteToUrl != null) nl.location.url(rerouteToUrl);
+        if (rerouteToUrl != null) {
+            if (nl.location.url() == '/app/home') rerouteToUrl = '/app/login_now';
+            nl.location.url(rerouteToUrl);
+        }
         
         nl.pginfo.isPageShown = true;
         nl.pginfo.windowTitle = _getWindowTitle();

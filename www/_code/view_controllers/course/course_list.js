@@ -76,8 +76,9 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 			nl.pginfo.pageTitle = _getPageTitle();
 			_listingFunction().then(function(resultList) {
 				if (resultList.length === 1 && type === 'report' && assignId === 0) {
-					var url1 = nl.fmt2('/app/course_view?id={}&mode=do', resultList[0].id);
-					nl.location.url(url1);
+					var url = nl.fmt2('/app/course_view?id={}&mode=do', resultList[0].id);
+					nl.location.url(url);
+                    nl.location.replace();
 					return;
 				}
 				nl.log.debug('Got result: ', resultList.length);
