@@ -240,6 +240,13 @@ img.nl-clickable {
   }
 }
 
+.nl-clickable-container {
+  cursor: pointer;
+  &:hover, &:focus {
+    box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+  }
+}
+
 .nl-fixed-width {
   font-family: Courier;
 }
@@ -816,7 +823,6 @@ img.nl-icon, #nl-top-menu img {
     .nl-forum-header-child {
       background-color: transparent;
       border-top: 1px solid $nlgrey;
-      color: blue;
     }
     
     .nl-forum-content {

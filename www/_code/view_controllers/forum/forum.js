@@ -138,7 +138,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
             msgs[i].htmlMarkup = nlMarkup.getHtml(msgs[i].text, retData);
         }
         $scope.expanded = bShow;
-        $scope.showHideAllButtonName = $scope.expanded ? nl.t('Colapse all') : nl.t('Expand all');
+        $scope.showHideAllButtonName = $scope.expanded ? nl.t('Collapse all') : nl.t('Expand all');
     }
 
     function _initDlgScope() {
@@ -249,6 +249,7 @@ function MessageManager(nl) {
     
     function _getGroupSortKey(self, node) {
         if (node.indentationLevel == 0) return node.sortKey;
+        if (!(node.parentid in self.idToMsg)) return 0;
         return self.idToMsg[node.parentid].sortKey;
     }
 }
