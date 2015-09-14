@@ -69,25 +69,17 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 	var courseDict = {};
 	var my = false;
 	var assignId = 0;
+	var _userInfo = null;
 
 	function _onPageEnter(userInfo) {
+		_userInfo = userInfo;
 		return nl.q(function(resolve, reject) {
 			_initParams();
 			nl.pginfo.pageTitle = _getPageTitle();
-			_listingFunction().then(function(resultList) {
-				if (resultList.length === 1 && type === 'report' && assignId === 0) {
-					var url = nl.fmt2('/app/course_view?id={}&mode=do', resultList[0].id);
-					nl.location.url(url);
-                    nl.location.replace();
-					return;
-				}
-				nl.log.debug('Got result: ', resultList.length);
-				$scope.cards = {};
-				$scope.cards.cardlist = _getCards(userInfo, resultList, nlCardsSrv);
-				resolve(true);
-			}, function(reason) {
-                resolve(false);
-			});
+			$scope.cards = {};
+			$scope.cards.staticlist = _getStaticCards();
+			$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
+			_getDataFromServer('', resolve, reject);
 		});
 	}
 	nlRouter.initContoller($scope, '', _onPageEnter);
@@ -127,29 +119,70 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 		}
 	}
 
-	function _listingFunction() {
-		if (type === 'course') {
-			return nlCourse.courseGetList(my);
-		}
-		if (type === 'assign') {
-			return nlCourse.courseGetAssignmentList(false);
-		}
-		if (type === 'report' && assignId !== 0) {
-			return nlCourse.courseGetAssignmentReportList(assignId);
-		}
-		return nlCourse.courseGetMyReportList();
+	function _addSearchInfo(cards) {
+		cards.search = {placeholder: nl.t('Enter course name/description')};
+		cards.search.onSearch = _onSearch;
 	}
 	
+	function _onSearch(filter) {
+		nlDlg.showLoadingScreen();
+		var promise = nl.q(function(resolve, reject) {
+			_getDataFromServer(filter, resolve, reject);
+		});
+		promise.then(function(res) {
+			nlDlg.hideLoadingScreen();
+		});
+	}
+
+	function _getDataFromServer(filter, resolve, reject) {
+		_listingFunction(filter).then(function(resultList) {
+			if (resultList.length === 1 && type === 'report' && assignId === 0) {
+				var url = nl.fmt2('/app/course_view?id={}&mode=do', resultList[0].id);
+				nl.location.url(url);
+                nl.location.replace();
+				return;
+			}
+			nl.log.debug('Got result: ', resultList.length);
+			$scope.cards.cardlist = _getCards(_userInfo, resultList, nlCardsSrv);
+			_addSearchInfo($scope.cards);
+			resolve(true);
+		}, function(reason) {
+            resolve(false);
+		});
+	}
+	
+	function _listingFunction(filter) {
+		if (type === 'course') {
+			return nlCourse.courseGetList({mine: my, search: filter});
+		}
+		if (type === 'assign') {
+			return nlCourse.courseGetAssignmentList({mine: false, search: filter});
+		}
+		if (type === 'report' && assignId !== 0) {
+			return nlCourse.courseGetAssignmentReportList({assignid: assignId, search: filter});
+		}
+		return nlCourse.courseGetMyReportList({search:filter});
+	}
+	
+	function _getStaticCards() {
+		var ret = [];
+		if (type !== 'course' || !my) return ret;
+		var card = {title: nl.t('Create'), 
+					icon: nl.url.resUrl('dashboard/course_create.png'), 
+					internalUrl: 'course_create',
+					help: nl.t('You can create a new course by clicking on this card'), 
+					children: [], style: 'nl-bg-blue'};
+		card.links = [];
+		ret.push(card);
+		return ret;
+	}
+
 	function _getCards(userInfo, resultList, nlCardsSrv) {
 		var cards = [];
-		if (type === 'course' && my) _addStaticCard(cards);
 		for (var i = 0; i < resultList.length; i++) {
 			var card = _createCard(resultList[i], userInfo);
 			cards.push(card);
 		}
-        if (cards.length === 0) {
-            return [_getEmptyCard(nlCardsSrv)];
-        }
 		return cards;
 	}
 	
@@ -168,6 +201,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 					icon: course.icon, 
 					url: url,
 					help: course.description,
+					json: angular.toJson(course, 0),
 					children: []};
 		card.details = {help: card.help, avps: _getCourseAvps(course)};
 		card.links = [];
@@ -233,16 +267,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
         nl.fmt.addAvp(avps, 'Max duration', report.max_duration);
         nl.fmt.addAvp(avps, 'Discussion forum', report.forum, 'boolean');
 		return avps;
-	}
-
-	function _addStaticCard(cards) {
-		var card = {title: nl.t('Create'), 
-					icon: nl.url.resUrl('dashboard/course_create.png'), 
-					internalUrl: 'course_create',
-					help: nl.t('You can create a new course by clicking on this card'), 
-					children: [], style: 'nl-bg-blue'};
-		card.links = [];
-		cards.push(card);
 	}
 
 	function _assignCourse(courseId) {

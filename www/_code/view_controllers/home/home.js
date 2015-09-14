@@ -72,19 +72,12 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
 
     function _initDashboardCards(userInfo, parent, cardListFromServer, resolve) {
         $scope.cards = {};
+        $scope.cards.staticlist = parent ? [] : _getUnauthorizedCards(userInfo);
         $scope.cards.cardlist = _getDashboardCards(userInfo, parent, cardListFromServer);
         _eulaWarning();
         resolve(true);
     }
     
-    function _getDashboardCards(userInfo, parent, cardListFromServer) {
-        var unauthorizedCards = parent ? [] : _getUnauthorizedCards(userInfo);
-        var mainCards = _getChildCards(cardListFromServer, parent);
-        var cards  = unauthorizedCards.concat(mainCards);
-        _updateDetails(cards);
-        return cards;
-    }
-
     function _getUnauthorizedCards(userInfo) {
         var unauthorizedCards = [];
         if (userInfo.termAccess == 'none') {
@@ -101,6 +94,12 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
         return unauthorizedCards;
     }
     
+    function _getDashboardCards(userInfo, parent, cardListFromServer) {
+        var cards = _getChildCards(cardListFromServer, parent);
+        _updateDetails(cards);
+        return cards;
+    }
+
     function _getChildCards(dashboard, parent) {
         if (!parent) return dashboard;
         for (var i=0; i < dashboard.length; i++) {

@@ -59,9 +59,10 @@ function(nl, nlDlg, nlConfig) {
     //---------------------------------------------------------------------------------------------
     // Course Module
     //---------------------------------------------------------------------------------------------
-    this.courseGetList = function(mine) {
+    this.courseGetList = function(data) {
+        // data: mine, search
         // returns list of courseObjects
-        return server.post('_serverapi/course_get_list.json', {mine: mine});
+        return server.post('_serverapi/course_get_list.json', data);
     };
     
     this.courseGet = function(courseId, published) {
@@ -86,20 +87,22 @@ function(nl, nlDlg, nlConfig) {
         return server.post('_serverapi/course_delete.json', {courseid: courseId});
     };
     
-    this.courseGetAssignmentList = function(mine) {
+    this.courseGetAssignmentList = function(data) {
+        // data: mine, search
         // returns list of courseAssignmentObjects
-        return server.post('_serverapi/course_get_assignment_list.json', {mine: mine});
+        return server.post('_serverapi/course_get_assignment_list.json', data);
     };
 
-
-    this.courseGetAssignmentReportList = function(assignid) {
+    this.courseGetAssignmentReportList = function(data) {
+        // data: assignid, search
         // returns list of courseReportObjects
-        return server.post('_serverapi/course_get_assignment_report_list.json', {assignid: assignid});
+        return server.post('_serverapi/course_get_assignment_report_list.json', data);
     };
 
-    this.courseGetMyReportList = function() {
+    this.courseGetMyReportList = function(data) {
+        // data: search
         // returns list of courseReportObjects
-        return server.post('_serverapi/course_get_my_report_list.json', {});
+        return server.post('_serverapi/course_get_my_report_list.json', data);
     };
 
     this.courseGetReport = function(repid, mine) {

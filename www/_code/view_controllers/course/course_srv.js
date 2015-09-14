@@ -13,8 +13,8 @@ function module_init() {
 var CourseSrv = ['nl', 'nlServerApi',
 function(nl, nlServerApi) {
 	// TODO - cache output and use from cache when possible
-    this.courseGetList = function(mine) {
-    	return nlServerApi.courseGetList(mine);
+    this.courseGetList = function(data) {
+    	return nlServerApi.courseGetList(data);
     };
 
     this.courseGet = function(courseId, published) {
@@ -33,16 +33,16 @@ function(nl, nlServerApi) {
     	return nlServerApi.courseDelete(courseId);
     };
 
-	this.courseGetAssignmentList = function(mine) {
-    	return nlServerApi.courseGetAssignmentList(mine);
+	this.courseGetAssignmentList = function(data) {
+    	return nlServerApi.courseGetAssignmentList(data);
 	};
 	
-	this.courseGetAssignmentReportList = function(assignid) {
-    	return nlServerApi.courseGetAssignmentReportList(assignid);
+	this.courseGetAssignmentReportList = function(data) {
+    	return nlServerApi.courseGetAssignmentReportList(data);
 	};
 	
-	this.courseGetMyReportList = function() {
-    	return nlServerApi.courseGetMyReportList();
+	this.courseGetMyReportList = function(data) {
+    	return nlServerApi.courseGetMyReportList(data);
 	};
 	
 	this.courseGetReport = function(repid, mine) {
