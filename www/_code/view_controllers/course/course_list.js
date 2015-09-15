@@ -296,6 +296,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 	
 	function _createOrModifyCourse($scope, courseId) {
 		var modifyDlg = nlDlg.create($scope);
+		modifyDlg.setCssClass('nl-height-max nl-width-max');
         modifyDlg.scope.error = {};
 		if (courseId !== null) {
 			var course = courseDict[courseId];

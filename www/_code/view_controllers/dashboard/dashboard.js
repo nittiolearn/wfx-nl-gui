@@ -124,6 +124,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 	
 	function _createOrModifyDashboard($scope, dashboardId, readonly) {
 		var modifyDlg = nlDlg.create($scope);
+		modifyDlg.setCssClass('nl-height-max nl-width-max');
         modifyDlg.scope.error = {};
 		if (dashboardId !== null) {
 			var dashboard = cardDict[dashboardId];

@@ -9,17 +9,7 @@
 	<span class='col nl-textellipsis'>{{search.getResultsStr()}}</span>
 </div>
 <div class='nl-card' 
-	ng-repeat="card in cards.staticlist" 
+	ng-repeat="card in getCards()" 
 	ng-style="{height: h + 'px', width: w + 'px', 'font-size': fs + '%', 'margin-left': ml + 'px'}">
 	<nl-card card='card' class='nl-card-holder {{card.style}}'></nl-card>
-</div>
-<div class='nl-card' 
-	ng-repeat="card in cards.cardlist | filter: search.filter" 
-	ng-style="{height: h + 'px', width: w + 'px', 'font-size': fs + '%', 'margin-left': ml + 'px'}">
-	<nl-card card='card' class='nl-card-holder {{card.style}}'></nl-card>
-</div>
-<div ng-show='cards.emptycard && cards.cardlist.length + cards.staticlist.length == 0'
-	class='nl-card' 
-	ng-style="{height: h + 'px', width: w + 'px', 'font-size': fs + '%', 'margin-left': ml + 'px'}">
-	<nl-card card='cards.emptycard' class='nl-card-holder {{cards.emptycard.style}}'></nl-card>
 </div>

@@ -35,8 +35,8 @@ function(nl, $filter) {
 	};
 }];
 
-var CardsDirective = ['nl', 'nlDlg', '$filter',
-function(nl, nlDlg, $filter) {
+var CardsDirective = ['nl', 'nlDlg', '$filter', 'nlCardsSrv',
+function(nl, nlDlg, $filter, nlCardsSrv) {
     return {
         restrict: 'E',
         transclude: true,
@@ -55,6 +55,18 @@ function(nl, nlDlg, $filter) {
                 });
             });
             
+            $scope.getCards = function() {
+            	if (!$scope.cards || !$scope.cards.cardlist) return [];
+            	var staticlist = $scope.cards.staticlist || [];
+            	var filteredData = $filter('nlFilter')($scope.cards.cardlist,
+            										 $scope.search.filter);
+            	var ret = staticlist.concat(filteredData);
+            	if (ret.length > 0) return ret;
+            	var emptyCard = $scope.cards.emptycard || nlCardsSrv.getEmptyCard();
+            	ret.push(emptyCard);
+            	return ret;
+            };
+
             $scope.onCardInternalUrlClicked = function(internalUrl) {
 				$scope.$parent.onCardInternalUrlClicked(internalUrl);
             };
@@ -137,6 +149,7 @@ function(nl, nlDlg) {
 					return;
 				}
                 var detailsDlg = nlDlg.create($scope);
+				detailsDlg.setCssClass('nl-width-max');
                 detailsDlg.scope.card = card;
                 detailsDlg.show('lib_ui/cards/details_dlg.html');
             };

@@ -39,7 +39,7 @@ function(nl, $ionicPopup, $ionicLoading) {
 
     this.popupAlert = function(data) {
         nl.log.debug('Dialog.popupAlert: ', data.title);
-        data.cssClass = 'nl-dlg';
+        data.cssClass = _addDlgCssClass(data.cssClass);
         if (!('okText' in data)) data.okText = nl.t('Close');
         this.hideLoadingScreen();
         return $ionicPopup.alert(data);        
@@ -47,7 +47,7 @@ function(nl, $ionicPopup, $ionicLoading) {
 
     this.popupConfirm = function(data) {
         nl.log.debug('Dialog.popupConfirm: ', data.title);
-        data.cssClass = 'nl-dlg';
+        data.cssClass = _addDlgCssClass(data.cssClass);
         var okText = 'okText' in data ? data.okText : nl.t('OK');
         var okButton = {text: okText, onTap: function(e) {
         	return true;
@@ -94,6 +94,11 @@ var _uniqueId = 0;
 function Dialog(nl, $ionicPopup, parentScope, nlDlg) {
     this.scope = parentScope.$new();
     this.uniqueId = _uniqueId++;
+    this.cssClass = '';
+    
+    this.setCssClass = function(cssClass) {
+    	this.cssClass = cssClass;
+    };
     
     this.show = function(template, otherButtons, closeButton, destroyAfterShow) {
         nl.log.debug('Dialog.show enter: ', template);
@@ -106,7 +111,7 @@ function Dialog(nl, $ionicPopup, parentScope, nlDlg) {
         nlDlg.hideLoadingScreen();
         nlDlg.addVisibleDlg(self.uniqueId, self);
         var mypopup = $ionicPopup.show({
-            title: '', subTitle: '', cssClass: 'nl-dlg',
+            title: '', subTitle: '', cssClass: _addDlgCssClass(this.cssClass),
             templateUrl: template,
             scope: this.scope,
             buttons: otherButtons
@@ -143,7 +148,11 @@ function Dialog(nl, $ionicPopup, parentScope, nlDlg) {
         if (this.scope == null) return;
         this.scope.onCloseDlg(null, callCloseFn);
     };
-    
+}
+
+function _addDlgCssClass(cssClass) {
+	if (cssClass) return 'nl-dlg ' + cssClass;
+	return 'nl-dlg';
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -159,8 +168,6 @@ function(nl, $window, nlKeyboardHandler) {
         },
         link: function($scope, iElem, iAttrs) {
             var children = iElem.children();
-            var title = nl.fmt2("<span class='nl-dlg-title'>{}</span>", $scope.title);
-            title += nl.fmt2("<img src='{}general/help.png' class='nl-dlg-title-help' onclick='onHelp()'/>", nl.rootScope.imgBasePath);
             $scope.$parent.title = $scope.title;
             $scope.helpHidden = true;
             $scope.imgBasePath = nl.rootScope.imgBasePath;

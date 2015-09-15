@@ -251,6 +251,10 @@ img.nl-clickable {
   font-family: Courier;
 }
 
+.sep4 {
+  padding: 4px;
+}
+
 /*-----------------------------------------------------------------------------------------*
  * Thin scroll bar
  *-----------------------------------------------------------------------------------------*/
@@ -347,11 +351,11 @@ img.nl-clickable {
  * nl-dlg styles
  *-----------------------------------------------------------------------------------------*/
 .nl-dlg {
-
   .popup {
     width: auto;
-    max-width: 90%;
-    max-height: 90%;
+    height: auto;
+    max-width: 96vw;
+    max-height: 96vh;
     border-radius: 4px;
     box-shadow: 2px 2px 10px 5px #402000;
     text-align: left;
@@ -362,45 +366,48 @@ img.nl-clickable {
     background-color: $nldlgbar;
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
-    padding: 8px 32px 8px 8px;
+    padding: 4px 32px 4px 4px;
     min-height: 32px;
+    height: 32px;
     overflow: hidden;
+    border: none;
   }
 
   .popup-body {
     @extend .nl-thin-scroll;
-    min-width: 200px;
-    min-height: 140px;
+    min-width: 30vw;
+    min-height: 30vh;
   }
 
-  .popup-head * {
+  .popup-title {
     color: #FFFFFF;
+    font-size: 120%;
   }
 }
 
 .popup-buttons {
-  height: 52px;
-  min-height: 52px;
+  min-height: 37px;
+  height: 37px;
   width: 100%;
-  padding: 8px;
-  border-top: 1px solid #D05000;
+  padding: 2px;
+  border-top: 1px solid $nldlgbar;
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
 
   .button {
     text-align: center;
+    font-size: 120%;
     color: #FFFFFF;
-    background: #D05000;
-    min-height: 36px;
-    height: 36px;
-    margin-right: 8px;
+    background-color: $nldlgbar;
+    min-height: 32px;
+    height: 32px;
+    padding: 3px;
     
     &:last-child {
       margin-right: 0;
     }
 
     &:hover, &:focus {
-      color: #FFFFFF;
       background: #B03000;
     }
   }
@@ -432,26 +439,16 @@ nl-dlg-help {
   display: none;
 }
 
-.nl-dlgform {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
+.nl-dlg.nl-width-max {
+  .popup-body {
+    width: 96vw;
+  }
 }
 
-.nl-dlgform-body {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: auto;
-  bottom: 56px;
-}
-
-.nl-dlgform .popup-buttons {
-  position: absolute;
-  bottom: 0;
+.nl-dlg.nl-height-max {
+  .popup-body {
+    height: 96vh;
+  }
 }
 
 /*-----------------------------------------------------------------------------------------*
@@ -538,15 +535,14 @@ nl-cards {
   width: 360px;
   font-size: 100%;
   line-height: 170%;
-}
 
-.nl-card a {
-  text-decoration: none;
-  color: #000077;
-}
-
-.nl-card a:hover, .nl-card a:focus {
-  text-decoration: underline;
+  a {
+    text-decoration: none;
+    color: #000077;
+    &:hover, &:focus {
+      text-decoration: underline;
+    }
+  }
 }
 
 .nl-card-holder {
@@ -580,11 +576,10 @@ nl-cards {
   height: 45%;
   width: 30%;
   text-align: center;
-}
-
-.nl-card-img img {
-  height: 100%;
-  width: 100%;
+  img {
+    height: 100%;
+    width: 100%;
+  }
 }
 
 a.nl-card-img:hover, a.nl-card-img:focus {
@@ -627,6 +622,37 @@ a.nl-card-img:hover, a.nl-card-img:focus {
   &> img {
     float: right;
     max-height: 100px;
+  }
+}
+
+//-----------------------------------------------------------------------------------------
+// search-box css code
+//------------------------------------------------------------------------------------------   
+.nl-card-search {
+  position: relative;
+  height: 32px;
+  padding: 2px 8px;
+  input {
+    height: 28px;
+    border: 1px solid #9999ff;
+    border-radius: 4px;
+    box-shadow: 1px 1px 2px #888888;
+  }
+  img {
+    height: 28px;
+    width: 28px;
+    padding: 4px;
+    border-radius: 4px;
+    box-shadow: 1px 1px 5px #888888;
+  }
+  span {
+    height: 28px;
+    padding: 4px;
+    border-radius: 4px;
+    border: 1px solid #9999ff;
+    text-align: center;
+    background-color: #807090;
+    color: #ffffff;
   }
 }
 
