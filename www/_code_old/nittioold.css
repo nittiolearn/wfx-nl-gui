@@ -1137,6 +1137,8 @@ div.pgSecView {
 	font-size: 60%;
 	line-height: 100%; 
 	box-sizing: border-box;
+	position: absolute;
+	max-height: 100%;
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
 }
@@ -1678,6 +1680,7 @@ div.pgSecView.answer_wrong.bright {
 
 .pgSec select, .pgSec select option {
 	background: none;
+	font-size: 3vh;
 }
 
 .pgSec, .pgSec textarea.pgSecText, .pgSec textarea.questionnaire, .pgSec select {

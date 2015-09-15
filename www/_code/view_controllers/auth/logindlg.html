@@ -21,8 +21,8 @@
         </style>
         <p><b ng-show='msg' ng-bind-html='msg' class='{{msgClass}}'></b></p>
         <table>
-            <tr nl-form-input fieldname='Username' fieldmodel='username' fieldtype='text'></tr>
-            <tr ng-show='isLogin' nl-form-input fieldname='Password' fieldmodel='password' fieldtype='password'></tr>
+            <tr nl-form-input fieldname='Username' fieldmodel='username' fieldtype='text' ng-keypress="onUsernameEnter($event)"></tr>
+            <tr ng-show='isLogin' nl-form-input fieldname='Password' fieldmodel='password' fieldtype='password' ng-keypress="onPasswordEnter($event)"></tr>
             <tr ng-show='isLogin'><td></td><td class='well_spaced'>
                 <input type='checkbox' ng-model='data.remember' ng-class='{"nl-dlg-field-error": error.remember}'
                        tabindex="-1">

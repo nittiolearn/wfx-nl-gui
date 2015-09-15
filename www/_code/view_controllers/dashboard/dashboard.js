@@ -34,9 +34,10 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 			nl.pginfo.pageTitle = nl.t('Custom Dashboards');
 	        var params = nl.location.search();
 	        my = ('my' in params) ? parseInt(params.my) == 1: false;
+        	$scope.cards = {};
+			$scope.cards.staticlist = _getStaticCards();
             var data = nlServerApi.dashboardGetList(my);
             data.then(function(resultList){
-            	$scope.cards = {};
             	$scope.cards.cardlist = _getCustomDashboardCards(resultList);
             	resolve(true);	
             }, function(error) {
@@ -65,7 +66,6 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 
 	function _getCustomDashboardCards(resultList) {
 		var cards = [];
-		_addStaticCard(cards);
 		for(var i=0; i<resultList.length; i++){
 			var card = _createCustomDashboardCard(resultList[i]);
 			cards.push(card);
@@ -109,19 +109,22 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 		return avps;
 	}
 
-	function _addStaticCard(cards) {
-		if (!my) return;
+	function _getStaticCards() {
+		var ret = [];
+		if (!my) return ret;
 		var card = {title: nl.t('Create'), 
 					icon: nl.url.resUrl('dashboard/crgroup.png'), 
 					internalUrl: 'dashboard_create',
 					help: nl.t('You can create a new custom dashboard by clicking on this card'), 
 					children: [], style: 'nl-bg-blue'};
 		card.links = [];
-		cards.push(card);
+		ret.push(card);
+		return ret;
 	}
 	
 	function _createOrModifyDashboard($scope, dashboardId, readonly) {
 		var modifyDlg = nlDlg.create($scope);
+		modifyDlg.setCssClass('nl-height-max nl-width-max');
         modifyDlg.scope.error = {};
 		if (dashboardId !== null) {
 			var dashboard = cardDict[dashboardId];
@@ -194,8 +197,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
             var content = angular.fromJson(scope.data.content);
             return _validateContent(scope, content);            
         } catch (error) {
-            scope.error.content = nl.t('Error parsing JSON: {}. Try http://www.jsoneditoronline.org to debug more', error.toString());
-            return false;
+        	return nlDlg.setFieldError(scope, 'content',
+            	nl.t('Error parsing JSON: {}. Try http://www.jsoneditoronline.org to debug more', error.toString()));
         }
     }
 
@@ -224,13 +227,13 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
     }
     
     function _validateModuleFail(scope, module, errMsg) {
-        scope.error['content'] = nl.t('{}: element - {}', nl.t(errMsg), angular.toJson(module));
-        return false;
+    	return nlDlg.setFieldError(scope, 'content',
+        	nl.t('{}: element - {}', nl.t(errMsg), angular.toJson(module)));
     }
 
     function _validateFail(scope, attr, errMsg) {
-        scope.error[attr] = nl.t(errMsg);
-        return false;
+    	return nlDlg.setFieldError(scope, attr,
+        	nl.t(errMsg));
     }
     
 	function _getCardPosition(dashboardId) {

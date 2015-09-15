@@ -39,7 +39,7 @@ function(nl, $ionicPopup, $ionicLoading) {
 
     this.popupAlert = function(data) {
         nl.log.debug('Dialog.popupAlert: ', data.title);
-        data.cssClass = 'nl-dlg';
+        data.cssClass = _addDlgCssClass(data.cssClass);
         if (!('okText' in data)) data.okText = nl.t('Close');
         this.hideLoadingScreen();
         return $ionicPopup.alert(data);        
@@ -47,7 +47,7 @@ function(nl, $ionicPopup, $ionicLoading) {
 
     this.popupConfirm = function(data) {
         nl.log.debug('Dialog.popupConfirm: ', data.title);
-        data.cssClass = 'nl-dlg';
+        data.cssClass = _addDlgCssClass(data.cssClass);
         var okText = 'okText' in data ? data.okText : nl.t('OK');
         var okButton = {text: okText, onTap: function(e) {
         	return true;
@@ -88,12 +88,33 @@ function(nl, $ionicPopup, $ionicLoading) {
     this.removeVisibleDlg = function(dlgId) {
         if (dlgId in _dlgList) delete _dlgList[dlgId];
     };
+    
+    this.dlgFields = {};
+    this.addField = function(fieldModel, field) {
+    	this.dlgFields[fieldModel] = field;
+    };
+
+    this.getField = function(fieldModel) {
+    	return this.dlgFields[fieldModel];
+    };
+
+    this.setFieldError = function(scope, fieldModel, msg) {
+        scope.error[fieldModel] = msg;
+        var field = this.getField(fieldModel);
+        if (field) field.focus();
+    	return false;
+    };
 }];
 
 var _uniqueId = 0;
 function Dialog(nl, $ionicPopup, parentScope, nlDlg) {
     this.scope = parentScope.$new();
     this.uniqueId = _uniqueId++;
+    this.cssClass = '';
+    
+    this.setCssClass = function(cssClass) {
+    	this.cssClass = cssClass;
+    };
     
     this.show = function(template, otherButtons, closeButton, destroyAfterShow) {
         nl.log.debug('Dialog.show enter: ', template);
@@ -106,7 +127,7 @@ function Dialog(nl, $ionicPopup, parentScope, nlDlg) {
         nlDlg.hideLoadingScreen();
         nlDlg.addVisibleDlg(self.uniqueId, self);
         var mypopup = $ionicPopup.show({
-            title: '', subTitle: '', cssClass: 'nl-dlg',
+            title: '', subTitle: '', cssClass: _addDlgCssClass(this.cssClass),
             templateUrl: template,
             scope: this.scope,
             buttons: otherButtons
@@ -143,12 +164,41 @@ function Dialog(nl, $ionicPopup, parentScope, nlDlg) {
         if (this.scope == null) return;
         this.scope.onCloseDlg(null, callCloseFn);
     };
-    
+}
+
+function _addDlgCssClass(cssClass) {
+	if (cssClass) return 'nl-dlg ' + cssClass;
+	return 'nl-dlg';
 }
 
 //-------------------------------------------------------------------------------------------------
 var DlgDirective = ['nl', '$window', 'nlKeyboardHandler',
 function(nl, $window, nlKeyboardHandler) {
+
+	function postLink($scope, iElem, iAttrs) {
+        var children = iElem.children();
+        $scope.$parent.title = $scope.title;
+        $scope.helpHidden = true;
+        $scope.imgBasePath = nl.rootScope.imgBasePath;
+        $scope.onHelp = function() {
+            $scope.helpHidden = !$scope.helpHidden;
+        };
+
+        iElem.attr('tabindex', '0');
+        iElem.bind('keyup', function($event) {
+            if (nlKeyboardHandler.ESC($event)) {
+                $scope.$parent.onCloseDlg($event);
+                return false;
+            } else if (nlKeyboardHandler.F1($event, {ctrl: true})) {
+                nl.log.debug('F1:', $event);
+                $scope.$apply(function() {
+                    $scope.onHelp();
+                });
+                return false;
+            }
+            return true;
+        });
+	}
     return {
         restrict: 'E',
         transclude: true,
@@ -157,48 +207,24 @@ function(nl, $window, nlKeyboardHandler) {
         scope: {
             title: '@'
         },
-        link: function($scope, iElem, iAttrs) {
-            var children = iElem.children();
-            var title = nl.fmt2("<span class='nl-dlg-title'>{}</span>", $scope.title);
-            title += nl.fmt2("<img src='{}general/help.png' class='nl-dlg-title-help' onclick='onHelp()'/>", nl.rootScope.imgBasePath);
-            $scope.$parent.title = $scope.title;
-            $scope.helpHidden = true;
-            $scope.imgBasePath = nl.rootScope.imgBasePath;
-            $scope.onHelp = function() {
-                $scope.helpHidden = !$scope.helpHidden;
-            };
-
-            iElem.attr('tabindex', '0');
-            iElem.bind('keyup', function($event) {
-                if (nlKeyboardHandler.ESC($event)) {
-                    $scope.$parent.onCloseDlg($event);
-                    return false;
-                } else if (nlKeyboardHandler.F1($event, {ctrl: true})) {
-                    console.log('F1:', $event);
-                    $scope.$apply(function() {
-                        $scope.onHelp();
-                    });
-                    return false;
-                }
-                return true;
-            });
-            nl.log.debug('DlgDirective linked');
-        }
+        link: postLink
     };
 }];
 
 //-------------------------------------------------------------------------------------------------
-var FormInputDirective = ['nl',
-function(nl) {
-    return _formFieldDirectiveImpl(nl, 'lib_ui/dlg/forminput.html');
+var FormInputDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return _formFieldDirectiveImpl(nl, nlDlg, 'input',
+    	'lib_ui/dlg/forminput.html');
 }];
 
-var FormTextareaDirective = ['nl',
-function(nl) {
-    return _formFieldDirectiveImpl(nl, 'lib_ui/dlg/formtextarea.html');
+var FormTextareaDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return _formFieldDirectiveImpl(nl, nlDlg, 'textarea',
+    	'lib_ui/dlg/formtextarea.html');
 }];
 
-function _formFieldDirectiveImpl(nl, templateUrl) {
+function _formFieldDirectiveImpl(nl, nlDlg, tagName, templateUrl) {
     return {
         restrict: 'A',
         templateUrl: templateUrl,
@@ -208,6 +234,11 @@ function _formFieldDirectiveImpl(nl, templateUrl) {
             fieldtype: '@',
             fieldcls: '@',
             tabindex: '@'
+        },
+        link: function($scope, iElem, iAttrs) {
+            nl.log.debug('linking field: ', $scope.fieldmodel);
+            var field = iElem.find(tagName)[0];
+            nlDlg.addField($scope.fieldmodel, field);
         }
     };
 }

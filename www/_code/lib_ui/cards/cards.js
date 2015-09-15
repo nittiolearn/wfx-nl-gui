@@ -7,6 +7,7 @@
 function module_init() {
     angular.module('nl.ui.cards', [])
     .service('nlCardsSrv', CardsSrv)
+    .filter('nlFilter', NlFilter)
     .directive('nlCards', CardsDirective)
     .directive('nlCard', CardDirective);
 }
@@ -26,8 +27,16 @@ function(nl) {
 	};
 }];
 
-var CardsDirective = ['nl', 'nlDlg',
-function(nl, nlDlg) {
+var NlFilter = ['nl', '$filter',
+function(nl, $filter) {
+	return function(inputArray, filterString) {
+		filterString = filterString.replace(/"/g, "");
+    	return $filter('filter')(inputArray, filterString);
+	};
+}];
+
+var CardsDirective = ['nl', 'nlDlg', '$filter', 'nlCardsSrv',
+function(nl, nlDlg, $filter, nlCardsSrv) {
     return {
         restrict: 'E',
         transclude: true,
@@ -46,12 +55,46 @@ function(nl, nlDlg) {
                 });
             });
             
+            $scope.getCards = function() {
+            	if (!$scope.cards || !$scope.cards.cardlist) return [];
+            	var staticlist = $scope.cards.staticlist || [];
+            	var filteredData = $filter('nlFilter')($scope.cards.cardlist,
+            										 $scope.search.filter);
+            	var ret = staticlist.concat(filteredData);
+            	if (ret.length > 0) return ret;
+            	var emptyCard = $scope.cards.emptycard || nlCardsSrv.getEmptyCard();
+            	ret.push(emptyCard);
+            	return ret;
+            };
+
             $scope.onCardInternalUrlClicked = function(internalUrl) {
 				$scope.$parent.onCardInternalUrlClicked(internalUrl);
             };
 
             $scope.onCardLinkClicked = function(card, linkid) {
 				$scope.$parent.onCardLinkClicked(card, linkid);
+            };
+
+            $scope.search = {filter: '', img: nl.url.resUrl('general/search.png')};
+            $scope.search.onSearch = function() {
+            	if (!('onSearch' in $scope.cards.search)) return;
+            	return $scope.cards.search.onSearch($scope.search.filter);
+            };
+			$scope.searchKeyHandler = function(keyevent) {
+				if(keyevent.which === 13) {
+					return $scope.cards.search.onSearch($scope.search.filter);
+				}				
+			};
+            $scope.search.getResultsStr = function() {
+            	var len = 0;
+            	if ($scope.cards && $scope.cards.cardlist) {
+	            	var filteredData = $filter('nlFilter')($scope.cards.cardlist,
+	            										 $scope.search.filter);
+					len = filteredData.length;
+            	}
+            	if (len <= 1) return nl.t('{} result', len);
+            	if (len > 50) return nl.t('50+ results');
+            	return nl.t('{} results', len);
             };
          }
     };
@@ -106,6 +149,7 @@ function(nl, nlDlg) {
 					return;
 				}
                 var detailsDlg = nlDlg.create($scope);
+				detailsDlg.setCssClass('nl-width-max');
                 detailsDlg.scope.card = card;
                 detailsDlg.show('lib_ui/cards/details_dlg.html');
             };
