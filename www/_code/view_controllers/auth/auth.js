@@ -107,14 +107,7 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
         var buttonName = isLogin ? nl.t('Sign In') : nl.t('Impersonate');
         var loginButton = {text: buttonName, onTap: function(e) {
             if (e) e.preventDefault();
-            if(!_validateInputs(loginDlg.scope)) return;
-            nlDlg.showLoadingScreen();
-            loginDlg.close(false);
-            if (isLogin) {
-                nlServerApi.authLogin(loginDlg.scope.data).then(_onLoginSuccess, _onLoginFailed);
-            } else {
-                nlServerApi.authImpersonate(loginDlg.scope.data.username).then(_onLoginSuccess, _onLoginFailed);
-            }
+            loginWithSignInOrEnter();
         }};
         var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
             if (e) e.preventDefault();
@@ -124,6 +117,28 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
         }};
         loginDlg.show('view_controllers/auth/logindlg.html', [loginButton], cancelButton, false);
     }
+    
+    $scope.onUsernameEnter = function(keyEvent) {
+	  	if (keyEvent.which !== 13) return;
+	  	if(!_validateInputs(loginDlg.scope)) return;
+	  	nlDlg.getField('password').focus();
+	};
+
+    $scope.onPasswordEnter = function(keyEvent) {
+	  	if (keyEvent.which !== 13) return;
+	  	loginWithSignInOrEnter();
+	};
+	
+    function loginWithSignInOrEnter() {
+	  	if(!_validateInputs(loginDlg.scope)) return;
+            nlDlg.showLoadingScreen();
+            loginDlg.close(false);
+            if (isLogin) {
+                nlServerApi.authLogin(loginDlg.scope.data).then(_onLoginSuccess, _onLoginFailed);
+            } else {
+             nlServerApi.authImpersonate(loginDlg.scope.data.username).then(_onLoginSuccess, _onLoginFailed);
+         }
+	 }    	
     
     function _getMsg(params) {
         var loginType = ('msg' in params) ? params.msg : '';
@@ -156,18 +171,18 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
     function _validateInputs(scope) {
         scope.error = {};
         if (scope.data.username == '') {
-            scope.error.username = nl.t('Username is required');
-            return false;
+        	return nlDlg.setFieldError(scope, 'username',
+        		nl.t('Username is required'));
         }
         if (scope.data.username.indexOf('.') < 0) {
-            scope.error.username = nl.t('Username needs to be of format "userid.groupid"');
-            return false;
+        	return nlDlg.setFieldError(scope, 'username',
+        		nl.t('Username needs to be of format "userid.groupid"'));
         }
         if (!isLogin) return true;
 
         if (scope.data.password == '') {
-            scope.error.password = nl.t('Password is required');
-            return false;
+        	return nlDlg.setFieldError(scope, 'password',
+        		nl.t('Password is required'));
         }
         return true;
     }
@@ -262,8 +277,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
         $scope.error = {};
         var till = ($scope.data.eventsTill != '') ? new Date($scope.data.eventsTill) : null;
         if (till != null && isNaN(till.valueOf())) {
-            $scope.error.eventsTill = nl.t('Invalid date format');
-            return;
+        	return nlDlg.setFieldError($scope, 'eventsTill',
+        		nl.t('Invalid date format'));
         }
         nlDlg.showLoadingScreen();
         _getAuditData(till).then(function() {

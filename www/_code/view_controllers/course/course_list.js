@@ -373,8 +373,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
             var courseContent = angular.fromJson(scope.data.content);
             return _validateContent(scope, courseContent);            
         } catch (error) {
-            scope.error.content = nl.t('Error parsing JSON: {}. Try http://www.jsoneditoronline.org to debug more', error.toString());
-            return false;
+        	return nlDlg.setFieldError(scope, 'content',
+				nl.t('Error parsing JSON: {}. Try http://www.jsoneditoronline.org to debug more', error.toString()));
         }
     }
 
@@ -414,13 +414,13 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
     }
     
     function _validateModuleFail(scope, module, errMsg) {
-        scope.error['content'] = nl.t('{}: module - {}', nl.t(errMsg), angular.toJson(module));
-        return false;
+    	return nlDlg.setFieldError(scope, 'content',
+        	nl.t('{}: module - {}', nl.t(errMsg), angular.toJson(module)));
     }
 
     function _validateFail(scope, attr, errMsg) {
-        scope.error[attr] = nl.t(errMsg);
-        return false;
+    	return nlDlg.setFieldError(scope, attr,
+        	nl.t(errMsg));
     }
     
 	var uniqueId = 100;

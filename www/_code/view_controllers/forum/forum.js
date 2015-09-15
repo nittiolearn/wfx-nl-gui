@@ -150,12 +150,12 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
     function _validate(msg) {
         $scope.error = {};
         if (!msg && $scope.data.title === '') {
-            $scope.error.title = nl.t('Please enter the title for your message');
-            return false;
+        	return nlDlg.setFieldError($scope, 'title',
+            	nl.t('Please enter the title for your message'));
         }
         if (msg && $scope.data.text === '') {
-            $scope.error.text = nl.t('Please enter your reply');
-            return false;
+        	return nlDlg.setFieldError($scope, 'text',
+            	nl.t('Please enter your reply'));
         }
         return true;
     }
