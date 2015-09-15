@@ -102,9 +102,8 @@ function ModeHandler(nl, nlCourse, nlDlg) {
     }
 
     function _redirectTo(urlFmt, objId) {
-        nlDlg.showLoadingScreen(200);
         var url = nl.fmt2(urlFmt, objId);
-        nl.window.location.href = url;
+        nl.window.open(url,'_blank');
         return true;
     }
 
@@ -117,8 +116,8 @@ function ModeHandler(nl, nlCourse, nlDlg) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse',
-function(nl, nlRouter, $scope, nlDlg, nlCourse) {
+var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlServerApi',
+function(nl, nlRouter, $scope, nlDlg, nlCourse, nlServerApi) {
 	var modeHandler = new ModeHandler(nl, nlCourse, nlDlg);
 	var treeList = new TreeList();
 	function _onPageEnter(courseInfo) {
@@ -139,11 +138,14 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 					_initModule(content[i]);
 				}
      			var rootItems = treeList.getRootItems();
+     			$scope.content = content;
+     			$scope.showHideAllCourse = function() {
+			        _showHideAllRows($scope.content, !$scope.expanded);
+			    };
                 for(var i=0; i<rootItems.length; i++) {
                     _initModuleScores(modeHandler, course, rootItems[i]);
                 }
-     			$scope.content = content;
-				resolve(true);
+                resolve(true);
 			}, function(error) {
 			    resolve(false);
 			});
@@ -151,7 +153,16 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 	}
 
 	nlRouter.initContoller($scope, '', _onPageEnter);
-
+	
+	function _showHideAllRows(content, bShow) {
+        for(var i=0;i<content.length;i++){
+        	content[i].val = (content[i].indentationLevel) ? !bShow : false;
+        	console.log(content[i].val);
+        }
+        $scope.expanded = bShow;
+        $scope.showHideAllCourseNames = $scope.expanded ? nl.t('Collapse all') : nl.t('Expand all');
+    }
+    
     $scope.getIndentation = function(cm) {
         var ret = [];
         for (var i=0; i<cm.indentationLevel; i++) ret.push(i);

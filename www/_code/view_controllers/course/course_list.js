@@ -69,6 +69,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 	var courseDict = {};
 	var my = false;
 	var assignId = 0;
+	var assignDict = {};
+	var publishDict = {};
 
 	function _onPageEnter(userInfo) {
 		return nl.q(function(resolve, reject) {
@@ -105,11 +107,17 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 			_deleteCourse($scope, card.courseId);
 		} else if (linkid === 'course_assign'){
 			_assignCourse(card.courseId);
+		} else if (linkid === 'assignment_delete'){
+			_deleteAssignment($scope, card.courseId);
+		} else if (linkid === 'course_unpublish'){
+			_unpublishCourse($scope, card.courseId);
 		}
 	};
 
 	function _initParams() {
 		courseDict = {};
+		assignDict = {};
+		publishDict = {};
         var params = nl.location.search();
         my = ('my' in params) ? parseInt(params.my) == 1: false;
         assignId = ('assignid' in params) ? parseInt(params.assignid) : 0;
@@ -175,7 +183,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 			card.links.push({id: 'course_modify', text: nl.t('modify')});
 			card.links.push({id: 'course_delete', text: nl.t('delete')});
 		} else if(nlRouter.isPermitted(userInfo, 'course_assign')) {
-			card.links.push({id: 'course_assign', text: nl.t('assign')});	
+			card.links.push({id: 'course_assign', text: nl.t('assign')}, {id: 'course_unpublish', text: nl.t('unpublish')});
 		}
 		card.links.push({id: 'details', text: nl.t('details')});
 		return card;
@@ -211,7 +219,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 				help: report.remarks,
 				children: []};
 		card.details = {help: card.help, avps: _getReportAvps(report, isReport)};
-		card.links = [{id: 'details', text: nl.t('details')}];
+		card.links = [{id: 'details', text: nl.t('details')},{id:'assignment_delete', text: nl.t('delete')}];
 		return card;
 	}
 
@@ -244,7 +252,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 		card.links = [];
 		cards.push(card);
 	}
-
+	
 	function _assignCourse(courseId) {
 		nlDlg.showLoadingScreen();
 		var url = nl.fmt2('/assignment/create2/{}/course', courseId);
@@ -261,6 +269,45 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 			nlCourse.courseDelete(courseId).then(function(status) {
 				nlDlg.hideLoadingScreen();
 				if (courseId in courseDict) delete courseDict[courseId];
+				for (var i in $scope.cards.cardlist) {
+					var card = $scope.cards.cardlist[i];
+					if (card.courseId !== courseId) continue;
+					$scope.cards.cardlist.splice(i, 1);
+				}
+			});	
+		});
+	}
+	
+	function _deleteAssignment($scope, courseId) {
+		var msg = {title: 'Please confirm', 
+				   template: 'Are you sure you want to delete? This cannot be undone.',
+				   okText: nl.t('Delete')};
+		nlDlg.popupConfirm(msg).then(function(result) {
+			if (!result) return;
+			nlDlg.showLoadingScreen();
+			nlCourse.assignmentDelete(courseId).then(function(status) {
+				nlDlg.hideLoadingScreen();
+				if (courseId in assignDict) delete assignDict[courseId];
+				for (var i in $scope.cards.cardlist) {
+					var card = $scope.cards.cardlist[i];
+					if (card.courseId !== courseId) continue;
+					$scope.cards.cardlist.splice(i, 1);
+				}
+			});	
+		});
+	}
+	
+	function _unpublishCourse($scope, courseId) {
+		var msg = {title: 'Please confirm', 
+				   template: 'Are you sure you want to unpublish? This cannot be undone.',
+				   okText: nl.t('Unpublish')};
+		nlDlg.popupConfirm(msg).then(function(result) {
+			console.log(publishDict);
+			if (!result) return;
+			nlDlg.showLoadingScreen();
+			nlCourse.courseUnpublish(courseId).then(function(status) {
+				nlDlg.hideLoadingScreen();
+				if (courseId in publishDict) delete publishDict[courseId];
 				for (var i in $scope.cards.cardlist) {
 					var card = $scope.cards.cardlist[i];
 					if (card.courseId !== courseId) continue;
@@ -298,6 +345,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 			var publishButton = {
 				text : nl.t('Publish'),
 				onTap : function(e) {
+					publishDict[course.id]=course;
 					_onCourseSave(e, $scope, modifyDlg, courseId, true);
 				}
 			};

@@ -90,11 +90,15 @@ function(nl, nlDlg, nlConfig) {
         // returns list of courseAssignmentObjects
         return server.post('_serverapi/course_get_assignment_list.json', {mine: mine});
     };
-
-
-    this.courseGetAssignmentReportList = function(assignid) {
+    
+    this.courseUnpublish = function(courseId) {
+        // return: true/false
+        return server.post('_serverapi/course_unpublish.json', {courseid: courseId});
+    };
+    
+    this.courseGetAssignmentReportList = function(courseId) {
         // returns list of courseReportObjects
-        return server.post('_serverapi/course_get_assignment_report_list.json', {assignid: assignid});
+        return server.post('_serverapi/course_get_assignment_report_list.json', courseId);
     };
 
     this.courseGetMyReportList = function() {
@@ -110,6 +114,11 @@ function(nl, nlDlg, nlConfig) {
     this.courseCreateLessonReport = function(repid, refid) {
         // returns the updated course report object
         return server.post('_serverapi/course_create_lesson_report.json', {repid: repid, refid: refid});
+    };
+    
+    this.assignmentDelete = function(reportId) {
+        // return: true/false
+        return server.post('_serverapi/assignment_delete.json', {reportid: reportId});
     };
     
     //---------------------------------------------------------------------------------------------

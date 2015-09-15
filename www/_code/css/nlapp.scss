@@ -347,76 +347,79 @@ img.nl-clickable {
  * nl-dlg styles
  *-----------------------------------------------------------------------------------------*/
 .nl-dlg {
-
   .popup {
+    background: #FFFFFF;
     width: auto;
+    min-width: 30%;
     max-width: 90%;
-    max-height: 90%;
+    min-height: 90%;
     border-radius: 4px;
-    box-shadow: 2px 2px 10px 5px #402000;
+    //box-shadow: 2px 2px 10px 5px #402000;
     text-align: left;
-    background-color: #FFFFFF;
   }
- 
   .popup-head {
-    background-color: $nldlgbar;
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-    padding: 8px 32px 8px 8px;
-    min-height: 32px;
-    overflow: hidden;
-  }
+      position: absolute;
+      top:0%;
+      width:100%;
+      height:10%;
+      background-color: $nldlgbar;
+      overflow:hidden;
+      //border-top-left-radius: 4px;
+      //border-top-right-radius: 4px;
+    }
+    .popup-head * {
+      color: #FFFFFF;
+    }
+}
 
-  .popup-body {
+.popup-body {
     @extend .nl-thin-scroll;
-    min-width: 200px;
-    min-height: 140px;
-  }
-
-  .popup-head * {
-    color: #FFFFFF;
-  }
+    position:absolute;
+    margin-bottom: 4px;
+    top: 10%;
+    width: 100%;
+    height:80%;
 }
 
 .popup-buttons {
-  height: 52px;
-  min-height: 52px;
-  width: 100%;
-  padding: 8px;
-  border-top: 1px solid #D05000;
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
-
-  .button {
-    text-align: center;
-    color: #FFFFFF;
-    background: #D05000;
-    min-height: 36px;
-    height: 36px;
-    margin-right: 8px;
-    
-    &:last-child {
-      margin-right: 0;
-    }
-
-    &:hover, &:focus {
+    position: absolute;
+    background-color: #FFFFFF;
+    top:90%;
+    height: 10%;
+    width: 100%;
+    overflow : hidden;
+    border-top: 1px solid #D05000;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    .button {
+      white-space: nowrap;
+      text-overflow : ellipsis;
+      overflow : hidden;
+      text-align: center;
+      vertical-align: middle;
       color: #FFFFFF;
-      background: #B03000;
+      background: #D05000;
+      &:last-child {
+        margin-right: 0;
+      }
+  
+      &:hover, &:focus {
+        color: #FFFFFF;
+        background: #B03000;
+      }
     }
-  }
 }
-
 .popup-buttons.no-border {
-  border-top: none;
+    border-top: none;
 }
 
 .nl-dlg-title-help {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  height: 24px;
-  width: 24px;
-  cursor:pointer;
+    position:fixed;
+    top:2.5%;
+    right: 1%;
+    height: 24px;
+    width: 24px;
+    cursor:pointer;
 }
 
 nl-dlg-help {
@@ -627,6 +630,9 @@ a.nl-card-img:hover, a.nl-card-img:focus {
   &> img {
     float: right;
     max-height: 100px;
+  }
+  &> div {
+    min-height: 100px;
   }
 }
 
