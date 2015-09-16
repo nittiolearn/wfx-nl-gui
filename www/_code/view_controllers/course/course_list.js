@@ -69,7 +69,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 	var courseDict = {};
 	var my = false;
 	var assignId = 0;
-	var publishDict = {};
+	var _userInfo = null;
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
@@ -95,19 +95,17 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 			_createOrModifyCourse($scope, card.courseId);
 		} else if (linkid === 'course_delete') {
 			_deleteCourse($scope, card.courseId);
-		} else if (linkid === 'course_assign'){
-			_assignCourse(card.courseId);
-		} else if (linkid === 'assignment_delete'){
-			_deleteAssignment($scope, card.courseId);
 		} else if (linkid === 'course_unpublish'){
 			_unpublishCourse($scope, card.courseId);
+		} else if (linkid === 'course_assign'){
+			_assignCourse(card.courseId);
+		} else if (linkid === 'course_assign_delete'){
+			_deleteAssignment($scope, card.reportId);
 		}
 	};
 
 	function _initParams() {
 		courseDict = {};
-		assignDict = {};
-		publishDict = {};
         var params = nl.location.search();
         my = ('my' in params) ? parseInt(params.my) == 1: false;
         assignId = ('assignid' in params) ? parseInt(params.assignid) : 0;
@@ -194,8 +192,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 	
 	function _createCard(cardInfo, userInfo) {
 		if (type === 'course') return _createCourseCard(cardInfo, userInfo);
-		if (type === 'assign') return _createReportCard(cardInfo, false);
-		return _createReportCard(cardInfo, true);
+		if (type === 'assign') return _createReportCard(cardInfo, userInfo, false);
+		return _createReportCard(cardInfo, userInfo, true);
 	}
 	
 	function _createCourseCard(course, userInfo) {
@@ -214,8 +212,10 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 		if (my) { 
 			card.links.push({id: 'course_modify', text: nl.t('modify')});
 			card.links.push({id: 'course_delete', text: nl.t('delete')});
+			if (course.is_published)
+				card.links.push({id: 'course_unpublish', text: nl.t('unpublish')});
 		} else if(nlRouter.isPermitted(userInfo, 'course_assign')) {
-			card.links.push({id: 'course_assign', text: nl.t('assign')}, {id: 'course_unpublish', text: nl.t('unpublish')});
+			card.links.push({id: 'course_assign', text: nl.t('assign')});
 		}
 		card.links.push({id: 'details', text: nl.t('details')});
 		return card;
@@ -235,7 +235,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 		return avps;
 	}
 
-	function _createReportCard(report, isReport) {
+	function _createReportCard(report, userInfo, isReport) {
 		var url = nl.fmt2('#/app/course_report_list?assignid={}', report.id);
 		var title = report.name;
 		if (isReport) {
@@ -244,14 +244,17 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 			var url = nl.fmt2('#/app/course_view?id={}&mode={}', 
 						report.id, mode);
 		}
-	    var card = {
-				title: title, 
-				icon: report.icon, 
-				url: url,
-				help: report.remarks,
-				children: []};
+	    var card = {reportId: report.id,
+	    			title: title, 
+	    			icon: report.icon, 
+	    			url: url,
+	    			help: report.remarks,
+	    			children: []};
 		card.details = {help: card.help, avps: _getReportAvps(report, isReport)};
-		card.links = [{id: 'details', text: nl.t('details')},{id:'assignment_delete', text: nl.t('delete')}];
+		card.links = [];
+		if (!isReport && nlRouter.isPermitted(userInfo, 'course_assign'))
+			card.links.push({id:'course_assign_delete', text: nl.t('delete')});
+		card.links.push({id: 'details', text: nl.t('details')});
 		return card;
 	}
 
@@ -274,8 +277,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
         nl.fmt.addAvp(avps, 'Discussion forum', report.forum, 'boolean');
 		return avps;
 	}
-
-
 
 	function _assignCourse(courseId) {
 		nlDlg.showLoadingScreen();
@@ -302,19 +303,18 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 		});
 	}
 	
-	function _deleteAssignment($scope, courseId) {
+	function _deleteAssignment($scope, assignId) {
 		var msg = {title: 'Please confirm', 
 				   template: 'Are you sure you want to delete? This cannot be undone.',
 				   okText: nl.t('Delete')};
 		nlDlg.popupConfirm(msg).then(function(result) {
 			if (!result) return;
 			nlDlg.showLoadingScreen();
-			nlCourse.assignmentDelete(courseId).then(function(status) {
+			nlCourse.courseAssignmentDelete(assignId).then(function(status) {
 				nlDlg.hideLoadingScreen();
-				if (courseId in assignDict) delete assignDict[courseId];
 				for (var i in $scope.cards.cardlist) {
 					var card = $scope.cards.cardlist[i];
-					if (card.courseId !== courseId) continue;
+					if (card.reportId !== assignId) continue;
 					$scope.cards.cardlist.splice(i, 1);
 				}
 			});	
@@ -323,20 +323,19 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 	
 	function _unpublishCourse($scope, courseId) {
 		var msg = {title: 'Please confirm', 
-				   template: 'Are you sure you want to unpublish? This cannot be undone.',
+				   template: 'Are you sure you want to unpublish?',
 				   okText: nl.t('Unpublish')};
 		nlDlg.popupConfirm(msg).then(function(result) {
-			console.log(publishDict);
 			if (!result) return;
 			nlDlg.showLoadingScreen();
-			nlCourse.courseUnpublish(courseId).then(function(status) {
-				nlDlg.hideLoadingScreen();
-				if (courseId in publishDict) delete publishDict[courseId];
-				for (var i in $scope.cards.cardlist) {
-					var card = $scope.cards.cardlist[i];
-					if (card.courseId !== courseId) continue;
-					$scope.cards.cardlist.splice(i, 1);
-				}
+			var courseData = courseDict[courseId]; 
+			var modifiedData = {
+				name: courseData.name, 
+				icon: courseData.icon, 
+				description: courseData.description
+			};
+			nlCourse.courseUnpublish(courseId).then(function(course) {
+				_onModifyDone(course, courseId, modifiedData, $scope);
 			});	
 		});
 	}
@@ -370,7 +369,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 			var publishButton = {
 				text : nl.t('Publish'),
 				onTap : function(e) {
-					publishDict[course.id]=course;
 					_onCourseSave(e, $scope, modifyDlg, courseId, true);
 				}
 			};
@@ -400,15 +398,19 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 		if (bPublish) modifiedData.publish = true;
 		var crModFn = (courseId != null) ? nlCourse.courseModify: nlCourse.courseCreate;
 		crModFn(modifiedData).then(function(course) {
-			nlDlg.hideLoadingScreen();
-		    _updateCourseForTesting(course, modifiedData);
-		    var card = _createCourseCard(course);
-		    if (courseId !== null) {
-                var pos = _getCardPosition(course.id);
-                $scope.cards.cardlist.splice(pos, 1);
-		    }
-			$scope.cards.cardlist.splice(1, 0, card);			
+			_onModifyDone(course, courseId, modifiedData, $scope);
 		});
+	}
+
+    function _onModifyDone(course, courseId, modifiedData, $scope) {
+		nlDlg.hideLoadingScreen();
+	    _updateCourseForTesting(course, modifiedData);
+	    var card = _createCourseCard(course);
+	    if (courseId !== null) {
+            var pos = _getCardPosition(course.id);
+            $scope.cards.cardlist.splice(pos, 1);
+	    }
+		$scope.cards.cardlist.splice(0, 0, card);			
 	}
 
     function _validateInputs(scope) {
@@ -482,7 +484,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 		course.name  = modifiedData.name;
 		course.icon  = modifiedData.icon;
 		course.description  = modifiedData.description;
-		course.content  = angular.fromJson(modifiedData.content);
+		if ('content' in modifiedData)
+			course.content  = angular.fromJson(modifiedData.content);
 	}
 
 	function _getCardPosition(courseId) {

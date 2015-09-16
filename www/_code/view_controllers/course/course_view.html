@@ -1,11 +1,10 @@
 <div class='nl-thin-scroll nl-full'>
 	<div class='popup-buttons no-border' >
-        <button ng-click='showHideAllCourse()' class='button'>{{showHideAllCourseNames}}</button>
-        <button ng-click='refreshCourseFromServer()' class='button'>Refresh</button>
+        <button ng-click='showHideAll()' class='button'>{{showHideAllButtonName}}</button>
     </div>
     
 	<table class="nl-table nl-table-styled">
-		<tr ng-repeat="cm in content" ng-if="!cm.val">
+		<tr ng-repeat="cm in content" ng-show="cm.visible">
 			<td ng-click='onClick(cm)' class=''>
 				<span class='nl-cv-indent' ng-repeat="x in getIndentation(cm)"></span>
 				<img class='nl-icon nl-clickable' ng-src='{{getIcon(cm)}}'>

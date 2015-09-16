@@ -116,10 +116,10 @@ function ModeHandler(nl, nlCourse, nlDlg) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlServerApi',
-function(nl, nlRouter, $scope, nlDlg, nlCourse, nlServerApi) {
+var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse',
+function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 	var modeHandler = new ModeHandler(nl, nlCourse, nlDlg);
-	var treeList = new TreeList();
+	var treeList = new TreeList(nl);
 	function _onPageEnter(courseInfo) {
 		return nl.q(function(resolve, reject) {
 		    treeList.clear();
@@ -138,14 +138,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlServerApi) {
 					_initModule(content[i]);
 				}
      			var rootItems = treeList.getRootItems();
-     			$scope.content = content;
-     			$scope.showHideAllCourse = function() {
-			        _showHideAllRows($scope.content, !$scope.expanded);
-			    };
                 for(var i=0; i<rootItems.length; i++) {
                     _initModuleScores(modeHandler, course, rootItems[i]);
                 }
-                resolve(true);
+     			$scope.content = content;
+				resolve(true);
 			}, function(error) {
 			    resolve(false);
 			});
@@ -153,16 +150,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlServerApi) {
 	}
 
 	nlRouter.initContoller($scope, '', _onPageEnter);
+
+	$scope.showHideAllButtonName = treeList.showHideAllButtonName();
+	$scope.showHideAll = function() {
+		treeList.showHideAll();
+		$scope.showHideAllButtonName = treeList.showHideAllButtonName();
+    };
 	
-	function _showHideAllRows(content, bShow) {
-        for(var i=0;i<content.length;i++){
-        	content[i].val = (content[i].indentationLevel) ? !bShow : false;
-        	console.log(content[i].val);
-        }
-        $scope.expanded = bShow;
-        $scope.showHideAllCourseNames = $scope.expanded ? nl.t('Collapse all') : nl.t('Expand all');
-    }
-    
     $scope.getIndentation = function(cm) {
         var ret = [];
         for (var i=0; i<cm.indentationLevel; i++) ret.push(i);
@@ -252,14 +246,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlServerApi) {
             cm.statusText += nl.t('{}% (Score: {} out of {}).', perc, cm.score, cm.maxScore);
         }
     }
-    
 }];
 
-function TreeList(ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
+function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
     if (ID_ATTR === undefined) ID_ATTR = 'id';
     if (DELIM === undefined) DELIM = '.';
     if (VISIBLE_ON_OPEN === undefined) VISIBLE_ON_OPEN = 1;
-
+    
     this.clear = function() {
         this.items = {};
         this.rootItems = [];
@@ -289,6 +282,24 @@ function TreeList(ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
     
     this.getRootItems = function() {
         return this.rootItems;
+    };
+
+	this.bExpanded = false;
+    this.showHideAllButtonName = function() {
+    	if (this.bExpanded) return nl.t('Expand All');
+    	return nl.t('Collapse All');
+    };
+    
+    this.showHideAll = function() {
+    	this.bExpanded = !this.bExpanded;
+    	for (var itemId in this.items) {
+    		this.showHideItem(this.items[itemId], this.bExpanded);
+    	}
+    };
+    
+    this.showHideItem = function(item, bShow) {
+        item.isOpen = bShow;
+        item.visible = bShow || (item.indentationLevel < 1);
     };
 
     this.getParent = function(item) {

@@ -11,7 +11,7 @@
         "created": "2015-08-10T11:09:27", 
         "updated": "2015-08-10T11:09:27", 
         "published": null, 
-        "is_published": true,
+        "is_published": false,
         "content": [
           {"id": "1", "type": "module", "name": "Year 1 modules", "icon": "module"},
             {"id": "1.1", "type": "module", "name": "Month 1 modules"},

@@ -33,14 +33,14 @@ function(nl, nlServerApi) {
     	return nlServerApi.courseDelete(courseId);
     };
     
-    this.assignmentDelete = function(courseId) {
-    	return nlServerApi.assignmentDelete(courseId);
-    };
-    
     this.courseUnpublish = function(courseId) {
     	return nlServerApi.courseUnpublish(courseId);
     };
 
+    this.courseAssignmentDelete = function(assignId) {
+    	return nlServerApi.courseAssignmentDelete(assignId);
+    };
+    
 	this.courseGetAssignmentList = function(data) {
     	return nlServerApi.courseGetAssignmentList(data);
 	};
