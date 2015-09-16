@@ -70,6 +70,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 	var my = false;
 	var assignId = 0;
 	var _userInfo = null;
+	var _searchFilterInUrl = '';
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
@@ -79,7 +80,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 			$scope.cards = {};
 			$scope.cards.staticlist = _getStaticCards();
 			$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
-			_getDataFromServer('', resolve, reject);
+			_getDataFromServer(_searchFilterInUrl, resolve, reject);
 		});
 	}
 	nlRouter.initContoller($scope, '', _onPageEnter);
@@ -109,6 +110,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
         var params = nl.location.search();
         my = ('my' in params) ? parseInt(params.my) == 1: false;
         assignId = ('assignid' in params) ? parseInt(params.assignid) : 0;
+        _searchFilterInUrl = ('search' in params) ? params.search : '';
 	}
 
 	function _getPageTitle() {
