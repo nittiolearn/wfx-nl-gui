@@ -286,8 +286,8 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
 
 	this.bExpanded = false;
     this.showHideAllButtonName = function() {
-    	if (this.bExpanded) return nl.t('Expand All');
-    	return nl.t('Collapse All');
+    	if (this.bExpanded) return nl.t('Collapse All');
+    	return nl.t('Expand All');
     };
     
     this.showHideAll = function() {
@@ -315,10 +315,8 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
     
     this.toggleItem = function(item) {
         var bOpen = !item.isOpen;
-        
         item.isOpen = bOpen;
         item.visible = true;
-        
         var children = this.getChildren(item);
         for (var i=0; i<children.length; i++) {
             var child = children[i];
