@@ -9,7 +9,8 @@ function module_init() {
     .service('nlDlg', DlgSrv)
     .directive('nlDlg', DlgDirective)
     .directive('nlFormInput', FormInputDirective)
-    .directive('nlFormTextarea', FormTextareaDirective);
+    .directive('nlFormTextarea', FormTextareaDirective)
+    .directive('nlElastic', ElasticTextareaDirective);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -242,6 +243,26 @@ function _formFieldDirectiveImpl(nl, nlDlg, tagName, templateUrl) {
         }
     };
 }
+
+//-------------------------------------------------------------------------------------------------
+var ElasticTextareaDirective =  ['nl',
+function(nl) {
+    return {
+        restrict: 'A',
+        link: function($scope, iElem, iAttrs) {
+            // In future this could be controlled by adding a class
+            // if (iAttrs['class'].indexOf('nl-elastic') < 0) return;
+            var elem = iElem[0];
+            $scope.initialHeight = elem.style.height;
+            function onResize() {
+                elem.style.height = $scope.initialHeight;
+                elem.style.height = "" + elem.scrollHeight + "px";
+            };
+            iElem.on("input change", onResize);
+            nl.timeout(onResize, 0);
+        }
+    };
+}];
 
 //-------------------------------------------------------------------------------------------------
 module_init();
