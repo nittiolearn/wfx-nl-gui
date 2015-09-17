@@ -34,7 +34,7 @@ function(nl, nlDlg, nlServerApi) {
     function _onPageEnter($scope, pageUrl, pageEnterFn) {
         nl.log.debug('router.onPageEnter: ', nl.location.url());
         nl.pginfo.isPageShown = false;
-        nlDlg.showLoadingScreen(0);
+        nlDlg.showLoadingScreen();
         var protocol = nl.location.protocol().toLowerCase();
         if (protocol.indexOf('file') >= 0) {
             nlDlg.hideLoadingScreen();

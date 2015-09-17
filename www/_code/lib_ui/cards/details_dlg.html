@@ -1,17 +1,18 @@
 <nl-dlg title='{{card.title}}'>
     <nl-dlg-help>You can access additional information about a card by clicking the 'details' link on bottom of the card if available.</nl-dlg-help>
-    <nl-dlg-content class='nl-card-details-dlg'>
-        <img ng-src='{{card.icon}}'></img>
-        <div class='nl-details-dlg-body' ng-bind-html='card.details.help'>
+    <nl-dlg-content>
+        <div class='row'>
+            <div class='col' ng-bind-html='card.details.help'></div>
+            <div class='nl-card-details-dlg-img'>
+                <img ng-src='{{card.icon}}' class=''></img>
+            </div>
         </div>
-        <table class='nl-table'>
-            <tr ng-repeat='avp in card.details.avps' class='nl-border-bottom'>
-                <td class='nl-20'>
-                	<a ng-href='{{avp.url}}' ng-if='avp.url'>{{avp.attr}}</a>
-	                <span ng-if='!avp.url'>{{avp.attr}}</span>
-                </td>
-                <td>{{avp.val}}</td>
-            </tr>
-        </table>
+        <div ng-repeat='avp in card.details.avps' class='nl-border-bottom row'>
+            <div class='col col-20'>
+            	<a ng-href='{{avp.url}}' ng-if='avp.url'>{{avp.attr}}</a>
+                <span ng-if='!avp.url'>{{avp.attr}}</span>
+            </div>
+            <div class='col'>{{avp.val}}</div>
+        </div>
     </nl-dlg-content>
 </nl-dlg>

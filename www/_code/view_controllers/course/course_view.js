@@ -61,12 +61,12 @@ function ModeHandler(nl, nlCourse, nlDlg) {
 		return nlCourse.courseGetReport(this.courseId, true);
 	};
 	
-	this.handleLessonLink = function(cm) {
+	this.handleLessonLink = function(cm, newTab) {
 	    var self = this;
         if (!('refid' in cm)) return _popupAlert('Error', 'Link to the learning module is not specified');
         var refid = cm.refid;
         if (this.mode === MODES.PRIVATE || this.mode === MODES.PUBLISHED) {
-            return _redirectTo('/lesson/view/{}', refid);
+            return _redirectTo('/lesson/view/{}', refid, newTab);
         }
 
         var refidStr = refid.toString();
@@ -74,18 +74,18 @@ function ModeHandler(nl, nlCourse, nlDlg) {
         if (this.mode === MODES.REPORT_VIEW) {
             if (!reportInfo || !reportInfo.completed) return _popupAlert('Not completed', 
                 'This learning module is not yet completed. You may view the report once it is completed.');
-            return _redirectTo('/lesson/review_report_assign/{}', reportInfo.reportId);
+            return _redirectTo('/lesson/review_report_assign/{}', reportInfo.reportId, newTab);
         }
         
         // do mode
-        if (_redirectToLessonReport(reportInfo)) return true;
+        if (_redirectToLessonReport(reportInfo, newTab)) return true;
         
-        nlDlg.showLoadingScreen(200);
+        nlDlg.showLoadingScreen();
         nlCourse.courseCreateLessonReport(self.course.id, refid).then(function(updatedCourseReport) {
-            nlDlg.hideLoadingScreen();
+            // nlDlg.hideLoadingScreen(); not required here
             self.course = updatedCourseReport;
             reportInfo = self.course.lessonReports[refidStr];
-            _redirectToLessonReport(reportInfo);
+            _redirectToLessonReport(reportInfo, newTab);
         });
         
         return true;
@@ -101,16 +101,28 @@ function ModeHandler(nl, nlCourse, nlDlg) {
         return true;
     }
 
-    function _redirectTo(urlFmt, objId) {
+    function _redirectTo(urlFmt, objId, newTab) {
         var url = nl.fmt2(urlFmt, objId);
-        nl.window.open(url,'_blank');
+        if (newTab) {
+            var msg = 'Do you want to open the link in a new tab? After completing, you may close the tab and come back to this tab.';
+            nlDlg.popupConfirm({title: nl.t('Please confirm'), 
+                              template: nl.t(msg),
+                              okText: nl.t('Open in a new tab')
+                              })
+            .then(function(res) {
+                if (res) nl.window.open(url,'_blank');
+            });
+        } else {
+            nlDlg.showLoadingScreen();
+            nl.window.location.href = url;
+        }
         return true;
     }
 
-    function _redirectToLessonReport(reportInfo) {
+    function _redirectToLessonReport(reportInfo, newTab) {
         if (!reportInfo) return false;
         var urlFmt = reportInfo.completed ?  '/lesson/view_report_assign/{}' : '/lesson/do_report_assign/{}';
-        return _redirectTo(urlFmt, reportInfo.reportId);
+        return _redirectTo(urlFmt, reportInfo.reportId, newTab);
     }
 
 }
@@ -169,16 +181,25 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 		return icon;
 	};
 	
-	$scope.onClick = function(cm) {
+    $scope.getNewTabIcon = function(getNewTabIcon) {
+        return _icons['newtab'];
+    };
+	
+	
+	$scope.onClick = function(e, cm, newTab) {
 		if (cm.type === 'lesson') {
-		    modeHandler.handleLessonLink(cm);
+		    modeHandler.handleLessonLink(cm, newTab);
 		} else if(cm.type === 'module') {
 			treeList.toggleItem(cm);	
 		}
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        return false;
 	};
 	
 	var _icons = {
-		'module': nl.url.resUrl('general/cm-module.png'),
+        'newtab': nl.url.resUrl('general/newtab.png'),
+        'module': nl.url.resUrl('general/cm-module.png'),
 		'lesson': nl.url.resUrl('general/cm-lesson.png'),
 		'quiz': nl.url.resUrl('general/cm-quiz.png')
 	};
@@ -251,7 +272,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
     if (ID_ATTR === undefined) ID_ATTR = 'id';
     if (DELIM === undefined) DELIM = '.';
-    if (VISIBLE_ON_OPEN === undefined) VISIBLE_ON_OPEN = 1;
+    if (VISIBLE_ON_OPEN === undefined) VISIBLE_ON_OPEN = 10000; // Practically all levels are visible
     
     this.clear = function() {
         this.items = {};
@@ -284,7 +305,7 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
         return this.rootItems;
     };
 
-	this.bExpanded = false;
+	this.bExpanded = true;
     this.showHideAllButtonName = function() {
     	if (this.bExpanded) return nl.t('Collapse All');
     	return nl.t('Expand All');
