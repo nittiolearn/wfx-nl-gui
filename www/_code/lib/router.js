@@ -97,20 +97,20 @@ function(nl, nlDlg, nlServerApi) {
     }
 
     function _sendGoogleAnalytics(userInfo) {
-        var userid = userInfo.username || '';
+        var userid = userInfo.username || 'none';
         var useridParts = userid.split('.');
-        var groupid = useridParts.length > 1 ? useridParts[1] : 1;
-        var usertype = userInfo.usertype || '';
+        var groupid = useridParts.length > 1 ? useridParts[1] : 'none';
+        var usertype = userInfo.usertype || 'none';
 
         var urlParts = nl.location.path().split('/');
         var reqtype = '/';
-        if (urlParts.length > 1) reqtype += urlParts[1] + '/';
-        if (urlParts.length > 2) reqtype += urlParts[2];
+        if (urlParts.length > 1) reqtype += urlParts[1];
+        if (urlParts.length > 2) reqtype += '/' + urlParts[2];
         
-        ga('set', 'NlUserId', userid);
-        ga('set', 'NlGroupId', groupid);
-        ga('set', 'NlUserType', usertype);
-        ga('set', 'NlActivity', reqtype);
+        ga('set', 'dimension1', userid);
+        ga('set', 'dimension2', groupid);
+        ga('set', 'dimension4', usertype);
+        ga('set', 'dimension3', reqtype);
         ga('send', 'pageview');
         nl.log.debug('ga sent: ', userid, groupid, usertype, reqtype);
     }
