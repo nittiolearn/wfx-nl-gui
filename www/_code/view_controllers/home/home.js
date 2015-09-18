@@ -8,6 +8,7 @@ function module_init() {
     angular.module('nl.home', [])
     .config(configFn)
     .controller('nl.HomeCtrl', HomeCtrl)
+    .controller('nl.HomeRefreshCtrl', HomeRefreshCtrl)
     .controller('nl.DashboardViewCtrl', DashboardViewCtrl);
 }
 
@@ -21,6 +22,16 @@ function($stateProvider) {
             'appContent' : {
                 templateUrl : 'lib_ui/cards/cardsview.html',
                 controller : 'nl.HomeCtrl'
+            }
+        }
+    });
+    $stateProvider.state('app.home_refresh', {
+        cache: true,
+        url : '/home_refresh',
+        views : {
+            'appContent' : {
+                template : '',
+                controller : 'nl.HomeRefreshCtrl'
             }
         }
     });
@@ -158,8 +169,21 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
             });
         });
     }
-
 };
+
+var HomeRefreshCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlConfig', 'nlDlg',
+function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
+    function _onPageEnter(userInfo) {
+        return nl.q(function(resolve, reject) {
+            nlServerApi.clearCache().then(function(res) {
+                nlDlg.popupStatus('Local cache cleared');
+                nl.location.url('/app/home');
+                nl.location.replace();
+            });
+        });
+    }
+    nlRouter.initContoller($scope, '', _onPageEnter);
+}];
 
 module_init();
 })();

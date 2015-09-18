@@ -1125,7 +1125,10 @@ div.njs_pdf_holder.inline_obj {
 div.pgSecView {
 	font-size: 1em;
 	display: none;
+}
 
+/* nl_no_select is an optional group specific CSS class */
+.nl_no_select div.pgSecView {
   -webkit-user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
