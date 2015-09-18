@@ -41,6 +41,7 @@ function(nl, nlDlg, nlServerApi) {
             return; // Empty page
         }
         _getUserInfo(pageUrl).then(function(userInfo) {
+            _sendGoogleAnalytics(userInfo);
             nl.pginfo.username = (userInfo.username == '') ? '' : userInfo.displayname;
             var pagePerm = permission.getPermObj(pageUrl);
             if (pagePerm == null) {
@@ -95,6 +96,25 @@ function(nl, nlDlg, nlServerApi) {
         return true;
     }
 
+    function _sendGoogleAnalytics(userInfo) {
+        var userid = userInfo.username || '';
+        var useridParts = userid.split('.');
+        var groupid = useridParts.length > 1 ? useridParts[1] : 1;
+        var usertype = userInfo.usertype || '';
+
+        var urlParts = nl.location.path().split('/');
+        var reqtype = '/';
+        if (urlParts.length > 1) reqtype += urlParts[1] + '/';
+        if (urlParts.length > 2) reqtype += urlParts[2];
+        
+        ga('set', 'NlUserId', userid);
+        ga('set', 'NlGroupId', groupid);
+        ga('set', 'NlUserType', usertype);
+        ga('set', 'NlActivity', reqtype);
+        ga('send', 'pageview');
+        nl.log.debug('ga sent: ', userid, groupid, usertype, reqtype);
+    }
+    
     function _getWindowTitle() {
         var prefix = nl.t('Nittio Learn');
         if (nl.pginfo.pageTitle == '') return prefix;

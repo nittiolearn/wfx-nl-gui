@@ -5,6 +5,7 @@
   },
   "_userInfo": {
     "username": "admin.nittio",
+    "usertype": "Nittio Admin",
     "displayname": "Nittio Admin",
     "termAccess": "allowed",
     "groupicon": "/static/nittio_res_v39/general/top-logo1.png",
