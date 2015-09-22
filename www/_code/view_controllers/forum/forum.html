@@ -1,8 +1,8 @@
 <div class='nl-thin-scroll nl-full nl-forum'>
-    <div class='popup-buttons no-border' ng-hide='postNewDlg.visible'>
-        <button ng-hide='hidePostNewButton' ng-click='showPostNewDlg()' class='button'>Post new message</button>
-        <button ng-click='showHideAllMessageDetails()' class='button'>{{showHideAllButtonName}}</button>
-        <button ng-click='refreshDataFromServer()' class='button'>Refresh</button>
+    <div class='popup-buttons no-border row' ng-hide='postNewDlg.visible'>
+        <button ng-hide='hidePostNewButton' ng-click='showPostNewDlg()' class='button col'>Post new message</button>
+        <button ng-click='showHideAllMessageDetails()' class='button col'>{{showHideAllButtonName}}</button>
+        <button ng-click='refreshDataFromServer()' class='button col'>Refresh</button> 
     </div>
     <nl-forum-input ng-show='postNewDlg.visible'></nl-forum-input>
     <div ng-repeat='msg in msgs' class='nl-forum-msg'>
