@@ -18,6 +18,12 @@ function(nl, nlDlg, nlConfig) {
     //---------------------------------------------------------------------------------------------
     // Common methods
     //---------------------------------------------------------------------------------------------
+    this.clearCache = function() {
+        return nl.db.clear().then(function(res) {
+            server.reinitUserInfo();
+        });
+    };
+
     this.getUserInfoFromCache = function() {
         return server.getUserInfoFromCache();
     };

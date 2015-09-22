@@ -41,6 +41,7 @@ function(nl, nlDlg, nlServerApi) {
             return; // Empty page
         }
         _getUserInfo(pageUrl).then(function(userInfo) {
+            _sendGoogleAnalytics(userInfo);
             nl.pginfo.username = (userInfo.username == '') ? '' : userInfo.displayname;
             var pagePerm = permission.getPermObj(pageUrl);
             if (pagePerm == null) {
@@ -95,6 +96,25 @@ function(nl, nlDlg, nlServerApi) {
         return true;
     }
 
+    function _sendGoogleAnalytics(userInfo) {
+        var userid = userInfo.username || 'none';
+        var useridParts = userid.split('.');
+        var groupid = useridParts.length > 1 ? useridParts[1] : 'none';
+        var usertype = userInfo.usertype || 'none';
+
+        var urlParts = nl.location.path().split('/');
+        var reqtype = '/';
+        if (urlParts.length > 1) reqtype += urlParts[1];
+        if (urlParts.length > 2) reqtype += '/' + urlParts[2];
+        
+        ga('set', 'dimension1', userid);
+        ga('set', 'dimension2', groupid);
+        ga('set', 'dimension4', usertype);
+        ga('set', 'dimension3', reqtype);
+        ga('send', 'pageview');
+        nl.log.debug('ga sent: ', userid, groupid, usertype, reqtype);
+    }
+    
     function _getWindowTitle() {
         var prefix = nl.t('Nittio Learn');
         if (nl.pginfo.pageTitle == '') return prefix;
@@ -113,6 +133,7 @@ function Permission(nl) {
     var permissions = {
         // Page permissions
         '/app/home': {login: true, permission: 'basic_access', termRestriction: TR_OPEN}, 
+        '/app/home_refresh': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/app/login_now': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/app/logout_now': {login: false, permission: '', termRestriction: TR_OPEN},
         '/app/audit': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},

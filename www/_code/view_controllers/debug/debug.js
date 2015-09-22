@@ -1,7 +1,7 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// temp.js:
+// debug.js:
 // Temp module for experimentation
 //-------------------------------------------------------------------------------------------------
 function module_init() {
@@ -25,12 +25,14 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var DebugCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlLogViewer', 'nlServerApi',
-function(nl, nlRouter, $scope, nlDlg, nlLogViewer, nlServerApi) {
+var DebugCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlLogViewer', 'nlServerApi', 'nlCardsSrv',
+function(nl, nlRouter, $scope, nlDlg, nlLogViewer, nlServerApi, nlCardsSrv) {
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
-            nl.log.debug('DebugCtrl:onPageEnter - enter');
-            $scope.cards = _getCards();
+            $scope.cards = {};
+            $scope.cards.staticlist = [];
+            $scope.cards.emptycard = nlCardsSrv.getEmptyCard();
+            $scope.cards.cardlist = _getCards();
             nl.log.debug('DebugCtrl:onPageEnter - done');
             resolve(true);
         });
@@ -47,12 +49,23 @@ function(nl, nlRouter, $scope, nlDlg, nlLogViewer, nlServerApi) {
             children: [], links: []};
         cards.push(card);
 
+        card = {title: nl.t('Clear Cache'), 
+            icon: nl.url.resUrl('dashboard/alerts.png'), 
+            internalUrl: 'debug_clearcache',
+            help: nl.t('Clear local cache'), 
+            children: [], links: []};
+        cards.push(card);
+        
         return cards;
     }
 
     $scope.onCardInternalUrlClicked = function(internalUrl) {
         if (internalUrl === 'debug_logviewer') {
             nlLogViewer.show($scope);
+        } else if (internalUrl === 'debug_clearcache') {
+            nlServerApi.clearCache().then(function(res) {
+                nlDlg.popupStatus('Local cache cleared');
+            });
         }
     };
 }];
