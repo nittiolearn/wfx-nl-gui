@@ -354,15 +354,12 @@ img.nl-clickable {
 /*-----------------------------------------------------------------------------------------*
  * nl-dlg styles
  *-----------------------------------------------------------------------------------------*/
-.nl-dlg, .popup, .poup-head, .popup-body, .popup-buttons{
-    //width: 100vw;
-    //height: 100vh;
-}
-
 .nl-dlg {
   .popup {
-    min-width: 40%;
-    height: 55%;
+    width: auto;
+    height: auto;
+    max-width: 96vw;
+    max-height: 96vh;
     border-radius: 4px;
     box-shadow: 2px 2px 10px 5px #402000;
     text-align: left;
@@ -373,30 +370,30 @@ img.nl-clickable {
     background-color: $nldlgbar;
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
-    width: 100%;
-    height: 10%;
-    padding: 2% 0% 2% 0%;
+    padding: 4px 32px 4px 4px;
+    min-height: 32px;
+    height: 32px;
     overflow: hidden;
     border: none;
   }
 
   .popup-body {
     @extend .nl-thin-scroll;
-    height: 70%;
-    width: 100%;
+    min-width: 30vw;
+    min-height: 30vh;
   }
 
   .popup-title {
-    margin: 0%;
     color: #FFFFFF;
     font-size: 120%;
   }
 }
 
 .popup-buttons {
-  height: 10%;
+  min-height: 37px;
+  height: 37px;
   width: 100%;
-  padding: 2% 0% 0% 0%;
+  padding: 2px;
   border-top: 1px solid $nldlgbar;
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
@@ -406,10 +403,10 @@ img.nl-clickable {
     font-size: 120%;
     color: #FFFFFF;
     background-color: $nldlgbar;
-    height: 100%;
-    white-space: nowrap;
-    text-overflow : ellipsis;
-    overflow : hidden;
+    min-height: 32px;
+    height: 32px;
+    padding: 3px;
+    
     &:last-child {
       margin-right: 0;
     }
@@ -426,10 +423,10 @@ img.nl-clickable {
 
 .nl-dlg-title-help {
   position: absolute;
-  top: 2.5%;
-  right: 1%;
-  height: 5%;
-  width: 5%;
+  top: 4px;
+  right: 4px;
+  height: 24px;
+  width: 24px;
   cursor:pointer;
 }
 
@@ -447,67 +444,14 @@ nl-dlg-help {
 }
 
 .nl-dlg.nl-width-max {
-  .popup {
-    width: 90vw;
-  }
-}
-.nl-dlg.nl-height-max {
-  .popup {
-    height: 90vh;
-  }
-}
-
-.nl-dlg.nl-height-max {
-  .nl-dlg-title-help {
-    height: 5%;
-  }
-}
-
-.nl-dlg.nl-width-max {
-  .nl-dlg-title-help {
-    width: 5%;
-  }
-}
-
-.nl-dlg.nl-height-max {
-  .popup-buttons {
-    height: 10%;
-  }
-}
-
-.nl-dlg.nl-width-max {
-  .popup-buttons {
-    width: 100%;
-  }
-}
-
-.nl-dlg.nl-height-max {
-    .button {
-      height: 100%;
-  }
-}
-
-.nl-dlg.nl-width-max {
-  .popup-head {
-    width: 100%;
-  }
-}
-
-.nl-dlg.nl-height-max {
-  .popup-head {
-    height: 10%;
-  }
-}
-
-.nl-dlg.nl-width-max {
   .popup-body {
-    width: 100%;
+    width: 96vw;
   }
 }
 
 .nl-dlg.nl-height-max {
   .popup-body {
-    height: 77.5%;
+    height: 96vh;
   }
 }
 
