@@ -250,8 +250,7 @@ function(nl) {
     return {
         restrict: 'A',
         link: function($scope, iElem, iAttrs) {
-            // In future this could be controlled by adding a class
-            // if (iAttrs['class'].indexOf('nl-elastic') < 0) return;
+            if (iAttrs['class'].indexOf('nl-not-elastic') >= 0) return;
             var elem = iElem[0];
             $scope.initialHeight = elem.style.height;
             function onResize() {

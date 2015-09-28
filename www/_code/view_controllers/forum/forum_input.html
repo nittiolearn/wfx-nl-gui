@@ -1,10 +1,10 @@
 <div class='nl-forum-new'>
     <table>
         <tr ng-show='$parent.postNewDlg.canShowTitle' nl-form-input fieldname='Title' fieldmodel='title' fieldtype='text'></tr>
-        <tr nl-form-textarea fieldname='Message' fieldmodel='text'></tr>
+        <tr nl-form-textarea fieldname='Message' fieldmodel='text' fieldcls='nl-not-elastic'></tr>
     </table>
-    <div class='popup-buttons'>
-        <button ng-click='$parent.postNewMessage()' class='button'>{{$parent.postNewDlg.postButtonName}}</button>
-        <button ng-click='$parent.hidePostNewDlg()' class='button'>Close</button>
+    <div class='popup-buttons row'>
+        <button ng-click='$parent.postNewMessage()' class='button col'>{{$parent.postNewDlg.postButtonName}}</button>
+        <button ng-click='$parent.hidePostNewDlg()' class='button col'>Close</button>
     </div>
 </div>

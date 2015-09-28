@@ -1,12 +1,12 @@
 <div ng-show='cards.search' class='nl-card-search row row-center'>
-	<input class='col col-80' ng-model='search.filter'
+	<input class='col' ng-model='search.filter'
 	       placeholder='{{cards.search.placeholder}}' ng-keypress='searchKeyHandler($event)'>
 	<i class='sep4'></i>
 	<img class='nl-clickable' ng-src='{{search.img}}'
 		 tabindex="0"
 		 ng-click='search.onSearch()'/>
 	<i class='sep4'></i>
-	<span class='col nl-textellipsis'>{{search.getResultsStr()}}</span>
+	<span class='col col-20 nl-textellipsis'>{{search.getResultsStr()}}</span>
 </div>
 <div class='nl-card' 
 	ng-repeat="card in getCards()" 
