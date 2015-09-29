@@ -22,7 +22,7 @@
             <tr nl-form-input fieldname='URL' fieldmodel='url' fieldtype='text' ng-keypress='onUrlEnter($event)'></tr>
             <tr nl-form-textarea fieldname='Params' fieldmodel='params' fieldcls='nl-fixed-width'></tr>
         </table>
-        <pre ng-hide='view!="json_res"' ng-bind-html='result.json'></pre>
+        <pre ng-hide='view!="json_res"' ng-bind-html='result.json' contenteditable="true"></pre>
         <div ng-hide='view!="fmt_res"'>
             <h4 ng-bind-html='result.fmt.error'></h4>
             <div class='nl-card-search row row-center'>
@@ -31,11 +31,11 @@
                 <span class='col col-20 nl-textellipsis'>{{(result.fmt.rows | filter:search.filter).length}} items</span>
             </div>
             <br/>
-            <div ng-repeat='row in result.fmt.rows | filter:search.filter' class='row'>
-                <div class='col nl-styled {{col.cls}}'
-                     ng-repeat='col in row.items'
-                     ng-bind-html='col.data'>
-                </div>
+            <div class='row'>
+                <div class='col nl-styled header' ng-repeat='col in result.fmt.header track by $index' ng-bind-html='col'></div>
+            </div>
+            <div ng-repeat='row in result.fmt.rows | filter:search.filter track by $index' class='row'>
+                <div class='col nl-styled' ng-repeat='col in row track by $index' ng-bind-html='col'></div>
             </div>
             <br/>
         </div>

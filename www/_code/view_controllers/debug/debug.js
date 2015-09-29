@@ -151,27 +151,28 @@ function RestApi(nl, nlDlg, nlServerApi) {
 
     var _formatError = nl.t('Sorry, only array of objects can be formatted.');
     function _formatResult(result) {
-        if (angular.isArray(result)) return _formatArray(result);
-        return null;
+        if (!angular.isArray(result)) return null;
+        if (result.length > 0 && angular.isArray(result[0]))
+            return _formatTable(result);
+        return _formatArray(result);
     }
 
+    function _formatTable(items) {
+        var headers = items.splice(0, 1);
+        var header = (headers.length == 1) ? headers[0] : []; 
+        return {header: header, rows: items};
+    }
+    
     function _formatArray(items) {
         var headers = _getColumnHeaders(items);
         if (headers === null) return null;
         
         var rows = [];
-
-        var headerItems = [];
-        for (var i=0; i<headers.length; i++) {
-            headerItems.push({data:headers[i], cls:'header'});
-        }
-        rows.push({items: headerItems});
-        
         for (var i=0; i<items.length; i++) {
-            var rowItems = _objToArray(items[i], headers);
-            rows.push({items: rowItems});
+            var cols = _objToArray(items[i], headers);
+            rows.push(cols);
         }
-        return {rows: rows};
+        return {header: headers, rows: rows};
     }
 
     function _getColumnHeaders(items) {
@@ -190,13 +191,13 @@ function RestApi(nl, nlDlg, nlServerApi) {
     }
 
     function _objToArray(item, headers) {
-        var rowItems = [];
+        var cols = [];
         for(var i=0; i<headers.length; i++) {
             var k = headers[i];
             var v = (k in item) ? item[k] : '';
-            rowItems.push({data: v});
+            cols.push(v);
         }
-        return rowItems;
+        return cols;
     }
 }
 
