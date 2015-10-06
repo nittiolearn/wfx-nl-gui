@@ -110,8 +110,34 @@ function RestApi(nl, nlDlg, nlServerApi) {
             if (e.which !== 13) return;
             _onExecute(e, dlg.scope);
         };
+        dlg.scope.onSave = function() {
+            _saveAsCsv(dlg.scope);
+        };
     };
     
+    function _saveAsCsv(scope) {
+        var csv = _writeCsvLine(scope.result.fmt.header, false);
+        var rows = scope.result.fmt.rows;
+        for (var i=0; i<rows.length; i++) {
+            csv += _writeCsvLine(rows[i], true);
+        }
+        csv = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
+        window.open(csv);
+    }
+
+    function _writeCsvLine(row, bNewLine) {
+        var ret = bNewLine ? '\n' : '';
+        for (var i=0; i<row.length; i++) {
+            if (i>0) ret += ',';
+            ret += _csvEscape(row[i]);
+        }
+        return ret;
+    }
+
+    function _csvEscape(elem) {
+        return '"' + elem + '"';
+    }
+
     function _getSampleUser(i) {
         return {'username': nl.fmt2('s{}c1.eulatest', i), 
                 'first_name': nl.fmt2('S{}', i), 
