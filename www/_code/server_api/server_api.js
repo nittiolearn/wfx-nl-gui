@@ -32,6 +32,12 @@ function(nl, nlDlg, nlConfig) {
         return _getUserInfoFromCacheOrServer(this);
     };
     
+    this.executeRestApi = function(url, data) {
+        // open API to execute any REST API (used from debug.js)
+        // return: result of REST API
+        return server.post(url, data);
+    };
+    
     //---------------------------------------------------------------------------------------------
     // Auth Module
     //---------------------------------------------------------------------------------------------

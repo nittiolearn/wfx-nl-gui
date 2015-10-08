@@ -1,0 +1,45 @@
+<style>
+    .button.highlight {
+        background-color: #B03000;
+    }
+    .col.header {
+        color: #FFFFFF;
+        background-color: #007700;
+    }
+</style>
+
+<nl-dlg title='Execute REST API'>
+    <nl-dlg-help>
+        <p>Execute any REST API defined in the server - input the URL and the parameters as JSON</p>
+    </nl-dlg-help>
+    <nl-dlg-content>
+        <div class='popup-buttons no-border'>
+            <button ng-click='view="req"' class='button' ng-class='{"highlight": view=="req"}'>Request</button>
+            <button ng-click='view="json_res"' class='button' ng-class='{"highlight": view=="json_res"}'>JSON Result</button>
+            <button ng-click='view="fmt_res"' class='button' ng-class='{"highlight": view=="fmt_res"}'>Formatted Result</button>
+        </div>
+        <table ng-hide='view!="req"' class='nl-table'>
+            <tr nl-form-input fieldname='URL' fieldmodel='url' fieldtype='text' ng-keypress='onUrlEnter($event)'></tr>
+            <tr nl-form-textarea fieldname='Params' fieldmodel='params' fieldcls='nl-fixed-width'></tr>
+        </table>
+        <pre ng-hide='view!="json_res"' ng-bind-html='result.json' contenteditable="true"></pre>
+        <div ng-hide='view!="fmt_res"'>
+            <h4 ng-bind-html='result.fmt.error'></h4>
+            <div class='nl-card-search row row-center'>
+                <input class='col' ng-model='search.filter'>
+                <i class='sep4'></i>
+                <span class='col col-20 nl-textellipsis'>{{(result.fmt.rows | filter:search.filter).length}} items</span>
+                <i class='sep4'></i>
+                <button ng-click='onSave()'>Save to CSV</button>
+            </div>
+            <br/>
+            <div class='row'>
+                <div class='col nl-styled header' ng-repeat='col in result.fmt.header track by $index' ng-bind-html='col'></div>
+            </div>
+            <div ng-repeat='row in result.fmt.rows | filter:search.filter track by $index' class='row'>
+                <div class='col nl-styled' ng-repeat='col in row track by $index' ng-bind-html='col'></div>
+            </div>
+            <br/>
+        </div>
+    </nl-dlg-content>
+</nl-dlg>
