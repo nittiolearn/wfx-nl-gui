@@ -1052,10 +1052,11 @@ function AddResourceDlg(inputChain) {
 	var _template = new ClientSideTemplate('add_res_dialog.html', _chain);
 	var _restypeWidget = null;
 	var _resourceWidget = null;
+	var _compressionWidget = null;
 	var _file = null;
 	var _dlg = new njs_helper.Dialog();
 	var _uploadUrl = null;
-
+	
 	var _restypeToMaxFileSize = {
 		Image: 1*1024*1024, 
 		PDF: 10*1024*1024, 
@@ -1085,6 +1086,8 @@ function AddResourceDlg(inputChain) {
 		njs_helper.log(njs_helper.fmt2('uploadUrl: {}', _uploadUrl));
 		_template.render({restypes: ret.restypes});
 	});
+
+	//----------------------------------------------------------------------------------------
 	
 	_chain.add(function() {
 		var dlgFields = jQuery(_chain.getLastResult());
@@ -1093,6 +1096,7 @@ function AddResourceDlg(inputChain) {
 		_dlg.create('addResource', dlgFields, [addButton], cancelButton);
 		_restypeWidget = jQuery('#addResource #restype');
 		_resourceWidget = jQuery('#addResource #resource');
+		_compressionWidget = jQuery('#addResource #compression');
 		_onRestypeChange();
 		_restypeWidget.change(_onRestypeChange);
 		_resourceWidget.change(function() {
@@ -1104,7 +1108,7 @@ function AddResourceDlg(inputChain) {
 		});
 		_chain.done();
 	});
-	
+
 	//---------------------------------------------------------------------------------------
 	// Public methods
 	//---------------------------------------------------------------------------------------
@@ -1120,6 +1124,13 @@ function AddResourceDlg(inputChain) {
 	//---------------------------------------------------------------------------------------
 	function _onRestypeChange() {
 		var restype = _restypeWidget.val();
+		if (restype === 'Image') {
+			_compressionWidget.select2('val', 'medium');
+			_compressionWidget.removeAttr('disabled');
+		} else {
+			_compressionWidget.select2('val', 'no');
+			_compressionWidget.attr('disabled', 'disabled');
+		}
 		if (!(restype in _restypeToExtension)) {
 			_resourceWidget.attr('disabled', 'disabled');
 			return;
@@ -1141,9 +1152,17 @@ function AddResourceDlg(inputChain) {
 	}
 
 	function _on_addResource_add() {
-		if (!_validateDlg()) return;
-		Dialog.moveBack();
+		if (!_validateBeforeShrinking()) return;
+		var shrinker = new ImageShrinker();
+		var bImg = (_restypeWidget.val() === 'Image');
+		var compressionLevel = _compressionWidget.val();
+		shrinker.getShrinkedFile(_file, _on_shrinkDone, bImg, compressionLevel);
+	}
 
+	function _on_shrinkDone(shrinkedFile) {
+		if (shrinkedFile == null) shrinkedFile = _file;
+		if (!_validateAfterShrinkingDone(shrinkedFile)) return;
+		Dialog.moveBack();
 		var chain2 = new njs_helper.AsyncFunctionChain(function(errorMessage) {
 			Dialog.moveFront();
 			_dlg.cancel(function() {
@@ -1156,7 +1175,7 @@ function AddResourceDlg(inputChain) {
 			var restype = _restypeWidget.val();
 			var keywords = jQuery('#addResource #keywords').val();
 			ajax2.addFormData('restype', restype);
-			ajax2.addFormData('resource', _file);
+			ajax2.addFormData('resource', shrinkedFile);
 			ajax2.addFormData('keywords', keywords);
 			ajax2.sendForm(_uploadUrl);
 		});
@@ -1169,7 +1188,7 @@ function AddResourceDlg(inputChain) {
 		});
 	}
 
-	function _validateDlg() {
+	function _validateBeforeShrinking() {
 		var restype = _restypeWidget.val();
 		if (!(restype in _restypeToExtension) || _file == null) {
 			Dialog.popup('Input missing', 'Please choose the resource Type, followed by file');
@@ -1194,12 +1213,111 @@ function AddResourceDlg(inputChain) {
 			Dialog.popup('Wrong file type', njs_helper.fmt2('For resource type {}, only one of the extension(s) "{}" is allowed.', restype, extlist.join(',')));
 			return false;
 		}
+		return true;	
+	}
 
-		if (_file.size > _restypeToMaxFileSize[restype]) {
-			Dialog.popup('File too large', njs_helper.fmt2('You cannot upload a {} file greater than {} MB', restype,(_restypeToMaxFileSize[restype]/1024/1024)));
+	function _validateAfterShrinkingDone(shrinkedFile) {
+		var restype = _restypeWidget.val();
+		if (shrinkedFile.size > _restypeToMaxFileSize[restype]) {
+			Dialog.popup('File too large', njs_helper.fmt2('You cannot upload a {} file greater than {} MB. You may try using "High compression" and upload your image.', restype,(_restypeToMaxFileSize[restype]/1024/1024)));
 			return false;
 		}
 		return true;
+	}
+}
+
+//---------------------------------------------------------------------------------------
+//resize the image
+//---------------------------------------------------------------------------------------
+function ImageShrinker() {
+	
+	var COMPRESSION_LEVEL = {
+        'high': {w: 720, h: 720},
+        'medium': {w: 1080, h: 1080},
+        'low': {w: 1280, h: 1280}
+    };
+    var SHRINK_QUALITY = {low: 0.7, medium: 0.8, high: 0.9, uhigh: 1.0};
+
+    this.getShrinkedFile = function(_file, onDone, bImg, compressionLevel) {
+    	var shrinkSize = null;
+    	if (compressionLevel in COMPRESSION_LEVEL) {
+    		shrinkSize = COMPRESSION_LEVEL[compressionLevel];
+    	}
+    	var reader = new FileReader();
+        reader.onerror = function (e) {
+        	console.log('ImageShrinker - FileReader onerror: ', e);
+        	onDone(null);
+        };
+        reader.onload = function (loadEvent) {
+	        var origUrl = loadEvent.target.result;
+	        if(!bImg || !shrinkSize) {
+	        	onDone(_file);
+	        	return;
+	        }
+	        _shrinkImage(origUrl, shrinkSize, function(shrinkedUrl) {
+		        var shrinkedFile = _dataUrlToImgFile(shrinkedUrl, _file.name);
+		        console.log('TODO remove: _file, shrinkedFile:', _file, shrinkedFile);
+			    onDone(shrinkedFile);
+	        });
+        };
+        try {
+		    reader.readAsDataURL(_file);
+        } catch(e) {
+        	console.log('ImageShrinker - reader.readAsDataURL exception: ', e);
+        	onDone(null);
+        }
+     };
+    
+    function _shrinkImage(imgUrl, shrinkSize, onDone) {
+        var document = window.document;
+        var img = document.createElement('img');
+        img.onerror = function (e) {
+        	console.log('ImageShrinker - Image load error: ', e);
+        	onDone(null);
+        };
+        img.onload = function (data) {
+	        var imgSize = _getNewImgSize(img, shrinkSize);
+	        console.log('imgSize: ', imgSize.w, imgSize.h);
+	        var canvas = document.createElement('canvas');
+	        canvas.width = imgSize.w;
+	        canvas.height = imgSize.h;
+	        var ctx = canvas.getContext('2d');
+	        ctx.drawImage(img, 0, 0, imgSize.w, imgSize.h);
+	        var shrinkedUrl = canvas.toDataURL('image/jpeg', SHRINK_QUALITY.high);
+	        onDone(shrinkedUrl);
+        };
+        img.src = imgUrl;
+    }
+
+    function _getNewImgSize(img, shrinkSize) {
+        var ret = {w: img.width, h: img.height};
+        if (ret.w <= shrinkSize.w && ret.h <= shrinkSize.h) return ret;
+        
+        if (ret.w > ret.h) {
+            return {w: shrinkSize.w, h: ret.h*shrinkSize.w/ret.w};
+        }
+        return {w: ret.w*shrinkSize.h/ret.h, h: shrinkSize.h};
+    }    
+
+	function _dataUrlToImgFile(dataUrl, fileName) {
+	    var BASE64_MARKER = ';base64,';
+	    if (dataUrl.indexOf(BASE64_MARKER) == -1) {
+	        var parts = dataUrl.split(',');
+	        var contentType = parts[0].split(':')[1];
+	        var raw = parts[1];
+	        return new Blob([raw], {type: contentType});
+	    }
+	
+	    var parts = dataUrl.split(BASE64_MARKER);
+	    var contentType = parts[0].split(':')[1];
+	    var raw = window.atob(parts[1]);
+	    var rawLength = raw.length;
+	    var uInt8Array = new Uint8Array(rawLength);
+	    console.log(dataUrl, parts, uInt8Array, contentType);	
+	    for (var i = 0; i < rawLength; ++i) {
+	        uInt8Array[i] = raw.charCodeAt(i);
+	    }
+	    return new File([uInt8Array], fileName, {type: contentType});
 	}
 }
 
