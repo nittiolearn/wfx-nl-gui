@@ -184,7 +184,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
                 var pos = _getCardPosition(dashboardId);
                 $scope.cards.cardlist.splice(pos, 1);
 		    }
-			$scope.cards.cardlist.splice(1, 0, card);			
+			$scope.cards.cardlist.splice(0, 0, card);			
 		});
 	}
 	
