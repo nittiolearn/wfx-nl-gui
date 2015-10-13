@@ -6,12 +6,12 @@
 	<div ng-repeat='cm in content' ng-show='cm.visible' class='row'>
 		<div ng-click='onClick($event, cm, false)' class='col nl-styled'>
 			<span class='nl-cv-indent' ng-repeat='x in getIndentation(cm)'></span>
-			<img class='nl-icon nl-clickable' ng-src='{{getIcon(cm)}}'>
-            <img ng-if="cm.type == 'lesson'"
+			<img class='nl-icon' ng-class='{"nl-clickable": cm.clickable}' ng-src='{{getIcon(cm)}}'>
+            <img ng-if='cm.launchable'
                  class='nl-icon nl-clickable'
                  ng-src='{{getNewTabIcon()}}'
                  ng-click='onClick($event, cm, true)'>
-			<span class='nl-cv-details nl-clickable'>{{cm.name}}</span>
+			<span class='nl-cv-details' ng-class='{"nl-clickable": cm.clickable}'>{{cm.name}}</span>
 		</div>
 		<div class='nl-styled' ng-if='showStatusIcon'>
             <img class='nl-24' ng-if='cm.statusIcon' ng-src='{{cm.statusIcon}}'>

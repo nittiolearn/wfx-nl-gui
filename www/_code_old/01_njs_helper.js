@@ -1153,6 +1153,7 @@ function AddResourceDlg(inputChain) {
 
 	function _on_addResource_add() {
 		if (!_validateBeforeShrinking()) return;
+        Dialog.moveBack();
 		var shrinker = new ImageShrinker();
 		var bImg = (_restypeWidget.val() === 'Image');
 		var compressionLevel = _compressionWidget.val();
@@ -1162,7 +1163,6 @@ function AddResourceDlg(inputChain) {
 	function _on_shrinkDone(shrinkedFile) {
 		if (shrinkedFile == null) shrinkedFile = _file;
 		if (!_validateAfterShrinkingDone(shrinkedFile)) return;
-		Dialog.moveBack();
 		var chain2 = new njs_helper.AsyncFunctionChain(function(errorMessage) {
 			Dialog.moveFront();
 			_dlg.cancel(function() {
