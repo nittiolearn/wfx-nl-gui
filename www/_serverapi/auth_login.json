@@ -63,7 +63,7 @@
             "url": "/info/training#/",
             "linkId": "help_training",
             "children": [],
-            "icon": "/static/nittio_res_v39/dashboard/helptraining.png"
+            "icon": "/static/nittio_res_v39/dashboard/help.png"
           },
           {
             "help": "Basic information on what Nittio Learn is and how you can benifit from it.",
@@ -71,7 +71,7 @@
             "url": "/info/more#/",
             "linkId": "help_about",
             "children": [],
-            "icon": "/static/nittio_res_v39/dashboard/helpabout.png"
+            "icon": "/static/nittio_res_v39/dashboard/help.png"
           },
           {
             "help": "Have a question? Found a bug? Report here.",
@@ -79,7 +79,7 @@
             "url": "/info/help_issue_new#/",
             "linkId": "help_issue_new",
             "children": [],
-            "icon": "/static/nittio_res_v39/dashboard/helpcrissue.png"
+            "icon": "/static/nittio_res_v39/dashboard/help.png"
           },
           {
             "help": "See terms and conditions of Nittio Learn",
@@ -87,7 +87,7 @@
             "url": "/info/eula#/",
             "linkId": "help_eula",
             "children": [],
-            "icon": "/static/nittio_res_v39/dashboard/helpabunt.png"
+            "icon": "/static/nittio_res_v39/dashboard/help.png"
           }
         ],
         "icon": "/static/nittio_res_v39/dashboard/help.png"

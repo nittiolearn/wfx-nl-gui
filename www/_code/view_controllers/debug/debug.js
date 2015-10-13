@@ -45,21 +45,21 @@ function(nl, nlRouter, $scope, nlDlg, nlLogViewer, nlServerApi, nlCardsSrv) {
         var cards = [];
 
         var card = {title: nl.t('View logs'), 
-            icon: nl.url.resUrl('dashboard/alerts.png'), 
+            icon: nl.url.resUrl('100x100/alerts.png'), 
             internalUrl: 'debug_logviewer',
             help: nl.t('View logs, configure log levels'), 
             children: [], links: []};
         cards.push(card);
 
         card = {title: nl.t('Clear Cache'), 
-            icon: nl.url.resUrl('dashboard/alerts.png'), 
+            icon: nl.url.resUrl('100x100/alerts.png'), 
             internalUrl: 'debug_clearcache',
             help: nl.t('Clear local cache'), 
             children: [], links: []};
         cards.push(card);
         
         card = {title: nl.t('Execute Rest API'), 
-            icon: nl.url.resUrl('dashboard/alerts.png'), 
+            icon: nl.url.resUrl('100x100/alerts.png'), 
             internalUrl: 'debug_restapi',
             help: nl.t('Execute a REST API on the server'), 
             children: [], links: []};
