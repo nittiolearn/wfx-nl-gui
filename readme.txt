@@ -16,9 +16,9 @@ Needed first time setup steps:
 2. Open TortoiseHg Workbench
 3. Setup your BitBucket credentials so that password are not asked every time:
    - Choose the menu "File -> Settings". Press "Edit File" button.
-   - Under 'UI' section add:
+   - Under UI ([UI]) section add:
    -- username = Your Name <yourname@nittio.com>
-   - Under 'Auth' section add:
+   - Under Auth ([Auth]) section add:
    -- bitbucket.org.prefix = bitbucket.org
    -- bitbucket.org.username = <your bitbucket username>
    -- bitbucket.org.password = <your bitbucket password>

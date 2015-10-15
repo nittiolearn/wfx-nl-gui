@@ -181,6 +181,35 @@ function(nl, nlDlg, nlConfig) {
     };
 
     //---------------------------------------------------------------------------------------------
+	// search list entities
+    //---------------------------------------------------------------------------------------------
+    this.searchListGetList = function(mine) {
+        // return: list of dashboardObjects
+        return server.post('_serverapi/searchlist_getlist.json', {mine : mine});
+    };
+    
+    this.searchListCreate = function(data) {
+        // data: name, description, config (JSON)
+        // return: created searchlistObject
+        return server.post('_serverapi/searchlist_create.json', data);
+    };
+    
+    this.searchListModify = function(data) {
+        // data: id, name, description, config (JSON)
+        // return: modified searchlistObject
+        return server.post('_serverapi/searchlist_modify.json', data);
+    };
+
+    this.searchListDelete = function(searchlist_id) {
+        // returns true/false
+        return server.post('_serverapi/searchlist_delete.json', {id: searchlist_id});
+    };
+
+    this.searchListView = function(searchlist_id) {
+        // return: searchlistObject
+        return server.post('_serverapi/searchlist_view.json', {id: searchlist_id});
+    };
+    //---------------------------------------------------------------------------------------------
     // Private methods
     //---------------------------------------------------------------------------------------------
     function _getUserInfoFromCacheOrServer() {

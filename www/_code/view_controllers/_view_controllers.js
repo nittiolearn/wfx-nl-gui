@@ -6,7 +6,7 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.view_controllers', ['nl.auth', 'nl.home', 'nl.course', 'nl.forum', 
-    	'nl.debug', 'nl.dashboard']);
+    	'nl.debug', 'nl.dashboard', 'nl.searchlist']);
 }
 
 //-------------------------------------------------------------------------------------------------
