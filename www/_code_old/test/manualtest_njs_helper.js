@@ -15,7 +15,7 @@ QUnit.asyncTest('AddResourceDlg.upload', function(assert) {
 
 function _AddResourceDlg(na, qRestarter) {
 	na.setExpectedAssertions(1);
-	njs_helper.AddResourceDlg.uploadResource(function(resUrl) {
+	njs_helper.AddResourceDlg.uploadResource(null, function(resUrl) {
 		na.assert(true, 'Got resUrl: ' + resUrl);
 		na.checkExpectedAssertions();
 		qRestarter.chainDone();
