@@ -60,8 +60,31 @@ function(nl, nlServerApi) {
     this.courseCreateLessonReport = function(repid, refid) {
         return nlServerApi.courseCreateLessonReport(repid, refid);
     };
+    
+    this.getActionUrl = function(actionId, urlParams) {
+        if (!(actionId in _dashboardActions)) return null;
+        var action = _dashboardActions[actionId];
+        return nl.fmt2(action.url, urlParams);
+    };
 
 }];
+
+// Dashboard actions as defined in server side
+var _dashboardActions = {
+    // Generic actions; provided only for stop gap. A specific customizable
+    // action will have to be defined to each generic action used as a stopgap
+    'none': {'url': '{}', 'permission': '', 'termCheck': 'Open'},
+    'logedin': {'url': '{}', 'permission': 'basic_access', 'termCheck': 'Open'},
+    'restricted': {'url': '{}', 'permission': 'basic_access', 'termCheck': 'Restricted'},
+    'authorized': {'url': '{}', 'permission': 'basic_access'},
+
+    // Action with customizable urlParams
+    'lesson.view': {'url': '/lesson/view/{}', 'permission': 'lesson_view'},
+    'lesson.view_approved': {'url': '/lesson/search?{}', 'permission': 'basic_access'},
+    'lesson.create2': {'url': '/lesson/create2/{}', 'permission': 'lesson_create'},
+    'lesson.my': {'url': '/lesson/my?{}', 'permission': 'lesson_create'},
+    'lesson.review': {'url': '/lesson/review/1?{}', 'permission': 'lesson_review'}
+};
 
 module_init();
 })();

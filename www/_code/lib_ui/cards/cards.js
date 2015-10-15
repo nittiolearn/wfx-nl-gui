@@ -19,7 +19,7 @@ function(nl) {
 		var card = (emptyCard) ? emptyCard : {};
 		if (!card.title) card.title = nl.t('Nothing to display');
 		if (!card.help) card.help = nl.t('There is no data to display');
-		if (!card.icon) card.icon = nl.url.resUrl('dashboard/empty_list.png');
+		if (!card.icon) card.icon = nl.url.resUrl('100x100/empty.png');
 		card.links = [];
 		card.style = 'nl-bg-blue';
 		card.children = [];

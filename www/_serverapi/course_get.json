@@ -13,6 +13,8 @@
         "published": "2015-08-10T11:09:27", 
         "is_published": true,
         "content": [
+          {"id": "I1", "type": "info", "name": "Some information"},
+          {"id": "L1", "type": "link", "name": "Some link", "action": "lesson.create2", "urlParams": "3447"},
           {"id": "1", "type": "module", "name": "Year 1 modules", "icon": "module"},
             {"id": "1.1", "type": "module", "name": "Month 1 modules"},
               {"id": "1.1.1", "type": "module", "name": "Week 1 modules"},

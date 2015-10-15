@@ -451,13 +451,35 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
             }
 
             if(module.type == 'module') continue;
-            if(module.type !== 'lesson') return _validateModuleFail(scope, module, '"type" has to be "module" or "lesson".');
-            if(!module.refid) return _validateModuleFail(scope, module, '"refid" is mandatory for "type": "lesson"');
-            if(!module.refid) return _validateModuleFail(scope, module, '"refid" is mandatory for "type": "lesson"');
-            if(!angular.isNumber(module.refid)) return _validateModuleFail(scope, module, '"refid" should be a number - not a string');
+            if(module.type == 'lesson') {
+                if (!_validateLessonModule(scope, module)) return false;
+            } else if(module.type == 'link') {
+                if (!_validateLinkModule(scope, module)) return false;
+            } else if(module.type == 'info') {
+                if (!_validateInfoModule(scope, module)) return false;
+            } else {
+                return _validateModuleFail(scope, module, '"type" has to be "module" or "lesson".');
+            }
         }
         return true;
     }
+
+    function _validateLessonModule(scope, module) {
+        if(!module.refid) return _validateModuleFail(scope, module, '"refid" is mandatory for "type": "lesson"');
+        if(!angular.isNumber(module.refid)) return _validateModuleFail(scope, module, '"refid" should be a number - not a string');
+        return true;
+    }
+
+    function _validateLinkModule(scope, module) {
+        if(!module.action) return _validateModuleFail(scope, module, '"action" is mandatory for "type": "link"');
+        if(!module.urlParams) return _validateModuleFail(scope, module, '"urlParams" is mandatory for "type": "urlParams"');
+        return true;
+    }
+    
+    function _validateInfoModule(scope, module) {
+        return true;
+    }
+    
     
     function _getParentId(idStr) {
         var parents = idStr.split('.');

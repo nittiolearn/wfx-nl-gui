@@ -36,9 +36,9 @@ function log_init(bEnable) {
 	g_logEnabled = (bEnable && window.console && window.console.log) ? true : false;
 }
 
-function log(msg) {
+function log() {
 	if (!g_logEnabled) return;
-	console.log(msg);
+	console.log(arguments);
 }
 
 function copyToClipboard(text) {
@@ -1036,9 +1036,9 @@ function _createButton(dlgId, buttonInfo) {
 }
 	
 //-------------------------------------------------------------------------------------------
-// AddResourceDlg - Add a resource dialog
+// AddResourceDlg - Add a resource dialog (if resInfo.resid, modify the resource)
 //-------------------------------------------------------------------------------------------
-function AddResourceDlg(inputChain) {
+function AddResourceDlg(inputChain, resInfo) {
 
 	//---------------------------------------------------------------------------------------
 	// Constructor code (part 1)
@@ -1084,19 +1084,28 @@ function AddResourceDlg(inputChain) {
 		var ret = _chain.getLastResult();
 		_uploadUrl = ret.uploadUrl;
 		njs_helper.log(njs_helper.fmt2('uploadUrl: {}', _uploadUrl));
-		_template.render({restypes: ret.restypes});
+		var title = resInfo ? 'Modify resource' : 'Upload resource';
+		_template.render({title: title, restypes: ret.restypes});
 	});
 
 	//----------------------------------------------------------------------------------------
 	
 	_chain.add(function() {
 		var dlgFields = jQuery(_chain.getLastResult());
-		var addButton = {id: 'add', text: 'Add', fn: _on_addResource_add};
+		var buttonName = resInfo ? 'Modify' : 'Upload';
+		var addButton = {id: 'add', text: buttonName, fn: _on_addResource_add};
 		var cancelButton = {id: 'cancel', text: 'Cancel', fn: _on_addResource_cancel};
 		_dlg.create('addResource', dlgFields, [addButton], cancelButton);
 		_restypeWidget = jQuery('#addResource #restype');
 		_resourceWidget = jQuery('#addResource #resource');
 		_compressionWidget = jQuery('#addResource #compression');
+		
+		if (resInfo) {
+            _restypeWidget.select2('val', resInfo.restype);
+            jQuery('#addResource #keywords').val(resInfo.keywords);
+            _restypeWidget.attr('disabled', 'disabled');
+		}
+		
 		_onRestypeChange();
 		_restypeWidget.change(_onRestypeChange);
 		_resourceWidget.change(function() {
@@ -1152,17 +1161,19 @@ function AddResourceDlg(inputChain) {
 	}
 
 	function _on_addResource_add() {
-		if (!_validateBeforeShrinking()) return;
+		var fileExtn = _validateBeforeShrinking();
+		if (!fileExtn) return;
+        Dialog.moveBack();
 		var shrinker = new ImageShrinker();
 		var bImg = (_restypeWidget.val() === 'Image');
 		var compressionLevel = _compressionWidget.val();
-		shrinker.getShrinkedFile(_file, _on_shrinkDone, bImg, compressionLevel);
+		shrinker.getShrinkedFile(_file, fileExtn, _on_shrinkDone, bImg, compressionLevel);
 	}
 
-	function _on_shrinkDone(shrinkedFile) {
+	function _on_shrinkDone(shrinkedFile, compInfo) {
+        njs_helper.log('Compression info:', compInfo);
 		if (shrinkedFile == null) shrinkedFile = _file;
 		if (!_validateAfterShrinkingDone(shrinkedFile)) return;
-		Dialog.moveBack();
 		var chain2 = new njs_helper.AsyncFunctionChain(function(errorMessage) {
 			Dialog.moveFront();
 			_dlg.cancel(function() {
@@ -1174,9 +1185,11 @@ function AddResourceDlg(inputChain) {
 		chain2.add(function() {
 			var restype = _restypeWidget.val();
 			var keywords = jQuery('#addResource #keywords').val();
+			if (resInfo) ajax2.addFormData('resid', resInfo.resid);
 			ajax2.addFormData('restype', restype);
 			ajax2.addFormData('resource', shrinkedFile);
 			ajax2.addFormData('keywords', keywords);
+			ajax2.addFormData('info', JSON.stringify(compInfo));
 			ajax2.sendForm(_uploadUrl);
 		});
 		chain2.add(function() {
@@ -1192,28 +1205,28 @@ function AddResourceDlg(inputChain) {
 		var restype = _restypeWidget.val();
 		if (!(restype in _restypeToExtension) || _file == null) {
 			Dialog.popup('Input missing', 'Please choose the resource Type, followed by file');
-			return false;
+			return null;
 		}
 		if (_file.size == 0) {
 			Dialog.popup('Empty File', 'Empty file cannot be uploaded');
-			return false;
+			return null;
 		}
 		var extlist = _restypeToExtension[restype];
 
-		var bFound = false;		
+        var fileExtn = null;
 		var fileNameLower = _file.name.toLowerCase();
 		for (var i in extlist) {
 			var ext = extlist[i];
 			if (fileNameLower.indexOf(ext, fileNameLower.length - ext.length) !== -1) {
-				bFound = true;
+				fileExtn = ext;
 				break;
 			}			
 		}
-		if (extlist.length >0 && !bFound) {
+		if (extlist.length >0 && !fileExtn) {
 			Dialog.popup('Wrong file type', njs_helper.fmt2('For resource type {}, only one of the extension(s) "{}" is allowed.', restype, extlist.join(',')));
-			return false;
+			return null;
 		}
-		return true;	
+		return fileExtn;	
 	}
 
 	function _validateAfterShrinkingDone(shrinkedFile) {
@@ -1238,59 +1251,80 @@ function ImageShrinker() {
     };
     var SHRINK_QUALITY = {low: 0.7, medium: 0.8, high: 0.9, uhigh: 1.0};
 
-    this.getShrinkedFile = function(_file, onDone, bImg, compressionLevel) {
+    this.getShrinkedFile = function(_file, fileExtn, onDone, bImg, compressionLevel) {
     	var shrinkSize = null;
+    	var compInfo = {compression: compressionLevel, origName: _file.name, origSize: _file.size};
     	if (compressionLevel in COMPRESSION_LEVEL) {
     		shrinkSize = COMPRESSION_LEVEL[compressionLevel];
     	}
     	var reader = new FileReader();
         reader.onerror = function (e) {
-        	console.log('ImageShrinker - FileReader onerror: ', e);
-        	onDone(null);
+        	njs_helper.log('ImageShrinker - FileReader onerror: ', e);
+        	compInfo.status = 'Compression failed: FileReader error';
+        	onDone(null, compInfo);
         };
         reader.onload = function (loadEvent) {
 	        var origUrl = loadEvent.target.result;
 	        if(!bImg || !shrinkSize) {
-	        	onDone(_file);
+                compInfo.status = 'No compression done';
+	        	onDone(_file, compInfo);
 	        	return;
 	        }
-	        _shrinkImage(origUrl, shrinkSize, function(shrinkedUrl) {
-		        var shrinkedFile = _dataUrlToImgFile(shrinkedUrl, _file.name);
-		        console.log('TODO remove: _file, shrinkedFile:', _file, shrinkedFile);
-			    onDone(shrinkedFile);
+	        _shrinkImage(origUrl, shrinkSize, compInfo, function(shrinkedUrl) {
+	            if (!shrinkedUrl) {
+	                onDone(_file, compInfo);
+	                return;
+	            }
+	            var newFileName = _file.name.replace(fileExtn, '.png');
+		        var shrinkedFile = _dataUrlToImgFile(shrinkedUrl, newFileName);
+                compInfo.compressedName = shrinkedFile.name;
+                compInfo.compressedSize = shrinkedFile.size;
+		        if (shrinkedFile.size > _file.size) {
+                    compInfo.status = 'Compression not used as compressed size is larger';
+                    onDone(_file, compInfo);
+                    return;
+		        }
+                compInfo.status = 'Compression done';
+			    onDone(shrinkedFile, compInfo);
 	        });
         };
         try {
 		    reader.readAsDataURL(_file);
         } catch(e) {
-        	console.log('ImageShrinker - reader.readAsDataURL exception: ', e);
-        	onDone(null);
+        	njs_helper.log('ImageShrinker - reader.readAsDataURL exception: ', e);
+            compInfo.status = 'Compression failed: readAsDataURL error';
+        	onDone(null, compInfo);
         }
      };
     
-    function _shrinkImage(imgUrl, shrinkSize, onDone) {
+    function _shrinkImage(imgUrl, shrinkSize, compInfo, onDone) {
         var document = window.document;
         var img = document.createElement('img');
         img.onerror = function (e) {
-        	console.log('ImageShrinker - Image load error: ', e);
+        	njs_helper.log('ImageShrinker - Image load error: ', e);
+            compInfo.status = 'Compression failed: Image load error';
         	onDone(null);
         };
         img.onload = function (data) {
-	        var imgSize = _getNewImgSize(img, shrinkSize);
-	        console.log('imgSize: ', imgSize.w, imgSize.h);
+	        var imgSize = _getNewImgSize(img, shrinkSize, compInfo);
+            compInfo.compressedWidth = imgSize.w;
+            compInfo.compressedHeight = imgSize.h;
 	        var canvas = document.createElement('canvas');
 	        canvas.width = imgSize.w;
 	        canvas.height = imgSize.h;
 	        var ctx = canvas.getContext('2d');
 	        ctx.drawImage(img, 0, 0, imgSize.w, imgSize.h);
-	        var shrinkedUrl = canvas.toDataURL('image/jpeg', SHRINK_QUALITY.high);
+	        var shrinkedUrl = canvas.toDataURL('image/png');
+	        if (!shrinkedUrl) compInfo.status = 'Compression failed: toDataURL error';
 	        onDone(shrinkedUrl);
         };
         img.src = imgUrl;
     }
 
-    function _getNewImgSize(img, shrinkSize) {
+    function _getNewImgSize(img, shrinkSize, compInfo) {
         var ret = {w: img.width, h: img.height};
+        compInfo.origWidth = ret.w;
+        compInfo.origHeight = ret.h;
         if (ret.w <= shrinkSize.w && ret.h <= shrinkSize.h) return ret;
         
         if (ret.w > ret.h) {
@@ -1313,7 +1347,6 @@ function ImageShrinker() {
 	    var raw = window.atob(parts[1]);
 	    var rawLength = raw.length;
 	    var uInt8Array = new Uint8Array(rawLength);
-	    console.log(dataUrl, parts, uInt8Array, contentType);	
 	    for (var i = 0; i < rawLength; ++i) {
 	        uInt8Array[i] = raw.charCodeAt(i);
 	    }
@@ -1324,7 +1357,7 @@ function ImageShrinker() {
 //---------------------------------------------------------------------------------------
 // Static method	
 //---------------------------------------------------------------------------------------
-AddResourceDlg.uploadResource = function(onUploadedFn) {
+AddResourceDlg.uploadResource = function(resInfo, onUploadedFn) {
 	var chain = new njs_helper.AsyncFunctionChain(function(errorMessage) {
 		cancelButton={id: 'close', text: 'Close', fn: function(){
 			njs_helper.Dialog.popdown();
@@ -1332,7 +1365,7 @@ AddResourceDlg.uploadResource = function(onUploadedFn) {
 		}};
 		njs_helper.Dialog.popup('Error', errorMessage, cancelButton=cancelButton);
 	});
-	var dlg = new njs_helper.AddResourceDlg(chain);
+	var dlg = new njs_helper.AddResourceDlg(chain, resInfo);
 	chain.add(function() {
 		dlg.upload();
 	});
@@ -1396,7 +1429,7 @@ function TextEditorDlg(inputChain, content) {
 	// Private methods
 	//---------------------------------------------------------------------------------------
 	function _onInsertIcon() {
-		njs_helper.AddResourceDlg.uploadResource(function(resUrl) {
+		njs_helper.AddResourceDlg.uploadResource(null, function(resUrl) {
 			if (resUrl !== '') _textField.val(_textField.val() + '\r\n' + resUrl);
 			_textField.focus();
 		});

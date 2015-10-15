@@ -61,6 +61,11 @@ function ModeHandler(nl, nlCourse, nlDlg) {
 		return nlCourse.courseGetReport(this.courseId, true);
 	};
 	
+    this.handleLink = function(cm, newTab) {
+        var url = nlCourse.getActionUrl(cm.action, cm.urlParams);
+        return _redirectTo('{}', url, newTab);
+    };
+    
 	this.handleLessonLink = function(cm, newTab) {
 	    var self = this;
         if (!('refid' in cm)) return _popupAlert('Error', 'Link to the learning module is not specified');
@@ -184,13 +189,14 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
     $scope.getNewTabIcon = function(getNewTabIcon) {
         return _icons['newtab'];
     };
-	
-	
+
 	$scope.onClick = function(e, cm, newTab) {
 		if (cm.type === 'lesson') {
 		    modeHandler.handleLessonLink(cm, newTab);
 		} else if(cm.type === 'module') {
 			treeList.toggleItem(cm);	
+		} else if(cm.type === 'link') {
+			modeHandler.handleLink(cm, newTab);
 		}
         e.stopImmediatePropagation();
         e.preventDefault();
@@ -198,16 +204,30 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 	};
 	
 	var _icons = {
-        'newtab': nl.url.resUrl('general/newtab.png'),
-        'module': nl.url.resUrl('general/cm-module.png'),
-		'lesson': nl.url.resUrl('general/cm-lesson.png'),
-		'quiz': nl.url.resUrl('general/cm-quiz.png')
+        'newtab': nl.url.resUrl('100x100/launch.png'),
+        'module': nl.url.resUrl('100x100/folder.png'),
+		'lesson': nl.url.resUrl('100x100/lesson2.png'),
+		'quiz': nl.url.resUrl('100x100/quiz.png'),
+		'info': nl.url.resUrl('100x100/info.png'),
+		'link': nl.url.resUrl('100x100/file.png')
 	};
+	
+	var _moduleProps = {
+	    module: {clickable: true, launchable: false},
+        lesson: {clickable: true, launchable: true},
+        link: {clickable: true, launchable: true},
+        info: {clickable: false, launchable: false}
+    };
+    
+    var _defModuleProps = {clickable: false, launchable: false};
 
 	function _initModule(cm) {
         treeList.addItem(cm);
 		cm.statusIcon = null;
 		cm.statusText = '';
+		var props = (cm.type in _moduleProps) ? _moduleProps[cm.type] : _defModuleProps;
+		cm.clickable = props.clickable;
+        cm.launchable = props.launchable;
 	}
 
     function _initModuleScores(modeHandler, course, cm) {
@@ -251,7 +271,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
     function _updateStatusIcomAndScoreText(modeHandler, cm) {
         if (!modeHandler.shallShowScore()) {
             cm.statusIcon = null;
-            cm.statusText = nl.t('Cointains {} learning modules.', cm.totalCount);
+            cm.statusText = nl.t('Contains {} learning modules.', cm.totalCount);
             return;
         }
         if (cm.totalCount > 0) {
