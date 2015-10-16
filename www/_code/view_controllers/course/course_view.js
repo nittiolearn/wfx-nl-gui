@@ -204,12 +204,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 	};
 	
 	var _icons = {
-        'newtab': nl.url.resUrl('100x100/launch.png'),
-        'module': nl.url.resUrl('100x100/folder.png'),
-		'lesson': nl.url.resUrl('100x100/lesson2.png'),
-		'quiz': nl.url.resUrl('100x100/quiz.png'),
-		'info': nl.url.resUrl('100x100/info.png'),
-		'link': nl.url.resUrl('100x100/file.png')
+        'newtab': nl.url.resUrl('launch.png'),
+        'module': nl.url.resUrl('folder.png'),
+		'lesson': nl.url.resUrl('lesson2.png'),
+		'quiz': nl.url.resUrl('quiz.png'),
+		'info': nl.url.resUrl('info.png'),
+		'link': nl.url.resUrl('file.png')
 	};
 	
 	var _moduleProps = {
