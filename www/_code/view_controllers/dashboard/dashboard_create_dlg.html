@@ -84,11 +84,13 @@
             <tr><td>admin.create</td><td>/admin_user/user_create/</td><td>admin_user</td><td></td></tr>
             <tr><td>admin.bulk</td><td>/admin_user/user_bulkupdate/</td><td>admin_user_bulk</td><td></td></tr>
             <tr><td>admin.termauth</td><td>/admin_user/term_authorization/</td><td>admin_terminal</td><td></td></tr>
-            <tr><td>admin.subgroupview</td><td>/admin_group/group_view/selfadmin</td><td>and:admin_group_selfadmin,#is_parent_group</td><td></td></tr>
             <tr><td>admin.audit</td><td>/nittioapp#/app/audit</td><td>admin_user</td><td></td></tr>
+            <tr><td>admin.impersonate</td><td>/nittioapp#/app/impersonate</td><td>admin_ impersonate_grp</td><td></td></tr>
+            <tr><td>admin.subgroupview</td><td>/admin_group/group_view/selfadmin</td><td>and:admin_group_selfadmin,#is_parent_group</td><td></td></tr>
             <tr><td>admin.custom_dashboards</td><td>/nittioapp#/app/dashboard?my=0</td><td>admin_user</td><td></td></tr>
             <tr><td>admin.custom_dashboards_my</td><td>/nittioapp#/app/dashboard?my=1</td><td>admin_user</td><td></td></tr>
-            <tr><td>admin.impersonate</td><td>/nittioapp#/app/impersonate</td><td>admin_ impersonate_grp</td><td></td></tr>
+            <tr><td>searchlist.my</td><td>/nittioapp#/app/searchlist?my=1</td><td>admin_user</td><td></td></tr>
+            <tr><td>searchlist.view</td><td>/nittioapp#/app/searchlist?my=0</td><td>admin_user</td><td></td></tr>
         </table>
 
         <h4>Action with customizable URLs</h4>
@@ -100,6 +102,7 @@
             <tr><td>lesson.create2</td><td>/lesson/create2/{}</td><td>lesson_create</td><td>Provide template id in urlParams to directly create lesson based on template</td></tr>
             <tr><td>lesson.my</td><td>/lesson/my/{}</td><td>lesson_create</td><td></td></tr>
             <tr><td>lesson.review</td><td>/lesson/review/1/{}</td><td>learn_review</td><td></td></tr>
+            <tr><td>searchlist.view</td><td>/nittioapp#/app/searchlist_view?id={}</td><td>basic_access</td><td></td></tr>
         </table>
 
         <h4>Generic actions with fully customizable URLs</h4>
