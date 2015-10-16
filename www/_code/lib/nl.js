@@ -123,10 +123,10 @@ function Formatter() {
         return this.date2Str(d, accurate);
     };
     
-	this.addAvp = function(avps, fieldName, fieldValue, fmtType) {
+	this.addAvp = function(avps, fieldName, fieldValue, fmtType, fieldDefault) {
 		if (fmtType == 'date') fieldValue = this.jsonDate2Str(fieldValue);
 		if (fmtType == 'boolean') fieldValue = fieldValue ? this.t(['Yes']) : this.t(['No']);
-		if (!fieldValue) fieldValue = '-';
+		if (!fieldValue) fieldValue = fieldDefault || '-';
 		avps.push({attr: this.t([fieldName]), val: fieldValue});
 	};
 	

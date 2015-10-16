@@ -19,6 +19,7 @@ $nltopbar:                        #403050 !default; // Top Bar Bg-Color
 $nltopbar1:                       #807090 !default; // Top Bar Bg-Color gradiant
 $nldlgbar:                        #E06000 !default; // Dialog Box header Bg-Color
 $nlgrey:                          #EEEEFF !default; // Mild border
+$nlgreen:                         #008000 !default; // green
 
 $energized:                       $nltopbar;
 $positive:                        $nldlgbar;
@@ -187,14 +188,17 @@ $animation-duration: 200ms !default;
 // nl specific styling - lib_ui modules
 //-----------------------------------------------------------------------------------------
 .nl-border-bottom {
-    border-bottom: 1px dotted black;
+  border-bottom: 1px dotted black;
 }
 
 .nl-bg-red {
-    background-color: rgba(255, 0, 0, 0.3);
+  background-color: rgba(255, 0, 0, 0.3);
 }
 .nl-bg-blue {
-    background-color: rgba(0, 0, 255, 0.3);
+  background-color: rgba(0, 0, 255, 0.3);
+}
+.nl-green {
+  color: $nlgreen;
 }
 
 .nl-table {

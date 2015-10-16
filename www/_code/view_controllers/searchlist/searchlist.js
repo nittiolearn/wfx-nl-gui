@@ -4,10 +4,9 @@
 // dashboard.js: custom dashboard
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-	angular.module('nl.searchlist', [])
+	angular.module('nl.searchlist_list', [])
 	.config(configFn)
-	.controller('nl.SearchlistCtrl', SearchlistCtrl)
-	.controller('nl.SearchlistViewCtrl', SearchlistViewCtrl);
+	.controller('nl.SearchlistCtrl', SearchlistCtrl);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -23,49 +22,20 @@ function($stateProvider) {
 			}
 		}
 	});
-	$stateProvider.state('app.searchlist_view', {
-		cache : true,
-		url : '/searchlist_view',
-		views : {
-			'appContent' : {
-				templateUrl : 'lib_ui/cards/cardsview.html',
-				controller : 'nl.SearchlistViewCtrl'
-			}
-		}
-	});
-
 }];
+
 var SearchlistCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv',
 function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
-	var config = {type: 'create', getUrl: getUrl};
-	_searchlistImpl(config, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv);
-	function getUrl(sl) {
-		return nl.fmt2('#/app/searchlist_view?id={}', sl.id);
-	}
-}];	
-
-var SearchlistViewCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
-	var config = {type: 'view', getUrl: getUrl};
-	_searchlistImpl(config, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv);
-	function getUrl(sl) {
-		// TODO
-		return nl.fmt2('/lesson/search#/{}', sl.id);
-	}
-}];	
-
-function _searchlistImpl(config, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	var searchDict = {};
 	var my = false;
 	var _searchFilterInUrl = '';
-	var _searchlistId = 0;
 	var _userInfo = null;
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
 		_initParams();
 		return nl.q(function(resolve, reject) {
-			nl.pginfo.pageTitle = nl.t('Search list Dashboard');
+			nl.pginfo.pageTitle = nl.t('Search list dashboard');
 	        var params = nl.location.search();
 	        my = ('my' in params) ? parseInt(params.my) == 1: false;
         	$scope.cards = {};
@@ -78,8 +48,8 @@ function _searchlistImpl(config, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCar
 	nlRouter.initContoller($scope, '', _onPageEnter);
 
 	function _getDataFromServer(filter, resolve, reject) {
-		_listingFunction(filter).then(function(resultList) {
-			nl.log.debug('Got result: ', resultList.length);
+		nlServerApi.searchListGetList({mine: my, search: filter})
+		.then(function(resultList) {
 			$scope.cards.cardlist = _getCards(_userInfo, resultList, nlCardsSrv);
 			_addSearchInfo($scope.cards);
 			resolve(true);
@@ -88,28 +58,6 @@ function _searchlistImpl(config, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCar
 		});
 	}
 	
-	function _listingFunction(filter) {
-		if(config.type == 'create'){
-			return nlServerApi.searchListGetList({mine: my, search: filter});
-		}
-		else if(config.type == 'view') {
-			return nlServerApi.searchListView(_searchlistId);
-		}
-	}
-	
-	function _getCards(userInfo, resultList, nlCardsSrv) {
-		var cards = [];
-		for (var i = 0; i < resultList.length; i++) {
-			var card = _createCard(resultList[i], userInfo);
-			cards.push(card);
-		}
-		return cards;
-	}
-	
-	function _createCard(cardInfo, userInfo) {
-		return _createSearchlistCard(cardInfo, userInfo);
-	}
-
 	function _addSearchInfo(cards) {
 		cards.search = {placeholder: nl.t('Enter name/description')};
 		cards.search.onSearch = _onSearch;
@@ -125,21 +73,21 @@ function _searchlistImpl(config, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCar
 		});
 	}
 
-	function _getSearchlistCards(resultList) {
-		var cards = [];
-		for(var i=0; i<resultList.length; i++){
-			var card = _createSearchlistCard(resultList[i]);
-			cards.push(card);
-		}
-		return cards;
-	}
-	
-	function _createSearchlistCard(searchlist){
+    function _getCards(userInfo, resultList, nlCardsSrv) {
+        var cards = [];
+        for (var i = 0; i < resultList.length; i++) {
+            var card = _createSearchlistCard(resultList[i]);
+            cards.push(card);
+        }
+        return cards;
+    }
+    
+	function _createSearchlistCard(searchlist) {
 		searchDict[searchlist.id] = searchlist;
 		var createList = {
 			searchlistId : searchlist.id,
 			title : searchlist.name,
-			url: config.getUrl(searchlist),
+			url: nl.fmt2('#/app/searchlist_view?id={}', searchlist.id),
 			icon : nl.url.resUrl('dashboard/defgroup.png'),
 			help : nl.t('<P>Author: {}</P><P>Group:{}</P>', searchlist.authorname, searchlist.grpname),
 			children :[]
@@ -156,18 +104,20 @@ function _searchlistImpl(config, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCar
 	
 	function  _getAvps(searchlist) {
 		var avps = [];
+        nl.fmt.addAvp(avps, 'Name', searchlist.name);
         nl.fmt.addAvp(avps, 'Author', searchlist.authorname);
 		nl.fmt.addAvp(avps, 'Group', searchlist.grpname);
 		nl.fmt.addAvp(avps, 'Updated by', searchlist.updated_by_name);
 		nl.fmt.addAvp(avps, 'Created on', searchlist.created, 'date');
 		nl.fmt.addAvp(avps, 'Updated on', searchlist.updated, 'date');
-		nl.fmt.addAvp(avps, 'Description', searchlist.description);
+        nl.fmt.addAvp(avps, 'Result count', searchlist.result.result_list.length);
+        nl.fmt.addAvp(avps, 'Result updated on', searchlist.result.result_updated, 'date');
 		return avps;
 	}
 
 	function _getStaticCards() {
-		if(!my || config.type == 'view') return;
 		var ret = [];
+        if(!my) return ret;
 		var card = {title: nl.t('Create'), 
 					icon: nl.url.resUrl('dashboard/crgroup.png'), 
 					internalUrl: 'searchlist_create',
@@ -180,10 +130,9 @@ function _searchlistImpl(config, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCar
 
 	function _getEmptyCard(nlCardsSrv) {
 		var help = null;
-			help = nl.t('There are no searchlists created yet.');
+			help = nl.t('There are no search lists created yet.');
 	    return nlCardsSrv.getEmptyCard({help:help});
 	}
-
 
 	$scope.onCardInternalUrlClicked = function(internalUrl) {
 		if (internalUrl === 'searchlist_create') {
@@ -262,9 +211,29 @@ function _searchlistImpl(config, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCar
         scope.error = {};
         if(!scope.data.name) return _validateFail(scope, 'name', 'Search list name is mandatory');
         if(!scope.data.config) return _validateFail(scope, 'config', 'Search list config is mandatory');
+
+        try {
+            var config = angular.fromJson(scope.data.config);
+            return _validateConfig(scope, config);            
+        } catch (error) {
+            return nlDlg.setFieldError(scope, 'config',
+                nl.t('Error parsing JSON: {}. Try http://www.jsoneditoronline.org to debug more', error.toString()));
+        }
         return true;
     }
     
+    function _validateConfig(scope, config) {
+        if (!angular.isObject(config) || angular.isArray(config)) return _validateFail(scope, 'config', 
+            'Configuration needs to be a JSON object');
+            
+        if (!('table' in config)) return _validateFail(scope, 'config', 'table attribute missing');
+        if (!('filter' in config)) return _validateFail(scope, 'config', 'filter attribute missing');
+        if (!('report_fields' in config)) return _validateFail(scope, 'config', 'report_fields attribute missing');
+
+        if (config.table != 'lesson_approved') return _validateFail(scope, 'config', 'table parameter value not supported');
+        return true;
+    }
+
     function _validateFail(scope, attr, errMsg) {
     	return nlDlg.setFieldError(scope, attr,
         	nl.t(errMsg));
@@ -316,10 +285,9 @@ function _searchlistImpl(config, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCar
 		searchDict = {};
         var params = nl.location.search();
         my = ('my' in params) ? parseInt(params.my) == 1: false;
-        _searchlistId = ('id' in params) ? parseInt(params.id) : 0;
         _searchFilterInUrl = ('search' in params) ? params.search : '';
 	}
+}]; 
 
-}
 module_init();
 })();

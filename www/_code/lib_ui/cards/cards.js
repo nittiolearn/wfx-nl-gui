@@ -82,7 +82,7 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             };
 			$scope.searchKeyHandler = function(keyevent) {
 				if(keyevent.which === 13) {
-					return $scope.cards.search.onSearch($scope.search.filter);
+					return $scope.search.onSearch($scope.search.filter);
 				}				
 			};
             $scope.search.getResultsStr = function() {
@@ -92,8 +92,9 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
 	            										 $scope.search.filter);
 					len = filteredData.length;
             	}
+            	var maxLimit = $scope.cards.search.maxLimit || 50;
             	if (len <= 1) return nl.t('{} result', len);
-            	if (len > 50) return nl.t('50+ results');
+            	if (len > maxLimit) return nl.t('{}+ results', maxLimit);
             	return nl.t('{} results', len);
             };
          }
