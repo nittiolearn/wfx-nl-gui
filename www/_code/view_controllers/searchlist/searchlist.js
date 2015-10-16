@@ -40,7 +40,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	var config = {type: 'create', getUrl: getUrl};
 	_searchlistImpl(config, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv);
 	function getUrl(sl) {
-		return nl.fmt2('/app/searchlist_view/{}', sl.id);
+		return nl.fmt2('#/app/searchlist_view?id={}', sl.id);
 	}
 }];	
 
@@ -50,7 +50,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	_searchlistImpl(config, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv);
 	function getUrl(sl) {
 		// TODO
-		return nl.fmt2('/app/home/');
+		return nl.fmt2('/lesson/search#/{}', sl.id);
 	}
 }];	
 
@@ -81,7 +81,6 @@ function _searchlistImpl(config, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCar
 		_listingFunction(filter).then(function(resultList) {
 			nl.log.debug('Got result: ', resultList.length);
 			$scope.cards.cardlist = _getCards(_userInfo, resultList, nlCardsSrv);
-			console.log($scope.cards.cardlist);
 			_addSearchInfo($scope.cards);
 			resolve(true);
 		}, function(reason) {
@@ -206,11 +205,11 @@ function _searchlistImpl(config, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCar
         searchlistDlg.scope.error = {};
 		if (searchlistId !== null) {
 			var searchdata = searchDict[searchlistId];
-			$scope.dlgTitle = nl.t('Modify searchlist');
+			$scope.dlgTitle = nl.t('Modify search list');
 			searchlistDlg.scope.data = {name: searchdata.name, 
 									description: searchdata.description, config: angular.toJson(searchdata.config, 2)};
 		} else {
-			$scope.dlgTitle = nl.t('Create a new searchlist');
+			$scope.dlgTitle = nl.t('Create a new search list');
 			searchlistDlg.scope.data = {name: '', 
 									description: '', config: ''};
 		}
@@ -251,10 +250,7 @@ function _searchlistImpl(config, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCar
 	function _onModifyDone(searchlist, searchlistId, modifiedData, $scope) {
 		nlDlg.hideLoadingScreen();
 	    _updateForTesting(searchlist, modifiedData);
-	    console.log(searchlist);
-	    console.log(modifiedData);
 	    var card = _createSearchlistCard(searchlist);
-	    console.log(card);
 	    if (searchlistId !== null) {
             var pos = _getCardPosition(searchlist.id);
             $scope.cards.cardlist.splice(pos, 1);

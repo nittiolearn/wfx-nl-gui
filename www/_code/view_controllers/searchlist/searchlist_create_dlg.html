@@ -1,9 +1,50 @@
 <nl-dlg title='{{dlgTitle}}'>    
+    <nl-dlg-help>
+        <h2>Search list properties</h2>
+        <ul>
+            <li><b>name:</b> Mandatory - provide a search list name which will help others to understand the purpose of creating the search list.</li>
+            <li><b>description:</b>search list description - provide a short description, so help others to understand.</li>
+            <li><b>configuration:</b>Mandatory - configuration should be in JSON format described below.</li>
+        </ul>
+        
+        <h2>Search list configuration JSON format</h2>
+        <p>Search list configuration is dictionary.</p>
+        <p><b>Hint:</b> <a href='http://www.jsoneditoronline.org/'>http://www.jsoneditoronline.org/</a> provides a good tool for editing JSON strings.</p>
+        <p>Fields "table", "filter" and "report_fields" are mandatory.</p>
+        <ul>
+        <li>"table" indicates which database table to search = currently only value "lesson_approved is supported"</li>
+        <li>"filter" is a dictionary of table field name to filter set of values. Only records which match the filter are displayed in the search list. The criteria is AND of different filter fields and OR within the values in each field.</li>
+        <li>"report_fields" is list of fields within the lesson content which should be stored (and used for filtering)</li>
+		</ul>
+		<br>
+
+		<pre>
+{
+  "table": "lesson_approved",
+  "filter": {
+    "subject": [
+      "English",
+      "Science"
+    ],
+    "center name": [
+      "HBR Layout"
+    ],
+    "custtype": [
+      "7"
+    ],
+    "report_fields": [
+      "center name",
+      "year",
+      "overall rating"
+    ]
+  }
+}		</pre>
+	</nl-dlg-help>
 	<nl-dlg-content>
         <table class='nl-table'>
             <tr nl-form-input fieldname='Name' fieldmodel='name' fieldtype='text'></tr>
-            <tr nl-form-textarea fieldname='Searchlist description' fieldmodel='description' fieldcls='small'></tr>
-            <tr nl-form-textarea fieldname='Searchlist configuration' fieldmodel='config' fieldcls='nl-fixed-width'></tr>
+            <tr nl-form-textarea fieldname='Description' fieldmodel='description' fieldcls='small'></tr>
+            <tr nl-form-textarea fieldname='Configuration' fieldmodel='config' fieldcls='nl-fixed-width'></tr>
         </table>
         <br/>
     </nl-dlg-content>

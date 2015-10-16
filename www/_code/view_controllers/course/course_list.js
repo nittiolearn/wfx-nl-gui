@@ -380,7 +380,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 		var cancelButton = {
 			text : nl.t('Cancel')
 		};
-		modifyDlg.show('view_controllers/course/coursecreatedlg.html',
+		modifyDlg.show('view_controllers/course/course_create_dlg.html',
 			buttons, cancelButton, false);
 	}
 	
