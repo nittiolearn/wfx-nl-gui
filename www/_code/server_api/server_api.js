@@ -183,9 +183,10 @@ function(nl, nlDlg, nlConfig) {
     //---------------------------------------------------------------------------------------------
 	// search list entities
     //---------------------------------------------------------------------------------------------
-    this.searchListGetList = function(mine) {
+    this.searchListGetList = function(data) {
+        // data: mine, search
         // return: list of dashboardObjects
-        return server.post('_serverapi/searchlist_getlist.json', {mine : mine});
+        return server.post('_serverapi/searchlist_getlist.json', data);
     };
     
     this.searchListCreate = function(data) {
