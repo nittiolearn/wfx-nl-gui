@@ -1252,11 +1252,21 @@ function ImageShrinker() {
     var SHRINK_QUALITY = {low: 0.7, medium: 0.8, high: 0.9, uhigh: 1.0};
 
     this.getShrinkedFile = function(_file, fileExtn, onDone, bImg, compressionLevel) {
-    	var shrinkSize = null;
-    	var compInfo = {compression: compressionLevel, origName: _file.name, origSize: _file.size};
-    	if (compressionLevel in COMPRESSION_LEVEL) {
-    		shrinkSize = COMPRESSION_LEVEL[compressionLevel];
-    	}
+        try {
+            _readAsDataUrl(_file, fileExtn, onDone, bImg, compressionLevel);
+        } catch(e) {
+            njs_helper.log('ImageShrinker - reader.readAsDataURL exception: ', e);
+            compInfo.status = 'Compression failed: readAsDataURL error';
+            onDone(null, compInfo);
+        }
+    };
+
+    function _readAsDataUrl(_file, fileExtn, onDone, bImg, compressionLevel) {
+        var shrinkSize = null;
+        var compInfo = {compression: compressionLevel, origName: _file.name, origSize: _file.size};
+        if (compressionLevel in COMPRESSION_LEVEL) {
+            shrinkSize = COMPRESSION_LEVEL[compressionLevel];
+        }
     	var reader = new FileReader();
         reader.onerror = function (e) {
         	njs_helper.log('ImageShrinker - FileReader onerror: ', e);
@@ -1288,14 +1298,8 @@ function ImageShrinker() {
 			    onDone(shrinkedFile, compInfo);
 	        });
         };
-        try {
-		    reader.readAsDataURL(_file);
-        } catch(e) {
-        	njs_helper.log('ImageShrinker - reader.readAsDataURL exception: ', e);
-            compInfo.status = 'Compression failed: readAsDataURL error';
-        	onDone(null, compInfo);
-        }
-     };
+	    reader.readAsDataURL(_file);
+	}
     
     function _shrinkImage(imgUrl, shrinkSize, compInfo, onDone) {
         var document = window.document;
