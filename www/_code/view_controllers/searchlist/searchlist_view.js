@@ -48,7 +48,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 
 	function _getDataFromServer(filter, resolve, reject) {
 		nlServerApi.searchListView(_searchlistId).then(function(searchListObj) {
-            var resultList = searchListObj.result.result_list;
+            var resultList = _getResultList(searchListObj);
             var repFields = searchListObj.config.report_fields;
 			$scope.cards.cardlist = _getCards(_userInfo, resultList, repFields, nlCardsSrv);
 			_addSearchInfo($scope.cards);
@@ -56,6 +56,18 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 		}, function(reason) {
             resolve(false);
 		});
+	}
+	
+	function _getResultList(searchListObj) {
+        var resultDict = searchListObj.result.result_dict;
+	    var ret = [];
+	    for (var d in resultDict) {
+	        ret.push(resultDict[d]);
+	    }
+	    ret.sort(function(a, b) {
+	        return nl.fmt.json2Date(b.updated) - nl.fmt.json2Date(a.updated);
+	    });
+	    return ret;
 	}
 	
 	function _addSearchInfo(cards) {

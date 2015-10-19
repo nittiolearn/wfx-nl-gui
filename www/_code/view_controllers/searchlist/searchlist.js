@@ -110,7 +110,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 		nl.fmt.addAvp(avps, 'Updated by', searchlist.updated_by_name);
 		nl.fmt.addAvp(avps, 'Created on', searchlist.created, 'date');
 		nl.fmt.addAvp(avps, 'Updated on', searchlist.updated, 'date');
-        nl.fmt.addAvp(avps, 'Result count', searchlist.result.result_list.length);
+        nl.fmt.addAvp(avps, 'Result count', Object.keys(searchlist.result.result_dict).length);
         nl.fmt.addAvp(avps, 'Result updated on', searchlist.result.result_updated, 'date');
 		return avps;
 	}
