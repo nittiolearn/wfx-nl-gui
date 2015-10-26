@@ -75,7 +75,7 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
 				$scope.$parent.onCardLinkClicked(card, linkid);
             };
 
-            $scope.search = {filter: '', img: nl.url.resUrl('general/search.png')};
+            $scope.search = {filter: '', img: nl.url.resUrl('search.png')};
             $scope.search.onSearch = function() {
             	if (!('onSearch' in $scope.cards.search)) return;
             	return $scope.cards.search.onSearch($scope.search.filter);
@@ -86,13 +86,18 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
 				}				
 			};
             $scope.search.getResultsStr = function() {
+                if ($scope.cards && $scope.cards.search && $scope.cards.search.img)
+                    $scope.search.img = $scope.cards.search.img;
+
             	var len = 0;
             	if ($scope.cards && $scope.cards.cardlist) {
 	            	var filteredData = $filter('nlFilter')($scope.cards.cardlist,
 	            										 $scope.search.filter);
 					len = filteredData.length;
             	}
-            	var maxLimit = $scope.cards.search.maxLimit || 50;
+            	var maxLimit = 50;
+            	if ($scope.cards && $scope.cards.search && $scope.cards.search.maxLimit) 
+            	   maxLimit = $scope.cards.search.maxLimit; 
             	if (len <= 1) return nl.t('{} result', len);
             	if (len > maxLimit) return nl.t('{}+ results', maxLimit);
             	return nl.t('{} results', len);

@@ -83,7 +83,8 @@ var _dashboardActions = {
     'lesson.view_approved': {'url': '/lesson/search?{}', 'permission': 'basic_access'},
     'lesson.create2': {'url': '/lesson/create2/{}', 'permission': 'lesson_create'},
     'lesson.my': {'url': '/lesson/my?{}', 'permission': 'lesson_create'},
-    'lesson.review': {'url': '/lesson/review/1?{}', 'permission': 'lesson_review'}
+    'lesson.review': {'url': '/lesson/review/1?{}', 'permission': 'lesson_review'},
+    'searchlist.view': {'url': '/nittioapp#/app/searchlist_view?id={}', 'permission': 'basic_access'}
 };
 
 module_init();

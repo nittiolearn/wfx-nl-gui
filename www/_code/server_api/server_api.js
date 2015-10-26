@@ -206,9 +206,10 @@ function(nl, nlDlg, nlConfig) {
         return server.post('_serverapi/searchlist_delete.json', {id: searchlist_id});
     };
 
-    this.searchListView = function(searchlist_id) {
+    this.searchListView = function(searchlist_id, force) {
         // return: searchlistObject
-        return server.post('_serverapi/searchlist_view.json', {id: searchlist_id});
+        if (!force) force = false;
+        return server.post('_serverapi/searchlist_view.json', {id: searchlist_id, force:force});
     };
     //---------------------------------------------------------------------------------------------
     // Private methods

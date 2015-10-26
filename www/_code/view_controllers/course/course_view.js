@@ -249,6 +249,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
             _updateStatusIcomAndScoreText(modeHandler, cm);
             return;
         }
+        if (cm.type === 'info' || cm.type === 'link') {
+            cm.totalCount = 0;
+            cm.completedCount = 0;
+            cm.score = 0;
+            cm.maxScore = 0;
+            return;
+        }
         
         cm.totalCount = 1;
         cm.completedCount = 0;

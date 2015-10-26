@@ -1267,6 +1267,11 @@ function ImageShrinker() {
         if (compressionLevel in COMPRESSION_LEVEL) {
             shrinkSize = COMPRESSION_LEVEL[compressionLevel];
         }
+        if(!bImg) {
+            compInfo.status = 'No compression done';
+            onDone(_file, compInfo);
+            return;
+        }
     	var reader = new FileReader();
         reader.onerror = function (e) {
         	njs_helper.log('ImageShrinker - FileReader onerror: ', e);
@@ -1275,17 +1280,18 @@ function ImageShrinker() {
         };
         reader.onload = function (loadEvent) {
 	        var origUrl = loadEvent.target.result;
-	        if(!bImg || !shrinkSize) {
+	        if(!shrinkSize) {
                 compInfo.status = 'No compression done';
 	        	onDone(_file, compInfo);
 	        	return;
 	        }
-	        _shrinkImage(origUrl, shrinkSize, compInfo, function(shrinkedUrl) {
+            var bJpg = (fileExtn == '.jpg');
+	        _shrinkImage(bJpg, origUrl, shrinkSize, compInfo, function(shrinkedUrl) {
 	            if (!shrinkedUrl) {
 	                onDone(_file, compInfo);
 	                return;
 	            }
-	            var newFileName = _file.name.replace(fileExtn, '.png');
+	            var newFileName = bJpg ? _file.name : _file.name.replace(fileExtn, '.png');
 		        var shrinkedFile = _dataUrlToImgFile(shrinkedUrl, newFileName);
                 compInfo.compressedName = shrinkedFile.name;
                 compInfo.compressedSize = shrinkedFile.size;
@@ -1301,7 +1307,7 @@ function ImageShrinker() {
 	    reader.readAsDataURL(_file);
 	}
     
-    function _shrinkImage(imgUrl, shrinkSize, compInfo, onDone) {
+    function _shrinkImage(bJpg, imgUrl, shrinkSize, compInfo, onDone) {
         var document = window.document;
         var img = document.createElement('img');
         img.onerror = function (e) {
@@ -1318,7 +1324,7 @@ function ImageShrinker() {
 	        canvas.height = imgSize.h;
 	        var ctx = canvas.getContext('2d');
 	        ctx.drawImage(img, 0, 0, imgSize.w, imgSize.h);
-	        var shrinkedUrl = canvas.toDataURL('image/png');
+	        var shrinkedUrl = bJpg ? canvas.toDataURL('image/jpeg', 0.9) : canvas.toDataURL('image/png');
 	        if (!shrinkedUrl) compInfo.status = 'Compression failed: toDataURL error';
 	        onDone(shrinkedUrl);
         };

@@ -29,6 +29,7 @@ var SearchlistViewCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'n
 function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	var _searchFilterInUrl = '';
 	var _searchlistId = 0;
+	var _searchListObj = null;
 	var _userInfo = null;
 
 	function _onPageEnter(userInfo) {
@@ -40,16 +41,18 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
         	$scope.cards = {};
 			$scope.cards.staticlist = _getStaticCards();
 			$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
-			_getDataFromServer(_searchFilterInUrl, resolve, reject);
+			_getDataFromServer(false, resolve, reject);
 		});
 	}
 
 	nlRouter.initContoller($scope, '', _onPageEnter);
 
-	function _getDataFromServer(filter, resolve, reject) {
-		nlServerApi.searchListView(_searchlistId).then(function(searchListObj) {
+	function _getDataFromServer(force, resolve, reject) {
+		nlServerApi.searchListView(_searchlistId, force).then(function(searchListObj) {
+		    _searchListObj = searchListObj;
             var resultList = _getResultList(searchListObj);
             var repFields = searchListObj.config.report_fields;
+            if (searchListObj.config.title) nl.pginfo.pageTitle = searchListObj.config.title;
 			$scope.cards.cardlist = _getCards(_userInfo, resultList, repFields, nlCardsSrv);
 			_addSearchInfo($scope.cards);
 			resolve(true);
@@ -74,16 +77,29 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 		cards.search = {placeholder: nl.t('Enter name/description')};
 		cards.search.onSearch = _onSearch;
 		cards.search.maxLimit = 1000;
+		cards.search.img = nl.url.resUrl('info.png');
 	}
 	
+    function _updateSearchDlgScope(scope) {
+        scope.dlgTitle = nl.pginfo.pageTitle;
+        scope.result_count = Object.keys(_searchListObj.result.result_dict).length;
+        scope.result_updated = nl.fmt.jsonDate2Str(_searchListObj.result.result_updated);
+    }
+
 	function _onSearch(filter) {
-		nlDlg.showLoadingScreen();
-		var promise = nl.q(function(resolve, reject) {
-			_getDataFromServer(filter, resolve, reject);
-		});
-		promise.then(function(res) {
-			nlDlg.hideLoadingScreen();
-		});
+        var searchlistDlg = nlDlg.create($scope);
+        searchlistDlg.setCssClass('nl-height-max nl-width-max');
+        _updateSearchDlgScope(searchlistDlg.scope);
+        
+        searchlistDlg.scope.updateResults = function() {
+            searchlistDlg.close();
+            nlDlg.showLoadingScreen();
+            _getDataFromServer(true, function(result) {
+                _onSearch(filter);
+            });
+        };
+
+        searchlistDlg.show('view_controllers/searchlist/searchlist_view_dlg.html');
 	}
 
     function _getCards(userInfo, resultList, repFields, nlCardsSrv) {
