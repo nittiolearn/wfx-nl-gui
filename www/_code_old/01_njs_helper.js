@@ -32,13 +32,76 @@ function jobj(htmlString) {
 }
 
 var g_logEnabled = false;
+var g_serverLog = null;
 function log_init(bEnable) {
 	g_logEnabled = (bEnable && window.console && window.console.log) ? true : false;
+	// TODO - uncomment below line when you have a tricky client side issue
+	// g_serverLog = new ServerLog();
 }
 
 function log() {
+    if (g_serverLog) g_serverLog.log(arguments);
 	if (!g_logEnabled) return;
 	console.log(arguments);
+}
+
+function ServerLog() {
+    msgs = [];
+
+    this.log = function(args) {
+        var msg = {msg:_fmtArray(args, false), ts: (new Date()).toString()};
+        msgs.push(msg);
+    };
+    
+    setInterval(_timerFn, 1000);
+    function _timerFn() {
+        if (msgs.length == 0) return;
+        var localMsgs = [];
+        while (msgs.length > 0) {
+            localMsgs.push(msgs.shift());
+        }
+        
+        var _ajax = new njs_helper.Ajax(function(result) {
+        }, false, false);
+        var logInfo = {username: _pageParams.username};
+        _ajax.send('/default/client_log_data.json', {
+            loginfo: JSON.stringify(logInfo),
+            logdata: JSON.stringify(localMsgs)
+        });
+
+        for(var i=0; i<localMsgs.length; i++) {
+            var m = localMsgs[i];
+            console.log(m.ts, m.msg);
+        }
+    }
+    
+    function _fmtObj(obj) {
+        if (obj.constructor === Array) return _fmtArray(obj);
+        if (obj !== null && typeof obj === 'object') return _fmtDict(obj);
+        return obj.toString();
+    }
+
+    function _fmtArray(obj, bBraces) {
+        if (bBraces === undefined) bBraces = true;
+        var msg = bBraces ? '[' : '';
+        for (var i=0; i<obj.length; i++) {
+            var delim = (i == obj.length-1) ? '' : ', ';
+            msg += _fmtObj(obj[i]) + delim;
+        }
+        return msg + (bBraces ? ']' : '');
+    }
+    
+    function _fmtDict(obj) {
+        var msg = '{';
+        var keys = Object.keys(obj);
+        for (var i=0; i<keys.length; i++) {
+            var delim = (i == keys.length-1) ? '' : ', ';
+            var key = keys[i];
+            msg += key + ':' + _fmtObj(obj[key]) + delim;
+        }
+        return msg + '}';
+    }
+
 }
 
 function copyToClipboard(text) {
@@ -1313,24 +1376,34 @@ function ImageShrinker() {
         img.onerror = function (e) {
         	njs_helper.log('ImageShrinker - Image load error: ', e);
             compInfo.status = 'Compression failed: Image load error';
-        	onDone(null);
+        	onDone(null, compInfo);
         };
         img.onload = function (data) {
-	        var imgSize = _getNewImgSize(img, shrinkSize, compInfo);
-            compInfo.compressedWidth = imgSize.w;
-            compInfo.compressedHeight = imgSize.h;
-	        var canvas = document.createElement('canvas');
-	        canvas.width = imgSize.w;
-	        canvas.height = imgSize.h;
-	        var ctx = canvas.getContext('2d');
-	        ctx.drawImage(img, 0, 0, imgSize.w, imgSize.h);
-	        var shrinkedUrl = bJpg ? canvas.toDataURL('image/jpeg', 0.9) : canvas.toDataURL('image/png');
-	        if (!shrinkedUrl) compInfo.status = 'Compression failed: toDataURL error';
-	        onDone(shrinkedUrl);
+            _onImgLoad(document, bJpg, img, shrinkSize, compInfo, onDone);
         };
         img.src = imgUrl;
     }
 
+    function _onImgLoad(document, bJpg, img, shrinkSize, compInfo, onDone) {
+        try {
+            var imgSize = _getNewImgSize(img, shrinkSize, compInfo);
+            compInfo.compressedWidth = imgSize.w;
+            compInfo.compressedHeight = imgSize.h;
+            var canvas = document.createElement('canvas');
+            canvas.width = imgSize.w;
+            canvas.height = imgSize.h;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, imgSize.w, imgSize.h);
+            var shrinkedUrl = bJpg ? canvas.toDataURL('image/jpeg', 0.9) : canvas.toDataURL('image/png');
+            if (!shrinkedUrl) compInfo.status = 'Compression failed: toDataURL error';
+            onDone(shrinkedUrl);
+        } catch(e) {
+            njs_helper.log('ImageShrinker - onImgLoad exception: ', e.toString());
+            compInfo.status = 'Compression failed: onImgLoad exception';
+            onDone(null, compInfo);
+        }
+    }
+    
     function _getNewImgSize(img, shrinkSize, compInfo) {
         var ret = {w: img.width, h: img.height};
         compInfo.origWidth = ret.w;
@@ -1344,17 +1417,18 @@ function ImageShrinker() {
     }    
 
 	function _dataUrlToImgFile(dataUrl, fileName) {
-	    var BASE64_MARKER = ';base64,';
-	    if (dataUrl.indexOf(BASE64_MARKER) == -1) {
-	        var parts = dataUrl.split(',');
-	        var contentType = parts[0].split(':')[1];
-	        var raw = parts[1];
-	        return new Blob([raw], {type: contentType});
+	    var MARKER = ';base64,';
+	    var b64 = true;
+	    if (dataUrl.indexOf(MARKER) == -1) {
+	        b64 = false;
+	        MARKER = ',';
 	    }
+        var parts = dataUrl.split(MARKER);
+        var contentType = parts[0].split(':')[1];
+        var raw = parts[1];
+        if (!b64) return new File([raw], fileName, {type: contentType});
 	
-	    var parts = dataUrl.split(BASE64_MARKER);
-	    var contentType = parts[0].split(':')[1];
-	    var raw = window.atob(parts[1]);
+	    raw = window.atob(raw);
 	    var rawLength = raw.length;
 	    var uInt8Array = new Uint8Array(rawLength);
 	    for (var i = 0; i < rawLength; ++i) {
