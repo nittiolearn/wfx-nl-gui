@@ -146,19 +146,20 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 				resolve(false);
 				return;
 			}
+			$scope.expandedView = false;
 			$scope.showStatusIcon = modeHandler.shallShowScore();
 			var courseId = parseInt(params.id);
 			modeHandler.getCourse().then(function(course) {
 				modeHandler.initTitle(course);
-				var content = course.content;
-				for(var i=0; i<content.length; i++) {
-					_initModule(content[i]);
+				var modules = course.content.modules;
+				for(var i=0; i<modules.length; i++) {
+					_initModule(modules[i]);
 				}
      			var rootItems = treeList.getRootItems();
                 for(var i=0; i<rootItems.length; i++) {
-                    _initModuleScores(modeHandler, course, rootItems[i]);
+                    _updateItemData(modeHandler, course, rootItems[i]);
                 }
-     			$scope.content = content;
+                $scope.modules = modules;
 				resolve(true);
 			}, function(error) {
 			    resolve(false);
@@ -167,19 +168,36 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 	}
 
 	nlRouter.initContoller($scope, '', _onPageEnter);
-
+	
+	$scope.infobool = true;
+	$scope.infobuttontext = "Save";
+	$scope.modeHan = modeHandler;
+	$scope.saveInfo = function(cm) {
+		$scope.infobool = ! $scope.infobool;
+		if($scope.infobool) {
+			$scope.infobuttontext = "Save";
+		} else if(!$scope.infobool){
+			$scope.infobuttontext = "Unsave";
+		}
+	};
+	$scope.expandviewtext = "More Information";
+	$scope.expandViewClick = function(cm) {
+		$scope.infobool = ! $scope.infobool;
+		if($scope.infobool) {
+			$scope.expandviewtext = "More Information";
+			$scope.expandedView = false;
+		} else if(!$scope.infobool){
+			$scope.expandviewtext = "Less Information";
+			$scope.expandedView = true;
+		}
+	};
+	
 	$scope.showHideAllButtonName = treeList.showHideAllButtonName();
 	$scope.showHideAll = function() {
 		treeList.showHideAll();
 		$scope.showHideAllButtonName = treeList.showHideAllButtonName();
     };
 	
-    $scope.getIndentation = function(cm) {
-        var ret = [];
-        for (var i=0; i<cm.indentationLevel; i++) ret.push(i);
-        return ret;
-    };
-    
 	$scope.getIcon = function(cm) {
 		var icon = ('icon' in cm) ? cm.icon : cm.type;
 		if (icon in _icons) return _icons[icon];
@@ -209,7 +227,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 		'lesson': nl.url.resUrl('lesson2.png'),
 		'quiz': nl.url.resUrl('quiz.png'),
 		'info': nl.url.resUrl('info.png'),
-		'link': nl.url.resUrl('file.png')
+		'link': nl.url.resUrl('file.png'),
+		'red': nl.url.resUrl('general/ball-maroon.png'),
+		'yellow': nl.url.resUrl('general/ball-yellow.png'),
+		'green': nl.url.resUrl('general/ball-green.png')
 	};
 	
 	var _moduleProps = {
@@ -228,37 +249,69 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 		var props = (cm.type in _moduleProps) ? _moduleProps[cm.type] : _defModuleProps;
 		cm.clickable = props.clickable;
         cm.launchable = props.launchable;
+        cm.planned_date = cm.planned_date ? nl.fmt.json2Date(cm.planned_date) : null;
+        cm.planned_date_str = cm.planned_date ? nl.fmt.date2Str(cm.planned_date, 'date') : '';
 	}
 
-    function _initModuleScores(modeHandler, course, cm) {
+    function _updateItemData(modeHandler, course, cm) {
         if (cm.type === 'module') {
-            cm.totalCount = 0;
-            cm.completedCount = 0;
-            cm.score = 0;
-            cm.maxScore = 0;
+		    _updateModuleData(modeHandler, course, cm);
+        } else if (cm.type === 'info' || cm.type === 'link') {
+		    _updateLinkData(modeHandler, course, cm);
+        } else {
+		    _updateLessonData(modeHandler, course, cm);
+        }
+        _updateStatusInfo(modeHandler, cm);
+    }
 
-            var children = treeList.getChildren(cm);
-            for (var i=0; i<children.length; i++) {
-                var child = children[i];
-                _initModuleScores(modeHandler, course, child);
-                cm.totalCount += child.totalCount;
-                cm.completedCount += child.completedCount;
-                cm.score += child.score;
-                cm.maxScore += child.maxScore;
-            }
-            _updateStatusIcomAndScoreText(modeHandler, cm);
-            return;
-        }
-        if (cm.type === 'info' || cm.type === 'link') {
-            cm.totalCount = 0;
-            cm.completedCount = 0;
-            cm.score = 0;
-            cm.maxScore = 0;
-            return;
-        }
-        
-        cm.totalCount = 1;
+    function _updateModuleData(modeHandler, course, cm) {
+        cm.totalCount = 0;
+        cm.activeCount = 0;
         cm.completedCount = 0;
+        cm.delayedCount = 0;
+        cm.score = 0;
+        cm.maxScore = 0;
+        cm.planned_date = null;
+
+        var children = treeList.getChildren(cm);
+        for (var i=0; i<children.length; i++) {
+            var child = children[i];
+            _updateItemData(modeHandler, course, child);
+            cm.totalCount += child.totalCount;
+            cm.activeCount += child.activeCount;
+            cm.completedCount += child.completedCount;
+            cm.delayedCount += child.delayedCount;
+            cm.score += child.score;
+            cm.maxScore += child.maxScore;
+            if (!cm.planned_date || child.planned_date > cm.planned_date) {
+            	cm.planned_date = child.planned_date;
+            }
+        }
+    }
+    
+    function _updateLinkData(modeHandler, course, cm) {
+    	var today = new Date();
+        cm.totalCount = 1;
+        cm.activeCount = cm.planned_date ? 1 : 0;
+        cm.completedCount = 0;
+        cm.delayedCount = (cm.planned_date && cm.planned_date < today) ? 1 : 0;
+        if (course.statusinfo && cm.id in course.statusinfo) {
+        	var statusinfo = course.statusinfo[cm.id];
+        	if (statusinfo.status) {
+	            cm.completedCount = 1;
+	            cm.delayedCount = 0;
+        	}
+        }
+        cm.score = 0;
+        cm.maxScore = 0;
+    }
+    
+    function _updateLessonData(modeHandler, course, cm) {
+    	var today = new Date();
+        cm.totalCount = 1;
+        cm.activeCount = 1;
+        cm.completedCount = 0;
+        cm.delayedCount = (cm.planned_date && cm.planned_date < today) ? 1 : 0;
         cm.score = 0;
         cm.maxScore = 0;
 
@@ -269,30 +322,82 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         var completed = 'completed' in lessonReport ? lessonReport.completed : false;
         if (!completed) return;
         cm.completedCount = 1;
+        cm.delayedCount = 0;
 
         if ('maxScore' in lessonReport) cm.maxScore = parseInt(lessonReport.maxScore);
         if ('score' in lessonReport) cm.score = parseInt(lessonReport.score);
-        _updateStatusIcomAndScoreText(modeHandler, cm);
     }
-
-    function _updateStatusIcomAndScoreText(modeHandler, cm) {
+    
+    function _updateStatusInfo(modeHandler, cm) {
         if (!modeHandler.shallShowScore()) {
             cm.statusIcon = null;
-            cm.statusText = nl.t('Contains {} learning modules.', cm.totalCount);
+	        if (cm.type !== 'module') return;
+	        if (cm.totalCount > 1) {
+	        	cm.statusText = nl.t('{} items', cm.totalCount);
+	        } else if (cm.totalCount > 0) {
+	        	cm.statusText = nl.t('{} item', cm.totalCount);
+	        }
             return;
         }
-        if (cm.totalCount > 0) {
-            if (cm.completedCount > 0) cm.statusIcon = nl.url.resUrl('general/partial.png');
-            if (cm.completedCount == cm.totalCount) cm.statusIcon = nl.url.resUrl('general/tick.png');
+        if (cm.type !== 'module') {
+		    _updateStatusInfoForLeaf(modeHandler, cm);
+		    return;
         }
-        cm.statusText = '';
-        if (cm.totalCount > 0 && cm.type === 'module') {
-            cm.statusText = nl.t('{} of {} completed. ', cm.completedCount, cm.totalCount);
+	    _updateStatusInfoForContainer(modeHandler, cm);
+	    return;
+    }
+
+    function _updateStatusInfoForLeaf(modeHandler, cm) {
+        if (cm.delayedCount > 0) {
+            cm.statusIcon = _icons['red'];
+            cm.statusText = nl.t('delayed');
+            return;
         }
-        if (cm.completedCount > 0 && cm.maxScore > 0) {
+        if (cm.completedCount > 0) {
+            cm.statusIcon = _icons['green'];
+            if (cm.maxScore === 0) {
+	            cm.statusText = nl.t('done');
+	            return;
+            }
             var perc = Math.round(cm.score/cm.maxScore*100);
-            cm.statusText += nl.t('{}% (Score: {} out of {}).', perc, cm.score, cm.maxScore);
+            cm.statusText = '' + perc + '%';
+            return;
         }
+        if (cm.activeCount > 0) {
+            cm.statusIcon = _icons['yellow'];
+            cm.statusText = nl.t('pending');
+            return;
+        }
+        cm.statusIcon = null;
+        cm.statusText = '';
+        return;
+    }
+    
+    function _updateStatusInfoForContainer(modeHandler, cm) {
+        if (cm.delayedCount > 0) {
+            cm.statusIcon = _icons['red'];
+            cm.statusText = nl.t('{} delayed', cm.delayedCount);
+            return;
+        }
+        if (cm.completedCount > 0 && cm.completedCount == cm.activeCount) {
+            cm.statusIcon = _icons['green'];
+            if (cm.maxScore === 0) {
+	            cm.statusText = nl.t('all {} done', cm.completedCount);
+	            return;
+            }
+            var perc = Math.round(cm.score/cm.maxScore*100);
+            cm.statusText = nl.t('all {} done ({}%)', cm.completedCount, perc);
+            return;
+        }
+        if (cm.activeCount > 0) {
+            cm.statusIcon = _icons['yellow'];
+            var pending = cm.activeCount - cm.completedCount;
+            cm.statusText = nl.t('{} of {} pending', pending, cm.activeCount);
+            return;
+        }
+        cm.statusIcon = null;
+        cm.statusText = '';
+        return;
     }
 }];
 
@@ -315,6 +420,7 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
         parents.pop(); // Remove the last entry
         
         item.indentationLevel = parents.length;
+        item.indentationStyle = {'width': item.indentationLevel + 'em'};
         item.parentId = parents.join(DELIM);
         
         item.isOpen = (item.indentationLevel < VISIBLE_ON_OPEN-1);

@@ -56,6 +56,10 @@ function(nl, nlServerApi) {
 	this.courseGetReport = function(repid, mine) {
     	return nlServerApi.courseGetReport(repid, mine);
 	};
+	
+	this.courseReportUpdateStatus = function(repid, statusinfo) {
+    	return nlServerApi.courseReportUpdateStatus(repid, statusinfo);
+	};
 
     this.courseCreateLessonReport = function(repid, refid) {
         return nlServerApi.courseCreateLessonReport(repid, refid);
