@@ -9,15 +9,17 @@
         </ul>
         
         <h2>Course content JSON format</h2>
-        <p>Course is an array of course-modules. Each course-module describes a lesson, a quiz, a link, an information item or a module/folder which futher containes lessons, quizes and modules.</p>
+        <p>Course is an object containing the attribute "modules" which is an array of course-modules. Each course-module describes a lesson, a quiz, a link, an information item or a module/folder which futher containes lessons, quizes and modules.</p>
         <p><b>Hint:</b> <a href='http://www.jsoneditoronline.org/'>http://www.jsoneditoronline.org/</a> provides a good tool for editing JSON strings.</p>
 
         <h3>Attribures of course-module</h3>
         <p>Every course-module must contain the attributes "id", "name" and "type". "id" uniquely indentifies the course-module. All these attributes are strings. Example:</p>
-<pre>[
-  {"id": "1", "name": "course-module sample 1", "type": "module"},
-  {"id": "2", "name": "course-module sample 2", "type": "module"}
-]</pre>
+<pre>{
+  "modules": [
+    {"id": "1", "name": "course-module sample 1", "type": "module"},
+    {"id": "2", "name": "course-module sample 2", "type": "module"}
+  ]
+}</pre>
 
         <h3>Course-module types</h3>
         <p>Each course-module can be of type "module", "lesson", "info" or "link".<p></p>
@@ -27,35 +29,41 @@
             <li>"info" is a leaf node in the tree. It just displays the provided information.</li>
             <li>"module" is a container/folder within the course to organize set of other modules and lessons.</li>
         </ul>
-<pre>[
-  {"id": "lesson1", "name": "Lesson 1", "type": "lesson", "refid": 1231},
-  {"id": "folder1", "name": "Folder containing some lessons", "type": "module"},
-  {"id": "folder1.info", "name": "This folder contains 3 lessons", "type": "info"},
-  {"id": "folder1.lesson1", "name": "Lesson 2", "type": "lesson", "refid": 1232},
-  {"id": "folder1.lesson2", "name": "Lesson 3", "type": "lesson", "refid": 1233},
-  {"id": "folder1.lesson3", "name": "Lesson 4", "type": "lesson", "refid": 1234}
-  {"id": "link1", "name": "Some sample link", "type": "link", "action": "lesson.view_approved", "urlParams": "custtype=7"},
-]</pre>
+<pre>{
+  "modules": [
+    {"id": "lesson1", "name": "Lesson 1", "type": "lesson", "refid": 1231},
+    {"id": "folder1", "name": "Folder containing some lessons", "type": "module"},
+    {"id": "folder1.info", "name": "This folder contains 3 lessons", "type": "info"},
+    {"id": "folder1.lesson1", "name": "Lesson 2", "type": "lesson", "refid": 1232},
+    {"id": "folder1.lesson2", "name": "Lesson 3", "type": "lesson", "refid": 1233},
+    {"id": "folder1.lesson3", "name": "Lesson 4", "type": "lesson", "refid": 1234}
+    {"id": "link1", "name": "Some sample link", "type": "link", "action": "lesson.view_approved", "urlParams": "custtype=7"},
+  ]
+}</pre>
 
         <h3>Defining a course tree (parent/child relationship)</h3>
         <p><b>"parentid.childid"</b>: id attribute is used to determine parent child relationship. id of the child element should always begin with the id of parent element and a ".".</p>
         <p>Assume a module with "id": "1" has three lessons/quizes defined under it. Then the children's id is derived from the parent. First, second and third child id should begin with "1.". For example "id":"1.1", "id":"1.2".</p>
-<pre>[
+<pre>{
+  "modules": [
     {"id": "1", "name": "module name", "type":"module", "icon":"module"},
     {"id":"1.1", "name": "lesson name", "type":"lesson", "icon": "lesson", "refid": "1234"},
     {"id":"1.2", "name": "module name", "type":"module", "icon":"module"},
     {"id":"1.2.1", "name": "lesson name", "type":"lesson", "icon":"lesson", "refid": 12345 },
     {"id":"1.2.2", "name": "quiz name", "type":"lesson", "icon":"quiz", "refid": 12346 },
     {"id":"1.3", "name": "quiz name", "type":"lesson", "icon":"quiz", "refid": 1235 }
-]</pre>
+  ]
+}</pre>
         
         <h3>Defining icons for the course-modules</h3>
         <p>"icon" field is not mandatory to be specified. By default, the icon is chosen depending on the "type".</p>
         <p>Course icon can be customised by providing an image url. Three predefined icons are provided: "module", "link", "info", "lesson" and "quiz" which may be used instead of specifying full icon url.</p>
-<pre>[
+<pre>{
+  "modules": [
     {"id": "1", "name": "xx", "type":"module", "icon":"https://xyz.png"},
     {"id": "1", "name": "xx", "type":"lesson", "icon":"quiz"}
-]</pre>
+  ]
+}</pre>
     </nl-dlg-help>
     <nl-dlg-content>
         <table class='nl-table'>

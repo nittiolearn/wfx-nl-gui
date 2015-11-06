@@ -108,19 +108,23 @@ function Formatter() {
         return new Date(dateStr);
     };
     
-    this.date2Str = function(d, accurate) {
-        var ret = _fmt2Impl('{}-{}-{} {}:{}', [d.getFullYear(), _pad2(d.getMonth()+1), _pad2(d.getDate()), 
-                    _pad2(d.getHours()), _pad2(d.getMinutes())]);
-        if (!accurate) return ret;
-        ret += _fmt2Impl(':{}.{}', [_pad2(d.getSeconds()), _pad3(d.getMilliseconds())]);
+    this.date2Str = function(d, accuracy) {
+    	if (accuracy === undefined) accuracy = 'minute';
+        var ret = _fmt2Impl('{}-{}-{}', [d.getFullYear(), _pad2(d.getMonth()+1), _pad2(d.getDate())]);
+        if (accuracy === 'date') return ret;
+        ret += _fmt2Impl(' {}:{}', [_pad2(d.getHours()), _pad2(d.getMinutes())]);
+        if (accuracy === 'minute') return ret;
+        ret += _fmt2Impl(':{}', [_pad2(d.getSeconds())]);
+        if (accuracy === 'second') return ret;
+        ret += _fmt2Impl('.{}', [_pad3(d.getMilliseconds())]);
         return ret;
     };
 
-    this.jsonDate2Str = function(dateStr, accurate) {
+    this.jsonDate2Str = function(dateStr, accuracy) {
         if (!dateStr) return '-';
         var d = this.json2Date(dateStr);
         if (isNaN(d.valueOf())) return dateStr;
-        return this.date2Str(d, accurate);
+        return this.date2Str(d, accuracy);
     };
     
 	this.addAvp = function(avps, fieldName, fieldValue, fmtType, fieldDefault) {

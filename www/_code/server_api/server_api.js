@@ -73,24 +73,24 @@ function(nl, nlDlg, nlConfig) {
     //---------------------------------------------------------------------------------------------
     this.courseGetList = function(data) {
         // data: mine, search
-        // returns list of courseObjects
+        // returns list of course objects
         return server.post('_serverapi/course_get_list.json', data);
     };
     
     this.courseGet = function(courseId, published) {
-        // return: courseObject
+        // return: course object
         return server.post('_serverapi/course_get.json', {courseid: courseId, published: published});
     };
     
     this.courseCreate = function(data) {
         // data: name, description, icon, content
-        // return: courseObject
+        // return: course object
         return server.post('_serverapi/course_create.json', data);
     };
     
     this.courseModify = function(data) {
         // data: courseId, name, description, icon, content, publish
-        // return: courseObject
+        // return: course object
         return server.post('_serverapi/course_modify.json', data);
     };
     
@@ -111,25 +111,30 @@ function(nl, nlDlg, nlConfig) {
     
     this.courseGetAssignmentList = function(data) {
         // data: mine, search
-        // returns list of courseAssignmentObjects
+        // returns list of courseAssignment objects
         return server.post('_serverapi/course_get_assignment_list.json', data);
     };
     
 	this.courseGetAssignmentReportList = function(data) {
         // data: assignid, search
-        // returns list of courseReportObjects
+        // returns list of courseReport objects
         return server.post('_serverapi/course_get_assignment_report_list.json', data);
     };
 
     this.courseGetMyReportList = function(data) {
         // data: search
-        // returns list of courseReportObjects
+        // returns list of courseReport objects
         return server.post('_serverapi/course_get_my_report_list.json', data);
     };
 
     this.courseGetReport = function(repid, mine) {
-        // returns list of courseObjects
+        // returns the courseReport object
         return server.post('_serverapi/course_get_report.json', {repid: repid, mine: mine});
+    };
+    
+    this.courseReportUpdateStatus = function(repid, statusinfo) {
+        // returns the updated course report object
+        return server.post('_serverapi/course_report_update_status.json', {repid: repid, statusinfo: statusinfo});
     };
 
     this.courseCreateLessonReport = function(repid, refid) {
