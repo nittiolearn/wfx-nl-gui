@@ -431,14 +431,17 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
     }
 
     function _validateContent(scope, courseContent) {
-        if (!angular.isArray(courseContent)) return _validateFail(scope, 'content', 
-            'Course content needs to be a JSON array []');
-        if (courseContent.length < 1) return _validateFail(scope, 'content', 
+    	if (!courseContent.modules) return _validateFail(scope, 'content', 
+            '"modules" field is expected in content');
+        var modules = courseContent.modules;
+        if (!angular.isArray(modules)) return _validateFail(scope, 'content', 
+            '"modules" needs to be a JSON array []');
+        if (modules.length < 1) return _validateFail(scope, 'content', 
             'Atleast one course module object is expected in the content');
 
         var uniqueIds = {};
-        for(var i=0; i<courseContent.length; i++){
-            var module = courseContent[i];
+        for(var i=0; i<modules.length; i++){
+            var module = modules[i];
             if (!module.id) return _validateModuleFail(scope, module, '"id" is mandatory');
             if (!module.name) return _validateModuleFail(scope, module, '"name" is mandatory');
             if (!module.type) return _validateModuleFail(scope, module, '"type" is mandatory');
@@ -450,36 +453,48 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
                 if (uniqueIds[parentId] != 'module') return _validateModuleFail(scope, module, 'parent needs to be of type "module"');
             }
 
-            if(module.type == 'module') continue;
-            if(module.type == 'lesson') {
-                if (!_validateLessonModule(scope, module)) return false;
-            } else if(module.type == 'link') {
-                if (!_validateLinkModule(scope, module)) return false;
-            } else if(module.type == 'info') {
-                if (!_validateInfoModule(scope, module)) return false;
-            } else {
-                return _validateModuleFail(scope, module, '"type" has to be "module" or "lesson".');
-            }
+            if (!_validateModuleType(scope, module)) return false;
+            if (!_validateModulePlan(scope, module)) return false;
+
+            if (!_validateLessonModule(scope, module)) return false;
+            if (!_validateLinkModule(scope, module)) return false;
+            if (!_validateInfoModule(scope, module)) return false;
         }
         return true;
     }
 
+    function _validateModuleType(scope, module) {
+    	var moduleTypes = {'module': true, 'lesson': true, 'link': true, 'info':true};
+    	if(module.type in moduleTypes) return true;
+    	var msg = '"type" has to be one of [' + Object.keys(moduleTypes).toString() + ']';
+        return _validateModuleFail(scope, module, msg);
+    }
+
+    function _validateModulePlan(scope, module) {
+    	if (!module.planned_date) return true;
+    	var d = nl.fmt.json2Date(module.planned_date);
+        if (!isNaN(d.valueOf())) return true;
+    	return _validateModuleFail(scope, module, 'Incorrect planned date: "YYYY-MM-DD" format expected');
+    }
+    
     function _validateLessonModule(scope, module) {
+    	if(module.type != 'lesson') return true;
         if(!module.refid) return _validateModuleFail(scope, module, '"refid" is mandatory for "type": "lesson"');
         if(!angular.isNumber(module.refid)) return _validateModuleFail(scope, module, '"refid" should be a number - not a string');
         return true;
     }
 
     function _validateLinkModule(scope, module) {
+    	if(module.type != 'link') return true;
         if(!module.action) return _validateModuleFail(scope, module, '"action" is mandatory for "type": "link"');
         if(!module.urlParams) return _validateModuleFail(scope, module, '"urlParams" is mandatory for "type": "urlParams"');
         return true;
     }
     
     function _validateInfoModule(scope, module) {
+    	if(module.type != 'info') return true;
         return true;
     }
-    
     
     function _getParentId(idStr) {
         var parents = idStr.split('.');

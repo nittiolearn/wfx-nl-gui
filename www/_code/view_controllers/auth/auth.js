@@ -289,7 +289,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
     function _getAuditData(till) {
         return nlServerApi.authGetAuditData(till).then(function(data) {
             for (var i=0; i<data.length; i++) {
-                data[i].updated = nl.fmt.jsonDate2Str(data[i].updated, true);
+                data[i].updated = nl.fmt.jsonDate2Str(data[i].updated, 'millisecond');
                 if (data[i].type in AUDIT_TYPES) data[i].type = AUDIT_TYPES[data[i].type];
             }
             $scope.records = data;

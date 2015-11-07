@@ -93,7 +93,7 @@ After a version of nittio is uploaded into live, do the following steps to creat
    - app.yaml: Ensure that the application field is 'nittio-test'
    - mutils.py: Increment the version number (e.g. v66 -> v67)
    - "hg rename" the static/nittio_script_* folder (e.g. from nittio_script_v66 -> nittio_script_v67)
-2. In the nittio project, do the following:
+2. In the nittioapp project, do the following:
    - Apply the old version tag (e.g. v66) to the last checked in sources
    - gulpfile.js: Increment the version number (e.g. v66 -> v67)
    - gulp clean
