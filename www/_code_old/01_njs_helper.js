@@ -1162,7 +1162,7 @@ function AddResourceDlg(inputChain, resInfo) {
 
 	function _on_addResource_add() {
 		var fileExtn = _validateBeforeShrinking();
-		if (!fileExtn) return;
+        if (fileExtn === null) return;
         Dialog.moveBack();
 		var shrinker = new ImageShrinker();
 		var bImg = (_restypeWidget.val() === 'Image');
@@ -1211,10 +1211,14 @@ function AddResourceDlg(inputChain, resInfo) {
 			Dialog.popup('Empty File', 'Empty file cannot be uploaded');
 			return null;
 		}
-		var extlist = _restypeToExtension[restype];
-
-        var fileExtn = null;
 		var fileNameLower = _file.name.toLowerCase();
+        if (restype === 'Attachment') {
+            var index = fileNameLower.lastIndexOf('.');
+            return (index == -1) ? '' : fileNameLower.substring(index);
+        }
+
+        var extlist = _restypeToExtension[restype];
+        var fileExtn = null;
 		for (var i in extlist) {
 			var ext = extlist[i];
 			if (fileNameLower.indexOf(ext, fileNameLower.length - ext.length) !== -1) {
