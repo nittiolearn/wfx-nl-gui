@@ -52,6 +52,31 @@
         "icon": "/static/nittio_res_v39/dashboard/admin.png"
       },
       {
+        "help": "Asignment desk representing the new and past assignment.",
+        "title": "Assignment Desk",
+        "url": "/nittioapp#/app/assignment?my=1",
+        "linkId": "assignment_desk",
+        "children": [
+          {
+            "help": "User can see the new assignments assigned to him/her.",
+            "title": "New assignments",
+            "url": "/nittioapp#/app/assignment?my=1",
+            "linkId": "new",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/assign.png"
+          },
+          {
+            "help": "User can see the assignments completed by him.",
+            "title": "Past assignments",
+            "url": "/nittioapp#/app/assignment?my=0",
+            "linkId": "past",
+            "children": [],
+            "icon": "/static/nittio_res_v39/dashboard/assign.png"
+          }
+        ],
+        "icon": "/static/nittio_res_v39/dashboard/assign.png"
+      },
+      {
         "help": "Help desk provides you access to training materials and option to ask questions/report issues.",
         "title": "Help Desk",
         "url": "/info/training#/",

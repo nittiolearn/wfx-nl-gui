@@ -212,6 +212,22 @@ function(nl, nlDlg, nlConfig) {
         return server.post('_serverapi/searchlist_view.json', {id: searchlist_id, force:force});
     };
     //---------------------------------------------------------------------------------------------
+	// assignment desk list entities
+    //---------------------------------------------------------------------------------------------
+    this.assignmentGetNewList = function(data) {
+        // data: mine, search
+        // return: list of dashboardObjects
+        return server.post('_serverapi/assignment_newlist.json', data);
+    };
+
+    this.assignmentGetPastList = function(data) {
+        // data: mine, search
+        // return: list of dashboardObjects
+        return server.post('_serverapi/assignment_pastlist.json', data);
+    };
+
+
+    //---------------------------------------------------------------------------------------------
     // Private methods
     //---------------------------------------------------------------------------------------------
     function _getUserInfoFromCacheOrServer() {
