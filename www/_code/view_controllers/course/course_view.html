@@ -4,25 +4,27 @@
         <button ng-mousedown='saveInfo(cm)' ng-if='modeHan.mode==3' class='button'>{{infobuttontext}}</button>
         <button ng-mousedown='expandViewClick(cm)' class='button'>{{expandviewtext}}</button>
     </div>
-	<div class='row' ng-if='expandedView'>
-		<div class='col col-50 nl-styled-th'>Modules</div>
-		<div class='col nl-styled-th'>Plan</div>
-		<div class='col nl-styled-th'>Summary</div>
-    </div>
-	<div ng-repeat='cm in modules' ng-show='cm.visible' class='row'>
-		<div ng-click='onClick($event, cm, false)' ng-style='cm.indentationStyle'></div>
-		<div ng-click='onClick($event, cm, false)' class='col col-501 nl-styled'>
-			<img class='nl-icon' ng-class='{"nl-clickable": cm.clickable}' ng-src='{{getIcon(cm)}}'>
-            <img ng-if='cm.launchable'
-                 class='nl-icon nl-clickable'
-                 ng-src='{{getNewTabIcon()}}'
-                 ng-click='onClick($event, cm, true)'>
-			<span class='nl-cv-details' ng-class='{"nl-clickable": cm.clickable}'>{{cm.name}}</span>
-		</div>
-		<div class='nl-styled col' ng-if='expandedView'>{{cm.planned_date_str}}</div>
-		<div class='nl-styled col'>
-			<img class='nl-24' ng-if='cm.statusIcon' ng-src='{{cm.statusIcon}}'>
-			<span ng-if='expandedView'>{{cm.statusText}}</span>
-		</div>
-	</div>
+	<table class='nl-table nl-table-styled'>
+		<tr ng-show='expandedView'>
+			<th>Module</th>
+			<th>Plan</th>
+			<th>Summary</th>
+		</tr>
+		<tr ng-repeat='cm in modules' ng-show='cm.visible'>
+			<td ng-click='onClick($event, cm, false)' ng-style='cm.indentationStyle'>
+				<span>&nbsp;</span>
+				<img class='nl-icon' ng-class='{"nl-clickable": cm.clickable}' ng-src='{{getIcon(cm)}}'>
+	            <img ng-if='cm.launchable'
+	                 class='nl-icon nl-clickable'
+	                 ng-src='{{getNewTabIcon()}}'
+	                 ng-click='onClick($event, cm, true)'>
+				<span class='nl-cv-details' ng-class='{"nl-clickable": cm.clickable}'>{{cm.name}}</span>
+			</td>
+			<td ng-show='expandedView'>{{cm.planned_date_str}}</td>
+			<td ng-click='summaryClick(cm)' class='nl-clickable'>
+				<img class='nl-24 nl-clickable' ng-if='cm.statusIcon' ng-src='{{cm.statusIcon}}'>
+				<span ng-show='expandedView'>{{cm.statusText}}</span>
+			</td>
+		</tr>
+	</table>
 </div>

@@ -97,9 +97,7 @@ function _createDlgAndShow(nl, nlDlg, $scope, data, template, buttonName, onButt
 
 function RestApi(nl, nlDlg, nlServerApi) {
     this.showDlg = function($scope) {
-        var sampleParams = {targetgrp: 'eulatest', userlist: []};
-        for (var i=1; i<=4; i++) sampleParams.userlist.push(_getSampleUser(i));
-        var data = {url: '_serverapi/migrate_users.json', params: angular.toJson(sampleParams, 2)};
+        var data = {url: '_serverapi/course_get_list.json', params: '{}'};
         var template = 'view_controllers/debug/restapi_dlg.html';
         var dlg = _createDlgAndShow(nl, nlDlg, $scope, data, template, 'Execute', function(e, scope) {
             _onExecute(e, scope);
@@ -138,14 +136,6 @@ function RestApi(nl, nlDlg, nlServerApi) {
         return '"' + elem + '"';
     }
 
-    function _getSampleUser(i) {
-        return {'username': nl.fmt2('s{}c1.eulatest', i), 
-                'first_name': nl.fmt2('S{}', i), 
-                'last_name': 'EULATEST Changed', 
-                'user_id': nl.fmt2('s{}c1', i), 
-                'usertype': 23};
-    }
-    
     function _onExecute(e, scope) {
         var params = _validateInputs(scope);
         if (!params) return;

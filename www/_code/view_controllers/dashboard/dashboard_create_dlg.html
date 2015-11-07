@@ -46,7 +46,7 @@
         </ul>
         <h4>Action with fixed URLs</h4>
         <table class='nl-table nl-table-styled'>
-            <tr><td>Action</td><td>URL</td><td>Permission</td><td>Remarks</td></tr>
+            <tr><th>Action</th><th>URL</th><th>Permission</th><th>Remarks</th></tr>
             <tr><td>grpadmin.view</td><td>/admin_group/group_view/</td><td>admin_group</td><td>Group administration only for admin.nittio</td></tr>
             <tr><td>grpadmin.create</td><td>/admin_group/group_create/</td><td>admin_group</td><td></td></tr>
             <tr><td>grpadmin.bulk</td><td>/admin_group/group_bulkupdate/</td><td>admin_group</td><td></td></tr>
@@ -96,7 +96,7 @@
         <h4>Action with customizable URLs</h4>
         <p>where ever you see {} in the URL, it will be replaced by urlParams attribute if present. If you see multiple {} in the same url, you can give an array in URL params for replacement.</p>
         <table class='nl-table nl-table-styled'>
-            <tr><td>Action</td><td>URL</td><td>Permission</td><td>Remarks</td></tr>
+            <tr><th>Action</th><th>URL</th><th>Permission</th><th>Remarks</th></tr>
             <tr><td>lesson.view </td><td>/lesson/view/{}</td><td>lesson_view</td><td>Direct link to lesson</td></tr>
             <tr><td>lesson.view_approved </td><td>/lesson/search/{}</td><td>basic_access</td><td>View approved list</td></tr>
             <tr><td>lesson.create2</td><td>/lesson/create2/{}</td><td>lesson_create</td><td>Provide template id in urlParams to directly create lesson based on template</td></tr>
@@ -107,7 +107,7 @@
 
         <h4>Generic actions with fully customizable URLs</h4>
         <table class='nl-table nl-table-styled'>
-            <tr><td>Action</td><td>URL</td><td>Permission</td><td>Remarks</td></tr>
+            <tr><th>Action</th><th>URL</th><th>Permission</th><th>Remarks</th></tr>
             <tr><td>none</td><td>{}</td><td></td><td>No action. Can be accessed even without login.</td></tr>
             <tr><td>logedin</td><td>{}</td><td></td><td>No action. Can be accessed after login.</td></tr>
             <tr><td>restricted</td><td>{}</td><td></td><td>No action. Can be accessed after login from restricted terminal.</td></tr>

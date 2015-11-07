@@ -178,6 +178,16 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 			$scope.infobuttontext = "Save";
 		} else if(!$scope.infobool){
 			$scope.infobuttontext = "Unsave";
+			var data = {title: 'Course Update Report', 
+				   template: 'Are you sure you want to save?',
+				   okText: nl.t('save')};
+				   var urlParam = nl.location.search();
+				   var repid = parseInt(urlParam.id);
+				   console.log(repid);
+			nlDlg.popupConfirm(data).then(function(cm) {
+				if (!cm) return;
+				return nlCourse.courseReportUpdateStatus(repid);
+			});
 		}
 	};
 	$scope.expandviewtext = "More Information";
@@ -190,6 +200,19 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 			$scope.expandviewtext = "Less Information";
 			$scope.expandedView = true;
 		}
+	};
+	
+	$scope.summaryClick = function(cm) {
+		var planned = cm.planned_date ? cm.planned_date + ',</br>' : null + ',</br>';
+		var delayed = cm.delayedCount ? cm.delayedCount + ',</br>' : 0 + ',</br>';
+		var completed = cm.completedCount ? 'done' + ',</br>' : cm.completedCount + ',</br>';
+		var total = (cm.type == 'module' && cm.totalCount > 0) ? cm.totalCount + ',</br>' : 'No-sub folders';
+		var msg = {title: 'summary', 
+				   template: 'Plan : ' + planned + 'Delayed : ' +delayed + 'Completed : ' +completed + 'Total-Items : ' +total,
+				   okText: null};
+		nlDlg.popupAlert(msg).then(function(result) {
+			if (!result) return;
+		});
 	};
 	
 	$scope.showHideAllButtonName = treeList.showHideAllButtonName();
@@ -420,7 +443,7 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
         parents.pop(); // Remove the last entry
         
         item.indentationLevel = parents.length;
-        item.indentationStyle = {'width': item.indentationLevel + 'em'};
+        item.indentationStyle = {'paddingLeft': item.indentationLevel + 'em'};
         item.parentId = parents.join(DELIM);
         
         item.isOpen = (item.indentationLevel < VISIBLE_ON_OPEN-1);

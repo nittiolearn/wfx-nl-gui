@@ -2,10 +2,6 @@
     .button.highlight {
         background-color: #B03000;
     }
-    .col.header {
-        color: #FFFFFF;
-        background-color: #007700;
-    }
 </style>
 
 <nl-dlg title='Execute REST API'>
@@ -33,12 +29,14 @@
                 <button ng-click='onSave()'>Save to CSV</button>
             </div>
             <br/>
-            <div class='row'>
-                <div class='col nl-styled header' ng-repeat='col in result.fmt.header track by $index' ng-bind-html='col'></div>
-            </div>
-            <div ng-repeat='row in result.fmt.rows | filter:search.filter track by $index' class='row'>
-                <div class='col nl-styled' ng-repeat='col in row track by $index' ng-bind-html='col'></div>
-            </div>
+            <table class='nl-table nl-table-styled'>
+            <tr>
+                <th ng-repeat='col in result.fmt.header track by $index' ng-bind-html='col'></th>
+            </tr>
+            <tr ng-repeat='row in result.fmt.rows | filter:search.filter track by $index'>
+                <td ng-repeat='col in row track by $index' ng-bind-html='col'></td>
+            </tr>
+			</table>
             <br/>
         </div>
     </nl-dlg-content>
