@@ -1,7 +1,7 @@
 <div class='nl-thin-scroll nl-full'>
 	<div class='popup-buttons no-border' >
         <button ng-click='showHideAll()' class='button'>{{showHideAllButtonName}}</button>
-        <button ng-mousedown='saveInfo(cm)' ng-if='modeHan.mode==3' class='button'>{{infobuttontext}}</button>
+        <button ng-if='modeHan.mode==3' ng-click='onCourseSaveModule(cm)' class='button'>{{courseSaveButton}}</button>
         <button ng-mousedown='expandViewClick(cm)' class='button'>{{expandviewtext}}</button>
     </div>
 	<table class='nl-table nl-table-styled'>
@@ -21,7 +21,7 @@
 				<span class='nl-cv-details' ng-class='{"nl-clickable": cm.clickable}'>{{cm.name}}</span>
 			</td>
 			<td ng-show='expandedView'>{{cm.planned_date_str}}</td>
-			<td ng-click='summaryClick(cm)' class='nl-clickable'>
+			<td ng-click='onClickOnSummary(cm)' class='nl-clickable'>
 				<img class='nl-24 nl-clickable' ng-if='cm.statusIcon' ng-src='{{cm.statusIcon}}'>
 				<span ng-show='expandedView'>{{cm.statusText}}</span>
 			</td>
