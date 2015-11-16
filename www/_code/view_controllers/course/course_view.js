@@ -137,6 +137,7 @@ var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse',
 function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 	var modeHandler = new ModeHandler(nl, nlCourse, nlDlg);
 	var treeList = new TreeList(nl);
+	var statusinfoDict = {};
 	function _onPageEnter(courseInfo) {
 		return nl.q(function(resolve, reject) {
 		    treeList.clear();
@@ -146,11 +147,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 				resolve(false);
 				return;
 			}
-			$scope.expandedView = false;
+			$scope.expandedView = true;
 			$scope.showStatusIcon = modeHandler.shallShowScore();
 			var courseId = parseInt(params.id);
 			modeHandler.getCourse().then(function(course) {
 				modeHandler.initTitle(course);
+				$scope.course = course;
 				var modules = course.content.modules;
 				for(var i=0; i<modules.length; i++) {
 					_initModule(modules[i]);
@@ -180,44 +182,63 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 				   console.log(repid);
 			nlDlg.popupConfirm(data).then(function(cm) {
 				if (!cm) return;
-				return nlCourse.courseReportUpdateStatus(repid);
+				return nlCourse.courseReportUpdateStatus(repid, $scope.course.statusinfo);
 			});
 	};
-	$scope.expandviewtext = "More Information";
+	$scope.expandviewtext = "Less Information";
 	$scope.toggleInfoText = true;	
 	$scope.expandViewClick = function(cm) {
 		$scope.toggleInfoText = !$scope.toggleInfoText;
-		if($scope.toggleInfoText) {
+		if(!$scope.toggleInfoText) {
 			$scope.expandviewtext = "More Information";
 			$scope.expandedView = false;
-		} else if(!$scope.toggleInfoText){
+		} else if($scope.toggleInfoText){
 			$scope.expandviewtext = "Less Information";
 			$scope.expandedView = true;
 		}
 	};
 	$scope.onClickOnSummary = function(cm) {
 		var param = nl.location.search();
-		var card = {};
-		var iconDict = {
-			module: nl.url.resUrl('folder.png'),
-			lesson: nl.url.resUrl('lesson2.png'),
-			quiz: nl.url.resUrl('quiz.png'),
-		};
-		card.title = cm.name;
-		var icon = ('icon' in cm) ? cm.icon : cm.type;
-		if(icon in iconDict) {
-			card.icon = iconDict[icon];
+		if(cm.type === 'link' || cm.type === 'info'){
+			var data = {title: nl.t(cm.name), 
+				   template: 'Are you sure you want to save?',
+				   okText: nl.t('Done')};
+				   var urlParam = nl.location.search();
+				   var repid = parseInt(urlParam.id);
+			nlDlg.popupConfirm(data).then(function(cm) {
+				console.log($scope.course);
+				$scope.course.statusinfo.id = 1;
+				$scope.course.statusinfo.status = 'Done';
+				$scope.course.statusinfo.date = new Date();
+				$scope.course.statusinfo.username = $scope.course.studentname;
+			});
+		} else {
+			var card = {};
+			var iconDict = {
+				module: nl.url.resUrl('folder.png'),
+				lesson: nl.url.resUrl('lesson2.png'),
+				quiz: nl.url.resUrl('quiz.png'),
+			};
+			card.title = cm.name;
+			var icon = ('icon' in cm) ? cm.icon : cm.type;
+			if(icon in iconDict) {
+				card.icon = iconDict[icon];
+			}
+			card.help = nl.t('You can see the lesson summary here.');
+			card.details = {help: card.help, avps: _getCourseAvps(cm)};
+	    	var detailsDlg = nlDlg.create($scope);
+			detailsDlg.setCssClass('nl-width-med',  'nl-width-med');
+	    	detailsDlg.scope.card = card;
+	    	detailsDlg.show('lib_ui/cards/details_dlg.html');
 		}
-		card.help = nl.t('You can see the lesson summary here.');
-		card.details = {help: card.help, avps: _getCourseAvps(cm)};
-	    var detailsDlg = nlDlg.create($scope);
-		detailsDlg.setCssClass('nl-width-med',  'nl-width-med');
-	    detailsDlg.scope.card = card;
-	    detailsDlg.show('lib_ui/cards/details_dlg.html');
 	};
+	
+	
 	function  _getCourseAvps(cm) {
 		var avps = [];
 		nl.fmt.addAvp(avps, 'Lesson status', cm.statusText);
+		nl.fmt.addAvp(avps, 'Score', cm.score);
+		nl.fmt.addAvp(avps, 'Total count', cm.totalCount);		
 		nl.fmt.addAvp(avps, 'Planned Date', cm.planned_date_str, 'date');
 		nl.fmt.addAvp(avps, 'Type', cm.type);
 		return avps;
@@ -342,7 +363,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         cm.totalCount = 1;
         cm.activeCount = 1;
         cm.completedCount = 0;
-        cm.delayedCount = (cm.planned_date && cm.planned_date < today) ? 1 : 0;
+        cm.delayedCount = (cm.planned_date && cm.planned_date <= today) ? 1 : 0;
         cm.score = 0;
         cm.maxScore = 0;
 
@@ -365,8 +386,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 	        if (cm.type !== 'module') return;
 	        if (cm.totalCount > 1) {
 	        	cm.statusText = nl.t('{} items', cm.totalCount);
+	        	cm.planned_date_str = nl.fmt.date2Str(cm.planned_date, 'date');
 	        } else if (cm.totalCount > 0) {
 	        	cm.statusText = nl.t('{} item', cm.totalCount);
+	        	cm.planned_date_str = nl.fmt.date2Str(cm.planned_date, 'date');
 	        }
             return;
         }

@@ -21,9 +21,13 @@
 				<span class='nl-cv-details' ng-class='{"nl-clickable": cm.clickable}'>{{cm.name}}</span>
 			</td>
 			<td ng-show='expandedView'>{{cm.planned_date_str}}</td>
-			<td ng-click='onClickOnSummary(cm)' class='nl-clickable'>
-				<img class='nl-24 nl-clickable' ng-if='cm.statusIcon' ng-src='{{cm.statusIcon}}'>
-				<span ng-show='expandedView'>{{cm.statusText}}</span>
+			<td ng-if='expandedView && modeHan.mode<2'>
+				<img class='nl-24 nl-clickable' ng-click='onClickOnSummary(cm)' ng-if='cm.statusIcon' ng-src='{{cm.statusIcon}}'>
+				<span ng-show='expandedView' ng-click='onClickOnSummary(cm)' class='nl-clickable'>{{cm.statusText}}</span>
+			</td>
+			<td ng-if='modeHan.mode>=2'>
+				<img class='nl-24 nl-clickable' ng-click='onClickOnSummary(cm)' ng-if='cm.statusIcon' ng-src='{{cm.statusIcon}}'>
+				<span ng-show='expandedView' ng-click='onClickOnSummary(cm)' class='nl-clickable'>{{cm.statusText}}</span>
 			</td>
 		</tr>
 	</table>
