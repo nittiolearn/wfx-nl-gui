@@ -139,6 +139,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 	var treeList = new TreeList(nl);
 	var statusinfoDict = {};
 	function _onPageEnter(courseInfo) {
+		$scope.courseInfo = courseInfo;
 		return nl.q(function(resolve, reject) {
 		    treeList.clear();
 			var params = nl.location.search();
@@ -153,6 +154,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 			modeHandler.getCourse().then(function(course) {
 				modeHandler.initTitle(course);
 				$scope.course = course;
+				$scope.planning = course.content.planning;
 				var modules = course.content.modules;
 				for(var i=0; i<modules.length; i++) {
 					_initModule(modules[i]);
@@ -174,15 +176,14 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 	$scope.courseSaveButton = nl.t("Save");
 	$scope.modeHan = modeHandler;
 	$scope.onCourseSaveModule = function(cm) {
-			var data = {title: 'Course Update Report', 
+			var data = {title: 'Course Report Update', 
 				   template: 'Are you sure you want to save?',
 				   okText: nl.t('save')};
 				   var urlParam = nl.location.search();
 				   var repid = parseInt(urlParam.id);
-				   console.log(repid);
 			nlDlg.popupConfirm(data).then(function(cm) {
 				if (!cm) return;
-				return nlCourse.courseReportUpdateStatus(repid, $scope.course.statusinfo);
+				return nlCourse.courseReportUpdateStatus(repid, JSON.stringify($scope.course.statusinfo));
 			});
 	};
 	$scope.expandviewtext = "Less Information";
@@ -198,48 +199,50 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 		}
 	};
 	$scope.onClickOnSummary = function(cm) {
-		var param = nl.location.search();
-		if(cm.type === 'link' || cm.type === 'info'){
-			var data = {title: nl.t(cm.name), 
-				   template: 'Are you sure you want to save?',
-				   okText: nl.t('Done')};
-				   var urlParam = nl.location.search();
-				   var repid = parseInt(urlParam.id);
-			nlDlg.popupConfirm(data).then(function(cm) {
-				console.log($scope.course);
-				$scope.course.statusinfo.id = 1;
-				$scope.course.statusinfo.status = 'Done';
-				$scope.course.statusinfo.date = new Date();
-				$scope.course.statusinfo.username = $scope.course.studentname;
-			});
-		} else {
-			var card = {};
-			var iconDict = {
-				module: nl.url.resUrl('folder.png'),
-				lesson: nl.url.resUrl('lesson2.png'),
-				quiz: nl.url.resUrl('quiz.png'),
-			};
-			card.title = cm.name;
-			var icon = ('icon' in cm) ? cm.icon : cm.type;
-			if(icon in iconDict) {
-				card.icon = iconDict[icon];
+		if((cm.type == 'link' || cm.type == 'info') && $scope.modeHan.mode === 3){
+			if(!$scope.course.statusinfo) $scope.course.statusinfo = {};
+			if(!(cm.id in $scope.course.statusinfo)) {
+				var data = {title: nl.t('Mark as done'), 
+				   		template: nl.t('You may mark this as as completed by clicking Done button.'),
+				   		okText: nl.t('Done')};
+				nlDlg.popupConfirm(data).then(function(course) {
+					if (!course) return;
+					_statusinfoDone(cm);
+				});
+			} else {
+				var status = ($scope.course.statusinfo[cm.id].status=='done') ? nl.t('Undo'): nl.t('Done');
+				var title = (status == 'Undo') ? nl.t('Confirm undo operation'): nl.t('Mark as done');
+				var template = (status == 'Undo') ? nl.t('This is currently marked as completed. You may mark this as not completed by clicking the Undo button.'):nl.t('You may mark this as as completed by clicking Done button.');
+				var data = {title: title,
+					   	template: template,
+				   		okText: status};
+				nlDlg.popupConfirm(data).then(function(course) {
+					if (!course) return;
+					_updateStatusinfo(cm, status);
+				});
 			}
-			card.help = nl.t('You can see the lesson summary here.');
-			card.details = {help: card.help, avps: _getCourseAvps(cm)};
-	    	var detailsDlg = nlDlg.create($scope);
-			detailsDlg.setCssClass('nl-width-med',  'nl-width-med');
-	    	detailsDlg.scope.card = card;
-	    	detailsDlg.show('lib_ui/cards/details_dlg.html');
 		}
 	};
 	
+	function _statusinfoDone(cm) {
+		cm.statusIcon = nl.url.resUrl('ball-green.png');
+		cm.statusText = nl.t('done');
+		$scope.course.statusinfo[cm.id]={status:'done', date: new Date(), username: $scope.courseInfo.username};
+	}
 	
-	function  _getCourseAvps(cm) {
+	function _updateStatusinfo(cm, status) {
+		if(status == 'Undo') {
+			cm.statusIcon = cm.planned_date<new Date() ? nl.url.resUrl('ball-red.png') : nl.url.resUrl('ball-yellow.png');
+			cm.statusText = cm.planned_date<new Date() ? nl.t('delayed') : nl.t('pending');
+			$scope.course.statusinfo[cm.id]={status:'', date: new Date(), username: $scope.courseInfo.username};
+		} else {
+			_statusinfoDone(cm);
+		}
+	}
+	
+	function _getCourseAvps(cm) {
 		var avps = [];
-		nl.fmt.addAvp(avps, 'Lesson status', cm.statusText);
-		nl.fmt.addAvp(avps, 'Score', cm.score);
-		nl.fmt.addAvp(avps, 'Total count', cm.totalCount);		
-		nl.fmt.addAvp(avps, 'Planned Date', cm.planned_date_str, 'date');
+		nl.fmt.addAvp(avps, 'Status', cm.statusText);
 		nl.fmt.addAvp(avps, 'Type', cm.type);
 		return avps;
 	}
@@ -349,7 +352,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         cm.delayedCount = (cm.planned_date && cm.planned_date < today) ? 1 : 0;
         if (course.statusinfo && cm.id in course.statusinfo) {
         	var statusinfo = course.statusinfo[cm.id];
-        	if (statusinfo.status) {
+        	if (statusinfo.status == 'done') {
 	            cm.completedCount = 1;
 	            cm.delayedCount = 0;
         	}
@@ -386,10 +389,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 	        if (cm.type !== 'module') return;
 	        if (cm.totalCount > 1) {
 	        	cm.statusText = nl.t('{} items', cm.totalCount);
-	        	cm.planned_date_str = nl.fmt.date2Str(cm.planned_date, 'date');
+	        	cm.planned_date_str = !cm.planned_date ? null:nl.fmt.date2Str(cm.planned_date, 'date');
 	        } else if (cm.totalCount > 0) {
 	        	cm.statusText = nl.t('{} item', cm.totalCount);
-	        	cm.planned_date_str = nl.fmt.date2Str(cm.planned_date, 'date');
+	        	cm.planned_date_str = !cm.planned_date ? null:nl.fmt.date2Str(cm.planned_date, 'date');
 	        }
             return;
         }
@@ -413,7 +416,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 	            cm.statusText = nl.t('done');
 	            return;
             }
-            var perc = Math.round(cm.score/cm.maxScore*100);
+            var perc = Math.round((cm.score/cm.maxScore)*100);
             cm.statusText = '' + perc + '%';
             return;
         }
@@ -429,14 +432,14 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
     
     function _updateStatusInfoForContainer(modeHandler, cm) {
         if (cm.delayedCount > 0) {
-        	cm.planned_date_str = nl.fmt.date2Str(cm.planned_date, 'date');
+        	cm.planned_date_str = !cm.planned_date ? null:nl.fmt.date2Str(cm.planned_date, 'date');
             cm.statusIcon = _icons['red'];
             cm.statusText = nl.t('{} delayed', cm.delayedCount);
             return;
         }
         if (cm.completedCount > 0 && cm.completedCount == cm.activeCount) {
             cm.statusIcon = _icons['green'];
-        	cm.planned_date_str = nl.fmt.date2Str(cm.planned_date, 'date');
+        	cm.planned_date_str = !cm.planned_date ? null:nl.fmt.date2Str(cm.planned_date, 'date');
             if (cm.maxScore === 0) {
 	        	cm.planned_date_str = nl.fmt.date2Str(cm.planned_date, 'date');
 	            cm.statusText = nl.t('all {} done', cm.completedCount);
@@ -447,13 +450,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
             return;
         }
         if (cm.activeCount > 0) {
-        	cm.planned_date_str = nl.fmt.date2Str(cm.planned_date, 'date');
+        	cm.planned_date_str = !cm.planned_date ? null:nl.fmt.date2Str(cm.planned_date, 'date');
             cm.statusIcon = _icons['yellow'];
             var pending = cm.activeCount - cm.completedCount;
             cm.statusText = nl.t('{} of {} pending', pending, cm.activeCount);
             return;
         }
-        cm.planned_date_str = nl.fmt.date2Str(cm.planned_date, 'date');
+        cm.planned_date_str = !cm.planned_date ? null:nl.fmt.date2Str(cm.planned_date, 'date');
         cm.statusIcon = null;
         cm.statusText = '';
         return;

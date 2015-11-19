@@ -103,8 +103,15 @@ function Formatter() {
     };
 
     this.json2Date = function(dateStr) {
-        // Convert date to iso 8061 format if needed (e.g. "2014-04-28 23:09:00" ==> "2014-04-28T23:09:00Z")
-        if(dateStr.indexOf('Z')==-1) dateStr=dateStr.replace(' ','T')+'Z';
+        // Convert date to iso 8061 format if needed
+        // (e.g.1: "2014-04-28" ==> "2014-04-28T00:00:00Z")
+        // (e.g.2: "2014-04-28 23:09:00" ==> "2014-04-28T23:09:00Z")
+        if(dateStr.indexOf('Z') == -1) {
+            if (dateStr.indexOf(' ') == -1)
+                dateStr=dateStr +'T00:00:00Z';
+            else
+                dateStr=dateStr.replace(' ','T')+'Z';
+        }
         return new Date(dateStr);
     };
     
