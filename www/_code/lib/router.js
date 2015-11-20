@@ -148,6 +148,7 @@ function Permission(nl) {
         '/app/dashboard_view': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         '/app/searchlist': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         '/app/searchlist_view': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
+        '/app/rno_my': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
 		
         // Operation permissions
         'change_password': {login: true, permission: 'change_password', termRestriction: TR_RESTRICTED},

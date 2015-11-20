@@ -216,6 +216,36 @@ function(nl, nlDlg, nlConfig) {
         if (!force) force = false;
         return server.post('_serverapi/searchlist_view.json', {id: searchlist_id, force:force});
     };
+
+    //---------------------------------------------------------------------------------------------
+    // Rno (Rating and observation) Module
+    //---------------------------------------------------------------------------------------------
+    this.rnoGetMetadata = function(metadataid) {
+        return server.post('_serverapi/rno_meta_get.json', {id:metadataid});
+    };
+
+    this.rnoGetList = function(data) {
+        // data: metadata, search
+        return server.post('_serverapi/rno_get_list.json', data);
+    };
+
+    this.rnoCreate = function(data) {
+        // data: metadata, first_name, last_name, email, user_type, image
+        // return: rno object
+        return server.post('_serverapi/rno_create.json', data);
+    };
+
+    this.rnoModify = function(data) {
+        // data: id, metadata, first_name, last_name, email, user_type, image
+        // return: modified rno object
+        return server.post('_serverapi/rno_modify.json', data);
+    };
+
+    this.rnoDelete = function(rnoId) {
+        // return: true/false
+        return server.post('_serverapi/rno_delete.json', {id: rnoId});
+    };
+
     //---------------------------------------------------------------------------------------------
     // Private methods
     //---------------------------------------------------------------------------------------------

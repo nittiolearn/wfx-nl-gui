@@ -1,0 +1,20 @@
+<nl-dlg title='{{dlgTitle}}'>
+    <nl-dlg-help>
+        Create or modify the properties of a rating and observation log. A log is maintained for each user who is rated and observered.</p>
+    </nl-dlg-help>
+    <nl-dlg-content>
+        <table class='nl-table'>
+            <tr ng-if='model.first_name' nl-form-input fieldname='{{model.first_name.title}}'
+                fieldmodel='first_name' fieldtype='text'></tr>
+            <tr ng-if='model.last_name' nl-form-input fieldname='{{model.last_name.title}}'
+                fieldmodel='last_name' fieldtype='text'></tr>
+            <tr ng-if='model.user_type' nl-form-select fieldname='{{model.user_type.title}}'
+                fieldmodel='user_type' fieldtype='text'></tr>
+            <tr ng-if='model.email' nl-form-input fieldname='{{model.email.title}}'
+                fieldmodel='email' fieldtype='email'></tr>
+            <tr ng-if='model.image' nl-form-input fieldname='{{model.image.title}}'
+                fieldmodel='image' fieldtype='text'></tr>
+        </table>
+        <br/>
+    </nl-dlg-content>
+</nl-dlg>
