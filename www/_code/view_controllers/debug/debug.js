@@ -68,7 +68,7 @@ function(nl, nlRouter, $scope, nlDlg, nlLogViewer, nlServerApi, nlCardsSrv) {
         return cards;
     }
 
-    $scope.onCardInternalUrlClicked = function(internalUrl) {
+    $scope.onCardInternalUrlClicked = function(card, internalUrl) {
         if (internalUrl === 'debug_logviewer') {
             nlLogViewer.show($scope);
         } else if (internalUrl === 'debug_clearcache') {

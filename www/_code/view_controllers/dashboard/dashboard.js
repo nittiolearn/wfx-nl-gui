@@ -48,7 +48,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 
 	nlRouter.initContoller($scope, '', _onPageEnter);
 	
-	$scope.onCardInternalUrlClicked = function(internalUrl) {
+	$scope.onCardInternalUrlClicked = function(card, internalUrl) {
 		if (internalUrl === 'dashboard_create') {
 			_createOrModifyDashboard($scope, null, false);
 		}

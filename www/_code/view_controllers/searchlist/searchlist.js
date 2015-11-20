@@ -134,7 +134,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	    return nlCardsSrv.getEmptyCard({help:help});
 	}
 
-	$scope.onCardInternalUrlClicked = function(internalUrl) {
+	$scope.onCardInternalUrlClicked = function(card, internalUrl) {
 		if (internalUrl === 'searchlist_create') {
 			_createOrModifySearchlist($scope, null);
 		}

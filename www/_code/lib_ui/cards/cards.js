@@ -67,8 +67,8 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             	return ret;
             };
 
-            $scope.onCardInternalUrlClicked = function(internalUrl) {
-				$scope.$parent.onCardInternalUrlClicked(internalUrl);
+            $scope.onCardInternalUrlClicked = function(card, internalUrl) {
+				$scope.$parent.onCardInternalUrlClicked(card, internalUrl);
             };
 
             $scope.onCardLinkClicked = function(card, linkid) {
@@ -145,8 +145,8 @@ function(nl, nlDlg) {
             card: '='
         },
         link: function($scope, iElem, iAttrs) {
-            $scope.onCardInternalUrlClicked = function(internalUrl) {
-            	$scope.$parent.onCardInternalUrlClicked(internalUrl);
+            $scope.onCardInternalUrlClicked = function(card, internalUrl) {
+            	$scope.$parent.onCardInternalUrlClicked(card, internalUrl);
             };
 
             $scope.onCardLinkClicked = function(card, linkid) {

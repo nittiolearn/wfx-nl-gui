@@ -85,7 +85,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 	}
 	nlRouter.initContoller($scope, '', _onPageEnter);
 
-    $scope.onCardInternalUrlClicked = function(internalUrl) {
+    $scope.onCardInternalUrlClicked = function(card, internalUrl) {
 		if (internalUrl === 'course_create') {
 			_createOrModifyCourse($scope, null);
 		}
