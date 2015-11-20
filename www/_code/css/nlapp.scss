@@ -236,6 +236,7 @@ $animation-duration: 200ms !default;
 
 .nl-clickable, .nl-clickable1 {
   cursor: pointer;
+  color: #000077;
   &:hover, &:focus {
     text-decoration: underline;
   }
@@ -499,6 +500,19 @@ nl-dlg-help {
   textarea.small {
     height: 5em;
   }
+  select {
+    background-color: #EEEEFF;
+    border: 0;
+    border-radius: 4px;
+    height: 34px;
+    width: 100%;
+  }
+  select.nl-multi-select {
+    height: 10em;
+  }
+  *:focus {
+    box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+  }
 }
 
 input.nl-dlg-field-error {
@@ -630,7 +644,6 @@ a.nl-card-img:hover, a.nl-card-img:focus {
 
 .nl-card-links > span {
   cursor:pointer;
-  color: #000077;
   padding: 0 4px 0 4px;
   border-right: 1px solid #0000FF;
   

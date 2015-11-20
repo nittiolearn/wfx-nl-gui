@@ -10,6 +10,8 @@ function module_init() {
     .directive('nlDlg', DlgDirective)
     .directive('nlFormInput', FormInputDirective)
     .directive('nlFormTextarea', FormTextareaDirective)
+    .directive('nlFormSelect', FormSelectDirective)
+    .directive('nlFormMultiSelect', FormMultiSelectDirective)
     .directive('nlElastic', ElasticTextareaDirective);
 }
 
@@ -223,6 +225,18 @@ var FormTextareaDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
     return _formFieldDirectiveImpl(nl, nlDlg, 'textarea',
     	'lib_ui/dlg/formtextarea.html');
+}];
+
+var FormSelectDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return _formFieldDirectiveImpl(nl, nlDlg, 'select',
+        'lib_ui/dlg/formselect.html');
+}];
+
+var FormMultiSelectDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return _formFieldDirectiveImpl(nl, nlDlg, 'select',
+        'lib_ui/dlg/formmultiselect.html');
 }];
 
 function _formFieldDirectiveImpl(nl, nlDlg, tagName, templateUrl) {
