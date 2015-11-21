@@ -12,7 +12,7 @@
             	<a ng-href='{{avp.url}}' ng-if='avp.url'>{{avp.attr}}</a>
                 <span ng-if='!avp.url'>{{avp.attr}}</span>
             </div>
-            <div class='col'>{{avp.val}}</div>
+            <div class='col' ng-bind-html='avp.val'></div>
         </div>
     </nl-dlg-content>
 </nl-dlg>

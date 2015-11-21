@@ -137,32 +137,30 @@ var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse',
 function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 	var modeHandler = new ModeHandler(nl, nlCourse, nlDlg);
 	var treeList = new TreeList(nl);
-	var statusinfoDict = {};
-	function _onPageEnter(courseInfo) {
-		$scope.courseInfo = courseInfo;
+	var _userInfo = null;
+	var _pageDirty = false;
+	function _onPageEnter(userInfo) {
+		_userInfo = userInfo;
 		return nl.q(function(resolve, reject) {
 		    treeList.clear();
-			var params = nl.location.search();
-			if (!('id' in params) || !modeHandler.initMode()) {
+			$scope.params = nl.location.search();
+			if (!('id' in $scope.params) || !modeHandler.initMode()) {
 				nlDlg.popupStatus(nl.t('Invalid url'));
 				resolve(false);
 				return;
 			}
+			$scope.mode = modeHandler.mode;
 			$scope.expandedView = true;
 			$scope.showStatusIcon = modeHandler.shallShowScore();
-			var courseId = parseInt(params.id);
+			var courseId = parseInt($scope.params.id);
 			modeHandler.getCourse().then(function(course) {
 				modeHandler.initTitle(course);
-				$scope.course = course;
 				$scope.planning = course.content.planning;
 				var modules = course.content.modules;
 				for(var i=0; i<modules.length; i++) {
 					_initModule(modules[i]);
 				}
-     			var rootItems = treeList.getRootItems();
-                for(var i=0; i<rootItems.length; i++) {
-                    _updateItemData(modeHandler, course, rootItems[i]);
-                }
+				_updateAllItemData(modeHandler);
                 $scope.modules = modules;
 				resolve(true);
 			}, function(error) {
@@ -170,98 +168,25 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 			});
 		});
 	}
-
 	nlRouter.initContoller($scope, '', _onPageEnter);
-	
-	$scope.courseSaveButton = nl.t("Save");
-	$scope.modeHan = modeHandler;
-	$scope.onCourseSaveModule = function(cm) {
-			var data = {title: 'Course Report Update', 
-				   template: 'Are you sure you want to save?',
-				   okText: nl.t('save')};
-				   var urlParam = nl.location.search();
-				   var repid = parseInt(urlParam.id);
-			nlDlg.popupConfirm(data).then(function(cm) {
-				if (!cm) return;
-				return nlCourse.courseReportUpdateStatus(repid, JSON.stringify($scope.course.statusinfo));
-			});
-	};
-	$scope.expandviewtext = "Less Information";
-	$scope.toggleInfoText = true;	
-	$scope.expandViewClick = function(cm) {
-		$scope.toggleInfoText = !$scope.toggleInfoText;
-		if(!$scope.toggleInfoText) {
-			$scope.expandviewtext = "More Information";
-			$scope.expandedView = false;
-		} else if($scope.toggleInfoText){
-			$scope.expandviewtext = "Less Information";
-			$scope.expandedView = true;
-		}
-	};
-	$scope.onClickOnSummary = function(cm) {
-		if((cm.type == 'link' || cm.type == 'info') && $scope.modeHan.mode === 3){
-			if(!$scope.course.statusinfo) $scope.course.statusinfo = {};
-			if(!(cm.id in $scope.course.statusinfo)) {
-				var data = {title: nl.t('Mark as done'), 
-				   		template: nl.t('You may mark this as as completed by clicking Done button.'),
-				   		okText: nl.t('Done')};
-				nlDlg.popupConfirm(data).then(function(course) {
-					if (!course) return;
-					_statusinfoDone(cm);
-				});
-			} else {
-				var status = ($scope.course.statusinfo[cm.id].status=='done') ? nl.t('Undo'): nl.t('Done');
-				var title = (status == 'Undo') ? nl.t('Confirm undo operation'): nl.t('Mark as done');
-				var template = (status == 'Undo') ? nl.t('This is currently marked as completed. You may mark this as not completed by clicking the Undo button.'):nl.t('You may mark this as as completed by clicking Done button.');
-				var data = {title: title,
-					   	template: template,
-				   		okText: status};
-				nlDlg.popupConfirm(data).then(function(course) {
-					if (!course) return;
-					_updateStatusinfo(cm, status);
-				});
-			}
-		}
-	};
-	
-	function _statusinfoDone(cm) {
-		cm.statusIcon = nl.url.resUrl('ball-green.png');
-		cm.statusText = nl.t('done');
-		$scope.course.statusinfo[cm.id]={status:'done', date: new Date(), username: $scope.courseInfo.username};
-	}
-	
-	function _updateStatusinfo(cm, status) {
-		if(status == 'Undo') {
-			cm.statusIcon = cm.planned_date<new Date() ? nl.url.resUrl('ball-red.png') : nl.url.resUrl('ball-yellow.png');
-			cm.statusText = cm.planned_date<new Date() ? nl.t('delayed') : nl.t('pending');
-			$scope.course.statusinfo[cm.id]={status:'', date: new Date(), username: $scope.courseInfo.username};
-		} else {
-			_statusinfoDone(cm);
-		}
-	}
-	
-	function _getCourseAvps(cm) {
-		var avps = [];
-		nl.fmt.addAvp(avps, 'Status', cm.statusText);
-		nl.fmt.addAvp(avps, 'Type', cm.type);
-		return avps;
-	}
-	
+
 	$scope.showHideAllButtonName = treeList.showHideAllButtonName();
 	$scope.showHideAll = function() {
 		treeList.showHideAll();
 		$scope.showHideAllButtonName = treeList.showHideAllButtonName();
     };
 	
-	$scope.getIcon = function(cm) {
-		var icon = ('icon' in cm) ? cm.icon : cm.type;
-		if (icon in _icons) return _icons[icon];
-		return icon;
+	$scope.expandedView = true;	
+	$scope.expandviewtext = _updateExpandviewtext();
+	$scope.expandViewClick = function() {
+		$scope.expandedView = !$scope.expandedView;
+		$scope.expandviewtext = _updateExpandviewtext();
 	};
 	
-    $scope.getNewTabIcon = function(getNewTabIcon) {
-        return _icons['newtab'];
-    };
+	function _updateExpandviewtext() {
+		if ($scope.expandedView) return nl.t("Show less");
+		return nl.t("Show more");
+	}
 
 	$scope.onClick = function(e, cm, newTab) {
 		if (cm.type === 'lesson') {
@@ -276,6 +201,16 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         return false;
 	};
 	
+	$scope.getIcon = function(cm) {
+		var icon = ('icon' in cm) ? cm.icon : cm.type;
+		if (icon in _icons) return _icons[icon];
+		return icon;
+	};
+	
+    $scope.getNewTabIcon = function(getNewTabIcon) {
+        return _icons['newtab'];
+    };
+
 	var _icons = {
         'newtab': nl.url.resUrl('launch.png'),
         'module': nl.url.resUrl('folder.png'),
@@ -301,12 +236,19 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         treeList.addItem(cm);
 		cm.statusIcon = null;
 		cm.statusText = '';
+		cm.statusShortText = '';
 		var props = (cm.type in _moduleProps) ? _moduleProps[cm.type] : _defModuleProps;
 		cm.clickable = props.clickable;
         cm.launchable = props.launchable;
         cm.planned_date = cm.planned_date ? nl.fmt.json2Date(cm.planned_date) : null;
-        cm.planned_date_str = cm.planned_date ? nl.fmt.date2Str(cm.planned_date, 'date') : '';
 	}
+
+    function _updateAllItemData(modeHandler) {
+		var rootItems = treeList.getRootItems();
+        for(var i=0; i<rootItems.length; i++) {
+            _updateItemData(modeHandler, modeHandler.course, rootItems[i]);
+        }
+    }
 
     function _updateItemData(modeHandler, course, cm) {
         if (cm.type === 'module') {
@@ -316,16 +258,17 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         } else {
 		    _updateLessonData(modeHandler, course, cm);
         }
+        cm.planned_date_str = cm.planned_date ? nl.fmt.date2Str(cm.planned_date, 'date') : '';
         _updateStatusInfo(modeHandler, cm);
     }
 
     function _updateModuleData(modeHandler, course, cm) {
         cm.totalCount = 0;
-        cm.activeCount = 0;
         cm.completedCount = 0;
         cm.delayedCount = 0;
         cm.score = 0;
         cm.maxScore = 0;
+        cm.scoreAvailableCount = 0;
         cm.planned_date = null;
 
         var children = treeList.getChildren(cm);
@@ -333,40 +276,39 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
             var child = children[i];
             _updateItemData(modeHandler, course, child);
             cm.totalCount += child.totalCount;
-            cm.activeCount += child.activeCount;
             cm.completedCount += child.completedCount;
             cm.delayedCount += child.delayedCount;
             cm.score += child.score;
             cm.maxScore += child.maxScore;
-            if (!cm.planned_date || child.planned_date > cm.planned_date) {
-            	cm.planned_date = child.planned_date;
-            }
+	        cm.scoreAvailableCount += child.scoreAvailableCount;
+        	if (!cm.planned_date || child.planned_date > cm.planned_date) {
+        		cm.planned_date = child.planned_date;
+        	}	
         }
     }
     
     function _updateLinkData(modeHandler, course, cm) {
     	var today = new Date();
         cm.totalCount = 1;
-        cm.activeCount = cm.planned_date ? 1 : 0;
         cm.completedCount = 0;
-        cm.delayedCount = (cm.planned_date && cm.planned_date < today) ? 1 : 0;
-        if (course.statusinfo && cm.id in course.statusinfo) {
-        	var statusinfo = course.statusinfo[cm.id];
-        	if (statusinfo.status == 'done') {
-	            cm.completedCount = 1;
-	            cm.delayedCount = 0;
-        	}
-        }
+        cm.scoreAvailableCount = 0;
+        cm.delayedCount = ($scope.planning && cm.planned_date && cm.planned_date < today) ? 1 : 0;
         cm.score = 0;
         cm.maxScore = 0;
+        if (!course.statusinfo || !(cm.id in course.statusinfo)) return;
+
+    	var statusinfo = course.statusinfo[cm.id];
+    	if (statusinfo.status != 'done') return;
+        cm.completedCount = 1;
+        cm.delayedCount = 0;
     }
     
     function _updateLessonData(modeHandler, course, cm) {
     	var today = new Date();
         cm.totalCount = 1;
-        cm.activeCount = 1;
         cm.completedCount = 0;
-        cm.delayedCount = (cm.planned_date && cm.planned_date <= today) ? 1 : 0;
+        cm.scoreAvailableCount = 0;
+    	cm.delayedCount = ($scope.planning && cm.planned_date && cm.planned_date <= today) ? 1 : 0;
         cm.score = 0;
         cm.maxScore = 0;
 
@@ -381,18 +323,16 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 
         if ('maxScore' in lessonReport) cm.maxScore = parseInt(lessonReport.maxScore);
         if ('score' in lessonReport) cm.score = parseInt(lessonReport.score);
+        if (cm.maxScore > 0) cm.scoreAvailableCount = 1;
     }
     
     function _updateStatusInfo(modeHandler, cm) {
         if (!modeHandler.shallShowScore()) {
-            cm.statusIcon = null;
 	        if (cm.type !== 'module') return;
 	        if (cm.totalCount > 1) {
 	        	cm.statusText = nl.t('{} items', cm.totalCount);
-	        	cm.planned_date_str = !cm.planned_date ? null:nl.fmt.date2Str(cm.planned_date, 'date');
 	        } else if (cm.totalCount > 0) {
 	        	cm.statusText = nl.t('{} item', cm.totalCount);
-	        	cm.planned_date_str = !cm.planned_date ? null:nl.fmt.date2Str(cm.planned_date, 'date');
 	        }
             return;
         }
@@ -407,60 +347,131 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
     function _updateStatusInfoForLeaf(modeHandler, cm) {
         if (cm.delayedCount > 0) {
             cm.statusIcon = _icons['red'];
+            cm.statusShortText = nl.t('delayed');
             cm.statusText = nl.t('delayed');
             return;
         }
         if (cm.completedCount > 0) {
             cm.statusIcon = _icons['green'];
+            cm.statusShortText = nl.t('done');
             if (cm.maxScore === 0) {
 	            cm.statusText = nl.t('done');
 	            return;
             }
             var perc = Math.round((cm.score/cm.maxScore)*100);
-            cm.statusText = '' + perc + '%';
+            cm.statusText = (cm.score > 0) ? nl.t('done ({}%)', perc) : nl.t('done');
             return;
         }
-        if (cm.activeCount > 0) {
-            cm.statusIcon = _icons['yellow'];
-            cm.statusText = nl.t('pending');
-            return;
-        }
-        cm.statusIcon = null;
-        cm.statusText = '';
-        return;
+        cm.statusIcon = _icons['yellow'];
+        cm.statusShortText = nl.t('pending');
+        cm.statusText = nl.t('pending');
     }
     
     function _updateStatusInfoForContainer(modeHandler, cm) {
-        if (cm.delayedCount > 0) {
-        	cm.planned_date_str = !cm.planned_date ? null:nl.fmt.date2Str(cm.planned_date, 'date');
-            cm.statusIcon = _icons['red'];
-            cm.statusText = nl.t('{} delayed', cm.delayedCount);
-            return;
-        }
-        if (cm.completedCount > 0 && cm.completedCount == cm.activeCount) {
-            cm.statusIcon = _icons['green'];
-        	cm.planned_date_str = !cm.planned_date ? null:nl.fmt.date2Str(cm.planned_date, 'date');
-            if (cm.maxScore === 0) {
-	        	cm.planned_date_str = nl.fmt.date2Str(cm.planned_date, 'date');
-	            cm.statusText = nl.t('all {} done', cm.completedCount);
-	            return;
-            }
+    	if (cm.totalCount == 0) return;
+    	var scoreStr = '';
+    	if (cm.maxScore > 0 && cm.score > 0) {
             var perc = Math.round(cm.score/cm.maxScore*100);
-            cm.statusText = nl.t('all {} done ({}%)', cm.completedCount, perc);
+    		scoreStr = cm.scoreAvailableCount > 1 ? nl.t('({}% from {} items)', perc, cm.scoreAvailableCount): nl.t('({}% from {} item)', perc, cm.scoreAvailableCount); 
+    	}
+        if (cm.delayedCount > 0) {
+            cm.statusIcon = _icons['red'];
+            cm.statusShortText = nl.t('delayed');
+            cm.statusText = nl.t('{} of {} delayed {}', cm.delayedCount, cm.totalCount, scoreStr);
             return;
         }
-        if (cm.activeCount > 0) {
-        	cm.planned_date_str = !cm.planned_date ? null:nl.fmt.date2Str(cm.planned_date, 'date');
+        if (cm.completedCount < cm.totalCount) {
             cm.statusIcon = _icons['yellow'];
-            var pending = cm.activeCount - cm.completedCount;
-            cm.statusText = nl.t('{} of {} pending', pending, cm.activeCount);
+            cm.statusShortText = nl.t('pending');
+            var pending = cm.totalCount - cm.completedCount;
+            cm.statusText = nl.t('{} of {} pending {}', pending, cm.totalCount, scoreStr);
             return;
         }
-        cm.planned_date_str = !cm.planned_date ? null:nl.fmt.date2Str(cm.planned_date, 'date');
-        cm.statusIcon = null;
-        cm.statusText = '';
-        return;
+
+        cm.statusIcon = _icons['green'];
+        cm.statusShortText = nl.t('done');
+        cm.statusText = nl.t('all {} done {}', cm.totalCount, scoreStr);
     }
+
+	$scope.onClickOnSummary = function(cm) {
+		if($scope.mode != 3 || (cm.type != 'link' && cm.type != 'info')) {
+			_getModuleDetails(cm, _icons);
+			return;
+		}
+
+		if(!modeHandler.course.statusinfo) modeHandler.course.statusinfo = {};
+		var statusinfo = modeHandler.course.statusinfo;
+		var isDone = (cm.id in statusinfo) && (statusinfo[cm.id].status == 'done');
+		var data = {
+			title: isDone ? nl.t('Confirm undo operation'): nl.t('Mark as done'),
+			template: isDone ? nl.t('This is currently marked as completed. You may mark this as not completed by clicking the Undo button.'):nl.t('You may mark this as as completed by clicking Done button.'),
+		   	okText: isDone ? nl.t('Undo'): nl.t('Done')};
+		nlDlg.popupConfirm(data).then(function(result) {
+			if (!result) return;
+			_updatedStatusinfo(cm, !isDone);
+		});
+	};
+	
+	function _updatedStatusinfo(cm, status) {
+		// TODO: Keep status as boolean; data as javascript Date object
+		modeHandler.course.statusinfo[cm.id] = {
+			status: status ? 'done' : '',
+			date: nl.fmt.date2Str(new Date(), 'date'), 
+			username: _userInfo.username
+		};
+		_pageDirty = true;
+		var repid = parseInt($scope.params.id);
+		nlCourse.courseReportUpdateStatus(repid, JSON.stringify(modeHandler.course.statusinfo))
+		.then(function(courseReport) {
+			// TODO: can fail some time
+			// TODO: use the _pageDirty to show warning!
+			_pageDirty = false;
+		});
+		_updateAllItemData(modeHandler);
+	}
+	
+	function _getModuleDetails(cm, _icons) {
+		var card = {};
+		card.title = nl.t('Summary');
+		var icon = ('icon' in cm) ? cm.icon : cm.type;
+		if(icon in _icons) card.icon = _icons[icon];
+		card.help = cm.name;
+		card.details = {help: card.help, avps: _getModuleAvps(cm)};
+    	var detailsDlg = nlDlg.create($scope);
+    	detailsDlg.scope.card = card;
+		detailsDlg.setCssClass('nl-height-max nl-width-max');
+    	detailsDlg.show('lib_ui/cards/details_dlg.html');
+	}
+	
+	function _getModuleAvps(cm) {
+		var avps = [];
+		nl.fmt.addAvp(avps, 'Status', cm.statusShortText, 'text', '-', cm.statusIcon);
+		if(cm.type == 'module') {
+			nl.fmt.addAvp(avps, 'Total items', cm.totalCount);
+			if ($scope.planning) {
+				if(cm.planned_date_str) nl.fmt.addAvp(avps, 'Maximum planned date', cm.planned_date_str);
+				nl.fmt.addAvp(avps, 'Delayed items', cm.delayedCount);
+			}
+			nl.fmt.addAvp(avps, 'Pending items', cm.totalCount-cm.completedCount-cm.delayedCount);
+			nl.fmt.addAvp(avps, 'Completed items', cm.completedCount);
+			if(cm.scoreAvailableCount > 0) nl.fmt.addAvp(avps, 'Score avaialble for', cm.scoreAvailableCount);
+			if(cm.maxScore > 0 && cm.score > 0) {
+				nl.fmt.addAvp(avps, 'Score', nl.t("{}% ({}/{})",Math.round(cm.score/cm.maxScore*100), cm.score, cm.maxScore));
+			}
+			else nl.fmt.addAvp(avps, 'Score', "-");
+		} else {
+			if ($scope.planning) {
+				nl.fmt.addAvp(avps, 'Planned date', cm.planned_date_str);
+			}
+			if(cm.type == 'lesson'){
+				if(cm.maxScore == 0 || cm.score == 0) nl.fmt.addAvp(avps, 'Score', "-");
+	 			else if(cm.score > 0) {
+	 				nl.fmt.addAvp(avps, 'Score', nl.t("{}% ({}/{})",Math.round(cm.score/cm.maxScore*100), cm.score, cm.maxScore));
+	 			}
+			}
+		}
+		return avps;
+	}
 }];
 
 function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
@@ -502,8 +513,8 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
 
 	this.bExpanded = true;
     this.showHideAllButtonName = function() {
-    	if (this.bExpanded) return nl.t('Collapse All');
-    	return nl.t('Expand All');
+    	if (this.bExpanded) return nl.t('Collapse all');
+    	return nl.t('Expand all');
     };
     
     this.showHideAll = function() {

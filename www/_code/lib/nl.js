@@ -134,7 +134,10 @@ function Formatter() {
         return this.date2Str(d, accuracy);
     };
     
-	this.addAvp = function(avps, fieldName, fieldValue, fmtType, fieldDefault) {
+	this.addAvp = function(avps, fieldName, fieldValue, fmtType, fieldDefault, iconUrl) {
+		if (iconUrl) {
+			fieldValue = _fmt2Impl("<img src='{}' class='nl-24'> {}", [iconUrl, fieldValue]);
+		}
 		if (fmtType == 'date') fieldValue = this.jsonDate2Str(fieldValue);
 		if (fmtType == 'boolean') fieldValue = fieldValue ? this.t(['Yes']) : this.t(['No']);
 		if (!fieldValue) fieldValue = fieldDefault || '-';
