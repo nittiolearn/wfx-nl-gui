@@ -1,13 +1,12 @@
 <div class='nl-thin-scroll nl-full'>
 	<div class='popup-buttons no-border' >
         <button ng-click='showHideAll()' class='button'>{{showHideAllButtonName}}</button>
-        <button ng-if='modeHan.mode==3' ng-click='onCourseSaveModule(cm)' class='button'>{{courseSaveButton}}</button>
-        <button ng-mousedown='expandViewClick(cm)' class='button'>{{expandviewtext}}</button>
+        <button ng-click='expandViewClick(cm)' class='button'>{{expandviewtext}}</button>
     </div>
 	<table class='nl-table nl-table-styled'>
 		<tr ng-show='expandedView'>
 			<th>Module</th>
-			<th>Plan</th>
+			<th ng-if='planning == true'>Plan</th>
 			<th>Summary</th>
 		</tr>
 		<tr ng-repeat='cm in modules' ng-show='cm.visible'>
@@ -20,10 +19,16 @@
 	                 ng-click='onClick($event, cm, true)'>
 				<span class='nl-cv-details' ng-class='{"nl-clickable": cm.clickable}'>{{cm.name}}</span>
 			</td>
-			<td ng-show='expandedView'>{{cm.planned_date_str}}</td>
-			<td ng-click='onClickOnSummary(cm)' class='nl-clickable'>
-				<img class='nl-24 nl-clickable' ng-if='cm.statusIcon' ng-src='{{cm.statusIcon}}'>
+			<td ng-if='expandedView && (planning == true)'>{{cm.planned_date_str}}</td>
+			<td ng-if='expandedView && mode<2'>
+				<img class='nl-24' ng-if='cm.statusIcon' ng-src='{{cm.statusIcon}}'>
 				<span ng-show='expandedView'>{{cm.statusText}}</span>
+			</td>
+			<td ng-if='mode>=2'>
+				<img class='nl-24 nl-clickable' ng-click='onClickOnSummary(cm)' ng-if='cm.statusIcon && (cm.type=="module" || cm.type=="lesson")' ng-src='{{cm.statusIcon}}'>
+				<span class='nl-clickable' ng-click='onClickOnSummary(cm)' ng-if='expandedView && (cm.type=="module" || cm.type=="lesson")'>{{cm.statusText}}</span>
+				<img class='nl-24 nl-clickable' ng-click='onClickOnSummary(cm)' ng-if='cm.statusIcon && (cm.type=="info" || cm.type=="link")' ng-src='{{cm.statusIcon}}'>
+				<span ng-if='expandedView && (cm.type=="info" || cm.type=="link")' ng-click='onClickOnSummary(cm)' class='nl-clickable'>{{cm.statusText}}</span>
 			</td>
 		</tr>
 	</table>

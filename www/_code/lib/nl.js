@@ -103,8 +103,15 @@ function Formatter() {
     };
 
     this.json2Date = function(dateStr) {
-        // Convert date to iso 8061 format if needed (e.g. "2014-04-28 23:09:00" ==> "2014-04-28T23:09:00Z")
-        if(dateStr.indexOf('Z')==-1) dateStr=dateStr.replace(' ','T')+'Z';
+        // Convert date to iso 8061 format if needed
+        // (e.g.1: "2014-04-28" ==> "2014-04-28T00:00:00Z")
+        // (e.g.2: "2014-04-28 23:09:00" ==> "2014-04-28T23:09:00Z")
+        if(dateStr.indexOf('Z') == -1) {
+            if (dateStr.indexOf(' ') == -1)
+                dateStr=dateStr +'T00:00:00Z';
+            else
+                dateStr=dateStr.replace(' ','T')+'Z';
+        }
         return new Date(dateStr);
     };
     
@@ -127,7 +134,10 @@ function Formatter() {
         return this.date2Str(d, accuracy);
     };
     
-	this.addAvp = function(avps, fieldName, fieldValue, fmtType, fieldDefault) {
+	this.addAvp = function(avps, fieldName, fieldValue, fmtType, fieldDefault, iconUrl) {
+		if (iconUrl) {
+			fieldValue = _fmt2Impl("<img src='{}' class='nl-24'> {}", [iconUrl, fieldValue]);
+		}
 		if (fmtType == 'date') fieldValue = this.jsonDate2Str(fieldValue);
 		if (fmtType == 'boolean') fieldValue = fieldValue ? this.t(['Yes']) : this.t(['No']);
 		if (!fieldValue) fieldValue = fieldDefault || '-';
