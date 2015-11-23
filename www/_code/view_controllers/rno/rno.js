@@ -244,7 +244,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 		};
 		buttons.push(saveButton);
 		var cancelButton = {text : nl.t('Cancel')};
-		modifyDlg.show('view_controllers/rno/rno_create_dlg.html', // TODO-MUNNI - udpate template
+		modifyDlg.show('view_controllers/rno/rno_create_dlg.html',
 			buttons, cancelButton, false);
 	}
 	
@@ -337,7 +337,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
         dlg.setCssClass('nl-width-max nl-height-max');
         dlg.scope.error = {};
         dlg.scope.dlgTitle = nl.t('New observation: {} {}', rno.first_name, rno.last_name);
-        dlg.scope.data = {milestone: '', rating: {id: 'expected'}, observation: '', // TODO-MUNNI
+        dlg.scope.data = {milestone: '', rating: {id: 'expected'}, observation: '', // TODO-MUNNI - metadata
                           notes: '', attachments: ''};
         dlg.scope.data.options = {
             milestone: _getMilestoneOptions(rno.user_type), 
