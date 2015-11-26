@@ -17,10 +17,10 @@ function(nl, nlDlg, nlServerApi) {
     this.initContoller = function($scope, pageUrl, pageEnterFn, pageLeaveFn) {
         if (pageEnterFn === undefined) pageEnterFn = defaultFn;
         $scope.$on('$ionicView.beforeEnter', function(e) {
-            _onPageEnter($scope, pageUrl, pageEnterFn);
+            _onPageEnter($scope, pageUrl, pageEnterFn, e);
         });
-        $scope.$on('$ionicView.beforeLeave', function(e) {
-            _onPageLeave($scope, pageUrl, pageLeaveFn);
+        $scope.$on('$locationChangeStart', function(e) {
+            _onPageLeave($scope, pageUrl, pageLeaveFn, e);
         });
     };
     
@@ -31,7 +31,7 @@ function(nl, nlDlg, nlServerApi) {
         return permission.isPermitted(userInfo, perm);
     };
     
-    function _onPageEnter($scope, pageUrl, pageEnterFn) {
+    function _onPageEnter($scope, pageUrl, pageEnterFn, e) {
         nl.log.debug('router.onPageEnter: ', nl.location.url());
         nl.pginfo.isPageShown = false;
         nlDlg.showLoadingScreen();
@@ -59,7 +59,7 @@ function(nl, nlDlg, nlServerApi) {
             }
             
             if ('onPageEnter' in $scope.$parent) $scope.$parent.onPageEnter(userInfo);
-            pageEnterFn(userInfo).then(function(status) {
+            pageEnterFn(userInfo, e).then(function(status) {
                 if (status) return _done(null);
                 _done('/app/home');
             });
@@ -68,12 +68,16 @@ function(nl, nlDlg, nlServerApi) {
         });
     }
 
-    function _onPageLeave($scope, pageUrl, pageLeaveFn) {
+    function _onPageLeave($scope, pageUrl, pageLeaveFn, e) {
         nl.log.debug('router.onPageLeave: ', nl.location.url());
+        var canLeave = pageLeaveFn ? pageLeaveFn(e) : true;
+        if (!canLeave) {
+			e.preventDefault();
+        	return;
+        }
         nl.pginfo.isPageShown = false;
         nl.pginfo.pageSubTitle = '';
         nlDlg.closeAll();
-        if (pageLeaveFn) pageLeaveFn();
     }
     
     function _getUserInfo(pageUrl) {

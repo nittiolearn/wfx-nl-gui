@@ -138,7 +138,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 	var modeHandler = new ModeHandler(nl, nlCourse, nlDlg);
 	var treeList = new TreeList(nl);
 	var _userInfo = null;
-	var _pageDirty = false;
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
 		return nl.q(function(resolve, reject) {
@@ -168,7 +167,17 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 			});
 		});
 	}
-	nlRouter.initContoller($scope, '', _onPageEnter);
+	
+	function _onPageLeave() {
+		if (!_isDirty()) return true;
+		var msg = nl.t('Warning: There are some unsaved changes in this page. Press ok to try saving the changes. Press cancel to discard the changes and leave the page.');
+		var ret = confirm(msg);
+		if (!ret) return true;
+		_updatedStatusinfoAtServer(true);
+		return false;
+    }
+    
+	nlRouter.initContoller($scope, '', _onPageEnter, _onPageLeave);
 
 	$scope.showHideAllButtonName = treeList.showHideAllButtonName();
 	$scope.showHideAll = function() {
@@ -390,7 +399,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 
         cm.statusIcon = _icons['green'];
         cm.statusShortText = nl.t('done');
-        cm.statusText = nl.t('all {} done {}', cm.totalCount, scoreStr);
+        cm.statusText = cm.totalCount > 1 
+        	? nl.t('all {} done {}', cm.totalCount, scoreStr) 
+        	: nl.t('{} of {} done {}', cm.completedCount, cm.totalCount, scoreStr);
     }
 
 	$scope.onClickOnSummary = function(cm) {
@@ -419,15 +430,27 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 			date: nl.fmt.date2Str(new Date(), 'date'), 
 			username: _userInfo.username
 		};
-		_pageDirty = true;
+		_updatedStatusinfoAtServer(false);
+		_updateAllItemData(modeHandler);
+	}
+	
+	var _saveAttemptNumber = 0;
+	var _saveDoneNumber = 0;
+	function _isDirty() {
+		return (_saveAttemptNumber != _saveDoneNumber);
+	}
+
+	function _updatedStatusinfoAtServer(bBlockUI) {
+		if (bBlockUI) nlDlg.showLoadingScreen();
+		_saveAttemptNumber++;
+		var currentSaveNumber = _saveAttemptNumber;
 		var repid = parseInt($scope.params.id);
 		nlCourse.courseReportUpdateStatus(repid, JSON.stringify(modeHandler.course.statusinfo))
 		.then(function(courseReport) {
-			// TODO: can fail some time
-			// TODO: use the _pageDirty to show warning!
-			_pageDirty = false;
+			if (currentSaveNumber > _saveDoneNumber)
+				_saveDoneNumber = currentSaveNumber;
+			if (bBlockUI) nlDlg.hideLoadingScreen();
 		});
-		_updateAllItemData(modeHandler);
 	}
 	
 	function _getModuleDetails(cm, _icons) {
