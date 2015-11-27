@@ -1,0 +1,52 @@
+<div class='row'>
+    <div class='col'>
+        <table class='nl-table nl-table-styled'>
+            <tr><td class='nl-dlg-field-name'>Name</td><td>{{rno.first_name}} {{rno.last_name}}</td></tr>
+            <tr><td class='nl-dlg-field-name'>{{user_model.user_type.title}}</td><td>{{rno.user_type}}</td></tr>
+            <tr>
+                <td class='nl-dlg-field-name'>Academic year</td>
+                <td ng-if="mode!='preview'" class='nl-dlg-field-value'>
+                    <select ng-model='data.year'
+                            ng-options='opt as opt.name for opt in options.year track by opt.id'>
+                    </select>
+                </td>
+                <td ng-if="mode=='preview'">{{data.year.name}}</td>
+            </tr>
+            <tr>
+                <td class='nl-dlg-field-name'>Term</td>
+                <td ng-if="mode!='preview'" class='nl-dlg-field-value'>
+                    <select ng-model='data.term'
+                            ng-options='opt as opt.name for opt in options.term track by opt.id'>
+                    </select>
+                </td>
+                <td ng-if="mode=='preview'">{{data.term.name}}</td>
+            </tr>
+        </table>
+    </div>
+    <div style='width: 150px; text-align: center'>
+        <img ng-src='{{image}}' style='max-width:150px; max-height:150px'>
+    </div>
+</div>
+<h3>Summary</h3>
+<nl-textarea ng-if="mode!='preview'" fieldmodel='summary'></nl-textarea>
+<div ng-if="mode=='preview'">summary</div>
+
+<h3>Ratings</h3>
+<nl-rno-mstree ng-if="mode!='preview'"></nl-rno-mstree>
+<nl-rno-mstree-view ng-if="mode=='preview'"></nl-rno-mstree-view>
+
+<h3>Observations</h3>
+<table class='nl-table nl-table-styled'>
+    <tr>
+        <th>Created on</th><th>Updated on</th><th>Observation</th>
+        <th ng-if="mode!='preview'">Action</th>
+    </tr>
+    <tr ng-repeat="observation in observations">
+        <td>{{observation.created|date: 'yyyy-MM-dd HH:mm'}}</td>
+        <td>{{observation.updated|date: 'yyyy-MM-dd HH:mm'}}</td>
+        <td>{{observation.text}}</td>
+        <td ng-if="mode!='preview'" class='nl-dlg-field-value'>
+            <input type='checkbox' ng-model='data.obsSelected[$index]'> select
+        </td>
+    </tr>
+</table>

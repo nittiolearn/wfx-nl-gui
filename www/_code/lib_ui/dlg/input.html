@@ -1,0 +1,9 @@
+<div class='nl-dlg-field-value'>
+    <input type='{{fieldtype}}' 
+           ng-model='$parent.data[fieldmodel]' 
+           ng-class='{"nl-dlg-field-error": $parent.error[fieldmodel]}'
+           class='{{fieldcls}}'
+           tabindex='{{tabindex}}'
+           autofocus=''>
+    <div ng-show='$parent.error[fieldmodel]' class='nl-dlg-field-errormsg'>{{$parent.error[fieldmodel]}}</div>
+</div>

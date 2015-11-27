@@ -463,6 +463,11 @@ nl-dlg-help {
  * nl-dlg-field styles
  *-----------------------------------------------------------------------------------------*/
 .nl-dlg-field-name {
+  padding: 10px 4px 4px 4px;
+  font-weight: 900;
+}
+
+tr .nl-dlg-field-name {
   text-align: right;
   padding-right: 10px;
   width: 20%;

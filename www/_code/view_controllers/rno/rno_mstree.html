@@ -1,0 +1,25 @@
+<table class='nl-table nl-table-styled'>
+    <tr><th>Milestone</th><th>Ratings</th></tr>
+    <tr ng-repeat='ms in msTree.getItems()' ng-show='ms.isShown'>
+        <th ng-if='ms.isFolder' style='padding-left: {{4+ms.indentation*8}}px;'
+            class='nl-clickable'
+            ng-click='msTree.onFolderClick(ms)'>
+            {{ms.text}}
+        </th>
+        <td ng-if='!ms.isFolder' style='padding-left: {{4+ms.indentation*8}}px;'>
+            {{ms.text}}
+        </td>
+        <th ng-if='ms.isFolder'>
+            <span ng-class="{'nl-clickable': ms.selectCnt>0}"
+                  ng-click='msTree.showFiltered(ms, true)'>{{ms.selectCnt}} rated,</span>
+            <span ng-class="{'nl-clickable': ms.deselectCnt>0}"
+                  ng-click='msTree.showFiltered(ms, false)'>{{ms.deselectCnt}} not rated.</span>
+        </th>
+        <td ng-if='!ms.isFolder' class='nl-dlg-field-value'>
+            <select ng-model='ms.rating'
+                    ng-options='opt as opt.name for opt in options.rating track by opt.id'
+                    ng-change='msTree.onRatingChange(ms)'>
+            </select>
+        </td>
+    </tr>
+</table>

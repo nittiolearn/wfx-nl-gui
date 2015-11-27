@@ -1,13 +1,14 @@
 <nl-dlg title='{{dlgTitle}}'>
     <nl-dlg-help>
+        Create a new observation or modify existing observation.</p>
     </nl-dlg-help>
     <nl-dlg-content>
-        <table class='nl-table'>
-            <tr nl-form-multi-select fieldname='Milestone' fieldmodel='milestone'></tr>
-            <tr nl-form-select fieldname='Achievement' fieldmodel='rating'></tr>
-            <tr nl-form-textarea fieldname='Observation' fieldmodel='observation'></tr>
-            <tr nl-form-textarea fieldname='Future notes' fieldmodel='notes'></tr>
-            <tr nl-form-input fieldname='Attachments' fieldmodel='attachments' fieldtype='file'></tr>
-        </table>
+        <nl-rno-mstree></nl-rno-mstree>
+        <div class='nl-dlg-field-name'>Observation:</div>
+        <nl-textarea fieldmodel='text'></nl-textarea>
+        <div class='nl-dlg-field-name'>Future notes:</div>
+        <nl-textarea fieldmodel='notes'></nl-textarea>
+        <div class='nl-dlg-field-name'>Attachments:</div>
+        <nl-input fieldmodel='attachments' fieldtype='file'></nl-input>
     </nl-dlg-content>
 </nl-dlg>

@@ -1,0 +1,10 @@
+<div class='nl-dlg-field-value'>
+    <textarea ng-model='$parent.data[fieldmodel]'
+    		  ng-class='{"nl-dlg-field-error": $parent.error[fieldmodel]}'
+    		  class='{{fieldcls}}'
+    		  tabindex='{{tabindex}}'
+    		  autofocus=''
+    		  nl-elastic=''>
+    </textarea>
+    <div ng-show='$parent.error[fieldmodel]' class='nl-dlg-field-errormsg'>{{$parent.error[fieldmodel]}}</div>
+</siv>

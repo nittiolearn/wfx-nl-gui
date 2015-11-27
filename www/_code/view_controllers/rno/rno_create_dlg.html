@@ -8,8 +8,14 @@
                 fieldmodel='first_name' fieldtype='text'></tr>
             <tr ng-if='model.last_name' nl-form-input fieldname='{{model.last_name.title}}'
                 fieldmodel='last_name' fieldtype='text'></tr>
-            <tr ng-if='model.user_type' nl-form-select fieldname='{{model.user_type.title}}'
-                fieldmodel='user_type' fieldtype='text'></tr>
+            <tr ng-if='model.user_type'>
+                <td class='nl-dlg-field-name'>{{model.user_type.title}}</td>
+                <td class='nl-dlg-field-value'>
+                    <select ng-model='data.user_type'
+                            ng-options='opt as opt.name for opt in options.user_type track by opt.id'>
+                    </select>
+                </td>
+            </tr>
             <tr ng-if='model.email' nl-form-input fieldname='{{model.email.title}}'
                 fieldmodel='email' fieldtype='email'></tr>
             <tr ng-if='model.image' nl-form-input fieldname='{{model.image.title}}'

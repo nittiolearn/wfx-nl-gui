@@ -8,10 +8,10 @@ function module_init() {
     angular.module('nl.ui.dlg', [])
     .service('nlDlg', DlgSrv)
     .directive('nlDlg', DlgDirective)
+    .directive('nlInput', InputDirective)
+    .directive('nlTextarea', TextareaDirective)
     .directive('nlFormInput', FormInputDirective)
     .directive('nlFormTextarea', FormTextareaDirective)
-    .directive('nlFormSelect', FormSelectDirective)
-    .directive('nlFormMultiSelect', FormMultiSelectDirective)
     .directive('nlElastic', ElasticTextareaDirective);
 }
 
@@ -215,33 +215,33 @@ function(nl, $window, nlKeyboardHandler) {
 }];
 
 //-------------------------------------------------------------------------------------------------
+var InputDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return _formFieldDirectiveImpl(nl, nlDlg, 'input',
+        'lib_ui/dlg/input.html');
+}];
+
+var TextareaDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return _formFieldDirectiveImpl(nl, nlDlg, 'textarea',
+        'lib_ui/dlg/textarea.html');
+}];
+
 var FormInputDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
     return _formFieldDirectiveImpl(nl, nlDlg, 'input',
-    	'lib_ui/dlg/forminput.html');
+        'lib_ui/dlg/forminput.html');
 }];
 
 var FormTextareaDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
     return _formFieldDirectiveImpl(nl, nlDlg, 'textarea',
-    	'lib_ui/dlg/formtextarea.html');
-}];
-
-var FormSelectDirective = ['nl', 'nlDlg',
-function(nl, nlDlg) {
-    return _formFieldDirectiveImpl(nl, nlDlg, 'select',
-        'lib_ui/dlg/formselect.html');
-}];
-
-var FormMultiSelectDirective = ['nl', 'nlDlg',
-function(nl, nlDlg) {
-    return _formFieldDirectiveImpl(nl, nlDlg, 'select',
-        'lib_ui/dlg/formmultiselect.html');
+        'lib_ui/dlg/formtextarea.html');
 }];
 
 function _formFieldDirectiveImpl(nl, nlDlg, tagName, templateUrl) {
     return {
-        restrict: 'A',
+        restrict: 'EA',
         templateUrl: templateUrl,
         scope: {
             fieldname: '@',

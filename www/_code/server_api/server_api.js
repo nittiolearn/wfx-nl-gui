@@ -246,6 +246,11 @@ function(nl, nlDlg, nlConfig) {
         return server.post('_serverapi/rno_delete.json', {id: rnoId});
     };
 
+    this.rnoUpdateData = function(rnoId, data) {
+        // return: udpated rno object
+        return server.post('_serverapi/rno_update_data.json', {id: rnoId, data:data});
+    };
+
     //---------------------------------------------------------------------------------------------
     // Private methods
     //---------------------------------------------------------------------------------------------

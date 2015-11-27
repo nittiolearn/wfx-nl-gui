@@ -1,0 +1,9 @@
+<table class='nl-table nl-table-styled'>
+    <tr><th>Milestone</th><th>Ratings</th></tr>
+    <tr ng-repeat='ms in msTree.getItems()' ng-show='ms.selectCnt > 0 && ms.indentation > 0'>
+        <th ng-if="ms.indentation == 1" colspan="2"><h3>{{ms.text}}</h3></th>
+        <td ng-if="ms.indentation == 2" colspan="2"><h4>{{ms.text}}</h4></td>
+        <td ng-if='!ms.isFolder'>{{ms.text}}</td>
+        <td ng-if='!ms.isFolder' style='padding: 4px'>{{ms.rating.name}}</td>
+    </tr>
+</table>
