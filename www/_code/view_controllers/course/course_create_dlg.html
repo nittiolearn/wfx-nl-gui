@@ -9,8 +9,18 @@
         </ul>
         
         <h2>Course content JSON format</h2>
-        <p>Course is an object containing the attribute "modules" which is an array of course-modules. Each course-module describes a lesson, a quiz, a link, an information item or a module/folder which futher containes lessons, quizes and modules.</p>
+        <p>Course is an object containing the attributes "planning" and "modules" which is an array of course-modules. Each course-module describes a lesson, a quiz, a link, an information item or a module/folder which futher containes lessons, quizes and modules.</p>
         <p><b>Hint:</b> <a href='http://www.jsoneditoronline.org/'>http://www.jsoneditoronline.org/</a> provides a good tool for editing JSON strings.</p>
+
+		<h3>Planning field in course-content</h3>
+		<p>Planning is not a mandatory field(Planning field value can be true, false). If planning is set true, only then planned_date assigned to lesson, info or link is considered. Type "module" doesn't have planned_date, its planned_date is max date among its children planned_date.</p>
+<pre>
+{
+  "planning": true,
+  "modules":[]
+}
+
+</pre>		
 
         <h3>Attribures of course-module</h3>
         <p>Every course-module must contain the attributes "id", "name" and "type". "id" uniquely indentifies the course-module. All these attributes are strings. Example:</p>
@@ -28,16 +38,18 @@
             <li>"link" is a leaf node in the tree. Clicking on this will open the link. When defining a couse-module of "type": "link", the attribute "action" and "urlParams" needs to be provided. These have same semantics as dashboard customization.</li>
             <li>"info" is a leaf node in the tree. It just displays the provided information.</li>
             <li>"module" is a container/folder within the course to organize set of other modules and lessons.</li>
-        </ul>
+        </ul>   
 <pre>{
+  "planning": true,
   "modules": [
-    {"id": "lesson1", "name": "Lesson 1", "type": "lesson", "refid": 1231},
-    {"id": "folder1", "name": "Folder containing some lessons", "type": "module"},
+    {"id": "lesson1", "name": "Lesson 1", "type": "lesson", "refid": 1231, "planned_date": "2015-11-10"},
+    {"id": "folder1", "name": "Folder containing some lessons", "type": "module", },
     {"id": "folder1.info", "name": "This folder contains 3 lessons", "type": "info"},
-    {"id": "folder1.lesson1", "name": "Lesson 2", "type": "lesson", "refid": 1232},
-    {"id": "folder1.lesson2", "name": "Lesson 3", "type": "lesson", "refid": 1233},
+    {"id": "folder1.lesson1", "name": "Lesson 2", "type": "lesson", "refid": 1232, "planned_date": "2015-11-20"},
+    {"id": "folder1.lesson2", "name": "Lesson 3", "type": "lesson", "refid": 1233, "planned_date": "2015-11-30"},
     {"id": "folder1.lesson3", "name": "Lesson 4", "type": "lesson", "refid": 1234}
-    {"id": "link1", "name": "Some sample link", "type": "link", "action": "lesson.view_approved", "urlParams": "custtype=7"},
+    {"id": "link1", "name": "Some sample link", "type": "link", "action": "lesson.view_approved", "urlParams": "custtype=7", "planned_date": "2015-10-24"},
+    {"id": "info1", "name": "Some information", "type": "info", "planned_date": "2015-11-27"},
   ]
 }</pre>
 
