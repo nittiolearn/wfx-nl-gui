@@ -138,6 +138,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 	var modeHandler = new ModeHandler(nl, nlCourse, nlDlg);
 	var treeList = new TreeList(nl);
 	var _userInfo = null;
+	var _pageDirty = false;
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
 		return nl.q(function(resolve, reject) {
@@ -167,16 +168,31 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 			});
 		});
 	}
+
+
+	window.onbeforeunload = function (event) {        
+	    //Check if there was any change, if no changes, then simply let the user leave
+		if(!_pageDirty) return;
+		
+	    var message = nl.t('If you leave this page you are going to lose all unsaved changes, are you sure you want to leave?');
+	    if (typeof event == 'undefined') {
+	      event = window.event;
+	    }
+	    if (event) {
+	      event.returnValue = message;
+	    }
+	    return message;
+	};
 	
-	function _onPageLeave() {
-		if (!_isDirty()) return true;
+	 function _onPageLeave() {
+		if (!_pageDirty) return true;
 		var msg = nl.t('Warning: There are some unsaved changes in this page. Press ok to try saving the changes. Press cancel to discard the changes and leave the page.');
 		var ret = confirm(msg);
 		if (!ret) return true;
 		_updatedStatusinfoAtServer(true);
 		return false;
-    }
-    
+	}
+
 	nlRouter.initContoller($scope, '', _onPageEnter, _onPageLeave);
 
 	$scope.showHideAllButtonName = treeList.showHideAllButtonName();
@@ -430,26 +446,16 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 			date: nl.fmt.date2Str(new Date(), 'date'), 
 			username: _userInfo.username
 		};
-		_updatedStatusinfoAtServer(false);
+		_updatedStatusinfoAtServer();
 		_updateAllItemData(modeHandler);
 	}
 	
-	var _saveAttemptNumber = 0;
-	var _saveDoneNumber = 0;
-	function _isDirty() {
-		return (_saveAttemptNumber != _saveDoneNumber);
-	}
-
-	function _updatedStatusinfoAtServer(bBlockUI) {
-		if (bBlockUI) nlDlg.showLoadingScreen();
-		_saveAttemptNumber++;
-		var currentSaveNumber = _saveAttemptNumber;
+	function _updatedStatusinfoAtServer() {
 		var repid = parseInt($scope.params.id);
+		_pageDirty = true;
 		nlCourse.courseReportUpdateStatus(repid, JSON.stringify(modeHandler.course.statusinfo))
 		.then(function(courseReport) {
-			if (currentSaveNumber > _saveDoneNumber)
-				_saveDoneNumber = currentSaveNumber;
-			if (bBlockUI) nlDlg.hideLoadingScreen();
+			_pageDirty = false;
 		});
 	}
 	
