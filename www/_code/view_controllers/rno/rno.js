@@ -389,6 +389,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
         var ratings = o.ratings || {};
         dlg.scope.msTree = new MsTree(_metadata.milestones, rno.user_type, ratings, _getRatingDict(), null);
         dlg.scope.options = {rating: _getRatingOptions()};
+        dlg.scope.purpose = 'observation';
         
         dlg.scope.data = {text: o.text || '', notes: o.notes || '', attachments: o.attachments || ''};
         dlg.scope.error = {};
@@ -466,6 +467,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 
         dlg.scope.dlgTitle = nl.t('Edit report: {} {}', rno.first_name, rno.last_name);
         dlg.scope.rno = rno;
+        dlg.scope.purpose = 'rating';
         _togglePreviewMode(dlg.scope);
         dlg.scope.user_model = _metadata.user_model;
         dlg.scope.image = _getCardIcon(rno);
@@ -613,25 +615,46 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
             }
         };
 
+        this.onOverrideRating = function(ms) {
+            var self = this;
+            if (!ms.ratingOverride.id) return;
+            for(var i=0; i<self.items.length; i++) {
+                var item = self.items[i];
+                if (ms.id == item.id) continue;
+                if (item.isFolder) continue;
+                if (!_isAnsistor(ms, item)) continue;
+
+                item.rating = {id: ms.ratingOverride.id, name: ms.ratingOverride.name};
+                self.onRatingChange(item);
+            }
+            ms.ratingOverride = {id: null, name: ''};
+        }
+
         function _init(self) {
             var rootName = '_root';
+            var ratingOverride = {id: null, name: ''};
             _addItem(self, {id: rootName, text: nl.t('All milestones'), parent: null,
                 isShown: true, isFolder: true, indentation: 0,
-                isFolderOpen: true, selectCnt: 0, deselectCnt: 0});
+                isFolderOpen: true, selectCnt: 0, deselectCnt: 0,
+                ratingOverride: ratingOverride});
             for (var i=0; i<milestones.length; i++) {
                 var m = milestones[i];
                 if (m.usertype != usertype) continue;
                 var g1Id = nl.fmt2('{}.{}', rootName, m.group1);
                 if (!(g1Id in self.idToPos)) {
+                    var ratingOverride = {id: null, name: ''};
                     _addItem(self, {id: g1Id, text: m.group1, parent: rootName,
                         isShown: true, isFolder: true, indentation: 1,
-                        isFolderOpen: false, selectCnt: 0, deselectCnt: 0});
+                        isFolderOpen: false, selectCnt: 0, deselectCnt: 0,
+                        ratingOverride: ratingOverride});
                 }
                 var g2Id = nl.fmt2('{}.{}', g1Id, m.group2);
                 if (!(g2Id in self.idToPos)) {
+                    var ratingOverride = {id: null, name: ''};
                     _addItem(self, {id: g2Id, text: m.group2, parent: g1Id,
                         isShown: false, isFolder: true, indentation: 2,
-                        isFolderOpen: false, selectCnt: 0, deselectCnt: 0});
+                        isFolderOpen: false, selectCnt: 0, deselectCnt: 0,
+                        ratingOverride: ratingOverride});
                 }
                 var ratingId = (m.id in ratings) ? ratings[m.id] : defaultRating;
                 var ratingName = ratingId ? ratingDict[ratingId] : '';

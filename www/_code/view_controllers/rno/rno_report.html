@@ -29,7 +29,7 @@
 </div>
 <h3>Summary</h3>
 <nl-textarea ng-if="mode!='preview'" fieldmodel='summary'></nl-textarea>
-<div ng-if="mode=='preview'">summary</div>
+<div ng-if="mode=='preview'">{{data.summary}}</div>
 
 <h3>Ratings</h3>
 <nl-rno-mstree ng-if="mode!='preview'"></nl-rno-mstree>

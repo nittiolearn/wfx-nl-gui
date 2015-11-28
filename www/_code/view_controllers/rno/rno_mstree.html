@@ -9,11 +9,18 @@
         <td ng-if='!ms.isFolder' style='padding-left: {{4+ms.indentation*8}}px;'>
             {{ms.text}}
         </td>
-        <th ng-if='ms.isFolder'>
+        <th ng-if='ms.isFolder' class='nl-dlg-field-value'>
+            <div style='padding: 4px'>
             <span ng-class="{'nl-clickable': ms.selectCnt>0}"
-                  ng-click='msTree.showFiltered(ms, true)'>{{ms.selectCnt}} rated,</span>
-            <span ng-class="{'nl-clickable': ms.deselectCnt>0}"
-                  ng-click='msTree.showFiltered(ms, false)'>{{ms.deselectCnt}} not rated.</span>
+                  ng-click='msTree.showFiltered(ms, true)'>{{ms.selectCnt}} rated</span>
+            <span ng-if='purpose=="rating"'
+                  ng-class="{'nl-clickable': ms.deselectCnt>0}"
+                  ng-click='msTree.showFiltered(ms, false)'>{{ms.deselectCnt}}, not rated.</span>
+            </div>
+            <select ng-if='purpose=="rating" && ms.ratingOverride' ng-model='ms.ratingOverride'
+                    ng-options='opt as opt.name for opt in options.rating track by opt.id'
+                    ng-change='msTree.onOverrideRating(ms)'>
+            </select>
         </th>
         <td ng-if='!ms.isFolder' class='nl-dlg-field-value'>
             <select ng-model='ms.rating'
