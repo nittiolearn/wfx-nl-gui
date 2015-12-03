@@ -96,6 +96,7 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
     }
     function _onPageLeave() {
         loginDlg.close(false);
+        return true;
     }
     
     nlRouter.initContoller($scope, '', _onPageEnter, _onPageLeave);
