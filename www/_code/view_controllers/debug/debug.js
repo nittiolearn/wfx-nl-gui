@@ -44,7 +44,21 @@ function(nl, nlRouter, $scope, nlDlg, nlLogViewer, nlServerApi, nlCardsSrv) {
     function _getCards() {
         var cards = [];
 
-        var card = {title: nl.t('View logs'), 
+        var card = {title: nl.t('Reload'), 
+            icon: nl.url.resUrl('alerts.png'), 
+            internalUrl: 'debug_reload',
+            help: nl.t('Reload page'), 
+            children: [], links: []};
+        cards.push(card);
+
+        card = {title: nl.t('Change server'), 
+            icon: nl.url.resUrl('alerts.png'), 
+            internalUrl: 'debug_change_server',
+            help: nl.t('Change Server URL'), 
+            children: [], links: []};
+        cards.push(card);
+
+        card = {title: nl.t('View logs'), 
             icon: nl.url.resUrl('alerts.png'), 
             internalUrl: 'debug_logviewer',
             help: nl.t('View logs, configure log levels'), 
@@ -78,6 +92,20 @@ function(nl, nlRouter, $scope, nlDlg, nlLogViewer, nlServerApi, nlCardsSrv) {
         } else if (internalUrl === 'debug_restapi') {
             var restApi = new RestApi(nl, nlDlg, nlServerApi);
             restApi.showDlg($scope);
+        } else if (internalUrl === 'debug_reload') {
+            nl.window.location.reload(true);
+        } else if (internalUrl === 'debug_change_server') {
+            nlDlg.popupPrompt({
+                title: 'Server Url',
+                template: 'Enter server url',
+                inputType: 'text',
+                inputPlaceholder: 'https://www.nittiolearn.com',
+                okText: 'Change Server'
+            }).then(function(res) {
+                nl.log.debug('Url is ', res);
+                if (!res) return;
+                nl.window.location.href = res;
+            });
         }
     };
 }];

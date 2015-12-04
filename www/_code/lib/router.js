@@ -142,7 +142,7 @@ function Permission(nl) {
         '/app/logout_now': {login: false, permission: '', termRestriction: TR_OPEN},
         '/app/audit': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         '/app/impersonate': {login: true, permission: 'admin_impersonate_grp', termRestriction: TR_CLOSED},
-        '/debug': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
+        '/debug': {login: true, permission: 'debug_client', termRestriction: TR_CLOSED},
         '/app/forum': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},
         '/app/course_list': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},
         '/app/course_assign_list': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},

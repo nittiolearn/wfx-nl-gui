@@ -64,6 +64,14 @@ function(nl, $ionicPopup, $ionicLoading) {
         return $ionicPopup.show(data);
     };
     
+    this.popupPrompt = function(data) {
+        nl.log.debug('Dialog.popupPrompt: ', data.title);
+        data.cssClass = _addDlgCssClass(data.cssClass);
+        if (!('okText' in data)) data.okText = nl.t('Close');
+        this.hideLoadingScreen();
+        return $ionicPopup.prompt(data);        
+    };
+
     this.showLoadingScreen = function(delay) {
         nl.log.debug('Dialog.showLoadingScreen: ', delay);
         var loadingInfo = {templateUrl : 'lib_ui/utils/waiting.html', hideOnStateChange: false};

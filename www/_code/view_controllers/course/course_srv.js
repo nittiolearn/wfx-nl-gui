@@ -88,7 +88,9 @@ var _dashboardActions = {
     'lesson.create2': {'url': '/lesson/create2/{}', 'permission': 'lesson_create'},
     'lesson.my': {'url': '/lesson/my?{}', 'permission': 'lesson_create'},
     'lesson.review': {'url': '/lesson/review/1?{}', 'permission': 'lesson_review'},
-    'searchlist.view': {'url': '/nittioapp#/app/searchlist_view?id={}', 'permission': 'basic_access'}
+    'searchlist.view': {'url': '/nittioapp#/app/searchlist_view?id={}', 'permission': 'basic_access'},
+    'assign_desk.new': {'url': '/assignment/assigned_to_me?{}', 'permission': 'assignment_do', 'termCheck': 'Restricted'},
+    'assign_desk.past': {'url': '/assignment/assigned_to_me/past?{}', 'permission': 'assignment_do', 'termCheck': 'Restricted'}
 };
 
 module_init();

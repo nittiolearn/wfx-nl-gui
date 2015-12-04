@@ -55,6 +55,7 @@
             <tr><td>help.about </td><td>/info/more/</td><td> </td><td>Accessible even if no user is logged in</td></tr>
             <tr><td>help.issue </td><td>/info/help_issue_new/</td><td> basic_access</td><td></td></tr>
             <tr><td>help.eula </td><td>/info/eula/</td><td> basic_access</td><td></td></tr>
+            <tr><td>help.debug </td><td>/nittioapp#/debug</td><td> debug_client</td><td></td></tr>
             <tr><td>mentor_desk.mentor </td><td>/nittioapp#/app/forum?forumtype=1&refid=0</td><td> #is_mentor </td><td>Mentor view</td></tr>
             <tr><td>mentor_desk.mentee</td><td>/nittioapp#/app/forum?forumtype=1&refid=1</td><td> #is_mentee </td><td>Mentee view - accessible from restricted terminals as well</td></tr>
             <tr><td>course.view_my</td><td>/nittioapp#/app/course_list?my=1</td><td> course_create </td><td>Course card items</td></tr>
@@ -68,8 +69,6 @@
             <tr><td>assign_desk.view</td><td> /assignment/sent_by_me/</td><td> assignment_send</td><td></td></tr>
             <tr><td>assign_desk.create</td><td> /assignment/create/</td><td> assignment_send</td><td></td></tr>
             <tr><td>assign_desk.manage</td><td> /assignment/manage/</td><td> assignment_manage</td><td></td></tr>
-            <tr><td>assign_desk.new</td><td> /assignment/assigned_to_me/</td><td> assignment_do</td><td>Accessible from restricted terminals as well</td></tr>
-            <tr><td>assign_desk.past</td><td> /assignment/assigned_to_me/</td><td> assignment_do</td><td>Accessible from restricted terminals as well</td></tr>
             <tr><td>assign_desk.shared</td><td> /assignment/shared_with_me/</td><td> basic_access</td><td></td></tr>
             <tr><td>reports.view_rep_book</td><td>/reportbook/view_rep_book/</td><td>view_reportbook</td><td>Report card</td></tr>
             <tr><td>reports.rep_class</td><td>/reports/class_rep/</td><td>report_view</td><td></td></tr>
@@ -98,11 +97,13 @@
         <table class='nl-table nl-table-styled'>
             <tr><th>Action</th><th>URL</th><th>Permission</th><th>Remarks</th></tr>
             <tr><td>lesson.view </td><td>/lesson/view/{}</td><td>lesson_view</td><td>Direct link to lesson</td></tr>
-            <tr><td>lesson.view_approved </td><td>/lesson/search/{}</td><td>basic_access</td><td>View approved list</td></tr>
+            <tr><td>lesson.view_approved </td><td>/lesson/search?{}</td><td>basic_access</td><td>View approved list</td></tr>
             <tr><td>lesson.create2</td><td>/lesson/create2/{}</td><td>lesson_create</td><td>Provide template id in urlParams to directly create lesson based on template</td></tr>
-            <tr><td>lesson.my</td><td>/lesson/my/{}</td><td>lesson_create</td><td></td></tr>
-            <tr><td>lesson.review</td><td>/lesson/review/1/{}</td><td>learn_review</td><td></td></tr>
+            <tr><td>lesson.my</td><td>/lesson/my?{}</td><td>lesson_create</td><td></td></tr>
+            <tr><td>lesson.review</td><td>/lesson/review/1?{}</td><td>learn_review</td><td></td></tr>
             <tr><td>searchlist.view</td><td>/nittioapp#/app/searchlist_view?id={}</td><td>basic_access</td><td></td></tr>
+            <tr><td>assign_desk.new</td><td>/assignment/assigned_to_me?{}</td><td> assignment_do</td><td>Accessible from restricted terminals as well</td></tr>
+            <tr><td>assign_desk.past</td><td>/assignment/assigned_to_me/past?{}</td><td> assignment_do</td><td>Accessible from restricted terminals as well</td></tr>
         </table>
 
         <h4>Generic actions with fully customizable URLs</h4>
