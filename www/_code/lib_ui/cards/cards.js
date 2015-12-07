@@ -37,6 +37,7 @@ function(nl, $filter) {
 
 var CardsDirective = ['nl', 'nlDlg', '$filter', 'nlCardsSrv',
 function(nl, nlDlg, $filter, nlCardsSrv) {
+    var defaultEmptyCard = nlCardsSrv.getEmptyCard();
     return {
         restrict: 'E',
         transclude: true,
@@ -62,7 +63,7 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             										 $scope.search.filter);
             	var ret = staticlist.concat(filteredData);
             	if (ret.length > 0) return ret;
-            	var emptyCard = $scope.cards.emptycard || nlCardsSrv.getEmptyCard();
+            	var emptyCard = $scope.cards.emptycard || defaultEmptyCard;
             	ret.push(emptyCard);
             	return ret;
             };

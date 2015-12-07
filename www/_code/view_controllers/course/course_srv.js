@@ -83,6 +83,7 @@ var _dashboardActions = {
     'authorized': {'url': '{}', 'permission': 'basic_access'},
 
     // Action with customizable urlParams
+    'dashboard.home': {'url': '/nittioapp#/app/home?{}', 'permission': 'basic_access', 'termCheck': 'Open'},
     'lesson.view': {'url': '/lesson/view/{}', 'permission': 'lesson_view'},
     'lesson.view_approved': {'url': '/lesson/search?{}', 'permission': 'basic_access'},
     'lesson.create2': {'url': '/lesson/create2/{}', 'permission': 'lesson_create'},
