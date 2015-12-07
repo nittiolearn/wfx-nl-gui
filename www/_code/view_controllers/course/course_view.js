@@ -150,7 +150,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
                 return;
             }
             $scope.mode = modeHandler.mode;
-            $scope.expandedView = true;
             $scope.showStatusIcon = modeHandler.shallShowScore();
             var courseId = parseInt($scope.params.id);
             modeHandler.getCourse().then(function(course) {
@@ -186,7 +185,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         $scope.showHideAllButtonName = treeList.showHideAllButtonName();
     };
     
-    $scope.expandedView = true; 
+    $scope.expandedView = false; 
     $scope.expandviewtext = _updateExpandviewtext();
     $scope.expandViewClick = function() {
         $scope.expandedView = !$scope.expandedView;
@@ -501,7 +500,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
     if (ID_ATTR === undefined) ID_ATTR = 'id';
     if (DELIM === undefined) DELIM = '.';
-    if (VISIBLE_ON_OPEN === undefined) VISIBLE_ON_OPEN = 10000; // Practically all levels are visible
+    if (VISIBLE_ON_OPEN === undefined) VISIBLE_ON_OPEN = 1; // Practically all levels are visible
     
     this.clear = function() {
         this.items = {};
@@ -535,7 +534,7 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
         return this.rootItems;
     };
 
-    this.bExpanded = true;
+    this.bExpanded = false;
     this.showHideAllButtonName = function() {
         if (this.bExpanded) return nl.t('Collapse all');
         return nl.t('Expand all');

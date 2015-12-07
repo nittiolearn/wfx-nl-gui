@@ -877,7 +877,7 @@ nlesson = function() {
 				var pos = me.sectionCreateOrder[i];
 				nittio.resizeImagesToAspectRatio(me.sections[pos].pgSecView);
 			}
-			me.updateFontSizes();
+			me.updateFontSizes(me.lesson.oLesson.minTextSize || 30);
 			for (var i=0; i<me.sections.length; i++) {
 				var pos = me.sectionCreateOrder[i];
 				me.sections[pos].adjustHtmlDom();
@@ -905,12 +905,13 @@ nlesson = function() {
 		});
 	}
 
-	function Page_updateFontSizes() {
+	function Page_updateFontSizes(minTextSize) {
 		var textSizes = {};
 		for (var i=0; i<this.sections.length; i++) {
 			if (!this.sections[i].adjustFontSize) continue;
 			var fmtgroup = this.pagetype.getFromatGroup(i);
-			njs_helper.findMinFontSizeOfGroup(this.sections[i].pgSecView, textSizes, fmtgroup);		
+			njs_helper.findMinFontSizeOfGroup(this.sections[i].pgSecView, 
+			    textSizes, fmtgroup, minTextSize);		
 		}
 		for (var i=0; i<this.sections.length; i++) {
 			if (!this.sections[i].adjustFontSize) {
@@ -918,7 +919,7 @@ nlesson = function() {
 				continue;
 			}
 			var fmtgroup = this.pagetype.getFromatGroup(i);
-			njs_helper.resizeText(this.sections[i], textSizes[fmtgroup]);
+			njs_helper.resizeText(this.sections[i], textSizes[fmtgroup], minTextSize);
 		}
 	}
 	

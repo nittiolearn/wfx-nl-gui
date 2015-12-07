@@ -129,22 +129,21 @@ function valignMiddle(obj) {
 // Helper used for resizing the text inside a section
 //-------------------------------------------------------------------------------------------
 var ERROR_MARGIN = 3; // Number of pixel error margin
-var MIN_TEXT_SIZE = 30;
 var OVERFLOW_DEF = 'visible';
-function findMinFontSizeOfGroup(pgSecView, textSizes, fmtgroup) {
+function findMinFontSizeOfGroup(pgSecView, textSizes, fmtgroup, minTextSize) {
 	var maxSize=(fmtgroup in textSizes) ? textSizes[fmtgroup] : 100;
 	var fitChecker = new TextFitmentChecker(pgSecView);
-	var textSize = fitChecker.findBestFit(MIN_TEXT_SIZE, maxSize);
+	var textSize = fitChecker.findBestFit(minTextSize, maxSize);
 
 	fitChecker.cleanup();
 	textSizes[fmtgroup] = textSize;
 } 
 
-function resizeText(section, textSize) {
+function resizeText(section, textSize, minTextSize) {
 	var pgSecView = section.pgSecView;
 	var fsz = '' + textSize + '%';
 	var overflow = OVERFLOW_DEF;
-	if (textSize <= MIN_TEXT_SIZE) {
+	if (textSize <= minTextSize) {
 		var fitChecker = new TextFitmentChecker(pgSecView);
 		if (!fitChecker.doesItFit(textSize)) {
 			overflow = 'scroll';
