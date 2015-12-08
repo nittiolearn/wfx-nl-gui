@@ -75,8 +75,7 @@ function ModeHandler(nl, nlCourse, nlDlg) {
             return _redirectTo('/lesson/view/{}', refid, newTab);
         }
 
-        var refidStr = refid.toString();
-        var reportInfo = (refidStr in self.course.lessonReports) ? self.course.lessonReports[refidStr] : null;
+        var reportInfo = (cm.id in self.course.lessonReports) ? self.course.lessonReports[cm.id] : null;
         if (this.mode === MODES.REPORT_VIEW) {
             if (!reportInfo || !reportInfo.completed) return _popupAlert('Not completed', 
                 'This learning module is not yet completed. You may view the report once it is completed.');
@@ -87,10 +86,10 @@ function ModeHandler(nl, nlCourse, nlDlg) {
         if (_redirectToLessonReport(reportInfo, newTab)) return true;
         
         nlDlg.showLoadingScreen();
-        nlCourse.courseCreateLessonReport(self.course.id, refid).then(function(updatedCourseReport) {
+        nlCourse.courseCreateLessonReport(self.course.id, refid, cm.id).then(function(updatedCourseReport) {
             // nlDlg.hideLoadingScreen(); not required here
             self.course = updatedCourseReport;
-            reportInfo = self.course.lessonReports[refidStr];
+            reportInfo = self.course.lessonReports[cm.id];
             _redirectToLessonReport(reportInfo, newTab);
         });
         
@@ -322,9 +321,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         cm.maxScore = 0;
 
         if (!('refid' in cm) || !('lessonReports' in course)) return;
-        var refid = cm.refid.toString();
-        if (!(refid in course.lessonReports)) return;
-        var lessonReport = course.lessonReports[refid];
+        if (!(cm.id in course.lessonReports)) return;
+        var lessonReport = course.lessonReports[cm.id];
         var completed = 'completed' in lessonReport ? lessonReport.completed : false;
         if (!completed) return;
         cm.completedCount = 1;
