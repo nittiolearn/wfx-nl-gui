@@ -9,18 +9,48 @@ function module_init() {
     .service('nlRouter', NlRouter);
 }
 
-var NlRouter = ['nl', 'nlDlg', 'nlServerApi',
-function(nl, nlDlg, nlServerApi) {
+function UrlString(location) {
+    this.init = function() {
+        this.url = location.url();
+        this.path = location.path();
+        this.search = location.search();
+    };
+    
+    this.isSamePathAndDifferentSearch = function(rhs) {
+        return (this.path == rhs.path) && (this.url != rhs.url);
+    };
+
+    this.init();
+}
+
+var NlRouter = ['nl', 'nlDlg', 'nlServerApi', '$state',
+function(nl, nlDlg, nlServerApi, $state) {
     var permission = new Permission(nl);
     var defaultFn = function() {return function(resolve, reject) {resolve(true);};};
     
+    var preservedSearchParams = null;
     this.initContoller = function($scope, pageUrl, pageEnterFn, pageLeaveFn) {
+        if (preservedSearchParams) {
+            nl.location.search(preservedSearchParams);
+            preservedSearchParams = null;
+        }
+        var myUrlStr = new UrlString(nl.location);
+        nl.log.debug('on initController: ', myUrlStr);
+        
         if (pageEnterFn === undefined) pageEnterFn = defaultFn;
         $scope.$on('$ionicView.beforeEnter', function(e) {
+            nl.log.debug('nlRouter: onPageEnter: ', myUrlStr.url);
             _onPageEnter($scope, pageUrl, pageEnterFn, e);
         });
         $scope.$on('$locationChangeStart', function(e) {
+            var newUrlStr = new UrlString(nl.location);
+            nl.log.debug('nlRouter: onPageLeave (locationChangeStart): ', myUrlStr.url, newUrlStr.url);
             _onPageLeave($scope, pageUrl, pageLeaveFn, e);
+            if (newUrlStr.isSamePathAndDifferentSearch(myUrlStr)) {
+                nl.log.debug('nlRouter: reloading page: ', myUrlStr.url, newUrlStr.url, newUrlStr.search);
+                preservedSearchParams = newUrlStr.search;
+                $state.go($state.current, {}, {reload: true}); // reload controllers
+            }
         });
     };
     
@@ -32,7 +62,6 @@ function(nl, nlDlg, nlServerApi) {
     };
     
     function _onPageEnter($scope, pageUrl, pageEnterFn, e) {
-        nl.log.debug('router.onPageEnter: ', nl.location.url());
         nl.pginfo.isPageShown = false;
         nlDlg.showLoadingScreen();
         var protocol = nl.location.protocol().toLowerCase();
@@ -69,14 +98,13 @@ function(nl, nlDlg, nlServerApi) {
     }
 
     function _onPageLeave($scope, pageUrl, pageLeaveFn, e) {
-        nl.log.debug('router.onPageLeave: ', nl.location.url());
         var canLeave = pageLeaveFn ? pageLeaveFn(e) : true;
         if (!canLeave) {
-			e.preventDefault();
-        	return;
+            e.preventDefault();
+            return;
         }
-        nl.pginfo.isPageShown = false;
-        nl.pginfo.pageSubTitle = '';
+        //nl.pginfo.isPageShown = false;
+        //nl.pginfo.pageSubTitle = '';
         nlDlg.closeAll();
     }
     
