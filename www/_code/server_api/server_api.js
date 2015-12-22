@@ -255,18 +255,11 @@ function(nl, nlDlg, nlConfig) {
     //---------------------------------------------------------------------------------------------
 	// assignment desk list entities
     //---------------------------------------------------------------------------------------------
-    this.assignmentGetNewList = function(data) {
-        // data: mine, search
+    this.assignmentGetMyList = function(data) {
+        // data: bPost, search
         // return: list of dashboardObjects
-        return server.post('_serverapi/assignment_newlist.json', data);
+        return server.post('_serverapi/assignment_get_my_list.json', data);
     };
-
-    this.assignmentGetPastList = function(data) {
-        // data: mine, search
-        // return: list of dashboardObjects
-        return server.post('_serverapi/assignment_pastlist.json', data);
-    };
-
 
     //---------------------------------------------------------------------------------------------
     // Private methods

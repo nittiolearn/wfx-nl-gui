@@ -28,7 +28,7 @@ var AssignmentDeskCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nl
 function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		
 	var assignDict = {};
-	var my = false;
+	var past = false;
 	var _userInfo = null;
 	var _searchFilterInUrl = '';
 
@@ -37,9 +37,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		_initParams();
 		return nl.q(function(resolve, reject) {
 	        var params = nl.location.search();
-	        my = ('my' in params) ? parseInt(params.my) == 1: false;
-	       	nl.pginfo.pageTitle = my === true? nl.t('New Assignments'): nl.t('Past Assignments');
+	        past = ('past' in params) ? parseInt(params.past) == 1: false;
+	       	nl.pginfo.pageTitle = past === true? nl.t('Past Assignments'): nl.t('New Assignments');
         	$scope.cards = {};
+        	
 			$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
 			_getDataFromServer(_searchFilterInUrl, resolve, reject);
 		});
@@ -48,7 +49,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 
 	function _getEmptyCard(nlCardsSrv) {
 		var help = null;
-		if (my) {
+		if (!past) {
 			help = nl.t('There are no assignments to display.');
 		}
 		return nlCardsSrv.getEmptyCard({help:help});
@@ -66,31 +67,30 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	}
 
 	function _listingFunction(filter) {
-		if (my) {
-			return nlServerApi.assignmentGetNewList({mine: my, search: filter});
-    	}
-		return nlServerApi.assignmentGetPastList({mine: my, search: filter});
-    }
+			return nlServerApi.assignmentGetMyList({bPast: past, search: filter});
+     }
     
     
 	function _getCards(userInfo, resultList, nlCardsSrv) {
 		var cards = [];
 		for (var i = 0; i < resultList.length; i++) {
-			var card = _createCourseCard(resultList[i], userInfo);
+			var card = _createAssignmentCard(resultList[i], userInfo);
 			cards.push(card);
 		}
 		return cards;
 	}
 	
-	function _createCourseCard(assignment, userInfo) {
+	function _createAssignmentCard(assignment, userInfo) {
 		assignDict[assignment.id] = assignment;
+		var url = nl.fmt2('#/app/assignment?id={}', assignment.id);
 	    var card = {assignmentId: assignment.id,
 	    			title: assignment.name, 
-					icon: assignment.icon, 
-					url: '#/app/home' ,
-					help: assignment.description,
+					icon: nl.url.lessonIconUrl(assignment.icon), 
+					url: url,
+					help: nl.t("<b>Assigned to:</b> {}<br> <b>Subject:</b> {}<br> <b>by:</b> {}", assignment.assigned_to, assignment.subject, assignment.assigned_by),
 					children: []};
 		card.details = {help: card.help, avps: _getCourseAvps(assignment)};
+		console.log(card);
 		card.links = [];
 		card.links.push({id: 'details', text: nl.t('details')});
 		return card;
@@ -137,7 +137,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	function _initParams() {
 		assignDict = {};
         var params = nl.location.search();
-	        my = ('my' in params) ? parseInt(params.my) == 1: false;
+	        past = ('past' in params) ? parseInt(params.past) == 1: false;
         _searchFilterInUrl = ('search' in params) ? params.search : '';
 	}
 

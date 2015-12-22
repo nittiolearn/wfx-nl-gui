@@ -305,7 +305,9 @@ function NlUrl(nl) {
     };
 
     this.lessonIconUrl = function(iconName) {
-        return serverResFolder('icon', iconName);
+        return (iconName.indexOf('img:') == 0) 
+        		? iconName.substring(4) 
+        		: serverResFolder('icon', iconName);
     };
 
     this.bgImgUrl = function(iconName) {
