@@ -301,8 +301,6 @@ gulp.task('nittio_build', function(done) {
                 done);
 });
 
-gulp.task('nittio_build1', ['nittio_copy_res', 'nittio_copy_icon', 'nittio_copy_template', 'nittio_copy_script', 'nittio_generate_index']);
-
 gulp.task('nittio_watch', ['nittio_build', 'nl_watch'], function() {
     //------------------------------------------------------------------------------------------
     // Adding stuff does not work - so no point watch below folders
