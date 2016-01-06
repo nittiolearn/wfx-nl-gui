@@ -140,6 +140,7 @@ function Formatter() {
 		}
 		if (fmtType == 'date') fieldValue = this.jsonDate2Str(fieldValue);
 		if (fmtType == 'boolean') fieldValue = fieldValue ? this.t(['Yes']) : this.t(['No']);
+		if (fmtType == 'minutes') fieldValue = fieldValue ? (fieldValue > 1 ? this.t(['{} minutes', fieldValue]) : this.t(['{} minute', fieldValue])) : this.t('-');
 		if (!fieldValue) fieldValue = fieldDefault || '-';
 		avps.push({attr: this.t([fieldName]), val: fieldValue});
 	};

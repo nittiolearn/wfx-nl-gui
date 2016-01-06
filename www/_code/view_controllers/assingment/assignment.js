@@ -82,45 +82,69 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	
 	function _createAssignmentCard(assignment, userInfo) {
 		assignDict[assignment.id] = assignment;
-		var url = nl.fmt2('#/app/assignment?id={}', assignment.id);
+		var url = nl.fmt2('/lesson/do_report_assign/{}/', assignment.id);
 	    var card = {assignmentId: assignment.id,
 	    			title: assignment.name, 
 					icon: nl.url.lessonIconUrl(assignment.icon), 
 					url: url,
-					help: nl.t("<b>Assigned to:</b> {}<br> <b>Subject:</b> {}<br> <b>by:</b> {}", assignment.assigned_to, assignment.subject, assignment.assigned_by),
 					children: []};
-		card.details = {help: card.help, avps: _getCourseAvps(assignment)};
-		console.log(card);
+		if(past == true) {
+			card['help'] = nl.t("Assigned to: <b>{}</b><br> Subject: {}<br> by: <b>{}</b><br> <img src={} class='nl-24'> completed",
+								 assignment.assigned_to, assignment.subject, assignment.assigned_by, nl.url.resUrl('general/tick.png'));
+		}else{
+			card['help'] = nl.t("Assigned to: <b>{}</b><br> Subject: {}<br> by: <b>{}</b><br> {}", 
+								 assignment.assigned_to, assignment.subject, assignment.assigned_by, assignment.assign_remarks);			
+		}
+		card.details = {help: nl.t('Details about the assignment'), avps: _getAssignmentAvps(assignment)};
 		card.links = [];
 		card.links.push({id: 'details', text: nl.t('details')});
+		//console.log(assignment.published);
 		return card;
 	}
 	
-	function  _getCourseAvps(assignment) {
+	function  _getAssignmentAvps(assignment) {
 		var avps = [];
-		nl.fmt.addAvp(avps, 'Operations', 'View_report');
+		_addAvp(avps, 'Operations', assignment.id, 'link', past);
 		nl.fmt.addAvp(avps, 'Name', assignment.name);
-		nl.fmt.addAvp(avps, 'Remarks', assignment.remarks);		
+		nl.fmt.addAvp(avps, 'Remarks', assignment.assign_remarks);		
 		nl.fmt.addAvp(avps, 'Assigned by', assignment.assigned_by);
 		nl.fmt.addAvp(avps, 'Owner', assignment.authorname);
 		nl.fmt.addAvp(avps, 'Assigned on', assignment.assigned_on, 'date');
-		nl.fmt.addAvp(avps, 'Started on', assignment.started_on, 'date');
-		nl.fmt.addAvp(avps, 'Ended on', assignment.ended_on, 'date');
+		nl.fmt.addAvp(avps, 'Started on', assignment.started, 'date');
+		nl.fmt.addAvp(avps, 'Ended on', assignment.ended, 'date');
 		nl.fmt.addAvp(avps, 'Assigned to', assignment.assigned_to);
 		nl.fmt.addAvp(avps, 'Subject', assignment.subject);
-		nl.fmt.addAvp(avps, 'Lesson Author', assignment.lesson_author);
-		nl.fmt.addAvp(avps, 'Lesson Description', assignment.description);
-		nl.fmt.addAvp(avps, 'Earliest start time', assignment.earliest_start_time, 'date');
-		nl.fmt.addAvp(avps, 'Latest end time', assignment.latest_end_time, 'date');
-		nl.fmt.addAvp(avps, 'Max duration', assignment.max_duration);
-		nl.fmt.addAvp(avps, 'Show answers', assignment.show_answers);
-		nl.fmt.addAvp(avps, 'Is published?', assignment.is_published);
-		nl.fmt.addAvp(avps, 'Discussion forum', assignment.discussion_forum);
+		nl.fmt.addAvp(avps, 'Lesson Author', assignment.authorname);
+		nl.fmt.addAvp(avps, 'Lesson Description', assignment.descMore);
+		nl.fmt.addAvp(avps, 'Earliest start time', assignment.not_before, 'date');
+		nl.fmt.addAvp(avps, 'Latest end time', assignment.not_after, 'date');
+		nl.fmt.addAvp(avps, 'Max duration', assignment.max_duration, 'minutes');
+		_addAvp(avps, 'Show answers', assignment.learnmode, 'string');
+		_addAvp(avps, 'Is published?', assignment.published, 'publish');
+		nl.fmt.addAvp(avps, 'Discussion forum', assignment.forum, 'boolean');
 		return avps;
 	}
 	
+	function _addAvp(avps, fieldName, fieldValue, fmtType, fieldDefault){
+		if(fmtType == 'link') {
+		    if (fieldDefault == true) { 
+		        fieldValue = nl.fmt.t(["<a href='/lesson/view_report_assign/{}/'> view report</a>", fieldValue]);
+		    }else{
+		        fieldValue = nl.fmt.t(["<a href='/lesson/do_report_assign/{}/'> Do assignments</a>", fieldValue]);
+		    }
+		 }
+		if(fmtType == 'string') {
+			if(fieldValue == 1) fieldValue = nl.fmt.t(['on every page']);
+			if(fieldValue == 2) fieldValue = nl.fmt.t(['after submitting']);
+			if(fieldValue == 3) fieldValue = nl.fmt.t(['only when published']);
+		}
+		if(fmtType == 'publish') fieldValue = fieldValue == true ? nl.fmt.t(['True']): nl.fmt.t(['False']);
+		if(!fieldValue) fieldValue = fieldDefault || '-';		
+		return avps.push({attr: nl.fmt.t([fieldName]), val: fieldValue});
+	}
+	
 	function _addSearchInfo(cards) {
-		cards.search = {placeholder: nl.t('Enter course name/description')};
+		cards.search = {placeholder: nl.t('Enter assignment name/description')};
 		cards.search.onSearch = _onSearch;
 	}
 	
