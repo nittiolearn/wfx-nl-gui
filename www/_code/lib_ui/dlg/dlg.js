@@ -10,7 +10,9 @@ function module_init() {
     .directive('nlDlg', DlgDirective)
     .directive('nlInput', InputDirective)
     .directive('nlTextarea', TextareaDirective)
+    .directive('nlSelect', SelectDirective)
     .directive('nlFormInput', FormInputDirective)
+    .directive('nlFormSelect', FormSelectDirective)
     .directive('nlFormTextarea', FormTextareaDirective)
     .directive('nlFileInput', FileInputDirective)
     .directive('nlElastic', ElasticTextareaDirective);
@@ -230,6 +232,12 @@ function(nl, nlDlg) {
         'lib_ui/dlg/input.html');
 }];
 
+var SelectDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return _formFieldDirectiveImpl(nl, nlDlg, 'input',
+        'lib_ui/dlg/select.html');
+}];
+
 var TextareaDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
     return _formFieldDirectiveImpl(nl, nlDlg, 'textarea',
@@ -240,6 +248,12 @@ var FormInputDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
     return _formFieldDirectiveImpl(nl, nlDlg, 'input',
         'lib_ui/dlg/forminput.html');
+}];
+
+var FormSelectDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return _formFieldDirectiveImpl(nl, nlDlg, 'select',
+        'lib_ui/dlg/formselect.html');
 }];
 
 var FormTextareaDirective = ['nl', 'nlDlg',
@@ -263,6 +277,10 @@ function _formFieldDirectiveImpl(nl, nlDlg, tagName, templateUrl) {
             nl.log.debug('linking field: ', $scope.fieldmodel);
             var field = iElem.find(tagName)[0];
             nlDlg.addField($scope.fieldmodel, field);
+            $scope.onFieldChange = function(fieldModel) {
+            	if (!('onFieldChange' in $scope.$parent)) return;
+            	$scope.$parent.onFieldChange(fieldModel);
+            };
         }
     };
 }
