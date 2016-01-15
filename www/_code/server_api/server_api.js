@@ -253,6 +253,15 @@ function(nl, nlDlg, nlConfig) {
     };
 
     //---------------------------------------------------------------------------------------------
+	// assignment desk list entities
+    //---------------------------------------------------------------------------------------------
+    this.assignmentGetMyList = function(data) {
+        // data: bPost, search
+        // return: list of dashboardObjects
+        return server.post('_serverapi/assignment_get_my_list.json', data);
+    };
+
+    //---------------------------------------------------------------------------------------------
     // Private methods
     //---------------------------------------------------------------------------------------------
     function _getUserInfoFromCacheOrServer() {

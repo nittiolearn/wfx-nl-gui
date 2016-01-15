@@ -116,7 +116,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 			searchlistId : item.id,
 			title : item.name,
 			url: nl.fmt2('/lesson/view/{}', item.id),
-			icon : _getLessonIcon(item),
+			icon : nl.url.lessonIconUrl(item.image),
 			help : _getLessonDesc(item),
 			children :[]
 		};
@@ -125,13 +125,6 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 		return card;
 	}
 	
-    function _getLessonIcon(l) {
-        var imgName = l.image;
-        var imgUrl = (imgName.indexOf('img:') == 0) ? imgName.substring(4) 
-                                                    : nl.url.lessonIconUrl(imgName);
-        return imgUrl;
-    }
-
     function _getLessonDesc(l) {
         var desc = nl.fmt2('<b>{}, {}</b>', l.grade, l.subject);
         desc += nl.fmt2('<p>by: {}</p>', l.authorname);
