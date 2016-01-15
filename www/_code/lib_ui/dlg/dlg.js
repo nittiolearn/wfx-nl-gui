@@ -10,8 +10,11 @@ function module_init() {
     .directive('nlDlg', DlgDirective)
     .directive('nlInput', InputDirective)
     .directive('nlTextarea', TextareaDirective)
+    .directive('nlSelect', SelectDirective)
     .directive('nlFormInput', FormInputDirective)
+    .directive('nlFormSelect', FormSelectDirective)
     .directive('nlFormTextarea', FormTextareaDirective)
+    .directive('nlFileInput', FileInputDirective)
     .directive('nlElastic', ElasticTextareaDirective);
 }
 
@@ -229,6 +232,12 @@ function(nl, nlDlg) {
         'lib_ui/dlg/input.html');
 }];
 
+var SelectDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return _formFieldDirectiveImpl(nl, nlDlg, 'input',
+        'lib_ui/dlg/select.html');
+}];
+
 var TextareaDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
     return _formFieldDirectiveImpl(nl, nlDlg, 'textarea',
@@ -239,6 +248,12 @@ var FormInputDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
     return _formFieldDirectiveImpl(nl, nlDlg, 'input',
         'lib_ui/dlg/forminput.html');
+}];
+
+var FormSelectDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return _formFieldDirectiveImpl(nl, nlDlg, 'select',
+        'lib_ui/dlg/formselect.html');
 }];
 
 var FormTextareaDirective = ['nl', 'nlDlg',
@@ -262,9 +277,67 @@ function _formFieldDirectiveImpl(nl, nlDlg, tagName, templateUrl) {
             nl.log.debug('linking field: ', $scope.fieldmodel);
             var field = iElem.find(tagName)[0];
             nlDlg.addField($scope.fieldmodel, field);
+            $scope.onFieldChange = function(fieldModel) {
+            	if (!('onFieldChange' in $scope.$parent)) return;
+            	$scope.$parent.onFieldChange(fieldModel);
+            };
         }
     };
 }
+
+//-------------------------------------------------------------------------------------------------
+var FileInputDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+	
+    function addFileContent(file, $scope, fieldmodel){
+	    var reader = new FileReader();
+	    reader.onload = function(e) {
+    		var fileInfo = {file: file, content: e.target.result};
+        	$scope.$parent.$apply(function () {
+                $scope.$parent.data[fieldmodel].push(fileInfo);
+            });            	
+	    }; 
+	    reader.readAsDataURL(file);
+    }
+
+    return {
+        restrict: 'E',
+        templateUrl: 'lib_ui/dlg/file_input.html',
+        scope: {
+            fieldmodel: '@',
+            fieldcls: '@',
+            tabindex: '@'
+        },
+        link: function($scope, iElem, iAttrs) {
+        	var field = angular.element(iElem.find('input')[0]);
+        	$scope.imgBasePath = nl.url.resUrl();
+            $scope.$parent.data[$scope.fieldmodel] = [];
+            field.bind('change', function(changeEvent) {
+            	var fileList =  changeEvent.target.files;
+            	for (var i=0; i<fileList.length; i++) {
+            		var file = fileList[i];
+            		$scope.$parent.data[$scope.fieldmodel].push(file);
+            		addFileContent(file, $scope, $scope.fieldmodel);
+            	}
+            });
+            nlDlg.addField($scope.fieldmodel, field);
+            $scope.imgClick = function(imgUrl, fileName) {
+            	var msg = {title: fileName, 
+				   template:nl.t('<img class="nl-full-width" src='+imgUrl.content+' />'),
+				   okText: nl.t('Remove')};
+				nlDlg.popupConfirm(msg).then(function(e) {
+					if(!e) return;
+					for( var i=0; i<$scope.$parent.data[$scope.fieldmodel].length;i++) {
+						var data = $scope.$parent.data[$scope.fieldmodel];
+						if(data[i] == imgUrl) {
+							$scope.$parent.data[$scope.fieldmodel].splice(i,1);
+						}
+					}
+				});
+            };
+        }
+    };
+}];
 
 //-------------------------------------------------------------------------------------------------
 var ElasticTextareaDirective =  ['nl',

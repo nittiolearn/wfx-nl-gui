@@ -23,9 +23,10 @@ function($stateProvider, $urlRouterProvider) {
     });
 }];
 
+var MODES = {PRIVATE: 0, PUBLISHED: 1, REPORT_VIEW: 2, DO: 3, EDIT: 4};
+var MODE_NAMES = {'private': 0, 'published': 1, 'report_view': 2, 'do': 3, 'edit': 4};
+
 function ModeHandler(nl, nlCourse, nlDlg) {
-    var MODES = {PRIVATE: 0, PUBLISHED: 1, REPORT_VIEW: 2, DO: 3};
-    var MODE_NAMES = {'private': 0, 'published': 1, 'report_view': 2, 'do': 3};
     this.mode = MODES.PRIVATE;
     this.courseId = null;
     this.course = null;
@@ -43,6 +44,8 @@ function ModeHandler(nl, nlCourse, nlDlg) {
         nl.pginfo.pageTitle = course.name;
         if (this.mode === MODES.PRIVATE) {
             nl.pginfo.pageSubTitle = nl.t('(private)');
+        } else if (this.mode === MODES.EDIT) {
+            nl.pginfo.pageSubTitle = nl.t('(edit)');
         } else if (this.mode === MODES.PUBLISHED) {
             nl.pginfo.pageSubTitle = nl.t('(published)');
         } else if (this.mode === MODES.REPORT_VIEW) {
@@ -53,7 +56,7 @@ function ModeHandler(nl, nlCourse, nlDlg) {
     };
     
     this.getCourse = function(course) {
-        if (this.mode === MODES.PRIVATE || this.mode === MODES.PUBLISHED) {
+        if (this.mode === MODES.PRIVATE || this.mode === MODES.EDIT || this.mode === MODES.PUBLISHED) {
             return nlCourse.courseGet(this.courseId, this.mode === MODES.PUBLISHED);
         }
         if (this.mode === MODES.REPORT_VIEW) {
@@ -71,7 +74,7 @@ function ModeHandler(nl, nlCourse, nlDlg) {
         var self = this;
         if (!('refid' in cm)) return _popupAlert('Error', 'Link to the learning module is not specified');
         var refid = cm.refid;
-        if (this.mode === MODES.PRIVATE || this.mode === MODES.PUBLISHED) {
+        if (this.mode === MODES.PRIVATE || this.mode === MODES.EDIT || this.mode === MODES.PUBLISHED) {
             return _redirectTo('/lesson/view/{}', refid, newTab);
         }
 
@@ -138,6 +141,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
     var modeHandler = new ModeHandler(nl, nlCourse, nlDlg);
     var treeList = new TreeList(nl);
     var _userInfo = null;
+    $scope.MODES = MODES;
     function _onPageEnter(userInfo) {
         _userInfo = userInfo;
         return nl.q(function(resolve, reject) {
@@ -152,19 +156,23 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
             $scope.showStatusIcon = modeHandler.shallShowScore();
             var courseId = parseInt($scope.params.id);
             modeHandler.getCourse().then(function(course) {
-                modeHandler.initTitle(course);
-                $scope.planning = course.content.planning;
-                var modules = course.content.modules;
-                for(var i=0; i<modules.length; i++) {
-                    _initModule(modules[i]);
-                }
-                _updateAllItemData(modeHandler);
-                $scope.modules = modules;
+            	_onCourseRead(course);
                 resolve(true);
             }, function(error) {
                 resolve(false);
             });
         });
+    }
+
+    function _onCourseRead(course) {
+        modeHandler.initTitle(course);
+        $scope.planning = course.content.planning;
+        var modules = course.content.modules;
+        for(var i=0; i<modules.length; i++) {
+            _initModule(modules[i]);
+        }
+        _updateAllItemData(modeHandler);
+        $scope.modules = modules;
     }
     
     function _onPageLeave() {
@@ -196,6 +204,80 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         return nl.t("Show more");
     }
 
+    $scope.addContent = function() {
+        var newDlg = nlDlg.create($scope);
+		newDlg.setCssClass('nl-height-max nl-width-max');
+		newDlg.scope.dlgTitle = nl.t('Add course module');
+        newDlg.scope.error = {};
+		newDlg.scope.data = {
+			type:{id:null}, id:'', name: '', planned_date: '',
+			icon: '', urlParams: '', action: '', refid: ''
+		};
+		newDlg.scope.options = {'type': [
+			{name: '', id: null},
+			{name: 'Module (folder)', id: 'module'},
+			{name: 'Lesson or a quiz', id: 'lesson'},
+			{name: 'Information', id: 'info'},
+			{name: 'Link', id: 'link'}
+		]};
+
+		var buttons = [];
+		var saveName = nl.t('Save');
+		var saveButton = {
+			text : saveName,
+			onTap : function(e) {
+				_onContentSave(e, $scope, newDlg.scope.data, modeHandler.courseId);
+			}
+		};
+		buttons.push(saveButton);
+		var cancelButton = {
+			text : nl.t('Cancel')
+		};
+		newDlg.show('view_controllers/course/course_content_dlg.html',
+			buttons, cancelButton, false);
+    };
+    
+    function _onContentSave(e, $scope, data, courseId) {
+    	// TODO: bring the validation code from course_list.js
+        _updateCourseModules(data);
+		var modifiedData = {
+			name: modeHandler.course.name, 
+			icon: modeHandler.course.icon, 
+			description: modeHandler.course.description,
+			content: angular.toJson(modeHandler.course.content),
+			courseid: courseId,
+			publish: false
+		};
+		nlDlg.showLoadingScreen();
+		nlCourse.courseModify(modifiedData).then(function(course) {
+			nlDlg.hideLoadingScreen();
+        	_onCourseRead(course);
+		});
+    }
+    
+    function _updateCourseModules(data) {
+		var type = data.type.id;
+		var module = {type: type, id: data.id, name: data.name, 
+			icon: data.icon, planned_date: data.planned_date};
+		if(type == 'lesson') {
+			module.refid = data.refid;
+		} 
+		if(type == 'link') {
+			module.urlParams = data.urlParams;
+			module.action = data.action;
+		}
+        var modules = modeHandler.course.content.modules;
+        var pos = modules.length - 1;
+        for(var i=0; i< modules.length; i++) {
+        	var mod = modules[i];
+			if(data.posId == mod.id) {
+				pos = i;
+				break;
+        	}
+        }
+		modules.splice(pos+1, 0, module);
+	}
+	
     $scope.onClick = function(e, cm, newTab) {
         if (cm.type === 'lesson') {
             modeHandler.handleLessonLink(cm, newTab);
@@ -403,7 +485,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
     }
 
     $scope.onClickOnSummary = function(cm) {
-        if($scope.mode != 3 || (cm.type != 'link' && cm.type != 'info')) {
+        if($scope.mode != MODES.DO || (cm.type != 'link' && cm.type != 'info')) {
             _getModuleDetails(cm, _icons);
             return;
         }

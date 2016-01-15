@@ -894,3 +894,56 @@ img.nl-icon {
 .nl-cv-indent {
     padding: 0 0.6em;
 }
+
+/*-----------------------------------------------------------------------------------------*
+ * rno elements
+ *-----------------------------------------------------------------------------------------*/
+.nl-thumbnail-container {
+  position: relative;
+  padding: 4px;
+  box-sizing: border-box;
+  display: inline-block;
+  
+  .nl-thumbnail {
+    border: 1px solid black;
+    border-radius: 4px;
+    width: 110px;
+    height: 135px;
+    .nl-thumbnail-img {
+      position: absolute;
+      top: 9px;
+      left: 9px;
+      height: 100px;
+      width: 100px;
+      cursor: pointer;
+      img {
+        max-height: 100px;
+        max-width: 100px;
+      }
+    }
+    .nl-thumbnail-txt {
+      position: absolute;
+      top: 114px;
+      left: 9px;
+      height: 20px;
+      width: 100px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      text-align: center;
+    }
+    input {
+      position: absolute;
+      opacity: 0;
+      top: 9px;
+      left: 9px;
+      height: 100px;
+      width: 100px;
+      cursor: pointer;
+    }
+  }
+}
+
+img.nl-full-width {
+  max-width: 100%;
+}

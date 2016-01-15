@@ -1,0 +1,121 @@
+<style>
+	.body {
+		width: 100%;
+	}
+	.purplebg {
+		position: relative;
+		width: 100%;
+		background-color: rgba(96, 74, 123, 0.9);
+		height: 100vh;
+	}
+	.image {
+		position: absolute;
+		width: 120px;
+		height: auto;
+		left: 39px;
+		top: 5px;
+	}
+	.image-2 {
+		position: absolute;
+		width: 7vw;
+		top: 660px;
+		left: 10vw;
+	}
+	.image-3 {
+		position: absolute;
+		top: 660px;
+		left: 40vw;
+		width: 7vw;
+	}
+	.image-4 {
+		position: absolute;
+		top: 660px;
+		left: 70vw;
+		width: 7vw;
+		
+	}
+	.text {
+		position: absolute;
+		color: rgb(255, 255, 255);
+		top: 9px;
+		width: 20vw;
+		height: 22px;
+		left: 199px;
+		white-space: nowrap;
+  		text-overflow : ellipsis;
+  		overflow:hidden;
+		background-color: rgba(0, 0, 0, 0);
+		font-style: normal;
+		font-size: 100%;
+		font-weight: 300;
+	}
+	._button {
+		position: absolute;
+		left: 85vw;
+		top: 16px;
+		border: 0px;
+		width: 10vw;
+		height: 34px;
+		background-color: rgba(96, 74, 123, 0.9);
+		font-style: normal;
+		font-size: 1.5vw;
+		font-weight: 300;
+		text-align: center;
+		color: rgb(255, 255, 255);
+	}
+	.heading {
+		position: absolute;
+		left: 5%;
+		top: 150px;
+		width: 40vw;
+		height: 5vh;
+		font-style: normal;
+		font-size: 2vw;
+		color: #ffffff;
+	}
+	.subheading {
+		position: absolute;
+		left: 5%;
+		top: 330px;
+		width: 40vw;
+		height: 3vh;
+		font-style: normal;
+		font-size: 1.25em;
+		font-weight: 300;
+		line-height: 1.38;
+		background-color: rgba(0, 0, 0, 0);
+		color: rgb(255, 255, 255);
+	}
+	.laptop {
+		position: absolute;
+		left: 50%;
+		top: 100px;
+		width: 45%;
+		height: auto;
+		overflow: hidden;
+	}
+	
+</style>
+<div class="nl-thin-scroll nl-full body" >
+	<div style="background: url('{{pageResUrl}}/homepagebackground.jpg') 100% 641px;">
+	<div class="purplebg">
+	<img class="image" ng-src='{{pageResUrl}}/logo-white-yellow.png'/>
+	<p class="text">
+		your teaching quality partner
+	</p>
+	<button class="_button">
+		SIGN IN
+	</button>
+	<div class="heading">
+		Measure and improve the most important aspect of your school,  the “Teaching quality”.
+	</div>
+	<p class="subheading">
+		Structure all aspects of teaching. Set your goals, engage your teachers and leap ahead.
+	</p>
+	<img class="laptop" ng-src="{{pageResUrl}}/laptop.png">
+	<img class="image image-2" ng-src="{{pageResUrl}}/visibility.png">
+	<img class="image image-3" ng-src="{{pageResUrl}}/enableteachers.png">
+	<img class="image image-4" ng-src="{{pageResUrl}}/leapforward.png">
+	</div>
+	</div>
+</div>

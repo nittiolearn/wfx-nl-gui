@@ -2,10 +2,12 @@
 	<div class='popup-buttons no-border' >
         <button ng-click='showHideAll()' class='button'>{{showHideAllButtonName}}</button>
         <button ng-click='expandViewClick(cm)' class='button'>{{expandviewtext}}</button>
+        <button ng-if='mode == MODES.EDIT' ng-click='addContent()' class='button'>Add</button>
     </div>
 	<table class='nl-table nl-table-styled'>
 		<tr ng-show='expandedView'>
 			<th>Module</th>
+			<th ng-if='mode == MODES.EDIT'>Id</th>
 			<th ng-if='planning == true'>Plan</th>
 			<th>Summary</th>
 		</tr>
@@ -19,12 +21,13 @@
 	                 ng-click='onClick($event, cm, true)'>
 				<span class='nl-cv-details' ng-class='{"nl-clickable": cm.clickable}'>{{cm.name}}</span>
 			</td>
+			<td ng-if='expandedView && mode == MODES.EDIT'>{{cm.id}}</td>
 			<td ng-if='expandedView && (planning == true)'>{{cm.planned_date_str}}</td>
-			<td ng-if='expandedView && mode<2'>
+			<td ng-if='expandedView && (mode == MODES.PRIVATE || mode == MODES.EDIT || mode == MODES.PUBLISHED)'>
 				<img class='nl-24' ng-if='cm.statusIcon' ng-src='{{cm.statusIcon}}'>
 				<span ng-show='expandedView'>{{cm.statusText}}</span>
 			</td>
-			<td ng-if='mode>=2'>
+			<td ng-if='mode == MODES.REPORT_VIEW || modes == MODES.DO'>
 				<img class='nl-24 nl-clickable' ng-click='onClickOnSummary(cm)' ng-if='cm.statusIcon && (cm.type=="module" || cm.type=="lesson")' ng-src='{{cm.statusIcon}}'>
 				<span class='nl-clickable' ng-click='onClickOnSummary(cm)' ng-if='expandedView && (cm.type=="module" || cm.type=="lesson")'>{{cm.statusText}}</span>
 				<img class='nl-24 nl-clickable' ng-click='onClickOnSummary(cm)' ng-if='cm.statusIcon && (cm.type=="info" || cm.type=="link")' ng-src='{{cm.statusIcon}}'>

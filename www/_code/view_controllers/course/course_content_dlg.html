@@ -1,0 +1,16 @@
+<nl-dlg title='{{dlgTitle}}'>
+    <nl-dlg-content>
+        <table class='nl-table'>
+        	<tr nl-form-select fieldname='Type' fieldmodel='type'></tr>
+            <tr nl-form-input fieldname='Id' fieldmodel='id' fieldtype='text'></tr>
+            <tr nl-form-input fieldname='Position(Id)' fieldmodel='posId' fieldtype='text'></tr>
+            <tr nl-form-input fieldname='Name' fieldmodel='name' fieldtype='text'></tr>
+            <tr nl-form-input fieldname='Icon' fieldmodel='icon' fieldtype='text'></tr>
+            <tr ng-if='planning==true' nl-form-input fieldname='Planned_date' fieldmodel='planned_date' fieldtype='text'></tr>
+            <tr ng-if='data.type.id == "link"' nl-form-input fieldname='UrlParams' fieldmodel='urlParams' fieldtype='text'></tr>
+            <tr ng-if='data.type.id == "link"' nl-form-input fieldname='Action' fieldmodel='action' fieldtype='text'></tr>
+            <tr ng-if='data.type.id == "lesson"' nl-form-input fieldname='RefId' fieldmodel='refid' fieldtype='text'></tr>
+        </table>
+        <br/>
+    </nl-dlg-content>
+</nl-dlg>

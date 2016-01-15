@@ -1,0 +1,9 @@
+<td class='nl-dlg-field-name'>{{fieldname}}</td>
+<td class='nl-dlg-field-value'>
+	<select ng-model='$parent.data[fieldmodel]' 
+			ng-change='onFieldChange(fieldmodel)'
+            ng-options='opt as opt.name for opt in $parent.options[fieldmodel] track by opt.id'
+            class='{{fieldcls}}'
+            autofocus=''>
+	</select>
+</td>

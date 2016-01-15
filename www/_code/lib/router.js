@@ -165,7 +165,8 @@ function Permission(nl) {
     var permissions = {
         // Page permissions
         '/app/home': {login: true, permission: 'basic_access', termRestriction: TR_OPEN}, 
-        '/app/home_refresh': {login: false, permission: '', termRestriction: TR_OPEN}, 
+        '/app/home_refresh': {login: false, permission: '', termRestriction: TR_OPEN},
+        '/app/welcome': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/app/login_now': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/app/logout_now': {login: false, permission: '', termRestriction: TR_OPEN},
         '/app/audit': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
