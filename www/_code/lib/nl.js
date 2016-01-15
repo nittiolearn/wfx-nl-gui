@@ -138,7 +138,7 @@ function Formatter() {
 		if (iconUrl) {
 			fieldValue = _fmt2Impl("<img src='{}' class='nl-24'> {}", [iconUrl, fieldValue]);
 		}
-		if (fmtType == 'date') fieldValue = this.jsonDate2Str(fieldValue);
+		if (fmtType == 'date') fieldValue = fieldValue ? this.jsonDate2Str(fieldValue)+' '+'Hrs' : '-';
 		if (fmtType == 'boolean') fieldValue = fieldValue ? this.t(['Yes']) : this.t(['No']);
 		if (fmtType == 'minutes') fieldValue = fieldValue ? (fieldValue > 1 ? this.t(['{} minutes', fieldValue]) : this.t(['{} minute', fieldValue])) : this.t('-');
 		if (!fieldValue) fieldValue = fieldDefault || '-';
