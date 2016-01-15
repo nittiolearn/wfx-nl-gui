@@ -12,6 +12,7 @@ function module_init() {
     .directive('nlTextarea', TextareaDirective)
     .directive('nlFormInput', FormInputDirective)
     .directive('nlFormTextarea', FormTextareaDirective)
+    .directive('nlFileInput', FileInputDirective)
     .directive('nlElastic', ElasticTextareaDirective);
 }
 
@@ -265,6 +266,60 @@ function _formFieldDirectiveImpl(nl, nlDlg, tagName, templateUrl) {
         }
     };
 }
+
+//-------------------------------------------------------------------------------------------------
+var FileInputDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+	
+    function addFileContent(file, $scope, fieldmodel){
+	    var reader = new FileReader();
+	    reader.onload = function(e) {
+    		var fileInfo = {file: file, content: e.target.result};
+        	$scope.$parent.$apply(function () {
+                $scope.$parent.data[fieldmodel].push(fileInfo);
+            });            	
+	    }; 
+	    reader.readAsDataURL(file);
+    }
+
+    return {
+        restrict: 'E',
+        templateUrl: 'lib_ui/dlg/file_input.html',
+        scope: {
+            fieldmodel: '@',
+            fieldcls: '@',
+            tabindex: '@'
+        },
+        link: function($scope, iElem, iAttrs) {
+        	var field = angular.element(iElem.find('input')[0]);
+        	$scope.imgBasePath = nl.url.resUrl();
+            $scope.$parent.data[$scope.fieldmodel] = [];
+            field.bind('change', function(changeEvent) {
+            	var fileList =  changeEvent.target.files;
+            	for (var i=0; i<fileList.length; i++) {
+            		var file = fileList[i];
+            		$scope.$parent.data[$scope.fieldmodel].push(file);
+            		addFileContent(file, $scope, $scope.fieldmodel);
+            	}
+            });
+            nlDlg.addField($scope.fieldmodel, field);
+            $scope.imgClick = function(imgUrl, fileName) {
+            	var msg = {title: fileName, 
+				   template:nl.t('<img class="nl-full-width" src='+imgUrl.content+' />'),
+				   okText: nl.t('Remove')};
+				nlDlg.popupConfirm(msg).then(function(e) {
+					if(!e) return;
+					for( var i=0; i<$scope.$parent.data[$scope.fieldmodel].length;i++) {
+						var data = $scope.$parent.data[$scope.fieldmodel];
+						if(data[i] == imgUrl) {
+							$scope.$parent.data[$scope.fieldmodel].splice(i,1);
+						}
+					}
+				});
+            };
+        }
+    };
+}];
 
 //-------------------------------------------------------------------------------------------------
 var ElasticTextareaDirective =  ['nl',
