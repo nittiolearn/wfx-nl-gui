@@ -7,7 +7,8 @@
 function module_init() {
     angular.module('nl.welcome', [])
     .config(configFn)
-    .controller('nl.WelcomeCtrl', WelcomeCtrl);
+    .controller('nl.WelcomeCtrl', WelcomeCtrl)
+    .directive('nlWelcomeDir', WelcomeDir);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -27,7 +28,7 @@ function($stateProvider, $urlRouterProvider) {
 //-------------------------------------------------------------------------------------------------
 var WelcomeCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlLogViewer', 'nlServerApi', 'nlCardsSrv',
 function(nl, nlRouter, $scope, nlDlg, nlLogViewer, nlServerApi, nlCardsSrv) {
-    function _onPageEnter(userInfo) {
+	function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
             nl.pginfo.pageTitle = nl.t('Teaching quality partner');
             nl.pginfo.pageSubTitle = '';
@@ -37,6 +38,43 @@ function(nl, nlRouter, $scope, nlDlg, nlLogViewer, nlServerApi, nlCardsSrv) {
     }
     nlRouter.initContoller($scope, '', _onPageEnter);
 }];
+
+var WelcomeDir = ['nl',
+	function(nl) {
+	    return function (scope, element) {
+        var w = angular.element(nl.window);
+        scope.getWindowDimensions = function () {
+            return {
+                'h': w[0].innerHeight,
+                'w': w[0].innerWidth
+            };
+        };
+        scope.$watch(scope.getWindowDimensions, function (newValue, oldValue) {
+            scope.windowHeight = newValue.h;
+            scope.windowWidth = newValue.w;
+
+            scope.style = function () {
+                return {
+                	'height': (100) + 'px',
+					'width': scope.windowWidth + 'px',
+					'font-size': 1.25 + 'em'
+                };
+            };
+            scope.style1 = function () {
+                return {
+                	'height': (100) + 'px',
+					'width': 500 + 'px'
+                };
+            };
+
+        }, true);
+
+        w.bind('resize', function () {
+            scope.$apply();
+        });
+    };
+}];
+
 
 module_init();
 })();

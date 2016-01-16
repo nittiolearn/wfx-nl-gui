@@ -1,121 +1,268 @@
 <style>
-	.body {
-		width: 100%;
+	div {
+		display: inline-block;
 	}
 	.purplebg {
 		position: relative;
 		width: 100%;
+		height: 94vh;
+		background-image: url('{{pageResUrl}}/background.png');
+		background-size: 100vw 100vh;
+		background-repeat: no-repeat;
+	}
+	.purplebg-2 {
+		position: relative;
+		width: 100%;
+		height: 40vh;
+		top: 80vh;
 		background-color: rgba(96, 74, 123, 0.9);
-		height: 100vh;
+	}
+	.heading {
+		display: inline-block;
+		vertical-align: top;
+		color: #FFFFFF;
+		font-size: 1.5em;
 	}
 	.image {
-		position: absolute;
-		width: 120px;
-		height: auto;
-		left: 39px;
-		top: 5px;
+		top: 10px;
+		min-height: 40%;
+		max-height: 40%;
+		min-width: 30%;
+		max-width: 40%;
+		left: 50px;
+	}
+	.laptop {
+		width: 100%;
+		height: 100%;
+	}
+	.subheading {
+		display: inline-block;
+		height: 10%;
+		font-style: normal;
+		font-size: 1.25em;
+		font-weight: 300;
+		background-color: rgba(0, 0, 0, 0);
+		color: rgb(255, 255, 255);
 	}
 	.image-2 {
 		position: absolute;
 		width: 7vw;
-		top: 660px;
+		top: 110%;
 		left: 10vw;
 	}
 	.image-3 {
 		position: absolute;
-		top: 660px;
+		top: 110%;
 		left: 40vw;
 		width: 7vw;
 	}
 	.image-4 {
 		position: absolute;
-		top: 660px;
+		top: 110%;
 		left: 70vw;
 		width: 7vw;
-		
 	}
-	.text {
+	.ben_visibility_heading, .ben_enable_heading, .leapheading {
 		position: absolute;
-		color: rgb(255, 255, 255);
-		top: 9px;
-		width: 20vw;
-		height: 22px;
-		left: 199px;
-		white-space: nowrap;
-  		text-overflow : ellipsis;
-  		overflow:hidden;
+		top: 130%;
+		width: 161px;
+		min-height: 65px;
 		background-color: rgba(0, 0, 0, 0);
-		font-style: normal;
-		font-size: 100%;
-		font-weight: 300;
-	}
-	._button {
-		position: absolute;
-		left: 85vw;
-		top: 16px;
-		border: 0px;
-		width: 10vw;
-		height: 34px;
-		background-color: rgba(96, 74, 123, 0.9);
-		font-style: normal;
-		font-size: 1.5vw;
-		font-weight: 300;
-		text-align: center;
-		color: rgb(255, 255, 255);
-	}
-	.heading {
-		position: absolute;
-		left: 5%;
-		top: 150px;
-		width: 40vw;
-		height: 5vh;
-		font-style: normal;
-		font-size: 2vw;
-		color: #ffffff;
-	}
-	.subheading {
-		position: absolute;
-		left: 5%;
-		top: 330px;
-		width: 40vw;
-		height: 3vh;
-		font-style: normal;
-		font-size: 1.25em;
-		font-weight: 300;
+		font-size: 1em;
+		font-weight: 400;
 		line-height: 1.38;
+		color: rgb(245, 75, 34);
+	}
+	.ben_visibility_heading, .ben_visibility_text {
+		left: 7vw;
+	}
+	.ben_enable_heading, .ben_enable_text {
+		left: 37vw;
+	}
+	.leapheading, .ben_leap_text {
+		left: 70vw;
+	}
+	.ben_visibility_text, .ben_enable_text, .ben_leap_text {
+		position: absolute;
+		top: 140%;
+		width: 20%;
+		min-height: 231px;
 		background-color: rgba(0, 0, 0, 0);
+		font-size: 0.938em;
+		font-weight: 400;
+		line-height: 1.38;
+		color: rgb(0, 0, 0);
+	}
+	.customerspeak_heading {
+		position: relative;
+		left: 45vw;
+		top: 35vh;
+		width: 30%;
+		min-height: 45px;
+		background-color: rgba(0, 0, 0, 0);
+		font-size: 1.75em;
+		font-weight: 400;
+		line-height: 1.38;
+		color: rgb(249, 247, 247);
+	}
+	.podar_testimonial, .headstart_testimonial {
+		position: relative;
+		display: inline-block;
+		width: 40vw;
+		min-height: 108px;
+		left: -20vw;
+		border-color: rgb(0, 0, 0);
+		background-color: rgba(0, 0, 0, 0);
+		font-size: 1em;
+		font-weight: 400;
+		line-height: 1.38;
 		color: rgb(255, 255, 255);
 	}
-	.laptop {
-		position: absolute;
-		left: 50%;
-		top: 100px;
-		width: 45%;
-		height: auto;
-		overflow: hidden;
+	.podar_testimonial {
+		left: -20vw;
+		top: 55vh;
 	}
-	
+	.headstart_testimonial {
+		left: 55vw;
+		top: 40vh;
+	}
+	.helpingschools {
+		position: absolute;
+		left: 15vw;
+		top: 235%;
+		font-size: 1.75em;
+		font-weight: 400;
+		line-height: 1.38;
+		color: rgb(0, 0, 0);
+	}
+	a {
+		color: rgb(245, 75, 34);
+	}
+	.inmedia_heading {
+		position: relative;
+		float: left;
+		width: 10%;
+		min-width: none;
+		left: 47vw;
+		top: 80%;
+		background-color: rgba(0, 0, 0, 0);
+		font-style: normal;
+		font-size: 1.75em;
+		font-weight: 600;
+		line-height: 1.38;
+		color: rgb(0, 0, 0);
+	}
+	.ewlink {
+		position: relative;
+		display: inline-block;
+		width: 25%;
+		height: 20%;
+		background-color: rgba(255, 255, 255, 0.02);
+	}
+	.ewlink, .linktechstory, .yourstory, .techstory img {
+		height: auto;
+		width: auto;
+	}
+	.linktechstory, .techstory, .yourstory {
+		position: relative;
+		display: inline-block;
+		width: 24%;
+		height: 20%;
+		background-color: rgba(255, 255, 255, 0.02);
+	}
 </style>
 <div class="nl-thin-scroll nl-full body" >
-	<div style="background: url('{{pageResUrl}}/homepagebackground.jpg') 100% 641px;">
 	<div class="purplebg">
-	<img class="image" ng-src='{{pageResUrl}}/logo-white-yellow.png'/>
-	<p class="text">
-		your teaching quality partner
-	</p>
-	<button class="_button">
-		SIGN IN
-	</button>
-	<div class="heading">
-		Measure and improve the most important aspect of your school,  the “Teaching quality”.
+		<br />
+		<br />
+		<nl-welcome-dir>
+			<div ng-style="style()" ng-if='windowWidth <= "500"' class="heading">
+				Measure and improve the most important aspect of your school,  the “Teaching quality”.
+			</div>
+			<div ng-style="style1()" ng-if='windowWidth > "500"' class="heading">
+				Measure and improve the most important aspect of your school,  the “Teaching quality”.
+			</div>
+		</nl-welcome-dir>
+		<div class="image"><img class="laptop" ng-src="{{pageResUrl}}/laptop.png">
+		</div>
+		<div class="subheading" ng-style="style()" ng-if='windowWidth <= "500"'>
+			Structure all aspects of teaching. Set your goals, engage your teachers and leap ahead.
+		</div>
+		<div class="subheading" ng-style="style1()" ng-if='windowWidth > "500"'>
+			Structure all aspects of teaching. Set your goals, engage your teachers and leap ahead.
+		</div>
 	</div>
-	<p class="subheading">
-		Structure all aspects of teaching. Set your goals, engage your teachers and leap ahead.
-	</p>
-	<img class="laptop" ng-src="{{pageResUrl}}/laptop.png">
-	<img class="image image-2" ng-src="{{pageResUrl}}/visibility.png">
-	<img class="image image-3" ng-src="{{pageResUrl}}/enableteachers.png">
-	<img class="image image-4" ng-src="{{pageResUrl}}/leapforward.png">
+	<img class="image-2" ng-src="{{pageResUrl}}/visibility.png">
+	<img class="image-3" ng-src="{{pageResUrl}}/enableteachers.png">
+	<img class="image-4" ng-src="{{pageResUrl}}/leapforward.png">
+	<div class="ben_visibility_heading">
+		Get visibility into your teaching processes
 	</div>
+	<div class="ben_enable_heading">
+		Enable your teachers
+	</div>
+	<div class="leapheading">
+		Leap forward
+	</div>
+	<div class="ben_visibility_text">
+		<p>
+			Our customized analytics provide a bird’s eye view and detailed insights for each aspect of teaching in your school.&nbsp;
+		</p>
+		<p>
+			Get answers to questions like – Are all classes on track? Is the syllabus delivery plan optimal? Are the teachers planning well for their lessons? What is the training need of which department/teacher? How creatively are the teachers engaging their students?
+		</p>
+	</div>
+	<div class="ben_enable_text">
+		<p>
+			Designed specifically for teachers to make their daily work easier, more interesting and collaborative.
+		</p>
+		<p>
+			Nittio Learn is a part of your teaching processes. From updating program of work with a click to making great lesson plans, from creating beautiful learning material and worksheets for students in minutes to self-learning.
+			<br>
+		</p>
+	</div>
+	<p class="ben_leap_text">
+		Set goals that will propel your school to the next league. Align on-the -ground teaching with your targets and watch your school move up.
+	</p>
+	<div class="purplebg-2"></div>
+	<div class="customerspeak_heading">
+		Customer Speak
+	</div>
+	<div class="podar_testimonial">
+		<p>
+			“Our experience with Nittio Learn has been amazing. It is an easy tool – toddlers to adults can learn here. We use it for teacher training and assessments.”
+		</p>
+		<p>
+			<b>Vickram K.J | Master Franchise: Podar Education Network </b>
+		</p>
+	</div>
+	<div class="headstart_testimonial">
+		<p>
+			"Nittio Learn platform is an excellent example of positive use of technology in engaging children and young people and enhancing their learning experience." &nbsp;
+		</p>
+		<p>
+			<b>Riad Mahmood | Founder: Head Start Educational Academy&nbsp;</b>
+			<br>
+		</p>
+	</div>
+	<div class="helpingschools">
+		Helping teachers and school leaders across more than <a>100 </a>schools and preschools.
+	</div>
+	<p class="inmedia_heading">
+		In media
+	</p>
+	<div style="display: inline-block; position: relative; top:100%; left: 0px;">
+		<div onClick="window.location='http://www.educationworldonline.net/index.php/page-article-choice-more-id-4648';" class="ewlink">
+			<img ng-src="{{pageResUrl}}/ew.jpg">
+		</div>
+		<div class="linktechstory">
+			<img ng-src="{{pageResUrl}}/techstory.jpg">
+		</div>
+		<div onClick="window.location='http://yourstory.com/2014/07/nittio-learn/';" class="yourstory">
+			<img ng-src="{{pageResUrl}}/yourstory.png">
+		</div>
+		<div onClick="window.location='http://www.prerit.org/ritu-josan/';" class="linktechstory">
+			<img ng-src="{{pageResUrl}}/prerit.png">
+		</div>
 	</div>
 </div>
