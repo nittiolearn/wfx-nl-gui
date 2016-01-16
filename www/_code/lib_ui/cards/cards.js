@@ -75,8 +75,9 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             $scope.onCardLinkClicked = function(card, linkid) {
 				$scope.$parent.onCardLinkClicked(card, linkid);
             };
-
-            $scope.search = {filter: '', img: nl.url.resUrl('search.png')};
+            var params = nl.location.search();
+			var searchParam = ('search' in params) ? params.search : '';
+            $scope.search = {filter: searchParam, img: nl.url.resUrl('search.png')};
             $scope.search.onSearch = function() {
             	if (!('onSearch' in $scope.cards.search)) return;
             	return $scope.cards.search.onSearch($scope.search.filter);

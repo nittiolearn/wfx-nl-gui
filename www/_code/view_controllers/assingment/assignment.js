@@ -52,9 +52,7 @@
 			var data = {
 				search : filter
 			};
-			if (this.custtype !== null)
-				data.custtype = this.custtype;
-
+			if (this.custtype !== null) data.custtype = this.custtype;
 			if (this.type == TYPES.PAST) {
 				data.bPast = true;
 				return nlServerApi.assignmentGetMyList(data);
@@ -150,9 +148,9 @@
 
 		function _createAssignmentCard(assignment, userInfo) {
 			var url = null;
-			if (mode.type == 2) {
+			if (mode.type == TYPES.SHARED) {
 				url = nl.fmt2('/lesson/view_shared_report_assign/{}/', assignment.id);
-			} else if (mode.type == 3 || mode.type == 4) {
+			} else if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
 				url = nl.fmt2('/reports/assignment_rep/{}/', assignment.id);
 			} else {
 				url = nl.fmt2('/lesson/do_report_assign/{}/', assignment.id);
@@ -164,7 +162,7 @@
 				url : url,
 				children : []
 			};
-			if (mode.type == 1 || mode.type == 2) {
+			if (mode.type == TYPES.PAST || mode.type == TYPES.SHARED) {
 				card['help'] = nl.t("Assigned to: <b>{}</b><br> Subject: {}<br> by: <b>{}</b><br> <img src={} class='nl-24'> completed", assignment.assigned_to, assignment.subject, assignment.assigned_by, nl.url.resUrl('general/tick.png'));
 			} else {
 				card['help'] = nl.t("Assigned to: <b>{}</b><br> Subject: {}<br> by: <b>{}</b><br> {}", assignment.assigned_to, assignment.subject, assignment.assigned_by, assignment.assign_remarks);
@@ -174,12 +172,11 @@
 				avps : _getAssignmentAvps(assignment)
 			};
 			card.links = [];
-			if (mode.type == 3 || mode.type == 4) {
+			if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
 				card.links.push({
 					id : assignment.id,
 					text : nl.t('content')
-				});
-				card.links.push({
+				},{
 					id : 'details',
 					text : nl.t('details')
 				});
@@ -199,7 +196,7 @@
 			nl.fmt.addAvp(avps, 'Remarks', assignment.assign_remarks);
 			nl.fmt.addAvp(avps, 'Assigned by', assignment.assigned_by);
 			nl.fmt.addAvp(avps, 'Assigned on', assignment.assigned_on, 'date');
-			if (mode.type !== 3 || mode.type == 4) {
+			if (mode.type !== TYPES.MANAGE && mode.type !== TYPES.SENT) {
 				nl.fmt.addAvp(avps, 'Owner', assignment.authorname);
 				nl.fmt.addAvp(avps, 'Started on', assignment.started, 'date');
 				nl.fmt.addAvp(avps, 'Ended on', assignment.ended, 'date');
@@ -218,12 +215,12 @@
 
 		function _addAvp(avps, fieldName, fieldValue, fmtType, fieldDefault) {
 			if (fmtType == 'link') {
-				if (mode.type == 1) {
+				if (mode.type == TYPES.PAST) {
 					fieldValue = nl.fmt.t(["<a href='/lesson/view_report_assign/{}/'> view report</a>", fieldValue]);
-				} else if (mode.type == 2) {
+				} else if (mode.type == TYPES.SHARED) {
 					fieldValue = nl.fmt.t(["<a href='/lesson/view_shared_report_assign/{}/'> view report</a>", fieldValue]);
-				} else if (mode.type == 3 || mode.type == 4) {
-					fieldValue = nl.fmt.t(["<a href='/reports/assignment_rep/{}/'>reports</a> | <a href='/lesson/view_assign/{}/'> content</a> | <a href='/lesson/view_assign/{}/'> export</a> | <span class='nl-clickable' onclick='deleteAssignment()'> delete</button>", fieldValue, fieldValue]);
+				} else if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
+					fieldValue = nl.fmt.t(["<a href='/reports/assignment_rep/{}/'>reports</a> | <a href='/lesson/view_assign/{}/'> content</a> | <span class='nl-clickable'>export</span> | <span class='nl-clickable'> delete</button>", fieldValue, fieldValue]);
 				} else {
 					fieldValue = nl.fmt.t(["<a href='/lesson/do_report_assign/{}/'> Do assignments</a>", fieldValue]);
 				}
