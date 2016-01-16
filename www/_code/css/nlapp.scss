@@ -237,6 +237,7 @@ $animation-duration: 200ms !default;
 .nl-clickable, .nl-clickable1 {
   cursor: pointer;
   color: #000077;
+  text-decoration: none;
   &:hover, &:focus {
     text-decoration: underline;
   }

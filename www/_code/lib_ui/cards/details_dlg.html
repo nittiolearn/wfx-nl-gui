@@ -12,7 +12,14 @@
             	<a ng-href='{{avp.url}}' ng-if='avp.url'>{{avp.attr}}</a>
                 <span ng-if='!avp.url'>{{avp.attr}}</span>
             </div>
-            <div class='col' ng-bind-html='avp.val'></div>
+            <div ng-if='avp.type != "links"' class='col' ng-bind-html='avp.val'></div>
+            <div ng-if='avp.type == "links"' class='col'>
+            	<span ng-repeat='op in avp.val track by $index'>
+	            	<a ng-if="op.url" ng-href='{{op.url}}' class='nl-clickable'>{{op.val}}</a>
+	            	<span ng-if="op.linkid" ng-click='onCardInternalUrlClicked(card, op.linkid)' class='nl-clickable'>{{op.val}}</span>
+	            	<span ng-if="$index < avp.val.length - 1"> | </span>
+            	</span>
+            </div>
         </div>
     </nl-dlg-content>
 </nl-dlg>

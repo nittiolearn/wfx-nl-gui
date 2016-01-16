@@ -145,6 +145,19 @@ function Formatter() {
 		avps.push({attr: this.t([fieldName]), val: fieldValue});
 	};
 	
+	this.addLinksAvp = function(avps, fieldName) {
+		var avp = {attr: this.t([fieldName]), val: [], type:'links'};
+		avps.push(avp);
+		return avp;
+	};
+	
+	this.addLinkToAvp = function(avp, linkName, url, linkid) {
+		var link  = {val: this.t([linkName])};
+		if (url) link.url = url;
+		if (linkid) link.linkid = linkid;
+		avp.val.push(link);
+	};
+	
     function _fmt2Impl(strFmt, args) {
         var i = 0;
         return strFmt.replace(/{}/g, function() {

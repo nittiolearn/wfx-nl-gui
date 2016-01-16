@@ -119,6 +119,15 @@
 
 		nlRouter.initContoller($scope, '', _onPageEnter);
 
+	    $scope.onCardInternalUrlClicked = function(card, internalUrl) {
+	    	var assignId = card.assignmentId;
+			if (internalUrl === 'assign_export') {
+				nlDlg.popupAlert({title: 'TODO', template: nl.fmt2('export is to be implemented. Assign id={}', assignId)});
+			} else if (internalUrl === 'assign_delete') {
+				nlDlg.popupAlert({title: 'TODO', template: nl.fmt2('delete is to be implemented. Assign id={}', assignId)});
+			}
+	    };
+	
 		function _getEmptyCard(nlCardsSrv) {
 			var help = help = nl.t('There are no assignments to display.');
 			return nlCardsSrv.getEmptyCard({
@@ -191,7 +200,10 @@
 
 		function _getAssignmentAvps(assignment) {
 			var avps = [];
-			_addAvp(avps, 'Operations', assignment.id, 'link');
+
+			var linkAvp = nl.fmt.addLinksAvp(avps, 'Operations');
+			_populateLinks(linkAvp, assignment.id);
+
 			nl.fmt.addAvp(avps, 'Name', assignment.name);
 			nl.fmt.addAvp(avps, 'Remarks', assignment.assign_remarks);
 			nl.fmt.addAvp(avps, 'Assigned by', assignment.assigned_by);
@@ -207,40 +219,35 @@
 			nl.fmt.addAvp(avps, 'Earliest start time', assignment.not_before, 'date');
 			nl.fmt.addAvp(avps, 'Latest end time', assignment.not_after, 'date');
 			nl.fmt.addAvp(avps, 'Max duration', assignment.max_duration, 'minutes');
-			_addAvp(avps, 'Show answers', assignment.learnmode, 'string');
-			_addAvp(avps, 'Is published?', assignment.published, 'publish');
+			nl.fmt.addAvp(avps, 'Show answers', _learnmodeString(assignment.learnmode));
+			nl.fmt.addAvp(avps, 'Is published?', assignment.published, 'boolen');
 			nl.fmt.addAvp(avps, 'Discussion forum', assignment.forum, 'boolean');
 			return avps;
 		}
 
-		function _addAvp(avps, fieldName, fieldValue, fmtType, fieldDefault) {
-			if (fmtType == 'link') {
-				if (mode.type == TYPES.PAST) {
-					fieldValue = nl.fmt.t(["<a href='/lesson/view_report_assign/{}/'> view report</a>", fieldValue]);
-				} else if (mode.type == TYPES.SHARED) {
-					fieldValue = nl.fmt.t(["<a href='/lesson/view_shared_report_assign/{}/'> view report</a>", fieldValue]);
-				} else if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
-					fieldValue = nl.fmt.t(["<a href='/reports/assignment_rep/{}/'>reports</a> | <a href='/lesson/view_assign/{}/'> content</a> | <span class='nl-clickable'>export</span> | <span class='nl-clickable'> delete</button>", fieldValue, fieldValue]);
-				} else {
-					fieldValue = nl.fmt.t(["<a href='/lesson/do_report_assign/{}/'> Do assignments</a>", fieldValue]);
-				}
+		function _learnmodeString(learnmode) {
+			if (learnmode == 1)
+				return nl.fmt.t(['on every page']);
+			if (learnmode == 2)
+				return nl.fmt.t(['after submitting']);
+			if (learnmode == 3)
+				return nl.fmt.t(['only when published']);
+			return '';
+		}
+		
+		function _populateLinks(linkAvp, assignId) {
+			if (mode.type == TYPES.PAST) {
+				nl.fmt.addLinkToAvp(linkAvp, 'view report', nl.fmt2('/lesson/view_report_assign/{}', assignId));
+			} else if (mode.type == TYPES.SHARED) {
+				nl.fmt.addLinkToAvp(linkAvp, 'view report', nl.fmt2('/lesson/view_shared_report_assign/{}', assignId));
+			} else if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
+				nl.fmt.addLinkToAvp(linkAvp, 'reports', nl.fmt2('/reports/assignment_rep/{}', assignId));
+				nl.fmt.addLinkToAvp(linkAvp, 'content', nl.fmt2('/lesson/view_assign/{}', assignId));
+				nl.fmt.addLinkToAvp(linkAvp, 'export', null, 'assign_export');
+				nl.fmt.addLinkToAvp(linkAvp, 'delete', null, 'assign_delete');
+			} else {
+				nl.fmt.addLinkToAvp(linkAvp, 'do assignment', nl.fmt2('/lesson/do_report_assign/{}', assignId));
 			}
-			if (fmtType == 'string') {
-				if (fieldValue == 1)
-					fieldValue = nl.fmt.t(['on every page']);
-				if (fieldValue == 2)
-					fieldValue = nl.fmt.t(['after submitting']);
-				if (fieldValue == 3)
-					fieldValue = nl.fmt.t(['only when published']);
-			}
-			if (fmtType == 'publish')
-				fieldValue = fieldValue == true ? nl.fmt.t(['True']) : nl.fmt.t(['False']);
-			if (!fieldValue)
-				fieldValue = fieldDefault || '-';
-			return avps.push({
-				attr : nl.fmt.t([fieldName]),
-				val : fieldValue
-			});
 		}
 
 		function _addSearchInfo(cards) {
