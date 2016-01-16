@@ -256,10 +256,55 @@ function(nl, nlDlg, nlConfig) {
 	// assignment desk list entities
     //---------------------------------------------------------------------------------------------
     this.assignmentGetMyList = function(data) {
-        // data: bPost, search
-        // return: list of dashboardObjects
+        // data: bPast, custtype, search
+        // return: list of assignment reports
         return server.post('_serverapi/assignment_get_my_list.json', data);
     };
+
+	this.assignmentGetSharedList = function(data) {
+        // data: custtype, search
+        // return: list of assignment reports
+        return server.post('_serverapi/assignment_get_shared_list.json', data);
+	};
+
+	this.assignmentGetSentList = function(data) {
+        // data: mine, custtype, search
+        // return: list of assignments
+        return server.post('_serverapi/assignment_get_sent_list.json', data);
+	};
+
+    //---------------------------------------------------------------------------------------------
+	// lesson entities
+    //---------------------------------------------------------------------------------------------
+	this.lessonGetApprovedList = function(data) {
+        // data: custtype, search, grade
+        // return: list of approved lessons matching the filter
+        return server.post('_serverapi/lesson_get_approved_list.json', data);				
+	};
+
+	this.lessonGetPrivateList = function(data) {
+        // data: custtype, search, grade
+        // return: list of my lessons lessons matching the filter
+        return server.post('_serverapi/lesson_get_private_list.json', data);				
+	};
+
+	this.lessonGetReviewList = function(data) {
+        // data: custtype, search, grade
+        // return: list of lessons for my review matching the filter
+        return server.post('_serverapi/lesson_get_review_list.json', data);				
+	};
+
+	this.lessonGetManageApprovedList = function(data) {
+        // data: custtype, search, grade
+        // return: list of approved lessons within the group matching the filter
+        return server.post('_serverapi/lesson_get_manage_approved_list.json', data);				
+	};
+
+	this.lessonGetTemplateList = function(data) {
+        // data: custtype, search, grade
+        // return: list of lesson templates matching the filter
+        return server.post('_serverapi/lesson_get_template_list.json', data);				
+	};
 
     //---------------------------------------------------------------------------------------------
     // Private methods
