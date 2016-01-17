@@ -114,7 +114,7 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
             if (e) e.preventDefault();
             loginDlg.close(false);
             loginDlg.destroy();
-            nl.window.location.href = '/';
+            nl.location.url('/app/welcome');
         }};
         loginDlg.show('view_controllers/auth/logindlg.html', [loginButton], cancelButton, false);
     }
