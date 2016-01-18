@@ -55,15 +55,29 @@ var WelcomeDir = ['nl',
 
             scope.style = function () {
                 return {
+                	'position': 'relative',
                 	'height': (100) + 'px',
 					'width': scope.windowWidth + 'px',
+					'margin-left':20 + 'px',
 					'font-size': 1.25 + 'em'
                 };
             };
             scope.style1 = function () {
                 return {
+                	'position': 'relative',
                 	'height': (100) + 'px',
-					'width': 500 + 'px'
+					'width': 500 + 'px',
+					'margin-left':20 + 'px',
+					'top': 5 + 'vh'
+                };
+            };
+            scope.style2 = function () {
+                return {
+                	'position': 'relative',
+                	'height': (100) + 'px',
+					'width': 500 + 'px',
+					'top': -15 + 'vh',
+					'margin-left':20 + 'px',
                 };
             };
 
@@ -74,7 +88,6 @@ var WelcomeDir = ['nl',
         });
     };
 }];
-
 
 module_init();
 })();
