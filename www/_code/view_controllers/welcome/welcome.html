@@ -1,9 +1,7 @@
 <style>
-	div {
-		display: inline-block;
-	}
 	.purplebg {
 		position: relative;
+		display: inline-block;
 		width: 100%;
 		height: 94vh;
 		background-image: url('{{pageResUrl}}/background.png');
@@ -13,10 +11,24 @@
 	.purplebg-2 {
 		position: relative;
 		width: 100%;
-		height: 40vh;
-		top: 80vh;
+		height: auto;
+		top: 20vh;
 		background-color: rgba(96, 74, 123, 0.9);
 	}
+	.purplebg-3 {
+		position: relative;
+		width: 100%;
+		height: auto;
+		top: 40vh;
+		background-color: rgba(96, 74, 123, 0.9);
+	}
+	.purplebg-4 {
+		position: relative;
+		width: 100%;
+		height: auto;
+		top: 50vh;
+	}
+
 	.heading {
 		display: inline-block;
 		vertical-align: top;
@@ -24,16 +36,19 @@
 		font-size: 1.5em;
 	}
 	.image {
+		display: inline-block;
 		top: 10px;
-		min-height: 40%;
-		max-height: 40%;
-		min-width: 30%;
-		max-width: 40%;
+		min-height: 200px;
+		max-height: 40vh;
+		min-width: 200px;
+		max-width: 60vw;
 		left: 50px;
 	}
 	.laptop {
-		width: 100%;
-		height: 100%;
+		min-width: 200px;
+		max-width: 60vw;
+		min-height: 200px;
+		max-height: 40vh;
 	}
 	.subheading {
 		display: inline-block;
@@ -44,61 +59,35 @@
 		background-color: rgba(0, 0, 0, 0);
 		color: rgb(255, 255, 255);
 	}
-	.image-2 {
-		position: absolute;
-		width: 7vw;
-		top: 110%;
-		left: 10vw;
+	.image-2, .image-3, .image-4 {
+		min-width: 40px;
+		max-width: 7vw;
+		min-height: 8vh;
+		max-height: 10vh;
 	}
-	.image-3 {
-		position: absolute;
-		top: 110%;
-		left: 40vw;
-		width: 7vw;
-	}
-	.image-4 {
-		position: absolute;
-		top: 110%;
-		left: 70vw;
-		width: 7vw;
-	}
+
 	.ben_visibility_heading, .ben_enable_heading, .leapheading {
-		position: absolute;
-		top: 130%;
-		width: 161px;
-		min-height: 65px;
+		position: relative;
+		display: inline-block;
+		min-width: 200px;
+		max-width: 25%;
+		max-height: 60vh;
+		left: 10%;
 		background-color: rgba(0, 0, 0, 0);
 		font-size: 1em;
 		font-weight: 400;
 		line-height: 1.38;
-		color: rgb(245, 75, 34);
+		overflow: hidden;
+		vertical-align: top;
 	}
-	.ben_visibility_heading, .ben_visibility_text {
-		left: 7vw;
-	}
-	.ben_enable_heading, .ben_enable_text {
-		left: 37vw;
-	}
-	.leapheading, .ben_leap_text {
-		left: 70vw;
-	}
-	.ben_visibility_text, .ben_enable_text, .ben_leap_text {
-		position: absolute;
-		top: 140%;
-		width: 20%;
-		min-height: 231px;
-		background-color: rgba(0, 0, 0, 0);
-		font-size: 0.938em;
-		font-weight: 400;
-		line-height: 1.38;
-		color: rgb(0, 0, 0);
-	}
+
 	.customerspeak_heading {
 		position: relative;
-		left: 45vw;
-		top: 35vh;
-		width: 30%;
-		min-height: 45px;
+		overflow: hidden;
+		top: 2vh;
+		width: 100%;
+		height: 10vh;
+		text-align: center;
 		background-color: rgba(0, 0, 0, 0);
 		font-size: 1.75em;
 		font-weight: 400;
@@ -108,9 +97,10 @@
 	.podar_testimonial, .headstart_testimonial {
 		position: relative;
 		display: inline-block;
-		width: 40vw;
-		min-height: 108px;
-		left: -20vw;
+		left: 15vw;
+		min-width: 200px;
+		max-width: 40vw;
+		height: 20vh;
 		border-color: rgb(0, 0, 0);
 		background-color: rgba(0, 0, 0, 0);
 		font-size: 1em;
@@ -118,18 +108,11 @@
 		line-height: 1.38;
 		color: rgb(255, 255, 255);
 	}
-	.podar_testimonial {
-		left: -20vw;
-		top: 55vh;
-	}
-	.headstart_testimonial {
-		left: 55vw;
-		top: 40vh;
-	}
+
 	.helpingschools {
-		position: absolute;
-		left: 15vw;
-		top: 235%;
+		position: relative;
+		top: 20vh;
+		text-align: center;
 		font-size: 1.75em;
 		font-weight: 400;
 		line-height: 1.38;
@@ -140,11 +123,9 @@
 	}
 	.inmedia_heading {
 		position: relative;
-		float: left;
-		width: 10%;
-		min-width: none;
-		left: 47vw;
-		top: 80%;
+		width: 100%;
+		top: 25vh;
+		text-align: center;
 		background-color: rgba(0, 0, 0, 0);
 		font-style: normal;
 		font-size: 1.75em;
@@ -152,23 +133,51 @@
 		line-height: 1.38;
 		color: rgb(0, 0, 0);
 	}
-	.ewlink {
+	.links {
+		position: relative;
+		top: 35vh;
+	}
+	.ewlink, .linktechstory, .yourstory, .techstory {
 		position: relative;
 		display: inline-block;
-		width: 25%;
-		height: 20%;
+		min-height: 100px;
+		min-width: 200px;
+		max-width: 25vw;
+		max-height: 20vh;
 		background-color: rgba(255, 255, 255, 0.02);
 	}
 	.ewlink, .linktechstory, .yourstory, .techstory img {
-		height: auto;
-		width: auto;
+		height: 100%;
+		width: 100%;
+		left: 10vw;
 	}
-	.linktechstory, .techstory, .yourstory {
+	.text {
+		position: relative;
+		text-align: center;
+		font-size: 1.75em;
+		font-weight: 400;
+		line-height: 1.38;
+		color: rgb(255, 255, 255);
+	}
+	.about {
 		position: relative;
 		display: inline-block;
-		width: 24%;
-		height: 20%;
-		background-color: rgba(255, 255, 255, 0.02);
+		left: 10vw;
+		width: 200px;
+		height: 200px;
+		padding: 8px;
+	}
+	.about1 {
+		vertical-align: top;
+	}
+	.about2 {
+		vertical-align: top;
+		background-color: gainsboro;
+	}
+	.about3 {
+		color: #FFFFFF;
+		vertical-align: top;
+		background-color: indigo;
 	}
 </style>
 <div class="nl-thin-scroll nl-full body" >
@@ -188,70 +197,88 @@
 		<div class="subheading" ng-style="style()" ng-if='windowWidth <= "500"'>
 			Structure all aspects of teaching. Set your goals, engage your teachers and leap ahead.
 		</div>
-		<div class="subheading" ng-style="style1()" ng-if='windowWidth > "500"'>
+		<div class="subheading" ng-style="style2()" ng-if='windowWidth > "500"'>
 			Structure all aspects of teaching. Set your goals, engage your teachers and leap ahead.
 		</div>
 	</div>
-	<img class="image-2" ng-src="{{pageResUrl}}/visibility.png">
-	<img class="image-3" ng-src="{{pageResUrl}}/enableteachers.png">
-	<img class="image-4" ng-src="{{pageResUrl}}/leapforward.png">
-	<div class="ben_visibility_heading">
-		Get visibility into your teaching processes
+	<div style="position: relative; top:10vh;">
+		<div class="ben_visibility_heading">
+			<div style="color: red;text-align: center;">
+				<img class="image-2" ng-src="{{pageResUrl}}/visibility.png">
+				<br />
+				Get visibility into your teaching processes
+			</div>
+			<br />
+			<p>
+				Our customized analytics provide a bird’s eye view and detailed insights for each aspect of teaching in your school.&nbsp;
+			</p>
+			<p>
+				Get answers to questions like – Are all classes on track? Is the syllabus delivery plan optimal? Are the teachers planning well for their lessons? What is the training need of which department/teacher? How creatively are the teachers engaging their students?
+			</p>
+		</div>
+		<div class="ben_enable_heading">
+			<div style="color: red;text-align: center;">
+				<img class="image-3" ng-src="{{pageResUrl}}/enableteachers.png">
+				<br />
+				Enable your teachers
+			</div>
+			<p>
+				Designed specifically for teachers to make their daily work easier, more interesting and collaborative.
+			</p>
+			<p>
+				Nittio Learn is a part of your teaching processes. From updating program of work with a click to making great lesson plans, from creating beautiful learning material and worksheets for students in minutes to self-learning.
+				<br>
+			</p>
+		</div>
+		<div class="leapheading">
+			<div style="color: red;text-align: center;">
+				<img class="image-4" ng-src="{{pageResUrl}}/leapforward.png">
+				<br />
+				Leap forward
+			</div>
+			<p>
+				Set goals that will propel your school to the next league. Align on-the -ground teaching with your targets and watch your school move up.
+			</p>
+		</div>
 	</div>
-	<div class="ben_enable_heading">
-		Enable your teachers
-	</div>
-	<div class="leapheading">
-		Leap forward
-	</div>
-	<div class="ben_visibility_text">
-		<p>
-			Our customized analytics provide a bird’s eye view and detailed insights for each aspect of teaching in your school.&nbsp;
-		</p>
-		<p>
-			Get answers to questions like – Are all classes on track? Is the syllabus delivery plan optimal? Are the teachers planning well for their lessons? What is the training need of which department/teacher? How creatively are the teachers engaging their students?
-		</p>
-	</div>
-	<div class="ben_enable_text">
-		<p>
-			Designed specifically for teachers to make their daily work easier, more interesting and collaborative.
-		</p>
-		<p>
-			Nittio Learn is a part of your teaching processes. From updating program of work with a click to making great lesson plans, from creating beautiful learning material and worksheets for students in minutes to self-learning.
-			<br>
-		</p>
-	</div>
-	<p class="ben_leap_text">
-		Set goals that will propel your school to the next league. Align on-the -ground teaching with your targets and watch your school move up.
-	</p>
-	<div class="purplebg-2"></div>
-	<div class="customerspeak_heading">
-		Customer Speak
-	</div>
-	<div class="podar_testimonial">
-		<p>
-			“Our experience with Nittio Learn has been amazing. It is an easy tool – toddlers to adults can learn here. We use it for teacher training and assessments.”
-		</p>
-		<p>
-			<b>Vickram K.J | Master Franchise: Podar Education Network </b>
-		</p>
-	</div>
-	<div class="headstart_testimonial">
-		<p>
-			"Nittio Learn platform is an excellent example of positive use of technology in engaging children and young people and enhancing their learning experience." &nbsp;
-		</p>
-		<p>
-			<b>Riad Mahmood | Founder: Head Start Educational Academy&nbsp;</b>
-			<br>
-		</p>
+
+	<div class="purplebg-2">
+		<div class="customerspeak_heading">
+			<p>
+				Customer Speak
+			</p>
+		</div>
+		<div class="podar_testimonial">
+			<p>
+				“Our experience with Nittio Learn has been amazing. It is an easy tool – toddlers to adults can learn here. We use it for teacher training and assessments.”
+			</p>
+			<p>
+				<b>Vickram K.J | Master Franchise: Podar Education Network </b>
+			</p>
+			<br />
+		</div>
+		<div class="headstart_testimonial">
+			<p>
+				"Nittio Learn platform is an excellent example of positive use of technology in engaging children and young people and enhancing their learning experience." &nbsp;
+			</p>
+			<p>
+				<b>Riad Mahmood | Founder: Head Start Educational Academy&nbsp;</b>
+				<br>
+			</p>
+		</div>
 	</div>
 	<div class="helpingschools">
-		Helping teachers and school leaders across more than <a>100 </a>schools and preschools.
+		<p>
+			Helping teachers and school leaders across more than <a>100 </a>schools and preschools.
+		</p>
 	</div>
-	<p class="inmedia_heading">
-		In media
-	</p>
-	<div style="display: inline-block; position: relative; top:100%; left: 0px;">
+	<br />
+	<div class="inmedia_heading">
+		<p>
+			In media
+		</p>
+	</div>
+	<div class="links">
 		<div onClick="window.location='http://www.educationworldonline.net/index.php/page-article-choice-more-id-4648';" class="ewlink">
 			<img ng-src="{{pageResUrl}}/ew.jpg">
 		</div>
@@ -261,8 +288,96 @@
 		<div onClick="window.location='http://yourstory.com/2014/07/nittio-learn/';" class="yourstory">
 			<img ng-src="{{pageResUrl}}/yourstory.png">
 		</div>
-		<div onClick="window.location='http://www.prerit.org/ritu-josan/';" class="linktechstory">
+		<div onClick="window.location='http://www.prerit.org/ritu-josan/';" class="techstory">
 			<img ng-src="{{pageResUrl}}/prerit.png">
+		</div>
+	</div>
+	<div class="purplebg-3">
+		<div class="text">
+			Modules we provide
+		</div>
+		<div style="position: relative; width: 100%; height: auto; top: 2vh;">
+			<div class="text_heading_curr" style="position: relative; display: inline-block; max-width: 30vw;vertical-align: top;min-width:200px;min-height: 200px;max-height: 30vh;">
+				Curriculum distribution, E-books
+				<br />
+				<img class="image_curr" ng-src="{{pageResUrl}}/ebook.png" style="float: left; height: 100px; width: 100px; padding: 8px;">
+				<p>
+					Secure, easy way to distribute your curriculum. Avoid curriculum pilferage.
+				</p>
+				<p>
+					Easily convert your content into e-books, share with  students.
+				</p>
+			</div>
+			<div class="text_heading_curr" style="position: relative; display: inline-block; max-width: 30vw;vertical-align: top;min-width:200px;min-height: 200px;max-height: 30vh;">
+				Syllabus scheduler
+				<br />
+				<img class="image_sched" src="{{pageResUrl}}/syllsched.png" style="height: 100px; width: 100px; padding: 8px; float: left;">
+				<p>
+					Track progress of your curriculum delivery across grades and subjects.&nbsp;
+				</p>
+				<p>
+					Take corrective action on time.
+				</p>
+			</div>
+			<div class="text_heading_curr" style="position: relative; display: inline-block; max-width: 30vw;vertical-align: top;min-width:200px;min-height: 200px;max-height: 30vh;">
+				Planning index
+				<br />
+				<img class="image_planning" src="{{pageResUrl}}/planindex.png" style="height: 100px; width: 100px; padding: 8px; float: left;">
+				<p>
+					Track your school’s planning index as teachers easily create lesson plans and collaborate with colleagues.
+				</p>
+			</div>
+			<div class="text_heading_curr" style="position: relative; display: inline-block; max-width: 30vw;vertical-align: top;min-width:200px;min-height: 200px;max-height: 30vh;">
+				Teacher trainings, assessments
+				<br />
+				<img class="image_planning" src="{{pageResUrl}}/teachertrainging.png" style="height: 100px; width: 100px; padding: 8px; float: left;">
+				<p>
+					Teachers learn from customized training courses e.g. “New teacher induction”, other online courses like “Teacher essentials”.
+				</p>
+				<p>
+					In-build teacher assessments.
+				</p>
+			</div>
+			<div class="text_heading_curr" style="position: relative; display: inline-block; max-width: 30vw;vertical-align: top;min-width:200px;min-height: 200px;max-height: 30vh;">
+				In-class performance
+				<br />
+				<img class="image_planning" src="{{pageResUrl}}/inclass.png" style="height: 100px; width: 100px; padding: 8px; float: left;">
+				<p>
+					Track performance of your teachers in-class.&nbsp;
+				</p>
+				<p>
+					Get actionable insights at individual teacher and school level.
+				</p>
+			</div>
+			<div class="text_heading_curr" style="position: relative; display: inline-block; max-width: 30vw;vertical-align: top;min-width:200px;min-height: 200px;max-height: 30vh;">
+				Creative index
+				<br />
+				<img class="image_planning" src="{{pageResUrl}}/creative.png" style="height: 100px; width: 100px; padding: 8px; float: left;">
+				<p>
+					Build your intellectual property as teachers create interactive learning apps within minutes.
+				</p>
+			</div>
+		</div>
+	</div>
+	<div class="purplebg-4">
+		<div style="position: relative; vertical-align: top;">
+			<div class="about about1">
+				About us
+				<br />
+				Job opportunities Awards and recognition In-media
+				<br />
+				Contact us
+			</div>
+			<div class="about about2">
+				Follow us on
+				<br />
+				<a> Facebook </a><a> Twitter </a><a> LinkedIn </a>
+			</div>
+			<div class="about about3">
+				Let’s talk
+				<br />
+				Interested to know more about our platform? Please write to us at <a> hello@nittio.com </a> and we will get in touch with you at the earliest.
+			</div>
 		</div>
 	</div>
 </div>
