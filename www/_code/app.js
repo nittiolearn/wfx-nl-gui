@@ -78,6 +78,7 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
     nlLogViewer.showOnStartupIfRequired($scope);
     
     var homeUrl = nl.url.getAppUrl() + '#/app/home';
+    var welcomeUrl = nl.url.getAppUrl() + '#/app/welcome';
 
     $scope.userMenuItems = [];
     $scope.helpMenuIcon = nl.url.resUrl('general/help.png');
@@ -108,7 +109,7 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
                 url: '#/app/logout_now'});
         } else {
             $scope.logedIn = false;
-            $scope.homeUrl = '/';
+            $scope.homeUrl = welcomeUrl;
             $scope.userMenuIcon = nl.url.resUrl('general/top-login.png');
             $scope.userMenuItems.push({name: 'login', title: nl.t(' Sign In'), 
                 icon: nl.url.resUrl('general/login-signin.png'),

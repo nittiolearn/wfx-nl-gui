@@ -189,7 +189,7 @@ function Permission(nl) {
         'course_assign': {login: true, permission: 'course_assign', termRestriction: TR_CLOSED} 
     };
     
-    var openPages = {'/app/login_now': 1, '/app/logout_now': 1};
+    var openPages = {'/app/welcome': 1, '/app/login_now': 1, '/app/logout_now': 1};
     this.isOpenPage = function(pageUrl) {
         var page = (pageUrl == '') ? nl.location.path() : pageUrl;
         return (page in openPages);
