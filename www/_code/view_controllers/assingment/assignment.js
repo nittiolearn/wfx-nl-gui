@@ -121,10 +121,10 @@
 
 	    $scope.onCardInternalUrlClicked = function(card, internalUrl) {
 	    	var assignId = card.assignmentId;
-			if (internalUrl === 'assign_export') {
-				nlDlg.popupAlert({title: 'TODO', template: nl.fmt2('export is to be implemented. Assign id={}', assignId)});
-			} else if (internalUrl === 'assign_delete') {
-				nlDlg.popupAlert({title: 'TODO', template: nl.fmt2('delete is to be implemented. Assign id={}', assignId)});
+			if (internalUrl === 'assign_delete') {
+				_deleteAssignment($scope, assignId);
+			} else if (internalUrl === 'assign_publish'){
+				_publishAssignment($scope, assignId);
 			}
 	    };
 	
@@ -161,8 +161,10 @@
 				url = nl.fmt2('/lesson/view_shared_report_assign/{}/', assignment.id);
 			} else if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
 				url = nl.fmt2('/reports/assignment_rep/{}/', assignment.id);
+			} else if(mode.type == TYPES.PAST){
+				url = nl.fmt2('/lesson/view_report_assign/{}/', assignment.id);
 			} else {
-				url = nl.fmt2('/lesson/do_report_assign/{}/', assignment.id);
+				url = nl.fmt2('/lesson/do_report_assign/{}/', assignment.id);				
 			}
 			var card = {
 				assignmentId : assignment.id,
@@ -172,9 +174,9 @@
 				children : []
 			};
 			if (mode.type == TYPES.PAST || mode.type == TYPES.SHARED) {
-				card['help'] = nl.t("Assigned to: <b>{}</b><br> Subject: {}<br> by: <b>{}</b><br> <img src={} class='nl-24'> completed", assignment.assigned_to, assignment.subject, assignment.assigned_by, nl.url.resUrl('general/tick.png'));
+				card['help'] = nl.t("<span class='nl-card-description'>Assigned to: <b>{}</b></span><br> Subject: {}<br> by: <b>{}</b><br> <img src={} class='nl-24'> completed", assignment.assigned_to, assignment.subject, assignment.assigned_by, nl.url.resUrl('general/tick.png'));
 			} else {
-				card['help'] = nl.t("Assigned to: <b>{}</b><br> Subject: {}<br> by: <b>{}</b><br> {}", assignment.assigned_to, assignment.subject, assignment.assigned_by, assignment.assign_remarks);
+				card['help'] = nl.t("<span class='nl-card-description'>Assigned to: <b>{}</b></span><br> Subject: {}<br> by: <b>{}</b><br> {}", assignment.assigned_to, assignment.subject, assignment.assigned_by, assignment.assign_remarks);
 			}
 			card.details = {
 				help : assignment.descMore,
@@ -202,7 +204,7 @@
 			var avps = [];
 
 			var linkAvp = nl.fmt.addLinksAvp(avps, 'Operations');
-			_populateLinks(linkAvp, assignment.id);
+			_populateLinks(linkAvp, assignment.id, assignment.published);
 
 			nl.fmt.addAvp(avps, 'Name', assignment.name);
 			nl.fmt.addAvp(avps, 'Remarks', assignment.assign_remarks);
@@ -220,7 +222,7 @@
 			nl.fmt.addAvp(avps, 'Latest end time', assignment.not_after, 'date');
 			nl.fmt.addAvp(avps, 'Max duration', assignment.max_duration, 'minutes');
 			nl.fmt.addAvp(avps, 'Show answers', _learnmodeString(assignment.learnmode));
-			nl.fmt.addAvp(avps, 'Is published?', assignment.published, 'boolen');
+			nl.fmt.addAvp(avps, 'Is published?', assignment.published, 'boolean');
 			nl.fmt.addAvp(avps, 'Discussion forum', assignment.forum, 'boolean');
 			return avps;
 		}
@@ -235,7 +237,8 @@
 			return '';
 		}
 		
-		function _populateLinks(linkAvp, assignId) {
+		function _populateLinks(linkAvp, assignId, publish) {
+			var d = new Date();
 			if (mode.type == TYPES.PAST) {
 				nl.fmt.addLinkToAvp(linkAvp, 'view report', nl.fmt2('/lesson/view_report_assign/{}', assignId));
 			} else if (mode.type == TYPES.SHARED) {
@@ -243,8 +246,10 @@
 			} else if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
 				nl.fmt.addLinkToAvp(linkAvp, 'reports', nl.fmt2('/reports/assignment_rep/{}', assignId));
 				nl.fmt.addLinkToAvp(linkAvp, 'content', nl.fmt2('/lesson/view_assign/{}', assignId));
-				nl.fmt.addLinkToAvp(linkAvp, 'export', null, 'assign_export');
+				nl.fmt.addLinkToAvp(linkAvp, 'export', nl.fmt2('/assignment/export/{}/{}', assignId, d.getTimezoneOffset()));
 				nl.fmt.addLinkToAvp(linkAvp, 'delete', null, 'assign_delete');
+				if(!publish) nl.fmt.addLinkToAvp(linkAvp, 'publish', null, 'assign_publish');
+				
 			} else {
 				nl.fmt.addLinkToAvp(linkAvp, 'do assignment', nl.fmt2('/lesson/do_report_assign/{}', assignId));
 			}
@@ -252,7 +257,7 @@
 
 		function _addSearchInfo(cards) {
 			cards.search = {
-				placeholder : nl.t('Enter assignment name/description')
+				placeholder : nl.t('Name/Subject/Remarks/Keyword')
 			};
 			cards.search.onSearch = _onSearch;
 		}
@@ -272,6 +277,32 @@
 			var url = nl.t('/lesson/view_assign/{}/', linkid);
 			nl.window.location.href = url;
 		};
+
+		function _deleteAssignment($scope, assignId) {
+			var msg = {title: 'Please confirm', 
+					   template: nl.t('Deleting an assignment will delete all reports behind this assignment. This cannot be undone. Are you sure you want to delete?'),
+					   okText: nl.t('Delete')};
+			nlDlg.popupConfirm(msg).then(function(result) {
+				if (!result) return;
+				nlDlg.showLoadingScreen();
+				nlServerApi.assignmentDelete(assignId).then(function(status) {
+					nlDlg.hideLoadingScreen();
+					for (var i in $scope.cards.cardlist) {
+						var card = $scope.cards.cardlist[i];
+						if (card.assignmentId !== assignId) continue;
+						$scope.cards.cardlist.splice(i, 1);
+					}
+					nl.window.location.reload();
+				});	
+			});
+		}
+
+		function _publishAssignment($scope, assignId){
+			nlServerApi.assignmentPublish(assignId).then(function(status) {
+				nlDlg.hideLoadingScreen();
+				nl.window.location.reload();
+			});
+		}
 
 		function _initParams() {
 			var params = nl.location.search();

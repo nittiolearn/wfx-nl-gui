@@ -272,7 +272,16 @@ function(nl, nlDlg, nlConfig) {
         // return: list of assignments
         return server.post('_serverapi/assignment_get_sent_list.json', data);
 	};
+	this.assignmentDelete = function(assignId){
+		//Delete the specific assignment.
+        return server.post('_serverapi/assignment_delete.json', {assignid: assignId});		
+	};
 
+	this.assignmentPublish = function(assignId){
+        // assignid = assignId		
+		//publish the specific assignment.
+        return server.post('_serverapi/assignment_publish.json', {assignid: assignId});		
+	};
     //---------------------------------------------------------------------------------------------
 	// lesson entities
     //---------------------------------------------------------------------------------------------
