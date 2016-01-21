@@ -173,10 +173,18 @@
 				url : url,
 				children : []
 			};
+			var descFmt = " \
+			 <div class='nl-textellipsis'>Sent to: <b>{}</b></div> \
+			 <div class='nl-textellipsis'>Subject: {}</div> \
+			 <div class='nl-textellipsis'>by: <b>{}</b></div>";
 			if (mode.type == TYPES.PAST || mode.type == TYPES.SHARED) {
-				card['help'] = nl.t("<span class='nl-card-description'>Assigned to: <b>{}</b></span><br> Subject: {}<br> by: <b>{}</b><br> <img src={} class='nl-24'> completed", assignment.assigned_to, assignment.subject, assignment.assigned_by, nl.url.resUrl('general/tick.png'));
+			    descFmt += "<img src={} class='nl-24'> completed";
+				card['help'] = nl.t(descFmt, assignment.assigned_to, assignment.subject, 
+				    assignment.assigned_by, nl.url.resUrl('general/tick.png'));
 			} else {
-				card['help'] = nl.t("<span class='nl-card-description'>Assigned to: <b>{}</b></span><br> Subject: {}<br> by: <b>{}</b><br> {}", assignment.assigned_to, assignment.subject, assignment.assigned_by, assignment.assign_remarks);
+                descFmt += "<div>{}</div>";
+				card['help'] = nl.t(descFmt, assignment.assigned_to, assignment.subject, 
+				    assignment.assigned_by, assignment.assign_remarks);
 			}
 			card.details = {
 				help : assignment.descMore,
