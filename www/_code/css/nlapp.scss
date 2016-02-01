@@ -17,7 +17,8 @@ $dark:                            #444 !default;
 
 $nltopbar:                        #403050 !default; // Top Bar Bg-Color
 $nltopbar1:                       #807090 !default; // Top Bar Bg-Color gradiant
-$nltopbar2:                       #675187 !default; // A lighter shade for other usages
+$nltopbar2:                       #675187 !default; // A darker shade for other usages
+$nltopbar3:                       #B0A0C0 !default; // A lighter shade for other usages
 $nldlgbar:                        #E06000 !default; // Dialog Box header Bg-Color
 $nlgrey:                          #EEEEFF !default; // Mild border
 $nldarkgrey:                      #CCCCDD !default; // Darker border
@@ -1027,6 +1028,13 @@ img.nl-full-width {
 
   .bg-dark {
     background-color: $nltopbar2;
+    .nl-clickable {
+        color: #FFFFFF;
+    }
+  }
+
+  .bg3 {
+    background-color: $nltopbar3;
   }
   
   .nl-h1 {
@@ -1082,6 +1090,14 @@ img.nl-full-width {
   -ms-flex: 0 0 100px;
   flex: 0 0 100px;
   max-width: 100px; 
+}
+
+.padding0 {
+    padding: 0;
+}
+
+.margin0, .row.margin0 {
+    margin: 0;
 }
 
 //-------------------------------------------------------------------------------------------

@@ -153,7 +153,6 @@ var W_SMALL = 700;
 var W_LARGE = 1000;
 function _computeScreenSize(nl) {
     var w = nl.window.innerWidth;
-    console.log('Window width: ', w);
     if (w < W_SMALL) return 'small';
     if (w > W_LARGE) return 'large';
     return 'medium';
