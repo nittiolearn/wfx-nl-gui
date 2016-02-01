@@ -1,383 +1,192 @@
 <style>
-	.purplebg {
-		position: relative;
-		display: inline-block;
-		width: 100%;
-		height: 94vh;
-		background-image: url('{{pageResUrl}}/background.png');
-		background-size: 100vw 100vh;
-		background-repeat: no-repeat;
-	}
-	.purplebg-2 {
-		position: relative;
-		width: 100%;
-		height: auto;
-		top: 20vh;
-		background-color: rgba(96, 74, 123, 0.9);
-	}
-	.purplebg-3 {
-		position: relative;
-		width: 100%;
-		height: auto;
-		top: 40vh;
-		background-color: rgba(96, 74, 123, 0.9);
-	}
-	.purplebg-4 {
-		position: relative;
-		width: 100%;
-		height: auto;
-		top: 50vh;
-	}
+    body {
+        font-family: Lato, Verdana, Helvetica, Arial, sans-serif;
+    }
 
-	.heading {
-		display: inline-block;
-		vertical-align: top;
-		color: #FFFFFF;
-		font-size: 1.5em;
-	}
-	.image {
-		display: inline-block;
-		top: 10px;
-		min-height: 200px;
-		max-height: 40vh;
-		min-width: 200px;
-		max-width: 60vw;
-		left: 50px;
-	}
-	.laptop {
-		min-width: 200px;
-		max-width: 60vw;
-		min-height: 200px;
-		max-height: 40vh;
-	}
-	.subheading {
-		display: inline-block;
-		height: 10%;
-		font-style: normal;
-		font-size: 1.25em;
-		font-weight: 300;
-		background-color: rgba(0, 0, 0, 0);
-		color: rgb(255, 255, 255);
-	}
-	.image-2, .image-3, .image-4 {
-		min-width: 40px;
-		max-width: 7vw;
-		min-height: 8vh;
-		max-height: 10vh;
-	}
-
-	.ben_visibility_heading, .ben_enable_heading, .leapheading {
-		position: relative;
-		display: inline-block;
-		min-width: 200px;
-		max-width: 25%;
-		max-height: 60vh;
-		left: 10%;
-		background-color: rgba(0, 0, 0, 0);
-		font-size: 1em;
-		font-weight: 400;
-		line-height: 1.38;
-		overflow: hidden;
-		vertical-align: top;
-	}
-
-	.customerspeak_heading {
-		position: relative;
-		overflow: hidden;
-		top: 2vh;
-		width: 100%;
-		height: 10vh;
-		text-align: center;
-		background-color: rgba(0, 0, 0, 0);
-		font-size: 1.75em;
-		font-weight: 400;
-		line-height: 1.38;
-		color: rgb(249, 247, 247);
-	}
-	.podar_testimonial, .headstart_testimonial {
-		position: relative;
-		display: inline-block;
-		left: 15vw;
-		min-width: 200px;
-		max-width: 40vw;
-		height: 20vh;
-		border-color: rgb(0, 0, 0);
-		background-color: rgba(0, 0, 0, 0);
-		font-size: 1em;
-		font-weight: 400;
-		line-height: 1.38;
-		color: rgb(255, 255, 255);
-	}
-
-	.helpingschools {
-		position: relative;
-		top: 20vh;
-		text-align: center;
-		font-size: 1.75em;
-		font-weight: 400;
-		line-height: 1.38;
-		color: rgb(0, 0, 0);
-	}
-	a {
-		color: rgb(245, 75, 34);
-	}
-	.inmedia_heading {
-		position: relative;
-		width: 100%;
-		top: 25vh;
-		text-align: center;
-		background-color: rgba(0, 0, 0, 0);
-		font-style: normal;
-		font-size: 1.75em;
-		font-weight: 600;
-		line-height: 1.38;
-		color: rgb(0, 0, 0);
-	}
-	.links {
-		position: relative;
-		top: 35vh;
-	}
-	.ewlink, .linktechstory, .yourstory, .techstory {
-		position: relative;
-		display: inline-block;
-		min-height: 100px;
-		min-width: 200px;
-		max-width: 25vw;
-		max-height: 20vh;
-		background-color: rgba(255, 255, 255, 0.02);
-	}
-	.ewlink, .linktechstory, .yourstory, .techstory img {
-		height: 100%;
-		width: 100%;
-		left: 10vw;
-	}
-	.text {
-		position: relative;
-		text-align: center;
-		font-size: 1.75em;
-		font-weight: 400;
-		line-height: 1.38;
-		color: rgb(255, 255, 255);
-	}
-	.about {
-		position: relative;
-		display: inline-block;
-		left: 10vw;
-		width: 200px;
-		height: 200px;
-		padding: 8px;
-	}
-	.about1 {
-		vertical-align: top;
-	}
-	.about2 {
-		vertical-align: top;
-		background-color: gainsboro;
-	}
-	.about3 {
-		color: #FFFFFF;
-		vertical-align: top;
-		background-color: indigo;
-	}
+    .bg-img {
+        background-image: url({{pageResUrl}}/background.png);
+    }
+    
+    .x {
+        background-color: yellow;
+    }
+    .x1 {
+        background-color: green;
+    }
+    
 </style>
-<div class="nl-thin-scroll nl-full body" >
-	<div class="purplebg">
-		<br />
-		<br />
-		<nl-welcome-dir>
-			<div ng-style="style()" ng-if='windowWidth <= "500"' class="heading">
-				Measure and improve the most important aspect of your school,  the “Teaching quality”.
-			</div>
-			<div ng-style="style1()" ng-if='windowWidth > "500"' class="heading">
-				Measure and improve the most important aspect of your school,  the “Teaching quality”.
-			</div>
-		</nl-welcome-dir>
-		<div class="image"><img class="laptop" ng-src="{{pageResUrl}}/laptop.png">
-		</div>
-		<div class="subheading" ng-style="style()" ng-if='windowWidth <= "500"'>
-			Structure all aspects of teaching. Set your goals, engage your teachers and leap ahead.
-		</div>
-		<div class="subheading" ng-style="style2()" ng-if='windowWidth > "500"'>
-			Structure all aspects of teaching. Set your goals, engage your teachers and leap ahead.
-		</div>
-	</div>
-	<div style="position: relative; top:10vh;">
-		<div class="ben_visibility_heading">
-			<div style="color: red;text-align: center;">
-				<img class="image-2" ng-src="{{pageResUrl}}/visibility.png">
-				<br />
-				Get visibility into your teaching processes
-			</div>
-			<br />
-			<p>
-				Our customized analytics provide a bird’s eye view and detailed insights for each aspect of teaching in your school.&nbsp;
-			</p>
-			<p>
-				Get answers to questions like – Are all classes on track? Is the syllabus delivery plan optimal? Are the teachers planning well for their lessons? What is the training need of which department/teacher? How creatively are the teachers engaging their students?
-			</p>
-		</div>
-		<div class="ben_enable_heading">
-			<div style="color: red;text-align: center;">
-				<img class="image-3" ng-src="{{pageResUrl}}/enableteachers.png">
-				<br />
-				Enable your teachers
-			</div>
-			<p>
-				Designed specifically for teachers to make their daily work easier, more interesting and collaborative.
-			</p>
-			<p>
-				Nittio Learn is a part of your teaching processes. From updating program of work with a click to making great lesson plans, from creating beautiful learning material and worksheets for students in minutes to self-learning.
-				<br>
-			</p>
-		</div>
-		<div class="leapheading">
-			<div style="color: red;text-align: center;">
-				<img class="image-4" ng-src="{{pageResUrl}}/leapforward.png">
-				<br />
-				Leap forward
-			</div>
-			<p>
-				Set goals that will propel your school to the next league. Align on-the -ground teaching with your targets and watch your school move up.
-			</p>
-		</div>
-	</div>
+<div class='nl-static nl-thin-scroll nl-full'>
+    <div class='section bg-dark1 padding page_height row row-center row-wrap'>
+        <div class='bg-img-opaque'></div>
+        <div class='bg-img'></div>
+        <div class='row row-center' ng-show='screenSize == "large"'>
+            <div class='col padding'>
+                <div style='height: 5em;'></div>
+                <div class='nl-h1 nl-anim-grow'>{{content.msg1}}</div>
+                <div style='height: 10em;'></div>
+                <div class='nl-big' ng-show='screenSize == "large"'>{{content.msg2}}</div>
+                <div style='height: 5em;'></div>
+            </div>
+            <div class='col padding' ng-show='screenSize == "large"'>
+                <div style='height: 2em;'></div>
+                <img class='full-image nl-anim-grow' ng-src='{{pageResUrl}}/laptop.png'>
+                <div style='height: 2em;'></div>
+            </div>
+        </div>
+        <div class='row' ng-hide='screenSize == "large"'>
+            <div class='col'>
+                <div style='height: 2em;' ></div>
+                <div class='nl-h1 text-center nl-anim-grow'>{{content.msg1}}</div>
+            </div>
+        </div>
+        <div class='row' ng-hide='screenSize == "large"'>
+            <div class='col'>
+                <div style='height: 1em;'></div>
+                <img class='full-image nl-anim-grow' ng-src='{{pageResUrl}}/laptop.png'>
+                <div style='height: 1em;'></div>
+            </div>
+        </div>
+        <div class='row' ng-hide='screenSize == "large"'>
+            <div class='col'>
+                <div class='nl-big text-center'>{{content.msg2}}</div>
+            </div>
+        </div>
+    </div>
+    <div class='section padding page_height row row-wrap row-top'>
+        <div class='full-image padding-vertical'></div>
+        <div class='nl-h2 padding-vertical'>Benefits</div>
+        <div class='col min-200 padding'>
+            <div class='text-center padding-vertical'><img class='nl-max-100' ng-src='{{pageResUrl}}/visibility.png'></div>
+            <div class='text-center nl-imp padding-vertical'>Continuously improving academics</div>
+            <div class='padding-vertical'></div>
+            <p>Our customized insights based on hard data enable quick decisions on all aspects of your academics. See your decisions translate into action and results.</p>
+        </div>
+        <div class='col min-200 padding'>
+            <div class='text-center padding-vertical'><img class='nl-100' ng-src='{{pageResUrl}}/enableteachers.png'></div>
+            <div class='text-center nl-imp padding-vertical'>Aligned and productive teachers</div>
+            <div class='padding-vertical'></div>
+            <p>Designed specifically for teachers to make their daily work easier, more interesting and collaborative. Teachers grow while working towards the goals of the school.</p>
+        </div>
+        <div class='col min-200 padding'>
+            <div class='text-center padding-vertical'><img class='nl-100' ng-src='{{pageResUrl}}/leapforward.png'></div>
+            <div class='text-center nl-imp padding-vertical'>Expand with quality</div>
+            <div class='padding-vertical'></div>
+            <p>Quality feeds growth. Whether you are growing single school or a chain of schools, our Quality Management reports ensure that you are achieving your growth with ever increasing quality.</p>
+        </div>
+    </div>
+    <div class='section bg-dark padding row row-wrap'>
+        <div class='full-image padding-vertical'></div>
+        <div class='nl-h2 padding-vertical'>Customer Speak</div>
+        <div class='col min-400 padding'>
+            <p>“Our experience with Nittio Learn has been amazing. It is an easy tool – toddlers to adults can learn here. We use it for teacher training and assessments.”</p>
+            <br/>
+            <p><b>Vickram K.J | Master Franchise: Podar Education Network</b></p>
+        </div>
+        <div class='col min-400 padding'>
+            <p>"Nittio Learn platform is an excellent example of positive use of technology in engaging children and young people and enhancing their learning experience."</p>
+            <br/>
+            <p><b>Riad Mahmood | Founder: Head Start Educational Academy </b></p>
+        </div>
+    </div>
+    <div class='section padding row row-wrap row-center'>
+        <div class='full-image padding-vertical'></div>
+        <div class='nl-h2 padding-vertical'>Helping teachers and school leaders across more than <span class='nl-imp'>100</span> schools and preschools.</div>
+        <div class='padding-vertical text-center full-image' style='5em'></div>
+        <div class='nl-h1 padding-vertical text-center full-image'>In media</div>
+        <div class='col nl-min-200 padding text-center'>
+            <a href='http://www.educationworldonline.net/index.php/page-article-choice-more-id-4648'>
+                <img class='nl-max-100' ng-src='{{pageResUrl}}/ew.jpg'>
+            </a>
+        </div>
+        <div class='col nl-min-200 padding text-center'>
+            <a href='http://techstory.in/nittio-learn/'>
+                <img class='nl-max-100' ng-src='{{pageResUrl}}/techstory.jpg'>
+            </a>
+        </div>
+        <div class='col nl-min-200 padding text-center'>
+            <a href='http://yourstory.com/2014/07/nittio-learn/'>
+                <img class='nl-max-100' ng-src='{{pageResUrl}}/yourstory.png'>
+            </a>
+        </div>
+        <div class='col nl-min-200 padding text-center'>
+            <a href='http://www.prerit.org/ritu-josan/'>
+                <img class='nl-max-100' ng-src='{{pageResUrl}}/prerit.png'>
+            </a>
+        </div>
+    </div>
+    <div class='section padding bg-dark page_height row row-wrap'>
+        <div class='full-image padding-vertical'></div>
+        <div class='nl-h2 padding-vertical'>Modules we provide</div>
+        <div class='col min-400 padding'>
+            <div class='text-center nl-imp2'>Curriculum distribution, e-books</div>
+            <div class='row'>
+                <div class='col text-center padding fixed-100'>
+                    <img class='full-image' ng-src='{{pageResUrl}}/ebook.png'>
+                </div>
+                <div class='col padding'>
+                    <p>Secure, easy way to distribute your curriculum. Avoid curriculum pilferage.</p>
+                    <p>Easily convert your content into e-books, share with students.</p>
+                </div>
+            </div>
+        </div>
 
-	<div class="purplebg-2">
-		<div class="customerspeak_heading">
-			<p>
-				Customer Speak
-			</p>
-		</div>
-		<div class="podar_testimonial">
-			<p>
-				“Our experience with Nittio Learn has been amazing. It is an easy tool – toddlers to adults can learn here. We use it for teacher training and assessments.”
-			</p>
-			<p>
-				<b>Vickram K.J | Master Franchise: Podar Education Network </b>
-			</p>
-			<br />
-		</div>
-		<div class="headstart_testimonial">
-			<p>
-				"Nittio Learn platform is an excellent example of positive use of technology in engaging children and young people and enhancing their learning experience." &nbsp;
-			</p>
-			<p>
-				<b>Riad Mahmood | Founder: Head Start Educational Academy&nbsp;</b>
-				<br>
-			</p>
-		</div>
-	</div>
-	<div class="helpingschools">
-		<p>
-			Helping teachers and school leaders across more than <a>100 </a>schools and preschools.
-		</p>
-	</div>
-	<br />
-	<div class="inmedia_heading">
-		<p>
-			In media
-		</p>
-	</div>
-	<div class="links">
-		<div onClick="window.location='http://www.educationworldonline.net/index.php/page-article-choice-more-id-4648';" class="ewlink">
-			<img ng-src="{{pageResUrl}}/ew.jpg">
-		</div>
-		<div class="linktechstory">
-			<img ng-src="{{pageResUrl}}/techstory.jpg">
-		</div>
-		<div onClick="window.location='http://yourstory.com/2014/07/nittio-learn/';" class="yourstory">
-			<img ng-src="{{pageResUrl}}/yourstory.png">
-		</div>
-		<div onClick="window.location='http://www.prerit.org/ritu-josan/';" class="techstory">
-			<img ng-src="{{pageResUrl}}/prerit.png">
-		</div>
-	</div>
-	<div class="purplebg-3">
-		<div class="text">
-			Modules we provide
-		</div>
-		<div style="position: relative; width: 100%; height: auto; top: 2vh;">
-			<div class="text_heading_curr" style="position: relative; display: inline-block; max-width: 30vw;vertical-align: top;min-width:200px;min-height: 200px;max-height: 30vh;">
-				Curriculum distribution, E-books
-				<br />
-				<img class="image_curr" ng-src="{{pageResUrl}}/ebook.png" style="float: left; height: 100px; width: 100px; padding: 8px;">
-				<p>
-					Secure, easy way to distribute your curriculum. Avoid curriculum pilferage.
-				</p>
-				<p>
-					Easily convert your content into e-books, share with  students.
-				</p>
-			</div>
-			<div class="text_heading_curr" style="position: relative; display: inline-block; max-width: 30vw;vertical-align: top;min-width:200px;min-height: 200px;max-height: 30vh;">
-				Syllabus scheduler
-				<br />
-				<img class="image_sched" src="{{pageResUrl}}/syllsched.png" style="height: 100px; width: 100px; padding: 8px; float: left;">
-				<p>
-					Track progress of your curriculum delivery across grades and subjects.&nbsp;
-				</p>
-				<p>
-					Take corrective action on time.
-				</p>
-			</div>
-			<div class="text_heading_curr" style="position: relative; display: inline-block; max-width: 30vw;vertical-align: top;min-width:200px;min-height: 200px;max-height: 30vh;">
-				Planning index
-				<br />
-				<img class="image_planning" src="{{pageResUrl}}/planindex.png" style="height: 100px; width: 100px; padding: 8px; float: left;">
-				<p>
-					Track your school’s planning index as teachers easily create lesson plans and collaborate with colleagues.
-				</p>
-			</div>
-			<div class="text_heading_curr" style="position: relative; display: inline-block; max-width: 30vw;vertical-align: top;min-width:200px;min-height: 200px;max-height: 30vh;">
-				Teacher trainings, assessments
-				<br />
-				<img class="image_planning" src="{{pageResUrl}}/teachertrainging.png" style="height: 100px; width: 100px; padding: 8px; float: left;">
-				<p>
-					Teachers learn from customized training courses e.g. “New teacher induction”, other online courses like “Teacher essentials”.
-				</p>
-				<p>
-					In-build teacher assessments.
-				</p>
-			</div>
-			<div class="text_heading_curr" style="position: relative; display: inline-block; max-width: 30vw;vertical-align: top;min-width:200px;min-height: 200px;max-height: 30vh;">
-				In-class performance
-				<br />
-				<img class="image_planning" src="{{pageResUrl}}/inclass.png" style="height: 100px; width: 100px; padding: 8px; float: left;">
-				<p>
-					Track performance of your teachers in-class.&nbsp;
-				</p>
-				<p>
-					Get actionable insights at individual teacher and school level.
-				</p>
-			</div>
-			<div class="text_heading_curr" style="position: relative; display: inline-block; max-width: 30vw;vertical-align: top;min-width:200px;min-height: 200px;max-height: 30vh;">
-				Creative index
-				<br />
-				<img class="image_planning" src="{{pageResUrl}}/creative.png" style="height: 100px; width: 100px; padding: 8px; float: left;">
-				<p>
-					Build your intellectual property as teachers create interactive learning apps within minutes.
-				</p>
-			</div>
-		</div>
-	</div>
-	<div class="purplebg-4">
-		<div style="position: relative; vertical-align: top;">
-			<div class="about about1">
-				About us
-				<br />
-				Job opportunities Awards and recognition In-media
-				<br />
-				Contact us
-			</div>
-			<div class="about about2">
-				Follow us on
-				<br />
-				<a> Facebook </a><a> Twitter </a><a> LinkedIn </a>
-			</div>
-			<div class="about about3">
-				Let’s talk
-				<br />
-				Interested to know more about our platform? Please write to us at <a> hello@nittio.com </a> and we will get in touch with you at the earliest.
-			</div>
-		</div>
-	</div>
+        <div class='col min-400 padding'>
+            <div class='text-center nl-imp2'>Syllabus scheduler</div>
+            <div class='row'>
+                <div class='col text-center padding fixed-100'>
+                    <img class='full-image' ng-src='{{pageResUrl}}/syllsched.png'>
+                </div>
+                <div class='col padding'>
+                    <p>Track progress of your curriculum delivery across grades and subjects.</p>
+                    <p>Take corrective action on time.</p>
+                </div>
+            </div>
+        </div>
+        <div class='col min-400 padding'>
+            <div class='text-center nl-imp2'>Planning index</div>
+            <div class='row'>
+                <div class='col text-center padding fixed-100'>
+                    <img class='full-image' ng-src='{{pageResUrl}}/planindex.png'>
+                </div>
+                <div class='col padding'>
+                    <p>Track your school’s planning index as teachers easily create lesson plans and collaborate with colleagues.</p>
+                </div>
+            </div>
+        </div>
+        <div class='col min-400 padding'>
+            <div class='text-center nl-imp2'>Teacher trainings, assessments</div>
+            <div class='row'>
+                <div class='col text-center padding fixed-100'>
+                    <img class='full-image' ng-src='{{pageResUrl}}/teachertrainging.png'>
+                </div>
+                <div class='col padding'>
+                    <p>Teachers learn from customized training courses e.g. “New teacher induction”, other online courses like “Teacher essentials”.</p>
+                    <p>In-build teacher assessments.</p>
+                </div>
+            </div>
+        </div>
+        <div class='col min-400 padding'>
+            <div class='text-center nl-imp2'>In-class performance</div>
+            <div class='row'>
+                <div class='col text-center padding fixed-100'>
+                    <img class='full-image' ng-src='{{pageResUrl}}/inclass.png'>
+                </div>
+                <div class='col padding'>
+                    <p>Track performance of your teachers in-class.</p>
+                    <p>Get actionable insights at individual teacher and school level.</p>
+                </div>
+            </div>
+        </div>
+        <div class='col min-400 padding'>
+            <div class='text-center nl-imp2'>Creative index</div>
+            <div class='row'>
+                <div class='col text-center padding fixed-100'>
+                    <img class='full-image' ng-src='{{pageResUrl}}/creative.png'>
+                </div>
+                <div class='col padding'>
+                    <p>Build your intellectual property as teachers create interactive learning apps within minutes. </p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

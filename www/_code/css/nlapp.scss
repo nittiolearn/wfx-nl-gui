@@ -17,6 +17,7 @@ $dark:                            #444 !default;
 
 $nltopbar:                        #403050 !default; // Top Bar Bg-Color
 $nltopbar1:                       #807090 !default; // Top Bar Bg-Color gradiant
+$nltopbar2:                       #675187 !default; // A lighter shade for other usages
 $nldlgbar:                        #E06000 !default; // Dialog Box header Bg-Color
 $nlgrey:                          #EEEEFF !default; // Mild border
 $nldarkgrey:                      #CCCCDD !default; // Darker border
@@ -24,6 +25,12 @@ $nlgreen:                         #008000 !default; // green
 
 $energized:                       $nltopbar;
 $positive:                        $nldlgbar;
+
+// Padding definition
+$nlpad_x:                         20px !default; 
+$nlpad_y:                         20px !default; 
+$nlpad_x_small:                   10px !default; 
+$nlpad_y_small:                   10px !default; 
 
 // The path for our ionicons font files, relative to the built CSS in www/css
 $ionicons-font-path: "lib/ionic/fonts" !default;
@@ -38,6 +45,15 @@ $ionicons-font-path: "lib/ionic/fonts" !default;
 /*-----------------------------------------------------------------------------------------*
  * Dialog Box animations
  *-----------------------------------------------------------------------------------------*/
+  .popup-container.popup-hidden .popup {
+    -webkit-animation-name: scaleOut;
+    animation-name: scaleOut;
+    -webkit-animation-duration: 0.1s;
+    animation-duration: 0.1s;
+    -webkit-animation-timing-function: ease-in-out;
+    animation-timing-function: ease-in-out;
+    -webkit-animation-fill-mode: both;
+    animation-fill-mode: both; }
 @-webkit-keyframes nlDropDown {
   from {
     @include transform(translate(0, -100%));
@@ -230,8 +246,26 @@ $animation-duration: 200ms !default;
 }
 
 .nl-24 {
-    width: 24px;
-    height: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.nl-100 {
+  width: 100px;
+  height: 100px;
+}
+
+.nl-max-100 {
+  max-width: 100px;
+  max-height: 100px;
+}
+
+.nl-max-200 {
+  max-width: 200px;
+}
+
+.nl-min-200 {
+  min-width: 200px;
 }
 
 .nl-clickable, .nl-clickable1 {
@@ -274,6 +308,10 @@ img.nl-clickable {
 }
 
 .nl-thin-scroll {
+  overflow: auto;
+}
+
+.nl-thin-scroll1 {
   overflow: auto;
   &::-webkit-scrollbar {
     width:  8px;
@@ -947,3 +985,198 @@ img.nl-icon {
 img.nl-full-width {
   max-width: 100%;
 }
+
+/*-----------------------------------------------------------------------------------------*
+ * Wecome page and other static page styling
+ *-----------------------------------------------------------------------------------------*/
+.nl-static {
+  font-size: 16px;
+  
+  .section {
+    position: relative;
+  }
+
+  .page_height {
+    min-height: 95vh;
+  }
+  
+  .bg-img, .bg-img-opaque {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+  }
+
+  .bg-img-opaque {
+    background-color: $nltopbar2;
+    background-color: black;
+    z-index: -1;
+    opacity: 0.4;
+  }
+  
+  .bg-img {
+    z-index: -2;   
+    background-size: cover;
+    /* background-image: will be defined in the html fragment */
+  }
+    
+  .bg-dark, .bg-dark1 {
+    color: #FFFFFF;
+  }
+
+  .bg-dark {
+    background-color: $nltopbar2;
+  }
+  
+  .nl-h1 {
+    font-size: 175%;
+    font-weight: bold;
+  }
+
+  .nl-h2 {
+    font-size: 175%;
+    text-align: center;
+    width: 100%;
+  }
+
+  .nl-big {
+    font-size: 150%;
+  }
+    
+  .nl-imp, .nl-imp2 {
+    font-size: 120%;
+    font-weight: bold;
+  }
+
+  .nl-imp {
+    color: rgb(245, 75, 34);
+  }
+}
+
+.col.min-400 {
+  -webkit-box-flex: 0;
+  -webkit-flex: 1 0 400px;
+  -moz-box-flex: 0;
+  -moz-flex: 1 0 400px;
+  -ms-flex: 1 0 400px;
+  flex: 1 0 400px;
+  min-width: 400px; 
+}
+
+.col.min-200, .nl-screen-small .col.min-400 {
+  -webkit-box-flex: 0;
+  -webkit-flex: 1 0 200px;
+  -moz-box-flex: 0;
+  -moz-flex: 1 0 200px;
+  -ms-flex: 1 0 200px;
+  flex: 1 0 200px;
+  min-width: 200px; 
+}
+
+.col.fixed-100 {
+  -webkit-box-flex: 0;
+  -webkit-flex: 0 0 100px;
+  -moz-box-flex: 0;
+  -moz-flex: 0 0 100px;
+  -ms-flex: 0 0 100px;
+  flex: 0 0 100px;
+  max-width: 100px; 
+}
+
+//-------------------------------------------------------------------------------------------
+// Large screen specific
+//-------------------------------------------------------------------------------------------
+.padding, .padding-top, .padding-vertical {
+  padding-top: $nlpad_y;
+}
+
+.padding, .padding-right, .padding-horizontal {
+  padding-right: $nlpad_x;
+}
+
+.padding, .padding-bottom, .padding-vertical {
+  padding-bottom: $nlpad_y;
+}
+
+.padding, .padding-left, .padding-horizontal {
+  padding-left: $nlpad_x; 
+}
+
+//-------------------------------------------------------------------------------------------
+// Small screen specific
+//-------------------------------------------------------------------------------------------
+.nl-screen-small {
+  .col.min-400 {
+    -webkit-box-flex: 0;
+    -webkit-flex: 1 0 200px;
+    -moz-box-flex: 0;
+    -moz-flex: 1 0 200px;
+    -ms-flex: 1 0 200px;
+    flex: 1 0 200px;
+    min-width: 200px; 
+  }
+  
+  .col.fixed-100 {
+    -webkit-box-flex: 0;
+    -webkit-flex: 0 0 70px;
+    -moz-box-flex: 0;
+    -moz-flex: 0 0 70px;
+    -ms-flex: 0 0 70px;
+    flex: 0 0 70px;
+    max-width: 70px; 
+  }
+
+  .padding, .padding-top, .padding-vertical {
+    padding-top: $nlpad_y_small;
+  }
+
+  .padding, .padding-right, .padding-horizontal {
+    padding-right: $nlpad_x_small;
+  }
+
+  .padding, .padding-bottom, .padding-vertical {
+    padding-bottom: $nlpad_y_small;
+  }
+
+  .padding, .padding-left, .padding-horizontal {
+    padding-left: $nlpad_x_small; 
+  }
+}    
+
+/*-----------------------------------------------------------------------------------------*
+ * Some animation classes
+ *-----------------------------------------------------------------------------------------*/
+@mixin nl_animation_class($name, $duration, $fn, $mode) {
+  -webkit-animation-name: $name;
+  animation-name: $name;
+  -webkit-animation-duration: $duration;
+  animation-duration: $duration;
+  -webkit-animation-timing-function: $fn;
+  animation-timing-function: $fn;
+  -webkit-animation-fill-mode: $mode;
+  animation-fill-mode: $mode;
+}
+
+@-webkit-keyframes animGrow {
+  from {
+    -webkit-transform: scale(0.5);
+    opacity: 0.5; }
+
+  to {
+    -webkit-transform: scale(1);
+    opacity: 1; } }
+
+@keyframes animGrow {
+  from {
+    transform: scale(0.5);
+    opacity: 0.5; }
+
+  to {
+    transform: scale(1);
+    opacity: 1; } }
+
+.nl-anim-grow {
+    @include nl_animation_class(animGrow, 1s, ease-in-out, both);
+}
+    

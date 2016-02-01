@@ -75,6 +75,7 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
     nl.log.info('UserAgent: ', navigator.userAgent);
     nl.rootScope.imgBasePath = nl.url.resUrl();
     nl.rootScope.pgInfo = nl.pginfo;
+    _initScreenSize(nl);
     nlLogViewer.showOnStartupIfRequired($scope);
     
     var homeUrl = nl.url.getAppUrl() + '#/app/home';
@@ -138,6 +139,25 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
     };
     
 }];
+
+function _initScreenSize(nl) {
+    angular.element(nl.window).bind('resize', function() {
+        nl.rootScope.$apply(function() {
+            nl.rootScope.screenSize = _computeScreenSize(nl);
+        });
+    });
+    nl.rootScope.screenSize = _computeScreenSize(nl);
+}
+
+var W_SMALL = 700;
+var W_LARGE = 1000;
+function _computeScreenSize(nl) {
+    var w = nl.window.innerWidth;
+    console.log('Window width: ', w);
+    if (w < W_SMALL) return 'small';
+    if (w > W_LARGE) return 'large';
+    return 'medium';
+}
 
 module_init();
 })();
