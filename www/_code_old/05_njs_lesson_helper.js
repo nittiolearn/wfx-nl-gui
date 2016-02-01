@@ -8,13 +8,13 @@ function PendingTimer() {
 
 	this.updateIfNeeded = function(lesson) {
 		if (lesson.renderCtx.launchCtx() != 'do_assign') return this.hideCounters();
+        lesson.sessionStartTime = new Date();
 
 		var timeLimitSeconds = lesson.oLesson['timeLimitSeconds'];
 		if (timeLimitSeconds == null) return this.hideCounters();
 
 		jQuery('#countdown_timer').removeClass('hide_counter');
 
-		lesson.sessionStartTime = new Date();
 		lesson.end_time = new Date(lesson.sessionStartTime.valueOf() + timeLimitSeconds*1000);
 		
 		this.checkEndTime(lesson);
