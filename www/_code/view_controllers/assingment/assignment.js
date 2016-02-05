@@ -12,7 +12,7 @@
 	var configFn = ['$stateProvider', '$urlRouterProvider',
 	function($stateProvider, $urlRouterProvider) {
 		$stateProvider.state('app.assignment', {
-			url : '/assignment',
+			url : '^/assignment',
 			views : {
 				'appContent' : {
 					templateUrl : 'lib_ui/cards/cardsview.html',

@@ -45,8 +45,15 @@ function($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
     //$ionicConfigProvider.views.forwardCache(true);
     $ionicConfigProvider.views.maxCache(0);
     
+    // backward compatiblity for '/app/..' URLs
+    $urlRouterProvider.when(/^\/app\/.*/, ['nl', function (nl) {
+        var loc = nl.location.url().substring(4);
+        nl.location.url(loc);
+        return true;
+    }]);
+    
     // if none of the above states are matched, use this as the fallback
-    $urlRouterProvider.otherwise('/app/home');
+    $urlRouterProvider.otherwise('/home');
 
     $stateProvider.state('app', {
         cache: true,
@@ -78,8 +85,8 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
     _initScreenSize(nl);
     nlLogViewer.showOnStartupIfRequired($scope);
     
-    var homeUrl = nl.url.getAppUrl() + '#/app/home';
-    var welcomeUrl = nl.url.getAppUrl() + '#/app/welcome';
+    var homeUrl = '/#/home';
+    var welcomeUrl = '/#/welcome';
 
     $scope.userMenuItems = [];
     $scope.helpMenuIcon = nl.url.resUrl('general/help.png');
@@ -107,14 +114,14 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
             }
             $scope.userMenuItems.push({name: 'logout', title: nl.t(' Sign Out'),
                 icon: nl.url.resUrl('general/login-signout.png'),
-                url: '#/app/logout_now'});
+                url: '#/logout_now'});
         } else {
             $scope.logedIn = false;
             $scope.homeUrl = welcomeUrl;
             $scope.userMenuIcon = nl.url.resUrl('general/top-login.png');
             $scope.userMenuItems.push({name: 'login', title: nl.t(' Sign In'), 
                 icon: nl.url.resUrl('general/login-signin.png'),
-                url: '#/app/login_now'});
+                url: '#/login_now'});
             $scope.userMenuItems.push({name: 'pwlost', title: nl.t(' Sign Out'),
                 icon: nl.url.resUrl('general/login-pwdlost.png'),
                 url: '/auth/pwlost'});

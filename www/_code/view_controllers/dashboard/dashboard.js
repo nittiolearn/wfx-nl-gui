@@ -14,7 +14,7 @@ var configFn = ['$stateProvider',
 function($stateProvider) {
 	$stateProvider.state('app.dashboard', {
 		cache : true,
-		url : '/dashboard',
+		url : '^/dashboard',
 		views : {
 			'appContent' : {
 				templateUrl : 'lib_ui/cards/cardsview.html',
@@ -75,7 +75,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 	
 	function _createCustomDashboardCard(dashboard){
 		cardDict[dashboard.id] = dashboard;
-        var url = nl.fmt2('#/app/dashboard_view?dbid={}&published={}', dashboard.id, my ? 0: 1);
+        var url = nl.fmt2('#/dashboard_view?dbid={}&published={}', dashboard.id, my ? 0: 1);
 		var createList = {
 			dashboardId : dashboard.id,
 			title : dashboard.description,

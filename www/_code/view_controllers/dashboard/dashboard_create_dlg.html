@@ -55,13 +55,13 @@
             <tr><td>help.about </td><td>/info/more/</td><td> </td><td>Accessible even if no user is logged in</td></tr>
             <tr><td>help.issue </td><td>/info/help_issue_new/</td><td> basic_access</td><td></td></tr>
             <tr><td>help.eula </td><td>/info/eula/</td><td> basic_access</td><td></td></tr>
-            <tr><td>help.debug </td><td>/nittioapp#/debug</td><td> debug_client</td><td></td></tr>
-            <tr><td>mentor_desk.mentor </td><td>/nittioapp#/app/forum?forumtype=1&refid=0</td><td> #is_mentor </td><td>Mentor view</td></tr>
-            <tr><td>mentor_desk.mentee</td><td>/nittioapp#/app/forum?forumtype=1&refid=1</td><td> #is_mentee </td><td>Mentee view - accessible from restricted terminals as well</td></tr>
-            <tr><td>course.view_my</td><td>/nittioapp#/app/course_list?my=1</td><td> course_create </td><td>Course card items</td></tr>
-            <tr><td>course.view_published</td><td>/nittioapp#/app/course_list</td><td> course_review </td><td></td></tr>
-            <tr><td>course.view_assigned</td><td>/nittioapp#/app/course_assign_list</td><td> course_review </td><td></td></tr>
-            <tr><td>course.do</td><td>/nittioapp#/app/course_list?my=1</td><td> course_do</td><td>Accessible from restricted terminals as well</td></tr>
+            <tr><td>help.debug </td><td>/#/debug</td><td> debug_client</td><td></td></tr>
+            <tr><td>mentor_desk.mentor </td><td>/#/forum?forumtype=1&refid=0</td><td> #is_mentor </td><td>Mentor view</td></tr>
+            <tr><td>mentor_desk.mentee</td><td>/#/forum?forumtype=1&refid=1</td><td> #is_mentee </td><td>Mentee view - accessible from restricted terminals as well</td></tr>
+            <tr><td>course.view_my</td><td>/#/course_list?my=1</td><td> course_create </td><td>Course card items</td></tr>
+            <tr><td>course.view_published</td><td>/#/course_list</td><td> course_review </td><td></td></tr>
+            <tr><td>course.view_assigned</td><td>/#/course_assign_list</td><td> course_review </td><td></td></tr>
+            <tr><td>course.do</td><td>/#/course_list?my=1</td><td> course_do</td><td>Accessible from restricted terminals as well</td></tr>
             <tr><td>lesson.create</td><td>/lesson/create1/</td><td>lesson_create</td><td></td></tr>
             <tr><td>lesson.manage</td><td>/lesson/manage_approved/</td><td>lesson_approve</td><td></td></tr>
             <tr><td>lesson.pagecategories</td><td>/ pagecategories /view/</td><td>lesson_create</td><td></td></tr>
@@ -83,26 +83,26 @@
             <tr><td>admin.create</td><td>/admin_user/user_create/</td><td>admin_user</td><td></td></tr>
             <tr><td>admin.bulk</td><td>/admin_user/user_bulkupdate/</td><td>admin_user_bulk</td><td></td></tr>
             <tr><td>admin.termauth</td><td>/admin_user/term_authorization/</td><td>admin_terminal</td><td></td></tr>
-            <tr><td>admin.audit</td><td>/nittioapp#/app/audit</td><td>admin_user</td><td></td></tr>
-            <tr><td>admin.impersonate</td><td>/nittioapp#/app/impersonate</td><td>admin_ impersonate_grp</td><td></td></tr>
+            <tr><td>admin.audit</td><td>/#/audit</td><td>admin_user</td><td></td></tr>
+            <tr><td>admin.impersonate</td><td>/#/impersonate</td><td>admin_ impersonate_grp</td><td></td></tr>
             <tr><td>admin.subgroupview</td><td>/admin_group/group_view/selfadmin</td><td>and:admin_group_selfadmin,#is_parent_group</td><td></td></tr>
-            <tr><td>admin.custom_dashboards</td><td>/nittioapp#/app/dashboard?my=0</td><td>admin_user</td><td></td></tr>
-            <tr><td>admin.custom_dashboards_my</td><td>/nittioapp#/app/dashboard?my=1</td><td>admin_user</td><td></td></tr>
-            <tr><td>searchlist.my</td><td>/nittioapp#/app/searchlist?my=1</td><td>admin_user</td><td></td></tr>
-            <tr><td>searchlist.all</td><td>/nittioapp#/app/searchlist?my=0</td><td>admin_user</td><td></td></tr>
+            <tr><td>admin.custom_dashboards</td><td>/#/dashboard?my=0</td><td>admin_user</td><td></td></tr>
+            <tr><td>admin.custom_dashboards_my</td><td>/#/dashboard?my=1</td><td>admin_user</td><td></td></tr>
+            <tr><td>searchlist.my</td><td>/#/searchlist?my=1</td><td>admin_user</td><td></td></tr>
+            <tr><td>searchlist.all</td><td>/#/searchlist?my=0</td><td>admin_user</td><td></td></tr>
         </table>
 
         <h4>Action with customizable URLs</h4>
         <p>where ever you see {} in the URL, it will be replaced by urlParams attribute if present. If you see multiple {} in the same url, you can give an array in URL params for replacement.</p>
         <table class='nl-table nl-table-styled'>
             <tr><th>Action</th><th>URL</th><th>Permission</th><th>Remarks</th></tr>
-            <tr><td>dashboard.home </td><td>/nittioapp#/app/home?{}</td><td>basic_access</td><td>Specify "parent=xxx" to launch one card of dashboard in a sperate page where each link becomes a card.</td></tr>
+            <tr><td>dashboard.home </td><td>/#/home?{}</td><td>basic_access</td><td>Specify "parent=xxx" to launch one card of dashboard in a sperate page where each link becomes a card.</td></tr>
             <tr><td>lesson.view </td><td>/lesson/view/{}</td><td>lesson_view</td><td>Direct link to lesson</td></tr>
             <tr><td>lesson.view_approved </td><td>/lesson/search?{}</td><td>basic_access</td><td>View approved list</td></tr>
             <tr><td>lesson.create2</td><td>/lesson/create2/{}</td><td>lesson_create</td><td>Provide template id in urlParams to directly create lesson based on template</td></tr>
             <tr><td>lesson.my</td><td>/lesson/my?{}</td><td>lesson_create</td><td></td></tr>
             <tr><td>lesson.review</td><td>/lesson/review/1?{}</td><td>learn_review</td><td></td></tr>
-            <tr><td>searchlist.view</td><td>/nittioapp#/app/searchlist_view?id={}</td><td>basic_access</td><td></td></tr>
+            <tr><td>searchlist.view</td><td>/#/searchlist_view?id={}</td><td>basic_access</td><td></td></tr>
             <tr><td>assign_desk.new</td><td>/assignment/assigned_to_me?{}</td><td> assignment_do</td><td>Accessible from restricted terminals as well</td></tr>
             <tr><td>assign_desk.past</td><td>/assignment/assigned_to_me/past?{}</td><td> assignment_do</td><td>Accessible from restricted terminals as well</td></tr>
         </table>

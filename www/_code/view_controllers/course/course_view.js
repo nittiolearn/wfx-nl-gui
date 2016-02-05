@@ -13,7 +13,7 @@ function module_init() {
 var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
     $stateProvider.state('app.course_view', {
-        url : '/course_view',
+        url : '^/course_view',
         views : {
             'appContent' : {
                 templateUrl : 'view_controllers/course/course_view.html',

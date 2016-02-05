@@ -14,7 +14,7 @@ function module_init() {
 var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
     $stateProvider.state('app.welcome', {
-        url : '/welcome',
+        url : '^/welcome',
         views : {
             'appContent' : {
                 templateUrl: 'view_controllers/welcome/welcome.html',

@@ -30,7 +30,7 @@
       {
         "help": "This is the mentee desk",
         "title": "Mentee Desk",
-        "url": "/nittioapp#/app/forum?forumtype=1&refid=1",
+        "url": "/#/forum?forumtype=1&refid=1",
         "linkId": "mentor",
         "children": [],
         "icon": "/static/nittio_res_v39/dashboard/course.png"

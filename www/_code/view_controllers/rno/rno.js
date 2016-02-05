@@ -17,7 +17,7 @@ function module_init() {
 var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
 	$stateProvider.state('app.rno_my', {
-		url: '/rno_my',
+		url: '^/rno_my',
 		views: {
 			'appContent': {
 				templateUrl: 'lib_ui/cards/cardsview.html',
@@ -30,7 +30,7 @@ var RnoMyCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv
 function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	/* 
 	 * URLs handled
-	 * 'RNO Dashboard' : /app/rno_my?metadata=[metadataid]?title=[]
+	 * 'RNO Dashboard' : /rno_my?metadata=[metadataid]?title=[]
 	 */
 	var _rnoDict = {};
 	var _metadataId = 0;

@@ -14,7 +14,7 @@ var configFn = ['$stateProvider',
 function($stateProvider) {
 	$stateProvider.state('app.searchlist_view', {
 		cache : true,
-		url : '/searchlist_view',
+		url : '^/searchlist_view',
 		views : {
 			'appContent' : {
 				templateUrl : 'lib_ui/cards/cardsview.html',

@@ -95,13 +95,13 @@
       {
         "help": "Ask questions to your mentor and view their responses. Mentors will be able to interact with their mentees/puple from here.",
         "title": "Mentor Desk",
-        "url": "/nittioapp#/app/forum?forumtype=1&refid=1",
+        "url": "/#/forum?forumtype=1&refid=1",
         "linkId": "mentor_desk",
         "children": [
           {
             "help": "Mentors will be able to interact with their mentees/puple from here.",
             "title": "View questions from mentees",
-            "url": "/nittioapp#/app/forum?forumtype=1&refid=0",
+            "url": "/#/forum?forumtype=1&refid=0",
             "linkId": "mentor",
             "children": [],
             "icon": "/static/nittio_res_v39/dashboard/mentor_desk.png"
@@ -109,7 +109,7 @@
           {
             "help": "Ask questions to your mentor and view their responses.",
             "title": "Ask questions and view responses",
-            "url": "/nittioapp#/app/forum?forumtype=1&refid=1",
+            "url": "/#/forum?forumtype=1&refid=1",
             "linkId": "mentee",
             "children": [],
             "icon": "/static/nittio_res_v39/dashboard/mentor_desk.png"
@@ -120,13 +120,13 @@
       {
         "help": "Do courses assigned to you. Authorized users will be able to create and manage courses from here.",
         "title": "Courses",
-        "url": "/nittioapp#/app/course_report_list?my=1",
+        "url": "/#/course_report_list?my=1",
         "linkId": "course",
         "children": [
           {
             "help": "View all courses defined by current user. Create new course. Modify or delete courses created by you.",
             "title": "Create and edit courses",
-            "url": "/nittioapp#/app/course_list?my=1",
+            "url": "/#/course_list?my=1",
             "linkId": "course_view_my",
             "children": [],
             "icon": "/static/nittio_res_v39/dashboard/course.png"
@@ -134,7 +134,7 @@
           {
             "help": "View all courses defined in the group. Assign courses to classes/users.",
             "title": "Published courses",
-            "url": "/nittioapp#/app/course_list",
+            "url": "/#/course_list",
             "linkId": "course_view_published",
             "children": [],
             "icon": "/static/nittio_res_v39/dashboard/course.png"
@@ -142,7 +142,7 @@
           {
             "help": "View all course assignments sent in the group. View courses reports of individual users.",
             "title": "Course assignments",
-            "url": "/nittioapp#/app/course_assign_list",
+            "url": "/#/course_assign_list",
             "linkId": "course_view_assigned",
             "children": [],
             "icon": "/static/nittio_res_v39/dashboard/course.png"
@@ -150,7 +150,7 @@
           {
             "help": "View all courses assigned to current user. Do the courses.",
             "title": "My courses",
-            "url": "/nittioapp#/app/course_report_list?my=1",
+            "url": "/#/course_report_list?my=1",
             "linkId": "course_do",
             "children": [],
             "icon": "/static/nittio_res_v39/dashboard/course.png"
@@ -387,7 +387,7 @@
           {
             "help": "View audit logs of your group",
             "title": "View audit logs",
-            "url": "/nittioapp#/app/audit",
+            "url": "/#/audit",
             "linkId": "admin_audit_view",
             "children": [],
             "icon": "/static/nittio_res_v39/dashboard/bulkupdate.png"
@@ -395,7 +395,7 @@
           {
             "help": "View customized dashboards across groups",
             "title": "View customized dashboards",
-            "url": "/nittioapp#/app/dashboard?my=0",
+            "url": "/#/dashboard?my=0",
             "linkId": "custom_dashboards",
             "children": [],
             "icon": "/static/nittio_res_v39/dashboard/bulkupdate.png"
@@ -403,7 +403,7 @@
           {
             "help": "Create new customized dashboard or edit customized dashboard created by you",
             "title": "Create / edit customized dashboards",
-            "url": "/nittioapp#/app/dashboard?my=1",
+            "url": "/#/dashboard?my=1",
             "linkId": "custom_dashboards_my",
             "children": [],
             "icon": "/static/nittio_res_v39/dashboard/bulkupdate.png"
@@ -411,7 +411,7 @@
           {
             "help": "Impersonate another user - use very deligently only for debuggin issues",
             "title": "Impersonate another user",
-            "url": "/nittioapp#/app/impersonate",
+            "url": "/#/impersonate",
             "linkId": "admin_impersonate",
             "children": [],
             "icon": "/static/nittio_res_v39/dashboard/bulkupdate.png"

@@ -16,7 +16,7 @@ function module_init() {
 var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
 	$stateProvider.state('app.course_list', {
-		url: '/course_list',
+		url: '^/course_list',
 		views: {
 			'appContent': {
 				templateUrl: 'lib_ui/cards/cardsview.html',
@@ -24,7 +24,7 @@ function($stateProvider, $urlRouterProvider) {
 			}
 		}});
 	$stateProvider.state('app.course_assign_list', {
-		url: '/course_assign_list',
+		url: '^/course_assign_list',
 		views: {
 			'appContent': {
 				templateUrl: 'lib_ui/cards/cardsview.html',
@@ -32,7 +32,7 @@ function($stateProvider, $urlRouterProvider) {
 			}
 		}});
 	$stateProvider.state('app.course_report_list', {
-		url: '/course_report_list',
+		url: '^/course_report_list',
 		views: {
 			'appContent': {
 				templateUrl: 'lib_ui/cards/cardsview.html',
@@ -59,11 +59,11 @@ function(nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) {
 function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) {
 	/* 
 	 * URLs handled
-	 * 'View published' : /app/course_list?type=course&my=0
-	 * 'Edit my' : /app/course_list?type=course&my=1
-	 * 'Assigned courses' : /app/course_list?type=assign
-	 * 'Report of assignment' : /app/course_list?type=report&assignid=xx
-	 * 'Report of user' : /app/course_list?type=report
+	 * 'View published' : /course_list?type=course&my=0
+	 * 'Edit my' : /course_list?type=course&my=1
+	 * 'Assigned courses' : /course_list?type=assign
+	 * 'Report of assignment' : /course_list?type=report&assignid=xx
+	 * 'Report of user' : /course_list?type=report
 	 */
 	
 	var courseDict = {};
@@ -143,7 +143,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 	function _getDataFromServer(filter, resolve, reject) {
 		_listingFunction(filter).then(function(resultList) {
 			if (resultList.length === 1 && type === 'report' && assignId === 0) {
-				var url = nl.fmt2('/app/course_view?id={}&mode=do', resultList[0].id);
+				var url = nl.fmt2('/course_view?id={}&mode=do', resultList[0].id);
 				nl.location.url(url);
                 nl.location.replace();
 				return;
@@ -201,7 +201,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 	function _createCourseCard(course, userInfo) {
 		courseDict[course.id] = course;
 		var mode = my ? 'private' : 'published';
-		var url = nl.fmt2('#/app/course_view?id={}&mode={}', course.id, mode);
+		var url = nl.fmt2('#/course_view?id={}&mode={}', course.id, mode);
 	    var card = {courseId: course.id,
 	    			title: course.name, 
 					icon: course.icon, 
@@ -238,12 +238,12 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 	}
 
 	function _createReportCard(report, userInfo, isReport) {
-		var url = nl.fmt2('#/app/course_report_list?assignid={}', report.id);
+		var url = nl.fmt2('#/course_report_list?assignid={}', report.id);
 		var title = report.name;
 		if (isReport) {
 			title = (assignId === 0) ? report.name : report.studentname;
 			var mode = (assignId === 0) ? 'do' : 'report_view';
-			var url = nl.fmt2('#/app/course_view?id={}&mode={}', 
+			var url = nl.fmt2('#/course_view?id={}&mode={}', 
 						report.id, mode);
 		}
 	    var card = {reportId: report.id,

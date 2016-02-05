@@ -309,11 +309,6 @@ function NlDb(nl) {
 //-------------------------------------------------------------------------------------------------
 function NlUrl(nl) {
     
-    this.getAppUrl = function() {
-        if (NL_SERVER_INFO.serverType == 'local') return '/';
-        return '/nittioapp';
-    };
-
     this.resUrl = function(iconName) {
         return clientResFolder('res', iconName);
     };
