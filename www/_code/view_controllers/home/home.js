@@ -16,7 +16,7 @@ var configFn = ['$stateProvider',
 function($stateProvider) {
     $stateProvider.state('app.home', {
         cache: true,
-        url : '/home',
+        url : '^/home',
         views : {
             'appContent' : {
                 templateUrl : 'lib_ui/cards/cardsview.html',
@@ -26,7 +26,7 @@ function($stateProvider) {
     });
     $stateProvider.state('app.home_refresh', {
         cache: true,
-        url : '/home_refresh',
+        url : '^/home_refresh',
         views : {
             'appContent' : {
                 template : '',
@@ -36,7 +36,7 @@ function($stateProvider) {
     });
     $stateProvider.state('app.dashboard_view', {
         cache: true,
-        url : '/dashboard_view',
+        url : '^/dashboard_view',
         views : {
             'appContent' : {
                 templateUrl : 'lib_ui/cards/cardsview.html',
@@ -122,11 +122,9 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
     function _updateDetails(cards) {
         for(var i=0; i<cards.length; i++) {
             var card = cards[i];
-            _updatedUrl(card);
             var avps = [];
             for (var j=0; j<card.children.length; j++) {
             	var child = card.children[j];
-	            _updatedUrl(child);
             	var avp = {attr:child.title, val:child.help, url:child.url};
             	avps.push(avp);
             }
@@ -135,12 +133,6 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
         }
     }
 
-    function _updatedUrl(card) {
-        if (NL_SERVER_INFO.serverType == 'local' && card.url.indexOf('/nittioapp#') == 0) {
-            card.url = card.url.substring(10);
-        }
-    }
-    
     function _eulaWarning() {
         nlConfig.loadFromDb('EULA_INFO', function(eulaInfo) {
             if (eulaInfo == null) {
@@ -176,7 +168,7 @@ function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
         return nl.q(function(resolve, reject) {
             nlServerApi.clearCache().then(function(res) {
                 nlDlg.popupStatus('Local cache cleared');
-                nl.location.url('/app/home');
+                nl.location.url('/home');
                 nl.location.replace();
             });
         });

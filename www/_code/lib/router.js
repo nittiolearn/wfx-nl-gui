@@ -27,6 +27,12 @@ var NlRouter = ['nl', 'nlDlg', 'nlServerApi', '$state',
 function(nl, nlDlg, nlServerApi, $state) {
     var permission = new Permission(nl);
     var defaultFn = function() {return function(resolve, reject) {resolve(true);};};
+
+    // Backward compatibility to old URLs with nittioapp!    
+    if (nl.window.location.pathname.indexOf('/nittioapp') == 0) {
+        nl.window.location.href = '/#' + nl.location.url();
+        return;
+    }
     
     var preservedSearchParams = null;
     this.initContoller = function($scope, pageUrl, pageEnterFn, pageLeaveFn) {
@@ -75,25 +81,27 @@ function(nl, nlDlg, nlServerApi, $state) {
             var pagePerm = permission.getPermObj(pageUrl);
             if (pagePerm == null) {
                 nlDlg.popupStatus(nl.t('Cannot access the page'));
-                return _done('/app/home');
+                return _done('/home');
             }
             if (!permission.checkLogin(userInfo, pagePerm)) {
+                if (nl.location.url() == '/home') return _done('/welcome');
                 nlDlg.popupStatus(nl.t('Please login to access this page'));
-                return _done(nl.fmt2('/app/login_now?msg=auth_error,next={}', nl.location.url()));
+                var nextUrl = nl.window.encodeURIComponent('/#' + nl.location.url());
+                return _done(nl.fmt2('/login_now?msg=auth_error&next={}', nextUrl));
             }
 
             if (!permission.isPermitted(userInfo, pagePerm)) {
                 nlDlg.popupStatus(nl.t('You are not authorized to access this page'));
-                return _done('/app/home');
+                return _done('/home');
             }
             
             if ('onPageEnter' in $scope.$parent) $scope.$parent.onPageEnter(userInfo);
             pageEnterFn(userInfo, e).then(function(status) {
                 if (status) return _done(null);
-                _done('/app/home');
+                _done('/home');
             });
         }, function() {
-            return _done('/app/home');
+            return _done('/home');
         });
     }
 
@@ -119,7 +127,6 @@ function(nl, nlDlg, nlServerApi, $state) {
         nlDlg.hideLoadingScreen();
 
         if (rerouteToUrl != null) {
-            if (nl.location.url() == '/app/home') rerouteToUrl = '/app/login_now';
             nl.location.url(rerouteToUrl);
         }
         
@@ -164,33 +171,32 @@ function Permission(nl) {
 
     var permissions = {
         // Page permissions
-        '/app/home': {login: true, permission: 'basic_access', termRestriction: TR_OPEN}, 
-        '/app/home_refresh': {login: false, permission: '', termRestriction: TR_OPEN},
-        '/app/welcome': {login: false, permission: '', termRestriction: TR_OPEN}, 
-        '/app/login_now': {login: false, permission: '', termRestriction: TR_OPEN}, 
-        '/app/logout_now': {login: false, permission: '', termRestriction: TR_OPEN},
-        '/app/audit': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
-        '/app/impersonate': {login: true, permission: 'admin_impersonate_grp', termRestriction: TR_CLOSED},
+        '/home': {login: true, permission: 'basic_access', termRestriction: TR_OPEN}, 
+        '/home_refresh': {login: false, permission: '', termRestriction: TR_OPEN},
+        '/welcome': {login: false, permission: '', termRestriction: TR_OPEN}, 
+        '/login_now': {login: false, permission: '', termRestriction: TR_OPEN}, 
+        '/logout_now': {login: false, permission: '', termRestriction: TR_OPEN},
+        '/audit': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
+        '/impersonate': {login: true, permission: 'admin_impersonate_grp', termRestriction: TR_CLOSED},
         '/debug': {login: true, permission: 'debug_client', termRestriction: TR_CLOSED},
-        '/app/forum': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},
-        '/app/course_list': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},
-        '/app/course_assign_list': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},
-		'/app/course_report_list': {login:true, permission: 'course_do', termRestriction: TR_RESTRICTED},
-        '/app/course_view': {login: true, permission: 'course_do', termRestriction: TR_RESTRICTED},
-        '/app/dashboard': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
-        '/app/dashboard_view': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
-        '/app/searchlist': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
-        '/app/searchlist_view': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
-        '/app/rno_my': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
-		'/app/assignment': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},		
-		'/app/lesson': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},		
+        '/forum': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},
+        '/course_list': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},
+        '/course_assign_list': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},
+		'/course_report_list': {login:true, permission: 'course_do', termRestriction: TR_RESTRICTED},
+        '/course_view': {login: true, permission: 'course_do', termRestriction: TR_RESTRICTED},
+        '/dashboard': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
+        '/dashboard_view': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
+        '/searchlist': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
+        '/searchlist_view': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
+        '/rno_my': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
+		'/assignment': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},		
 
         // Operation permissions
         'change_password': {login: true, permission: 'change_password', termRestriction: TR_RESTRICTED},
         'course_assign': {login: true, permission: 'course_assign', termRestriction: TR_CLOSED} 
     };
     
-    var openPages = {'/app/welcome': 1, '/app/login_now': 1, '/app/logout_now': 1};
+    var openPages = {'/welcome': 1, '/login_now': 1, '/logout_now': 1};
     this.isOpenPage = function(pageUrl) {
         var page = (pageUrl == '') ? nl.location.path() : pageUrl;
         return (page in openPages);

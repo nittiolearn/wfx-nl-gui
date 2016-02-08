@@ -13,7 +13,7 @@ function module_init() {
 var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
     $stateProvider.state('app.course_view', {
-        url : '/course_view',
+        url : '^/course_view',
         views : {
             'appContent' : {
                 templateUrl : 'view_controllers/course/course_view.html',
@@ -65,12 +65,13 @@ function ModeHandler(nl, nlCourse, nlDlg) {
         return nlCourse.courseGetReport(this.courseId, true);
     };
     
-    this.handleLink = function(cm, newTab) {
+    this.handleLink = function(cm, newTab, scope) {
+        if (!_canStart(cm, scope)) return true;
         var url = nlCourse.getActionUrl(cm.action, cm.urlParams);
         return _redirectTo('{}', url, newTab);
     };
     
-    this.handleLessonLink = function(cm, newTab) {
+    this.handleLessonLink = function(cm, newTab, scope) {
         var self = this;
         if (!('refid' in cm)) return _popupAlert('Error', 'Link to the learning module is not specified');
         var refid = cm.refid;
@@ -86,6 +87,7 @@ function ModeHandler(nl, nlCourse, nlDlg) {
         }
         
         // do mode
+        if (!_canStart(cm, scope)) return true;
         if (_redirectToLessonReport(reportInfo, newTab)) return true;
         
         nlDlg.showLoadingScreen();
@@ -106,6 +108,15 @@ function ModeHandler(nl, nlCourse, nlDlg) {
     // Private functions
     function _popupAlert(title, template) {
         nlDlg.popupAlert({title: nl.t(title), template: nl.t(template)});
+        return true;
+    }
+
+    function _canStart(cm, scope) {
+        var today = new Date();
+        if (scope.planning && cm.start_date && cm.start_date > today) {
+            _popupAlert('Error', nl.fmt2('Cannot be started before {}', cm.start_date_str));
+            return false;
+        }
         return true;
     }
 
@@ -210,7 +221,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 		newDlg.scope.dlgTitle = nl.t('Add course module');
         newDlg.scope.error = {};
 		newDlg.scope.data = {
-			type:{id:null}, id:'', name: '', planned_date: '',
+			type:{id:null}, id:'', name: '', planned_date: '', start_date: '',
 			icon: '', urlParams: '', action: '', refid: ''
 		};
 		newDlg.scope.options = {'type': [
@@ -258,7 +269,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
     function _updateCourseModules(data) {
 		var type = data.type.id;
 		var module = {type: type, id: data.id, name: data.name, 
-			icon: data.icon, planned_date: data.planned_date};
+			icon: data.icon, planned_date: data.planned_date, start_date: data.start_date};
 		if(type == 'lesson') {
 			module.refid = data.refid;
 		} 
@@ -280,11 +291,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 	
     $scope.onClick = function(e, cm, newTab) {
         if (cm.type === 'lesson') {
-            modeHandler.handleLessonLink(cm, newTab);
+            modeHandler.handleLessonLink(cm, newTab, $scope);
         } else if(cm.type === 'module') {
             treeList.toggleItem(cm);    
         } else if(cm.type === 'link') {
-            modeHandler.handleLink(cm, newTab);
+            modeHandler.handleLink(cm, newTab, $scope);
         }
         e.stopImmediatePropagation();
         e.preventDefault();
@@ -308,6 +319,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         'quiz': nl.url.resUrl('quiz.png'),
         'info': nl.url.resUrl('info.png'),
         'link': nl.url.resUrl('file.png'),
+        'grey': nl.url.resUrl('ball-grey.png'),
         'red': nl.url.resUrl('ball-red.png'),
         'yellow': nl.url.resUrl('ball-yellow.png'),
         'green': nl.url.resUrl('ball-green.png')
@@ -331,28 +343,31 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         cm.clickable = props.clickable;
         cm.launchable = props.launchable;
         cm.planned_date = cm.planned_date ? nl.fmt.json2Date(cm.planned_date) : null;
+        cm.start_date = cm.start_date ? nl.fmt.json2Date(cm.start_date) : null;
     }
 
     function _updateAllItemData(modeHandler) {
+        var today = new Date();
         var rootItems = treeList.getRootItems();
         for(var i=0; i<rootItems.length; i++) {
-            _updateItemData(modeHandler, modeHandler.course, rootItems[i]);
+            _updateItemData(modeHandler, modeHandler.course, rootItems[i], today);
         }
     }
 
-    function _updateItemData(modeHandler, course, cm) {
+    function _updateItemData(modeHandler, course, cm, today) {
         if (cm.type === 'module') {
-            _updateModuleData(modeHandler, course, cm);
+            _updateModuleData(modeHandler, course, cm, today);
         } else if (cm.type === 'info' || cm.type === 'link') {
-            _updateLinkData(modeHandler, course, cm);
+            _updateLinkData(modeHandler, course, cm, today);
         } else {
-            _updateLessonData(modeHandler, course, cm);
+            _updateLessonData(modeHandler, course, cm, today);
         }
         cm.planned_date_str = cm.planned_date ? nl.fmt.date2Str(cm.planned_date, 'date') : '';
-        _updateStatusInfo(modeHandler, cm);
+        cm.start_date_str = cm.start_date ? nl.fmt.date2Str(cm.start_date, 'date') : '';
+        _updateStatusInfo(modeHandler, cm, today);
     }
 
-    function _updateModuleData(modeHandler, course, cm) {
+    function _updateModuleData(modeHandler, course, cm, today) {
         cm.totalCount = 0;
         cm.completedCount = 0;
         cm.delayedCount = 0;
@@ -360,11 +375,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         cm.maxScore = 0;
         cm.scoreAvailableCount = 0;
         cm.planned_date = null;
+        cm.start_date = null;
 
         var children = treeList.getChildren(cm);
         for (var i=0; i<children.length; i++) {
             var child = children[i];
-            _updateItemData(modeHandler, course, child);
+            _updateItemData(modeHandler, course, child, today);
             cm.totalCount += child.totalCount;
             cm.completedCount += child.completedCount;
             cm.delayedCount += child.delayedCount;
@@ -374,11 +390,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
             if (!cm.planned_date || child.planned_date > cm.planned_date) {
                 cm.planned_date = child.planned_date;
             }   
+            if (!cm.start_date || child.start_date < cm.start_date) {
+                cm.start_date = child.start_date;
+            }   
         }
     }
     
-    function _updateLinkData(modeHandler, course, cm) {
-        var today = new Date();
+    function _updateLinkData(modeHandler, course, cm, today) {
         cm.totalCount = 1;
         cm.completedCount = 0;
         cm.scoreAvailableCount = 0;
@@ -393,12 +411,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         cm.delayedCount = 0;
     }
     
-    function _updateLessonData(modeHandler, course, cm) {
-        var today = new Date();
+    function _updateLessonData(modeHandler, course, cm, today) {
         cm.totalCount = 1;
         cm.completedCount = 0;
         cm.scoreAvailableCount = 0;
-        cm.delayedCount = ($scope.planning && cm.planned_date && cm.planned_date <= today) ? 1 : 0;
+        cm.delayedCount = ($scope.planning && cm.planned_date && cm.planned_date < today) ? 1 : 0;
         cm.score = 0;
         cm.maxScore = 0;
 
@@ -406,16 +423,19 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         if (!(cm.id in course.lessonReports)) return;
         var lessonReport = course.lessonReports[cm.id];
         var completed = 'completed' in lessonReport ? lessonReport.completed : false;
+        if ('started' in lessonReport) cm.started = lessonReport.started;
+        if ('timeSpentSeconds' in lessonReport) cm.timeSpentSeconds = parseInt(lessonReport.timeSpentSeconds);
         if (!completed) return;
         cm.completedCount = 1;
         cm.delayedCount = 0;
 
         if ('maxScore' in lessonReport) cm.maxScore = parseInt(lessonReport.maxScore);
         if ('score' in lessonReport) cm.score = parseInt(lessonReport.score);
+        if ('ended' in lessonReport) cm.ended = lessonReport.ended;
         if (cm.maxScore > 0) cm.scoreAvailableCount = 1;
     }
     
-    function _updateStatusInfo(modeHandler, cm) {
+    function _updateStatusInfo(modeHandler, cm, today) {
         if (!modeHandler.shallShowScore()) {
             if (cm.type !== 'module') return;
             if (cm.totalCount > 1) {
@@ -426,14 +446,14 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
             return;
         }
         if (cm.type !== 'module') {
-            _updateStatusInfoForLeaf(modeHandler, cm);
+            _updateStatusInfoForLeaf(modeHandler, cm, today);
             return;
         }
-        _updateStatusInfoForContainer(modeHandler, cm);
+        _updateStatusInfoForContainer(modeHandler, cm, today);
         return;
     }
 
-    function _updateStatusInfoForLeaf(modeHandler, cm) {
+    function _updateStatusInfoForLeaf(modeHandler, cm, today) {
         if (cm.delayedCount > 0) {
             cm.statusIcon = _icons['red'];
             cm.statusShortText = nl.t('delayed');
@@ -451,12 +471,20 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
             cm.statusText = (cm.score > 0) ? nl.t('done ({}%)', perc) : nl.t('done');
             return;
         }
+        if ($scope.planning && cm.start_date) {
+            if (cm.start_date > today) {
+                cm.statusIcon = _icons['grey'];
+                cm.statusShortText = nl.t('planned');
+                cm.statusText = nl.t('planned');
+                return;
+            }
+        }
         cm.statusIcon = _icons['yellow'];
         cm.statusShortText = nl.t('pending');
         cm.statusText = nl.t('pending');
     }
     
-    function _updateStatusInfoForContainer(modeHandler, cm) {
+    function _updateStatusInfoForContainer(modeHandler, cm, today) {
         if (cm.totalCount == 0) return;
         var scoreStr = '';
         if (cm.maxScore > 0 && cm.score > 0) {
@@ -470,8 +498,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
             return;
         }
         if (cm.completedCount < cm.totalCount) {
-            cm.statusIcon = _icons['yellow'];
-            cm.statusShortText = nl.t('pending');
+            if ($scope.planning && cm.start_date && cm.start_date > today) {
+                cm.statusIcon = _icons['grey'];
+                cm.statusShortText = nl.t('planned');
+            } else {
+                cm.statusIcon = _icons['yellow'];
+                cm.statusShortText = nl.t('pending');
+            }
             var pending = cm.totalCount - cm.completedCount;
             cm.statusText = nl.t('{} of {} pending {}', pending, cm.totalCount, scoreStr);
             return;
@@ -485,22 +518,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
     }
 
     $scope.onClickOnSummary = function(cm) {
-        if($scope.mode != MODES.DO || (cm.type != 'link' && cm.type != 'info')) {
-            _getModuleDetails(cm, _icons);
-            return;
-        }
-
-        if(!modeHandler.course.statusinfo) modeHandler.course.statusinfo = {};
-        var statusinfo = modeHandler.course.statusinfo;
-        var isDone = (cm.id in statusinfo) && (statusinfo[cm.id].status == 'done');
-        var data = {
-            title: isDone ? nl.t('Confirm undo operation'): nl.t('Mark as done'),
-            template: isDone ? nl.t('This is currently marked as completed. You may mark this as not completed by clicking the Undo button.'):nl.t('You may mark this as as completed by clicking Done button.'),
-            okText: isDone ? nl.t('Undo'): nl.t('Done')};
-        nlDlg.popupConfirm(data).then(function(result) {
-            if (!result) return;
-            _updatedStatusinfo(cm, !isDone);
-        });
+        var today = new Date();
+        _showModuleDetails(cm, _icons, today);
+        return;
     };
     
     function _updatedStatusinfo(cm, status) {
@@ -533,17 +553,42 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         });
     }
     
-    function _getModuleDetails(cm, _icons) {
+    var templateDone = nl.t('This is currently marked as completed. You may mark this as not completed by clicking the Undo button.');
+    var templateNotDone = nl.t('You may mark this as as completed by clicking Done button.');
+    function _showModuleDetails(cm, _icons, today) {
         var card = {};
         card.title = nl.t('Summary');
         var icon = ('icon' in cm) ? cm.icon : cm.type;
         if(icon in _icons) card.icon = _icons[icon];
-        card.help = cm.name;
-        card.details = {help: card.help, avps: _getModuleAvps(cm)};
+        card.details = {avps: _getModuleAvps(cm)};
+
+        var cancelButton = {text : nl.t('Close')};
+        var buttons = [];
+        var warningMsg = '';
+        var canUpdateStatus = ($scope.mode == MODES.DO) && (cm.type == 'link' || cm.type == 'info');
+        if (canUpdateStatus && $scope.planning && cm.start_date) {
+            canUpdateStatus = (cm.start_date <= today);
+        }
+        if(canUpdateStatus) {
+            if(!modeHandler.course.statusinfo) modeHandler.course.statusinfo = {};
+            var statusinfo = modeHandler.course.statusinfo;
+            var isDone = (cm.id in statusinfo) && (statusinfo[cm.id].status == 'done');
+            card.title = isDone ? nl.t('Confirm undo operation'): nl.t('Mark as done');
+            warningMsg = (isDone ? templateDone : templateNotDone);
+            cancelButton = {text : nl.t('Cancel')};
+            var updateButton = {
+                text : isDone ? nl.t('Undo'): nl.t('Done'),
+                onTap : function(e) {
+                    _updatedStatusinfo(cm, !isDone);
+                }
+            };
+            buttons.push(updateButton);
+        }
+        card.details.help = nl.fmt2("<h3>{}</h3><b>{}</b>", cm.name, warningMsg); 
         var detailsDlg = nlDlg.create($scope);
         detailsDlg.scope.card = card;
         detailsDlg.setCssClass('nl-height-max nl-width-max');
-        detailsDlg.show('lib_ui/cards/details_dlg.html');
+        detailsDlg.show('lib_ui/cards/details_dlg.html', buttons, cancelButton);
     }
     
     function _getModuleAvps(cm) {
@@ -552,7 +597,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         if(cm.type == 'module') {
             nl.fmt.addAvp(avps, 'Total items', cm.totalCount);
             if ($scope.planning) {
-                if(cm.planned_date_str) nl.fmt.addAvp(avps, 'Maximum planned date', cm.planned_date_str);
+                if(cm.start_date_str) nl.fmt.addAvp(avps, 'Earliest planned start date', cm.start_date_str);
+                if(cm.planned_date_str) nl.fmt.addAvp(avps, 'Latest planned end date', cm.planned_date_str);
                 nl.fmt.addAvp(avps, 'Delayed items', cm.delayedCount);
             }
             nl.fmt.addAvp(avps, 'Pending items', cm.totalCount-cm.completedCount-cm.delayedCount);
@@ -564,13 +610,17 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
             else nl.fmt.addAvp(avps, 'Score', "-");
         } else {
             if ($scope.planning) {
-                nl.fmt.addAvp(avps, 'Planned date', cm.planned_date_str);
+                nl.fmt.addAvp(avps, 'Planned start date', cm.start_date_str);
+                nl.fmt.addAvp(avps, 'Planned end date', cm.planned_date_str);
             }
             if(cm.type == 'lesson'){
                 if(cm.maxScore == 0 || cm.score == 0) nl.fmt.addAvp(avps, 'Score', "-");
                 else if(cm.score > 0) {
                     nl.fmt.addAvp(avps, 'Score', nl.t("{}% ({}/{})",Math.round(cm.score/cm.maxScore*100), cm.score, cm.maxScore));
                 }
+                if ('started' in cm) nl.fmt.addAvp(avps, 'Started', cm.started, 'date');
+                if ('ended' in cm) nl.fmt.addAvp(avps, 'Ended', cm.ended, 'date');
+                if ('timeSpentSeconds' in cm) nl.fmt.addAvp(avps, 'Time spent', Math.round(cm.timeSpentSeconds/60), 'minutes');
             }
         }
         return avps;

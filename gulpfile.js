@@ -1,7 +1,7 @@
 //-------------------------------------------------------------------------------------------------
 //var SERVER_URL = 'http://192.168.0.3:8000/';
 var SERVER_URL = '/';
-var VERSIONS = {script:'v71', res:'v39', icon:'v41', template:'v35'};
+var VERSIONS = {script:'v72', res:'v39', icon:'v41', template:'v35'};
 //-------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
@@ -173,12 +173,12 @@ function generateIndexHtml(done, dest, fixes, includeCordova) {
 }
 
 gulp.task('nl_update_manifest', function(done) {
-    updateManifest(done, outPaths.folderManifest, true);
+    updateManifest(done, outPaths.folderManifest);
 });
 
-function updateManifest(done, dest, isLocal) {
+function updateManifest(done, dest) {
     var timestamp = (new Date()).getTime();
-    var baseUrl = isLocal ? '/' : '/nittioapp';
+    var baseUrl = '/';
     gulp.src(inPaths.htmlTemplate + 'manifest_templ.appcache')
     .pipe(htmlreplace({manifest_data: {
                            src: [[baseUrl, VERSIONS.script, timestamp]], 
@@ -265,7 +265,7 @@ nittioPaths.base = '../nittio/applications/nittiolearn/';
 nittioPaths.script = nittioPaths.base + outPaths.urlScript;
 nittioPaths.extern = nittioPaths.base + outPaths.urlExtern;
 nittioPaths.manifest = nittioPaths.base + outPaths.urlManifest;
-nittioPaths.view = nittioPaths.base + 'views/nittioapp';
+nittioPaths.view = nittioPaths.base + 'views/default';
 
 function resourcePath(resType) {
     return 'static/nittio_' + resType + '_' + VERSIONS[resType] + '/';
@@ -352,5 +352,5 @@ gulp.task('nittio_generate_index', function(done) {
 });
 
 gulp.task('nittio_update_manifest', function(done) {
-    updateManifest(done, nittioPaths.manifest, false);
+    updateManifest(done, nittioPaths.manifest);
 });

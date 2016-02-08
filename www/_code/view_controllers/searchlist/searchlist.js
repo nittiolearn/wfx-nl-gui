@@ -14,7 +14,7 @@ var configFn = ['$stateProvider',
 function($stateProvider) {
 	$stateProvider.state('app.searchlist', {
 		cache : true,
-		url : '/searchlist',
+		url : '^/searchlist',
 		views : {
 			'appContent' : {
 				templateUrl : 'lib_ui/cards/cardsview.html',
@@ -87,7 +87,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 		var createList = {
 			searchlistId : searchlist.id,
 			title : searchlist.name,
-			url: nl.fmt2('#/app/searchlist_view?id={}', searchlist.id),
+			url: nl.fmt2('#/searchlist_view?id={}', searchlist.id),
 			icon : nl.url.resUrl('dashboard/defgroup.png'),
 			help : nl.t('<P>Author: {}</P><P>Group:{}</P>', searchlist.authorname, searchlist.grpname),
 			children :[]

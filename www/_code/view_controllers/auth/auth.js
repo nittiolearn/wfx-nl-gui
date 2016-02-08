@@ -16,7 +16,7 @@ function module_init() {
 var configFn = ['$stateProvider',
 function($stateProvider) {
     $stateProvider.state('app.login_now', {
-        url : '/login_now',
+        url : '^/login_now',
         views : {
             'appContent' : {
                 template : '',
@@ -25,7 +25,7 @@ function($stateProvider) {
         }
     });
     $stateProvider.state('app.logout_now', {
-        url : '/logout_now',
+        url : '^/logout_now',
         views : {
             'appContent' : {
                 template : '',
@@ -34,7 +34,7 @@ function($stateProvider) {
         }
     });
     $stateProvider.state('app.impersonate', {
-        url : '/impersonate',
+        url : '^/impersonate',
         views : {
             'appContent' : {
                 template : '',
@@ -43,7 +43,7 @@ function($stateProvider) {
         }
     });
     $stateProvider.state('app.audit', {
-        url : '/audit',
+        url : '^/audit',
         views : {
             'appContent' : {
                 templateUrl : 'view_controllers/auth/audit.html',
@@ -114,7 +114,7 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
             if (e) e.preventDefault();
             loginDlg.close(false);
             loginDlg.destroy();
-            nl.location.url('/app/welcome');
+            nl.location.url('/welcome');
         }};
         loginDlg.show('view_controllers/auth/logindlg.html', [loginButton], cancelButton, false);
     }
@@ -157,16 +157,14 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
     }
     
     function _getNextUrl(params) {
-        var ret = {url: ('next' in params) ? params.next : nl.url.getAppUrl(), samePage: false};
-        if (ret.url.indexOf(nl.url.getAppUrl()) != 0) return ret;
-        ret.samePage = true;
-        var pos = ret.url.indexOf('#');
-        if (pos < 0) {
-            ret.url = '/';
-            return ret;
+        if (!('next' in params)) return {url: '/home', samePage: true};
+        var next = params.next;
+        var pos = next.indexOf('#');
+        var controller = (pos > 0) ? next.substring(0, pos) : next;
+        if (controller != '/') {
+            return {url: next, samePage: false};
         }
-        ret.url = ret.url.substring(pos+1);
-        return ret;
+        return {url: next.substring(pos+1), samePage: true};
     }
     
     function _validateInputs(scope) {
@@ -236,7 +234,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
                         nlDlg.popupStatus(nl.t('You have been signed out from the system'));
                     }
                     nl.log.debug('LogoutCtrl:onPageEnter - done');
-                    nl.location.url('/app/login_now?msg=logout');
+                    nl.location.url('/login_now?msg=logout');
                     resolve(true);
                 });
             }, function(reason) {

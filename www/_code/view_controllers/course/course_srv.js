@@ -83,13 +83,13 @@ var _dashboardActions = {
     'authorized': {'url': '{}', 'permission': 'basic_access'},
 
     // Action with customizable urlParams
-    'dashboard.home': {'url': '/nittioapp#/app/home?{}', 'permission': 'basic_access', 'termCheck': 'Open'},
+    'dashboard.home': {'url': '/#/home?{}', 'permission': 'basic_access', 'termCheck': 'Open'},
     'lesson.view': {'url': '/lesson/view/{}', 'permission': 'lesson_view'},
     'lesson.view_approved': {'url': '/lesson/search?{}', 'permission': 'basic_access'},
     'lesson.create2': {'url': '/lesson/create2/{}', 'permission': 'lesson_create'},
     'lesson.my': {'url': '/lesson/my?{}', 'permission': 'lesson_create'},
     'lesson.review': {'url': '/lesson/review/1?{}', 'permission': 'lesson_review'},
-    'searchlist.view': {'url': '/nittioapp#/app/searchlist_view?id={}', 'permission': 'basic_access'},
+    'searchlist.view': {'url': '/#/searchlist_view?id={}', 'permission': 'basic_access'},
     'assign_desk.new': {'url': '/assignment/assigned_to_me?{}', 'permission': 'assignment_do', 'termCheck': 'Restricted'},
     'assign_desk.past': {'url': '/assignment/assigned_to_me/past?{}', 'permission': 'assignment_do', 'termCheck': 'Restricted'}
 };

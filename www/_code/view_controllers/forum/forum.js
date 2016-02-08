@@ -14,7 +14,7 @@ function module_init() {
 var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
 	$stateProvider.state('app.forum', {
-		url : '/forum',
+		url : '^/forum',
 		views : {
 			'appContent' : {
 				templateUrl : 'view_controllers/forum/forum.html',
@@ -71,7 +71,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
 	};
 
 	$scope.getUserIcon = function(msg) {
-		return nl.url.resUrl('general/top-logedin.png');
+		return nl.url.resUrl('user.png');
 	};
 
     //-------------------------------------------------------------------------
