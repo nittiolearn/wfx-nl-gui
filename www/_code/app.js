@@ -93,7 +93,7 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
     $scope.helpMenuTitle = nl.t('Help');
     $scope.homeMenuIcon = nl.url.resUrl('general/home.png');
     $scope.homeMenuTitle = nl.t('Home');
-    $scope.userMenuIcon = nl.url.resUrl('general/top-login.png');
+    $scope.userMenuIcon = nl.url.resUrl('user-login.png');
     $scope.logedIn = false;
     $scope.homeUrl = homeUrl;
     
@@ -106,7 +106,7 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
         if (bLoggedIn) {
             $scope.logedIn = true;
             $scope.homeUrl = homeUrl;
-            $scope.userMenuIcon = nl.url.resUrl('general/top-logedin.png');
+            $scope.userMenuIcon = nl.url.resUrl('user.png');
             if (nlRouter.isPermitted(userInfo, 'change_password')) {
                 $scope.userMenuItems.push({name: 'changepw', title: nl.t(' Change Password'), 
                     icon: nl.url.resUrl('general/login-pwdchange.png'),
@@ -118,7 +118,7 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
         } else {
             $scope.logedIn = false;
             $scope.homeUrl = welcomeUrl;
-            $scope.userMenuIcon = nl.url.resUrl('general/top-login.png');
+            $scope.userMenuIcon = nl.url.resUrl('user-login.png');
             $scope.userMenuItems.push({name: 'login', title: nl.t(' Sign In'), 
                 icon: nl.url.resUrl('general/login-signin.png'),
                 url: '#/login_now'});

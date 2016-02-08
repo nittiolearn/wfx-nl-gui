@@ -68,7 +68,7 @@
           {
             "help": "Basic information on what Nittio Learn is and how you can benifit from it.",
             "title": "About Nittio Learn",
-            "url": "/info/more#/",
+            "url": "/#/welcome",
             "linkId": "help_about",
             "children": [],
             "icon": "/static/nittio_res_v39/dashboard/help.png"

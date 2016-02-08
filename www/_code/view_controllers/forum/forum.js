@@ -71,7 +71,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
 	};
 
 	$scope.getUserIcon = function(msg) {
-		return nl.url.resUrl('general/top-logedin.png');
+		return nl.url.resUrl('user.png');
 	};
 
     //-------------------------------------------------------------------------
