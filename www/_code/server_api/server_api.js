@@ -315,6 +315,48 @@ function(nl, nlDlg, nlConfig) {
         return server.post('_serverapi/lesson_get_template_list.json', data);				
 	};
 
+	this.lessonDelete = function(lessonId) {
+    //lessonid = lessonId
+    //returns the list without deleted lesson
+        return server.post('_serverapi/lesson_delete.json', {lessonid : lessonId});				
+	};
+
+	this.lessonCopy = function(data) {
+        // data: lessonId, private=True/False
+        //copy the lesson (private version of lesson or approved version of lesson)
+        return server.post('_serverapi/lesson_copy.json', data);
+	};
+
+	this.lessonPreApproveCheck = function(data){
+	    //data = lessonid
+	    //copy the lesson
+		return server.post('_serverapi/pre_approve_chech.json', data);
+	};
+	
+	this.lessonApprove = function(lessonId) {
+        // data: lessonId
+        // return: list with approved lesson removed.
+        return server.post('_serverapi/lesson_approve.json', {lessonid : lessonId});
+	};
+	
+	this.lessonDisapprove = function(lessonId) {
+        // data: lessonId
+        // return: list with disapproved lesson removed.
+        return server.post('_serverapi/lesson_disapprove.json', {lessonid : lessonId});
+	};
+	
+	this.lessonReopenReview = function(lessonId) {
+    	//data: lessonId
+    	//Mark completion of lesson review
+        return server.post('_serverapi/lesson_reopen.json', {lessonid: lessonId});
+	};
+	
+	this.lessonCloseReview = function(lessonId) {
+    	//data: lessonId
+    	//Mark completion of lesson review
+        return server.post('_serverapi/lesson_closereview.json', {lessonid: lessonId});
+	};
+
     //---------------------------------------------------------------------------------------------
     // Private methods
     //---------------------------------------------------------------------------------------------

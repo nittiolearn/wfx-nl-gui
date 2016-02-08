@@ -1,0 +1,20 @@
+<nl-dlg title='Approve lessons'>
+    <nl-dlg-help></nl-dlg-help>
+    <nl-dlg-content>
+        <table class='nl-table'>
+			<tr >
+				<td class='col 20'>Visibality</td>
+				<td class='col 80 nl-grade-search'>
+                    <select ng-model='data.user_type'
+                            ng-options='opt as opt.name for opt in options.user_type track by opt.id'>
+                    </select>
+				</td>
+			</tr>
+			<tr>
+				<td>Visible to</td>
+				<td>lesson.name</td>
+			</tr>
+        </table>
+        <br/>
+    </nl-dlg-content>
+</nl-dlg>

@@ -29,9 +29,18 @@ function(nl) {
 
 var NlFilter = ['nl', '$filter',
 function(nl, $filter) {
-	return function(inputArray, filterString) {
+	return function(inputArray, filterString, filterGrade) {
+		var filteredInput = inputArray;
+    	if (filterGrade) {
+    		filteredInput = [];
+	    	for (var i=0; i < inputArray.length; i++) {
+	    		var card = inputArray[i];
+	    		if (card.grade != filterGrade) continue;
+	    		filteredInput.push(card);
+	    	}
+    	}
 		filterString = filterString.replace(/"/g, "");
-    	return $filter('filter')(inputArray, filterString);
+    	var ret = $filter('filter')(filteredInput, filterString);
 	};
 }];
 
@@ -60,8 +69,11 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             	if (!$scope.cards || !$scope.cards.cardlist) return [];
             	var staticlist = $scope.cards.staticlist || [];
             	var filteredData = $filter('nlFilter')($scope.cards.cardlist,
-            										 $scope.search.filter);
+            										 $scope.search.filter, $scope.search.grade);
             	var ret = staticlist.concat(filteredData);
+
+				console.log($scope.search.grade);
+
             	if (ret.length > 0) return ret;
             	var emptyCard = $scope.cards.emptycard || defaultEmptyCard;
             	ret.push(emptyCard);
@@ -77,11 +89,13 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             };
             var params = nl.location.search();
 			var searchParam = ('search' in params) ? params.search : '';
-            $scope.search = {filter: searchParam, img: nl.url.resUrl('search.png')};
+			var grade = ('grade' in params) ? params.grade : '';
+            $scope.search = {filter: searchParam, img: nl.url.resUrl('search.png'), grade: grade};
             $scope.search.onSearch = function() {
             	if (!('onSearch' in $scope.cards.search)) return;
-            	return $scope.cards.search.onSearch($scope.search.filter);
+            	return $scope.cards.search.onSearch($scope.search.filter, $scope.search.grade);
             };
+            //console.log($scope.search.grade);
 			$scope.searchKeyHandler = function(keyevent) {
 				if(keyevent.which === 13) {
 					return $scope.search.onSearch($scope.search.filter);
@@ -94,7 +108,7 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             	var len = 0;
             	if ($scope.cards && $scope.cards.cardlist) {
 	            	var filteredData = $filter('nlFilter')($scope.cards.cardlist,
-	            										 $scope.search.filter);
+	            										 $scope.search.filter, $scope.search.grade);
 					len = filteredData.length;
             	}
             	var maxLimit = 50;

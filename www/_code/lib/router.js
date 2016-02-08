@@ -183,6 +183,7 @@ function Permission(nl) {
         '/app/searchlist_view': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
         '/app/rno_my': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
 		'/app/assignment': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},		
+		'/app/lesson': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},		
 
         // Operation permissions
         'change_password': {login: true, permission: 'change_password', termRestriction: TR_RESTRICTED},
