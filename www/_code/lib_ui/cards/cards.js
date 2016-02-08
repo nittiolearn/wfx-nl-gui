@@ -40,7 +40,7 @@ function(nl, $filter) {
 	    	}
     	}
 		filterString = filterString.replace(/"/g, "");
-    	var ret = $filter('filter')(filteredInput, filterString);
+    	return $filter('filter')(filteredInput, filterString);
 	};
 }];
 

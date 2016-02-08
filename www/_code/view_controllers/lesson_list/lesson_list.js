@@ -12,7 +12,7 @@
 	var configFn = ['$stateProvider', '$urlRouterProvider',
 	function($stateProvider, $urlRouterProvider) {
 		$stateProvider.state('app.lesson', {
-			url : '/lesson',
+			url : '^/lesson',
 			views : {
 				'appContent' : {
 					templateUrl : 'lib_ui/cards/cardsview.html',
@@ -599,7 +599,7 @@
 				if (!result) return;			
 				nlServerApi.lessonCopy(data).then(function(status) {
 					nlDlg.hideLoadingScreen();
-					var template = "<ul><li><a href='/lesson/edit/{}'>Edit new lesson</a></li><li><a href='#/app/lesson?type=my'>view my lessons/worksheets</a></li></ul>";
+					var template = "<ul><li><a href='/lesson/edit/{}'>Edit new lesson</a></li><li><a href='#/lesson?type=my'>view my lessons/worksheets</a></li></ul>";
 					template = nl.fmt2(template, status); 
 					var confirmMsg = {title: nl.t("Lesson copied"), template:template};				
 					nlDlg.popupAlert(confirmMsg);	
