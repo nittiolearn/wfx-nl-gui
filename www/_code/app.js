@@ -150,19 +150,30 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
 function _initScreenSize(nl) {
     angular.element(nl.window).bind('resize', function() {
         nl.rootScope.$apply(function() {
-            nl.rootScope.screenSize = _computeScreenSize(nl);
+            _updateScreenSize(nl);
         });
     });
-    nl.rootScope.screenSize = _computeScreenSize(nl);
+    _updateScreenSize(nl);
 }
 
 var W_SMALL = 700;
 var W_LARGE = 1000;
-function _computeScreenSize(nl) {
+function _updateScreenSize(nl) {
     var w = nl.window.innerWidth;
-    if (w < W_SMALL) return 'small';
-    if (w > W_LARGE) return 'large';
-    return 'medium';
+    var h = nl.window.innerHeight - 60;
+    var hv = (w - 20)*9/16;
+    if (h < hv) hv = h; 
+    nl.rootScope.screenWidth = w;
+    nl.rootScope.videoWidth = hv*16/9;
+    if (w < W_SMALL) {
+        nl.rootScope.screenSize = 'small';
+        return;
+    }
+    if (w > W_LARGE) {
+        nl.rootScope.screenSize = 'large';
+        return;
+    }
+    nl.rootScope.screenSize = 'medium';
 }
 
 module_init();

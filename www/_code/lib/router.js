@@ -67,7 +67,13 @@ function(nl, nlDlg, nlServerApi, $state) {
         return permission.isPermitted(userInfo, perm);
     };
     
+    var windowDescription = '';
+    this.setWindowDescription = function(descr) {
+        windowDescription = descr;
+    }
+    
     function _onPageEnter($scope, pageUrl, pageEnterFn, e) {
+        windowDescription = '';
         nl.pginfo.isPageShown = false;
         nlDlg.showLoadingScreen();
         var protocol = nl.location.protocol().toLowerCase();
@@ -132,6 +138,7 @@ function(nl, nlDlg, nlServerApi, $state) {
         
         nl.pginfo.isPageShown = true;
         nl.pginfo.windowTitle = _getWindowTitle();
+        nl.pginfo.windowDescription = windowDescription ? windowDescription : nl.pginfo.windowTitle;
         return true;
     }
 
