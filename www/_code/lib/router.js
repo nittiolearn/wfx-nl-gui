@@ -83,6 +83,7 @@ function(nl, nlDlg, nlServerApi, $state) {
         }
         _getUserInfo(pageUrl).then(function(userInfo) {
             _sendGoogleAnalytics(userInfo);
+            nl.rootScope.pgBgimg = _getUserBgimg(userInfo);
             nl.pginfo.username = (userInfo.username == '') ? '' : userInfo.displayname;
             var pagePerm = permission.getPermObj(pageUrl);
             if (pagePerm == null) {
@@ -122,8 +123,7 @@ function(nl, nlDlg, nlServerApi, $state) {
         nlDlg.closeAll();
     }
     
-    function _getUserBgimg() {
-        var uInfo = nlServerApi.getCurrentUserInfo();
+    function _getUserBgimg(uInfo) {
         return ('groupinfo' in uInfo && uInfo.groupinfo.bgimg) ? uInfo.groupinfo.bgimg : null;
     }
 
@@ -133,7 +133,6 @@ function(nl, nlDlg, nlServerApi, $state) {
     }
     
     function _done(rerouteToUrl) {
-        nl.rootScope.pgBgimg = _getUserBgimg();
         var params = nl.location.search();
         nl.pginfo.isMenuShown = (!('hidemenu' in params));
         nlDlg.hideLoadingScreen();
