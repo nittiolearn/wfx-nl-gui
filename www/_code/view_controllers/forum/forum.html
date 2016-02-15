@@ -1,35 +1,33 @@
-<div class='nl-thin-scroll nl-full nl-forum'>
-    <div class='popup-buttons no-border row' ng-hide='postNewDlg.visible'>
-        <button ng-hide='hidePostNewButton' ng-click='showPostNewDlg()' class='button col'>Post new message</button>
-        <button ng-click='showHideAllMessageDetails()' class='button col'>{{showHideAllButtonName}}</button>
-        <button ng-click='refreshDataFromServer()' class='button col'>Refresh</button> 
+<div class='nl-thin-scroll nl-full nl-forum padding-small'>
+    <div class='nl-toolbar'>
+        <img ng-hide='hidePostNewButton' class='nl-24 nl-clickable'
+             ng-src='{{imgBasePath + "toolbar-edit/comments2.png"}}' 
+             ng-click='showPostNewDlg()'/>
+        <img class='nl-24 nl-clickable'
+             ng-src='{{expandAllButton}}' 
+             ng-click='expandCollapseAll()'/>
+        <img class='nl-24 nl-clickable'
+             ng-src='{{imgBasePath + "toolbar-edit/addpage.png"}}' 
+             ng-click='showHideMsgDetails()'/>
+        <img class='nl-24 nl-clickable'
+             ng-src='{{imgBasePath + "toolbar-edit/props.png"}}' 
+             ng-click='refreshDataFromServer()'/>
     </div>
-    <nl-forum-input ng-show='postNewDlg.visible'></nl-forum-input>
-    <div ng-repeat='msg in msgs' class='nl-forum-msg'>
-        <div class='nl-forum-header row row-center'
-             ng-click='showHideMessageDetails(msg)'
-             ng-class='{"nl-forum-header-child" : msg.indentationLevel > 0, "nl-clickable-container": msg.indentationLevel == 0}'
-             ng-hide='msg.hidden_title'>
-            <span ng-show='msg.indentationLevel != 0' class='nl-cv-indent'></span>
-            <span class='col'>
-                <img ng-src='{{getUserIcon(msg)}}'/>
-                <span>{{msg.authorname}}</span>
-            </span>
-            <span ng-show='msg.indentationLevel == 0'
-                  class='nl-forum-title col col-67'
-                  ng-bind-html='msg.title'></span>
-            <span class='nl-forum-time col'>{{fmtDate(msg.updated)}}</span>
+    <nl-forum-input ng-show='postNewDlg.visible && !postNewDlg.parentMsg'></nl-forum-input>
+    <div ng-repeat='msg in msgTree' class='padding-small'>
+        <div class='nl-forum-header row row-wrap nl-clickable-container padding0' ng-click='expandCollapseMsg(msg)'>
+            <div class='col min-200 padding-small' ng-bind-html='msg.title'></div>
+            <div class='col text-right fixed-200 padding-small'>{{msg.htmlUpdated}}</div>
         </div>
-        <div class='nl-forum-content row row-center' ng-hide='msg.hidden_text'>
-            <span ng-show='msg.indentationLevel != 0' class='nl-cv-indent'></span>
-            <span class='col col-80' ng-bind-html='msg.htmlMarkup'></span>
-            <span ng-show='msg.indentationLevel == 0' class='col' style='text-align: right'>
-                <button ng-click='reply(msg)'>Reply</button>
-            </span>
+        <div ng-show='msg.expanded'>
+            <nl-forum-msg msg='msg'></nl-forum-msg>
+            <nl-forum-input ng-show='msg.replying'></nl-forum-input>
+            <div ng-repeat='reply in msg.children'>
+                <nl-forum-msg msg='reply'></nl-forum-msg>
+            </div>
         </div>
-        <nl-forum-input ng-show='msg.showReplyDlg'></nl-forum-input>
     </div>
-    <div ng-if='msgs.length == 0' class='nl-forum-msg'>
+    <div ng-if='msgTree.length == 0' class='nl-forum-msg'>
         <h3>There is no message to display.</h3>
     </div>
 </div>
