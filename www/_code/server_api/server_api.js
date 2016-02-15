@@ -456,6 +456,7 @@ function NlServerInterface(nl, nlDlg, nlConfig) {
             self.getUserInfoFromCache().then(function(userInfo) {
                 data._u = reloadUserInfo ? 'NOT_DEFINED' : userInfo.username;
                 data._v = NL_SERVER_INFO.versions.script;
+                if ('updated' in userInfo) data._ts = nl.fmt.json2Date(userInfo.updated);
                 url = NL_SERVER_INFO.url + url;
                 _postImpl(url, data)
                 .success(function(data, status, headers, config) {

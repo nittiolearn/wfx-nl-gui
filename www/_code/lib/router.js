@@ -122,12 +122,18 @@ function(nl, nlDlg, nlServerApi, $state) {
         nlDlg.closeAll();
     }
     
+    function _getUserBgimg() {
+        var uInfo = nlServerApi.getCurrentUserInfo();
+        return ('groupinfo' in uInfo && uInfo.groupinfo.bgimg) ? uInfo.groupinfo.bgimg : null;
+    }
+
     function _getUserInfo(pageUrl) {
         if (permission.isOpenPage(pageUrl)) return nlServerApi.getUserInfoFromCache();
         return nlServerApi.getUserInfoFromCacheOrServer();
     }
     
     function _done(rerouteToUrl) {
+        nl.rootScope.pgBgimg = _getUserBgimg();
         var params = nl.location.search();
         nl.pginfo.isMenuShown = (!('hidemenu' in params));
         nlDlg.hideLoadingScreen();

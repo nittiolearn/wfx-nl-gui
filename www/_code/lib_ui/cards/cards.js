@@ -72,8 +72,6 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             										 $scope.search.filter, $scope.search.grade);
             	var ret = staticlist.concat(filteredData);
 
-				console.log($scope.search.grade);
-
             	if (ret.length > 0) return ret;
             	var emptyCard = $scope.cards.emptycard || defaultEmptyCard;
             	ret.push(emptyCard);
@@ -95,7 +93,6 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             	if (!('onSearch' in $scope.cards.search)) return;
             	return $scope.cards.search.onSearch($scope.search.filter, $scope.search.grade);
             };
-            //console.log($scope.search.grade);
 			$scope.searchKeyHandler = function(keyevent) {
 				if(keyevent.which === 13) {
 					return $scope.search.onSearch($scope.search.filter);

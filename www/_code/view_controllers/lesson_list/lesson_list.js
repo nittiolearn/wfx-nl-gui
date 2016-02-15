@@ -551,7 +551,6 @@
 
 		
 		function _disapproveLesson($scope, lessonId) {
-			console.log(lessonId);
 			var msg = {title: 'Please confirm', 
 					   template: nl.t('Are u sure you want to disapprove the approved lesson'),
 					   okText: nl.t('Disapprove')};

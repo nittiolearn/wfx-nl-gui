@@ -21,7 +21,7 @@ $nltopbar2:                       #675187 !default; // A darker shade for other 
 $nltopbar3:                       #B0A0C0 !default; // A lighter shade for other usages
 $nldlgbar:                        #E06000 !default; // Dialog Box header Bg-Color
 $nlgrey:                          #EEEEFF !default; // Mild border
-$nlgreen1:                        #CCFFCC !default; // Light green
+$nlgreen1:                        #BBFFBB !default; // Light green
 $nldarkgrey:                      #CCCCDD !default; // Darker border
 $nlgreen:                         #008000 !default; // green
 
@@ -168,6 +168,10 @@ ul ul ul {
 
 ul ul, ul ol, ol ol, ol ul {
     display: block;
+}
+
+.pane, .view {
+    background-color: transparent;
 }
 
 /*-----------------------------------------------------------------------------------------*
@@ -634,6 +638,7 @@ nl-cards {
   
   border-radius: 4px;
   box-shadow: inset 0 0 0 rgba(170,170,255,0.1), 0 0 20px rgba(128,128,255,0.8);
+  background-color: #FFFFFF;
 }
 
 .nl-card-header {
@@ -746,6 +751,7 @@ a.nl-card-img:hover, a.nl-card-img:focus {
     padding: 4px;
     border-radius: 4px;
     box-shadow: 1px 1px 5px #888888;
+    background-color: #F5F5F5;
   }
   span {
     height: 28px;
@@ -965,7 +971,7 @@ img.nl-icon {
 }
 
 .nl-forum-msg-details {
-    border: 1px dotted $nldarkgrey;
+    border-bottom: 1px solid $nldarkgrey;
 }
 
 .nl-forum-msg-content {

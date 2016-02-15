@@ -82,6 +82,8 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
     nl.log.info('UserAgent: ', navigator.userAgent);
     nl.rootScope.imgBasePath = nl.url.resUrl();
     nl.rootScope.pgInfo = nl.pginfo;
+    nl.rootScope.pgBgimg = null;
+
     _initScreenSize(nl);
     nlLogViewer.showOnStartupIfRequired($scope);
     
