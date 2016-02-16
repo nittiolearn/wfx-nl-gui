@@ -1,33 +1,38 @@
 <div class='nl-thin-scroll nl-full nl-forum padding-small'>
-    <div class='nl-toolbar'>
-        <img ng-hide='hidePostNewButton' class='nl-24 nl-clickable'
-             ng-src='{{imgBasePath + "toolbar-edit/comments2.png"}}' 
-             ng-click='showPostNewDlg()'/>
-        <img class='nl-24 nl-clickable'
-             ng-src='{{expandAllButton}}' 
-             ng-click='expandCollapseAll()'/>
-        <img class='nl-24 nl-clickable'
-             ng-src='{{imgBasePath + "toolbar-edit/addpage.png"}}' 
-             ng-click='showHideMsgDetails()'/>
-        <img class='nl-24 nl-clickable'
-             ng-src='{{imgBasePath + "toolbar-edit/props.png"}}' 
-             ng-click='refreshDataFromServer()'/>
-    </div>
-    <nl-forum-input ng-show='postNewDlg.visible && !postNewDlg.parentMsg'></nl-forum-input>
-    <div ng-repeat='msg in msgTree' class='padding-small'>
-        <div class='nl-forum-header row row-wrap nl-clickable-container padding0' ng-click='expandCollapseMsg(msg)'>
-            <div class='col min-200 padding-small' ng-bind-html='msg.title'></div>
-            <div class='col text-right fixed-200 padding-small'>{{msg.htmlUpdated}}</div>
+    <div class='row'>
+        <div class='col nl-forum-header'
+              ng-bind-html='getTopicName()'>
         </div>
-        <div ng-show='msg.expanded'>
+        <nl-forum-toolbar clas='col min-200'></nl-forum-toolbar>
+    </div>
+    <nl-forum-input ng-show='inputDlg.newTopic || inputDlg.newMessage' pscope='inputDlgScope'>
+    </nl-forum-input>
+    <div ng-repeat='msg in msgTree track by msg.id' ng-class='padding0'>
+        <div ng-show='!currentTopicId'
+             class='row row-wrap padding-small'>
+            <div ng-show='mentorView'
+                 class='col no-grow padding-small'>
+                 <img class='nl-24' ng-src='{{msg.userIcon}}'/>
+            </div>
+            <div ng-show='mentorView'
+                 class='col fixed-200 padding-small'>
+                 <b>{{msg.authorname}}</b>
+            </div>
+            <div class='col min-200 padding-small nl-clickable nl-forum-header2'
+                 ng-click='expandCollapseMsg(msg)'
+                 ng-bind-html='msg.title'>
+            </div>
+            <div ng-hide='currentTopicId == msg.id'
+                 class='col text-right fixed-200 padding-small nl-forum-ts'>{{msg.htmlUpdated}}</div>
+        </div>
+        <div ng-show='currentTopicId == msg.id'>
             <nl-forum-msg msg='msg'></nl-forum-msg>
-            <nl-forum-input ng-show='msg.replying'></nl-forum-input>
-            <div ng-repeat='reply in msg.children'>
+            <div ng-repeat='reply in msg.children track by reply.id'>
                 <nl-forum-msg msg='reply'></nl-forum-msg>
             </div>
         </div>
     </div>
-    <div ng-if='msgTree.length == 0' class='nl-forum-msg'>
+    <div ng-if='msgTree.length == 0' class='padding-small'>
         <h3>There is no message to display.</h3>
     </div>
 </div>

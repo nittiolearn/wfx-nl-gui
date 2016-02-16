@@ -311,7 +311,6 @@ img.nl-clickable {
 .nl-toolbar {
     text-align: right;
     padding: 4px;
-    border-bottom: 1px solid $nldarkgrey;
 }
 
 /*-----------------------------------------------------------------------------------------*
@@ -938,16 +937,35 @@ img.nl-icon {
 /*-----------------------------------------------------------------------------------------*
  * forum elements
  *-----------------------------------------------------------------------------------------*/
-.nl-forum-new {
-  border: 1px solid $nlgrey;
-  margin-bottom: 8px;
-  table, input, textarea {
+.nl-forum {
+  input, textarea {
     width: 100%;
+    border: 1px solid $nldarkgrey;
   }
+}
+
+.nl-forum-input {
+  border: 1px solid $nldarkgrey;
+  border-radius: 8px 0 8px 8px;
+}
+
+.nl-forum-input.newmsg {
+  width: 95%;
+  margin-left: 5%;
 }
 
 .nl-forum-header {
   font-weight: bold;
+  font-size: 120%;
+}
+
+.nl-forum-header2 {
+  font-weight: bold;
+  color: #000000;
+}
+
+.nl-forum-ts, .nl-forum-msg-details {
+  font-size: 80%;
 }
 
 .nl-forum-msg {
@@ -955,9 +973,6 @@ img.nl-icon {
   width: 95%;
   background-color: $nlgrey;
   border: 1px solid $nldarkgrey;
-  input, textarea {
-    width: 100%;
-  }
 }
 
 .nl-forum-msg.me {
@@ -966,12 +981,8 @@ img.nl-icon {
   margin-left: 5%;
 }
 
-.nl-forum-msg-header {
-    border-bottom: 1px solid $nldarkgrey;
-}
-
-.nl-forum-msg-details {
-    border-bottom: 1px solid $nldarkgrey;
+.nl-forum-msg.editing {
+  background-color: #FFFFFF;
 }
 
 .nl-forum-msg-content {
@@ -983,6 +994,15 @@ img.nl-icon {
         border: 1px solid $nldarkgrey;
     }
 }
+
+.nl-forum-msg-tools img {
+    opacity: 0.3;
+}
+
+.nl-forum-msg-tools img:hover, .nl-forum-msg-tools img:focus, {
+    opacity: 1;
+}
+
 /*-----------------------------------------------------------------------------------------*
  * course_view elements
  *-----------------------------------------------------------------------------------------*/

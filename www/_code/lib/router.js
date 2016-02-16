@@ -206,7 +206,10 @@ function Permission(nl) {
 
         // Operation permissions
         'change_password': {login: true, permission: 'change_password', termRestriction: TR_RESTRICTED},
-        'course_assign': {login: true, permission: 'course_assign', termRestriction: TR_CLOSED} 
+        'course_assign': {login: true, permission: 'course_assign', termRestriction: TR_CLOSED},
+        'forum_start_topic': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},
+        'forum_delete_msg': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
+        'forum_view_details': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED} 
     };
     
     var openPages = {'/welcome': 1, '/login_now': 1, '/logout_now': 1};

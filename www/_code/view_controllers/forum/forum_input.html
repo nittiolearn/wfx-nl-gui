@@ -1,10 +1,17 @@
-<div class='nl-forum-new'>
-    <table>
-        <tr ng-show='$parent.postNewDlg.canShowTitle' nl-form-input fieldname='Title' fieldmodel='title' fieldtype='text'></tr>
-        <tr nl-form-textarea fieldname='Message' fieldmodel='text' fieldcls='nl-not-elastic'></tr>
-    </table>
+<div class='nl-forum-input' ng-class='{newmsg: pscope.inputDlg.newMessage}'>
+    <div class='nl-dlg-field-value' ng-show='pscope.inputDlg.canShowTitle'>
+        <input ng-model='pscope.data.title'
+               placeholder='Enter the topic name'
+               type='text'>
+        </input>
+        <div ng-show='pscope.error.title' class='nl-dlg-field-errormsg'>{{pscope.error.title}}</div>
+    </div>
+    <div class='nl-dlg-field-value'>
+        <textarea ng-model='pscope.data.text' placeholder='Enter you message'></textarea>
+        <div ng-show='pscope.error.text' class='nl-dlg-field-errormsg'>{{pscope.error.text}}</div>
+    </div>
     <div class='popup-buttons row'>
-        <button ng-click='$parent.postNewMessage()' class='button col'>{{$parent.postNewDlg.postButtonName}}</button>
-        <button ng-click='$parent.hidePostNewDlg()' class='button col'>Cancel</button>
+        <button ng-click='pscope.inputDlgOk()' class='button col'>{{pscope.inputDlg.okButtonName}}</button>
+        <button ng-click='pscope.inputDlgCancel()' class='button col'>Cancel</button>
     </div>
 </div>
