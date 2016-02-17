@@ -1,20 +1,24 @@
+
 <nl-dlg title='Approve lessons'>
     <nl-dlg-help></nl-dlg-help>
     <nl-dlg-content>
-        <table class='nl-table'>
-			<tr >
-				<td class='col 20'>Visibality</td>
-				<td class='col 80 nl-grade-search'>
-                    <select ng-model='data.user_type'
-                            ng-options='opt as opt.name for opt in options.user_type track by opt.id'>
-                    </select>
-				</td>
-			</tr>
-			<tr>
-				<td>Visible to</td>
-				<td>lesson.name</td>
-			</tr>
-        </table>
-        <br/>
+			<div class='row'>
+				<span class='col col-20'>Visibality</span>
+				<select class='col col-80 nl-grade-search' ng-model="data.approveto">
+						<option ng-repeat='approve in cards.approveto' value='{{approve}}'>{{approve}}</option>
+			    </select>
+			</div>
+		</br>
+			<div class='row'>
+				<span class='col col-20'>Visible to</span>
+				<span class='col col-80'>lesson.name</span>
+			</div>
+		</br>
+			<div class= 'row'>
+				<span class='col col-20'></span>
+				<div class='col col-80' ng-model="data.approvedto" ng-repeat='approve in cards.approveto'>
+			    <span>{{approve}}</span></br>
+			    </div>				
+			</div>
     </nl-dlg-content>
 </nl-dlg>

@@ -31,14 +31,17 @@ var NlFilter = ['nl', '$filter',
 function(nl, $filter) {
 	return function(inputArray, filterString, filterGrade) {
 		var filteredInput = inputArray;
-    	if (filterGrade) {
-    		filteredInput = [];
-	    	for (var i=0; i < inputArray.length; i++) {
-	    		var card = inputArray[i];
-	    		if (card.grade != filterGrade) continue;
-	    		filteredInput.push(card);
+		if (filterGrade) {
+	    	if (filterGrade != 'All Grades') {
+	    		filteredInput = [];
+		    	for (var i=0; i < inputArray.length; i++) {
+		    		var card = inputArray[i];
+		    		console.log(filterGrade);
+		    		if (card.grade != filterGrade) continue;
+			    	filteredInput.push(card);
+		    	}
 	    	}
-    	}
+	    }
 		filterString = filterString.replace(/"/g, "");
     	return $filter('filter')(filteredInput, filterString);
 	};
@@ -72,7 +75,6 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             										 $scope.search.filter, $scope.search.grade);
             	var ret = staticlist.concat(filteredData);
 
-				console.log($scope.search.grade);
 
             	if (ret.length > 0) return ret;
             	var emptyCard = $scope.cards.emptycard || defaultEmptyCard;
@@ -89,16 +91,15 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             };
             var params = nl.location.search();
 			var searchParam = ('search' in params) ? params.search : '';
-			var grade = ('grade' in params) ? params.grade : '';
+			var grade = ('grade' in params) ? params.grade : 'All Grades';
             $scope.search = {filter: searchParam, img: nl.url.resUrl('search.png'), grade: grade};
             $scope.search.onSearch = function() {
             	if (!('onSearch' in $scope.cards.search)) return;
             	return $scope.cards.search.onSearch($scope.search.filter, $scope.search.grade);
             };
-            //console.log($scope.search.grade);
 			$scope.searchKeyHandler = function(keyevent) {
 				if(keyevent.which === 13) {
-					return $scope.search.onSearch($scope.search.filter);
+					return $scope.search.onSearch($scope.search.filter, $scope.search.grade);
 				}				
 			};
             $scope.search.getResultsStr = function() {
