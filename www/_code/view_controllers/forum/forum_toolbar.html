@@ -1,0 +1,26 @@
+<div class='nl-toolbar'>
+    <img title='Start new topic'
+         ng-show='canStartTopic && !currentTopicId'
+         class='nl-24 nl-clickable'
+         ng-src='{{imgBasePath + "forum/newtopic.png"}}' 
+         ng-click='showPostNewTopicDlg()'/>
+    <img title='Post a message'
+         ng-show='canReply(currentTopicId)'
+         class='nl-24 nl-clickable'
+         ng-src='{{imgBasePath + "forum/newmsg.png"}}'
+         ng-click='showPostNewMessageDlg(currentTopicId)'/>
+    <img title='Show overview'
+         ng-show='currentTopicId'
+         class='nl-24 nl-clickable'
+         ng-src='{{imgBasePath + "forum/up.png"}}' 
+         ng-click='collapseAll()'/>
+    <img title='{{msgDetails.title}}'
+         ng-show='canShowDetails && currentTopicId'
+         class='nl-24 nl-clickable'
+         ng-src='{{msgDetails.icon}}' 
+         ng-click='showHideMsgDetails()'/>
+    <img title='Refresh data'
+         class='nl-24 nl-clickable'
+         ng-src='{{imgBasePath + "forum/refresh.png"}}' 
+         ng-click='refreshDataFromServer()'/>
+</div>

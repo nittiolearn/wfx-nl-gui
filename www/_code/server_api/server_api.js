@@ -24,6 +24,10 @@ function(nl, nlDlg, nlConfig) {
         });
     };
 
+    this.getCurrentUserInfo = function() {
+        return server.getCurrentUserInfo();
+    };
+    
     this.getUserInfoFromCache = function() {
         return server.getUserInfoFromCache();
     };
@@ -146,11 +150,16 @@ function(nl, nlDlg, nlConfig) {
     //---------------------------------------------------------------------------------------------
     // Forum methods
     //---------------------------------------------------------------------------------------------
-    this.forumCreateMsg = function(data) {
-        // returns list of forumMessages
-        return server.post('_serverapi/forum_create_msg.json', data);
+    this.forumCreateOrModifyMsg = function(data) {
+        // returns list of forumMessages after creating/modifying
+        return server.post('_serverapi/forum_create_or_modify_msg.json', data);
     };
     
+    this.forumDeleteMsg = function(data) {
+        // returns list of forumMessages after deleting current message
+        return server.post('_serverapi/forum_delete_msg.json', data);
+    };
+
     this.forumGetMsgs = function(data) {
         // returns list of forumMessages
         return server.post('_serverapi/forum_get_msgs.json', data);
@@ -430,6 +439,10 @@ function NlServerInterface(nl, nlDlg, nlConfig) {
         });
     };
 
+    this.getCurrentUserInfo = function() {
+        return this.currentUserInfo;
+    };
+    
     this.reinitUserInfo = function() {
         this.initDone = false;
         _initUserInfo(this);
@@ -443,6 +456,7 @@ function NlServerInterface(nl, nlDlg, nlConfig) {
             self.getUserInfoFromCache().then(function(userInfo) {
                 data._u = reloadUserInfo ? 'NOT_DEFINED' : userInfo.username;
                 data._v = NL_SERVER_INFO.versions.script;
+                if ('updated' in userInfo) data._ts = nl.fmt.json2Date(userInfo.updated);
                 url = NL_SERVER_INFO.url + url;
                 _postImpl(url, data)
                 .success(function(data, status, headers, config) {

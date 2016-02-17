@@ -98,7 +98,7 @@
             <tr><th>Action</th><th>URL</th><th>Permission</th><th>Remarks</th></tr>
             <tr><td>dashboard.home </td><td>/#/home?{}</td><td>basic_access</td><td>Specify "parent=xxx" to launch one card of dashboard in a sperate page where each link becomes a card.</td></tr>
             <tr><td>lesson.view </td><td>/lesson/view/{}</td><td>lesson_view</td><td>Direct link to lesson</td></tr>
-            <tr><td>lesson.view_approved </td><td>/lesson/search?{}</td><td>basic_access</td><td>View approved list</td></tr>
+            <tr><td>lesson.view_approved </td><td>/lesson/search?{}</td><td>lesson_view</td><td>View approved list</td></tr>
             <tr><td>lesson.create2</td><td>/lesson/create2/{}</td><td>lesson_create</td><td>Provide template id in urlParams to directly create lesson based on template</td></tr>
             <tr><td>lesson.my</td><td>/lesson/my?{}</td><td>lesson_create</td><td></td></tr>
             <tr><td>lesson.review</td><td>/lesson/review/1?{}</td><td>learn_review</td><td></td></tr>
@@ -141,6 +141,30 @@
  }
 ]
 		</pre>
+
+        <h3>Setting general dashbaord properties</h3>
+        <p>It is possible to specify general properties to dashboard. In this case, the first item in the dashboard should be with action "_properties" and can have other attributes as the properties.</p>
+        Currently, below properties are supported:
+        <ul>
+            <li><b>bgimgs</b>: Set a list of background images which are randomly picked and displayed when home dashboard is shown.</li>
+        </ul>
+        <p>Example:</p>
+        <pre>
+[
+ {"linkid": "_properties",
+  "bgimgs": [
+    "https://nittio-test.appspot.com/resource/resview/1455517354-bg1.png",
+    "https://nittio-test.appspot.com/resource/resview/1455517375-bg2.png",
+    "https://nittio-test.appspot.com/resource/resview/1455517409-bg3.png",
+    "https://nittio-test.appspot.com/resource/resview/1455517425-bg4.png",
+    "https://nittio-test.appspot.com/resource/resview/1455517445-bg5.png",
+    "https://nittio-test.appspot.com/resource/resview/1455517469-bg6.png",
+    "https://nittio-test.appspot.com/resource/resview/1455517482-bg7.png"
+  ]
+ },
+ ...
+]
+        </pre>
     </nl-dlg-help>
     <nl-dlg-content>
         <table class='nl-table'>

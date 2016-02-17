@@ -33,11 +33,11 @@ function(nl, nlRouter, $scope, nlDlg, nlLogViewer, nlServerApi, nlCardsSrv) {
         msg1: nl.t('Measure and improve the most important aspect of your school, the “Teaching quality”.'),
         msg2: nl.t('Structure all aspects of teaching. Set your goals, engage your teachers and leap ahead.')
     };
-    
 	function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
             nl.pginfo.pageTitle = $scope.content.title;
             nl.pginfo.pageSubTitle = '';
+            nlRouter.setWindowDescription('Looking to improve the teaching quality in your school? Use Nittio Learn for continuous teacher training, structured lesson planning, program of work tracking and classroom observations.');
             resolve(true);
         });
     }

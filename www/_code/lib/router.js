@@ -67,7 +67,13 @@ function(nl, nlDlg, nlServerApi, $state) {
         return permission.isPermitted(userInfo, perm);
     };
     
+    var windowDescription = '';
+    this.setWindowDescription = function(descr) {
+        windowDescription = descr;
+    }
+    
     function _onPageEnter($scope, pageUrl, pageEnterFn, e) {
+        windowDescription = '';
         nl.pginfo.isPageShown = false;
         nlDlg.showLoadingScreen();
         var protocol = nl.location.protocol().toLowerCase();
@@ -77,6 +83,7 @@ function(nl, nlDlg, nlServerApi, $state) {
         }
         _getUserInfo(pageUrl).then(function(userInfo) {
             _sendGoogleAnalytics(userInfo);
+            nl.rootScope.pgBgimg = _getUserBgimg(userInfo);
             nl.pginfo.username = (userInfo.username == '') ? '' : userInfo.displayname;
             var pagePerm = permission.getPermObj(pageUrl);
             if (pagePerm == null) {
@@ -116,6 +123,10 @@ function(nl, nlDlg, nlServerApi, $state) {
         nlDlg.closeAll();
     }
     
+    function _getUserBgimg(uInfo) {
+        return ('groupinfo' in uInfo && uInfo.groupinfo.bgimg) ? uInfo.groupinfo.bgimg : null;
+    }
+
     function _getUserInfo(pageUrl) {
         if (permission.isOpenPage(pageUrl)) return nlServerApi.getUserInfoFromCache();
         return nlServerApi.getUserInfoFromCacheOrServer();
@@ -132,6 +143,7 @@ function(nl, nlDlg, nlServerApi, $state) {
         
         nl.pginfo.isPageShown = true;
         nl.pginfo.windowTitle = _getWindowTitle();
+        nl.pginfo.windowDescription = windowDescription ? windowDescription : nl.pginfo.windowTitle;
         return true;
     }
 
@@ -194,7 +206,10 @@ function Permission(nl) {
 
         // Operation permissions
         'change_password': {login: true, permission: 'change_password', termRestriction: TR_RESTRICTED},
-        'course_assign': {login: true, permission: 'course_assign', termRestriction: TR_CLOSED} 
+        'course_assign': {login: true, permission: 'course_assign', termRestriction: TR_CLOSED},
+        'forum_start_topic': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},
+        'forum_delete_msg': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
+        'forum_view_details': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED} 
     };
     
     var openPages = {'/welcome': 1, '/login_now': 1, '/logout_now': 1};

@@ -209,6 +209,10 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
         for(var i=0; i<courseContent.length; i++){
             var module = courseContent[i];
             if (!module.linkid) return _validateModuleFail(scope, module, '"linkid" is mandatory');
+            if (i == 0 && module.linkid == '_properties') {
+                if(!_validateDashboardProperties(scope, module)) return false;
+                continue;
+            }
             if (!module.action) return _validateModuleFail(scope, module, '"action" is mandatory');
             if (!module.title) return _validateModuleFail(scope, module, '"title" is mandatory');
             if (module.linkid in uniqueIds) return _validateModuleFail(scope, module, '"linkid" has to be unique');
@@ -217,6 +221,11 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
             if (parentId && !(parentId in uniqueIds)) return _validateModuleFail(scope, module, 
             	'parent card needs to be above the link');
         }
+        return true;
+    }
+
+    function _validateDashboardProperties(scope, module) {
+        // TODO
         return true;
     }
 

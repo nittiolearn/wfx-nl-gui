@@ -1,5 +1,22 @@
+<style>
+.nl-pagecanvas-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    height: auto;
+    width: auto;
+    z-index: -100;
+    background-size: cover;
+    background-image: url({{pgBgimg}});
+}
+</style>
+
 <div id='nl-pagecanvas' ng-click='onCanvasClick($event)' ng-keydown="onKeyDown($event)" tabindex='0'
     ng-class='{"nl-hide":!pgInfo.isPageShown}' class='nl-screen-{{screenSize}}'>
+    <div ng-show='pgBgimg' class='nl-pagecanvas-bg'></div>
+
     <nav id='nl-topbar' ng-show='pgInfo.isMenuShown' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
         <a id='nl-logo' ng-href='{{homeUrl}}'>
             <img class='nl-clickable1' ng-src='{{logo}}' ng-show='logo' title='{{homeMenuTitle}}'/>
@@ -11,7 +28,7 @@
             <img class='nl-icon nl-clickable1' ng-src='{{userMenuIcon}}' alt='User' title='{{pgInfo.username}}' ng-click='onUserMenu($event)'/></a>
         </nav>
         <nav id='nl-user-menu' ng-show='showUserMenu'>
-            <a ng-repeat='item in userMenuItems' ng-href='{{item.url}}'>
+            <a ng-repeat='item in userMenuItems' ng-href='{{item.url}}' rel='nofollow'>
                 <img ng-src='{{item.icon}}' alt='{{item.name}}' title='{{item.title}}'/>
             </a>
         </nav>

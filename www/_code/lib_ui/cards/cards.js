@@ -31,17 +31,14 @@ var NlFilter = ['nl', '$filter',
 function(nl, $filter) {
 	return function(inputArray, filterString, filterGrade) {
 		var filteredInput = inputArray;
-		if (filterGrade) {
-	    	if (filterGrade != 'All Grades') {
-	    		filteredInput = [];
-		    	for (var i=0; i < inputArray.length; i++) {
-		    		var card = inputArray[i];
-		    		console.log(filterGrade);
-		    		if (card.grade != filterGrade) continue;
-			    	filteredInput.push(card);
-		    	}
+    	if (filterGrade) {
+    		filteredInput = [];
+	    	for (var i=0; i < inputArray.length; i++) {
+	    		var card = inputArray[i];
+	    		if (card.grade != filterGrade) continue;
+	    		filteredInput.push(card);
 	    	}
-	    }
+    	}
 		filterString = filterString.replace(/"/g, "");
     	return $filter('filter')(filteredInput, filterString);
 	};
@@ -75,7 +72,6 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             										 $scope.search.filter, $scope.search.grade);
             	var ret = staticlist.concat(filteredData);
 
-
             	if (ret.length > 0) return ret;
             	var emptyCard = $scope.cards.emptycard || defaultEmptyCard;
             	ret.push(emptyCard);
@@ -91,7 +87,7 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             };
             var params = nl.location.search();
 			var searchParam = ('search' in params) ? params.search : '';
-			var grade = ('grade' in params) ? params.grade : 'All Grades';
+			var grade = ('grade' in params) ? params.grade : '';
             $scope.search = {filter: searchParam, img: nl.url.resUrl('search.png'), grade: grade};
             $scope.search.onSearch = function() {
             	if (!('onSearch' in $scope.cards.search)) return;
@@ -99,7 +95,7 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             };
 			$scope.searchKeyHandler = function(keyevent) {
 				if(keyevent.which === 13) {
-					return $scope.search.onSearch($scope.search.filter, $scope.search.grade);
+					return $scope.search.onSearch($scope.search.filter);
 				}				
 			};
             $scope.search.getResultsStr = function() {

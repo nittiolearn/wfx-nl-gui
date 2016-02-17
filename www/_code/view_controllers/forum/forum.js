@@ -6,7 +6,9 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
 	angular.module('nl.forum', [])
+    .directive('nlForumToolbar', ForumToolbarDirective)
     .directive('nlForumInput', ForumInputDirective)
+    .directive('nlForumMsg', ForumMsgDirective)
 	.config(configFn).controller('nl.ForumCtrl', ForumCtrl);
 }
 
@@ -25,12 +27,36 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
+var ForumToolbarDirective = ['nl',
+function(nl) {
+    return {
+        restrict: 'E',
+        templateUrl: 'view_controllers/forum/forum_toolbar.html',
+        scope: true
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
 var ForumInputDirective = ['nl',
 function(nl) {
     return {
         restrict: 'E',
         templateUrl: 'view_controllers/forum/forum_input.html',
-        scope: true
+        scope: {
+            pscope: '='
+        }
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
+var ForumMsgDirective = ['nl',
+function(nl) {
+    return {
+        restrict: 'E',
+        templateUrl: 'view_controllers/forum/forum_msg.html',
+        scope: {
+            msg: '='
+        }
     };
 }];
 
@@ -38,8 +64,13 @@ function(nl) {
 var ForumCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlServerApi', 'nlMarkup',
 function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
 	var serverParams = {};
-	var messageMgr = new MessageManager(nl);
+	var messageMgr = new MessageManager(nl, nlRouter, nlServerApi, nlMarkup);
+    var forumInputDlg = new ForumInputDlg(nl, nlDlg, $scope);
 	
+    $scope.showingDetails = false;
+    $scope.inputDlgScope = $scope;
+    _updateShowDetailsIcon();
+    
 	function _onPageEnter(userInfo) {
 		return nl.q(function(resolve, reject) {
 			var params = nl.location.search();
@@ -47,13 +78,15 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
 				resolve(false);
 				return false;
 			}
-			$scope.hidePostNewButton = (params.forumtype == 1 && params.refid == 0);
-            $scope.msgs = [];
-            _initDlgScope();
+            $scope.canShowDetails = nlRouter.isPermitted(userInfo, 'forum_view_details');
+            $scope.currentTopicId = 0;
 
 			serverParams = {forumtype: params.forumtype, refid: params.refid,
 			    secid: ('secid' in params) ? params.secid : 0};
+            $scope.canStartTopic = _canStartTopic(serverParams, userInfo);
             nl.pginfo.pageTitle = _getPageTitle(serverParams);
+            $scope.mentorView = _isMentorView(serverParams);
+
 			nlServerApi.forumGetMsgs(serverParams).then(function(forumInfo) {
 			    _updateForumData(forumInfo);
 				resolve(true);
@@ -65,192 +98,289 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
 	nlRouter.initContoller($scope, '', _onPageEnter);
 
     //-------------------------------------------------------------------------
-    // Utility functions used in the view
-	$scope.fmtDate = function(msgDate) {
-		return nl.fmt.date2Str(msgDate);
-	};
-
-	$scope.getUserIcon = function(msg) {
-		return nl.url.resUrl('user.png');
-	};
-
-    //-------------------------------------------------------------------------
     // Button handlers for the main view
-    $scope.showPostNewDlg = function() {
-        $scope.hidePostNewDlg();
-        $scope.postNewDlg.visible = true;
+    $scope.showPostNewTopicDlg = function() {
+        forumInputDlg.newTopic();
     };
 
-    $scope.showHideAllMessageDetails = function() {
-        _showHideAllRows($scope.msgs, !$scope.expanded);
+    $scope.showPostNewMessageDlg = function() {
+        var msg = messageMgr.getMsg($scope.currentTopicId);
+        forumInputDlg.newMessage(msg);
+    };
+    
+    $scope.showEditMsgDlg = function(msg) {
+        forumInputDlg.editMessage(msg);
+    }
+
+    $scope.inputDlgCancel = function() {
+        forumInputDlg.hide();
     };
 
+    $scope.inputDlgOk = function() {
+        if (!forumInputDlg.validate()) return;
+        if ($scope.inputDlg.newTopic) {
+            var extraParams = {title: $scope.data.title, text: $scope.data.text, parentid: 0};
+            _updateServer(nlServerApi.forumCreateOrModifyMsg, extraParams);
+        } else if ($scope.inputDlg.newMessage) {
+            var extraParams = {title: '', text: $scope.data.text, parentid: $scope.inputDlg.msg.id};
+            _updateServer(nlServerApi.forumCreateOrModifyMsg, extraParams);
+        } else if ($scope.inputDlg.editMessage) {
+            var extraParams = {title: $scope.data.title, text: $scope.data.text, msgid: $scope.inputDlg.msg.id};
+            _updateServer(nlServerApi.forumCreateOrModifyMsg, extraParams);
+        }
+        forumInputDlg.hide();
+    };
+    
+    $scope.getTopicName = function() {
+        if (!$scope.currentTopicId) return nl.t('Discussion topics');
+        var msg = messageMgr.getMsg($scope.currentTopicId);
+        return msg.title;
+    }
+    
+    $scope.collapseAll = function() {
+        forumInputDlg.hide();
+        $scope.currentTopicId = 0;
+    };
+    
+    $scope.showHideMsgDetails = function() {
+        $scope.showingDetails = !$scope.showingDetails;
+        _updateShowDetailsIcon();
+    }
+    
+    function _updateShowDetailsIcon() {
+        if ($scope.showingDetails) {
+            $scope.msgDetails = {title: nl.t('Hide message details'),
+                icon: nl.url.resUrl('forum/less.png')};
+        } else {
+            $scope.msgDetails = {title: nl.t('Show message details'),
+                icon: nl.url.resUrl('forum/more.png')};
+        }
+    }
+    
     $scope.refreshDataFromServer = function() {
         _refreshDataFromServer();
     };
 
     //-------------------------------------------------------------------------
-    // Button handlers for forum_input dialog
-    $scope.postNewMessage = function() {
-        if (!_validate($scope.postNewDlg.parentMsg)) return;
-        _postNew($scope.postNewDlg.parentMsg);
-    };
-    
-    $scope.hidePostNewDlg = function() {
-        if ($scope.postNewDlg.parentMsg) $scope.postNewDlg.parentMsg.showReplyDlg = false;
-        _initDlgScope();
-    };
-    
-    //-------------------------------------------------------------------------
     // Handlers for each message row
-    $scope.showHideMessageDetails = function(msg) {
-        msg.hidden_text = !msg.hidden_text;
-        var children = messageMgr.getChildren(msg.id);
-        if (!children) return;
-        for (var i=0; i < children.length; i++) {
-            children[i].hidden_title = msg.hidden_text;
-            children[i].hidden_text = msg.hidden_text;
+    $scope.expandCollapseMsg = function(msg) {
+        var shouldExpand = ($scope.currentTopicId != msg.id);
+        $scope.collapseAll();
+        if (shouldExpand) {
+            $scope.currentTopicId = msg.id;
         }
     };
 
-    $scope.reply = function(msg) {
-        $scope.hidePostNewDlg();
-        msg.showReplyDlg = true;
-        $scope.data.parentid = msg.id;
-        $scope.postNewDlg.canShowTitle = false;
-        $scope.postNewDlg.postButtonName = nl.t('Post reply');
-        $scope.postNewDlg.parentMsg = msg;
+    $scope.canReply = function(msgId) {
+        var msg = messageMgr.getMsg(msgId);
+        return msg ? msg.canReply : false;
+    };
+
+    $scope.deleteMsg = function(msg) {
+        var template = '';
+        if (msg.parentid == 0) {
+            template = nl.t('Deleting a topic will delete all messages under the topic too. ');
+        }
+        template += nl.t('Are you sure you want to delete? This cannot be undone.');
+        var txt = {title: nl.t('Please confirm'), 
+                   template: template,
+                   okText: nl.t('Delete')};
+        nlDlg.popupConfirm(txt).then(function(result) {
+            if (!result) return;
+            _postDelete(msg);
+        });
+    };
+
+    function _postDelete(msg) {
+        _updateServer(nlServerApi.forumDeleteMsg, {msgid: msg.id});
     };
 
     //-------------------------------------------------------------------------
-    // Private function
     function _updateForumData(forumInfo) {
-        $scope.msgs = messageMgr.addMessages(forumInfo.msgs);
-        _showHideAllRows($scope.msgs, true);
+        $scope.msgTree = messageMgr.updateMessages(forumInfo.msgs);
+        var msg = messageMgr.getMsg($scope.currentTopicId);
+        if (!msg) $scope.currentTopicId = 0;
     }
     
-    function _showHideAllRows(msgs, bShow) {
-        for (var i=0; i<msgs.length; i++) {
-            msgs[i].hidden_title = (msgs[i].indentationLevel) ? !bShow : false;
-            msgs[i].hidden_text = !bShow;
-            msgs[i].showReplyDlg = false;
-            var retData = {lessPara: true};
-            msgs[i].htmlMarkup = nlMarkup.getHtml(msgs[i].text, retData);
-        }
-        $scope.expanded = bShow;
-        $scope.showHideAllButtonName = $scope.expanded ? nl.t('Collapse all') : nl.t('Expand all');
+    function _refreshDataFromServer() {
+        _updateServer(nlServerApi.forumGetMsgs, {});
     }
 
-    function _initDlgScope() {
-        $scope.error = {};
-        $scope.data = {title: '', text: '', parentid: 0};
-        $scope.postNewDlg = {visible: false, canShowTitle: true, parentMsg: null, postButtonName: nl.t('Post message')};
-    }
-
-    function _validate(msg) {
-        $scope.error = {};
-        if (!msg && $scope.data.title === '') {
-        	return nlDlg.setFieldError($scope, 'title',
-            	nl.t('Please enter the title for your message'));
+    function _updateServer(nlServerApiFn, extraParams) {
+        var params = angular.copy(serverParams);
+        for (var key in extraParams) {
+            params[key] = extraParams[key];
         }
-        if (msg && $scope.data.text === '') {
-        	return nlDlg.setFieldError($scope, 'text',
-            	nl.t('Please enter your reply'));
-        }
-        return true;
-    }
-    
-    function _postNew(msg) {
-		var params = angular.copy(serverParams);
-        params.title = msg ?  msg.title : $scope.data.title;
-        params.text = $scope.data.text;
-        params.parentid = $scope.data.parentid;
-		$scope.hidePostNewDlg();
+        params.since = messageMgr.range_till;
         nlDlg.showLoadingScreen();
-		nlServerApi.forumCreateMsg(params).then(function(forumInfo) {
-            nlDlg.hideLoadingScreen();
-            _updateForumData(forumInfo);
-		});
-	};
-	
-	function _refreshDataFromServer() {
-        nlDlg.showLoadingScreen();
-        nlServerApi.forumGetMsgs(serverParams).then(function(forumInfo) {
+        nlServerApiFn(params).then(function(forumInfo) {
             nlDlg.hideLoadingScreen();
             _updateForumData(forumInfo);
         });
-	}
-
+    };
+    
     var FT_MENTOR = 1;
     var FT_ASSIGNMENT = 2;
     var FT_COURSE_ASSIGNMENT = 3;
     
+    function _canStartTopic(params, userInfo) {
+        if (params.forumtype == FT_MENTOR) return params.refid != 0;
+        return nlRouter.isPermitted(userInfo, 'forum_start_topic');
+    }
+
     function _getPageTitle(params) {
         if (params.forumtype == FT_MENTOR) return nl.t('Mentor Desk');
         return nl.t('Discussion Forum');
     }
+    
+    function _isMentorView(params) {
+        if (params.forumtype == FT_MENTOR) return params.refid == 0;
+        
+    }
 }];
 
-function MessageManager(nl) {
+//-------------------------------------------------------------------------------------------------
+function ForumInputDlg(nl, nlDlg, $scope) {
     
-    this.addMessages = function(msgs) {
-        _initMaps(this);
-        _updateMaps(this, msgs);
-        _updateSortKeys(this, 0);
-        _sortMessages(this);
-        return this.msgs;
-    };
+    function _initDlgScope() {
+        $scope.error = {};
+        $scope.data = {title: '', text: ''};
+        $scope.inputDlg = {newTopic: false, newMessage: false, editMessage: false,
+                           canShowTitle: true, okButtonName: nl.t('Send'), msg: null};
+    }
+    _initDlgScope();
     
-    this.getChildren = function(msgid) {
-        if (msgid in this.pidToChildren) return this.pidToChildren[msgid];
-        return null;
-    };
-
-    function _initMaps(self) {
-        self.msgs = [];
-        self.idToMsg = {};
-        self.pidToChildren = {};
+    this.hide = function() {
+        _initDlgScope();
     }
     
-    function _updateMaps(self, msgs) {
-        self.msgs = msgs;
+    this.newTopic = function() {
+        _initDlgScope();
+        $scope.inputDlg.newTopic = true;
+    }
+
+    this.newMessage = function(msg) {
+        _initDlgScope();
+        $scope.inputDlg.newMessage = true;
+        $scope.inputDlg.canShowTitle = false;
+        $scope.inputDlg.msg = msg;
+    }
+
+    this.editMessage = function(msg) {
+        _initDlgScope();
+        $scope.inputDlg.editMessage = true;
+        $scope.inputDlg.okButtonName = nl.t('Update');
+        $scope.inputDlg.canShowTitle = (msg.parentid == 0);
+        $scope.inputDlg.msg = msg;
+        $scope.data = {title: msg.title, text: msg.text};
+    }
+
+    this.validate = function() {
+        $scope.error = {};
+        if ($scope.inputDlg.canShowTitle && $scope.data.title === '') {
+            return nlDlg.setFieldError($scope, 'title',
+                nl.t('Please enter the topic'));
+        }
+        if (!$scope.inputDlg.canShowTitle && $scope.data.text === '') {
+            return nlDlg.setFieldError($scope, 'text',
+                nl.t('Please enter some text'));
+        }
+        return true;
+    }
+
+};
+
+//-------------------------------------------------------------------------------------------------
+function MessageManager(nl, nlRouter, nlServerApi, nlMarkup) {
+
+    function _initDataStructure(self) {
+        self.idToMsg = {};
+        self.msgTree = [];
+        self.range_since = null;
+        self.range_till = null;
+    }
+    _initDataStructure(this);
+    
+    this.updateMessages = function(msgs) {
+        var userInfo = nlServerApi.getCurrentUserInfo();
+        _updateMap(this, msgs, userInfo);
+        this.msgTree = _getMsgTree(this);
+        _sortMsgTree(this);
+        return this.msgTree;
+    };
+    
+    this.getMsg = function(msgid) {
+        return (msgid in this.idToMsg ? this.idToMsg[msgid] : null);
+    };
+
+    function _updateMap(self, msgs, userInfo) {
         for (var i=0; i<msgs.length; i++) {
             var msg = msgs[i];
+            _initAttributes(self, msg, userInfo);
+            self.range_since = _minOf(self.range_since, msg.updated);
+            self.range_till = _maxOf(self.range_till, msg.updated);
+            if (msg.deleted) {
+                delete self.idToMsg[msg.id];
+                continue;
+            }
             self.idToMsg[msg.id] = msg;
-            if (!(msg.parentid in self.pidToChildren)) self.pidToChildren[msg.parentid] = [];
-            self.pidToChildren[msg.parentid].push(msg);
-            msg.indentationLevel = (msg.parentid == 0) ? 0 : 1;
-            msg.updated = nl.fmt.json2Date(msg.updated);
-            msg.sortKey = msg.updated;
         }
-    }
-
-    function _updateSortKeys(self, pid) {
-        if (!(pid in self.pidToChildren)) return;
-        var me = (pid in self.idToMsg) ? self.idToMsg[pid] : null;
-        var children = self.pidToChildren[pid];
-        
-        for(var i=0; i < children.length; i++) {
-            var child = children[i];
-            _updateSortKeys(self, child.id);
-            if (me && me.sortKey < child.sortKey) me.sortKey = child.sortKey;
-        }
-    }
-
-    function _sortMessages(self) {
-        self.msgs.sort(function(a, b) {
-            var groupSort = _getGroupSortKey(self, b) - _getGroupSortKey(self, a);
-            if (groupSort !== 0) return groupSort;
-            var levelSort = a.indentationLevel - b.indentationLevel;
-            if (levelSort !== 0) return levelSort;
-            return (a.sortKey - b.sortKey);
-        });
     }
     
-    function _getGroupSortKey(self, node) {
-        if (node.indentationLevel == 0) return node.sortKey;
-        if (!(node.parentid in self.idToMsg)) return 0;
-        return self.idToMsg[node.parentid].sortKey;
+    function _getMsgTree(self) {
+        var msgTree = [];
+        for (var msgid in self.idToMsg) {
+            var msg = self.idToMsg[msgid];
+            msg.children = [];
+        }
+        for (var msgid in self.idToMsg) {
+            var msg = self.idToMsg[msgid];
+            if (msg.parentid == 0) {
+                msgTree.push(msg);
+            } else if (msg.parentid in self.idToMsg) {
+                self.idToMsg[msg.parentid].children.push(msg);
+            }
+        }
+        return msgTree;
+    }
+
+    function _sortMsgTree(self) {
+        self.msgTree.sort(function(a, b) {
+            return b.updated - a.updated;
+        });
+        for(var i=0; i<self.msgTree.length; i++) {
+            var msg = self.msgTree[i];
+            msg.children.sort(function(a, b) {
+                return a.created - b.created;
+            });
+        }
+    }
+
+    function _initAttributes(self, msg, userInfo) {
+        var msgOld = (msg.id in self.idToMsg) ? self.idToMsg[msg.id] : null;
+
+        msg.updated = nl.fmt.json2Date(msg.updated);
+        msg.created = nl.fmt.json2Date(msg.created);
+        
+        msg.htmlCreated = nl.fmt.date2Str(msg.created);
+        msg.htmlUpdated = nl.fmt.date2Str(msg.updated);
+
+        msg.canReply = (msg.parentid == 0);
+        msg.canEdit = (userInfo.userid == msg.author);
+        msg.canDelete = nlRouter.isPermitted(userInfo, 'forum_delete_msg');
+        msg.children = [];
+
+        msg.userIcon = nl.url.resUrl('user.png');
+        var retData = {lessPara: true};
+        msg.htmlMarkup = nlMarkup.getHtml(msg.text, retData);
+    }
+
+    function _minOf(a, b) {
+        return (a && a < b) ? a : b;
+    }
+    
+    function _maxOf(a, b) {
+        return (a && a > b) ? a : b;
     }
 }
 

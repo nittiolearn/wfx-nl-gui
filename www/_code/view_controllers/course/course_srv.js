@@ -85,7 +85,7 @@ var _dashboardActions = {
     // Action with customizable urlParams
     'dashboard.home': {'url': '/#/home?{}', 'permission': 'basic_access', 'termCheck': 'Open'},
     'lesson.view': {'url': '/lesson/view/{}', 'permission': 'lesson_view'},
-    'lesson.view_approved': {'url': '/lesson/search?{}', 'permission': 'basic_access'},
+    'lesson.view_approved': {'url': '/lesson/search?{}', 'permission': 'lesson_view'},
     'lesson.create2': {'url': '/lesson/create2/{}', 'permission': 'lesson_create'},
     'lesson.my': {'url': '/lesson/my?{}', 'permission': 'lesson_create'},
     'lesson.review': {'url': '/lesson/review/1?{}', 'permission': 'lesson_review'},

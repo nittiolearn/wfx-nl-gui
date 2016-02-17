@@ -59,6 +59,7 @@ function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
 
 //-------------------------------------------------------------------------------------------------
 function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
+
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
             var params = nl.location.search();
@@ -69,17 +70,26 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
                 nlServerApi.dashboardGetCards(dbid, published).then(function(dashboardCards) {
                     nl.pginfo.pageTitle = nl.t('Custom Dashboard: {}', dashboardCards.description);
                     _initDashboardCards(userInfo, parent, dashboardCards.dashboard, resolve);
+                    _initBgimg(dashboardCards);
                 });
             } else {
                 nl.pginfo.pageTitle = nl.t('Home Dashboard');
                 nl.pginfo.pageSubTitle = nl.fmt2('({})', userInfo.displayname);
                 _initDashboardCards(userInfo, parent, userInfo.dashboard, resolve);
+                _initBgimg(userInfo);
             }
         });
     }
 
     nlRouter.initContoller($scope, '', _onPageEnter);
 
+    function _initBgimg(data) {
+        if (!('dashboard_props' in data) || !(data.dashboard_props.bgimgs)) return;
+        var bgimgs = data.dashboard_props.bgimgs;
+        var pos = Math.floor((Math.random() * bgimgs.length));
+        nl.rootScope.pgBgimg = bgimgs[pos];
+    }
+    
     function _initDashboardCards(userInfo, parent, cardListFromServer, resolve) {
         $scope.cards = {};
         $scope.cards.staticlist = parent ? [] : _getUnauthorizedCards(userInfo);
@@ -87,7 +97,7 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
         _eulaWarning();
         resolve(true);
     }
-    
+
     function _getUnauthorizedCards(userInfo) {
         var unauthorizedCards = [];
         if (userInfo.termAccess == 'none') {

@@ -21,6 +21,7 @@ $nltopbar2:                       #675187 !default; // A darker shade for other 
 $nltopbar3:                       #B0A0C0 !default; // A lighter shade for other usages
 $nldlgbar:                        #E06000 !default; // Dialog Box header Bg-Color
 $nlgrey:                          #EEEEFF !default; // Mild border
+$nlgreen1:                        #BBFFBB !default; // Light green
 $nldarkgrey:                      #CCCCDD !default; // Darker border
 $nlgreen:                         #008000 !default; // green
 
@@ -169,6 +170,10 @@ ul ul, ul ol, ol ol, ol ul {
     display: block;
 }
 
+.pane, .view {
+    background-color: transparent;
+}
+
 /*-----------------------------------------------------------------------------------------*
  * Popup-container specific overrides
  *-----------------------------------------------------------------------------------------*/
@@ -278,6 +283,10 @@ $animation-duration: 200ms !default;
   }
 }
 
+a.black {
+  color: #000000;
+}
+
 img.nl-clickable {
   &:hover, &:focus {
     box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
@@ -297,6 +306,11 @@ img.nl-clickable {
 
 .sep4 {
   padding: 4px;
+}
+
+.nl-toolbar {
+    text-align: right;
+    padding: 4px;
 }
 
 /*-----------------------------------------------------------------------------------------*
@@ -623,6 +637,7 @@ nl-cards {
   
   border-radius: 4px;
   box-shadow: inset 0 0 0 rgba(170,170,255,0.1), 0 0 20px rgba(128,128,255,0.8);
+  background-color: #FFFFFF;
 }
 
 .nl-card-header {
@@ -735,6 +750,7 @@ a.nl-card-img:hover, a.nl-card-img:focus {
     padding: 4px;
     border-radius: 4px;
     box-shadow: 1px 1px 5px #888888;
+    background-color: #F5F5F5;
   }
   span {
     height: 28px;
@@ -922,44 +938,69 @@ img.nl-icon {
  * forum elements
  *-----------------------------------------------------------------------------------------*/
 .nl-forum {
-  padding: 8px;
-  .nl-forum-new {
-    border: 1px solid $nlgrey;
-    margin-bottom: 8px;
-    table, input, textarea {
-      width: 100%;
-    }
+  input, textarea {
+    width: 100%;
+    border: 1px solid $nldarkgrey;
   }
-  .nl-forum-msg {
-    .nl-forum-header {
-      margin-bottom: 4px;
-      padding: 4px;
-      background-color: $nlgrey;
-      
-      img {
-        width: 16px;
-        height: 16px;   
-      }
+}
 
-      .nl-forum-title {
-        width: 70%;
-        font-size: 130%;
-      }
-      .nl-forum-time {
-        text-align: right;
-      }
+.nl-forum-input {
+  border: 1px solid $nldarkgrey;
+  border-radius: 8px 0 8px 8px;
+}
+
+.nl-forum-input.newmsg {
+  width: 95%;
+  margin-left: 5%;
+}
+
+.nl-forum-header {
+  font-weight: bold;
+  font-size: 120%;
+}
+
+.nl-forum-header2 {
+  font-weight: bold;
+  color: #000000;
+}
+
+.nl-forum-ts, .nl-forum-msg-details {
+  font-size: 80%;
+}
+
+.nl-forum-msg {
+  border-radius: 0 8px 8px 8px;
+  width: 95%;
+  background-color: $nlgrey;
+  border: 1px solid $nldarkgrey;
+}
+
+.nl-forum-msg.me {
+  border-radius: 8px 0 8px 8px;
+  background-color: $nlgreen1;
+  margin-left: 5%;
+}
+
+.nl-forum-msg.editing {
+  background-color: #FFFFFF;
+}
+
+.nl-forum-msg-content {
+    min-height: 2em;
+}
+
+.nl-forum-msg-edit {
+    input, textarea {
+        border: 1px solid $nldarkgrey;
     }
-    
-    .nl-forum-header-child {
-      background-color: transparent;
-      border-top: 1px solid $nlgrey;
-    }
-    
-    .nl-forum-content {
-      margin-top: 0;
-      padding: 4px;
-    }
-  }
+}
+
+.nl-forum-msg-tools img {
+    opacity: 0.3;
+}
+
+.nl-forum-msg-tools img:hover, .nl-forum-msg-tools img:focus, {
+    opacity: 1;
 }
 
 /*-----------------------------------------------------------------------------------------*
@@ -1107,7 +1148,7 @@ img.nl-full-width {
   min-width: 400px; 
 }
 
-.col.min-200, .nl-screen-small .col.min-400 {
+.col.min-200 {
   -webkit-box-flex: 0;
   -webkit-flex: 1 0 200px;
   -moz-box-flex: 0;
@@ -1127,8 +1168,30 @@ img.nl-full-width {
   max-width: 100px; 
 }
 
+.col.fixed-200 {
+  -webkit-box-flex: 0;
+  -webkit-flex: 0 0 200px;
+  -moz-box-flex: 0;
+  -moz-flex: 0 0 200px;
+  -ms-flex: 0 0 200px;
+  flex: 0 0 200px;
+  max-width: 200px; 
+}
+
+.col.no-grow {
+    flex-grow: 0;
+}
+
+.col.no-shrink {
+    flex-shrink: 0;
+}
+
 .padding0 {
     padding: 0;
+}
+
+.padding-small {
+    padding: 4px;
 }
 
 .margin0, .row.margin0 {
@@ -1160,12 +1223,12 @@ img.nl-full-width {
 .nl-screen-small {
   .col.min-400 {
     -webkit-box-flex: 0;
-    -webkit-flex: 1 0 200px;
+    -webkit-flex: 1 0 350px;
     -moz-box-flex: 0;
-    -moz-flex: 1 0 200px;
-    -ms-flex: 1 0 200px;
-    flex: 1 0 200px;
-    min-width: 200px; 
+    -moz-flex: 1 0 350px;
+    -ms-flex: 1 0 350px;
+    flex: 1 0 350px;
+    min-width: 350px; 
   }
   
   .col.fixed-100 {
