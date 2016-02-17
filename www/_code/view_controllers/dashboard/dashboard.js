@@ -209,8 +209,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
         for(var i=0; i<courseContent.length; i++){
             var module = courseContent[i];
             if (!module.linkid) return _validateModuleFail(scope, module, '"linkid" is mandatory');
-            if (i == 0) {
-                _validateDashboardProperties(scope, module);
+            if (i == 0 && module.linkid == '_properties') {
+                if(!_validateDashboardProperties(scope, module)) return false;
                 continue;
             }
             if (!module.action) return _validateModuleFail(scope, module, '"action" is mandatory');
@@ -225,7 +225,6 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
     }
 
     function _validateDashboardProperties(scope, module) {
-        if (module.linkid != '_properties') return true;
         // TODO
         return true;
     }
