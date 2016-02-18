@@ -211,7 +211,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
         for (var key in extraParams) {
             params[key] = extraParams[key];
         }
-        params.since = messageMgr.range_till;
+        if (messageMgr.range_till) params.since = messageMgr.range_till;
         nlDlg.showLoadingScreen();
         nlServerApiFn(params).then(function(forumInfo) {
             nlDlg.hideLoadingScreen();
