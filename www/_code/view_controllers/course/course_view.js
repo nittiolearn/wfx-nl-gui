@@ -23,8 +23,8 @@ function($stateProvider, $urlRouterProvider) {
     });
 }];
 
-var MODES = {PRIVATE: 0, PUBLISHED: 1, REPORT_VIEW: 2, DO: 3, EDIT: 4};
-var MODE_NAMES = {'private': 0, 'published': 1, 'report_view': 2, 'do': 3, 'edit': 4};
+var MODES = {PRIVATE: 0, PUBLISHED: 1, REPORT_VIEW: 2, DO: 3, EDIT: 4, REPORTS_SUMMARY_VIEW: 5};
+var MODE_NAMES = {'private': 0, 'published': 1, 'report_view': 2, 'do': 3, 'edit': 4, 'reports_summary_view': 5};
 
 function ModeHandler(nl, nlCourse, nlDlg) {
     this.mode = MODES.PRIVATE;
@@ -48,6 +48,8 @@ function ModeHandler(nl, nlCourse, nlDlg) {
             nl.pginfo.pageSubTitle = nl.t('(edit)');
         } else if (this.mode === MODES.PUBLISHED) {
             nl.pginfo.pageSubTitle = nl.t('(published)');
+        } else if (this.mode === MODES.REPORTS_SUMMARY_VIEW) {
+            nl.pginfo.pageSubTitle = nl.t('(assignment reports)');
         } else if (this.mode === MODES.REPORT_VIEW) {
             nl.pginfo.pageSubTitle = nl.t('({})', course.studentname);
         } else if (this.mode === MODES.DO) {
@@ -58,6 +60,9 @@ function ModeHandler(nl, nlCourse, nlDlg) {
     this.getCourse = function(course) {
         if (this.mode === MODES.PRIVATE || this.mode === MODES.EDIT || this.mode === MODES.PUBLISHED) {
             return nlCourse.courseGet(this.courseId, this.mode === MODES.PUBLISHED);
+        }
+        if (this.mode === MODES.REPORTS_SUMMARY_VIEW) {
+            return nlCourse.courseGetAssignmentReportSummary({assignid: this.courseId});
         }
         if (this.mode === MODES.REPORT_VIEW) {
             return nlCourse.courseGetReport(this.courseId, false);
@@ -80,7 +85,7 @@ function ModeHandler(nl, nlCourse, nlDlg) {
         }
 
         var reportInfo = (cm.id in self.course.lessonReports) ? self.course.lessonReports[cm.id] : null;
-        if (this.mode === MODES.REPORT_VIEW) {
+        if (this.mode === MODES.REPORTS_SUMMARY_VIEW || this.mode === MODES.REPORT_VIEW) {
             if (!reportInfo || !reportInfo.completed) return _popupAlert('Not completed', 
                 'This learning module is not yet completed. You may view the report once it is completed.');
             return _redirectTo('/lesson/review_report_assign/{}', reportInfo.reportId, newTab);
@@ -102,7 +107,7 @@ function ModeHandler(nl, nlCourse, nlDlg) {
     };
     
     this.shallShowScore = function() {
-        return (this.mode === MODES.REPORT_VIEW || this.mode === MODES.DO);
+        return (this.mode === MODES.REPORTS_SUMMARY_VIEW || this.mode === MODES.REPORT_VIEW || this.mode === MODES.DO);
     };
 
     // Private functions
@@ -151,6 +156,7 @@ var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse',
 function(nl, nlRouter, $scope, nlDlg, nlCourse) {
     var modeHandler = new ModeHandler(nl, nlCourse, nlDlg);
     var treeList = new TreeList(nl);
+    var courseReportSummarizer = new CourseReportSummarizer($scope);
     var _userInfo = null;
     $scope.MODES = MODES;
     function _onPageEnter(userInfo) {
@@ -176,16 +182,24 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
     }
 
     function _onCourseRead(course) {
+        courseReportSummarizer.updateReportInfo(course);
         modeHandler.initTitle(course);
         $scope.planning = course.content.planning;
         var modules = course.content.modules;
+        $scope.modules = [];
         for(var i=0; i<modules.length; i++) {
-            _initModule(modules[i]);
+            var module = angular.copy(modules[i]);
+            var userRecords = courseReportSummarizer.getUserRecords(course, module);
+            _initModule(module);
+            $scope.modules.push(module);
+            for(var j=0; j<userRecords.length; j++) {
+                _initModule(userRecords[j]);
+                $scope.modules.push(userRecords[j]);
+            }
         }
         _updateAllItemData(modeHandler);
-        $scope.modules = modules;
     }
-    
+
     function _onPageLeave() {
         if (!_isDirty()) return true;
         var msg = nl.t('Warning: There are some unsaved changes in this page. Press ok to try saving the changes. Press cancel to discard the changes and leave the page.');
@@ -319,6 +333,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         'quiz': nl.url.resUrl('quiz.png'),
         'info': nl.url.resUrl('info.png'),
         'link': nl.url.resUrl('file.png'),
+        'user': nl.url.resUrl('user.png'),
         'grey': nl.url.resUrl('ball-grey.png'),
         'red': nl.url.resUrl('ball-red.png'),
         'yellow': nl.url.resUrl('ball-yellow.png'),
@@ -376,6 +391,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         cm.scoreAvailableCount = 0;
         cm.planned_date = null;
         cm.start_date = null;
+        cm.timeSpentCount = 0;
+        cm.timeSpentSeconds = 0;
 
         var children = treeList.getChildren(cm);
         for (var i=0; i<children.length; i++) {
@@ -387,6 +404,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
             cm.score += child.score;
             cm.maxScore += child.maxScore;
             cm.scoreAvailableCount += child.scoreAvailableCount;
+            cm.timeSpentCount += child.timeSpentCount;
+            cm.timeSpentSeconds += child.timeSpentSeconds;
             if (!cm.planned_date || child.planned_date > cm.planned_date) {
                 cm.planned_date = child.planned_date;
             }   
@@ -403,6 +422,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         cm.delayedCount = ($scope.planning && cm.planned_date && cm.planned_date < today) ? 1 : 0;
         cm.score = 0;
         cm.maxScore = 0;
+        cm.timeSpentCount = 0;
+        cm.timeSpentSeconds = 0;
         if (!course.statusinfo || !(cm.id in course.statusinfo)) return;
 
         var statusinfo = course.statusinfo[cm.id];
@@ -418,13 +439,18 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         cm.delayedCount = ($scope.planning && cm.planned_date && cm.planned_date < today) ? 1 : 0;
         cm.score = 0;
         cm.maxScore = 0;
+        cm.timeSpentCount = 0;
+        cm.timeSpentSeconds = 0;
 
         if (!('refid' in cm) || !('lessonReports' in course)) return;
         if (!(cm.id in course.lessonReports)) return;
         var lessonReport = course.lessonReports[cm.id];
         var completed = 'completed' in lessonReport ? lessonReport.completed : false;
         if ('started' in lessonReport) cm.started = lessonReport.started;
-        if ('timeSpentSeconds' in lessonReport) cm.timeSpentSeconds = parseInt(lessonReport.timeSpentSeconds);
+        if ('timeSpentSeconds' in lessonReport) {
+            cm.timeSpentSeconds = parseInt(lessonReport.timeSpentSeconds);
+            cm.timeSpentCount = 1;
+        }
         if (!completed) return;
         cm.completedCount = 1;
         cm.delayedCount = 0;
@@ -454,21 +480,25 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
     }
 
     function _updateStatusInfoForLeaf(modeHandler, cm, today) {
+        var timeSpentStr = '';
+        if (cm.timeSpentSeconds) {
+            timeSpentStr = nl.fmt2(' ({} minutes)', Math.round(cm.timeSpentSeconds/60));
+        }
         if (cm.delayedCount > 0) {
             cm.statusIcon = _icons['red'];
             cm.statusShortText = nl.t('delayed');
-            cm.statusText = nl.t('delayed');
+            cm.statusText = nl.t('delayed{}', timeSpentStr);
             return;
         }
         if (cm.completedCount > 0) {
             cm.statusIcon = _icons['green'];
             cm.statusShortText = nl.t('done');
             if (cm.maxScore === 0) {
-                cm.statusText = nl.t('done');
+                cm.statusText = nl.t('done{}', timeSpentStr);
                 return;
             }
             var perc = Math.round((cm.score/cm.maxScore)*100);
-            cm.statusText = (cm.score > 0) ? nl.t('done ({}%)', perc) : nl.t('done');
+            cm.statusText = (cm.score > 0) ? nl.t('done ({}%){}', perc, timeSpentStr) : nl.t('done{}', timeSpentStr);
             return;
         }
         if ($scope.planning && cm.start_date) {
@@ -481,11 +511,15 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         }
         cm.statusIcon = _icons['yellow'];
         cm.statusShortText = nl.t('pending');
-        cm.statusText = nl.t('pending');
+        cm.statusText = nl.t('pending{}', timeSpentStr);
     }
     
     function _updateStatusInfoForContainer(modeHandler, cm, today) {
         if (cm.totalCount == 0) return;
+        var timeSpentStr = '';
+        if (cm.timeSpentSeconds && cm.timeSpentCount) {
+            timeSpentStr = nl.fmt2(' (average {} minutes)', Math.round(cm.timeSpentSeconds/60/cm.timeSpentCount));
+        }
         var scoreStr = '';
         if (cm.maxScore > 0 && cm.score > 0) {
             var perc = Math.round(cm.score/cm.maxScore*100);
@@ -494,7 +528,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         if (cm.delayedCount > 0) {
             cm.statusIcon = _icons['red'];
             cm.statusShortText = nl.t('delayed');
-            cm.statusText = nl.t('{} of {} delayed {}', cm.delayedCount, cm.totalCount, scoreStr);
+            cm.statusText = nl.t('{} of {} delayed {}{}', cm.delayedCount, cm.totalCount, scoreStr, timeSpentStr);
             return;
         }
         if (cm.completedCount < cm.totalCount) {
@@ -506,15 +540,15 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
                 cm.statusShortText = nl.t('pending');
             }
             var pending = cm.totalCount - cm.completedCount;
-            cm.statusText = nl.t('{} of {} pending {}', pending, cm.totalCount, scoreStr);
+            cm.statusText = nl.t('{} of {} pending {}{}', pending, cm.totalCount, scoreStr, timeSpentStr);
             return;
         }
 
         cm.statusIcon = _icons['green'];
         cm.statusShortText = nl.t('done');
         cm.statusText = cm.totalCount > 1 
-            ? nl.t('all {} done {}', cm.totalCount, scoreStr) 
-            : nl.t('{} of {} done {}', cm.completedCount, cm.totalCount, scoreStr);
+            ? nl.t('all {} done {}{}', cm.totalCount, scoreStr, timeSpentStr) 
+            : nl.t('{} of {} done {}{}', cm.completedCount, cm.totalCount, scoreStr, timeSpentStr);
     }
 
     $scope.onClickOnSummary = function(cm) {
@@ -603,11 +637,19 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
             }
             nl.fmt.addAvp(avps, 'Pending items', cm.totalCount-cm.completedCount-cm.delayedCount);
             nl.fmt.addAvp(avps, 'Completed items', cm.completedCount);
+            nl.fmt.addAvp(avps, 'Started items', cm.startedCount);
             if(cm.scoreAvailableCount > 0) nl.fmt.addAvp(avps, 'Score avaialble for', cm.scoreAvailableCount);
             if(cm.maxScore > 0 && cm.score > 0) {
                 nl.fmt.addAvp(avps, 'Score', nl.t("{}% ({}/{})",Math.round(cm.score/cm.maxScore*100), cm.score, cm.maxScore));
             }
             else nl.fmt.addAvp(avps, 'Score', "-");
+            if(cm.timeSpentSeconds && cm.timeSpentCount) {
+                var tsTotal = Math.round(cm.timeSpentSeconds/60);
+                var tsAvg = Math.round(cm.timeSpentSeconds/60/cm.timeSpentCount);
+                nl.fmt.addAvp(avps, 'Items with time log', cm.timeSpentCount);
+                nl.fmt.addAvp(avps, 'Average time spent', tsAvg, 'minutes');
+                nl.fmt.addAvp(avps, 'Total time spent', tsTotal, 'minutes');
+            }
         } else {
             if ($scope.planning) {
                 nl.fmt.addAvp(avps, 'Planned start date', cm.start_date_str);
@@ -719,6 +761,57 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
     this.items = {};
     this.rootItems = [];
     this.children = {};
+}
+
+function CourseReportSummarizer($scope) {
+
+    var folderAttrs = {'id': true, 'name': true, 'type': true, 'icon': true};
+    this.getUserRecords = function(course, cm) {
+        if ($scope.mode != MODES.REPORTS_SUMMARY_VIEW || cm.type == 'module') {
+            return [];
+        }
+        var ret = [];
+        var userReports = course.userReports;
+        for (var i=0; i<userReports.length; i++) {
+            var userReport = userReports[i];
+            var module = angular.copy(cm);
+            module.id = _getModuleId(cm.id, userReport.id);
+            module.name = userReport.studentname;
+            module.icon = 'user';
+            ret.push(module);
+        }
+
+        // Now change the cm as folder and remove unwanted attributes
+        if (!('icon' in cm)) cm.icon = cm.type;
+        cm.type = 'module';
+        for (var key in cm) {
+            if (key in folderAttrs) continue;
+            delete cm[key];
+        }
+        return ret;
+    }
+    
+    this.updateReportInfo = function(course) {
+        if ($scope.mode != MODES.REPORTS_SUMMARY_VIEW) return;
+        course.lessonReports = {};
+        course.statusinfo = {};
+        var userReports = course.userReports;
+        for (var i=0; i<userReports.length; i++) {
+            var userReport = userReports[i];
+            _updateDict(userReport.lessonReports, course.lessonReports, userReport.id);
+            _updateDict(userReport.statusinfo, course.statusinfo, userReport.id);
+        }
+    }
+
+    function _getModuleId(parentId, reportId) {
+        return parentId + '.' + reportId;
+    }
+    
+    function _updateDict(src, dest, repid) {
+        for(var key in src) {
+            dest[_getModuleId(key, repid)] = src[key];
+        }
+    }
 }
 
 //-------------------------------------------------------------------------------------------------

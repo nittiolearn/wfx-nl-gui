@@ -214,12 +214,6 @@ $animation-duration: 200ms !default;
   border-bottom: 1px dotted black;
 }
 
-.nl-bg-red {
-  background-color: rgba(255, 0, 0, 0.3);
-}
-.nl-bg-blue {
-  background-color: rgba(0, 0, 255, 0.3);
-}
 .nl-green {
   color: $nlgreen;
 }
@@ -729,6 +723,14 @@ a.nl-card-img:hover, a.nl-card-img:focus {
     max-height: 100px;
     max-width: 100px;
   }
+}
+
+.nl-bg-red {
+  background-color: rgba(255, 178, 178, 1);
+}
+
+.nl-bg-blue {
+  background-color: rgba(178, 178, 255, 1);
 }
 
 //-----------------------------------------------------------------------------------------

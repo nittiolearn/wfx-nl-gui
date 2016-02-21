@@ -27,7 +27,7 @@
 				<img class='nl-24' ng-if='cm.statusIcon' ng-src='{{cm.statusIcon}}'>
 				<span ng-show='expandedView'>{{cm.statusText}}</span>
 			</td>
-			<td ng-if='mode == MODES.REPORT_VIEW || mode == MODES.DO'>
+			<td ng-if='mode == MODES.REPORTS_SUMMARY_VIEW || mode == MODES.REPORT_VIEW || mode == MODES.DO'>
 				<img class='nl-24 nl-clickable' ng-click='onClickOnSummary(cm)' ng-if='cm.statusIcon && (cm.type=="module" || cm.type=="lesson")' ng-src='{{cm.statusIcon}}'>
 				<span class='nl-clickable' ng-click='onClickOnSummary(cm)' ng-if='expandedView && (cm.type=="module" || cm.type=="lesson")'>{{cm.statusText}}</span>
 				<img class='nl-24 nl-clickable' ng-click='onClickOnSummary(cm)' ng-if='cm.statusIcon && (cm.type=="info" || cm.type=="link")' ng-src='{{cm.statusIcon}}'>

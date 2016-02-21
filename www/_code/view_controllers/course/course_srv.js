@@ -45,10 +45,14 @@ function(nl, nlServerApi) {
     	return nlServerApi.courseGetAssignmentList(data);
 	};
 	
-	this.courseGetAssignmentReportList = function(data) {
-    	return nlServerApi.courseGetAssignmentReportList(data);
-	};
-	
+    this.courseGetAssignmentReportList = function(data) {
+        return nlServerApi.courseGetAssignmentReportList(data);
+    };
+    
+    this.courseGetAssignmentReportSummary = function(data) {
+        return nlServerApi.courseGetAssignmentReportSummary(data);
+    };
+    
 	this.courseGetMyReportList = function(data) {
     	return nlServerApi.courseGetMyReportList(data);
 	};

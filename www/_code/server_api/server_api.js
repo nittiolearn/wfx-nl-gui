@@ -125,6 +125,12 @@ function(nl, nlDlg, nlConfig) {
         return server.post('_serverapi/course_get_assignment_report_list.json', data);
     };
 
+    this.courseGetAssignmentReportSummary = function(data) {
+        // data: assignid, search
+        // returns object with course content and list of courseReport objects
+        return server.post('_serverapi/course_get_assignment_report_summary.json', data);
+    };
+
     this.courseGetMyReportList = function(data) {
         // data: search
         // returns list of courseReport objects
