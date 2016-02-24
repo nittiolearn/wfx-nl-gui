@@ -14,7 +14,7 @@ function module_init() {
 var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
 	$stateProvider.state('app.lesson', {
-		url : '^/lesson',
+		url : '^/lesson_list',
 		views : {
 			'appContent' : {
 				templateUrl : 'lib_ui/cards/cardsview.html',
@@ -56,7 +56,7 @@ var LESSONTYPES = {
 };
 
 var REVSTATE = {
-	COMPLETED: 0,
+	ALL: 0,
 	PENDING: 1,
 	CLOSED: 2
 };
@@ -68,7 +68,8 @@ var EXPORTLEVEL = {
 function TypeHandler(nl, nlServerApi) {
 	this.type = TYPES.NEW;
 	this.custtype = null;
-	this.grade = null;
+	this.searchFilter = null;
+	this.searchGrade = null;
 	this.revstate = null;
 	
 	this.initFromUrl = function() {
@@ -76,15 +77,15 @@ function TypeHandler(nl, nlServerApi) {
 		this.type = _convertType(params.type);
 		this.custtype = ('custtype' in params) ? parseInt(params.custtype) : null;
 		this.revstate = ('revstate' in params) ? parseInt(params.revstate) : null;
-		this.grade = ('grade' in params) ? params.grade : 'All Grades';
+		this.searchGrade = ('grade' in params) ? params.grade : 'All Grades';
+		this.searchFilter = ('search' in params) ? params.search : null;
 	};
 
-	this.listingFunction = function(filter) {
-		var data = {
-			search : filter
-		};
+	this.listingFunction = function() {
+		var data = {};
 		if (this.custtype !== null) data.custtype = this.custtype;
-		if (this.grade !== null) data.grade = this.grade;
+		if (this.searchFilter !== null) data.search = this.searchFilter;
+		if (this.searchGrade !== null) data.grade = this.searchGrade;
 		if (this.type == TYPES.NEW) {
 			return nlServerApi.lessonGetTemplateList(data);
 		} else if (this.type == TYPES.MY) {
@@ -131,12 +132,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 
 	var mode = new TypeHandler(nl, nlServerApi);
 	var _userInfo = null;
-	var _searchFilterInUrl = '';
-	var _reviewCards = [];
+	var _allCardsForReview = [];
 	
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
-		_initParams();
 		return nl.q(function(resolve, reject) {
 			mode.initFromUrl();
 			nl.pginfo.pageTitle = mode.pageTitle();
@@ -144,7 +143,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 			$scope.cards.staticlist = _getStaticCard();
 			$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
 			$scope.cards.approveto = _getApproveToList();
-			_getDataFromServer(_searchFilterInUrl, resolve, reject);
+			_getDataFromServer(resolve, reject);
 		});
 	}
 
@@ -190,7 +189,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
         				title: "create a new template",
         				url: "/lesson/create2/0/1#/",
         				linkId: "admin_group",
-        				children: []}], style: 'nl-bg-blue'};
+        				children: []}], 
+        				style: 'nl-bg-blue'};
         } else if(mode.type == TYPES.REVIEW){
 			 card = {title: nl.t('Review'), 
 					icon: nl.url.resUrl('dashboard/wsheet.png'), 
@@ -210,7 +210,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
         				title: "view closed reviews",
           				internalUrl: "view_closed",
          				children: []}], 
-         		style: 'nl-bg-blue'};
+         				style:'nl-bg-blue'};
         }
 		card.links = [];
 		ret.push(card);
@@ -233,11 +233,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		} else if(internalUrl === 'lesson_reopen'){
 			_reopenLesson($scope, lessonId);
 		} else if(internalUrl === 'view_all'){
-			_viewAllReview($scope, card);
+			_showReviewCards($scope, REVSTATE.ALL);
 		} else if(internalUrl === 'view_pending'){
-			_viewPendingReview($scope, card);
+			_showReviewCards($scope, REVSTATE.PENDING);
 		} else if(internalUrl === 'view_closed'){
-			_viewClosedReview($scope, card);
+			_showReviewCards($scope, REVSTATE.CLOSED);
 		}
     };
 
@@ -257,11 +257,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 			_reopenLesson($scope, lessonId);
 		}	
 	};
+	
 	function _getDataFromServer(filter, resolve, reject) {
-		mode.listingFunction(filter).then(function(resultList) {
+		mode.listingFunction().then(function(resultList) {
 			nl.log.debug('Got result: ', resultList.length);
 			$scope.cards.cardlist = _getLessonCards(_userInfo, resultList);
-			_reviewCards = $scope.cards.cardlist;
+			_allCardsForReview = $scope.cards.cardlist;
+			if(mode.type == TYPES.REVIEW) _showReviewCards($scope, REVSTATE.PENDING);
 			_addSearchInfo($scope.cards);
 			resolve(true);
 		}, function(reason) {
@@ -295,7 +297,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		};
 		card.details = {
 			help : lesson.descMore,
-			avps : _getAssignmentAvps(lesson)
+			avps : _getLessonListAvps(lesson)
 		};
 		card.links = [];
 		if(mode.type == TYPES.MY ){
@@ -329,7 +331,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 				_addReviewLinkForClosedApprovedReview(card, lesson);
 			}
 			if(lesson.revstate == REVSTATE.PENDING && lesson.state == STATUS.APPROVED){
-				_addReviewLinkForApproved(card, lesson);
+				_addReviewLinkForPendingApproved(card, lesson);
 			} else if(lesson.revstate == REVSTATE.CLOSED && lesson.state == STATUS.APPROVED){
 				_addReviewLinkForClosedApproved(card, lesson);
 			}  
@@ -339,7 +341,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 				_addReviewLinkForClosedUnderrevision(card, lesson);
 			}
 			if(lesson.revstate == REVSTATE.PENDING && lesson.state == STATUS.UNDERREWORK){
-				card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-template-color'> Under review</span></span><br> by: {}<br>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-yellow.png'), lesson.authorname);
+				if(lesson.ltype == LESSONTYPES.LESSON) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-review-color'> Under review</span></span><br> by: {}<br><span><img class='nl-16' src={}> Review pending</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-yellow.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/comments1.png'));
+				if(lesson.ltype == LESSONTYPES.TEMPLATE) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-review-color'> Under review</span></span><br> by: {}<br><span><img class='nl-16' src={}> Review pending</span><br><span class='nl-template-color'>Template</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-yellow.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/comments1.png'));
 				card.links.push({
 				id : 'lesson_closereview',
 				text : nl.t('close review')
@@ -348,7 +351,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 				text : nl.t('disapprove')
 				});
 			} else if(lesson.revstate == REVSTATE.CLOSED && lesson.state == STATUS.UNDERREWORK){
-				card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-template-color'>Approved, next review update under review</span></span><br> by: {}<br><span><img src={}> Review done</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-green.png'), lesson.authorname, nl.url.resUrl('general/tick.png'));
+				if(lesson.ltype == LESSONTYPES.LESSON) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-template-color'>Approved, next review update under review</span></span><br> by: {}<br><span><img class='nl-16' src={}> Review done</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-green.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/approve.png'));
+				if(lesson.ltype == LESSONTYPES.TEMPLATE) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-template-color'>Approved, next review update under review</span></span><br> by: {}<br><span><img class='nl-16' src={}> Review done</span><br><span class='nl-template-color'>Template</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-green.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/approve.png'));				
 				card.links.push({
 				id : 'lesson_reopen',
 				text : nl.t('reopen')
@@ -391,7 +395,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	}
 
 	function _addReviewLinkForUnderReview(card, lesson) {
-		card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-review-color'> Under review</span></span><br> by: {} <br> <span><img src={}>review pending</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-yellow.png'), lesson.authorname, nl.url.resUrl('general/search.png'));
+		if(lesson.ltype == LESSONTYPES.LESSON) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-review-color'> Under review</span></span><br> by: {} <br> <span><img class='nl-16' src={}>review pending</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-yellow.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/comments1.png'));
+		if(lesson.ltype == LESSONTYPES.TEMPLATE) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-review-color'> Under review</span></span><br> by: {} <br> <span><img class='nl-16' src={}>review pending</span><br><span class='nl-template-color'>Template</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-yellow.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/comments1.png'));
 		card.links.push({
 			id : 'lesson_closereview',
 			text : nl.t('close review')
@@ -402,7 +407,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	}
 
 	function _addReviewLinkForClosedUnderReview(card, lesson) {
-		card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-review-color'> Under review</span></span><br> by: {}<br><span><img src={}> review pending</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-yellow.png'), lesson.authorname, nl.url.resUrl('general/tick.png'));
+		if(lesson.ltype == LESSONTYPES.LESSON) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-review-color'> Under review</span></span><br> by: {}<br><span><img class='nl-16' src={}> review done</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-yellow.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/approve.png'));
+		if(lesson.ltype == LESSONTYPES.TEMPLATE) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-review-color'> Under review</span></span><br> by: {}<br><span><img class='nl-16' src={}> review done</span><br><span class='nl-template-color'>Template</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-yellow.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/approve.png'));
 			card.links.push({
 			id : 'lesson_reopen',
 			text : nl.t('reopen')
@@ -413,7 +419,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	}
 	
 	function _addReviewLinkForApprovedReview(card, lesson) {
-		card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-template-color'> Approved, next update under review</span></span><br> by: {}<br><span><img src={}> review pending</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-green.png'), lesson.authorname, nl.url.resUrl('general/search.png'));
+		if(lesson.ltype == LESSONTYPES.LESSON) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-template-color'> Approved, next update under review</span></span><br> by: {}<br><span><img src={}> review pending</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-green.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/comments1.png'));
+		if(lesson.ltype == LESSONTYPES.TEMPLATE) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-template-color'> Approved, next update under review</span></span><br> by: {}<br><span><img src={}> review pending</span><br><span class='nl-template-color'>Template</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-green.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/comments1.png'));
 		card.links.push({
 		id : 'lesson_closereview',
 		text : nl.t('close review')
@@ -424,7 +431,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	}
 	
 	function _addReviewLinkForClosedApprovedReview(card, lesson) {
-		card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-template-color'>Approved, next update under review</span></span><br> by: {}<br><span><img src={}> Review done</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-green.png'), lesson.authorname, nl.url.resUrl('general/tick.png'));
+		if(lesson.ltype == LESSONTYPES.LESSON) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-template-color'>Approved, next update under review</span></span><br> by: {}<br><span><img class='nl-16' src={}> Review done</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-green.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/approve.png'));
+		if(lesson.ltype == LESSONTYPES.TEMPLATE) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-template-color'>Approved, next update under review</span></span><br> by: {}<br><span><img class='nl-16' src={}> Review done</span><br><span class='nl-template-color'>Template</span><br>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-green.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/approve.png'));
 		card.links.push({
 		id : 'lesson_reopen',
 		text : nl.t('reopen')
@@ -434,8 +442,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		});
 	}
 	
-	function _addReviewLinkForApproved(card, lesson) {
-		card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-template-color'> Under review</span></span><br> by: {}<br>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-yellow.png'), lesson.authorname);
+	function _addReviewLinkForPendingApproved(card, lesson) {
+		if(lesson.ltype == LESSONTYPES.LESSON) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-template-color'> Approved</span></span><br> by: {}<br><span><img class='nl-16' src={}><span> review pending</span></span><br>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-green.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/comments1.png'));
+		if(lesson.ltype == LESSONTYPES.TEMPLATE) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-template-color'> Approved</span></span><br> by: {}<br><span><img class='nl-16' src={}><span> review pending</span></span><br><span class='nl-template-color'>Template</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-green.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/comments1.png'));
 		card.links.push({
 		id : 'lesson_closereview',
 		text : nl.t('close review')
@@ -446,7 +455,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	}
 	
 	function _addReviewLinkForClosedApproved(card, lesson) {
-		card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-template-color'>Approved</span></span><br> by: {}<br><span><img src={}> Review done</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-green.png'), lesson.authorname, nl.url.resUrl('general/tick.png'));
+		if(lesson.ltype == LESSONTYPES.LESSON) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-template-color'>Approved</span></span><br> by: {}<br><span><img class='nl-16' src={}> Review done</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-green.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/approve.png'));
+		if(lesson.ltype == LESSONTYPES.TEMPLATE) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-template-color'>Approved</span></span><br> by: {}<br><span><img class='nl-16' src={}> Review done</span><br><span class='nl-template-color'>Template</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-green.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/approve.png'));
 		card.links.push({
 		id : 'lesson_reopen',
 		text : nl.t('reopen')
@@ -457,30 +467,32 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	}
 
 	function _addReviewLinkForUnderrevision(card, lesson) {
-		card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-revision-color'> Under revision</span></span><br> by: {}<br><span><img src={}><span> review pending</span><br>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-maroon.png'), lesson.authorname, nl.url.resUrl('general/search.png'));
+		if(lesson.ltype == LESSONTYPES.LESSON) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-revision-color'> Under revision</span></span><br> by: {}<br><span><img class='nl-16' src={}><span> review pending</span><br>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-maroon.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/comments1.png'));
+		if(lesson.ltype == LESSONTYPES.TEMPLATE) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-revision-color'> Under revision</span></span><br> by: {}<br><span><img class='nl-16' src={}><span> review pending</span><br><span class='nl-template-color'>Template</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-maroon.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/comments1.png'));
 		card.links.push({
 		id : 'lesson_closereview',
 		text : nl.t('close review')
 		},{
-		id : 'lesson_disapprove',
-		text : nl.t('disapprove')
+		id : 'lesson_approve',
+		text : nl.t('approve')
 		});
 	}
 
 	function _addReviewLinkForClosedUnderrevision(card, lesson) {
-		card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-revision-color'>Under revision</span></span><br> by: {}<br><span><img src={}> Review done</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-maroon.png'), lesson.authorname, nl.url.resUrl('general/tick.png'));
+		if(lesson.ltype == LESSONTYPES.LESSON) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-revision-color'>Under revision</span></span><br> by: {}<br><span><img class='nl-16' src={}> Review done</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-maroon.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/approve.png'));
+		if(lesson.ltype == LESSONTYPES.TEMPLATE) card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br><span><img src={}><span class='nl-revision-color'>Under revision</span></span><br> by: {}<br><span><img class='nl-16' src={}> Review done</span><span class='nl-template-color'>Template</span>", lesson.grade, lesson.subject, nl.url.resUrl('general/ball-maroon.png'), lesson.authorname, nl.url.resUrl('toolbar-edit/approve.png'));
 		card.links.push({
 		id : 'lesson_reopen',
 		text : nl.t('reopen')
 		},{
-		id : 'lesson_disapprove',
-		text : nl.t('disapprove')
+		id : 'lesson_approve',
+		text : nl.t('approve')
 		});
 	}
 	
-	function _getAssignmentAvps(lesson) {
+	function _getLessonListAvps(lesson) {
 		var avps = [];
-		var linkAvp = nl.fmt.addLinksAvp(avps, 'Operations');
+		var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
 		_populateLinks(linkAvp, lesson.id, lesson);
 		nl.fmt.addAvp(avps, 'Name', lesson.name);
 		nl.fmt.addAvp(avps, 'Subject', lesson.subject);
@@ -499,7 +511,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		}
 		if(mode.type == TYPES.REVIEW){
 			nl.fmt.addAvp(avps, 'Remarks', lesson.remarks);
-			nl.fmt.addAvp(avps, 'Review status', 'review pending' , 'text', '-', nl.url.resUrl('toolbar-view/notes.png'), 'default'); 	
+			if(lesson.revstate == REVSTATE.PENDING) nl.fmt.addAvp(avps, 'Review status', 'Review pending' , 'text', '-', nl.url.resUrl('toolbar-edit/comments1.png'), 'nl-16'); 	
+			if(lesson.revstate == REVSTATE.CLOSED) nl.fmt.addAvp(avps, 'Review status', 'Review done' , 'text', '-', nl.url.resUrl('toolbar-edit/approve.png'), 'nl-16'); 	
 		}
 		nl.fmt.addAvp(avps, 'Lesson type', lesson.ltype, '-', '0');
 		nl.fmt.addAvp(avps, 'Description', lesson.description);
@@ -577,15 +590,21 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	}
 
 	function _onSearch(filter, grade) {
-		mode.grade = grade;
+		mode.searchFilter = filter;
+		mode.searchGrade = grade;
+		_reloadFromServer();
+	}
+
+	function _reloadFromServer() {
 		nlDlg.showLoadingScreen();
 		var promise = nl.q(function(resolve, reject) {
-			_getDataFromServer(filter, resolve, reject);
+			_getDataFromServer(resolve, reject);
 		});
 		promise.then(function(res) {
 			nlDlg.hideLoadingScreen();
 		});
 	}
+
 	function _deleteLesson($scope, lessonId) {
 		var msg = {title: 'Please confirm', 
 				   template: nl.t('Deleting an assignment will delete all reports behind this assignment. This cannot be undone. Are you sure you want to delete?'),
@@ -603,7 +622,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	
 	function _disapproveLesson($scope, lessonId) {
 		var msg = {title: 'Please confirm', 
-				   template: nl.t('Are u sure you want to disapprove the approved lesson'),
+				   template: nl.t('Are you sure you want to disapprove this lesson and send it for review?'),
 				   okText: nl.t('Disapprove')};
 		nlDlg.popupConfirm(msg).then(function(result) {
 			if (!result) return;
@@ -643,19 +662,20 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 			data = {lessonid: lessonId, private: 0};
 		}
 		var msg = {title: 'Copy lesson', 
-				   template: nl.t('Are u sure you want to make a private copy of this lesson/worksheet?'),
+				   template: nl.t('Are you sure you want to make a private copy of this lesson/worksheet?'),
 				   okText: nl.t('Copy')};
 		nlDlg.popupConfirm(msg).then(function(result) {
 			if (!result) return;			
 			nlServerApi.lessonCopy(data).then(function(status) {
 				nlDlg.showLoadingScreen();
 				var template = null;
-				if(mode.type == TYPES.APPROVED) template = "<ul><li><a href='/lesson/edit/{}'>Edit new lesson</a></li><li><a href='#/lesson?type=my'>view my lessons/worksheets</a></li></ul>";
+				if(mode.type == TYPES.APPROVED) template = "<ul><li><a href='/lesson/edit/{}'>Edit new lesson</a></li><li><a href='#/lesson_list?type=my'>view my lessons/worksheets</a></li></ul>";
 				if(mode.type == TYPES.MY) template = "<ul><li><a href='/lesson/edit/{}'>Edit new lesson</a></li></ul>";
 				template = nl.fmt2(template, status); 
 				var confirmMsg = {title: nl.t("Lesson copied"), template:template};				
-				nlDlg.popupAlert(confirmMsg);
-				return true;
+				nlDlg.popupAlert(confirmMsg).then(function(){
+					nl.window.location.reload();
+				});
 				nlDlg.hideLoadingScreen();
 			});
 			
@@ -664,54 +684,35 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	
 	function _reopenLesson($scope, lessonId) {
 		var msg = {title: 'Please confirm', 
-				   template: nl.t('Are u sure you want to reopen review?'),
+				   template: nl.t('Are you sure you want to reopen the review?'),
 				   okText: nl.t('reopen')};
 		nlDlg.popupConfirm(msg).then(function(result) {
 			if (!result) return;			
 			nlServerApi.lessonReopenReview(lessonId).then(function(status) {
 				nlDlg.showLoadingScreen();
-				_updateCardAfterReviewlist($scope, lessonId);
+				_updateCardAfterReviewlist();
 			});
 		});			
 	}
 	
 	function _closereviewLesson($scope, lessonId) {
 		var msg = {title: 'Please confirm', 
-				   template: nl.t('Are u sure you want to close review?'),
+				   template: nl.t('Are you sure you want to close the review?'),
 				   okText: nl.t('close review')};
 		nlDlg.popupConfirm(msg).then(function(result) {
 			if (!result) return;			
 			nlServerApi.lessonCloseReview(lessonId).then(function(status) {
 				nlDlg.showLoadingScreen();
-				_updateCardAfterReviewlist($scope, lessonId);
+				_updateCardAfterReviewlist();
 			});
 		});			
 	}
 
-	function _viewAllReview($scope, card){
-		for (var i in $scope.cards.cardlist) {
-			var card = $scope.cards.cardlist[i];
-		}			
-		nl.window.location.reload();
-	}
-			
-	function _viewPendingReview($scope, card){
+	function _showReviewCards($scope, revstate) {
 		var cards = [];
-		for (var i in _reviewCards) {
-		 	var card = _reviewCards[i];
-			if (card.revstateId == REVSTATE.PENDING) {
-				cards.push(card);
-			}
-		}
-		$scope.cards.cardlist = cards;
-	}
-	
-	function _viewClosedReview($scope, card){
-		var revstate = card.revstateId;
-		var cards = [];
-		for (var i in _reviewCards) {
-			var card = _reviewCards[i];
-			if (card.revstateId == REVSTATE.CLOSED) {
+		for (var i in _allCardsForReview) {
+			var card = _allCardsForReview[i];
+			if (revstate == REVSTATE.ALL || card.revstateId == revstate) {
 				cards.push(card);
 			};
 		}
@@ -728,16 +729,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		nl.window.location.reload();
 	}
 	
-	function _updateCardAfterReviewlist($scope, lessonId){
-		for (var i in $scope.cards.cardlist) {
-			var card = $scope.cards.cardlist[i];
-		}
+	function _updateCardAfterReviewlist(){
 		nl.window.location.reload();
-	}
-
-	function _initParams() {
-		var params = nl.location.search();
-		_searchFilterInUrl = ('search' in params) ? params.search : '';
 	}
 
 }];
