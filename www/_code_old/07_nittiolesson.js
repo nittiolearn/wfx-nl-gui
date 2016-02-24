@@ -205,6 +205,7 @@ nlesson = function() {
 		}
 		this.pendingTimer = new njs_lesson_helper.PendingTimer();
 		this.pendingTimer.updateIfNeeded(this);
+		_Lesson_setupAutoSave(this);
 	}
 	
 	function Lesson_createHtmlDom() {
@@ -455,8 +456,9 @@ nlesson = function() {
 		return _Lesson_saveInternal(this, '/lesson/lessoncomment_save.json/', onCompleteFn, false, false);
 	}
 	
-	function Lesson_saveAssignReport() {
-		return _Lesson_saveInternal(this, '/lesson/save_report_assign.json/', null, false, false);
+	function Lesson_saveAssignReport(backgroundTask) {
+		return _Lesson_saveInternal(this, '/lesson/save_report_assign.json/', null, 
+		                            false, false, backgroundTask);
 	}
 	
 	function Lesson_submitAssignReport() {
@@ -479,8 +481,19 @@ nlesson = function() {
 			nittio.redirDelay(redirUrl, 1000, true);
 		}, false, true);
 	}
-	
-	function _Lesson_saveInternal(lesson, ajaxUrl, onCompleteFn, bRaw, bForce) {
+
+    var AUTOSAVE_TIMEOUT = 60*1000; // Auto save every one minute	
+    function _Lesson_setupAutoSave(lesson) {
+        // Autosave only when doing assignments
+        if (lesson.renderCtx.launchCtx() != 'do_assign') return;
+        var onCompleteFn = null;
+        window.setInterval(function() {
+            lesson.saveAssignReport(true);
+        }, AUTOSAVE_TIMEOUT);
+    }
+
+	function _Lesson_saveInternal(lesson, ajaxUrl, onCompleteFn, bRaw, bForce, backgroundTask) {
+	    if (backgroundTask === undefined) backgroundTask = false;
 		if (jQuery('#l_name').val() == '') {
 			njs_helper.Dialog.popup('Lesson name cannot be empty', 'Please update the lesson properties before saving');
 			if (onCompleteFn) onCompleteFn(null, true);
@@ -510,12 +523,14 @@ nlesson = function() {
 
 		var syncManager = njs_helper.SyncManager.get();
 		if (!bForce && lesson.lastSavedContent == content && !bComment) {
-			if(!syncManager.syncInProgress) njs_helper.Dialog.popupStatus('There are no changes to save');
+			if(!syncManager.syncInProgress && !backgroundTask) {
+			    njs_helper.Dialog.popupStatus('There are no changes to save');
+			}
 			if (onCompleteFn) onCompleteFn(null, false);
 			return false;
 		}
 		
-		syncManager.postToServer(ajaxUrl, ajaxParams, true, function(data, isError) {
+		syncManager.postToServer(ajaxUrl, ajaxParams, true, backgroundTask, function(data, isError) {
 			if (!isError) {
 				lesson.lastSavedContent = ajaxParams.content;
 				if (njsCommentEditor.isValid()) njsCommentEditor.on_comment_save(data);

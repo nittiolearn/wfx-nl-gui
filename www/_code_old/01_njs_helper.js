@@ -383,11 +383,13 @@ function Ajax(cb, retryAfterLogin, showErrorMsg) {
 	//---------------------------------------------------------------------------------------
 	// Public Methods
 	//---------------------------------------------------------------------------------------	
+	var AJAX_TIMEOUT = 3*60*1000; // 3 mins timeout
 	this.send = function(url, params, contentType, processData, onProgress) {
 		var ajaxParams = {type : "POST", url : url, data : params, async : true};
 		if (contentType !== undefined) ajaxParams.contentType = contentType;
 		if (processData !== undefined) ajaxParams.processData = processData;
 		if (onProgress !== undefined) ajaxParams.xhrFields = {onprogress: onProgress};
+		ajaxParams.timeout = AJAX_TIMEOUT;
 
 		var self = this;
 		ajaxParams.success = function(data, textStatus, jqXHR) {
@@ -490,10 +492,7 @@ function AjaxInChain(chain, retryAfterLogin) {
 // (Example: Used for lesson save/upload resources)
 //#############################################################################################
 function SyncManager() {
-	this.syncInProgress = SyncManager_syncInProgress;
-	this.onSyncDone = SyncManager_onSyncDone;
 	this.postToServer = SyncManager_postToServer;
-	
 	_SyncManager_init(this);
 }
 
@@ -506,17 +505,9 @@ SyncManager.get = function() {
 //#############################################################################################
 // SyncManager - public methods
 //#############################################################################################
-function SyncManager_syncInProgress () {
-	return this.syncInProgress;	
-}
-
-function SyncManager_onSyncDone(onDoneFn) {
-	this.onDoneFns.push(onDoneFn);
-	_SyncManager_doNext(this);
-}
-
-function SyncManager_postToServer(ajaxUrl, ajaxParams, bReplace, onCompleteFn) {
-	var req = {ajaxUrl:ajaxUrl, ajaxParams:ajaxParams, onCompleteFn:onCompleteFn};
+function SyncManager_postToServer(ajaxUrl, ajaxParams, bReplace, backgroundTask, onCompleteFn) {
+	var req = {ajaxUrl:ajaxUrl, ajaxParams:ajaxParams, 
+	           backgroundTask: backgroundTask, onCompleteFn:onCompleteFn};
 	_SyncManager_removeDuplicates(this, bReplace, ajaxUrl);
 	this.pendingRequests.push(req);
 	_SyncManager_doNext(this);
@@ -538,17 +529,12 @@ function _SyncManager_removeDuplicates(self, bReplace, ajaxUrl) {
 function _SyncManager_init(self) {
 	self.syncInProgress = false;
 	self.pendingRequests = [];
-	self.onDoneFns = [];
 	self.error = false;
 }
 
 function _SyncManager_doNext(self) {
 	if (self.syncInProgress) return;
 	if (self.pendingRequests.length == 0) {
-		for (var i=0; i<self.onDoneFns.length; i++) {
-			self.onDoneFns[i]();
-		}
-		self.onDoneFns = [];
 		var msg = self.error ? 'Failure during save' : 'Saved';
 		self.error = false;
 		njs_helper.Dialog.popdownFixedStatus(msg);
@@ -559,25 +545,23 @@ function _SyncManager_doNext(self) {
 	self.syncInProgress = true;
 	self.error = false;
 	
-	var currentReq = self.pendingRequests[0];
-	self.pendingRequests.splice(0, 1);
-
+	var currentReq = self.pendingRequests.shift();
 	var cb = function(data, errorType, errorMsg) {
 		if (errorType == njs_helper.Ajax.ERROR_NONE) {
-			currentReq.onCompleteFn(data, false);
-			_SyncManager_doNextOnComplete(self);
-			return;			
+			return _SyncManager_doNextOnComplete(self, currentReq, data, false);
+		}
+		if (currentReq.backgroundTask) {
+		    // No retry or error window for background tasks
+            return _SyncManager_doNextOnComplete(self, currentReq, null, true);
 		}
 		var cancelButton = {id: 'cancel', text: 'Close', fn: function() {
 			njs_helper.Dialog.popdown();
-			currentReq.onCompleteFn(null, true);
-			self.error = true;
-			_SyncManager_doNextOnComplete(self);
+			_SyncManager_doNextOnComplete(self, currentReq, null, true);
 		}};
 		var retryButton = {id: 'retry', text: 'Retry', fn: function() {
 			njs_helper.Dialog.popdown();
 			self.pendingRequests.unshift(currentReq); // add to top of queue
-			_SyncManager_doNextOnComplete(self);
+			_SyncManager_doNextOnComplete(self, null, null, false);
 		}};
 		njs_helper.Dialog.popup('Error', njs_helper.fmt2('<div>{}</div>', errorMsg), [retryButton], cancelButton);
 	};
@@ -590,9 +574,12 @@ function _SyncManager_doNext(self) {
 	return;
 }
 
-function _SyncManager_doNextOnComplete(self) {
-	self.syncInProgress = false;
+function _SyncManager_doNextOnComplete(self, currentReq, data, isError) {
+    self.error = isError;
+    if (currentReq) currentReq.onCompleteFn(data, isError);
+    self.syncInProgress = false;
 	_SyncManager_doNext(self);
+	return true;
 }
 
 //-------------------------------------------------------------------------------------------
