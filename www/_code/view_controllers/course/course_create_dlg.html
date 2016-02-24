@@ -22,7 +22,7 @@
 
 </pre>		
 
-        <h3>Attribures of course-module</h3>
+        <h3>Basic attribures of course-module</h3>
         <p>Every course-module must contain the attributes "id", "name" and "type". "id" uniquely indentifies the course-module. All these attributes are strings. Example:</p>
 <pre>{
   "modules": [
@@ -76,6 +76,41 @@
     {"id": "1", "name": "xx", "type":"lesson", "icon":"quiz"}
   ]
 }</pre>
+
+        <h3>Planning the course schedule</h3>
+        <p>The attributes "start_date" and "planned_date" can be specified for leaf level items (i.e. except for items of type "module").</p>
+        <ul>
+            <li>"start_date" specifies the earliest start date for the item. Learners will not be able to open the items before the "start_date".</li>
+            <li>"end_date" specifies the expected completion date for the item. The item will be marked as "delayed" if it is not completed by "planned_date".</li>
+            <li>Both of these attributes are optional and could be set independently.</li>
+            <li>The attribute "planning" should be set to true for these attributes to take effect.</li>
+        </ul>
+
+<pre>
+{
+  "planning": true,
+  "modules": [
+    {"id": "1", "name": "course-module sample 1", "type": "info", "start_date": "2016-02-25", "planned_date": "2016-03-25"},
+    {"id": "2", "name": "course-module sample 2", "type": "lesson", "start_date": "2016-02-25", "refid": 1234},
+    {"id": "3", "name": "course-module sample 3", "type": "link", "planned_date": "2016-03-25", "action": "lesson.view_approved"},
+    {"id": "4", "name": "course-module sample 4", "type": "lesson", "refid": 1235},
+  ]
+}</pre>
+
+        <h3>Recap of all course module attributes</h3>
+        <table class='nl-table nl-table-styled'>
+            <tr><th>Attribute</th><th>Mandatory</th><th>Applicable to</th><th>Description</th></tr>
+            <tr><td>id</td><td>Yes</td><td>All</td><td>Defines the unique id of a course module. Parent-child relationship of course elements (tree structure) is derived from the id - id of the child element should always begin with the id of parent element and a ".".</td></tr>
+            <tr><td>name</td><td>Yes</td><td>All</td><td>Name of the module to be displayed in the course tree.</td></tr>
+            <tr><td>type</td><td>Yes</td><td>All</td><td>"module", "lesson", "info" or "link".</td></tr>
+            <tr><td>icon</td><td>No</td><td>All</td><td>Icon to be displayed for this item in the course tree. If not provided, this is derived from the type. "quiz" is a predefined icon.</td></tr>
+            <tr><td>refid</td><td>Yes</td><td>type lesson</td><td>The id of the lesson to be launched.</td></tr>
+            <tr><td>action</td><td>Yes</td><td>type link</td><td>The action whose URL is used for the link (see Dashboard create/modify dialog for list of actions).</td></tr>
+            <tr><td>urlParams</td><td>No</td><td>type link</td><td>The urlParams to append to the URL (see Dashboard create/modify dialog for more information).</td></tr>
+            <tr><td>start_date</td><td>No</td><td>except type module</td><td>Earliest planned start date. Is applicable only if "planning" is set to true for the course.</td></tr>
+            <tr><td>planned_date</td><td>No</td><td>except type module</td><td>Expected planned completion date. Is applicable only if "planning" is set to true for the course.</td></tr>
+        </table>
+
     </nl-dlg-help>
     <nl-dlg-content>
         <table class='nl-table'>

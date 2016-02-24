@@ -81,8 +81,12 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
             $scope.canShowDetails = nlRouter.isPermitted(userInfo, 'forum_view_details');
             $scope.currentTopicId = 0;
 
-			serverParams = {forumtype: params.forumtype, refid: params.refid,
-			    secid: ('secid' in params) ? params.secid : 0};
+			serverParams = {forumtype: params.forumtype, refid: params.refid};
+			if ('secid' in params) {
+			    serverParams.secid = params.secid;
+			} else if ('secid2' in params) {
+                serverParams.secid2 = params.secid2;
+			}
             $scope.canStartTopic = _canStartTopic(serverParams, userInfo);
             nl.pginfo.pageTitle = _getPageTitle(serverParams);
             $scope.mentorView = _isMentorView(serverParams);
@@ -150,10 +154,10 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
     function _updateShowDetailsIcon() {
         if ($scope.showingDetails) {
             $scope.msgDetails = {title: nl.t('Hide message details'),
-                icon: nl.url.resUrl('forum/less.png')};
+                icon: nl.url.resUrl('less.png')};
         } else {
             $scope.msgDetails = {title: nl.t('Show message details'),
-                icon: nl.url.resUrl('forum/more.png')};
+                icon: nl.url.resUrl('more.png')};
         }
     }
     
@@ -211,7 +215,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
         for (var key in extraParams) {
             params[key] = extraParams[key];
         }
-        params.since = messageMgr.range_till;
+        if (messageMgr.range_till) params.since = messageMgr.range_till;
         nlDlg.showLoadingScreen();
         nlServerApiFn(params).then(function(forumInfo) {
             nlDlg.hideLoadingScreen();
@@ -246,7 +250,8 @@ function ForumInputDlg(nl, nlDlg, $scope) {
         $scope.error = {};
         $scope.data = {title: '', text: ''};
         $scope.inputDlg = {newTopic: false, newMessage: false, editMessage: false,
-                           canShowTitle: true, okButtonName: nl.t('Send'), msg: null};
+                           canShowTitle: true, okButtonName: nl.t('Send'), msg: null,
+                           focusTitle: false, focusText: false};
     }
     _initDlgScope();
     
@@ -257,6 +262,7 @@ function ForumInputDlg(nl, nlDlg, $scope) {
     this.newTopic = function() {
         _initDlgScope();
         $scope.inputDlg.newTopic = true;
+        $scope.inputDlg.focusTitle = true;
     }
 
     this.newMessage = function(msg) {
@@ -264,6 +270,7 @@ function ForumInputDlg(nl, nlDlg, $scope) {
         $scope.inputDlg.newMessage = true;
         $scope.inputDlg.canShowTitle = false;
         $scope.inputDlg.msg = msg;
+        $scope.inputDlg.focusText = true;
     }
 
     this.editMessage = function(msg) {
@@ -273,6 +280,7 @@ function ForumInputDlg(nl, nlDlg, $scope) {
         $scope.inputDlg.canShowTitle = (msg.parentid == 0);
         $scope.inputDlg.msg = msg;
         $scope.data = {title: msg.title, text: msg.text};
+        $scope.inputDlg.focusText = true;
     }
 
     this.validate = function() {
