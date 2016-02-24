@@ -258,7 +258,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		}	
 	};
 	
-	function _getDataFromServer(filter, resolve, reject) {
+	function _getDataFromServer(resolve, reject) {
 		mode.listingFunction().then(function(resultList) {
 			nl.log.debug('Got result: ', resultList.length);
 			$scope.cards.cardlist = _getLessonCards(_userInfo, resultList);
