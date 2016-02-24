@@ -9,7 +9,8 @@ function module_init() {
     .service('nlUi', UIService)
     .directive('nlLoading', LoadingDirective)
     .directive('nlNoCtxMenu', NoCtxMenuDirective)
-    .directive('nlRetainAr', RetainArDirective);
+    .directive('nlRetainAr', RetainArDirective)
+    .directive('nlFocusMe', FocusMeDirective);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -66,6 +67,25 @@ function(nl, $window) {
         restrict: 'A',
         transclude: true,
         link: function(scope, iElem, iAttrs) {
+        }
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
+var FocusMeDirective = ['nl',
+function(nl) {
+    return {
+        restrict: 'A',
+        link: function(scope, iElem, iAttrs) {
+          scope.$watch(iAttrs.nlFocusMe, function(value) {
+              if(value === true) {
+                  console.log('nl-focusme: value=',value);
+                  nl.timeout(function() {
+                      iElem[0].focus();
+                      scope[iAttrs.focusMe] = false;
+                  });
+            }
+          });
         }
     };
 }];

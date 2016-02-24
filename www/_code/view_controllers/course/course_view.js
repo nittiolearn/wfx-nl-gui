@@ -185,6 +185,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         courseReportSummarizer.updateReportInfo(course);
         modeHandler.initTitle(course);
         $scope.planning = course.content.planning;
+        if ('forumRefid' in course) {
+            $scope.forumInfo = {refid: course.forumRefid, secid: course.id};
+        } else {
+            $scope.forumInfo = {refid: 0};
+        }
         var modules = course.content.modules;
         $scope.modules = [];
         for(var i=0; i<modules.length; i++) {
@@ -211,22 +216,27 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
     
     nlRouter.initContoller($scope, '', _onPageEnter, _onPageLeave);
 
-    $scope.showHideAllButtonName = treeList.showHideAllButtonName();
+    treeList.updateShowHideAllIcon($scope);
     $scope.showHideAll = function() {
         treeList.showHideAll();
-        $scope.showHideAllButtonName = treeList.showHideAllButtonName();
+        treeList.updateShowHideAllIcon($scope);
     };
     
     $scope.expandedView = false; 
-    $scope.expandviewtext = _updateExpandviewtext();
+    _updateExpandViewIcon();
     $scope.expandViewClick = function() {
         $scope.expandedView = !$scope.expandedView;
-        $scope.expandviewtext = _updateExpandviewtext();
+        $scope.expandviewtext = _updateExpandViewIcon();
     };
     
-    function _updateExpandviewtext() {
-        if ($scope.expandedView) return nl.t("Show less");
-        return nl.t("Show more");
+    function _updateExpandViewIcon() {
+        if ($scope.expandedView) {
+            $scope.expandViewText = nl.t('Show less');
+            $scope.expandViewIcon = nl.url.resUrl('less.png');
+            return;
+        }
+        $scope.expandViewText = nl.t('Show more');
+        $scope.expandViewIcon = nl.url.resUrl('more.png');
     }
 
     $scope.addContent = function() {
@@ -707,9 +717,14 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
     };
 
     this.bExpanded = false;
-    this.showHideAllButtonName = function() {
-        if (this.bExpanded) return nl.t('Collapse all');
-        return nl.t('Expand all');
+    this.updateShowHideAllIcon = function($scope) {
+        if (this.bExpanded) {
+            $scope.showHideAllText = nl.t('Collapse all');
+            $scope.showHideAllIcon = nl.url.resUrl('up.png');
+            return;
+        }
+        $scope.showHideAllText = nl.t('Expand all');
+        $scope.showHideAllIcon = nl.url.resUrl('down.png');
     };
     
     this.showHideAll = function() {

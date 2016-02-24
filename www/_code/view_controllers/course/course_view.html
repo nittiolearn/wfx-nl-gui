@@ -1,9 +1,25 @@
-<div class='nl-thin-scroll nl-full'>
-	<div class='popup-buttons no-border' >
-        <button ng-click='showHideAll()' class='button'>{{showHideAllButtonName}}</button>
-        <button ng-click='expandViewClick(cm)' class='button'>{{expandviewtext}}</button>
-        <button ng-if='mode == MODES.EDIT' ng-click='addContent()' class='button'>Add</button>
-    </div>
+<div class='nl-toolbar margin0 padding-small'>
+    <img title='{{showHideAllText}}'
+         class='nl-24 nl-clickable'
+         ng-src='{{showHideAllIcon}}' 
+         ng-click='showHideAll()'/>
+    <img title='{{expandViewText}}'
+         class='nl-24 nl-clickable'
+         ng-src='{{expandViewIcon}}' 
+         ng-click='expandViewClick()'/>
+    <a ng-show='forumInfo.refid'
+       ng-href='/#/forum?forumtype=3&refid={{forumInfo.refid}}&secid2={{forumInfo.secid}}'>
+        <img title='Discussion forum'
+             class='nl-24 nl-clickable'
+             ng-src='{{imgBasePath + "toolbar-view/discuss.png"}}'/>
+    </a>
+    <img title='Add'
+         ng-show='mode == MODES.EDIT'
+         class='nl-24 nl-clickable'
+         ng-src='{{imgBasePath + "toolbar-edit/addpage.png"}}'
+         ng-click='addContent()'/>
+</div>
+<div class='nl-thin-scroll nl-full-withtoolbar'>
 	<table class='nl-table nl-table-styled'>
 		<tr ng-show='expandedView'>
 			<th>Module</th>

@@ -303,8 +303,8 @@ img.nl-clickable {
 }
 
 .nl-toolbar {
-    text-align: right;
-    padding: 4px;
+  width: 100%;
+  text-align: right;
 }
 
 /*-----------------------------------------------------------------------------------------*
@@ -314,6 +314,13 @@ img.nl-clickable {
   position: absolute;
   width: 100%;
   height: 100%;
+}
+
+.nl-full-withtoolbar {
+  position: absolute;
+  width: 100%;
+  top: 40px;
+  bottom: 0;
 }
 
 .nl-thin-scroll {
