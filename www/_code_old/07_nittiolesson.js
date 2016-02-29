@@ -52,7 +52,6 @@ nlesson = function() {
 		this.createHtmlDom = Lesson_createHtmlDom;		// create the html element
 		this.onEscape = Lesson_onEscape;
 		this.postRender = Lesson_postRender;			// (onSlideChanged)
-		this.postRenderPage = Lesson_postRenderPage;
 	
 		// Save
 		this.saveLesson = Lesson_saveLesson;
@@ -141,7 +140,7 @@ nlesson = function() {
 		this.init();
 		
 		// Clearup Zodi flag and remember to reRenderAsReport the ones cleared in do mode
-		this.zodiCompletedPages = this.renderCtx.playerGetZodiChangesPages(this);
+		this.postRenderingQueue.initZodi();
 		this.createHtmlDom();
 	}
 
@@ -152,7 +151,7 @@ nlesson = function() {
 	}
 
 	function Lesson_reRender() {
-		this.renderedPages = {}; // Cleanup so that pages are rendered on slide change
+	    this.postRenderingQueue.initQueue(); // Cleanup so that pages are rendered on slide change
 		this.postRender();
 	}
 
@@ -195,7 +194,7 @@ nlesson = function() {
 		var jLesson = jQuery('#l_content').val();
 		this.oLesson = jQuery.parseJSON(jLesson);
 		this.bgimg = jQuery('#l_pageData .bgimg');
-		this.renderedPages = {};
+        this.postRenderingQueue = new PostRenderingQueue(this);
 
 		this.pages = [];
 		for (var i = 0; i < this.oLesson.pages.length; i++) {
@@ -226,28 +225,79 @@ nlesson = function() {
 
 	function Lesson_postRender() {
 		var pgNo = this.getCurrentPageNo();
-		this.postRenderPage(pgNo);
+		this.postRenderingQueue.postRenderPage(pgNo);
 		this.showOrHideZodiIcon();
 		this.showOrHideDoToggleIcon();
 		showCommentIndicator();		
 	}
 
-	function Lesson_postRenderPage(pgNo) {
-		var curPage = this.pages[pgNo];
-		var pageId = curPage.getPageId();
-		if (!(pageId in this.renderedPages)) {
-			if (pageId in this.zodiCompletedPages) {
-				this.reRenderAsReport(pgNo);
-				delete this.zodiCompletedPages[pageId];
-			} else {
-				curPage.updateHtmlDom();
-				curPage.adjustHtmlDom();
-			}
-			this.renderedPages[pageId] = true;
-		}
-		curPage.postRender();
-	}
+    //#############################################################################################
+    // Class lesson post rendering que
+    //#############################################################################################
+    function PostRenderingQueue(lesson) {
 
+        this.renderedPages = {};
+        this.zodiCompletedPages = {};
+
+        this.initZodi = function() {
+            this.zodiCompletedPages = lesson.renderCtx.playerGetZodiChangesPages(lesson);
+        }
+
+        this.initQueue = function() {
+            this.renderedPages = {};
+        };
+
+        this.markFroRedraw = function(pageId) {
+            if (pageId in this.renderedPages) {
+                delete this.renderedPages[this.pageId];
+            }
+        };
+
+        this.postRenderPage = function(pgNo) {
+            var curPage = _adjustAndUpdate(this, pgNo);
+            if (!curPage) return;
+            curPage.postRender();
+            _preLoadOtherPages(this, pgNo);
+        }
+
+        function _preLoadOtherPages(self, pgNo) {
+            var pgStart = pgNo - 4;
+            if (pgStart < 0) pgStart = 0;
+            var pgEnd = pgStart + 10;
+            if (pgEnd >= lesson.pages.length) pgEnd = lesson.pages.length;
+            for (var i=pgStart; i<pgEnd; i++) {
+                var curPage = lesson.pages[i];
+                var pageId = curPage.getPageId();
+                if (pageId in self.renderedPages) continue;
+                _adjustAndUpdateInQueue(self, i);
+            }
+        }
+        
+        function _adjustAndUpdateInQueue(self, pgNo) {
+            MathJax.Hub.Queue(function(){
+                _adjustAndUpdate(self, pgNo);
+            });
+        }
+        
+        function _adjustAndUpdate(self, pgNo) {
+            if (pgNo < 0 || pgNo >= lesson.pages.length) return null;
+            var curPage = lesson.pages[pgNo];
+            var pageId = curPage.getPageId();
+            if (pageId in self.renderedPages) return curPage;
+
+            console.log('actual loading: ', pgNo);
+            if (pageId in self.zodiCompletedPages) {
+                lesson.reRenderAsReport(pgNo);
+                delete self.zodiCompletedPages[pageId];
+            } else {
+                curPage.updateHtmlDom();
+                curPage.adjustHtmlDom();
+            }
+            self.renderedPages[pageId] = true;
+            return curPage;
+        };
+    }
+    
 	//--------------------------------------------------------------------------------------------
 	// Lesson Methods - Zodi related
 	//--------------------------------------------------------------------------------------------
@@ -699,13 +749,13 @@ nlesson = function() {
 
 	function Lesson_search(searchStr) {
 		if (searchStr == '') return false;
-		for (var p in this.pages) {
-			var pageNo = parseInt(p);
+		for (var pageNo in this.pages) {
+			var p = parseInt(pageNo);
 			var pageJson = JSON.stringify(this.pages[p].oPage);
 			if (pageJson.indexOf(searchStr) == -1) continue;
 			if (this.getCurrentPageNo() == p) return true;
 			this.globals.slides.gotoPage(p);
-			njs_helper.Dialog.popupStatus(njs_helper.fmt2('"{}" found in page {}', searchStr, pageNo+1));
+			njs_helper.Dialog.popupStatus(njs_helper.fmt2('"{}" found in page {}', searchStr, p+1));
 			return true;
 		}
 		return false;
@@ -913,10 +963,6 @@ nlesson = function() {
 		var me = this;
 		MathJax.Hub.Queue(function() {
 			me.onEscape();
-			for (var i=0; i<me.sections.length; i++) {
-				var pos = me.sectionCreateOrder[i];
-				me.sections[pos].postRender();
-			}
 		});
 	}
 
@@ -939,9 +985,7 @@ nlesson = function() {
 	}
 	
 	function Page_markFroRedraw() {
-		if (this.pageId in this.lesson.renderedPages) {
-			delete this.lesson.renderedPages[this.pageId];
-		}	
+	    this.lesson.postRenderingQueue.markFroRedraw(this.pageId);
 	}
 
 	//---------------------------------------------------------------------------------------------
@@ -1035,7 +1079,6 @@ nlesson = function() {
 		this.getViewHtml = Section_getViewHtml;
 		this.setViewHtml = Section_setViewHtml;
 		this.adjustHtmlDom = Section_adjustHtmlDom;
-		this.postRender = Section_postRender;
 		
 		this.reRender = Section_reRender;
 	}
@@ -1204,11 +1247,6 @@ nlesson = function() {
 		adjustHtmlFn(this);
 	}
 	
-	function Section_postRender() {
-		var postRenderFn = this.page.pagetype.getSectionPostRenderFn();
-		postRenderFn(this);
-	}
-	
 	function Section_reRender(bAsReport) {
 		var pagetype = this.page.pagetype;
 		if (bAsReport && this.lesson.renderCtx.pageMode(this.page) == 'report'){			
@@ -1293,7 +1331,7 @@ nlesson = function() {
 		
 		nittio.printHandler(function() {
 			for(var i = 0; i < g_lesson.pages.length; i++){
-				g_lesson.postRenderPage(i);
+				g_lesson.postRenderingQueue.postRenderPage(i);
 			}
 		});
 		
