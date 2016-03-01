@@ -752,6 +752,11 @@ function Dialog() {
 		Dialog.moveBack(this);
 	};
 
+    this.addClass = function(cls) {
+        var dlg = _dlgObj();
+        dlg.addClass(cls);
+    };
+
 	this.isVisible = function() {
 		var dlg = _dlgObj();
 		return (_isShown && !dlg.hasClass('moveBehindBlankScreen'));

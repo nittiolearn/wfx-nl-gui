@@ -7,12 +7,11 @@
          class='nl-24 nl-clickable'
          ng-src='{{expandViewIcon}}' 
          ng-click='expandViewClick()'/>
-    <a ng-show='forumInfo.refid'
-       ng-href='/#/forum?forumtype=3&refid={{forumInfo.refid}}&secid2={{forumInfo.secid}}'>
-        <img title='Discussion forum'
-             class='nl-24 nl-clickable'
-             ng-src='{{imgBasePath + "toolbar-view/discuss.png"}}'/>
-    </a>
+    <img title='Discussion forum'
+         ng-show='forumInfo.refid'
+         class='nl-24 nl-clickable'
+         ng-src='{{imgBasePath + "toolbar-view/discuss.png"}}'
+         ng-click='launchForum()'/>
     <img title='Add'
          ng-show='mode == MODES.EDIT'
          class='nl-24 nl-clickable'

@@ -137,7 +137,7 @@ function Dialog(nl, $ionicPopup, parentScope, nlDlg) {
         
         if (otherButtons === undefined) otherButtons = [];
         if (closeButton === undefined) closeButton = {text: nl.t('Close')};
-        otherButtons.push(closeButton);
+        if (closeButton !== null) otherButtons.push(closeButton);
         nlDlg.hideLoadingScreen();
         nlDlg.addVisibleDlg(self.uniqueId, self);
         var mypopup = $ionicPopup.show({
@@ -190,12 +190,16 @@ var DlgDirective = ['nl', '$window', 'nlKeyboardHandler',
 function(nl, $window, nlKeyboardHandler) {
 
 	function postLink($scope, iElem, iAttrs) {
-        var children = iElem.children();
+        $scope.canShowHelp = ($scope.showHelp !== '0'); // By default show help
+        $scope.canShowClose = ($scope.showClose === '1'); // By default don't show help
         $scope.$parent.title = $scope.title;
         $scope.helpHidden = true;
         $scope.imgBasePath = nl.rootScope.imgBasePath;
         $scope.onHelp = function() {
             $scope.helpHidden = !$scope.helpHidden;
+        };
+        $scope.onClose = function($event) {
+            $scope.$parent.onCloseDlg($event);
         };
 
         iElem.attr('tabindex', '0');
@@ -219,7 +223,9 @@ function(nl, $window, nlKeyboardHandler) {
         //priority: -1000, // should be post linked after ng-show which runs in priority level 0
         templateUrl: 'lib_ui/dlg/dlg.html',
         scope: {
-            title: '@'
+            title: '@',
+            showHelp: '@',
+            showClose: '@'
         },
         link: postLink
     };

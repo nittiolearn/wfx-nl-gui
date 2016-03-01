@@ -152,8 +152,8 @@ function ModeHandler(nl, nlCourse, nlDlg) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse',
-function(nl, nlRouter, $scope, nlDlg, nlCourse) {
+var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg',
+function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg) {
     var modeHandler = new ModeHandler(nl, nlCourse, nlDlg);
     var treeList = new TreeList(nl);
     var courseReportSummarizer = new CourseReportSummarizer($scope);
@@ -238,6 +238,16 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         $scope.expandViewText = nl.t('Show more');
         $scope.expandViewIcon = nl.url.resUrl('more.png');
     }
+    
+    var forumDlg = null;
+    $scope.launchForum = function() {
+        if (!forumDlg) {
+            var url = nl.fmt2('/#/forum?forumtype=3&refid={}&secid2={}&hidemenu', 
+                              $scope.forumInfo.refid, $scope.forumInfo.secid);
+            forumDlg = nlIframeDlg.create($scope, url, nl.t('Discussion forum'));
+        }
+        forumDlg.show();
+    };
 
     $scope.addContent = function() {
         var newDlg = nlDlg.create($scope);
