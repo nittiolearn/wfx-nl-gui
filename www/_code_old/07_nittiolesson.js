@@ -285,7 +285,6 @@ nlesson = function() {
             var pageId = curPage.getPageId();
             if (pageId in self.renderedPages) return curPage;
 
-            console.log('actual loading: ', pgNo);
             if (pageId in self.zodiCompletedPages) {
                 lesson.reRenderAsReport(pgNo);
                 delete self.zodiCompletedPages[pageId];

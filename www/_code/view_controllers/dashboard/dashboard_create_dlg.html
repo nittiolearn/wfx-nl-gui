@@ -58,10 +58,6 @@
             <tr><td>help.debug </td><td>/#/debug</td><td> debug_client</td><td></td></tr>
             <tr><td>mentor_desk.mentor </td><td>/#/forum?forumtype=1&refid=0</td><td> #is_mentor </td><td>Mentor view</td></tr>
             <tr><td>mentor_desk.mentee</td><td>/#/forum?forumtype=1&refid=1</td><td> #is_mentee </td><td>Mentee view - accessible from restricted terminals as well</td></tr>
-            <tr><td>course.view_my</td><td>/#/course_list?my=1</td><td> course_create </td><td>Course card items</td></tr>
-            <tr><td>course.view_published</td><td>/#/course_list</td><td> course_review </td><td></td></tr>
-            <tr><td>course.view_assigned</td><td>/#/course_assign_list</td><td> course_review </td><td></td></tr>
-            <tr><td>course.do</td><td>/#/course_list?my=1</td><td> course_do</td><td>Accessible from restricted terminals as well</td></tr>
             <tr><td>lesson.create</td><td>/lesson/create1/</td><td>lesson_create</td><td></td></tr>
             <tr><td>lesson.manage</td><td>/lesson/manage_approved/</td><td>lesson_approve</td><td></td></tr>
             <tr><td>lesson.pagecategories</td><td>/ pagecategories /view/</td><td>lesson_create</td><td></td></tr>
@@ -105,6 +101,10 @@
             <tr><td>searchlist.view</td><td>/#/searchlist_view?id={}</td><td>basic_access</td><td></td></tr>
             <tr><td>assign_desk.new</td><td>/assignment/assigned_to_me?{}</td><td> assignment_do</td><td>Accessible from restricted terminals as well</td></tr>
             <tr><td>assign_desk.past</td><td>/assignment/assigned_to_me/past?{}</td><td> assignment_do</td><td>Accessible from restricted terminals as well</td></tr>
+            <tr><td>course.view_my</td><td>/#/course_list?my=1&{}</td><td> course_create </td><td>Course card items. urlParams could contain search and custtype filtering: e.g. "custtype=123", or "search=xxx" or "custtype=123&search=xxx"</td></tr>
+            <tr><td>course.view_published</td><td>/#/course_list?{}</td><td> course_review </td><td></td></tr>
+            <tr><td>course.view_assigned</td><td>/#/course_assign_list?{}</td><td> course_review </td><td></td></tr>
+            <tr><td>course.do</td><td>/#/course_report_list?my=1&{}</td><td> course_do</td><td>Accessible from restricted terminals as well</td></tr>
         </table>
 
         <h4>Generic actions with fully customizable URLs</h4>
