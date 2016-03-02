@@ -155,7 +155,7 @@ function Dialog(nl, $ionicPopup, parentScope, nlDlg) {
             if (callCloseFn === undefined) callCloseFn = true;
             if (!callCloseFn) return;
             
-            var closeFn = ('onTap' in closeButton) ? closeButton.onTap : undefined;
+            var closeFn = (closeButton && 'onTap' in closeButton) ? closeButton.onTap : undefined;
             if (closeFn) closeFn(e);
         };
 
