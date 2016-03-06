@@ -242,8 +242,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg) {
     var forumDlg = null;
     $scope.launchForum = function() {
         if (!forumDlg) {
-            var url = nl.fmt2('/#/forum?forumtype=3&refid={}&secid2={}&hidemenu', 
-                              $scope.forumInfo.refid, $scope.forumInfo.secid);
+            // FireFox and IE do not show the iFrame if the URL is same as launching URL
+            // So as a workaround we need some different string in server part of URL
+            var randqs = (new Date()).getTime();
+            var url = nl.fmt2('/?randqs={}#/forum?forumtype=3&refid={}&secid2={}&hidemenu', 
+                              randqs, $scope.forumInfo.refid, $scope.forumInfo.secid);
             forumDlg = nlIframeDlg.create($scope, url, nl.t('Discussion forum'));
         }
         forumDlg.show();
