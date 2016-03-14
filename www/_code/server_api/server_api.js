@@ -480,10 +480,11 @@ function NlServerInterface(nl, nlDlg, nlConfig) {
         return {username: '', lastupdated: null, groupicon: nl.url.resUrl('general/top-logo1.png'), dashboard: []};
     }
     
+    var AJAX_TIMEOUT = 3*60*1000; // 3 mins timeout
     function _postImpl(url, data) {
         nl.log.info('server_api: posting: ', url);
         if (NL_SERVER_INFO.serverType == 'local') return nl.http.get(url); // For local testing
-        return nl.http.post(url, data);
+        return nl.http.post(url, data, {timeout: AJAX_TIMEOUT});
     }
     
     var MAX_DIFF = 1000*60*30; // 30 minutes

@@ -71,6 +71,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 	var assignId = 0;
 	var _userInfo = null;
 	var _searchFilterInUrl = '';
+	var _custtypeInUrl = null;
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
@@ -113,6 +114,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
         my = ('my' in params) ? parseInt(params.my) == 1: false;
         assignId = ('assignid' in params) ? parseInt(params.assignid) : 0;
         _searchFilterInUrl = ('search' in params) ? params.search : '';
+        _custtypeInUrl = ('custtype' in params) ? parseInt(params.custtype) : null;
 	}
 
 	function _getPageTitle() {
@@ -160,16 +162,21 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 	}
 	
 	function _listingFunction(filter) {
+	    var params = {search: filter};
+	    if (_custtypeInUrl !== null) params.custtype = _custtypeInUrl;
 		if (type === 'course') {
-			return nlCourse.courseGetList({mine: my, search: filter});
+		    params.mine = my;
+			return nlCourse.courseGetList(params);
 		}
 		if (type === 'assign') {
-			return nlCourse.courseGetAssignmentList({mine: false, search: filter});
+            params.mine = false;
+			return nlCourse.courseGetAssignmentList(params);
 		}
 		if (type === 'report' && assignId !== 0) {
-			return nlCourse.courseGetAssignmentReportList({assignid: assignId, search: filter});
+            params.assignid = assignId;
+			return nlCourse.courseGetAssignmentReportList(params);
 		}
-		return nlCourse.courseGetMyReportList({search:filter});
+		return nlCourse.courseGetMyReportList(params);
 	}
 	
 	function _getStaticCards() {

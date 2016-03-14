@@ -1,18 +1,18 @@
 <div class='nl-toolbar margin0 padding-small'>
-    <img title='{{showHideAllText}}'
+    <img title='Collapse all'
+         ng-hide='isTreeCollapsed'
          class='nl-24 nl-clickable'
-         ng-src='{{showHideAllIcon}}' 
-         ng-click='showHideAll()'/>
+         ng-src='{{imgBasePath + "up.png"}}'
+         ng-click='collapseAll()'/>
     <img title='{{expandViewText}}'
          class='nl-24 nl-clickable'
          ng-src='{{expandViewIcon}}' 
          ng-click='expandViewClick()'/>
-    <a ng-show='forumInfo.refid'
-       ng-href='/#/forum?forumtype=3&refid={{forumInfo.refid}}&secid2={{forumInfo.secid}}'>
-        <img title='Discussion forum'
-             class='nl-24 nl-clickable'
-             ng-src='{{imgBasePath + "toolbar-view/discuss.png"}}'/>
-    </a>
+    <img title='Discussion forum'
+         ng-show='forumInfo.refid'
+         class='nl-24 nl-clickable'
+         ng-src='{{imgBasePath + "toolbar-view/discuss.png"}}'
+         ng-click='launchForum()'/>
     <img title='Add'
          ng-show='mode == MODES.EDIT'
          class='nl-24 nl-clickable'
@@ -27,7 +27,7 @@
 			<th ng-if='planning == true'>Plan</th>
 			<th>Summary</th>
 		</tr>
-		<tr ng-repeat='cm in modules' ng-show='cm.visible'>
+		<tr ng-repeat='cm in modules'>
 			<td ng-click='onClick($event, cm, false)' ng-style='cm.indentationStyle'>
 				<span>&nbsp;</span>
 				<img class='nl-icon' ng-class='{"nl-clickable": cm.clickable}' ng-src='{{getIcon(cm)}}'>

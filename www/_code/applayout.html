@@ -9,13 +9,15 @@
     width: auto;
     z-index: -100;
     background-size: cover;
+}
+.nl-pagecanvas-bgimg {
     background-image: url({{pgBgimg}});
 }
 </style>
 
 <div id='nl-pagecanvas' ng-click='onCanvasClick($event)' ng-keydown="onKeyDown($event)" tabindex='0'
     ng-class='{"nl-hide":!pgInfo.isPageShown}' class='nl-screen-{{screenSize}}'>
-    <div ng-show='pgBgimg' class='nl-pagecanvas-bg'></div>
+    <div ng-show='pgBgimg' class='nl-pagecanvas-bg' ng-class='{"nl-pagecanvas-bgimg" : pgBgimg}'></div>
 
     <nav id='nl-topbar' ng-show='pgInfo.isMenuShown' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
         <a id='nl-logo' ng-href='{{homeUrl}}'>

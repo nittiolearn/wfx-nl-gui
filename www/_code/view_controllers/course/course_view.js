@@ -152,18 +152,21 @@ function ModeHandler(nl, nlCourse, nlDlg) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse',
-function(nl, nlRouter, $scope, nlDlg, nlCourse) {
+var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg',
+function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg) {
     var modeHandler = new ModeHandler(nl, nlCourse, nlDlg);
     var treeList = new TreeList(nl);
     var courseReportSummarizer = new CourseReportSummarizer($scope);
     var _userInfo = null;
+    var _allModules = [];
     $scope.MODES = MODES;
     function _onPageEnter(userInfo) {
         _userInfo = userInfo;
         return nl.q(function(resolve, reject) {
             treeList.clear();
             $scope.params = nl.location.search();
+            $scope.expandedView = (nl.rootScope.screenSize != 'small'); 
+            _updateExpandViewIcon();
             if (!('id' in $scope.params) || !modeHandler.initMode()) {
                 nlDlg.popupStatus(nl.t('Invalid url'));
                 resolve(false);
@@ -174,6 +177,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
             var courseId = parseInt($scope.params.id);
             modeHandler.getCourse().then(function(course) {
             	_onCourseRead(course);
+            	_showVisible();
                 resolve(true);
             }, function(error) {
                 resolve(false);
@@ -182,7 +186,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
     }
 
     function _onCourseRead(course) {
-        courseReportSummarizer.updateReportInfo(course);
+        courseReportSummarizer.updateUserReports(course);
         modeHandler.initTitle(course);
         $scope.planning = course.content.planning;
         if ('forumRefid' in course) {
@@ -191,18 +195,27 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
             $scope.forumInfo = {refid: 0};
         }
         var modules = course.content.modules;
-        $scope.modules = [];
+        _allModules = [];
         for(var i=0; i<modules.length; i++) {
             var module = angular.copy(modules[i]);
             var userRecords = courseReportSummarizer.getUserRecords(course, module);
             _initModule(module);
-            $scope.modules.push(module);
+            _allModules.push(module);
             for(var j=0; j<userRecords.length; j++) {
                 _initModule(userRecords[j]);
-                $scope.modules.push(userRecords[j]);
+                _allModules.push(userRecords[j]);
             }
         }
         _updateAllItemData(modeHandler);
+    }
+
+    function _showVisible() {
+        $scope.modules = [];
+        for(var i=0; i<_allModules.length; i++) {
+            var cm=_allModules[i];
+            if (!cm.visible) continue;
+            $scope.modules.push(cm);
+        }
     }
 
     function _onPageLeave() {
@@ -216,14 +229,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
     
     nlRouter.initContoller($scope, '', _onPageEnter, _onPageLeave);
 
-    treeList.updateShowHideAllIcon($scope);
-    $scope.showHideAll = function() {
-        treeList.showHideAll();
-        treeList.updateShowHideAllIcon($scope);
+    $scope.isTreeCollapsed = true;
+    $scope.collapseAll = function() {
+        treeList.collapseAll();
+        $scope.isTreeCollapsed = true;
+        _showVisible();
     };
     
-    $scope.expandedView = false; 
-    _updateExpandViewIcon();
     $scope.expandViewClick = function() {
         $scope.expandedView = !$scope.expandedView;
         $scope.expandviewtext = _updateExpandViewIcon();
@@ -238,6 +250,19 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         $scope.expandViewText = nl.t('Show more');
         $scope.expandViewIcon = nl.url.resUrl('more.png');
     }
+    
+    var forumDlg = null;
+    $scope.launchForum = function() {
+        if (!forumDlg) {
+            // FireFox and IE do not show the iFrame if the URL is same as launching URL
+            // So as a workaround we need some different string in server part of URL
+            var randqs = (new Date()).getTime();
+            var url = nl.fmt2('/?randqs={}#/forum?forumtype=3&refid={}&secid2={}&hidemenu', 
+                              randqs, $scope.forumInfo.refid, $scope.forumInfo.secid);
+            forumDlg = nlIframeDlg.create($scope, url, nl.t('Discussion forum'));
+        }
+        forumDlg.show();
+    };
 
     $scope.addContent = function() {
         var newDlg = nlDlg.create($scope);
@@ -317,7 +342,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
         if (cm.type === 'lesson') {
             modeHandler.handleLessonLink(cm, newTab, $scope);
         } else if(cm.type === 'module') {
-            treeList.toggleItem(cm);    
+            treeList.toggleItem(cm);
+            $scope.isTreeCollapsed = treeList.isTreeCollapsed();
+            _showVisible();
         } else if(cm.type === 'link') {
             modeHandler.handleLink(cm, newTab, $scope);
         }
@@ -682,7 +709,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse) {
 function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
     if (ID_ATTR === undefined) ID_ATTR = 'id';
     if (DELIM === undefined) DELIM = '.';
-    if (VISIBLE_ON_OPEN === undefined) VISIBLE_ON_OPEN = 1; // Practically all levels are visible
+    if (VISIBLE_ON_OPEN === undefined) VISIBLE_ON_OPEN = 1; // Only top level visible by default
     
     this.clear = function() {
         this.items = {};
@@ -716,21 +743,9 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
         return this.rootItems;
     };
 
-    this.bExpanded = false;
-    this.updateShowHideAllIcon = function($scope) {
-        if (this.bExpanded) {
-            $scope.showHideAllText = nl.t('Collapse all');
-            $scope.showHideAllIcon = nl.url.resUrl('up.png');
-            return;
-        }
-        $scope.showHideAllText = nl.t('Expand all');
-        $scope.showHideAllIcon = nl.url.resUrl('down.png');
-    };
-    
-    this.showHideAll = function() {
-        this.bExpanded = !this.bExpanded;
+    this.collapseAll = function() {
         for (var itemId in this.items) {
-            this.showHideItem(this.items[itemId], this.bExpanded);
+            this.showHideItem(this.items[itemId], false);
         }
     };
     
@@ -761,6 +776,13 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
             child.visible = bOpen;
             this._closeChildren(child);
         }
+    };
+
+    this.isTreeCollapsed = function() {
+        var rootItems = this.rootItems;
+        for (var i=0; i<rootItems.length; i++)
+            if (rootItems[i].isOpen) return false;
+        return true;
     };
 
     this._closeChildren = function(item) {
@@ -806,27 +828,24 @@ function CourseReportSummarizer($scope) {
         return ret;
     }
     
-    this.updateReportInfo = function(course) {
+    this.updateUserReports = function(course) {
         if ($scope.mode != MODES.REPORTS_SUMMARY_VIEW) return;
-        course.lessonReports = {};
-        course.statusinfo = {};
         var userReports = course.userReports;
-        for (var i=0; i<userReports.length; i++) {
-            var userReport = userReports[i];
-            _updateDict(userReport.lessonReports, course.lessonReports, userReport.id);
-            _updateDict(userReport.statusinfo, course.statusinfo, userReport.id);
+        course.userReports = [];
+        for (var u in userReports) {
+            course.userReports.push(userReports[u]);
         }
+        course.userReports = course.userReports.sort(function(a, b) {
+            if (a.studentname < b.studentname) return -1;
+            // They being equal is very unlikely in our case!
+            return 1;
+        });
     }
 
     function _getModuleId(parentId, reportId) {
         return parentId + '.' + reportId;
     }
     
-    function _updateDict(src, dest, repid) {
-        for(var key in src) {
-            dest[_getModuleId(key, repid)] = src[key];
-        }
-    }
 }
 
 //-------------------------------------------------------------------------------------------------

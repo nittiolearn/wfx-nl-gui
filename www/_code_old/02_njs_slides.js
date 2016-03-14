@@ -12,7 +12,7 @@ njs_slides = function() {
 	
 	var ZINDEX_HIDE = -100;
 	var ZINDEX_SHOW = 0;
-	var ANIM_DURATION = 800;
+	var ANIM_DURATION = 600;
 
 	//----------------------------------------------------------------------------------
 	// SlideSet class
@@ -25,6 +25,7 @@ njs_slides = function() {
 		this.prev = SlideSet_prev;
 		this.next = SlideSet_next;
 		this.gotoPage = SlideSet_gotoPage;
+		this.gotoPagePost = SlideSet_gotoPagePost;
 		this.mediaStop = SlideSet_mediaStop;
 		this.mediaAutoPlay = SlideSet_mediaAutoPlay;
 		this.getPageCount = SlideSet_getPageCount;
@@ -86,8 +87,8 @@ njs_slides = function() {
 	}
 	
 	function SlideSet_hidePage(page) {
-		page.velocity({translateX: [-100000, 0], translateY: [-100000, 0], 
-			rotateX: 0, rotateY: 0, skewX: 0, skewY: 0, 'z-index': ZINDEX_HIDE, opacity: 0}, 0);
+	    var props = {translateX: [-10000, 0], opacity: 0, 'z-index': ZINDEX_HIDE};
+        page.velocity('stop', true).velocity(props, 0);
 	}
 
 	//----------------------------------------------------------------------------------
@@ -149,16 +150,24 @@ njs_slides = function() {
 		var newPage = this.pages[p];
 
 		this.mediaStop();
+		
+		var me = this;
+		var postAnimationFn = function() {
+		    me.gotoPagePost();
+		};
+		
 		if (p == this.curPage) {
 			if (samePageAnimation !== 1 && samePageAnimation !== -1) samePageAnimation = 0;
-			this.pageTransition.showPage(newPage, samePageAnimation);
+			this.pageTransition.showPage(newPage, samePageAnimation, postAnimationFn);
 		} else if (this.curPage < p) {
-			this.pageTransition.moveNext(oldPage, newPage);
+			this.pageTransition.moveNext(oldPage, newPage, postAnimationFn);
 		} else {
-			this.pageTransition.movePrev(oldPage, newPage);
+			this.pageTransition.movePrev(oldPage, newPage, postAnimationFn);
 		}
-		
 		this.curPage = p;
+	}
+	
+	function SlideSet_gotoPagePost() {
 		if (this.pageNo != null) {
 			this.pageNo.html(this.curPage+1);
 			this.pageNo.show();
@@ -240,40 +249,44 @@ njs_slides = function() {
 		this.effect = (effect in _effects) ? effect : 'default';
 	}
 
-	function PageTransition_showPage(newPage, samePageAnimation) {
+	function PageTransition_showPage(newPage, samePageAnimation, postAnimationFn) {
 		var props = _effects[this.effect](this);
 
-		var velProps = {translateX: [0, 0], translateY: [0, 0], rotateY: [0, 0], skewY: [0, 0],
-					 opacity: [1, 0], 'z-index': ZINDEX_SHOW};
+		var velProps = {translateX: [0, 0], opacity: [1, 0], 'z-index': ZINDEX_SHOW};
 		if (samePageAnimation == -1) {
 			velProps = props.new_prev;
 		} else if (samePageAnimation == 1) {
 			velProps = props.new_next;
 		}
 
-		this.transitionPages(null, newPage, null, velProps);
+		this.transitionPages(null, newPage, null, velProps, postAnimationFn);
 	}
 
-	function PageTransition_moveNext(oldPage, newPage) {
+	function PageTransition_moveNext(oldPage, newPage, postAnimationFn) {
 		var props = _effects[this.effect](this);
-		this.transitionPages(oldPage, newPage, props.old_next, props.new_next);
+		this.transitionPages(oldPage, newPage, props.old_next, props.new_next, postAnimationFn);
 	}
 
-	function PageTransition_movePrev(oldPage, newPage) {
+	function PageTransition_movePrev(oldPage, newPage, postAnimationFn) {
 		var props = _effects[this.effect](this);
-		this.transitionPages(oldPage, newPage, props.old_prev, props.new_prev);
+		this.transitionPages(oldPage, newPage, props.old_prev, props.new_prev, postAnimationFn);
 	}
 
-	function PageTransition_transitionPages(oldPage, newPage, oldProps, newProps) {
+    var g_transitionId=0;
+	function PageTransition_transitionPages(oldPage, newPage, oldProps, newProps, postAnimationFn) {
+	    g_transitionId++;
+	    var myTransitionId = g_transitionId;
+	    function postAnim() {
+	        if (myTransitionId != g_transitionId) return;
+	        postAnimationFn();
+	    }
+	    
 		if (oldPage != null) {
-			var opts = {duration: ANIM_DURATION, easing: 'easeOutQuad',
-				complete: function() { SlideSet_hidePage(oldPage); }};
-			oldPage.velocity('stop', true);
-			oldPage.velocity(oldProps, opts);
+            var opts = {duration: ANIM_DURATION, easing: 'easeOutQuad'};
+			oldPage.velocity('stop', true).velocity(oldProps, opts);
 		}
-		var opts2 = {duration: ANIM_DURATION, easing: 'easeOutQuad'};
-		newPage.velocity('stop', true);
-		newPage.velocity(newProps, opts2);
+        var opts2 = {duration: ANIM_DURATION, easing: 'easeOutQuad', complete: postAnim};
+		newPage.velocity('stop', true).velocity(newProps, opts2);
 	}
 	
 	//----------------------------------------------------------------------------------
@@ -285,10 +298,10 @@ njs_slides = function() {
 	var w = ptObj.slideSet.slideSetDom.width();
 	var h = ptObj.slideSet.slideSetDom.height();
 	return {
-	old_next: {translateX: [-2*w, 0], translateY: [0, 0], rotateY: [0, 0], skewY: [0, 0], opacity: [0, 1], 'z-index': ZINDEX_HIDE},
-	new_next: {translateX: [0, 2*w], translateY: [0, 0], rotateY: [0, 0], skewY: [0, 0], opacity: [1, 0], 'z-index': ZINDEX_SHOW},
-	old_prev: {translateX: [2*w, 0], translateY: [0, 0], rotateY: [0, 0], skewY: [0, 0], opacity: [0, 1], 'z-index': ZINDEX_HIDE},
-	new_prev: {translateX: [0, -2*w], translateY: [0, 0], rotateY: [0, 0], skewY: [0, 0], opacity: [1, 0], 'z-index': ZINDEX_SHOW}
+	old_next: {translateX: [-2*w, 0], opacity: [0, 1], 'z-index': ZINDEX_HIDE},
+	new_next: {translateX: [0, 2*w], opacity: [1, 0], 'z-index': ZINDEX_SHOW},
+	old_prev: {translateX: [2*w, 0], opacity: [0, 1], 'z-index': ZINDEX_HIDE},
+	new_prev: {translateX: [0, -2*w], opacity: [1, 0], 'z-index': ZINDEX_SHOW}
 	};},
 
 	'linear': function(ptObj) {

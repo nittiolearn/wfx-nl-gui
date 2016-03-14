@@ -1,5 +1,5 @@
 <div class='row row-center margin0 padding-small'>
-    <div class='col nl-forum-header'
+    <div class='col nl-forum-header' style='max-height: 30px; overflow:hidden;'
           ng-bind-html='getTopicName()'>
     </div>
     <nl-forum-toolbar clas='col min-200'></nl-forum-toolbar>
@@ -19,8 +19,9 @@
                  <b>{{msg.authorname}}</b>
             </div>
             <div class='col min-200 padding-small nl-clickable nl-forum-header2'
-                 ng-click='expandCollapseMsg(msg)'
-                 ng-bind-html='msg.title'>
+                 ng-click='expandCollapseMsg(msg)'>
+                 <span ng-bind-html='msg.title'></span>
+                 <span>({{msg.children.length+1}})</span>
             </div>
             <div ng-hide='currentTopicId == msg.id'
                  class='col text-right fixed-200 padding-small nl-forum-ts'>{{msg.htmlUpdated}}</div>
@@ -36,5 +37,8 @@
     </nl-forum-input>
     <div ng-if='msgTree.length == 0' class='padding-small'>
         <h3>There is no message to display.</h3>
+    </div>
+    <div ng-if='!currentTopicId && msgCount > 1' class='padding-small'>
+        {{msgCount}} messages<span ng-if='moreResults'> since {{since}}. <span class='nl-clickable' ng-click='loadOlderMessages()'>Load older messages</span></span>.
     </div>
 </div>

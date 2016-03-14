@@ -359,7 +359,6 @@ npagetypes = function() {
 		this.getSectionOnCreateFn = PageType_getSectionOnCreateFn;
 		this.getSectionOnRenderFn = PageType_getSectionOnRenderFn;
 		this.getSectionAdjustHtmlFn = PageType_getSectionAdjustHtmlFn;
-		this.getSectionPostRenderFn = PageType_getSectionPostRenderFn;
 		this.getSectionTextFn = PageTypes_getSectionTextFn;
 
 		this.getMaxScore = PageType_getMaxScore;
@@ -500,10 +499,6 @@ npagetypes = function() {
 
 	function PageType_getSectionAdjustHtmlFn() {
 		return _getBehaviourFn(this.interaction, 'adjustHtml');
-	}
-
-	function PageType_getSectionPostRenderFn() {
-		return _getBehaviourFn(this.interaction, 'postRender');
 	}
 
 	function PageTypes_getSectionTextFn() {
@@ -712,8 +707,6 @@ npagetypes = function() {
 			_showPgSecText(section);
 		},
 		'adjustHtml' : function(section) {
-		},
-		'postRender' : function(section) {
 		},
 		'getSectionText' : function(section) {
 			return section.pgSecText.val();
@@ -1708,14 +1701,6 @@ npagetypes = function() {
 				section.setViewHtml(_BehQuestionnaire_getReportHtml(section, answerData), false);
 			}
 			_showPgSecView(section);
-		},
-		'postRender' : function(section) {
-			var layout = _getLayoutOfSec(section);
-			var secNo = section.secNo;
-			var pageMode = _getPageMode(section.page);
-			if (!_isAnswer(layout, secNo) || pageMode != 'do') {
-				return _getBehaviourFnFromBaseClass(BehQuestionnaire, 'postRender')(section);
-			}
 		},
 		'onScore' : function(page) {
 			_BehQuestionnaire_updateAnswers(page);

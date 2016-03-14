@@ -80,6 +80,9 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
 			}
             $scope.canShowDetails = nlRouter.isPermitted(userInfo, 'forum_view_details');
             $scope.currentTopicId = 0;
+            $scope.since = null;
+            $scope.msgCount = 0;
+            $scope.moreResults = true;
 
 			serverParams = {forumtype: params.forumtype, refid: params.refid};
 			if ('secid' in params) {
@@ -93,6 +96,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
 
 			nlServerApi.forumGetMsgs(serverParams).then(function(forumInfo) {
 			    _updateForumData(forumInfo);
+			    $scope.moreResults = (forumInfo.moreResults == true);
 				resolve(true);
 			}, function(error) {
 			    resolve(false);
@@ -165,6 +169,10 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
         _refreshDataFromServer();
     };
 
+    $scope.loadOlderMessages = function() {
+        _loadOlderMessages();
+    };
+    
     //-------------------------------------------------------------------------
     // Handlers for each message row
     $scope.expandCollapseMsg = function(msg) {
@@ -202,6 +210,9 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
     //-------------------------------------------------------------------------
     function _updateForumData(forumInfo) {
         $scope.msgTree = messageMgr.updateMessages(forumInfo.msgs);
+        $scope.since = messageMgr.range_since ? nl.fmt.date2Str(messageMgr.range_since) : '';
+        $scope.msgCount = 0;
+        for (var key in messageMgr.idToMsg) $scope.msgCount++;
         var msg = messageMgr.getMsg($scope.currentTopicId);
         if (!msg) $scope.currentTopicId = 0;
     }
@@ -209,17 +220,25 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
     function _refreshDataFromServer() {
         _updateServer(nlServerApi.forumGetMsgs, {});
     }
+    
+    function _loadOlderMessages() {
+        function onDone(forumInfo) {
+            $scope.moreResults = (forumInfo.moreResults == true);
+        }
+        _updateServer(nlServerApi.forumGetMsgs, {till: messageMgr.range_since}, onDone);
+    }
 
-    function _updateServer(nlServerApiFn, extraParams) {
+    function _updateServer(nlServerApiFn, extraParams, onDone) {
         var params = angular.copy(serverParams);
         for (var key in extraParams) {
             params[key] = extraParams[key];
         }
-        if (messageMgr.range_till) params.since = messageMgr.range_till;
+        if (messageMgr.range_till && !('till' in params)) params.since = messageMgr.range_till;
         nlDlg.showLoadingScreen();
         nlServerApiFn(params).then(function(forumInfo) {
             nlDlg.hideLoadingScreen();
             _updateForumData(forumInfo);
+            if (onDone) onDone(forumInfo);
         });
     };
     
@@ -333,6 +352,17 @@ function MessageManager(nl, nlRouter, nlServerApi, nlMarkup) {
             }
             self.idToMsg[msg.id] = msg;
         }
+        _deleteOrphans(self);
+    }
+    
+    function _deleteOrphans(self) {
+        var toDelete = [];
+        for(var msgid in self.idToMsg) {
+            var parentid = self.idToMsg[msgid].parentid;
+            if (parentid == 0 || parentid in self.idToMsg) continue;
+            toDelete.push(msgid);
+        }
+        for(var i=0; i<toDelete.length; i++) delete self.idToMsg[toDelete[i]];
     }
     
     function _getMsgTree(self) {

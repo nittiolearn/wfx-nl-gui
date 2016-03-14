@@ -435,7 +435,7 @@ img.nl-clickable {
     background-color: $nldlgbar;
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
-    padding: 4px 32px 4px 4px;
+    padding: 4px 62px 4px 4px;
     min-height: 32px;
     height: 32px;
     overflow: hidden;
@@ -486,13 +486,17 @@ img.nl-clickable {
   border-top: none;
 }
 
-.nl-dlg-title-help {
+.nl-dlg-title-buttons {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  height: 24px;
-  width: 24px;
-  cursor:pointer;
+  top: 0px;
+  right: 0px;
+  height: 32px;
+  padding: 4px;
+  img {
+    height: 24px;
+    width: 24px;
+    cursor:pointer;
+  }
 }
 
 nl-dlg-help {
@@ -517,6 +521,26 @@ nl-dlg-help {
 .nl-dlg.nl-height-max {
   .popup-body {
     height: 96vh;
+  }
+}
+
+.nl-dlg.nl-max {
+  .popup {
+    max-width: 99vw;
+    max-height: 99vh;
+  }
+  .popup-body {
+    width: 99vw;
+    height: 99vh;
+  }
+  nl-dlg-content {
+    position: absolute;
+    left: 0;
+    top: 32px;
+    bottom: 0;
+    right: 0;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
   }
 }
 
