@@ -6,7 +6,7 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.lib_ui', ['nl.ui.dlg', 'nl.ui.iframedlg', 'nl.ui.cards', 
-                   'nl.ui.utils', 'nl.ui.markup']);
+                   'nl.ui.utils', 'nl.ui.markup', 'ivh.treeview']);
 }
 
 //-------------------------------------------------------------------------------------------------
