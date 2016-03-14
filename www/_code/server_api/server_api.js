@@ -342,16 +342,16 @@ function(nl, nlDlg, nlConfig) {
         return server.post('_serverapi/lesson_copy.json', data);
 	};
 
-	this.lessonPreApproveCheck = function(data){
+	this.lessonPreApproveCheck = function(lessonId){
 	    //data = lessonid
 	    //copy the lesson
-		return server.post('_serverapi/pre_approve_chech.json', data);
+		return server.post('_serverapi/lesson_preapprove_check.json', {lessonid : lessonId});
 	};
 	
-	this.lessonApprove = function(lessonId) {
-        // data: lessonId
+	this.lessonApprove = function(data) {
+        // data: lessonId, exportLevel, selectedOus.
         // return: list with approved lesson removed.
-        return server.post('_serverapi/lesson_approve.json', {lessonid : lessonId});
+        return server.post('_serverapi/lesson_approve.json', data);
 	};
 	
 	this.lessonDisapprove = function(lessonId) {

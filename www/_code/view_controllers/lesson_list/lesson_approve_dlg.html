@@ -1,24 +1,27 @@
-
+<style>
+.nl-tree-structure{
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+</style>
 <nl-dlg title='Approve lessons'>
     <nl-dlg-help></nl-dlg-help>
     <nl-dlg-content>
 			<div class='row'>
-				<span class='col col-20'>Visibality</span>
-				<select class='col col-80 nl-grade-search' ng-model="data.approveto">
-						<option ng-repeat='approve in cards.approveto' value='{{approve}}'>{{approve}}</option>
-			    </select>
+				<div class='col col-20'>visibality</div>
+				<nl-select fieldmodel='exportLevel' class='col'></nl-select>
 			</div>
-		</br>
-			<div class='row'>
-				<span class='col col-20'>Visible to</span>
-				<span class='col col-80'>lesson.name</span>
-			</div>
-		</br>
-			<div class= 'row'>
-				<span class='col col-20'></span>
-				<div class='col col-80' ng-model="data.approvedto" ng-repeat='approve in cards.approveto'>
-			    <span>{{approve}}</span></br>
-			    </div>				
+			<div class='row margin0 padding-vertical'>
+				<div class='col col-20'>visible to</div>
+				<div class='col'>
+					<div><b>{{data.visibleTo}}</b></div>
+					<div class='padding-small'></div>
+					<div class='nl-tree-structure'
+					    ivh-treeview="treeData"
+			 			ivh-treeview-options="treeOptions"		    
+			 			ivh-treeview-on-cb-change="onNodeClick(ivhNode, ivhIsSelected, ivhTree)">
+					</div>
+				</div>
 			</div>
     </nl-dlg-content>
 </nl-dlg>
