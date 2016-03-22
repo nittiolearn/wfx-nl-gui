@@ -954,6 +954,7 @@ img.nl-icon {
 /*-----------------------------------------------------------------------------------------*
  * applayout.html elements: full page view
  *-----------------------------------------------------------------------------------------*/
+/* TODO - when you need to apply a visual transition
 .fullpage {
   -webkit-transition:0.3s linear all;
   transition:0.3s linear all;
@@ -963,9 +964,10 @@ img.nl-icon {
   -webkit-transition:0.3s linear all;
   transition:0.3s linear all;
 }
+*/
 
 #nl-body.fullpage {
-  top: 4px;
+  top: 0px;
 }
 
 #nl-topbar.fullpage {
@@ -1141,7 +1143,7 @@ img.nl-full-width {
     /* background-image: will be defined in the html fragment */
   }
     
-  .bg-dark, .bg-dark1 {
+  .bg-dark, .bg-dark1, .bg-dark a, .bg-dark1 a {
     color: #FFFFFF;
   }
 

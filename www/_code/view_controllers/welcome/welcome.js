@@ -22,6 +22,24 @@ function($stateProvider, $urlRouterProvider) {
             }
         }
     });
+    $stateProvider.state('app.business', {
+        url : '^/business',
+        views : {
+            'appContent' : {
+                templateUrl: 'view_controllers/welcome/business.html',
+                controller : 'nl.WelcomeCtrl'
+            }
+        }
+    });
+    $stateProvider.state('app.school', {
+        url : '^/school',
+        views : {
+            'appContent' : {
+                templateUrl: 'view_controllers/welcome/school.html',
+                controller : 'nl.WelcomeCtrl'
+            }
+        }
+    });
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -34,6 +52,7 @@ function(nl, nlRouter, $scope, nlDlg, nlLogViewer, nlServerApi, nlCardsSrv) {
         msg2: nl.t('Structure all aspects of teaching. Set your goals, engage your teachers and leap ahead.')
     };
 	function _onPageEnter(userInfo) {
+	    nl.pginfo.hidemenu = true;
         return nl.q(function(resolve, reject) {
             nl.pginfo.pageTitle = $scope.content.title;
             nl.pginfo.pageSubTitle = '';

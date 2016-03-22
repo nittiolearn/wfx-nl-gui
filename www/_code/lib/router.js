@@ -75,6 +75,7 @@ function(nl, nlDlg, nlServerApi, $state) {
     function _onPageEnter($scope, pageUrl, pageEnterFn, e) {
         windowDescription = '';
         nl.pginfo.isPageShown = false;
+        nl.pginfo.hidemenu = false;
         nlDlg.showLoadingScreen();
         var protocol = nl.location.protocol().toLowerCase();
         if (protocol.indexOf('file') >= 0) {
@@ -134,7 +135,7 @@ function(nl, nlDlg, nlServerApi, $state) {
     
     function _done(rerouteToUrl) {
         var params = nl.location.search();
-        nl.pginfo.isMenuShown = (!('hidemenu' in params));
+        nl.pginfo.isMenuShown = (!('hidemenu' in params || nl.pginfo.hidemenu));
         nlDlg.hideLoadingScreen();
 
         if (rerouteToUrl != null) {
@@ -186,6 +187,8 @@ function Permission(nl) {
         '/home': {login: true, permission: 'basic_access', termRestriction: TR_OPEN}, 
         '/home_refresh': {login: false, permission: '', termRestriction: TR_OPEN},
         '/welcome': {login: false, permission: '', termRestriction: TR_OPEN}, 
+        '/school': {login: false, permission: '', termRestriction: TR_OPEN}, 
+        '/business': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/login_now': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/logout_now': {login: false, permission: '', termRestriction: TR_OPEN},
         '/audit': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
