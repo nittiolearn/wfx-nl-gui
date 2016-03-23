@@ -1,118 +1,24 @@
-<style>
-	body {
-		font-family: Lato, Verdana, Helvetica, Arial, sans-serif;
-	}
-
-	.bg-img {
-		background-image: url({{pageResUrl}}/business/corpbackground.jpg);
-	}
-
-	.x {
-		background-color: yellow;
-	}
-	.x1 {
-		background-color: green;
-	}
-
-	/* added for team page*/
-	.bg-white-tx {
-		background-color: white;
-		opacity: .8;
-	}
-
-	.bg-white {
-		background-color: white;
-	}
-
-	.megah1 {
-		font-size: 400%;
-		font-weight: bold;
-	}
-
-	.megah1, .headingcolor {
-		color: rgb(245, 75, 34);
-	}
-
-	.normalcolor {
-		color: #000000;
-	}
-
-	.nl-max-300 {
-		max-width: 300px;
-	}
-	.col.min-400 {
-		-webkit-box-flex: 0;
-		-webkit-flex: 1 0 400px;
-		-moz-box-flex: 0;
-		-moz-flex: 1 0 400px;
-		-ms-flex: 1 0 400px;
-		flex: 1 0 400px;
-		min-width: 400px;
-	}
-
-	.nl-col-5 {
-		flex-basis: 0;
-		flex-grow: 1;
-		width: 5%;
-	}
-	.nl-col-20 {
-		flex-basis: 0;
-		flex-grow: 4;
-	}
-
-	strong {
-		color: white;
-	}
-
-	.nl-top-menuitems {
-		text-align: right;
-		color: #FFFFFF;
-		min-width: 126px;
-	}
-	
-	.nl-top-menuitems span {
-		padding-left: 40px;
-	}
-
-	.nl-offset-shrink {
-		flex-shrink: 5;
-	}
-</style>
-
-<div class='nl-static nl-thin-scroll nl-full bg-dark'>
-	<div class='section bg-dark1 page_height'>
-		<div class='bg-img-opaque'></div>
-		<div class='bg-img'></div>
-		<div class='row row-top'>
-			<div class='col fixed-200'>
-				<a href='/#/home'><img src='{{pageResUrl}}/nittiologo.png' class='full-image'/></a>
-			</div>
-			<div class='col col-20'></div>
-			<div class='col nl-top-menuitems'>
-				<span class='nl-clickable'>Features</span>
-				<span>Pricing</span>
-				<span>Request a demo</span>
-				<span>SIGN IN</span>
-			</div>
-		</div>
-
+<nl-sp>
+    <nl-sp-page1>
+        <div class='padding'></div>
+        <div class='padding'></div>
 		<div class = 'row row-center padding'>
 			<div class = 'col-20'></div>
 			<div class = 'col padding bg-white-tx'>
-				<span class='megah1'>Nittio Learn </span><span class='nl-h1 headingcolor'> for corporates </span>
+				<span class='megah1'>Nittio Learn </span><span class='nl-h1'> for businesses </span>
 				<br/>
 				<span class='normalcolor nl-h2'>manage your internal trainings with ease.</span>
 			</div>
 		</div>
-	</div>
+	</nl-sp-page1>
 
 	<div class='section padding row row-wrap row-top'>
-		<div class='nl-h2 headingcolor padding-vertical'>
+		<div class='nl-h2 orange padding-vertical'>
 			How does Nittio Learn for corporates work
 		</div>
 		<div class='col min-200 padding'>
 			<div class='text-center padding-vertical'>
-				<img class='nl-max-100' src='{{pageResUrl}}/business/buildcourse.png' />
+				<img class='nl-max-100' ng-src='{{pageResUrl}}/buildcourse.png' />
 			</div>
 			<div class='nl-imp padding-vertical text-center'>
 				Build course
@@ -123,7 +29,7 @@
 		</div>
 		<div class='col min-200 padding'>
 			<div class='text-center padding-vertical'>
-				<img class='nl-max-100' src='{{pageResUrl}}/business/assigncourse.png' />
+				<img class='nl-max-100' ng-src='{{pageResUrl}}/assigncourse.png' />
 			</div>
 			<div class='nl-imp padding-vertical text-center'>
 				Assign course
@@ -134,7 +40,7 @@
 		</div>
 		<div class='col min-200 padding'>
 			<div class='text-center padding-vertical'>
-				<img class='nl-max-100' src='{{pageResUrl}}/business/trackprogress.png' />
+				<img class='nl-max-100' ng-src='{{pageResUrl}}/trackprogress.png' />
 			</div>
 			<div class='nl-imp padding-vertical text-center'>
 				Track progress
@@ -154,7 +60,7 @@
 				<strong>New employee training</strong>
 			</div>
 			<div class='text-center '>
-				<img src='{{pageResUrl}}/business/newemptraining.png' class='nl-max-200 '/>
+				<img ng-src='{{pageResUrl}}/newemptraining.png' class='nl-max-200 '/>
 			</div>
 		</div>
 
@@ -163,7 +69,7 @@
 				<strong>Compliance training</strong>
 			</div>
 			<div class='text-center'>
-				<img src='{{pageResUrl}}/business/compliancetraining.png' class='nl-max-200 '/>
+				<img ng-src='{{pageResUrl}}/compliancetraining.png' class='nl-max-200 '/>
 			</div>
 		</div>
 
@@ -172,7 +78,7 @@
 				<strong>Domain specific training</strong>
 			</div>
 			<div class='text-center'>
-				<img src='{{pageResUrl}}/business/domainspecifictraining.png' class='nl-max-200 '/>
+				<img ng-src='{{pageResUrl}}/domainspecifictraining.png' class='nl-max-200 '/>
 			</div>
 		</div>
 		<div class='col min-400 padding-horizontal'>
@@ -180,20 +86,20 @@
 				<strong>Employee assessment & survey </strong>
 			</div>
 			<div class='text-center'>
-				<img src='{{pageResUrl}}/business/empsurvey.png' class='nl-max-200 '/>
+				<img ng-src='{{pageResUrl}}/empsurvey.png' class='nl-max-200 '/>
 			</div>
 		</div>
 	</div>
 	
 	<div class='section row row-wrap row-center bg-white'>
-		<div class='nl-h2 headingcolor padding-vertical'>
+		<div class='nl-h2 nl-imp padding-vertical'>
 			Features
 		</div>
 
 		<div class='col min-400 padding'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img src='{{pageResUrl}}/business/easybuilder.png' class='full-image' />
+					<img ng-src='{{pageResUrl}}/easybuilder.png' class='full-image' />
 				</div>
 				<p class='nl-h1 normalcolor'>
 					Easy course builder
@@ -204,7 +110,7 @@
 		<div class='col min-400 padding'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img src='{{pageResUrl}}/business/reporting.png' class='full-image' />
+					<img ng-src='{{pageResUrl}}/reporting.png' class='full-image' />
 				</div>
 				<p class='nl-h1 normalcolor'>
 					Powerful reporting
@@ -215,7 +121,7 @@
 		<div class='col min-400 padding'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img src='{{pageResUrl}}/business/acrossdevices.png' class='full-image' />
+					<img ng-src='{{pageResUrl}}/acrossdevices.png' class='full-image' />
 				</div>
 				<p class='nl-h1 normalcolor'>
 					Access across devices
@@ -226,7 +132,7 @@
 		<div class='col min-400 padding'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img src='{{pageResUrl}}/business/controlledaccess.png' class='full-image' />
+					<img ng-src='{{pageResUrl}}/controlledaccess.png' class='full-image' />
 				</div>
 				<p class='nl-h1 normalcolor'>
 					Controlled across
@@ -237,7 +143,7 @@
 		<div class='col min-400 padding'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img src='{{pageResUrl}}/business/dashboards.png' class='full-image' />
+					<img ng-src='{{pageResUrl}}/dashboards.png' class='full-image' />
 				</div>
 				<p class='nl-h1 normalcolor'>
 					Customized dashboards
@@ -248,7 +154,7 @@
 		<div class='col min-400 padding'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img src='{{pageResUrl}}/business/forums.png' class='full-image' />
+					<img ng-src='{{pageResUrl}}/forums.png' class='full-image' />
 				</div>
 				<p class='nl-h1 normalcolor'>
 					Discussion forums
@@ -265,7 +171,7 @@
 		<div class='col col-50 min-400 padding'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img src='{{pageResUrl}}/business/onboardingtime.png' class='full-image' />
+					<img ng-src='{{pageResUrl}}/onboardingtime.png' class='full-image' />
 				</div>
 				<p class='nl-h1'>
 					Reduce employee on-boarding time
@@ -276,7 +182,7 @@
 		<div class='col col-50 min-400 padding'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img src='{{pageResUrl}}/business/reducecost.png' class='full-image' />
+					<img ng-src='{{pageResUrl}}/reducecost.png' class='full-image' />
 				</div>
 				<p class='nl-h1'>
 					Reduce training cost
@@ -287,7 +193,7 @@
 		<div class='col col-50 min-400 padding'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img src='{{pageResUrl}}/business/empeffectiveness.png' class='full-image' />
+					<img ng-src='{{pageResUrl}}/empeffectiveness.png' class='full-image' />
 				</div>
 				<p class='nl-h1'>
 					Increase employee effectiveness
@@ -298,7 +204,7 @@
 		<div class='col col-50 min-400 padding'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img src='{{pageResUrl}}/business/measureresults.png' class='full-image' />
+					<img ng-src='{{pageResUrl}}/measureresults.png' class='full-image' />
 				</div>
 				<p class='nl-h1'>
 					Measure results
@@ -309,13 +215,13 @@
 		<div class='col col-50 min-400 padding'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img src='{{pageResUrl}}/business/acrosslocations.png' class='full-image' />
+					<img ng-src='{{pageResUrl}}/acrosslocations.png' class='full-image' />
 				</div>
 				<p class='nl-h1'>
 					Manage trainings across multiple locations
 				</p>
 			</div>
 		</div>
-
 	</div>
-</div>
+    <nl-sp-footer></nl-sp-footer>
+</nl-sp>

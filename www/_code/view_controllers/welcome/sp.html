@@ -1,0 +1,139 @@
+<style>
+    body {
+        font-family: Lato, Verdana, Helvetica, Arial, sans-serif;
+    }
+    
+    .minh-40 {
+        min-height: 40vh;
+    }
+    
+    .box {
+        border-radius: 4px;
+        background-color: rgba(255, 255, 255, 0.7);
+    }
+    
+    a.box {
+        text-decoration: none;
+    }
+
+    .box:hover, .box:focus {
+        background-color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .nl-top-menuitems {
+		text-align: right;
+		color: #FFFFFF;
+		font-size: 120%;
+	}
+	
+	.nl-top-menuitems a, .nl-top-menuitems span {
+		padding: 8px 20px;
+        border-radius: 4px;
+		text-decoration: none;
+		cursor: pointer;
+	}
+
+    .nl-top-menuitems a:hover, .nl-top-menuitems a:focus, .nl-top-menuitems span:hover, .nl-top-menuitems span:focus {
+        text-decoration: underline;
+        background-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .nl-top-menuitems a.signin {
+        background-color: rgba(255, 255, 80, 0.6);
+    }
+
+    .nl-top-menuitems a.signin:hover, .nl-top-menuitems a.signin:focus {
+        background-color: rgba(255, 255, 80, 0.8);
+    }
+
+    .bg-img {
+        background-image: url({{bgImg}});
+    }
+    
+    .bottom {
+        position: absolute;
+        height: auto;
+        bottom: 0;
+    }
+    
+    .trans-50 {
+        opacity: 0.5;
+    }
+    
+    .orange {
+        color: rgb(245, 75, 34);
+    }
+    
+    .black {
+        color: rgb(0, 0, 0);
+    }
+    
+    .line {
+        border-bottom: 1px solid #CCCCCC;
+    }
+    
+    .border-right {
+        border-right: 1px solid #777777;
+    }
+    
+    .hpad-small {
+        padding: 0 4px;
+    }
+
+    /* business */
+    .bg-white-tx {
+        background-color: white;
+        opacity: .8;
+    }
+
+    .bg-white {
+        background-color: white;
+    }
+
+    .megah1 {
+        font-size: 400%;
+        font-weight: bold;
+    }
+
+    .megah1, .headingcolor {
+        color: rgb(245, 75, 34);
+    }
+
+    .normalcolor {
+        color: #000000;
+    }
+
+    .nl-max-300 {
+        max-width: 300px;
+    }
+    .col.min-400 {
+        -webkit-box-flex: 0;
+        -webkit-flex: 1 0 400px;
+        -moz-box-flex: 0;
+        -moz-flex: 1 0 400px;
+        -ms-flex: 1 0 400px;
+        flex: 1 0 400px;
+        min-width: 400px;
+    }
+
+    .nl-col-5 {
+        flex-basis: 0;
+        flex-grow: 1;
+        width: 5%;
+    }
+    .nl-col-20 {
+        flex-basis: 0;
+        flex-grow: 4;
+    }
+
+    strong {
+        color: white;
+    }
+
+    .nl-offset-shrink {
+        flex-shrink: 5;
+    }
+   
+</style>
+    <div class='nl-static nl-full nl-thin-scroll' ng-transclude>
+</div>

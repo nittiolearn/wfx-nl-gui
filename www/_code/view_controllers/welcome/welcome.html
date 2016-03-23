@@ -1,53 +1,66 @@
-<style>
-    body {
-        font-family: Lato, Verdana, Helvetica, Arial, sans-serif;
-    }
-    
-	.nl-top-menuitems {
-		text-align: right;
-		color: #FFFFFF;
-		font-size: 120%;
-	}
-	
-	.nl-top-menuitems span {
-		padding-left: 40px;
-	}
-
-    .bg-img {
-        background-image: url({{pageResUrl}}/background.jpg);
-    }
-    
-    .x {
-        background-color: yellow;
-    }
-    .x1 {
-        background-color: green;
-    }
-    
-</style>
-<div class='nl-static nl-thin-scroll nl-full'>
-    <div class='section bg-dark1 page_height'>
-        <div class='bg-img-opaque'></div>
-        <div class='bg-img'></div>
-		<div class='row row-top'>
-			<div class='col fixed-200'>
-				<a href='/#/home'><img src='{{pageResUrl}}/nittiologo.png' class='full-image'/></a>
-			</div>
-			<div class='col col-20'></div>
-			<div class='col nl-top-menuitems'>
-				<span>SIGN IN</span>
-			</div>
-		</div>
-        <div class='row row-center text-center'>
-            <div class='col padding'>
-				<a href='/#/school' class='nl-h1'>Solutions for schools</a>
-            </div>
-            <div class='col padding' ng-show='screenSize == "large"'>
-				<a href='/#/business' class='nl-h1'>Solutions for businesses</a>
+<nl-sp>
+    <nl-sp-page1>
+        <div class='row row-center row-wrap minh-40'>
+            <div class='nl-h1 text-center padding full-image'>
+                <p>Manage your trainings with ease.</p>
+                <p>Make learning sustained and effective.</p>
             </div>
         </div>
+        <div class='row row-center row-wrap'>
+            <div class='col min-200 padding'>
+                <div class='row row-center text-center'>
+                    <a href='/#/school' class='box padding'>
+                        <div class='megah1'>Nittio Learn</div>
+                        <div class='nl-h1 black'>for schools</div>
+                    </a>
+                </div>
+            </div>
+            <div class='col min-200 padding'>
+                <div class='row row-center text-center'>
+                    <a href='/#/business' class='col box padding'>
+                        <div class='megah1'>Nittio Learn</div>
+                        <div class='nl-h1 black'>for businesses</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nl-sp-page1>
+    <div id='anchor_awards' class='section padding row row-wrap row-center'>
+        <div class='full-image padding-vertical'></div>
+        <div class='nl-h2 padding-vertical'>Helping more than <span class='nl-imp'>100</span> schools and businesses.</div>
+        <div class='padding-vertical text-center full-image' style='5em'></div>
+        <div class='nl-h1 padding-vertical text-center full-image'>Awards & recognition</div>
+        <div class='col min-400 padding'>
+            <div class='row row-center'>
+                <img class='col nl-max-100 padding' ng-src='{{baseResUrl}}/globaledtech.png'>
+                <div class='col padding'>Winners of <span class='nl-imp'>Global Edtech Popularity choice award 2014</span> among 360+ startups in the education technology space globally.</div>
+            </div>
+        </div>
+        <div class='col min-400 padding'>
+            <div class='row row-center'>
+                <img class='col nl-max-100 padding' ng-src='{{baseResUrl}}/npc.png'>
+                <div class='col padding'>Showcased at the <span class='nl-imp'>NASSCOM – Product Conclave</span> as one of India’s most innovative product companies.</div>
+            </div>
+        </div>
+
+        <div class='nl-h1 padding-vertical text-center full-image'>In media</div>
+        <a class='col nl-min-200 padding text-center nl-clickable-container'
+            href='http://www.educationworldonline.net/index.php/page-article-choice-more-id-4648'>
+            <img class='nl-max-100' ng-src='{{pageResUrl}}/ew.jpg'>
+        </a>
+        <a class='col nl-min-200 padding text-center nl-clickable-container'
+            href='http://techstory.in/nittio-learn/'>
+            <img class='nl-max-100' ng-src='{{pageResUrl}}/techstory.jpg'>
+        </a>
+        <a class='col nl-min-200 padding text-center nl-clickable-container'
+            href='http://yourstory.com/2014/07/nittio-learn/'>
+            <img class='nl-max-100' ng-src='{{pageResUrl}}/yourstory.png'>
+        </a>
+        <a class='col nl-min-200 padding text-center nl-clickable-container'
+            href='http://www.prerit.org/ritu-josan/'>
+            <img class='nl-max-100' ng-src='{{pageResUrl}}/prerit.png'>
+        </a>
     </div>
-    <div class='section row-wrap padding margin0'>
-        <div><small>Copyright @ 2016 Nittio Solutions Pvt. Ltd.</small></div>
-    </div>
-</div>
+    <div class='line'></div>
+    <nl-sp-footer id='anchor_contact_us'></nl-sp-footer>
+</nl-sp>

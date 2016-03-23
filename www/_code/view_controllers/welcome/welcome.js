@@ -2,12 +2,21 @@
 
 //-------------------------------------------------------------------------------------------------
 // welcome.js: 
-// Home page for an not-logged-in user
+// welcome static pages + controller and directives used across all static pages
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.welcome', [])
     .config(configFn)
-    .controller('nl.WelcomeCtrl', WelcomeCtrl);
+    // Direcives used across all static pages
+    .directive('nlSp', SpDirective)
+    .directive('nlSpPage1', Page1Directive)
+    .directive('nlSpFooter', FooterDirective)
+    .directive('nlSpCopyright', CopyrightDirective)
+    .service('nlAnchorScroll', AnchorScrollSrv)
+    // Controller
+    .controller('nl.WelcomeCtrl', WelcomeCtrl)
+    .controller('nl.SchoolCtrl', SchoolCtrl)
+    .controller('nl.BusinessCtrl', BusinessCtrl);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -27,7 +36,7 @@ function($stateProvider, $urlRouterProvider) {
         views : {
             'appContent' : {
                 templateUrl: 'view_controllers/welcome/business.html',
-                controller : 'nl.WelcomeCtrl'
+                controller : 'nl.BusinessCtrl'
             }
         }
     });
@@ -36,32 +45,142 @@ function($stateProvider, $urlRouterProvider) {
         views : {
             'appContent' : {
                 templateUrl: 'view_controllers/welcome/school.html',
-                controller : 'nl.WelcomeCtrl'
+                controller : 'nl.SchoolCtrl'
             }
         }
     });
 }];
 
 //-------------------------------------------------------------------------------------------------
-var WelcomeCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlLogViewer', 'nlServerApi', 'nlCardsSrv',
-function(nl, nlRouter, $scope, nlDlg, nlLogViewer, nlServerApi, nlCardsSrv) {
-    $scope.pageResUrl = nl.url.resUrl() + 'welcome';
-    $scope.content = {
-        title: nl.t('your teaching quality partner'),
-        msg1: nl.t('Measure and improve the most important aspect of your school, the “Teaching quality”.'),
-        msg2: nl.t('Structure all aspects of teaching. Set your goals, engage your teachers and leap ahead.')
+var SpDirective = [
+function() {
+    return {
+        restrict: 'E',
+        transclude: true,
+        templateUrl: 'view_controllers/welcome/sp.html'
     };
-	function _onPageEnter(userInfo) {
-	    nl.pginfo.hidemenu = true;
+}];
+
+//-------------------------------------------------------------------------------------------------
+var Page1Directive = [
+function() {
+    return {
+        restrict: 'E',
+        transclude: true,
+        templateUrl: 'view_controllers/welcome/sp-page1.html'
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
+var FooterDirective = [
+function() {
+    return {
+        restrict: 'E',
+        templateUrl: 'view_controllers/welcome/sp-footer.html'
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
+var CopyrightDirective = [
+function() {
+    return {
+        restrict: 'E',
+        templateUrl: 'view_controllers/welcome/sp-copyright.html'
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
+var AnchorScrollSrv = ['nl', '$anchorScroll',
+function(nl, $anchorScroll) {
+    this.setAnchorHandler = function($scope) {
+        $scope.gotoAnchor = function(anchor) {
+            console.log('gotoAnchor', anchor);
+            if (nl.location.hash() != anchor) {
+                nl.location.hash(anchor);
+            } else {
+                $anchorScroll();
+            }
+        }
+    }
+}];
+
+//-------------------------------------------------------------------------------------------------
+var WelcomeCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
+function(nl, nlRouter, $scope, nlAnchorScroll) {
+    var welcomeConfig = {
+        // Required in the controller
+        title: nl.t('TODO-MUNNI: manage your trainings with ease'),
+        desc: 'TODO-MUNNI: Manage your trainings with ease. Make learning sustained and effective.',
+        pageUrl: '',
+        bgImg: 'background.jpg',
+        menus: [],
+        
+        // Required in the specific view template
+        content: {
+        }
+    };
+    _staticPageCtrl(welcomeConfig, nl, nlRouter, $scope, nlAnchorScroll);
+}];
+
+//-------------------------------------------------------------------------------------------------
+var SchoolCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
+function(nl, nlRouter, $scope, nlAnchorScroll) {
+    var schoolConfig = {
+        // Required in the controller
+        title: nl.t('your teaching quality partner'),
+        desc: 'Looking to improve the teaching quality in your school? Use Nittio Learn for continuous teacher training, structured lesson planning, program of work tracking and classroom observations.',
+        pageUrl: 'school',
+        bgImg: 'background.jpg',
+        menus: [{name: 'Solutions', anchor: 'solutions'}, {name: 'Contact us', anchor: 'contact_us'}],
+        
+        // Required in the specific view template
+        content: {
+            msg1: nl.t('Measure and improve the most important aspect of your school, the “Teaching quality”.'),
+            msg2: nl.t('Structure all aspects of teaching. Set your goals, engage your teachers and leap ahead.')
+        }
+    };
+    _staticPageCtrl(schoolConfig, nl, nlRouter, $scope, nlAnchorScroll);
+}];
+
+//-------------------------------------------------------------------------------------------------
+var BusinessCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
+function(nl, nlRouter, $scope, nlAnchorScroll) {
+    var businessConfig = {
+        // Required in the controller
+        title: nl.t('TODO-MUNNI: manage your trainings with ease'),
+        desc: 'TODO-MUNNI: Manage your trainings with ease. Make learning sustained and effective.',
+        pageUrl: 'business',
+        bgImg: 'background.jpg',
+        menus: [{name: 'Features', url: '/#/home'}, {name: 'Pricing', url: '/#/home'}, {name: 'Request a demo', url: '/#/home'}],
+        
+        // Required in the specific view template
+        content: {
+        }
+    };
+    _staticPageCtrl(businessConfig, nl, nlRouter, $scope, nlAnchorScroll);
+}];
+
+//-------------------------------------------------------------------------------------------------
+function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
+    function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
-            nl.pginfo.pageTitle = $scope.content.title;
+            nl.pginfo.hidemenu = true;
+            nl.pginfo.pageTitle = config.title;
             nl.pginfo.pageSubTitle = '';
-            nlRouter.setWindowDescription('Looking to improve the teaching quality in your school? Use Nittio Learn for continuous teacher training, structured lesson planning, program of work tracking and classroom observations.');
+            nlRouter.setWindowDescription(config.desc);
+    
+            $scope.baseResUrl = nl.url.resUrl() + 'welcome';
+            $scope.pageResUrl = $scope.baseResUrl + '/' + config.pageUrl;
+            $scope.content = config.content;
+            $scope.menus = config.menus;
+            $scope.bgImg = config.bgImg ? $scope.pageResUrl + '/' + config.bgImg : null;
+            
             resolve(true);
         });
     }
+    nlAnchorScroll.setAnchorHandler($scope);
     nlRouter.initContoller($scope, '', _onPageEnter);
-}];
+}
 
 module_init();
 })();

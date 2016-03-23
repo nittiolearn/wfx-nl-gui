@@ -11,7 +11,7 @@ function module_init() {
 
 function UrlString(location) {
     this.init = function() {
-        this.url = location.url();
+        this.url = location.url().split('#')[0];
         this.path = location.path();
         this.search = location.search();
     };

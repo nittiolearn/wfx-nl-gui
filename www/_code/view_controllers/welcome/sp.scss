@@ -1,0 +1,77 @@
+/*-----------------------------------------------------------------------------------------*
+ * Wecome page and other static page styling
+ *-----------------------------------------------------------------------------------------*/
+$nltopbar2:                       #675187 !default; // A darker shade for other usages
+$nltopbar3:                       #B0A0C0 !default; // A lighter shade for other usages
+
+.nl-static {
+  font-size: 16px;
+  
+  .section {
+    position: relative;
+  }
+
+  .page_height {
+    min-height: 100vh;
+  }
+  
+  .bg-img, .bg-img-opaque {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+  }
+
+  .bg-img-opaque {
+    background-color: $nltopbar2;
+    background-color: black;
+    z-index: -1;
+    opacity: 0.4;
+  }
+  
+  .bg-img {
+    z-index: -2;   
+    background-size: cover;
+    /* background-image: will be defined in the html fragment */
+  }
+    
+  .bg-dark, .bg-dark1, .bg-dark a, .bg-dark1 a {
+    color: #FFFFFF;
+  }
+
+  .bg-dark {
+    background-color: $nltopbar2;
+    .nl-clickable {
+        color: #FFFFFF;
+    }
+  }
+
+  .bg3 {
+    background-color: $nltopbar3;
+  }
+  
+  .nl-h1 {
+    font-size: 175%;
+    font-weight: bold;
+  }
+
+  .nl-h2 {
+    font-size: 175%;
+    text-align: center;
+    width: 100%;
+  }
+
+  .nl-big {
+    font-size: 150%;
+  }
+    
+  .nl-imp, .nl-imp2 {
+    font-size: 120%;
+    font-weight: bold;
+  }
+
+  .nl-imp {
+    color: rgb(245, 75, 34);
+  }
+}
