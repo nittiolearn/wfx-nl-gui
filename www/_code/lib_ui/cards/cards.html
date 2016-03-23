@@ -2,9 +2,11 @@
 	<input class='col' ng-model='search.filter'
 	       placeholder='{{cards.search.placeholder}}' ng-keypress='searchKeyHandler($event)'>
 	<i class='sep4'></i>
-	<select ng-show='cards.grades'  class='col-20 nl-grade-search' name="repeatSelect" ng-model="search.grade">
-	<option ng-repeat='grade in cards.grades' value='{{grade}}'>{{grade}}</option>
+
+    <select ng-show='cards.grades' class='col-20 nl-grade-search' ng-model="search.grade" 
+            ng-options="grade for grade in cards.grades track by grade">
     </select>
+
     <i class='sep4'></i>	
 	<img class='nl-clickable' ng-src='{{search.img}}' ng-show='search.onSearch'
 		 tabindex="0"
