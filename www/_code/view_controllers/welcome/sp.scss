@@ -1,20 +1,46 @@
 /*-----------------------------------------------------------------------------------------*
  * Wecome page and other static page styling
  *-----------------------------------------------------------------------------------------*/
-$nltopbar2:                       #675187 !default; // A darker shade for other usages
-$nltopbar3:                       #B0A0C0 !default; // A lighter shade for other usages
+$purple1: #403050 !default; // rgb(64, 48, 80) Darkest
+$purple2: #675187 !default; // rgb(103, 81, 135)
+$purple3: #807090 !default; // rgb(128, 112, 144)
+$purple4: #B0A0C0 !default; // rgb(176, 160, 192)
+
+$grey1: #CCCCDD !default; // rgb(204, 204, 221)
+$grey2: #EEEEFF !default; // rgb(238, 238, 255)
+
+$orange:  #FFA500 !default; // rgb(255, 165, 0)
+$orange1: #E06000 !default; // rgb(224, 96, 0)
+$orange2: #F54B22 !default; // rgb(245, 75, 34)
+
+$yellow: #FFFF00 !default; // rgb(255, 255, 0)
 
 .nl-static {
-  font-size: 16px;
-  
-  .section {
-    position: relative;
-  }
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
 
-  .page_height {
-    min-height: 100vh;
+  //---------------------------------------------------------------------------
+  // Generic overrides
+  //---------------------------------------------------------------------------
+  font-family: Lato, Verdana, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+
+  a {
+    text-decoration: none;
   }
   
+  //---------------------------------------------------------------------------
+  // Background colors
+  //---------------------------------------------------------------------------
+  .bgdark {
+    background-color: $purple2;
+  }
+  
+  //---------------------------------------------------------------------------
+  // Background images
+  //---------------------------------------------------------------------------
   .bg-img, .bg-img-opaque {
     position: absolute;
     top: 0;
@@ -24,7 +50,6 @@ $nltopbar3:                       #B0A0C0 !default; // A lighter shade for other
   }
 
   .bg-img-opaque {
-    background-color: $nltopbar2;
     background-color: black;
     z-index: -1;
     opacity: 0.4;
@@ -35,43 +60,127 @@ $nltopbar3:                       #B0A0C0 !default; // A lighter shade for other
     background-size: cover;
     /* background-image: will be defined in the html fragment */
   }
-    
-  .bg-dark, .bg-dark1, .bg-dark a, .bg-dark1 a {
-    color: #FFFFFF;
-  }
 
-  .bg-dark {
-    background-color: $nltopbar2;
-    .nl-clickable {
-        color: #FFFFFF;
-    }
-  }
-
-  .bg3 {
-    background-color: $nltopbar3;
+  //---------------------------------------------------------------------------
+  // Font colors
+  //---------------------------------------------------------------------------
+  * {
+    color: inherit;
   }
   
-  .nl-h1 {
+  .fblack {
+    color: black;
+  }
+
+  .fwhite {
+    color: white;
+  }
+
+  .forange {
+    color: $orange2;
+  }
+
+  //---------------------------------------------------------------------------
+  // Font sizes
+  //---------------------------------------------------------------------------
+  .fsh1 {
+    font-size: 400%;
+    font-weight: bold;
+  }
+
+  .fsh2 {
     font-size: 175%;
     font-weight: bold;
   }
 
-  .nl-h2 {
+  .fsh3 {
     font-size: 175%;
     text-align: center;
     width: 100%;
   }
-
-  .nl-big {
+  
+  .fsh4 {
     font-size: 150%;
   }
     
-  .nl-imp, .nl-imp2 {
+  .fsh5 {
     font-size: 120%;
     font-weight: bold;
   }
+    
+  //---------------------------------------------------------------------------
+  // Element sizes
+  //---------------------------------------------------------------------------
+  .vh100 {
+    min-height: 100vh;
+  }
+  
+  .vh40 {
+    min-height: 40vh;
+  }
 
-  .nl-imp {
-    color: rgb(245, 75, 34);
+  //---------------------------------------------------------------------------
+  // Top menu bar
+  //---------------------------------------------------------------------------
+  .menuitems {
+    text-align: right;
+    color: #FFFFFF;
+    font-size: 120%;
+    a, span {
+      padding: 8px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      &:hover, &:focus {
+        background-color: rgba(255, 255, 255, 0.3);
+      }
+    }
+    .bgyellow {
+      background-color: rgba(255, 255, 0, 0.8);
+      &:hover, &:focus {
+        background-color: rgba(255, 255, 0, 1);
+        color: black;
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  // Other utilities
+  //---------------------------------------------------------------------------
+  .trans50 {
+    opacity: 0.5;
+  }
+
+  .line {
+    border-bottom: 1px solid #CCCCCC;
+  }
+
+  .hpad-small {
+    padding: 0 4px;
+  }
+
+  .border-right {
+    border-right: 1px solid #777777;
+  }
+
+  //---------------------------------------------------------------------------
+  // Other specific class styling
+  //---------------------------------------------------------------------------
+  .section {
+    position: relative;
+  }
+
+  .box {
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.7);
+    &.clickable:hover, &.clickable:focus {
+        background-color: rgba(255, 255, 255, 0.9);
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  // TODO - refactor pending
+  //---------------------------------------------------------------------------
+  .nl-offset-shrink {
+    flex-shrink: 5;
   }
 }

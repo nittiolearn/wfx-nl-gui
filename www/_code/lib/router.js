@@ -215,7 +215,8 @@ function Permission(nl) {
         'forum_view_details': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED} 
     };
     
-    var openPages = {'/welcome': 1, '/login_now': 1, '/logout_now': 1};
+    var openPages = {'/login_now': 1, '/logout_now': 1, 
+                     '/welcome': 1, '/school': 1, '/business': 1};
     this.isOpenPage = function(pageUrl) {
         var page = (pageUrl == '') ? nl.location.path() : pageUrl;
         return (page in openPages);

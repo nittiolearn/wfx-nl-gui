@@ -169,6 +169,7 @@ function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
             nl.pginfo.pageSubTitle = '';
             nlRouter.setWindowDescription(config.desc);
     
+            $scope.homeUrl = userInfo.username ? '#/home' : '#/welcome';
             $scope.baseResUrl = nl.url.resUrl() + 'welcome';
             $scope.pageResUrl = $scope.baseResUrl;
             if (config.pageUrl) $scope.pageResUrl += '/' + config.pageUrl;
