@@ -111,7 +111,7 @@ function(nl, nlRouter, $scope, nlAnchorScroll) {
         // Required in the controller
         title: nl.t('TODO-MUNNI: manage your trainings with ease'),
         desc: 'TODO-MUNNI: Manage your trainings with ease. Make learning sustained and effective.',
-        pageUrl: '',
+        pageUrl: null,
         bgImg: 'background.jpg',
         menus: [],
         
@@ -170,7 +170,9 @@ function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
             nlRouter.setWindowDescription(config.desc);
     
             $scope.baseResUrl = nl.url.resUrl() + 'welcome';
-            $scope.pageResUrl = $scope.baseResUrl + '/' + config.pageUrl;
+            $scope.pageResUrl = $scope.baseResUrl;
+            if (config.pageUrl) $scope.pageResUrl += '/' + config.pageUrl;
+            
             $scope.content = config.content;
             $scope.menus = config.menus;
             $scope.bgImg = config.bgImg ? $scope.pageResUrl + '/' + config.bgImg : null;
