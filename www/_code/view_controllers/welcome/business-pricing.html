@@ -5,8 +5,9 @@
     <div class='row'>
         <div class='col'>
             <div class='row row-top row-stretch padding-small line margin0'>
-                <div class='col fsh5 forange bold text-right'>
+                <div class='col fsh5 forange text-right'>
                     <i class="icon ion-ios-arrow-back fsh1 forange nl-clickable"
+                       style='padding-right: 19px'
                        ng-show='content.slabSlider.canSlideDown'
                        ng-click='callFn("slabSlideDown")'></i>
                 </div>
@@ -21,7 +22,7 @@
                 </div>
             </div>
             <div class='row row-top row-stretch padding-small line margin0'>
-                <div class='col padding-small fsh5 forange bold'>Users</div>
+                <div class='col padding-small fsh5 forange'>Users</div>
                 <div class='col text-center padding-small'
                      ng-repeat='slab in content.pricing_slabs'
                      ng-show='content.slabSlider.shown[$index]'>
@@ -30,7 +31,7 @@
             </div>
             <div class='row row-top row-stretch padding-small line margin0'
                  ng-repeat='p in content.pricing_attrs'>
-                <div class='col padding-small fsh5'>{{p}}</div>
+                <div class='col padding-small fsh6 fgrey'>{{p}}</div>
                 <div class='col text-center padding-small'
                      ng-repeat='slab in content.pricing_slabs'
                      ng-show='content.slabSlider.shown[$index]'>
@@ -47,7 +48,7 @@
         </div>
         <div class='col fixed-100' ng-hide='screenSize == "large"'>
             <div class='row row-top row-stretch padding-small margin0'>
-                <div class='col fsh5 forange bold'>
+                <div class='col fsh5 forange'>
                     <i class="icon ion-ios-arrow-forward fsh1 text-right forange nl-clickable"
                                ng-show='content.slabSlider.canSlideUp'
                        ng-click='callFn("slabSlideUp")'></i>

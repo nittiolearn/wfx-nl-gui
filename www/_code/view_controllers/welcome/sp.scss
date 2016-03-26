@@ -6,14 +6,11 @@ $purple2: #675187 !default; // rgb(103, 81, 135)
 $purple3: #807090 !default; // rgb(128, 112, 144)
 $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
 
-$grey1: #CCCCDD !default; // rgb(204, 204, 221)
-$grey2: #EEEEFF !default; // rgb(238, 238, 255)
+$grey: #A0A0C0 !default; // rgb(160, 160, 192)
 
 $orange:  #FFA500 !default; // rgb(255, 165, 0)
 $orange1: #E06000 !default; // rgb(224, 96, 0)
 $orange2: #F54B22 !default; // rgb(245, 75, 34)
-
-$yellow: #FFFF00 !default; // rgb(255, 255, 0)
 
 .nl-static {
   position: absolute;
@@ -93,7 +90,7 @@ $yellow: #FFFF00 !default; // rgb(255, 255, 0)
   }
   
   .fgrey {
-    color: $grey2;
+    color: $grey;
   }
   
   //---------------------------------------------------------------------------
@@ -122,6 +119,10 @@ $yellow: #FFFF00 !default; // rgb(255, 255, 0)
     font-weight: bold;
   }
     
+  .fsh6 {
+    font-size: 120%;
+  }
+    
   //---------------------------------------------------------------------------
   // Element sizes
   //---------------------------------------------------------------------------
@@ -129,10 +130,14 @@ $yellow: #FFFF00 !default; // rgb(255, 255, 0)
     min-height: 100vh;
   }
   
-  .vh40 {
-    min-height: 40vh;
+  .vh75 {
+    min-height: 75vh;
   }
-  
+
+  .vh25 {
+    min-height: 25vh;
+  }
+
   .w100 {
     width: 100%;
   }
@@ -153,9 +158,9 @@ $yellow: #FFFF00 !default; // rgb(255, 255, 0)
       }
     }
     .bgyellow {
-      background-color: rgba(255, 255, 0, 0.8);
+      background-color: rgba(255, 204, 0, 0.8);
       &:hover, &:focus {
-        background-color: rgba(255, 255, 0, 1);
+        background-color: rgba(255, 204, 0, 1);
         color: black;
       }
     }
@@ -179,7 +184,11 @@ $yellow: #FFFF00 !default; // rgb(255, 255, 0)
   .border-right {
     border-right: 1px solid #777777;
   }
-
+  
+  .justify-center {
+    justify-content: center;
+  }
+  
   //---------------------------------------------------------------------------
   // Other specific class styling
   //---------------------------------------------------------------------------
@@ -193,5 +202,12 @@ $yellow: #FFFF00 !default; // rgb(255, 255, 0)
     &.clickable:hover, &.clickable:focus {
         background-color: rgba(255, 255, 255, 0.9);
     }
+  }
+  
+  .pageicon {
+    position: absolute;
+    top: 51px;
+    left: 0;
+    width: 200px;
   }
 }

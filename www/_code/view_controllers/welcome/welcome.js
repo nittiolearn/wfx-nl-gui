@@ -116,11 +116,15 @@ function(nl, $anchorScroll) {
 }];
 
 //-------------------------------------------------------------------------------------------------
+var _commonMsg = 'Much more than a Learning Management System.';
+var _schoolMsg = 'Measure and improve the most important aspect of your school, the “Teaching quality”.';
+var _businessMsg = 'Manage your internal training with ease.';
+
 var WelcomeCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
 function(nl, nlRouter, $scope, nlAnchorScroll) {
     var welcomeConfig = {
         // Required in the controller
-        title: nl.t('much more than a Learning Management System'),
+        title: nl.t(_commonMsg),
         desc: 'Online training software for businesses. Teaching Quality Management solutions for schools.',
         pageUrl: null,
         bgImg: 'background.jpg',
@@ -128,6 +132,8 @@ function(nl, nlRouter, $scope, nlAnchorScroll) {
         
         // Required in the specific view template
         content: {
+            schoolMsg: _schoolMsg,
+            businessMsg: _businessMsg
         }
     };
     _staticPageCtrl(welcomeConfig, nl, nlRouter, $scope, nlAnchorScroll);
@@ -138,7 +144,7 @@ var SchoolCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll',
 function(nl, nlRouter, $scope, nlAnchorScroll) {
     var schoolConfig = {
         // Required in the controller
-        title: nl.t('your teaching quality partner'),
+        title: nl.t('Your teaching quality partner.'),
         desc: 'Looking to improve the teaching quality in your school? Use Nittio Learn for continuous teacher training, structured lesson planning, program of work tracking and classroom observations.',
         pageUrl: 'school',
         bgImg: 'background.jpg',
@@ -146,7 +152,7 @@ function(nl, nlRouter, $scope, nlAnchorScroll) {
         
         // Required in the specific view template
         content: {
-            msg1: nl.t('Measure and improve the most important aspect of your school, the “Teaching quality”.'),
+            msg: nl.t(_schoolMsg),
             msg2: nl.t('Structure all aspects of teaching. Set your goals, engage your teachers and leap ahead.')
         }
     };
@@ -158,7 +164,7 @@ var BusinessCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll',
 function(nl, nlRouter, $scope, nlAnchorScroll) {
     var businessConfig = {
         // Required in the controller
-        title: nl.t('online Training Management Software'),
+        title: nl.t('Online Training Management Software.'),
         desc: 'Online software for training everyone in your company. Reduce your training costs, measure results and stay on top of learning needs of your organization.',
         pageUrl: 'business',
         bgImg: 'background.jpg',
@@ -166,6 +172,7 @@ function(nl, nlRouter, $scope, nlAnchorScroll) {
         
         // Required in the specific view template
         content: {
+            msg: nl.t(_businessMsg),
             pricing_attrs: ['Unlimited course content', 'Quizzes', 
                 'Surveys, feedback', 'User management', 'Duration tracking', 
                 'Customized dashboards', 'Custom landing page', 'Sell courses', 
@@ -207,6 +214,9 @@ function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
             if (config.pageUrl) $scope.pageResUrl += '/' + config.pageUrl;
             
             $scope.content = config.content;
+            $scope.content.commonMsg = _commonMsg;
+            $scope.content.title = config.title;
+            $scope.content.desc = config.desc;
             $scope.menus = config.menus;
             $scope.bgImg = config.bgImg ? $scope.pageResUrl + '/' + config.bgImg : null;
             

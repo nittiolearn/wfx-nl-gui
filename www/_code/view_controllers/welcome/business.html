@@ -1,57 +1,60 @@
 <nl-sp>
     <nl-sp-page1>
-        <div class='padding'></div>
-        <div class='padding'></div>
-		<div class = 'row row-center padding'>
-			<div class = 'col-20'></div>
-			<div class = 'col padding box'>
-				<span class='fsh1 forange'>Nittio Learn </span>
-				<span class='fsh2 fblack'> for businesses </span>
-				<br/>
-				<span class='fblack fsh3'>manage your internal training with ease.</span>
-			</div>
-		</div>
+        <div class='pageicon'>
+            <img ng-src='{{pageResUrl}}/forbusinesses.png'
+                 alt='Nittio Learn for businesses - {{content.title}}'
+                 class='w100'/>
+        </div>
+        <div class='row row-center row-wrap vh75'>
+            <div class='fsh2 text-center padding w100'>{{content.msg}}</div>
+        </div>
+        <div class='row row-center row-wrap padding box'>
+            <div class='fsh4 padding w100'>{{content.desc}}</div>
+        </div>
 	</nl-sp-page1>
 
 	<div class='section'>
 		<div class='fsh2 forange text-center padding-vertical'>
-			How does Nittio Learn for businesses work
+			How does Nittio Learn for businesses work?
 		</div>
 		<div class='row row-wrap row-top padding'>
             <div class='padding text-center'
                  ng-class='respCol331'>
                 <div class='text-center padding-vertical'>
-                    <img class='nl-max-100' ng-src='{{pageResUrl}}/buildcourse.png' />
+                    <img class='nl-max-100' ng-src='{{pageResUrl}}/buildcourse.png'
+                         alt='Build course'/>
                 </div>
                 <div class='fsh5 forange padding-vertical text-center'>
                     Build course
                 </div>
                 <p>
-                    An easy to use authoring platform which allows you to quickly assemble your existing content into  course. Easily create test modules for courses.
+                    An easy to use authoring platform which allows you to quickly assemble your existing content into courses. Easily create test modules.
                 </p>
             </div>
             <div class='padding text-center'
                  ng-class='respCol331'>
                 <div class='text-center padding-vertical'>
-                    <img class='nl-max-100' ng-src='{{pageResUrl}}/assigncourse.png' />
+                    <img class='nl-max-100' ng-src='{{pageResUrl}}/assigncourse.png'
+                         alt='Assign course'/>
                 </div>
                 <div class='fsh5 forange padding-vertical text-center'>
-                    Assign course
+                    Assign course                    
                 </div>
                 <p>
-                    Assign your online courses to employees with a click on a button.
+                    Assign your online courses to employees with a click of a button.
                 </p>
             </div>
             <div class='padding text-center'
                  ng-class='respCol331'>
                 <div class='text-center padding-vertical'>
-                    <img class='nl-max-100' ng-src='{{pageResUrl}}/trackprogress.png' />
+                    <img class='nl-max-100' ng-src='{{pageResUrl}}/trackprogress.png'
+                         alt='Track progress'/>
                 </div>
                 <div class='fsh5 forange padding-vertical text-center'>
                     Track progress
                 </div>
                 <p>
-                    Real time tracking of progress of the assigned course. Get rich analytics on various metrics.
+                    Real time progress tracking of the assigned course. Get rich analytics on various metrics.
                 </p>
         </div>
 		</div>
@@ -67,8 +70,9 @@
                 <div class='text-center fsh5' >
                     <strong>New employee training</strong>
                 </div>
-                <div class='text-center '>
-                    <img ng-src='{{pageResUrl}}/newemptraining.png' class='nl-max-200 '/>
+                <div class='text-center'>
+                    <img ng-src='{{pageResUrl}}/newemptraining.png' class='nl-max-200'
+                         alt='New employee training'/>
                 </div>
             </div>
             <div class='padding'
@@ -77,7 +81,8 @@
                     <strong>Compliance training</strong>
                 </div>
                 <div class='text-center'>
-                    <img ng-src='{{pageResUrl}}/compliancetraining.png' class='nl-max-200 '/>
+                    <img ng-src='{{pageResUrl}}/compliancetraining.png' class='nl-max-200'
+                         alt='Compliance training'/>
                 </div>
             </div>
             <div class='padding'
@@ -86,23 +91,25 @@
                     <strong>Domain specific training</strong>
                 </div>
                 <div class='text-center'>
-                    <img ng-src='{{pageResUrl}}/domainspecifictraining.png' class='nl-max-200 '/>
+                    <img ng-src='{{pageResUrl}}/domainspecifictraining.png' class='nl-max-200'
+                         alt='Domain specific training'/>
                 </div>
             </div>
             <div class='padding'
                  ng-class='respCol221'>
                 <div class='text-center fsh5'>
-                    <strong>Employee assessment & survey </strong>
+                    <strong>Employee assessment & survey</strong>
                 </div>
                 <div class='text-center'>
-                    <img ng-src='{{pageResUrl}}/empsurvey.png' class='nl-max-200 '/>
+                    <img ng-src='{{pageResUrl}}/empsurvey.png' class='nl-max-200'
+                         alt='Employee assessment & survey'/>
                 </div>
             </div>
 		</div>
 	</div>
 	
-	<div id='features' class='section row row-wrap row-center text-center'>
-		<div class='fsh2 w100 forange padding-vertical'>
+	<div id='features' class='section row row-wrap row-center'>
+		<div class='fsh2 w100 forange padding-vertical text-center'>
 			Features
 		</div>
 
@@ -110,7 +117,8 @@
              ng-class='respCol321'>
             <div class='row row-center'>
                 <div class='col padding fixed-100 text-center'>
-                    <img ng-src='{{pageResUrl}}/easybuilder.png' class='w100' />
+                    <img ng-src='{{pageResUrl}}/easybuilder.png' class='w100'
+                         alt='Easy course builder'/>
                 </div>
                 <p class='fsh4'>Easy course builder</p>
             </div>
@@ -120,7 +128,8 @@
              ng-class='respCol321'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img ng-src='{{pageResUrl}}/reporting.png' class='w100' />
+					<img ng-src='{{pageResUrl}}/reporting.png' class='w100'
+                         alt='Powerful reporting'/>
 				</div>
 				<p class='fsh4'>
 					Powerful reporting
@@ -132,7 +141,8 @@
              ng-class='respCol321'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img ng-src='{{pageResUrl}}/acrossdevices.png' class='w100' />
+					<img ng-src='{{pageResUrl}}/acrossdevices.png' class='w100'
+                         alt='Access across devices'/>
 				</div>
 				<p class='fsh4'>
 					Access across devices
@@ -144,7 +154,8 @@
              ng-class='respCol321'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img ng-src='{{pageResUrl}}/controlledaccess.png' class='w100' />
+					<img ng-src='{{pageResUrl}}/controlledaccess.png' class='w100'
+                         alt='Controlled access'/>
 				</div>
 				<p class='fsh4'>
 					Controlled across
@@ -156,7 +167,8 @@
              ng-class='respCol321'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img ng-src='{{pageResUrl}}/dashboards.png' class='w100' />
+					<img ng-src='{{pageResUrl}}/dashboards.png' class='w100'
+                         alt='Customized dashboards'/>
 				</div>
 				<p class='fsh4'>
 					Customized dashboards
@@ -168,7 +180,8 @@
              ng-class='respCol321'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img ng-src='{{pageResUrl}}/forums.png' class='w100' />
+					<img ng-src='{{pageResUrl}}/forums.png' class='w100'
+                         alt='Discussion forums'/>
 				</div>
 				<p class='fsh4'>
 					Discussion forums
@@ -186,7 +199,8 @@
              ng-class='respCol321'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img ng-src='{{pageResUrl}}/onboardingtime.png' class='w100' />
+					<img ng-src='{{pageResUrl}}/onboardingtime.png' class='w100'
+                         alt='Reduce employee on-boarding time'/>
 				</div>
 				<p class='fsh4'>
 					Reduce employee on-boarding time
@@ -198,7 +212,8 @@
              ng-class='respCol321'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img ng-src='{{pageResUrl}}/reducecost.png' class='w100' />
+					<img ng-src='{{pageResUrl}}/reducecost.png' class='w100'
+                         alt='Reduce training cost'/>
 				</div>
 				<p class='fsh4'>
 					Reduce training cost
@@ -210,7 +225,8 @@
              ng-class='respCol321'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img ng-src='{{pageResUrl}}/empeffectiveness.png' class='w100' />
+					<img ng-src='{{pageResUrl}}/empeffectiveness.png' class='w100'
+                         alt='Increase employee effectiveness'/>
 				</div>
 				<p class='fsh4'>
 					Increase employee effectiveness
@@ -222,7 +238,8 @@
              ng-class='respCol321'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img ng-src='{{pageResUrl}}/measureresults.png' class='w100' />
+					<img ng-src='{{pageResUrl}}/measureresults.png' class='w100'
+                         alt='Measure results'/>
 				</div>
 				<p class='fsh4'>
 					Measure results
@@ -234,13 +251,28 @@
              ng-class='respCol321'>
 			<div class='row row-center'>
 				<div class='col padding fixed-100 text-center'>
-					<img ng-src='{{pageResUrl}}/acrosslocations.png' class='w100' />
+					<img ng-src='{{pageResUrl}}/acrosslocations.png' class='w100'
+                         alt='Manage trainings across multiple locations'/>
 				</div>
 				<p class='fsh4'>
 					Manage trainings across multiple locations
 				</p>
 			</div>
 		</div>
+
+        <div class='padding'
+             ng-class='respCol321'>
+            <div class='row row-center'>
+                <div class='col padding fixed-100 text-center'>
+                    <img ng-src='{{pageResUrl}}/anytopic.png' class='w100'
+                         alt='Train on any topic'/>
+                </div>
+                <p class='fsh4'>
+                    Train on any topic
+                </p>
+            </div>
+        </div>
+
 	</div>
     <nl-sp-business-pricing id='pricing'></nl-sp-business-pricing>
     <nl-sp-footer id='contact_us'></nl-sp-footer>

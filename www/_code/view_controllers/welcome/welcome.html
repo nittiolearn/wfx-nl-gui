@@ -1,24 +1,26 @@
 <nl-sp>
     <nl-sp-page1>
-        <div class='row row-center row-wrap vh40'>
-            <div class='fsh2 text-center padding w100'>
-                Much more than a Learning Management System.
-            </div>
+        <div class='row row-center row-wrap vh25'>
+            <div class='fsh2 text-center padding w100'>{{content.title}}</div>
         </div>
-        <div class='row row-center row-wrap'>
-            <div class='padding' ng-class='respCol221'>
-                <div class='row row-center text-center'>
-                    <a href='/#/school' class='col box clickable padding'>
-                        <div class='fsh1 forange'>Nittio Learn</div>
-                        <div class='fsh2 fblack'>for schools</div>
+        <div class='row row-stretch row-wrap text-center flex-column-wrap'>
+            <div class='padding box bgbox-content clickable' ng-class='respCol221'>
+                <div class='row row-wrap row-center justify-center'>
+                    <a href='#/school'>
+                        <span class='fsh1 forange'>Nittio Learn</span>
+                        <br/>
+                        <span class='fsh2 fblack'>for schools</span>
+                        <p class='fsh4 padding fblack'>{{content.schoolMsg}}</p>
                     </a>
                 </div>
             </div>
-            <div class='padding' ng-class='respCol221'>
-                <div class='row row-center text-center'>
-                    <a href='/#/business' class='col box clickable padding'>
-                        <div class='fsh1 forange'>Nittio Learn</div>
-                        <div class='fsh2 fblack'>for businesses</div>
+            <div class='padding box bgbox-content clickable' ng-class='respCol221'>
+                <div class='row row-wrap row-center justify-center'>
+                    <a href='#/business'>
+                        <span class='fsh1 forange'>Nittio Learn</span>
+                        <br/>
+                        <span class='fsh2 fblack'>for businesses</span>
+                        <p class='fsh4 padding fblack'>{{content.businessMsg}}</p>
                     </a>
                 </div>
             </div>
@@ -27,17 +29,19 @@
     <div class='section padding row row-wrap row-center'>
         <div class='w100 padding-vertical'></div>
         <div class='fsh3 w100 text-center padding-vertical'>Helping more than <span class='fsh5 forange'>100</span> schools and businesses.</div>
-        <div class='padding-vertical text-center w100' style='5em'></div>
+        <div class='w100 padding-vertical'></div>
         <div class='fsh2 padding-vertical text-center w100'>Awards & recognition</div>
         <div class='padding' ng-class='respCol211'>
             <div class='row row-center'>
-                <img class='col nl-max-200 padding' ng-src='{{baseResUrl}}/globaledtech.png'>
+                <img class='col nl-max-200 padding' ng-src='{{baseResUrl}}/globaledtech.png'
+                     alt='Nittio Learn - winner of Global Edtech Popularity choice award'>
                 <div class='col padding'>Winners of <span class='fsh5 forange'>Global Edtech Popularity choice award 2014</span> among 360+ startups in the education technology space globally.</div>
             </div>
         </div>
         <div class='padding' ng-class='respCol211'>
             <div class='row row-center'>
-                <img class='col nl-max-200 padding' ng-src='{{baseResUrl}}/npc.png'>
+                <img class='col nl-max-200 padding' ng-src='{{baseResUrl}}/npc.png'
+                     alt='Nittio Learn - one of India’s most innovative product companies at NASSCOM NPC'>
                 <div class='col padding'>Showcased at the <span class='fsh5 forange'>NASSCOM – Product Conclave</span> as one of India’s most innovative product companies.</div>
             </div>
         </div>
@@ -46,22 +50,26 @@
         <a class='padding text-center nl-clickable-container'
             ng-class='respCol421'
             href='http://www.educationworldonline.net/index.php/page-article-choice-more-id-4648'>
-            <img class='nl-max-100' ng-src='{{pageResUrl}}/ew.jpg'>
+            <img class='nl-max-100' ng-src='{{pageResUrl}}/ew.jpg'
+                 alt='Covered in educationworldonline.net'>
         </a>
         <a class='padding text-center nl-clickable-container'
             ng-class='respCol421'
             href='http://techstory.in/nittio-learn/'>
-            <img class='nl-max-100' ng-src='{{pageResUrl}}/techstory.jpg'>
+            <img class='nl-max-100' ng-src='{{pageResUrl}}/techstory.jpg'
+                 alt='Covered in techstory.in'>
         </a>
         <a class='padding text-center nl-clickable-container'
             ng-class='respCol421'
             href='http://yourstory.com/2014/07/nittio-learn/'>
-            <img class='nl-max-100' ng-src='{{pageResUrl}}/yourstory.png'>
+            <img class='nl-max-100' ng-src='{{pageResUrl}}/yourstory.png'
+                 alt='Covered in yourstory.com'>
         </a>
         <a class='padding text-center nl-clickable-container'
             ng-class='respCol421'
             href='http://www.prerit.org/ritu-josan/'>
-            <img class='nl-max-100' ng-src='{{pageResUrl}}/prerit.png'>
+            <img class='nl-max-100' ng-src='{{pageResUrl}}/prerit.png'
+                 alt='Covered in prerit.org'>
         </a>
     </div>
     <nl-sp-footer></nl-sp-footer>
