@@ -70,9 +70,24 @@ function(nlLog, $http, $q, $timeout, $location, $window, $rootScope) {
     //---------------------------------------------------------------------------------------------
     // Page title, window title and menushown pertaining to the current view.
     this.pginfo = new NlPageInfo();
+    
+    this.resizeHandler = new ResizeHalder();
 
 }];
 
+//-------------------------------------------------------------------------------------------------
+function ResizeHalder() {
+    this.handlers = [];
+    this.broadcast = function() {
+        for(var i=0; i< this.handlers.length; i++) {
+            this.handlers[i]();
+        }
+    };
+    
+    this.onResize = function(fn) {
+        this.handlers.push(fn);
+    };
+}
 //-------------------------------------------------------------------------------------------------
 function _sliceArguments(args, startPos) {
     var ret = [];

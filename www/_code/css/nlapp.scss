@@ -35,11 +35,10 @@ $nlpad_x_small:                   10px !default;
 $nlpad_y_small:                   10px !default; 
 
 // The path for our ionicons font files, relative to the built CSS in www/css
-$ionicons-font-path: "lib/ionic/fonts" !default;
+$ionicons-font-path: "../_external/ionicfonts" !default;
 
 // Include all of Ionic
 @import "www/_extern/ionic/scss/ionic";
-@import "www/_code/view_controllers/welcome/sp.scss";
 
 //-------------------------------------------------------------------------------------------
 // nl specific definitions used in overriding ionic defaults

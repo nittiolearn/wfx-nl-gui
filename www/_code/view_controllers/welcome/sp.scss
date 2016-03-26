@@ -37,6 +37,14 @@ $yellow: #FFFF00 !default; // rgb(255, 255, 0)
   .bgdark {
     background-color: $purple2;
   }
+
+  .bgwhite {
+    background-color: white;
+  }
+  
+  .bgbox-content {
+    background-clip: content-box;
+  }
   
   //---------------------------------------------------------------------------
   // Background images
@@ -80,6 +88,14 @@ $yellow: #FFFF00 !default; // rgb(255, 255, 0)
     color: $orange2;
   }
 
+  .fgreen {
+    color: #007700;
+  }
+  
+  .fgrey {
+    color: $grey2;
+  }
+  
   //---------------------------------------------------------------------------
   // Font sizes
   //---------------------------------------------------------------------------
@@ -95,8 +111,6 @@ $yellow: #FFFF00 !default; // rgb(255, 255, 0)
 
   .fsh3 {
     font-size: 175%;
-    text-align: center;
-    width: 100%;
   }
   
   .fsh4 {
@@ -117,6 +131,10 @@ $yellow: #FFFF00 !default; // rgb(255, 255, 0)
   
   .vh40 {
     min-height: 40vh;
+  }
+  
+  .w100 {
+    width: 100%;
   }
 
   //---------------------------------------------------------------------------
@@ -175,12 +193,5 @@ $yellow: #FFFF00 !default; // rgb(255, 255, 0)
     &.clickable:hover, &.clickable:focus {
         background-color: rgba(255, 255, 255, 0.9);
     }
-  }
-
-  //---------------------------------------------------------------------------
-  // TODO - refactor pending
-  //---------------------------------------------------------------------------
-  .nl-offset-shrink {
-    flex-shrink: 5;
   }
 }

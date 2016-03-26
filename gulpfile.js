@@ -77,7 +77,7 @@ gulp.task('nl_copy_extjs', function(done) {
 
 gulp.task('nl_copy_extfonts', function(done) {
     gulp.src(inPaths.extern + 'ionic/fonts/*')
-    .pipe(gulp.dest(outPaths.folderExtern + 'lib/ionic/fonts'))
+    .pipe(gulp.dest(outPaths.folderExtern + 'ionicfonts'))
     .on('end', done);
 });
 

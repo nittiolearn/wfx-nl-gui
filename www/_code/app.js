@@ -152,10 +152,16 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
 function _initScreenSize(nl) {
     angular.element(nl.window).bind('resize', function() {
         nl.rootScope.$apply(function() {
-            _updateScreenSize(nl);
+            _onResize(nl);
         });
     });
+    _onResize(nl);
+}
+
+function _onResize(nl) {
     _updateScreenSize(nl);
+    _updateResponsiveColClasses(nl);
+    nl.resizeHandler.broadcast();
 }
 
 var W_SMALL = 700;
@@ -176,6 +182,35 @@ function _updateScreenSize(nl) {
         return;
     }
     nl.rootScope.screenSize = 'medium';
+}
+
+// Below variables may be used in ng-class for responsive adaptation of
+// number of cols per row
+var _respColNgClasses = {
+    respCol442 : {large: 4, medium: 4, small: 2},
+    respCol441 : {large: 4, medium: 4, small: 1},
+    respCol431 : {large: 4, medium: 3, small: 1},
+    respCol421 : {large: 4, medium: 2, small: 1},
+    respCol331 : {large: 3, medium: 3, small: 1},
+    respCol321 : {large: 3, medium: 2, small: 1},
+    respCol221 : {large: 2, medium: 2, small: 1},
+    respCol211 : {large: 2, medium: 1, small: 1}
+};
+
+// The resultant classes applied for a given class
+var _respColClasses = {
+    1: 'w100',
+    2: 'col col-50',
+    3: 'col col-33',
+    4: 'col col-25'
+};
+
+function _updateResponsiveColClasses(nl) {
+    for (var ngClass in _respColNgClasses) {
+        var nlClassData = _respColNgClasses[ngClass];
+        var columns = nlClassData[nl.rootScope.screenSize];
+        nl.rootScope[ngClass] = _respColClasses[columns];
+    }
 }
 
 module_init();

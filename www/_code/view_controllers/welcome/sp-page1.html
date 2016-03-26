@@ -3,7 +3,7 @@
     <div ng-class='{"bg-img": bgImg}'></div>
     <div class='row row-top padding-vertical'>
         <div class='col fixed-200'>
-            <a ng-href='{{homeUrl}}'><img ng-src='{{baseResUrl}}/nittiologo.png' class='full-image'/></a>
+            <a ng-href='{{homeUrl}}'><img ng-src='{{baseResUrl}}/nittiologo.png' class='w100'/></a>
         </div>
         <div class='col menuitems'>
             <span ng-show='screenSize == "large"'
@@ -11,7 +11,10 @@
                   ng-click='gotoAnchor(menu.anchor)'>{{menu.name}}
             </span>
             <b class='padding-horizontal'></b>
-            <a href='#/login_now' class='bgyellow'>Sign in</a>
+            <a href='#/login_now' class='bgyellow'>
+                <b ng-hide='screenSize == "small"'>Sign in </b>
+                <i class="icon ion-log-in bold"></i>
+            </a>
         </div>
     </div>
     <div ng-transclude></div>
