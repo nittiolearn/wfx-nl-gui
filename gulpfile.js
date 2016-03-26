@@ -1,7 +1,7 @@
 //-------------------------------------------------------------------------------------------------
 //var SERVER_URL = 'http://192.168.0.3:8000/';
 var SERVER_URL = '/';
-var VERSIONS = {script:'v74', res:'v39', icon:'v41', template:'v35'};
+var VERSIONS = {script:'v74.pre04', res:'v39', icon:'v41', template:'v35', externVersion: 'v01'};
 //-------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
@@ -41,13 +41,19 @@ inPaths.karma = ['www/js/ionic.bundle.min.js', 'www/js/ydn.db-isw-core-qry.js', 
     'node_modules/angular-mocks/angular-mocks.js', 'www/_code/**/*.js', 'www/_test/**/*.js'];
 
 var outPaths = {};
-outPaths.urlScript = 'static/nittio_script_' + VERSIONS.script + '/';
-outPaths.urlExtern = 'static/_external/';
+outPaths.urlScript = 'static/_script_bundles/';
+outPaths.urlExtern = 'static/_external_bundles/';
 outPaths.folderScript = './www/' + outPaths.urlScript;
 outPaths.folderExtern = './www/' + outPaths.urlExtern;
 outPaths.urlManifest = 'static/';
 outPaths.folderManifest = './www/' + outPaths.urlManifest;
-outPaths.cleanup = ['./www/static/nittio_script_*', './www/static/_external'];
+outPaths.cleanup = [
+    outPaths.folderScript,
+    outPaths.folderExtern,
+    './www/static/nittio_script_*',  // For older cleanups
+    './www/static/nittio_script_*',  // For older cleanups
+    './www/static/_external'  // For older cleanups
+    ];
 
 function swallowError(error) {
     console.log(error.toString());
@@ -138,14 +144,17 @@ function generateIndexHtml(done, dest, fixes, includeCordova) {
     var extFiles = ['ydn.db-isw-core-qry', 'ionic.bundle'];
     var intFiles = ['nl.html_fragments', 'nl.bundle'];
     var cssFiles = ['nl.bundle'];
+    
+    var searchParam = '?version=' + VERSIONS.script;
+    var externSearchParam = '?version=' + VERSIONS.externVersion;
 
     var jsList = [];
-    for (var i=0; i<extFiles.length; i++) jsList.push(fixes.jsExtPrefix + extFiles[i] + fixes.jsExtSuffix);
-    for (var i=0; i<intFiles.length; i++) jsList.push(fixes.jsIntPrefix + intFiles[i] + fixes.jsIntSuffix);
+    for (var i=0; i<extFiles.length; i++) jsList.push(fixes.jsExtPrefix + extFiles[i] + fixes.jsExtSuffix + externSearchParam);
+    for (var i=0; i<intFiles.length; i++) jsList.push(fixes.jsIntPrefix + intFiles[i] + fixes.jsIntSuffix + searchParam);
     if (includeCordova) jsList.push('cordova.js');
 
     var cssList = [];
-    for (var i=0; i<cssFiles.length; i++) cssList.push(fixes.cssPrefix + cssFiles[i] + fixes.cssSuffix);
+    for (var i=0; i<cssFiles.length; i++) cssList.push(fixes.cssPrefix + cssFiles[i] + fixes.cssSuffix + searchParam);
     
     gulp.src(inPaths.htmlTemplate + 'index_templ.html')
     .pipe(htmlreplace({nl_server_info: {
@@ -262,10 +271,27 @@ gulp.task('karma_all', function(done) {
 //-------------------------------------------------------------------------------------------------
 var nittioPaths = {};
 nittioPaths.base = '../nittio/applications/nittiolearn/';
+nittioPaths.staticBase = nittioPaths.base + 'static/';
 nittioPaths.script = nittioPaths.base + outPaths.urlScript;
 nittioPaths.extern = nittioPaths.base + outPaths.urlExtern;
 nittioPaths.manifest = nittioPaths.base + outPaths.urlManifest;
 nittioPaths.view = nittioPaths.base + 'views/default';
+nittioPaths.modules = nittioPaths.base + 'modules';
+nittioPaths.cleanup = [
+    nittioPaths.staticBase + 'nittio_res*', 
+    nittioPaths.staticBase + 'nittio_icon*', 
+    nittioPaths.staticBase + 'nittio_template*', 
+    nittioPaths.staticBase + '_script_bundles/*',
+    nittioPaths.staticBase + '_external_bundles/*',
+    nittioPaths.view + '/index.html',
+    nittioPaths.modules + '/mversion.py',
+    nittioPaths.staticBase + '_external/ionic*', // For older cleanups
+    nittioPaths.staticBase + '_external/ydn*', // For older cleanups
+    nittioPaths.staticBase + '_external/ionicfonts', // For older cleanups
+    nittioPaths.staticBase + '_external/lib', // For older cleanups
+    nittioPaths.staticBase + 'nittio_script*' // For older cleanups
+    ];
+
 
 function resourcePath(resType) {
     return 'static/nittio_' + resType + '_' + VERSIONS[resType] + '/';
@@ -286,10 +312,7 @@ function nittioCopyResouce(done, resType) {
 }
 
 gulp.task('nittio_clean', function(done) {
-    delFiles([nittioResourcePath('res') + '*', 
-              nittioResourcePath('icon') + '*', 
-              nittioResourcePath('template') + '*', 
-              nittioPaths.script + '*'], {force: true},  function(err, deletedFiles) {
+    delFiles(nittioPaths.cleanup, {force: true},  function(err, deletedFiles) {
         if (err) console.log('Error while deleting:', err);
         if (deletedFiles) console.log('' + deletedFiles.length + ' File(s) deleted.');
     });
@@ -297,7 +320,8 @@ gulp.task('nittio_clean', function(done) {
 
 gulp.task('nittio_build', function(done) {
     runSequence('build',
-                ['nittio_copy_res', 'nittio_copy_icon', 'nittio_copy_template', 'nittio_copy_script', 'nittio_generate_index'],
+                ['nittio_copy_res', 'nittio_copy_icon', 'nittio_copy_template', 
+                'nittio_copy_script', 'nittio_generate_index', 'nittio_generate_mversion'],
                 done);
 });
 
@@ -309,7 +333,7 @@ gulp.task('nittio_watch', ['nittio_build', 'nl_watch'], function() {
     //gulp.watch(inResourcePath('template'), ['nittio_copy_template']);
     //------------------------------------------------------------------------------------------
     gulp.watch(outPaths.folderScript + '**', ['nittio_copy_script_int']);
-    gulp.watch(inPaths.htmlTemplate + '**', ['nittio_generate_index']);
+    gulp.watch(inPaths.htmlTemplate + '**', ['nittio_generate_index', 'nittio_generate_mversion']);
 });
 
 gulp.task('nittio_copy_res', function(done) {
@@ -349,6 +373,17 @@ gulp.task('nittio_generate_index', function(done) {
         cssSuffix: '.css'
     };
     generateIndexHtml(done, nittioPaths.view, fixes, false);
+});
+
+gulp.task('nittio_generate_mversion', function(done) {
+    gulp.src(inPaths.htmlTemplate + 'mversion_template.py')
+        .pipe(htmlreplace({nl_python_version: {
+            src: [[VERSIONS.script, VERSIONS.res, VERSIONS.icon, VERSIONS.template]], 
+            tpl: "versions= {'script': '%s', 'res': '%s', 'icon': '%s', 'template':'%s'}"},
+        }))
+        .pipe(rename('mversion.py'))
+        .pipe(gulp.dest(nittioPaths.modules))
+        .on('end', done);
 });
 
 gulp.task('nittio_update_manifest', function(done) {

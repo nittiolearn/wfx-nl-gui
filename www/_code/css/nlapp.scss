@@ -35,7 +35,7 @@ $nlpad_x_small:                   10px !default;
 $nlpad_y_small:                   10px !default; 
 
 // The path for our ionicons font files, relative to the built CSS in www/css
-$ionicons-font-path: "../_external/ionicfonts" !default;
+$ionicons-font-path: "../_external_bundles/ionicfonts" !default;
 
 // Include all of Ionic
 @import "www/_extern/ionic/scss/ionic";

@@ -84,22 +84,47 @@ Building Android App
    the mail from phone)
 6. Install the APK file on the device and run it
 
-Creating new nittio version
-===========================
-After a version of nittio is uploaded into live, do the following steps to create a new nittio version:
-1. In the nittio project, do the following:
-   - Apply the old version tag (e.g. v66) to the last checked in sources
-   - app.yaml: Increment the version number (e.g. 66 -> 67)
-   - app.yaml: Ensure that the application field is 'nittio-test'
-   - mutils.py: Increment the version number (e.g. v66 -> v67)
-   - "hg rename" the static/nittio_script_* folder (e.g. from nittio_script_v66 -> nittio_script_v67)
-2. In the nittioapp project, do the following:
-   - Apply the old version tag (e.g. v66) to the last checked in sources
-   - gulpfile.js: Increment the version number (e.g. v66 -> v67)
+Before sending new minor version for testing
+============================================
+To make any changes and release a minor version (pre-release) for testing, do the following:
+1. In the nittioapp project, do the following:
+   - gulpfile.js: Increment the minor version number (e.g. v73 -> v74.pre01; v74.pre01 -> v74.pre02)
    - gulp clean
    - gulp rebuild
    - gulp nittio_build
-3. Check in changes in both folders; push changes to remote
+   - check in sources
+   - Apply the new minor version tag (v74.per01) to the last checked in sources
+2. In the nittio project, do the following:
+   - app.yaml: Ensure that the application field is 'nittio-test'
+   - check in sources (including generated files)
+   - Apply the new minor version tag (v74.per01) to the last checked in sources
+
+Releasing a version in nittio-live
+==================================
+1. In the nittioapp project, do the following:
+   - gulpfile.js: Change the version number to latest major version (e.g. v74.pre04 -> v74)
+   - gulp clean
+   - gulp rebuild
+   - gulp nittio_build
+   - check in sources
+   - Apply the version tag (e.g. v74) to the last checked in sources
+2. In the nittio project, do the following:
+   - check in sources (including generated files)
+   - modify app.yaml - application = nittio-live
+   - upload software to GAE
+   - undo modification in app.yaml
+3. At GAE console, change the serving version to latest updated version
+4. Quickly verify that the new software is working
+5. In the nittioapp project, do the following:
+   - gulpfile.js: Change the version number to new minor version (e.g. v74 -> v75.pre01)
+   - gulp rebuild
+   - gulp nittio_build
+   - check in sources
+6. In the nittio project, do the following:
+   - app.yaml: Increment the version number (e.g. 74 -> 75)
+   - app.yaml: Ensure that the application field is 'nittio-test'
+   - check in sources (including generated files)
+7. Push changes to central repository (both nittio and nittioapp repos)
 
 NittioApp folder structure
 ==========================

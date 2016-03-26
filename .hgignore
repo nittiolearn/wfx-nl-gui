@@ -1,4 +1,6 @@
 www/index.html
+www/static/_external_bundles/.*
+www/static/_script_bundles/.*
 www/static/_external/.*
 www/static/nittio_script_.*
 coverage/.*
