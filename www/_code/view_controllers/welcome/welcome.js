@@ -9,6 +9,7 @@ function module_init() {
     .config(configFn)
     // Direcives used across all static pages
     .directive('nlSp', SpDirective)
+    .directive('nlSpStructuredData', StructuredDataDirective)
     .directive('nlSpPage1', Page1Directive)
     .directive('nlSpFooter', FooterDirective)
     .directive('nlSpCopyright', CopyrightDirective)
@@ -17,7 +18,8 @@ function module_init() {
     // Controller
     .controller('nl.WelcomeCtrl', WelcomeCtrl)
     .controller('nl.SchoolCtrl', SchoolCtrl)
-    .controller('nl.BusinessCtrl', BusinessCtrl);
+    .controller('nl.BusinessCtrl', BusinessCtrl)
+    .controller('nl.TeamCtrl', TeamCtrl);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -32,6 +34,15 @@ function($stateProvider, $urlRouterProvider) {
             }
         }
     });
+    $stateProvider.state('app.school', {
+        url : '^/school',
+        views : {
+            'appContent' : {
+                templateUrl: 'view_controllers/welcome/school.html',
+                controller : 'nl.SchoolCtrl'
+            }
+        }
+    });
     $stateProvider.state('app.business', {
         url : '^/business',
         views : {
@@ -41,12 +52,12 @@ function($stateProvider, $urlRouterProvider) {
             }
         }
     });
-    $stateProvider.state('app.school', {
-        url : '^/school',
+    $stateProvider.state('app.team', {
+        url : '^/team',
         views : {
             'appContent' : {
-                templateUrl: 'view_controllers/welcome/school.html',
-                controller : 'nl.SchoolCtrl'
+                templateUrl: 'view_controllers/welcome/team.html',
+                controller : 'nl.TeamCtrl'
             }
         }
     });
@@ -59,6 +70,16 @@ function() {
         restrict: 'E',
         transclude: true,
         templateUrl: 'view_controllers/welcome/sp.html'
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
+var StructuredDataDirective = [
+function() {
+    return {
+        restrict: 'E',
+        transclude: true,
+        templateUrl: 'view_controllers/welcome/sp-structured-data.html'
     };
 }];
 
@@ -103,22 +124,24 @@ function() {
 //-------------------------------------------------------------------------------------------------
 var AnchorScrollSrv = ['nl', '$anchorScroll',
 function(nl, $anchorScroll) {
+    var self = this;
     this.setAnchorHandler = function($scope) {
-        $scope.gotoAnchor = function(anchor) {
-            console.log('gotoAnchor', anchor);
-            if (nl.location.hash() != anchor) {
-                nl.location.hash(anchor);
-            } else {
-                $anchorScroll();
-            }
+        $scope.gotoAnchor = self.gotoAnchor;
+    };
+    
+    this.gotoAnchor = function(anchor) {
+        if (anchor !== undefined && nl.location.hash() != anchor) {
+            nl.location.hash(anchor);
+        } else {
+            $anchorScroll();
         }
-    }
+    };
 }];
 
 //-------------------------------------------------------------------------------------------------
 var _commonMsg = 'Much more than a Learning Management System.';
 var _schoolMsg = 'Measure and improve the most important aspect of your school, the “Teaching quality”.';
-var _businessMsg = 'Manage your internal training with ease.';
+var _businessMsg = 'Manage your training with ease.';
 
 var WelcomeCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
 function(nl, nlRouter, $scope, nlAnchorScroll) {
@@ -167,7 +190,7 @@ function(nl, nlRouter, $scope, nlAnchorScroll) {
         title: nl.t('Online Training Management Software.'),
         desc: 'Online software for training everyone in your company. Reduce your training costs, measure results and stay on top of learning needs of your organization.',
         pageUrl: 'business',
-        bgImg: 'background.jpg',
+        bgImg: 'businessbackground.png',
         menus: [{name: 'Features', anchor: 'features'}, {name: 'Pricing', anchor: 'pricing'}, {name: 'Request a demo', anchor: 'contact_us'}],
         
         // Required in the specific view template
@@ -200,6 +223,63 @@ function(nl, nlRouter, $scope, nlAnchorScroll) {
 }];
 
 //-------------------------------------------------------------------------------------------------
+var TeamCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
+function(nl, nlRouter, $scope, nlAnchorScroll) {
+    var teamConfig = {
+        // Required in the controller
+        title: nl.t('our team'),
+        desc: 'Nittio Learn team.',
+        pageUrl: 'team',
+        bgImg: null,
+        menus: [],
+        
+        // Required in the specific view template
+        content: {
+            msg: '',
+            firstPageClass: 'bgdark',
+            profiles: [
+                { id: 'gagan', name: 'Gagandeep Josan', role: 'Co-founder & CEO', desc: [
+                    "Jack of all trades and master of a few of them. When not thinking about the company strategy and growth, Gagan spends his time acquiring new customers and making contributions to the technology team.",
+                    "With more than 17 years of experience, a bulk of it managing products for  companies like Nokia and Amazon, Gagan brings in a mix of business and technology expertise. In his free time and while driving, Gagan likes listening to a variety of podcasts and catching up on popular American crime drama TV series.",
+                    "Gagan has an engineering degree from Thapar Institute of Engineering and Technology."
+                ]},
+                { id: 'ritu', name: 'Ritu Josan', role: 'Co-founder', desc: [
+                    "A great product still needs a messenger who can connect it to its potential users through simple messaging. For Nittio Learn, that messenger is Ritu. Ritu leads Nittio's customer acquisition and growth. With the uncommon ability of listening to customer, she ensures that they derive the maximum value from using Nittio Learn.",
+                    "Ritu got her engineering degree from NIT Jamshedpur but found her calling in marketing strategy. Ritu has over fourteen years of sales and marketing experience across industries and geographies. As a marketing  consultant, she provided digital marketing strategy to brands like Citibank,  Wipro.",
+                    "Ritu unwinds by spending her spare time with her children, Aarav and Anika and by watching English comedies."
+                ]},
+                { id: 'aravind', name: 'Aravindan RS', role: 'Co-founder & CTO', desc: [
+                    "Aravind breaths technology and lives processes. Throw an ill-defined, complex problem, technical or non-technical at him and he hands you back clarity in problem definition along with well structured multiple solutions. Aravind strives for functional simplicity in everything that he does. No wonder that the Nittio Learn content creation and learning management capabilities often get complimented as being the simplest ones around.",
+                    "An alumni of IIT Kharagpur with 20 years of large scale software architecture experience at Nokia Networks under his belt, Aravind loves spending his free time playing football with his two children, Shishir and Nila."
+                ]},
+                { id: 'ruchi', name: 'Ruchita Gupta', role: 'Customer Success Manager', desc: [
+                    "Ruchi's speed at work would put flash to shame. Whether it is rolling out a new project or handling a customer request, Ruchi\'s responsiveness combined with her meticulousness has delighted Nittio Learn customers time and again.",
+                    "Ruchi has the distinciton of launching India's first  podcast, www.podmasti.com in 2005. Ruchi loves tutoring her son Tanish and takes out time everyday for it."
+                ]},
+                { id: 'puneet', name: 'Puneet Kamboj', role: 'Content Manager', desc: [
+                    "The content expert in the team who takes time out to find ways to needle the development team by finding bugs in the new software releases. Throw any challenge at her and she comes out trumps. Judicious in her use of words, Puneet lets her work do the talking instead.",
+                    "After completing her Masters in Chemistry, Puneet taught at schools before joining Nittio. Her education experience combined with her knack for technology is helping Nittio provide differentiated and innovative content."
+                ]},
+                { id: 'sarada', name: 'Sarada Veerabhatla', role: 'Content Manager', desc: [
+                    "With Masters degree from IIT Delhi under her belt, Sarada has all it takes to ensure that the quality of software and content produced in Nittio is always top notch. Sarada's ability to break down any problem given to her and come up with an execution plan has helped Nittio continuously better both technology and content.",
+                    "Mom of two, Sarada loves spending time with her kids."
+                ]},
+                { id: 'varsha', name: 'Varsha Shrote', role: 'Customer Success Manager', desc: [
+                    "Varsha works as part of the Customer Success team ensuring that there is no hitch in their experience while using Nittio Learn.",
+                    "Varsha has an Electrical Engineering degree from Nagpur University and a Post Graduate Diploma in Advanced Computing from Centre for Development of Advanced Computing (C-DAC), Bangalore.",
+                    "She is passionate about travelling and reading.  In her free time she likes to experiment with new recipes from different regions."
+                ]},
+                { id: 'naveen', name: 'Naveen Kumar', role: 'Software Developer', desc: [
+                    "Naveen is part of our technology team. He works on the latest product features.",
+                    "Naveen has an engineering degree in electronics and communication. In his free time Naveen loves to work at his silk worm farm."
+                ]}
+            ]
+        }
+    };
+    _staticPageCtrl(teamConfig, nl, nlRouter, $scope, nlAnchorScroll);
+}];
+
+//-------------------------------------------------------------------------------------------------
 function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
@@ -224,8 +304,7 @@ function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
             
             $scope.callFn = function(fnName) {
                 if (!(fnName in $scope.content)) {
-                    console.log("not found", fnName);
-                    return
+                    return;
                 }
                 $scope.content[fnName]($scope);
             }

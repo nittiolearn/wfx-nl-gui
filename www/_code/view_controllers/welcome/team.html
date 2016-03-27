@@ -1,0 +1,76 @@
+<style>
+    .team-container {
+        position: relative;
+    }
+    .team-links {
+        position: absolute;
+        top: 0; 
+        height: 100%;
+    }
+    .team-member-photo {
+        width: 100%;
+        max-width: 300px;
+        border-radius: 8px;
+        box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+    }
+    
+</style>
+<nl-sp>
+    <nl-sp-page1>
+        <div class='fsh2 text-center padding'>Our team</div>
+        <div class='team-container'>
+            <img class='w100' ng-src='{{pageResUrl}}/nittioteam.png'
+                 alt='Nittio Team'>
+            <div class='row row-stretch margin0 team-links'>
+                <div class='col col-12-5 padding-small box2 clickable'
+                     ng-click='gotoAnchor("gagan")'>
+                </div>
+                <div class='col col-12-5 padding-small box2 clickable'
+                     ng-click='gotoAnchor("puneet")'>
+                </div>
+                <div class='col col-12-5 padding-small box2 clickable'
+                     ng-click='gotoAnchor("ritu")'>
+                </div>
+                <div class='col col-12-5 padding-small box2 clickable'
+                     ng-click='gotoAnchor("aravind")'>
+                </div>
+                <div class='col col-12-5 padding-small box2 clickable'
+                     ng-click='gotoAnchor("ruchi")'>
+                </div>
+                <div class='col col-12-5 padding-small box2 clickable'
+                     ng-click='gotoAnchor("varsha")'>
+                </div>
+                <div class='col col-12-5 padding-small box2 clickable'
+                     ng-click='gotoAnchor("naveen")'>
+                </div>
+                <div class='col col-12-5 padding-small box2 clickable'
+                     ng-click='gotoAnchor("sarada")'>
+                </div>
+            </div>
+        </div>
+        <div class='col min-400 padding'>
+            <div class='fsh2 text-center padding'>TODO: Some generic message about the team page!</div>
+            <div class='fsh6 padding-small'>Some more bla bla</div>
+            
+        </div>
+    </nl-sp-page1>
+    <div ng-repeat='member in content.profiles'
+         id='{{member.id}}' class='section' ng-class-even='"bgdark fwhite"'>
+        <div class='fsh2 text-center padding'>{{member.name}}</div>
+        <div class='fsh5 text-center padding-small'>{{member.role}}</div>
+        <div class='row row-wrap row-center'>
+            <div class='padding text-center' ng-class='resp2Col33'>
+                <img class='team-member-photo' ng-src='{{pageResUrl}}/{{member.id}}.png'
+                     alt='{{member.name}}'>
+            </div>
+            <div class='padding' ng-class='resp2Col67'>
+                <p ng-repeat='desc in member.desc'>{{desc}}</p>
+            </div>
+        </div>
+    </div>
+    <div class='section vh100'>
+        <div class='fsh2 text-center padding'>TODO: Want to join us?</div>
+        <div class='fsh6 padding-small'>Some more bla bla</div>
+    </div>
+    <nl-sp-footer id='contact_us'></nl-sp-footer>
+</nl-sp>

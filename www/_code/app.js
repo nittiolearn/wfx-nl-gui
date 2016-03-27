@@ -197,17 +197,32 @@ var _respColNgClasses = {
     respCol211 : {large: 2, medium: 1, small: 1}
 };
 
+// % width per column
+var _resp2ColNgClasses = {
+    resp2Col33 : {large: 33, medium: 33, small: 1},
+    resp2Col67 : {large: 67, medium: 67, small: 1}
+};
+
 // The resultant classes applied for a given class
 var _respColClasses = {
+    // For number of columns based systems
     1: 'w100',
     2: 'col col-50',
     3: 'col col-33',
-    4: 'col col-25'
+    4: 'col col-25',
+    // For percentage based systems
+    33: 'col col-33',
+    67: 'col col-67'
 };
 
 function _updateResponsiveColClasses(nl) {
     for (var ngClass in _respColNgClasses) {
         var nlClassData = _respColNgClasses[ngClass];
+        var columns = nlClassData[nl.rootScope.screenSize];
+        nl.rootScope[ngClass] = _respColClasses[columns];
+    }
+    for (var ngClass in _resp2ColNgClasses) {
+        var nlClassData = _resp2ColNgClasses[ngClass];
         var columns = nlClassData[nl.rootScope.screenSize];
         nl.rootScope[ngClass] = _respColClasses[columns];
     }

@@ -189,6 +189,7 @@ function Permission(nl) {
         '/welcome': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/school': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/business': {login: false, permission: '', termRestriction: TR_OPEN}, 
+        '/team': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/login_now': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/logout_now': {login: false, permission: '', termRestriction: TR_OPEN},
         '/audit': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
@@ -216,7 +217,7 @@ function Permission(nl) {
     };
     
     var openPages = {'/login_now': 1, '/logout_now': 1, 
-                     '/welcome': 1, '/school': 1, '/business': 1};
+                     '/welcome': 1, '/school': 1, '/business': 1, '/team': 1};
     this.isOpenPage = function(pageUrl) {
         var page = (pageUrl == '') ? nl.location.path() : pageUrl;
         return (page in openPages);

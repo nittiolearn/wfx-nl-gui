@@ -12,12 +12,19 @@
     </div>
     <div class='padding'></div>
     <div class='bgwhite fblack'>
-        <div class='padding'>
-            <b>Follow us on:</b>
-            <a class='nl-clickable fblack hpad-small border-right' href='https://www.facebook.com/nittiolearn'>Facebook</a>
-            <a class='nl-clickable fblack hpad-small border-right' href='https://twitter.com/nittiolearn'>Twitter</a>
-            <a class='nl-clickable fblack hpad-small' href='https://www.linkedin.com/company/nittio'>LinkedIn</a>
-         </div>
+        <div class='row row-center row-wrap'>
+            <div class='padding' ng-class='resp2Col67'>
+                <b>Follow us on:</b>
+                <a class='nl-clickable fblack hpad-small border-right' href='https://www.facebook.com/nittiolearn'>Facebook</a>
+                <a class='nl-clickable fblack hpad-small border-right' href='https://twitter.com/nittiolearn'>Twitter</a>
+                <a class='nl-clickable fblack hpad-small' href='https://www.linkedin.com/company/nittio'>LinkedIn</a>
+             </div>
+            <div class='padding' ng-class='resp2Col33'>
+                <div ng-class='screenSize == "small" ? "text-left" : "text-right"'>
+                    <a class='nl-clickable' href='#/team'><b>Our team</b></a>
+                </div>
+            </div>
+        </div>
         <nl-sp-copyright class='w100'></nl-sp-copyright>
     </div>
 </div>
