@@ -19,39 +19,38 @@
     <nl-sp-page1>
         <div class='fsh2 text-center padding'>Our team</div>
         <div class='team-container'>
-            <img class='w100' ng-src='{{pageResUrl}}/nittioteam.png'
+            <img class='w100' ng-src='{{pageResUrl}}/nittioteam2.png'
                  alt='Nittio Team'>
             <div class='row row-stretch margin0 team-links'>
                 <div class='col col-12-5 padding-small box2 clickable'
-                     ng-click='gotoAnchor("gagan")'>
+                     ng-click='gotoAnchor("gagan2")'>
                 </div>
                 <div class='col col-12-5 padding-small box2 clickable'
-                     ng-click='gotoAnchor("puneet")'>
+                     ng-click='gotoAnchor("puneet2")'>
                 </div>
                 <div class='col col-12-5 padding-small box2 clickable'
-                     ng-click='gotoAnchor("ritu")'>
+                     ng-click='gotoAnchor("ritu2")'>
                 </div>
                 <div class='col col-12-5 padding-small box2 clickable'
-                     ng-click='gotoAnchor("aravind")'>
+                     ng-click='gotoAnchor("aravind2")'>
                 </div>
                 <div class='col col-12-5 padding-small box2 clickable'
-                     ng-click='gotoAnchor("ruchi")'>
+                     ng-click='gotoAnchor("ruchi2")'>
                 </div>
                 <div class='col col-12-5 padding-small box2 clickable'
-                     ng-click='gotoAnchor("varsha")'>
+                     ng-click='gotoAnchor("varsha2")'>
                 </div>
                 <div class='col col-12-5 padding-small box2 clickable'
-                     ng-click='gotoAnchor("naveen")'>
+                     ng-click='gotoAnchor("naveen2")'>
                 </div>
                 <div class='col col-12-5 padding-small box2 clickable'
-                     ng-click='gotoAnchor("sarada")'>
+                     ng-click='gotoAnchor("sarada2")'>
                 </div>
             </div>
         </div>
         <div class='col min-400 padding'>
-            <div class='fsh2 text-center padding'>TODO: Some generic message about the team page!</div>
-            <div class='fsh6 padding-small'>Some more bla bla</div>
-            
+            <div class='fsh2 text-center padding'>Meet the people behind Nittio Learn</div>
+            <div class='fsh6 padding-small text-center'>Our customers identify us with a scrupulously efficient user experience on the product and the most responsive and effective support. This is the team that makes it happen.</div>
         </div>
     </nl-sp-page1>
     <div ng-repeat='member in content.profiles'
@@ -68,9 +67,18 @@
             </div>
         </div>
     </div>
-    <div class='section vh100'>
-        <div class='fsh2 text-center padding'>TODO: Want to join us?</div>
-        <div class='fsh6 padding-small'>Some more bla bla</div>
+    <div class='section'>
+        <div class='fsh2 text-center padding'>Is that you?</div>
+        <div class='fsh5 text-center padding-small'></div>
+        <div class='row row-wrap row-center'>
+            <div class='padding text-center' ng-class='resp2Col33'>
+                <img class='team-member-photo' ng-src='{{pageResUrl}}/you2.png'
+                     alt='Want to join us?'>
+            </div>
+            <div class='padding' ng-class='resp2Col67'>
+                <p>Interested in joining the Nittio team? Email your resume to <a class='nl-clickable' href='mailto:hello@nittio.com'><b><u>hello@nittio.com</u></b></a>.
+            </div>
+        </div>
     </div>
     <nl-sp-footer id='contact_us'></nl-sp-footer>
 </nl-sp>

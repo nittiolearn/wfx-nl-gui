@@ -130,12 +130,20 @@ $orange2: #F54B22 !default; // rgb(245, 75, 34)
     min-height: 100vh;
   }
   
-  .vh75 {
-    min-height: 75vh;
+  .vh50 {
+    min-height: 50vh;
   }
 
   .vh25 {
     min-height: 25vh;
+  }
+
+  .vh10 {
+    min-height: 10vh;
+  }
+
+  .vh5 {
+    min-height: 5vh;
   }
 
   .w100 {
@@ -196,6 +204,12 @@ $orange2: #F54B22 !default; // rgb(245, 75, 34)
   
   .justify-center {
     justify-content: center;
+  }
+  
+  .center67 {
+    position: absolute;
+    width: 66%;
+    left: 17%;
   }
   
   //---------------------------------------------------------------------------

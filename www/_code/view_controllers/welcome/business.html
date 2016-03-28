@@ -5,12 +5,15 @@
                  alt='Nittio Learn for businesses - {{content.title}}'
                  class='w100'/>
         </div>
-        <div class='row row-center row-wrap vh25'>
-            <div class='fsh2 text-center padding w100'>{{content.msg}}</div>
+        <div class='vh25'>
         </div>
-        <div class='row row-center row-wrap padding'>
-            <div class='padding box'>
-                <div class='fsh4 forange'>{{content.desc}}</div>
+        <div class='row row-top row-wrap'>
+            <div class='fsh2 text-center padding w100'>{{content.msg}}</div>
+            <div class='padding'></div>
+            <div class='fsh4 text-center'>
+                <div ng-class='screenSize == "small" ? "" : "center67"'>
+                    {{content.desc}}
+                </div>
             </div>
         </div>
 	</nl-sp-page1>
@@ -73,7 +76,7 @@
                     <strong>New employee training</strong>
                 </div>
                 <div class='text-center'>
-                    <img ng-src='{{pageResUrl}}/newemptraining.png' class='nl-max-200'
+                    <img ng-src='{{pageResUrl}}/newemptraining2.png' class='nl-max-200'
                          alt='New employee training'/>
                 </div>
             </div>
@@ -83,7 +86,7 @@
                     <strong>Compliance training</strong>
                 </div>
                 <div class='text-center'>
-                    <img ng-src='{{pageResUrl}}/compliancetraining.png' class='nl-max-200'
+                    <img ng-src='{{pageResUrl}}/compliancetraining2.png' class='nl-max-200'
                          alt='Compliance training'/>
                 </div>
             </div>
@@ -93,7 +96,7 @@
                     <strong>Domain specific training</strong>
                 </div>
                 <div class='text-center'>
-                    <img ng-src='{{pageResUrl}}/domainspecifictraining.png' class='nl-max-200'
+                    <img ng-src='{{pageResUrl}}/domainspecifictraining2.png' class='nl-max-200'
                          alt='Domain specific training'/>
                 </div>
             </div>
@@ -103,7 +106,7 @@
                     <strong>Employee assessment & survey</strong>
                 </div>
                 <div class='text-center'>
-                    <img ng-src='{{pageResUrl}}/empsurvey.png' class='nl-max-200'
+                    <img ng-src='{{pageResUrl}}/empsurvey2.png' class='nl-max-200'
                          alt='Employee assessment & survey'/>
                 </div>
             </div>
