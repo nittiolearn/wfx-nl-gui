@@ -6,17 +6,11 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.ui.utils', ['nl.ui.keyboard'])
-    .service('nlUi', UIService)
     .directive('nlLoading', LoadingDirective)
     .directive('nlNoCtxMenu', NoCtxMenuDirective)
     .directive('nlRetainAr', RetainArDirective)
     .directive('nlFocusMe', FocusMeDirective);
 }
-
-//-------------------------------------------------------------------------------------------------
-var UIService = ['nl', '$window', 'nlDlg', '$parse',
-function(nl, $window, nlDlg, $parse) {
-}];
 
 //-------------------------------------------------------------------------------------------------
 var LoadingDirective = ['nl', '$window', 'nlDlg', '$parse',
@@ -79,7 +73,6 @@ function(nl) {
         link: function(scope, iElem, iAttrs) {
           scope.$watch(iAttrs.nlFocusMe, function(value) {
               if(value === true) {
-                  console.log('nl-focusme: value=',value);
                   nl.timeout(function() {
                       iElem[0].focus();
                       scope[iAttrs.focusMe] = false;

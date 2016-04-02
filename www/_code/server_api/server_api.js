@@ -10,10 +10,10 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlServerApi = ['nl', 'nlDlg', 'nlConfig',
-function(nl, nlDlg, nlConfig) {
+var NlServerApi = ['nl', 'nlDlg', 'nlConfig', 'Upload',
+function(nl, nlDlg, nlConfig, Upload) {
     
-    var server = new NlServerInterface(nl, nlDlg, nlConfig);
+    var server = new NlServerInterface(nl, nlDlg, nlConfig, Upload);
 
     //---------------------------------------------------------------------------------------------
     // Common methods
@@ -373,6 +373,35 @@ function(nl, nlDlg, nlConfig) {
 	};
 
     //---------------------------------------------------------------------------------------------
+    // resource entities
+    //---------------------------------------------------------------------------------------------
+    this.lessonCloseReview = function() {
+        // Get allowed resource types for the user
+        return server.post('_serverapi/resource_get_restypes.json', {});
+    };
+
+    this.resourceUpload = function(data, urltype) {
+        // Upload a resource - could be basic upload or upload and do something more based
+        // on url type
+        if (urltype === undefined) urltype = 'upload';
+        return nl.q(function(resolve, reject) {
+            server.post('_serverapi/resource_get_upload_url.json', {urltype: urltype})
+            .then(function(uploadUrl) {
+                var reloadUserInfo = false;
+                var noPopup = false;
+                var upload = true;
+                server.post(uploadUrl, data, reloadUserInfo, noPopup, upload)
+                .then(resolve, reject);
+            }, reject);
+        });
+    };
+
+    this.resourceUploadPdf = function(data) {
+        return this.resourceUpload(data, 'upload_pdf');
+    };
+
+    
+    //---------------------------------------------------------------------------------------------
     // Private methods
     //---------------------------------------------------------------------------------------------
     function _getUserInfoFromCacheOrServer() {
@@ -426,7 +455,7 @@ function(nl, nlDlg, nlConfig) {
 
 }];
 
-function NlServerInterface(nl, nlDlg, nlConfig) {
+function NlServerInterface(nl, nlDlg, nlConfig, Upload) {
 
     this.currentUserInfo = _defaultUserInfo();
     this.resolveWaiters = [];
@@ -454,21 +483,32 @@ function NlServerInterface(nl, nlDlg, nlConfig) {
         _initUserInfo(this);
     };
     
-    this.post = function(url, data, reloadUserInfo, noPopup) {
+    this.post = function(url, data, reloadUserInfo, noPopup, upload) {
         reloadUserInfo = (reloadUserInfo == true);
         noPopup = (noPopup == true);
+        upload = (upload == true);
         var self = this;
+        var progressFn = null;
+        if ('progressFn' in data) {
+            progressFn = data.progressFn;
+            delete data.progressFn;
+        }
         return nl.q(function(resolve, reject) {
             self.getUserInfoFromCache().then(function(userInfo) {
                 data._u = reloadUserInfo ? 'NOT_DEFINED' : userInfo.username;
                 data._v = NL_SERVER_INFO.versions.script;
                 if ('updated' in userInfo) data._ts = nl.fmt.json2Date(userInfo.updated);
-                url = NL_SERVER_INFO.url + url;
-                _postImpl(url, data)
-                .success(function(data, status, headers, config) {
-                    _processResponse(self, data, status, resolve, reject, noPopup);
-                }).error(function(data, status, headers, config) {
-                    _processResponse(self, data, status, resolve, reject, noPopup);
+                if (!upload) url = NL_SERVER_INFO.url + url;
+                _postImpl(url, data, upload).then(
+                function success(data) {
+                    _processResponse(self, data.data, data.status, resolve, reject, noPopup);
+                }, function error(data) {
+                    _processResponse(self, data.data, data.status, resolve, reject, noPopup);
+                }, function progress(evt) {
+                    // Only in case of upload
+                    var prog = parseInt(100.0 * evt.loaded / evt.total);
+                    var resName = evt.config.data.resource.name;
+                    if (progressFn) progressFn(prog, resName);
                 });
             });
         });
@@ -481,9 +521,10 @@ function NlServerInterface(nl, nlDlg, nlConfig) {
     }
     
     var AJAX_TIMEOUT = 3*60*1000; // 3 mins timeout
-    function _postImpl(url, data) {
+    function _postImpl(url, data, upload) {
         nl.log.info('server_api: posting: ', url);
         if (NL_SERVER_INFO.serverType == 'local') return nl.http.get(url); // For local testing
+        if (upload) return Upload.upload({url: url, data: data, timeout: AJAX_TIMEOUT});
         return nl.http.post(url, data, {timeout: AJAX_TIMEOUT});
     }
     
