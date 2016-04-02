@@ -89,9 +89,7 @@ Before sending new minor version for testing
 To make any changes and release a minor version (pre-release) for testing, do the following:
 1. In the nittioapp project, do the following:
    - gulpfile.js: Increment the minor version number (e.g. v73 -> v74.pre01; v74.pre01 -> v74.pre02)
-   - gulp clean
    - gulp rebuild
-   - gulp nittio_build
    - check in sources
    - Apply the new minor version tag (v74.per01) to the last checked in sources
 2. In the nittio project, do the following:
@@ -103,9 +101,7 @@ Releasing a version in nittio-live
 ==================================
 1. In the nittioapp project, do the following:
    - gulpfile.js: Change the version number to latest major version (e.g. v74.pre04 -> v74)
-   - gulp clean
    - gulp rebuild
-   - gulp nittio_build
    - check in sources
    - Apply the version tag (e.g. v74) to the last checked in sources
 2. In the nittio project, do the following:
@@ -118,7 +114,6 @@ Releasing a version in nittio-live
 5. In the nittioapp project, do the following:
    - gulpfile.js: Change the version number to new minor version (e.g. v74 -> v75.pre01)
    - gulp rebuild
-   - gulp nittio_build
    - check in sources
 6. In the nittio project, do the following:
    - app.yaml: Increment the version number (e.g. 74 -> 75)

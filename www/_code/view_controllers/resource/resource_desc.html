@@ -1,0 +1,7 @@
+<div style='padding: 8px'>
+    <span ng-if='fileInfo.restype'>{{fileInfo.restype}}: </span>
+    <b ng-if='fileInfo.resource.name'>{{fileInfo.resource.name}}, </b>
+    <span ng-if='fileInfo.resource.size'>{{fileInfo.resource.size}} bytes, </span>
+    <span  ng-if='fileInfo.date'>updated on {{fileInfo.date}}</span>
+</div>
+<img ng-if='fileInfo.restype == "Image"' class='nl-full-width' ng-src='{{fileInfo.resimg}}'/>

@@ -7,7 +7,9 @@
         <div class='nl-dlg-field-name'>Observation:</div>
         <nl-textarea fieldmodel='text'></nl-textarea>
         <div class='nl-dlg-field-name'>Attachments:</div>
-        <nl-file-input fieldmodel='attachments'></nl-file-input>
+        <nl-resource-upload fieldmodel='attachments' 
+            multiple='true' restype='Image'>
+        </nl-resource-upload>
         <div class='nl-dlg-field-name'>Future notes:</div>
         <nl-textarea fieldmodel='notes'></nl-textarea>
     </nl-dlg-content>

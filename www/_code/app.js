@@ -200,7 +200,9 @@ var _respColNgClasses = {
 // % width per column
 var _resp2ColNgClasses = {
     resp2Col33 : {large: 33, medium: 33, small: 1},
-    resp2Col67 : {large: 67, medium: 67, small: 1}
+    resp2Col67 : {large: 67, medium: 67, small: 1},
+    resp2Col20 : {large: 20, medium: 20, small: 1},
+    resp2Col80 : {large: 80, medium: 80, small: 1},
 };
 
 // The resultant classes applied for a given class
@@ -211,8 +213,10 @@ var _respColClasses = {
     3: 'col col-33',
     4: 'col col-25',
     // For percentage based systems
+    20: 'col col-20',
     33: 'col col-33',
-    67: 'col col-67'
+    67: 'col col-67',
+    80: 'col col-80',
 };
 
 function _updateResponsiveColClasses(nl) {

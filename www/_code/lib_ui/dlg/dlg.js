@@ -14,7 +14,6 @@ function module_init() {
     .directive('nlFormInput', FormInputDirective)
     .directive('nlFormSelect', FormSelectDirective)
     .directive('nlFormTextarea', FormTextareaDirective)
-    .directive('nlFileInput', FileInputDirective)
     .directive('nlElastic', ElasticTextareaDirective);
 }
 
@@ -33,16 +32,27 @@ function(nl, $ionicPopup, $ionicLoading) {
     };
     
     var statusTimeoutPromise = null;
-    this.popupStatus = function(msg) {
+    this.popupStatus = function(msg, popdownTime) {
         nl.log.debug('Dialog.popupStatus: ', msg);
         nl.pginfo.statusPopup = msg;
+        if (popdownTime === undefined) popdownTime = 2000;
+        if (popdownTime === false) popdownTime = 1000*3600*24;
         if (statusTimeoutPromise) nl.timeout.cancel(statusTimeoutPromise);
         statusTimeoutPromise = nl.timeout(function() {
             statusTimeoutPromise = null;
             nl.pginfo.statusPopup = false;
-        }, 2000);
+        }, popdownTime);
     };
 
+    this.popdownStatus = function(popdownTime) {
+        if (!statusTimeoutPromise) return;
+        if (popdownTime === undefined) popdownTime = 2000;
+        statusTimeoutPromise = nl.timeout(function() {
+            statusTimeoutPromise = null;
+            nl.pginfo.statusPopup = false;
+        }, popdownTime);
+    };
+    
     this.popupAlert = function(data) {
         nl.log.debug('Dialog.popupAlert: ', data.title);
         data.cssClass = _addDlgCssClass(data.cssClass);
@@ -290,60 +300,6 @@ function _formFieldDirectiveImpl(nl, nlDlg, tagName, templateUrl) {
         }
     };
 }
-
-//-------------------------------------------------------------------------------------------------
-var FileInputDirective = ['nl', 'nlDlg',
-function(nl, nlDlg) {
-	
-    function addFileContent(file, $scope, fieldmodel){
-	    var reader = new FileReader();
-	    reader.onload = function(e) {
-    		var fileInfo = {file: file, content: e.target.result};
-        	$scope.$parent.$apply(function () {
-                $scope.$parent.data[fieldmodel].push(fileInfo);
-            });            	
-	    }; 
-	    reader.readAsDataURL(file);
-    }
-
-    return {
-        restrict: 'E',
-        templateUrl: 'lib_ui/dlg/file_input.html',
-        scope: {
-            fieldmodel: '@',
-            fieldcls: '@',
-            tabindex: '@'
-        },
-        link: function($scope, iElem, iAttrs) {
-        	var field = angular.element(iElem.find('input')[0]);
-        	$scope.imgBasePath = nl.url.resUrl();
-            $scope.$parent.data[$scope.fieldmodel] = [];
-            field.bind('change', function(changeEvent) {
-            	var fileList =  changeEvent.target.files;
-            	for (var i=0; i<fileList.length; i++) {
-            		var file = fileList[i];
-            		$scope.$parent.data[$scope.fieldmodel].push(file);
-            		addFileContent(file, $scope, $scope.fieldmodel);
-            	}
-            });
-            nlDlg.addField($scope.fieldmodel, field);
-            $scope.imgClick = function(imgUrl, fileName) {
-            	var msg = {title: fileName, 
-				   template:nl.t('<img class="nl-full-width" src='+imgUrl.content+' />'),
-				   okText: nl.t('Remove')};
-				nlDlg.popupConfirm(msg).then(function(e) {
-					if(!e) return;
-					for( var i=0; i<$scope.$parent.data[$scope.fieldmodel].length;i++) {
-						var data = $scope.$parent.data[$scope.fieldmodel];
-						if(data[i] == imgUrl) {
-							$scope.$parent.data[$scope.fieldmodel].splice(i,1);
-						}
-					}
-				});
-            };
-        }
-    };
-}];
 
 //-------------------------------------------------------------------------------------------------
 var ElasticTextareaDirective =  ['nl',
