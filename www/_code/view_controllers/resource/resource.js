@@ -177,13 +177,11 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, Upload, nlPdf) {
             $scope.subjectLabel = userInfo.groupinfo.subjectlabel || 'Subject';
             
             $scope.options.grade = _getOptions(userInfo, 'grades'); 
-            // TODO-MUNNI: remove below line
-            $scope.options.subject = _getOptions(userInfo, 'grades'); 
-            //$scope.options.subject = _getOptions(userInfo, 'subjects'); 
+            $scope.options.subject = _getOptions(userInfo, 'subjects'); 
 
             $scope.data.name = '';
             $scope.data.grade = $scope.options.grade[0];
-            $scope.data.subject = $scope.options.subject[0]
+            $scope.data.subject = $scope.options.subject[0];
             $scope.data.description = '';
             $scope.data.keywords = '';
             resolve(true);
