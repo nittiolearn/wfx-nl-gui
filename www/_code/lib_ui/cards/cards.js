@@ -25,18 +25,22 @@ function(nl) {
 		card.children = [];
 		return card;
 	};
+	
+	this.updateGrades = function(cards, grades) {
+		cards.grades = ['All'].concat(grades);
+	};
 }];
 
 var NlFilter = ['nl', '$filter',
 function(nl, $filter) {
 	return function(inputArray, filterString, filterGrade) {
 		var filteredInput = inputArray;
-		if (filterGrade && filterGrade != 'All Grades') {
-		filteredInput = [];
-    	for (var i=0; i < inputArray.length; i++) {
-    		var card = inputArray[i];
-    		if (card.grade != filterGrade) continue;
-	    	filteredInput.push(card);
+		if (filterGrade && filterGrade != 'All') {
+			filteredInput = [];
+	    	for (var i=0; i < inputArray.length; i++) {
+	    		var card = inputArray[i];
+	    		if (card.grade != filterGrade) continue;
+		    	filteredInput.push(card);
 	    	}
 	    }
 		filterString = filterString.replace(/"/g, "");
@@ -87,11 +91,12 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             };
             var params = nl.location.search();
 			var searchParam = ('search' in params) ? params.search : '';
-			var grade = ('grade' in params) ? params.grade : 'All Grades';
+			var grade = ('grade' in params) ? params.grade : 'All';
             $scope.search = {filter: searchParam, img: nl.url.resUrl('search.png'), grade: grade};
             $scope.search.onSearch = function() {
             	if (!('onSearch' in $scope.cards.search)) return;
-            	return $scope.cards.search.onSearch($scope.search.filter, $scope.search.grade);
+            	var grade = $scope.search.grade == 'All' ? null : $scope.search.grade;
+            	return $scope.cards.search.onSearch($scope.search.filter, grade);
             };
 			$scope.searchKeyHandler = function(keyevent) {
 				if(keyevent.which === 13) {

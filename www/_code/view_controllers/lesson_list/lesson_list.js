@@ -79,7 +79,7 @@ function TypeHandler(nl, nlServerApi) {
 		this.type = _convertType(params.type);
 		this.custtype = ('custtype' in params) ? parseInt(params.custtype) : null;
 		this.revstate = ('revstate' in params) ? parseInt(params.revstate) : null;
-		this.searchGrade = ('grade' in params) ? params.grade : 'All Grades';
+		this.searchGrade = ('grade' in params) ? params.grade : null;
 		this.searchFilter = ('search' in params) ? params.search : null;
 	};
 
@@ -144,7 +144,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
 			nl.pginfo.pageTitle = mode.pageTitle();
 			$scope.cards = {};
 			$scope.cards.staticlist = _getStaticCard();
-			$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
+			$scope.cards.emptycard = nlCardsSrv.getEmptyCard();
 			_getDataFromServer(resolve, reject);
 		});
 	}
@@ -152,13 +152,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
 
 	nlRouter.initContoller($scope, '', _onPageEnter);
 	
-	function _getEmptyCard(nlCardsSrv) {
-		var help = help = nl.t('There are no assignments to display.');
-		return nlCardsSrv.getEmptyCard({
-			help : help
-		});
-	}
-
 	function _getApproveToList() {
 		var card = ['Visible to users within the group', 'Visible to users within the group and dependent group', 'Visible to every logedin user', 'Visible to everyone'];
 		return card;		
@@ -471,8 +464,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
 		var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
 		_populateLinks(linkAvp, lesson.id, lesson);
 		nl.fmt.addAvp(avps, 'Name', lesson.name);
-		nl.fmt.addAvp(avps, 'Subject', lesson.subject);
-		nl.fmt.addAvp(avps, 'Grade', lesson.grade);
+		nl.fmt.addAvp(avps, _userInfo.groupinfo.subjectlabel, lesson.subject);
+		nl.fmt.addAvp(avps, _userInfo.groupinfo.gradelabel, lesson.grade);
 		if(mode.type == TYPES.MY || mode.type == TYPES.REVIEW) _addIconsToDeatilsDialog(avps, lesson); 
 		nl.fmt.addAvp(avps, 'Keywords', lesson.keywords);
 		nl.fmt.addAvp(avps, 'Created on ', lesson.created, 'date');
@@ -573,9 +566,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
 	
 	function _addSearchInfo(cards) {
 		cards.search = {
-			placeholder : nl.t('Name/Subject/Remarks/Keyword')
+			placeholder : nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)
 		};
-		cards.grades = ['All Grades'].concat(_userInfo.groupinfo.grades);
+		nlCardsSrv.updateGrades(cards, _userInfo.groupinfo.grades);
 		cards.search.onSearch = _onSearch;
 	}
 

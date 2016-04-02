@@ -175,15 +175,15 @@
 			};
 			var descFmt = " \
 			 <div class='nl-textellipsis'>Sent to: <b>{}</b></div> \
-			 <div class='nl-textellipsis'>Subject: {}</div> \
+			 <div class='nl-textellipsis'>{}: {}</div> \
 			 <div class='nl-textellipsis'>by: <b>{}</b></div>";
 			if (mode.type == TYPES.PAST || mode.type == TYPES.SHARED) {
 			    descFmt += "<img src={} class='nl-24'> completed";
-				card['help'] = nl.t(descFmt, assignment.assigned_to, assignment.subject, 
+				card['help'] = nl.t(descFmt, assignment.assigned_to, _userInfo.groupinfo.subjectlabel, assignment.subject, 
 				    assignment.assigned_by, nl.url.resUrl('general/tick.png'));
 			} else {
                 descFmt += "<div>{}</div>";
-				card['help'] = nl.t(descFmt, assignment.assigned_to, assignment.subject, 
+				card['help'] = nl.t(descFmt, assignment.assigned_to, _userInfo.groupinfo.subjectlabel, assignment.subject, 
 				    assignment.assigned_by, assignment.assign_remarks);
 			}
 			card.details = {
@@ -224,7 +224,7 @@
 				nl.fmt.addAvp(avps, 'Ended on', assignment.ended, 'date');
 			}
 			nl.fmt.addAvp(avps, 'Assigned to', assignment.assigned_to);
-			nl.fmt.addAvp(avps, 'Subject', assignment.subject);
+			nl.fmt.addAvp(avps, _userInfo.groupinfo.subjectlabel, assignment.subject);
 			nl.fmt.addAvp(avps, 'Lesson Author', assignment.authorname);
 			nl.fmt.addAvp(avps, 'Earliest start time', assignment.not_before, 'date');
 			nl.fmt.addAvp(avps, 'Latest end time', assignment.not_after, 'date');
@@ -265,7 +265,7 @@
 
 		function _addSearchInfo(cards) {
 			cards.search = {
-				placeholder : nl.t('Name/Subject/Remarks/Keyword')
+				placeholder : nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)
 			};
 			cards.search.onSearch = _onSearch;
 		}
