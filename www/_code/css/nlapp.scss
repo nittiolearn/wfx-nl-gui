@@ -34,9 +34,13 @@ $nlpad_y:                         20px !default;
 $nlpad_x_small:                   10px !default; 
 $nlpad_y_small:                   10px !default; 
 
-// From sp.scss
 $grey: #A0A0C0 !default; // rgb(160, 160, 192)
+
+$orange:  #FFA500 !default; // rgb(255, 165, 0)
+$orange1: #E06000 !default; // rgb(224, 96, 0)
 $orange2: #F54B22 !default; // rgb(245, 75, 34)
+
+$yellow: #FFDC46 !default; // rgb(255, 220, 70)
 
 // The path for our ionicons font files, relative to the built CSS in www/css
 $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
@@ -1202,6 +1206,10 @@ img.nl-full-width {
 
 .forange {
   color: $orange2;
+}
+
+.fyellow {
+  color: $yellow;
 }
 
 .fgreen {

@@ -245,7 +245,7 @@ function(nl, $window, nlKeyboardHandler) {
 var InputDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
     return _formFieldDirectiveImpl(nl, nlDlg, 'input',
-        'lib_ui/dlg/input.html');
+        'lib_ui/dlg/input.html', true);
 }];
 
 var SelectDirective = ['nl', 'nlDlg',
@@ -263,7 +263,7 @@ function(nl, nlDlg) {
 var FormInputDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
     return _formFieldDirectiveImpl(nl, nlDlg, 'input',
-        'lib_ui/dlg/forminput.html');
+        'lib_ui/dlg/forminput.html', true);
 }];
 
 var FormSelectDirective = ['nl', 'nlDlg',
@@ -278,10 +278,12 @@ function(nl, nlDlg) {
         'lib_ui/dlg/formtextarea.html');
 }];
 
-function _formFieldDirectiveImpl(nl, nlDlg, tagName, templateUrl) {
+function _formFieldDirectiveImpl(nl, nlDlg, tagName, templateUrl, transclude) {
+    if (transclude === undefined) transclude = false;
     return {
         restrict: 'EA',
         templateUrl: templateUrl,
+        transclude: transclude,
         scope: {
             fieldname: '@',
             fieldmodel: '@',

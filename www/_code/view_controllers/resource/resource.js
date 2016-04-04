@@ -19,7 +19,7 @@ function($stateProvider, $urlRouterProvider) {
         url: '^/upload_pdf',
         views: {
             'appContent': {
-                templateUrl: 'view_controllers/resource/upload_pdf.html',
+                template : '',
                 controller: 'nl.PdfUploadCtrl'
             }
         }});
@@ -29,7 +29,6 @@ function($stateProvider, $urlRouterProvider) {
 var ResourceUploadDirective = ['nl', 'Upload', 'nlDlg',
 function(nl, Upload, nlDlg) {
     function _linkFunction($scope, iElem, iAttrs) {
-        $scope.imgBasePath = nl.url.resUrl();
         $scope.$parent.data[$scope.fieldmodel] = [];
         $scope.accept = _getAcceptString($scope.restype);
         $scope.onFileSelect = function(files) {
@@ -152,39 +151,39 @@ function(nl, Upload, nlDlg) {
 var PdfUploadCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'Upload', 'nlPdf',
 function(nl, nlRouter, $scope, nlServerApi, nlDlg, Upload, nlPdf) {
     var _template = 0;
+    var uploadDlg = nlDlg.create($scope);
+    uploadDlg.setCssClass('nl-height-max nl-width-max');
 
-    $scope.options = {};
-    $scope.data = {pdf: []};
-    $scope.error = {};
-    $scope.onChange = {pdf: function() {
+    uploadDlg.scope.options = {};
+    uploadDlg.scope.data = {pdf: []};
+    uploadDlg.scope.error = {};
+    uploadDlg.scope.onChange = {pdf: function() {
         _onPdfChange();
     }};
-
-    $scope.upload = function(e) {
-        _upload(e);
-    };
-    
-    $scope.cancel= function(e) {
-        nl.location.url('/home');
-    }
 
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
             var params = nl.location.search();
             _template = ('template' in params) ? parseInt(params.template): 0;
 
-            $scope.gradeLabel = userInfo.groupinfo.gradelabel || 'Grade';
-            $scope.subjectLabel = userInfo.groupinfo.subjectlabel || 'Subject';
+            nl.pginfo.pageTitle = nl.t('Upload your content');
             
-            $scope.options.grade = _getOptions(userInfo, 'grades'); 
-            $scope.options.subject = _getOptions(userInfo, 'subjects'); 
+            uploadDlg.scope.gradeLabel = userInfo.groupinfo.gradelabel || 'Grade';
+            uploadDlg.scope.subjectLabel = userInfo.groupinfo.subjectlabel || 'Subject';
+            
+            uploadDlg.scope.options.grade = _getOptions(userInfo, 'grades'); 
+            uploadDlg.scope.options.subject = _getOptions(userInfo, 'subjects'); 
 
-            $scope.data.name = '';
-            $scope.data.grade = $scope.options.grade[0];
-            $scope.data.subject = $scope.options.subject[0];
-            $scope.data.description = '';
-            $scope.data.keywords = '';
+            uploadDlg.scope.data.name = '';
+            uploadDlg.scope.data.singlePage = true;
+            uploadDlg.scope.data.grade = uploadDlg.scope.options.grade[0];
+            uploadDlg.scope.data.subject = uploadDlg.scope.options.subject[0];
+            uploadDlg.scope.data.description = '';
+            uploadDlg.scope.data.keywords = '';
             resolve(true);
+            nl.timeout(function() {
+                _showUploadDlg();
+            });
         });
     }
     nlRouter.initContoller($scope, '', _onPageEnter);
@@ -199,27 +198,41 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, Upload, nlPdf) {
         return ret;
     }
 
+    function _showUploadDlg() {
+        var uploadButton = {text: nl.t('Upload'), onTap: function(e) {
+            if (e) e.preventDefault();
+            _upload();
+        }};
+        var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
+            if (e) e.preventDefault();
+            uploadDlg.close(false);
+            uploadDlg.destroy();
+            nl.location.url('/home');
+        }};
+        uploadDlg.show('view_controllers/resource/pdf_upload_dlg.html', 
+                        [uploadButton], cancelButton, false);
+    }
+
     function _onPdfChange() {
-        if ($scope.data.pdf.length != 1) return;
-        var fname = $scope.data.pdf[0].resource.name;
+        if (uploadDlg.scope.data.pdf.length != 1) return;
+        var fname = uploadDlg.scope.data.pdf[0].resource.name;
         fname = fname.substr(0, fname.lastIndexOf('.'));
         fname = fname.replace(/\-/g, ' ')
-        $scope.data.name = fname.replace(/\_/g, ' ');
+        uploadDlg.scope.data.name = fname.replace(/\_/g, ' ');
     }
     
-    function _upload(e) {
-        if(!_validateInputs()) {
-            if(e) e.preventDefault();
-            return;
-        }
+    function _upload() {
+        if(!_validateInputs()) return;
         
         nlDlg.showLoadingScreen();
-        _uploadActionsInAsyncChain($scope.data.pdf[0]).then(function(newLessonId) {
+        uploadDlg.close(false);
+        _uploadActionsInAsyncChain(uploadDlg.scope.data.pdf[0]).then(function(newLessonId) {
             nlDlg.hideLoadingScreen();
             nlDlg.popupStatus('uploaded complete.');
             nl.window.location.href = nl.fmt2('/lesson/edit/{}', newLessonId);
         }, function error(msg) {
             nlDlg.popdownStatus();
+            _showUploadDlg();
             if (msg === undefined) return;
             nlDlg.popupAlert({title: nl.t('Error'), template: nl.t(msg)});
         });
@@ -247,11 +260,17 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, Upload, nlPdf) {
             }
             
             function _upload(pageCount) {
-                var data = {resource: fileInfo.resource, restype: fileInfo.restype,
-                            keywords: $scope.data.keywords, info: fileInfo.info,
-                            name: $scope.data.name, description: $scope.data.description,
-                            subject: $scope.data.subject.id, grade: $scope.data.grade.id,
-                            pagecount: pageCount, template: _template};
+                var data = {resource: fileInfo.resource, 
+                            restype: fileInfo.restype,
+                            keywords: uploadDlg.scope.data.keywords, 
+                            info: fileInfo.info,
+                            name: uploadDlg.scope.data.name, 
+                            description: uploadDlg.scope.data.description,
+                            subject: uploadDlg.scope.data.subject.id, 
+                            grade: uploadDlg.scope.data.grade.id,
+                            pagecount: pageCount, 
+                            template: _template, 
+                            singlepage: uploadDlg.scope.data.singlePage ? 1 : 0};
                 data.progressFn = function(prog, resName) {
                     if (prog < 100)
                         nlDlg.popupStatus(nl.t('{}% of data transfered to server', prog), false);
@@ -271,9 +290,9 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, Upload, nlPdf) {
     }
     
     function _validateInputs() {
-        $scope.error = {};
-        if($scope.data.pdf.length != 1) return _validateFail($scope, 'pdf', 'Please select a PDF file');
-        if(!$scope.data.name) return _validateFail($scope, 'name', 'Name is mandatory');
+        uploadDlg.scope.error = {};
+        if(uploadDlg.scope.data.pdf.length != 1) return _validateFail(uploadDlg.scope, 'pdf', 'Please select a PDF file');
+        if(!uploadDlg.scope.data.name) return _validateFail(uploadDlg.scope, 'name', 'Name is mandatory');
         return true;
     }
 
