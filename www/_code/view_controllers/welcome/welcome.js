@@ -299,6 +299,7 @@ function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
             $scope.menus = config.menus;
             $scope.bgImg = config.bgImg ? $scope.pageResUrl + '/' + config.bgImg : null;
             
+            nl.rootScope.pgBgimg = null;
             resolve(true);
             
             $scope.callFn = function(fnName) {
