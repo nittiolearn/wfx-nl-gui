@@ -51,7 +51,7 @@ outPaths.cleanup = [
     outPaths.staticBase + 'nittio_icon*', 
     outPaths.staticBase + 'nittio_template*', 
     outPaths.staticBase + '_script_bundles/*',
-    outPaths.view + '/index.html',
+    outPaths.view + '/index.*',
     outPaths.modules + '/mversion.py',
 
     // For older cleanups: generated files in nittio repository
@@ -96,7 +96,7 @@ gulp.task('clean', function(done) {
 });
 
 gulp.task('build', ['nl_html', 'nl_css', 'nl_js', 'nl_js_old', 'nl_css_old1', 'nl_css_old2',
-                       'nl_generate_index', 'nl_generate_mversion']);
+                       'nl_generate_index', 'nl_generate_index_min', 'nl_generate_mversion']);
 
 gulp.task('watch', function() {
     gulp.watch(inPaths.html, ['nl_html']);
@@ -105,7 +105,7 @@ gulp.task('watch', function() {
     gulp.watch(inPaths.js, ['nl_js']);
     gulp.watch(inPaths.oldJs, ['nl_js_old']);
     gulp.watch(inPaths.oldCss, ['nl_css_old1', 'nl_css_old2']);
-    gulp.watch(inPaths.htmlTemplate + '**', ['nl_generate_index', 'nl_generate_mversion']);
+    gulp.watch(inPaths.htmlTemplate + '**', ['nl_generate_index', 'nl_generate_index_min', 'nl_generate_mversion']);
 });
 
 //-------------------------------------------------------------------------------------------------
@@ -174,17 +174,35 @@ function _copy_css(done, src, dest) {
 }
 
 gulp.task('nl_generate_index', function(done) {
+    _generateIndex(done, false);
+});
+    
+gulp.task('nl_generate_index_min', function(done) {
+    _generateIndex(done, true);
+});
+
+function _generateIndex(done, bMinified) {
     var includeCordova = false;
     var prefix = SERVER_URL + outPaths.scriptUrl;
-    
+
     var serverType = includeCordova ? 'local' : 'nittio';
-    var intFiles = ['nl.html_fragments.js', 'nl.bundle.js'];
-    var cssFiles = ['nl.bundle.css'];
+    var jsFiles = null;
+    var cssFiles = null;
+    var destFileName = null;
+    if (bMinified) {
+        jsFiles = ['nl.html_fragments.min.js', 'nl.bundle.min.js'];
+        cssFiles = ['nl.bundle.min.css'];
+        destFileName = 'index.min.html';
+    } else {
+        jsFiles = ['nl.html_fragments.js', 'nl.bundle.js'];
+        cssFiles = ['nl.bundle.css'];
+        destFileName = 'index.html';
+    }
     
     var searchParam = '?version=' + VERSIONS.script;
 
     var jsList = [];
-    for (var i=0; i<intFiles.length; i++) jsList.push(prefix + intFiles[i] + searchParam);
+    for (var i=0; i<jsFiles.length; i++) jsList.push(prefix + jsFiles[i] + searchParam);
     if (includeCordova) jsList.push('cordova.js');
 
     var cssList = [];
@@ -201,7 +219,7 @@ gulp.task('nl_generate_index', function(done) {
                            src: jsList,
                            tpl: '<script src="%s"></script>'}
                        }))
-    .pipe(rename('index.html'))
+    .pipe(rename(destFileName))
     .pipe(gulp.dest(outPaths.view))
     .on('end', function() {
         gulp.src(inPaths.htmlTemplate + 'index_templ.js')
@@ -213,7 +231,7 @@ gulp.task('nl_generate_index', function(done) {
         .pipe(gulp.dest('./www/_test_dependencies'))
         .on('end', done);
     });
-});
+}
 
 gulp.task('nl_generate_mversion', function(done) {
     gulp.src(inPaths.htmlTemplate + 'mversion_template.py')
