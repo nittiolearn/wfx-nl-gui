@@ -12,6 +12,7 @@ function module_init() {
     var deps = ['ionic', 'nl.html_fragments', 'nl.lib', 'nl.lib_ui', 'nl.server_api', 'nl.view_controllers'];
     angular.module('nl.app', deps)
     .config(configFn)
+    .directive('nlBindContent', BindContentDirective)
     .controller('nl.AppCtrl', AppCtrl)
     .run(['$ionicPlatform', function($ionicPlatform) {
         $ionicPlatform.ready(onIonicReady);
@@ -75,6 +76,25 @@ function onIonicReady() {
         StatusBar.styleDefault();
     }
 }
+
+//-------------------------------------------------------------------------------------------------
+var BindContentDirective= ['nl',
+function(nl) {
+
+    function _postLink($scope, iElem, iAttrs) {
+        nl.rootScope.$watch($scope.nlBindContent, function(newVaue, oldValue) {
+            iElem.attr('content', newVaue);
+        });
+    }
+        
+    return {
+        restrict: 'A',
+        scope: {
+            nlBindContent: '@'
+        },
+        link: _postLink
+    };
+}];
 
 //-------------------------------------------------------------------------------------------------
 var AppCtrl = ['nl', '$scope', 'nlKeyboardHandler', 'nlServerApi', 'nlRouter', 'nlLogViewer',
