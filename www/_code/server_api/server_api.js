@@ -174,9 +174,10 @@ function(nl, nlDlg, nlConfig, Upload) {
     //---------------------------------------------------------------------------------------------
     // Dashboard customization methods
     //---------------------------------------------------------------------------------------------
-    this.dashboardGetList = function(mine) {
+    this.dashboardGetList = function(data) {
+        // data: mine, search
         // return: list of dashboardObjects
-        return server.post('_serverapi/dashboard_get_list.json', {mine : mine});
+        return server.post('_serverapi/dashboard_get_list.json', data);
     };
     
     this.dashboardCreate = function(data) {

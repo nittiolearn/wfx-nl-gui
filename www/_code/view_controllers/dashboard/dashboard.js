@@ -36,13 +36,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 	        my = ('my' in params) ? parseInt(params.my) == 1: false;
         	$scope.cards = {};
 			$scope.cards.staticlist = _getStaticCards();
-            var data = nlServerApi.dashboardGetList(my);
-            data.then(function(resultList){
-            	$scope.cards.cardlist = _getCustomDashboardCards(resultList);
-            	resolve(true);	
-            }, function(error) {
-                resolve(false);
-            });
+			var searchFilterInUrl = ('search' in params) ? params.search : '';
+			_getDataFromServer(searchFilterInUrl, resolve, reject);
 		});
 	}
 
@@ -82,6 +77,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 			url: url,
 			icon : nl.url.resUrl('dashboard/defgroup.png'),
 			help : nl.t('<P>Author: {}</P><P>Group:{}</P>', dashboard.authorname, dashboard.grpname),
+			json : dashboard.contentjson, 
 			children :[]
 		};
 		createList.details = {help: dashboard.description, avps: _getDashboardAvps(dashboard)};
@@ -292,6 +288,35 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 			});	
 		});
 	}
+
+	function _addSearchInfo(cards) {
+		cards.search = {placeholder: nl.t('Enter dashboard name/description')};
+		cards.search.onSearch = _onSearch;
+	}
+	
+	function _onSearch(filter) {
+		nlDlg.showLoadingScreen();
+		var promise = nl.q(function(resolve, reject) {
+			_getDataFromServer(filter, resolve, reject);
+		});
+		promise.then(function(res) {
+			nlDlg.hideLoadingScreen();
+		});
+	}
+	
+	function _getDataFromServer(filter, resolve, reject) {
+			var params = {search: filter};
+			params.mine = my;
+            
+            var data = nlServerApi.dashboardGetList(params);
+            data.then(function(resultList){
+            	$scope.cards.cardlist = _getCustomDashboardCards(resultList);
+            	_addSearchInfo($scope.cards);
+            	resolve(true);	
+            }, function(error) {
+                resolve(false);
+            });
+         }
 	
 }];
 module_init();
