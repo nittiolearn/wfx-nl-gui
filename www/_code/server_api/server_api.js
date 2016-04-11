@@ -376,7 +376,7 @@ function(nl, nlDlg, nlConfig, Upload) {
     //---------------------------------------------------------------------------------------------
     // resource entities
     //---------------------------------------------------------------------------------------------
-    this.lessonCloseReview = function() {
+    this.resourceGetResTypes = function() {
         // Get allowed resource types for the user
         return server.post('_serverapi/resource_get_restypes.json', {});
     };

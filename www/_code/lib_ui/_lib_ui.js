@@ -6,7 +6,9 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.lib_ui', ['nl.ui.dlg', 'nl.ui.iframedlg', 'nl.ui.cards', 
-                   'nl.ui.utils', 'nl.ui.markup', 'ivh.treeview', 'ngFileUpload']);
+                   'nl.ui.utils', 'nl.ui.markup', 
+                   // External dependacies
+                   'ivh.treeview', 'ngFileUpload', 'chart.js', 'angularjs-datetime-picker']);
 }
 
 //-------------------------------------------------------------------------------------------------

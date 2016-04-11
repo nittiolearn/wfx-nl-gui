@@ -195,6 +195,7 @@ function Permission(nl) {
         '/audit': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         '/impersonate': {login: true, permission: 'admin_impersonate_grp', termRestriction: TR_CLOSED},
         '/debug': {login: true, permission: 'debug_client', termRestriction: TR_CLOSED},
+        '/debugtemp': {login: true, permission: 'debug_client', termRestriction: TR_CLOSED},
         '/forum': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},
         '/course_list': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},
         '/course_assign_list': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},

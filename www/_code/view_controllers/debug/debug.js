@@ -2,10 +2,10 @@
 
 //-------------------------------------------------------------------------------------------------
 // debug.js:
-// Temp module for experimentation
+// Debugging utilities
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-    angular.module('nl.debug', [])
+    angular.module('nl.debug', ['nl.debugtemp'])
     .config(configFn)
     .controller('nl.DebugCtrl', DebugCtrl);
 }
