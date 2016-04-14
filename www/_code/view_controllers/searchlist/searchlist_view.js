@@ -94,7 +94,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
         searchlistDlg.scope.updateResults = function() {
             searchlistDlg.close();
             nlDlg.showLoadingScreen();
-            _getDataFromServer(true, function(result) {
+            _getDataFromServer(false, function(result) {
                 _onSearch(filter);
             });
         };

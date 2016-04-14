@@ -31,6 +31,7 @@ function(nl) {
 	};
 }];
 
+var discardSearchWords = { "content_include": true};
 var NlFilter = ['nl', '$filter',
 function(nl, $filter) {
 	return function(inputArray, filterString, filterGrade) {
@@ -44,7 +45,12 @@ function(nl, $filter) {
 	    	}
 	    }
 		filterString = filterString.replace(/"/g, "");
-    	return $filter('filter')(filteredInput, filterString);
+		var filterStrings = filterString.split(" ");
+		for (var i=0; i<filterStrings.length; i++) {
+		    if (filterStrings[i] in discardSearchWords) continue;
+            filteredInput = $filter('filter')(filteredInput, filterStrings[i]);
+		}
+    	return filteredInput;
 	};
 }];
 

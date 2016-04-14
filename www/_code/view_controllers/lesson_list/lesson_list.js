@@ -290,6 +290,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
 			url : url,
 			authorName: lesson.authorname,
 			description: lesson.description,
+			content: lesson.content,
 			children : []
 		};
 		card.details = {
