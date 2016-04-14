@@ -228,10 +228,12 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/searchlist_delete.json', {id: searchlist_id});
     };
 
-    this.searchListView = function(searchlist_id, force) {
+    this.searchListView = function(searchlist_id, force, max) {
         // return: searchlistObject
         if (!force) force = false;
-        return server.post('_serverapi/searchlist_view.json', {id: searchlist_id, force:force});
+        var data = {id: searchlist_id, force: force};
+        if (max) data.max = max;
+        return server.post('_serverapi/searchlist_view.json', data);
     };
 
     //---------------------------------------------------------------------------------------------
