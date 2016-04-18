@@ -106,13 +106,13 @@ function TypeHandler(nl, nlServerApi) {
 		if (this.type == TYPES.NEW)
 			return nl.t('Create new: select the template');
 		if (this.type == TYPES.APPROVED)
-			return nl.t('Approved lessons and worksheets');
+			return nl.t('Approved modules');
 		if (this.type == TYPES.MY)
-			return nl.t('My lessons and worksheets');
+			return nl.t('My modules');
 		if (this.type == TYPES.MANAGE)
-			return nl.t('Manage approved lessons and worksheets');
+			return nl.t('Manage approved modules');
 		if (this.type == TYPES.REVIEW)
-			return nl.t('Review lessons and  worksheets');
+			return nl.t('Review modules');
 		return '';
 	};
 
@@ -606,7 +606,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
 	
 	function _disapproveLesson($scope, lessonId) {
 		var msg = {title: 'Please confirm', 
-				   template: nl.t('Are you sure you want to disapprove this lesson and send it for review?'),
+				   template: nl.t('Are you sure you want to disapprove this module and send it for review?'),
 				   okText: nl.t('Disapprove')};
 		nlDlg.popupConfirm(msg).then(function(result) {
 			if (!result) return;
@@ -629,8 +629,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
 		}else{			
 			data = {lessonid: lessonId, private: 0};
 		}
-		var msg = {title: 'Copy lesson', 
-				   template: nl.t('Are you sure you want to make a private copy of this lesson/worksheet?'),
+		var msg = {title: 'Copy module', 
+				   template: nl.t('Are you sure you want to make a private copy of this module?'),
 				   okText: nl.t('Copy')};
 		nlDlg.popupConfirm(msg).then(function(result) {
 			if (!result) return;			

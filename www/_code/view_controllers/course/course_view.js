@@ -275,8 +275,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg) {
 		};
 		newDlg.scope.options = {'type': [
 			{name: '', id: null},
-			{name: 'Module (folder)', id: 'module'},
-			{name: 'Lesson or a quiz', id: 'lesson'},
+			{name: 'Folder', id: 'module'},
+			{name: 'Module', id: 'lesson'},
 			{name: 'Information', id: 'info'},
 			{name: 'Link', id: 'link'}
 		]};
