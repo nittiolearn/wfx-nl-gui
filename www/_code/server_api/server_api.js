@@ -244,18 +244,18 @@ function(nl, nlDlg, nlConfig, Upload) {
     };
 
     this.rnoGetList = function(data) {
-        // data: metadata, search
+        // data: metadata, role, search
         return server.post('_serverapi/rno_get_list.json', data);
     };
 
     this.rnoCreate = function(data) {
-        // data: metadata, first_name, last_name, email, user_type, image
+        // data: metadata, first_name, last_name, email, user_type, image, observer, reviewer
         // return: rno object
         return server.post('_serverapi/rno_create.json', data);
     };
 
     this.rnoModify = function(data) {
-        // data: id, metadata, first_name, last_name, email, user_type, image
+        // data: id, metadata, first_name, last_name, email, user_type, image, observer, reviewer
         // return: modified rno object
         return server.post('_serverapi/rno_modify.json', data);
     };

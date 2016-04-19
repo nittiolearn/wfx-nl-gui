@@ -205,7 +205,7 @@ function Permission(nl) {
         '/dashboard_view': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         '/searchlist': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         '/searchlist_view': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
-        '/rno_my': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
+        '/rno_list': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
 		'/assignment': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},		
 		'/lesson_list': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},		
         '/upload_pdf': {login: true, permission: 'lesson_create_adv', termRestriction: TR_CLOSED},        
