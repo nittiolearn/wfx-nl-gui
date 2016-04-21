@@ -1,0 +1,22 @@
+<style>
+.nl-tree-structure{
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+
+</style>
+
+<nl-dlg title='Select class (user group)'>
+<nl-dlg-help>
+		<p>You may choose to send assignment to only some learners in chosen classes (user groups). If you leave this empty, assignment will be sent to all learners in the chosen classes.</p>
+		<p>Click on the tree below to choose the learners. You could uncheck a user to remove that user.</p>
+</nl-dlg-help>
+	<nl-dlg-content>
+	<p><h4>Skip this operation if you want to send to all learners. See help for more.</h4></p>
+		<div class='nl-tree-structure'
+		    ivh-treeview="treeData"
+			ivh-treeview-options="treeOptions"		    
+			ivh-treeview-on-cb-change="onNodeClick(ivhNode, ivhIsSelected, ivhTree)">
+		</div>
+	</nl-dlg-content>
+</nl-dlg>

@@ -1,0 +1,19 @@
+<style>
+.nl-tree-structure{
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+</style>
+<nl-dlg title='Select class (user group)'>
+	<nl-dlg-help>
+			<p>Choose one or more elements from the organization tree to dispatch the assignment to all learners in the chosen set of organization units.</p>
+			<p>In the context of a school, the class (grade and section) of the student is the user group of the student.</p>
+	</nl-dlg-help>
+	<nl-dlg-content>
+		<div class='nl-tree-structure'
+		    ivh-treeview="treeData"
+			ivh-treeview-options="treeOptions"		    
+			ivh-treeview-on-cb-change="onNodeClick(ivhNode, ivhIsSelected, ivhTree)">
+		</div>
+	</nl-dlg-content>
+</nl-dlg>

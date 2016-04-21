@@ -1,0 +1,140 @@
+<style>
+	.select-button{
+		margin-bottom: 5px;
+		text-align: center;
+		vertical-align: middle;
+		color: #333;
+		padding: 4px 14px;
+		cursor: pointer;
+		background-color: #f5f5f;
+		border-radius: 4px;
+	}
+	.nl-data-visibleTo {
+		vertical-align: middle;
+		padding-top: 4px;
+	}
+	.nl-sep8{
+		padding: 8px;
+	}
+	.nl-time-input-div {
+		padding: 5px 3px 5px 9px;
+	}
+	.nl-time-input {
+		border-radius: 4px;
+		padding: 2px 8px 1px 8px;
+		background-color: #EEEEFF;
+		margin: 0;
+		min-height: 34px;
+		border-width: 0;
+	}
+	.nl-time-icon {
+		text-align: right;
+		font-size: 24px;
+		padding: 0 5px;
+	}
+	.nl-select-sendassignment{
+		padding-right: 0px;
+	}
+</style>
+<nl-dlg title='Send assignment: select class and other optional details'>
+<nl-dlg-help>
+	<div class='njsHelp'>
+	<p><b>class / user group (mandatory):</b> Select the class / user group, put in a remark and click the "Send Assignment" button to send it to the selected class.</p>
+	<p style='color:blue'><B><I>Rest of fields below are optional</I></B></p>
+	<p><b>users:</b> You may select a subset of users within the chosen class / user group.</p>
+	<p style='color:blue'><B><I>You may set one or more of start time, end time and duration to control when and how long the assignment is active</I></B></p>
+	<p><b>start time:</b> You may define the earliest date and time (upto minutes accuracy) from when the assignment is active. If not set, the assignment is active as soon as it is sent till the end time.</p>
+	<p><b>end time:</b> You may define the latest date and time (upto minutes accuracy) till when the assignment is active. If not set, the assignment is active after start time (or sent time if start is not defined).</p>
+	<p><b>duration (minutes):</b>  You may define the maximum duration in minutes to restrict the learner to complete the assignment within the specified time. If not set, the learner may take any amount of time subject to start and end time restrictions. </p>
+	<p><b>show answers:</b>
+		<ul>
+			<li>By default, answers are shown to the learner "after submitting" the assignment.</li>
+			<li>You could change this to "on every page" if you want to learners to self learn and the score is not important.</li>
+			<li>You can set this to "only when published" if you are dispatching a test and you do not want the learners to see the answers. You can explicitly publish the results later when appropriate from the assignment desk.</li>
+		</ul>
+	</p>
+	<p><b>remarks:</b> Add remarks if any that you want to share to the learners - e.g. submit before Friday.</p>
+	</div>
+</nl-dlg-help>
+<nl-dlg-content>
+	<table class='nl-table'>
+		<tr>
+			<td style='width:60%; padding-top: 15px;'>
+				<div class='row row-center'>
+					<div class='col col-20'>class/ user group</div>
+					<div class='col col-80'>
+						<table><tr>
+							<td style='width:20%, padding-right:4px'><button class='select-button' ng-click='onOuClick()' autofocus="true"> Select</button></td>
+							<td ng-if='data.visibleToGroupLength == 0 || data.visibleToGroupLength == 1 ' class='nl-sep8'><span class='nl-data-visibleTo' ng-bind-html='data.visibleto'></span></td>
+							<td ng-if='data.visibleToGroupLength > 1' class='nl-sep8'><span class='nl-data-visibleTo' ng-bind-html='data.visibleto' ng-click='onClickOnVisibleTo()'></span></td>
+						</tr></table>
+					</div>
+				</div>
+				<div class='row row-center'>
+					<div class='col col-20'>users</div>
+					<div class='col col-80'>
+						<table><tr>
+							<td style='width:20%'><button class='select-button' ng-click='onUserClick()'> Select</button></td>
+							<td ng-if='data.visibleToUsersLength == 0' class='nl-sep8'><span class='nl-data-visibleTo' ng-bind-html='data.visibleToUsers'></span></td>
+							<td ng-if='data.visibleToUsersLength > 0' class='nl-sep8'><span class='nl-data-visibleTo' ng-bind-html='data.visibleToUsers' ng-click='onClickOnVisibleToUsers()'></span></td>
+						</tr></table>
+					</div>
+				</div>
+				<div class='row row-center'>
+					<div class='col col-20'>start time</div>
+					<div class='col col-80 nl-time-input-div'>
+						<div class='nl-time-input nl-clickable' ion-datetime-picker ng-model="data.starttime">
+							<div class='row row-center margin0 padding0'>
+		            			<div class='col col-90 margin0 padding0'>{{data.starttime| date: "yyyy-MM-dd H:mm"}}</div>
+		            			<i class='col icon ion-android-time nl-time-icon'></i>
+		            		</div>
+	            		</div>
+            		</div>
+            	</div>
+				<div class='row row-center'>
+					<div class='col col-20'>end time</div>
+					<div class='col col-80 nl-time-input-div'>
+						<div class='nl-time-input nl-clickable' ion-datetime-picker ng-model="data.endtime">
+							<div class='row row-center margin0 padding0'>
+		            			<div class='col col-90 margin0 padding0'>{{data.endtime| date: "yyyy-MM-dd H:mm"}}</div>
+		            			<i class='col icon ion-android-time nl-time-icon'></i>
+		            		</div>
+	            		</div>
+            		</div>
+            	</div>
+				<div class='row row-center'>
+					<div class='col col-20'>duration (minutes)</div>
+					<div class='col col-80'><input type='text' ng-model='data.maxduration'></div>			
+           		</div>
+				<div class='row row-center'>
+					<div class='col col-20'>show answers</div>
+					<nl-select fieldmodel='showAnswers' class='col col-80 nl-select-sendassignment'></nl-select>
+				</div>
+				<div class='row row-center'>
+					<div class='col col-20'> forum</div>
+					<div class='col col-80'><input type='checkbox' ng-model='data.forum'><span>allow users to discuss in the forum</span></div>
+				</div>
+				<div class='row'>
+					<div class='col col-20 padding-top'> remarks</div>
+					<div class='col col-80'><textarea style='resize:none' rows="8" cols="50" ng-model='data.remarks'></textarea></div>
+				</div>
+			</td>
+			<td style='width:40% padding: 0 5px;'>
+				<h2>Selected learning module</h2>
+				<table class='nl-table' style='text-align: left;'>
+					<tr><td style='width: 100px; padding: 12px'>
+							<div style='width: 100px;'><img src='{{card.icon}}'></div>
+						</td>
+						<td style='vertical-align: top;'>
+							<h3>{{card.title}}</h3>
+							<p> by: <b>{{card.authorName}}</b></p>
+							<p>{{card.grade}}</p>
+							<p >{{card.description}}</p>
+						</td>
+					</tr>
+				</table>
+			</td>		
+		</tr>
+	</table>
+</nl-dlg-content>
+</nl-dlg>

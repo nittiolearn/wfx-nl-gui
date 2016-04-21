@@ -130,8 +130,8 @@ function TypeHandler(nl, nlServerApi) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var LessonListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlApproveDlg',
-function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
+var LessonListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlApproveDlg', 'nlSendAssignmentSrv',
+function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlSendAssignmentSrv) {
 
 	var mode = new TypeHandler(nl, nlServerApi);
 	var _userInfo = null;
@@ -168,13 +168,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
 					children: [{
         				title: "Click on one of the listed templates or"},
         				{
-        				help: "Create lessons based on templates",
+        				help: "Create modules based on templates",
         				title: "Create based on default template",
         				url: "/lesson/create2#/",
         				linkId: "admin_group",
         				children: []},
         				{
-        				help: "Enable users to create lessons based on pdf",
+        				help: "Enable users to create modules based on pdf",
         				title: "Create based on pdf",
         				url: "/lesson/create2/0/0/pdf#/",
         				linkId: "admin_group",
@@ -196,7 +196,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
         				internalUrl: "view_all",
         				children: []},
         				{
-        				help: "Enable users to create lessons based on pdf",
+        				help: "Enable users to create modules based on pdf",
         				title: "view pending reviews",
         				internalUrl: "view_pending",
         				children: []},
@@ -233,6 +233,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
 			_showReviewCards($scope, REVSTATE.PENDING);
 		} else if(internalUrl === 'view_closed'){
 			_showReviewCards($scope, REVSTATE.CLOSED);
+		} else if(internalUrl === 'send_assignment'){
+			_sendAssignment($scope, card);
 		}
     };
 
@@ -277,6 +279,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
 
 	function _createLessonCard(lesson, userInfo) {
 		var url = null;
+		var content = angular.fromJson(lesson.content);
 		if(mode.type == TYPES.APPROVED || mode.type == TYPES.MANAGE) url = nl.fmt2('/lesson/view/{}/', lesson.id);
 		if(mode.type == TYPES.MY) url = nl.fmt2('/lesson/edit/{}/', lesson.id);
 		if(mode.type == TYPES.REVIEW) url = nl.fmt2('/lesson/view_review/{}/', lesson.id);
@@ -290,6 +293,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
 			url : url,
 			authorName: lesson.authorname,
 			description: lesson.description,
+			maxduration: content.esttime,
 			content: lesson.content,
 			children : []
 		};
@@ -484,7 +488,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
 			if(lesson.revstate == REVSTATE.PENDING) nl.fmt.addAvp(avps, 'Review status', 'Review pending' , 'text', '-', nl.url.resUrl('toolbar-edit/comments1.png'), 'nl-16'); 	
 			if(lesson.revstate == REVSTATE.CLOSED) nl.fmt.addAvp(avps, 'Review status', 'Review done' , 'text', '-', nl.url.resUrl('toolbar-edit/approve.png'), 'nl-16'); 	
 		}
-		nl.fmt.addAvp(avps, 'Lesson type', lesson.ltype, '-', '0');
+		nl.fmt.addAvp(avps, 'Module type', lesson.ltype, '-', '0');
 		nl.fmt.addAvp(avps, 'Description', lesson.description);
 		return avps;
 	}
@@ -527,7 +531,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
  	function _addLinksToApprovedDetailsDlg(linkAvp, lessonId, lesson){
  		_addViewLinkforApprovedDetails(linkAvp, lessonId);
 		if(lesson.grp == _userInfo.groupinfo.id) nl.fmt.addLinkToAvp(linkAvp, 'copy', null, 'lesson_copy');				
-		nl.fmt.addLinkToAvp(linkAvp, 'send assignment', nl.fmt2('/assignment/create2/{}/', lessonId));								
+		nl.fmt.addLinkToAvp(linkAvp, 'send assignment', null, 'send_assignment');								
  	}
  	
  	function _addLinksToManageDetailsDlg(linkAvp, lessonId, lesson){
@@ -713,6 +717,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
 	
 	function _updateCardAfterReviewlist(){
 		nl.window.location.reload();
+	}
+
+	function _sendAssignment($scope, card){
+		nlSendAssignmentSrv.show($scope, card);		
 	}
 	
 }];

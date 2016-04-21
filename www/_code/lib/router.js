@@ -209,6 +209,7 @@ function Permission(nl) {
 		'/assignment': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},		
 		'/lesson_list': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},		
         '/upload_pdf': {login: true, permission: 'lesson_create_adv', termRestriction: TR_CLOSED},        
+        '/resource_list': {login: true, permission: 'lesson_create_adv', termRestriction: TR_OPEN},        
 
         // Operation permissions
         'change_password': {login: true, permission: 'change_password', termRestriction: TR_RESTRICTED},
