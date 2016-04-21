@@ -20,6 +20,10 @@
                 fieldmodel='email' fieldtype='email'></tr>
             <tr ng-if='model.image' nl-form-input fieldname='{{model.image.title}}'
                 fieldmodel='image' fieldtype='text'></tr>
+            <tr ng-if='isRnoAdmin' nl-form-input fieldname='Observer'
+                fieldmodel='observer' fieldtype='text'></tr>
+            <tr ng-if='isRnoAdmin' nl-form-input fieldname='Reviewer'
+                fieldmodel='reviewer' fieldtype='text'></tr>
         </table>
         <br/>
     </nl-dlg-content>

@@ -173,7 +173,7 @@
             "icon": "/static/nittio_res_v39/dashboard/allwsheet.png"
           },
           {
-            "help": "Create new lesson or worksheet. You can embed interactive pages like mutiple choice and match the following even in your lessons. This way you can make your class room interactive. The same lesson can be sent out as assignment for students to revise and self-learn.",
+            "help": "Create new modules. You can embed interactive pages like mutiple choice and match the following even in your lessons. This way you can make your class room interactive. The same module can be sent out as assignment for students to revise and self-learn.",
             "title": "Create new",
             "url": "/lesson/create1#/",
             "linkId": "ws_create",
@@ -181,7 +181,7 @@
             "icon": "/static/nittio_res_v39/dashboard/crnewwsheet.png"
           },
           {
-            "help": "Manage lessons and worksheets created by you. You can edit your lessons from here.",
+            "help": "Manage modules created by you. You can edit your modules from here.",
             "title": "My content",
             "url": "/lesson/my#/",
             "linkId": "ws_my",
@@ -189,7 +189,7 @@
             "icon": "/static/nittio_res_v39/dashboard/mywsheet.png"
           },
           {
-            "help": "View all lessons available for review. Send comments and interact online with the author of the lesson or worksheet.",
+            "help": "View all modules available for review. Send comments and interact online with the author of the module.",
             "title": "Review",
             "url": "/lesson/review/1#/",
             "linkId": "ws_review",
@@ -197,7 +197,7 @@
             "icon": "/static/nittio_res_v39/dashboard/revwsheet.png"
           },
           {
-            "help": "Manage all approved lessons. Disapprove the lessons.",
+            "help": "Manage all approved modules. Disapprove the modules.",
             "title": "Manage approved",
             "url": "/lesson/manage_approved#/",
             "linkId": "ws_manage",
@@ -205,7 +205,7 @@
             "icon": "/static/nittio_res_v39/dashboard/manwsheet.png"
           },
           {
-            "help": "View, export and import page categories. Every page in a learning app can be categorized with these pre-configured categories. These are helpful to structure information and also search for learning apps containing pages of given categories.",
+            "help": "View, export and import page categories. Every page in a module can be categorized with these pre-configured categories. These are helpful to structure information and also search for modules containing pages of given categories.",
             "title": "Page Categories",
             "url": "/pagecategories/view#/",
             "linkId": "pagecategories",
@@ -420,7 +420,7 @@
         "icon": "/static/nittio_res_v39/dashboard/admin.png"
       },
       {
-        "help": "View, create, modify, review and manage books. It is very easy to stick your interactive lessons and worksheets into books.",
+        "help": "View, create, modify, review and manage books. It is very easy to stitch your interactive lessons and worksheets into books.",
         "title": "Books",
         "url": "/book/my#/",
         "linkId": "book",

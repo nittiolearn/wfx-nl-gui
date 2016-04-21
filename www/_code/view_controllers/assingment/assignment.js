@@ -225,7 +225,7 @@
 			}
 			nl.fmt.addAvp(avps, 'Assigned to', assignment.assigned_to);
 			nl.fmt.addAvp(avps, _userInfo.groupinfo.subjectlabel, assignment.subject);
-			nl.fmt.addAvp(avps, 'Lesson Author', assignment.authorname);
+			nl.fmt.addAvp(avps, 'Author', assignment.authorname);
 			nl.fmt.addAvp(avps, 'Earliest start time', assignment.not_before, 'date');
 			nl.fmt.addAvp(avps, 'Latest end time', assignment.not_after, 'date');
 			nl.fmt.addAvp(avps, 'Max duration', assignment.max_duration, 'minutes');

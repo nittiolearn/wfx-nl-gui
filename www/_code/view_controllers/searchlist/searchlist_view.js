@@ -27,7 +27,7 @@ function($stateProvider) {
 
 var SearchlistViewCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv',
 function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
-	var _searchFilterInUrl = '';
+	var _max = null;
 	var _searchlistId = 0;
 	var _searchListObj = null;
 	var _userInfo = null;
@@ -48,7 +48,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	nlRouter.initContoller($scope, '', _onPageEnter);
 
 	function _getDataFromServer(force, resolve, reject) {
-		nlServerApi.searchListView(_searchlistId, force).then(function(searchListObj) {
+		nlServerApi.searchListView(_searchlistId, force, _max).then(function(searchListObj) {
 		    _searchListObj = searchListObj;
             var resultList = _getResultList(searchListObj);
             var repFields = searchListObj.config.report_fields;
@@ -94,7 +94,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
         searchlistDlg.scope.updateResults = function() {
             searchlistDlg.close();
             nlDlg.showLoadingScreen();
-            _getDataFromServer(true, function(result) {
+            _getDataFromServer(false, function(result) {
                 _onSearch(filter);
             });
         };
@@ -168,7 +168,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	function _initParams() {
         var params = nl.location.search();
         _searchlistId = ('id' in params) ? parseInt(params.id) : 0;
-        _searchFilterInUrl = ('search' in params) ? params.search : '';
+        _max = ('max' in params) ? params.max : null;
 	}
 }]; 
 

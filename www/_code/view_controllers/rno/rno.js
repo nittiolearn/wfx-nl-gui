@@ -7,7 +7,7 @@
 function module_init() {
 	angular.module('nl.rno', [])
 	.config(configFn)
-	.controller('nl.RnoMyCtrl', RnoMyCtrl)
+	.controller('nl.RnoListCtrl', RnoListCtrl)
     .directive('nlRnoReport', _simpleElemDirective('rno_report.html'))
     .directive('nlRnoMstree', _simpleElemDirective('rno_mstree.html'))
     .directive('nlRnoMstreeView', _simpleElemDirective('rno_mstree_view.html'));
@@ -16,28 +16,34 @@ function module_init() {
 //-------------------------------------------------------------------------------------------------
 var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
-	$stateProvider.state('app.rno_my', {
-		url: '^/rno_my',
+	$stateProvider.state('app.rno_list', {
+		url: '^/rno_list',
 		views: {
 			'appContent': {
 				templateUrl: 'lib_ui/cards/cardsview.html',
-				controller: 'nl.RnoMyCtrl'
+				controller: 'nl.RnoListCtrl'
 			}
 		}});
 }];
 
-var RnoMyCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv',
+var RnoListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv',
 function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	/* 
 	 * URLs handled
-	 * 'RNO Dashboard' : /rno_my?metadata=[metadataid]?title=[]
+	 * 'RNO Dashboard' : /rno_list?role=[observe|review|admin]&metadata=[metadataid]&title=[]
+     * role=observe: shows the observer's dashboard
+     * role=review: shows the reviewer's dashboard
+     * role=admion: shows the admin's dashboard
 	 */
+	var _userInfo = null;
+    var _role = 'observe';
 	var _rnoDict = {};
 	var _metadataId = 0;
 	var _metadata = null;
 	var _searchFilterInUrl = '';
 
 	function _onPageEnter(userInfo) {
+	    _userInfo = userInfo;
 		return nl.q(function(resolve, reject) {
 		    _initParams();
 			if (_metadataId == 0) {
@@ -51,6 +57,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
                     return;
                 }
                 nl.pginfo.pageTitle = _metadata.title;
+                if (_role == 'admin') nl.pginfo.pageTitle += ' - administration'; 
+                if (_role == 'review') nl.pginfo.pageTitle += ' - review'; 
                 $scope.cards = {};
                 $scope.cards.staticlist = _getStaticCards();
                 $scope.cards.emptycard = nlCardsSrv.getEmptyCard();
@@ -88,6 +96,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
         var params = nl.location.search();
         _searchFilterInUrl = ('search' in params) ? params.search : '';
         _metadataId = ('metadata' in params) ? parseInt(params.metadata) : 0;
+        _role = ('role' in params) ? params.role : 'observe';
 	}
 	
 	function _getMetaData(onDone) {
@@ -115,6 +124,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	}
 
     function _getStaticCards() {
+        if (_role != 'admin') return [];
         var card = {title: _metadata.createCardTitle, 
                     icon: _metadata.createCardIcon, 
                     internalUrl: 'rno_create',
@@ -125,7 +135,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
     }
 
 	function _getDataFromServer(filter, resolve, reject) {
-        nlServerApi.rnoGetList({metadata: _metadataId, search: filter}).then(function(resultList) {
+        nlServerApi.rnoGetList({metadata: _metadataId, search: filter, role: _role})
+        .then(function(resultList) {
 			nl.log.debug('Got result: ', resultList.length);
 			$scope.cards.cardlist = _getCards(resultList, nlCardsSrv);
 			_addSearchInfo($scope.cards);
@@ -173,29 +184,36 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 					help: '',
 					children: [], links: []};
         card.links.push({id: 'rno_modify', text: nl.t('modify')});
-        card.links.push({id: 'rno_delete', text: nl.t('delete')});
+        if (_role == 'admin') {
+            card.links.push({id: 'rno_delete', text: nl.t('delete')});
+        }
         card.links.push({id: 'details', text: nl.t('details')});
 		card.details = {help: card.help, avps: _getRnoAvps(rno)};
 
-        var link = {title: nl.t('New observation'), 
-                    internalUrl: 'rno_observe',
-                    children: [], links: []};
-        card.children.push(link);
+        if (_role == 'observe') {
+            var link = {title: nl.t('New observation'), 
+                        internalUrl: 'rno_observe',
+                        children: [], links: []};
+            card.children.push(link);
+            link = {title: nl.t('Manage observations'), 
+                        internalUrl: 'rno_observe_manage',
+                        children: [], links: []};
+            card.children.push(link);
+            link = {title: nl.t('Edit report'), 
+                        internalUrl: 'rno_report',
+                        children: [], links: []};
+            card.children.push(link);
+            link = {title: nl.t('Send for review'), 
+                        internalUrl: 'rno_review',
+                        children: [], links: []};
+            // card.children.push(link); TODO-MUNNI - commented out for now
+        } else {
+            var link = {title: nl.t('View report'), 
+                        internalUrl: 'rno_report',
+                        children: [], links: []};
+            card.children.push(link);
+        }
 
-        link = {title: nl.t('Manage observations'), 
-                    internalUrl: 'rno_observe_manage',
-                    children: [], links: []};
-        card.children.push(link);
-
-        link = {title: nl.t('Edit report'), 
-                    internalUrl: 'rno_report',
-                    children: [], links: []};
-        card.children.push(link);
-
-        link = {title: nl.t('Send for review'), 
-                    internalUrl: 'rno_review',
-                    children: [], links: []};
-        card.children.push(link);
 
 		return card;
 	}
@@ -212,6 +230,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
             nl.fmt.addAvp(avps, _metadata.user_model.user_type.title, rno.user_type);
         nl.fmt.addAvp(avps, 'Created by', rno.authorname);
 		nl.fmt.addAvp(avps, 'Updated by', rno.updated_by_name);
+        nl.fmt.addAvp(avps, 'Observed by', rno.observername);
+        nl.fmt.addAvp(avps, 'Reviewed by', rno.reviewername);
 		nl.fmt.addAvp(avps, 'Created on', rno.created, 'date');
 		nl.fmt.addAvp(avps, 'Updated on', rno.updated, 'date');
         nl.fmt.addAvp(avps, 'Group', rno.grpname);
@@ -249,11 +269,16 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
             var utOption = {id: rno.user_type};
 			modifyDlg.scope.dlgTitle = nl.t('Modify properties');
 			modifyDlg.scope.data = {first_name: rno.first_name, last_name: rno.last_name, 
-									user_type: utOption, email: rno.email, image: rno.image};
+									user_type: utOption, email: rno.email, image: rno.image,
+									observer: rno.observerid,
+									reviewer: rno.reviewerid};
+            modifyDlg.scope.isRnoAdmin = (rno.author == _userInfo.userid);
 		} else {
 			modifyDlg.scope.dlgTitle = nl.t('Create new');
 			modifyDlg.scope.data = {first_name: '', last_name: '', 
-                                    user_type: '', email: '', image: ''};
+                                    user_type: '', email: '', image: '',
+                                    observer: _userInfo.username, reviewer: _userInfo.username};
+            modifyDlg.scope.isRnoAdmin = true;
 		}
 		
 		var buttons = [];
@@ -317,6 +342,10 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
             email: modifyDlg.scope.data.email, 
             image: modifyDlg.scope.data.image
 		};
+		if (_role == 'admin') {
+            modifiedData.observer = modifyDlg.scope.data.observer;
+            modifiedData.reviewer = modifyDlg.scope.data.reviewer;
+		}
 		if (rnoId !== null) modifiedData.id = rnoId;
 		var crModFn = (rnoId != null) ? nlServerApi.rnoModify: nlServerApi.rnoCreate;
 		crModFn(modifiedData).then(function(rno) {
@@ -397,14 +426,14 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
         var saveButton = {
             text : (observationId !== null) ? nl.t('Modify') : nl.t('Create'),
             onTap : function(e) {
-                _onNewObservation(rno, dlg.scope, observationId);
+                _onObservationSave(rno, dlg.scope, observationId);
             }
         };
         var cancelButton = {text : nl.t('Cancel')};
         dlg.show('view_controllers/rno/rno_observe_new.html', [saveButton], cancelButton);
     }
 
-    function _onNewObservation(rno, scope, observationId) {
+    function _onObservationSave(rno, scope, observationId) {
         var isSelected = true;
         if (observationId !== null) {
             isSelected = rno.data.observations[observationId].selected;
@@ -494,11 +523,21 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
         var saveButton = {text: nl.t('Save'), onTap: function(e) {
             _onSaveReport(e, dlg.scope);
         }};
+        var buttons = [];
+        if (_role == 'observe' || _role == 'review') {
+            buttons.push(previewButton);
+            buttons.push(saveButton);
+        } 
         var cancelButton = {text : nl.t('Cancel')};
-        dlg.show(template, [previewButton, saveButton], cancelButton);
+        dlg.show(template, buttons, cancelButton);
     }
     
     function _togglePreviewMode(dlgScope) {
+        if (_role == 'admin') {
+            dlgScope.mode = 'preview';
+            return;           
+        }
+
         if (dlgScope.mode == 'edit')
             dlgScope.mode = 'preview';
         else

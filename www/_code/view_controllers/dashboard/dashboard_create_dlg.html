@@ -93,9 +93,9 @@
         <table class='nl-table nl-table-styled'>
             <tr><th>Action</th><th>URL</th><th>Permission</th><th>Remarks</th></tr>
             <tr><td>dashboard.home </td><td>/#/home?{}</td><td>basic_access</td><td>Specify "parent=xxx" to launch one card of dashboard in a sperate page where each link becomes a card.</td></tr>
-            <tr><td>lesson.view </td><td>/lesson/view/{}</td><td>lesson_view</td><td>Direct link to lesson</td></tr>
+            <tr><td>lesson.view </td><td>/lesson/view/{}</td><td>lesson_view</td><td>Direct link to module</td></tr>
             <tr><td>lesson.view_approved </td><td>/lesson/search?{}</td><td>lesson_view</td><td>View approved list</td></tr>
-            <tr><td>lesson.create2</td><td>/lesson/create2/{}</td><td>lesson_create</td><td>Provide template id in urlParams to directly create lesson based on template</td></tr>
+            <tr><td>lesson.create2</td><td>/lesson/create2/{}</td><td>lesson_create</td><td>Provide template id in urlParams to directly create module based on template</td></tr>
             <tr><td>lesson.upload_pdf</td><td>/#/upload_pdf?{}</td><td>lesson_create_adv</td><td>Provide "template=12345678" in the urlParams to customize this.</td></tr>
             <tr><td>lesson.my</td><td>/lesson/my?{}</td><td>lesson_create</td><td></td></tr>
             <tr><td>lesson.review</td><td>/lesson/review/1?{}</td><td>learn_review</td><td></td></tr>
@@ -106,6 +106,7 @@
             <tr><td>course.view_published</td><td>/#/course_list?{}</td><td> course_review </td><td></td></tr>
             <tr><td>course.view_assigned</td><td>/#/course_assign_list?{}</td><td> course_review </td><td></td></tr>
             <tr><td>course.do</td><td>/#/course_report_list?my=1&{}</td><td> course_do</td><td>Accessible from restricted terminals as well</td></tr>
+            <tr><td>rno.list</td><td>/#/rno_list?{}</td><td> basic_access</td><td>urlParams must contain role and metadata: "role=observe&metadata=12345678". Role could be observe, review or admin</td></tr>
         </table>
 
         <h4>Generic actions with fully customizable URLs</h4>

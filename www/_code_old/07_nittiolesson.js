@@ -544,7 +544,7 @@ nlesson = function() {
 	function _Lesson_saveInternal(lesson, ajaxUrl, onCompleteFn, bRaw, bForce, backgroundTask) {
 	    if (backgroundTask === undefined) backgroundTask = false;
 		if (jQuery('#l_name').val() == '') {
-			njs_helper.Dialog.popup('Lesson name cannot be empty', 'Please update the lesson properties before saving');
+			njs_helper.Dialog.popup('Module name cannot be empty', 'Please update the module properties before saving');
 			if (onCompleteFn) onCompleteFn(null, true);
 			return true;
 		}

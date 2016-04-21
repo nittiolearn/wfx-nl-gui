@@ -5,13 +5,13 @@
     <div><button ng-click='onCreate()'>New observation</button></div>
         <table class='nl-table nl-table-styled'>
             <tr>
-                <th>Created on</th><th>Updated on</th><th>Observation</th><th>Action</th>
+                <th>Created on</th><th>Updated on</th><th>Observation</th><th ng-show='dontShowForNow'>Action</th>
             </tr>
             <tr ng-repeat="observation in observations">
                 <td>{{observation.created|date: 'yyyy-MM-dd HH:mm'}}</td>
                 <td>{{observation.updated|date: 'yyyy-MM-dd HH:mm'}}</td>
                 <td class='nl-clickable' ng-click='onEdit($index)'>{{observation.text}}</td>
-                <td class='nl-dlg-field-value'>
+                <td class='nl-dlg-field-value' ng-show='dontShowForNow'>
                     <button ng-click='onDelete($index)'>Delete</button>
                 </td>
             </tr>
