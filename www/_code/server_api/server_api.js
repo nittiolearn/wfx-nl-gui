@@ -298,6 +298,34 @@ function(nl, nlDlg, nlConfig, Upload) {
 		//publish the specific assignment.
         return server.post('_serverapi/assignment_publish.json', {assignid: assignId});		
 	};
+
+	this.checkPastAssignments = function(data) {
+        // data = lessonid, {{and other parameters - please expand}}		
+		//send assignment.
+        return server.post('_serverapi/check_past_assignments.json', data);		
+	};
+
+	this.assignmentSend = function(data){
+        // data = lessonid, {{and other parameters - please expand}}		
+	//send assignment.
+        return server.post('_serverapi/assignment_send.json', data);		
+	};
+
+    //---------------------------------------------------------------------------------------------
+	// get group user entities
+    //---------------------------------------------------------------------------------------------
+
+	this.getOuList = function() {
+    	//Mark completion of lesson review
+        return server.post('_serverapi/group_get_ou_tree.json', {});
+	};
+
+	this.getOuUserList = function(data) {
+    	//data: oulist
+    	//Mark completion of lesson review
+        return server.post('_serverapi/group_get_users.json', data);
+	};
+
     //---------------------------------------------------------------------------------------------
 	// lesson entities
     //---------------------------------------------------------------------------------------------
@@ -401,7 +429,15 @@ function(nl, nlDlg, nlConfig, Upload) {
         return this.resourceUpload(data, 'upload_pdf');
     };
 
-    
+	this.resourceGetList = function(data){
+		//data: mine, searchfilter
+        return server.post('_serverapi/resource_get_list.json', data);
+	};
+
+	this.resourceDelete = function(resId){
+        return server.post('_serverapi/resource_delete.json', {resid: resId});
+	};
+
     //---------------------------------------------------------------------------------------------
     // Private methods
     //---------------------------------------------------------------------------------------------

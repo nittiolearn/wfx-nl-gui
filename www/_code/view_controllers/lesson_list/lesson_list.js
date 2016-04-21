@@ -130,8 +130,8 @@ function TypeHandler(nl, nlServerApi) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var LessonListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlApproveDlg',
-function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
+var LessonListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlApproveDlg', 'nlSendAssignmentSrv',
+function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlSendAssignmentSrv) {
 
 	var mode = new TypeHandler(nl, nlServerApi);
 	var _userInfo = null;
@@ -148,7 +148,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
 			_getDataFromServer(resolve, reject);
 		});
 	}
-
 
 	nlRouter.initContoller($scope, '', _onPageEnter);
 	
@@ -233,6 +232,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
 			_showReviewCards($scope, REVSTATE.PENDING);
 		} else if(internalUrl === 'view_closed'){
 			_showReviewCards($scope, REVSTATE.CLOSED);
+		} else if(internalUrl === 'send_assignment'){
+			_sendAssignment($scope, card);
 		}
     };
 
@@ -277,6 +278,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
 
 	function _createLessonCard(lesson, userInfo) {
 		var url = null;
+		var content = angular.fromJson(lesson.content);
 		if(mode.type == TYPES.APPROVED || mode.type == TYPES.MANAGE) url = nl.fmt2('/lesson/view/{}/', lesson.id);
 		if(mode.type == TYPES.MY) url = nl.fmt2('/lesson/edit/{}/', lesson.id);
 		if(mode.type == TYPES.REVIEW) url = nl.fmt2('/lesson/view_review/{}/', lesson.id);
@@ -290,6 +292,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
 			url : url,
 			authorName: lesson.authorname,
 			description: lesson.description,
+			maxduration: content.esttime,
 			children : []
 		};
 		card.details = {
@@ -526,7 +529,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
  	function _addLinksToApprovedDetailsDlg(linkAvp, lessonId, lesson){
  		_addViewLinkforApprovedDetails(linkAvp, lessonId);
 		if(lesson.grp == _userInfo.groupinfo.id) nl.fmt.addLinkToAvp(linkAvp, 'copy', null, 'lesson_copy');				
-		nl.fmt.addLinkToAvp(linkAvp, 'send assignment', nl.fmt2('/assignment/create2/{}/', lessonId));								
+		nl.fmt.addLinkToAvp(linkAvp, 'send assignment', null, 'send_assignment');								
  	}
  	
  	function _addLinksToManageDetailsDlg(linkAvp, lessonId, lesson){
@@ -712,6 +715,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg) {
 	
 	function _updateCardAfterReviewlist(){
 		nl.window.location.reload();
+	}
+
+	function _sendAssignment($scope, card){
+		nlSendAssignmentSrv.show($scope, card);		
 	}
 	
 }];
