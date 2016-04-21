@@ -4,12 +4,27 @@
     </nl-dlg-help>
     <nl-dlg-content>
         <nl-rno-mstree></nl-rno-mstree>
-        <div class='nl-dlg-field-name'>Observation:</div>
-        <nl-textarea fieldmodel='text'></nl-textarea>
-        <div class='nl-dlg-field-name'>Attachments:</div>
-        <nl-resource-upload fieldmodel='attachments' 
+        <div class='nl-dlg-field-name'>Evidences:</div>
+
+        <div ng-repeat='attachment in data.currentAttachments'
+             class='nl-thumbnail-container'
+             ng-show='attachment.isSelected'>
+            <div class="nl-thumbnail">
+                <div class='nl-thumbnail-img' ng-click='onResourceClick(attachment, $index)'>
+                    <img ng-src='{{attachment.data.url}}'/>
+                </div>
+                <div class='nl-thumbnail-close' ng-click='onResourceRemove(attachment, $index)'>
+                    <i class="icon ion-close-circled"></i>
+                </div>
+                <div class="nl-thumbnail-txt" style='color: #007700'>{{attachment.data.name}}</div>
+            </div>
+        </div>
+
+        <nl-resource-upload fieldmodel='newAttachments' 
             multiple='true' restype='Image'>
         </nl-resource-upload>
+        <div class='nl-dlg-field-name'>Observation:</div>
+        <nl-textarea fieldmodel='text'></nl-textarea>
         <div class='nl-dlg-field-name'>Future notes:</div>
         <nl-textarea fieldmodel='notes'></nl-textarea>
     </nl-dlg-content>

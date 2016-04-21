@@ -2,17 +2,27 @@
     <nl-dlg-help>
     </nl-dlg-help>
     <nl-dlg-content>
-    <div><button ng-click='onCreate()'>New observation</button></div>
+    <div><button ng-click='onCreate($event)'>New observation</button></div>
         <table class='nl-table nl-table-styled'>
             <tr>
-                <th>Created on</th><th>Updated on</th><th>Observation</th><th ng-show='dontShowForNow'>Action</th>
+                <th>Observation</th><th ng-show='canDelete'>Action</th>
             </tr>
-            <tr ng-repeat="observation in observations">
-                <td>{{observation.created|date: 'yyyy-MM-dd HH:mm'}}</td>
-                <td>{{observation.updated|date: 'yyyy-MM-dd HH:mm'}}</td>
-                <td class='nl-clickable' ng-click='onEdit($index)'>{{observation.text}}</td>
-                <td class='nl-dlg-field-value' ng-show='dontShowForNow'>
-                    <button ng-click='onDelete($index)'>Delete</button>
+            <tr ng-repeat="observation in observations"
+                class='nl-clickable' ng-click='onEdit($index, $event)'>
+                <td>
+                    <div>{{observation.text}}</div>
+                    <div style='font-size:80%'>
+                        created: {{observation.created|date: 'dd-MMMM-yy HH:mm'}},
+                        updated: {{observation.updated|date: 'dd-MMMM-yy HH:mm'}}
+                    </div>
+                    <div>
+                        <img ng-repeat='attachment in observation.attachments'
+                             ng-src='{{attachment.url}}'
+                             class='nl-max-50 padding-small'>
+                    </div>
+                </td>
+                <td class='nl-dlg-field-value' ng-show='canDelete' style='width:10%'>
+                    <button ng-click='onDelete($index, $event)'>Delete</button>
                 </td>
             </tr>
         </table>

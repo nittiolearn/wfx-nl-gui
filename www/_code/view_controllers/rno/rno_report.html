@@ -36,17 +36,29 @@
 <nl-rno-mstree-view ng-if="mode=='preview'"></nl-rno-mstree-view>
 
 <h3>Observations</h3>
-<table class='nl-table nl-table-styled'>
+<table ng-if="mode!='preview'"
+       class='nl-table nl-table-styled'>
     <tr>
         <th>Created on</th><th>Updated on</th><th>Observation</th>
-        <th ng-if="mode!='preview'">Action</th>
+        <th>Action</th>
     </tr>
     <tr ng-repeat="observation in observations">
         <td>{{observation.created|date: 'yyyy-MM-dd HH:mm'}}</td>
         <td>{{observation.updated|date: 'yyyy-MM-dd HH:mm'}}</td>
         <td>{{observation.text}}</td>
-        <td ng-if="mode!='preview'" class='nl-dlg-field-value'>
+        <td class='nl-dlg-field-value'>
             <input type='checkbox' ng-model='data.obsSelected[$index]'> select
         </td>
     </tr>
 </table>
+
+<div ng-if="mode=='preview' && data.obsSelected[$index]"
+     ng-repeat="observation in observations">
+    <div class='padding-top'>
+        <b>{{observation.created|date: 'dd-MMMM-yyyy'}}: </b>
+        <span>{{observation.text}}</span>
+    </div>
+    <div ng-repeat="imgUrl in observation.attachments">
+        <img ng-src='{{imgUrl.url}}' class='nl-full-width padding-top'>
+    </div>
+</div>

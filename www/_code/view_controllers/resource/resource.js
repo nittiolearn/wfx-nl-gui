@@ -9,6 +9,8 @@ function module_init() {
     .config(configFn)
     .directive('nlResourceUpload', ResourceUploadDirective)
     .controller('nl.PdfUploadCtrl', PdfUploadCtrl)
+    .service('nlResourceUploader', ResourceUploaderSrv)
+    .service('nlProgressFn', ProgressFnSrv)
     .service('nlPdf', PdfSrv);
 }
 
@@ -26,11 +28,11 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var ResourceUploadDirective = ['nl', 'Upload', 'nlDlg',
-function(nl, Upload, nlDlg) {
+var ResourceUploadDirective = ['nl', 'Upload', 'nlDlg', 'nlResourceUploader',
+function(nl, Upload, nlDlg, nlResourceUploader) {
     function _linkFunction($scope, iElem, iAttrs) {
         $scope.$parent.data[$scope.fieldmodel] = [];
-        $scope.accept = _getAcceptString($scope.restype);
+        $scope.accept = _getAcceptString($scope.restype, true);
         $scope.onFileSelect = function(files) {
             _onFileSelect($scope, files);
             if (!('onChange' in $scope.$parent) || 
@@ -40,27 +42,28 @@ function(nl, Upload, nlDlg) {
         };
         $scope.onResourceClick = function(fileInfo, pos) {
             _onResourceClick($scope, fileInfo, pos);
-        }
+        };
         $scope.onResourceRemove = function(fileInfo, pos) {
             _onResourceRemove($scope, fileInfo, pos);
-        }
+        };
         var field = iElem.find('div')[0];
         nlDlg.addField($scope.fieldmodel, field);
     }
     
     function _onFileSelect($scope, files) {
+        $scope.$parent.error[$scope.fieldmodel] = '';
         if ($scope.multiple !== 'true')
             $scope.$parent.data[$scope.fieldmodel] = [];
         for(var i=0; i<files.length; i++) {
             var file = files[i];
             var restype = $scope.restype;
-            if (!restype) {
-                var ext = file.name.substr(file.name.lastIndexOf('.')).toLowerCase();
-                restype = _getRestype(ext);
+            var extn = nlResourceUploader.getValidExtension(file, restype);
+            if (extn === null) {
+                $scope.$parent.error[$scope.fieldmodel] = nl.t('Wrong file exension selected. Supported file extensions: "{}"', _getAcceptString($scope.restype, false));
+                continue;
             }
-            var compInfo = {status: 'No compression done'};
-            var fileInfo = {resource: file, restype: restype, info: angular.toJson(compInfo),
-                resimg: _getImage(restype)};
+            if (!restype) restype = nlResourceUploader.getRestypeFromExt(extn);
+            var fileInfo = {resource: file, restype: restype, extn: extn, resimg: _getImage(restype)};
             $scope.$parent.data[$scope.fieldmodel].push(fileInfo);
             _updateImage(fileInfo);
         }
@@ -94,7 +97,7 @@ function(nl, Upload, nlDlg) {
         fileInfos.splice(pos,1);
     }
     
-   var _restypeToImage = {
+    var _restypeToImage = {
         Image: 'dashboard/resource.png', 
         PDF: 'dashboard/pdf.png' , 
         Audio: 'dashboard/audio.png' , 
@@ -105,33 +108,10 @@ function(nl, Upload, nlDlg) {
         return nl.url.resUrl(_restypeToImage[restype]);
     }
     
-    var _restypeToExtension = {
-        Image: ['.jpg', '.png', '.gif', '.svg', '.bmp'], 
-        PDF: ['.pdf'] , 
-        Audio: ['.m4a'] , 
-        Video: ['.mp4'],
-        Attachment: []
-    }; 
-    var _extToRestype = {};
-
-    function _initExtToRestype() {
-        for(var restype in _restypeToExtension) {
-            var exts = _restypeToExtension[restype];
-            for (var i=0; i<exts.length; i++) {
-                _extToRestype[exts[i]] = restype;
-            }
-        }
-    }
-    _initExtToRestype();
-
-    function _getRestype(ext) {
-        if (ext in _extToRestype) return _extToRestype[ext];
-        return 'Attachment';
-    }
-
-    function _getAcceptString(restype) {
+    function _getAcceptString(restype, bDevCheck) {
         if (!restype) return '';
-        return _restypeToExtension[restype].join(',');
+        if (bDevCheck && nl.pginfo.isMobileOrTab) return '';
+        return nlResourceUploader.getRestypeToExtDict()[restype].join(', ');
     }
 
     return {
@@ -148,8 +128,8 @@ function(nl, Upload, nlDlg) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var PdfUploadCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'Upload', 'nlPdf',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg, Upload, nlPdf) {
+var PdfUploadCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'Upload', 'nlPdf', 'nlProgressFn',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, Upload, nlPdf, nlProgressFn) {
     var _template = 0;
     var uploadDlg = nlDlg.create($scope);
     uploadDlg.setCssClass('nl-height-max nl-width-max');
@@ -263,7 +243,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, Upload, nlPdf) {
                 var data = {resource: fileInfo.resource, 
                             restype: fileInfo.restype,
                             keywords: uploadDlg.scope.data.keywords, 
-                            info: fileInfo.info,
+                            info: '',
                             name: uploadDlg.scope.data.name, 
                             description: uploadDlg.scope.data.description,
                             subject: uploadDlg.scope.data.subject.id, 
@@ -271,12 +251,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, Upload, nlPdf) {
                             pagecount: pageCount, 
                             template: _template, 
                             singlepage: uploadDlg.scope.data.singlePage ? 1 : 0};
-                data.progressFn = function(prog, resName) {
-                    if (prog < 100)
-                        nlDlg.popupStatus(nl.t('{}% of data transfered to server', prog), false);
-                    else
-                        nlDlg.popupStatus(nl.t('Processing. Please wait ...'), false);
-                };
+                data.progressFn = nlProgressFn.onProgress;
                 
                 nlServerApi.resourceUploadPdf(data).then(function success(newLessonId) {
                     resolve(newLessonId);
@@ -303,6 +278,122 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, Upload, nlPdf) {
 }];
 
 //-------------------------------------------------------------------------------------------------
+var ResourceUploaderSrv = ['nl', 'nlServerApi', 'nlDlg', 'nlProgressFn',
+function(nl, nlServerApi, nlDlg, nlProgressFn) {
+
+    var imageShrinker = new ImageShrinker(nl, nlDlg);
+
+    var _restypeToExtension = {
+        Image: ['.jpg', '.png', '.gif', '.svg', '.bmp'], 
+        PDF: ['.pdf'] , 
+        Audio: ['.m4a'] , 
+        Video: ['.mp4'],
+        Attachment: []
+    }; 
+    var _extToRestype = {};
+
+    function _initExtToRestype() {
+        for(var restype in _restypeToExtension) {
+            var exts = _restypeToExtension[restype];
+            for (var i=0; i<exts.length; i++) {
+                _extToRestype[exts[i]] = restype;
+            }
+        }
+    }
+    _initExtToRestype();
+
+    this.getRestypeToExtDict = function() {
+        return _restypeToExtension;
+    };
+
+    this.getRestypeFromExt = function(ext) {
+        if (ext in _extToRestype) return _extToRestype[ext];
+        return 'Attachment';
+    };
+
+
+    this.uploadInSequence = function(resourceList) {
+        var self = this;
+        return nl.q(function(resolve, reject) {
+            var resourceInfos = [];
+            _uploadNextReource(self, resourceList, resourceInfos, resolve, reject);
+        });
+    };
+
+    function _uploadNextReource(self, resourceList, resourceInfos, resolve, reject) {
+        if (resourceList.length == 0) {
+            resolve(resourceInfos);
+            return;
+        }
+        var fileInfo = resourceList.shift();
+        var validateStatus = {};
+        if (!_validateBeforeShrinking(fileInfo, validateStatus)) {
+            nlDlg.popdownStatus(0);
+            reject(validateStatus.error);
+            return;
+        }
+        nlDlg.popupStatus(nl.t('Compressing {}', fileInfo.resource.name), false);
+        // TODO: compression level from user choice in future
+        var bImg = self.getRestypeFromExt(fileInfo.extn) == 'Image'; // actual restype could also be Attachment
+        imageShrinker.getShrinkedFile(fileInfo.resource, fileInfo.extn, bImg, 'medium',
+        function(_file, compInfo) {
+            if (!_file) {
+                reject(compInfo.status);
+                return;
+            }
+            var data = {resource: _file, 
+                        restype: fileInfo.restype,
+                        keywords: '', 
+                        info: angular.toJson(compInfo, 2)};
+            data.progressFn = nlProgressFn.onProgress;
+            
+            nlDlg.popupStatus(nl.t('uploading {}', fileInfo.resource.name), false);
+            nlServerApi.resourceUpload(data).then(function success(resinfo) {
+                resourceInfos.push(resinfo);
+                _uploadNextReource(self, resourceList, resourceInfos, resolve, reject);
+            }, function error(msg) {
+                reject(nl.t('Uploading {} failed:', fileInfo.resource.name, msg));
+            });
+        });
+    }
+
+    this.getValidExtension = function(_file, restype) {
+        var fileNameLower = _file.name.toLowerCase();
+        var index = fileNameLower.lastIndexOf('.');
+        var extn = (index == -1) ? '' : fileNameLower.substring(index);
+        if (restype && restype === 'Attachment') return extn;
+        
+        if (restype && restype != this.getRestypeFromExt(extn)) return null;
+        return extn;
+    }
+    
+    function _validateBeforeShrinking(fileInfo, status) {
+        var _file = fileInfo.resource;
+        var restype = fileInfo.restype;
+        if (!(restype in _restypeToExtension)) {
+            status.error = nl.t('Please choose the resource Type, followed by file');
+            return false;
+        }
+        if (_file.size == 0) {
+            status.error = nl.t('Empty file cannot be uploaded');
+            return false;
+        }
+        return true;
+    }
+}];
+
+//-------------------------------------------------------------------------------------------------
+var ProgressFnSrv = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    this.onProgress = function(prog, resName) {
+        if (prog < 100)
+            nlDlg.popupStatus(nl.t('{}% of data transfered to server', prog), false);
+        else
+            nlDlg.popupStatus(nl.t('Processing. Please wait ...'), false);
+    };
+}];
+        
+//-------------------------------------------------------------------------------------------------
 var PdfSrv = ['nl',
 function(nl) {
     
@@ -312,6 +403,143 @@ function(nl) {
         return PDFJS.getDocument(url);
     };
 }];
+
+//---------------------------------------------------------------------------------------
+//resize the image
+//---------------------------------------------------------------------------------------
+function ImageShrinker(nl, nlDlg) {
+    
+    var COMPRESSION_LEVEL = {
+        'high': {w: 720, h: 720},
+        'medium': {w: 1080, h: 1080},
+        'low': {w: 1280, h: 1280}
+    };
+    var SHRINK_QUALITY = {low: 0.7, medium: 0.8, high: 0.9, uhigh: 1.0};
+
+    this.getShrinkedFile = function(_file, fileExtn, bImg, compressionLevel, onDone) {
+        try {
+            _readAsDataUrl(_file, fileExtn, onDone, bImg, compressionLevel);
+        } catch(e) {
+            var compInfo = {};
+            compInfo.status = nl.t('Compression of {} failed: readAsDataURL error', _file.name);
+            onDone(null, compInfo);
+        }
+    };
+
+    function _readAsDataUrl(_file, fileExtn, onDone, bImg, compressionLevel) {
+        var shrinkSize = null;
+        var compInfo = {compression: compressionLevel, origName: _file.name, origSize: _file.size};
+        if (compressionLevel in COMPRESSION_LEVEL) {
+            shrinkSize = COMPRESSION_LEVEL[compressionLevel];
+        }
+        if(!bImg) {
+            compInfo.status = 'No compression done';
+            onDone(_file, compInfo);
+            return;
+        }
+        var reader = new FileReader();
+        reader.onerror = function (e) {
+            compInfo.status = nl.t('Compression of {} failed: FileReader error', _file.name);
+            onDone(_file, compInfo);
+        };
+        reader.onload = function (loadEvent) {
+            var origUrl = loadEvent.target.result;
+            if(!shrinkSize) {
+                compInfo.status = 'No compression done';
+                onDone(_file, compInfo);
+                return;
+            }
+            var bJpg = (fileExtn == '.jpg');
+            _shrinkImage(bJpg, origUrl, shrinkSize, compInfo, function(shrinkedUrl, compInfo) {
+                if (!shrinkedUrl) {
+                    onDone(_file, compInfo);
+                    return;
+                }
+                var newFileName = bJpg ? _file.name : _file.name.replace(fileExtn, '.png');
+                var shrinkedFile = _dataUrlToImgFile(shrinkedUrl, newFileName);
+                compInfo.compressedName = shrinkedFile.name;
+                compInfo.compressedSize = shrinkedFile.size;
+                if (shrinkedFile.size > _file.size) {
+                    compInfo.status = 'Compression not used as compressed size is larger';
+                    onDone(_file, compInfo);
+                    return;
+                }
+                compInfo.status = 'Compression done';
+                onDone(shrinkedFile, compInfo);
+            });
+        };
+        reader.readAsDataURL(_file);
+    }
+    
+    function _shrinkImage(bJpg, imgUrl, shrinkSize, compInfo, onShrinkDone) {
+        var document = window.document;
+        var img = document.createElement('img');
+        img.onerror = function (e) {
+            compInfo.status = 'Compression failed: Image load error';
+            onShrinkDone(null, compInfo);
+        };
+        img.onload = function (data) {
+            _onImgLoad(document, bJpg, img, shrinkSize, compInfo, onShrinkDone);
+        };
+        img.src = imgUrl;
+    }
+
+    function _onImgLoad(document, bJpg, img, shrinkSize, compInfo, onShrinkDone) {
+        try {
+            var imgSize = _getNewImgSize(img, shrinkSize, compInfo);
+            compInfo.compressedWidth = imgSize.w;
+            compInfo.compressedHeight = imgSize.h;
+            var canvas = document.createElement('canvas');
+            canvas.width = imgSize.w;
+            canvas.height = imgSize.h;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, imgSize.w, imgSize.h);
+            var shrinkedUrl = bJpg ? canvas.toDataURL('image/jpeg', 0.9) : canvas.toDataURL('image/png');
+            if (!shrinkedUrl) {
+                compInfo.status = 'Compression failed: toDataURL error';
+                onShrinkDone(null, compInfo);
+                return;
+            }
+            onShrinkDone(shrinkedUrl, compInfo);
+        } catch(e) {
+            compInfo.status = 'Compression failed: onImgLoad exception';
+            onShrinkDone(null, compInfo);
+        }
+    }
+    
+    function _getNewImgSize(img, shrinkSize, compInfo) {
+        var ret = {w: img.width, h: img.height};
+        compInfo.origWidth = ret.w;
+        compInfo.origHeight = ret.h;
+        if (ret.w <= shrinkSize.w && ret.h <= shrinkSize.h) return ret;
+        
+        if (ret.w > ret.h) {
+            return {w: shrinkSize.w, h: ret.h*shrinkSize.w/ret.w};
+        }
+        return {w: ret.w*shrinkSize.h/ret.h, h: shrinkSize.h};
+    }    
+
+    function _dataUrlToImgFile(dataUrl, fileName) {
+        var MARKER = ';base64,';
+        var b64 = true;
+        if (dataUrl.indexOf(MARKER) == -1) {
+            b64 = false;
+            MARKER = ',';
+        }
+        var parts = dataUrl.split(MARKER);
+        var contentType = parts[0].split(':')[1];
+        var raw = parts[1];
+        if (!b64) return new File([raw], fileName, {type: contentType});
+    
+        raw = window.atob(raw);
+        var rawLength = raw.length;
+        var uInt8Array = new Uint8Array(rawLength);
+        for (var i = 0; i < rawLength; ++i) {
+            uInt8Array[i] = raw.charCodeAt(i);
+        }
+        return new File([uInt8Array], fileName, {type: contentType});
+    }
+}
 
 //-------------------------------------------------------------------------------------------------
 module_init();
