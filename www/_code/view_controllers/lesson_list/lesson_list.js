@@ -174,7 +174,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlS
         				linkId: "admin_group",
         				children: []},
         				{
-        				help: "Enable users to create lessons based on pdf",
+        				help: "Enable users to create modules based on pdf",
         				title: "Create based on pdf",
         				url: "/lesson/create2/0/0/pdf#/",
         				linkId: "admin_group",
@@ -196,7 +196,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlS
         				internalUrl: "view_all",
         				children: []},
         				{
-        				help: "Enable users to create lessons based on pdf",
+        				help: "Enable users to create modules based on pdf",
         				title: "view pending reviews",
         				internalUrl: "view_pending",
         				children: []},
@@ -488,7 +488,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlS
 			if(lesson.revstate == REVSTATE.PENDING) nl.fmt.addAvp(avps, 'Review status', 'Review pending' , 'text', '-', nl.url.resUrl('toolbar-edit/comments1.png'), 'nl-16'); 	
 			if(lesson.revstate == REVSTATE.CLOSED) nl.fmt.addAvp(avps, 'Review status', 'Review done' , 'text', '-', nl.url.resUrl('toolbar-edit/approve.png'), 'nl-16'); 	
 		}
-		nl.fmt.addAvp(avps, 'Lesson type', lesson.ltype, '-', '0');
+		nl.fmt.addAvp(avps, 'Module type', lesson.ltype, '-', '0');
 		nl.fmt.addAvp(avps, 'Description', lesson.description);
 		return avps;
 	}

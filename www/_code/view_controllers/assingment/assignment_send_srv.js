@@ -321,9 +321,9 @@ function(nl, nlDlg, nlServerApi) {
 			var allSelected = true;
 			for (var i in tree) {
 				var node = tree[i];
-				if (node.selected) {
+				if (node.selected && node.id) {
 					selectedList.push(node.id);
-					if(node.id) selectedOuUserListNames.push(node.name);
+					selectedOuUserListNames.push(node.name);
 				} else {
 					allSelected = false;
 				}
