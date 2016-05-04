@@ -31,14 +31,16 @@ var TYPES = {
 	APPROVED : 1,
 	MY: 2,
 	MANAGE : 3,
-	REVIEW: 4
+	REVIEW: 4,
+	SENDASSIGNMENT: 5
 };
 var TYPENAMES = {
 	'new' : 0,
 	'approved' : 1,
 	'my' : 2,
 	'manage' : 3,
-	'review' : 4
+	'review' : 4,
+	'sendassignment': 5
 };
 var STATUS = {
 	PRIVATE: 0,
@@ -97,6 +99,8 @@ function TypeHandler(nl, nlServerApi) {
 		} else if (this.type == TYPES.REVIEW) {
 			data.revstate = this.revstate;
 			return nlServerApi.lessonGetReviewList(data);
+		} else if(this.type == TYPES.SENDASSIGNMENT){
+			return nlServerApi.lessonGetApprovedList(data);
 		} else {
 			return nlServerApi.lessonGetApprovedList(data);
 		}
@@ -113,6 +117,8 @@ function TypeHandler(nl, nlServerApi) {
 			return nl.t('Manage approved modules');
 		if (this.type == TYPES.REVIEW)
 			return nl.t('Review modules');
+		if (this.type == TYPES.SENDASSIGNMENT)
+			return nl.t('Send Assignment');
 		return '';
 	};
 
@@ -158,7 +164,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlS
 	}
 	function _getStaticCard() {
 		var ret = [];
-		if (mode.type == TYPES.APPROVED || mode.type == TYPES.MANAGE || mode.type == TYPES.MY) return ret;
+		if (mode.type == TYPES.APPROVED || mode.type == TYPES.MANAGE || mode.type == TYPES.MY || mode.type == TYPES.SENDASSIGNMENT) return ret;
 		var card = {};
 		if(mode.type == TYPES.NEW){	 
 			 card = {title: nl.t('Create'), 
@@ -234,7 +240,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlS
 		} else if(internalUrl === 'view_closed'){
 			_showReviewCards($scope, REVSTATE.CLOSED);
 		} else if(internalUrl === 'send_assignment'){
-			_sendAssignment($scope, card);
+			var content = angular.fromJson(card.content);
+			var assignInfo = {type: 'lesson', id: card.lessonId, icon: card.icon, 
+				title: card.title, authorName: card.authorName, subjGrade: nl.fmt2('{}, {}', card.subject, card.grade),
+				description: card.description, esttime: content.esttime ? content.esttime : ''};
+			nlSendAssignmentSrv.show($scope, assignInfo);
 		}
     };
 
@@ -279,21 +289,23 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlS
 
 	function _createLessonCard(lesson, userInfo) {
 		var url = null;
-		var content = angular.fromJson(lesson.content);
+		var internalUrl = null;
 		if(mode.type == TYPES.APPROVED || mode.type == TYPES.MANAGE) url = nl.fmt2('/lesson/view/{}/', lesson.id);
 		if(mode.type == TYPES.MY) url = nl.fmt2('/lesson/edit/{}/', lesson.id);
 		if(mode.type == TYPES.REVIEW) url = nl.fmt2('/lesson/view_review/{}/', lesson.id);
 		if(mode.type == TYPES.NEW) url = nl.fmt2('/lesson/create2/{}/', lesson.id);
+		if(mode.type == TYPES.SENDASSIGNMENT) internalUrl = 'send_assignment';
 		var card = {
 			lessonId : lesson.id,
 			revstateId : lesson.revstate,
 			title : lesson.name,
+			subject : lesson.subject,
 			grade : lesson.grade,
 			icon : nl.url.lessonIconUrl(lesson.image),
 			url : url,
-			authorName: lesson.authorname,
+			internalUrl : internalUrl,
+			authorName : lesson.authorname,
 			description: lesson.description,
-			maxduration: content.esttime,
 			content: lesson.content,
 			children : []
 		};
@@ -312,7 +324,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlS
 					text : nl.t('copy')
 				});
 			}
-		} else if (mode.type == TYPES.NEW) {
+		} else if(mode.type == TYPES.SENDASSIGNMENT) {
+			_addHelpToApproved(card, lesson);
+		}else if (mode.type == TYPES.NEW) {
 			card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br> by:{}<br> <span class='nl-template-color'>Template</span><br> <span>{}</span>", lesson.grade, lesson.subject, lesson.approvername, lesson.description);
 		} else if (mode.type == TYPES.MANAGE) {
 			if(lesson.ltype == LESSONTYPES.LESSON || lesson.ltype == null)  card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br> by:{}<br>", lesson.grade, lesson.subject, lesson.approvername);
@@ -505,6 +519,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlS
 			_addLinksToApprovedDetailsDlg(linkAvp, lessonId, lesson);
 		} else if(mode.type == TYPES.REVIEW) {
 			_addLinksToReviewDetailsDlg(linkAvp, lessonId, lesson);
+		} else if(mode.type == TYPES.SENDASSIGNMENT) {
+			nl.fmt.addLinkToAvp(linkAvp, 'select', null, 'send_assignment');
+			
 		}
 	}
 	function _addIconsToDeatilsDialog(avps, lesson){
@@ -718,11 +735,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlS
 	function _updateCardAfterReviewlist(){
 		nl.window.location.reload();
 	}
-
-	function _sendAssignment($scope, card){
-		nlSendAssignmentSrv.show($scope, card);		
-	}
-	
 }];
 
 //-------------------------------------------------------------------------------------------------
