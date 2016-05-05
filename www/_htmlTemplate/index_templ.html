@@ -38,6 +38,22 @@
         <!-- List of JS files to be filled by gulp -->
         <!-- endbuild -->
 
+        <!-- MathJax - Access from Nittio Server
+             We support only AsciiMath input and HTML-CSS output.
+             Also, config has to come before the script is sourced.
+        --> 
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+            imageFont: null,
+            showMathMenu: false,
+            jax: ["input/AsciiMath", "output/HTML-CSS"],
+            extensions: ["asciimath2jax.js"],
+            messageStyle: "none",
+            skipStartupTypeset: true
+            });
+        </script>
+        <script src="/static/_external/MathJax-2.6/MathJax.js"></script>
+
         <script src="/static/_external/pdf.js-1.0.473/pdf.js"></script>
         <script src="/static/_external/angular-ivh-treeview-1.0.2/dist/ivh-treeview.min.js"></script>
         <script src="/static/_external/chart.js-1.1.1/chart.min.js"></script>

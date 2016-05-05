@@ -1,0 +1,172 @@
+/*-----------------------------------------------------------------------------------------*
+ * Player styling
+ *-----------------------------------------------------------------------------------------*/
+.nl-slides {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+
+  font-size: 36px;
+  font-weight: 200;
+  
+  /*---------------------------------------------------------------------------------------*
+   * Player styling
+   *---------------------------------------------------------------------------------------*/
+  iframe { z-index: 1;}
+
+  a {
+    position: relative;
+    color: #000077;
+  }
+  
+  a:hover {
+    color: #000077;
+    text-decoration: underline;
+  }
+  
+  strong, b { font-weight: bold;}
+  
+  em, i { font-style: italic;}
+  
+  ol, ul {
+    display: inline-block;
+    text-align: left;
+    word-wrap: break-word;
+    margin-left: 1em;
+  }
+  
+  ol>li {
+    -webkit-margin-start: 1em;
+    margin-left: 1em;
+  }
+  
+  ul>ol, ol>ol {
+    margin-left: 1.8em;
+  }
+  
+  ol {
+    list-style-type: decimal;
+  }
+  
+  ul {
+    list-style-type: disc;
+  }
+  
+  ul ul {
+    list-style-type: square;
+  }
+  
+  ul ul ul {
+    list-style-type: circle;
+  }
+  
+  ul ul, ul ol, ol ol, ol ul {
+    display: block;
+  }
+  
+  p {
+    margin-bottom: 10px;
+    line-height: 1.2em;
+    word-wrap: break-word;
+  }
+  
+  table th, table td {
+    text-align: left;
+    padding-right: .3em;
+  }
+  
+  table th {
+    font-weight: bold;
+  }
+  
+  small {
+    display: inline-block;
+    font-size: 0.6em;
+    line-height: 1.2em;
+    vertical-align: top;
+  }
+  
+  small * {
+    vertical-align: top;
+  }
+
+  /*---------------------------------------------------------------------------------------*
+   * Headers in the slides
+   *---------------------------------------------------------------------------------------*/
+  h1, h2, h3, h4, h5, h6 {
+    margin: 0 0 15px 0;
+    line-height: 0.9em;
+    letter-spacing: 0.01em;
+  
+    -webkit-hyphens: auto;
+       -moz-hyphens: auto;
+            hyphens: auto;
+  
+    word-wrap: break-word;
+    line-height: 1;
+    text-transform: none;
+  }
+  
+  h1 {
+    font-size: 375%;
+    text-shadow: 0 1px 0 #cccccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbbbbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaaaaa, 0 6px 1px rgba(0, 0, 0, 0.1), 0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3), 0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25), 0 20px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  h2 { font-size: 200% }
+  h3 { font-size: 150% }
+  h4 { font-size: 100% }
+  
+  input[type="file"] {
+    line-height: 0;
+  }
+
+  /*---------------------------------------------------------------------------------------*
+   * Contained elements
+   *---------------------------------------------------------------------------------------*/
+  .nl-page {
+    position: relative; top: 0; left: 0; height: 100%; width: 100%;
+    line-height: 1.2em;
+    
+    .nl-page-bg { position: absolute; width: 100%; height: 100%; z-index: -1; }
+    .nl-page-holder { position: absolute; left: 4%; top: 6%; width: 92%; height: 86%; }
+
+    .nl-page-no {
+      position: absolute; bottom: 5px; right: 2px; width: auto; height: auto;
+
+      color: #FFFFFF; background-color: #403050;
+
+      border: 3px solid #FFFFFF; border-radius: 100%;
+      text-align: center;
+      padding: 5px 12px;
+      font-size: 12px;
+      line-height: 150%;
+      box-shadow: 0 -2px 0 3px #201030 inset, 0 5px 5px rgba(0, 0, 0, 0.17), 0 5px rgba(255, 255, 255, 0.25) inset;
+      cursor:pointer; 
+
+      z-index: 1;
+
+      &:hover {
+        background-color: #FFFFFF; color: #403050; 
+        border: 3px solid #403050;
+        box-shadow: none;
+      }
+    }
+    
+    .nl-section {
+      position: absolute;
+      .nl-secview {
+        width: 100%;
+        max-height: 100%;
+        img {
+          max-width: 100%; max-height: 100%;
+        }
+      }
+    }
+  }
+  
+  &.bgdark {
+    color: #FFFFFF;
+  }
+}

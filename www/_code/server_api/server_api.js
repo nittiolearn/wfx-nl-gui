@@ -368,7 +368,7 @@ function(nl, nlDlg, nlConfig, Upload) {
 	};
 
 	this.lessonCopy = function(data) {
-        // data: lessonId, private=True/False
+        // data: lessonId, private=true/false
         //copy the lesson (private version of lesson or approved version of lesson)
         return server.post('_serverapi/lesson_copy.json', data);
 	};
@@ -402,6 +402,10 @@ function(nl, nlDlg, nlConfig, Upload) {
     	//Mark completion of lesson review
         return server.post('_serverapi/lesson_closereview.json', {lessonid: lessonId});
 	};
+	
+	this.lessonGetContent = function(dbid, ctx) {
+       return server.post('_serverapi/lesson_get_content.json', {dbid: dbid, ctx: ctx});	    
+	}
 
     //---------------------------------------------------------------------------------------------
     // resource entities

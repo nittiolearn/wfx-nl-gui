@@ -207,9 +207,10 @@ function Permission(nl) {
         '/searchlist_view': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
         '/rno_list': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
 		'/assignment': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},		
-		'/lesson_list': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},		
+        '/lesson_list': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},        
+        '/player': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},        
         '/upload_pdf': {login: true, permission: 'lesson_create_adv', termRestriction: TR_CLOSED},        
-        '/resource_list': {login: true, permission: 'lesson_create_adv', termRestriction: TR_OPEN},        
+        '/resource_list': {login: true, permission: 'lesson_create', termRestriction: TR_OPEN},        
 
         // Operation permissions
         'change_password': {login: true, permission: 'change_password', termRestriction: TR_RESTRICTED},

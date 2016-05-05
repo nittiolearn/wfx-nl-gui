@@ -1,8 +1,8 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// assignment.js:
-// assignment module
+// lesson.js:
+// lesson list module
 //-------------------------------------------------------------------------------------------------
 function module_init() {
 	angular.module('nl.lessonlist', [])
@@ -14,7 +14,7 @@ function module_init() {
 //-------------------------------------------------------------------------------------------------
 var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
-	$stateProvider.state('app.lesson', {
+	$stateProvider.state('app.lesson_list', {
 		url : '^/lesson_list',
 		views : {
 			'appContent' : {
@@ -629,9 +629,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlS
 	function _copyLesson($scope, lessonId) {
 		var data = {};
 		if(mode.type == TYPES.MY){
-			data = {lessonid: lessonId, private: 1};
+			data = {lessonid: lessonId, private: true};
 		}else{			
-			data = {lessonid: lessonId, private: 0};
+			data = {lessonid: lessonId, private: false};
 		}
 		var msg = {title: 'Copy module', 
 				   template: nl.t('Are you sure you want to make a private copy of this module?'),
