@@ -312,17 +312,17 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
     };
 
 
-    this.uploadInSequence = function(resourceList) {
+    this.uploadInSequence = function(resourceList, keyword, compressionlevel, resid) {
         var self = this;
         return nl.q(function(resolve, reject) {
             var resourceInfos = [];
-            _uploadNextReource(self, resourceList, resourceInfos, resolve, reject);
+            _uploadNextReource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resolve, reject);
         });
     };
 
-    function _uploadNextReource(self, resourceList, resourceInfos, resolve, reject) {
+    function _uploadNextReource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resolve, reject) {
         if (resourceList.length == 0) {
-            resolve(resourceInfos);
+            //resolve(resourceInfos);
             return;
         }
         var fileInfo = resourceList.shift();
@@ -335,18 +335,26 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         nlDlg.popupStatus(nl.t('Compressing {}', fileInfo.resource.name), false);
         // TODO: compression level from user choice in future
         var bImg = self.getRestypeFromExt(fileInfo.extn) == 'Image'; // actual restype could also be Attachment
-        imageShrinker.getShrinkedFile(fileInfo.resource, fileInfo.extn, bImg, 'medium',
+        imageShrinker.getShrinkedFile(fileInfo.resource, fileInfo.extn, bImg, compressionlevel,
         function(_file, compInfo) {
             if (!_file) {
                 reject(compInfo.status);
                 return;
             }
+            if(resid) {
+            	resid = resid;
+            } else{
+            	resid = '';
+            }
+            
             var data = {resource: _file, 
                         restype: fileInfo.restype,
-                        keywords: '', 
-                        info: angular.toJson(compInfo, 2)};
+                        keywords: keyword, 
+                        info: angular.toJson(compInfo, 2),
+                        resid: resid
+                        };
             data.progressFn = nlProgressFn.onProgress;
-            
+            console.log(data);
             nlDlg.popupStatus(nl.t('uploading {}', fileInfo.resource.name), false);
             nlServerApi.resourceUpload(data).then(function success(resinfo) {
                 resourceInfos.push(resinfo);

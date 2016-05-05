@@ -41,22 +41,22 @@ function($stateProvider, $urlRouterProvider) {
 		}});
 }];
 
-var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlCourse', 'nlDlg', 'nlCardsSrv',
-function(nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) {
-	_listCtrlImpl('course', nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv);
+var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlCourse', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv',
+function(nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv) {
+	_listCtrlImpl('course', nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv);
 }];
 
-var CourseAssignListCtrl = ['nl', 'nlRouter', '$scope', 'nlCourse', 'nlDlg', 'nlCardsSrv',
-function(nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) {
-	_listCtrlImpl('assign', nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv);
+var CourseAssignListCtrl = ['nl', 'nlRouter', '$scope', 'nlCourse', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv',
+function(nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv) {
+	_listCtrlImpl('assign', nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv);
 }];
 
-var CourseReportListCtrl = ['nl', 'nlRouter', '$scope', 'nlCourse', 'nlDlg', 'nlCardsSrv',
-function(nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) {
-	_listCtrlImpl('report', nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv);
+var CourseReportListCtrl = ['nl', 'nlRouter', '$scope', 'nlCourse', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv',
+function(nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv) {
+	_listCtrlImpl('report', nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv);
 }];
 
-function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) {
+function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv) {
 	/* 
 	 * URLs handled
 	 * 'View published' : /course_list?type=course&my=0
@@ -100,7 +100,10 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 		} else if (linkid === 'course_unpublish'){
 			_unpublishCourse($scope, card.courseId);
 		} else if (linkid === 'course_assign'){
-			_assignCourse(card.courseId);
+			var assignInfo = {type: 'course', id: card.courseId, icon: card.icon, 
+				title: card.title, authorName: card.authorName, subjGrade: '',
+				description: card.help, esttime: ''};
+			nlSendAssignmentSrv.show($scope, assignInfo);
 		} else if (linkid === 'course_assign_delete'){
 			_deleteAssignment($scope, card.reportId);
         } else if (linkid === 'course_report_list'){
@@ -215,9 +218,11 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
 	    			title: course.name, 
 					icon: course.icon, 
 					url: url,
+					authorName: course.authorname,
 					help: course.description,
 					json: angular.toJson(course, 0),
 					children: []};
+
 		card.details = {help: card.help, avps: _getCourseAvps(course)};
 		card.links = [];
 		if (my) { 
@@ -289,12 +294,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv) 
         nl.fmt.addAvp(avps, 'Max duration', report.max_duration);
         nl.fmt.addAvp(avps, 'Discussion forum', report.forum, 'boolean');
 		return avps;
-	}
-
-	function _assignCourse(courseId) {
-		nlDlg.showLoadingScreen();
-		var url = nl.fmt2('/assignment/create2/{}/course', courseId);
-		nl.window.location.href = url;
 	}
 
 	function _deleteCourse($scope, courseId) {

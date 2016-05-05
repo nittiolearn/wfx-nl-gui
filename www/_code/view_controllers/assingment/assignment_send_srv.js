@@ -16,14 +16,12 @@ function(nl, nlDlg, nlServerApi) {
 	var selectedUserTreedata = []; 
 	var selectedOuUserList = [];
 	var selectedOuUserListNames = [];
-	var lessoncard = null;
 	var sendAssignmentParams = null;
 
 	
-    this.show = function(parentScope, card) {
+    this.show = function(parentScope, assignInfo) {
 		var sendAssignmentDlg = nlDlg.create(parentScope);
-		_initSendAssignmentDlg(sendAssignmentDlg, card);
-		lessoncard = card;
+		_initSendAssignmentDlg(sendAssignmentDlg, assignInfo);
 		nlServerApi.getOuList().then(function(status) {
 			ouList = status;
 		});
@@ -85,9 +83,9 @@ function(nl, nlDlg, nlServerApi) {
     							'after submitting', 
     							'only when published'];
 
-	function _initSendAssignmentDlg(sendAssignmentDlg, card) {
+	function _initSendAssignmentDlg(sendAssignmentDlg, assignInfo) {
 		sendAssignmentDlg.setCssClass('nl-height-max nl-width-max');	
-		sendAssignmentDlg.scope.card = card;
+		sendAssignmentDlg.scope.assignInfo = assignInfo;
 		sendAssignmentDlg.scope.data = {};
 		sendAssignmentDlg.scope.options = {};
 		sendAssignmentDlg.scope.options.showAnswers = _getShowanswersList();
@@ -97,7 +95,7 @@ function(nl, nlDlg, nlServerApi) {
 		sendAssignmentDlg.scope.data.visibleToUsersLength = 0;
 		sendAssignmentDlg.scope.data.visibleToGroupLength = 0;	
 		sendAssignmentDlg.scope.data.datetimevalue = '';
-		sendAssignmentDlg.scope.data.maxduration = card.maxduration;
+		sendAssignmentDlg.scope.data.maxduration = assignInfo.esttime;
 		sendAssignmentDlg.scope.data.starttime = '';
 		sendAssignmentDlg.scope.data.endtime = '';
 		sendAssignmentDlg.scope.data.remarks = '';
@@ -126,7 +124,7 @@ function(nl, nlDlg, nlServerApi) {
     	e.preventDefault(e);
     	var starttime = sendAssignmentDlg.scope.data.starttime;
     	var endtime = sendAssignmentDlg.scope.data.endtime;
-
+		var maxduration = sendAssignmentDlg.scope.data.maxduration;
     	if(sendAssignmentDlg.scope.data.starttime) {
     		var utcstarttime = convertLocalDateToUTCDate(starttime, true);
     		starttime = nl.fmt.date2Str(utcstarttime, 'second');
@@ -143,15 +141,16 @@ function(nl, nlDlg, nlServerApi) {
     	
 		
     	var learnmode = sendAssignmentDlg.scope.data.showAnswers.id;
-    	var data = {lessonid: sendAssignmentDlg.scope.card.lessonId,
-    							orgunits:selectedOuList, 
-    							selectedusers: selectedOuUserList,
-    							not_before: starttime, 
-    							not_after: endtime,
-    							learnmode: learnmode,
-    							forum: (sendAssignmentDlg.scope.data.forum in sendAssignmentDlg.scope.data || sendAssignmentDlg.scope.data.forum == true) ? true : '',
-    							max_duration: sendAssignmentDlg.scope.data.maxduration,
-    							remarks: (sendAssignmentDlg.scope.data.remarks in sendAssignmentDlg.scope.data)? sendAssignmentDlg.scope.data.remarks: ''};
+    	var data = {lessonid: sendAssignmentDlg.scope.assignInfo.id,
+					type : sendAssignmentDlg.scope.assignInfo.type,
+					orgunits:selectedOuList, 
+					selectedusers: selectedOuUserList,
+					not_before: starttime, 
+					not_after: endtime,
+					learnmode: learnmode,
+					forum: (sendAssignmentDlg.scope.data.forum in sendAssignmentDlg.scope.data || sendAssignmentDlg.scope.data.forum == true) ? true : '',
+					max_duration: maxduration,
+					remarks: (sendAssignmentDlg.scope.data.remarks in sendAssignmentDlg.scope.data)? sendAssignmentDlg.scope.data.remarks: ''};
     	nlDlg.showLoadingScreen();
     	nlServerApi.checkPastAssignments(data).then(function(status){
     		if(starttime !== '' && endtime !== '') {
@@ -168,7 +167,7 @@ function(nl, nlDlg, nlServerApi) {
     		if(status.assignedUsers === 0) {
 				nlServerApi.assignmentSend(data).then(function(status) {
 					nlDlg.hideLoadingScreen();
-					return nlDlg.popupAlert({title: nl.t('Assignment sent'), template:nl.t('<div><ul><li><a href="/reports/assignment_rep/{}">Click here to view new assignments</a></li><li>Or you can stay on same page and send assignment to another set of users</li></ul></div>', status)});    	
+					_showAfterAssignmentSentDlg(e, data, parentScope, status);
 				});
     		} else {
     			_showConfirmBeforeSend(parentScope, data, status);
@@ -185,7 +184,7 @@ function(nl, nlDlg, nlServerApi) {
 				nlDlg.showLoadingScreen();
 				nlServerApi.assignmentSend(data).then(function(status) {
 					nlDlg.hideLoadingScreen();
-					return nlDlg.popupAlert({title: nl.t('Assignment sent'), template:nl.t('<div><ul><li><a href="/reports/assignment_rep/{}">Click here to view new assignments</a></li><li>Or you can stay on same page and send assignment to another set of users</li></ul></div>', status)})    	
+					_showAfterAssignmentSentDlg(e, data, parentScope, status);
 				});
 			}};
 			var cancelButton = {text : nl.t('Close')};
@@ -193,6 +192,26 @@ function(nl, nlDlg, nlServerApi) {
 				[okButton], cancelButton, false);
     	}
     }
+
+	function _showAfterAssignmentSentDlg(e, data, parentScope, status) {
+		if(e) e.preventDefault();
+		var afterAssignmentSentDlg = nlDlg.create(parentScope);
+			afterAssignmentSentDlg.scope.data = {};
+			if(data.type == 'lesson') {
+				afterAssignmentSentDlg.scope.data.url = nl.fmt2('/reports/assignment_rep/{}', status);
+				afterAssignmentSentDlg.scope.data.pageTitle = nl.t('Assignment sent');
+			}else if (data.type == 'course') {
+				afterAssignmentSentDlg.scope.data.url = nl.fmt2('#/course_report_list?assignid={}', status);
+				afterAssignmentSentDlg.scope.data.pageTitle = nl.t('Course assigned');
+			}
+			var cancelButton = {text : nl.t('Close'), onTap: function(e){
+				afterAssignmentSentDlg.close(false);
+				afterAssignmentSentDlg.destroy()
+				nl.location.reload();
+			}};
+			afterAssignmentSentDlg.show('view_controllers/assingment/after_assignment_sent_dlg.html',
+				[], cancelButton, false);
+	}
 
 	function alertWhenNoUsers(){
 		nlDlg.popupAlert({title:'Alert message', template:nl.t('There are no users in the class(es)/ user group(s) you selected')});

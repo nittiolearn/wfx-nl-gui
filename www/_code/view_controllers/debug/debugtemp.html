@@ -1,23 +1,8 @@
 <div class='nl-thin-scroll nl-full'>
 
-<h1>Testing Date time picker</h1>
-<input ng-model="date1" datetime-picker date-only />
-<input ng-model="date1" datetime-picker date-only future-only />
-<input ng-model="date2" datetime-picker date-format="yyyy-MM-dd" date-only />
-<input ng-model="date3" datetime-picker date-format="yyyy-MM-dd HH:mm:ss" />
-<input ng-model="date4" datetime-picker hour="23" minute='59'/>
-<input ng-model="date5" datetime-picker date-format="yyyy-MM-dd HH:mm:ss" year="2014" month="12" day="31" />
-
-<div>
-<pre>
-    {{date1}}
-    {{dtPicker}}
-</pre>
-</div>
-
 <h1>Testing Charts</h1>
 <canvas id="line" 
-        class="chart chart-line" 
+        class="chart chart-bar" 
         chart-data="chartInfo.data"
         chart-labels="chartInfo.labels" 
         chart-legend="true" 

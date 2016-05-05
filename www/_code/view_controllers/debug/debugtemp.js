@@ -33,8 +33,6 @@ function(nl, nlRouter, $scope) {
         return nl.q(function(resolve, reject) {
             nl.pginfo.pageTitle = nl.t('Debug Temp');
             chartInfo.setChartInfo($scope);
-            $scope.date1 = '01-01-2015 00:00:00';
-            $scope.dtPicker = {date1: null, date2: null, date3: null, date4: null};
             resolve(true);
         });
     }
@@ -66,14 +64,14 @@ function ChartInfo(nl) {
             }, 0);
         };
         $scope.chartInfo = ret;
-    }
+    };
     
     this.getRandomData = function() {
         return [
                 this.getRandomArray(20, 90, 7),
                 this.getRandomArray(30, 70, 7)
             ];
-    }
+    };
 
     this.getRandomArray = function(min, max, count) {
         var ret = [];
@@ -82,7 +80,7 @@ function ChartInfo(nl) {
             ret.push(rand);
         }
         return ret;
-    }
+    };
 }
 
 //-------------------------------------------------------------------------------------------------

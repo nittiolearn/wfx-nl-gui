@@ -1,0 +1,52 @@
+<nl-dlg title='Modify Resource'>
+<nl-dlg-help>
+</nl-dlg-help>
+<nl-dlg-content>
+<div>
+    <div class='row row-top row-wrap'>
+        <div ng-class='resp2Col20'>choose file</div>
+        <div ng-if='data.restype == "Image"' ng-class='resp2Col80'>
+            <nl-resource-upload 
+            	fieldmodel = 'image' 
+            	restype = 'Image'>
+            </nl-resource-upload>
+        </div>
+        <div ng-if='data.restype == "PDF"' ng-class='resp2Col80'>
+            <nl-resource-upload 
+            	fieldmodel='pdf' 
+            	restype='PDF'>
+            </nl-resource-upload>
+        </div>
+        <div ng-if='data.restype == "Audio"' ng-class='resp2Col80'>
+            <nl-resource-upload 
+            	fieldmodel='audio' 
+            	restype='Audio'>
+            </nl-resource-upload>
+        </div>
+        <div ng-if='data.restype == "Video"' ng-class='resp2Col80'>
+            <nl-resource-upload 
+            	fieldmodel='video' 
+            	restype='Video'>
+            </nl-resource-upload>
+        </div>
+        <div ng-if='data.restype == "Attachment"' ng-class='resp2Col80'>
+            <nl-resource-upload 
+            	fieldmodel='attachement' 
+            	restype='Attachment'>
+            </nl-resource-upload>
+        </div>
+    </div>
+	<div class='row row-top row-wrap'>
+		<div ng-class='resp2Col20'>Keywords</div>
+		<div ng-class='resp2Col80'><nl-input fieldmodel='keywords' fieldtype='text' fieldcls='w100'></nl-input>
+		</div>			
+	</div>
+	<div ng-show='data.restype == "Image"' class='row row-top row-wrap'>
+		<div ng-class='resp2Col20'>Compression</div>
+            <div ng-class='resp2Col80'>
+                <nl-select fieldmodel='compressionlevel'></nl-select>
+            </div>
+	</div>
+</div>
+</nl-dlg-content>
+</nl-dlg>
