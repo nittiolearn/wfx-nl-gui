@@ -41,11 +41,13 @@ var TYPENAMES = {
 function TypeHandler(nl, nlServerApi) {
 	this.type = TYPES.NEW;
 	this.custtype = null;
+	this.title = null;
 
 	this.initFromUrl = function() {
 		var params = nl.location.search();
 		this.type = _convertType(params.type);
 		this.custtype = ('custtype' in params) ? parseInt(params.custtype) : null;
+		this.title = params.title || null;
 	};
 
 	this.listingFunction = function(filter) {
@@ -70,6 +72,7 @@ function TypeHandler(nl, nlServerApi) {
 	};
 
 	this.pageTitle = function() {
+		if (this.title) return this.title;
 		if (this.type == TYPES.NEW)
 			return nl.t('New Assignments');
 		if (this.type == TYPES.PAST)
@@ -139,7 +142,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	function _getDataFromServer(filter, resolve, reject) {
 		mode.listingFunction(filter).then(function(resultList) {
 			nl.log.debug('Got result: ', resultList.length);
-			console.log(resultList);
 			$scope.cards.cardlist = _getCards(_userInfo, resultList, nlCardsSrv);
 			_addSearchInfo($scope.cards);
 			resolve(true);

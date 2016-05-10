@@ -206,8 +206,7 @@ function(nl, nlDlg, nlServerApi) {
 			}
 			var cancelButton = {text : nl.t('Close'), onTap: function(e){
 				afterAssignmentSentDlg.close(false);
-				afterAssignmentSentDlg.destroy()
-				nl.location.reload();
+				afterAssignmentSentDlg.destroy();
 			}};
 			afterAssignmentSentDlg.show('view_controllers/assingment/after_assignment_sent_dlg.html',
 				[], cancelButton, false);

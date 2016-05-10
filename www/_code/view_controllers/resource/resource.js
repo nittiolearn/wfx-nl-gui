@@ -322,7 +322,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
 
     function _uploadNextReource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resolve, reject) {
         if (resourceList.length == 0) {
-            //resolve(resourceInfos);
+            resolve(resourceInfos);
             return;
         }
         var fileInfo = resourceList.shift();
@@ -354,11 +354,10 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
                         resid: resid
                         };
             data.progressFn = nlProgressFn.onProgress;
-            console.log(data);
             nlDlg.popupStatus(nl.t('uploading {}', fileInfo.resource.name), false);
             nlServerApi.resourceUpload(data).then(function success(resinfo) {
                 resourceInfos.push(resinfo);
-                _uploadNextReource(self, resourceList, resourceInfos, resolve, reject);
+                _uploadNextReource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resolve, reject);
             }, function error(msg) {
                 reject(nl.t('Uploading {} failed:', fileInfo.resource.name, msg));
             });
