@@ -148,9 +148,10 @@ function(nl, nlDlg, nlServerApi) {
 					not_before: starttime, 
 					not_after: endtime,
 					learnmode: learnmode,
-					forum: (sendAssignmentDlg.scope.data.forum in sendAssignmentDlg.scope.data || sendAssignmentDlg.scope.data.forum == true) ? true : '',
+					forum: sendAssignmentDlg.scope.data.forum || false,
 					max_duration: maxduration,
-					remarks: (sendAssignmentDlg.scope.data.remarks in sendAssignmentDlg.scope.data)? sendAssignmentDlg.scope.data.remarks: ''};
+					remarks: sendAssignmentDlg.scope.data.remarks || ''
+					};
     	nlDlg.showLoadingScreen();
     	nlServerApi.checkPastAssignments(data).then(function(status){
     		if(starttime !== '' && endtime !== '') {
@@ -206,8 +207,7 @@ function(nl, nlDlg, nlServerApi) {
 			}
 			var cancelButton = {text : nl.t('Close'), onTap: function(e){
 				afterAssignmentSentDlg.close(false);
-				afterAssignmentSentDlg.destroy()
-				nl.location.reload();
+				afterAssignmentSentDlg.destroy();
 			}};
 			afterAssignmentSentDlg.show('view_controllers/assingment/after_assignment_sent_dlg.html',
 				[], cancelButton, false);

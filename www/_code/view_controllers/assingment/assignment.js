@@ -41,11 +41,13 @@ var TYPENAMES = {
 function TypeHandler(nl, nlServerApi) {
 	this.type = TYPES.NEW;
 	this.custtype = null;
+	this.title = null;
 
 	this.initFromUrl = function() {
 		var params = nl.location.search();
 		this.type = _convertType(params.type);
 		this.custtype = ('custtype' in params) ? parseInt(params.custtype) : null;
+		this.title = params.title || null;
 	};
 
 	this.listingFunction = function(filter) {
@@ -70,6 +72,7 @@ function TypeHandler(nl, nlServerApi) {
 	};
 
 	this.pageTitle = function() {
+		if (this.title) return this.title;
 		if (this.type == TYPES.NEW)
 			return nl.t('New Assignments');
 		if (this.type == TYPES.PAST)
@@ -139,7 +142,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	function _getDataFromServer(filter, resolve, reject) {
 		mode.listingFunction(filter).then(function(resultList) {
 			nl.log.debug('Got result: ', resultList.length);
-			console.log(resultList);
 			$scope.cards.cardlist = _getCards(_userInfo, resultList, nlCardsSrv);
 			_addSearchInfo($scope.cards);
 			resolve(true);
@@ -301,7 +303,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 					if (card.Id !== assignId) continue;
 					$scope.cards.cardlist.splice(i, 1);
 				}
-				nl.window.location.reload();
+				nlDlg.closeAll();
+				_reloadFromServer();
 			});	
 		});
 	}
@@ -309,9 +312,21 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	function _publishAssignment($scope, assignId){
 		nlServerApi.assignmentPublish(assignId).then(function(status) {
 			nlDlg.hideLoadingScreen();
-			nl.window.location.reload();
+			nlDlg.closeAll();
+			_reloadFromServer();
 		});
 	}
+
+	function _reloadFromServer() {
+		nlDlg.showLoadingScreen();
+		var promise = nl.q(function(resolve, reject) {
+			_getDataFromServer(_searchFilterInUrl, resolve, reject);
+		});
+		promise.then(function(res) {
+			nlDlg.hideLoadingScreen();
+		});
+	}
+
 
 	function _initParams() {
 		var params = nl.location.search();

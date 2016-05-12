@@ -8,8 +8,7 @@ function module_init() {
     angular.module('nl.resource_list', [])
     .config(configFn)
     .controller('nl.ResourceListCtrl', ResourceListCtrl)
-    .controller('nl.ResourceUploadCtrl', ResourceUploadCtrl)
-	.service('nlResourceModifySrv', ResourceModifySrv)
+	.service('nlResourceAddModifySrv', ResourceAddModifySrv)
     .directive('nlSelectall', SelectallDirective);
 }
 
@@ -35,44 +34,52 @@ function($stateProvider, $urlRouterProvider) {
         }});
 }];
 //-------------------------------------------------------------------------------------------------
-var TYPES = {
-	MY : 1,
-	ALL : 0
-};
-
-var COMPRESSIONLEVEL = [{id: 'no', name: 'No compression'},
-						{id: 'low', name:'Low compression'},
-						{id: 'medium', name:'Medium compression'},
-						{id: 'high', name:'High compression'}];
-//-------------------------------------------------------------------------------------------------
-var ResourceListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlResourceUploader', 'nlResourceModifySrv',
-function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploader, nlResourceModifySrv) {
+var ResourceListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlResourceUploader', 'nlResourceAddModifySrv',
+function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploader, nlResourceAddModifySrv) {
 
 	var _userInfo = null;
 	var _allCardsForReview = [];
-	var my = 0;
+	var _type = 'my';
 	var search = null;
+	var restypeList = null;
+	
+	function _isMine(_type) {
+		return (_type == 'my' || _type == 'upload');
+	}
 	
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
 		return nl.q(function(resolve, reject) {
-		var params = nl.location.search();
-		my = ('mine' in params) ? parseInt(params.mine) : 0;
-		search = ('search' in params) ? params.search : null;
-		nl.pginfo.pageTitle = _updatePageTitle(); 
-		$scope.cards = {};
-		$scope.cards.staticlist = _getStaticCard();
-		$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
-		_getDataFromServer(resolve, reject);
+			var params = nl.location.search();
+			_type = params.type || 'my'; // can be my, all or upload
+			search = ('search' in params) ? params.search : null;
+			nl.pginfo.pageTitle = _updatePageTitle(); 
+			$scope.cards = {};
+			$scope.cards.staticlist = _getStaticCard();
+			$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
+			_getDataFromServer(resolve, reject);
+			if (_type == 'upload') _getRestypes(null);
 		});
 	}
 
-
 	nlRouter.initContoller($scope, '', _onPageEnter);
 	
+	function _getRestypes(card){
+		nlDlg.showLoadingScreen();
+		restypeList = [];
+		nlServerApi.resourceGetResTypes().then(function(status){	
+			restypeList = status;
+			nlDlg.showLoadingScreen();
+			if(card == null) {
+				_modifyResource($scope, null, restypeList);				
+			} else {
+				_modifyResource($scope, card, restypeList);
+			}
+		});
+	}
+	
 	function _updatePageTitle(){
-		if(my == TYPES.MY) return nl.t('My resources');
-		if(my == TYPES.ALL) return nl.t('All resources');
+		return _isMine(_type) ? nl.t('My resources') : nl.t('All resources');
 	}
 	
 	function _getEmptyCard(nlCardsSrv) {
@@ -85,44 +92,46 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 	function _getStaticCard() {
 		var ret = [];
 		var card = {};
-		if(my == TYPES.ALL) return;	 
+		if (!_isMine(_type)) return;
 		card = {title: nl.t('Upload'), 
 				icon: nl.url.resUrl('dashboard/crresource.png'), 
-				help: nl.t('You can create a new course by clicking on this card'), 
-				url: "/#/resource_upload",
-				children: [{
-							help: "Upload a new resource by clicking on this link",
-							title: "upload a new resource",
-							url: "/#/resource_upload",
-							children: []
-							}],
-							style: 'nl-bg-blue'
+				help: nl.t('You can upload new resource by clicking on this card'), 
+				internalUrl: "resource_upload",
+				children: [],
+				style: 'nl-bg-blue'
 				};
 		ret.push(card);
 		return ret;
 	} 
 
     $scope.onCardInternalUrlClicked = function(card, internalUrl) {
-    	var lessonId = card.lessonId;
-    	if (internalUrl === 'resource_delete') _deleteResource($scope, lessonId);
-    	if (internalUrl === 'resource_upload') _resourceUpload($scope,card);
+    	var resid = card.Id || 0;
+    	if (internalUrl === 'resource_delete') _deleteResource($scope, resid);
+    	if (internalUrl === 'resource_upload') _getRestypes(null);
     	if(internalUrl === 'resource_copy') _showLinkCopyDlg($scope, card);
-		if(internalUrl === 'resource_modify') _modifyResource($scope, card);
+		if(internalUrl === 'resource_modify')  _getRestypes(card);
     };
 
 	$scope.onCardLinkClicked = function(card, linkId){
 		var resid = card.Id;
 		if(linkId == 'resource_modify'){
-			_modifyResource($scope, card);
+			_getRestypes(card);
 		} else if(linkId == 'resource_delete'){
 			_deleteResource($scope, resid);
 		}
 	};
 
+	function _updateDataFromServer() {
+		return nl.q(function(resolve, reject) {
+			nlDlg.showLoadingScreen();
+			_getDataFromServer(resolve, reject);
+		}).then(function() {
+			nlDlg.hideLoadingScreen();
+		});
+	}
+	
 	function _getDataFromServer(resolve, reject) {
-		if(my == TYPES.MY) my = true;
-		if(my == TYPES.ALL) my = false;
-		var data = {mine: my, searchFilter: search};
+		var data = {mine: _isMine(_type), searchFilter: search};
 		nlServerApi.resourceGetList(data).then(function(resultList) {
 			$scope.cards.cardlist = _getResourceCards(_userInfo, resultList);
 			_addSearchInfo($scope.cards);
@@ -144,7 +153,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 
 	function _createResourceCard(resource, userInfo) {
 		var url = null;
-		console.log(resource);
 		var image = null;
 		var internalUrl = 'resource_copy';
 		if(resource.restype == "PDF") {
@@ -180,17 +188,23 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 			help : resource.description,
 			avps : _getResourceListAvps(resource)
 		};
-		if (my == TYPES.ALL) card.links = [{id : 'details', text : nl.t('details')}];
-		if (my == TYPES.MY) card.links = [{id : 'resource_modify', text : nl.t('modify')},
-													{id : 'resource_delete', text : nl.t('delete')},
-					  						  		{id : 'details', text : nl.t('details')}];
+		if (_isMine(_type) && userInfo.permissions.admin_user) {
+			card.links = [{id : 'resource_modify', text : nl.t('modify')},
+						  {id : 'resource_delete', text : nl.t('delete')},
+					  	  {id : 'details', text : nl.t('details')}];
+		} else if(_isMine(_type)){
+			card.links = [{id : 'resource_delete', text : nl.t('delete')},
+					  	  {id : 'details', text : nl.t('details')}];
+		} else if(!_isMine(_type)){
+			card.links = [{id : 'details', text : nl.t('details')}];		
+		}
 		card['help'] = nl.t('<span class="nl-card-description"><b>By: {}</b></span><br><span>Keywords: {}</span>', resource.authorname, resource.keywords);
 		return card;
 	}
 	
 	function _getResourceListAvps(resource){
 		var avps = [];
-		var data = JSON.parse(resource.info);
+		var data = angular.fromJson(resource.info||'{}');
 		var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
 		_populateLinks(linkAvp, resource.id, resource);
 		nl.fmt.addAvp(avps, 'Name', resource.name);
@@ -219,7 +233,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 	
 	function _populateLinks(linkAvp, resid, lesson) {
 		nl.fmt.addLinkToAvp(linkAvp, 'copy_link', null, 'resource_copy');
-		if (my == TYPES.MY) {
+		if (_isMine(_type)) {
 			nl.fmt.addLinkToAvp(linkAvp, 'modify', null, 'resource_modify');
 			nl.fmt.addLinkToAvp(linkAvp, 'delete', null, 'resource_delete');
 		}
@@ -227,13 +241,21 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 	
 	function _addSearchInfo(cards) {
 		cards.search = {
-			placeholder : nl.t('Name/Subject/Remarks/Keyword')
+			placeholder : nl.t('Name/Subject/Remarks/Keyword'),
+			maxLimit: 20
 		};
+		cards.search.onSearch = _onSearch;
+	};
+
+	function _onSearch(filter) {
+		search = filter;
+		_reloadFromServer();
 	}
 
-	
-	function _modifyResource($scope, card){
-		nlResourceModifySrv.show($scope, card);
+	function _modifyResource($scope, card, restypeList){
+		nlResourceAddModifySrv.show($scope, card, restypeList).then(function(resInfos) {
+			_updateDataFromServer();
+		});
 	}
 
 	function _showLinkCopyDlg($scope, card){
@@ -258,181 +280,123 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 			nlDlg.showLoadingScreen();
 			nlServerApi.resourceDelete(resid).then(function(status) {
 				nlDlg.hideLoadingScreen();
-				_updateCardlist($scope, resid);
+				nlDlg.closeAll();
+				_updateDataFromServer();
 			});	
 		});
 	}
 
-	function _updateCardlist($scope, resid){
-		for (var i in $scope.cards.cardlist) {
-			var card = $scope.cards.cardlist[i];
-			if (card.Id !== resid) continue;
-			$scope.cards.cardlist.splice(i, 1);
-		}
-	}
-}];
-//-------------------------------------------------------------------------------------------------
-
-var ResourceUploadCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'Upload', 'nlProgressFn', 'nlResourceUploader',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader) {
-    var _template = 0;
-    var resourceUploadDlg = nlDlg.create($scope);
-    resourceUploadDlg.setCssClass('nl-height-max nl-width-max');
-
-    resourceUploadDlg.scope.options = {};
-    resourceUploadDlg.scope.data = {};
-    resourceUploadDlg.scope.error = {};
-
-    function _onPageEnter(userInfo) {
-        return nl.q(function(resolve, reject) {
-            var params = nl.location.search();
-
-            nl.pginfo.pageTitle = nl.t('Upload your content');
-			resourceUploadDlg.scope.options.restypes = _getRestypesList();
-            resourceUploadDlg.scope.data.keywords = '';
-			resourceUploadDlg.scope.data.restypes = {id: 'Image', name: 'Image', restype: 'image'};	
-			resourceUploadDlg.scope.options.compressionlevel = COMPRESSIONLEVEL;	
-			resourceUploadDlg.scope.data.compressionlevel = {id: 'medium', name: 'medium compression'};
-            resolve(true);
-            nl.timeout(function() {
-                _resourceUploadDlg();
-            });
-        });
-    }
-    nlRouter.initContoller($scope, '', _onPageEnter);
-    
-    //---------------------------------------------------------------------------------------------
-	var restype = ['image', 'pdf', 'audio', 'video','attachment'];
-		
-	function _getRestypesList(){
-		var restypeDict = nlResourceUploader.getRestypeToExtDict();
-		var count = 0;
-		var restypeArray = [];
-		for(var i in restypeDict){
-			restypeArray.push({id: i, name: i, restype: restype[count]});
-			count++;
-		}	
-		return restypeArray;
-
-	}
-
-    function _resourceUploadDlg() {
-    	var resourceList = [];
-	        var uploadButton = {text: nl.t('Upload'), onTap: function(e) {
-	        	nlDlg.showLoadingScreen();
-    		if(resourceUploadDlg.scope.data.restypes.id == 'Image'){
-    			resourceList = 	resourceUploadDlg.scope.data.image;
-    		} else if (resourceUploadDlg.scope.data.restypes.id == 'PDF'){
-    			resourceList = 	resourceUploadDlg.scope.data.pdf;
-    		} else if (resourceUploadDlg.scope.data.restypes.id == 'Audio'){
-    			resourceList = 	resourceUploadDlg.scope.data.audio;
-    		} else if (resourceUploadDlg.scope.data.restypes.id == 'Video'){
-    			resourceList = 	resourceUploadDlg.scope.data.video;
-    		} else if (resourceUploadDlg.scope.data.restypes.id == 'Attachment'){
-    			resourceList = 	resourceUploadDlg.scope.data.attachment;
-    		}
-    		var compressionlevel = resourceUploadDlg.scope.data.compressionlevel.id;
-    		var keyword = resourceUploadDlg.scope.data.keywords;
-            if (e) e.preventDefault();
-            if(resourceList.length == 0) 
-            	return nlDlg.popupAlert({title: nl.t('Please Select'),
-            		template: nl.t('Plase select the resource to upload.')});
-			nlResourceUploader.uploadInSequence(resourceList, keyword, compressionlevel, null);
+	function _reloadFromServer() {
+		nlDlg.showLoadingScreen();
+		var promise = nl.q(function(resolve, reject) {
+			_getDataFromServer(resolve, reject);
+		});
+		promise.then(function(res) {
 			nlDlg.hideLoadingScreen();
-			_uploadAgainDlg(e,$scope);
-		}};        
-		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
-            if (e) e.preventDefault();
-            resourceUploadDlg.close(false);
-            resourceUploadDlg.destroy();
-            nl.location.url('/home');
-        }};
-        resourceUploadDlg.show('view_controllers/resource/resource_add_dlg.html', 
-                        [uploadButton], cancelButton, false);
-    }
-
-	function _uploadAgainDlg(e, $scope){
-		e.preventDefault();
-		var uploadAgainDlg = nlDlg.create($scope);
-		    uploadAgainDlg.setCssClass('nl-height-min nl-width-min');
-			uploadAgainDlg.scope.data = {};
-			uploadAgainDlg.scope.data.url = nl.fmt2('#/lesson_list');
-		
-		uploadAgainDlg.scope.onClickOnUploadAgain = function(){
-            nl.window.location.reload();
-		};
-		
-		uploadAgainDlg.scope.onClickOnViewResourceRepository = function() {
-            console.log('hello');
-            var url = nl.fmt2('#/lesson_list');
-            nl.location.url(url);
-		};
-		
-		var cancelButton = {text: nl.t('Cancel')};
-        uploadAgainDlg.show('view_controllers/resource/upload_again_dlg.html', 
-                [], cancelButton, false);
-
+		});
 	}
+
+
 }];
 
 //-------------------------------------------------------------------------------------------------
-var ResourceModifySrv = ['nl', 'nlServerApi', 'nlDlg', 'Upload', 'nlProgressFn', 'nlResourceUploader',
-	function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
+var ResourceAddModifySrv = ['nl', 'nlServerApi', 'nlDlg', 'Upload', 'nlProgressFn', 'nlResourceUploader',
+function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
+	var COMPRESSIONLEVEL = [{id: 'no', name: 'No compression'},
+						{id: 'low', name:'Low compression'},
+						{id: 'medium', name:'Medium compression'},
+						{id: 'high', name:'High compression'}];
 
-		this.show = function($scope, card){
-			var compression = angular.fromJson(card.info);
-			console.log(compression);
-			var modifyResourceDlg = nlDlg.create($scope);
-			_initModifyResourceDlg(modifyResourceDlg, card);
- 			
-	        var modifyButton = {text: nl.t('Modify'), onTap: function(e) {
-	        	nlDlg.showLoadingScreen();
-	        	var resourceList = [];
-	    		if(modifyResourceDlg.scope.data.restype == 'Image'){
-	    			resourceList = 	modifyResourceDlg.scope.data.image;
-	    		} else if (modifyResourceDlg.scope.data.restype == 'PDF'){
-	    			resourceList = 	modifyResourceDlg.scope.data.pdf;
-	    		} else if (modifyResourceDlg.scope.data.restype == 'Audio'){
-	    			resourceList = 	modifyResourceDlg.scope.data.audio;
-	    		} else if (modifyResourceDlg.scope.data.restype == 'Video'){
-	    			resourceList = 	modifyResourceDlg.scope.data.video;
-	    		} else if (modifyResourceDlg.scope.data.restype == 'Attachment'){
-	    			resourceList = 	modifyResourceDlg.scope.data.attachment;
-	    		}
-	    		var compressionlevel = modifyResourceDlg.scope.data.compressionlevel.id;
-	    		var keyword = modifyResourceDlg.scope.data.keywords;
-	    		var resid = modifyResourceDlg.scope.data.card.Id;
-	            if (e) e.preventDefault();
-	            if(resourceList.length == 0) 
-	            	return nlDlg.popupAlert({title: nl.t('Please Select'), 
-	            		template: nl.t('Plase select the resource to upload.')});
-				nlResourceUploader.uploadInSequence(resourceList, keyword, compressionlevel, resid);
-				nlDlg.hideLoadingScreen();
-				nl.window.location.reload();
-	            modifyResourceDlg.close(false);
-	            modifyResourceDlg.destroy();
-			}};        
+	this.show = function($scope, card, restypes){
+		return nl.q(function(resolve, reject) {
+			var addModifyResourceDlg = nlDlg.create($scope);
+			_initResourceDlg(addModifyResourceDlg, card, restypes);
+			_showDlg(addModifyResourceDlg, card, $scope, restypes, resolve, reject);
+		});
+	};
 
-			var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
-	            if (e) e.preventDefault();
-	            modifyResourceDlg.close(false);
-	            modifyResourceDlg.destroy();
+	function _showDlg(addModifyResourceDlg, card, $scope, restypes, resolve,  reject){
+			var buttonName = (card === null) ? nl.t('Upload') : nl.t('Modify');
+	        var modifyButton = {text: buttonName, onTap: function(e) {
+	        	if(e) e.preventDefault();
+	        	_onUploadOrModify(e, addModifyResourceDlg, card, $scope, resolve, reject);
 	        }};
-	        modifyResourceDlg.show('view_controllers/resource/resource_modify_dlg.html', 
-	                [modifyButton], cancelButton, false);
-				
-		};
+	        	
+			var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
+				addModifyResourceDlg.close();
+			}};
+        addModifyResourceDlg.show('view_controllers/resource/resource_add_dlg.html', 
+        [modifyButton], cancelButton, false);
+	}
 
-	function _initModifyResourceDlg(modifyResourceDlg, card) {
-	    modifyResourceDlg.setCssClass('nl-height-max nl-width-max');
-		modifyResourceDlg.scope.data = {};
-	    modifyResourceDlg.scope.error = {};
-		modifyResourceDlg.scope.options = {};
-		modifyResourceDlg.scope.data.card = card;
-        modifyResourceDlg.scope.data.keywords = card.keywords;
-		modifyResourceDlg.scope.data.restype = card.restype;	
-		modifyResourceDlg.scope.options.compressionlevel = COMPRESSIONLEVEL;	
-		modifyResourceDlg.scope.data.compressionlevel = {id: 'medium', name: 'medium compression'};
+	function _initResourceDlg(addModifyResourceDlg, card, restypes) {
+	    addModifyResourceDlg.setCssClass('nl-height-max nl-width-max');
+		addModifyResourceDlg.scope.data = {};
+	    addModifyResourceDlg.scope.error = {};
+		addModifyResourceDlg.scope.options = {};
+		addModifyResourceDlg.scope.data.card = card;
+        addModifyResourceDlg.scope.data.restype = {};
+		addModifyResourceDlg.scope.options.compressionlevel = COMPRESSIONLEVEL;	
+		addModifyResourceDlg.scope.data.compressionlevel = {id: 'medium', name: 'medium compression'};		
+		addModifyResourceDlg.scope.options.restype = _getRestypeList(restypes);
+
+		if (!card) {
+			addModifyResourceDlg.scope.data.restype.id = addModifyResourceDlg.scope.options.restype[0].name;
+			addModifyResourceDlg.scope.data.pagetitle = nl.t('Upload resource');
+			return;
+		}
+
+        addModifyResourceDlg.scope.data.keywords = card.keywords;
+		addModifyResourceDlg.scope.data.restype.id = card.restype;	
+		addModifyResourceDlg.scope.data.pagetitle = nl.t('Modify resource');
+	}
+
+	function _getRestypeList(restypes) {
+		var data = [];
+		for(var i in restypes){
+			var restype = restypes[i];
+			for (var j in restype){
+				data.push({id: restype[j], name: restype[j]});
+			}	
+		}
+		return data;
+	}
+
+	function _onUploadOrModify(e, addModifyResourceDlg, card, $scope, resolve, reject) {
+		
+		var resourceList = addModifyResourceDlg.scope.data.resource;
+		var compressionlevel = addModifyResourceDlg.scope.data.compressionlevel.id;
+		var keyword = addModifyResourceDlg.scope.data.keywords || '';
+		var resid =  (card !== null) ? addModifyResourceDlg.scope.data.card.Id : null;
+	
+	    if(resourceList.length == 0) {
+		    if (e) e.preventDefault();
+	    	addModifyResourceDlg.scope.error.resource = 'Please select the resource to upload';
+	    	return;
+		}
+		nlDlg.showLoadingScreen();
+		nlResourceUploader.uploadInSequence(resourceList, keyword, compressionlevel, resid)
+		.then(function resolve(resInfos) {
+			nlDlg.hideLoadingScreen();
+            nlDlg.popdownStatus(0);
+			_postUpload(resInfos, $scope, resolve);
+        }, function reject(msg) {
+			nlDlg.hideLoadingScreen();
+            nlDlg.popdownStatus(0);
+            nlDlg.popupAlert({title: nl.t('Error'), template: msg});
+            reject(null);
+        });
+	}
+
+	function _postUpload(resInfos, $scope, resolve) {
+		var uploadAgainDlg = nlDlg.create($scope);
+		uploadAgainDlg.scope.resinfos = resInfos;
+
+		var cancelButton = {text: nl.t('Close'), onTap: function(e) {
+			uploadAgainDlg.close();
+			return resInfos;
+		}};
+        uploadAgainDlg.show('view_controllers/resource/upload_done_dlg.html', [], cancelButton, false);
 	}
 }];
 

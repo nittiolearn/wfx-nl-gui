@@ -1,4 +1,4 @@
-<nl-dlg title='Upload Resource'>
+<nl-dlg title='{{data.pagetitle}}'>
 <nl-dlg-help>
 	<div class='njsHelp'>
 		<H3>Upload a resource from your device to the cloud.</H3>
@@ -11,39 +11,19 @@
 <nl-dlg-content>
 <div>
 	<div class='row row-top row-wrap'>
-		<div ng-class='resp2Col20'>Resource Type</div>
-		<nl-select fieldmodel='restypes' ng-class='resp2Col80'></nl-select>
+		<div ng-class='resp2Col20'>Resource type</div>
+		<nl-select ng-if='data.card == null' fieldmodel='restype' ng-class='resp2Col80'></nl-select>
+		<input ng-if='data.card !== null' ng-model='data.restype.id' ng-class='resp2Col80' readonly></input>
 	</div>
+	
     <div class='row row-top row-wrap'>
-        <div ng-class='resp2Col20'>choose file</div>
-        <div ng-if='data.restypes.id == "Image"' ng-class='resp2Col80'>
+        <div ng-class='resp2Col20'>Choose file</div>
+        <div ng-class='resp2Col80'>
             <nl-resource-upload 
-            	fieldmodel='image' 
-            	restype='Image'>
-            </nl-resource-upload>
-        </div>
-        <div ng-if='data.restypes.id == "PDF"' ng-class='resp2Col80'>
-            <nl-resource-upload 
-            	fieldmodel='pdf' 
-            	restype='PDF'>
-            </nl-resource-upload>
-        </div>
-        <div ng-if='data.restypes.id == "Audio"' ng-class='resp2Col80'>
-            <nl-resource-upload 
-            	fieldmodel='audio' 
-            	restype='Audio'>
-            </nl-resource-upload>
-        </div>
-        <div ng-if='data.restypes.id == "Video"' ng-class='resp2Col80'>
-            <nl-resource-upload 
-            	fieldmodel='video' 
-            	restype='Video'>
-            </nl-resource-upload>
-        </div>
-        <div ng-if='data.restypes.id == "Attachment"' ng-class='resp2Col80'>
-            <nl-resource-upload 
-            	fieldmodel='attachement' 
-            	restype='Attachment'>
+            	ng-repeat='restype in options.restype'
+            	ng-if='restype.id == data.restype.id'
+            	fieldmodel='resource' 
+            	restype='{{restype.id}}'>
             </nl-resource-upload>
         </div>
     </div>
@@ -52,7 +32,7 @@
 		<div ng-class='resp2Col80'><nl-input fieldmodel='keywords' fieldtype='text' fieldcls='w100'></nl-input>
 		</div>			
 	</div>
-	<div ng-show='data.restypes.id == "Image"' class='row row-top row-wrap'>
+	<div ng-show='data.restype.id == "Image"' class='row row-top row-wrap'>
 		<div ng-class='resp2Col20'>Compression</div>
             <div ng-class='resp2Col80'>
                 <nl-select fieldmodel='compressionlevel'></nl-select>
