@@ -89,13 +89,19 @@ var _dashboardActions = {
     // Action with customizable urlParams
     'dashboard.home': {'url': '/#/home?{}', 'permission': 'basic_access', 'termCheck': 'Open'},
     'lesson.view': {'url': '/lesson/view/{}', 'permission': 'lesson_view'},
-    'lesson.view_approved': {'url': '/lesson/search?{}', 'permission': 'lesson_view'},
+    'lesson.view_approved': {'url': '/#/lesson_list?type=approved&?{}', 'permission': 'lesson_view'},
+    'lesson.create': {'url': '/#/lesson_list?type=new&{}', 'permission': 'lesson_create'},
     'lesson.create2': {'url': '/lesson/create2/{}', 'permission': 'lesson_create'},
-    'lesson.my': {'url': '/lesson/my?{}', 'permission': 'lesson_create'},
-    'lesson.review': {'url': '/lesson/review/1?{}', 'permission': 'lesson_review'},
+    'lesson.my': {'url': '/#/lesson_list?type=my&{}', 'permission': 'lesson_create'},
+    'lesson.review': {'url': '/#/lesson_list?type=review&{}', 'permission': 'lesson_review'},
+    'lesson.manage': {'url': '/#/lesson_list?type=manage&{}', 'permission': 'lesson_approve'},
     'searchlist.view': {'url': '/#/searchlist_view?id={}', 'permission': 'basic_access'},
-    'assign_desk.new': {'url': '/assignment/assigned_to_me?{}', 'permission': 'assignment_do', 'termCheck': 'Restricted'},
-    'assign_desk.past': {'url': '/assignment/assigned_to_me/past?{}', 'permission': 'assignment_do', 'termCheck': 'Restricted'}
+    'assign_desk.create': {'url': '/#/lesson_list?type=sendassignment&{}', 'permission': 'assignment_send'},
+    'assign_desk.new': {'url': '/#/assignment?type=new&{}', 'permission': 'assignment_do', 'termCheck': 'Restricted'},
+    'assign_desk.past': {'url': '/#/assignment?type=past&{}', 'permission': 'assignment_do', 'termCheck': 'Restricted'},
+    'assign_desk.view': {'url': '/#/assignment?type=sent&{}', 'permission': 'assignment_send'},
+    'assign_desk.manage': {'url': '/#/assignment?type=manage&{}', 'permission': 'assignment_manage'},
+    'assign_desk.shared': {'url': '/#/assignment?type=shared&{}', 'permission': 'basic_access'}
 };
 
 module_init();

@@ -58,22 +58,16 @@
             <tr><td>help.debug </td><td>/#/debug</td><td> debug_client</td><td></td></tr>
             <tr><td>mentor_desk.mentor </td><td>/#/forum?forumtype=1&refid=0</td><td> #is_mentor </td><td>Mentor view</td></tr>
             <tr><td>mentor_desk.mentee</td><td>/#/forum?forumtype=1&refid=1</td><td> #is_mentee </td><td>Mentee view - accessible from restricted terminals as well</td></tr>
-            <tr><td>lesson.create</td><td>/lesson/create1/</td><td>lesson_create</td><td></td></tr>
-            <tr><td>lesson.manage</td><td>/lesson/manage_approved/</td><td>lesson_approve</td><td></td></tr>
             <tr><td>lesson.pagecategories</td><td>/ pagecategories /view/</td><td>lesson_create</td><td></td></tr>
             <tr><td>assign_desk</td><td> /assignment/home/</td><td> basic_access</td><td>Assignment desk items</td></tr>
-            <tr><td>assign_desk.view</td><td> /assignment/sent_by_me/</td><td> assignment_send</td><td></td></tr>
-            <tr><td>assign_desk.create</td><td> /assignment/create/</td><td> assignment_send</td><td></td></tr>
-            <tr><td>assign_desk.manage</td><td> /assignment/manage/</td><td> assignment_manage</td><td></td></tr>
-            <tr><td>assign_desk.shared</td><td> /assignment/shared_with_me/</td><td> basic_access</td><td></td></tr>
             <tr><td>reports.view_rep_book</td><td>/reportbook/view_rep_book/</td><td>view_reportbook</td><td>Report card</td></tr>
             <tr><td>reports.rep_class</td><td>/reports/class_rep/</td><td>report_view</td><td></td></tr>
             <tr><td>reports.rep_sub</td><td>/reports/subject_rep /</td><td>report_view</td><td></td></tr>
             <tr><td>reports.rep_stu</td><td>/reports/student_rep/</td><td>report_view</td><td></td></tr>
             <tr><td>reports.stu_my</td><td>/reports/student_view/</td><td>report_my</td><td></td></tr>
-            <tr><td>res.upload</td><td>/resource/resadd/</td><td>lesson_create</td><td>Resouce card</td></tr>
-            <tr><td>res.my</td><td>/resource/myreslist/</td><td>lesson_create</td><td></td></tr>
-            <tr><td>res.list</td><td>/resource/reslist/</td><td>admin_user</td><td></td></tr>
+            <tr><td>res.upload</td><td>/#/resource_list?type=upload</td><td>lesson_create</td><td>Resouce card</td></tr>
+            <tr><td>res.my</td><td>/#/resource_list?type=my</td><td>lesson_create</td><td></td></tr>
+            <tr><td>res.list</td><td>/#/resource_list&{}</td><td>admin_user</td><td></td></tr>
             <tr><td>admin</td><td>/admin_user/home/</td><td>admin_basic</td><td>User administration accessible for all group admins</td></tr>
             <tr><td>admin.view</td><td>/admin_user/user_view/</td><td>admin_user</td><td></td></tr>
             <tr><td>admin.create</td><td>/admin_user/user_create/</td><td>admin_user</td><td></td></tr>
@@ -94,14 +88,20 @@
             <tr><th>Action</th><th>URL</th><th>Permission</th><th>Remarks</th></tr>
             <tr><td>dashboard.home </td><td>/#/home?{}</td><td>basic_access</td><td>Specify "parent=xxx" to launch one card of dashboard in a sperate page where each link becomes a card.</td></tr>
             <tr><td>lesson.view </td><td>/lesson/view/{}</td><td>lesson_view</td><td>Direct link to module</td></tr>
-            <tr><td>lesson.view_approved </td><td>/lesson/search?{}</td><td>lesson_view</td><td>View approved list</td></tr>
+            <tr><td>lesson.view_approved </td><td>/#/lesson_list?type=approved&?{}</td><td>lesson_view</td><td>View approved list</td></tr>
+            <tr><td>lesson.create</td><td>/#/lesson_list?type=new&{}</td><td>lesson_create</td><td>urlParams="search=xyz&grade=Grade 1&custtype=101&content=_include"</td></tr>
             <tr><td>lesson.create2</td><td>/lesson/create2/{}</td><td>lesson_create</td><td>Provide template id in urlParams to directly create module based on template</td></tr>
             <tr><td>lesson.upload_pdf</td><td>/#/upload_pdf?{}</td><td>lesson_create_adv</td><td>Provide "template=12345678" in the urlParams to customize this.</td></tr>
-            <tr><td>lesson.my</td><td>/lesson/my?{}</td><td>lesson_create</td><td></td></tr>
-            <tr><td>lesson.review</td><td>/lesson/review/1?{}</td><td>learn_review</td><td></td></tr>
+            <tr><td>lesson.manage</td><td>/#/lesson_list?type=manage&{}</td><td>lesson_approve</td><td>urlParams="search=xyz&grade=Grade 1&custtype=101&content=_include"</td></tr>
+            <tr><td>lesson.my</td><td>/#/lesson_list?type=my&{}</td><td>lesson_create</td><td>urlParams="search=xyz&grade=Grade 1&custtype=101&content=_include"</td></tr>
+            <tr><td>lesson.review</td><td>/#/lesson_list?type=review&{}</td><td>learn_review</td><td>urlParams="search=xyz&grade=Grade 1&custtype=101&content=_include"</td></tr>
             <tr><td>searchlist.view</td><td>/#/searchlist_view?id={}</td><td>basic_access</td><td></td></tr>
-            <tr><td>assign_desk.new</td><td>/assignment/assigned_to_me?{}</td><td> assignment_do</td><td>Accessible from restricted terminals as well</td></tr>
-            <tr><td>assign_desk.past</td><td>/assignment/assigned_to_me/past?{}</td><td> assignment_do</td><td>Accessible from restricted terminals as well</td></tr>
+            <tr><td>assign_desk.create</td><td> /#/lesson_list?type=sendassignment&{}</td><td> assignment_send</td><td>urlParams="search=xyz&grade=Grade 1&custtype=101&content=_include"</td></tr>
+            <tr><td>assign_desk.new</td><td>/#/assignment?type=new&{}</td><td> assignment_do</td><td>Accessible from restricted terminals as well. urlParams="search=xyz&custtype=101"</td></tr>
+            <tr><td>assign_desk.past</td><td>/#/assignment?type=past&{}</td><td> assignment_do</td><td>Accessible from restricted terminals as well. urlParams="search=xyz&custtype=101"</td></tr>
+            <tr><td>assign_desk.view</td><td>/#/assignment?type=sent&{}</td><td> assignment_send</td><td>urlParams="search=xyz&custtype=101"</td></tr>
+            <tr><td>assign_desk.manage</td><td>/#/assignment?type=manage&{}</td><td> assignment_manage</td><td>urlParams="search=xyz&custtype=101"</td></tr>
+            <tr><td>assign_desk.shared</td><td>/#/assignment?type=shared&{}</td><td> basic_access</td><td>urlParams="search=xyz&custtype=101"</td></tr>
             <tr><td>course.view_my</td><td>/#/course_list?my=1&{}</td><td> course_create </td><td>Course card items. urlParams could contain search and custtype filtering: e.g. "custtype=123", or "search=xxx" or "custtype=123&search=xxx"</td></tr>
             <tr><td>course.view_published</td><td>/#/course_list?{}</td><td> course_review </td><td></td></tr>
             <tr><td>course.view_assigned</td><td>/#/course_assign_list?{}</td><td> course_review </td><td></td></tr>

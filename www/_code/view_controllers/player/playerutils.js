@@ -6,8 +6,7 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
 	angular.module('nl.playerutils', [])
-    .service('nlPlayerUtils', PlayerUtilsSrv)
-    .directive("nlMathjaxBind", MathjaxBindDirective);
+    .service('nlPlayerUtils', PlayerUtilsSrv);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -21,9 +20,15 @@ function(nl,nlPageType, nlMarkup) {
         return nlPageType.getPageTypeHandler(lesson, pagetypes);
     };
     
-    this.getSectionTextHandler = function(lesson) {
-        return new SectionTextHandler(nl, nlMarkup, lesson);
-    }
+    this.getSectionHtml = function(section) {
+        var retData = {lessPara: true};
+        // TODO-MUNNI-PLAYER: || '' code is for questionnaire/... page types e.g. select box
+        return nlMarkup.getHtml(section.text || '', retData);
+    };
+
+    this.getFontSize = function(iElem) {
+        return _getFontSize(iElem);
+    };
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -63,56 +68,57 @@ function BgTemplate(nl, template, bgTempls) {
 }
 
 var _bgFontStyles = [
-               {'id' : 'bgdark', 'name' : 'Classic Light'}, 
-               {'id' : 'bglight', 'name' : 'Classic Dark'}
+   {'id' : 'bgdark', 'name' : 'Classic Light'}, 
+   {'id' : 'bglight', 'name' : 'Classic Dark'}
 ];
 
 //-------------------------------------------------------------------------------------------------
-function SectionTextHandler(nl, nlMarkup, lesson) {
+function _getFontSize(pgSecView) {
+    var ERROR_MARGIN = 3; // Number of pixel error margin
+    
+    pgSecView.css({'font-size' : '100%'});
+    var elem = pgSecView.clone();
+    elem.css({'z-index' : '-10', 'opacity' : '0', 'width': 'auto', 'height': 'auto'});
+    pgSecView.parent().append(elem);
+    var hOrig = pgSecView[0].clientHeight;
+    var wOrig = pgSecView[0].clientWidth*1;
+    
+    function _findBestFit(minSize, maxSize) {
+        if (_doesItFit(maxSize)) return maxSize;
+        if (!_doesItFit(minSize)) return minSize;
+        if (maxSize - minSize <= 1) return minSize;
+        
+        var midSize = Math.floor((minSize+maxSize)/2);
+        var textSize = _findBestFit(midSize, maxSize);
+        if (textSize > midSize) return textSize;
 
-    //---------------------------------------------------------------------------------------------
-    function _init(self) {
-        self.secTexts = {};
-        for(var p=0; p<lesson.pages.length; p++) {
-            var page = lesson.pages[p];
-            self.secTexts[page.pageId] = _getSectionMarkups(self, page);
-        }
+        return _findBestFit(minSize, midSize);
+    }
+
+    function _doesItFit(textSize) {
+        var fsz = '' + textSize + '%';
+        elem.css({'font-size': fsz, 'line-height': '110%'});
+        var hNew = elem[0].clientHeight;
+        if (hNew > hOrig) return false;
+        
+        var wNew = _getChildMaxWidth(elem[0], 0);
+        if (wNew > wOrig + ERROR_MARGIN) return false;
+        return true;
     }
     
-    function _getSectionMarkups(self, page) {
-        var ret = [];
-        for(var s=0; s<page.sections.length; s++) {
-            var section = page.sections[s];
-            var retData = {lessPara: true};
-            var markup = nlMarkup.getHtml(section.text || '', retData);
-            ret.push(markup);
+    function _getChildMaxWidth(e, maxWidth) {
+        if (e.clientWidth > maxWidth) maxWidth = e.clientWidth;
+        var children = angular.element(e).children();
+        for(var i=0; i<children.length; i++) {
+            maxWidth = _getChildMaxWidth(children[i], maxWidth);
         }
-        return ret;
+        return maxWidth;
     }
-
-    //---------------------------------------------------------------------------------------------
-    _init(this);
+    
+    var textSize = _findBestFit(30, 100);
+    elem.remove();
+    return textSize;
 }
-
-//-------------------------------------------------------------------------------------------------
-var MathjaxBindDirective = ['nl',
-function(nl) {
-
-    function postLink($scope, iElem, iAttrs) {
-        MathJax.Hub.Queue(function() {
-            console.log('Typeset starting');
-        });
-        MathJax.Hub.Queue(["Typeset", MathJax.Hub, iElem[0]]);
-        MathJax.Hub.Queue(function() {
-            console.log('Typeset done');
-        });
-    }
-    
-    return {
-        restrict: "A",
-        link: postLink
-    };
-}];
 
 //-------------------------------------------------------------------------------------------------
 module_init();

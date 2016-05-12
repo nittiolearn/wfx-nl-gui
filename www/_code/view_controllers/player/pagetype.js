@@ -13,22 +13,26 @@ function module_init() {
 var PageTypeSrv = ['nl',
 function(nl) {
 
-    this.getPageTypeHandler = function(lesson, pageTypes) {
-        return new PageTypeHandler(nl, lesson, pageTypes);
+    this.getPageTypeHandler = function(pageTypes) {
+        return new PageTypeHandler(nl, pageTypes);
     };
 
 }];
 
 //-------------------------------------------------------------------------------------------------
-function PageTypeHandler(nl, lesson, pageTypes) {
+function PageTypeHandler(nl, pageTypes) {
     
+    this.pageTypes = pageTypes;
     this.interactionToLayouts = {};
     this.pageTypeMap = {};
     
+    this.getPageType = function(page) {
+        return new PageType(nl, this, page);
+    }
+
     //---------------------------------------------------------------------------------------------
     function _init(self) {
         _updatePageTypeMap(self, pageTypes);
-        _initLessonLayout(self);
     }
 
     function _updatePageTypeMap(self, pageTypes) {
@@ -47,46 +51,79 @@ function PageTypeHandler(nl, lesson, pageTypes) {
         }
     }
 
-    function _initLessonLayout(self) {
-        self.layout = {};
-        for(var p=0; p<lesson.pages.length; p++) {
-            var page = lesson.pages[p];
-            self.layout[page.pageId] = _getPageLayout(self, page);
-        }
-    }
+    //---------------------------------------------------------------------------------------------
+    _init(this);
+}
+
+//-------------------------------------------------------------------------------------------------
+function PageType(nl, ptHandler, page) {
+
+    this.getSectionLayout = function(secPos) {
+        return this.layout[secPos];
+    };
     
-    function _getPageLayout(self, page) {
-        var layout  = _getPageLayout2(self, page);
-        var ret = [];
-        for(var i=0; i<layout.length; i++) {
-            var l = layout[i];
-            var data = {};
-            data.secStyle = {top: l.t + '%', left: l.l + '%', height: l.h + '%', width: l.w + '%'};
-            // TODO-MUNNI-PLAYER: font resizing and h/v alignment pending
-            data.secViewStyle = {'font-size': '80%', 'text-align': 'center', 'margin-top': 0, 'height': '100%'};
-            _copyIf('aligntype', l, data);
-            _copyIf('fmtgroup', l, data);
-            _copyIf('ans', l, data);
-            _copyIf('correct', l, data);
-            ret.push(data);
-        }
-        return ret;
-    }
+    this.getHAlign = function(secPos) {
+        return this.halign[secPos];
+    };
     
-    function _getPageLayout2(self, page) {
-        if ('sectionLayout' in page) return page.sectionLayout;
-        if (page.type in self.pageTypeMap) return self.pageTypeMap[page.type].layout;
-        return pagetypes[0].layout;
+    this.isVAlignMiddle = function(secPos) {
+        return this.valignmiddle[secPos];
+    };
+
+    //---------------------------------------------------------------------------------------------
+    function _init(self) {
+        self.pt = _getPageType();
+        self.interaction = _getInteraction(self.pt);
+        self.layout = _getPageLayout(self.pt);
+        self.halign = [];
+        self.valignmiddle = [];
+        for(var i=0; i<self.layout.length; i++) {
+            var aligntype = _getAlignType(self, i);
+            self.halign.push(_getHAlign(aligntype));
+            self.valignmiddle.push(_isVAlignMiddle(aligntype));
+        }
     }
 
-    function _copyIf(attr, src, dest) {
-        if (attr in src) dest[attr] = src[attr];
+    function _getPageType() {
+        return ptHandler.pageTypeMap[page.type] || ptHandler.pagetypes[0];
+    }
+    
+    function _getInteraction(pt) {
+        return _pageInteractionTypeMap[pt.interaction] || _pageInteractionTypes[0];
+    }
+
+    function _getPageLayout(pt) {
+        // returned object is an array - one per section. Each array element contains
+        // t, l, w, h and optionally 
+        // 'aligntype' (title|content|option), 
+        // 'fmtgroup' (number)
+        // 'ans', 'correct'
+        return page.sectionLayout || pt.layout;
+    }
+
+    function _getAlignType(self, secPos) {
+        return self.layout[secPos].aligntype || _getDefaultAlignType(self.interaction);
+    }
+    
+    function _getDefaultAlignType(interaction) {
+        return interaction.default_aligntype || 'content';
+    }
+
+    function _getHAlign(aligntype) {
+        if (aligntype == 'title' || aligntype == 'option') return 'center';
+        return 'left';
+    }
+
+    function _isVAlignMiddle(aligntype) {
+        if (aligntype == 'title' || aligntype == 'option') return true;
+        return false;
     }
 
     //---------------------------------------------------------------------------------------------
     _init(this);
 }
 
+//-------------------------------------------------------------------------------------------------
 var _pageInteractionTypeMap = {};
 var _pageInteractionTypes = [
     {'id' : 'TITLE', 'desc' : 'Information (title layouts)', 'default_aligntype' : 'title'},

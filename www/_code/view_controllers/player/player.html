@@ -1,26 +1,26 @@
-<div class='nl-slides {{cfg.bgTemplate.fontStyle}} look{{cfg.bgTemplate.template}} mode_{{cfg.launchMode}}'>
-    <div ng-repeat='page in cfg.lesson.pages'
-         class='nl-page'>
-         <img class='nl-page-bg' ng-src='{{cfg.bgTemplate.imgUrl}}'>
+<div class='nl-slides {{cfg.htmlLesson.bgTemplate.fontStyle}} look{{cfg.htmlLesson.bgTemplate.template}} mode_{{cfg.launchMode}}'
+     nl-bind-elem='{{cfg.htmlLesson.uid}}'>
+    <div ng-repeat='page in cfg.htmlLesson.pages'
+         class='nl-page'
+         nl-bind-elem='{{page.uid}}'>
+         <img class='nl-page-bg' ng-src='{{cfg.htmlLesson.bgTemplate.imgUrl}}'>
          <div class='nl-page-holder'>
             <div ng-repeat='section in page.sections'
                  class='nl-section'
-                 ng-style='cfg.layout[page.pageId][$index].secStyle'>
-                 <div class='nl-secview' nl-mathjax-bind
-                      ng-bind-html='cfg.secTexts[page.pageId][$index]'
-                      ng-style='cfg.layout[page.pageId][$index].secViewStyle'>
+                 ng-style='section.secStyle'>
+                 <div class='nl-secview' 
+                      nl-bind-elem='{{section.uid}}'
+                      ng-bind-html='section.secHtml'
+                      ng-style='section.secViewStyle'>
                  </div>
             </div>    
          </div>
-         <div class='nl-page-no'>{{$index}}</div>
+         <div class='nl-page-no'>{{page.pageNumber}}</div>
     </div>    
-    <div style='position: relative; font-size: 14px'>
+    <div ng-show='cfg.debugging' style='position: relative; font-size: 14px'>
         <h2>Cfg Info</h2>
         <div>Launch Mode: {{cfg.launchMode}}</div>
-        <div>bgTemplate: {{cfg.bgTemplate}}</div>
-        <div>layout: {{cfg.layout}}</div>
-        <h2>SectionTexts</h2>
-        <pre>{{cfg.secTexts}}</pre>
+        <div>bgTemplate: {{cfg.htmlLesson.bgTemplate}}</div>
         <h2>Lesson</h2>
         <pre>{{cfg.lessonJson}}</pre>
     </div>

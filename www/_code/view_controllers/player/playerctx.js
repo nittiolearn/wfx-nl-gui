@@ -133,10 +133,6 @@ function PlayerCtx(nl, nlServerApi, nlDlg, userInfo, ctx, dbid) {
         });
     };
     
-    this.getLesson = function() {
-        return this.lesson;
-    };
-    
     this.getLaunchMode = function() {
         return ctx.mode;
     };
