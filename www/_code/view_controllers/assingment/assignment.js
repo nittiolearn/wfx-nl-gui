@@ -303,7 +303,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 					if (card.Id !== assignId) continue;
 					$scope.cards.cardlist.splice(i, 1);
 				}
-				nl.window.location.reload();
+				nlDlg.closeAll();
+				_reloadFromServer();
 			});	
 		});
 	}
@@ -311,9 +312,21 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	function _publishAssignment($scope, assignId){
 		nlServerApi.assignmentPublish(assignId).then(function(status) {
 			nlDlg.hideLoadingScreen();
-			nl.window.location.reload();
+			nlDlg.closeAll();
+			_reloadFromServer();
 		});
 	}
+
+	function _reloadFromServer() {
+		nlDlg.showLoadingScreen();
+		var promise = nl.q(function(resolve, reject) {
+			_getDataFromServer(_searchFilterInUrl, resolve, reject);
+		});
+		promise.then(function(res) {
+			nlDlg.hideLoadingScreen();
+		});
+	}
+
 
 	function _initParams() {
 		var params = nl.location.search();

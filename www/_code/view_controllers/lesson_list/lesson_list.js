@@ -739,7 +739,8 @@
 				nlDlg.showLoadingScreen();
 				nlServerApi.lessonDisapprove(lessonId).then(function(status) {
 					nlDlg.hideLoadingScreen();
-					_updateCardlist($scope, lessonId);
+					nlDlg.closeAll();
+					_reloadFromServer();
 				});
 			});
 		}
@@ -851,11 +852,13 @@
 					continue;
 				$scope.cards.cardlist.splice(i, 1);
 			}
-			nl.window.location.reload();
+			nlDlg.closeAll();									
+			_reloadFromServer();
 		}
 
 		function _updateCardAfterReviewlist() {
-			nl.window.location.reload();
+			nlDlg.closeAll();									
+			_reloadFromServer();
 		}
 
 	}];
@@ -976,8 +979,7 @@
 		}
 
 		function _onApproveClick(e, approveDlg) {
-			if (e)
-				e.preventDefault();
+			if (e) e.preventDefault();
 			nlDlg.showLoadingScreen();
 			var data = {
 				lessonid : approveDlg.lessonId
@@ -985,7 +987,9 @@
 			data.exportLevel = approveDlg.scope.data.exportLevel.id;
 			data.selectedOus = _getSelectedIds(approveDlg.scope.treeData);
 			nlServerApi.lessonApprove(data).then(function(status) {
-				nlDlg.showLoadingScreen();
+			nlDlg.hideLoadingScreen();
+	            approveDlg.close(false);
+	            approveDlg.destroy();
 				nl.window.location.reload();
 			});
 		}
