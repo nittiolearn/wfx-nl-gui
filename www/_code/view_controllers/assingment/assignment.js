@@ -43,9 +43,9 @@ function TypeHandler(nl, nlServerApi) {
 	this.custtype = null;
 	this.title = null;
 
-	this.initFromUrl = function() {
+	this.initFromUrl = function(userInfo) {
 		var params = nl.location.search();
-		this.type = _convertType(params.type);
+		this.type = _convertType(params.type, userInfo);
 		this.custtype = ('custtype' in params) ? parseInt(params.custtype) : null;
 		this.title = params.title || null;
 	};
@@ -86,9 +86,11 @@ function TypeHandler(nl, nlServerApi) {
 		return '';
 	};
 
-	function _convertType(typeStr) {
-		if (typeStr === undefined)
-			return TYPES.NEW;
+	function _convertType(typeStr, userInfo) {
+		if (typeStr === undefined) {
+		    if (userInfo.permissions.assignment_send) return TYPES.SENT;
+		    return TYPES.NEW;
+		}
 		typeStr = typeStr.toLowerCase();
 		for (var t in TYPENAMES) {
 			if (t == typeStr)
@@ -111,7 +113,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		_userInfo = userInfo;
 		_initParams();
 		return nl.q(function(resolve, reject) {
-			mode.initFromUrl();
+			mode.initFromUrl(_userInfo);
 			nl.pginfo.pageTitle = mode.pageTitle();
 			$scope.cards = {};
 			$scope.cards.staticlist = [];
