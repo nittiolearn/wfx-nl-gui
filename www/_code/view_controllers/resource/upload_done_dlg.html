@@ -2,10 +2,8 @@
 <nl-dlg-content>
 <div ng-repeat='resinfo in resinfos'>
 	<div>URL: {{resinfo.insertUrl}}</div>
-    <div class='nl-thumbnail'>
-    	<div class='nl-thumbnail-img'>
-	    	<img ng-src='{{resinfo.url}}'>
-	    </div>
+    <div ng-show="{{resinfo.restype == 'Image'}}" class='text-center'>
+    	<img ng-src='{{resinfo.url}}' class='nl-full-width'>
    	</div>
 </div>
 </nl-dlg-content>

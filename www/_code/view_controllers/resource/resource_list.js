@@ -41,7 +41,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 	var _allCardsForReview = [];
 	var _type = 'my';
 	var search = null;
-	var restypeList = null;
+	var _bFirstLoadInitiated = false;
 	
 	function _isMine(_type) {
 		return (_type == 'my' || _type == 'upload');
@@ -57,26 +57,16 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 			$scope.cards = {};
 			$scope.cards.staticlist = _getStaticCard();
 			$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
-			_getDataFromServer(resolve, reject);
-			if (_type == 'upload') _getRestypes(null);
+			if (_type == 'upload') {
+				_addModifyResource($scope, null);
+				resolve(true);
+			} else {
+				_getDataFromServer(resolve, reject);
+			}
 		});
 	}
 
 	nlRouter.initContoller($scope, '', _onPageEnter);
-	
-	function _getRestypes(card){
-		nlDlg.showLoadingScreen();
-		restypeList = [];
-		nlServerApi.resourceGetResTypes().then(function(status){	
-			restypeList = status;
-			nlDlg.showLoadingScreen();
-			if(card == null) {
-				_modifyResource($scope, null, restypeList);				
-			} else {
-				_modifyResource($scope, card, restypeList);
-			}
-		});
-	}
 	
 	function _updatePageTitle(){
 		return _isMine(_type) ? nl.t('My resources') : nl.t('All resources');
@@ -107,15 +97,15 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
     $scope.onCardInternalUrlClicked = function(card, internalUrl) {
     	var resid = card.Id || 0;
     	if (internalUrl === 'resource_delete') _deleteResource($scope, resid);
-    	if (internalUrl === 'resource_upload') _getRestypes(null);
+    	if (internalUrl === 'resource_upload') _addModifyResource($scope, null);
     	if(internalUrl === 'resource_copy') _showLinkCopyDlg($scope, card);
-		if(internalUrl === 'resource_modify')  _getRestypes(card);
+		if(internalUrl === 'resource_modify')  _addModifyResource($scope, card);
     };
 
 	$scope.onCardLinkClicked = function(card, linkId){
 		var resid = card.Id;
 		if(linkId == 'resource_modify'){
-			_getRestypes(card);
+			_addModifyResource($scope, card);
 		} else if(linkId == 'resource_delete'){
 			_deleteResource($scope, resid);
 		}
@@ -131,6 +121,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 	}
 	
 	function _getDataFromServer(resolve, reject) {
+		_bFirstLoadInitiated = true;
 		var data = {mine: _isMine(_type), searchFilter: search};
 		nlServerApi.resourceGetList(data).then(function(resultList) {
 			$scope.cards.cardlist = _getResourceCards(_userInfo, resultList);
@@ -249,11 +240,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 
 	function _onSearch(filter) {
 		search = filter;
-		_reloadFromServer();
+		_updateDataFromServer();
 	}
 
-	function _modifyResource($scope, card, restypeList){
-		nlResourceAddModifySrv.show($scope, card, restypeList).then(function(resInfos) {
+	function _addModifyResource($scope, card){
+		nlResourceAddModifySrv.show($scope, card, _userInfo.groupinfo.restypes)
+		.then(function(sentForUploadCount) {
+			if (_bFirstLoadInitiated && sentForUploadCount == 0) return;
 			_updateDataFromServer();
 		});
 	}
@@ -285,18 +278,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 			});	
 		});
 	}
-
-	function _reloadFromServer() {
-		nlDlg.showLoadingScreen();
-		var promise = nl.q(function(resolve, reject) {
-			_getDataFromServer(resolve, reject);
-		});
-		promise.then(function(res) {
-			nlDlg.hideLoadingScreen();
-		});
-	}
-
-
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -316,20 +297,22 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 	};
 
 	function _showDlg(addModifyResourceDlg, card, $scope, restypes, resolve,  reject){
-			var buttonName = (card === null) ? nl.t('Upload') : nl.t('Modify');
-	        var modifyButton = {text: buttonName, onTap: function(e) {
-	        	if(e) e.preventDefault();
-	        	_onUploadOrModify(e, addModifyResourceDlg, card, $scope, resolve, reject);
-	        }};
-	        	
-			var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
-				addModifyResourceDlg.close();
-			}};
+		var buttonName = (card === null) ? nl.t('Upload') : nl.t('Modify');
+        var modifyButton = {text: buttonName, onTap: function(e) {
+        	if(e) e.preventDefault();
+        	_onUploadOrModify(e, addModifyResourceDlg, card, $scope);
+        }};
+        	
+		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
+			addModifyResourceDlg.close();
+			resolve(addModifyResourceDlg.sentCount);
+		}};
         addModifyResourceDlg.show('view_controllers/resource/resource_add_dlg.html', 
         [modifyButton], cancelButton, false);
 	}
 
 	function _initResourceDlg(addModifyResourceDlg, card, restypes) {
+		addModifyResourceDlg.sentCount = 0;
 	    addModifyResourceDlg.setCssClass('nl-height-max nl-width-max');
 		addModifyResourceDlg.scope.data = {};
 	    addModifyResourceDlg.scope.error = {};
@@ -355,14 +338,12 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 		var data = [];
 		for(var i in restypes){
 			var restype = restypes[i];
-			for (var j in restype){
-				data.push({id: restype[j], name: restype[j]});
-			}	
+			data.push({id: restype, name: restype});
 		}
 		return data;
 	}
 
-	function _onUploadOrModify(e, addModifyResourceDlg, card, $scope, resolve, reject) {
+	function _onUploadOrModify(e, addModifyResourceDlg, card, $scope) {
 		
 		var resourceList = addModifyResourceDlg.scope.data.resource;
 		var compressionlevel = addModifyResourceDlg.scope.data.compressionlevel.id;
@@ -374,24 +355,23 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 	    	addModifyResourceDlg.scope.error.resource = 'Please select the resource to upload';
 	    	return;
 		}
+		addModifyResourceDlg.sentCount += resourceList.length;
 		nlDlg.showLoadingScreen();
 		nlResourceUploader.uploadInSequence(resourceList, keyword, compressionlevel, resid)
 		.then(function resolve(resInfos) {
 			nlDlg.hideLoadingScreen();
             nlDlg.popdownStatus(0);
-			_postUpload(resInfos, $scope, resolve);
+			_postUpload(resInfos, $scope);
         }, function reject(msg) {
 			nlDlg.hideLoadingScreen();
             nlDlg.popdownStatus(0);
             nlDlg.popupAlert({title: nl.t('Error'), template: msg});
-            reject(null);
         });
 	}
 
-	function _postUpload(resInfos, $scope, resolve) {
+	function _postUpload(resInfos, $scope) {
 		var uploadAgainDlg = nlDlg.create($scope);
 		uploadAgainDlg.scope.resinfos = resInfos;
-
 		var cancelButton = {text: nl.t('Close'), onTap: function(e) {
 			uploadAgainDlg.close();
 			return resInfos;

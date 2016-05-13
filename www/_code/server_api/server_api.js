@@ -410,11 +410,6 @@ function(nl, nlDlg, nlConfig, Upload) {
     //---------------------------------------------------------------------------------------------
     // resource entities
     //---------------------------------------------------------------------------------------------
-    this.resourceGetResTypes = function() {
-        // Get allowed resource types for the user
-        return server.post('_serverapi/resource_get_restypes.json', {});
-    };
-
     this.resourceUpload = function(data, urltype) {
         // Upload a resource - could be basic upload or upload and do something more based
         // on url type
