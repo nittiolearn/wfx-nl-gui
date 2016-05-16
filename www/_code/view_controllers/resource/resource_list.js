@@ -148,7 +148,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 		var internalUrl = 'resource_copy';
 		if(resource.restype == "PDF") {
 			image = nl.url.resUrl('/dashboard/pdf.png');
-			url = nl.fmt2('pdf:/resource/resview/{}', resource.resid);
+			url = nl.fmt2('pdf:/resource/resview/{}[scale=1|page=1]', resource.resid);
 		} else if(resource.restype == "Video") {
 			image = nl.url.resUrl('/dashboard/video1.png');
 			url = nl.fmt2('video:/resource/resview/{}', resource.resid);
@@ -157,7 +157,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 			url = nl.fmt2('audio:/resource/resview/{}', resource.resid);
 		} else if(resource.restype == "Attachment") {
 			image = nl.url.resUrl('/dashboard/attach.png');
-			url = nl.fmt2('link:/resource/resview/{}', resource.resid);
+			url = nl.fmt2('link:/resource/resview/{}[text=click here]', resource.resid);
 		} else if(resource.restype == "Image") {
 			image = nl.t('/resource/resview/{}', resource.resid);
 			url = nl.fmt2('img:/resource/resview/{}', resource.resid);
@@ -349,7 +349,6 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 		var compressionlevel = addModifyResourceDlg.scope.data.compressionlevel.id;
 		var keyword = addModifyResourceDlg.scope.data.keywords || '';
 		var resid =  (card !== null) ? addModifyResourceDlg.scope.data.card.Id : null;
-	
 	    if(resourceList.length == 0) {
 		    if (e) e.preventDefault();
 	    	addModifyResourceDlg.scope.error.resource = 'Please select the resource to upload';

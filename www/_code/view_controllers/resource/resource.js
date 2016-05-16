@@ -327,7 +327,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         }
         var fileInfo = resourceList.shift();
         var validateStatus = {};
-        if (!_validateBeforeShrinking(fileInfo, validateStatus)) {
+        if (!_validateBeforeShrinking(fileInfo, validateStatus, compressionlevel)) {
             nlDlg.popdownStatus(0);
             reject(validateStatus.error);
             return;
@@ -374,7 +374,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         return extn;
     }
     
-    function _validateBeforeShrinking(fileInfo, status) {
+    function _validateBeforeShrinking(fileInfo, status, compressionLevel) {
         var _file = fileInfo.resource;
         var restype = fileInfo.restype;
         if (!(restype in _restypeToExtension)) {
@@ -384,6 +384,10 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         if (_file.size == 0) {
             status.error = nl.t('Empty file cannot be uploaded');
             return false;
+        }
+        if (restype === 'Image' && _file.size > 1000000 && compressionLevel == 'no'){
+            status.error = nl.t('You cannot upload a Image file greater than 1 MB. You may try using "High compression" and upload your image.');
+            return false;        	
         }
         return true;
     }
