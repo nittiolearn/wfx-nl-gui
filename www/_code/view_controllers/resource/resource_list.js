@@ -147,16 +147,16 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 		var image = null;
 		var internalUrl = 'resource_copy';
 		if(resource.restype == "PDF") {
-			image = nl.url.resUrl('/dashboard/pdf.png');
+			image = nl.url.resUrl('dashboard/pdf.png');
 			url = nl.fmt2('pdf:/resource/resview/{}[scale=1|page=1]', resource.resid);
 		} else if(resource.restype == "Video") {
-			image = nl.url.resUrl('/dashboard/video1.png');
+			image = nl.url.resUrl('dashboard/video1.png');
 			url = nl.fmt2('video:/resource/resview/{}', resource.resid);
 		} else if(resource.restype == "Audio") {
-			image = nl.url.resUrl('/dashboard/audio.png');
+			image = nl.url.resUrl('dashboard/audio.png');
 			url = nl.fmt2('audio:/resource/resview/{}', resource.resid);
 		} else if(resource.restype == "Attachment") {
-			image = nl.url.resUrl('/dashboard/attach.png');
+			image = nl.url.resUrl('dashboard/attach.png');
 			url = nl.fmt2('link:/resource/resview/{}[text=click here]', resource.resid);
 		} else if(resource.restype == "Image") {
 			image = nl.t('/resource/resview/{}', resource.resid);

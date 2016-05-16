@@ -290,6 +290,14 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         Video: ['.mp4'],
         Attachment: []
     }; 
+    var _restypeToMaxFileSize = {
+        Image: 1*1024*1024, 
+        PDF: 10*1024*1024, 
+        Audio: 10*1024*1024, 
+        Video: 30*1024*1024,
+        Attachment: 10*1024*1024
+    }; 
+
     var _extToRestype = {};
 
     function _initExtToRestype() {
@@ -341,11 +349,14 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
                 reject(compInfo.status);
                 return;
             }
-            if(resid) {
-            	resid = resid;
-            } else{
-            	resid = '';
+            if (!_validateAfterShrinkingDone(_file, fileInfo.restype)) {
+                compInfo.status = nl.fmt2('You cannot upload a {} file greater than {} MB.',
+                    fileInfo.restype, _restypeToMaxFileSize[fileInfo.restype]/1024/1024);
+                if (fileInfo.restype == 'Image') compInfo.status += ' You may try using "High compression".';
+                reject(compInfo.status);
+                return;
             }
+        	resid = resid ? resid : '';
             
             var data = {resource: _file, 
                         restype: fileInfo.restype,
@@ -385,10 +396,11 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
             status.error = nl.t('Empty file cannot be uploaded');
             return false;
         }
-        if (restype === 'Image' && _file.size > 1000000 && compressionLevel == 'no'){
-            status.error = nl.t('You cannot upload a Image file greater than 1 MB. You may try using "High compression" and upload your image.');
-            return false;        	
-        }
+        return true;
+    }
+
+    function _validateAfterShrinkingDone(shrinkedFile, restype) {
+        if (shrinkedFile.size > _restypeToMaxFileSize[restype]) return false;
         return true;
     }
 }];
