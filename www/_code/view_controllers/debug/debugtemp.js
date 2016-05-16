@@ -76,11 +76,16 @@ function ChartInfo(nl) {
     this.getRandomArray = function(min, max, count) {
         var ret = [];
         for(var i=0; i<count; i++) {
-            var rand = Math.floor((Math.random() * (max - min + 1)) + min);
+            var rand = _getRandom(min, max);
             ret.push(rand);
         }
         return ret;
     };
+    
+}
+
+function _getRandom(min, max) {
+    return Math.floor((Math.random() * (max - min + 1)) + min);
 }
 
 //-------------------------------------------------------------------------------------------------

@@ -36,9 +36,9 @@ $nlpad_y_small:                   10px !default;
 
 $grey: #A0A0C0 !default; // rgb(160, 160, 192)
 
-$orange:  #FFA500 !default; // rgb(255, 165, 0)
-$orange1: #E06000 !default; // rgb(224, 96, 0)
-$orange2: #F54B22 !default; // rgb(245, 75, 34)
+$orange: #F54B22 !default; // rgb(245, 75, 34)
+$orange1:  #FFA500 !default; // rgb(255, 165, 0)
+$orange2: #E06000 !default; // rgb(224, 96, 0)
 
 $yellow: #FFDC46 !default; // rgb(255, 220, 70)
 
@@ -328,6 +328,19 @@ img.nl-clickable {
 .nl-toolbar {
   width: 100%;
   text-align: right;
+}
+
+.nl-toolbar-icon {
+  padding-top: 10px;
+  color: $orange1;
+  cursor: pointer;
+  font-weight: bold;
+  i.icon {
+    font-size: 26px;
+  }
+  i.icon:hover, i.icon:focus {
+    color: $orange2;
+  }
 }
 
 /*-----------------------------------------------------------------------------------------*
@@ -1210,6 +1223,14 @@ img.nl-full-width {
 }
 
 .forange {
+  color: $orange;
+}
+
+.forange1 {
+  color: $orange1;
+}
+
+.forange2 {
   color: $orange2;
 }
 

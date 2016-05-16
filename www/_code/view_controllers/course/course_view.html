@@ -1,4 +1,10 @@
 <div class='nl-toolbar margin0 padding-small'>
+    <span title='Download as CSV'
+          ng-hide='mode != MODES.REPORTS_SUMMARY_VIEW'
+          class='nl-toolbar-icon'
+          ng-click='export()'>
+        <i class="icon ion-ios-cloud-download"></i>
+    </span>
     <img title='Collapse all'
          ng-hide='isTreeCollapsed'
          class='nl-24 nl-clickable'

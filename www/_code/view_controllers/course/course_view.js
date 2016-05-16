@@ -57,7 +57,7 @@ function ModeHandler(nl, nlCourse, nlDlg) {
         } 
     };
     
-    this.getCourse = function(course) {
+    this.getCourse = function() {
         if (this.mode === MODES.PRIVATE || this.mode === MODES.EDIT || this.mode === MODES.PUBLISHED) {
             return nlCourse.courseGet(this.courseId, this.mode === MODES.PUBLISHED);
         }
@@ -152,8 +152,8 @@ function ModeHandler(nl, nlCourse, nlDlg) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg',
-function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg) {
+var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg', 'nlExporter',
+function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
     var modeHandler = new ModeHandler(nl, nlCourse, nlDlg);
     var treeList = new TreeList(nl);
     var courseReportSummarizer = new CourseReportSummarizer($scope);
@@ -229,6 +229,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg) {
     
     nlRouter.initContoller($scope, '', _onPageEnter, _onPageLeave);
 
+    $scope.export = function() {
+        _export(); // TODO-MUNNI
+    };
+    
     $scope.isTreeCollapsed = true;
     $scope.collapseAll = function() {
         treeList.collapseAll();
@@ -704,6 +708,33 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg) {
         }
         return avps;
     }
+
+    function _export() {
+        if ($scope.mode != MODES.REPORTS_SUMMARY_VIEW) return;
+        var data = [];
+        data.push(['User name', 'Module', 'Type', 'Status', 'Time spent', 'Score', 'Max score', 'Percentage', 'Location']);
+        for(var i=0; i<_allModules.length; i++) {
+            var cm = _allModules[i];
+            if (cm.type == 'module') continue;
+            var parent = treeList.getItem(cm.parentId);
+            if (!parent) continue; // This is a must in REPORTS_SUMMARY_VIEW
+
+            var status = cm.delayedCount ? nl.t('delayed') : cm.completedCount ? nl.t('completed') : nl.t('pending');
+            var timeSpent = cm.timeSpentCount ? Math.round(cm.timeSpentSeconds/60) : '';
+            var score = cm.scoreAvailableCount ? cm.score : '';
+            var maxScore = cm.completedCount && cm.type == 'lesson' ? cm.maxScore : '';
+            var perc =  '';
+            if (cm.scoreAvailableCount && cm.maxScore) {
+                perc = nl.fmt2('{}%', Math.round((cm.score/cm.maxScore)*100));
+            }
+            var row = [cm.name, parent.name, cm.type, status, timeSpent, score, maxScore, perc, parent.location];
+            data.push(row);
+        }
+        
+        var fileName = nl.fmt2('Report-{}.csv', nl.fmt.date2Str(new Date(), 'date'));
+        nlExporter.exportArrayTableToCsv(fileName, data);
+    }
+    
 }];
 
 function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
@@ -733,11 +764,18 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
         
         if (item.indentationLevel == 0) {
             this.rootItems.push(item);
+            item.location = '';
             return;
         }
         var parent = this.getParent(item);
-        if (parent) this.getChildren(parent).push(item);
+        if (!parent) return;
+        this.getChildren(parent).push(item);
+        item.location = parent.location == '' ? parent.name : parent.location + '.' + parent.name;
     };
+    
+    this.getItem = function(itemId) {
+        return this.items[itemId] || null;
+    }
     
     this.getRootItems = function() {
         return this.rootItems;
@@ -826,7 +864,7 @@ function CourseReportSummarizer($scope) {
             delete cm[key];
         }
         return ret;
-    }
+    };
     
     this.updateUserReports = function(course) {
         if ($scope.mode != MODES.REPORTS_SUMMARY_VIEW) return;
@@ -840,7 +878,7 @@ function CourseReportSummarizer($scope) {
             // They being equal is very unlikely in our case!
             return 1;
         });
-    }
+    };
 
     function _getModuleId(parentId, reportId) {
         return parentId + '.' + reportId;

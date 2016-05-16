@@ -149,6 +149,14 @@ function Formatter() {
         return this.date2Str(d, accuracy);
     };
     
+    this.encodeUri = function(input) {
+        return encodeURIComponent(input);
+    };
+    
+    this.utf8ToBase64 = function(input) {
+        return window.btoa(unescape(encodeURIComponent(input)));
+    };
+    
 	this.addAvp = function(avps, fieldName, fieldValue, fmtType, fieldDefault, iconUrl, iconClass) {
 		if (iconClass === undefined) iconClass = 'nl-24';
 		if (iconUrl) {
