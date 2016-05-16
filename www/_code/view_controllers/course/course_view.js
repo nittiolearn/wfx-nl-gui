@@ -229,8 +229,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
     
     nlRouter.initContoller($scope, '', _onPageEnter, _onPageLeave);
 
-    $scope.export = function() {
-        _export(); // TODO-MUNNI
+    $scope.download = function() {
+        _download();
     };
     
     $scope.isTreeCollapsed = true;
@@ -709,7 +709,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
         return avps;
     }
 
-    function _export() {
+    function _download() {
         if ($scope.mode != MODES.REPORTS_SUMMARY_VIEW) return;
         var data = [];
         data.push(['User name', 'Module', 'Type', 'Status', 'Time spent', 'Score', 'Max score', 'Percentage', 'Location']);
@@ -734,7 +734,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
         var fileName = nl.fmt2('Report-{}.csv', nl.fmt.date2Str(new Date(), 'date'));
         nlExporter.exportArrayTableToCsv(fileName, data);
     }
-    
 }];
 
 function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {

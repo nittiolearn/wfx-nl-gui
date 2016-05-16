@@ -34,8 +34,13 @@ function(nl) {
         var uri = 'data:text/csv;charset=utf-8,';
         var csvContent = '';
         for(var i=0; i<data.length; i++) {
-            var row = data[i].join(',');
-           csvContent += i > 0 ? '\n' + row : row;
+            var rowData = data[i];
+            var row = '';
+            for(var j=0; j<rowData.length; j++) {
+                var d = _quote(rowData[j]);
+                row += j > 0 ? ',' + d : d;
+            }
+            csvContent += i > 0 ? '\n' + row : row;
         }
         csvContent = uri + nl.fmt.encodeUri(csvContent);
         _saveFile(fileName, csvContent);
@@ -60,6 +65,11 @@ function(nl) {
         var ctx = {worksheet : fileName || 'Sheet 1', table : htmlTable};
         var xlsContent = uri + nl.fmt.utf8ToBase64(nl.fmt.fmt1(template, ctx));
         _saveFile(fileName, xlsContent);
+    }
+    
+    function _quote(data) {
+        if (data.indexOf('"') < 0 && data.indexOf(',') < 0) return data;
+        return '"' + data.replace(/\"/g, '""') + '"';
     }
     
     function _toHtmlTds(row, isHeader) {

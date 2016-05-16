@@ -61,8 +61,8 @@ function(nl) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var ForumCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlServerApi', 'nlMarkup',
-function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
+var ForumCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlServerApi', 'nlMarkup', 'nlExporter',
+function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup, nlExporter) {
 	var serverParams = {};
 	var messageMgr = new MessageManager(nl, nlRouter, nlServerApi, nlMarkup);
     var forumInputDlg = new ForumInputDlg(nl, nlDlg, $scope);
@@ -107,6 +107,10 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
 
     //-------------------------------------------------------------------------
     // Button handlers for the main view
+    $scope.download = function() {
+        _download();
+    };
+    
     $scope.showPostNewTopicDlg = function() {
         forumInputDlg.newTopic();
     };
@@ -240,7 +244,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
             _updateForumData(forumInfo);
             if (onDone) onDone(forumInfo);
         });
-    };
+    }
     
     var FT_MENTOR = 1;
     var FT_ASSIGNMENT = 2;
@@ -259,6 +263,22 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup) {
     function _isMentorView(params) {
         if (params.forumtype == FT_MENTOR) return params.refid == 0;
         
+    }
+
+    function _download() {
+        var msgTree = $scope.msgTree;
+        var arrayList = [['User name', 'Type', 'Created', 'Updated', 'Topic', 'Message']];
+        for(var i=0; i<msgTree.length; i++) {
+            var topic = msgTree[i];
+            arrayList.push([topic.authorname, 'topic', topic.htmlCreated, topic.htmlUpdated, topic.title, topic.text]);
+            var msgs  = topic.children;
+            for(var j=0; j<msgs.length; j++) {
+                var msg = msgs[j];
+                arrayList.push([msg.authorname, 'message', msg.htmlCreated, msg.htmlUpdated, topic.title, msg.text]);
+            }
+        }
+        var fileName = nl.fmt2('Forum-{}.csv', nl.fmt.date2Str(new Date(), 'date'));
+        nlExporter.exportArrayTableToCsv(fileName, arrayList);
     }
 }];
 

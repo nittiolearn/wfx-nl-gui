@@ -1,4 +1,10 @@
 <div class='nl-toolbar'>
+    <span title='Download as CSV'
+          ng-show='canStartTopic'
+          class='nl-toolbar-icon'
+          ng-click='download()'>
+        <i class="icon ion-ios-cloud-download"></i>
+    </span>
     <img title='Start new topic'
          ng-show='canStartTopic && !currentTopicId'
          class='nl-24 nl-clickable'
