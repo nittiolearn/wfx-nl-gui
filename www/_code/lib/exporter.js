@@ -68,6 +68,7 @@ function(nl) {
     }
     
     function _quote(data) {
+        if (typeof(data) != 'string') return data;
         if (data.indexOf('"') < 0 && data.indexOf(',') < 0) return data;
         return '"' + data.replace(/\"/g, '""') + '"';
     }
