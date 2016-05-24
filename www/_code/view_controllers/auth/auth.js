@@ -251,6 +251,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 }];
 
 //-------------------------------------------------------------------------------------------------
+// Same object is defined in server side. Please update in both places.
 var AUDIT_TYPES = {1: 'LOGIN', 2: 'LOGIN_FAILED', 3: 'LOGOUT', 4: 'IMPERSONATE', 5: 'IMPERSONATE_FAILED', 6: 'IMPERSONATE_END'};
 
 var AuditCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg',
