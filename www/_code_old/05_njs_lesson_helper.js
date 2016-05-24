@@ -464,11 +464,14 @@ function _SubmitAndScoreDialog_makePageNoLink(pageNo) {
 }
 
 function _SubmitAndScoreDialog_makeMoreLink(pageNo, str) {
-	str = _SubmitAndScoreDialog_trim(str);
-	return njs_helper.fmt2('<span class="njsLink" onclick="njs_lesson_helper.SubmitAndScoreDialog.onPageClick({});">{}</span>', pageNo, str);
+    var retData = {};
+    str = njs_lesson_markup.markupToHtml(str, retData);
+    str = _SubmitAndScoreDialog_trim(str);
+	return njs_helper.fmt2('<div onclick="njs_lesson_helper.SubmitAndScoreDialog.onPageClick({});"> <span class="njsLink">{}</span></div>', pageNo, str);
 }
 
 function _SubmitAndScoreDialog_trim(str) {
+    str = str.replace(/<(?:.|\n)*?>/gm, ''); // Remove html tags
 	var trimLen = 100;
 	return str.length > trimLen ? str.substring(0, trimLen -3) + '...' : str;
 }
