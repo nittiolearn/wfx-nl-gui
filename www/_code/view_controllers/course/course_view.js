@@ -598,12 +598,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
         return;
     };
     
-    function _updatedStatusinfo(cm, status) {
+    function _updatedStatusinfo(cm, status, remarks) {
         // TODO: Keep status as boolean; data as javascript Date object
         modeHandler.course.statusinfo[cm.id] = {
             status: status ? 'done' : '',
             date: nl.fmt.date2Str(new Date(), 'date'), 
-            username: _userInfo.username
+            username: _userInfo.username,
+            remarks: remarks
         };
         _updatedStatusinfoAtServer(false);
         _updateAllItemData(modeHandler);
@@ -631,39 +632,54 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
     var templateDone = nl.t('This is currently marked as completed. You may mark this as not completed by clicking the Undo button.');
     var templateNotDone = nl.t('You may mark this as as completed by clicking Done button.');
     function _showModuleDetails(cm, _icons, today) {
-        var card = {};
-        card.title = nl.t('Summary');
-        var icon = ('icon' in cm) ? cm.icon : cm.type;
-        if(icon in _icons) card.icon = _icons[icon];
-        card.details = {avps: _getModuleAvps(cm)};
-
-        var cancelButton = {text : nl.t('Close')};
-        var buttons = [];
-        var warningMsg = '';
-        var canUpdateStatus = ($scope.mode == MODES.DO) && (cm.type == 'link' || cm.type == 'info');
-        if (canUpdateStatus && $scope.planning && cm.start_date) {
+        var canShowRemarks = (cm.type == 'link' || cm.type == 'info');
+        var canUpdateStatus = ($scope.mode == MODES.DO) && canShowRemarks;
+        if (canUpdateStatus && $scope.planning && cm.start_date)
             canUpdateStatus = (cm.start_date <= today);
-        }
+
+        var isDone = false;
+        var remarks = '';
+        var warningMsg = '';
+        var statusinfo = modeHandler.course.statusinfo;
+
         if(canUpdateStatus) {
             if(!modeHandler.course.statusinfo) modeHandler.course.statusinfo = {};
-            var statusinfo = modeHandler.course.statusinfo;
-            var isDone = (cm.id in statusinfo) && (statusinfo[cm.id].status == 'done');
-            card.title = isDone ? nl.t('Confirm undo operation'): nl.t('Mark as done');
+            statusinfo = modeHandler.course.statusinfo;
+            isDone = (cm.id in statusinfo) && (statusinfo[cm.id].status == 'done');
             warningMsg = (isDone ? templateDone : templateNotDone);
-            cancelButton = {text : nl.t('Cancel')};
-            var updateButton = {
-                text : isDone ? nl.t('Undo'): nl.t('Done'),
+        }
+        remarks = (cm.id in statusinfo) ? statusinfo[cm.id].remarks || '' : '';
+        
+        var card = {};
+        card.title = !canUpdateStatus ? nl.t('Summary') : isDone ? nl.t('Confirm undo operation'): nl.t('Mark as done');
+        var icon = ('icon' in cm) ? cm.icon : cm.type;
+        card.icon = (icon in _icons) ? _icons[icon] : icon;
+        card.details = {avps: _getModuleAvps(cm)};
+        card.details.help = nl.fmt2("<h3>{}</h3><b>{}</b>", cm.name, warningMsg); 
+
+        var detailsDlg = nlDlg.create($scope);
+        detailsDlg.scope.canShowRemarks = canShowRemarks;
+        detailsDlg.scope.canUpdateStatus = canUpdateStatus;
+        detailsDlg.scope.data = {remarks: remarks};
+        detailsDlg.scope.card = card;
+        detailsDlg.setCssClass('nl-height-max nl-width-max');
+        
+        var closeButton = {text : nl.t('Close')};
+        var buttons = [];
+        if(canUpdateStatus) {
+            var updateButton = {text : isDone ? nl.t('Undo'): nl.t('Done'),
                 onTap : function(e) {
-                    _updatedStatusinfo(cm, !isDone);
+                    _updatedStatusinfo(cm, !isDone, detailsDlg.scope.data.remarks);
                 }
             };
             buttons.push(updateButton);
+            closeButton.onTap = function(e) {
+                if (detailsDlg.scope.data.remarks == remarks) return;
+                _updatedStatusinfo(cm, isDone, detailsDlg.scope.data.remarks);
+            };
         }
-        card.details.help = nl.fmt2("<h3>{}</h3><b>{}</b>", cm.name, warningMsg); 
-        var detailsDlg = nlDlg.create($scope);
-        detailsDlg.scope.card = card;
-        detailsDlg.setCssClass('nl-height-max nl-width-max');
-        detailsDlg.show('lib_ui/cards/details_dlg.html', buttons, cancelButton);
+
+        detailsDlg.show('view_controllers/course/course_details_dlg.html', buttons, closeButton);
     }
     
     function _getModuleAvps(cm) {

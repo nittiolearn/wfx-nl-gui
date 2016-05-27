@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<style>
+			@page page_two {
+		size: A4 portrait; /* A4 size is 595 * 842 pts */
+		@frame header_frame {           /* Static Frame */
+		-pdf-frame-content: header_content;
+		left: 50pt;
+		width: 495pt;
+		top: 20pt;
+		height: 30pt;
+		/*-pdf-frame-border: 1;*/
+		}
+		@frame
+		content_frame {
+		left: 50pt;
+		width: 495pt;
+		top: 70pt;
+		height: 752pt;
+		}
+		@frame footer_frame {
+		/* Another static Frame */
+		-pdf-frame-content: footer_content;
+		left: 50pt;
+		width: 495pt;
+		top: 802pt;
+		height: 20pt;
+		}
+
+		}
+			@page {
+		size: A4 portrait; /* A4 size is 595 * 842 pts */
+
+		@frame header_frame {           /* Static Frame */
+		-pdf-frame-content: header_content;
+		left: 50pt;
+		width: 495pt;
+		top: 20pt;
+		height: 30pt;
+		/*-pdf-frame-border: 1;*/
+		}
+
+		@frame table_frame {
+		left: 50pt;
+		width: 370pt;
+		top: 65pt;
+		height: 100pt;
+		}
+
+		@frame
+		image_frame {
+		-pdf-frame-content: image_content; /* fix the image frame like header and footer,
+											use the ID to define a div within which the 
+											image will be contained.*/
+		left: 445pt;
+		width: 100pt;
+		top: 65pt;
+		height: 100pt;
+		}
+		@frame content_frame {
+		left: 50pt;
+		width: 495pt;
+		top: 175pt;
+		height: 627pt;
+		}
+		@frame footer_frame {/* Another static Frame */
+		-pdf-frame-content: footer_content;
+		left: 50pt;
+		width: 495pt;
+		top: 802pt;
+		height: 20pt;
+		}
+		}
+		
+/* Table styling for the student particulars table */		
+	table, th, td {
+		border: 1px solid black;
+		border-collapse: collapse;
+		}
+		th, td {
+		padding: 4px;
+		text-align: left;
+		}
+		th.col1Particulars {
+		font-weight: bold;
+
+		}
+		th.col1RatingsTableHeader {
+		font-weight: bold;
+		width="90%";
+		background-color: #01263b;
+		color: white;
+		}
+		th.col2RatingsTableHeader {
+		font-weight: bold;
+		width="10%";
+		background-color: #01263b;
+		color: white;
+		}
+		th.col1RatingsTableDevArea {
+		font-weight: bold;
+		width="90%";
+		background-color: #eee;
+		}
+		th.col2RatingsTableDevArea {
+		font-weight: bold;
+		width="10%";
+		background-color: #eee;
+		}
+		
+/* Table styling for the student observations table */
+			th.col1ObsTableHeader {
+				font-weight: bold;
+				width="10%";
+				background-color: #eee;
+			}
+			th.col2ObsTableHeader {
+				font-weight: bold;
+				width="10%";
+				background-color: #eee;
+			}
+			th.col3ObsTableHeader {
+				font-weight: bold;
+				width="80%";
+				background-color: #eee;
+			}
+/* Attempt to alternate dark and light rows in the observation table. Does not work*/			
+			table#t01 tr:nth-child(even) {
+			    background-color: #eee;
+			}
+			table#t01 tr:nth-child(odd) {
+			   background-color:#fff;
+			}
+			td.obsTableData {
+			   background-color:#ee6;
+			   color: green;
+			}
+			
+/* Text styling for headings and paragraphs*/			
+			h1.header_text {
+				text-align: center;
+				padding: 8px;
+				font-weight: bold;
+				background-color: #01263b;
+				color = white;
+			}
+			p.footer_text {
+				text-align: left;
+				padding: 2px;
+				background-color: #eee;
+			}
+			h1.sectionheading_text {
+				text-align: left;
+				font-weight: bold;
+				background-color: #01263b;
+				color = white;
+				padding: 2px;
+			}
+			p.summary_text {
+				text-align: justify;
+			}
+		</style>
+	</head>
+
+	<body >
+		<div id = "header_content">
+			<h1 class = "header_text">	Report - {{=studentname}}. </h1>
+		</div>
+
+		<div id = "footer_content">
+			<p class = "footer_text"> Copyright - Nittio Solutions Pvt. Ltd.</p>
+		</div>
+
+		
+		<table>
+			<tr>
+				<th class = "col1Particulars">Name</th>
+				<td>{{=studentname}}</td>
+			</tr>
+			<tr>
+				<th class = "col1Particulars">Age group</th>
+				<td>{{=agegroup}}</td>
+			</tr>
+			<tr>
+				<th class = "col1Particulars">Academic year</th>
+				<td>{{=academicyear}}</td>
+			</tr>
+			<tr>
+				<th class = "col1Particulars">Term</th>
+				<td>{{=term}}</td>
+			</tr>
+			
+		</table>
+		
+		
+		
+<!-- placing image frame in a div fits any image into this frame. Else, if the 
+	image is bigger in size, it flows to the next frame --> 
+	<div id = "image_content">
+		<p >
+		<!--	<img src="C:\\Users\\Gagan\\Documents\\Work\Tech\\NittioWorkspace\\pdfgen_data\\Apeejaybuilding.png"> -->
+		<!--	<img src="file:///C:/Users/Gagan/Documents/Work\Tech/NittioWorkspace/pdfgen_data/2.png"> -->
+		<img src={{=imagefilepath}}>
+		</p>
+	</div>
+	
+	    <!-- switch page template. 
+	    	define it here to ensure that second page is created using the required template-->
+	    <pdf:nexttemplate name="page_two" />
+		
+		<h1 class = "sectionheading_text">
+			Summary
+		</h1>
+		<p class = "summary_text">
+			{{=summarytext}}
+		</p>
+		<h1 class = "sectionheading_text">
+			Ratings
+		</h1>
+		
+		<table>
+			<tr>
+				<th class = "col1RatingsTableHeader">Milestone</th>
+				<th class = "col2RatingsTableHeader">Ratings</th>
+			</tr>
+			{{for devareadict in devareas:}}
+				<tr>
+					<th class = "col1RatingsTableDevArea" colspan = "2">{{=devareadict["devareaname"]}}</th>
+				</tr>
+				{{listminorareas=devareadict.get("minorareas")}}
+				{{for minorareadict in listminorareas:}}
+					<tr>
+						<th class = "col1RatingsTableDevArea" colspan = "2">{{=minorareadict.get("minorareaname")}}</th>
+					</tr>
+					{{listdetails = minorareadict.get("details")}}
+		            {{for details in listdetails:}}
+						<tr>
+							<td >{{=details[0]}}</td>
+							<td>{{=details[1]}}</td>
+						</tr>
+					{{pass}}
+				{{pass}}
+			{{pass}}
+			<tr>
+				<td >Two-channelled attention – can listen and do for short span.</td>
+				<td>Expected</td>
+			</tr>
+			
+			<tr>
+				<th class = "col1RatingsTableDevArea" colspan = "2">Understanding</th>
+			</tr>
+			<tr>
+				<td>Responds to instructions involving a two-part sequence.</td>
+				<td>Expected</td>
+			</tr>
+			<tr>
+				<td >Understands humour, e.g. nonsense rhymes, jokes.</td>
+				<td>Expected</td>
+			</tr>			
+		
+		<!-- Repeats below this -->
+
+		<tr>
+				<th class = "col1RatingsTableDevArea" colspan = "2">Communication and language</th>
+			</tr>
+			<tr>
+				<th class = "col1RatingsTableDevArea" colspan = "2">Listening and attention</th>
+			</tr>
+			<tr>
+				<td >Maintains attention, concentrates and sits quietly during appropriate activity.</td>
+				<td>Expected</td>
+			</tr>
+			<tr>
+				<td >Two-channelled attention – can listen and do for short span.</td>
+				<td>Expected</td>
+			</tr>
+			
+			<tr>
+				<th class = "col1RatingsTableDevArea" colspan = "2">Understanding</th>
+			</tr>
+			<tr>
+				<td>Responds to instructions involving a two-part sequence.</td>
+				<td>Expected</td>
+			</tr>
+			<tr>
+				<td >Understands humour, e.g. nonsense rhymes, jokes.</td>
+				<td>Expected</td>
+			</tr>			
+		<tr>
+				<th class = "col1RatingsTableDevArea" colspan = "2">Communication and language</th>
+			</tr>
+			<tr>
+				<th class = "col1RatingsTableDevArea" colspan = "2">Listening and attention</th>
+			</tr>
+			<tr>
+				<td >Maintains attention, concentrates and sits quietly during appropriate activity.</td>
+				<td>Expected</td>
+			</tr>
+			<tr>
+				<td >Two-channelled attention – can listen and do for short span.</td>
+				<td>Expected</td>
+			</tr>
+			
+			<tr>
+				<th class = "col1RatingsTableDevArea" colspan = "2">Understanding</th>
+			</tr>
+			<tr>
+				<td>Responds to instructions involving a two-part sequence.</td>
+				<td>Expected</td>
+			</tr>
+			<tr>
+				<td >Understands humour, e.g. nonsense rhymes, jokes.</td>
+				<td>Expected</td>
+			</tr>			
+					
+		<!-- Repeats ends here -->
+
+		</table>
+		<h1 class = "sectionheading_text">
+			Observations
+		</h1>
+			<table id="t01">
+			<tr>
+				<th class = "col1ObsTableHeader">Created on</th>
+				<th class = "col2ObsTableHeader">Updated on</th>
+				<th class = "col3ObsTableHeader">Observation</th>
+			</tr>
+			<tr>
+				<td>2016-03-10 13:07</td>
+				<td>2016-03-10 13:07</td>
+				<td >Seema likes to spend time at the play area. She is able to climb up the slide and jumps from the top of the side. She does not like to wait for her chance at the slide and gets upset with peers when she has to share.
+				</td>
+			</tr>
+			<tr >
+				<td class = "obsTableData">2016-03-10 13:07</td>
+				<td class = "obsTableData">2016-03-10 13:07</td>
+				<td class = "obsTableData">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+				</td>
+			</tr>
+			<tr>
+				<td>2016-03-10 13:07</td>
+				<td>2016-03-10 13:07</td>
+				<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+				</td>
+			</tr>
+			<tr>
+				<td>2016-03-10 13:07</td>
+				<td>2016-03-10 13:07</td>
+				<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+				</td>
+			</tr>
+			<tr>
+				<td>2016-03-10 13:07</td>
+				<td>2016-03-10 13:07</td>
+				<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+				</td>
+			</tr>
+			<tr>
+				<td>2016-03-10 13:07</td>
+				<td>2016-03-10 13:07</td>
+				<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+				</td>
+			</tr>
+			<tr>
+				<td>2016-03-10 13:07</td>
+				<td>2016-03-10 13:07</td>
+				<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+				</td>
+			</tr>
+			<tr>
+				<td>2016-03-10 13:07</td>
+				<td>2016-03-10 13:07</td>
+				<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+				</td>
+			</tr>
+			<tr>
+				<td>2016-03-10 13:07</td>
+				<td>2016-03-10 13:07</td>
+				<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+				</td>
+			</tr>
+			<tr>
+				<td>2016-03-10 13:07</td>
+				<td>2016-03-10 13:07</td>
+				<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+				</td>
+			</tr>
+			<tr>
+				<td>2016-03-10 13:07</td>
+				<td>2016-03-10 13:07</td>
+				<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+				</td>
+			</tr>
+			<tr>
+				<td>2016-03-10 13:07</td>
+				<td>2016-03-10 13:07</td>
+				<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+				</td>
+			</tr>
+			<tr>
+				<td>2016-03-10 13:07</td>
+				<td>2016-03-10 13:07</td>
+				<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+				</td>
+			</tr>
+			<tr>
+				<td>2016-03-10 13:07</td>
+				<td>2016-03-10 13:07</td>
+				<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+				</td>
+			</tr>
+			
+			</table>
+	</body>
+</html>
