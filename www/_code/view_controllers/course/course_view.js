@@ -630,7 +630,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
     }
     
     var templateDone = nl.t('This is currently marked as completed. You may mark this as not completed by clicking the Undo button.');
-    var templateNotDone = nl.t('You may mark this as as completed by clicking Done button.');
+    var templateNotDone = nl.t('You may mark this as completed by clicking Done button.');
     function _showModuleDetails(cm, _icons, today) {
         var canShowRemarks = (cm.type == 'link' || cm.type == 'info');
         var canUpdateStatus = ($scope.mode == MODES.DO) && canShowRemarks;
