@@ -176,48 +176,44 @@
 				card = {
 					title : nl.t('Create'),
 					icon : nl.url.resUrl('dashboard/crnewwsheet.png'),
-					help : nl.t('You can create a new course by clicking on this card'),
 					description : nl.t('can create'),
 					children : [{
 						title : "Click on one of the listed templates or"
 					}, {
-						help : "Create modules based on templates",
 						title : "Create based on default template",
 						url : "/lesson/create2#/",
-						linkId : "admin_group",
-						children : []
-					}, {
-						help : "Enable users to create modules based on pdf",
-						title : "Create based on pdf",
-						url : "/lesson/create2/0/0/pdf#/",
-						linkId : "admin_group",
-						children : []
-					}, {
-						help : "View list of groups. Modify user properties.",
-						title : "create a new template",
-						url : "/lesson/create2/0/1#/",
 						linkId : "admin_group",
 						children : []
 					}],
 					style : 'nl-bg-blue'
 				};
+                if (_userInfo.permissions.lesson_create_adv) {
+                    card.children.push({
+                        title : "Create based on pdf",
+                        url : "/lesson/create2/0/0/pdf#/",
+                        linkId : "admin_group",
+                        children : []
+                    });
+                    card.children.push({
+                        title : "create a new template",
+                        url : "/lesson/create2/0/1#/",
+                        linkId : "admin_group",
+                        children : []
+                    });
+                }
 			} else if (mode.type == TYPES.REVIEW) {
 				card = {
 					title : nl.t('Review'),
 					icon : nl.url.resUrl('dashboard/wsheet.png'),
-					help : nl.t('<span>You can create a new course by clicking on this card</span>'),
 					children : [{
-						help : "View all reviews",
 						title : "view all",
 						internalUrl : "view_all",
 						children : []
 					}, {
-						help : "Enable users to create modules based on pdf",
 						title : "view pending reviews",
 						internalUrl : "view_pending",
 						children : []
 					}, {
-						help : "View list of groups. Modify user properties.",
 						title : "view closed reviews",
 						internalUrl : "view_closed",
 						children : []
@@ -550,6 +546,7 @@
 		}
 
 		function _addApproveLink(card) {
+            if (!_userInfo.permissions.lesson_approve) return;
 			card.links.push({
 				id : 'lesson_approve',
 				text : nl.t('approve')
@@ -557,6 +554,7 @@
 		}
 
 		function _addDisapproveLink(card) {
+            if (!_userInfo.permissions.lesson_approve) return;
 			card.links.push({
 				id : 'lesson_disapprove',
 				text : nl.t('disapprove')
@@ -675,10 +673,12 @@
 		}
 
 		function _addApproveLinkToDetails(linkAvp) {
+            if (!_userInfo.permissions.lesson_approve) return;
 			nl.fmt.addLinkToAvp(linkAvp, 'approve', null, 'lesson_approve');
 		}
 
 		function _addDisapproveLinkToDetails(linkAvp) {
+            if (!_userInfo.permissions.lesson_approve) return;
 			nl.fmt.addLinkToAvp(linkAvp, 'disapprove', null, 'lesson_disapprove');
 		}
 

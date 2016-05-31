@@ -224,7 +224,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		nl.fmt.addAvp(avps, 'Assigned by', assignment.assigned_by);
 		nl.fmt.addAvp(avps, 'Assigned on', assignment.assigned_on, 'date');
 		if (mode.type !== TYPES.MANAGE && mode.type !== TYPES.SENT) {
-			nl.fmt.addAvp(avps, 'Owner', assignment.authorname);
+			nl.fmt.addAvp(avps, 'Owner', assignment.studentname);
 			nl.fmt.addAvp(avps, 'Started on', assignment.started, 'date');
 			nl.fmt.addAvp(avps, 'Ended on', assignment.ended, 'date');
 		}

@@ -57,84 +57,102 @@
 	</div>
 </nl-dlg-help>
 <nl-dlg-content>
-	<table class='nl-table'>
-		<tr>
-			<td style='width:60%; padding-top: 15px;'>
-				<div class='row row-center'>
-					<div class='col col-20'>class/ user group</div>
-					<div class='col col-80'>
-						<table><tr>
-							<td style='width:20%, padding-right:4px'><button class='select-button' ng-click='onOuClick()' autofocus="true"> Select</button></td>
-							<td ng-if='data.visibleToGroupLength == 0 || data.visibleToGroupLength == 1 ' class='nl-sep8'><span class='nl-data-visibleTo' ng-bind-html='data.visibleto'></span></td>
-							<td ng-if='data.visibleToGroupLength > 1' class='nl-sep8'><span class='nl-data-visibleTo' ng-bind-html='data.visibleto' ng-click='onClickOnVisibleTo()'></span></td>
-						</tr></table>
-					</div>
-				</div>
-				<div class='row row-center'>
-					<div class='col col-20'>users</div>
-					<div class='col col-80'>
-						<table><tr>
-							<td style='width:20%'><button class='select-button' ng-click='onUserClick()'> Select</button></td>
-							<td ng-if='data.visibleToUsersLength == 0' class='nl-sep8'><span class='nl-data-visibleTo' ng-bind-html='data.visibleToUsers'></span></td>
-							<td ng-if='data.visibleToUsersLength > 0' class='nl-sep8'><span class='nl-data-visibleTo' ng-bind-html='data.visibleToUsers' ng-click='onClickOnVisibleToUsers()'></span></td>
-						</tr></table>
-					</div>
-				</div>
-				<div class='row row-center'>
-					<div class='col col-20'>start time</div>
-					<div class='col col-80 nl-time-input-div'>
-						<div class='nl-time-input nl-clickable' ion-datetime-picker ng-model="data.starttime">
-							<div class='row row-center margin0 padding0'>
-		            			<div class='col col-90 margin0 padding0'>{{data.starttime| date: "yyyy-MM-dd H:mm"}}</div>
-		            			<i class='col icon ion-android-time nl-time-icon'></i>
-		            		</div>
-	            		</div>
-            		</div>
-            	</div>
-				<div class='row row-center'>
-					<div class='col col-20'>end time</div>
-					<div class='col col-80 nl-time-input-div'>
-						<div class='nl-time-input nl-clickable' ion-datetime-picker ng-model="data.endtime">
-							<div class='row row-center margin0 padding0'>
-		            			<div class='col col-90 margin0 padding0'>{{data.endtime| date: "yyyy-MM-dd H:mm"}}</div>
-		            			<i class='col icon ion-android-time nl-time-icon'></i>
-		            		</div>
-	            		</div>
-            		</div>
-            	</div>
-				<div class='row row-center'>
-					<div class='col col-20'>duration (minutes)</div>
-					<div class='col col-80'><input type='text' ng-model='data.maxduration'></div>			
-           		</div>
-				<div class='row row-center'>
-					<div class='col col-20'>show answers</div>
-					<nl-select fieldmodel='showAnswers' class='col col-80 nl-select-sendassignment'></nl-select>
-				</div>
-				<div class='row row-center'>
-					<div class='col col-20'> forum</div>
-					<div class='col col-80'><input type='checkbox' ng-model='data.forum'><span>allow users to discuss in the forum</span></div>
-				</div>
-				<div class='row'>
-					<div class='col col-20 padding-top'> remarks</div>
-					<div class='col col-80'><textarea style='resize:none' rows="8" cols="50" ng-model='data.remarks'></textarea></div>
-				</div>
-			</td>
-			<td style='width:40% padding: 0 5px;'>
-				<h2>Selected learning module</h2>
-				<table class='nl-table' style='text-align: left;'>
-					<tr><td style='width: 100px; padding: 12px'>
-							<div style='width: 100px;'><img ng-src='{{assignInfo.icon}}'></div>
-						</td>
-						<td style='vertical-align: top;'>
-							<h3>{{assignInfo.title}}</h3>
-							<p> by: <b>{{assignInfo.authorName}}</b></p>
-							<p>{{assignInfo.subjGrade}}</p>
-							<p >{{assignInfo.description}}</p>
-						</td>
-					</tr>
-				</table>
-			</td>		
-		</tr>
-	</table>
+    <div class='row row-center padding0 margin0' ng-show='screenSize == "small"'>
+        <div class='col no-grow text-center'>
+            <img class='nl-max-50' ng-src='{{assignInfo.icon}}'>
+        </div>
+        <H3 class='col padding-horizontal margin0'>{{assignInfo.title}}</H3>
+    </div>
+    <div class='row row-wrap padding0 margin0'>
+        <div ng-class='resp2Col67'>
+            <div class='row row-wrap row-center padding-top margin0'>
+                <div ng-class='resp2Col33'>class/ user group</div>
+                <div ng-class='resp2Col67'>
+                    <table><tr>
+                        <td style='width:20%, padding-right:4px'><button class='select-button' ng-click='onOuClick()' autofocus="true"> Select</button></td>
+                        <td ng-if='data.visibleToGroupLength == 0 || data.visibleToGroupLength == 1 ' class='nl-sep8'><span class='nl-data-visibleTo' ng-bind-html='data.visibleto'></span></td>
+                        <td ng-if='data.visibleToGroupLength > 1' class='nl-sep8'><span class='nl-data-visibleTo' ng-bind-html='data.visibleto' ng-click='onClickOnVisibleTo()'></span></td>
+                    </tr></table>
+                </div>
+            </div>
+
+            <div class='row row-wrap row-center padding-top margin0'>
+                <div ng-class='resp2Col33'>users</div>
+                <div ng-class='resp2Col67'>
+                    <table><tr>
+                        <td style='width:20%'><button class='select-button' ng-click='onUserClick()'> Select</button></td>
+                        <td ng-if='data.visibleToUsersLength == 0' class='nl-sep8'><span class='nl-data-visibleTo' ng-bind-html='data.visibleToUsers'></span></td>
+                        <td ng-if='data.visibleToUsersLength > 0' class='nl-sep8'><span class='nl-data-visibleTo' ng-bind-html='data.visibleToUsers' ng-click='onClickOnVisibleToUsers()'></span></td>
+                    </tr></table>
+                </div>
+            </div>
+
+            <div class='row row-wrap row-center padding-top margin0'>
+                <div ng-class='resp2Col33'>start time</div>
+                <div ng-class='resp2Col67' class='nl-time-input-div'>
+                    <div class='nl-time-input nl-clickable' ion-datetime-picker ng-model="data.starttime">
+                        <div class='row row-center margin0 padding0'>
+                            <div class='col col-90 margin0 padding0'>{{data.starttime| date: "yyyy-MM-dd H:mm"}}</div>
+                            <i class='col icon ion-android-time nl-time-icon'></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class='row row-wrap row-center padding-top margin0'>
+                <div ng-class='resp2Col33'>end time</div>
+                <div ng-class='resp2Col67' class='nl-time-input-div'>
+                    <div class='nl-time-input nl-clickable' ion-datetime-picker ng-model="data.endtime">
+                        <div class='row row-center margin0 padding0'>
+                            <div class='col col-90 margin0 padding0'>{{data.endtime| date: "yyyy-MM-dd H:mm"}}</div>
+                            <i class='col icon ion-android-time nl-time-icon'></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class='row row-wrap row-center padding-top margin0'>
+                <div ng-class='resp2Col33'>duration (minutes)</div>
+                <div ng-class='resp2Col67'>
+                    <input type='text' ng-model='data.maxduration'>
+                </div>
+            </div>
+
+            <div class='row row-wrap row-center padding-top margin0'>
+                <div ng-class='resp2Col33'>show answers</div>
+                <nl-select ng-class='resp2Col67' fieldmodel='showAnswers' class='nl-select-sendassignment'></nl-select>
+            </div>
+
+            <div class='row row-wrap row-center padding-top margin0'>
+                <div ng-class='resp2Col33'>forum</div>
+                <div ng-class='resp2Col67'>
+                    <input type='checkbox' ng-model='data.forum'><span>allow users to discuss in the forum</span>
+                </div>
+            </div>
+
+            <div class='row row-wrap row-center padding-top margin0'>
+                <div ng-class='resp2Col33'>remarks</div>
+                <div ng-class='resp2Col67'>
+                    <textarea style='resize:none' rows="8" cols="50" ng-model='data.remarks'></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div ng-class='resp2Col33'>
+            <div ng-hide='screenSize == "small"'>
+                <div class='row row-top row-wrap padding0 margin0'>
+                    <div class='col text-center nl-max-100'>
+                        <img class='nl-max-100' ng-src='{{assignInfo.icon}}'>
+                    </div>
+                    <div class='col min-200'>
+                        <h3>{{assignInfo.title}}</h3>
+                        <p> by: <b>{{assignInfo.authorName}}</b></p>
+                        <p>{{assignInfo.subjGrade}}</p>
+                        <p >{{assignInfo.description}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </nl-dlg-content>
 </nl-dlg>
