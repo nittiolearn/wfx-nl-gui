@@ -217,7 +217,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 
 	function _getAssignmentAvps(assignment) {
 		var avps = [];
-
 		var linkAvp = nl.fmt.addLinksAvp(avps, 'Operations');
 		_populateLinks(linkAvp, assignment.id, assignment.published);
 		nl.fmt.addAvp(avps, 'Name', assignment.name);

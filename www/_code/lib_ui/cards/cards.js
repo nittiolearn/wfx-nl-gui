@@ -9,7 +9,10 @@ function module_init() {
     .service('nlCardsSrv', CardsSrv)
     .filter('nlFilter', NlFilter)
     .directive('nlCards', CardsDirective)
-    .directive('nlCard', CardDirective);
+    .directive('nlCard', CardDirective)
+    .directive('nlCardTitle', CardTitleDirective)
+    .directive('nlCardImage', CardImageDirective)
+    .directive('nlCardDesc', CardDescDirective);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -186,6 +189,17 @@ function(nl, nlDlg) {
          }
     };
 }];
+
+//-------------------------------------------------------------------------------------------------
+var CardTitleDirective = [
+function() { return {restrict: 'E', templateUrl: 'lib_ui/cards/card-title.html'}; }];
+
+var CardImageDirective = [
+function() { return {restrict: 'E', templateUrl: 'lib_ui/cards/card-image.html'}; }];
+
+var CardDescDirective = [
+function() { return {restrict: 'E', templateUrl: 'lib_ui/cards/card-desc.html'}; }];
+
 //-------------------------------------------------------------------------------------------------
 module_init();
 })();

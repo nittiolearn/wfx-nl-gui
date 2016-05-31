@@ -1,0 +1,14 @@
+<div class='nl-card-desc'>
+    <ul ng-show='card.children.length>0' style='background-color2: green'>
+        <li ng-repeat='child in card.children' ng-if='$index < 4'>
+            <a ng-if='child.url' ng-href='{{child.url}}'>{{child.title}}</a>
+            <span ng-if='!child.url && child.internalUrl'
+            	  ng-click='onCardInternalUrlClicked(card, child.internalUrl)'
+            	  class='nl-clickable'>{{child.title}}
+            </span>
+            <span ng-if='!child.url && !child.internalUrl'>{{child.title}}</span>
+        </li>
+    </ul>
+    <div><b ng-if='card.children.length>4'>Click details for more</b></div>
+    <div ng-show='card.children.length==0' ng-bind-html='card.help'></div>
+</div>

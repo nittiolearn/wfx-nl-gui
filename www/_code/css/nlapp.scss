@@ -763,6 +763,16 @@ a.nl-card-img:hover, a.nl-card-img:focus {
   overflow: hidden;
 }
 
+.nl-card-fullDesc {
+  position: absolute;
+  top: 18%;
+  left: 2%;
+  height: 80%;
+  width: 96%;
+  font-size: 100%;
+}
+
+
 .nl-card-links {
   position: absolute;
   height: 10%;
@@ -798,7 +808,7 @@ a.nl-card-img:hover, a.nl-card-img:focus {
 }
 
 .nl-bg-blue {
-  background-color: rgba(178, 178, 255, 1);
+  background-color: rgba(178, 178, 255, 0.5);
 }
 
 //-----------------------------------------------------------------------------------------
