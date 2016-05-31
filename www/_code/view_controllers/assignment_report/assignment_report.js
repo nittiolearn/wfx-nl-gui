@@ -11,8 +11,8 @@ function module_init() {
   }
    
 //-------------------------------------------------------------------------------------------------
-var configFn = ['$stateProvider', '$urlRouterProvider', 'ChartJsProvider',
-function($stateProvider, $urlRouterProvider, ChartJsProvider) {
+var configFn = ['$stateProvider', '$urlRouterProvider',
+function($stateProvider, $urlRouterProvider) {
     $stateProvider.state('app.assignment_report', {
         url: '^/assignment_report',
         views: {
@@ -21,14 +21,9 @@ function($stateProvider, $urlRouterProvider, ChartJsProvider) {
                 controller: 'nl.AssignmentReportCtrl'
             }
         }});
-	_chartInfoInit(ChartJsProvider); 
 }];
 
-
-
 //-------------------------------------------------------------------------------------------------
-
-
 function TypeHandler(nl, nlServerApi) {
 	this.assignid = null;
 	
@@ -46,19 +41,6 @@ function TypeHandler(nl, nlServerApi) {
 		return nl.t('Assignment Report: {}', name);
 	};
 };
-
-function _chartInfoInit(ChartJsProvider) {
-    ChartJsProvider.setOptions({
-      colours: ['#0000FF', '#FF8A80'],
-      responsive: true,
-      maintainAspectRatio: false,
-      fullWidth: true
-    });
-    // Configure all line charts
-    ChartJsProvider.setOptions('Line', {
-      datasetFill: false
-    });
-}
 
 //-------------------------------------------------------------------------------------------------
 var AssignmentReportCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', '$templateCache',
@@ -210,7 +192,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 			url: null, 
 			style : 'nl-bg-blue' 
 		};
-		card2['help'] = $templateCache.get('view_controllers/assingment/score_chart.html');
+		card2['help'] = $templateCache.get('view_controllers/assignment_report/score_chart.html');
 		cards.push(card2);
 		var card3 = {
 			title : nl.t('Focus Students'),
@@ -332,7 +314,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 			assignmentShareDlg.scope.onSharedUserSelect = function(){
 				_showOuListDlg($scope, assignmentShareDlg, sharedUsersList);
 			};	
-			assignmentShareDlg.show('view_controllers/lesson_list/assignment_share_dlg.html', [updateButton], cancelButton, false);
+			assignmentShareDlg.show('view_controllers/assignment_report/assignment_share_dlg.html', [updateButton], cancelButton, false);
 		});
 	};
 
@@ -416,7 +398,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 			return alreadySharedUsers;
 		}
 		var cancelButton = {text : nl.t('Add')};
-		ouSelectionDlg.show('view_controllers/assingment/ou_selection_dlg.html',
+		ouSelectionDlg.show('view_controllers/assignment/ou_selection_dlg.html',
 			[], cancelButton, false);
 	}
 	
