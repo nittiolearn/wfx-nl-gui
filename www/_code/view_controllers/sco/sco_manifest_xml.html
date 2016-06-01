@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--This is derived from Reload version 1.1 SCORM 2004 Content Package document-->
+<!--Spawned from the Reload Content Package Generator - http://www.reload.ac.uk-->
+<manifest xmlns="http://www.imsglobal.org/xsd/imscp_v1p1"
+    xmlns:lom="http://ltsc.ieee.org/xsd/LOM"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_v1p3"
+    xmlns:imsss="http://www.imsglobal.org/xsd/imsss"
+    xmlns:adlseq="http://www.adlnet.org/xsd/adlseq_v1p3"
+    xmlns:adlnav="http://www.adlnet.org/xsd/adlnav_v1p3"
+    identifier="MANIFEST-5C9DB595-F6F5-0EE7-84F6-C16331FCABD2"
+    xsi:schemaLocation="http://www.imsglobal.org/xsd/imscp_v1p1 imscp_v1p1.xsd
+    http://ltsc.ieee.org/xsd/LOM lom.xsd
+    http://www.adlnet.org/xsd/adlcp_v1p3 adlcp_v1p3.xsd
+    http://www.imsglobal.org/xsd/imsss imsss_v1p0.xsd
+    http://www.adlnet.org/xsd/adlseq_v1p3 adlseq_v1p3.xsd
+    http://www.adlnet.org/xsd/adlnav_v1p3 adlnav_v1p3.xsd"
+    version="1.3">
+    <metadata>
+        <schema>
+            ADL SCORM
+        </schema>
+        <schemaversion>
+            2004 4th Edition
+        </schemaversion>
+        <lom xsi:schemaLocation="http://ltsc.ieee.org/xsd/LOM lom.xsd" xmlns="http://ltsc.ieee.org/xsd/LOM">
+            <lom:general>
+                <lom:title>
+                    <lom:string language="en">
+                        {{title}}
+                    </lom:string>
+                </lom:title>
+                <lom:description>
+                    <lom:string language="en">
+                        {{title}} - exported from Nittio Learn (https://www.nittiolearn.com)
+                    </lom:string>
+                </lom:description>
+            </lom:general>
+        </lom>
+    </metadata>
+    <organizations default="{{uuid}}.ORG">
+        <organization identifier="{{uuid}}.ORG" structure="hierarchical" adlcp:sharedDataGlobalToSystem="true">
+            <title>List of modules</title>
+            <item ng-repeat="module in modules"
+                  identifier="{{uuid}}.ITEM.{{$ngRepeat_module.id}}"
+                  identifierref="{{uuid}}.SCO.{{$ngRepeat_module.id}}" isvisible="true">
+                <title>{{$ngRepeat_module.name}}</title>
+            </item>
+        </organization>
+    </organizations>
+    <resources>
+        <!-- Common resources start -->
+        <resource identifier="{{uuid}}.SCRIPTS" type="webcontent" adlcp:scormType="asset">
+            <file ng-repeat='script in scripts' href="content/scripts/{{$ngRepeat_script.name}}"/>
+        </resource>
+        <!-- Common resources end -->
+        
+        <!-- Module specific resources start -->
+        <resource identifier="{{uuid}}.RES" type="webcontent" adlcp:scormType="asset">
+            <file ng-repeat='res in resources' href="content/resources/{{$ngRepeat_res.resid}}"/>
+        </resource>
+        <!-- Module specific resources end -->
+        
+        <!-- SCO start -->
+        <resource ng-repeat='module in modules'
+                  identifier="{{uuid}}.SCO.{{$ngRepeat_module.id}}" 
+                  href="content/modules/{{$ngRepeat_module.id}}.html" type="webcontent" adlcp:scormType="sco">
+            <file href="content/modules/{{$ngRepeat_module.id}}.html"/>
+            <dependency identifierref="{{uuid}}.RES" />
+        </resource>
+        <!-- SCO end -->
+    </resources>
+</manifest>
