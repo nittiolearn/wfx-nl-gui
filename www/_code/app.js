@@ -39,8 +39,8 @@ function _ignoreIfRightMouseUp(e) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var configFn = ['$stateProvider', '$urlRouterProvider', '$ionicConfigProvider',
-function($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
+var configFn = ['$stateProvider', '$urlRouterProvider', '$ionicConfigProvider', 'ChartJsProvider',
+function($stateProvider, $urlRouterProvider, $ionicConfigProvider, ChartJsProvider) {
     
     $ionicConfigProvider.views.transition('none');
     //$ionicConfigProvider.views.forwardCache(true);
@@ -62,7 +62,21 @@ function($stateProvider, $urlRouterProvider, $ionicConfigProvider) {
         templateUrl : 'applayout.html',
         controller : 'nl.AppCtrl'
     });
+	_chartInfoInit(ChartJsProvider); 
 }];
+
+function _chartInfoInit(ChartJsProvider) {
+    ChartJsProvider.setOptions({
+      colours: ['#0000FF', '#FF8A80'],
+      responsive: true,
+      maintainAspectRatio: false,
+      fullWidth: true
+    });
+    // Configure all line charts
+    ChartJsProvider.setOptions('Line', {
+      datasetFill: false
+    });
+}
 
 //-------------------------------------------------------------------------------------------------
 function onIonicReady() {

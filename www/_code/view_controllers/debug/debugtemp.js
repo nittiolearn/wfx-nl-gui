@@ -11,8 +11,8 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var configFn = ['$stateProvider', '$urlRouterProvider', 'ChartJsProvider',
-function($stateProvider, $urlRouterProvider, ChartJsProvider) {
+var configFn = ['$stateProvider', '$urlRouterProvider',
+function($stateProvider, $urlRouterProvider) {
     $stateProvider.state('app.debugtemp', {
         url : '^/debugtemp',
         views : {
@@ -22,7 +22,6 @@ function($stateProvider, $urlRouterProvider, ChartJsProvider) {
             }
         }
     });
-    _chartInfoInit(ChartJsProvider);
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -38,17 +37,6 @@ function(nl, nlRouter, $scope) {
     }
     nlRouter.initContoller($scope, '', _onPageEnter);
 }];
-
-function _chartInfoInit(ChartJsProvider) {
-    ChartJsProvider.setOptions({
-      colours: ['#FF5252', '#FF8A80'],
-      responsive: false
-    });
-    // Configure all line charts
-    ChartJsProvider.setOptions('Line', {
-      datasetFill: false
-    });
-}
 
 function ChartInfo(nl) {
     this.setChartInfo = function($scope) {

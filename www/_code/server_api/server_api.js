@@ -313,6 +313,24 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/assignment_send.json', data);		
 	};
 
+	this.assignmentReport = function(data){
+		//data = assignid
+		//assignment_reports
+		return server.post('_serverapi/assignment_get_reports.json', data);
+	};
+	
+	this.assignmentSharedUsers = function(data){
+		//data = repid
+		//assignment_shared_users
+		return server.post('_serverapi/assignment_shared_users.json', data);		
+	};
+
+	this.assignmentUpdateSharedUsers = function(data){
+		//data = repid, sharedUsers
+		//assignment_shared_users
+		return server.post('_serverapi/assignment_update_shared_users.json', data);		
+	};
+	
     //---------------------------------------------------------------------------------------------
 	// get group user entities
     //---------------------------------------------------------------------------------------------

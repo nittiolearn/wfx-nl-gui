@@ -66,7 +66,7 @@ function(nl, nlDlg, nlServerApi) {
 			selectedListDlg.scope.data.pagetitle = title;
 			selectedListDlg.scope.data.selectedlist = selectedList;
 			var cancelButton = {text : nl.t('Cancel')};
-			selectedListDlg.show('view_controllers/assingment/show_selected_users_dlg.html', [], cancelButton, false);
+			selectedListDlg.show('view_controllers/assignment/show_selected_users_dlg.html', [], cancelButton, false);
 		}
 		
 
@@ -116,7 +116,7 @@ function(nl, nlDlg, nlServerApi) {
 			 _onClickonSend(e, parentScope, sendAssignmentDlg);
 			}};
 		var cancelButton = {text : nl.t('Cancel')};
-		sendAssignmentDlg.show('view_controllers/assingment/send_assignment_dlg.html',
+		sendAssignmentDlg.show('view_controllers/assignment/send_assignment_dlg.html',
 			[sendButton], cancelButton, false);
     }
     
@@ -189,7 +189,7 @@ function(nl, nlDlg, nlServerApi) {
 				});
 			}};
 			var cancelButton = {text : nl.t('Close')};
-			sendAssignmentAfterConfirmDlg.show('view_controllers/assingment/confirm_before_send_dlg.html',
+			sendAssignmentAfterConfirmDlg.show('view_controllers/assignment/confirm_before_send_dlg.html',
 				[okButton], cancelButton, false);
     	}
     }
@@ -209,7 +209,7 @@ function(nl, nlDlg, nlServerApi) {
 				afterAssignmentSentDlg.close(false);
 				afterAssignmentSentDlg.destroy();
 			}};
-			afterAssignmentSentDlg.show('view_controllers/assingment/after_assignment_sent_dlg.html',
+			afterAssignmentSentDlg.show('view_controllers/assignment/after_assignment_sent_dlg.html',
 				[], cancelButton, false);
 	}
 
@@ -295,7 +295,7 @@ function(nl, nlDlg, nlServerApi) {
 			}
 			}};
 		var cancelButton = {text : nl.t('Cancel')};
-		ouSelectionDlg.show('view_controllers/assingment/ou_selection_dlg.html',
+		ouSelectionDlg.show('view_controllers/assignment/ou_selection_dlg.html',
 			[okButton], cancelButton, false);
     }
     
@@ -368,7 +368,7 @@ function(nl, nlDlg, nlServerApi) {
 			 } else {
 			 return nlDlg.popupAlert({title: nl.t('Alert message'), template:nl.t('Please select atleast one user')});}}};
 		var cancelButton = {text : nl.t('Cancel')};
-		ouUserSelectionDlg.show('view_controllers/assingment/ou_user_selection_dlg.html',
+		ouUserSelectionDlg.show('view_controllers/assignment/ou_user_selection_dlg.html',
 			[okButton], cancelButton, false);
     }
     

@@ -1,0 +1,7 @@
+<a ng-if='card.url' ng-href='{{card.url}}' class='nl-card-header'>{{card.title}}</a>
+<div ng-if='!card.url' class='nl-card-header'>
+	<span ng-if='card.internalUrl'
+		  ng-click='onCardInternalUrlClicked(card, card.internalUrl)'
+		  class='nl-clickable'>{{card.title}}</span>
+	<span ng-if='!card.internalUrl'>{{card.title}}</span>
+</div>
