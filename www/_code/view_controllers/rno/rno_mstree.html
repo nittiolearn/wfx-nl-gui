@@ -1,27 +1,36 @@
-<table class='nl-table nl-table-styled'>
+<div class='nl-dlg-field-name'>Show milestones for:</div>
+<div class='nl-dlg-field-value'>
+    <select ng-model='msTree.utOption'
+            ng-options='opt as opt.name for opt in msTree.utOptions track by opt.id'
+            ng-change='msTree.onUserTypeChanged()'>
+    </select>
+</div>
+<div style='height: 10px'></div>
+<table class='nl-rno-table'>
     <tr><th>Milestone</th><th>Ratings</th></tr>
-    <tr ng-repeat='ms in msTree.getItems()' ng-show='ms.isShown'>
-        <th ng-if='ms.isFolder' style='padding-left: {{4+ms.indentation*8}}px;'
-            class='nl-clickable'
+    <tr ng-repeat='ms in msTree.items'
+        ng-show='ms.isShown && (msTree.utOption.id == "all" || ms.isFolder || ms.usertype == msTree.utOption.id || ms.selectCnt > 0)'
+        class='nl-rno-{{ms.indentation}}'>
+        <td ng-class='{"nl-clickable2": ms.isFolder}'
             ng-click='msTree.onFolderClick(ms)'>
-            {{ms.text}}
-        </th>
-        <td ng-if='!ms.isFolder' style='padding-left: {{4+ms.indentation*8}}px;'>
-            {{ms.text}}
+            <div style='padding-left: {{ms.indentation*8}}px'>
+                <span ng-show='ms.usertype && msTree.utOption.id != ms.usertype'>{{ms.usertype}}:</span>
+                <span>{{ms.text}}</span>
+            </div>
         </td>
-        <th ng-if='ms.isFolder' class='nl-dlg-field-value'>
-            <div style='padding: 4px'>
-            <span ng-class="{'nl-clickable': ms.selectCnt>0}"
+        <td ng-if='ms.isFolder' class='nl-dlg-field-value'>
+            <div>
+            <span ng-class="{'nl-clickable2': ms.selectCnt>0}"
                   ng-click='msTree.showFiltered(ms, true)'>{{ms.selectCnt}} rated</span>
-            <span ng-if='purpose=="rating"'
-                  ng-class="{'nl-clickable': ms.deselectCnt>0}"
-                  ng-click='msTree.showFiltered(ms, false)'>{{ms.deselectCnt}}, not rated.</span>
+            <span ng-if='purpose=="rating-MUNNI"'
+                  ng-class="{'nl-clickable2': ms.deselectCnt>0}"
+                  ng-click='msTree.showFiltered(ms, false)'>{{ms.deselectCnt}} not rated.</span>
             </div>
             <select ng-if='purpose=="rating" && ms.ratingOverride' ng-model='ms.ratingOverride'
                     ng-options='opt as opt.name for opt in options.rating track by opt.id'
                     ng-change='msTree.onOverrideRating(ms)'>
             </select>
-        </th>
+        </td>
         <td ng-if='!ms.isFolder' class='nl-dlg-field-value'>
             <select ng-model='ms.rating'
                     ng-options='opt as opt.name for opt in options.rating track by opt.id'

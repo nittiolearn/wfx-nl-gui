@@ -352,7 +352,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
             if (!_validateAfterShrinkingDone(_file, fileInfo.restype)) {
                 compInfo.status = nl.fmt2('You cannot upload a {} file greater than {} MB.',
                     fileInfo.restype, _restypeToMaxFileSize[fileInfo.restype]/1024/1024);
-                if (fileInfo.restype == 'Image') compInfo.status += ' You may try using "High compression".';
+                if (fileInfo.restype == 'Image') compInfo.status += ' Please try uploading image with lesser resolution.';
                 reject(compInfo.status);
                 return;
             }

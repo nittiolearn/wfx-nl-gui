@@ -163,14 +163,14 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 	}
 	
     function _getCardIcon(rno) {
-        return rno.image || nl.url.resUrl('user.png');
+        return rno.config.image || nl.url.resUrl('user.png');
     }
     
 	function _createCard(rno) {
 		_rnoDict[rno.id] = rno;
-		if (!rno.data) rno.data = {};
+		_updateJsonFields(rno);
 	    var card = {rnoId: rno.id,
-	                title: nl.fmt2('{} {}', rno.first_name, rno.last_name), 
+	                title: nl.fmt2('{} {}', rno.config.first_name, rno.config.last_name), 
 					icon: _getCardIcon(rno), 
                     internalUrl: 'rno_observe',
 					help: '',
@@ -209,17 +209,27 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 
 		return card;
 	}
+
+    function _updateJsonFields(rno) {
+        rno.data = rno.data ? angular.fromJson(rno.data) : {};
+        rno.config = rno.config ? angular.fromJson(rno.config) : {};
+	}
 	
+    function  _getRnoUserModelAvps(rno, avps) {
+        var um = _pageGlobals.metadata.user_model;
+        if ('first_name' in um)
+            nl.fmt.addAvp(avps, um.first_name.title, rno.config.first_name);
+        if ('last_name' in um)
+            nl.fmt.addAvp(avps, um.last_name.title, rno.config.last_name);
+        if ('email' in um)
+            nl.fmt.addAvp(avps, um.email.title, rno.config.email);
+        if ('user_type' in um)
+            nl.fmt.addAvp(avps, um.user_type.title, rno.config.user_type);
+    }
+    
 	function  _getRnoAvps(rno) {
 		var avps = [];
-		if ('first_name' in _pageGlobals.metadata.user_model)
-            nl.fmt.addAvp(avps, _pageGlobals.metadata.user_model.first_name.title, rno.first_name);
-        if ('last_name' in _pageGlobals.metadata.user_model)
-            nl.fmt.addAvp(avps, _pageGlobals.metadata.user_model.last_name.title, rno.last_name);
-        if ('email' in _pageGlobals.metadata.user_model)
-            nl.fmt.addAvp(avps, _pageGlobals.metadata.user_model.email.title, rno.email);
-        if ('user_type' in _pageGlobals.metadata.user_model)
-            nl.fmt.addAvp(avps, _pageGlobals.metadata.user_model.user_type.title, rno.user_type);
+		_getRnoUserModelAvps(rno, avps);
         nl.fmt.addAvp(avps, 'Created by', rno.authorname);
 		nl.fmt.addAvp(avps, 'Updated by', rno.updated_by_name);
         nl.fmt.addAvp(avps, 'Observed by', rno.observername);
@@ -256,21 +266,20 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         modifyDlg.scope.error = {};
         modifyDlg.scope.model = _pageGlobals.metadata.user_model;
         modifyDlg.scope.options = {user_type: _getUserTypeOptions()};
+        modifyDlg.scope.role = _pageGlobals.role;
 		if (rnoId !== null) {
 			var rno = _rnoDict[rnoId];
-            var utOption = {id: rno.user_type};
+            var utOption = {id: rno.config.user_type};
 			modifyDlg.scope.dlgTitle = nl.t('Modify properties');
-			modifyDlg.scope.data = {first_name: rno.first_name, last_name: rno.last_name, 
-									user_type: utOption, email: rno.email, image: rno.image,
+			modifyDlg.scope.data = {first_name: rno.config.first_name, last_name: rno.config.last_name, 
+									user_type: utOption, email: rno.config.email, image: rno.config.image,
 									observer: rno.observerid,
 									reviewer: rno.reviewerid};
-            modifyDlg.scope.isRnoAdmin = (rno.author == _pageGlobals.userInfo.userid);
 		} else {
 			modifyDlg.scope.dlgTitle = nl.t('Create new');
 			modifyDlg.scope.data = {first_name: '', last_name: '', 
                                     user_type: '', email: '', image: '',
                                     observer: _pageGlobals.userInfo.username, reviewer: _pageGlobals.userInfo.username};
-            modifyDlg.scope.isRnoAdmin = true;
 		}
 		
 		var buttons = [];
@@ -293,13 +302,17 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 	        return;
 	    }
 		nlDlg.showLoadingScreen();
-		var modifiedData = {
-		    metadata: _pageGlobals.metadataId,
+		var config = {
             first_name: modifyDlg.scope.data.first_name, 
             last_name: modifyDlg.scope.data.last_name, 
             user_type: modifyDlg.scope.data.user_type.id, 
             email: modifyDlg.scope.data.email, 
             image: modifyDlg.scope.data.image
+		};
+		var modifiedData = {
+		    metadata: _pageGlobals.metadataId,
+		    config: angular.toJson(config),
+		    role: _pageGlobals.role
 		};
 		if (_pageGlobals.role == 'admin') {
             modifiedData.observer = modifyDlg.scope.data.observer;
@@ -349,11 +362,11 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 		} else {
 			rno.id = uniqueId++;
 		}
-        rno.first_name  = modifiedData.first_name;
-        rno.last_name  = modifiedData.last_name;
-        rno.user_type  = modifiedData.user_type;
-        rno.email  = modifiedData.email;
-        rno.image  = modifiedData.image;
+        rno.config.first_name  = modifiedData.first_name;
+        rno.config.last_name  = modifiedData.last_name;
+        rno.config.user_type  = modifiedData.user_type;
+        rno.config.email  = modifiedData.email;
+        rno.config.image  = modifiedData.image;
 	}
 
 	function _getCardPosition(rnoId) {
@@ -370,7 +383,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         var template = 'view_controllers/rno/rno_report_dlg.html';
         dlg.setCssClass('nl-height-max nl-width-max');
 
-        dlg.scope.dlgTitle = nl.t('Edit report: {} {}', rno.first_name, rno.last_name);
+        dlg.scope.dlgTitle = nl.t('Edit report: {} {}', rno.config.first_name, rno.config.last_name);
         dlg.scope.rno = rno;
         dlg.scope.purpose = 'rating';
         _togglePreviewMode(dlg.scope);
@@ -384,7 +397,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
             obsSelected.push(dlg.scope.observations[i].selected);
         }
         
-        dlg.scope.msTree = new MsTree(nl, _pageGlobals.metadata.milestones, rno.user_type, ratings, _getRatingDict(), null);
+        dlg.scope.msTree = new MsTree(nl, _pageGlobals.metadata.milestones, rno.config.user_type, ratings, _getRatingDict(), null);
         
         var reportInfo = _getReportInfo(rno);
         dlg.scope.options = {year: _getYearOptions(), term: _getTermOptions(), rating: _getRatingOptions()};
@@ -476,7 +489,8 @@ function RnoServer(nl, nlServerApi, nlDlg) {
         if (!(rno.id in saveStatus)) saveStatus[rno.id] = {saveSent: 0, saved: 0};
         saveStatus[rno.id].saveSent++;
         var saveNumber = saveStatus[rno.id].saveSent;
-        return nlServerApi.rnoUpdateData(rno.id, rno.data).then(function(updatedRno) {
+        var data = angular.toJson(rno.data);
+        return nlServerApi.rnoUpdateData(rno.id, data).then(function(updatedRno) {
             nlDlg.hideLoadingScreen();
             if (saveNumber > saveStatus[rno.id].saved) saveStatus[rno.id].saved = saveNumber;
         });
@@ -491,12 +505,12 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
         dlg.setCssClass('nl-width-max nl-height-max');
 
         var title = (observationId !== null) ? nl.t('Modify observation') : nl.t('New observation');
-        dlg.scope.dlgTitle = nl.t('{}: {} {}', title, rno.first_name, rno.last_name);
+        dlg.scope.dlgTitle = nl.t('{}: {} {}', title, rno.config.first_name, rno.config.last_name);
 
         var observations = _getObservations(rno);
         var o = (observationId !== null) ? observations[observationId] : {};
         var ratings = o.ratings || {};
-        dlg.scope.msTree = new MsTree(nl, _pageGlobals.metadata.milestones, rno.user_type, ratings, _getRatingDict(), null);
+        dlg.scope.msTree = new MsTree(nl, _pageGlobals.metadata.milestones, rno.config.user_type, ratings, _getRatingDict(), null);
         dlg.scope.options = {rating: _getRatingOptions()};
         dlg.scope.purpose = 'observation';
         
@@ -529,7 +543,7 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
 
     function _onObservationSave(rno, scope, observationId) {
         nlDlg.showLoadingScreen();
-        nlResourceUploader.uploadInSequence(scope.data.newAttachments)
+        nlResourceUploader.uploadInSequence(scope.data.newAttachments, '', 'high')
         .then(function resolve(resInfos) {
             _onResourcesUploaded(rno, scope, observationId, resInfos);
         }, function reject(msg) {
@@ -595,7 +609,7 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
         var self = this;
         var dlg = nlDlg.create($scope);
         dlg.setCssClass('nl-width-max nl-height-max');
-        dlg.scope.dlgTitle = nl.t('Manage observations: {} {}', rno.first_name, rno.last_name);
+        dlg.scope.dlgTitle = nl.t('Manage observations: {} {}', rno.config.first_name, rno.config.last_name);
         dlg.scope.observations = _getObservations(rno);
         dlg.scope.canDelete = _pageGlobals.enableDelete;
         var cancelButton = {text : nl.t('Close')};
@@ -626,12 +640,15 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
 
 //-------------------------------------------------------------------------------------------------
 function MsTree(nl, milestones, usertype, ratings, ratingDict, defaultRating) {
+    this.utOptions = _getUserTypeOptions();
+    this.utOptions.unshift({name: 'All', id: 'all'});
+    this.utOption = {id: usertype};
     this.idToPos = {};
     this.items = [];
     _init(this);
     
-    this.getItems = function() {
-        return this.items;
+    this.onUserTypeChanged = function() {
+        // Nothing to do
     };
     
     this.getSelectedRatings = function() {
@@ -645,7 +662,7 @@ function MsTree(nl, milestones, usertype, ratings, ratingDict, defaultRating) {
     };
     
     this.onFolderClick = function(folder) {
-        if (!folder.isFolder) reuturn;
+        if (!folder.isFolder) return;
         folder.isFolderOpen = !folder.isFolderOpen;
         for(var i=0; i<this.items.length; i++) {
             var item = this.items[i];
@@ -709,7 +726,7 @@ function MsTree(nl, milestones, usertype, ratings, ratingDict, defaultRating) {
             ratingOverride: ratingOverride});
         for (var i=0; i<milestones.length; i++) {
             var m = milestones[i];
-            if (m.usertype != usertype) continue;
+            //if (m.usertype != usertype) continue;
             var g1Id = nl.fmt2('{}.{}', rootName, m.group1);
             if (!(g1Id in self.idToPos)) {
                 var ratingOverride = {id: null, name: ''};
@@ -732,7 +749,8 @@ function MsTree(nl, milestones, usertype, ratings, ratingDict, defaultRating) {
             var mid = nl.fmt2('{}.{}', g2Id, m.id);
             _addItem(self, {id: mid, text: m.name, parent: g2Id,
                 isShown: false, isFolder: false, indentation: 3,
-                milestone: m.id, rating: rating, selectCnt: 0, deselectCnt: 0});
+                milestone: m.id, rating: rating, selectCnt: 0, deselectCnt: 0,
+                usertype: m.usertype});
         }
     }
     

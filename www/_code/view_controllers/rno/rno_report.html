@@ -1,8 +1,8 @@
 <div class='row'>
     <div class='col'>
         <table class='nl-table nl-table-styled'>
-            <tr><td class='nl-dlg-field-name'>Name</td><td>{{rno.first_name}} {{rno.last_name}}</td></tr>
-            <tr><td class='nl-dlg-field-name'>{{user_model.user_type.title}}</td><td>{{rno.user_type}}</td></tr>
+            <tr><td class='nl-dlg-field-name'>Name</td><td>{{rno.config.first_name}} {{rno.config.last_name}}</td></tr>
+            <tr><td class='nl-dlg-field-name'>{{user_model.user_type.title}}</td><td>{{rno.config.user_type}}</td></tr>
             <tr>
                 <td class='nl-dlg-field-name'>Academic year</td>
                 <td ng-if="mode!='preview'" class='nl-dlg-field-value'>

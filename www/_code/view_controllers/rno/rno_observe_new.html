@@ -4,7 +4,8 @@
     </nl-dlg-help>
     <nl-dlg-content>
         <nl-rno-mstree></nl-rno-mstree>
-        <div class='nl-dlg-field-name'>Evidences:</div>
+        <div style='height: 10px'></div>
+        <div class='nl-dlg-field-name padding-top'>Evidences:</div>
 
         <div ng-repeat='attachment in data.currentAttachments'
              class='nl-thumbnail-container'
@@ -23,8 +24,10 @@
         <nl-resource-upload fieldmodel='newAttachments' 
             multiple='true' restype='Image'>
         </nl-resource-upload>
+        <div style='height: 10px'></div>
         <div class='nl-dlg-field-name'>Observation:</div>
         <nl-textarea fieldmodel='text'></nl-textarea>
+        <div style='height: 10px'></div>
         <div class='nl-dlg-field-name'>Future notes:</div>
         <nl-textarea fieldmodel='notes'></nl-textarea>
     </nl-dlg-content>

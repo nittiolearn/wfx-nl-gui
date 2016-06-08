@@ -249,13 +249,13 @@ function(nl, nlDlg, nlConfig, Upload) {
     };
 
     this.rnoCreate = function(data) {
-        // data: metadata, first_name, last_name, email, user_type, image, observer, reviewer
+        // data: metadata, config (first_name, last_name, email, user_type, image, ...), observer, reviewer
         // return: rno object
         return server.post('_serverapi/rno_create.json', data);
     };
 
     this.rnoModify = function(data) {
-        // data: id, metadata, first_name, last_name, email, user_type, image, observer, reviewer
+        // data: id, metadata, config (first_name, last_name, email, user_type, image, ...), observer, reviewer
         // return: modified rno object
         return server.post('_serverapi/rno_modify.json', data);
     };
