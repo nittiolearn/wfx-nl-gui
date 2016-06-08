@@ -621,6 +621,8 @@ function ClientSideTemplate(templateName, chain) {
 	function _getTemplate() {
 		var ajax = new njs_helper.AjaxInChain(chain);
 		var url = fmt2('/default/client_templ.json/{}/{}', nittio.getStaticVersion(), templateName);
+		if (njs_scorm.isStandalone()) 
+		  url = fmt2('res/static/html/{}.json', templateName);
 		ajax.send(url, {});
 	}
 	

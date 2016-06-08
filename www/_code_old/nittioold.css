@@ -256,6 +256,10 @@ input[type="file"] {
 	opacity: 0;
 }
 
+.embedded_player .body, .embedded_player .toolBar {
+  top: 5px;
+}
+
 .inner_body {
 	position: absolute;
 	top: 0;

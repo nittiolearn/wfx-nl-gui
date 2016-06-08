@@ -271,6 +271,14 @@ function(nl, nlDlg, nlConfig, Upload) {
     };
 
     //---------------------------------------------------------------------------------------------
+    // SCO Module (SCORM)
+    //---------------------------------------------------------------------------------------------
+    this.scoExport = function(data) {
+        // return: lesson html and list of resources
+        return server.post('_serverapi/sco_export.json', data);
+    };
+    
+    //---------------------------------------------------------------------------------------------
 	// assignment desk list entities
     //---------------------------------------------------------------------------------------------
     this.assignmentGetMyList = function(data) {

@@ -202,6 +202,7 @@ nlesson = function() {
 			po.init(this.oLesson.pages[i], this.bgimg);
 			this.pages.push(po);
 		}
+		njs_scorm.initLesson(this.oLesson);
 		this.pendingTimer = new njs_lesson_helper.PendingTimer();
 		this.pendingTimer.updateIfNeeded(this);
 		_Lesson_setupAutoSave(this);
@@ -527,6 +528,10 @@ nlesson = function() {
 	function _Lesson_submitReport(lesson, ajaxUrl, redirUrl) {
 		_Lesson_saveInternal(lesson, ajaxUrl, function(data, isError) {
 			if (isError) return;
+			if (njs_scorm.isEmbedded()) {
+			    jQuery('body').html('<h1>Submitted successfully. Please close this window now.</h1>');
+			    return;
+			}
 			nittio.redirDelay(redirUrl, 1000, true);
 		}, false, true);
 	}
@@ -579,6 +584,10 @@ nlesson = function() {
 			return false;
 		}
 		
+		if (njs_scorm.saveLesson(ajaxUrl, ajaxParams)) {
+            if (onCompleteFn) onCompleteFn(null, false);
+            return true;
+		}
 		syncManager.postToServer(ajaxUrl, ajaxParams, true, backgroundTask, function(data, isError) {
 			if (!isError) {
 				lesson.lastSavedContent = ajaxParams.content;

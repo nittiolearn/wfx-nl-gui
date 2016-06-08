@@ -206,7 +206,7 @@ function Permission(nl) {
         '/searchlist': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         '/searchlist_view': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
         '/rno_list': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
-        '/sco': {login: true, permission: 'admin_group', termRestriction: TR_CLOSED},
+        '/sco_export': {login: true, permission: 'admin_group', termRestriction: TR_CLOSED},
 		'/assignment': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},		
         '/lesson_list': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},        
         '/player': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},        
