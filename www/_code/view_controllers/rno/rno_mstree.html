@@ -1,41 +1,57 @@
-<div class='nl-dlg-field-name'>Show milestones for:</div>
-<div class='nl-dlg-field-value'>
-    <select ng-model='msTree.utOption'
-            ng-options='opt as opt.name for opt in msTree.utOptions track by opt.id'
-            ng-change='msTree.onUserTypeChanged()'>
-    </select>
+<div class='row row-wrap margin0 padding0'>
+    <div class='nl-dlg-field-name' ng-class='respCol331'>Milestone filters:</div>
+    <div class='nl-dlg-field-value' ng-class='respCol331'>
+        <select ng-model='msTree.utOption'
+                ng-options='opt as opt.name for opt in msTree.utOptions track by opt.id'>
+        </select>
+    </div>
+    <div class='nl-dlg-field-value' ng-class='respCol331'>
+        <select ng-model='msTree.ratingFilterOption'
+                ng-options='opt as opt.name for opt in msTree.ratingFilterOptions track by opt.id'
+                ng-change='msTree.expandAll()'>
+        </select>
+    </div>
 </div>
 <div style='height: 10px'></div>
-<table class='nl-rno-table'>
-    <tr><th>Milestone</th><th>Ratings</th></tr>
-    <tr ng-repeat='ms in msTree.items'
-        ng-show='ms.isShown && (msTree.utOption.id == "all" || ms.isFolder || ms.usertype == msTree.utOption.id || ms.selectCnt > 0)'
-        class='nl-rno-{{ms.indentation}}'>
-        <td ng-class='{"nl-clickable2": ms.isFolder}'
-            ng-click='msTree.onFolderClick(ms)'>
-            <div style='padding-left: {{ms.indentation*8}}px'>
-                <span ng-show='ms.usertype && msTree.utOption.id != ms.usertype'>{{ms.usertype}}:</span>
-                <span>{{ms.text}}</span>
-            </div>
-        </td>
-        <td ng-if='ms.isFolder' class='nl-dlg-field-value'>
-            <div>
-            <span ng-class="{'nl-clickable2': ms.selectCnt>0}"
-                  ng-click='msTree.showFiltered(ms, true)'>{{ms.selectCnt}} rated</span>
-            <span ng-if='purpose=="rating-MUNNI"'
-                  ng-class="{'nl-clickable2': ms.deselectCnt>0}"
-                  ng-click='msTree.showFiltered(ms, false)'>{{ms.deselectCnt}} not rated.</span>
-            </div>
-            <select ng-if='purpose=="rating" && ms.ratingOverride' ng-model='ms.ratingOverride'
+
+<div ng-repeat='ms in msTree.items'
+     ng-show='msTree.canShowItem(ms)'
+     class='row row-wrap row-center nl-rno-{{ms.indentation}} margin0 padding0'>
+
+    <div class='col'
+         ng-show='ms.indentation == 0'>
+        <div class='nl-clickable nl-rno-size-1' 
+             ng-click='msTree.onRootFolderClick(ms)'>{{ms.text}}</div>
+    </div>
+
+    <div class='col'
+         ng-show='ms.indentation > 0'
+         ng-class='{"nl-clickable2": ms.isFolder}'
+         ng-click='msTree.onFolderClick(ms)'>
+        <div style='padding-left: {{ms.indentation*8}}px'>
+            <span ng-show='ms.usertype && msTree.utOption.id != ms.usertype'>{{ms.usertype}}:</span>
+            <span>{{ms.text}}</span>
+        </div>
+    </div>
+
+    <div ng-if='ms.isFolder'
+         class='col col-20 nl-dlg-field-value'>
+        <span>{{ms.selectCnt}} rated</span>
+        <div ng-if='purpose=="rating" && ms.indentation == 0'
+             class='nl-dlg-field-value'>
+            <select ng-if='purpose=="rating"' ng-model='msTree.ratingOverride'
                     ng-options='opt as opt.name for opt in options.rating track by opt.id'
                     ng-change='msTree.onOverrideRating(ms)'>
             </select>
-        </td>
-        <td ng-if='!ms.isFolder' class='nl-dlg-field-value'>
-            <select ng-model='ms.rating'
-                    ng-options='opt as opt.name for opt in options.rating track by opt.id'
-                    ng-change='msTree.onRatingChange(ms)'>
-            </select>
-        </td>
-    </tr>
-</table>
+        </div>
+    </div>
+
+    <div ng-if='!ms.isFolder' 
+         class='col col-20 nl-dlg-field-value'>
+        <select ng-model='ms.rating'
+                ng-options='opt as opt.name for opt in options.rating track by opt.id'
+                ng-change='msTree.onRatingChange(ms)'>
+        </select>
+    </div>
+
+</div>

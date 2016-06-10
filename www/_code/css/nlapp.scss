@@ -1115,26 +1115,25 @@ img.nl-icon {
   }
 }
 
-.nl-rno-0 {
-  font-size: 140%;
-  font-weight: 900;
-  background-color: #DDDDEE;
+.nl-rno-0, .nl-rno-2 {
+  background-color: #BBBBFF;
 }
 
 .nl-rno-1 {
+  background-color: #CCCCFF;
+}
+
+.nl-rno-size-0 {
   font-size: 140%;
-  background-color: #EEEEFF;
+  font-weight: 900;
 }
 
-.nl-rno-2 {
+.nl-rno-size-1 {
+  font-size: 140%;
+}
+
+.nl-rno-size-2 {
   font-size: 120%;
-  background-color: #DDDDEE;
-}
-
-.nl-rno-3 {
-}
-
-.nl-rno-rating {
 }
 
 /*-----------------------------------------------------------------------------------------*

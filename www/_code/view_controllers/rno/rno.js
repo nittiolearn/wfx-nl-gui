@@ -79,6 +79,10 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
     $scope.onCardInternalUrlClicked = function(card, internalUrl) {
 		if (internalUrl === 'rno_create') {
 			_createOrModifyRno($scope, null);
+        } else if (internalUrl === 'rno_modify') {
+            _createOrModifyRno($scope, card.rnoId);
+        } else if (internalUrl === 'rno_delete') {
+            _deleteRno($scope, card.rnoId);
         } else if (internalUrl === 'rno_observe') {
             var rno = _rnoDict[card.rnoId];
             _observationManager.createOrModifyObservation($scope, rno, null);
@@ -91,12 +95,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 		}
     };
 
-	$scope.onCardLinkClicked = function(card, linkid) {
-		if (linkid === 'rno_modify') {
-			_createOrModifyRno($scope, card.rnoId);
-		} else if (linkid === 'rno_delete') {
-			_deleteRno($scope, card.rnoId);
-		}
+	$scope.onCardLinkClicked = function(card, internalUrl) {
+	    $scope.onCardInternalUrlClicked(card, internalUrl);
 	};
 
     $scope.onAttachementShow = function(attachment, pos) {
@@ -169,15 +169,16 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 	function _createCard(rno) {
 		_rnoDict[rno.id] = rno;
 		_updateJsonFields(rno);
+		var internalUrl = (_pageGlobals.role == 'admin') ? 'rno_modify' : 
+		  (_pageGlobals.role == 'review') ? 'rno_report' : 'rno_observe';
 	    var card = {rnoId: rno.id,
 	                title: nl.fmt2('{} {}', rno.config.first_name, rno.config.last_name), 
 					icon: _getCardIcon(rno), 
-                    internalUrl: 'rno_observe',
+                    internalUrl: internalUrl,
 					help: '',
 					children: [], links: []};
-        card.links.push({id: 'rno_modify', text: nl.t('modify')});
-        if (_pageGlobals.role == 'admin') {
-            card.links.push({id: 'rno_delete', text: nl.t('delete')});
+        if (_pageGlobals.role != 'admin') {
+            card.links.push({id: 'rno_modify', text: nl.t('modify')});
         }
         card.links.push({id: 'details', text: nl.t('details')});
 		card.details = {help: card.help, avps: _getRnoAvps(rno)};
@@ -199,14 +200,21 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
                         internalUrl: 'rno_review',
                         children: [], links: []};
             // card.children.push(link); TODO-MUNNI - commented out for now
-        } else {
-            var link = {title: nl.t('View report'), 
+        } else if (_pageGlobals.role == 'review') {
+            var link = {title: nl.t('Review report'), 
                         internalUrl: 'rno_report',
                         children: [], links: []};
             card.children.push(link);
+        } else {
+            var link = {title: nl.t('Modify'), 
+                        internalUrl: 'rno_modify',
+                        children: [], links: []};
+            card.children.push(link);
+            link = {title: nl.t('Delete'), 
+                        internalUrl: 'rno_delete',
+                        children: [], links: []};
+            card.children.push(link);
         }
-
-
 		return card;
 	}
 
@@ -397,7 +405,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
             obsSelected.push(dlg.scope.observations[i].selected);
         }
         
-        dlg.scope.msTree = new MsTree(nl, _pageGlobals.metadata.milestones, rno.config.user_type, ratings, _getRatingDict(), null);
+        dlg.scope.msTree = new MsTree(nl, nlDlg, _pageGlobals.metadata.milestones, rno.config.user_type, ratings, _getRatingDict(), null);
         
         var reportInfo = _getReportInfo(rno);
         dlg.scope.options = {year: _getYearOptions(), term: _getTermOptions(), rating: _getRatingOptions()};
@@ -474,7 +482,7 @@ function RnoServer(nl, nlServerApi, nlDlg) {
             if (!('createCardIcon' in _pageGlobals.metadata))
                 _pageGlobals.metadata.createCardIcon = nl.url.resUrl('new_user.png');
             if (!('createCardHelp' in _pageGlobals.metadata))
-                _pageGlobals.metadata.createCardHelp = nl.t('Create a new rating and observation log for a user by clicking on this card.');
+                _pageGlobals.metadata.createCardHelp = nl.t('Create a rating and observation log for a new user by clicking on this card.');
 
             onDone();
         }, function(reason) {
@@ -510,7 +518,7 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
         var observations = _getObservations(rno);
         var o = (observationId !== null) ? observations[observationId] : {};
         var ratings = o.ratings || {};
-        dlg.scope.msTree = new MsTree(nl, _pageGlobals.metadata.milestones, rno.config.user_type, ratings, _getRatingDict(), null);
+        dlg.scope.msTree = new MsTree(nl, nlDlg, _pageGlobals.metadata.milestones, rno.config.user_type, ratings, _getRatingDict(), null);
         dlg.scope.options = {rating: _getRatingOptions()};
         dlg.scope.purpose = 'observation';
         
@@ -639,17 +647,25 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function MsTree(nl, milestones, usertype, ratings, ratingDict, defaultRating) {
-    this.utOptions = _getUserTypeOptions();
-    this.utOptions.unshift({name: 'All', id: 'all'});
+function MsTree(nl, nlDlg, milestones, usertype, ratings, ratingDict, defaultRating) {
+    var rootName = '_root';
+
+    usertype = _userTypeToMilestoneUsertype(usertype);
+    this.utOptions = _getMilestoneUserTypeOptions();
+    this.utOptions.unshift({name: 'All clusters', id: 'all'});
     this.utOption = {id: usertype};
+
+    this.ratingFilterOptions = [
+        {id: 'all', name: 'All milestones'},
+        {id: 'rated', name: 'Rated milestones'},
+        {id: 'unrated', name: 'Unrated milestones'}];
+    this.ratingFilterOption = {id: 'all'};
+
+    this.ratingOverride = {id: null, name: ''};
+
     this.idToPos = {};
     this.items = [];
     _init(this);
-    
-    this.onUserTypeChanged = function() {
-        // Nothing to do
-    };
     
     this.getSelectedRatings = function() {
         var ratings = {};
@@ -659,6 +675,35 @@ function MsTree(nl, milestones, usertype, ratings, ratingDict, defaultRating) {
             ratings[item.milestone] = item.rating.id;
         }
         return ratings;
+    };
+
+    this.canShowItem = function(ms) {
+        if (ms.indentation == 0) return true;
+        return ms.isShown && (ms.isFolder || ms.usertype == this.utOption.id
+            || this.utOption.id == 'all' || ms.selectCnt > 0) 
+            && (this.ratingFilterOption.id == 'all' || 
+            (this.ratingFilterOption.id == 'rated' && ms.selectCnt > 0) ||
+            (this.ratingFilterOption.id == 'unrated' && ms.deselectCnt > 0));
+    }
+    
+    this.expandedAll = false;    
+    this.onRootFolderClick = function(folder) {
+        if (this.expandedAll) {
+            this.expandedAll = false;
+            folder.isFolderOpen = false;
+            this.onFolderClick(folder);
+            return;
+        }
+        this.expandAll();
+    };
+
+    this.expandAll = function() {
+        this.expandedAll = true;
+        for(var i=0; i<this.items.length; i++) {
+            var item = this.items[i];
+            item.isShown = true;
+            if (item.isFolder) item.isFolderOpen = true;
+        }
     };
     
     this.onFolderClick = function(folder) {
@@ -677,23 +722,6 @@ function MsTree(nl, milestones, usertype, ratings, ratingDict, defaultRating) {
         }
     };
 
-    this.showFiltered = function(folder, showSelected) {
-        if (!folder.isFolder) reuturn;
-        for(var i=0; i<this.items.length; i++) {
-            var item = this.items[i];
-            if (_isAnsistor(item, folder)) continue;
-            if (_isAnsistor(folder, item)) {
-                if (showSelected && item.selectCnt > 0 || !showSelected && item.deselectCnt> 0) {
-                    item.isShown = true;
-                    if (item.isFolder) item.isFolderOpen = true;
-                    continue;
-                }
-            }
-            item.isShown = false;
-            if (item.isFolder) item.isFolderOpen = false;
-        }
-    };
-
     this.onRatingChange = function(ms) {
         if (ms.rating.id && ms.selectCnt == 0) {
             _changeSelectCnt(this, ms.id, 1);
@@ -702,46 +730,52 @@ function MsTree(nl, milestones, usertype, ratings, ratingDict, defaultRating) {
         }
     };
 
-    this.onOverrideRating = function(ms) {
+    this.onOverrideRating = function() {
+        var updatedItems = [];
         var self = this;
-        if (!ms.ratingOverride.id) return;
+        if (!self.ratingOverride.id) return;
         for(var i=0; i<self.items.length; i++) {
             var item = self.items[i];
-            if (ms.id == item.id) continue;
             if (item.isFolder) continue;
-            if (!_isAnsistor(ms, item)) continue;
-
-            item.rating = {id: ms.ratingOverride.id, name: ms.ratingOverride.name};
+            if (!self.canShowItem(item)) continue;
+            
+            item.rating = {id: self.ratingOverride.id, name: self.ratingOverride.name};
             self.onRatingChange(item);
+            updatedItems.push(item);
         }
-        ms.ratingOverride = {id: null, name: ''};
+        var appliedRating = self.ratingOverride.name;
+        self.ratingOverride = {id: null, name: ''};
+        if (updatedItems.length == 0) {
+            nlDlg.popupAlert({title: 'No update done',
+                template: 'Bulk update is performed on visible milestones only.'});
+            return;
+        }
+        var msg = nl.fmt2('<h4>Applied the rating <b>{}</b> on following <b>{}</b> items:</h4><ol>', 
+            appliedRating, updatedItems.length);
+        for (var i=0; i<updatedItems.length; i++) {
+            msg += nl.fmt2('<li>{}</li>', updatedItems[i].text);
+        }
+        msg += '</ol>'
+        nlDlg.popupAlert({title: 'Bulk update done', template: msg});
     }
 
     function _init(self) {
-        var rootName = '_root';
-        var ratingOverride = {id: null, name: ''};
-        _addItem(self, {id: rootName, text: nl.t('All milestones'), parent: null,
+        _addItem(self, {id: rootName, text: nl.t('Milestones'), parent: null,
             isShown: true, isFolder: true, indentation: 0,
-            isFolderOpen: true, selectCnt: 0, deselectCnt: 0,
-            ratingOverride: ratingOverride});
+            isFolderOpen: true, selectCnt: 0, deselectCnt: 0});
         for (var i=0; i<milestones.length; i++) {
             var m = milestones[i];
-            //if (m.usertype != usertype) continue;
             var g1Id = nl.fmt2('{}.{}', rootName, m.group1);
             if (!(g1Id in self.idToPos)) {
-                var ratingOverride = {id: null, name: ''};
                 _addItem(self, {id: g1Id, text: m.group1, parent: rootName,
                     isShown: true, isFolder: true, indentation: 1,
-                    isFolderOpen: false, selectCnt: 0, deselectCnt: 0,
-                    ratingOverride: ratingOverride});
+                    isFolderOpen: false, selectCnt: 0, deselectCnt: 0});
             }
             var g2Id = nl.fmt2('{}.{}', g1Id, m.group2);
             if (!(g2Id in self.idToPos)) {
-                var ratingOverride = {id: null, name: ''};
                 _addItem(self, {id: g2Id, text: m.group2, parent: g1Id,
                     isShown: false, isFolder: true, indentation: 2,
-                    isFolderOpen: false, selectCnt: 0, deselectCnt: 0,
-                    ratingOverride: ratingOverride});
+                    isFolderOpen: false, selectCnt: 0, deselectCnt: 0});
             }
             var ratingId = (m.id in ratings) ? ratings[m.id] : defaultRating;
             var ratingName = ratingId ? ratingDict[ratingId] : '';
@@ -771,10 +805,12 @@ function MsTree(nl, milestones, usertype, ratings, ratingDict, defaultRating) {
     }
     
     function _isAnsistor(other, me) {
+        // Is other the ansistor of me?
         return (me.id.indexOf(other.id) == 0);
     }
     
     function _isParent(other, me) {
+        // Is other the direct parent of me?
         return (me.parent == other.id);
     }
     
@@ -824,6 +860,17 @@ function _getArrayAsOptions(opts) {
         options.push({name: opts[i], id: opts[i]});
     }
     return options;
+}
+
+function _userTypeToMilestoneUsertype(ut) {
+    var mapping = _pageGlobals.metadata.user_type_mapping;
+    if (!mapping) return ut;
+    return mapping[ut];
+}
+
+function _getMilestoneUserTypeOptions() {
+    var m = _pageGlobals.metadata;
+    return _getArrayAsOptions(m.milestone_usertypes || m.user_model.user_type.values);
 }
 
 function _getUserTypeOptions() {
