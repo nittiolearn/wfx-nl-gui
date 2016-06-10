@@ -86,12 +86,12 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         } else if (internalUrl === 'rno_observe') {
             var rno = _rnoDict[card.rnoId];
             _observationManager.createOrModifyObservation($scope, rno, null);
-        } else if (internalUrl === 'rno_observe_manage') {
+        } else if (internalUrl === 'rno_report_edit') {
             var rno = _rnoDict[card.rnoId];
-            _observationManager.manageObservations($scope, rno);
-        } else if (internalUrl === 'rno_report') {
+            _editReport($scope, rno, true);
+        } else if (internalUrl === 'rno_report_review') {
             var rno = _rnoDict[card.rnoId];
-            _editReport($scope, rno);
+            _editReport($scope, rno, false);
 		}
     };
 
@@ -170,7 +170,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 		_rnoDict[rno.id] = rno;
 		_updateJsonFields(rno);
 		var internalUrl = (_pageGlobals.role == 'admin') ? 'rno_modify' : 
-		  (_pageGlobals.role == 'review') ? 'rno_report' : 'rno_observe';
+		  (_pageGlobals.role == 'review') ? 'rno_report_review' : 'rno_observe';
 	    var card = {rnoId: rno.id,
 	                title: nl.fmt2('{} {}', rno.config.first_name, rno.config.last_name), 
 					icon: _getCardIcon(rno), 
@@ -188,12 +188,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
                         internalUrl: 'rno_observe',
                         children: [], links: []};
             card.children.push(link);
-            link = {title: nl.t('Manage observations'), 
-                        internalUrl: 'rno_observe_manage',
-                        children: [], links: []};
-            card.children.push(link);
-            link = {title: nl.t('Edit report'), 
-                        internalUrl: 'rno_report',
+            link = {title: nl.t('Manage and report'), 
+                        internalUrl: 'rno_report_edit',
                         children: [], links: []};
             card.children.push(link);
             link = {title: nl.t('Send for review'), 
@@ -202,7 +198,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
             // card.children.push(link); TODO-MUNNI - commented out for now
         } else if (_pageGlobals.role == 'review') {
             var link = {title: nl.t('Review report'), 
-                        internalUrl: 'rno_report',
+                        internalUrl: 'rno_report_review',
                         children: [], links: []};
             card.children.push(link);
         } else {
@@ -386,12 +382,13 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 		return 0;
 	}
 
-    function _editReport($scope, rno) {
+    function _editReport($scope, rno, bEdit) {
         var dlg = nlDlg.create($scope);
         var template = 'view_controllers/rno/rno_report_dlg.html';
         dlg.setCssClass('nl-height-max nl-width-max');
-
-        dlg.scope.dlgTitle = nl.t('Edit report: {} {}', rno.config.first_name, rno.config.last_name);
+        
+        var templ = bEdit ? 'Manage and edit report: {} {}' : 'Review and update report: {} {}';
+        dlg.scope.dlgTitle = nl.t(templ, rno.config.first_name, rno.config.last_name);
         dlg.scope.rno = rno;
         dlg.scope.purpose = 'rating';
         _togglePreviewMode(dlg.scope);
@@ -413,6 +410,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
             summary: reportInfo.summary, obsSelected: obsSelected};
         dlg.scope.error = {};
 
+        _observationManager.manageObservations($scope, dlg.scope, rno);
+        
         var previewButton = {text: nl.t('Toggle preview'), onTap: function(e) {
             if (e) e.preventDefault();
             _togglePreviewMode(dlg.scope);
@@ -613,26 +612,20 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
         _observationManager.onAttachementRemove($scope, attachment, pos);
     };
 
-    this.manageObservations = function($scope, rno) {
+    this.manageObservations = function($scope, dlgScope, rno) {
         var self = this;
-        var dlg = nlDlg.create($scope);
-        dlg.setCssClass('nl-width-max nl-height-max');
-        dlg.scope.dlgTitle = nl.t('Manage observations: {} {}', rno.config.first_name, rno.config.last_name);
-        dlg.scope.observations = _getObservations(rno);
-        dlg.scope.canDelete = _pageGlobals.enableDelete;
-        var cancelButton = {text : nl.t('Close')};
+        dlgScope.canDelete = _pageGlobals.enableDelete;
      
-        dlg.scope.onCreate = function(e) {
+        dlgScope.onCreate = function(e) {
             self.createOrModifyObservation($scope, rno, null);
         };
-        dlg.scope.onEdit = function(observationId, e) {
+        dlgScope.onEdit = function(observationId, e) {
             self.createOrModifyObservation($scope, rno, observationId);
         };
-        dlg.scope.onDelete = function(observationId, e) {      
+        dlgScope.onDelete = function(observationId, e) {      
             if (e) e.stopImmediatePropagation();
             self.deleteObservation($scope, rno, observationId);
         };
-        dlg.show('view_controllers/rno/rno_observe_manage.html', [], cancelButton);
     };
 
     this.deleteObservation = function($scope, rno, observationId) {

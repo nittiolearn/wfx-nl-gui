@@ -291,16 +291,13 @@ $animation-duration: 200ms !default;
   min-width: 200px;
 }
 
-.nl-clickable, .nl-clickable1, .nl-clickable2 {
+.nl-clickable, .nl-clickable1 {
   cursor: pointer;
+  color: #000077;
   text-decoration: none;
   &:hover, &:focus {
     text-decoration: underline;
   }
-}
-
-.nl-clickable, .nl-clickable1 {
-  color: #000077;
 }
 
 a.black {
@@ -1115,11 +1112,15 @@ img.nl-icon {
   }
 }
 
-.nl-rno-0, .nl-rno-2 {
-  background-color: #BBBBFF;
+.nl-rno-0 {
+  background-color: #AAAAAA;
 }
 
 .nl-rno-1 {
+  background-color: #BBBBFF;
+}
+
+.nl-rno-2 {
   background-color: #CCCCFF;
 }
 
@@ -1134,6 +1135,23 @@ img.nl-icon {
 
 .nl-rno-size-2 {
   font-size: 120%;
+}
+
+.nl-rno-list-item {
+  background-color: $nlgrey;
+  border: 1px solid $nldarkgrey;
+  border-radius: 4px; 
+  border-top-left-radius: 0;
+}
+
+.nl-rno-list-item.select {
+  background-color: $nlgreen1;
+}
+
+.nl-hover {
+  &:hover, &:focus {
+    border: 1px solid black;
+  }
 }
 
 /*-----------------------------------------------------------------------------------------*

@@ -36,21 +36,54 @@
 <nl-rno-mstree-view ng-if="mode=='preview'"></nl-rno-mstree-view>
 
 <h3>Observations</h3>
-<table ng-if="mode!='preview'"
-       class='nl-table nl-table-styled'>
-    <tr>
-        <th>Created on</th><th>Updated on</th><th>Observation</th>
-        <th>Action</th>
-    </tr>
-    <tr ng-repeat="observation in observations">
-        <td>{{observation.created|date: 'yyyy-MM-dd HH:mm'}}</td>
-        <td>{{observation.updated|date: 'yyyy-MM-dd HH:mm'}}</td>
-        <td>{{observation.text}}</td>
-        <td class='nl-dlg-field-value'>
-            <input type='checkbox' ng-model='data.obsSelected[$index]'> select
-        </td>
-    </tr>
-</table>
+
+<div ng-if="mode!='preview'"
+     ng-repeat="observation in observations">
+    <div style='height: 10px'></div>
+    <div class='nl-rno-list-item'
+         ng-class='{select: data.obsSelected[$index]}'>
+        <div style='height: 10px'></div>
+        <div ng-show='data.obsSelected[$index]'
+             class='row row-center margin0 padding0 nl-clickable'
+             ng-click='data.obsSelected[$index]=false'>
+            <span class='padding-small'></span>
+            <img title='edit' class='nl-24'
+                 ng-src='{{$parent.imgBasePath + "general/tick.png"}}'/>
+            <span class='padding-small'>Included in the report. Press here to exclude.</span>
+        </div>
+        <div ng-hide='data.obsSelected[$index]'
+             class='row row-center margin0 padding0 nl-clickable'
+             ng-click='data.obsSelected[$index]=true'>
+            <span class='padding-small'></span>
+            <img title='edit' class='nl-24'
+                 ng-src='{{$parent.imgBasePath + "general/cross.png"}}'/>
+            <span class='padding-small'>Not included in the report. Press here to include</span>
+        </div>
+        <div style='height: 10px'></div>
+
+        <div class='padding-small'>{{observation.text}}</div>
+        <div class='padding-small'>
+            <img ng-repeat='attachment in observation.attachments'
+                 ng-src='{{attachment.url}}'
+                 class='nl-max-50 padding-small'>
+        </div>
+        <div class='padding-small' style='font-size:80%'>
+            created: {{observation.created|date: 'dd-MMMM-yy HH:mm'}},
+            updated: {{observation.updated|date: 'dd-MMMM-yy HH:mm'}}
+        </div>
+        <div class='nl-forum-msg-tools padding-small'>
+            <img title='edit'
+                 class='nl-24 nl-clickable'
+                 ng-src='{{$parent.imgBasePath + "forum/edit_black.png"}}'
+                 ng-click='onEdit($index, $event)'/>
+            <img title='delete'
+                 ng-show='canDelete'
+                 class='nl-24 nl-clickable'
+                 ng-src='{{$parent.imgBasePath + "forum/delete_black.png"}}'
+                 ng-click='onDelete($index, $event)'/>
+        </div>
+    </div>
+</div>
 
 <div ng-if="mode=='preview' && data.obsSelected[$index]"
      ng-repeat="observation in observations">
