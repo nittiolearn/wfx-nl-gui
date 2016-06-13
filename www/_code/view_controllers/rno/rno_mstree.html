@@ -2,13 +2,14 @@
     <div class='nl-dlg-field-name' ng-class='resp2Col33'>Milestone filters:</div>
     <div class='nl-dlg-field-value' ng-class='resp2Col33'>
         <select ng-model='msTree.utOption'
-                ng-options='opt as opt.name for opt in msTree.utOptions track by opt.id'>
+                ng-options='opt as opt.name for opt in msTree.utOptions track by opt.id'
+                ng-change='msTree.updateVisibleItems()'>
         </select>
     </div>
     <div class='nl-dlg-field-value' ng-class='resp2Col33'>
         <select ng-model='msTree.ratingFilterOption'
                 ng-options='opt as opt.name for opt in msTree.ratingFilterOptions track by opt.id'
-                ng-change='msTree.expandAll()'>
+                ng-change='msTree.updateVisibleItems()'>
         </select>
     </div>
 </div>
@@ -28,8 +29,7 @@
 </div>
 <div style='height: 10px'></div>
 
-<div ng-repeat='ms in msTree.items'
-     ng-show='msTree.canShowItem(ms)'
+<div ng-repeat='ms in msTree.visibleItems'
      class='row row-wrap row-center nl-rno-{{ms.indentation}} margin0 padding0'
      ng-class='{"nl-hover": ms.isFolder}'>
 

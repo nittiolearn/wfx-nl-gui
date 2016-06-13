@@ -87,8 +87,10 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
             var rno = _rnoDict[card.rnoId];
             _observationManager.createOrModifyObservation($scope, rno, null);
         } else if (internalUrl === 'rno_report_edit') {
-            var rno = _rnoDict[card.rnoId];
-            _editReport($scope, rno, true);
+            nl.timeout(function() { // TODO-MUNNI-NOW
+                var rno = _rnoDict[card.rnoId];
+                _editReport($scope, rno, true);
+            }, 3000);
         } else if (internalUrl === 'rno_report_review') {
             var rno = _rnoDict[card.rnoId];
             _editReport($scope, rno, false);
@@ -658,7 +660,6 @@ function MsTree(nl, nlDlg, milestones, usertype, ratings, ratingDict, defaultRat
 
     this.idToPos = {};
     this.items = [];
-    _init(this);
     
     this.getSelectedRatings = function() {
         var ratings = {};
@@ -677,28 +678,22 @@ function MsTree(nl, nlDlg, milestones, usertype, ratings, ratingDict, defaultRat
             && (this.ratingFilterOption.id == 'all' || 
             (this.ratingFilterOption.id == 'rated' && ms.selectCnt > 0) ||
             (this.ratingFilterOption.id == 'unrated' && ms.deselectCnt > 0));
-    }
-    
-    this.expandedAll = false;    
-    this.onRootFolderClick = function(folder) {
-        if (this.expandedAll) {
-            this.expandedAll = false;
-            folder.isFolderOpen = false;
-            this.onFolderClick(folder);
-            return;
-        }
-        this.expandAll();
     };
-
-    this.expandAll = function() {
-        this.expandedAll = true;
+    
+    this.visibleItems = [];
+    this.updateVisibleItems = function() {
+        this.visibleItems = [];
         for(var i=0; i<this.items.length; i++) {
             var item = this.items[i];
-            item.isShown = true;
-            if (item.isFolder) item.isFolderOpen = true;
+            if (this.canShowItem(item)) this.visibleItems.push(item);
         }
     };
     
+    this.onRootFolderClick = function(folder) {
+        folder.isFolderOpen = false;
+        this.onFolderClick(folder);
+    };
+
     this.onFolderClick = function(folder) {
         if (!folder.isFolder) return;
         folder.isFolderOpen = !folder.isFolderOpen;
@@ -713,6 +708,7 @@ function MsTree(nl, nlDlg, milestones, usertype, ratings, ratingDict, defaultRat
                 if (item.isFolder) item.isFolderOpen = false;
             }
         }
+        this.updateVisibleItems();
     };
 
     this.onRatingChange = function(ms) {
@@ -721,6 +717,7 @@ function MsTree(nl, nlDlg, milestones, usertype, ratings, ratingDict, defaultRat
         } else if (!ms.rating.id && ms.deselectCnt == 0) {
             _changeSelectCnt(this, ms.id, -1);
         }
+        this.updateVisibleItems();
     };
 
     this.onOverrideRating = function() {
@@ -750,6 +747,7 @@ function MsTree(nl, nlDlg, milestones, usertype, ratings, ratingDict, defaultRat
         }
         msg += '</ol>'
         nlDlg.popupAlert({title: 'Bulk update done', template: msg});
+        self.updateVisibleItems();
     }
 
     function _init(self) {
@@ -779,6 +777,7 @@ function MsTree(nl, nlDlg, milestones, usertype, ratings, ratingDict, defaultRat
                 milestone: m.id, rating: rating, selectCnt: 0, deselectCnt: 0,
                 usertype: m.usertype});
         }
+        self.updateVisibleItems();
     }
     
     function _addItem(self, item) {
@@ -828,6 +827,8 @@ function MsTree(nl, nlDlg, milestones, usertype, ratings, ratingDict, defaultRat
         item.deselectCnt -= delta;
         _changeSelectCnt(self, item.parent, delta);
     }
+
+    _init(this);
 }
 
 //-------------------------------------------------------------------------------------------------

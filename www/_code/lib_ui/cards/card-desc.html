@@ -1,8 +1,9 @@
 <div class='nl-card-desc'>
     <ul ng-show='card.children.length>0' style='background-color2: green'>
         <li ng-repeat='child in card.children' ng-if='$index < 4'>
-            <a ng-if='child.url' ng-href='{{child.url}}'>{{child.title}}</a>
+            <a ng-if='child.url' ng-href='{{child.url}}' nl-wait-on-click>{{child.title}}</a>
             <span ng-if='!child.url && child.internalUrl'
+                  nl-wait-on-click
             	  ng-click='onCardInternalUrlClicked(card, child.internalUrl)'
             	  class='nl-clickable'>{{child.title}}
             </span>
