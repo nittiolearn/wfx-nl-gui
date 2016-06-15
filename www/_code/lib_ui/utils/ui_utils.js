@@ -10,7 +10,6 @@ function module_init() {
     .directive('nlLoading', LoadingDirective)
     .directive('nlNoCtxMenu', NoCtxMenuDirective)
     .directive('nlRetainAr', RetainArDirective)
-    .directive('nlWaitOnClick', WaitOnClickDirective)
     .directive('nlFocusMe', FocusMeDirective);
 }
 
@@ -92,21 +91,6 @@ function(nl, $window) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var WaitOnClickDirective = ['nl', 'nlDlg',
-function(nl, nlDlg) {
-    return {
-        restrict: 'A',
-        link: function(scope, iElem, iAttrs) {
-            iElem.bind('click', function(e) {
-                nlDlg.showLoadingScreen();
-                console.log('WaitOnClick clicked'); // TODO-MUNNI-NOW
-            });
-        }
-    };
-}];
-
-//-------------------------------------------------------------------------------------------------
-
 var FocusMeDirective = ['nl',
 function(nl) {
     return {

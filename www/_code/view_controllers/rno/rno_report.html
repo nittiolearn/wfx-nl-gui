@@ -3,8 +3,8 @@
         <table class='nl-table nl-table-styled'>
             <tr><td class='nl-dlg-field-name'>Name</td><td>{{rno.config.first_name}} {{rno.config.last_name}}</td></tr>
             <tr><td class='nl-dlg-field-name'>{{user_model.user_type.title}}</td><td>{{rno.config.user_type}}</td></tr>
-            <tr>
-                <td class='nl-dlg-field-name'>Academic year</td>
+            <tr ng-if='report_model.year'>
+                <td class='nl-dlg-field-name'>{{report_model.year.title}}</td>
                 <td ng-if="mode!='preview'" class='nl-dlg-field-value'>
                     <select ng-model='data.year'
                             ng-options='opt as opt.name for opt in options.year track by opt.id'>
@@ -12,8 +12,8 @@
                 </td>
                 <td ng-if="mode=='preview'">{{data.year.name}}</td>
             </tr>
-            <tr>
-                <td class='nl-dlg-field-name'>Term</td>
+            <tr ng-if='report_model.term'>
+                <td class='nl-dlg-field-name'>{{report_model.term.title}}</td>
                 <td ng-if="mode!='preview'" class='nl-dlg-field-value'>
                     <select ng-model='data.term'
                             ng-options='opt as opt.name for opt in options.term track by opt.id'>
@@ -27,9 +27,11 @@
         <img ng-src='{{image}}' style='max-width:150px; max-height:150px'>
     </div>
 </div>
-<h3>Summary</h3>
-<nl-textarea ng-if="mode!='preview'" fieldmodel='summary'></nl-textarea>
-<div ng-if="mode=='preview'">{{data.summary}}</div>
+<div ng-if='report_model.summary'>
+    <h3>{{report_model.summary.title}}</h3>
+    <nl-textarea ng-if="mode!='preview'" fieldmodel='summary'></nl-textarea>
+    <div ng-if="mode=='preview'">{{data.summary}}</div>
+</div>
 
 <h3>Ratings</h3>
 <nl-rno-mstree ng-if="mode!='preview'"></nl-rno-mstree>
@@ -57,11 +59,13 @@
             <span class='padding-small'></span>
             <img title='edit' class='nl-24'
                  ng-src='{{$parent.imgBasePath + "general/cross.png"}}'/>
-            <span class='padding-small'>Not included in the report. Press here to include</span>
+            <span class='padding-small'>Not included in the report. Press here to include.</span>
         </div>
         <div style='height: 10px'></div>
 
-        <div class='padding-small'>{{observation.text}}</div>
+        <div class='padding-small'
+             ng-bind-html='observation.text | nlMarkupToHtml'>
+        </div>
         <div class='padding-small'>
             <img ng-repeat='attachment in observation.attachments'
                  ng-src='{{attachment.url}}'
@@ -89,7 +93,7 @@
      ng-repeat="observation in observations">
     <div class='padding-top'>
         <b>{{observation.created|date: 'dd-MMMM-yyyy'}}: </b>
-        <span>{{observation.text}}</span>
+        <span ng-bind-html='observation.text | nlMarkupToHtml'></span>
     </div>
     <div ng-repeat="imgUrl in observation.attachments">
         <img ng-src='{{imgUrl.url}}' class='nl-full-width padding-top'>

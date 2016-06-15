@@ -4,6 +4,7 @@
 	<i class='sep4'></i>
 
     <select ng-show='cards.grades' class='col-20 nl-grade-search' ng-model="search.grade" 
+            ng-change='search.onSearch()'
             ng-options="grade for grade in cards.grades track by grade">
     </select>
 

@@ -47,6 +47,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 	 */
     var _rnoDict = {};
     var _searchFilterInUrl = '';
+    var _gradeFilterInUrl = '';
     var _rnoServer = new RnoServer(nl, nlServerApi, nlDlg);
 	var _observationManager = new ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg);
 
@@ -85,15 +86,19 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
             _deleteRno($scope, card.rnoId);
         } else if (internalUrl === 'rno_observe') {
             var rno = _rnoDict[card.rnoId];
-            _observationManager.createOrModifyObservation($scope, rno, null);
+            _rnoServer.getData(rno).then(function() {
+                _observationManager.createOrModifyObservation($scope, rno, null);
+            });
         } else if (internalUrl === 'rno_report_edit') {
-            nl.timeout(function() { // TODO-MUNNI-NOW
-                var rno = _rnoDict[card.rnoId];
+            var rno = _rnoDict[card.rnoId];
+            _rnoServer.getData(rno).then(function() {
                 _editReport($scope, rno, true);
-            }, 3000);
+            });
         } else if (internalUrl === 'rno_report_review') {
             var rno = _rnoDict[card.rnoId];
-            _editReport($scope, rno, false);
+            _rnoServer.getData(rno).then(function() {
+                _editReport($scope, rno, false);
+            });
 		}
     };
 
@@ -112,6 +117,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 		_rnoDict = {};
         var params = nl.location.search();
         _searchFilterInUrl = ('search' in params) ? params.search : '';
+        _gradeFilterInUrl = ('grade' in params) ? params.grade : '';
         _pageGlobals.metadataId = ('metadata' in params) ? parseInt(params.metadata) : 0;
         _pageGlobals.role = ('role' in params) ? params.role : 'observe';
         _pageGlobals.enableDelete  = ('candelete' in params);
@@ -129,7 +135,12 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
     }
 
 	function _getDataFromServer(filter, resolve, reject) {
-        nlServerApi.rnoGetList({metadata: _pageGlobals.metadataId, search: filter, role: _pageGlobals.role})
+	    var utSec = _gradeFilterInUrl.split('.');
+	    
+        nlServerApi.rnoGetList({metadata: _pageGlobals.metadataId, 
+                                search: filter, user_type: utSec[0] || '', 
+                                section: utSec[1] || '',
+                                role: _pageGlobals.role})
         .then(function(resultList) {
 			nl.log.debug('Got result: ', resultList.length);
 			$scope.cards.cardlist = _getCards(resultList, nlCardsSrv);
@@ -143,11 +154,15 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
     function _addSearchInfo(cards) {
         cards.search = {placeholder: _pageGlobals.metadata.searchTitle};
         cards.search.onSearch = _onSearch;
+        nlCardsSrv.updateGrades(cards, _getUtSecOptions());
+        // cards.search.img = nl.url.resUrl('info.png');
+        // cards.search.maxLimit = 1000;
     }
     
-    function _onSearch(filter) {
+    function _onSearch(filter, grade) {
         nlDlg.showLoadingScreen();
         var promise = nl.q(function(resolve, reject) {
+            _gradeFilterInUrl = grade || '';
             _getDataFromServer(filter, resolve, reject);
         });
         promise.then(function(res) {
@@ -178,6 +193,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 					icon: _getCardIcon(rno), 
                     internalUrl: internalUrl,
 					help: '',
+					grade: _getCardGrade(rno),
 					children: [], links: []};
         if (_pageGlobals.role != 'admin') {
             card.links.push({id: 'rno_modify', text: nl.t('modify')});
@@ -215,9 +231,14 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         }
 		return card;
 	}
+	
+	function _getCardGrade(rno) {
+        if (!rno.config.section) return rno.config.user_type;
+        if (!rno.config.user_type) return rno.config.section;
+        return rno.config.user_type + '.' + rno.config.section;
+	}
 
     function _updateJsonFields(rno) {
-        rno.data = rno.data ? angular.fromJson(rno.data) : {};
         rno.config = rno.config ? angular.fromJson(rno.config) : {};
 	}
 	
@@ -229,8 +250,12 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
             nl.fmt.addAvp(avps, um.last_name.title, rno.config.last_name);
         if ('email' in um)
             nl.fmt.addAvp(avps, um.email.title, rno.config.email);
+        if ('centre' in um)
+            nl.fmt.addAvp(avps, um.centre.title, rno.config.centre);
         if ('user_type' in um)
             nl.fmt.addAvp(avps, um.user_type.title, rno.config.user_type);
+        if ('section' in um)
+            nl.fmt.addAvp(avps, um.section.title, rno.config.section);
     }
     
 	function  _getRnoAvps(rno) {
@@ -265,28 +290,36 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 			});	
 		});
 	}
-	
+
+    function _updateScope(scope, rno, optionName, options) {
+        scope.options[optionName] = options;
+        scope.data[optionName] = rno && rno.config[optionName] ?
+            {id: rno.config[optionName]} :
+            options[0];
+    }
+    
 	function _createOrModifyRno($scope, rnoId) {
 		var modifyDlg = nlDlg.create($scope);
 		modifyDlg.setCssClass('nl-width-max');
         modifyDlg.scope.error = {};
         modifyDlg.scope.model = _pageGlobals.metadata.user_model;
-        modifyDlg.scope.options = {user_type: _getUserTypeOptions()};
+        modifyDlg.scope.options = {};
         modifyDlg.scope.role = _pageGlobals.role;
 		if (rnoId !== null) {
 			var rno = _rnoDict[rnoId];
-            var utOption = {id: rno.config.user_type};
 			modifyDlg.scope.dlgTitle = nl.t('Modify properties');
 			modifyDlg.scope.data = {first_name: rno.config.first_name, last_name: rno.config.last_name, 
-									user_type: utOption, email: rno.config.email, image: rno.config.image,
+									email: rno.config.email, image: rno.config.image,
 									observer: rno.observerid,
 									reviewer: rno.reviewerid};
 		} else {
 			modifyDlg.scope.dlgTitle = nl.t('Create new');
 			modifyDlg.scope.data = {first_name: '', last_name: '', 
-                                    user_type: '', email: '', image: '',
                                     observer: _pageGlobals.userInfo.username, reviewer: _pageGlobals.userInfo.username};
 		}
+        _updateScope(modifyDlg.scope, rno, 'centre', _getCentreOptions());
+        _updateScope(modifyDlg.scope, rno, 'user_type', _getUserTypeOptions());
+        _updateScope(modifyDlg.scope, rno, 'section', _getSectionOptions());
 		
 		var buttons = [];
 		var saveName = (rnoId !== null) ? nl.t('Save') : nl.t('Create');
@@ -311,7 +344,9 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 		var config = {
             first_name: modifyDlg.scope.data.first_name, 
             last_name: modifyDlg.scope.data.last_name, 
+            centre: modifyDlg.scope.data.centre.id, 
             user_type: modifyDlg.scope.data.user_type.id, 
+            section: modifyDlg.scope.data.section.id, 
             email: modifyDlg.scope.data.email, 
             image: modifyDlg.scope.data.image
 		};
@@ -346,7 +381,9 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         scope.error = {};
         if (!_validateMandatoryAttr(scope, 'first_name')) return false;
         if (!_validateMandatoryAttr(scope, 'last_name')) return false;
+        if (!_validateMandatoryAttr(scope, 'centre')) return false;
         if (!_validateMandatoryAttr(scope, 'user_type')) return false;
+        if (!_validateMandatoryAttr(scope, 'section')) return false;
         if (!_validateMandatoryAttr(scope, 'email')) return false;
         if (!_validateMandatoryAttr(scope, 'image')) return false;
         return true;
@@ -370,7 +407,9 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 		}
         rno.config.first_name  = modifiedData.first_name;
         rno.config.last_name  = modifiedData.last_name;
+        rno.config.centre  = modifiedData.centre;
         rno.config.user_type  = modifiedData.user_type;
+        rno.config.section  = modifiedData.section;
         rno.config.email  = modifiedData.email;
         rno.config.image  = modifiedData.image;
 	}
@@ -393,11 +432,13 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         dlg.scope.dlgTitle = nl.t(templ, rno.config.first_name, rno.config.last_name);
         dlg.scope.rno = rno;
         dlg.scope.purpose = 'rating';
-        _togglePreviewMode(dlg.scope);
+        _initPreviewMode(dlg.scope, bEdit);
         dlg.scope.user_model = _pageGlobals.metadata.user_model;
+        dlg.scope.report_model = _pageGlobals.metadata.report_model || {};
         dlg.scope.image = _getCardIcon(rno);
 
-        var ratings = _getRatings(rno);
+        var ratings = _getMergedRatings(rno);
+
         dlg.scope.observations = _getObservations(rno);
         var obsSelected = [];
         for (var i=0; i<dlg.scope.observations.length; i++) {
@@ -411,6 +452,10 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         dlg.scope.data = {year: reportInfo.year, term: reportInfo.term, 
             summary: reportInfo.summary, obsSelected: obsSelected};
         dlg.scope.error = {};
+        dlg.scope.onEditDone = function(observation) {
+            dlg.scope.msTree.updateRatings(observation.ratings);
+            rno.data.ratingsUpdatedOn = new Date();
+        };
 
         _observationManager.manageObservations($scope, dlg.scope, rno);
         
@@ -429,6 +474,25 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         var cancelButton = {text : nl.t('Cancel')};
         dlg.show(template, buttons, cancelButton);
     }
+
+    function _getMergedRatings(rno) {
+        var ratings = _getRatings(rno);
+        var ratingsUpdatedOn = rno.data.ratingsUpdatedOn || nl.fmt.getPastDate();
+        var observations = _getObservations(rno);
+        for(var i=observations.length-1; i>=0; i--) {
+            var o = observations[i];
+            if (o.updated < ratingsUpdatedOn) continue;
+            for(var r in o.ratings) {
+                ratings[r] = o.ratings[r];
+            }
+        }
+        rno.data.ratingsUpdatedOn = new Date();
+        return ratings;
+    }
+
+    function _initPreviewMode(dlgScope, bEdit) {
+        dlgScope.mode = bEdit ? 'edit' : 'preview';
+    }
     
     function _togglePreviewMode(dlgScope) {
         if (_pageGlobals.role == 'admin') {
@@ -443,10 +507,6 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
     }
 
     function _onSaveReport(e, dlgScope) {
-        if(!_validateReportInputs(dlgScope)) {
-            if(e) e.preventDefault();
-            return;
-        }
         var rno =  dlgScope.rno;
         var data =  dlgScope.data;
         rno.data.ratings =  dlgScope.msTree.getSelectedRatings();
@@ -459,11 +519,6 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         _rnoServer.updateData(rno);
     }
 
-    function _validateReportInputs(scope) {
-        scope.error = {};
-        if (!_validateMandatoryAttr(scope, 'summary')) return false;
-        return true;
-    }
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -492,16 +547,20 @@ function RnoServer(nl, nlServerApi, nlDlg) {
         });
     };
     
-    var saveStatus = {};
+    this.getData = function(rno) {
+        nlDlg.showLoadingScreen();
+        return nlServerApi.rnoGetData(rno.id).then(function(newData) {
+            nlDlg.hideLoadingScreen();
+            rno.data = angular.fromJson(newData);
+        });
+    }
+    
     this.updateData = function(rno) {
         nlDlg.showLoadingScreen();
-        if (!(rno.id in saveStatus)) saveStatus[rno.id] = {saveSent: 0, saved: 0};
-        saveStatus[rno.id].saveSent++;
-        var saveNumber = saveStatus[rno.id].saveSent;
         var data = angular.toJson(rno.data);
-        return nlServerApi.rnoUpdateData(rno.id, data).then(function(updatedRno) {
+        return nlServerApi.rnoUpdateData(rno.id, data).then(function(newData) {
             nlDlg.hideLoadingScreen();
-            if (saveNumber > saveStatus[rno.id].saved) saveStatus[rno.id].saved = saveNumber;
+            rno.data = angular.fromJson(newData);
         });
     };
 }
@@ -509,7 +568,7 @@ function RnoServer(nl, nlServerApi, nlDlg) {
 //-------------------------------------------------------------------------------------------------
 function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
 
-    this.createOrModifyObservation = function($scope, rno, observationId) {
+    this.createOrModifyObservation = function($scope, rno, observationId, onCompleteFn) {
         var dlg = nlDlg.create($scope);
         dlg.setCssClass('nl-width-max nl-height-max');
 
@@ -522,6 +581,7 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
         dlg.scope.msTree = new MsTree(nl, nlDlg, _pageGlobals.metadata.milestones, rno.config.user_type, ratings, _getRatingDict(), null);
         dlg.scope.options = {rating: _getRatingOptions()};
         dlg.scope.purpose = 'observation';
+        dlg.scope.onCompleteFn = onCompleteFn;
         
         dlg.scope.onResourceClick = function(attachment, $index) {
             attachment.isSelected = false;
@@ -539,6 +599,7 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
         dlg.scope.data = {text: o.text || '', notes: o.notes || '', 
             newAttachments: [], currentAttachments: currentAttachments};
         dlg.scope.error = {};
+        dlg.scope.observation_model = _pageGlobals.metadata.observation_model || {};
         
         var saveButton = {
             text : (observationId !== null) ? nl.t('Modify') : nl.t('Create'),
@@ -565,8 +626,10 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
         nlDlg.popupStatus('Saving data ...', false);
         var isSelected = true;
         var attachments = [];
+        var created = null;
         if (observationId !== null) {
             var o = rno.data.observations[observationId];
+            created = o.created;
             isSelected = o.selected;
             rno.data.observations.splice(observationId, 1); // Remove the current element in case of modify
             for (var i=0; i<scope.data.currentAttachments.length; i++) {
@@ -584,26 +647,18 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
                               resid: resInfos[i].resid});
         }
         var now = new Date();
-        var observation = {created: now, updated: now,
+        var observation = {created: created || now, updated: now,
             text: scope.data.text, notes: scope.data.notes, attachments: attachments,
             ratings: scope.msTree.getSelectedRatings(),
             selected: isSelected};
-        _updateRatings(rno, observation);
         
         rno.data.observations.splice(0, 0, observation); // Insert to top of array
         _rnoServer.updateData(rno).then(function resolve() {
+            if (scope.onCompleteFn) scope.onCompleteFn(observation);
             nlDlg.popupStatus('Done');
         }, function reject() {
             nlDlg.popdownStatus(0);
         });
-    }
-    
-    function _updateRatings(rno, observation) {
-        var ratings = _getRatings(rno);
-        for(var milestone in observation.ratings) {
-            if (milestone in ratings) continue;
-            ratings[milestone] = observation.ratings[milestone];
-        }
     }
     
     this.onAttachementShow = function(attachment, pos) {
@@ -613,7 +668,7 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
     this.onAttachementRemove = function(attachment, pos) {
         _observationManager.onAttachementRemove($scope, attachment, pos);
     };
-
+    
     this.manageObservations = function($scope, dlgScope, rno) {
         var self = this;
         dlgScope.canDelete = _pageGlobals.enableDelete;
@@ -622,7 +677,7 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
             self.createOrModifyObservation($scope, rno, null);
         };
         dlgScope.onEdit = function(observationId, e) {
-            self.createOrModifyObservation($scope, rno, observationId);
+            self.createOrModifyObservation($scope, rno, observationId, dlgScope.onEditDone);
         };
         dlgScope.onDelete = function(observationId, e) {      
             if (e) e.stopImmediatePropagation();
@@ -671,6 +726,16 @@ function MsTree(nl, nlDlg, milestones, usertype, ratings, ratingDict, defaultRat
         return ratings;
     };
 
+    this.updateRatings = function(newRatings) {
+        for(var i=0; i<this.items.length; i++) {
+            var item = this.items[i];
+            if (!item.milestone || !(item.milestone in newRatings)) continue;
+            item.rating = {id: newRatings[item.milestone]};
+            this.onRatingChange(item, true);
+        }
+        this.updateVisibleItems();
+    };
+
     this.canShowItem = function(ms) {
         if (ms.indentation == 0) return true;
         return ms.isShown && (ms.isFolder || ms.usertype == this.utOption.id
@@ -711,13 +776,13 @@ function MsTree(nl, nlDlg, milestones, usertype, ratings, ratingDict, defaultRat
         this.updateVisibleItems();
     };
 
-    this.onRatingChange = function(ms) {
+    this.onRatingChange = function(ms, avoidUpdate) {
         if (ms.rating.id && ms.selectCnt == 0) {
             _changeSelectCnt(this, ms.id, 1);
         } else if (!ms.rating.id && ms.deselectCnt == 0) {
             _changeSelectCnt(this, ms.id, -1);
         }
-        this.updateVisibleItems();
+        if (!avoidUpdate) this.updateVisibleItems();
     };
 
     this.onOverrideRating = function() {
@@ -730,7 +795,7 @@ function MsTree(nl, nlDlg, milestones, usertype, ratings, ratingDict, defaultRat
             if (!self.canShowItem(item)) continue;
             
             item.rating = {id: self.ratingOverride.id, name: self.ratingOverride.name};
-            self.onRatingChange(item);
+            self.onRatingChange(item, true);
             updatedItems.push(item);
         }
         var appliedRating = self.ratingOverride.name;
@@ -871,12 +936,42 @@ function _getUserTypeOptions() {
     return _getArrayAsOptions(_pageGlobals.metadata.user_model.user_type.values);
 }
 
+function _getSectionOptions() {
+    if (!_pageGlobals.metadata.user_model.section) return [{id: 'NA'}];
+    return _getArrayAsOptions(_pageGlobals.metadata.user_model.section.values);
+}
+
+function _getUtSecOptions() {
+    var um = _pageGlobals.metadata.user_model;
+    var uts = um.user_type ? um.user_type.values : [];
+    var secs = um.section ? um.section.values : [];
+    if (!secs.length) return uts; 
+    if (!uts.length) return secs;
+
+    var ret = [];
+    for (var u=0; u<uts.length; u++) {
+        for (var s=0; s<secs.length; s++) {
+            ret.push(uts[u] + '.' + secs[s]);
+        }    
+    }
+    return ret;
+}
+
+function _getCentreOptions() {
+    if (!_pageGlobals.metadata.user_model.centre) return [{id: 'NA'}];
+    return _getArrayAsOptions(_pageGlobals.metadata.user_model.centre.values);
+}
+
 function _getYearOptions() {
-    return _getArrayAsOptions(_pageGlobals.metadata.report_model.year.values);
+    var rm = _pageGlobals.metadata.report_model;
+    if (!rm || !rm.year) return [{id: 'NA'}];
+    return _getArrayAsOptions(rm.year.values);
 }
 
 function _getTermOptions() {
-    return _getArrayAsOptions(_pageGlobals.metadata.report_model.term.values);
+    var rm = _pageGlobals.metadata.report_model;
+    if (!rm || !rm.term) return [{id: 'NA'}];
+    return _getArrayAsOptions(rm.term.values);
 }
 
 function _getRatingOptions() {

@@ -24,11 +24,18 @@
         <nl-resource-upload fieldmodel='newAttachments' 
             multiple='true' restype='Image'>
         </nl-resource-upload>
-        <div style='height: 10px'></div>
-        <div class='nl-dlg-field-name'>Observation:</div>
-        <nl-textarea fieldmodel='text'></nl-textarea>
-        <div style='height: 10px'></div>
-        <div class='nl-dlg-field-name'>Future notes:</div>
-        <nl-textarea fieldmodel='notes'></nl-textarea>
+        
+        <!-- Not needed right now -->
+        <div ng-if='observation_model.text'>
+            <div style='height: 10px'></div>
+            <div class='nl-dlg-field-name'>{{observation_model.text.title}}:</div>
+            <nl-textarea fieldmodel='text'></nl-textarea>
+        </div>
+
+        <div ng-if='observation_model.notes'>
+            <div style='height: 10px'></div>
+            <div class='nl-dlg-field-name'>{{observation_model.notes.title}}:</div>
+            <nl-textarea fieldmodel='notes'></nl-textarea>
+        </div>
     </nl-dlg-content>
 </nl-dlg>

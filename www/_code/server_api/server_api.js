@@ -265,8 +265,13 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/rno_delete.json', {id: rnoId});
     };
 
+    this.rnoGetData = function(rnoId) {
+        // return: rno data JSON
+        return server.post('_serverapi/rno_get_data.json', {id: rnoId});
+    };
+
     this.rnoUpdateData = function(rnoId, data) {
-        // return: udpated rno object
+        // return: updated rno data JSON
         return server.post('_serverapi/rno_update_data.json', {id: rnoId, data:data});
     };
 

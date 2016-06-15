@@ -8,11 +8,27 @@
                 fieldmodel='first_name' fieldtype='text'></tr>
             <tr ng-if='model.last_name' nl-form-input fieldname='{{model.last_name.title}}'
                 fieldmodel='last_name' fieldtype='text'></tr>
+            <tr ng-if='model.centre'>
+                <td class='nl-dlg-field-name'>{{model.centre.title}}</td>
+                <td class='nl-dlg-field-value'>
+                    <select ng-model='data.centre'
+                            ng-options='opt as opt.name for opt in options.centre track by opt.id'>
+                    </select>
+                </td>
+            </tr>
             <tr ng-if='model.user_type'>
                 <td class='nl-dlg-field-name'>{{model.user_type.title}}</td>
                 <td class='nl-dlg-field-value'>
                     <select ng-model='data.user_type'
                             ng-options='opt as opt.name for opt in options.user_type track by opt.id'>
+                    </select>
+                </td>
+            </tr>
+            <tr ng-if='model.section'>
+                <td class='nl-dlg-field-name'>{{model.section.title}}</td>
+                <td class='nl-dlg-field-value'>
+                    <select ng-model='data.section'
+                            ng-options='opt as opt.name for opt in options.section track by opt.id'>
                     </select>
                 </td>
             </tr>

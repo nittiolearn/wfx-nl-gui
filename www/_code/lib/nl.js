@@ -149,6 +149,10 @@ function Formatter() {
         return this.date2Str(d, accuracy);
     };
     
+    this.getPastDate = function() {
+        return new Date(2000, 0);
+    }
+    
     this.encodeUri = function(input) {
         return encodeURIComponent(input);
     };
