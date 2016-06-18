@@ -1,31 +1,6 @@
 <div class='nl-thin-scroll'>
-    <style>
-        .nl-log {
-            font-size: 120%;
-            padding: 4px;
-            border: 1px solid #DDDDDD;
-        }
-        .nl-log-details {
-            border: 1px solid #DDDDDD;
-        }
-
-        .nl-log-error {
-            background-color: #FF7777;
-        }
-
-        .nl-log-debug {
-            color: #777777;
-        }
-    </style>
-    <h1>Export Log</h1>
-    <div ng-repeat='log in logs'>
-        <div class='row row-center margin0 nl-log-{{log.status}} nl-log' 
-             ng-click='log.expand = !log.expand'
-             ng-class='{"nl-clickable": log.details}'>
-             <div class='col col-20'>{{log.ts}}</div>
-             <div class='col col-10'>{{log.status}}</div>
-             <div class='col'>{{log.title}}</div>
-        </div>
-        <pre class='nl-log-details' ng-show='log.details && log.expand'>{{log.details}}</pre>
+    <div ng-if='downloadUrl' class='padding'>
+        <a ng-href='{{downloadUrl}}' download='scorm_pkg.zip' class='button'>Download</a>
     </div>
+    <nl-progress-log></nl-progress-log>
 </div>

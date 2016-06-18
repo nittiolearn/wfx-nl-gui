@@ -1,0 +1,31 @@
+<style>
+    .nl-log {
+        font-size: 120%;
+        padding: 4px;
+        border: 1px solid #DDDDDD;
+    }
+    .nl-log-details {
+        border: 1px solid #DDDDDD;
+    }
+
+    .nl-log-error {
+        background-color: #FF7777;
+    }
+
+    .nl-log-debug {
+        color: #777777;
+    }
+</style>
+<h3>{{progressLog.currentMessage}}</h3>
+<div style='height:10px'></div>
+<div ng-repeat='log in progressLog.logs'
+     ng-show='progressLog.details'>
+    <div class='row row-center margin0 nl-log-{{log.status}} nl-log' 
+         ng-click='log.expand = !log.expand'
+         ng-class='{"nl-clickable": log.details}'>
+         <div class='col col-20'>{{log.ts}}</div>
+         <div class='col col-10'>{{log.status}}</div>
+         <div class='col'>{{log.title}}</div>
+    </div>
+    <pre class='nl-log-details' ng-show='log.details && log.expand'>{{log.details}}</pre>
+</div>

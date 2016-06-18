@@ -10,7 +10,9 @@ function module_init() {
     .directive('nlLoading', LoadingDirective)
     .directive('nlNoCtxMenu', NoCtxMenuDirective)
     .directive('nlRetainAr', RetainArDirective)
-    .directive('nlFocusMe', FocusMeDirective);
+    .directive('nlFocusMe', FocusMeDirective)
+    .directive('nlProgressLog', ProgressLogDirective)
+    .service('nlProgressLog', ProgressLogSrv);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -107,6 +109,52 @@ function(nl) {
         }
     };
 }];
+
+//-------------------------------------------------------------------------------------------------
+var ProgressLogDirective = ['nl',
+function(nl) {
+    return {
+        restrict: 'E',
+        templateUrl: 'lib_ui/utils/progress_log.html'
+    };
+}];
+
+var ProgressLogSrv = ['nl',
+function(nl) {
+    this.create = function(parentScope) {
+        var pl = new ProgressLog(nl);
+        parentScope.progressLog = pl.progressLog;
+        return pl;
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
+function ProgressLog(nl) {
+    this.progressLog = {logs: [], currentMessage: '', details: false};
+
+    this.showLogDetails = function(bDetails) {
+        this.progressLog.details = bDetails;
+    };
+
+    this.error = function(title, details) {
+        this._log('error', title, details);
+    };
+
+    this.info = function(title, details) {
+        this._log('info', title, details);
+    };
+
+    this.debug = function(title, details) {
+        this._log('debug', title, details);
+    };
+
+    this._log = function(status, title, details) {
+        if (!details) details ='';
+        var ts = nl.fmt.date2Str(new Date(), 'milli');
+        this.progressLog.logs.push({status:status, ts:ts, title:title, details:details, expanded:false});
+        this.progressLog.currentMessage = title;
+    }
+}
 
 //-------------------------------------------------------------------------------------------------
 module_init();
