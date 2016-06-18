@@ -1302,6 +1302,11 @@ div.pgSecView.answer_wrong.bright {
 	max-height: 100%;
 }
 
+.pgSec iframe {
+  position: absolute;
+  height: 100%;
+}
+
 .pgPropAudio audio {
 	position: absolute;
 	bottom: 0;

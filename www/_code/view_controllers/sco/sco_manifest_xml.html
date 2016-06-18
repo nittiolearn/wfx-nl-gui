@@ -41,31 +41,25 @@
     <organizations default="{{uuid}}.ORG">
         <organization identifier="{{uuid}}.ORG" structure="hierarchical" adlcp:sharedDataGlobalToSystem="true">
             <title>List of modules</title>
-            <item ng-repeat="module in modules"
-                  identifier="{{uuid}}.ITEM.{{$ngRepeat_module.id}}"
-                  identifierref="{{uuid}}.SCO.{{$ngRepeat_module.id}}" isvisible="true">
-                <title>{{$ngRepeat_module.name}}</title>
+            <item ng-repeat="lesson in lessons"
+                  identifier="{{uuid}}.ITEM.{{$ngRepeat_lesson.id}}"
+                  identifierref="{{uuid}}.SCO.{{$ngRepeat_lesson.id}}" isvisible="true">
+                <title>{{$ngRepeat_lesson.name}}</title>
             </item>
         </organization>
     </organizations>
     <resources>
-        <!-- Common resources start -->
-        <resource identifier="{{uuid}}.SCRIPTS" type="webcontent" adlcp:scormType="asset">
-            <file ng-repeat='script in scripts' href="content/scripts/{{$ngRepeat_script.name}}"/>
-        </resource>
-        <!-- Common resources end -->
-        
-        <!-- Module specific resources start -->
+        <!-- Asset start -->
         <resource identifier="{{uuid}}.RES" type="webcontent" adlcp:scormType="asset">
-            <file ng-repeat='res in resources' href="content/resources/{{$ngRepeat_res.resid}}"/>
+            <file ng-repeat='res in resources' href="{{content_folder}}/{{$ngRepeat_res.id}}"/>
         </resource>
-        <!-- Module specific resources end -->
+        <!-- Asset end -->
         
         <!-- SCO start -->
-        <resource ng-repeat='module in modules'
-                  identifier="{{uuid}}.SCO.{{$ngRepeat_module.id}}" 
-                  href="content/modules/{{$ngRepeat_module.id}}.html" type="webcontent" adlcp:scormType="sco">
-            <file href="content/modules/{{$ngRepeat_module.id}}.html"/>
+        <resource ng-repeat='lesson in lessons'
+                  identifier="{{uuid}}.SCO.{{$ngRepeat_lesson.id}}" 
+                  href="{{content_folder}}/{{$ngRepeat_lesson.id}}.html" type="webcontent" adlcp:scormType="sco">
+            <file href="{{content_folder}}/{{$ngRepeat_lesson.id}}.html"/>
             <dependency identifierref="{{uuid}}.RES" />
         </resource>
         <!-- SCO end -->
