@@ -2,13 +2,13 @@
 <!--This is derived from Reload version 1.1 SCORM 2004 Content Package document-->
 <!--Spawned from the Reload Content Package Generator - http://www.reload.ac.uk-->
 <manifest xmlns="http://www.imsglobal.org/xsd/imscp_v1p1"
+    identifier="{uuid}.MANIFEST"
     xmlns:lom="http://ltsc.ieee.org/xsd/LOM"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_v1p3"
     xmlns:imsss="http://www.imsglobal.org/xsd/imsss"
     xmlns:adlseq="http://www.adlnet.org/xsd/adlseq_v1p3"
     xmlns:adlnav="http://www.adlnet.org/xsd/adlnav_v1p3"
-    identifier="MANIFEST-5C9DB595-F6F5-0EE7-84F6-C16331FCABD2"
     xsi:schemaLocation="http://www.imsglobal.org/xsd/imscp_v1p1 imscp_v1p1.xsd
     http://ltsc.ieee.org/xsd/LOM lom.xsd
     http://www.adlnet.org/xsd/adlcp_v1p3 adlcp_v1p3.xsd
@@ -27,41 +27,30 @@
             <lom:general>
                 <lom:title>
                     <lom:string language="en">
-                        {{title}}
+                        {title}
                     </lom:string>
                 </lom:title>
                 <lom:description>
                     <lom:string language="en">
-                        {{title}} - exported from Nittio Learn (https://www.nittiolearn.com)
+                        {title} (https://www.nittiolearn.com)
                     </lom:string>
                 </lom:description>
             </lom:general>
         </lom>
     </metadata>
-    <organizations default="{{uuid}}.ORG">
-        <organization identifier="{{uuid}}.ORG" structure="hierarchical" adlcp:sharedDataGlobalToSystem="true">
-            <title>List of modules</title>
-            <item ng-repeat="lesson in lessons"
-                  identifier="{{uuid}}.ITEM.{{$ngRepeat_lesson.id}}"
-                  identifierref="{{uuid}}.SCO.{{$ngRepeat_lesson.id}}" isvisible="true">
-                <title>{{$ngRepeat_lesson.name}}</title>
-            </item>
+    <organizations default="{uuid}.ORG">
+        <organization identifier="{uuid}.ORG" structure="hierarchical" adlcp:sharedDataGlobalToSystem="true">
+            <title>{title}</title>
+            {orgItems}
         </organization>
     </organizations>
     <resources>
         <!-- Asset start -->
-        <resource identifier="{{uuid}}.RES" type="webcontent" adlcp:scormType="asset">
-            <file ng-repeat='res in resources' href="{{content_folder}}/{{$ngRepeat_res.id}}"/>
-        </resource>
+        {assets}
         <!-- Asset end -->
         
         <!-- SCO start -->
-        <resource ng-repeat='lesson in lessons'
-                  identifier="{{uuid}}.SCO.{{$ngRepeat_lesson.id}}" 
-                  href="{{content_folder}}/{{$ngRepeat_lesson.id}}.html" type="webcontent" adlcp:scormType="sco">
-            <file href="{{content_folder}}/{{$ngRepeat_lesson.id}}.html"/>
-            <dependency identifierref="{{uuid}}.RES" />
-        </resource>
+        {scos}
         <!-- SCO end -->
     </resources>
 </manifest>

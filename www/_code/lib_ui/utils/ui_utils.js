@@ -119,25 +119,80 @@ function(nl) {
     };
 }];
 
-var ProgressLogSrv = ['nl',
-function(nl) {
+var ProgressLogSrv = ['nl', '$filter', 'nlExporter',
+function(nl, $filter, nlExporter) {
     this.create = function(parentScope) {
-        var pl = new ProgressLog(nl);
+        var pl = new ProgressLog(nl, $filter, nlExporter);
         parentScope.progressLog = pl.progressLog;
         return pl;
     };
 }];
 
 //-------------------------------------------------------------------------------------------------
-function ProgressLog(nl) {
-    this.progressLog = {logs: [], currentMessage: '', details: false};
-
-    this.showLogDetails = function(bDetails) {
-        this.progressLog.details = bDetails;
+function ProgressLog(nl, $filter, nlExporter) {
+    var searchLevels = ['error', 'imp', 'warn', 'info', 'debug'];
+    var searchLevelsPrio = {error: 5, imp: 4, warn: 3, info: 2, debug: 1};
+        
+    var search = {filter: '', level: 'debug', levels: searchLevels};
+    this.progressLog = {progress: 0, logs: [], currentMessage: '', showLogs: false, search: search};
+    var self = this;
+    
+    this.progressLog.canShow = function(log) {
+        var logLevel = searchLevelsPrio[log.status];
+        var searchLevel = searchLevelsPrio[self.progressLog.search.level];
+        if (logLevel < searchLevel) return false;
+        if (!self.progressLog.search.filter) return true;
+        if (log.title.indexOf(self.progressLog.search.filter) >= 0) return true;
+        if (log.details.indexOf(self.progressLog.search.filter) >= 0) return true;
+        return false;
+    };
+    
+    this.progressLog.expandAll = function(log) {
+        var logs = self.progressLog.logs;
+        for(var l in logs) 
+            if (logs[l].details) logs[l].expand = true;
+    };
+    
+    this.progressLog.collapseAll = function(log) {
+        var logs = self.progressLog.logs;
+        for(var l in logs) 
+            logs[l].expand = false;
+    };
+    
+    this.progressLog.onLogSave = function() {
+        var ret = '';
+        for(var l in self.progressLog.logs) {
+            var log = self.progressLog.logs[l];
+            var row = nl.fmt2('{}, {}, {}\r\n', log.status, log.ts, log.title);
+            if (log.details) row += nl.fmt2('{}\r\n', log.details);
+            ret += row;
+        }
+        nlExporter.exportTextFile("progress-log.txt", ret);
+    };
+    
+    this.showLogDetails = function(bShowLogs) {
+        this.progressLog.showLogs = bShowLogs;
     };
 
+    this.getSearchInfo = function() {
+        return this.progressLog.serch;
+    };
+
+    this.progress = function(perc) {
+        perc = Math.round(perc);
+        this.progressLog.progress = perc;
+    };
+    
     this.error = function(title, details) {
         this._log('error', title, details);
+    };
+
+    this.imp = function(title, details) {
+        this._log('imp', title, details);
+    };
+
+    this.warn = function(title, details) {
+        this._log('warn', title, details);
     };
 
     this.info = function(title, details) {
@@ -151,9 +206,19 @@ function ProgressLog(nl) {
     this._log = function(status, title, details) {
         if (!details) details ='';
         var ts = nl.fmt.date2Str(new Date(), 'milli');
-        this.progressLog.logs.push({status:status, ts:ts, title:title, details:details, expanded:false});
+        this.progressLog.logs.push({status:status, ts:ts, title:title, 
+            details:details, expand:false});
+        if (status != 'error' && status != 'imp') return;
         this.progressLog.currentMessage = title;
+        this.progressLog.currentStatus = status;
+    };
+    
+    this.clear = function() {
+        this.progressLog.logs = [];
+        this.progressLog.currentMessage = '';
+        this.progressLog.currentStatus = '';
     }
+    
 }
 
 //-------------------------------------------------------------------------------------------------

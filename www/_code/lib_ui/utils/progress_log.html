@@ -1,4 +1,29 @@
 <style>
+    .nl-log-title {
+        margin: 0;
+        padding: 4px;
+        height: 40px;
+        text-overflow: clip;
+    }
+    .nl-log-progressbar {
+        height: 44px;
+        position: relative;
+    }
+    .nl-log-progressbar .done {
+        background-color: #AAAAAA;
+        height: 100%;
+    }
+    .nl-log-progressbar .content {
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        bottom: 4px;
+        right: 4px;
+        font-size: 24px;
+        text-align: center;
+        font-weight: 900;
+    }
+    
     .nl-log {
         font-size: 120%;
         padding: 4px;
@@ -12,20 +37,71 @@
         background-color: #FF7777;
     }
 
+    .nl-log-warn {
+        background-color: #FFCCCC;
+    }
+
+    .nl-log-imp {
+        background-color: #CCCCFF;
+    }
+
     .nl-log-debug {
         color: #777777;
     }
 </style>
-<h3>{{progressLog.currentMessage}}</h3>
+
 <div style='height:10px'></div>
-<div ng-repeat='log in progressLog.logs'
-     ng-show='progressLog.details'>
-    <div class='row row-center margin0 nl-log-{{log.status}} nl-log' 
-         ng-click='log.expand = !log.expand'
-         ng-class='{"nl-clickable": log.details}'>
-         <div class='col col-20'>{{log.ts}}</div>
-         <div class='col col-10'>{{log.status}}</div>
-         <div class='col'>{{log.title}}</div>
-    </div>
-    <pre class='nl-log-details' ng-show='log.details && log.expand'>{{log.details}}</pre>
+<div class='padding-small'>
+    <h3 class='nl-log-title nl-log-{{progressLog.currentStatus}}'>{{progressLog.currentMessage}}</h3>
 </div>
+
+<div class='padding-small nl-log-progressbar'>
+    <div class='done' style='width:{{progressLog.progress}}%'></div>
+    <div class='content'>{{progressLog.progress}}%</div>
+</div>
+
+<div ng-show='progressLog.showLogs'>
+    <div class='nl-card-search row row-center margin0 padding-small'>
+        <span>{{progressLog.logs.length || 0}} messages</span>
+        <i class='sep4'></i>
+        <input class='col' ng-model='progressLog.search.filter'
+               placeholder='search'>
+        <i class='sep4'></i>
+        <select class='col-20 nl-grade-search' ng-model="progressLog.search.level" 
+                ng-options="level for level in progressLog.search.levels track by level">
+        </select>
+        <i class='sep4'></i>
+        <i class='nl-toolbar-icon padding0'
+           title='Expand all'
+           ng-click='progressLog.expandAll()'>
+            <i class="icon ion-arrow-expand"></i>
+        </i>
+        <i class='sep4'></i>
+        <i class='nl-toolbar-icon padding0'
+           title='Collapse all'
+           ng-click='progressLog.collapseAll()'>
+            <i class="icon ion-arrow-shrink"></i>
+        </i>
+        <i class='sep4'></i>
+        <i class='nl-toolbar-icon padding0'
+           title='Save log as a CSV file'
+           ng-click='progressLog.onLogSave()'>
+            <i class="icon ion-ios-cloud-download"></i>
+        </i>
+    </div>
+
+    <div style='height:15px'></div>
+    <div ng-repeat='log in progressLog.logs'
+         ng-show='progressLog.canShow(log)'
+         class='padding-small'>
+        <div class='row row-center margin0 nl-log-{{log.status}} nl-log padding0' 
+             ng-click='log.expand = !log.expand'
+             ng-class='{"nl-clickable": log.details}'>
+             <div class='col col-20'>{{log.ts}}</div>
+             <div class='col col-10'>{{log.status}}</div>
+             <div class='col'>{{log.title}}</div>
+        </div>
+        <pre class='nl-log-details' ng-show='log.details && log.expand'>{{log.details}}</pre>
+    </div>
+</div>
+

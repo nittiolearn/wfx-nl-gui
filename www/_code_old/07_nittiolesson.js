@@ -202,7 +202,6 @@ nlesson = function() {
 			po.init(this.oLesson.pages[i], this.bgimg);
 			this.pages.push(po);
 		}
-		njs_scorm.initLesson(this.oLesson);
 		this.pendingTimer = new njs_lesson_helper.PendingTimer();
 		this.pendingTimer.updateIfNeeded(this);
 		_Lesson_setupAutoSave(this);
@@ -529,7 +528,7 @@ nlesson = function() {
 		_Lesson_saveInternal(lesson, ajaxUrl, function(data, isError) {
 			if (isError) return;
 			if (njs_scorm.isEmbedded()) {
-			    jQuery('body').html('<h1>Submitted successfully. Please close this window now.</h1>');
+                nittio.redirDelay('res/static/html/done.html', 0, true);
 			    return;
 			}
 			nittio.redirDelay(redirUrl, 1000, true);
@@ -1303,7 +1302,13 @@ nlesson = function() {
 	//---------------------------------------------------------------------------------------------
 	// Possible launchContext values: see njs_lesson_helper.RenderingContext
 	//---------------------------------------------------------------------------------------------
-	function init(launchContext, templateCssClass) {
+    function init(launchContext, templateCssClass) {
+        njs_scorm.onInit(function(ctx) {
+            return _init(launchContext, templateCssClass);
+        });
+    }
+
+	function _init(launchContext, templateCssClass) {
 		g_lesson.renderCtx.init(launchContext);
 		g_lesson.globals.templateCssClass = templateCssClass;
 		

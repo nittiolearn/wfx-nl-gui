@@ -7,8 +7,7 @@
 function module_init() {
 	angular.module('nl.sco', [])
 	.config(configFn)
-	.controller('nl.ScoExportCtrl', ScoExportCtrl)
-	.service('nlInterpolate', nlInterpolate);
+	.controller('nl.ScoExportCtrl', ScoExportCtrl);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -26,11 +25,11 @@ function($stateProvider, $urlRouterProvider) {
 
 //-------------------------------------------------------------------------------------------------
 var ScoExportCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 
-                     'nlInterpolate', 'nlProgressLog',
-function(nl, nlRouter, $scope, nlServerApi, nlInterpolate, nlProgressLog) {
+                     '$templateCache', 'nlProgressLog',
+function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog) {
     var pl = nlProgressLog.create($scope);
     pl.showLogDetails(true);
-    var scoExporter = new ScoExporter(nl, nlServerApi, nlInterpolate, pl);
+    var scoExporter = new ScoExporter(nl, nlServerApi, $templateCache, pl);
 
 	function _onPageEnter(userInfo) {
 		return nl.q(function(resolve, reject) {
@@ -47,33 +46,45 @@ function(nl, nlRouter, $scope, nlServerApi, nlInterpolate, nlProgressLog) {
             return;
         }
         var lessonid = parseInt(params.lessonid);
-        scoExporter.export(lessonid, $scope);
+        $scope.lessonIds = '' + lessonid;
+    }
+    
+    $scope.onExport = function() {
+        var lessonIds = $scope.lessonIds.split(',');
+        for(var i in lessonIds) {
+            lessonIds[i] = parseInt(lessonIds[i]);
+        }
+        $scope.started = true;
+        scoExporter.export(lessonIds, $scope);
     }
 
 }];
 
+var CONTENT_FOLDER = 'nlcontent';
+
 //-------------------------------------------------------------------------------------------------
-function ScoExporter(nl, nlServerApi, nlInterpolate, pl) {
+function ScoExporter(nl, nlServerApi, $templateCache, pl) {
     
     var self = this;
     self.lessons = {};
     self.resources = {};
     self.zip = null;
-    var CONTENT_FOLDER = 'nlcontent';
-
-    this.export = function(lessonid, scope) {
-        self.lessonid = lessonid;
+    
+    this.export = function(lessonIds, scope) {
+        pl.clear();
+        self.lessonIds = lessonIds;
         _q(_downloadPackageZip)()
         .then(_q(_openPackageZip))
-        .then(_q(_fetchLessonData))
+        .then(_q(_downloadModules))
         .then(_q(_downloadResources))
         .then(_q(_generateMetadataXml))
         .then(_q(_savePackageZip))
         .then(function() {
-            pl.info('Export completed.');
-            scope.downloadUrl = self.downloadUrl;
+            self.setProgress('done');
+            pl.imp('Export completed');
         }, function() {
-            pl.error('Export failed.');
+            self.setProgress('done');
+            pl.error('Export failed');
         });
     };
 
@@ -86,9 +97,10 @@ function ScoExporter(nl, nlServerApi, nlInterpolate, pl) {
     }
     
     function _downloadPackageZip(resolve, reject) {
+        self.setProgress('start');
         pl.debug('Downloading SCO package template zip from server');
         var v =  NL_SERVER_INFO.versions.script;
-        var templateZip = nl.fmt2('/static/others/scorm-templ-old.zip?version={}', v);
+        var templateZip = nl.fmt2('/static/others/scorm-templ.zip?version={}', v);
         JSZipUtils.getBinaryContent(templateZip, function(e, zipBinary) {
             if (e) {
                 pl.error(nl.fmt2('Downloading SCO package template {} failed', 
@@ -96,7 +108,8 @@ function ScoExporter(nl, nlServerApi, nlInterpolate, pl) {
                 reject('Downloading SCO package template failed');
                 return;
             }
-            pl.info('Downloaded SCO package template zip from server');
+            pl.imp('Downloaded SCO package template zip from server');
+            self.setProgress('downloadPkgZip');
             resolve(zipBinary);
         });
     }
@@ -126,6 +139,7 @@ function ScoExporter(nl, nlServerApi, nlInterpolate, pl) {
                 }
                 var fmt = 'Opened SCO package template zip file: Folders={}, Files={}, Prepackaged files={}';
                 pl.info(nl.fmt2(fmt, folderCnt, fileCnt, packagedCnt), angular.toJson(self.resources, 2));
+                self.setProgress('openPkgZip');
                 resolve(true);
             }, function(e) {
                 var msg = 'Opening the SCO package template zip file failed';
@@ -139,35 +153,10 @@ function ScoExporter(nl, nlServerApi, nlInterpolate, pl) {
         }
     }
 
-    function _fetchLessonData(resolve, reject) {
-        pl.debug('Downloading SCO content from server', 'id: '+ self.lessonid);
-        return nlServerApi.scoExport({lessonid: self.lessonid})
-        .then(function(result) {
-            pl.info('Downloaded SCO content from server', result.html);
-            pl.info(nl.fmt2('SCO uses {} resources (assets)', Object.keys(result.resurls).length),
-                angular.toJson(result.resurls, 2));
-            self.lessons[self.lessonid] = {lesson: result.lesson, packaged: false};
-            var filename = nl.fmt2('{}/{}.html', CONTENT_FOLDER, self.lessonid);
-            self.zip.file(filename, result.html);
-            
-            var newUrls = [];
-            for(var url in result.resurls) {
-                url = _removeQueryParams(url);
-                if (url in self.resources) {
-                    self.resources[url].usageCnt++;
-                    continue;
-                }
-                newUrls.push(url);
-                self.resources[url] = {packaged: false, usageCnt: 1};
-            }
-            pl.info(nl.fmt2('{} new resources (assets) to package', newUrls.length),
-                angular.toJson(newUrls, 2));
-            resolve(true);
-        }, function(e) {
-            var msg = 'Downloading SCO content from server failed';
-            pl.error(msg, e);
-            reject(msg);
-        });
+    function _downloadModules(resolve, reject) {
+        var pdm = new ParallelDownloadManager(nl, nlServerApi, pl, self, 
+            'modules', self.lessonIds, resolve, reject);
+        pdm.download();
     }
     
     function _downloadResources(resolve, reject) {
@@ -176,9 +165,10 @@ function ScoExporter(nl, nlServerApi, nlInterpolate, pl) {
             if (self.resources[res].packaged) continue;
             urls.push(res);
         }
-        pl.error(nl.fmt2('TODO-MUNNI-NOW - need to download {} resources', urls.length), 
-            angular.toJson(urls, 2));
-        resolve(true);
+        
+        var pdm = new ParallelDownloadManager(nl, nlServerApi, pl, self, 
+            'resources', urls, resolve, reject);
+        pdm.download();
     }
     
     function _generateMetadataXml(resolve, reject) {
@@ -187,35 +177,77 @@ function ScoExporter(nl, nlServerApi, nlInterpolate, pl) {
         scope.title = 'Scorm export from Nittio Learn';
         scope.uuid = nl.fmt2('fcfcfaf6-3440-4d50-8e81-ea0d58bcdda2-{}', (new Date()).getTime());
         scope.content_folder = CONTENT_FOLDER;
-        scope.lessons = [];
-        scope.resources = [];
+        var lessons = [];
+        var resources = [];
         
         for(var lessonId in self.lessons) {
-            scope.lessons.push({id: lessonId, name: self.lessons[lessonId].lesson.name});
+            lessons.push({id: lessonId, name: self.lessons[lessonId].lesson.name});
         }
         
         var unusedResources = [];
         for(var res in self.resources) {
-            var resid = CONTENT_FOLDER + '/res' + res;
-            scope.resources.push({id: resid});
+            var resid = 'res' + res;
+            resources.push({id: resid});
             if (!self.resources[res].usageCnt) unusedResources.push(res);
         }
         pl.debug(nl.fmt2('{} resources are not referred', unusedResources.length), unusedResources);
+        scope.orgItems = _getMetadataOrgItems(scope, lessons);
+        scope.assets = _getMetadataAssets(scope, resources);
+        scope.scos = _getMetadataSCOs(scope, lessons);
         
-        var content = nlInterpolate.interpolateWithNgRepeat('view_controllers/sco/sco_manifest_xml.html', scope);
+        var template = $templateCache.get('view_controllers/sco/sco_manifest_xml.html');
+        var content = nl.fmt.fmt1(template, scope);
         self.zip.file('imsmanifest.xml', content);
-        pl.info('Generated metadata xml', content);
+        pl.imp('Generated metadata xml', content);
+        self.setProgress('generateMetadata');
         resolve(true);
+    }
+    
+    function _getMetadataOrgItems(scope, lessons) {
+        var ret = '';
+        for(var i in lessons) {
+            var l = lessons[i];
+            ret += nl.fmt2('<item identifier="{}.ITEM.{}"' +
+            ' identifierref="{}.SCO.{}" isvisible="true">' +
+            '<title>{}</title></item>\r\n',
+            scope.uuid, l.id, scope.uuid, l.id, l.name);
+        }
+        return ret;
+    }
+
+    function _getMetadataAssets(scope, resources) {
+        var ret = nl.fmt2('<resource identifier="{}.RES" type="webcontent"' +
+            ' adlcp:scormType="asset">\r\n', scope.uuid);
+        for(var i in resources) {
+            var r = resources[i];
+            ret += nl.fmt2('    <file href="{}/{}"/>\r\n',
+            scope.content_folder, r.id);
+        }
+        return ret + '</resource>\r\n';
+    }
+
+    function _getMetadataSCOs(scope, lessons) {
+        var ret = '';
+        for(var i in lessons) {
+            var l = lessons[i];
+            ret += nl.fmt2('<resource identifier="{}.SCO.{}"' + 
+                ' href="{}/{}.html" type="webcontent" adlcp:scormType="sco">' +
+                '<file href="{}/{}.html"/>' +
+                '<dependency identifierref="{}.RES"/></resource>\r\n',
+            scope.uuid, l.id, 
+            scope.content_folder, l.id, 
+            scope.content_folder, l.id,
+            scope.uuid);
+        }
+        return ret;
     }
     
     var link = null;
     function _savePackageZip(resolve, reject) {
         pl.info('Saving package zip file');
-        self.zip.generateAsync({type:"base64"}).then(function (base64) {
-            //saveAs(blob, "scorm_pkg.zip");
-            self.downloadUrl = "data:application/zip;base64," + base64;
-            var len = self.downloadUrl.length;
-            pl.info(nl.fmt2('Generated save link for package zip file ({} bytes)', len));
+        self.zip.generateAsync({type:'blob'}).then(function (zipContent) {
+            saveAs(zipContent, "scorm_pkg.zip");
+            pl.info('Initiated save of package zip file');
             resolve(true);
         }, function(e) {
             pl.info('Error saving package zip file', e);
@@ -223,112 +255,137 @@ function ScoExporter(nl, nlServerApi, nlInterpolate, pl) {
         });
     }
 
-    function _getRelUrl(url) {
-        return 'res' + url;
+    var _progressLevels = {
+        start: [0, 0],
+        downloadPkgZip: [0, 3],
+        openPkgZip: [3, 5],
+        modules: [5, 20],
+        resources: [20, 95],
+        generateMetadata: [95, 98],
+        done: [98, 100]
+    };
+    
+    this.setProgress = function(currentAction, doneSubItems, maxSubItems) {
+        if (!doneSubItems) doneSubItems = 1;
+        if (!maxSubItems) maxSubItems = 1;
+        var levels = _progressLevels[currentAction];
+        var p = levels[0] + (doneSubItems/maxSubItems)*(levels[1] - levels[0]);
+        pl.progress(p);
+    }
+
+}
+
+//-------------------------------------------------------------------------------------------------
+function ParallelDownloadManager(nl, nlServerApi, pl, scoExporter, type, urls, resolve, reject) {
+    scoExporter.setProgress(type, 0, urls.length);
+    var zip = scoExporter.zip;
+    var MAX_PARALLEL = 2;
+    self = this;
+    this.download = function() {
+        pl.debug(nl.fmt2('About to download {} {}', urls.length, type), 
+            angular.toJson(urls, 2));
+        self.startPos = 0;
+        self.runningCnt = 0;
+        self.doneCnt = 0;
+        self.errorCnt = 0;
+        self.successCnt = 0;
+        _fireDownloads(0, 0);
     }
     
-    function _getAbsUrl(url) {
-        return url.substring(3);
+    function _fireDownloads() {
+        if (self.doneCnt == urls.length) {
+            var msg = nl.fmt2('Downloaded {}: {} success, {} fail', type, self.successCnt, self.errorCnt); 
+            if (self.errorCnt > 0) {
+                pl.error(msg);
+            } else {
+                pl.imp(msg);
+            }
+            scoExporter.setProgress(type, urls.length, urls.length);
+            resolve(true);
+            return;
+        }
+        for(var i=self.startPos; i<urls.length && self.runningCnt < MAX_PARALLEL; i++) {
+            self.startPos++;
+            self.runningCnt++;
+            var downloadFn = (type == 'resources') ? _downloadResource : _downloadLesson;
+            downloadFn(urls[i], function() {
+                scoExporter.setProgress(type, self.doneCnt, urls.length);
+                self.runningCnt--;
+                self.doneCnt++;
+                _fireDownloads();
+            });
+        }
+    }
+
+    function _downloadLesson(lessonid, onDone) {
+        pl.debug('Downloading SCO content from server', 'id: '+ lessonid);
+        return nlServerApi.scoExport({lessonid: lessonid})
+        .then(function(result) {
+            pl.info('Downloaded SCO content from server', result.html);
+            pl.info(nl.fmt2('SCO uses {} resources (assets)', Object.keys(result.resurls).length),
+                angular.toJson(result.resurls, 2));
+            scoExporter.lessons[lessonid] = {lesson: result.lesson, packaged: false};
+            var filename = nl.fmt2('{}/{}.html', CONTENT_FOLDER, lessonid);
+            zip.file(filename, result.html);
+            
+            var newUrls = [];
+            for(var url in result.resurls) {
+                url = _removeQueryParams(url);
+                if (!_isKnownExtn(url)) {
+                    pl.info(nl.fmt2('resource ignored: {}', url));
+                    continue;
+                }
+                if (url in scoExporter.resources) {
+                    scoExporter.resources[url].usageCnt++;
+                    continue;
+                }
+                newUrls.push(url);
+                scoExporter.resources[url] = {packaged: false, usageCnt: 1};
+            }
+            pl.info(nl.fmt2('{} new resources (assets) to package', newUrls.length),
+                angular.toJson(newUrls, 2));
+            self.successCnt++;
+            onDone();
+        }, function(e) {
+            var msg = 'Downloading SCO content from server failed';
+            pl.error(msg, e);
+            self.errorCnt++;
+            onDone();
+        });
     }
     
+    function _downloadResource(url, onDone) {
+        pl.debug(nl.fmt2('Downloading resource {}', url));
+        JSZipUtils.getBinaryContent(url, function(e, content) {
+            nl.timeout(function() { // same as scope.$apply as scope is not there!
+                if (e) {
+                    pl.error(nl.fmt2('Downloading resource {} failed', 
+                        url), e);
+                    self.errorCnt++;
+                    onDone();
+                    return;
+                }
+                pl.info(nl.fmt2('Downloaded resource {}', url));
+                self.successCnt++;
+                var prefix = CONTENT_FOLDER + '/res';
+                zip.file(prefix + url, content);
+                onDone();
+            });
+        });
+    }
+
     function _removeQueryParams(url) {
         var pos = url.indexOf('?'); 
         return (pos < 0) ? url : url.substring(0, pos);
     }
     
+    function _isKnownExtn(url) {
+        var path = url.split('/');
+        var file = path[path.length-1];
+        return (file.indexOf('.') >= 0);
+    }
+    
 }
-
-//-------------------------------------------------------------------------------------------------
-var nlInterpolate = ['nl', '$templateCache', '$interpolate',
-function(nl, $templateCache, $interpolate) {
-    
-    this.interpolate = function(templateFile, scope) {
-        var template = $templateCache.get(templateFile);
-        var interFn = $interpolate(template); 
-        return interFn(scope);
-    };
-    
-    this.interpolateWithNgRepeat = function(templateFile, scope) {
-        var template = $templateCache.get(templateFile);
-        var elems = angular.element(template);
-        var expandedTree = angular.element('<nl_dummy_wrapper/>');
-        _appendAfterNgRepeat(expandedTree, elems, scope);
-        var html = expandedTree.html();
-        var interFn = $interpolate(html); 
-        return interFn(scope);
-    }
-
-    function _appendAfterNgRepeat(parent, elems, scope) {
-        var children = [];
-        for(var i=0; i<elems.length; i++) {
-            var eDom = elems[i];
-            var eObj = angular.element(eDom);
-            var ngRepeat = eObj.attr('ng-repeat');
-            if (!ngRepeat) {
-                children.push(eDom);
-                continue;
-            }
-            eObj.removeAttr('ng-repeat');
-            var eDomRepeated = _repeatElem(eObj, ngRepeat, scope);
-            for(var j=0; j<eDomRepeated.length; j++) {
-                children.push(eDomRepeated[j]);
-            }
-        }
-        
-        for(var k=0; k < children.length; k++) {
-            var eDom = children[k];
-            var eObj = angular.element(eDom);
-            var grandChildren = eObj.contents();
-            eObj.empty();
-            _appendAfterNgRepeat(eObj, grandChildren, scope);
-            parent.append(eObj);
-        }
-    }
-
-    function _repeatElem(eObj, ngRepeat, scope) {
-        var html = _getHtml(eObj);
-
-        var repInfo = ngRepeat.split(' ');
-        var repVar = '$ngRepeat_' + repInfo[0];
-        var repArray = repInfo[2];
-        
-        var arrayInScope = _getElemFromScope(scope, repArray);
-
-        var ret = [];
-        for(var i=0; i<arrayInScope.length; i++) {
-            var html2 = _replaceAll(html, repVar, nl.fmt2('{}[{}]', repArray, i));
-            var clone = angular.element(html2);
-            ret.push(clone[0]);
-        }
-        return ret;
-    }
-    
-    function _getHtml(eObj) {
-        var wrapper = angular.element('<nl_dummy_wrapper/>');
-        wrapper.append(eObj);
-        return wrapper.html();
-    }
-    
-    function _replaceAll(str, search, replace) {
-        return str.split(search).join(replace);
-    }
-    
-    function _getElemFromScope(scope, variableName) {
-        var names = variableName.split('.');
-        var val = scope;
-        for(var i=0; i<names.length; i++) {
-            var nameAndIndex = names[i].split('[');
-            if (nameAndIndex.length == 1) {
-                val = val[nameAndIndex[0]];
-            } else {
-                var index = parseInt(nameAndIndex[1].replace(/\]/, ''));
-                val = val[nameAndIndex[0]][index];
-            }
-        }
-        return val;
-    }
-    
-}];
 
 //-------------------------------------------------------------------------------------------------
 module_init();

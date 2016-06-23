@@ -385,7 +385,9 @@ function Ajax(cb, retryAfterLogin, showErrorMsg) {
 	//---------------------------------------------------------------------------------------	
 	var AJAX_TIMEOUT = 3*60*1000; // 3 mins timeout
 	this.send = function(url, params, contentType, processData, onProgress) {
-		var ajaxParams = {type : "POST", url : url, data : params, async : true};
+	    var ajaxRequestType = params._ajaxRequestType || "POST";
+        if (params._ajaxRequestType) delete params._ajaxRequestType;
+		var ajaxParams = {type : ajaxRequestType, url : url, data : params, async : true};
 		if (contentType !== undefined) ajaxParams.contentType = contentType;
 		if (processData !== undefined) ajaxParams.processData = processData;
 		if (onProgress !== undefined) ajaxParams.xhrFields = {onprogress: onProgress};
@@ -621,9 +623,13 @@ function ClientSideTemplate(templateName, chain) {
 	function _getTemplate() {
 		var ajax = new njs_helper.AjaxInChain(chain);
 		var url = fmt2('/default/client_templ.json/{}/{}', nittio.getStaticVersion(), templateName);
-		if (njs_scorm.isStandalone()) 
-		  url = fmt2('res/static/html/{}.json', templateName);
-		ajax.send(url, {});
+		var params = {};
+		if (njs_scorm.isStandalone()) {
+		    var tname = templateName.split('.')[0];
+            url = fmt2('res/static/html/{}.json', tname);
+            params._ajaxRequestType = "GET";
+		}
+		ajax.send(url, params);
 	}
 	
 	function _compileTemplate() {

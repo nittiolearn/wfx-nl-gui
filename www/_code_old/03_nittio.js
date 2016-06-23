@@ -700,6 +700,12 @@ nittio = function() {
 	}
 	
 	function initPage(bDebug, retainAspect, transition, staticResFolder, staticVersion, bPrint, username) {
+	    njs_scorm.onInit(function() {
+            return _initPage(bDebug, retainAspect, transition, staticResFolder, staticVersion, bPrint, username);
+	    });
+	}
+
+    function _initPage(bDebug, retainAspect, transition, staticResFolder, staticVersion, bPrint, username) {
 		g_transition = transition;
 		g_staticResFolder = staticResFolder;
 		g_staticVersion = staticVersion;
