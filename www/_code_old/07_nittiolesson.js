@@ -99,6 +99,7 @@ nlesson = function() {
 		
 		this.globals.slides = null;
 		this.globals.templateCssClass = '';
+		this.globals.autoVoice = njs_autovoice.getInstance();
 	}
 
 	//--------------------------------------------------------------------------------------------
@@ -481,6 +482,7 @@ nlesson = function() {
 		var lesson = this;
 		window.onbeforeunload = function(e) {
 			if (nittio.getOnLeaveCheck()) {
+			    lesson.globals.autoVoice.stop();
 				var lessonId = jQuery('#l_lessonId').val();
 				if ((lesson.renderCtx.launchCtx() != 'do_review') && (lesson.lastSavedContent != lesson.getContent() || lessonId == "0")) {
 					return "Warning: there are some un-saved data in this page.";
@@ -528,7 +530,7 @@ nlesson = function() {
 		_Lesson_saveInternal(lesson, ajaxUrl, function(data, isError) {
 			if (isError) return;
 			if (njs_scorm.isEmbedded()) {
-                nittio.redirDelay('res/static/html/done.html', 0, true);
+			    nittio.redirDelay('res/static/html/done.html', 0, true);
 			    return;
 			}
 			nittio.redirDelay(redirUrl, 1000, true);
@@ -789,6 +791,7 @@ nlesson = function() {
 
 		this.updateAndRender = Page_updateAndRender;
 		this.updateHtmlDom = Page_updateHtmlDom;
+        this.updateAudio = Page_updateAudio;
 		this.adjustHtmlDom = Page_adjustHtmlDom;
 		this.markFroRedraw = Page_markFroRedraw;
 
@@ -854,6 +857,7 @@ nlesson = function() {
 
 	function Page_updatePagePropertiesDom() {
 		this.markFroRedraw();
+        this.updateAudio();
 		this.lesson.postRender();
 	}
 	
@@ -920,26 +924,34 @@ nlesson = function() {
 			var pos = this.sectionCreateOrder[i];
 			this.sections[pos].updateHtmlDom();
 		}
-
-		if(this.lesson.renderCtx.pageMode(this) == 'edit') {
-			this.propAudio.html('');
-			return;
-		}
-				
-		if('audioUrl' in this.oPage && this.oPage.audioUrl) {
-			var audioUrl = this.oPage.audioUrl;
-			audioUrl = audioUrl.replace(/audio\:/, '');
-			audioUrl = audioUrl.replace(/\[.*\]/, '');
-			var audioHtml = '';
-			var validUrl = audioUrl.indexOf('/');
-			if( validUrl != -1){							
-				audioHtml = njs_helper.fmt2('<audio preload controls data-njsAutoPlay class="njs_audio" src="{}"/>',audioUrl);
-			}
-			this.propAudio.html(audioHtml);			
-		} else {
-			this.propAudio.html('');
-		}
+		this.updateAudio();
 	}
+
+    function Page_updateAudio() {
+        if(this.lesson.renderCtx.pageMode(this) == 'edit') {
+            this.propAudio.html('');
+            this.autoVoiceButton = null;
+            return;
+        }
+
+        this.autoVoiceButton = null;
+        if('audioUrl' in this.oPage && this.oPage.audioUrl) {
+            var audioUrl = this.oPage.audioUrl;
+            audioUrl = audioUrl.replace(/audio\:/, '');
+            audioUrl = audioUrl.replace(/\[.*\]/, '');
+            var audioHtml = '';
+            var validUrl = audioUrl.indexOf('/');
+            if( validUrl != -1){                            
+                audioHtml = njs_helper.fmt2('<audio preload controls data-njsAutoPlay class="njs_audio" src="{}"/>',audioUrl);
+            }
+            this.propAudio.html(audioHtml);         
+        } else if (this.oPage.autoVoice) {
+            this.autoVoiceButton = this.lesson.globals.autoVoice.getVoiceButton(this.oPage.autoVoice);
+            this.propAudio.html(this.autoVoiceButton.html);
+        } else {
+            this.propAudio.html('');
+        }
+    }
 	
 	function Page_adjustHtmlDom() {
 		var me = this;
@@ -968,7 +980,10 @@ nlesson = function() {
 	
 	function Page_postRender() {
 		var me = this;
+		me.lesson.globals.autoVoice.stop();
 		MathJax.Hub.Queue(function() {
+            if (me.lesson.renderCtx.lessonMode() != 'edit' && me.autoVoiceButton)
+                me.autoVoiceButton.play();
 			me.onEscape();
 		});
 	}
@@ -1308,7 +1323,7 @@ nlesson = function() {
         });
     }
 
-	function _init(launchContext, templateCssClass) {
+    function _init(launchContext, templateCssClass) {
 		g_lesson.renderCtx.init(launchContext);
 		g_lesson.globals.templateCssClass = templateCssClass;
 		
