@@ -38,7 +38,10 @@
     <div ng-if='msgTree.length == 0' class='padding-small'>
         <h3>There is no message to display.</h3>
     </div>
-    <div ng-if='!currentTopicId && msgCount > 1' class='padding-small'>
-        {{msgCount}} messages<span ng-if='moreResults'> since {{since}}. <span class='nl-clickable' ng-click='loadOlderMessages()'>Load older messages</span></span>.
+    <div ng-if='!currentTopicId' class='padding-small'>
+        {{msgCount}} message(s) since {{since}}.
+        <span ng-show='moreResults' class='nl-clickable' ng-click='loadOlderMessages()'>
+            Load older messages.
+        </span>
     </div>
 </div>

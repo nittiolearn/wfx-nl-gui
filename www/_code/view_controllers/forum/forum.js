@@ -94,10 +94,18 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup, nlExporter) {
             nl.pginfo.pageTitle = _getPageTitle(serverParams);
             $scope.mentorView = _isMentorView(serverParams);
 
-			nlServerApi.forumGetMsgs(serverParams).then(function(forumInfo) {
-			    _updateForumData(forumInfo);
-			    $scope.moreResults = (forumInfo.moreResults == true);
-				resolve(true);
+            var extraParams = {};
+            var serverFn = nlServerApi.forumGetMsgs;
+            if (params.topic) {
+                var text = nl.t('Discussion topic automatically created by the first user.');
+                extraParams = {title: params.topic, text: text, parentid: -1};
+                serverFn = nlServerApi.forumCreateOrModifyMsg;
+            }
+            
+            _updateServer(serverFn, extraParams, true)
+			.then(function() {
+                $scope.currentTopicId = messageMgr.getTopicMsgId(params.topic);
+                resolve(true);
 			}, function(error) {
 			    resolve(false);
 			});
@@ -226,23 +234,23 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup, nlExporter) {
     }
     
     function _loadOlderMessages() {
-        function onDone(forumInfo) {
+        _updateServer(nlServerApi.forumGetMsgs, {till: messageMgr.range_since})
+        .then(function(forumInfo) {
             $scope.moreResults = (forumInfo.moreResults == true);
-        }
-        _updateServer(nlServerApi.forumGetMsgs, {till: messageMgr.range_since}, onDone);
+        });
     }
 
-    function _updateServer(nlServerApiFn, extraParams, onDone) {
+    function _updateServer(nlServerApiFn, extraParams, noLoadingScreen) {
         var params = angular.copy(serverParams);
         for (var key in extraParams) {
             params[key] = extraParams[key];
         }
         if (messageMgr.range_till && !('till' in params)) params.since = messageMgr.range_till;
-        nlDlg.showLoadingScreen();
-        nlServerApiFn(params).then(function(forumInfo) {
-            nlDlg.hideLoadingScreen();
+        if (!noLoadingScreen) nlDlg.showLoadingScreen();
+        return nlServerApiFn(params).then(function(forumInfo) {
+            if (!noLoadingScreen) nlDlg.hideLoadingScreen();
             _updateForumData(forumInfo);
-            if (onDone) onDone(forumInfo);
+            return forumInfo;
         });
     }
     
@@ -345,6 +353,7 @@ function MessageManager(nl, nlRouter, nlServerApi, nlMarkup) {
         self.msgTree = [];
         self.range_since = null;
         self.range_till = null;
+        self.msgTopics = {};
     }
     _initDataStructure(this);
     
@@ -352,13 +361,18 @@ function MessageManager(nl, nlRouter, nlServerApi, nlMarkup) {
         var userInfo = nlServerApi.getCurrentUserInfo();
         _updateMap(this, msgs, userInfo);
         this.msgTree = _getMsgTree(this);
-        _sortMsgTree(this);
+        _sortMsgTreeAndUpdateTitles(this);
         return this.msgTree;
     };
     
     this.getMsg = function(msgid) {
         return (msgid in this.idToMsg ? this.idToMsg[msgid] : null);
     };
+
+    this.getTopicMsgId = function(topic) {
+        if (topic && topic in this.msgTopics) return this.msgTopics[topic];
+        return 0;
+    }
 
     function _updateMap(self, msgs, userInfo) {
         for (var i=0; i<msgs.length; i++) {
@@ -402,12 +416,14 @@ function MessageManager(nl, nlRouter, nlServerApi, nlMarkup) {
         return msgTree;
     }
 
-    function _sortMsgTree(self) {
+    function _sortMsgTreeAndUpdateTitles(self) {
         self.msgTree.sort(function(a, b) {
             return b.updated - a.updated;
         });
+        self.msgTopics = {};
         for(var i=0; i<self.msgTree.length; i++) {
             var msg = self.msgTree[i];
+            self.msgTopics[msg.title] = msg.id;
             msg.children.sort(function(a, b) {
                 return a.created - b.created;
             });
@@ -415,8 +431,6 @@ function MessageManager(nl, nlRouter, nlServerApi, nlMarkup) {
     }
 
     function _initAttributes(self, msg, userInfo) {
-        var msgOld = (msg.id in self.idToMsg) ? self.idToMsg[msg.id] : null;
-
         msg.updated = nl.fmt.json2Date(msg.updated);
         msg.created = nl.fmt.json2Date(msg.created);
         

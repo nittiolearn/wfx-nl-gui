@@ -35,6 +35,8 @@ nlesson = function() {
 		this.reRenderAsReport = Lesson_reRenderAsReport; // called on clicking zodi in view mode (view->report)
 		this.doModeToggle = Lesson_doModeToggle;		// called on clicking "edit->preview" button
 		this.updatePagePropertiesDom = Lesson_updatePagePropertiesDom; // update page properties in editor
+		
+		this.showForum = Lesson_showForum;
 
 		// Initialize and render - internal methods
 		// Lesson, Page and Section objects support the following internal methods wrt 
@@ -187,6 +189,26 @@ nlesson = function() {
 		var curPage = this.pages[this.getCurrentPageNo()];
 		curPage.updatePagePropertiesDom();
 	}
+
+    var forumDlg = null;
+    function Lesson_showForum(forumType, forumRefid) {
+        var curPage = this.pages[this.getCurrentPageNo()];
+        if (forumType == '') return;
+        if (forumDlg === null) {
+            forumDlg = new njs_helper.Dialog();
+            forumDlg.create('forumDlg', null, [], {id: 'cancel', text: 'Close'});
+            forumDlg.addClass('nl-max');
+        }
+        var topic = this.oLesson.forumTopic || curPage.oPage.forumTopic || '';
+        topic = topic.replace(/'/g, " ");
+        topic = window.encodeURIComponent(topic);
+        var lessonId = jQuery('#l_lessonId').val();
+        var fmt = '/#/forum?forumtype={}&refid={}&secid={}&topic={}&hidemenu';
+        var forumUrl = njs_helper.fmt2(fmt, forumType, forumRefid, lessonId, topic);
+        forumDlg.updateBodyWithIframe(forumUrl);
+        var dlgSize = {top : '0.5%', left : '0.5%', right: '0.5%', bottom: '0.5%'};
+        forumDlg.show(dlgSize);
+    }
 
 	//--------------------------------------------------------------------------------------------
 	// Lesson Methods - Initialize and render - internal methods
@@ -418,7 +440,8 @@ nlesson = function() {
 		this.oLesson.grade = jQuery('#l_grade').val();
 		this.oLesson.description = jQuery('#l_description').val();
 		this.oLesson.keywords = jQuery('#l_keywords').val();
-		this.oLesson.esttime = jQuery('#l_esttime').val();
+        this.oLesson.esttime = jQuery('#l_esttime').val();
+        this.oLesson.forumTopic = jQuery('#l_lessonForumTopic').val();
 		this.oLesson.image = jQuery('#imageFullName').val();		
 		this.oLesson.template = jQuery('#templateFullName').val();
 	}
