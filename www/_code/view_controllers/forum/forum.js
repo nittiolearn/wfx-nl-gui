@@ -186,7 +186,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup, nlExporter, nlResou
     
     function _getInsertString(r) {
         var ret = '';
-        if (r.restype == 'Image' || r.restype == 'Audio' || r.restype == 'Video') {
+        if (r.restype == 'Image') {
             ret += r.insertUrl + '\n';
             if (r.keywords) ret += r.keywords + '\n';
             return ret;
