@@ -648,7 +648,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
             isDone = (cm.id in statusinfo) && (statusinfo[cm.id].status == 'done');
             warningMsg = (isDone ? templateDone : templateNotDone);
         }
-        remarks = (cm.id in statusinfo) ? statusinfo[cm.id].remarks || '' : '';
+        remarks = (statusinfo && cm.id in statusinfo) ? statusinfo[cm.id].remarks || '' : '';
         
         var card = {};
         card.title = !canUpdateStatus ? nl.t('Summary') : isDone ? nl.t('Confirm undo operation'): nl.t('Mark as done');

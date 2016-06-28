@@ -328,6 +328,7 @@ img.nl-clickable {
 .nl-toolbar {
   width: 100%;
   text-align: right;
+  padding-right: 4px;
 }
 
 .nl-toolbar-icon {
@@ -337,6 +338,7 @@ img.nl-clickable {
   font-weight: bold;
   i.icon {
     font-size: 26px;
+    padding: 2px 4px;
   }
   i.icon:hover, i.icon:focus {
     color: $orange2;
@@ -1058,6 +1060,9 @@ img.nl-icon {
   width: 95%;
   background-color: $nlgrey;
   border: 1px solid $nldarkgrey;
+  .njs_img {
+    max-width: 100%;
+  }
 }
 
 .nl-forum-msg.me {

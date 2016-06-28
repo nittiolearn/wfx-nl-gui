@@ -61,11 +61,12 @@ function(nl) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var ForumCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlServerApi', 'nlMarkup', 'nlExporter',
-function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup, nlExporter) {
+var ForumCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlServerApi', 'nlMarkup', 'nlExporter', 'nlResourceAddModifySrv',
+function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup, nlExporter, nlResourceAddModifySrv) {
 	var serverParams = {};
 	var messageMgr = new MessageManager(nl, nlRouter, nlServerApi, nlMarkup);
     var forumInputDlg = new ForumInputDlg(nl, nlDlg, $scope);
+    var _userInfo = null;
 	
     $scope.showingDetails = false;
     $scope.inputDlgScope = $scope;
@@ -73,6 +74,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup, nlExporter) {
     
 	function _onPageEnter(userInfo) {
 		return nl.q(function(resolve, reject) {
+		    _userInfo = userInfo;
 			var params = nl.location.search();
 			if (!('forumtype' in params) || !('refid' in params)) {
 				resolve(false);
@@ -165,15 +167,41 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup, nlExporter) {
     $scope.showHideMsgDetails = function() {
         $scope.showingDetails = !$scope.showingDetails;
         _updateShowDetailsIcon();
-    }
+    };
     
+    $scope.uploadResource = function(currentTopicId) {
+        var msg = messageMgr.getMsg(currentTopicId);
+        if (!msg) return;
+        nlResourceAddModifySrv.show($scope, null, _userInfo.groupinfo.restypes, true)
+        .then(function(resInfos) {
+            if (resInfos.length == 0) return;
+            var text = '';
+            for(var i=0; i<resInfos.length; i++) {
+                text +=  _getInsertString(resInfos[i]);
+            }
+            var extraParams = {title: '', text: text, parentid: msg.id};
+            _updateServer(nlServerApi.forumCreateOrModifyMsg, extraParams);
+        });
+    };
+    
+    function _getInsertString(r) {
+        var ret = '';
+        if (r.restype == 'Image' || r.restype == 'Audio' || r.restype == 'Video') {
+            ret += r.insertUrl + '\n';
+            if (r.keywords) ret += r.keywords + '\n';
+            return ret;
+        }
+        ret += nl.fmt2('link:{}[text={}|popup=1]', r.url, r.keywords || 'click here');
+        return ret;
+    }
+
     function _updateShowDetailsIcon() {
         if ($scope.showingDetails) {
             $scope.msgDetails = {title: nl.t('Hide message details'),
-                icon: nl.url.resUrl('less.png')};
+                iconMore: false};
         } else {
             $scope.msgDetails = {title: nl.t('Show message details'),
-                icon: nl.url.resUrl('more.png')};
+                iconMore: true};
         }
     }
     

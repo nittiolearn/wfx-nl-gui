@@ -39,7 +39,7 @@
         <h3>There is no message to display.</h3>
     </div>
     <div ng-if='!currentTopicId' class='padding-small'>
-        {{msgCount}} message(s) since {{since}}.
+        {{msgCount}} message(s)<span ng-show='since'> since {{since}}</span>.
         <span ng-show='moreResults' class='nl-clickable' ng-click='loadOlderMessages()'>
             Load older messages.
         </span>
