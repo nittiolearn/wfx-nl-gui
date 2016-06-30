@@ -92,12 +92,12 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         } else if (internalUrl === 'rno_report_edit') {
             var rno = _rnoDict[card.rnoId];
             _rnoServer.getData(rno).then(function() {
-                _editReport($scope, rno, true);
+                _editOrViewReport($scope, true, rno);
             });
         } else if (internalUrl === 'rno_report_review') {
             var rno = _rnoDict[card.rnoId];
             _rnoServer.getData(rno).then(function() {
-                _editReport($scope, rno, false);
+                _editOrViewReport($scope, false, rno);
             });
 		}
     };
@@ -179,8 +179,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 		return cards;
 	}
 	
-    function _getCardIcon(rno) {
-        return rno.config.image || nl.url.resUrl('user.png');
+    function _getCardIcon(rnoConfig) {
+        return rnoConfig.image || nl.url.resUrl('user.png');
     }
     
 	function _createCard(rno) {
@@ -190,7 +190,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 		  (_pageGlobals.role == 'review') ? 'rno_report_review' : 'rno_observe';
 	    var card = {rnoId: rno.id,
 	                title: nl.fmt2('{} {}', rno.config.first_name, rno.config.last_name), 
-					icon: _getCardIcon(rno), 
+					icon: _getCardIcon(rno.config), 
                     internalUrl: internalUrl,
 					help: '',
 					grade: _getCardGrade(rno),
@@ -423,62 +423,116 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 		return 0;
 	}
 
-    function _editReport($scope, rno, bEdit) {
+    function _editOrViewReport($scope, bEdit, rno, rnoData, reportSent) {
+        var rnoConfig = rno.config;
+        if (!rnoData) rnoData = rno.data;
         var dlg = nlDlg.create($scope);
-        var template = 'view_controllers/rno/rno_report_dlg.html';
         dlg.setCssClass('nl-height-max nl-width-max');
-        
-        var templ = bEdit ? 'Manage and edit report: {} {}' : 'Review and update report: {} {}';
-        dlg.scope.dlgTitle = nl.t(templ, rno.config.first_name, rno.config.last_name);
-        dlg.scope.rno = rno;
+
+        dlg.scope.mode = bEdit ? 'edit' : 'preview';
+        dlg.scope.reportSent = reportSent;
         dlg.scope.purpose = 'rating';
-        _initPreviewMode(dlg.scope, bEdit);
+
+        dlg.scope.image = _getCardIcon(rnoConfig);
+        dlg.scope.rno = rno;
+        dlg.scope.rnoConfig = rnoConfig;
         dlg.scope.user_model = _pageGlobals.metadata.user_model;
         dlg.scope.report_model = _pageGlobals.metadata.report_model || {};
-        dlg.scope.image = _getCardIcon(rno);
+        if (reportSent) {
+            dlg.scope.dlgTitle = nl.t('Report sent on {}', reportSent.sent_on);
+        } else {
+            dlg.scope.dlgTitle = nl.t('{} {}', rnoConfig.first_name, rnoConfig.last_name);
+        }
 
-        var ratings = _getMergedRatings(rno);
-
-        dlg.scope.observations = _getObservations(rno);
+        dlg.scope.reportsSent = [];
+        dlg.scope.observations = _getObservations(rnoData);
         var obsSelected = [];
         for (var i=0; i<dlg.scope.observations.length; i++) {
-            obsSelected.push(dlg.scope.observations[i].selected);
+            var o = dlg.scope.observations[i];
+            obsSelected.push(o.selected);
+            if (!o.sent) continue;
+            dlg.scope.reportsSent.push(o.sent);
         }
         
-        dlg.scope.msTree = new MsTree(nl, nlDlg, _pageGlobals.metadata.milestones, rno.config.user_type, ratings, _getRatingDict(), null);
+        var reportsSent = rnoData.reportsSent || {};
+        for (var key in reportsSent) {
+            var sent = angular.copy(reportsSent[key]);
+            dlg.scope.reportsSent.push(sent);
+        }
+        dlg.scope.reportsSent.sort(function(a, b) {
+            if (a.sent_on > b.sent_on) return -1;
+            // They being equal is very unlikely in our case!
+            return 1;
+        });
         
-        var reportInfo = _getReportInfo(rno);
+        var ratings = _getMergedRatings(rnoData);
+        dlg.scope.msTree = new MsTree(nl, nlDlg, _pageGlobals.metadata.milestones, 
+            rnoConfig.user_type, ratings, _getRatingDict(), null);
+        
+        var reportInfo = _getReportInfo(rnoData);
         dlg.scope.options = {year: _getYearOptions(), term: _getTermOptions(), rating: _getRatingOptions()};
         dlg.scope.data = {year: reportInfo.year, term: reportInfo.term, 
             summary: reportInfo.summary, obsSelected: obsSelected};
         dlg.scope.error = {};
-        dlg.scope.onEditDone = function(observation) {
-            dlg.scope.msTree.updateRatings(observation.ratings);
-            rno.data.ratingsUpdatedOn = new Date();
+        dlg.scope.onSendObservation = function(observationId) {
+            dlg.close();
+            nl.timeout(function() {
+                _rnoServer.updateData(rno, observationId);
+            });
         };
 
-        _observationManager.manageObservations($scope, dlg.scope, rno);
+        dlg.scope.onEditDone = function(observation) {
+            dlg.scope.msTree.updateRatings(observation.ratings);
+            rnoData.ratingsUpdatedOn = new Date();
+        };
+
+        dlg.scope.onReportHistory = function(sent) {
+            dlg.close();
+            _onReportHistory(rno, sent);
+        };
+
+        _observationManager.manageObservations($scope, dlg, rno);
         
-        var previewButton = {text: nl.t('Toggle preview'), onTap: function(e) {
-            if (e) e.preventDefault();
-            _togglePreviewMode(dlg.scope);
+        var sendButton = {text: bEdit? nl.t('Preview'): nl.t('Send'), onTap: function(e) {
+            if (bEdit) {
+                var dlgScope = dlg.scope;
+                nl.timeout(function() { // Give time for dlg box to go down
+                    _onSaveReport(dlgScope, false);
+                    _editOrViewReport($scope, false, rno);
+                });
+            } else {
+                nl.timeout(function() { // Give time for dlg box to go down
+                    if(_isReportSent(rno)) return;
+                    _rnoServer.updateData(rno, -1);
+                });
+            }
         }};
-        var saveButton = {text: nl.t('Save'), onTap: function(e) {
-            _onSaveReport(e, dlg.scope);
+        var saveButton = {text: bEdit? nl.t('Save'): nl.t('Edit'), onTap: function(e) {
+            if (bEdit) {
+                var dlgScope = dlg.scope;
+                nl.timeout(function() { // Give time for dlg box to go down
+                    _onSaveReport(dlgScope, true);
+                });
+            } else {
+                nl.timeout(function() { // Give time for dlg box to go down
+                    _editOrViewReport($scope, true, rno);
+                });
+            }
         }};
         var buttons = [];
-        if (_pageGlobals.role == 'observe' || _pageGlobals.role == 'review') {
-            buttons.push(previewButton);
+        if (!reportSent) {
+            buttons.push(sendButton);
             buttons.push(saveButton);
         } 
-        var cancelButton = {text : nl.t('Cancel')};
+        var cancelButton = {text : nl.t('Close')};
+        var template = 'view_controllers/rno/rno_report_dlg.html';
         dlg.show(template, buttons, cancelButton);
     }
 
-    function _getMergedRatings(rno) {
-        var ratings = _getRatings(rno);
-        var ratingsUpdatedOn = rno.data.ratingsUpdatedOn || nl.fmt.getPastDate();
-        var observations = _getObservations(rno);
+    function _getMergedRatings(rnoData) {
+        var ratings = _getRatings(rnoData);
+        var ratingsUpdatedOn = rnoData.ratingsUpdatedOn || nl.fmt.getPastDate();
+        var observations = _getObservations(rnoData);
         for(var i=observations.length-1; i>=0; i--) {
             var o = observations[i];
             if (o.updated < ratingsUpdatedOn) continue;
@@ -486,27 +540,11 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
                 ratings[r] = o.ratings[r];
             }
         }
-        rno.data.ratingsUpdatedOn = new Date();
+        rnoData.ratingsUpdatedOn = new Date();
         return ratings;
     }
 
-    function _initPreviewMode(dlgScope, bEdit) {
-        dlgScope.mode = bEdit ? 'edit' : 'preview';
-    }
-    
-    function _togglePreviewMode(dlgScope) {
-        if (_pageGlobals.role == 'admin') {
-            dlgScope.mode = 'preview';
-            return;           
-        }
-
-        if (dlgScope.mode == 'edit')
-            dlgScope.mode = 'preview';
-        else
-            dlgScope.mode = 'edit';
-    }
-
-    function _onSaveReport(e, dlgScope) {
+    function _onSaveReport(dlgScope, saveToServer) {
         var rno =  dlgScope.rno;
         var data =  dlgScope.data;
         rno.data.ratings =  dlgScope.msTree.getSelectedRatings();
@@ -516,9 +554,31 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         for (var i=0; i<data.obsSelected.length; i++) {
             rno.data.observations[i].selected = data.obsSelected[i];
         }
-        _rnoServer.updateData(rno);
+        if (saveToServer) _rnoServer.updateData(rno);
     }
 
+    function _getReportKey(data) {
+        if (!data.reportsSent) data.reportsSent = {};
+        return 'Report/' + data.report_info.year.id + '/' + data.report_info.term.id;
+    }
+    
+    function _isReportSent(rno) {
+        var key = _getReportKey(rno.data);
+        if (!rno.data.reportsSent[key]) return false;
+        var rm = _pageGlobals.metadata.report_model;
+        var msg = nl.t('Report is already finalized and sent. ' + 
+            'You need to edit {} or {} field before sending it again.',
+            rm.year.title, rm.term.title);
+        nlDlg.popupAlert({title: nl.t('Already sent'), template: msg});
+        return true;
+    }
+    
+    function _onReportHistory(rno, reportSent) {
+        _rnoServer.getSentReportData(rno, reportSent.key)
+        .then(function(rnoData) {
+            _editOrViewReport($scope, false, rno, rnoData, reportSent);
+        });
+    }
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -549,16 +609,25 @@ function RnoServer(nl, nlServerApi, nlDlg) {
     
     this.getData = function(rno) {
         nlDlg.showLoadingScreen();
-        return nlServerApi.rnoGetData(rno.id).then(function(newData) {
+        return nlServerApi.rnoGetData(rno.id, null).then(function(newData) {
             nlDlg.hideLoadingScreen();
             rno.data = angular.fromJson(newData);
         });
     }
     
-    this.updateData = function(rno) {
+    this.getSentReportData = function(rno, reportKey) {
+        nlDlg.showLoadingScreen();
+        return nlServerApi.rnoGetData(rno.id, reportKey).then(function(newData) {
+            nlDlg.hideLoadingScreen();
+            return angular.fromJson(newData);
+        });
+    }
+    
+    this.updateData = function(rno, send) {
+        if (send === undefined) send = -2;
         nlDlg.showLoadingScreen();
         var data = angular.toJson(rno.data);
-        return nlServerApi.rnoUpdateData(rno.id, data).then(function(newData) {
+        return nlServerApi.rnoUpdateData(rno.id, data, send).then(function(newData) {
             nlDlg.hideLoadingScreen();
             rno.data = angular.fromJson(newData);
         });
@@ -568,20 +637,19 @@ function RnoServer(nl, nlServerApi, nlDlg) {
 //-------------------------------------------------------------------------------------------------
 function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
 
-    this.createOrModifyObservation = function($scope, rno, observationId, onCompleteFn) {
+    this.createOrModifyObservation = function($scope, rno, observationId) {
         var dlg = nlDlg.create($scope);
         dlg.setCssClass('nl-width-max nl-height-max');
 
         var title = (observationId !== null) ? nl.t('Modify observation') : nl.t('New observation');
         dlg.scope.dlgTitle = nl.t('{}: {} {}', title, rno.config.first_name, rno.config.last_name);
 
-        var observations = _getObservations(rno);
+        var observations = _getObservations(rno.data);
         var o = (observationId !== null) ? observations[observationId] : {};
         var ratings = o.ratings || {};
         dlg.scope.msTree = new MsTree(nl, nlDlg, _pageGlobals.metadata.milestones, rno.config.user_type, ratings, _getRatingDict(), null);
         dlg.scope.options = {rating: _getRatingOptions()};
         dlg.scope.purpose = 'observation';
-        dlg.scope.onCompleteFn = onCompleteFn;
         
         dlg.scope.onResourceClick = function(attachment, $index) {
             attachment.isSelected = false;
@@ -654,7 +722,6 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
         
         rno.data.observations.splice(0, 0, observation); // Insert to top of array
         _rnoServer.updateData(rno).then(function resolve() {
-            if (scope.onCompleteFn) scope.onCompleteFn(observation);
             nlDlg.popupStatus('Done');
         }, function reject() {
             nlDlg.popdownStatus(0);
@@ -669,19 +736,27 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
         _observationManager.onAttachementRemove($scope, attachment, pos);
     };
     
-    this.manageObservations = function($scope, dlgScope, rno) {
+    this.manageObservations = function($scope, dlg, rno) {
         var self = this;
-        dlgScope.canDelete = _pageGlobals.enableDelete;
+        dlg.scope.canDelete = _pageGlobals.enableDelete;
      
-        dlgScope.onCreate = function(e) {
-            self.createOrModifyObservation($scope, rno, null);
+        dlg.scope.onCreate = function(e) {
+            dlg.close();
+            nl.timeout(function() {
+                self.createOrModifyObservation($scope, rno, null);
+            });
         };
-        dlgScope.onEdit = function(observationId, e) {
-            self.createOrModifyObservation($scope, rno, observationId, dlgScope.onEditDone);
+        dlg.scope.onEdit = function(observationId, e) {
+            dlg.close();
+            nl.timeout(function() {
+                self.createOrModifyObservation($scope, rno, observationId);
+            });
         };
-        dlgScope.onDelete = function(observationId, e) {      
-            if (e) e.stopImmediatePropagation();
-            self.deleteObservation($scope, rno, observationId);
+        dlg.scope.onDelete = function(observationId, e) {      
+            dlg.close();
+            nl.timeout(function() {
+                self.deleteObservation($scope, rno, observationId);
+            });
         };
     };
 
@@ -898,19 +973,19 @@ function MsTree(nl, nlDlg, milestones, usertype, ratings, ratingDict, defaultRat
 
 //-------------------------------------------------------------------------------------------------
 // Utilities used in all the classes above
-function _getObservations(rno) {
-    if (!rno.data.observations) rno.data.observations = [];
-    return rno.data.observations;
+function _getObservations(rnoData) {
+    if (!rnoData.observations) rnoData.observations = [];
+    return rnoData.observations;
 }
 
-function _getRatings(rno) {
-    if (!rno.data.ratings) rno.data.ratings = {};
-    return rno.data.ratings;
+function _getRatings(rnoData) {
+    if (!rnoData.ratings) rnoData.ratings = {};
+    return rnoData.ratings;
 }
 
-function _getReportInfo(rno) {
-    if (!rno.data.report_info) rno.data.report_info = {};
-    return rno.data.report_info;
+function _getReportInfo(rnoData) {
+    if (!rnoData.report_info) rnoData.report_info = {};
+    return rnoData.report_info;
 }
 
 function _getArrayAsOptions(opts) {

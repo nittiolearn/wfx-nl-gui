@@ -1,8 +1,8 @@
 <div class='row'>
     <div class='col'>
         <table class='nl-table nl-table-styled'>
-            <tr><td class='nl-dlg-field-name'>Name</td><td>{{rno.config.first_name}} {{rno.config.last_name}}</td></tr>
-            <tr><td class='nl-dlg-field-name'>{{user_model.user_type.title}}</td><td>{{rno.config.user_type}}</td></tr>
+            <tr><td class='nl-dlg-field-name'>Name</td><td>{{rnoConfig.first_name}} {{rnoConfig.last_name}}</td></tr>
+            <tr><td class='nl-dlg-field-name'>{{user_model.user_type.title}}</td><td>{{rnoConfig.user_type}}</td></tr>
             <tr ng-if='report_model.year'>
                 <td class='nl-dlg-field-name'>{{report_model.year.title}}</td>
                 <td ng-if="mode!='preview'" class='nl-dlg-field-value'>
@@ -33,11 +33,9 @@
     <div ng-if="mode=='preview'">{{data.summary}}</div>
 </div>
 
-<h3>Ratings</h3>
+<h3 ng-show="msTree.items[0].selectCnt > 0 || mode!='preview'">Ratings</h3>
 <nl-rno-mstree ng-if="mode!='preview'"></nl-rno-mstree>
 <nl-rno-mstree-view ng-if="mode=='preview'"></nl-rno-mstree-view>
-
-<h3>Observations</h3>
 
 <div ng-if="mode!='preview'"
      ng-repeat="observation in observations">
@@ -49,17 +47,27 @@
              class='row row-center margin0 padding0 nl-clickable'
              ng-click='data.obsSelected[$index]=false'>
             <span class='padding-small'></span>
-            <img title='edit' class='nl-24'
-                 ng-src='{{$parent.imgBasePath + "general/tick.png"}}'/>
+            <span class='nl-toolbar-icon padding-small'>
+                <i class="icon ion-checkmark-circled" style='color: #007700'></i>
+            </span>
             <span class='padding-small'>Included in the report. Press here to exclude.</span>
         </div>
         <div ng-hide='data.obsSelected[$index]'
              class='row row-center margin0 padding0 nl-clickable'
              ng-click='data.obsSelected[$index]=true'>
             <span class='padding-small'></span>
-            <img title='edit' class='nl-24'
-                 ng-src='{{$parent.imgBasePath + "general/cross.png"}}'/>
+            <span class='nl-toolbar-icon padding-small'>
+                <i class="icon ion-close-circled" style='color: #770000'></i>
+            </span>
             <span class='padding-small'>Not included in the report. Press here to include.</span>
+        </div>
+        <div ng-show='observation.sent'
+             class='row row-center margin0 padding0'>
+            <span class='padding-small'></span>
+            <span class='nl-toolbar-icon padding-small'>
+                <i class="icon ion-checkmark-circled" style='color: #007700'></i>
+            </span>
+            <span class='padding-small'>Observation is finalized and sent.</span>
         </div>
         <div style='height: 10px'></div>
 
@@ -75,16 +83,25 @@
             created: {{observation.created|date: 'dd-MMMM-yy HH:mm'}},
             updated: {{observation.updated|date: 'dd-MMMM-yy HH:mm'}}
         </div>
-        <div class='nl-forum-msg-tools padding-small'>
-            <img title='edit'
-                 class='nl-24 nl-clickable'
-                 ng-src='{{$parent.imgBasePath + "forum/edit_black.png"}}'
-                 ng-click='onEdit($index, $event)'/>
-            <img title='delete'
-                 ng-show='canDelete'
-                 class='nl-24 nl-clickable'
-                 ng-src='{{$parent.imgBasePath + "forum/delete_black.png"}}'
-                 ng-click='onDelete($index, $event)'/>
+        <div class='nl-mildtoolbar text-left'>
+            <span title='send'
+                  ng-show='!observation.sent'
+                  class='nl-toolbar-icon'
+                  ng-click='onSendObservation($index, $event)'>
+                <i class="icon ion-paper-airplane"></i>
+            </span>
+            <span title='edit'
+                  ng-show='!observation.sent'
+                  class='nl-toolbar-icon'
+                  ng-click='onEdit($index, $event)'>
+                <i class="icon ion-edit" style='font-size: 22px'></i>
+            </span>
+            <span title='delete'
+                  ng-show='canDelete && !observation.sent'
+                  class='nl-toolbar-icon'
+                  ng-click='onDelete($index, $event)'>
+                <i class="icon ion-ios-trash"></i>
+            </span>
         </div>
     </div>
 </div>
@@ -92,10 +109,30 @@
 <div ng-if="mode=='preview' && data.obsSelected[$index]"
      ng-repeat="observation in observations">
     <div class='padding-top'>
-        <b>{{observation.created|date: 'dd-MMMM-yyyy'}}: </b>
+        Observed on <b>{{observation.created|date: 'dd-MMMM-yyyy'}} </b>
         <span ng-bind-html='observation.text | nlMarkupToHtml'></span>
     </div>
     <div ng-repeat="imgUrl in observation.attachments">
         <img ng-src='{{imgUrl.url}}' class='nl-full-width padding-top'>
     </div>
+</div>
+
+<div ng-if="mode!='preview'" class='padding-vertical'>
+    <h3>Report History</h3>
+    <div ng-repeat="reportSent in reportsSent"
+         class='padding-small nl-clickable-container'
+         ng-click='onReportHistory(reportSent)'>
+        <span ng-if="reportSent.type == 'report'"
+              title='Consolidated report'
+              class='nl-toolbar-icon'>
+            <i class="icon ion-document-text"></i>
+        </span>
+        <span ng-if="reportSent.type == 'observation'"
+              title='Observation report'
+              class='nl-toolbar-icon'>
+            <i class="icon ion-camera"></i>
+        </span>
+        Sent on {{reportSent.sent_on}} by {{reportSent.sent_by}}
+    </div>
+    
 </div>

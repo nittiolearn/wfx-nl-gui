@@ -390,7 +390,7 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 		uploadAgainDlg.scope.resinfos = addModifyResourceDlg.resInfos;
 		var cancelButton = {text: nl.t('Close'), onTap: function(e) {
 			uploadAgainDlg.close();
-			return resInfos;
+			return addModifyResourceDlg.resInfos;
 		}};
         uploadAgainDlg.show('view_controllers/resource/upload_done_dlg.html', [], cancelButton, false);
 	}

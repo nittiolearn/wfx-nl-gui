@@ -21,17 +21,19 @@
              ng-hide='$parent.inputDlg.editMessage && $parent.inputDlg.msg == msg'>
             <div ng-bind-html='msg.htmlMarkup'></div>
             <div class='padding-small'></div>
-            <div class='nl-forum-msg-tools'>
-                <img title='edit'
-                     ng-show='msg.canEdit'
-                     class='nl-24 nl-clickable'
-                     ng-src='{{$parent.imgBasePath + "forum/edit_black.png"}}'
-                     ng-click='$parent.showEditMsgDlg(msg)'/>
-                <img title='delete'
-                     ng-show='msg.canDelete'
-                     class='nl-24 nl-clickable'
-                     ng-src='{{$parent.imgBasePath + "forum/delete_black.png"}}'
-                     ng-click='$parent.deleteMsg(msg)'/>
+            <div class='nl-mildtoolbar text-left'>
+                <span title='edit'
+                      ng-show='msg.canEdit'
+                      class='nl-toolbar-icon'
+                      ng-click='$parent.showEditMsgDlg(msg)'>
+                    <i class="icon ion-edit" style='font-size: 22px'></i>
+                </span>
+                <span title='delete'
+                      ng-show='msg.canDelete'
+                      class='nl-toolbar-icon'
+                      ng-click='$parent.deleteMsg(msg)'>
+                    <i class="icon ion-ios-trash"></i>
+                </span>
             </div>
         </div>
         <div class='nl-forum-msg-edit padding-small nl-dlg-field-value'

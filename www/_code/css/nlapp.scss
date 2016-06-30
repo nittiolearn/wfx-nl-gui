@@ -325,10 +325,10 @@ img.nl-clickable {
   padding: 4px;
 }
 
-.nl-toolbar {
+.nl-toolbar, .nl-mildtoolbar {
   width: 100%;
+  padding: 0 4px;
   text-align: right;
-  padding-right: 4px;
 }
 
 .nl-toolbar-icon {
@@ -343,6 +343,22 @@ img.nl-clickable {
   i.icon:hover, i.icon:focus {
     color: $orange2;
   }
+}
+
+.nl-mildtoolbar {
+  span {
+    opacity: 0.3;
+  }
+  span:hover, span:focus {
+    opacity: 1;
+  }
+  .nl-toolbar-icon {
+    color: black;
+  }
+}
+
+.nl-mildtoolbar.text-left, .nl-toolbar.text-left {
+  text-align: left;
 }
 
 /*-----------------------------------------------------------------------------------------*
@@ -1083,14 +1099,6 @@ img.nl-icon {
     input, textarea {
         border: 1px solid $nldarkgrey;
     }
-}
-
-.nl-forum-msg-tools img {
-    opacity: 0.3;
-}
-
-.nl-forum-msg-tools img:hover, .nl-forum-msg-tools img:focus, {
-    opacity: 1;
 }
 
 /*-----------------------------------------------------------------------------------------*

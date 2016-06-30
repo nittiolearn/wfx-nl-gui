@@ -265,14 +265,15 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/rno_delete.json', {id: rnoId});
     };
 
-    this.rnoGetData = function(rnoId) {
+    this.rnoGetData = function(rnoId, reportKey) {
         // return: rno data JSON
-        return server.post('_serverapi/rno_get_data.json', {id: rnoId});
+        return server.post('_serverapi/rno_get_data.json', {id: rnoId, report_key: reportKey});
     };
 
-    this.rnoUpdateData = function(rnoId, data) {
+    this.rnoUpdateData = function(rnoId, data, send) {
         // return: updated rno data JSON
-        return server.post('_serverapi/rno_update_data.json', {id: rnoId, data:data});
+        return server.post('_serverapi/rno_update_data.json', 
+            {id: rnoId, data:data, send:send});
     };
 
     //---------------------------------------------------------------------------------------------
