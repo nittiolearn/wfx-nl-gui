@@ -6,6 +6,7 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.ui.utils', ['nl.ui.keyboard'])
+    .filter('nlDateStr', NlDateStr)
 	.directive('nlCompile', Compile)
     .directive('nlLoading', LoadingDirective)
     .directive('nlNoCtxMenu', NoCtxMenuDirective)
@@ -14,6 +15,17 @@ function module_init() {
     .directive('nlProgressLog', ProgressLogDirective)
     .service('nlProgressLog', ProgressLogSrv);
 }
+
+//-------------------------------------------------------------------------------------------------
+var NlDateStr = ['nl', '$filter',
+function(nl, $filter) {
+    function _fmtDateStr(dateStr, format, timezone) {
+        var newDate = nl.fmt.json2Date(dateStr);
+        var ret = $filter('date')(newDate, format, timezone);
+        return ret;
+    }
+    return _fmtDateStr;
+}];
 
 //-------------------------------------------------------------------------------------------------
 var Compile = ['nl', '$compile',

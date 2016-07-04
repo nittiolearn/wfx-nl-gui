@@ -270,10 +270,21 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/rno_get_data.json', {id: rnoId, report_key: reportKey});
     };
 
-    this.rnoUpdateData = function(rnoId, data, send) {
+    this.rnoGetData2 = function(rnoId, reportKey) {
+        // return: rno data JSON: (same as rnoGEtData except permission check at server side)
+        // This is used in parent view.
+        return server.post('_serverapi/rno_get_data2.json', {id: rnoId, report_key: reportKey});
+    };
+
+    this.rnoGetDataEx = function(rnoId) {
+        // return: dict with metadata, rno and rno data JSON
+        return server.post('_serverapi/rno_get_data_ex.json', {id: rnoId});
+    };
+
+    this.rnoUpdateData = function(rnoId, data, send, mailData) {
         // return: updated rno data JSON
         return server.post('_serverapi/rno_update_data.json', 
-            {id: rnoId, data:data, send:send});
+            {id: rnoId, data:data, send:send, mail_data: mailData});
     };
 
     //---------------------------------------------------------------------------------------------
