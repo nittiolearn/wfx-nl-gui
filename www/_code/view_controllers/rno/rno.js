@@ -57,10 +57,9 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         _pageGlobals.userInfo = userInfo;
         return nl.q(function(resolve, reject) {
             var params = nl.location.search();
-            var rnoId = ('id' in params) ? parseInt(params.id) : 0;
-            var key = ('key' in params) ? params.key : null;
+            var hashKey = params.hashkey || '';
 
-            nlServerApi.rnoGetDataEx(rnoId).then(function(response) {
+            nlServerApi.rnoGetDataEx(hashKey).then(function(response) {
                 var rno = response.rno;
                 rno.config = rno.config ? angular.fromJson(rno.config) : {};
                 rno.data = angular.fromJson(response.data);
@@ -68,8 +67,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
                 nl.pginfo.pageTitle = nl.t('Reports of {} {}', rno.config.first_name, 
                     rno.config.last_name);
                 _rnoReportManageForm.show($scope, rno);
-                if (key) {
-                    _rnoReportManageForm.showSentReport(key);
+                if (response.key) {
+                    _rnoReportManageForm.showSentReport(response.key);
                 }
                 resolve(true);
             }, function(error) {

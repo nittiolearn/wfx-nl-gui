@@ -276,9 +276,9 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/rno_get_data2.json', {id: rnoId, report_key: reportKey});
     };
 
-    this.rnoGetDataEx = function(rnoId) {
+    this.rnoGetDataEx = function(hashKey) {
         // return: dict with metadata, rno and rno data JSON
-        return server.post('_serverapi/rno_get_data_ex.json', {id: rnoId});
+        return server.post('_serverapi/rno_get_data_ex.json', {hashkey: hashKey});
     };
 
     this.rnoUpdateData = function(rnoId, data, send, mailData) {
