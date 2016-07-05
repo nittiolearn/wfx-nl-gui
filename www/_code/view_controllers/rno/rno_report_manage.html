@@ -63,7 +63,7 @@
                  ng-class='{select: observation.selected}'>
                 <div style='height: 10px'></div>
                 <div ng-show='observation.selected'
-                     class='row row-center margin0 padding0 nl-clickable'
+                     class='row row-center margin0 padding0 nl-link-text'
                      ng-click='observation.selected=false'>
                     <span class='padding-small'></span>
                     <span class='nl-toolbar-icon padding-small'>
@@ -72,7 +72,7 @@
                     <span class='padding-small'>Included in the summary report. Press here to exclude.</span>
                 </div>
                 <div ng-hide='observation.selected'
-                     class='row row-center margin0 padding0 nl-clickable'
+                     class='row row-center margin0 padding0 nl-link-text'
                      ng-click='observation.selected=true'>
                     <span class='padding-small'></span>
                     <span class='nl-toolbar-icon padding-small'>
@@ -146,7 +146,7 @@
             <span>{{formScope.reportsSent.length}} observation and progress report emails sent</span>
         </h3>
         <div ng-repeat="reportSent in formScope.reportsSent"
-             class='padding-small nl-clickable-container'
+             class='padding-small nl-link-text'
              ng-hide='formScope.hideHistory'
              ng-click='formScope.onReportHistory(reportSent)'>
             <span ng-if="reportSent.type == 'report'"

@@ -1,8 +1,7 @@
 <style>
-	.select-button{
+	.select-button {
 		margin-bottom: 5px;
 		text-align: center;
-		vertical-align: middle;
 		color: #333;
 		padding: 4px 14px;
 		cursor: pointer;
@@ -11,7 +10,6 @@
 	}
 	.nl-data-visibleTo {
 		vertical-align: middle;
-		padding-top: 4px;
 	}
 	.nl-sep8{
 		padding: 8px;
@@ -66,12 +64,23 @@
     <div class='row row-wrap padding0 margin0'>
         <div ng-class='resp2Col67'>
             <div class='row row-wrap row-center padding-top margin0'>
-                <div ng-class='resp2Col33'>class/ user group</div>
+                <div ng-class='resp2Col33'>class/user group</div>
                 <div ng-class='resp2Col67'>
                     <table><tr>
-                        <td style='width:20%, padding-right:4px'><button class='select-button' ng-click='onOuClick()' autofocus="true"> Select</button></td>
-                        <td ng-if='data.visibleToGroupLength == 0 || data.visibleToGroupLength == 1 ' class='nl-sep8'><span class='nl-data-visibleTo' ng-bind-html='data.visibleto'></span></td>
-                        <td ng-if='data.visibleToGroupLength > 1' class='nl-sep8'><span class='nl-data-visibleTo' ng-bind-html='data.visibleto' ng-click='onClickOnVisibleTo()'></span></td>
+                        <td style='vertical-align: middle; padding-left: 4px'>
+                            <button class='select-button' ng-click='onOuClick()' autofocus="true"> Select</button>
+                        </td>
+                        <td class='padding-small'>
+                            <div ng-if='data.visibleToGroupLength <= 1'
+                                 class='padding-small'>
+                                <b ng-bind-html='data.visibleto'></b>
+                            </div>
+                            <div ng-if='data.visibleToGroupLength > 1'
+                                 class='padding-small nl-link-text'
+                                 ng-click='onClickOnVisibleTo()'>
+                                <b ng-bind-html='data.visibleto'></b>
+                            </div>
+                        </td>
                     </tr></table>
                 </div>
             </div>
@@ -80,9 +89,20 @@
                 <div ng-class='resp2Col33'>users</div>
                 <div ng-class='resp2Col67'>
                     <table><tr>
-                        <td style='width:20%'><button class='select-button' ng-click='onUserClick()'> Select</button></td>
-                        <td ng-if='data.visibleToUsersLength == 0' class='nl-sep8'><span class='nl-data-visibleTo' ng-bind-html='data.visibleToUsers'></span></td>
-                        <td ng-if='data.visibleToUsersLength > 0' class='nl-sep8'><span class='nl-data-visibleTo' ng-bind-html='data.visibleToUsers' ng-click='onClickOnVisibleToUsers()'></span></td>
+                        <td style='vertical-align: middle; padding-left: 4px'>
+                            <button class='select-button' ng-click='onUserClick()'> Select</button>
+                        </td>
+                        <td class='padding-small'>
+                            <div ng-if='data.visibleToUsersLength == 0'
+                                 class='padding-small'>
+                                <b ng-bind-html='data.visibleToUsers'></b>
+                            </div>
+                            <div ng-if='data.visibleToUsersLength > 0'
+                                 class='padding-small nl-link-text'
+                                 ng-click='onClickOnVisibleToUsers()'>
+                                <b ng-bind-html='data.visibleToUsers'></b>
+                            </div>
+                        </td>
                     </tr></table>
                 </div>
             </div>
@@ -90,7 +110,7 @@
             <div class='row row-wrap row-center padding-top margin0'>
                 <div ng-class='resp2Col33'>start time</div>
                 <div ng-class='resp2Col67' class='nl-time-input-div'>
-                    <div class='nl-time-input nl-clickable' ion-datetime-picker ng-model="data.starttime">
+                    <div class='nl-time-input nl-link-text' ion-datetime-picker ng-model="data.starttime">
                         <div class='row row-center margin0 padding0'>
                             <div class='col col-90 margin0 padding0'>{{data.starttime| date: "yyyy-MM-dd H:mm"}}</div>
                             <i class='col icon ion-android-time nl-time-icon'></i>
@@ -102,7 +122,7 @@
             <div class='row row-wrap row-center padding-top margin0'>
                 <div ng-class='resp2Col33'>end time</div>
                 <div ng-class='resp2Col67' class='nl-time-input-div'>
-                    <div class='nl-time-input nl-clickable' ion-datetime-picker ng-model="data.endtime">
+                    <div class='nl-time-input nl-link-text' ion-datetime-picker ng-model="data.endtime">
                         <div class='row row-center margin0 padding0'>
                             <div class='col col-90 margin0 padding0'>{{data.endtime| date: "yyyy-MM-dd H:mm"}}</div>
                             <i class='col icon ion-android-time nl-time-icon'></i>

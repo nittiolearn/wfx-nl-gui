@@ -7,21 +7,21 @@
     </span>
     <img title='Collapse all'
          ng-hide='isTreeCollapsed'
-         class='nl-24 nl-clickable'
+         class='nl-24 nl-link-img'
          ng-src='{{imgBasePath + "up.png"}}'
          ng-click='collapseAll()'/>
     <img title='{{expandViewText}}'
-         class='nl-24 nl-clickable'
+         class='nl-24 nl-link-img'
          ng-src='{{expandViewIcon}}' 
          ng-click='expandViewClick()'/>
     <img title='Discussion forum'
          ng-show='forumInfo.refid'
-         class='nl-24 nl-clickable'
+         class='nl-24 nl-link-img'
          ng-src='{{imgBasePath + "toolbar-view/discuss.png"}}'
          ng-click='launchForum()'/>
     <img title='Add'
          ng-show='mode == MODES.EDIT'
-         class='nl-24 nl-clickable'
+         class='nl-24 nl-link-img'
          ng-src='{{imgBasePath + "toolbar-edit/addpage.png"}}'
          ng-click='addContent()'/>
 </div>
@@ -36,12 +36,12 @@
 		<tr ng-repeat='cm in modules'>
 			<td ng-click='onClick($event, cm, false)' ng-style='cm.indentationStyle'>
 				<span>&nbsp;</span>
-				<img class='nl-icon' ng-class='{"nl-clickable": cm.clickable}' ng-src='{{getIcon(cm)}}'>
+				<img class='nl-icon' ng-class='{"nl-link-img": cm.clickable}' ng-src='{{getIcon(cm)}}'>
 	            <img ng-if='cm.launchable'
-	                 class='nl-icon nl-clickable'
+	                 class='nl-icon nl-link-img'
 	                 ng-src='{{getNewTabIcon()}}'
 	                 ng-click='onClick($event, cm, true)'>
-				<span class='nl-cv-details' ng-class='{"nl-clickable": cm.clickable}'>{{cm.name}}</span>
+				<span class='nl-cv-details' ng-class='{"nl-link-text": cm.clickable}'>{{cm.name}}</span>
 			</td>
 			<td ng-if='expandedView && mode == MODES.EDIT'>{{cm.id}}</td>
 			<td ng-if='expandedView && (planning == true)'>{{cm.planned_date_str}}</td>
@@ -49,11 +49,11 @@
 				<img class='nl-24' ng-if='cm.statusIcon' ng-src='{{cm.statusIcon}}'>
 				<span ng-show='expandedView'>{{cm.statusText}}</span>
 			</td>
-			<td ng-if='mode == MODES.REPORTS_SUMMARY_VIEW || mode == MODES.REPORT_VIEW || mode == MODES.DO'>
-				<img class='nl-24 nl-clickable' ng-click='onClickOnSummary(cm)' ng-if='cm.statusIcon && (cm.type=="module" || cm.type=="lesson")' ng-src='{{cm.statusIcon}}'>
-				<span class='nl-clickable' ng-click='onClickOnSummary(cm)' ng-if='expandedView && (cm.type=="module" || cm.type=="lesson")'>{{cm.statusText}}</span>
-				<img class='nl-24 nl-clickable' ng-click='onClickOnSummary(cm)' ng-if='cm.statusIcon && (cm.type=="info" || cm.type=="link")' ng-src='{{cm.statusIcon}}'>
-				<span ng-if='expandedView && (cm.type=="info" || cm.type=="link")' ng-click='onClickOnSummary(cm)' class='nl-clickable'>{{cm.statusText}}</span>
+			<td ng-if='mode == MODES.REPORTS_SUMMARY_VIEW || mode == MODES.REPORT_VIEW || mode == MODES.DO'
+			    class='nl-link-text'
+			    ng-click='onClickOnSummary(cm)'>
+				<img ng-if='cm.statusIcon' class='nl-24' ng-src='{{cm.statusIcon}}'>
+				<span ng-if='expandedView'>{{cm.statusText}}</span>
 			</td>
 		</tr>
 	</table>

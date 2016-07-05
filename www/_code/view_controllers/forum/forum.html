@@ -18,7 +18,7 @@
                  class='col fixed-200 padding-small'>
                  <b>{{msg.authorname}}</b>
             </div>
-            <div class='col min-200 padding-small nl-clickable nl-forum-header2'
+            <div class='col min-200 padding-small nl-link-text nl-forum-header2'
                  ng-click='expandCollapseMsg(msg)'>
                  <span ng-bind-html='msg.title'></span>
                  <span>({{msg.children.length+1}})</span>
@@ -39,8 +39,9 @@
         <h3>There is no message to display.</h3>
     </div>
     <div ng-if='!currentTopicId' class='padding-small'>
-        {{msgCount}} message(s)<span ng-show='since'> since {{since}}</span>.
-        <span ng-show='moreResults' class='nl-clickable' ng-click='loadOlderMessages()'>
+        {{msgCount}} message(s)
+        <span ng-show='since'>since {{since}}</span>.
+        <span ng-show='moreResults' class='nl-link-text padding-small' ng-click='loadOlderMessages()'>
             Load older messages.
         </span>
     </div>

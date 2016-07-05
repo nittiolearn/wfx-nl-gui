@@ -21,13 +21,13 @@
 
     <nav id='nl-topbar' ng-show='pgInfo.isMenuShown' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
         <a id='nl-logo' ng-href='{{homeUrl}}'>
-            <img class='nl-clickable1' ng-src='{{logo}}' ng-show='logo' title='{{homeMenuTitle}}'/>
+            <img class='nl-link-img no-hover' ng-src='{{logo}}' ng-show='logo' title='{{homeMenuTitle}}'/>
         </a>
         <span id='nl-header' class='nl-textellipsis' ng-hide='screenSize=="small"'>{{pgInfo.pageTitle}} <small>{{pgInfo.pageSubTitle}}</small></span>
         <nav id='nl-top-menu'>
-            <a href='/info/training' ng-show='logedIn'><img class='nl-icon nl-clickable1' ng-src='{{helpMenuIcon}}' alt='Help' title='{{helpMenuTitle}}'/></a>
-            <a ng-href='{{homeUrl}}' ng-show='logedIn'><img class='nl-icon nl-clickable1' ng-src='{{homeMenuIcon}}' alt='Home' title='{{homeMenuTitle}}'/></a>
-            <img class='nl-icon nl-clickable1' ng-src='{{userMenuIcon}}' alt='User' title='{{pgInfo.username}}' ng-click='onUserMenu($event)'/></a>
+            <a href='/info/training' ng-show='logedIn'><img class='nl-icon nl-link-img no-hover' ng-src='{{helpMenuIcon}}' alt='Help' title='{{helpMenuTitle}}'/></a>
+            <a ng-href='{{homeUrl}}' ng-show='logedIn'><img class='nl-icon nl-link-img no-hover' ng-src='{{homeMenuIcon}}' alt='Home' title='{{homeMenuTitle}}'/></a>
+            <img class='nl-icon nl-link-img no-hover' ng-src='{{userMenuIcon}}' alt='User' title='{{pgInfo.username}}' ng-click='onUserMenu($event)'/></a>
         </nav>
         <nav id='nl-user-menu' ng-show='showUserMenu'>
             <a ng-repeat='item in userMenuItems' ng-href='{{item.url}}' rel='nofollow'>
