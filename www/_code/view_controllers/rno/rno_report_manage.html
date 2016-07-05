@@ -67,7 +67,7 @@
                      ng-click='observation.selected=false'>
                     <span class='padding-small'></span>
                     <span class='nl-toolbar-icon padding-small'>
-                        <i class="icon ion-checkmark-circled" style='color: #007700'></i>
+                        <i class="icon ion-checkmark-circled fgreen"></i>
                     </span>
                     <span class='padding-small'>Included in the summary report. Press here to exclude.</span>
                 </div>
@@ -76,7 +76,7 @@
                      ng-click='observation.selected=true'>
                     <span class='padding-small'></span>
                     <span class='nl-toolbar-icon padding-small'>
-                        <i class="icon ion-close-circled" style='color: #770000'></i>
+                        <i class="icon ion-close-circled forange"></i>
                     </span>
                     <span class='padding-small'>Not included in the summary report. Press here to include.</span>
                 </div>
@@ -84,7 +84,7 @@
                      class='row row-center margin0 padding0'>
                     <span class='padding-small'></span>
                     <span class='nl-toolbar-icon padding-small'>
-                        <i class="icon ion-checkmark-circled" style='color: #007700'></i>
+                        <i class="icon ion-checkmark-circled fgreen"></i>
                     </span>
                     <span class='padding-small'>Observation is finalized and sent.</span>
                 </div>
@@ -186,9 +186,10 @@
                 </td>
             </tr>
         </table>
-        <h3 ng-if='formScope.isReportSent()'>
-            <span style='color:red'>This report is already finalized and sent.</span>
-        </h3>
+        <div ng-if='formScope.isReportSent()' class='padding-small fsh6 fgreen'>
+            <i class="icon ion-checkmark-circled fsh4"></i>
+            This report is finalized and sent.
+        </div>
         <div ng-if='formScope.metadata.report_model.summary'>
             <h3>{{formScope.metadata.report_model.summary.title}}</h3>
             <nl-textarea fieldmodel='formScope.rno.data.report_info.summary'></nl-textarea>

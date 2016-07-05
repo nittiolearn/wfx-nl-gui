@@ -199,7 +199,7 @@ nlesson = function() {
             forumDlg.create('forumDlg', null, [], {id: 'cancel', text: 'Close'});
             forumDlg.addClass('nl-max');
         }
-        var topic = this.oLesson.forumTopic || curPage.oPage.forumTopic || '';
+        var topic = curPage.oPage.forumTopic || this.oLesson.forumTopic || '';
         topic = topic.replace(/'/g, " ");
         topic = window.encodeURIComponent(topic);
         var lessonId = jQuery('#l_lessonId').val();

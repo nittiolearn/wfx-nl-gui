@@ -761,6 +761,7 @@ function RnoReportManageForm(nl, nlDlg, _rnoServer, _observationManager, _cards)
         var mailData = _getMailData(false);
         _rnoServer.updateData(rno, observationId, mailData)
         .then(function() {
+            _updateFormScope();
             nlDlg.popupAlert({title: nl.t('Done'), template: 'Observation is sent successfully.'});
         });
     }
@@ -820,7 +821,9 @@ function RnoReportManageForm(nl, nlDlg, _rnoServer, _observationManager, _cards)
         var sendButton = {text: nl.t('Send'), onTap: function(e) {
             if(_isReportSent(rno)) return;
             var mailData = _getMailData(true);
-            _rnoServer.updateData(rno, -1, mailData);
+            _rnoServer.updateData(rno, -1, mailData).then(function() {
+                _updateFormScope();
+            });
         }};
         var buttons = [];
         if (!reportSent) {
@@ -836,7 +839,7 @@ function RnoReportManageForm(nl, nlDlg, _rnoServer, _observationManager, _cards)
         if (!rno.data.reportsSent[key]) return false;
         var rm = _pageGlobals.metadata.report_model;
         var msg = nl.t('Report is already finalized and sent. ' + 
-            'You need to edit {} or {} field before sending it again.',
+            'You need to change {} or {} field before sending it again.',
             rm.year.title, rm.term.title);
         nlDlg.popupAlert({title: nl.t('Already sent'), template: msg});
         return true;
