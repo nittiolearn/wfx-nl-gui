@@ -2,14 +2,14 @@
     <ul ng-show='card.children.length>0' style='width: 100%'>
         <li ng-repeat='child in card.children'
             ng-if='$index < 4'>
-            <div ng-if='child.url'
-                 class='nl-link-text'>
-                <a ng-href='{{child.url}}'>{{child.title}}</a>
+            <div ng-if='child.url'>
+                <a ng-href='{{child.url}}' class='nl-link-text'>{{child.title}}</a>
             </div>
-            <div ng-if='!child.url && child.internalUrl'
-                 class='nl-link-text'
-                 ng-click='onCardInternalUrlClicked(card, child.internalUrl)'>
-                {{child.title}}
+            <div ng-if='!child.url && child.internalUrl'>
+                <span class='nl-link-text'
+                      ng-click='onCardInternalUrlClicked(card, child.internalUrl)'>
+                    {{child.title}}
+                </span>
             </div>
             <div ng-if='!child.url && !child.internalUrl'>
                 {{child.title}}

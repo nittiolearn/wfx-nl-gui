@@ -372,7 +372,7 @@ nlesson = function() {
 		var pageHint = '';
 		if (ret.help != '') pageHint += njs_helper.fmt2('<div class="pageHintHelp">{}</div>', ret.help);
 		if (ret.hint != '') pageHint += njs_helper.fmt2('<div class="pageHint">{}</div>', ret.hint);
-		njs_helper.Dialog.popup(pageHintTitle, pageHint);
+		njs_helper.Dialog.popup(pageHintTitle, pageHint, undefined, undefined, njs_helper.Dialog.sizeLarge());
 	}
 
 	function _getZodiData(lesson) {

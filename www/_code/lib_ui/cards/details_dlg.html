@@ -9,8 +9,8 @@
         </div>
         <div ng-repeat='avp in card.details.avps' class='nl-border-bottom row'>
             <div class='col col-20'>
-                <div class='nl-link-text padding-small'>
-                    <a ng-href='{{avp.url}}' ng-if='avp.url'>{{avp.attr}}</a>
+                <div class='padding-small'>
+                    <a ng-href='{{avp.url}}' ng-if='avp.url' class='nl-link-text'>{{avp.attr}}</a>
                 </div>
                 <span ng-if='!avp.url' class='padding-small'>{{avp.attr}}</span>
             </div>
