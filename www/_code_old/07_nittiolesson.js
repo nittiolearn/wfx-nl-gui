@@ -353,19 +353,19 @@ nlesson = function() {
 	}
 	
 	function Lesson_showPageReport(bFeedback) {
+        this.updateScore();
 		if(bFeedback){
 			var pageNo  = this.getCurrentPageNo();
 			var curPage = this.pages[pageNo];
-			if ( curPage.getMaxScore() > 0 ) // Do the below for interactive pages only
-			{
+			var score = curPage.getScore();
+			var maxScore = curPage.getMaxScore();
+			if (maxScore > 0 && score == maxScore)
 				this.reRenderAsReport(this.getCurrentPageNo());
-			}
 		}		
 		_showPageHint(this);		
 	}
 
 	function _showPageHint(lesson) {
-		lesson.updateScore();
 		var ret = _getZodiData(lesson);
 		var pageHintTitle = njs_helper.fmt2('<img src="{}/zodi/{}.png"> {}', nittio.getStaticResFolder(), 
 										ret.icon, ret.title);
@@ -380,8 +380,7 @@ nlesson = function() {
 		var pageNo = lesson.getCurrentPageNo();
 		var curPage = lesson.pages[pageNo];
 
-		var ret = {};
-		ret.help = '';
+		var ret = {help: ''};
 		
 		var tempData = {};
 		ret.hint = ('hint' in curPage.oPage) ? njs_lesson_markup.markupToHtml(curPage.oPage.hint, tempData) : '';
@@ -394,16 +393,17 @@ nlesson = function() {
 			return ret;
 		}
 
-		ret.help = 'Close this box to check the right answer. The right answer is indicated in the page in way which is most apt to the type of the page.';
 		if (lesson.oLesson.notAnswered.indexOf(pageNo) > -1) {
 			ret.icon = 'wrong';
 			ret.title = 'You have not answered';
+            ret.help = 'Please choose your answer.';
 			return ret;
 		}
 			
 		if (score == 0) {
 			ret.icon = 'wrong';
-			ret.title = 'Oops - that is not right';
+			ret.title = 'Try again';
+            ret.help = 'Oops - that is not right. Please try again.';
 			return ret;
 		}
 
@@ -415,7 +415,8 @@ nlesson = function() {
 		}
 
 		ret.icon = 'partial';
-		ret.title = 'Partially correct';
+        ret.title = 'Partially correct';
+		ret.help = 'You got some parts correct. Please try again.';
 		return ret;
 	}
 	
