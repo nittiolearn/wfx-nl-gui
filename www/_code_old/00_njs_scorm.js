@@ -7,11 +7,13 @@ njs_scorm = function() {
 var g_standalone_player = false;
 var g_embedded_player = false;
 var _SB = null;
+var _nlContainer = null;
 
 function initPage(standalone_player, embedded_player) {
     g_standalone_player = standalone_player;
     g_embedded_player = embedded_player;
-    _initScoBot();
+    if (g_standalone_player) _initScoBot();
+    else if (g_embedded_player) _initEmbeddedPlayer();
 }
 
 function isStandalone() {
@@ -22,8 +24,11 @@ function isEmbedded() {
     return g_embedded_player;
 }
 
+function canLeaveCheck() {
+    return g_embedded_player && !g_standalone_player;
+}
+
 function _initScoBot() {
-    if (!g_standalone_player) return;
     scorm = new SCOBotBase({                   // in 4.x.x
         debug         : true,                  // true or false
         time_type     : "UTC",                 // UTC, GMT or ""
@@ -53,6 +58,16 @@ function _initScoBot() {
     });
 }
 
+function _initEmbeddedPlayer() {
+    jQuery(function() {
+        _nlContainer = _discoverNlContainer();
+        if (!_nlContainer) return;
+        var jLesson = _getContentFromHtml();
+        var _lesson = jLesson ? jQuery.parseJSON(jLesson): null;
+        _nlContainer.init({version: 0, lesson: _lesson});
+    });
+}
+
 function _onStart() {
     var jLesson = _getContentFromHtml();
     var _lesson = jQuery.parseJSON(jLesson);
@@ -69,7 +84,8 @@ function _onStart() {
 }
 
 function _getContentFromHtml() {
-    return jQuery('#l_content').val();
+    var jq = jQuery('#l_content');
+    return jq ? jq.val() : null;
 }
 
 function _setContentInHtml(content) {
@@ -94,13 +110,25 @@ function _callOnInitHandlers(ctx) {
 var bDone = false;
 function saveLesson(url, params) {
     console.log('Save called: ', url);
-    if (!g_standalone_player) return false;
+    if (!g_standalone_player && !g_embedded_player) return false;
     if (bDone) return true;
-
+    if (url.indexOf('submit_report_assign.json') > 0) bDone = true;
     var content = _getContentFromHtml();
     var l = jQuery.parseJSON(content);
+    if (g_standalone_player) return _saveLessonStandalone(content, l, bDone);
+    if (g_embedded_player) return _saveLessonEmbedded(content, l, bDone);
+}
+
+function postSubmitLesson() {
+    if (!g_embedded_player || g_standalone_player) return;
+    var content = _getContentFromHtml();
+    var l = jQuery.parseJSON(content);
+    _nlContainer.close(l);
+}
+
+function _saveLessonStandalone(content, l, bDone) {
     var obj = {id: '_overall', score: {raw: '' + l.score}};
-    if (url.indexOf('submit_report_assign.json') > 0) {
+    if (bDone) {
         bDone = true;
         obj.progress_measure =  '1';
         obj.completion_status = 'completed';
@@ -113,12 +141,29 @@ function saveLesson(url, params) {
     return true;
 }
 
+function _saveLessonEmbedded(content, l, bDone) {
+    _nlContainer.save(parseInt(jQuery('#l_lessonId').val()), l, bDone);
+    return false;
+}
+
+function _discoverNlContainer() {
+    var win = window;
+    for(var tries=0; tries<10; tries++) {
+        if (win.NITTIO_LEARN_CONTAINER) return win.NITTIO_LEARN_CONTAINER;
+        if (win.parent == null || win.parent == win) return null;
+        win = win.parent;
+    }
+    return null;
+}
+
 return {
     initPage: initPage,
     isStandalone: isStandalone,
     isEmbedded: isEmbedded,
+    canLeaveCheck: canLeaveCheck,
     onInit: onInit,
-    saveLesson: saveLesson
+    saveLesson: saveLesson,
+    postSubmitLesson: postSubmitLesson
 };
 
 }();

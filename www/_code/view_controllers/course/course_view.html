@@ -1,60 +1,65 @@
-<div class='nl-toolbar margin0 padding-small'>
-    <span title='Download as CSV'
-          ng-hide='mode != MODES.REPORTS_SUMMARY_VIEW'
-          class='nl-toolbar-icon'
-          ng-click='download()'>
-        <i class="icon ion-ios-cloud-download"></i>
-    </span>
-    <img title='Collapse all'
-         ng-hide='isTreeCollapsed'
-         class='nl-24 nl-link-img'
-         ng-src='{{imgBasePath + "up.png"}}'
-         ng-click='collapseAll()'/>
-    <img title='{{expandViewText}}'
-         class='nl-24 nl-link-img'
-         ng-src='{{expandViewIcon}}' 
-         ng-click='expandViewClick()'/>
-    <img title='Discussion forum'
-         ng-show='forumInfo.refid'
-         class='nl-24 nl-link-img'
-         ng-src='{{imgBasePath + "toolbar-view/discuss.png"}}'
-         ng-click='launchForum()'/>
-    <img title='Add'
-         ng-show='mode == MODES.EDIT'
-         class='nl-24 nl-link-img'
-         ng-src='{{imgBasePath + "toolbar-edit/addpage.png"}}'
-         ng-click='addContent()'/>
+<style>
+    .frame0 {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    .frame1 {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 300px;
+        height: 100%;
+    }
+    .frame2 {
+        position: absolute;
+        top: 0;
+        left: 310px;
+        right: 0;
+        width: auto;
+        height: 100%;
+    }
+    .full-height {
+        height: 100%;
+    }
+    
+</style>
+<div ng-if='!popupView' class='{{expandedView ? "frame1" : "frame0"}}'>
+    <nl-course-view-toolbar></nl-course-view-toolbar>
+    <nl-course-view-list></nl-course-view-list>
 </div>
-<div class='nl-thin-scroll nl-full-withtoolbar'>
-	<table class='nl-table nl-table-styled'>
-		<tr ng-show='expandedView'>
-			<th>Module</th>
-			<th ng-if='mode == MODES.EDIT'>Id</th>
-			<th ng-if='planning == true'>Plan</th>
-			<th>Summary</th>
-		</tr>
-		<tr ng-repeat='cm in modules'>
-			<td ng-click='onClick($event, cm, false)' ng-style='cm.indentationStyle'>
-				<span>&nbsp;</span>
-				<img class='nl-icon' ng-class='{"nl-link-img": cm.clickable}' ng-src='{{getIcon(cm)}}'>
-	            <img ng-if='cm.launchable'
-	                 class='nl-icon nl-link-img'
-	                 ng-src='{{getNewTabIcon()}}'
-	                 ng-click='onClick($event, cm, true)'>
-				<span class='nl-cv-details' ng-class='{"nl-link-text": cm.clickable}'>{{cm.name}}</span>
-			</td>
-			<td ng-if='expandedView && mode == MODES.EDIT'>{{cm.id}}</td>
-			<td ng-if='expandedView && (planning == true)'>{{cm.planned_date_str}}</td>
-			<td ng-if='expandedView && (mode == MODES.PRIVATE || mode == MODES.EDIT || mode == MODES.PUBLISHED)'>
-				<img class='nl-24' ng-if='cm.statusIcon' ng-src='{{cm.statusIcon}}'>
-				<span ng-show='expandedView'>{{cm.statusText}}</span>
-			</td>
-			<td ng-if='mode == MODES.REPORTS_SUMMARY_VIEW || mode == MODES.REPORT_VIEW || mode == MODES.DO'
-			    class='nl-link-text'
-			    ng-click='onClickOnSummary(cm)'>
-				<img ng-if='cm.statusIcon' class='nl-24' ng-src='{{cm.statusIcon}}'>
-				<span ng-if='expandedView'>{{cm.statusText}}</span>
-			</td>
-		</tr>
-	</table>
+<div ng-if='popupView || expandedView' class='padding-small {{popupView ? "frame0" : "frame2"}}'>
+    <div class='padding-mid nl-cv-content {{ext.item.type == "lesson" || ext.item.type == "link" ? "full-height" : ""}}'>
+        <div class='row row-center margin0 padding0'>
+            <div class='col text-center fsh3 padding0'>
+                <img ng-if='ext.isIconImg(ext.item)' class='nl-icon' ng-src='{{ext.item.icon}}'>
+                <i ng-show='!ext.isIconImg(ext.item)' class="icon {{ext.getIconCls(ext.item)}} bold fsh5"></i>
+                {{ext.item.name}}
+            </div>
+            <span title='Close'
+                  ng-if='popupView && !expandedView'
+                  class='nl-toolbar-icon padding0'
+                  ng-click='hidePopup(true)'>
+                <i class="icon ion-close-circled forange"></i>
+            </span>
+            <span title='Minimize'
+                  ng-if='popupView && expandedView'
+                  class='nl-toolbar-icon padding0'
+                  ng-click='hidePopup(false)'>
+                <i class="icon ion-arrow-shrink forange"></i>
+            </span>
+            <span title='Show as popup'
+                  ng-if='!popupView'
+                  class='nl-toolbar-icon padding0'
+                  ng-click='showPopup($event, ext.item)'>
+                <i class="icon ion-arrow-expand"></i>
+            </span>
+        </div>
+        <div ng-if='iframeUrl' style='position: absolute; top: 48px; bottom: 8px; left: 8px; right: 8px;'>
+            <nl-course-view-frame></nl-course-view-frame>
+        </div>
+        <nl-course-view-content ng-if='!iframeUrl'></nl-course-view-content>
+    </div>
 </div>

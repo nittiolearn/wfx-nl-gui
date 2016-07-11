@@ -553,8 +553,11 @@ nlesson = function() {
 	function _Lesson_submitReport(lesson, ajaxUrl, redirUrl) {
 		_Lesson_saveInternal(lesson, ajaxUrl, function(data, isError) {
 			if (isError) return;
-			if (njs_scorm.isEmbedded()) {
+			if (njs_scorm.isStandalone()) {
 			    nittio.redirDelay('res/static/html/done.html', 0, true);
+			    return;
+			} else if (njs_scorm.isEmbedded()) {
+			    njs_scorm.postSubmitLesson();
 			    return;
 			}
 			nittio.redirDelay(redirUrl, 1000, true);
@@ -1351,7 +1354,8 @@ nlesson = function() {
 		g_lesson.renderCtx.init(launchContext);
 		g_lesson.globals.templateCssClass = templateCssClass;
 		
-		nittio.setOnLeaveCheck(g_lesson.renderCtx.launchCtx() != 'view');
+		nittio.setOnLeaveCheck(g_lesson.renderCtx.launchCtx() != 'view' &&
+		  njs_scorm.canLeaveCheck());
 		
 		nittio.beforeInit(function() {
 			g_lesson.initDom();

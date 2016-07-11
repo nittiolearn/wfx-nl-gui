@@ -1,0 +1,116 @@
+<div ng-if='ext.item.type == "module"'
+     class='row row-center margin0'>
+    <div class='col'>
+        <table class='nl-table nl-table-styled'>
+            <tr ng-if='!ext.isStaticMode()'>
+                <th>Overall status</th><th>
+                    <i ng-if='ext.item.state.icon'
+                       class="icon fsh3 {{ext.item.state.icon}}"></i>
+                    <span>{{ext.item.state.title}}</span>
+                </th>
+            </tr>
+            <tr>
+                <th>Total items</th><th>{{ext.stats.total}}</th>
+            </tr>
+            <tr ng-if='ext.stats.success'>
+                <td>&nbsp; Done</td><td>{{ext.stats.success}}</td>
+            </tr>
+            <tr ng-if='ext.stats.failed'>
+                <td>&nbsp; Failed</td><td>{{ext.stats.failed}}</td>
+            </tr>
+            <tr ng-if='ext.stats.pending'>
+                <td>&nbsp; Pending</td><td>{{ext.stats.started + ext.stats.pending + ext.stats.waiting}}</td>
+            </tr>
+            <tr ng-if='ext.stats.delayed'>
+                <td>&nbsp; Delayed</td><td>{{ext.stats.delayed}}</td>
+            </tr>
+            <tr ng-if='ext.stats.timeCount > 0'>
+                <th>Time spent</th><th>{{ext.stats.avgTime}} minutes</th>
+            </tr>
+            <tr ng-if='ext.stats.maxScore > 0'>
+                <th>Avg. score</th><th>{{ext.stats.perc}}%</th>
+            </tr>
+        </table>
+    </div>
+    <div style='width: 200px'>
+        <canvas class='chart chart-doughnut'
+                chart-data='ext.stats.chartInfo.data'
+                chart-labels='ext.stats.chartInfo.labels'
+                chart-colours='ext.stats.chartInfo.colours'>
+        </canvas> 
+    </div>
+</div>
+<div ng-if='ext.item.type != "module"'>
+    <table class='nl-table nl-table-styled'>
+        <tr>
+            <td>Status</td><td>
+                <i ng-if='ext.item.state.icon'
+                   class="icon fsh3 {{ext.item.state.icon}}"></i>
+                <span>{{ext.item.state.title}}</span>
+            </td>
+        </tr>
+        <tr ng-if='ext.item.started'>
+            <td>Started</td><td>{{ext.item.started}}</td>
+        </tr>
+        <tr ng-if='ext.item.ended'>
+            <td>Ended</td><td>{{ext.item.ended}}</td>
+        </tr>
+        <tr ng-if='ext.item.timeMins'>
+            <td>Time spent</td><td>{{ext.item.timeMins}} minutes</td>
+        </tr>
+        <tr ng-if='ext.item.perc'>
+            <td>Score</td><td>{{ext.item.perc}}% ({{ext.item.score}} / {{ext.item.maxScore}})</td>
+        </tr>
+        <tr ng-if='ext.item.type == "lesson"'>
+            <td>Maximum attempts</td><td>{{ext.item.maxAttempts ? ext.item.maxAttempts : "No limit"}}</td>
+        </tr>
+        <tr ng-if='ext.item.type == "lesson"'>
+            <td>Number of attempts</td><td>{{ext.item.attempt || 0}}
+                <button ng-if='ext.canReattempt()'
+                        class='button button-positive button-small'
+                        ng-click='onReattempt($event, ext.item)'>
+                    Try again
+                </button>
+            </td>
+        </tr>
+    </table>
+    <div ng-if='ext.item.text' class='padding-top'>
+        {{ext.item.text}}
+    </div>
+    <div ng-if='ext.canShowRemarks()' class='padding-top'>
+        <div><b>Remarks:</b></div>
+        <div class='padding-small'></div>
+        <div ng-show='!ext.canUpdateStatus()' ng-bind-html='ext.data.remarks'></div>
+        <div ng-show='ext.canUpdateStatus()'>
+            <div class='nl-dlg-field-value'>
+                <textarea ng-model='ext.data.remarks'
+                          class='w100'
+                          tabindex='1'
+                          autofocus=''>
+                </textarea>
+            </div>
+        </div>
+    </div>
+    <div ng-if='ext.canUpdateStatus()'>
+        <div ng-show='ext.item.state.status == "success"'
+             class='forange2 padding-top'>
+            This item is currently marked as completed. You could reopen this by clicking the 'Reopen' button.
+        </div>
+    </div>
+    <div class='row row-top row-wrap margin0 padding-top'>
+        <div ng-if='ext.canUpdateStatus()'
+             class='col padding-small min-200'>
+             <button class='button button-positive button-small w100'
+                     ng-click='ext.updateStatus(ext.item.state.status != "success")'>
+                     {{ext.item.state.status == 'success' ? 'Reopen' : 'Done'}}
+             </button>
+        </div>
+        <div ng-if='ext.canLaunch()'
+             class='col padding-small min-200'>
+             <button class='button button-positive button-small w100'
+                     ng-click='onLaunch($event, ext.item)'>
+                     {{ext.getLaunchString()}}
+             </button>
+        </div>
+    </div>
+</div>

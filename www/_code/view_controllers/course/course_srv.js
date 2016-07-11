@@ -65,8 +65,8 @@ function(nl, nlServerApi) {
     	return nlServerApi.courseReportUpdateStatus(repid, statusinfo);
 	};
 
-    this.courseCreateLessonReport = function(repid, refid, moduleid) {
-        return nlServerApi.courseCreateLessonReport(repid, refid, moduleid);
+    this.courseCreateLessonReport = function(repid, refid, moduleid, attempt) {
+        return nlServerApi.courseCreateLessonReport(repid, refid, moduleid, attempt);
     };
     
     this.getActionUrl = function(actionId, urlParams) {
