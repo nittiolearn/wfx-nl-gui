@@ -716,7 +716,10 @@ nittio = function() {
 		jQuery(function() {
 			if (!bPrint) {
 				initSizes(retainAspect);
-				jQuery(window).resize(function() {initSizes(retainAspect);});
+				jQuery(window).resize(function() {
+				    initSizes(retainAspect);
+				    callOnResizeHandlers();
+				});
 				initMenus();
 				initValidators();
 			}
@@ -768,6 +771,17 @@ nittio = function() {
 		}
 	}
 
+    var onResizeFunctionArray = [];
+    function onResize(fn) {
+        onResizeFunctionArray.push(fn);
+    }
+
+    function callOnResizeHandlers() {
+        for (var i = 0; i < onResizeFunctionArray.length; i++) {
+            onResizeFunctionArray[i]();
+        }
+    }
+
 	function getStaticResFolder() {
 		return g_staticResFolder;
 	}
@@ -817,7 +831,8 @@ nittio = function() {
 		isBleedingEdge : isBleedingEdge,
 		initPage : initPage,
 		beforeInit : beforeInit,
-		afterInit : afterInit,
+        afterInit : afterInit,
+        onResize : onResize,
 		onSlideChanged : onSlideChanged,
 		callOnSlideChangedHandlers : callOnSlideChangedHandlers,
 		onEscape : onEscape,

@@ -21,17 +21,14 @@
         width: auto;
         height: 100%;
     }
-    .full-height {
-        height: 100%;
-    }
-    
 </style>
 <div ng-if='!popupView' class='{{expandedView ? "frame1" : "frame0"}}'>
     <nl-course-view-toolbar></nl-course-view-toolbar>
     <nl-course-view-list></nl-course-view-list>
 </div>
-<div ng-if='popupView || expandedView' class='padding-small {{popupView ? "frame0" : "frame2"}}'>
-    <div class='padding-mid nl-cv-content {{ext.item.type == "lesson" || ext.item.type == "link" ? "full-height" : ""}}'>
+<div ng-if='popupView || expandedView'
+     class='padding-small {{popupView ? "frame0" : "frame2"}}'>
+    <div class='padding-mid nl-cv-content nl-thin-scroll'>
         <div class='row row-center margin0 padding0'>
             <div class='col text-center fsh3 padding0'>
                 <img ng-if='ext.isIconImg(ext.item)' class='nl-icon' ng-src='{{ext.item.icon}}'>
@@ -60,6 +57,9 @@
         <div ng-if='iframeUrl' style='position: absolute; top: 48px; bottom: 8px; left: 8px; right: 8px;'>
             <nl-course-view-frame></nl-course-view-frame>
         </div>
-        <nl-course-view-content ng-if='!iframeUrl'></nl-course-view-content>
+        <nl-course-view-content-static ng-if='!iframeUrl && ext.isStaticMode()'>
+        </nl-course-view-content-static>
+        <nl-course-view-content-active ng-if='!iframeUrl && !ext.isStaticMode()'>
+        </nl-course-view-content-active>
     </div>
 </div>

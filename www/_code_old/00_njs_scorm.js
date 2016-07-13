@@ -120,10 +120,7 @@ function saveLesson(url, params) {
 }
 
 function postSubmitLesson() {
-    if (!g_embedded_player || g_standalone_player) return;
-    var content = _getContentFromHtml();
-    var l = jQuery.parseJSON(content);
-    _nlContainer.close(l);
+    _nlContainer.close();
 }
 
 function _saveLessonStandalone(content, l, bDone) {

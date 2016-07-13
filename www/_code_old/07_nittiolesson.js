@@ -1373,6 +1373,10 @@ nlesson = function() {
 			g_lesson.postRender();
 		});
 		
+        nittio.onResize(function() {
+            g_lesson.reRender();
+        });
+        
 		nittio.afterInit(function(){
 			g_lesson.globals.slides = nittio.getSlidesObj();
 

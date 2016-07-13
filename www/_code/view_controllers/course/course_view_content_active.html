@@ -2,7 +2,7 @@
      class='row row-center margin0'>
     <div class='col'>
         <table class='nl-table nl-table-styled'>
-            <tr ng-if='!ext.isStaticMode()'>
+            <tr>
                 <th>Overall status</th><th>
                     <i ng-if='ext.item.state.icon'
                        class="icon fsh3 {{ext.item.state.icon}}"></i>
@@ -49,11 +49,17 @@
                 <span>{{ext.item.state.title}}</span>
             </td>
         </tr>
+        <tr ng-if='ext.item.planned_date'>
+            <td>Planned date</td><td>{{ext.item.planned_date | date : 'dd-MMM-yy'}}</td>
+        </tr>
+        <tr ng-if='ext.item.start_date'>
+            <td>Earliest start date</td><td>{{ext.item.start_date | date : 'dd-MMM-yy'}}</td>
+        </tr>
         <tr ng-if='ext.item.started'>
-            <td>Started</td><td>{{ext.item.started}}</td>
+            <td>Started</td><td>{{ext.item.started | date : 'dd-MMM-yy HH:mm:ss'}}</td>
         </tr>
         <tr ng-if='ext.item.ended'>
-            <td>Ended</td><td>{{ext.item.ended}}</td>
+            <td>Ended</td><td>{{ext.item.ended | date : 'dd-MMM-yy HH:mm:ss'}}</td>
         </tr>
         <tr ng-if='ext.item.timeMins'>
             <td>Time spent</td><td>{{ext.item.timeMins}} minutes</td>
@@ -61,11 +67,19 @@
         <tr ng-if='ext.item.perc'>
             <td>Score</td><td>{{ext.item.perc}}% ({{ext.item.score}} / {{ext.item.maxScore}})</td>
         </tr>
+        <tr ng-if='ext.item.passScore'>
+            <td>Pass score</td><td>{{ext.item.passScore}}%</td>
+        </tr>
         <tr ng-if='ext.item.type == "lesson"'>
             <td>Maximum attempts</td><td>{{ext.item.maxAttempts ? ext.item.maxAttempts : "No limit"}}</td>
         </tr>
         <tr ng-if='ext.item.type == "lesson"'>
             <td>Number of attempts</td><td>{{ext.item.attempt || 0}}
+                <button ng-if='ext.pastAttemptData.length > 0'
+                        class='button button-positive button-small'
+                        ng-click='ext.showPastAttempts = !ext.showPastAttempts'>
+                    {{ext.showPastAttempts ? "Hide" : "Show"}} past attempts
+                </button>
                 <button ng-if='ext.canReattempt()'
                         class='button button-positive button-small'
                         ng-click='onReattempt($event, ext.item)'>
@@ -74,14 +88,39 @@
             </td>
         </tr>
     </table>
+
+    <div ng-if='ext.pastAttemptData.length > 0 && ext.showPastAttempts'>
+        <h4>Past attempts:</h4>
+        <table class='nl-table nl-table-styled'>
+            <tr>
+                <th>Started</th>
+                <th>Ended</th>
+                <th>Score</th>
+                <th>Max score</th>
+            </tr>
+            <tr ng-repeat='attempt in ext.pastAttemptData'
+                class='nl-link-text'
+                ng-click='ext.showPastReport(attempt)'>
+                <td>{{attempt.started | date : 'dd-MMM-yy HH:mm:ss'}}</td>
+                <td>{{attempt.ended | date : 'dd-MMM-yy HH:mm:ss'}}</td>
+                <td>{{attempt.score}}</td>
+                <td>{{attempt.maxScore}}</td>
+            </tr>
+        </table>
+        <a ng-href='{{attempt.url}}'>{{attempt.text}}</a>
+    </div>
+
     <div ng-if='ext.item.text' class='padding-top'>
         {{ext.item.text}}
     </div>
     <div ng-if='ext.canShowRemarks()' class='padding-top'>
-        <div><b>Remarks:</b></div>
         <div class='padding-small'></div>
-        <div ng-show='!ext.canUpdateStatus()' ng-bind-html='ext.data.remarks'></div>
+        <div ng-show='!ext.canUpdateStatus() && ext.data.remarks'>
+            <div><b>Remarks:</b></div>
+            <div ng-bind-html='ext.data.remarks'></div>
+        </div>
         <div ng-show='ext.canUpdateStatus()'>
+            <div><b>Remarks:</b></div>
             <div class='nl-dlg-field-value'>
                 <textarea ng-model='ext.data.remarks'
                           class='w100'

@@ -6,10 +6,11 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.course_view', [])
-    .directive('nlCourseViewToolbar', CourseViewToolbarDirective)
-    .directive('nlCourseViewList', CourseViewListDirective)
-    .directive('nlCourseViewContent', CourseViewContentDirective)
-    .directive('nlCourseViewFrame', CourseViewFrameDirective)
+    .directive('nlCourseViewToolbar', CourseViewDirective('course_view_toolbar'))
+    .directive('nlCourseViewList', CourseViewDirective('course_view_list'))
+    .directive('nlCourseViewContentActive', CourseViewDirective('course_view_content_active'))
+    .directive('nlCourseViewContentStatic', CourseViewDirective('course_view_content_static'))
+    .directive('nlCourseViewFrame', CourseViewDirective('course_view_frame'))
     .config(configFn).controller('nl.CourseViewCtrl', NlCourseViewCtrl);
 }
 
@@ -92,7 +93,6 @@ function ModeHandler(nl, nlCourse, nlDlg, $scope) {
         if (this.mode === MODES.REPORTS_SUMMARY_VIEW || this.mode === MODES.REPORT_VIEW) {
             if (!reportInfo || !reportInfo.completed) return _popupAlert('Not completed', 
                 'This learning module is not yet completed. You may view the report once it is completed.');
-            var url = nl.fmt2('/lesson/review_report_assign/{}{}', reportInfo.reportId, newTab? '': '/embedded');
             return _redirectToLessonReport(reportInfo, newTab);
         }
         
@@ -116,10 +116,14 @@ function ModeHandler(nl, nlCourse, nlDlg, $scope) {
         return (this.mode === MODES.REPORTS_SUMMARY_VIEW || this.mode === MODES.REPORT_VIEW || this.mode === MODES.DO);
     };
 
-    this.canStart = function(cm, scope) {
-        return _startDateOk(cm, scope) && _prereqsOk(this, cm);
+    this.canStart = function(cm, scope, treeList) {
+        return _startDateOk(cm, scope) && _prereqsOk(this, cm, treeList);
     };
 
+    this.show = function(url, newTab) {
+        _redirectTo('{}', url, newTab);
+    };
+    
     // Private functions
     function _startDateOk(cm, scope) {
         var today = new Date();
@@ -127,13 +131,15 @@ function ModeHandler(nl, nlCourse, nlDlg, $scope) {
         return true;
     }
             
-    function _prereqsOk(self, cm) {
+    function _prereqsOk(self, cm, treeList) {
         var prereqs = cm.start_after || [];
         var lessonReports = self.course.lessonReports || {};
         var statusinfo = self.course.statusinfo || {};
         for(var i=0; i<prereqs.length; i++){
             var p = prereqs[i];
             var cmid = p.module;
+            var item = treeList.getItem(cmid);
+            if (item && item.state.status == 'waiting') return false;
             var prereqScore = null;
             if (cmid in lessonReports && lessonReports[cmid].completed) {
                 var lessonReport = lessonReports[cmid];
@@ -197,7 +203,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
     var _allModules = [];
     $scope.MODES = MODES;
     var folderStats = new FolderStats($scope);
-    $scope.ext = new ScopeExtensions(modeHandler, nlContainer, folderStats);
+    $scope.ext = new ScopeExtensions(nl, modeHandler, nlContainer, folderStats);
 
     function _onPageEnter(userInfo) {
         _userInfo = userInfo;
@@ -235,6 +241,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
     nlRouter.initContoller($scope, '', _onPageEnter, _onPageLeave);
 
     function _onCourseRead(course) {
+        _initAttributesDicts(course);
         courseReportSummarizer.updateUserReports(course);
         modeHandler.initTitle(course);
         $scope.planning = course.content.planning;
@@ -255,8 +262,25 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
                 _allModules.push(userRecords[j]);
             }
         }
-        _updateAllItemData();
-        $scope.ext.setCurrentItem(treeList.getRootItem());
+        nl.timeout(function() {
+            _updateAllItemData();
+            $scope.ext.setCurrentItem(treeList.getRootItem());
+        });
+    }
+
+    function _initAttributesDicts(course) {
+        if (!$scope.ext.isStaticMode()) return;
+        $scope.module_attributes = ['id', 'name', 'type', 'icon', 'text', 
+            'refid', 'action', 'urlParams', 'start_date', 'planned_date',
+            'max_attempts', 'hide_remarks', 'start_after', 'reopen_on_fail'];
+
+        var keys = Object.keys(course.content);
+        $scope.course_attributes = [];
+        for (var k in keys) {
+            var key = keys[k];
+            if (key == 'modules') continue;
+            $scope.course_attributes.push({key: key, val: course.content[key]})
+        }
     }
 
     function _initExpandedView() {
@@ -348,7 +372,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
             $scope.iframeUrl = null;
             $scope.iframeModule = null;
             if($scope.popupView) _popout(false);
-            _updateAllItemData();
         });
     };
     
@@ -450,27 +473,31 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
     }
 
     function _updateAllItemData() {
+        if ($scope.ext.isStaticMode()) return;
         var today = new Date();
         folderStats.clear();
-        _updateItemData(modeHandler, modeHandler.course, treeList.getRootItem(), today);
+        var reopener = new Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlCourse);
+        reopener.reopenIfNeeded().then(function() {
+            _updateItemData(treeList.getRootItem(), today);
+        });
     }
 
-    function _updateItemData(modeHandler, course, cm, today) {
+    function _updateItemData(cm, today) {
         if (cm.type === 'module') {
-            _updateModuleData(modeHandler, course, cm, today);
+            _updateModuleData(cm, today);
         } else if (cm.type === 'info' || cm.type === 'link') {
-            _updateLinkData(modeHandler, course, cm, today);
+            _updateLinkData(cm, today);
         } else {
-            _updateLessonData(modeHandler, course, cm, today);
+            _updateLessonData(cm, today);
         }
     }
 
-    function _updateModuleData(modeHandler, course, cm, today) {
+    function _updateModuleData(cm, today) {
         var folderStat = folderStats.get(cm.id);
         var children = treeList.getChildren(cm);
         for (var i=0; i<children.length; i++) {
             var child = children[i];
-            _updateItemData(modeHandler, course, child, today);
+            _updateItemData(child, today);
             if (child.type == 'module') folderStats.updateForModule(folderStat, child);
             else folderStats.updateForLeaf(folderStat, child);
         }
@@ -486,21 +513,21 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
         _updateState(cm, status);
     }
     
-    function _updateLinkData(modeHandler, course, cm, today) {
+    function _updateLinkData(cm, today) {
         cm.score = null;
         cm.time = null;
         var status = 'none';
         
-        var statusinfos = course.statusinfo || {};
+        var statusinfos = modeHandler.course.statusinfo || {};
         var statusinfo = statusinfos[cm.id] || {};
         if (statusinfo.status == 'done') status = 'success';
         else if ($scope.planning && cm.planned_date && cm.planned_date < today) status = 'delayed';
-        else if (!modeHandler.canStart(cm, $scope)) status = 'waiting';
+        else if (!modeHandler.canStart(cm, $scope, treeList)) status = 'waiting';
         else status = 'pending';
         _updateState(cm, status);
     }
     
-    function _updateLessonData(modeHandler, course, cm, today) {
+    function _updateLessonData(cm, today) {
         cm.score = null;
         cm.maxScore = null;
         cm.perc = null;
@@ -509,33 +536,33 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
         cm.time = null;
         var status = 'none';
 
-        var lessonReports = course.lessonReports || {};
+        var lessonReports = modeHandler.course.lessonReports || {};
         var lessonReport = lessonReports[cm.id] || {};
         
         cm.attempt = lessonReport.attempt || 0;
         if ('started' in lessonReport) {
-            cm.started = lessonReport.started;
+            cm.started = nl.fmt.json2Date(lessonReport.started);
             if (cm.attempt == 0) cm.attempt = 1;
         }
         
-        if ('ended' in lessonReport) cm.ended = lessonReport.ended;
+        if ('ended' in lessonReport) cm.ended = nl.fmt.json2Date(lessonReport.ended);
         if ('timeSpentSeconds' in lessonReport) {
             cm.time = parseInt(lessonReport.timeSpentSeconds);
             cm.timeMins = Math.round(cm.time/60);
         }
 
-        var passScore = 'passScore' in lessonReport ? parseInt(lessonReport.passScore) : 0;
+        cm.passScore = parseInt(lessonReport.passScore || 0);
         if ('maxScore' in lessonReport) cm.maxScore = parseInt(lessonReport.maxScore);
 
         if (lessonReport.completed && 'score' in lessonReport) {
             cm.score = parseInt(lessonReport.score);
             cm.perc = cm.maxScore ? Math.round((cm.score/cm.maxScore)*100) : 0;
-            status = cm.perc >= passScore ? 'success' : 'failed';
+            status = cm.perc >= cm.passScore ? 'success' : 'failed';
         }
         else if ($scope.planning && cm.planned_date && cm.planned_date < today) status = 'delayed';
-        else if (!modeHandler.canStart(cm, $scope)) status = 'waiting';
         else if (cm.started) status = 'started';
         else status = 'pending';
+        if (!modeHandler.canStart(cm, $scope, treeList)) status = 'waiting';
         _updateState(cm, status);
     }
 
@@ -672,10 +699,11 @@ function FolderStats($scope) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function ScopeExtensions(modeHandler, nlContainer, folderStats) {
+function ScopeExtensions(nl, modeHandler, nlContainer, folderStats) {
     
     this.item = null;
     this.stats = null;
+    this.pastAttemptData = [];
     this.data = {remarks: ''}; 
 
     this.setCurrentItem = function(cm) {
@@ -683,6 +711,7 @@ function ScopeExtensions(modeHandler, nlContainer, folderStats) {
         this.stats = (cm.type == 'module') ? folderStats.get(cm.id) : null;
         var statusinfo = modeHandler.course.statusinfo;
         this.data.remarks = (statusinfo && cm.id in statusinfo) ? statusinfo[cm.id].remarks || '' : '';
+        this.updatePastAttemptData();
         nlContainer.onSave(function(lessonReportInfo) {
             modeHandler.course.lessonReports[cm.id] = lessonReportInfo;
         });
@@ -733,7 +762,29 @@ function ScopeExtensions(modeHandler, nlContainer, folderStats) {
         if (this.isStaticMode()) return 'View';
         if (this.item.state.status == 'success' || this.item.state.status == 'failed') return 'View report';
         return 'Launch';
-    }
+    };
+    
+    this.updatePastAttemptData = function() {
+        this.showPastAttempts = false;
+        this.pastAttemptData = [];
+        if (!this.item || this.item.type != 'lesson') return;
+        if (!modeHandler.course.lessonReports) return;
+        if (!(this.item.id in modeHandler.course.pastLessonReports)) return;
+        var pastLessonReport = modeHandler.course.pastLessonReports[this.item.id];
+
+        for(var i in pastLessonReport) {
+            var rep = pastLessonReport[i];
+            if (!rep.completed || !rep.reportId) continue;
+            if (rep.started) rep.started = nl.fmt.json2Date(rep.started);
+            if (rep.ended) rep.ended = nl.fmt.json2Date(rep.ended);
+            this.pastAttemptData.push(rep);
+        }
+    };
+    
+    this.showPastReport = function(rep) {
+        var url = nl.fmt2('/lesson/review_report_assign/{}', rep.reportId);
+        modeHandler.show(url);
+    };
 
     this.isIconImg = function(cm) {
         if (!cm) return false;
@@ -765,7 +816,7 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
     if (DELIM === undefined) DELIM = '.';
     if (VISIBLE_ON_OPEN === undefined) VISIBLE_ON_OPEN = 1; // Only top level visible by default
     
-    var rootItem = {type: 'module', name: 'Overall Progress', id: '_root'};
+    var rootItem = {type: 'module', name: 'Summary', id: '_root'};
 
     this.clear = function() {
         this.items = {};
@@ -906,6 +957,111 @@ function CourseReportSummarizer($scope) {
 }
 
 //-------------------------------------------------------------------------------------------------
+function Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlCourse) {
+
+    this.reopenIfNeeded = function() {
+        return nl.q(function(resolve, reject) {
+            if (modeHandler.mode != MODES.DO) {
+                resolve(true);
+                return;
+            }
+
+            var reopenLessons = {};
+            var failedLessons = [];
+            _init();
+            _reopenItem(treeList.getRootItem(), reopenLessons, failedLessons);
+            if (failedLessons.length == 0) {
+                resolve(true);
+                return;
+            }
+
+            var reopenLessonsArray = [];
+            for (var k in reopenLessons) reopenLessonsArray.push(reopenLessons[k]);
+            var template ='<p></p><p>Your score is below the pass level in the following modules:</p><ul>';
+            for (var i in failedLessons) {
+                template += nl.fmt2('<li>{}</li>', failedLessons[i].name);
+            }
+            template += '</ul><p></p><p>The following modules have to be redone. Their status and learning records will be reset:</p><ul>';
+            for (var i in reopenLessonsArray) {
+                template += nl.fmt2('<li>{}</li>', reopenLessonsArray[i].name);
+            }
+            template += '</ul><p></p>';
+            nlDlg.popupAlert({title: 'Warning', template: template}).then(function() {
+                _updateLessonReports(reopenLessonsArray, resolve);
+            });
+
+        });
+    };
+    
+    var lessonReports = null;
+    function _init() {
+        if (!modeHandler.course.lessonReports) modeHandler.course.lessonReports = {};
+        lessonReports = modeHandler.course.lessonReports;
+    }
+
+    function _reopenItem(cm, reopenLessons, failedLessons) {
+        if (cm.type == 'module') {
+            var children = treeList.getChildren(cm);
+            for (var i=0; i<children.length; i++) {
+                var child = children[i];
+                _reopenItem(child, reopenLessons, failedLessons);
+            }
+            return;
+        }
+        if (cm.type != 'lesson' || !cm.reopen_on_fail) return;
+        if (!(cm.id in lessonReports)) return;
+        if (!lessonReports[cm.id].completed) return;
+        var lessonReport = lessonReports[cm.id];
+        var passScore = parseInt(lessonReport.passScore || 0);
+        var score = parseInt(lessonReport.score || 0);
+        var maxScore = parseInt(lessonReport.maxScore || 0);
+        var perc = maxScore ? Math.round((score/maxScore)*100) : 100;
+        if (perc >= passScore) return;
+ 
+        cm.attempt = lessonReport.attempt || 0;
+        failedLessons.push(cm);
+        reopenLessons[cm.id] = cm;
+        
+        for (var i in cm.reopen_on_fail) {
+            var depModule = treeList.getItem(cm.reopen_on_fail[i]);
+            if (!depModule || !(depModule.id in lessonReports)) continue;
+            var lessonReport = lessonReports[depModule.id];
+            if (!lessonReport.completed) continue;
+            depModule.attempt = lessonReport.attempt || 0;
+            reopenLessons[depModule.id] = depModule;
+        }
+    }
+
+    function _updateLessonReports(reopenLessons, resolve) {
+        if (reopenLessons.length == 0) {
+            resolve(true);
+            return;
+        }
+        nlDlg.showLoadingScreen();
+        _createLessonReport(reopenLessons, 0, resolve);
+    }
+
+    function _createLessonReport(reopenLessons, pos, resolve) {
+        if (pos >= reopenLessons.length) {
+            nlDlg.hideLoadingScreen();
+            resolve(true);
+            return;
+        }
+
+        var cm = reopenLessons[pos];
+        cm.attempt++;
+        nlCourse.courseCreateLessonReport(modeHandler.course.id, cm.refid, cm.id, cm.attempt)
+        .then(function(updatedCourseReport) {
+            modeHandler.course = updatedCourseReport;
+            _createLessonReport(reopenLessons, pos+1, resolve);
+        }, function(err) {
+            nlDlg.hideLoadingScreen();
+            resolve(false);
+        });
+    }
+}
+
+//-------------------------------------------------------------------------------------------------
 function NlContainer(nl, $scope) {
     this.setContainerInWindow = function() {
         nl.log.debug('setContainerInWindow called');
@@ -936,50 +1092,21 @@ function NlContainer(nl, $scope) {
         $scope.updateAllItemData();
     }
 
-    this.close = function(lesson) {
+    this.close = function() {
         $scope.closeIFrame();
     }
 }
 
 //-------------------------------------------------------------------------------------------------
-var CourseViewToolbarDirective = ['nl',
-function(nl) {
-    return {
-        restrict: 'E',
-        templateUrl: 'view_controllers/course/course_view_toolbar.html',
-        scope: true
-    };
-}];
-
-//-------------------------------------------------------------------------------------------------
-var CourseViewListDirective = ['nl',
-function(nl) {
-    return {
-        restrict: 'E',
-        templateUrl: 'view_controllers/course/course_view_list.html',
-        scope: true
-    };
-}];
-
-//-------------------------------------------------------------------------------------------------
-var CourseViewContentDirective = ['nl',
-function(nl) {
-    return {
-        restrict: 'E',
-        templateUrl: 'view_controllers/course/course_view_content.html',
-        scope: true
-    };
-}];
-
-//-------------------------------------------------------------------------------------------------
-var CourseViewFrameDirective = ['nl',
-function(nl) {
-    return {
-        restrict: 'E',
-        templateUrl: 'view_controllers/course/course_view_frame.html',
-        scope: true
-    };
-}];
+function CourseViewDirective(template) {
+    return ['nl', function(nl) {
+        return {
+            restrict: 'E',
+            templateUrl: nl.fmt2('view_controllers/course/{}.html', template),
+            scope: true
+        };
+    }];
+}
 
 //-------------------------------------------------------------------------------------------------
 module_init();
