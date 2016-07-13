@@ -472,7 +472,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
     }
 
     function _updateAllItemData() {
-        if ($scope.ext.isStaticMode()) return;
         var today = new Date();
         folderStats.clear();
         var reopener = new Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlCourse);
@@ -762,7 +761,8 @@ function ScopeExtensions(nl, modeHandler, nlContainer, folderStats) {
         this.pastAttemptData = [];
         if (!this.item || this.item.type != 'lesson') return;
         if (!modeHandler.course.lessonReports) return;
-        if (!(this.item.id in modeHandler.course.pastLessonReports)) return;
+        if (!modeHandler.course.pastLessonReports || 
+            !(this.item.id in modeHandler.course.pastLessonReports)) return;
         var pastLessonReport = modeHandler.course.pastLessonReports[this.item.id];
 
         for(var i in pastLessonReport) {
