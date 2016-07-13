@@ -118,6 +118,8 @@ function Formatter() {
     };
 
     this.json2Date = function(dateStr) {
+        // Check first if this is a string!
+        if (typeof dateStr != 'string' && !(dateStr instanceof String)) return dateStr;
         // Convert date to iso 8061 format if needed
         // (e.g.1: "2014-04-28" ==> "2014-04-28T00:00:00Z")
         // (e.g.2: "2014-04-28 23:09:00" ==> "2014-04-28T23:09:00Z")

@@ -93,7 +93,7 @@ function ModeHandler(nl, nlCourse, nlDlg, $scope) {
         if (this.mode === MODES.REPORTS_SUMMARY_VIEW || this.mode === MODES.REPORT_VIEW) {
             if (!reportInfo || !reportInfo.completed) return _popupAlert('Not completed', 
                 'This learning module is not yet completed. You may view the report once it is completed.');
-            return _redirectToLessonReport(reportInfo, newTab);
+            return _redirectTo('/lesson/review_report_assign/{}', reportInfo.reportId, newTab);
         }
         
         // do mode
@@ -308,13 +308,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
     };
     
     $scope.collapseAll = function() {
-        var newItem = treeList.getRootItem();
         function _impl() {
             treeList.collapseAll();
             _showVisible();
-            $scope.ext.setCurrentItem(newItem);
+            $scope.ext.setCurrentItem(treeList.getRootItem());
         }
-        _confirmIframeClose(newItem, _impl);
+        _confirmIframeClose(null, _impl);
     };
     
     function _confirmIframeClose(newItem, nextFn) {
@@ -322,7 +321,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
             $scope.iframeUrl = null;
             $scope.iframeModule = null;
         }
-        if (!$scope.iframeUrl || $scope.iframeModule == newItem.id) {
+        if (!$scope.iframeUrl || newItem && ($scope.iframeModule == newItem.id)) {
             nextFn();
             return;
         }
@@ -341,7 +340,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
             $scope.expandedView = !$scope.expandedView;
             _updateExpandViewIcon();
         }
-        _confirmIframeClose(treeList.getRootItem(), _impl);
+        _confirmIframeClose(null, _impl);
     };
     
     $scope.popupView = false;
@@ -357,14 +356,14 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
             $scope.ext.setCurrentItem(cm);
             _popout(true);
         }
-        _confirmIframeClose(bReset ? treeList.getRootItem() : cm, _impl);
+        _confirmIframeClose(!bReset ? cm : null, _impl);
     };
     
     $scope.hidePopup = function(bClose) {
         function _impl() {
             _popout(false);
         }
-        _confirmIframeClose(bClose ? treeList.getRootItem() : $scope.ext.item, _impl);
+        _confirmIframeClose(!bClose ? $scope.ext.item : null, _impl);
     };
     
     $scope.closeIFrame = function() {
@@ -418,7 +417,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
                 _showVisible();
             } else if (!$scope.expandedView) _popout(true);
         }
-        _confirmIframeClose(cm, _impl);
+        _confirmIframeClose(null, _impl);
     };
     
     $scope.onLaunch = function(e, cm) {
@@ -443,7 +442,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
                 if (cm.type === 'lesson') modeHandler.handleLessonLink(cm, false, $scope);
                 if (!$scope.expandedView) _popout(true);
             }
-            _confirmIframeClose(cm, _impl);
+            _confirmIframeClose(null, _impl);
         });
     };
     
@@ -609,15 +608,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
             var parent = treeList.getItem(cm.parentId);
             if (!parent) continue; // This is a must in REPORTS_SUMMARY_VIEW
 
-            var status = cm.delayedCount ? nl.t('delayed') : cm.completedCount ? nl.t('completed') : nl.t('pending');
-            var timeSpent = cm.timeSpentCount ? Math.round(cm.timeSpentSeconds/60) : '';
-            var score = cm.scoreAvailableCount ? cm.score : '';
-            var maxScore = cm.completedCount && cm.type == 'lesson' ? cm.maxScore : '';
-            var perc =  '';
-            if (cm.scoreAvailableCount && cm.maxScore) {
-                perc = nl.fmt2('{}%', Math.round((cm.score/cm.maxScore)*100));
-            }
-            var row = [cm.name, parent.name, cm.type, status, timeSpent, score, maxScore, perc, parent.location];
+            var row = [cm.name, parent.name, cm.type, cm.state.status, 
+                cm.timeMins || '', cm.score || '',  cm.maxScore || '', 
+                cm.perc ? cm.perc + '%' : '', parent.location];
             data.push(row);
         }
         

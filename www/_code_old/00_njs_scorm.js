@@ -29,6 +29,10 @@ function canLeaveCheck() {
 }
 
 function _initScoBot() {
+    var content = _getContentFromHtml();
+    var l = jQuery.parseJSON(content);
+    var passScore = l.passScore ? l.passScore/100: 0.7;
+    
     scorm = new SCOBotBase({                   // in 4.x.x
         debug         : true,                  // true or false
         time_type     : "UTC",                 // UTC, GMT or ""
@@ -39,7 +43,7 @@ function _initScoBot() {
     });
     _SB = new SCOBot({
         interaction_mode      : 'journaled',      // state (single interaction) or journaled (history of interactions)
-        scaled_passing_score  : '0.7',        // uses cmi.score.scaled to equate cmi.success_status
+        scaled_passing_score  : passScore,        // uses cmi.score.scaled to equate cmi.success_status
         completion_threshold  : '1',          // uses cmi.progress_measure to equate cmi.completion_status
         initiate_timer        : false,        // if max_time_allowed, you can set the timer vs. SCOBot
         scorm_strict          : true,         // Setting this to false will turn off the attempts to truncate data that exceeds the SPM's commonly supported by LMS's.
