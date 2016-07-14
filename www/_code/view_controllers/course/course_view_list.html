@@ -14,7 +14,8 @@
             <div class='col'>{{cm.name}}</div>
             <div class='nl-link-img nl-link-text padding-small text-center rounded' style='width: 30px'
                  ng-click='onIconClick($event, cm)'>
-                <i ng-if='cm.state.icon' class="icon fsh3 {{cm.state.icon}}"></i>
+                <i ng-if='ext.isStaticMode()' class="icon fsh3 ion-information-circled fblue"></i>
+                <i ng-if='!ext.isStaticMode() && cm.state.icon' class="icon fsh3 {{cm.state.icon}}"></i>
             </div>
          </div>
     </div>

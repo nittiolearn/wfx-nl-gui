@@ -104,7 +104,8 @@
         <p>For different element types, you could optionally specify the folling attributes:</p>
         <ul>
             <li>"hide_remarks" (applicable to info/link elements) set to true will not show the remarks field when marking the info/link element as done. By default, this is false (i.e. shown)</li>
-            <li>"text" attribute (applicable to all leaf elements) specifies a long text which is shown in the content area / details popup when the info/link are clicked.</li>
+            <li>"text" attribute (applicable to all elements) specifies a long text which is shown in the content area / details popup when the element is clicked.</li>
+            <li>"autocomplete" attribute (applicable to link elements) can be set to true (default false). If true, the link is set to done state once the user launches the link. User cannot update the status here.</li>
         </ul>
         
 <pre>
@@ -112,6 +113,7 @@
   "modules": [
     {"id": "1", "name": "info", "type": "info", "text": "this is a long text which does not appear only in the details view"},
     {"id": "2", "name": "link", "type": "link", "action": "lesson.view_approved", "hide_remarks": true}
+    {"id": "3", "name": "link 2", "type": "link", "action": "lesson.view_approved", "hide_remarks": true, "auto_complete": true}
   ]
 }</pre>
 
@@ -141,8 +143,8 @@
             <li>If both min_score and max_score are not provided, just the completion of the "module" is sufficient for the current module to start.</li>
         </ul>
         <p>The attribute "reopen_on_fail" can be specified for lesson items.</p>
-        <p>"reopen_on_fail" is an array of module ids (strings) which defines the set of other lessons which should be reopened if the current one fails. This is handy if you want to make the learners redo the learning material if they fail in the quiz.</p>
-        <p>Module ids provided in the array may only be that of lessons.</p>
+        <p>"reopen_on_fail" is an array of module ids (strings) which defines the set of other leaf modules which should be reopened if the current one fails. This is handy if you want to make the learners redo the learning material if they fail in the quiz.</p>
+        <p>Module ids provided in the array may only be that of leaf nodes.</p>
 
 <pre>
 {
@@ -152,10 +154,27 @@
     {"id": "3", "start_after": [{"module": "2", "max_score": 70}], "name": "Learn more and redo module 2", "type": "link", "action": "lesson.view_approved"},
     {"id": "4", "start_after": [{"module": "2", "min_score": 70}], "name": "course-module sample 4", "type": "lesson", "refid": 1235},
     {"id": "5", "start_after": [{"module": "2", "min_score": 70}, {"module": "4", "min_score": 70, "max_score": 90"}], 
-        "reopen_on-fail": ["2", "4""],
+        "reopen_on_fail": ["2", "4""],
         "name": "course-module sample 4", "type": "lesson", "refid": 1235}
   ]
 }</pre>
+
+        <h3>Configuring certificate for a course</h3>
+        <ul>
+            <li>add "certificate" attribute to the course where background image for the certificate is configured.</li>
+            <li>add a "link" module to the course. The action should be "none" and urlParams should be "/#/course_cert</li>
+            <li>setup to "start_after" dependencies to the certificate so that it is visible only after the relevant modules are completed.</li>
+            <li>add "autocomplete" attribute to the certificate link element</li>
+        </ul>
+        <p></p>
+
+<pre>
+{ "certificate" : {"bg": "/resource/resview/xxx.png"},
+  "modules" : [
+    {"id": "1", "name": "Learning module", "type": "lesson", "refid": 1234},
+    {"id": "2", "name": "Quiz", "type": "lesson", "refid": 1235, "start_after": [{"module": "1"}]},
+    {"id": "3", "name": "Learning module", "type": "link", "action": "none", "urlParams": "/#/course_cert", "start_after": [{"module": "2"}]}
+]}</pre>
 
         <h3>Recap of all course module attributes</h3>
         <table class='nl-table nl-table-styled'>
@@ -164,7 +183,7 @@
             <tr><td>name</td><td>Yes</td><td>All</td><td>Name of the module to be displayed in the course tree.</td></tr>
             <tr><td>type</td><td>Yes</td><td>All</td><td>"module", "lesson", "info" or "link".</td></tr>
             <tr><td>icon</td><td>No</td><td>All</td><td>Icon to be displayed for this item in the course tree. If not provided, this is derived from the type. "quiz" is a predefined icon.</td></tr>
-            <tr><td>text</td><td>No</td><td>except type module</td><td>"some text string"</td></tr>
+            <tr><td>text</td><td>No</td><td>All</td><td>"some text string"</td></tr>
             <tr><td>refid</td><td>Yes</td><td>type lesson</td><td>The id of the lesson to be launched.</td></tr>
             <tr><td>action</td><td>Yes</td><td>type link</td><td>The action whose URL is used for the link (see Dashboard create/modify dialog for list of actions).</td></tr>
             <tr><td>urlParams</td><td>No</td><td>type link</td><td>The urlParams to append to the URL (see Dashboard create/modify dialog for more information).</td></tr>
@@ -173,7 +192,8 @@
             <tr><td>maxAttempts</td><td>No</td><td>type lesson</td><td>Number of time the lerner can do this lesson. Only the learning data from the last attempt is considered. 0 means infinite. 1 is the default.</td></tr>
             <tr><td>hide_remarks</td><td>No</td><td>type info and link</td><td>true/false. true = do not show remark field when marking the item as done. false is default.</td></tr>
             <tr><td>start_after</td><td>No</td><td>except type module</td><td>Array of objects: each object contains "module", "min_score" (optional) and "max_score" (optional) attributes.</td></tr>
-            <tr><td>reopen_on_fail</td><td>No</td><td>type lesson</td><td>Array of strings: each string is module id of lessons that should be failed if the current module fails.</td></tr>
+            <tr><td>reopen_on_fail</td><td>No</td><td>type lesson</td><td>Array of strings: each string is module id of leaft modules that should be failed if the current module fails.</td></tr>
+            <tr><td>autocomplete</td><td>No</td><td>type link</td><td>true/false. If true, the link is marked completed when viewed first time. The user will not have possibility to set the status here.</td></tr>
         </table>
 
     </nl-dlg-help>

@@ -40,6 +40,9 @@
         </canvas> 
     </div>
 </div>
+<div ng-if='ext.item.type == "module" && ext.item.text' class='padding-top'>
+    {{ext.item.text}}
+</div>
 <div ng-if='ext.item.type != "module"'>
     <table class='nl-table nl-table-styled'>
         <tr>

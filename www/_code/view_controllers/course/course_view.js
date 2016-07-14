@@ -77,6 +77,7 @@ function ModeHandler(nl, nlCourse, nlDlg, $scope) {
     
     this.handleLink = function(cm, newTab, scope) {
         var url = nlCourse.getActionUrl(cm.action, cm.urlParams);
+        _updateLinkStatusIfNeeded(this, cm, scope);
         return _redirectTo('{}', url, newTab);
     };
     
@@ -158,6 +159,14 @@ function ModeHandler(nl, nlCourse, nlDlg, $scope) {
         return true;
     }
     
+    function _updateLinkStatusIfNeeded(self, cm, scope) {
+        if (self.mode != MODES.DO || !cm.autocomplete) return;
+        var statusinfos = self.course.statusinfo || {};
+        var statusinfo = statusinfos[cm.id] || {};
+        if (statusinfo.status == 'done') return;
+        scope.ext.updateStatus(true, true);
+    }
+    
     function _popupAlert(title, template) {
         nlDlg.popupAlert({title: nl.t(title), template: nl.t(template)});
         return true;
@@ -194,9 +203,9 @@ function ModeHandler(nl, nlCourse, nlDlg, $scope) {
 //-------------------------------------------------------------------------------------------------
 var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg', 'nlExporter',
 function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
-    var nlContainer = new NlContainer(nl, $scope);
-    nlContainer.setContainerInWindow();
     var modeHandler = new ModeHandler(nl, nlCourse, nlDlg, $scope);
+    var nlContainer = new NlContainer(nl, $scope, modeHandler);
+    nlContainer.setContainerInWindow();
     var treeList = new TreeList(nl);
     var courseReportSummarizer = new CourseReportSummarizer($scope);
     var _userInfo = null;
@@ -474,7 +483,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
     function _updateAllItemData() {
         var today = new Date();
         folderStats.clear();
-        var reopener = new Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlCourse);
+        var reopener = new Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, 
+            nlCourse, _updatedStatusinfoAtServer);
         reopener.reopenIfNeeded().then(function() {
             _updateItemData(treeList.getRootItem(), today);
         });
@@ -520,8 +530,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
         var statusinfo = statusinfos[cm.id] || {};
         if (statusinfo.status == 'done') status = 'success';
         else if ($scope.planning && cm.planned_date && cm.planned_date < today) status = 'delayed';
-        else if (!modeHandler.canStart(cm, $scope, treeList)) status = 'waiting';
         else status = 'pending';
+        if (!modeHandler.canStart(cm, $scope, treeList)) status = 'waiting';
         _updateState(cm, status);
     }
     
@@ -564,7 +574,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
         _updateState(cm, status);
     }
 
-    function _updatedStatusinfo(cm, status, remarks) {
+    function _updatedStatusinfo(cm, status, remarks, dontHide) {
         // TODO: Keep status as boolean; data as javascript Date object
         if (!('statusinfo' in modeHandler.course)) modeHandler.course.statusinfo = {};
         modeHandler.course.statusinfo[cm.id] = {
@@ -575,7 +585,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
         };
         _updatedStatusinfoAtServer(false);
         _updateAllItemData();
-        $scope.hidePopup(true);
+        if (!dontHide) $scope.hidePopup(true);
     }
     
     var _saveAttemptNumber = 0;
@@ -729,12 +739,13 @@ function ScopeExtensions(nl, modeHandler, nlContainer, folderStats) {
         if (!this.item) return false;
         if (modeHandler.mode != MODES.DO) return false;
         if (this.item.type != 'link' && this.item.type != 'info') return false;
+        if (this.item.type == 'link' && this.item.autocomplete) return false;
         return (this.item.state.status == 'pending' 
             || this.item.state.status == 'delayed' || this.item.state.status == 'success');
     };
 
-    this.updateStatus = function(isDone) {
-        if (_updateStatusFn) _updateStatusFn(this.item, isDone, this.data.remarks);
+    this.updateStatus = function(isDone, dontHide) {
+        if (_updateStatusFn) _updateStatusFn(this.item, isDone, this.data.remarks, dontHide);
     };
 
     this.canReattempt = function() {
@@ -950,7 +961,7 @@ function CourseReportSummarizer($scope) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlCourse) {
+function Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlCourse, _updatedStatusinfoAtServer) {
 
     this.reopenIfNeeded = function() {
         return nl.q(function(resolve, reject) {
@@ -959,45 +970,46 @@ function Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlCourse) {
                 return;
             }
 
-            var reopenLessons = {};
-            var failedLessons = [];
+            var changeInfo = {updated: false, reopenList:[], failList:[], reopenDict:{}};
             _init();
-            _reopenItem(treeList.getRootItem(), reopenLessons, failedLessons);
-            if (failedLessons.length == 0) {
+            _reopenItem(treeList.getRootItem(), changeInfo);
+            if (changeInfo.statusUpdated) _updatedStatusinfoAtServer(false);
+            if (changeInfo.failList.length == 0) {
                 resolve(true);
                 return;
             }
 
-            var reopenLessonsArray = [];
-            for (var k in reopenLessons) reopenLessonsArray.push(reopenLessons[k]);
             var template ='<p></p><p>Your score is below the pass level in the following modules:</p><ul>';
-            for (var i in failedLessons) {
-                template += nl.fmt2('<li>{}</li>', failedLessons[i].name);
+            for (var i in changeInfo.failList) {
+                template += nl.fmt2('<li>{}</li>', changeInfo.failList[i].name);
             }
             template += '</ul><p></p><p>The following modules have to be redone. Their status and learning records will be reset:</p><ul>';
-            for (var i in reopenLessonsArray) {
-                template += nl.fmt2('<li>{}</li>', reopenLessonsArray[i].name);
+            for (var i in changeInfo.reopenList) {
+                template += nl.fmt2('<li>{}</li>', changeInfo.reopenList[i].name);
             }
             template += '</ul><p></p>';
             nlDlg.popupAlert({title: 'Warning', template: template}).then(function() {
-                _updateLessonReports(reopenLessonsArray, resolve);
+                _updateLessonReports(changeInfo.reopenList, resolve);
             });
 
         });
     };
     
     var lessonReports = null;
+    var statusinfos = null;
     function _init() {
         if (!modeHandler.course.lessonReports) modeHandler.course.lessonReports = {};
         lessonReports = modeHandler.course.lessonReports;
+        if (!modeHandler.course.statusinfo) modeHandler.course.statusinfo = {};
+        statusinfos = modeHandler.course.statusinfo;
     }
 
-    function _reopenItem(cm, reopenLessons, failedLessons) {
+    function _reopenItem(cm, changeInfo) {
         if (cm.type == 'module') {
             var children = treeList.getChildren(cm);
             for (var i=0; i<children.length; i++) {
                 var child = children[i];
-                _reopenItem(child, reopenLessons, failedLessons);
+                _reopenItem(child, changeInfo);
             }
             return;
         }
@@ -1012,17 +1024,31 @@ function Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlCourse) {
         if (perc >= passScore) return;
  
         cm.attempt = lessonReport.attempt || 0;
-        failedLessons.push(cm);
-        reopenLessons[cm.id] = cm;
         
         for (var i in cm.reopen_on_fail) {
             var depModule = treeList.getItem(cm.reopen_on_fail[i]);
-            if (!depModule || !(depModule.id in lessonReports)) continue;
+            if (!depModule) continue;
+            if (depModule.type == 'info' || depModule.type == 'link') {
+                if (!(depModule.id in statusinfos)) continue;
+                statusinfos[depModule.id] = {status: '',
+                    date: nl.fmt.date2Str(new Date(), 'date'), 
+                    username: _userInfo.username,
+                    remarks: ''
+                };
+                changeInfo.statusUpdated = true;
+                continue;
+            }
+            if (!(depModule.id in lessonReports)) continue;
             var lessonReport = lessonReports[depModule.id];
             if (!lessonReport.completed) continue;
             depModule.attempt = lessonReport.attempt || 0;
-            reopenLessons[depModule.id] = depModule;
+            if (!(depModule.id in changeInfo.reopenDict)) changeInfo.reopenList.push(depModule);
+            changeInfo.reopenDict[depModule.id] = depModule;
         }
+
+        changeInfo.failList.push(cm);
+        if (!(cm.id in changeInfo.reopenDict)) changeInfo.reopenList.push(cm);
+        changeInfo.reopenDict[cm.id] = cm;
     }
 
     function _updateLessonReports(reopenLessons, resolve) {
@@ -1055,7 +1081,7 @@ function Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlCourse) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function NlContainer(nl, $scope) {
+function NlContainer(nl, $scope, modeHandler) {
     this.setContainerInWindow = function() {
         nl.log.debug('setContainerInWindow called');
         nl.window.NITTIO_LEARN_CONTAINER = this;
@@ -1070,6 +1096,14 @@ function NlContainer(nl, $scope) {
 
     this.init = function(data) {
         nl.log.debug('NlContainer.init: ', data);
+    };
+    
+    this.getCourse = function() {
+        return modeHandler.course;
+    };
+    
+    this.getCurrentModule = function() {
+        return $scope.ext.item;
     };
     
     this.save = function(reportId, lesson, bDone) {

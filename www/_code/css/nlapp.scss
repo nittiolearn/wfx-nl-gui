@@ -964,8 +964,11 @@ nl-cards {
 }
 
 @media print {
-  #nl-pagecanvas {
+  #nl-pagecanvas, .dont-print {
     display: none !important;
+  }
+  #nl-pagecanvas.nl-print {
+    display: block !important;
   }
 }
 

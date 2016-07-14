@@ -456,6 +456,7 @@ function NlPageInfo(nl) {
     this.windowDescription = 'Nittio Learn';
     this.isMenuShown = true;
     this.isPageShown = false;
+    this.isPrintable = false;
     
     this.statusPopup = false;
     this.isMobileOrTab = _isMobileOrTab(nl);
