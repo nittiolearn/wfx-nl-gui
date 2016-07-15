@@ -245,8 +245,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 
 	function _addModifyResource($scope, card){
 		nlResourceAddModifySrv.show($scope, card, _userInfo.groupinfo.restypes)
-		.then(function(sentForUploadCount) {
-			if (_bFirstLoadInitiated && sentForUploadCount == 0) return;
+		.then(function(resInfos) {
+			if (_bFirstLoadInitiated && resInfos.length == 0) return;
 			_updateDataFromServer();
 		});
 	}
@@ -288,15 +288,27 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 						{id: 'medium', name:'Medium compression'},
 						{id: 'high', name:'High compression'}];
 
-	this.show = function($scope, card, restypes){
+	this.show = function($scope, card, restypes, onlyOnce) {
 		return nl.q(function(resolve, reject) {
 			var addModifyResourceDlg = nlDlg.create($scope);
 			_initResourceDlg(addModifyResourceDlg, card, restypes);
-			_showDlg(addModifyResourceDlg, card, $scope, restypes, resolve, reject);
+            addModifyResourceDlg.resolveAfterOnce = function () {
+                if (!onlyOnce) return false;
+                addModifyResourceDlg.resolve();
+                return true;
+            }; 
+            addModifyResourceDlg.resolve = function () {
+                addModifyResourceDlg.close();
+                // Avoid multiple callbacks which are comming due to "close" call
+                if (addModifyResourceDlg.resolvedCalled) return;
+                addModifyResourceDlg.resolvedCalled = true;
+                resolve(addModifyResourceDlg.resInfos);
+            }; 
+			_showDlg(addModifyResourceDlg, card, $scope, restypes);
 		});
 	};
 
-	function _showDlg(addModifyResourceDlg, card, $scope, restypes, resolve,  reject){
+	function _showDlg(addModifyResourceDlg, card, $scope, restypes){
 		var buttonName = (card === null) ? nl.t('Upload') : nl.t('Modify');
         var modifyButton = {text: buttonName, onTap: function(e) {
         	if(e) e.preventDefault();
@@ -304,15 +316,14 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
         }};
         	
 		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
-			addModifyResourceDlg.close();
-			resolve(addModifyResourceDlg.sentCount);
+            addModifyResourceDlg.resolve();
 		}};
         addModifyResourceDlg.show('view_controllers/resource/resource_add_dlg.html', 
         [modifyButton], cancelButton, false);
 	}
 
 	function _initResourceDlg(addModifyResourceDlg, card, restypes) {
-		addModifyResourceDlg.sentCount = 0;
+		addModifyResourceDlg.resInfos = [];
 	    addModifyResourceDlg.setCssClass('nl-height-max nl-width-max');
 		addModifyResourceDlg.scope.data = {};
 	    addModifyResourceDlg.scope.error = {};
@@ -320,7 +331,7 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 		addModifyResourceDlg.scope.data.card = card;
         addModifyResourceDlg.scope.data.restype = {};
 		addModifyResourceDlg.scope.options.compressionlevel = COMPRESSIONLEVEL;	
-		addModifyResourceDlg.scope.data.compressionlevel = {id: 'medium', name: 'medium compression'};		
+		addModifyResourceDlg.scope.data.compressionlevel = {id: 'high'};		
 		addModifyResourceDlg.scope.options.restype = _getRestypeList(restypes);
 
 		if (!card) {
@@ -354,26 +365,32 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 	    	addModifyResourceDlg.scope.error.resource = 'Please select the resource to upload';
 	    	return;
 		}
-		addModifyResourceDlg.sentCount += resourceList.length;
 		nlDlg.showLoadingScreen();
 		nlResourceUploader.uploadInSequence(resourceList, keyword, compressionlevel, resid)
-		.then(function resolve(resInfos) {
+		.then(function(resInfos) {
+		    for (var i=0; i<resInfos.length; i++) {
+		        addModifyResourceDlg.resInfos.push(resInfos[i]);
+		    }
 			nlDlg.hideLoadingScreen();
             nlDlg.popdownStatus(0);
-			_postUpload(resInfos, $scope);
-        }, function reject(msg) {
+            if (addModifyResourceDlg.resolveAfterOnce()) return;
+			_postUpload(addModifyResourceDlg, $scope);
+        }, function(msg) {
 			nlDlg.hideLoadingScreen();
             nlDlg.popdownStatus(0);
-            nlDlg.popupAlert({title: nl.t('Error'), template: msg});
+            nlDlg.popupAlert({title: nl.t('Error'), template: msg})
+            .then(function() {
+                addModifyResourceDlg.resolveAfterOnce();
+            });
         });
 	}
 
-	function _postUpload(resInfos, $scope) {
+	function _postUpload(addModifyResourceDlg, $scope) {
 		var uploadAgainDlg = nlDlg.create($scope);
-		uploadAgainDlg.scope.resinfos = resInfos;
+		uploadAgainDlg.scope.resinfos = addModifyResourceDlg.resInfos;
 		var cancelButton = {text: nl.t('Close'), onTap: function(e) {
 			uploadAgainDlg.close();
-			return resInfos;
+			return addModifyResourceDlg.resInfos;
 		}};
         uploadAgainDlg.show('view_controllers/resource/upload_done_dlg.html', [], cancelButton, false);
 	}

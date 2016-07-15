@@ -6,10 +6,10 @@
         <div class='col'>
             <div class='row row-top row-stretch padding-small line margin0'>
                 <div class='col fsh5 forange text-right'>
-                    <i class="icon ion-ios-arrow-back fsh1 forange nl-clickable"
-                       style='padding-right: 19px'
+                    <i class="icon ion-ios-arrow-back fsh1 forange nl-link-text padding-small"
                        ng-show='content.slabSlider.canSlideDown'
                        ng-click='callFn("slabSlideDown")'></i>
+                    <i style='padding-right: 19px'></i>
                 </div>
                 <div class='col bgdark bgbox-content fwhite text-center padding-small'
                      ng-repeat='slab in content.pricing_slabs'
@@ -49,7 +49,7 @@
         <div class='col fixed-100' ng-hide='screenSize == "large"'>
             <div class='row row-top row-stretch padding-small margin0'>
                 <div class='col fsh5 forange'>
-                    <i class="icon ion-ios-arrow-forward fsh1 text-right forange nl-clickable"
+                    <i class="icon ion-ios-arrow-forward fsh1 text-right forange nl-link-text padding-small"
                                ng-show='content.slabSlider.canSlideUp'
                        ng-click='callFn("slabSlideUp")'></i>
                 </div>

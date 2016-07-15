@@ -59,6 +59,12 @@ function(nl) {
         _exportHtmlToXls(fileName, table.innerHTML);
     };
     
+    this.exportTextFile = function(fileName, data) {
+        var uri = 'data:text/plain;charset=utf-8,';
+        data = uri + nl.fmt.encodeUri(data);
+        _saveFile(fileName, data);
+    };
+
     function _exportHtmlToXls(fileName, htmlTable) {
         var uri = 'data:application/vnd.ms-excel;base64,';
         var template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>{table}</table></body></html>';

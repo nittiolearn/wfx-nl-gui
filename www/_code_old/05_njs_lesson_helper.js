@@ -389,62 +389,50 @@ function _SubmitAndScoreDialog_getShowReportParameters(lesson, dialogParams) {
 }
 
 function _SubmitAndScoreDialog_getSubmitWindowParameters(lesson, dialogParams, submitMethod) {
-	dialogParams.staticResFolder = nittio.getStaticResFolder();
 	dialogParams.reportExists = '';
+    dialogParams.warning = '';
+
 	if (lesson.renderCtx.launchCtx() == 'do_withrep') {
 		dialogParams.reportExists = 'Report already exists. If you proceed, the existing report will be replaced.';
 	}
 
 	var l = lesson.oLesson;
-	var totalPages = l.notAnswered.length + l.answered.length + l.partAnswered.length;
-	dialogParams.completed = 'partial';
-	dialogParams.allAnsweredClass = 'maroon';
-	dialogParams.allAnswered = njs_helper.fmt2('You have not completed {} out of {} question(s).', 
-		l.notAnswered.length+l.partAnswered.length, totalPages);
-	if (totalPages == 0) {
-		dialogParams.completed = 'na';
-		dialogParams.allAnswered = '';
-	} else if (l.notAnswered.length == totalPages) {
-		dialogParams.completed = 'cross';
-		dialogParams.allAnswered = njs_helper.fmt2('You have not completed any of {} question(s).', l.notAnswered.length);
-	} else if (l.answered.length == totalPages) {
-		dialogParams.completed = 'tick';
-		dialogParams.allAnswered = njs_helper.fmt2('You have completed all {} question(s).', l.answered.length);
-		dialogParams.allAnsweredClass = 'green';
-	}
-	dialogParams.modifyWarning = '';
-	if (submitMethod == 'submit_assign') {
-		dialogParams.modifyWarning = '<p>Note: Assignment reports cannot be modified once submitted.</p>';
+	var pendingPages = l.notAnswered.length + l.partAnswered.length;
+    var totalPages = pendingPages + l.answered.length;
+    dialogParams.centerMsg = 'text-align: center'; 
+
+	if (pendingPages > 0) {
+	    var fmt = 'You have not completed {} out of {} question/interaction(s).';
+        dialogParams.warning = njs_helper.fmt2(fmt,
+            l.notAnswered.length+l.partAnswered.length, totalPages);
+        dialogParams.centerMsg = ''; 
 	}
 
 	// Detailed rows
-	var pageRowTempl = '<tr class="{htmlClass}"><td>{page}</td><td class="done"><img src="{staticResFolder}/general/{completed}.png"></td><td class="more">{more}</td></tr>';
+	var pageRowTempl = '<tr class="{cls}"><td>{page}</td><td class="more">{more}</td></tr>';
 	var pageScoreDetails = '';
 
 	for (var i=0; i<lesson.pages.length; i++) {				
 		var page = lesson.pages[i];
-		var rowDetails = {};
+		var rowDetails = {cls: 'normal'};
+		if (_SubmitAndScoreDialog_isCompleted(i, l)) continue;
 		rowDetails.page = _SubmitAndScoreDialog_makePageNoLink(i); 
-		rowDetails.completed = _SubmitAndScoreDialog_isCompleted(i, l);
 		rowDetails.more = _SubmitAndScoreDialog_makeMoreLink(i, page.sections[0].oSection.text); 
-		rowDetails.htmlClass = 'normal';
-		rowDetails.staticResFolder = nittio.getStaticResFolder();
 		pageScoreDetails += njs_helper.fmt1(pageRowTempl, rowDetails);
+	}
+	if (pageScoreDetails) {
+        var rowDetails = {cls: 'bold', page: 'Page', more: 'Title'};
+        pageScoreDetails = njs_helper.fmt1(pageRowTempl, rowDetails) + pageScoreDetails;
 	}
 	dialogParams.pageScoreDetails = pageScoreDetails;
 }
 
 function _SubmitAndScoreDialog_isCompleted(pageNo, oLesson) {
-	if (oLesson.notAnswered.indexOf(pageNo) > -1) {
-		return 'cross';
+	if (oLesson.notAnswered.indexOf(pageNo) > -1 ||
+	   'partAnswered' in oLesson && oLesson.partAnswered.indexOf(pageNo) > -1) {
+		return false;
 	}
-	if ('partAnswered' in oLesson && oLesson.partAnswered.indexOf(pageNo) > -1) {
-		return 'partial';
-	}
-	if (oLesson.answered.indexOf(pageNo) > -1) {
-		return 'tick';
-	}
-	return 'na';
+	return true;
 }
 
 function _SubmitAndScoreDialog_isCorrect(score, maxScore) {

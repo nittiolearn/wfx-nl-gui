@@ -4,17 +4,18 @@
 	<i class='sep4'></i>
 
     <select ng-show='cards.grades' class='col-20 nl-grade-search' ng-model="search.grade" 
+            ng-change='search.onSearch()'
             ng-options="grade for grade in cards.grades track by grade">
     </select>
 
     <i class='sep4'></i>	
-	<img class='nl-clickable' ng-src='{{search.img}}' ng-show='search.onSearch'
+	<img class='nl-link-img' ng-src='{{search.img}}' ng-show='search.onSearch'
 		 tabindex="0"
 		 ng-click='search.onSearch()'/>
 	<i class='sep4'></i>
 	<span class='col col-20 nl-textellipsis'>{{search.getResultsStr()}}</span>
 </div>
-<div class='nl-card' 
+<div class='nl-card nl-link-text-container' 
 	ng-repeat="card in getCards()" 
 	ng-style="{height: h + 'px', width: w + 'px', 'font-size': fs + '%', 'margin-left': ml + 'px'}">
 	<nl-card card='card' class='nl-card-holder {{card.style}}'></nl-card>

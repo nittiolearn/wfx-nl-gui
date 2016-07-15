@@ -1,0 +1,28 @@
+<div ng-show='ext.item.type == "module"' class='padding-mid fsh3'>
+    <b>Total items</b>: {{ext.stats.total}}
+</div>
+<div ng-show='ext.item.id == "_root"' class='padding-mid'>
+    <table class='nl-table nl-table-styled'>
+        <tr ng-repeat='attr in course_attributes'>
+            <td>{{attr.key}}</td><td>{{attr.val}}</td>
+        </tr>
+    </table>
+</div>
+<div ng-show='ext.item.id != "_root"' class='padding-mid'>
+    <table class='nl-table nl-table-styled'>
+        <tr ng-repeat='attr in module_attributes'
+            ng-show='ext.item[attr]'>
+            <td>{{attr}}</td><td>{{ext.item[attr]}}</td>
+        </tr>
+    </table>
+
+    <div ng-show='ext.item.type == "lesson" || ext.item.type == "link"'
+         class='row row-top row-wrap margin0 padding-top'>
+        <div class='col padding-small min-200'>
+             <button class='button button-positive button-small w100'
+                     ng-click='onLaunch($event, ext.item)'>
+                     {{ext.getLaunchString()}}
+             </button>
+        </div>
+    </div>
+</div>

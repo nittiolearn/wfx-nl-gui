@@ -118,6 +118,8 @@ function Formatter() {
     };
 
     this.json2Date = function(dateStr) {
+        // Check first if this is a string!
+        if (typeof dateStr != 'string' && !(dateStr instanceof String)) return dateStr;
         // Convert date to iso 8061 format if needed
         // (e.g.1: "2014-04-28" ==> "2014-04-28T00:00:00Z")
         // (e.g.2: "2014-04-28 23:09:00" ==> "2014-04-28T23:09:00Z")
@@ -149,6 +151,10 @@ function Formatter() {
         return this.date2Str(d, accuracy);
     };
     
+    this.getPastDate = function() {
+        return new Date(2000, 0);
+    }
+    
     this.encodeUri = function(input) {
         return encodeURIComponent(input);
     };
@@ -162,7 +168,8 @@ function Formatter() {
 		if (iconUrl) {
 			fieldValue = _fmt2Impl("<img src='{}' class='{}'> {}", [iconUrl, iconClass, fieldValue]);
 		}
-		if (fmtType == 'date') fieldValue = fieldValue ? this.jsonDate2Str(fieldValue)+' '+'Hrs' : '-';
+        if (fmtType == 'date') fieldValue = fieldValue ? this.jsonDate2Str(fieldValue)+' '+'Hrs' : '-';
+        if (fmtType == 'date2') fieldValue = fieldValue ? this.date2Str(fieldValue, 'date') : '-';
 		if (fmtType == 'boolean') fieldValue = fieldValue ? this.t(['Yes']) : this.t(['No']);
 		if (fmtType == 'minutes') fieldValue = fieldValue ? (fieldValue > 1 ? this.t(['{} minutes', fieldValue]) : this.t(['{} minute', fieldValue])) : this.t('-');
 		if (!fieldValue) fieldValue = fieldDefault || '-';
@@ -449,6 +456,7 @@ function NlPageInfo(nl) {
     this.windowDescription = 'Nittio Learn';
     this.isMenuShown = true;
     this.isPageShown = false;
+    this.isPrintable = false;
     
     this.statusPopup = false;
     this.isMobileOrTab = _isMobileOrTab(nl);

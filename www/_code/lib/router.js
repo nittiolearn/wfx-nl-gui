@@ -75,6 +75,7 @@ function(nl, nlDlg, nlServerApi, $state) {
     function _onPageEnter($scope, pageUrl, pageEnterFn, e) {
         windowDescription = '';
         nl.pginfo.isPageShown = false;
+        nl.pginfo.isPrintable = false;
         nl.pginfo.hidemenu = false;
         nlDlg.showLoadingScreen();
         var protocol = nl.location.protocol().toLowerCase();
@@ -113,6 +114,17 @@ function(nl, nlDlg, nlServerApi, $state) {
         });
     }
 
+    this.discoverNlContainer = function() {
+        var win = nl.window;
+        for(var tries=0; tries<10; tries++) {
+            win = win.parent;
+            if (win == null) return null;
+            if (win.NITTIO_LEARN_CONTAINER) return win.NITTIO_LEARN_CONTAINER;
+            if (win.parent == win) return null;
+        }
+        return null;
+    };
+
     function _onPageLeave($scope, pageUrl, pageLeaveFn, e) {
         var canLeave = pageLeaveFn ? pageLeaveFn(e) : true;
         if (!canLeave) {
@@ -135,7 +147,7 @@ function(nl, nlDlg, nlServerApi, $state) {
     
     function _done(rerouteToUrl) {
         var params = nl.location.search();
-        nl.pginfo.isMenuShown = (!('hidemenu' in params || nl.pginfo.hidemenu));
+        nl.pginfo.isMenuShown = (!('embedded' in params || 'hidemenu' in params || nl.pginfo.hidemenu));
         nlDlg.hideLoadingScreen();
 
         if (rerouteToUrl != null) {
@@ -201,11 +213,14 @@ function Permission(nl) {
         '/course_assign_list': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},
 		'/course_report_list': {login:true, permission: 'course_do', termRestriction: TR_RESTRICTED},
         '/course_view': {login: true, permission: 'course_do', termRestriction: TR_RESTRICTED},
+        '/course_cert': {login: true, permission: 'course_do', termRestriction: TR_RESTRICTED},
         '/dashboard': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         '/dashboard_view': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         '/searchlist': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         '/searchlist_view': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
         '/rno_list': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
+        '/rno_view': {login: false, permission: '', termRestriction: TR_OPEN}, 
+        '/sco_export': {login: true, permission: 'admin_group', termRestriction: TR_CLOSED},
 		'/assignment': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},		
         '/lesson_list': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},        
         '/player': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},        

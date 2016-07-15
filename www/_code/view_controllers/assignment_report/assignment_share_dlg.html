@@ -31,7 +31,11 @@
 			<th>Name</th>
 		</tr>
 		<tr ng-repeat='shared in data.sharedUsers'>
-			<td><img ng-src='{{data.removeicon}}' ng-click='removeSharedUser(shared.id)' class='nl-clickable'></td>
+			<td>
+			    <img ng-src='{{data.removeicon}}' 
+			         ng-click='removeSharedUser(shared.id)'
+			         class='nl-link-img'>
+			</td>
 			<td>{{shared.container}}</td>
 			<td>{{shared.text}}</td>
 		</tr>

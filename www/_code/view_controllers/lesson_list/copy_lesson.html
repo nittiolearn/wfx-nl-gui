@@ -1,7 +1,13 @@
 <nl-dlg title='Module copied'>
     <nl-dlg-help></nl-dlg-help>
 	<ul>
-		<li><a class='nl-clickable' href='lesson/edit/{{newLessonId}}'>Edit new module.</a></li>
-		<li ng-show='statusType'><span class='nl-clickable' ng-click='gotoMyLessonsFromApproved()'>View my modules </span></li>
+		<li class='nl-link-text padding-small'>
+		    <a href='lesson/edit/{{newLessonId}}'>Edit new module</a>
+		</li>
+		<li ng-show='statusType'
+		    class='nl-link-text padding-small'
+		    ng-click='gotoMyLessonsFromApproved()'>
+		    View my modules
+		</li>
 	</ul>
 </nl-dlg>

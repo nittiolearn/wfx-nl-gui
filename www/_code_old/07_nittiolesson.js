@@ -35,6 +35,8 @@ nlesson = function() {
 		this.reRenderAsReport = Lesson_reRenderAsReport; // called on clicking zodi in view mode (view->report)
 		this.doModeToggle = Lesson_doModeToggle;		// called on clicking "edit->preview" button
 		this.updatePagePropertiesDom = Lesson_updatePagePropertiesDom; // update page properties in editor
+		
+		this.showForum = Lesson_showForum;
 
 		// Initialize and render - internal methods
 		// Lesson, Page and Section objects support the following internal methods wrt 
@@ -99,6 +101,7 @@ nlesson = function() {
 		
 		this.globals.slides = null;
 		this.globals.templateCssClass = '';
+		this.globals.autoVoice = njs_autovoice.getInstance();
 	}
 
 	//--------------------------------------------------------------------------------------------
@@ -186,6 +189,26 @@ nlesson = function() {
 		var curPage = this.pages[this.getCurrentPageNo()];
 		curPage.updatePagePropertiesDom();
 	}
+
+    var forumDlg = null;
+    function Lesson_showForum(forumType, forumRefid) {
+        var curPage = this.pages[this.getCurrentPageNo()];
+        if (forumType == '') return;
+        if (forumDlg === null) {
+            forumDlg = new njs_helper.Dialog();
+            forumDlg.create('forumDlg', null, [], {id: 'cancel', text: 'Close'});
+            forumDlg.addClass('nl-max');
+        }
+        var topic = curPage.oPage.forumTopic || this.oLesson.forumTopic || '';
+        topic = topic.replace(/'/g, " ");
+        topic = window.encodeURIComponent(topic);
+        var lessonId = jQuery('#l_lessonId').val();
+        var fmt = '/#/forum?forumtype={}&refid={}&secid={}&topic={}&hidemenu';
+        var forumUrl = njs_helper.fmt2(fmt, forumType, forumRefid, lessonId, topic);
+        forumDlg.updateBodyWithIframe(forumUrl);
+        var dlgSize = {top : '0.5%', left : '0.5%', right: '0.5%', bottom: '0.5%'};
+        forumDlg.show(dlgSize);
+    }
 
 	//--------------------------------------------------------------------------------------------
 	// Lesson Methods - Initialize and render - internal methods
@@ -330,26 +353,26 @@ nlesson = function() {
 	}
 	
 	function Lesson_showPageReport(bFeedback) {
+        this.updateScore();
 		if(bFeedback){
 			var pageNo  = this.getCurrentPageNo();
 			var curPage = this.pages[pageNo];
-			if ( curPage.getMaxScore() > 0 ) // Do the below for interactive pages only
-			{
+			var score = curPage.getScore();
+			var maxScore = curPage.getMaxScore();
+			if (maxScore > 0 && score == maxScore)
 				this.reRenderAsReport(this.getCurrentPageNo());
-			}
 		}		
 		_showPageHint(this);		
 	}
 
 	function _showPageHint(lesson) {
-		lesson.updateScore();
 		var ret = _getZodiData(lesson);
 		var pageHintTitle = njs_helper.fmt2('<img src="{}/zodi/{}.png"> {}', nittio.getStaticResFolder(), 
 										ret.icon, ret.title);
 		var pageHint = '';
 		if (ret.help != '') pageHint += njs_helper.fmt2('<div class="pageHintHelp">{}</div>', ret.help);
 		if (ret.hint != '') pageHint += njs_helper.fmt2('<div class="pageHint">{}</div>', ret.hint);
-		njs_helper.Dialog.popup(pageHintTitle, pageHint);
+		njs_helper.Dialog.popup(pageHintTitle, pageHint, undefined, undefined, njs_helper.Dialog.sizeLarge());
 	}
 
 	function _getZodiData(lesson) {
@@ -357,8 +380,7 @@ nlesson = function() {
 		var pageNo = lesson.getCurrentPageNo();
 		var curPage = lesson.pages[pageNo];
 
-		var ret = {};
-		ret.help = '';
+		var ret = {help: ''};
 		
 		var tempData = {};
 		ret.hint = ('hint' in curPage.oPage) ? njs_lesson_markup.markupToHtml(curPage.oPage.hint, tempData) : '';
@@ -371,16 +393,17 @@ nlesson = function() {
 			return ret;
 		}
 
-		ret.help = 'Close this box to check the right answer. The right answer is indicated in the page in way which is most apt to the type of the page.';
 		if (lesson.oLesson.notAnswered.indexOf(pageNo) > -1) {
 			ret.icon = 'wrong';
 			ret.title = 'You have not answered';
+            ret.help = 'Please choose your answer.';
 			return ret;
 		}
 			
 		if (score == 0) {
 			ret.icon = 'wrong';
-			ret.title = 'Oops - that is not right';
+			ret.title = 'Try again';
+            ret.help = 'Oops - that is not right. Please try again.';
 			return ret;
 		}
 
@@ -392,7 +415,8 @@ nlesson = function() {
 		}
 
 		ret.icon = 'partial';
-		ret.title = 'Partially correct';
+        ret.title = 'Partially correct';
+		ret.help = 'You got some parts correct. Please try again.';
 		return ret;
 	}
 	
@@ -417,7 +441,8 @@ nlesson = function() {
 		this.oLesson.grade = jQuery('#l_grade').val();
 		this.oLesson.description = jQuery('#l_description').val();
 		this.oLesson.keywords = jQuery('#l_keywords').val();
-		this.oLesson.esttime = jQuery('#l_esttime').val();
+        this.oLesson.esttime = jQuery('#l_esttime').val();
+        this.oLesson.forumTopic = jQuery('#l_lessonForumTopic').val();
 		this.oLesson.image = jQuery('#imageFullName').val();		
 		this.oLesson.template = jQuery('#templateFullName').val();
 	}
@@ -481,6 +506,7 @@ nlesson = function() {
 		var lesson = this;
 		window.onbeforeunload = function(e) {
 			if (nittio.getOnLeaveCheck()) {
+			    lesson.globals.autoVoice.stop();
 				var lessonId = jQuery('#l_lessonId').val();
 				if ((lesson.renderCtx.launchCtx() != 'do_review') && (lesson.lastSavedContent != lesson.getContent() || lessonId == "0")) {
 					return "Warning: there are some un-saved data in this page.";
@@ -527,6 +553,13 @@ nlesson = function() {
 	function _Lesson_submitReport(lesson, ajaxUrl, redirUrl) {
 		_Lesson_saveInternal(lesson, ajaxUrl, function(data, isError) {
 			if (isError) return;
+			if (njs_scorm.isStandalone()) {
+			    nittio.redirDelay('res/static/html/done.html', 0, true);
+			    return;
+			} else if (njs_scorm.isEmbedded()) {
+			    njs_scorm.postSubmitLesson();
+			    return;
+			}
 			nittio.redirDelay(redirUrl, 1000, true);
 		}, false, true);
 	}
@@ -579,6 +612,10 @@ nlesson = function() {
 			return false;
 		}
 		
+		if (njs_scorm.saveLesson(ajaxUrl, ajaxParams)) {
+            if (onCompleteFn) onCompleteFn(null, false);
+            return true;
+		}
 		syncManager.postToServer(ajaxUrl, ajaxParams, true, backgroundTask, function(data, isError) {
 			if (!isError) {
 				lesson.lastSavedContent = ajaxParams.content;
@@ -781,6 +818,7 @@ nlesson = function() {
 
 		this.updateAndRender = Page_updateAndRender;
 		this.updateHtmlDom = Page_updateHtmlDom;
+        this.updateAudio = Page_updateAudio;
 		this.adjustHtmlDom = Page_adjustHtmlDom;
 		this.markFroRedraw = Page_markFroRedraw;
 
@@ -846,6 +884,7 @@ nlesson = function() {
 
 	function Page_updatePagePropertiesDom() {
 		this.markFroRedraw();
+        this.updateAudio();
 		this.lesson.postRender();
 	}
 	
@@ -912,26 +951,34 @@ nlesson = function() {
 			var pos = this.sectionCreateOrder[i];
 			this.sections[pos].updateHtmlDom();
 		}
-
-		if(this.lesson.renderCtx.pageMode(this) == 'edit') {
-			this.propAudio.html('');
-			return;
-		}
-				
-		if('audioUrl' in this.oPage && this.oPage.audioUrl) {
-			var audioUrl = this.oPage.audioUrl;
-			audioUrl = audioUrl.replace(/audio\:/, '');
-			audioUrl = audioUrl.replace(/\[.*\]/, '');
-			var audioHtml = '';
-			var validUrl = audioUrl.indexOf('/');
-			if( validUrl != -1){							
-				audioHtml = njs_helper.fmt2('<audio preload controls data-njsAutoPlay class="njs_audio" src="{}"/>',audioUrl);
-			}
-			this.propAudio.html(audioHtml);			
-		} else {
-			this.propAudio.html('');
-		}
+		this.updateAudio();
 	}
+
+    function Page_updateAudio() {
+        if(this.lesson.renderCtx.pageMode(this) == 'edit') {
+            this.propAudio.html('');
+            this.autoVoiceButton = null;
+            return;
+        }
+
+        this.autoVoiceButton = null;
+        if('audioUrl' in this.oPage && this.oPage.audioUrl) {
+            var audioUrl = this.oPage.audioUrl;
+            audioUrl = audioUrl.replace(/audio\:/, '');
+            audioUrl = audioUrl.replace(/\[.*\]/, '');
+            var audioHtml = '';
+            var validUrl = audioUrl.indexOf('/');
+            if( validUrl != -1){                            
+                audioHtml = njs_helper.fmt2('<audio preload controls data-njsAutoPlay class="njs_audio" src="{}"/>',audioUrl);
+            }
+            this.propAudio.html(audioHtml);         
+        } else if (this.oPage.autoVoice) {
+            this.autoVoiceButton = this.lesson.globals.autoVoice.getVoiceButton(this.oPage.autoVoice);
+            this.propAudio.html(this.autoVoiceButton.html);
+        } else {
+            this.propAudio.html('');
+        }
+    }
 	
 	function Page_adjustHtmlDom() {
 		var me = this;
@@ -960,7 +1007,10 @@ nlesson = function() {
 	
 	function Page_postRender() {
 		var me = this;
+		me.lesson.globals.autoVoice.stop();
 		MathJax.Hub.Queue(function() {
+            if (me.lesson.renderCtx.lessonMode() != 'edit' && me.autoVoiceButton)
+                me.autoVoiceButton.play();
 			me.onEscape();
 		});
 	}
@@ -1294,11 +1344,18 @@ nlesson = function() {
 	//---------------------------------------------------------------------------------------------
 	// Possible launchContext values: see njs_lesson_helper.RenderingContext
 	//---------------------------------------------------------------------------------------------
-	function init(launchContext, templateCssClass) {
+    function init(launchContext, templateCssClass) {
+        njs_scorm.onInit(function(ctx) {
+            return _init(launchContext, templateCssClass);
+        });
+    }
+
+    function _init(launchContext, templateCssClass) {
 		g_lesson.renderCtx.init(launchContext);
 		g_lesson.globals.templateCssClass = templateCssClass;
 		
-		nittio.setOnLeaveCheck(g_lesson.renderCtx.launchCtx() != 'view');
+		nittio.setOnLeaveCheck(g_lesson.renderCtx.launchCtx() != 'view' &&
+		  njs_scorm.canLeaveCheck());
 		
 		nittio.beforeInit(function() {
 			g_lesson.initDom();
@@ -1316,6 +1373,10 @@ nlesson = function() {
 			g_lesson.postRender();
 		});
 		
+        nittio.onResize(function() {
+            g_lesson.reRender();
+        });
+        
 		nittio.afterInit(function(){
 			g_lesson.globals.slides = nittio.getSlidesObj();
 

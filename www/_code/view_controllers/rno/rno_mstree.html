@@ -1,32 +1,66 @@
-<table class='nl-table nl-table-styled'>
-    <tr><th>Milestone</th><th>Ratings</th></tr>
-    <tr ng-repeat='ms in msTree.getItems()' ng-show='ms.isShown'>
-        <th ng-if='ms.isFolder' style='padding-left: {{4+ms.indentation*8}}px;'
-            class='nl-clickable'
-            ng-click='msTree.onFolderClick(ms)'>
-            {{ms.text}}
-        </th>
-        <td ng-if='!ms.isFolder' style='padding-left: {{4+ms.indentation*8}}px;'>
-            {{ms.text}}
-        </td>
-        <th ng-if='ms.isFolder' class='nl-dlg-field-value'>
-            <div style='padding: 4px'>
-            <span ng-class="{'nl-clickable': ms.selectCnt>0}"
-                  ng-click='msTree.showFiltered(ms, true)'>{{ms.selectCnt}} rated</span>
-            <span ng-if='purpose=="rating"'
-                  ng-class="{'nl-clickable': ms.deselectCnt>0}"
-                  ng-click='msTree.showFiltered(ms, false)'>{{ms.deselectCnt}}, not rated.</span>
-            </div>
-            <select ng-if='purpose=="rating" && ms.ratingOverride' ng-model='ms.ratingOverride'
-                    ng-options='opt as opt.name for opt in options.rating track by opt.id'
-                    ng-change='msTree.onOverrideRating(ms)'>
-            </select>
-        </th>
-        <td ng-if='!ms.isFolder' class='nl-dlg-field-value'>
+<div class='row row-wrap margin0 padding0'>
+    <div class='nl-dlg-field-name' ng-class='resp2Col33'>Milestone filters:</div>
+    <div class='nl-dlg-field-value' ng-class='resp2Col33'>
+        <select ng-model='msTree.utOption'
+                ng-options='opt as opt.name for opt in msTree.utOptions track by opt.id'
+                ng-change='msTree.updateVisibleItems()'>
+        </select>
+    </div>
+    <div class='nl-dlg-field-value' ng-class='resp2Col33'>
+        <select ng-model='msTree.ratingFilterOption'
+                ng-options='opt as opt.name for opt in msTree.ratingFilterOptions track by opt.id'
+                ng-change='msTree.updateVisibleItems()'>
+        </select>
+    </div>
+</div>
+<div style='height: 10px'></div>
+
+<div ng-if='purpose=="rating"'
+     class='row row-wrap margin0 padding0'>
+    <div class='nl-dlg-field-name' ng-class='resp2Col33'>
+        Bulk update visible milestones:
+    </div>
+    <div class='nl-dlg-field-value' ng-class='resp2Col67'>
+        <select ng-model='msTree.ratingOverride'
+                ng-options='opt as opt.name for opt in options.rating track by opt.id'
+                ng-change='msTree.onOverrideRating()'>
+        </select>
+    </div>
+</div>
+<div style='height: 10px'></div>
+
+<div ng-repeat='ms in msTree.visibleItems'
+     class='row row-wrap row-center nl-rno-{{ms.indentation}} margin0 padding0'
+     ng-class='{"nl-hover": ms.isFolder}'>
+
+    <div ng-class='resp2Col80'
+         ng-show='ms.indentation == 0'
+         ng-click='msTree.onRootFolderClick(ms)'>
+        <i class="icon ion-arrow-down-b bold"></i>
+        <span>({{ms.selectCnt}} rated) </span>
+        <span class='nl-rno-size-1'>{{ms.text}}</span>
+    </div>
+
+    <div ng-class='resp2Col80' style='padding: {{screenSize == "small" ? 15 : 10}}px 5px {{screenSize == "small" ? 5 : 10}}px 5px;'
+         ng-show='ms.indentation > 0'
+         ng-click='msTree.onFolderClick(ms)'>
+        <div style='padding-left: {{ms.indentation*8}}px'>
+            <i ng-show='ms.isFolder && !ms.isFolderOpen' class="icon ion-arrow-right-b bold"></i>
+            <i ng-show='ms.isFolder && ms.isFolderOpen' class="icon ion-arrow-down-b bold"></i>
+            <span ng-show='ms.isFolder'>({{ms.selectCnt}} rated) </span>
+            <span ng-show='ms.usertype && msTree.utOption.id != ms.usertype'>{{ms.usertype}}:</span>
+            <span>{{ms.text}}</span>
+        </div>
+    </div>
+
+    <div ng-if='!ms.isFolder' 
+         class='nl-dlg-field-value' ng-class='resp2Col20'>
+        <div style='padding-left: {{screenSize == "small" ? ms.indentation*8: 0}}px'>
             <select ng-model='ms.rating'
                     ng-options='opt as opt.name for opt in options.rating track by opt.id'
                     ng-change='msTree.onRatingChange(ms)'>
             </select>
-        </td>
-    </tr>
-</table>
+        </div>
+    </div>
+
+</div>

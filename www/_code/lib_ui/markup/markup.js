@@ -6,8 +6,19 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
 	angular.module('nl.ui.markup', [])
+	.filter('nlMarkupToHtml', NlMarkupToHtml)
     .service('nlMarkup', NlMarkupSrv);
 }
+
+//-------------------------------------------------------------------------------------------------
+var NlMarkupToHtml = ['nlMarkup', 
+function (nlMarkup) {
+    function _markupToHtml(textMarkup) {
+        var retData = {lessPara: true};
+        return nlMarkup.getHtml(textMarkup, retData);
+    }
+    return _markupToHtml;
+}];
 
 //-------------------------------------------------------------------------------------------------
 var NlMarkupSrv = ['nl', 

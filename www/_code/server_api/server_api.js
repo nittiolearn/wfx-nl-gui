@@ -147,10 +147,10 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/course_report_update_status.json', {repid: repid, statusinfo: statusinfo});
     };
 
-    this.courseCreateLessonReport = function(repid, refid, moduleid) {
+    this.courseCreateLessonReport = function(repid, refid, moduleid, attempt) {
         // returns the updated course report object
         return server.post('_serverapi/course_create_lesson_report.json', 
-            {repid: repid, refid: refid, moduleid: moduleid});
+            {repid: repid, refid: refid, moduleid: moduleid, attempt: attempt});
     };
     
     //---------------------------------------------------------------------------------------------
@@ -249,13 +249,13 @@ function(nl, nlDlg, nlConfig, Upload) {
     };
 
     this.rnoCreate = function(data) {
-        // data: metadata, first_name, last_name, email, user_type, image, observer, reviewer
+        // data: metadata, config (first_name, last_name, email, user_type, image, ...), observer, reviewer
         // return: rno object
         return server.post('_serverapi/rno_create.json', data);
     };
 
     this.rnoModify = function(data) {
-        // data: id, metadata, first_name, last_name, email, user_type, image, observer, reviewer
+        // data: id, metadata, config (first_name, last_name, email, user_type, image, ...), observer, reviewer
         // return: modified rno object
         return server.post('_serverapi/rno_modify.json', data);
     };
@@ -265,11 +265,36 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/rno_delete.json', {id: rnoId});
     };
 
-    this.rnoUpdateData = function(rnoId, data) {
-        // return: udpated rno object
-        return server.post('_serverapi/rno_update_data.json', {id: rnoId, data:data});
+    this.rnoGetData = function(rnoId, reportKey) {
+        // return: rno data JSON
+        return server.post('_serverapi/rno_get_data.json', {id: rnoId, report_key: reportKey});
     };
 
+    this.rnoGetData2 = function(rnoId, reportKey) {
+        // return: rno data JSON: (same as rnoGEtData except permission check at server side)
+        // This is used in parent view.
+        return server.post('_serverapi/rno_get_data2.json', {id: rnoId, report_key: reportKey});
+    };
+
+    this.rnoGetDataEx = function(hashKey) {
+        // return: dict with metadata, rno and rno data JSON
+        return server.post('_serverapi/rno_get_data_ex.json', {hashkey: hashKey});
+    };
+
+    this.rnoUpdateData = function(rnoId, data, send, mailData) {
+        // return: updated rno data JSON
+        return server.post('_serverapi/rno_update_data.json', 
+            {id: rnoId, data:data, send:send, mail_data: mailData});
+    };
+
+    //---------------------------------------------------------------------------------------------
+    // SCO Module (SCORM)
+    //---------------------------------------------------------------------------------------------
+    this.scoExport = function(data) {
+        // return: lesson html and list of resources
+        return server.post('_serverapi/sco_export.json', data);
+    };
+    
     //---------------------------------------------------------------------------------------------
 	// assignment desk list entities
     //---------------------------------------------------------------------------------------------

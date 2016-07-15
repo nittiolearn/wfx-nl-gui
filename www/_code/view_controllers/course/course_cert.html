@@ -1,0 +1,96 @@
+<div class='nl-thin-scroll'>
+    <style>
+        .cert {
+            position: relative;
+        }
+        .bgimg {
+            width: 100%;
+        }
+        .content {
+            position: absolute;
+            top: 45%;
+            left: 10%;
+            width: 80%;
+            height: 35%;
+            overflow: hidden;
+            font-family: Times New Roman, Verdana, Helvetica, Arial, sans-serif;
+            text-align: center;
+        }
+
+        .nl-screen-small .content {
+            font-size: 90%;
+        }
+
+        .nl-screen-medium .content {
+            font-size: 120%;
+        }
+
+        @media print {
+            .content {
+                font-size: 200% !important;
+            }
+        }
+
+        .nl-screen-large .content {
+            font-size: 200%;
+        }
+
+        .dont-print {
+            position: relative;
+        }
+        
+        .fmttitle {
+        }
+    
+        .fmtttext {
+        }
+    
+        .fmtuser {
+            font-style: italic;
+            font-weight: 900;
+            font-size: 130%;
+        }
+    
+        .fmtdate {
+        }
+    
+        .fmtcourse {
+            font-weight: 900;
+        }
+    
+    </style>
+    <div ng-if='available'
+         class='cert'>
+         <img class='bgimg' ng-src='{{bgimg}}'>
+         <div class='content'>
+            <p class='fmttitle'>This is to certify that</p>
+            <p class='fmtuser'>{{userName}}</p>
+            <p class='fmttext'>
+                has successfully completed the online training module on
+            </p>
+            <p class='fmtcourse'>{{courseName}}</p>
+            <p class='fmttext'>
+                on <span class='fmtdate'>{{completionTime | date : 'dd-MMMM-yyyy'}}</span>.
+            </p>
+         </div>
+    </div>
+    <div ng-if='available'
+         class='dont-print padding-mid'>
+        <div class='padding-mid'>
+            <p>You could print or save as PDF. For a pretty print, you could use the below print options:</p>
+            <ul>
+                <li>Set print layout to <b>landscape</b></li>
+                <li>Set paper size to <b>A4</b></li>
+            </ul>
+            <p>Look at the preview before saving as PDF or printing.</p>
+        </div>
+        <div class='padding-mid text-center'>
+            <button class='button button-positive w100' ng-click='onPrint()'>Print</button>
+        </div>
+    </div>
+    <div ng-if='error'
+         class='cert'>
+        <h3>Error</h3>
+        <p>Your certificate cannot be generated at the moment!</p>
+    </div>
+</div>

@@ -1,11 +1,13 @@
-<a ng-if='card.url' ng-href='{{card.url}}' class='nl-card-img'><img ng-src='{{card.icon}}' nl-no-ctx-menu></img></a>
-<div ng-if='!card.url' class='nl-card-img'>
-	<img ng-if='card.internalUrl'
-		 ng-click='onCardInternalUrlClicked(card, card.internalUrl)'
-		 class='nl-clickable'
-		 ng-src='{{card.icon}}'
-		 nl-no-ctx-menu></img>
-	<img ng-if='!card.internalUrl'
-		 ng-src='{{card.icon}}'
-		 nl-no-ctx-menu></img>
+<a ng-if='card.url' ng-href='{{card.url}}' 
+   class='nl-card-img nl-link-img'>
+    <img ng-src='{{card.icon}}'></img>
+</a>
+<div ng-if='!card.url && card.internalUrl'
+     class='nl-card-img nl-link-img'
+     ng-click='onCardInternalUrlClicked(card, card.internalUrl)'>
+	<img ng-src='{{card.icon}}'></img>
+</div>
+<div ng-if='!card.url && !card.internalUrl'
+     class='nl-card-img'>
+    <img ng-src='{{card.icon}}'></img>
 </div>

@@ -32,7 +32,7 @@ var ResourceUploadDirective = ['nl', 'Upload', 'nlDlg', 'nlResourceUploader',
 function(nl, Upload, nlDlg, nlResourceUploader) {
     function _linkFunction($scope, iElem, iAttrs) {
         $scope.$parent.data[$scope.fieldmodel] = [];
-        $scope.accept = _getAcceptString($scope.restype, true);
+        $scope.accept = _getAcceptString($scope.restype);
         $scope.onFileSelect = function(files) {
             _onFileSelect($scope, files);
             if (!('onChange' in $scope.$parent) || 
@@ -59,7 +59,7 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
             var restype = $scope.restype;
             var extn = nlResourceUploader.getValidExtension(file, restype);
             if (extn === null) {
-                $scope.$parent.error[$scope.fieldmodel] = nl.t('Wrong file exension selected. Supported file extensions: "{}"', _getAcceptString($scope.restype, false));
+                $scope.$parent.error[$scope.fieldmodel] = nl.t('Wrong file exension selected. Supported file extensions: "{}"', _getExtns($scope.restype));
                 continue;
             }
             if (!restype) restype = nlResourceUploader.getRestypeFromExt(extn);
@@ -108,12 +108,15 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
         return nl.url.resUrl(_restypeToImage[restype]);
     }
     
-    function _getAcceptString(restype, bDevCheck) {
+    function _getAcceptString(restype) {
         if (!restype) return '';
-        if (bDevCheck && nl.pginfo.isMobileOrTab) return '';
-        return nlResourceUploader.getRestypeToExtDict()[restype].join(', ');
+        if (nl.pginfo.isMobileOrTab && restype == 'PDF') return '';
+        return nlResourceUploader.getRestypeToAcceptString(restype);
     }
 
+    function _getExtns(restype) {
+        return nlResourceUploader.getRestypeToExts(restype).join(', ');
+    }
     return {
         restrict: 'E',
         templateUrl: 'view_controllers/resource/resource_upload.html',
@@ -290,6 +293,13 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         Video: ['.mp4'],
         Attachment: []
     }; 
+    var _restypeToAcceptString = {
+        Image: 'image/*', 
+        PDF: '.pdf', 
+        Audio: 'audio/*', 
+        Video: 'video/*',
+        Attachment: ''
+    }; 
     var _restypeToMaxFileSize = {
         Image: 1*1024*1024, 
         PDF: 10*1024*1024, 
@@ -310,8 +320,12 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
     }
     _initExtToRestype();
 
-    this.getRestypeToExtDict = function() {
-        return _restypeToExtension;
+    this.getRestypeToExts = function(restype) {
+        return _restypeToExtension[restype];
+    };
+
+    this.getRestypeToAcceptString = function(restype) {
+        return _restypeToAcceptString[restype];
     };
 
     this.getRestypeFromExt = function(ext) {
@@ -352,7 +366,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
             if (!_validateAfterShrinkingDone(_file, fileInfo.restype)) {
                 compInfo.status = nl.fmt2('You cannot upload a {} file greater than {} MB.',
                     fileInfo.restype, _restypeToMaxFileSize[fileInfo.restype]/1024/1024);
-                if (fileInfo.restype == 'Image') compInfo.status += ' You may try using "High compression".';
+                if (fileInfo.restype == 'Image') compInfo.status += ' Please try uploading image with lesser resolution.';
                 reject(compInfo.status);
                 return;
             }

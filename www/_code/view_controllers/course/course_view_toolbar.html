@@ -1,0 +1,25 @@
+<div class='nl-toolbar padding-small text-left'>
+    <span title='Back to overview'
+         ng-hide='currentFolder.id == "_root"'
+         class='nl-toolbar-icon'
+         ng-click='collapseAll()'>
+        <i class="icon ion-arrow-up-a"></i>
+    </span>
+    <img title='Discussion forum'
+         ng-show='forumInfo.refid'
+         class='nl-24 nl-link-img'
+         ng-src='{{imgBasePath + "toolbar-view/discuss.png"}}'
+         ng-click='launchForum()'/>
+    <span title='Download as CSV'
+          ng-hide='mode != MODES.REPORTS_SUMMARY_VIEW'
+          class='nl-toolbar-icon'
+          ng-click='download()'>
+        <i class="icon ion-ios-cloud-download"></i>
+    </span>
+    <span title='{{expandViewText}}'
+          ng-if='showExpandedViewIcon'
+          class='nl-toolbar-icon'
+          ng-click='expandViewClick()'>
+        <i class="icon {{expandViewIcon}}"></i>
+    </span>
+</div>

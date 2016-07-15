@@ -32,7 +32,7 @@ function(nl, nlDlg, nlServerApi) {
 		
 		sendAssignmentDlg.scope.onUserClick = function(){
 			if(selectedOuList.length == 0) {
-				nlDlg.popupAlert({title:'Alert message', template:nl.t('You may choose to send assignment to subset of users once you select the class/ user group. Please select the class first.')});
+				nlDlg.popupAlert({title:'Alert message', template:nl.t('You may choose to send assignment to subset of users once you select the class/user group. Please select the class first.')});
 			} else{
 				var data = {oulist: selectedOuList};
 				nlServerApi.getOuUserList(data).then(function(status) {
@@ -90,8 +90,8 @@ function(nl, nlDlg, nlServerApi) {
 		sendAssignmentDlg.scope.options = {};
 		sendAssignmentDlg.scope.options.showAnswers = _getShowanswersList();
 		sendAssignmentDlg.scope.data.showAnswers = {id: 2, name: 'after submitting'};
-		sendAssignmentDlg.scope.data.visibleto	= nl.t('<p class="nl-data-visibleTo"><b>Please select</b></p>');
-		sendAssignmentDlg.scope.data.visibleToUsers	= nl.t('<p class="nl-data-visibleTo"> Will be sent to all users by default</p>');
+		sendAssignmentDlg.scope.data.visibleto	= nl.t('Please select');
+		sendAssignmentDlg.scope.data.visibleToUsers	= nl.t('Will be sent to all users by default');
 		sendAssignmentDlg.scope.data.visibleToUsersLength = 0;
 		sendAssignmentDlg.scope.data.visibleToGroupLength = 0;	
 		sendAssignmentDlg.scope.data.datetimevalue = '';
@@ -253,8 +253,8 @@ function(nl, nlDlg, nlServerApi) {
 		
 		function _showVisibleTo(selectedOuList){
 			sendAssignmentDlg.scope.data.visibleToGroupLength = selectedOuList.length; 
-			if(selectedOuList.length == 1) return nl.t('<p class="nl-data-visibleTo"><b>{}</b></p>', selectedOuList[0]);
-			if(selectedOuList.length > 1) return nl.t('<p class="nl-clickable nl-data-visibleTo"><b>{} classes/ user groups selected</b></p>', selectedOuList.length);
+			if(selectedOuList.length == 1) return selectedOuList[0];
+			if(selectedOuList.length > 1) return nl.t('{} classes/user groups selected', selectedOuList.length);
 		}
 		function _getSelectedIds(tree) {
 			var ret = [];
@@ -279,9 +279,12 @@ function(nl, nlDlg, nlServerApi) {
 		
 		function updateVisibleToUsers(){
 			sendAssignmentDlg.scope.data.visibleToUsersLength = selectedOuUserList.length;
-			if(selectedOuUserList.length == 0) sendAssignmentDlg.scope.data.visibleToUsers = nl.t('<p class="nl-data-visibleTo"> Will be sent to all users by default</p>');
-			if(selectedOuUserList.length == 1) sendAssignmentDlg.scope.data.visibleToUsers = nl.t('<p class="nl-data-visibleTo"><b>{}</b></p>', selectedOuUserListNames)
-			if(selectedOuUserList.length > 1) sendAssignmentDlg.scope.data.visibleToUsers = nl.t('<p class="nl-clickable nl-data-visibleTo"><b>{} users selected</b></p>', selectedOuUserListNames.length)
+			if(selectedOuUserList.length == 0)
+			     sendAssignmentDlg.scope.data.visibleToUsers = nl.t('Will be sent to all users by default');
+			if(selectedOuUserList.length == 1)
+			     sendAssignmentDlg.scope.data.visibleToUsers = selectedOuUserListNames[0];
+			if(selectedOuUserList.length > 1)
+			     sendAssignmentDlg.scope.data.visibleToUsers = nl.t('{} users selected', selectedOuUserListNames.length);
 		}
 
 		var okButton = {text : nl.t('Select'), onTap : function(e) {
@@ -355,9 +358,12 @@ function(nl, nlDlg, nlServerApi) {
 		function _updateVisibleToUsers(e){
 			if(e) e.preventDefault();
 			sendAssignmentDlg.scope.data.visibleToUsersLength = selectedOuUserList.length;
-			if(selectedOuUserList.length == 0) sendAssignmentDlg.scope.data.visibleToUsers = nl.t('<p class="nl-data-visibleTo">Will be sent to all users by default</p>');
-			if(selectedOuUserList.length == 1) sendAssignmentDlg.scope.data.visibleToUsers = nl.t('<p class="nl-data-visibleTo"><b>{}</b></p>', selectedOuUserListNames);
-			if(selectedOuUserList.length > 1) sendAssignmentDlg.scope.data.visibleToUsers = nl.t('<p class="nl-clickable nl-data-visibleTo"><b>{} users selected</b></p>', selectedOuUserListNames.length);
+			if(selectedOuUserList.length == 0)
+			     sendAssignmentDlg.scope.data.visibleToUsers = nl.t('Will be sent to all users by default');
+			if(selectedOuUserList.length == 1)
+			     sendAssignmentDlg.scope.data.visibleToUsers = selectedOuUserListNames[0];
+			if(selectedOuUserList.length > 1)
+			     sendAssignmentDlg.scope.data.visibleToUsers = nl.t('{} users selected', selectedOuUserListNames.length);
 			ouUserSelectionDlg.close(e);
 		}
 		

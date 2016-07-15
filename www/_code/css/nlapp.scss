@@ -40,7 +40,7 @@ $orange: #F54B22 !default; // rgb(245, 75, 34)
 $orange1:  #FFA500 !default; // rgb(255, 165, 0)
 $orange2: #E06000 !default; // rgb(224, 96, 0)
 
-$yellow: #FFDC46 !default; // rgb(255, 220, 70)
+$yellow: #FFCC00 !default; // rgb(255, 220, 70)
 
 // The path for our ionicons font files, relative to the built CSS in www/css
 $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
@@ -291,30 +291,47 @@ $animation-duration: 200ms !default;
   min-width: 200px;
 }
 
-.nl-clickable, .nl-clickable1 {
+//-----------------------------------------------------------------------------------------
+// link clickable classes: nl-link-text and nl-link-img
+//-----------------------------------------------------------------------------------------
+.nl-link-text {
   cursor: pointer;
-  color: #000077;
-  text-decoration: none;
-  &:hover, &:focus {
-    text-decoration: underline;
+  &, a, &:visited {
+    color: #000077;
+    text-decoration: none;
   }
+  &:hover, &:focus {
+    background-color: rgba(128, 128, 255, 0.2);
+  }
+}
+
+.activated .nl-link-text, .activated.nl-link-text {
+  background-color: rgba(128, 128, 255, 0.2);
+  opacity: 0.2;
+  box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+}
+
+.nl-link-img {
+  cursor: pointer;
+  &:hover, &:focus {
+    box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+  }
+}
+
+.nl-link-img.no-hover {
+  &:hover, &:focus {
+    box-shadow: none;
+  }
+}
+
+.activated .nl-link-img, .activated.nl-link-img {
+  box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+  opacity: 0.2;
+  padding: 4px;
 }
 
 a.black {
   color: #000000;
-}
-
-img.nl-clickable {
-  &:hover, &:focus {
-    box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
-  }
-}
-
-.nl-clickable-container {
-  cursor: pointer;
-  &:hover, &:focus {
-    box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
-  }
 }
 
 .nl-fixed-width {
@@ -325,8 +342,9 @@ img.nl-clickable {
   padding: 4px;
 }
 
-.nl-toolbar {
+.nl-toolbar, .nl-mildtoolbar {
   width: 100%;
+  padding: 0 4px;
   text-align: right;
 }
 
@@ -337,10 +355,27 @@ img.nl-clickable {
   font-weight: bold;
   i.icon {
     font-size: 26px;
+    padding: 2px 4px;
   }
   i.icon:hover, i.icon:focus {
     color: $orange2;
   }
+}
+
+.nl-mildtoolbar {
+  span {
+    opacity: 0.3;
+  }
+  span:hover, span:focus {
+    opacity: 1;
+  }
+  .nl-toolbar-icon {
+    color: black;
+  }
+}
+
+.nl-mildtoolbar.text-left, .nl-toolbar.text-left {
+  text-align: left;
 }
 
 /*-----------------------------------------------------------------------------------------*
@@ -529,7 +564,7 @@ img.nl-clickable {
   }
 }
 
-nl-dlg-help {
+nl-dlg-help, .nl-dlg-help {
   background-color: #E5FF80;
   border-radius: 4px;
   padding: 8px;
@@ -634,6 +669,62 @@ input.nl-dlg-field-error {
 }
 
 /*-----------------------------------------------------------------------------------------*
+ * nl-form
+ *-----------------------------------------------------------------------------------------*/
+.nl-form {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  width: auto;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 2px 2px 10px 5px #402000;
+}
+ 
+.nl-form-head {
+  position: absolute;
+  background-color: $nldlgbar;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  padding: 4px;
+  height: 32px;
+  width: 100%;
+  overflow: hidden;
+  .popup-title {
+    position: absolute;
+    left: 0;
+    right: 70px;
+    color: #FFFFFF;
+    font-size: 120%;
+    text-align: center;
+  }
+  .popup-toolbar {
+    position: absolute;
+    right: 4px;
+    top: 0;
+    width: auto;
+    .nl-toolbar-icon i.icon {
+      color: white;
+      &:hover, &:focus {
+        color: black;
+      }
+    }
+  }
+}
+
+.nl-form-body {
+  position: absolute;
+  top: 32px;
+  bottom: 0px;
+  width: 100%;
+  padding: 4px;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+  overflow: auto;
+}
+/*-----------------------------------------------------------------------------------------*
  * nl-dlg.popupStatus
  *-----------------------------------------------------------------------------------------*/
 #statusBox {
@@ -679,14 +770,6 @@ nl-cards {
   width: 360px;
   font-size: 100%;
   line-height: 170%;
-
-  a {
-    text-decoration: none;
-    color: #000077;
-    &:hover, &:focus {
-      text-decoration: underline;
-    }
-  }
 }
 
 .nl-card-holder {
@@ -708,6 +791,7 @@ nl-cards {
   height: 14%;
   width: 96%;
   font-size: 130%;
+  padding: 4px;
   color: #000077;
   white-space: nowrap;
   text-overflow : ellipsis;
@@ -748,10 +832,6 @@ nl-cards {
   }
 }
 
-a.nl-card-img:hover, a.nl-card-img:focus {
-  box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
-}
-
 .nl-card-desc {
   position: absolute;
   top: 18%;
@@ -781,17 +861,18 @@ a.nl-card-img:hover, a.nl-card-img:focus {
   right: 2%;
   font-size: 100%;
   text-align: center;
-}
 
-.nl-card-links > span {
-  cursor:pointer;
-  padding: 0 4px 0 4px;
-  border-right: 1px solid #0000FF;
-  
-  &:last-child {
-    border-right: none;
+  span {
+    cursor:pointer;
+    padding: 2px 4px 2px 4px;
+    border-right: 1px solid #0000FF;
+    
+    &:last-child {
+      border-right: none;
+    }
   }
 }
+
 
 .nl-card-details-dlg-img {
   height: 100px;
@@ -808,7 +889,7 @@ a.nl-card-img:hover, a.nl-card-img:focus {
 }
 
 .nl-bg-blue {
-  background-color: rgba(178, 178, 255, 0.5);
+  background-color: rgba(229, 229, 255, 1); 
 }
 
 //-----------------------------------------------------------------------------------------
@@ -883,8 +964,11 @@ a.nl-card-img:hover, a.nl-card-img:focus {
 }
 
 @media print {
-  #nl-pagecanvas {
+  #nl-pagecanvas, .dont-print {
     display: none !important;
+  }
+  #nl-pagecanvas.nl-print {
+    display: block !important;
   }
 }
 
@@ -1058,6 +1142,9 @@ img.nl-icon {
   width: 95%;
   background-color: $nlgrey;
   border: 1px solid $nldarkgrey;
+  .njs_img {
+    max-width: 100%;
+  }
 }
 
 .nl-forum-msg.me {
@@ -1080,23 +1167,85 @@ img.nl-icon {
     }
 }
 
-.nl-forum-msg-tools img {
-    opacity: 0.3;
-}
-
-.nl-forum-msg-tools img:hover, .nl-forum-msg-tools img:focus, {
-    opacity: 1;
-}
-
 /*-----------------------------------------------------------------------------------------*
  * course_view elements
  *-----------------------------------------------------------------------------------------*/
-.nl-cv-indent {
-    padding: 0 0.6em;
+.nl-cv-item {
+  border-radius: 8px;
+  background-color: $nlgrey;
+  border: 1px solid $nldarkgrey;
+}
+
+.nl-cv-item.selected {
+  background-color: $nldarkgrey;
+}
+
+.nl-cv-content {
+  box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+  height: 100%;
 }
 
 /*-----------------------------------------------------------------------------------------*
  * rno elements
+ *-----------------------------------------------------------------------------------------*/
+.nl-rno-table {
+  width: 100%;
+  border: 1px solid #CCCCDD;
+  td, th {
+    padding: 4px;
+  }
+  td *, th * {
+    vertical-align: middle;
+  }
+  th {
+    font-weight: bold; 
+  }
+}
+
+.nl-rno-0 {
+  background-color: #AAAAAA;
+}
+
+.nl-rno-1 {
+  background-color: #BBBBFF;
+}
+
+.nl-rno-2 {
+  background-color: #CCCCFF;
+}
+
+.nl-rno-size-0 {
+  font-size: 140%;
+  font-weight: 900;
+}
+
+.nl-rno-size-1 {
+  font-size: 140%;
+}
+
+.nl-rno-size-2 {
+  font-size: 120%;
+}
+
+.nl-rno-list-item {
+  background-color: $nlgrey;
+  border: 1px solid $nldarkgrey;
+  border-radius: 4px; 
+  border-top-left-radius: 0;
+}
+
+.nl-rno-list-item.select {
+  background-color: $nlgreen1;
+}
+
+.nl-hover {
+  &:hover, &:focus {
+    border: 1px solid black;
+  }
+}
+
+/*-----------------------------------------------------------------------------------------*
+ * resource elements
  *-----------------------------------------------------------------------------------------*/
 .nl-thumbnail-container {
   position: relative;
@@ -1213,6 +1362,20 @@ img.nl-full-width {
     padding: 4px;
 }
 
+.padding-mid {
+    padding: 8px;
+}
+
+.padding-small-v {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.padding-mid-v {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
 .margin0, .row.margin0 {
     margin: 0;
 }
@@ -1252,8 +1415,16 @@ img.nl-full-width {
   color: #007700;
 }
 
+.fblue {
+  color: #00A3CC;
+}
+
 .fgrey {
   color: $grey;
+}
+
+.bggrey {
+  background-color: $grey;
 }
 
 //---------------------------------------------------------------------------
@@ -1380,6 +1551,15 @@ img.nl-full-width {
 
   .padding, .padding-left, .padding-horizontal {
     padding-left: $nlpad_x_small; 
+  }
+  
+  .padding-mid {
+    padding: 4px;
+  }
+
+  .padding-mid-v {
+      padding-top: 4px;
+      padding-bottom: 4px;
   }
 }    
 
