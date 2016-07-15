@@ -1,0 +1,30 @@
+<style>
+.nl-tree-structure{
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+</style>
+<nl-dlg title='Share report with users'>
+	<nl-dlg-help>
+		<p>List of users to whom the report is currently shared is shown in the list.</p>
+		<p>To share the report with a user, choose the user and press the 'add' button.</p>
+		<p>To unshare the report with a user, press the cross button next to the user.</p>
+		<p>After adding/removing users to the list, press update to finalize the sharing information.</p>
+	</nl-dlg-help>
+	<nl-dlg-content>
+	<div class='nl-tree-structure'>
+		<div style='padding: 2px'>
+			<label class="item item-input" style='border-color: #fff;'>
+			  <i class="icon ion-search placeholder-icon"></i>
+			  <input type="search" placeholder="Search" ng-model="nodeSearch">
+			</label>
+		</div>
+		<div ivh-treeview="treeData"
+		    ivh-treeview-filter="nodeSearch"
+		    ivh-treeview-expand-to-depth="1"
+			ivh-treeview-options="treeOptions"		    
+			ivh-treeview-on-cb-change="onNodeClick(ivhNode, ivhIsSelected, ivhTree)">
+		</div>
+	</div>
+	</nl-dlg-content>
+</nl-dlg>

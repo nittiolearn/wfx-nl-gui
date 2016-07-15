@@ -20,11 +20,19 @@
 				<div class='col col-80'>
 					<div><b>{{data.visibleTo}}</b></div>
 					<div class='padding-small'></div>
-					<div class='nl-tree-structure'
-					    ivh-treeview="treeData"
+					<div class='nl-tree-structure'>		
+						<div style='padding: 2px'>
+							<label class="item item-input" style='border-color: #fff;'>
+							  <i class="icon ion-search placeholder-icon"></i>
+							  <input type="search" placeholder="Search" ng-model="nodeSearch">
+							</label>
+						</div>
+						<div ivh-treeview="treeData"
+			 			ivh-treeview-filter="nodeSearch"
 			 			ivh-treeview-options="treeOptions"		    
 			 			ivh-treeview-on-cb-change="onNodeClick(ivhNode, ivhIsSelected, ivhTree)">
-					</div>
+						</div>
+					</div>	
 				</div>
 			</div>
     </nl-dlg-content>
