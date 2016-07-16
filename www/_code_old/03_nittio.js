@@ -704,7 +704,16 @@ nittio = function() {
             return _initPage(bDebug, retainAspect, transition, staticResFolder, staticVersion, bPrint, username);
 	    });
 	}
-
+	
+    function SoftKeyChecker() {
+        var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        this.isSoftKeyOn = function() {
+            if (!isMobile) return false;
+            var elem = jQuery('input:focus, textarea:focus');
+            return (elem.length > 0);
+        };
+    }
+    
     function _initPage(bDebug, retainAspect, transition, staticResFolder, staticVersion, bPrint, username) {
 		g_transition = transition;
 		g_staticResFolder = staticResFolder;
@@ -716,8 +725,10 @@ nittio = function() {
 		jQuery(function() {
 			if (!bPrint) {
 				initSizes(retainAspect);
+				var skChecker = new SoftKeyChecker();
 				jQuery(window).resize(function() {
-				    initSizes(retainAspect);
+    				initSizes(retainAspect);
+                    if (skChecker.isSoftKeyOn()) return;
 				    callOnResizeHandlers();
 				});
 				initMenus();

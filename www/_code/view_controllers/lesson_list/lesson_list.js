@@ -356,12 +356,12 @@
 				});
 				_addHelpToApproved(card, lesson);
 			} else if (mode.type == TYPES.NEW) {
-				card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br> by:{}<br> <span class='nl-template-color'>Template</span><br> <span>{}</span>", lesson.grade, lesson.subject, lesson.approvername, lesson.description);
+				card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br> by:{}<br> <span class='nl-template-color'>Template</span><br> <span>{}</span>", lesson.grade, lesson.subject, lesson.authorname, lesson.description);
 			} else if (mode.type == TYPES.MANAGE) {
 				if (lesson.ltype == LESSONTYPES.LESSON || lesson.ltype == null)
-					card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br> by:{}<br>", lesson.grade, lesson.subject, lesson.approvername);
+					card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br> by:{}<br>", lesson.grade, lesson.subject, lesson.authorname);
 				if (lesson.ltype == LESSONTYPES.TEMPLATE)
-					card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br> by:{}<br> <span class='nl-template-color'>Template</span><br>", lesson.grade, lesson.subject, lesson.approvername);
+					card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br> by:{}<br> <span class='nl-template-color'>Template</span><br>", lesson.grade, lesson.subject, lesson.authorname);
 				_addDisapproveLink(card);
 			} else if (mode.type == TYPES.REVIEW) {
 				if (lesson.revstate == REVSTATE.PENDING && lesson.state == STATUS.UNDERREVIEW) {
@@ -436,9 +436,9 @@
 
 		function _addHelpToApproved(card, lesson) {
 			if (lesson.ltype == LESSONTYPES.LESSON || lesson.ltype == null)
-				card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br> by:{}<br> {}", lesson.grade, lesson.subject, lesson.approvername, lesson.description);
+				card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br> by:{}<br> {}", lesson.grade, lesson.subject, lesson.authorname, lesson.description);
 			if (lesson.ltype == LESSONTYPES.TEMPLATE)
-				card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br> by:{}<br> <span class='nl-template-color'>Template</span><br>{}", lesson.grade, lesson.subject, lesson.approvername, lesson.description);
+				card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br> by:{}<br> <span class='nl-template-color'>Template</span><br>{}", lesson.grade, lesson.subject, lesson.authorname, lesson.description);
 		}
 
 		function _addReviewLinkForUnderReview(card, lesson) {

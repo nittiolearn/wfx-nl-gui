@@ -762,9 +762,9 @@ function ScopeExtensions(nl, modeHandler, nlContainer, folderStats) {
     };
 
     this.getLaunchString = function() {
-        if (this.isStaticMode()) return 'View';
+        if (this.isStaticMode() || this.item.type =='link') return 'Open';
         if (this.item.state.status == 'success' || this.item.state.status == 'failed') return 'View report';
-        return 'Launch';
+        return 'Open';
     };
     
     this.updatePastAttemptData = function() {
