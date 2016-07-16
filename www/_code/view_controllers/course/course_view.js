@@ -1107,6 +1107,7 @@ function NlContainer(nl, $scope, modeHandler) {
     };
     
     this.save = function(reportId, lesson, bDone) {
+        if (modeHandler.mode != MODES.DO) return;
         var completed = lesson.completed || bDone;
         var lessonReportInfo = {reportId: reportId, completed: completed, 
                             score: lesson.score, maxScore: lesson.maxScore};
