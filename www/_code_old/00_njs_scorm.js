@@ -25,7 +25,7 @@ function isEmbedded() {
 }
 
 function canLeaveCheck() {
-    return g_embedded_player && !g_standalone_player;
+    return !g_embedded_player || g_standalone_player;
 }
 
 function _initScoBot() {
