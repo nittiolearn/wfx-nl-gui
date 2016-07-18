@@ -289,7 +289,8 @@ function _formFieldDirectiveImpl(nl, nlDlg, tagName, templateUrl, transclude) {
             fieldmodel: '@',
             fieldtype: '@',
             fieldcls: '@',
-            tabindex: '@'
+            tabindex: '@',
+            placeholder: '@'
         },
         link: function($scope, iElem, iAttrs) {
             nl.log.debug('linking field: ', $scope.fieldmodel);

@@ -51,6 +51,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 	var mode = new TypeHandler(nl, nlServerApi);
 	var assignid = null;
 	var scorePercentage = [];
+	var nameAndScore = [];
+	var _searchFilterInUrl = '';
+
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
 		return nl.q(function(resolve, reject) {
@@ -78,12 +81,20 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 			nl.window.location.href = nl.t('/lesson/view_assign/{}', card.id);
 		}
 	};
+	
+	$scope.onCardInternalUrlClicked = function(card, internalUrl) {
+		var cardId = card.Id;
+		if(internalUrl == 'status_overview'){
+			_statusOverview($scope, card);
+		}
+	};	
 
 	function _getDataFromServer(resolve, reject) {
 		mode.listingFunction().then(function(resultList) {
 			nl.log.debug('Got result: ', resultList.length);
 			$scope.cards.staticlist = _getStaticCard(_userInfo, resultList, nlCardsSrv);
 			$scope.cards.cardlist = _getAssignmentReportCards(_userInfo, resultList, nlCardsSrv);
+			_addSearchInfo($scope.cards);
 			resolve(true);
 		}, function(reason) {
 			resolve(false);
@@ -130,7 +141,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 				text : nl.t('share')
 			});
 			var perc = content.maxScore > 0 ? Math.round((content.score/content.maxScore)*100) : 'NA';
-			card['help'] = nl.t('<span class="nl-card-description"><b>Status: {}</b></span><br><span>score: {} / {} ({}%)</span>', status, content.score, content.maxScore, perc);			
+			if(perc > 0){
+				card['help'] = nl.t('<span class="nl-card-description"><b>Status: {}</b></span><br><span>score: {} / {} ({}%)</span>', status, content.score, content.maxScore, perc);			
+			}else {
+				card['help'] = nl.t('<span class="nl-card-description"><b>Status: {}</b></span>', status);			
+			}
 		} else {
 			card['help'] = nl.t('<span class="nl-card-description"><b>Status: {}</b></span>', status);
 		}
@@ -145,12 +160,14 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 		var totalScore = 0;
 		var maxScore = 0;
 		var averageScore = 0;
+		nameAndScore = [];
 		scorePercentage = [];
 		var numberOfStudentsScoredBelowAverage = null;
 		var studentsGotLessthanAvg = 0;
 		var studentsGotHundredPercent = 0;
 		for (var i = 0; i < resultList.length; i++) {
 			lessonCard = resultList[i];
+			var data = {};
 			var content = angular.fromJson(resultList[i].content);
 			if(content.score >= 0 || ''){
 				maxScore = content.maxScore || 0;
@@ -158,6 +175,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 				totalScore = 'score' in content ? totalScore+content.score : totalScore;
 				var perc = content.maxScore > 0 ? Math.round((content.score/content.maxScore)*100) : -1;
 				if (perc >= 0) scorePercentage.push(perc);
+				if(perc >= 0) data = {name: lessonCard.studentname, id: lessonCard.id, percentage: perc, status: true};
+				if(perc < 0) data = {name: lessonCard.studentname, id: lessonCard.id, percentage: null, status: true};
+				nameAndScore.push(data);
+			} else {
+				data = {name: lessonCard.studentname, id: lessonCard.id, percentage: 0, status: false};				
+				nameAndScore.push(data);
 			}
 		}
 		lessonCard['cardid'] = mode.assignid;
@@ -166,52 +189,76 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 		if (averageScore >= 0) {
 			averageScore += '%';
 		}
-		var card1 = {
+		cards.push(_getFirstStaticCard(lessonCard, numberOfStudentsCompleted, totalNumberOfStudentsAssignmentAssigned, averageScore));
+		cards.push(_getSecondStaticCard(scorePercentage, maxScore, totalScore, totalNumberOfStudentsAssignmentAssigned, numberOfStudentsCompleted, averageScore, listofStudents));
+		return cards;
+	}
+	
+	function _getFirstStaticCard(lessonCard, numberOfStudentsCompleted, totalNumberOfStudentsAssignmentAssigned, averageScore){
+		var card = {
 			id : mode.assignid,
 			title : lessonCard.name,
 			icon : nl.url.lessonIconUrl(lessonCard.icon || lessonCard.image),
 			children : [],
 			style : 'nl-bg-blue' 
 		};
-		card1['help'] = nl.t('<span class="nl-card-description">Assigned to :<b>{}</b></span><br><span>Completion status : {} of {} </span><br><span>Average score: {}</span><br><span>by : {}</span>', lessonCard.assigned_to, numberOfStudentsCompleted, totalNumberOfStudentsAssignmentAssigned, averageScore, lessonCard.assigned_by);
-		card1.links = [{id: 'assignment_content', text: 'content'},
+		card['help'] = nl.t('<span>by : {}</span><br><span>Assigned to :<b>{}</b></span>', lessonCard.assigned_by, lessonCard.assigned_to);
+		card.links = [{id: 'assignment_content', text: 'content'},
 					   {id: 'details', text: 'details'}];
-		card1.details = {
+		card.details = {
 			help : lessonCard.descMore,
 			avps : _getAssignmentAvps(lessonCard, numberOfStudentsCompleted, totalNumberOfStudentsAssignmentAssigned, averageScore)
 		};			   
-		cards.push(card1);
+		return card;		
+	};
+
+
+	function _getSecondStaticCard(scorePercentage, maxScore, totalScore, totalAssigned, completed, averageScore, listofStudents){
 		var scoreToDisplayInCharts = [];
 		scoreToDisplayInCharts.push(_getScoreToDisplayInCharts(scorePercentage));
-		var card2 = {
-			title : nl.t('Score Summary'),
+		var doughnutdata = null;
+		var doughnutlabel = null;
+		var doughnutcolor = null;
+		if(maxScore !== 0) {
+			doughnutdata = _getDoughnutData(scorePercentage, totalAssigned, completed);
+			doughnutlabel = ["greater than 70%", "less than 70%", "not completed"];
+			doughnutcolor = ['#007700', '#FFCC00', '#F54B22'];
+		} else {
+			doughnutdata = [completed, totalAssigned-completed];
+			doughnutlabel = ["completed", "not completed"];
+			doughnutcolor = ['#007700', '#F54B22'];
+		}
+		var card = {
+			title : nl.t('Status overview'),
 			fullDesc : true,
-			chartSeries : ['series A'],
-			chartData : scoreToDisplayInCharts,
-			chartLables : ["10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"],
-			url: null, 
-			style : 'nl-bg-blue' 
+			maxscore : maxScore,
+			chartData: scoreToDisplayInCharts,
+			totalStudentsAssigned : totalAssigned,
+			totalScore : totalScore,
+			completed : completed,
+			averageScore: averageScore,
+			focusStudents: listofStudents,
+			scorePerc : scorePercentage,
+			nameScore : nameAndScore,
+			internalUrl: 'status_overview', 
+			style : 'nl-bg-blue',
+			doughnutData : doughnutdata,
+			doughnutLabel : doughnutlabel,
+			doughnutColor : doughnutcolor,
+			doughnutOptions : {responsive: true, scaleBeginAtZero : true, maintainAspectRatio: true, scaleShowGridLines : false, interactivityEnabled: false, zoomEnabled: false}
 		};
-		card2['help'] = $templateCache.get('view_controllers/assignment_report/score_chart.html');
-		cards.push(card2);
-		var card3 = {
-			title : nl.t('Focus Students'),
-			fullDesc : true,
-			children : [],
-			style : 'nl-bg-blue' 
-		};
-		card3['help'] = nl.t('<div><ul><li>{} student(s) scored 100%</li><li>{} student(s) scored less than class average of {}</li></ul</div>', listofStudents[1], listofStudents[0], averageScore);
-		cards.push(card3);		
-		return cards;
-	}
+		card['help']=nl.t('<canvas id="doughnut" class="chart chart-doughnut" chart-data="card.doughnutData" chart-labels="card.doughnutLabel" chart-colours="card.doughnutColor" chart-options="card.doughnutOptions"></canvas>');
+		return card;
+	};
 	
 	function _getAverageScore(scorePercentage) {
-		if (scorePercentage.length == 0) return 'NA';
+		var  perc = scorePercentage;
+		if (perc.length == 0) return 'NA';
 		var sum = 0;
-		for(var i in scorePercentage) {
-			sum = scorePercentage[i] + sum;
+		for(var i in perc) {
+			sum = perc[i] + sum;
 		}
-		return Math.round(sum/scorePercentage.length).toFixed(1);
+		return Math.round(sum/perc.length).toFixed(1);
 	}
 	
 	function _getStudentsGotBelowAvg(averageScore, scorePercentage){
@@ -240,6 +287,20 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 		}
 		return chartArray;
 	}
+
+	function _getDoughnutData(scorePercentage, totalAssigned, completed) {
+		var chartArray = new Array(3).fill(0);
+		for(var i in scorePercentage) {
+			if(scorePercentage[i]  >= '70'){
+				chartArray[0] =	chartArray[0] + 1;
+			} else if(scorePercentage[i] <  '70') {
+				chartArray[1] =	chartArray[1] + 1;
+			}
+		}		
+		chartArray[2] = totalAssigned - completed;
+		return chartArray;
+	}
+	
 	
 	function _getAssignmentAvps(lessonCard, completed, total, avgScore){
 		var avps = [];
@@ -278,6 +339,28 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 			return nl.fmt.t(['only when published']);
 		return '';
 	}
+
+	function _statusOverview($scope, card) {
+		var statusOverviewDlg = nlDlg.create($scope);
+			statusOverviewDlg.setCssClass('nl-height-max nl-width-max');
+			statusOverviewDlg.scope.data = {};
+			statusOverviewDlg.scope.data.card = card;
+			if(card.maxscore > 0) { 
+				statusOverviewDlg.scope.data.chartOptions = {responsive: true, scaleBeginAtZero : true, maintainAspectRatio: true, scaleShowGridLines : false, interactivityEnabled: false, zoomEnabled: false};
+				statusOverviewDlg.scope.data.doughnutData = [card.completed, (card.totalStudentsAssigned-card.completed)];
+				statusOverviewDlg.scope.data.doughnutLabel = ['Completed', 'Not completed'];
+				statusOverviewDlg.scope.data.doughnutColor = ['#009900', '#F54B22'];
+				statusOverviewDlg.scope.data.chartData = card.chartData;
+				statusOverviewDlg.scope.data.chartLabel = ['10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%'];	
+			} else {
+				statusOverviewDlg.scope.data.doughnutData = [card.completed, (card.totalStudentsAssigned-card.completed)];
+				statusOverviewDlg.scope.data.doughnutLabel = ['Completed', 'Not completed'];
+				statusOverviewDlg.scope.data.doughnutColor = ['#009900', '#F54B22'];
+			}
+		var cancelButton = {text: nl.t('Close')};
+		statusOverviewDlg.show('view_controllers/assignment_report/status_overview_dlg.html', [], cancelButton, false);
+	}
+
 
 	function _assignmentShare($scope, card){
 		var data = {repid: card.id};
@@ -361,6 +444,24 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 		if(alreadySharedUsers.length > 1) assignmentShareDlg.scope.data.sharedWith = nl.t('Shared With {} users:', alreadySharedUsers.length);
 	}
 	
+	function _addSearchInfo(cards) {
+		cards.search = {
+			placeholder : nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)
+		};
+		cards.search.onSearch = _onSearch;
+	}
+
+	function _onSearch(filter) {
+		nlDlg.showLoadingScreen();
+		var promise = nl.q(function(resolve, reject) {
+			_getDataFromServer(resolve, reject);
+		});
+		promise.then(function(res) {
+			nlDlg.hideLoadingScreen();
+		});
+	}
+	
+	
 	function _showOuListDlg(parentScope, assignmentShareDlg, ouList){
 				var ouSelectionDlg = nlDlg.create(parentScope);
 			_initouSelectionDlg(ouSelectionDlg, ouList);
@@ -398,7 +499,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 			return alreadySharedUsers;
 		}
 		var cancelButton = {text : nl.t('Add')};
-		ouSelectionDlg.show('view_controllers/assignment/ou_selection_dlg.html',
+		ouSelectionDlg.show('view_controllers/assignment_report/share_report_dlg.html',
 			[], cancelButton, false);
 	}
 	

@@ -10,10 +10,18 @@
 			<p>In the context of a school, the class (grade and section) of the student is the user group of the student.</p>
 	</nl-dlg-help>
 	<nl-dlg-content>
-		<div class='nl-tree-structure'
-		    ivh-treeview="treeData"
-			ivh-treeview-options="treeOptions"		    
-			ivh-treeview-on-cb-change="onNodeClick(ivhNode, ivhIsSelected, ivhTree)">
+		<div class='nl-tree-structure'>		
+			<div style='padding: 2px'>
+				<label class="item item-input" style='border-color: #fff;'>
+				  <i class="icon ion-search placeholder-icon"></i>
+				  <input type="search" placeholder="Search" ng-model="nodeSearch">
+				</label>
+			</div>
+			<div ivh-treeview="treeData"
+			    ivh-treeview-filter="nodeSearch"
+				ivh-treeview-options="treeOptions"		    
+				ivh-treeview-on-cb-change="onNodeClick(ivhNode, ivhIsSelected, ivhTree)">
+			</div>
 		</div>
 	</nl-dlg-content>
 </nl-dlg>
