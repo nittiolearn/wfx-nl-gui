@@ -167,7 +167,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		if (mode.type == TYPES.SHARED) {
 			url = nl.fmt2('/lesson/view_shared_report_assign/{}/', assignment.id);
 		} else if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
-			url = nl.fmt2('/reports/assignment_rep/{}/', assignment.id);
+			url = nl.fmt2('/#/assignment_report?assignid={}', assignment.id);
 		} else if(mode.type == TYPES.PAST){
 			url = nl.fmt2('/lesson/view_report_assign/{}/', assignment.id);
 		} else {
@@ -257,7 +257,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		} else if (mode.type == TYPES.SHARED) {
 			nl.fmt.addLinkToAvp(linkAvp, 'view report', nl.fmt2('/lesson/view_shared_report_assign/{}', assignId));
 		} else if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
-			nl.fmt.addLinkToAvp(linkAvp, 'reports', nl.fmt2('/reports/assignment_rep/{}', assignId));
+			nl.fmt.addLinkToAvp(linkAvp, 'reports', nl.fmt2('/#/assignment_report?assignid={}', assignId));
 			nl.fmt.addLinkToAvp(linkAvp, 'content', nl.fmt2('/lesson/view_assign/{}', assignId));
 			nl.fmt.addLinkToAvp(linkAvp, 'export', nl.fmt2('/assignment/export/{}/{}', assignId, d.getTimezoneOffset()));
 			nl.fmt.addLinkToAvp(linkAvp, 'delete', null, 'assign_delete');

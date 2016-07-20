@@ -11,7 +11,7 @@
 		<tr ng-repeat='pastlist in data.pastAssignmentSentList.pastList'>
 			<td>{{pastlist.to}}</td>
 			<td>{{pastlist.on}}</td>
-			<td><a href='/reports/assignment_rep/{{pastlist.id}}'>Assignment :{{pastlist.id}}</a></td>
+			<td><a href='/#/assignment_report?assignid={{pastlist.id}}'>Assignment :{{pastlist.id}}</a></td>
 		</tr>
 	</table>
 </p>

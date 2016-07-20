@@ -116,7 +116,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 		var status = null;
 		nl.pginfo.pageTitle = mode.pageTitle(assignment.name); 
 		var content = angular.fromJson(assignment.content);
-		var bcompleted = 'score' in content ? true : false;
+		var bcompleted = assignment.completed || false;
 		if(bcompleted){
 			status = nl.t('completed');
 			url = nl.fmt2('/lesson/review_report_assign/{}', assignment.id);
@@ -169,7 +169,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 			lessonCard = resultList[i];
 			var data = {};
 			var content = angular.fromJson(resultList[i].content);
-			if(content.score >= 0 || ''){
+			if(resultList[i].completed) {
 				maxScore = content.maxScore || 0;
 				numberOfStudentsCompleted = 'score' in content ? numberOfStudentsCompleted+1 : numberOfStudentsCompleted;
 				totalScore = 'score' in content ? totalScore+content.score : totalScore;
@@ -228,8 +228,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 			doughnutlabel = ["completed", "not completed"];
 			doughnutcolor = ['#007700', '#F54B22'];
 		}
+		var title =nl.t('{} of {} completed', completed, totalAssigned);
 		var card = {
-			title : nl.t('Status overview'),
+			title : title,
 			fullDesc : true,
 			maxscore : maxScore,
 			chartData: scoreToDisplayInCharts,
