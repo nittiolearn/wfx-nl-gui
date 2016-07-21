@@ -1054,10 +1054,10 @@ Dialog.popdown = function(onCloseDone) {
 
 Dialog.popupStatus = function(content, nextFn) {
 	var box = jQuery('#statusBox');
-	box.children('.content').html(content);
+	box.html(content);
 	if (nextFn === undefined) nextFn = function() {};
 
-	box.show().velocity({height: ['2em', 0], opacity: [1, 0]}, BlankScreen.ANIM_TIME);
+	box.show().velocity({height: ['32px', 0], opacity: [1, 0]}, BlankScreen.ANIM_TIME);
 	setTimeout(function() {
 		box.velocity({height : 0, opacity : 0}, BlankScreen.ANIM_TIME, function() {
 			box.hide();
@@ -1068,8 +1068,8 @@ Dialog.popupStatus = function(content, nextFn) {
 
 Dialog.popupFixedStatus = function(content) {
 	var box = jQuery('#statusBoxFixed');
-	box.children('.content').html(content);
-	box.show().velocity({height: ['2em', 0], opacity: [1, 0]}, BlankScreen.ANIM_TIME);
+	box.html(content);
+	box.show().velocity({height: ['32px', 0], opacity: [1, 0]}, BlankScreen.ANIM_TIME);
 };
 
 Dialog.popdownFixedStatus = function(content) {

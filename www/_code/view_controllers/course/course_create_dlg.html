@@ -113,7 +113,7 @@
   "modules": [
     {"id": "1", "name": "info", "type": "info", "text": "this is a long text which does not appear only in the details view"},
     {"id": "2", "name": "link", "type": "link", "action": "lesson.view_approved", "hide_remarks": true}
-    {"id": "3", "name": "link 2", "type": "link", "action": "lesson.view_approved", "hide_remarks": true, "auto_complete": true}
+    {"id": "3", "name": "link 2", "type": "link", "action": "lesson.view_approved", "hide_remarks": true, "autocomplete": true}
   ]
 }</pre>
 
@@ -162,7 +162,7 @@
         <h3>Configuring certificate for a course</h3>
         <ul>
             <li>add "certificate" attribute to the course where background image for the certificate is configured.</li>
-            <li>add a "link" module to the course. The action should be "none" and urlParams should be "/#/course_cert</li>
+            <li>add a "link" module to the course. The action should be "none" and urlParams should be "/#/course_cert"</li>
             <li>setup to "start_after" dependencies to the certificate so that it is visible only after the relevant modules are completed.</li>
             <li>add "autocomplete" attribute to the certificate link element</li>
         </ul>
@@ -173,7 +173,7 @@
   "modules" : [
     {"id": "1", "name": "Learning module", "type": "lesson", "refid": 1234},
     {"id": "2", "name": "Quiz", "type": "lesson", "refid": 1235, "start_after": [{"module": "1"}]},
-    {"id": "3", "name": "Learning module", "type": "link", "action": "none", "urlParams": "/#/course_cert", "start_after": [{"module": "2"}]}
+    {"id": "3", "name": "Certificate", "type": "link", "action": "none", "urlParams": "/#/course_cert", "start_after": [{"module": "2"}], "autocomplete": true}
 ]}</pre>
 
         <h3>Recap of all course module attributes</h3>

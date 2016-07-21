@@ -465,6 +465,15 @@ a.enabled {
 	box-shadow: 0 -2px 0 3px #FF0000 inset, 0 5px 5px rgba(0, 0, 0, 0.17), 0 5px rgba(255, 255, 255, 0.25) inset;
 }
 
+#audioHolder {
+  position: absolute;
+  bottom: 0;
+  left: 0; 
+  width: 0;
+  height: 0;
+  display: none;
+}
+
 #pgNo, .secNo {
 	position: absolute;
 	bottom: 5px;
@@ -598,23 +607,19 @@ a.green:hover, .njsSlides a.green:hover  {
 }
 
 #statusBox, #statusBoxFixed {
-	bottom: 1%;
-	left: 1%;
-	width: 40%;
+  position: absolute;
+  left: 2%;
+  bottom: 8px;
+  padding: 8px;
+  box-sizing: border-box;
+	max-width: 96%;
 	height: 0;
-	background: #403050;
 	color: #ffffff;
-}
-
-#statusBox .content, #statusBoxFixed .content {
-	position: absolute;
-	left: 8px;
-	right: 8px;
-	bottom: 8px;
-	text-overflow: ellipsis;
-	white-space: nowrap; 
-	overflow: hidden;
-	font-size: 90%;
+  font-size: 90%;
+  background: #403050;
+  text-overflow: ellipsis;
+  white-space: nowrap; 
+  overflow: hidden;
 }
 
 ---------------------------------------------------------------------------------------------------------------------
