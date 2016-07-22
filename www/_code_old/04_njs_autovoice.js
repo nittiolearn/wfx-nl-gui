@@ -1,5 +1,7 @@
 njs_autovoice = function() {
 
+var _canAutoPlay = true; // Common across auto voice and audio manager
+    
 //#############################################################################################
 // auto voice feature: functionality is divided in the following main classes:
 // AutoVoice - the only exported class from this module - one can create a button giving
@@ -53,17 +55,21 @@ function AutoVoice() {
         });
         button.play = function() {
             button.state = 'none';
-            _onButtonClick(button, audioText);
+            if (_canAutoPlay) {
+                _onButtonClick(button, audioText);
+            } else {
+                _updateIcon(button);
+            }
         };
         return button;
     };
     
     function _updateIcon(button) {
-        var prefix = nittio.getStaticResFolder() + '/dashboard/';
+        var prefix = nittio.getStaticResFolder();
         if (button.state == 'none' || button.state == 'paused') {
-            button.html.attr('src', prefix + 'video1.png');
+            button.html.attr('src', prefix + '/audio-play.png');
         } else {
-            button.html.attr('src', prefix + 'audio.png');
+            button.html.attr('src', prefix + '/audio-pause.png');
         }
     }
 
@@ -72,12 +78,15 @@ function AutoVoice() {
             self.voiceSynth.speak(audioText, {onEnd: function() {
                 _onEnd(button);
             }});
+            _canAutoPlay = true;
             button.state = 'playing';
         } else if (button.state == 'playing') {
             self.voiceSynth.pause();
+            _canAutoPlay = false;
             button.state = 'paused';
         } else {
             self.voiceSynth.resume();
+            _canAutoPlay = true;
             button.state = 'playing';
         }
         _updateIcon(button);
@@ -335,7 +344,6 @@ function AudioManager() {
     };
     
     var _currentInfo = null;
-    var _canAutoPlay = true;
     this.play = function(pageId) {
         this.pauseAll();
         var info = _audioHolder ? _audioHolder[pageId] : null;
@@ -356,6 +364,14 @@ function AudioManager() {
         _audioHolder = {};
         var holder = jQuery('#audioHolder');
         holder.html('');
+        var prefix = nittio.getStaticResFolder();
+        _preLoadImg(holder, prefix + '/audio-buffering.gif');
+        _preLoadImg(holder, prefix + '/audio-play.png');
+        _preLoadImg(holder, prefix + '/audio-pause.png');
+    }
+    
+    function _preLoadImg(holder, img) {
+        holder.append(njs_helper.fmt2('<img class="autoVoice" src="{}">', img));
     }
     
     function _addPageAudio(audioUrl, pageId, button) {
@@ -416,13 +432,13 @@ function AudioManager() {
     }
 
     function _updateIcon(info) {
-        var prefix = nittio.getStaticResFolder() + '/dashboard/';
+        var prefix = nittio.getStaticResFolder();
         if (!info.canplay) {
-            info.button.attr('src', prefix + 'attach.png');
+            info.button.attr('src', prefix + '/audio-buffering.gif');
         } else if (!info.playing) {
-            info.button.attr('src', prefix + 'video1.png');
+            info.button.attr('src', prefix + '/audio-play.png');
         } else {
-            info.button.attr('src', prefix + 'audio.png');
+            info.button.attr('src', prefix + '/audio-pause.png');
         }
     }
     
