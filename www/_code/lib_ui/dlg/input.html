@@ -4,7 +4,8 @@
            ng-class='{"nl-dlg-field-error": $parent.error[fieldmodel]}'
            class='{{fieldcls}}'
            tabindex='{{tabindex}}'
-           autofocus=''>
+           autofocus=''
+           placeholder="{{placeholder}}">
     <span ng-transclude></span>
     <div ng-show='$parent.error[fieldmodel]' class='nl-dlg-field-errormsg'>{{$parent.error[fieldmodel]}}</div>
 </div>

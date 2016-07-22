@@ -205,7 +205,7 @@ njs_slides = function() {
 	function SlideSet_mediaStop() {
 		var page = this.pages[this.curPage];
 		page.find('video, audio').each(function() {
-			this.pause();
+		    this.pause();
 		});
 		page.find('iframe[data-njsYouTube]').each(function() {
 		    var iframe = jQuery(this)[0].contentWindow;
@@ -283,10 +283,10 @@ njs_slides = function() {
 	    
 		if (oldPage != null) {
             var opts = {duration: ANIM_DURATION, easing: 'easeOutQuad'};
-			oldPage.velocity('stop', true).velocity(oldProps, opts);
+			oldPage.velocity('finish').velocity(oldProps, opts);
 		}
         var opts2 = {duration: ANIM_DURATION, easing: 'easeOutQuad', complete: postAnim};
-		newPage.velocity('stop', true).velocity(newProps, opts2);
+		newPage.velocity('finish').velocity(newProps, opts2);
 	}
 	
 	//----------------------------------------------------------------------------------

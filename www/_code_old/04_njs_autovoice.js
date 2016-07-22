@@ -12,10 +12,16 @@ njs_autovoice = function() {
 //
 // Voices - helps in choosing the most suited system voice for a given scenario
 //#############################################################################################
-var instance = null;
-function getInstance() {
-    if (!instance) instance = new AutoVoice();
-    return instance;
+var _autoVoice = null;
+function getAutoVoice() {
+    if (!_autoVoice) _autoVoice = new AutoVoice();
+    return _autoVoice;
+}
+
+var _audioManager = null;
+function getAudioManager() {
+    if (!_audioManager) _audioManager = new AudioManager();
+    return _audioManager;
 }
 
 //#############################################################################################
@@ -314,6 +320,128 @@ function Voices() {
     _init();
 }
 
-return {getInstance: getInstance};
+//#############################################################################################
+function AudioManager() {
+    var self = this;
+    
+    this.getButton = function(audioUrl, pageId) {
+        _init();
+        var button = jQuery('<img class="autoVoice">');
+        var info = _addPageAudio(audioUrl, pageId, button);
+        button.on('click', function () {
+            _onButtonClick(info);
+        });
+        return button;
+    };
+    
+    var _currentInfo = null;
+    var _canAutoPlay = true;
+    this.play = function(pageId) {
+        this.pauseAll();
+        var info = _audioHolder ? _audioHolder[pageId] : null;
+        if (!info) return;
+        _currentInfo = info;
+        if (!_canAutoPlay || !_currentInfo.canplay) return;
+        _currentInfo.audio.play();
+    };
+
+    this.pauseAll = function() {
+        if (!_currentInfo || !_currentInfo.playing) return;
+        _currentInfo.audio.pause();
+    };
+    
+    var _audioHolder = null;
+    function _init(bForce) {
+        if (_audioHolder && !bForce) return;
+        _audioHolder = {};
+        var holder = jQuery('#audioHolder');
+        holder.html('');
+    }
+    
+    function _addPageAudio(audioUrl, pageId, button) {
+        var holder = jQuery('#audioHolder');
+        var info = null;
+        if (pageId in _audioHolder) {
+            info = _audioHolder[pageId];
+            info.button = button;
+            if (info.url != audioUrl) {
+                info.url = audioUrl;
+                info.canplay = false;
+                info.playing = false;
+                info.audio.src = audioUrl;
+                info.audio.load();
+            }
+        } else {
+            var audio = jQuery(njs_helper.fmt2('<audio src="{}"/>', audioUrl));
+            info = {audio: audio[0], url: audioUrl, button: button, pageId: pageId,
+                canplay: false, playing: false};
+            _audioHolder[pageId] = info;
+            _registerAudioEvents(info);
+            holder.append(audio);
+        }
+        _updateIcon(info);
+        return info;
+    }
+    
+    function _registerAudioEvents(info) {
+        var audio = info.audio;
+        var pageId = info.pageId;
+        audio.addEventListener('canplay', function() {
+            _debug(pageId, 'Audio is loaded');
+            info.canplay = true;
+            if (_currentInfo && _currentInfo.pageId == pageId && _canAutoPlay)
+                self.play(pageId);
+            _updateIcon(info);
+        }, true);
+        audio.addEventListener('pause', function() {
+            _debug(pageId, 'Audio is paused');
+            info.playing = false;
+            _updateIcon(info);
+        }, true);
+        audio.addEventListener('play', function() {
+            _debug(pageId, 'Audio is played');
+            info.playing = true;
+            _updateIcon(info);
+        }, true);
+        audio.addEventListener('ended', function() {
+            _debug(pageId, 'Audio play done');
+            info.playing = false;
+            _updateIcon(info);
+        }, true);
+    }
+    
+    function _debug(pageId, msg) {
+        msg = pageId + ': ' + msg;
+        console.log(msg);
+    }
+
+    function _updateIcon(info) {
+        var prefix = nittio.getStaticResFolder() + '/dashboard/';
+        if (!info.canplay) {
+            info.button.attr('src', prefix + 'attach.png');
+        } else if (!info.playing) {
+            info.button.attr('src', prefix + 'video1.png');
+        } else {
+            info.button.attr('src', prefix + 'audio.png');
+        }
+    }
+    
+    function _onButtonClick(info) {
+        if (!info.canplay) {
+            njs_helper.Dialog.popupStatus('Audio is loading. Please wait ...');
+        } else if (info.playing) {
+            _debug(info.pageId, 'Pause called');
+            _canAutoPlay = false;
+            info.audio.pause();
+        } else {
+            _debug(info.pageId, 'Play called');
+            _canAutoPlay = true;
+            info.audio.play();
+        }
+        _updateIcon(info);
+    }
+}
+
+return {getAutoVoice: getAutoVoice, getAudioManager: getAudioManager};
 
 }(); 

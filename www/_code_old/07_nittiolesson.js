@@ -101,7 +101,8 @@ nlesson = function() {
 		
 		this.globals.slides = null;
 		this.globals.templateCssClass = '';
-		this.globals.autoVoice = njs_autovoice.getInstance();
+        this.globals.autoVoice = njs_autovoice.getAutoVoice();
+        this.globals.audioManager = njs_autovoice.getAudioManager();
 	}
 
 	//--------------------------------------------------------------------------------------------
@@ -968,8 +969,8 @@ nlesson = function() {
             audioUrl = audioUrl.replace(/\[.*\]/, '');
             var audioHtml = '';
             var validUrl = audioUrl.indexOf('/');
-            if( validUrl != -1){                            
-                audioHtml = njs_helper.fmt2('<audio preload controls data-njsAutoPlay class="njs_audio" src="{}"/>',audioUrl);
+            if( validUrl != -1) {
+                audioHtml = this.lesson.globals.audioManager.getButton(audioUrl, this.getPageId());
             }
             this.propAudio.html(audioHtml);         
         } else if (this.oPage.autoVoice) {
@@ -1008,6 +1009,10 @@ nlesson = function() {
 	function Page_postRender() {
 		var me = this;
 		me.lesson.globals.autoVoice.stop();
+        if (me.lesson.renderCtx.lessonMode() != 'edit') {
+            me.lesson.globals.audioManager.play(me.getPageId());
+            if (me.autoVoiceButton) me.autoVoiceButton.play();
+        }
 		MathJax.Hub.Queue(function() {
             if (me.lesson.renderCtx.lessonMode() != 'edit' && me.autoVoiceButton)
                 me.autoVoiceButton.play();

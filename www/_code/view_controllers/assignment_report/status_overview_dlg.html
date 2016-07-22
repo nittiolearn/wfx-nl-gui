@@ -1,0 +1,72 @@
+<style>
+	.chartStyle {
+					height: 200px; 
+					width: 400px;		
+				}
+</style>
+<nl-dlg title='Status overview'>
+<nl-dlg-content>
+	<div class='row row-wrap row-top'>
+        <div class='padding text-center' ng-class='respCol221'>
+           <div class='text-center fsh4'>
+                <strong>{{data.card.completed}} of {{data.card.totalStudentsAssigned}} completed</strong>
+           </div>
+           <div class='text-center' style='padding-top:3%'>
+           	<div>
+				<canvas id="doughnut"
+					class="chart chart-doughnut"
+					chart-data="data.doughnutData"
+					chart-labels="data.doughnutLabel"
+					chart-colours="data.doughnutColor"
+					chart-options="data.chartOptions">
+				</canvas>
+			</div>
+            </div>
+            <span class='sep4'></span>
+            <div ng-show='data.card.maxscore > 0'>
+            	<i class='sep4'></i>
+	        	<div class='text-center fsh4'>
+	                <strong>Average score: {{data.card.averageScore}}</strong>
+	            </div>
+	            <div class='text-center' style='padding-top: 3%'>
+					<canvas id="line"
+						class="chart chart-bar"
+						chart-data="data.chartData"
+						chart-labels="data.chartLabel"
+						chart-series="['series A']"
+						chart-options="data.chartOptions">
+					</canvas>
+	            </div>
+	        </div>				
+        </div>
+        <div class='padding text-center'
+             ng-class='respCol221'>
+        	<div class='text-center fsh4'>
+                <strong ng-show='data.card.maxscore > 0'>Leaderboard</strong>
+                <strong ng-show='data.card.maxscore == 0'>Completion status</strong>
+            </div>
+            <i class='sep4'></i>
+			<table class='nl-table nl-table-styled'>
+			    <tr>
+			        <th>Student Name</th>
+			        <th>
+			        	<span ng-show='data.card.maxscore > 0'>Percentage</span>
+						<span ng-show='data.card.maxscore == 0'>Status</span>
+					</th>
+			    </tr>
+			    <tr ng-repeat='score in data.card.nameScore | orderBy:"percentage":true'>
+			        <td>
+						<span ng-show='score.status'><a href='/lesson/review_report_assign/{{score.id}}'>{{score.name}}</a></span>
+						<span ng-show='!score.status'>{{score.name}}</span>
+			        </td>
+			        <td>
+			        	<span ng-show='score.status && score.percentage > 0'>{{score.percentage}}</span>
+			        	<span ng-show='score.status && score.percentage == null'>Completed</span>
+			        	<span ng-show='!score.status'>Not completed</span>
+			        </td>
+			    </tr>
+			</table>
+		</div>
+	</div>
+</nl-dlg-content>
+</nl-dlg>

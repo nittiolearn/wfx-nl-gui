@@ -199,7 +199,7 @@ function(nl, nlDlg, nlServerApi) {
 		var afterAssignmentSentDlg = nlDlg.create(parentScope);
 			afterAssignmentSentDlg.scope.data = {};
 			if(data.type == 'lesson') {
-				afterAssignmentSentDlg.scope.data.url = nl.fmt2('/reports/assignment_rep/{}', status);
+				afterAssignmentSentDlg.scope.data.url = nl.fmt2('/#/assignment_report?assignid={}', status);
 				afterAssignmentSentDlg.scope.data.pageTitle = nl.t('Assignment sent');
 			}else if (data.type == 'course') {
 				afterAssignmentSentDlg.scope.data.url = nl.fmt2('#/course_report_list?assignid={}', status);

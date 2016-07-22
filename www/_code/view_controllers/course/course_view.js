@@ -185,7 +185,8 @@ function ModeHandler(nl, nlCourse, nlDlg, $scope) {
             });
         } else {
             nl.timeout(function() {
-                url += '?embedded=true';
+                url += url.indexOf('?') >= 0 ? '&' : '?';
+                url += 'embedded=true';
                 $scope.iframeUrl = url;
                 $scope.iframeModule = $scope.ext.item.id;
             });
@@ -365,7 +366,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
             $scope.ext.setCurrentItem(cm);
             _popout(true);
         }
-        _confirmIframeClose(!bReset ? cm : null, _impl);
+        if (bReset) _confirmIframeClose(null, _impl);
+        else _impl();
     };
     
     $scope.hidePopup = function(bClose) {
