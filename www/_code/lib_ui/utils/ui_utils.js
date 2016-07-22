@@ -11,6 +11,7 @@ function module_init() {
     .directive('nlLoading', LoadingDirective)
     .directive('nlNoCtxMenu', NoCtxMenuDirective)
     .directive('nlRetainAr', RetainArDirective)
+    .directive('nlWaitOnClick', WaitOnClickDirective)
     .directive('nlFocusMe', FocusMeDirective)
     .directive('nlProgressLog', ProgressLogDirective)
     .service('nlProgressLog', ProgressLogSrv);
@@ -100,6 +101,19 @@ function(nl, $window) {
         restrict: 'A',
         transclude: true,
         link: function(scope, iElem, iAttrs) {
+        }
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
+var WaitOnClickDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return {
+        restrict: 'A',
+        link: function(scope, iElem, iAttrs) {
+            iElem.bind('click', function(e) {
+                nlDlg.showLoadingScreen();
+            });
         }
     };
 }];
