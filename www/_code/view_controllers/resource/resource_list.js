@@ -122,7 +122,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 	
 	function _getDataFromServer(resolve, reject) {
 		_bFirstLoadInitiated = true;
-		var data = {mine: _isMine(_type), searchFilter: search};
+		var data = {mine: _isMine(_type)};
+		if (search) data.search = search;
 		nlServerApi.resourceGetList(data).then(function(resultList) {
 			$scope.cards.cardlist = _getResourceCards(_userInfo, resultList);
 			_addSearchInfo($scope.cards);

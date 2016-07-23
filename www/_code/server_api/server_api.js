@@ -339,7 +339,7 @@ function(nl, nlDlg, nlConfig, Upload) {
 	};
 
 	this.assignmentReport = function(data){
-		//data = assignid
+		//data = assignid, search=xxx
 		//assignment_reports
 		return server.post('_serverapi/assignment_get_reports.json', data);
 	};

@@ -328,7 +328,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		});
 	}
 
-
 	function _initParams() {
 		var params = nl.location.search();
 		_searchFilterInUrl = ('search' in params) ? params.search : '';

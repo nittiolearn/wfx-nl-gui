@@ -34,8 +34,9 @@ function TypeHandler(nl, nlServerApi) {
 
 	this.listingFunction = function(filter) {
 		var data = {assignid : this.assignid};
-			return nlServerApi.assignmentReport(data);
-		};
+		if (filter) data.search = filter;
+		return nlServerApi.assignmentReport(data);
+	};
 
 	this.pageTitle = function(name) {
 		return nl.t('Assignment Report: {}', name);
@@ -52,7 +53,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 	var assignid = null;
 	var scorePercentage = [];
 	var nameAndScore = [];
-	var _searchFilterInUrl = '';
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
@@ -60,7 +60,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 		mode.initFromUrl();
 		$scope.cards = {};
 		$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
-		_getDataFromServer(resolve, reject);
+		_getDataFromServer('', resolve, reject);
 		});
 	}
 	nlRouter.initContoller($scope, '', _onPageEnter);
@@ -89,8 +89,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 		}
 	};	
 
-	function _getDataFromServer(resolve, reject) {
-		mode.listingFunction().then(function(resultList) {
+	function _getDataFromServer(filter, resolve, reject) {
+		mode.listingFunction(filter).then(function(resultList) {
 			nl.log.debug('Got result: ', resultList.length);
 			$scope.cards.staticlist = _getStaticCard(_userInfo, resultList, nlCardsSrv);
 			$scope.cards.cardlist = _getAssignmentReportCards(_userInfo, resultList, nlCardsSrv);
@@ -183,6 +183,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 				nameAndScore.push(data);
 			}
 		}
+		if (!lessonCard) return cards;
 		lessonCard['cardid'] = mode.assignid;
 		averageScore = _getAverageScore(scorePercentage);
 		var listofStudents = _getStudentsGotBelowAvg(averageScore, scorePercentage);
@@ -455,7 +456,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 	function _onSearch(filter) {
 		nlDlg.showLoadingScreen();
 		var promise = nl.q(function(resolve, reject) {
-			_getDataFromServer(resolve, reject);
+			_getDataFromServer(filter, resolve, reject);
 		});
 		promise.then(function(res) {
 			nlDlg.hideLoadingScreen();
