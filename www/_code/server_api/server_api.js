@@ -9,6 +9,8 @@ function module_init() {
     .service('nlServerApi', NlServerApi);
 }
 
+var g_noPopup = false;
+
 //-------------------------------------------------------------------------------------------------
 var NlServerApi = ['nl', 'nlDlg', 'nlConfig', 'Upload',
 function(nl, nlDlg, nlConfig, Upload) {
@@ -18,6 +20,10 @@ function(nl, nlDlg, nlConfig, Upload) {
     //---------------------------------------------------------------------------------------------
     // Common methods
     //---------------------------------------------------------------------------------------------
+    this.noPopup = function(bNoPopup) {
+        g_noPopup = bNoPopup;
+    };
+
     this.clearCache = function() {
         return nl.db.clear().then(function(res) {
             server.reinitUserInfo();
@@ -295,6 +301,30 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/sco_export.json', data);
     };
     
+    this.scoGetManifestList = function(search) {
+        // create or modify Manifest information
+        // returns list of manifest ids of imported sco content for this group
+        return server.post('_serverapi/sco_get_manifest_list.json', {search: search});
+    };
+
+    this.scoUpdateManifest = function(data) {
+        // create or modify Manifest information
+        // return: unique key for this manifest
+        return server.post('_serverapi/sco_update_manifest.json', data);
+    };
+
+    this.scoDeleteManifest = function(manifestId) {
+        // delete Manifest information
+        // return: true/false
+        return server.post('_serverapi/sco_delete_manifest.json', {id: manifestId});
+    };
+
+    this.scoGetManifestData = function(manifestId) {
+        // delete Manifest information
+        // return: manifestDataJson
+        return server.post('_serverapi/sco_get_manifest_data.json', {id: manifestId});
+    };
+
     //---------------------------------------------------------------------------------------------
 	// assignment desk list entities
     //---------------------------------------------------------------------------------------------
@@ -448,7 +478,12 @@ function(nl, nlDlg, nlConfig, Upload) {
 	
 	this.lessonGetContent = function(dbid, ctx) {
        return server.post('_serverapi/lesson_get_content.json', {dbid: dbid, ctx: ctx});	    
-	}
+	};
+
+    this.lessonCreate = function(template, isTemplate, name, section0) {
+       return server.post('_serverapi/lesson_create.json', {template: template, 
+           isTemplate: isTemplate, name: name, section0: section0});
+    };
 
     //---------------------------------------------------------------------------------------------
     // resource entities
@@ -481,6 +516,10 @@ function(nl, nlDlg, nlConfig, Upload) {
 	this.resourceDelete = function(resId){
         return server.post('_serverapi/resource_delete.json', {resid: resId});
 	};
+
+    this.resourceDeleteBulk = function(insertfrom){
+        return server.post('_serverapi/resource_delete_bulk.json', {insertfrom: insertfrom});
+    };
 
     //---------------------------------------------------------------------------------------------
     // Private methods
@@ -566,7 +605,7 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload) {
     
     this.post = function(url, data, reloadUserInfo, noPopup, upload) {
         reloadUserInfo = (reloadUserInfo == true);
-        noPopup = (noPopup == true);
+        noPopup = (noPopup == true || g_noPopup == true);
         upload = (upload == true);
         var self = this;
         var progressFn = null;

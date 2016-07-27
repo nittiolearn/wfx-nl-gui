@@ -102,6 +102,7 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
         PDF: 'dashboard/pdf.png' , 
         Audio: 'dashboard/audio.png' , 
         Video: 'dashboard/video1.png',
+        Zip: 'dashboard/attach.png',
         Attachment: 'dashboard/attach.png'
     };
     function _getImage(restype) {
@@ -289,8 +290,9 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
     var _restypeToExtension = {
         Image: ['.jpg', '.png', '.gif', '.svg', '.bmp'], 
         PDF: ['.pdf'] , 
-        Audio: ['.m4a'] , 
+        Audio: ['.mp3', '.m4a'] , 
         Video: ['.mp4'],
+        Zip: ['.zip'],
         Attachment: []
     }; 
     var _restypeToAcceptString = {
@@ -298,6 +300,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         PDF: '.pdf', 
         Audio: 'audio/*', 
         Video: 'video/*',
+        Zip: '.zip',
         Attachment: ''
     }; 
     var _restypeToMaxFileSize = {
@@ -305,6 +308,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         PDF: 10*1024*1024, 
         Audio: 10*1024*1024, 
         Video: 30*1024*1024,
+        Zip: 30*1024*1024,
         Attachment: 10*1024*1024
     }; 
 
@@ -378,6 +382,8 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
                         info: angular.toJson(compInfo, 2),
                         resid: resid
                         };
+            if (fileInfo.reskey) data.reskey = fileInfo.reskey;
+            if (fileInfo.insertfrom) data.insertfrom = fileInfo.insertfrom;
             data.progressFn = nlProgressFn.onProgress;
             nlDlg.popupStatus(nl.t('uploading {}', fileInfo.resource.name), false);
             nlServerApi.resourceUpload(data).then(function success(resinfo) {

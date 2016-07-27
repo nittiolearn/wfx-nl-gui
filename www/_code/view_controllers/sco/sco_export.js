@@ -1,11 +1,11 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// sco.js:
-// sco - Sharable content object (SCORM)
+// sco_export.js:
+// sco - Sharable content object (SCORM) export
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-	angular.module('nl.sco', [])
+	angular.module('nl.sco_export', [])
 	.config(configFn)
 	.controller('nl.ScoExportCtrl', ScoExportCtrl);
 }
@@ -42,20 +42,27 @@ function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog) {
     function _scoExport() {
         var params = nl.location.search();
         if (!('lessonid' in params)) {
-            pl.error('error', 'lessonid argument missing');
+            pl.error('lessonid argument missing');
             return;
         }
+        $scope.options = {version: [{id: '1.2', name: 'SCORM 1.2'}, {id: '2004 4th Edition', name: 'SCORM 2004 4th Edition'}]};
+        $scope.error = {};
         var lessonid = parseInt(params.lessonid);
-        $scope.lessonIds = '' + lessonid;
+        $scope.data = {lessonIds: '' + lessonid, version: {id: '2004 4th Edition'}};
     }
     
     $scope.onExport = function() {
-        var lessonIds = $scope.lessonIds.split(',');
+        var lessonIds = $scope.data.lessonIds.split(',');
+        if (lessonIds.length == 0) {
+            $scope.error.lessonIds = 'Please enter atleast one module id for export';
+            return;
+        }
+        
         for(var i in lessonIds) {
             lessonIds[i] = parseInt(lessonIds[i]);
         }
         $scope.started = true;
-        scoExporter.export(lessonIds, $scope);
+        scoExporter.export(lessonIds, $scope.data.version.id, $scope);
     }
 
 }];
@@ -70,9 +77,11 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl) {
     self.resources = {};
     self.zip = null;
     
-    this.export = function(lessonIds, scope) {
+    this.export = function(lessonIds, version, scope) {
         pl.clear();
+        self.savedSize = 0;
         self.lessonIds = lessonIds;
+        self.version = version;
         _q(_downloadPackageZip)()
         .then(_q(_openPackageZip))
         .then(_q(_downloadModules))
@@ -81,7 +90,12 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl) {
         .then(_q(_savePackageZip))
         .then(function() {
             self.setProgress('done');
-            pl.imp('Export completed');
+            var savedSizeMb = '';
+            if (self.savedSize) {
+                savedSizeMb = nl.fmt2(': {} MB', 
+                    Math.round(self.savedSize / 1024 / 1024 * 10)/10);
+            }
+            pl.imp('Export completed' + savedSizeMb);
         }, function() {
             self.setProgress('done');
             pl.error('Export failed');
@@ -177,6 +191,7 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl) {
         scope.title = 'Scorm export from Nittio Learn';
         scope.uuid = nl.fmt2('fcfcfaf6-3440-4d50-8e81-ea0d58bcdda2-{}', (new Date()).getTime());
         scope.content_folder = CONTENT_FOLDER;
+        scope.version = self.version;
         var lessons = [];
         var resources = [];
         
@@ -245,7 +260,8 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl) {
     var link = null;
     function _savePackageZip(resolve, reject) {
         pl.info('Saving package zip file');
-        self.zip.generateAsync({type:'blob'}).then(function (zipContent) {
+        self.zip.generateAsync({type:'blob', compression: 'DEFLATE', compressionOptions:{level:9}}).then(function (zipContent) {
+            self.savedSize = zipContent.size || 0;
             saveAs(zipContent, "scorm_pkg.zip");
             pl.info('Initiated save of package zip file');
             resolve(true);
@@ -279,7 +295,7 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl) {
 function ParallelDownloadManager(nl, nlServerApi, pl, scoExporter, type, urls, resolve, reject) {
     scoExporter.setProgress(type, 0, urls.length);
     var zip = scoExporter.zip;
-    var MAX_PARALLEL = 2;
+    var MAX_PARALLEL = 1;
     self = this;
     this.download = function() {
         pl.debug(nl.fmt2('About to download {} {}', urls.length, type), 

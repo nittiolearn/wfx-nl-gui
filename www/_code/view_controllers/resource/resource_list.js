@@ -200,11 +200,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 		var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
 		_populateLinks(linkAvp, resource.id, resource);
 		nl.fmt.addAvp(avps, 'Name', resource.name);
-		if(resource.restype == 'Image') nl.fmt.addAvp(avps, 'Link', nl.t('img:resource/resview/{}', resource.resid));
-		if(resource.restype == 'PDF') nl.fmt.addAvp(avps, 'Link', nl.t('pdf:resource/resview/{}', resource.resid));
-		if(resource.restype == 'Video') nl.fmt.addAvp(avps, 'Link', nl.t('video:resource/resview/{}', resource.resid));
-		if(resource.restype == 'Attachment') nl.fmt.addAvp(avps, 'Link', nl.t('link:resource/resview/{}', resource.resid));
-		if(resource.restype == 'Audio') nl.fmt.addAvp(avps, 'Link', nl.t('audio:resource/resview/{}', resource.resid));
+		if(resource.restype == 'Image') nl.fmt.addAvp(avps, 'Link', nl.t('img:/resource/resview/{}', resource.resid));
+		if(resource.restype == 'PDF') nl.fmt.addAvp(avps, 'Link', nl.t('pdf:/resource/resview/{}', resource.resid));
+		if(resource.restype == 'Video') nl.fmt.addAvp(avps, 'Link', nl.t('video:/resource/resview/{}', resource.resid));
+		if(resource.restype == 'Attachment') nl.fmt.addAvp(avps, 'Link', nl.t('link:/resource/resview/{}', resource.resid));
+		if(resource.restype == 'Audio') nl.fmt.addAvp(avps, 'Link', nl.t('audio:/resource/resview/{}', resource.resid));
+        if (resource.reskey) nl.fmt.addAvp(avps, 'Resouce Key', resource.reskey);
 		nl.fmt.addAvp(avps, 'Keywords', resource.keywords);
 		nl.fmt.addAvp(avps, 'Type', resource.restype);
 		nl.fmt.addAvp(avps, 'File Type', resource.mimetype);

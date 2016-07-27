@@ -77,6 +77,7 @@ function(nl, nlDlg, nlServerApi, $state) {
         nl.pginfo.isPageShown = false;
         nl.pginfo.isPrintable = false;
         nl.pginfo.hidemenu = false;
+        nlServerApi.noPopup(false);
         nlDlg.showLoadingScreen();
         var protocol = nl.location.protocol().toLowerCase();
         if (protocol.indexOf('file') >= 0) {
@@ -220,7 +221,8 @@ function Permission(nl) {
         '/searchlist_view': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
         '/rno_list': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
         '/rno_view': {login: false, permission: '', termRestriction: TR_OPEN}, 
-        '/sco_export': {login: true, permission: 'admin_group', termRestriction: TR_CLOSED},
+        '/sco_export': {login: true, permission: 'lesson_approve', termRestriction: TR_CLOSED},
+        '/sco_import_list': {login: true, permission: 'lesson_approve', termRestriction: TR_CLOSED},
 		'/assignment': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},		
         '/lesson_list': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},        
         '/player': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},        

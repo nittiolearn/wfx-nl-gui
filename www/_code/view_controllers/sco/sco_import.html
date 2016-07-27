@@ -1,0 +1,99 @@
+<nl-cards ng-if='cards' cards='cards' class='nl-thin-scroll'></nl-cards>
+<div ng-if='!cards && showImportForm' class='nl-form'>
+    <div class='nl-form-head'>
+        <span class='popup-title'>{{title}}</span>
+        <span class='popup-toolbar'>
+            <span title='Close'
+                  class='nl-toolbar-icon padding0'
+                  ng-click='onClose()'>
+                <i class="icon ion-close-circled"></i>
+            </span>
+        </span>
+    </div>
+    <div class='nl-form-body'>
+        <div ng-if='showImportButton && !running'>
+            <nl-resource-upload fieldmodel='scozip' restype='Zip' class='col'>
+            </nl-resource-upload>
+            <div class='padding-small row margin0'>
+                <div class='col button button-positive' ng-click='onImport()'>Import SCORM file</div>
+            </div>
+        </div>
+        <div ng-if='running' class='padding-small row margin0'>
+            <div class='col button button-positive' ng-click='onAbort()'>Cancel</div>
+        </div>
+        <nl-progress-log ng-show='started'></nl-progress-log>
+    </div>
+</div>
+<div ng-if='!cards && viewer.show' class='nl-form'>
+    <div class='nl-form-head'>
+        <span class='popup-title'>{{title}}</span>
+        <span class='popup-toolbar'>
+            <span title='Close'
+                  class='nl-toolbar-icon padding0'
+                  ng-click='viewerFn.onClose()'>
+                <i class="icon ion-close-circled"></i>
+            </span>
+        </span>
+    </div>
+    <div class='nl-form-body' ng-if='!viewer.data'>
+        Please wait ...
+    </div>
+    <div class='nl-form-body' ng-if='viewer.data'>
+        <div class='padding-small row row-center margin0'>
+            <b class='col col-20'>Template:</b>
+            <span class='col'>{{viewer.data.template}}</span>
+        </div>
+        <div class='padding-small row row-center margin0'>
+            <b class='col col-20'>Base version:</b>
+            <span class='col'>{{viewer.data.baseVersion}}</span>
+        </div>
+        <div class='padding-small row row-center margin0'>
+            <span class='col col-20'>Search: </span>
+            <input ng-model='viewer.search' class='col nl-dlg-field-value'></input>
+        </div>
+        <div class='padding-small'>
+            <H3>{{viewer.active.scos}} of {{viewer.data.scos.length}} SCO are uploaded</H3>
+            <table class='nl-table nl-table-styled'>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                </tr>
+                <tr ng-repeat='sco in viewer.data.scos | filter: viewer.search'>
+                    <td>sco.id</td>
+                    <td>
+                        <a ng-show='sco.lessonid' target='_blank'
+                           href='/lesson/view/{{sco.lessonid}}'>
+                            {{sco.title}}
+                        </a>
+                        <span ng-hide='sco.lessonid'>{{sco.title}}</span>
+                    </td>                    
+                </tr>
+            </table>
+            <div class='padding-small row margin0'>
+                <div class='col button button-positive' ng-click='onDeleteResource(viewer.card)'>Delete uploaded assets</div>
+            </div>
+            <div class='padding-small row margin0'>
+                <div class='col button button-positive' ng-click='onDeleteManifest(viewer.card)'>Delete manifest</div>
+            </div>
+            <p><b>Note:</b> Before deleting manifest, please delete all uploaded assets and manually delete the SCO modules.</p>
+            <H3>{{viewer.active.assets}} of {{viewer.data.assets.length}} ASSETS are uploaded</H3>
+            <table class='nl-table nl-table-styled'>
+                <tr>
+                    <th>Resid</th>
+                    <th>Asset</th>
+                </tr>
+                <tr ng-repeat='asset in viewer.data.assets | filter: viewer.search'>
+                    <td>{{asset.resid}}</td>
+                    <td>
+                        <a target='_blank'
+                           href='/resource/reskeyview/{{viewer.data.id}}/{{asset.href}}'>
+                            {{asset.href}}
+                        </a>
+                    </td>                    
+                </tr>
+            </table>
+            <H3>Manifest XML</H3>
+            <pre>{{viewer.data.manifestXml}}</pre>
+        </div>
+    </div>
+</div>
