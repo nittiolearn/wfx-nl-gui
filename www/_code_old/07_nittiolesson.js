@@ -589,69 +589,94 @@ nlesson = function() {
     }
 
 	function _Lesson_saveInternal(lesson, ajaxUrl, onCompleteFn, bRaw, bForce, backgroundTask) {
-	    if (backgroundTask === undefined) backgroundTask = false;
-		if (jQuery('#l_name').val() == '') {
-			njs_helper.Dialog.popup('Module name cannot be empty', 'Please update the module properties before saving');
-			if (onCompleteFn) onCompleteFn(null, true);
-			return true;
-		}
-        var pgNo = lesson.getCurrentPageNo();
-        if (pgNo > 0 && lesson.renderCtx.launchMode() == 'do') {
-            lesson.oLesson.currentPageNo = pgNo;
+	    var _onComplete = function(data, isError) {
+	        if (onCompleteFn) onCompleteFn(data, isError);
+	        return isError;
+	    };
+	    
+        var syncManager = njs_helper.SyncManager.get();
+        var _saveToServer = function(ajaxParams) {
+            syncManager.postToServer(ajaxUrl, ajaxParams, true, backgroundTask,
+                function(data, isError) {
+                if (!isError) {
+                    lesson.lastSavedContent = ajaxParams.content;
+                    if (njsCommentEditor.isValid()) njsCommentEditor.on_comment_save(data);
+                }
+                _onComplete(data, isError);
+            });
+        };
+
+        if (!_Lesson_saveCheckName()) return onComplete(null, true);
+
+        var ajaxParams = {content: '', lessonId: jQuery('#l_lessonId').val(), 
+                          comments: '', responses: ''};
+        var bComment = _Lesson_saveUpdateCommentData(ajaxParams);
+	    if (bRaw) {
+	        ajaxParams.content = jQuery('#l_content').val();
+	        _saveToServer(ajaxParams);
+	        return false;
+	    }
+
+        if (lesson.renderCtx.launchMode() == 'do') {
+            _Lesson_saveUpdatePgNo(lesson);
+            _Lesson_saveUpdateTime(lesson);
         }
-		
-		if ('sessionStartTime' in lesson) {
-			var now = new Date();
-			var timeSpentSeconds = parseInt((now.valueOf() - lesson.sessionStartTime.valueOf())/1000);
-			lesson.sessionStartTime = now;
-			if ('timeSpentSeconds' in lesson.oLesson) lesson.oLesson.timeSpentSeconds += timeSpentSeconds;
+		ajaxParams.content = lesson.getContent();
+		jQuery('#l_content').val(ajaxParams.content);
+        if (!bForce && !bComment && lesson.lastSavedContent == ajaxParams.content) {
+            if(!syncManager.syncInProgress && !backgroundTask) {
+                njs_helper.Dialog.popupStatus('There are no changes to save');
+            }
+            return _onComplete(null, false);
 		}
 
-		var content = bRaw ? jQuery('#l_content').val() : lesson.getContent();
-		if (!bRaw) jQuery('#l_content').val(content);
-
-        var contentForSave = content;
-        if(lesson.renderCtx.lessonMode() == 'edit') {
-            var saveVersion = lesson.oLesson.saveVersion || 0;
-            lesson.oLesson.saveVersion = saveVersion+1;
-            contentForSave = JSON.stringify(lesson.oLesson);
+        if (lesson.renderCtx.lessonMode() == 'edit') {
+            _Lesson_saveUpdateVersion(lesson);
+            ajaxParams.content = lesson.getContent();
         }
-		var ajaxParams = {content: contentForSave,
-		                  lessonId: jQuery('#l_lessonId').val(), 
-						  comments: '', responses: ''};	  
-
-		var bComment = njsCommentEditor.isValid();
-		if (bComment) {
-			var commentsData = njsCommentEditor.theLessonComment.getDataForSave();
-			ajaxParams.comments = JSON.stringify(commentsData.comments);
-			ajaxParams.responses = JSON.stringify(commentsData.responses);
-			bComment = commentsData.modified;
-		}				
-
-		var syncManager = njs_helper.SyncManager.get();
-		if (!bForce && lesson.lastSavedContent == content && !bComment) {
-			if(!syncManager.syncInProgress && !backgroundTask) {
-			    njs_helper.Dialog.popupStatus('There are no changes to save');
-			}
-			if (onCompleteFn) onCompleteFn(null, false);
-			return false;
-		}
 		
 		if (njs_scorm.saveLesson(ajaxUrl, ajaxParams)) {
             lesson.lastSavedContent = ajaxParams.content;
-            if (onCompleteFn) onCompleteFn(null, false);
-            return true;
+            return _onComplete(null, false);
 		}
-		syncManager.postToServer(ajaxUrl, ajaxParams, true, backgroundTask, function(data, isError) {
-			if (!isError) {
-				lesson.lastSavedContent = ajaxParams.content;
-				if (njsCommentEditor.isValid()) njsCommentEditor.on_comment_save(data);
-			}
-			if (onCompleteFn) onCompleteFn(data, isError);
-		});
-		return true;
+        _saveToServer(ajaxParams);
+		return false;
 	}
 
+    function _Lesson_saveCheckName() {
+        if (jQuery('#l_name').val() == '') {
+            njs_helper.Dialog.popup('Module name cannot be empty', 'Please update the module properties before saving');
+            return false;
+        }
+        return true;
+    }
+    
+    function _Lesson_saveUpdatePgNo(lesson) {
+        var pgNo = lesson.getCurrentPageNo();
+        if (pgNo > 0) lesson.oLesson.currentPageNo = pgNo;
+    }
+    
+    function _Lesson_saveUpdateTime(lesson) {
+        if (!('sessionStartTime' in lesson)) return;
+        var now = new Date();
+        var timeSpentSeconds = parseInt((now.valueOf() - lesson.sessionStartTime.valueOf())/1000);
+        lesson.sessionStartTime = now;
+        if ('timeSpentSeconds' in lesson.oLesson) lesson.oLesson.timeSpentSeconds += timeSpentSeconds;
+    }
+
+    function _Lesson_saveUpdateVersion(lesson) {
+        var saveVersion = lesson.oLesson.saveVersion || 0;
+        lesson.oLesson.saveVersion = saveVersion+1;
+    }
+
+    function _Lesson_saveUpdateCommentData(ajaxParams) {
+        if(!njsCommentEditor.isValid()) return false;
+        var commentsData = njsCommentEditor.theLessonComment.getDataForSave();
+        ajaxParams.comments = JSON.stringify(commentsData.comments);
+        ajaxParams.responses = JSON.stringify(commentsData.responses);
+        return commentsData.modified;
+    }
+            
 	function __setCustomLayout(oPage, layout) {
 		if (layout.length == 0) {
 			if ('sectionLayout' in oPage) delete oPage.sectionLayout;

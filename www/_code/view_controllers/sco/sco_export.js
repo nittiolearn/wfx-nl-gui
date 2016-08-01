@@ -41,14 +41,10 @@ function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog) {
 
     function _scoExport() {
         var params = nl.location.search();
-        if (!('lessonid' in params)) {
-            pl.error('lessonid argument missing');
-            return;
-        }
+        var lessonid = ('lessonid' in params) ? params.lessonid : '';
         $scope.options = {version: [{id: '1.2', name: 'SCORM 1.2'}, {id: '2004 4th Edition', name: 'SCORM 2004 4th Edition'}]};
         $scope.error = {};
-        var lessonid = parseInt(params.lessonid);
-        $scope.data = {lessonIds: '' + lessonid, version: {id: '2004 4th Edition'},
+        $scope.data = {lessonIds: lessonid, version: {id: '2004 4th Edition'},
             title: 'Nittio Learn SCORM Module', mathjax: false};
     }
     
