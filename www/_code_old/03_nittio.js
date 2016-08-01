@@ -699,12 +699,6 @@ nittio = function() {
 		return g_username;
 	}
 	
-	function initPage(bDebug, retainAspect, transition, staticResFolder, staticVersion, bPrint, username) {
-	    njs_scorm.onInit(function() {
-            return _initPage(bDebug, retainAspect, transition, staticResFolder, staticVersion, bPrint, username);
-	    });
-	}
-	
     function SoftKeyChecker() {
         var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         this.isSoftKeyOn = function() {
@@ -713,14 +707,28 @@ nittio = function() {
             return (elem.length > 0);
         };
     }
+
+    var _isPageLesson = false;    
+    function pageIsLesson() {
+        _isPageLesson = true;
+    }
+
+    function initPage(bDebug, retainAspect, transition, staticResFolder, staticVersion, bPrint, username) {
+        g_transition = transition;
+        g_staticResFolder = staticResFolder;
+        g_staticVersion = staticVersion;
+        g_username = username;
+        njs_helper.log_init(bDebug);
+        if (_isPageLesson) {
+            njs_scorm.afterInit(function() {
+                _initPage(retainAspect, bPrint);
+            });
+        } else {
+            _initPage(retainAspect, bPrint);
+        }
+    }
     
-    function _initPage(bDebug, retainAspect, transition, staticResFolder, staticVersion, bPrint, username) {
-		g_transition = transition;
-		g_staticResFolder = staticResFolder;
-		g_staticVersion = staticVersion;
-		g_username = username;
-		njs_helper.log_init(bDebug);
-		
+    function _initPage(retainAspect, bPrint) {
 		// Do the rest on completion of page load
 		jQuery(function() {
 			if (!bPrint) {
@@ -736,7 +744,6 @@ nittio = function() {
 			}
 
 			convertDates();
-			callBeforeInitHandlers();
 			if (window.location.protocol.toLowerCase().indexOf('file') >= 0) {
 				jQuery('.pagecanvas').hide();
 			}
@@ -758,17 +765,6 @@ nittio = function() {
 
 			_initMoreAndLogView();
 		});
-	}
-
-	var beforeInitFunctionArray = [];
-	function beforeInit(fn) {
-		beforeInitFunctionArray.push(fn);
-	}
-
-	function callBeforeInitHandlers() {
-		for (var i = 0; i < beforeInitFunctionArray.length; i++) {
-			beforeInitFunctionArray[i]();
-		}
 	}
 
 	var afterInitFunctionArray = [];
@@ -840,8 +836,8 @@ nittio = function() {
 		// Page initializations
 		setBleedingEdge : setBleedingEdge,
 		isBleedingEdge : isBleedingEdge,
+		pageIsLesson: pageIsLesson,
 		initPage : initPage,
-		beforeInit : beforeInit,
         afterInit : afterInit,
         onResize : onResize,
 		onSlideChanged : onSlideChanged,

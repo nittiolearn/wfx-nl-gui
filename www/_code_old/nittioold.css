@@ -331,6 +331,17 @@ a.enabled {
 	opacity: 0.85;
 }
 
+.scormlms .toolBar, .scormlms #pgNo, .scormlms .navigator {
+  display: none !important;
+}
+
+.scormlms .inner_body {
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
 /*----------------------------------------------------------------------------------------------------------------------
  * Elements inside topBar
  * --------------------------------------------------------------------------------------------------------------------*/

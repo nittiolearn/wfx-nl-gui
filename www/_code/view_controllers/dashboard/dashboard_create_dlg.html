@@ -105,9 +105,11 @@
             <tr><td>course.view_my</td><td>/#/course_list?my=1&{}</td><td> course_create </td><td>Course card items. urlParams could contain search and custtype filtering: e.g. "custtype=123", or "search=xxx" or "custtype=123&search=xxx"</td></tr>
             <tr><td>course.view_published</td><td>/#/course_list?{}</td><td> course_review </td><td></td></tr>
             <tr><td>course.view_assigned</td><td>/#/course_assign_list?{}</td><td> course_review </td><td></td></tr>
-            <tr><td>course.do</td><td>/#/course_report_list?my=1&{}</td><td> course_do</td><td>Accessible from restricted terminals as well</td></tr>
+            <tr><td>course.do</td><td>/#/course_report_list?my=1&{}</td><td> course_do</td><td>urlParams="search=xyz&custtype=101". Accessible from restricted terminals as well</td></tr>
             <tr><td>rno.list</td><td>/#/rno_list?{}</td><td> basic_access</td><td>urlParams must contain role and metadata: "role=observe&metadata=12345678". Role could be observe, review or admin</td></tr>
             <tr><td>rno.view</td><td>/#/rno_view?{}</td><td> None</td><td>urlParams may contain hashkey: "hashkey=xxxx". Usually this is not customized.</td></tr>
+            <tr><td>sco.export</td><td>/#/sco_export?{}</td><td> lesson_approve</td><td>urlParams may contain: "lessonid=3619".</td></tr>
+            <tr><td>sco.import</td><td>/#/sco_import_list?{}</td><td> lesson_approve</td><td>urlParams may contain: "template=1234&search=xxx".</td></tr>
         </table>
 
         <h4>Generic actions with fully customizable URLs</h4>

@@ -59,14 +59,17 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlResourceUploader, nlProgres
     };
     $scope.onCardLinkClicked = $scope.onCardInternalUrlClicked;
 
-    $scope.onDeleteResource = function(card) {
-        _revertCards($scope);
-        importer.deleteResources(card.title, card.manifestid);
-    };
-    
     $scope.onDeleteManifest = function(card) {
         _revertCards($scope);
-        _deleteManifest(card.manifestid);
+        nlDlg.popupConfirm({title: 'Please confirm',
+            template: 'Are you sure you want to delete all the resources (ASSETS) uploaded as part of this scorm import. You will not be able to revert this change.'})
+        .then(function(res) {
+            if (!res) return;
+            importer.deleteResources(card.title, card.manifestid, function() {
+                _revertCards($scope);
+                _deleteManifest(card.manifestid);
+            });
+        })
     };
     
     function _getStaticCards() {
@@ -128,8 +131,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlResourceUploader, nlProgres
                     children: []};
 
         card.details = {help: '', avps: _getAvps(manifest)};
-        card.links = [{id: 'modify_sco', text: nl.t('modify')},
-            {id: 'details', text: nl.t('details')}];
+        card.links = [{id: 'details', text: nl.t('details')}];
         return card;
     }
     
@@ -241,7 +243,7 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         _initScope(template, manifestid, manifestid ? 'modify' : 'create', nextFn);
     };
 
-    this.deleteResources = function(title, manifestid) {
+    this.deleteResources = function(title, manifestid, postDeleteFn) {
         _initScope(0, manifestid, 'delete');
 
         _init(null, title);
@@ -249,9 +251,9 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         .then(_q(_initDone))
         .then(_q(_deleteOldResources))
         .then(function() {
-            _onComplete(true);
+            _onComplete(true, postDeleteFn);
         }, function() {
-            _onComplete(false);
+            _onComplete(false, postDeleteFn);
         });
     };
 
@@ -281,20 +283,21 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         });
 	}
 	
-	function _onComplete(bSuccess) {
+	function _onComplete(bSuccess, postDeleteFn) {
         _q(_storeManifest)().then(function() {
-            _onComplete2(bSuccess);
+            _onComplete2(bSuccess, postDeleteFn);
         }, function() {
-            _onComplete2(false);
+            _onComplete2(false, postDeleteFn);
         });
 	}
 
-    function _onComplete2(bSuccess) {
+    function _onComplete2(bSuccess, postDeleteFn) {
         nlServerApi.noPopup(false);
         _setProgress('done');
         if (bSuccess) pl.imp(self.operation == 'delete' ? 'Deleted resources' : 'Import completed');
         else pl.error('Import failed');
         $scope.running = false;
+        if (postDeleteFn) postDeleteFn();
     }
     
     function _init(scofile, title) {
@@ -520,7 +523,7 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         var sco = self.scos[pos];
         pos++;
         var aofb = nl.fmt2(' {} of {}', pos, self.scos.length);
-        var section0 = nl.fmt2('scorm:/resource/reskeyview/{}', _getReskey(sco.href));
+        var section0 = nl.fmt2('scorm:/resource/resview/key/{}', _getReskey(sco.href));
         pl.debug('Creating scorm module' +  aofb, sco);
         nlServerApi.lessonCreate(self.template, false, sco.title, section0)
         .then(function(lessonId) {

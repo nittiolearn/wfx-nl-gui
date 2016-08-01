@@ -28,7 +28,8 @@ nlesson = function() {
 		this.getExistingPageIds = Lesson_getExistingPageIds;
 
 		// Initialize and render
-		this.initDom = Lesson_initDom;					// init + createHtmlDom (nittio.beforeInit)
+		this.initDom = Lesson_initDom;					// init
+		this.postInitDom = Lesson_postInitDom;          // createHtmlDom: after scorm init
 		this.editorToggleEditAndPreview = Lesson_editorToggleEditAndPreview; 
 		this.reRender = Lesson_reRender; 				// Invalidates all pages - on next page change they will be rendered
 														// edit (edit-gra) <-> view
@@ -50,7 +51,6 @@ nlesson = function() {
 		//						when page mode is changed as well. But this is called at page level - on page change
 		// adjustHtmlDom 	- 	This is called after all DOM elements are updated. This is needed
 		//						when page mode is changed as well. But this is called at page level - on page change
-		this.init = Lesson_init;						// just init the object
 		this.createHtmlDom = Lesson_createHtmlDom;		// create the html element
 		this.onEscape = Lesson_onEscape;
 		this.postRender = Lesson_postRender;			// (onSlideChanged)
@@ -141,11 +141,38 @@ nlesson = function() {
 	// Lesson Methods - Initialize and render
 	//--------------------------------------------------------------------------------------------
 	function Lesson_initDom() {
-		this.init();
+	    var self = this;
+        var jLesson = jQuery('#l_content').val();
+        self.oLesson = jQuery.parseJSON(jLesson);
+        self.bgimg = jQuery('#l_pageData .bgimg');
+        self.postRenderingQueue = new PostRenderingQueue(self);
+        njs_scorm.onInitLesson(self, g_nlPlayerType);
+    }
+
+    function Lesson_postInitDom() {
+        var self = this;
+        if (njs_scorm.isScormLms()) jQuery('.pagecanvas').addClass('scormlms');
+        if (self.renderCtx.launchMode() == 'report' && njs_scorm.nlPlayerType() == 'sco')
+            jQuery('.toolBar').hide();
+        nittio.setOnLeaveCheck(self.renderCtx.launchCtx() != 'view' &&
+          njs_scorm.nlPlayerType() != 'embedded' && !njs_scorm.isScormLms());
+
+        self.pages = [];
+        for (var i = 0; i < self.oLesson.pages.length; i++) {
+            var po = new Page(self);
+            po.init(self.oLesson.pages[i], self.bgimg);
+            self.pages.push(po);
+        }
+        self.pendingTimer = new njs_lesson_helper.PendingTimer();
+        self.pendingTimer.updateIfNeeded(self);
+        _Lesson_setupAutoSave(self);
 		
 		// Clearup Zodi flag and remember to reRenderAsReport the ones cleared in do mode
-		this.postRenderingQueue.initZodi();
-		this.createHtmlDom();
+		self.postRenderingQueue.initZodi();
+		self.createHtmlDom();
+        self.setupOnLeavePage();
+        if (self.renderCtx.launchMode() == 'report' && njs_scorm.nlPlayerType() != 'sco')
+            njs_lesson_helper.SubmitAndScoreDialog.showReportOverview(self);
 	}
 
 	function Lesson_editorToggleEditAndPreview() {
@@ -214,23 +241,6 @@ nlesson = function() {
 	//--------------------------------------------------------------------------------------------
 	// Lesson Methods - Initialize and render - internal methods
 	//--------------------------------------------------------------------------------------------
-	function Lesson_init() {
-		var jLesson = jQuery('#l_content').val();
-		this.oLesson = jQuery.parseJSON(jLesson);
-		this.bgimg = jQuery('#l_pageData .bgimg');
-        this.postRenderingQueue = new PostRenderingQueue(this);
-
-		this.pages = [];
-		for (var i = 0; i < this.oLesson.pages.length; i++) {
-			var po = new Page(this);
-			po.init(this.oLesson.pages[i], this.bgimg);
-			this.pages.push(po);
-		}
-		this.pendingTimer = new njs_lesson_helper.PendingTimer();
-		this.pendingTimer.updateIfNeeded(this);
-		_Lesson_setupAutoSave(this);
-	}
-	
 	function Lesson_createHtmlDom() {
 		var hPages = jQuery(njs_helper.fmt2("<div class='njsSlides {} mode_{}'></div>", 
 							this.globals.templateCssClass, this.renderCtx.launchMode()));
@@ -472,6 +482,7 @@ nlesson = function() {
 	}
 	
 	function Lesson_updateScoreDo() {		
+        if (njs_scorm.isScormLms()) return;
 		this.oLesson.maxScore = 0;
 		this.oLesson.score = 0;
 		this.oLesson.answered = [];
@@ -554,10 +565,10 @@ nlesson = function() {
 	function _Lesson_submitReport(lesson, ajaxUrl, redirUrl) {
 		_Lesson_saveInternal(lesson, ajaxUrl, function(data, isError) {
 			if (isError) return;
-			if (njs_scorm.isStandalone()) {
+            if (njs_scorm.nlPlayerType() == 'sco') {
 			    nittio.redirDelay('res/static/html/done.html', 0, true);
 			    return;
-			} else if (njs_scorm.isEmbedded()) {
+			} else if (njs_scorm.nlPlayerType() == 'embedded') {
 			    njs_scorm.postSubmitLesson();
 			    return;
 			}
@@ -569,6 +580,8 @@ nlesson = function() {
     function _Lesson_setupAutoSave(lesson) {
         // Autosave only when doing assignments
         if (lesson.renderCtx.launchCtx() != 'do_assign') return;
+        if (njs_scorm.isScormLms()) return;
+
         var onCompleteFn = null;
         window.setInterval(function() {
             lesson.saveAssignReport(true);
@@ -582,6 +595,10 @@ nlesson = function() {
 			if (onCompleteFn) onCompleteFn(null, true);
 			return true;
 		}
+        var pgNo = lesson.getCurrentPageNo();
+        if (pgNo > 0 && lesson.renderCtx.launchMode() == 'do') {
+            lesson.oLesson.currentPageNo = pgNo;
+        }
 		
 		if ('sessionStartTime' in lesson) {
 			var now = new Date();
@@ -593,7 +610,14 @@ nlesson = function() {
 		var content = bRaw ? jQuery('#l_content').val() : lesson.getContent();
 		if (!bRaw) jQuery('#l_content').val(content);
 
-		var ajaxParams = {content: content, lessonId: jQuery('#l_lessonId').val(), 
+        var contentForSave = content;
+        if(lesson.renderCtx.lessonMode() == 'edit') {
+            var saveVersion = lesson.oLesson.saveVersion || 0;
+            lesson.oLesson.saveVersion = saveVersion+1;
+            contentForSave = JSON.stringify(lesson.oLesson);
+        }
+		var ajaxParams = {content: contentForSave,
+		                  lessonId: jQuery('#l_lessonId').val(), 
 						  comments: '', responses: ''};	  
 
 		var bComment = njsCommentEditor.isValid();
@@ -614,6 +638,7 @@ nlesson = function() {
 		}
 		
 		if (njs_scorm.saveLesson(ajaxUrl, ajaxParams)) {
+            lesson.lastSavedContent = ajaxParams.content;
             if (onCompleteFn) onCompleteFn(null, false);
             return true;
 		}
@@ -1349,25 +1374,18 @@ nlesson = function() {
 	//---------------------------------------------------------------------------------------------
 	// Possible launchContext values: see njs_lesson_helper.RenderingContext
 	//---------------------------------------------------------------------------------------------
-    function init(launchContext, templateCssClass) {
-        njs_scorm.onInit(function(ctx) {
-            return _init(launchContext, templateCssClass);
-        });
-    }
-
-    function _init(launchContext, templateCssClass) {
+	var g_nlPlayerType = 'normal';
+    function init(launchContext, templateCssClass, nlPlayerType) {
+        g_nlPlayerType = nlPlayerType;
 		g_lesson.renderCtx.init(launchContext);
 		g_lesson.globals.templateCssClass = templateCssClass;
+
+        njs_scorm.afterInit(function() {
+            g_lesson.postInitDom();
+        });
 		
-		nittio.setOnLeaveCheck(g_lesson.renderCtx.launchCtx() != 'view' &&
-		  njs_scorm.canLeaveCheck());
-		
-		nittio.beforeInit(function() {
+		jQuery(function() {
 			g_lesson.initDom();
-			g_lesson.setupOnLeavePage();
-			if (g_lesson.renderCtx.launchMode() == 'report') {
-				njs_lesson_helper.SubmitAndScoreDialog.showReportOverview(g_lesson);
-			}
 		});
 		
 		nittio.onEscape(function() {
@@ -1379,13 +1397,18 @@ nlesson = function() {
 		});
 		
         nittio.onResize(function() {
-            g_lesson.reRender();
+            if (!njs_scorm.isScormLms()) g_lesson.reRender();
         });
         
 		nittio.afterInit(function(){
 			g_lesson.globals.slides = nittio.getSlidesObj();
 
 			window.setTimeout(function() {
+			    if (g_lesson.oLesson.currentPageNo && 
+                    g_lesson.renderCtx.launchMode() == 'do') {
+                    g_lesson.globals.slides.gotoPage(g_lesson.oLesson.currentPageNo);
+                    return;
+                }
 				var initialSearch = jQuery('#initial_search').val();
 				g_lesson.search(initialSearch);
 			}, 1000);

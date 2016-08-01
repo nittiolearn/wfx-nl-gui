@@ -48,7 +48,8 @@ function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog) {
         $scope.options = {version: [{id: '1.2', name: 'SCORM 1.2'}, {id: '2004 4th Edition', name: 'SCORM 2004 4th Edition'}]};
         $scope.error = {};
         var lessonid = parseInt(params.lessonid);
-        $scope.data = {lessonIds: '' + lessonid, version: {id: '2004 4th Edition'}};
+        $scope.data = {lessonIds: '' + lessonid, version: {id: '2004 4th Edition'},
+            title: 'Nittio Learn SCORM Module', mathjax: false};
     }
     
     $scope.onExport = function() {
@@ -62,7 +63,8 @@ function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog) {
             lessonIds[i] = parseInt(lessonIds[i]);
         }
         $scope.started = true;
-        scoExporter.export(lessonIds, $scope.data.version.id, $scope);
+        scoExporter.export(lessonIds, $scope.data.version.id, $scope.data.title, 
+            $scope.data.mathjax, $scope);
     }
 
 }];
@@ -77,11 +79,13 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl) {
     self.resources = {};
     self.zip = null;
     
-    this.export = function(lessonIds, version, scope) {
+    this.export = function(lessonIds, version, moduleTitle, mathjax, scope) {
         pl.clear();
+        self.moduleTitle = moduleTitle;
         self.savedSize = 0;
         self.lessonIds = lessonIds;
         self.version = version;
+        self.mathjax = mathjax;
         _q(_downloadPackageZip)()
         .then(_q(_openPackageZip))
         .then(_q(_downloadModules))
@@ -188,7 +192,7 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl) {
     function _generateMetadataXml(resolve, reject) {
         pl.debug('Generating metadata xml');
         var scope = {};
-        scope.title = 'Scorm export from Nittio Learn';
+        scope.title = self.moduleTitle;
         scope.uuid = nl.fmt2('fcfcfaf6-3440-4d50-8e81-ea0d58bcdda2-{}', (new Date()).getTime());
         scope.content_folder = CONTENT_FOLDER;
         scope.version = self.version;
@@ -335,7 +339,7 @@ function ParallelDownloadManager(nl, nlServerApi, pl, scoExporter, type, urls, r
 
     function _downloadLesson(lessonid, onDone) {
         pl.debug('Downloading SCO content from server', 'id: '+ lessonid);
-        return nlServerApi.scoExport({lessonid: lessonid})
+        return nlServerApi.scoExport({lessonid: lessonid, mathjax: scoExporter.mathjax})
         .then(function(result) {
             pl.info('Downloaded SCO content from server', result.html);
             pl.info(nl.fmt2('SCO uses {} resources (assets)', Object.keys(result.resurls).length),

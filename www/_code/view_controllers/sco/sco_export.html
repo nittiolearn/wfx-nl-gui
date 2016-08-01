@@ -1,11 +1,18 @@
 <div class='nl-thin-scroll padding-small'>
-    <div class='nl-dlg-field-name'>Enter comma seperated list of module ids to export</div>
+    <div class='nl-dlg-field-name'>Package Title</div>
     <div class='nl-dlg-field-value nl-forum'>
-        <nl-textarea fieldmodel='lessonIds'></nl-textarea>
+        <nl-input fieldmodel='title' fieldtype='text'></nl-input>
     </div>
     <div class='nl-dlg-field-name'>SCORM version</div>
     <div class='nl-dlg-field-value nl-forum'>
         <nl-select fieldmodel='version'></nl-select>
+    </div>
+    <div class='nl-dlg-field-name'>Enter comma seperated list of module ids to export</div>
+    <div class='nl-dlg-field-value nl-forum'>
+        <nl-textarea fieldmodel='lessonIds'></nl-textarea>
+    </div>
+    <div class='nl-dlg-field-value nl-forum'>
+        <input ng-model='data.mathjax' type='checkbox'><span>include MathJax libraries</span>
     </div>
     <div class='padding-small'>
         <div class='button button-positive' ng-click='onExport()'>Export</div>

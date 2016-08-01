@@ -101,7 +101,15 @@ var _dashboardActions = {
     'assign_desk.past': {'url': '/#/assignment?type=past&{}', 'permission': 'assignment_do', 'termCheck': 'Restricted'},
     'assign_desk.view': {'url': '/#/assignment?type=sent&{}', 'permission': 'assignment_send'},
     'assign_desk.manage': {'url': '/#/assignment?type=manage&{}', 'permission': 'assignment_manage'},
-    'assign_desk.shared': {'url': '/#/assignment?type=shared&{}', 'permission': 'basic_access'}
+    'assign_desk.shared': {'url': '/#/assignment?type=shared&{}', 'permission': 'basic_access'},
+    'course.view_my': {'url': '/#/course_list?my=1&{}', 'permission': 'course_create'},
+    'course.view_published': {'url': '/#/course_list?{}', 'permission': 'course_review'},
+    'course.view_assigned': {'url': '/#/course_assign_list?{}', 'permission': 'course_review'},
+    'course.do': {'url': '/#/course_report_list?my=1&{}', 'permission': 'course_do', 'termCheck': 'Restricted'},
+    'rno.list': {'url': '/#/rno_list?{}', 'permission': 'basic_access', 'termCheck': 'Restricted'},
+    'rno.view': {'url': '/#/rno_view?{}', 'permission': '', 'termCheck': 'Open'},
+    'sco.export': {'url': '/#/sco_export?{}', 'permission': 'lesson_approve'},
+    'sco.import': {'url': '/#/sco_import_list?{}', 'permission': 'lesson_approve'}
 };
 
 module_init();

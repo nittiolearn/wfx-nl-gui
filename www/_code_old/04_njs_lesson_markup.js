@@ -31,6 +31,8 @@ function _markupToHtmlLine(line, parentStack, lessPara, retData) {
 		return;
 	} else if (_markupToHtmlXxxInline(line, parentStack, _markupToHtmlVideo, retData.isTxt)) {
 		return;
+    } else if (_markupToHtmlXxxInline(line, parentStack, _markupToIframe, retData.isTxt)) {
+        return;
 	} else if (_markupToHtmlXxxInline(line, parentStack, _markupToHtmlPdf, retData.isTxt)) {
 		return;
 	}
@@ -120,6 +122,15 @@ function _markupToHtmlVideo(str, bInline) {
 		pos += 'end' in avpairs ? njs_helper.fmt2(',{}', avpairs['end']) : '';			
 		return njs_helper.fmt2('<video preload controls class="njs_video reset_height"><source src="{}{}"/></video>',link,pos);
 	});
+}
+
+function _markupToIframe(str, bInline) {
+    if (!_checkMarkup(str, 'iframe:') && !_checkMarkup(str, 'scorm:')) return '';
+    if(_checkMarkup(str, 'scorm:')) str = str.replace('scorm:','iframe:');
+    return _parseWikiMarker(str, 'iframe:', function(link, avpairs) {
+        if (link == '') return '';
+        return njs_helper.fmt2('<iframe src="{}"></iframe>',link);
+    });
 }
 
 function _markupToHtmlHeading(line, parentStack) {
