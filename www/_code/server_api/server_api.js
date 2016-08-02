@@ -481,6 +481,14 @@ function(nl, nlDlg, nlConfig, Upload) {
 	this.resourceDelete = function(resId){
         return server.post('_serverapi/resource_delete.json', {resid: resId});
 	};
+	
+	this.courseExportReports = function(assignIds){
+		return server.post('_serverapi/course_export_reports.json', {assignids: assignIds})
+	};
+	
+	this.courseExportCourses = function(courseIds){
+		return server.post('_serverapi/course_export_courses.json', {courseids: courseIds})
+	}
 
     //---------------------------------------------------------------------------------------------
     // Private methods
