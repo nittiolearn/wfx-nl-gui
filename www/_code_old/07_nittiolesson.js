@@ -653,7 +653,7 @@ nlesson = function() {
     
     function _Lesson_saveUpdatePgNo(lesson) {
         var pgNo = lesson.getCurrentPageNo();
-        if (pgNo > 0) lesson.oLesson.currentPageNo = pgNo;
+        lesson.oLesson.currentPageNo = pgNo;
     }
     
     function _Lesson_saveUpdateTime(lesson) {

@@ -327,11 +327,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
     };
     
     function _confirmIframeClose(newItem, nextFn) {
+        if (!$scope.iframeUrl || newItem && ($scope.iframeModule == newItem.id)) {
+            nextFn();
+            return;
+        }
         if ($scope.ext.isStaticMode()) {
             $scope.iframeUrl = null;
             $scope.iframeModule = null;
-        }
-        if (!$scope.iframeUrl || newItem && ($scope.iframeModule == newItem.id)) {
             nextFn();
             return;
         }
@@ -415,7 +417,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
     };
 
     $scope.onIconClick = function(e, cm) {
-        $scope.showPopup(e, cm, true);
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        function _impl() {
+            $scope.ext.setCurrentItem(cm);
+        }
+        _confirmIframeClose(null, _impl);
     }
 
     $scope.onClick = function(e, cm) {
@@ -426,7 +433,14 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
             if(cm.type === 'module') {
                 treeList.toggleItem(cm);
                 _showVisible();
-            } else if (!$scope.expandedView) _popout(true);
+            } else {
+                if (!$scope.expandedView) _popout(true);
+                
+                var openModule = $scope.ext.isStaticMode() || (cm.state.status == 'delayed') || 
+                    (cm.state.status == 'pending') || (cm.state.status == 'started');
+                openModule = openModule && (cm.type == 'lesson' || cm.type == 'link');
+                if (openModule) _onLaunchImpl(cm);
+            }
         }
         _confirmIframeClose(null, _impl);
     };
@@ -434,12 +448,15 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
     $scope.onLaunch = function(e, cm) {
         e.stopImmediatePropagation();
         e.preventDefault();
-        function _impl() {
-            if (cm.type === 'lesson') modeHandler.handleLessonLink(cm, false, $scope);
-            else if(cm.type === 'link') modeHandler.handleLink(cm, false, $scope);
-        }
-        _confirmIframeClose(cm, _impl);
+        _confirmIframeClose(cm, function() {
+            _onLaunchImpl(cm)
+        });
     };
+    
+    function _onLaunchImpl(cm) {
+        if (cm.type === 'lesson') modeHandler.handleLessonLink(cm, false, $scope);
+        else if(cm.type === 'link') modeHandler.handleLink(cm, false, $scope);
+    }
 
     $scope.onReattempt = function(e, cm) {
         var template = 'Current learing history for this module will be lost if you attempt this module once more. Do you want to continue?';
@@ -465,7 +482,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
         pending: {icon: 'ion-ios-circle-filled fyellow', title: 'Pending'},
         started: {icon: 'ion-ios-circle-filled fgreen', title: 'Started'},
         failed:  {icon: 'icon ion-close-circled forange', title: 'Failed'},
-        success: {icon: 'ion-checkmark-circled fgreen', title: 'Done'}
+        success: {icon: 'ion-checkmark-circled fgreen', title: 'Done'},
+        partial_success: {icon: 'ion-checkmark-circled forange', title: 'Partially Done'} // Only folder status
     }
 
     function _updateState(cm, state) {
@@ -513,12 +531,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
         }
         folderStats.updateTotals(folderStat);
         var status = 'success';
-        if (folderStat.failed > 0) status = 'failed';
+        if (folderStat.waiting == folderStat.total) status = 'waiting';
+        else if (folderStat.success == folderStat.total) status = 'success';
+        else if (folderStat.failed == folderStat.total) status = 'failed';
+        else if (folderStat.success + folderStat.failed == folderStat.total) status = 'partial_success';
         else if (folderStat.delayed > 0) status = 'delayed';
-        else if (folderStat.started > 0) status = 'started';
-        else if (folderStat.success > 0 && folderStat.pending > 0) status = 'started';
-        else if (folderStat.waiting > 0 && folderStat.pending == 0) status = 'waiting';
-        else if (folderStat.success > 0 && folderStat.pending == 0) status = 'success';
+        else if (folderStat.started + folderStat.failed + folderStat.success > 0) status = 'started';
         else status = 'pending';
         _updateState(cm, status);
     }
@@ -929,6 +947,11 @@ function CourseReportSummarizer($scope) {
             module.id = _getModuleId(cm.id, userReport.id);
             module.name = userReport.studentname;
             module.icon = 'user';
+            var start_after = module.start_after || [];
+            for(var j in start_after) {
+                var sa = start_after[j];
+                sa.module = _getModuleId(sa.module, userReport.id);
+            }
             ret.push(module);
         }
 

@@ -35,11 +35,17 @@
                 <i ng-show='!ext.isIconImg(ext.item)' class="icon {{ext.getIconCls(ext.item)}} bold fsh5"></i>
                 {{ext.item.name}}
             </div>
+            <span title='Show information'
+                  ng-if='iframeUrl'
+                  class='nl-toolbar-icon padding0'
+                  ng-click='onIconClick($event, ext.item)'>
+                <i class="icon ion-information-circled"></i>
+            </span>
             <span title='Close'
                   ng-if='popupView && !expandedView'
                   class='nl-toolbar-icon padding0'
                   ng-click='hidePopup(true)'>
-                <i class="icon ion-close-circled forange"></i>
+                <i class="icon ion-close-circled"></i>
             </span>
             <span title='Minimize'
                   ng-if='popupView && expandedView'
