@@ -98,41 +98,66 @@ function Exporter(nl, nlServerApi, nlExporter, pl, $scope) {
     };
     
     function _getCourseReports(resolve, reject) {
-        pl.imp('Getting course reports');
-    	nlServerApi.courseExportReports(self.courseAssignIds).then(function(reports){
+        pl.imp(nl.fmt2('Getting course assignment reports for {} assignments', 
+            self.courseAssignIds.length), angular.toJson(self.courseAssignIds, 2));
+        var assignIdReportCounts = _initAssignIdDict(self.courseAssignIds);
+    	nlServerApi.courseExportReports(self.courseAssignIds)
+    	.then(function(reports){
     		self.reports = reports;
-	        pl.debug('Got course reports', self.reports);
+	        pl.debug(nl.fmt2('Got {} course assignment reports', 
+	           self.reports.length), angular.toJson(self.reports, 2));
 	        for(var i=0; i<reports.length; i++){
 	        	self.courseIds[reports[i].courseid] = true;
+	        	assignIdReportCounts[reports[i].assignid]++;
 	        }
-	        pl.debug('Course Ids', self.courseIds);
+	        _checkAssignDict(assignIdReportCounts);
 	        self.setProgress('step1');
 	        resolve(true);
         }, function(error){
-        	pl.error('courseExportReports failed.', error);
+        	pl.error('courseExportReports failed', error);
         	reject();
         });
     }
     
+    function _initAssignIdDict(courseAssignIds) {
+        var ret = {};
+        for(var i in courseAssignIds) ret[courseAssignIds[i]] = 0;
+        return ret;
+    }
+    
+    function _checkAssignDict(assignIdReportCounts) {
+        var nMissingCnt = 0;
+        for(var assignid in assignIdReportCounts) {
+            if (assignIdReportCounts[assignid] == 0) nMissingCnt++;
+        }
+        if (nMissingCnt > 0) pl.error(nl.fmt2('Reports missing for {} assignments', 
+            nMissingCnt), angular.toJson(assignIdReportCounts, 2));
+        else pl.debug('Report counts per assignment id', 
+            angular.toJson(assignIdReportCounts, 2));
+    }
+
     function _getCourseData(resolve, reject) {
-        pl.imp('Getting courses');
+        pl.imp(nl.fmt2('Getting course data for {} courses', 
+            Object.keys(self.courseIds).length), angular.toJson(self.courseIds, 2));
         nlServerApi.courseExportCourses(self.courseIds).then(function(courses){
 	        self.courses = courses;
-	        pl.debug('Got courses', self.courses);        	
+	        pl.debug(nl.fmt2('Got course data for {} courses', 
+	           Object.keys(self.courses).length), angular.toJson(self.courses, 2));
 	        self.setProgress('step2');
 	        resolve(true);        
         }, function(error){
-        	pl.error("courseExportCourses failed.", error);
+        	pl.error("courseExportCourses failed", error);
         	reject();
         });
     }
     
     function _createExportChart(resolve, reject){
+        pl.imp('Exporting chart data'); 
     	var data = [];
-    	data.push(['Assignment id', 'Course id', "Assignment remark", 
-    				'Username', 'Course name', 'Course item name', 'Course item Id', 'Type', 'Planned date', 
-    				'Status', 'Start date', 'Completion Date', 
-    				'Score', 'Max Score', 'Time spent in sec', 'Remarks']);
+    	data.push(['Assignment id', 'Course id', 'Assignment remark', 'Userid', 'Username',
+    	           'Course name', 'Course item name', 'Course item Id', 'Type', 'Planned date', 
+    			   'Status', 'Start date', 'Completion Date', 
+    			   'Score', 'Max Score', 'Time spent in sec', 'Remarks']);
     	for(var i=0; i<self.reports.length; i++){
     		var report = self.reports[i];
     		var statusinfo = report.statusinfo || {};
@@ -148,6 +173,7 @@ function Exporter(nl, nlServerApi, nlExporter, pl, $scope) {
     	}
     	var fileName = nl.fmt2('CourseExport-{}.csv', nl.fmt.date2Str(new Date(), 'date'));
 		nlExporter.exportArrayTableToCsv(fileName, data);
+        pl.imp(nl.fmt2('Exported {} chart data records', data.length)); 
         self.setProgress('step3');
         resolve(true);
     }    
@@ -162,9 +188,10 @@ function Exporter(nl, nlServerApi, nlExporter, pl, $scope) {
     	var maxScore = lessonReport.maxScore || '';
     	var timeSpentSeconds = lessonReport.timeSpentSeconds || '';
     	var remarks = statusinfo.remarks || '';
-    	return [report.assignid, report.courseid, report.assignmentremark, report.username, 
-    		courseForReport.name, courseItem.name, courseItem.id, courseItem.type, courseItem.planned_date || '', 
-    		status, startedon, completedon, score, maxScore, timeSpentSeconds, remarks];
+    	return ['id=' + report.assignid, 'id=' + report.courseid, report.assignmentremark, 
+    	   'id=' + report.userid, report.username, courseForReport.name, courseItem.name, courseItem.id, 
+    	   courseItem.type, courseItem.planned_date || '', status, startedon, completedon,
+    	   score, maxScore, timeSpentSeconds, remarks];
     }
 }
 //-------------------------------------------------------------------------------------------------
