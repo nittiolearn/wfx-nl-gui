@@ -13,42 +13,95 @@ function(nl, nlDlg, nlServerApi) {
 	var ouList = [];
 	var selectedOuList = [];
 	var ouUserList = [];
+	var ouUserListCache = {};
 	var selectedUserTreedata = []; 
 	var selectedOuUserList = [];
 	var selectedOuUserListNames = [];
 	var sendAssignmentParams = null;
-
+	var orgUnitTogroupUsers = {};
+	var allUserCount = 0;
 	
     this.show = function(parentScope, assignInfo) {
 		var sendAssignmentDlg = nlDlg.create(parentScope);
 		_initSendAssignmentDlg(sendAssignmentDlg, assignInfo);
-		nlServerApi.getOuList().then(function(status) {
-			ouList = status;
-		});
 
 		sendAssignmentDlg.scope.onOuClick = function(){
-			_showOuListDlg(parentScope, sendAssignmentDlg, ouList);
+			_showOuListDlg(parentScope, sendAssignmentDlg, ouList);				
 		};
 		
 		sendAssignmentDlg.scope.onUserClick = function(){
 			if(selectedOuList.length == 0) {
 				nlDlg.popupAlert({title:'Alert message', template:nl.t('You may choose to send assignment to subset of users once you select the class/user group. Please select the class first.')});
-			} else{
-				var data = {oulist: selectedOuList};
-				nlServerApi.getOuUserList(data).then(function(status) {
-					ouUserList = [];
-					selectedOuUserList = [];
-					for(var key in status){
-						var arr1 = status[key];
-						for(var i in arr1){
-							if(arr1[i].users.length !== 0) ouUserList.push({name:key, children:arr1[i].users});
-						}
-					}
-					if(ouUserList.length == 0) return alertWhenNoUsers();
-					_showOuUserListDlg(parentScope, sendAssignmentDlg, ouUserList);
-  				});
+			return;	
 			}
+			var pendingOus = [];
+			for (var i in selectedOuList) {
+				var ou = selectedOuList[i];
+				if (ou in orgUnitTogroupUsers) continue;
+				pendingOus.push(ou);
+			}
+			if (pendingOus.length == 0) {
+				createUserTree();
+				return;
+			}
+			var data = {oulist: pendingOus};
+            nlDlg.showLoadingScreen();
+			nlServerApi.getOuUserList(data).then(function(status) {
+                nlDlg.hideLoadingScreen();
+				onUserListRecievedAfterServerCall(status);	
+			});
 		};
+	
+		function onUserListRecievedAfterServerCall(ouToGroupInfo) {
+			for (var ou in ouToGroupInfo) {
+				var ouGrpList = ouToGroupInfo[ou];
+				ouGrpList.sort(function(a, b) {
+					return a.name.localeCompare(b.name);
+				});
+				for (var i in ouGrpList) {
+					ouGrpList[i].users.sort(function(a, b) {
+						return a.name.localeCompare(b.name);
+					});
+				}
+				orgUnitTogroupUsers[ou] = ouGrpList;
+			}
+			createUserTree();
+		}
+	
+		function createUserTree() {
+			allUserCount = 0;
+			var bGroupNode = false;
+			var userTree = [];
+			for (var i in selectedOuList) {
+				var ou = selectedOuList[i];
+				var ouUserCount = 0;
+				var ouNode = {id: ou, name: ou, children: [], type: 'ou'};
+				var ouGrpList = orgUnitTogroupUsers[ou];
+				for (var grouplist in ouGrpList) {
+					var g = ouGrpList[grouplist];
+					var parentNode = ouNode;
+					if (g.users.length == 0) continue;
+					if (ouGrpList.length > 1) {
+						var grpNode = {id: nl.fmt2('{}/{}', ou, g.grpid), name: g.name, children: [], type: 'group'};
+						ouNode.children.push(grpNode);
+						parentNode = grpNode;
+					}
+					for (var userlist in g.users) {
+						var u = g.users[userlist];
+						var userNode = {id: u.id, name: u.name, children: [], type: 'user'};
+						parentNode.children.push(userNode);
+						ouUserCount++;
+					}
+				}
+				if (ouUserCount == 0) continue;
+				userTree.push(ouNode);
+				allUserCount += ouUserCount;
+			}
+			if(allUserCount == 0) return alertWhenNoUsers();
+			_showOuUserListDlg(parentScope, sendAssignmentDlg, userTree);
+		};
+		
+		
 		
 		sendAssignmentDlg.scope.onClickOnVisibleTo = function(){
 			var title = nl.t('selected group/classes');
@@ -72,7 +125,10 @@ function(nl, nlDlg, nlServerApi) {
 
 		nlDlg.showLoadingScreen();
 		sendAssignmentParams = sendAssignmentDlg;
-		_showDlg(parentScope, sendAssignmentDlg);
+		nlServerApi.getOuList().then(function(status) {
+			ouList = status;
+			_showDlg(parentScope, sendAssignmentDlg);
+		});
 	};
 
 	var LEARNMODE_SELF = 1;
