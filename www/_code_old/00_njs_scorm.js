@@ -177,33 +177,37 @@ function _saveLessonSco(bDone) {
     g_SB.finish();
     return true;
 }
+function _copyAttr(src, dest, attrSrc, attrDest) {
+    if (!attrDest) attrDest = attrSrc;
+    if (attrSrc in src) dest[attrDest] = src[attrSrc];
+}
 
 function _getLearningData(l) {
-    var ret = {
-        currentPageNo: l.currentPageNo || 0,
+    var ret = {answers: {}, correctanswers: {}, scores: {}, maxScores: {}};
+    _copyAttr(l, ret, 'currentPageNo');
 
-        started: l.started || null, ended: l.ended || null, 
-        timeSpentSeconds: l.timeSpentSeconds || null, 
+    _copyAttr(l, ret, 'started');
+    _copyAttr(l, ret, 'ended');
+    _copyAttr(l, ret, 'timeSpentSeconds');
 
-        score: l.score || null, passScore: l.passScore || null,
-        maxScore: l.maxScore || null,
+    _copyAttr(l, ret, 'score');
+    _copyAttr(l, ret, 'passScore');
+    _copyAttr(l, ret, 'maxScore');
 
-        answered: l.answered || null,
-        partAnswered: l.partAnswered || null,
-        notAnswered: l.notAnswered || null,
+    _copyAttr(l, ret, 'answered');
+    _copyAttr(l, ret, 'partAnswered');
+    _copyAttr(l, ret, 'notAnswered');
 
-        answers: {}, correctanswers: {},
-        scores: {}, maxScores: {}
-        };
     for(var i in l.pages) {
         var p = l.pages[i];
+        var key = p.pageId;
+        _copyAttr(p, ret.scores, 'score', key);
+        _copyAttr(p, ret.maxScores, 'maxScore', key);
         for(var j in p.sections) {
             var s = p.sections[j];
             var key = p.pageId + '-' + j;
-            if (s.answer) ret.answers[key] = s.answer;
-            if (s.correctanswer) ret.correctanswers[key] = s.correctanswer;
-            if (s.score) ret.scores[key] = s.score;
-            if (s.maxScore) ret.maxScores[key] = s.maxScore;
+            _copyAttr(s, ret.answers, 'answer', key);
+            _copyAttr(s, ret.correctanswers, 'correctanswer', key);
         }
     }
     return ret;
@@ -211,28 +215,30 @@ function _getLearningData(l) {
 
 function _updateLearningData(l, data) {
     if (data.currentPageNo) l.currentPageNo = data.currentPageNo;
+    _copyAttr(data, l, 'currentPageNo');
 
-    if (data.started) l.started = data.started;
-    if (data.ended) l.ended = data.ended;
-    if (data.timeSpentSeconds) l.timeSpentSeconds = data.timeSpentSeconds;
+    _copyAttr(data, l, 'started');
+    _copyAttr(data, l, 'ended');
+    _copyAttr(data, l, 'timeSpentSeconds');
 
-    if (data.score) l.score = data.score;
-    if (data.passScore) l.passScore = data.passScore;
-    if (data.maxScore) l.maxScore = data.maxScore;
+    _copyAttr(data, l, 'score');
+    _copyAttr(data, l, 'passScore');
+    _copyAttr(data, l, 'maxScore');
 
-    if (data.answered) l.answered = data.answered;
-    if (data.partAnswered) l.partAnswered = data.partAnswered;
-    if (data.notAnswered) l.notAnswered = data.notAnswered;
+    _copyAttr(data, l, 'answered');
+    _copyAttr(data, l, 'partAnswered');
+    _copyAttr(data, l, 'notAnswered');
 
     for(var i in l.pages) {
         var p = l.pages[i];
+        var key = p.pageId;
+        _copyAttr(data.scores, p, key, 'score');
+        _copyAttr(data.maxScores, p, key, 'maxScore');
         for(var j in p.sections) {
             var s = p.sections[j];
             var key = p.pageId + '-' + j;
-            if (key in data.answers) s.answer = data.answers[key];
-            if (key in data.correctanswers) s.correctanswer = data.correctanswers[key];
-            if (key in data.scores) s.score = data.scores[key];
-            if (key in data.maxScores) s.maxScore = data.maxScores[key];
+            _copyAttr(data.answers, s, key, 'answer');
+            _copyAttr(data.correctanswers, s, key, 'correctanswer');
         }
     }
 }
