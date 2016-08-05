@@ -141,6 +141,7 @@ nlesson = function() {
 	// Lesson Methods - Initialize and render
 	//--------------------------------------------------------------------------------------------
 	function Lesson_initDom() {
+	    jQuery('.toolBar').hide(); // shown later as needed!
 	    var self = this;
         var jLesson = jQuery('#l_content').val();
         self.oLesson = jQuery.parseJSON(jLesson);
@@ -151,11 +152,28 @@ nlesson = function() {
 
     function Lesson_postInitDom() {
         var self = this;
-        if (njs_scorm.isScormLms()) jQuery('.pagecanvas').addClass('scormlms');
-        if (self.renderCtx.launchMode() == 'report' && njs_scorm.nlPlayerType() == 'sco')
-            jQuery('.toolBar').hide();
+        if (njs_scorm.nlPlayerType() == 'sco') {
+            var ctx = self.renderCtx.launchCtx();
+            if (ctx != 'do_assign') {
+                // hide some toolbar icons
+                jQuery('#do_toggle_icon').hide();        
+                jQuery('#lesson_save_icon').hide();        
+                jQuery('#lesson_submit_icon').hide();        
+            } else if (!this.oLesson.selfLearningMode) {
+                jQuery('#ask_zodi_icon').hide();
+            }
+            jQuery('.toolBar').show();
+        } else {
+            var scormMode = njs_scorm.getScormLmsLessonMode();
+            var hideOuterNavigator = (scormMode !== null);
+            if (hideOuterNavigator) jQuery('.pagecanvas').addClass('scormlms');
+            var hideOuterToolbar = hideOuterNavigator && (self.renderCtx.launchMode() != 'edit');
+            if (!hideOuterToolbar) jQuery('.toolBar').show();
+        }
+
+
         nittio.setOnLeaveCheck(self.renderCtx.launchCtx() != 'view' &&
-          njs_scorm.nlPlayerType() != 'embedded' && !njs_scorm.isScormLms());
+          njs_scorm.nlPlayerType() != 'embedded' && scormMode === null);
 
         self.pages = [];
         for (var i = 0; i < self.oLesson.pages.length; i++) {
@@ -482,7 +500,7 @@ nlesson = function() {
 	}
 	
 	function Lesson_updateScoreDo() {		
-        if (njs_scorm.isScormLms()) return;
+        if (njs_scorm.getScormLmsLessonMode() !== null) return;
 		this.oLesson.maxScore = 0;
 		this.oLesson.score = 0;
 		this.oLesson.answered = [];
@@ -580,7 +598,7 @@ nlesson = function() {
     function _Lesson_setupAutoSave(lesson) {
         // Autosave only when doing assignments
         if (lesson.renderCtx.launchCtx() != 'do_assign') return;
-        if (njs_scorm.isScormLms()) return;
+        if (njs_scorm.getScormLmsLessonMode() !== null) return;
 
         var onCompleteFn = null;
         window.setInterval(function() {
@@ -1422,7 +1440,7 @@ nlesson = function() {
 		});
 		
         nittio.onResize(function() {
-            if (!njs_scorm.isScormLms()) g_lesson.reRender();
+            if (njs_scorm.getScormLmsLessonMode() === null) g_lesson.reRender();
         });
         
 		nittio.afterInit(function(){

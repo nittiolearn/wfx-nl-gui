@@ -529,7 +529,13 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         .then(function(lessonId) {
             pl.debug('Created scorm module' + aofb, lessonId);
             sco.lessonid = lessonId;
-            _createScormLesson(resolve, reject, pos);
+            nlServerApi.lessonApprove({lessonid:lessonId, exportLevel:0, selectedOus:[]})
+            .then(function(lessonId) {
+                pl.debug('Approved scorm module' + aofb, lessonId);
+                _createScormLesson(resolve, reject, pos);
+            }, function(msg) {
+                return _err(reject, 'Failed approving scorm module: ' + msg);
+            });
         }, function(msg) {
             return _err(reject, 'Failed creating scorm module: ' + msg);
         });
@@ -585,14 +591,6 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
     
     function _guessMimeType(fname) {
         return 'application/nittioguess';
-        /*
-        // May need implementation in the future
-        var pos = fname.lastIndexOf('.');
-        if (pos < 0) return '';
-        var extn = fname.substring(pos);
-        if (!(extn in _extn2Mime)) return '';
-        return _extn2Mime[extn];
-        */
     }
 
     function _q(fn) {

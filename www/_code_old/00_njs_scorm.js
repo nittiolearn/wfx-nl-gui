@@ -6,7 +6,7 @@ njs_scorm = function() {
 //#############################################################################################
 var g_nlPlayerType = 'normal'; // 'normal' || 'sco' || 'embedded'
 var g_lesson = null;
-var g_scormlms = null; // valid only when isScormLms() is true (i.e. running as LMS for SCORM content)
+var g_scormlms = null; // valid only when e. running as LMS for SCORM content
 var g_SB = null; // valid only for 'sco' (i.e. code running in external LMS as a SCORM content)
 var g_nlContainer = null; // valid only for 'embedded' (i.e. launched from course)
 
@@ -21,7 +21,7 @@ function onInitLesson(lesson, nlPlayerType) {
         return;
     }
 
-    if (l.scormlms && g_lesson.renderCtx.launchMode() != 'edit') {
+    if (l.scormlms) {
         g_scormlms = new ScormLms(g_lesson, l.scormlms);
         g_scormlms._internalInit();
         window.API = g_scormlms;
@@ -81,8 +81,10 @@ function _initScoBot(l) {
                 description: l.name, score: {min: '0', max: '' + l.maxScore||0}};
             g_SB.setObjective(obj);
             if (!l.started) l.started = _date2Str(new Date());
-        } else {
+        } else if (g_SB.getMode() == 'review') {
             g_lesson.renderCtx.init('report_assign_my');
+        } else {
+            g_lesson.renderCtx.init('view');
         }
         try {
             var content = g_SB.getSuspendDataByPageID('_overall');
@@ -128,8 +130,8 @@ function nlPlayerType() {
     return g_nlPlayerType;
 }
 
-function isScormLms() {
-    return g_scormlms != null;
+function getScormLmsLessonMode() {
+    return g_scormlms ? g_scormlms.lessonMode : null;
 }
 
 //#############################################################################################
@@ -177,11 +179,19 @@ function _saveLessonSco(bDone) {
 }
 
 function _getLearningData(l) {
-    var ret = {started: l.started || null, ended: l.ended || null, 
+    var ret = {
+        currentPageNo: l.currentPageNo || 0,
+
+        started: l.started || null, ended: l.ended || null, 
         timeSpentSeconds: l.timeSpentSeconds || null, 
+
         score: l.score || null, passScore: l.passScore || null,
         maxScore: l.maxScore || null,
-        currentPageNo: l.currentPageNo || 0,
+
+        answered: l.answered || null,
+        partAnswered: l.partAnswered || null,
+        notAnswered: l.notAnswered || null,
+
         answers: {}, correctanswers: {},
         scores: {}, maxScores: {}
         };
@@ -201,6 +211,7 @@ function _getLearningData(l) {
 
 function _updateLearningData(l, data) {
     if (data.currentPageNo) l.currentPageNo = data.currentPageNo;
+
     if (data.started) l.started = data.started;
     if (data.ended) l.ended = data.ended;
     if (data.timeSpentSeconds) l.timeSpentSeconds = data.timeSpentSeconds;
@@ -208,6 +219,10 @@ function _updateLearningData(l, data) {
     if (data.score) l.score = data.score;
     if (data.passScore) l.passScore = data.passScore;
     if (data.maxScore) l.maxScore = data.maxScore;
+
+    if (data.answered) l.answered = data.answered;
+    if (data.partAnswered) l.partAnswered = data.partAnswered;
+    if (data.notAnswered) l.notAnswered = data.notAnswered;
 
     for(var i in l.pages) {
         var p = l.pages[i];
@@ -225,14 +240,15 @@ function _updateLearningData(l, data) {
 //#############################################################################################
 function ScormLms(g_lesson, g_version) {
     var self = this;
-
+    
     this._internalInit = function() {
-        var launchMode = g_lesson.renderCtx.launchMode();
+        var launchCtx = g_lesson.renderCtx.launchCtx();
+        self.lessonMode = _launchCtx2LessonMode[launchCtx] || 'browse';
         var bFirst = _updateDataModel();
-        var entry = (launchMode == 'report') ? '' : bFirst ? 'ab-initio' : 'resume';
+
+        var entry = (self.lessonMode != 'normal') ? '' : bFirst ? 'ab-initio' : 'resume';
         self.LMSSetValue('cmi.core.entry', entry);
-        var lesson_mode = (launchMode == 'report') ? 'review' : 'normal';
-        self.LMSSetValue('cmi.core.lesson_mode', lesson_mode);
+        self.LMSSetValue('cmi.core.lesson_mode', self.lessonMode);
 
     };
     
@@ -261,14 +277,14 @@ function ScormLms(g_lesson, g_version) {
                 return '';
             }
         }
-        var ret = g_lesson.oLesson.scormDataModel[param] || '';
+        var ret = self.scormDataModel[param] || '';
         console.log('ScormLms:LMSGetValue(', param, ') => ', ret);
         return ret;
     };
 
     this.LMSSetValue = function(param, val) {
         this.lastError = '0';
-        g_lesson.oLesson.scormDataModel[param] = val;
+        self.scormDataModel[param] = val;
         for (var i in _arrayAttributes) {
             if (param.indexOf(_arrayAttributes[i]) != 0) continue;
             _updateArrayCount(_arrayAttributes[i], param);
@@ -279,7 +295,7 @@ function ScormLms(g_lesson, g_version) {
     };
 
     function _updateArrayCount(arrayAttr, param) {
-        var dm = g_lesson.oLesson.scormDataModel;
+        var dm = self.scormDataModel;
         var arraySize = parseInt(dm[arrayAttr + '._count']);
         var rest = param.substring(arrayAttr.length+1);
         var pos = rest.indexOf('.');
@@ -293,7 +309,11 @@ function ScormLms(g_lesson, g_version) {
     var _submitDone = false;
     this.LMSCommit = function(param) {
         this.lastError = '0';
-        var dm = g_lesson.oLesson.scormDataModel;
+        if (self.lessonMode != 'normal') {
+            console.log('ScormLms:LMSCommit: not possible in current mode', self.lessonMode);
+            return 'true';
+        }
+        var dm = self.scormDataModel;
         console.log('ScormLms:LMSCommit', param, dm);
 
         if (_saveWaiting) return 'true';
@@ -309,6 +329,7 @@ function ScormLms(g_lesson, g_version) {
     
             var isDone = _updateScoreAndCompletion(dm);
             if (isDone) _submitDone = true;
+            g_lesson.oLesson.scormDataModel = _deepCopy(self.scormDataModel);
     
             if (g_lesson.renderCtx.launchCtx() == 'do_assign')
                 if(isDone) g_lesson.submitAssignReport();
@@ -338,6 +359,14 @@ function ScormLms(g_lesson, g_version) {
     //-------------------------------------------------------------------------
     // Private
     //-------------------------------------------------------------------------
+    var _launchCtx2LessonMode = {
+        do_assign: 'normal',
+        report_assign_my: 'review', 
+        report_assign_review: 'review',
+        report_assign_shared: 'review',
+        report_lesson: 'review'
+    };
+
     var _defaultDataModel = {
         'cmi.core._children': 'student_id,student_name,lesson_mode,lesson_status,lesson_location,entry,exit,credit,score,total_time,session_time', 
 
@@ -377,10 +406,11 @@ function ScormLms(g_lesson, g_version) {
     
     function _updateDataModel() {
         if (!g_lesson.oLesson.scormDataModel) {
-            g_lesson.oLesson.scormDataModel = _defaultDataModel;
+            self.scormDataModel = _defaultDataModel;
             return true;
         }
-        var dm = g_lesson.oLesson.scormDataModel;
+        self.scormDataModel = _deepCopy(g_lesson.oLesson.scormDataModel);
+        var dm = self.scormDataModel;
         var keys = Object.keys(_defaultDataModel);
         for(var i in keys) {
             var k = keys[i];
@@ -388,6 +418,11 @@ function ScormLms(g_lesson, g_version) {
             dm[k] = _defaultDataModel[k];
         }
         return false;
+    }
+
+    function _deepCopy(input) {
+        var json = JSON.stringify(input);
+        return jQuery.parseJSON(json);
     }
     
     function _updateScoreAndCompletion(dm) {
@@ -423,7 +458,7 @@ return {
     onInitLesson: onInitLesson,
     afterInit: afterInit,
     nlPlayerType: nlPlayerType,
-    isScormLms: isScormLms,
+    getScormLmsLessonMode: getScormLmsLessonMode,
 
     saveLesson: saveLesson,
     postSubmitLesson: postSubmitLesson

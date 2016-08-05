@@ -421,6 +421,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
         e.preventDefault();
         function _impl() {
             $scope.ext.setCurrentItem(cm);
+            if (!$scope.expandedView) _popout(true);
         }
         _confirmIframeClose(null, _impl);
     }

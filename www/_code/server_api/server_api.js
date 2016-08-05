@@ -453,7 +453,7 @@ function(nl, nlDlg, nlConfig, Upload) {
 	};
 	
 	this.lessonApprove = function(data) {
-        // data: lessonId, exportLevel, selectedOus.
+        // data: lessonid, exportLevel, selectedOus.
         // return: list with approved lesson removed.
         return server.post('_serverapi/lesson_approve.json', data);
 	};

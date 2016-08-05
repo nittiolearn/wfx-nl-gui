@@ -331,7 +331,7 @@ a.enabled {
 	opacity: 0.85;
 }
 
-.scormlms .toolBar, .scormlms #pgNo, .scormlms .navigator {
+.scormlms #pgNo, .scormlms .navigator {
   display: none !important;
 }
 
