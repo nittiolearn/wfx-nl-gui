@@ -127,10 +127,10 @@
 
         <h3>
             <span class='button button-small button-positive'
-                  ng-show='formScope.hideRatings && msTree.items[0].selectCnt'
+                  ng-show='formScope.hideRatings'
                   ng-click='formScope.hideRatings=false'>Show</span>
             <span class='button button-small button-positive'
-                  ng-show='!formScope.hideRatings && msTree.items[0].selectCnt'
+                  ng-show='!formScope.hideRatings'
                   ng-click='formScope.hideRatings=true'>Hide</span>
             <span>{{msTree.items[0].selectCnt}} milestones ratings</span>
         </h3>
@@ -192,7 +192,10 @@
         </div>
         <div ng-if='formScope.metadata.report_model.summary'>
             <h3>{{formScope.metadata.report_model.summary.title}}</h3>
-            <nl-textarea fieldmodel='formScope.rno.data.report_info.summary'></nl-textarea>
+            <div class='nl-dlg-field-value nl-forum'>
+                <textarea ng-model='formScope.rno.data.report_info.summary'>
+                </textarea>
+            </div>
         </div>
         <div class='padding-small'></div>
         <div class='row row-center margin0 padding-small'>

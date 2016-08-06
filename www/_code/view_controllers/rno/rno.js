@@ -39,7 +39,8 @@ function($stateProvider, $urlRouterProvider) {
 var _pageGlobals = {
     userInfo: null,
     role: 'observe',
-    metadataId: 0,
+    metadataId: 0,  // The metadata is retreived from here
+    metadataIdParent: 0, // Actual rno records are stored under this metadata - by default same as metadataId
     metadata: null,
     enableDelete: false
 };
@@ -155,6 +156,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         _searchFilterInUrl = ('search' in params) ? params.search : '';
         _gradeFilterInUrl = ('grade' in params) ? params.grade : '';
         _pageGlobals.metadataId = ('metadata' in params) ? parseInt(params.metadata) : 0;
+        _pageGlobals.metadataIdParent = _pageGlobals.metadataId;
         _pageGlobals.role = ('role' in params) ? params.role : 'observe';
         _pageGlobals.enableDelete  = ('candelete' in params);
 	}
@@ -173,7 +175,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 	function _getDataFromServer(filter, resolve, reject) {
 	    var utSec = _gradeFilterInUrl.split('.');
 	    
-        nlServerApi.rnoGetList({metadata: _pageGlobals.metadataId, 
+        nlServerApi.rnoGetList({metadata: _pageGlobals.metadataIdParent, 
                                 search: filter, user_type: utSec[0] || '', 
                                 section: utSec[1] || '',
                                 role: _pageGlobals.role})
@@ -367,7 +369,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
             image: modifyDlg.scope.data.image
 		};
 		var modifiedData = {
-		    metadata: _pageGlobals.metadataId,
+		    metadata: _pageGlobals.metadataIdParent,
 		    config: angular.toJson(config),
 		    role: _pageGlobals.role
 		};
@@ -452,6 +454,8 @@ function RnoServer(nl, nlServerApi, nlDlg, bParent) {
             _pageGlobals.metadata = metadata.content;
             
             // Setting defaults
+            if ('metadataParent' in _pageGlobals.metadata) 
+                _pageGlobals.metadataIdParent = _pageGlobals.metadata.metadataParent;
             if (!('title' in _pageGlobals.metadata)) 
                 _pageGlobals.metadata.title = nl.t('Rating and observation dashboard');
             if (!('searchTitle' in _pageGlobals.metadata))
@@ -472,7 +476,9 @@ function RnoServer(nl, nlServerApi, nlDlg, bParent) {
     
     this.getData = function(rno) {
         nlDlg.showLoadingScreen();
-        return nlServerApi.rnoGetData(rno.id, null).then(function(newData) {
+        var metadata2 = _pageGlobals.metadataIdParent != _pageGlobals.metadataId
+            ? _pageGlobals.metadataId : null;
+        return nlServerApi.rnoGetData(rno.id, null, metadata2).then(function(newData) {
             nlDlg.hideLoadingScreen();
             rno.data = angular.fromJson(newData);
             _initRnoData(rno.data);
@@ -484,6 +490,13 @@ function RnoServer(nl, nlServerApi, nlDlg, bParent) {
         if (!rnoData.ratings) rnoData.ratings = {};
         if (!rnoData.report_info) rnoData.report_info = {};
         if (!rnoData.reportsSent) rnoData.reportsSent = {};
+
+        var rm = _pageGlobals.metadata.report_model;
+        if (!rm) return;
+        if (rm.year && !rnoData.report_info.year)
+            rnoData.report_info.year = {id:rm.year.values[0], name:rm.year.values[0]};
+        if (rm.term && !rnoData.report_info.term)
+            rnoData.report_info.term = {id:rm.term.values[0], name:rm.term.values[0]};
     }
 
     this.getSentReportData = function(rno, reportKey) {
@@ -500,7 +513,9 @@ function RnoServer(nl, nlServerApi, nlDlg, bParent) {
         if (mailData === undefined) mailData = {};
         nlDlg.showLoadingScreen();
         var data = angular.toJson(rno.data);
-        return nlServerApi.rnoUpdateData(rno.id, data, send, mailData)
+        var metadata2 = _pageGlobals.metadataIdParent != _pageGlobals.metadataId
+            ? _pageGlobals.metadataId : null;
+        return nlServerApi.rnoUpdateData(rno.id, data, send, mailData, metadata2)
         .then(function(newData) {
             nlDlg.hideLoadingScreen();
             rno.data = angular.fromJson(newData);
@@ -523,7 +538,7 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
         var ratings = o.ratings || {};
         dlg.scope.msTree = new MsTree(nl, nlDlg, _pageGlobals.metadata.milestones, rno.config.user_type, ratings);
         dlg.scope.options = {rating: _getRatingOptions()};
-        dlg.scope.purpose = 'observation';
+        dlg.scope.formScope = {purpose:'observation'};
         
         dlg.scope.onResourceClick = function(attachment, $index) {
             attachment.isSelected = false;
@@ -783,10 +798,6 @@ function RnoReportManageForm(nl, nlDlg, _rnoServer, _observationManager, _cards)
         _showReportPreview(rno.data, null);
     }
 
-    function _initData(rnoData) {
-        if (!rnoData.report_info) rnoData.report_info = {};
-    }
-    
     function _showReportPreview(rnoData, reportSent) {
         if (reportSent && reportSent.type == 'observation') {
             rnoData.ratings = rnoData.observations[0].ratings;
@@ -796,7 +807,7 @@ function RnoReportManageForm(nl, nlDlg, _rnoServer, _observationManager, _cards)
 
         var dlg = nlDlg.create($scope);
         dlg.setCssClass('nl-height-max nl-width-max');
-        dlg.scope.purpose = 'rating';
+        dlg.scope.formScope = {purpose:'rating'};
         dlg.scope.reportSent = reportSent;
         dlg.scope.image = _getCardIcon(nl, rno.config);
         dlg.scope.rnoConfig = rno.config;

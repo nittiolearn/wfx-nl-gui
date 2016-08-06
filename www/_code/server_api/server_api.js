@@ -271,9 +271,11 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/rno_delete.json', {id: rnoId});
     };
 
-    this.rnoGetData = function(rnoId, reportKey) {
+    this.rnoGetData = function(rnoId, reportKey, metadata2) {
         // return: rno data JSON
-        return server.post('_serverapi/rno_get_data.json', {id: rnoId, report_key: reportKey});
+        var data = {id: rnoId, report_key: reportKey};
+        if (metadata2) data.metadata2 = metadata2;
+        return server.post('_serverapi/rno_get_data.json', data);
     };
 
     this.rnoGetData2 = function(rnoId, reportKey) {
@@ -287,10 +289,11 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/rno_get_data_ex.json', {hashkey: hashKey});
     };
 
-    this.rnoUpdateData = function(rnoId, data, send, mailData) {
+    this.rnoUpdateData = function(rnoId, data, send, mailData, metadata2) {
         // return: updated rno data JSON
-        return server.post('_serverapi/rno_update_data.json', 
-            {id: rnoId, data:data, send:send, mail_data: mailData});
+        var data = {id: rnoId, data:data, send:send, mail_data: mailData};
+        if (metadata2) data.metadata2 = metadata2;
+        return server.post('_serverapi/rno_update_data.json', data);
     };
 
     //---------------------------------------------------------------------------------------------
