@@ -267,6 +267,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
             nl.fmt.addAvp(avps, um.last_name.title, rno.config.last_name);
         if ('email' in um)
             nl.fmt.addAvp(avps, um.email.title, rno.config.email);
+        if ('reply_to' in um)
+            nl.fmt.addAvp(avps, um.reply_to.title, rno.config.reply_to);
         if ('centre' in um)
             nl.fmt.addAvp(avps, um.centre.title, rno.config.centre);
         if ('user_type' in um)
@@ -327,7 +329,9 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 			var rno = _rnoDict[rnoId];
 			modifyDlg.scope.dlgTitle = nl.t('Modify properties');
 			modifyDlg.scope.data = {first_name: rno.config.first_name, last_name: rno.config.last_name, 
-									email: rno.config.email, image: rno.config.image,
+									email: rno.config.email, 
+									reply_to: rno.config.reply_to,
+									image: rno.config.image,
 									observer: rno.observerid,
 									reviewer: rno.reviewerid};
 		} else {
@@ -366,6 +370,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
             user_type: modifyDlg.scope.data.user_type.id, 
             section: modifyDlg.scope.data.section.id, 
             email: modifyDlg.scope.data.email, 
+            reply_to: modifyDlg.scope.data.reply_to, 
             image: modifyDlg.scope.data.image
 		};
 		var modifiedData = {
@@ -403,6 +408,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         if (!_validateMandatoryAttr(scope, 'user_type')) return false;
         if (!_validateMandatoryAttr(scope, 'section')) return false;
         if (!_validateMandatoryAttr(scope, 'email')) return false;
+        if (!_validateMandatoryAttr(scope, 'reply_to')) return false;
         if (!_validateMandatoryAttr(scope, 'image')) return false;
         return true;
     }
@@ -429,6 +435,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         rno.config.user_type  = modifiedData.user_type;
         rno.config.section  = modifiedData.section;
         rno.config.email  = modifiedData.email;
+        rno.config.reply_to  = modifiedData.reply_to;
         rno.config.image  = modifiedData.image;
 	}
 
@@ -807,7 +814,7 @@ function RnoReportManageForm(nl, nlDlg, _rnoServer, _observationManager, _cards)
 
         var dlg = nlDlg.create($scope);
         dlg.setCssClass('nl-height-max nl-width-max');
-        dlg.scope.formScope = {purpose:'rating'};
+        dlg.scope.formScope = $scope.formScope;
         dlg.scope.reportSent = reportSent;
         dlg.scope.image = _getCardIcon(nl, rno.config);
         dlg.scope.rnoConfig = rno.config;
@@ -858,7 +865,10 @@ function RnoReportManageForm(nl, nlDlg, _rnoServer, _observationManager, _cards)
 
     function _getReportKey(data) {
         if (!data.reportsSent) data.reportsSent = {};
-        return 'Report/' + data.report_info.year.id + '/' + data.report_info.term.id;
+        var ret = 'Report/' + data.report_info.year.id + '/' + data.report_info.term.id;
+        var metadata2Prefix = _pageGlobals.metadataIdParent != _pageGlobals.metadataId
+            ? nl.fmt2('{}_', _pageGlobals.metadataId) : '';
+        return metadata2Prefix + ret;
     }
     
     function _getMailData(bReport) {
@@ -880,7 +890,9 @@ function RnoReportManageForm(nl, nlDlg, _rnoServer, _observationManager, _cards)
             observer: rno.observername,
             student: nl.fmt2('{} {}', rno.config.first_name, rno.config.last_name)
         };
-
+        if (rno.config.reply_to) {
+            mailData.reply_to = rno.config.reply_to;
+        }
         return mailData;
     }
 }

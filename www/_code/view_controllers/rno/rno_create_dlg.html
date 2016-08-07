@@ -34,6 +34,8 @@
             </tr>
             <tr ng-if='model.email' nl-form-input fieldname='{{model.email.title}}'
                 fieldmodel='email' fieldtype='email'></tr>
+            <tr ng-if='model.reply_to' nl-form-input fieldname='{{model.reply_to.title}}'
+                fieldmodel='reply_to' fieldtype='email'></tr>
             <tr ng-if='model.image' nl-form-input fieldname='{{model.image.title}}'
                 fieldmodel='image' fieldtype='text'></tr>
             <tr ng-if='role == "admin"' nl-form-input fieldname='Observer'
