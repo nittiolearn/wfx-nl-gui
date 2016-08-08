@@ -274,7 +274,9 @@ function ScormLms(g_lesson, g_version) {
     this.LMSFinish = function(param) {
         this.lastError = '0';
         console.log('ScormLms:LMSFinish', param);
-        postSubmitLesson();
+        window.setTimeout(function() {
+            postSubmitLesson();
+        }, 1000);
         return 'true';
     };
 
@@ -345,7 +347,7 @@ function ScormLms(g_lesson, g_version) {
                 if(isDone) g_lesson.submitAssignReport();
                 else g_lesson.saveAssignReport(true);
             else if (isDone) g_lesson.submitLessonReport();
-        }, 1000);
+        }, 200);
         return 'true';
     };
 
