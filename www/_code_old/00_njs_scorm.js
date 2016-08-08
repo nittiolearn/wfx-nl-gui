@@ -11,7 +11,7 @@ var g_SB = null; // valid only for 'sco' (i.e. code running in external LMS as a
 var g_nlContainer = null; // valid only for 'embedded' (i.e. launched from course)
 
 //#############################################################################################
-function onInitLesson(lesson, nlPlayerType) {
+function onInitLesson(lesson, nlPlayerType, username, userdispname) {
     g_lesson = lesson;
     g_nlPlayerType = nlPlayerType;
 
@@ -23,7 +23,7 @@ function onInitLesson(lesson, nlPlayerType) {
 
     if (l.scormlms) {
         g_scormlms = new ScormLms(g_lesson, l.scormlms);
-        g_scormlms._internalInit();
+        g_scormlms._internalInit(username, userdispname);
         window.API = g_scormlms;
     }
 
@@ -82,13 +82,16 @@ function _initScoBot(l) {
             g_SB.setObjective(obj);
             if (!l.started) l.started = _date2Str(new Date());
         } else if (g_SB.getMode() == 'review') {
-            g_lesson.renderCtx.init('report_assign_my');
+            g_lesson.renderCtx.init('report_assign_review');
         } else {
             g_lesson.renderCtx.init('view');
         }
         try {
             var content = g_SB.getSuspendDataByPageID('_overall');
             if (content !== 'false') _updateLearningData(l, content);
+            var studentname = g_SB.getvalue('cmi.core.student_name');
+            var studentid = g_SB.getvalue('cmi.core.student_id');
+            console.log('Student info: ', studentname, studentid);
         } catch(e) {
             console.log('Exception in getSuspendDataByPageID', e);
         }
@@ -152,7 +155,7 @@ function _saveLessonEmbedded(bDone) {
 }
 
 function postSubmitLesson() {
-    g_nlContainer.close();
+    if (g_nlContainer) g_nlContainer.close();
 }
 
 function _saveLessonSco(bDone) {
@@ -247,10 +250,10 @@ function _updateLearningData(l, data) {
 function ScormLms(g_lesson, g_version) {
     var self = this;
     
-    this._internalInit = function() {
+    this._internalInit = function(username, userdispname) {
         var launchCtx = g_lesson.renderCtx.launchCtx();
         self.lessonMode = _launchCtx2LessonMode[launchCtx] || 'browse';
-        var bFirst = _updateDataModel();
+        var bFirst = _updateDataModel(username, userdispname);
 
         var entry = (self.lessonMode != 'normal') ? '' : bFirst ? 'ab-initio' : 'resume';
         self.LMSSetValue('cmi.core.entry', entry);
@@ -271,6 +274,7 @@ function ScormLms(g_lesson, g_version) {
     this.LMSFinish = function(param) {
         this.lastError = '0';
         console.log('ScormLms:LMSFinish', param);
+        postSubmitLesson();
         return 'true';
     };
 
@@ -410,8 +414,10 @@ function ScormLms(g_lesson, g_version) {
         'cmi.objectives'
     ];
     
-    function _updateDataModel() {
+    function _updateDataModel(username, userdispname) {
         if (!g_lesson.oLesson.scormDataModel) {
+            _defaultDataModel['cmi.core.student_id'] = username;
+            _defaultDataModel['cmi.core.student_name'] = userdispname;
             self.scormDataModel = _defaultDataModel;
             return true;
         }

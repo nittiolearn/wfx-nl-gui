@@ -147,7 +147,8 @@ nlesson = function() {
         self.oLesson = jQuery.parseJSON(jLesson);
         self.bgimg = jQuery('#l_pageData .bgimg');
         self.postRenderingQueue = new PostRenderingQueue(self);
-        njs_scorm.onInitLesson(self, g_nlPlayerType);
+        njs_scorm.onInitLesson(self, g_nlPlayerType, 
+            nittio.getUsername(), nittio.getUserdispname());
     }
 
     function Lesson_postInitDom() {
@@ -583,6 +584,7 @@ nlesson = function() {
 	function _Lesson_submitReport(lesson, ajaxUrl, redirUrl) {
 		_Lesson_saveInternal(lesson, ajaxUrl, function(data, isError) {
 			if (isError) return;
+			if (njs_scorm.getScormLmsLessonMode() !== null) return;
             if (njs_scorm.nlPlayerType() == 'sco') {
 			    nittio.redirDelay('res/static/html/done.html', 0, true);
 			    return;

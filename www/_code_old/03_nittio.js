@@ -699,6 +699,11 @@ nittio = function() {
 		return g_username;
 	}
 	
+	var g_userdispname = '';
+	function getUserdispname() {
+	    return g_userdispname;
+	}
+	
     function SoftKeyChecker() {
         var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         this.isSoftKeyOn = function() {
@@ -713,11 +718,12 @@ nittio = function() {
         _isPageLesson = true;
     }
 
-    function initPage(bDebug, retainAspect, transition, staticResFolder, staticVersion, bPrint, username) {
+    function initPage(bDebug, retainAspect, transition, staticResFolder, staticVersion, bPrint, username, userdispname) {
         g_transition = transition;
         g_staticResFolder = staticResFolder;
         g_staticVersion = staticVersion;
         g_username = username;
+        g_userdispname = userdispname;
         njs_helper.log_init(bDebug);
         if (_isPageLesson) {
             njs_scorm.afterInit(function() {
@@ -845,7 +851,8 @@ nittio = function() {
 		onEscape : onEscape,
 		getStaticResFolder : getStaticResFolder,
 		getStaticVersion : getStaticVersion,
-		getUsername : getUsername,
+        getUsername : getUsername,
+        getUserdispname : getUserdispname,
 		getSlidesObj : getSlidesObj,
 
 		// Keyboard shortcuts
