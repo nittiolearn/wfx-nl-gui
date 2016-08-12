@@ -365,6 +365,7 @@ function(nl, nlDlg, nlServerApi) {
 			_initouUserSelectionDlg(ouUserSelectionDlg, data);
 		
 		function _initouUserSelectionDlg(ouUserSelectionDlg, data) {
+            _updateTreeWithSelectedItems(data);
 			ouUserSelectionDlg.setCssClass('nl-height-max nl-width-max');	
 			ouUserSelectionDlg.scope.treeData = data;
 			ouUserSelectionDlg.scope.data = {};
@@ -384,6 +385,25 @@ function(nl, nlDlg, nlServerApi) {
 			selectedUserTreedata = ouUserSelectionDlg.scope.treeData;
 		};
 
+        function _updateTreeWithSelectedItems(tree) {
+            if (selectedOuUserList.length == 0) return;
+            var selectedUsers = {};
+            for(var i in selectedOuUserList)
+                selectedUsers[selectedOuUserList[i]] = true;
+        }
+
+        function _updateSubtreeWithSelectedItems(tree, selectedUsers) {
+            for (var i in tree) {
+                var node = tree[i];
+                if (node.type == 'user' && !selectedUsers[node.id]) {
+                    node.selected = false;
+                    continue;
+                }
+                if (node.children.length > 0)
+                    _updateSubtreeWithSelectedItems(node.children, selectedUsers);
+            }
+        }
+
 		function _getSelectedIds(tree) {
 			var ret = [];
 			var allSelected = _updateSelectedIds(tree, ret); 
@@ -399,11 +419,10 @@ function(nl, nlDlg, nlServerApi) {
 			var allSelected = true;
 			for (var i in tree) {
 				var node = tree[i];
-				if (node.selected && node.id) {
+				if (!node.selected) allSelected = false;
+				else if (node.type == 'user') {
 					selectedList.push(node.id);
 					selectedOuUserListNames.push(node.name);
-				} else {
-					allSelected = false;
 				}
 				var allChildrenSelected = _updateSelectedIds(node.children, selectedList);
 				if (!allChildrenSelected) allSelected = false;
