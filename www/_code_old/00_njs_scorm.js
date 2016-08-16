@@ -201,6 +201,8 @@ function _getLearningData(l) {
     _copyAttr(l, ret, 'partAnswered');
     _copyAttr(l, ret, 'notAnswered');
 
+    _copyAttr(l, ret, 'pagesFiltered');
+    
     for(var i in l.pages) {
         var p = l.pages[i];
         var key = p.pageId;
@@ -232,6 +234,8 @@ function _updateLearningData(l, data) {
     _copyAttr(data, l, 'partAnswered');
     _copyAttr(data, l, 'notAnswered');
 
+    _copyAttr(data, l, 'pagesFiltered');
+    
     for(var i in l.pages) {
         var p = l.pages[i];
         var key = p.pageId;

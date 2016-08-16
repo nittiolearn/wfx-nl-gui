@@ -539,6 +539,10 @@ npagetypes = function() {
 		return _getLayoutOfPage(section.page);
 	}
 	
+    function getPageTypeAttribute(pagetype, attrName, defaultValue) {
+	    return _getPageTypeAttribute(PageTypeMap[pagetype], attrName, defaultValue);
+	}
+        
 	function _getPageTypeAttribute(pagetype, attrName, defaultValue) {
 		if (!(attrName in pagetype)) return defaultValue;
 		return pagetype[attrName];
@@ -2398,6 +2402,7 @@ npagetypes = function() {
 		pageTypeDlgDone : pageTypeDlgDone,
 		onEditLayoutButtonClick : onEditLayoutButtonClick,
 		PageType: PageType,
+		getPageTypeAttribute: getPageTypeAttribute,
 
 		ANSWERED_NA: ANSWERED_NA,
 		ANSWERED_NO: ANSWERED_NO,

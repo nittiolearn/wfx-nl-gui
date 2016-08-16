@@ -145,6 +145,7 @@ nlesson = function() {
 	    var self = this;
         var jLesson = jQuery('#l_content').val();
         self.oLesson = jQuery.parseJSON(jLesson);
+        _Lesson_filterPages(self);
         self.bgimg = jQuery('#l_pageData .bgimg');
         self.postRenderingQueue = new PostRenderingQueue(self);
         njs_scorm.onInitLesson(self, g_nlPlayerType, 
@@ -868,6 +869,56 @@ nlesson = function() {
 		return false;
 	}
 
+    function _Lesson_filterPages(self) {
+        // Filter out question bank extra pages and "editor's notes" pages
+        if (self.renderCtx.launchCtx() != 'do_assign') return;
+        var oLesson = self.oLesson;
+        if (oLesson.pagesFiltered) return;
+        var pages = oLesson.pages;
+        var allowedMaxScore = oLesson.allowed_max_score;
+        var pageInfos = [];
+        var randPosArray = [];
+        
+        for(var i in pages) {
+            var p = pages[i];
+            if (p.visibility == 'editor') {
+                pageInfos.push({pos: i, maxScore: 0, newPos: -1});
+                continue;
+            }
+            if (!allowedMaxScore) {
+                pageInfos.push({pos: i, maxScore: 0, newPos: i});
+                continue;
+            }
+            var maxScore = ('pageMaxScore' in p) ? p.pageMaxScore
+                : npagetypes.getPageTypeAttribute(p.type, 'score', 0);
+            if (!maxScore) {
+                pageInfos.push({pos: i, maxScore: 0, newPos: i});
+                continue;
+            }
+            randPosArray.push(i);
+            pageInfos.push({pos: i, maxScore: maxScore, shallFilter: true});
+        }
+        
+        var positions = njs_helper.randSet(pages.length, randPosArray);
+        for(var i in pageInfos) {
+            if ('newPos' in pageInfos[i]) continue;
+            pageInfos[i].newPos = positions[i];
+        }
+        pageInfos.sort(function(a, b) {
+            return (a.newPos - b.newPos);
+        });
+        var newPages = [];
+        var maxScore = 0;
+        for(var i in pageInfos) {
+            if (pageInfos[i].newPos < 0) continue;
+            if (pageInfos[i].shallFilter && maxScore >= allowedMaxScore) {
+                continue;
+            }
+            maxScore += pageInfos[i].maxScore;
+            newPages.push(pages[pageInfos[i].pos]);
+        }
+        self.oLesson.pages = newPages;
+    }
 	//#############################################################################################
 	// Class modelling a Page in lesson
 	//#############################################################################################
