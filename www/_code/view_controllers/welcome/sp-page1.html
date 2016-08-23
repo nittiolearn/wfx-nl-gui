@@ -9,14 +9,13 @@
                class='w100'/></a>
         </div>
         <div class='col menuitems'>
-            <span ng-show='screenSize == "large"'
+            <span ng-show='screenSize == "large" || "medium"'
                   ng-repeat='menu in menus'
                   ng-click='gotoAnchor(menu.anchor)'>{{menu.name}}
             </span>
             <b class='padding-horizontal'></b>
-            <a href='#/login_now' class='bgyellow'>
-                <b ng-hide='screenSize == "small"'>Sign in </b>
-                <i class="icon ion-log-in bold"></i>
+            <a href='#/login_now'>
+                <b ng-hide='screenSize == "small"'>SIGN IN</b>
             </a>
         </div>
     </div>

@@ -284,7 +284,7 @@ $animation-duration: 200ms !default;
 }
 
 .nl-max-300 {
-  max-width: 300px;
+  max-width: 300%;
 }
 
 .nl-min-200 {
@@ -1466,6 +1466,14 @@ img.nl-full-width {
 
 .vh50 {
   min-height: 50vh;
+}
+
+.vh60 {
+  min-height: 60vh;  
+}
+
+.vh75 {
+  min-height: 75vh;
 }
 
 .vh25 {

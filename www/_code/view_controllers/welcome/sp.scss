@@ -40,6 +40,7 @@ $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
   //---------------------------------------------------------------------------
   // Background images
   //---------------------------------------------------------------------------
+
   .bg-img, .bg-img-opaque {
     position: absolute;
     top: 0;
@@ -49,12 +50,32 @@ $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
   }
 
   .bg-img-opaque {
-    background-color: black;
+    background-color: #ADD8E6;
+    z-index: -1;
+    opacity: 0.4;
+  }
+
+  .bg-img-opaque2 {
+    background-color: #F5F5F5;
     z-index: -1;
     opacity: 0.4;
   }
   
   .bg-img {
+    z-index: -2;   
+    background-size: cover;
+    /* background-image: will be defined in the html fragment */
+  }
+
+  .bg-img2, .bg-img-opaque2 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+  }
+
+  .bg-img2 {
     z-index: -2;   
     background-size: cover;
     /* background-image: will be defined in the html fragment */
@@ -66,7 +87,9 @@ $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
   .menuitems {
     text-align: right;
     color: #FFFFFF;
+    font-weight: bold;
     font-size: 120%;
+    padding-right: 50px;
     a, span {
       padding: 8px 20px;
       border-radius: 4px;

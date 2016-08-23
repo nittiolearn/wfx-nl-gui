@@ -10,7 +10,9 @@ function module_init() {
     // Direcives used across all static pages
     .directive('nlSp', SpDirective)
     .directive('nlSpStructuredData', StructuredDataDirective)
-    .directive('nlSpPage1', Page1Directive)
+    .directive('nlSpPage1', PageOneDirective)
+    .directive('nlSpPage2', PageTwoDirective)
+    .directive('nlSpPage3', PageThirdDirective)
     .directive('nlSpFooter', FooterDirective)
     .directive('nlSpCopyright', CopyrightDirective)
     .service('nlAnchorScroll', AnchorScrollSrv)
@@ -73,6 +75,7 @@ function() {
     };
 }];
 
+
 //-------------------------------------------------------------------------------------------------
 var StructuredDataDirective = [
 function() {
@@ -84,12 +87,31 @@ function() {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var Page1Directive = [
+var PageOneDirective = [
 function() {
     return {
         restrict: 'E',
         transclude: true,
         templateUrl: 'view_controllers/welcome/sp-page1.html'
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
+var PageTwoDirective = [
+function() {
+    return {
+        restrict: 'E',
+        transclude: true,
+        templateUrl: 'view_controllers/welcome/sp-second-page.html'
+    };
+}];
+//-------------------------------------------------------------------------------------------------
+var PageThirdDirective = [
+function() {
+    return {
+        restrict: 'E',
+        transclude: true,
+        templateUrl: 'view_controllers/welcome/sp-third-page.html'
     };
 }];
 
@@ -139,24 +161,35 @@ function(nl, $anchorScroll) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var _commonMsg = 'Much more than a Learning Management System.';
+var _commonMsg1 = 'Take your trainings online';
+var _commonMsg2 = 'the ones that really matter for your business';
 var _schoolMsg = 'Measure and improve the most important aspect of your school, the “Teaching quality”.';
 var _businessMsg = 'Manage your training with ease.';
-
+var _secondPageMsg = ['You know that continuous training of your key workforce on aspects specific to your business, is a force multiplier.',
+					  'You want the trainings to be super-dynamic - updated quickly to reflect the latest developments - and reaching your people on time.', 
+					  'Standard e-learning technology fails you with its prohibitively expensive content creation vendors and poorly designed LMSs. You fall back on class-room training - in no way continuous, and always a logistical nightmare.', 
+					  'Nittio Learn is a complete e-Learning solution for trainings that are core to your business - designed to ensure that your employees are continuously learning about the things that are most critical for your business.'];
+var _thirdPageMsg = ['Train your employees on',
+					 'what you wnat,',
+					 'when you want'];
 var WelcomeCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
 function(nl, nlRouter, $scope, nlAnchorScroll) {
     var welcomeConfig = {
         // Required in the controller
-        title: nl.t(_commonMsg),
+        title1: nl.t(_commonMsg1),
+        title2: nl.t(_commonMsg2),
         desc: 'Online training software for businesses. Teaching Quality Management solutions for schools.',
         pageUrl: null,
-        bgImg: 'background2.jpg',
-        menus: [],
-        
+        bgImg: 'backgroundblue.jpg',
+        bgImg2: 'backgroundwhite.jpg',
+        menus: [{name: 'Our school solutions', anchor: 'solutions'}],
+		    secondPageDesc: _secondPageMsg,
         // Required in the specific view template
         content: {
             schoolMsg: _schoolMsg,
-            businessMsg: _businessMsg
+            businessMsg: _businessMsg,
+            secondPageMsg: _secondPageMsg,
+            thirdPageMsg: _thirdPageMsg
         }
     };
     _staticPageCtrl(welcomeConfig, nl, nlRouter, $scope, nlAnchorScroll);
@@ -293,12 +326,13 @@ function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
             if (config.pageUrl) $scope.pageResUrl += '/' + config.pageUrl;
             
             $scope.content = config.content;
-            $scope.content.commonMsg = _commonMsg;
-            $scope.content.title = config.title;
+            $scope.content.commonMsg = _commonMsg1;
+            $scope.content.title1 = config.title1;
+            $scope.content.title2 = config.title2;
             $scope.content.desc = config.desc;
             $scope.menus = config.menus;
             $scope.bgImg = config.bgImg ? $scope.pageResUrl + '/' + config.bgImg : null;
-            
+            $scope.bgImg2 = config.bgImg2 ? $scope.pageResUrl + '/' + config.bgImg2 : null;
             nl.rootScope.pgBgimg = null;
             resolve(true);
             
