@@ -6,14 +6,8 @@
        background-image: url({{bgImg2}});
     }    
 </style>
-<div class='section vh100'>
-	<div class='section vh60 {{content.firstPageClass}}'>
-		<div ng-show='bgImg' class='bg-img-opaque'></div>
-	    <div ng-show='bgImg' ng-class='{"bg-img": bgImg}'></div>
-	    <div ng-transclude></div>
-	</div>
-	<div class='section vh40 {{content.firstPageClass}}'>
-		<div ng-show='bgImg2' class='bg-img-opaque'></div>
-	    <div ng-show='bgImg2' ng-class='{"bg-img2": bgImg2}'></div>
-	</div>
+<div class='section fwhite vh60 {{content.firstPageClass}}'>
+	<div ng-show='bgImg' class='bg-img-opaque'></div>
+    <div ng-show='bgImg' ng-class='{"bg-img": bgImg}'></div>
+    <div ng-transclude></div>
 </div>

@@ -1,81 +1,99 @@
 <style>
-	.welcome-title1{
-		font-size: 160%;
+	.page1-request-button{
+		padding: 2% 4%;
 		font-weight: normal;
-	}
-
-	.welcome-title2{
-		font-size: 160%;
-		font-weight: bold;
-	}
-	.nl-sep2{
-		padding: 2px;
+		font-size: 70%;
+		border: 3px solid white;
 	}
 	
-	.welcome-request{
-		padding: 2px 35px 2px 35px;
-		font-weight: normal;
-	}
-	
-	.second-page-header{
+	.page2-header{
 		font-weight: bold;
-		padding: 40px 0 5px 15px;
 		color: rgba(51, 173, 224, 0.9);  
 	}
 	
-	.second-page-description {
+	.page2-description {
 		font-weight: normal;
 		font-style: normal;
-		font-size: 100%;
-		padding: 30px 0 5px 15px;
+		padding: 30px 0 5px 4px;
 	}
 
-	.second-page-description-bold {
+	.page2-description-bold {
 		font-weight: bold;
-		font-size: 110%;
-		padding: 30px 0 5px 15px;
+		padding: 30px 0 5px 4px;
+	}
+
+	.nl-bolt-img{
+		width: 30px;
+		height: 35px;
 	}
 	
-	.third-page-img-padding {
-		padding-top: 80px;
-		padding-bottom: 0px;
-	}	
-	.col-20 {
-		padding: 0px;
+	.page3-image{
+		max-width: 40vmin;
+		position: absolute;
+		left: 0%;
+		bottom: 0%;
+		right: 0%;
+		padding-top: 25%;
 	}
-	 .row-left {
-	 	padding: 0px;
-	 }
+	
+	.third-page-section{
+		position: absolute;
+		left: 30%;
+		top: 20%;
+		bottom: 2%;
+	}
+	
+	.page3-description{
+		font-size: 4vw;
+	}
+
+	.page3-description-bold{
+		font-weight: bold;
+		font-size: 5vw;
+	}
+
 </style>
 <nl-sp>
     <nl-sp-page1>
         <div class='row row-center row-wrap vh75'>
             <div class='fsh2 text-center padding w100'>
-            	<p class='welcome-title1'>{{content.title1}}</p>
-            	<p class='welcome-title2'>{{content.title2}}</p></br>
-            	<p class='welcome-request'>Request a demo</p>
+            	<p class='fsh4'>{{content.title1}}</p>
+            	<p class='fsh2'>{{content.title2}}</p></br>
+            	<span class='page1-request-button'>Request a demo</span>
             </div>
         </div>
     </nl-sp-page1>
 	<nl-sp-page2>
         <div class='row row-left row-wrap'>
-            <div class='fsh2 w100'>
-				<div class='second-page-header'>Why Nittio Learn</div>
-				<p class='second-page-description'>{{content.secondPageMsg[0]}}</p>
-				<p class='second-page-description'>{{content.secondPageMsg[1]}}</p>
-				<p class='second-page-description'>{{content.secondPageMsg[2]}}</p>
-				<p class='second-page-description-bold'>{{content.secondPageMsg[3]}}</p>
+            <div class='fsh2 padding w100'>
+				<div class='fsh5 page2-header'>Why Nittio Learn</div>
+				<p class='page2-description'>{{content.secondPageMsg[0]}}</p>
+				<p class='page2-description'>{{content.secondPageMsg[1]}}</p>
+				<p class='page2-description'>{{content.secondPageMsg[2]}}</p>
+				<p class='page2-description-bold'>{{content.secondPageMsg[3]}}</p>
             </div>
         </div>
 	</nl-sp-page2>
 	<nl-sp-page3>
-            <div class='row row-center row-wrap'>
-            	<div class='col col-25' >
-                	<img class='nl-max-300 third-page-img-padding' ng-src='{{baseResUrl}}/lady.png'>
-            	</div>
-            	<!-- <div class='col col-75'>
-            		<p class='third-page-img-padding'>{{content.thirdPageMsg[0]}}</p>
-            	</div> -->            
+        <div class='row row-center row-wrap'>
+			<div class='padding text-center' ng-class='respCol33'>            
+                <img class='page3-image' ng-src='{{baseResUrl}}/lady.png'>
+			</div>
+			<div class='padding text-left third-page-section' ng-class='respCol67'>            
+	            <p class='page3-description'>{{content.thirdPageMsg[0]}}</p>
+	            <p class='page3-description-bold'>{{content.thirdPageMsg[1]}}</p>
+	            <p class='page3-description-bold'>{{content.thirdPageMsg[2]}}</p>
             </div>
+        </div>
 	</nl-sp-page3>
+	<nl-sp-page2>
+        <div class='row row-left row-wrap'>
+			<div class='fsh2 padding w100'>
+				<div class='fsh5 page2-header'>How do we do it</div>
+				<p class='page2-description'>{{content.fourthPageMsg[0]}}</p>
+				<p class='page2-description' ng-bind-html='content.fourthPageMsg[1]'></p>
+				<p class='page2-description' ng-bind-html='content.fourthPageMsg[2]'></p>
+            </div>
+		</div>
+	</nl-sp-page2>
 </nl-sp>
