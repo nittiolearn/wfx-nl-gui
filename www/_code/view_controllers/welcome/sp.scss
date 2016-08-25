@@ -50,7 +50,7 @@ $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
   }
 
   .bg-img-opaque {
-    background-color: #ADD8E6;
+    background-color: rgba(50, 175, 225, 0.8);
     z-index: -1;
     opacity: 0.4;
   }
@@ -167,3 +167,10 @@ $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
     width: 200px;
   }
 }
+  //---------------------------------------------------------------------------
+  // text coloring
+  //---------------------------------------------------------------------------
+
+  .nl-red{
+    color: #ef473a;
+  }
