@@ -165,19 +165,19 @@ var _commonMsg1 = 'Take your trainings online';
 var _commonMsg2 = 'the ones that really matter for your business';
 var _schoolMsg = 'Measure and improve the most important aspect of your school, the “Teaching quality”.';
 var _businessMsg = 'Manage your training with ease.';
-var _secondPageMsg = ['You know that continuous training of your key workforce on aspects specific to your business, is a force multiplier.',
-					  'You want the trainings to be super-dynamic - updated quickly to reflect the latest developments - and reaching your people on time.', 
-					  'Standard e-learning technology fails you with its prohibitively expensive content creation vendors and poorly designed LMSs. You fall back on class-room training - in no way continuous, and always a logistical nightmare.', 
-					  'Nittio Learn is a complete e-Learning solution for trainings that are core to your business - designed to ensure that your employees are continuously learning about the things that are most critical for your business.'];
 var _thirdPageMsg = ['Train your employees on',
 					 'what you want,',
 					 'when you want.'];
 					   
 var WelcomeCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
 function(nl, nlRouter, $scope, nlAnchorScroll) {
-	var _fourthPageMsg = ['Nittio Learn is not just an LMS or a content creation tool, but a complete learning platform designed for internal trainings.',
-						   nl.t("<p>With Nittio Learn's <b>bolt</b> <img src='{}' class='nl-bolt-img'> advantage, interactive training can be swiftly created and dispatched to your employees. The employee learn in immensive environment and you get a bird's eye view of all learning happening in your company.</p>", nl.url.resUrl('welcome/bolt.png')),
-						   nl.t("<p>Don’t have time for creating the self-learnable content? Worry not, for we provide that as a service – quickly and with great quality, enabled by Nittio Learn’s <b>bolt</b> <img src='{}' class='nl-bolt-img' style='align: middle;'> advantage combined with our internal hacks.</p>", nl.url.resUrl('welcome/bolt.png'))
+	var _secondPageMsg = [nl.t("<p>You know that continuous training of your key workforce on aspects specific to your business, is a force multiplier.</p>"),
+						  nl.t("<p>You want the trainings to be super-dynamic - updated quickly to reflect the latest developments - and reaching your people on time.</p>"), 
+						  nl.t("<p>Standard e-learning technology fails you with its prohibitively expensive content creation vendors and <span class='nl-red'>poorly designed LMSs</span>. You fall back on class-room training - in no way continuous, and always a logistical nightmare.</p>"), 
+						  nl.t("Nittio Learn is a complete e-Learning solution for trainings that are core to your business - designed to ensure that your employees are continuously learning about the things that are most critical for your business.</p>")];
+	var _fourthPageMsg = [nl.t("<p>Nittio Learn is not just an LMS or a content creation tool, but a complete learning platform <span class='nl-red'>designed for internal trainings</span>.<p>"),
+						  nl.t("<p>With Nittio Learn, interactive training can be swiftly created and dispatched to your employees. The employee learn in immensive environment and you get a bird's eye view of all learning happening in your company.</p>", nl.url.resUrl('welcome/bolt.png')),
+						  nl.t("<p>Don’t have time for creating the self-learnable content? Worry not, for we provide that as a service – quickly and with great quality, enabled by Nittio Learn combined with our <span class='nl-red'>internal hacks</span>.</p>", nl.url.resUrl('welcome/bolt.png'))
 						 ];
 						   
     var welcomeConfig = {
