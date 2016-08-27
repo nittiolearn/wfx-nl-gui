@@ -44,13 +44,6 @@
 		bottom: 2%;
 	}
 	
-	.page3-description{
-		/*font-size: 4vw;*/	}
-
-	.page3-description-bold{
-		/*font-weight: bold;
-		font-size: 5vw;*/	}
-	
 	.sp-page5-col2{
 		text-align: right;
 	}
@@ -80,12 +73,16 @@
 	.sp-page6-col1-img{		
 		background-color: white;
 		margin-right: 20px;
-		max-height: 40%;
+		margin-bottom: 20px;
+		min-height: 250px;
+		max-height: 100%;
 	}
 
 	.sp-page6-col2-img{
 		margin-right: 20px;
-		max-height: 40%;
+		margin-bottom: 20px;
+		min-height: 250px;
+		max-height: 100%;
 	    background-color: rgba(50, 175, 225, 0.8);
 	}
 
@@ -109,6 +106,24 @@
 	.fsh7{
 		font-size: 225%;
 		font-weight: bold
+	}
+
+	.sp-page8-img{
+		max-width: 50vmin;
+		position: absolute;
+		bottom: 0%;
+		right: 0%;
+		padding-top: 25%;		
+	}
+	.sp-page8-desc{
+		padding-top: 180px;
+	}
+	
+	.sp-page8-desc-bold{
+		font-size: 80%;
+		font-weight: bold;
+		padding-left: 30px;
+		padding-top: 40px;
 	}
 </style>
 <nl-sp>
@@ -189,7 +204,7 @@
         	</div>
 		</div>
 	</nl-sp-page3>
-	<nl-sp-page2>
+	<nl-sp-page4>
         <div class='row row-left row-wrap'>
 			<div class='fsh2 padding w100'>
 				<div class='fsh5 page2-header'>With Nittio Learn, you get immersive, gamified microlearning at your fingertips</div>
@@ -218,7 +233,6 @@
 			                <p>Learner led</p>
 			                <p class='sp-page6-desc'>Allow learner to choose what to learn, or guide then with a pre-set course.</p>
 						</div>
-						<!-- <div class='col col-10'></div> -->						
 						<div class='col col-40 text-center sp-page6-col2-img'>
 			                <img class='sp-page6-img' ng-src='{{baseResUrl}}/branched.png'>
 			                <p>Branched learning</p>
@@ -228,7 +242,84 @@
 				</div>			            	
             </div>
         </div>
-	</nl-sp-page2>
+	</nl-sp-page4>
 	<nl-sp-page2>
+        <div class='row row-wrap row-left fsh2 padding w100'>
+			<div class='col col-50'>
+				<div class='row row-left row-wrap'>
+					<div class='col col-40 text-center sp-page6-col1-img'>
+						<div><img class='sp-page6-img' ng-src='{{baseResUrl}}/voiceover.png'></div>
+		                <p>Voiceovers</p>
+		                <p class='sp-page6-desc'>Make your content speak in accent of your choice with automatic text to speech or recorded human voice.</p>
+					</div>
+					<div class='col col-40 text-center sp-page6-col1-img'>
+		                <img class='sp-page6-img' ng-src='{{baseResUrl}}/slicedvideo.png'>
+		                <p>Video slicing</p>
+		                <p class='sp-page6-desc'>No cumbersome editing. Just define time interval to embed part of video.</p>
+					</div>						
+				</div>
+			</div>
+			<div class='col col-50'>
+				<div class='row row-left row-wrap'>
+					<div class='col col-40 text-center sp-page6-col2-img'>
+		                <img class='sp-page6-img' ng-src='{{baseResUrl}}/social.png'>
+		                <p>Social learning</p>
+		                <p class='sp-page6-desc'>Blend topic specific discussin forum to learning with a click of a button.</p>
+					</div>
+					<div class='col col-40 text-center sp-page6-col2-img'>
+		                <img class='sp-page6-img' ng-src='{{baseResUrl}}/leaderboard.png'>
+		                <p>Leaderboard</p>
+		                <p class='sp-page6-desc'>Instill healthy competation with customized leaderboards.</p>
+					</div>
+				</div>
+			</div>			            	
+        </div>
+        <div class='row row-wrap row-left fsh2 padding w100'>
+			<div class='col col-50'>
+				<div class='row row-left row-wrap'>
+					<div class='col col-40 text-center sp-page6-col1-img'>
+						<div><img class='sp-page6-img' ng-src='{{baseResUrl}}/responsive.png'></div>
+		                <p>Responsive</p>
+		                <p class='sp-page6-desc'>Everything you create, including images and videos automatically fit to all device sizes.</p>
+					</div>
+				</div>
+			</div>
+			<div class='col col-50'>
+				<div class='row row-left row-wrap'>
+					<div class='col col-40 text-center sp-page6-col2-img'>
+		                <img class='sp-page6-img' ng-src='{{baseResUrl}}/device.png'>
+		                <p>Device independent</p>
+		                <p class='sp-page6-desc'>Give freedom to your learners to learn on any device.</p>
+					</div>
+				</div>
+			</div>
+		</div>			            	
+	</nl-sp-page2>
+	<nl-sp-page4>
+        <div class='row row-left row-wrap'>
+			<div class='fsh4 padding text-left sp-page8-desc col col-70' >            
+	            <div class='sp-page8-desc-bold'>By the way, you can upload and re-use your exsisting training contentor SCROM learning modules.</div>
+	            <div class='sp-page8-desc-bold'>And if you still think you would rather not spend time on content creation, we will provide that service to you.</div>
+            </div>
+			<div class='fsh4 padding text-right col col-30'>            
+                <img class='sp-page8-img' ng-src='{{baseResUrl}}/man.png'>
+			</div>
+        </div>		
+	</nl-sp-page4>
+	<nl-sp-page3>
+        <div class='row row-left row-wrap'>
+			<div class='fsh4 padding text-left' >            
+			</div>
+		</div>
+	</nl-sp-page3>
+	<nl-sp-page2>
+        <div class='row row-left row-wrap'>
+			<div class='fsh4 padding text-left' >Can you imagine the the benifits if......</div>
+		</div>		
+        <div class='row row-left row-wrap'>
+			<div class='fsh6 padding text-left' >
+				<p class'page2-description'>...training your employees was as easy as using What'sApp or email.</p>
+			</div>
+        </div>
 	</nl-sp-page2>
 </nl-sp>
