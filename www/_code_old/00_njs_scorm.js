@@ -165,11 +165,7 @@ function postSubmitLesson() {
     _copyAttr(l, result, 'ended');
     _copyAttr(l, result, 'timeSpentSeconds');
     _copyAttr(l, result, 'score');
-    _copyAttr(l, result, 'passScore');
     _copyAttr(l, result, 'maxScore');
-    _copyAttr(l, result, 'answered');
-    _copyAttr(l, result, 'partAnswered');
-    _copyAttr(l, result, 'notAnswered');
     var msg = {operation: 'end_learning_session', result: result};
     window.parent.postMessage(JSON.stringify(msg), '*');
 }
