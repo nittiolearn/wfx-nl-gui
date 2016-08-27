@@ -148,7 +148,7 @@ nlesson = function() {
         _Lesson_filterPages(self);
         self.bgimg = jQuery('#l_pageData .bgimg');
         self.postRenderingQueue = new PostRenderingQueue(self);
-        njs_scorm.onInitLesson(self, g_nlPlayerType, 
+        njs_scorm.onInitLesson(self, g_nlPlayerType, g_nlEmbedType,
             nittio.getUsername(), nittio.getUserdispname());
     }
 
@@ -1471,8 +1471,10 @@ nlesson = function() {
 	// Possible launchContext values: see njs_lesson_helper.RenderingContext
 	//---------------------------------------------------------------------------------------------
 	var g_nlPlayerType = 'normal';
-    function init(launchContext, templateCssClass, nlPlayerType) {
+	var g_nlEmbedType = '';
+    function init(launchContext, templateCssClass, nlPlayerType, nlEmbedType) {
         g_nlPlayerType = nlPlayerType;
+        g_nlEmbedType = nlEmbedType;
 		g_lesson.renderCtx.init(launchContext);
 		g_lesson.globals.templateCssClass = templateCssClass;
 
