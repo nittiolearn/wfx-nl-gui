@@ -1,21 +1,22 @@
 <div class='section fwhite vh100 {{content.firstPageClass}}'>
     <div ng-show='bgImg' class='bg-img-opaque'></div>
     <div ng-show='bgImg' ng-class='{"bg-img": bgImg}'></div>
-    <div class='row row-top padding-vertical'>
+    <div class='row row-top'>
         <div class='col fixed-200'>
-            <a ng-href='{{homeUrl}}'><img ng-src='{{baseResUrl}}/nittiologo2.png'
+            <a ng-href='{{homeUrl}}'><img ng-src='{{baseResUrl}}/nittiologo3.png'
                alt='Nittio Learn - {{content.commonMsg}}'
                title='Nittio Learn - {{content.commonMsg}}'
                class='w100'/></a>
         </div>
         <div class='col menuitems'>
-            <span ng-show='screenSize == "large" || "medium"'
+            <span ng-show='screenSize == "large"'
                   ng-repeat='menu in menus'
                   ng-click='gotoAnchor(menu.anchor)'>{{menu.name}}
             </span>
             <b class='padding-horizontal'></b>
-            <a href='#/login_now'>
-                <b ng-hide='screenSize == "small"'>SIGN IN</b>
+            <a href='#/login_now'  class='bgyellow'>
+                <b ng-hide='screenSize == "small"'>Sign in</b>
+                <i class="icon ion-log-in bold"></i>
             </a>
         </div>
     </div>

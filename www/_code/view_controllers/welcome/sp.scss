@@ -89,7 +89,6 @@ $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
     color: #FFFFFF;
     font-weight: bold;
     font-size: 120%;
-    padding-right: 50px;
     a, span {
       padding: 8px 20px;
       border-radius: 4px;
@@ -99,9 +98,9 @@ $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
       }
     }
     .bgyellow {
-      background-color: rgba(255, 204, 0, 0.9);
+      background-color: rgba(255, 255, 0, 0.9);
       &:hover, &:focus {
-        background-color: rgba(255, 204, 0, 1);
+        background-color: rgba(255, 255, 0, 1);
         color: black;
       }
     }

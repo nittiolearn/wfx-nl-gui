@@ -1,28 +1,26 @@
 <style>
 	.page1-request-button{
-		padding: 2% 4%;
+		padding: 1% 2%;
 		font-weight: normal;
 		font-size: 75%;
 		border: 3px solid white;
+		border-radius: 5px;
 	}
 	
 	.page2-header{
 		font-weight: bold;
 		font-size: 80%;
-		color: rgba(51, 173, 224, 0.9);  
+		color: rgba(51, 173, 224, 0.9);
+		padding-bottom: 20px;  
 	}
 	
-	.page2-description {
+	.page2-description, .page2-description-bold{
 		font-size: 66%;
 		font-weight: normal;
-		font-style: normal;
-		padding: 30px 0 5px 4px;
 	}
 
 	.page2-description-bold {
 		font-weight: bold;
-		font-weight: 66%;
-		padding: 30px 0 5px 4px;
 	}
 
 	.nl-bolt-img{
@@ -60,7 +58,7 @@
 	}
 	
 	.sp-page5-col1-text{
-		font-family: "Goudy Old Style", Garamond, "Big Caslon", "Times New Roman", serif;
+		font-family:"cursive", "Papyrus", "Goudy Old Style", Garamond, "Big Caslon", "Times New Roman", serif;
 		font-size: 120%;
 		font-weight: bold;	
 	}
@@ -113,7 +111,7 @@
 </style>
 <nl-sp>
     <nl-sp-page1>
-        <div class='row row-center row-wrap vh75'>
+        <div class='row row-center row-wrap vh100'>
             <div class='fsh2 text-center padding w100'>
             	<p class='fsh4 sp-page1-title1'>{{content.title1}}</p>
             	<p class='fsh4 sp-page1-title2'>{{content.title2}}</p></br>
@@ -125,68 +123,87 @@
         <div class='row row-left row-wrap'>
             <div class='fsh2 padding w100'>
 				<div class='page2-header'>Why Nittio Learn</div>
-				<p class='page2-description' ng-bind-html='content.secondPageMsg[0]'></p>
-				<p class='page2-description' ng-bind-html='content.secondPageMsg[1]'></p>
-				<p class='page2-description' ng-bind-html='content.secondPageMsg[2]'></p>
+				<p class='page2-description padding-bottom' ng-bind-html='content.secondPageMsg[0]'></p>
+				<p class='page2-description  padding-bottom' ng-bind-html='content.secondPageMsg[1]'></p>
+				<p class='page2-description padding-bottom' ng-bind-html='content.secondPageMsg[2]'></p>
 				<p class='page2-description-bold' ng-bind-html='content.secondPageMsg[3]'></p>
             </div>
         </div>
 	</nl-sp-page2>
 	<nl-sp-page3>
-        <div class='row row-left row-wrap'>
-			<div class='fsh4 padding text-center col col-40'>            
-                <img class='page3-image' ng-src='{{baseResUrl}}/lady.png'>
+        <div class='row row-left row-wrap padding'>
+        </div>
+        <div class='row row-left'>
+			<div class='fsh4 padding-top text-center col col-40 col-bottom' ng-hide='screenSize == "small"'>            
+                <img class='nl-max-300' ng-src='{{baseResUrl}}/lady.png'>
 			</div>
-			<div class='fsh4 padding text-left third-page-section col col-60' >            
+			<div class='fsh4 text-left third-page-section col col-60' >            
 	            <p class='fsh4'>{{content.thirdPageMsg[0]}}</p>
-	            <p class='fsh7'>{{content.thirdPageMsg[1]}}</p>
-	            <p class='fsh7'>{{content.thirdPageMsg[2]}}</p>
+	            <p class='fsh2'>{{content.thirdPageMsg[1]}}</p>
+	            <p class='fsh2'>{{content.thirdPageMsg[2]}}</p>
             </div>
         </div>
 	</nl-sp-page3>
 	<nl-sp-page2>
         <div class='row row-left row-wrap'>
 			<div class='fsh2 padding w100'>
-				<div class='fsh5 page2-header'>How do we do it</div>
-				<p class='page2-description' ng-bind-html='content.fourthPageMsg[0]'></p>
-				<p class='page2-description' ng-bind-html='content.fourthPageMsg[1]'></p>
+				<div class='page2-header'>How do we do it</div>
+				<p class='page2-description padding-bottom' ng-bind-html='content.fourthPageMsg[0]'></p>
+				<p class='page2-description padding-bottom' ng-bind-html='content.fourthPageMsg[1]'></p>
 				<p class='page2-description' ng-bind-html='content.fourthPageMsg[2]'></p>
             </div>
 		</div>
 	</nl-sp-page2>
 	<nl-sp-page3>
         <div class='row row-left row-wrap'>
-            <div class='fsh3 padding w100'>
-				<p class='fsh6 nl-sep8'>Do not struggle to tie the pieces together.</p>
-				<p class='fsh5'>Everything essential for effective e-learning – in one place</p>
+            <div class='padding w100 fsh4'>
+				<p class='fsh4 nl-sep8'>Do not struggle to tie the pieces together.</p>
+				<p class='fsh2'>Everything essential for effective elearning – in one place</p>
 			</div>
 		</div>
 		<span class='nl-sep16'></span>
-        <div class='row row-left row-wrap w100 fsh2 padding sp-page5-section2'>
-        	<div class='row row-wrap'>
-        		<div class='col col-50'>
-	            	<span class='fsh6 sp-page5-col1-text sp-yellow'>Content creation</span>    			
-        		</div>
-        		<div class='col col-50 sp-page5-col2'>
-	            	<span class='sp-page5-col1-text'>Gamification</span>    			            			
-        		</div>
-        	</div>
-        	<div class='row row-wrap'>
-        		<div class='col col-50'>
-	            	<span class='sp-page5-col1-text sp-yellow'>Content updation</span>    			
-        		</div>
-        		<div class='col col-50 sp-page5-col2'>
-	            	<span class='sp-page5-col1-text'>Distribution</span>    			            			
-        		</div>
-        	</div>
-        	<div class='row row-wrap'>
-        		<div class='col col-50'>
-	            	<span class='sp-page5-col1-text sp-yellow'>Device compatibality</span>    			
-        		</div>
-        		<div class='col col-50 sp-page5-col2'>
-	            	<span class='sp-page5-col1-text'>Learn management</span>    			            			
-        		</div>
-        	</div>
+		
+		<div class='row row-wrap row-top fsh2'>
+			<div class='padding'
+                 ng-class='respCol221'>
+                <div class='sp-page5-col1-text sp-yellow' >
+                    <span>Content creation</spam>
+                </div>
+            </div>
+            <div class='padding'
+                 ng-class='respCol221'>
+                <div class='sp-page5-col1-text sp-page5-col2'>
+                    <span>Gamification</span>
+                </div>
+            </div>
+		</div>
+		<div class='row row-wrap row-top fsh2'>
+			<div class='padding'
+                 ng-class='respCol221'>
+                <div class='sp-page5-col1-text sp-yellow' >
+                    <span>Content updation</spam>
+                </div>
+            </div>
+            <div class='padding'
+                 ng-class='respCol221'>
+                <div class='sp-page5-col1-text sp-page5-col2'>
+                    <span>Distribution</span>
+                </div>
+            </div>
+		</div>
+		<div class='row row-wrap row-top fsh2'>
+			<div class='padding'
+                 ng-class='respCol221'>
+                <div class='sp-page5-col1-text sp-yellow' >
+                    <span>Device compatibility</spam>
+                </div>
+            </div>
+            <div class='padding'
+                 ng-class='respCol221'>
+                <div class='sp-page5-col1-text sp-page5-col2'>
+                    <span>Learning management</span>
+                </div>
+            </div>
 		</div>
 	</nl-sp-page3>
 	<nl-sp-page2>

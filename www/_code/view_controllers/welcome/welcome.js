@@ -173,12 +173,11 @@ var WelcomeCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll',
 function(nl, nlRouter, $scope, nlAnchorScroll) {
 	var _secondPageMsg = [nl.t("<p>You know that continuous training of your key workforce on aspects specific to your business, is a force multiplier.</p>"),
 						  nl.t("<p>You want the trainings to be super-dynamic - updated quickly to reflect the latest developments - and reaching your people on time.</p>"), 
-						  nl.t("<p>Standard e-learning technology fails you with its prohibitively expensive content creation vendors and <span class='nl-red'>poorly designed LMSs</span>. You fall back on class-room training - in no way continuous, and always a logistical nightmare.</p>"), 
+						  nl.t("<p>Standard e-learning technology fails you with its prohibitively expensive generic content and poorly designed LMSs – each an island of its own. You fall back on class-room training - in no way continuous, and always a logistical nightmare.</p>"), 
 						  nl.t("Nittio Learn is a complete e-Learning solution for trainings that are core to your business - designed to ensure that your employees are continuously learning about the things that are most critical for your business.</p>")];
-	var _fourthPageMsg = [nl.t("<p>Nittio Learn is not just an LMS or a content creation tool, but a complete learning platform <span class='nl-red'>designed for internal trainings</span>.<p>"),
-						  nl.t("<p>With Nittio Learn, interactive training can be swiftly created and dispatched to your employees. The employee learn in immensive environment and you get a bird's eye view of all learning happening in your company.</p>", nl.url.resUrl('welcome/bolt.png')),
-						  nl.t("<p>Don’t have time for creating the self-learnable content? Worry not, for we provide that as a service – quickly and with great quality, enabled by Nittio Learn combined with our <span class='nl-red'>internal hacks</span>.</p>", nl.url.resUrl('welcome/bolt.png'))
-						 ];
+	var _fourthPageMsg = [nl.t("<p>Nittio Learn is not just an LMS or a content creation tool, but a complete learning platform. It is built specifically for relieving the pain associated with training your employees on things that are most critical for your business.<p>"),
+						  nl.t("<p>With Nittio Learn, interactive training can be swiftly created and dispatched to your employees. The employee learn in immensive environment and you get a bird's eye view of all learning happening in your company.</p>"),
+						  nl.t("<p>Don’t have time for creating the self-learnable content? Worry not, for we provide that as a service. Enabled by Nittio Learn, we can create content quickly and with great quality.</p>")];
 						   
     var welcomeConfig = {
         // Required in the controller
