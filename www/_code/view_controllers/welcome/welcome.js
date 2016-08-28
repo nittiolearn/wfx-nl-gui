@@ -13,6 +13,7 @@ function module_init() {
     .directive('nlSpPage1', PageOneDirective)
     .directive('nlSpPage2', PageTwoDirective)
     .directive('nlSpPage3', PageThirdDirective)
+    .directive('nlSpPage4', PageFourDirective)
     .directive('nlSpFooter', FooterDirective)
     .directive('nlSpCopyright', CopyrightDirective)
     .service('nlAnchorScroll', AnchorScrollSrv)
@@ -112,6 +113,16 @@ function() {
         restrict: 'E',
         transclude: true,
         templateUrl: 'view_controllers/welcome/sp-third-page.html'
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
+var PageFourDirective = [
+function() {
+    return {
+        restrict: 'E',
+        transclude: true,
+        templateUrl: 'view_controllers/welcome/sp-four-page.html'
     };
 }];
 
