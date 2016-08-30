@@ -129,6 +129,10 @@ body {
   font-family: Verdana, Helvetica, Arial, sans-serif;
 }
 
+.nl-cursive-font {
+  font-family: 'Merienda One', "cursive", "Papyrus", Helvetica, sans-serif;
+}
+
 textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"] {
   padding-left: 8px;
   padding-right: 8px;
@@ -1407,6 +1411,10 @@ img.nl-full-width {
   color: $orange2;
 }
 
+.fyellow0 {
+  color: #FFFF00;
+}
+
 .fyellow {
   color: $yellow;
 }
@@ -1462,6 +1470,10 @@ img.nl-full-width {
 //---------------------------------------------------------------------------
 .vh100 {
   min-height: 100vh;
+}
+
+.vh90 {
+  min-height: 90vh;
 }
 
 .vh50 {

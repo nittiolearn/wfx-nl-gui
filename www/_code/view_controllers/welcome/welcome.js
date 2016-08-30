@@ -10,7 +10,7 @@ function module_init() {
     // Direcives used across all static pages
     .directive('nlSp', SpDirective)
     .directive('nlSpStructuredData', StructuredDataDirective)
-    .directive('nlSpPage1', Page1Directive)
+    .directive('nlSpMenu', MenuDirective)
     .directive('nlSpFooter', FooterDirective)
     .directive('nlSpCopyright', CopyrightDirective)
     .service('nlAnchorScroll', AnchorScrollSrv)
@@ -18,7 +18,6 @@ function module_init() {
     // Controller
     .controller('nl.WelcomeCtrl', WelcomeCtrl)
     .controller('nl.SchoolCtrl', SchoolCtrl)
-    .controller('nl.BusinessCtrl', BusinessCtrl)
     .controller('nl.TeamCtrl', TeamCtrl);
 }
 
@@ -40,15 +39,6 @@ function($stateProvider, $urlRouterProvider) {
             'appContent' : {
                 templateUrl: 'view_controllers/welcome/school.html',
                 controller : 'nl.SchoolCtrl'
-            }
-        }
-    });
-    $stateProvider.state('app.business', {
-        url : '^/business',
-        views : {
-            'appContent' : {
-                templateUrl: 'view_controllers/welcome/business.html',
-                controller : 'nl.BusinessCtrl'
             }
         }
     });
@@ -84,7 +74,16 @@ function() {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var Page1Directive = [
+var MenuDirective = [
+function() {
+    return {
+        restrict: 'E',
+        templateUrl: 'view_controllers/welcome/sp-menu.html'
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
+var PageOneDirective = [
 function() {
     return {
         restrict: 'E',
@@ -139,63 +138,68 @@ function(nl, $anchorScroll) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var _commonMsg = 'Much more than a Learning Management System.';
-var _schoolMsg = 'Measure and improve the most important aspect of your school, the “Teaching quality”.';
-var _businessMsg = 'Manage your training with ease.';
-
+var _commonMsg1 = 'Take your trainings online';
+var _commonMsg2 = 'the ones that really matter for your business';
+					   
 var WelcomeCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
 function(nl, nlRouter, $scope, nlAnchorScroll) {
+	var _cards = null;
+	var _lastScreenSize = '';
+    var cards = {
+        title1: {title: 'Great content that anyone can make', cls:'fsh5'},
+        title2: {title: 'Engaging learning environment', cls: 'fsh5'},
+		card1: {type: 'card',  cls: 'sp-card bgwhite', icon: 'visual.png', title: 'Visual', text: 'Create the content that pleases the eyes with completely flexible layouts and visual elements.'},
+		card2: {type: 'card',  cls: 'sp-card bgwhite', icon: 'interactive.png', title: 'Interactive', text: 'Build a multitude of great looking learner interaction in a jiffy.'},
+		card3: {type: 'card',  cls: 'sp-card bgwhite', icon: 'voiceover.png', title: 'Voiceovers', text: 'Make your content speak in accent of your choice with automatic text to speech or recorded human voice.'},
+		card4: {type: 'card',  cls: 'sp-card bgwhite', icon: 'slicedvideo.png', title: 'Video slicing', text: 'No cumbersome editing. Just define time interval to embed part of video.'},
+		card5: {type: 'card',  cls: 'sp-card bgwhite', icon: 'responsive.png', title: 'Responsive', text: 'Everything you create, including images and videos automatically fit to all device sizes.'},
+		card6: {type: 'card',  cls: 'sp-card bgdark', icon: 'learnerled.png', title: 'Learner led', text: 'Allow learner to choose what to learn, or guide then with a pre-set course.'},
+		card7: {type: 'card',  cls: 'sp-card bgdark', icon: 'branched.png', title: 'Branched learning', text: 'Trigger new or reapeat learning activity based on rules.'},
+		card8: {type: 'card',  cls: 'sp-card bgdark', icon: 'social.png', title: 'Social learning', text: 'Blend topic specific discussion forum to learning with a click of a button.'},
+		card9: {type: 'card',  cls: 'sp-card bgdark', icon: 'leaderboard.png', title: 'Leaderboard', text: 'Instill healthy competation with customized leaderboards.'},
+		card10: {type: 'card',  cls: 'sp-card bgdark', icon: 'device.png', title: 'Device independent', text: 'Give freedom to your learners to learn on any device.'},
+		empty: {type: 'card',  cls: ''}
+    };
+
+    function _getFeatureCards() {
+    	var screenSize = nl.rootScope.screenSize;
+    	if (_cards && _lastScreenSize == screenSize) return _cards;
+    	
+    	_cards = [];
+    	_lastScreenSize = screenSize;
+        var names = _getFeatureCardNames(screenSize);
+        
+        var titleCol = (screenSize == 'small') ? 'w100' : 'col col-50';
+        var cardCol = (screenSize == 'small') ? 'w100' : (screenSize == 'medium') ? 'col col-50' : 'col col-25';
+        for(var i in names) {
+        	var card = angular.copy(cards[names[i]]);
+        	card.cls += ' ' + (card.type == 'card' ? cardCol : titleCol);
+        	_cards.push(card);
+        }
+        return _cards;
+    }
+
+    function _getFeatureCardNames(screenSize) {
+        if (screenSize == 'large')
+	        return ['title1', 'title2', 'card1', 'card2', 'card6', 'card7', 'card3', 'card4', 'card8', 'card9', 'empty', 'card5', 'card10'];
+        if (screenSize == 'medium')
+	        return ['title1', 'title2', 'card1', 'card6', 'card2', 'card7', 'card3', 'card8', 'card4', 'card9', 'card5', 'card10'];
+        if (screenSize == 'small')
+	        return ['title1', 'card1', 'card2', 'card3', 'card4', 'card5', 'title2', 'card6', 'card7', 'card8', 'card9', 'card10'];
+       return [];
+	}
+
     var welcomeConfig = {
         // Required in the controller
-        title: nl.t(_commonMsg),
+        title1: nl.t(_commonMsg1),
+        title2: nl.t(_commonMsg2),
         desc: 'Online training software for businesses. Teaching Quality Management solutions for schools.',
         pageUrl: null,
-        bgImg: 'background2.jpg',
-        menus: [],
-        
+        menus: [{name: 'Our school solution', anchor: 'school'}],
         // Required in the specific view template
         content: {
-            schoolMsg: _schoolMsg,
-            businessMsg: _businessMsg
-        }
-    };
-    _staticPageCtrl(welcomeConfig, nl, nlRouter, $scope, nlAnchorScroll);
-}];
+	        getFeatureCards: _getFeatureCards,
 
-//-------------------------------------------------------------------------------------------------
-var SchoolCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
-function(nl, nlRouter, $scope, nlAnchorScroll) {
-    var schoolConfig = {
-        // Required in the controller
-        title: nl.t('Your teaching quality partner.'),
-        desc: 'Looking to improve the teaching quality in your school? Use Nittio Learn for continuous teacher training, structured lesson planning, program of work tracking and classroom observations.',
-        pageUrl: 'school',
-        bgImg: 'schoolbackground2.jpg',
-        menus: [{name: 'Solutions', anchor: 'solutions'}, {name: 'Contact us', anchor: 'contact_us'}],
-        
-        // Required in the specific view template
-        content: {
-            msg: nl.t(_schoolMsg),
-            msg2: nl.t('Structure all aspects of teaching. Set your goals, engage your teachers and leap ahead.')
-        }
-    };
-    _staticPageCtrl(schoolConfig, nl, nlRouter, $scope, nlAnchorScroll);
-}];
-
-//-------------------------------------------------------------------------------------------------
-var BusinessCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
-function(nl, nlRouter, $scope, nlAnchorScroll) {
-    var businessConfig = {
-        // Required in the controller
-        title: nl.t('Online Training Management Software.'),
-        desc: 'Online software for training everyone in your company. Reduce your training costs, measure results and stay on top of learning needs of your organization.',
-        pageUrl: 'business',
-        bgImg: 'businessbackground2.jpg',
-        menus: [{name: 'Features', anchor: 'features'}, {name: 'Pricing', anchor: 'pricing'}, {name: 'Request a demo', anchor: 'contact_us'}],
-        
-        // Required in the specific view template
-        content: {
-            msg: nl.t(_businessMsg),
             pricing_attrs: ['Unlimited course content', 'Quizzes', 
                 'Surveys, feedback', 'User management', 'Duration tracking', 
                 'Customized dashboards', 'Custom landing page', 'Sell courses', 
@@ -219,7 +223,26 @@ function(nl, nlRouter, $scope, nlAnchorScroll) {
             }
         }
     };
-    _staticPageCtrl(businessConfig, nl, nlRouter, $scope, nlAnchorScroll);
+    _staticPageCtrl(welcomeConfig, nl, nlRouter, $scope, nlAnchorScroll);
+}];
+
+//-------------------------------------------------------------------------------------------------
+var SchoolCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
+function(nl, nlRouter, $scope, nlAnchorScroll) {
+    var schoolConfig = {
+        // Required in the controller
+        title: nl.t('Your teaching quality partner.'),
+        desc: 'Looking to improve the teaching quality in your school? Use Nittio Learn for continuous teacher training, structured lesson planning, program of work tracking and classroom observations.',
+        pageUrl: 'school',
+        menus: [{name: 'Solutions', anchor: 'solutions'}, {name: 'Contact us', anchor: 'contact_us'}],
+        
+        // Required in the specific view template
+        content: {
+            msg: nl.t('Measure and improve the most important aspect of your school, the “Teaching quality”.'),
+            msg2: nl.t('Structure all aspects of teaching. Set your goals, engage your teachers and leap ahead.')
+        }
+    };
+    _staticPageCtrl(schoolConfig, nl, nlRouter, $scope, nlAnchorScroll);
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -230,7 +253,6 @@ function(nl, nlRouter, $scope, nlAnchorScroll) {
         title: nl.t('our team'),
         desc: 'Nittio Learn team.',
         pageUrl: 'team',
-        bgImg: null,
         menus: [],
         
         // Required in the specific view template
@@ -293,12 +315,11 @@ function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
             if (config.pageUrl) $scope.pageResUrl += '/' + config.pageUrl;
             
             $scope.content = config.content;
-            $scope.content.commonMsg = _commonMsg;
-            $scope.content.title = config.title;
+            $scope.content.commonMsg = nl.fmt2('{} - {}', config.title1, config.title2);
+            $scope.content.title1 = config.title1;
+            $scope.content.title2 = config.title2;
             $scope.content.desc = config.desc;
             $scope.menus = config.menus;
-            $scope.bgImg = config.bgImg ? $scope.pageResUrl + '/' + config.bgImg : null;
-            
             nl.rootScope.pgBgimg = null;
             resolve(true);
             
@@ -307,7 +328,7 @@ function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
                     return;
                 }
                 $scope.content[fnName]($scope);
-            }
+            };
         });
     }
     nlAnchorScroll.setAnchorHandler($scope);

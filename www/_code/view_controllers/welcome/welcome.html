@@ -1,77 +1,124 @@
+<style>
+	.request-button {
+	  	font-family: Lato, Verdana, Helvetica, Arial, sans-serif;
+		font-size: 75%;
+		border: 3px solid white;
+		border-radius: 4px;
+		color: white;
+		background-color: transparent;
+	}	
+	.sp-card {		
+		margin: 0;
+		padding: 10px;
+		background-clip: content-box;
+	}
+</style>
 <nl-sp>
-    <nl-sp-structured-data></nl-sp-structured-data>
-    <nl-sp-page1>
-        <div class='row row-center row-wrap vh25'>
-            <div class='fsh2 text-center padding w100'>{{content.title}}</div>
-        </div>
-        <div class='row row-stretch row-wrap text-center flex-column-wrap'>
-            <div class='padding box bgbox-content clickable' ng-class='respCol221'>
-                <div class='row row-wrap row-center justify-center'>
-                    <a href='#/school'>
-                        <span class='fsh1 forange'>Nittio Learn</span>
-                        <br/>
-                        <span class='fsh2 fblack'>for schools</span>
-                        <p class='fsh4 padding fblack'>{{content.schoolMsg}}</p>
-                    </a>
-                </div>
-            </div>
-            <div class='padding box bgbox-content clickable' ng-class='respCol221'>
-                <div class='row row-wrap row-center justify-center'>
-                    <a href='#/business'>
-                        <span class='fsh1 forange'>Nittio Learn</span>
-                        <br/>
-                        <span class='fsh2 fblack'>for businesses</span>
-                        <p class='fsh4 padding fblack'>{{content.businessMsg}}</p>
-                    </a>
-                </div>
+	<div class='section bgdark vh100'>
+		<div class='nl-sp-bg-img'></div>
+		<nl-sp-menu></nl-sp-menu>
+        <div class='row row-center row-wrap vh90'>
+            <div class='fsh3 text-center padding w100'>
+            	<p class='fsh6'>{{content.title1}}</p>
+            	<p class='fsh5'>{{content.title2}}</p></br>
+        		<a class='button request-button'
+        		   href='mailto:hello@nittio.com'><b>Email us for a demo</b></a>
             </div>
         </div>
-    </nl-sp-page1>
-    <div class='section padding row row-wrap row-center'>
-        <div class='w100 padding-vertical'></div>
-        <div class='fsh3 w100 text-center padding-vertical'>Helping more than <span class='fsh5 forange'>100</span> schools and businesses.</div>
-        <div class='w100 padding-vertical'></div>
-        <div class='fsh2 padding-vertical text-center w100'>Awards & recognition</div>
-        <div class='padding' ng-class='respCol211'>
-            <div class='row row-center'>
-                <img class='col nl-max-200 padding' ng-src='{{baseResUrl}}/globaledtech2.png'
-                     alt='Nittio Learn - winner of Global Edtech Popularity choice award'>
-                <div class='col padding'>Winners of <span class='fsh5 forange'>Global Edtech Popularity choice award 2014</span> among 360+ startups in the education technology space globally.</div>
+	</div>
+	<div class='section bgwhite vh100'>
+		<div class='nl-sp-bg-img'></div>
+        <div class='padding w100'>
+			<div class='fsh2 fblue padding-bottom'>Why Nittio Learn</div>
+			<p class='fsh6 padding-bottom'>You know that continuous training of your key workforce on aspects specific to your business, is a force multiplier.</p>
+			<p class='fsh6 padding-bottom'>You want the trainings to be super-dynamic - updated quickly to reflect the latest developments - and reaching your people on time.</p>
+			<p class='fsh6 padding-bottom'>Standard e-learning technology fails you with its prohibitively expensive generic content and poorly designed LMSs – each an island of its own. You fall back on class-room training - in no way continuous, and always a logistical nightmare.</p>
+			<p class='fsh5 padding-bottom'>Nittio Learn is a complete e-Learning solution for trainings that are core to your business - designed to ensure that your employees are continuously learning about the things that are most critical for your business.</p>
+        </div>
+	</div>
+	<div class='section bgdark vh100'>
+		<div class='nl-sp-bg-img'></div>
+        <div class='row row-center padding-top margin0'>
+			<div class='padding0 text-center col col-40'
+				 ng-hide='screenSize == "small"'>
+                <img class='nl-max-300' ng-src='{{baseResUrl}}/lady.png'>
+			</div>
+			<div class='padding0 fsh3 text-left col col-60'>
+	            <p class='fsh6'>Train your employees on</p>
+	            <p class='fsh5'>what you want,</p>
+	            <p class='fsh5'>when you want.</p>
             </div>
         </div>
-        <div class='padding' ng-class='respCol211'>
-            <div class='row row-center'>
-                <img class='col nl-max-200 padding' ng-src='{{baseResUrl}}/npc2.png'
-                     alt='Nittio Learn - one of India’s most innovative product companies at NASSCOM NPC'>
-                <div class='col padding'>Showcased at the <span class='fsh5 forange'>NASSCOM – Product Conclave</span> as one of India’s most innovative product companies.</div>
-            </div>
+	</div>
+	<div class='section bgwhite'>
+		<div class='nl-sp-bg-img'></div>
+		<div class='padding w100'>
+			<div class='fsh2 fblue padding-bottom'>How do we do it</div>
+			<p class='fsh6 padding-bottom'>Nittio Learn is not just an LMS or a content creation tool, but a complete learning platform. It is built specifically for relieving the pain associated with training your employees on things that are most critical for your business.</p>
+			<p class='fsh6 padding-bottom'>With Nittio Learn, interactive training can be swiftly created and dispatched to your employees. The employee learn in immensive environment and you get a bird's eye view of all learning happening in your company.</p>
+			<p class='fsh6'>Don’t have time for creating the self-learnable content? Worry not, for we provide that as a service. Enabled by Nittio Learn, we can create content quickly and with great quality.</p>
         </div>
-
-        <div class='fsh2 padding-vertical text-center w100'>In media</div>
-        <a class='padding text-center nl-link-img'
-            ng-class='respCol421'
-            href='http://www.educationworldonline.net/index.php/page-article-choice-more-id-4648'>
-            <img class='nl-max-100' ng-src='{{pageResUrl}}/ew2.png'
-                 alt='Covered in educationworldonline.net'>
-        </a>
-        <a class='padding text-center nl-link-img'
-            ng-class='respCol421'
-            href='http://techstory.in/nittio-learn/'>
-            <img class='nl-max-100' ng-src='{{pageResUrl}}/techstory2.png'
-                 alt='Covered in techstory.in'>
-        </a>
-        <a class='padding text-center nl-link-img'
-            ng-class='respCol421'
-            href='http://yourstory.com/2014/07/nittio-learn/'>
-            <img class='nl-max-100' ng-src='{{pageResUrl}}/yourstory2.png'
-                 alt='Covered in yourstory.com'>
-        </a>
-        <a class='padding text-center nl-link-img'
-            ng-class='respCol421'
-            href='http://www.prerit.org/ritu-josan/'>
-            <img class='nl-max-100' ng-src='{{pageResUrl}}/prerit2.png'
-                 alt='Covered in prerit.org'>
-        </a>
-    </div>
-    <nl-sp-footer></nl-sp-footer>
+	</div>
+	<div class='section bgdark'>
+		<div class='nl-sp-bg-img'></div>
+        <div class='padding fsh3'>
+			<p class='fsh6'>Do not struggle to tie the pieces together.</p>
+			<p class='fsh5'>Everything essential for effective elearning – in one place</p>
+		</div>
+		<div class='row row-wrap row-top fsh2'>
+			<div ng-class='respCol221'>
+                <div class='padding nl-cursive-font fsh5 fyellow0'>Content creation</div>
+                <div class='padding nl-cursive-font fsh5 fyellow0'>Content updation</div>
+                <div class='padding nl-cursive-font fsh5 fyellow0'>Device compatibility</div>
+            </div>
+            <div ng-class='respCol221'>
+            	<div ng-class='{"text-right": screenSize != "small"}'>
+	                <div class='padding nl-cursive-font fsh5'>Gamification</div>
+	                <div class='padding nl-cursive-font fsh5'>Distribution</div>
+	                <div class='padding nl-cursive-font fsh5'>Learning management</div>
+            	</div>
+            </div>
+		</div>
+	</div>
+	<div class='section bgwhite'>
+		<div class='nl-sp-bg-img'></div>
+		<div class='padding fsh2 fblue'>With Nittio Learn, you get immersive, gamified microlearning at your fingertips</div>
+		
+		<div class='row row-wrap row-stretch row-center margin0 padding0 text-center'>
+			<div ng-repeat='card in content.getFeatureCards()'
+				 class='padding {{card.cls}}'>
+				 <div class='padding-mid'>
+					<div ng-show='card.icon'>
+						<img class='sp-page6-img' ng-src='{{baseResUrl}}/{{card.icon}}'>
+					</div>
+	                <div ng-show='card.title' class='fsh5'>{{card.title}}</div>
+	                <div class='padding-mid'></div>
+	                <div ng-show='card.text'>{{card.text}}</div>
+				 </div>
+			</div>
+		</div>
+        <div class='row row-wrap row-bottom'>
+			<div class='fsh6 padding' ng-class='resp2Col67'>            
+	            <div>By the way, you can upload and re-use your exsisting training contentor SCROM learning modules.</div>
+	            <div class='padding-mid'></div>
+	            <div>And if you still think you would rather not spend time on content creation, we will provide that service to you.</div>
+            </div>
+			<div class='fsh4 padding' ng-class='resp2Col33' ng-show='screenSize != "small"'>            
+                <img class='w100' ng-src='{{baseResUrl}}/man.png'>
+			</div>
+        </div>		
+	</div>
+	<div class='section bgdark'>
+		<div class='nl-sp-bg-img'></div>
+        <div class='row row-left row-wrap'>
+			<div class='fsh4 padding text-left' >Can you imagine the the benifits if......</div>
+		</div>		
+        <div class='row row-left row-wrap'>
+			<div class='fsh6 padding text-left' >
+				<p class'page2-description'>...training your employees was as easy as using What'sApp or email.</p>
+			</div>
+        </div>
+	</div>
+    <nl-sp-business-pricing id='pricing'></nl-sp-business-pricing>
+    <nl-sp-footer id='contact_us'></nl-sp-footer>
 </nl-sp>
