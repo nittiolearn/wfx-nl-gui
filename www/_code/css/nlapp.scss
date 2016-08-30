@@ -129,6 +129,10 @@ body {
   font-family: Verdana, Helvetica, Arial, sans-serif;
 }
 
+.nl-cursive-font {
+  font-family: 'Merienda One', "cursive", "Papyrus", Helvetica, sans-serif;
+}
+
 textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"] {
   padding-left: 8px;
   padding-right: 8px;
@@ -1316,16 +1320,6 @@ img.nl-full-width {
   min-width: 400px; 
 }
 
-.col.min-240 {
-  -webkit-box-flex: 0;
-  -webkit-flex: 1 0 240px;
-  -moz-box-flex: 0;
-  -moz-flex: 1 0 240px;
-  -ms-flex: 1 0 240px;
-  flex: 1 0 240px;
-  min-width: 240px; 
-}
-
 .col.min-200 {
   -webkit-box-flex: 0;
   -webkit-flex: 1 0 200px;
@@ -1417,6 +1411,10 @@ img.nl-full-width {
   color: $orange2;
 }
 
+.fyellow0 {
+  color: #FFFF00;
+}
+
 .fyellow {
   color: $yellow;
 }
@@ -1474,16 +1472,12 @@ img.nl-full-width {
   min-height: 100vh;
 }
 
+.vh90 {
+  min-height: 90vh;
+}
+
 .vh50 {
   min-height: 50vh;
-}
-
-.vh60 {
-  min-height: 60vh;  
-}
-
-.vh75 {
-  min-height: 75vh;
 }
 
 .vh25 {

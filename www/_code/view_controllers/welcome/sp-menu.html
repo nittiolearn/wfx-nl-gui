@@ -1,0 +1,26 @@
+<div class='row row-top row-wrap'>
+    <div class='col fixed-200'>
+        <a ng-href='{{homeUrl}}'><img ng-src='{{baseResUrl}}/nittiologo3.png'
+           alt='Nittio Learn - {{content.commonMsg}}'
+           title='Nittio Learn - {{content.commonMsg}}'
+           class='w100'/></a>
+    </div>
+    <div class='col menuitems'>
+        <a href='#/login_now'>
+        	<b ng-hide='screenSize == "small"'>Sign in</b>
+        	<i ng-show='screenSize == "small"' class="icon ion-log-in bold"></i></a>
+        <span ng-click='sp_menu_shown = !sp_menu_shown'>
+            <i class="icon ion-navicon-round bold"></i>
+        </span>
+    </div>
+    <div ng-show='sp_menu_shown' class='sp-menu'>
+		<ul class="list fblack">
+		    <li class="item item-divider">
+		      xxx
+		    </li>
+		    <li class="item item-divider">
+		      yyy
+		    </li>
+		</ul>
+    </div>
+</div>

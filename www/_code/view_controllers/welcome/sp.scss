@@ -26,61 +26,29 @@ $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
   // Background colors
   //---------------------------------------------------------------------------
   .bgdark {
-    background-color: $purple2;
+    background-color: rgba(0, 163, 204, 0.8);
+    color: #FFFFFF;
   }
 
   .bgwhite {
-    background-color: white;
+    background-color: rgba(255, 255, 225, 0.8);
+    color: #000000;
   }
   
+  .nl-sp-bg-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: -2;   
+    background-size: repeat;
+  }
+
   .bgbox-content {
     background-clip: content-box;
   }
   
-  //---------------------------------------------------------------------------
-  // Background images
-  //---------------------------------------------------------------------------
-
-  .bg-img, .bg-img-opaque {
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-  }
-
-  .bg-img-opaque {
-    background-color: rgba(50, 175, 225, 0.8);
-    z-index: -1;
-    opacity: 0.4;
-  }
-
-  .bg-img-opaque2 {
-    background-color: white;
-    z-index: -1;
-    opacity: 0.4;
-  }
-  
-  .bg-img {
-    z-index: -2;   
-    background-size: cover;
-    /* background-image: will be defined in the html fragment */
-  }
-
-  .bg-img2, .bg-img-opaque2 {
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-  }
-
-  .bg-img2 {
-    z-index: -2;   
-    background-size: cover;
-    /* background-image: will be defined in the html fragment */
-  }
-
   //---------------------------------------------------------------------------
   // Top menu bar
   //---------------------------------------------------------------------------
@@ -90,7 +58,7 @@ $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
     font-weight: bold;
     font-size: 120%;
     a, span {
-      padding: 8px 20px;
+      padding: 8px;
       border-radius: 4px;
       cursor: pointer;
       &:hover, &:focus {
@@ -104,6 +72,11 @@ $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
         color: black;
       }
     }
+  }
+  .sp-menu {
+    position: absolute;
+    top: 50px;
+    right: 10px;
   }
 
   //---------------------------------------------------------------------------

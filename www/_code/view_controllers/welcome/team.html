@@ -16,7 +16,9 @@
     
 </style>
 <nl-sp>
-    <nl-sp-page1>
+	<div class='section bgdark'>
+		<div class='nl-sp-bg-img'></div>
+		<nl-sp-menu></nl-sp-menu>
         <div class='fsh2 text-center padding'>Our team</div>
         <div class='team-container'>
             <img class='w100' ng-src='{{pageResUrl}}/nittioteam3.png'
@@ -52,9 +54,10 @@
             <div class='fsh2 text-center padding'>Meet the people behind Nittio Learn</div>
             <div class='fsh6 padding-small text-center'>Our customers identify us with a scrupulously efficient user experience on the product and the most responsive and effective support. This is the team that makes it happen.</div>
         </div>
-    </nl-sp-page1>
+    </div>
     <div ng-repeat='member in content.profiles'
-         id='{{member.id}}' class='section' ng-class-even='"bgdark fwhite"'>
+         id='{{member.id}}' class='section' ng-class-even='"bgdark"' ng-class-odd='"bgwhite"'>
+		<div class='nl-sp-bg-img'></div>
         <div class='fsh2 text-center padding'>{{member.name}}</div>
         <div class='fsh5 text-center padding-small'>{{member.role}}</div>
         <div class='row row-wrap row-center'>
@@ -67,7 +70,8 @@
             </div>
         </div>
     </div>
-    <div class='section'>
+    <div class='section bgwhite'>
+		<div class='nl-sp-bg-img'></div>
         <div class='fsh2 text-center padding'>Is that you?</div>
         <div class='fsh5 text-center padding-small'></div>
         <div class='row row-wrap row-center'>
