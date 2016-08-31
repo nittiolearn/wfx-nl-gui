@@ -138,8 +138,8 @@ function(nl, $anchorScroll) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var _commonMsg1 = 'Take your trainings online';
-var _commonMsg2 = 'the ones that really matter for your business';
+var _commonMsg1 = 'Take your trainings online,';
+var _commonMsg2 = 'the ones that really matter for your business.';
 					   
 var WelcomeCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
 function(nl, nlRouter, $scope, nlAnchorScroll) {
@@ -148,16 +148,16 @@ function(nl, nlRouter, $scope, nlAnchorScroll) {
     var cards = {
         title1: {title: 'Great content that anyone can make', cls:'fsh5'},
         title2: {title: 'Engaging learning environment', cls: 'fsh5'},
-		card1: {type: 'card',  cls: 'sp-card bgwhite', icon: 'visual.png', title: 'Visual', text: 'Create the content that pleases the eyes with completely flexible layouts and visual elements.'},
-		card2: {type: 'card',  cls: 'sp-card bgwhite', icon: 'interactive.png', title: 'Interactive', text: 'Build a multitude of great looking learner interaction in a jiffy.'},
-		card3: {type: 'card',  cls: 'sp-card bgwhite', icon: 'voiceover.png', title: 'Voiceovers', text: 'Make your content speak in accent of your choice with automatic text to speech or recorded human voice.'},
-		card4: {type: 'card',  cls: 'sp-card bgwhite', icon: 'slicedvideo.png', title: 'Video slicing', text: 'No cumbersome editing. Just define time interval to embed part of video.'},
-		card5: {type: 'card',  cls: 'sp-card bgwhite', icon: 'responsive.png', title: 'Responsive', text: 'Everything you create, including images and videos automatically fit to all device sizes.'},
-		card6: {type: 'card',  cls: 'sp-card bgdark', icon: 'learnerled.png', title: 'Learner led', text: 'Allow learner to choose what to learn, or guide then with a pre-set course.'},
-		card7: {type: 'card',  cls: 'sp-card bgdark', icon: 'branched.png', title: 'Branched learning', text: 'Trigger new or reapeat learning activity based on rules.'},
-		card8: {type: 'card',  cls: 'sp-card bgdark', icon: 'social.png', title: 'Social learning', text: 'Blend topic specific discussion forum to learning with a click of a button.'},
-		card9: {type: 'card',  cls: 'sp-card bgdark', icon: 'leaderboard.png', title: 'Leaderboard', text: 'Instill healthy competation with customized leaderboards.'},
-		card10: {type: 'card',  cls: 'sp-card bgdark', icon: 'device.png', title: 'Device independent', text: 'Give freedom to your learners to learn on any device.'},
+		card1: {type: 'card',  cls: 'sp-card bgwhite', icon: 'visual1.png', title: 'Visual', text: 'Create the content that pleases the eyes with completely flexible layouts and visual elements.'},
+		card2: {type: 'card',  cls: 'sp-card bgwhite', icon: 'interactive1.png', title: 'Interactive', text: 'Build a multitude of great looking learner interactions in a jiffy.'},
+		card3: {type: 'card',  cls: 'sp-card bgwhite', icon: 'voiceover1.png', title: 'Voiceovers', text: 'Make your content speak in accent of your choice with automatic text to speech or recorded human voice.'},
+		card4: {type: 'card',  cls: 'sp-card bgwhite', icon: 'slicedvideo1.png', title: 'Video slicing', text: 'No cumbersome editing. Just define time interval to embed part of a video.'},
+		card5: {type: 'card',  cls: 'sp-card bgwhite', icon: 'responsive1.png', title: 'Responsive', text: 'Everything you create, including images and videos automatically fits to all device sizes.'},
+		card6: {type: 'card',  cls: 'sp-card bgdark', icon: 'learnerled1.png', title: 'Learner led', text: 'Allow learners to choose what to learn, or guide them with a pre-set course.'},
+		card7: {type: 'card',  cls: 'sp-card bgdark', icon: 'branched1.png', title: 'Branched learning', text: 'Trigger new or repeat learning activity based on rules.'},
+		card8: {type: 'card',  cls: 'sp-card bgdark', icon: 'social1.png', title: 'Social learning', text: 'Blend topic specific discussion forum to learning, with a click of a button.'},
+		card9: {type: 'card',  cls: 'sp-card bgdark', icon: 'leaderboard1.png', title: 'Leaderboard', text: 'Instill healthy competition with customized leaderboards.'},
+		card10: {type: 'card',  cls: 'sp-card bgdark', icon: 'responsive1.png', title: 'Device independent', text: 'Give freedom to your learners to learn on any device.'},
 		empty: {type: 'card',  cls: ''}
     };
 
@@ -191,9 +191,10 @@ function(nl, nlRouter, $scope, nlAnchorScroll) {
 
     var welcomeConfig = {
         // Required in the controller
+        title: nl.t('{} {}', _commonMsg1, _commonMsg2),
         title1: nl.t(_commonMsg1),
         title2: nl.t(_commonMsg2),
-        desc: 'Online training software for businesses. Teaching Quality Management solutions for schools.',
+        desc: 'Nittio Learn is a complete eLearning solution for trainings that are core to your business. It is designed to ensure that your employees are continuously learning about the things that are most critical for your business.',
         pageUrl: null,
         menus: [{name: 'Our school solution', anchor: 'school'}],
         // Required in the specific view template
@@ -202,17 +203,17 @@ function(nl, nlRouter, $scope, nlAnchorScroll) {
 
             pricing_attrs: ['Unlimited course content', 'Quizzes', 
                 'Surveys, feedback', 'User management', 'Duration tracking', 
-                'Customized dashboards', 'Custom landing page', 'Sell courses', 
+                'Customized dashboards', 'Custom landing page',  
                 'Reporting', 'Support', 'Custom contracts', 'Migration services'],
             pricing_slabs: [
             {name: 'Basic', price: 'USD 125 per month', billing: '(Billed annually)', 
-                users: '50', attrs: ['tick', 'tick', 'tick', 'tick', '', '', '', '', 'tick', "Email", '', '']},
+                users: '50', attrs: ['tick', 'tick', 'tick', 'tick', '', '', '', 'tick', "Email", '', '']},
             {name: 'Advanced', price: 'USD 225 per month', billing: '(Billed annually)',
-                users: '100', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', '', '', 'tick', "Email, Phone", '', '']},
+                users: '100', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', '', 'tick', "Email, Phone", '', '']},
             {name: 'Professional', price: 'USD 625 per month', billing: '(Billed annually)', 
-                users: '500', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', 'tick', 'tick', "Custom reports", "Email, Phone", '', '']},
+                users: '500', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', 'tick', "Custom reports", "Email, Phone", '', '']},
             {name: 'Enterprise', price: 'Contact us for pricing', billing: ' ',
-                users: '500+', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', 'tick', 'tick', "Custom reports", "Named account manager", 'tick', 'tick']}
+                users: '500+', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', 'tick', "Custom reports", "Named account manager", 'tick', 'tick']}
             ],
             slabSlider: new SlabSlider(nl, 4),
             slabSlideDown: function($scope) {
@@ -315,7 +316,7 @@ function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
             if (config.pageUrl) $scope.pageResUrl += '/' + config.pageUrl;
             
             $scope.content = config.content;
-            $scope.content.commonMsg = nl.fmt2('{} - {}', config.title1, config.title2);
+            $scope.content.commonMsg = nl.t('{} {}', _commonMsg1, _commonMsg2);
             $scope.content.title1 = config.title1;
             $scope.content.title2 = config.title2;
             $scope.content.desc = config.desc;
@@ -331,6 +332,18 @@ function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
             };
         });
     }
+	$scope.menu_shown = false;
+
+    $scope.toggleMenu = function(e) {
+    	$scope.menu_shown = !$scope.menu_shown;
+        e.stopImmediatePropagation();
+    };
+
+    $scope.onEscape = function(e) {
+    	$scope.menu_shown = false;
+        e.stopImmediatePropagation();
+    };
+    
     nlAnchorScroll.setAnchorHandler($scope);
     nlRouter.initContoller($scope, '', _onPageEnter);
 }

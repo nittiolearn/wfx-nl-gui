@@ -1,6 +1,6 @@
 <div class='row row-top row-wrap'>
     <div class='col fixed-200'>
-        <a ng-href='{{homeUrl}}'><img ng-src='{{baseResUrl}}/nittiologo3.png'
+        <a ng-href='{{homeUrl}}'><img ng-src='{{baseResUrl}}/nittiologo5.png'
            alt='Nittio Learn - {{content.commonMsg}}'
            title='Nittio Learn - {{content.commonMsg}}'
            class='w100'/></a>
@@ -9,18 +9,24 @@
         <a href='#/login_now'>
         	<b ng-hide='screenSize == "small"'>Sign in</b>
         	<i ng-show='screenSize == "small"' class="icon ion-log-in bold"></i></a>
-        <span ng-click='sp_menu_shown = !sp_menu_shown'>
+        <span ng-click='toggleMenu($event)'>
             <i class="icon ion-navicon-round bold"></i>
         </span>
     </div>
-    <div ng-show='sp_menu_shown' class='sp-menu'>
-		<ul class="list fblack">
-		    <li class="item item-divider">
-		      xxx
+    <div ng-show='menu_shown' class='sp-menu'>
+		<ul class="list fblack fsh6">
+		    <li class="item item-divider padding0">
+				<a class='nl-link-text w100_block padding-mid' href='#/welcome#pricing' ng-click='onEscape($event)'>Pricing</a>
 		    </li>
-		    <li class="item item-divider">
-		      yyy
+		    <li class="item item-divider padding0">
+				<a class='nl-link-text w100_block padding-mid' href='#/school' ng-click='onEscape($event)'>School solution</a>
 		    </li>
-		</ul>
+		    <li class="item item-divider padding0" ng-click='onEscape($event)'>
+		     	<a class='nl-link-text w100_block padding-mid' href='#/team'>Team</a>
+		    </li>
+		    <li class="item item-divider padding0">
+		     	<a class='nl-link-text w100_block padding-mid' href='#/home' ng-click='onEscape($event)'>Home</a>
+		    </li>
+	    </ul>
     </div>
 </div>

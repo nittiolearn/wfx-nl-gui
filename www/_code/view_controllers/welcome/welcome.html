@@ -4,8 +4,11 @@
 		font-size: 75%;
 		border: 3px solid white;
 		border-radius: 4px;
-		color: white;
+		color: #FFFF70;
 		background-color: transparent;
+	}
+	.request-button:hover {
+		color: #FFFFFF;
 	}	
 	.sp-card {		
 		margin: 0;
@@ -14,9 +17,12 @@
 	}
 </style>
 <nl-sp>
+	<nl-sp-structured-data></nl-sp-structured-data>
 	<div class='section bgdark vh100'>
 		<div class='nl-sp-bg-img'></div>
 		<nl-sp-menu></nl-sp-menu>
+
+		
         <div class='row row-center row-wrap vh90'>
             <div class='fsh3 text-center padding w100'>
             	<p class='fsh6'>{{content.title1}}</p>
@@ -29,41 +35,140 @@
 	<div class='section bgwhite vh100'>
 		<div class='nl-sp-bg-img'></div>
         <div class='padding w100'>
-			<div class='fsh2 fblue padding-bottom'>Why Nittio Learn</div>
-			<p class='fsh6 padding-bottom'>You know that continuous training of your key workforce on aspects specific to your business, is a force multiplier.</p>
-			<p class='fsh6 padding-bottom'>You want the trainings to be super-dynamic - updated quickly to reflect the latest developments - and reaching your people on time.</p>
-			<p class='fsh6 padding-bottom'>Standard e-learning technology fails you with its prohibitively expensive generic content and poorly designed LMSs – each an island of its own. You fall back on class-room training - in no way continuous, and always a logistical nightmare.</p>
-			<p class='fsh5 padding-bottom'>Nittio Learn is a complete e-Learning solution for trainings that are core to your business - designed to ensure that your employees are continuously learning about the things that are most critical for your business.</p>
-        </div>
-	</div>
-	<div class='section bgdark vh100'>
-		<div class='nl-sp-bg-img'></div>
-        <div class='row row-center padding-top margin0'>
-			<div class='padding0 text-center col col-40'
-				 ng-hide='screenSize == "small"'>
-                <img class='nl-max-300' ng-src='{{baseResUrl}}/lady.png'>
+			<div class='fsh2 fblue padding-bottom'>Why Nittio Learn ?</div>
+			<div class='text-center' ng-show='screenSize != "small"'>            
+			    <img style='max-width:700px' class='w100' ng-src='{{baseResUrl}}/nittiodiff_wide.png'>
 			</div>
-			<div class='padding0 fsh3 text-left col col-60'>
-	            <p class='fsh6'>Train your employees on</p>
-	            <p class='fsh5'>what you want,</p>
-	            <p class='fsh5'>when you want.</p>
-            </div>
+			<div class='text-center' ng-show='screenSize == "small"'>            
+			    <img class='nl-max-300' ng-src='{{baseResUrl}}/nittiodiff_long.png'>
+			</div>
+			<div class='padding-mid'></div>
+			<p class='fsh6 padding-bottom'>You know that continuous training of your key workforce on aspects specific to your business is a force multiplier.</p>
+			<p class='fsh6 padding-bottom'>You want the trainings to be super-dynamic - updated quickly to reflect the latest developments - and reaching your people on time.</p>
+			<p class='fsh6 padding-bottom'>Standard eLearning technology fails you with its prohibitively expensive generic content and poorly designed LMSs, each an island of its own. You fall back on class-room training - in no way continuous, and always a logistical nightmare.</p>
+			<p class='fsh2 fblue nl-cursive-font padding-bottom'>{{content.desc}}</p>
         </div>
 	</div>
+	
+	<div class='section bgdark'>
+		<div class='nl-sp-bg-img'></div>
+		<div class='padding w100'>
+			<div class='fsh2 padding-bottom'>Who can you train and on what ?</div>
+			<div class='row row-wrap margin0'>
+				<div class='col' ng-class='respCol221'>
+					<div class='fsh5 fyellow0'><b> Who ?</b></div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Sales team</div>
+					</div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Customer service</div>
+					</div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Operations</div>
+					</div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Distribution & logistics team</div>
+					</div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Production</div>
+					</div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>R&D</div>
+					</div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Skilled employees – nurses, drivers, delivery staff</div>
+					</div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Franchisees, dealers</div>
+					</div>
+					<div class='row fsh5 fyellow0'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Anyone</div>
+					</div>
+				</div>
+				
+				<div class='col' ng-class='respCol221'>
+					<div class='fsh5 fyellow0'><b>On what?</b></div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Your products or services</div>
+					</div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Your sales spiels</div>
+					</div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Your departmental processes</div>
+					</div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Your brand personality</div>
+					</div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Your induction</div>
+					</div>
+					<div class='row fsh5 fyellow0'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Anything</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+		
 	<div class='section bgwhite'>
 		<div class='nl-sp-bg-img'></div>
 		<div class='padding w100'>
-			<div class='fsh2 fblue padding-bottom'>How do we do it</div>
+			<div class='fsh2 fblue padding-bottom'>How do we do it ?</div>
 			<p class='fsh6 padding-bottom'>Nittio Learn is not just an LMS or a content creation tool, but a complete learning platform. It is built specifically for relieving the pain associated with training your employees on things that are most critical for your business.</p>
-			<p class='fsh6 padding-bottom'>With Nittio Learn, interactive training can be swiftly created and dispatched to your employees. The employee learn in immensive environment and you get a bird's eye view of all learning happening in your company.</p>
-			<p class='fsh6'>Don’t have time for creating the self-learnable content? Worry not, for we provide that as a service. Enabled by Nittio Learn, we can create content quickly and with great quality.</p>
+			<p class='fsh6 padding-bottom'>With Nittio Learn, interactive training can be swiftly created and dispatched to your employees. The employees learn in an immersive environment and you get a bird's eye view of all the learning happening in your company.</p>
+			<p class='fsh6'>Don’t have time for creating self-learnable content? Worry not, for we provide that as a service. Enabled by Nittio Learn, we can create content quickly and with great quality. You can take things over into your hands whenever you are ready.</p>
         </div>
 	</div>
 	<div class='section bgdark'>
 		<div class='nl-sp-bg-img'></div>
-        <div class='padding fsh3'>
-			<p class='fsh6'>Do not struggle to tie the pieces together.</p>
-			<p class='fsh5'>Everything essential for effective elearning – in one place</p>
+        <div class='padding'>
+			<p class='fsh2'>Do not struggle to tie the pieces together. Get everything essential for effective eLearning in one place.</p>
 		</div>
 		<div class='row row-wrap row-top fsh2'>
 			<div ng-class='respCol221'>
@@ -80,9 +185,9 @@
             </div>
 		</div>
 	</div>
-	<div class='section bgwhite'>
+	<div class='section bgwhite' id='solution'>
 		<div class='nl-sp-bg-img'></div>
-		<div class='padding fsh2 fblue'>With Nittio Learn, you get immersive, gamified microlearning at your fingertips</div>
+		<div class='padding fsh2 fblue'>With Nittio Learn, you get immersive, gamified microlearning at your fingertips.</div>
 		
 		<div class='row row-wrap row-stretch row-center margin0 padding0 text-center'>
 			<div ng-repeat='card in content.getFeatureCards()'
@@ -97,28 +202,77 @@
 				 </div>
 			</div>
 		</div>
-        <div class='row row-wrap row-bottom'>
-			<div class='fsh6 padding' ng-class='resp2Col67'>            
-	            <div>By the way, you can upload and re-use your exsisting training contentor SCROM learning modules.</div>
-	            <div class='padding-mid'></div>
-	            <div>And if you still think you would rather not spend time on content creation, we will provide that service to you.</div>
-            </div>
-			<div class='fsh4 padding' ng-class='resp2Col33' ng-show='screenSize != "small"'>            
-                <img class='w100' ng-src='{{baseResUrl}}/man.png'>
-			</div>
-        </div>		
-	</div>
-	<div class='section bgdark'>
-		<div class='nl-sp-bg-img'></div>
-        <div class='row row-left row-wrap'>
-			<div class='fsh4 padding text-left' >Can you imagine the the benifits if......</div>
-		</div>		
-        <div class='row row-left row-wrap'>
-			<div class='fsh6 padding text-left' >
-				<p class'page2-description'>...training your employees was as easy as using What'sApp or email.</p>
-			</div>
+		<div class='fsh2 padding nl-cursive-font fblue'>
+            <div>By the way, you can upload and reuse your existing training content or SCORM learning modules.</div>
+            <div class='padding-mid'></div>
+            <div>And if you still think you would rather not spend time on content creation, we will provide that service to you.</div>
         </div>
 	</div>
+	<div class='section bgdark1'>
+		<div class='nl-sp-bg-img1'></div>
+	    <div class='section padding row row-wrap row-center'>
+	        <div class='fsh2 w100 text-center '>Helping more than <span class='fsh5 fblue'>100</span> schools and businesses.</div>
+	        <div class='fsh4 padding-top text-center w100'>Awards & recognition</div>
+	        <div class='padding' ng-class='respCol211'>
+	            <div class='row row-center row-wrap'>
+	                <img class='nl-max-200 padding' ng-class='respCol221' ng-src='{{baseResUrl}}/globaledtech2.png'
+	                     alt='Nittio Learn - winner of Global Edtech Popularity choice award'>
+	                <div class='padding fsh6' ng-class='respCol221'>Winners of <span class='fsh5 fblue'>Global Edtech Popularity choice award 2014</span> among 360+ startups in the education technology space globally.</div>
+	            </div>
+	        </div>
+	        <div class='padding' ng-class='respCol211'>
+	            <div class='row row-center row-wrap'>
+	                <img class='nl-max-200 padding' ng-class='respCol221' ng-src='{{baseResUrl}}/npc2.png'
+	                     alt='Nittio Learn - one of India’s most innovative product companies at NASSCOM NPC'>
+	                <div class='padding fsh6' ng-class='respCol221'>Showcased at the <span class='fsh5 fblue'>NASSCOM – Product Conclave</span> as one of India’s most innovative product companies.</div>
+	            </div>
+	        </div>
+	
+	        <div class='fsh2 padding-vertical text-center w100'>In media</div>
+	        <a class='padding text-center nl-link-img'
+	            ng-class='respCol421'
+	            href='http://www.educationworldonline.net/index.php/page-article-choice-more-id-4648'>
+	            <img class='nl-max-100' ng-src='{{pageResUrl}}/ew2.png'
+	                 alt='Covered in educationworldonline.net'>
+	        </a>
+	        <a class='padding text-center nl-link-img'
+	            ng-class='respCol421'
+	            href='http://techstory.in/nittio-learn/'>
+	            <img class='nl-max-100' ng-src='{{pageResUrl}}/techstory2.png'
+	                 alt='Covered in techstory.in'>
+	        </a>
+	        <a class='padding text-center nl-link-img'
+	            ng-class='respCol421'
+	            href='http://yourstory.com/2014/07/nittio-learn/'>
+	            <img class='nl-max-100' ng-src='{{pageResUrl}}/yourstory2.png'
+	                 alt='Covered in yourstory.com'>
+	        </a>
+	        <a class='padding text-center nl-link-img'
+	            ng-class='respCol421'
+	            href='http://www.prerit.org/ritu-josan/'>
+	            <img class='nl-max-100' ng-src='{{pageResUrl}}/prerit2.png'
+	                 alt='Covered in prerit.org'>
+	        </a>
+	    </div>
+	</div>
     <nl-sp-business-pricing id='pricing'></nl-sp-business-pricing>
+    
+   	<div class='section padding margin0 bgdark'>
+		<div class='nl-sp-bg-img'></div>
+	    <div class='fsh2 padding-bottom'>Can you imagine the benefits if ...</div>
+        <div class='fsh6'>... training your employees was as easy as using WhatsApp or email.</div>
+        <div class='padding-mid'></div>
+        <div class='fsh6'>... you could ensure that your employees are continuously trained, wherever they are.</div>
+        <p class='fsh5 fyellow0 padding-vertical'>No need to imagine ...</p>
+        <div class='fsh3'>
+    		<a class='button request-button fsh3'
+    		   href='mailto:hello@nittio.com'><b>
+    		   	<span class="fsh6 padding-mid"><i class="icon ion-ios-email fsh1"></i></span>
+    		   	Email us for a demo</b>
+		   	</a>
+		</div>
+	</div>
+
+    
     <nl-sp-footer id='contact_us'></nl-sp-footer>
 </nl-sp>

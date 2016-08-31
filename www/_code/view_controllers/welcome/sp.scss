@@ -11,7 +11,27 @@ $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
   width: 100%;
   height: 100%;
   overflow: auto;
+  
+  // TODO move to nlapp.sccs
+  .w100_block {
+    width: 100%;
+    display: block;
+  }
 
+  .ignore_activate.activated {
+    .nl-link-img {
+      box-shadow: none;
+      opacity: 1;
+      padding: 20px;
+    }
+    .nl-link-text {
+      background-color: rgba(0, 0, 0, 0);
+      opacity: 1;
+      box-shadow: none;
+    }
+  }
+  // end TODO move to nlapp.sccs
+  
   //---------------------------------------------------------------------------
   // Generic overrides
   //---------------------------------------------------------------------------
@@ -65,13 +85,6 @@ $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
         background-color: rgba(255, 255, 255, 0.3);
       }
     }
-    .bgyellow {
-      background-color: rgba(255, 255, 0, 0.9);
-      &:hover, &:focus {
-        background-color: rgba(255, 255, 0, 1);
-        color: black;
-      }
-    }
   }
   .sp-menu {
     position: absolute;
@@ -82,10 +95,6 @@ $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
   //---------------------------------------------------------------------------
   // Other utilities
   //---------------------------------------------------------------------------
-  .trans50 {
-    opacity: 0.5;
-  }
-
   .line {
     border-bottom: 1px solid #CCCCCC;
   }
@@ -96,16 +105,6 @@ $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
 
   .border-right {
     border-right: 1px solid #777777;
-  }
-  
-  .justify-center {
-    justify-content: center;
-  }
-  
-  .center67 {
-    position: absolute;
-    width: 66%;
-    left: 17%;
   }
   
   //---------------------------------------------------------------------------
@@ -131,18 +130,14 @@ $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
       cursor: pointer;
     }
   }
-  
-  .pageicon {
-    position: absolute;
-    top: 51px;
-    left: 0;
-    width: 200px;
+}
+
+// TODO move to nlapp.sccs
+.nl-screen-small .nl-static {
+  .ignore_activate.activated {
+    .nl-link-img {
+      padding: 10px;
+    }
   }
 }
-  //---------------------------------------------------------------------------
-  // text coloring
-  //---------------------------------------------------------------------------
-
-  .nl-red{
-    color: #ef473a;
-  }
+// end TODO move to nlapp.sccs
