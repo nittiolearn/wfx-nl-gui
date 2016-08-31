@@ -35,6 +35,12 @@
                 <i ng-show='!ext.isIconImg(ext.item)' class="icon {{ext.getIconCls(ext.item)}} bold fsh5"></i>
                 {{ext.item.name}}
             </div>
+            <span title='Save'
+                  ng-if='!iframeUrl && ext.isEditorMode()'
+                  class='nl-toolbar-icon padding0'
+                  ng-click='onSaveModule($event, ext.item)'>
+                <i class="icon ion-briefcase"></i>
+            </span>
             <span title='Show information'
                   ng-if='iframeUrl'
                   class='nl-toolbar-icon padding0'
@@ -63,9 +69,11 @@
         <div ng-if='iframeUrl' style='position: absolute; top: 48px; bottom: 8px; left: 8px; right: 8px;'>
             <nl-course-view-frame></nl-course-view-frame>
         </div>
-        <nl-course-view-content-static ng-if='!iframeUrl && ext.isStaticMode()'>
-        </nl-course-view-content-static>
         <nl-course-view-content-active ng-if='!iframeUrl && !ext.isStaticMode()'>
         </nl-course-view-content-active>
+        <nl-course-view-content-editor ng-if='!iframeUrl && ext.isEditorMode()'>
+        </nl-course-view-content-editor>
+        <nl-course-view-content-static ng-if='!iframeUrl && ext.isStaticMode() && !ext.isEditorMode()'>
+        </nl-course-view-content-static>
     </div>
 </div>

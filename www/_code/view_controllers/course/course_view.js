@@ -10,7 +10,9 @@ function module_init() {
     .directive('nlCourseViewList', CourseViewDirective('course_view_list'))
     .directive('nlCourseViewContentActive', CourseViewDirective('course_view_content_active'))
     .directive('nlCourseViewContentStatic', CourseViewDirective('course_view_content_static'))
+    .directive('nlCourseViewContentEditor', CourseViewDirective('course_view_editor'))
     .directive('nlCourseViewFrame', CourseViewDirective('course_view_frame'))
+    .service('nlCourseAttributes', NlCourseAttributesSrv)
     .config(configFn).controller('nl.CourseViewCtrl', NlCourseViewCtrl);
 }
 
@@ -50,7 +52,7 @@ function ModeHandler(nl, nlCourse, nlDlg, $scope) {
         if (this.mode === MODES.PRIVATE) {
             nl.pginfo.pageSubTitle = nl.t('(private)');
         } else if (this.mode === MODES.EDIT) {
-            nl.pginfo.pageSubTitle = nl.t('(edit)');
+            nl.pginfo.pageSubTitle = nl.t('(editor)');
         } else if (this.mode === MODES.PUBLISHED) {
             nl.pginfo.pageSubTitle = nl.t('(published)');
         } else if (this.mode === MODES.REPORTS_SUMMARY_VIEW) {
@@ -202,8 +204,47 @@ function ModeHandler(nl, nlCourse, nlDlg, $scope) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg', 'nlExporter',
+var NlCourseAttributesSrv = ['nl',
 function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
+	this.getCourseAttributes = function(course) {
+        var keys = Object.keys(course.content);
+        var ret = [];
+        for (var k in keys) {
+            var key = keys[k];
+            if (key == 'modules') continue;
+            ret.push({key: key, val: course.content[key]});
+        }
+        return ret;
+	};
+
+	this.getModuleAttributes = function() {
+        return attrs;
+	};
+
+	// TODO
+    var attrs = [
+    	{name: 'id', type: 'string', text: 'Unique ID', readonly: true, help: ''}, 
+    	{name: 'name', type: 'string', text: 'Name'}, 
+    	{name: 'type', type: 'list', text: 'Element type', values: ['module', 'lesson', 'info', 'link']},
+        {name: 'refid', type: 'string'},
+        {name: 'action', type: 'string'},
+        {name: 'urlParams', type: 'string'},
+		{name: 'icon', type: 'string'},
+		{name: 'text', type: 'string'}, 
+        {name: 'planning', type:'group'},
+        {name: 'start_date', type: 'date'},
+        {name: 'planned_date', type: 'date'},
+        {name: 'max_attempts', type: 'string'},
+        {name: 'hide_remarks', type: 'string'},
+        {name: 'start_after', type: 'string'},
+        {name: 'reopen_on_fail', type: 'string'}
+    ];
+}];
+
+//-------------------------------------------------------------------------------------------------
+var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg', 'nlExporter',
+'nlCourseAttributes',
+function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCourseAttributes) {
     var modeHandler = new ModeHandler(nl, nlCourse, nlDlg, $scope);
     var nlContainer = new NlContainer(nl, $scope, modeHandler);
     nlContainer.setContainerInWindow();
@@ -280,17 +321,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
 
     function _initAttributesDicts(course) {
         if (!$scope.ext.isStaticMode()) return;
-        $scope.module_attributes = ['id', 'name', 'type', 'icon', 'text', 
-            'refid', 'action', 'urlParams', 'start_date', 'planned_date',
-            'max_attempts', 'hide_remarks', 'start_after', 'reopen_on_fail'];
-
-        var keys = Object.keys(course.content);
-        $scope.course_attributes = [];
-        for (var k in keys) {
-            var key = keys[k];
-            if (key == 'modules') continue;
-            $scope.course_attributes.push({key: key, val: course.content[key]})
-        }
+        $scope.course_attributes = nlCourseAttributes.getCourseAttributes(course);
+        $scope.module_attributes = nlCourseAttributes.getModuleAttributes();
     }
 
     function _initExpandedView() {
@@ -445,6 +477,33 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
         }
         _confirmIframeClose(null, _impl);
     };
+
+    $scope.onSaveModule = function(e, cm){
+    	console.log(cm, modeHandler.course);
+		//var crModFn = (courseId != null) ? nlCourse.courseModify: nlCourse.courseCreate;
+		var modules = modeHandler.course.content.modules;
+		for(var i in modules){
+			var element = modules[i];
+			if(cm.id == element.id) modeHandler.course.content.modules[i] = cm;
+			console.log(element.id, cm.id);
+		}
+		console.log(modules);
+		var modifiedData = {
+						courseid: modeHandler.course.id,
+						name: modeHandler.course.name, 
+						icon: modeHandler.course.icon, 
+						description: modeHandler.course.description,
+						content: angular.toJson(modeHandler.course.content) 
+					};
+		//console.log(modifiedData);
+		nlDlg.showLoadingScreen();
+		nlCourse.courseModify(modifiedData).then(function(course) {
+			nlDlg.hideLoadingScreen();
+			console.log('modify done');
+			//_onModifyDone(course, courseId, modifiedData, $scope);
+		});
+    };
+    
     
     $scope.onLaunch = function(e, cm) {
         e.stopImmediatePropagation();
@@ -743,15 +802,20 @@ function ScopeExtensions(nl, modeHandler, nlContainer, folderStats) {
     var _updateStatusFn = null;
     this.setUpdateStatusFn = function(fn) {
         _updateStatusFn = fn;
-    }
+    };
 
     this.isStaticMode = function() {
-        return (modeHandler.mode == MODES.PRIVATE || modeHandler.mode == MODES.PUBLISHED);
-    }
+        return (modeHandler.mode == MODES.PRIVATE || modeHandler.mode == MODES.PUBLISHED ||
+        	modeHandler.mode == MODES.EDIT);
+    };
+
+    this.isEditorMode = function() {
+        return (modeHandler.mode == MODES.EDIT);
+    };
     
     this.canShowRemarks = function() {
         if (!this.item) return false;
-        if (modeHandler.mode == MODES.PRIVATE || modeHandler.mode == MODES.PUBLISED) return false;
+        if (this.isStaticMode()) return false;
         if (this.item.hide_remarks) return false;
         return (this.item.type == 'link' || this.item.type == 'info');
     };
@@ -783,11 +847,11 @@ function ScopeExtensions(nl, modeHandler, nlContainer, folderStats) {
     };
 
     this.getLaunchString = function() {
-        if (this.isStaticMode() || this.item.type =='link') return 'Open';
+        if (this.isStaticMode()|| this.item.type =='link') return 'Open';
         if (this.item.state.status == 'success' || this.item.state.status == 'failed') return 'View report';
         return 'Open';
     };
-    
+
     this.updatePastAttemptData = function() {
         this.showPastAttempts = false;
         this.pastAttemptData = [];
@@ -878,7 +942,7 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
     
     this.getItem = function(itemId) {
         return this.items[itemId] || null;
-    }
+    };
     
     this.getRootItem = function() {
         return rootItem;

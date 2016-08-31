@@ -11,8 +11,8 @@
 <div ng-show='ext.item.id != "_root"' class='padding-mid'>
     <table class='nl-table nl-table-styled'>
         <tr ng-repeat='attr in module_attributes'
-            ng-show='ext.item[attr]'>
-            <td>{{attr}}</td><td>{{ext.item[attr]}}</td>
+            ng-show='ext.item[attr.name]'>
+            <td>{{attr.text||attr.name}}</td><td>{{ext.item[attr.name]}}</td>
         </tr>
     </table>
 
