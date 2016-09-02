@@ -162,7 +162,7 @@ nlesson = function() {
                 jQuery('#lesson_save_icon').hide();        
                 jQuery('#lesson_submit_icon').hide();        
             } else if (!this.oLesson.selfLearningMode) {
-                jQuery('#ask_zodi_icon').hide();
+                jQuery('#ask_zodi_icon').remove();
             }
             jQuery('.toolBar').show();
         } else {
