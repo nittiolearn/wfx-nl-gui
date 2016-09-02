@@ -12,26 +12,6 @@ $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
   height: 100%;
   overflow: auto;
   
-  // TODO move to nlapp.sccs
-  .w100_block {
-    width: 100%;
-    display: block;
-  }
-
-  .ignore_activate.activated {
-    .nl-link-img {
-      box-shadow: none;
-      opacity: 1;
-      padding: 20px;
-    }
-    .nl-link-text {
-      background-color: rgba(0, 0, 0, 0);
-      opacity: 1;
-      box-shadow: none;
-    }
-  }
-  // end TODO move to nlapp.sccs
-  
   //---------------------------------------------------------------------------
   // Generic overrides
   //---------------------------------------------------------------------------
@@ -95,12 +75,8 @@ $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
   //---------------------------------------------------------------------------
   // Other utilities
   //---------------------------------------------------------------------------
-  .line {
+  .sp-border-bottom {
     border-bottom: 1px solid #CCCCCC;
-  }
-
-  .hpad-small {
-    padding: 0 4px;
   }
 
   .border-right {
@@ -131,13 +107,3 @@ $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
     }
   }
 }
-
-// TODO move to nlapp.sccs
-.nl-screen-small .nl-static {
-  .ignore_activate.activated {
-    .nl-link-img {
-      padding: 10px;
-    }
-  }
-}
-// end TODO move to nlapp.sccs

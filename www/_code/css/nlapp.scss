@@ -309,10 +309,9 @@ $animation-duration: 200ms !default;
   }
 }
 
-.activated .nl-link-text, .activated.nl-link-text {
+.activated > .nl-link-text, .activated.nl-link-text {
   background-color: rgba(128, 128, 255, 0.2);
-  opacity: 0.2;
-  box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+  opacity: 0.5;
 }
 
 .nl-link-img {
@@ -328,10 +327,9 @@ $animation-duration: 200ms !default;
   }
 }
 
-.activated .nl-link-img, .activated.nl-link-img {
+.activated > .nl-link-img, .activated.nl-link-img {
   box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
-  opacity: 0.2;
-  padding: 4px;
+  opacity: 0.5;
 }
 
 a.black {
@@ -1366,6 +1364,10 @@ img.nl-full-width {
     padding: 4px;
 }
 
+.padding-h-small {
+    padding: 0 4px;
+}
+
 .padding-mid {
     padding: 8px;
 }
@@ -1464,7 +1466,7 @@ img.nl-full-width {
 .fsh6 {
   font-size: 120%;
 }
-  
+
 //---------------------------------------------------------------------------
 // Element sizes
 //---------------------------------------------------------------------------
@@ -1494,6 +1496,10 @@ img.nl-full-width {
 
 .w100 {
   width: 100%;
+}
+
+.nl-block {
+  display: block;
 }
 
 .col-12-5 {
