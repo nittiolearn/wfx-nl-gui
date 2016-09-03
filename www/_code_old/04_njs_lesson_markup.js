@@ -3,55 +3,56 @@ njs_lesson_markup = function() {
 //#############################################################################################
 // Conversion methods for all nittio-wiki-markups inside lesson content to html fragment
 //#############################################################################################
+var parentStack = new ParentStack();
 function markupToHtml(markupStr, retData) {
 	var lines = markupStr.split('\n');
 	var lessPara = retData.lessPara;
 	if (!lessPara || lines.length > 1) lessPara = false;
 	retData.isTxt = (lines.length > 1);
 	
-	var parentStack = [''];
+	parentStack.init();
 	for (var i = 0; i < lines.length; i++) {
 		line = lines[i];
-		_markupToHtmlLine(line, parentStack, lessPara, retData);
+		_markupToHtmlLine(line, lessPara, retData);
 	}
-	_nestToLevel(parentStack, 0, '');
-	return parentStack[0];
+	parentStack.nestToLevel(0, '');
+	return parentStack.getText();
 }
 
-function _markupToHtmlLine(line, parentStack, lessPara, retData) {
-	if (_markupToHtmlHeading(line, parentStack)) {
+function _markupToHtmlLine(line, lessPara, retData) {
+	if (_markupToHtmlHeading(line)) {
 		retData.isTxt = true;
 		return;
-	} else if (_markupToHtmlLists(line, parentStack, 0)) {
+	} else if (_markupToHtmlLists(line, 0)) {
 		retData.isTxt = true;
 		return;
-	} else if (_markupToHtmlXxxInline(line, parentStack, _markupToHtmlImg, retData.isTxt)) {
+	} else if (_markupToHtmlXxxInline(line, _markupToHtmlImg, retData.isTxt)) {
 		return;
-	} else if (_markupToHtmlXxxInline(line, parentStack, _markupToHtmlAudio, retData.isTxt)) {
+	} else if (_markupToHtmlXxxInline(line, _markupToHtmlAudio, retData.isTxt)) {
 		return;
-	} else if (_markupToHtmlXxxInline(line, parentStack, _markupToHtmlVideo, retData.isTxt)) {
+	} else if (_markupToHtmlXxxInline(line, _markupToHtmlVideo, retData.isTxt)) {
 		return;
-    } else if (_markupToHtmlXxxInline(line, parentStack, _markupToIframe, retData.isTxt)) {
+    } else if (_markupToHtmlXxxInline(line, _markupToIframe, retData.isTxt)) {
         return;
-	} else if (_markupToHtmlXxxInline(line, parentStack, _markupToHtmlPdf, retData.isTxt)) {
+	} else if (_markupToHtmlXxxInline(line, _markupToHtmlPdf, retData.isTxt)) {
 		return;
 	}
 
-	_nestToLevel(parentStack, 0, '');
+	parentStack.nestToLevel(0, '');
 	var lineHtml = _lineWikiToHtml(line);
 	if (!lessPara) lineHtml = '<p>' + lineHtml + '</p>';
 	if (!lessPara && line == '') {
 		lineHtml = '<br/>';
 	}
-	_apendToTopElem(parentStack, lineHtml);
+	parentStack.apendToTop(lineHtml);
 	retData.isTxt = true;
 }
 
-function _markupToHtmlXxxInline(line, parentStack, xxxFn, bInline) {
+function _markupToHtmlXxxInline(line, xxxFn, bInline) {
 	var lineHtml = xxxFn(line, bInline);
 	if (lineHtml == '') return false;
-	_nestToLevel(parentStack, 0, '');
-	_apendToTopElem(parentStack, lineHtml);
+	parentStack.nestToLevel(0, '');
+	parentStack.apendToTop(lineHtml);
 	return true;
 }
 
@@ -133,7 +134,7 @@ function _markupToIframe(str, bInline) {
     });
 }
 
-function _markupToHtmlHeading(line, parentStack) {
+function _markupToHtmlHeading(line) {
 	var lineHtml;
 	if (line.indexOf('H1') == 0) {
 		lineHtml = '<h1>' + _lineWikiToHtml(line.substring(2)) + '</h1>';
@@ -151,29 +152,55 @@ function _markupToHtmlHeading(line, parentStack) {
 		return false;
 	}
 
-	_nestToLevel(parentStack, 0, '');
-	_apendToTopElem(parentStack, lineHtml);
+	parentStack.nestToLevel(0, '');
+	parentStack.apendToTop(lineHtml);
 	return true;
 }
 
-function _markupToHtmlLists(line, parentStack, level) {
+// TODO-MUNNI - remove the _markupToHtmlLists in future
+var useFlexHtmlLists = true;
+function _markupToHtmlLists(line, level) {
+    if (useFlexHtmlLists) return _markupToFlexHtmlLists(line, level);
 	if (line.indexOf('-') != 0 && line.indexOf('#') != 0) {
 		return false;
 	}
 
-	if (_markupToHtmlLists(line.substring(1), parentStack, level + 1)) {
+	if (_markupToHtmlLists(line.substring(1), level + 1)) {
 		return true;
 	}
 
 	if (line.indexOf('-') == 0) {
-		_nestToLevel(parentStack, level + 1, '<ul>');
+		parentStack.nestToLevel(level + 1, '<ul>');
 	} else {
-		_nestToLevel(parentStack, level + 1, '<ol>');
+		parentStack.nestToLevel(level + 1, '<ol>');
 	}
 
 	var lineHtml = '<li>' + _lineWikiToHtml(line.substring(1)) + '</li>';
-	_apendToTopElem(parentStack, lineHtml);
+	parentStack.apendToTop(lineHtml);
 	return true;
+}
+
+function _markupToFlexHtmlLists(line, level) {
+    if (line.indexOf('-') != 0 && line.indexOf('#') != 0) return false;
+    if (_markupToFlexHtmlLists(line.substring(1), level + 1)) return true;
+
+    var isBullet = (line.indexOf('-') == 0);
+    parentStack.nestToLevel(level + 1, '');
+    var lineHtml = _getFlexHtmlListRow(line, level, isBullet);
+    parentStack.apendToTop(lineHtml);
+    return true;
+}
+
+function _getFlexHtmlListRow(line, level, isBullet) {
+    var cls= isBullet ? 'njsFlexListBullet' : 'njsFlexListNumber';
+    cls += ' level-' + (level+1);
+    var content= isBullet ? '' : '' + parentStack.getCurrentNumber(level);
+    var ret = '<div class="njsFlexList">';
+    for(var i=0; i<level; i++)
+        ret += '<div class="njsFlexListBulletHolder"></div>';
+    ret += njs_helper.fmt2('<div class="njsFlexListBulletHolder"><div class="{}">{}</div></div>', cls, content);
+    return ret + '<div class="njsFlexListText">' 
+        + _lineWikiToHtml(line.substring(1)) + '</div></div>';
 }
 
 function _lineWikiToHtml(line) {
@@ -228,29 +255,49 @@ function _parseWikiMarker(line, marker, fn) {
 	});
 }
 
-function _apendToTopElem(parentStack, line) {
-	parentStack[parentStack.length - 1] += line;
-}
+function ParentStack() {
+    this.items = [{text: ''}];
+    this.currentNumber = {};
+    
+    this.init = function() {
+        this.items = [{text: ''}];
+        this.currentNumber = {};
+    };
 
-function _nestToLevel(parentStack, level, parentItem) {
-	var curLevel = parentStack.length - 1;
-	if (curLevel == level) {
-		return;
-	} else if (curLevel > level) {
-		for (var i = curLevel; i > level; i--) {
-			var elem = parentStack.pop();
-			if (elem.indexOf('<ul>') == 0) {
-				elem += '</ul>';
-			} else if (elem.indexOf('<ol>') == 0) {
-				elem += '</ol>';
-			}
-			_apendToTopElem(parentStack, elem);
-		}
-	} else {
-		for (var i = curLevel; i < level; i++) {
-			parentStack.push(parentItem);
-		}
-	}
+    this.getCurrentNumber = function(level) {
+        if (!this.currentNumber[level]) this.currentNumber[level] = 0;
+        this.currentNumber[level]++;
+        return this.currentNumber[level];
+    };
+    
+    this.getText = function() {
+        return this.items[0].text;
+    };
+
+    this.apendToTop = function(text) {
+        this.items[this.items.length - 1].text += text;
+    };
+    
+    this.nestToLevel = function(level, text) {
+        var curLevel = this.items.length - 1;
+        if (curLevel == level) {
+            return;
+        } else if (curLevel > level) {
+            for (var i = curLevel; i > level; i--) {
+                var elem = this.items.pop();
+                if (elem.text.indexOf('<ul>') == 0) {
+                    elem.text += '</ul>';
+                } else if (elem.text.indexOf('<ol>') == 0) {
+                    elem.text += '</ol>';
+                }
+                this.apendToTop(elem.text);
+            }
+        } else {
+            for (var i = curLevel; i < level; i++) {
+                this.items.push({text:text});
+            }
+        }
+    };
 }
 
 return {

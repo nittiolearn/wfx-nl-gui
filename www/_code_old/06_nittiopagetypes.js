@@ -112,7 +112,7 @@ npagetypes = function() {
 
 	var LAYOUT_ORDER = ['pos', 't', 'h', 'l', 'w'];
 	var LAYOUT_COLLEN = {'pos': 2, 't': 5, 'h': 5, 'l': 5, 'w': 5};
-	var LAYOUT_ORDER_OTHER = ['aligntype', 'fmtgroup', 'ans', 'correct', 'mode'];
+	var LAYOUT_ORDER_OTHER = ['aligntype', 'style', 'fmtgroup', 'ans', 'correct', 'mode'];
 	function _BeautyStringifyLayout(secLayout, i) {
 		secLayout.pos = i+1;
 		var ret = '{';
@@ -339,7 +339,8 @@ npagetypes = function() {
 		this.initInternal = PageType_initInternal;
 
 		this.getSectionCount = PageType_getSectionCount;
-		this.getSectionPos = PageType_getSectionPos;
+        this.getSectionPos = PageType_getSectionPos;
+        this.getSectionStyle = PageType_getSectionStyle;
 		this.getLayout = PageType_getLayout;
 
 		this.getSectionHalign = PageType_getSectionHalign;
@@ -404,6 +405,12 @@ npagetypes = function() {
 		return _pos(secInfo['t'], secInfo['l'], secInfo['h'], secInfo['w']);
 	}
 	
+    function PageType_getSectionStyle(secNo) {
+        if (secNo >= this.layout.length) return '';
+        var secInfo = this.layout[secNo];
+        return secInfo['style'];
+    }
+    
 	function PageType_getLayout() {
 		return this.layout;
 	}

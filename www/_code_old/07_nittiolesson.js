@@ -30,6 +30,7 @@ nlesson = function() {
 		// Initialize and render
 		this.initDom = Lesson_initDom;					// init
 		this.postInitDom = Lesson_postInitDom;          // createHtmlDom: after scorm init
+		this.updateTemplateCustomizations = Lesson_updateTemplateCustomizations;
 		this.editorToggleEditAndPreview = Lesson_editorToggleEditAndPreview; 
 		this.reRender = Lesson_reRender; 				// Invalidates all pages - on next page change they will be rendered
 														// edit (edit-gra) <-> view
@@ -193,7 +194,18 @@ nlesson = function() {
         self.setupOnLeavePage();
         if (self.renderCtx.launchMode() == 'report' && njs_scorm.nlPlayerType() != 'sco')
             njs_lesson_helper.SubmitAndScoreDialog.showReportOverview(self);
+
+        self.updateTemplateCustomizations();
 	}
+
+    function Lesson_updateTemplateCustomizations() {
+        jQuery('#l_html').find('#templateStylesCss').remove();
+        if (this.oLesson.templateStylesCss) {
+            var styleElem = njs_helper.fmt2('<style id="templateStylesCss">{}</style>', this.oLesson.templateStylesCss);
+            jQuery('#l_html').prepend(styleElem);
+        }
+        // TODO-MUNNI-NOW
+    }
 
 	function Lesson_editorToggleEditAndPreview() {
 		var ret = g_lesson.renderCtx.editorToggleEditAndPreview();
@@ -474,6 +486,10 @@ nlesson = function() {
 		this.oLesson.keywords = jQuery('#l_keywords').val();
         this.oLesson.esttime = jQuery('#l_esttime').val();
         this.oLesson.forumTopic = jQuery('#l_lessonForumTopic').val();
+        this.oLesson.templateStylesCss = jQuery('#l_templateStylesCss').val();
+        this.oLesson.templateBgimgs = jQuery('#l_templateBgimgs').val();
+        this.oLesson.templateIcons = jQuery('#l_templateIcons').val();
+        this.oLesson.templatePageTypes = jQuery('#l_templatePageTypes').val();
 		this.oLesson.image = jQuery('#imageFullName').val();		
 		this.oLesson.template = jQuery('#templateFullName').val();
 	}
@@ -1336,6 +1352,7 @@ nlesson = function() {
 		this.pgSecView.attr('title', help);
 		this.pgSecView.attr('answer', 0);
 		this.pgSecView.css(pagetype.getSectionPos(this.secPosShuffled));
+        this.pgSecView.addClass(pagetype.getSectionStyle(this.secPosShuffled));
 		pgSec.append(this.pgSecView);
 
 		var template = this.getTemplateFromObj();
