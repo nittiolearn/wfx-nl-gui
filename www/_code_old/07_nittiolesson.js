@@ -146,6 +146,7 @@ nlesson = function() {
 	    var self = this;
         var jLesson = jQuery('#l_content').val();
         self.oLesson = jQuery.parseJSON(jLesson);
+        npagetypes.init(self.oLesson.templatePageTypes);
         _Lesson_filterPages(self);
         self.bgimg = jQuery('#l_pageData .bgimg');
         self.postRenderingQueue = new PostRenderingQueue(self);
@@ -195,15 +196,16 @@ nlesson = function() {
         if (self.renderCtx.launchMode() == 'report' && njs_scorm.nlPlayerType() != 'sco')
             njs_lesson_helper.SubmitAndScoreDialog.showReportOverview(self);
 
-        self.updateTemplateCustomizations();
+        self.updateTemplateCustomizations(false);
 	}
 
-    function Lesson_updateTemplateCustomizations() {
+    function Lesson_updateTemplateCustomizations(bForce) {
         jQuery('#l_html').find('#templateStylesCss').remove();
         if (this.oLesson.templateStylesCss) {
             var styleElem = njs_helper.fmt2('<style id="templateStylesCss">{}</style>', this.oLesson.templateStylesCss);
             jQuery('#l_html').prepend(styleElem);
         }
+        if (bForce) npagetypes.init(this.oLesson.templatePageTypes);
         // TODO-MUNNI-NOW
     }
 
@@ -1537,9 +1539,6 @@ nlesson = function() {
 				g_lesson.postRenderingQueue.postRenderPage(i);
 			}
 		});
-		
-		npagetypes.init();
-
 	}
 
 	var g_templateDict = {};
