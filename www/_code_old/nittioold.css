@@ -183,6 +183,9 @@ input[type="file"] {
 	line-height: 0;
 }
 
+.select2-results {
+  width: 100%;
+}
 /*----------------------------------------------------------------------------------------------------------------------
  * Actual content from nittio.css
  * --------------------------------------------------------------------------------------------------------------------*/
@@ -285,6 +288,10 @@ input[type="file"] {
 	z-index: 11;
 }
 
+.navigator td {
+  vertical-align: middle;
+}
+
 .navigator img:hover {
 	opacity: 0.5;
 }
@@ -313,7 +320,7 @@ a.enabled {
 	position: absolute;
 	top: 42px;
 	right: 2px;
-	height: 36px;
+	max-height: 40px;
 	max-width: 95%;
 	text-align: center;
 	background: #EFDFFF;
@@ -1779,6 +1786,10 @@ div.pgSecView.answer_wrong.bright {
 	background: #000033;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  color: inherit;
+}
+
 .bgdark a {
 	color: #AAAAFF;
 }
@@ -2049,4 +2060,82 @@ i.italic {
 
 .textmenu:hover{
 	cursor: pointer;
+}
+
+/**
+ * Grid
+ * --------------------------------------------------
+ * Using flexbox for the grid, inspired by ionic who is 
+ * impired by Philip Walton:
+ * http://philipwalton.github.io/solved-by-flexbox/demos/grids/
+ * 
+ * By default each .col within a .row will evenly take up
+ * available width, and the height of each .col with take
+ * up the height of the tallest .col in the same .row.
+ */
+.njsSlides .njsFlexList {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: -moz-flex;
+  display: -ms-flexbox;
+  display: flex;
+  width: 100%;
+
+  /* row-wrap */
+  -webkit-flex-wrap: wrap;
+  -moz-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+
+  /* row-baseline */
+  -webkit-box-align: baseline;
+  -ms-flex-align: baseline;
+  -webkit-align-items: baseline;
+  -moz-align-items: baseline;
+  align-items: baseline;
+}
+
+.njsSlides .njsFlexListBulletHolder {
+  padding: 0 4px;
+  min-width: 1.2em;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.njsSlides .njsFlexListBullet {
+  font-family: "Ionicons";
+  font-size: 50%;
+}
+
+.njsSlides .njsFlexListBullet:after {
+  content: "\f3a6";
+}
+
+.njsSlides .njsFlexListBullet.level-1:after {
+  content: "\f21b";
+}
+
+.njsSlides .njsFlexListBullet.level-2:after {
+  content: "\f24f";
+}
+
+.njsSlides .njsFlexListNumber {
+  font-size: 90%;
+}
+
+.njsSlides .njsFlexListNumber:after {
+  content: '.';
+}
+
+.njsSlides .njsFlexListText {
+  -webkit-box-flex: 1;
+  -webkit-flex: 1;
+  -moz-box-flex: 1;
+  -moz-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  display: block;
+  width: 100%;
+  padding: 0 4px;
 }

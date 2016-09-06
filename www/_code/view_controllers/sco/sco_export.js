@@ -345,8 +345,8 @@ function ParallelDownloadManager(nl, nlServerApi, pl, scoExporter, type, urls, r
             zip.file(filename, result.html);
             
             var newUrls = [];
-            for(var url in result.resurls) {
-                url = _removeQueryParams(url);
+            for(var urlFull in result.resurls) {
+                var url = _removeQueryParams(urlFull);
                 if (!_isKnownExtn(url)) {
                     pl.info(nl.fmt2('resource ignored: {}', url));
                     continue;
@@ -356,7 +356,7 @@ function ParallelDownloadManager(nl, nlServerApi, pl, scoExporter, type, urls, r
                     continue;
                 }
                 newUrls.push(url);
-                scoExporter.resources[url] = {packaged: false, usageCnt: 1};
+                scoExporter.resources[url] = {packaged: false, usageCnt: 1, urlFull: urlFull};
             }
             pl.info(nl.fmt2('{} new resources (assets) to package', newUrls.length),
                 angular.toJson(newUrls, 2));
@@ -371,6 +371,8 @@ function ParallelDownloadManager(nl, nlServerApi, pl, scoExporter, type, urls, r
     }
     
     function _downloadResource(url, onDone) {
+        var urlTrunc =  url;
+        url = scoExporter.resources[urlTrunc].urlFull || urlTrunc;
         pl.debug(nl.fmt2('Downloading resource {}', url));
         JSZipUtils.getBinaryContent(url, function(e, content) {
             nl.timeout(function() { // same as scope.$apply as scope is not there!
@@ -384,7 +386,7 @@ function ParallelDownloadManager(nl, nlServerApi, pl, scoExporter, type, urls, r
                 pl.info(nl.fmt2('Downloaded resource {}', url));
                 self.successCnt++;
                 var prefix = CONTENT_FOLDER + '/res';
-                zip.file(prefix + url, content);
+                zip.file(prefix + urlTrunc, content);
                 onDone();
             });
         });

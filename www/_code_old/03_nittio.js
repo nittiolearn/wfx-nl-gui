@@ -682,7 +682,9 @@ nittio = function() {
 	// Overall intialization
 	//-----------------------------------------------------------------------------
 	var g_transition = 'default';
-	var g_staticResFolder = '';
+    var g_staticResFolder = '';
+    var g_staticTemplFolder = '';
+    var g_staticIconFolder = '';
 	var g_staticVersion = '';
 
 	var g_bleedingEdge = false;
@@ -718,9 +720,11 @@ nittio = function() {
         _isPageLesson = true;
     }
 
-    function initPage(bDebug, retainAspect, transition, staticResFolder, staticVersion, bPrint, username, userdispname) {
+    function initPage(bDebug, retainAspect, transition, staticResFolder, staticTemplFolder, staticIconFolder, staticVersion, bPrint, username, userdispname) {
         g_transition = transition;
         g_staticResFolder = staticResFolder;
+        g_staticTemplFolder = staticTemplFolder;
+        g_staticIconFolder = staticIconFolder;
         g_staticVersion = staticVersion;
         g_username = username;
         g_userdispname = userdispname;
@@ -799,6 +803,14 @@ nittio = function() {
 		return g_staticResFolder;
 	}
 	
+    function getStaticTemplFolder() {
+        return g_staticTemplFolder;
+    }
+    
+    function getStaticIconFolder() {
+        return g_staticIconFolder;
+    }
+    
 	function getStaticVersion() {
 		return g_staticVersion;
 	}
@@ -849,7 +861,9 @@ nittio = function() {
 		onSlideChanged : onSlideChanged,
 		callOnSlideChangedHandlers : callOnSlideChangedHandlers,
 		onEscape : onEscape,
-		getStaticResFolder : getStaticResFolder,
+        getStaticResFolder : getStaticResFolder,
+        getStaticTemplFolder : getStaticTemplFolder,
+        getStaticIconFolder : getStaticIconFolder,
 		getStaticVersion : getStaticVersion,
         getUsername : getUsername,
         getUserdispname : getUserdispname,
