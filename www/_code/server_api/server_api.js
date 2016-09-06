@@ -78,6 +78,12 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/auth_get_audit_data.json', data);
     };
     
+    this.authDemoRequest = function(data) {
+        // data: name,email,phone,website,description
+        // returns true or false
+        return server.post('_serverapi/auth_register_demo.json', data);
+    };
+
     //---------------------------------------------------------------------------------------------
     // Course Module
     //---------------------------------------------------------------------------------------------

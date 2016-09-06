@@ -141,8 +141,8 @@ function(nl, $anchorScroll) {
 var _commonMsg1 = 'Take your trainings online,';
 var _commonMsg2 = 'the ones that really matter for your business.';
 					   
-var WelcomeCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlAnchorScroll', 
-function(nl, nlDlg, nlRouter, $scope, nlAnchorScroll) {
+var WelcomeCtrl = ['nl', 'nlDlg', 'nlServerApi', 'nlRouter', '$scope', 'nlAnchorScroll', 
+function(nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll) {
 	var _cards = null;
 	var _lastScreenSize = '';
     var cards = {
@@ -224,12 +224,12 @@ function(nl, nlDlg, nlRouter, $scope, nlAnchorScroll) {
             }
         }
     };
-    _staticPageCtrl(welcomeConfig, nl, nlDlg, nlRouter, $scope, nlAnchorScroll);
+    _staticPageCtrl(welcomeConfig, nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll);
 }];
 
 //-------------------------------------------------------------------------------------------------
-var SchoolCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlAnchorScroll', 
-function(nl, nlDlg, nlRouter, $scope, nlAnchorScroll) {
+var SchoolCtrl = ['nl', 'nlDlg', 'nlServerApi', 'nlRouter', '$scope', 'nlAnchorScroll', 
+function(nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll) {
     var schoolConfig = {
         // Required in the controller
         title: nl.t('Your teaching quality partner.'),
@@ -243,12 +243,12 @@ function(nl, nlDlg, nlRouter, $scope, nlAnchorScroll) {
             msg2: nl.t('Structure all aspects of teaching. Set your goals, engage your teachers and leap ahead.')
         }
     };
-    _staticPageCtrl(schoolConfig, nl, nlDlg, nlRouter, $scope, nlAnchorScroll);
+    _staticPageCtrl(schoolConfig, nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll);
 }];
 
 //-------------------------------------------------------------------------------------------------
-var TeamCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlAnchorScroll', 
-function(nl, nlDlg, nlRouter, $scope, nlAnchorScroll) {
+var TeamCtrl = ['nl', 'nlDlg', 'nlServerApi', 'nlRouter', '$scope', 'nlAnchorScroll', 
+function(nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll) {
     var teamConfig = {
         // Required in the controller
         title: nl.t('our team'),
@@ -298,11 +298,11 @@ function(nl, nlDlg, nlRouter, $scope, nlAnchorScroll) {
             ]
         }
     };
-    _staticPageCtrl(teamConfig, nl, nlDlg, nlRouter, $scope, nlAnchorScroll);
+    _staticPageCtrl(teamConfig, nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll);
 }];
 
 //-------------------------------------------------------------------------------------------------
-function _staticPageCtrl(config, nl, nlDlg, nlRouter, $scope, nlAnchorScroll) {
+function _staticPageCtrl(config, nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll) {
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
             nl.pginfo.hidemenu = true;
@@ -321,7 +321,7 @@ function _staticPageCtrl(config, nl, nlDlg, nlRouter, $scope, nlAnchorScroll) {
             $scope.content.title2 = config.title2;
             $scope.content.desc = config.desc;
             $scope.menus = config.menus;
-            $scope.registration = new Registration(nl, nlDlg, $scope);
+            $scope.registration = new Registration(nl, nlDlg, nlServerApi, $scope);
             nl.rootScope.pgBgimg = null;
             resolve(true);
             
@@ -350,7 +350,7 @@ function _staticPageCtrl(config, nl, nlDlg, nlRouter, $scope, nlAnchorScroll) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function Registration(nl, nlDlg, $scope) {
+function Registration(nl, nlDlg, nlServerApi, $scope) {
 	this.demoRequest = function() {
 		var requestDlg = nlDlg.create($scope);
         requestDlg.scope.error = {};
@@ -363,8 +363,15 @@ function Registration(nl, nlDlg, $scope) {
 			        if(e) e.preventDefault();
 			        return;
 			    }
-				console.log('TODO: demo requested');
-				console.log('scope.data:', requestDlg.scope.data);
+                console.log('demo requesting: scope.data:', requestDlg.scope.data);
+                nlDlg.showLoadingScreen();
+			    nlServerApi.authDemoRequest(requestDlg.scope.data)
+			    .then(function() {
+			        var msg = 'Thanks. You will hear from us shortly.';
+			        nlDlg.popupAlert({title: '', template: nl.t(msg)}).then(function() {
+                        nlDlg.hideLoadingScreen();
+			        });
+			    });
 			}
 		};
 		requestDlg.show('view_controllers/welcome/demo-request-form.html', [okButton], null);
@@ -375,7 +382,9 @@ function Registration(nl, nlDlg, $scope) {
         scope.error = {};
         var ret = true;
         if(!scope.data.name) ret = _validateFail(scope, 'name', 'Name is mandatory');
-        if(!scope.data.email) ret = _validateFail(scope, 'email', 'Email is mandatory');
+        if(!scope.data.email) {
+            ret = _validateFail(scope, 'email', 'Please provide a valid email id');
+        }
         return ret;
     }
 
