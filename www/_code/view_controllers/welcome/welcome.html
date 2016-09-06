@@ -27,8 +27,9 @@
             <div class='fsh3 text-center padding w100'>
             	<p class='fsh6'>{{content.title1}}</p>
             	<p class='fsh5'>{{content.title2}}</p></br>
-        		<a class='button request-button'
-        		   href='mailto:hello@nittio.com'><b>Email us for a demo</b></a>
+				<span class='button request-button' ng-click='registration.demoRequest()'> 
+					Request a demo
+				</span>
             </div>
         </div>
 	</div>
@@ -37,10 +38,10 @@
         <div class='padding w100'>
 			<div class='fsh2 fblue padding-bottom'>Why Nittio Learn ?</div>
 			<div class='text-center' ng-show='screenSize != "small"'>            
-			    <img style='max-width:700px' class='w100' ng-src='{{baseResUrl}}/nittiodiff_wide.png'>
+			    <img style='max-width:700px' class='w100' ng-src='{{baseResUrl}}/nittiodiff_wide1.png'>
 			</div>
 			<div class='text-center' ng-show='screenSize == "small"'>            
-			    <img class='nl-max-300' ng-src='{{baseResUrl}}/nittiodiff_long.png'>
+			    <img class='nl-max-300' ng-src='{{baseResUrl}}/nittiodiff_long1.png'>
 			</div>
 			<div class='padding-mid'></div>
 			<p class='fsh6 padding-bottom'>You know that continuous training of your key workforce on aspects specific to your business is a force multiplier.</p>
@@ -194,7 +195,7 @@
 				 class='padding {{card.cls}}'>
 				 <div class='padding-mid'>
 					<div ng-show='card.icon'>
-						<img class='sp-page6-img' ng-src='{{baseResUrl}}/{{card.icon}}'>
+						<img ng-src='{{baseResUrl}}/{{card.icon}}'>
 					</div>
 	                <div ng-show='card.title' class='fsh5'>{{card.title}}</div>
 	                <div class='padding-mid'></div>
@@ -211,19 +212,23 @@
 	<div class='section bgdark1'>
 		<div class='nl-sp-bg-img1'></div>
 	    <div class='section padding row row-wrap row-center'>
-	        <div class='fsh2 w100 text-center '>Helping more than <span class='fsh5 fblue'>100</span> schools and businesses.</div>
+	        <div class='fsh2 w100 text-center'>Helping more than <span class='fsh5 fblue'>100</span> schools and businesses.</div>
 	        <div class='fsh4 padding-top text-center w100'>Awards & recognition</div>
 	        <div class='padding' ng-class='respCol211'>
 	            <div class='row row-center row-wrap'>
-	                <img class='nl-max-200 padding' ng-class='respCol221' ng-src='{{baseResUrl}}/globaledtech2.png'
-	                     alt='Nittio Learn - winner of Global Edtech Popularity choice award'>
+	            	<div class='text-center' ng-class='respCol221'>
+		                <img class='nl-max-200 padding' ng-src='{{baseResUrl}}/globaledtech2.png'
+		                     alt='Nittio Learn - winner of Global Edtech Popularity choice award'>
+	                </div>
 	                <div class='padding fsh6' ng-class='respCol221'>Winners of <span class='fsh5 fblue'>Global Edtech Popularity choice award 2014</span> among 360+ startups in the education technology space globally.</div>
 	            </div>
 	        </div>
 	        <div class='padding' ng-class='respCol211'>
 	            <div class='row row-center row-wrap'>
-	                <img class='nl-max-200 padding' ng-class='respCol221' ng-src='{{baseResUrl}}/npc2.png'
-	                     alt='Nittio Learn - one of India’s most innovative product companies at NASSCOM NPC'>
+	            	<div class='text-center' ng-class='respCol221'>
+		                <img class='nl-max-200 padding' ng-src='{{baseResUrl}}/npc2.png'
+		                     alt='Nittio Learn - winner of Global Edtech Popularity choice award'>
+	                </div>
 	                <div class='padding fsh6' ng-class='respCol221'>Showcased at the <span class='fsh5 fblue'>NASSCOM – Product Conclave</span> as one of India’s most innovative product companies.</div>
 	            </div>
 	        </div>
@@ -265,11 +270,9 @@
         <div class='fsh6'>... you could ensure that your employees are continuously trained, wherever they are.</div>
         <p class='fsh5 fyellow0 padding-vertical'>No need to imagine ...</p>
         <div class='fsh3'>
-    		<a class='button request-button fsh3'
-    		   href='mailto:hello@nittio.com'><b>
-    		   	<span class="fsh6 padding-mid"><i class="icon ion-ios-email fsh1"></i></span>
-    		   	Email us for a demo</b>
-		   	</a>
+			<span class='button request-button' ng-click='registration.demoRequest()'> 
+				Request a demo
+			</span>
 		</div>
 	</div>
 

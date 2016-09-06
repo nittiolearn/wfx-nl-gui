@@ -15,7 +15,7 @@ $royal:                           #886aea !default;
 $dark:                            #444 !default;
 */
 
-$nltopbar:                        #403050 !default; // Top Bar Bg-Color
+$nltopbar:                        #00A3CC !default; // Top Bar Bg-Color
 $nltopbar1:                       #807090 !default; // Top Bar Bg-Color gradiant
 $nltopbar2:                       #675187 !default; // A darker shade for other usages
 $nltopbar3:                       #B0A0C0 !default; // A lighter shade for other usages
@@ -136,8 +136,9 @@ body {
 textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"] {
   padding-left: 8px;
   padding-right: 8px;
-  background-color: $nlgrey;
-  border-radius: 4px;
+  background-color: #FFFFFF;
+  border: 1px solid #DDDDFF;
+  border-radius: 0px;
   display:inline;
   margin:4px;
 }
@@ -354,7 +355,7 @@ a.black {
 
 .nl-toolbar-icon {
   padding-top: 10px;
-  color: $orange1;
+  color: #004455;
   cursor: pointer;
   font-weight: bold;
   i.icon {
@@ -362,7 +363,7 @@ a.black {
     padding: 2px 4px;
   }
   i.icon:hover, i.icon:focus {
-    color: $orange2;
+    color: #00A3CC;
   }
 }
 
@@ -494,16 +495,16 @@ a.black {
     height: auto;
     max-width: 96vw;
     max-height: 96vh;
-    border-radius: 4px;
+    border-radius: 0px;
     box-shadow: 2px 2px 10px 5px #402000;
     text-align: left;
     background-color: #FFFFFF;
   }
  
   .popup-head {
-    background-color: $nldlgbar;
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
+    background-color: #00A3CC;
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
     padding: 4px 62px 4px 4px;
     min-height: 32px;
     height: 32px;
@@ -523,36 +524,73 @@ a.black {
   }
 }
 
-.popup-buttons {
+.popup-buttons{
   min-height: 37px;
   height: 37px;
   width: 100%;
   padding: 2px 5px;
-  border-top: 1px solid $nldlgbar;
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
+  border-top: 1px solid #00A3CC;
+  border-radius: 0px;
 
   .button {
     text-align: center;
     font-size: 120%;
     color: #FFFFFF;
-    background-color: $nldlgbar;
+    background-color: #00A3CC;
     min-height: 32px;
     height: 32px;
     padding: 3px;
+    border-radius: 0px;
     
     &:last-child {
       margin-right: 0;
     }
 
-    &:hover, &:focus {
-      background: #B03000;
+    &:hover{
+      background-color: #006680;
     }
+    &:focus {
+      background-color: #004455;
+    }
+  }
+}
+
+.coursebutton {
+  text-align: center;
+  font-size: 120%;
+  color: #FFFFFF;
+  background-color: #00A3CC;
+  min-height: 32px;
+  padding: 3px;
+  border-radius: 0px;
+  
+  &:last-child {
+    margin-right: 0;
+  }
+
+  &:hover{
+    background-color: #006680;
+  }
+  &:focus {
+    background-color: #004455;
   }
 }
 
 .popup-buttons.no-border {
   border-top: none;
+}
+
+.nl-dlgicon {
+  color: #FFFFFF;
+  padding: 0px 2px;
+  font-size: 175%;
+  cursor: pointer;
+  &::hover {
+    color: #006680;
+  }
+  &::click {
+    color: #004455;
+  }
 }
 
 .nl-dlg-title-buttons {
@@ -569,8 +607,8 @@ a.black {
 }
 
 nl-dlg-help, .nl-dlg-help {
-  background-color: #E5FF80;
-  border-radius: 4px;
+  background-color: #DDDDFF;
+  border-radius: 0px;
   padding: 8px;
   margin: 8px;
   box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
@@ -983,7 +1021,6 @@ nl-cards {
   right: 0;
   height: 40px;
   background-color: $nltopbar;
-  background-image: linear-gradient(to bottom,$nltopbar,$nltopbar1);
   color: #ffffff; 
 }
 
@@ -1048,15 +1085,11 @@ img.nl-icon {
   position: absolute;
   top: 45px;
   right: 5px; 
-  width: 100px;
   padding: 0;
-
-  background-color: #C0B0D0;
-  border-radius: 8px;
-  box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
     
   z-index: $z-index-popup;
   text-align: center;
+  text-decoration: none;
 
   img {
     width: 90px;
@@ -1573,7 +1606,7 @@ img.nl-full-width {
       padding-top: 4px;
       padding-bottom: 4px;
   }
-}    
+}
 
 /*-----------------------------------------------------------------------------------------*
  * Some animation classes

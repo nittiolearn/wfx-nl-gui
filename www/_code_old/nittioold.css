@@ -221,13 +221,7 @@ input[type="file"] {
 }
 
 .topBar, .topBarBg .aspect_wrt {
-	background-color: #403050;
-	background-image: -moz-linear-gradient(top,#403050,#807090);
-	background-image: -webkit-gradient(linear,0 0,0 100%,from(#403050),to(#807090));
-	background-image: -webkit-linear-gradient(top,#403050,#807090);
-	background-image: -o-linear-gradient(top,#403050,#807090);
-	background-image: linear-gradient(to bottom,#403050,#807090);
-
+	background-color: #00A3CC;
 	font-size: 100%;
 	color: #ffffff;	
 }
@@ -526,11 +520,11 @@ a.enabled {
 #loginMenu {
 	position: absolute;
 	top: 45px;
-	width: 100px;
+	width: 150px;
 	padding: 0;
 
-	background-color: #C0B0D0;
-	border-radius: 8px;
+	background-color: #F5F5F5;
+	border-radius: 0px;
 	box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
 	
 	z-index: 21;
@@ -543,7 +537,7 @@ a.enabled {
 }
 
 .menuList {
-	text-align: center;
+	padding: 8px;
 }
 
 .menuList img {
@@ -1412,19 +1406,12 @@ div.pgSecView.answer_wrong.bright {
 }
 
 .njsDialogTitle {
-	border-top-left-radius: 4px;
-	border-top-right-radius: 4px;
 	position: absolute;
 	top: 0;
 	left: 0;
 	width: 100%;
 	height: 40px;
-	background-color: #E06000;
-	background-image: -moz-linear-gradient(top,#E06000, #D05000);
-	background-image: -webkit-gradient(linear,0 0,0 100%,from(#E06000),to(#D05000));
-	background-image: -webkit-linear-gradient(top,#E06000,#D05000);
-	background-image: -o-linear-gradient(top,#E06000,#D05000);
-	background-image: linear-gradient(to bottom,#E06000, #D05000);
+	background-color: #00A3CC;
 }
 
 .njsDialogTitle > div {
@@ -1479,7 +1466,7 @@ div.pgSecView.answer_wrong.bright {
 	width: 100%;
 	height: 40px;
 	text-align: right;
-	border-top: 1px solid #D05000;
+	border-top: 1px solid #00A3CC;
 	border-bottom-left-radius: 4px;
 	border-bottom-right-radius: 4px;
 	background: #FFFFFF;
@@ -1489,12 +1476,23 @@ div.pgSecView.answer_wrong.bright {
 	text-align: center;
 	margin: 4px;
 	color: #FFFFFF;
-	background: #D05000;
+	background: #00A3CC;
+	
+    color: #FFFFFF;
+    background-color: #00A3CC;
+    border-radius: 0px;
+
 }
 
-.njsDialogButtons button:hover, .njsDialogButtons button:active, .njsDialogButtons button:focus {
+.njsDialogButtons button:hover{
 	color: #FFFFFF;
-	background: #B03000;
+	background: #006680;
+	text-shadow: none;
+}
+
+.njsDialogButtons button:active, .njsDialogButtons button:focus {
+	color: #FFFFFF;
+	background: #004455;
 	text-shadow: none;
 }
 
@@ -1559,10 +1557,17 @@ div.pgSecView.answer_wrong.bright {
     margin: 4px;
 	padding: 4px;
 	width: 98%;
+ 	border-radius: 0px;	
 }
 
 .dlgField input.field {
 	height: 28px;
+	padding-left: 8px;
+  	padding-right: 8px;
+  	background-color: #FFFFFF;
+  	border: 1px solid #DDDDFF;
+  	border-radius: 0px;
+  	margin:4px;
 }
 
 .dlgField textarea.field {
@@ -2035,4 +2040,13 @@ i.comic_sans {
 /* Finally italics for the i*/
 i.italic {
     font-style: italic;
+}
+
+/* Icon font */
+.textmenu{
+	padding: 8px;
+}
+
+.textmenu:hover{
+	cursor: pointer;
 }

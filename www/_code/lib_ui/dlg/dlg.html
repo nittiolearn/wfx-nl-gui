@@ -1,14 +1,6 @@
 <div class='nl-dlg-title-buttons'>
-    <img title='Help'
-         alt='Help'
-         ng-src='{{imgBasePath}}general/help.png'
-         ng-show='canShowHelp'
-         ng-click='onHelp()'/>
-    <img title='Close'
-         alt='Close'
-         ng-src='{{imgBasePath}}quick-links/close.png'
-         ng-show='canShowClose'
-         ng-click='onClose()'/>
+    <span class='nl-dlgicon material-icons' ng-show='canShowHelp' ng-click='onHelp()'>help_outline</span>
+    <span class='nl-dlgicon material-icons' ng-show='canShowClose' ng-click='onClose()'>highlight_off</span>
 </div>
 <div ng-transclude ng-class='{"nl-dlg-help-hidden": helpHidden}'>
 </div>

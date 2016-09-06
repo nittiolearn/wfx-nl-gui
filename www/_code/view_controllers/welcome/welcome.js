@@ -141,8 +141,8 @@ function(nl, $anchorScroll) {
 var _commonMsg1 = 'Take your trainings online,';
 var _commonMsg2 = 'the ones that really matter for your business.';
 					   
-var WelcomeCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
-function(nl, nlRouter, $scope, nlAnchorScroll) {
+var WelcomeCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlAnchorScroll', 
+function(nl, nlDlg, nlRouter, $scope, nlAnchorScroll) {
 	var _cards = null;
 	var _lastScreenSize = '';
     var cards = {
@@ -224,12 +224,12 @@ function(nl, nlRouter, $scope, nlAnchorScroll) {
             }
         }
     };
-    _staticPageCtrl(welcomeConfig, nl, nlRouter, $scope, nlAnchorScroll);
+    _staticPageCtrl(welcomeConfig, nl, nlDlg, nlRouter, $scope, nlAnchorScroll);
 }];
 
 //-------------------------------------------------------------------------------------------------
-var SchoolCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
-function(nl, nlRouter, $scope, nlAnchorScroll) {
+var SchoolCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlAnchorScroll', 
+function(nl, nlDlg, nlRouter, $scope, nlAnchorScroll) {
     var schoolConfig = {
         // Required in the controller
         title: nl.t('Your teaching quality partner.'),
@@ -243,12 +243,12 @@ function(nl, nlRouter, $scope, nlAnchorScroll) {
             msg2: nl.t('Structure all aspects of teaching. Set your goals, engage your teachers and leap ahead.')
         }
     };
-    _staticPageCtrl(schoolConfig, nl, nlRouter, $scope, nlAnchorScroll);
+    _staticPageCtrl(schoolConfig, nl, nlDlg, nlRouter, $scope, nlAnchorScroll);
 }];
 
 //-------------------------------------------------------------------------------------------------
-var TeamCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
-function(nl, nlRouter, $scope, nlAnchorScroll) {
+var TeamCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlAnchorScroll', 
+function(nl, nlDlg, nlRouter, $scope, nlAnchorScroll) {
     var teamConfig = {
         // Required in the controller
         title: nl.t('our team'),
@@ -298,11 +298,11 @@ function(nl, nlRouter, $scope, nlAnchorScroll) {
             ]
         }
     };
-    _staticPageCtrl(teamConfig, nl, nlRouter, $scope, nlAnchorScroll);
+    _staticPageCtrl(teamConfig, nl, nlDlg, nlRouter, $scope, nlAnchorScroll);
 }];
 
 //-------------------------------------------------------------------------------------------------
-function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
+function _staticPageCtrl(config, nl, nlDlg, nlRouter, $scope, nlAnchorScroll) {
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
             nl.pginfo.hidemenu = true;
@@ -321,6 +321,7 @@ function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
             $scope.content.title2 = config.title2;
             $scope.content.desc = config.desc;
             $scope.menus = config.menus;
+            $scope.registration = new Registration(nl, nlDlg, $scope);
             nl.rootScope.pgBgimg = null;
             resolve(true);
             
@@ -346,6 +347,42 @@ function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
     
     nlAnchorScroll.setAnchorHandler($scope);
     nlRouter.initContoller($scope, '', _onPageEnter);
+}
+
+//-------------------------------------------------------------------------------------------------
+function Registration(nl, nlDlg, $scope) {
+	this.demoRequest = function() {
+		var requestDlg = nlDlg.create($scope);
+        requestDlg.scope.error = {};
+		requestDlg.scope.data = {name: ''};
+		
+		var okButton = {
+			text : 'Request a demo',
+			onTap : function(e) {
+			    if(!_validateInputs(requestDlg.scope)) {
+			        if(e) e.preventDefault();
+			        return;
+			    }
+				console.log('TODO: demo requested');
+				console.log('scope.data:', requestDlg.scope.data);
+			}
+		};
+		requestDlg.show('view_controllers/welcome/demo-request-form.html', [okButton], null);
+	};
+	
+    function _validateInputs(scope) {
+    	console.log('scope.data:', scope.data);
+        scope.error = {};
+        var ret = true;
+        if(!scope.data.name) ret = _validateFail(scope, 'name', 'Name is mandatory');
+        if(!scope.data.email) ret = _validateFail(scope, 'email', 'Email is mandatory');
+        return ret;
+    }
+
+    function _validateFail(scope, attr, errMsg) {
+    	return nlDlg.setFieldError(scope, attr,
+        	nl.t(errMsg));
+    }
 }
 
 //-------------------------------------------------------------------------------------------------
