@@ -157,7 +157,7 @@ function _markupToHtmlHeading(line) {
 	return true;
 }
 
-// TODO-MUNNI - remove the _markupToHtmlLists in future
+// TODO-MUNNI - remove the _markupToHtmlLists in future (Delete around Dec 2016)
 var useFlexHtmlLists = true;
 function _markupToHtmlLists(line, level) {
     if (useFlexHtmlLists) return _markupToFlexHtmlLists(line, level);

@@ -196,17 +196,34 @@ nlesson = function() {
         if (self.renderCtx.launchMode() == 'report' && njs_scorm.nlPlayerType() != 'sco')
             njs_lesson_helper.SubmitAndScoreDialog.showReportOverview(self);
 
-        self.updateTemplateCustomizations(false);
+        self.updateTemplateCustomizations();
 	}
 
-    function Lesson_updateTemplateCustomizations(bForce) {
-        jQuery('#l_html').find('#templateStylesCss').remove();
-        if (this.oLesson.templateStylesCss) {
-            var styleElem = njs_helper.fmt2('<style id="templateStylesCss">{}</style>', this.oLesson.templateStylesCss);
-            jQuery('#l_html').prepend(styleElem);
+    var oldTemplateStylesCss = '';
+    var oldTemplateBgimgs = '';
+    var oldTemplateIcons = '';
+    var oldTemplatePageTypes = '';
+    function Lesson_updateTemplateCustomizations() {
+        if (oldTemplateStylesCss != this.oLesson.templateStylesCss) {
+            oldTemplateStylesCss = this.oLesson.templateStylesCss;
+            jQuery('#l_html').find('#templateStylesCss').remove();
+            if (this.oLesson.templateStylesCss) {
+                var styleElem = njs_helper.fmt2('<style id="templateStylesCss">{}</style>', this.oLesson.templateStylesCss);
+                jQuery('#l_html').prepend(styleElem);
+            }
         }
-        if (bForce) npagetypes.init(this.oLesson.templatePageTypes);
-        // TODO-MUNNI-NOW
+        if (oldTemplateBgimgs != this.oLesson.templateBgimgs) {
+            oldTemplateBgimgs = this.oLesson.templateBgimgs;
+            g_templateDict = {};
+        }
+        if (oldTemplateIcons != this.oLesson.templateIcons) {
+            oldTemplateIcons = this.oLesson.templateIcons;
+            // TODO-MUNNI: implement in next release
+        }
+        if (oldTemplatePageTypes != this.oLesson.templatePageTypes) {
+            oldTemplatePageTypes = this.oLesson.templatePageTypes;
+            npagetypes.init(this.oLesson.templatePageTypes);
+        }
     }
 
 	function Lesson_editorToggleEditAndPreview() {
@@ -1542,27 +1559,72 @@ nlesson = function() {
 	}
 
 	var g_templateDict = {};
+    var g_templateList = [];
 	function loadTemplateInfos(onLoadComplete) {
 		if (Object.keys(g_templateDict).length > 0) {
 			onLoadComplete();
 			return;
 		}
 
+		if (g_lesson.oLesson.templateBgimgs) {
+		    g_templateList = JSON.parse(g_lesson.oLesson.templateBgimgs);
+            _onTemplateInfos(true);
+            onLoadComplete();
+            return;
+        }
+
 		var _ajax = new njs_helper.Ajax(function(data, errorType, errorMsg) {
 			if (errorType != njs_helper.Ajax.ERROR_NONE) return;
-			_onTemplateInfos(data);
+			g_templateList = data;
+			_onTemplateInfos(false);
 			onLoadComplete();
 		});
 		_ajax.send('/lesson/template_infos.json', {});
 	}
 
-	function _onTemplateInfos(templateDict) {
-		g_templateDict = templateDict;
+	function _onTemplateInfos(bCustomList) {
+        g_templateDict = {};
+	    for(var i=0; i<g_templateList.length; i++) {
+            var item = g_templateList[i];
+            item.cssClass = njs_helper.fmt2('{} look{}', item.bgShade, item.id);
+            if (item.id == 'Custom') {
+                item.bgImg = '';
+            } else if (bCustomList) {
+                item.bgImg = item.background;
+            } else {
+                item.bgImg = njs_helper.fmt2("{}/{}",
+                    nittio.getStaticTemplFolder(), item.background);
+            }
+            g_templateDict[item.id] = item;
+	    }
 	}
 
 	function getTemplateInfo(templateName) {
-		return g_templateDict[templateName];
+	    if (templateName in g_templateDict) return g_templateDict[templateName];
+	    if (g_templateList.length > 1) return g_templateList[1];
+	    return g_templateList[0];
 	}
+
+    function updateBgImages(templList) {
+        templList.html('');
+        var currentOptGroup = '';
+        var curParent = templList;
+        for (var i = 0; i < g_templateList.length; i++) {
+            var t = g_templateDict[g_templateList[i].id];
+            if (t.group != '' && t.group != currentOptGroup) {
+                currentOptGroup = t.group;
+                curParent = jQuery(njs_helper.fmt2('<optgroup label={}>', currentOptGroup));
+                templList.append(curParent);
+            } else if (t.group == '') {
+                curParent = templList;
+            }
+            curParent.append(njs_helper.fmt2('<option value="{}">{}</option>', 
+                t.id, t.name));
+        }
+        var selected = jQuery('#templateFullName').val();
+        if (selected.indexOf('img:') == 0) selected = 'Custom';
+        templList.select2('val', selected);
+    }
 
 	function updateTemplate(cssClass, bgImg) {
 		jQuery('.njsSlides').removeClass(g_lesson.globals.templateCssClass).addClass(cssClass);
@@ -1584,6 +1646,7 @@ nlesson = function() {
 		init : init,
 		loadTemplateInfos: loadTemplateInfos,
 		getTemplateInfo : getTemplateInfo,
+		updateBgImages : updateBgImages,
 		updateTemplate : updateTemplate,
 		theLesson : g_lesson,
 		showCommentIndicator : showCommentIndicator,
