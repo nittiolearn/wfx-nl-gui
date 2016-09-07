@@ -654,7 +654,7 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload) {
     //----------------------------------------------------------------------------------------------
     // Private methods
     function _defaultUserInfo() {
-        return {username: '', lastupdated: null, groupicon: nl.url.resUrl('general/top-logo1.png'), dashboard: []};
+        return {username: '', lastupdated: null, groupicon: nl.url.resUrl('general/top-logo2.png'), dashboard: []};
     }
     
     var AJAX_TIMEOUT = 3*60*1000; // 3 mins timeout

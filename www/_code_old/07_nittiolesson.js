@@ -249,14 +249,15 @@ nlesson = function() {
 	function Lesson_doModeToggle() {
 		var ctx= this.renderCtx.playerToggleDoAndPreview();
 		
-		var icon = jQuery('#do_toggle_icon img');
-		var fmt = nittio.getStaticResFolder() + '/toolbar-edit/toggle{}.png';
+        var iconSpan = jQuery('#do_toggle_icon');
+        var icon = iconSpan.find('I');
+        icon.removeClass();
 		if (ctx == 'do_pv') {
-			icon.attr('src', njs_helper.fmt2(fmt, '2'));
-			icon.attr('title', " Change to edit mode");
+            icon.addClass('icon ion-ios-compose');
+			iconSpan.attr('title', " Change to edit mode");
 		} else {
-			icon.attr('src', njs_helper.fmt2(fmt, ''));
-			icon.attr('title', " Change to preview mode");
+            icon.addClass('icon ion-ios-eye');
+			iconSpan.attr('title', " Change to preview mode");
 		}
 
 		this.reRenderedList = {};
@@ -1483,13 +1484,14 @@ nlesson = function() {
 		var pageId = g_lesson.getCurrentPageId();
 		var clist = njsCommentEditor.theLessonComment.getOpenComments(pageId);
 		
-		var icon = jQuery('#edit_icon_comment img');
+		
+        var iconSpan = jQuery('#edit_icon_comment');
+        var icon = iconSpan.find('I');
+        icon.removeClass();
 		if(clist.length > 0){
-			var url = njs_helper.fmt2("{}/toolbar-edit/comments2.png",nittio.getStaticResFolder());			
-			icon.attr('src', url);			
+            icon.addClass('icon ion-ios-chatbubble fyellow');
 		} else {
-			var url = njs_helper.fmt2("{}/toolbar-edit/comments1.png",nittio.getStaticResFolder());
-			icon.attr('src', url);		
+            icon.addClass('icon ion-ios-chatbubble-outline');
 		}
 	}
 	

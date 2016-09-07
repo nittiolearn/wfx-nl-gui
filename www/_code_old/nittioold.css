@@ -1,6 +1,11 @@
 @charset "UTF-8";
 
 /*----------------------------------------------------------------------------------------------------------------------
+$nlBlue1:                         #00A3CC !default; // Blue used in top bar, Buttons
+$nlBlue2:                         #0083AC !default; // Darker blue used in button hover
+$nlBlue3:                         #004455 !default; // Dark blue used in button click
+
+ * Old colors:
  * Color1: #403050 (header bar)
  * Color2: #807090
  * Color3: #C0B0D0
@@ -322,14 +327,17 @@ a.enabled {
 	right: 2px;
 	max-height: 40px;
 	max-width: 95%;
-	text-align: center;
-	background: #EFDFFF;
+	text-align: right;
+	background-color: rgba(255, 255, 255, 0.7);
 	z-index: 12;
-	border-bottom-left-radius: 8px;
-	border-bottom-right-radius: 8px;
-	box-shadow: 0px 0px 16px 0 #403050 inset;
 	overflow:auto;
-	opacity: 0.85;
+	width: auto;
+  box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
+  display: none;
+}
+
+.toolBarContainer {
+  display: inline-flex;
 }
 
 .scormlms #pgNo, .scormlms .navigator {
@@ -346,15 +354,6 @@ a.enabled {
 /*----------------------------------------------------------------------------------------------------------------------
  * Elements inside topBar
  * --------------------------------------------------------------------------------------------------------------------*/
-.topBar a {
-	color: #FFFF80;
-}
-
-.topBar a:hover {
-	color: #FF8080;
-	text-decoration:none;
-}
-
 .topBar #logo {
 	position: absolute;
 	top: 0;
@@ -367,11 +366,11 @@ a.enabled {
 
 .topBar > #menuArea {
 	position: absolute;
-	top: 4px;
-	bottom: 4px;
-	right: 4px;
+	top: 0px;
+	right: 0px;
 	width: 120px;
 	text-align: right;
+	padding: 8px 2px;
 }
 
 .topBar > #menuArea img {
@@ -386,7 +385,7 @@ a.enabled {
 	bottom: 0;
 	left: 124px;
 	right: 124px;
-	padding: 9px 0;
+	padding: 8px 4px;
 	font-size: 120%;
 	text-align: center;
 }
@@ -458,11 +457,9 @@ a.enabled {
 	width: auto;
 	height: auto;
 	z-index: 11;
-	background-color: #403050;
+	background-color: #004455;
 	color: #FFFFFF;
-	border: 3px solid #FFFFFF;
-	border-radius: 8px;
-	box-shadow: 0 -2px 0 3px #201030 inset, 0 5px 5px rgba(0, 0, 0, 0.17), 0 5px rgba(255, 255, 255, 0.25) inset;
+	border: 2px solid #FFFFFF;
 	padding: 5px;
 }
 
@@ -473,8 +470,7 @@ a.enabled {
 #countdown_timer.countdown_timer_warning {
 	display: inline;
 	font-size: 150%;
-	background-color: #FF0000;
-	box-shadow: 0 -2px 0 3px #FF0000 inset, 0 5px 5px rgba(0, 0, 0, 0.17), 0 5px rgba(255, 255, 255, 0.25) inset;
+	background-color: #800000;
 }
 
 #audioHolder {
@@ -493,28 +489,14 @@ a.enabled {
 	width: auto;
 	height: auto;
 	color: #FFFFFF;
-	background-color: #403050;
+	background-color: #004455;
 	border-radius: 100%;
 	text-align: center;
 	padding: 5px 12px;
 	font-size: 12px;
 	line-height: 150%;
 	z-index: 12;
-	cursor:pointer;	
-}
-
-#pgNo {
-	background-color: #403050;
-	color: #FFFFFF;
-	border: 3px solid #FFFFFF;
-	box-shadow: 0 -2px 0 3px #201030 inset, 0 5px 5px rgba(0, 0, 0, 0.17), 0 5px rgba(255, 255, 255, 0.25) inset;
-}
-
-#pgNo:hover {
-	background-color: #FFFFFF;
-	color: #403050;
-	border: 3px solid #403050;
-	box-shadow: none;
+  border: 2px solid #FFFFFF;
 }
 
 #pgNo, #navigate_left, #navigate_right {
@@ -611,10 +593,9 @@ a.green:hover, .njsSlides a.green:hover  {
  * --------------------------------------------------------------------------------------------------------------------*/
 .popupBox {
 	position: absolute;
-	border-radius: 8px;
 	opacity: 0;
 	z-index: 23;
-	box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
+  box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
 	display: none; 
 }
 
@@ -628,7 +609,7 @@ a.green:hover, .njsSlides a.green:hover  {
 	height: 0;
 	color: #ffffff;
   font-size: 90%;
-  background: #403050;
+  background: #004455;
   text-overflow: ellipsis;
   white-space: nowrap; 
   overflow: hidden;
@@ -669,16 +650,19 @@ a.green:hover, .njsSlides a.green:hover  {
 	margin: 0 2px;
 }
 
+.searchForm button {
+  padding: 4px;
+}
+
 .searchForm input {
 	width: 98%;
+	height: 30px;
 }
 
 .searchForm .res {
 	white-space: nowrap; 
-	background-color: #807090; 
-	color: #ffffff;
+  background-color: #CCCCDD;
 	padding: 0 5px;
-	border-radius: 4px;		
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
@@ -817,7 +801,7 @@ a.green:hover, .njsSlides a.green:hover  {
 }
 
 .moreImgCls {
-	background-color:#403050;
+	background-color:#00A3CC;
 } 
 
 .njsMoreTable {
@@ -1067,8 +1051,7 @@ td.submitselection{
 	margin: 0;
 	border: 0;
 	padding: 0;
-	box-shadow: 1px 1px 5px 0 #807090;
-	border-radius: 8px;
+  box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
 	z-index: -1;
 	outline: none;
 }
@@ -1389,8 +1372,7 @@ div.pgSecView.answer_wrong.bright {
 	right: 50%;
 	bottom: 50%;
 	display: none;
-	border-radius: 4px;
-	box-shadow: 2px 2px 10px 5px #402000;
+  box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
 	text-align: center;
 	z-index: 22;
 }
@@ -1406,10 +1388,10 @@ div.pgSecView.answer_wrong.bright {
 	left: 10px;
 	right: 10px;
 	bottom: 10px;
-	border-radius: 4px;
-	box-shadow: 2px 2px 10px 5px #402000;
+  box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
 	text-align: center;
 	z-index: 12;
+  background-color: #FFFFFF;
 }
 
 .njsDialogTitle {
@@ -1417,7 +1399,7 @@ div.pgSecView.answer_wrong.bright {
 	top: 0;
 	left: 0;
 	width: 100%;
-	height: 40px;
+	height: 32px;
 	background-color: #00A3CC;
 }
 
@@ -1427,26 +1409,15 @@ div.pgSecView.answer_wrong.bright {
 	left: 0;
 	right: 64px;
 	height: 100%;
-}
-
-.njsDialogTitle > img {
-	float: right;
-	height: 24px;
-	width: 24px;
-	margin: 8px 4px;
-	cursor:pointer;
-}
-
-.njsDialogTitle > div {
 	text-align: center;
 	margin: 8px;
 	color: #FFFFFF;
-	font-size: 24px;
+	font-size: 120%;
 }
 
 .njsDialogFields {
 	position: absolute;
-	top: 40px;
+	top: 32px;
 	bottom: 40px;
 	left: 0;
 	right: 0;
@@ -1473,9 +1444,7 @@ div.pgSecView.answer_wrong.bright {
 	width: 100%;
 	height: 40px;
 	text-align: right;
-	border-top: 1px solid #00A3CC;
-	border-bottom-left-radius: 4px;
-	border-bottom-right-radius: 4px;
+	border-top: 1px solid #004455;
 	background: #FFFFFF;
 }
 
@@ -1483,24 +1452,20 @@ div.pgSecView.answer_wrong.bright {
 	text-align: center;
 	margin: 4px;
 	color: #FFFFFF;
-	background: #00A3CC;
-	
-    color: #FFFFFF;
-    background-color: #00A3CC;
-    border-radius: 0px;
-
+	background: #004455;
+  text-shadow: none;
+  border-radius: 0;
 }
 
 .njsDialogButtons button:hover{
-	color: #FFFFFF;
-	background: #006680;
-	text-shadow: none;
+  color: #FFFFFF;
+  background: #0083AC;
 }
 
 .njsDialogButtons button:active, .njsDialogButtons button:focus {
-	color: #FFFFFF;
-	background: #004455;
-	text-shadow: none;
+  color: #FFFFFF;
+	background: #00A3CC;
+  box-shadow: inset 0 0 10px #004455, 0 0 5px #004455;
 }
 
 .njsDialogHelp {
@@ -1557,11 +1522,11 @@ div.pgSecView.answer_wrong.bright {
 }
 
 .dlgField .field {
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
     
-    margin: 4px;
+  margin: 4px;
 	padding: 4px;
 	width: 98%;
  	border-radius: 0px;	
@@ -1715,8 +1680,7 @@ div.pgSecView.answer_wrong.bright {
 	left: 0;
 	height: 100%;
 	width: 100%; 
-	box-shadow: 1px 1px 5px 0 #807090;
-	border-radius: 4px;
+  box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
 }
 
 #changeLook_txt {

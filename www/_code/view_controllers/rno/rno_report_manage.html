@@ -2,22 +2,20 @@
 <div ng-if='!cards' class='nl-form'>
     <div class='nl-form-head'>
         <span class='popup-title'>{{formScope.dlgTitle}}</span>
-        <span class='popup-toolbar'>
+        <span class='nl-white-icons'>
             <span title='Help'
-                  class='nl-toolbar-icon'
                   ng-click='formScope.dlgHelp = !formScope.dlgHelp'>
-                <i class="icon ion-help-circled"></i>
+                <i class="ion-ios-help-outline"></i>
             </span>
             <span title='Close'
-                  class='nl-toolbar-icon'
                   ng-click='formScope.onDlgClose()'>
-                <i class="icon ion-close-circled"></i>
+                <i class="ion-ios-close-outline"></i>
             </span>
         </span>
     </div>
     <div class='nl-form-body'>
         <div ng-show='formScope.dlgHelp' class='nl-dlg-help'>
-            In this page you will be able to do the following:
+            <p>In this page you will be able to do the following:</p>
             <ul>
                 <li>Add a new observation</li>
                 <li>Send an observation as email</li>
@@ -41,17 +39,17 @@
             </div>
         </div>
 
-        <div class='button button-small button-positive'
+        <div class='nl-button'
              ng-click='formScope.onCreateObservation()'>
             New observation ...
         </div>
         <hr/>
 
         <h3>
-            <span class='button button-small button-positive'
+            <span class='fsmall3 nl-button'
                   ng-show='formScope.hideObservations && formScope.rno.data.observations.length'
                   ng-click='formScope.hideObservations=false'>Show</span>
-            <span class='button button-small button-positive'
+            <span class='fsmall3 nl-button'
                   ng-show='!formScope.hideObservations && formScope.rno.data.observations.length'
                   ng-click='formScope.hideObservations=true'>Hide</span>
             <span>{{formScope.rno.data.observations.length}} observations</span>
@@ -126,10 +124,10 @@
         </div>
 
         <h3>
-            <span class='button button-small button-positive'
+            <span class='fsmall3 nl-button'
                   ng-show='formScope.hideRatings'
                   ng-click='formScope.hideRatings=false'>Show</span>
-            <span class='button button-small button-positive'
+            <span class='fsmall3 nl-button'
                   ng-show='!formScope.hideRatings'
                   ng-click='formScope.hideRatings=true'>Hide</span>
             <span>{{msTree.items[0].selectCnt}} milestones ratings</span>
@@ -137,10 +135,10 @@
         <nl-rno-mstree ng-hide='formScope.hideRatings'></nl-rno-mstree>
         
         <h3>
-            <span class='button button-small button-positive'
+            <span class='fsmall3 nl-button'
                   ng-show='formScope.hideHistory && formScope.reportsSent.length'
                   ng-click='formScope.hideHistory=false'>Show</span>
-            <span class='button button-small button-positive'
+            <span class='fsmall3 nl-button'
                   ng-show='!formScope.hideHistory && formScope.reportsSent.length'
                   ng-click='formScope.hideHistory=true'>Hide</span>
             <span>{{formScope.reportsSent.length}} observation and progress report emails sent</span>
@@ -199,15 +197,11 @@
         </div>
         <div class='padding-small'></div>
         <div class='row row-center margin0 padding-small'>
-            <span class='col padding0 button button-small button-positive'
-                 ng-click='formScope.onPreview()'>
-                Preview ...
-            </span>
+            <span class='col nl-button'
+                 ng-click='formScope.onPreview()'>Preview ...</span>
             <div style='width:8px'></div>
-            <span class='col padding0 button button-small button-positive'
-                 ng-click='formScope.onSave()'>
-                Save
-            </span>
+            <span class='col nl-button'
+                 ng-click='formScope.onSave()'>Save</span>
         </div>
     </div>
 </div>

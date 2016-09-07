@@ -3,7 +3,7 @@
           ng-show='canStartTopic && !currentTopicId'
           class='nl-toolbar-icon'
           ng-click='showPostNewTopicDlg()'>
-        <i class="icon ion-chatboxes"></i>
+        <i class="icon ion-plus-circled"></i>
     </span>
     <span title='Post a message'
           ng-show='canReply(currentTopicId)'
@@ -17,23 +17,23 @@
           ng-click='uploadResource(currentTopicId)'>
         <i class="icon ion-paperclip"></i>
     </span>
-    <span title='Show overview'
+    <span title='Go to topic list'
           ng-show='currentTopicId'
           class='nl-toolbar-icon'
           ng-click='collapseAll()'>
-        <i class="icon ion-arrow-up-a"></i>
+        <i class="icon ion-ios-list"></i>
     </span>
     <span title='{{msgDetails.title}}'
           ng-show='canShowDetails && currentTopicId'
           class='nl-toolbar-icon'
           ng-click='showHideMsgDetails()'>
-        <i ng-show='msgDetails.iconMore' class="icon ion-android-add-circle"></i>
-        <i ng-hide='msgDetails.iconMore' class="icon ion-android-remove-circle"></i>
+        <i ng-show='msgDetails.iconMore' class="icon ion-information-circled"></i>
+        <i ng-hide='msgDetails.iconMore' class="icon ion-information-circled fblue"></i>
     </span>
     <span title='Refresh data'
           class='nl-toolbar-icon'
           ng-click='refreshDataFromServer()'>
-        <i class="icon ion-android-sync"></i>
+        <i class="icon ion-refresh"></i>
     </span>
     <span title='Download as CSV'
           ng-show='canStartTopic'

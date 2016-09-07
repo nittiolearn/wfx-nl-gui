@@ -844,19 +844,22 @@ function Dialog() {
 		// Create title bar
 		var titleStr = dlgFields.attr('njsTitle');
 		var title = jQuery(njs_helper.fmt2("<div class='njsDialogTitle'><div id='{}_title'>{}</div></div>", _dlgId, titleStr));
+		var buttons = jQuery('<nav class="nl-dlg-title-buttons nl-white-icons"></nav>');
+		title.append(buttons);
 		
-		var staticResFolder = nittio.getStaticResFolder();
-		var closeButton = jQuery(njs_helper.fmt2("<img src='{}/quick-links/close.png'/>", staticResFolder));
+		var closeButton = jQuery('<i class="ion-ios-close-outline"></i>');
 		closeButton.on('click', cancelFn);
 		closeButton.attr('id', njs_helper.fmt2('{}_top_close_button', _dlgId));
-		title.append(closeButton);
+		buttons.append(closeButton);
 		
 		// Add help button if help is available
 		var help = _dlgGetHelp(dlgFields);
 		if (help == '') return title;
 		
-		var helpButton = jQuery(njs_helper.fmt2("<img src='{}/quick-links/help.png' onclick=\"nittio.toggleElem('#{}_help');\"/>", staticResFolder, _dlgId));
-		title.append(helpButton);
+		var helpButton = jQuery(njs_helper.fmt2(
+		    "<i class='ion-ios-help-outline' onclick=\"nittio.toggleElem('#{}_help');\"/></i>", 
+		    _dlgId));
+		buttons.prepend(helpButton);
 
 		var dlgHelp = njs_helper.fmt2("<div id='{}_help' class='njsDialogHelp njspopup'><div class='callout'>{}</div></div>", _dlgId, help);
 		dlgFields.prepend(dlgHelp);

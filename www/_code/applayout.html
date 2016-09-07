@@ -27,19 +27,21 @@
             <img class='nl-link-img no-hover' ng-src='{{logo}}' ng-show='logo' title='{{homeMenuTitle}}'/>
         </a>
         <span id='nl-header' class='nl-textellipsis' ng-hide='screenSize=="small"'>{{pgInfo.pageTitle}} <small>{{pgInfo.pageSubTitle}}</small></span>
-        <nav id='nl-top-menu'>
-            <a ng-href='{{homeUrl}}' ng-show='logedIn'>
-            	<span title='{{helpMenuTitle}}' class="nl-dlgicon fsh3 ion-home"></span>
-            </a>
-            <span title='{{pgInfo.username}}' class="nl-dlgicon fsh3 ion-android-person" ng-src='{{userMenuIcon}}' alt='User' ng-click='onUserMenu($event)'/></span>
+        <nav id='nl-top-menu' class='nl-white-icons'>
+            <a ng-href='{{homeUrl}}' ng-show='logedIn'><i title='{{homeMenuTitle}}' class="fsh3 ion-home"></i></a>
+            <i title='{{pgInfo.username}}' alt='User'
+                  class="fsh3 ion-android-person" 
+                  ng-click='onUserMenu($event)'/></i>
         </nav>
         <nav id='nl-user-menu' ng-show='showUserMenu'>
 	        <ul class="list fblack fsh6">
-	        	<a ng-repeat='item in userMenuItems' ng-href='{{item.url}}' class='nl-link-text' rel='nofollow'>
-			    	<li class="item item-divider padding-mid">
-						<i class='w100_block'>{{item.title}}</i>
-				    </li>
-				</a>
+		    	<li ng-repeat='item in userMenuItems'
+		    	    class="item item-divider padding0">
+                    <a ng-href='{{item.url}}'
+                       class='nl-link-text' rel='nofollow'>
+						<i class='w100 nl-block nl-link-text padding-mid'>{{item.title}}</i>
+                    </a>
+			    </li>
 		    </ul>
 		</nav>
     </nav>

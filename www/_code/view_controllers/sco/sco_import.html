@@ -2,11 +2,11 @@
 <div ng-if='!cards && showImportForm' class='nl-form'>
     <div class='nl-form-head'>
         <span class='popup-title'>{{title}}</span>
-        <span class='popup-toolbar'>
+        <span class='nl-white-icons'>
             <span title='Close'
-                  class='nl-toolbar-icon padding0'
+                  class='padding0'
                   ng-click='onClose()'>
-                <i class="icon ion-close-circled"></i>
+                <i class="ion-ios-close-outline"></i>
             </span>
         </span>
     </div>
@@ -15,11 +15,11 @@
             <nl-resource-upload fieldmodel='scozip' restype='Zip' class='col'>
             </nl-resource-upload>
             <div class='padding-small row margin0'>
-                <div class='col button button-positive' ng-click='onImport()'>Import SCORM file</div>
+                <div class='col nl-button' ng-click='onImport()'>Import SCORM file</div>
             </div>
         </div>
         <div ng-if='running' class='padding-small row margin0'>
-            <div class='col button button-positive' ng-click='onAbort()'>Cancel</div>
+            <div class='col nl-button' ng-click='onAbort()'>Cancel</div>
         </div>
         <nl-progress-log ng-show='started'></nl-progress-log>
     </div>
@@ -27,11 +27,11 @@
 <div ng-if='!cards && viewer.show' class='nl-form'>
     <div class='nl-form-head'>
         <span class='popup-title'>{{title}}</span>
-        <span class='popup-toolbar'>
+        <span class='nl-white-icons'>
             <span title='Close'
-                  class='nl-toolbar-icon padding0'
+                  class='padding0'
                   ng-click='viewerFn.onClose()'>
-                <i class="icon ion-close-circled"></i>
+                <i class="ion-ios-close-outline"></i>
             </span>
         </span>
     </div>

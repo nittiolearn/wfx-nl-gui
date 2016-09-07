@@ -37,25 +37,25 @@
             </div>
             <span title='Show information'
                   ng-if='iframeUrl'
-                  class='nl-toolbar-icon padding0'
+                  class='nl-toolbar-icon'
                   ng-click='onIconClick($event, ext.item)'>
                 <i class="icon ion-information-circled"></i>
             </span>
             <span title='Close'
                   ng-if='popupView && !expandedView'
-                  class='nl-toolbar-icon padding0'
+                  class='nl-toolbar-icon'
                   ng-click='hidePopup(true)'>
-                <i class="icon ion-close-circled"></i>
+                <i class="icon ion-ios-close-outline"></i>
             </span>
             <span title='Minimize'
                   ng-if='popupView && expandedView'
-                  class='nl-toolbar-icon padding0'
+                  class='nl-toolbar-icon'
                   ng-click='hidePopup(false)'>
                 <i class="icon ion-arrow-shrink"></i>
             </span>
             <span title='Show as popup'
                   ng-if='!popupView'
-                  class='nl-toolbar-icon padding0'
+                  class='nl-toolbar-icon'
                   ng-click='showPopup($event, ext.item)'>
                 <i class="icon ion-arrow-expand"></i>
             </span>

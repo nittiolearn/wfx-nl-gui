@@ -189,13 +189,13 @@ function RenderingContext_pageCtx(page) {
 
 var _editorToggleStates = {
 	'edit': {
-		'edit' : {newState: 'edit_pv', newIcon: 'toolbar-edit/toggle2.png', newTitle: ' Change to edit mode (Alt+T)'},
-		'edit_pv' : {newState: 'edit', newIcon: 'toolbar-edit/toggle.png', newTitle: ' Change to preview mode (Alt+T)'}
+		'edit' : {newState: 'edit_pv', newIcon: 'ion-ios-compose', newTitle: ' Change to edit mode (Alt+T)'},
+		'edit_pv' : {newState: 'edit', newIcon: 'ion-ios-eye', newTitle: ' Change to preview mode (Alt+T)'}
 		},
 	'edit_templ': {
-		'edit_templ' : {newState: 'edit', newIcon: 'toolbar-edit/toggle.png', newTitle: ' Change to preview mode (Alt+T)'},
-		'edit' : {newState: 'edit_pv', newIcon: 'toolbar-edit/toggle2.png', newTitle: ' Change to edit template mode (Alt+T)'},
-		'edit_pv' : {newState: 'edit_templ', newIcon: 'toolbar-edit/toggle3.png', newTitle: ' Change to edit mode (Alt+T)'}
+		'edit_templ' : {newState: 'edit', newIcon: 'ion-ios-eye', newTitle: ' Change to preview mode (Alt+T)'},
+		'edit' : {newState: 'edit_pv', newIcon: 'ion-edit', newTitle: ' Change to edit template mode (Alt+T)'},
+		'edit_pv' : {newState: 'edit_templ', newIcon: 'ion-ios-compose', newTitle: ' Change to edit mode (Alt+T)'}
 		}
 };
 

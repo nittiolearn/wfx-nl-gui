@@ -52,20 +52,6 @@ $purple4: #B0A0C0 !default; // rgb(176, 160, 192)
   //---------------------------------------------------------------------------
   // Top menu bar
   //---------------------------------------------------------------------------
-  .menuitems {
-    text-align: right;
-    color: #FFFFFF;
-    font-weight: bold;
-    font-size: 120%;
-    a, span {
-      padding: 8px;
-      border-radius: 4px;
-      cursor: pointer;
-      &:hover, &:focus {
-        background-color: rgba(255, 255, 255, 0.3);
-      }
-    }
-  }
   .sp-menu {
     position: absolute;
     top: 50px;
