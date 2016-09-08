@@ -333,7 +333,7 @@ npagetypes = function() {
 	}
 	
 	function _appendSectionDiv(preview, pt, secPos) {
-		var secDivFmt = '<DIV class="sectionPreview"><DIV class="secNo">{}</DIV></DIV>';
+		var secDivFmt = '<DIV class="sectionPreview"><DIV class="secNo pgNoStyle">{}</DIV></DIV>';
 		var secDiv = njs_helper.jobj(njs_helper.fmt2(secDivFmt, secPos+1));
 		secDiv.css(pt.getSectionPos(secPos));
 		if (_isInteractive(pt.layout, secPos)) secDiv.addClass('interactive');

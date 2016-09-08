@@ -572,6 +572,14 @@ nittio = function() {
 	// Readjust the overall area to have a standard aspect ratio in all browsers
 	//-----------------------------------------------------------------------------
 	function initSizes(retainAspect) {
+	    
+	    // Fix to remove the vertical scroll in toolBar if present
+	    var tbc = jQuery('.toolBarContainer');
+	    tbc.css({'flex-wrap': 'nowrap'});
+	    setTimeout(function() {
+            tbc.css({'flex-wrap': 'wrap'});
+	    }, 0);
+
 		if (retainAspect == 0) {
 			jQuery('.inner_body').css({left: '3%', right: '3%', top: '1%', bottom: '1%'});
 			jQuery('body').css({opacity: 1});
@@ -594,8 +602,6 @@ nittio = function() {
 		}
 
 		jQuery('.inner_body').css({left: widthMargin + 'px', right: widthMargin + 'px', top: topMargin + 'px', bottom: bottomMargin + 'px'});
-		jQuery('.navigator').css({top: topMargin + 'px', bottom: bottomMargin + 'px'});
-		jQuery('#pgNo').css({bottom: bottomMargin + 'px'});
 		return;
 	}
 

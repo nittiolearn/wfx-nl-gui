@@ -1489,7 +1489,7 @@ nlesson = function() {
         var icon = iconSpan.find('I');
         icon.removeClass();
 		if(clist.length > 0){
-            icon.addClass('icon ion-ios-chatbubble fyellow');
+            icon.addClass('icon ion-ios-chatbubble forange');
 		} else {
             icon.addClass('icon ion-ios-chatbubble-outline');
 		}

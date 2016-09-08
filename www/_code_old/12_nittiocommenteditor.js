@@ -318,8 +318,8 @@ njsCommentEditor = function() {
 	}
 	function createCommentRow(rowDetails) {		
 		tab = jQuery('#comment_editor_body > table');
-		var authortempl = '<tr id="comment_row_{index}" class="normal commentRow" rowIndex={index}><td><input type="checkbox" id="comment_row_sel_{index}" onclick="njsCommentEditor.onRowClick({index});"></input><td>{pgNo}</td><td class= "comment"><div class="commentarea"><div class="cauthor">{authorname}: </div><div class="ctimestamp">{uicreated}</div><span>{comment}</span></div></td><td><input type="checkbox" id="comment_row_status_{index}" onclick="njsCommentEditor.onCommentStatusClick({index});" {uistatus}></input></td></tr>';
-		var templ = '<tr id="comment_row_{index}" class="normal commentRow" rowIndex={index}><td>{pgNo}</td><td class= "comment"><div class= "commentarea"><div class="cauthor">{authorname}: </div><div class="ctimestamp">{uicreated}</div><span>{comment}</span></div></td><td>{status}</td></tr>';
+		var authortempl = '<tr id="comment_row_{index}" class="normal commentRow" rowIndex={index}><td><input type="checkbox" id="comment_row_sel_{index}" onclick="njsCommentEditor.onRowClick({index});"></input><td>{pgNo}</td><td class= "comment"><div class="commentarea"><div class="cauthor">{authorname}: </div><div class="ctimestamp">{uicreated}</div><div class="padding-small"></div><span>{comment}</span></div></td><td><input type="checkbox" id="comment_row_status_{index}" onclick="njsCommentEditor.onCommentStatusClick({index});" {uistatus}></input></td></tr>';
+		var templ = '<tr id="comment_row_{index}" class="normal commentRow" rowIndex={index}><td>{pgNo}</td><td class= "comment"><div class= "commentarea"><div class="cauthor">{authorname}: </div><div class="ctimestamp">{uicreated}</div><div class="padding-small"></div><span>{comment}</span></div></td><td>{status}</td></tr>';
 		if (g_bAuthorMode){
 			templ = authortempl;
 		}			
@@ -327,7 +327,7 @@ njsCommentEditor = function() {
 		tab.append(comment_row);
 		
 		
-		var replytempl = '<div class= "reply"><div class="cauthor">{authorname}: </div><div class="ctimestamp">{uicreated}</div><span>{response}</span></div>';
+		var replytempl = '<div class= "reply"><div class="cauthor">{authorname}: </div><div class="ctimestamp">{uicreated}</div><div class="padding-small"></div><span>{response}</span></div>';
 		cell = comment_row.children('.comment');
 		
 		for (var i =0; i < g_lessonComment.responseList.length; i++){

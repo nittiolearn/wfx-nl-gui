@@ -15,7 +15,7 @@ function markupToHtml(markupStr, retData) {
 		line = lines[i];
 		_markupToHtmlLine(line, lessPara, retData);
 	}
-	parentStack.nestToLevel(0, '');
+	parentStack.resetLevels();
 	return parentStack.getText();
 }
 
@@ -38,7 +38,7 @@ function _markupToHtmlLine(line, lessPara, retData) {
 		return;
 	}
 
-	parentStack.nestToLevel(0, '');
+    parentStack.resetLevels();
 	var lineHtml = _lineWikiToHtml(line);
 	if (!lessPara) lineHtml = '<p>' + lineHtml + '</p>';
 	if (!lessPara && line == '') {
@@ -51,7 +51,7 @@ function _markupToHtmlLine(line, lessPara, retData) {
 function _markupToHtmlXxxInline(line, xxxFn, bInline) {
 	var lineHtml = xxxFn(line, bInline);
 	if (lineHtml == '') return false;
-	parentStack.nestToLevel(0, '');
+    parentStack.resetLevels();
 	parentStack.apendToTop(lineHtml);
 	return true;
 }
@@ -152,7 +152,7 @@ function _markupToHtmlHeading(line) {
 		return false;
 	}
 
-	parentStack.nestToLevel(0, '');
+    parentStack.resetLevels();
 	parentStack.apendToTop(lineHtml);
 	return true;
 }
@@ -185,7 +185,7 @@ function _markupToFlexHtmlLists(line, level) {
     if (_markupToFlexHtmlLists(line.substring(1), level + 1)) return true;
 
     var isBullet = (line.indexOf('-') == 0);
-    parentStack.nestToLevel(level + 1, '');
+    parentStack.resetNumberingAboveLevel(level);
     var lineHtml = _getFlexHtmlListRow(line, level, isBullet);
     parentStack.apendToTop(lineHtml);
     return true;
@@ -278,6 +278,17 @@ function ParentStack() {
         this.items[this.items.length - 1].text += text;
     };
     
+    this.resetLevels = function() {
+        this.nestToLevel(0, '');
+        this.resetNumberingAboveLevel(-1);
+    };
+    
+    this.resetNumberingAboveLevel = function(level) {
+        for(var l in this.currentNumber) {
+            if (l > level) this.currentNumber[l] = 0;
+        }
+    };
+
     this.nestToLevel = function(level, text) {
         var curLevel = this.items.length - 1;
         if (curLevel == level) {

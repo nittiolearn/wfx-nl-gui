@@ -79,10 +79,9 @@ html {
 
 /* SECTION 2: Remove any elements not needed in print.
    This would include navigation, ads, sidebars, etc. */
-.navigator,
+#pageNoArea,
 .topBar,
 .toolBar,
-#pgNo,
 .njsSlides > section .njs_pdf_holder {
 	display: none !important;
 }
