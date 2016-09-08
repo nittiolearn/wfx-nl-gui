@@ -664,7 +664,7 @@ BlankScreen.show = function() {
 	var bs = jQuery('#blankScreen');
 	var progressBar = bs.find('img');
 	var body = jQuery('.body');
-	bs.velocity({'z-index': BlankScreen.ZINDEX_SHOW, opacity: 0.8}, BlankScreen.ANIM_TIME);
+	bs.velocity({'z-index': BlankScreen.ZINDEX_SHOW, opacity: 1}, BlankScreen.ANIM_TIME);
 	progressBar.velocity({opacity: 1}, BlankScreen.ANIM_TIME);
 	body.velocity({translateX: -100000, translateY: -100000, 'z-index': BlankScreen.ZINDEX_HIDE, opacity: 0}, 0);
 };

@@ -207,9 +207,16 @@ $animation-duration: 200ms !default;
 /*-----------------------------------------------------------------------------------------*
  * Loading-background specific overrides
  *-----------------------------------------------------------------------------------------*/
-.loading-container .loading {
-  padding: 2%;
+.loading-container .loading, #blankScreen > img, .njs_pdf_waiting > img {
+  padding: 10px;
   border-radius: 50%;
+  box-shadow: inset 0 0 10px $nlBlue3, 0 0 5px $nlBlue3;
+  background-color: $nlBlue1;
+  width: 70px;
+  height: 70px;
+  img {
+    width: 100%;
+  }
 }
 
 .loading-container {

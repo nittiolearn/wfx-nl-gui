@@ -976,7 +976,7 @@ td.submitselection{
 	height: 100%;
 	z-index: -100;
 	opacity: 0;
-	background: #000000;
+	background: rgba(0, 0, 0, 0.4);
 	text-align: left;
 }
 
@@ -1076,11 +1076,7 @@ div.njs_pdf_holder.inline_obj {
 
 .njs_pdf_holder .njs_pdf_waiting {
 	text-align: center;
-	color: #ffffff;
-	background-color: #000000;
-	opacity: 0.85;
 	border-radius: 8px;	
-	margin: 8px 0;
 	padding: 8px;
 	box-sizing: border-box;
 	font-size: 60%;
