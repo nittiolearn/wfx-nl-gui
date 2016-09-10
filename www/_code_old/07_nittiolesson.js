@@ -314,8 +314,17 @@ nlesson = function() {
 		this.postRenderingQueue.postRenderPage(pgNo);
 		this.showOrHideZodiIcon();
 		this.showOrHideDoToggleIcon();
-		showCommentIndicator();		
+		showCommentIndicator();
+		_showOrHideToolbar();
 	}
+
+    function _showOrHideToolbar() {
+        var tb = jQuery('.toolBar');
+        if (tb.width() > 20)
+            tb.css({opacity: 1}); // Toolbar not empty
+        else
+            tb.css({opacity: 0});
+    }
 
     //#############################################################################################
     // Class lesson post rendering que

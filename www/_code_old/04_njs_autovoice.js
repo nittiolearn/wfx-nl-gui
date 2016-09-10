@@ -1,6 +1,21 @@
 njs_autovoice = function() {
 
 var _canAutoPlay = true; // Common across auto voice and audio manager
+
+function _getVoiceButtonDom(holder, img) {
+    return jQuery('<span class="voiceButton navigator"></span>');
+}
+
+var iconToCls = {
+    'buffering.icon': 'ion-load-a',
+    'play.icon': 'ion-volume-medium',
+    'pause.icon': 'ion-pause'
+}
+function _setVoiceButtonIcon(button, icon) {
+    button.html('');
+    var voiceIcon = njs_helper.fmt2('<i class="icon {}"></icon>', iconToCls[icon]);
+    button.append(voiceIcon);
+}
     
 //#############################################################################################
 // auto voice feature: functionality is divided in the following main classes:
@@ -48,7 +63,7 @@ function AutoVoice() {
     
     function _getVoiceButton(audioText) {
         var button = {state: 'none'}; // none | playing | paused
-        button.html = jQuery('<img class="autoVoice">');
+        button.html = _getVoiceButtonDom();
         _updateIcon(button);
         button.html.on('click', function () {
             _onButtonClick(button, audioText);
@@ -67,9 +82,9 @@ function AutoVoice() {
     function _updateIcon(button) {
         var prefix = nittio.getStaticResFolder();
         if (button.state == 'none' || button.state == 'paused') {
-            button.html.attr('src', prefix + '/audio-play.png');
+            _setVoiceButtonIcon(button.html, 'play.icon');
         } else {
-            button.html.attr('src', prefix + '/audio-pause.png');
+            _setVoiceButtonIcon(button.html, 'pause.icon');
         }
     }
 
@@ -335,7 +350,7 @@ function AudioManager() {
     
     this.getButton = function(audioUrl, pageId) {
         _init();
-        var button = jQuery('<img class="autoVoice">');
+        var button = _getVoiceButtonDom();
         var info = _addPageAudio(audioUrl, pageId, button);
         button.on('click', function () {
             _onButtonClick(info);
@@ -364,14 +379,6 @@ function AudioManager() {
         _audioHolder = {};
         var holder = jQuery('#audioHolder');
         holder.html('');
-        var prefix = nittio.getStaticResFolder();
-        _preLoadImg(holder, prefix + '/audio-buffering.gif');
-        _preLoadImg(holder, prefix + '/audio-play.png');
-        _preLoadImg(holder, prefix + '/audio-pause.png');
-    }
-    
-    function _preLoadImg(holder, img) {
-        holder.append(njs_helper.fmt2('<img class="autoVoice" src="{}">', img));
     }
     
     function _addPageAudio(audioUrl, pageId, button) {
@@ -434,11 +441,11 @@ function AudioManager() {
     function _updateIcon(info) {
         var prefix = nittio.getStaticResFolder();
         if (!info.canplay) {
-            info.button.attr('src', prefix + '/audio-buffering.gif');
+            _setVoiceButtonIcon(info.button, 'buffering.icon');
         } else if (!info.playing) {
-            info.button.attr('src', prefix + '/audio-play.png');
+            _setVoiceButtonIcon(info.button, 'play.icon');
         } else {
-            info.button.attr('src', prefix + '/audio-pause.png');
+            _setVoiceButtonIcon(info.button, 'pause.icon');
         }
     }
     

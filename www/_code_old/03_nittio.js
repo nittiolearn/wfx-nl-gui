@@ -581,8 +581,7 @@ nittio = function() {
 	    }, 0);
 
 		if (retainAspect == 0) {
-			jQuery('.inner_body').css({left: '3%', right: '3%', top: '1%', bottom: '1%'});
-			jQuery('body').css({opacity: 1});
+			jQuery('.inner_body').css({left: 0, right: 0, top: 0, bottom: 0});
 			return;
 		}
 		var ar_req = retainAspect;
@@ -597,7 +596,7 @@ nittio = function() {
 			widthMargin = (wBody - hBody*ar_req)/2;
 		} else {
 			var heightMargin = (hBody - wBody/ar_req);
-			topMargin = (heightMargin < 40) ? heightMargin : 40;
+			topMargin = (heightMargin < 42) ? heightMargin : 42;
 			bottomMargin = heightMargin - topMargin;
 		}
 
