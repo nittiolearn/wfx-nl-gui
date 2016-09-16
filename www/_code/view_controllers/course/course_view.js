@@ -12,6 +12,7 @@ function module_init() {
     .directive('nlCourseViewContentStatic', CourseViewDirective('course_view_content_static'))
     .directive('nlCourseViewContentEditor', CourseViewDirective('course_view_editor'))
     .directive('nlCourseViewFrame', CourseViewDirective('course_view_frame'))
+    .directive('nlCourseJsonText', CourseJsonToTextDirective)
     .service('nlCourseAttributes', NlCourseAttributesSrv)
     .config(configFn).controller('nl.CourseViewCtrl', NlCourseViewCtrl);
 }
@@ -220,25 +221,34 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
 	this.getModuleAttributes = function() {
         return attrs;
 	};
+	
+	this.getAdditinalAttributes = function(){
+		return additionalAttrs;
+	};
 
 	// TODO
     var attrs = [
-    	{name: 'id', type: 'string', text: 'Unique ID', readonly: true, help: ''}, 
-    	{name: 'name', type: 'string', text: 'Name'}, 
-    	{name: 'type', type: 'list', text: 'Element type', values: ['module', 'lesson', 'info', 'link']},
-        {name: 'refid', type: 'string'},
-        {name: 'action', type: 'string'},
-        {name: 'urlParams', type: 'string'},
-		{name: 'icon', type: 'string'},
-		{name: 'text', type: 'string'}, 
-        {name: 'planning', type:'group'},
-        {name: 'start_date', type: 'date'},
-        {name: 'planned_date', type: 'date'},
-        {name: 'max_attempts', type: 'string'},
-        {name: 'hide_remarks', type: 'string'},
-        {name: 'start_after', type: 'string'},
-        {name: 'reopen_on_fail', type: 'string'}
+    	{name: 'id', fields: "all", type: 'readonly', text: 'Unique ID', readonly: true, help: 'Defines the unique id of a course module. Parent-child relationship of course elements (tree structure) is derived from the id - id of the child element should always begin with the id of parent element and a ".".'}, 
+    	{name: 'name', fields: "all", type: 'string', text: 'Name', help:'Name of the module to be displayed in the course tree.'}, 
+    	{name: 'type', fields: "all", type: 'list', text: 'Element type', values: ['module', 'lesson', 'info', 'link'], help:'"module is a folder of info or a link", "lesson is a module", "info" or "link".'},
+        {name: 'refid', fields: "lesson", type: 'lessonlink', text: 'Module-id', help:'The id of the lesson to be launched. Click on the link to view the module'},
+        {name: 'action', fields: "link", type: 'lessonlink', text: 'Action', help:'The action whose URL is used for the link. Click on the icon to view the link'},
+        {name: 'urlParams', fields: "link", type: 'string', text: 'Url-Params', help:'The urlParams to append to the URL (see Dashboard create/modify dialog for more information).'},
+		{name: 'icon', type: 'additional', text: 'Module icon', help:'Icon to be displayed for this item in the course tree. If not provided, this is derived from the type. "quiz" is a predefined icon.'},
+		{name: 'text', type: 'additional', text: 'Description', help:'some text string'}, 
+        {name: 'start_date', fields: "not_module", type: 'date', text: 'Start date', help:'Earliest planned start date. Is applicable only if "planning" is set to true for the course.'},
+        {name: 'planned_date', fields: "not_module", type: 'date', text: 'Planned date', help:'Expected planned completion date. Is applicable only if "planning" is set to true for the course.'},
+        {name: 'max_attempts', fields: "lesson", type: 'string', text: 'Maximum attempts', help:'Number of time the lerner can do this lesson. Only the learning data from the last attempt is considered. 0 means infinite. 1 is the default.'},
+        {name: 'hide_remarks', fields: "infolink", type: 'string', text: 'Hide remarks', help:'true/false. true = do not show remark field when marking the item as done. false is default.'},
+        {name: 'start_after', fields: "not_module", type: 'object', text: 'Start after', help:'Array of objects: each object contains "module", "min_score" (optional) and "max_score" (optional) attributes.'},
+        {name: 'reopen_on_fail', fields: "lesson", type: 'object', text: 'Reopen on fail', help:'Array of strings: each string is module id of leaft modules that should be failed if the current module fails.'},
+        {name: 'autocomplete', fields: "link", type: 'string', text: 'Auto-complete', help:'true/false. If true, the link is marked completed when viewed first time. The user will not have possibility to set the status here.'}
     ];
+    
+    var additionalAttrs = [
+				    		{name: 'icon', type: 'additional', text: 'Module icon', help:'Icon to be displayed for this item in the course tree. If not provided, this is derived from the type. "quiz" is a predefined icon.'},
+							{name: 'text', type: 'additional', text: 'Description', help:'some text string'} 
+						  ];
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -323,6 +333,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
         if (!$scope.ext.isStaticMode()) return;
         $scope.course_attributes = nlCourseAttributes.getCourseAttributes(course);
         $scope.module_attributes = nlCourseAttributes.getModuleAttributes();
+        $scope.additional_Attributes = nlCourseAttributes.getAdditinalAttributes();
     }
 
     function _initExpandedView() {
@@ -393,6 +404,19 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
         $scope.popupView = bPopout;
     }
 
+	$scope.showAddInfo = function(e, cm){
+		if($scope.showAddInform) {
+			_showAddInfo(false);
+		} else {
+			_showAddInfo(true);			
+		}
+	};
+
+	$scope.showAddInform = false;
+    function _showAddInfo(showAdd) {
+        $scope.showAddInform = showAdd;
+	}
+	
     $scope.showPopup = function(e, cm, bReset) {
         e.stopImmediatePropagation();
         e.preventDefault();
@@ -479,15 +503,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
     };
 
     $scope.onSaveModule = function(e, cm){
-    	console.log(cm, modeHandler.course);
-		//var crModFn = (courseId != null) ? nlCourse.courseModify: nlCourse.courseCreate;
 		var modules = modeHandler.course.content.modules;
 		for(var i in modules){
 			var element = modules[i];
 			if(cm.id == element.id) modeHandler.course.content.modules[i] = cm;
-			console.log(element.id, cm.id);
 		}
-		console.log(modules);
 		var modifiedData = {
 						courseid: modeHandler.course.id,
 						name: modeHandler.course.name, 
@@ -495,12 +515,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
 						description: modeHandler.course.description,
 						content: angular.toJson(modeHandler.course.content) 
 					};
-		//console.log(modifiedData);
 		nlDlg.showLoadingScreen();
 		nlCourse.courseModify(modifiedData).then(function(course) {
 			nlDlg.hideLoadingScreen();
-			console.log('modify done');
-			//_onModifyDone(course, courseId, modifiedData, $scope);
 		});
     };
     
@@ -787,7 +804,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, folderStats) {
     this.stats = null;
     this.pastAttemptData = [];
     this.data = {remarks: ''}; 
-
+	
     this.setCurrentItem = function(cm) {
         this.item = cm;
         this.stats = (cm.type == 'module') ? folderStats.get(cm.id) : null;
@@ -1225,6 +1242,25 @@ function CourseViewDirective(template) {
         };
     }];
 }
+
+//-------------------------------------------------------------------------------------------------
+function CourseJsonToTextDirective() {
+    return {
+        restrict: 'A',
+        require: 'ngModel',
+        link: function($scope, elem, attr, ngModel) {            
+          function into(input) {
+            return JSON.parse(input);
+          }
+          function out(data) {
+            return JSON.stringify(data);
+          }
+          ngModel.$parsers.push(into);
+          ngModel.$formatters.push(out);
+
+        }
+    };
+};
 
 //-------------------------------------------------------------------------------------------------
 module_init();
