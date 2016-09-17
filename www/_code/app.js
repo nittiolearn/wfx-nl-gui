@@ -125,41 +125,31 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
     var welcomeUrl = '/#/welcome';
 
     $scope.userMenuItems = [];
-    $scope.helpMenuIcon = nl.url.resUrl('general/help.png');
-    $scope.helpMenuTitle = nl.t('Help');
-    $scope.homeMenuIcon = nl.url.resUrl('general/home.png');
     $scope.homeMenuTitle = nl.t('Home');
-    $scope.userMenuIcon = nl.url.resUrl('user-login.png');
     $scope.logedIn = false;
     $scope.homeUrl = homeUrl;
     
     // Called from child scope on page enter
     $scope.onPageEnter = function(userInfo) {
         nl.log.debug('app:onPageEnter - enter');
-        $scope.logo = userInfo.groupicon == '' ? nl.url.resUrl('general/top-logo1.png') : userInfo.groupicon;
+        $scope.logo = userInfo.groupicon == '' ? nl.url.resUrl('general/top-logo2.png') : userInfo.groupicon;
         var bLoggedIn = (userInfo.username != '');
         $scope.userMenuItems = [];
         if (bLoggedIn) {
             $scope.logedIn = true;
             $scope.homeUrl = homeUrl;
-            $scope.userMenuIcon = nl.url.resUrl('user.png');
             if (nlRouter.isPermitted(userInfo, 'change_password')) {
-                $scope.userMenuItems.push({name: 'changepw', title: nl.t(' Change Password'), 
-                    icon: nl.url.resUrl('general/login-pwdchange.png'),
+                $scope.userMenuItems.push({title: nl.t(' Change Password'), 
                     url: '/auth/changepw'});
             }
-            $scope.userMenuItems.push({name: 'logout', title: nl.t(' Sign Out'),
-                icon: nl.url.resUrl('general/login-signout.png'),
+            $scope.userMenuItems.push({title: nl.t(' Sign Out'),
                 url: '#/logout_now'});
         } else {
             $scope.logedIn = false;
             $scope.homeUrl = welcomeUrl;
-            $scope.userMenuIcon = nl.url.resUrl('user-login.png');
-            $scope.userMenuItems.push({name: 'login', title: nl.t(' Sign In'), 
-                icon: nl.url.resUrl('general/login-signin.png'),
+            $scope.userMenuItems.push({title: nl.t(' Sign In'), 
                 url: '#/login_now'});
-            $scope.userMenuItems.push({name: 'pwlost', title: nl.t(' Sign Out'),
-                icon: nl.url.resUrl('general/login-pwdlost.png'),
+            $scope.userMenuItems.push({title: nl.t(' Forgot Password'),
                 url: '/auth/pwlost'});
         }
         nl.log.debug('app:onPageEnter - done');

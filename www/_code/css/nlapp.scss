@@ -15,18 +15,14 @@ $royal:                           #886aea !default;
 $dark:                            #444 !default;
 */
 
-$nltopbar:                        #403050 !default; // Top Bar Bg-Color
-$nltopbar1:                       #807090 !default; // Top Bar Bg-Color gradiant
-$nltopbar2:                       #675187 !default; // A darker shade for other usages
-$nltopbar3:                       #B0A0C0 !default; // A lighter shade for other usages
-$nldlgbar:                        #E06000 !default; // Dialog Box header Bg-Color
+$nlBlue1:                         #00A3CC !default; // Blue used in top bar, Buttons
+$nlBlue2:                         #0083AC !default; // Darker blue used in button hover
+$nlBlue3:                         #004455 !default; // Dark blue used in button click
+
 $nlgrey:                          #EEEEFF !default; // Mild border
 $nlgreen1:                        #BBFFBB !default; // Light green
 $nldarkgrey:                      #CCCCDD !default; // Darker border
 $nlgreen:                         #008000 !default; // green
-
-$energized:                       $nltopbar;
-$positive:                        $nldlgbar;
 
 // Padding definition
 $nlpad_x:                         20px !default; 
@@ -129,11 +125,16 @@ body {
   font-family: Verdana, Helvetica, Arial, sans-serif;
 }
 
+.nl-cursive-font {
+  font-family: 'Courgette', "cursive", "Papyrus", Helvetica, sans-serif;
+}
+
 textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"] {
   padding-left: 8px;
   padding-right: 8px;
-  background-color: $nlgrey;
-  border-radius: 4px;
+  background-color: #FFFFFF;
+  border: 1px solid #DDDDFF;
+  border-radius: 0px;
   display:inline;
   margin:4px;
 }
@@ -206,9 +207,16 @@ $animation-duration: 200ms !default;
 /*-----------------------------------------------------------------------------------------*
  * Loading-background specific overrides
  *-----------------------------------------------------------------------------------------*/
-.loading-container .loading {
-  padding: 2%;
+.loading-container .loading, #blankScreen > img, .njs_pdf_waiting > img {
+  padding: 10px;
   border-radius: 50%;
+  box-shadow: inset 0 0 10px $nlBlue3, 0 0 5px $nlBlue3;
+  background-color: $nlBlue1;
+  width: 70px;
+  height: 70px;
+  img {
+    width: 100%;
+  }
 }
 
 .loading-container {
@@ -291,6 +299,23 @@ $animation-duration: 200ms !default;
   min-width: 200px;
 }
 
+.nl-menuitems {
+  text-align: right;
+  color: #FFFFFF;
+  font-weight: bold;
+  font-size: 120%;
+  a, span {
+    padding: 8px;
+    cursor: pointer;
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.5);
+    }
+    &:focus, &:active, &.activated {
+      background-color: rgba(255, 255, 255, 0.3);
+    }
+  }
+}
+
 //-----------------------------------------------------------------------------------------
 // link clickable classes: nl-link-text and nl-link-img
 //-----------------------------------------------------------------------------------------
@@ -300,34 +325,32 @@ $animation-duration: 200ms !default;
     color: #000077;
     text-decoration: none;
   }
-  &:hover, &:focus {
+  &:hover, &:focus, &:active {
     background-color: rgba(128, 128, 255, 0.2);
   }
 }
 
-.activated .nl-link-text, .activated.nl-link-text {
+.activated > .nl-link-text, .activated.nl-link-text {
   background-color: rgba(128, 128, 255, 0.2);
-  opacity: 0.2;
-  box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+  opacity: 0.5;
 }
 
 .nl-link-img {
   cursor: pointer;
-  &:hover, &:focus {
+  &:hover, &:focus, &:active {
     box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
   }
 }
 
 .nl-link-img.no-hover {
-  &:hover, &:focus {
+  &:hover, &:focus, &:active {
     box-shadow: none;
   }
 }
 
-.activated .nl-link-img, .activated.nl-link-img {
+.activated > .nl-link-img, .activated.nl-link-img {
   box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
-  opacity: 0.2;
-  padding: 4px;
+  opacity: 0.5;
 }
 
 a.black {
@@ -344,21 +367,40 @@ a.black {
 
 .nl-toolbar, .nl-mildtoolbar {
   width: 100%;
-  padding: 0 4px;
+  padding: 2px 4px;
   text-align: right;
 }
 
 .nl-toolbar-icon {
-  padding-top: 10px;
-  color: $orange1;
+  color: $nlBlue3;
   cursor: pointer;
   font-weight: bold;
   i.icon {
+    display: inline-flex;
     font-size: 26px;
-    padding: 2px 4px;
+    padding: 4px 0;
+    width: 36px;
+    height: 36px;
+    justify-content: center;
   }
-  i.icon:hover, i.icon:focus {
-    color: $orange2;
+  i.icon.nl-icon-font {
+    font-size: 20px;
+  }
+  i.icon:hover {
+    color: $nlBlue2;
+    background-color: rgba(255, 255, 255, 0.7);
+    box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
+  }
+  i.icon:focus, i.icon:active, &.activated > i.icon, i.icon.activated {
+    color: $nlBlue1;
+    background-color: rgba(255, 255, 255, 1);
+    box-shadow: inset 0 0 5px #004455, 0 0 2px #004455;
+  }
+}
+
+.nl-screen-small .nl-toolbar-icon {
+  i.icon {
+    padding: 2px 4px;
   }
 }
 
@@ -366,7 +408,7 @@ a.black {
   span {
     opacity: 0.3;
   }
-  span:hover, span:focus {
+  span:hover, span:focus, span:active {
     opacity: 1;
   }
   .nl-toolbar-icon {
@@ -490,21 +532,21 @@ a.black {
     height: auto;
     max-width: 96vw;
     max-height: 96vh;
-    border-radius: 4px;
-    box-shadow: 2px 2px 10px 5px #402000;
+    box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
     text-align: left;
     background-color: #FFFFFF;
   }
  
   .popup-head {
-    background-color: $nldlgbar;
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
+    background-color: $nlBlue1;
     padding: 4px 62px 4px 4px;
     min-height: 32px;
     height: 32px;
     overflow: hidden;
     border: none;
+    h3 {
+      line-height: 150%;
+    }
   }
 
   .popup-body {
@@ -519,32 +561,40 @@ a.black {
   }
 }
 
-.popup-buttons {
+.popup-buttons{
   min-height: 37px;
   height: 37px;
   width: 100%;
   padding: 2px 5px;
-  border-top: 1px solid $nldlgbar;
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
+  border-top: 1px solid $nlBlue3;
+}
 
-  .button {
-    text-align: center;
-    font-size: 120%;
-    color: #FFFFFF;
-    background-color: $nldlgbar;
-    min-height: 32px;
-    height: 32px;
-    padding: 3px;
-    
-    &:last-child {
-      margin-right: 0;
-    }
-
-    &:hover, &:focus {
-      background: #B03000;
-    }
+.popup-buttons .button, .nl-button {
+  text-align: center;
+  font-size: 120%;
+  color: #FFFFFF;
+  background-color: $nlBlue3;
+  min-height: 32px;
+  padding: 3px;
+  border-radius: 0px;
+  cursor: pointer;
+  
+  &:last-child {
+    margin-right: 0;
   }
+
+  &:hover {
+    background-color: $nlBlue2;
+  }
+  &:focus, &:active {
+    background-color: $nlBlue1;
+    box-shadow: inset 0 0 10px #004455, 0 0 5px #004455;
+  }
+}
+
+.popup-buttons .activated.button, .activated > .nl-button, .activated.nl-button {
+    background-color: $nlBlue1;
+    box-shadow: inset 0 0 10px #004455, 0 0 5px #004455;
 }
 
 .popup-buttons.no-border {
@@ -557,19 +607,36 @@ a.black {
   right: 0px;
   height: 32px;
   padding: 4px;
-  img {
-    height: 24px;
-    width: 24px;
-    cursor:pointer;
+}
+
+.nl-white-icons {
+  color: #FFFFFF;
+  a {
+    color: #FFFFFF;
+  }
+  i {
+    display: inline-block;
+    padding: 0 2px;
+    line-height: 24px;
+    font-size: 175%;
+    cursor: pointer;
+    &:hover {
+      color: $nlBlue2;
+    }
+    &:focus, &:active {
+      color: $nlBlue3;
+    }
+  }
+  i.activated, .activated > i {
+    color: $nlBlue3;
   }
 }
 
 nl-dlg-help, .nl-dlg-help {
-  background-color: #E5FF80;
-  border-radius: 4px;
+  background-color: #DDDDFF;
   padding: 8px;
   margin: 8px;
-  box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
+  box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
   display: block;
 }
 
@@ -604,8 +671,6 @@ nl-dlg-help, .nl-dlg-help {
     top: 32px;
     bottom: 0;
     right: 0;
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
   }
 }
 
@@ -679,15 +744,12 @@ input.nl-dlg-field-error {
   right: 8px;
   width: auto;
   height: auto;
-  border-radius: 4px;
   box-shadow: 2px 2px 10px 5px #402000;
 }
  
 .nl-form-head {
   position: absolute;
-  background-color: $nldlgbar;
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
+  background-color: $nlBlue1;
   padding: 4px;
   height: 32px;
   width: 100%;
@@ -700,17 +762,11 @@ input.nl-dlg-field-error {
     font-size: 120%;
     text-align: center;
   }
-  .popup-toolbar {
+  .nl-white-icons {
     position: absolute;
+    top: 4px;
     right: 4px;
-    top: 0;
     width: auto;
-    .nl-toolbar-icon i.icon {
-      color: white;
-      &:hover, &:focus {
-        color: black;
-      }
-    }
   }
 }
 
@@ -720,8 +776,6 @@ input.nl-dlg-field-error {
   bottom: 0px;
   width: 100%;
   padding: 4px;
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
   overflow: auto;
 }
 /*-----------------------------------------------------------------------------------------*
@@ -729,15 +783,14 @@ input.nl-dlg-field-error {
  *-----------------------------------------------------------------------------------------*/
 #statusBox {
   z-index: 1000;
-  border-radius: 8px;
-  box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
+  box-shadow: inset 0 0 2px $nlBlue3, 0 0 5px $nlBlue3;
   position: absolute;
   bottom: 1%;
   left: 1%;
   height: auto;
   width: auto;
   max-width: 90%;
-  background: #403050;
+  background: $nlBlue3;
   color: #ffffff;
   padding: 8px;
   cursor: pointer;
@@ -920,11 +973,8 @@ nl-cards {
   span {
     height: 28px;
     padding: 4px;
-    border-radius: 4px;
-    border: 1px solid #9999ff;
     text-align: center;
-    background-color: #807090;
-    color: #ffffff;
+    background-color: $nldarkgrey;
   }
 }
 
@@ -978,8 +1028,7 @@ nl-cards {
   left: 0;
   right: 0;
   height: 40px;
-  background-color: $nltopbar;
-  background-image: linear-gradient(to bottom,$nltopbar,$nltopbar1);
+  background-color: $nlBlue1;
   color: #ffffff; 
 }
 
@@ -1044,26 +1093,11 @@ img.nl-icon {
   position: absolute;
   top: 45px;
   right: 5px; 
-  width: 100px;
   padding: 0;
-
-  background-color: #C0B0D0;
-  border-radius: 8px;
-  box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
     
   z-index: $z-index-popup;
   text-align: center;
-
-  img {
-    width: 90px;
-    height: 55px;
-    margin: 2px 0 0 0;
-    cursor:pointer;
-    border-bottom: #A090B0 solid 1px;
-    &:hover {
-        box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
-    }
-  }
+  text-decoration: none;
 }
 
 #nl-body {
@@ -1239,7 +1273,7 @@ img.nl-icon {
 }
 
 .nl-hover {
-  &:hover, &:focus {
+  &:hover, &:focus, &:active {
     border: 1px solid black;
   }
 }
@@ -1281,7 +1315,7 @@ img.nl-icon {
       background-color: white;
       color: rgba(180, 0, 0, 0.5);
       cursor: pointer;
-      &:hover, &:focus {
+      &:hover, &:focus, &:active {
         color: rgba(180, 0, 0, 1);
       }
     }
@@ -1362,6 +1396,10 @@ img.nl-full-width {
     padding: 4px;
 }
 
+.padding-h-small {
+    padding: 0 4px;
+}
+
 .padding-mid {
     padding: 8px;
 }
@@ -1407,6 +1445,10 @@ img.nl-full-width {
   color: $orange2;
 }
 
+.fyellow0 {
+  color: #FFFF70;
+}
+
 .fyellow {
   color: $yellow;
 }
@@ -1416,7 +1458,7 @@ img.nl-full-width {
 }
 
 .fblue {
-  color: #00A3CC;
+  color: $nlBlue1;
 }
 
 .fgrey {
@@ -1456,7 +1498,26 @@ img.nl-full-width {
 .fsh6 {
   font-size: 120%;
 }
-  
+
+.fsmall1 {
+  font-size: 90%;
+}
+
+.fsmall2 {
+  font-size: 80%;
+}
+
+.fsmall3 {
+  font-size: 70%;
+}
+
+.fsmall4 {
+  font-size: 60%;
+}
+
+.fsmall5 {
+  font-size: 50%;
+}
 //---------------------------------------------------------------------------
 // Element sizes
 //---------------------------------------------------------------------------
@@ -1464,16 +1525,12 @@ img.nl-full-width {
   min-height: 100vh;
 }
 
+.vh90 {
+  min-height: 90vh;
+}
+
 .vh50 {
   min-height: 50vh;
-}
-
-.vh60 {
-  min-height: 60vh;  
-}
-
-.vh75 {
-  min-height: 75vh;
 }
 
 .vh25 {
@@ -1490,6 +1547,10 @@ img.nl-full-width {
 
 .w100 {
   width: 100%;
+}
+
+.nl-block {
+  display: block;
 }
 
 .col-12-5 {
@@ -1569,7 +1630,7 @@ img.nl-full-width {
       padding-top: 4px;
       padding-bottom: 4px;
   }
-}    
+}
 
 /*-----------------------------------------------------------------------------------------*
  * Some animation classes

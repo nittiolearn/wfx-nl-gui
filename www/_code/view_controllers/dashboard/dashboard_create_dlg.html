@@ -87,7 +87,8 @@
         <table class='nl-table nl-table-styled'>
             <tr><th>Action</th><th>URL</th><th>Permission</th><th>Remarks</th></tr>
             <tr><td>dashboard.home </td><td>/#/home?{}</td><td>basic_access</td><td>Specify "parent=xxx" to launch one card of dashboard in a sperate page where each link becomes a card.</td></tr>
-            <tr><td>lesson.view </td><td>/lesson/view/{}</td><td>lesson_view</td><td>Direct link to module</td></tr>
+            <tr><td>lesson.view </td><td>/lesson/view/{}</td><td>lesson_view</td><td>Direct link to module. urlParams is the lessonId.</td></tr>
+            <tr><td>lesson.self_assign </td><td>/lesson/do_report_selfassign?{}</td><td>lesson_view</td><td>Self assign module and start learning. urlParams is of form 'lessonid=nnnn&force=0|1'.</td></tr>
             <tr><td>lesson.view_approved </td><td>/#/lesson_list?type=approved&?{}</td><td>lesson_view</td><td>View approved list</td></tr>
             <tr><td>lesson.create</td><td>/#/lesson_list?type=new&{}</td><td>lesson_create</td><td>urlParams="search=xyz&grade=Grade 1&custtype=101&content=_include"</td></tr>
             <tr><td>lesson.create2</td><td>/lesson/create2/{}</td><td>lesson_create</td><td>Provide template id in urlParams to directly create module based on template</td></tr>
@@ -128,7 +129,7 @@
   {"linkid": "card1", ... , "icon": "http://path/to/icon.png"},
   {"linkid": "card2", ... , "icon": "/resource/resview/123456-aax.png"},
   {"linkid": "card3", ... , "icon": "{resurl}/dashboard/help.png"},
-  {"linkid": "card3", ... , "icon": "{resurl}/general/waiting.gif"},
+  {"linkid": "card3", ... , "icon": "{resurl}/general/waiting1.gif"},
   {"linkid": "card4", ... , "icon": "{iconurl}/BlueBalloons.png"}
 ]
 		</pre>

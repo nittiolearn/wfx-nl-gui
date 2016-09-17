@@ -78,6 +78,12 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/auth_get_audit_data.json', data);
     };
     
+    this.authDemoRequest = function(data) {
+        // data: name,email,phone,website,description
+        // returns true or false
+        return server.post('_serverapi/auth_register_demo.json', data);
+    };
+
     //---------------------------------------------------------------------------------------------
     // Course Module
     //---------------------------------------------------------------------------------------------
@@ -648,7 +654,7 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload) {
     //----------------------------------------------------------------------------------------------
     // Private methods
     function _defaultUserInfo() {
-        return {username: '', lastupdated: null, groupicon: nl.url.resUrl('general/top-logo1.png'), dashboard: []};
+        return {username: '', lastupdated: null, groupicon: nl.url.resUrl('general/top-logo2.png'), dashboard: []};
     }
     
     var AJAX_TIMEOUT = 3*60*1000; // 3 mins timeout

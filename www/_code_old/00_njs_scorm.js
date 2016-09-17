@@ -5,15 +5,17 @@ njs_scorm = function() {
 // Functionality around scorm (standalone) player and embedded player
 //#############################################################################################
 var g_nlPlayerType = 'normal'; // 'normal' || 'sco' || 'embedded'
+var g_nlEmbedType = ''; // '' || 'external'
 var g_lesson = null;
 var g_scormlms = null; // valid only when e. running as LMS for SCORM content
 var g_SB = null; // valid only for 'sco' (i.e. code running in external LMS as a SCORM content)
 var g_nlContainer = null; // valid only for 'embedded' (i.e. launched from course)
 
 //#############################################################################################
-function onInitLesson(lesson, nlPlayerType, username, userdispname) {
+function onInitLesson(lesson, nlPlayerType, nlEmbedType, username, userdispname) {
     g_lesson = lesson;
     g_nlPlayerType = nlPlayerType;
+    g_nlEmbedType = nlEmbedType;
 
     var l = g_lesson.oLesson;
     if (nlPlayerType == 'sco') {
@@ -112,9 +114,8 @@ function _pad2(num) {
 
 function _initEmbeddedPlayer(l) {
     jQuery(function() {
-        g_nlContainer = _discoverNlContainer();
-        if (g_nlContainer) return;
-        g_nlContainer.init({version: 0, lesson: l});
+        if (g_nlEmbedType != 'external') g_nlContainer = _discoverNlContainer();
+        if (g_nlContainer) g_nlContainer.init({version: 0, lesson: l});
     });
 }
 
@@ -150,12 +151,23 @@ function saveLesson(url, params) {
 }
 
 function _saveLessonEmbedded(bDone) {
-    g_nlContainer.save(parseInt(jQuery('#l_lessonId').val()), g_lesson.oLesson, bDone);
+    if (g_nlContainer)
+        g_nlContainer.save(parseInt(jQuery('#l_lessonId').val()), g_lesson.oLesson, bDone);
     return false;
 }
 
 function postSubmitLesson() {
     if (g_nlContainer) g_nlContainer.close();
+    if (!window.parent) return;
+    var result = {};
+    var l = g_lesson.oLesson;
+    _copyAttr(l, result, 'started');
+    _copyAttr(l, result, 'ended');
+    _copyAttr(l, result, 'timeSpentSeconds');
+    _copyAttr(l, result, 'score');
+    _copyAttr(l, result, 'maxScore');
+    var msg = {operation: 'end_learning_session', result: result};
+    window.parent.postMessage(JSON.stringify(msg), '*');
 }
 
 function _saveLessonSco(bDone) {

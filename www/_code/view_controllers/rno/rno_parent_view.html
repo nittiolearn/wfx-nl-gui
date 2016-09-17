@@ -54,14 +54,17 @@
 
     <div class='padding-small'></div>
     <hr/>
-    <a class='button button-small button-energized'
-       href='/#/welcome'>
-        <table>
-            <tr>
-                <td>Powered by </td>
-                <td><img style='vertical-align: middle'
-                         ng-src='{{imgBasePath}}general/top-logo1.png'></td>
-            </tr>
-        </table>
+    <style>
+        .my-powered {
+            display: inline-flex;
+            padding: 0 8px;
+            text-decoration: none;
+            align-items: center;
+        }
+    </style>
+    
+    <a class='nl-button my-powered' href='/#/welcome'>
+        <span>Powered by </span>
+        <img ng-src='{{imgBasePath}}general/top-logo2.png'>
     </a>
 </div>

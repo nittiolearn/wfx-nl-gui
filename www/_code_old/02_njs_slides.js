@@ -80,9 +80,15 @@ njs_slides = function() {
 		me.curPage = 0;
 		me.pageTransition = new PageTransition(me, 'default');
 
-		me.navLeft.click(function() { me.prev(); });
-		me.navRight.click(function() { me.next(); });
-		
+        if (me.pageNo) me.pageNo.show();
+        if (me.navLeft) {
+            me.navLeft.click(function() { me.prev(); });
+            me.navLeft.show();
+        }
+        if (me.navRight) {
+    		me.navRight.click(function() { me.next(); });
+            me.navRight.show();
+        }
 		me.reinit();
 	}
 	
@@ -168,33 +174,26 @@ njs_slides = function() {
 	}
 	
 	function SlideSet_gotoPagePost() {
-		if (this.pageNo != null) {
-			this.pageNo.html(this.curPage+1);
-			this.pageNo.show();
-		}
-		if (this.navLeft != null) {
+	    var inactiveButtonCls = 'nl-nav-inactive';
+		if (this.pageNo) this.pageNo.html(this.curPage+1);
+		if (this.navLeft) {
 			if (this.curPage == 0) {
-				this.navLeft.hide();
+				this.navLeft.addClass(inactiveButtonCls);
+                this.navLeft.attr('title', 'No more items');
 			} else {
-				this.navLeft.show();
+                this.navLeft.removeClass(inactiveButtonCls);
+                this.navLeft.attr('title', 'Previous');
 			}
 		}
-		if (this.navRight != null) {
+		if (this.navRight) {
 			if (this.curPage == this.pages.length - 1) {
-				this.navRight.hide();
+                this.navRight.addClass(inactiveButtonCls);
+                this.navRight.attr('title', 'No more items');
 			} else {
-				this.navRight.show();
+                this.navRight.removeClass(inactiveButtonCls);
+                this.navRight.attr('title', 'Next');
 			}
 		}
-
-		/*
-		var pageId = '';
-		if (this.curPage > 0) {
-			var pageId = newPage.attr('id');
-			if (pageId === undefined || pageId === null || pageId === '') pageId = '' + (this.curPage+1);
-		}
-		window.location.hash = '#/' + pageId;
-		*/
 
 		for(var i in this.slideChangeHandlers) {
 			this.slideChangeHandlers[i](this);

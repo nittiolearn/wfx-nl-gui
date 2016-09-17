@@ -20,37 +20,66 @@ npagetypes = function() {
 	//#############################################################################################
 	// Called once at page load to initialize some variables
 	//#############################################################################################
-	function init() {
-		_initStaticListsAndMaps();
-		jQuery(function() {
-			_initPageTypeFieldsForEditor();
-		});
+	function init(PageTypesJson) {
+	    var data = PageTypesJson ? JSON.parse(PageTypesJson) : defaultPageTypes;
+		_initStaticListsAndMaps(data);
+		_initPageTypeFieldsForEditor();
 	}
-	
-	function _initStaticListsAndMaps() {
-		for (var i = 0; i < PageInteractionTypes.length; i++) {
-			var obj = PageInteractionTypes[i];
-			PageInteractionTypeMap[obj.id] = obj;
-		}
-		
+
+    var defaultPageType = 'H';
+	function _initStaticListsAndMaps(PageTypes) {
+	    console.log('_initStaticListsAndMaps called');
+        PageTypeMap = {};
+        PageInteractionTypes = [];
+        PageInteractionTypeMap = {};
+        InteractionToLayouts = {};
+
+        // Add the default interactions in the map
+        for (var i = 0; i < defaultPageInteractionTypes.length; i++) {
+            var obj = defaultPageInteractionTypes[i];
+            PageInteractionTypeMap[obj.id] = obj;
+        }
+        
 		for (var i = 0; i < PageTypes.length; i++) {
 			var pt = PageTypes[i];
 			if (pt.id in PageTypeMap) {
-				var msg= 'Error: redundant page type id specified';
+				var msg= 'Error: redundant page type id specified: ' + pt.id;
 				alert(msg);
 				throw(msg);
 			}
+			if(i == 0) defaultPageType = pt.id;
 			PageTypeMap[pt.id] = pt;
 
 			if (!(pt.interaction in InteractionToLayouts)) {
+                var obj = PageInteractionTypeMap[pt.interaction];
+                if (!obj) {
+                    var msg= 'Error: unknown interaction specified: ' + pt.interaction;
+                    alert(msg);
+                    throw(msg);
+                }
+                PageInteractionTypes.push(obj);
 				InteractionToLayouts[pt.interaction] = [];
 			}
 			InteractionToLayouts[pt.interaction].push({'pagetype_id': pt.id, 'desc': pt.layoutName});
 		}
+
+        // Add the default page types in the map
+        for (var i = 0; i < defaultPageTypes.length; i++) {
+            var pt = defaultPageTypes[i];
+            if (pt.id in PageTypeMap) continue;
+            PageTypeMap[pt.id] = pt;
+        }
+
+        lastSelectedPageType = defaultPageType;
+        lastInteraction = '';
+        lastPageType = '';
+        lastCustomLayout = [];
+
 	}
 	
 	function _initPageTypeFieldsForEditor() {
 		var intrObj = jQuery('#l_interactiontype');
+		intrObj.html('');
 		var bleedingEdgeUser = nittio.isBleedingEdge();
 		for (var i = 0; i < PageInteractionTypes.length; i++) {
 			var intr = PageInteractionTypes[i];
@@ -69,7 +98,7 @@ npagetypes = function() {
 		});
 	}
 
-	var lastSelectedPageType = 'H';
+	var lastSelectedPageType = defaultPageType;
 	var lastInteraction = '';
 	var lastPageType = '';
 	var lastCustomLayout = [];
@@ -112,7 +141,7 @@ npagetypes = function() {
 
 	var LAYOUT_ORDER = ['pos', 't', 'h', 'l', 'w'];
 	var LAYOUT_COLLEN = {'pos': 2, 't': 5, 'h': 5, 'l': 5, 'w': 5};
-	var LAYOUT_ORDER_OTHER = ['aligntype', 'fmtgroup', 'ans', 'correct', 'mode'];
+	var LAYOUT_ORDER_OTHER = ['aligntype', 'style', 'fmtgroup', 'ans', 'correct', 'mode'];
 	function _BeautyStringifyLayout(secLayout, i) {
 		secLayout.pos = i+1;
 		var ret = '{';
@@ -304,7 +333,7 @@ npagetypes = function() {
 	}
 	
 	function _appendSectionDiv(preview, pt, secPos) {
-		var secDivFmt = '<DIV class="sectionPreview"><DIV class="secNo">{}</DIV></DIV>';
+		var secDivFmt = '<DIV class="sectionPreview"><DIV class="secNo pgNoStyle">{}</DIV></DIV>';
 		var secDiv = njs_helper.jobj(njs_helper.fmt2(secDivFmt, secPos+1));
 		secDiv.css(pt.getSectionPos(secPos));
 		if (_isInteractive(pt.layout, secPos)) secDiv.addClass('interactive');
@@ -339,7 +368,8 @@ npagetypes = function() {
 		this.initInternal = PageType_initInternal;
 
 		this.getSectionCount = PageType_getSectionCount;
-		this.getSectionPos = PageType_getSectionPos;
+        this.getSectionPos = PageType_getSectionPos;
+        this.getSectionStyle = PageType_getSectionStyle;
 		this.getLayout = PageType_getLayout;
 
 		this.getSectionHalign = PageType_getSectionHalign;
@@ -359,11 +389,11 @@ npagetypes = function() {
 		this.getSectionOnCreateFn = PageType_getSectionOnCreateFn;
 		this.getSectionOnRenderFn = PageType_getSectionOnRenderFn;
 		this.getSectionAdjustHtmlFn = PageType_getSectionAdjustHtmlFn;
-		this.getSectionTextFn = PageTypes_getSectionTextFn;
+		this.getSectionTextFn = PageType_getSectionTextFn;
 
 		this.getMaxScore = PageType_getMaxScore;
 		this.isScoreEditable = PageType_isScoreEditable;
-		this.isDoToggleSupported = PageTypes_isDoToggleSupported;
+		this.isDoToggleSupported = PageType_isDoToggleSupported;
 	}
 
 	function PageType_init(oPage) {
@@ -375,7 +405,7 @@ npagetypes = function() {
 	}
 	
 	function PageType_initInternal(type, sectionLayout) {
-		if (!(type in PageTypeMap)) type = 'H';
+		if (!(type in PageTypeMap)) type = defaultPageType;
 		this.pt = PageTypeMap[type];
 		this.interaction = PageInteractionTypeMap[this.pt.interaction];
 
@@ -404,6 +434,12 @@ npagetypes = function() {
 		return _pos(secInfo['t'], secInfo['l'], secInfo['h'], secInfo['w']);
 	}
 	
+    function PageType_getSectionStyle(secNo) {
+        if (secNo >= this.layout.length) return '';
+        var secInfo = this.layout[secNo];
+        return secInfo['style'];
+    }
+    
 	function PageType_getLayout() {
 		return this.layout;
 	}
@@ -501,7 +537,7 @@ npagetypes = function() {
 		return _getBehaviourFn(this.interaction, 'adjustHtml');
 	}
 
-	function PageTypes_getSectionTextFn() {
+	function PageType_getSectionTextFn() {
 		return _getBehaviourFn(this.interaction, 'getSectionText');
 	}
 
@@ -515,7 +551,7 @@ npagetypes = function() {
 		return functionPointer(page);
 	}
 
-	function PageTypes_isDoToggleSupported(page) {
+	function PageType_isDoToggleSupported(page) {
 		var functionPointer = _getBehaviourFn(this.interaction, 'is_do_toggle_supported');
 		return functionPointer(page);
 	}
@@ -1868,6 +1904,7 @@ npagetypes = function() {
 	// Dictionaries for quick access - filled during init
 	//#############################################################################################
 	var PageTypeMap = {};
+    var PageInteractionTypes = [];
 	var PageInteractionTypeMap = {};
 	var InteractionToLayouts = {};
 	
@@ -1875,7 +1912,7 @@ npagetypes = function() {
 	// PageInteractionType: Defines the type of interaction a page offers/exhibits. This is a
 	// combination of the behaviour of the page and static data which defines the interaction.
 	//#############################################################################################
-	var PageInteractionTypes = [
+	var defaultPageInteractionTypes = [
 		{'id' : 'TITLE', 'desc' : 'Information (title layouts)', 'default_aligntype' : 'title'},
 		{'id' : 'INFO', 'desc' : 'Information (basic layouts)', 'default_aligntype' : 'content'},
 		{'id' : 'INFO2', 'desc' : 'Information (extended layouts)', 'default_aligntype' : 'content'},
@@ -1894,7 +1931,7 @@ npagetypes = function() {
 	// Note: if max score of any page type is changed, please review the __pageTypeToMaxScores dict
 	// in mlesson.py
 	//#############################################################################################
-	var PageTypes = [
+	var defaultPageTypes = [
 		{'id': 'H', 'interaction': 'TITLE', 'layoutName': 'Title', 
 		 'layout': [{'t':   0, 'l':   0, 'h': 100, 'w': 100, 'aligntype' : 'title'}]},
 

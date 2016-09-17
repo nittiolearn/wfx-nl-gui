@@ -10,10 +10,7 @@ function module_init() {
     // Direcives used across all static pages
     .directive('nlSp', SpDirective)
     .directive('nlSpStructuredData', StructuredDataDirective)
-    .directive('nlSpPage1', PageOneDirective)
-    .directive('nlSpPage2', PageTwoDirective)
-    .directive('nlSpPage3', PageThirdDirective)
-    .directive('nlSpPage4', PageFourDirective)
+    .directive('nlSpMenu', MenuDirective)
     .directive('nlSpFooter', FooterDirective)
     .directive('nlSpCopyright', CopyrightDirective)
     .service('nlAnchorScroll', AnchorScrollSrv)
@@ -21,7 +18,6 @@ function module_init() {
     // Controller
     .controller('nl.WelcomeCtrl', WelcomeCtrl)
     .controller('nl.SchoolCtrl', SchoolCtrl)
-    .controller('nl.BusinessCtrl', BusinessCtrl)
     .controller('nl.TeamCtrl', TeamCtrl);
 }
 
@@ -46,15 +42,6 @@ function($stateProvider, $urlRouterProvider) {
             }
         }
     });
-    $stateProvider.state('app.business', {
-        url : '^/business',
-        views : {
-            'appContent' : {
-                templateUrl: 'view_controllers/welcome/business.html',
-                controller : 'nl.BusinessCtrl'
-            }
-        }
-    });
     $stateProvider.state('app.team', {
         url : '^/team',
         views : {
@@ -76,7 +63,6 @@ function() {
     };
 }];
 
-
 //-------------------------------------------------------------------------------------------------
 var StructuredDataDirective = [
 function() {
@@ -88,41 +74,21 @@ function() {
 }];
 
 //-------------------------------------------------------------------------------------------------
+var MenuDirective = [
+function() {
+    return {
+        restrict: 'E',
+        templateUrl: 'view_controllers/welcome/sp-menu.html'
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
 var PageOneDirective = [
 function() {
     return {
         restrict: 'E',
         transclude: true,
         templateUrl: 'view_controllers/welcome/sp-page1.html'
-    };
-}];
-
-//-------------------------------------------------------------------------------------------------
-var PageTwoDirective = [
-function() {
-    return {
-        restrict: 'E',
-        transclude: true,
-        templateUrl: 'view_controllers/welcome/sp-second-page.html'
-    };
-}];
-//-------------------------------------------------------------------------------------------------
-var PageThirdDirective = [
-function() {
-    return {
-        restrict: 'E',
-        transclude: true,
-        templateUrl: 'view_controllers/welcome/sp-third-page.html'
-    };
-}];
-
-//-------------------------------------------------------------------------------------------------
-var PageFourDirective = [
-function() {
-    return {
-        restrict: 'E',
-        transclude: true,
-        templateUrl: 'view_controllers/welcome/sp-four-page.html'
     };
 }];
 
@@ -172,95 +138,82 @@ function(nl, $anchorScroll) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var _commonMsg1 = 'Take your trainings online';
-var _commonMsg2 = 'the ones that really matter for your business';
-var _schoolMsg = 'Measure and improve the most important aspect of your school, the “Teaching quality”.';
-var _businessMsg = 'Manage your training with ease.';
-var _thirdPageMsg = ['Train your employees on',
-					 'what you want,',
-					 'when you want.'];
+var _commonMsg1 = 'Take your trainings online,';
+var _commonMsg2 = 'the ones that really matter for your business.';
 					   
-var WelcomeCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
-function(nl, nlRouter, $scope, nlAnchorScroll) {
-	var _secondPageMsg = [nl.t("<p>You know that continuous training of your key workforce on aspects specific to your business, is a force multiplier.</p>"),
-						  nl.t("<p>You want the trainings to be super-dynamic - updated quickly to reflect the latest developments - and reaching your people on time.</p>"), 
-						  nl.t("<p>Standard e-learning technology fails you with its prohibitively expensive content creation vendors and <span class='nl-red'>poorly designed LMSs</span>. You fall back on class-room training - in no way continuous, and always a logistical nightmare.</p>"), 
-						  nl.t("Nittio Learn is a complete e-Learning solution for trainings that are core to your business - designed to ensure that your employees are continuously learning about the things that are most critical for your business.</p>")];
-	var _fourthPageMsg = [nl.t("<p>Nittio Learn is not just an LMS or a content creation tool, but a complete learning platform <span class='nl-red'>designed for internal trainings</span>.<p>"),
-						  nl.t("<p>With Nittio Learn, interactive training can be swiftly created and dispatched to your employees. The employee learn in immensive environment and you get a bird's eye view of all learning happening in your company.</p>", nl.url.resUrl('welcome/bolt.png')),
-						  nl.t("<p>Don’t have time for creating the self-learnable content? Worry not, for we provide that as a service – quickly and with great quality, enabled by Nittio Learn combined with our <span class='nl-red'>internal hacks</span>.</p>", nl.url.resUrl('welcome/bolt.png'))
-						 ];
-						   
+var WelcomeCtrl = ['nl', 'nlDlg', 'nlServerApi', 'nlRouter', '$scope', 'nlAnchorScroll', 
+function(nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll) {
+	var _cards = null;
+	var _lastScreenSize = '';
+    var cards = {
+        title1: {title: 'Great content that anyone can make', cls:'fsh5'},
+        title2: {title: 'Engaging learning environment', cls: 'fsh5'},
+		card1: {type: 'card',  cls: 'sp-card bgwhite', icon: 'visual1.png', title: 'Visual', text: 'Create the content that pleases the eyes with completely flexible layouts and visual elements.'},
+		card2: {type: 'card',  cls: 'sp-card bgwhite', icon: 'interactive1.png', title: 'Interactive', text: 'Build a multitude of great looking learner interactions in a jiffy.'},
+		card3: {type: 'card',  cls: 'sp-card bgwhite', icon: 'voiceover1.png', title: 'Voiceovers', text: 'Make your content speak in accent of your choice with automatic text to speech or recorded human voice.'},
+		card4: {type: 'card',  cls: 'sp-card bgwhite', icon: 'slicedvideo1.png', title: 'Video slicing', text: 'No cumbersome editing. Just define time interval to embed part of a video.'},
+		card5: {type: 'card',  cls: 'sp-card bgwhite', icon: 'responsive1.png', title: 'Responsive', text: 'Everything you create, including images and videos automatically fits to all device sizes.'},
+		card6: {type: 'card',  cls: 'sp-card bgdark', icon: 'learnerled1.png', title: 'Learner led', text: 'Allow learners to choose what to learn, or guide them with a pre-set course.'},
+		card7: {type: 'card',  cls: 'sp-card bgdark', icon: 'branched1.png', title: 'Branched learning', text: 'Trigger new or repeat learning activity based on rules.'},
+		card8: {type: 'card',  cls: 'sp-card bgdark', icon: 'social1.png', title: 'Social learning', text: 'Blend topic specific discussion forum to learning, with a click of a button.'},
+		card9: {type: 'card',  cls: 'sp-card bgdark', icon: 'leaderboard1.png', title: 'Leaderboard', text: 'Instill healthy competition with customized leaderboards.'},
+		card10: {type: 'card',  cls: 'sp-card bgdark', icon: 'responsive1.png', title: 'Device independent', text: 'Give freedom to your learners to learn on any device.'},
+		empty: {type: 'card',  cls: ''}
+    };
+
+    function _getFeatureCards() {
+    	var screenSize = nl.rootScope.screenSize;
+    	if (_cards && _lastScreenSize == screenSize) return _cards;
+    	
+    	_cards = [];
+    	_lastScreenSize = screenSize;
+        var names = _getFeatureCardNames(screenSize);
+        
+        var titleCol = (screenSize == 'small') ? 'w100' : 'col col-50';
+        var cardCol = (screenSize == 'small') ? 'w100' : (screenSize == 'medium') ? 'col col-50' : 'col col-25';
+        for(var i in names) {
+        	var card = angular.copy(cards[names[i]]);
+        	card.cls += ' ' + (card.type == 'card' ? cardCol : titleCol);
+        	_cards.push(card);
+        }
+        return _cards;
+    }
+
+    function _getFeatureCardNames(screenSize) {
+        if (screenSize == 'large')
+	        return ['title1', 'title2', 'card1', 'card2', 'card6', 'card7', 'card3', 'card4', 'card8', 'card9', 'empty', 'card5', 'card10'];
+        if (screenSize == 'medium')
+	        return ['title1', 'title2', 'card1', 'card6', 'card2', 'card7', 'card3', 'card8', 'card4', 'card9', 'card5', 'card10'];
+        if (screenSize == 'small')
+	        return ['title1', 'card1', 'card2', 'card3', 'card4', 'card5', 'title2', 'card6', 'card7', 'card8', 'card9', 'card10'];
+       return [];
+	}
+
     var welcomeConfig = {
         // Required in the controller
+        title: nl.t('{} {}', _commonMsg1, _commonMsg2),
         title1: nl.t(_commonMsg1),
         title2: nl.t(_commonMsg2),
-        desc: 'Online training software for businesses. Teaching Quality Management solutions for schools.',
+        desc: 'Nittio Learn is a complete eLearning solution for trainings that are core to your business. It is designed to ensure that your employees are continuously learning about the things that are most critical for your business.',
         pageUrl: null,
-        bgImg: 'backgroundblue.jpg',
-        bgImg2: 'backgroundwhite.jpg',
         menus: [{name: 'Our school solution', anchor: 'school'}],
-		    secondPageDesc: _secondPageMsg,
         // Required in the specific view template
         content: {
-            schoolMsg: _schoolMsg,
-            businessMsg: _businessMsg,
-            secondPageMsg: _secondPageMsg,
-            thirdPageMsg: _thirdPageMsg,
-            fourthPageMsg: _fourthPageMsg
-            
-        }
-    };
-    _staticPageCtrl(welcomeConfig, nl, nlRouter, $scope, nlAnchorScroll);
-}];
+	        getFeatureCards: _getFeatureCards,
 
-//-------------------------------------------------------------------------------------------------
-var SchoolCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
-function(nl, nlRouter, $scope, nlAnchorScroll) {
-    var schoolConfig = {
-        // Required in the controller
-        title: nl.t('Your teaching quality partner.'),
-        desc: 'Looking to improve the teaching quality in your school? Use Nittio Learn for continuous teacher training, structured lesson planning, program of work tracking and classroom observations.',
-        pageUrl: 'school',
-        bgImg: 'schoolbackground2.jpg',
-        menus: [{name: 'Solutions', anchor: 'solutions'}, {name: 'Contact us', anchor: 'contact_us'}],
-        
-        // Required in the specific view template
-        content: {
-            msg: nl.t(_schoolMsg),
-            msg2: nl.t('Structure all aspects of teaching. Set your goals, engage your teachers and leap ahead.')
-        }
-    };
-    _staticPageCtrl(schoolConfig, nl, nlRouter, $scope, nlAnchorScroll);
-}];
-
-//-------------------------------------------------------------------------------------------------
-var BusinessCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
-function(nl, nlRouter, $scope, nlAnchorScroll) {
-    var businessConfig = {
-        // Required in the controller
-        title: nl.t('Online Training Management Software.'),
-        desc: 'Online software for training everyone in your company. Reduce your training costs, measure results and stay on top of learning needs of your organization.',
-        pageUrl: 'business',
-        bgImg: 'businessbackground2.jpg',
-        menus: [{name: 'Features', anchor: 'features'}, {name: 'Pricing', anchor: 'pricing'}, {name: 'Request a demo', anchor: 'contact_us'}],
-        
-        // Required in the specific view template
-        content: {
-            msg: nl.t(_businessMsg),
             pricing_attrs: ['Unlimited course content', 'Quizzes', 
                 'Surveys, feedback', 'User management', 'Duration tracking', 
-                'Customized dashboards', 'Custom landing page', 'Sell courses', 
+                'Customized dashboards', 'Custom landing page',  
                 'Reporting', 'Support', 'Custom contracts', 'Migration services'],
             pricing_slabs: [
             {name: 'Basic', price: 'USD 125 per month', billing: '(Billed annually)', 
-                users: '50', attrs: ['tick', 'tick', 'tick', 'tick', '', '', '', '', 'tick', "Email", '', '']},
+                users: '50', attrs: ['tick', 'tick', 'tick', 'tick', '', '', '', 'tick', "Email", '', '']},
             {name: 'Advanced', price: 'USD 225 per month', billing: '(Billed annually)',
-                users: '100', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', '', '', 'tick', "Email, Phone", '', '']},
+                users: '100', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', '', 'tick', "Email, Phone", '', '']},
             {name: 'Professional', price: 'USD 625 per month', billing: '(Billed annually)', 
-                users: '500', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', 'tick', 'tick', "Custom reports", "Email, Phone", '', '']},
+                users: '500', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', 'tick', "Custom reports", "Email, Phone", '', '']},
             {name: 'Enterprise', price: 'Contact us for pricing', billing: ' ',
-                users: '500+', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', 'tick', 'tick', "Custom reports", "Named account manager", 'tick', 'tick']}
+                users: '500+', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', 'tick', "Custom reports", "Named account manager", 'tick', 'tick']}
             ],
             slabSlider: new SlabSlider(nl, 4),
             slabSlideDown: function($scope) {
@@ -271,18 +224,36 @@ function(nl, nlRouter, $scope, nlAnchorScroll) {
             }
         }
     };
-    _staticPageCtrl(businessConfig, nl, nlRouter, $scope, nlAnchorScroll);
+    _staticPageCtrl(welcomeConfig, nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll);
 }];
 
 //-------------------------------------------------------------------------------------------------
-var TeamCtrl = ['nl', 'nlRouter', '$scope', 'nlAnchorScroll', 
-function(nl, nlRouter, $scope, nlAnchorScroll) {
+var SchoolCtrl = ['nl', 'nlDlg', 'nlServerApi', 'nlRouter', '$scope', 'nlAnchorScroll', 
+function(nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll) {
+    var schoolConfig = {
+        // Required in the controller
+        title: nl.t('Your teaching quality partner.'),
+        desc: 'Looking to improve the teaching quality in your school? Use Nittio Learn for continuous teacher training, structured lesson planning, program of work tracking and classroom observations.',
+        pageUrl: 'school',
+        menus: [{name: 'Solutions', anchor: 'solutions'}, {name: 'Contact us', anchor: 'contact_us'}],
+        
+        // Required in the specific view template
+        content: {
+            msg: nl.t('Measure and improve the most important aspect of your school, the “Teaching quality”.'),
+            msg2: nl.t('Structure all aspects of teaching. Set your goals, engage your teachers and leap ahead.')
+        }
+    };
+    _staticPageCtrl(schoolConfig, nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll);
+}];
+
+//-------------------------------------------------------------------------------------------------
+var TeamCtrl = ['nl', 'nlDlg', 'nlServerApi', 'nlRouter', '$scope', 'nlAnchorScroll', 
+function(nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll) {
     var teamConfig = {
         // Required in the controller
         title: nl.t('our team'),
         desc: 'Nittio Learn team.',
         pageUrl: 'team',
-        bgImg: null,
         menus: [],
         
         // Required in the specific view template
@@ -327,11 +298,11 @@ function(nl, nlRouter, $scope, nlAnchorScroll) {
             ]
         }
     };
-    _staticPageCtrl(teamConfig, nl, nlRouter, $scope, nlAnchorScroll);
+    _staticPageCtrl(teamConfig, nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll);
 }];
 
 //-------------------------------------------------------------------------------------------------
-function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
+function _staticPageCtrl(config, nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll) {
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
             nl.pginfo.hidemenu = true;
@@ -345,13 +316,12 @@ function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
             if (config.pageUrl) $scope.pageResUrl += '/' + config.pageUrl;
             
             $scope.content = config.content;
-            $scope.content.commonMsg = _commonMsg1;
+            $scope.content.commonMsg = nl.t('{} {}', _commonMsg1, _commonMsg2);
             $scope.content.title1 = config.title1;
             $scope.content.title2 = config.title2;
             $scope.content.desc = config.desc;
             $scope.menus = config.menus;
-            $scope.bgImg = config.bgImg ? $scope.pageResUrl + '/' + config.bgImg : null;
-            $scope.bgImg2 = config.bgImg2 ? $scope.pageResUrl + '/' + config.bgImg2 : null;
+            $scope.registration = new Registration(nl, nlDlg, nlServerApi, $scope);
             nl.rootScope.pgBgimg = null;
             resolve(true);
             
@@ -360,11 +330,68 @@ function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
                     return;
                 }
                 $scope.content[fnName]($scope);
-            }
+            };
         });
     }
+	$scope.menu_shown = false;
+
+    $scope.toggleMenu = function(e) {
+    	$scope.menu_shown = !$scope.menu_shown;
+        e.stopImmediatePropagation();
+    };
+
+    $scope.onEscape = function(e) {
+    	$scope.menu_shown = false;
+        e.stopImmediatePropagation();
+    };
+    
     nlAnchorScroll.setAnchorHandler($scope);
     nlRouter.initContoller($scope, '', _onPageEnter);
+}
+
+//-------------------------------------------------------------------------------------------------
+function Registration(nl, nlDlg, nlServerApi, $scope) {
+	this.demoRequest = function() {
+		var requestDlg = nlDlg.create($scope);
+        requestDlg.scope.error = {};
+		requestDlg.scope.data = {name: ''};
+		
+		var okButton = {
+			text : 'Request a demo',
+			onTap : function(e) {
+			    if(!_validateInputs(requestDlg.scope)) {
+			        if(e) e.preventDefault();
+			        return;
+			    }
+                console.log('demo requesting: scope.data:', requestDlg.scope.data);
+                nlDlg.showLoadingScreen();
+			    nlServerApi.authDemoRequest(requestDlg.scope.data)
+			    .then(function() {
+			        var msg = 'Thanks. You will hear from us shortly.';
+			        nlDlg.popupAlert({title: '', template: nl.t(msg)}).then(function() {
+                        nlDlg.hideLoadingScreen();
+			        });
+			    });
+			}
+		};
+		requestDlg.show('view_controllers/welcome/demo-request-form.html', [okButton], null);
+	};
+	
+    function _validateInputs(scope) {
+    	console.log('scope.data:', scope.data);
+        scope.error = {};
+        var ret = true;
+        if(!scope.data.name) ret = _validateFail(scope, 'name', 'Name is mandatory');
+        if(!scope.data.email) {
+            ret = _validateFail(scope, 'email', 'Please provide a valid email id');
+        }
+        return ret;
+    }
+
+    function _validateFail(scope, attr, errMsg) {
+    	return nlDlg.setFieldError(scope, attr,
+        	nl.t(errMsg));
+    }
 }
 
 //-------------------------------------------------------------------------------------------------

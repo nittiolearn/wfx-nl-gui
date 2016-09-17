@@ -1,14 +1,10 @@
-<div class='nl-dlg-title-buttons'>
-    <img title='Help'
-         alt='Help'
-         ng-src='{{imgBasePath}}general/help.png'
-         ng-show='canShowHelp'
-         ng-click='onHelp()'/>
-    <img title='Close'
-         alt='Close'
-         ng-src='{{imgBasePath}}quick-links/close.png'
-         ng-show='canShowClose'
-         ng-click='onClose()'/>
+<div class='nl-dlg-title-buttons nl-white-icons'>
+    <i class='ion-ios-help-outline'
+       ng-show='canShowHelp' ng-click='onHelp()'>
+    </i>
+    <i class='ion-ios-close-outline'
+       ng-show='canShowClose' ng-click='onClose()'>
+    </i>
 </div>
 <div ng-transclude ng-class='{"nl-dlg-help-hidden": helpHidden}'>
 </div>

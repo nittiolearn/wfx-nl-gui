@@ -1,6 +1,11 @@
 @charset "UTF-8";
 
 /*----------------------------------------------------------------------------------------------------------------------
+$nlBlue1:                         #00A3CC !default; // Blue used in top bar, Buttons
+$nlBlue2:                         #0083AC !default; // Darker blue used in button hover
+$nlBlue3:                         #004455 !default; // Dark blue used in button click
+
+ * Old colors:
  * Color1: #403050 (header bar)
  * Color2: #807090
  * Color3: #C0B0D0
@@ -183,6 +188,10 @@ input[type="file"] {
 	line-height: 0;
 }
 
+.select2-results, .select2-choices {
+  width: 100%;
+}
+
 /*----------------------------------------------------------------------------------------------------------------------
  * Actual content from nittio.css
  * --------------------------------------------------------------------------------------------------------------------*/
@@ -221,13 +230,7 @@ input[type="file"] {
 }
 
 .topBar, .topBarBg .aspect_wrt {
-	background-color: #403050;
-	background-image: -moz-linear-gradient(top,#403050,#807090);
-	background-image: -webkit-gradient(linear,0 0,0 100%,from(#403050),to(#807090));
-	background-image: -webkit-linear-gradient(top,#403050,#807090);
-	background-image: -o-linear-gradient(top,#403050,#807090);
-	background-image: linear-gradient(to bottom,#403050,#807090);
-
+	background-color: #00A3CC;
 	font-size: 100%;
 	color: #ffffff;	
 }
@@ -257,10 +260,10 @@ input[type="file"] {
 
 .body {
 	position: absolute;
-	top: 45px;
-	left: 5px;
-	right: 5px;
-	bottom: 5px;
+	top: 42px;
+	left: 2px;
+	right: 2px;
+	bottom: 2px;
 	opacity: 0;
 }
 
@@ -276,38 +279,6 @@ input[type="file"] {
 	bottom: 0;
 }
 
-/*
- * Navigators
- */
-.navigator {
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	width: 3%;
-	max-width: 20px;
-	display: table-cell;
-	vertical-align: middle;
-	text-align: center;
-	z-index: 11;
-}
-
-.navigator img:hover {
-	opacity: 0.5;
-}
-
-.navigator.left {
-	left: 5px;
-}
-
-.navigator.right {
-	right: 5px;
-}
-
-.navigator table {
-	height: 100%;
-	width: 100%;
-}
-
 a.enabled {
 	display: inline;
 }
@@ -319,19 +290,24 @@ a.enabled {
 	position: absolute;
 	top: 42px;
 	right: 2px;
-	height: 36px;
-	max-width: 95%;
-	text-align: center;
-	background: #EFDFFF;
+	max-height: 40px;
+	max-width: 99%;
+	text-align: right;
+	background-color: rgba(255, 255, 255, 0.7);
 	z-index: 12;
-	border-bottom-left-radius: 8px;
-	border-bottom-right-radius: 8px;
-	box-shadow: 0px 0px 16px 0 #403050 inset;
-	overflow:auto;
-	opacity: 0.85;
+  overflow-x:hidden;
+  overflow-y:auto;
+	width: auto;
+  box-shadow: inset 0 0 5px #004455;
+  display: none;
 }
 
-.scormlms #pgNo, .scormlms .navigator {
+.toolBarContainer {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.scormlms #pageNoArea {
   display: none !important;
 }
 
@@ -345,15 +321,6 @@ a.enabled {
 /*----------------------------------------------------------------------------------------------------------------------
  * Elements inside topBar
  * --------------------------------------------------------------------------------------------------------------------*/
-.topBar a {
-	color: #FFFF80;
-}
-
-.topBar a:hover {
-	color: #FF8080;
-	text-decoration:none;
-}
-
 .topBar #logo {
 	position: absolute;
 	top: 0;
@@ -366,11 +333,11 @@ a.enabled {
 
 .topBar > #menuArea {
 	position: absolute;
-	top: 4px;
-	bottom: 4px;
-	right: 4px;
+	top: 0px;
+	right: 0px;
 	width: 120px;
 	text-align: right;
+	padding: 8px 2px;
 }
 
 .topBar > #menuArea img {
@@ -385,7 +352,7 @@ a.enabled {
 	bottom: 0;
 	left: 124px;
 	right: 124px;
-	padding: 9px 0;
+	padding: 8px 4px;
 	font-size: 120%;
 	text-align: center;
 }
@@ -427,7 +394,7 @@ a.enabled {
 }
 
 .sectiontoolbarIcon > img {
-	border-radius: 4px;
+	border-radius: 0;
 }
 
 .toolBar .toolbarIcon > img, .sectiontoolbarIcon > img {
@@ -438,7 +405,7 @@ a.enabled {
 }
 
 .toolBar .toolbarIcon > img:hover, .sectiontoolbarIcon > img:hover {
-	box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+	box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 5px rgba(0,0,0,1);
 }
 
 .toolBar .toolbarIcon.current {
@@ -452,16 +419,14 @@ a.enabled {
 
 #countdown_timer {
 	position: absolute;
-	bottom: 0;
-	right: 50px;
+	bottom: 45px;
+	right: 4px;
 	width: auto;
 	height: auto;
 	z-index: 11;
-	background-color: #403050;
+	background-color: #004455;
 	color: #FFFFFF;
-	border: 3px solid #FFFFFF;
-	border-radius: 8px;
-	box-shadow: 0 -2px 0 3px #201030 inset, 0 5px 5px rgba(0, 0, 0, 0.17), 0 5px rgba(255, 255, 255, 0.25) inset;
+	border: 2px solid #FFFFFF;
 	padding: 5px;
 }
 
@@ -472,8 +437,7 @@ a.enabled {
 #countdown_timer.countdown_timer_warning {
 	display: inline;
 	font-size: 150%;
-	background-color: #FF0000;
-	box-shadow: 0 -2px 0 3px #FF0000 inset, 0 5px 5px rgba(0, 0, 0, 0.17), 0 5px rgba(255, 255, 255, 0.25) inset;
+	background-color: #800000;
 }
 
 #audioHolder {
@@ -485,35 +449,70 @@ a.enabled {
   display: none;
 }
 
-#pgNo, .secNo {
-	position: absolute;
-	bottom: 5px;
-	right: 2px;
-	width: auto;
-	height: auto;
-	color: #FFFFFF;
-	background-color: #403050;
-	border-radius: 100%;
-	text-align: center;
-	padding: 5px 12px;
-	font-size: 12px;
-	line-height: 150%;
-	z-index: 12;
-	cursor:pointer;	
+/*
+ * Navigators and pageNo
+ */
+#pageNoArea, .secNo {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  z-index: 12;
+  width: auto;
+  height: auto;
+  padding: 0;
+}
+
+.pgNoStyle {
+  color: #FFFFFF;
+  background-color: #004455;
+  border-radius: 50%;
+  text-align: center;
+  font-size: 12px;
+  line-height: 150%;
+  border: 2px solid #FFFFFF;
+  padding: 0 4px;
 }
 
 #pgNo {
-	background-color: #403050;
-	color: #FFFFFF;
-	border: 3px solid #FFFFFF;
-	box-shadow: 0 -2px 0 3px #201030 inset, 0 5px 5px rgba(0, 0, 0, 0.17), 0 5px rgba(255, 255, 255, 0.25) inset;
+	padding: 8px 10px;
+  min-height: 36px;
+  min-width: 36px;
 }
 
-#pgNo:hover {
-	background-color: #FFFFFF;
-	color: #403050;
-	border: 3px solid #403050;
-	box-shadow: none;
+/* navigator class is used by page navigator and voice button */
+.navigator {
+  text-align: center;
+  background-color: #004455;
+  border-radius: 50%;
+  border: 2px solid #FFFFFF;
+  height: 36px;
+  width: 36px;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.navigator i {
+  color: #FFFFFF;
+  font-size: 25px;
+  cursor: pointer;
+}
+
+.navigator:hover {
+  background-color: #0083AC;
+}
+
+.navigator:focus, .navigator:active {
+  box-shadow: inset 0 0 5px #004455, 0 0 2px #004455;
+  background-color: #00A3CC;
+}
+
+.nl-nav-inactive,
+.nl-nav-inactive:hover,
+.nl-nav-inactive:focus,
+.nl-nav-inactive:active {
+  background-color: #CCCCDD;
+  cursor: default;
+  pointer-events: none;
 }
 
 #pgNo, #navigate_left, #navigate_right {
@@ -526,11 +525,11 @@ a.enabled {
 #loginMenu {
 	position: absolute;
 	top: 45px;
-	width: 100px;
+	width: 150px;
 	padding: 0;
 
-	background-color: #C0B0D0;
-	border-radius: 8px;
+	background-color: #F5F5F5;
+	border-radius: 0px;
 	box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
 	
 	z-index: 21;
@@ -543,7 +542,7 @@ a.enabled {
 }
 
 .menuList {
-	text-align: center;
+	padding: 8px;
 }
 
 .menuList img {
@@ -610,10 +609,9 @@ a.green:hover, .njsSlides a.green:hover  {
  * --------------------------------------------------------------------------------------------------------------------*/
 .popupBox {
 	position: absolute;
-	border-radius: 8px;
 	opacity: 0;
 	z-index: 23;
-	box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
+  box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
 	display: none; 
 }
 
@@ -627,7 +625,7 @@ a.green:hover, .njsSlides a.green:hover  {
 	height: 0;
 	color: #ffffff;
   font-size: 90%;
-  background: #403050;
+  background: #004455;
   text-overflow: ellipsis;
   white-space: nowrap; 
   overflow: hidden;
@@ -668,16 +666,19 @@ a.green:hover, .njsSlides a.green:hover  {
 	margin: 0 2px;
 }
 
+.searchForm button {
+  padding: 4px;
+}
+
 .searchForm input {
 	width: 98%;
+	height: 30px;
 }
 
 .searchForm .res {
 	white-space: nowrap; 
-	background-color: #807090; 
-	color: #ffffff;
+  background-color: #CCCCDD;
 	padding: 0 5px;
-	border-radius: 4px;		
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
@@ -816,7 +817,7 @@ a.green:hover, .njsSlides a.green:hover  {
 }
 
 .moreImgCls {
-	background-color:#403050;
+	background-color:#00A3CC;
 } 
 
 .njsMoreTable {
@@ -991,7 +992,7 @@ td.submitselection{
 	height: 100%;
 	z-index: -100;
 	opacity: 0;
-	background: #000000;
+	background: rgba(0, 0, 0, 0.4);
 	text-align: left;
 }
 
@@ -1066,8 +1067,7 @@ td.submitselection{
 	margin: 0;
 	border: 0;
 	padding: 0;
-	box-shadow: 1px 1px 5px 0 #807090;
-	border-radius: 8px;
+  box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
 	z-index: -1;
 	outline: none;
 }
@@ -1092,11 +1092,7 @@ div.njs_pdf_holder.inline_obj {
 
 .njs_pdf_holder .njs_pdf_waiting {
 	text-align: center;
-	color: #ffffff;
-	background-color: #000000;
-	opacity: 0.85;
 	border-radius: 8px;	
-	margin: 8px 0;
 	padding: 8px;
 	box-sizing: border-box;
 	font-size: 60%;
@@ -1139,7 +1135,6 @@ div.njs_pdf_holder.inline_obj {
 	height: 100%;
 	background: none;
 	border-style: none;
-	border-radius: 8px;
 	box-sizing: border-box;
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
@@ -1215,11 +1210,11 @@ div.pgSecView {
 }
 
 .pgSecView.beh_desc  {
-    border-radius: 8px;
-    overflow: auto;
+  border-radius: 8px;
+  overflow: auto;
 	font-size: 0.6em;
 	line-height: 100%;
-    text-align: left;
+  text-align: left;
 }
 
 div.positionInOrder {
@@ -1229,19 +1224,19 @@ div.positionInOrder {
 	width: auto;
 	height: auto;
 	color: #FFFFFF;
-    background-color: #005580;
+  background-color: #005580;
 
-    border: 1px solid #FFFFFF;
+  border: 1px solid #FFFFFF;
 	border-radius: 50%;
 
 	text-align: center;
 	padding: 0 8px;
-    font-size:40%;
+  font-size:40%;
 	line-height: 200%;
 	z-index: 1;
 
-    cursor: pointer;
-    text-decoration:none;
+  cursor: pointer;
+  text-decoration:none;
 }
 
 .mode_report .pgSecView {
@@ -1269,11 +1264,8 @@ div.positionInOrder {
 
 div.line {
     position: relative; 
-    border-color: #000;
-    border-style: solid;
-    border-width: 1px;
+    border: none;
     height: 2px;
-    opacity: 0.9;
     z-index: 12;
     transform-origin: 0 100%;
 }
@@ -1331,23 +1323,16 @@ div.pgSecView.answer_wrong.bright {
   height: 100%;
 }
 
-.pgPropAudio audio {
-	position: absolute;
-	bottom: 0;
-	left: 25px;	
-	width: 30%;
-	height: 30px;
-	max-width: 30%;
-	max-height: 30px;
-}
-
-.pgPropAudio .autoVoice {
+.pgPropAudio .voiceButton {
   position: absolute;
   bottom: 0;
-  left: 25px; 
-  width: 30px;
-  height: 30px;
-  cursor:pointer;
+  left: 0;
+  border: 2px solid #FFFFFF;
+}
+
+.pgPropAudio .voiceButton i {
+  line-height: 125%;
+  display: block;
 }
 
 .error {
@@ -1388,8 +1373,7 @@ div.pgSecView.answer_wrong.bright {
 	right: 50%;
 	bottom: 50%;
 	display: none;
-	border-radius: 4px;
-	box-shadow: 2px 2px 10px 5px #402000;
+  box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
 	text-align: center;
 	z-index: 22;
 }
@@ -1405,26 +1389,20 @@ div.pgSecView.answer_wrong.bright {
 	left: 10px;
 	right: 10px;
 	bottom: 10px;
-	border-radius: 4px;
-	box-shadow: 2px 2px 10px 5px #402000;
+  box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
 	text-align: center;
 	z-index: 12;
+  background-color: #FFFFFF;
 }
 
 .njsDialogTitle {
-	border-top-left-radius: 4px;
-	border-top-right-radius: 4px;
 	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 40px;
-	background-color: #E06000;
-	background-image: -moz-linear-gradient(top,#E06000, #D05000);
-	background-image: -webkit-gradient(linear,0 0,0 100%,from(#E06000),to(#D05000));
-	background-image: -webkit-linear-gradient(top,#E06000,#D05000);
-	background-image: -o-linear-gradient(top,#E06000,#D05000);
-	background-image: linear-gradient(to bottom,#E06000, #D05000);
+	top: 1px;
+	left: 1px;
+	right: 1px;
+	width: auto;
+	height: 32px;
+	background-color: #00A3CC;
 }
 
 .njsDialogTitle > div {
@@ -1433,29 +1411,18 @@ div.pgSecView.answer_wrong.bright {
 	left: 0;
 	right: 64px;
 	height: 100%;
-}
-
-.njsDialogTitle > img {
-	float: right;
-	height: 24px;
-	width: 24px;
-	margin: 8px 4px;
-	cursor:pointer;
-}
-
-.njsDialogTitle > div {
 	text-align: center;
 	margin: 8px;
 	color: #FFFFFF;
-	font-size: 24px;
+	font-size: 120%;
 }
 
 .njsDialogFields {
 	position: absolute;
-	top: 40px;
-	bottom: 40px;
-	left: 0;
-	right: 0;
+	top: 33px;
+	bottom: 41px;
+	left: 1px;
+	right: 1px;
 	background: #FFFFFF;
 	overflow:auto;
 	text-align: left;
@@ -1474,14 +1441,13 @@ div.pgSecView.answer_wrong.bright {
 
 .njsDialogButtons {
 	position: absolute;
-	bottom: 0;
-	left: 0;
-	width: 100%;
+	bottom: 1px;
+	left: 1px;
+	right: 1px;
+	width: auto;
 	height: 40px;
 	text-align: right;
-	border-top: 1px solid #D05000;
-	border-bottom-left-radius: 4px;
-	border-bottom-right-radius: 4px;
+	border-top: 1px solid #004455;
 	background: #FFFFFF;
 }
 
@@ -1489,13 +1455,20 @@ div.pgSecView.answer_wrong.bright {
 	text-align: center;
 	margin: 4px;
 	color: #FFFFFF;
-	background: #D05000;
+	background: #004455;
+  text-shadow: none;
+  border-radius: 0;
 }
 
-.njsDialogButtons button:hover, .njsDialogButtons button:active, .njsDialogButtons button:focus {
-	color: #FFFFFF;
-	background: #B03000;
-	text-shadow: none;
+.njsDialogButtons button:hover{
+  color: #FFFFFF;
+  background: #0083AC;
+}
+
+.njsDialogButtons button:active, .njsDialogButtons button:focus {
+  color: #FFFFFF;
+	background: #00A3CC;
+  box-shadow: inset 0 0 10px #004455, 0 0 5px #004455;
 }
 
 .njsDialogHelp {
@@ -1524,14 +1497,13 @@ div.pgSecView.answer_wrong.bright {
 	top: 0;
 	height: auto;
 	bottom: 0;
-	background-color: #E5FF80;
+  background-color: #DDDDFF;
 	color: #000000;
-	border-radius: 4px;
 	padding: 4px;
 	width: 98%;
 	margin: 0 0 4px 4px;
 	text-align: left;
-	box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
+  box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
 }
 
 .dlgFieldName {
@@ -1552,17 +1524,24 @@ div.pgSecView.answer_wrong.bright {
 }
 
 .dlgField .field {
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
     
-    margin: 4px;
+  margin: 4px;
 	padding: 4px;
 	width: 98%;
+ 	border-radius: 0px;	
 }
 
 .dlgField input.field {
 	height: 28px;
+	padding-left: 8px;
+  	padding-right: 8px;
+  	background-color: #FFFFFF;
+  	border: 1px solid #DDDDFF;
+  	border-radius: 0px;
+  	margin:4px;
 }
 
 .dlgField textarea.field {
@@ -1703,8 +1682,7 @@ div.pgSecView.answer_wrong.bright {
 	left: 0;
 	height: 100%;
 	width: 100%; 
-	box-shadow: 1px 1px 5px 0 #807090;
-	border-radius: 4px;
+  box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
 }
 
 #changeLook_txt {
@@ -1772,6 +1750,10 @@ div.pgSecView.answer_wrong.bright {
 
 .pgSec textarea.pgSecText:focus, .pgSec textarea.questionnaire:focus, .pgSec select:focus {
 	background: #000033;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: inherit;
 }
 
 .bgdark a {
@@ -2035,4 +2017,91 @@ i.comic_sans {
 /* Finally italics for the i*/
 i.italic {
     font-style: italic;
+}
+
+/* Icon font */
+.textmenu{
+	padding: 8px;
+}
+
+.textmenu:hover{
+	cursor: pointer;
+}
+
+/**
+ * Grid
+ * --------------------------------------------------
+ * Using flexbox for the grid, inspired by ionic who is 
+ * impired by Philip Walton:
+ * http://philipwalton.github.io/solved-by-flexbox/demos/grids/
+ * 
+ * By default each .col within a .row will evenly take up
+ * available width, and the height of each .col with take
+ * up the height of the tallest .col in the same .row.
+ */
+.njsSlides .njsFlexList {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: -moz-flex;
+  display: -ms-flexbox;
+  display: flex;
+  width: 100%;
+
+  /* row-wrap */
+  -webkit-flex-wrap: wrap;
+  -moz-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+
+  /* row-baseline */
+  -webkit-box-align: baseline;
+  -ms-flex-align: baseline;
+  -webkit-align-items: baseline;
+  -moz-align-items: baseline;
+  align-items: baseline;
+}
+
+.njsSlides .njsFlexListBulletHolder {
+  padding: 0 4px;
+  min-width: 1.2em;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.njsSlides .njsFlexListBullet {
+  font-family: "Ionicons";
+  font-size: 50%;
+}
+
+.njsSlides .njsFlexListBullet:after {
+  content: "\f3a6";
+}
+
+.njsSlides .njsFlexListBullet.level-1:after {
+  content: "\f21b";
+}
+
+.njsSlides .njsFlexListBullet.level-2:after {
+  content: "\f24f";
+}
+
+.njsSlides .njsFlexListNumber {
+  font-size: 90%;
+}
+
+.njsSlides .njsFlexListNumber:after {
+  content: '.';
+}
+
+.njsSlides .njsFlexListText {
+  -webkit-box-flex: 1;
+  -webkit-flex: 1;
+  -moz-box-flex: 1;
+  -moz-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  display: block;
+  width: 100%;
+  padding: 0 4px;
 }

@@ -79,12 +79,12 @@
         <tr ng-if='ext.item.type == "lesson"'>
             <td>Number of attempts</td><td>{{ext.item.attempt || 0}}
                 <button ng-if='ext.pastAttemptData.length > 0'
-                        class='button button-positive button-small'
+                        class='nl-button'
                         ng-click='ext.showPastAttempts = !ext.showPastAttempts'>
                     {{ext.showPastAttempts ? "Hide" : "Show"}} past attempts
                 </button>
                 <button ng-if='ext.canReattempt()'
-                        class='button button-positive button-small'
+                        class='nl-button'
                         ng-click='onReattempt($event, ext.item)'>
                     Try again
                 </button>
@@ -142,14 +142,14 @@
     <div class='row row-top row-wrap margin0 padding-top'>
         <div ng-if='ext.canUpdateStatus()'
              class='col padding-small min-200'>
-             <button class='button button-positive button-small w100'
+             <button class='nl-button w100'
                      ng-click='ext.updateStatus(ext.item.state.status != "success")'>
                      {{ext.item.state.status == 'success' ? 'Reopen' : 'Done'}}
              </button>
         </div>
         <div ng-if='ext.canLaunch()'
              class='col padding-small min-200'>
-             <button class='button button-positive button-small w100'
+             <button class='nl-button w100'
                      ng-click='onLaunch($event, ext.item)'>
                      {{ext.getLaunchString()}}
              </button>

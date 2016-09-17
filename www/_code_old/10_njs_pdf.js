@@ -312,7 +312,7 @@ function PageRenderer_prepare() {
 	// Create the elements inside the pdf_holder
 	var self = this;
 	self._holder.empty();
-	var waiting = '<div class="njs_pdf_waiting"><div class="njs_pdf_waiting_msg"></div><img class="njs_pdf_progress_bar" src="{}/general/progress-bar.gif"/></div>';
+	var waiting = '<div class="njs_pdf_waiting"><div class="njs_pdf_waiting_msg"></div><img class="njs_pdf_progress_bar" src="{}/general/waiting1.gif"/></div>';
 	waiting = jQuery(njs_helper.fmt2(waiting, nittio.getStaticResFolder()));
 	waiting.hide(); 
 	self._holder.append(waiting);
@@ -328,7 +328,7 @@ function PageRenderer_render() {
 	}
 	self._state = PageRenderer.STATE_RENDERING;
 	var statusBar =  new PdfStatusBar(self._holder);
-	statusBar.progressMsg(njs_helper.fmt2('Loading page {} of PDF, please wait', self._pageNum));
+	statusBar.progressMsg('');
 	
 	self._pdfObject.onLoadDone(function(bSuccess, errorMsg, exception) {
 		if (!bSuccess) {
@@ -336,7 +336,7 @@ function PageRenderer_render() {
 			self.callOnRenderDone();
 			return;
 		}
-		_PageRenderer_renderImpl(self, statusBar);
+        _PageRenderer_renderImpl(self, statusBar);
 	});
 }
 

@@ -30,6 +30,7 @@ nlesson = function() {
 		// Initialize and render
 		this.initDom = Lesson_initDom;					// init
 		this.postInitDom = Lesson_postInitDom;          // createHtmlDom: after scorm init
+		this.updateTemplateCustomizations = Lesson_updateTemplateCustomizations;
 		this.editorToggleEditAndPreview = Lesson_editorToggleEditAndPreview; 
 		this.reRender = Lesson_reRender; 				// Invalidates all pages - on next page change they will be rendered
 														// edit (edit-gra) <-> view
@@ -145,10 +146,11 @@ nlesson = function() {
 	    var self = this;
         var jLesson = jQuery('#l_content').val();
         self.oLesson = jQuery.parseJSON(jLesson);
+        npagetypes.init(self.oLesson.templatePageTypes);
         _Lesson_filterPages(self);
         self.bgimg = jQuery('#l_pageData .bgimg');
         self.postRenderingQueue = new PostRenderingQueue(self);
-        njs_scorm.onInitLesson(self, g_nlPlayerType, 
+        njs_scorm.onInitLesson(self, g_nlPlayerType, g_nlEmbedType,
             nittio.getUsername(), nittio.getUserdispname());
     }
 
@@ -162,7 +164,7 @@ nlesson = function() {
                 jQuery('#lesson_save_icon').hide();        
                 jQuery('#lesson_submit_icon').hide();        
             } else if (!this.oLesson.selfLearningMode) {
-                jQuery('#ask_zodi_icon').hide();
+                jQuery('#ask_zodi_icon').remove();
             }
             jQuery('.toolBar').show();
         } else {
@@ -193,7 +195,36 @@ nlesson = function() {
         self.setupOnLeavePage();
         if (self.renderCtx.launchMode() == 'report' && njs_scorm.nlPlayerType() != 'sco')
             njs_lesson_helper.SubmitAndScoreDialog.showReportOverview(self);
+
+        self.updateTemplateCustomizations();
 	}
+
+    var oldTemplateStylesCss = '';
+    var oldTemplateBgimgs = '';
+    var oldTemplateIcons = '';
+    var oldTemplatePageTypes = '';
+    function Lesson_updateTemplateCustomizations() {
+        if (oldTemplateStylesCss != this.oLesson.templateStylesCss) {
+            oldTemplateStylesCss = this.oLesson.templateStylesCss;
+            jQuery('#l_html').find('#templateStylesCss').remove();
+            if (this.oLesson.templateStylesCss) {
+                var styleElem = njs_helper.fmt2('<style id="templateStylesCss">{}</style>', this.oLesson.templateStylesCss);
+                jQuery('#l_html').prepend(styleElem);
+            }
+        }
+        if (oldTemplateBgimgs != this.oLesson.templateBgimgs) {
+            oldTemplateBgimgs = this.oLesson.templateBgimgs;
+            g_templateDict = {};
+        }
+        if (oldTemplateIcons != this.oLesson.templateIcons) {
+            oldTemplateIcons = this.oLesson.templateIcons;
+            // TODO-MUNNI: implement in next release
+        }
+        if (oldTemplatePageTypes != this.oLesson.templatePageTypes) {
+            oldTemplatePageTypes = this.oLesson.templatePageTypes;
+            npagetypes.init(this.oLesson.templatePageTypes);
+        }
+    }
 
 	function Lesson_editorToggleEditAndPreview() {
 		var ret = g_lesson.renderCtx.editorToggleEditAndPreview();
@@ -218,14 +249,15 @@ nlesson = function() {
 	function Lesson_doModeToggle() {
 		var ctx= this.renderCtx.playerToggleDoAndPreview();
 		
-		var icon = jQuery('#do_toggle_icon img');
-		var fmt = nittio.getStaticResFolder() + '/toolbar-edit/toggle{}.png';
+        var iconSpan = jQuery('#do_toggle_icon');
+        var icon = iconSpan.find('I');
+        icon.removeClass();
 		if (ctx == 'do_pv') {
-			icon.attr('src', njs_helper.fmt2(fmt, '2'));
-			icon.attr('title', " Change to edit mode");
+            icon.addClass('icon ion-ios-compose');
+			iconSpan.attr('title', " Change to edit mode");
 		} else {
-			icon.attr('src', njs_helper.fmt2(fmt, ''));
-			icon.attr('title', " Change to preview mode");
+            icon.addClass('icon ion-ios-eye');
+			iconSpan.attr('title', " Change to preview mode");
 		}
 
 		this.reRenderedList = {};
@@ -282,8 +314,17 @@ nlesson = function() {
 		this.postRenderingQueue.postRenderPage(pgNo);
 		this.showOrHideZodiIcon();
 		this.showOrHideDoToggleIcon();
-		showCommentIndicator();		
+		showCommentIndicator();
+		_showOrHideToolbar();
 	}
+
+    function _showOrHideToolbar() {
+        var tb = jQuery('.toolBar');
+        if (tb.width() > 20)
+            tb.css({opacity: 1}); // Toolbar not empty
+        else
+            tb.css({opacity: 0});
+    }
 
     //#############################################################################################
     // Class lesson post rendering que
@@ -474,6 +515,10 @@ nlesson = function() {
 		this.oLesson.keywords = jQuery('#l_keywords').val();
         this.oLesson.esttime = jQuery('#l_esttime').val();
         this.oLesson.forumTopic = jQuery('#l_lessonForumTopic').val();
+        this.oLesson.templateStylesCss = jQuery('#l_templateStylesCss').val();
+        this.oLesson.templateBgimgs = jQuery('#l_templateBgimgs').val();
+        this.oLesson.templateIcons = jQuery('#l_templateIcons').val();
+        this.oLesson.templatePageTypes = jQuery('#l_templatePageTypes').val();
 		this.oLesson.image = jQuery('#imageFullName').val();		
 		this.oLesson.template = jQuery('#templateFullName').val();
 	}
@@ -1336,6 +1381,7 @@ nlesson = function() {
 		this.pgSecView.attr('title', help);
 		this.pgSecView.attr('answer', 0);
 		this.pgSecView.css(pagetype.getSectionPos(this.secPosShuffled));
+        this.pgSecView.addClass(pagetype.getSectionStyle(this.secPosShuffled));
 		pgSec.append(this.pgSecView);
 
 		var template = this.getTemplateFromObj();
@@ -1447,13 +1493,14 @@ nlesson = function() {
 		var pageId = g_lesson.getCurrentPageId();
 		var clist = njsCommentEditor.theLessonComment.getOpenComments(pageId);
 		
-		var icon = jQuery('#edit_icon_comment img');
+		
+        var iconSpan = jQuery('#edit_icon_comment');
+        var icon = iconSpan.find('I');
+        icon.removeClass();
 		if(clist.length > 0){
-			var url = njs_helper.fmt2("{}/toolbar-edit/comments2.png",nittio.getStaticResFolder());			
-			icon.attr('src', url);			
+            icon.addClass('icon ion-ios-chatbubble forange');
 		} else {
-			var url = njs_helper.fmt2("{}/toolbar-edit/comments1.png",nittio.getStaticResFolder());
-			icon.attr('src', url);		
+            icon.addClass('icon ion-ios-chatbubble-outline');
 		}
 	}
 	
@@ -1471,8 +1518,10 @@ nlesson = function() {
 	// Possible launchContext values: see njs_lesson_helper.RenderingContext
 	//---------------------------------------------------------------------------------------------
 	var g_nlPlayerType = 'normal';
-    function init(launchContext, templateCssClass, nlPlayerType) {
+	var g_nlEmbedType = '';
+    function init(launchContext, templateCssClass, nlPlayerType, nlEmbedType) {
         g_nlPlayerType = nlPlayerType;
+        g_nlEmbedType = nlEmbedType;
 		g_lesson.renderCtx.init(launchContext);
 		g_lesson.globals.templateCssClass = templateCssClass;
 
@@ -1518,33 +1567,75 @@ nlesson = function() {
 				g_lesson.postRenderingQueue.postRenderPage(i);
 			}
 		});
-		
-		npagetypes.init();
-
 	}
 
 	var g_templateDict = {};
+    var g_templateList = [];
 	function loadTemplateInfos(onLoadComplete) {
 		if (Object.keys(g_templateDict).length > 0) {
 			onLoadComplete();
 			return;
 		}
 
+		if (g_lesson.oLesson.templateBgimgs) {
+		    g_templateList = JSON.parse(g_lesson.oLesson.templateBgimgs);
+            _onTemplateInfos(true);
+            onLoadComplete();
+            return;
+        }
+
 		var _ajax = new njs_helper.Ajax(function(data, errorType, errorMsg) {
 			if (errorType != njs_helper.Ajax.ERROR_NONE) return;
-			_onTemplateInfos(data);
+			g_templateList = data;
+			_onTemplateInfos(false);
 			onLoadComplete();
 		});
 		_ajax.send('/lesson/template_infos.json', {});
 	}
 
-	function _onTemplateInfos(templateDict) {
-		g_templateDict = templateDict;
+	function _onTemplateInfos(bCustomList) {
+        g_templateDict = {};
+	    for(var i=0; i<g_templateList.length; i++) {
+            var item = g_templateList[i];
+            item.cssClass = njs_helper.fmt2('{} look{}', item.bgShade, item.id);
+            if (item.id == 'Custom') {
+                item.bgImg = '';
+            } else if (bCustomList) {
+                item.bgImg = item.background;
+            } else {
+                item.bgImg = njs_helper.fmt2("{}/{}",
+                    nittio.getStaticTemplFolder(), item.background);
+            }
+            g_templateDict[item.id] = item;
+	    }
 	}
 
 	function getTemplateInfo(templateName) {
-		return g_templateDict[templateName];
+	    if (templateName in g_templateDict) return g_templateDict[templateName];
+	    if (g_templateList.length > 1) return g_templateList[1];
+	    return g_templateList[0];
 	}
+
+    function updateBgImages(templList) {
+        templList.html('');
+        var currentOptGroup = '';
+        var curParent = templList;
+        for (var i = 0; i < g_templateList.length; i++) {
+            var t = g_templateDict[g_templateList[i].id];
+            if (t.group != '' && t.group != currentOptGroup) {
+                currentOptGroup = t.group;
+                curParent = jQuery(njs_helper.fmt2('<optgroup label={}>', currentOptGroup));
+                templList.append(curParent);
+            } else if (t.group == '') {
+                curParent = templList;
+            }
+            curParent.append(njs_helper.fmt2('<option value="{}">{}</option>', 
+                t.id, t.name));
+        }
+        var selected = jQuery('#templateFullName').val();
+        if (selected.indexOf('img:') == 0) selected = 'Custom';
+        templList.select2('val', selected);
+    }
 
 	function updateTemplate(cssClass, bgImg) {
 		jQuery('.njsSlides').removeClass(g_lesson.globals.templateCssClass).addClass(cssClass);
@@ -1566,6 +1657,7 @@ nlesson = function() {
 		init : init,
 		loadTemplateInfos: loadTemplateInfos,
 		getTemplateInfo : getTemplateInfo,
+		updateBgImages : updateBgImages,
 		updateTemplate : updateTemplate,
 		theLesson : g_lesson,
 		showCommentIndicator : showCommentIndicator,

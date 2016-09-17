@@ -1,325 +1,281 @@
 <style>
-	.page1-request-button{
-		padding: 2% 4%;
-		font-weight: normal;
+	.request-button {
+	  	font-family: Lato, Verdana, Helvetica, Arial, sans-serif;
 		font-size: 75%;
 		border: 3px solid white;
+		border-radius: 4px;
+		color: #FFFF70;
+		background-color: transparent;
 	}
-	
-	.page2-header{
-		font-weight: bold;
-		font-size: 80%;
-		color: rgba(51, 173, 224, 0.9);  
-	}
-	
-	.page2-description {
-		font-size: 66%;
-		font-weight: normal;
-		font-style: normal;
-		padding: 30px 0 5px 4px;
-	}
-
-	.page2-description-bold {
-		font-weight: bold;
-		font-weight: 66%;
-		padding: 30px 0 5px 4px;
-	}
-
-	.nl-bolt-img{
-		width: 30px;
-		height: 35px;
-	}
-	
-	.page3-image{
-		max-width: 40vmin;
-		position: absolute;
-		left: 0%;
-		bottom: 0%;
-		right: 0%;
-		padding-top: 25%;
-	}
-	
-	.third-page-section{
-		padding-top: 120px;
-		bottom: 2%;
-	}
-	
-	.sp-page5-col2{
-		text-align: right;
-	}
-	
-	.sp-page5-section2{
-		padding-top: 58px;
-	}
-	
-	.sp-page5-col1-text{
-		font-family: "Goudy Old Style", Garamond, "Big Caslon", "Times New Roman", serif;
-		font-size: 120%;
-		font-weight: bold;	
-	}
-	
-	.sp-yellow{
-		color: yellow;
-	}
-	
-	.sp-page6-img{
-		align: center;
-	}
-	
-	.nl-sep16{
-		padding: 16px;
-	}
-	
-	.sp-page6-col1-img{		
-		background-color: white;
-		margin-right: 20px;
-		margin-bottom: 20px;
-		min-height: 250px;
-		max-height: 100%;
-	}
-
-	.sp-page6-col2-img{
-		margin-right: 20px;
-		margin-bottom: 20px;
-		min-height: 250px;
-		max-height: 100%;
-	    background-color: rgba(50, 175, 225, 0.8);
-	}
-
-	.sp-page6-desc{
-		font-size: 60%;
-		font-weight: normal;
-		text-align: left;
-	}
-	
-	.sp-page6-img{
-		height: 120px;
-		width: 120px;
+	.request-button:hover {
+		color: #FFFFFF;
 	}	
-	.sp-page1-title2{
-		font-weight: bold;
-	}
-	.sp-page1-title1{
-		font-weight: normal;
-	}
-	
-	.fsh7{
-		font-size: 225%;
-		font-weight: bold
-	}
-
-	.sp-page8-img{
-		max-width: 50vmin;
-		position: absolute;
-		bottom: 0%;
-		right: 0%;
-		padding-top: 25%;		
-	}
-	.sp-page8-desc{
-		padding-top: 180px;
-	}
-	
-	.sp-page8-desc-bold{
-		font-size: 80%;
-		font-weight: bold;
-		padding-left: 30px;
-		padding-top: 40px;
+	.sp-card {		
+		margin: 0;
+		padding: 10px;
+		background-clip: content-box;
 	}
 </style>
 <nl-sp>
-    <nl-sp-page1>
-        <div class='row row-center row-wrap vh75'>
-            <div class='fsh2 text-center padding w100'>
-            	<p class='fsh4 sp-page1-title1'>{{content.title1}}</p>
-            	<p class='fsh4 sp-page1-title2'>{{content.title2}}</p></br>
-            	<span class='page1-request-button'>Request a demo</span>
+	<nl-sp-structured-data></nl-sp-structured-data>
+	<div class='section bgdark vh100'>
+		<div class='nl-sp-bg-img'></div>
+		<nl-sp-menu></nl-sp-menu>
+
+		
+        <div class='row row-center row-wrap vh90'>
+            <div class='fsh3 text-center padding w100'>
+            	<p class='fsh6'>{{content.title1}}</p>
+            	<p class='fsh5'>{{content.title2}}</p></br>
+				<span class='button request-button' ng-click='registration.demoRequest()'> 
+					Request a demo
+				</span>
             </div>
         </div>
-    </nl-sp-page1>
-	<nl-sp-page2>
-        <div class='row row-left row-wrap'>
-            <div class='fsh2 padding w100'>
-				<div class='page2-header'>Why Nittio Learn</div>
-				<p class='page2-description' ng-bind-html='content.secondPageMsg[0]'></p>
-				<p class='page2-description' ng-bind-html='content.secondPageMsg[1]'></p>
-				<p class='page2-description' ng-bind-html='content.secondPageMsg[2]'></p>
-				<p class='page2-description-bold' ng-bind-html='content.secondPageMsg[3]'></p>
-            </div>
-        </div>
-	</nl-sp-page2>
-	<nl-sp-page3>
-        <div class='row row-left row-wrap'>
-			<div class='fsh4 padding text-center col col-40'>            
-                <img class='page3-image' ng-src='{{baseResUrl}}/lady.png'>
+	</div>
+	<div class='section bgwhite vh100'>
+		<div class='nl-sp-bg-img'></div>
+        <div class='padding w100'>
+			<div class='fsh2 fblue padding-bottom'>Why Nittio Learn ?</div>
+			<div class='text-center' ng-show='screenSize != "small"'>            
+			    <img style='max-width:700px' class='w100' ng-src='{{baseResUrl}}/nittiodiff_wide1.png'>
 			</div>
-			<div class='fsh4 padding text-left third-page-section col col-60' >            
-	            <p class='fsh4'>{{content.thirdPageMsg[0]}}</p>
-	            <p class='fsh7'>{{content.thirdPageMsg[1]}}</p>
-	            <p class='fsh7'>{{content.thirdPageMsg[2]}}</p>
-            </div>
-        </div>
-	</nl-sp-page3>
-	<nl-sp-page2>
-        <div class='row row-left row-wrap'>
-			<div class='fsh2 padding w100'>
-				<div class='fsh5 page2-header'>How do we do it</div>
-				<p class='page2-description' ng-bind-html='content.fourthPageMsg[0]'></p>
-				<p class='page2-description' ng-bind-html='content.fourthPageMsg[1]'></p>
-				<p class='page2-description' ng-bind-html='content.fourthPageMsg[2]'></p>
-            </div>
-		</div>
-	</nl-sp-page2>
-	<nl-sp-page3>
-        <div class='row row-left row-wrap'>
-            <div class='fsh3 padding w100'>
-				<p class='fsh6 nl-sep8'>Do not struggle to tie the pieces together.</p>
-				<p class='fsh5'>Everything essential for effective e-learning – in one place</p>
+			<div class='text-center' ng-show='screenSize == "small"'>            
+			    <img class='nl-max-300' ng-src='{{baseResUrl}}/nittiodiff_long1.png'>
 			</div>
-		</div>
-		<span class='nl-sep16'></span>
-        <div class='row row-left row-wrap w100 fsh2 padding sp-page5-section2'>
-        	<div class='row row-wrap'>
-        		<div class='col col-50'>
-	            	<span class='fsh6 sp-page5-col1-text sp-yellow'>Content creation</span>    			
-        		</div>
-        		<div class='col col-50 sp-page5-col2'>
-	            	<span class='sp-page5-col1-text'>Gamification</span>    			            			
-        		</div>
-        	</div>
-        	<div class='row row-wrap'>
-        		<div class='col col-50'>
-	            	<span class='sp-page5-col1-text sp-yellow'>Content updation</span>    			
-        		</div>
-        		<div class='col col-50 sp-page5-col2'>
-	            	<span class='sp-page5-col1-text'>Distribution</span>    			            			
-        		</div>
-        	</div>
-        	<div class='row row-wrap'>
-        		<div class='col col-50'>
-	            	<span class='sp-page5-col1-text sp-yellow'>Device compatibality</span>    			
-        		</div>
-        		<div class='col col-50 sp-page5-col2'>
-	            	<span class='sp-page5-col1-text'>Learn management</span>    			            			
-        		</div>
-        	</div>
-		</div>
-	</nl-sp-page3>
-	<nl-sp-page4>
-        <div class='row row-left row-wrap'>
-			<div class='fsh2 padding w100'>
-				<div class='fsh5 page2-header'>With Nittio Learn, you get immersive, gamified microlearning at your fingertips</div>
-            </div>
-            <div class='row row-wrap row-left fsh2 padding w100'>
-				<div class='col col-50'>
-					<p>Great content that anyone can make</p>
-					<div class='row row-left row-wrap'>
-						<div class='col col-40 text-center sp-page6-col1-img'>
-							<div><img class='sp-page6-img' ng-src='{{baseResUrl}}/visual.png'></div>
-			                <p>Visual</p>
-			                <p class='sp-page6-desc'>Create the content that pleases the eyes with completely flexible layouts and visual elements.</p>
+			<div class='padding-mid'></div>
+			<p class='fsh6 padding-bottom'>You know that continuous training of your key workforce on aspects specific to your business is a force multiplier.</p>
+			<p class='fsh6 padding-bottom'>You want the trainings to be super-dynamic - updated quickly to reflect the latest developments - and reaching your people on time.</p>
+			<p class='fsh6 padding-bottom'>Standard eLearning technology fails you with its prohibitively expensive generic content and poorly designed LMSs, each an island of its own. You fall back on class-room training - in no way continuous, and always a logistical nightmare.</p>
+			<p class='fsh2 fblue nl-cursive-font padding-bottom'>{{content.desc}}</p>
+        </div>
+	</div>
+	
+	<div class='section bgdark'>
+		<div class='nl-sp-bg-img'></div>
+		<div class='padding w100'>
+			<div class='fsh2 padding-bottom'>Who can you train and on what ?</div>
+			<div class='row row-wrap margin0'>
+				<div class='col' ng-class='respCol221'>
+					<div class='fsh5 fyellow0'><b> Who ?</b></div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
 						</div>
-						<div class='col col-40 text-center sp-page6-col1-img'>
-			                <img class='sp-page6-img' ng-src='{{baseResUrl}}/interactive.png'>
-			                <p>Interactive</p>
-			                <p class='sp-page6-desc'>Build a multitude of great looking learner interaction in a jiffy.</p>
-						</div>						
+						<div class='col'>Sales team</div>
 					</div>
-				</div>
-				<div class='col col-50'>
-					<p>Engaging learning environment</p>
-					<div class='row row-left row-wrap'>
-						<div class='col col-40 text-center sp-page6-col2-img'>
-			                <img class='sp-page6-img' ng-src='{{baseResUrl}}/learnerled.png'>
-			                <p>Learner led</p>
-			                <p class='sp-page6-desc'>Allow learner to choose what to learn, or guide then with a pre-set course.</p>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
 						</div>
-						<div class='col col-40 text-center sp-page6-col2-img'>
-			                <img class='sp-page6-img' ng-src='{{baseResUrl}}/branched.png'>
-			                <p>Branched learning</p>
-			                <p class='sp-page6-desc'>Trigger new or reapeat learning activity based on rules.</p>
+						<div class='col'>Customer service</div>
+					</div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
 						</div>
+						<div class='col'>Operations</div>
 					</div>
-				</div>			            	
-            </div>
-        </div>
-	</nl-sp-page4>
-	<nl-sp-page2>
-        <div class='row row-wrap row-left fsh2 padding w100'>
-			<div class='col col-50'>
-				<div class='row row-left row-wrap'>
-					<div class='col col-40 text-center sp-page6-col1-img'>
-						<div><img class='sp-page6-img' ng-src='{{baseResUrl}}/voiceover.png'></div>
-		                <p>Voiceovers</p>
-		                <p class='sp-page6-desc'>Make your content speak in accent of your choice with automatic text to speech or recorded human voice.</p>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Distribution & logistics team</div>
 					</div>
-					<div class='col col-40 text-center sp-page6-col1-img'>
-		                <img class='sp-page6-img' ng-src='{{baseResUrl}}/slicedvideo.png'>
-		                <p>Video slicing</p>
-		                <p class='sp-page6-desc'>No cumbersome editing. Just define time interval to embed part of video.</p>
-					</div>						
-				</div>
-			</div>
-			<div class='col col-50'>
-				<div class='row row-left row-wrap'>
-					<div class='col col-40 text-center sp-page6-col2-img'>
-		                <img class='sp-page6-img' ng-src='{{baseResUrl}}/social.png'>
-		                <p>Social learning</p>
-		                <p class='sp-page6-desc'>Blend topic specific discussin forum to learning with a click of a button.</p>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Production</div>
 					</div>
-					<div class='col col-40 text-center sp-page6-col2-img'>
-		                <img class='sp-page6-img' ng-src='{{baseResUrl}}/leaderboard.png'>
-		                <p>Leaderboard</p>
-		                <p class='sp-page6-desc'>Instill healthy competation with customized leaderboards.</p>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>R&D</div>
 					</div>
-				</div>
-			</div>			            	
-        </div>
-        <div class='row row-wrap row-left fsh2 padding w100'>
-			<div class='col col-50'>
-				<div class='row row-left row-wrap'>
-					<div class='col col-40 text-center sp-page6-col1-img'>
-						<div><img class='sp-page6-img' ng-src='{{baseResUrl}}/responsive.png'></div>
-		                <p>Responsive</p>
-		                <p class='sp-page6-desc'>Everything you create, including images and videos automatically fit to all device sizes.</p>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Skilled employees – nurses, drivers, delivery staff</div>
+					</div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Franchisees, dealers</div>
+					</div>
+					<div class='row fsh5 fyellow0'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Anyone</div>
 					</div>
 				</div>
-			</div>
-			<div class='col col-50'>
-				<div class='row row-left row-wrap'>
-					<div class='col col-40 text-center sp-page6-col2-img'>
-		                <img class='sp-page6-img' ng-src='{{baseResUrl}}/device.png'>
-		                <p>Device independent</p>
-		                <p class='sp-page6-desc'>Give freedom to your learners to learn on any device.</p>
+				
+				<div class='col' ng-class='respCol221'>
+					<div class='fsh5 fyellow0'><b>On what?</b></div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Your products or services</div>
+					</div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Your sales spiels</div>
+					</div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Your departmental processes</div>
+					</div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Your brand personality</div>
+					</div>
+					<div class='row fsh6'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Your induction</div>
+					</div>
+					<div class='row fsh5 fyellow0'>
+						<div>
+							<span><i class="ion-checkmark-circled"></i></span>
+						</div>
+						<div class='col'>Anything</div>
 					</div>
 				</div>
-			</div>
-		</div>			            	
-	</nl-sp-page2>
-	<nl-sp-page4>
-        <div class='row row-left row-wrap'>
-			<div class='fsh4 padding text-left sp-page8-desc col col-70' >            
-	            <div class='sp-page8-desc-bold'>By the way, you can upload and re-use your exsisting training contentor SCROM learning modules.</div>
-	            <div class='sp-page8-desc-bold'>And if you still think you would rather not spend time on content creation, we will provide that service to you.</div>
-            </div>
-			<div class='fsh4 padding text-right col col-30'>            
-                <img class='sp-page8-img' ng-src='{{baseResUrl}}/man.png'>
-			</div>
-        </div>		
-	</nl-sp-page4>
-	<nl-sp-page3>
-        <div class='row row-left row-wrap'>
-			<div class='fsh4 padding text-left' >            
 			</div>
 		</div>
-	</nl-sp-page3>
-	<nl-sp-page2>
-        <div class='row row-left row-wrap'>
-			<div class='fsh4 padding text-left' >Can you imagine the the benifits if......</div>
-		</div>		
-        <div class='row row-left row-wrap'>
-			<div class='fsh6 padding text-left' >
-				<p class'page2-description'>...training your employees was as easy as using What'sApp or email.</p>
-			</div>
+	</div>
+		
+	<div class='section bgwhite'>
+		<div class='nl-sp-bg-img'></div>
+		<div class='padding w100'>
+			<div class='fsh2 fblue padding-bottom'>How do we do it ?</div>
+			<p class='fsh6 padding-bottom'>Nittio Learn is not just an LMS or a content creation tool, but a complete learning platform. It is built specifically for relieving the pain associated with training your employees on things that are most critical for your business.</p>
+			<p class='fsh6 padding-bottom'>With Nittio Learn, interactive training can be swiftly created and dispatched to your employees. The employees learn in an immersive environment and you get a bird's eye view of all the learning happening in your company.</p>
+			<p class='fsh6'>Don’t have time for creating self-learnable content? Worry not, for we provide that as a service. Enabled by Nittio Learn, we can create content quickly and with great quality. You can take things over into your hands whenever you are ready.</p>
         </div>
-	</nl-sp-page2>
+	</div>
+	<div class='section bgdark'>
+		<div class='nl-sp-bg-img'></div>
+        <div class='padding'>
+			<p class='fsh2'>Do not struggle to tie the pieces together. Get everything essential for effective eLearning in one place.</p>
+		</div>
+		<div class='row row-wrap row-top fsh2'>
+			<div ng-class='respCol221'>
+                <div class='padding nl-cursive-font fsh5 fyellow0'>Content creation</div>
+                <div class='padding nl-cursive-font fsh5 fyellow0'>Content updation</div>
+                <div class='padding nl-cursive-font fsh5 fyellow0'>Device compatibility</div>
+            </div>
+            <div ng-class='respCol221'>
+            	<div ng-class='{"text-right": screenSize != "small"}'>
+	                <div class='padding nl-cursive-font fsh5'>Gamification</div>
+	                <div class='padding nl-cursive-font fsh5'>Distribution</div>
+	                <div class='padding nl-cursive-font fsh5'>Learning management</div>
+            	</div>
+            </div>
+		</div>
+	</div>
+	<div class='section bgwhite' id='solution'>
+		<div class='nl-sp-bg-img'></div>
+		<div class='padding fsh2 fblue'>With Nittio Learn, you get immersive, gamified microlearning at your fingertips.</div>
+		
+		<div class='row row-wrap row-stretch row-center margin0 padding0 text-center'>
+			<div ng-repeat='card in content.getFeatureCards()'
+				 class='padding {{card.cls}}'>
+				 <div class='padding-mid'>
+					<div ng-show='card.icon'>
+						<img ng-src='{{baseResUrl}}/{{card.icon}}'>
+					</div>
+	                <div ng-show='card.title' class='fsh5'>{{card.title}}</div>
+	                <div class='padding-mid'></div>
+	                <div ng-show='card.text'>{{card.text}}</div>
+				 </div>
+			</div>
+		</div>
+		<div class='fsh2 padding nl-cursive-font fblue'>
+            <div>By the way, you can upload and reuse your existing training content or SCORM learning modules.</div>
+            <div class='padding-mid'></div>
+            <div>And if you still think you would rather not spend time on content creation, we will provide that service to you.</div>
+        </div>
+	</div>
+	<div class='section bgdark1'>
+		<div class='nl-sp-bg-img1'></div>
+	    <div class='section padding row row-wrap row-center'>
+	        <div class='fsh2 w100 text-center'>Helping more than <span class='fsh5 fblue'>100</span> schools and businesses.</div>
+	        <div class='fsh4 padding-top text-center w100'>Awards & recognition</div>
+	        <div class='padding' ng-class='respCol211'>
+	            <div class='row row-center row-wrap'>
+	            	<div class='text-center' ng-class='respCol221'>
+		                <img class='nl-max-200 padding' ng-src='{{baseResUrl}}/globaledtech2.png'
+		                     alt='Nittio Learn - winner of Global Edtech Popularity choice award'>
+	                </div>
+	                <div class='padding fsh6' ng-class='respCol221'>Winners of <span class='fsh5 fblue'>Global Edtech Popularity choice award 2014</span> among 360+ startups in the education technology space globally.</div>
+	            </div>
+	        </div>
+	        <div class='padding' ng-class='respCol211'>
+	            <div class='row row-center row-wrap'>
+	            	<div class='text-center' ng-class='respCol221'>
+		                <img class='nl-max-200 padding' ng-src='{{baseResUrl}}/npc2.png'
+		                     alt='Nittio Learn - winner of Global Edtech Popularity choice award'>
+	                </div>
+	                <div class='padding fsh6' ng-class='respCol221'>Showcased at the <span class='fsh5 fblue'>NASSCOM – Product Conclave</span> as one of India’s most innovative product companies.</div>
+	            </div>
+	        </div>
+	
+	        <div class='fsh2 padding-vertical text-center w100'>In media</div>
+	        <a class='padding text-center nl-link-img'
+	            ng-class='respCol421'
+	            href='http://www.educationworldonline.net/index.php/page-article-choice-more-id-4648'>
+	            <img class='nl-max-100' ng-src='{{pageResUrl}}/ew2.png'
+	                 alt='Covered in educationworldonline.net'>
+	        </a>
+	        <a class='padding text-center nl-link-img'
+	            ng-class='respCol421'
+	            href='http://techstory.in/nittio-learn/'>
+	            <img class='nl-max-100' ng-src='{{pageResUrl}}/techstory2.png'
+	                 alt='Covered in techstory.in'>
+	        </a>
+	        <a class='padding text-center nl-link-img'
+	            ng-class='respCol421'
+	            href='http://yourstory.com/2014/07/nittio-learn/'>
+	            <img class='nl-max-100' ng-src='{{pageResUrl}}/yourstory2.png'
+	                 alt='Covered in yourstory.com'>
+	        </a>
+	        <a class='padding text-center nl-link-img'
+	            ng-class='respCol421'
+	            href='http://www.prerit.org/ritu-josan/'>
+	            <img class='nl-max-100' ng-src='{{pageResUrl}}/prerit2.png'
+	                 alt='Covered in prerit.org'>
+	        </a>
+	    </div>
+	</div>
+    <nl-sp-business-pricing id='pricing'></nl-sp-business-pricing>
+    
+   	<div class='section padding margin0 bgdark'>
+		<div class='nl-sp-bg-img'></div>
+	    <div class='fsh2 padding-bottom'>Can you imagine the benefits if ...</div>
+        <div class='fsh6'>... training your employees was as easy as using WhatsApp or email.</div>
+        <div class='padding-mid'></div>
+        <div class='fsh6'>... you could ensure that your employees are continuously trained, wherever they are.</div>
+        <p class='fsh5 fyellow0 padding-vertical'>No need to imagine ...</p>
+        <div class='fsh3'>
+			<span class='button request-button' ng-click='registration.demoRequest()'> 
+				Request a demo
+			</span>
+		</div>
+	</div>
+
+    
+    <nl-sp-footer id='contact_us'></nl-sp-footer>
 </nl-sp>
