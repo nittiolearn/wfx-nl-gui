@@ -1,6 +1,6 @@
-<div class='nl-thin-scroll nl-full-withtoolbar'>
-    <div ng-repeat='cm in modules' class='row row-center margin0' style='padding: 4px'>
-        <div style='width: {{4+cm.indentationLevel*16}}px'></div>
+<div class='nl-thin-scroll nl-full'>
+    <div ng-repeat='cm in modules' class='row row-center margin0' style='padding: 8px'>
+        <div style='width: {{cm.indentationLevel*16}}px'></div>
         <div class='row row-center margin0 padding-mid nl-cv-item nl-link-text {{ext.item.id == cm.id ? "selected" : ""}}'
              ng-click='onClick($event, cm)'>
             <div ng-show='cm.type == "module"' style='width: 20px'>

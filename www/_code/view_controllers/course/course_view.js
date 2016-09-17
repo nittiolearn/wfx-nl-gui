@@ -365,6 +365,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
             treeList.collapseAll();
             _showVisible();
             $scope.ext.setCurrentItem(treeList.getRootItem());
+            if(!$scope.expandedView) _popout(true);
         }
         _confirmIframeClose(null, _impl);
     };
@@ -452,7 +453,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
     function _updateExpandViewIcon() {
         if ($scope.expandedView) {
             $scope.expandViewText = nl.t('Expand list and hide content');
-            $scope.expandViewIcon = 'ion-arrow-expand';
+            $scope.expandViewIcon = 'ion-ios-list';
             return;
         }
         $scope.expandViewText = nl.t('Shrink list to show content');
