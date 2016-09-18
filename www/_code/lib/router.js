@@ -222,6 +222,7 @@ function Permission(nl) {
         '/searchlist_view': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
         '/rno_list': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
         '/rno_view': {login: false, permission: '', termRestriction: TR_OPEN}, 
+        '/rno_stats': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
         '/sco_export': {login: true, permission: 'lesson_approve', termRestriction: TR_CLOSED},
         '/sco_import_list': {login: true, permission: 'lesson_approve', termRestriction: TR_CLOSED},
 		'/assignment': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},		

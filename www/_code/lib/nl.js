@@ -134,7 +134,9 @@ function Formatter() {
     
     this.date2Str = function(d, accuracy) {
     	if (accuracy === undefined) accuracy = 'minute';
-        var ret = _fmt2Impl('{}-{}-{}', [d.getFullYear(), _pad2(d.getMonth()+1), _pad2(d.getDate())]);
+        var ret = _fmt2Impl('{}-{}', [d.getFullYear(), _pad2(d.getMonth()+1)]);
+        if (accuracy === 'month') return ret;
+        ret += _fmt2Impl('-{}', [_pad2(d.getDate())]);
         if (accuracy === 'date') return ret;
         ret += _fmt2Impl(' {}:{}', [_pad2(d.getHours()), _pad2(d.getMinutes())]);
         if (accuracy === 'minute') return ret;

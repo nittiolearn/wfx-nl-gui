@@ -5,10 +5,11 @@
 // rno - Rating and observation module
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-	angular.module('nl.rno', [])
+	angular.module('nl.rno', ['nl.rno_stats'])
 	.config(configFn)
     .controller('nl.RnoListCtrl', RnoListCtrl)
     .controller('nl.RnoParentViewCtrl', RnoParentViewCtrl)
+    .controller('nl.RnoStatsCtrl', RnoStatsCtrl)
     .directive('nlRnoMstree', _simpleElemDirective('rno_mstree.html'))
     .directive('nlRnoMstreeView', _simpleElemDirective('rno_mstree_view.html'));
 }
@@ -33,6 +34,15 @@ function($stateProvider, $urlRouterProvider) {
                 controller: 'nl.RnoParentViewCtrl'
             }
         }});
+
+    $stateProvider.state('app.rno_stats', {
+        url: '^/rno_stats',
+        views: {
+            'appContent': {
+                templateUrl: 'view_controllers/rno/rno_stats.html',
+                controller: 'nl.RnoStatsCtrl'
+            }
+        }});
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -41,6 +51,7 @@ var _pageGlobals = {
     role: 'observe',
     metadataId: 0,  // The metadata is retreived from here
     metadataIdParent: 0, // Actual rno records are stored under this metadata - by default same as metadataId
+    max: 50, // Number of RNO recrods to fetch
     metadata: null,
     enableDelete: false
 };
@@ -81,6 +92,51 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 }];
 
 //-------------------------------------------------------------------------------------------------
+var RnoStatsCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlRnoStats',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlRnoStats) {
+    /* 
+     * URLs handled
+     * 'RNO Stats Dashboard' : /rno_stats?role=[observe|review|admin]&metadata=[metadataid]&title=[]
+     * role=observe: shows the observer's stats dashboard
+     * role=review: shows the reviewer's stats dashboard
+     * role=admion: shows the admin's stats dashboard
+     */
+    var _rnoServer = new RnoServer(nl, nlServerApi, nlDlg, false);
+    var _rnoData = {};
+
+    function _onPageEnter(userInfo) {
+        _pageGlobals.userInfo = userInfo;
+        return nl.q(function(resolve, reject) {
+            _initParams();
+            if (_pageGlobals.metadataId == 0) {
+                nlDlg.popupStatus(nl.t('Invalid url'));
+                resolve(false);
+                return;
+            }
+            _rnoServer.getMetaData(function() {
+                if (!_pageGlobals.metadata) {
+                    resolve(false);
+                    return;
+                }
+                nl.pginfo.pageTitle = _pageGlobals.metadata.title + ': statistics';
+                nlRnoStats.init(_pageGlobals, $scope);
+                nlRnoStats.loadData();
+                resolve(true);
+            });
+        });
+    }
+    nlRouter.initContoller($scope, '', _onPageEnter);
+    
+    function _initParams() {
+        var params = nl.location.search();
+        _pageGlobals.metadataId = ('metadata' in params) ? parseInt(params.metadata) : 0;
+        _pageGlobals.metadataIdParent = _pageGlobals.metadataId;
+        _pageGlobals.role = ('role' in params) ? params.role : 'observe';
+        _pageGlobals.max = ('max' in params) ? parseInt(params.max) : 50;
+    }
+}];
+
+//-------------------------------------------------------------------------------------------------
 var RnoListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv', 'nlResourceUploader',
 function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploader) {
 	/* 
@@ -118,7 +174,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
                 $scope.cards = _cards;
                 _cards.staticlist = _getStaticCards();
                 _cards.emptycard = nlCardsSrv.getEmptyCard();
-                _getDataFromServer(_searchFilterInUrl, resolve, reject);
+                _getDataFromServer(resolve, reject);
             });
 		});
 	}
@@ -162,23 +218,30 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 	}
 	
     function _getStaticCards() {
-        if (_pageGlobals.role != 'admin') return [];
+        var card0 = {title: nl.t('Statistics'), 
+                    icon: nl.url.resUrl('dashboard/reports.png'), 
+                    url: nl.fmt2('/#/rno_stats?metadata={}&role={}', 
+                        _pageGlobals.metadataId, _pageGlobals.role),
+                    help: nl.t('View key statistics by click on this card.'), 
+                    children: [], style: 'nl-bg-blue'};
+        card0.links = [];
+        if (_pageGlobals.role != 'admin') return [card0];
         var card = {title: _pageGlobals.metadata.createCardTitle, 
                     icon: _pageGlobals.metadata.createCardIcon, 
                     internalUrl: 'rno_create',
                     help: _pageGlobals.metadata.createCardHelp, 
                     children: [], style: 'nl-bg-blue'};
         card.links = [];
-        return [card];
+        return [card0, card];
     }
 
-	function _getDataFromServer(filter, resolve, reject) {
-	    var utSec = _gradeFilterInUrl.split('.');
-	    
-        nlServerApi.rnoGetList({metadata: _pageGlobals.metadataIdParent, 
-                                search: filter, user_type: utSec[0] || '', 
+	function _getDataFromServer(resolve, reject) {
+	    var utSec = _gradeFilterInUrl.split('.');	    
+        nlServerApi.rnoGetList({metadata: _pageGlobals.metadataIdParent,
+                                search: _searchFilterInUrl, user_type: utSec[0] || '', 
                                 section: utSec[1] || '',
-                                role: _pageGlobals.role})
+                                role: _pageGlobals.role,
+                                max: _pageGlobals.max})
         .then(function(resultList) {
 			nl.log.debug('Got result: ', resultList.length);
 			_cards.cardlist = _getCards(resultList, nlCardsSrv);
@@ -188,7 +251,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
             resolve(false);
 		});
 	}
-	
+
     function _addSearchInfo(cards) {
         cards.search = {placeholder: _pageGlobals.metadata.searchTitle};
         cards.search.onSearch = _onSearch;
@@ -201,7 +264,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         nlDlg.showLoadingScreen();
         var promise = nl.q(function(resolve, reject) {
             _gradeFilterInUrl = grade || '';
-            _getDataFromServer(filter, resolve, reject);
+            _searchFilterInUrl = filter || '';
+            _getDataFromServer(resolve, reject);
         });
         promise.then(function(res) {
             nlDlg.hideLoadingScreen();

@@ -223,6 +223,13 @@ $animation-duration: 200ms !default;
     pointer-events: none;
 }
 
+/*-----------------------------------------------------------------------------------------*
+ * Angular chanrts overrides
+ *-----------------------------------------------------------------------------------------*/
+.chart-container {
+  height: 100%;
+}
+
 //-----------------------------------------------------------------------------------------
 // nl specific styling - lib_ui modules
 //-----------------------------------------------------------------------------------------
@@ -1396,8 +1403,9 @@ img.nl-full-width {
     padding: 4px;
 }
 
-.padding-h-small {
-    padding: 0 4px;
+.padding-small-h {
+    padding-left: 4px;
+    padding-right: 4px;
 }
 
 .padding-mid {
@@ -1543,6 +1551,10 @@ img.nl-full-width {
 
 .vh5 {
   min-height: 5vh;
+}
+
+.vhfixed60 {
+  height: 60vh;
 }
 
 .w100 {
