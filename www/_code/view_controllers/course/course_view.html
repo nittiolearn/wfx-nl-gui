@@ -1,71 +1,46 @@
 <style>
     .frame0 {
         position: absolute;
-        top: 0;
+        top: 36px;
+        bottom: 0;
         left: 0;
         width: 100%;
-        height: 100%;
+        height: auto;
     }
     .frame1 {
         position: absolute;
-        top: 0;
+        top: 36px;
+        bottom: 0;
         left: 0;
         width: 300px;
-        height: 100%;
+        height: auto;
     }
     .frame2 {
         position: absolute;
-        top: 0;
-        left: 310px;
+        top: 36px;
+        bottom: 0;
+        left: 300px;
         right: 0;
         width: auto;
-        height: 100%;
+        height: auto;
     }
 </style>
-<div ng-if='!popupView' class='{{expandedView ? "frame1" : "frame0"}}'>
-    <nl-course-view-toolbar></nl-course-view-toolbar>
+<nl-course-view-toolbar></nl-course-view-toolbar>
+<div ng-if='!popupView' class='{{expandedView ? "frame1" : "frame0"}}'
+	 style='border-right: 1px solid rgba(0, 0, 0, 0.1)'>
     <nl-course-view-list></nl-course-view-list>
 </div>
 <div ng-if='popupView || expandedView'
      class='padding-small {{popupView ? "frame0" : "frame2"}}'>
-    <div class='padding-mid nl-cv-content nl-thin-scroll'>
-        <div class='row row-top margin0 padding0'>
-            <div class='col text-center fsh3 padding0'>
-                <img ng-if='ext.isIconImg(ext.item)' class='nl-icon' ng-src='{{ext.item.icon}}'>
-                <i ng-show='!ext.isIconImg(ext.item)' class="icon {{ext.getIconCls(ext.item)}} bold fsh5"></i>
-                {{ext.item.name}}
-            </div>
-            <span title='Show information'
-                  ng-if='iframeUrl'
-                  class='nl-toolbar-icon'
-                  ng-click='onIconClick($event, ext.item)'>
-                <i class="icon ion-information-circled"></i>
-            </span>
-            <span title='Close'
-                  ng-if='popupView && !expandedView'
-                  class='nl-toolbar-icon'
-                  ng-click='hidePopup(true)'>
-                <i class="icon ion-ios-close-outline"></i>
-            </span>
-            <span title='Minimize'
-                  ng-if='popupView && expandedView'
-                  class='nl-toolbar-icon'
-                  ng-click='hidePopup(false)'>
-                <i class="icon ion-arrow-shrink"></i>
-            </span>
-            <span title='Show as popup'
-                  ng-if='!popupView'
-                  class='nl-toolbar-icon'
-                  ng-click='showPopup($event, ext.item)'>
-                <i class="icon ion-arrow-expand"></i>
-            </span>
-        </div>
-        <div ng-if='iframeUrl' style='position: absolute; top: 48px; bottom: 8px; left: 8px; right: 8px;'>
+    <div class='padding-mid nl-thin-scroll' style='height: 100%'>
+        <div ng-if='iframeUrl' style='position: absolute; top: 4px; bottom: 4px; left: 4px; right: 4px;'>
             <nl-course-view-frame></nl-course-view-frame>
         </div>
-        <nl-course-view-content-static ng-if='!iframeUrl && ext.isStaticMode()'>
-        </nl-course-view-content-static>
         <nl-course-view-content-active ng-if='!iframeUrl && !ext.isStaticMode()'>
         </nl-course-view-content-active>
+        <nl-course-view-content-editor ng-if='!iframeUrl && ext.isEditorMode()'>
+        </nl-course-view-content-editor>
+        <nl-course-view-content-static ng-if='!iframeUrl && ext.isStaticMode() && !ext.isEditorMode()'>
+        </nl-course-view-content-static>
     </div>
 </div>

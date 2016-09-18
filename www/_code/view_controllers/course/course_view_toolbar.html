@@ -1,26 +1,57 @@
-<div class='nl-toolbar padding-small text-left'>
-    <span title='View summary'
-         ng-hide='currentFolder.id == "_root"'
-         class='nl-toolbar-icon'
-         ng-click='collapseAll()'>
-        <i class="icon ion-arrow-up-a"></i>
+<div class='row row-center margin0 padding0'
+	 style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
+    <div class='col text-center fsh3 padding0'>
+        <img ng-if='ext.isIconImg(ext.item)' class='nl-icon' ng-src='{{ext.item.icon}}'>
+        <i ng-show='!ext.isIconImg(ext.item)' class="icon {{ext.getIconCls(ext.item)}} bold fsh5"></i>
+        {{ext.item.name}}
+    </div>
+    <span title='Save'
+          ng-show='!popupView && !iframeUrl && ext.isEditorMode()'
+          class='nl-toolbar-icon padding0'
+          ng-click='onSaveModule($event, ext.item)'>
+        <i class="icon material-icons">save</i>
     </span>
     <span title='Discussion forum'
-         ng-show='forumInfo.refid'
+         ng-show='!popupView && !iframeUrl && forumInfo.refid'
          class='nl-toolbar-icon'
          ng-click='launchForum()'>
         <i class="icon ion-ios-people"></i>
     </span>
     <span title='Download as CSV'
-          ng-hide='mode != MODES.REPORTS_SUMMARY_VIEW'
+          ng-show='!popupView && !iframeUrl && mode == MODES.REPORTS_SUMMARY_VIEW'
           class='nl-toolbar-icon'
           ng-click='download()'>
         <i class="icon ion-ios-cloud-download"></i>
     </span>
+    <span title='View summary'
+         ng-show='!popupView && currentFolder.id != "_root"'
+         class='nl-toolbar-icon'
+         ng-click='collapseAll()'>
+        <i class="icon ion-arrow-up-a"></i>
+    </span>
     <span title='{{expandViewText}}'
-          ng-if='showExpandedViewIcon'
-          class='nl-toolbar-icon'
+          ng-show='!popupView && !iframeUrl && showExpandedViewIcon'
+	          class='nl-toolbar-icon'
           ng-click='expandViewClick()'>
         <i class="icon {{expandViewIcon}}"></i>
+    </span>
+
+    <span title='Close'
+          ng-show='popupView && !expandedView'
+          class='nl-toolbar-icon'
+          ng-click='hidePopup(true)'>
+        <i class="icon ion-ios-close-outline"></i>
+    </span>
+    <span title='Minimize'
+          ng-show='popupView && expandedView'
+          class='nl-toolbar-icon'
+          ng-click='hidePopup(false)'>
+        <i class="icon ion-arrow-shrink"></i>
+    </span>
+    <span title='Show as popup'
+          ng-show='!popupView && expandedView'
+          class='nl-toolbar-icon'
+          ng-click='showPopup($event, ext.item)'>
+        <i class="icon ion-arrow-expand"></i>
     </span>
 </div>

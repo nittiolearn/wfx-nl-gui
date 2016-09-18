@@ -10,7 +10,10 @@ function module_init() {
     .directive('nlCourseViewList', CourseViewDirective('course_view_list'))
     .directive('nlCourseViewContentActive', CourseViewDirective('course_view_content_active'))
     .directive('nlCourseViewContentStatic', CourseViewDirective('course_view_content_static'))
+    .directive('nlCourseViewContentEditor', CourseViewDirective('course_view_editor'))
     .directive('nlCourseViewFrame', CourseViewDirective('course_view_frame'))
+    .directive('nlCourseJsonText', CourseJsonToTextDirective)
+    .service('nlCourseAttributes', NlCourseAttributesSrv)
     .config(configFn).controller('nl.CourseViewCtrl', NlCourseViewCtrl);
 }
 
@@ -50,7 +53,7 @@ function ModeHandler(nl, nlCourse, nlDlg, $scope) {
         if (this.mode === MODES.PRIVATE) {
             nl.pginfo.pageSubTitle = nl.t('(private)');
         } else if (this.mode === MODES.EDIT) {
-            nl.pginfo.pageSubTitle = nl.t('(edit)');
+            nl.pginfo.pageSubTitle = nl.t('(editor)');
         } else if (this.mode === MODES.PUBLISHED) {
             nl.pginfo.pageSubTitle = nl.t('(published)');
         } else if (this.mode === MODES.REPORTS_SUMMARY_VIEW) {
@@ -202,8 +205,56 @@ function ModeHandler(nl, nlCourse, nlDlg, $scope) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg', 'nlExporter',
+var NlCourseAttributesSrv = ['nl',
 function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
+	this.getCourseAttributes = function(course) {
+        var keys = Object.keys(course.content);
+        var ret = [];
+        for (var k in keys) {
+            var key = keys[k];
+            if (key == 'modules') continue;
+            ret.push({key: key, val: course.content[key]});
+        }
+        return ret;
+	};
+
+	this.getModuleAttributes = function() {
+        return attrs;
+	};
+	
+	this.getAdditinalAttributes = function(){
+		return additionalAttrs;
+	};
+
+	// TODO
+    var attrs = [
+    	{name: 'id', fields: "all", type: 'readonly', text: 'Unique ID', readonly: true, help: 'Defines the unique id of a course module. Parent-child relationship of course elements (tree structure) is derived from the id - id of the child element should always begin with the id of parent element and a ".".'}, 
+    	{name: 'name', fields: "all", type: 'string', text: 'Name', help:'Name of the module to be displayed in the course tree.'}, 
+    	{name: 'type', fields: "all", type: 'list', text: 'Element type', values: ['module', 'lesson', 'info', 'link'], help:'"module is a folder of info or a link", "lesson is a module", "info" or "link".'},
+        {name: 'refid', fields: "lesson", type: 'lessonlink', text: 'Module-id', help:'The id of the lesson to be launched. Click on the link to view the module'},
+        {name: 'action', fields: "link", type: 'lessonlink', text: 'Action', help:'The action whose URL is used for the link. Click on the icon to view the link'},
+        {name: 'urlParams', fields: "link", type: 'string', text: 'Url-Params', help:'The urlParams to append to the URL (see Dashboard create/modify dialog for more information).'},
+		{name: 'icon', type: 'additional', text: 'Module icon', help:'Icon to be displayed for this item in the course tree. If not provided, this is derived from the type. "quiz" is a predefined icon.'},
+		{name: 'text', type: 'additional', text: 'Description', help:'some text string'}, 
+        {name: 'start_date', fields: "not_module", type: 'date', text: 'Start date', help:'Earliest planned start date. Is applicable only if "planning" is set to true for the course.'},
+        {name: 'planned_date', fields: "not_module", type: 'date', text: 'Planned date', help:'Expected planned completion date. Is applicable only if "planning" is set to true for the course.'},
+        {name: 'max_attempts', fields: "lesson", type: 'string', text: 'Maximum attempts', help:'Number of time the lerner can do this lesson. Only the learning data from the last attempt is considered. 0 means infinite. 1 is the default.'},
+        {name: 'hide_remarks', fields: "infolink", type: 'string', text: 'Hide remarks', help:'true/false. true = do not show remark field when marking the item as done. false is default.'},
+        {name: 'start_after', fields: "not_module", type: 'object', text: 'Start after', help:'Array of objects: each object contains "module", "min_score" (optional) and "max_score" (optional) attributes.'},
+        {name: 'reopen_on_fail', fields: "lesson", type: 'object', text: 'Reopen on fail', help:'Array of strings: each string is module id of leaft modules that should be failed if the current module fails.'},
+        {name: 'autocomplete', fields: "link", type: 'string', text: 'Auto-complete', help:'true/false. If true, the link is marked completed when viewed first time. The user will not have possibility to set the status here.'}
+    ];
+    
+    var additionalAttrs = [
+				    		{name: 'icon', type: 'additional', text: 'Module icon', help:'Icon to be displayed for this item in the course tree. If not provided, this is derived from the type. "quiz" is a predefined icon.'},
+							{name: 'text', type: 'additional', text: 'Description', help:'some text string'} 
+						  ];
+}];
+
+//-------------------------------------------------------------------------------------------------
+var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg', 'nlExporter',
+'nlCourseAttributes',
+function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCourseAttributes) {
     var modeHandler = new ModeHandler(nl, nlCourse, nlDlg, $scope);
     var nlContainer = new NlContainer(nl, $scope, modeHandler);
     nlContainer.setContainerInWindow();
@@ -280,17 +331,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
 
     function _initAttributesDicts(course) {
         if (!$scope.ext.isStaticMode()) return;
-        $scope.module_attributes = ['id', 'name', 'type', 'icon', 'text', 
-            'refid', 'action', 'urlParams', 'start_date', 'planned_date',
-            'max_attempts', 'hide_remarks', 'start_after', 'reopen_on_fail'];
-
-        var keys = Object.keys(course.content);
-        $scope.course_attributes = [];
-        for (var k in keys) {
-            var key = keys[k];
-            if (key == 'modules') continue;
-            $scope.course_attributes.push({key: key, val: course.content[key]})
-        }
+        $scope.course_attributes = nlCourseAttributes.getCourseAttributes(course);
+        $scope.module_attributes = nlCourseAttributes.getModuleAttributes();
+        $scope.additional_Attributes = nlCourseAttributes.getAdditinalAttributes();
     }
 
     function _initExpandedView() {
@@ -322,6 +365,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
             treeList.collapseAll();
             _showVisible();
             $scope.ext.setCurrentItem(treeList.getRootItem());
+            if(!$scope.expandedView) _popout(true);
         }
         _confirmIframeClose(null, _impl);
     };
@@ -361,6 +405,19 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
         $scope.popupView = bPopout;
     }
 
+	$scope.showAddInfo = function(e, cm){
+		if($scope.showAddInform) {
+			_showAddInfo(false);
+		} else {
+			_showAddInfo(true);			
+		}
+	};
+
+	$scope.showAddInform = false;
+    function _showAddInfo(showAdd) {
+        $scope.showAddInform = showAdd;
+	}
+	
     $scope.showPopup = function(e, cm, bReset) {
         e.stopImmediatePropagation();
         e.preventDefault();
@@ -396,7 +453,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
     function _updateExpandViewIcon() {
         if ($scope.expandedView) {
             $scope.expandViewText = nl.t('Expand list and hide content');
-            $scope.expandViewIcon = 'ion-arrow-expand';
+            $scope.expandViewIcon = 'ion-ios-list';
             return;
         }
         $scope.expandViewText = nl.t('Shrink list to show content');
@@ -445,6 +502,26 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter) {
         }
         _confirmIframeClose(null, _impl);
     };
+
+    $scope.onSaveModule = function(e, cm){
+		var modules = modeHandler.course.content.modules;
+		for(var i in modules){
+			var element = modules[i];
+			if(cm.id == element.id) modeHandler.course.content.modules[i] = cm;
+		}
+		var modifiedData = {
+						courseid: modeHandler.course.id,
+						name: modeHandler.course.name, 
+						icon: modeHandler.course.icon, 
+						description: modeHandler.course.description,
+						content: angular.toJson(modeHandler.course.content) 
+					};
+		nlDlg.showLoadingScreen();
+		nlCourse.courseModify(modifiedData).then(function(course) {
+			nlDlg.hideLoadingScreen();
+		});
+    };
+    
     
     $scope.onLaunch = function(e, cm) {
         e.stopImmediatePropagation();
@@ -728,7 +805,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, folderStats) {
     this.stats = null;
     this.pastAttemptData = [];
     this.data = {remarks: ''}; 
-
+	
     this.setCurrentItem = function(cm) {
         this.item = cm;
         this.stats = (cm.type == 'module') ? folderStats.get(cm.id) : null;
@@ -743,15 +820,20 @@ function ScopeExtensions(nl, modeHandler, nlContainer, folderStats) {
     var _updateStatusFn = null;
     this.setUpdateStatusFn = function(fn) {
         _updateStatusFn = fn;
-    }
+    };
 
     this.isStaticMode = function() {
-        return (modeHandler.mode == MODES.PRIVATE || modeHandler.mode == MODES.PUBLISHED);
-    }
+        return (modeHandler.mode == MODES.PRIVATE || modeHandler.mode == MODES.PUBLISHED ||
+        	modeHandler.mode == MODES.EDIT);
+    };
+
+    this.isEditorMode = function() {
+        return (modeHandler.mode == MODES.EDIT);
+    };
     
     this.canShowRemarks = function() {
         if (!this.item) return false;
-        if (modeHandler.mode == MODES.PRIVATE || modeHandler.mode == MODES.PUBLISED) return false;
+        if (this.isStaticMode()) return false;
         if (this.item.hide_remarks) return false;
         return (this.item.type == 'link' || this.item.type == 'info');
     };
@@ -783,11 +865,11 @@ function ScopeExtensions(nl, modeHandler, nlContainer, folderStats) {
     };
 
     this.getLaunchString = function() {
-        if (this.isStaticMode() || this.item.type =='link') return 'Open';
+        if (this.isStaticMode()|| this.item.type =='link') return 'Open';
         if (this.item.state.status == 'success' || this.item.state.status == 'failed') return 'View report';
         return 'Open';
     };
-    
+
     this.updatePastAttemptData = function() {
         this.showPastAttempts = false;
         this.pastAttemptData = [];
@@ -878,7 +960,7 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
     
     this.getItem = function(itemId) {
         return this.items[itemId] || null;
-    }
+    };
     
     this.getRootItem = function() {
         return rootItem;
@@ -1161,6 +1243,25 @@ function CourseViewDirective(template) {
         };
     }];
 }
+
+//-------------------------------------------------------------------------------------------------
+function CourseJsonToTextDirective() {
+    return {
+        restrict: 'A',
+        require: 'ngModel',
+        link: function($scope, elem, attr, ngModel) {            
+          function into(input) {
+            return JSON.parse(input);
+          }
+          function out(data) {
+            return JSON.stringify(data);
+          }
+          ngModel.$parsers.push(into);
+          ngModel.$formatters.push(out);
+
+        }
+    };
+};
 
 //-------------------------------------------------------------------------------------------------
 module_init();
