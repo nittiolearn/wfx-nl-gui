@@ -1,3 +1,14 @@
+<div class='padding-mid'
+     ng-show='msTree.ratingsHelp.length > 0'
+     style='border: 1px solid #CCCCFF; background-color: rgba(200, 200, 255, 0.3)'>
+    <div class=''>Key:</div>
+    <ul class='fsmall' style='line-height: 150%'>
+        <li ng-repeat='item in msTree.ratingsHelp'>
+            <b>{{item.name}}</b>: {{item.help}}
+        </li>
+    </ul>
+</div>
+<div class='padding-mid' ng-show='msTree.ratingsHelp.length > 0'></div>
 <div ng-repeat='ms in msTree.items'
      ng-show='ms.selectCnt > 0 && ms.indentation > 0'
      class='row row-top nl-rno-{{ms.indentation}} margin0'

@@ -1,10 +1,12 @@
-<div class='padding-small fsh4'>Monthly statisitics of observations</div>
-<div class='row row-wrap row-top margin0 padding0 fsh4'>
+<div class='padding-small fsh6'>Monthly statisitics of observations</div>
+<div class='row row-wrap row-top margin0 padding0'>
     <div ng-repeat='counter in obsCounters'
          class='padding-small-h nl-link-text' 
          ng-class='respCol331'
-         ng-click='obsShowHide[$index]()'>
-        <i ng-show='obsShow[$index]' class="icon ion-checkmark-circled fgreen"></i>
+         ng-click='obsShowHide[$index]()'
+         style='color: {{chartColors[$index]}}'>
+        <i ng-show='obsShow[$index]' class="fsh4 icon ion-android-checkbox-outline"></i>
+        <i ng-hide='obsShow[$index]' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
         <span>{{counter}}</span>
     </div>
 </div>
@@ -18,7 +20,7 @@
     </canvas>
 </div>
 
-<div class='padding-small fsh4'>Daily statisitics of observations for the month {{data.month.id}}</div>
+<div class='padding-small fsh6'>Daily statisitics of observations for the month {{data.month.id}}</div>
 <div class='padding-small vhfixed60'>
     <canvas class='chart chart-bar' 
             chart-data='chartData["obs-date"]'

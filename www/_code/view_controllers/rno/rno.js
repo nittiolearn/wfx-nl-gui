@@ -105,6 +105,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlRnoStats) {
     var _rnoData = {};
 
     function _onPageEnter(userInfo) {
+        _pageGlobals.max = 19;
         _pageGlobals.userInfo = userInfo;
         return nl.q(function(resolve, reject) {
             _initParams();
@@ -132,7 +133,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlRnoStats) {
         _pageGlobals.metadataId = ('metadata' in params) ? parseInt(params.metadata) : 0;
         _pageGlobals.metadataIdParent = _pageGlobals.metadataId;
         _pageGlobals.role = ('role' in params) ? params.role : 'observe';
-        _pageGlobals.max = ('max' in params) ? parseInt(params.max) : 50;
+        if ('max' in params) _pageGlobals.max = parseInt(params.max);
     }
 }];
 
@@ -285,8 +286,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         if (!rno.data) rno.data = {};
 		_rnoDict[rno.id] = rno;
 		_updateJsonFields(rno);
-		var internalUrl = (_pageGlobals.role == 'admin') ? 'rno_modify' : 'rno_report_manage';
-		var help = (_pageGlobals.role == 'admin') ? '' : 'Manage observations and reports';
+		var internalUrl = 'rno_report_manage';
+		var help = (_pageGlobals.role == 'admin') ? 'Manage observations and reports records' : 'Manage observations and reports';
 	    var card = {rnoId: rno.id,
 	                title: nl.fmt2('{} {}', rno.config.first_name, rno.config.last_name), 
 					icon: _getCardIcon(nl, rno.config), 
@@ -300,7 +301,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         card.links.push({id: 'details', text: nl.t('details')});
 		card.details = {help: card.help, avps: _getRnoAvps(rno)};
 
-        if (_pageGlobals.role == 'admin') {
+        if (_pageGlobals.role == 'admin' && 
+            nlRouter.isPermitted(_pageGlobals.userInfo, 'admin_user')) {
             var link = {title: nl.t('Modify'), 
                         internalUrl: 'rno_modify',
                         children: [], links: []};
@@ -739,6 +741,7 @@ function RnoReportManageForm(nl, nlDlg, _rnoServer, _observationManager, _cards)
     
     function _initFormScope() {
         formScope.purpose = 'rating';
+        formScope.role = _pageGlobals.role;
         formScope.image = _getCardIcon(nl, rno.config);
         formScope.rno = rno;
         formScope.metadata = _pageGlobals.metadata;
@@ -908,7 +911,7 @@ function RnoReportManageForm(nl, nlDlg, _rnoServer, _observationManager, _cards)
             });
         }};
         var buttons = [];
-        if (!reportSent) {
+        if (!reportSent && _pageGlobals.role != 'admin') {
             buttons.push(sendButton);
         } 
         var cancelButton = {text : nl.t('Close')};
@@ -971,6 +974,7 @@ function MsTree(nl, nlDlg, milestones, usertype) {
     this.utOptions = _getMilestoneUserTypeOptions();
     this.utOptions.unshift({name: 'All clusters', id: 'all'});
     this.utOption = {id: usertype};
+    this.ratingsHelp = _getRatingHelp();
 
     this.ratingFilterOptions = [
         {id: 'all', name: 'All milestones'},
@@ -1236,6 +1240,15 @@ function _getRatingDict() {
         ratingDict[r.id] = r.name;
     }
     return ratingDict;
+}
+
+function _getRatingHelp() {
+    var ratingHelp = [];
+    for(var i=0; i<_pageGlobals.metadata.ratings.length; i++) {
+        var r = _pageGlobals.metadata.ratings[i];
+        if (r.help) ratingHelp.push(r);
+    }
+    return ratingHelp;
 }
 
 function _getCardIcon(nl, rnoConfig) {

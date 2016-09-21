@@ -33,25 +33,37 @@ function(nl, nlServerApi, nlDlg, nlExporter) {
     var _pageGlobals = null;
     var $scope = null;
     var _impl = null;
-    var fetchedDataCount = 0;
+    var _fetchedDataCount = 0;
+    var _loadedCentres = {};
     var self = this;
 
     this.init = function(pageGlobals, scope) {
         _pageGlobals = pageGlobals;
+        var centreOptions = _pageGlobals.metadata.user_model.centre ?
+            _pageGlobals.metadata.user_model.centre.values : ['NA'];
+        var centres = [];
+        for (var i=0; i<centreOptions.length; i++)
+            centres.push({id: centreOptions[i], name: centreOptions[i]});
+
         $scope = scope;
         $scope.viewSummary = _viewSummary;
         $scope.download = _download;
+        $scope.onCentreChange = _onCentreChange;
+        $scope.onClsChange = _onClsChange;
         $scope.onClsChange = _onClsChange;
         $scope.onNameChange = _onNameChange;
         $scope.onMonthChange = _onMonthChange;
-        $scope.data = {cls: {id: ''}, name: {id: ''}, month: null};
-        $scope.options = {cls: null, name: null, month: null};
+        $scope.data = {centre: centres[0], cls: {id: ''}, name: {id: ''}, month: null};
+        $scope.options = {centre: centres, cls: null, name: null, month: null};
         $scope.showFilter = false;
         $scope.showHelp = false;
+        $scope.role = _pageGlobals.role;
+        $scope.loadingInProgress = false;
 
         $scope.rnoCount = 0;
         $scope.obsCount = 0;
         $scope.repCount = 0;
+        _loadedCentres = {};
 
         _impl = new RnoStatsImpl(nl, nlDlg, nlExporter);
         _impl.init($scope);
@@ -59,23 +71,39 @@ function(nl, nlServerApi, nlDlg, nlExporter) {
     };
 
     this.loadData = function() {
-        var msg = fetchedDataCount > 0 ? 
-            nl.t('Fetched data of {} students. Fetching more ...', fetchedDataCount) :
+        if (_pageGlobals.role =='admin') {
+            nlDlg.popupStatus('Please select the centre to proceed ...', false);
+            return;
+        }
+        _fetchedDataCount = 0;
+        _loadData();
+    };
+
+    function _loadData(centreName) {
+        $scope.loadingInProgress = true;
+        var msg = _fetchedDataCount > 0 ? 
+            nl.t('Fetched data of {} students. Fetching more ...', _fetchedDataCount) :
             nl.t('Fetching data ...');
         nlDlg.popupStatus(msg, false);
-        nlServerApi.rnoGetDataList({metadata: _pageGlobals.metadataIdParent, 
+        var params = {metadata: _pageGlobals.metadataIdParent, 
             search: '', user_type: '', section: '', role: _pageGlobals.role, 
-            max: _pageGlobals.max, start_at: fetchedDataCount})
-        .then(function(resultList) {
-            fetchedDataCount += resultList.length;
+            max: _pageGlobals.max, start_at: _fetchedDataCount};
+        if (_pageGlobals.metadataIdParent != _pageGlobals.metadataId) {
+            params.metadata2 = _pageGlobals.metadataId;
+        }
+        if (centreName) params.centre = centreName;
+        nlServerApi.rnoGetDataList(params).then(function(resultList) {
+            _fetchedDataCount += resultList.length;
             _impl.processRnoList(resultList, $scope);
             $scope.options.cls = _impl.getClasses();
             $scope.options.name = _impl.getNames($scope.data.cls.id);
             _impl.updateStatistics($scope, $scope.data.cls.id, $scope.data.name.id);
             if (resultList.length > _pageGlobals.max) {
-                self.loadData();
+                _loadData(centreName);
             } else {
-                var msg = nl.t('Fetched data of {} students.', fetchedDataCount);
+                $scope.loadingInProgress = false;
+                if (centreName) _loadedCentres[centreName] = true;
+                var msg = nl.t('Fetched data of {} students.', _fetchedDataCount);
                 nlDlg.popupStatus(msg);
                 // TODO-MUNNI: Remove load dummy data code after initial stabilizations
                 // are done.
@@ -157,6 +185,16 @@ function(nl, nlServerApi, nlDlg, nlExporter) {
         _impl.onDownload($scope);
     }
 
+    function _onCentreChange(bFetch) {
+        if ($scope.data.centre.id in _loadedCentres || !bFetch) {
+            _onNameChange();
+            return;
+        }
+        if ($scope.loadingInProgress) return;
+        _fetchedDataCount = 0;
+        _loadData($scope.data.centre.id);
+    }
+
     function _onClsChange() {
         $scope.data.name = {id: ''};
         $scope.options.name = _impl.getNames($scope.data.cls.id);
@@ -232,7 +270,7 @@ function RnoStatsImpl(nl, nlDlg, nlExporter) {
     }
 
     function _updateStaticData($scope) {
-        $scope.chartColors = ['#7777FF', '#007700', '#CC7700'];
+        $scope.chartColors = ['#000077', '#007700', '#CC7700'];
         $scope.chartMonthlyLabels = _getMonthlyChartLabels($scope);
         $scope.chartMonthlyOnClick = function(elems) {
             _onMontlyChartClicked($scope, elems);
@@ -242,7 +280,7 @@ function RnoStatsImpl(nl, nlDlg, nlExporter) {
         
         $scope.obsCounters = ['Observations done', 'Observations sent', 'Milestones rated'];
         $scope.obsSelectedCounters = [];
-        $scope.obsShow = [true, false, true];
+        $scope.obsShow = [true, true, false];
         $scope.obsShowHide = [
             function() {_obsShowHide($scope, 0);}, 
             function() {_obsShowHide($scope, 1);}, 
@@ -400,6 +438,7 @@ function RnoStatsImpl(nl, nlDlg, nlExporter) {
     function _updateStatisticsFromList(lst, $scope, clsFilter, nameFilter, updateFn) {
         for(var i=0; i<lst.length; i++) {
             var o = lst[i];
+            if ($scope.role == 'admin' && $scope.data.centre.id != o.centre) continue;
             if (clsFilter && clsFilter != o.cls) continue;
             if (nameFilter && nameFilter != o.name) continue;
             updateFn(o, 'month');
@@ -531,14 +570,6 @@ function RnoStatsImpl(nl, nlDlg, nlExporter) {
         }
     }
 
-    function _formOption(options, defName) {
-        options = Object.keys(options).sort();
-        var ret = [{id: '', name: defName}];
-        for (var i=0; i<options.length; i++)
-            ret.push({id: options[i], name: options[i]});
-        return ret;
-    }
-    
     //---------------------------------------------------------------------------------------------
     // _onDownload code
     //---------------------------------------------------------------------------------------------
@@ -627,6 +658,16 @@ function RnoStatsImpl(nl, nlDlg, nlExporter) {
             });
         });
     }
+}
+
+//-------------------------------------------------------------------------------------------------
+function _formOption(options, defName) {
+    options = Object.keys(options).sort();
+    var ret = [];
+    if (defName) ret.push({id: '', name: defName});
+    for (var i=0; i<options.length; i++)
+        ret.push({id: options[i], name: options[i]});
+    return ret;
 }
 
 module_init();

@@ -40,6 +40,7 @@
         </div>
 
         <div class='nl-button'
+             ng-show='formScope.role != "admin"'
              ng-click='formScope.onCreateObservation()'>
             New observation ...
         </div>
@@ -100,7 +101,8 @@
                     created: {{observation.created|date: 'dd-MMMM-yy HH:mm'}},
                     updated: {{observation.updated|date: 'dd-MMMM-yy HH:mm'}}
                 </div>
-                <div class='nl-mildtoolbar text-left'>
+                <div class='nl-mildtoolbar text-left'
+                     ng-if='formScope.role != "admin"'>
                     <span title='send'
                           ng-show='!observation.sent'
                           class='nl-toolbar-icon'
@@ -199,9 +201,10 @@
         <div class='row row-center margin0 padding-small'>
             <span class='col nl-button'
                  ng-click='formScope.onPreview()'>Preview ...</span>
-            <div style='width:8px'></div>
+            <div style='width:8px' ng-show='formScope.role != "admin"'></div>
             <span class='col nl-button'
-                 ng-click='formScope.onSave()'>Save</span>
+                  ng-show='formScope.role != "admin"'
+                  ng-click='formScope.onSave()'>Save</span>
         </div>
     </div>
 </div>
