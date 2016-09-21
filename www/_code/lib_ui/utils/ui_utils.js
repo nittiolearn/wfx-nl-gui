@@ -14,6 +14,7 @@ function module_init() {
     .directive('nlWaitOnClick', WaitOnClickDirective)
     .directive('nlFocusMe', FocusMeDirective)
     .directive('nlProgressLog', ProgressLogDirective)
+    .directive('nlInlineHelp', InlineHelpDirective)
     .service('nlProgressLog', ProgressLogSrv);
 }
 
@@ -133,6 +134,16 @@ function(nl) {
             }
           });
         }
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
+var InlineHelpDirective = ['nl',
+function(nl) {
+    return {
+        restrict: 'E',
+        transclude: true,
+        templateUrl: 'lib_ui/utils/inline_help.html'
     };
 }];
 

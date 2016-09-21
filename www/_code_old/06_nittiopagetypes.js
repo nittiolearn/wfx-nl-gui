@@ -889,16 +889,16 @@ npagetypes = function() {
 	function _BehMatch_getLinePoints(box1, box2, pageOrientation) {
 		var b1=box1.offset();
 		var b2=box2.offset();
-		var x1 = b1.left + box1.width()/2;
-		var y1 = b1.top + box1.height();
-		var x2 = b2.left + box2.width()/2;
+		var x1 = b1.left + box1.outerWidth()/2;
+		var y1 = b1.top + box1.outerHeight();
+		var x2 = b2.left + box2.outerWidth()/2;
 		var y2 = b2.top;
 
 		if (pageOrientation == 'vertical') {
-			x1 = b1.left + box1.width();
-			y1 = b1.top + box1.height()/2;
+			x1 = b1.left + box1.outerWidth();
+			y1 = b1.top + box1.outerHeight()/2;
 			x2 = b2.left;
-			y2 = b2.top + box2.height()/2;
+			y2 = b2.top + box2.outerHeight()/2;
 		}
 		return [x1, y1, x2, y2];
 	}
