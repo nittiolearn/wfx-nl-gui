@@ -117,65 +117,44 @@ function stopPropagation(event) {
 //-------------------------------------------------------------------------------------------
 // Helper used for resizing the text inside a section
 //-------------------------------------------------------------------------------------------
-function valignMiddle(obj) {
-	var outerHeight = obj.innerHeight();
-	var vAlignHolder = obj.find('.vAlignHolder');
-	var innerHeight = vAlignHolder.innerHeight();
-	var heightDiff = (outerHeight - innerHeight) / 2;
-	vAlignHolder.css('top', heightDiff);
-}
-
-//-------------------------------------------------------------------------------------------
-// Helper used for resizing the text inside a section
-//-------------------------------------------------------------------------------------------
 var ERROR_MARGIN = 3; // Number of pixel error margin
-var OVERFLOW_DEF = 'visible';
-function findMinFontSizeOfGroup(pgSecView, textSizes, fmtgroup, minTextSize) {
+function findMinFontSizeOfGroup(section, textSizes, fmtgroup, minTextSize) {
 	var maxSize=(fmtgroup in textSizes) ? textSizes[fmtgroup] : 100;
-	var fitChecker = new TextFitmentChecker(pgSecView);
+	var fitChecker = new TextFitmentChecker(section);
 	var textSize = fitChecker.findBestFit(minTextSize, maxSize);
-
-	fitChecker.cleanup();
 	textSizes[fmtgroup] = textSize;
 } 
 
 function resizeText(section, textSize, minTextSize) {
-	var pgSecView = section.pgSecView;
 	var fsz = '' + textSize + '%';
-	var overflow = OVERFLOW_DEF;
 	if (textSize <= minTextSize) {
-		var fitChecker = new TextFitmentChecker(pgSecView);
+		var fitChecker = new TextFitmentChecker(section);
 		if (!fitChecker.doesItFit(textSize)) {
-			overflow = 'scroll';
 			section.valignMiddle = false;
 		}
-		fitChecker.cleanup();
 	}
-	pgSecView.find('.inline_obj').each(function() {
-		overflow = 'scroll';
+	section.secViewContent.find('.inline_obj').each(function() {
 		section.valignMiddle = false;
 	});
-	pgSecView.css({'font-size': fsz, 'line-height': '110%', 'overflow-y': overflow});
+	section.secViewContent.css({'font-size': fsz});
 } 
 
-function clearTextResizing(pgSecView) {
-	pgSecView.css({'font-size': '100%', 'line-height': '110%', 'overflow-y': OVERFLOW_DEF});
+function clearTextResizing(section) {
+	section.secViewContent.css({'font-size': '100%'});
 } 
 
-function TextFitmentChecker(pgSecView) {
+function TextFitmentChecker(section) {
 	// Constructor
-	var shadow = pgSecView.clone();
-	shadow.css({'z-index' : -10, 'opacity' : 0, 'bottom': 'auto', 'height': 'auto'}).appendTo(pgSecView.parent());
-	var hOrig = pgSecView.css({'font-size' : '100%'}).height();
-	var wOrig = pgSecView.width();
+	var hOrig = section.secViewContentHolder.height();
+	var wOrig = section.secViewContentHolder.width();
 	
 	// Public Methods
 	this.doesItFit = function(textSize) {
 		var fsz = '' + textSize + '%';
-		var hNew = shadow.css({'font-size': fsz, 'line-height': '110%'}).height();
+		var hNew = section.secViewContent.css({'font-size': fsz}).outerHeight();
 		if (hNew > hOrig) return false;
 		
-		var wNew = _getChildMaxWidth(shadow);
+		var wNew = _getChildMaxWidth(section.secViewContent);
 		if (wNew > wOrig + ERROR_MARGIN) return false;
 		return true;
 	};
@@ -192,16 +171,12 @@ function TextFitmentChecker(pgSecView) {
 		return this.findBestFit(minSize, midSize);
 	};
 
-	this.cleanup = function() {
-		shadow.remove();
-	};
-
 	// Private Methods
 	var _getChildMaxWidth = function(obj) {
 		var maxWidth = 0;
 		obj.find('*').each(function() {
 			if (jQuery(this).hasClass('not_inside')) return;
-			var w = jQuery(this).width();
+			var w = jQuery(this).outerWidth();
 			if (w > maxWidth) {
 				maxWidth = w;
 			}
@@ -1725,7 +1700,6 @@ return {
 	log: log,
 	copyToClipboard: copyToClipboard,
 	stopPropagation: stopPropagation,
-	valignMiddle: valignMiddle,
 	findMinFontSizeOfGroup: findMinFontSizeOfGroup,
 	resizeText: resizeText,
 	clearTextResizing: clearTextResizing,

@@ -624,10 +624,11 @@ nittio = function() {
 		});
 		
 		// Resize Videos
+		var safeMargin = 10;
 		elem.find('.reset_height').each(function() {
 			var resObj = jQuery(this);
 			var parent = resObj.parents('.aspect_wrt');
-			resObj.css({height: parent.height()});
+			resObj.css({height: parent.height() - safeMargin});
 		});
 	}
 
@@ -742,18 +743,32 @@ nittio = function() {
             _initPage(retainAspect, bPrint);
         }
     }
-    
+
+    function debounce(delay, fn) {
+        var timer = null;
+        return function() {
+            if (timer) {
+                window.clearTimeout(timer);
+            }
+            var args = arguments;
+            timer = window.setTimeout(function() {
+                fn.apply(null, args);
+                timer = null;
+            }, delay);
+        };
+    }
+
     function _initPage(retainAspect, bPrint) {
 		// Do the rest on completion of page load
 		jQuery(function() {
 			if (!bPrint) {
 				initSizes(retainAspect);
 				var skChecker = new SoftKeyChecker();
-				jQuery(window).resize(function() {
-    				initSizes(retainAspect);
+				jQuery(window).resize(debounce(200, function() {
+                    initSizes(retainAspect);
                     if (skChecker.isSoftKeyOn()) return;
-				    callOnResizeHandlers();
-				});
+                    callOnResizeHandlers();
+				}));
 				initMenus();
 				initValidators();
 			}
@@ -855,6 +870,7 @@ nittio = function() {
 		secondsToHmsString: secondsToHmsString,
 		areArraysEqual : areArraysEqual,
 		DateTimePicker : DateTimePicker,
+		debounce: debounce,
 
 		// Page initializations
 		setBleedingEdge : setBleedingEdge,

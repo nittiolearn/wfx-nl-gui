@@ -1079,15 +1079,10 @@ td.submitselection{
 }
 
 div.njs_pdf_holder {
-	overflow:auto; 
-	height: 100%;
+  overflow: visible; 
+  height: auto;
 	line-height: 0;
 	text-align: center;
-}	
-
-div.njs_pdf_holder.inline_obj {
-	overflow: visible; 
-	height: auto;
 }	
 
 .njs_pdf_holder .njs_pdf_waiting {
@@ -1122,6 +1117,16 @@ div.njs_pdf_holder.inline_obj {
 	height: 1px;
 	width: 1px;
 	pointer-events: none;
+}
+
+.pgSec div.secViewContentHolder {
+  overflow-y: auto;
+  height: 100%;
+  padding: 4px;
+}
+
+.pgSec div.secViewContent {
+  line-height: 110%;
 }
 
 .pgSec textarea {
@@ -1268,6 +1273,7 @@ div.line {
     height: 2px;
     z-index: 12;
     transform-origin: 0 100%;
+    background-color: #000000; // Will be changed later
 }
 
 div.pgSecView.selected, div.pgSecView.last_selected, textarea.selected {
@@ -1316,11 +1322,6 @@ div.pgSecView.answer_wrong.bright {
 	width: 100%;
 	max-width: 100%;
 	max-height: 100%;
-}
-
-.pgSec iframe {
-  position: absolute;
-  height: 100%;
 }
 
 .pgPropAudio .voiceButton {
@@ -1768,7 +1769,21 @@ h1, h2, h3, h4, h5, h6 {
 	color: #FFFFFF;
 }
 
+div.line.lineColor1 { background-color: #7777FF;}
+div.line.lineColor2 { background-color: #77FF77;}
+div.line.lineColor3 { background-color: #FFFF77;}
+div.line.lineColor4 { background-color: #77FFFF;}
+div.line.lineColor5 { background-color: #FF77FF;}
+div.line.lineColor0 { background-color: #FF7777;}
+
 /* Light BG (.bglight) stuff */
+.bglight div.line.lineColor1 { background-color: #0000AA;}
+.bglight div.line.lineColor2 { background-color: #00AA00;}
+.bglight div.line.lineColor3 { background-color: #AAAA00;}
+.bglight div.line.lineColor4 { background-color: #00AAAA;}
+.bglight div.line.lineColor5 { background-color: #AA00AA;}
+.bglight div.line.lineColor0 { background-color: #AA0000;}
+
 .bglight .pgSec, 
 .bglight .pgSec textarea.pgSecText, .bglight .pgSec textarea.questionnaire, .bglight .pgSec select {
 	color: #000000;

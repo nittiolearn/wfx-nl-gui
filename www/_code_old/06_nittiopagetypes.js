@@ -903,20 +903,20 @@ npagetypes = function() {
 		return [x1, y1, x2, y2];
 	}
 
-	var lineColors = ['#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#FF00FF', '#0000FF']
+    var maxColors = 6;
 	function _drawLineInt(lineContainer, lineId, x1, y1, x2, y2, pageOrientation) {
 		lineContainer.children('.line').remove();
-		var lineColor = lineColors[lineId % lineColors.length];
-
 		var angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
 		var transform = 'rotate(' + angle + 'deg)';
 
 		var length = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 		var oleft = x1 < x2 ? x1 : x2;
 		var otop  = y1 < y2 ? y1 : y2;
-
-		jQuery('<div class="line not_inside">').appendTo(lineContainer).attr('id', lineId)
-			.css({transform: transform, background: lineColor})
+		
+		var divStr = njs_helper.fmt2('<div class="line not_inside lineColor{}">',
+            lineId % maxColors);
+		jQuery(divStr).appendTo(lineContainer).attr('id', lineId)
+			.css({transform: transform})
 			.width(length).offset({left: oleft, top: otop});
 	}
 
@@ -1107,8 +1107,12 @@ npagetypes = function() {
 				section.secPosShuffled = tempSecNo;
 				
 				var pt = section.page.pagetype;
-				section.pgSecView.animate(pt.getSectionPos(section.secPosShuffled), 1000);
-				partner.pgSecView.animate(pt.getSectionPos(partner.secPosShuffled), 1000);
+                var opts = {duration: 1000, easing: 'easeOutQuad'};
+                
+				section.pgSecView.velocity('finish', true).velocity(
+				    pt.getSectionPos(section.secPosShuffled), opts);
+				partner.pgSecView.velocity('finish', true).velocity(
+				    pt.getSectionPos(partner.secPosShuffled), opts);
 	
 				pgSecView.attr('answer', section.secPosShuffled);
 				partnerPgSecView.attr('answer', partner.secPosShuffled);

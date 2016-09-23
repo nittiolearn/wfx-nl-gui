@@ -130,7 +130,7 @@ function _markupToIframe(str, bInline) {
     if(_checkMarkup(str, 'scorm:')) str = str.replace('scorm:','iframe:');
     return _parseWikiMarker(str, 'iframe:', function(link, avpairs) {
         if (link == '') return '';
-        return njs_helper.fmt2('<iframe src="{}"></iframe>',link);
+        return njs_helper.fmt2('<iframe src="{}" class="reset_height"></iframe>',link);
     });
 }
 
