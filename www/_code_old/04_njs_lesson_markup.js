@@ -6,8 +6,7 @@ njs_lesson_markup = function() {
 var parentStack = new ParentStack();
 function markupToHtml(markupStr, retData) {
 	var lines = markupStr.split('\n');
-	var lessPara = retData.lessPara;
-	if (!lessPara || lines.length > 1) lessPara = false;
+	var lessPara = (retData.lessPara == true) && (lines.length <= 1);
 	retData.isTxt = (lines.length > 1);
 	
 	parentStack.init();

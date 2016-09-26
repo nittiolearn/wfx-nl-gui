@@ -571,6 +571,9 @@ nittio = function() {
 	//-----------------------------------------------------------------------------
 	// Readjust the overall area to have a standard aspect ratio in all browsers
 	//-----------------------------------------------------------------------------
+    var W_SMALL = 700;
+    var W_LARGE = 1000;
+    var g_screenSize = null;
 	function initSizes(retainAspect) {
 	    
 	    // Fix to remove the vertical scroll in toolBar if present
@@ -580,15 +583,20 @@ nittio = function() {
             tbc.css({'flex-wrap': 'wrap'});
 	    }, 0);
 
+        var body = jQuery('.body');
+        var wBody = body.width(); 
+        var hBody = body.height();
+        if (g_screenSize) body.removeClass(g_screenSize);
+        g_screenSize = wBody < W_SMALL ? 'small' : wBody < W_LARGE ? 'medium' : 'large';
+        g_screenSize = 'nl-screen-' + g_screenSize;
+        body.addClass(g_screenSize);
+
 		if (retainAspect == 0) {
 			jQuery('.inner_body').css({left: 0, right: 0, top: 0, bottom: 0});
 			return;
 		}
 		var ar_req = retainAspect;
 
-		var body = jQuery('.body');
-		var wBody = body.width(); 
-		var hBody = body.height();
 		var widthMargin = 0;
 		var bottomMargin = 0;
 		var topMargin = 0;
@@ -599,7 +607,6 @@ nittio = function() {
 			topMargin = (heightMargin < 42) ? heightMargin : 42;
 			bottomMargin = heightMargin - topMargin;
 		}
-
 		jQuery('.inner_body').css({left: widthMargin + 'px', right: widthMargin + 'px', top: topMargin + 'px', bottom: bottomMargin + 'px'});
 		return;
 	}

@@ -358,7 +358,10 @@ nlesson = function() {
             var curPage = _adjustAndUpdate(this, pgNo);
             if (!curPage) return;
             curPage.postRender();
-            _preLoadOtherPages(this, pgNo);
+            var self = this;
+            nittio.debounce(500, function() {
+                _preLoadOtherPages(self, pgNo);
+            })();
         }
 
         function _preLoadOtherPages(self, pgNo) {
@@ -461,7 +464,7 @@ nlesson = function() {
 
 		var ret = {help: ''};
 		
-		var tempData = {};
+		var tempData = {lessPara: true};
 		ret.hint = ('hint' in curPage.oPage) ? njs_lesson_markup.markupToHtml(curPage.oPage.hint, tempData) : '';
 		var score = curPage.getScore();
 		var maxScore = curPage.getMaxScore();
@@ -1443,16 +1446,12 @@ nlesson = function() {
 		this.valignMiddle = this.page.pagetype.isSectionValignMiddle(this.secNo);		
 		this.adjustFontSize = true;
 
-		var retData = {};
+		var retData = {lessPara: true};
 		var secHtml = bMarkup ? njs_lesson_markup.markupToHtml(htmlOrMarkup, retData) : htmlOrMarkup;
 		if (!bMarkup) {
 			this.valignMiddle = false;
 			this.adjustFontSize = false;
 		}
-		if (!retData.isTxt) {
-            this.valignMiddle = true;
-            this.adjustFontSize = false;
-        }
 		this.secViewContent.html(secHtml);
 	}
 	

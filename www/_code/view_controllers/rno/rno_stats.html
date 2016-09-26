@@ -140,4 +140,41 @@
         <div class='padding-small'></div>
         <rno-stats-report-table></rno-stats-report-table>
     </div>
+
+    <div class='padding-small'></div>
+    <div class='padding-small fsh6 nl-link-text'
+         ng-click='showReportStats=!showReportStats'>
+        <i ng-show='!showReportStats' class="icon ion-arrow-right-b"></i>
+        <i ng-show='showReportStats' class="icon ion-arrow-down-b"></i>
+        <span>Analysis of ratings across development areas</span>
+    </div>
+    <nl-inline-help show-help='{{showInlineHelp}}'>
+        Click on the above link to view the number of ratings and average rating across milestone areas.
+        <p>
+        The average rating is computed based on the rated milestones by assigning a weight to 
+        each achievement level. For example, with 3 acheivement levels, first level 
+        is given the weight of 1, second level a weight of 2 and the third level a weight of 3.
+        The average is computed by summing up all the weights and dividing by number of ratings
+        and fianlly representing this as a percentage.
+        </p>
+    </nl-inline-help>
+    <div ng-if='showReportStats'>
+        <div class='padding-small'></div>
+        <rno-stats-rating></rno-stats-rating>
+    </div>
+
+    <div class='padding-small'></div>
+    <div class='padding-small fsh6 nl-link-text'
+         ng-click='showReportTable=!showReportTable'>
+        <i ng-show='!showReportTable' class="icon ion-arrow-right-b"></i>
+        <i ng-show='showReportTable' class="icon ion-arrow-down-b"></i>
+        <span>List of average ratings across development areas</span>
+    </div>
+    <nl-inline-help show-help='{{showInlineHelp}}'>
+        Click on the above link to view the list of average ratings across development areas.
+    </nl-inline-help>
+    <div ng-if='showReportTable'>
+        <div class='padding-small'></div>
+        <rno-stats-rating-table></rno-stats-rating-table>
+    </div>
 </div>

@@ -25,8 +25,6 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  min-width: 300px;
-  min-height: 300px;
 }
 
 body {
@@ -290,7 +288,7 @@ a.enabled {
 	position: absolute;
 	top: 42px;
 	right: 2px;
-	max-height: 40px;
+	max-height: 42px;
 	max-width: 99%;
 	text-align: right;
 	background-color: rgba(255, 255, 255, 0.7);
@@ -1164,48 +1162,41 @@ div.pgSecView {
           user-select: none;
 }
 
-.pgSecView .questionnaire, .pgSecView select {
-	width: 100%;
-	font-size: 60%;
-	line-height: 100%; 
-	box-sizing: border-box;
-	position: absolute;
-	max-height: 100%;
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
+.pgSecView select,
+.pgSecView input,
+.pgSecView textarea,
+.pgSecView div.questionnaire.report {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  max-height: 100%;
+  height: 100%;
+  line-height: 100%; 
+  overflow-y:auto;
+  font-size: 20px;
+  padding: 4px 6px;
 }
 
-.pgSecView input {
-	width: 100%;
-	font-size: 40%;
-	line-height: 100%; 
+.nl-screen-medium .pgSecView select,
+.nl-screen-medium .pgSecView input,
+.nl-screen-medium .pgSecView textarea,
+.nl-screen-medium .pgSecView div.questionnaire.report {
+  font-size: 16px;
+  padding: 2px 4px;
+}
+
+.nl-screen-small .pgSecView select,
+.nl-screen-small .pgSecView input,
+.nl-screen-small .pgSecView textarea,
+.nl-screen-small .pgSecView div.questionnaire.report {
+  font-size: 12px;
+  padding: 2px;
 }
 
 .pgSecView select {
-	padding: 0;
 	border: none;
 	outline: none;
-}
-
-.pgSecView textarea.questionnaire {
-	opacity: 1;
-	border-radius: 3px;
-}
-
-.pgSecView select.multiple, textarea.questionnaire {
-	display: block;
-	position: absolute;
-	top: 0;
-	left: 0;
-	height: 100%;
-	overflow-y:auto;
-}
-
-.pgSecView div.questionnaire.report {
-	padding: 4px;
-	border-radius: 4px;
-	height: 100%;
-	overflow-y:auto;
 }
 
 .pgSecView.beh_interactive {
@@ -1729,7 +1720,6 @@ div.pgSecView.answer_wrong.bright {
 
 .pgSec select, .pgSec select option {
 	background: none;
-	font-size: 3vh;
 }
 
 .pgSec, .pgSec textarea.pgSecText, .pgSec textarea.questionnaire, .pgSec select {

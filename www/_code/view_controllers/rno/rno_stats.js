@@ -10,6 +10,8 @@ function module_init() {
     .directive('rnoStatsObservationTable', RnoStatsDir('obs_table'))
     .directive('rnoStatsReport', RnoStatsDir('rep'))
     .directive('rnoStatsReportTable', RnoStatsDir('rep_table'))
+    .directive('rnoStatsRating', RnoStatsDir('rating'))
+    .directive('rnoStatsRatingTable', RnoStatsDir('rating_table'))
     .service('nlRnoStats', RnoStatsSrv);
 }
 

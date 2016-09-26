@@ -452,7 +452,7 @@ function _SubmitAndScoreDialog_makePageNoLink(pageNo) {
 }
 
 function _SubmitAndScoreDialog_makeMoreLink(pageNo, str) {
-    var retData = {};
+    var retData = {lessPara: true};
     str = njs_lesson_markup.markupToHtml(str, retData);
     str = _SubmitAndScoreDialog_trim(str);
 	return njs_helper.fmt2('<div onclick="njs_lesson_helper.SubmitAndScoreDialog.onPageClick({});"> <span class="njsLink">{}</span></div>', pageNo, str);

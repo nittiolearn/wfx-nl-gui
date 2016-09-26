@@ -123,6 +123,7 @@ function findMinFontSizeOfGroup(section, textSizes, fmtgroup, minTextSize) {
 	var fitChecker = new TextFitmentChecker(section);
 	var textSize = fitChecker.findBestFit(minTextSize, maxSize);
 	textSizes[fmtgroup] = textSize;
+	fitChecker.cleanup();
 } 
 
 function resizeText(section, textSize, minTextSize) {
@@ -132,12 +133,13 @@ function resizeText(section, textSize, minTextSize) {
 		if (!fitChecker.doesItFit(textSize)) {
 			section.valignMiddle = false;
 		}
+        fitChecker.cleanup();
 	}
 	section.secViewContent.find('.inline_obj').each(function() {
 		section.valignMiddle = false;
 	});
 	section.secViewContent.css({'font-size': fsz});
-} 
+}
 
 function clearTextResizing(section) {
 	section.secViewContent.css({'font-size': '100%'});
@@ -145,13 +147,16 @@ function clearTextResizing(section) {
 
 function TextFitmentChecker(section) {
 	// Constructor
+	section.secViewContentHolder.css({height: '100%'});
 	var hOrig = section.secViewContentHolder.height();
 	var wOrig = section.secViewContentHolder.width();
+    section.secViewContentHolder.css({height: 'auto'});
 	
 	// Public Methods
 	this.doesItFit = function(textSize) {
 		var fsz = '' + textSize + '%';
-		var hNew = section.secViewContent.css({'font-size': fsz}).outerHeight();
+		section.secViewContent.css({'font-size': fsz});
+		var hNew = section.secViewContentHolder.height();
 		if (hNew > hOrig) return false;
 		
 		var wNew = _getChildMaxWidth(section.secViewContent);
@@ -171,6 +176,10 @@ function TextFitmentChecker(section) {
 		return this.findBestFit(minSize, midSize);
 	};
 
+    this.cleanup = function() {
+        section.secViewContentHolder.css({height: '100%'});
+    };
+    
 	// Private Methods
 	var _getChildMaxWidth = function(obj) {
 		var maxWidth = 0;
