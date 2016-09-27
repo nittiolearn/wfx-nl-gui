@@ -17,18 +17,17 @@ function(nl) {
     // header is array of objects: {id: 'x', name: 'y'}
     // canAddFn is called for each item in data and if it returns true the
     // row is added to output array
-    // fmtFn is called for each attribute before printing it
     // returns array of array of strings which can then be exported
     // If startPos and endPos are given, only those records are fetched 
     // (including startPos and not including endPos).
-    this.objToCsv = function(itemArray, headers, canAddFn, fmtFn, startPos, endPos) {
+    this.objToCsv = function(itemArray, headers, canAddFn, startPos, endPos) {
         var csvContent = _getCsvString(_getHeaderRow(headers));
         var lineDelim = '\n';
         if (!startPos || startPos < 0) startPos = 0;
         if (!endPos || endPos > itemArray.length) endPos = itemArray.length;
         for(var i=startPos; i<endPos; i++) {
             if(canAddFn && !canAddFn(itemArray[i])) continue;
-            var row = lineDelim + _getCsvString(_getItemRow(headers, itemArray[i], fmtFn));
+            var row = lineDelim + _getCsvString(_getItemRow(headers, itemArray[i]));
             csvContent += row;
         }
         return csvContent;
@@ -77,15 +76,20 @@ function(nl) {
         return row;
     }
 
-    function _getItemRow(headers, item, fmtFn) {
+    function _getItemRow(headers, item) {
         var row = [];
         for(var i=0; i<headers.length; i++) {
             var attr = headers[i].id;
-            var val = item[attr] || '';
-            if (fmtFn) val = fmtFn(val, attr, i);
+            var val = _fmtValue(item[attr], headers[i].fmt) || '';
             row.push(val);
         }
         return row;
+    }
+
+    function _fmtValue(val, fmt) {
+        if (!val) return val;
+        if (fmt == 'date') return nl.fmt.date2Str(val, 'date');
+        return val;
     }
 
     function _saveFile(fileName, csvContent) {

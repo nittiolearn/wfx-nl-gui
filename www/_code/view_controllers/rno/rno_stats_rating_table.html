@@ -1,31 +1,82 @@
+<div class='padding-small nl-link-text' 
+     ng-click='showRatingCounts = !showRatingCounts'>
+    <i ng-show='showRatingCounts' class="fsh4 icon ion-android-checkbox-outline"></i>
+    <i ng-hide='showRatingCounts' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+    <span>Show rating details</span>
+</div>
+
 <table class='nl-table nl-table-styled'>
     <thead>
         <tr>
-            <th>Center</th>
-            <th>Class</th>
-            <th>Name</th>
-            <th>Observations Done</th>
-            <th>Observations Sent</th>
-            <th>Ratings Done</th>
+            <th rowspan='2'></th>
+            <th ng-repeat='g in ratingInfo.group1' 
+                ng-if='g.colspan>0 && (!ratingInfo.currentGroup1.id || g.name == ratingInfo.currentGroup1.id)'
+                colspan='{{g.colspan}}'
+                style='text-align: center'>{{g.name}}</th>
         </tr>
         <tr>
-            <th colspan='3'>Total in the month {{data.month.id}}</th>
-            <th>{{statsObj.obsDone}}</th>
-            <th>{{statsObj.obsSent}}</th>
-            <th>{{statsObj.ratingsDone}}</th>
+            <th ng-repeat='g in ratingInfo.columns'
+                ng-if='ratingInfo.columnShown[$index]'
+                style='min-width: 100px'>{{g}}
+            </th>
+        </tr>
+        <tr>
+            <th>Average</th>
+            <td ng-repeat='t in ratingInfo.ratingAvgs track by $index'
+                ng-if='ratingInfo.columnShown[$index]'
+                title='{{t}} from {{ratingInfo.ratingCounts[$index]}} ratings.'
+                style='background-color: {{ratingInfo.getColor(t)}}; text-align: center'>
+                <span>{{t}}</span>
+                <span ng-show='showRatingCounts'>
+                    from {{ratingInfo.ratingCounts[$index]}} ratings.
+                </span>
+            </td>
         </tr>
     </thead>
-    <tbody ng-if='!obsListIsHuge'>
-        <tr ng-repeat='obs in obsList track by $index'>
-            <td>{{obs.centre}}</td>
-            <td>{{obs.cls}}</td>
-            <td>{{obs.name}}</td>
-            <td>{{obs.created|date:'yyyy-MM-dd'}}</td>
-            <td>{{obs.sent|date:'yyyy-MM-dd'}}</td>
-            <td>{{obs.ratingsDone}}</td>
+    <tbody ng-if='!ratingListIsHuge'>
+        <tr ng-repeat='record in ratingInfo.records'>
+            <th>{{record.name}}</th>
+            <td ng-repeat='v in record.ratingAvgs track by $index'
+                ng-if='ratingInfo.columnShown[$index]'
+                title='{{v}} from {{record.ratingCounts[$index]}} ratings.'
+                style='background-color: {{ratingInfo.getColor(v)}}; text-align: center'
+                ng-click='ratingInfo.onRecordClick(record, $index)'
+                class='nl-link-text'>
+                <span>{{v}}</span>
+                <span ng-show='showRatingCounts'>
+                    from {{record.ratingCounts[$index]}} ratings.
+                </span>
+            </td>
         </tr>
     </tbody>
 </table>
-<div ng-if='obsListIsHuge' class='fsh3 forange'>
+<div ng-if='ratingListIsHuge' class='fsh3 forange'>
     There are too many entries to display. Please apply a filter to display entries.
 </div>
+
+<div class='padding-small'></div>
+<div ng-if='!ratingInfo.ratingList.length' class='fsh3 forange'>
+    Click on any entry in the table above to view the rating history.
+</div>
+<div ng-if='ratingInfo.ratingList.length > 0'>
+    <div class='padding-small fsh5'>Rating history for the selected item</div>
+    <table class='nl-table nl-table-styled'>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Milestone</th>
+                <th>Achievement</th>
+                <th>Rated on</th>
+            </tr>
+        </thead>
+        <tbody ng-if='ratingInfo.ratingList.length < 500'>
+            <tr ng-repeat='r in ratingInfo.ratingList track by $index'>
+                <td>{{r.name}}</td>
+                <td>{{r.ratingName}}</td>
+                <td>{{r.ratingWt}}: {{r.ratingLevel}}</td>
+                <td>{{r.updated|date:'yyyy-MM-dd'}}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+

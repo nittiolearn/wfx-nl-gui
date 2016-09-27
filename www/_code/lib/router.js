@@ -78,6 +78,7 @@ function(nl, nlDlg, nlServerApi, $state) {
         nl.pginfo.isPrintable = false;
         nl.pginfo.hidemenu = false;
         nlServerApi.noPopup(false);
+        nlDlg.popdownStatus();
         nlDlg.showLoadingScreen();
         var protocol = nl.location.protocol().toLowerCase();
         if (protocol.indexOf('file') >= 0) {

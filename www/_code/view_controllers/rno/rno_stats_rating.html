@@ -1,31 +1,20 @@
-<div class='padding-small fsh6'>Monthly statisitics of observations</div>
-<div class='row row-wrap row-top margin0 padding0'>
-    <div ng-repeat='counter in obsCounters'
-         class='padding-small-h nl-link-text' 
-         ng-class='respCol331'
-         ng-click='obsShowHide[$index]()'
-         style='color: {{chartColors[$index]}}'>
-        <i ng-show='obsShow[$index]' class="fsh4 icon ion-android-checkbox-outline"></i>
-        <i ng-hide='obsShow[$index]' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-        <span>{{counter}}</span>
+<div class='row row-wrap row-center margin0 padding0'>
+    <div class='padding-small' ng-class='respCol221'>Development areas: </div>
+    <div class='padding-small nl-dlg-field-value' ng-class='respCol221'>
+        <select ng-model='ratingInfo.currentGroup1'
+                ng-options='opt as opt.name for opt in ratingInfo.group1 track by opt.id'
+                ng-change='ratingInfo.onGroup1Change()'>
+        </select>
     </div>
+    <b>Achievement Levels:</b>
+    <span ng-repeat='level in ratingInfo.levels'
+          class='padding-small'><b>{{level.wt}}:</b> {{level.name}}</span>
 </div>
 <div class='vhfixed60 padding-small'>
     <canvas class='chart chart-bar'
-            chart-data='chartData["obs-month"]'
-            chart-labels='chartMonthlyLabels' 
-            chart-click='chartMonthlyOnClick'
-            chart-series='obsSelectedCounters'
-            chart-colours='obsSelectedColors'>
-    </canvas>
-</div>
-
-<div class='padding-small fsh6'>Daily statisitics of observations for the month {{data.month.id}}</div>
-<div class='padding-small vhfixed60'>
-    <canvas class='chart chart-bar' 
-            chart-data='chartData["obs-date"]'
-            chart-labels='chartDailyLabels' 
-            chart-series='obsSelectedCounters'
-            chart-colours='obsSelectedColors'>
+            chart-data='ratingInfo.chartData'
+            chart-labels='ratingInfo.chartColumns'
+            chart-series='ratingInfo.chartCounters'
+            chart-colours='chartColors'>
     </canvas>
 </div>

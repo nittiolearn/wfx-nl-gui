@@ -35,12 +35,14 @@ function(nl, nlServerApi, nlDlg, nlExporter) {
     var _pageGlobals = null;
     var $scope = null;
     var _impl = null;
+    var _ratingInfo = null;
     var _fetchedDataCount = 0;
     var _loadedCentres = {};
     var self = this;
 
     this.init = function(pageGlobals, scope) {
         _pageGlobals = pageGlobals;
+        nl.pginfo.isPrintable = true;
         var centreOptions = _pageGlobals.metadata.user_model.centre ?
             _pageGlobals.metadata.user_model.centre.values : ['NA'];
         var centres = [];
@@ -67,7 +69,8 @@ function(nl, nlServerApi, nlDlg, nlExporter) {
         $scope.repCount = 0;
         _loadedCentres = {};
 
-        _impl = new RnoStatsImpl(nl, nlDlg, nlExporter);
+        _ratingInfo = new RnoRatingInfo(nl, _pageGlobals.metadata);
+        _impl = new RnoStatsImpl(nl, nlDlg, nlExporter, _ratingInfo);
         _impl.init($scope);
         _viewSummary();
     };
@@ -214,10 +217,11 @@ function(nl, nlServerApi, nlDlg, nlExporter) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-function RnoStatsImpl(nl, nlDlg, nlExporter) {
+function RnoStatsImpl(nl, nlDlg, nlExporter, _ratingInfo) {
     var _rnoList = [];
     var _obsList = [];
     var _repList = [];
+    var _ratingList = [];
     var _classes = {};
     var _dateToStats = {};
     var _monthToStats = {};
@@ -267,6 +271,7 @@ function RnoStatsImpl(nl, nlDlg, nlExporter) {
         _rnoList = [];
         _obsList = [];
         _repList = [];
+        _ratingList = [];
         _classes = {};
         _updateStaticData($scope);
     }
@@ -367,6 +372,7 @@ function RnoStatsImpl(nl, nlDlg, nlExporter) {
             if (!(rno.name in _classes[rno.cls])) _classes[rno.cls][rno.name] = true;
             _updateObservationCount(rno, $scope);
             _updateReportCount(rno, $scope);
+            _updateRatingCount(rno, $scope);
         }
         $scope.rnoCount = _rnoList.length;
         $scope.obsCount = _obsList.length;
@@ -409,6 +415,44 @@ function RnoStatsImpl(nl, nlDlg, nlExporter) {
         }
     }
 
+    function _updateRatingCount(rno, $scope) {
+        var obsRating = {};
+        var observations = rno.data.observations || {};
+        for(var i=observations.length-1; i>=0; i--) {
+            var o = observations[i];
+            var updated = nl.fmt.json2Date(o.updated);
+            for(var r in o.ratings) {
+                if (!(r in obsRating) || obsRating[r].updated < updated) {
+                    obsRating[r] = {updated: updated, ratingLevel: o.ratings[r]};
+                }
+                var rinfo = _ratingInfo.get(r);
+                _ratingList.push({id: rno.id, centre: rno.config.centre,
+                    cls: rno.cls, name: rno.name, updated: updated,
+                    ratingId: r, ratingName: rinfo.name, 
+                    group2: rinfo.group2, group1: rinfo.group1,
+                    ratingLevel: o.ratings[r],
+                    ratingWt: _ratingInfo.getWt(o.ratings[r]),
+                    src: 'observation'});
+            }
+        }
+
+        var ratings = rno.data.ratings || {};
+        var ratingsUpdatedOn = rno.data.ratingsUpdatedOn ? 
+            nl.fmt.json2Date(rno.data.ratingsUpdatedOn) : nl.fmt.getPastDate();
+        for(var r in ratings) {
+            var ratingLevel = ratings[r];
+            if (r in obsRating && ratingLevel == obsRating[r].ratingLevel) continue;
+            var rinfo = _ratingInfo.get(r);
+            _ratingList.push({id: rno.id, centre: rno.config.centre,
+                cls: rno.cls, name: rno.name, updated: ratingsUpdatedOn,
+                ratingId: r, ratingName: rinfo.name, 
+                group2: rinfo.group2, group1: rinfo.group1,
+                ratingLevel: ratingLevel,
+                ratingWt: _ratingInfo.getWt(ratingLevel),
+                src: 'report'});
+        }
+    }
+    
     //---------------------------------------------------------------------------------------------
     // _updateStatistics code: called each time class/username filters change
     //---------------------------------------------------------------------------------------------
@@ -435,6 +479,7 @@ function RnoStatsImpl(nl, nlDlg, nlExporter) {
                 stats.reportsSent++;
             });
         _updateChartsAndTables($scope);
+        _updateRatingsChartAndTable($scope, clsFilter, nameFilter);
     }
 
     function _updateStatisticsFromList(lst, $scope, clsFilter, nameFilter, updateFn) {
@@ -571,6 +616,117 @@ function RnoStatsImpl(nl, nlDlg, nlExporter) {
             $scope.repList = userStats.rep;
         }
     }
+    
+    function _updateRatingsChartGroup1($scope) {
+        var ratingInfo = $scope.ratingInfo;
+        var currentGroup1 = ratingInfo.currentGroup1.id;
+        
+        var col=0;
+        var chartData = [];
+        var chartColumns = [];
+        for(var i=1; i<ratingInfo.group1.length; i++) {
+            var g1 = ratingInfo.group1[i];
+            var show = !currentGroup1 || (currentGroup1 == g1.id);
+            var maxCol = col + g1.colspan;
+            while(col < maxCol) {
+                ratingInfo.columnShown[col] = show;
+                if (show) {
+                    chartColumns.push(ratingInfo.columns[col]);
+                    chartData.push(ratingInfo.ratingAvgs[col]);
+                }
+                col++;
+            }
+        }
+        ratingInfo.chartData = [chartData];
+        ratingInfo.chartColumns = chartColumns;
+    }
+    
+    function _updateRatingsList($scope, record, column) {
+        var ratingInfo = $scope.ratingInfo;
+        ratingInfo.ratingList = record.ratingLists[column];
+    }
+
+    function _updateRatingsChartAndTable($scope, clsFilter, nameFilter) {
+        var columns = _ratingInfo.getGroup2();
+        var ratingInfo = {
+            columns: columns,
+            onGroup1Change: function() {
+                _updateRatingsChartGroup1($scope);
+            },
+            getColor: function(v) {
+                return _ratingInfo.getColor(v);
+            },
+            onRecordClick: function(record, column) {
+                _updateRatingsList($scope, record, column);
+            },
+            currentGroup1: {id: ''},
+            levels: _ratingInfo.getLevels(),
+            group1: _ratingInfo.getGroup1(),
+            columnShown: _createArray(columns.length),
+            ratingCounts: _createArray(columns.length),
+            ratingSums: _createArray(columns.length),
+            ratingAvgs: _createArray(columns.length),
+            ratingList: [],
+            chartCounters: ['Development Areas'],
+            chartData: [],
+            chartColumns: [],
+            records: null
+        };
+        
+        var records = {};
+        for(var i=0; i<_ratingList.length; i++) {
+            var r = _ratingList[i];
+            if ($scope.role == 'admin' && $scope.data.centre.id != r.centre) continue;
+            if (clsFilter && clsFilter != r.cls) continue;
+            if (nameFilter && nameFilter != r.name) continue;
+            
+            if (!(r.id in records)) records[r.id] = {id: r.id, name: r.name, 
+                ratingCounts: _createArray(columns.length), 
+                ratingSums: _createArray(columns.length), 
+                ratingAvgs: _createArray(columns.length),
+                showDetails: _createArray(columns.length),
+                ratingLists: _createArray(columns.length, 'array')};
+            var record = records[r.id];
+            for(var j=0; j<columns.length; j++) {
+                var column = columns[j];
+                if (r.group2 != columns[j]) continue;
+                record.ratingCounts[j]++;
+                record.ratingSums[j] += r.ratingWt;
+                record.ratingLists[j].push(r);
+                ratingInfo.ratingCounts[j]++;
+                ratingInfo.ratingSums[j] += r.ratingWt;
+            }
+        }
+        var recordList = [];
+        for(var key in records) {
+            var r = records[key];
+            _computeAverages(r, columns);
+            recordList.push(r);
+        }
+        recordList.sort(function(a, b) {
+            return (a.name > b.name);
+        });
+        ratingInfo.records = recordList;
+        _computeAverages(ratingInfo, columns);
+
+        $scope.ratingInfo = ratingInfo;
+        $scope.ratingListIsHuge = (ratingInfo.records.length > 500);
+        _updateRatingsChartGroup1($scope);
+    }
+
+    function _createArray(count, type) {
+        var ret = [];
+        for(var i=0; i<count; i++) ret.push(type == 'array' ? [] : 0);
+        return ret;
+    }
+    
+    function _computeAverages(r, columns) {
+        for(var i=0; i<columns.length; i++) {
+            if (!r.ratingCounts[i]) continue;
+            r.ratingAvgs[i] = Math.round(r.ratingSums[i] / r.ratingCounts[i] *10)/10;
+        }
+    }
+    
 
     //---------------------------------------------------------------------------------------------
     // _onDownload code
@@ -593,15 +749,14 @@ function RnoStatsImpl(nl, nlDlg, nlExporter) {
                 {id: 'centre', name: 'Centre'},
                 {id: 'cls', name: 'Class'},
                 {id: 'name', name: 'Name'},
-                {id: 'created', name: 'Observed on'},
-                {id: 'sent', name: 'Observation sent on'},
+                {id: 'created', name: 'Observed on', fmt: 'date'},
+                {id: 'sent', name: 'Observation sent on', fmt: 'date'},
                 {id: 'ratingsDone', name: 'Ratings done'}
             ];
             var startPos = chunkPos*MAX_RECORDS_PER_CSV;
             chunkPos++;
             var endPos = chunkPos*MAX_RECORDS_PER_CSV;
-            var csvContent = nlExporter.objToCsv(_obsList, obsHeaders, null, 
-                _downloadFormatter, startPos, endPos);
+            var csvContent = nlExporter.objToCsv(_obsList, obsHeaders, null, startPos, endPos);
             zip.file(nl.fmt2('observations-{}.csv', chunkPos), csvContent);
 
             if (chunkPos < neededChunks) {
@@ -613,7 +768,7 @@ function RnoStatsImpl(nl, nlDlg, nlExporter) {
     }
 
     function _createRepCsv(zip, chunkPos) {
-        var neededChunks = Math.ceil(_obsList.length / MAX_RECORDS_PER_CSV);
+        var neededChunks = Math.ceil(_repList.length / MAX_RECORDS_PER_CSV);
         var msg = nl.fmt2('Creating report list ({} of {}) for download', 
             chunkPos+1, neededChunks);
         nlDlg.popupStatus(msg, false);
@@ -623,27 +778,54 @@ function RnoStatsImpl(nl, nlDlg, nlExporter) {
                 {id: 'centre', name: 'Centre'},
                 {id: 'cls', name: 'Class'},
                 {id: 'name', name: 'Name'},
-                {id: 'sent', name: 'Report sent on'}
+                {id: 'sent', name: 'Report sent on', fmt: 'date'}
             ];
             var startPos = chunkPos*MAX_RECORDS_PER_CSV;
             chunkPos++;
             var endPos = chunkPos*MAX_RECORDS_PER_CSV;
-            var csvContent = nlExporter.objToCsv(_repList, repHeaders, null,
-                _downloadFormatter, startPos, endPos);
+            var csvContent = nlExporter.objToCsv(_repList, repHeaders, null, startPos, endPos);
             zip.file(nl.fmt2('reports-{}.csv', chunkPos), csvContent);
 
             if (chunkPos < neededChunks) {
                 _createRepCsv(zip, chunkPos);
             } else {
-                _createZip(zip);
+                _createRatingCsv(zip, 0);
             }
         });
     }
 
-    function _downloadFormatter(val, attr, rowIndex) {
-        if (attr != 'created' && attr != 'sent') return val;
-        if (!val) return val;
-        return nl.fmt.date2Str(val, 'date');
+    function _createRatingCsv(zip, chunkPos) {
+        var neededChunks = Math.ceil(_ratingList.length / MAX_RECORDS_PER_CSV);
+        var msg = nl.fmt2('Creating ratings list ({} of {}) for download', 
+            chunkPos+1, neededChunks);
+        nlDlg.popupStatus(msg, false);
+        nl.timeout(function() {
+            var ratingHeaders = [
+                {id: 'id', name: 'Id'},
+                {id: 'centre', name: 'Centre'},
+                {id: 'cls', name: 'Class'},
+                {id: 'name', name: 'Name'},
+                {id: 'group1', name: 'Area'},
+                {id: 'group2', name: 'Sub-area'},
+                {id: 'ratingId', name: 'Milestone Id'},
+                {id: 'ratingName', name: 'Milestone'},
+                {id: 'ratingWt', name: 'Rating Number'},
+                {id: 'ratingLevel', name: 'Rating'},
+                {id: 'updated', name: 'Rated on', fmt: 'date'},
+                {id: 'src', name: 'Rated In'}
+            ];
+            var startPos = chunkPos*MAX_RECORDS_PER_CSV;
+            chunkPos++;
+            var endPos = chunkPos*MAX_RECORDS_PER_CSV;
+            var csvContent = nlExporter.objToCsv(_ratingList, ratingHeaders, null, startPos, endPos);
+            zip.file(nl.fmt2('ratings-{}.csv', chunkPos), csvContent);
+
+            if (chunkPos < neededChunks) {
+                _createRatingCsv(zip, chunkPos);
+            } else {
+                _createZip(zip);
+            }
+        });
     }
 
     function _createZip(zip) {
@@ -660,6 +842,92 @@ function RnoStatsImpl(nl, nlDlg, nlExporter) {
             });
         });
     }
+}
+
+//-------------------------------------------------------------------------------------------------
+function RnoRatingInfo(nl, metadata) {
+    var weights = {};
+    var maxRatings = 0;
+    var milestones = {};
+    var levels = [];
+    var group1 = [{name: 'All', id: '', colspan: 0}];
+    var group2 = [];
+    
+    this.get = function(ratingId) {
+        return milestones[ratingId] ||
+            {id: ratingId, name: '', group1: '', group2: '', usertype: ''};
+    };
+    
+    this.getWt = function(ratingLevel) {
+        return weights[ratingLevel] || 0;
+    };
+
+    this.getLevels = function() {
+        return levels;
+    };
+    
+    this.getGroup1 = function() {
+        return group1;
+    };
+    
+    this.getGroup2 = function() {
+        return group2;
+    };
+    
+    var _colors = {
+        0: 'rgba(128, 128, 128, 0.6)',
+        1: 'rgba(200, 50, 0, 0.6)',
+        2: 'rgba(200, 50, 0, 0.6)',
+        3: 'rgba(200, 50, 0, 0.6)',
+        4: 'rgba(200, 200, 0, 0.6)',
+        5: 'rgba(200, 200, 0, 0.6)',
+        6: 'rgba(200, 200, 0, 0.6)',
+        7: 'rgba(50, 200, 0, 0.6)',
+        8: 'rgba(50, 200, 0, 0.6)',
+        9: 'rgba(50, 200, 0, 0.6)',
+        10: 'rgba(0, 128, 0, 0.8)'
+    };
+    
+    this.getColor = function(v) {
+        if (!v) v = 0;
+        if (v > maxRatings) v = maxRatings;
+        var index = Math.round(v / maxRatings * 10);
+        return _colors[index];
+    };
+    
+    function _init() {
+        var mratings = metadata.ratings || [];
+        for(var i=0; i<mratings.length; i++) {
+            weights[mratings[i].id] = i+1;
+            levels.push({wt: i+1, name: mratings[i].name});
+        }
+        maxRatings = mratings.length;
+        var mmilestones = metadata.milestones || [];
+        var g1Dict = {};
+        var g2Dict = {};
+        for(var i=0; i<mmilestones.length; i++) {
+            var m = mmilestones[i];
+            milestones[m.id] = m;
+
+            var g1Item = null;
+            if (!(m.group1 in g1Dict)) {
+                g1Item = {name: m.group1, colspan: 0, id: m.group1};
+                g1Dict[m.group1] = g1Item;
+                group1.push(g1Item);
+            } else {
+                g1Item = g1Dict[m.group1];
+            }
+
+            var g2Item = null;
+            if (!(m.group2 in g2Dict)) {
+                g2Dict[m.group2] = true;
+                g1Item.colspan++;
+                group2.push(m.group2);
+            }
+        }
+    }
+    _init();
+    
 }
 
 //-------------------------------------------------------------------------------------------------

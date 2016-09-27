@@ -226,7 +226,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
                     help: nl.t('View key statistics by click on this card.'), 
                     children: [], style: 'nl-bg-blue'};
         card0.links = [];
-        if (_pageGlobals.role != 'admin') return [card0];
+        if (_pageGlobals.role != 'admin' ||
+            !nlRouter.isPermitted(_pageGlobals.userInfo, 'admin_user')) return [card0];
         var card = {title: _pageGlobals.metadata.createCardTitle, 
                     icon: _pageGlobals.metadata.createCardIcon, 
                     internalUrl: 'rno_create',
