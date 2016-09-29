@@ -138,8 +138,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlRnoStats) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var RnoListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv', 'nlResourceUploader',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploader) {
+var RnoListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv', 'nlResourceUploader', 'nlPrinter',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploader,nlPrinter) {
 	/* 
 	 * URLs handled
 	 * 'RNO Dashboard' : /rno_list?role=[observe|review|admin]&metadata=[metadataid]&title=[]
@@ -153,7 +153,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
     var _rnoServer = new RnoServer(nl, nlServerApi, nlDlg, false);
 	var _observationManager = new ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg);
     var _cards = {};
-    var _rnoReportManageForm = new RnoReportManageForm(nl, nlDlg, _rnoServer, _observationManager, _cards);
+    var _rnoReportManageForm = new RnoReportManageForm(nl, nlDlg, nlPrinter, _rnoServer, _observationManager, _cards);
 
 	function _onPageEnter(userInfo) {
 	    _pageGlobals.userInfo = userInfo;
@@ -714,7 +714,7 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function RnoReportManageForm(nl, nlDlg, _rnoServer, _observationManager, _cards) {
+function RnoReportManageForm(nl, nlDlg, nlPrinter, _rnoServer, _observationManager, _cards) {
     var $scope = null;
     var rno = null;
     var formScope = null;
@@ -911,9 +911,16 @@ function RnoReportManageForm(nl, nlDlg, _rnoServer, _observationManager, _cards)
                 _updateFormScope();
             });
         }};
+        var printButton = {text: nl.t('Print'), onTap: function(e) {
+            if(e) e.preventDefault();
+            nlPrinter.print(dlg.scope.dlgTitle);
+        }};
         var buttons = [];
         if (!reportSent && _pageGlobals.role != 'admin') {
             buttons.push(sendButton);
+        } 
+        if (_pageGlobals.role != 'observe') {
+            buttons.push(printButton);
         } 
         var cancelButton = {text : nl.t('Close')};
         var template = 'view_controllers/rno/rno_report_view.html';

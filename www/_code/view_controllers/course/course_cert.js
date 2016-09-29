@@ -24,8 +24,8 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlCourseCertCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg',
-function(nl, nlRouter, $scope, nlDlg) {
+var NlCourseCertCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlPrinter',
+function(nl, nlRouter, $scope, nlDlg, nlPrinter) {
     var nlContainer = null;
     $scope.error = false;
     $scope.available = false;
@@ -42,7 +42,7 @@ function(nl, nlRouter, $scope, nlDlg) {
     nlRouter.initContoller($scope, '', _onPageEnter);
     
     $scope.onPrint = function() {
-        window.print();
+        nlPrinter.print(nl.fmt2('{} - {} certificate', $scope.userName, $scope.courseName));
     };
 
     function _onPageEnterImpl(userInfo) {
@@ -70,7 +70,6 @@ function(nl, nlRouter, $scope, nlDlg) {
         if (statusinfo.status != 'done' || !statusinfo.date) return;
         $scope.completionTime = nl.fmt.json2Date(statusinfo.date);
 
-        nl.pginfo.isPrintable = true;
         $scope.error = false;
         $scope.available = true;
     }

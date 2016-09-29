@@ -1121,12 +1121,42 @@ nl-cards {
   }
 }
 
+.only-for-print {
+  display: none;
+}
+
 @media print {
-  #nl-pagecanvas, .dont-print {
+  body {
     display: none !important;
   }
-  #nl-pagecanvas.nl-print {
+
+  body.nl-print {
     display: block !important;
+    overflow: visible;
+
+    .only-for-print {
+      display: block !important;
+    }
+
+    .dont-print, .popup-head, .popup-buttons, .nl-dlg-title-buttons,
+    .backdrop, .loading-container {
+      display: none !important;
+    }
+    .popup {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      height: auto;
+      max-height: none;
+      max-width: none;
+      overflow: visible !important;
+    }
+    .popup-body {
+      height: auto !important;
+      width: 100% !important;
+      overflow: visible !important;
+    }
   }
 }
 

@@ -19,7 +19,7 @@
 </style>
 
 <div id='nl-pagecanvas' ng-click='onCanvasClick($event)' ng-keydown="onKeyDown($event)" tabindex='0'
-    ng-class='{"nl-hide":!pgInfo.isPageShown, "nl-print": pgInfo.isPrintable}' class='nl-screen-{{screenSize}}'>
+    ng-class='{"nl-hide":!pgInfo.isPageShown}' class='nl-screen-{{screenSize}}'>
     <div ng-show='pgBgimg' class='nl-pagecanvas-bg' ng-class='{"nl-pagecanvas-bgimg" : pgBgimg}'></div>
 
     <nav id='nl-topbar' ng-show='pgInfo.isMenuShown' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>

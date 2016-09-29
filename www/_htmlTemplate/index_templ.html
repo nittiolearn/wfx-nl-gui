@@ -23,7 +23,7 @@
          <script async src='//www.google-analytics.com/analytics.js'></script>
    </head>
 
-    <body>
+    <body ng-class='{"nl-print": pgInfo.isPrintable}'>
         <ion-nav-view></ion-nav-view>
         <script>
             window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;

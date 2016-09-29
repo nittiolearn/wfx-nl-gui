@@ -42,7 +42,6 @@ function(nl, nlServerApi, nlDlg, nlExporter) {
 
     this.init = function(pageGlobals, scope) {
         _pageGlobals = pageGlobals;
-        nl.pginfo.isPrintable = true;
         var centreOptions = _pageGlobals.metadata.user_model.centre ?
             _pageGlobals.metadata.user_model.centre.values : ['NA'];
         var centres = [];

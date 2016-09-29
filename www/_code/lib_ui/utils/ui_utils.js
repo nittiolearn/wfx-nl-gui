@@ -6,8 +6,9 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.ui.utils', ['nl.ui.keyboard'])
-    .filter('nlDateStr', NlDateStr)
-	.directive('nlCompile', Compile)
+    .filter('nlDateStr', NlDateStr) // Usage: {{someDate | nlDateStr:'dd-MMMM-yyyy'}}
+    .service('nlPrinter', PrinterSrv)
+    .directive('nlCompile', Compile)
     .directive('nlLoading', LoadingDirective)
     .directive('nlNoCtxMenu', NoCtxMenuDirective)
     .directive('nlRetainAr', RetainArDirective)
@@ -27,6 +28,21 @@ function(nl, $filter) {
         return ret;
     }
     return _fmtDateStr;
+}];
+
+//-------------------------------------------------------------------------------------------------
+var PrinterSrv = ['nl',
+function(nl) {
+    this.print = function(title) {
+        nl.pginfo.isPrintable = true;
+        var oldWindowTitle = nl.pginfo.windowTitle;
+        if (title) nl.pginfo.windowTitle = title;
+        nl.timeout(function() {
+            nl.window.print();
+            nl.pginfo.isPrintable = false;
+            nl.pginfo.windowTitle = oldWindowTitle;
+        }, 500);
+    };
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -254,7 +270,7 @@ function ProgressLog(nl, $filter, nlExporter) {
         this.progressLog.logs = [];
         this.progressLog.currentMessage = '';
         this.progressLog.currentStatus = '';
-    }
+    };
     
 }
 
