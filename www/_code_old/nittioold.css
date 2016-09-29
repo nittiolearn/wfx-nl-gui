@@ -1178,6 +1178,14 @@ div.pgSecView {
   padding: 4px 6px;
 }
 
+.pgSecView select {
+  max-height: 2em;
+}
+
+.pgSecView select.multiple {
+  max-height: 100%;
+}
+
 .nl-screen-medium .pgSecView select,
 .nl-screen-medium .pgSecView input,
 .nl-screen-medium .pgSecView textarea,

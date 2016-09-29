@@ -272,9 +272,9 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/rno_modify.json', data);
     };
 
-    this.rnoDelete = function(rnoId) {
+    this.rnoDelete = function(role, rnoId) {
         // return: true/false
-        return server.post('_serverapi/rno_delete.json', {id: rnoId});
+        return server.post('_serverapi/rno_delete.json', {role: role, id: rnoId});
     };
 
     this.rnoGetData = function(rnoId, reportKey, metadata2) {

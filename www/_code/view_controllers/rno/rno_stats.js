@@ -630,7 +630,7 @@ function RnoStatsImpl(nl, nlDlg, nlExporter, _ratingInfo) {
             while(col < maxCol) {
                 ratingInfo.columnShown[col] = show;
                 if (show) {
-                    chartColumns.push(ratingInfo.columns[col]);
+                    chartColumns.push(_trim(ratingInfo.columns[col], 40));
                     chartData.push(ratingInfo.ratingAvgs[col]);
                 }
                 col++;
@@ -638,6 +638,8 @@ function RnoStatsImpl(nl, nlDlg, nlExporter, _ratingInfo) {
         }
         ratingInfo.chartData = [chartData];
         ratingInfo.chartColumns = chartColumns;
+        ratingInfo.chartOptions = {scaleOverride: true, scaleStartValue: 0, 
+            scaleStepWidth: 1, scaleSteps: _ratingInfo.getMaxRatings()};
     }
     
     function _updateRatingsList($scope, record, column) {
@@ -893,6 +895,10 @@ function RnoRatingInfo(nl, metadata) {
         var index = Math.round(v / maxRatings * 10);
         return _colors[index];
     };
+
+    this.getMaxRatings = function(v) {
+        return maxRatings;
+    };
     
     function _init() {
         var mratings = metadata.ratings || [];
@@ -937,6 +943,11 @@ function _formOption(options, defName) {
     for (var i=0; i<options.length; i++)
         ret.push({id: options[i], name: options[i]});
     return ret;
+}
+
+function _trim(str1, maxLen) {
+    if (str1.length < maxLen) return str1;
+    return str1.substring(0, maxLen-4) + ' ...';
 }
 
 module_init();

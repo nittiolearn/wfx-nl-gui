@@ -365,7 +365,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 		nlDlg.popupConfirm(msg).then(function(result) {
 			if (!result) return;
 			nlDlg.showLoadingScreen();
-			nlServerApi.rnoDelete(rnoId).then(function(status) {
+			nlServerApi.rnoDelete(_pageGlobals.role, rnoId).then(function(status) {
 				nlDlg.hideLoadingScreen();
 				if (!status) return;
 				if (rnoId in _rnoDict) delete _rnoDict[rnoId];
