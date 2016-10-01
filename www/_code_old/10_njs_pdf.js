@@ -92,7 +92,7 @@ Pdf.get = function(url) {
 //###########################################################################################
 // Class RenderQueue - all pdf elements to be rendered in one section are placed in one queue
 //###########################################################################################
-function RenderQueue(container, onCompleteFn) {
+function RenderQueue(container, onRenderDoneFn) {
 	//---------------------------------------------------------------------------------------
 	// Private data members - convention is to start the name with _
 	//---------------------------------------------------------------------------------------
@@ -112,7 +112,7 @@ function RenderQueue(container, onCompleteFn) {
 	//---------------------------------------------------------------------------------------
 	// Constructor code
 	//---------------------------------------------------------------------------------------
-	_RenderQueue_init(this, container, onCompleteFn);
+	_RenderQueue_init(this, container, onRenderDoneFn);
 }
 
 RenderQueue._pagesPerScroll = 3;
@@ -121,14 +121,15 @@ RenderQueue._pagesToKeep = 10;
 //-------------------------------------------------------------------------------------------
 // RenderQueue Methods
 //-------------------------------------------------------------------------------------------
-function _RenderQueue_init(self, container, onCompleteFn) {
-	self._onCompleteFn = onCompleteFn;
+function _RenderQueue_init(self, container, onRenderDoneFn) {
+	self._onRenderDoneFn = onRenderDoneFn;
 	self._heightEstimateDone = false;
 	container.find('.njs_pdf_holder').each(function() {
 		self._isInline = jQuery(this).hasClass('inline_obj');
 		var renderer = new PageRenderer(container, jQuery(this), self._isInline,
 		function() { // onRenderDoneFn
 			_RenderQueue_onRenderDone(self);
+            if (self._onRenderDoneFn) self._onRenderDoneFn();
 		},
 		function(height) { // onHeightEstimateFn
 			_RenderQueue_onHeightEstimate(self, height);
@@ -166,7 +167,7 @@ function _RenderQueue_onscroll(self) {
 	var totalHeight = self._container[0].scrollHeight;
 	var containerHeight = self._container.height();
 	var scrollMid = scrollTop + Math.floor(containerHeight/2);
-	var pageNo = Math.round(scrollMid / totalHeight * self._queue.length);
+	var pageNo = Math.floor(scrollMid / totalHeight * self._queue.length);
 	self._lastPageNo = _RenderQueue_findVisiblElementNearby(self, pageNo, containerHeight);
 	_RenderQueue_renderAroundPage(self);
 }

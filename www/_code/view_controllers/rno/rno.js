@@ -57,12 +57,12 @@ var _pageGlobals = {
 };
     
 //-------------------------------------------------------------------------------------------------
-var RnoParentViewCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv', 'nlResourceUploader',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploader) {
+var RnoParentViewCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv', 'nlResourceUploader', 'nlPrinter',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploader, nlPrinter) {
     var _rnoServer = new RnoServer(nl, nlServerApi, nlDlg, true);
     var _observationManager = new ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg);
     var _cards = {};
-    var _rnoReportManageForm = new RnoReportManageForm(nl, nlDlg, _rnoServer, _observationManager, _cards);
+    var _rnoReportManageForm = new RnoReportManageForm(nl, nlDlg, nlPrinter, _rnoServer, _observationManager, _cards);
 
     function _onPageEnter(userInfo) {
         nl.pginfo.hidemenu = true;
@@ -139,7 +139,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlRnoStats) {
 
 //-------------------------------------------------------------------------------------------------
 var RnoListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv', 'nlResourceUploader', 'nlPrinter',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploader,nlPrinter) {
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploader, nlPrinter) {
 	/* 
 	 * URLs handled
 	 * 'RNO Dashboard' : /rno_list?role=[observe|review|admin]&metadata=[metadataid]&title=[]

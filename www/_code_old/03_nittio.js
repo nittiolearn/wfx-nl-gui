@@ -631,11 +631,10 @@ nittio = function() {
 		});
 		
 		// Resize Videos
-		var safeMargin = 10;
 		elem.find('.reset_height').each(function() {
 			var resObj = jQuery(this);
 			var parent = resObj.parents('.aspect_wrt');
-			resObj.css({height: parent.height() - safeMargin});
+			resObj.css({height: parent.height()});
 		});
 	}
 

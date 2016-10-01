@@ -1378,13 +1378,10 @@ nlesson = function() {
 		if (secBehaviourCls != '') secBehaviourCls =  ' ' + secBehaviourCls;
 		var aspectWrt = pagetype.getAspectWrt(this.secNo) ? ' aspect_wrt' : '';
 		
-		var secString = njs_helper.fmt2('<div class="pgSecView{}" secNo="{}"/>', secBehaviourCls, this.secNo);
+        var secString = njs_helper.fmt2('<div class="pgSecView{}{}" secNo="{}"/>', aspectWrt, secBehaviourCls, this.secNo);
 		this.pgSecView = njs_helper.jobj(secString);
-		this.secViewContentHolder = njs_helper.jobj('<div class="secViewContentHolder row margin0 padding0"/>');
-		if (pagetype.getAspectWrt(this.secNo)) this.secViewContentHolder.addClass('aspect_wrt');
-		this.secViewContent = njs_helper.jobj('<div class="secViewContent col"/>');
-		this.secViewContentHolder.append(this.secViewContent);
-		this.pgSecView.append(this.secViewContentHolder);
+		this.secViewContent = njs_helper.jobj('<div class="secViewContent"/>');
+        this.pgSecView.append(this.secViewContent);
 		
 		var help;
 		if (this.lesson.renderCtx.launchMode() == 'report') {
@@ -1445,13 +1442,15 @@ nlesson = function() {
 	function Section_setViewHtml(htmlOrMarkup, bMarkup) {
 		this.valignMiddle = this.page.pagetype.isSectionValignMiddle(this.secNo);		
 		this.adjustFontSize = true;
+        this.isTxt = false;
 
-		var retData = {lessPara: true};
+		var retData = {};
 		var secHtml = bMarkup ? njs_lesson_markup.markupToHtml(htmlOrMarkup, retData) : htmlOrMarkup;
-		if (!bMarkup) {
+		if (!bMarkup || !retData.isTxt) {
 			this.valignMiddle = false;
-			this.adjustFontSize = false;
+            this.adjustFontSize = false;
 		}
+        this.isTxt = retData.isTxt;
 		this.secViewContent.html(secHtml);
 	}
 	
@@ -1468,17 +1467,14 @@ nlesson = function() {
 	}
 
 	function Section_adjustHtmlDom() {
+        njs_helper.valignMiddleAndSetScroll(this, this.valignMiddle, this.isTxt); // needed even in edit mode (for edit-gra mode)
+        var self = this;
 		if (this.lesson.renderCtx.lessonMode() != 'edit') {
 			if (this.pdfRenderQueue !== undefined) this.pdfRenderQueue.clear();
-			this.pdfRenderQueue = new njs_pdf.RenderQueue(this.secViewContentHolder);
+			this.pdfRenderQueue = new njs_pdf.RenderQueue(this.pgSecView, function() {
+                njs_helper.valignMiddleAndSetScroll(self, self.valignMiddle, self.isTxt);
+			});
 		}
-        if (this.valignMiddle) {
-            this.secViewContentHolder.removeClass('row-top');
-            this.secViewContentHolder.addClass('row-center');
-        } else {
-            this.secViewContentHolder.removeClass('row-center');
-            this.secViewContentHolder.addClass('row-top');
-        }
 		var adjustHtmlFn = this.page.pagetype.getSectionAdjustHtmlFn();
 		adjustHtmlFn(this);
 	}

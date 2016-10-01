@@ -117,6 +117,22 @@ function stopPropagation(event) {
 //-------------------------------------------------------------------------------------------
 // Helper used for resizing the text inside a section
 //-------------------------------------------------------------------------------------------
+function valignMiddleAndSetScroll(section, valignMiddle, isTxt) {
+    var outerHeight = section.pgSecView.innerHeight();
+    section.secViewContent.css({height: 'auto'});
+    var innerHeight = section.secViewContent.innerHeight();
+    var heightDiff = Math.round((outerHeight - innerHeight) / 2);
+
+    var overflow = heightDiff < -2 && isTxt ? 'scroll' : 'visible';
+    section.pgSecView.css('overflow-y', overflow);
+    
+    var cssProp  = {};
+    cssProp.top = (valignMiddle && overflow != 'scroll') ? heightDiff : 0;
+    cssProp.height = (cssProp.top == 0 && overflow != 'scroll') ? '100%' : 'auto';
+    cssProp.position = (section.secViewContent.find('.njs_pdf_holder').length > 0) ? 'static' : 'absolute';
+    section.secViewContent.css(cssProp);
+}
+
 var ERROR_MARGIN = 3; // Number of pixel error margin
 function findMinFontSizeOfGroup(section, textSizes, fmtgroup, minTextSize) {
 	var maxSize=(fmtgroup in textSizes) ? textSizes[fmtgroup] : 100;
@@ -147,16 +163,14 @@ function clearTextResizing(section) {
 
 function TextFitmentChecker(section) {
 	// Constructor
-	section.secViewContentHolder.css({height: '100%'});
-	var hOrig = section.secViewContentHolder.height();
-	var wOrig = section.secViewContentHolder.width();
-    section.secViewContentHolder.css({height: 'auto'});
-	
+	var hOrig = section.pgSecView.height();
+	var wOrig = section.pgSecView.width();
+
 	// Public Methods
 	this.doesItFit = function(textSize) {
 		var fsz = '' + textSize + '%';
-		section.secViewContent.css({'font-size': fsz});
-		var hNew = section.secViewContentHolder.height();
+		section.secViewContent.css({'font-size': fsz, 'height': 'auto'});
+		var hNew = section.secViewContent.height();
 		if (hNew > hOrig) return false;
 		
 		var wNew = _getChildMaxWidth(section.secViewContent);
@@ -177,7 +191,6 @@ function TextFitmentChecker(section) {
 	};
 
     this.cleanup = function() {
-        section.secViewContentHolder.css({height: '100%'});
     };
     
 	// Private Methods
@@ -1709,6 +1722,7 @@ return {
 	log: log,
 	copyToClipboard: copyToClipboard,
 	stopPropagation: stopPropagation,
+    valignMiddleAndSetScroll: valignMiddleAndSetScroll,
 	findMinFontSizeOfGroup: findMinFontSizeOfGroup,
 	resizeText: resizeText,
 	clearTextResizing: clearTextResizing,
