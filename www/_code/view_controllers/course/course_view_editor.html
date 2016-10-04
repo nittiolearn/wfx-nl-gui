@@ -3,7 +3,16 @@
 		padding: 8px;
 	}
 	.nl-time-input-div {
-		padding: 5px 3px 5px 9px;
+		padding: 5px 3px 5px 5px;
+	}
+
+	.nl-course-input{
+		border-radius: 4px;
+		background-color: #EEEEFF;
+		margin: 0;
+		min-height: 34px;
+		padding-left: 4px;
+		border-width: 0;
 	}
 
 	.nl-time-input {
@@ -25,8 +34,9 @@
 	.nl-dlg-course-help{
 		  background-color: #E5FF80;
 		  border-radius: 4px;
-		  padding: 10px;
-		  margin-left: 4px;
+		  padding: 5px;
+		  margin-right: 5px;
+		  margin-left: 2px;
 		  margin-top: 4px;
 		  box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 20px rgba(0,0,0,1);
 		  display: block;
@@ -38,12 +48,23 @@
 	}
 	
 	.nl-course-module-select{
-		padding-left: 8px;
+		padding-left: 6px;
 		padding-top: 4px;
 	}
 	
 	.nl-course-textarea{
-		padding: 5px;
+		border-radius: 4px;
+	}
+	
+	.nl-lessonlink-help{
+		  background-color: #E5FF80;
+		  border-radius: 4px;
+		  padding-top: 4px;
+		  padding-left: 4px;
+		  margin-left: 4px;
+		  margin-top: 10px;
+		  box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 20px rgba(0,0,0,1);
+		  display: block;
 	}
 </style>
 <div ng-show='ext.item.type == "module"' class='padding-mid fsh3'>
@@ -57,13 +78,13 @@
     </table>
 </div>
 <div ng-show='ext.item.id != "_root"' class='padding-mid'>
-	<div class='row row-center row-wrap margin0 padding-top' ng-repeat='attr in module_attributes' ng-if='attr.type !== "additional" && (ext.item.type == attr.fields ||  attr.fields =="all" || (ext.item.type !== "module" && attr.fields == "not_module") || ((ext.item.type == "info" || ext.item.type == "link") && attr.fields == "infolink"))'>
+	<div class='row row-center row-wrap margin0 padding-top' ng-repeat='attr in module_attributes' ng-if='attr.type !== "additional" && (ext.item.type == attr.fields[0] || ext.item.type == attr.fields[1] || ext.item.type == attr.fields[2] || ext.item.type == attr.fields[3])'>
 		<div ng-class='resp2Col33' class='nl-desc-padding'>{{attr.text||attr.name}}</div>
         <div ng-class='resp2Col67' 
         	 ng-if='attr.type === "date"' class='nl-time-input-div'>
         	 <div class='nl-time-input nl-link-text' 
         	 	  ion-datetime-picker ng-model="ext.item[attr.name]" 
-        	 	  ng-focus="focus=true" ng-blur="focus=false">
+        	 	  ng-focus="focus=showEditorHelp" ng-blur="focus=false">
                 <div class='row row-center margin0 padding0'>
                     <div class='col col-80 w100 nl-desc-padding'>{{ext.item[attr.name] | date: "yyyy-MM-dd"}}</div>
                     <i class='col col-20 icon ion-android-time nl-time-icon'></i>
@@ -76,9 +97,10 @@
 			</div>
 		</div>
 
-		<div ng-class='resp2Col67'
-        	 ng-if='attr.type === "readonly"'>
-			<input type='text' ng-model='ext.item[attr.name]' class='w100' readonly ng-focus="focus=true" ng-blur="focus=false">
+		<div ng-class='resp2Col67 '
+        	 ng-if='attr.type === "readonly"'
+        	 class='nl-time-input-div'>
+			<input ng-model='ext.item[attr.name]' class='w100 nl-course-input' readonly ng-focus="focus=showEditorHelp" ng-blur="focus=false">
 			<div ng-show='focus' class='row row-center nl-dlg-course-help'>
 				<div class='resp2Col100'>
 					{{attr.help}}
@@ -91,7 +113,7 @@
         	 class='nl-course-module-select'>
 		 	<select ng-model='ext.item[attr.name]' 
 					class='w100 nl-grade-search'
-		            ng-options='opt for opt in attr.values' ng-focus="focus=true" ng-blur="focus=false"> 
+		            ng-options='opt for opt in attr.values' ng-focus="focus=showEditorHelp" ng-blur="focus=false"> 
 		    </select>			    
 			<div ng-show='focus' class='row row-center nl-dlg-course-help'>
 				<div class='resp2Col100'>
@@ -100,8 +122,9 @@
 			</div>
 		</div>
 		<div ng-class='resp2Col67'
-        	 ng-if='attr.type === "string"'>
-			<input type='text' ng-model='ext.item[attr.name]' class='w100' ng-focus="focus=true" ng-blur="focus=false">
+        	 ng-if='attr.type === "string"'
+        	 class='nl-time-input-div'>
+			<input ng-model='ext.item[attr.name]' class='w100  nl-course-input' ng-focus="focus=showEditorHelp" ng-blur="focus=false">
 			<div ng-show='focus' class='row row-center nl-dlg-course-help'>
 				<div class='resp2Col100'>
 					{{attr.help}}
@@ -109,9 +132,19 @@
 			</div>
 		</div>
 
+        <div ng-class='resp2Col67' ng-if='attr.type === "boolean"' class='nl-time-input-div'>
+            <input type='checkbox' ng-model='ext.item[attr.name]' ng-focus="focus=showEditorHelp" ng-blur="focus=false"><span> Select checkbox to enable.</span>
+			<div ng-show='focus' class='row row-center nl-dlg-course-help'>
+				<div class='resp2Col100'>
+					{{attr.help}}
+				</div>
+			</div>
+        </div>
+
 		<div ng-class='resp2Col67'
-        	 ng-if='attr.type === "object"'>
-			<textarea rows="5" nl-course-json-text ng-model='ext.item[attr.name]' class='nl-course-textarea w100' ng-focus="focus=true" ng-blur="focus=false"></textarea>
+        	 ng-if='attr.type === "object"'
+        	 class='nl-time-input-div'>
+			<textarea rows="5" nl-object-to-json ng-model='ext.item[attr.name]' class='nl-course-textarea w100' ng-focus="focus=showEditorHelp" ng-blur="focus=false"></textarea>
 			<div ng-show='focus' class='row row-center nl-dlg-course-help'>
 				<div class='resp2Col100'>
 					{{attr.help}}
@@ -121,12 +154,12 @@
  
         <div ng-class='resp2Col67' 
         	 ng-if='attr.type === "lessonlink"'>
-            <div class='row row-center'>
-                <input class='col col-90 w100 nl-desc-padding nl-time-input' ng-model='ext.item[attr.name]' ng-focus="focus=true" ng-blur="focus=false">
+            <div class='row row-center padding0 margin0 nl-time-input'>
+                <input class='col col-90 w100 nl-desc-padding nl-course-input' ng-model='ext.item[attr.name]' ng-focus="focus=showEditorHelp" ng-blur="focus=false">
                 <i class='col col-10 icon ion-android-open nl-time-icon' ng-click='onLaunch($event, ext.item)'></i>
             </div>
-			<div ng-show='focus' class='row row-center nl-dlg-course-help'>
-				<div class='resp2Col100'>
+			<div ng-show='focus' class='row row-center padding0 margin0'>
+				<div class='resp2Col100 nl-lessonlink-help'>
 					{{attr.help}}
 				</div>
 			</div>
@@ -148,8 +181,9 @@
 		<div class='row row-center row-wrap margin0' ng-repeat='attr in additional_Attributes'>
 			<div ng-class='resp2Col33' class='nl-desc-padding'>{{attr.text||attr.name}}</div>
 			<div ng-class='resp2Col67'
-	        	 ng-if='attr.type === "additional"'>
-				<input type='text' ng-model='ext.item[attr.name]' class='w100' ng-focus="focus=true" ng-blur="focus=false">
+	        	 ng-if='attr.type === "additional"'
+	        	 class='nl-time-input-div'>
+				<input ng-model='ext.item[attr.name]' class='nl-course-input w100' ng-focus="focus=showEditorHelp" ng-blur="focus=false">
 				<div ng-show='focus' class='row row-center nl-dlg-course-help'>
 					<div class='resp2Col100'>
 						{{attr.help}}

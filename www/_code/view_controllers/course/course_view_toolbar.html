@@ -54,4 +54,29 @@
           ng-click='showPopup($event, ext.item)'>
         <i class="icon ion-arrow-expand"></i>
     </span>
+    <span title='toggle help'
+          ng-show='ext.isEditorMode()'
+          class='nl-toolbar-icon'
+          ng-click='toggleEditorHelp($event, ext.item)'>
+        <i ng-if='showEditorHelp' class="icon ion-minus-circled"></i>
+        <i ng-if='!showEditorHelp' class="icon ion-help-circled"></i>
+    </span>
+    <span title='delete module'
+          ng-show='ext.isEditorMode()'
+          class='nl-toolbar-icon'
+          ng-click='deleteCourseModule($event, ext.item)'>
+        <i class="icon fsh3 ion-android-delete"></i>
+    </span>
+    <span title='move up'
+          ng-show='ext.isEditorMode()'
+          class='nl-toolbar-icon'
+          ng-click='moveModuleUp($event, ext.item)'>
+        <i class="icon fsh3 ion-arrow-up-c"></i>
+    </span>
+    <span title='move down'
+          ng-show='ext.isEditorMode()'
+          class='nl-toolbar-icon'
+          ng-click='moveModuleDown($event, ext.item)'>
+        <i class="icon fsh3 ion-arrow-down-c"></i>
+    </span>
 </div>
