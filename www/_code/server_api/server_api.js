@@ -256,7 +256,7 @@ function(nl, nlDlg, nlConfig, Upload) {
     };
 
     this.rnoGetList = function(data) {
-        // data: metadata, role, search
+        // data: metadata, role, search, centre, user_type, section
         return server.post('_serverapi/rno_get_list.json', data);
     };
 
@@ -272,9 +272,9 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/rno_modify.json', data);
     };
 
-    this.rnoDelete = function(rnoId) {
+    this.rnoDelete = function(role, rnoId) {
         // return: true/false
-        return server.post('_serverapi/rno_delete.json', {id: rnoId});
+        return server.post('_serverapi/rno_delete.json', {role: role, id: rnoId});
     };
 
     this.rnoGetData = function(rnoId, reportKey, metadata2) {
@@ -282,6 +282,11 @@ function(nl, nlDlg, nlConfig, Upload) {
         var data = {id: rnoId, report_key: reportKey};
         if (metadata2) data.metadata2 = metadata2;
         return server.post('_serverapi/rno_get_data.json', data);
+    };
+
+    this.rnoGetDataList = function(data) {
+        // data: metadata, role, search, centre, user_type, section
+        return server.post('_serverapi/rno_get_data_list.json', data);
     };
 
     this.rnoGetData2 = function(rnoId, reportKey) {

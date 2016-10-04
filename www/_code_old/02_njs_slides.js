@@ -94,7 +94,7 @@ njs_slides = function() {
 	
 	function SlideSet_hidePage(page) {
 	    var props = {translateX: [-10000, 0], opacity: 0, 'z-index': ZINDEX_HIDE};
-        page.velocity('stop', true).velocity(props, 0);
+        page.velocity('finish', true).velocity(props, 0);
 	}
 
 	//----------------------------------------------------------------------------------

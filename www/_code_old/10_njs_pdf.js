@@ -92,7 +92,7 @@ Pdf.get = function(url) {
 //###########################################################################################
 // Class RenderQueue - all pdf elements to be rendered in one section are placed in one queue
 //###########################################################################################
-function RenderQueue(container, onCompleteFn) {
+function RenderQueue(container, onRenderDoneFn) {
 	//---------------------------------------------------------------------------------------
 	// Private data members - convention is to start the name with _
 	//---------------------------------------------------------------------------------------
@@ -102,19 +102,17 @@ function RenderQueue(container, onCompleteFn) {
 	this._renderOngoing = false;
 	this._lastPageNo = 0;
 	this._container = container;
-	this._scrollTimerRunning = false;
 	this._isInline = false;
 	
 	//---------------------------------------------------------------------------------------
 	// Public Methods
 	//---------------------------------------------------------------------------------------
 	this.clear = RenderQueue_clear;
-	this.onscroll = RenderQueue_onscroll;
 
 	//---------------------------------------------------------------------------------------
 	// Constructor code
 	//---------------------------------------------------------------------------------------
-	_RenderQueue_init(this, container, onCompleteFn);
+	_RenderQueue_init(this, container, onRenderDoneFn);
 }
 
 RenderQueue._pagesPerScroll = 3;
@@ -123,13 +121,15 @@ RenderQueue._pagesToKeep = 10;
 //-------------------------------------------------------------------------------------------
 // RenderQueue Methods
 //-------------------------------------------------------------------------------------------
-function _RenderQueue_init(self, container, onCompleteFn) {
-	self._onCompleteFn = onCompleteFn;
+function _RenderQueue_init(self, container, onRenderDoneFn) {
+	self._onRenderDoneFn = onRenderDoneFn;
+	self._heightEstimateDone = false;
 	container.find('.njs_pdf_holder').each(function() {
 		self._isInline = jQuery(this).hasClass('inline_obj');
 		var renderer = new PageRenderer(container, jQuery(this), self._isInline,
 		function() { // onRenderDoneFn
 			_RenderQueue_onRenderDone(self);
+            if (self._onRenderDoneFn) self._onRenderDoneFn();
 		},
 		function(height) { // onHeightEstimateFn
 			_RenderQueue_onHeightEstimate(self, height);
@@ -138,10 +138,14 @@ function _RenderQueue_init(self, container, onCompleteFn) {
 	});
 	
 	if (self._queue.length <= 0) return;
-	container.scroll(function(event) {
-		self.onscroll(event);
-	});
-	_RenderQueue_renderAroundPage(self, true);
+	container.off('scroll.njs_pdf_event');
+	container.on('scroll.njs_pdf_event', nittio.debounce(200, function(event) {
+        _RenderQueue_onscroll(self);
+	}));
+	_RenderQueue_renderAroundPage(self);
+    window.setTimeout(function() {
+        _RenderQueue_onscroll(self);
+    }, 0);
 }
 
 function RenderQueue_clear() {
@@ -153,20 +157,7 @@ function RenderQueue_clear() {
 	self._renderedPages = {};
 }
 
-function RenderQueue_onscroll(event) {
-	var self = this;
-
-	if (self._scrollTimerRunning) return;
-	self._scrollTimerRunning = true;
-
-	// Collect multiple scrolls into one scroll action
-	setTimeout(function() {
-		_RenderQueue_onscroll_impl(self, event);
-		self._scrollTimerRunning = false;
-	}, 100);
-}
-	
-function _RenderQueue_onscroll_impl(self, event) {
+function _RenderQueue_onscroll(self) {
 	/* 
 	 * onscroll: aifferent algorithms on finding the current element visible was
 	 * of each element was done but failed. The current one is the best available.
@@ -174,14 +165,46 @@ function _RenderQueue_onscroll_impl(self, event) {
 	 */
 	var scrollTop = self._container.scrollTop();
 	var totalHeight = self._container[0].scrollHeight;
-	var scrollMid = scrollTop + Math.floor(self._container.height()/2);
-	self._lastPageNo = Math.round(scrollMid / totalHeight * self._queue.length);
-	var moveDown = true;
-	console.log('pgNo: ' + self._lastPageNo);
-	_RenderQueue_renderAroundPage(self, moveDown);
+	var containerHeight = self._container.height();
+	var scrollMid = scrollTop + Math.floor(containerHeight/2);
+	var pageNo = Math.floor(scrollMid / totalHeight * self._queue.length);
+	self._lastPageNo = _RenderQueue_findVisiblElementNearby(self, pageNo, containerHeight);
+	_RenderQueue_renderAroundPage(self);
 }
 
-function _RenderQueue_renderAroundPage(self, moveDown) {
+var errorMargin = 10;
+function _RenderQueue_findVisiblElementNearby(self, pageNo, containerHeight) {
+    var low = 0 - errorMargin;
+    var high = containerHeight + errorMargin;
+    var pos = _RenderQueue_getElemPos(self, pageNo, low, high);
+    if (pos == 0) return pageNo;
+    if (pos > 0) {
+        var i=pageNo-1;
+        while(i > 0) {
+            var pos = _RenderQueue_getElemPos(self, i, low, high);
+            if (pos <= 0) return i; // <0 is overshot condition (no page in visible range)
+            i--;
+        }
+        return i;
+    }
+    var i=pageNo+1;
+    while(i < self._queue.length-1) {
+        var pos = _RenderQueue_getElemPos(self, i, low, high);
+        if (pos >= 0) return i; // >0 is overshot condition (no page in visible range)
+        i++;
+    }
+    return i;
+}
+
+function _RenderQueue_getElemPos(self, pageNo, low, high) {
+    var pageRenderer = self._queue[pageNo];
+    var top = pageRenderer._holder.position().top;
+    if (top < low) return -1;
+    if (top > high) return 1;
+    return 0;
+}
+
+function _RenderQueue_renderAroundPage(self) {
 	_RenderQueue_cleanupOtherPagesIfRequired(self);
 	
 	var minBound = self._lastPageNo - Math.ceil(RenderQueue._pagesPerScroll/2);
@@ -250,7 +273,8 @@ function _RenderQueue_onRenderDone(self) {
 }
 
 function _RenderQueue_onHeightEstimate(self, height) {
-	if (!self._isInline) return;
+	if (!self._isInline || self._heightEstimateDone) return;
+	self._heightEstimateDone = true;
 	for (var i=0; i<self._queue.length; i++) {
 		self._queue[i]._holder.css({'min-height': height});
 	}
@@ -293,7 +317,7 @@ function _PageRenderer_init(self, container, pdfHolder, isInline, onRenderDoneFn
     self._container = container;
     self._holder = pdfHolder;
     self._isInline = isInline;
-	self._neededWidth = container.width();
+	self._neededWidth = pdfHolder.width();
     self._url = pdfHolder.attr('njsPdfUrl');
     self._pageNum = parseInt(pdfHolder.attr('njsPdfPage'));
     self._scale = parseFloat(pdfHolder.attr('njsPdfScale'));
@@ -341,7 +365,7 @@ function PageRenderer_render() {
 }
 
 function _PageRenderer_renderImpl(self, statusBar) {
-	var scrollSize = 0.0;
+	var scrollSize = 30.0;
 	var pageCount = self._pdfObject.getPageCount();
 	if (self._pageNum < 1 || self._pageNum > pageCount) {
 		var msg = njs_helper.fmt2('<div>Error: cannot display page {} from a PDF containing {} pages</div>', 
@@ -353,7 +377,7 @@ function _PageRenderer_renderImpl(self, statusBar) {
 	self._pdfObject.getDocument().getPage(self._pageNum).then(function(page) {
 		var w = (self._neededWidth > scrollSize) ? self._neededWidth - scrollSize: self._neededWidth;
 		var viewport1 = page.getViewport(1.0);
-		var scaleAutoWidth = w / viewport1.width * self._scale * 0.95;
+		var scaleAutoWidth = w / viewport1.width * self._scale * 0.94;
 		
         var viewport = page.getViewport(scaleAutoWidth);
 		var canvas = jQuery('<canvas class="njs_pdf_canvas"/>');
@@ -363,11 +387,9 @@ function _PageRenderer_renderImpl(self, statusBar) {
 		njs_helper.switchoffContenxtMenu(canvas);
 		statusBar.done();
 
+        self._holder.find('.njs_pdf_canvas').remove();
 		self._holder.append(canvas);
-		if (self._onHeightEstimateFn) {
-			self._onHeightEstimateFn(viewport.height);
-			self._onHeightEstimateFn = null;
-		}
+		self._onHeightEstimateFn(viewport.height);
 		if (self._isInline) self._holder.css({'min-height': viewport.height});
         
         // Render PDF page into canvas context

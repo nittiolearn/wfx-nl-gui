@@ -16,8 +16,8 @@ $nlBlue3:                         #004455 !default; // Dark blue used in button 
  * GLOBAL STYLES
  * --------------------------------------------------------------------------------------------------------------------*/
 html, body {
-	width: 100%;
-	height: 100%;
+  width: 100%;
+  height: 100%;
   overflow: auto;
 }
 
@@ -25,13 +25,11 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  min-width: 300px;
-  min-height: 300px;
 }
 
 body {
-	position: relative;
-	line-height: 1;
+  position: relative;
+  line-height: 1;
 }
 
 html, body, .njsSlides div, .njsSlides span, .njsSlides applet, .njsSlides object, .njsSlides iframe,
@@ -47,12 +45,12 @@ html, body, .njsSlides div, .njsSlides span, .njsSlides applet, .njsSlides objec
 .njsSlides figure, .njsSlides figcaption, .njsSlides footer, .njsSlides header, .njsSlides hgroup,
 .njsSlides menu, .njsSlides nav, .njsSlides output, .njsSlides ruby, .njsSlides section, .njsSlides summary,
 .njsSlides time, .njsSlides mark, .njsSlides audio, .njsSlides video {
-	margin: 0;
-	padding: 0;
-	border: 0;
-	font-size: 100%;
-	font: inherit;
-	vertical-align: baseline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
 }
 
 body {
@@ -63,11 +61,11 @@ body {
  * Font definitions
  * --------------------------------------------------------------------------------------------------------------------*/
 body, .njsSlides, .njsSlides h1, .njsSlides h2, .njsSlides h3, .njsSlides h4, .njsSlides h5, .njsSlides h6 {
-	font-family: Verdana, Helvetica, Arial, sans-serif;
+  font-family: Verdana, Helvetica, Arial, sans-serif;
 }
 
 .btn {
-	margin-right: 5px;
+  margin-right: 5px;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
@@ -76,20 +74,20 @@ body, .njsSlides, .njsSlides h1, .njsSlides h2, .njsSlides h3, .njsSlides h4, .n
 
 /* Ensure certain elements are never larger than the slide itself */
 .njsSlides img, .njsSlides video, .njsSlides iframe {
-	max-width: 95%;
-	max-height: 95%;
+  max-width: 95%;
+  max-height: 95%;
 }
 
 .njsSlides iframe { z-index: 1;}
 
 .njsSlides a {
-	position: relative;
-	color: #000077;
+  position: relative;
+  color: #000077;
 }
 
 .njsSlides a:hover {
-	color: #000077;
-	text-decoration: underline;
+  color: #000077;
+  text-decoration: underline;
 }
 
 .njsSlides strong, .njsSlides b { font-weight: bold;}
@@ -97,95 +95,95 @@ body, .njsSlides, .njsSlides h1, .njsSlides h2, .njsSlides h3, .njsSlides h4, .n
 .njsSlides em, .njsSlides i { font-style: italic;}
 
 .njsSlides ol, .njsSlides ul {
-	display: inline-block;
-	text-align: left;
-	word-wrap: break-word;
-	margin-left: 1em;
+  display: inline-block;
+  text-align: left;
+  word-wrap: break-word;
+  margin-left: 1em;
 }
 
 .njsSlides ol>li {
-	-webkit-margin-start: 1em;
-	margin-left: 1em;
+  -webkit-margin-start: 1em;
+  margin-left: 1em;
 }
 
 .njsSlides ul>ol, .njsSlides ol>ol {
-	margin-left: 1.8em;
+  margin-left: 1.8em;
 }
 
 .njsSlides ol {
-	list-style-type: decimal;
+  list-style-type: decimal;
 }
 
 .njsSlides ul {
-	list-style-type: disc;
+  list-style-type: disc;
 }
 
 .njsSlides ul ul {
-	list-style-type: square;
+  list-style-type: square;
 }
 
 .njsSlides ul ul ul {
-	list-style-type: circle;
+  list-style-type: circle;
 }
 
 .njsSlides ul ul, .njsSlides ul ol, .njsSlides ol ol, .njsSlides ol ul {
-	display: block;
+  display: block;
 }
 
 .njsSlides p {
-	margin-bottom: 10px;
-	line-height: 1.2em;
-	word-wrap: break-word;
+  margin-bottom: 10px;
+  line-height: 1.2em;
+  word-wrap: break-word;
 }
 
 .njsSlides table th, .njsSlides table td {
-	text-align: left;
-	padding-right: .3em;
+  text-align: left;
+  padding-right: .3em;
 }
 
 .njsSlides table th {
-	font-weight: bold;
+  font-weight: bold;
 }
 
 .njsSlides small {
-	display: inline-block;
-	font-size: 0.6em;
-	line-height: 1.2em;
-	vertical-align: top;
+  display: inline-block;
+  font-size: 0.6em;
+  line-height: 1.2em;
+  vertical-align: top;
 }
 
 .njsSlides small * {
-	vertical-align: top;
+  vertical-align: top;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
  * HEADERS
  * --------------------------------------------------------------------------------------------------------------------*/
 .njsSlides h1, .njsSlides h2, .njsSlides h3, .njsSlides h4, .njsSlides h5, .njsSlides h6 {
-	margin: 0 0 15px 0;
-	line-height: 0.9em;
-	letter-spacing: 0.01em;
+  margin: 0 0 15px 0;
+  line-height: 0.9em;
+  letter-spacing: 0.01em;
 
-	-webkit-hyphens: auto;
-	   -moz-hyphens: auto;
-	        hyphens: auto;
+  -webkit-hyphens: auto;
+     -moz-hyphens: auto;
+          hyphens: auto;
 
-	word-wrap: break-word;
-	line-height: 1;
-	text-transform: none;
+  word-wrap: break-word;
+  line-height: 1;
+  text-transform: none;
 }
 
 .njsSlides h1 {
-	font-size: 375%;
-	text-shadow: 0 1px 0 #cccccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbbbbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaaaaa, 0 6px 1px rgba(0, 0, 0, 0.1), 0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3), 0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25), 0 20px 20px rgba(0, 0, 0, 0.15);
+  font-size: 375%;
+  text-shadow: 0 1px 0 #cccccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbbbbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaaaaa, 0 6px 1px rgba(0, 0, 0, 0.1), 0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3), 0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25), 0 20px 20px rgba(0, 0, 0, 0.15);
 }
 
-.njsSlides h2 { font-size: 200%	}
-.njsSlides h3 { font-size: 150%	}
-.njsSlides h4 { font-size: 100%	}
+.njsSlides h2 { font-size: 200% }
+.njsSlides h3 { font-size: 150% }
+.njsSlides h4 { font-size: 100% }
 
 input[type="file"] {
-	line-height: 0;
+  line-height: 0;
 }
 
 .select2-results, .select2-choices {
@@ -202,69 +200,69 @@ input[type="file"] {
 
 /* Complete page */
 .pagecanvas {
-	position: absolute;
-	top: 0;
-	left: 0;
-	bottom: 0;
-	right: 0;
-	width: auto;
-	height: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  width: auto;
+  height: auto;
 }
 
 @media print {
-	.pagecanvas {
-		display: none !important;
-	}
+  .pagecanvas {
+    display: none !important;
+  }
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
  * Main divisions inside pageCanvas: topBar, body, left and right navigators, toolBar
  * --------------------------------------------------------------------------------------------------------------------*/
 .topBar {
-	position: absolute;
-	left: 0;
-	top: 0;
-	height: 40px;
-	right: 0;
-	z-index: 11;
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 40px;
+  right: 0;
+  z-index: 11;
 }
 
 .topBar, .topBarBg .aspect_wrt {
-	background-color: #00A3CC;
-	font-size: 100%;
-	color: #ffffff;	
+  background-color: #00A3CC;
+  font-size: 100%;
+  color: #ffffff; 
 }
 
 .topBarBg .aspect_wrt {
-	border-radius: 8px;
+  border-radius: 8px;
 }
 
 .aspect_wrt {
-	background-size: contain;
-	background-position: center center;
-	background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center center;
+  background-repeat: no-repeat;
 }
 
 .aspect_wrt_with_imglink:hover {
-	box-shadow: 0 0 20px rgba(0, 0, 0, 0.55);
-	border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.55);
+  border-radius: 8px;
 }
 
 .aspect_wrt_with_imglink a {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .body {
-	position: absolute;
-	top: 42px;
-	left: 2px;
-	right: 2px;
-	bottom: 2px;
-	opacity: 0;
+  position: absolute;
+  top: 42px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  opacity: 0;
 }
 
 .embedded_player .body, .embedded_player .toolBar {
@@ -272,32 +270,32 @@ input[type="file"] {
 }
 
 .inner_body {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 a.enabled {
-	display: inline;
+  display: inline;
 }
 
 /*
  * ToolBar
  */
 .toolBar {
-	position: absolute;
-	top: 42px;
-	right: 2px;
-	max-height: 40px;
-	max-width: 99%;
-	text-align: right;
-	background-color: rgba(255, 255, 255, 0.7);
-	z-index: 12;
+  position: absolute;
+  top: 42px;
+  right: 2px;
+  max-height: 42px;
+  max-width: 99%;
+  text-align: right;
+  background-color: rgba(255, 255, 255, 0.7);
+  z-index: 12;
   overflow-x:hidden;
   overflow-y:auto;
-	width: auto;
+  width: auto;
   box-shadow: inset 0 0 5px #004455;
   display: none;
 }
@@ -322,122 +320,122 @@ a.enabled {
  * Elements inside topBar
  * --------------------------------------------------------------------------------------------------------------------*/
 .topBar #logo {
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	height: 40px;
-	width: 120px;
-	text-align: center;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  height: 40px;
+  width: 120px;
+  text-align: center;
 }
 
 .topBar > #menuArea {
-	position: absolute;
-	top: 0px;
-	right: 0px;
-	width: 120px;
-	text-align: right;
-	padding: 8px 2px;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 120px;
+  text-align: right;
+  padding: 8px 2px;
 }
 
 .topBar > #menuArea img {
-	margin-top: 4px;
-	width: 24px;
-	height: 24px;
+  margin-top: 4px;
+  width: 24px;
+  height: 24px;
 }
 
 .topBar > #header {
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	left: 124px;
-	right: 124px;
-	padding: 8px 4px;
-	font-size: 120%;
-	text-align: center;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 124px;
+  right: 124px;
+  padding: 8px 4px;
+  font-size: 120%;
+  text-align: center;
 }
 
 #header small {
-	font-size: 70%;
+  font-size: 70%;
 }
 
 #header small a {
-	color: #FFFF80;
+  color: #FFFF80;
 }
 
 #header small a:hover {
-	color: #FF8080;
+  color: #FF8080;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
  * Elements inside toolBar
  * --------------------------------------------------------------------------------------------------------------------*/
 .toolBar .toolbarIcon {
-	width: 36px;
-	height: 36px;
-	border-top-right-radius: 4px;
-	border-bottom-left-radius: 0;
-	border-bottom-right-radius: 4px;
-	display: inline-block;
+  width: 36px;
+  height: 36px;
+  border-top-right-radius: 4px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 4px;
+  display: inline-block;
 }
 
 .visible {
-	visibility: visible;
+  visibility: visible;
 }
 
 .sectiontoolbarIcon {
-	z-index: 11;
-	position: absolute;
-	top: -18px;
-	left: -18px;
-	line-height: 0 !important;
+  z-index: 11;
+  position: absolute;
+  top: -18px;
+  left: -18px;
+  line-height: 0 !important;
 }
 
 .sectiontoolbarIcon > img {
-	border-radius: 0;
+  border-radius: 0;
 }
 
 .toolBar .toolbarIcon > img, .sectiontoolbarIcon > img {
-	width: 24px;
-	height: 24px;
-	margin: 6px;
-	cursor:pointer;
+  width: 24px;
+  height: 24px;
+  margin: 6px;
+  cursor:pointer;
 }
 
 .toolBar .toolbarIcon > img:hover, .sectiontoolbarIcon > img:hover {
-	box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 5px rgba(0,0,0,1);
+  box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 5px rgba(0,0,0,1);
 }
 
 .toolBar .toolbarIcon.current {
-	background: white;
+  background: white;
 }
 
 .toolBar .toolbarIcon.current > img {
-	cursor: default;
-	box-shadow: none;
+  cursor: default;
+  box-shadow: none;
 }
 
 #countdown_timer {
-	position: absolute;
-	bottom: 45px;
-	right: 4px;
-	width: auto;
-	height: auto;
-	z-index: 11;
-	background-color: #004455;
-	color: #FFFFFF;
-	border: 2px solid #FFFFFF;
-	padding: 5px;
+  position: absolute;
+  bottom: 45px;
+  right: 4px;
+  width: auto;
+  height: auto;
+  z-index: 11;
+  background-color: #004455;
+  color: #FFFFFF;
+  border: 2px solid #FFFFFF;
+  padding: 5px;
 }
 
 #countdown_timer.hide_counter {
-	display: none;
+  display: none;
 }
 
 #countdown_timer.countdown_timer_warning {
-	display: inline;
-	font-size: 150%;
-	background-color: #800000;
+  display: inline;
+  font-size: 150%;
+  background-color: #800000;
 }
 
 #audioHolder {
@@ -474,7 +472,7 @@ a.enabled {
 }
 
 #pgNo {
-	padding: 8px 10px;
+  padding: 8px 10px;
   min-height: 36px;
   min-width: 36px;
 }
@@ -516,103 +514,103 @@ a.enabled {
 }
 
 #pgNo, #navigate_left, #navigate_right {
-	display: none;
+  display: none;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
  * onclick menu: login menu
  * --------------------------------------------------------------------------------------------------------------------*/
 #loginMenu {
-	position: absolute;
-	top: 45px;
-	width: 150px;
-	padding: 0;
+  position: absolute;
+  top: 45px;
+  width: 150px;
+  padding: 0;
 
-	background-color: #F5F5F5;
-	border-radius: 0px;
-	box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
-	
-	z-index: 21;
-	display: none;
+  background-color: #F5F5F5;
+  border-radius: 0px;
+  box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
+  
+  z-index: 21;
+  display: none;
 
-	right: 5px;	
+  right: 5px; 
 }
 .menuSrc {
-	cursor: pointer;
+  cursor: pointer;
 }
 
 .menuList {
-	padding: 8px;
+  padding: 8px;
 }
 
 .menuList img {
-	width: 90px;
-	height: 55px;
-	margin: 2px 0 0 0;
-	cursor:pointer;
-	border-bottom: #A090B0 solid 1px;
+  width: 90px;
+  height: 55px;
+  margin: 2px 0 0 0;
+  cursor:pointer;
+  border-bottom: #A090B0 solid 1px;
 }
 
 .menuList img:hover {
-	box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
+  box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
 }
 
 a.njsLink, span.njsLink {
-	cursor: pointer;
-	color: #000077;
-	display: inline;
+  cursor: pointer;
+  color: #000077;
+  display: inline;
 }
 
 a.njsLink:hover, span.njsLink:hover {
-	text-decoration:underline;
+  text-decoration:underline;
 }
 
 img.x16 {
-	height: 16px;
-	width: 16px;
+  height: 16px;
+  width: 16px;
 }
 
 .grey {
-	color: #333333;
+  color: #333333;
 }
 
 .green {
-	color: #40C040;
+  color: #40C040;
 }
 
 a.green, .njsSlides a.green {
-	color: #40C040;
-	text-decoration:underline;	
+  color: #40C040;
+  text-decoration:underline;  
 }
 
 a.green:hover, .njsSlides a.green:hover  {
-	color: #009000;
-	font-weight: 900;
+  color: #009000;
+  font-weight: 900;
 }
 
 .maroon {
-	color: #C04040;
+  color: #C04040;
 }
 
 .yellow {
-	color: #FFAA00;
+  color: #FFAA00;
 }
 
 .autovscroll {
-	position: absolute;
-	height: 100%;
-	width: 100%;
-	overflow-y:auto;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  overflow-y:auto;
 }
 /*----------------------------------------------------------------------------------------------------------------------
  * Status box, Warning box
  * --------------------------------------------------------------------------------------------------------------------*/
 .popupBox {
-	position: absolute;
-	opacity: 0;
-	z-index: 23;
+  position: absolute;
+  opacity: 0;
+  z-index: 23;
   box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
-	display: none; 
+  display: none; 
 }
 
 #statusBox, #statusBoxFixed {
@@ -621,9 +619,9 @@ a.green:hover, .njsSlides a.green:hover  {
   bottom: 8px;
   padding: 8px;
   box-sizing: border-box;
-	max-width: 96%;
-	height: 0;
-	color: #ffffff;
+  max-width: 96%;
+  height: 0;
+  color: #ffffff;
   font-size: 90%;
   background: #004455;
   text-overflow: ellipsis;
@@ -635,35 +633,35 @@ a.green:hover, .njsSlides a.green:hover  {
  * Search Page: Search Bar
  * --------------------------------------------------------------------------------------------------------------------*/
 .searchForm {
-	position: absolute;
-	text-align: left;
-	margin: 0;
-	padding: 0;
-	border-spacing: 0;
+  position: absolute;
+  text-align: left;
+  margin: 0;
+  padding: 0;
+  border-spacing: 0;
 
-	height: 2.5em;
-	width: 100%;
-	top: 0;
-	left: 0;
-	z-index: 11;
+  height: 2.5em;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 11;
 }
 
 .searchForm > table {
-	width: 100%;
-	margin: 0;
-	padding: 0;
-	border-spacing: 0;
-	vertical-align: middle;
-	display: inline-block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border-spacing: 0;
+  vertical-align: middle;
+  display: inline-block;
 }
 
 .searchForm td {
-	padding: 0 0;
-	vertical-align: middle;	
+  padding: 0 0;
+  vertical-align: middle; 
 }
 
 .searchForm input, .searchForm span, .searchForm select, .searchForm button {
-	margin: 0 2px;
+  margin: 0 2px;
 }
 
 .searchForm button {
@@ -671,484 +669,495 @@ a.green:hover, .njsSlides a.green:hover  {
 }
 
 .searchForm input {
-	width: 98%;
-	height: 30px;
+  width: 98%;
+  height: 30px;
 }
 
 .searchForm .res {
-	white-space: nowrap; 
+  white-space: nowrap; 
   background-color: #CCCCDD;
-	padding: 0 5px;
+  padding: 0 5px;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
  * Search Page: Search Results
  * --------------------------------------------------------------------------------------------------------------------*/
 .searchResults {
-	position: absolute;
-	left: 0;
-	top: 2.5em;
-	width: 100%;	
-	bottom: 0;
+  position: absolute;
+  left: 0;
+  top: 2.5em;
+  width: 100%;  
+  bottom: 0;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
  * Multi page icon list: njsPagedList, njsPagedItem
  * --------------------------------------------------------------------------------------------------------------------*/
 .njsPagedList {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	min-height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
 }
 
 .njsPagedList table {
-	text-align: center;
-	vertical-align: middle;
-	height: 100%;
-	width: 100%;
+  text-align: center;
+  vertical-align: middle;
+  height: 100%;
+  width: 100%;
 }
 
 .njsPagedList td {
-	vertical-align: middle;
+  vertical-align: middle;
 }
 
 .njsPagedItem .iconview {
-	text-align: center;
-	height: 200px;
-	width: 300px;
-	margin: auto;
-	font-size: 35%;
-	border-radius: 4px;
-	line-height: 175%;
-	box-shadow: inset 0 0 0 rgba(170,170,255,0.1), 0 0 20px rgba(128,128,255,0.8);
-	position: relative;
+  text-align: center;
+  height: 200px;
+  width: 300px;
+  margin: auto;
+  font-size: 35%;
+  border-radius: 4px;
+  line-height: 175%;
+  box-shadow: inset 0 0 0 rgba(170,170,255,0.1), 0 0 20px rgba(128,128,255,0.8);
+  position: relative;
     background-color: #FFFFFF;
 }
 
 .njsPagedItem .iconview:hover {
-	box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
+  box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 30px rgba(0,0,0,1);
 }
 
 .iconview.create {
-	background: #CCCCFF;	
+  background: #CCCCFF;  
 }
 
 .iconview.select {
-	background: #CCFFFF;	
+  background: #CCFFFF;  
 }
 
 .iconview.dummy, .iconview.dummy:hover {
-	box-shadow: none;
+  box-shadow: none;
     background-color: transparent;
 }
 
 .iconview > .bgImg {
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: 100%;
-	height: 100%;
-	border-radius: 4px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
 }
 
 .iconview b {
-	font-size: 95%;
+  font-size: 95%;
 }
 
 .iconview > .title {
-	position: absolute;
-	left: 8px;
-	right: 8px;
-	top: 8px;
-	height: 24px;
-	font-size: 140%;
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 8px;
+  height: 24px;
+  font-size: 140%;
 }
 
 .iconview > .icon {
-	position: absolute;
-	top: 52px;
-	left: 8px;
-	height: 100px;
-	width: 100px;
+  position: absolute;
+  top: 52px;
+  left: 8px;
+  height: 100px;
+  width: 100px;
 }
 
 .iconview > .desc {
-	position: absolute;
-	top: 40px;
-	left: 116px;
-	height: 125px;
-	width: 176px;
-	font-size: 110%;
-	text-align: left;
+  position: absolute;
+  top: 40px;
+  left: 116px;
+  height: 125px;
+  width: 176px;
+  font-size: 110%;
+  text-align: left;
 }
 
 .iconview > .links {
-	position: absolute;
-	height: 25px;
-	bottom: 2px;
-	left: 8px;
-	right: 8px;
-	font-size: 120%;
+  position: absolute;
+  height: 25px;
+  bottom: 2px;
+  left: 8px;
+  right: 8px;
+  font-size: 120%;
 }
 
 .icon > a{
-	display: block;
-	height: 100%;
-	width: 100%;
+  display: block;
+  height: 100%;
+  width: 100%;
 }
 
 .icon > a > img{
-	position: absolute;
-	display: block;
-	// Commented below to keep the aspect ratio in place		
-	//height: 100%;
-	//width: 100%;
+  position: absolute;
+  display: block;
+  // Commented below to keep the aspect ratio in place    
+  //height: 100%;
+  //width: 100%;
 }
 
 .iconview.summaryreport {
-	background: #E5E5FF;	
+  background: #E5E5FF;  
 }
 
 .njsPagedItem .moreview {
-	display: none;
+  display: none;
 }
 
 .moreImgCls {
-	background-color:#00A3CC;
+  background-color:#00A3CC;
 } 
 
 .njsMoreTable {
-	width: 100%;
+  width: 100%;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
  * Rendering report view and SVG elements inside d3.js
  * --------------------------------------------------------------------------------------------------------------------*/
 .report > .icon {
-	display:none;
-	
+  display:none;
+  
 }
 .report > .desc {
-	position: absolute;
-	top: 25px;
-	left: 8px;
-	height: 175px;
-	width: 276px;
-	font-size: 110%;
-	text-align: left;
+  position: absolute;
+  top: 25px;
+  left: 8px;
+  height: 175px;
+  width: 276px;
+  font-size: 110%;
+  text-align: left;
 }
 
 .axis path {
-	fill: none;
+  fill: none;
     stroke: black;
     shape-rendering: crispEdges;
 }
 .axis line  {
     fill: none;
     stroke: black;
-    shape-rendering: crispEdges;	
+    shape-rendering: crispEdges;  
 }
 .axis text  {
-font-size: 70%;	
+font-size: 70%; 
 }
 .rectGroup text {
 font-size: 80%;
 }
 
 .summarizedreports {
-	position: absolute;
-	left: 0;
-	top: 2.5em;
-	width: 100%;	
-	bottom: 0;		
+  position: absolute;
+  left: 0;
+  top: 2.5em;
+  width: 100%;  
+  bottom: 0;    
 }
-	
+  
 .selectionForReport {
-	position: absolute;
-	text-align: left;
-	margin: 0;
-	padding: 0;
-	border-spacing: 0;
-	height: 2.5em;
-	width: 100%;
-	top: 0;
-	left: 0;	
-	vertical-align: middle;
-	display: inline-block;
+  position: absolute;
+  text-align: left;
+  margin: 0;
+  padding: 0;
+  border-spacing: 0;
+  height: 2.5em;
+  width: 100%;
+  top: 0;
+  left: 0;  
+  vertical-align: middle;
+  display: inline-block;
 }
 .selectionForReport td {
-	padding: 0 5px;
-	vertical-align: middle;	
+  padding: 0 5px;
+  vertical-align: middle; 
 }
 
 td.submitselection{
-	padding: 0 5px;
-	vertical-align: top;
+  padding: 0 5px;
+  vertical-align: top;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
  * page organizer stuff
  * --------------------------------------------------------------------------------------------------------------------*/
 #page_org > div {
-	position: absolute;
+  position: absolute;
 }
 
 #page_org_content {
-	position: absolute;
-	left: 1%;
-	width: 96%;
-	top: 1%;
-	bottom: 0;
+  position: absolute;
+  left: 1%;
+  width: 96%;
+  top: 1%;
+  bottom: 0;
 }
 
 #page_org_header {
-	position: absolute;
-	top: 0;
-	bottom: 90px;
-	width: 100%;
+  position: absolute;
+  top: 0;
+  bottom: 90px;
+  width: 100%;
 }
 
 #page_org_body {
-	position: absolute;
-	top: 90px;
-	bottom: 0;
-	width: 100%;
-	overflow: auto; 
+  position: absolute;
+  top: 90px;
+  bottom: 0;
+  width: 100%;
+  overflow: auto; 
 }
 
 #page_org table {
-	width: 100%;
-	vertical-align: top;
+  width: 100%;
+  vertical-align: top;
 }
 
 #page_org td {
-	vertical-align: top;
-	padding: 5px;
-	text-align: right;
+  vertical-align: top;
+  padding: 5px;
+  text-align: right;
 }
 
 #page_org td.done {
-	text-align: center;
+  text-align: center;
 }
 
 #page_org td.more {
-	width: 90%;
-	text-align: left;
-	padding-left: 10px;
+  width: 90%;
+  text-align: left;
+  padding-left: 10px;
 }
 
 #page_org td.maxScore {
-	padding-right: 30px;
+  padding-right: 30px;
 }
 
 #page_org tr{
-	border-bottom: 1px groove black;
+  border-bottom: 1px groove black;
 }
 
 #page_org tr.normal:hover{
-	background-color: #EFDFFF;
+  background-color: #EFDFFF;
 }
 
 #page_org tr.selected, #page_org tr.selected:hover {
-	background-color: #AAAAFF;
+  background-color: #AAAAFF;
 }
 
 #page_org .bold {
-	font-weight:900;
+  font-weight:900;
 }
-	
+  
 #page_org .normal {
-	font-weight:400;
+  font-weight:400;
 }
 
 .horiz_space {
-	height: 10px;
+  height: 10px;
 }
 
 .njs_dialog_toolbar {
-	box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
-	border-radius: 4px;
+  box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+  border-radius: 4px;
 }
 
 .njs_dialog_toolbar > img {
-	margin: 5px;
-	width: 24px;
-	height: 24px;
-	border-radius: 4px;
+  margin: 5px;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
 }
 
 .njs_dialog_toolbar > img:hover {
-	box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+  box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
 }
 
 #blankScreen {
-	position: fixed;
-	left: 0;
-	top: 0%;
-	width: 100%;
-	height: 100%;
-	z-index: -100;
-	opacity: 0;
-	background: rgba(0, 0, 0, 0.4);
-	text-align: left;
+  position: fixed;
+  left: 0;
+  top: 0%;
+  width: 100%;
+  height: 100%;
+  z-index: -100;
+  opacity: 0;
+  background: rgba(0, 0, 0, 0.4);
+  text-align: left;
 }
 
 #blankScreen > img {
-	position: relative;
-	top: 50%;
-	left: 50%;
-	transform: translateY(-50%) translateX(-50%);
-	opacity: 0;
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translateY(-50%) translateX(-50%);
+  opacity: 0;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
  * slideset level
  * --------------------------------------------------------------------------------------------------------------------*/
 .njsSlides {
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: 100%;
-	height: 100%;
-	min-height: 100%;
-	max-width: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  max-width: 100%;
 
-	font-size: 36px;
-	font-weight: 200;
-	-ms-touch-action: none;
+  font-size: 36px;
+  font-weight: 200;
+  -ms-touch-action: none;
 
-	overflow: visible;
-	z-index: 1;
-	text-align: center;
+  overflow: visible;
+  z-index: 1;
+  text-align: center;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
  * page level
  * --------------------------------------------------------------------------------------------------------------------*/
 .njsSlides > section {
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: 100%;
-	height: 100%;
-	padding: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
 
-	z-index: 10;
-	line-height: 1.2em;
-	font-weight: inherit;
+  z-index: 10;
+  line-height: 1.2em;
+  font-weight: inherit;
 }
 
-.njsSlides > section > .pgHolder {		
-	position: absolute;
-	left: 4%;
-	top: 6%;
-	width: 92%;
-	height: 86%;
-	padding: 0;
+.njsSlides > section > .pgHolder {    
+  position: absolute;
+  left: 4%;
+  top: 6%;
+  width: 92%;
+  height: 86%;
+  padding: 0;
 }
 
 .njsSlides > section > .pgMask {
-	position: absolute;
-	left: 0;
-	top: 0;
-	right: 0;
-	bottom: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
 }
 
 .njsSlides > section > .bgimg {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	margin: 0;
-	border: 0;
-	padding: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  padding: 0;
   box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
-	z-index: -1;
-	outline: none;
+  z-index: -1;
+  outline: none;
 }
 
 .njsSlides > section img {
-	max-width: 100%;
-	max-height: 100%;
-	text-align: center;
+  max-width: 100%;
+  max-height: 100%;
+  text-align: center;
 }
 
 div.njs_pdf_holder {
-	overflow:auto; 
-	height: 100%;
-	line-height: 0;
-	text-align: center;
-}	
+  overflow:auto; 
+  height: 100%;
+  line-height: 0;
+  text-align: center;
+} 
 
 div.njs_pdf_holder.inline_obj {
-	overflow: visible; 
-	height: auto;
-}	
+  overflow: visible; 
+  height: auto;
+} 
 
 .njs_pdf_holder .njs_pdf_waiting {
-	text-align: center;
-	border-radius: 8px;	
-	padding: 8px;
-	box-sizing: border-box;
-	font-size: 60%;
-	line-height: normal;
+  text-align: center;
+  border-radius: 8px; 
+  padding: 8px;
+  box-sizing: border-box;
+  font-size: 60%;
+  line-height: normal;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
  * section level
  * --------------------------------------------------------------------------------------------------------------------*/
 .pgSec, .pgSec textarea {
-	font-weight: 900;
+  font-weight: 900;
 }
 
 .pgSec * {
-	text-align: inherit;
+  text-align: inherit;
 }
 
 .pgSec {
-	font-size: 2em;
-	display: table;
+  font-size: 2em;
+  display: table;
 }
 
 .pgSec .pgSecLineContainer {
-	position: absolute;
-	top: -2px;
-	left: -2px;
-	height: 1px;
-	width: 1px;
-	pointer-events: none;
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  height: 1px;
+  width: 1px;
+  pointer-events: none;
 }
 
 .pgSec textarea {
-	position: absolute;
-	font-size: 0.6em;
-	font-family: inherit;
-	font-weight: inherit;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background: none;
-	border-style: none;
-	box-sizing: border-box;
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
-	opacity: 0.8;
-	line-height: 100%;
-	text-align: inherit;
-	vertical-align: inherit;
-	resize: none;
-	display: none;
+  position: absolute;
+  font-size: 0.6em;
+  font-family: inherit;
+  font-weight: inherit;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: none;
+  border-style: none;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  opacity: 0.8;
+  line-height: 100%;
+  text-align: inherit;
+  vertical-align: inherit;
+  resize: none;
+  display: none;
 }
 
 div.pgSecView {
-	font-size: 1em;
-	display: none;
+  font-size: 1em;
+  display: none;
+  overflow-y: visible;
+}
+
+div.secViewContent {
+  width: 100%;
+  font-size: 100%;
+  line-height: 100%;
+  /* Will be changed by valignMiddleAndSetScroll */
+  top: 0; /* Is more than 0 if valign middle */
+  height: auto; /* Is 100% if no scrollbar and valign top */
+  position: absolute; /* Is 'static' if inline pdf is there (for page scrolling) */
 }
 
 /* nl_no_select is an optional group specific CSS class */
@@ -1160,106 +1169,106 @@ div.pgSecView {
 }
 
 .pgSecView .questionnaire, .pgSecView select {
-	width: 100%;
-	font-size: 60%;
-	line-height: 100%; 
-	box-sizing: border-box;
-	position: absolute;
-	max-height: 100%;
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
+  width: 100%;
+  font-size: 60%;
+  line-height: 100%; 
+  box-sizing: border-box;
+  position: absolute;
+  max-height: 100%;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
 }
 
 .pgSecView input {
-	width: 100%;
-	font-size: 40%;
-	line-height: 100%; 
+  width: 100%;
+  font-size: 40%;
+  line-height: 100%; 
 }
 
 .pgSecView select {
-	padding: 0;
-	border: none;
-	outline: none;
+  padding: 0;
+  border: none;
+  outline: none;
 }
 
 .pgSecView textarea.questionnaire {
-	opacity: 1;
-	border-radius: 3px;
+  opacity: 1;
+  border-radius: 3px;
 }
 
 .pgSecView select.multiple, textarea.questionnaire {
-	display: block;
-	position: absolute;
-	top: 0;
-	left: 0;
-	height: 100%;
-	overflow-y:auto;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  overflow-y:auto;
 }
 
 .pgSecView div.questionnaire.report {
-	padding: 4px;
-	border-radius: 4px;
-	height: 100%;
-	overflow-y:auto;
+  padding: 4px;
+  border-radius: 4px;
+  height: 100%;
+  overflow-y:auto;
 }
 
 .pgSecView.beh_interactive {
-	border-radius: 8px;
-	cursor: pointer;
-	box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 10px rgba(200,200,200,1);
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 10px rgba(200,200,200,1);
 }
 
 .pgSecView.beh_desc  {
   border-radius: 8px;
   overflow: auto;
-	font-size: 0.6em;
-	line-height: 100%;
+  font-size: 0.6em;
+  line-height: 100%;
   text-align: left;
 }
 
 div.positionInOrder {
-	position: absolute;
-	top: -5px;
-	left: -5px;
-	width: auto;
-	height: auto;
-	color: #FFFFFF;
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  width: auto;
+  height: auto;
+  color: #FFFFFF;
   background-color: #005580;
 
   border: 1px solid #FFFFFF;
-	border-radius: 50%;
+  border-radius: 50%;
 
-	text-align: center;
-	padding: 0 8px;
+  text-align: center;
+  padding: 0 8px;
   font-size:40%;
-	line-height: 200%;
-	z-index: 1;
+  line-height: 200%;
+  z-index: 1;
 
   cursor: pointer;
   text-decoration:none;
 }
 
 .mode_report .pgSecView {
-	cursor: default;
-	text-decoration: none;
+  cursor: default;
+  text-decoration: none;
 }
 
 .mode_report .pgSecView.beh_fill, .mode_report .pgSecView.beh_mark_matchselect {
-	cursor: pointer;
-	box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 10px rgba(200,200,200,1);
+  cursor: pointer;
+  box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 10px rgba(200,200,200,1);
 }
 
 .mode_report .pgSecView.beh_fill:hover, .mode_report .pgSecView.beh_mark_matchselect:hover {
-	box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 20px rgba(255,255,255,1);
+  box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 20px rgba(255,255,255,1);
 }
 
 .mode_report.bglight .pgSecView.beh_fill, .mode_report.bglight .pgSecView.beh_mark_matchselect {
-	cursor: pointer;
-	box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 10px rgba(50,50,50,1);
+  cursor: pointer;
+  box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 10px rgba(50,50,50,1);
 }
 
 .mode_report.bglight .pgSecView.beh_fill:hover, .mode_report.bglight .pgSecView.beh_mark_matchselect:hover {
-	box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 20px rgba(0,0,0,1);
+  box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 20px rgba(0,0,0,1);
 }
 
 div.line {
@@ -1271,56 +1280,51 @@ div.line {
 }
 
 div.pgSecView.selected, div.pgSecView.last_selected, textarea.selected {
-	border-color: inherit;
-	border-style: solid;
-	background-color: #000077;
-	color: #FFFFFF;
+  border-color: inherit;
+  border-style: solid;
+  background-color: #000077;
+  color: #FFFFFF;
 }
 
 div.pgSecView.answer_right {
-	background-color: #007700;
-	color: #FFFFFF;
+  background-color: #007700;
+  color: #FFFFFF;
 }
 
 div.pgSecView.answer_wrong {
-	background-color: #770000;
-	color: #FFFFFF;
+  background-color: #770000;
+  color: #FFFFFF;
 }
 
 .template_error_button {
-	background-color: #FF0000;
-	color: #FFFFFF;
-	padding: 5px;
+  background-color: #FF0000;
+  color: #FFFFFF;
+  padding: 5px;
 }
 
 div.pgSecView.answer_right.bright {
-	background-color: #00FF00;
-	color: #FFFFFF;
+  background-color: #00FF00;
+  color: #FFFFFF;
 }
 
 div.pgSecView.answer_wrong.bright {
-	background-color: #FF0000;
-	color: #FFFFFF;
+  background-color: #FF0000;
+  color: #FFFFFF;
 }
 
 .pgSecView ul, .pgSecView ol  {
-	width: 85%;
+  width: 85%;
 }
 
 .pgSec textarea:focus {
-	opacity: 1;
-	z-index: 1;
+  opacity: 1;
+  z-index: 1;
 }
 
 .pgSec iframe, .pgSec audio, .pgSec video {
-	width: 100%;
-	max-width: 100%;
-	max-height: 100%;
-}
-
-.pgSec iframe {
-  position: absolute;
-  height: 100%;
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .pgPropAudio .voiceButton {
@@ -1336,126 +1340,126 @@ div.pgSecView.answer_wrong.bright {
 }
 
 .error {
-	color: red;
-	padding: 5px;
-	margin-bottom: 10px;
+  color: red;
+  padding: 5px;
+  margin-bottom: 10px;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
  * MathJax specific css
  * --------------------------------------------------------------------------------------------------------------------*/
 .MathJax span {
-	clip: auto !important;
-	pointer-events: none;
+  clip: auto !important;
+  pointer-events: none;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
  * Text overflow handling
  * --------------------------------------------------------------------------------------------------------------------*/
 .textellipsis {
-	white-space: nowrap;
-	text-overflow: ellipsis;
-	overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .textclip {
-	text-overflow: clip;
-	overflow: hidden;
+  text-overflow: clip;
+  overflow: hidden;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
  * Dialog boxes and forms
  * --------------------------------------------------------------------------------------------------------------------*/
 .njsDialog {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	right: 50%;
-	bottom: 50%;
-	display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  right: 50%;
+  bottom: 50%;
+  display: none;
   box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
-	text-align: center;
-	z-index: 22;
+  text-align: center;
+  z-index: 22;
 }
 
 .moveBehindBlankScreen {
-	/* applied to .njsDialog when another popup has to appear */
-	z-index: 19;
+  /* applied to .njsDialog when another popup has to appear */
+  z-index: 19;
 }
 
 .njsForm {
-	position: absolute;
-	top: 10px;
-	left: 10px;
-	right: 10px;
-	bottom: 10px;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
   box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
-	text-align: center;
-	z-index: 12;
+  text-align: center;
+  z-index: 12;
   background-color: #FFFFFF;
 }
 
 .njsDialogTitle {
-	position: absolute;
-	top: 1px;
-	left: 1px;
-	right: 1px;
-	width: auto;
-	height: 32px;
-	background-color: #00A3CC;
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  right: 1px;
+  width: auto;
+  height: 32px;
+  background-color: #00A3CC;
 }
 
 .njsDialogTitle > div {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 64px;
-	height: 100%;
-	text-align: center;
-	margin: 8px;
-	color: #FFFFFF;
-	font-size: 120%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 64px;
+  height: 100%;
+  text-align: center;
+  margin: 8px;
+  color: #FFFFFF;
+  font-size: 120%;
 }
 
 .njsDialogFields {
-	position: absolute;
-	top: 33px;
-	bottom: 41px;
-	left: 1px;
-	right: 1px;
-	background: #FFFFFF;
-	overflow:auto;
-	text-align: left;
+  position: absolute;
+  top: 33px;
+  bottom: 41px;
+  left: 1px;
+  right: 1px;
+  background: #FFFFFF;
+  overflow:auto;
+  text-align: left;
 }
 
 .njsDialogFields > div {
-	margin: 1%;
-	width: 98%;
+  margin: 1%;
+  width: 98%;
 }
 
 .njsDialogFields > table {
-	text-align: center;
-	margin: 1%;
-	width: 98%;
+  text-align: center;
+  margin: 1%;
+  width: 98%;
 }
 
 .njsDialogButtons {
-	position: absolute;
-	bottom: 1px;
-	left: 1px;
-	right: 1px;
-	width: auto;
-	height: 40px;
-	text-align: right;
-	border-top: 1px solid #004455;
-	background: #FFFFFF;
+  position: absolute;
+  bottom: 1px;
+  left: 1px;
+  right: 1px;
+  width: auto;
+  height: 40px;
+  text-align: right;
+  border-top: 1px solid #004455;
+  background: #FFFFFF;
 }
 
 .njsDialogButtons button {
-	text-align: center;
-	margin: 4px;
-	color: #FFFFFF;
-	background: #004455;
+  text-align: center;
+  margin: 4px;
+  color: #FFFFFF;
+  background: #004455;
   text-shadow: none;
   border-radius: 0;
 }
@@ -1467,60 +1471,60 @@ div.pgSecView.answer_wrong.bright {
 
 .njsDialogButtons button:active, .njsDialogButtons button:focus {
   color: #FFFFFF;
-	background: #00A3CC;
+  background: #00A3CC;
   box-shadow: inset 0 0 10px #004455, 0 0 5px #004455;
 }
 
 .njsDialogHelp {
-	display: none;
-	width: auto;
-	z-index: 22;
+  display: none;
+  width: auto;
+  z-index: 22;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
  * Dialog box fields
  * --------------------------------------------------------------------------------------------------------------------*/
 .arrow {
-	position: relative;
-	left: 20px;
-	top: 0;
-	height: 0;
-	width: 0;
-	border-bottom: 10px solid #E5FF80;
-	border-left: 10px dotted transparent;
-	border-right: 10px dotted transparent;
+  position: relative;
+  left: 20px;
+  top: 0;
+  height: 0;
+  width: 0;
+  border-bottom: 10px solid #E5FF80;
+  border-left: 10px dotted transparent;
+  border-right: 10px dotted transparent;
 }
 
 .callout {
-	position: relative;
-	left: 0;
-	top: 0;
-	height: auto;
-	bottom: 0;
+  position: relative;
+  left: 0;
+  top: 0;
+  height: auto;
+  bottom: 0;
   background-color: #DDDDFF;
-	color: #000000;
-	padding: 4px;
-	width: 98%;
-	margin: 0 0 4px 4px;
-	text-align: left;
+  color: #000000;
+  padding: 4px;
+  width: 98%;
+  margin: 0 0 4px 4px;
+  text-align: left;
   box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
 }
 
 .dlgFieldName {
-	text-align: right;
-	vertical-align: top;
-	padding-right: 10px;
-	padding-top: 7px;
-	width: 10%;
+  text-align: right;
+  vertical-align: top;
+  padding-right: 10px;
+  padding-top: 7px;
+  width: 10%;
 }
 
 .dlgFieldName.mand {
-	color: #FF0000;	
+  color: #FF0000; 
 }
 
 .dlgField {
-	vertical-align: top;
-	text-align: left;
+  vertical-align: top;
+  text-align: left;
 }
 
 .dlgField .field {
@@ -1529,32 +1533,32 @@ div.pgSecView.answer_wrong.bright {
   box-sizing: border-box;
     
   margin: 4px;
-	padding: 4px;
-	width: 98%;
- 	border-radius: 0px;	
+  padding: 4px;
+  width: 98%;
+  border-radius: 0px; 
 }
 
 .dlgField input.field {
-	height: 28px;
-	padding-left: 8px;
-  	padding-right: 8px;
-  	background-color: #FFFFFF;
-  	border: 1px solid #DDDDFF;
-  	border-radius: 0px;
-  	margin:4px;
+  height: 28px;
+  padding-left: 8px;
+    padding-right: 8px;
+    background-color: #FFFFFF;
+    border: 1px solid #DDDDFF;
+    border-radius: 0px;
+    margin:4px;
 }
 
 .dlgField textarea.field {
-	resize:none;
+  resize:none;
 }
 
 .dlgField div.field {
-	padding: 0;
+  padding: 0;
 }
 
 .dlgField.mand textarea:focus, .dlgField.mand select:focus, .dlgField.mand input:focus {
-	border-color: #FF00000;
-	box-shadow: inset 0 0 0 rgba(170,170,255,0.1), 0 0 10px rgba(255,0,0,0.8);
+  border-color: #FF00000;
+  box-shadow: inset 0 0 0 rgba(170,170,255,0.1), 0 0 10px rgba(255,0,0,0.8);
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
@@ -1592,121 +1596,121 @@ div.pgSecView.answer_wrong.bright {
  *  Quick link specific styling
  * --------------------------------------------------------------------------------------------------------------------*/
 .qlRowBold {
-	background-color: #F6F0FF;
+  background-color: #F6F0FF;
 }
 
 .qlRowBold.current {
-	background-color: #CCCCFF;
+  background-color: #CCCCFF;
 }
 
 .qlRowNormal {
-	border-bottom: 1px dotted #A00000;	
-	display: none;
+  border-bottom: 1px dotted #A00000;  
+  display: none;
 }
 
 .qlRowNormal.visible {
-	display: table-row;
+  display: table-row;
 }
 
 .qlTitleBold {
-	font-size: 100%;
-	font-weight: 900;
-	text-align: left;
+  font-size: 100%;
+  font-weight: 900;
+  text-align: left;
 }
 
 .qlTitleNormal {
-	font-size: 100%;
-	font-weight: 300;
-	text-align: left;
+  font-size: 100%;
+  font-weight: 300;
+  text-align: left;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
  *  addPage/chagePageType dialog related
  * --------------------------------------------------------------------------------------------------------------------*/
 #previewHolder {
-	position:relative; 
-	top:5%; 
-	left:20%; 
-	width: 60%; 
-	height:70%; 
+  position:relative; 
+  top:5%; 
+  left:20%; 
+  width: 60%; 
+  height:70%; 
 }
 
 #previewHolder > .bgimg {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	margin: 0;
-	border: 0;
-	padding: 0;
-	box-shadow: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  box-shadow: none;
 }
 
 #previewLayout {
-	position:absolute; 
-	top:6%; 
-	left:4%; 
-	width: 92%; 
-	height:86%;
+  position:absolute; 
+  top:6%; 
+  left:4%; 
+  width: 92%; 
+  height:86%;
 }
 
 #previewHeader {
-	position:relative; 
-	left:20%; 
-	width: 60%; 
-	text-align: center;
+  position:relative; 
+  left:20%; 
+  width: 60%; 
+  text-align: center;
 }
 
 #previewLayout > .sectionPreview {
-	background-color: #000077;
-	border: 1px solid white;
+  background-color: #000077;
+  border: 1px solid white;
 }
 
 #previewLayout > .sectionPreview.interactive {
-	background-color: #007700;
+  background-color: #007700;
 }
 
 #l_layoutEditor {
-	font-family: "Courier New";
-	font-size: 100%;
-	height: 20em;
+  font-family: "Courier New";
+  font-size: 100%;
+  height: 20em;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
  *  Change Look dialog
  * --------------------------------------------------------------------------------------------------------------------*/
 #changeLook_img {
-	position: absolute; 
-	top: 0;
-	left: 0;
-	height: 100%;
-	width: 100%; 
+  position: absolute; 
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%; 
   box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
 }
 
 #changeLook_txt {
-	position: absolute; 
-	top: 40%; 
-	left: 0; 
-	width:100%; 
-	height:20%; 
-	text-align: center; 
-	font-size: 200%;
+  position: absolute; 
+  top: 40%; 
+  left: 0; 
+  width:100%; 
+  height:20%; 
+  text-align: center; 
+  font-size: 200%;
 }
 
 .tvdata {
-	border: 1px solid #cccccc;
-	border-radius: 4px;
-	padding: 8px 0;
-	margin: 0 0 8px 0;	
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  padding: 8px 0;
+  margin: 0 0 8px 0;  
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
  *  Ask Zodi icon and do_toggle_icon
  * --------------------------------------------------------------------------------------------------------------------*/
 #ask_zodi_icon, #do_toggle_icon {
-	display: none;
+  display: none;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
@@ -1715,41 +1719,41 @@ div.pgSecView.answer_wrong.bright {
 
  /* Template stuff: default colors are similar to dark bg*/
 .pgSec textarea, .pgSec select, .pgSecView.beh_interactive, .pgSecView div.questionnaire.report {
-	box-shadow: 0 0 5px rgba(200,200,255,0.8);
+  box-shadow: 0 0 5px rgba(200,200,255,0.8);
 }
 
 .pgSec textarea:hover, .pgSec select:hover, .pgSecView.beh_interactive:hover {
-	box-shadow: 0 0 8px rgba(200,200,255,0.8);
+  box-shadow: 0 0 8px rgba(200,200,255,0.8);
 }
 
 .pgSec textarea:focus, .pgSec select:focus, .pgSec input:focus, .pgSecView.beh_interactive:focus {
-	box-shadow: 0 0 10px rgba(150,150,255,1);
+  box-shadow: 0 0 10px rgba(150,150,255,1);
 }
 
 .pgSec select, .pgSec select option {
-	background: none;
-	font-size: 3vh;
+  background: none;
+  font-size: 3vh;
 }
 
 .pgSec, .pgSec textarea.pgSecText, .pgSec textarea.questionnaire, .pgSec select {
-	color: #FFFFFF;
+  color: #FFFFFF;
 }
 
 .pgSec textarea {
-	-webkit-appearance: none;
+  -webkit-appearance: none;
 }
 
 .pgSec a {
-	text-decoration: underline;
-	color: #AAAAFF;
+  text-decoration: underline;
+  color: #AAAAFF;
 }
 
 .pgSec a:hover {
-	color: #8888FF;
+  color: #8888FF;
 }
 
 .pgSec textarea.pgSecText:focus, .pgSec textarea.questionnaire:focus, .pgSec select:focus {
-	background: #000033;
+  background: #000033;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -1757,53 +1761,68 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .bgdark a {
-	color: #AAAAFF;
+  color: #AAAAFF;
 }
 
 .bgdark a:hover {
-	color: #8888FF;
+  color: #8888FF;
 }
 
 #changeLook_txt.bgdark {
-	color: #FFFFFF;
+  color: #FFFFFF;
 }
 
+div.line.lineColor1 { background-color: #7777FF;}
+div.line.lineColor2 { background-color: #77FF77;}
+div.line.lineColor3 { background-color: #FFFF77;}
+div.line.lineColor4 { background-color: #77FFFF;}
+div.line.lineColor5 { background-color: #FF77FF;}
+div.line.lineColor0 { background-color: #FF7777;}
+
 /* Light BG (.bglight) stuff */
+.bglight div.line.lineColor1 { background-color: #0000AA;}
+.bglight div.line.lineColor2 { background-color: #00AA00;}
+.bglight div.line.lineColor3 { background-color: #AAAA00;}
+.bglight div.line.lineColor4 { background-color: #00AAAA;}
+.bglight div.line.lineColor5 { background-color: #AA00AA;}
+.bglight div.line.lineColor0 { background-color: #AA0000;}
+
+
 .bglight .pgSec, 
 .bglight .pgSec textarea.pgSecText, .bglight .pgSec textarea.questionnaire, .bglight .pgSec select {
-	color: #000000;
+  color: #000000;
 }
 
 .bglight .pgSec a {
-	color: #333366;
+  color: #333366;
 }
 
 .bglight .pgSec a:hover {
-	color: #666699;
+  color: #666699;
 }
 
 .bglight .pgSec textarea.pgSecText:focus, .bglight .pgSec textarea.questionnaire:focus, .bglight .pgSec select:focus {
-	background: #CCCCFF;
+  background: #CCCCFF;
 }
 
 .bglight h1, .bglight h2, .bglight h3, .bglight h4, .bglight h5, .bglight h6 {
-	color: #333366;
+  color: #333366;
 }
 
 .bglight .pgSec textarea, .bglight .pgSec select, .bglight .pgSecView.beh_interactive, .bglight .pgSecView div.questionnaire.report {
-	box-shadow: 0 0 5px rgba(100,100,150,0.8);
+  box-shadow: 0 0 5px rgba(100,100,150,0.8);
 }
 
 .bglight .pgSec textarea:hover, .bglight .pgSec select:hover, .bglight .pgSecView.beh_interactive:hover {
-	box-shadow: 0 0 8px rgba(50,50,100,0.8);
+  box-shadow: 0 0 8px rgba(50,50,100,0.8);
 }
 
 .bglight .pgSec textarea:focus, .bglight .pgSec select:focus, .bglight .pgSec input:focus, .bglight .pgSecView.beh_interactive:focus {
-	box-shadow: 0 0 10px rgba(50,50,100,1);
+  box-shadow: 0 0 10px rgba(50,50,100,1);
 }
 
 #changeLook_txt.bglight {
-	color: #000000;
+  color: #000000;
 }
 
 /*
@@ -2021,11 +2040,11 @@ i.italic {
 
 /* Icon font */
 .textmenu{
-	padding: 8px;
+  padding: 8px;
 }
 
 .textmenu:hover{
-	cursor: pointer;
+  cursor: pointer;
 }
 
 /**

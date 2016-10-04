@@ -44,6 +44,91 @@ $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
 // Include all of Ionic
 @import "www/_extern/ionic/scss/ionic";
 
+
+//-------------------------------------------------------------------------------------------
+// All fonts imported from google fonts
+//-------------------------------------------------------------------------------------------
+/* lato-300 - latin_latin-ext */
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 300;
+  src: url('../_external/_fonts/lato-v11-latin_latin-ext-300.eot'); /* IE9 Compat Modes */
+  src: local('Lato Light'), local('Lato-Light'),
+       url('../_external/_fonts/lato-v11-latin_latin-ext-300.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../_external/_fonts/lato-v11-latin_latin-ext-300.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../_external/_fonts/lato-v11-latin_latin-ext-300.woff') format('woff'), /* Modern Browsers */
+       url('../_external/_fonts/lato-v11-latin_latin-ext-300.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('../_external/_fonts/lato-v11-latin_latin-ext-300.svg#Lato') format('svg'); /* Legacy iOS */
+}
+/* lato-regular - latin_latin-ext */
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../_external/_fonts/lato-v11-latin_latin-ext-regular.eot'); /* IE9 Compat Modes */
+  src: local('Lato Regular'), local('Lato-Regular'),
+       url('../_external/_fonts/lato-v11-latin_latin-ext-regular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../_external/_fonts/lato-v11-latin_latin-ext-regular.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../_external/_fonts/lato-v11-latin_latin-ext-regular.woff') format('woff'), /* Modern Browsers */
+       url('../_external/_fonts/lato-v11-latin_latin-ext-regular.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('../_external/_fonts/lato-v11-latin_latin-ext-regular.svg#Lato') format('svg'); /* Legacy iOS */
+}
+/* lato-700 - latin_latin-ext */
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../_external/_fonts/lato-v11-latin_latin-ext-700.eot'); /* IE9 Compat Modes */
+  src: local('Lato Bold'), local('Lato-Bold'),
+       url('../_external/_fonts/lato-v11-latin_latin-ext-700.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../_external/_fonts/lato-v11-latin_latin-ext-700.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../_external/_fonts/lato-v11-latin_latin-ext-700.woff') format('woff'), /* Modern Browsers */
+       url('../_external/_fonts/lato-v11-latin_latin-ext-700.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('../_external/_fonts/lato-v11-latin_latin-ext-700.svg#Lato') format('svg'); /* Legacy iOS */
+}
+/* courgette-regular - latin_latin-ext */
+@font-face {
+  font-family: 'Courgette';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../_external/_fonts/courgette-v4-latin_latin-ext-regular.eot'); /* IE9 Compat Modes */
+  src: local('Courgette Regular'), local('Courgette-Regular'),
+       url('../_external/_fonts/courgette-v4-latin_latin-ext-regular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../_external/_fonts/courgette-v4-latin_latin-ext-regular.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../_external/_fonts/courgette-v4-latin_latin-ext-regular.woff') format('woff'), /* Modern Browsers */
+       url('../_external/_fonts/courgette-v4-latin_latin-ext-regular.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('../_external/_fonts/courgette-v4-latin_latin-ext-regular.svg#Courgette') format('svg'); /* Legacy iOS */
+}
+/* material icons-regular - latin_latin-ext */
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../_external/_fonts/courgette-v18-latin_latin-ext-regular.eot'); /* IE9 Compat Modes */
+  src: local('Material Icons'), local('MaterialIcons-Regular'),
+       url('../_external/_fonts/materialicons-v18-latin_latin-ext-regular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../_external/_fonts/materialicons-v18-latin_latin-ext-regular.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../_external/_fonts/materialicons-v18-latin_latin-ext-regular.woff') format('woff'), /* Modern Browsers */
+       url('../_external/_fonts/materialicons-v18-latin_latin-ext-regular.ttf') format('truetype'), /* Safari, Android, iOS */
+       /* Legacy iOS - src missing*/
+}
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
 //-------------------------------------------------------------------------------------------
 // nl specific definitions used in overriding ionic defaults
 //-------------------------------------------------------------------------------------------
@@ -221,6 +306,13 @@ $animation-duration: 200ms !default;
 
 .loading-container {
     pointer-events: none;
+}
+
+/*-----------------------------------------------------------------------------------------*
+ * Angular chanrts overrides
+ *-----------------------------------------------------------------------------------------*/
+.chart-container {
+  height: 100%;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -644,6 +736,22 @@ nl-dlg-help, .nl-dlg-help {
   display: none;
 }
 
+nl-inline-help {
+  padding-bottom: 8px;
+  .nl-inline-help {
+    border: 1px dotted $nlBlue1;
+    background-color: rgba(255, 255, 255, 0.5);
+    color: $nlBlue1;
+    padding: 8px 8px 8px 40px;
+    position: relative;
+    .nl-inline-help-icon {
+      position: absolute;
+      top: 4px;
+      left: 8px;
+    }
+  }
+}
+
 .nl-dlg.nl-width-max {
   .popup-body {
     width: 96vw;
@@ -1013,12 +1121,42 @@ nl-cards {
   }
 }
 
+.only-for-print {
+  display: none;
+}
+
 @media print {
-  #nl-pagecanvas, .dont-print {
+  body {
     display: none !important;
   }
-  #nl-pagecanvas.nl-print {
+
+  body.nl-print {
     display: block !important;
+    overflow: visible;
+
+    .only-for-print {
+      display: block !important;
+    }
+
+    .dont-print, .popup-head, .popup-buttons, .nl-dlg-title-buttons,
+    .backdrop, .loading-container {
+      display: none !important;
+    }
+    .popup {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      height: auto;
+      max-height: none;
+      max-width: none;
+      overflow: visible !important;
+    }
+    .popup-body {
+      height: auto !important;
+      width: 100% !important;
+      overflow: visible !important;
+    }
   }
 }
 
@@ -1391,8 +1529,9 @@ img.nl-full-width {
     padding: 4px;
 }
 
-.padding-h-small {
-    padding: 0 4px;
+.padding-small-h {
+    padding-left: 4px;
+    padding-right: 4px;
 }
 
 .padding-mid {
@@ -1454,6 +1593,10 @@ img.nl-full-width {
 
 .fblue {
   color: $nlBlue1;
+}
+
+.fblue2 {
+  color: $nlBlue2;
 }
 
 .fgrey {
@@ -1538,6 +1681,10 @@ img.nl-full-width {
 
 .vh5 {
   min-height: 5vh;
+}
+
+.vhfixed60 {
+  height: 60vh;
 }
 
 .w100 {

@@ -11,16 +11,13 @@
            <div class='text-center fsh4'>
                 <strong>{{data.card.completed}} of {{data.card.totalStudentsAssigned}} completed</strong>
            </div>
-           <div class='text-center' style='padding-top:3%'>
-           	<div>
+           <div class='text-center padding-top' style='height: 200px'>
 				<canvas id="doughnut"
 					class="chart chart-doughnut"
 					chart-data="data.doughnutData"
 					chart-labels="data.doughnutLabel"
-					chart-colours="data.doughnutColor"
-					chart-options="data.chartOptions">
+					chart-colours="data.doughnutColor">
 				</canvas>
-			</div>
             </div>
             <span class='sep4'></span>
             <div ng-show='data.card.maxscore > 0'>
@@ -28,13 +25,12 @@
 	        	<div class='text-center fsh4'>
 	                <strong>Average score: {{data.card.averageScore}}</strong>
 	            </div>
-	            <div class='text-center' style='padding-top: 3%'>
+	            <div class='text-center padding-top' style='height: 300px'>
 					<canvas id="line"
 						class="chart chart-bar"
 						chart-data="data.chartData"
 						chart-labels="data.chartLabel"
-						chart-series="['series A']"
-						chart-options="data.chartOptions">
+						chart-series="['series A']">
 					</canvas>
 	            </div>
 	        </div>				

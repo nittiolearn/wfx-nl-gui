@@ -228,12 +228,12 @@ nlesson = function() {
 
 	function Lesson_editorToggleEditAndPreview() {
 		var ret = g_lesson.renderCtx.editorToggleEditAndPreview();
-		this.reRender();
+		this.reRender(false);
 		return ret;
 	}
 
-	function Lesson_reRender() {
-	    this.postRenderingQueue.initQueue(); // Cleanup so that pages are rendered on slide change
+	function Lesson_reRender(bDontUpdate) {
+	    this.postRenderingQueue.initQueue(bDontUpdate); // Cleanup so that pages are rendered on slide change
 		this.postRender();
 	}
 
@@ -332,19 +332,25 @@ nlesson = function() {
     function PostRenderingQueue(lesson) {
 
         this.renderedPages = {};
+        this.updatedPages = {};
         this.zodiCompletedPages = {};
 
         this.initZodi = function() {
             this.zodiCompletedPages = lesson.renderCtx.playerGetZodiChangesPages(lesson);
         }
 
-        this.initQueue = function() {
+        this.initQueue = function(bDontUpdate) {
             this.renderedPages = {};
+            if (bDontUpdate) return;
+            this.updatedPages = {};
         };
 
         this.markFroRedraw = function(pageId) {
             if (pageId in this.renderedPages) {
                 delete this.renderedPages[this.pageId];
+            }
+            if (pageId in this.updatedPages) {
+                delete this.updatedPages[this.pageId];
             }
         };
 
@@ -352,7 +358,10 @@ nlesson = function() {
             var curPage = _adjustAndUpdate(this, pgNo);
             if (!curPage) return;
             curPage.postRender();
-            _preLoadOtherPages(this, pgNo);
+            var self = this;
+            nittio.debounce(500, function() {
+                _preLoadOtherPages(self, pgNo);
+            })();
         }
 
         function _preLoadOtherPages(self, pgNo) {
@@ -384,9 +393,10 @@ nlesson = function() {
                 lesson.reRenderAsReport(pgNo);
                 delete self.zodiCompletedPages[pageId];
             } else {
-                curPage.updateHtmlDom();
+                if (!(pageId in self.updatedPages)) curPage.updateHtmlDom();
                 curPage.adjustHtmlDom();
             }
+            self.updatedPages[pageId] = true;
             self.renderedPages[pageId] = true;
             return curPage;
         };
@@ -454,7 +464,7 @@ nlesson = function() {
 
 		var ret = {help: ''};
 		
-		var tempData = {};
+		var tempData = {lessPara: true};
 		ret.hint = ('hint' in curPage.oPage) ? njs_lesson_markup.markupToHtml(curPage.oPage.hint, tempData) : '';
 		var score = curPage.getScore();
 		var maxScore = curPage.getMaxScore();
@@ -1191,12 +1201,12 @@ nlesson = function() {
 		for (var i=0; i<this.sections.length; i++) {
 			if (!this.sections[i].adjustFontSize) continue;
 			var fmtgroup = this.pagetype.getFromatGroup(i);
-			njs_helper.findMinFontSizeOfGroup(this.sections[i].pgSecView, 
+			njs_helper.findMinFontSizeOfGroup(this.sections[i], 
 			    textSizes, fmtgroup, minTextSize);		
 		}
 		for (var i=0; i<this.sections.length; i++) {
 			if (!this.sections[i].adjustFontSize) {
-				njs_helper.clearTextResizing(this.sections[i].pgSecView);
+				njs_helper.clearTextResizing(this.sections[i]);
 				continue;
 			}
 			var fmtgroup = this.pagetype.getFromatGroup(i);
@@ -1368,8 +1378,10 @@ nlesson = function() {
 		if (secBehaviourCls != '') secBehaviourCls =  ' ' + secBehaviourCls;
 		var aspectWrt = pagetype.getAspectWrt(this.secNo) ? ' aspect_wrt' : '';
 		
-		var secString = njs_helper.fmt2('<div class="pgSecView{}{}" secNo="{}"/>', aspectWrt, secBehaviourCls, this.secNo);
+        var secString = njs_helper.fmt2('<div class="pgSecView{}{}" secNo="{}"/>', aspectWrt, secBehaviourCls, this.secNo);
 		this.pgSecView = njs_helper.jobj(secString);
+		this.secViewContent = njs_helper.jobj('<div class="secViewContent"/>');
+        this.pgSecView.append(this.secViewContent);
 		
 		var help;
 		if (this.lesson.renderCtx.launchMode() == 'report') {
@@ -1430,20 +1442,16 @@ nlesson = function() {
 	function Section_setViewHtml(htmlOrMarkup, bMarkup) {
 		this.valignMiddle = this.page.pagetype.isSectionValignMiddle(this.secNo);		
 		this.adjustFontSize = true;
+        this.isTxt = false;
 
 		var retData = {};
 		var secHtml = bMarkup ? njs_lesson_markup.markupToHtml(htmlOrMarkup, retData) : htmlOrMarkup;
-		if (!bMarkup || !retData.isTxt)  {
+		if (!bMarkup || !retData.isTxt) {
 			this.valignMiddle = false;
-			this.adjustFontSize = false;
+            this.adjustFontSize = false;
 		}
-
-		if (this.valignMiddle) {
-			var vaHolder = jQuery('<div class="vAlignHolder not_inside" style="position:relative;"/>');
-			vaHolder.append(secHtml);
-			secHtml = vaHolder;
-		}
-		this.pgSecView.html(secHtml);
+        this.isTxt = retData.isTxt;
+		this.secViewContent.html(secHtml);
 	}
 	
 	function Section_updateHtmlDom() {
@@ -1459,10 +1467,13 @@ nlesson = function() {
 	}
 
 	function Section_adjustHtmlDom() {
-		if (this.valignMiddle) njs_helper.valignMiddle(this.pgSecView); // needed even in edit mode (for edit-gra mode)
+        njs_helper.valignMiddleAndSetScroll(this, this.valignMiddle, this.isTxt); // needed even in edit mode (for edit-gra mode)
+        var self = this;
 		if (this.lesson.renderCtx.lessonMode() != 'edit') {
 			if (this.pdfRenderQueue !== undefined) this.pdfRenderQueue.clear();
-			this.pdfRenderQueue = new njs_pdf.RenderQueue(this.pgSecView);
+			this.pdfRenderQueue = new njs_pdf.RenderQueue(this.pgSecView, function() {
+                njs_helper.valignMiddleAndSetScroll(self, self.valignMiddle, self.isTxt);
+			});
 		}
 		var adjustHtmlFn = this.page.pagetype.getSectionAdjustHtmlFn();
 		adjustHtmlFn(this);
@@ -1542,7 +1553,7 @@ nlesson = function() {
 		});
 		
         nittio.onResize(function() {
-            if (njs_scorm.getScormLmsLessonMode() === null) g_lesson.reRender();
+            if (njs_scorm.getScormLmsLessonMode() === null) g_lesson.reRender(true);
         });
         
 		nittio.afterInit(function(){

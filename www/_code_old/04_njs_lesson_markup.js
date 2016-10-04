@@ -6,8 +6,7 @@ njs_lesson_markup = function() {
 var parentStack = new ParentStack();
 function markupToHtml(markupStr, retData) {
 	var lines = markupStr.split('\n');
-	var lessPara = retData.lessPara;
-	if (!lessPara || lines.length > 1) lessPara = false;
+	var lessPara = (retData.lessPara == true) && (lines.length <= 1);
 	retData.isTxt = (lines.length > 1);
 	
 	parentStack.init();
@@ -130,7 +129,7 @@ function _markupToIframe(str, bInline) {
     if(_checkMarkup(str, 'scorm:')) str = str.replace('scorm:','iframe:');
     return _parseWikiMarker(str, 'iframe:', function(link, avpairs) {
         if (link == '') return '';
-        return njs_helper.fmt2('<iframe src="{}"></iframe>',link);
+        return njs_helper.fmt2('<iframe src="{}" class="reset_height"></iframe>',link);
     });
 }
 

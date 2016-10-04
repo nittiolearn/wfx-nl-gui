@@ -247,7 +247,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 			doughnutData : doughnutdata,
 			doughnutLabel : doughnutlabel,
 			doughnutColor : doughnutcolor,
-			doughnutOptions : {responsive: true, scaleBeginAtZero : true, maintainAspectRatio: true, scaleShowGridLines : false, interactivityEnabled: false, zoomEnabled: false}
+			doughnutOptions : {responsive: true, maintainAspectRatio: true}
 		};
 		card['help']=nl.t('<canvas id="doughnut" class="chart chart-doughnut" chart-data="card.doughnutData" chart-labels="card.doughnutLabel" chart-colours="card.doughnutColor" chart-options="card.doughnutOptions"></canvas>');
 		return card;
@@ -344,23 +344,24 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 
 	function _statusOverview($scope, card) {
 		var statusOverviewDlg = nlDlg.create($scope);
-			statusOverviewDlg.setCssClass('nl-height-max nl-width-max');
-			statusOverviewDlg.scope.data = {};
-			statusOverviewDlg.scope.data.card = card;
-			if(card.maxscore > 0) { 
-				statusOverviewDlg.scope.data.chartOptions = {responsive: true, scaleBeginAtZero : true, maintainAspectRatio: true, scaleShowGridLines : false, interactivityEnabled: false, zoomEnabled: false};
-				statusOverviewDlg.scope.data.doughnutData = [card.completed, (card.totalStudentsAssigned-card.completed)];
-				statusOverviewDlg.scope.data.doughnutLabel = ['Completed', 'Not completed'];
-				statusOverviewDlg.scope.data.doughnutColor = ['#009900', '#F54B22'];
-				statusOverviewDlg.scope.data.chartData = card.chartData;
-				statusOverviewDlg.scope.data.chartLabel = ['10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%'];	
-			} else {
-				statusOverviewDlg.scope.data.doughnutData = [card.completed, (card.totalStudentsAssigned-card.completed)];
-				statusOverviewDlg.scope.data.doughnutLabel = ['Completed', 'Not completed'];
-				statusOverviewDlg.scope.data.doughnutColor = ['#009900', '#F54B22'];
-			}
-		var cancelButton = {text: nl.t('Close')};
-		statusOverviewDlg.show('view_controllers/assignment_report/status_overview_dlg.html', [], cancelButton, false);
+		statusOverviewDlg.setCssClass('nl-height-max nl-width-max');
+		statusOverviewDlg.scope.data = {};
+		statusOverviewDlg.scope.data.card = card;
+        var cancelButton = {text: nl.t('Close')};
+        statusOverviewDlg.show('view_controllers/assignment_report/status_overview_dlg.html', [], cancelButton, false);
+        
+        statusOverviewDlg.scope.data.doughnutLabel = ['Completed', 'Not completed'];
+        statusOverviewDlg.scope.data.doughnutColor = ['#009900', '#F54B22'];
+        if(card.maxscore > 0)
+            statusOverviewDlg.scope.data.chartLabel = ['10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%'];  
+
+        // angular-charts workaround to ensure height/width of canvas are correctly calculated
+        // set the chart properties after the dialog box appears
+        nl.timeout(function() {
+            statusOverviewDlg.scope.data.doughnutData = [card.completed, (card.totalStudentsAssigned-card.completed)];
+            if(card.maxscore > 0)
+                statusOverviewDlg.scope.data.chartData = card.chartData;
+        });
 	}
 
 

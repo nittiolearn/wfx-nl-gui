@@ -15,7 +15,7 @@
             Observation report
         </H3>
         <div ng-if='!reportSent && formScope.isReportSent()'
-             class='padding-small fsh6 forange1'>
+             class='padding-small fsh6 forange1 dont-print'>
             <i class="icon ion-alert-circled fsh4"></i>
             <span>This report is already finalized and sent. Please change {{metadata.report_model.year.title}} or {{metadata.report_model.term.title}} field before sending it again.</span>
         </div>

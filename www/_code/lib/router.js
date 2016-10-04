@@ -78,6 +78,7 @@ function(nl, nlDlg, nlServerApi, $state) {
         nl.pginfo.isPrintable = false;
         nl.pginfo.hidemenu = false;
         nlServerApi.noPopup(false);
+        nlDlg.popdownStatus();
         nlDlg.showLoadingScreen();
         var protocol = nl.location.protocol().toLowerCase();
         if (protocol.indexOf('file') >= 0) {
@@ -222,6 +223,7 @@ function Permission(nl) {
         '/searchlist_view': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
         '/rno_list': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
         '/rno_view': {login: false, permission: '', termRestriction: TR_OPEN}, 
+        '/rno_stats': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
         '/sco_export': {login: true, permission: 'lesson_approve', termRestriction: TR_CLOSED},
         '/sco_import_list': {login: true, permission: 'lesson_approve', termRestriction: TR_CLOSED},
 		'/assignment': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},		
@@ -239,7 +241,8 @@ function Permission(nl) {
         'course_assign': {login: true, permission: 'course_assign', termRestriction: TR_CLOSED},
         'forum_start_topic': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},
         'forum_delete_msg': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
-        'forum_view_details': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED} 
+        'forum_view_details': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
+        'admin_user': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED}
     };
     
     var openPages = {'/login_now': 1, '/logout_now': 1, 

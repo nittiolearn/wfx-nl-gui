@@ -1,0 +1,21 @@
+<div class='row row-wrap row-center margin0 padding0'>
+    <div class='padding-small' ng-class='respCol221'>Development areas: </div>
+    <div class='padding-small nl-dlg-field-value' ng-class='respCol221'>
+        <select ng-model='ratingInfo.currentGroup1'
+                ng-options='opt as opt.name for opt in ratingInfo.group1 track by opt.id'
+                ng-change='ratingInfo.onGroup1Change()'>
+        </select>
+    </div>
+    <b>Achievement Levels:</b>
+    <span ng-repeat='level in ratingInfo.levels'
+          class='padding-small'><b>{{level.wt}}:</b> {{level.name}}</span>
+</div>
+<div class='vhfixed60 padding-small'>
+    <canvas class='chart chart-bar'
+            chart-data='ratingInfo.chartData'
+            chart-labels='ratingInfo.chartColumns'
+            chart-series='ratingInfo.chartCounters'
+            chart-colours='chartColors'
+            chart-options='ratingInfo.chartOptions'>
+    </canvas>
+</div>
