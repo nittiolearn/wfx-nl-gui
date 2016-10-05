@@ -3,14 +3,14 @@
 </div>
 <div ng-show='ext.item.id == "_root"' class='padding-mid'>
     <table class='nl-table nl-table-styled'>
-        <tr ng-repeat='attr in course_attributes'>
+        <tr ng-repeat='attr in editor.course_attributes'>
             <td>{{attr.key}}</td><td>{{attr.val}}</td>
         </tr>
     </table>
 </div>
 <div ng-show='ext.item.id != "_root"' class='padding-mid'>
     <table class='nl-table nl-table-styled'>
-        <tr ng-repeat='attr in module_attributes'
+        <tr ng-repeat='attr in editor.module_attributes'
             ng-show='ext.item[attr.name]'>
             <td>{{attr.text||attr.name}}</td><td>{{ext.item[attr.name]}}</td>
         </tr>

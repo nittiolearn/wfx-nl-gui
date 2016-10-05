@@ -5,12 +5,34 @@
         <i ng-show='!ext.isIconImg(ext.item)' class="icon {{ext.getIconCls(ext.item)}} bold fsh5"></i>
         {{ext.item.name}}
     </div>
+    
+    <!-- course editor icons -->
+    <span title='Show or hide help'
+          ng-show='ext.isEditorMode()'
+          class='nl-toolbar-icon'
+          ng-click='editor.showHelp = !editor.showHelp'>
+        <i class="icon ion-ios-help"></i>
+    </span>
+    <span title='Insert an item below the selected item'
+          ng-show='ext.isEditorMode()'
+          class='nl-toolbar-icon'
+          ng-click='editor.addModule($event, ext.item)'>
+        <i class="icon fsh3 ion-ios-plus"></i>
+    </span>
+    <span title='Delete the selected item'
+          ng-show='ext.isEditorMode()'
+          class='nl-toolbar-icon'
+          ng-click='editor.deleteModule($event, ext.item)'>
+        <i class="icon fsh3 ion-ios-trash"></i>
+    </span>
     <span title='Save'
           ng-show='!popupView && !iframeUrl && ext.isEditorMode()'
           class='nl-toolbar-icon padding0'
-          ng-click='onSaveModule($event, ext.item)'>
+          ng-click='editor.saveCourse($event, ext.item)'>
         <i class="icon material-icons">save</i>
     </span>
+    <!-- course editor icons -->
+
     <span title='Discussion forum'
          ng-show='!popupView && !iframeUrl && forumInfo.refid'
          class='nl-toolbar-icon'
@@ -53,30 +75,5 @@
           class='nl-toolbar-icon'
           ng-click='showPopup($event, ext.item)'>
         <i class="icon ion-arrow-expand"></i>
-    </span>
-    <span title='toggle help'
-          ng-show='ext.isEditorMode()'
-          class='nl-toolbar-icon'
-          ng-click='toggleEditorHelp($event, ext.item)'>
-        <i ng-if='showEditorHelp' class="icon ion-minus-circled"></i>
-        <i ng-if='!showEditorHelp' class="icon ion-help-circled"></i>
-    </span>
-    <span title='delete module'
-          ng-show='ext.isEditorMode()'
-          class='nl-toolbar-icon'
-          ng-click='deleteCourseModule($event, ext.item)'>
-        <i class="icon fsh3 ion-android-delete"></i>
-    </span>
-    <span title='move up'
-          ng-show='ext.isEditorMode()'
-          class='nl-toolbar-icon'
-          ng-click='moveModuleUp($event, ext.item)'>
-        <i class="icon fsh3 ion-arrow-up-c"></i>
-    </span>
-    <span title='move down'
-          ng-show='ext.isEditorMode()'
-          class='nl-toolbar-icon'
-          ng-click='moveModuleDown($event, ext.item)'>
-        <i class="icon fsh3 ion-arrow-down-c"></i>
     </span>
 </div>

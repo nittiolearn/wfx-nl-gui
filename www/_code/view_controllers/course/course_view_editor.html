@@ -1,196 +1,122 @@
 <style>
-	.nl-sep8{
-		padding: 8px;
-	}
-	.nl-time-input-div {
-		padding: 5px 3px 5px 5px;
-	}
-
-	.nl-course-input{
-		border-radius: 4px;
-		background-color: #EEEEFF;
-		margin: 0;
-		min-height: 34px;
-		padding-left: 4px;
-		border-width: 0;
-	}
-
-	.nl-time-input {
-		border-radius: 4px;
-		padding: 2px 8px 1px 8px;
-		background-color: #EEEEFF;
-		margin: 0;
-		min-height: 34px;
-		border-width: 0;
-	}
-
-	.nl-time-icon {
-		text-align: right;
-		font-size: 24px;
-		padding: 2px 2px;
-		cursor: pointer;
-	}
-	
-	.nl-dlg-course-help{
-		  background-color: #E5FF80;
-		  border-radius: 4px;
-		  padding: 5px;
-		  margin-right: 5px;
-		  margin-left: 2px;
-		  margin-top: 4px;
-		  box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 20px rgba(0,0,0,1);
-		  display: block;
-	}
-	
-	.nl-desc-padding{
-		padding-left: inherit;
-		padding-bottom: inherit;
-	}
-	
-	.nl-course-module-select{
-		padding-left: 6px;
-		padding-top: 4px;
-	}
-	
-	.nl-course-textarea{
-		border-radius: 4px;
-	}
-	
-	.nl-lessonlink-help{
-		  background-color: #E5FF80;
-		  border-radius: 4px;
-		  padding-top: 4px;
-		  padding-left: 4px;
-		  margin-left: 4px;
-		  margin-top: 10px;
-		  box-shadow: inset 0 0 10px rgba(170,0,0,0.1), 0 0 20px rgba(0,0,0,1);
-		  display: block;
-	}
+    .ce-input-div {
+        background-color: #FFFFFF;
+        border: 1px solid #DDDDFF;
+        border-radius: 0px;
+    }
 </style>
+
+<nl-inline-help ng-show='editor.showHelp'>
+    When you click on any of the fields below, you will see context specific help for that field.
+    Click on the help icon in the tool bar above to disable the context specific help.
+</nl-inline-help>
+
 <div ng-show='ext.item.type == "module"' class='padding-mid fsh3'>
     <b>Total items</b>: {{ext.stats.total}}
 </div>
 <div ng-show='ext.item.id == "_root"' class='padding-mid'>
     <table class='nl-table nl-table-styled'>
-        <tr ng-repeat='attr in course_attributes'>
+        <tr ng-repeat='attr in editor.course_attributes'>
             <td>{{attr.key}}</td><td>{{attr.val}}</td>
         </tr>
     </table>
 </div>
 <div ng-show='ext.item.id != "_root"' class='padding-mid'>
-	<div class='row row-center row-wrap margin0 padding-top' ng-repeat='attr in module_attributes' ng-if='attr.type !== "additional" && (ext.item.type == attr.fields[0] || ext.item.type == attr.fields[1] || ext.item.type == attr.fields[2] || ext.item.type == attr.fields[3])'>
-		<div ng-class='resp2Col33' class='nl-desc-padding'>{{attr.text||attr.name}}</div>
+	<div class='row row-center row-wrap margin0 padding-top'
+	     ng-repeat='attr in editor.module_attributes'
+	     ng-if='attr.type !== "additional" && attr.fields.indexOf(ext.item.type) >= 0'>
+
+        <div class='w100 nl-link-text padding-mid' 
+             ng-if='attr.type === "group"'
+             ng-click='editor.showGroup[attr.name] = !editor.showGroup[attr.name]'
+             tabindex='0'>
+            <span class='fsh3'>
+                <i ng-show='editor.showGroup[attr.name]' class="icon ion-android-checkbox-outline"></i>
+                <i ng-hide='editor.showGroup[attr.name]' class="icon ion-android-checkbox-outline-blank"></i>
+                {{attr.text||attr.name}}
+            </span>
+        </div>
+
+		<div ng-if='attr.type !== "group" && (!attr.group || editor.showGroup[attr.group])'
+		     ng-class='resp2Col33'
+		     class='padding-mid'>{{attr.text||attr.name}}</div>
+        <div ng-class='resp2Col67'
+             ng-if='attr.type === "string" && (!attr.group || editor.showGroup[attr.group])'
+             class='nl-dlg-field-value'>
+            <input ng-model='ext.item[attr.name]' class='w100' type='text'
+             ng-focus="attr.focus=true" ng-blur="attr.focus=false">
+        </div>
+        <div ng-class='resp2Col67'
+             ng-if='attr.type === "readonly" && (!attr.group || editor.showGroup[attr.group])'
+             class='nl-dlg-field-value'>
+            <input ng-model='ext.item[attr.name]' class='w100' readonly type='text'
+             ng-focus="attr.focus=true" ng-blur="attr.focus=false">
+        </div>
+        <div ng-class='resp2Col67'
+             ng-if='attr.type === "list" && (!attr.group || editor.showGroup[attr.group])'
+             class='nl-dlg-field-value'>
+            <select ng-model='ext.item[attr.name]' 
+                    class='w100'
+                    ng-options='opt as (opt | nlConvert:editor.typeNames) for opt in attr.values'
+                    ng-focus="attr.focus=true" ng-blur="attr.focus=false">
+            </select>               
+        </div>
+        
+        <div ng-class='resp2Col67'
+             ng-if='attr.type === "boolean" && (!attr.group || editor.showGroup[attr.group])'
+             class='nl-link-text padding-mid'
+             ng-click='ext.item[attr.name] = !ext.item[attr.name]'
+             ng-focus="attr.focus=true" ng-blur="attr.focus=false"
+             tabindex="0">
+            <span>
+                <i ng-show='ext.item[attr.name]' class="icon ion-android-checkbox-outline"></i>
+                <i ng-hide='ext.item[attr.name]' class="icon ion-android-checkbox-outline-blank"></i>
+                {{attr.text||attr.name}}
+            </span>
+        </div>
+
         <div ng-class='resp2Col67' 
-        	 ng-if='attr.type === "date"' class='nl-time-input-div'>
-        	 <div class='nl-time-input nl-link-text' 
+        	 ng-if='attr.type === "date" && (!attr.group || editor.showGroup[attr.group])'
+        	 class='nl-dlg-field-value'>
+        	 <div class='nl-link-text ce-input-div' 
         	 	  ion-datetime-picker ng-model="ext.item[attr.name]" 
-        	 	  ng-focus="focus=showEditorHelp" ng-blur="focus=false">
+        	 	  ng-focus="attr.focus=true" ng-blur="attr.focus=false"
+        	 	  tabindex="0">
                 <div class='row row-center margin0 padding0'>
-                    <div class='col col-80 w100 nl-desc-padding'>{{ext.item[attr.name] | date: "yyyy-MM-dd"}}</div>
-                    <i class='col col-20 icon ion-android-time nl-time-icon'></i>
+                    <div class='col'>{{ext.item[attr.name] | date: "yyyy-MM-dd"}}</div>
+                    <i class='icon ion-android-time fsh4 padding-small'></i>
                 </div>
             </div>
-			<div ng-show='focus' class='row row-center nl-dlg-course-help'>
-				<div class='resp2Col100'>
-					{{attr.help}}
-				</div>
-			</div>
 		</div>
-
-		<div ng-class='resp2Col67 '
-        	 ng-if='attr.type === "readonly"'
-        	 class='nl-time-input-div'>
-			<input ng-model='ext.item[attr.name]' class='w100 nl-course-input' readonly ng-focus="focus=showEditorHelp" ng-blur="focus=false">
-			<div ng-show='focus' class='row row-center nl-dlg-course-help'>
-				<div class='resp2Col100'>
-					{{attr.help}}
-				</div>
-			</div>
-		</div>
-
-		<div ng-class='resp2Col67'
-        	 ng-if='attr.type === "list"'
-        	 class='nl-course-module-select'>
-		 	<select ng-model='ext.item[attr.name]' 
-					class='w100 nl-grade-search'
-		            ng-options='opt for opt in attr.values' ng-focus="focus=showEditorHelp" ng-blur="focus=false"> 
-		    </select>			    
-			<div ng-show='focus' class='row row-center nl-dlg-course-help'>
-				<div class='resp2Col100'>
-					{{attr.help}}
-				</div>
-			</div>
-		</div>
-		<div ng-class='resp2Col67'
-        	 ng-if='attr.type === "string"'
-        	 class='nl-time-input-div'>
-			<input ng-model='ext.item[attr.name]' class='w100  nl-course-input' ng-focus="focus=showEditorHelp" ng-blur="focus=false">
-			<div ng-show='focus' class='row row-center nl-dlg-course-help'>
-				<div class='resp2Col100'>
-					{{attr.help}}
-				</div>
-			</div>
-		</div>
-
-        <div ng-class='resp2Col67' ng-if='attr.type === "boolean"' class='nl-time-input-div'>
-            <input type='checkbox' ng-model='ext.item[attr.name]' ng-focus="focus=showEditorHelp" ng-blur="focus=false"><span> Select checkbox to enable.</span>
-			<div ng-show='focus' class='row row-center nl-dlg-course-help'>
-				<div class='resp2Col100'>
-					{{attr.help}}
-				</div>
-			</div>
+        <div ng-class='resp2Col67'
+             ng-if='attr.type === "text" && (!attr.group || editor.showGroup[attr.group])'
+             class='nl-dlg-field-value'>
+            <textarea rows="5" ng-model='ext.item[attr.name]'
+                      class='w100'
+                      ng-focus="attr.focus=true" ng-blur="attr.focus=false">
+            </textarea>
         </div>
-
-		<div ng-class='resp2Col67'
-        	 ng-if='attr.type === "object"'
-        	 class='nl-time-input-div'>
-			<textarea rows="5" nl-object-to-json ng-model='ext.item[attr.name]' class='nl-course-textarea w100' ng-focus="focus=showEditorHelp" ng-blur="focus=false"></textarea>
-			<div ng-show='focus' class='row row-center nl-dlg-course-help'>
-				<div class='resp2Col100'>
-					{{attr.help}}
-				</div>
-			</div>
-		</div>
- 
+        <div ng-class='resp2Col67'
+             ng-if='attr.type === "object" && (!attr.group || editor.showGroup[attr.group])'
+             class='nl-dlg-field-value'>
+            <textarea rows="5" nl-object-to-json ng-model='ext.item[attr.name]'
+                      class='w100'
+                      ng-focus="attr.focus=true" ng-blur="attr.focus=false">
+            </textarea>
+        </div>
         <div ng-class='resp2Col67' 
-        	 ng-if='attr.type === "lessonlink"'>
-            <div class='row row-center padding0 margin0 nl-time-input'>
-                <input class='col col-90 w100 nl-desc-padding nl-course-input' ng-model='ext.item[attr.name]' ng-focus="focus=showEditorHelp" ng-blur="focus=false">
-                <i class='col col-10 icon ion-android-open nl-time-icon' ng-click='onLaunch($event, ext.item)'></i>
+        	 ng-if='attr.type === "lessonlink" && (!attr.group || editor.showGroup[attr.group])'
+        	 class='nl-dlg-field-value'>
+            <div class='row row-center padding0 margin0'>
+                <input class='col' 
+                 ng-model='ext.item[attr.name]' type='text'
+                 ng-focus="attr.focus=true" ng-blur="attr.focus=false">
+                <i class='icon ion-android-open fsh4 padding-small nl-link-img'
+                   ng-click='onLaunch($event, ext.item)'></i>
             </div>
-			<div ng-show='focus' class='row row-center padding0 margin0'>
-				<div class='resp2Col100 nl-lessonlink-help'>
-					{{attr.help}}
-				</div>
-			</div>
 		</div>
-		
-		
+        <nl-inline-help class='w100' ng-show='attr.focus && editor.showHelp'>
+            {{attr.help}}
+        </nl-inline-help>
     </div>
-    <div class='row row-top row-wrap margin0 padding-top'>
-        <div class='col padding-small min-200'>
-             <button class='button button-positive button-small w100'
-                     ng-click='showAddInfo($event, ext.item)'>
-                     <span ng-if='showAddInform'>Hide additional fields</span>
-                     <span ng-if='!showAddInform'>Show additional fields</span>
-             </button>
-        </div>
-    </div>
-
-	<div ng-show='ext.item.id != "_root" && showAddInform' class='padding-mid'>
-		<div class='row row-center row-wrap margin0' ng-repeat='attr in additional_Attributes'>
-			<div ng-class='resp2Col33' class='nl-desc-padding'>{{attr.text||attr.name}}</div>
-			<div ng-class='resp2Col67'
-	        	 ng-if='attr.type === "additional"'
-	        	 class='nl-time-input-div'>
-				<input ng-model='ext.item[attr.name]' class='nl-course-input w100' ng-focus="focus=showEditorHelp" ng-blur="focus=false">
-				<div ng-show='focus' class='row row-center nl-dlg-course-help'>
-					<div class='resp2Col100'>
-						{{attr.help}}
-					</div>
-				</div>
-			</div>
-        </div>
-	</div>
-
 </div>

@@ -7,6 +7,7 @@
 function module_init() {
     angular.module('nl.ui.utils', ['nl.ui.keyboard'])
     .filter('nlDateStr', NlDateStr) // Usage: {{someDate | nlDateStr:'dd-MMMM-yyyy'}}
+    .filter('nlConvert', NlConvert) // Usage: {{someStr | nlConvert:convertDict}}
     .service('nlPrinter', PrinterSrv)
     .directive('nlCompile', Compile)
     .directive('nlLoading', LoadingDirective)
@@ -28,6 +29,16 @@ function(nl, $filter) {
         return ret;
     }
     return _fmtDateStr;
+}];
+
+//-------------------------------------------------------------------------------------------------
+var NlConvert = ['nl',
+function(nl) {
+    function _convert(input, convertDict) {
+        if (input in convertDict) return convertDict[input];
+        return input;
+    }
+    return _convert;
 }];
 
 //-------------------------------------------------------------------------------------------------

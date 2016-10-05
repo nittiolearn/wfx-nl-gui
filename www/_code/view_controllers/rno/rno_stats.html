@@ -69,7 +69,7 @@
     </div>
     <div class='padding-small'></div>
 
-    <nl-inline-help show-help='{{showInlineHelp}}'>
+    <nl-inline-help ng-show='showInlineHelp'>
         The data is fetched in multiple chunks from the server depending on the size of data to be processed.
         If the data is still being fetched, you will see a notification in the bottom.
         You could view the data as it is being fetched.
@@ -82,7 +82,7 @@
         <i ng-show='showRatingStats' class="icon ion-arrow-down-b"></i>
         <span>Analysis of ratings across development areas</span>
     </div>
-    <nl-inline-help show-help='{{showInlineHelp}}'>
+    <nl-inline-help ng-show='showInlineHelp'>
         Click on the above link to view the average rating across milestone areas.
         The average rating is computed based on the rated milestones by assigning a weight to 
         each achievement level (see below). The average is computed by summing up all the weights
@@ -103,7 +103,7 @@
         <i ng-show='showObservationStats' class="icon ion-arrow-down-b"></i>
         <span>Trend analysis of observations</span>
     </div>
-    <nl-inline-help show-help='{{showInlineHelp}}'>
+    <nl-inline-help ng-show='showInlineHelp'>
         Click on the above link to view monthly bar chart of observation statisitics.
         Click on a month's bars to view daily chart for the selected month.
         You could select/unselect the different observation counters in your chart view.
@@ -120,7 +120,7 @@
         <i ng-show='showObservationTable' class="icon ion-arrow-down-b"></i>
         <span>List of observations in the month {{data.month.id}}</span>
     </div>
-    <nl-inline-help show-help='{{showInlineHelp}}'>
+    <nl-inline-help ng-show='showInlineHelp'>
         Click on the above link to view the list of observations done/sent in the current selected month.
         You can change the selected month by enabling the filter in the toolbar.
         Clicking on a month's bar in any month chart also changes the selected month.
@@ -138,7 +138,7 @@
         <i ng-show='showReportStats' class="icon ion-arrow-down-b"></i>
         <span>Trend analysis of reports sent</span>
     </div>
-    <nl-inline-help show-help='{{showInlineHelp}}'>
+    <nl-inline-help ng-show='showInlineHelp'>
         Click on the above link to view monthly bar chart of summary reports sent statisitics.
         Click on a month's bars to view daily chart for the selected month.
         
@@ -155,7 +155,7 @@
         <i ng-show='showReportTable' class="icon ion-arrow-down-b"></i>
         <span>List of reports sent in the month {{data.month.id}}</span>
     </div>
-    <nl-inline-help show-help='{{showInlineHelp}}'>
+    <nl-inline-help ng-show='showInlineHelp'>
         Click on the above link to view the list of summary reports sent in the current selected month.
     </nl-inline-help>
     <div ng-if='showReportTable'>

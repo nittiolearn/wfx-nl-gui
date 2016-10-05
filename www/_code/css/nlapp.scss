@@ -224,6 +224,12 @@ textarea, input[type="text"], input[type="password"], input[type="datetime"], in
   margin:4px;
 }
 
+select {
+  background-color: #FFFFFF;
+  border: 1px solid #DDDDFF;
+  border-radius: 0px;
+}
+
 ion-nav-view, ion-view {
   /*border-radius: 8px;*/
 }
@@ -818,9 +824,6 @@ tr .nl-dlg-field-name {
     height: 5em;
   }
   select {
-    background-color: #EEEEFF;
-    border: 0;
-    border-radius: 4px;
     height: 34px;
     width: 100%;
   }
