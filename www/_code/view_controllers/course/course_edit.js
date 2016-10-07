@@ -77,15 +77,8 @@ function(nl, nlDlg, nlCourse) {
                 newModule.push(card);
             }
         }
+        $scope.modules = newModule;
         modeHandler.course.content.modules = newModule;
-        var modifiedData = {
-                        courseid: modeHandler.course.id,
-                        name: modeHandler.course.name, 
-                        icon: modeHandler.course.icon, 
-                        description: modeHandler.course.description,
-                        content: angular.toJson(modeHandler.course.content) 
-                    };
-        _modifyAndUpdateToServer(modifiedData);
     }
 
     function _saveCourse(e, cm) {
@@ -93,7 +86,6 @@ function(nl, nlDlg, nlCourse) {
         for(var i in modules){
             if(cm.id == modules[i].id) modeHandler.course.content.modules[i] = _validate(cm);
         }
-        console.log(modeHandler.course.content.modules);        
         var modifiedData = {
                         courseid: modeHandler.course.id,
                         name: modeHandler.course.name, 
@@ -105,7 +97,6 @@ function(nl, nlDlg, nlCourse) {
     }
     
     function _validate(cm){
-        console.log(cm);
         var arr = null;
         var module = ['id', 'name', 'type', 'icon', 'text'];
         var lesson = ['id', 'name', 'type', 'icon', 'text', 'refid', 'start_date', 'planned_date', 'maxAttempts', 'start_after', 'reopen_on_fail'];

@@ -29,7 +29,8 @@
         <div class='w100 nl-link-text padding-mid' 
              ng-if='attr.type === "group"'
              ng-click='editor.showGroup[attr.name] = !editor.showGroup[attr.name]'
-             tabindex='0'>
+             tabindex='0'
+             ng-keypress='$event.keyCode == 32 ? editor.showGroup[attr.name] = !editor.showGroup[attr.name] : ""'>
             <span class='fsh3'>
                 <i ng-show='editor.showGroup[attr.name]' class="icon ion-android-checkbox-outline"></i>
                 <i ng-hide='editor.showGroup[attr.name]' class="icon ion-android-checkbox-outline-blank"></i>
@@ -67,7 +68,8 @@
              class='nl-link-text padding-mid'
              ng-click='ext.item[attr.name] = !ext.item[attr.name]'
              ng-focus="attr.focus=true" ng-blur="attr.focus=false"
-             tabindex="0">
+             tabindex="0"
+             ng-keypress='$event.keyCode == 32 ? ext.item[attr.name] = !ext.item[attr.name] : ""'>
             <span>
                 <i ng-show='ext.item[attr.name]' class="icon ion-android-checkbox-outline"></i>
                 <i ng-hide='ext.item[attr.name]' class="icon ion-android-checkbox-outline-blank"></i>
