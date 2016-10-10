@@ -866,28 +866,24 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
     this.addItem = function(item) {
         var itemId = item[ID_ATTR];
         this.items[itemId] = item;
-
-        var parents = itemId.split(DELIM);
-        parents.pop(); // Remove the last entry
         
-        item.indentationLevel = parents.length;
-        item.indentationStyle = {'paddingLeft': item.indentationLevel + 'em'};
-        item.parentId = parents.join(DELIM);
-        
-        item.isOpen = (item.indentationLevel < VISIBLE_ON_OPEN-1);
-        item.visible = (item.indentationLevel < VISIBLE_ON_OPEN);
-        
-        if (item.indentationLevel == 0) {
-            if (item.id == '_root') {
-                item.location = '';
-                return;
-            }
-            item.parentId = '_root';
+        if (itemId == '_root') {
+            item.parentId =  '';
+        } else if (!item.parentId) {
+            var parents = itemId.split(DELIM);
+            parents.pop(); // Remove the last entry
+            item.parentId = (parents.length == 0) ? '_root' : parents.join(DELIM);
         }
         var parent = this.getParent(item);
-        if (!parent) return;
-        this.getChildren(parent).push(item);
-        item.location = parent.location == '' ? parent.name : parent.location + '.' + parent.name;
+        item.indentationLevel = parent ? parent.indentationLevel+1 : -1;
+        item.indentationStyle = {'paddingLeft': item.indentationLevel + 'em'};
+        item.isOpen = (item.indentationLevel < VISIBLE_ON_OPEN-1);
+        item.visible = (item.indentationLevel < VISIBLE_ON_OPEN);
+        item.location = (item.id == '_root') ? '' : 
+            (parent && parent.location) ? parent.location + '.' + parent.name :
+            parent ? parent.name : '';
+        
+        if (parent) this.getChildren(parent).push(item);
     };
     
     this.getItem = function(itemId) {
@@ -910,7 +906,7 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
     };
 
     this.getParent = function(item) {
-        if (item.parentId === '') return null;
+        if (!item.parentId || !(item.parentId in this.items)) return null;
         return this.items[item.parentId];
     };
     
