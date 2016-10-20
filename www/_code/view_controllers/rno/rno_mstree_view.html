@@ -13,6 +13,8 @@
      ng-show='ms.selectCnt > 0 && ms.indentation > 0'
      class='row row-top nl-rno-{{ms.indentation}} margin0'
      style='margin-bottom: 4px;'>
-    <div class='col nl-rno-size-{{ms.indentation}}'>{{ms.text}}</div>
+    <div class='col nl-rno-size-{{ms.indentation}}'>
+        <span ng-show='!ms.isFolder'>{{ms.usertype}}:</span> {{ms.text}}
+    </div>
     <div ng-show='!ms.isFolder' class='col col-20 text-right'>{{ms.rating.name}}</div>
 </div>

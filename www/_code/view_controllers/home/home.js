@@ -103,12 +103,12 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
         if (userInfo.termAccess == 'none') {
             unauthorizedCards.push(
                 {title: nl.t('Access not allowed'), icon: nl.url.resUrl('dashboard/warning.png'), url: '', 
-                    help: nl.t('<p>Access is not allowed from this device.</p><p>You will only be able to access the help desk from this device.</p><p>If you think this device should not be restricted, please contact your administrator.</p>'), 
+                    help: nl.t('<p>Access is not allowed from this device or IP address.</p>'), 
                     style: 'nl-bg-red', children: []});
         } else if (userInfo.termAccess == 'restricted') {
             unauthorizedCards.push(
                 {title: nl.t('Restricted access'), icon: nl.url.resUrl('dashboard/warning.png'), url: '', 
-                    help: nl.t('<p>You have only restricted access from this device.</p><p>You will only be able to access few of the features.</p><p>If you think this device should not be restricted, please contact your administrator.</p>'), 
+                    help: nl.t('<p>You have only restricted access from this device or IP address.</p>'), 
                     style: 'nl-bg-red', children: []});
         }
         return unauthorizedCards;
