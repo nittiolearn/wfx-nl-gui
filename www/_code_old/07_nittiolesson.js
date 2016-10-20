@@ -1163,6 +1163,7 @@ nlesson = function() {
 		MathJax.Hub.Queue(function(){
 			for (var i=0; i<me.sections.length; i++) {
 				var pos = me.sectionCreateOrder[i];
+                me.sections[pos].preAdjustHtmlDom();
 				nittio.resizeImagesToAspectRatio(me.sections[pos].pgSecView);
 			}
 			me.updateFontSizes(me.lesson.oLesson.minTextSize || 30);
@@ -1308,7 +1309,8 @@ nlesson = function() {
 		this.updateHtmlDom = Section_updateHtmlDom;
 		this.getViewHtml = Section_getViewHtml;
 		this.setViewHtml = Section_setViewHtml;
-		this.adjustHtmlDom = Section_adjustHtmlDom;
+        this.preAdjustHtmlDom = Section_preAdjustHtmlDom;
+        this.adjustHtmlDom = Section_adjustHtmlDom;
 		
 		this.reRender = Section_reRender;
 	}
@@ -1466,6 +1468,14 @@ nlesson = function() {
 		njs_helper.switchoffContenxtMenu(jQuery(this.pgSecView.find('.njs_video')));
 	}
 
+    function Section_preAdjustHtmlDom() {
+        var pagetype = this.page.pagetype;
+        this.pgSecView.css(pagetype.getSectionPos(this.secPosShuffled));
+        this.pgSecText.css(pagetype.getSectionPos(this.secNo));
+        if (this.lesson.renderCtx.launchCtx() == 'edit_templ')
+            this.pgSecTemplate.css(pagetype.getSectionPos(this.secNo));
+    }
+    
 	function Section_adjustHtmlDom() {
         njs_helper.valignMiddleAndSetScroll(this, this.valignMiddle, this.isTxt); // needed even in edit mode (for edit-gra mode)
         var self = this;

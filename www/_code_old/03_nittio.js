@@ -574,6 +574,7 @@ nittio = function() {
     var W_SMALL = 700;
     var W_LARGE = 1000;
     var g_screenSize = null;
+    var g_isAspectRaioWide = true;
 	function initSizes(retainAspect) {
 	    
 	    // Fix to remove the vertical scroll in toolBar if present
@@ -586,6 +587,7 @@ nittio = function() {
         var body = jQuery('.body');
         var wBody = body.width(); 
         var hBody = body.height();
+        g_isAspectRaioWide = (wBody >= hBody);
         if (g_screenSize) body.removeClass(g_screenSize);
         g_screenSize = wBody < W_SMALL ? 'small' : wBody < W_LARGE ? 'medium' : 'large';
         g_screenSize = 'nl-screen-' + g_screenSize;
@@ -643,6 +645,10 @@ nittio = function() {
 			elem.find('.aspect_wrt_with_imglink').each(function() {
 				jQuery(this).removeClass('aspect_wrt_with_imglink');
 			});
+	}
+	
+	function isAspectRaioWide() {
+	    return g_isAspectRaioWide;
 	}
 
 	//-----------------------------------------------------------------------------
@@ -915,6 +921,7 @@ nittio = function() {
 		closePopupsAndDlgs : closePopupsAndDlgs,
 
 		resizeImagesToAspectRatio : resizeImagesToAspectRatio,
+		isAspectRaioWide: isAspectRaioWide,
 
 		//Print
 		onPrint: onPrint,

@@ -141,7 +141,8 @@ npagetypes = function() {
 
 	var LAYOUT_ORDER = ['pos', 't', 'h', 'l', 'w'];
 	var LAYOUT_COLLEN = {'pos': 2, 't': 5, 'h': 5, 'l': 5, 'w': 5};
-	var LAYOUT_ORDER_OTHER = ['aligntype', 'style', 'fmtgroup', 'ans', 'correct', 'mode'];
+	var LAYOUT_ORDER_OTHER = ['t1', 'h1', 'l1', 'w1', 'aligntype', 'style', 'fmtgroup', 'ans', 'correct', 'mode'];
+    var LAYOUT_ATTR_TYPE = {'t1': 'int', 'h1': 'int', 'l1': 'int', 'w1': 'int'};
 	function _BeautyStringifyLayout(secLayout, i) {
 		secLayout.pos = i+1;
 		var ret = '{';
@@ -157,7 +158,8 @@ npagetypes = function() {
 		for (var i in LAYOUT_ORDER_OTHER) {
 			var attr = LAYOUT_ORDER_OTHER[i];
 			if (!(attr in secLayout)) continue;
-			ret += ', "' + attr + '":"' + secLayout[attr] + '"';
+			var quote = (attr in LAYOUT_ATTR_TYPE && LAYOUT_ATTR_TYPE[attr] == 'int') ? '' : '"';
+			ret += ', "' + attr + '":' + quote + secLayout[attr] + quote;
 		}
 		for (var i in secLayout) {
 			if (LAYOUT_ORDER.indexOf(i) != -1) continue;
@@ -431,7 +433,9 @@ npagetypes = function() {
 	function PageType_getSectionPos(secNo) {
 		if (secNo >= this.layout.length) return _posNone();
 		var secInfo = this.layout[secNo];
-		return _pos(secInfo['t'], secInfo['l'], secInfo['h'], secInfo['w']);
+		var isLong = !nittio.isAspectRaioWide();
+		return _pos(_getParam(isLong, secInfo, 't'), _getParam(isLong, secInfo, 'l'),
+		  _getParam(isLong, secInfo, 'h'), _getParam(isLong, secInfo, 'w'));
 	}
 	
     function PageType_getSectionStyle(secNo) {
@@ -444,9 +448,14 @@ npagetypes = function() {
 		return this.layout;
 	}
 
+    function _getParam(isLong, secInfo, param) {
+        var p1 = param + '1';
+        return isLong && p1 in secInfo ? secInfo[p1] : secInfo[param];
+    }
+    
 	function _pos(t, l, h, w) {
-		//return { 'background-color' : 'blue', 'position' : 'absolute', 'top': t + '%', 'left': l + '%', 'height': h + '%', 'width': w + '%'};
 		return {
+		    //'background-color' : 'blue', 
 			'position' : 'absolute',
 			'top' : t + '%',
 			'left' : l + '%',
