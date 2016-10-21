@@ -28,7 +28,8 @@
 <nl-course-view-toolbar></nl-course-view-toolbar>
 <div ng-if='!popupView' class='{{expandedView ? "frame1" : "frame0"}}'
 	 style='border-right: 1px solid rgba(0, 0, 0, 0.1)'>
-    <nl-course-view-list></nl-course-view-list>
+    <nl-course-editor-list ng-if='ext.isEditorMode()'></nl-course-editor-list>
+    <nl-course-view-list ng-if='!ext.isEditorMode()'></nl-course-view-list>
 </div>
 <div ng-if='popupView || expandedView'
      class='padding-small {{popupView ? "frame0" : "frame2"}}'>
@@ -38,8 +39,8 @@
         </div>
         <nl-course-view-content-active ng-if='!iframeUrl && !ext.isStaticMode()'>
         </nl-course-view-content-active>
-        <nl-course-view-content-editor ng-if='!iframeUrl && ext.isEditorMode()'>
-        </nl-course-view-content-editor>
+        <nl-course-editor ng-if='!iframeUrl && ext.isEditorMode()'>
+        </nl-course-editor>
         <nl-course-view-content-static ng-if='!iframeUrl && ext.isStaticMode() && !ext.isEditorMode()'>
         </nl-course-view-content-static>
     </div>

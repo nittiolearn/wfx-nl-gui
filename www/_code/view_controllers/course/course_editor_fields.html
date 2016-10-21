@@ -1,0 +1,113 @@
+<style>
+    .ce-input-div {
+        background-color: #FFFFFF;
+        border: 1px solid #DDDDFF;
+        border-radius: 0px;
+    }
+</style>
+
+<div class='row row-center row-wrap margin0 padding-top'
+     ng-repeat='attr in attrs'
+     ng-if='(!attr.fields || attr.fields.indexOf(values.type) >= 0) && (!attr.debug || editor.debug) && (!attr.group || editor.showGroup[attr.group])'>
+
+    <div class='w100 nl-link-text padding-mid' 
+         ng-if='attr.type === "group"'
+         ng-click='editor.showGroup[attr.name] = !editor.showGroup[attr.name]'
+         tabindex='0'
+         ng-keypress='$event.keyCode == 32 ? editor.showGroup[attr.name] = !editor.showGroup[attr.name] : ""'>
+        <span class='fsh6'>
+            <i ng-show='editor.showGroup[attr.name]' class="icon ion-android-checkbox-outline"></i>
+            <i ng-hide='editor.showGroup[attr.name]' class="icon ion-android-checkbox-outline-blank"></i>
+            {{attr.text||attr.name}}
+        </span>
+    </div>
+    
+	<div ng-if='attr.type !== "group" && attr.type !== "hidden"' ng-class='$root.resp2Col33'
+	     class='padding-mid'>{{attr.text||attr.name}}</div>
+    <div ng-class='$root.resp2Col67'
+         ng-if='attr.type === "string" || attr.type === "number"'
+         class='nl-dlg-field-value'>
+        <input ng-model='values[attr.name]' class='w100'
+        	   type='{{attr.type == "number" ? "number" : "text"}}'
+        	   min='0'
+        	   ng-focus="attr.focus=true" ng-blur="attr.focus=false">
+    </div>
+    <div ng-class='$root.resp2Col67'
+         ng-if='attr.type === "readonly"'
+         class='nl-dlg-field-value'>
+        <input ng-model='values[attr.name]' class='w100' readonly type='text'
+         ng-focus="attr.focus=true" ng-blur="attr.focus=false">
+    </div>
+    <div ng-class='$root.resp2Col67'
+         ng-if='attr.type === "list"'
+         class='nl-dlg-field-value'>
+        <select ng-model='values[attr.name]' 
+                class='w100'
+                ng-options='opt as (opt | nlConvert:editor.typeNames) for opt in attr.values'
+                ng-focus="attr.focus=true" ng-blur="attr.focus=false">
+        </select>               
+    </div>
+    
+    <div ng-class='$root.resp2Col67'
+         ng-if='attr.type === "boolean"'
+         class='nl-link-text padding-mid'
+         ng-click='values[attr.name] = !values[attr.name]'
+         ng-focus="attr.focus=true" ng-blur="attr.focus=false"
+         tabindex="0"
+         ng-keypress='$event.keyCode == 32 ? values[attr.name] = !values[attr.name] : ""'>
+        <span>
+            <i ng-show='values[attr.name]' class="icon ion-android-checkbox-outline"></i>
+            <i ng-hide='values[attr.name]' class="icon ion-android-checkbox-outline-blank"></i>
+            {{attr.text||attr.name}}
+        </span>
+    </div>
+
+    <div ng-class='$root.resp2Col67' 
+    	 ng-if='attr.type === "date"'
+    	 class='nl-dlg-field-value'>
+    	 <div class='nl-link-text ce-input-div' 
+    	 	  ion-datetime-picker ng-model="values[attr.name]" 
+    	 	  ng-focus="attr.focus=true" ng-blur="attr.focus=false"
+    	 	  tabindex="0">
+            <div class='row row-center margin0 padding0'>
+                <div class='col'>{{values[attr.name] | date: "yyyy-MM-dd"}}</div>
+                <i class='icon ion-android-time fsh4 padding-small'></i>
+            </div>
+        </div>
+	</div>
+    <div ng-class='$root.resp2Col67'
+         ng-if='attr.type === "text"'
+         class='nl-dlg-field-value'>
+        <textarea rows="5" ng-model='values[attr.name]'
+                  class='w100'
+                  ng-focus="attr.focus=true" ng-blur="attr.focus=false">
+        </textarea>
+    </div>
+    <div ng-class='$root.resp2Col67'
+         ng-if='attr.type === "object"'
+         class='nl-dlg-field-value'>
+        <textarea rows="5" nl-object-to-json ng-model='values[attr.name]'
+                  class='w100'
+                  ng-focus="attr.focus=true" ng-blur="attr.focus=false">
+        </textarea>
+    </div>
+    <div ng-class='$root.resp2Col67' 
+    	 ng-if='attr.type === "lessonlink"'
+    	 class='nl-dlg-field-value'>
+        <div class='row row-center padding0 margin0'>
+            <input class='col' 
+             ng-model='values[attr.name]' type='text'
+             ng-focus="attr.focus=true" ng-blur="attr.focus=false">
+            <i class='icon ion-android-open fsh4 padding-small nl-link-img'
+               ng-click='onLaunch($event, values)'
+               title='Preview'></i>
+            <i class='icon ion-android-search fsh4 padding-small nl-link-img'
+               ng-click='editor.searchLesson($event, values)'
+               title='Search modules'></i>
+        </div>
+	</div>
+    <nl-inline-help class='w100' ng-show='attr.focus && editor.showHelp'>
+        {{attr.help}}
+    </nl-inline-help>
+</div>
+    

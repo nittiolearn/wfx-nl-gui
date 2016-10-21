@@ -1,0 +1,16 @@
+<nl-dlg title='{{data.title}}'>
+	<nl-dlg-content>
+		<table class='nl-table nl-table-styled'>
+			<tr>
+				<th>Lesson name</th>
+				<th>Author name</th>
+				<th>Lesson id</th>
+			</tr>
+			<tr ng-repeat='item in data.lessonList'>
+				<td>{{item.name}}</td>
+				<td>{{item.authorname}}</td>
+				<td>{{item.id}}</td>
+			</tr>
+		</table>
+	</nl-dlg-content>
+</nl-dlg>

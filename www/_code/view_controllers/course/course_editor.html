@@ -1,0 +1,62 @@
+<style>
+    .ce-input-div {
+        background-color: #FFFFFF;
+        border: 1px solid #DDDDFF;
+        border-radius: 0px;
+    }
+</style>
+
+<nl-inline-help ng-show='editor.showHelp'>
+    When you click on any of the fields below, you will see context specific help for that field.
+    Click on the help icon in the tool bar above to disable the context specific help.
+</nl-inline-help>
+
+<div ng-show='ext.item.id == "_root"' class='padding-mid'>
+	<div class='row row-center row-wrap margin0 padding-top'>
+		<div ng-class='resp2Col33'
+		     class='padding-mid'>Name</div>
+        <div ng-class='resp2Col67'
+             class='nl-dlg-field-value'>
+            <input class='w100' type='text' ng-model='editor.course.name'
+             ng-focus="attr.focus=true" ng-blur="attr.focus=false">
+        </div>
+        <nl-inline-help class='w100' ng-show='attr.focus && editor.showHelp'>
+            {{attr.help}}
+        </nl-inline-help>
+ 	</div>   
+	<div class='row row-center row-wrap margin0 padding-top'>
+		<div ng-class='resp2Col33'
+		     class='padding-mid'>Image</div>
+        <div ng-class='resp2Col67'
+             class='nl-dlg-field-value'>
+            <input class='w100' type='text' ng-model='editor.course.icon'
+             ng-focus="attr.focus=true" ng-blur="attr.focus=false">
+        </div>
+        <nl-inline-help class='w100' ng-show='attr.focus && editor.showHelp'>
+            {{attr.help}}
+        </nl-inline-help>
+ 	</div>   
+	<div class='row row-center row-wrap margin0 padding-top'>
+		<div ng-class='resp2Col33'>Course description</div>
+        <div ng-class='resp2Col67'
+             class='nl-dlg-field-value'>
+            <textarea rows="5" ng-model='editor.course.description'
+                      class='w100'
+                      ng-focus="attr.focus=true" ng-blur="attr.focus=false">
+            </textarea>
+        </div>
+        <nl-inline-help class='w100' ng-show='attr.focus && editor.showHelp'>
+            {{attr.help}}
+        </nl-inline-help>
+ 	</div>   
+	<nl-course-editor-fields attrs='editor.course_attributes'
+							 values='editor.course.content'
+							 editor='editor'>
+	</nl-course-editor-fields>
+</div>
+<div ng-show='ext.item.id != "_root"' class='padding-mid'>
+	<nl-course-editor-fields attrs='editor.module_attributes'
+					 		 values='ext.item'
+					 		 editor='editor'>
+	</nl-course-editor-fields>
+</div>
