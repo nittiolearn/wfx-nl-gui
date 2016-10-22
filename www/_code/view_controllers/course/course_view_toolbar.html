@@ -25,6 +25,12 @@
           ng-click='editor.deleteModule($event, ext.item)'>
         <i class="icon fsh3 ion-ios-trash"></i>
     </span>
+    <span title='Reorder items'
+          ng-show='ext.isEditorMode()'
+          class='nl-toolbar-icon'
+          ng-click='editor.organiseModules($event, ext.item)'>
+        <i class="icon fsh3 ion-shuffle"></i>
+    </span>
     <span title='Save'
           ng-show='!popupView && !iframeUrl && ext.isEditorMode()'
           class='nl-toolbar-icon padding0'

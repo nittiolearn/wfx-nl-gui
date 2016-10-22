@@ -295,6 +295,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
 		            $scope.ext.setCurrentItem(treeList.getRootItem());
         		}
     			_showVisible();
+        	},
+        	updateMovedItem: function(cm, oldPos, newPos){
+        		return treeList.updateItem(cm, oldPos, newPos);
         	}
         };
         nlCourseEditor.init($scope, modeHandler);
@@ -845,14 +848,14 @@ function ScopeExtensions(nl, modeHandler, nlContainer, folderStats) {
 
     this.isIconImg = function(cm) {
         if (!cm) return false;
-        var icon = ('icon' in cm) ? cm.icon : cm.type;
+        var icon = cm.icon || cm.type;
         if (icon in _icons) return false;
         return true;
     };
 
     this.getIconCls = function(cm) {
         if (!cm) return '';
-        var icon = ('icon' in cm) ? cm.icon : cm.type;
+        var icon = cm.icon || cm.type;
         if (icon in _icons) return _icons[icon];
         return icon;
     };
@@ -881,6 +884,15 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
         this.addItem(rootItem);
     };
     
+    this.deleteItem = function(item) {
+        var itemId = item[ID_ATTR];
+        delete this.items[itemId];
+        var parent = this.getParent(item);
+        // TODO - remove the item from parents children; 
+        // call this when an item is deleted (call this for all child nodes deleted)
+        // call this also when moving 
+    };
+    
     this.addItem = function(item) {
         var itemId = item[ID_ATTR];
         this.items[itemId] = item;
@@ -904,6 +916,17 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
         if (parent) this.getChildren(parent).push(item);
     };
     
+    this.updateItem = function(item, oldPos, newPos) {
+        var parent = this.getParent(item);
+        item.indentationLevel = parent ? parent.indentationLevel+1 : -1;
+        item.indentationStyle = {'paddingLeft': item.indentationLevel + 'em'};
+        item.location = (item.id == '_root') ? '' : 
+            (parent && parent.location) ? parent.location + '.' + parent.name :
+            parent ? parent.name : '';
+        
+        // TODO: if (parent) this.getChildren(parent).push(item); - not push; insert at right place
+    };
+
     this.getItem = function(itemId) {
         return this.items[itemId] || null;
     };

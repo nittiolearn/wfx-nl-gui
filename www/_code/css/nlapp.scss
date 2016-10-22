@@ -414,6 +414,10 @@ $animation-duration: 200ms !default;
   }
 }
 
+.nl-overflow-auto {
+  overflow-y: auto;
+}
+
 //-----------------------------------------------------------------------------------------
 // link clickable classes: nl-link-text and nl-link-img
 //-----------------------------------------------------------------------------------------
@@ -656,6 +660,15 @@ a.black {
   .popup-title {
     color: #FFFFFF;
     font-size: 120%;
+  }
+  
+  .nl-dlg-ion-content {
+    position: absolute;
+    top: 32px;
+    bottom: 37px;
+    left: 0;
+    width: auto;
+    height: auto;
   }
 }
 

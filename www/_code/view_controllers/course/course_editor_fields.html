@@ -5,11 +5,9 @@
         border-radius: 0px;
     }
 </style>
-
 <div class='row row-center row-wrap margin0 padding-top'
      ng-repeat='attr in attrs'
      ng-if='(!attr.fields || attr.fields.indexOf(values.type) >= 0) && (!attr.debug || editor.debug) && (!attr.group || editor.showGroup[attr.group])'>
-
     <div class='w100 nl-link-text padding-mid' 
          ng-if='attr.type === "group"'
          ng-click='editor.showGroup[attr.name] = !editor.showGroup[attr.name]'
