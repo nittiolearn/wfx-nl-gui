@@ -1,0 +1,34 @@
+<style>
+	.ion-item-style {
+		border: none;
+	}
+	.ion-item-style .item-content {
+		padding: 8px 75px 8px 8px;
+	}
+</style>
+
+<nl-dlg title='{{data.title}}'>
+<nl-dlg-content>
+	<ion-content overflow-scroll='true' class='nl-dlg-ion-content nl-overflow-auto'>
+	    <ion-list show-reorder='true'>
+	        <ion-item ng-repeat='cm in data.modules' class='ion-item-style'>
+	        	<div class='row row-center margin0 padding0'>
+		        	<div style='padding-left: {{cm.indentationLevel*16}}px'></div>
+		        	<div class='row row-center margin0 padding-mid nl-cv-item'>
+					    <span ng-show='cm.type == "module"' style='width: 20px'>
+					    	<i ng-show='!cm.isOpen' class="icon ion-arrow-right-b bold fsh3"></i>
+		        			<i ng-show='cm.isOpen' class="icon ion-arrow-down-b bold fsh3"></i>
+						</span>
+		                <img ng-if='ext.isIconImg(cm)' class='nl-icon' ng-src='{{cm.icon}}'>
+		                <i ng-show='!ext.isIconImg(cm)' class="icon {{ext.getIconCls(cm)}} bold fsh3"></i>
+						<span class='col'>{{cm.name}}</span>
+		        	</div>
+	        	</div>
+	            <ion-reorder-button class="ion-navicon"
+	                                on-reorder="moveItem(cm, $fromIndex, $toIndex)">
+	            </ion-reorder-button>
+	        </ion-item>
+	    </ion-list>
+	</ion-content>
+</nl-dlg-content>
+</nl-dlg>

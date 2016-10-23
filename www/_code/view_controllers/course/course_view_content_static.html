@@ -3,8 +3,10 @@
 </div>
 <div ng-show='ext.item.id == "_root"' class='padding-mid'>
     <table class='nl-table nl-table-styled'>
-        <tr ng-repeat='attr in editor.course_attributes'>
-            <td>{{attr.key}}</td><td>{{attr.val}}</td>
+        <tr ng-repeat='attr in editor.course_attributes'
+        	ng-if='!attr.debug && attr.type != "hidden" && courseContent[attr.name] !== undefined'>
+            <td>{{attr.text}}</td>
+            <td>{{courseContent[attr.name]}}</td>
         </tr>
     </table>
 </div>

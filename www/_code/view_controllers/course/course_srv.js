@@ -74,6 +74,11 @@ function(nl, nlServerApi) {
         var action = _dashboardActions[actionId];
         return nl.fmt2(action.url, urlParams);
     };
+    
+    this.getApprovedList = function(){
+    	var data = {};
+    	return nlServerApi.lessonGetApprovedList(data);
+    };
 
 }];
 

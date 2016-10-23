@@ -1,0 +1,29 @@
+<style>
+    .ce-input-div {
+        background-color: #FFFFFF;
+        border: 1px solid #DDDDFF;
+        border-radius: 0px;
+    }
+</style>
+
+<nl-inline-help ng-show='editor.showHelp'>
+    When you click on any of the fields below, you will see context specific help for that field.
+    Click on the help icon in the tool bar above to disable the context specific help.
+</nl-inline-help>
+
+<div ng-show='ext.item.id == "_root"' class='padding-mid'>
+	<nl-course-editor-fields attrs='editor.course_params'
+							 values='editor.course'
+							 editor='editor'>
+	</nl-course-editor-fields>
+	<nl-course-editor-fields attrs='editor.course_attributes'
+							 values='editor.course.content'
+							 editor='editor'>
+	</nl-course-editor-fields>
+</div>
+<div ng-show='ext.item.id != "_root"' class='padding-mid'>
+	<nl-course-editor-fields attrs='editor.module_attributes'
+					 		 values='ext.item'
+					 		 editor='editor'>
+	</nl-course-editor-fields>
+</div>

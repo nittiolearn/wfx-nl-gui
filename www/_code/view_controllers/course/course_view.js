@@ -10,7 +10,6 @@ function module_init() {
     .directive('nlCourseViewList', CourseViewDirective('course_view_list'))
     .directive('nlCourseViewContentActive', CourseViewDirective('course_view_content_active'))
     .directive('nlCourseViewContentStatic', CourseViewDirective('course_view_content_static'))
-    .directive('nlCourseViewContentEditor', CourseViewDirective('course_view_editor'))
     .directive('nlCourseViewFrame', CourseViewDirective('course_view_frame'))
     .config(configFn).controller('nl.CourseViewCtrl', NlCourseViewCtrl);
 }
@@ -212,7 +211,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
     var treeList = new TreeList(nl);
     var courseReportSummarizer = new CourseReportSummarizer($scope);
     var _userInfo = null;
-    var _allModules = [];
     $scope.MODES = MODES;
     var folderStats = new FolderStats($scope);
     $scope.ext = new ScopeExtensions(nl, modeHandler, nlContainer, folderStats);
@@ -253,9 +251,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
     nlRouter.initContoller($scope, '', _onPageEnter, _onPageLeave);
 
     function _onCourseRead(course) {
+        modeHandler.initTitle(course);
         _initAttributesDicts(course);
         courseReportSummarizer.updateUserReports(course);
-        modeHandler.initTitle(course);
+        $scope.courseContent = course.content;
         $scope.planning = course.content.planning;
         if ('forumRefid' in course) {
             $scope.forumInfo = {refid: course.forumRefid, secid: course.id};
@@ -263,15 +262,15 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
             $scope.forumInfo = {refid: 0};
         }
         var modules = course.content.modules;
-        _allModules = [];
+	    var allModules = nlCourseEditor.getAllModules(true);
         for(var i=0; i<modules.length; i++) {
             var module = angular.copy(modules[i]);
             var userRecords = courseReportSummarizer.getUserRecords(course, module);
             _initModule(module);
-            _allModules.push(module);
+            allModules.push(module);
             for(var j=0; j<userRecords.length; j++) {
                 _initModule(userRecords[j]);
-                _allModules.push(userRecords[j]);
+                allModules.push(userRecords[j]);
             }
         }
         nl.timeout(function() {
@@ -280,9 +279,28 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
         });
     }
 
-    function _initAttributesDicts(course) {
+    function _initAttributesDicts() {
         if (!$scope.ext.isStaticMode()) return;
-        nlCourseEditor.init($scope, modeHandler, course);
+        $scope.editorCb = {
+        	initModule: function(cm) {
+                _initModule(cm);
+        	},
+        	getParent: function(cm) {
+        		return treeList.getParent(cm);
+        	},
+        	showVisible: function(cm) {
+        		if (cm) {
+        			$scope.ext.setCurrentItem(cm);
+        		} else {
+		            $scope.ext.setCurrentItem(treeList.getRootItem());
+        		}
+    			_showVisible();
+        	},
+        	updateMovedItem: function(cm, oldPos, newPos){
+        		return treeList.updateItem(cm, oldPos, newPos);
+        	}
+        };
+        nlCourseEditor.init($scope, modeHandler);
     }
 
     function _initExpandedView() {
@@ -298,8 +316,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
 
     function _showVisible() {
         $scope.modules = [];
-        for(var i=0; i<_allModules.length; i++) {
-            var cm=_allModules[i];
+	    var allModules = nlCourseEditor.getAllModules();
+        for(var i=0; i<allModules.length; i++) {
+            var cm=allModules[i];
             if (!cm.visible) continue;
             $scope.modules.push(cm);
         }
@@ -494,7 +513,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
         failed:  {icon: 'icon ion-close-circled forange', title: 'Failed'},
         success: {icon: 'ion-checkmark-circled fgreen', title: 'Done'},
         partial_success: {icon: 'ion-checkmark-circled forange', title: 'Partially Done'} // Only folder status
-    }
+    };
 
     function _updateState(cm, state) {
         // statusIcon, statusText, statusShortText
@@ -549,6 +568,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
         else if (folderStat.started + folderStat.failed + folderStat.success > 0) status = 'started';
         else status = 'pending';
         _updateState(cm, status);
+        cm.totalItems = folderStat.total;
     }
     
     function _updateLinkData(cm, today) {
@@ -641,8 +661,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
         if ($scope.mode != MODES.REPORTS_SUMMARY_VIEW) return;
         var data = [];
         data.push(['User name', 'Module', 'Type', 'Status', 'Time spent', 'Score', 'Max score', 'Percentage', 'Location']);
-        for(var i=0; i<_allModules.length; i++) {
-            var cm = _allModules[i];
+	    var allModules = nlCourseEditor.getAllModules();
+        for(var i=0; i<allModules.length; i++) {
+            var cm = allModules[i];
             if (cm.type == 'module') continue;
             var parent = treeList.getItem(cm.parentId);
             if (!parent) continue; // This is a must in REPORTS_SUMMARY_VIEW
@@ -827,14 +848,14 @@ function ScopeExtensions(nl, modeHandler, nlContainer, folderStats) {
 
     this.isIconImg = function(cm) {
         if (!cm) return false;
-        var icon = ('icon' in cm) ? cm.icon : cm.type;
+        var icon = cm.icon || cm.type;
         if (icon in _icons) return false;
         return true;
     };
 
     this.getIconCls = function(cm) {
         if (!cm) return '';
-        var icon = ('icon' in cm) ? cm.icon : cm.type;
+        var icon = cm.icon || cm.type;
         if (icon in _icons) return _icons[icon];
         return icon;
     };
@@ -863,6 +884,15 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
         this.addItem(rootItem);
     };
     
+    this.deleteItem = function(item) {
+        var itemId = item[ID_ATTR];
+        delete this.items[itemId];
+        var parent = this.getParent(item);
+        // TODO - remove the item from parents children; 
+        // call this when an item is deleted (call this for all child nodes deleted)
+        // call this also when moving 
+    };
+    
     this.addItem = function(item) {
         var itemId = item[ID_ATTR];
         this.items[itemId] = item;
@@ -886,6 +916,17 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
         if (parent) this.getChildren(parent).push(item);
     };
     
+    this.updateItem = function(item, oldPos, newPos) {
+        var parent = this.getParent(item);
+        item.indentationLevel = parent ? parent.indentationLevel+1 : -1;
+        item.indentationStyle = {'paddingLeft': item.indentationLevel + 'em'};
+        item.location = (item.id == '_root') ? '' : 
+            (parent && parent.location) ? parent.location + '.' + parent.name :
+            parent ? parent.name : '';
+        
+        // TODO: if (parent) this.getChildren(parent).push(item); - not push; insert at right place
+    };
+
     this.getItem = function(itemId) {
         return this.items[itemId] || null;
     };
