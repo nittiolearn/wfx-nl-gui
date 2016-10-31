@@ -1,13 +1,13 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// assignment_report.js:
-// assignment - Assignment reports upload dialogs and controllers
+// assign_rep.js:
+// Assignment reports controller to list assignment reports of a given lesson assignment
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-    angular.module('nl.assignment_report', [])
+    angular.module('nl.assign_rep', [])
     .config(configFn)
-    .controller('nl.AssignmentReportCtrl', AssignmentReportCtrl);
+    .controller('nl.AssignRepCtrl', AssignRepCtrl);
   }
    
 //-------------------------------------------------------------------------------------------------
@@ -18,7 +18,7 @@ function($stateProvider, $urlRouterProvider) {
         views: {
             'appContent': {
 				templateUrl : 'lib_ui/cards/cardsview.html',
-                controller: 'nl.AssignmentReportCtrl'
+                controller: 'nl.AssignRepCtrl'
             }
         }});
 }];
@@ -30,10 +30,11 @@ function TypeHandler(nl, nlServerApi) {
 	this.initFromUrl = function() {
 		var params = nl.location.search();
 		this.assignid = ('assignid' in params) ? params.assignid : null;
+        this.max = ('max' in params) ? params.max : 500;
 	};
 
 	this.listingFunction = function(filter) {
-		var data = {assignid : this.assignid};
+		var data = {assignid : this.assignid, max: this.max};
 		if (filter) data.search = filter;
 		return nlServerApi.assignmentReport(data);
 	};
@@ -44,7 +45,7 @@ function TypeHandler(nl, nlServerApi) {
 };
 
 //-------------------------------------------------------------------------------------------------
-var AssignmentReportCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', '$templateCache',
+var AssignRepCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', '$templateCache',
 function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 	var _userInfo = null;
 	var my = 0;
