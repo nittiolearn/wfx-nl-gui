@@ -660,7 +660,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
     function _download() {
         if ($scope.mode != MODES.REPORTS_SUMMARY_VIEW) return;
         var data = [];
-        data.push(['User name', 'Module', 'Type', 'Status', 'Time spent', 'Score', 'Max score', 'Percentage', 'Location']);
+        data.push(['User name', 'Module', 'Type', 'Status', 'Time spent', 'Score', 'Max score', 'Percentage', 'Location', 'User id']);
 	    var allModules = nlCourseEditor.getAllModules();
         for(var i=0; i<allModules.length; i++) {
             var cm = allModules[i];
@@ -670,7 +670,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
 
             var row = [cm.name, parent.name, cm.type, cm.state.status, 
                 cm.timeMins || '', cm.score || '',  cm.maxScore || '', 
-                cm.perc ? cm.perc + '%' : '', parent.location];
+                cm.perc ? cm.perc + '%' : '', parent.location,
+                cm.userid];
             data.push(row);
         }
         
@@ -998,6 +999,7 @@ function CourseReportSummarizer($scope) {
             var module = angular.copy(cm);
             module.id = _getModuleId(cm.id, userReport.id);
             module.name = userReport.studentname;
+            module.userid = userReport.student;
             module.icon = 'user';
             var start_after = module.start_after || [];
             for(var j in start_after) {
