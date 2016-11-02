@@ -54,9 +54,9 @@
          tabindex="0"
          ng-keypress='$event.keyCode == 32 ? values[attr.name] = !values[attr.name] : ""'>
         <span>
-            <i ng-show='values[attr.name]' class="icon ion-android-checkbox-outline"></i>
-            <i ng-hide='values[attr.name]' class="icon ion-android-checkbox-outline-blank"></i>
-            {{attr.text||attr.name}}
+            <i ng-show='values[attr.name]' class="icon ion-android-checkbox-outline black"></i>
+            <i ng-hide='values[attr.name]' class="icon ion-android-checkbox-outline-blank black"></i>
+            <span>{{attr.desc||attr.text||attr.name}}</span>
         </span>
     </div>
 
@@ -64,11 +64,15 @@
     	 ng-if='attr.type === "date"'
     	 class='nl-dlg-field-value'>
     	 <div class='nl-link-text ce-input-div' 
-    	 	  ion-datetime-picker ng-model="values[attr.name]" 
+    	 	  ion-datetime-picker date ng-model="values[attr.name]" 
     	 	  ng-focus="attr.focus=true" ng-blur="attr.focus=false"
     	 	  tabindex="0">
             <div class='row row-center margin0 padding0'>
                 <div class='col'>{{values[attr.name] | date: "yyyy-MM-dd"}}</div>
+                <i ng-show='values[attr.name]'
+                   class='icon ion-ios-close fsh4 padding-small forange'
+                   ng-click='values[attr.name]=null; $event.stopImmediatePropagation()'>
+                </i>                
                 <i class='icon ion-android-time fsh4 padding-small'></i>
             </div>
         </div>
@@ -97,15 +101,17 @@
              ng-model='values[attr.name]' type='text'
              ng-focus="attr.focus=true" ng-blur="attr.focus=false">
             <i class='icon ion-android-open fsh4 padding-small nl-link-img'
-               ng-click='onLaunch($event, values)'
+               ng-click='editor.onLaunch($event, values)'
                title='Preview'></i>
             <i class='icon ion-android-search fsh4 padding-small nl-link-img'
                ng-click='editor.searchLesson($event, values)'
                title='Search modules'></i>
         </div>
 	</div>
-    <nl-inline-help class='w100' ng-show='attr.focus && editor.showHelp'>
-        {{attr.help}}
-    </nl-inline-help>
+	<div>
+	    <nl-inline-help class='w100' ng-show='attr.focus && editor.showHelp'>
+	        {{attr.help}}
+	    </nl-inline-help>
+	</div>
 </div>
     

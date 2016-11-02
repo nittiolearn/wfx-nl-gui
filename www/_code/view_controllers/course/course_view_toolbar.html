@@ -8,37 +8,37 @@
     
     <!-- course editor icons -->
     <span title='Show or hide help'
-          ng-show='ext.isEditorMode()'
+          ng-show='ext.isEditorMode() && !iframeUrl'
           class='nl-toolbar-icon'
           ng-click='editor.showHelp = !editor.showHelp'>
         <i class="icon ion-ios-help"></i>
     </span>
     <span title='Insert an item below the selected item'
-          ng-show='ext.isEditorMode()'
+          ng-show='ext.isEditorMode() && !popupView && !iframeUrl'
           class='nl-toolbar-icon'
           ng-click='editor.addModule($event, ext.item)'>
         <i class="icon fsh3 ion-ios-plus"></i>
     </span>
     <span title='Delete the selected item'
-          ng-show='ext.isEditorMode()'
+          ng-show='ext.isEditorMode() && !popupView && !iframeUrl && ext.item.id != "_root"'
           class='nl-toolbar-icon'
           ng-click='editor.deleteModule($event, ext.item)'>
         <i class="icon fsh3 ion-ios-trash"></i>
     </span>
     <span title='Reorder items'
-          ng-show='ext.isEditorMode()'
+          ng-show='ext.isEditorMode() && !popupView && !iframeUrl'
           class='nl-toolbar-icon'
           ng-click='editor.organiseModules($event, ext.item)'>
         <i class="icon fsh3 ion-shuffle"></i>
     </span>
     <span title='Save'
-          ng-show='!popupView && !iframeUrl && ext.isEditorMode()'
+          ng-show='ext.isEditorMode() && !popupView && !iframeUrl'
           class='nl-toolbar-icon padding0'
           ng-click='editor.saveCourse($event, ext.item, false)'>
         <i class="icon material-icons">save</i>
     </span>
     <span title='Publish'
-          ng-show='!popupView && !iframeUrl && ext.isEditorMode()'
+          ng-show='ext.isEditorMode() && !popupView && !iframeUrl'
           class='nl-toolbar-icon padding0'
           ng-click='editor.saveCourse($event, ext.item, true)'>
         <i class="icon fsh3 ion-checkmark-circled"></i>
@@ -58,7 +58,7 @@
         <i class="icon ion-ios-cloud-download"></i>
     </span>
     <span title='View summary'
-         ng-show='!popupView && currentFolder.id != "_root"'
+         ng-show='!popupView && ext.item.id != "_root"'
          class='nl-toolbar-icon'
          ng-click='collapseAll()'>
         <i class="icon ion-arrow-up-a"></i>
