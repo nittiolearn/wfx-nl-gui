@@ -12,6 +12,7 @@ function module_init() {
 //-------------------------------------------------------------------------------------------------
 var NlExporter = ['nl',
 function(nl) {
+    var self = this;
 
     // itemArray should be array of objects; 
     // header is array of objects: {id: 'x', name: 'y'}
@@ -21,18 +22,26 @@ function(nl) {
     // If startPos and endPos are given, only those records are fetched 
     // (including startPos and not including endPos).
     this.objToCsv = function(itemArray, headers, canAddFn, startPos, endPos) {
-        var csvContent = _getCsvString(_getHeaderRow(headers));
+        var csvContent = self.getCsvHeader(headers);
         var lineDelim = '\n';
         if (!startPos || startPos < 0) startPos = 0;
         if (!endPos || endPos > itemArray.length) endPos = itemArray.length;
         for(var i=startPos; i<endPos; i++) {
             if(canAddFn && !canAddFn(itemArray[i])) continue;
-            var row = lineDelim + _getCsvString(_getItemRow(headers, itemArray[i]));
+            var row = lineDelim + self.getCsvRow(headers, itemArray[i]);
             csvContent += row;
         }
         return csvContent;
     };
+
+    this.getCsvHeader = function(headers) {
+        return _getCsvString(_getHeaderRow(headers));
+    };
     
+    this.getCsvRow = function(headers, row) {
+        return _getCsvString(_getItemRow(headers, row));
+    };
+
     // Data should be array of array of strings
     this.exportArrayTableToCsv = function(fileName, data) {
         var uri = 'data:text/csv;charset=utf-8,';
@@ -88,7 +97,9 @@ function(nl) {
 
     function _fmtValue(val, fmt) {
         if (!val) return val;
-        if (fmt == 'date') return nl.fmt.date2Str(val, 'date');
+        if (fmt == 'idstr') return 'id=' + val;
+        if (fmt == 'date') return nl.fmt.date2Str(nl.fmt.json2Date(val), 'date');
+        if (fmt == 'minute') return nl.fmt.date2Str(nl.fmt.json2Date(val), 'minute');
         return val;
     }
 

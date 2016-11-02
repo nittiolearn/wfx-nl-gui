@@ -9,10 +9,10 @@
 	<div class='row row-wrap row-top'>
         <div class='padding text-center' ng-class='respCol221'>
            <div class='text-center fsh4'>
-                <strong>{{data.card.completed}} of {{data.card.totalStudentsAssigned}} completed</strong>
+                <strong>{{stats.passed + stats.failed}} of {{stats.students}} completed</strong>
            </div>
            <div class='text-center padding-top' style='height: 200px'>
-				<canvas id="doughnut"
+				<canvas
 					class="chart chart-doughnut"
 					chart-data="data.doughnutData"
 					chart-labels="data.doughnutLabel"
@@ -20,13 +20,13 @@
 				</canvas>
             </div>
             <span class='sep4'></span>
-            <div ng-show='data.card.maxscore > 0'>
+            <div ng-show='stats.totalMaxScore > 0 && stats.totalScore > 0'>
             	<i class='sep4'></i>
 	        	<div class='text-center fsh4'>
-	                <strong>Average score: {{data.card.averageScore}}</strong>
+	                <strong>Average score: {{stats.avgPerc}}%</strong>
 	            </div>
 	            <div class='text-center padding-top' style='height: 300px'>
-					<canvas id="line"
+					<canvas
 						class="chart chart-bar"
 						chart-data="data.chartData"
 						chart-labels="data.chartLabel"
@@ -38,27 +38,29 @@
         <div class='padding text-center'
              ng-class='respCol221'>
         	<div class='text-center fsh4'>
-                <strong ng-show='data.card.maxscore > 0'>Leaderboard</strong>
-                <strong ng-show='data.card.maxscore == 0'>Completion status</strong>
+                <strong ng-show='stats.totalMaxScore > 0'>Leaderboard</strong>
+                <strong ng-show='stats.totalMaxScore == 0'>Completion status</strong>
             </div>
             <i class='sep4'></i>
 			<table class='nl-table nl-table-styled'>
 			    <tr>
-			        <th>Student Name</th>
+                    <th></th>
+                    <th>Student Name</th>
 			        <th>
-			        	<span ng-show='data.card.maxscore > 0'>Percentage</span>
-						<span ng-show='data.card.maxscore == 0'>Status</span>
+			        	<span ng-show='stats.totalMaxScore > 0'>Percentage</span>
+						<span ng-show='stats.totalMaxScore == 0'>Status</span>
 					</th>
 			    </tr>
-			    <tr ng-repeat='score in data.card.nameScore | orderBy:"percentage":true'>
+			    <tr ng-repeat='score in leaderBoard'>
+                    <td>{{$index+1}}</td>
 			        <td>
-						<span ng-show='score.status'><a href='/lesson/review_report_assign/{{score.id}}'>{{score.name}}</a></span>
-						<span ng-show='!score.status'>{{score.name}}</span>
+						<span ng-show='score.status != -1'><a href='/lesson/review_report_assign/{{score.id}}'>{{score.name}}</a></span>
+						<span ng-show='score.status == -1'>{{score.name}}</span>
 			        </td>
 			        <td>
-			        	<span ng-show='score.status && score.percentage > 0'>{{score.percentage}}</span>
-			        	<span ng-show='score.status && score.percentage == null'>Completed</span>
-			        	<span ng-show='!score.status'>Not completed</span>
+			        	<span ng-show='stats.totalMaxScore != 0 && score.status != -1 && score.perc > -1'>{{score.perc}}</span>
+			        	<span ng-show='stats.totalMaxScore == 0 && score.status != -1'>Completed</span>
+			        	<span ng-show='score.status == -1'>Not completed</span>
 			        </td>
 			    </tr>
 			</table>

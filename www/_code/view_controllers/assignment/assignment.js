@@ -259,7 +259,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		} else if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
 			nl.fmt.addLinkToAvp(linkAvp, 'reports', nl.fmt2('/#/assignment_report?assignid={}', assignId));
 			nl.fmt.addLinkToAvp(linkAvp, 'content', nl.fmt2('/lesson/view_assign/{}', assignId));
-			nl.fmt.addLinkToAvp(linkAvp, 'export', nl.fmt2('/assignment/export/{}/{}', assignId, d.getTimezoneOffset()));
 			nl.fmt.addLinkToAvp(linkAvp, 'delete', null, 'assign_delete');
 			if(!publish) nl.fmt.addLinkToAvp(linkAvp, 'publish', null, 'assign_publish');
 		} else {

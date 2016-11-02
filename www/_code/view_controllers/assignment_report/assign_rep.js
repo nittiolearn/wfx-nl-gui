@@ -24,20 +24,41 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-function TypeHandler(nl, nlServerApi) {
-	this.assignid = null;
-	
+function TypeHandler(nl, nlServerApi, nlDlg) {
+    var self = this;
 	this.initFromUrl = function() {
 		var params = nl.location.search();
-		this.assignid = ('assignid' in params) ? params.assignid : null;
-        this.max = ('max' in params) ? params.max : 500;
+		self.assignid = ('assignid' in params) ? params.assignid : null;
+        self.max = ('max' in params) ? params.max : 49;
+        self.dataFetched = false;
 	};
 
-	this.listingFunction = function(filter) {
-		var data = {assignid : this.assignid, max: this.max};
+	this.getAssignmentReports = function(filter, callbackFn) {
+	    self.start_at = 0;
+        self.dataFetched = false;
+	    _getAssignmentReports(filter, callbackFn);
+    };
+
+    function _getAssignmentReports(filter, callbackFn) {
+		var data = {assignid : self.assignid, max: self.max, start_at: self.start_at};
 		if (filter) data.search = filter;
-		return nlServerApi.assignmentReport(data);
-	};
+		nlServerApi.assignmentReport(data).then(function(result) {
+            var more = (result.length > self.max);
+            self.start_at += result.length;
+            var msg = nl.t('Got {} items from the server.{}', self.start_at, more ? 
+                ' Fetching more items ...' : '');
+            nlDlg.popupStatus(msg, more ? false : undefined);
+            if (more) {
+                _getAssignmentReports(filter, callbackFn);
+            }
+            
+            callbackFn(false, result, more);
+            if (!more) self.dataFetched = true;
+		}, function(error) {
+            nlDlg.popupStatus(error);
+            callbackFn(true, error, false);
+		});
+	}
 
 	this.pageTitle = function(name) {
 		return nl.t('Assignment Report: {}', name);
@@ -45,14 +66,14 @@ function TypeHandler(nl, nlServerApi) {
 };
 
 //-------------------------------------------------------------------------------------------------
-var AssignRepCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', '$templateCache',
-function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
+var AssignRepCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'NlAssignReportStats',
+function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats) {
 	var _userInfo = null;
 	var my = 0;
 	var search = null;
-	var mode = new TypeHandler(nl, nlServerApi);
+	var mode = new TypeHandler(nl, nlServerApi, nlDlg);
+	var reportStats = null;
 	var assignid = null;
-	var scorePercentage = [];
 	var nameAndScore = [];
 
 	function _onPageEnter(userInfo) {
@@ -60,8 +81,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 		return nl.q(function(resolve, reject) {
 		mode.initFromUrl();
 		$scope.cards = {};
+        _addSearchInfo($scope.cards);
 		$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
-		_getDataFromServer('', resolve, reject);
+		_getDataFromServer('', resolve);
 		});
 	}
 	nlRouter.initContoller($scope, '', _onPageEnter);
@@ -80,38 +102,45 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 			_assignmentShare($scope, card);
 		} else if(linkid == 'assignment_content'){
 			nl.window.location.href = nl.t('/lesson/view_assign/{}', card.id);
+        } else if(linkid == 'assignment_export') {
+            _assignmentExport($scope);
+        } else if(linkid == 'status_overview'){
+            _statusOverview($scope);
 		}
 	};
-	
+
 	$scope.onCardInternalUrlClicked = function(card, internalUrl) {
-		var cardId = card.Id;
-		if(internalUrl == 'status_overview'){
-			_statusOverview($scope, card);
-		}
+	    $scope.onCardLinkClicked(card, internalUrl);
 	};	
 
-	function _getDataFromServer(filter, resolve, reject) {
-		mode.listingFunction(filter).then(function(resultList) {
-			nl.log.debug('Got result: ', resultList.length);
-			$scope.cards.staticlist = _getStaticCard(_userInfo, resultList, nlCardsSrv);
-			$scope.cards.cardlist = _getAssignmentReportCards(_userInfo, resultList, nlCardsSrv);
-			_addSearchInfo($scope.cards);
-			resolve(true);
-		}, function(reason) {
-			resolve(false);
+	function _getDataFromServer(filter, resolve) {
+	    $scope.cards.cardlist = [];
+        $scope.cards.staticlist = [];
+        reportStats = NlAssignReportStats.createReportStats();
+		mode.getAssignmentReports(filter, function(isError, result, more) {
+		    if (isError) {
+		        resolve(false);
+		        return;
+		    }
+		    if ($scope.cards.staticlist.length == 0 && result.length > 0) {
+                _appendFirstStaticCard(result[0], $scope.cards.staticlist);
+                _appendSecondStaticCard($scope.cards.staticlist);
+		    }
+            _appendAssignmentReportCards(result, $scope.cards.cardlist);
+            reportStats.updateStats(result);
+            _updateSecondStaticCard(reportStats);
+            resolve(true);
 		});
 	}
 	
-	function _getAssignmentReportCards(_userInfo, resultList, nlCardsSrv){
-		var cards = [];
+	function _appendAssignmentReportCards(resultList, cardlist) {
 		for (var i = 0; i < resultList.length; i++) {
-			var card = _createAssignmentCard(resultList[i], _userInfo);
-			cards.push(card);
+			var card = _createAssignmentCard(resultList[i]);
+			cardlist.push(card);
 		}
-		return cards;
 	}
 
-	function _createAssignmentCard(assignment, userInfo) {
+	function _createAssignmentCard(assignment) {
 		var url = null;
 		var internalUrl = null;
 		var status = null;
@@ -143,7 +172,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 			});
 			var perc = content.maxScore > 0 ? Math.round((content.score/content.maxScore)*100) : 'NA';
 			if(perc > 0){
-				card['help'] = nl.t('<span class="nl-card-description"><b>Status: {}</b></span><br><span>score: {} / {} ({}%)</span>', status, content.score, content.maxScore, perc);			
+				card['help'] = nl.t('<span class="nl-card-description"><b>Status: {}</b></span><br><span>score: {} / {} ({}%)</span>', status, content.score, content.maxScore, perc);
 			}else {
 				card['help'] = nl.t('<span class="nl-card-description"><b>Status: {}</b></span>', status);			
 			}
@@ -153,50 +182,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 		return card;
 	}
 
-	function _getStaticCard(_userInfo, resultList, nlCardsSrv) {
-		var cards = [];
-		var lessonCard = null;
-		var numberOfStudentsCompleted = 0;
-		var totalNumberOfStudentsAssignmentAssigned = resultList.length;
-		var totalScore = 0;
-		var maxScore = 0;
-		var averageScore = 0;
-		nameAndScore = [];
-		scorePercentage = [];
-		var numberOfStudentsScoredBelowAverage = null;
-		var studentsGotLessthanAvg = 0;
-		var studentsGotHundredPercent = 0;
-		for (var i = 0; i < resultList.length; i++) {
-			lessonCard = resultList[i];
-			var data = {};
-			var content = angular.fromJson(resultList[i].content);
-			if(resultList[i].completed) {
-				maxScore = content.maxScore || 0;
-				numberOfStudentsCompleted = 'score' in content ? numberOfStudentsCompleted+1 : numberOfStudentsCompleted;
-				totalScore = 'score' in content ? totalScore+content.score : totalScore;
-				var perc = content.maxScore > 0 ? Math.round((content.score/content.maxScore)*100) : -1;
-				if (perc >= 0) scorePercentage.push(perc);
-				if(perc >= 0) data = {name: lessonCard.studentname, id: lessonCard.id, percentage: perc, status: true};
-				if(perc < 0) data = {name: lessonCard.studentname, id: lessonCard.id, percentage: null, status: true};
-				nameAndScore.push(data);
-			} else {
-				data = {name: lessonCard.studentname, id: lessonCard.id, percentage: 0, status: false};				
-				nameAndScore.push(data);
-			}
-		}
-		if (!lessonCard) return cards;
-		lessonCard['cardid'] = mode.assignid;
-		averageScore = _getAverageScore(scorePercentage);
-		var listofStudents = _getStudentsGotBelowAvg(averageScore, scorePercentage);
-		if (averageScore >= 0) {
-			averageScore += '%';
-		}
-		cards.push(_getFirstStaticCard(lessonCard, numberOfStudentsCompleted, totalNumberOfStudentsAssignmentAssigned, averageScore));
-		cards.push(_getSecondStaticCard(scorePercentage, maxScore, totalScore, totalNumberOfStudentsAssignmentAssigned, numberOfStudentsCompleted, averageScore, listofStudents));
-		return cards;
-	}
-	
-	function _getFirstStaticCard(lessonCard, numberOfStudentsCompleted, totalNumberOfStudentsAssignmentAssigned, averageScore){
+	function _appendFirstStaticCard(lessonCard, cards) {
 		var card = {
 			id : mode.assignid,
 			title : lessonCard.name,
@@ -206,117 +192,66 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 		};
 		card['help'] = nl.t('<span>by : {}</span><br><span>Assigned to :<b>{}</b></span>', lessonCard.assigned_by, lessonCard.assigned_to);
 		card.links = [{id: 'assignment_content', text: 'content'},
-					   {id: 'details', text: 'details'}];
+					  {id: 'assignment_export', text: 'export'},
+                      {id: 'details', text: 'details'}];
 		card.details = {
 			help : lessonCard.descMore,
-			avps : _getAssignmentAvps(lessonCard, numberOfStudentsCompleted, totalNumberOfStudentsAssignmentAssigned, averageScore)
-		};			   
-		return card;		
-	};
-
-
-	function _getSecondStaticCard(scorePercentage, maxScore, totalScore, totalAssigned, completed, averageScore, listofStudents){
-		var scoreToDisplayInCharts = [];
-		scoreToDisplayInCharts.push(_getScoreToDisplayInCharts(scorePercentage));
-		var doughnutdata = null;
-		var doughnutlabel = null;
-		var doughnutcolor = null;
-		if(maxScore !== 0) {
-			doughnutdata = _getDoughnutData(scorePercentage, totalAssigned, completed);
-			doughnutlabel = ["greater than 70%", "less than 70%", "not completed"];
-			doughnutcolor = ['#007700', '#FFCC00', '#F54B22'];
-		} else {
-			doughnutdata = [completed, totalAssigned-completed];
-			doughnutlabel = ["completed", "not completed"];
-			doughnutcolor = ['#007700', '#F54B22'];
-		}
-		var title =nl.t('{} of {} completed', completed, totalAssigned);
-		var card = {
-			title : title,
-			fullDesc : true,
-			maxscore : maxScore,
-			chartData: scoreToDisplayInCharts,
-			totalStudentsAssigned : totalAssigned,
-			totalScore : totalScore,
-			completed : completed,
-			averageScore: averageScore,
-			focusStudents: listofStudents,
-			scorePerc : scorePercentage,
-			nameScore : nameAndScore,
-			internalUrl: 'status_overview', 
-			style : 'nl-bg-blue',
-			doughnutData : doughnutdata,
-			doughnutLabel : doughnutlabel,
-			doughnutColor : doughnutcolor,
-			doughnutOptions : {responsive: true, maintainAspectRatio: true}
+			avps : _getAssignmentAvps(lessonCard)
 		};
-		card['help']=nl.t('<canvas id="doughnut" class="chart chart-doughnut" chart-data="card.doughnutData" chart-labels="card.doughnutLabel" chart-colours="card.doughnutColor" chart-options="card.doughnutOptions"></canvas>');
-		return card;
+		cards.push(card);
+	};
+
+    var _secondStaticCard = null;
+    function _appendSecondStaticCard(cards) {
+        _secondStaticCard = {
+            title : nl.t('Please wait ...'),
+            fullDesc : true,
+            internalUrl: 'status_overview', 
+            style : 'nl-bg-blue',
+            doughnutData : [1],
+            doughnutLabel : ['Loading'],
+            doughnutColor : ['#DDDDFF'],
+            doughnutOptions : {responsive: true, maintainAspectRatio: true},
+            help: nl.t('<canvas class="chart chart-doughnut" chart-data="card.doughnutData" chart-labels="card.doughnutLabel" chart-colours="card.doughnutColor" chart-options="card.doughnutOptions"></canvas>')
+        };
+        cards.push(_secondStaticCard);
+    }
+
+    function _updateSecondStaticCard(reportStats) {
+        var stats = reportStats.getStats();
+        var completed = stats.passed + stats.failed;
+        _secondStaticCard.title =nl.t('{} of {} completed', completed, stats.students);
+        _secondStaticCard.doughnutData = [stats.passed, stats.failed, stats.students - completed];
+        _secondStaticCard.doughnutLabel = ["completed", "completed but scored low", "not completed"];
+        _secondStaticCard.doughnutColor = ['#007700', '#FFCC00', '#F54B22'];
+        _secondStaticCard.dist = [_getPercDistribution(reportStats.getPercentages())];
 	};
 	
-	function _getAverageScore(scorePercentage) {
-		var  perc = scorePercentage;
-		if (perc.length == 0) return 'NA';
-		var sum = 0;
-		for(var i in perc) {
-			sum = perc[i] + sum;
-		}
-		return Math.round(sum/perc.length).toFixed(1);
-	}
-	
-	function _getStudentsGotBelowAvg(averageScore, scorePercentage){
-		var listofStudents = [];
-		var studentsGotLessThanAverage = 0;
-		var studentsGotHundredPercent = 0;
-		for(var i in scorePercentage) {
-			if(scorePercentage[i] < averageScore) studentsGotLessThanAverage = studentsGotLessThanAverage + 1;
-			if(scorePercentage[i] == 100) studentsGotHundredPercent = studentsGotHundredPercent + 1;
-		}
-		listofStudents.push(studentsGotLessThanAverage, studentsGotHundredPercent);
-		return listofStudents;
-	}
-	
-	function _getScoreToDisplayInCharts(scorePercentage) {
-		var chartArray = new Array(10).fill(0);
-		for (var i in scorePercentage){
-			var eachStudentPercentage = scorePercentage[i];
-			eachStudentPercentage = Math.ceil((eachStudentPercentage)/10)*10;
-			var number = eachStudentPercentage/10;
-			if(number == 0){
-				chartArray[number] = chartArray[number] + 1;
-			} else {
-				chartArray[number-1] = chartArray[number-1] + 1;
-			}
-		}
-		return chartArray;
-	}
+    function _getPercDistribution(percentages) {
+        var dist = [];
+        for(var i=0; i<10; i++) {
+            dist.push(0);
+        }
 
-	function _getDoughnutData(scorePercentage, totalAssigned, completed) {
-		var chartArray = new Array(3).fill(0);
-		for(var i in scorePercentage) {
-			if(scorePercentage[i]  >= '70'){
-				chartArray[0] =	chartArray[0] + 1;
-			} else if(scorePercentage[i] <  '70') {
-				chartArray[1] =	chartArray[1] + 1;
-			}
-		}		
-		chartArray[2] = totalAssigned - completed;
-		return chartArray;
-	}
-	
-	
-	function _getAssignmentAvps(lessonCard, completed, total, avgScore){
+        for (var i=0; i<percentages.length; i++){
+            var perc = percentages[i];
+            perc = Math.ceil(perc/10);
+            if (perc > 0) perc--;
+            dist[perc]++;
+        }
+        return dist;
+    }
+
+	function _getAssignmentAvps(lessonCard) {
 		var avps = [];
-		var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
-		_populateLinks(linkAvp, lessonCard.cardid);
+        var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
+        _populateLinks(linkAvp);
 		nl.fmt.addAvp(avps, 'Name', lessonCard.name);
 		nl.fmt.addAvp(avps, 'Remarks', lessonCard.assign_remarks);
 		nl.fmt.addAvp(avps, 'Assigned By', lessonCard.assigned_by);
 		nl.fmt.addAvp(avps, 'Assigned On ', lessonCard.assigned_on, 'date');
 		nl.fmt.addAvp(avps, 'Assigned To', lessonCard.assigned_to);
 		nl.fmt.addAvp(avps, 'Subject', lessonCard.subject);
-		nl.fmt.addAvp(avps, 'Completion Status', nl.t('{} of {}', completed, total));
-		nl.fmt.addAvp(avps, 'Average Score', avgScore);
 		nl.fmt.addAvp(avps, 'Author', lessonCard.authorname);
 		nl.fmt.addAvp(avps, 'Module description', lessonCard.descMore);
 		nl.fmt.addAvp(avps, 'Earliest start time', lessonCard.not_before, 'date');
@@ -327,12 +262,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 		return avps;
 	}
 	
-	function _populateLinks(linkAvp, lessonId) {
-		var d = new Date();
-		nl.fmt.addLinkToAvp(linkAvp, 'content', nl.fmt2('/lesson/view_assign/{}', lessonId));
-		nl.fmt.addLinkToAvp(linkAvp, 'export', nl.fmt2('/assignment/export/{}/{}', lessonId, d.getTimezoneOffset()));
-	}
-	
+    function _populateLinks(linkAvp) {
+        var d = new Date();
+        nl.fmt.addLinkToAvp(linkAvp, 'content', nl.fmt2('/lesson/view_assign/{}', mode.assignid));
+        nl.fmt.addLinkToAvp(linkAvp, 'export', null, 'assignment_export');
+    }
+
 	function _learnmodeString(learnmode) {
 		if (learnmode == 1)
 			return nl.fmt.t(['on every page']);
@@ -343,29 +278,39 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 		return '';
 	}
 
-	function _statusOverview($scope, card) {
+	function _statusOverview($scope) {
 		var statusOverviewDlg = nlDlg.create($scope);
 		statusOverviewDlg.setCssClass('nl-height-max nl-width-max');
-		statusOverviewDlg.scope.data = {};
-		statusOverviewDlg.scope.data.card = card;
+
+        statusOverviewDlg.scope.stats = reportStats.getStats();
+        statusOverviewDlg.scope.leaderBoard = reportStats.getLeaderBoard();
+		statusOverviewDlg.scope.data = {
+            doughnutLabel: _secondStaticCard.doughnutLabel,
+            doughnutColor: _secondStaticCard.doughnutColor,
+            doughnutData: null,
+            chartLabel: ['10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%']
+		};
+
         var cancelButton = {text: nl.t('Close')};
         statusOverviewDlg.show('view_controllers/assignment_report/status_overview_dlg.html', [], cancelButton, false);
         
-        statusOverviewDlg.scope.data.doughnutLabel = ['Completed', 'Not completed'];
-        statusOverviewDlg.scope.data.doughnutColor = ['#009900', '#F54B22'];
-        if(card.maxscore > 0)
-            statusOverviewDlg.scope.data.chartLabel = ['10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%'];  
-
         // angular-charts workaround to ensure height/width of canvas are correctly calculated
         // set the chart properties after the dialog box appears
         nl.timeout(function() {
-            statusOverviewDlg.scope.data.doughnutData = [card.completed, (card.totalStudentsAssigned-card.completed)];
-            if(card.maxscore > 0)
-                statusOverviewDlg.scope.data.chartData = card.chartData;
+            statusOverviewDlg.scope.data.doughnutData = _secondStaticCard.doughnutData;
+            statusOverviewDlg.scope.data.chartData = _secondStaticCard.dist;
         });
 	}
 
-
+    function _assignmentExport($scope) {
+        if(!mode.dataFetched) {
+            nlDlg.popupAlert({title: 'Data still loading', 
+                content: 'Still loading data from server. Please export after the complete data is loaded.'});
+            return;
+        }
+        NlAssignReportStats.export($scope, reportStats.getRecords(), _userInfo);
+    }
+    
 	function _assignmentShare($scope, card){
 		var data = {repid: card.id};
 		var sharedUsersList = [];
@@ -450,19 +395,14 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 	
 	function _addSearchInfo(cards) {
 		cards.search = {
-			placeholder : nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)
+			placeholder : nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel),
+			maxLimit: 1000000 // A large number!
 		};
 		cards.search.onSearch = _onSearch;
 	}
 
 	function _onSearch(filter) {
-		nlDlg.showLoadingScreen();
-		var promise = nl.q(function(resolve, reject) {
-			_getDataFromServer(filter, resolve, reject);
-		});
-		promise.then(function(res) {
-			nlDlg.hideLoadingScreen();
-		});
+	    return; // Do nothing as all data are already fetched - just search locally!
 	}
 	
 	
@@ -508,7 +448,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, $templateCache) {
 	}
 	
 }];
-
 
 //-------------------------------------------------------------------------------------------------
 module_init();
