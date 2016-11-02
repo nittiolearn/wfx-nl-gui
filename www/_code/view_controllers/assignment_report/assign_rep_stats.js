@@ -187,31 +187,6 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
         }
     }
     
-    // TODO-MUNNI-NOW
-    function _exportOverviewReports(resolve, reject, chunkPos) {
-        if (chunkPos === undefined) chunkPos = 0;
-        var neededChunks = Math.ceil(ctx.reports.length / MAX_RECORDS_PER_CSV);
-        var msg = nl.fmt2('Creating overview reports ({} of {}) for download', 
-            chunkPos+1, neededChunks);
-        ctx.pl.imp(msg);
-        nl.timeout(function() {
-            var startPos = chunkPos*MAX_RECORDS_PER_CSV;
-            chunkPos++;
-            var endPos = chunkPos*MAX_RECORDS_PER_CSV;
-            var csvContent = nlExporter.objToCsv(ctx.reports, _hOverview, null, startPos, endPos);
-            var fileName = nl.fmt2('report-overview-{}.csv', chunkPos);
-            ctx.zip.file(fileName, csvContent);
-            ctx.pl.info('Created ' + fileName);
-            _setProgress('overviewReport', chunkPos, neededChunks);
-
-            if (chunkPos < neededChunks) {
-                _exportOverviewReports(ctx, chunkPos);
-            } else {
-                resolve(true);
-            }
-        });
-    }
-
     function _showDlg($scope) {
         var dlg = nlDlg.create($scope);
         dlg.setCssClass('nl-height-max nl-width-max');
