@@ -298,6 +298,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
         	},
         	updateMovedItem: function(cm, oldPos, newPos){
         		return treeList.updateItem(cm, oldPos, newPos);
+        	},
+        	launchModule: function(e, cm){
+        	        e.stopImmediatePropagation();
+			        e.preventDefault();
+        			_confirmIframeClose(cm, function() {
+            		_onLaunchImpl(cm);
+        		});
         	}
         };
         nlCourseEditor.init($scope, modeHandler);
@@ -466,7 +473,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
                 } else {
 	                var openModule = $scope.ext.isStaticMode() || (cm.state.status == 'delayed') || 
 	                    (cm.state.status == 'pending') || (cm.state.status == 'started');
-	                	openModule = openModuletor && (cm.type == 'lesson' || cm.type == 'link');
+	                	openModule = openModule && (cm.type == 'lesson' || cm.type == 'link');
 	                if (openModule) _onLaunchImpl(cm);            	                	
                 }
             }
