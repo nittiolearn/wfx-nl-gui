@@ -12,12 +12,8 @@ var SendAssignmentSrv = ['nl', 'nlDlg', 'nlServerApi',
 function(nl, nlDlg, nlServerApi) {
 	var ouList = [];
 	var selectedOuList = [];
-	var ouUserList = [];
-	var ouUserListCache = {};
-	var selectedUserTreedata = []; 
 	var selectedOuUserList = [];
 	var selectedOuUserListNames = [];
-	var sendAssignmentParams = null;
 	var orgUnitTogroupUsers = {};
 	var allUserCount = 0;
 	
@@ -29,7 +25,7 @@ function(nl, nlDlg, nlServerApi) {
 			_showOuListDlg(parentScope, sendAssignmentDlg, ouList);				
 		};
 		
-		sendAssignmentDlg.scope.onUserClick = function(){
+		sendAssignmentDlg.scope.onUserClick = function() {
 			if(selectedOuList.length == 0) {
 				nlDlg.popupAlert({title:'Alert message', template:nl.t('You may choose to send assignment to subset of users once you select the class/user group. Please select the class first.')});
 			return;	
@@ -101,8 +97,6 @@ function(nl, nlDlg, nlServerApi) {
 			_showOuUserListDlg(parentScope, sendAssignmentDlg, userTree);
 		};
 		
-		
-		
 		sendAssignmentDlg.scope.onClickOnVisibleTo = function(){
 			var title = nl.t('selected group/classes');
 			_showSelectedList(selectedOuList, title);
@@ -122,9 +116,7 @@ function(nl, nlDlg, nlServerApi) {
 			selectedListDlg.show('view_controllers/assignment/show_selected_users_dlg.html', [], cancelButton, false);
 		}
 		
-
 		nlDlg.showLoadingScreen();
-		sendAssignmentParams = sendAssignmentDlg;
 		nlServerApi.getOuList().then(function(status) {
 			ouList = status;
 			_showDlg(parentScope, sendAssignmentDlg);
@@ -286,38 +278,29 @@ function(nl, nlDlg, nlServerApi) {
 	    return date;
 	}
 
-    function _showOuListDlg(parentScope, sendAssignmentDlg, data){
+    function _showOuListDlg(parentScope, sendAssignmentDlg, data) {
 		var ouSelectionDlg = nlDlg.create(parentScope);
-			_initouSelectionDlg(ouSelectionDlg, data);
-
-		function _initouSelectionDlg(ouSelectionDlg, data) {
-			ouSelectionDlg.setCssClass('nl-height-max nl-width-max');	
-			ouSelectionDlg.scope.treeData = data;
-			ouSelectionDlg.scope.treeOptions = {
+		ouSelectionDlg.setCssClass('nl-height-max nl-width-max');	
+		ouSelectionDlg.scope.treeData = data;
+		ouSelectionDlg.scope.treeOptions = {
 			defaultSelectedState: false,
 			twistieExpandedTpl: nl.fmt2('<img src="{}" class="nl-16">', nl.url.resUrl('folder.png')),
 			twistieCollapsedTpl: nl.fmt2('<img src="{}" class="nl-16">', nl.url.resUrl('folder_closed.png')),
 			twistieLeafTpl: nl.fmt2('<img src="{}" class="nl-16">', nl.url.resUrl('file.png')),
 		    labelAttribute: 'text'
-			};
-		}
+		};
 
 		ouSelectionDlg.scope.onNodeClick = function(node, isSelected, tree) {
-			selectedOuList = _getSelectedIds(ouSelectionDlg.scope.treeData);
-			sendAssignmentDlg.scope.data.visibleto = _showVisibleTo(selectedOuList);
+			selectedOuList = [];
+			_updateSelectedIds(ouSelectionDlg.scope.treeData, selectedOuList);
+            sendAssignmentDlg.scope.data.visibleToGroupLength = selectedOuList.length; 
+            if(selectedOuList.length == 1) {
+                sendAssignmentDlg.scope.data.visibleto = selectedOuList[0];
+            } else if (selectedOuList.length > 1) {
+                sendAssignmentDlg.scope.data.visibleto = nl.t('{} classes/user groups selected', selectedOuList.length);
+            }
 		};
 		
-		function _showVisibleTo(selectedOuList){
-			sendAssignmentDlg.scope.data.visibleToGroupLength = selectedOuList.length; 
-			if(selectedOuList.length == 1) return selectedOuList[0];
-			if(selectedOuList.length > 1) return nl.t('{} classes/user groups selected', selectedOuList.length);
-		}
-		function _getSelectedIds(tree) {
-			var ret = [];
-			var allSelected = _updateSelectedIds(tree, ret);
-			return ret;
-		}
-	
 		function _updateSelectedIds(tree, selectedList) {
 			var allSelected = true;
 			for (var i in tree) {
@@ -345,44 +328,42 @@ function(nl, nlDlg, nlServerApi) {
 
 		var okButton = {text : nl.t('Select'), onTap : function(e) {
 			selectedOuUserList = [];
-			if(selectedOuList.length == 0){
+			if(selectedOuList.length == 0) {
 				e.preventDefault();
 				nlDlg.popupAlert({title:'Alert message', template:nl.t('Select atleast one class/ user group')});
 			} else {
 				updateVisibleToUsers();
 				return;
 			}
-			}};
+		}};
+
 		var cancelButton = {text : nl.t('Cancel')};
 		ouSelectionDlg.show('view_controllers/assignment/ou_selection_dlg.html',
 			[okButton], cancelButton, false);
     }
     
-    
-    function _showOuUserListDlg(parentScope, sendAssignmentDlg, data){
+    function _showOuUserListDlg(parentScope, sendAssignmentDlg, data) {
     	var allSelectedUsers = true;
 		var ouUserSelectionDlg = nlDlg.create(parentScope);
-			_initouUserSelectionDlg(ouUserSelectionDlg, data);
-		
-		function _initouUserSelectionDlg(ouUserSelectionDlg, data) {
-            _updateTreeWithSelectedItems(data);
-			ouUserSelectionDlg.setCssClass('nl-height-max nl-width-max');	
-			ouUserSelectionDlg.scope.treeData = data;
-			ouUserSelectionDlg.scope.data = {};
-			ouUserSelectionDlg.scope.data.allselectedUsers = true;
-			ouUserSelectionDlg.scope.treeOptions = {
+        _updateTreeWithSelectedItems(data);
+		ouUserSelectionDlg.setCssClass('nl-height-max nl-width-max');	
+		ouUserSelectionDlg.scope.treeData = data;
+		ouUserSelectionDlg.scope.data = {};
+		ouUserSelectionDlg.scope.data.allselectedUsers = true;
+		ouUserSelectionDlg.scope.treeOptions = {
 			defaultSelectedState: true,
 			twistieExpandedTpl: nl.fmt2('<img src="{}" class="nl-16">', nl.url.resUrl('folder.png')),
 			twistieCollapsedTpl: nl.fmt2('<img src="{}" class="nl-16">', nl.url.resUrl('folder_closed.png')),
 			twistieLeafTpl: nl.fmt2('<img src="{}" class="nl-16">', nl.url.resUrl('file.png')),
 		    labelAttribute: 'name'
-			};
-		}
+		};
 
 		ouUserSelectionDlg.scope.onNodeClick = function(node, isSelected, tree) {
 			selectedOuUserListNames = [];
-			selectedOuUserList = _getSelectedIds(ouUserSelectionDlg.scope.treeData);
-			selectedUserTreedata = ouUserSelectionDlg.scope.treeData;
+            selectedOuUserList = [];
+            allSelectedUsers = _updateSelectedIds(ouUserSelectionDlg.scope.treeData, 
+                selectedOuUserList); 
+            if(allSelectedUsers) selectedOuUserList = [];
 		};
 
         function _updateTreeWithSelectedItems(tree) {
@@ -392,29 +373,6 @@ function(nl, nlDlg, nlServerApi) {
                 selectedUsers[selectedOuUserList[i]] = true;
         }
 
-        function _updateSubtreeWithSelectedItems(tree, selectedUsers) {
-            for (var i in tree) {
-                var node = tree[i];
-                if (node.type == 'user' && !selectedUsers[node.id]) {
-                    node.selected = false;
-                    continue;
-                }
-                if (node.children.length > 0)
-                    _updateSubtreeWithSelectedItems(node.children, selectedUsers);
-            }
-        }
-
-		function _getSelectedIds(tree) {
-			var ret = [];
-			var allSelected = _updateSelectedIds(tree, ret); 
-			if(allSelected) {
-				allSelectedUsers = true;
-				return [];
-			}
-			allSelectedUsers = false;
-			return ret;
-		}
-	
 		function _updateSelectedIds(tree, selectedList) {
 			var allSelected = true;
 			for (var i in tree) {
@@ -430,7 +388,7 @@ function(nl, nlDlg, nlServerApi) {
 			return allSelected;
 		}
 
-		function _updateVisibleToUsers(e){
+		function _updateVisibleToUsers(e) {
 			if(e) e.preventDefault();
 			sendAssignmentDlg.scope.data.visibleToUsersLength = selectedOuUserList.length;
 			if(selectedOuUserList.length == 0)
@@ -447,12 +405,13 @@ function(nl, nlDlg, nlServerApi) {
 			 if(allSelectedUsers == true || selectedOuUserList.length !== 0){
 			 	_updateVisibleToUsers(e);
 			 } else {
-			 return nlDlg.popupAlert({title: nl.t('Alert message'), template:nl.t('Please select atleast one user')});}}};
+			     return nlDlg.popupAlert({title: nl.t('Alert message'), template:nl.t('Please select atleast one user')});
+			 }
+	    }};
 		var cancelButton = {text : nl.t('Cancel')};
 		ouUserSelectionDlg.show('view_controllers/assignment/ou_user_selection_dlg.html',
 			[okButton], cancelButton, false);
     }
-    
 }];
 //-------------------------------------------------------------------------------------------------
 
