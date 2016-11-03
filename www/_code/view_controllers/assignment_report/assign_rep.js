@@ -138,6 +138,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
 			var card = _createAssignmentCard(resultList[i]);
 			cardlist.push(card);
 		}
+		cardlist.sort(function(a, b) {
+		    return (b.updated - a.updated);
+		});
 	}
 
 	function _createAssignmentCard(assignment) {
@@ -156,6 +159,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
 		var card = {
 			id : assignment.id,
 			title : assignment.studentname,
+			updated: nl.fmt.json2Date(assignment.updated),
 			icon : nl.url.resUrl('dashboard/reports.png'),
 			internalUrl: internalUrl, 
 			url : url,
