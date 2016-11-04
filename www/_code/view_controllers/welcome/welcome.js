@@ -206,11 +206,11 @@ function(nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll) {
                 'Customized dashboards', 'Custom landing page',  
                 'Reporting', 'Support', 'Custom contracts', 'Migration services'],
             pricing_slabs: [
-            {name: 'Basic', price: 'USD 125 per month', billing: '(Billed annually)', 
+            {name: 'Starter', price: 'INR 25,000/- per month', billing: '(Billed annually)', 
                 users: '50', attrs: ['tick', 'tick', 'tick', 'tick', '', '', '', 'tick', "Email", '', '']},
-            {name: 'Advanced', price: 'USD 225 per month', billing: '(Billed annually)',
+            {name: 'Small', price: 'INR 45,000/- per month', billing: '(Billed annually)',
                 users: '100', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', '', 'tick', "Email, Phone", '', '']},
-            {name: 'Professional', price: 'USD 625 per month', billing: '(Billed annually)', 
+            {name: 'Medium', price: 'INR 1,25,000/- per month', billing: '(Billed half-yearly)', 
                 users: '500', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', 'tick', "Custom reports", "Email, Phone", '', '']},
             {name: 'Enterprise', price: 'Contact us for pricing', billing: ' ',
                 users: '500+', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', 'tick', "Custom reports", "Named account manager", 'tick', 'tick']}
