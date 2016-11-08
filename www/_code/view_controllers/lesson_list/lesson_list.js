@@ -690,7 +690,17 @@
 			cards.search = {
 				placeholder : nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)
 			};
-			nlCardsSrv.updateGrades(cards, _userInfo.groupinfo.grades);
+			
+			var grades = [];
+			for(var i=0; i<_userInfo.groupinfo.grades.length; i++) {
+			    var g = _userInfo.groupinfo.grades[i];
+			    var pos = g.indexOf('.');
+                var grp = (pos > -1) ? g.slice(0, pos) : '';
+                var desc = (pos > -1) ? g.slice(pos+1) : g;
+                desc = desc.replace('.', ' - ');
+			    grades.push({id: g, desc: desc, grp: grp});
+			}
+			nlCardsSrv.updateGrades(cards, grades);
 			cards.search.onSearch = _onSearch;
 		}
 

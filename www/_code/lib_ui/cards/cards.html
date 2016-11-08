@@ -5,7 +5,7 @@
 
     <select ng-show='cards.grades' class='col-20 nl-grade-search' ng-model="search.grade" 
             ng-change='search.onSearch()'
-            ng-options="grade for grade in cards.grades track by grade">
+            ng-options="grade.desc group by grade.grp for grade in cards.grades track by grade.id">
     </select>
 
     <i class='sep4'></i>	
