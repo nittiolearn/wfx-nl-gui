@@ -359,10 +359,10 @@ function ScormLms(g_lesson, g_version) {
             if (isDone) _submitDone = true;
             g_lesson.oLesson.scormDataModel = _deepCopy(self.scormDataModel);
     
-            if (g_lesson.renderCtx.launchCtx() == 'do_assign')
-                if(isDone) g_lesson.submitAssignReport();
-                else g_lesson.saveAssignReport(true);
-            else if (isDone) g_lesson.submitLessonReport();
+            if (isDone)
+                g_lesson.submitAssignReport();
+            else if (g_lesson.renderCtx.launchCtx() == 'do_assign')
+                g_lesson.saveAssignReport(true);
         }, 200);
         return 'true';
     };
@@ -391,8 +391,7 @@ function ScormLms(g_lesson, g_version) {
         do_assign: 'normal',
         report_assign_my: 'review', 
         report_assign_review: 'review',
-        report_assign_shared: 'review',
-        report_lesson: 'review'
+        report_assign_shared: 'review'
     };
 
     var _defaultDataModel = {

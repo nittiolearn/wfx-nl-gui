@@ -93,7 +93,6 @@ function PendingTimer() {
 // 'edit_templ'          |-- same as above --|------ same as above ------|
 //                       |                   |                           |
 // 'do'                  | 'do', 'do_pv'     | 'do_zodi'                 | 
-// 'do_withrep'          |-- same as above --|------ same as above ------|
 // 'view'                |-- same as above --|------ same as above ------|
 // 'do_assign'           |-- same as above --|------ same as above ------|
 // 'do_update'           |-- same as above --|------ same as above ------|
@@ -102,7 +101,6 @@ function PendingTimer() {
 // 'report_assign_my'    | 'report'          |                           | 
 // 'report_assign_review'|-- same as above --|------ same as above ------|
 // 'report_assign_shared'|-- same as above --|------ same as above ------|
-// 'report_lesson'       |-- same as above --|------ same as above ------|
 //#############################################################################################
 function RenderingContext() {
 	this.init = RenderingContext_init;
@@ -136,9 +134,9 @@ function RenderingContext() {
 
 var LAUNCH_CONTEXTS_TO_MODE = {
 	'edit_templ':'edit', 'edit':'edit',
-	'do':'do', 'do_withrep':'do', 'view':'do', 'do_assign':'do', 'do_update':'do', 'do_review':'do', 
+	'do':'do', 'view':'do', 'do_assign':'do', 'do_update':'do', 'do_review':'do', 
 	'report_assign_my': 'report', 'report_assign_review': 'report', 
-	'report_assign_shared': 'report', 'report_lesson': 'report'};
+	'report_assign_shared': 'report'};
 	
 var RUNTIME_CONTEXTS_TO_MODE = {
 	'edit': 'edit', 'edit_gra': 'edit', 'edit_templ': 'edit', 'edit_pv': 'do',
@@ -300,16 +298,14 @@ SubmitAndScoreDialog.showReportOverview = function(lesson) {
 		_SubmitAndScoreDialog_getShowReportParameters, [], canScore, null);
 };
 
-SubmitAndScoreDialog.showSubmitWindow = function(lesson, submitMethod) {
+SubmitAndScoreDialog.showSubmitWindow = function(lesson) {
 	var canScore = false;
 	var submitButton = {id: 'submit', text: 'Submit', fn: function() {
 		njs_helper.Dialog.moveBack();
-		if (submitMethod == 'submit_assign')
-			return lesson.submitAssignReport();
-		return lesson.submitLessonReport();
+		return lesson.submitAssignReport();
 	}};
 	_SubmitAndScoreDialog_showWindow(lesson, 'submit_dlg.html', 
-		_SubmitAndScoreDialog_getSubmitWindowParameters, [submitButton], canScore, submitMethod);
+		_SubmitAndScoreDialog_getSubmitWindowParameters, [submitButton], canScore);
 };
 
 SubmitAndScoreDialog.onPageClick = function(pageNo) {
@@ -324,11 +320,11 @@ SubmitAndScoreDialog.onPageClick = function(pageNo) {
 var _SubmitAndScoreDialog_reportDlg = new njs_helper.Dialog();
 
 function _SubmitAndScoreDialog_showWindow(lesson, templateName, getDlgParamsFn, buttons, 
-										  canScore, submitMethod) {
+										  canScore) {
 	var _chain = new njs_helper.AsyncFunctionChain();
 	var _template = new njs_helper.ClientSideTemplate(templateName, _chain);
 	var _dialogParams = {};
-	getDlgParamsFn(lesson, _dialogParams, submitMethod);
+	getDlgParamsFn(lesson, _dialogParams);
 
 	_chain.add(function() {
 		_template.render(_dialogParams);
@@ -388,13 +384,8 @@ function _SubmitAndScoreDialog_getShowReportParameters(lesson, dialogParams) {
 	}
 }
 
-function _SubmitAndScoreDialog_getSubmitWindowParameters(lesson, dialogParams, submitMethod) {
-	dialogParams.reportExists = '';
+function _SubmitAndScoreDialog_getSubmitWindowParameters(lesson, dialogParams) {
     dialogParams.warning = '';
-
-	if (lesson.renderCtx.launchCtx() == 'do_withrep') {
-		dialogParams.reportExists = 'Report already exists. If you proceed, the existing report will be replaced.';
-	}
 
 	var l = lesson.oLesson;
 	var pendingPages = l.notAnswered.length + l.partAnswered.length;

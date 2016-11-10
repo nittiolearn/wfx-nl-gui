@@ -62,7 +62,6 @@ nlesson = function() {
 		this.saveComments = Lesson_saveComments;
 		this.saveAssignReport = Lesson_saveAssignReport;
 		this.submitAssignReport = Lesson_submitAssignReport;
-		this.submitLessonReport = Lesson_submitLessonReport;
 
 		this.setupOnLeavePage = Lesson_setupOnLeavePage;
 		this.updateContent = Lesson_updateContent;
@@ -582,9 +581,9 @@ nlesson = function() {
 		}
 	}
 		
-	function Lesson_submitReport(submitMethod) {
+	function Lesson_submitReport() {
 		this.updateScore();
-		njs_lesson_helper.SubmitAndScoreDialog.showSubmitWindow(this, submitMethod);
+		njs_lesson_helper.SubmitAndScoreDialog.showSubmitWindow(this);
 	}
 
 	function Lesson_setupOnLeavePage() {
@@ -632,11 +631,6 @@ nlesson = function() {
 		return _Lesson_submitReport(this, '/lesson/submit_report_assign.json/', redirUrl);
 	}
 	
-	function Lesson_submitLessonReport() {
-		var redirUrl = njs_helper.fmt2('/lesson/view_report_lesson/{}#/', jQuery('#l_lessonId').val());
-		return _Lesson_submitReport(this, '/lesson/submit_report_lesson.json/', redirUrl);
-	}
-
 	function _Lesson_submitReport(lesson, ajaxUrl, redirUrl) {
 		_Lesson_saveInternal(lesson, ajaxUrl, function(data, isError) {
 			if (isError) return;
