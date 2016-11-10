@@ -44,7 +44,7 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
         .then(function() {
             _setProgress('done');
             ctx.pl.imp(nl.fmt2('Export file generated: {} learning records, {} page level records, {} KB',
-                ctx.reports.length, ctx.pageCnt, Math.round(ctx.savedSize/1024)));
+                ctx.reports.length, ctx.pageCnt, ctx.savedSize));
             ctx = null;
         }, function() {
             _setProgress('done');
@@ -83,9 +83,8 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
         _storeFilesInZipImpl(bForce, 'feedbackRows', 'feedbackFiles', 'feedback', _hFeedback);
     }
 
-    var MAX_RECORDS_PER_CSV = 50000;
     function _storeFilesInZipImpl(bForce, rowsAttrName, fileCntAttrName, prefix, headers) {
-        if (!bForce && ctx[rowsAttrName].length < MAX_RECORDS_PER_CSV) return;
+        if (!bForce && ctx[rowsAttrName].length < nlExporter.MAX_RECORDS_PER_CSV) return;
         if (ctx[rowsAttrName].length < 2) return;
         ctx[fileCntAttrName]++;
         var fileName = nl.fmt2('{}-{}.csv', prefix, ctx[fileCntAttrName]);
@@ -96,20 +95,12 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
     }
 
     function _createZip(resolve, reject) {
-        ctx.pl.imp('Creating zip file for download');
-        nl.timeout(function() {
-            ctx.zip.generateAsync({type:'blob', compression: 'DEFLATE', 
-                compressionOptions:{level:9}})
-            .then(function (zipContent) {
-                ctx.savedSize = zipContent.size || 0;
-                saveAs(zipContent, 'reports.zip');
-                ctx.pl.info('Initiated save of reports.zip');
-                _setProgress('createZip');
-                resolve(true);
-            }, function(e) {
-                ctx.pl.error('Error saving report zip file', e);
-                reject(e);
-            });
+        nlExporter.saveZip(ctx.zip, 'reports.zip', ctx.pl, function(sizeKb) {
+            ctx.savedSize = sizeKb || 0;
+            _setProgress('createZip');
+            resolve(true);
+        }, function(e) {
+            reject(e);
         });
     }
 

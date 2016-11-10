@@ -313,7 +313,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup, nlExporter, nlResou
                 arrayList.push([msg.authorname, 'message', msg.htmlCreated, msg.htmlUpdated, topic.title, msg.text]);
             }
         }
-        var fileName = nl.fmt2('Forum-{}.csv', nl.fmt.date2Str(new Date(), 'date'));
+        var fileName = nl.fmt2('Forum-{}', nl.fmt.date2Str(new Date(), 'date'));
         nlExporter.exportArrayTableToCsv(fileName, arrayList);
     }
 }];

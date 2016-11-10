@@ -737,10 +737,8 @@ function RnoStatsImpl(nl, nlDlg, nlExporter, _ratingInfo) {
         _createObsCsv(zip, 0);
     }
     
-    var MAX_RECORDS_PER_CSV = 50000;
-    
     function _createObsCsv(zip, chunkPos) {
-        var neededChunks = Math.ceil(_obsList.length / MAX_RECORDS_PER_CSV);
+        var neededChunks = Math.ceil(_obsList.length / nlExporter.MAX_RECORDS_PER_CSV);
         var msg = nl.fmt2('Creating observation list ({} of {}) for download', 
             chunkPos+1, neededChunks);
         nlDlg.popupStatus(msg, false);
@@ -754,9 +752,9 @@ function RnoStatsImpl(nl, nlDlg, nlExporter, _ratingInfo) {
                 {id: 'sent', name: 'Observation sent on', fmt: 'date'},
                 {id: 'ratingsDone', name: 'Ratings done'}
             ];
-            var startPos = chunkPos*MAX_RECORDS_PER_CSV;
+            var startPos = chunkPos*nlExporter.MAX_RECORDS_PER_CSV;
             chunkPos++;
-            var endPos = chunkPos*MAX_RECORDS_PER_CSV;
+            var endPos = chunkPos*nlExporter.MAX_RECORDS_PER_CSV;
             var csvContent = nlExporter.objToCsv(_obsList, obsHeaders, null, startPos, endPos);
             zip.file(nl.fmt2('observations-{}.csv', chunkPos), csvContent);
 
@@ -769,7 +767,7 @@ function RnoStatsImpl(nl, nlDlg, nlExporter, _ratingInfo) {
     }
 
     function _createRepCsv(zip, chunkPos) {
-        var neededChunks = Math.ceil(_repList.length / MAX_RECORDS_PER_CSV);
+        var neededChunks = Math.ceil(_repList.length / nlExporter.MAX_RECORDS_PER_CSV);
         var msg = nl.fmt2('Creating report list ({} of {}) for download', 
             chunkPos+1, neededChunks);
         nlDlg.popupStatus(msg, false);
@@ -781,9 +779,9 @@ function RnoStatsImpl(nl, nlDlg, nlExporter, _ratingInfo) {
                 {id: 'name', name: 'Name'},
                 {id: 'sent', name: 'Report sent on', fmt: 'date'}
             ];
-            var startPos = chunkPos*MAX_RECORDS_PER_CSV;
+            var startPos = chunkPos*nlExporter.MAX_RECORDS_PER_CSV;
             chunkPos++;
-            var endPos = chunkPos*MAX_RECORDS_PER_CSV;
+            var endPos = chunkPos*nlExporter.MAX_RECORDS_PER_CSV;
             var csvContent = nlExporter.objToCsv(_repList, repHeaders, null, startPos, endPos);
             zip.file(nl.fmt2('reports-{}.csv', chunkPos), csvContent);
 
@@ -796,7 +794,7 @@ function RnoStatsImpl(nl, nlDlg, nlExporter, _ratingInfo) {
     }
 
     function _createRatingCsv(zip, chunkPos) {
-        var neededChunks = Math.ceil(_ratingList.length / MAX_RECORDS_PER_CSV);
+        var neededChunks = Math.ceil(_ratingList.length / nlExporter.MAX_RECORDS_PER_CSV);
         var msg = nl.fmt2('Creating ratings list ({} of {}) for download', 
             chunkPos+1, neededChunks);
         nlDlg.popupStatus(msg, false);
@@ -815,9 +813,9 @@ function RnoStatsImpl(nl, nlDlg, nlExporter, _ratingInfo) {
                 {id: 'updated', name: 'Rated on', fmt: 'date'},
                 {id: 'src', name: 'Rated In'}
             ];
-            var startPos = chunkPos*MAX_RECORDS_PER_CSV;
+            var startPos = chunkPos*nlExporter.MAX_RECORDS_PER_CSV;
             chunkPos++;
-            var endPos = chunkPos*MAX_RECORDS_PER_CSV;
+            var endPos = chunkPos*nlExporter.MAX_RECORDS_PER_CSV;
             var csvContent = nlExporter.objToCsv(_ratingList, ratingHeaders, null, startPos, endPos);
             zip.file(nl.fmt2('ratings-{}.csv', chunkPos), csvContent);
 
@@ -830,18 +828,7 @@ function RnoStatsImpl(nl, nlDlg, nlExporter, _ratingInfo) {
     }
 
     function _createZip(zip) {
-        nlDlg.popupStatus('Creating zip file for download', false);
-        nl.timeout(function() {
-            zip.generateAsync({type:'blob', compression: 'DEFLATE', 
-                compressionOptions:{level:9}})
-            .then(function (zipContent) {
-                nlDlg.popupStatus('Download initiated');
-                saveAs(zipContent, 'stats.zip');
-            }, function(e) {
-                nlDlg.popdownStatus(0);
-                nlDlg.popupAlert({title: 'Error', content: 'Error creating zip file: ' + e});
-            });
-        });
+        nlExporter.saveZip(zip, 'stats.zip');
     }
 }
 

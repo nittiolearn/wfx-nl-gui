@@ -171,11 +171,14 @@ function Exporter(nl, nlServerApi, nlExporter, pl, $scope) {
 				data.push(_addStatusRowForCourseItem(courseForReport, courseItem, report, sinfo, linfo));
     		}
     	}
-    	var fileName = nl.fmt2('CourseExport-{}.csv', nl.fmt.date2Str(new Date(), 'date'));
-		nlExporter.exportArrayTableToCsv(fileName, data);
-        pl.imp(nl.fmt2('Exported {} chart data records', data.length)); 
-        self.setProgress('step3');
-        resolve(true);
+    	var fileName = nl.fmt2('CourseReport-{}', nl.fmt.date2Str(new Date(), 'date'));
+		nlExporter.exportArrayTableToCsv(fileName, data, pl, function(size) {
+            pl.imp(nl.fmt2('Exported {} chart data records', data.length)); 
+            self.setProgress('step3');
+            resolve(true);
+		}, function(e) {
+		    reject(e);
+		});
     }    
     
     function _addStatusRowForCourseItem(courseForReport, courseItem, report, statusinfo, lessonReport, data){

@@ -25,11 +25,11 @@ function($stateProvider, $urlRouterProvider) {
 
 //-------------------------------------------------------------------------------------------------
 var ScoExportCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 
-                     '$templateCache', 'nlProgressLog',
-function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog) {
+                     '$templateCache', 'nlProgressLog', 'nlExporter',
+function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog, nlExporter) {
     var pl = nlProgressLog.create($scope);
     pl.showLogDetails(true);
-    var scoExporter = new ScoExporter(nl, nlServerApi, $templateCache, pl);
+    var scoExporter = new ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter);
 
 	function _onPageEnter(userInfo) {
 		return nl.q(function(resolve, reject) {
@@ -68,7 +68,7 @@ function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog) {
 var CONTENT_FOLDER = 'nlcontent';
 
 //-------------------------------------------------------------------------------------------------
-function ScoExporter(nl, nlServerApi, $templateCache, pl) {
+function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
     
     var self = this;
     self.lessons = {};
@@ -93,7 +93,7 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl) {
             var savedSizeMb = '';
             if (self.savedSize) {
                 savedSizeMb = nl.fmt2(': {} MB', 
-                    Math.round(self.savedSize / 1024 / 1024 * 10)/10);
+                    Math.round(self.savedSize / 1024 * 10)/10);
             }
             pl.imp('Export completed' + savedSizeMb);
         }, function() {
@@ -259,14 +259,10 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl) {
     
     var link = null;
     function _savePackageZip(resolve, reject) {
-        pl.info('Saving package zip file');
-        self.zip.generateAsync({type:'blob', compression: 'DEFLATE', compressionOptions:{level:9}}).then(function (zipContent) {
-            self.savedSize = zipContent.size || 0;
-            saveAs(zipContent, "scorm_pkg.zip");
-            pl.info('Initiated save of package zip file');
+        nlExporter.saveZip(self.zip, 'scorm_pkg.zip', pl, function(sizeKb) {
+            self.savedSize = sizeKb || 0;
             resolve(true);
         }, function(e) {
-            pl.info('Error saving package zip file', e);
             reject(e);
         });
     }
