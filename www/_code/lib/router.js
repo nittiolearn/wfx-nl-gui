@@ -227,6 +227,7 @@ function Permission(nl) {
         '/sco_export': {login: true, permission: 'lesson_approve', termRestriction: TR_CLOSED},
         '/sco_import_list': {login: true, permission: 'lesson_approve', termRestriction: TR_CLOSED},
 		'/assignment': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},		
+        '/assignment_send': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},       
         '/lesson_list': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},        
         '/player': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},        
         '/upload_pdf': {login: true, permission: 'lesson_create_adv', termRestriction: TR_CLOSED},        

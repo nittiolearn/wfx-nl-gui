@@ -4,9 +4,83 @@
 // assignment_send_srv.js:
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-    angular.module('nl.send_assignment_srv', [])
+    angular.module('nl.send_assignment_srv', []).config(configFn)
+    .controller('nl.AssignmentSendCtrl', SendAssignmentCtrl)
     .service('nlSendAssignmentSrv', SendAssignmentSrv);
 }
+
+//-------------------------------------------------------------------------------------------------
+var configFn = ['$stateProvider', '$urlRouterProvider',
+function($stateProvider, $urlRouterProvider) {
+    $stateProvider.state('app.assignment_send', {
+        url : '^/assignment_send',
+        views : {
+            'appContent' : {
+                template : '',
+                controller : 'nl.AssignmentSendCtrl'
+            }
+        }
+    });
+}];
+
+//-------------------------------------------------------------------------------------------------
+var SendAssignmentCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlServerApi', 'nlSendAssignmentSrv',
+function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlSendAssignmentSrv) {
+    var _dbid = null;
+    var _type = 'lesson';
+    var _dlg = nlDlg.create($scope);
+
+    function _onPageEnter(userInfo) {
+        return nl.q(function(resolve, reject) {
+            var params = nl.location.search();
+            _type = (params.type == 'course') ? 'course' : 'lesson';
+            _dbid = params.id ? parseInt(params.id) : null;
+            if (!_dbid) {
+                nlDlg.popupStatus('Incorrect arguments');
+                resolve(false);
+                return;
+            }
+            _getDataFromServer().then(function(result) {
+                _showAssignmentDlg(result);
+                resolve(true);
+            }, function() {
+                resolve(false);
+            })
+        });
+    }
+    nlRouter.initContoller($scope, '', _onPageEnter);
+    
+    function _getDataFromServer() {
+        if (_type == 'lesson') return nlServerApi.lessonGetContent(_dbid, 'view');
+        return nlServerApi.courseGet(_dbid, true);
+    }
+
+    function _showAssignmentDlg(result) {
+        var assignInfo = {type: _type, id: _dbid, icon: null, 
+            title: '', authorName: '', subjGrade: '', description: '', esttime: ''};
+        if (_type == 'lesson') {
+            var lesson = result.lesson;
+            assignInfo.icon = nl.url.lessonIconUrl(lesson.image);
+            assignInfo.title = lesson.name;
+            assignInfo.authorName = lesson.authorname;
+            assignInfo.subjGrade = nl.fmt2('{}, {}', lesson.subject, lesson.grade);
+            assignInfo.description = lesson.description;
+            assignInfo.esttime = lesson.esttime ? lesson.esttime : '';
+        } else {
+            assignInfo.icon = result.icon;
+            assignInfo.title = result.name;
+            assignInfo.authorName = result.authorname;
+            assignInfo.description = result.description;
+        }
+        nlSendAssignmentSrv.show($scope, assignInfo).then(function(e) {
+            // e is defined only when close button is clicked
+            // When redirecting e is null
+            if (e) nl.location.url('/home'); 
+        });
+    }
+    
+}];
+
 //-------------------------------------------------------------------------------------------------
 var SendAssignmentSrv = ['nl', 'nlDlg', 'nlServerApi',
 function(nl, nlDlg, nlServerApi) {
@@ -27,8 +101,10 @@ function(nl, nlDlg, nlServerApi) {
         var sendAssignmentDlg = nlDlg.create(parentScope);
 
         function _do() {
-            _initDlgScope();
-            _initOuListAndShowDlg(parentScope, sendAssignmentDlg);
+            return nl.q(function(resolve, reject) {
+                _initDlgScope();
+                _initOuListAndShowDlg(resolve, reject);
+            });
         }
         
         function _initDlgScope() {
@@ -62,19 +138,21 @@ function(nl, nlDlg, nlServerApi) {
             };
         }
 
-        function _initOuListAndShowDlg() {
+        function _initOuListAndShowDlg(resolve, reject) {
             nlDlg.showLoadingScreen();
             nlServerApi.getOuList().then(function(ouList) {
                 _ouList = ouList;
-                _showDlg();
+                _showDlg(resolve, reject);
             });
         }
     
-        function _showDlg() {
+        function _showDlg(resolve, reject) {
             var sendButton = {text : nl.t('Send Assignment'), onTap : function(e) {
                 _onSendAssignment(e, parentScope, sendAssignmentDlg);
             }};
-            var cancelButton = {text : nl.t('Cancel')};
+            var cancelButton = {text : nl.t('Cancel'), onTap: function(e) {
+                resolve(e);
+            }};
             sendAssignmentDlg.show('view_controllers/assignment/send_assignment_dlg.html',
                 [sendButton], cancelButton);
         }
@@ -89,7 +167,7 @@ function(nl, nlDlg, nlServerApi) {
                 [], cancelButton);
         }
         
-        _do();
+        return _do();
 	};
 
     //---------------------------------------------------------------------------------------------

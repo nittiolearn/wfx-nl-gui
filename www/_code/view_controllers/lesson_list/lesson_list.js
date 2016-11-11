@@ -5,7 +5,9 @@
 	// lesson list module
 	//-------------------------------------------------------------------------------------------------
 	function module_init() {
-		angular.module('nl.lessonlist', []).config(configFn).controller('nl.LessonListCtrl', LessonListCtrl).service('nlApproveDlg', ApproveDlgSrv);
+		angular.module('nl.lessonlist', []).config(configFn)
+		.controller('nl.LessonListCtrl', LessonListCtrl)
+		.service('nlApproveDlg', ApproveDlgSrv);
 	}
 
 	//-------------------------------------------------------------------------------------------------
