@@ -15,28 +15,28 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
     
     var self = this;
     var ctx = null;
+    var dlg = null;
+    var scopeData = {inProgress: false, exportPageScore: false, exportFeedback: false};
     
     this.createReportStats = function() {
         return new ReportStats(nl);
     }
 
     this.export = function($scope, reports, _userInfo) {
-        if (ctx) {
-            ctx.pl.warn('Export running: displaying the current progress');
-            var dlg = _showDlg($scope);
-            dlg.scope.progressLog = ctx.pl.progressLog;
-            return;
+        if (!ctx) {
+            _initExportHeaders(_userInfo);
+            ctx = {pl: nlProgressLog.create($scope),
+                overviewRows: [nlExporter.getCsvHeader(_hOverview)],
+                pScoreRows: [nlExporter.getCsvHeader(_hPageScores)],
+                feedbackRows: [nlExporter.getCsvHeader(_hFeedback)]};
+            ctx.pl.showLogDetails(true);
         }
-        _initExportHeaders(_userInfo);
-        var dlg = _showDlg($scope);
-        ctx = {pl: nlProgressLog.create(dlg.scope), zip: new JSZip(), reports: reports,
-            pageCnt: 0,
-            overviewRows: [nlExporter.getCsvHeader(_hOverview)], overviewFiles: 0,
-            pScoreRows: [nlExporter.getCsvHeader(_hPageScores)], pScoreFiles: 0,
-            feedbackRows: [nlExporter.getCsvHeader(_hFeedback)], feedbackFiles: 0};
-
-        ctx.pl.showLogDetails(true);
-        ctx.pl.clear();
+        dlg = _showDlg($scope, reports);
+    };
+    
+    function _onExport(reports) {
+        _initCtx(reports);
+        scopeData.inProgress = true;
         _setProgress('start');
 
         _q(_exportReports)()
@@ -45,13 +45,13 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
             _setProgress('done');
             ctx.pl.imp(nl.fmt2('Export file generated: {} learning records, {} page level records, {} KB',
                 ctx.reports.length, ctx.pageCnt, ctx.savedSize));
-            ctx = null;
+            scopeData.inProgress = false;
         }, function() {
             _setProgress('done');
             ctx.pl.error('Export failed');
-            ctx = null;
+            scopeData.inProgress = false;
         });
-    };
+    }
     
     function _exportReports(resolve, reject, pos) {
         if (pos === undefined) pos = 0;
@@ -63,7 +63,7 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
             return;
         }
 
-        ctx.pl.imp(nl.fmt2('Processing record {} of {}', pos, len));
+        ctx.pl.imp(nl.fmt2('Processing record {} of {}', pos+1, len));
         _setProgress('process', pos, len);
         nl.timeout(function() {
             try {
@@ -109,101 +109,168 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
     var _hFeedback = [];
 
     function _initExportHeaders(_userInfo) {
-        _hOverview = [{id: 'studentname', name:'user'},
-            {id: 'name', name:'name'},
+        _hOverview = [
+            {id: 'studentlogin', name:'user login'},
+            {id: 'studentname', name:'user name'},
+            {id: 'name', name:'module name'},
+
             {id: '_statusStr', name:'status'},
             {id: '_percStr', name:'%'},
             {id: '_score', name:'score'},
             {id: '_maxScore', name:'maxScore'},
             {id: '_passScore', name:'passScore'},
             {id: '_timeMins', name:'time spent'},
+
             {id: 'created', name:'created', fmt: 'minute'},
             {id: 'started', name:'started', fmt: 'minute'},
             {id: 'ended', name:'ended', fmt: 'minute'},
             {id: 'updated', name:'updated', fmt: 'minute'},
-            {id: 'student', name:'userid', fmt: 'idstr'},
-            {id: 'id', name:'uniqueid', fmt: 'idstr'},
-            {id: 'assignment', name:'assignid', fmt: 'idstr'},
-            {id: 'lesson_id', name:'moduleid', fmt: 'idstr'},
+
             {id: 'org_unit', name:'org'},
             {id: 'subject', name:_userInfo.groupinfo.subjectlabel},
-            {id: '_grade', name:_userInfo.groupinfo.gradelabel}];
-    
-        _hPageScores = [{id: 'pos', name: '#'},
-            {id: 'studentname', name:'user'},
-            {id: 'name', name:'name'},
-            {id: 'updated', name:'updated', fmt: 'minute'},
+            {id: '_grade', name:_userInfo.groupinfo.gradelabel},
+            
+            {id: 'id', name:'recordid', fmt: 'idstr'},
             {id: 'student', name:'userid', fmt: 'idstr'},
-            {id: 'id', name:'uniqueid', fmt: 'idstr'},
-            {id: 'org_unit', name:'org'},
-            {id: 'page', name:'page'},
-            {id: 'title', name:'title'},
-            {id: 'score', name:'score'},
-            {id: 'maxScore', name:'maxScore'}];
+            {id: 'assignment', name:'assignid', fmt: 'idstr'},
+            {id: 'lesson_id', name:'moduleid', fmt: 'idstr'}];
     
-        _hFeedback = [{id: 'pos', name: '#'},
-            {id: 'studentname', name:'user'},
-            {id: 'name', name:'name'},
-            {id: 'updated', name:'updated', fmt: 'minute'},
-            {id: 'student', name:'userid', fmt: 'idstr'},
-            {id: 'id', name:'uniqueid', fmt: 'idstr'},
-            {id: 'org_unit', name:'org'},
-            {id: 'page', name:'page'},
-            {id: 'title', name:'title'},
+        _hPageScores = [
+            {id: 'pos', name: '#'},
+            {id: 'studentlogin', name:'user loginid'},
+            {id: 'studentname', name:'user name'},
+            {id: 'name', name:'module name'},
+
+            {id: 'page', name:'page no'},
+            {id: 'title', name:'page title'},
             {id: 'score', name:'score'},
-            {id: 'maxScore', name:'maxScore'}];
+            {id: 'maxScore', name:'maxScore'},
+            
+            {id: 'org_unit', name:'org'},
+            {id: 'subject', name:_userInfo.groupinfo.subjectlabel},
+            {id: '_grade', name:_userInfo.groupinfo.gradelabel},
+
+            {id: 'id', name:'recordid', fmt: 'idstr'},
+            {id: 'student', name:'userid', fmt: 'idstr'},
+            {id: 'assignment', name:'assignid', fmt: 'idstr'},
+            {id: 'lesson_id', name:'moduleid', fmt: 'idstr'}];
+    
+        _hFeedback = [
+            {id: 'pos', name: '#'},
+            {id: 'studentlogin', name:'user loginid'},
+            {id: 'studentname', name:'user name'},
+            {id: 'name', name:'module name'},
+
+            {id: 'page', name:'page no'},
+            {id: 'title', name:'page title'},
+            {id: 'question', name:'question'},
+            {id: 'response', name:'response'},
+                        
+            {id: 'org_unit', name:'org'},
+            {id: 'subject', name:_userInfo.groupinfo.subjectlabel},
+            {id: '_grade', name:_userInfo.groupinfo.gradelabel},
+
+            {id: 'id', name:'recordid', fmt: 'idstr'},
+            {id: 'student', name:'userid', fmt: 'idstr'},
+            {id: 'assignment', name:'assignid', fmt: 'idstr'},
+            {id: 'lesson_id', name:'moduleid', fmt: 'idstr'}];
     }
 
     function _processReportRecord(pos) {
         var rep = ctx.reports[pos];
         ctx.overviewRows.push(nlExporter.getCsvRow(_hOverview, rep));
+        if (!scopeData.exportPageScore && !scopeData.exportFeedback) return;
         var content = angular.fromJson(rep.content);
         if (!content.learningData && !content.pages) return;
 
-        var currentPageRecord = {studentname: rep.studentname, name: rep.name,
-            updated: rep.updated, student: rep.student, id: rep.id, org_unit: rep.org_unit, 
-            page: null, title: '', score: 0, maxScore: 0, pos: 0};
+        var currentPageRecord = {pos: 0, studentlogin: rep.studentlogin, 
+            studentname: rep.studentname, name: rep.name,
+            page: null, title: '', score: 0, maxScore: 0, 
+            org_unit: rep.org_unit, subject: rep.subject, _grade: rep._grade,
+            id: rep.id, student: rep.student, assignment: rep.assignment,
+            lesson_id: rep.lesson_id};
         
         if (content.learningData) {
-            var pagesDict = content.learningData.pages || {};
-            for (var i in pagesDict) {
-                pages.push(pageDict[i]);
-            }
-            pages.sort(function(a, b) {
-                return a.pageNo - b.pageNo;
-            });
-            for(var i=0; i<pages.length; i++) {
-                var page = pages[i];
-                currentPageRecord.page = page.pageNo;
-                currentPageRecord.title = page.title || '';
-                currentPageRecord.score = page.score || 0;
-                currentPageRecord.maxScore = page.maxScore || 0;
-                ctx.pageCnt++;
-                currentPageRecord.pos = ctx.pageCnt;
-                ctx.pScoreRows.push(nlExporter.getCsvRow(_hPageScores, currentPageRecord));
-                // TODO-MUNNI-NOW: collecting feedback from questionnaire page is pending
-            }
+            _processReportRecordPageData(currentPageRecord, content);
         } else {
-            // old format!
-            for(var i=0; i<content.pages.length; i++) {
-                var page = content.pages[i];
-                currentPageRecord.page = i+1;
-                currentPageRecord.title = page.sections && page.sections[0] ? page.sections[0].text : '';
-                var index = currentPageRecord.title.indexOf('\n');
-                if (index > -1) currentPageRecord.title = currentPageRecord.title.substring(0, index);
-                
+            _processReportRecordPageDataOld(currentPageRecord, content);
+        }
+    }
+
+    function _processReportRecordPageData(currentPageRecord, content) {
+        var pagesDict = content.learningData.pages || {};
+        var pages = [];
+        for (var i in pagesDict) {
+            pages.push(pagesDict[i]);
+        }
+        pages.sort(function(a, b) {
+            return a.pageNo - b.pageNo;
+        });
+        for(var i=0; i<pages.length; i++) {
+            var page = pages[i];
+            currentPageRecord.page = page.pageNo;
+            currentPageRecord.title = page.title || '';
+            currentPageRecord.pos = ctx.pageCnt;
+            if (scopeData.exportPageScore) {
                 currentPageRecord.score = page.score || 0;
                 currentPageRecord.maxScore = page.maxScore || 0;
                 ctx.pageCnt++;
-                currentPageRecord.pos = ctx.pageCnt;
                 ctx.pScoreRows.push(nlExporter.getCsvRow(_hPageScores, currentPageRecord));
-                // collecting feedback from questionnaire page not supported in old format
+            }
+            if (scopeData.exportFeedback) {
+                _processReportRecordFeedbackData(currentPageRecord, page);
             }
         }
     }
+
+    function _processReportRecordFeedbackData(currentPageRecord, page) {
+        if (!page.feedback) return;
+        for(var i=0; i<page.feedback.length; i++) {
+            var fb = page.feedback[i];
+            ctx.feedbackCnt++;
+            currentPageRecord.pos = ctx.feedbackCnt;
+            currentPageRecord.question = fb.question;
+            currentPageRecord.response = fb.response;
+            ctx.feedbackRows.push(nlExporter.getCsvRow(_hFeedback, currentPageRecord));
+        }
+    }
     
-    function _showDlg($scope) {
+    // old format! - can be removed after migrating all report records
+    function _processReportRecordPageDataOld(currentPageRecord, content) {
+        for(var i=0; i<content.pages.length; i++) {
+            var page = content.pages[i];
+            currentPageRecord.page = i+1;
+            currentPageRecord.title = page.sections && page.sections[0] ? page.sections[0].text : '';
+            var index = currentPageRecord.title.indexOf('\n');
+            if (index > -1) currentPageRecord.title = currentPageRecord.title.substring(0, index);
+            
+            currentPageRecord.score = page.score || 0;
+            currentPageRecord.maxScore = page.maxScore || 0;
+            ctx.pageCnt++;
+            currentPageRecord.pos = ctx.pageCnt;
+            ctx.pScoreRows.push(nlExporter.getCsvRow(_hPageScores, currentPageRecord));
+            // collecting feedback from questionnaire page not supported in old format
+        }
+    }
+
+    function _initCtx(reports) {
+        ctx.pl.clear();
+        ctx.reports = reports;
+        ctx.zip = new JSZip();
+        ctx.pageCnt = 0;
+        ctx.feedbackCnt = 0;
+        ctx.overviewFiles = 0;
+        ctx.pScoreFiles = 0;
+        ctx.feedbackFiles = 0;
+    }
+    
+    function _showDlg($scope, reports) {
         var dlg = nlDlg.create($scope);
+        dlg.scope.progressLog = ctx.pl.progressLog;
+        dlg.scope.scopeData = scopeData;
+        dlg.scope.onExport = function() {
+            _onExport(reports);
+        };
         dlg.setCssClass('nl-height-max nl-width-max');
         var cancelButton = {text: nl.t('Close')};
         dlg.show('view_controllers/assignment_report/assign_rep_exp_dlg.html', [], cancelButton);

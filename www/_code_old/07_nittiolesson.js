@@ -589,6 +589,7 @@ nlesson = function() {
             _copyIf(oPage, pld, 'answered');
             _copyIf(oPage, pld, 'remarks');
             _copyIf(oPage, pld, 'notes');
+            _copyIf(oPage, pld, 'feedback');
             pld.sections = [];
             for(var j=0; j < oPage.sections.length; j++) {
                 var sld = {};
@@ -629,6 +630,7 @@ nlesson = function() {
         _copyIf(pld, oPage, 'answered');
         _copyIf(pld, oPage, 'remarks');
         _copyIf(pld, oPage, 'notes');
+        _copyIf(pld, oPage, 'feedback');
         if (!pld.sections) return;
         for(var i=0; i<pld.sections.length; i++) {
             if (i >= oPage.sections.length) break;

@@ -1,5 +1,23 @@
 <nl-dlg title='Exporting assignment reports'>
 <nl-dlg-content>
+    <div ng-hide='scopeData.inProgress'>
+        <div class='padding-small nl-link-text' 
+             ng-click='scopeData.exportPageScore = !scopeData.exportPageScore'>
+            <i ng-show='scopeData.exportPageScore' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='scopeData.exportPageScore' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>export page level scores</span>
+        </div>
+        <div class='padding-small nl-link-text' 
+             ng-click='scopeData.exportFeedback = !scopeData.exportFeedback'>
+            <i ng-show='scopeData.exportFeedback' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='scopeData.exportFeedback' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>export page level feedback</span>
+        </div>
+        <div class='padding-small'></div> 
+        <div class='padding-small'>
+            <div class='nl-button' ng-click='onExport()'>Export</div>
+        </div>
+    </div>
     <nl-progress-log></nl-progress-log>
 </nl-dlg-content>
 </nl-dlg>
