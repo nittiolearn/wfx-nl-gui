@@ -117,6 +117,7 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
             {id: '_maxScore', name:'maxScore'},
             {id: '_passScore', name:'passScore'},
             {id: '_timeMins', name:'time spent'},
+            {id: 'created', name:'created', fmt: 'minute'},
             {id: 'started', name:'started', fmt: 'minute'},
             {id: 'ended', name:'ended', fmt: 'minute'},
             {id: 'updated', name:'updated', fmt: 'minute'},
@@ -157,24 +158,47 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
         var rep = ctx.reports[pos];
         ctx.overviewRows.push(nlExporter.getCsvRow(_hOverview, rep));
         var content = angular.fromJson(rep.content);
-        if (!content.pages) return;
+        if (!content.learningData && !content.pages) return;
 
         var currentPageRecord = {studentname: rep.studentname, name: rep.name,
             updated: rep.updated, student: rep.student, id: rep.id, org_unit: rep.org_unit, 
             page: null, title: '', score: 0, maxScore: 0, pos: 0};
-        for(var i=0; i<content.pages.length; i++) {
-            var page = content.pages[i];
-            currentPageRecord.page = i+1;
-            currentPageRecord.title = page.sections && page.sections[0] ? page.sections[0].text : '';
-            var index = currentPageRecord.title.indexOf('\n');
-            if (index > -1) currentPageRecord.title = currentPageRecord.title.substring(0, index);
-            
-            currentPageRecord.score = page.score || 0;
-            currentPageRecord.maxScore = page.maxScore || 0;
-            ctx.pageCnt++;
-            currentPageRecord.pos = ctx.pageCnt;
-            ctx.pScoreRows.push(nlExporter.getCsvRow(_hPageScores, currentPageRecord));
-            // TODO-MUNNI-NOW: collecting feedback from questionnaire page is pending
+        
+        if (content.learningData) {
+            var pagesDict = content.learningData.pages || {};
+            for (var i in pagesDict) {
+                pages.push(pageDict[i]);
+            }
+            pages.sort(function(a, b) {
+                return a.pageNo - b.pageNo;
+            });
+            for(var i=0; i<pages.length; i++) {
+                var page = pages[i];
+                currentPageRecord.page = page.pageNo;
+                currentPageRecord.title = page.title || '';
+                currentPageRecord.score = page.score || 0;
+                currentPageRecord.maxScore = page.maxScore || 0;
+                ctx.pageCnt++;
+                currentPageRecord.pos = ctx.pageCnt;
+                ctx.pScoreRows.push(nlExporter.getCsvRow(_hPageScores, currentPageRecord));
+                // TODO-MUNNI-NOW: collecting feedback from questionnaire page is pending
+            }
+        } else {
+            // old format!
+            for(var i=0; i<content.pages.length; i++) {
+                var page = content.pages[i];
+                currentPageRecord.page = i+1;
+                currentPageRecord.title = page.sections && page.sections[0] ? page.sections[0].text : '';
+                var index = currentPageRecord.title.indexOf('\n');
+                if (index > -1) currentPageRecord.title = currentPageRecord.title.substring(0, index);
+                
+                currentPageRecord.score = page.score || 0;
+                currentPageRecord.maxScore = page.maxScore || 0;
+                ctx.pageCnt++;
+                currentPageRecord.pos = ctx.pageCnt;
+                ctx.pScoreRows.push(nlExporter.getCsvRow(_hPageScores, currentPageRecord));
+                // collecting feedback from questionnaire page not supported in old format
+            }
         }
     }
     

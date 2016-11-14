@@ -370,12 +370,6 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/assignment_publish.json', {assignid: assignId});		
 	};
 
-	this.checkPastAssignments = function(data) {
-        // data = lessonid, {{and other parameters - please expand}}		
-		//send assignment.
-        return server.post('_serverapi/check_past_assignments.json', data);		
-	};
-
 	this.assignmentSend = function(data){
         // data = lessonid, {{and other parameters - please expand}}		
 	//send assignment.
