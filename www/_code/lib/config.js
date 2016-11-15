@@ -1,13 +1,26 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// server_api.js:
-// All Server side interfaces are collected in a single service
+// config.js:
+// DB storage and configuration data
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.config', [])
+    .service('nlGroupInfo', NlGroupInfo)
     .service('nlConfig', NlConfig);
 }
+
+//-------------------------------------------------------------------------------------------------
+var NlGroupInfo = ['nl',
+function(nl) {
+    this.LOGINID = 0;
+    this.NAME = 1;
+    this.EMAIL = 2;
+    this.USERTYPE = 3;
+    this.OU = 4;
+    this.SEC_OU = 5;
+    this.UPDATED = 6;
+}];
 
 //-------------------------------------------------------------------------------------------------
 var NlConfig = ['nl',

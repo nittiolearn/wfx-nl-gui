@@ -73,6 +73,7 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
             nl.log.debug('_loginControllerImpl:onPageEnter - enter');
+            nlServerApi.clearCache();
             var username = userInfo.username;
             if (isLogin) {
                 nl.pginfo.pageTitle = nl.t('Sign In');

@@ -82,10 +82,10 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlSendAssignmentSrv) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var SendAssignmentSrv = ['nl', 'nlDlg', 'nlServerApi',
-function(nl, nlDlg, nlServerApi) {
+var SendAssignmentSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlGroupInfo',
+function(nl, nlDlg, nlServerApi, nlGroupInfo) {
 	var _ouList = []; // List (tree) of OUs in the group is fetched when the dialog is popped up
-    var _ou2GrpUsers = {}; // Dict of ou to list of groups to list of users fetched when ou is selected
+    var _ou2Users = {}; // Dict of ou to list of users
 	var _selectedOuList = []; // List of OU ids (strings)
 	var _selectedUserIds = [];
 	var _selectedUserNames = [];
@@ -140,8 +140,9 @@ function(nl, nlDlg, nlServerApi) {
 
         function _initOuListAndShowDlg(resolve, reject) {
             nlDlg.showLoadingScreen();
-            nlServerApi.getOuList().then(function(ouList) {
-                _ouList = ouList;
+            nlServerApi.groupGetInfo().then(function(groupInfo) {
+                _ouList = groupInfo.outree;
+                _onUserListRecieved(groupInfo);
                 _showDlg(resolve, reject);
             });
         }
@@ -167,6 +168,21 @@ function(nl, nlDlg, nlServerApi) {
                 [], cancelButton);
         }
         
+        function _onUserListRecieved(groupInfo) {
+            _ou2Users = {};
+            var userCnt = 0;
+            for(var userid in groupInfo.users) {
+                userCnt++;
+                var user = groupInfo.users[userid];
+                userid = parseInt(userid);
+                var name = user[nlGroupInfo.NAME];
+                var ou = user[nlGroupInfo.OU];
+                if (!(ou in _ou2Users)) _ou2Users[ou] = [];
+                _ou2Users[ou].push({id: userid, name: name});
+            }
+            nl.log.info('_onUserListRecieved', userCnt);
+        }
+
         return _do();
 	};
 
@@ -201,7 +217,6 @@ function(nl, nlDlg, nlServerApi) {
             _selectedUserIds = [];
             _updateSelectedUgsText(sendAssignmentDlg);
             _updateSelectedUsersText(sendAssignmentDlg);
-            _loadPendingOuUsers();
         }
         
         function _updateSelectedOus(tree) {
@@ -210,37 +225,6 @@ function(nl, nlDlg, nlServerApi) {
                 var node = tree[i];
                 if (node.selected) _selectedOuList.push(node.id);
                 _updateSelectedOus(node.children);
-            }
-        }
-        
-        function _loadPendingOuUsers() {
-            var pendingOus = [];
-            for (var i in _selectedOuList) {
-                var ou = _selectedOuList[i];
-                if (ou in _ou2GrpUsers) continue;
-                pendingOus.push(ou);
-            }
-            if (pendingOus.length == 0) return;
-    
-            nlDlg.showLoadingScreen();
-            nlServerApi.getOuUserList({oulist: pendingOus}).then(function(ouToGroupInfo) {
-                nlDlg.hideLoadingScreen();
-                _onUserListRecievedAfterServerCall(ouToGroupInfo);  
-            });
-        }
-        
-        function _onUserListRecievedAfterServerCall(ouToGroupInfo) {
-            for (var ou in ouToGroupInfo) {
-                var ouGrpList = ouToGroupInfo[ou];
-                ouGrpList.sort(function(a, b) {
-                    return a.name.localeCompare(b.name);
-                });
-                for (var i in ouGrpList) {
-                    ouGrpList[i].users.sort(function(a, b) {
-                        return a.name.localeCompare(b.name);
-                    });
-                }
-                _ou2GrpUsers[ou] = ouGrpList;
             }
         }
     }
@@ -280,23 +264,13 @@ function(nl, nlDlg, nlServerApi) {
                 var ou = _selectedOuList[i];
                 var ouUserCount = 0;
                 var ouNode = {id: ou, name: ou, children: [], type: 'ou'};
-                var ouGrpList = _ou2GrpUsers[ou];
-                for (var grouplist in ouGrpList) {
-                    var g = ouGrpList[grouplist];
-                    var parentNode = ouNode;
-                    if (g.users.length == 0) continue;
-                    if (ouGrpList.length > 1) {
-                        var grpNode = {id: nl.fmt2('{}/{}', ou, g.grpid), name: g.name, children: [], type: 'group'};
-                        ouNode.children.push(grpNode);
-                        parentNode = grpNode;
-                    }
-                    for (var userlist in g.users) {
-                        var u = g.users[userlist];
-                        var selected = (_selectedUserIds.length == 0 || u.id in selectedUserIdDict);
-                        var userNode = {id: u.id, name: u.name, children: [], type: 'user', selected: selected};
-                        parentNode.children.push(userNode);
-                        ouUserCount++;
-                    }
+                var ouUsers = _ou2Users[ou];
+                for (var j=0; j<ouUsers.length; j++) {
+                    var u = ouUsers[j];
+                    var selected = (_selectedUserIds.length == 0 || u.id in selectedUserIdDict);
+                    var userNode = {id: u.id, name: u.name, children: [], type: 'user', selected: selected};
+                    ouNode.children.push(userNode);
+                    ouUserCount++;
                 }
                 if (ouUserCount == 0) continue;
                 userTree.push(ouNode);
@@ -396,14 +370,11 @@ function(nl, nlDlg, nlServerApi) {
             if (_selectedUserIds.length > 0) return;
             _selectedUserNames = [];
             for (var i=0; i<_selectedOuList.length; i++) {
-                var ouGrpList = _ou2GrpUsers[_selectedOuList[i]];
-                for (var grouplist in ouGrpList) {
-                    var g = ouGrpList[grouplist];
-                    for (var userlist in g.users) {
-                        var u = g.users[userlist];
-                        _selectedUserIds.push(u.id);
-                        _selectedUserNames.push(u.name);
-                    }
+                var ouUsers = _ou2Users[_selectedOuList[i]];
+                for (var j=0; j<ouUsers.length; j++) {
+                    var u = ouUsers[j];
+                    _selectedUserIds.push(u.id);
+                    _selectedUserNames.push(u.name);
                 }
             }
         }

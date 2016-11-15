@@ -10,6 +10,7 @@ function module_init() {
 }
 
 var g_noPopup = false;
+var DEFAULT_CACHE_LIFE = 1000*3600; // In milliseconds
 
 //-------------------------------------------------------------------------------------------------
 var NlServerApi = ['nl', 'nlDlg', 'nlConfig', 'Upload',
@@ -397,16 +398,9 @@ function(nl, nlDlg, nlConfig, Upload) {
     //---------------------------------------------------------------------------------------------
 	// get group user entities
     //---------------------------------------------------------------------------------------------
-
-	this.getOuList = function() {
-    	//Mark completion of lesson review
-        return server.post('_serverapi/group_get_ou_tree.json', {});
-	};
-
-	this.getOuUserList = function(data) {
-    	//data: oulist
-    	//Mark completion of lesson review
-        return server.post('_serverapi/group_get_users.json', data);
+	this.groupGetInfo = function() {
+	    return _getFromCacheOrServer('group_get_info', DEFAULT_CACHE_LIFE, 
+	       '_serverapi/group_get_info.json', {});
 	};
 
     //---------------------------------------------------------------------------------------------
@@ -577,18 +571,46 @@ function(nl, nlDlg, nlConfig, Upload) {
     }
 
     function _postAndSaveEula(url, data, noPopup) {
+        return _cachedPost("EULA_INFO", false, url, data, true, noPopup);
+    }
+
+    function _cachedPost(cacheKey, addTimestamp, url, data, reloadUserInfo, noPopup, upload) {
         return nl.q(function(resolve, reject) {
-            server.post(url, data, true, noPopup)
+            server.post(url, data, reloadUserInfo, noPopup, upload)
             .then(function(result) {
-                nlConfig.saveToDb("EULA_INFO", result, function() {
+                var store = result;
+                if (addTimestamp) store = {updated: new Date(), data: result};
+                nlConfig.saveToDb(cacheKey, store, function() {
                     resolve(result);
                 });
-            }, function() {
-                reject();
+            }, function(err) {
+                reject(err);
             });
         });
     }
-
+    
+    function _getFromCacheOrServer(cacheKey, cacheLife, url, data, reloadUserInfo, noPopup, upload) {
+        return nl.q(function(resolve, reject) {
+            nlConfig.loadFromDb(cacheKey, function(result) {
+                if (result !== null) {
+                    var now = new Date();
+                    if (now - result.updated < cacheLife) {
+                        nl.log.debug('server_api.cached: Cache is returned', cacheKey);
+                        resolve(result.data);
+                        return;
+                    }
+                    nl.log.info('server_api.cached: Cache stale', cacheKey);
+                }
+                _cachedPost(cacheKey, true, url, data, reloadUserInfo, noPopup, upload)
+                .then(function(result) {
+                    nl.log.info('server_api.cached: Data fetched from server', cacheKey);
+                    resolve(result);
+                }, function(err) {
+                    reject(err);
+                })
+            });
+        });
+    }
 }];
 
 function NlServerInterface(nl, nlDlg, nlConfig, Upload) {
