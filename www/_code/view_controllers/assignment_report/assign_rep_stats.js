@@ -10,8 +10,8 @@ function module_init() {
 }
    
 //-------------------------------------------------------------------------------------------------
-var NlAssignReportStats = ['nl', 'nlDlg', 'nlExporter', 'nlProgressLog',
-function(nl, nlDlg, nlExporter, nlProgressLog) {
+var NlAssignReportStats = ['nl', 'nlDlg', 'nlExporter', 'nlProgressLog', 'nlServerApi', 'nlGroupInfo',
+function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo) {
     
     var self = this;
     var ctx = null;
@@ -19,7 +19,7 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
     var scopeData = {inProgress: false, exportPageScore: false, exportFeedback: false};
     
     this.createReportStats = function() {
-        return new ReportStats(nl);
+        return new ReportStats(nl, nlServerApi, nlGroupInfo);
     }
 
     this.export = function($scope, reports, _userInfo) {
@@ -110,7 +110,7 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
 
     function _initExportHeaders(_userInfo) {
         _hOverview = [
-            {id: 'studentlogin', name:'user login'},
+            {id: '_loginid', name:'user loginid'},
             {id: 'studentname', name:'user name'},
             {id: 'name', name:'module name'},
 
@@ -126,6 +126,7 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
             {id: 'ended', name:'ended', fmt: 'minute'},
             {id: 'updated', name:'updated', fmt: 'minute'},
 
+            {id: '_email', name:'email'},
             {id: 'org_unit', name:'org'},
             {id: 'subject', name:_userInfo.groupinfo.subjectlabel},
             {id: '_grade', name:_userInfo.groupinfo.gradelabel},
@@ -137,7 +138,7 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
     
         _hPageScores = [
             {id: 'pos', name: '#'},
-            {id: 'studentlogin', name:'user loginid'},
+            {id: '_loginid', name:'user loginid'},
             {id: 'studentname', name:'user name'},
             {id: 'name', name:'module name'},
 
@@ -146,6 +147,7 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
             {id: 'score', name:'score'},
             {id: 'maxScore', name:'maxScore'},
             
+            {id: '_email', name:'email'},
             {id: 'org_unit', name:'org'},
             {id: 'subject', name:_userInfo.groupinfo.subjectlabel},
             {id: '_grade', name:_userInfo.groupinfo.gradelabel},
@@ -157,7 +159,7 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
     
         _hFeedback = [
             {id: 'pos', name: '#'},
-            {id: 'studentlogin', name:'user loginid'},
+            {id: '_loginid', name:'user loginid'},
             {id: 'studentname', name:'user name'},
             {id: 'name', name:'module name'},
 
@@ -166,6 +168,7 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
             {id: 'question', name:'question'},
             {id: 'response', name:'response'},
                         
+            {id: '_email', name:'email'},
             {id: 'org_unit', name:'org'},
             {id: 'subject', name:_userInfo.groupinfo.subjectlabel},
             {id: '_grade', name:_userInfo.groupinfo.gradelabel},
@@ -183,12 +186,12 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
         var content = angular.fromJson(rep.content);
         if (!content.learningData && !content.pages) return;
 
-        var currentPageRecord = {pos: 0, studentlogin: rep.studentlogin, 
+        var currentPageRecord = {pos: 0, _loginid: rep._loginid, 
             studentname: rep.studentname, name: rep.name,
             page: null, title: '', score: 0, maxScore: 0, 
             org_unit: rep.org_unit, subject: rep.subject, _grade: rep._grade,
             id: rep.id, student: rep.student, assignment: rep.assignment,
-            lesson_id: rep.lesson_id};
+            lesson_id: rep.lesson_id, _email: rep._email};
         
         if (content.learningData) {
             _processReportRecordPageData(currentPageRecord, content);
@@ -302,13 +305,14 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-function ReportStats(nl) {
+function ReportStats(nl, nlServerApi, nlGroupInfo) {
     var self = this;
     var _lst = [];
     var _stats = {students: 0, passed: 0, failed: 0, totalScore: 0, totalMaxScore: 0, 
         avgPerc: 0, belowAvgCnt: 0, hundredPercentCnt: 0};
     var _percentages = [];
     var _leaderBoard = [];
+    var _groupInfo = null;
     
     this.STATUS_PENDING = -1;
     this.STATUS_FAILED = 0;
@@ -330,12 +334,31 @@ function ReportStats(nl) {
         return _leaderBoard;
     };
 
+    this.init = function() {
+        return nlServerApi.groupGetInfo().then(function(result) {
+            _groupInfo = result;
+        }, function(e) {
+            return e;
+        })
+    };
+        
     this.updateStats = function(reports) {
         for(var i=0; i<reports.length; i++) {
             var rep = reports[i];
             _lst.push(rep);
             _stats.students++;
             var content = angular.fromJson(rep.content);
+            rep._loginid = '';
+            rep._email = '';
+            if (_groupInfo && _groupInfo.users[''+rep.student]) {
+                var userInfo = _groupInfo.users[''+rep.student];
+                rep.studentname = userInfo[nlGroupInfo.NAME];
+                rep._loginid = userInfo[nlGroupInfo.LOGINID];
+                rep._email = userInfo[nlGroupInfo.EMAIL];
+            }
+            var userInfo = _groupInfo ? _groupInfo.users[''+rep.id] || {} : {};
+            if (userInfo.name) rep.studentname = userInfo.name;
+
             rep._grade = content.grade || '';
             if (!rep.completed) {
                 rep._percStr = '';
