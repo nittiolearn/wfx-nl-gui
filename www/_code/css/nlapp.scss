@@ -314,6 +314,14 @@ $animation-duration: 200ms !default;
     pointer-events: none;
 }
 
+.loading-active .popup {
+    pointer-events: none;
+}
+
+.loading-active .backdrop {
+    z-index: 13;
+}
+
 /*-----------------------------------------------------------------------------------------*
  * Angular chanrts overrides
  *-----------------------------------------------------------------------------------------*/

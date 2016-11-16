@@ -146,6 +146,20 @@ function Formatter() {
         return ret;
     };
 
+    this.date2UTCStr = function(d, accuracy) {
+        if (accuracy === undefined) accuracy = 'minute';
+        var ret = _fmt2Impl('{}-{}', [d.getUTCFullYear(), _pad2(d.getUTCMonth()+1)]);
+        if (accuracy === 'month') return ret;
+        ret += _fmt2Impl('-{}', [_pad2(d.getUTCDate())]);
+        if (accuracy === 'date') return ret;
+        ret += _fmt2Impl(' {}:{}', [_pad2(d.getUTCHours()), _pad2(d.getUTCMinutes())]);
+        if (accuracy === 'minute') return ret;
+        ret += _fmt2Impl(':{}', [_pad2(d.getUTCSeconds())]);
+        if (accuracy === 'second') return ret;
+        ret += _fmt2Impl('.{}', [_pad3(d.getUTCMilliseconds())]);
+        return ret;
+    };
+
     this.jsonDate2Str = function(dateStr, accuracy) {
         if (!dateStr) return '-';
         var d = this.json2Date(dateStr);

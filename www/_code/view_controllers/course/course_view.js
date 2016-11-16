@@ -709,6 +709,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
         var data = [];
         data.push(['User name', 'Module', 'Type', 'Status', 'Time spent', 'Score', 'Max score', 'Percentage', 'Location', 'User id']);
 	    var allModules = nlCourseEditor.getAllModules();
+        var pos=0;
         for(var i=0; i<allModules.length; i++) {
             var cm = allModules[i];
             if (cm.type == 'module') continue;
@@ -718,11 +719,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
             var row = [cm.name, parent.name, cm.type, cm.state.status, 
                 cm.timeMins || '', cm.score || '',  cm.maxScore || '', 
                 cm.perc ? cm.perc + '%' : '', parent.location,
-                cm.userid];
+                'id='+cm.userid];
             data.push(row);
         }
         
-        var fileName = nl.fmt2('Report-{}.csv', nl.fmt.date2Str(new Date(), 'date'));
+        var fileName = nl.fmt2('CourseAssignmentReport-{}', nl.fmt.date2Str(new Date(), 'date'));
         nlExporter.exportArrayTableToCsv(fileName, data);
     }
 }];

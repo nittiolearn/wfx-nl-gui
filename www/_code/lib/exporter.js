@@ -10,8 +10,8 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlExporter = ['nl',
-function(nl) {
+var NlExporter = ['nl', 'nlDlg',
+function(nl, nlDlg) {
     var self = this;
 
     // itemArray should be array of objects; 
@@ -42,20 +42,74 @@ function(nl) {
         return _getCsvString(_getItemRow(headers, row));
     };
 
+    this.MAX_RECORDS_PER_CSV = 50000;
+    
     // Data should be array of array of strings
-    this.exportArrayTableToCsv = function(fileName, data) {
-        var uri = 'data:text/csv;charset=utf-8,';
-        var csvContent = '';
-        var lineDelim = '';
-        for(var i=0; i<data.length; i++) {
-            var row = lineDelim + _getCsvString(data[i]);
-            csvContent += row;
-            lineDelim = '\n';
+    this.exportArrayTableToCsv = function(fileName, data, pl, resolve, reject) {
+        var zip = new JSZip();
+        _exportArrayTableToCsv(0, zip, fileName, data, pl, resolve, reject);
+    };
+
+    function _exportArrayTableToCsv(chunkPos, zip, fileName, data, pl, resolve, reject) {
+        var neededChunks = Math.ceil(data.length / self.MAX_RECORDS_PER_CSV);
+        if (chunkPos >= neededChunks) {
+            self.saveZip(zip, fileName+'.zip', pl, resolve, reject);
+            return;
         }
-        csvContent = uri + nl.fmt.encodeUri(csvContent);
-        _saveFile(fileName, csvContent);
+        var startPos = chunkPos*self.MAX_RECORDS_PER_CSV;
+        if (startPos == 0) startPos = 1;
+        chunkPos++;
+        var endPos = chunkPos*self.MAX_RECORDS_PER_CSV;
+        if (endPos > data.length) endPos = data.length;
+        var chunkFileName = nl.fmt2('{}-{}.csv', fileName, chunkPos);
+        _msgOut(pl, nl.t('Processing {}: records {} to {}', 
+            chunkFileName, startPos, endPos), false);
+        nl.timeout(function() {
+            var csvContent = _getCsvString(data[0]);
+            var lineDelim = '\n';
+            for(var i=startPos; i<endPos; i++) {
+                var row = lineDelim + _getCsvString(data[i]);
+                csvContent += row;
+            }
+            zip.file(chunkFileName, csvContent);
+            _exportArrayTableToCsv(chunkPos, zip, fileName, data, pl, resolve, reject);
+        });
+    }
+    
+    this.saveZip = function(zip, fileName, pl, resolve, reject) {
+        _msgOut(pl, nl.t('Creating zip file for download'), false);
+        nl.timeout(function() {
+            zip.generateAsync({type:'blob', compression: 'DEFLATE', 
+                compressionOptions:{level:9}})
+            .then(function (zipContent) {
+                var size = Math.round(zipContent.size/1024);
+                _msgOut(pl, nl.t('Download of {} ({} KB) initiated', fileName, size));
+                saveAs(zipContent, fileName);
+                if (resolve) resolve(size);
+            }, function(e) {
+                _msgErr(pl, nl.t('Error creating zip file: '), e);
+                if (reject) reject(e);
+            });
+        });
     };
     
+    function _msgOut(pl, msg, param) {
+        if (pl) {
+            pl.imp(msg);
+        } else {
+            nlDlg.popupStatus(msg, param);
+        }
+    }
+
+    function _msgErr(pl, msg, e) {
+        if (pl) {
+            pl.error(msg, e);
+        } else {
+            nlDlg.popdownStatus(0);
+            nlDlg.popupAlert({title: 'Error', content: msg + e});
+        }
+    }
+
     function _getCsvString(rowData) {
         var row = '';
         for(var i=0; i<rowData.length; i++) {
@@ -73,6 +127,7 @@ function(nl) {
 
     function _quote(data) {
         if (typeof(data) != 'string') return data;
+        data = data.replace(/\n/g, ' ');
         if (data.indexOf('"') < 0 && data.indexOf(',') < 0) return data;
         return '"' + data.replace(/\"/g, '""') + '"';
     }

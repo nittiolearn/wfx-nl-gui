@@ -1658,6 +1658,8 @@ npagetypes = function() {
 	}
 
 	function _BehQuestionnaire_updateAnswers(page) {
+	    page.oPage.feedback = [];
+	    var isQuestionnaire = (page.pagetype.interaction.id == 'QUESTIONNAIRE');
 		for (var i = 0; i < page.sections.length; i++) {
 			var section = page.sections[i];
 			var layout = _getLayoutOfSec(section);
@@ -1674,7 +1676,16 @@ npagetypes = function() {
 			// page has not be rendered yet in view mode or we are in report mode or this is text: in view mode
 			if (elem.length == 0 || elem.hasClass('report')) continue;
 
-			var elemVal = elem.val();
+            var elemVal = elem.val();
+            var answerText = _BehQuestionnaire_getAnswerText(elemVal, answerData);
+            
+            var question = secNo > 0 ? page.sections[secNo-1].oSection.text : '';
+            var index = question.indexOf('\n');
+            if (index > -1) question = question.substring(0, index);
+            if (answerData.type == 'text' || isQuestionnaire) {
+                page.oPage.feedback.push({question: question, response: answerText});
+            }
+            
 			if (!_BehQuestionnaire_isValidAnswer(elemVal, answerData)) {
 				if ('answer' in section.oSection) delete section.oSection.answer;
 				continue;
@@ -1683,7 +1694,26 @@ npagetypes = function() {
 			section.oSection.answer = elemVal;
 		}
 	}
-	
+
+    function _BehQuestionnaire_getAnswerText(elemVal, answerData) {
+        if (!elemVal) return '';
+        if (answerData.type == 'text') return elemVal;
+        if (answerData.type == 'select') return getChoiceStr(elemVal, answerData);
+        var ret = '';
+        var delim = '';
+        for(var i=0; i<elemVal.length; i++) {
+            ret += delim + getChoiceStr(elemVal[i], answerData);
+            delim = ' ,';
+        }
+        return ret;
+    }
+
+    function getChoiceStr(data, answerData) {
+        var pos = parseInt(data);
+        if (pos < 0 || pos >= answerData.choices.length) return '';
+        return answerData.choices[pos];
+    }
+    
 	function _BehQuestionnaire_onScore(page) {
 		var nMaxAnswers = 0;
 		var nAnswers = 0;

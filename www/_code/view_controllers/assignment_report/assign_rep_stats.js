@@ -10,33 +10,33 @@ function module_init() {
 }
    
 //-------------------------------------------------------------------------------------------------
-var NlAssignReportStats = ['nl', 'nlDlg', 'nlExporter', 'nlProgressLog',
-function(nl, nlDlg, nlExporter, nlProgressLog) {
+var NlAssignReportStats = ['nl', 'nlDlg', 'nlExporter', 'nlProgressLog', 'nlServerApi', 'nlGroupInfo',
+function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo) {
     
     var self = this;
     var ctx = null;
+    var dlg = null;
+    var scopeData = {inProgress: false, exportPageScore: false, exportFeedback: false};
     
     this.createReportStats = function() {
-        return new ReportStats(nl);
+        return new ReportStats(nl, nlServerApi, nlGroupInfo);
     }
 
     this.export = function($scope, reports, _userInfo) {
-        if (ctx) {
-            ctx.pl.warn('Export running: displaying the current progress');
-            var dlg = _showDlg($scope);
-            dlg.scope.progressLog = ctx.pl.progressLog;
-            return;
+        if (!ctx) {
+            _initExportHeaders(_userInfo);
+            ctx = {pl: nlProgressLog.create($scope),
+                overviewRows: [nlExporter.getCsvHeader(_hOverview)],
+                pScoreRows: [nlExporter.getCsvHeader(_hPageScores)],
+                feedbackRows: [nlExporter.getCsvHeader(_hFeedback)]};
+            ctx.pl.showLogDetails(true);
         }
-        _initExportHeaders(_userInfo);
-        var dlg = _showDlg($scope);
-        ctx = {pl: nlProgressLog.create(dlg.scope), zip: new JSZip(), reports: reports,
-            pageCnt: 0,
-            overviewRows: [nlExporter.getCsvHeader(_hOverview)], overviewFiles: 0,
-            pScoreRows: [nlExporter.getCsvHeader(_hPageScores)], pScoreFiles: 0,
-            feedbackRows: [nlExporter.getCsvHeader(_hFeedback)], feedbackFiles: 0};
-
-        ctx.pl.showLogDetails(true);
-        ctx.pl.clear();
+        dlg = _showDlg($scope, reports);
+    };
+    
+    function _onExport(reports) {
+        _initCtx(reports);
+        scopeData.inProgress = true;
         _setProgress('start');
 
         _q(_exportReports)()
@@ -44,14 +44,14 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
         .then(function() {
             _setProgress('done');
             ctx.pl.imp(nl.fmt2('Export file generated: {} learning records, {} page level records, {} KB',
-                ctx.reports.length, ctx.pageCnt, Math.round(ctx.savedSize/1024)));
-            ctx = null;
+                ctx.reports.length, ctx.pageCnt, ctx.savedSize));
+            scopeData.inProgress = false;
         }, function() {
             _setProgress('done');
             ctx.pl.error('Export failed');
-            ctx = null;
+            scopeData.inProgress = false;
         });
-    };
+    }
     
     function _exportReports(resolve, reject, pos) {
         if (pos === undefined) pos = 0;
@@ -63,7 +63,7 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
             return;
         }
 
-        ctx.pl.imp(nl.fmt2('Processing record {} of {}', pos, len));
+        ctx.pl.imp(nl.fmt2('Processing record {} of {}', pos+1, len));
         _setProgress('process', pos, len);
         nl.timeout(function() {
             try {
@@ -83,9 +83,8 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
         _storeFilesInZipImpl(bForce, 'feedbackRows', 'feedbackFiles', 'feedback', _hFeedback);
     }
 
-    var MAX_RECORDS_PER_CSV = 50000;
     function _storeFilesInZipImpl(bForce, rowsAttrName, fileCntAttrName, prefix, headers) {
-        if (!bForce && ctx[rowsAttrName].length < MAX_RECORDS_PER_CSV) return;
+        if (!bForce && ctx[rowsAttrName].length < nlExporter.MAX_RECORDS_PER_CSV) return;
         if (ctx[rowsAttrName].length < 2) return;
         ctx[fileCntAttrName]++;
         var fileName = nl.fmt2('{}-{}.csv', prefix, ctx[fileCntAttrName]);
@@ -96,20 +95,12 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
     }
 
     function _createZip(resolve, reject) {
-        ctx.pl.imp('Creating zip file for download');
-        nl.timeout(function() {
-            ctx.zip.generateAsync({type:'blob', compression: 'DEFLATE', 
-                compressionOptions:{level:9}})
-            .then(function (zipContent) {
-                ctx.savedSize = zipContent.size || 0;
-                saveAs(zipContent, 'reports.zip');
-                ctx.pl.info('Initiated save of reports.zip');
-                _setProgress('createZip');
-                resolve(true);
-            }, function(e) {
-                ctx.pl.error('Error saving report zip file', e);
-                reject(e);
-            });
+        nlExporter.saveZip(ctx.zip, 'reports.zip', ctx.pl, function(sizeKb) {
+            ctx.savedSize = sizeKb || 0;
+            _setProgress('createZip');
+            resolve(true);
+        }, function(e) {
+            reject(e);
         });
     }
 
@@ -118,59 +109,137 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
     var _hFeedback = [];
 
     function _initExportHeaders(_userInfo) {
-        _hOverview = [{id: 'studentname', name:'user'},
-            {id: 'name', name:'name'},
+        _hOverview = [
+            {id: '_loginid', name:'user loginid'},
+            {id: 'studentname', name:'user name'},
+            {id: 'name', name:'module name'},
+
             {id: '_statusStr', name:'status'},
             {id: '_percStr', name:'%'},
             {id: '_score', name:'score'},
             {id: '_maxScore', name:'maxScore'},
             {id: '_passScore', name:'passScore'},
             {id: '_timeMins', name:'time spent'},
+
+            {id: 'created', name:'created', fmt: 'minute'},
             {id: 'started', name:'started', fmt: 'minute'},
             {id: 'ended', name:'ended', fmt: 'minute'},
             {id: 'updated', name:'updated', fmt: 'minute'},
-            {id: 'student', name:'userid', fmt: 'idstr'},
-            {id: 'id', name:'uniqueid', fmt: 'idstr'},
-            {id: 'assignment', name:'assignid', fmt: 'idstr'},
-            {id: 'lesson_id', name:'moduleid', fmt: 'idstr'},
+
+            {id: '_email', name:'email'},
             {id: 'org_unit', name:'org'},
             {id: 'subject', name:_userInfo.groupinfo.subjectlabel},
-            {id: '_grade', name:_userInfo.groupinfo.gradelabel}];
-    
-        _hPageScores = [{id: 'pos', name: '#'},
-            {id: 'studentname', name:'user'},
-            {id: 'name', name:'name'},
-            {id: 'updated', name:'updated', fmt: 'minute'},
+            {id: '_grade', name:_userInfo.groupinfo.gradelabel},
+            
+            {id: 'id', name:'recordid', fmt: 'idstr'},
             {id: 'student', name:'userid', fmt: 'idstr'},
-            {id: 'id', name:'uniqueid', fmt: 'idstr'},
-            {id: 'org_unit', name:'org'},
-            {id: 'page', name:'page'},
-            {id: 'title', name:'title'},
-            {id: 'score', name:'score'},
-            {id: 'maxScore', name:'maxScore'}];
+            {id: 'assignment', name:'assignid', fmt: 'idstr'},
+            {id: 'lesson_id', name:'moduleid', fmt: 'idstr'}];
     
-        _hFeedback = [{id: 'pos', name: '#'},
-            {id: 'studentname', name:'user'},
-            {id: 'name', name:'name'},
-            {id: 'updated', name:'updated', fmt: 'minute'},
-            {id: 'student', name:'userid', fmt: 'idstr'},
-            {id: 'id', name:'uniqueid', fmt: 'idstr'},
-            {id: 'org_unit', name:'org'},
-            {id: 'page', name:'page'},
-            {id: 'title', name:'title'},
+        _hPageScores = [
+            {id: 'pos', name: '#'},
+            {id: '_loginid', name:'user loginid'},
+            {id: 'studentname', name:'user name'},
+            {id: 'name', name:'module name'},
+
+            {id: 'page', name:'page no'},
+            {id: 'title', name:'page title'},
             {id: 'score', name:'score'},
-            {id: 'maxScore', name:'maxScore'}];
+            {id: 'maxScore', name:'maxScore'},
+            
+            {id: '_email', name:'email'},
+            {id: 'org_unit', name:'org'},
+            {id: 'subject', name:_userInfo.groupinfo.subjectlabel},
+            {id: '_grade', name:_userInfo.groupinfo.gradelabel},
+
+            {id: 'id', name:'recordid', fmt: 'idstr'},
+            {id: 'student', name:'userid', fmt: 'idstr'},
+            {id: 'assignment', name:'assignid', fmt: 'idstr'},
+            {id: 'lesson_id', name:'moduleid', fmt: 'idstr'}];
+    
+        _hFeedback = [
+            {id: 'pos', name: '#'},
+            {id: '_loginid', name:'user loginid'},
+            {id: 'studentname', name:'user name'},
+            {id: 'name', name:'module name'},
+
+            {id: 'page', name:'page no'},
+            {id: 'title', name:'page title'},
+            {id: 'question', name:'question'},
+            {id: 'response', name:'response'},
+                        
+            {id: '_email', name:'email'},
+            {id: 'org_unit', name:'org'},
+            {id: 'subject', name:_userInfo.groupinfo.subjectlabel},
+            {id: '_grade', name:_userInfo.groupinfo.gradelabel},
+
+            {id: 'id', name:'recordid', fmt: 'idstr'},
+            {id: 'student', name:'userid', fmt: 'idstr'},
+            {id: 'assignment', name:'assignid', fmt: 'idstr'},
+            {id: 'lesson_id', name:'moduleid', fmt: 'idstr'}];
     }
 
     function _processReportRecord(pos) {
         var rep = ctx.reports[pos];
         ctx.overviewRows.push(nlExporter.getCsvRow(_hOverview, rep));
+        if (!scopeData.exportPageScore && !scopeData.exportFeedback) return;
         var content = angular.fromJson(rep.content);
-        if (!content.pages) return;
+        if (!content.learningData && !content.pages) return;
 
-        var currentPageRecord = {studentname: rep.studentname, name: rep.name,
-            updated: rep.updated, student: rep.student, id: rep.id, org_unit: rep.org_unit, 
-            page: null, title: '', score: 0, maxScore: 0, pos: 0};
+        var currentPageRecord = {pos: 0, _loginid: rep._loginid, 
+            studentname: rep.studentname, name: rep.name,
+            page: null, title: '', score: 0, maxScore: 0, 
+            org_unit: rep.org_unit, subject: rep.subject, _grade: rep._grade,
+            id: rep.id, student: rep.student, assignment: rep.assignment,
+            lesson_id: rep.lesson_id, _email: rep._email};
+        
+        if (content.learningData) {
+            _processReportRecordPageData(currentPageRecord, content);
+        } else {
+            _processReportRecordPageDataOld(currentPageRecord, content);
+        }
+    }
+
+    function _processReportRecordPageData(currentPageRecord, content) {
+        var pagesDict = content.learningData.pages || {};
+        var pages = [];
+        for (var i in pagesDict) {
+            pages.push(pagesDict[i]);
+        }
+        pages.sort(function(a, b) {
+            return a.pageNo - b.pageNo;
+        });
+        for(var i=0; i<pages.length; i++) {
+            var page = pages[i];
+            currentPageRecord.page = page.pageNo;
+            currentPageRecord.title = page.title || '';
+            currentPageRecord.pos = ctx.pageCnt;
+            if (scopeData.exportPageScore) {
+                currentPageRecord.score = page.score || 0;
+                currentPageRecord.maxScore = page.maxScore || 0;
+                ctx.pageCnt++;
+                ctx.pScoreRows.push(nlExporter.getCsvRow(_hPageScores, currentPageRecord));
+            }
+            if (scopeData.exportFeedback) {
+                _processReportRecordFeedbackData(currentPageRecord, page);
+            }
+        }
+    }
+
+    function _processReportRecordFeedbackData(currentPageRecord, page) {
+        if (!page.feedback) return;
+        for(var i=0; i<page.feedback.length; i++) {
+            var fb = page.feedback[i];
+            ctx.feedbackCnt++;
+            currentPageRecord.pos = ctx.feedbackCnt;
+            currentPageRecord.question = fb.question;
+            currentPageRecord.response = fb.response;
+            ctx.feedbackRows.push(nlExporter.getCsvRow(_hFeedback, currentPageRecord));
+        }
+    }
+    
+    // old format! - can be removed after migrating all report records
+    function _processReportRecordPageDataOld(currentPageRecord, content) {
         for(var i=0; i<content.pages.length; i++) {
             var page = content.pages[i];
             currentPageRecord.page = i+1;
@@ -183,12 +252,28 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
             ctx.pageCnt++;
             currentPageRecord.pos = ctx.pageCnt;
             ctx.pScoreRows.push(nlExporter.getCsvRow(_hPageScores, currentPageRecord));
-            // TODO-MUNNI-NOW: collecting feedback from questionnaire page is pending
+            // collecting feedback from questionnaire page not supported in old format
         }
     }
+
+    function _initCtx(reports) {
+        ctx.pl.clear();
+        ctx.reports = reports;
+        ctx.zip = new JSZip();
+        ctx.pageCnt = 0;
+        ctx.feedbackCnt = 0;
+        ctx.overviewFiles = 0;
+        ctx.pScoreFiles = 0;
+        ctx.feedbackFiles = 0;
+    }
     
-    function _showDlg($scope) {
+    function _showDlg($scope, reports) {
         var dlg = nlDlg.create($scope);
+        dlg.scope.progressLog = ctx.pl.progressLog;
+        dlg.scope.scopeData = scopeData;
+        dlg.scope.onExport = function() {
+            _onExport(reports);
+        };
         dlg.setCssClass('nl-height-max nl-width-max');
         var cancelButton = {text: nl.t('Close')};
         dlg.show('view_controllers/assignment_report/assign_rep_exp_dlg.html', [], cancelButton);
@@ -220,13 +305,14 @@ function(nl, nlDlg, nlExporter, nlProgressLog) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-function ReportStats(nl) {
+function ReportStats(nl, nlServerApi, nlGroupInfo) {
     var self = this;
     var _lst = [];
     var _stats = {students: 0, passed: 0, failed: 0, totalScore: 0, totalMaxScore: 0, 
         avgPerc: 0, belowAvgCnt: 0, hundredPercentCnt: 0};
     var _percentages = [];
     var _leaderBoard = [];
+    var _groupInfo = null;
     
     this.STATUS_PENDING = -1;
     this.STATUS_FAILED = 0;
@@ -248,12 +334,31 @@ function ReportStats(nl) {
         return _leaderBoard;
     };
 
+    this.init = function() {
+        return nlServerApi.groupGetInfo().then(function(result) {
+            _groupInfo = result;
+        }, function(e) {
+            return e;
+        })
+    };
+        
     this.updateStats = function(reports) {
         for(var i=0; i<reports.length; i++) {
             var rep = reports[i];
             _lst.push(rep);
             _stats.students++;
             var content = angular.fromJson(rep.content);
+            rep._loginid = '';
+            rep._email = '';
+            if (_groupInfo && _groupInfo.users[''+rep.student]) {
+                var userInfo = _groupInfo.users[''+rep.student];
+                rep.studentname = userInfo[nlGroupInfo.NAME];
+                rep._loginid = userInfo[nlGroupInfo.LOGINID];
+                rep._email = userInfo[nlGroupInfo.EMAIL];
+            }
+            var userInfo = _groupInfo ? _groupInfo.users[''+rep.id] || {} : {};
+            if (userInfo.name) rep.studentname = userInfo.name;
+
             rep._grade = content.grade || '';
             if (!rep.completed) {
                 rep._percStr = '';

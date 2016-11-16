@@ -79,11 +79,18 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
 		return nl.q(function(resolve, reject) {
-		mode.initFromUrl();
-		$scope.cards = {};
-        _addSearchInfo($scope.cards);
-		$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
-		_getDataFromServer('', resolve);
+    		mode.initFromUrl();
+    		$scope.cards = {};
+            _addSearchInfo($scope.cards);
+    		$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
+            $scope.cards.cardlist = [];
+            $scope.cards.staticlist = [];
+            reportStats = NlAssignReportStats.createReportStats();
+            reportStats.init().then(function() {
+                _getDataFromServer('', resolve);
+            }, function() {
+                resolve(false);
+            });
 		});
 	}
 	nlRouter.initContoller($scope, '', _onPageEnter);
@@ -114,9 +121,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
 	};	
 
 	function _getDataFromServer(filter, resolve) {
-	    $scope.cards.cardlist = [];
-        $scope.cards.staticlist = [];
-        reportStats = NlAssignReportStats.createReportStats();
 		mode.getAssignmentReports(filter, function(isError, result, more) {
 		    if (isError) {
 		        resolve(false);
@@ -126,8 +130,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
                 _appendFirstStaticCard(result[0], $scope.cards.staticlist);
                 _appendSecondStaticCard($scope.cards.staticlist);
 		    }
-            _appendAssignmentReportCards(result, $scope.cards.cardlist);
             reportStats.updateStats(result);
+            _appendAssignmentReportCards(result, $scope.cards.cardlist);
             _updateSecondStaticCard(reportStats);
             resolve(true);
 		});
@@ -138,6 +142,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
 			var card = _createAssignmentCard(resultList[i]);
 			cardlist.push(card);
 		}
+		cardlist.sort(function(a, b) {
+		    return (b.updated - a.updated);
+		});
 	}
 
 	function _createAssignmentCard(assignment) {
@@ -156,6 +163,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
 		var card = {
 			id : assignment.id,
 			title : assignment.studentname,
+			updated: nl.fmt.json2Date(assignment.updated),
 			icon : nl.url.resUrl('dashboard/reports.png'),
 			internalUrl: internalUrl, 
 			url : url,

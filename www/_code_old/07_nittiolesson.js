@@ -62,7 +62,6 @@ nlesson = function() {
 		this.saveComments = Lesson_saveComments;
 		this.saveAssignReport = Lesson_saveAssignReport;
 		this.submitAssignReport = Lesson_submitAssignReport;
-		this.submitLessonReport = Lesson_submitLessonReport;
 
 		this.setupOnLeavePage = Lesson_setupOnLeavePage;
 		this.updateContent = Lesson_updateContent;
@@ -179,6 +178,7 @@ nlesson = function() {
         nittio.setOnLeaveCheck(self.renderCtx.launchCtx() != 'view' &&
           njs_scorm.nlPlayerType() != 'embedded' && scormMode === null);
 
+        _Lesson_updateOLessonFromLearningData(self);
         self.pages = [];
         for (var i = 0; i < self.oLesson.pages.length; i++) {
             var po = new Page(self);
@@ -536,9 +536,112 @@ nlesson = function() {
 	function Lesson_getContent() {
 		this.updateContent();
 		this.updateScore();
+        _Lesson_updateLearningData(this);
 		var ret = JSON.stringify(this.oLesson);
 		return ret;
 	}
+	
+    function _Lesson_getPrunedContent(lesson, jContent) {
+        if (!lesson.oLesson.storePrunedReport) return jContent;
+        var content = jQuery.parseJSON(jContent);
+        if (njs_scorm.getScormLmsLessonMode() !== null) {
+            _Lesson_updateLearningData(lesson);
+            content.learningData = lesson.oLesson.learningData;
+        }
+        delete content.pages;
+        delete content.templatePageTypes;
+        delete content.templateStylesCss;
+        delete content.templateBgimgs;
+        return JSON.stringify(content);
+    }
+    
+	function _Lesson_updateLearningData(lesson) {
+        lesson.oLesson.learningData = {};
+        var ld = lesson.oLesson.learningData;
+        
+        if (lesson.renderCtx.launchMode() != 'do' && 
+            !lesson.renderCtx.canShowScore()) return;
+        
+        _copyIf(lesson.oLesson, ld, 'currentPageNo');
+        _copyIf(lesson.oLesson, ld, 'started');
+        _copyIf(lesson.oLesson, ld, 'ended');
+        _copyIf(lesson.oLesson, ld, 'timeSpentSeconds');
+        _copyIf(lesson.oLesson, ld, 'score');
+        _copyIf(lesson.oLesson, ld, 'passScore');
+        _copyIf(lesson.oLesson, ld, 'maxScore');
+        _copyIf(lesson.oLesson, ld, 'answered');
+        _copyIf(lesson.oLesson, ld, 'partAnswered');
+        _copyIf(lesson.oLesson, ld, 'notAnswered');
+        _copyIf(lesson.oLesson, ld, 'pagesFiltered');
+        
+        ld.pages = {};
+        for(var i=0; i<lesson.pages.length; i++) {
+            var oPage = lesson.pages[i].oPage;
+            var title = oPage.sections && oPage.sections[0] ? oPage.sections[0].text : '';
+            var index = title.indexOf('\n');
+            if (index > -1) title = title.substring(0, index);
+            var pld = {pageNo: i+1, title: title};
+
+            _copyIf(oPage, pld, 'score');
+            _copyIf(oPage, pld, 'scoreOverride');
+            _copyIf(oPage, pld, 'maxScore');
+            _copyIf(oPage, pld, 'pageMaxScore');
+            _copyIf(oPage, pld, 'answered');
+            _copyIf(oPage, pld, 'remarks');
+            _copyIf(oPage, pld, 'notes');
+            _copyIf(oPage, pld, 'feedback');
+            pld.sections = [];
+            for(var j=0; j < oPage.sections.length; j++) {
+                var sld = {};
+                var oSection = oPage.sections[j];
+                _copyIf(oSection, sld, 'answer');
+                _copyIf(oSection, sld, 'correctanswer');
+                pld.sections.push(sld);
+            }
+            ld.pages[oPage.pageId] = pld;
+        }
+	}
+
+    function _Lesson_updateOLessonFromLearningData(lesson) {
+        var ld = lesson.oLesson.learningData;
+        if (!ld) return;
+        _copyIf(ld, lesson.oLesson, 'currentPageNo');
+        _copyIf(ld, lesson.oLesson, 'started');
+        _copyIf(ld, lesson.oLesson, 'ended');
+        _copyIf(ld, lesson.oLesson, 'timeSpentSeconds');
+        _copyIf(ld, lesson.oLesson, 'score');
+        // _copyIf(ld, lesson.oLesson, 'passScore'); // Not needed
+        // _copyIf(ld, lesson.oLesson, 'maxScore'); // Not needed
+        _copyIf(ld, lesson.oLesson, 'answered');
+        _copyIf(ld, lesson.oLesson, 'partAnswered');
+        _copyIf(ld, lesson.oLesson, 'notAnswered');
+        _copyIf(ld, lesson.oLesson, 'pagesFiltered');
+    }
+    
+    function _Lesson_updateOPageFromLearningData(oPage, lesson) {
+        var ld = lesson.oLesson.learningData;
+        if (!ld || !ld.pages) return;
+        var pld = ld.pages[oPage.pageId];
+        if (!pld) return;
+        _copyIf(pld, oPage, 'score');
+        _copyIf(pld, oPage, 'scoreOverride');
+        // _copyIf(pld, oPage, 'maxScore'); // Not needed
+        // _copyIf(pld, oPage, 'pageMaxScore'); // Not needed
+        _copyIf(pld, oPage, 'answered');
+        _copyIf(pld, oPage, 'remarks');
+        _copyIf(pld, oPage, 'notes');
+        _copyIf(pld, oPage, 'feedback');
+        if (!pld.sections) return;
+        for(var i=0; i<pld.sections.length; i++) {
+            if (i >= oPage.sections.length) break;
+            _copyIf(pld.sections[i], oPage.sections[i], 'answer');
+            _copyIf(pld.sections[i], oPage.sections[i], 'correctanswer');
+        }
+    }
+    
+    function _copyIf(src, dest, attr) {
+        if (attr in src) dest[attr] = src[attr];
+    }
 
 	function Lesson_updateScore() {
 		if (this.renderCtx.launchMode() == 'do') {
@@ -562,7 +665,7 @@ nlesson = function() {
 		this.oLesson.score = 0;
 		this.oLesson.answered = [];
 		this.oLesson.notAnswered = [];
-		this.oLesson.partAnswered = [];
+        this.oLesson.partAnswered = [];
 		for (var i = 0; i < this.pages.length; i++) {
 			var pageMaxScore = this.pages[i].getMaxScore();
 			this.oLesson.maxScore += pageMaxScore;
@@ -582,9 +685,9 @@ nlesson = function() {
 		}
 	}
 		
-	function Lesson_submitReport(submitMethod) {
+	function Lesson_submitReport() {
 		this.updateScore();
-		njs_lesson_helper.SubmitAndScoreDialog.showSubmitWindow(this, submitMethod);
+		njs_lesson_helper.SubmitAndScoreDialog.showSubmitWindow(this);
 	}
 
 	function Lesson_setupOnLeavePage() {
@@ -607,19 +710,19 @@ nlesson = function() {
 	}
 
 	function Lesson_saveLesson(onCompleteFn) {
-		return _Lesson_saveInternal(this, '/lesson/save.json/', onCompleteFn, false, false);
+		_Lesson_saveInternal(this, '/lesson/save.json/', onCompleteFn, false, false);
 	}
 	
 	function Lesson_saveLessonRaw(onCompleteFn) {
-		return _Lesson_saveInternal(this, '/lesson/save.json/', onCompleteFn, true, false);
+		_Lesson_saveInternal(this, '/lesson/save.json/', onCompleteFn, true, false);
 	}
 	
 	function Lesson_saveComments(onCompleteFn) {
-		return _Lesson_saveInternal(this, '/lesson/lessoncomment_save.json/', onCompleteFn, false, false);
+		_Lesson_saveInternal(this, '/lesson/lessoncomment_save.json/', onCompleteFn, false, false);
 	}
 	
 	function Lesson_saveAssignReport(backgroundTask) {
-		return _Lesson_saveInternal(this, '/lesson/save_report_assign.json/', null, 
+		_Lesson_saveInternal(this, '/lesson/save_report_assign.json/', null, 
 		                            false, false, backgroundTask);
 	}
 	
@@ -629,16 +732,7 @@ nlesson = function() {
 			// LEARNMODE_TEST - do not open the report; go to home page
 			redirUrl = '/';
 		}
-		return _Lesson_submitReport(this, '/lesson/submit_report_assign.json/', redirUrl);
-	}
-	
-	function Lesson_submitLessonReport() {
-		var redirUrl = njs_helper.fmt2('/lesson/view_report_lesson/{}#/', jQuery('#l_lessonId').val());
-		return _Lesson_submitReport(this, '/lesson/submit_report_lesson.json/', redirUrl);
-	}
-
-	function _Lesson_submitReport(lesson, ajaxUrl, redirUrl) {
-		_Lesson_saveInternal(lesson, ajaxUrl, function(data, isError) {
+		_Lesson_saveInternal(this, '/lesson/submit_report_assign.json/', function(data, isError) {
 			if (isError) return;
 			if (njs_scorm.getScormLmsLessonMode() !== null) return;
             if (njs_scorm.nlPlayerType() == 'sco') {
@@ -672,10 +766,12 @@ nlesson = function() {
 	    
         var syncManager = njs_helper.SyncManager.get();
         var _saveToServer = function(ajaxParams) {
+            var unPrundedContent = ajaxParams.content;
+            ajaxParams.content = _Lesson_getPrunedContent(lesson, unPrundedContent);
             syncManager.postToServer(ajaxUrl, ajaxParams, true, backgroundTask,
                 function(data, isError) {
                 if (!isError) {
-                    lesson.lastSavedContent = ajaxParams.content;
+                    lesson.lastSavedContent = unPrundedContent;
                     if (njsCommentEditor.isValid()) njsCommentEditor.on_comment_save(data);
                 }
                 _onComplete(data, isError);
@@ -1069,6 +1165,7 @@ nlesson = function() {
 	// Initialize and render - internal methods
 	//---------------------------------------------------------------------------------------------
 	function Page_init(oPage, bgimg) {
+        _Lesson_updateOPageFromLearningData(oPage, this.lesson);
 		this.oPage = oPage;
 		this.bgimg = bgimg;
 		this.sections = [];		

@@ -1,19 +1,13 @@
 <nl-dlg title='Please confirm'>
 	<nl-dlg-content>
-	<p>You have chosen to send assignment to <b>{{data.visibleTo.length}} classes / user groups (all users).</b> Assignment once sent cannot be modified. This assignment is already dispatched to <b>{{data.pastAssignmentSentList.assignedUsers}} of {{data.pastAssignmentSentList.totalUsers}} users recently</b>. Are you sure you want to send the assignment?
-
-	<table class='nl-table'>
-		<tr>
-			<th>AssignedTo</th>
-			<th>On</th>
-			<th>Link</th>
-		</tr>
-		<tr ng-repeat='pastlist in data.pastAssignmentSentList.pastList'>
-			<td>{{pastlist.to}}</td>
-			<td>{{pastlist.on}}</td>
-			<td><a href='/#/assignment_report?assignid={{pastlist.id}}'>Assignment :{{pastlist.id}}</a></td>
-		</tr>
-	</table>
-</p>
+    	<p>
+    	    You have chosen to send assignment to below <b>{{userList.length}} users.</b>
+    	    Assignment once sent cannot be modified. 
+    	    Are you sure you want to send the assignment?
+    	</p>
+    	
+    	<ol>
+    	    <li ng-repeat='user in userList track by $index'>{{user}}</li>
+    	</ol>
 	</nl-dlg-content>
 </nl-dlg>

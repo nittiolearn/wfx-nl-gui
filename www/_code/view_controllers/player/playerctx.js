@@ -53,7 +53,6 @@ function module_init() {
 // 'edit_templ'          |-- same as above --|------ same as above ------|
 //                       |                   |                           |
 // 'do'                  | 'do', 'do_pv'     | 'do_zodi'                 | 
-// 'do_withrep'          |-- same as above --|------ same as above ------|
 // 'view'                |-- same as above --|------ same as above ------|
 // 'do_assign'           |-- same as above --|------ same as above ------|
 // 'do_update'           |-- same as above --|------ same as above ------|
@@ -62,7 +61,6 @@ function module_init() {
 // 'report_assign_my'    | 'report'          |                           | 
 // 'report_assign_review'|-- same as above --|------ same as above ------|
 // 'report_assign_shared'|-- same as above --|------ same as above ------|
-// 'report_lesson'       |-- same as above --|------ same as above ------|
 //#############################################################################################
 
 //-------------------------------------------------------------------------------------------------
@@ -70,7 +68,6 @@ function module_init() {
 // Please change this consistently.
 var _launchCtxToInfo = {
     //edit_templ: not required - edit of template
-    //do_withrep: not required - if db.report_lesson.lesson is found, icon will be shown
 
     // old URL=/lesson/edit/lessonid (edit a lesson; create a new lesson when lesson id is 0)
     edit: {mode: 'edit'},
@@ -103,10 +100,7 @@ var _launchCtxToInfo = {
     do_update: {mode: 'report'}, 
 
     // old URL=/lesson/view_shared_report_assign/reportid (view assignment report shared with me)
-    report_assign_shared: {mode: 'report'}, 
-
-    // old URL=/lesson/view_report_lesson/lessonid (View report of a lesson (self learning))
-    report_lesson: {mode: 'report'}
+    report_assign_shared: {mode: 'report'}
 };
 
 function _initLaunchCtxToInfo() {

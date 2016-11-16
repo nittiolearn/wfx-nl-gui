@@ -198,68 +198,11 @@ function _copyAttr(src, dest, attrSrc, attrDest) {
 }
 
 function _getLearningData(l) {
-    var ret = {answers: {}, correctanswers: {}, scores: {}, maxScores: {}};
-    _copyAttr(l, ret, 'currentPageNo');
-
-    _copyAttr(l, ret, 'started');
-    _copyAttr(l, ret, 'ended');
-    _copyAttr(l, ret, 'timeSpentSeconds');
-
-    _copyAttr(l, ret, 'score');
-    _copyAttr(l, ret, 'passScore');
-    _copyAttr(l, ret, 'maxScore');
-
-    _copyAttr(l, ret, 'answered');
-    _copyAttr(l, ret, 'partAnswered');
-    _copyAttr(l, ret, 'notAnswered');
-
-    _copyAttr(l, ret, 'pagesFiltered');
-    
-    for(var i in l.pages) {
-        var p = l.pages[i];
-        var key = p.pageId;
-        _copyAttr(p, ret.scores, 'score', key);
-        _copyAttr(p, ret.maxScores, 'maxScore', key);
-        for(var j in p.sections) {
-            var s = p.sections[j];
-            var key = p.pageId + '-' + j;
-            _copyAttr(s, ret.answers, 'answer', key);
-            _copyAttr(s, ret.correctanswers, 'correctanswer', key);
-        }
-    }
-    return ret;
+    return l.learningData || {};
 }
 
 function _updateLearningData(l, data) {
-    if (data.currentPageNo) l.currentPageNo = data.currentPageNo;
-    _copyAttr(data, l, 'currentPageNo');
-
-    _copyAttr(data, l, 'started');
-    _copyAttr(data, l, 'ended');
-    _copyAttr(data, l, 'timeSpentSeconds');
-
-    _copyAttr(data, l, 'score');
-    _copyAttr(data, l, 'passScore');
-    _copyAttr(data, l, 'maxScore');
-
-    _copyAttr(data, l, 'answered');
-    _copyAttr(data, l, 'partAnswered');
-    _copyAttr(data, l, 'notAnswered');
-
-    _copyAttr(data, l, 'pagesFiltered');
-    
-    for(var i in l.pages) {
-        var p = l.pages[i];
-        var key = p.pageId;
-        _copyAttr(data.scores, p, key, 'score');
-        _copyAttr(data.maxScores, p, key, 'maxScore');
-        for(var j in p.sections) {
-            var s = p.sections[j];
-            var key = p.pageId + '-' + j;
-            _copyAttr(data.answers, s, key, 'answer');
-            _copyAttr(data.correctanswers, s, key, 'correctanswer');
-        }
-    }
+    l.learningData = data;
 }
 
 //#############################################################################################
@@ -359,10 +302,10 @@ function ScormLms(g_lesson, g_version) {
             if (isDone) _submitDone = true;
             g_lesson.oLesson.scormDataModel = _deepCopy(self.scormDataModel);
     
-            if (g_lesson.renderCtx.launchCtx() == 'do_assign')
-                if(isDone) g_lesson.submitAssignReport();
-                else g_lesson.saveAssignReport(true);
-            else if (isDone) g_lesson.submitLessonReport();
+            if (isDone)
+                g_lesson.submitAssignReport();
+            else if (g_lesson.renderCtx.launchCtx() == 'do_assign')
+                g_lesson.saveAssignReport(true);
         }, 200);
         return 'true';
     };
@@ -391,8 +334,7 @@ function ScormLms(g_lesson, g_version) {
         do_assign: 'normal',
         report_assign_my: 'review', 
         report_assign_review: 'review',
-        report_assign_shared: 'review',
-        report_lesson: 'review'
+        report_assign_shared: 'review'
     };
 
     var _defaultDataModel = {

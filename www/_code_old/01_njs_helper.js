@@ -1659,58 +1659,6 @@ function LoginDlg(inputChain, titleMsg) {
 }
 
 //-------------------------------------------------------------------------------------------
-// Assignment helpers
-//-------------------------------------------------------------------------------------------
-var assignHelpers = {
-	onDelete: function(assignId) {
-		nittio.closePopupsAndDlgs('');
-		var msg  = 'Deleting an assignment will delete all reports behind this assignment. This cannot be undone. Are you sure you want to delete?';
-		var delButton = {id: 'delete', text: 'Delete', fn: function() {
-			assignHelpers.onDeleteConfirm(assignId);
-		}};
-		njs_helper.Dialog.popup('Please confirm', msg, [delButton]);
-	},
-
-	onDeleteConfirm: function(assignId) {
-		var ajaxPath = '/assignment/delete.json/' + assignId;
-
-		var _ajax = new njs_helper.Ajax(function(data, errorType, errorMsg) {
-			if (errorType != njs_helper.Ajax.ERROR_NONE) return;
-			njs_helper.Dialog.popupStatus('Assignment deleted', function() {
-				nittio.redir("self");
-			});
-		});
-		_ajax.send(ajaxPath, {});
-	},
-
-	onPublish: function(assignId) {
-		nittio.closePopupsAndDlgs('');
-		var msg  = 'Publishing an assignment publishes the assignment reports to the respective learners. This cannot be undone. Are you sure you want to publish?';
-		var pubButton = {id: 'publish', text: 'Publish', fn: function() {
-			assignHelpers.onPublishConfirm(assignId);
-		}};
-		njs_helper.Dialog.popup('Please confirm', msg, [pubButton]);
-	},
-
-	onPublishConfirm: function(assignId) {
-		var ajaxPath = '/assignment/publish.json/' + assignId;
-		var _ajax = new njs_helper.Ajax(function(data, errorType, errorMsg) {
-			if (errorType != njs_helper.Ajax.ERROR_NONE) return;
-			njs_helper.Dialog.popupStatus('Assignment reports published', function() {
-				nittio.redir("self");
-			});
-		});
-		_ajax.send(ajaxPath, {});
-	},
-
-	onExport: function(assignId) {
-		var d = new Date();
-		var redirUrl = fmt2('/assignment/export/{}/{}', assignId, d.getTimezoneOffset());
-		nittio.redir(redirUrl);
-	}		
-};
-
-//-------------------------------------------------------------------------------------------
 // Exposed methods
 //-------------------------------------------------------------------------------------------
 return {
@@ -1738,7 +1686,6 @@ return {
 	AddResourceDlg: AddResourceDlg,
 	TextEditorDlg: TextEditorDlg,
 	LoginDlg: LoginDlg,
-	assignHelpers: assignHelpers,
 	dialogPopup:dialogPopup
 };
 
