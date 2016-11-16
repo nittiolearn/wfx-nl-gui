@@ -279,6 +279,43 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
         });
     }
 
+	function _moveItem(movedItem, fromIndex, toIndex, allModules) {
+		console.log('_moveItem: TODO remove', fromIndex, toIndex, allModules);
+		var currentItem = allModules[toIndex];
+		var isMoveDown = fromIndex < toIndex;
+		_moveItemAndChildrenPos(movedItem, {from: fromIndex, to: toIndex}, allModules);
+		if (isMoveDown && currentItem.type == 'module') {
+			movedItem.parentId = currentItem.id;
+		} else {
+			movedItem.parentId = currentItem.parentId;
+		}
+		_updateItemAndChildrenAttrs(movedItem, allModules);
+		// TODO - update getChidren() - here and also in delete 
+    }
+
+	function _moveItemAndChildrenPos(item, indices, allModules) {
+		allModules.splice(indices.from, 1);
+		allModules.splice(indices.to, 0, item);
+    	indices.from++;
+    	indices.to++;
+	    var children = treeList.getChildren(item);
+	    for(var i=0; i<children.length; i++) {
+	    	_moveItemAndChildrenPos(children[i], indices, allModules);
+	    }
+	}
+	
+	function _updateItemAndChildrenAttrs(item, allModules) {
+		var parent = treeList.getParent(item);
+        item.indentationLevel = parent ? parent.indentationLevel+1 : -1;
+        item.indentationStyle = {'paddingLeft': item.indentationLevel + 'em'};
+        item.location = (parent && parent.location) ? parent.location + '.' + parent.name :
+            parent ? parent.name : '';
+	    var children = treeList.getChildren(item);
+	    for(var i=0; i<children.length; i++) {
+	    	_moveItemAndChildrenAttrs(children[i], allModules);
+	    }
+	}
+
     function _initAttributesDicts() {
         if (!$scope.ext.isStaticMode()) return;
         $scope.editorCb = {
@@ -296,8 +333,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
         		}
     			_showVisible();
         	},
-        	updateMovedItem: function(cm, oldPos, newPos){
-        		return treeList.updateItem(cm, oldPos, newPos);
+        	moveItem: function(movedItem, fromIndex, toIndex, allModules){
+        		return _moveItem(movedItem, fromIndex, toIndex, allModules);
+        	},
+        	updateChildrenLinks: function(){
+        		return treeList.updateChildrenLinks();
         	},
         	launchModule: function(e, cm){
         	        e.stopImmediatePropagation();
@@ -924,15 +964,22 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
         if (parent) this.getChildren(parent).push(item);
     };
     
-    this.updateItem = function(item, oldPos, newPos) {
+    this.updateItem = function(item, oldPos, newPos, allModules) {
         var parent = this.getParent(item);
+        console.log(parent);
         item.indentationLevel = parent ? parent.indentationLevel+1 : -1;
         item.indentationStyle = {'paddingLeft': item.indentationLevel + 'em'};
         item.location = (item.id == '_root') ? '' : 
             (parent && parent.location) ? parent.location + '.' + parent.name :
             parent ? parent.name : '';
-        
-        // TODO: if (parent) this.getChildren(parent).push(item); - not push; insert at right place
+	    var children = this.getChildren(parent);
+	    if(children.length !== 0){
+		    for(var i=0; i<children.length; i++){
+		    	newPos++;
+		    	allModules.splice(newPos, 0, children[i]);
+		    }
+	    }
+	    _updateAllItemData();
     };
 
     this.getItem = function(itemId) {
@@ -965,6 +1012,15 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
         return this.children[itemId];
     };
     
+    this.updateChildrenLinks = function() {
+        this.children = {};
+        for(var i in this.items) {
+        	var item = this.items[i];
+        	var parent = this.getParent(item);
+	        if (parent) this.getChildren(parent).push(item);
+        }
+    };
+
     this.toggleItem = function(item) {
         var bOpen = !item.isOpen;
         item.isOpen = bOpen;

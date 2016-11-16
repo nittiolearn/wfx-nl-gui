@@ -109,8 +109,9 @@
         </div>
 	</div>
 	<div>
-	    <nl-inline-help class='w100' ng-show='attr.focus && editor.showHelp'>
-	        {{attr.help}}
+	    <nl-inline-help class='w100' ng-show='editor.showHelp'>
+	    	<div class='fsh6'>{{attr.name}}</div>
+	        <div ng-bind-html='attr.help'></div>
 	    </nl-inline-help>
 	</div>
 </div>
