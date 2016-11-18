@@ -32,7 +32,8 @@ function(nl, nlDlg, nlCourse) {
     var $scope = null;
     var _allModules = [];
     var _debug = null;
-
+	var publish = false;
+	
     this.init = function(_scope, _modeHandler) {
         $scope = _scope;
         modeHandler = _modeHandler;
@@ -95,7 +96,7 @@ function(nl, nlDlg, nlCourse) {
     var moduleAttrs = [
         {name: 'name', fields: ['module', 'lesson', 'link', 'info'], type: 'string', text: 'Name', help:'Name of the item to be displayed in the course tree.'}, 
         {name: 'type', fields: ['module', 'lesson', 'link', 'info'], type: 'list', text: 'Element type', values: ['module', 'lesson', 'info', 'link'], help:'Each item could be a Folder (containing other items) or a Module (a learning module/quiz) or Information or a Link (internal URL like certificate or external URL to be launched from the course).'},
-        {name: 'refid', fields: ['lesson'], type: 'lessonlink', text: 'Module-id', help:'The id of the learning module/quiz to be launched. You could search for all approved modules by clicking on the search icon. Click on the link icon to preview the module.'},
+        {name: 'refid', fields: ['lesson'], type: 'lessonlink', contentType: 'integer', text: 'Module-id', help:'The id of the learning module/quiz to be launched. You could search for all approved modules by clicking on the search icon. Click on the link icon to preview the module.'},
         {name: 'action', fields: ['link'], type: 'lessonlink', text: 'Action', help:'The action whose URL is used for the link. Click on the icon to view the link'},
         {name: 'urlParams', fields: ['link'], type: 'string', text: 'Url-Params', help:'The urlParams to append to the URL (see Dashboard create/modify dialog for more information).'},
         {name: 'grp_depAttrs', fields: ['lesson', 'link', 'info'], type: 'group', text: 'Planning and dependecies', help:'show/hide planning and dependency related attributes'},
@@ -121,7 +122,7 @@ function(nl, nlDlg, nlCourse) {
     		for(var j=0;j< attr.fields.length; j++) {
     			var itemType = attr.fields[j];
     			if (!(itemType in ret)) ret[itemType] = [];
-    			ret[itemType].push(attr.name);
+    			ret[itemType].push({name: attr.name, contentType: attr.contentType || 'string'});
     		}
     	}
     	return ret;
@@ -133,7 +134,7 @@ function(nl, nlDlg, nlCourse) {
     	if (!('lastId' in courseContent)) courseContent.lastId = 0;
     	courseContent.lastId++;
 
-
+		console.log(_allModules);
         var newModule = {name: nl.t('Folder {}', courseContent.lastId), type: 'module', id: '_id' + courseContent.lastId};
         if (!cm.parentId) {
         	// Current item is the root element: add as child of root element and at the top
@@ -150,6 +151,7 @@ function(nl, nlDlg, nlCourse) {
         	var pos = _findLastDescendantPos(cm);
         	if (pos > -1) _allModules.splice(pos+1, 0, newModule);
         }
+        console.log(_allModules);
 		$scope.editorCb.initModule(newModule);
 		newModule.isOpen = false;
 		newModule.visible = true;
@@ -198,17 +200,18 @@ function(nl, nlDlg, nlCourse) {
 		}
 	}
 	
-	function _saveCourse(e, cm, bPublish){
+	function _saveCourse(e, bPublish){
+		publish = bPublish;
 	    if(!_validateInputs(modeHandler.course)) {
 	        if(e) e.preventDefault();
 	        return;
 	    } else {
-	    	_saveAfterValidateCourse(e, cm, bPublish);
+	    	_saveAfterValidateCourse(e, bPublish);
 	    }
 
 	}
 
-    function _saveAfterValidateCourse(e, cm, bPublish) {
+    function _saveAfterValidateCourse(e, bPublish) {
     	modeHandler.course.content.modules = [];
     	for(var i=0; i<_allModules.length; i++) {
     		modeHandler.course.content.modules.push(_validate(_allModules[i]));
@@ -221,6 +224,7 @@ function(nl, nlDlg, nlCourse) {
                     };
         if(modeHandler.course.id) modifiedData.courseid = modeHandler.course.id;
         modifiedData.publish = bPublish;
+        console.log(modifiedData);
         _modifyAndUpdateToServer(modifiedData);    
     }
     
@@ -228,9 +232,13 @@ function(nl, nlDlg, nlCourse) {
         var allowedAttributes = allowedModuleAttrs[cm.type] || [];
         var editedModule = {};
         for(var i=0; i<allowedAttributes.length; i++){
-            var attr = allowedAttributes[i];
+            var attr = allowedAttributes[i].name;
+            var attrType = allowedAttributes[i].contentType;
             if(cm[attr] === null || cm[attr] === undefined || cm[attr] === '') continue;
             editedModule[attr] = cm[attr];
+            if (allowedAttributes[i].contentType == 'integer') {
+	            editedModule[attr] = parseInt(editedModule[attr]);
+            }
         }
         return editedModule;
     }
@@ -248,21 +256,17 @@ function(nl, nlDlg, nlCourse) {
         if(!data.icon) return _validateFail(data, 'icon', 'Course icon URL is mandatory');
         if(!data.content) return _validateFail(data, 'content', 'Course content is mandatory');
 
-        try {
-            var courseContent = angular.fromJson(data.content);
-            return _validateContent(data, courseContent);            
-        } catch (error) {
-        	nlDlg.popupAlert({title: 'content', template: nl.t('<p>Error parsing JSON: {}. Try <a href="http://www.jsoneditoronline.org">www.jsoneditoronline.org</a> to debug more</p>', error.toString())});
-        	return false;
-        }
+        if(!_validateContent(data)) return false;            
+        return true;
     }
 
-    function _validateContent(data, courseContent) {
-    	if (!courseContent.modules) return _validateFail(data, 'content', 
+    function _validateContent(data) {
+    	if (!data.content.modules) return _validateFail(data, 'content', 
             '"modules" field is expected in content');
-        var modules = courseContent.modules;
-        if (!angular.isArray(modules)) return _validateFail(data, 'content', 
-            '"modules" needs to be a JSON array []');
+        var modules = [];
+    	for(var i=0; i<_allModules.length; i++) {
+    		modules.push(_validate(_allModules[i]));
+    	}
         if (modules.length < 1) return _validateFail(data, 'content', 
             'Atleast one course module object is expected in the content');
 
@@ -311,7 +315,7 @@ function(nl, nlDlg, nlCourse) {
         return true;
     }
 
-    function _validateLinkModule(scope, module) {
+    function _validateLinkModule(data, module) {
     	if(module.type != 'link') return true;
         if(!module.action) return _validateModuleFail(data, module, '"action" is mandatory for "type": "link"');
         if(!module.urlParams) return _validateModuleFail(data, module, '"urlParams" is mandatory for "type": "urlParams"');
@@ -330,8 +334,10 @@ function(nl, nlDlg, nlCourse) {
     }
     
     function _validateModuleFail(data, module, errMsg) {
-    	return nlDlg.setFieldError(data, 'content',
-        	nl.t('{}: module - {}', nl.t(errMsg), angular.toJson(module)));
+    	_showContentCorrectionDlg(data, module, errMsg);
+    	return false;
+    	// return nlDlg.setFieldError(data, 'content',
+        	// nl.t('{}: module - {}', nl.t(errMsg), angular.toJson(module)));
     }
 
     function _validateFail(data, attr, errMsg) {
@@ -339,6 +345,21 @@ function(nl, nlDlg, nlCourse) {
     	return false;
     }
 
+	function _showContentCorrectionDlg(data, module, errMsg){
+    	modeHandler.course.content.modules = [];
+    	for(var i=0; i<_allModules.length; i++) {
+    		modeHandler.course.content.modules.push(_validate(_allModules[i]));
+    	}
+		console.log(modeHandler.course.content);
+		var _contentCorrectionDlg = nlDlg.create($scope);
+    		_contentCorrectionDlg.setCssClass('nl-height-max nl-width-max');
+			_contentCorrectionDlg.scope.data = {};
+			_contentCorrectionDlg.scope.data.title = nl.t('Content dialog');	
+			_contentCorrectionDlg.scope.data.content =  angular.toJson(modeHandler.course.content, 2);
+			_contentCorrectionDlg.scope.data.errMsg = nl.t('{}: module - {}', nl.t(errMsg), angular.toJson(module));
+		var closeButton = {text : nl.t('Close')};
+		_contentCorrectionDlg.show('view_controllers/course/course_content_correction_dlg.html', [], closeButton, false);
+	}
 
     function _showLessonSelectDlg(data){
     	var _selectDlg = nlDlg.create($scope);
@@ -365,25 +386,22 @@ function(nl, nlDlg, nlCourse) {
 				_moveItem(item, fromIndex, toIndex);
 			};
 		var closeButton = {text : nl.t('Close'), onTap: function(e){
-						//TODO : refresh all modules need to be implemented.
-					}};
+			$scope.editorCb.updateChildrenLinks();
+			$scope.editorCb.showVisible(null);
+		}};
 		_organiseModuleDlg.show('view_controllers/course/course_organiser.html', [], closeButton, false);
     		
     }
     
 	function _moveItem(movedItem, fromIndex, toIndex) {
-		console.log('_moveItem: TODO remove', toIndex, fromIndex, _allModules);
-		var currentItem = _allModules[toIndex];
-		movedItem.parentId = currentItem.parentId;
-		_allModules.splice(fromIndex, 1);
-		_allModules.splice(toIndex, 0, movedItem);
-		$scope.editorCb.updateMovedItem(movedItem, fromIndex, toIndex);
+		$scope.editorCb.moveItem(movedItem, fromIndex, toIndex, _allModules);
 		$scope.editorCb.showVisible(null);
 	};
 
     
     function _modifyAndUpdateToServer(modifiedData){
         nlDlg.showLoadingScreen();
+        console.log('1');
         nlCourse.courseModify(modifiedData).then(function(course) {
             nlDlg.hideLoadingScreen();
         });
@@ -397,7 +415,7 @@ function ObjectToJsonDirective() {
         require: 'ngModel',
         link: function($scope, elem, attr, ngModel) {            
           function into(input) {
-            return angular.fromJson(input, 2);
+            return angular.fromJson(input, 1);
           }
           function out(data) {
             return angular.toJson(data);

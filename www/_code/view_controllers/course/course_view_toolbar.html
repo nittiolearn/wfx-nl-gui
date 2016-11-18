@@ -34,13 +34,13 @@
     <span title='Save'
           ng-show='ext.isEditorMode() && !popupView && !iframeUrl'
           class='nl-toolbar-icon padding0'
-          ng-click='editor.saveCourse($event, ext.item, false)'>
+          ng-click='editor.saveCourse($event, false)'>
         <i class="icon material-icons">save</i>
     </span>
     <span title='Publish'
           ng-show='ext.isEditorMode() && !popupView && !iframeUrl'
           class='nl-toolbar-icon padding0'
-          ng-click='editor.saveCourse($event, ext.item, true)'>
+          ng-click='editor.saveCourse($event, true)'>
         <i class="icon fsh3 ion-checkmark-circled"></i>
     </span>
     <!-- course editor icons -->
