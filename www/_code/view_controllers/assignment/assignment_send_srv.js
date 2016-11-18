@@ -265,6 +265,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
                 var ouUserCount = 0;
                 var ouNode = {id: ou, name: ou, children: [], type: 'ou'};
                 var ouUsers = _ou2Users[ou];
+                if (!ouUsers) continue;
                 for (var j=0; j<ouUsers.length; j++) {
                     var u = ouUsers[j];
                     var selected = (_selectedUserIds.length == 0 || u.id in selectedUserIdDict);
@@ -371,6 +372,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
             _selectedUserNames = [];
             for (var i=0; i<_selectedOuList.length; i++) {
                 var ouUsers = _ou2Users[_selectedOuList[i]];
+                if (!ouUsers) continue;
                 for (var j=0; j<ouUsers.length; j++) {
                     var u = ouUsers[j];
                     _selectedUserIds.push(u.id);

@@ -146,7 +146,6 @@ nlesson = function() {
         var jLesson = jQuery('#l_content').val();
         self.oLesson = jQuery.parseJSON(jLesson);
         npagetypes.init(self.oLesson.templatePageTypes);
-        _Lesson_filterPages(self);
         self.bgimg = jQuery('#l_pageData .bgimg');
         self.postRenderingQueue = new PostRenderingQueue(self);
         njs_scorm.onInitLesson(self, g_nlPlayerType, g_nlEmbedType,
@@ -179,6 +178,7 @@ nlesson = function() {
           njs_scorm.nlPlayerType() != 'embedded' && scormMode === null);
 
         _Lesson_updateOLessonFromLearningData(self);
+        _Lesson_filterPages(self);
         self.pages = [];
         for (var i = 0; i < self.oLesson.pages.length; i++) {
             var po = new Page(self);
@@ -1021,10 +1021,23 @@ nlesson = function() {
 	}
 
     function _Lesson_filterPages(self) {
+        if (self.oLesson.pagesFiltered) {
+            var pages = self.oLesson.pages;
+            var pageIdDict = {};
+            for(var i=0; i<pages.length; i++) {
+                pageIdDict[pages[i].pageId] = pages[i];
+            }
+            var newPages = [];
+            var filtered = self.oLesson.pagesFiltered;
+            for(var i=0; i<filtered.length; i++) {
+                newPages.push(pageIdDict[filtered[i]]);
+            }
+            self.oLesson.pages = newPages;
+            return;
+        }
         // Filter out question bank extra pages and "editor's notes" pages
         if (self.renderCtx.launchCtx() != 'do_assign') return;
         var oLesson = self.oLesson;
-        if (oLesson.pagesFiltered) return;
         var pages = oLesson.pages;
         var allowedMaxScore = oLesson.allowed_max_score;
         var pageInfos = [];
@@ -1060,13 +1073,16 @@ nlesson = function() {
         });
         var newPages = [];
         var maxScore = 0;
+        if (!self.oLesson.pagesFiltered) self.oLesson.pagesFiltered = [];
         for(var i in pageInfos) {
             if (pageInfos[i].newPos < 0) continue;
             if (pageInfos[i].shallFilter && maxScore >= allowedMaxScore) {
                 continue;
             }
             maxScore += pageInfos[i].maxScore;
-            newPages.push(pages[pageInfos[i].pos]);
+            var oPage = pages[pageInfos[i].pos];
+            newPages.push(oPage);
+            self.oLesson.pagesFiltered.push(oPage.pageId);
         }
         self.oLesson.pages = newPages;
     }
