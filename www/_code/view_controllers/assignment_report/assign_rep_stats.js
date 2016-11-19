@@ -10,8 +10,9 @@ function module_init() {
 }
    
 //-------------------------------------------------------------------------------------------------
-var NlAssignReportStats = ['nl', 'nlDlg', 'nlExporter', 'nlProgressLog', 'nlServerApi', 'nlGroupInfo',
-function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo) {
+var NlAssignReportStats = ['nl', 'nlDlg', 'nlExporter', 'nlProgressLog', 
+'nlServerApi', 'nlGroupInfo', '$templateCache',
+function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo, $templateCache) {
     
     var self = this;
     var ctx = null;
@@ -95,6 +96,8 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo) {
     }
 
     function _createZip(resolve, reject) {
+        var helpHtml = $templateCache.get('view_controllers/assignment_report/assign_rep_export_help.html');
+        ctx.zip.file('_help.html', helpHtml);
         nlExporter.saveZip(ctx.zip, 'reports.zip', ctx.pl, function(sizeKb) {
             ctx.savedSize = sizeKb || 0;
             _setProgress('createZip');
@@ -130,11 +133,16 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo) {
             {id: 'org_unit', name:'org'},
             {id: 'subject', name:_userInfo.groupinfo.subjectlabel},
             {id: '_grade', name:_userInfo.groupinfo.gradelabel},
+            {id: '_assignTypeStr', name:'assign type'},
             
             {id: 'id', name:'recordid', fmt: 'idstr'},
             {id: 'student', name:'userid', fmt: 'idstr'},
             {id: 'assignment', name:'assignid', fmt: 'idstr'},
-            {id: 'lesson_id', name:'moduleid', fmt: 'idstr'}];
+            {id: 'lesson_id', name:'moduleid', fmt: 'idstr'},
+            {id: '_courseName', name:'course'},
+            {id: '_courseId', name:'courseid', fmt: 'idstr'},
+            {id: '_courseAssignId', name:'courseassignid', fmt: 'idstr'},
+            {id: '_courseReportId', name:'courserepid', fmt: 'idstr'}];
     
         _hPageScores = [
             {id: 'pos', name: '#'},
@@ -359,6 +367,11 @@ function ReportStats(nl, nlServerApi, nlGroupInfo) {
             var userInfo = _groupInfo ? _groupInfo.users[''+rep.id] || {} : {};
             if (userInfo.name) rep.studentname = userInfo.name;
 
+            rep._assignTypeStr = _getAssignTypeStr(rep.assigntype);
+            rep._courseName = content.courseName || '';
+            rep._courseId = content.courseId || '';
+            rep._courseAssignId = content.courseAssignId || '';
+            rep._courseReportId = content.courseReportId || '';
             rep._grade = content.grade || '';
             if (!rep.completed) {
                 rep._percStr = '';
@@ -402,6 +415,12 @@ function ReportStats(nl, nlServerApi, nlGroupInfo) {
             return b.perc - a.perc;
         });
     };
+    
+    function _getAssignTypeStr(assigntype) {
+        if (assigntype == 1) return 'self assignment';
+        if (assigntype == 2) return 'course assignment';
+        return 'module assignment';
+    }
 }
 
 //-------------------------------------------------------------------------------------------------

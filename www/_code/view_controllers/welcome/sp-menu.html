@@ -1,20 +1,22 @@
 <div class='row row-top row-wrap'>
-    <div class='col fixed-200'>
+    <div class='col fixed-200'
+         ng-hide='screenSize == "small"'>
         <a ng-href='{{homeUrl}}'><img ng-src='{{baseResUrl}}/nittiologowhite.png'
            alt='Nittio Learn - {{content.commonMsg}}'
            title='Nittio Learn - {{content.commonMsg}}'
            class='w100 nl-link-img no-hover'/></a>
     </div>
     <div class='col nl-menuitems'>
-        <a href='#/login_now'>
-        	<b ng-hide='screenSize == "small"'>Sign in</b>
-        	<i ng-show='screenSize == "small"' class="ion-log-in bold"></i></a>
+        <a href='#/login_now'>Login</a>
         <span ng-click='toggleMenu($event)'>
             <i class="ion-navicon-round bold"></i>
         </span>
     </div>
     <div ng-show='menu_shown' class='sp-menu'>
 		<ul class="list fblack fsh6">
+            <li class="item item-divider padding0">
+                <a class='nl-link-text w100 nl-block padding-mid' href='/auth/pwlost' ng-click='onEscape($event)'>Lost password?</a>
+            </li>
 		    <li class="item item-divider padding0">
 				<a class='nl-link-text w100 nl-block padding-mid' href='#/welcome#pricing' ng-click='onEscape($event)'>Pricing</a>
 		    </li>
