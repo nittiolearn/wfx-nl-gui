@@ -367,6 +367,7 @@ function Registration(nl, nlDlg, nlServerApi, $scope) {
                 nlDlg.showLoadingScreen();
 			    nlServerApi.authDemoRequest(requestDlg.scope.data)
 			    .then(function() {
+                    _sendConversionCode();
 			        var msg = 'Thanks. You will hear from us shortly.';
 			        nlDlg.popupAlert({title: '', template: nl.t(msg)}).then(function() {
                         nlDlg.hideLoadingScreen();
@@ -392,7 +393,16 @@ function Registration(nl, nlDlg, nlServerApi, $scope) {
     	return nlDlg.setFieldError(scope, attr,
         	nl.t(errMsg));
     }
-}
+    
+    function _sendConversionCode() {
+        if (!nl.url.isLiveInstance()) return;
+        var conversionId = '997300900';
+        var conversionLabel = 'tPSmCNPQiGwQpLXG2wM';
+        var url = '//www.googleadservices.com/pagead/conversion/{}/?label={}&amp;guid=ON&amp;script=0';
+        var image = new Image(1, 1); 
+        image.src = nl.fmt2(url, conversionId, conversionLabel);
+    }
+ }
 
 //-------------------------------------------------------------------------------------------------
 function SlabSlider(nl, max) {

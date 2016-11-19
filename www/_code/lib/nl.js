@@ -413,6 +413,15 @@ function NlUrl(nl) {
         });
     };
 
+    var liveSites = ['nittiolearn.com'];
+    this.isLiveInstance = function() {
+        var host = nl.location.host();
+        for(var i=0; i<liveSites.length; i++) {
+            if (host.indexOf(liveSites[i]) >= 0) return true;
+        }
+        return false;
+    };
+
     function loadResouceUrl(url, resolve) {
         nl.http.get(url, {cache: false, responseType: 'blob'})
         .success(function(data, status, headers, config) {

@@ -4,12 +4,12 @@
 		font-size: 75%;
 		border: 3px solid white;
 		border-radius: 4px;
-		color: #FFFF70;
-		background-color: transparent;
-	}
-	.request-button:hover {
-		color: #FFFFFF;
-	}	
+        color: #000000;
+        background-color: #FFFF70;
+    }
+    .request-button:hover {
+        background-color: #E5E5E5;
+    }	
 	.sp-card {		
 		margin: 0;
 		padding: 10px;
@@ -21,10 +21,15 @@
 	<div class='section bgdark vh100'>
 		<div class='nl-sp-bg-img'></div>
 		<nl-sp-menu></nl-sp-menu>
-
-		
         <div class='row row-center row-wrap vh90'>
-            <div class='fsh3 text-center padding w100'>
+            <div class='fsh3 text-center padding-mid w100'>
+                <p ng-show='screenSize == "small"'
+                   class1='text-center padding-mid w100'>
+                    <img ng-src='{{baseResUrl}}/nittiologowhite.png'
+                       alt='Nittio Learn - {{content.commonMsg}}'
+                       title='Nittio Learn - {{content.commonMsg}}'
+                       style='height: 28px'/>
+                </p>
             	<p class='fsh6'>{{content.title1}}</p>
             	<p class='fsh5'>{{content.title2}}</p></br>
 				<span class='button request-button' ng-click='registration.demoRequest()'> 
