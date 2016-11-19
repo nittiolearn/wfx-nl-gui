@@ -4,25 +4,33 @@
         border: 1px solid #DDDDFF;
         border-radius: 0px;
     }
+    
+    .nl-border-help{
+    	padding: 0 14px 0 14px;
+    }
 </style>
 
-<nl-inline-help ng-show='editor.showHelp'>
-    When you click on any of the fields below, you will see context specific help for that field.
-    Click on the help icon in the tool bar above to disable the context specific help.
-</nl-inline-help>
-
+<div class='row row-center'>
+	<nl-inline-help class='nl-border-help' ng-show='editor.showHelp'>
+	    When you click on any of the fields below, you will see context specific help for that field.
+	    Click on the help icon in the tool bar above to disable the context specific help.
+	</nl-inline-help>
+</div>
 <div ng-show='ext.item.id == "_root"' class='padding-mid'>
 	<nl-course-editor-fields attrs='editor.course_params'
+							 help='editor.course_paramsHelp',
 							 values='editor.course'
 							 editor='editor'>
 	</nl-course-editor-fields>
 	<nl-course-editor-fields attrs='editor.course_attributes'
-							 values='editor.course.content'
+							 help='editor.course_attrsHelp'
+							 values='editor.course'
 							 editor='editor'>
 	</nl-course-editor-fields>
 </div>
 <div ng-show='ext.item.id != "_root"' class='padding-mid'>
 	<nl-course-editor-fields attrs='editor.module_attributes'
+							 help='editor.module_attrHelp'
 					 		 values='ext.item'
 					 		 editor='editor'>
 	</nl-course-editor-fields>

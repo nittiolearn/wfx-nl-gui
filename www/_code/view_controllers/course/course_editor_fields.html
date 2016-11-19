@@ -3,9 +3,10 @@
         background-color: #FFFFFF;
         border: 1px solid #DDDDFF;
         border-radius: 0px;
-    }
+	}
+
 </style>
-<div class='row row-center row-wrap margin0 padding-top'
+<div class='row row-center row-wrap margin0'
      ng-repeat='attr in attrs'
      ng-if='(!attr.fields || attr.fields.indexOf(values.type) >= 0) && (!attr.debug || editor.debug) && (!attr.group || editor.showGroup[attr.group])'>
     <div class='w100 nl-link-text padding-mid' 
@@ -24,7 +25,7 @@
 	     class='padding-mid'>{{attr.text||attr.name}}</div>
     <div ng-class='$root.resp2Col67'
          ng-if='attr.type === "string" || attr.type === "number"'
-         class='nl-dlg-field-value'>
+         class='nl-dlg-field-value padding-mid'>
         <input ng-model='values[attr.name]' class='w100'
         	   type='{{attr.type == "number" ? "number" : "text"}}'
         	   min='0'
@@ -32,13 +33,13 @@
     </div>
     <div ng-class='$root.resp2Col67'
          ng-if='attr.type === "readonly"'
-         class='nl-dlg-field-value'>
+         class='nl-dlg-field-value padding-mid'>
         <input ng-model='values[attr.name]' class='w100' readonly type='text'
          ng-focus="attr.focus=true" ng-blur="attr.focus=false">
     </div>
     <div ng-class='$root.resp2Col67'
          ng-if='attr.type === "list"'
-         class='nl-dlg-field-value'>
+         class='nl-dlg-field-value padding-mid'>
         <select ng-model='values[attr.name]' 
                 class='w100'
                 ng-options='opt as (opt | nlConvert:editor.typeNames) for opt in attr.values'
@@ -62,7 +63,7 @@
 
     <div ng-class='$root.resp2Col67' 
     	 ng-if='attr.type === "date"'
-    	 class='nl-dlg-field-value'>
+    	 class='nl-dlg-field-value padding-mid'>
     	 <div class='nl-link-text ce-input-div' 
     	 	  ion-datetime-picker date ng-model="values[attr.name]" 
     	 	  ng-focus="attr.focus=true" ng-blur="attr.focus=false"
@@ -79,7 +80,7 @@
 	</div>
     <div ng-class='$root.resp2Col67'
          ng-if='attr.type === "text"'
-         class='nl-dlg-field-value'>
+         class='nl-dlg-field-value padding-mid'>
         <textarea rows="5" ng-model='values[attr.name]'
                   class='w100'
                   ng-focus="attr.focus=true" ng-blur="attr.focus=false">
@@ -87,16 +88,16 @@
     </div>
     <div ng-class='$root.resp2Col67'
          ng-if='attr.type === "object"'
-         class='nl-dlg-field-value'>
-        <textarea rows="5" nl-object-to-json ng-model='values[attr.name]'
+         class='nl-dlg-field-value padding-mid'>
+        <textarea rows="5" ng-model='values[attr.name]'
                   class='w100'
                   ng-focus="attr.focus=true" ng-blur="attr.focus=false">
         </textarea>
     </div>
     <div ng-class='$root.resp2Col67' 
     	 ng-if='attr.type === "lessonlink"'
-    	 class='nl-dlg-field-value'>
-        <div class='row row-center padding0 margin0'>
+    	 class='nl-dlg-field-value padding-mid'>
+        <div class='row row-center padding0'>
             <input class='col' 
              ng-model='values[attr.name]' type='text'
              ng-focus="attr.focus=true" ng-blur="attr.focus=false">
@@ -108,10 +109,9 @@
                title='Search modules'></i>
         </div>
 	</div>
-	<div>
-	    <nl-inline-help class='w100' ng-show='editor.showHelp'>
-	    	<div class='fsh6'>{{attr.name}}</div>
-	        <div ng-bind-html='attr.help'></div>
+	<div class='w100 padding-mid'>
+	    <nl-inline-help ng-show='editor.showHelp' class='nl-border-help'>
+	        <div ng-bind-html='help[attr.name]'></div>
 	    </nl-inline-help>
 	</div>
 </div>

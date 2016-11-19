@@ -280,7 +280,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
     }
 
 	function _moveItem(movedItem, fromIndex, toIndex, allModules) {
-		console.log('_moveItem: TODO remove', fromIndex, toIndex, allModules);
 		var currentItem = allModules[toIndex];
 		var isMoveDown = fromIndex < toIndex;
 		_moveItemAndChildrenPos(movedItem, {from: fromIndex, to: toIndex}, allModules);
@@ -501,6 +500,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
     $scope.onClick = function(e, cm) {
         e.stopImmediatePropagation();
         e.preventDefault();
+        if($scope.ext.isEditorMode()){
+	        if(!nlCourseEditor.validateInputs()) return;    	
+        }
         function _impl() {
             $scope.ext.setCurrentItem(cm);
             if(cm.type === 'module') {
@@ -525,7 +527,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
         e.stopImmediatePropagation();
         e.preventDefault();
         _confirmIframeClose(cm, function() {
-            _onLaunchImpl(cm)
+            _onLaunchImpl(cm);
         });
     };
     
@@ -967,7 +969,6 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
     
     this.updateItem = function(item, oldPos, newPos, allModules) {
         var parent = this.getParent(item);
-        console.log(parent);
         item.indentationLevel = parent ? parent.indentationLevel+1 : -1;
         item.indentationStyle = {'paddingLeft': item.indentationLevel + 'em'};
         item.location = (item.id == '_root') ? '' : 
@@ -1233,7 +1234,7 @@ function NlContainer(nl, $scope, modeHandler) {
     var _onSaveHandler = null;
     this.onSave = function(fn) {
         _onSaveHandler = fn;
-    }
+    };
     
     this.log = nl.log;
 
@@ -1261,11 +1262,11 @@ function NlContainer(nl, $scope, modeHandler) {
         if (lesson.passScore)  lessonReportInfo.passScore = lesson.passScore;
         if (_onSaveHandler) _onSaveHandler(lessonReportInfo);
         $scope.updateAllItemData();
-    }
+    };
 
     this.close = function() {
         $scope.closeIFrame();
-    }
+    };
 }
 
 //-------------------------------------------------------------------------------------------------

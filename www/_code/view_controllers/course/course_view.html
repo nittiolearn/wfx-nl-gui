@@ -36,6 +36,12 @@
         <div ng-if='iframeUrl' style='position: absolute; top: 4px; bottom: 4px; left: 4px; right: 4px;'>
             <nl-course-view-frame></nl-course-view-frame>
         </div>
+	    <div class='fsh3 padding-mid nl-textellipsis'
+	    	 ng-if='!ext.isEditorMode()'>
+	        <img ng-if='ext.isIconImg(ext.item)' class='nl-icon' ng-src='{{ext.item.icon}}'>
+	        <i ng-show='!ext.isIconImg(ext.item)' class="icon {{ext.getIconCls(ext.item)}} bold fsh5"></i>
+	        {{ext.item.name}}
+	    </div>
         <nl-course-view-content-active ng-if='!iframeUrl && !ext.isStaticMode()'>
         </nl-course-view-content-active>
         <nl-course-editor ng-if='!iframeUrl && ext.isEditorMode()'>
