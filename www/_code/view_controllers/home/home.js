@@ -7,6 +7,7 @@ function module_init() {
     angular.module('nl.home', [])
     .config(configFn)
     .controller('nl.HomeCtrl', HomeCtrl)
+    .controller('nl.AppHomeCtrl', AppHomeCtrl)
     .controller('nl.HomeRefreshCtrl', HomeRefreshCtrl)
     .controller('nl.DashboardViewCtrl', DashboardViewCtrl);
 }
@@ -21,6 +22,16 @@ function($stateProvider) {
             'appContent' : {
                 templateUrl : 'lib_ui/cards/cardsview.html',
                 controller : 'nl.HomeCtrl'
+            }
+        }
+    });
+    $stateProvider.state('app.apphome', {
+        cache: true,
+        url : '^/apphome',
+        views : {
+            'appContent' : {
+                template : '',
+                controller : 'nl.AppHomeCtrl'
             }
         }
     });
@@ -172,6 +183,21 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
     }
 };
 
+//-------------------------------------------------------------------------------------------------
+var AppHomeCtrl = ['nl', 'nlRouter', '$scope',
+function(nl, nlRouter, $scope) {
+    function _onPageEnter(userInfo) {
+        return nl.q(function(resolve, reject) {
+            var next = nlRouter.isPermitted(userInfo, '/home') ?
+                '/home' : '/login_now';
+            nl.location.url(next);
+            nl.location.replace();
+        });
+    }
+    nlRouter.initContoller($scope, '', _onPageEnter);
+}];
+    
+//-------------------------------------------------------------------------------------------------
 var HomeRefreshCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlConfig', 'nlDlg',
 function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
     function _onPageEnter(userInfo) {

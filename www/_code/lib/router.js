@@ -204,6 +204,7 @@ function Permission(nl) {
         '/school': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/business': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/team': {login: false, permission: '', termRestriction: TR_OPEN}, 
+        '/apphome': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/login_now': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/logout_now': {login: false, permission: '', termRestriction: TR_OPEN},
         '/audit': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},

@@ -37,7 +37,7 @@
             <nl-course-view-frame></nl-course-view-frame>
         </div>
 	    <div class='fsh3 padding-mid nl-textellipsis'
-	    	 ng-if='!ext.isEditorMode()'>
+	    	 ng-if='!iframeUrl && !ext.isEditorMode()'>
 	        <img ng-if='ext.isIconImg(ext.item)' class='nl-icon' ng-src='{{ext.item.icon}}'>
 	        <i ng-show='!ext.isIconImg(ext.item)' class="icon {{ext.getIconCls(ext.item)}} bold fsh5"></i>
 	        {{ext.item.name}}
