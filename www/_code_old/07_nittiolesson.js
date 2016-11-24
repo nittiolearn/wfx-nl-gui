@@ -578,8 +578,7 @@ nlesson = function() {
         for(var i=0; i<lesson.pages.length; i++) {
             var oPage = lesson.pages[i].oPage;
             var title = oPage.sections && oPage.sections[0] ? oPage.sections[0].text : '';
-            var index = title.indexOf('\n');
-            if (index > -1) title = title.substring(0, index);
+            title = njs_lesson_helper.formatTitle(title);
             var pld = {pageNo: i+1, title: title};
 
             _copyIf(oPage, pld, 'score');

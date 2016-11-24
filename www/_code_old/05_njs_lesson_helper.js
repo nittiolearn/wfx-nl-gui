@@ -1063,6 +1063,15 @@ function _SelectHelper_stringsOfPos(mode, choices, answers) {
 }
 
 //#############################################################################################
+// General
+//#############################################################################################
+function formatTitle(title) {
+    title.trim();
+    if (title.length > 200) title = title.substring(0, 200);
+    return title;
+}
+
+//#############################################################################################
 // Exported classes
 //#############################################################################################
 return { 
@@ -1072,5 +1081,6 @@ return {
 	LessonDlgs: LessonDlgs,
 	SectionTemplate: SectionTemplate,
 	EditBoxHelper: EditBoxHelper,
-	SelectHelper: SelectHelper
+	SelectHelper: SelectHelper,
+	formatTitle: formatTitle
 };}(); // njs_lesson_helper

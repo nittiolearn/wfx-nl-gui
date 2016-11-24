@@ -128,6 +128,9 @@ function(nl, nlDlg) {
     function _quote(data) {
         if (typeof(data) != 'string') return data;
         data = data.replace(/\n/g, ' ');
+        data = data.replace(/^\-/, ' -');
+        data = data.replace(/^\+/, ' +');
+        data = data.replace(/^\=/, ' =');
         if (data.indexOf('"') < 0 && data.indexOf(',') < 0) return data;
         return '"' + data.replace(/\"/g, '""') + '"';
     }
