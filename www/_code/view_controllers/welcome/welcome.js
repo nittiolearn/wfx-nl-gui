@@ -5,20 +5,28 @@
 // welcome static pages + controller and directives used across all static pages
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-    angular.module('nl.welcome', [])
+    var m = angular.module('nl.welcome', [])
     .config(configFn)
     // Direcives used across all static pages
-    .directive('nlSp', SpDirective)
-    .directive('nlSpStructuredData', StructuredDataDirective)
-    .directive('nlSpMenu', MenuDirective)
-    .directive('nlSpFooter', FooterDirective)
-    .directive('nlSpCopyright', CopyrightDirective)
+    .directive('nlSp', _ElemDirective('sp.html', true))
+    .directive('nlSpStructuredData', _ElemDirective('sp-structured-data.html', true))
+    .directive('nlSpMenu', _ElemDirective('sp-menu.html', false))
+    .directive('nlSpFooter', _ElemDirective('sp-footer.html', false))
+    .directive('nlSpCopyright', _ElemDirective('sp-copyright.html', false))
+    .directive('nlSpBusinessPricing', _ElemDirective('business-pricing.html', true))
+    .directive('nlSpLanding', _ElemDirective('sp-landing.html', false))
+    // Services
     .service('nlAnchorScroll', AnchorScrollSrv)
-    .directive('nlSpBusinessPricing', BusinessPricingDirective)
     // Controller
     .controller('nl.WelcomeCtrl', WelcomeCtrl)
     .controller('nl.SchoolCtrl', SchoolCtrl)
     .controller('nl.TeamCtrl', TeamCtrl);
+    
+    for(var i=1; i<_landingCfgs.length; i++) {
+        var cfg = _landingCfgs[i];
+        var ctrlName = 'nl.LandingCtrl_' + cfg.name;
+        m.controller(ctrlName, _getLandingCtrl(i));
+    }
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -51,74 +59,32 @@ function($stateProvider, $urlRouterProvider) {
             }
         }
     });
+
+    for(var i=1; i<_landingCfgs.length; i++) {
+        var cfg = _landingCfgs[i];
+        var ctrlName = 'nl.LandingCtrl_' + cfg.name;
+        $stateProvider.state('app.welcome_' +  cfg.name, {
+            url : '^/welcome_' + cfg.name,
+            views : {
+                'appContent' : {
+                    templateUrl: 'view_controllers/welcome/sp-landing-ctrl.html',
+                    controller : ctrlName
+                }
+            }
+        });
+    }
 }];
 
 //-------------------------------------------------------------------------------------------------
-var SpDirective = [
-function() {
-    return {
-        restrict: 'E',
-        transclude: true,
-        templateUrl: 'view_controllers/welcome/sp.html'
-    };
-}];
-
-//-------------------------------------------------------------------------------------------------
-var StructuredDataDirective = [
-function() {
-    return {
-        restrict: 'E',
-        transclude: true,
-        templateUrl: 'view_controllers/welcome/sp-structured-data.html'
-    };
-}];
-
-//-------------------------------------------------------------------------------------------------
-var MenuDirective = [
-function() {
-    return {
-        restrict: 'E',
-        templateUrl: 'view_controllers/welcome/sp-menu.html'
-    };
-}];
-
-//-------------------------------------------------------------------------------------------------
-var PageOneDirective = [
-function() {
-    return {
-        restrict: 'E',
-        transclude: true,
-        templateUrl: 'view_controllers/welcome/sp-page1.html'
-    };
-}];
-
-//-------------------------------------------------------------------------------------------------
-var FooterDirective = [
-function() {
-    return {
-        restrict: 'E',
-        templateUrl: 'view_controllers/welcome/sp-footer.html'
-    };
-}];
-
-//-------------------------------------------------------------------------------------------------
-var CopyrightDirective = [
-function() {
-    return {
-        restrict: 'E',
-        templateUrl: 'view_controllers/welcome/sp-copyright.html'
-    };
-}];
-
-//-------------------------------------------------------------------------------------------------
-var BusinessPricingDirective = [
-function() {
-    return {
-        restrict: 'E',
-        transclude: true,
-        templateUrl: 'view_controllers/welcome/business-pricing.html'
-    };
-}];
+function _ElemDirective(templateFile, transclude) {
+    return [function() {
+        return {
+            restrict: 'E',
+            transclude: transclude,
+            templateUrl: 'view_controllers/welcome/' + templateFile
+        };
+    }];
+}
 
 //-------------------------------------------------------------------------------------------------
 var AnchorScrollSrv = ['nl', '$anchorScroll',
@@ -126,14 +92,15 @@ function(nl, $anchorScroll) {
     var self = this;
     this.setAnchorHandler = function($scope) {
         $scope.gotoAnchor = self.gotoAnchor;
+        nl.timeout(function() {
+            $anchorScroll();
+        });
     };
     
-    this.gotoAnchor = function(anchor) {
-        if (anchor !== undefined && nl.location.hash() != anchor) {
-            nl.location.hash(anchor);
-        } else {
-            $anchorScroll();
-        }
+    this.gotoAnchor = function(anchor, pageUrl) {
+        if (pageUrl) nl.location.url(pageUrl);
+        if (anchor) nl.location.hash(anchor);
+        $anchorScroll();
     };
 }];
 
@@ -189,43 +156,149 @@ function(nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll) {
        return [];
 	}
 
-    var welcomeConfig = {
-        // Required in the controller
-        title: nl.t('{} {}', _commonMsg1, _commonMsg2),
-        title1: nl.t(_commonMsg1),
-        title2: nl.t(_commonMsg2),
-        desc: 'Nittio Learn is a complete eLearning solution for trainings that are core to your business. It is designed to ensure that your employees are continuously learning about the things that are most critical for your business.',
-        pageUrl: null,
-        menus: [{name: 'Our school solution', anchor: 'school'}],
-        // Required in the specific view template
-        content: {
-	        getFeatureCards: _getFeatureCards,
-
-            pricing_attrs: ['Unlimited course content', 'Quizzes', 
-                'Surveys, feedback', 'User management', 'Duration tracking', 
-                'Customized dashboards', 'Custom landing page',  
-                'Reporting', 'Support', 'Custom contracts', 'Migration services'],
-            pricing_slabs: [
-            {name: 'Starter', price: 'INR 25,000/- per month', billing: '(Billed annually)', 
-                users: '50', attrs: ['tick', 'tick', 'tick', 'tick', '', '', '', 'tick', "Email", '', '']},
-            {name: 'Small', price: 'INR 45,000/- per month', billing: '(Billed annually)',
-                users: '100', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', '', 'tick', "Email, Phone", '', '']},
-            {name: 'Medium', price: 'INR 1,25,000/- per month', billing: '(Billed half-yearly)', 
-                users: '500', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', 'tick', "Custom reports", "Email, Phone", '', '']},
-            {name: 'Enterprise', price: 'Contact us for pricing', billing: ' ',
-                users: '500+', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', 'tick', "Custom reports", "Named account manager", 'tick', 'tick']}
-            ],
-            slabSlider: new SlabSlider(nl, 4),
-            slabSlideDown: function($scope) {
-                $scope.content.slabSlider.slideDown();
-            },
-            slabSlideUp: function($scope) {
-                $scope.content.slabSlider.slideUp();
-            }
-        }
+    var welcomeConfig = _getLandingCfg(nl, 0);
+    var content = welcomeConfig.content;
+    content.getFeatureCards = _getFeatureCards;
+    content.pricing_attrs = ['Unlimited course content', 'Quizzes', 
+        'Surveys, feedback', 'User management', 'Duration tracking', 
+        'Customized dashboards', 'Custom landing page',  
+        'Reporting', 'Support', 'Custom contracts', 'Migration services'];
+    content.pricing_slabs = [
+    {name: 'Starter', price: 'INR 25,000/- per month', billing: '(Billed annually)', 
+        users: '50', attrs: ['tick', 'tick', 'tick', 'tick', '', '', '', 'tick', "Email", '', '']},
+    {name: 'Small', price: 'INR 45,000/- per month', billing: '(Billed annually)',
+        users: '100', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', '', 'tick', "Email, Phone", '', '']},
+    {name: 'Medium', price: 'INR 1,25,000/- per month', billing: '(Billed half-yearly)', 
+        users: '500', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', 'tick', "Custom reports", "Email, Phone", '', '']},
+    {name: 'Enterprise', price: 'Contact us for pricing', billing: ' ',
+        users: '500+', attrs: ['tick', 'tick', 'tick', 'tick', 'tick', 'tick', 'tick', "Custom reports", "Named account manager", 'tick', 'tick']}
+    ];
+    content.slabSlider = new SlabSlider(nl, 4);
+    content.slabSlideDown = function($scope) {
+        $scope.content.slabSlider.slideDown();
+    };
+    content.slabSlideUp = function($scope) {
+        $scope.content.slabSlider.slideUp();
     };
     _staticPageCtrl(welcomeConfig, nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll);
 }];
+
+//-------------------------------------------------------------------------------------------------
+var _landingCfgs = [
+    {name: 'welcome', 
+     title1: _commonMsg1,
+     title2: _commonMsg2,
+     desc: 'Nittio Learn is a complete eLearning solution for trainings that are core to your business. It is designed to ensure that your employees are continuously learning about the things that are most critical for your business.',
+     pageBgClass: 'bgdark'
+    }, {name: 'employee', 
+     title1: 'Use Nittio Learn to create great looking interactive trainings in minutes and track how your employees are learning.',
+     title2: 'Training your employees has never been easier.',
+     desc: 'Rapid authoring, immersive learning, robust LMS - all in one, Request a demo!',
+     pageBgClass: 'bgdark'
+    }, {name: 'sales', 
+     title: 'sales title',
+     title1: 'Provide your sales team with the edge. Train them online in language of your choice about your offerings and USPs and track how well they learn.',
+     title2: 'It is super easy, efficient and effective.',
+     desc: 'Keep your sales team fully prepared, wherever they are. Request a demo today!',
+     pageBgClass: 'bgdark'
+    }, {name: 'logistics', 
+     title1: 'You want your staff to be trained on processes specific to your business. Use Nittio Learn to train them online, in their language, on their device and track how well they learn.',
+     title2: 'It is super easy, efficient and effective.',
+     desc: 'Train your logistics team continuously, wherever they are. Request a demo today!',
+     pageBgClass: 'bgdark'
+    }, {name: 'ops', 
+     title1: 'You want your staff to be trained on processes specific to your business. Use Nittio Learn to train them online, in their language, on their device and track how well they learn.',
+     title2: 'It is super easy, efficient and effective.',
+     desc: 'Train your operations team continuously, wherever they are. Request demo today!',
+     pageBgClass: 'bgdark'
+    }, {name: 'care', 
+     title1: 'You want your staff to be continuously trained on specific processes. Use Nittio Learn to train them online, in their language, on their device and track how well they learn.',
+     title2: 'It is super easy, efficient and effective.',
+     desc: 'Train your customer contact team continuously. Request a demo today!',
+     pageBgClass: 'bgdark'
+    }, {name: 'author', 
+     title1: 'Learning and training content authoring made simple and fast.',
+     title2: 'Use Nittio Learn to create great looking interactive content in minutes.',
+     desc: 'Create interactive, responsive eLearning modules in minutes. Request demo today.',
+     pageBgClass: 'bgdark'
+    }, {name: 'induction', 
+     title1: 'Induction training can  be much easier and more effective than how you currently do it.',
+     title2: 'Use Nittio Learn to create great looking interactive trainings in minutes and track how your employees are learning.',
+     desc: 'Create and deploy your induction training in minutes. Request a demo today!',
+     pageBgClass: 'bgdark'
+     
+    // Temp stuff for template checking
+    }, {name: 'bgimg', 
+     title1: 'Train your bgimg with NL',
+     title2: 'and some more bla bla',
+     desc: 'Meta description',
+     bgImg: 'https://nittio-test.appspot.com/resource/resview/1455517409-bg3.png',
+     pageBgClass: 'forange'
+    }, {name: 'bgvideo', 
+     title1: 'Train your bgvideo with NL',
+     title2: 'and some more bla bla',
+     desc: 'Meta description',
+     bgVideoPoster: 'https://nittio-test.appspot.com/resource/resview/1455517354-bg1.png',
+     bgVideo: '//d16cvnquvjw7pr.cloudfront.net/www/img/p-demo/overview_banner.webm',
+     pageBgClass: 'forange'
+    }, {name: 'sideimg', 
+     title1: 'Train your sideimg with NL',
+     title2: 'and some more bla bla',
+     desc: 'Meta description',
+     rightImg: 'https://nittio-test.appspot.com/resource/resview/1455517409-bg3.png'
+    }, {name: 'reserved', 
+     title1: 'Train your reserved with NL',
+     title2: 'and some more bla bla',
+     desc: 'Meta description',
+     bgImg: 'https://nittio-test.appspot.com/resource/resview/1455517409-bg3.png',
+     pageBgClass: 'fwhite',
+     bgVideoPoster: 'https://nittio-test.appspot.com/resource/resview/1455517354-bg1.png',
+     bgVideo: 'http://techslides.com/demos/sample-videos/small.mp4',
+     rightImg: 'https://nittio-test.appspot.com/resource/resview/1455517409-bg3.png'
+    }
+];
+
+function _getLandingCfg(nl, pos) {
+    var cfg = _landingCfgs[pos];
+    return {
+        // Required in the controller
+        title: cfg.title ? cfg.title : nl.t('{} {}', cfg.title1, cfg.title2),
+        title1: nl.t(cfg.title1),
+        title2: nl.t(cfg.title2),
+        desc: cfg.desc,
+        pageUrl: pos == 0 ? null : cfg.name,
+        
+        // Required in the specific view template
+        content: {
+            showLogin: pos == 0,
+            landingPageName: cfg.name,
+            landingBgImage: cfg.bgImg,
+            landingBgVideoPoster: cfg.bgVideoPoster,
+            landingBgVideo: cfg.bgVideo,
+            landingRightImage: cfg.rightImg,
+            pageBgClass: cfg.pageBgClass,
+            title1Cls: pos == 0 ? 'fsh6' : 'padding-mid',
+            getLandingContentCls: function($scope) {
+                if (!$scope.content.landingRightImage) return 'w100';
+                if (nl.rootScope.screenSize == 'small') return 'w100';
+                return 'col col-66';
+            },
+            getLandingImgCls: function($scope) {
+                if (!$scope.content.landingRightImage) return '';
+                if (nl.rootScope.screenSize == 'small') return 'w100';
+                return 'col col-33';
+            }
+        }
+    };
+}
+
+function _getLandingCtrl(pos) {
+    return ['nl', 'nlDlg', 'nlServerApi', 'nlRouter', '$scope', 'nlAnchorScroll', 
+    function(nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll) {
+        var landingConfig = _getLandingCfg(nl, pos);
+        _staticPageCtrl(landingConfig, nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll);
+    }];
+}
 
 //-------------------------------------------------------------------------------------------------
 var SchoolCtrl = ['nl', 'nlDlg', 'nlServerApi', 'nlRouter', '$scope', 'nlAnchorScroll', 
@@ -235,7 +308,6 @@ function(nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll) {
         title: nl.t('Your teaching quality partner.'),
         desc: 'Looking to improve the teaching quality in your school? Use Nittio Learn for continuous teacher training, structured lesson planning, program of work tracking and classroom observations.',
         pageUrl: 'school',
-        menus: [{name: 'Solutions', anchor: 'solutions'}, {name: 'Contact us', anchor: 'contact_us'}],
         
         // Required in the specific view template
         content: {
@@ -254,7 +326,6 @@ function(nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll) {
         title: nl.t('our team'),
         desc: 'Nittio Learn team.',
         pageUrl: 'team',
-        menus: [],
         
         // Required in the specific view template
         content: {
@@ -320,8 +391,8 @@ function _staticPageCtrl(config, nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnc
             $scope.content.title1 = config.title1;
             $scope.content.title2 = config.title2;
             $scope.content.desc = config.desc;
-            $scope.menus = config.menus;
-            $scope.registration = new Registration(nl, nlDlg, nlServerApi, $scope);
+            $scope.visitorManager = new VisitorManager(nl, nlDlg, nlServerApi,
+                nlRouter, $scope, userInfo);
             nl.rootScope.pgBgimg = null;
             resolve(true);
             
@@ -329,8 +400,9 @@ function _staticPageCtrl(config, nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnc
                 if (!(fnName in $scope.content)) {
                     return;
                 }
-                $scope.content[fnName]($scope);
+                return $scope.content[fnName]($scope);
             };
+            nlAnchorScroll.setAnchorHandler($scope);
         });
     }
 	$scope.menu_shown = false;
@@ -340,21 +412,43 @@ function _staticPageCtrl(config, nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnc
         e.stopImmediatePropagation();
     };
 
-    $scope.onEscape = function(e) {
+    $scope.onEscape = function(e, anchor, pageUrl) {
     	$scope.menu_shown = false;
         e.stopImmediatePropagation();
+        if (anchor) $scope.gotoAnchor(anchor, pageUrl);
     };
-    
-    nlAnchorScroll.setAnchorHandler($scope);
+
     nlRouter.initContoller($scope, '', _onPageEnter);
 }
 
 //-------------------------------------------------------------------------------------------------
-function Registration(nl, nlDlg, nlServerApi, $scope) {
+function VisitorManager(nl, nlDlg, nlServerApi, nlRouter, $scope, userInfo) {
+    var videoTime = null;
+    this.watchVideo = function() {
+        videoTime = new Date();
+        var url = nl.fmt2('/visitor_videoStart/{}', $scope.content.landingPageName);
+        nlRouter.sendGoogleAnalytics(userInfo, url);
+        $scope.showVideo = true;
+    };
+    
+    this.closeVideo = function() {
+        var delta = parseInt((new Date() - videoTime)/1000);
+        var url = nl.fmt2('/visitor_videoEnd/{}/{}', $scope.content.landingPageName,
+            delta);
+        nlRouter.sendGoogleAnalytics(userInfo, url);
+        $scope.showVideo = false;
+    };
+
+    this.exploreMore = function() {
+        var url = nl.fmt2('/visitor_explore/{}', $scope.content.landingPageName);
+        nlRouter.sendGoogleAnalytics(userInfo, url);
+        $scope.gotoAnchor('page2', 'welcome');
+    };
+    
 	this.demoRequest = function() {
 		var requestDlg = nlDlg.create($scope);
         requestDlg.scope.error = {};
-		requestDlg.scope.data = {name: ''};
+		requestDlg.scope.data = {name: '', landingpage: $scope.content.landingPageName};
 		
 		var okButton = {
 			text : 'Request a demo',
@@ -367,6 +461,8 @@ function Registration(nl, nlDlg, nlServerApi, $scope) {
                 nlDlg.showLoadingScreen();
 			    nlServerApi.authDemoRequest(requestDlg.scope.data)
 			    .then(function() {
+                    var url = nl.fmt2('/visitor_demoReqEnd/{}', $scope.content.landingPageName);
+                    nlRouter.sendGoogleAnalytics(userInfo, url);
                     _sendConversionCode();
 			        var msg = 'Thanks. You will hear from us shortly.';
 			        nlDlg.popupAlert({title: '', template: nl.t(msg)}).then(function() {
@@ -375,6 +471,8 @@ function Registration(nl, nlDlg, nlServerApi, $scope) {
 			    });
 			}
 		};
+        var url = nl.fmt2('/visitor_demoReqStart/{}', $scope.content.landingPageName);
+        nlRouter.sendGoogleAnalytics(userInfo, url);
 		requestDlg.show('view_controllers/welcome/demo-request-form.html', [okButton], null);
 	};
 	
@@ -382,11 +480,27 @@ function Registration(nl, nlDlg, nlServerApi, $scope) {
     	console.log('scope.data:', scope.data);
         scope.error = {};
         var ret = true;
-        if(!scope.data.name) ret = _validateFail(scope, 'name', 'Name is mandatory');
-        if(!scope.data.email) {
-            ret = _validateFail(scope, 'email', 'Please provide a valid email id');
+        if(!scope.data.name) ret = _validateFail(scope, 'name', 'Please provide your name.');
+        if(!scope.data.phone) ret = _validateFail(scope, 'phone', 'We need your number to call you back.');
+        if(!scope.data.website) ret = _validateFail(scope, 'website', 'Please provide your company webiste.');
+        if(!scope.data.email || _isPrivateEmail(scope.data.email)) {
+            ret = _validateFail(scope, 'email', 'Please provide your work/business email id.');
         }
         return ret;
+    }
+    
+    var privateEmails = ['gmail\\.com', 'hotmail\\..*', 'yahoo\\..*', 'outlook\\.com', 
+        'msn\\.com', 'facebook\\..*', 'mail\\.com', 'live\\.com', 'rocketmail\\.com'];
+
+    function _isPrivateEmail(email) {
+        email = email.toLowerCase();
+        var pos = email.indexOf('@');
+        if (pos < 0) return true;
+        email = email.substring(pos);
+        for(var i=0; i<privateEmails.length; i++) {
+            if (email.search(privateEmails[i]) >= 0) return true;
+        }
+        return false;
     }
 
     function _validateFail(scope, attr, errMsg) {

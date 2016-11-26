@@ -19,6 +19,13 @@
 	<div class='section bgdark'>
 		<div class='nl-sp-bg-img'></div>
 		<nl-sp-menu></nl-sp-menu>
+        <div ng-show='screenSize == "small"'
+             class='text-center padding w100'>
+            <img ng-src='{{baseResUrl}}/nittiologowhite.png'
+               alt='Nittio Learn - {{content.commonMsg}}'
+               title='Nittio Learn - {{content.commonMsg}}'
+               style='height: 28px'/>
+        </div>
         <div class='fsh2 text-center padding'>Our team</div>
         <div class='team-container'>
             <img class='w100' ng-src='{{pageResUrl}}/nittioteam3.png'

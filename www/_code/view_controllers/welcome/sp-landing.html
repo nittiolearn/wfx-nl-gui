@@ -1,0 +1,155 @@
+<style>
+    .landing-bg-img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        z-index: -1;
+        background-size: cover;
+        background-image: url({{content.landingBgImage}});
+    }
+    .landing-bg-video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        background-color: #F0EFED;
+        z-index: -1;
+    }
+    .landing-bg-video video {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        height: auto;
+        width: 100%;
+    }
+    .landing-right-img {
+        max-height: 100%;
+        max-width: 100%;
+    }
+    
+    .landing-request-button {
+        font-family: Lato, Verdana, Helvetica, Arial, sans-serif;
+        font-size: 75%;
+        border: 3px solid white;
+        border-radius: 4px;
+        color: #FFFF70;
+        background-color: transparent;
+    }
+    .landing-request-button:hover {
+        color: #FFFFFF;
+    }   
+
+    .landing-video-button {
+        border-radius: 50%;
+        padding: 5px 15px 5px 20px;
+        background-color: #999999;
+        border: 4px solid white;
+        color: #FFFFFF;
+        opacity: 0.9;
+    }
+    .landing-video-button:hover {
+        background-color: #AAAAAA;
+        border-color: #DDDDDD;
+        color: #FFFFFF;
+        opacity: 1;
+    }
+    .landing-video-button .icon:before {
+        font-size: 50px;
+        line-height: 60px;
+    }
+    .landing-video-overlay {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        height: 90vh;
+        background-color: #000000;
+        border: 2px solid white;
+        border-radius: 2px;
+    }
+    .landing-video-overlay-close {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        border-radius: 50%;
+        background-color: #777777;
+        padding: 1px 5px 3px 5px;
+    }
+    
+    .landing-video-frame {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    
+</style>
+
+<div class='section {{content.pageBgClass}} vh100'>
+    <div class='nl-sp-bg-img'
+         ng-if='!content.landingBgImage'>
+    </div>
+    <div class="landing-bg-img"
+         ng-if='content.landingBgImage'>
+    </div>
+         
+    <div class="landing-bg-video"
+         ng-if='content.landingBgVideo'>
+        <video poster='{{content.landingBgVideoPoster}}'
+               ng-src='{{content.landingBgVideo}}'
+               autoplay="autoplay" height="100%" loop preload>
+            <source class='' type='video/webm; codecs=vp8,vorbis'
+                    src='//d16cvnquvjw7pr.cloudfront.net/www/img/p-demo/overview_banner.webm'>
+            <source class='mov' type=''
+                    src='//d16cvnquvjw7pr.cloudfront.net/www/img/p-demo/overview_banner.mov'>
+        </video>
+    </div>
+    <nl-sp-menu></nl-sp-menu>
+    <div class='row row-center row-wrap vh90'>
+        <div class='fsh3 text-center padding {{callFn("getLandingContentCls")}}'>
+            <div ng-show='screenSize == "small"'
+                 class='text-center padding w100'>
+                <img ng-src='{{baseResUrl}}/nittiologowhite.png'
+                   alt='Nittio Learn - {{content.commonMsg}}'
+                   title='Nittio Learn - {{content.commonMsg}}'
+                   style='height: 28px'/>
+            </div>
+            <p class='{{content.title1Cls}}'>{{content.title1}}</p>
+            <p class='fsh5'>{{content.title2}}</p></br>
+            <div class='padding'>
+                <span title='Watch video'
+                      class='button landing-video-button'
+                      ng-click='visitorManager.watchVideo($event)'>
+                    <i class="icon fsh3 ion-play"></i>
+                </span>
+            </div>
+            <div class='padding-mid'>
+                <span class='button landing-request-button'
+                      ng-click='visitorManager.demoRequest($event)'>Request a demo</span>
+            </div>
+            <div class='padding0'>
+                <a href='#/welcome#page2'
+                   ng-click='visitorManager.exploreMore($event)'
+                   class='fsmall3'>or explore more</a>
+            </div>
+        </div>
+        <div class='text-center padding col-bottom {{callFn("getLandingImgCls")}}'
+             ng-if='content.landingRightImage'>
+             <img ng-src='{{content.landingRightImage}}' class='landing-right-img'>
+        </div>
+    </div>
+    <div class='landing-video-overlay' ng-if='showVideo'>
+        <iframe class='landing-video-frame' frameborder="0" allowfullscreen
+                src="https://www.youtube.com/embed/B3On7UPGehU?modestBranding=1&rel=0&autoplay=1">
+        </iframe>
+        <div class='landing-video-overlay-close nl-link-img fsh5'
+             title='Close'
+             ng-click='visitorManager.closeVideo($event)'>
+             <i class="icon ion-ios-close-outline"></i>
+        </div>
+    </div>
+</div>
