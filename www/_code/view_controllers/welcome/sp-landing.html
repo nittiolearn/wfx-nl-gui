@@ -14,9 +14,20 @@
     
     .landing_ticker {
         min-height: 2.5em;
-        font-weight: bold;
         font-size: 90%;
         color: #FFCC00;
+    }
+    
+    .landing-ticker-emphasis {
+        font-weight: bold;
+        font-size: 100%;
+        color: white;
+    }
+    
+    .emp {
+        min-width: 200em;
+        font-weight: bold;
+        text-align: center;
     }
 
     .landing-bg-img {
@@ -125,10 +136,13 @@
                    title='Nittio Learn - {{content.commonMsg}}'
                    style='height: 28px'/>
             </div>
-            <p class='{{content.title1Cls}}'>{{content.title1}}</p>
-            <p class='fsh5'>{{content.title2}}</p>
-            <p ng-if='content.landingTicker' class='landing_ticker'>{{content.ticker}}</p>
-            </br>
+            <div class='padding-mid {{content.title1Cls}}'>{{content.title1}}</div>
+            <div class='padding-mid fsh5'>{{content.title2}}</div>
+            <div class='row row-bottom margin0 padding0 landing_ticker'>
+                <div ng-if='content.landingTicker'
+                     class='col padding0 {{content.ticker.cls}}'
+                     ng-bind-html='content.ticker.txt'></div>
+            </div>
             <div class='padding'>
                 <span title='Watch video'
                       class='button landing-video-button'
