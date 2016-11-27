@@ -184,77 +184,80 @@ function(nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll) {
 }];
 
 //-------------------------------------------------------------------------------------------------
+var _resourceBase = 'https://storage.googleapis.com/nittio-live.appspot.com/_public/welcome/';
 var _landingCfgs = [
+    // All possibilities
+    /*
+     // Mandatory:
+     name: 'page-url-name', title1: 'x', title2: 'x', desc: 'meta-desc',
+
+     // Optional:
+     title: 'page-title' (default "title1 title2") 
+     bgImg: 'url',
+     bgVideo: [{src: 'url.webm', typ:'video/webm'}, {src: 'url.mp4', typ:'video/mp4'}],
+     ticker: []
+    */
     {name: 'welcome', 
      title1: _commonMsg1,
      title2: _commonMsg2,
      desc: 'Nittio Learn is a complete eLearning solution for trainings that are core to your business. It is designed to ensure that your employees are continuously learning about the things that are most critical for your business.',
-     pageBgClass: 'bgdark'
+     bgImg: _resourceBase + 'welcome-video.jpg',
+     bgVideo: [
+         {src: _resourceBase + 'welcome-video.webm', typ: 'video/webm'},
+         {src: _resourceBase + 'welcome-video.mp4', typ: 'video/mp4'}],
+     pageBgClass: 'l-bg-black',
+     ticker: [
+        '',
+        'Fedup with long content creation cycle?',
+        'Is this blocking your business critical trainings?',
+        'Keep your sales team fully prepared, wherever they are.',
+        'Train your operations and logistics team continuously, wherever they are, on their device.',
+        'Continuously train your customer contact team on your rapidly chaning processes.',
+        'Training does not have to suck any more!',
+        'Rapid authoring, immersive learning, robust LMS - all in one.',
+     ]
     }, {name: 'employee', 
+     title: 'Your business trainings online in minutes. Rapid authoring, immersive learning, robust LMS - all in one, Request a demo!',
      title1: 'Use Nittio Learn to create great looking interactive trainings in minutes and track how your employees are learning.',
      title2: 'Training your employees has never been easier.',
      desc: 'Rapid authoring, immersive learning, robust LMS - all in one, Request a demo!',
-     pageBgClass: 'bgdark'
+     bgImg: _resourceBase + 'callcenter.jpg',
+     pageBgClass: 'l-bg-black2'
     }, {name: 'sales', 
-     title: 'sales title',
+     title: 'Keep your sales team fully prepared, wherever they are. Request a demo today!',
      title1: 'Provide your sales team with the edge. Train them online in language of your choice about your offerings and USPs and track how well they learn.',
      title2: 'It is super easy, efficient and effective.',
      desc: 'Keep your sales team fully prepared, wherever they are. Request a demo today!',
-     pageBgClass: 'bgdark'
-    }, {name: 'logistics', 
-     title1: 'You want your staff to be trained on processes specific to your business. Use Nittio Learn to train them online, in their language, on their device and track how well they learn.',
-     title2: 'It is super easy, efficient and effective.',
-     desc: 'Train your logistics team continuously, wherever they are. Request a demo today!',
-     pageBgClass: 'bgdark'
+     bgImg: _resourceBase + 'blue-chart.jpg',
+     pageBgClass: 'l-bg-blue'
     }, {name: 'ops', 
+     title: 'Train your operations team continuously, wherever they are. Request demo today!',
      title1: 'You want your staff to be trained on processes specific to your business. Use Nittio Learn to train them online, in their language, on their device and track how well they learn.',
      title2: 'It is super easy, efficient and effective.',
-     desc: 'Train your operations team continuously, wherever they are. Request demo today!',
-     pageBgClass: 'bgdark'
+     desc: 'Train your operations and logistics team continuously, wherever they are. Request demo today!',
+     bgImg: _resourceBase + 'truck.jpg',
+     pageBgClass: 'l-bg-black'
     }, {name: 'care', 
+     title: 'Train your customer contact team continuously. Request a demo today!',
      title1: 'You want your staff to be continuously trained on specific processes. Use Nittio Learn to train them online, in their language, on their device and track how well they learn.',
      title2: 'It is super easy, efficient and effective.',
      desc: 'Train your customer contact team continuously. Request a demo today!',
-     pageBgClass: 'bgdark'
+     bgImg: _resourceBase + 'callcenter.jpg',
+     pageBgClass: 'l-bg-black2'
     }, {name: 'author', 
+     title: 'Create interactive, responsive eLearning modules in minutes. Request demo today.',
      title1: 'Learning and training content authoring made simple and fast.',
      title2: 'Use Nittio Learn to create great looking interactive content in minutes.',
      desc: 'Create interactive, responsive eLearning modules in minutes. Request demo today.',
-     pageBgClass: 'bgdark'
+     bgImg: _resourceBase + 'author.jpg',
+     pageBgClass: 'l-bg-black2'
     }, {name: 'induction', 
+     title: 'Create and deploy your induction training in minutes. Request a demo today!',
      title1: 'Induction training can  be much easier and more effective than how you currently do it.',
      title2: 'Use Nittio Learn to create great looking interactive trainings in minutes and track how your employees are learning.',
      desc: 'Create and deploy your induction training in minutes. Request a demo today!',
-     pageBgClass: 'bgdark'
-     
-    // Temp stuff for template checking
-    }, {name: 'bgimg', 
-     title1: 'Train your bgimg with NL',
-     title2: 'and some more bla bla',
-     desc: 'Meta description',
-     bgImg: 'https://nittio-test.appspot.com/resource/resview/1455517409-bg3.png',
-     pageBgClass: 'forange'
-    }, {name: 'bgvideo', 
-     title1: 'Train your bgvideo with NL',
-     title2: 'and some more bla bla',
-     desc: 'Meta description',
-     bgVideoPoster: 'https://nittio-test.appspot.com/resource/resview/1455517354-bg1.png',
-     bgVideo: '//d16cvnquvjw7pr.cloudfront.net/www/img/p-demo/overview_banner.webm',
-     pageBgClass: 'forange'
-    }, {name: 'sideimg', 
-     title1: 'Train your sideimg with NL',
-     title2: 'and some more bla bla',
-     desc: 'Meta description',
-     rightImg: 'https://nittio-test.appspot.com/resource/resview/1455517409-bg3.png'
-    }, {name: 'reserved', 
-     title1: 'Train your reserved with NL',
-     title2: 'and some more bla bla',
-     desc: 'Meta description',
-     bgImg: 'https://nittio-test.appspot.com/resource/resview/1455517409-bg3.png',
-     pageBgClass: 'fwhite',
-     bgVideoPoster: 'https://nittio-test.appspot.com/resource/resview/1455517354-bg1.png',
-     bgVideo: 'http://techslides.com/demos/sample-videos/small.mp4',
-     rightImg: 'https://nittio-test.appspot.com/resource/resview/1455517409-bg3.png'
+     bgImg: _resourceBase + 'induction.jpg',
+     pageBgClass: 'l-bg-black2'
     }
 ];
 
@@ -273,21 +276,10 @@ function _getLandingCfg(nl, pos) {
             showLogin: pos == 0,
             landingPageName: cfg.name,
             landingBgImage: cfg.bgImg,
-            landingBgVideoPoster: cfg.bgVideoPoster,
             landingBgVideo: cfg.bgVideo,
-            landingRightImage: cfg.rightImg,
             pageBgClass: cfg.pageBgClass,
             title1Cls: pos == 0 ? 'fsh6' : 'padding-mid',
-            getLandingContentCls: function($scope) {
-                if (!$scope.content.landingRightImage) return 'w100';
-                if (nl.rootScope.screenSize == 'small') return 'w100';
-                return 'col col-66';
-            },
-            getLandingImgCls: function($scope) {
-                if (!$scope.content.landingRightImage) return '';
-                if (nl.rootScope.screenSize == 'small') return 'w100';
-                return 'col col-33';
-            }
+            landingTicker: cfg.ticker,
         }
     };
 }
@@ -390,6 +382,7 @@ function _staticPageCtrl(config, nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnc
             $scope.content.commonMsg = nl.t('{} {}', _commonMsg1, _commonMsg2);
             $scope.content.title1 = config.title1;
             $scope.content.title2 = config.title2;
+            $scope.content.ticker = '';
             $scope.content.desc = config.desc;
             $scope.visitorManager = new VisitorManager(nl, nlDlg, nlServerApi,
                 nlRouter, $scope, userInfo);
@@ -417,7 +410,21 @@ function _staticPageCtrl(config, nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnc
         e.stopImmediatePropagation();
         if (anchor) $scope.gotoAnchor(anchor, pageUrl);
     };
+    
+    var _tickerPos = 0;
+    function _onTicker() {
+        var tickers = $scope.content ? $scope.content.landingTicker : null;
+        if (tickers) {
+            $scope.content.ticker = tickers[_tickerPos];
+            _tickerPos++;
+            if (_tickerPos >= tickers.length) _tickerPos = 0;
+        }
+        nl.timeout(function() {
+            _onTicker();
+        }, 4000);
+    }
 
+    _onTicker();
     nlRouter.initContoller($scope, '', _onPageEnter);
 }
 

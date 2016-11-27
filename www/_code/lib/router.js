@@ -251,9 +251,7 @@ function Permission(nl) {
         'admin_user': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED}
     };
     
-    var _landingPages = ['employee', 'sales', 'logistics', 'ops', 'care', 
-        'author', 'induction', 
-        'bgimg', 'bgvideo', 'bgvideo', 'sideimg', 'reserved']; // TODO-MUNNI-NOW: remove
+    var _landingPages = ['employee', 'sales', 'ops', 'care', 'author', 'induction'];
     for(var i=0; i<_landingPages.length; i++) {
         var lp =  '/welcome_' + _landingPages[i];
         permissions[lp] = {login: false, permission: '', termRestriction: TR_OPEN};

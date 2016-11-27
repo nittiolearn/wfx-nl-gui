@@ -1,4 +1,24 @@
 <style>
+    .l-bg-black {
+        background-color: rgba(0, 0, 0, 0.3);
+        color: #FFFFFF;
+    }
+    .l-bg-black2 {
+        background-color: rgba(0, 0, 0, 0.4);
+        color: #FFFFFF;
+    }
+    .l-bg-blue {
+        background-color: rgba(0, 0, 77, 0.3);
+        color: #FFFFFF;
+    }
+    
+    .landing_ticker {
+        min-height: 2.5em;
+        font-weight: bold;
+        font-size: 90%;
+        color: #FFCC00;
+    }
+
     .landing-bg-img {
         position: absolute;
         top: 0;
@@ -15,28 +35,19 @@
         left: 0;
         height: 100%;
         width: 100%;
-        background-color: #F0EFED;
         z-index: -1;
+        opacity: 1;
+        object-fit: cover;
     }
-    .landing-bg-video video {
-        position: absolute;
-        bottom: 0;
-        right: 0;
-        height: auto;
-        width: 100%;
-    }
-    .landing-right-img {
-        max-height: 100%;
-        max-width: 100%;
-    }
-    
+
     .landing-request-button {
         font-family: Lato, Verdana, Helvetica, Arial, sans-serif;
         font-size: 75%;
         border: 3px solid white;
         border-radius: 4px;
-        color: #FFFF70;
+        color: #FFCC00;
         background-color: transparent;
+        background-color: rgba(0, 163, 204, 0.8);
     }
     .landing-request-button:hover {
         color: #FFFFFF;
@@ -93,24 +104,20 @@
     <div class='nl-sp-bg-img'
          ng-if='!content.landingBgImage'>
     </div>
-    <div class="landing-bg-img"
+    <div class='landing-bg-img'
          ng-if='content.landingBgImage'>
     </div>
          
-    <div class="landing-bg-video"
-         ng-if='content.landingBgVideo'>
-        <video poster='{{content.landingBgVideoPoster}}'
-               ng-src='{{content.landingBgVideo}}'
-               autoplay="autoplay" height="100%" loop preload>
-            <source class='' type='video/webm; codecs=vp8,vorbis'
-                    src='//d16cvnquvjw7pr.cloudfront.net/www/img/p-demo/overview_banner.webm'>
-            <source class='mov' type=''
-                    src='//d16cvnquvjw7pr.cloudfront.net/www/img/p-demo/overview_banner.mov'>
-        </video>
-    </div>
+    <video class='landing-bg-video'
+           ng-if='content.landingBgVideo'
+           autoplay="autoplay" height="100%" loop preload>
+           <source ng-repeat='v in content.landingBgVideo'
+                   ng-src='{{v.src}}' ng-type='{{v.typ}}'>
+           </source>
+    </video>
     <nl-sp-menu></nl-sp-menu>
     <div class='row row-center row-wrap vh90'>
-        <div class='fsh3 text-center padding {{callFn("getLandingContentCls")}}'>
+        <div class='fsh3 text-center padding w100'>
             <div ng-show='screenSize == "small"'
                  class='text-center padding w100'>
                 <img ng-src='{{baseResUrl}}/nittiologowhite.png'
@@ -119,7 +126,9 @@
                    style='height: 28px'/>
             </div>
             <p class='{{content.title1Cls}}'>{{content.title1}}</p>
-            <p class='fsh5'>{{content.title2}}</p></br>
+            <p class='fsh5'>{{content.title2}}</p>
+            <p ng-if='content.landingTicker' class='landing_ticker'>{{content.ticker}}</p>
+            </br>
             <div class='padding'>
                 <span title='Watch video'
                       class='button landing-video-button'
@@ -137,14 +146,10 @@
                    class='fsmall3'>or explore more</a>
             </div>
         </div>
-        <div class='text-center padding col-bottom {{callFn("getLandingImgCls")}}'
-             ng-if='content.landingRightImage'>
-             <img ng-src='{{content.landingRightImage}}' class='landing-right-img'>
-        </div>
     </div>
     <div class='landing-video-overlay' ng-if='showVideo'>
         <iframe class='landing-video-frame' frameborder="0" allowfullscreen
-                src="https://www.youtube.com/embed/B3On7UPGehU?modestBranding=1&rel=0&autoplay=1">
+                src="https://www.youtube.com/embed/xmmjg3Lr29M?modestBranding=1&rel=0&autoplay=1">
         </iframe>
         <div class='landing-video-overlay-close nl-link-img fsh5'
              title='Close'

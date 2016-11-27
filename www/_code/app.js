@@ -39,9 +39,14 @@ function _ignoreIfRightMouseUp(e) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var configFn = ['$stateProvider', '$urlRouterProvider', '$ionicConfigProvider', 'ChartJsProvider',
-function($stateProvider, $urlRouterProvider, $ionicConfigProvider, ChartJsProvider) {
-    
+var configFn = ['$stateProvider', '$urlRouterProvider', '$ionicConfigProvider', 
+'ChartJsProvider', '$sceDelegateProvider',
+function($stateProvider, $urlRouterProvider, $ionicConfigProvider, 
+ChartJsProvider, $sceDelegateProvider) {
+    $sceDelegateProvider.resourceUrlWhitelist([
+        'self', // Allow same origin resource loads.
+        'https://storage.googleapis.com/nittio-live.appspot.com/**' // Allow Nittio publis resources
+    ]);
     $ionicConfigProvider.views.transition('none');
     //$ionicConfigProvider.views.forwardCache(true);
     $ionicConfigProvider.views.maxCache(0);
