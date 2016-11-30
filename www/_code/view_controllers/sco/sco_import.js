@@ -371,7 +371,7 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
             var title = metadata.lom.general.title;
             if (title && title.langstring) title = title.langstring.__text;
             else if (title && title.string) title = title.string.__text;
-            self.title = title || nl.fmt2('SCORM Import on {}', new Date());
+            if (title) self.title = title;
         }
         
         var resources = manifest.resources;
@@ -387,7 +387,7 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
             return _err(reject, '<organizations> element missing in <manifest>');
         var orgs = organizations.organization;
         if(!orgs)
-            return _err(reject, '<organization> element missing in <resources>');
+            return _err(reject, '<organization> element missing in <organizations>');
         _updateScoTitlesFromXml(orgs);
 
         pl.debug('Got the list of sco and assets', {scos: self.scos, assets: self.assets});
@@ -411,11 +411,14 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         var scoTitles = {};
         for (var i=0; i <orgs.length; i++) {
             var org = orgs[i];
+            if (!self.title && org.title) self.title = org.title;
             for (var j=0; j < org.item.length; j++) {
                 var item = org.item[j];
                 scoTitles[item._identifierref] = item.title;
+                if (!self.title) self.title = item.title;
             }
         }
+        if(!self.title) self.title = nl.fmt2('SCORM Import on {}', new Date());
         for(var i=0; i<self.scos.length; i++) {
             var sco = self.scos[i];
             sco.title = (sco.id in scoTitles) ? scoTitles[sco.id] : self.title;

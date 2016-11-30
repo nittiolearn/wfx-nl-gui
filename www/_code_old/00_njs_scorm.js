@@ -65,11 +65,11 @@ function _initScoBot(l) {
         initiate_timer        : false,        // if max_time_allowed, you can set the timer vs. SCOBot
         scorm_strict          : true,         // Setting this to false will turn off the attempts to truncate data that exceeds the SPM's commonly supported by LMS's.
         // New in 4.0.3 -
-        base64                : true,    // Set to false if you manage suspend data or do not wish for it to be encoded (v4.0.3 option)
+        base64                : false,        // Set to false if you manage suspend data or do not wish for it to be encoded (v4.0.3 option)
         happyEnding           : true,         // Set to false if you want to disable this method (v4.0.5)
-        useJSONSuspendData    : true,         // Set to false if you manage suspend data (v4.0.3 option)
+        useJSONSuspendData    : false,        // Set to false if you manage suspend data (v4.0.3 option)
         // New in 4.0.9 -
-        doNotStatusUntilFinish: true,        // Set to true if you don't want to update the score until finished. (4.0.9 option)
+        doNotStatusUntilFinish: true,         // Set to true if you don't want to update the score until finished. (4.0.9 option)
         sequencing: {                         // New in 4.1.1 : Sequence and Navigation options
             nav: {request: '_none_'}          // Change to continue, previous, choice{target=ID}, exit, exitAll, abandon, abandonAll, suspendAll for more options to auto-navigate after Termination.
            }
@@ -89,11 +89,8 @@ function _initScoBot(l) {
             g_lesson.renderCtx.init('view');
         }
         try {
-            var content = g_SB.getSuspendDataByPageID('_overall');
+            var content = scorm.getvalue('cmi.suspend_data');
             if (content !== 'false') _updateLearningData(l, content);
-            var studentname = g_SB.getvalue('cmi.core.student_name');
-            var studentid = g_SB.getvalue('cmi.core.student_id');
-            console.log('Student info: ', studentname, studentid);
         } catch(e) {
             console.log('Exception in getSuspendDataByPageID', e);
         }
@@ -183,9 +180,9 @@ function _saveLessonSco(bDone) {
         g_SB.setObjective(obj);
     }
     try {
-        g_SB.setSuspendDataByPageID('_overall', 'overall', _getLearningData(l));
+        scorm.setvalue('cmi.suspend_data', _getLearningData(l));
     } catch(e) {
-        console.log('Exception in setObjective/setSuspendDataByPageID', e);
+        console.log('Exception in setSuspendData', e);
     }
     g_SB.commit();
     if (!bDone) return true;
@@ -198,11 +195,11 @@ function _copyAttr(src, dest, attrSrc, attrDest) {
 }
 
 function _getLearningData(l) {
-    return l.learningData || {};
+    return g_lesson.minifyLearningData(l.learningData || {});
 }
 
 function _updateLearningData(l, data) {
-    l.learningData = data;
+    l.learningData = g_lesson.unminifyLearningData(data || '{}');
 }
 
 //#############################################################################################
