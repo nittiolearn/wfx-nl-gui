@@ -1,5 +1,10 @@
 <div class='nl-toolbar'>
     <span title='Start new topic'
+          class='nl-toolbar-icon'
+          ng-click='showSearchBoxField()'>
+        <i class="icon ion-android-search"></i>
+    </span>
+    <span title='Start new topic'
           ng-show='canStartTopic && !currentTopicId'
           class='nl-toolbar-icon'
           ng-click='showPostNewTopicDlg()'>

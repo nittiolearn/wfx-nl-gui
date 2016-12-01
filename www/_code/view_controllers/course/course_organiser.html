@@ -14,14 +14,14 @@
 	        <ion-item ng-repeat='cm in data.modules' class='ion-item-style'>
 	        	<div class='row row-center margin0 padding0'>
 		        	<div style='padding-left: {{cm.indentationLevel*16}}px'></div>
-		        	<div class='row row-center margin0 padding-mid nl-cv-item'>
+		        	<div class='row row-center margin0 padding-mid nl-cv-item  nl-textellipsis'>
 					    <span ng-show='cm.type == "module"' style='width: 20px'>
 					    	<i ng-show='!cm.isOpen' class="icon ion-arrow-right-b bold fsh3"></i>
 		        			<i ng-show='cm.isOpen' class="icon ion-arrow-down-b bold fsh3"></i>
 						</span>
 		                <img ng-if='ext.isIconImg(cm)' class='nl-icon' ng-src='{{cm.icon}}'>
 		                <i ng-show='!ext.isIconImg(cm)' class="icon {{ext.getIconCls(cm)}} bold fsh3"></i>
-						<span class='col'>{{cm.name}}</span>
+						<span class='col nl-textellipsis'>{{cm.name}}</span>
 		        	</div>
 	        	</div>
 	            <ion-reorder-button class="ion-navicon"

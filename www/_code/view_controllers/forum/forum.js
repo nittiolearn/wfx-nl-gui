@@ -55,7 +55,8 @@ function(nl) {
         restrict: 'E',
         templateUrl: 'view_controllers/forum/forum_msg.html',
         scope: {
-            msg: '='
+            msg: '=',
+            search: '='
         }
     };
 }];
@@ -69,6 +70,8 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup, nlExporter, nlResou
     var _userInfo = null;
 	
     $scope.showingDetails = false;
+    $scope.showSearchBox = false;
+    $scope.search = '';
     $scope.inputDlgScope = $scope;
     _updateShowDetailsIcon();
     
@@ -132,7 +135,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup, nlExporter, nlResou
     
     $scope.showEditMsgDlg = function(msg) {
         forumInputDlg.editMessage(msg);
-    }
+    };
 
     $scope.inputDlgCancel = function() {
         forumInputDlg.hide();
@@ -157,7 +160,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup, nlExporter, nlResou
         if (!$scope.currentTopicId) return nl.t('Discussion topics');
         var msg = messageMgr.getMsg($scope.currentTopicId);
         return msg.title;
-    }
+    };
     
     $scope.collapseAll = function() {
         forumInputDlg.hide();
@@ -169,6 +172,18 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup, nlExporter, nlResou
         _updateShowDetailsIcon();
     };
     
+    $scope.showSearchBoxField = function(){
+    	$scope.showSearchBox = !$scope.showSearchBox;    };
+    
+	$scope.searchKeyHandler = function(keyevent) {
+		nl.timeout(function() {
+			console.log('searchKeyHandler', $scope.search, keyevent.which);
+			if(keyevent.which === 13) {
+				// TODO-MUNNI-NOW
+			}				
+		});
+	};
+
     $scope.uploadResource = function(currentTopicId) {
         var msg = messageMgr.getMsg(currentTopicId);
         if (!msg) return;
@@ -252,6 +267,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup, nlExporter, nlResou
         $scope.msgTree = messageMgr.updateMessages(forumInfo.msgs);
         $scope.since = messageMgr.range_since ? nl.fmt.date2Str(messageMgr.range_since) : '';
         $scope.msgCount = 0;
+        $scope.searchFilter = null;
         for (var key in messageMgr.idToMsg) $scope.msgCount++;
         var msg = messageMgr.getMsg($scope.currentTopicId);
         if (!msg) $scope.currentTopicId = 0;

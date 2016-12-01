@@ -5,8 +5,12 @@
         border-radius: 0px;
 	}
 
+	.inline-help-padding{
+		min-height: 30px;
+		padding: 0px 8px 20px 8px;
+	}
 </style>
-<div class='row row-center row-wrap margin0'
+<div class='row row-center row-wrap margin0 padding0'
      ng-repeat='attr in attrs'
      ng-if='(!attr.fields || attr.fields.indexOf(values.type) >= 0) && (!attr.debug || editor.debug) && (!attr.group || editor.showGroup[attr.group])'>
     <div class='w100 nl-link-text padding-mid' 
@@ -89,8 +93,8 @@
     <div ng-class='$root.resp2Col67'
          ng-if='attr.type === "object"'
          class='nl-dlg-field-value padding-mid'>
-        <textarea rows="5" ng-model='values[attr.name]'
-                  class='w100'
+        <textarea rows="5" ng-model='editor.jsonTempStore[attr.name]'
+                  class='w100 nl-fixed-width'
                   ng-focus="attr.focus=true" ng-blur="attr.focus=false">
         </textarea>
     </div>
@@ -109,9 +113,12 @@
                title='Search modules'></i>
         </div>
 	</div>
-	<div class='w100 padding-mid'>
-	    <nl-inline-help ng-show='editor.showHelp' class='nl-border-help'>
-	        <div ng-bind-html='help[attr.name]'></div>
+	<div class='w100 inline-help-padding' ng-show='editor.showHelp && attr.type !== "hidden"'>
+	    <nl-inline-help>
+	        <div>
+		        <span class='fsh6 fblue2'>{{help[attr.name].name || attr.text}}:</span>
+		        <span ng-bind-html='help[attr.name].desc'></span>
+	        </div>
 	    </nl-inline-help>
 	</div>
 </div>
