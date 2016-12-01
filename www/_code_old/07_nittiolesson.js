@@ -37,6 +37,8 @@ nlesson = function() {
 		this.reRenderAsReport = Lesson_reRenderAsReport; // called on clicking zodi in view mode (view->report)
 		this.doModeToggle = Lesson_doModeToggle;		// called on clicking "edit->preview" button
 		this.updatePagePropertiesDom = Lesson_updatePagePropertiesDom; // update page properties in editor
+        this.minifyLearningData = Lesson_minifyLearningData;
+        this.unminifyLearningData = Lesson_unminifyLearningData;
 		
 		this.showForum = Lesson_showForum;
 
@@ -554,7 +556,102 @@ nlesson = function() {
         delete content.templateBgimgs;
         return JSON.stringify(content);
     }
+
+    var _ldAttrList = [
+        {name: 'currentPageNo'}, 
+        {name: 'started'}, 
+        {name: 'ended'}, 
+        {name: 'timeSpentSeconds'}, 
+        {name: 'score'}, 
+        {name: 'passScore', noCopyBack: true}, // Not needed to copy back
+        {name: 'maxScore', noCopyBack: true}, // Not needed to copy back
+        {name: 'answered', noMinify: true}, 
+        {name: 'partAnswered', noMinify: true}, 
+        {name: 'notAnswered', noMinify: true}, 
+        {name: 'pagesFiltered'}];
+
+    var _ldPageAttrList = [
+        {name: 'pageNo', noCopyBack: true, noCopyFrom: true, noMinify: true}, 
+        {name: 'title', noCopyBack: true, noCopyFrom: true, noMinify: true}, 
+        {name: 'score', noMinify: true}, 
+        {name: 'scoreOverride', noMinify: true},
+        {name: 'maxScore', noCopyBack: true, noMinify: true},
+        {name: 'pageMaxScore', noCopyBack: true, noMinify: true},
+        {name: 'answered', noMinify: true},
+        {name: 'remarks', noMinify: true},
+        {name: 'notes', noMinify: true},
+        {name: 'feedback', noMinify: true}];
+        
+    var _ldSectionAttrList = [
+        {name: 'sectionNumber', noCopyBack: true, noCopyFrom: true},
+        {name: 'answer'}, 
+        {name: 'correctanswer'}];
+
+    function Lesson_minifyLearningData(ld) {
+        var minifiedLd = {};
+        for(var i=0; i<_ldAttrList.length; i++) {
+            if (_ldAttrList[i].noMinify) continue;
+            _copyIf(ld, minifiedLd, _ldAttrList[i].name, ''+i);
+        }
+        minifiedLd['' + _ldAttrList.length] = {};
+        var pages = minifiedLd['' + _ldAttrList.length];
+        var ldPages = ld.pages || {};
+        for(var p in ldPages) {
+            var ldPage = ldPages[p];
+            pages[p] = {};
+            var page = pages[p];
+            for(var i=0; i<_ldPageAttrList.length; i++) {
+                if (_ldPageAttrList[i].noMinify) continue;
+                _copyIf(ldPage, page, _ldPageAttrList[i].name, ''+i);
+            }
+            var sections = [];
+            var ldSections = ldPage.sections || [];
+            for(var i=0; i<ldSections.length; i++) {
+                var ldSection = ldSections[i];
+                var section = {};
+                for(var j=0; j<_ldSectionAttrList.length; j++) {
+                    _copyIf(ldSection, section, _ldSectionAttrList[j].name, ''+j);
+                }
+                sections.push(section);
+            }
+            if (sections.length > 0) page['' + _ldPageAttrList.length] = sections;
+        }
+        var minified = JSON.stringify(minifiedLd);
+        console.log('Content minified: ', JSON.stringify(ld).length, minified.length);
+        return minified;
+    }
     
+    function Lesson_unminifyLearningData(minified) {
+        var minifiedLd = jQuery.parseJSON(minified);
+        var ld = {};
+
+        for(var i=0; i<_ldAttrList.length; i++) {
+            _copyIf(minifiedLd, ld, ''+i, _ldAttrList[i].name);
+        }
+        var minPages = minifiedLd['' + _ldAttrList.length] || {};
+        ld.pages = {};
+        for(var p in minPages) {
+            var minPage = minPages[p];
+            ld.pages[p] = {};
+            var page = ld.pages[p];
+            for(var i=0; i<_ldPageAttrList.length; i++) {
+                _copyIf(minPage, page, ''+i, _ldPageAttrList[i].name);
+            }
+            page.sections = [];
+            var sections = page.sections;
+            var minSections = minPage['' + _ldPageAttrList.length] || [];
+            for(var i=0; i<minSections.length; i++) {
+                var minSection = minSections[i];
+                var section = {};
+                for(var j=0; j<_ldSectionAttrList.length; j++) {
+                    _copyIf(minSection, section, ''+j, _ldSectionAttrList[j].name);
+                }
+                sections.push(section);
+            }
+        }
+        return ld;
+    }
+
 	function _Lesson_updateLearningData(lesson) {
         lesson.oLesson.learningData = {};
         var ld = lesson.oLesson.learningData;
@@ -562,40 +659,35 @@ nlesson = function() {
         if (lesson.renderCtx.launchMode() != 'do' && 
             !lesson.renderCtx.canShowScore()) return;
         
-        _copyIf(lesson.oLesson, ld, 'currentPageNo');
-        _copyIf(lesson.oLesson, ld, 'started');
-        _copyIf(lesson.oLesson, ld, 'ended');
-        _copyIf(lesson.oLesson, ld, 'timeSpentSeconds');
-        _copyIf(lesson.oLesson, ld, 'score');
-        _copyIf(lesson.oLesson, ld, 'passScore');
-        _copyIf(lesson.oLesson, ld, 'maxScore');
-        _copyIf(lesson.oLesson, ld, 'answered');
-        _copyIf(lesson.oLesson, ld, 'partAnswered');
-        _copyIf(lesson.oLesson, ld, 'notAnswered');
-        _copyIf(lesson.oLesson, ld, 'pagesFiltered');
+        for(var i=0; i<_ldAttrList.length; i++) {
+            if (_ldAttrList[i].noCopyFrom) continue;
+            _copyIf(lesson.oLesson, ld, _ldAttrList[i].name);
+        }
         
         ld.pages = {};
         for(var i=0; i<lesson.pages.length; i++) {
             var oPage = lesson.pages[i].oPage;
             var title = oPage.sections && oPage.sections[0] ? oPage.sections[0].text : '';
-            var index = title.indexOf('\n');
-            if (index > -1) title = title.substring(0, index);
+            title = njs_lesson_helper.formatTitle(title);
             var pld = {pageNo: i+1, title: title};
 
-            _copyIf(oPage, pld, 'score');
-            _copyIf(oPage, pld, 'scoreOverride');
-            _copyIf(oPage, pld, 'maxScore');
-            _copyIf(oPage, pld, 'pageMaxScore');
-            _copyIf(oPage, pld, 'answered');
-            _copyIf(oPage, pld, 'remarks');
-            _copyIf(oPage, pld, 'notes');
-            _copyIf(oPage, pld, 'feedback');
-            pld.sections = [];
+            for(var j=0; j<_ldPageAttrList.length; j++) {
+                if (_ldPageAttrList[j].noCopyFrom) continue;
+                _copyIf(oPage, pld, _ldPageAttrList[j].name);
+            }
             for(var j=0; j < oPage.sections.length; j++) {
                 var sld = {};
                 var oSection = oPage.sections[j];
-                _copyIf(oSection, sld, 'answer');
-                _copyIf(oSection, sld, 'correctanswer');
+                var shallAdd = false;
+                for(var k=0; k<_ldSectionAttrList.length; k++) {
+                    if (_ldSectionAttrList[k].noCopyFrom) continue;
+                    if (!oSection[_ldSectionAttrList[k].name]) continue;
+                    shallAdd = true;
+                    _copyIf(oSection, sld, _ldSectionAttrList[k].name);
+                }
+                if (!shallAdd) continue;
+                sld.sectionNumber = j;
+                if (!pld.sections) pld.sections = [];
                 pld.sections.push(sld);
             }
             ld.pages[oPage.pageId] = pld;
@@ -605,17 +697,11 @@ nlesson = function() {
     function _Lesson_updateOLessonFromLearningData(lesson) {
         var ld = lesson.oLesson.learningData;
         if (!ld) return;
-        _copyIf(ld, lesson.oLesson, 'currentPageNo');
-        _copyIf(ld, lesson.oLesson, 'started');
-        _copyIf(ld, lesson.oLesson, 'ended');
-        _copyIf(ld, lesson.oLesson, 'timeSpentSeconds');
-        _copyIf(ld, lesson.oLesson, 'score');
-        // _copyIf(ld, lesson.oLesson, 'passScore'); // Not needed
-        // _copyIf(ld, lesson.oLesson, 'maxScore'); // Not needed
-        _copyIf(ld, lesson.oLesson, 'answered');
-        _copyIf(ld, lesson.oLesson, 'partAnswered');
-        _copyIf(ld, lesson.oLesson, 'notAnswered');
-        _copyIf(ld, lesson.oLesson, 'pagesFiltered');
+
+        for(var i=0; i<_ldAttrList.length; i++) {
+            if (_ldAttrList[i].noCopyBack) continue;
+            _copyIf(ld, lesson.oLesson, _ldAttrList[i].name);
+        }
     }
     
     function _Lesson_updateOPageFromLearningData(oPage, lesson) {
@@ -623,24 +709,24 @@ nlesson = function() {
         if (!ld || !ld.pages) return;
         var pld = ld.pages[oPage.pageId];
         if (!pld) return;
-        _copyIf(pld, oPage, 'score');
-        _copyIf(pld, oPage, 'scoreOverride');
-        // _copyIf(pld, oPage, 'maxScore'); // Not needed
-        // _copyIf(pld, oPage, 'pageMaxScore'); // Not needed
-        _copyIf(pld, oPage, 'answered');
-        _copyIf(pld, oPage, 'remarks');
-        _copyIf(pld, oPage, 'notes');
-        _copyIf(pld, oPage, 'feedback');
+        for(var i=0; i<_ldPageAttrList.length; i++) {
+            if (_ldPageAttrList[i].noCopyBack) continue;
+            _copyIf(pld, oPage, _ldPageAttrList[i].name);
+        }
         if (!pld.sections) return;
         for(var i=0; i<pld.sections.length; i++) {
-            if (i >= oPage.sections.length) break;
-            _copyIf(pld.sections[i], oPage.sections[i], 'answer');
-            _copyIf(pld.sections[i], oPage.sections[i], 'correctanswer');
+            var sectionNumber = pld.sections[i].sectionNumber || i;
+            if (sectionNumber >= oPage.sections.length) break;
+            for(var j=0; j<_ldSectionAttrList.length; j++) {
+                if (_ldSectionAttrList[j].noCopyBack) continue;
+                _copyIf(pld.sections[i], oPage.sections[sectionNumber], _ldSectionAttrList[j].name);
+            }
         }
     }
     
-    function _copyIf(src, dest, attr) {
-        if (attr in src) dest[attr] = src[attr];
+    function _copyIf(src, dest, attr, destAttr) {
+        if (!destAttr) destAttr = attr;
+        if (attr in src) dest[destAttr] = src[attr];
     }
 
 	function Lesson_updateScore() {

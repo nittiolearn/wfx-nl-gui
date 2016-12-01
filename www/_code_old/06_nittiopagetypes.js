@@ -1680,8 +1680,7 @@ npagetypes = function() {
             var answerText = _BehQuestionnaire_getAnswerText(elemVal, answerData);
             
             var question = secNo > 0 ? page.sections[secNo-1].oSection.text : '';
-            var index = question.indexOf('\n');
-            if (index > -1) question = question.substring(0, index);
+            question = njs_lesson_helper.formatTitle(question);
             if (answerData.type == 'text' || isQuestionnaire) {
                 page.oPage.feedback.push({question: question, response: answerText});
             }

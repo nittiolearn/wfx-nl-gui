@@ -2,6 +2,13 @@
 	<div class='section bgdark vh100'>
 		<div class='nl-sp-bg-img'></div>
 		<nl-sp-menu></nl-sp-menu>
+        <div ng-show='screenSize == "small"'
+             class='text-center padding w100'>
+            <img ng-src='{{baseResUrl}}/nittiologowhite.png'
+               alt='Nittio Learn - {{content.commonMsg}}'
+               title='Nittio Learn - {{content.commonMsg}}'
+               style='height: 28px'/>
+        </div>
         <div class='row row-center' ng-show='screenSize == "large"'>
             <div class='col padding'>
                 <div style='height: 5em;'></div>

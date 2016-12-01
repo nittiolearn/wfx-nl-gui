@@ -44,7 +44,7 @@ function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog, nlExp
         var lessonid = ('lessonid' in params) ? params.lessonid : '';
         $scope.options = {version: [{id: '1.2', name: 'SCORM 1.2'}, {id: '2004 4th Edition', name: 'SCORM 2004 4th Edition'}]};
         $scope.error = {};
-        $scope.data = {lessonIds: lessonid, version: {id: '1.2'},
+        $scope.data = {lessonIds: lessonid, version: {id: '2004 4th Edition'},
             title: 'Nittio Learn SCORM Module', mathjax: true};
     }
     
@@ -185,6 +185,16 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
         pdm.download();
     }
     
+    var _metadataXmlTemplate = {
+        '1.2': 'sco_manifest_xml_v12.html',
+        '2004 4th Edition': 'sco_manifest_xml_v2004.html'
+    };
+    
+    var _attrNames = {
+        '1.2': {scormType: 'adlcp:scormtype'},
+        '2004 4th Edition': {scormType: 'adlcp:scormType'}
+    };
+    
     function _generateMetadataXml(resolve, reject) {
         pl.debug('Generating metadata xml');
         var scope = {};
@@ -210,7 +220,7 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
         scope.assets = _getMetadataAssets(scope, resources);
         scope.scos = _getMetadataSCOs(scope, lessons);
         
-        var template = $templateCache.get('view_controllers/sco/sco_manifest_xml.html');
+        var template = $templateCache.get('view_controllers/sco/' + _metadataXmlTemplate[self.version]);
         var content = nl.fmt.fmt1(template, scope);
         self.zip.file('imsmanifest.xml', content);
         pl.imp('Generated metadata xml', content);
@@ -231,8 +241,9 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
     }
 
     function _getMetadataAssets(scope, resources) {
+        var scormType = _attrNames[self.version]['scormType'];
         var ret = nl.fmt2('<resource identifier="{}.RES" type="webcontent"' +
-            ' adlcp:scormType="asset">\r\n', scope.uuid);
+            ' {}="asset">\r\n', scope.uuid, scormType);
         for(var i in resources) {
             var r = resources[i];
             ret += nl.fmt2('    <file href="{}/{}"/>\r\n',
@@ -242,15 +253,17 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
     }
 
     function _getMetadataSCOs(scope, lessons) {
+        var scormType = _attrNames[self.version]['scormType'];
         var ret = '';
         for(var i in lessons) {
             var l = lessons[i];
             ret += nl.fmt2('<resource identifier="{}.SCO.{}"' + 
-                ' href="{}/{}.html" type="webcontent" adlcp:scormType="sco">' +
+                ' href="{}/{}.html" type="webcontent" {}="sco">' +
                 '<file href="{}/{}.html"/>' +
                 '<dependency identifierref="{}.RES"/></resource>\r\n',
             scope.uuid, l.id, 
             scope.content_folder, l.id, 
+            scormType,
             scope.content_folder, l.id,
             scope.uuid);
         }

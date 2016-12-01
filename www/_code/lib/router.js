@@ -70,7 +70,11 @@ function(nl, nlDlg, nlServerApi, $state) {
     var windowDescription = '';
     this.setWindowDescription = function(descr) {
         windowDescription = descr;
-    }
+    };
+    
+    this.sendGoogleAnalytics = function(userInfo, reqtype) {
+        _sendGoogleAnalytics(userInfo, reqtype);
+    };
     
     function _onPageEnter($scope, pageUrl, pageEnterFn, e) {
         windowDescription = '';
@@ -162,16 +166,18 @@ function(nl, nlDlg, nlServerApi, $state) {
         return true;
     }
 
-    function _sendGoogleAnalytics(userInfo) {
+    function _sendGoogleAnalytics(userInfo, reqtype) {
         var userid = userInfo.username || 'none';
         var useridParts = userid.split('.');
         var groupid = useridParts.length > 1 ? useridParts[1] : 'none';
         var usertype = userInfo.usertype || 'none';
 
         var urlParts = nl.location.path().split('/');
-        var reqtype = '/';
-        if (urlParts.length > 1) reqtype += urlParts[1];
-        if (urlParts.length > 2) reqtype += '/' + urlParts[2];
+        if (!reqtype) {
+            reqtype = '/';
+            if (urlParts.length > 1) reqtype += urlParts[1];
+            if (urlParts.length > 2) reqtype += '/' + urlParts[2];
+        }
         
         ga('set', 'dimension1', userid);
         ga('set', 'dimension2', groupid);
@@ -236,8 +242,6 @@ function Permission(nl) {
         '/resource_upload': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},        
         '/assignment_report': {login: true, permission: 'assignment_send', termRestriction: TR_OPEN},        
 
-
-
         // Operation permissions
         'change_password': {login: true, permission: 'change_password', termRestriction: TR_RESTRICTED},
         'course_assign': {login: true, permission: 'course_assign', termRestriction: TR_CLOSED},
@@ -246,6 +250,12 @@ function Permission(nl) {
         'forum_view_details': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         'admin_user': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED}
     };
+    
+    var _landingPages = ['employee', 'sales', 'ops', 'care', 'author', 'induction'];
+    for(var i=0; i<_landingPages.length; i++) {
+        var lp =  '/welcome_' + _landingPages[i];
+        permissions[lp] = {login: false, permission: '', termRestriction: TR_OPEN};
+    }
     
     var openPages = {'/login_now': 1, '/logout_now': 1, 
                      '/welcome': 1, '/school': 1, '/business': 1, '/team': 1};

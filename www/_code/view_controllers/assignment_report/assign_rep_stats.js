@@ -221,11 +221,11 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo, $templa
             var page = pages[i];
             currentPageRecord.page = page.pageNo;
             currentPageRecord.title = page.title || '';
-            currentPageRecord.pos = ctx.pageCnt;
             if (scopeData.exportPageScore) {
                 currentPageRecord.score = page.score || 0;
                 currentPageRecord.maxScore = page.maxScore || 0;
                 ctx.pageCnt++;
+                currentPageRecord.pos = ctx.pageCnt;
                 ctx.pScoreRows.push(nlExporter.getCsvRow(_hPageScores, currentPageRecord));
             }
             if (scopeData.exportFeedback) {
