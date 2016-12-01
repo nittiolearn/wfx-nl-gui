@@ -177,10 +177,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup, nlExporter, nlResou
     
 	$scope.searchKeyHandler = function(keyevent) {
 		nl.timeout(function() {
-			console.log('searchKeyHandler', $scope.search, keyevent.which);
-			if(keyevent.which === 13) {
-				// TODO-MUNNI-NOW
-			}				
+		    messageMgr.updateSearchVisibility($scope.search);
 		});
 	};
 
@@ -416,7 +413,22 @@ function MessageManager(nl, nlRouter, nlServerApi, nlMarkup) {
     this.getTopicMsgId = function(topic) {
         if (topic && topic in this.msgTopics) return this.msgTopics[topic];
         return 0;
-    }
+    };
+
+    this.updateSearchVisibility = function(searchTerm) {
+        var searchTerm = searchTerm.toLowerCase();
+        for(var msgid in this.idToMsg) {
+            if (!searchTerm) {
+                msg.hideWhenSearched = false;
+            } else {
+                var msg = this.idToMsg[msgid];
+                var markup = msg.htmlMarkup.toLowerCase();
+                var author = msg.authorname.toLowerCase();
+                msg.hideWhenSearched = (markup.indexOf(searchTerm) < 0) &&
+                    (author.indexOf(searchTerm) < 0);
+            }
+        }
+    };
 
     function _updateMap(self, msgs, userInfo) {
         for (var i=0; i<msgs.length; i++) {

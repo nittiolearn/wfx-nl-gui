@@ -5,14 +5,14 @@
 <div class='nl-thin-scroll nl-full-withtoolbar nl-forum padding-small'>
 	<div ng-show='showSearchBox' class='nl-card-search row row-center padding-mid'>
 		<input class='col' ng-model='search'
-		       placeholder='Search text' ng-keypress='searchKeyHandler($event)'>
+		       placeholder='Search text' ng-keydown='searchKeyHandler($event)'>
 		<i class='sep4'></i>
 	</div>
 	<i class='sep4'></i>
     <nl-forum-input ng-show='inputDlg.newTopic' pscope='inputDlgScope'>
     </nl-forum-input>
     <div ng-repeat='msg in msgTree track by msg.id' ng-class='padding0'>
-        <div ng-show='!currentTopicId'
+        <div ng-show='!currentTopicId && !msg.hideWhenSearched'
              class='row row-wrap padding-small'>
             <div ng-show='mentorView'
                  class='col no-grow padding-small'>
@@ -34,9 +34,9 @@
 		    <div class='padding-mid nl-forum-header'
 		          ng-bind-html='getTopicName()'>
 		    </div>
-            	<nl-forum-msg msg='msg'></nl-forum-msg>
+            <nl-forum-msg msg='msg' ng-hide='msg.hideWhenSearched'></nl-forum-msg>
             <div ng-repeat='reply in msg.children track by reply.id'>
-                <nl-forum-msg msg='reply'></nl-forum-msg>
+                <nl-forum-msg msg='reply' ng-hide='reply.hideWhenSearched'></nl-forum-msg>
             </div>
         </div>
     </div>
