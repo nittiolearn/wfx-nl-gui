@@ -25,14 +25,23 @@ function($stateProvider, $urlRouterProvider) {
 
 //-------------------------------------------------------------------------------------------------
 var ScoExportCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 
-                     '$templateCache', 'nlProgressLog', 'nlExporter',
-function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog, nlExporter) {
+                     '$templateCache', 'nlProgressLog', 'nlExporter', 'nlCourse',
+function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog, nlExporter, nlCourse) {
     var pl = nlProgressLog.create($scope);
     pl.showLogDetails(true);
     var scoExporter = new ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter);
 
 	function _onPageEnter(userInfo) {
 		return nl.q(function(resolve, reject) {
+            var params = nl.location.search();
+            var courseid = ('courseid' in params) ? parseInt(params.courseid) : null;
+            if (courseid) {
+                nlCourse.courseGet(courseid, true).then(function() {
+                    resolve(true);
+                }, function() {
+                    resolve(false);
+                });
+            }
             nl.timeout(_scoExport);
             resolve(true);
 		});
@@ -59,8 +68,9 @@ function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog, nlExp
             lessonIds[i] = parseInt(lessonIds[i]);
         }
         $scope.started = true;
+        var lessonNames = ['TODO-MUNNI-NOW', '', 'XYZ'];
         scoExporter.export(lessonIds, $scope.data.version.id, $scope.data.title, 
-            $scope.data.mathjax, $scope);
+            $scope.data.mathjax, $scope, lessonNames);
     }
 
 }];
@@ -75,11 +85,12 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
     self.resources = {};
     self.zip = null;
     
-    this.export = function(lessonIds, version, moduleTitle, mathjax, scope) {
+    this.export = function(lessonIds, version, moduleTitle, mathjax, scope, lessonNames) {
         pl.clear();
         self.moduleTitle = moduleTitle;
         self.savedSize = 0;
         self.lessonIds = lessonIds;
+        self.lessonNames = lessonNames;
         self.version = version;
         self.mathjax = mathjax;
         _q(_downloadPackageZip)()
@@ -205,8 +216,12 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
         var lessons = [];
         var resources = [];
         
-        for(var lessonId in self.lessons) {
-            lessons.push({id: lessonId, name: self.lessons[lessonId].lesson.name});
+        for(var i=0; i<self.lessonIds.length; i++) {
+            var lessonId = self.lessonIds[i];
+            var name = self.lessonNames && self.lessonNames[i] 
+                ? self.lessonNames[i]
+                : self.lessons[lessonId].lesson.name;
+            lessons.push({id: lessonId, name: name});
         }
         
         var unusedResources = [];
@@ -230,12 +245,12 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
     
     function _getMetadataOrgItems(scope, lessons) {
         var ret = '';
-        for(var i in lessons) {
+        for(var i=0; i<lessons.length; i++) {
             var l = lessons[i];
             ret += nl.fmt2('<item identifier="{}.ITEM.{}"' +
             ' identifierref="{}.SCO.{}" isvisible="true">' +
             '<title>{}</title></item>\r\n',
-            scope.uuid, l.id, scope.uuid, l.id, l.name);
+            scope.uuid, i, scope.uuid, i, l.name);
         }
         return ret;
     }
@@ -255,13 +270,13 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
     function _getMetadataSCOs(scope, lessons) {
         var scormType = _attrNames[self.version]['scormType'];
         var ret = '';
-        for(var i in lessons) {
+        for(var i=0; i<lessons.length; i++) {
             var l = lessons[i];
             ret += nl.fmt2('<resource identifier="{}.SCO.{}"' + 
                 ' href="{}/{}.html" type="webcontent" {}="sco">' +
                 '<file href="{}/{}.html"/>' +
                 '<dependency identifierref="{}.RES"/></resource>\r\n',
-            scope.uuid, l.id, 
+            scope.uuid, i,
             scope.content_folder, l.id, 
             scormType,
             scope.content_folder, l.id,
@@ -314,12 +329,14 @@ function ParallelDownloadManager(nl, nlServerApi, pl, scoExporter, type, urls, r
         self.doneCnt = 0;
         self.errorCnt = 0;
         self.successCnt = 0;
+        self.ignoreCnt = 0;
         _fireDownloads(0, 0);
     }
     
     function _fireDownloads() {
         if (self.doneCnt == urls.length) {
-            var msg = nl.fmt2('Downloaded {}: {} success, {} fail', type, self.successCnt, self.errorCnt); 
+            var msg = nl.fmt2('Downloaded {}: {} success, {} fail, {} ignored', 
+                type, self.successCnt, self.errorCnt, self.ignoreCnt); 
             if (self.errorCnt > 0) {
                 pl.error(msg);
             } else {
@@ -333,7 +350,7 @@ function ParallelDownloadManager(nl, nlServerApi, pl, scoExporter, type, urls, r
             self.startPos++;
             self.runningCnt++;
             var downloadFn = (type == 'resources') ? _downloadResource : _downloadLesson;
-            downloadFn(urls[i], function() {
+            downloadFn(i, urls[i], function() {
                 scoExporter.setProgress(type, self.doneCnt, urls.length);
                 self.runningCnt--;
                 self.doneCnt++;
@@ -342,8 +359,14 @@ function ParallelDownloadManager(nl, nlServerApi, pl, scoExporter, type, urls, r
         }
     }
 
-    function _downloadLesson(lessonid, onDone) {
+    function _downloadLesson(pos, lessonid, onDone) {
         pl.debug('Downloading SCO content from server', 'id: '+ lessonid);
+        if (lessonid in scoExporter.lessons) {
+            pl.info('SCO content already downloaded', lessonid);
+            self.ignoreCnt++;
+            onDone();
+            return;
+        }
         return nlServerApi.scoExport({lessonid: lessonid, mathjax: scoExporter.mathjax})
         .then(function(result) {
             pl.info('Downloaded SCO content from server', result.html);
@@ -379,7 +402,7 @@ function ParallelDownloadManager(nl, nlServerApi, pl, scoExporter, type, urls, r
         });
     }
     
-    function _downloadResource(url, onDone) {
+    function _downloadResource(pos, url, onDone) {
         var urlTrunc =  url;
         url = scoExporter.resources[urlTrunc].urlFull || urlTrunc;
         pl.debug(nl.fmt2('Downloading resource {}', url));
