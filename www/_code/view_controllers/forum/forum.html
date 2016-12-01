@@ -1,10 +1,14 @@
 <div class='row row-center margin0 padding-small'>
-    <div class='col nl-forum-header' style='max-height: 30px; overflow:hidden;'
-          ng-bind-html='getTopicName()'>
-    </div>
+    <div class='col padding0'></div>
     <nl-forum-toolbar clas='col min-200'></nl-forum-toolbar>
 </div>
 <div class='nl-thin-scroll nl-full-withtoolbar nl-forum padding-small'>
+	<div ng-show='showSearchBox' class='nl-card-search row row-center padding-mid'>
+		<input class='col' ng-model='search'
+		       placeholder='Search text' ng-keypress='searchKeyHandler($event)'>
+		<i class='sep4'></i>
+	</div>
+	<i class='sep4'></i>
     <nl-forum-input ng-show='inputDlg.newTopic' pscope='inputDlgScope'>
     </nl-forum-input>
     <div ng-repeat='msg in msgTree track by msg.id' ng-class='padding0'>
@@ -27,7 +31,10 @@
                  class='col text-right fixed-200 padding-small nl-forum-ts'>{{msg.htmlUpdated}}</div>
         </div>
         <div ng-show='currentTopicId == msg.id'>
-            <nl-forum-msg msg='msg'></nl-forum-msg>
+		    <div class='padding-mid nl-forum-header'
+		          ng-bind-html='getTopicName()'>
+		    </div>
+            	<nl-forum-msg msg='msg'></nl-forum-msg>
             <div ng-repeat='reply in msg.children track by reply.id'>
                 <nl-forum-msg msg='reply'></nl-forum-msg>
             </div>

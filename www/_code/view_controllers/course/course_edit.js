@@ -8,8 +8,7 @@ function module_init() {
     angular.module('nl.course_edit', [])
     .service('nlCourseEditor', NlCourseEditorSrv)
     .directive('nlCourseEditor', CourseEditDirective('course_editor'))
-    .directive('nlCourseEditorFields', EditorFieldsDirective)
-    .directive('nlObjectToJson', ObjectToJsonDirective);
+    .directive('nlCourseEditorFields', EditorFieldsDirective);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -34,6 +33,7 @@ function(nl, nlDlg, nlCourse) {
     var _allModules = [];
     var _debug = null;
 	var publish = false;
+	var course = {};
 	
     this.init = function(_scope, _modeHandler) {
         $scope = _scope;
@@ -41,8 +41,9 @@ function(nl, nlDlg, nlCourse) {
 		var params = nl.location.search();
         if ('debug' in params) _debug = true;
 
-        var course = modeHandler.course;
+        course = modeHandler.course;
         $scope.editor = {
+        	jsonTempStore: {},
         	course_params: _courseParams,
         	course_paramsHelp: _courseParamsHelp,
             course_attributes: _getCourseAttributes(course),
@@ -67,9 +68,13 @@ function(nl, nlDlg, nlCourse) {
     	if (bClear) _allModules = [];
     	return _allModules;
     };
+    
+	this.initSelectedItem = function(cm) {
+		return _initEditorTempJson(cm);
+	};
 
-	this.validateInputs = function(){
-		return _validateInputs(modeHandler.course);		
+	this.validateInputs = function(cm) {
+		return _validateInputs(modeHandler.course, cm);		
 	};
 
     function _getCourseAttributes(course) {
@@ -96,12 +101,12 @@ function(nl, nlDlg, nlCourse) {
     ];
     
     var _courseAttrHelp = {
-    	grp_additionalAttrs: '<b class="fsh6 fblue2">Group additional attributes:</b> show/hide additional fields',
-    	planning: '<b class="fsh6 fblue2">Planning:</b> Start and end dates are considered only if schedule planning is enabled.',
-    	certificate: '<b class="fsh6 fblue2">Certificate:</b> JSON string of form: {"bg": "certificate_background_image_url"}',
-    	custtype: '<b class="fsh6 fblue2">Custtype:</b> You can define a custom type to help in searchability',
-    	lastId: '<b class="fsh6 fblue2">lastId:</b> Internally used ',
-    	modules: '<b class="fsh6 fblue2">Modules</b> Debug the overall module list'
+    	grp_additionalAttrs: {name: 'Advanced attributes', desc: 'You will be able to enable planning dates, configure certificates and other less used parameters under advanced attributes.'},
+    	planning: {desc: 'Start and end dates are considered only if schedule planning is enabled.'},
+    	certificate: {desc: 'JSON string of below form: <pre>{"bg": "certificate_background_image_url"}</pre>'},
+    	custtype: {desc: 'You can define a custom type to help in searchability.'},
+    	lastId: {desc: 'Internally used.'},
+    	modules: {desc: 'Debug the overall module list.'}
     };
     
     var _courseParams = [
@@ -111,9 +116,9 @@ function(nl, nlDlg, nlCourse) {
     ];
     
     var _courseParamsHelp = {
-    		name: '<b class="fsh6 fblue2">Name:</b> Mandatory - enter a name for your course.',
-    		icon: '<b class="fsh6 fblue2">Icon:</b> Mandatory - enter a URL for the course icon that will be displayed when this course is searched.',
-    		description: '<b class="fsh6 fblue2">Description:</b> Provide a short description which will help others in the group to understand the purpose of this course.'
+    		name: {desc: 'Mandatory - enter a name for your course.'},
+    		icon: {desc: 'Mandatory - enter a URL for the course icon that will be displayed when this course is searched.'},
+    		description: {desc: 'Provide a short description which will help others in the group to understand the purpose of this course.'}
     };
     
     var moduleAttrs = [
@@ -126,8 +131,8 @@ function(nl, nlDlg, nlCourse) {
         {name: 'start_date', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Start date', group: 'grp_depAttrs'},
         {name: 'planned_date', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Planned date', group: 'grp_depAttrs'},
         {name: 'grp_additionalAttrs', fields: ['module', 'lesson', 'link', 'info'], type: 'group', text: 'Show advanced attributes'},
-        {name: 'start_after', fields: ['lesson', 'link', 'info'], type: 'object', text: 'Start after', group: 'grp_additionalAttrs'},
-        {name: 'reopen_on_fail', fields: ['lesson'], type: 'object', text: 'Reopen on fail', group: 'grp_additionalAttrs'},
+        {name: 'start_after', fields: ['lesson', 'link', 'info'], type: 'object', contentType: 'object', text: 'Start after', group: 'grp_additionalAttrs'},
+        {name: 'reopen_on_fail', fields: ['lesson'], type: 'object', text: 'Reopen on fail', contentType: 'object',group: 'grp_additionalAttrs'},
         {name: 'icon', fields: ['module', 'lesson', 'link', 'info'], type: 'string', text: 'Module icon', group: 'grp_additionalAttrs'},
         {name: 'text', fields: ['module', 'lesson', 'link', 'info'], type: 'text', text: 'Description', group: 'grp_additionalAttrs'},
         {name: 'max_attempts', fields: ['lesson'], type: 'number', text: 'Maximum attempts', group: 'grp_additionalAttrs'},
@@ -139,25 +144,25 @@ function(nl, nlDlg, nlCourse) {
     ];
     
     var moduleAttrHelp = {
-    	name: '<b class="fsh6 fblue2">Name:</b> Name of the item to be displayed in the course tree.',
-    	type: '<b class="fsh6 fblue2">Type:</b> Each item could be a Folder (containing other items) or a Module (a learning module/quiz) or Information or a Link (internal URL like certificate or external URL to be launched from the course).',
-    	refid: '<b class="fsh6 fblue2">Module-id:</b> The id of the learning module/quiz to be launched. You could search for all approved modules by clicking on the search icon. Click on the link icon to preview the module.',
-    	action: '<b class="fsh6 fblue2">Action:</b> The action whose URL is used for the link. Click on the icon to view the link',
-    	urlParams: '<b class="fsh6 fblue2">Url parameters:</b> The urlParams to append to the URL (see Dashboard create/modify dialog for more information).',
-    	grp_depAttrs: '<b class="fsh6 fblue2">Group dependant Attributes:</b> show/hide planning and dependency related attributes',
-    	start_date: '<b class="fsh6 fblue2">Start date:</b> Earliest planned start date. Is applicable only if "planning" is set to true for the course.',
-    	planned_date: '<b class="fsh6 fblue2">Planned date:</b> Expected planned completion date. Is applicable only if "planning" is set to true for the course.',
-    	grp_additionalAttrs:'<b class="fsh6 fblue2">Group additional attributes:</b> show/hide additional fields',
-    	start_after: '<b class="fsh6 fblue2">Start after:</b> You could provide a list of items the current item is dependant on. Till the listed items are completed by a learner, the current item will be in locked state and cannot be viewed by the learner. Further you could define minimum/maximum scores to be achieved in earlier items before this item is unlocked. This attribute is a JSON string. The id used for module attribute below is the unique id of that item. Example: [{"module": "_id1", "min_score": 70}, {"module": "_id2", "min_score": 70, "max_score": 90"}]',
-    	reopen_on_fail: '<b class="fsh6 fblue2">Reopen on fail:</b> You could reopen a set of learning modules if the lerner failed in the quiz. To do this, you need to configure this attribute on the quiz module. You can list the items (refered by their unique id) which have to be reopened if the learner failed to acheive minimum pass score in the current module. This attribute is a JSON string representing an array of strings: each string is unque id of the item that should be re-opened. Example: ["_id1", "_id2"]',
-		icon: '<b class="fsh6 fblue2">Icon:</b> Icon to be displayed for this item in the course tree. If not provided, this is derived from the type. "quiz" is a predefined icon.',
-		text: '<b class="fsh6 fblue2">Text:</b> Provide a description which is shown in the content area / details popup when the element is clicked.',
-		max_attempts: '<b class="fsh6 fblue2">Maximum attempts:</b> Number of time the lerner can do this lesson. Only the learning data from the last attempt is considered. 0 means infinite. 1 is the default.',
-		hide_remarks: '<b class="fsh6 fblue2">Hide remarks:</b> By default the learner will be shown a text field where the learner can add remarks. This behavior can be disabled by checking this flag.',
-		autocomplete: '<b class="fsh6 fblue2">Auto complete:</b> If this flag is checked, the link is automatically marked completed when the learner views for the first time.',
-		parentId: '<b class="fsh6 fblue2">Parent-id:</b> Defines the unique id of the folder item under which the current module is located.',
-		id: '<b class="fsh6 fblue2">Unique-id:</b> Defines the unique id of the current item. This is automatically generated.',
-		totalItems: '<b class="fsh6 fblue2">Total items:</b> Displays the number of total modules the folders currently has.' 
+    	name: {desc: 'Name of the item to be displayed in the course tree.'},
+    	type: {desc: 'Each item could be a Folder (containing other items) or a Module (a learning module/quiz) or Information or a Link (internal URL like certificate or external URL to be launched from the course).'},
+    	refid: {desc: 'The id of the learning module/quiz to be launched. You could search for all approved modules by clicking on the search icon. Click on the link icon to preview the module.'},
+    	action: {desc: 'The action whose URL is used for the link. Click on the icon to view the link'},
+    	urlParams: {desc: 'The urlParams to append to the URL (see Dashboard create/modify dialog for more information).'},
+    	grp_depAttrs: {desc: 'Enabling this would display planning attributes such as "Start date" and "Planned date".'},
+    	start_date: {desc: 'Earliest planned start date. Is applicable only if "planning" is set to true for the course.'},
+    	planned_date: {desc: 'Expected planned completion date. Is applicable only if "planning" is set to true for the course.'},
+    	grp_additionalAttrs: {name: 'Advanced attributes', desc: 'Enabling this would display additional attributes depeneding on the selected "Element type" of the module.'},
+    	start_after: {desc: 'You could provide a list of items the current item is dependant on. Till the listed items are completed by a learner, the current item will be in locked state and cannot be viewed by the learner. Further you could define minimum/maximum scores to be achieved in earlier items before this item is unlocked. This attribute is a JSON string. The id used for module attribute below is the unique id of that item.<br> Example:<br> <div><pre>[{"module": "_id1", "min_score": 70}, {"module": "_id2", "min_score": 70, "max_score": 90"}]</pre></div>'},
+    	reopen_on_fail: {desc: 'You could reopen a set of learning modules if the lerner failed in the quiz. To do this, you need to configure this attribute on the quiz module. You can list the items (refered by their unique id) which have to be reopened if the learner failed to acheive minimum pass score in the current module. This attribute is a JSON string representing an array of strings: each string is unque id of the item that should be re-opened.<br> Example:<br></div><pre>["_id1", "_id2"]</pre></div>'},
+		icon: {desc: 'Icon to be displayed for this item in the course tree. If not provided, this is derived from the type. "quiz" is a predefined icon.'},
+		text: {desc: 'Provide a description which is shown in the content area / details popup when the element is clicked.'},
+		max_attempts: {desc: 'Number of time the lerner can do this lesson. Only the learning data from the last attempt is considered. 0 means infinite. 1 is the default.'},
+		hide_remarks: {name: 'Remarks', desc: 'By default the learner will be shown a text field where the learner can add remarks. This behavior can be disabled by checking this flag.'},
+		autocomplete: {desc: 'If this flag is checked, the link is automatically marked completed when the learner views for the first time.'},
+		parentId: {desc: 'Defines the unique id of the folder item under which the current module is located.'},
+		id: {desc: 'Defines the unique id of the current item. This is automatically generated.'},
+		totalItems: {desc: 'Displays the number of total modules the folders currently has.'} 
     };
     
     var allowedModuleAttrs = (function () {
@@ -166,8 +171,8 @@ function(nl, nlDlg, nlCourse) {
     		var attr = moduleAttrs[i];
     		for(var j=0;j< attr.fields.length; j++) {
     			var itemType = attr.fields[j];
-    			if (!(itemType in ret)) ret[itemType] = [];
-    			ret[itemType].push({name: attr.name, contentType: attr.contentType || 'string'});
+    			if (!(itemType in ret)) ret[itemType] = {};
+    			ret[itemType][attr.name] = {contentType: attr.contentType || 'string'};
     		}
     	}
     	return ret;
@@ -244,9 +249,9 @@ function(nl, nlDlg, nlCourse) {
 		}
 	}
 	
-	function _saveCourse(e, bPublish){
+	function _saveCourse(e, bPublish, cm){
 		publish = bPublish;
-	    if(!_validateInputs(modeHandler.course)) {
+	    if(!_validateInputs(modeHandler.course, cm)) {
 	        if(e) e.preventDefault();
 	        return;
 	    } else {
@@ -256,36 +261,79 @@ function(nl, nlDlg, nlCourse) {
 	}
 
     function _saveAfterValidateCourse(e, bPublish) {
-    	modeHandler.course.content.modules = [];
-    	for(var i=0; i<_allModules.length; i++) {
-    		modeHandler.course.content.modules.push(_validate(_allModules[i]));
+    	for(var i=0; i<modeHandler.course.content.modules.length; i++){
+    		modeHandler.course.content.modules.splice(i, 1, _addRequiredItems(modeHandler.course.content.modules[i]));
     	}
         var modifiedData = {
                         name: modeHandler.course.name, 
                         icon: modeHandler.course.icon, 
                         description: modeHandler.course.description,
-                        content: angular.toJson(modeHandler.course.content) 
+                        content: _objToJson(modeHandler.course.content) 
                     };
         if(modeHandler.course.id) modifiedData.courseid = modeHandler.course.id;
         modifiedData.publish = bPublish;
         _modifyAndUpdateToServer(modifiedData);    
     }
     
-    function _validate(cm) {
+	function _objToJson(obj) {
+		if (!obj) return '';
+		return angular.toJson(obj, 2);
+	}
+	
+	function _jsonToObj(json) {
+		if (!json) return undefined;
+		return angular.fromJson(json);
+	}
+
+	function _initEditorTempJson(cm) {
+		$scope.editor.jsonTempStore = {};
+    	if (!cm || cm.id == '_root') {
+	         $scope.editor.jsonTempStore['certificate'] = _objToJson(cm.certificate);
+	         return;
+    	}
+    	
+    	var allowedAttributes = allowedModuleAttrs[cm.type] || {};
+    	var attrs = Object.keys(cm);
+    	for(var i=0; i<attrs.length; i++) {
+    		var attr = attrs[i];
+    		var allowedAttr = allowedAttributes[attr];
+            if (allowedAttr && allowedAttr.contentType != 'object') continue;
+	    	$scope.editor.jsonTempStore[attr] = _objToJson(cm[attr]);
+	    }
+    }
+    
+    function _updateObjectFromEditor(cm) {
+        var allowedAttributes = allowedModuleAttrs[cm.type] || {};
+    	var attrs = Object.keys(allowedAttributes);
+    	for(var i=0; i<attrs.length; i++) {
+    		var attr = attrs[i];
+    		if (!(attr in allowedAttributes)) continue;
+    		var allowedAttr = allowedAttributes[attr];
+            if (allowedAttr.contentType == 'integer') {
+	            cm[attr] = parseInt(cm[attr]);
+            } else if (allowedAttr.contentType == 'object'){
+            	cm[attr] = _jsonToObj($scope.editor.jsonTempStore[attr]);
+            }
+    	}
+    	for(var i=0; i< _allModules.length; i++){
+    		if(cm.id == _allModules[i].id) modeHandler.course.content.modules.splice(i, 1, cm);
+    	}
+    }
+	
+    function _addRequiredItems(cm) {
         var allowedAttributes = allowedModuleAttrs[cm.type] || [];
+    	var attrs = Object.keys(allowedAttributes);
         var editedModule = {};
-        for(var i=0; i<allowedAttributes.length; i++){
-            var attr = allowedAttributes[i].name;
-            var attrType = allowedAttributes[i].contentType;
+        for(var i=0; i<attrs.length; i++){
+    		var attr = attrs[i];
+    		if (!(attr in allowedAttributes)) continue;
+    		var allowedAttr = allowedAttributes[attr];
             if(cm[attr] === null || cm[attr] === undefined || cm[attr] === '') continue;
             editedModule[attr] = cm[attr];
-            if (allowedAttributes[i].contentType == 'integer') {
-	            editedModule[attr] = parseInt(editedModule[attr]);
-            }
         }
         return editedModule;
     }
-    
+	
     function _searchLesson(){
     	nlDlg.showLoadingScreen();
         nlCourse.getApprovedList().then(function(data) {
@@ -294,7 +342,15 @@ function(nl, nlDlg, nlCourse) {
         });    	
     };
 
-    function _validateInputs(data) {
+    function _validateInputs(data, cm) {
+    	if (!data.content.modules) return _validateFail(data, 'content', '"modules" field is expected in content');
+    	if (cm && cm.id != '_root') {
+    		_updateObjectFromEditor(cm);
+    	} else {
+	        data.certificate = _jsonToObj($scope.editor.jsonTempStore['certificate']);
+    	}
+
+    	if (cm && cm.id != '_root') return _validateModule(data, cm);
         if(!data.name) return _validateFail(data, 'name', 'Course name is mandatory');
         if(!data.icon) return _validateFail(data, 'icon', 'Course icon URL is mandatory');
         if(!data.content) return _validateFail(data, 'content', 'Course content is mandatory');
@@ -304,39 +360,30 @@ function(nl, nlDlg, nlCourse) {
     }
 
     function _validateContent(data) {
-    	if (!data.content.modules) return _validateFail(data, 'content', 
-            '"modules" field is expected in content');
-        var modules = [];
-    	for(var i=0; i<_allModules.length; i++) {
-    		modules.push(_validate(_allModules[i]));
-    	}
+    	var modules = data.content.modules;
         if (modules.length < 1) return _validateFail(data, 'content', 
             'Atleast one course module object is expected in the content');
 
-        var uniqueIds = {};
         for(var i=0; i<modules.length; i++){
             var module = modules[i];
-            if (!module.id) return _validateModuleFail(data, module, '"id" is mandatory');
-            if (!module.name) return _validateModuleFail(data, module, '"name" is mandatory');
-            if (!module.type) return _validateModuleFail(data, module, '"type" is mandatory');
-            if (module.id in uniqueIds) return _validateModuleFail(data, module, '"id" has to be unique');
-            uniqueIds[module.id] = module.type;
-            var parentId = _getParentId(module.id);
-            if (parentId) {
-                if (!(parentId in uniqueIds)) return _validateModuleFail(data, module, 'parent module needs to be above this module');
-                if (uniqueIds[parentId] != 'module') return _validateModuleFail(data, module, 'parent needs to be of type "module"');
-            }
-
-            if (!_validateModuleType(data, module)) return false;
-            if (!_validateModulePlan(data, module)) return false;
-
-            if (!_validateLessonModule(data, module)) return false;
-            if (!_validateLinkModule(data, module)) return false;
-            if (!_validateInfoModule(data, module)) return false;
+            if (!_validateModule(data, module)) return false;
         }
         return true;
     }
 
+    function _validateModule(data, module) {
+        if (!module.id) return _validateModuleFail(data, module, '"id" is mandatory');
+        if (!module.name) return _validateModuleFail(data, module, '"name" is mandatory');
+        if (!module.type) return _validateModuleFail(data, module, '"type" is mandatory');
+
+        if (!_validateModuleType(data, module)) return false;
+        if (!_validateModulePlan(data, module)) return false;
+        if (!_validateLessonModule(data, module)) return false;
+        if (!_validateLinkModule(data, module)) return false;
+        if (!_validateInfoModule(data, module)) return false;
+        return true;
+    }
+    
     function _validateModuleType(data, module) {
     	var moduleTypes = {'module': true, 'lesson': true, 'link': true, 'info':true};
     	if(module.type in moduleTypes) return true;
@@ -379,8 +426,6 @@ function(nl, nlDlg, nlCourse) {
     function _validateModuleFail(data, module, errMsg) {
     	_showContentCorrectionDlg(data, module, errMsg);
     	return false;
-    	// return nlDlg.setFieldError(data, 'content',
-        	// nl.t('{}: module - {}', nl.t(errMsg), angular.toJson(module)));
     }
 
     function _validateFail(data, attr, errMsg) {
@@ -389,16 +434,12 @@ function(nl, nlDlg, nlCourse) {
     }
 
 	function _showContentCorrectionDlg(data, module, errMsg){
-    	modeHandler.course.content.modules = [];
-    	for(var i=0; i<_allModules.length; i++) {
-    		modeHandler.course.content.modules.push(_validate(_allModules[i]));
-    	}
 		var _contentCorrectionDlg = nlDlg.create($scope);
     		_contentCorrectionDlg.setCssClass('nl-height-max nl-width-max');
 			_contentCorrectionDlg.scope.data = {};
-			_contentCorrectionDlg.scope.data.title = nl.t('Content dialog');	
-			_contentCorrectionDlg.scope.data.content =  angular.toJson(modeHandler.course.content, 2);
-			_contentCorrectionDlg.scope.data.errMsg = nl.t('{}: module - {}', nl.t(errMsg), angular.toJson(module));
+			_contentCorrectionDlg.scope.data.title = nl.t('Warning');	
+			_contentCorrectionDlg.scope.data.content =  _objToJson(modeHandler.course.content);
+			_contentCorrectionDlg.scope.data.errMsg = nl.t('{}: module - {}', nl.t(errMsg), _objToJson(module));
 		var closeButton = {text : nl.t('Close')};
 		_contentCorrectionDlg.show('view_controllers/course/course_content_correction_dlg.html', [], closeButton, false);
 	}
@@ -414,8 +455,8 @@ function(nl, nlDlg, nlCourse) {
 		_selectDlg.show('view_controllers/course/course_lesson_select.html', [], closeButton, false);
     };
     
-    function _onLaunch($event, value){
-    	if(!_validateInputs(modeHandler.course)) {
+    function _onLaunch($event, cm){
+    	if(!_validateInputs(modeHandler.course, cm)) {
     		return;
     	} else {
 	    	$scope.editorCb.launchModule($event, value);			
@@ -447,31 +488,11 @@ function(nl, nlDlg, nlCourse) {
     
     function _modifyAndUpdateToServer(modifiedData){
         nlDlg.showLoadingScreen();
-        console.log('1');
         nlCourse.courseModify(modifiedData).then(function(course) {
             nlDlg.hideLoadingScreen();
         });
     }
 }];
-
-//-------------------------------------------------------------------------------------------------
-function ObjectToJsonDirective() {
-    return {
-        restrict: 'A',
-        require: 'ngModel',
-        link: function($scope, elem, attr, ngModel) {            
-          function into(input) {
-            return angular.fromJson(input, 1);
-          }
-          function out(data) {
-            return angular.toJson(data);
-          }
-          ngModel.$parsers.push(into);
-          ngModel.$formatters.push(out);
-
-        }
-    };
-};
 
 //-------------------------------------------------------------------------------------------------
 function CourseEditDirective(template) {

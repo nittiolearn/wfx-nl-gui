@@ -213,7 +213,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
     var _userInfo = null;
     $scope.MODES = MODES;
     var folderStats = new FolderStats($scope);
-    $scope.ext = new ScopeExtensions(nl, modeHandler, nlContainer, folderStats);
+    $scope.ext = new ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, folderStats);
 
     function _onPageEnter(userInfo) {
         _userInfo = userInfo;
@@ -376,6 +376,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
     
     $scope.collapseAll = function() {
         function _impl() {
+	        if($scope.ext.isEditorMode()){
+		        if(!nlCourseEditor.validateInputs($scope.ext.item)) return;    	
+	        }
             treeList.collapseAll();
             _showVisible();
             $scope.ext.setCurrentItem(treeList.getRootItem());
@@ -501,24 +504,21 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
         e.stopImmediatePropagation();
         e.preventDefault();
         if($scope.ext.isEditorMode()){
-	        if(!nlCourseEditor.validateInputs()) return;    	
+	        if(!nlCourseEditor.validateInputs($scope.ext.item)) return;    	
         }
         function _impl() {
             $scope.ext.setCurrentItem(cm);
             if(cm.type === 'module') {
                 treeList.toggleItem(cm);
                 _showVisible();
-            } else {
-                if (!$scope.expandedView) _popout(true);
-                if($scope.ext.isEditorMode()) {
-                	$scope.onIconClick(e, cm);                	
-                } else {
-	                var openModule = $scope.ext.isStaticMode() || (cm.state.status == 'delayed') || 
-	                    (cm.state.status == 'pending') || (cm.state.status == 'started');
-	                	openModule = openModule && (cm.type == 'lesson' || cm.type == 'link');
-	                if (openModule) _onLaunchImpl(cm);            	                	
-                }
+                return;
             }
+            if (!$scope.expandedView) _popout(true);
+            if($scope.ext.isEditorMode()) return;
+            var openModule = $scope.ext.isStaticMode() || (cm.state.status == 'delayed') || 
+                (cm.state.status == 'pending') || (cm.state.status == 'started');
+        	openModule = openModule && (cm.type == 'lesson' || cm.type == 'link');
+            if (openModule) _onLaunchImpl(cm);            	                	
         }
         _confirmIframeClose(null, _impl);
     };
@@ -803,7 +803,7 @@ function FolderStats($scope) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function ScopeExtensions(nl, modeHandler, nlContainer, folderStats) {
+function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, folderStats) {
     
     this.item = null;
     this.stats = null;
@@ -812,6 +812,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, folderStats) {
 	
     this.setCurrentItem = function(cm) {
         this.item = cm;
+		if (this.isEditorMode()) nlCourseEditor.initSelectedItem(this.item);
         this.stats = (cm.type == 'module') ? folderStats.get(cm.id) : null;
         var statusinfo = modeHandler.course.statusinfo;
         this.data.remarks = (statusinfo && cm.id in statusinfo) ? statusinfo[cm.id].remarks || '' : '';
