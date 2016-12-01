@@ -33,7 +33,6 @@ function(nl, nlDlg, nlCourse) {
     var _allModules = [];
     var _debug = null;
 	var publish = false;
-	var course = {};
 	
     this.init = function(_scope, _modeHandler) {
         $scope = _scope;
@@ -41,16 +40,15 @@ function(nl, nlDlg, nlCourse) {
 		var params = nl.location.search();
         if ('debug' in params) _debug = true;
 
-        course = modeHandler.course;
         $scope.editor = {
         	jsonTempStore: {},
         	course_params: _courseParams,
         	course_paramsHelp: _courseParamsHelp,
-            course_attributes: _getCourseAttributes(course),
+            course_attributes: _getCourseAttributes(modeHandler.course),
             course_attrsHelp: _courseAttrHelp,
             module_attributes: moduleAttrs,
             module_attrHelp: moduleAttrHelp,
-            course: course,
+            course: modeHandler.course,
             debug: _debug,
             typeNames: {'module': 'Folder', 'lesson': 'Module', 'link': 'Link', 'info': 'Information'},
             showHelp: false,
@@ -135,7 +133,7 @@ function(nl, nlDlg, nlCourse) {
         {name: 'reopen_on_fail', fields: ['lesson'], type: 'object', text: 'Reopen on fail', contentType: 'object',group: 'grp_additionalAttrs'},
         {name: 'icon', fields: ['module', 'lesson', 'link', 'info'], type: 'string', text: 'Module icon', group: 'grp_additionalAttrs'},
         {name: 'text', fields: ['module', 'lesson', 'link', 'info'], type: 'text', text: 'Description', group: 'grp_additionalAttrs'},
-        {name: 'max_attempts', fields: ['lesson'], type: 'number', text: 'Maximum attempts', group: 'grp_additionalAttrs'},
+        {name: 'maxAttempts', fields: ['lesson'], type: 'number', text: 'Maximum attempts', group: 'grp_additionalAttrs'},
         {name: 'hide_remarks', fields: ['info', 'link'], type: 'boolean', text: 'Disable remarks', group: 'grp_additionalAttrs'},
         {name: 'autocomplete', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
         {name: 'parentId', fields: ['module', 'lesson', 'link', 'info'], type: 'readonly', debug: true, text: 'Parent ID', group: 'grp_additionalAttrs', readonly: true}, 
@@ -157,7 +155,7 @@ function(nl, nlDlg, nlCourse) {
     	reopen_on_fail: {desc: 'You could reopen a set of learning modules if the lerner failed in the quiz. To do this, you need to configure this attribute on the quiz module. You can list the items (refered by their unique id) which have to be reopened if the learner failed to acheive minimum pass score in the current module. This attribute is a JSON string representing an array of strings: each string is unque id of the item that should be re-opened.<br> Example:<br></div><pre>["_id1", "_id2"]</pre></div>'},
 		icon: {desc: 'Icon to be displayed for this item in the course tree. If not provided, this is derived from the type. "quiz" is a predefined icon.'},
 		text: {desc: 'Provide a description which is shown in the content area / details popup when the element is clicked.'},
-		max_attempts: {desc: 'Number of time the lerner can do this lesson. Only the learning data from the last attempt is considered. 0 means infinite. 1 is the default.'},
+		maxAttempts: {desc: 'Number of time the lerner can do this lesson. Only the learning data from the last attempt is considered. 0 means infinite. 1 is the default.'},
 		hide_remarks: {name: 'Remarks', desc: 'By default the learner will be shown a text field where the learner can add remarks. This behavior can be disabled by checking this flag.'},
 		autocomplete: {desc: 'If this flag is checked, the link is automatically marked completed when the learner views for the first time.'},
 		parentId: {desc: 'Defines the unique id of the folder item under which the current module is located.'},
@@ -172,7 +170,8 @@ function(nl, nlDlg, nlCourse) {
     		for(var j=0;j< attr.fields.length; j++) {
     			var itemType = attr.fields[j];
     			if (!(itemType in ret)) ret[itemType] = {};
-    			ret[itemType][attr.name] = {contentType: attr.contentType || 'string'};
+    			ret[itemType][attr.name] = {contentType: attr.contentType || 'string', 
+    			 text: attr.text || attr.name, name: attr.name};
     		}
     	}
     	return ret;
@@ -180,16 +179,20 @@ function(nl, nlDlg, nlCourse) {
     
     
     function _addModule(e, cm) {
+        if(!_validateInputs(modeHandler.course, cm)) {
+            if(e) e.preventDefault();
+            return;
+        }
     	var courseContent = modeHandler.course.content;
     	if (!('lastId' in courseContent)) courseContent.lastId = 0;
     	courseContent.lastId++;
 
-        var newModule = {name: nl.t('Folder {}', courseContent.lastId), type: 'module', id: '_id' + courseContent.lastId};
+        var newModule = {name: nl.t('Information {}', courseContent.lastId), type: 'info', id: '_id' + courseContent.lastId};
         if (!cm.parentId) {
         	// Current item is the root element: add as child of root element and at the top
         	newModule.parentId = '_root';
         	_allModules.splice(0, 0, newModule);
-        } else if (cm.isOpen) {
+        } else if (cm.type == 'module' && cm.isOpen) {
         	// Current item is a folder and is open: add as first child of folder
         	newModule.parentId = cm.id;
         	var pos = _findPos(cm);
@@ -261,8 +264,10 @@ function(nl, nlDlg, nlCourse) {
 	}
 
     function _saveAfterValidateCourse(e, bPublish) {
-    	for(var i=0; i<modeHandler.course.content.modules.length; i++){
-    		modeHandler.course.content.modules.splice(i, 1, _addRequiredItems(modeHandler.course.content.modules[i]));
+        modeHandler.course.content.modules = [];
+    	for(var i=0; i<_allModules.length; i++){
+    	    var newModule = _getSavableModuleAttrs(_allModules[i]);
+    		modeHandler.course.content.modules.push(newModule);
     	}
         var modifiedData = {
                         name: modeHandler.course.name, 
@@ -280,15 +285,23 @@ function(nl, nlDlg, nlCourse) {
 		return angular.toJson(obj, 2);
 	}
 	
-	function _jsonToObj(json) {
+	function _jsonToObj(json, status) {
+	    status.error = null;
 		if (!json) return undefined;
-		return angular.fromJson(json);
+		var ret = undefined;
+		try {
+		    ret = angular.fromJson(json);
+		} catch(e) {
+		    status.error = e;
+		    return undefined;
+		}
+		return ret;
 	}
 
 	function _initEditorTempJson(cm) {
 		$scope.editor.jsonTempStore = {};
     	if (!cm || cm.id == '_root') {
-	         $scope.editor.jsonTempStore['certificate'] = _objToJson(cm.certificate);
+	         $scope.editor.jsonTempStore['certificate'] = _objToJson(modeHandler.course.content.certificate);
 	         return;
     	}
     	
@@ -302,7 +315,7 @@ function(nl, nlDlg, nlCourse) {
 	    }
     }
     
-    function _updateObjectFromEditor(cm) {
+    function _updateObjectFromEditor(cm, errorLocation) {
         var allowedAttributes = allowedModuleAttrs[cm.type] || {};
     	var attrs = Object.keys(allowedAttributes);
     	for(var i=0; i<attrs.length; i++) {
@@ -310,17 +323,27 @@ function(nl, nlDlg, nlCourse) {
     		if (!(attr in allowedAttributes)) continue;
     		var allowedAttr = allowedAttributes[attr];
             if (allowedAttr.contentType == 'integer') {
-	            cm[attr] = parseInt(cm[attr]);
-            } else if (allowedAttr.contentType == 'object'){
-            	cm[attr] = _jsonToObj($scope.editor.jsonTempStore[attr]);
+                try {
+                    cm[attr] = parseInt(cm[attr]);
+                } catch (e) {
+                    errorLocation.title = allowedAttr.text;
+                    errorLocation.template = nl.t('Please enter a valid value for {}', allowedAttr.text);
+                    return false;
+                }
+            } else if (allowedAttr.contentType == 'object') {
+                var status = {};
+            	cm[attr] = _jsonToObj($scope.editor.jsonTempStore[attr], status);
+            	if (status.error !== null) {
+                    errorLocation.title = allowedAttr.text;
+                    errorLocation.template = nl.t('Please enter a valid JSON string for {}', allowedAttr.text);
+            	    return false;
+            	}
             }
     	}
-    	for(var i=0; i< _allModules.length; i++){
-    		if(cm.id == _allModules[i].id) modeHandler.course.content.modules.splice(i, 1, cm);
-    	}
+    	return true;
     }
 	
-    function _addRequiredItems(cm) {
+    function _getSavableModuleAttrs(cm) {
         var allowedAttributes = allowedModuleAttrs[cm.type] || [];
     	var attrs = Object.keys(allowedAttributes);
         var editedModule = {};
@@ -343,76 +366,92 @@ function(nl, nlDlg, nlCourse) {
     };
 
     function _validateInputs(data, cm) {
-    	if (!data.content.modules) return _validateFail(data, 'content', '"modules" field is expected in content');
+        var errorLocation = {};
+        var ret = _validateInputsImpl(data, cm, errorLocation);
+        if (!ret) {
+            nlDlg.popupAlert({title: nl.t('Error: {}', errorLocation.title), template:errorLocation.template});
+            // TODO-MUNNI-NOW: process the error location
+        }
+        return ret;
+    }
+    
+    function _validateInputsImpl(data, cm, errorLocation) {
+        if(!data.content) return _validateFail(errorLocation, 'Content', 'Course content is mandatory');
+    	if (!data.content.modules) return _validateFail(errorLocation, 'Content', '"modules" field is expected in content');
+
     	if (cm && cm.id != '_root') {
-    		_updateObjectFromEditor(cm);
+            if (!_updateObjectFromEditor(cm, errorLocation)) return false;
     	} else {
-	        data.certificate = _jsonToObj($scope.editor.jsonTempStore['certificate']);
+            var status = {};
+	        data.content.certificate = _jsonToObj($scope.editor.jsonTempStore['certificate'], status);
+            if (status.error !== null) {
+                errorLocation.title = 'Certificate configuration';
+                errorLocation.template = nl.t('Please enter a valid JSON string for certificate configuration');
+                return false;
+            }
     	}
 
-    	if (cm && cm.id != '_root') return _validateModule(data, cm);
-        if(!data.name) return _validateFail(data, 'name', 'Course name is mandatory');
-        if(!data.icon) return _validateFail(data, 'icon', 'Course icon URL is mandatory');
-        if(!data.content) return _validateFail(data, 'content', 'Course content is mandatory');
-
-        if(!_validateContent(data)) return false;            
+    	if (cm && cm.id != '_root') return _validateModule(data, cm, errorLocation);
+        if(!data.name) return _validateFail(errorLocation, 'Name', 'Course name is mandatory');
+        if(!data.icon) return _validateFail(errorLocation, 'Icon', 'Course icon URL is mandatory');
+        if(!_validateContent(data, errorLocation)) return false;            
         return true;
     }
 
-    function _validateContent(data) {
+    function _validateContent(data, errorLocation) {
     	var modules = data.content.modules;
-        if (modules.length < 1) return _validateFail(data, 'content', 
+        if (modules.length < 1) return _validateFail(errorLocation, 'Error', 
             'Atleast one course module object is expected in the content');
 
         for(var i=0; i<modules.length; i++){
             var module = modules[i];
-            if (!_validateModule(data, module)) return false;
+            if (!_validateModule(data, module, errorLocation)) return false;
         }
         return true;
     }
 
-    function _validateModule(data, module) {
-        if (!module.id) return _validateModuleFail(data, module, '"id" is mandatory');
-        if (!module.name) return _validateModuleFail(data, module, '"name" is mandatory');
-        if (!module.type) return _validateModuleFail(data, module, '"type" is mandatory');
+    function _validateModule(data, module, errorLocation) {
+        if (!module.id) return _validateFail(errorLocation, 'Unique-id', 'Unique-id is mandatory', module);
+        if (!module.name) return _validateFail(errorLocation, 'Name', 'Name is mandatory', module);
+        if (!module.type) return _validateFail(errorLocation, 'Element type', 'Element type is mandatory', module);
 
-        if (!_validateModuleType(data, module)) return false;
-        if (!_validateModulePlan(data, module)) return false;
-        if (!_validateLessonModule(data, module)) return false;
-        if (!_validateLinkModule(data, module)) return false;
-        if (!_validateInfoModule(data, module)) return false;
+        if (!_validateModuleType(errorLocation, module)) return false;
+        if (!_validateModuleDate(errorLocation, module, 'planned_date')) return false;
+        if (!_validateModuleDate(errorLocation, module, 'start_date')) return false;
+        if (!_validateLessonModule(errorLocation, module)) return false;
+        if (!_validateLinkModule(errorLocation, module)) return false;
+        if (!_validateInfoModule(errorLocation, module)) return false;
         return true;
     }
     
-    function _validateModuleType(data, module) {
-    	var moduleTypes = {'module': true, 'lesson': true, 'link': true, 'info':true};
-    	if(module.type in moduleTypes) return true;
-    	var msg = '"type" has to be one of [' + Object.keys(moduleTypes).toString() + ']';
-        return _validateModuleFail(data, module, msg);
+    function _validateModuleType(errorLocation, module) {
+    	if(module.type in allowedModuleAttrs) return true;
+    	var msg = 'Element type is not valid';
+        return _validateFail(errorLocation, 'Element type', msg, module);
     }
 
-    function _validateModulePlan(data, module) {
-    	if (!module.planned_date) return true;
-    	var d = nl.fmt.json2Date(module.planned_date);
+    function _validateModuleDate(errorLocation, module, attr) {
+    	if (!module[attr]) return true;
+    	var d = nl.fmt.json2Date(module[attr]);
         if (!isNaN(d.valueOf())) return true;
-    	return _validateModuleFail(data, module, 'Incorrect planned date: "YYYY-MM-DD" format expected');
+    	return _validateFail(errorLocation, attr, nl.t('Incorrect {}', attr), module);
     }
     
-    function _validateLessonModule(data, module) {
+    function _validateLessonModule(errorLocation, module) {
     	if(module.type != 'lesson') return true;
-        if(!module.refid) return _validateModuleFail(data, module, '"refid" is mandatory for "type": "lesson"');
-        if(!angular.isNumber(module.refid)) return _validateModuleFail(data, module, '"refid" should be a number - not a string');
+        if(!module.refid) return _validateFail(errorLocation, 'Module-id', 'Module-id is mandatory', module);
+        if(!angular.isNumber(module.refid)) return _validateFail(errorLocation, 'Module-id', 'Module-id seems incorrect', module);
         return true;
     }
 
-    function _validateLinkModule(data, module) {
+    function _validateLinkModule(errorLocation, module) {
     	if(module.type != 'link') return true;
-        if(!module.action) return _validateModuleFail(data, module, '"action" is mandatory for "type": "link"');
-        if(!module.urlParams) return _validateModuleFail(data, module, '"urlParams" is mandatory for "type": "urlParams"');
+        if(!module.action) return _validateFail(errorLocation, 'Action', 'Action is mandatory', module);
+        if(!module.urlParams) return _validateFail(errorLocation, 'Url-Params', 'Url-Params is mandatory', module);
         return true;
     }
     
-    function _validateInfoModule(data, module) {
+    function _validateInfoModule(errorLocation, module) {
     	if(module.type != 'info') return true;
         return true;
     }
@@ -423,16 +462,16 @@ function(nl, nlDlg, nlCourse) {
         return parents.join('.');
     }
     
-    function _validateModuleFail(data, module, errMsg) {
-    	_showContentCorrectionDlg(data, module, errMsg);
+    function _validateFail(errorLocation, attr, errMsg, cm) {
+        errorLocation.title = attr;
+        errorLocation.template = nl.fmt2('<p><b>Error:</b> {}</p>', errMsg);
+        if (cm) {
+            errorLocation.template += nl.fmt2('<p><b>Item:</b> {}</p>', cm.name);
+        }
     	return false;
     }
 
-    function _validateFail(data, attr, errMsg) {
-    	nlDlg.popupAlert({title: attr, template:nl.t(errMsg)});
-    	return false;
-    }
-
+    // TODO-MUNNI: Remove later
 	function _showContentCorrectionDlg(data, module, errMsg){
 		var _contentCorrectionDlg = nlDlg.create($scope);
     		_contentCorrectionDlg.setCssClass('nl-height-max nl-width-max');
