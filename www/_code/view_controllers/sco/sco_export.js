@@ -25,8 +25,8 @@ function($stateProvider, $urlRouterProvider) {
 
 //-------------------------------------------------------------------------------------------------
 var ScoExportCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 
-                     '$templateCache', 'nlProgressLog', 'nlExporter', 'nlCourse',
-function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog, nlExporter, nlCourse) {
+                     '$templateCache', 'nlProgressLog', 'nlExporter', 'nlCourse', 'nlDlg',
+function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog, nlExporter, nlCourse, nlDlg) {
     var pl = nlProgressLog.create($scope);
     pl.showLogDetails(true);
     var scoExporter = new ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter);
@@ -34,41 +34,75 @@ function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog, nlExp
 	function _onPageEnter(userInfo) {
 		return nl.q(function(resolve, reject) {
             var params = nl.location.search();
-            var courseid = ('courseid' in params) ? parseInt(params.courseid) : null;
-            if (courseid) {
-                nlCourse.courseGet(courseid, true).then(function() {
-                    resolve(true);
-                }, function() {
-                    resolve(false);
+            var data = {courseModules: {names: [], ids: []}, title: 'Nittio Learn SCORM Module'};
+            data.lessonid = ('lessonid' in params) ? params.lessonid : '';
+            data.courseid = ('courseid' in params) ? parseInt(params.courseid) : null;
+            if (!data.courseid) {
+                nl.timeout(function() {
+                    _scoExport(data);
                 });
+                resolve(true);
+                return;
             }
-            nl.timeout(_scoExport);
-            resolve(true);
+            nlCourse.courseGet(data.courseid, true).then(function(course) {
+                data.title = course.name;
+                if(!_getCourseModules(course, data.courseModules)) {
+                    nlDlg.popupAlert({title: 'Error', template: 'Error opening the course'})
+                    .then(function() {
+                        resolve(false);
+                    });
+                    return;
+                }
+                if(data.courseModules.ids.length == 0) {
+                    nlDlg.popupAlert({title: 'Error', template: 'No modules found in the course'})
+                    .then(function() {
+                        resolve(false);
+                    });
+                    return;
+                }
+                _scoExport(data);
+                resolve(true);
+            }, function() {
+                resolve(false);
+            });
 		});
 	}
 	nlRouter.initContoller($scope, '', _onPageEnter);
 
-    function _scoExport() {
-        var params = nl.location.search();
-        var lessonid = ('lessonid' in params) ? params.lessonid : '';
+    function _getCourseModules(course, courseModules) {
+        if (!course || !course.content || !course.content.modules) return false;
+        var modules = course.content.modules;
+        for(var i=0; i<modules.length; i++) {
+            var cm = modules[i];
+            if (cm.type != 'lesson') continue;
+            courseModules.ids.push(cm.refid);
+            courseModules.names.push(cm.name);
+        }
+        return true;
+    }
+    
+    function _scoExport(data) {
         $scope.options = {version: [{id: '1.2', name: 'SCORM 1.2'}, {id: '2004 4th Edition', name: 'SCORM 2004 4th Edition'}]};
         $scope.error = {};
-        $scope.data = {lessonIds: lessonid, version: {id: '2004 4th Edition'},
-            title: 'Nittio Learn SCORM Module', mathjax: true};
+        $scope.data = {lessonIds: data.lessonid, version: {id: '2004 4th Edition'},
+            title: data.title, mathjax: true, courseid: data.courseid, courseModules: data.courseModules};
     }
     
     $scope.onExport = function() {
-        var lessonIds = $scope.data.lessonIds.split(',');
-        if (lessonIds.length == 0) {
-            $scope.error.lessonIds = 'Please enter atleast one module id for export';
-            return;
+        var lessonNames = $scope.data.courseid ? $scope.data.courseModules.names : null;
+        var lessonIds = $scope.data.courseid ? $scope.data.courseModules.ids : null;
+        if (!lessonIds) {
+            var lessonIds = $scope.data.lessonIds.split(',');
+            if (lessonIds.length == 0) {
+                $scope.error.lessonIds = 'Please enter atleast one module id for export';
+                return;
+            }
+            for(var i=0; i<lessonIds.length; i++) {
+                lessonIds[i] = parseInt(lessonIds[i]);
+            }
         }
         
-        for(var i in lessonIds) {
-            lessonIds[i] = parseInt(lessonIds[i]);
-        }
         $scope.started = true;
-        var lessonNames = ['TODO-MUNNI-NOW', '', 'XYZ'];
         scoExporter.export(lessonIds, $scope.data.version.id, $scope.data.title, 
             $scope.data.mathjax, $scope, lessonNames);
     }

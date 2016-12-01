@@ -7,9 +7,16 @@
     <div class='nl-dlg-field-value nl-forum'>
         <nl-select fieldmodel='version'></nl-select>
     </div>
-    <div class='nl-dlg-field-name'>Enter comma seperated list of module ids to export</div>
-    <div class='nl-dlg-field-value nl-forum'>
-        <nl-textarea fieldmodel='lessonIds'></nl-textarea>
+    <div ng-hide='data.courseid'>
+        <div class='nl-dlg-field-name'>Enter comma seperated list of module ids to export</div>
+        <div class='nl-dlg-field-value nl-forum'>
+            <nl-textarea fieldmodel='lessonIds'></nl-textarea>
+        </div>
+    </div>
+    <div ng-show='data.courseid'>
+        <div class='nl-dlg-field-name'>List of modules</div>
+        <div ng-repeat='module in data.courseModules.names' class='padding-mid'>{{module}}</div>
+        <div class='padding-mid'></div>
     </div>
     <div class='nl-dlg-field-value nl-forum'
          ng-if='do_not_show_for_now_there_is_a_bug'>

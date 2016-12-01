@@ -498,19 +498,19 @@ function(nl, nlDlg, nlCourse) {
     	if(!_validateInputs(modeHandler.course, cm)) {
     		return;
     	} else {
-	    	$scope.editorCb.launchModule($event, value);			
+	    	$scope.editorCb.launchModule($event, cm);			
     	}
     }
     
     function _organiseModules(){
     	var _organiseModuleDlg = nlDlg.create($scope);
-    		_organiseModuleDlg.setCssClass('nl-height-max nl-width-max');
-			_organiseModuleDlg.scope.data = {};
-			_organiseModuleDlg.scope.data.title = nl.t('Reorder the modules');
-			_organiseModuleDlg.scope.data.modules = _allModules;
-			_organiseModuleDlg.scope.moveItem = function(item, fromIndex, toIndex){
-				_moveItem(item, fromIndex, toIndex);
-			};
+		_organiseModuleDlg.setCssClass('nl-height-max nl-width-max');
+		_organiseModuleDlg.scope.data = {};
+		_organiseModuleDlg.scope.data.title = nl.t('Reorder the modules');
+		_organiseModuleDlg.scope.data.modules = _allModules;
+		_organiseModuleDlg.scope.moveItem = function(item, fromIndex, toIndex){
+			_moveItem(item, fromIndex, toIndex);
+		};
 		var closeButton = {text : nl.t('Close'), onTap: function(e){
 			$scope.editorCb.updateChildrenLinks();
 			$scope.editorCb.showVisible(null);
