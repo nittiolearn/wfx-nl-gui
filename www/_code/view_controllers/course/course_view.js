@@ -203,8 +203,9 @@ function ModeHandler(nl, nlCourse, nlDlg, $scope) {
 
 //-------------------------------------------------------------------------------------------------
 var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg', 'nlExporter',
-'nlCourseEditor',
-function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCourseEditor) {
+'nlCourseEditor', 'nlServerApi', 'nlGroupInfo',
+function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
+    nlCourseEditor, nlServerApi, nlGroupInfo) {
     var modeHandler = new ModeHandler(nl, nlCourse, nlDlg, $scope);
     var nlContainer = new NlContainer(nl, $scope, modeHandler);
     nlContainer.setContainerInWindow();
@@ -708,8 +709,19 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
     
     function _download() {
         if ($scope.mode != MODES.REPORTS_SUMMARY_VIEW) return;
+
+        nlDlg.showLoadingScreen();
+        return nlServerApi.groupGetInfo().then(function(result) {
+            nlDlg.hideLoadingScreen();
+            _downloadImpl(result);
+        }, function(e) {
+            return e;
+        });
+    }
+        
+    function _downloadImpl(_groupInfo) {
         var data = [];
-        data.push(['User name', 'Module', 'Type', 'Status', 'Time spent', 'Score', 'Max score', 'Percentage', 'Location', 'User id']);
+        data.push(['User name', 'Module', 'Type', 'Status', 'Time spent', 'Score', 'Max score', 'Percentage', 'Location', 'User id', 'User loginid']);
 	    var allModules = nlCourseEditor.getAllModules();
         var pos=0;
         for(var i=0; i<allModules.length; i++) {
@@ -717,11 +729,16 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter, nlCours
             if (cm.type == 'module') continue;
             var parent = treeList.getItem(cm.parentId);
             if (!parent) continue; // This is a must in REPORTS_SUMMARY_VIEW
+            var loginid = '';
+            if (_groupInfo && _groupInfo.users[''+cm.userid]) {
+                var userInfo = _groupInfo.users[''+cm.userid];
+                loginid = userInfo[nlGroupInfo.LOGINID];
+            }
 
             var row = [cm.name, parent.name, cm.type, cm.state.status, 
                 cm.timeMins || '', cm.score || '',  cm.maxScore || '', 
                 cm.perc ? cm.perc + '%' : '', parent.location,
-                'id='+cm.userid];
+                'id='+cm.userid, loginid];
             data.push(row);
         }
         

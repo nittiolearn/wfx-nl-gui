@@ -347,7 +347,7 @@ function ReportStats(nl, nlServerApi, nlGroupInfo) {
             _groupInfo = result;
         }, function(e) {
             return e;
-        })
+        });
     };
         
     this.updateStats = function(reports) {
