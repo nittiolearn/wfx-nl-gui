@@ -418,10 +418,10 @@ function MessageManager(nl, nlRouter, nlServerApi, nlMarkup) {
     this.updateSearchVisibility = function(searchTerm) {
         var searchTerm = searchTerm.toLowerCase();
         for(var msgid in this.idToMsg) {
+            var msg = this.idToMsg[msgid];
             if (!searchTerm) {
                 msg.hideWhenSearched = false;
             } else {
-                var msg = this.idToMsg[msgid];
                 var markup = msg.htmlMarkup.toLowerCase();
                 var author = msg.authorname.toLowerCase();
                 msg.hideWhenSearched = (markup.indexOf(searchTerm) < 0) &&
