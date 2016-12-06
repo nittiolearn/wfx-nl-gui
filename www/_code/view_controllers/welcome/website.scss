@@ -1,0 +1,107 @@
+/*-----------------------------------------------------------------------------------------*
+ * Website pages styling
+ *-----------------------------------------------------------------------------------------*/
+body.welcomepage .view-container {
+  z-index: -10;
+  opacity: 0;
+}
+
+.nl-website {
+  .bg-img, .bg-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: -1;
+    opacity: 1;
+  }
+  .bg-img {
+    background-size: cover;
+  }
+  .bg-video {
+    object-fit: cover;
+  }
+  .bg-black {
+    background-color: rgba(0, 0, 0, 0.3);
+    color: #FFFFFF;
+  }
+  .bg-black2 {
+    background-color: rgba(0, 0, 0, 0.4);
+    color: #FFFFFF;
+  }
+  .bg-blue {
+    background-color: rgba(0, 0, 77, 0.3);
+    color: #FFFFFF;
+  }
+  .landing_ticker {
+    min-height: 2.5em;
+    font-size: 90%;
+    color: #FFCC00;
+  }
+  .landing-ticker-emphasis {
+    font-weight: bold;
+    font-size: 100%;
+    color: white;
+  }
+  .emp {
+    min-width: 200em;
+    font-weight: bold;
+    text-align: center;
+  }
+  .landing-request-button {
+    font-family: Lato, Verdana, Helvetica, Arial, sans-serif;
+    font-size: 75%;
+    border: 3px solid white;
+    border-radius: 4px;
+    color: #FFCC00;
+    background-color: transparent;
+    background-color: rgba(0, 163, 204, 0.8);
+  }
+  .landing-request-button:hover {
+    color: #FFFFFF;
+  }
+  .landing-video-button {
+    border-radius: 50%;
+    padding: 5px 15px 5px 20px;
+    background-color: #999999;
+    border: 4px solid white;
+    color: #FFFFFF;
+    opacity: 0.9;
+  }
+  .landing-video-button:hover {
+    background-color: #AAAAAA;
+    border-color: #DDDDDD;
+    color: #FFFFFF;
+    opacity: 1;
+  }
+  .landing-video-button .icon:before {
+    font-size: 50px;
+    line-height: 60px;
+  }
+  .landing-video-overlay {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    height: 90vh;
+    background-color: #000000;
+    border: 2px solid white;
+    border-radius: 2px;
+  }
+  .landing-video-overlay-close {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    border-radius: 50%;
+    background-color: #777777;
+    padding: 1px 5px 3px 5px;
+  }
+  .landing-video-frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+}

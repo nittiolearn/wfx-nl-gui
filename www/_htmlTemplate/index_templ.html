@@ -4,10 +4,10 @@
         <meta charset='utf-8'>
         <meta name='viewport' content='initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width'>
         <meta name="description" nl-bind-content='pgInfo.windowDescription'
-              content="Take your trainings online - the ones that really matter for your business">
+              content="{{=metaDesc}}">
         <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon">
         <link rel="apple-touch-icon" href="/static/favicon.png">
-        <title ng-bind='pgInfo.windowTitle'>Nittio Learn</title>
+        <title ng-bind='pgInfo.windowTitle'>Nittio Learn - {{=title}}</title>
 		
         <!-- build:nl_server_info -->
         <!-- definintion of NL_SERVER_INFO will be placed here!  -->
@@ -20,11 +20,12 @@
         <link rel="stylesheet" href="/static/_external/angular-ivh-treeview-1.0.2/dist/ivh-treeview.min.css">
         <link rel="stylesheet" href="/static/_external/angular-chart.js-0.9.0/dist/angular-chart.min.css">
         <link rel="stylesheet" href="/static/_external/ion-datetime-picker-0.1.2/release/ion-datetime-picker.min.css" />
-         <script async src='//www.google-analytics.com/analytics.js'></script>
+        <script async src='//www.google-analytics.com/analytics.js'></script>
    </head>
 
-    <body ng-class='{"nl-print": pgInfo.isPrintable}'>
-        <ion-nav-view></ion-nav-view>
+    <body ng-class='{"nl-print": pgInfo.isPrintable}' class='{{=mush("bodyClass")}}'>
+        {{include 'welcome/website.html'}}
+        <ion-nav-view ng-hide='pgInfo.isWelcomePage'></ion-nav-view>
         <script>
             window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
             ga('create', 'UA-38874238-1', 'auto');
@@ -65,7 +66,7 @@
         <script src="/static/_external/x2js-1.2.0/xml2json.min.js"></script>
 
         <div id='statusBox' ng-show='pgInfo.statusPopup' ng-click='pgInfo.statusPopup=false'> 
-            <div>{{pgInfo.statusPopup}}</div>
+            <div>{{=mush('pgInfo.statusPopup')}}</div>
         </div>
 	</body>	
 </html>

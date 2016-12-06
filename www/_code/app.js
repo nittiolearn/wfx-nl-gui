@@ -137,6 +137,7 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
     // Called from child scope on page enter
     $scope.onPageEnter = function(userInfo) {
         nl.log.debug('app:onPageEnter - enter');
+        nl.rootScope.bodyClass = 'showbody';
         $scope.logo = userInfo.groupicon == '' ? nl.url.resUrl('general/top-logo2.png') : userInfo.groupicon;
         var bLoggedIn = (userInfo.username != '');
         $scope.userMenuItems = [];
