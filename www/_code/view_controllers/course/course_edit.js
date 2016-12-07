@@ -58,7 +58,8 @@ function(nl, nlDlg, nlCourse) {
             deleteModule: _deleteModule,
             searchLesson: _searchLesson,
             organiseModules: _organiseModules,
-            saveCourse: _saveCourse
+            saveCourse: _saveCourse,
+            updateTitle: _updateTitle
         };
     };
 
@@ -75,6 +76,10 @@ function(nl, nlDlg, nlCourse) {
 		return _validateInputs(modeHandler.course, cm);		
 	};
 
+	function _updateTitle(){
+        nl.pginfo.pageTitle = modeHandler.course.name;	
+	}
+	
     function _getCourseAttributes(course) {
         var ret = angular.copy(courseAttrs);
         var knownAttributes = {};
@@ -108,7 +113,7 @@ function(nl, nlDlg, nlCourse) {
     };
     
     var _courseParams = [
-    	{name: 'name', text: 'Name', type: 'string'},
+    	{name: 'name', text: 'Name', type: 'string', title: true},
     	{name: 'icon', text: 'Image', type: 'string'},
     	{name: 'description', text: 'Course description', type: 'text'}
     ];
@@ -267,7 +272,12 @@ function(nl, nlDlg, nlCourse) {
         modeHandler.course.content.modules = [];
     	for(var i=0; i<_allModules.length; i++){
     	    var newModule = _getSavableModuleAttrs(_allModules[i]);
-    		modeHandler.course.content.modules.push(newModule);
+		    if(newModule.parentId == '_root' || newModule.type == 'module') {
+		        modeHandler.course.content.modules.push(newModule);	    	
+		    } else {
+		        var cm = $scope.editorCb.getParent(newModule);
+		        if(cm.type == 'module') modeHandler.course.content.modules.push(newModule);
+		    }
     	}
         var modifiedData = {
                         name: modeHandler.course.name, 
