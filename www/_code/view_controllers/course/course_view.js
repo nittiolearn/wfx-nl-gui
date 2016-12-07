@@ -721,7 +721,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         
     function _downloadImpl(_groupInfo) {
         var data = [];
-        data.push(['User name', 'Module', 'Type', 'Status', 'Time spent', 'Score', 'Max score', 'Percentage', 'Location', 'User id', 'User loginid']);
+        data.push(['User name', 'Module', 'Type', 'Status', 'Time spent', 'Score', 'Max score', 'Percentage', 'Location', 'User id', 'User loginid', 'Started', 'Ended', 'Attempt']);
 	    var allModules = nlCourseEditor.getAllModules();
         var pos=0;
         for(var i=0; i<allModules.length; i++) {
@@ -736,9 +736,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
             }
 
             var row = [cm.name, parent.name, cm.type, cm.state.status, 
-                cm.timeMins || '', cm.score || '',  cm.maxScore || '', 
+                cm.timeMins !== undefined ? cm.timeMins : '',
+                cm.score || '',  cm.maxScore || '', 
                 cm.perc ? cm.perc + '%' : '', parent.location,
-                'id='+cm.userid, loginid];
+                'id='+cm.userid, loginid, 
+                cm.started ? nl.fmt.date2Str(nl.fmt.json2Date(cm.started), 'minute') : '', 
+                cm.ended ? nl.fmt.date2Str(nl.fmt.json2Date(cm.ended), 'minute') : '', 
+                cm.attempt || ''];
             data.push(row);
         }
         
