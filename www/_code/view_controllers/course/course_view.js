@@ -312,7 +312,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
             parent ? parent.name : '';
 	    var children = treeList.getChildren(item);
 	    for(var i=0; i<children.length; i++) {
-	    	_moveItemAndChildrenAttrs(children[i], allModules);
+	    	_updateItemAndChildrenAttrs(children[i], allModules);
 	    }
 	}
 
