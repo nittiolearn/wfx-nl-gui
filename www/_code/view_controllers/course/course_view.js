@@ -1085,6 +1085,7 @@ function CourseReportSummarizer($scope) {
             var userReport = userReports[i];
             var module = angular.copy(cm);
             module.id = _getModuleId(cm.id, userReport.id);
+            if ('parentId' in module) delete module.parentId;
             module.name = userReport.studentname;
             module.userid = userReport.student;
             module.icon = 'user';
