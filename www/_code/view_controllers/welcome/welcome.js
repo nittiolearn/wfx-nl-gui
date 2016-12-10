@@ -216,6 +216,10 @@ function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
 //-------------------------------------------------------------------------------------------------
 function _updateWebsiteScope(nl, nlDlg, nlServerApi, nlRouter, userInfo) {
     function _impl() {
+        nl.pginfo.hidemenu = true;
+        nl.pginfo.pageTitle = g_landingPageTitle;
+        nl.pginfo.pageSubTitle = '';
+        nlRouter.setWindowDescription(g_landingPageDesc);
         nl.rootScope.bodyClass = 'showbody welcomepage';
         nl.rootScope.website = {};
         var website = nl.rootScope.website;
@@ -243,7 +247,7 @@ function _updateWebsiteScope(nl, nlDlg, nlServerApi, nlRouter, userInfo) {
 
     function _setupTicker(website) {
         website.landingTickerPos = -1;
-        var tickers = g_webisteTickers;
+        var tickers = g_landingPageTickers;
         if (!tickers || tickers.length == 0) return;
         _onTicker(website, tickers);
     }
