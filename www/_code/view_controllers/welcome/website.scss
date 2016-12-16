@@ -105,3 +105,11 @@ body.welcomepage .view-container {
     height: 100%;
   }
 }
+
+.nl-website .bg-video {
+  display: none;
+}
+
+.platform-browser .nl-website .bg-video {
+  display: block;
+}

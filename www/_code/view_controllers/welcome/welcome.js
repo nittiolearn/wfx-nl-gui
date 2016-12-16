@@ -258,6 +258,7 @@ function _updateWebsiteScope(nl, nlDlg, nlServerApi, nlRouter, userInfo) {
             website.landingTickerPos++;
             if (website.landingTickerPos >= tickers.length) website.landingTickerPos = 0;
             var t = tickers[website.landingTickerPos];
+            website.landingTickerTxt = t.txt;
             website.landingTickerCls = t.cls || '';
             _onTicker(website, tickers, t.duration);
         }, duration);
@@ -328,12 +329,13 @@ function VisitorManager(nl, nlDlg, nlServerApi, nlRouter, $scope, userInfo) {
     
     function _validateInputs(scope) {
         console.log('scope.data:', scope.data);
+        var deepValidate = $scope.landingPageName == 'welcome';
         scope.error = {};
         var ret = true;
         if(!scope.data.name) ret = _validateFail(scope, 'name', 'Please provide your name.');
         if(!scope.data.phone) ret = _validateFail(scope, 'phone', 'We need your number to call you back.');
-        if(!scope.data.website) ret = _validateFail(scope, 'website', 'Please provide your company webiste.');
-        if(!scope.data.email || _isPrivateEmail(scope.data.email)) {
+        if(!scope.data.website && deepValidate) ret = _validateFail(scope, 'website', 'Please provide your company webiste.');
+        if(!scope.data.email || (deepValidate && _isPrivateEmail(scope.data.email))) {
             ret = _validateFail(scope, 'email', 'Please provide your work/business email id.');
         }
         return ret;
