@@ -1,11 +1,18 @@
-<style>
-	.chartStyle {
-					height: 200px; 
-					width: 400px;		
-				}
-</style>
 <nl-dlg title='Status overview'>
 <nl-dlg-content>
+    <div class='row row-center margin0 padding0'
+         style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
+        <div class='col fsh6 padding0 fyellow'>
+            <div ng-show='filtersPresent'>
+                <i class="icon ion-alert-circled"></i> One or more filters are applied.
+            </div>
+        </div>
+        <span title='Filter'
+              class='nl-toolbar-icon'
+              ng-click='onFilter($event)'>
+            <i class="icon ion-funnel"></i>
+        </span>
+    </div>
 	<div class='row row-wrap row-top'>
         <div class='padding text-center' ng-class='respCol221'>
            <div class='text-center fsh4'>
@@ -14,9 +21,9 @@
            <div class='text-center padding-top' style='height: 200px'>
 				<canvas
 					class="chart chart-doughnut"
-					chart-data="data.doughnutData"
-					chart-labels="data.doughnutLabel"
-					chart-colours="data.doughnutColor">
+					chart-data="data.completionData"
+					chart-labels="data.completionLabel"
+					chart-colours="data.completionColor">
 				</canvas>
             </div>
             <span class='sep4'></span>
@@ -28,8 +35,8 @@
 	            <div class='text-center padding-top' style='height: 300px'>
 					<canvas
 						class="chart chart-bar"
-						chart-data="data.chartData"
-						chart-labels="data.chartLabel"
+						chart-data="data.percDistData"
+						chart-labels="data.percDistLabel"
 						chart-series="['series A']">
 					</canvas>
 	            </div>
@@ -45,22 +52,24 @@
 			<table class='nl-table nl-table-styled'>
 			    <tr>
                     <th></th>
-                    <th>Student Name</th>
-			        <th>
-			        	<span ng-show='stats.totalMaxScore > 0'>Percentage</span>
-						<span ng-show='stats.totalMaxScore == 0'>Status</span>
+                    <th>Name</th>
+			        <th style='text-align: right'>
+			        	<div ng-show='stats.totalMaxScore > 0'>Score</div>
+						<div ng-show='stats.totalMaxScore == 0'>Status</div>
 					</th>
 			    </tr>
-			    <tr ng-repeat='score in leaderBoard'>
+			    <tr ng-repeat='student in stats.leaderBoard track by student.id'>
                     <td>{{$index+1}}</td>
 			        <td>
-						<span ng-show='score.status != -1'><a href='/lesson/review_report_assign/{{score.id}}'>{{score.name}}</a></span>
-						<span ng-show='score.status == -1'>{{score.name}}</span>
+						<a ng-href='/lesson/review_report_assign/{{student.repid}}'
+						   ng-show='student.repid'>{{student.name}}</a>
+						<span ng-hide='student.repid'>{{student.name}}</span>
 			        </td>
-			        <td>
-			        	<span ng-show='stats.totalMaxScore != 0 && score.status != -1 && score.perc > -1'>{{score.perc}}</span>
-			        	<span ng-show='stats.totalMaxScore == 0 && score.status != -1'>Completed</span>
-			        	<span ng-show='score.status == -1'>Not completed</span>
+			        <td style='text-align: right'>
+			        	<div ng-show='student.perc >= 0'>{{student.perc}}%</div>
+                        <div ng-show='student.perc == -1'>Completed</div>
+                        <div ng-show='student.perc == -2'>Partially completed</div>
+                        <div ng-show='student.perc == -3'>Not completed</div>
 			        </td>
 			    </tr>
 			</table>

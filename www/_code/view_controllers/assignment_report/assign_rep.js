@@ -130,7 +130,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
                 _appendFirstStaticCard(result[0], $scope.cards.staticlist);
                 _appendSecondStaticCard($scope.cards.staticlist);
 		    }
-            reportStats.updateStats(result);
+            reportStats.updateReports(result);
             _appendAssignmentReportCards(result, $scope.cards.cardlist);
             _updateSecondStaticCard(reportStats);
             resolve(true);
@@ -229,12 +229,16 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
         var stats = reportStats.getStats();
         var completed = stats.passed + stats.failed;
         _secondStaticCard.title =nl.t('{} of {} completed', completed, stats.students);
-        _secondStaticCard.doughnutData = [stats.passed, stats.failed, stats.students - completed];
+        _secondStaticCard.doughnutData = _getCompletionChartData(stats);
         _secondStaticCard.doughnutLabel = ["completed", "completed but scored low", "not completed"];
         _secondStaticCard.doughnutColor = ['#007700', '#FFCC00', '#F54B22'];
-        _secondStaticCard.dist = [_getPercDistribution(reportStats.getPercentages())];
-	};
+        _secondStaticCard.dist = [_getPercDistribution(stats.percentages)];
+	}
 	
+    function _getCompletionChartData(stats) {
+        return [stats.passed, stats.failed, stats.students - stats.passed - stats.failed];
+    }
+    
     function _getPercDistribution(percentages) {
         var dist = [];
         for(var i=0; i<10; i++) {
@@ -289,14 +293,19 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
 	function _statusOverview($scope) {
 		var statusOverviewDlg = nlDlg.create($scope);
 		statusOverviewDlg.setCssClass('nl-height-max nl-width-max');
-
-        statusOverviewDlg.scope.stats = reportStats.getStats();
-        statusOverviewDlg.scope.leaderBoard = reportStats.getLeaderBoard();
+		
+		var stats = reportStats.getStats();
+        statusOverviewDlg.scope.filters = {ous: {}, grades: {}, subjects: {}};
+        statusOverviewDlg.scope.onFilter = function() {
+            _showFilter(statusOverviewDlg.scope);
+        };
+        
+        statusOverviewDlg.scope.stats = stats;
 		statusOverviewDlg.scope.data = {
-            doughnutLabel: _secondStaticCard.doughnutLabel,
-            doughnutColor: _secondStaticCard.doughnutColor,
-            doughnutData: null,
-            chartLabel: ['10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%']
+            completionLabel: _secondStaticCard.doughnutLabel,
+            completionColor: _secondStaticCard.doughnutColor,
+            completionData: null,
+            percDistLabel: ['10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%']
 		};
 
         var cancelButton = {text: nl.t('Close')};
@@ -305,11 +314,43 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
         // angular-charts workaround to ensure height/width of canvas are correctly calculated
         // set the chart properties after the dialog box appears
         nl.timeout(function() {
-            statusOverviewDlg.scope.data.doughnutData = _secondStaticCard.doughnutData;
-            statusOverviewDlg.scope.data.chartData = _secondStaticCard.dist;
+            statusOverviewDlg.scope.data.completionData = _secondStaticCard.doughnutData;
+            statusOverviewDlg.scope.data.percDistData = _secondStaticCard.dist;
         });
 	}
 
+    function _showFilter(scope) {
+        var filterDlg = nlDlg.create($scope); // scope and $scope are different!
+        filterDlg.setCssClass('nl-height-max nl-width-max');
+        filterDlg.scope.subjectlabel = _userInfo.groupinfo.subjectlabel;
+        filterDlg.scope.gradelabel = _userInfo.groupinfo.gradelabel;
+        filterDlg.scope.filterOptions = reportStats.getFilterOptions($scope.filters);
+
+        var filterButton = {text: nl.t('Apply'), onTap: function(e) {
+            nl.timeout(function() {
+                $scope.filters = reportStats.getSelectedFilters(filterDlg.scope.filterOptions);
+                $scope.filtersPresent = reportStats.isFilterPresent($scope.filters);
+                scope.stats = reportStats.getFilteredStats($scope.filters);
+                scope.data.completionData = _getCompletionChartData(scope.stats);
+                scope.data.percDistData = [_getPercDistribution(scope.stats.percentages)];
+            });
+        }};
+
+        var clearButton = {text: nl.t('Clear'), onTap: function(e) {
+            nl.timeout(function() {
+                $scope.filters = null;
+                scope.stats = reportStats.getStats();
+                scope.data.completionData = _getCompletionChartData(scope.stats);
+                scope.data.percDistData = [_getPercDistribution(scope.stats.percentages)];
+            });
+        }};
+
+        var cancelButton = {text: nl.t('Close')};
+
+        filterDlg.show('view_controllers/assignment_report/report_filter_dlg.html', 
+            [filterButton, clearButton], cancelButton, false);
+    }
+    
     function _assignmentExport($scope) {
         if(!mode.dataFetched) {
             nlDlg.popupAlert({title: 'Data still loading', 
