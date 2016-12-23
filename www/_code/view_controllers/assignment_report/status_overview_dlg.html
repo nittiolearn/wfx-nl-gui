@@ -1,4 +1,4 @@
-<nl-dlg title='Status overview'>
+<nl-dlg title='Status overview' show-help='0' show-close='1'>
 <nl-dlg-content>
     <div class='row row-center margin0 padding0'
          style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
@@ -18,7 +18,7 @@
     <div>
         <div>
             <div class='fsh3 text-center'>
-                <span ng-show='stats.passed + stats.failed < stats.total'
+                <span ng-show='stats.passed + stats.failed < stats.students'
                 >{{stats.passed + stats.failed}} of </span><span
                 >{{stats.students}} completed</span>
             </div>

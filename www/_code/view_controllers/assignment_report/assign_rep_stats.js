@@ -432,6 +432,10 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
             var rep = reports[i];
             _lst.push(rep);
             var content = angular.fromJson(rep.content);
+            rep.updated = nl.fmt.json2Date(rep.updated);
+            rep.created = nl.fmt.json2Date(rep.created);
+            if (rep.started) rep.started = nl.fmt.json2Date(rep.started);
+            if (rep.ended) rep.ended = nl.fmt.json2Date(rep.ended);
             rep._loginid = '';
             rep._email = '';
             if (_groupInfo && _groupInfo.users[''+rep.student]) {
@@ -439,6 +443,7 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
                 rep.studentname = userInfo[nlGroupInfo.NAME];
                 rep._loginid = userInfo[nlGroupInfo.LOGINID];
                 rep._email = userInfo[nlGroupInfo.EMAIL];
+                rep.org_unit = userInfo[nlGroupInfo.OU];
             }
             var userInfo = _groupInfo ? _groupInfo.users[''+rep.id] || {} : {};
             if (userInfo.name) rep.studentname = userInfo.name;
@@ -454,8 +459,9 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
                 rep._statusStr = 'pending';
                 continue;
             }
-            var score = parseInt(content.score || 0);
             var maxScore = parseInt(content.maxScore || 0);
+            var score = parseInt(content.score || 0);
+            if (score > maxScore) score = maxScore; // Some 3 year old bug where this happened - just for sake of old record!
             var passScore = maxScore ? parseInt(content.passScore || 70) : 0;
             var perc = maxScore > 0 ? Math.round((score/maxScore)*100) : 100;
 
@@ -467,6 +473,9 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
             rep._timeMins = content.timeSpentSeconds ? Math.round(content.timeSpentSeconds/60) : '';
             rep._statusStr = (passScore == 0 || perc >= passScore) ? 'completed' : 'failed';
         }
+        _lst.sort(function(a, b) {
+            return (b.updated - a.updated);
+        });
         _updateStats(_stats, null, reports);
     };
     
