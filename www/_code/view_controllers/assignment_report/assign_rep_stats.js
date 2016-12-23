@@ -19,8 +19,8 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo, $templa
     var dlg = null;
     var scopeData = {inProgress: false, exportPageScore: false, exportFeedback: false};
     
-    this.createReportStats = function() {
-        return new ReportStats(nl, nlServerApi, nlGroupInfo, nlTreeSelect);
+    this.createReportStats = function(reptype) {
+        return new ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect);
     }
 
     this.export = function($scope, reports, _userInfo) {
@@ -313,7 +313,7 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo, $templa
 }];
 
 //-------------------------------------------------------------------------------------------------
-function ReportStats(nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
+function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
     var self = this;
     var _lst = [];
     var _stats = {};
@@ -358,6 +358,7 @@ function ReportStats(nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
     }
     
     this.isFilterPresent = function(filters) {
+        if (!filters) return false;
         if (Object.keys(filters.ous).length > 0) return true;
         if (Object.keys(filters.grades).length > 0) return true;
         if (Object.keys(filters.subjects).length > 0) return true;
@@ -453,9 +454,9 @@ function ReportStats(nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
                 rep._statusStr = 'pending';
                 continue;
             }
-            var score = (content.score || 0);
-            var maxScore = (content.maxScore || 0);
-            var passScore = maxScore ? (content.passScore || 70) : 0;
+            var score = parseInt(content.score || 0);
+            var maxScore = parseInt(content.maxScore || 0);
+            var passScore = maxScore ? parseInt(content.passScore || 70) : 0;
             var perc = maxScore > 0 ? Math.round((score/maxScore)*100) : 100;
 
             rep._score = score > 0 ? score : '';
@@ -477,8 +478,8 @@ function ReportStats(nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
         lbRecord.total++;
         if (status == self.STATUS_PENDING) return;
         lbRecord.done++;
-        lbRecord.score += rep._score;
-        lbRecord.maxScore += rep._maxScore;
+        lbRecord.score += rep._score || 0;
+        lbRecord.maxScore += rep._maxScore || 0;
         lbRecord.repid = rep.id;
     }
     
@@ -489,7 +490,7 @@ function ReportStats(nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
             rec.perc = rec.maxScore ? Math.round(rec.score/rec.maxScore*100) : 
                 rec.done > 0 && rec.done == rec.total ? -1 :
                 rec.done > 0 ? -2 : -3;
-            if (rec.total > 1) rec.repid = null;
+            if (reptype != 'assignment' || rec.total > 1) rec.repid = null;
             ret.push(rec);
         }
         ret.sort(function(a, b) {

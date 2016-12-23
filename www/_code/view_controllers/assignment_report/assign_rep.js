@@ -7,7 +7,9 @@
 function module_init() {
     angular.module('nl.assign_rep', [])
     .config(configFn)
-    .controller('nl.AssignRepCtrl', AssignRepCtrl);
+    .controller('nl.AssignRepCtrl', AssignRepCtrl)
+    .controller('nl.AssignSummaryRepCtrl', AssignSummaryRepCtrl)
+    .controller('nl.AssignUserRepCtrl', AssignUserRepCtrl);
   }
    
 //-------------------------------------------------------------------------------------------------
@@ -21,29 +23,53 @@ function($stateProvider, $urlRouterProvider) {
                 controller: 'nl.AssignRepCtrl'
             }
         }});
+    $stateProvider.state('app.assignment_summary_report', {
+        url: '^/assignment_summary_report',
+        views: {
+            'appContent': {
+                templateUrl : 'lib_ui/cards/cardsview.html',
+                controller: 'nl.AssignSummaryRepCtrl'
+            }
+        }});
+    $stateProvider.state('app.assignment_user_report', {
+        url: '^/assignment_user_report',
+        views: {
+            'appContent': {
+                templateUrl : 'lib_ui/cards/cardsview.html',
+                controller: 'nl.AssignUserRepCtrl'
+            }
+        }});
 }];
 
 //-------------------------------------------------------------------------------------------------
-function TypeHandler(nl, nlServerApi, nlDlg) {
+function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
     var self = this;
 	this.initFromUrl = function() {
 		var params = nl.location.search();
-		self.assignid = ('assignid' in params) ? params.assignid : null;
-        self.max = ('max' in params) ? params.max : 49;
+        self.assignid = ('assignid' in params) ? parseInt(params.assignid) : null;
+        self.userid = ('userid' in params) ? params.userid : null;
+        self.max = ('max' in params) ? parseInt(params.max) : 50;
+        self.max--;
+        self.start_at = ('start_at' in params) ? parseInt(params.start_at) : 0;
+        self.completed = ('completed' in params) ? parseInt(params.completed) != 0 : true;
+
+        self.limit = ('limit' in params) ? params.limit : (reptype == 'assignment') ? null: 100;
         self.dataFetched = false;
+        self.fetchedCount = 0;
 	};
 
 	this.getAssignmentReports = function(filter, callbackFn) {
-	    self.start_at = 0;
-        self.dataFetched = false;
 	    _getAssignmentReports(filter, callbackFn);
     };
 
     function _getAssignmentReports(filter, callbackFn) {
-		var data = {assignid : self.assignid, max: self.max, start_at: self.start_at};
+		var data = {reptype: reptype, assignid : self.assignid, userid : self.userid, 
+		    max: self.max, start_at: self.start_at, completed: self.completed};
 		if (filter) data.search = filter;
 		nlServerApi.assignmentReport(data).then(function(result) {
             var more = (result.length > self.max);
+            self.fetchedCount += result.length;
+            if (self.limit && self.fetchedCount >= self.limit) more = false;
             self.start_at += result.length;
             var msg = nl.t('Got {} items from the server.{}', self.start_at, more ? 
                 ' Fetching more items ...' : '');
@@ -68,10 +94,27 @@ function TypeHandler(nl, nlServerApi, nlDlg) {
 //-------------------------------------------------------------------------------------------------
 var AssignRepCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'NlAssignReportStats',
 function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats) {
+    _assignRepImpl('assignment', nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats);
+}];
+
+//-------------------------------------------------------------------------------------------------
+var AssignSummaryRepCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'NlAssignReportStats',
+function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats) {
+    _assignRepImpl('group', nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats);
+}];
+
+//-------------------------------------------------------------------------------------------------
+var AssignUserRepCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'NlAssignReportStats',
+function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats) {
+    _assignRepImpl('user', nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats);
+}];
+
+//-------------------------------------------------------------------------------------------------
+function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats) {
 	var _userInfo = null;
 	var my = 0;
 	var search = null;
-	var mode = new TypeHandler(nl, nlServerApi, nlDlg);
+	var mode = new TypeHandler(reptype, nl, nlServerApi, nlDlg);
 	var reportStats = null;
 	var assignid = null;
 	var nameAndScore = [];
@@ -85,7 +128,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
     		$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
             $scope.cards.cardlist = [];
             $scope.cards.staticlist = [];
-            reportStats = NlAssignReportStats.createReportStats();
+            reportStats = NlAssignReportStats.createReportStats(reptype);
             reportStats.init().then(function() {
                 _getDataFromServer('', resolve);
             }, function() {
@@ -112,7 +155,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
         } else if(linkid == 'assignment_export') {
             _assignmentExport($scope);
         } else if(linkid == 'status_overview'){
-            _statusOverview($scope);
+            _statusOverview();
 		}
 	};
 
@@ -133,6 +176,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
             reportStats.updateReports(result);
             _appendAssignmentReportCards(result, $scope.cards.cardlist);
             _updateSecondStaticCard(reportStats);
+            _updateStatusOverview();
             resolve(true);
 		});
 	}
@@ -148,6 +192,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
 	}
 
 	function _createAssignmentCard(assignment) {
+	    var urlPart = (reptype == 'user' && assignment.student == _userInfo.userid)
+	       ? 'view_report_assign' : 'review_report_assign';
 		var url = null;
 		var internalUrl = null;
 		var status = null;
@@ -156,37 +202,47 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
 		var bcompleted = assignment.completed || false;
 		if(bcompleted){
 			status = nl.t('completed');
-			url = nl.fmt2('/lesson/review_report_assign/{}', assignment.id);
+			url = nl.fmt2('/lesson/{}/{}', urlPart, assignment.id);
 		} else {
 			status = nl.t('not completed');
 		}
 		var card = {
 			id : assignment.id,
-			title : assignment.studentname,
+			title : (reptype == 'assignment') ? assignment.studentname : assignment.name,
 			updated: nl.fmt.json2Date(assignment.updated),
 			icon : nl.url.resUrl('dashboard/reports.png'),
 			internalUrl: internalUrl, 
 			url : url,
 			children : []
 		};
+        card['help'] = '';
+        if (reptype == 'group') {
+            card['help'] = nl.fmt2('<span class="nl-card-description">{}</span>', 
+                assignment.studentname);
+        }
+        card.links = [];
 		if(bcompleted) {
-			card.links = [];
-			card.links.push({
-				id : 'assignment_update',
-				text : nl.t('update')
-			},{
-				id : 'assignment_share',
-				text : nl.t('share')
-			});
+		    if (reptype == 'assignment') {
+                card.links.push({
+                    id : 'assignment_update',
+                    text : nl.t('update')
+                },{
+                    id : 'assignment_share',
+                    text : nl.t('share')
+                });
+		    }
 			var perc = content.maxScore > 0 ? Math.round((content.score/content.maxScore)*100) : 'NA';
 			if(perc > 0){
-				card['help'] = nl.t('<span class="nl-card-description"><b>Status: {}</b></span><br><span>score: {} / {} ({}%)</span>', status, content.score, content.maxScore, perc);
+				card['help'] += nl.t('<span class="nl-card-description"><b>Status: {}</b></span><br><span>score: {} / {} ({}%)</span>', status, content.score, content.maxScore, perc);
 			}else {
-				card['help'] = nl.t('<span class="nl-card-description"><b>Status: {}</b></span>', status);			
+				card['help'] += nl.t('<span class="nl-card-description"><b>Status: {}</b></span>', status);			
 			}
 		} else {
-			card['help'] = nl.t('<span class="nl-card-description"><b>Status: {}</b></span>', status);
+			card['help'] += nl.t('<span class="nl-card-description"><b>Status: {}</b></span>', status);
 		}
+		
+        card.details = {help: '', avps: _getAssignmentAvps(assignment, true)};
+        card.links.push({id: 'details', text: nl.t('details')});
 		return card;
 	}
 
@@ -254,10 +310,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
         return dist;
     }
 
-	function _getAssignmentAvps(lessonCard) {
+	function _getAssignmentAvps(lessonCard, bIndividual) {
 		var avps = [];
-        var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
-        _populateLinks(linkAvp);
+		if (!bIndividual) {
+            var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
+            _populateLinks(linkAvp);
+		}
+        nl.fmt.addAvp(avps, 'Learner', lessonCard.studentname);
 		nl.fmt.addAvp(avps, 'Name', lessonCard.name);
 		nl.fmt.addAvp(avps, 'Remarks', lessonCard.assign_remarks);
 		nl.fmt.addAvp(avps, 'Assigned By', lessonCard.assigned_by);
@@ -290,17 +349,16 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
 		return '';
 	}
 
-	function _statusOverview($scope) {
-		var statusOverviewDlg = nlDlg.create($scope);
+    var statusOverviewDlg = null;
+	function _statusOverview() {
+		statusOverviewDlg = nlDlg.create($scope);
 		statusOverviewDlg.setCssClass('nl-height-max nl-width-max');
-		
-		var stats = reportStats.getStats();
+		statusOverviewDlg.scope.showLeaderBoard = (reptype != 'user');
         statusOverviewDlg.scope.filters = {ous: {}, grades: {}, subjects: {}};
         statusOverviewDlg.scope.onFilter = function() {
             _showFilter(statusOverviewDlg.scope);
         };
         
-        statusOverviewDlg.scope.stats = stats;
 		statusOverviewDlg.scope.data = {
             completionLabel: _secondStaticCard.doughnutLabel,
             completionColor: _secondStaticCard.doughnutColor,
@@ -313,11 +371,25 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
         
         // angular-charts workaround to ensure height/width of canvas are correctly calculated
         // set the chart properties after the dialog box appears
-        nl.timeout(function() {
-            statusOverviewDlg.scope.data.completionData = _secondStaticCard.doughnutData;
-            statusOverviewDlg.scope.data.percDistData = _secondStaticCard.dist;
-        });
+        _updateStatusOverview();
 	}
+
+    function _updateStatusOverview() {
+        if (!statusOverviewDlg) return;
+        nl.timeout(function() {
+            var s = statusOverviewDlg.scope;
+            $scope.filtersPresent = reportStats.isFilterPresent($scope.filters);
+            if ($scope.filtersPresent) {
+                s.stats = reportStats.getFilteredStats($scope.filters);
+                s.data.completionData = _getCompletionChartData(s.stats);
+                s.data.percDistData = [_getPercDistribution(s.stats.percentages)];
+            } else {
+                s.stats = reportStats.getStats();
+                s.data.completionData = _secondStaticCard.doughnutData;
+                s.data.percDistData = _secondStaticCard.dist;
+            }
+        });
+    }
 
     function _showFilter(scope) {
         var filterDlg = nlDlg.create($scope); // scope and $scope are different!
@@ -327,22 +399,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
         filterDlg.scope.filterOptions = reportStats.getFilterOptions($scope.filters);
 
         var filterButton = {text: nl.t('Apply'), onTap: function(e) {
-            nl.timeout(function() {
-                $scope.filters = reportStats.getSelectedFilters(filterDlg.scope.filterOptions);
-                $scope.filtersPresent = reportStats.isFilterPresent($scope.filters);
-                scope.stats = reportStats.getFilteredStats($scope.filters);
-                scope.data.completionData = _getCompletionChartData(scope.stats);
-                scope.data.percDistData = [_getPercDistribution(scope.stats.percentages)];
-            });
+            $scope.filters = reportStats.getSelectedFilters(filterDlg.scope.filterOptions);
+            _updateStatusOverview();
         }};
 
         var clearButton = {text: nl.t('Clear'), onTap: function(e) {
-            nl.timeout(function() {
-                $scope.filters = null;
-                scope.stats = reportStats.getStats();
-                scope.data.completionData = _getCompletionChartData(scope.stats);
-                scope.data.percDistData = [_getPercDistribution(scope.stats.percentages)];
-            });
+            $scope.filters = null;
+            _updateStatusOverview();
         }};
 
         var cancelButton = {text: nl.t('Close')};
@@ -495,8 +558,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
 		ouSelectionDlg.show('view_controllers/assignment_report/share_report_dlg.html',
 			[], cancelButton, false);
 	}
-	
-}];
+}
 
 //-------------------------------------------------------------------------------------------------
 module_init();

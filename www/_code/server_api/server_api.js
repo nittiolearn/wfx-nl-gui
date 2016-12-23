@@ -378,7 +378,7 @@ function(nl, nlDlg, nlConfig, Upload) {
 	};
 
 	this.assignmentReport = function(data){
-		//data = assignid, search=xxx
+		//data = reptype, assignid|userid, [search=xxx, max=nn, start_at=xx], completed=[true|false]
 		//assignment_reports
 		return server.post('_serverapi/assignment_get_reports.json', data);
 	};
