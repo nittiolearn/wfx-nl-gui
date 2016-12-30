@@ -7,6 +7,7 @@
 function module_init() {
     angular.module('nl.lib_ui', ['nl.ui.dlg', 'nl.ui.iframedlg', 'nl.ui.cards', 
                    'nl.ui.utils', 'nl.ui.markup', 'nl.ui.treeselect',
+                   'nl.ui.contentmetadata',
                    // External dependacies
                    'ivh.treeview', 'ngFileUpload', 'chart.js', 'ion-datetime-picker']);
 }

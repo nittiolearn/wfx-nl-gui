@@ -488,6 +488,24 @@ function(nl, nlDlg, nlConfig, Upload) {
     };
 
     //---------------------------------------------------------------------------------------------
+    // Content metadata
+    //---------------------------------------------------------------------------------------------
+    this.cmGetFields = function() {
+        return _getFromCacheOrServer('contentmeta_get_fields', DEFAULT_CACHE_LIFE, 
+           '_serverapi/contentmeta_get_fields.json', {});
+    };
+    
+    this.cmGet = function(cid, ctype) {
+        return server.post('_serverapi/contentmeta_get.json', 
+            {cid: cid, ctype: ctype, approved: 1});
+    };
+
+    this.cmSet = function(cid, ctype, metadata) {
+        return server.post('_serverapi/contentmeta_set.json', 
+            {cid: cid, ctype: ctype, approved: 1, metadata: metadata});
+    };
+
+    //---------------------------------------------------------------------------------------------
     // resource entities
     //---------------------------------------------------------------------------------------------
     this.resourceUpload = function(data, urltype) {

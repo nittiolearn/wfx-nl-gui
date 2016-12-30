@@ -142,8 +142,9 @@
 	}
 
 	//-------------------------------------------------------------------------------------------------
-	var LessonListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlApproveDlg', 'nlSendAssignmentSrv',
-	function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlSendAssignmentSrv) {
+	var LessonListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 
+	'nlApproveDlg', 'nlSendAssignmentSrv', 'nlMetaDlg',
+	function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlSendAssignmentSrv, nlMetaDlg) {
 
 		var mode = new TypeHandler(nl, nlServerApi);
 		var _userInfo = null;
@@ -239,10 +240,14 @@
 				_copyLesson($scope, lessonId);
 			} else if (internalUrl === 'lesson_closereview') {
 				_closereviewLesson($scope, lessonId);
+            } else if (internalUrl === 'lesson_metadata') {
+                _metadataLesson($scope, lessonId, card);
 			} else if (internalUrl === 'lesson_disapprove') {
 				_disapproveLesson($scope, lessonId);
 			} else if (internalUrl === 'lesson_view') {
 				nl.window.location.href = nl.fmt2('/lesson/view/{}/', lessonId);
+            } else if (internalUrl === 'lesson_view_priv') {
+                nl.window.location.href = nl.fmt2('/lesson/view_priv/{}/', lessonId);
 			} else if (internalUrl === 'lesson_reopen') {
 				_reopenLesson($scope, lessonId);
 			} else if (internalUrl === 'view_all') {
@@ -268,22 +273,7 @@
 		};
 
 		$scope.onCardLinkClicked = function(card, linkId) {
-			var lessonId = card.lessonId;
-			if (linkId == 'lesson_view_priv') {
-				nl.window.location.href = nl.fmt2('/lesson/view_priv/{}/', lessonId);
-			} else if (linkId == 'lesson_view') {
-				nl.window.location.href = nl.fmt2('/lesson/view/{}/', lessonId);
-			} else if (linkId == 'lesson_copy') {
-				_copyLesson($scope, lessonId);
-			} else if (linkId == 'lesson_approve') {
-				_approveLesson($scope, lessonId);
-			} else if (linkId == 'lesson_closereview') {
-				_closereviewLesson($scope, lessonId);
-			} else if (linkId == 'lesson_disapprove') {
-				_disapproveLesson($scope, lessonId);
-			} else if (linkId === 'lesson_reopen') {
-				_reopenLesson($scope, lessonId);
-			}
+		    $scope.onCardInternalUrlClicked(card, linkId);
 		};
 
 		function _getDataFromServer(resolve, reject) {
@@ -324,6 +314,7 @@
 				internalUrl = 'send_assignment';
 			var card = {
 				lessonId : lesson.id,
+				grp: lesson.grp,
 				revstateId : lesson.revstate,
 				title : lesson.name,
 				subject : lesson.subject,
@@ -345,26 +336,23 @@
 				_addHelpToMycontent(card, lesson);
 			} else if (mode.type == TYPES.APPROVED) {
 				_addHelpToApproved(card, lesson);
-				if (lesson.grp == _userInfo.groupinfo.id) {
-					card.links.push({
-						id : 'lesson_copy',
-						text : nl.t('copy')
-					});
-				}
-			} else if (mode.type == TYPES.SENDASSIGNMENT) {
-				card.links.push({
-					id : 'lesson_view',
-					text : nl.t('view')
-				});
+				if (lesson.grp == _userInfo.groupinfo.id)
+					card.links.push({id : 'lesson_copy', text : nl.t('copy')});
+                _addMetadataLink(card);
+    		} else if (mode.type == TYPES.SENDASSIGNMENT) {
+				card.links.push({id : 'lesson_view', text : nl.t('view')});
 				_addHelpToApproved(card, lesson);
+                _addMetadataLink(card);
 			} else if (mode.type == TYPES.NEW) {
 				card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br> by:{}<br> <span class='nl-template-color'>Template</span><br> <span>{}</span>", lesson.grade, lesson.subject, lesson.authorname, lesson.description);
+                _addMetadataLink(card);
 			} else if (mode.type == TYPES.MANAGE) {
 				if (lesson.ltype == LESSONTYPES.LESSON || lesson.ltype == null)
 					card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br> by:{}<br>", lesson.grade, lesson.subject, lesson.authorname);
 				if (lesson.ltype == LESSONTYPES.TEMPLATE)
 					card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br> by:{}<br> <span class='nl-template-color'>Template</span><br>", lesson.grade, lesson.subject, lesson.authorname);
 				_addDisapproveLink(card);
+                _addMetadataLink(card);
 			} else if (mode.type == TYPES.REVIEW) {
 				if (lesson.revstate == REVSTATE.PENDING && lesson.state == STATUS.UNDERREVIEW) {
 					_addReviewLinkForUnderReview(card, lesson);
@@ -563,6 +551,14 @@
 			});
 		}
 
+        function _addMetadataLink(card) {
+            card.links.push({id : 'lesson_metadata', text : nl.t('metadata')});
+        }
+
+        function _addMetadataLinkToDetails(linkAvp) {
+            nl.fmt.addLinkToAvp(linkAvp, 'metadata', null, 'lesson_metadata');
+        }
+
 		function _getLessonListAvps(lesson) {
 			var avps = [];
 			var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
@@ -599,6 +595,7 @@
 			var d = new Date();
 			if (mode.type == TYPES.NEW) {
 				nl.fmt.addLinkToAvp(linkAvp, 'select', nl.fmt2('/lesson/create2/{}/0#/', lessonId));
+                _addMetadataLinkToDetails(linkAvp);
 			} else if (mode.type == TYPES.MY) {
 				_addLinksToMycontentDetailsDlg(linkAvp, lessonId, lesson);
 			} else if (mode.type == TYPES.MANAGE) {
@@ -610,6 +607,7 @@
 			} else if (mode.type == TYPES.SENDASSIGNMENT) {
 				nl.fmt.addLinkToAvp(linkAvp, 'view', nl.fmt2('/lesson/view/{}', lessonId));
 				nl.fmt.addLinkToAvp(linkAvp, 'select', null, 'send_assignment');
+                _addMetadataLinkToDetails(linkAvp);
 			}
 		}
 
@@ -654,6 +652,7 @@
 
 		function _addViewLinkforApprovedDetails(linkAvp, lessonId) {
 			nl.fmt.addLinkToAvp(linkAvp, 'view', nl.fmt2('/lesson/view/{}/', lessonId));
+            _addMetadataLinkToDetails(linkAvp);
 		}
 
 		function _addLinksToReviewDetailsDlg(linkAvp, lessonId, lesson) {
@@ -739,23 +738,27 @@
 			});
 		}
 
-		function _disapproveLesson($scope, lessonId) {
-			var msg = {
-				title : 'Please confirm',
-				template : nl.t('Are you sure you want to disapprove this module and send it for review?'),
-				okText : nl.t('Disapprove')
-			};
-			nlDlg.popupConfirm(msg).then(function(result) {
-				if (!result)
-					return;
-				nlDlg.showLoadingScreen();
-				nlServerApi.lessonDisapprove(lessonId).then(function(status) {
-					nlDlg.hideLoadingScreen();
-					nlDlg.closeAll();
-					_reloadFromServer();
-				});
-			});
+		function _metadataLesson($scope, lessonId, card) {
+		    nlMetaDlg.show($scope, _userInfo, lessonId, 'module', card);
 		}
+
+        function _disapproveLesson($scope, lessonId) {
+            var msg = {
+                title : 'Please confirm',
+                template : nl.t('Are you sure you want to disapprove this module and send it for review?'),
+                okText : nl.t('Disapprove')
+            };
+            nlDlg.popupConfirm(msg).then(function(result) {
+                if (!result)
+                    return;
+                nlDlg.showLoadingScreen();
+                nlServerApi.lessonDisapprove(lessonId).then(function(status) {
+                    nlDlg.hideLoadingScreen();
+                    nlDlg.closeAll();
+                    _reloadFromServer();
+                });
+            });
+        }
 
 		function _approveLesson($scope, lessonId) {
 			nlApproveDlg.show($scope, _userInfo.groupinfo.exportLevel, lessonId);
