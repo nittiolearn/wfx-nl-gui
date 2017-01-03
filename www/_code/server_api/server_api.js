@@ -497,12 +497,12 @@ function(nl, nlDlg, nlConfig, Upload) {
     
     this.cmGet = function(cid, ctype) {
         return server.post('_serverapi/contentmeta_get.json', 
-            {cid: cid, ctype: ctype, approved: 1});
+            {cid: cid, ctype: ctype});
     };
 
     this.cmSet = function(cid, ctype, metadata) {
         return server.post('_serverapi/contentmeta_set.json', 
-            {cid: cid, ctype: ctype, approved: 1, metadata: metadata});
+            {cid: cid, ctype: ctype, metadata: metadata});
     };
 
     //---------------------------------------------------------------------------------------------

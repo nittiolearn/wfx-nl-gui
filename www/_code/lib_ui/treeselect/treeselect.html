@@ -1,26 +1,13 @@
+<div class='nl-tree-select'>
 <div class='nl-link-text row row-wrap row-center margin0 padding-mid'
-     ng-show='!info.treeIsShown'
      ng-click='info.treeIsShown = !info.treeIsShown'>
-     <div class='col'>
-         <div ng-show='!info.treeIsShown'>
-             <div ng-if='info.selectCount == 0'>None selected</div>
-             <div ng-if='info.selectCount == 1'>1 item selected</div>
-             <div ng-if='info.selectCount > 1'>{{info.selectCount}} items selected</div>
-         </div>
-     </div>
+     <div class='col nl-textellipsis'>{{info.selectedText}}</div>
      <i ng-show='!info.treeIsShown' class="icon ion-arrow-down-b fsh6 bold"></i>
-</div>
-<div style='position:relative'>
-    <div ng-show='info.treeIsShown' class='padding-mid'
-         style='position: absolute; top: 0; right: 0;'
-         ng-click='info.treeIsShown = !info.treeIsShown'>
-        <i class="icon ion-arrow-up-b fsh6 bold"></i>
-    </div>
+     <i ng-show='info.treeIsShown' class="icon ion-arrow-up-b fsh6 bold"></i>
 </div>
 <div ng-repeat='item in info.data'
      class='row row-wrap row-center margin0 padding0 nl-link-text'
      ng-show='info.treeIsShown && item.isVisible'
-     style='background-color: rgba(225, 225, 255, 0.3)'
      ng-click='onClick(item)'>
     <div style='padding: {{screenSize == "small" ? 5 : 10}}px 5px {{screenSize == "small" ? 5 : 10}}px 5px;'>
         <div style='padding-left: {{item.indentation*20}}px'>
@@ -35,4 +22,5 @@
             <span>{{item.name}}</span>
         </div>
     </div>
+</div>
 </div>

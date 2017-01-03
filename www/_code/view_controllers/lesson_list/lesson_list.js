@@ -72,7 +72,8 @@
 		this.type = TYPES.NEW;
 		this.custtype = null;
 		this.searchFilter = null;
-		this.searchGrade = null;
+        this.searchGrade = null;
+        this.searchMetadata = null;
 		this.revstate = null;
 		this.title = null;
 		this.content = null;
@@ -84,6 +85,7 @@
 			this.revstate = ('revstate' in params) ? parseInt(params.revstate) : null;
 			this.searchGrade = ('grade' in params) ? params.grade : null;
 			this.searchFilter = ('search' in params) ? params.search : null;
+			// TODO-MUNNI-NOW: update metadata; remove grade
 			this.title = params.title || null;
 			this.content = params.content || null;
 		};
@@ -149,6 +151,7 @@
 		var mode = new TypeHandler(nl, nlServerApi);
 		var _userInfo = null;
 		var _allCardsForReview = [];
+		var _metadataEnabled = false;
 
 		function _onPageEnter(userInfo) {
 			_userInfo = userInfo;
@@ -158,10 +161,16 @@
 				$scope.cards = {};
 				$scope.cards.staticlist = _getStaticCard();
 				$scope.cards.emptycard = nlCardsSrv.getEmptyCard();
-				_getDataFromServer(resolve, reject);
+                nlMetaDlg.isEnabled().then(function(enabled) {
+                    _metadataEnabled = enabled && (
+                        (mode.type == TYPES.APPROVED) ||
+                        (mode.type == TYPES.MANAGE) ||
+                        (mode.type == TYPES.SENDASSIGNMENT) ||
+                        (mode.type == TYPES.NEW));
+                    _getDataFromServer(resolve, reject);
+                });
 			});
 		}
-
 
 		nlRouter.initContoller($scope, '', _onPageEnter);
 
@@ -228,7 +237,6 @@
 			ret.push(card);
 			return ret;
 		}
-
 
 		$scope.onCardInternalUrlClicked = function(card, internalUrl) {
 			var lessonId = card.lessonId;
@@ -552,10 +560,12 @@
 		}
 
         function _addMetadataLink(card) {
+            if (!_metadataEnabled) return;
             card.links.push({id : 'lesson_metadata', text : nl.t('metadata')});
         }
 
         function _addMetadataLinkToDetails(linkAvp) {
+            if (!_metadataEnabled) return;
             nl.fmt.addLinkToAvp(linkAvp, 'metadata', null, 'lesson_metadata');
         }
 
@@ -708,7 +718,19 @@
 		function _onSearch(filter, grade) {
 			mode.searchFilter = filter;
 			mode.searchGrade = grade;
-			_reloadFromServer();
+            if (!_metadataEnabled) {
+                _reloadFromServer();
+                return;
+            }
+            // TODO-MUNNI-NOW
+            var metadataIn = {search: filter, grade: grade};
+            nlMetaDlg.showAdvancedSearchDlg($scope, _userInfo, 'module', metadataIn)
+            .then(function(metadata) {
+                mode.searchFilter = metadata.search;
+                mode.searchGrade = metadata.grade;
+                mode.searchMetadata = metadata;
+                _reloadFromServer();
+            });
 		}
 
 		function _reloadFromServer() {
@@ -739,7 +761,10 @@
 		}
 
 		function _metadataLesson($scope, lessonId, card) {
-		    nlMetaDlg.show($scope, _userInfo, lessonId, 'module', card);
+		    nlMetaDlg.showMetadata($scope, _userInfo, 'module', lessonId, card)
+		    .then(function() {
+		        _reloadFromServer();
+		    });
 		}
 
         function _disapproveLesson($scope, lessonId) {

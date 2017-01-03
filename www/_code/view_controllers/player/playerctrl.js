@@ -113,7 +113,6 @@ function Player(nl, nlRouter, nlDlg, nlServerApi, nlPlayerUtils, ctx) {
         var iElem = domInfo.elem;
         var fs = nlPlayerUtils.getFontSize(iElem);
         iElem.css({'font-size': '' + fs + '%'});
-        console.log('resizing font done: ', domInfo.attrs.nlBindElem);
     }
 
 }

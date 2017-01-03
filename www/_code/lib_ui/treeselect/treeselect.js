@@ -13,6 +13,16 @@ function module_init() {
 //-------------------------------------------------------------------------------------------------
 var TreeSelectSrv = ['nl',
 function(nl) {
+    this.strArrayToTreeArray = function(strArray) {
+        var insertedKeys = {};
+        var treeArray = [];
+        for(var i=0; i<strArray.length; i++) {
+            var itemId = strArray[i];
+            _insertParentAndItem(itemId, treeArray, insertedKeys);
+        }
+        return treeArray;
+    };
+    
     this.updateSelectionTree = function(treeSelectInfo, selectedIds) {
         var itemDict = {};
         var treeList = treeSelectInfo.data;
@@ -32,6 +42,7 @@ function(nl) {
         }
         this.updateFoldersAndCount(treeSelectInfo);
         treeSelectInfo.treeIsShown = true;
+        treeSelectInfo.multiSelect = true;
     };
 
     this.getSelectedIds = function(treeSelectInfo, leafOnly) {
@@ -62,7 +73,15 @@ function(nl) {
         }
     };
 
+    function _clearAll(treeSelectInfo) {
+        var treeList = treeSelectInfo.data;
+        for(var i=0; i<treeList.length; i++)
+            treeList[i].selected = false;
+    }
+    
     this.toggleSelection = function(curItem, treeSelectInfo) {
+        if (!treeSelectInfo.multiSelect && !curItem.selected)
+            _clearAll(treeSelectInfo);
         curItem.selected = !curItem.selected;
         return this.updateFoldersAndCount(treeSelectInfo);
     };
@@ -81,18 +100,24 @@ function(nl) {
             }
         }
 
-        treeSelectInfo.selectCount = 0;
+        var selectedList = [];
         for(var i=0; i<treeList.length; i++) {
             var item = treeList[i];
             var finfo = folders[item.id];
             if (finfo)
                 item.selected = (finfo.selected == 0) ? false 
                     : (finfo.selected == finfo.count) ? true : 'part';
-            if (item.selected === true) treeSelectInfo.selectCount++;
+            if (item.selected === true) selectedList.push(item.name);
         }
+        treeSelectInfo.selectedText = '';
+        if (selectedList.length == 1)
+            treeSelectInfo.selectedText = selectedList[0];
+        else if (selectedList.length > 1) 
+            treeSelectInfo.selectedText = nl.t('{} items: {}', selectedList.length, selectedList.join(', '));
     };
 
     this.toggleSelectionOfFolder = function(folder, treeSelectInfo) {
+        if (!treeSelectInfo.multiSelect) return;
         var treeList = treeSelectInfo.data;
         for(var i=0; i<treeList.length; i++) {
             var item = treeList[i];
@@ -105,6 +130,15 @@ function(nl) {
     function _isDecendantOf(item, folder) {
         if (item.id == folder.id) return false;
         return (item.id.indexOf(folder.id) == 0);
+    }
+    
+    function _insertParentAndItem(itemId, treeArray, insertedKeys) {
+        if (itemId in insertedKeys) return;
+        insertedKeys[itemId] = true;
+        var parentId = _getParentId(itemId);
+        if (parentId) 
+            _insertParentAndItem(parentId, treeArray, insertedKeys);
+        treeArray.push({id: itemId});
     }
     
     function _getParentId(itemId) {
@@ -133,13 +167,10 @@ function(nl, nlDlg, nlTreeSelect) {
                 }
             };
             $scope.onCheckBoxSelect = function(item, e) {
+                if (!item.isFolder || !$scope.info.multiSelect) return;
                 e.stopImmediatePropagation();
                 e.preventDefault();
-                if (item.isFolder) {
-                    nlTreeSelect.toggleSelectionOfFolder(item, $scope.info);
-                } else {
-                    nlTreeSelect.toggleSelection(item, $scope.info);
-                }
+                nlTreeSelect.toggleSelectionOfFolder(item, $scope.info);
             };
         }
     };

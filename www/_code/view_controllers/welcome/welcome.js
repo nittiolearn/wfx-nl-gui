@@ -308,7 +308,6 @@ function VisitorManager(nl, nlDlg, nlServerApi, nlRouter, $scope, userInfo) {
                     if(e) e.preventDefault();
                     return;
                 }
-                console.log('demo requesting: scope.data:', requestDlg.scope.data);
                 nlDlg.showLoadingScreen();
                 nlServerApi.authDemoRequest(requestDlg.scope.data)
                 .then(function() {
@@ -328,7 +327,6 @@ function VisitorManager(nl, nlDlg, nlServerApi, nlRouter, $scope, userInfo) {
     };
     
     function _validateInputs(scope) {
-        console.log('scope.data:', scope.data);
         var deepValidate = $scope.landingPageName == 'welcome';
         scope.error = {};
         var ret = true;

@@ -856,7 +856,12 @@ tr .nl-dlg-field-name {
   }
 }
 
-input.nl-dlg-field-error {
+.nl-tree-select {
+  background-color: rgba(225, 225, 255, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.1)
+}
+
+input.nl-dlg-field-error, .nl-dlg-field-error {
   border: 1px solid #FF0000;
 }
 
