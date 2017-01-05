@@ -114,6 +114,7 @@ function _createDlgAndShow(nl, nlDlg, $scope, data, template, buttonName, onButt
     var dlg = nlDlg.create($scope);
     dlg.setCssClass('nl-height-max nl-width-max');
     dlg.scope.data = data;
+    dlg.scope.data.paused = false;
     dlg.scope.error = {};
     var dlgButton = {text: nl.t(buttonName), onTap: function(e) {
         if (e) e.preventDefault();
@@ -125,7 +126,7 @@ function _createDlgAndShow(nl, nlDlg, $scope, data, template, buttonName, onButt
 
 function RestApi(nl, nlDlg, nlServerApi) {
     this.showDlg = function($scope) {
-        var data = {url: '_serverapi/course_get_list.json', params: '{}'};
+        var data = {url: '_serverapi/course_get_list.json', params: '{}', loop: false};
         var template = 'view_controllers/debug/restapi_dlg.html';
         var dlg = _createDlgAndShow(nl, nlDlg, $scope, data, template, 'Execute', function(e, scope) {
             _onExecute(e, scope);
@@ -167,6 +168,11 @@ function RestApi(nl, nlDlg, nlServerApi) {
     function _onExecute(e, scope) {
         var params = _validateInputs(scope);
         if (!params) return;
+        if (scope.data.loop) {
+            scope.result.json = '';
+            _onExecuteLoop(e, scope, params, 0);
+            return;
+        }
         nlDlg.showLoadingScreen();
         nlServerApi.executeRestApi(scope.data.url, params).then(function(result) {
             nlDlg.hideLoadingScreen();
@@ -177,6 +183,33 @@ function RestApi(nl, nlDlg, nlServerApi) {
                 scope.view = 'json_res';
                 scope.result.fmt = {error: _formatError};
             }
+        });
+    }
+
+    function _statusMsg(scope, msg, param) {
+        var d = new Date();
+        scope.result.json += nl.fmt2('{}: {}{}\n', nl.fmt.date2Str(d, 'milli'), msg, param);
+    }
+    function _onExecuteLoop(e, scope, params, chunk) {
+        if (scope.data.paused) {
+            nl.timeout(function() {
+                _onExecuteLoop(e, scope, params, chunk);
+            }, 2000);
+            return;
+        }
+        chunk++;
+        _statusMsg(scope, 'Executing chunk: ', chunk);
+        nlServerApi.executeRestApi(scope.data.url, params)
+        .then(function(result) {
+            _statusMsg(scope, angular.toJson(result, 2), '\n');
+            if (!result.next_start_at) {
+                _statusMsg(scope, 'All actions completed: ', chunk);
+                return;
+            }
+            params.start_at = result.next_start_at;
+            nl.timeout(function() {
+                _onExecuteLoop(e, scope, params, chunk);
+            }, 1000);
         });
     }
     

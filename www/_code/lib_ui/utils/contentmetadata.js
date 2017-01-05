@@ -12,14 +12,22 @@ function module_init() {
 var MetaDlg = ['nl', 'nlDlg', 'nlServerApi', 'nlTreeSelect',
 function(nl, nlDlg, nlServerApi, nlTreeSelect) {
 
-    this.isEnabled = function() {
-        return nl.q(function(resolve, reject) {
-            nlServerApi.cmGetFields().then(function(cmFields) {
-                var enabled = (cmFields.length > 3); // By default 3 fields a enabled.
-                resolve(enabled);
-            });
-        });
+    this.getMetadataFromUrl = function() {
+        var params = nl.location.search();
+        var ret = {};
+        _copyIf(params, ret, 'search');
+        _copyIf(params, ret, 'custtype');
+        _copyIf(params, ret, 'grade');
+        _copyIf(params, ret, 'subject');
+        for(var i=0; i<100; i++) {
+            _copyIf(params, ret, 'attr'+i);
+        }
+        return ret;
     };
+    
+    function _copyIf(src, dest, attr) {
+        if (attr in src) dest[attr] = src[attr];
+    }
     
     this.showMetadata = function($scope, _userInfo, ctype, cid, card) {
         return nl.q(function(resolve, reject) {
@@ -29,10 +37,10 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
         });
     };
     
-    this.showAdvancedSearchDlg = function($scope, _userInfo, ctype) {
+    this.showAdvancedSearchDlg = function($scope, _userInfo, ctype, metadata) {
         return nl.q(function(resolve, reject) {
             var params = {$scope: $scope, _userInfo: _userInfo, ctype: ctype, cid: null, card: null,
-                resolve: resolve, reject: reject};
+                resolve: resolve, reject: reject, metadata: metadata};
             _showImpl(params);
         });
     };
@@ -50,7 +58,7 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
         
         nlDlg.showLoadingScreen();
         var promise1 = nlServerApi.cmGetFields();
-        var promise2 = (params.cid) ? nlServerApi.cmGet(params.cid, params.ctype) : _dummyPromise();
+        var promise2 = (params.cid) ? nlServerApi.cmGet(params.cid, params.ctype) : _dummyPromise(params);
         promise1.then(function(cmFields) {
             promise2.then(function(metadata) {
                 nlDlg.hideLoadingScreen();
@@ -59,9 +67,9 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
         });
     }
     
-    function _dummyPromise() {
+    function _dummyPromise(params) {
         return nl.q(function(resolve, reject) {
-            resolve({});
+            resolve(params.metadata || {});
         });
     }
 
@@ -69,27 +77,33 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
         var data = params.dlg.scope.data;
         data.cmFields = [];
         _hiddenFields = [];
+        var isSearch = !params.cid;
+
+        if (isSearch) {
+            data.cmFields.push({id: 'search', name: 'Search', type: 'text', value: metadata.search || ''});
+        }
+        
         for(var i=0; i<cmFields.length; i++) {
             var cmField = cmFields[i];
             if (cmField.hidden) {
                 _hiddenFields.push(cmField);
                 continue;
             }
-            cmField.value = _valueToGuiField(cmField, metadata);
+            cmField.value = _valueToGuiField(cmField, metadata, isSearch);
             data.cmFields.push(cmField);
         }
 
         var buttons = [];
-        if (params.cid &&
+        if (!isSearch &&
             params._userInfo.groupinfo.id == params.card.grp && 
             params._userInfo.permissions.lesson_approve) {
             buttons.push({ text : nl.t('Update'), onTap : function(e) {
                 _onUpdate(e, params);
             }});
         }
-        if (!params.cid) {
+        if (isSearch) {
             buttons.push({ text : nl.t('Search'), onTap : function(e) {
-                _onSearch(e, params);
+                _onSearch(e, params, metadata);
             }});
         }
         var cancelButton = {text : nl.t('Close')};
@@ -111,28 +125,28 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
         });
     }
     
-    function _onSearch(e, params) {
+    function _onSearch(e, params, metadataIn) {
         var metadata = _getMetadata(params, false);
-        if (params.resolve) params.resolve(metadata);
+        if (params.resolve) params.resolve({metadata: metadata});
     }
     
-    function _getMetadata(params, bCheckMandatory) {
+    function _getMetadata(params, isUpdate) {
         var cmFields = params.dlg.scope.data.cmFields;
         var metadata = {};
         var error = false;
         for (var i=0; i<cmFields.length; i++) {
             var cmField = cmFields[i];
-            if (!_guiFieldToMetadataDict(params, cmField, metadata)) error = true;
+            if (!_guiFieldToMetadataDict(params, cmField, metadata, isUpdate)) error = true;
         }
         for (var i=0; i<_hiddenFields.length; i++) {
             var cmField = _hiddenFields[i];
-            if (!_guiFieldToMetadataDict(params, cmField, metadata)) error = true;
+            if (!_guiFieldToMetadataDict(params, cmField, metadata, isUpdate)) error = true;
         }
-        if (bCheckMandatory && error) return null;
+        if (isUpdate && error) return null;
         return metadata;
     }
     
-    function _valueToGuiField(cmField, metadata) {
+    function _valueToGuiField(cmField, metadata, isSearch) {
         var val = cmField.id in metadata ? metadata[cmField.id] : null;
         if (cmField.type == 'text' || cmField.type == 'number') return val;
 
@@ -145,17 +159,17 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
         treeSelectInfo.data = nlTreeSelect.strArrayToTreeArray(cmField.values || []);
         nlTreeSelect.updateSelectionTree(treeSelectInfo, selectedIds);
         treeSelectInfo.treeIsShown = false;
-        treeSelectInfo.multiSelect = (cmField.type == 'multi-select');
+        treeSelectInfo.multiSelect = !isSearch && (cmField.type == 'multi-select');
         return treeSelectInfo;
     }
 
     var _ctypesManditoryAttrs = {module: {grade: true, subject: true, custtype: true}, 
                     course: {custtype: true} }
 
-    function _guiFieldToMetadataDict(params, cmField, metadata) {
+    function _guiFieldToMetadataDict(params, cmField, metadata, isUpdate) {
         cmField.error = false;
-        var val = _guiFieldToValue(params, cmField);
-        var mandatory = cmField.id in _ctypesManditoryAttrs[params.ctype];
+        var val = _guiFieldToValue(params, cmField, isUpdate);
+        var mandatory = isUpdate && (cmField.id in _ctypesManditoryAttrs[params.ctype]);
         if (mandatory && val === null) {
             cmField.error = 'This field is mandatory';
             return false;
@@ -165,16 +179,16 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
         return true;
     }
     
-    function _guiFieldToValue(params, cmField) {
+    function _guiFieldToValue(params, cmField, isUpdate) {
         var val = cmField.value;
         if (cmField.type == 'text') return val || null;
-        if (cmField.type == 'number') return val ? parseInt(val) : 0;
+        if (cmField.type == 'number') return val !== null? parseInt(val) : null;
         val.treeIsShown = false;
         val = nlTreeSelect.getSelectedIds(val, true);
         var ret = [];
         for (var v in val) ret.push(v);
         if (ret.length == 0) return null;
-        if (cmField.type == 'multi-select') return ret;
+        if (isUpdate && cmField.type == 'multi-select') return ret;
         return ret[0];
     }
 

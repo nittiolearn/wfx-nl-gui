@@ -104,13 +104,18 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             $scope.search = {filter: searchParam, img: nl.url.resUrl('search.png'), grade: {id: grade}};
             $scope.search.onSearch = function() {
             	if (!('onSearch' in $scope.cards.search)) return;
-            	return $scope.cards.search.onSearch($scope.search.filter, $scope.search.grade.id);
+            	return $scope.cards.search.onSearch($scope.search.filter, $scope.search.grade.id, _onSearchParamChange);
             };
 			$scope.searchKeyHandler = function(keyevent) {
 				if(keyevent.which === 13) {
-					return $scope.search.onSearch($scope.search.filter, $scope.search.grade.id);
+					return $scope.search.onSearch($scope.search.filter, $scope.search.grade.id, _onSearchParamChange);
 				}				
 			};
+			function _onSearchParamChange(filter, grade) {
+                $scope.search.filter = filter;
+                $scope.search.grade = {id: grade};
+			}
+			
             $scope.search.getResultsStr = function() {
                 if ($scope.cards && $scope.cards.search && $scope.cards.search.img)
                     $scope.search.img = $scope.cards.search.img;

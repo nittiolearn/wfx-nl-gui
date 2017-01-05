@@ -15,6 +15,15 @@
             <button ng-click='view="fmt_res"' class='button' ng-class='{"highlight": view=="fmt_res"}'>Formatted Result</button>
         </div>
         <table ng-hide='view!="req"' class='nl-table'>
+            <tr><td>Execute in loop</td><td class='nl-dlg-field-value'>
+                <span ng-click='data.loop = !data.loop'>
+                    <i ng-show='data.loop' class="icon ion-android-checkbox-outline"></i>
+                    <i ng-hide='data.loop' class="icon ion-android-checkbox-outline-blank"></i>
+                    Execute in loop
+                </span>
+                <button ng-show='data.paused' ng-click='data.paused = false'>Resume</button>
+                <button ng-hide='data.paused' ng-click='data.paused = true'>Pause</button>
+            </td></tr>
             <tr nl-form-input fieldname='URL' fieldmodel='url' fieldtype='text' ng-keypress='onUrlEnter($event)'></tr>
             <tr nl-form-textarea fieldname='Params' fieldmodel='params' fieldcls='nl-fixed-width'></tr>
         </table>

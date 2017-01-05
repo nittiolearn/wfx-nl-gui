@@ -41,22 +41,22 @@ function($stateProvider, $urlRouterProvider) {
 		}});
 }];
 
-var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlCourse', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv',
-function(nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv) {
-	_listCtrlImpl('course', nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv);
+var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlCourse', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg',
+function(nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg) {
+	_listCtrlImpl('course', nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg);
 }];
 
-var CourseAssignListCtrl = ['nl', 'nlRouter', '$scope', 'nlCourse', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv',
-function(nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv) {
-	_listCtrlImpl('assign', nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv);
+var CourseAssignListCtrl = ['nl', 'nlRouter', '$scope', 'nlCourse', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg',
+function(nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg) {
+	_listCtrlImpl('assign', nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg);
 }];
 
-var CourseReportListCtrl = ['nl', 'nlRouter', '$scope', 'nlCourse', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv',
-function(nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv) {
-	_listCtrlImpl('report', nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv);
+var CourseReportListCtrl = ['nl', 'nlRouter', '$scope', 'nlCourse', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg',
+function(nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg) {
+	_listCtrlImpl('report', nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg);
 }];
 
-function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv) {
+function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg) {
 	/* 
 	 * URLs handled
 	 * 'View published' : /course_list?type=course&my=0
@@ -72,6 +72,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, 
 	var _userInfo = null;
 	var _searchFilterInUrl = '';
 	var _custtypeInUrl = null;
+    var _metadataEnabled = false;
+    var _searchMetadata = null;
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
@@ -99,6 +101,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, 
 			_deleteCourse($scope, card.courseId);
 		} else if (linkid === 'course_unpublish'){
 			_unpublishCourse($scope, card.courseId);
+        } else if (linkid === 'course_metadata') {
+            _metadataCourse($scope, card.courseId, card);
 		} else if (linkid === 'course_assign'){
 			var assignInfo = {type: 'course', id: card.courseId, icon: card.icon, 
 				title: card.title, authorName: card.authorName, subjGrade: '',
@@ -118,6 +122,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, 
         assignId = ('assignid' in params) ? parseInt(params.assignid) : 0;
         _searchFilterInUrl = ('search' in params) ? params.search : '';
         _custtypeInUrl = ('custtype' in params) ? parseInt(params.custtype) : null;
+        _metadataEnabled = ('enablemeta' in params) && (type == 'course') && !my;
+        _searchMetadata = nlMetaDlg.getMetadataFromUrl();
 	}
 
 	function _getPageTitle() {
@@ -137,10 +143,26 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, 
 		cards.search.onSearch = _onSearch;
 	}
 	
-	function _onSearch(filter) {
+	function _onSearch(filter, grade, onSearchParamChange) {
+	    _searchFilterInUrl = filter;
+        if (!_metadataEnabled) {
+            _onSearchImpl();
+            return;
+        }
+        _searchMetadata.search = _searchFilterInUrl;
+        nlMetaDlg.showAdvancedSearchDlg($scope, _userInfo, 'course', _searchMetadata)
+        .then(function(result) {
+            _searchFilterInUrl = result.metadata.search || '';
+            _searchMetadata = result.metadata;
+            onSearchParamChange(_searchFilterInUrl, grade);
+            _onSearchImpl();
+        });
+    }
+
+    function _onSearchImpl() {
 		nlDlg.showLoadingScreen();
 		var promise = nl.q(function(resolve, reject) {
-			_getDataFromServer(filter, resolve, reject);
+			_getDataFromServer(_searchFilterInUrl, resolve, reject);
 		});
 		promise.then(function(res) {
 			nlDlg.hideLoadingScreen();
@@ -166,6 +188,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, 
 	
 	function _listingFunction(filter) {
 	    var params = {search: filter};
+        if (_metadataEnabled) params.metadata = _searchMetadata;
 	    if (_custtypeInUrl !== null) params.custtype = _custtypeInUrl;
 		if (type === 'course') {
 		    params.mine = my;
@@ -221,6 +244,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, 
 					authorName: course.authorname,
 					help: course.description,
 					json: angular.toJson(course, 0),
+					grp: course.grp,
 					children: []};
 
 		card.details = {help: card.help, avps: _getCourseAvps(course)};
@@ -233,10 +257,21 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, 
 		} else if(nlRouter.isPermitted(userInfo, 'course_assign')) {
 			card.links.push({id: 'course_assign', text: nl.t('assign')});
 		}
+		_addMetadataLink(card);
 		card.links.push({id: 'details', text: nl.t('details')});
 		return card;
 	}
 	
+    function _addMetadataLink(card) {
+        if (!_metadataEnabled) return;
+        card.links.push({id : 'course_metadata', text : nl.t('metadata')});
+    }
+
+    function _addMetadataLinkToDetails(linkAvp) {
+        if (!_metadataEnabled) return;
+        nl.fmt.addLinkToAvp(linkAvp, 'metadata', null, 'course_metadata');
+    }
+
 	function  _getCourseAvps(course) {
 		var avps = [];
 		nl.fmt.addAvp(avps, 'Name', course.name);
@@ -295,6 +330,13 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, 
         nl.fmt.addAvp(avps, 'Discussion forum', report.forum, 'boolean');
 		return avps;
 	}
+
+    function _metadataCourse($scope, courseId, card) {
+        nlMetaDlg.showMetadata($scope, _userInfo, 'course', courseId, card)
+        .then(function() {
+            _onSearchImpl();
+        });
+    }
 
 	function _deleteCourse($scope, courseId) {
 		var msg = {title: 'Please confirm', 

@@ -68,15 +68,18 @@
 	};
 
 	//-------------------------------------------------------------------------------------------------
-	function TypeHandler(nl, nlServerApi) {
+	function TypeHandler(nl, nlServerApi, nlMetaDlg) {
 		this.type = TYPES.NEW;
 		this.custtype = null;
 		this.searchFilter = null;
         this.searchGrade = null;
-        this.searchMetadata = null;
+        this.searchMetadata = {};
 		this.revstate = null;
 		this.title = null;
 		this.content = null;
+        this.canEnableMetadata = false;
+        this.metadataEnabled = false;
+		var self=this;
 
 		this.initFromUrl = function() {
 			var params = nl.location.search();
@@ -85,17 +88,19 @@
 			this.revstate = ('revstate' in params) ? parseInt(params.revstate) : null;
 			this.searchGrade = ('grade' in params) ? params.grade : null;
 			this.searchFilter = ('search' in params) ? params.search : null;
-			// TODO-MUNNI-NOW: update metadata; remove grade
+			this.searchMetadata = nlMetaDlg.getMetadataFromUrl();
+            this.canEnableMetadata = ('enablemeta' in params);
 			this.title = params.title || null;
 			this.content = params.content || null;
 		};
-
+		
 		this.listingFunction = function() {
 			var data = {};
 			if (this.custtype !== null) data.custtype = this.custtype;
 			if (this.searchFilter !== null) data.search = this.searchFilter;
 			if (this.searchGrade !== null) data.grade = this.searchGrade;
-			if (this.content !== null) data.content = this.content;
+            if (this.content !== null) data.content = this.content;
+            if (this.metadataEnabled) data.metadata = this.searchMetadata;
 			if (this.type == TYPES.NEW) {
 				return nlServerApi.lessonGetTemplateList(data);
 			} else if (this.type == TYPES.MY) {
@@ -148,10 +153,9 @@
 	'nlApproveDlg', 'nlSendAssignmentSrv', 'nlMetaDlg',
 	function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlSendAssignmentSrv, nlMetaDlg) {
 
-		var mode = new TypeHandler(nl, nlServerApi);
+		var mode = new TypeHandler(nl, nlServerApi, nlMetaDlg);
 		var _userInfo = null;
 		var _allCardsForReview = [];
-		var _metadataEnabled = false;
 
 		function _onPageEnter(userInfo) {
 			_userInfo = userInfo;
@@ -161,14 +165,11 @@
 				$scope.cards = {};
 				$scope.cards.staticlist = _getStaticCard();
 				$scope.cards.emptycard = nlCardsSrv.getEmptyCard();
-                nlMetaDlg.isEnabled().then(function(enabled) {
-                    _metadataEnabled = enabled && (
-                        (mode.type == TYPES.APPROVED) ||
-                        (mode.type == TYPES.MANAGE) ||
-                        (mode.type == TYPES.SENDASSIGNMENT) ||
-                        (mode.type == TYPES.NEW));
-                    _getDataFromServer(resolve, reject);
-                });
+                mode.metadataEnabled = mode.canEnableMetadata && (
+                    (mode.type == TYPES.APPROVED) ||
+                    (mode.type == TYPES.MANAGE) ||
+                    (mode.type == TYPES.SENDASSIGNMENT));
+                _getDataFromServer(resolve, reject);
 			});
 		}
 
@@ -560,12 +561,12 @@
 		}
 
         function _addMetadataLink(card) {
-            if (!_metadataEnabled) return;
+            if (!mode.metadataEnabled) return;
             card.links.push({id : 'lesson_metadata', text : nl.t('metadata')});
         }
 
         function _addMetadataLinkToDetails(linkAvp) {
-            if (!_metadataEnabled) return;
+            if (!mode.metadataEnabled) return;
             nl.fmt.addLinkToAvp(linkAvp, 'metadata', null, 'lesson_metadata');
         }
 
@@ -701,6 +702,8 @@
 			cards.search = {
 				placeholder : nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)
 			};
+            cards.search.onSearch = _onSearch;
+            if (mode.metadataEnabled) return;
 			
 			var grades = [];
 			for(var i=0; i<_userInfo.groupinfo.grades.length; i++) {
@@ -712,23 +715,23 @@
 			    grades.push({id: g, desc: desc, grp: grp});
 			}
 			nlCardsSrv.updateGrades(cards, grades);
-			cards.search.onSearch = _onSearch;
 		}
 
-		function _onSearch(filter, grade) {
+		function _onSearch(filter, grade, onSearchParamChange) {
 			mode.searchFilter = filter;
 			mode.searchGrade = grade;
-            if (!_metadataEnabled) {
+            if (!mode.metadataEnabled) {
                 _reloadFromServer();
                 return;
             }
-            // TODO-MUNNI-NOW
-            var metadataIn = {search: filter, grade: grade};
-            nlMetaDlg.showAdvancedSearchDlg($scope, _userInfo, 'module', metadataIn)
-            .then(function(metadata) {
-                mode.searchFilter = metadata.search;
-                mode.searchGrade = metadata.grade;
-                mode.searchMetadata = metadata;
+            mode.searchMetadata.search = mode.searchFilter;
+            mode.searchMetadata.grade = mode.searchGrade;
+            nlMetaDlg.showAdvancedSearchDlg($scope, _userInfo, 'module', mode.searchMetadata)
+            .then(function(result) {
+                mode.searchFilter = result.metadata.search || '';
+                mode.searchGrade = result.metadata.grade || null;
+                mode.searchMetadata = result.metadata;
+                onSearchParamChange(mode.searchFilter, mode.searchGrade);
                 _reloadFromServer();
             });
 		}
