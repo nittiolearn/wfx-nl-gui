@@ -13,7 +13,8 @@
 		 tabindex="0"
 		 ng-click='search.onSearch()'/>
 	<i class='sep4'></i>
-	<span class='col col-20 nl-textellipsis'>{{search.getResultsStr()}}</span>
+	<span class='col col-20 nl-textellipsis nl-link-text'
+	      ng-click='showResultDetails()'>{{search.resultsStr}}</span>
 </div>
 <div class='nl-card nl-link-text-container' 
 	ng-repeat="card in getCards()" 

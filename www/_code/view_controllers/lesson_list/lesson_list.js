@@ -80,6 +80,10 @@
         this.canEnableMetadata = false;
         this.metadataEnabled = false;
 		var self=this;
+        self.start_at = 0;
+        self.max = 50;
+        self.canFetchMore = true;
+        self.resultList = [];
 
 		this.initFromUrl = function() {
 			var params = nl.location.search();
@@ -94,8 +98,20 @@
 			this.content = params.content || null;
 		};
 		
-		this.listingFunction = function() {
-			var data = {};
+        this.getFullResultList = function(results) {
+            self.resultList = self.resultList.concat(results);
+            self.canFetchMore = (results.length > self.max);
+            self.start_at += results.length;
+            return self.resultList;
+        };
+        
+		this.listingFunction = function(fetchMore) {
+		    if (!self.canFetchMore || !fetchMore) {
+		        self.start_at = 0;
+		        self.canFetchMore = true;
+                self.resultList = [];
+		    }
+			var data = {start_at: self.start_at, max: self.max};
 			if (this.custtype !== null) data.custtype = this.custtype;
 			if (this.searchFilter !== null) data.search = this.searchFilter;
 			if (this.searchGrade !== null) data.grade = this.searchGrade;
@@ -169,7 +185,7 @@
                     (mode.type == TYPES.APPROVED) ||
                     (mode.type == TYPES.MANAGE) ||
                     (mode.type == TYPES.SENDASSIGNMENT));
-                _getDataFromServer(resolve, reject);
+                _getDataFromServer(false, resolve, reject);
 			});
 		}
 
@@ -251,6 +267,8 @@
 				_closereviewLesson($scope, lessonId);
             } else if (internalUrl === 'lesson_metadata') {
                 _metadataLesson($scope, lessonId, card);
+            } else if (internalUrl === 'fetch_more') {
+                _fetchMore();
 			} else if (internalUrl === 'lesson_disapprove') {
 				_disapproveLesson($scope, lessonId);
 			} else if (internalUrl === 'lesson_view') {
@@ -285,8 +303,9 @@
 		    $scope.onCardInternalUrlClicked(card, linkId);
 		};
 
-		function _getDataFromServer(resolve, reject) {
-			mode.listingFunction().then(function(resultList) {
+		function _getDataFromServer(fetchMore, resolve, reject) {
+			mode.listingFunction(fetchMore).then(function(resultList) {
+			    resultList = mode.getFullResultList(resultList);
 				nl.log.debug('Got result: ', resultList.length);
 				$scope.cards.cardlist = _getLessonCards(_userInfo, resultList);
 				_allCardsForReview = $scope.cards.cardlist;
@@ -700,10 +719,14 @@
 
 		function _addSearchInfo(cards) {
 			cards.search = {
-				placeholder : nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)
+				placeholder : nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel),
+				maxLimit: mode.max
 			};
             cards.search.onSearch = _onSearch;
-            if (mode.metadataEnabled) return;
+            if (mode.metadataEnabled) {
+                cards.canFetchMore = mode.canFetchMore;
+                return;
+            }
 			
 			var grades = [];
 			for(var i=0; i<_userInfo.groupinfo.grades.length; i++) {
@@ -736,10 +759,14 @@
             });
 		}
 
-		function _reloadFromServer() {
+        function _fetchMore() {
+            _reloadFromServer(true);
+        }
+        
+		function _reloadFromServer(fetchMore) {
 			nlDlg.showLoadingScreen();
 			var promise = nl.q(function(resolve, reject) {
-				_getDataFromServer(resolve, reject);
+				_getDataFromServer(fetchMore, resolve, reject);
 			});
 			promise.then(function(res) {
 				nlDlg.hideLoadingScreen();
