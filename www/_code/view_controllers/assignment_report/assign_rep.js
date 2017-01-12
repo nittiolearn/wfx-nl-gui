@@ -260,7 +260,8 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 
     function _updateChartCard(reportStats) {
         var lst = reportStats.getRecords();
-        nl.pginfo.pageTitle = mode.pageTitle(lst[0]); 
+        nl.pginfo.pageTitle = mode.pageTitle(lst.length > 0 ? lst[0] : null); 
+        if (lst.length == 0) return;
         var stats = reportStats.getStats();
         var completed = stats.passed + stats.failed;
         _chartCard.title =nl.t('{} of {} completed', completed, stats.students);
