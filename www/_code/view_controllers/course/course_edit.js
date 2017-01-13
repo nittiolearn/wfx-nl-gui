@@ -32,7 +32,6 @@ function(nl, nlDlg, nlCourse) {
     var $scope = null;
     var _allModules = [];
     var _debug = null;
-	var publish = false;
 	
     this.init = function(_scope, _modeHandler) {
         $scope = _scope;
@@ -59,7 +58,8 @@ function(nl, nlDlg, nlCourse) {
             searchLesson: _searchLesson,
             organiseModules: _organiseModules,
             saveCourse: _saveCourse,
-            updateTitle: _updateTitle
+            updateTitle: _updateTitle,
+            onElementTypeChange: _onElementTypeChange
         };
     };
 
@@ -75,9 +75,22 @@ function(nl, nlDlg, nlCourse) {
 	this.validateInputs = function(cm) {
 		return _validateInputs(modeHandler.course, cm);		
 	};
-
+	
 	function _updateTitle(){
         nl.pginfo.pageTitle = modeHandler.course.name;	
+	}
+
+	function _onElementTypeChange(cm){
+		if(cm.type !== 'module'){
+			var indicesToRemove = [];
+	        for(var i=0; i < _allModules.length; i++){
+	        	if (_isDescendantOf(_allModules[i], cm)) indicesToRemove.push(i);
+	        }
+	        indicesToRemove.splice(0, 1);
+	        _romoveElements(indicesToRemove);
+			$scope.editorCb.showVisible(cm);
+			$scope.editorCb.updateChildrenLinks();
+		}
 	}
 	
     function _getCourseAttributes(course) {
@@ -258,27 +271,27 @@ function(nl, nlDlg, nlCourse) {
 	}
 	
 	function _saveCourse(e, bPublish, cm){
-		publish = bPublish;
-	    if(!_validateInputs(modeHandler.course, cm)) {
-	        if(e) e.preventDefault();
-	        return;
-	    } else {
+	    if(!_validateInputs(modeHandler.course, cm)) return;
+		if (!bPublish) {
+			_saveAfterValidateCourse(e, bPublish);
+			return;
+		}
+		var templateMsg = nl.t('Are you sure you want to publish this course?');
+		var msg = {title: 'Please confirm', 
+				   template: templateMsg,
+				   okText: nl.t('Publish')};
+		nlDlg.popupConfirm(msg).then(function(res) {
+			if(!res) return;
 	    	_saveAfterValidateCourse(e, bPublish);
-	    }
-
+		});		
 	}
 
     function _saveAfterValidateCourse(e, bPublish) {
         modeHandler.course.content.modules = [];
     	for(var i=0; i<_allModules.length; i++){
     	    var newModule = _getSavableModuleAttrs(_allModules[i]);
-		    if(newModule.parentId == '_root' || newModule.type == 'module') {
 		        modeHandler.course.content.modules.push(newModule);	    	
-		    } else {
-		        var cm = $scope.editorCb.getParent(newModule);
-		        if(cm.type == 'module') modeHandler.course.content.modules.push(newModule);
-		    }
-    	}
+		}
         var modifiedData = {
                         name: modeHandler.course.name, 
                         icon: modeHandler.course.icon, 
@@ -314,7 +327,6 @@ function(nl, nlDlg, nlCourse) {
 	         $scope.editor.jsonTempStore['certificate'] = _objToJson(modeHandler.course.content.certificate);
 	         return;
     	}
-    	
     	var allowedAttributes = allowedModuleAttrs[cm.type] || {};
     	var attrs = Object.keys(cm);
     	for(var i=0; i<attrs.length; i++) {
@@ -375,6 +387,11 @@ function(nl, nlDlg, nlCourse) {
         });    	
     };
 
+	function _organiseModulesDlg(e, cm){
+		if(!_validateInputs(modeHandler.course, cm)) return;
+		_organiseModulesDlg();
+	};
+
     function _validateInputs(data, cm) {
         var errorLocation = {};
         var ret = _validateInputsImpl(data, cm, errorLocation);
@@ -412,7 +429,6 @@ function(nl, nlDlg, nlCourse) {
     	var modules = data.content.modules;
         if (modules.length < 1) return _validateFail(errorLocation, 'Error', 
             'Atleast one course module object is expected in the content');
-
         for(var i=0; i<modules.length; i++){
             var module = modules[i];
             if (!_validateModule(data, module, errorLocation)) return false;

@@ -53,6 +53,7 @@
          class='nl-dlg-field-value padding-mid'>
         <select ng-model='values[attr.name]' 
                 class='w100'
+                ng-change='editor.onElementTypeChange(values)'
                 ng-options='opt as (opt | nlConvert:editor.typeNames) for opt in attr.values'
                 ng-focus="attr.focus=true" ng-blur="attr.focus=false">
         </select>               
