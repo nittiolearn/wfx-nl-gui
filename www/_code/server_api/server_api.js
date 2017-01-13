@@ -378,7 +378,7 @@ function(nl, nlDlg, nlConfig, Upload) {
 	};
 
 	this.assignmentReport = function(data){
-		//data = assignid, search=xxx
+		//data = reptype, assignid|userid, [search=xxx, max=nn, start_at=xx], completed=[true|false]
 		//assignment_reports
 		return server.post('_serverapi/assignment_get_reports.json', data);
 	};
@@ -485,6 +485,24 @@ function(nl, nlDlg, nlConfig, Upload) {
     this.lessonCreate = function(template, isTemplate, name, section0) {
        return server.post('_serverapi/lesson_create.json', {template: template, 
            isTemplate: isTemplate, name: name, section0: section0});
+    };
+
+    //---------------------------------------------------------------------------------------------
+    // Content metadata
+    //---------------------------------------------------------------------------------------------
+    this.cmGetFields = function() {
+        return _getFromCacheOrServer('contentmeta_get_fields', DEFAULT_CACHE_LIFE, 
+           '_serverapi/contentmeta_get_fields.json', {});
+    };
+    
+    this.cmGet = function(cid, ctype) {
+        return server.post('_serverapi/contentmeta_get.json', 
+            {cid: cid, ctype: ctype});
+    };
+
+    this.cmSet = function(cid, ctype, metadata) {
+        return server.post('_serverapi/contentmeta_set.json', 
+            {cid: cid, ctype: ctype, metadata: metadata});
     };
 
     //---------------------------------------------------------------------------------------------

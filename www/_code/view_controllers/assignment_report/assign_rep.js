@@ -7,7 +7,9 @@
 function module_init() {
     angular.module('nl.assign_rep', [])
     .config(configFn)
-    .controller('nl.AssignRepCtrl', AssignRepCtrl);
+    .controller('nl.AssignRepCtrl', AssignRepCtrl)
+    .controller('nl.AssignSummaryRepCtrl', AssignSummaryRepCtrl)
+    .controller('nl.AssignUserRepCtrl', AssignUserRepCtrl);
   }
    
 //-------------------------------------------------------------------------------------------------
@@ -21,29 +23,53 @@ function($stateProvider, $urlRouterProvider) {
                 controller: 'nl.AssignRepCtrl'
             }
         }});
+    $stateProvider.state('app.assignment_summary_report', {
+        url: '^/assignment_summary_report',
+        views: {
+            'appContent': {
+                templateUrl : 'lib_ui/cards/cardsview.html',
+                controller: 'nl.AssignSummaryRepCtrl'
+            }
+        }});
+    $stateProvider.state('app.assignment_user_report', {
+        url: '^/assignment_user_report',
+        views: {
+            'appContent': {
+                templateUrl : 'lib_ui/cards/cardsview.html',
+                controller: 'nl.AssignUserRepCtrl'
+            }
+        }});
 }];
 
 //-------------------------------------------------------------------------------------------------
-function TypeHandler(nl, nlServerApi, nlDlg) {
+function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
     var self = this;
 	this.initFromUrl = function() {
 		var params = nl.location.search();
-		self.assignid = ('assignid' in params) ? params.assignid : null;
-        self.max = ('max' in params) ? params.max : 49;
+        self.assignid = ('assignid' in params) ? parseInt(params.assignid) : null;
+        self.userid = ('userid' in params) ? params.userid : null;
+        self.max = ('max' in params) ? parseInt(params.max) : 50;
+        self.max--;
+        self.start_at = ('start_at' in params) ? parseInt(params.start_at) : 0;
+        self.completed = ('completed' in params) ? parseInt(params.completed) != 0 : true;
+
+        self.limit = ('limit' in params) ? params.limit : (reptype == 'assignment') ? null: 100;
         self.dataFetched = false;
+        self.fetchedCount = 0;
 	};
 
 	this.getAssignmentReports = function(filter, callbackFn) {
-	    self.start_at = 0;
-        self.dataFetched = false;
 	    _getAssignmentReports(filter, callbackFn);
     };
 
     function _getAssignmentReports(filter, callbackFn) {
-		var data = {assignid : self.assignid, max: self.max, start_at: self.start_at};
+		var data = {reptype: reptype, assignid : self.assignid, userid : self.userid, 
+		    max: self.max, start_at: self.start_at, completed: self.completed};
 		if (filter) data.search = filter;
 		nlServerApi.assignmentReport(data).then(function(result) {
             var more = (result.length > self.max);
+            self.fetchedCount += result.length;
+            if (self.limit && self.fetchedCount >= self.limit) more = false;
             self.start_at += result.length;
             var msg = nl.t('Got {} items from the server.{}', self.start_at, more ? 
                 ' Fetching more items ...' : '');
@@ -60,20 +86,38 @@ function TypeHandler(nl, nlServerApi, nlDlg) {
 		});
 	}
 
-	this.pageTitle = function(name) {
-		return nl.t('Assignment Report: {}', name);
+	this.pageTitle = function(rep) {
+        if (reptype == 'group') return nl.t('Assignment Summary Report');
+	    var name = rep ? nl.fmt2(': {}', (reptype == 'user') ? rep.studentname : rep.name) : '';
+	    return nl.t('Assignment Report{}', name);
 	};
 };
 
 //-------------------------------------------------------------------------------------------------
 var AssignRepCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'NlAssignReportStats',
 function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats) {
+    _assignRepImpl('assignment', nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats);
+}];
+
+//-------------------------------------------------------------------------------------------------
+var AssignSummaryRepCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'NlAssignReportStats',
+function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats) {
+    _assignRepImpl('group', nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats);
+}];
+
+//-------------------------------------------------------------------------------------------------
+var AssignUserRepCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'NlAssignReportStats',
+function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats) {
+    _assignRepImpl('user', nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats);
+}];
+
+//-------------------------------------------------------------------------------------------------
+function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats) {
 	var _userInfo = null;
 	var my = 0;
 	var search = null;
-	var mode = new TypeHandler(nl, nlServerApi, nlDlg);
+	var mode = new TypeHandler(reptype, nl, nlServerApi, nlDlg);
 	var reportStats = null;
-	var assignid = null;
 	var nameAndScore = [];
 
 	function _onPageEnter(userInfo) {
@@ -85,7 +129,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
     		$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
             $scope.cards.cardlist = [];
             $scope.cards.staticlist = [];
-            reportStats = NlAssignReportStats.createReportStats();
+            reportStats = NlAssignReportStats.createReportStats(reptype);
+            nl.pginfo.pageTitle = mode.pageTitle(); 
             reportStats.init().then(function() {
                 _getDataFromServer('', resolve);
             }, function() {
@@ -108,11 +153,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
 		} else if(linkid == 'assignment_share') {
 			_assignmentShare($scope, card);
 		} else if(linkid == 'assignment_content'){
-			nl.window.location.href = nl.t('/lesson/view_assign/{}', card.id);
+			nl.window.location.href = nl.t('/lesson/view_assign/{}', mode.assignid);
         } else if(linkid == 'assignment_export') {
             _assignmentExport($scope);
         } else if(linkid == 'status_overview'){
-            _statusOverview($scope);
+            _statusOverview();
 		}
 	};
 
@@ -126,115 +171,111 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
 		        resolve(false);
 		        return;
 		    }
-		    if ($scope.cards.staticlist.length == 0 && result.length > 0) {
-                _appendFirstStaticCard(result[0], $scope.cards.staticlist);
-                _appendSecondStaticCard($scope.cards.staticlist);
-		    }
-            reportStats.updateStats(result);
+            reportStats.updateReports(result);
             _appendAssignmentReportCards(result, $scope.cards.cardlist);
-            _updateSecondStaticCard(reportStats);
+            if ($scope.cards.staticlist.length == 0 && result.length > 0) {
+                _appendChartCard($scope.cards.staticlist);
+            }
+            _updateChartCard(reportStats);
+            _updateStatusOverview();
             resolve(true);
 		});
 	}
 	
 	function _appendAssignmentReportCards(resultList, cardlist) {
 		for (var i = 0; i < resultList.length; i++) {
-			var card = _createAssignmentCard(resultList[i]);
+			var card = _createReportCard(resultList[i]);
 			cardlist.push(card);
 		}
 		cardlist.sort(function(a, b) {
 		    return (b.updated - a.updated);
 		});
 	}
+	
+	var _statusInfo = {
+	    'pending' : {icon: 'ion-ios-circle-filled fgrey', txt: 'Pending'},
+        'failed' : {icon: 'ion-alert-circled fyellow', txt: 'Scored low'},
+        'completed' : {icon: 'ion-checkmark-circled fgreen', txt: 'Completed'}
+	}
+	function _createReportCard(report) {
+	    var urlPart = (reptype == 'user' && report.student == _userInfo.userid)
+	       ? 'view_report_assign' : 'review_report_assign';
 
-	function _createAssignmentCard(assignment) {
-		var url = null;
-		var internalUrl = null;
-		var status = null;
-		nl.pginfo.pageTitle = mode.pageTitle(assignment.name); 
-		var content = angular.fromJson(assignment.content);
-		var bcompleted = assignment.completed || false;
-		if(bcompleted){
-			status = nl.t('completed');
-			url = nl.fmt2('/lesson/review_report_assign/{}', assignment.id);
-		} else {
-			status = nl.t('not completed');
-		}
+        var status = _statusInfo[report._statusStr];
 		var card = {
-			id : assignment.id,
-			title : assignment.studentname,
-			updated: nl.fmt.json2Date(assignment.updated),
-			icon : nl.url.resUrl('dashboard/reports.png'),
-			internalUrl: internalUrl, 
-			url : url,
+			id : report.id,
+			title : (reptype == 'assignment') ? report.studentname : report.name,
+			updated: report.updated,
+			icon2 : status.icon,
+			internalUrl: null, 
+			url : report.completed ? nl.fmt2('/lesson/{}/{}', urlPart, report.id) : null,
 			children : []
 		};
-		if(bcompleted) {
-			card.links = [];
-			card.links.push({
-				id : 'assignment_update',
-				text : nl.t('update')
-			},{
-				id : 'assignment_share',
-				text : nl.t('share')
-			});
-			var perc = content.maxScore > 0 ? Math.round((content.score/content.maxScore)*100) : 'NA';
-			if(perc > 0){
-				card['help'] = nl.t('<span class="nl-card-description"><b>Status: {}</b></span><br><span>score: {} / {} ({}%)</span>', status, content.score, content.maxScore, perc);
-			}else {
-				card['help'] = nl.t('<span class="nl-card-description"><b>Status: {}</b></span>', status);			
-			}
-		} else {
-			card['help'] = nl.t('<span class="nl-card-description"><b>Status: {}</b></span>', status);
+        card['help'] = '';
+        if (reptype == 'group') {
+            card['help'] = nl.fmt2('<div class="nl-textellipsis padding-small"><b>{}</b></div>', 
+                report.studentname);
+        }
+        card['help'] += nl.fmt2('<div class="nl-textellipsis padding-small"><b>{}</b></div>', 
+            status.txt);
+        card.links = [];
+
+		if(report.completed) {
+		    if (reptype == 'assignment')
+                card.links.push({id : 'assignment_update', text : nl.t('update')},
+                                {id : 'assignment_share', text : nl.t('share')});
+			if (report._percStr)
+				card['help'] += nl.t('<div class="nl-textellipsis padding-small"><span class="fsh3">{}</span> ({} of {})</div>', report._percStr, report._score || 0, report._maxScore);
 		}
+		
+        card.details = {help: card['help'], avps: _getReportAvps(report)};
+        card.links.push({id: 'details', text: nl.t('details')});
 		return card;
 	}
 
-	function _appendFirstStaticCard(lessonCard, cards) {
-		var card = {
-			id : mode.assignid,
-			title : lessonCard.name,
-			icon : nl.url.lessonIconUrl(lessonCard.icon || lessonCard.image),
-			children : [],
-			style : 'nl-bg-blue' 
-		};
-		card['help'] = nl.t('<span>by : {}</span><br><span>Assigned to :<b>{}</b></span>', lessonCard.assigned_by, lessonCard.assigned_to);
-		card.links = [{id: 'assignment_content', text: 'content'},
-					  {id: 'assignment_export', text: 'export'},
-                      {id: 'details', text: 'details'}];
-		card.details = {
-			help : lessonCard.descMore,
-			avps : _getAssignmentAvps(lessonCard)
-		};
-		cards.push(card);
-	};
-
-    var _secondStaticCard = null;
-    function _appendSecondStaticCard(cards) {
-        _secondStaticCard = {
+    var _chartCard = null;
+    function _appendChartCard(cards) {
+        _chartCard = {
             title : nl.t('Please wait ...'),
             fullDesc : true,
+            children: [],
             internalUrl: 'status_overview', 
             style : 'nl-bg-blue',
             doughnutData : [1],
             doughnutLabel : ['Loading'],
             doughnutColor : ['#DDDDFF'],
             doughnutOptions : {responsive: true, maintainAspectRatio: true},
-            help: nl.t('<canvas class="chart chart-doughnut" chart-data="card.doughnutData" chart-labels="card.doughnutLabel" chart-colours="card.doughnutColor" chart-options="card.doughnutOptions"></canvas>')
+            help: nl.t('<canvas class="chart chart-doughnut" style="width: 100%; height: 100%" chart-data="card.doughnutData" chart-labels="card.doughnutLabel" chart-colours="card.doughnutColor" chart-options="card.doughnutOptions"></canvas>')
         };
-        cards.push(_secondStaticCard);
+        _chartCard.links = [];
+        if (reptype == 'assignment') _chartCard.links.push({id: 'assignment_content', text: 'content'});
+        _chartCard.links.push({id: 'assignment_export', text: 'export'}),
+        _chartCard.links.push({id: 'details', text: 'details'});
+        _chartCard.details = {
+            help : null,
+            avps : null
+        };
+        cards.push(_chartCard);
     }
 
-    function _updateSecondStaticCard(reportStats) {
+    function _updateChartCard(reportStats) {
+        var lst = reportStats.getRecords();
+        nl.pginfo.pageTitle = mode.pageTitle(lst.length > 0 ? lst[0] : null); 
+        if (lst.length == 0) return;
         var stats = reportStats.getStats();
         var completed = stats.passed + stats.failed;
-        _secondStaticCard.title =nl.t('{} of {} completed', completed, stats.students);
-        _secondStaticCard.doughnutData = [stats.passed, stats.failed, stats.students - completed];
-        _secondStaticCard.doughnutLabel = ["completed", "completed but scored low", "not completed"];
-        _secondStaticCard.doughnutColor = ['#007700', '#FFCC00', '#F54B22'];
-        _secondStaticCard.dist = [_getPercDistribution(reportStats.getPercentages())];
-	};
+        _chartCard.title =nl.t('{} of {} completed', completed, stats.students);
+        _chartCard.doughnutData = _getCompletionChartData(stats);
+        _chartCard.doughnutLabel = ["completed", "completed but scored low", "not completed"];
+        _chartCard.doughnutColor = ['#007700', '#FFCC00', '#A0A0C0'];
+        _chartCard.dist = [_getPercDistribution(stats.percentages)];
+        _chartCard.details.avps = _getAssignmentAvps(lst);
+	}
 	
+    function _getCompletionChartData(stats) {
+        return [stats.passed, stats.failed, stats.students - stats.passed - stats.failed];
+    }
+    
     function _getPercDistribution(percentages) {
         var dist = [];
         for(var i=0; i<10; i++) {
@@ -250,32 +291,62 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
         return dist;
     }
 
-	function _getAssignmentAvps(lessonCard) {
+	function _getAssignmentAvps(lst) {
+	    var now = new Date();
+	    var report = lst[0];
 		var avps = [];
         var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
         _populateLinks(linkAvp);
-		nl.fmt.addAvp(avps, 'Name', lessonCard.name);
-		nl.fmt.addAvp(avps, 'Remarks', lessonCard.assign_remarks);
-		nl.fmt.addAvp(avps, 'Assigned By', lessonCard.assigned_by);
-		nl.fmt.addAvp(avps, 'Assigned On ', lessonCard.assigned_on, 'date');
-		nl.fmt.addAvp(avps, 'Assigned To', lessonCard.assigned_to);
-		nl.fmt.addAvp(avps, 'Subject', lessonCard.subject);
-		nl.fmt.addAvp(avps, 'Author', lessonCard.authorname);
-		nl.fmt.addAvp(avps, 'Module description', lessonCard.descMore);
-		nl.fmt.addAvp(avps, 'Earliest start time', lessonCard.not_before, 'date');
-		nl.fmt.addAvp(avps, 'Latest end time', lessonCard.not_after, 'date');
-		nl.fmt.addAvp(avps, 'Max duration', lessonCard.max_duration, 'minutes');
-		nl.fmt.addAvp(avps, 'Show answers', _learnmodeString(lessonCard.learnmode));
-		nl.fmt.addAvp(avps, 'Is published?', lessonCard.published, 'boolean');
+        if (reptype == 'assignment') nl.fmt.addAvp(avps, 'Name', report.name);
+        nl.fmt.addAvp(avps, 'Number of reports', lst.length);
+        nl.fmt.addAvp(avps, 'Most recent update', _fmtDateDelta(lst[0].updated, now));
+        nl.fmt.addAvp(avps, 'Earliest update', _fmtDateDelta(lst[lst.length-1].updated, now));
+        if (reptype != 'assignment') return avps;
+        _populateCommonAvps(report, avps);
 		return avps;
 	}
+
+    function _fmtDateDelta(d, now) {
+        var dstr = nl.fmt.date2Str(d, 'minute');
+        var diff = (now.getTime() - d.getTime())/1000/3600/24;
+        if (diff < 2) return dstr;
+        return nl.fmt2('{} ({} days ago)', dstr, Math.floor(diff));
+    }
 	
     function _populateLinks(linkAvp) {
         var d = new Date();
-        nl.fmt.addLinkToAvp(linkAvp, 'content', nl.fmt2('/lesson/view_assign/{}', mode.assignid));
+        if (reptype == 'assignment') nl.fmt.addLinkToAvp(linkAvp, 'content', nl.fmt2('/lesson/view_assign/{}', mode.assignid));
         nl.fmt.addLinkToAvp(linkAvp, 'export', null, 'assignment_export');
+        nl.fmt.addLinkToAvp(linkAvp, 'charts', null, 'status_overview');
     }
 
+    function _getReportAvps(report) {
+        var now = new Date();
+        var avps = [];
+        nl.fmt.addAvp(avps, 'Learner', report.studentname);
+        nl.fmt.addAvp(avps, 'Name', report.name);
+        nl.fmt.addAvp(avps, 'Created on', _fmtDateDelta(report.created, now));
+        nl.fmt.addAvp(avps, 'Last updated on', _fmtDateDelta(report.updated, now));
+        if (report._timeMins) nl.fmt.addAvp(avps, 'Time spent', nl.fmt2('{} minutes', report._timeMins));
+        _populateCommonAvps(report, avps);
+        return avps;
+    }
+
+    function _populateCommonAvps(report, avps) {
+        nl.fmt.addAvp(avps, 'Remarks', report.assign_remarks);
+        nl.fmt.addAvp(avps, 'Assigned By', report.assigned_by);
+        nl.fmt.addAvp(avps, 'Assigned To', report.assigned_to);
+        nl.fmt.addAvp(avps, 'Assigned On ', report.assigned_on, 'date');
+        nl.fmt.addAvp(avps, 'Subject', report.subject);
+        nl.fmt.addAvp(avps, 'Author', report.authorname);
+        nl.fmt.addAvp(avps, 'Module description', report.descMore);
+        nl.fmt.addAvp(avps, 'Earliest start time', report.not_before, 'date');
+        nl.fmt.addAvp(avps, 'Latest end time', report.not_after, 'date');
+        nl.fmt.addAvp(avps, 'Max duration', report.max_duration, 'minutes');
+        nl.fmt.addAvp(avps, 'Show answers', _learnmodeString(report.learnmode));
+        nl.fmt.addAvp(avps, 'Is published?', report.published, 'boolean');
+    }
+    
 	function _learnmodeString(learnmode) {
 		if (learnmode == 1)
 			return nl.fmt.t(['on every page']);
@@ -286,17 +357,21 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
 		return '';
 	}
 
-	function _statusOverview($scope) {
-		var statusOverviewDlg = nlDlg.create($scope);
+    var statusOverviewDlg = null;
+	function _statusOverview() {
+		statusOverviewDlg = nlDlg.create($scope);
 		statusOverviewDlg.setCssClass('nl-height-max nl-width-max');
-
-        statusOverviewDlg.scope.stats = reportStats.getStats();
-        statusOverviewDlg.scope.leaderBoard = reportStats.getLeaderBoard();
+		statusOverviewDlg.scope.showLeaderBoard = (reptype != 'user');
+        statusOverviewDlg.scope.filters = {ous: {}, grades: {}, subjects: {}};
+        statusOverviewDlg.scope.onFilter = function() {
+            _showFilter(statusOverviewDlg.scope);
+        };
+        
 		statusOverviewDlg.scope.data = {
-            doughnutLabel: _secondStaticCard.doughnutLabel,
-            doughnutColor: _secondStaticCard.doughnutColor,
-            doughnutData: null,
-            chartLabel: ['10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%']
+            completionLabel: _chartCard.doughnutLabel,
+            completionColor: _chartCard.doughnutColor,
+            completionData: null,
+            percDistLabel: ['10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%']
 		};
 
         var cancelButton = {text: nl.t('Close')};
@@ -304,12 +379,49 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
         
         // angular-charts workaround to ensure height/width of canvas are correctly calculated
         // set the chart properties after the dialog box appears
-        nl.timeout(function() {
-            statusOverviewDlg.scope.data.doughnutData = _secondStaticCard.doughnutData;
-            statusOverviewDlg.scope.data.chartData = _secondStaticCard.dist;
-        });
+        _updateStatusOverview();
 	}
 
+    function _updateStatusOverview() {
+        if (!statusOverviewDlg) return;
+        nl.timeout(function() {
+            var s = statusOverviewDlg.scope;
+            $scope.filtersPresent = reportStats.isFilterPresent($scope.filters);
+            if ($scope.filtersPresent) {
+                s.stats = reportStats.getFilteredStats($scope.filters);
+                s.data.completionData = _getCompletionChartData(s.stats);
+                s.data.percDistData = [_getPercDistribution(s.stats.percentages)];
+            } else {
+                s.stats = reportStats.getStats();
+                s.data.completionData = _chartCard.doughnutData;
+                s.data.percDistData = _chartCard.dist;
+            }
+        });
+    }
+
+    function _showFilter(scope) {
+        var filterDlg = nlDlg.create($scope); // scope and $scope are different!
+        filterDlg.setCssClass('nl-height-max nl-width-max');
+        filterDlg.scope.subjectlabel = _userInfo.groupinfo.subjectlabel;
+        filterDlg.scope.gradelabel = _userInfo.groupinfo.gradelabel;
+        filterDlg.scope.filterOptions = reportStats.getFilterOptions($scope.filters);
+
+        var filterButton = {text: nl.t('Apply'), onTap: function(e) {
+            $scope.filters = reportStats.getSelectedFilters(filterDlg.scope.filterOptions);
+            _updateStatusOverview();
+        }};
+
+        var clearButton = {text: nl.t('Clear'), onTap: function(e) {
+            $scope.filters = null;
+            _updateStatusOverview();
+        }};
+
+        var cancelButton = {text: nl.t('Close')};
+
+        filterDlg.show('view_controllers/assignment_report/report_filter_dlg.html', 
+            [filterButton, clearButton], cancelButton, false);
+    }
+    
     function _assignmentExport($scope) {
         if(!mode.dataFetched) {
             nlDlg.popupAlert({title: 'Data still loading', 
@@ -454,8 +566,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportSta
 		ouSelectionDlg.show('view_controllers/assignment_report/share_report_dlg.html',
 			[], cancelButton, false);
 	}
-	
-}];
+}
 
 //-------------------------------------------------------------------------------------------------
 module_init();

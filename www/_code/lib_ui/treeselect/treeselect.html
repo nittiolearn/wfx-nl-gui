@@ -1,0 +1,26 @@
+<div class='nl-tree-select'>
+<div class='nl-link-text row row-wrap row-center margin0 padding-mid'
+     ng-click='info.treeIsShown = !info.treeIsShown'>
+     <div class='col nl-textellipsis'>{{info.selectedText}}</div>
+     <i ng-show='!info.treeIsShown' class="icon ion-arrow-down-b fsh6 bold"></i>
+     <i ng-show='info.treeIsShown' class="icon ion-arrow-up-b fsh6 bold"></i>
+</div>
+<div ng-repeat='item in info.data'
+     class='row row-wrap row-center margin0 padding0 nl-link-text'
+     ng-show='info.treeIsShown && item.isVisible'
+     ng-click='onClick(item)'>
+    <div style='padding: {{screenSize == "small" ? 5 : 10}}px 5px {{screenSize == "small" ? 5 : 10}}px 5px;'>
+        <div style='padding-left: {{item.indentation*20}}px'>
+            <i ng-show='item.isFolder && !item.isOpen' class="icon ion-arrow-right-b bold"></i>
+            <i ng-show='item.isFolder && item.isOpen' class="icon ion-arrow-down-b bold"></i>
+            <i ng-show='item.selected === true' class="icon ion-android-checkbox-outline"
+               ng-click='onCheckBoxSelect(item, $event)'></i>
+            <i ng-show='item.selected === false' class="icon ion-android-checkbox-outline-blank"
+               ng-click='onCheckBoxSelect(item, $event)'></i>
+            <i ng-show='item.selected == "part"' class="icon ion-android-checkbox-blank"
+               ng-click='onCheckBoxSelect(item, $event)'></i>
+            <span>{{item.name}}</span>
+        </div>
+    </div>
+</div>
+</div>

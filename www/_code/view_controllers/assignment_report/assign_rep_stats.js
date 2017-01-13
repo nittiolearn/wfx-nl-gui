@@ -11,16 +11,16 @@ function module_init() {
    
 //-------------------------------------------------------------------------------------------------
 var NlAssignReportStats = ['nl', 'nlDlg', 'nlExporter', 'nlProgressLog', 
-'nlServerApi', 'nlGroupInfo', '$templateCache',
-function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo, $templateCache) {
+'nlServerApi', 'nlGroupInfo', '$templateCache', 'nlTreeSelect',
+function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo, $templateCache, nlTreeSelect) {
     
     var self = this;
     var ctx = null;
     var dlg = null;
     var scopeData = {inProgress: false, exportPageScore: false, exportFeedback: false};
     
-    this.createReportStats = function() {
-        return new ReportStats(nl, nlServerApi, nlGroupInfo);
+    this.createReportStats = function(reptype) {
+        return new ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect);
     }
 
     this.export = function($scope, reports, _userInfo) {
@@ -313,13 +313,15 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo, $templa
 }];
 
 //-------------------------------------------------------------------------------------------------
-function ReportStats(nl, nlServerApi, nlGroupInfo) {
+function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
     var self = this;
     var _lst = [];
-    var _stats = {students: 0, passed: 0, failed: 0, totalScore: 0, totalMaxScore: 0, 
-        avgPerc: 0, belowAvgCnt: 0, hundredPercentCnt: 0};
-    var _percentages = [];
-    var _leaderBoard = [];
+    var _stats = {};
+
+    var _ous = {};
+    var _grades = {};
+    var _subjects = {};
+
     var _groupInfo = null;
     
     this.STATUS_PENDING = -1;
@@ -334,13 +336,34 @@ function ReportStats(nl, nlServerApi, nlGroupInfo) {
         return _stats;
     };
 
-    this.getPercentages = function() {
-        return _percentages;
+    this.getFilteredStats = function(filters) {
+        var stats = {};
+        _updateStats(stats, filters);
+        return stats;
     };
 
-    this.getLeaderBoard = function() {
-        return _leaderBoard;
+    this.getFilterOptions = function(filters) {
+        if (!filters) filters = {};
+        return {
+            ouTree: _dictToTreeList(_ous, filters.ous),
+            gradeTree: _dictToTreeList(_grades, filters.grades),
+            subjectTree: _dictToTreeList(_subjects, filters.subjects)
+        };
     };
+    
+    this.getSelectedFilters = function(filterOptions) {
+        return {ous: nlTreeSelect.getSelectedIds(filterOptions.ouTree, true),
+            grades: nlTreeSelect.getSelectedIds(filterOptions.gradeTree, true),
+            subjects: nlTreeSelect.getSelectedIds(filterOptions.subjectTree, true)};
+    }
+    
+    this.isFilterPresent = function(filters) {
+        if (!filters) return false;
+        if (Object.keys(filters.ous).length > 0) return true;
+        if (Object.keys(filters.grades).length > 0) return true;
+        if (Object.keys(filters.subjects).length > 0) return true;
+        return false;
+    }
 
     this.init = function() {
         return nlServerApi.groupGetInfo().then(function(result) {
@@ -349,13 +372,70 @@ function ReportStats(nl, nlServerApi, nlGroupInfo) {
             return e;
         });
     };
+    
+    function _doesItPassTheFilter(rep, filters) {
+        if (!filters) return true;
+        if (!_doesItPassTheFilterForAttr(filters.ous, rep.org_unit)) return false;
+        if (!_doesItPassTheFilterForAttr(filters.grades, rep._grade)) return false;
+        if (!_doesItPassTheFilterForAttr(filters.subjects, rep.subject)) return false;
+        return true;
+    }
+    
+    function _doesItPassTheFilterForAttr(filter, repAttr) {
+        if (Object.keys(filter).length == 0) return true;
+        if (repAttr in filter) return true;
+        return false;
+    }
+    
+    function _updateStats(stats, filters, lst) {
+        if(!lst || !stats.students) stats.students = 0;
+        if(!lst || !stats.passed) stats.passed = 0;
+        if(!lst || !stats.failed) stats.failed = 0;
+        if(!lst || !stats.totalScore) stats.totalScore = 0;
+        if(!lst || !stats.totalMaxScore) stats.totalMaxScore = 0;
+        if(!lst || !stats.avgPerc) stats.avgPerc = 0;
+        if(!lst || !stats.percentages) stats.percentages = [];
+        if(!lst || !self.leaderBoard) self.leaderBoard = {};
         
-    this.updateStats = function(reports) {
+        if(!lst) lst = _lst;
+        for(var i=0; i<lst.length; i++) {
+            var rep = lst[i];
+            if (!_doesItPassTheFilter(rep, filters)) continue;
+            stats.students++;
+            _ous[rep.org_unit] = true;
+            _grades[rep._grade] = true;
+            _subjects[rep.subject] = true;
+            if (!rep.completed) {
+                _addToLeaderBoard(rep, self.STATUS_PENDING);
+                continue;
+            }
+            var status = '';
+            if (!rep._passScore || rep._perc >= rep._passScore) {
+                status = self.STATUS_PASSED;
+                stats.passed++;
+            } else {
+                status = self.STATUS_FAILED;
+                stats.failed++;
+            }
+                
+            stats.totalScore += rep._score || 0;
+            stats.totalMaxScore += rep._maxScore || 0;
+            stats.percentages.push(rep._perc);
+            _addToLeaderBoard(rep, status);
+        }
+        stats.avgPerc = stats.totalMaxScore > 0 ? Math.round((stats.totalScore / stats.totalMaxScore)*100) : 0;
+        stats.leaderBoard = _getLeaderBoardList();
+    };
+    
+    this.updateReports = function(reports) {
         for(var i=0; i<reports.length; i++) {
             var rep = reports[i];
             _lst.push(rep);
-            _stats.students++;
             var content = angular.fromJson(rep.content);
+            rep.updated = nl.fmt.json2Date(rep.updated);
+            rep.created = nl.fmt.json2Date(rep.created);
+            if (rep.started) rep.started = nl.fmt.json2Date(rep.started);
+            if (rep.ended) rep.ended = nl.fmt.json2Date(rep.ended);
             rep._loginid = '';
             rep._email = '';
             if (_groupInfo && _groupInfo.users[''+rep.student]) {
@@ -363,6 +443,7 @@ function ReportStats(nl, nlServerApi, nlGroupInfo) {
                 rep.studentname = userInfo[nlGroupInfo.NAME];
                 rep._loginid = userInfo[nlGroupInfo.LOGINID];
                 rep._email = userInfo[nlGroupInfo.EMAIL];
+                rep.org_unit = userInfo[nlGroupInfo.OU];
             }
             var userInfo = _groupInfo ? _groupInfo.users[''+rep.id] || {} : {};
             if (userInfo.name) rep.studentname = userInfo.name;
@@ -376,50 +457,88 @@ function ReportStats(nl, nlServerApi, nlGroupInfo) {
             if (!rep.completed) {
                 rep._percStr = '';
                 rep._statusStr = 'pending';
-                _leaderBoard.push({name: rep.studentname, id: rep.id, perc: -1, status: self.STATUS_PENDING});
                 continue;
             }
-            var score = (content.score || 0);
-            var maxScore = (content.maxScore || 0);
-            var passScore = maxScore ? (content.passScore || 70) : 0;
+            var maxScore = parseInt(content.maxScore || 0);
+            var score = parseInt(content.score || 0);
+            if (score > maxScore) score = maxScore; // Some 3 year old bug where this happened - just for sake of old record!
+            var passScore = maxScore ? parseInt(content.passScore || 70) : 0;
             var perc = maxScore > 0 ? Math.round((score/maxScore)*100) : 100;
 
             rep._score = score > 0 ? score : '';
             rep._maxScore = maxScore > 0 ? maxScore : '';
             rep._passScore = passScore > 0 ? passScore : '';
+            rep._perc = perc;
             rep._percStr = maxScore > 0 ? '' + perc + '%' : '';
             rep._timeMins = content.timeSpentSeconds ? Math.round(content.timeSpentSeconds/60) : '';
-
-            var status = '';
-            if (passScore == 0 || perc >= passScore) {
-                status = self.STATUS_PASSED;
-                _stats.passed++;
-                rep._statusStr = 'completed';
-            } else {
-                status = self.STATUS_FAILED;
-                _stats.failed++;
-                rep._statusStr = 'failed';
-            }
-                
-            if (perc === 100) _stats.hundredPercentCnt++;
-            _stats.totalScore += score;
-            _stats.totalMaxScore += maxScore;
-            if (perc !== -1) _percentages.push(perc);
-            _leaderBoard.push({name: rep.studentname, id: rep.id, perc: perc, status: status});
+            rep._statusStr = (passScore == 0 || perc >= passScore) ? 'completed' : 'failed';
         }
-        _stats.avgPerc = _stats.totalMaxScore > 0 ? Math.round((_stats.totalScore / _stats.totalMaxScore)*100) : 0;
-        for(var i=0; i<_leaderBoard.length; i++) {
-            if (_leaderBoard.perc !== null && _leaderBoard.perc < _stats.avgPerc) _stats.belowAvgCnt++;
+        _lst.sort(function(a, b) {
+            return (b.updated - a.updated);
+        });
+        _updateStats(_stats, null, reports);
+    };
+    
+    function _addToLeaderBoard(rep, status) {
+        var student = rep.student;
+        if (!self.leaderBoard[student]) self.leaderBoard[student] = {id: student, 
+            name: rep.studentname, repid: null, total: 0, done: 0, score: 0, maxScore: 0, repList: []};
+        var lbRecord = self.leaderBoard[student];
+        lbRecord.total++;
+        if (status == self.STATUS_PENDING) return;
+        lbRecord.done++;
+        lbRecord.score += rep._score || 0;
+        lbRecord.maxScore += rep._maxScore || 0;
+        lbRecord.repid = rep.id;
+    }
+    
+    function _getLeaderBoardList() {
+        var ret = [];
+        for(var student in self.leaderBoard) {
+            var rec = self.leaderBoard[student];
+            rec.perc = rec.maxScore ? Math.round(rec.score/rec.maxScore*100) : 
+                rec.done > 0 && rec.done == rec.total ? -1 :
+                rec.done > 0 ? -2 : -3;
+            if (reptype != 'assignment' || rec.total > 1) rec.repid = null;
+            ret.push(rec);
         }
-        _leaderBoard.sort(function(a, b) {
+        ret.sort(function(a, b) {
             return b.perc - a.perc;
         });
-    };
+        return ret;
+    }
     
     function _getAssignTypeStr(assigntype) {
         if (assigntype == 1) return 'self assignment';
         if (assigntype == 2) return 'course assignment';
         return 'module assignment';
+    }
+
+    function _dictToTreeList(d, selectedIds) {
+        // Add missing parents!
+        for(var key in d) _addParentIfMissing(d, key);
+        
+        var ret = [];
+        for(var key in d) {
+            ret.push({id: key});
+        }
+        ret.sort(function(a, b) {
+           if (a.id == b.id) return 0;
+           if (a.id > b.id) return 1;
+           return -1;
+        });
+        ret = {data: ret};
+        nlTreeSelect.updateSelectionTree(ret, selectedIds);
+        return ret;
+    }
+
+    function _addParentIfMissing(d, key) {
+        var idParts = key.split('.');
+        idParts.pop();
+        var parentId = idParts.join('.');
+        if (!parentId) return;
+        d[parentId] = true;
+        _addParentIfMissing(d, parentId);
     }
 }
 

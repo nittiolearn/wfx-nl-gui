@@ -1,12 +1,11 @@
 <nl-card-title></nl-card-title>
 
-<div ng-show='card.fullDesc' class='nl-card-fullDesc'
-     nl-compile='card.help'>
-</div>
-
-<div ng-show='!card.fullDesc'>
-	<nl-card-image></nl-card-image>
-	<nl-card-desc></nl-card-desc>
+<div>
+    <div ng-show='card.fullDesc' class='nl-card-fullDesc'
+         nl-compile='card.help'>
+    </div>
+	<nl-card-image ng-show='!card.fullDesc'></nl-card-image>
+	<nl-card-desc ng-show='!card.fullDesc'></nl-card-desc>
 	<div class='nl-card-links'>
 	    <span ng-repeat='link in card.links' ng-click='onCardLinkClicked(card, link.id)'
 	          class='nl-link-text'>{{link.text}}</span>
