@@ -56,10 +56,11 @@ function(nl, nlDlg, nlCourse) {
             addModule: _addModule,
             deleteModule: _deleteModule,
             searchLesson: _searchLesson,
-            organiseModules: _organiseModules,
+            organiseModules: _organiseModulesDlg,
             saveCourse: _saveCourse,
             updateTitle: _updateTitle,
-            onElementTypeChange: _onElementTypeChange
+            onElementTypeChange: _onElementTypeChange,
+            descriptionExceed: _descriptionAlert,
         };
     };
 
@@ -76,22 +77,49 @@ function(nl, nlDlg, nlCourse) {
 		return _validateInputs(modeHandler.course, cm);		
 	};
 	
-	function _updateTitle(){
+	function _updateTitle(e){
+		var title = modeHandler.course.name;
+		if(title.length === 30) {
+			var msg = {title: nl.t('Name is too long'), template: nl.t('Name of the course must be less than 30 character.')};
+			nlDlg.popupAlert(msg).then(function(res){
+				if(res) return;
+			});
+		}
         nl.pginfo.pageTitle = modeHandler.course.name;	
 	}
 
-	function _onElementTypeChange(cm){
-		if(cm.type !== 'module'){
-			var indicesToRemove = [];
-	        for(var i=0; i < _allModules.length; i++){
-	        	if (_isDescendantOf(_allModules[i], cm)) indicesToRemove.push(i);
-	        }
-	        indicesToRemove.splice(0, 1);
-	        _romoveElements(indicesToRemove);
-			$scope.editorCb.showVisible(cm);
-			$scope.editorCb.updateChildrenLinks();
+	function _onElementTypeChange(e, cm){
+        var childrenElem = [];
+        for(var i=0; i < _allModules.length; i++){
+        	if (_isDescendantOf(_allModules[i], cm)) childrenElem.push(i);
+        }
+		if(cm.type !== 'module' && childrenElem.length > 1){
+			var msg = {title: 'Please confirm', 
+				   template: nl.t('If you change type from folder to other, the children elements will be removed. Are you sure to proceed?'),
+				   okText: nl.t('Yes')};
+			nlDlg.popupConfirm(msg).then(function(result){
+				if(!result) return cm['type'] = 'module';
+				var indicesToRemove = [];
+		        for(var i=0; i < _allModules.length; i++){
+		        	if (_isDescendantOf(_allModules[i], cm)) indicesToRemove.push(i);
+		        }
+		        indicesToRemove.splice(0, 1);
+		        _romoveElements(indicesToRemove);
+				$scope.editorCb.showVisible(cm);
+				$scope.editorCb.updateChildrenLinks();				 
+			});
 		}
 	}
+
+	function _descriptionAlert(value){
+		var title = modeHandler.course.description;
+		if(title.length === 100) {
+			var msg = {title: nl.t('Description is too long'), template: nl.t('Description of the course must be less than 100 character.')};
+			nlDlg.popupAlert(msg).then(function(res){
+				if(res) return;
+			});
+		}
+	}	
 	
     function _getCourseAttributes(course) {
         var ret = angular.copy(courseAttrs);
@@ -127,14 +155,14 @@ function(nl, nlDlg, nlCourse) {
     
     var _courseParams = [
     	{name: 'name', text: 'Name', type: 'string', title: true},
-    	{name: 'icon', text: 'Image', type: 'string'},
-    	{name: 'description', text: 'Course description', type: 'text'}
+    	{name: 'icon', text: 'Image', type: 'icon', icon: true},
+    	{name: 'description', text: 'Course description', type: 'text', description: true}
     ];
     
     var _courseParamsHelp = {
-    		name: {desc: 'Mandatory - enter a name for your course.'},
+    		name: {desc: 'Mandatory - enter a name for your course. It is recommended to keep the course name under 30 characters.'},
     		icon: {desc: 'Mandatory - enter a URL for the course icon that will be displayed when this course is searched.'},
-    		description: {desc: 'Provide a short description which will help others in the group to understand the purpose of this course.'}
+    		description: {desc: 'Provide a short description which will help others in the group to understand the purpose of this course. It is recommended to keep the course description under 100 characters.'}
     };
     
     var moduleAttrs = [
@@ -379,7 +407,7 @@ function(nl, nlDlg, nlCourse) {
         return editedModule;
     }
 	
-    function _searchLesson(){
+    function _searchLesson(e, cm){
     	nlDlg.showLoadingScreen();
         nlCourse.getApprovedList().then(function(data) {
         	nlDlg.hideLoadingScreen();
@@ -389,7 +417,7 @@ function(nl, nlDlg, nlCourse) {
 
 	function _organiseModulesDlg(e, cm){
 		if(!_validateInputs(modeHandler.course, cm)) return;
-		_organiseModulesDlg();
+		_organiseModules(e, cm);
 	};
 
     function _validateInputs(data, cm) {
@@ -519,7 +547,7 @@ function(nl, nlDlg, nlCourse) {
 		var closeButton = {text : nl.t('Close')};
 		_selectDlg.show('view_controllers/course/course_lesson_select.html', [], closeButton, false);
     };
-    
+
     function _onLaunch($event, cm){
     	if(!_validateInputs(modeHandler.course, cm)) {
     		return;
@@ -528,7 +556,7 @@ function(nl, nlDlg, nlCourse) {
     	}
     }
     
-    function _organiseModules(){
+    function _organiseModules(e, cm){
     	var _organiseModuleDlg = nlDlg.create($scope);
 		_organiseModuleDlg.setCssClass('nl-height-max nl-width-max');
 		_organiseModuleDlg.scope.data = {};
@@ -538,8 +566,8 @@ function(nl, nlDlg, nlCourse) {
 			_moveItem(item, fromIndex, toIndex);
 		};
 		var closeButton = {text : nl.t('Close'), onTap: function(e){
-			$scope.editorCb.updateChildrenLinks();
 			$scope.editorCb.showVisible(null);
+			$scope.editorCb.updateChildrenLinks();
 		}};
 		_organiseModuleDlg.show('view_controllers/course/course_organiser.html', [], closeButton, false);
     		
