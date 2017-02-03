@@ -347,7 +347,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         		});
         	}
         };
-        nlCourseEditor.init($scope, modeHandler);
+        nlCourseEditor.init($scope, modeHandler, _userInfo);
     }
 
     function _initExpandedView() {

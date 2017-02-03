@@ -25,17 +25,19 @@ var EditorFieldsDirective = ['nl', function(nl) {
     };
 }];
 //-------------------------------------------------------------------------------------------------
-var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlCourse',
-function(nl, nlDlg, nlCourse) {
+var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlCourse', 'nlLessonSelect',
+function(nl, nlDlg, nlCourse, nlLessonSelect) {
 
     var modeHandler = null;
     var $scope = null;
     var _allModules = [];
     var _debug = null;
+	var _userInfo = null;
 	
-    this.init = function(_scope, _modeHandler) {
+    this.init = function(_scope, _modeHandler, userInfo) {
         $scope = _scope;
         modeHandler = _modeHandler;
+        _userInfo = userInfo;
 		var params = nl.location.search();
         if ('debug' in params) _debug = true;
 
@@ -408,11 +410,11 @@ function(nl, nlDlg, nlCourse) {
     }
 	
     function _searchLesson(e, cm){
-    	nlDlg.showLoadingScreen();
-        nlCourse.getApprovedList().then(function(data) {
-        	nlDlg.hideLoadingScreen();
-        	_showLessonSelectDlg(data);
-        });    	
+    	nlLessonSelect.showSelectDlg($scope, _userInfo).then(function(selectionList) {
+    		if (selectionList.length != 1) return;
+    		cm.refid = selectionList[0].lessonId;
+    		cm.name = selectionList[0].title;
+    	});
     };
 
 	function _organiseModulesDlg(e, cm){
@@ -536,17 +538,6 @@ function(nl, nlDlg, nlCourse) {
 		var closeButton = {text : nl.t('Close')};
 		_contentCorrectionDlg.show('view_controllers/course/course_content_correction_dlg.html', [], closeButton, false);
 	}
-
-    function _showLessonSelectDlg(data){
-    	var _selectDlg = nlDlg.create($scope);
-    		_selectDlg.setCssClass('nl-height-max nl-width-max');
-			_selectDlg.scope.data = {};
-			_selectDlg.scope.data.title = nl.t('Approved lessons information');
-			_selectDlg.scope.data.lessonList = data;
-
-		var closeButton = {text : nl.t('Close')};
-		_selectDlg.show('view_controllers/course/course_lesson_select.html', [], closeButton, false);
-    };
 
     function _onLaunch($event, cm){
     	if(!_validateInputs(modeHandler.course, cm)) {
