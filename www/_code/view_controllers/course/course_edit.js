@@ -218,6 +218,7 @@ function(nl, nlDlg, nlCourse, nlLessonSelect) {
     		for(var j=0;j< attr.fields.length; j++) {
     			var itemType = attr.fields[j];
     			if (!(itemType in ret)) ret[itemType] = {};
+    			if(attr.name == 'totalItems') continue;
     			ret[itemType][attr.name] = {contentType: attr.contentType || 'string', 
     			 text: attr.text || attr.name, name: attr.name};
     		}

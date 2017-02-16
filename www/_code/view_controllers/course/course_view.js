@@ -1079,7 +1079,7 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
 //-------------------------------------------------------------------------------------------------
 function CourseReportSummarizer($scope) {
 
-    var folderAttrs = {'id': true, 'name': true, 'type': true, 'icon': true};
+    var folderAttrs = {'id': true, 'name': true, 'type': true, 'icon': true, 'parentId': true};
     this.getUserRecords = function(course, cm) {
         if ($scope.mode != MODES.REPORTS_SUMMARY_VIEW || cm.type == 'module') {
             return [];
@@ -1090,7 +1090,7 @@ function CourseReportSummarizer($scope) {
             var userReport = userReports[i];
             var module = angular.copy(cm);
             module.id = _getModuleId(cm.id, userReport.id);
-            if ('parentId' in module) delete module.parentId;
+            module.parentId = cm.id;
             module.name = userReport.studentname;
             module.userid = userReport.student;
             module.icon = 'user';
