@@ -339,7 +339,7 @@ nlesson = function() {
 
         this.initZodi = function() {
             this.zodiCompletedPages = lesson.renderCtx.playerGetZodiChangesPages(lesson);
-        }
+        };
 
         this.initQueue = function(bDontUpdate) {
             this.renderedPages = {};
@@ -364,7 +364,7 @@ nlesson = function() {
             nittio.debounce(500, function() {
                 _preLoadOtherPages(self, pgNo);
             })();
-        }
+        };
 
         function _preLoadOtherPages(self, pgNo) {
             var pgStart = pgNo - 4;
@@ -1305,13 +1305,14 @@ nlesson = function() {
 
 		var hPageHolder = njs_helper.jobj('<div class="pgHolder" />');
 		hPage.append(hPageHolder);
+		hPage.addClass('loading');
 		this.hPage = hPage;
 		for (var i = 0; i < this.sections.length; i++) {
 			hPageHolder.append(this.sections[i].createHtmlDom());
 		}
 		
 		this.propAudio = njs_helper.jobj('<div class="pgPropAudio" />');
-		hPage.append(this.propAudio);	
+		hPage.append(this.propAudio);
 		return hPage;
 	}
 	
@@ -1392,6 +1393,7 @@ nlesson = function() {
 		MathJax.Hub.Queue(function() {
             if (me.lesson.renderCtx.lessonMode() != 'edit' && me.autoVoiceButton)
                 me.autoVoiceButton.play();
+			me.hPage.removeClass('loading');
 			me.onEscape();
 		});
 	}
