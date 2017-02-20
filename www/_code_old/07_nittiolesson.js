@@ -1371,7 +1371,6 @@ nlesson = function() {
 				var pos = me.sectionCreateOrder[i];
 				me.sections[pos].adjustHtmlDom();
 			}
-			me.hPage.removeClass('loading');
 		});
 	}
 	
@@ -1394,6 +1393,7 @@ nlesson = function() {
 		MathJax.Hub.Queue(function() {
             if (me.lesson.renderCtx.lessonMode() != 'edit' && me.autoVoiceButton)
                 me.autoVoiceButton.play();
+			me.hPage.removeClass('loading');
 			me.onEscape();
 		});
 	}
