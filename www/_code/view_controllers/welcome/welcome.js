@@ -177,7 +177,7 @@ function _staticPageCtrl(config, nl, nlRouter, $scope, nlAnchorScroll) {
             nl.pginfo.pageSubTitle = '';
             nlRouter.setWindowDescription(config.desc);
     
-            $scope.homeUrl = userInfo.username ? '/#/home' : '/#/welcome';
+            $scope.homeUrl = userInfo.username ? '/#/home' : '/#/welcome#home';
             $scope.baseResUrl = nl.url.resUrl() + 'welcome';
             $scope.pageResUrl = $scope.baseResUrl;
             if (config.pageUrl) $scope.pageResUrl += '/' + config.pageUrl;
@@ -225,7 +225,7 @@ function _updateWebsiteScope(nl, nlDlg, nlServerApi, nlRouter, userInfo) {
         var website = nl.rootScope.website;
         website.menu_shown = false;
         var bLoggedIn = (userInfo.username != '');
-        website.homeUrl = (bLoggedIn) ? '/#/home' : '/#/welcome';
+        website.homeUrl = (bLoggedIn) ? '/#/home' : '/#/welcome#home';
 
         website.toggleMenu = function(e) {
             website.menu_shown = !website.menu_shown;
@@ -238,7 +238,7 @@ function _updateWebsiteScope(nl, nlDlg, nlServerApi, nlRouter, userInfo) {
         };
 
         website.landingPageName = g_landingPageName;
-        website.showVideo = false;
+        website.showVideoUrl = null;
         website.vm = new VisitorManager(nl, nlDlg, nlServerApi,
             nlRouter, website, userInfo);
         website.vm.visit();
@@ -270,24 +270,31 @@ function _updateWebsiteScope(nl, nlDlg, nlServerApi, nlRouter, userInfo) {
 //-------------------------------------------------------------------------------------------------
 function VisitorManager(nl, nlDlg, nlServerApi, nlRouter, $scope, userInfo) {
     var videoTime = null;
+    var videoName = null;
+    var videoIds = {intro: 'xmmjg3Lr29M', 'lithium-testimonial': 'Llh0SL5ICxE'};
+    
     this.visit = function() {
         var url = nl.fmt2('/visitor_start/{}', $scope.landingPageName);
         nlRouter.sendGoogleAnalytics(userInfo, url);
     };
     
-    this.watchVideo = function() {
+    this.watchVideo = function(event, videoNameInput) {
         videoTime = new Date();
-        var url = nl.fmt2('/visitor_videoStart/{}', $scope.landingPageName);
+        videoName = videoNameInput;
+        var videoId = videoIds[videoName] || null;
+        if (!videoId) return;
+        var url = nl.fmt2('/visitor_videoStart/{}/{}', videoName, $scope.landingPageName);
         nlRouter.sendGoogleAnalytics(userInfo, url);
-        $scope.showVideo = true;
+        $scope.showVideoUrl = nl.fmt2('https://www.youtube.com/embed/{}?modestBranding=1&rel=0&autoplay=1',
+            videoId);
     };
     
     this.closeVideo = function() {
         var delta = parseInt((new Date() - videoTime)/1000);
-        var url = nl.fmt2('/visitor_videoEnd/{}/{}', $scope.landingPageName,
+        var url = nl.fmt2('/visitor_videoEnd/{}/{}/{}', videoName, $scope.landingPageName,
             delta);
         nlRouter.sendGoogleAnalytics(userInfo, url);
-        $scope.showVideo = false;
+        $scope.showVideoUrl = null;
     };
 
     this.exploreMore = function() {
@@ -296,6 +303,11 @@ function VisitorManager(nl, nlDlg, nlServerApi, nlRouter, $scope, userInfo) {
         $scope.gotoAnchor('page2', 'welcome');
     };
     
+    this.navigateTo = function(e, location) {
+        var url = nl.fmt2('/visitor_navigate/{}/{}', $scope.landingPageName, location);
+        nlRouter.sendGoogleAnalytics(userInfo, url);
+    };
+
     this.demoRequest = function() {
         var requestDlg = nlDlg.create(nl.rootScope);
         requestDlg.scope.error = {};

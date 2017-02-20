@@ -17,6 +17,7 @@ function module_init() {
     .directive('nlFocusMe', FocusMeDirective)
     .directive('nlProgressLog', ProgressLogDirective)
     .directive('nlInlineHelp', InlineHelpDirective)
+    .filter('nlTrustUrl', TrustUrlFilter)
     .service('nlProgressLog', ProgressLogSrv);
 }
 
@@ -171,6 +172,14 @@ function(nl) {
         restrict: 'E',
         transclude: true,
         templateUrl: 'lib_ui/utils/inline_help.html'
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
+var TrustUrlFilter = ['$sce',
+function($sce) {
+    return function(url) {
+        return $sce.trustAsResourceUrl(url);
     };
 }];
 

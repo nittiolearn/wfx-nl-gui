@@ -45,7 +45,7 @@ function($stateProvider, $urlRouterProvider, $ionicConfigProvider,
 ChartJsProvider, $sceDelegateProvider) {
     $sceDelegateProvider.resourceUrlWhitelist([
         'self', // Allow same origin resource loads.
-        'https://storage.googleapis.com/nittio-live.appspot.com/**' // Allow Nittio publis resources
+        'http://resources.nittiolearn.com/**' // Allow Nittio public resources
     ]);
     $ionicConfigProvider.views.transition('none');
     //$ionicConfigProvider.views.forwardCache(true);
@@ -127,7 +127,7 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
     nlLogViewer.showOnStartupIfRequired($scope);
     
     var homeUrl = '/#/home';
-    var welcomeUrl = '/#/welcome';
+    var welcomeUrl = '/#/welcome#home';
 
     $scope.userMenuItems = [];
     $scope.homeMenuTitle = nl.t('Home');

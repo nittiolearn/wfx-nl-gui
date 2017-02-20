@@ -100,7 +100,7 @@ function(nl, nlDlg, nlServerApi, $state) {
                 return _done('/home');
             }
             if (!permission.checkLogin(userInfo, pagePerm)) {
-                if (nl.location.url() == '/home') return _done('/welcome');
+                if (nl.location.url() == '/home') return _done('/welcome#home');
                 nlDlg.popupStatus(nl.t('Please login to access this page'));
                 var nextUrl = nl.window.encodeURIComponent('/#' + nl.location.url());
                 return _done(nl.fmt2('/login_now?msg=auth_error&next={}', nextUrl));
