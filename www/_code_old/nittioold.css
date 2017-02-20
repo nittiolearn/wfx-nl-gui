@@ -1048,6 +1048,11 @@ td.submitselection{
   padding: 0;
 }
 
+.njsSlides > section.loading > .pgHolder {    
+  opacity: 0;
+  pointer-events: none; 
+}
+
 .njsSlides > section > .pgMask {
   position: absolute;
   left: 0;
