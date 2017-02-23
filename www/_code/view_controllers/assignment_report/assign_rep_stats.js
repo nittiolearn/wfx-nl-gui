@@ -228,12 +228,31 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo, $templa
                 currentPageRecord.pos = ctx.pageCnt;
                 ctx.pScoreRows.push(nlExporter.getCsvRow(_hPageScores, currentPageRecord));
             }
+            _processReportRecordDescriptiveData(currentPageRecord, page);
             if (scopeData.exportFeedback) {
                 _processReportRecordFeedbackData(currentPageRecord, page);
             }
         }
     }
 
+    function _processReportRecordDescriptiveData(currentPageRecord, page) {
+        if (!page.sections) return;
+        // sections, sections[i].correctanswer and sections[i].answer are only defined
+        // for descriptive and fib page types.
+        for(var i=0; i<page.sections.length; i++) {
+            var section = page.sections[i];
+            if (!section.correctanswer || !section.answer) continue;
+            var a = section.answer;
+            if (a[a.length-1] == ':') a = a.substring(0, a.length-1);
+            
+            ctx.feedbackCnt++;
+            currentPageRecord.pos = ctx.feedbackCnt;
+            currentPageRecord.question = '';
+            currentPageRecord.response = a;
+            ctx.feedbackRows.push(nlExporter.getCsvRow(_hFeedback, currentPageRecord));
+        }
+    }
+    
     function _processReportRecordFeedbackData(currentPageRecord, page) {
         if (!page.feedback) return;
         for(var i=0; i<page.feedback.length; i++) {
