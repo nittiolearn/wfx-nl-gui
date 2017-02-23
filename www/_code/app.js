@@ -224,7 +224,8 @@ var _respColNgClasses = {
     respCol331 : {large: 3, medium: 3, small: 1},
     respCol321 : {large: 3, medium: 2, small: 1},
     respCol221 : {large: 2, medium: 2, small: 1},
-    respCol211 : {large: 2, medium: 1, small: 1}
+    respCol211 : {large: 2, medium: 1, small: 1},
+    respCol111 : {large: 1, medium: 1, small: 1}
 };
 
 // % width per column
