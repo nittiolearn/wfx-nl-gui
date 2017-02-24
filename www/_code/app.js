@@ -45,7 +45,7 @@ function($stateProvider, $urlRouterProvider, $ionicConfigProvider,
 ChartJsProvider, $sceDelegateProvider) {
     $sceDelegateProvider.resourceUrlWhitelist([
         'self', // Allow same origin resource loads.
-        'https://storage.googleapis.com/nittio-live.appspot.com/**' // Allow Nittio publis resources
+        'http://resources.nittiolearn.com/**' // Allow Nittio public resources
     ]);
     $ionicConfigProvider.views.transition('none');
     //$ionicConfigProvider.views.forwardCache(true);
@@ -127,7 +127,7 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer) {
     nlLogViewer.showOnStartupIfRequired($scope);
     
     var homeUrl = '/#/home';
-    var welcomeUrl = '/#/welcome';
+    var welcomeUrl = '/#/welcome#home';
 
     $scope.userMenuItems = [];
     $scope.homeMenuTitle = nl.t('Home');
@@ -224,7 +224,8 @@ var _respColNgClasses = {
     respCol331 : {large: 3, medium: 3, small: 1},
     respCol321 : {large: 3, medium: 2, small: 1},
     respCol221 : {large: 2, medium: 2, small: 1},
-    respCol211 : {large: 2, medium: 1, small: 1}
+    respCol211 : {large: 2, medium: 1, small: 1},
+    respCol111 : {large: 1, medium: 1, small: 1}
 };
 
 // % width per column

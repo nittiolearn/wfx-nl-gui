@@ -7,7 +7,8 @@
 	function module_init() {
 		angular.module('nl.lessonlist', []).config(configFn)
 		.controller('nl.LessonListCtrl', LessonListCtrl)
-		.service('nlApproveDlg', ApproveDlgSrv);
+		.service('nlApproveDlg', ApproveDlgSrv)
+		.service('nlLessonSelect', LessonSelectSrv);
 	}
 
 	//-------------------------------------------------------------------------------------------------
@@ -85,14 +86,14 @@
         self.canFetchMore = true;
         self.resultList = [];
 
-		this.initFromUrl = function() {
-			var params = nl.location.search();
+		this.initFromUrl = function(params) {
+			if (!params) params = nl.location.search();
 			this.type = _convertType(params.type);
 			this.custtype = ('custtype' in params) ? parseInt(params.custtype) : null;
 			this.revstate = ('revstate' in params) ? parseInt(params.revstate) : null;
 			this.searchGrade = ('grade' in params) ? params.grade : null;
 			this.searchFilter = ('search' in params) ? params.search : null;
-			this.searchMetadata = nlMetaDlg.getMetadataFromUrl();
+			this.searchMetadata = (!params.showInDlg) ? nlMetaDlg.getMetadataFromUrl() : {};
             this.canEnableMetadata = ('enablemeta' in params);
 			this.title = params.title || null;
 			this.content = params.content || null;
@@ -165,10 +166,38 @@
 	}
 
 	//-------------------------------------------------------------------------------------------------
-	var LessonListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 
-	'nlApproveDlg', 'nlSendAssignmentSrv', 'nlMetaDlg',
-	function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlSendAssignmentSrv, nlMetaDlg) {
+	var LessonListCtrl = ['$scope', 'nlLessonSelect',
+	function($scope, nlLessonSelect) {
+		nlLessonSelect.show($scope);
+	}];
 
+	//-------------------------------------------------------------------------------------------------
+	var LessonSelectSrv = ['nl', 'nlRouter', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 
+	'nlApproveDlg', 'nlSendAssignmentSrv', 'nlMetaDlg',
+	function(nl, nlRouter, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlSendAssignmentSrv, nlMetaDlg) {
+	this.showSelectDlg = function($scope, initialUserInfo) {
+		var self = this;
+		return nl.q(function(resolve, reject) {
+	    	var _selectDlg = nlDlg.create($scope);
+			_selectDlg.setCssClass('nl-height-max nl-width-max');
+			var _resolved = false;
+			var closeButton = {text : nl.t('Close'), onTap: function() {
+				if (!_resolved) reject(false);
+			}};
+			_selectDlg.scope.onItemSelected = function(card) {
+				var selectedList = [card];
+				resolve(selectedList);
+				_resolved = true;
+				_selectDlg.close();
+			};
+			var params = {showInDlg: true, type: 'approved'};
+			_selectDlg.show('view_controllers/lesson_list/lesson_select_dlg.html', [], closeButton);
+			self.show(_selectDlg.scope, initialUserInfo, params);
+		});
+	};
+	
+	this.show = function($scope, initialUserInfo, params) {
+		var _showInDlg = params && params.showInDlg;
 		var mode = new TypeHandler(nl, nlServerApi, nlMetaDlg);
 		var _userInfo = null;
 		var _allCardsForReview = [];
@@ -176,8 +205,8 @@
 		function _onPageEnter(userInfo) {
 			_userInfo = userInfo;
 			return nl.q(function(resolve, reject) {
-				mode.initFromUrl();
-				nl.pginfo.pageTitle = mode.pageTitle();
+				mode.initFromUrl(params);
+				if (!_showInDlg) nl.pginfo.pageTitle = mode.pageTitle();
 				$scope.cards = {};
 				$scope.cards.staticlist = _getStaticCard();
 				$scope.cards.emptycard = nlCardsSrv.getEmptyCard();
@@ -189,7 +218,14 @@
 			});
 		}
 
-		nlRouter.initContoller($scope, '', _onPageEnter);
+		if (_showInDlg) {
+			nlDlg.showLoadingScreen();
+	    	_onPageEnter(initialUserInfo).then(function() {
+				nlDlg.hideLoadingScreen();
+	    	});
+		} else {
+			nlRouter.initContoller($scope, '', _onPageEnter);
+		}
 
 		function _getApproveToList() {
 			var card = ['Visible to users within the group', 'Visible to users within the group and dependent group', 'Visible to every logedin user', 'Visible to everyone'];
@@ -259,6 +295,8 @@
 			var lessonId = card.lessonId;
 			if (internalUrl === 'lesson_delete') {
 				_deleteLesson($scope, lessonId);
+			} else if (internalUrl === 'lesson_select') {
+				$scope.onItemSelected(card);
 			} else if (internalUrl === 'lesson_approve') {
 				_approveLesson($scope, lessonId);
 			} else if (internalUrl === 'lesson_copy') {
@@ -331,7 +369,11 @@
 			var url = null;
 			var internalUrl = null;
 			if (mode.type == TYPES.APPROVED || mode.type == TYPES.MANAGE)
-				url = nl.fmt2('/lesson/view/{}/', lesson.id);
+				if(_showInDlg) {
+					internalUrl = 'lesson_select';
+				} else {
+					url = nl.fmt2('/lesson/view/{}/', lesson.id);
+				}
 			if (mode.type == TYPES.MY)
 				url = nl.fmt2('/lesson/edit/{}/', lesson.id);
 			if (mode.type == TYPES.REVIEW)
@@ -364,7 +406,7 @@
 				_addHelpToMycontent(card, lesson);
 			} else if (mode.type == TYPES.APPROVED) {
 				_addHelpToApproved(card, lesson);
-				if (lesson.grp == _userInfo.groupinfo.id)
+				if (!_showInDlg && lesson.grp == _userInfo.groupinfo.id)
 					card.links.push({id : 'lesson_copy', text : nl.t('copy')});
                 _addMetadataLink(card);
     		} else if (mode.type == TYPES.SENDASSIGNMENT) {
@@ -591,8 +633,10 @@
 
 		function _getLessonListAvps(lesson) {
 			var avps = [];
-			var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
-			_populateLinks(linkAvp, lesson.id, lesson);
+			if (!_showInDlg) {
+				var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
+				_populateLinks(linkAvp, lesson.id, lesson);
+			}
 			nl.fmt.addAvp(avps, 'Name', lesson.name);
 			nl.fmt.addAvp(avps, _userInfo.groupinfo.subjectlabel, lesson.subject);
 			nl.fmt.addAvp(avps, _userInfo.groupinfo.gradelabel, lesson.grade);
@@ -931,6 +975,7 @@
 			_reloadFromServer();
 		}
 
+	}; // End of init function
 	}];
 
 	//-------------------------------------------------------------------------------------------------

@@ -11,7 +11,7 @@
 <nl-dlg-content>
 	<ion-content overflow-scroll='true' class='nl-dlg-ion-content nl-overflow-auto'>
 	    <ion-list show-reorder='true'>
-	        <ion-item ng-repeat='cm in data.modules' class='ion-item-style'>
+	        <ion-item ng-repeat='cm in data.modules track by cm.id' class='ion-item-style'>
 	        	<div class='row row-center margin0 padding0'>
 		        	<div style='padding-left: {{cm.indentationLevel*16}}px'></div>
 		        	<div class='row row-center margin0 padding-mid nl-cv-item  nl-textellipsis'>

@@ -28,19 +28,34 @@
 	<div ng-if='attr.type !== "group" && attr.type !== "hidden"' ng-class='$root.resp2Col33'
 	     class='padding-mid'>{{attr.text||attr.name}}</div>
     <div ng-class='$root.resp2Col67'
-         ng-if='attr.type === "string" || attr.type === "number"'
+         ng-if='attr.type === "string" || attr.type === "number" || attr.type === "icon"'
          class='nl-dlg-field-value padding-mid'>
         <input ng-model='values[attr.name]' class='w100'
         	   type='{{attr.type == "number" ? "number" : "text"}}'
         	   ng-if='attr.title'
         	   min='0'
-        	   ng-change='editor.updateTitle()'
+        	   ng-change='editor.updateTitle($event)'
         	   ng-focus="attr.focus=true" ng-blur="attr.focus=false">
         <input ng-model='values[attr.name]' class='w100'
         	   type='{{attr.type == "number" ? "number" : "text"}}'
-        	   ng-if='!attr.title'
+        	   ng-if='!attr.title && !attr.icon'
         	   min='0'
         	   ng-focus="attr.focus=true" ng-blur="attr.focus=false">
+        <div ng-if='attr.icon' class='row row-center padding0 margin0'>
+	        <div class='col padding0'>
+		        <input ng-model='values[attr.name]' class='w100'
+		        	   type='{{attr.type == "number" ? "number" : "text"}}'
+		        	   ng-if='attr.type === "icon"'
+		        	   min='0'
+		        	   ng-focus="attr.focus=true" ng-blur="attr.focus=false">
+        	</div>
+        </div>
+        <div ng-if='attr.icon' class='row row-center padding-mid margin0'>
+	        <div class='col padding-mid margin0'>
+	        	<img ng-if='values[attr.name] !== "icon:"' ng-src='{{values[attr.name]}}' class='nl-100'/>
+			    <div ng-if='values[attr.name] == "icon:"' class='fsh4'><i class='fsh1 ion-ios-bookmarks fblue'></i></div>
+        	</div>
+        </div>
     </div>
     <div ng-class='$root.resp2Col67'
          ng-if='attr.type === "readonly"'
@@ -48,11 +63,12 @@
         <input ng-model='values[attr.name]' class='w100' readonly type='text'
          ng-focus="attr.focus=true" ng-blur="attr.focus=false">
     </div>
-    <div ng-class='$root.resp2Col67'
+	<div ng-class='$root.resp2Col67'
          ng-if='attr.type === "list"'
          class='nl-dlg-field-value padding-mid'>
         <select ng-model='values[attr.name]' 
                 class='w100'
+                ng-change='editor.onElementTypeChange($event, values)'
                 ng-options='opt as (opt | nlConvert:editor.typeNames) for opt in attr.values'
                 ng-focus="attr.focus=true" ng-blur="attr.focus=false">
         </select>               
@@ -90,10 +106,19 @@
         </div>
 	</div>
     <div ng-class='$root.resp2Col67'
-         ng-if='attr.type === "text"'
+         ng-if='attr.type === "text" && !attr.description'
          class='nl-dlg-field-value padding-mid'>
         <textarea rows="5" ng-model='values[attr.name]'
                   class='w100'
+                  ng-focus="attr.focus=true" ng-blur="attr.focus=false">
+        </textarea>
+    </div>
+    <div ng-class='$root.resp2Col67'
+         ng-if='attr.type === "text" && attr.description'
+         class='nl-dlg-field-value padding-mid'>
+        <textarea rows="5" ng-model='values[attr.name]'
+                  class='w100'
+                  ng-change='editor.descriptionExceed(values[attr.name])'
                   ng-focus="attr.focus=true" ng-blur="attr.focus=false">
         </textarea>
     </div>

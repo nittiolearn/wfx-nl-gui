@@ -241,12 +241,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     }
 
     function _onPageLeave() {
-        if (!_isDirty()) return true;
+        if (!_isDirty()) return true;        	
         var msg = nl.t('Warning: There are some unsaved changes in this page. Press ok to try saving the changes. Press cancel to discard the changes and leave the page.');
         var ret = confirm(msg);
         if (!ret) return true;
         _updatedStatusinfoAtServer(true);
-        return false;
+    	return false;
     }
     
     nlRouter.initContoller($scope, '', _onPageEnter, _onPageLeave);
@@ -282,15 +282,15 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
 
 	function _moveItem(movedItem, fromIndex, toIndex, allModules) {
 		var currentItem = allModules[toIndex];
-		var isMoveDown = fromIndex < toIndex;
+		var isMoveDown = fromIndex < toIndex ? true : false;
 		_moveItemAndChildrenPos(movedItem, {from: fromIndex, to: toIndex}, allModules);
-		if (isMoveDown && currentItem.type == 'module') {
+		if (isMoveDown && currentItem.type === 'module') {
 			movedItem.parentId = currentItem.id;
+			_updateItemAndChildrenAttrs(movedItem, allModules);
 		} else {
 			movedItem.parentId = currentItem.parentId;
+			_updateItemAndChildrenAttrs(movedItem, allModules);			
 		}
-		_updateItemAndChildrenAttrs(movedItem, allModules);
-		// TODO - update getChidren() - here and also in delete 
     }
 
 	function _moveItemAndChildrenPos(item, indices, allModules) {
@@ -347,7 +347,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         		});
         	}
         };
-        nlCourseEditor.init($scope, modeHandler);
+        nlCourseEditor.init($scope, modeHandler, _userInfo);
     }
 
     function _initExpandedView() {
@@ -451,7 +451,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         function _impl() {
             _popout(false);
         }
-        _confirmIframeClose(!bClose ? $scope.ext.item : null, _impl);
+        if($scope.ext.isEditorMode() && bClose){
+        	if(!nlCourseEditor.validateInputs($scope.ext.item)) return;
+        	_confirmIframeClose(!bClose ? $scope.ext.item : null, _impl);
+        } else {
+	        _confirmIframeClose(!bClose ? $scope.ext.item : null, _impl);    	
+        }
     };
     
     $scope.closeIFrame = function() {
@@ -1074,7 +1079,7 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
 //-------------------------------------------------------------------------------------------------
 function CourseReportSummarizer($scope) {
 
-    var folderAttrs = {'id': true, 'name': true, 'type': true, 'icon': true};
+    var folderAttrs = {'id': true, 'name': true, 'type': true, 'icon': true, 'parentId': true};
     this.getUserRecords = function(course, cm) {
         if ($scope.mode != MODES.REPORTS_SUMMARY_VIEW || cm.type == 'module') {
             return [];
@@ -1085,7 +1090,7 @@ function CourseReportSummarizer($scope) {
             var userReport = userReports[i];
             var module = angular.copy(cm);
             module.id = _getModuleId(cm.id, userReport.id);
-            if ('parentId' in module) delete module.parentId;
+            module.parentId = cm.id;
             module.name = userReport.studentname;
             module.userid = userReport.student;
             module.icon = 'user';

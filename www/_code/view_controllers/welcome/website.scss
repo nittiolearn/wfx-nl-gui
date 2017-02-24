@@ -80,14 +80,15 @@ body.welcomepage .view-container {
     line-height: 60px;
   }
   .landing-video-overlay {
-    position: absolute;
+    position: fixed;
     top: 20px;
     left: 20px;
-    right: 20px;
+    right: 30px;
     height: 90vh;
     background-color: #000000;
     border: 2px solid white;
     border-radius: 2px;
+    z-index: 10;
   }
   .landing-video-overlay-close {
     position: absolute;
