@@ -114,7 +114,7 @@ function _updateWebsiteScope(nl, nlDlg, nlServerApi, nlRouter, nlAnchorScroll, u
 function VisitorManager(nl, nlDlg, nlServerApi, nlRouter, $scope, userInfo) {
     var videoTime = null;
     var videoName = null;
-    var videoIds = {intro: 'xmmjg3Lr29M', 'lithium-testimonial': 'Llh0SL5ICxE'};
+    var videoIds = {intro: '4Ofz01dGFm8', 'lithium-testimonial': 'Llh0SL5ICxE'};
     
     this.visit = function() {
         var url = nl.fmt2('/visitor_start/{}', $scope.landingPageName);
