@@ -55,6 +55,10 @@ body.welcomepage .view-container {
   .bgblue1 {
     background-color: rgba(0, 0, 255, 0.1);
   }
+  
+  .underline {
+    text-decoration: underline;
+  }
 
   //---------------------------------------------------------------------------
   // Background images and videos
@@ -117,7 +121,6 @@ body.welcomepage .view-container {
     font-size: 75%;
     border: 3px solid white;
     border-radius: 4px;
-    color: #FFFF70;
     background-color: transparent;
     background-color: rgba(0, 163, 204, 0.8);
   }

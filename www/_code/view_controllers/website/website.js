@@ -92,7 +92,7 @@ function _updateWebsiteScope(nl, nlDlg, nlServerApi, nlRouter, nlAnchorScroll, u
         website.landingTickerPos = -1;
         var tickers = g_landingPageTickers;
         if (!tickers || tickers.length == 0) return;
-        _onTicker(website, tickers);
+        _onTicker(website, tickers, 1000);
     }
     
     function _onTicker(website, tickers, duration) {
