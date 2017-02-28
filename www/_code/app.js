@@ -45,7 +45,10 @@ function($stateProvider, $urlRouterProvider, $ionicConfigProvider,
 ChartJsProvider, $sceDelegateProvider) {
     $sceDelegateProvider.resourceUrlWhitelist([
         'self', // Allow same origin resource loads.
-        'http://resources.nittiolearn.com/**' // Allow Nittio public resources
+        // Allow Nittio public resources (Only the 1st one works inside apps 
+        // https/http mixed content)
+        'https://storage.googleapis.com/resources.nittiolearn.com/**',
+        'http://resources.nittiolearn.com/**'
     ]);
     $ionicConfigProvider.views.transition('none');
     //$ionicConfigProvider.views.forwardCache(true);
