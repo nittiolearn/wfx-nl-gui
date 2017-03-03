@@ -20,8 +20,8 @@ npagetypes = function() {
 	//#############################################################################################
 	// Called once at page load to initialize some variables
 	//#############################################################################################
-	function init(PageTypesJson) {
-	    var data = PageTypesJson ? JSON.parse(PageTypesJson) : defaultPageTypes;
+	function init(templatePageTypes) {
+	    var data = templatePageTypes.length > 0 ? templatePageTypes : defaultPageTypes;
 		_initStaticListsAndMaps(data);
 		_initPageTypeFieldsForEditor();
 	}
