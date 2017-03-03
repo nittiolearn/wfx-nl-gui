@@ -94,7 +94,8 @@ function(nl, nlDlg, nlServerApi, $state) {
             _sendGoogleAnalytics(userInfo);
             nl.rootScope.pgBgimg = _getUserBgimg(userInfo);
             nl.pginfo.username = (userInfo.username == '') ? '' : userInfo.displayname;
-            nl.pginfo.groupCustomCss = userInfo.groupinfo.groupCustomCss || '';
+            nl.pginfo.groupCustomCss = userInfo.groupinfo && userInfo.groupinfo.groupCustomCss
+                ? userInfo.groupinfo.groupCustomCss : '';
             var pagePerm = permission.getPermObj(pageUrl);
             if (pagePerm == null) {
                 nlDlg.popupStatus(nl.t('Cannot access the page'));
