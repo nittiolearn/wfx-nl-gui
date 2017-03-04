@@ -65,6 +65,7 @@ nlesson = function() {
 		this.saveAssignReport = Lesson_saveAssignReport;
 		this.submitAssignReport = Lesson_submitAssignReport;
 
+		this.stopAudioAndAnimation = Lesson_stopAudioAndAnimation;
 		this.setupOnLeavePage = Lesson_setupOnLeavePage;
 		this.updateContent = Lesson_updateContent;
 		this.getContent = Lesson_getContent;
@@ -105,6 +106,7 @@ nlesson = function() {
 		this.globals.templateCssClass = '';
         this.globals.autoVoice = njs_autovoice.getAutoVoice();
         this.globals.audioManager = njs_autovoice.getAudioManager();
+		this.globals.animationManager = njs_animate.getAnimationManager();
 	}
 
 	//--------------------------------------------------------------------------------------------
@@ -776,13 +778,19 @@ nlesson = function() {
 		njs_lesson_helper.SubmitAndScoreDialog.showSubmitWindow(this);
 	}
 
+    function Lesson_stopAudioAndAnimation() {
+        this.globals.audioManager.pauseAll();
+		this.globals.autoVoice.stop();
+        this.globals.animationManager.clearAnimations();
+    }
+    
 	function Lesson_setupOnLeavePage() {
 		jQuery('#l_content').val(this.getContent());
 		this.lastSavedContent = jQuery('#l_content').val();
 		var lesson = this;
 		window.onbeforeunload = function(e) {
 			if (nittio.getOnLeaveCheck()) {
-			    lesson.globals.autoVoice.stop();
+				lesson.stopAudioAndAnimation();
 				var lessonId = jQuery('#l_lessonId').val();
 				if ((lesson.renderCtx.launchCtx() != 'do_review') && (lesson.lastSavedContent != lesson.getContent() || lessonId == "0")) {
 					return "Warning: there are some un-saved data in this page.";
@@ -1181,6 +1189,7 @@ nlesson = function() {
 		// Getters for basic properties
 		this.getPageId = Page_getPageId;		
 		this.getPageIdStr = Page_getPageIdStr;
+		this.getPageAnimations = Page_getPageAnimations;
 		this.setNextTabIndex = Page_setNextTabIndex;
 		
 		// Initialize and render
@@ -1223,6 +1232,10 @@ nlesson = function() {
 
 	function Page_getPageIdStr() {
 		return njs_helper.fmt2('id{}', this.pageId);
+	}
+	
+	function Page_getPageAnimations(){
+		return this.oPage.animations || [];
 	}
 	
 	function Page_setNextTabIndex(domElem) {
@@ -1305,7 +1318,6 @@ nlesson = function() {
 
 		var hPageHolder = njs_helper.jobj('<div class="pgHolder" />');
 		hPage.append(hPageHolder);
-		hPage.addClass('loading');
 		this.hPage = hPage;
 		for (var i = 0; i < this.sections.length; i++) {
 			hPageHolder.append(this.sections[i].createHtmlDom());
@@ -1335,6 +1347,7 @@ nlesson = function() {
         if(this.lesson.renderCtx.pageMode(this) == 'edit') {
             this.propAudio.html('');
             this.autoVoiceButton = null;
+            this.lesson.stopAudioAndAnimation();
             return;
         }
 
@@ -1385,7 +1398,7 @@ nlesson = function() {
 	
 	function Page_postRender() {
 		var me = this;
-		me.lesson.globals.autoVoice.stop();
+		me.lesson.stopAudioAndAnimation();
         if (me.lesson.renderCtx.lessonMode() != 'edit') {
             me.lesson.globals.audioManager.play(me.getPageId());
             if (me.autoVoiceButton) me.autoVoiceButton.play();
@@ -1393,7 +1406,8 @@ nlesson = function() {
 		MathJax.Hub.Queue(function() {
             if (me.lesson.renderCtx.lessonMode() != 'edit' && me.autoVoiceButton)
                 me.autoVoiceButton.play();
-			me.hPage.removeClass('loading');
+            if (me.lesson.renderCtx.lessonMode() != 'edit')
+		        me.lesson.globals.animationManager.setupAnimation(me);
 			me.onEscape();
 		});
 	}
@@ -1597,6 +1611,7 @@ nlesson = function() {
 		this.pgSecView.attr('answer', 0);
 		this.pgSecView.css(pagetype.getSectionPos(this.secPosShuffled));
         this.pgSecView.addClass(pagetype.getSectionStyle(this.secPosShuffled));
+        this.page.lesson.globals.animationManager.hide(this.pgSecView);
 		pgSec.append(this.pgSecView);
 
 		var template = this.getTemplateFromObj();
