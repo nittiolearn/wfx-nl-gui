@@ -128,6 +128,7 @@ function RenderingContext() {
 	this.studentNotesState = RenderingContext_studentNotesState; // "editable" or "read-only"
 	this.teacherRemarksState = RenderingContext_teacherRemarksState; // "editable" or "read-only" or "hidden"
 	this.canShowScore = RenderingContext_canShowScore; // true/false
+    this.canEditScore = RenderingContext_canEditScore; // true/false
 
 	this.data = {};
 }
@@ -270,7 +271,11 @@ function RenderingContext_playerGetZodiChangesPages(lesson) {
 }
 
 function RenderingContext_canShowScore() {
-	return (this.launchCtx() == 'do_update' || this.launchCtx() == 'report_assign_review');
+	return true;
+}
+
+function RenderingContext_canEditScore() {
+    return (this.launchCtx() == 'do_update' || this.launchCtx() == 'report_assign_review');
 }
 
 function RenderingContext_studentNotesState() {
@@ -279,7 +284,7 @@ function RenderingContext_studentNotesState() {
 }
 
 function RenderingContext_teacherRemarksState() {
-	if (this.canShowScore()) return 'editable';
+	if (this.canEditScore()) return 'editable';
 	if (this.launchCtx() == 'report_assign_my' || 
 		this.launchCtx() == 'report_assign_shared') return 'readonly';
 	return 'hidden';

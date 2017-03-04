@@ -693,7 +693,7 @@ nlesson = function() {
         var ld = lesson.oLesson.learningData;
         
         if (lesson.renderCtx.launchMode() != 'do' && 
-            !lesson.renderCtx.canShowScore()) return;
+            !lesson.renderCtx.canEditScore()) return;
         
         for(var i=0; i<_ldAttrList.length; i++) {
             if (_ldAttrList[i].noCopyFrom) continue;
