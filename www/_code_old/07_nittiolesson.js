@@ -149,7 +149,9 @@ nlesson = function() {
 	    var self = this;
         var jLesson = jQuery('#l_content').val();
         self.oLesson = jQuery.parseJSON(jLesson);
-        npagetypes.init(self.oLesson.templatePageTypes);
+        self.parentTemplateContents = self.oLesson.parentTemplateContents || {};
+        delete self.oLesson.parentTemplateContents;
+        _initPageTypes(self);
         self.bgimg = jQuery('#l_pageData .bgimg');
         self.postRenderingQueue = new PostRenderingQueue(self);
         njs_scorm.onInitLesson(self, g_nlPlayerType, g_nlEmbedType,
@@ -203,16 +205,19 @@ nlesson = function() {
         self.updateTemplateCustomizations();
 	}
 
-    var oldTemplateStylesCss = '';
-    var oldTemplateBgimgs = '';
-    var oldTemplateIcons = '';
-    var oldTemplatePageTypes = '';
+    var oldXXXDefault = 'SOME JUNK VALUE';
+    var oldTemplateStylesCss = oldXXXDefault;
+    var oldTemplateBgimgs = oldXXXDefault;
+    var oldTemplateIcons = oldXXXDefault;
+    var oldTemplatePageTypes = oldXXXDefault;
     function Lesson_updateTemplateCustomizations() {
         if (oldTemplateStylesCss != this.oLesson.templateStylesCss) {
             oldTemplateStylesCss = this.oLesson.templateStylesCss;
             jQuery('#l_html').find('#templateStylesCss').remove();
-            if (this.oLesson.templateStylesCss) {
-                var styleElem = njs_helper.fmt2('<style id="templateStylesCss">{}</style>', this.oLesson.templateStylesCss);
+            var stylesCss = this.parentTemplateContents.templateStylesCss;
+            stylesCss += this.oLesson.templateStylesCss;
+            if (stylesCss) {
+                var styleElem = njs_helper.fmt2('<style id="templateStylesCss">{}</style>', stylesCss);
                 jQuery('#l_html').prepend(styleElem);
             }
         }
@@ -226,10 +231,40 @@ nlesson = function() {
         }
         if (oldTemplatePageTypes != this.oLesson.templatePageTypes) {
             oldTemplatePageTypes = this.oLesson.templatePageTypes;
-            npagetypes.init(this.oLesson.templatePageTypes);
+            _initPageTypes(this);
         }
     }
 
+    function _initPageTypes(lesson) {
+        var parentPageTypes = lesson.parentTemplateContents.templatePageTypes;
+        var templatePageTypes = lesson.oLesson.templatePageTypes ? JSON.parse(lesson.oLesson.templatePageTypes) : [];
+        templatePageTypes = _mergeArrayAttrs(parentPageTypes, templatePageTypes);
+        templatePageTypes.sort(function(a, b) {
+            return (a.sortorder||0) - (b.sortorder||0);
+        });
+        npagetypes.init(templatePageTypes);
+    }
+    
+    function _mergeArrayAttrs(existingData, newData) {
+        var consolidated = [];
+        var uniqueItems = {};
+        for (i=newData.length-1; i>=0; i--) {
+            var d = newData[i];
+            uniqueItems[d['id']] = i;
+        }
+            
+        for (i=0; i<newData.length; i++) {
+            var d = newData[i];
+            if (uniqueItems[d['id']] == i) consolidated.push(d);
+        }
+            
+        for (i=0; i<existingData.length; i++) {
+            var d = existingData[i];
+            if (!(d['id'] in uniqueItems)) consolidated.push(d);
+        }
+        return consolidated;
+    }
+    
 	function Lesson_editorToggleEditAndPreview() {
 		var ret = g_lesson.renderCtx.editorToggleEditAndPreview();
 		this.reRender(false);
@@ -546,8 +581,8 @@ nlesson = function() {
 	}
 	
     function _Lesson_getPrunedContent(lesson, jContent) {
-        if (!lesson.oLesson.storePrunedReport) return jContent;
         var content = jQuery.parseJSON(jContent);
+        if (!lesson.oLesson.storePrunedReport) return jContent;
         if (njs_scorm.getScormLmsLessonMode() !== null) {
             _Lesson_updateLearningData(lesson);
             content.learningData = lesson.oLesson.learningData;
@@ -556,6 +591,7 @@ nlesson = function() {
         delete content.templatePageTypes;
         delete content.templateStylesCss;
         delete content.templateBgimgs;
+        delete content.templateIcons;
         return JSON.stringify(content);
     }
 
@@ -659,7 +695,7 @@ nlesson = function() {
         var ld = lesson.oLesson.learningData;
         
         if (lesson.renderCtx.launchMode() != 'do' && 
-            !lesson.renderCtx.canShowScore()) return;
+            !lesson.renderCtx.canEditScore()) return;
         
         for(var i=0; i<_ldAttrList.length; i++) {
             if (_ldAttrList[i].noCopyFrom) continue;
@@ -1814,8 +1850,16 @@ nlesson = function() {
 			return;
 		}
 
-		if (g_lesson.oLesson.templateBgimgs) {
-		    g_templateList = JSON.parse(g_lesson.oLesson.templateBgimgs);
+        var parentBgimgs = g_lesson.parentTemplateContents.templateBgimgs;
+        var templateBgimgs = g_lesson.oLesson.templateBgimgs ? JSON.parse(g_lesson.oLesson.templateBgimgs) : [];
+        templateBgimgs = _mergeArrayAttrs(parentBgimgs, templateBgimgs);
+		if (templateBgimgs.length > 0) {
+            templateBgimgs.sort(function(a, b) {
+                if (a.group != b.group) return a.group < b.group ? -1 : 1;
+                if (a.name == b.name) return 0;
+                return (a.name < b.name) ? -1 : 1;
+            });
+		    g_templateList = templateBgimgs;
             _onTemplateInfos(true);
             onLoadComplete();
             return;

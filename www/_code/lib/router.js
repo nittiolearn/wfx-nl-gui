@@ -94,13 +94,15 @@ function(nl, nlDlg, nlServerApi, $state) {
             _sendGoogleAnalytics(userInfo);
             nl.rootScope.pgBgimg = _getUserBgimg(userInfo);
             nl.pginfo.username = (userInfo.username == '') ? '' : userInfo.displayname;
+            nl.pginfo.groupCustomCss = userInfo.groupinfo && userInfo.groupinfo.groupCustomCss
+                ? userInfo.groupinfo.groupCustomCss : '';
             var pagePerm = permission.getPermObj(pageUrl);
             if (pagePerm == null) {
                 nlDlg.popupStatus(nl.t('Cannot access the page'));
                 return _done('/home');
             }
             if (!permission.checkLogin(userInfo, pagePerm)) {
-                if (nl.location.url() == '/home') return _done('/welcome');
+                if (nl.location.url() == '/home') return _done('/welcome#home');
                 nlDlg.popupStatus(nl.t('Please login to access this page'));
                 var nextUrl = nl.window.encodeURIComponent('/#' + nl.location.url());
                 return _done(nl.fmt2('/login_now?msg=auth_error&next={}', nextUrl));

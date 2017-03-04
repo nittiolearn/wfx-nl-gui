@@ -20,8 +20,8 @@ npagetypes = function() {
 	//#############################################################################################
 	// Called once at page load to initialize some variables
 	//#############################################################################################
-	function init(PageTypesJson) {
-	    var data = PageTypesJson ? JSON.parse(PageTypesJson) : defaultPageTypes;
+	function init(templatePageTypes) {
+	    var data = templatePageTypes.length > 0 ? templatePageTypes : defaultPageTypes;
 		_initStaticListsAndMaps(data);
 		_initPageTypeFieldsForEditor();
 	}
@@ -1964,7 +1964,7 @@ npagetypes = function() {
 		{'id' : 'FILL', 'desc' : 'Fill in the blanks', 'default_aligntype' : 'option', 'beh' : BehFib},
 		{'id' : 'DESC', 'desc' : 'Descriptive', 'default_aligntype' : 'option', 'beh' : BehDesc},
 		{'id' : 'PARTFILL', 'desc' : 'Fill in the parts', 'default_aligntype' : 'option', 'beh' : BehFibParts},
-		{'id' : 'QUESTIONNAIRE', 'desc' : 'Questionnaire', 'default_aligntype' : 'content', 'beh' : BehQuestionnaire},
+		{'id' : 'QUESTIONNAIRE', 'desc' : 'Feedback', 'default_aligntype' : 'content', 'beh' : BehQuestionnaire},
 		{'id' : 'MANYQUESTIONS', 'bleedingEdge' : false, 'desc' : 'Many questions', 'default_aligntype' : 'content', 'beh' : BehManyQuestions}
 	];
 

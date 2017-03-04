@@ -93,7 +93,7 @@ var _launchCtxToInfo = {
     // old URL=/lesson/view_report_assign/reportid (View my completed assignment)
     report_assign_my: {mode: 'report'}, 
 
-    // old URL=/lesson/review_report_assign/reportid (View my students completed assignment report)
+    // old URL=/lesson/review_report_assign/reportid (View my learners completed assignment report)
     report_assign_review: {mode: 'report'}, 
 
     // old URL=/lesson/update_report_assign/reportid (Update an assignment report - done by a person with manage-assignment previleges)

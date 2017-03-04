@@ -103,6 +103,7 @@ function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog, nlExp
         }
         
         $scope.started = true;
+        $scope.ongoing = true;
         scoExporter.export(lessonIds, $scope.data.version.id, $scope.data.title, 
             $scope.data.mathjax, $scope, lessonNames);
     }
@@ -141,9 +142,11 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
                     Math.round(self.savedSize / 1024 * 10)/10);
             }
             pl.imp('Export completed' + savedSizeMb);
+            scope.ongoing = false;
         }, function() {
             self.setProgress('done');
             pl.error('Export failed');
+            scope.ongoing = false;
         });
     };
 

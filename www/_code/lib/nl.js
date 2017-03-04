@@ -485,6 +485,7 @@ function NlPageInfo(nl) {
     
     this.statusPopup = false;
     this.isMobileOrTab = _isMobileOrTab(nl);
+    this.groupCustomCss = '';
 }
 
 function _isMobileOrTab(nl) {

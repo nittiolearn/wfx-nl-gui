@@ -22,7 +22,7 @@
          ng-if='do_not_show_for_now_there_is_a_bug'>
         <input ng-model='data.mathjax' type='checkbox'><span>include MathJax libraries</span>
     </div>
-    <div class='padding-small'>
+    <div class='padding-small' ng-hide='ongoing'>
         <div class='nl-button' ng-click='onExport()'>Export</div>
     </div>
     <nl-progress-log ng-show='started'></nl-progress-log>
