@@ -237,8 +237,13 @@ nlesson = function() {
         var parentPageTypes = lesson.parentTemplateContents.templatePageTypes;
         var templatePageTypes = lesson.oLesson.templatePageTypes ? JSON.parse(lesson.oLesson.templatePageTypes) : [];
         templatePageTypes = _mergeArrayAttrs(parentPageTypes, templatePageTypes);
+        for (var i=0; i<templatePageTypes.length; i++) {
+            templatePageTypes[i].sortorder = templatePageTypes[i].sortorder || 0;
+            templatePageTypes[i].sortorder2 = i;
+        }
         templatePageTypes.sort(function(a, b) {
-            return (a.sortorder||0) - (b.sortorder||0);
+            if (a.sortorder == b.sortorder) return a.sortorder2 - b.sortorder2;
+            return a.sortorder - b.sortorder; 
         });
         npagetypes.init(templatePageTypes);
     }
