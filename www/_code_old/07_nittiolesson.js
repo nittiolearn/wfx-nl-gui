@@ -56,7 +56,8 @@ nlesson = function() {
 		//						when page mode is changed as well. But this is called at page level - on page change
 		this.createHtmlDom = Lesson_createHtmlDom;		// create the html element
 		this.onEscape = Lesson_onEscape;
-		this.postRender = Lesson_postRender;			// (onSlideChanged)
+		this.preRender = Lesson_preRender;			// (onSlideBeforeChange)
+		this.postRender = Lesson_postRender;			// (onSlideChange)
 	
 		// Save
 		this.saveLesson = Lesson_saveLesson;
@@ -65,7 +66,7 @@ nlesson = function() {
 		this.saveAssignReport = Lesson_saveAssignReport;
 		this.submitAssignReport = Lesson_submitAssignReport;
 
-		this.stopAudioAndAnimation = Lesson_stopAudioAndAnimation;
+		this.stopAudio = Lesson_stopAudio;
 		this.setupOnLeavePage = Lesson_setupOnLeavePage;
 		this.updateContent = Lesson_updateContent;
 		this.getContent = Lesson_getContent;
@@ -346,6 +347,12 @@ nlesson = function() {
 		var curPage = this.pages[pgNo];
 		if (!curPage) return false;
 		return curPage.onEscape();
+	}
+
+	function Lesson_preRender(newPgNo) {
+        if (this.renderCtx.lessonMode() == 'edit') return;
+		var newPage = this.pages[newPgNo];
+		this.globals.animationManager.hidePage(newPage);
 	}
 
 	function Lesson_postRender() {
@@ -814,10 +821,9 @@ nlesson = function() {
 		njs_lesson_helper.SubmitAndScoreDialog.showSubmitWindow(this);
 	}
 
-    function Lesson_stopAudioAndAnimation() {
+    function Lesson_stopAudio() {
         this.globals.audioManager.pauseAll();
 		this.globals.autoVoice.stop();
-        this.globals.animationManager.clearAnimations();
     }
     
 	function Lesson_setupOnLeavePage() {
@@ -826,7 +832,8 @@ nlesson = function() {
 		var lesson = this;
 		window.onbeforeunload = function(e) {
 			if (nittio.getOnLeaveCheck()) {
-				lesson.stopAudioAndAnimation();
+				lesson.stopAudio();
+		        lesson.globals.animationManager.clearAnimations();
 				var lessonId = jQuery('#l_lessonId').val();
 				if ((lesson.renderCtx.launchCtx() != 'do_review') && (lesson.lastSavedContent != lesson.getContent() || lessonId == "0")) {
 					return "Warning: there are some un-saved data in this page.";
@@ -1353,8 +1360,10 @@ nlesson = function() {
 		this.setNextTabIndex(newBg);
 
 		var hPageHolder = njs_helper.jobj('<div class="pgHolder" />');
-		hPage.append(hPageHolder);
 		this.hPage = hPage;
+		this.hPageHolder = hPageHolder;
+		//this.lesson.globals.animationManager.hidePage(this);
+		hPage.append(hPageHolder);
 		for (var i = 0; i < this.sections.length; i++) {
 			hPageHolder.append(this.sections[i].createHtmlDom());
 		}
@@ -1383,7 +1392,7 @@ nlesson = function() {
         if(this.lesson.renderCtx.pageMode(this) == 'edit') {
             this.propAudio.html('');
             this.autoVoiceButton = null;
-            this.lesson.stopAudioAndAnimation();
+            this.lesson.stopAudio();
             return;
         }
 
@@ -1434,8 +1443,9 @@ nlesson = function() {
 	
 	function Page_postRender() {
 		var me = this;
-		me.lesson.stopAudioAndAnimation();
+		me.lesson.stopAudio();
         if (me.lesson.renderCtx.lessonMode() != 'edit') {
+	        me.lesson.globals.animationManager.hidePage(me);
             me.lesson.globals.audioManager.play(me.getPageId());
             if (me.autoVoiceButton) me.autoVoiceButton.play();
         }
@@ -1647,7 +1657,6 @@ nlesson = function() {
 		this.pgSecView.attr('answer', 0);
 		this.pgSecView.css(pagetype.getSectionPos(this.secPosShuffled));
         this.pgSecView.addClass(pagetype.getSectionStyle(this.secPosShuffled));
-        this.page.lesson.globals.animationManager.hide(this.pgSecView);
 		pgSec.append(this.pgSecView);
 
 		var template = this.getTemplateFromObj();
@@ -1810,17 +1819,19 @@ nlesson = function() {
 			return g_lesson.onEscape();
 		});
 		
-		nittio.onSlideChanged(function() {
-			g_lesson.postRender();
-		});
-		
         nittio.onResize(function() {
             if (njs_scorm.getScormLmsLessonMode() === null) g_lesson.reRender(true);
         });
         
 		nittio.afterInit(function(){
 			g_lesson.globals.slides = nittio.getSlidesObj();
-
+			g_lesson.globals.slides.onSlideBeforeChange(function(newPgNo) {
+				g_lesson.preRender(newPgNo);
+			});
+			g_lesson.globals.slides.onSlideChange(function() {
+				g_lesson.postRender();
+			});
+			
 			window.setTimeout(function() {
 			    if (g_lesson.oLesson.currentPageNo && 
                     g_lesson.renderCtx.launchMode() == 'do') {

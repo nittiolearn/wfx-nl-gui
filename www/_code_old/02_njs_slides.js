@@ -25,11 +25,13 @@ njs_slides = function() {
 		this.prev = SlideSet_prev;
 		this.next = SlideSet_next;
 		this.gotoPage = SlideSet_gotoPage;
+		this.gotoPagePre = SlideSet_gotoPagePre;
 		this.gotoPagePost = SlideSet_gotoPagePost;
 		this.mediaStop = SlideSet_mediaStop;
 		this.mediaAutoPlay = SlideSet_mediaAutoPlay;
 		this.getPageCount = SlideSet_getPageCount;
 		this.getCurPageNo = SlideSet_getCurPageNo;
+		this.onSlideBeforeChange = SlideSet_onSlideBeforeChange;
 		this.onSlideChange = SlideSet_onSlideChange;
 		
 		// Actual constructor initialization
@@ -72,6 +74,7 @@ njs_slides = function() {
 
 	function SlideSet_init(me, slideSetDom, pageNo, navLeft, navRight) {
 		me.slideChangeHandlers = [];
+		me.slidePreChangeHandlers = [];
 		me.slideSetDom = slideSetDom; 
 		me.pageNo = pageNo; 
 		me.navLeft = navLeft;
@@ -155,9 +158,8 @@ njs_slides = function() {
 		var oldPage = this.pages[this.curPage];
 		var newPage = this.pages[p];
 
-		this.mediaStop();
-		
 		var me = this;
+	    me.gotoPagePre(p);
 		var postAnimationFn = function() {
 		    me.gotoPagePost();
 		};
@@ -173,6 +175,13 @@ njs_slides = function() {
 		this.curPage = p;
 	}
 	
+	function SlideSet_gotoPagePre(newPgNo) {
+		for(var i in this.slidePreChangeHandlers) {
+			this.slidePreChangeHandlers[i](newPgNo);
+		}
+		this.mediaStop();
+	}
+
 	function SlideSet_gotoPagePost() {
 	    var inactiveButtonCls = 'nl-nav-inactive';
 		if (this.pageNo) this.pageNo.html(this.curPage+1);
@@ -231,6 +240,10 @@ njs_slides = function() {
 		this.slideChangeHandlers.push(handler);
 	}
 	
+	function SlideSet_onSlideBeforeChange(handler) {
+		this.slidePreChangeHandlers.push(handler);
+	}
+
 	//----------------------------------------------------------------------------------
 	// PageTransition class
 	//----------------------------------------------------------------------------------

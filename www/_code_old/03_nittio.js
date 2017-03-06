@@ -667,19 +667,7 @@ nittio = function() {
 		if (slides.length < 1 || pgNo.length < 1 || navLeft.length < 1 || navRight.length < 1) return;
 
 		g_slides = new njs_slides.SlideSet(slides, pgNo, navLeft, navRight);
-		g_slides.onSlideChange(callOnSlideChangedHandlers);
 		callAfterInitHandlers();
-	}
-
-	var onSlideChangedFunctionArray = [];
-	function onSlideChanged(fn) {
-		onSlideChangedFunctionArray.push(fn);
-	}
-
-	function callOnSlideChangedHandlers(event) {
-		for (var i = 0; i < onSlideChangedFunctionArray.length; i++) {
-			onSlideChangedFunctionArray[i](event);
-		}
 	}
 
 	var onEscapeFunctionArray = [];
@@ -891,8 +879,6 @@ nittio = function() {
 		initPage : initPage,
         afterInit : afterInit,
         onResize : onResize,
-		onSlideChanged : onSlideChanged,
-		callOnSlideChangedHandlers : callOnSlideChangedHandlers,
 		onEscape : onEscape,
         getStaticResFolder : getStaticResFolder,
         getStaticTemplFolder : getStaticTemplFolder,
