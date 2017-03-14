@@ -240,8 +240,13 @@ nlesson = function() {
         var parentPageTypes = lesson.parentTemplateContents.templatePageTypes;
         var templatePageTypes = lesson.oLesson.templatePageTypes ? JSON.parse(lesson.oLesson.templatePageTypes) : [];
         templatePageTypes = _mergeArrayAttrs(parentPageTypes, templatePageTypes);
+        for (var i=0; i<templatePageTypes.length; i++) {
+            templatePageTypes[i].sortorder = templatePageTypes[i].sortorder || 0;
+            templatePageTypes[i].sortorder2 = i;
+        }
         templatePageTypes.sort(function(a, b) {
-            return (a.sortorder||0) - (b.sortorder||0);
+            if (a.sortorder == b.sortorder) return a.sortorder2 - b.sortorder2;
+            return a.sortorder - b.sortorder; 
         });
         npagetypes.init(templatePageTypes);
     }
@@ -570,6 +575,9 @@ nlesson = function() {
 		this.oLesson.description = jQuery('#l_description').val();
 		this.oLesson.keywords = jQuery('#l_keywords').val();
         this.oLesson.esttime = jQuery('#l_esttime').val();
+        if ('allowed_max_score' in this.oLesson) {
+            this.oLesson.allowed_max_score = parseInt(jQuery('#l_allowed_max_score').val());
+        }
         this.oLesson.forumTopic = jQuery('#l_lessonForumTopic').val();
         this.oLesson.templateStylesCss = jQuery('#l_templateStylesCss').val();
         this.oLesson.templateBgimgs = jQuery('#l_templateBgimgs').val();
@@ -1176,7 +1184,7 @@ nlesson = function() {
         if (self.renderCtx.launchCtx() != 'do_assign') return;
         var oLesson = self.oLesson;
         var pages = oLesson.pages;
-        var allowedMaxScore = oLesson.allowed_max_score;
+        var allowedMaxScore = parseInt(oLesson.allowed_max_score);
         var pageInfos = [];
         var randPosArray = [];
         
@@ -1213,7 +1221,8 @@ nlesson = function() {
         if (!self.oLesson.pagesFiltered) self.oLesson.pagesFiltered = [];
         for(var i in pageInfos) {
             if (pageInfos[i].newPos < 0) continue;
-            if (pageInfos[i].shallFilter && maxScore >= allowedMaxScore) {
+            var newMaxScore = maxScore + pageInfos[i].maxScore;
+            if (pageInfos[i].shallFilter && newMaxScore > allowedMaxScore) {
                 continue;
             }
             maxScore += pageInfos[i].maxScore;
