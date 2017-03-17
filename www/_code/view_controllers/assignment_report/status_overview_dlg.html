@@ -46,34 +46,43 @@
         </div>              
  
         <div ng-show='showLeaderBoard'>
-            <div class='fsh3 text-center'>
+            <div class='fsh3 text-center padding-mid'>
                 <span ng-show='stats.totalMaxScore > 0'>Leaderboard</span>
                 <span ng-show='stats.totalMaxScore == 0'>Completion status</span>
             </div>
-            <table class='nl-table nl-table-styled'>
-                <tr>
-                    <th></th>
-                    <th>Name</th>
-                    <th style='text-align: right'>
+            <div class='nl-div-table'>
+                <div class='tr'>
+                    <div class='th padding-mid'></div>
+                    <div class='th padding-mid'>Name</div>
+                    <div class='th padding-mid text-right' ng-hide='stats.reptype == "assignment"'>Completed</div>
+                    <div class='th padding-mid text-right' ng-hide='stats.reptype == "assignment"'>Pending</div>
+                    <div class='th padding-mid text-right'>
                         <div ng-show='stats.totalMaxScore > 0'>Score</div>
                         <div ng-show='stats.totalMaxScore == 0'>Status</div>
-                    </th>
-                </tr>
-                <tr ng-repeat='student in stats.leaderBoard track by student.id'>
-                    <td>{{$index+1}}</td>
-                    <td>
+                    </div>
+                </div>
+                <div ng-repeat='student in stats.leaderBoard track by student.id'
+                     class='tr'>
+                    <div class='td padding-mid text-right'>{{$index+1}}</div>
+                    <div class='td padding-mid'>
                         <a ng-href='/lesson/review_report_assign/{{student.repid}}'
                            ng-show='student.repid'>{{student.name}}</a>
                         <span ng-hide='student.repid'>{{student.name}}</span>
-                    </td>
-                    <td style='text-align: right'>
+                    </div>
+                    <div class='td padding-mid text-right' ng-hide='stats.reptype == "assignment"'>
+                        {{student.done}}
+                    </div>
+                    <div class='td padding-mid text-right' ng-hide='stats.reptype == "assignment"'>
+                        {{student.total - student.done}}
+                    </div>
+                    <div class='td padding-mid text-right'>
                         <div ng-show='student.perc >= 0'>{{student.perc}}%</div>
                         <div ng-show='student.perc == -1'>Completed</div>
                         <div ng-show='student.perc == -2'>Partially completed</div>
                         <div ng-show='student.perc == -3'>Not completed</div>
-                    </td>
-                </tr>
-            </table>
+                    </div>
+                </div>
+            </div>
         </div>        
     </div>
 </nl-dlg-content>

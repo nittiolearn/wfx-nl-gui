@@ -190,7 +190,7 @@ var _effects = {
 	return {translateX: [0, 0], translateY: [0, 0], rotateY: [0, 0], skewY: [0, 0], opacity: [1, 0], 'z-index': ZINDEX_SHOW};},
 	
 	'dropdown': function() {
-	return {translateX: [0, 0], translateY: [0, '-200%'], rotateY: [0, 0], skewY: [0, 0], opacity: [1, 0], 'z-index': ZINDEX_SHOW, backgroundColor:'#ff0000'};},
+	return {translateX: [0, 0], translateY: [0, '-200%'], rotateY: [0, 0], skewY: [0, 0], opacity: [1, 0], 'z-index': ZINDEX_SHOW};},
 
 	'flyup': function() {
 	return {translateX: [0, 0], translateY: [0, '200%'], rotateY: [0, 0], skewY: [0, 0], opacity: [1, 0], 'z-index': ZINDEX_SHOW};}

@@ -335,7 +335,7 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo, $templa
 function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
     var self = this;
     var _lst = [];
-    var _stats = {};
+    var _stats = {reptype: reptype};
 
     var _ous = {};
     var _grades = {};
@@ -503,6 +503,7 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
         if (!self.leaderBoard[student]) self.leaderBoard[student] = {id: student, 
             name: rep.studentname, repid: null, total: 0, done: 0, score: 0, maxScore: 0, repList: []};
         var lbRecord = self.leaderBoard[student];
+        lbRecord.repList.push(rep);
         lbRecord.total++;
         if (status == self.STATUS_PENDING) return;
         lbRecord.done++;
