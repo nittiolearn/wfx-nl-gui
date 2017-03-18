@@ -116,20 +116,36 @@ function AnimationManager() {
 		} else {
 			hObjs.push(_htmlObjsToAnimate[animItem.id]);
 		}
-		_animatenOfSectionLine(animItem, page, hObjs, 0);
+		_animateSectionLine(animItem, page, hObjs, 0);
 	}
 
-	function _animatenOfSectionLine(animItem, page, hObjs, pos) {
+	function _animateSectionLine(animItem, page, hObjs, pos) {
+		var animScheme = page.lesson.getAnimationScheme() || {};
+		var da = animScheme.defaultAnimations || {};
+		da.easing = da.easing || 'easeOutQuad';
+		da.delay = da.delay || 0;
+		da.duration = da.duration || 500;
+		da.effect = da.effect || 'appear';
+		var customEffects = page.lesson.getTemplateAnimations().customEffects || {}; 
+
 		var objId = njs_helper.fmt2('{}.{}', animItem.id, pos);
-		var	props = _effects[animItem.effect || 'appear']();
+		var effectName = animItem.effect || da.effect;
+		var	props = null;
+		if (effectName in customEffects) {
+			props = customEffects[effectName];
+		} else {
+			if (!(effectName in _effects)) effectName = da.effect;
+			props = _effects[effectName]();
+		}
 		var opts = {};
-		opts.easing = animItem.easing || 'easeOutQuad';
-		opts.duration = animItem.duration || 500;
+		opts.easing = animItem.easing || da.easing;
+		opts.duration = animItem.duration || da.duration;
+		opts.delay = animItem.delay || da.delay;
 
 		opts.complete = function() {
 			delete _currentAnimObjs[objId];
 			if (pos < hObjs.length-1) {
-				_animatenOfSectionLine(animItem, page, hObjs, pos+1);
+				_animateSectionLine(animItem, page, hObjs, pos+1);
 			} else {
 				_processAnimationQueue(page);
 			}
@@ -190,7 +206,7 @@ var _effects = {
 	return {translateX: [0, 0], translateY: [0, 0], rotateY: [0, 0], skewY: [0, 0], opacity: [1, 0], 'z-index': ZINDEX_SHOW};},
 	
 	'dropdown': function() {
-	return {translateX: [0, 0], translateY: [0, '-200%'], rotateY: [0, 0], skewY: [0, 0], opacity: [1, 0], 'z-index': ZINDEX_SHOW, backgroundColor:'#ff0000'};},
+	return {translateX: [0, 0], translateY: [0, '-200%'], rotateY: [0, 0], skewY: [0, 0], opacity: [1, 0], 'z-index': ZINDEX_SHOW};},
 
 	'flyup': function() {
 	return {translateX: [0, 0], translateY: [0, '200%'], rotateY: [0, 0], skewY: [0, 0], opacity: [1, 0], 'z-index': ZINDEX_SHOW};}

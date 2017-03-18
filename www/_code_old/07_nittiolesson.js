@@ -26,6 +26,8 @@ nlesson = function() {
 		this.getPageNoFromPageId = Lesson_getPageNoFromPageId;
 		this.getCurrentPageUrl = Lesson_getCurrentPageUrl;
 		this.getExistingPageIds = Lesson_getExistingPageIds;
+		this.getTemplateAnimations = Lesson_getTemplateAnimations;
+		this.getAnimationScheme = Lesson_getAnimationScheme;
 
 		// Initialize and render
 		this.initDom = Lesson_initDom;					// init
@@ -142,6 +144,16 @@ nlesson = function() {
 		return pageIdList;	
 	}
 	
+	function Lesson_getTemplateAnimations() {
+		return this.templateAnimations;
+	}
+	
+	function Lesson_getAnimationScheme() {
+		var lessonProps = this.oLesson.props || {};
+		var tempAnimation = this.getTemplateAnimations();
+		return tempAnimation[lessonProps.animationScheme] || null;
+	}
+
 	//--------------------------------------------------------------------------------------------
 	// Lesson Methods - Initialize and render
 	//--------------------------------------------------------------------------------------------
@@ -211,6 +223,7 @@ nlesson = function() {
     var oldTemplateBgimgs = oldXXXDefault;
     var oldTemplateIcons = oldXXXDefault;
     var oldTemplatePageTypes = oldXXXDefault;
+    var oldTemplateAnimations = oldXXXDefault;
     function Lesson_updateTemplateCustomizations() {
         if (oldTemplateStylesCss != this.oLesson.templateStylesCss) {
             oldTemplateStylesCss = this.oLesson.templateStylesCss;
@@ -234,8 +247,20 @@ nlesson = function() {
             oldTemplatePageTypes = this.oLesson.templatePageTypes;
             _initPageTypes(this);
         }
+        if (oldTemplateAnimations != this.oLesson.templateAnimations) {
+            oldTemplateAnimations = this.oLesson.templateAnimations;
+            _updateTemplateAnimations(this);
+        }
     }
 
+    function _updateTemplateAnimations(lesson) {
+        var parentAnimations = lesson.parentTemplateContents.templateAnimations || {};
+		var myAnimations = lesson.oLesson.templateAnimations ? JSON.parse(lesson.oLesson.templateAnimations) : {};
+		lesson.templateAnimations = {};
+		for(var k in parentAnimations) lesson.templateAnimations[k] = parentAnimations[k];
+		for(var k in myAnimations) lesson.templateAnimations[k] = myAnimations[k];
+    }
+    
     function _initPageTypes(lesson) {
         var parentPageTypes = lesson.parentTemplateContents.templatePageTypes;
         var templatePageTypes = lesson.oLesson.templatePageTypes ? JSON.parse(lesson.oLesson.templatePageTypes) : [];
@@ -583,6 +608,7 @@ nlesson = function() {
         this.oLesson.templateBgimgs = jQuery('#l_templateBgimgs').val();
         this.oLesson.templateIcons = jQuery('#l_templateIcons').val();
         this.oLesson.templatePageTypes = jQuery('#l_templatePageTypes').val();
+        this.oLesson.templateAnimations = jQuery('#l_templateAnimations').val();
 		this.oLesson.image = jQuery('#imageFullName').val();		
 		this.oLesson.template = jQuery('#templateFullName').val();
 	}
@@ -604,6 +630,7 @@ nlesson = function() {
         }
         delete content.pages;
         delete content.templatePageTypes;
+        delete content.templateAnimations;
         delete content.templateStylesCss;
         delete content.templateBgimgs;
         delete content.templateIcons;
@@ -1287,7 +1314,9 @@ nlesson = function() {
 	}
 	
 	function Page_getPageAnimations(){
-		return this.oPage.animations || [];
+		if (this.oPage.animations) return this.oPage.animations;
+		var animScheme = this.lesson.getAnimationScheme() || {};
+		return animScheme[this.oPage.type] || [];
 	}
 	
 	function Page_setNextTabIndex(domElem) {
