@@ -26,8 +26,6 @@ nlesson = function() {
 		this.getPageNoFromPageId = Lesson_getPageNoFromPageId;
 		this.getCurrentPageUrl = Lesson_getCurrentPageUrl;
 		this.getExistingPageIds = Lesson_getExistingPageIds;
-		this.getTemplateAnimations = Lesson_getTemplateAnimations;
-		this.getAnimationScheme = Lesson_getAnimationScheme;
 
 		// Initialize and render
 		this.initDom = Lesson_initDom;					// init
@@ -144,16 +142,6 @@ nlesson = function() {
 		return pageIdList;	
 	}
 	
-	function Lesson_getTemplateAnimations() {
-		return this.templateAnimations;
-	}
-	
-	function Lesson_getAnimationScheme() {
-		var lessonProps = this.oLesson.props || {};
-		var tempAnimation = this.getTemplateAnimations();
-		return tempAnimation[lessonProps.animationScheme] || null;
-	}
-
 	//--------------------------------------------------------------------------------------------
 	// Lesson Methods - Initialize and render
 	//--------------------------------------------------------------------------------------------
@@ -1315,7 +1303,7 @@ nlesson = function() {
 	
 	function Page_getPageAnimations(){
 		if (this.oPage.animations) return this.oPage.animations;
-		var animScheme = this.lesson.getAnimationScheme() || {};
+		var animScheme = this.lesson.globals.animationManager.getAnimationScheme(this.lesson) || {};
 		return animScheme[this.oPage.type] || [];
 	}
 	

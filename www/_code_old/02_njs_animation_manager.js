@@ -120,13 +120,13 @@ function AnimationManager() {
 	}
 
 	function _animateSectionLine(animItem, page, hObjs, pos) {
-		var animScheme = page.lesson.getAnimationScheme() || {};
+		var animScheme = self.getAnimationScheme(page.lesson) || {};
 		var da = animScheme.defaultAnimations || {};
 		da.easing = da.easing || 'easeOutQuad';
 		da.delay = da.delay || 0;
 		da.duration = da.duration || 500;
 		da.effect = da.effect || 'appear';
-		var customEffects = page.lesson.getTemplateAnimations().customEffects || {}; 
+		var customEffects = self.getTemplateAnimations(page.lesson).customEffects || {}; 
 
 		var objId = njs_helper.fmt2('{}.{}', animItem.id, pos);
 		var effectName = animItem.effect || da.effect;
@@ -168,6 +168,49 @@ function AnimationManager() {
         var opts = {duration: 0, delay: 0, easing:'easeOutQuad'};
 		hobj.velocity('finish').velocity(props, opts);
 	}
+	
+	//--------------------------------------------------------------------------------------------
+	// Helpers around aniation feature in lesson object
+	this.getTemplateAnimations = function(lesson) {
+		return lesson.templateAnimations;
+	};
+	
+	this.getAnimationScheme = function(lesson) {
+		var lessonProps = lesson.oLesson.props || {};
+		var tempAnimation = self.getTemplateAnimations(lesson);
+		return tempAnimation[lessonProps.animationScheme] || null;
+	};
+
+	this.updateAnimationSchemesInDlg = function(lesson) {
+		var animField = jQuery('#l_look_animation');
+		animField.html('');
+		animField.append('<option value=""></option>');
+
+		var tempAnimation = self.getTemplateAnimations(lesson);
+		var hidden = true;
+		for (var s in tempAnimation) {
+			if (s == 'customEffects') continue;
+			hidden = false;
+			var name = tempAnimation[s].name || s;
+			animField.append(njs_helper.fmt2('<option value="{}">{}</option>', s, name));
+		}
+		
+		if (hidden) {
+			jQuery('#l_look_animation_row').hide();
+			jQuery('#animation_scheme_help').hide();
+		} else {
+			jQuery('#l_look_animation_row').show();
+			jQuery('#animation_scheme_help').show();
+			var lessonProps = lesson.oLesson.props || {};
+			animField.select2('val', lessonProps.animationScheme);
+		}
+	};
+	
+	this.updateAnimationSchemesFromDlg = function(lesson) {
+		var animScheme = jQuery('#l_look_animation').val();
+		if (!lesson.oLesson.props) lesson.oLesson.props = {};
+		if (animScheme) lesson.oLesson.props.animationScheme = animScheme;
+	};
 };
 
 var ZINDEX_HIDE = -100;
