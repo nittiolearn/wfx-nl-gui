@@ -25,8 +25,8 @@ var EditorFieldsDirective = ['nl', function(nl) {
     };
 }];
 //-------------------------------------------------------------------------------------------------
-var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlCourse', 'nlLessonSelect',
-function(nl, nlDlg, nlCourse, nlLessonSelect) {
+var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlCourse', 'nlLessonSelect', 'nlExportLevel',
+function(nl, nlDlg, nlCourse, nlLessonSelect, nlExportLevel) {
 
     var modeHandler = null;
     var $scope = null;
@@ -40,6 +40,7 @@ function(nl, nlDlg, nlCourse, nlLessonSelect) {
         _userInfo = userInfo;
 		var params = nl.location.search();
         if ('debug' in params) _debug = true;
+        _updateCourseAndModuleAttrOptions(userInfo);
 
         $scope.editor = {
         	jsonTempStore: {},
@@ -51,7 +52,6 @@ function(nl, nlDlg, nlCourse, nlLessonSelect) {
             module_attrHelp: moduleAttrHelp,
             course: modeHandler.course,
             debug: _debug,
-            typeNames: {'module': 'Folder', 'lesson': 'Module', 'link': 'Link', 'info': 'Information'},
             showHelp: false,
             showGroup: {},
             onLaunch: _onLaunch,
@@ -61,8 +61,8 @@ function(nl, nlDlg, nlCourse, nlLessonSelect) {
             organiseModules: _organiseModulesDlg,
             saveCourse: _saveCourse,
             updateTitle: _updateTitle,
-            onElementTypeChange: _onElementTypeChange,
-            descriptionExceed: _descriptionAlert,
+            onSelectChange: _onSelectChange,
+            validateTextField: _validateTextField,
         };
     };
 
@@ -90,6 +90,11 @@ function(nl, nlDlg, nlCourse, nlLessonSelect) {
         nl.pginfo.pageTitle = modeHandler.course.name;	
 	}
 
+    function _onSelectChange(e, cm, attr) {
+        if (!cm || cm.id == '_root') return;
+        if (attr.name == 'type') _onElementTypeChange(e, cm);
+    }
+    
 	function _onElementTypeChange(e, cm){
         var childrenElem = [];
         for(var i=0; i < _allModules.length; i++){
@@ -113,10 +118,12 @@ function(nl, nlDlg, nlCourse, nlLessonSelect) {
 		}
 	}
 
-	function _descriptionAlert(value){
-		var title = modeHandler.course.description;
-		if(title.length === 100) {
-			var msg = {title: nl.t('Description is too long'), template: nl.t('Description of the course must be less than 100 character.')};
+	function _validateTextField(value, attr){
+	    if (!attr.maxlen) return;
+		if(value.length === attr.maxlen) {
+			var msg = {
+			    title: nl.t('{} is too long', attr.text||attr.name), 
+			    template: nl.t('{} must be less than {} character.', attr.text||attr.name, attr.maxlen)};
 			nlDlg.popupAlert(msg).then(function(res){
 				if(res) return;
 			});
@@ -132,7 +139,7 @@ function(nl, nlDlg, nlCourse, nlLessonSelect) {
         
         for (var k in course.content) {
             if (k in knownAttributes) continue;
-            ret.push({name: k, text: k, type: 'string', help: 'Custom parameter'});
+            ret.push({name: k, text: 'custom: ' + k, type: 'readonlyobj', debug: true, group: 'grp_additionalAttrs'});
         }
         return ret;
     }
@@ -142,8 +149,10 @@ function(nl, nlDlg, nlCourse, nlLessonSelect) {
     	{name: 'planning', text:'Schedule planning', desc: 'Enable schedule planning for this course', group: 'grp_additionalAttrs', type: 'boolean'},
     	{name: 'certificate', text: 'Certificate configuration', type: 'object', group: 'grp_additionalAttrs'},
     	{name: 'custtype', text: 'Custom type', type: 'number', group: 'grp_additionalAttrs'},
+        {name: 'exportLevel', text: 'Visibility', type: 'list', values: [], valueNames: {}, group: 'grp_additionalAttrs'},
+        {name: 'contentmetadata', text: 'Metadata', type: 'object', group: 'grp_additionalAttrs', debug: true},
     	{name: 'lastId', text: 'Last Id', type: 'readonly', group: 'grp_additionalAttrs', debug: true},
-    	{name: 'modules', text: 'Modules', type: 'hidden', group: 'grp_additionalAttrs', debug: true}
+        {name: 'modules', text: 'Modules', type: 'hidden', group: 'grp_additionalAttrs', debug: true}
     ];
     
     var _courseAttrHelp = {
@@ -151,6 +160,7 @@ function(nl, nlDlg, nlCourse, nlLessonSelect) {
     	planning: {desc: 'Start and end dates are considered only if schedule planning is enabled.'},
     	certificate: {desc: 'JSON string of below form: <pre>{"bg": "certificate_background_image_url"}</pre>'},
     	custtype: {desc: 'You can define a custom type to help in searchability.'},
+        contentmetadata: {desc: 'Debug the metadata attributes.'},
     	lastId: {desc: 'Internally used.'},
     	modules: {desc: 'Debug the overall module list.'}
     };
@@ -158,7 +168,7 @@ function(nl, nlDlg, nlCourse, nlLessonSelect) {
     var _courseParams = [
     	{name: 'name', text: 'Name', type: 'string', title: true},
     	{name: 'icon', text: 'Image', type: 'icon', icon: true},
-    	{name: 'description', text: 'Course description', type: 'text', description: true}
+    	{name: 'description', text: 'Course description', type: 'text', maxlen: 100}
     ];
     
     var _courseParamsHelp = {
@@ -169,7 +179,8 @@ function(nl, nlDlg, nlCourse, nlLessonSelect) {
     
     var moduleAttrs = [
         {name: 'name', fields: ['module', 'lesson', 'link', 'info'], type: 'string', text: 'Name'}, 
-        {name: 'type', fields: ['module', 'lesson', 'link', 'info'], type: 'list', text: 'Element type', values: ['module', 'lesson', 'info', 'link']},
+        {name: 'type', fields: ['module', 'lesson', 'link', 'info'], type: 'list', text: 'Element type', values: ['module', 'lesson', 'info', 'link'],
+            valueNames: {'module': 'Folder', 'lesson': 'Module', 'link': 'Link', 'info': 'Information'}},
         {name: 'refid', fields: ['lesson'], type: 'lessonlink', contentType: 'integer', text: 'Module-id'},
         {name: 'action', fields: ['link'], type: 'lessonlink', text: 'Action'},
         {name: 'urlParams', fields: ['link'], type: 'string', text: 'Url-Params'},
@@ -226,7 +237,26 @@ function(nl, nlDlg, nlCourse, nlLessonSelect) {
     	return ret;
     })();
     
+    var allowedCourseAttrs = (function() {
+        var ret = {};
+        for(var i=0; i<courseAttrs.length; i++) {
+            var attr = courseAttrs[i];
+            if (attr.type == 'hidden') continue;
+            ret[attr.name] = attr;
+        }
+        return ret;
+    })();
     
+    function _updateCourseAndModuleAttrOptions(userInfo) {
+        var ginfo = userInfo ? userInfo.groupinfo || {} : {};
+        var grpExportLevel = ginfo.exportLevel || nlExportLevel.EL_PRIVATE;
+        if (grpExportLevel == nlExportLevel.EL_PUBLIC) grpExportLevel = nlExportLevel.EL_LOGEDIN;
+        var info = nlExportLevel.getExportLevelInfo(grpExportLevel);
+        var attr = allowedCourseAttrs.exportLevel;
+        attr.values = info.elList;
+        attr.valueNames = info.elDesc;
+    }
+
     function _addModule(e, cm) {
         if(!_validateInputs(modeHandler.course, cm)) {
             if(e) e.preventDefault();
@@ -355,8 +385,8 @@ function(nl, nlDlg, nlCourse, nlLessonSelect) {
 	function _initEditorTempJson(cm) {
 		$scope.editor.jsonTempStore = {};
     	if (!cm || cm.id == '_root') {
-	         $scope.editor.jsonTempStore['certificate'] = _objToJson(modeHandler.course.content.certificate);
-	         return;
+            _updateCourseAttrsInJsonTempStore(modeHandler.course.content);
+	        return;
     	}
     	var allowedAttributes = allowedModuleAttrs[cm.type] || {};
     	var attrs = Object.keys(cm);
@@ -366,6 +396,15 @@ function(nl, nlDlg, nlCourse, nlLessonSelect) {
             if (allowedAttr && allowedAttr.contentType != 'object') continue;
 	    	$scope.editor.jsonTempStore[attr] = _objToJson(cm[attr]);
 	    }
+    }
+    
+    function _updateCourseAttrsInJsonTempStore(content) {
+        for(var key in content) {
+            if (!(key in allowedCourseAttrs)) continue;
+            var attr =  allowedCourseAttrs[key];
+            if (attr.type != 'object') continue;
+            $scope.editor.jsonTempStore[key] = _objToJson(content[key]);
+        }
     }
     
     function _updateObjectFromEditor(cm, errorLocation) {
@@ -439,14 +478,8 @@ function(nl, nlDlg, nlCourse, nlLessonSelect) {
 
     	if (cm && cm.id != '_root') {
             if (!_updateObjectFromEditor(cm, errorLocation)) return false;
-    	} else {
-            var status = {};
-	        data.content.certificate = _jsonToObj($scope.editor.jsonTempStore['certificate'], status);
-            if (status.error !== null) {
-                errorLocation.title = 'Certificate configuration';
-                errorLocation.template = nl.t('Please enter a valid JSON string for certificate configuration');
-                return false;
-            }
+    	} else if (!_updateCourseAttrsFromJsonTempStore(data.content, errorLocation)) {
+            return false;
     	}
 
     	if (cm && cm.id != '_root') return _validateModule(data, cm, errorLocation);
@@ -456,6 +489,24 @@ function(nl, nlDlg, nlCourse, nlLessonSelect) {
         return true;
     }
 
+    function _updateCourseAttrsFromJsonTempStore(content, errorLocation) {
+        for(var key in content) {
+            if (!(key in allowedCourseAttrs)) continue;
+            var attr =  allowedCourseAttrs[key];
+            if (attr.type != 'object') continue;
+
+            var status = {};
+            content[key] = _jsonToObj($scope.editor.jsonTempStore[key], status);
+            if (status.error !== null) {
+                errorLocation.title = attr.text||attr.name;
+                errorLocation.template = nl.t('Please enter a valid JSON string for {}', 
+                    errorLocation.title);
+                return false;
+            }
+        }
+        return true;
+    }
+    
     function _validateContent(data, errorLocation) {
     	var modules = data.content.modules;
         if (modules.length < 1) return _validateFail(errorLocation, 'Error', 

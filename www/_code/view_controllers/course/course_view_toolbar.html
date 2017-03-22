@@ -54,8 +54,14 @@
           ng-click='download()'>
         <i class="icon ion-ios-cloud-download"></i>
     </span>
+    <span title='Send assignment'
+          ng-show='!popupView && !iframeUrl && canSendAssignment'
+          class='nl-toolbar-icon'
+          ng-click='sendAssignment(ext.item)'>
+        <i class="icon ion-android-send"></i>
+    </span>
     <span title='View summary'
-         ng-show='!popupView && ext.item.id != "_root"'
+         ng-show='!popupView'
          class='nl-toolbar-icon'
          ng-click='collapseAll()'>
         <i class="icon ion-arrow-up-a"></i>

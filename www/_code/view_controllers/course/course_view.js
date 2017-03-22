@@ -203,9 +203,9 @@ function ModeHandler(nl, nlCourse, nlDlg, $scope) {
 
 //-------------------------------------------------------------------------------------------------
 var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg', 'nlExporter',
-'nlCourseEditor', 'nlServerApi', 'nlGroupInfo',
+'nlCourseEditor', 'nlServerApi', 'nlGroupInfo', 'nlSendAssignmentSrv',
 function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
-    nlCourseEditor, nlServerApi, nlGroupInfo) {
+    nlCourseEditor, nlServerApi, nlGroupInfo, nlSendAssignmentSrv) {
     var modeHandler = new ModeHandler(nl, nlCourse, nlDlg, $scope);
     var nlContainer = new NlContainer(nl, $scope, modeHandler);
     nlContainer.setContainerInWindow();
@@ -228,6 +228,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
                 return;
             }
             $scope.mode = modeHandler.mode;
+            $scope.canSendAssignment = $scope.mode == MODES.PUBLISHED &&
+                nlRouter.isPermitted(userInfo, 'course_assign');
             $scope.showStatusIcon = modeHandler.shallShowScore();
             var courseId = parseInt($scope.params.id);
             modeHandler.getCourse().then(function(course) {
@@ -374,7 +376,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     $scope.download = function() {
         _download();
     };
-    
+
+    $scope.sendAssignment = function() {
+        _sendAssignment();
+    };
+
     $scope.collapseAll = function() {
         function _impl() {
 	        if($scope.ext.isEditorMode()){
@@ -724,6 +730,15 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         });
     }
         
+    function _sendAssignment() {
+        if (!$scope.canSendAssignment) return;
+        var c = modeHandler.course;
+        var assignInfo = {type: 'course', id: c.id, icon: c.icon, 
+            title: c.name, authorName: c.authorName, subjGrade: '',
+            description: c.description, esttime: ''};
+        nlSendAssignmentSrv.show($scope, assignInfo);
+    }
+    
     function _downloadImpl(_groupInfo) {
         var data = [];
         data.push(['User name', 'Module', 'Type', 'Status', 'Time spent', 'Score', 'Max score', 'Percentage', 'Location', 'User id', 'User loginid', 'Started', 'Ended', 'Attempt']);

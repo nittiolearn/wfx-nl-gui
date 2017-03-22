@@ -3,9 +3,20 @@
 </div>
 <div ng-show='ext.item.id == "_root"' class='padding-mid'>
     <table class='nl-table nl-table-styled'>
+        <tr ng-repeat='attr in editor.course_params'
+            ng-if='(!attr.debug || editor.debug) && attr.type != "hidden" && editor.course[attr.name] !== undefined'>
+            <td>{{attr.text||attr.name}}</td>
+            <td>
+                <div class='padding-mid margin0'
+                     ng-if='attr.icon'>
+                    <img ng-if='editor.course[attr.name] !== "icon:"' ng-src='{{editor.course[attr.name]}}' class='nl-100'/>
+                    <div ng-if='editor.course[attr.name] == "icon:"' class='fsh4'><i class='fsh1 ion-ios-bookmarks fblue'></i></div>
+                </div>
+                <div ng-if='!attr.icon'>{{editor.course[attr.name]}}</div></td>
+        </tr>
         <tr ng-repeat='attr in editor.course_attributes'
-        	ng-if='!attr.debug && attr.type != "hidden" && courseContent[attr.name] !== undefined'>
-            <td>{{attr.text}}</td>
+        	ng-if='(!attr.debug || editor.debug) && attr.type != "hidden" && courseContent[attr.name] !== undefined'>
+            <td>{{attr.text||attr.name}}</td>
             <td>{{courseContent[attr.name]}}</td>
         </tr>
     </table>
@@ -13,7 +24,7 @@
 <div ng-show='ext.item.id != "_root"' class='padding-mid'>
     <table class='nl-table nl-table-styled'>
         <tr ng-repeat='attr in editor.module_attributes'
-            ng-show='ext.item[attr.name]'>
+            ng-show='!attr.debug && attr.type != "hidden" && ext.item[attr.name] !== undefined'>
             <td>{{attr.text||attr.name}}</td><td>{{ext.item[attr.name]}}</td>
         </tr>
     </table>

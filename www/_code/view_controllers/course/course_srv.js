@@ -109,6 +109,7 @@ var _dashboardActions = {
     'assign_desk.summary_report': {'url': '/#/assignment_summary_report?{}', 'permission': 'assignment_manage'},
     'assign_desk.user_report': {'url': '/#/assignment_user_report?{}', 'permission': 'basic_access'},
     'assign_desk.shared': {'url': '/#/assignment?type=shared&{}', 'permission': 'basic_access'},
+    'course.view': {'url': '/#/course_view?mode=published&{}', 'permission': 'basic_access'},
     'course.view_my': {'url': '/#/course_list?my=1&{}', 'permission': 'course_create'},
     'course.view_published': {'url': '/#/course_list?{}', 'permission': 'course_review'},
     'course.view_assigned': {'url': '/#/course_assign_list?{}', 'permission': 'course_review'},

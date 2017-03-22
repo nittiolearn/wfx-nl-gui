@@ -7,6 +7,7 @@
 	function module_init() {
 		angular.module('nl.lessonlist', []).config(configFn)
 		.controller('nl.LessonListCtrl', LessonListCtrl)
+		.service('nlExportLevel', ExportLevelSrv)
 		.service('nlApproveDlg', ApproveDlgSrv)
 		.service('nlLessonSelect', LessonSelectSrv);
 	}
@@ -978,9 +979,31 @@
 	}; // End of init function
 	}];
 
+    //-------------------------------------------------------------------------------------------------
+    var ExportLevelSrv = [function() {
+        
+        this.EL_PRIVATE = 0;
+        this.EL_DEPENDANT = 1;
+        this.EL_LOGEDIN = 2;
+        this.EL_PUBLIC = 3;
+
+        var _exportLevelDesc = ['Visible only to users within the group', 'Visible to users within the group and dependent groups', 'Visible to every logedin user', 'Visible to everyone'];
+        
+        this.getExportLevelInfo = function(exportLevel) {
+            var ret = {elOptions: [], elList: [], elDesc: {}};
+            for (var i = 0; i <= exportLevel; i++) {
+                ret.elOptions.push({id : i, name : _exportLevelDesc[i]});
+                ret.elList.push(i);
+                ret.elDesc[i] = _exportLevelDesc[i];
+            }
+            return ret;
+        };
+        
+    }];
+
 	//-------------------------------------------------------------------------------------------------
-	var ApproveDlgSrv = ['nl', 'nlDlg', 'nlServerApi',
-	function(nl, nlDlg, nlServerApi) {
+	var ApproveDlgSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlExportLevel',
+	function(nl, nlDlg, nlServerApi, nlExportLevel) {
 
 		this.show = function(parentScope, groupExportLevel, lessonId) {
 			var approveDlg = nlDlg.create(parentScope);
@@ -997,22 +1020,6 @@
 				_showDlg(approveDlg);
 			});
 		};
-
-		var EL_PRIVATE = 0;
-		var EL_DEPENDANT = 1;
-		var EL_LOGEDIN = 2;
-		var EL_PUBLIC = 3;
-		var _ExportLevelDesc = ['Visible only to users within the group', 'Visible to users within the group and dependent groups', 'Visible to every logedin user', 'Visible to everyone'];
-
-		function _getExportLevelOptions(exportLevel) {
-			var elLevelList = [];
-			for (var i = 0; i <= exportLevel; i++)
-				elLevelList.push({
-					id : i,
-					name : _ExportLevelDesc[i]
-				});
-			return elLevelList;
-		}
 
 		function _visibleToStr(selectedOus) {
 			if (selectedOus.length == 0)
@@ -1076,12 +1083,12 @@
 				twistieLeafTpl : nl.fmt2('<img src="{}" class="nl-16">', nl.url.resUrl('file.png')),
 				labelAttribute : 'text'
 			};
-			approveDlg.scope.options.exportLevel = _getExportLevelOptions(groupExportLevel);
+			approveDlg.scope.options.exportLevel = nlExportLevel.getExportLevelInfo(groupExportLevel).elOptions;
 		}
 
 		function _onPreApproveDone(data, approveDlg, groupExportLevel) {
 			approveDlg.scope.treeData = data.ouTree;
-			var el = data.exportLevel && data.exportLevel <= groupExportLevel ? data.exportLevel : EL_PRIVATE;
+			var el = data.exportLevel && data.exportLevel <= groupExportLevel ? data.exportLevel : nlExportLevel.EL_PRIVATE;
 			approveDlg.scope.data.exportLevel = {
 				id : el
 			};

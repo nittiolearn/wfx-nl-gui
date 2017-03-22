@@ -63,13 +63,18 @@
         <input ng-model='values[attr.name]' class='w100' readonly type='text'
          ng-focus="attr.focus=true" ng-blur="attr.focus=false">
     </div>
+    <div ng-class='$root.resp2Col67'
+         ng-if='attr.type === "readonlyobj"'
+         class='nl-dlg-field-value padding-mid'>
+        <pre class='w100' ng-focus="attr.focus=true" ng-blur="attr.focus=false">{{values[attr.name]}}</pre>
+    </div>
 	<div ng-class='$root.resp2Col67'
          ng-if='attr.type === "list"'
          class='nl-dlg-field-value padding-mid'>
         <select ng-model='values[attr.name]' 
                 class='w100'
-                ng-change='editor.onElementTypeChange($event, values)'
-                ng-options='opt as (opt | nlConvert:editor.typeNames) for opt in attr.values'
+                ng-change='editor.onSelectChange($event, values, attr)'
+                ng-options='opt as (opt | nlConvert:attr.valueNames) for opt in attr.values'
                 ng-focus="attr.focus=true" ng-blur="attr.focus=false">
         </select>               
     </div>
@@ -106,19 +111,11 @@
         </div>
 	</div>
     <div ng-class='$root.resp2Col67'
-         ng-if='attr.type === "text" && !attr.description'
+         ng-if='attr.type === "text"'
          class='nl-dlg-field-value padding-mid'>
         <textarea rows="5" ng-model='values[attr.name]'
                   class='w100'
-                  ng-focus="attr.focus=true" ng-blur="attr.focus=false">
-        </textarea>
-    </div>
-    <div ng-class='$root.resp2Col67'
-         ng-if='attr.type === "text" && attr.description'
-         class='nl-dlg-field-value padding-mid'>
-        <textarea rows="5" ng-model='values[attr.name]'
-                  class='w100'
-                  ng-change='editor.descriptionExceed(values[attr.name])'
+                  ng-change='editor.validateTextField(values[attr.name], attr)'
                   ng-focus="attr.focus=true" ng-blur="attr.focus=false">
         </textarea>
     </div>

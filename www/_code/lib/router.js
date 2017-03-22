@@ -258,7 +258,7 @@ function Permission(nl) {
     };
     
     var openPages = {'/login_now': 1, '/logout_now': 1, 
-                     '/welcome': 1, '/school': 1, '/team': 1};
+                     '/welcome': 1};
     this.isOpenPage = function(pageUrl) {
         var page = (pageUrl == '') ? nl.location.path() : pageUrl;
         return (page in openPages);
