@@ -490,8 +490,8 @@ function(nl, nlDlg, nlCourse, nlLessonSelect, nlExportLevel) {
     }
 
     function _updateCourseAttrsFromJsonTempStore(content, errorLocation) {
-        for(var key in content) {
-            if (!(key in allowedCourseAttrs)) continue;
+        for(var key in allowedCourseAttrs) {
+            if (!((key in content) || (key in $scope.editor.jsonTempStore))) continue;
             var attr =  allowedCourseAttrs[key];
             if (attr.type != 'object') continue;
 
