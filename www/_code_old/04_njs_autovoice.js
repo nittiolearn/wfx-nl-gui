@@ -88,11 +88,17 @@ function AutoVoice() {
         }
     }
 
-    function _onButtonClick(button, audioText) {
-        if (button.state == 'none') {
-            self.voiceSynth.speak(audioText, {onEnd: function() {
+    function _startAutoVoice(button, audioText) {
+        self.voiceSynth.speak(audioText, {
+            onEnd: function() {
                 _onEnd(button);
-            }});
+            }
+        });
+    }
+    
+    function _onButtonClick(button, audioText) {
+        if (button.state == 'none' || button.state == 'paused') {
+            _startAutoVoice(button, audioText);
             _canAutoPlay = true;
             button.state = 'playing';
         } else if (button.state == 'playing') {
@@ -353,7 +359,7 @@ function AudioManager() {
         var button = _getVoiceButtonDom();
         var info = _addPageAudio(audioUrl, pageId, button);
         button.on('click', function () {
-            _onButtonClick(info);
+            _onButtonClick(info, audioUrl, pageId, button);
         });
         return button;
     };
@@ -364,7 +370,12 @@ function AudioManager() {
         var info = _audioHolder ? _audioHolder[pageId] : null;
         if (!info) return;
         _currentInfo = info;
-        if (!_canAutoPlay || !_currentInfo.canplay) return;
+        if (!_currentInfo.canplay) {
+            info.playing = false;
+            info.audio.load();
+            return;
+        }
+        if (!_canAutoPlay) return;
         _currentInfo.audio.play();
     };
 
@@ -387,13 +398,11 @@ function AudioManager() {
         if (pageId in _audioHolder) {
             info = _audioHolder[pageId];
             info.button = button;
-            if (info.url != audioUrl) {
-                info.url = audioUrl;
-                info.canplay = false;
-                info.playing = false;
-                info.audio.src = audioUrl;
-                info.audio.load();
-            }
+            info.url = audioUrl;
+            info.canplay = false;
+            info.playing = false;
+            info.audio.src = audioUrl;
+            info.audio.load();
         } else {
             var audio = jQuery(njs_helper.fmt2('<audio src="{}"/>', audioUrl));
             info = {audio: audio[0], url: audioUrl, button: button, pageId: pageId,
@@ -449,9 +458,10 @@ function AudioManager() {
         }
     }
     
-    function _onButtonClick(info) {
+    function _onButtonClick(info, audioUrl, pageId, button) {
         if (!info.canplay) {
             njs_helper.Dialog.popupStatus('Audio is loading. Please wait ...');
+            _addPageAudio(audioUrl, pageId, button); // Needed for mobile
         } else if (info.playing) {
             _debug(info.pageId, 'Pause called');
             _canAutoPlay = false;
