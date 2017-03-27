@@ -566,6 +566,12 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         var fname = asset.href;
         var mimetype = _guessMimeType(fname);
         var f = self.zip.file(fname);
+        if (!f) {
+            nlDlg.popdownStatus(0);
+            pl.warn('Error accessing file from Zip:' + fname);
+            _uploadResource(resolve, reject, pos);
+            return;
+        }
         f.async('arraybuffer').then(function(content) {
             try {
                 pl.debug('Upload resource' + aofb, asset);

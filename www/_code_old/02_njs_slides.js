@@ -64,9 +64,9 @@ njs_slides = function() {
 				activeSlideSet.prev();
 			} else if (e.which == 39) { // Right arrow
 				activeSlideSet.next();
-			} else if (e.which == 36) { // Home
+			} else if (e.which == 36 && activeSlideSet.curPage != 0) { // Home
 				activeSlideSet.gotoPage(0);
-			} else if (e.which == 35) { // End
+			} else if (e.which == 35 && activeSlideSet.curPage != activeSlideSet.pages.length-1) { // End
 				activeSlideSet.gotoPage(activeSlideSet.pages.length-1);
 			}
 		});
@@ -123,7 +123,7 @@ njs_slides = function() {
 		if (activeSlideSet != null) activeSlideSet.deactivate();
 		activeSlideSet = this;
 		var p = SlideSet_getPageNumberFromUrl(this, urlHash, this.curPage);
-		this.gotoPage(p);
+		this.gotoPage(p, undefined, true);
 	}
 
 	function SlideSet_getPageNumberFromUrl(me, urlHash, defPageNo) {
@@ -150,7 +150,7 @@ njs_slides = function() {
 
 	// samePageAnimation: -1: page comes from left; 0: pages fades in; 1: page comes form right
 	// 					  default is 0
-	function SlideSet_gotoPage(p, samePageAnimation) {
+	function SlideSet_gotoPage(p, samePageAnimation, noPagePreCheck) {
 		if (p < 0 || p >= this.pages.length) return;
 
 		if (this.curPage >= this.pages.length) this.curPage = this.pages.length-1;
@@ -159,7 +159,7 @@ njs_slides = function() {
 		var newPage = this.pages[p];
 
 		var me = this;
-	    me.gotoPagePre(p);
+	    if (!noPagePreCheck && !me.gotoPagePre(this.curPage, p)) return;
 		var postAnimationFn = function() {
 		    me.gotoPagePost();
 		};
@@ -175,11 +175,12 @@ njs_slides = function() {
 		this.curPage = p;
 	}
 	
-	function SlideSet_gotoPagePre(newPgNo) {
+	function SlideSet_gotoPagePre(curPgNo, newPgNo) {
 		for(var i in this.slidePreChangeHandlers) {
-			this.slidePreChangeHandlers[i](newPgNo);
+		    if (!this.slidePreChangeHandlers[i](curPgNo, newPgNo)) return false;
 		}
 		this.mediaStop();
+		return true;
 	}
 
 	function SlideSet_gotoPagePost() {

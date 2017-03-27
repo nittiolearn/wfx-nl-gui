@@ -108,6 +108,7 @@ nlesson = function() {
         this.globals.autoVoice = njs_autovoice.getAutoVoice();
         this.globals.audioManager = njs_autovoice.getAudioManager();
 		this.globals.animationManager = njs_animate.getAnimationManager();
+        this.globals.pageTimer = new njs_lesson_helper.PageTimer(this);
 	}
 
 	//--------------------------------------------------------------------------------------------
@@ -729,7 +730,7 @@ nlesson = function() {
     }
 
 	function _Lesson_updateLearningData(lesson) {
-        lesson.oLesson.learningData = {};
+        if (!lesson.oLesson.learningData) lesson.oLesson.learningData = {};
         var ld = lesson.oLesson.learningData;
         
         if (lesson.renderCtx.launchMode() != 'do' && 
@@ -740,12 +741,16 @@ nlesson = function() {
             _copyIf(lesson.oLesson, ld, _ldAttrList[i].name);
         }
         
-        ld.pages = {};
+        if (!ld.pages) ld.pages = {};
         for(var i=0; i<lesson.pages.length; i++) {
             var oPage = lesson.pages[i].oPage;
             var title = oPage.sections && oPage.sections[0] ? oPage.sections[0].text : '';
             title = njs_lesson_helper.formatTitle(title);
-            var pld = {pageNo: i+1, title: title};
+            if (!ld.pages[oPage.pageId]) ld.pages[oPage.pageId] = {};
+            var pld = ld.pages[oPage.pageId];
+            pld.pageNo = i+1;
+            pld.title = title;
+            pld.sections = [];
 
             for(var j=0; j<_ldPageAttrList.length; j++) {
                 if (_ldPageAttrList[j].noCopyFrom) continue;
@@ -763,10 +768,8 @@ nlesson = function() {
                 }
                 if (!shallAdd) continue;
                 sld.sectionNumber = j;
-                if (!pld.sections) pld.sections = [];
                 pld.sections.push(sld);
             }
-            ld.pages[oPage.pageId] = pld;
         }
 	}
 
@@ -997,6 +1000,8 @@ nlesson = function() {
     }
     
     function _Lesson_saveUpdateTime(lesson) {
+        var pgNo = lesson.getCurrentPageNo();
+        lesson.globals.pageTimer.canChangeSlides(pgNo);
         if (!('sessionStartTime' in lesson)) return;
         var now = new Date();
         var timeSpentSeconds = parseInt((now.valueOf() - lesson.sessionStartTime.valueOf())/1000);
@@ -1024,7 +1029,7 @@ nlesson = function() {
 			oPage.sectionLayout = jQuery.parseJSON(JSON.stringify(layout)); // Deep copy
 		}
 	}
-		
+
 	function Lesson_addPage(pageType, customLayout) {
 		var curPos = this.getCurrentPageNo();
 		var hCurPage = this.pages[curPos].hPage;
@@ -1181,7 +1186,7 @@ nlesson = function() {
 			var pageJson = JSON.stringify(this.pages[p].oPage);
 			if (pageJson.indexOf(searchStr) == -1) continue;
 			if (this.getCurrentPageNo() == p) return true;
-			this.globals.slides.gotoPage(p);
+			this.globals.slides.gotoPage(p, 0, true);
 			njs_helper.Dialog.popupStatus(njs_helper.fmt2('"{}" found in page {}', searchStr, p+1));
 			return true;
 		}
@@ -1845,8 +1850,10 @@ nlesson = function() {
         
 		nittio.afterInit(function(){
 			g_lesson.globals.slides = nittio.getSlidesObj();
-			g_lesson.globals.slides.onSlideBeforeChange(function(newPgNo) {
+			g_lesson.globals.slides.onSlideBeforeChange(function(curPgNo, newPgNo) {
+			    if (!g_lesson.globals.pageTimer.canChangeSlides(curPgNo, newPgNo)) return false;
 				g_lesson.preRender(newPgNo);
+				return true;
 			});
 			g_lesson.globals.slides.onSlideChange(function() {
 				g_lesson.postRender();

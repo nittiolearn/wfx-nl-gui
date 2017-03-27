@@ -467,7 +467,7 @@ function(nl, nlDlg, nlCourse, nlLessonSelect, nlExportLevel) {
         var ret = _validateInputsImpl(data, cm, errorLocation);
         if (!ret) {
             nlDlg.popupAlert({title: nl.t('Error: {}', errorLocation.title), template:errorLocation.template});
-            // TODO-MUNNI-NOW: process the error location
+            // TODO-MUNNI: process the error location
         }
         return ret;
     }
