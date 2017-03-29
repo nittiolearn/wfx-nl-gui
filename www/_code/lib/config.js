@@ -11,15 +11,50 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlGroupInfo = ['nl',
-function(nl) {
+var NlGroupInfo = ['nl', 'nlServerApi',
+function(nl, nlServerApi) {
     this.LOGINID = 0;
-    this.NAME = 1;
+    this.STATE = 1;
     this.EMAIL = 2;
     this.USERTYPE = 3;
     this.OU = 4;
     this.SEC_OU = 5;
     this.UPDATED = 6;
+    this.CREATED = 7;
+    this.FNAME = 8;
+    this.LNAME = 9;
+    this.BLEEDINGEDGE = 10;
+    this.PERMOVERRIDE = 11;
+    
+    this.formatUserName = function(uInfo) {
+        return uInfo[this.FNAME] + ' ' + uInfo[this.LNAME];
+    };
+
+    this.formatUserNameFromRecord = function(record, useridField, usernameField) {
+        if (!useridField) useridField = 'student';
+        if (!usernameField) usernameField = 'studentname';
+        var users = _groupInfo ? _groupInfo.users : {};
+        var uInfo = users[''+record[useridField]] || null;
+        if (!uInfo) return record[usernameField] || '';
+        return this.formatUserName(uInfo);
+    };
+
+    this.isActive = function(uInfo) {
+        return uInfo[this.STATE] ? true : false;
+    };
+    
+    this.get = function() {
+        return _groupInfo;
+    };
+    
+    var _groupInfo = null;
+    this.init = function() {
+        return nlServerApi.groupGetInfo().then(function(result) {
+            _groupInfo = result;
+        }, function(e) {
+            return e;
+        });
+    };
 }];
 
 //-------------------------------------------------------------------------------------------------

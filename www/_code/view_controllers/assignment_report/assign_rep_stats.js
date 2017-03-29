@@ -195,7 +195,7 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo, $templa
         if (!content.learningData && !content.pages) return;
 
         var currentPageRecord = {pos: 0, _loginid: rep._loginid, 
-            studentname: rep.studentname, name: rep.name,
+            studentname: nlGroupInfo.formatUserNameFromRecord(rep), name: rep.name,
             page: null, title: '', score: 0, maxScore: 0, 
             org_unit: rep.org_unit, subject: rep.subject, _grade: rep._grade,
             id: rep.id, student: rep.student, assignment: rep.assignment,
@@ -341,8 +341,6 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
     var _grades = {};
     var _subjects = {};
 
-    var _groupInfo = null;
-    
     this.STATUS_PENDING = -1;
     this.STATUS_FAILED = 0;
     this.STATUS_PASSED = 1;
@@ -385,11 +383,7 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
     }
 
     this.init = function() {
-        return nlServerApi.groupGetInfo().then(function(result) {
-            _groupInfo = result;
-        }, function(e) {
-            return e;
-        });
+        return nlGroupInfo.init();
     };
     
     function _doesItPassTheFilter(rep, filters) {
@@ -447,6 +441,7 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
     };
     
     this.updateReports = function(reports) {
+        var groupInfo = nlGroupInfo.get();
         for(var i=0; i<reports.length; i++) {
             var rep = reports[i];
             _lst.push(rep);
@@ -457,16 +452,13 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
             if (rep.ended) rep.ended = nl.fmt.json2Date(rep.ended);
             rep._loginid = '';
             rep._email = '';
-            if (_groupInfo && _groupInfo.users[''+rep.student]) {
-                var userInfo = _groupInfo.users[''+rep.student];
-                rep.studentname = userInfo[nlGroupInfo.NAME];
+            if (groupInfo && groupInfo.users[''+rep.student]) {
+                var userInfo = groupInfo.users[''+rep.student];
+                rep.studentname = nlGroupInfo.formatUserName(userInfo);
                 rep._loginid = userInfo[nlGroupInfo.LOGINID];
                 rep._email = userInfo[nlGroupInfo.EMAIL];
                 rep.org_unit = userInfo[nlGroupInfo.OU];
             }
-            var userInfo = _groupInfo ? _groupInfo.users[''+rep.id] || {} : {};
-            if (userInfo.name) rep.studentname = userInfo.name;
-
             rep._assignTypeStr = _getAssignTypeStr(rep.assigntype);
             rep._courseName = content.courseName || '';
             rep._courseId = content.courseId || '';
