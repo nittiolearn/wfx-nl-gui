@@ -1,0 +1,23 @@
+<table class='nl-table nl-table-styled'>
+    <tr>
+        <th ng-repeat='item in cards.listConfig.columns'
+        	ng-show='{{$root.screenSize != "small" || item.showInSmallScreen}}'>
+        	<span>{{item.name}}</span>
+        </th>
+    </tr>
+    <tr ng-repeat-start='card in getCards()'
+    	class='{{cards.listConfig.canShowDetils ? "nl-link-text": ""}}'
+    	ng-click='card.showDetails = !card.showDetails'>
+        <td ng-repeat='item in cards.listConfig.columns'
+        	ng-show='{{$root.screenSize != "small" || item.showInSmallScreen}}'>
+        	<img ng-show='item.type == "img"'>
+        	<span ng-show='item.type == "text"'>{{card[item.attr]}}</span>
+        	<span ng-show='item.type == "date"'>{{card[item.attr]}}</span>
+        </td>
+    </tr>
+    <tr ng-repeat-end ng-show='card.showDetails'>
+    	<td colspan='{{$root.screenSize == "small" ? cards.listConfig.smallColumns : cards.listConfig.columns.length}}'>
+			<nl-training-details trainingcard='card'></nl-training-details>
+    	</td>
+    </tr>
+</table>

@@ -9,6 +9,7 @@ function module_init() {
     .service('nlCardsSrv', CardsSrv)
     .filter('nlFilter', NlFilter)
     .directive('nlCards', CardsDirective)
+    .directive('nlListview', ListviewDirective)
     .directive('nlCard', CardDirective)
     .directive('nlCardTitle', CardTitleDirective)
     .directive('nlCardImage', CardImageDirective)
@@ -56,6 +57,18 @@ function(nl, $filter) {
     	return filteredInput;
 	};
 }];
+
+//-------------------------------------------------------------------------------------------------
+
+var ListviewDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return {
+        restrict: 'E',
+        templateUrl: 'lib_ui/cards/listview.html',
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
 
 var CardsDirective = ['nl', 'nlDlg', '$filter', 'nlCardsSrv',
 function(nl, nlDlg, $filter, nlCardsSrv) {
