@@ -102,8 +102,9 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
         PDF: 'dashboard/pdf.png' , 
         Audio: 'dashboard/audio.png' , 
         Video: 'dashboard/video1.png',
-        Zip: 'dashboard/attach.png',
-        Attachment: 'dashboard/attach.png'
+        Attachment: 'dashboard/attach.png',
+        Zip: 'dashboard/attach.png', // Used in SCORM import
+        Csv: 'dashboard/attach.png' // Used in Admin import
     };
     function _getImage(restype) {
         return nl.url.resUrl(_restypeToImage[restype]);
@@ -292,24 +293,27 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         PDF: ['.pdf'] , 
         Audio: ['.mp3', '.m4a'] , 
         Video: ['.mp4'],
+        Attachment: [],
         Zip: ['.zip'],
-        Attachment: []
+        Csv: ['.csv']
     }; 
     var _restypeToAcceptString = {
         Image: 'image/*', 
         PDF: '.pdf', 
         Audio: 'audio/*', 
         Video: 'video/*',
+        Attachment: '',
         Zip: '.zip',
-        Attachment: ''
+        Csv: '.csv'
     }; 
     var _restypeToMaxFileSize = {
         Image: 10*1024*1024, 
         PDF: 100*1024*1024, 
         Audio: 100*1024*1024, 
         Video: 300*1024*1024,
+        Attachment: 100*1024*1024,
         Zip: 300*1024*1024,
-        Attachment: 100*1024*1024
+        Csv: 10*1024*1024
     }; 
 
     var _extToRestype = {};

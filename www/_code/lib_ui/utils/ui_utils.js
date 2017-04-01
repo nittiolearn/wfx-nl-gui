@@ -243,6 +243,10 @@ function ProgressLog(nl, $filter, nlExporter) {
         nlExporter.exportTextFile("progress-log.txt", ret);
     };
     
+    this.progressLog.onClearLogs = function() {
+        self.clear();
+    };
+    
     this.showLogDetails = function(bShowLogs) {
         this.progressLog.showLogs = bShowLogs;
     };

@@ -1,12 +1,10 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// _lib.js: 
-// Collection of all modules under lib folder
+// _course.js: Controllers for course related functions
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-    angular.module('nl.lib', ['nl.nl', 'nl.log', 'nl.router', 'nl.config', 
-        'nl.exporter', 'nl.importer']);
+    angular.module('nl.admin', ['nl.admin_user', 'nl.admin_user_import']);
 }
 
 //-------------------------------------------------------------------------------------------------

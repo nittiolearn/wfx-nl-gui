@@ -694,7 +694,6 @@ nlesson = function() {
             if (sections.length > 0) page['' + _ldPageAttrList.length] = sections;
         }
         var minified = JSON.stringify(minifiedLd);
-        console.log('Content minified: ', JSON.stringify(ld).length, minified.length);
         return minified;
     }
     

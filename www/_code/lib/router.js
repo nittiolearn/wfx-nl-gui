@@ -247,6 +247,7 @@ function Permission(nl) {
         '/assignment_report': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},
         '/assignment_summary_report': {login: true, permission: 'assignment_manage', termRestriction: TR_CLOSED},
         '/assignment_user_report': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
+        '/admin_user': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
 
         // Operation permissions
         'change_password': {login: true, permission: 'change_password', termRestriction: TR_RESTRICTED},
@@ -254,7 +255,9 @@ function Permission(nl) {
         'forum_start_topic': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},
         'forum_delete_msg': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         'forum_view_details': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
-        'admin_user': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED}
+        'admin_user': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
+        'admin_user_bulk': {login: true, permission: 'admin_user_bulk', termRestriction: TR_CLOSED},
+        'admin_group': {login: true, permission: 'admin_group', termRestriction: TR_CLOSED}
     };
     
     var openPages = {'/login_now': 1, '/logout_now': 1, 

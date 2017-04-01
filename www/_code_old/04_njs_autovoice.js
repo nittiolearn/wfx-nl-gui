@@ -174,7 +174,6 @@ function VoiceSynth() {
             console.error('Voice synthesis not supported - automated voice will not play');
             return;
         }
-        console.log('Voices synthesis is supported by the system');
         self.voices = new Voices();
         self.initDone = true;
     }
@@ -444,7 +443,7 @@ function AudioManager() {
     
     function _debug(pageId, msg) {
         msg = pageId + ': ' + msg;
-        console.log(msg);
+        //console.log(msg);
     }
 
     function _updateIcon(info) {

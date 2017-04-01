@@ -28,7 +28,6 @@ npagetypes = function() {
 
     var defaultPageType = 'H';
 	function _initStaticListsAndMaps(PageTypes) {
-	    console.log('_initStaticListsAndMaps called');
         PageTypeMap = {};
         PageInteractionTypes = [];
         PageInteractionTypeMap = {};

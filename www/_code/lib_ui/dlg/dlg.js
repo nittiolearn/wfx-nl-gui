@@ -159,14 +159,12 @@ function Dialog(nl, $ionicPopup, parentScope, nlDlg) {
         
         self.scope.onCloseDlg = function(e, callCloseFn) {
             if (mypopup == null) return;
+            if (callCloseFn === undefined) callCloseFn = true;
+            var closeFn = (closeButton && 'onTap' in closeButton) ? closeButton.onTap : undefined;
+            if (callCloseFn && closeFn) closeFn(e);
+            if (self.scope.dontClose) return;
             mypopup.close();
             mypopup = null;
-            
-            if (callCloseFn === undefined) callCloseFn = true;
-            if (!callCloseFn) return;
-            
-            var closeFn = (closeButton && 'onTap' in closeButton) ? closeButton.onTap : undefined;
-            if (closeFn) closeFn(e);
         };
 
         mypopup.then(function(result) {

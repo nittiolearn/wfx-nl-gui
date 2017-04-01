@@ -54,7 +54,6 @@ function PendingTimer() {
 //#############################################################################################
 function PageTimer(lesson) {
     this.canChangeSlides = function(curPgNo, newPgNo) {
-        console.log('TODO-MUNNI-NOW canChangeSlides', curPgNo, newPgNo);
         if (!_isTimerNeeded()) return true;
         var info = _getPendingInfo(curPgNo, newPgNo);
         if (info.pending == 0) return true;
@@ -73,7 +72,6 @@ function PageTimer(lesson) {
     function _getPendingInfo(curPgNo, newPgNo) {
         var curPage = _getPageInfo(curPgNo);
         _updatePageTimeInLearningData(curPage.pld);
-        console.log('TODO-MUNNI-NOW _computePageTime', curPage.pld.timeSpent, curPage.minPageTime);
 
         // Save usecase. No pending time to be reported here
         if (newPgNo === undefined) return {pending: 0};
