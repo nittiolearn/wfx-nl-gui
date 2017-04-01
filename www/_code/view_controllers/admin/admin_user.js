@@ -34,8 +34,9 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 var AdminUserCtrl = ['nl', 'nlRouter', 'nlDlg', '$scope', 'nlCardsSrv',
-'nlGroupInfo', 'nlAdminUserImport',
-function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlGroupInfo, nlAdminUserImport) {
+'nlGroupInfo', 'nlAdminUserExport', 'nlAdminUserImport',
+function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlGroupInfo,
+nlAdminUserExport, nlAdminUserImport) {
 	var _userInfo = null;
 	var _groupInfo = null;
 	var _grpid = null;
@@ -128,7 +129,7 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlGroupInfo, nlAdminUserImport
 	    desc += '<div>{}</div>';
 	    desc += '<div>{}</div>';
 	    desc += '<div><b>ou:</b>{}</div>';
-	    desc = nl.fmt2(desc, stateIcon, user.getUtStr(), user.loginid, user.email, user.ou);
+	    desc = nl.fmt2(desc, stateIcon, user.getUtStr(), user.username, user.email, user.org_unit);
 	    
 	    var card = {id: user.id,
 	                updated: user.updated || 0,
@@ -146,14 +147,14 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlGroupInfo, nlAdminUserImport
 	
 	function  _getAvps(user) {
 		var avps = [];
-        nl.fmt.addAvp(avps, 'First name', user.fname);
-        nl.fmt.addAvp(avps, 'Last name', user.lname);
-		nl.fmt.addAvp(avps, 'Login id', user.loginid);
+        nl.fmt.addAvp(avps, 'First name', user.first_name);
+        nl.fmt.addAvp(avps, 'Last name', user.last_name);
+		nl.fmt.addAvp(avps, 'Login id', user.username);
         nl.fmt.addAvp(avps, 'Status', user.getStateStr());
 		nl.fmt.addAvp(avps, 'Email', user.email);
         nl.fmt.addAvp(avps, 'User type', user.getUtStr());
-        nl.fmt.addAvp(avps, 'OU', user.ou);
-        nl.fmt.addAvp(avps, 'Secondary OUs', user.secOus);
+        nl.fmt.addAvp(avps, 'OU', user.org_unit);
+        nl.fmt.addAvp(avps, 'Secondary OUs', user.sec_ou_list);
 		nl.fmt.addAvp(avps, 'Created on', user.created, 'date');
 		nl.fmt.addAvp(avps, 'Updated on', user.updated, 'date');
 		return avps;
@@ -164,7 +165,12 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlGroupInfo, nlAdminUserImport
     }
 
     function _export() {
-        nlDlg.popupAlert({title: 'TODO', template: 'Export'});
+        nlDlg.showLoadingScreen();
+        nlAdminUserExport.exportUsers(_groupInfo).then(function() {
+            nl.timeout(function() {
+                nlDlg.hideLoadingScreen();
+            }, 2000);
+        });
     }
 
     function _import() {

@@ -1,13 +1,94 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// admin_user_import.js:
-// CSV bulk import of user administration data
+// admin_user_bulk.js:
+// CSV bulk import/export of user administration data
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-	angular.module('nl.admin_user_import', [])
+	angular.module('nl.admin_user_bulk', [])
+    .service('nlAdminUserExport', AdminUserExportSrv)
     .service('nlAdminUserImport', AdminUserImportSrv);
 }
+
+//-------------------------------------------------------------------------------------------------
+var _headers = [
+    {id: 'op', name: "Operation"},
+    {id: 'username', name: "Key", optional: true},
+    {id: 'user_id', name: "User Id"},
+    {id: 'gid', name: "Group Id", optional: true},
+    {id: 'usertype', name: "User Type"},
+    {id: 'first_name', name: "First name"},
+    {id: 'last_name', name: "Last name", optional: true},
+    {id: 'email', name: "Email"},
+    {id: 'state', name: "State", optional: true},
+    {id: 'org_unit', name: "OU", oldnames: ["Class / user group"]},
+    {id: 'sec_ou_list', name: "Sec OUs", oldnames: ["Secondary user groups"], optional: true},
+    {id: 'created', name: "Created UTC Time", optional: true},
+    {id: 'updated', name: "Updated UTC Time", optional: true}
+ ];
+
+var _headerNameToInfo = (function() {
+    var ret = {};
+    for(var i=0; i<_headers.length; i++) {
+        var item = _headers[i];
+        ret[item.name.toLowerCase()] = item;
+        if (!item.oldnames) continue;
+        for (var j=0; j<item.oldnames.length; j++)
+            ret[item.oldnames[j].toLowerCase()] = item;
+    }
+    return ret;
+})();
+
+//-------------------------------------------------------------------------------------------------
+var AdminUserExportSrv = ['nl', 'nlDlg', 'nlGroupInfo', 'nlExporter',
+function(nl, nlDlg, nlGroupInfo, nlExporter) {
+    var _toCsvFns = {
+        op: function(user) {
+            return 'i';
+        },
+        gid: function(user, attr, groupInfo) {
+            return groupInfo.grpid;
+        },
+        usertype: function(user) {
+            return user.getUtStr();
+        },
+        created: function(user) {
+            return user.created ? nl.fmt.date2UtcStr(user.created) : '';
+        },
+        updated: function(user) {
+            return user.updated ? nl.fmt.date2UtcStr(user.updated) : '';
+        },
+    };
+    
+    this.exportUsers = function(groupInfo) {
+        return nl.q(function(resolve, reject) {
+            nl.timeout(function() {
+                _export(groupInfo, resolve);
+            }, 1000);
+        });
+    };
+
+    var DELIM = '\n';
+    function _export(groupInfo, resolve) {
+        var csv = nlExporter.getCsvString(_headers, 'name');
+        for(var key in groupInfo.derived.keyToUsers) {
+            var user = groupInfo.derived.keyToUsers[key];
+            var row = [];
+            for(var i=0; i<_headers.length; i++) {
+                var attr = _headers[i];
+                var toCsv = _toCsvFns[attr.id] || function(user) {
+                    return user[attr.id];
+                }
+                var val = toCsv(user, attr, groupInfo);
+                if (val === null || val === undefined) val = '';
+                row.push(val);
+            }
+            csv += DELIM + nlExporter.getCsvString(row);
+        }
+        nlExporter.exportCsvFile('NittioUserData.csv', csv);
+        resolve(true);
+    }
+}];
 
 //-------------------------------------------------------------------------------------------------
 var AdminUserImportSrv = ['nl', 'nlDlg', 'nlGroupInfo', 'nlImporter', 'nlProgressLog', 'nlRouter',
@@ -195,34 +276,6 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         return data;
     }
     
-    var _headers = [
-        {id: 'op', name: "Operation"},
-        {id: 'key', name: "Key", optional: true},
-        {id: 'uid', name: "User Id"},
-        {id: 'gid', name: "Group Id", optional: true},
-        {id: 'ut', name: "User Type"},
-        {id: 'fname', name: "First name"},
-        {id: 'lname', name: "Last name", optional: true},
-        {id: 'email', name: "Email"},
-        {id: 'state', name: "State", optional: true},
-        {id: 'ou', name: "OU", oldnames: ["Class / user group"]},
-        {id: 'secOus', name: "Sec OUs", oldnames: ["Secondary user groups"], optional: true},
-        {id: 'created', name: "Created UTC Time", optional: true},
-        {id: 'updated', name: "Updated UTC Time", optional: true}
-     ];
-
-    var _headerNameToInfo = (function() {
-        var ret = {};
-        for(var i=0; i<_headers.length; i++) {
-            var item = _headers[i];
-            ret[item.name.toLowerCase()] = item;
-            if (!item.oldnames) continue;
-            for (var j=0; j<item.oldnames.length; j++)
-                ret[item.oldnames[j].toLowerCase()] = item;
-        }
-        return ret;
-    })();
-
     function _getHeaders(table) {
         if (table.length == 0)
             _throwException('Header row not found'); 
@@ -299,37 +352,42 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     }
     
     function _validateKeyColumns(row) {
-        if (!row.uid)
+        if (!row.user_id)
             _throwException('User id is missing', row);
-        row.uid = row.uid.toLowerCase().trim();
-        if (!row.key) row.key = row.uid + '.' + row.gid;
-        row.key = row.key.toLowerCase().trim();
+        row.user_id = row.user_id.toLowerCase().trim();
+        if (!row.username) row.username = row.user_id + '.' + row.gid;
+        row.username = row.username.toLowerCase().trim();
         
         if (row.op != 'i' && row.op != 'c' && row.op != 'C') {
-            if (!(row.key in _groupInfo.derived.keyToUsers))
+            if (!(row.username in _groupInfo.derived.keyToUsers))
                 _throwException('Key/loginid not found', row);
         } else if (row.op == 'c' || row.op == 'C') {
-            if (row.key in _groupInfo.derived.keyToUsers)
+            if (row.username in _groupInfo.derived.keyToUsers)
                 _throwException('Key/loginid already exists', row);
         }
-        if (row.key in self.foundKeys)
+        if (row.username in self.foundKeys)
             _throwException('Duplicate instances of Key/loginid found', row);
-        self.foundKeys[row.key] = true;
+        self.foundKeys[row.username] = true;
 
-        var user = _groupInfo.derived.keyToUsers[row.key];
-        if (user.usertype <= nlGroupInfo.UT_PADMIN && row.uid != user.userid) 
+        var user = _groupInfo.derived.keyToUsers[row.username];
+        if (user && user.usertype <= nlGroupInfo.UT_PADMIN && row.user_id != user.user_id) 
             _throwException('Cannot change loginid of this user', row);
     }
 
     function _validateUserType(row) {
-        row.ut = nlGroupInfo.getUtStrToInt(row.ut, _grpid);
-        if (row.ut ===  null)
+        row.usertype = nlGroupInfo.getUtStrToInt(row.usertype, _grpid);
+        if (row.usertype ===  null)
             _throwException('Invalid Usertype specified', row);
-        var user = _groupInfo.derived.keyToUsers[row.key];
-        if (user.usertype <= nlGroupInfo.UT_PADMIN && row.ut != user.usertype) 
-            _throwException('Cannot change usertype of this user', row);
-        if (user.usertype > nlGroupInfo.UT_PADMIN && row.ut <= nlGroupInfo.UT_PADMIN) 
-            _throwException('Cannot promote the user type to primary admin', row);
+        var user = _groupInfo.derived.keyToUsers[row.username];
+        if (user) {
+            if (user.usertype <= nlGroupInfo.UT_PADMIN && row.usertype != user.usertype) 
+                _throwException('Cannot change usertype of this user', row);
+            if (user.usertype > nlGroupInfo.UT_PADMIN && row.usertype <= nlGroupInfo.UT_PADMIN) 
+                _throwException('Cannot promote the user type to primary admin', row);
+        } else {
+            if (row.usertype <= nlGroupInfo.UT_PADMIN) 
+                _throwException('Cannot create users of this type', row);
+        }
     }
 
     function _validateState(row) {
@@ -339,9 +397,9 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     }
 
     function _validateNames(row) {
-        if (!row.lname) row.lname= '';
-        row.fname = _toDisplayName(row.fname);
-        row.lname = _toDisplayName(row.lname);
+        if (!row.last_name) row.last_name= '';
+        row.first_name = _toDisplayName(row.first_name);
+        row.last_name = _toDisplayName(row.last_name);
     }
 
     function _toDisplayName(input) {
@@ -367,17 +425,17 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     }
 
     function _validateOus(row) {
-        row.ou = row.ou.trim();
-        if (!(row.ou in _groupInfo.derived.ouDict))
-            _throwException(nl.fmt2('Invalid OU: {}', row.ou), row);
+        row.org_unit = row.org_unit.trim();
+        if (!(row.org_unit in _groupInfo.derived.ouDict))
+            _throwException(nl.fmt2('Invalid OU: {}', row.org_unit), row);
         
-        if(!row.secOus) row.secOus = '';
-        row.secOus = row.secOus.trim();
-        if (row.secOus == '') return;
-        var secOus = row.secOus.split(',');
-        for(var i=0; i<secOus.length; i++) {
-            if (!(secOus[i] in _groupInfo.derived.ouDict))
-                _throwException(nl.fmt2('Invalid Sec OU: {}', secOus[i]), row);
+        if(!row.sec_ou_list) row.sec_ou_list = '';
+        row.sec_ou_list = row.sec_ou_list.trim();
+        if (row.sec_ou_list == '') return;
+        var sec_ou_list = row.sec_ou_list.split(',');
+        for(var i=0; i<sec_ou_list.length; i++) {
+            if (!(sec_ou_list[i] in _groupInfo.derived.ouDict))
+                _throwException(nl.fmt2('Invalid Sec OU: {}', sec_ou_list[i]), row);
         }
     }
 
@@ -388,15 +446,15 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     
     function _validateDuplicates(row) {
         if (row.ignore || row.op != 'u') return;
-        var user = _groupInfo.derived.keyToUsers[row.key];
+        var user = _groupInfo.derived.keyToUsers[row.username];
         row.id = user.id;
         if (user.state != row.state) return;
         if (user.email != row.email) return;
-        if (user.usertype != row.ut) return;
-        if (user.ou != row.ou) return;
-        if (user.secOus != row.secOus) return;
-        if (user.fname != row.fname) return;
-        if (user.lname != row.lname) return;
+        if (user.usertype != row.usertype) return;
+        if (user.org_unit != row.org_unit) return;
+        if (user.sec_ou_list != row.sec_ou_list) return;
+        if (user.first_name != row.first_name) return;
+        if (user.last_name != row.last_name) return;
         self.pl.imp('Update with no change ignored', angular.toJson(row, 2));
         row.ignore = true;
     }

@@ -757,7 +757,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
             var loginid = '';
             if (_groupInfo && _groupInfo.users[''+cm.userid]) {
                 var userInfo = _groupInfo.users[''+cm.userid];
-                loginid = userInfo[nlGroupInfo.LOGINID];
+                loginid = userInfo[nlGroupInfo.USERNAME];
             }
 
             var row = [cm.name, parent.name, cm.type, cm.state.status, 

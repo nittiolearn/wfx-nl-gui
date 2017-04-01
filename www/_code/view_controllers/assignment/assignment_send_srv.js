@@ -179,7 +179,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
                 userCnt++;
                 userid = parseInt(userid);
                 var name = nlGroupInfo.formatUserName(user);
-                var ou = user[nlGroupInfo.OU];
+                var ou = user[nlGroupInfo.ORG_UNIT];
                 if (!(ou in _ou2Users)) _ou2Users[ou] = [];
                 _ou2Users[ou].push({id: userid, name: name});
             }

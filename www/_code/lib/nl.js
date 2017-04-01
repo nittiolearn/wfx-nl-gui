@@ -146,7 +146,7 @@ function Formatter() {
         return ret;
     };
 
-    this.date2UTCStr = function(d, accuracy) {
+    this.date2UtcStr = function(d, accuracy) {
         if (accuracy === undefined) accuracy = 'minute';
         var ret = _fmt2Impl('{}-{}', [d.getUTCFullYear(), _pad2(d.getUTCMonth()+1)]);
         if (accuracy === 'month') return ret;
@@ -156,7 +156,7 @@ function Formatter() {
         if (accuracy === 'minute') return ret;
         ret += _fmt2Impl(':{}', [_pad2(d.getUTCSeconds())]);
         if (accuracy === 'second') return ret;
-        ret += _fmt2Impl('.{}', [_pad3(d.getUTCMilliseconds())]);
+        ret += _fmt2Impl('.{}', [_pad3(d.getMilliseconds())]);
         return ret;
     };
 

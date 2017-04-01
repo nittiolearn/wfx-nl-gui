@@ -44,9 +44,7 @@ function(nl, nlDlg) {
     }
     
     function _splitIntoRows(content) {
-        content = content.replace(/[^\r]\n/g, ' '); // Multi line cells only have \n
-        content = content.replace(/\r/g, '\n');
-        content = content.replace(/\n\n/g, '\n');
+        content = content.replace(/\r/g, '');
         return content.split('\n');
     }
     

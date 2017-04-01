@@ -455,9 +455,9 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
             if (groupInfo && groupInfo.users[''+rep.student]) {
                 var userInfo = groupInfo.users[''+rep.student];
                 rep.studentname = nlGroupInfo.formatUserName(userInfo);
-                rep._loginid = userInfo[nlGroupInfo.LOGINID];
+                rep._loginid = userInfo[nlGroupInfo.USERNAME];
                 rep._email = userInfo[nlGroupInfo.EMAIL];
-                rep.org_unit = userInfo[nlGroupInfo.OU];
+                rep.org_unit = userInfo[nlGroupInfo.ORG_UNIT];
             }
             rep._assignTypeStr = _getAssignTypeStr(rep.assigntype);
             rep._courseName = content.courseName || '';

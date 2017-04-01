@@ -33,7 +33,7 @@ function(nl, nlServerApi) {
     };
 
     this.formatUserName = function(uInfo) {
-        return uInfo[this.FNAME] + ' ' + uInfo[this.LNAME];
+        return uInfo[this.FIRST_NAME] + ' ' + uInfo[this.LAST_NAME];
     };
 
     this.formatUserNameFromRecord = function(record, useridField, usernameField) {
@@ -56,21 +56,21 @@ function(nl, nlServerApi) {
         if (!(uid in self.get(grpid).users)) return null;
         var uInfo = self.get(grpid).users[uid];
         var ret = {
-            loginid: uInfo[this.LOGINID] || '',
+            username: uInfo[this.USERNAME] || '',
             state: uInfo[this.STATE] || 0,
             email: uInfo[this.EMAIL] || '',
             usertype: uInfo[this.USERTYPE] || this.UT_STUDENT_ADVANCED,
-            ou: uInfo[this.OU] || '',
-            secOus: uInfo[this.SEC_OU] || '',
+            org_unit: uInfo[this.ORG_UNIT] || '',
+            sec_ou_list: uInfo[this.SEC_OU_LIST] || '',
             updated: uInfo[this.UPDATED] || null,
             created: uInfo[this.CREATED] || null,
-            fname: uInfo[this.FNAME] || '',
-            lname: uInfo[this.LNAME] || '',
-            isBleedingEdge: uInfo[this.BLEEDINGEDGE] || false,
-            permOverride: uInfo[this.PERMOVERRIDE] || ''
+            first_name: uInfo[this.FIRST_NAME] || '',
+            last_name: uInfo[this.LAST_NAME] || '',
+            isBleedingEdge: uInfo[this.ISBLEEDINGEDGE] || false,
+            perm_override: uInfo[this.PERM_OVERRIDE] || ''
         };
         ret.id = parseInt(uid);
-        ret.userid = ret.loginid.substring(0, ret.loginid.indexOf('.'));
+        ret.user_id = ret.username.substring(0, ret.username.indexOf('.'));
         ret.created = nl.fmt.json2Date(ret.created);
         ret.updated = nl.fmt.json2Date(ret.updated);
         ret.name = this.formatUserName(uInfo);
@@ -101,19 +101,20 @@ function(nl, nlServerApi) {
     }
     
     function _initContants() {
-        self.LOGINID = 0;
+        self.USERNAME = 0;
         self.STATE = 1;
         self.EMAIL = 2;
         self.USERTYPE = 3;
-        self.OU = 4;
-        self.SEC_OU = 5;
+        self.ORG_UNIT = 4;
+        self.SEC_OU_LIST = 5;
         self.UPDATED = 6;
         self.CREATED = 7;
-        self.FNAME = 8;
-        self.LNAME = 9;
-        self.BLEEDINGEDGE = 10;
-        self.PERMOVERRIDE = 11;
-    
+        self.FIRST_NAME = 8;
+        self.LAST_NAME = 9;
+        self.ISBLEEDINGEDGE = 10;
+        self.PERM_OVERRIDE = 11;
+
+        // Generic user types    
         self.UT_NITTIOADMIN=10;
         self.UT_PADMIN=11;
         
@@ -150,7 +151,7 @@ function(nl, nlServerApi) {
         var udict = {};
         for(var uid in self.get(grpid).users) {
             var user = self.getUserObj(uid, grpid);
-            udict[user.loginid] = user;
+            udict[user.username] = user;
         }
         self.get(grpid).derived.keyToUsers = udict;
         
