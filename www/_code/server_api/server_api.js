@@ -399,10 +399,18 @@ function(nl, nlDlg, nlConfig, Upload, nlStub) {
     //---------------------------------------------------------------------------------------------
 	// get group user entities
     //---------------------------------------------------------------------------------------------
-	this.groupGetInfo = function() {
-	    return _getFromCacheOrServer('group_get_info', DEFAULT_CACHE_LIFE, 
-	       '_serverapi/group_get_info.json', {});
+	this.groupGetInfo = function(reload, grpid) {
+	    var cacheKey = 'group_get_info';
+	    if (grpid) cacheKey += '.' + grpid;
+	    return _getFromCacheOrServer(cacheKey, reload ? 0 : DEFAULT_CACHE_LIFE, 
+	       '_serverapi/group_get_info.json', {grpid: grpid});
 	};
+
+    this.groupUpdateUsers = function(grp, data) {
+        //grp = id of the group
+        //data = array of user updation records (one row of import CSV file)
+        return server.post('_serverapi/group_update_users.json', {grp:grp, data:data});     
+    };
 
     //---------------------------------------------------------------------------------------------
 	// lesson entities

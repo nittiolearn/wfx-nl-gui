@@ -50,6 +50,73 @@ function PendingTimer() {
 }
 
 //#############################################################################################
+// PageTimer - Monitors page level time taken
+//#############################################################################################
+function PageTimer(lesson) {
+    this.canChangeSlides = function(curPgNo, newPgNo) {
+        if (!_isTimerNeeded()) return true;
+        var info = _getPendingInfo(curPgNo, newPgNo);
+        if (info.pending == 0) return true;
+        var msg = njs_helper.fmt2('You can move forward in {} seconds', (info.pending));
+        if (info.page != curPgNo)
+            msg = njs_helper.fmt2('You cannot move ahead of page {}', (info.page+1));
+        njs_helper.Dialog.popupStatus(msg);
+        return false;
+    };
+    
+    function _isTimerNeeded() {
+        if (lesson.renderCtx.launchCtx() != 'do_assign') return false;
+        return true;
+    }
+        
+    function _getPendingInfo(curPgNo, newPgNo) {
+        var curPage = _getPageInfo(curPgNo);
+        _updatePageTimeInLearningData(curPage.pld);
+
+        // Save usecase. No pending time to be reported here
+        if (newPgNo === undefined) return {pending: 0};
+
+        // Same page. No pending time to be reported here
+        if (newPgNo <= curPgNo) return {pending: 0};
+        
+        // Check if enough time is spent in all page between curPgNo and newPgNo
+        for (var i=curPgNo; i<newPgNo; i++) {
+            var page = _getPageInfo(i);
+            var minPageTime = page.minPageTime || 0;
+            if (!minPageTime || page.pld.timeSpent >= page.minPageTime) continue;
+            // Not enough time spent in page i
+            return {page: i, pending: Math.ceil((minPageTime - page.pld.timeSpent)/1000)};
+        }
+        return {pending: 0};
+    }
+    
+    function _getPageInfo(pgNo) {
+        var ret = {};
+
+        var oPage = lesson.pages[pgNo].oPage;
+        ret.minPageTime = (oPage.minPageTime || 0)*1000;
+
+        if (!lesson.oLesson.learningData) lesson.oLesson.learningData = {};
+        var ld = lesson.oLesson.learningData;
+        if (!ld.pages) ld.pages = {};
+        if (!ld.pages[oPage.pageId]) ld.pages[oPage.pageId] = {};
+        ret.pld = ld.pages[oPage.pageId];
+        if (!ret.pld.timeSpent) ret.pld.timeSpent = 0;
+
+        return ret;
+    }
+    
+    function _updatePageTimeInLearningData(pld) {
+        var currentTime = new Date();
+        var delta = currentTime.getTime() - _lastTime.getTime();
+        _lastTime = currentTime;
+        pld.timeSpent += delta;
+    }
+    
+    var _lastTime = new Date();
+}
+
+//#############################################################################################
 // RenderingContext - Helper class to decide how to render the lesson, page and section. The 
 // following terms are necessry to understand when reading this code:
 //---------------------------------------------------------------------------------------------
@@ -1081,6 +1148,7 @@ function formatTitle(title) {
 //#############################################################################################
 return { 
 	PendingTimer: PendingTimer,
+	PageTimer: PageTimer,
 	RenderingContext: RenderingContext,
 	SubmitAndScoreDialog: SubmitAndScoreDialog,
 	LessonDlgs: LessonDlgs,

@@ -1120,11 +1120,11 @@ function AddResourceDlg(inputChain, resInfo) {
 	var _uploadUrl = null;
 	
 	var _restypeToMaxFileSize = {
-		Image: 1*1024*1024, 
-		PDF: 10*1024*1024, 
-		Audio: 10*1024*1024, 
-		Video: 30*1024*1024,
-		Attachment: 10*1024*1024
+		Image: 10*1024*1024, 
+		PDF: 100*1024*1024, 
+		Audio: 100*1024*1024, 
+		Video: 300*1024*1024,
+		Attachment: 100*1024*1024
 	}; 
 
 	var _restypeToExtension = {

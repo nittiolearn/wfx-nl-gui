@@ -31,7 +31,8 @@ function($stateProvider, $urlRouterProvider) {
 var MODES = {PRIVATE: 0, PUBLISHED: 1, REPORT_VIEW: 2, DO: 3, EDIT: 4, REPORTS_SUMMARY_VIEW: 5};
 var MODE_NAMES = {'private': 0, 'published': 1, 'report_view': 2, 'do': 3, 'edit': 4, 'reports_summary_view': 5};
 
-function ModeHandler(nl, nlCourse, nlDlg, $scope) {
+function ModeHandler(nl, nlCourse, nlDlg, nlGroupInfo, $scope) {
+    var self=this;
     this.mode = MODES.PRIVATE;
     this.courseId = null;
     this.course = null;
@@ -56,9 +57,9 @@ function ModeHandler(nl, nlCourse, nlDlg, $scope) {
         } else if (this.mode === MODES.REPORTS_SUMMARY_VIEW) {
             nl.pginfo.pageSubTitle = nl.t('(assignment reports)');
         } else if (this.mode === MODES.REPORT_VIEW) {
-            nl.pginfo.pageSubTitle = nl.t('({})', course.studentname);
+            nl.pginfo.pageSubTitle = nl.t('({})', nlGroupInfo.formatUserNameFromRecord(course));
         } else if (this.mode === MODES.DO) {
-            nl.pginfo.pageSubTitle = nl.t('({})', course.studentname);
+            nl.pginfo.pageSubTitle = nl.t('({})', nl.pginfo.username);
         } 
     };
     
@@ -67,10 +68,14 @@ function ModeHandler(nl, nlCourse, nlDlg, $scope) {
             return nlCourse.courseGet(this.courseId, this.mode === MODES.PUBLISHED);
         }
         if (this.mode === MODES.REPORTS_SUMMARY_VIEW) {
-            return nlCourse.courseGetAssignmentReportSummary({assignid: this.courseId});
+            return nlGroupInfo.init().then(function() {
+                return nlCourse.courseGetAssignmentReportSummary({assignid: self.courseId});
+            });
         }
         if (this.mode === MODES.REPORT_VIEW) {
-            return nlCourse.courseGetReport(this.courseId, false);
+            return nlGroupInfo.init().then(function() {
+                return nlCourse.courseGetReport(self.courseId, false);
+            });
         }
         return nlCourse.courseGetReport(this.courseId, true);
     };
@@ -206,11 +211,11 @@ var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIfra
 'nlCourseEditor', 'nlServerApi', 'nlGroupInfo', 'nlSendAssignmentSrv',
 function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     nlCourseEditor, nlServerApi, nlGroupInfo, nlSendAssignmentSrv) {
-    var modeHandler = new ModeHandler(nl, nlCourse, nlDlg, $scope);
+    var modeHandler = new ModeHandler(nl, nlCourse, nlDlg, nlGroupInfo, $scope);
     var nlContainer = new NlContainer(nl, $scope, modeHandler);
     nlContainer.setContainerInWindow();
     var treeList = new TreeList(nl);
-    var courseReportSummarizer = new CourseReportSummarizer($scope);
+    var courseReportSummarizer = new CourseReportSummarizer(nlGroupInfo, $scope);
     var _userInfo = null;
     $scope.MODES = MODES;
     var folderStats = new FolderStats($scope);
@@ -722,9 +727,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         if ($scope.mode != MODES.REPORTS_SUMMARY_VIEW) return;
 
         nlDlg.showLoadingScreen();
-        return nlServerApi.groupGetInfo().then(function(result) {
+        return nlGroupInfo.init().then(function() {
             nlDlg.hideLoadingScreen();
-            _downloadImpl(result);
+            _downloadImpl(nlGroupInfo.get());
         }, function(e) {
             return e;
         });
@@ -752,7 +757,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
             var loginid = '';
             if (_groupInfo && _groupInfo.users[''+cm.userid]) {
                 var userInfo = _groupInfo.users[''+cm.userid];
-                loginid = userInfo[nlGroupInfo.LOGINID];
+                loginid = userInfo[nlGroupInfo.USERNAME];
             }
 
             var row = [cm.name, parent.name, cm.type, cm.state.status, 
@@ -1092,7 +1097,7 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function CourseReportSummarizer($scope) {
+function CourseReportSummarizer(nlGroupInfo, $scope) {
 
     var folderAttrs = {'id': true, 'name': true, 'type': true, 'icon': true, 'parentId': true};
     this.getUserRecords = function(course, cm) {
@@ -1106,7 +1111,7 @@ function CourseReportSummarizer($scope) {
             var module = angular.copy(cm);
             module.id = _getModuleId(cm.id, userReport.id);
             module.parentId = cm.id;
-            module.name = userReport.studentname;
+            module.name = nlGroupInfo.formatUserNameFromRecord(userReport);
             module.userid = userReport.student;
             module.icon = 'user';
             var start_after = module.start_after || [];
@@ -1135,7 +1140,8 @@ function CourseReportSummarizer($scope) {
             course.userReports.push(userReports[u]);
         }
         course.userReports = course.userReports.sort(function(a, b) {
-            if (a.studentname < b.studentname) return -1;
+            if (nlGroupInfo.formatUserNameFromRecord(a) < 
+                nlGroupInfo.formatUserNameFromRecord(b)) return -1;
             // They being equal is very unlikely in our case!
             return 1;
         });

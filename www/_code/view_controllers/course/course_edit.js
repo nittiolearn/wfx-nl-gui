@@ -467,7 +467,7 @@ function(nl, nlDlg, nlCourse, nlLessonSelect, nlExportLevel) {
         var ret = _validateInputsImpl(data, cm, errorLocation);
         if (!ret) {
             nlDlg.popupAlert({title: nl.t('Error: {}', errorLocation.title), template:errorLocation.template});
-            // TODO-MUNNI-NOW: process the error location
+            // TODO-MUNNI: process the error location
         }
         return ret;
     }
@@ -490,8 +490,8 @@ function(nl, nlDlg, nlCourse, nlLessonSelect, nlExportLevel) {
     }
 
     function _updateCourseAttrsFromJsonTempStore(content, errorLocation) {
-        for(var key in content) {
-            if (!(key in allowedCourseAttrs)) continue;
+        for(var key in allowedCourseAttrs) {
+            if (!((key in content) || (key in $scope.editor.jsonTempStore))) continue;
             var attr =  allowedCourseAttrs[key];
             if (attr.type != 'object') continue;
 

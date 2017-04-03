@@ -108,6 +108,7 @@ nlesson = function() {
         this.globals.autoVoice = njs_autovoice.getAutoVoice();
         this.globals.audioManager = njs_autovoice.getAudioManager();
 		this.globals.animationManager = njs_animate.getAnimationManager();
+        this.globals.pageTimer = new njs_lesson_helper.PageTimer(this);
 	}
 
 	//--------------------------------------------------------------------------------------------
@@ -325,7 +326,7 @@ nlesson = function() {
 	
 	function Lesson_updatePagePropertiesDom() {
 		var curPage = this.pages[this.getCurrentPageNo()];
-		curPage.updatePagePropertiesDom();
+		curPage.updatePagePropertiesDom(this.getCurrentPageNo());
 	}
 
     var forumDlg = null;
@@ -368,9 +369,13 @@ nlesson = function() {
 	}
 
 	function Lesson_preRender(newPgNo) {
+        var newPage = this.postRenderingQueue.adjustAndUpdate(newPgNo);
+        if (!newPage) return;
         if (this.renderCtx.lessonMode() == 'edit') return;
-		var newPage = this.pages[newPgNo];
 		this.globals.animationManager.hidePage(newPage);
+        this.stopAudio();
+        this.globals.audioManager.play(newPage.getPageId());
+        if (newPage.autoVoiceButton) newPage.autoVoiceButton.play();
 	}
 
 	function Lesson_postRender() {
@@ -417,10 +422,14 @@ nlesson = function() {
                 delete this.updatedPages[this.pageId];
             }
         };
+        
+        this.adjustAndUpdate = function(pgNo) {
+            return _adjustAndUpdate(this, pgNo);
+        };
 
         this.postRenderPage = function(pgNo) {
-            var curPage = _adjustAndUpdate(this, pgNo);
-            if (!curPage) return;
+            if (pgNo < 0 || pgNo >= lesson.pages.length) return;
+            var curPage = lesson.pages[pgNo];
             curPage.postRender();
             var self = this;
             nittio.debounce(500, function() {
@@ -685,7 +694,6 @@ nlesson = function() {
             if (sections.length > 0) page['' + _ldPageAttrList.length] = sections;
         }
         var minified = JSON.stringify(minifiedLd);
-        console.log('Content minified: ', JSON.stringify(ld).length, minified.length);
         return minified;
     }
     
@@ -721,7 +729,7 @@ nlesson = function() {
     }
 
 	function _Lesson_updateLearningData(lesson) {
-        lesson.oLesson.learningData = {};
+        if (!lesson.oLesson.learningData) lesson.oLesson.learningData = {};
         var ld = lesson.oLesson.learningData;
         
         if (lesson.renderCtx.launchMode() != 'do' && 
@@ -732,12 +740,16 @@ nlesson = function() {
             _copyIf(lesson.oLesson, ld, _ldAttrList[i].name);
         }
         
-        ld.pages = {};
+        if (!ld.pages) ld.pages = {};
         for(var i=0; i<lesson.pages.length; i++) {
             var oPage = lesson.pages[i].oPage;
             var title = oPage.sections && oPage.sections[0] ? oPage.sections[0].text : '';
             title = njs_lesson_helper.formatTitle(title);
-            var pld = {pageNo: i+1, title: title};
+            if (!ld.pages[oPage.pageId]) ld.pages[oPage.pageId] = {};
+            var pld = ld.pages[oPage.pageId];
+            pld.pageNo = i+1;
+            pld.title = title;
+            pld.sections = [];
 
             for(var j=0; j<_ldPageAttrList.length; j++) {
                 if (_ldPageAttrList[j].noCopyFrom) continue;
@@ -755,10 +767,8 @@ nlesson = function() {
                 }
                 if (!shallAdd) continue;
                 sld.sectionNumber = j;
-                if (!pld.sections) pld.sections = [];
                 pld.sections.push(sld);
             }
-            ld.pages[oPage.pageId] = pld;
         }
 	}
 
@@ -989,6 +999,8 @@ nlesson = function() {
     }
     
     function _Lesson_saveUpdateTime(lesson) {
+        var pgNo = lesson.getCurrentPageNo();
+        lesson.globals.pageTimer.canChangeSlides(pgNo);
         if (!('sessionStartTime' in lesson)) return;
         var now = new Date();
         var timeSpentSeconds = parseInt((now.valueOf() - lesson.sessionStartTime.valueOf())/1000);
@@ -1016,7 +1028,7 @@ nlesson = function() {
 			oPage.sectionLayout = jQuery.parseJSON(JSON.stringify(layout)); // Deep copy
 		}
 	}
-		
+
 	function Lesson_addPage(pageType, customLayout) {
 		var curPos = this.getCurrentPageNo();
 		var hCurPage = this.pages[curPos].hPage;
@@ -1173,7 +1185,7 @@ nlesson = function() {
 			var pageJson = JSON.stringify(this.pages[p].oPage);
 			if (pageJson.indexOf(searchStr) == -1) continue;
 			if (this.getCurrentPageNo() == p) return true;
-			this.globals.slides.gotoPage(p);
+			this.globals.slides.gotoPage(p, 0, true);
 			njs_helper.Dialog.popupStatus(njs_helper.fmt2('"{}" found in page {}', searchStr, p+1));
 			return true;
 		}
@@ -1267,7 +1279,6 @@ nlesson = function() {
 		this.init = Page_init;
 		this.createHtmlDom = Page_createHtmlDom;
 
-		this.updateAndRender = Page_updateAndRender;
 		this.updateHtmlDom = Page_updateHtmlDom;
         this.updateAudio = Page_updateAudio;
 		this.adjustHtmlDom = Page_adjustHtmlDom;
@@ -1339,10 +1350,11 @@ nlesson = function() {
 		this.adjustHtmlDom();
 	}
 
-	function Page_updatePagePropertiesDom() {
+	function Page_updatePagePropertiesDom(pgNo) {
 		this.markFroRedraw();
         this.updateAudio();
-		this.lesson.postRender();
+        this.lesson.preRender(pgNo);
+        this.lesson.postRender();
 	}
 	
 	//---------------------------------------------------------------------------------------------
@@ -1397,12 +1409,6 @@ nlesson = function() {
 		this.propAudio = njs_helper.jobj('<div class="pgPropAudio" />');
 		hPage.append(this.propAudio);
 		return hPage;
-	}
-	
-	function Page_updateAndRender() {
-		this.updateHtmlDom();
-		this.adjustHtmlDom();
-		this.postRender();
 	}
 	
 	function Page_updateHtmlDom() {
@@ -1469,15 +1475,7 @@ nlesson = function() {
 	
 	function Page_postRender() {
 		var me = this;
-		me.lesson.stopAudio();
-        if (me.lesson.renderCtx.lessonMode() != 'edit') {
-	        me.lesson.globals.animationManager.hidePage(me);
-            me.lesson.globals.audioManager.play(me.getPageId());
-            if (me.autoVoiceButton) me.autoVoiceButton.play();
-        }
 		MathJax.Hub.Queue(function() {
-            if (me.lesson.renderCtx.lessonMode() != 'edit' && me.autoVoiceButton)
-                me.autoVoiceButton.play();
             if (me.lesson.renderCtx.lessonMode() != 'edit')
 		        me.lesson.globals.animationManager.setupAnimation(me);
 			me.onEscape();
@@ -1851,13 +1849,15 @@ nlesson = function() {
         
 		nittio.afterInit(function(){
 			g_lesson.globals.slides = nittio.getSlidesObj();
-			g_lesson.globals.slides.onSlideBeforeChange(function(newPgNo) {
+			g_lesson.globals.slides.onSlideBeforeChange(function(curPgNo, newPgNo) {
+			    if (!g_lesson.globals.pageTimer.canChangeSlides(curPgNo, newPgNo)) return false;
 				g_lesson.preRender(newPgNo);
+				return true;
 			});
 			g_lesson.globals.slides.onSlideChange(function() {
 				g_lesson.postRender();
 			});
-			
+            
 			window.setTimeout(function() {
 			    if (g_lesson.oLesson.currentPageNo && 
                     g_lesson.renderCtx.launchMode() == 'do') {

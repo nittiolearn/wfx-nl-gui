@@ -88,7 +88,7 @@ function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
 
 	this.pageTitle = function(rep) {
         if (reptype == 'group') return nl.t('Assignment Summary Report');
-	    var name = rep ? nl.fmt2(': {}', (reptype == 'user') ? rep.studentname : rep.name) : '';
+	    var name = rep ? nl.fmt2(': {}', (reptype == 'user') ? nl.pginfo.username : rep.name) : '';
 	    return nl.t('Assignment Report{}', name);
 	};
 };

@@ -1,0 +1,61 @@
+<nl-dlg title='{{dlgTitle}}'>
+    <nl-dlg-help>
+        <p>Enter the user information and press the Create / Modify button</p>
+        <p><b>User type:</b> User type determines the permission level of the user within the system.</p>
+        <p><b>User id:</b> Unique id of the user within the group. Must be all lowercase without spaces or special characters. "userid.groupid" will the login id of the user.</p>
+        <p><b>First name:</b> Mandatory.</p>
+        <p><b>Last name:</b> Optional.</p>
+        <p><b>Email:</b> Mandatory - the registration mail will be sent to this email id.</p>
+        <p><b>Organization unit:</b> Mandatory. The department/user group of the user.</p>
+        <p><b>Secondary organization units:</b> Optional. You could add the user to further user groups which act like distribution lists.</p>
+    </nl-dlg-help>
+    <nl-dlg-content>
+        <div class='row row-wrap row-top padding0 margin0'>
+            <div ng-class='resp2Col33' class='nl-dlg-field-name'>User type</div>
+            <div ng-class='resp2Col67' class='padding0'>
+                <nl-select fieldmodel='usertype'></nl-select>
+                <div ng-show='error.usertype' class='nl-dlg-field-errormsg'>{{error.usertype}}</div>
+            </div>
+
+            <div ng-class='resp2Col33' class='nl-dlg-field-name'>State</div>
+            <div ng-class='resp2Col67' class='padding0'>
+                <nl-select fieldmodel='state'></nl-select>
+                <div ng-show='error.state' class='nl-dlg-field-errormsg'>{{error.state}}</div>
+            </div>
+
+            <div ng-class='resp2Col33' class='nl-dlg-field-name'>User id</div>
+            <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+                <input type='text' ng-model='data.user_id'>
+                <div ng-show='error.user_id' class='nl-dlg-field-errormsg'>{{error.user_id}}</div>
+            </div>
+
+            <div ng-class='resp2Col33' class='nl-dlg-field-name'>First name</div>
+            <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+                <input type='text' ng-model='data.first_name'>
+            </div>
+
+            <div ng-class='resp2Col33' class='nl-dlg-field-name'>Last name</div>
+            <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+                <input type='text' ng-model='data.last_name'>
+            </div>
+
+            <div ng-class='resp2Col33' class='nl-dlg-field-name'>Email</div>
+            <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+                <input type='email' ng-model='data.email'>
+            </div>
+
+            <div ng-class='resp2Col33' class='nl-dlg-field-name'>Organization unit</div>
+            <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+                <nl-tree-select info='data.org_unit' tabindex='0' autofocus=''>
+                </nl-tree-select>
+            </div>
+
+            <div ng-class='resp2Col33' class='nl-dlg-field-name'>Secondary organization units</div>
+            <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+                <nl-tree-select info='data.sec_ou_list' tabindex='0' autofocus=''>
+                </nl-tree-select>
+            </div>
+        </div>
+        <br/>
+    </nl-dlg-content>
+</nl-dlg>

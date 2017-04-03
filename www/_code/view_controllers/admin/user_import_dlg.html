@@ -1,0 +1,30 @@
+<nl-dlg title='Import users' show-help='0'>
+<admin-user-csv-format></admin-user-csv-format>
+<div class='row row-top row-wrap margin0 padding0'
+     ng-hide='running'>
+    <div ng-class='resp2Col20'>Choose CSV file</div>
+    <div ng-class='resp2Col80'>
+        <nl-resource-upload fieldmodel='filelist' restype='Csv' tabindex='0'>
+        </nl-resource-upload>
+    </div>
+</div>
+
+<div class='paddding-mid'>
+    <div class='row row-center margin0 padding-mid nl-link-text'
+        ng-click='data.validateOnly = !data.validateOnly'>
+        <span class='fsh4 padding-small'>
+            <i class="icon ion-android-checkbox-outline-blank"
+               ng-hide='data.validateOnly'></i>
+            <i class="icon ion-android-checkbox-outline"
+               ng-show='data.validateOnly'></i>
+        </span>
+        <span class='padding-small'>Just validate without uploading the data</span>
+    </div>
+</div>
+
+<div class='padding-mid' ng-hide='ongoing'>
+    <div class='nl-button' ng-click='onImport()'>Import</div>
+</div>
+<nl-progress-log ng-show='started'></nl-progress-log>
+</nl-dlg-content>
+</nl-dlg>

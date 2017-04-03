@@ -140,7 +140,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
 
         function _initOuListAndShowDlg(resolve, reject) {
             nlDlg.showLoadingScreen();
-            nlServerApi.groupGetInfo().then(function(groupInfo) {
+            nlGroupInfo.init().then(function() {
+                var groupInfo = nlGroupInfo.get();
                 _ouList = groupInfo.outree;
                 _onUserListRecieved(groupInfo);
                 _showDlg(resolve, reject);
@@ -172,11 +173,13 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
             _ou2Users = {};
             var userCnt = 0;
             for(var userid in groupInfo.users) {
-                userCnt++;
                 var user = groupInfo.users[userid];
+                if (!nlGroupInfo.isActive(user)) continue;
+
+                userCnt++;
                 userid = parseInt(userid);
-                var name = user[nlGroupInfo.NAME];
-                var ou = user[nlGroupInfo.OU];
+                var name = nlGroupInfo.formatUserName(user);
+                var ou = user[nlGroupInfo.ORG_UNIT];
                 if (!(ou in _ou2Users)) _ou2Users[ou] = [];
                 _ou2Users[ou].push({id: userid, name: name});
             }

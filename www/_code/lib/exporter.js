@@ -42,6 +42,10 @@ function(nl, nlDlg) {
         return _getCsvString(_getItemRow(headers, row));
     };
 
+    this.getCsvString = function(row, attrName) {
+        return _getCsvString(row, attrName);
+    };
+
     this.MAX_RECORDS_PER_CSV = 50000;
     
     // Data should be array of array of strings
@@ -110,19 +114,25 @@ function(nl, nlDlg) {
         }
     }
 
-    function _getCsvString(rowData) {
+    function _getCsvString(rowData, attrName) {
         var row = '';
         for(var i=0; i<rowData.length; i++) {
-            var d = _quote(rowData[i]);
+            var val = attrName ? rowData[i][attrName] : rowData[i];
+            var d = _quote(val);
             row += i > 0 ? ',' + d : d;
         }
         return row;
     }
 
-    this.exportTextFile = function(fileName, data) {
-        var uri = 'data:text/plain;charset=utf-8,';
+    this.exportTextFile = function(fileName, data, uri) {
+        if(!uri) uri = 'data:text/plain;charset=utf-8,';
         data = uri + nl.fmt.encodeUri(data);
         _saveFile(fileName, data);
+    };
+
+    this.exportCsvFile = function(fileName, data) {
+        var uri = 'data:text/csv;charset=utf-8,';
+        this.exportTextFile(fileName, data, uri);
     };
 
     function _quote(data) {
