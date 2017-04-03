@@ -6,15 +6,16 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.server_api', [])
-    .service('nlServerApi', NlServerApi);
+    .service('nlServerApi', NlServerApi)
+    .service('nlStub', NlStub);
 }
 
 var g_noPopup = false;
 var DEFAULT_CACHE_LIFE = 1000*3600; // In milliseconds
 
 //-------------------------------------------------------------------------------------------------
-var NlServerApi = ['nl', 'nlDlg', 'nlConfig', 'Upload',
-function(nl, nlDlg, nlConfig, Upload) {
+var NlServerApi = ['nl', 'nlDlg', 'nlConfig', 'Upload','nlStub',
+function(nl, nlDlg, nlConfig, Upload, nlStub) {
     
     var server = new NlServerInterface(nl, nlDlg, nlConfig, Upload);
 
@@ -506,6 +507,49 @@ function(nl, nlDlg, nlConfig, Upload) {
     };
 
     //---------------------------------------------------------------------------------------------
+	//offline training entities
+    //---------------------------------------------------------------------------------------------
+	this.trainingList = function(){
+        return nl.q(function(resolve, reject) {
+			var lists = nlStub.trainingList();
+			console.log(lists);
+        	resolve(lists);
+        });
+	};
+
+	this.publishNewTraining = function(){
+        return nl.q(function(resolve, reject) {
+			var lists = nlStub.trainingNewList();
+			console.log(lists);
+        	resolve(lists);
+        });
+	};
+
+	this.trainingCreate = function(trainingObj){
+        return nl.q(function(resolve, reject) {
+			var lists = nlStub.trainingList();
+			console.log(lists);
+        	resolve(lists);
+        });
+	};
+
+	this.getNominationList = function(objId){
+        return nl.q(function(resolve, reject) {
+			var lists = nlStub.nominatedList(objId);
+			console.log(lists);
+        	resolve(lists);
+        });
+	};
+
+	this.trainingNominate = function(objId){
+        return nl.q(function(resolve, reject) {
+			var lists = nlStub.trainingList(objId);
+			console.log(lists);
+        	resolve(lists);
+        });
+	};
+
+    //---------------------------------------------------------------------------------------------
     // resource entities
     //---------------------------------------------------------------------------------------------
     this.resourceUpload = function(data, urltype) {
@@ -625,7 +669,7 @@ function(nl, nlDlg, nlConfig, Upload) {
                     resolve(result);
                 }, function(err) {
                     reject(err);
-                })
+                });
             });
         });
     }
@@ -820,5 +864,178 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload) {
     }
 }
 
+var NlStub = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+	this.trainingList = function(){
+		var trainList = [{
+		"id":1,
+		"name":"trainingModule1",
+		"start_date":"2017-02-16T15:02:18",
+		"end_date":"2017-02-16T18:02:18",
+		"created":"2017-02-14T15:02:18",
+		"updated":"2017-02-14T15:02:18",
+		"authorname":"Nittio Admin",
+		"trainingtype":"offline",
+		"nominate":"self",
+		"description":"Some description on training one",
+		"image":"NittioSun.png"
+		},{
+		"id":2,
+		"name":"Second Module",
+		"start_date":"2017-02-16T16:02:18",
+		"end_date":"2017-02-16T19:02:18",
+		"created":"2017-02-14T15:02:18",
+		"updated":"2017-02-14T15:02:18",
+		"authorname":"Nittio Admin",
+		"trainingtype":"offline",
+		"nominate":"manager",
+		"description":"Some description on training one",
+		"image":"NittioSun.png"
+		},{
+		"id":3,
+		"name":"Third Module3",
+		"start_date":"2017-02-16T17:02:18",
+		"end_date":"2017-02-16T20:02:18",
+		"created":"2017-02-14T15:02:18",
+		"updated":"2017-02-14T15:02:18",
+		"authorname":"Nittio Admin",
+		"trainingtype":"online",
+		"nominate":"admin",
+		"description":"Some description on training one",
+		"image":"NittioSun.png"
+		},{
+		"id":4,
+		"name":"Fourth Module4",
+		"start_date":"2017-02-16T18:04:18",
+		"end_date":"2017-02-16T21:05:18",
+		"created":"2017-02-14T15:02:18",
+		"updated":"2017-02-14T15:02:18",
+		"authorname":"Nittio Admin",
+		"trainingtype":"offline",
+		"nominate":"self",
+		"description":"Some description on training one",
+		"image":"NittioSun.png"
+		},{
+		"id":5,
+		"name":"Fifth Module5",
+		"start_date":"2017-02-16T19:56:18",
+		"end_date":"2017-02-16T22:42:18",
+		"created":"2017-02-14T15:02:18",
+		"updated":"2017-02-14T15:02:18",
+		"authorname":"Nittio Admin",
+		"trainingtype":"online",
+		"nominate":"manager",
+		"description":"Some description on training one",
+		"image":"NittioSun.png"
+		},{
+		"id":6,
+		"name":"Sixth Module6",
+		"start_date":"2017-02-16T19:33:18",
+		"end_date":"2017-02-16T22:34:18",
+		"created":"2017-02-14T15:02:18",
+		"updated":"2017-02-14T15:02:18",
+		"authorname":"Nittio Admin",
+		"trainingtype":"offline",
+		"nominate":"admin",
+		"description":"Some description on training one",
+		"image":"NittioSun.png"
+		},{
+		"id":7,
+		"name":"Module number seven",
+		"start_date":"2017-02-16T20:02:18",
+		"end_date":"2017-02-16T22:02:18",
+		"created":"2017-02-14T15:02:18",
+		"updated":"2017-02-14T15:02:18",
+		"authorname":"Nittio Admin",
+		"trainingtype":"offline",
+		"nominate":"self",
+		"description":"Some description on training one",
+		"image":"NittioSun.png"
+		},{
+		"id":8,
+		"name":"Eight Module8",
+		"start_date":"2017-02-16T04:42:18",
+		"end_date":"2017-02-16T09:32:18",
+		"created":"2017-02-14T15:02:18",
+		"updated":"2017-02-14T15:02:18",
+		"authorname":"Nittio Admin",
+		"trainingtype":"online",
+		"nominate":"manager",
+		"description":"Some description on training one",
+		"image":"NittioSun.png"
+		},{
+		"id":9,
+		"name":"Ninth Module9",
+		"start_date":"2017-02-16T14:02:18",
+		"end_date":"2017-02-16T19:02:18",
+		"created":"2017-02-14T15:02:18",
+		"updated":"2017-02-14T15:02:18",
+		"authorname":"Nittio Admin",
+		"trainingtype":"offline",
+		"nominate":"self",
+		"description":"Some description on training one",
+		"image":"NittioSun.png"
+		},{
+		"id":10,
+		"name":"Tenth Module10",
+		"start_date":"2017-02-16T16:02:18",
+		"end_date":"2017-02-16T19:02:18",
+		"created":"2017-02-14T15:02:18",
+		"updated":"2017-02-14T15:02:18",
+		"authorname":"Nittio Admin",
+		"trainingtype":"offline",
+		"nominate":"manager",
+		"description":"Some description on training one",
+		"image":"NittioSun.png"
+		},{
+		"id":11,
+		"name":"Module eleven to test training",
+		"start_date":"2017-02-16T15:02:18",
+		"end_date":"2017-02-16T18:02:18",
+		"created":"2017-02-14T15:02:18",
+		"updated":"2017-02-14T15:02:18",
+		"authorname":"Nittio Admin",
+		"trainingtype":"offline",
+		"nominate":"admin",
+		"description":"Some description on training one",
+		"image":"NittioSun.png"
+		}];
+	return trainList;
+	};
+	
+	this.nominatedList = function(objId){
+		var userList = [
+		{"userid": "1",
+		"username": "xxx",
+		"nominatedOn": "2017-02-14T15:02:18",
+		"status": "completed"},
+		{"userid": "2",
+		"username": "xxx",
+		"nominatedOn": "2017-02-14T15:02:18",
+		"status": "completed"},
+		{"userid": "3",
+		"username": "xxx",
+		"nominatedOn": "2017-02-14T15:02:18",
+		"status": "completed"},
+		{"userid": "4",
+		"username": "xxx",
+		"nominatedOn": "2017-02-14T15:02:18",
+		"status": "completed"},
+		{"userid": "5",
+		"username": "xxx",
+		"nominatedOn": "2017-02-14T15:02:18",
+		"status": "completed"},
+		{"userid": "6",
+		"username": "xxx",
+		"nominatedOn": "2017-02-14T15:02:18",
+		"status": "completed"},
+		{"userid": "7",
+		"username": "xxx",
+		"nominatedOn": "2017-02-14T15:02:18",
+		"status": "completed"}
+		];
+		return userList;
+	};
+}];
 module_init();
 })();

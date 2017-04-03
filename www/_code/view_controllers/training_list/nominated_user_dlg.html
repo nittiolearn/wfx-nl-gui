@@ -1,0 +1,28 @@
+<nl-dlg title='{{data.title}}'>
+<nl-dlg-content>
+<div class='row row-center margin0 padding0'
+	 style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
+    <div class='col text-center fsh3 padding0'>
+    </div>
+    <span title='Nominate user'
+          class='nl-toolbar-icon'
+          ng-click='nominateUser()'>
+        <i class="icon fsh3 ion-android-person-add"></i>
+    </span>
+</div>
+<table class='nl-table nl-table-styled'>
+	<tr>
+        <th ng-repeat='item in data.headerCol'>
+        	<span>{{item.name}}</span>
+        </th>
+	</tr>
+    <tr ng-repeat-start='user in data.userlist'>
+        <td ng-repeat='item in data.headerCol'>
+        	<span>{{user[item.attr]}}</span>
+        </td>
+    </tr>
+    <tr ng-repeat-end>
+    </tr>
+</table>
+</nl-dlg-content>
+</nl-dlg>

@@ -1,4 +1,18 @@
-<div ng-repeat='avp in trainingcard.details.avps' class='row row-center margin0 padding0'>
+
+<div class='row row-center margin0 padding0' ng-repeat='avp in trainingcard.details.avps'>
+    <span ng-if='avp.type == "links"'
+          class='col col-20 padding-mid fsh6'>{{avp.attr}}</span>
+    <span ng-if='avp.type == "links"'
+          class='col padding-mid'>
+    	<span ng-repeat='op in avp.val track by $index'>
+        	<a ng-if="op.url" ng-href='{{op.url}}' class='nl-link-text'>{{op.val}}</a>
+        	<img ng-if='op.linkid == "training_nominate"' ng-src='{{op.val}}' class='nl-24 nl-link-text' ng-click='onCardInternalUrlClicked(trainingcard, op.linkid)'/>
+        	<span ng-if='op.linkid && op.linkid != "training_nominate"' ng-click='onCardInternalUrlClicked(trainingcard, op.linkid)' class='nl-link-text'>{{op.val}}</span>
+        	<span ng-if="$index < avp.val.length - 1"> | </span>
+    	</span>
+    </span>
+</div>
+<div ng-repeat='avp in trainingcard.details.avps' class='row row-center margin0 padding0 nl-border-bottom' ng-hide='avp.type == "links"'>
 	<div class='col col-20'>{{avp.attr}}</div>
 	<div class='col col-80'>{{avp.val}}</div>
 </div>
