@@ -79,7 +79,6 @@ function(nl, nlServerApi) {
             nl.url.resUrl('ball-grey.png')};
         ret.getStateStr = function() { return ret.state ? nl.t('Active') : nl.t('Inactive')};
         ret.getUtStr = function() { return _getUtStr(ret.usertype, grpid);};
-
         return ret;
     };
 
@@ -87,6 +86,14 @@ function(nl, nlServerApi) {
         var tn = self.get(grpid).derived.typeNameToUt;
         if (utStr in tn) return tn[utStr];
         return null;
+    };
+    
+    this.getUtOptions = function(grpid) {
+        return _getUtOptions(grpid);
+    };
+    
+    this.getStateOptions = function(grpid) {
+        return _getStateOptions(grpid);
     }
     
     function _getUtIcon(ut) {
@@ -100,6 +107,21 @@ function(nl, nlServerApi) {
         return typenames[ut] || nl.t('Unknown:{}', ut);
     }
     
+    function _getUtOptions(grpid) {
+        var props = self.get(grpid).props || {};
+        var types = props.usertypes|| [];
+        var typenames = props.usertypenames || {};
+        var ret = [];
+        for(var i=0; i<types.length; i++) {
+            ret.push({id: types[i], name: typenames[types[i]]});
+        }
+        return ret;
+    }
+
+    function _getStateOptions(grpid) {
+        return [{id: 1, name: 'Active'}, {id: 0, name: 'Inactive'}];
+    }
+
     function _initContants() {
         self.USERNAME = 0;
         self.STATE = 1;

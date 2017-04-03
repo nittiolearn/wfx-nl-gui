@@ -1,11 +1,11 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// admin_user_bulk.js:
+// user_bulk.js:
 // CSV bulk import/export of user administration data
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-	angular.module('nl.admin_user_bulk', [])
+	angular.module('nl.user_bulk', [])
     .service('nlAdminUserExport', AdminUserExportSrv)
     .service('nlAdminUserImport', AdminUserImportSrv);
 }
@@ -99,15 +99,18 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     var _groupInfo = null;
     var _userInfo = null;
     
-    this.importUsers = function($scope, grpid, groupInfo, userInfo) {
+    this.init = function(groupInfo, userInfo, grpid) {
+        _groupInfo = groupInfo;
+        _userInfo = userInfo;
+        _grpid = grpid;
+    };
+
+    this.importUsers = function($scope) {
         return nl.q(function(resolve, reject) {
             if (_isImportOngoing()) {
                 reject('Import operation is ongoing');
                 return;
             }
-            _grpid = grpid;
-            _groupInfo = groupInfo;
-            _userInfo = userInfo;
             self.resolve = resolve;
             self.reject = reject;
             _import($scope);
@@ -158,12 +161,16 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
                 dlg.scope.dontClose = true;
             }
         };
-        dlg.show('view_controllers/admin/admin_user_import_dlg.html', [], cancelButton, false);
+        dlg.show('view_controllers/admin/user_import_dlg.html', [], cancelButton, false);
     }
 
-    function _onImport(e, dlgScope) {
+    this.initImportOperation = function() {
         self.statusCnts = {total: 0, ignore: 0, process: 0, success: 0, error: 0};
         self.foundKeys = {};
+    };
+    
+    function _onImport(e, dlgScope) {
+        self.initImportOperation();
         if (e) e.preventDefault();
         if (dlgScope.data.filelist.length == 0) {
             dlgScope.error.filelist = 'Please select the CSV file';
@@ -322,7 +329,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     function _validateRow(row) {
         _validateOp(row);
         _validateGroup(row);
-        _validateKeyColumns(row);
+        self.validateKeyColumns(row);
         _validateUserType(row);
         _validateState(row);
         _validateNames(row);
@@ -351,19 +358,20 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             _throwException('Group id not allowed', row);
     }
     
-    function _validateKeyColumns(row) {
+    this.validateKeyColumns = function(row) {
         if (!row.user_id)
             _throwException('User id is missing', row);
+        // TODO-MUNNI-NOW: validate syntax required
         row.user_id = row.user_id.toLowerCase().trim();
         if (!row.username) row.username = row.user_id + '.' + row.gid;
         row.username = row.username.toLowerCase().trim();
         
         if (row.op != 'i' && row.op != 'c' && row.op != 'C') {
             if (!(row.username in _groupInfo.derived.keyToUsers))
-                _throwException('Key/loginid not found', row);
+                _throwException('User id not found', row);
         } else if (row.op == 'c' || row.op == 'C') {
             if (row.username in _groupInfo.derived.keyToUsers)
-                _throwException('Key/loginid already exists', row);
+                _throwException('User id already exists', row);
         }
         if (row.username in self.foundKeys)
             _throwException('Duplicate instances of Key/loginid found', row);
@@ -372,7 +380,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         var user = _groupInfo.derived.keyToUsers[row.username];
         if (user && user.usertype <= nlGroupInfo.UT_PADMIN && row.user_id != user.user_id) 
             _throwException('Cannot change loginid of this user', row);
-    }
+    };
 
     function _validateUserType(row) {
         row.usertype = nlGroupInfo.getUtStrToInt(row.usertype, _grpid);

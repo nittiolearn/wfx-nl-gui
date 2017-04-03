@@ -1,11 +1,11 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// admin_user.js:
+// user.js:
 // user administration module
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-	angular.module('nl.admin_user', [])
+	angular.module('nl.user', [])
 	.config(configFn)
 	.controller('nl.AdminUserCtrl', AdminUserCtrl)
     .directive('adminUserCsvFormat', AdminUserCsvFormatDir);
@@ -15,7 +15,7 @@ function module_init() {
 var AdminUserCsvFormatDir = [function() {
     return {
         restrict: 'E',
-        templateUrl: 'view_controllers/admin/admin_user_csv_format.html',
+        templateUrl: 'view_controllers/admin/user_csv_format.html',
         scope: true
     };
 }];
@@ -34,9 +34,9 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 var AdminUserCtrl = ['nl', 'nlRouter', 'nlDlg', '$scope', 'nlCardsSrv',
-'nlGroupInfo', 'nlAdminUserExport', 'nlAdminUserImport',
+'nlGroupInfo', 'nlAdminUserExport', 'nlAdminUserImport', 'nlTreeSelect',
 function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlGroupInfo,
-nlAdminUserExport, nlAdminUserImport) {
+nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
 	var _userInfo = null;
 	var _groupInfo = null;
 	var _grpid = null;
@@ -62,6 +62,7 @@ nlAdminUserExport, nlAdminUserImport) {
 		    nlGroupInfo.init(true, _grpid).then(function() {
 		        nlGroupInfo.update(_grpid);
 		        _groupInfo = nlGroupInfo.get(_grpid);
+                nlAdminUserImport.init(_groupInfo, _userInfo, _grpid);
                 nl.pginfo.pageTitle = nl.t('User administration: {}', _groupInfo.name);
                 $scope.cards.cardlist = _getCards();
                 resolve(true);
@@ -132,12 +133,13 @@ nlAdminUserExport, nlAdminUserImport) {
 	    desc = nl.fmt2(desc, stateIcon, user.getUtStr(), user.username, user.email, user.org_unit);
 	    
 	    var card = {id: user.id,
-	                updated: user.updated || 0,
-	                title: user.name,
-                    internalUrl: 'adminuser_modify',
-	                icon: user.getIcon(),
-					help: desc,
-					children: []};
+	        username: user.username,
+            updated: user.updated || 0,
+            title: user.name,
+            internalUrl: 'adminuser_modify',
+            icon: user.getIcon(),
+			help: desc,
+			children: []};
 
 		card.details = {help: '', avps: _getAvps(user)};
 		card.links = [];
@@ -161,9 +163,84 @@ nlAdminUserExport, nlAdminUserImport) {
 	}
 
     function _createOrModify(card) {
-        nlDlg.popupAlert({title: 'TODO', template: nl.fmt2('_createOrModify: {}', card ? 'modify' : 'create')});
+        var dlg = nlDlg.create($scope);
+        dlg.setCssClass('nl-height-max nl-width-max');
+        dlg.scope.error = {};
+        dlg.scope.options = {
+            usertype: nlGroupInfo.getUtOptions(_grpid),
+            state: nlGroupInfo.getStateOptions(_grpid)};
+
+        var ouTreeInfo = {};
+        ouTreeInfo.data = angular.copy(_groupInfo.outree || []);
+        var secOuTreeInfo = {};
+        secOuTreeInfo.data = angular.copy(_groupInfo.outree || []);
+
+        dlg.scope.data = {usertype: dlg.scope.options.usertype[0], 
+            user_id: '',
+            first_name: '',
+            last_name: '',
+            email: '',
+            state: dlg.scope.options.state[0],
+            org_unit: ouTreeInfo,
+            sec_ou_list: secOuTreeInfo};
+        var user = null;
+
+        if (card) {
+            var users = _groupInfo.derived.keyToUsers || {};
+            user = users[card.username];
+            dlg.scope.dlgTitle = nl.t('Modify user: {}', user.username);
+            dlg.scope.isModify = true;
+
+            dlg.scope.data.usertype = {id: user.usertype, name: user.getUtStr()};
+            dlg.scope.data.user_id = user.user_id;
+            dlg.scope.data.first_name = user.first_name;
+            dlg.scope.data.last_name = user.last_name;
+            dlg.scope.data.email = user.email;
+            dlg.scope.data.state = {id: user.state, name: user.getStateStr()};
+            nlTreeSelect.updateSelectionTree(ouTreeInfo, user.org_unit ? [{id:user.org_unit}]: []);
+            nlTreeSelect.updateSelectionTree(secOuTreeInfo, user.sec_ou_list ? user.sec_ou_list.split(',') : []);
+        } else {
+            dlg.scope.dlgTitle = nl.t('New user');
+            dlg.scope.isModify = false;
+            nlTreeSelect.updateSelectionTree(ouTreeInfo, []);
+            nlTreeSelect.updateSelectionTree(secOuTreeInfo, []);
+        }
+        
+        ouTreeInfo.treeIsShown = true;
+        ouTreeInfo.multiSelect = false;
+        secOuTreeInfo.treeIsShown = false;
+        secOuTreeInfo.multiSelect = true;
+
+        var button = {
+            text : card ? nl.t('Modify') : nl.t('Create'),
+            onTap : function(e) {
+                _onCreateModify(e, dlg.scope, user);
+            }
+        };
+        var cancelButton = {
+            text : nl.t('Cancel')
+        };
+        dlg.show('view_controllers/admin/user_create_dlg.html', [button], cancelButton, false);
     }
 
+    function _onCreateModify(event, dlgScope, user) {
+        var d = dlgScope.data;
+        var record = {op: user ? 'u' : 'c', username: user.username,
+            user_id: d.user_id, usertype: d.usertype, state: d.state,
+            first_name: d.first_name, last_name: d.last_name,
+            email: d.email, org_unit: d.org_unit, sec_ou_list: d.sec_ou_list
+        };
+        nlAdminUserImport.initImportOperation();
+        try {
+            nlAdminUserImport.validateKeyColumns(record);
+        } catch (e) {
+            if (event) event.preventDefault();
+            dlgScope.error.user_id = e.message;
+            return;
+        }
+        nlDlg.popupStatus('OK');
+    }
+    
     function _export() {
         nlDlg.showLoadingScreen();
         nlAdminUserExport.exportUsers(_groupInfo).then(function() {
@@ -174,7 +251,7 @@ nlAdminUserExport, nlAdminUserImport) {
     }
 
     function _import() {
-        nlAdminUserImport.importUsers($scope, _grpid, _groupInfo, _userInfo).then(function() {
+        nlAdminUserImport.importUsers($scope).then(function() {
             _groupInfo = nlGroupInfo.get(_grpid);
             $scope.cards.cardlist = _getCards();
         });
