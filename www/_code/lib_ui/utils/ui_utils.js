@@ -233,14 +233,18 @@ function ProgressLog(nl, $filter, nlExporter) {
     };
     
     this.progressLog.onLogSave = function() {
+        var zip = new JSZip();
         var ret = '';
-        for(var l in self.progressLog.logs) {
-            var log = self.progressLog.logs[l];
+        for(var i=0; i<self.progressLog.logs.length; i++) {
+            var log = self.progressLog.logs[i];
             var row = nl.fmt2('{}, {}, {}\r\n', log.status, log.ts, log.title);
             if (log.details) row += nl.fmt2('{}\r\n', log.details);
             ret += row;
         }
-        nlExporter.exportTextFile("progress-log.txt", ret);
+        zip.file('progress-log.txt', ret);
+        nlExporter.saveZip(zip, 'progress-log.zip', null, function(sizeKb) {
+        }, function(e) {
+        });
     };
     
     this.progressLog.onClearLogs = function() {
