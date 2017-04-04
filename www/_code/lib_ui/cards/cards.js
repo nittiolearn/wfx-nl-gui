@@ -102,25 +102,35 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
                 });
             };
 
-            $scope.getCards = function() {
+            var defMaxLimit = 50;
+            var cacheAbove = 200;
+            
+            $scope.getCards = function(rebuildCache) {
             	if (!$scope.cards || !$scope.cards.cardlist) return [];
+            	rebuildCache = rebuildCache || $scope.cards.rebuildCache;
+            	$scope.cards.rebuildCache = false;
+            	if (!rebuildCache 
+            	    && $scope.cards.cardlist.length > cacheAbove && $scope.cachedList) {
+            	    return $scope.cachedList;
+            	}
                 var ret = $scope.cards.staticlist || [];
             	var filteredData = $filter('nlFilter')($scope.cards.cardlist,
             										 $scope.search.filter, $scope.search.grade);
-            	ret = ret.concat(filteredData);
-                if ($scope.cards.canFetchMore) ret.push(fetchMoreCard);
-
                 var search = $scope.cards.search || {};
                 if (search.img) $scope.search.img = search.img;
-
                 var len = filteredData.length;
-                var maxLimit = search.maxLimit || 50;
+                var maxLimit = search.maxLimit || defMaxLimit;
+                if (len > maxLimit) len = maxLimit;
+            	ret = ret.concat(filteredData.slice(0, len));
+                if ($scope.cards.canFetchMore) ret.push(fetchMoreCard);
+
                 $scope.search.resultsStr
                     = len <= 1 ? nl.t('{} result', len)
-                    : len > maxLimit ? nl.t('{}+ results', maxLimit)
+                    : filteredData.length > maxLimit ? nl.t('{}+ results', maxLimit)
                     : nl.t('{} results', len);
                 $scope.search.results = len;
-
+                
+                $scope.cachedList = ret;
             	if (ret.length > 0) return ret;
             	var emptyCard = $scope.cards.emptycard || defaultEmptyCard;
             	ret.push(emptyCard);
@@ -143,6 +153,7 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
 			var grade = ('grade' in params) ? params.grade : null;
             $scope.search = {filter: searchParam, img: nl.url.resUrl('search.png'), grade: {id: grade}};
             $scope.search.onSearch = function() {
+                $scope.getCards(true); // Rebuild cache
             	if (!('onSearch' in $scope.cards.search)) return;
             	return $scope.cards.search.onSearch($scope.search.filter, $scope.search.grade.id, _onSearchParamChange);
             };

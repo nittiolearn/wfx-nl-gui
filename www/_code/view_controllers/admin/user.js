@@ -51,6 +51,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
 
             var params = nl.location.search();
             _grpid = params.grpid || null;
+            var clean = ('clean' in params);
+            var max = ('max' in params) ? parseInt(params.max) : null;
             if (_grpid && !nlRouter.isPermitted(_userInfo, 'admin_group')) {
                 nlDlg.popupAlert({title: 'Not allowed', template: 'You are not allowed to view this information.'})
                 .then(function() {
@@ -59,12 +61,19 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
                 return;
             }
 
-		    nlGroupInfo.init(true, _grpid).then(function() {
+		    nlGroupInfo.init(true, _grpid, clean, max).then(function() {
 		        nlGroupInfo.update(_grpid);
 		        _groupInfo = nlGroupInfo.get(_grpid);
+		        if (_groupInfo.cacheDirty) {
+		            var userCnt = Object.keys(_groupInfo.derived.keyToUsers).length;
+		            var msg = 'Cache building is in progress. ';
+		            msg += 'You may not be seeing the complete list of users. ';
+		            msg += 'Currently <b>{}</b> users are loaded.';
+		            nlDlg.popupAlert({title: 'Warning', template: nl.fmt2(msg, userCnt)});
+		        }
                 nlAdminUserImport.init(_groupInfo, _userInfo, _grpid);
                 nl.pginfo.pageTitle = nl.t('User administration: {}', _groupInfo.name);
-                $scope.cards.cardlist = _getCards();
+                _updateCards();
                 resolve(true);
             }, function(err) {
                 resolve(false);
@@ -110,7 +119,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
 		return ret;
 	}
 
-	function _getCards() {
+	function _updateCards() {
 		var cards = [];
 		var users = _groupInfo.derived.keyToUsers || {};
 		for (var key in users) {
@@ -120,7 +129,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
         cards.sort(function(a, b) {
             return ((b.updated || 0) - (a.updated || 0));
         });
-		return cards;
+		$scope.cards.rebuildCache = true;
+		$scope.cards.cardlist = cards;
 	}
 	
 	function _createCard(user) {
@@ -170,19 +180,12 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
             usertype: nlGroupInfo.getUtOptions(_grpid),
             state: nlGroupInfo.getStateOptions(_grpid)};
 
-        var ouTreeInfo = {};
-        ouTreeInfo.data = angular.copy(_groupInfo.outree || []);
-        var secOuTreeInfo = {};
-        secOuTreeInfo.data = angular.copy(_groupInfo.outree || []);
-
         dlg.scope.data = {usertype: dlg.scope.options.usertype[0], 
             user_id: '',
             first_name: '',
             last_name: '',
             email: '',
-            state: dlg.scope.options.state[0],
-            org_unit: ouTreeInfo,
-            sec_ou_list: secOuTreeInfo};
+            state: dlg.scope.options.state[0]};
         var user = null;
 
         if (card) {
@@ -197,19 +200,14 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
             dlg.scope.data.last_name = user.last_name;
             dlg.scope.data.email = user.email;
             dlg.scope.data.state = {id: user.state, name: user.getStateStr()};
-            nlTreeSelect.updateSelectionTree(ouTreeInfo, user.org_unit ? [{id:user.org_unit}]: []);
-            nlTreeSelect.updateSelectionTree(secOuTreeInfo, user.sec_ou_list ? user.sec_ou_list.split(',') : []);
+            dlg.scope.data.org_unit = _getTreeInfo(user.org_unit, true, false);
+            dlg.scope.data.sec_ou_list = _getTreeInfo(user.sec_ou_list, false, true);
         } else {
             dlg.scope.dlgTitle = nl.t('New user');
             dlg.scope.isModify = false;
-            nlTreeSelect.updateSelectionTree(ouTreeInfo, []);
-            nlTreeSelect.updateSelectionTree(secOuTreeInfo, []);
+            dlg.scope.data.org_unit = _getTreeInfo('', true, false);
+            dlg.scope.data.sec_ou_list = _getTreeInfo('', false, true);
         }
-        
-        ouTreeInfo.treeIsShown = true;
-        ouTreeInfo.multiSelect = false;
-        secOuTreeInfo.treeIsShown = false;
-        secOuTreeInfo.multiSelect = true;
 
         var button = {
             text : card ? nl.t('Modify') : nl.t('Create'),
@@ -223,22 +221,87 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
         dlg.show('view_controllers/admin/user_create_dlg.html', [button], cancelButton, false);
     }
 
+    function _getTreeInfo(itemList, treeIsShown, multiSelect) {
+        var selectedIds = _getIdDict(itemList);
+        var treeInfo = {data: nlTreeSelect.treeToTreeArray(_groupInfo.outree || [])};
+        nlTreeSelect.updateSelectionTree(treeInfo, selectedIds);
+        treeInfo.treeIsShown = treeIsShown;
+        treeInfo.multiSelect = multiSelect;
+        return treeInfo;
+    }
+    
+    function _getIdDict(itemList) {
+        var selectedIds = {};
+        if (itemList == '') return selectedIds;
+        var items = itemList.split(',');
+        for (var i=0; i<items.length; i++) {
+            selectedIds[items[i].trim()] = true;
+        }
+        return selectedIds;
+    }
+    
+    function _getTreeSelection(treeInfo) {
+        var selected = nlTreeSelect.getSelectedIds(treeInfo, true);
+        var ret = '';
+        var DELIM = '';
+        for(var key in selected) {
+            ret += DELIM + key;
+            DELIM = ',';
+        }
+        return ret;
+    }
+    
     function _onCreateModify(event, dlgScope, user) {
         var d = dlgScope.data;
-        var record = {op: user ? 'u' : 'c', username: user.username,
-            user_id: d.user_id, usertype: d.usertype, state: d.state,
-            first_name: d.first_name, last_name: d.last_name,
-            email: d.email, org_unit: d.org_unit, sec_ou_list: d.sec_ou_list
+        var row = {op: user ? 'u' : 'c', username: user.username,
+            user_id: d.user_id, usertype: d.usertype.name, state: d.state.id,
+            first_name: d.first_name, last_name: d.last_name, email: d.email, 
+            org_unit: _getTreeSelection(d.org_unit), 
+            sec_ou_list: _getTreeSelection(d.sec_ou_list)
         };
+        dlgScope.error = {};
         nlAdminUserImport.initImportOperation();
-        try {
-            nlAdminUserImport.validateKeyColumns(record);
-        } catch (e) {
+        if (!_validate(dlgScope, row)) {
             if (event) event.preventDefault();
-            dlgScope.error.user_id = e.message;
             return;
         }
-        nlDlg.popupStatus('OK');
+        if (row.ignore) {
+            nlDlg.popupStatus('No changes to update');
+            return;
+        }
+        nlDlg.showLoadingScreen();
+        nlAdminUserImport.updateServer([row]).then(function() {
+            nlDlg.hideLoadingScreen();
+            _groupInfo = nlGroupInfo.get(_grpid);
+            _updateCards();
+        });
+    }
+    
+    function _validate(dlgScope, row) {
+        if(!_validateField(nlAdminUserImport.validateOp, row, dlgScope, '')) return false;
+        if(!_validateField(nlAdminUserImport.validateGroup, row, dlgScope, '')) return false;
+        if(!_validateField(nlAdminUserImport.validateKeyColumns, row, dlgScope, 'user_id')) return false;
+        if(!_validateField(nlAdminUserImport.validateUserType, row, dlgScope, 'usertype')) return false;
+        if(!_validateField(nlAdminUserImport.validateState, row, dlgScope, 'state')) return false;
+        if(!_validateField(nlAdminUserImport.validateNames, row, dlgScope, 'first_name')) return false;
+        if(!_validateField(nlAdminUserImport.validateEmail, row, dlgScope, 'email')) return false;
+        if(!_validateField(nlAdminUserImport.validateMobile, row, dlgScope, '')) return false;
+        if(!_validateField(nlAdminUserImport.validateOu, row, dlgScope, 'org_unit')) return false;
+        if(!_validateField(nlAdminUserImport.validateSecOu, row, dlgScope, 'sec_ou_list')) return false;
+        if(!_validateField(nlAdminUserImport.validateManagers, row, dlgScope, '')) return false;
+        if(!_validateField(nlAdminUserImport.deleteUnwanted, row, dlgScope, '')) return false;
+        if(!_validateField(nlAdminUserImport.validateDuplicates, row, dlgScope, '')) return false;
+        return true;
+    }
+    
+    function _validateField(fn, record, dlgScope, attr) {
+        try {
+            fn(record);
+        } catch (e) {
+            if (dlgScope && attr) dlgScope.error[attr] = e.message;
+            return false;
+        }
+        return true;
     }
     
     function _export() {
@@ -253,7 +316,9 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
     function _import() {
         nlAdminUserImport.importUsers($scope).then(function() {
             _groupInfo = nlGroupInfo.get(_grpid);
-            $scope.cards.cardlist = _getCards();
+            _updateCards();
+        }, function(msg) {
+            nlDlg.popupStatus('Import ongoing');
         });
     }
 }];

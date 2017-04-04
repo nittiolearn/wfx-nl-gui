@@ -107,26 +107,18 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
 
     this.importUsers = function($scope) {
         return nl.q(function(resolve, reject) {
-            if (_isImportOngoing()) {
+            if (self.resolve) {
                 reject('Import operation is ongoing');
                 return;
             }
             self.resolve = resolve;
-            self.reject = reject;
             _import($scope);
         });
     };
     
-    function _isImportOngoing() {
-        return _groupInfo != null;
-    }
-    
     function _onImportDone() {
-        self.reject = null;
         self.pl = null;
         self.dlg = null;
-        _groupInfo = null;
-        _userInfo = null;
 
         self.resolve();
         self.resolve = null;
@@ -142,6 +134,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         dlg.scope.running = false;
         dlg.scope.data = {filelist: [], validateOnly: true};
         dlg.scope.onImport = function(e) {
+            _progressLevels = dlg.scope.data.validateOnly ? _progressLevelsValidateOnly : _progressLevelsFull;
             _onImport(e, dlg.scope);
         };
         self.pl = nlProgressLog.create(dlg.scope);
@@ -167,6 +160,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     this.initImportOperation = function() {
         self.statusCnts = {total: 0, ignore: 0, process: 0, success: 0, error: 0};
         self.foundKeys = {};
+        self.showRowNumber = false;
     };
     
     function _onImport(e, dlgScope) {
@@ -176,6 +170,8 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             dlgScope.error.filelist = 'Please select the CSV file';
             return;
         }
+        
+        self.showRowNumber = true;
 
         self.setProgress('start');
         dlgScope.started = true;
@@ -183,12 +179,12 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         var csvFile = dlgScope.data.filelist[0].resource;
         self.pl.imp('Import started: ' + csvFile.name);
         nlImporter.readCsv(csvFile).then(function(result) {
-            try {
-                if (result.error)
-                    _throwException('Error parsing CSV file. Header row missing');
-                self.pl.imp('Read successful', angular.toJson(result, 2));
-                var table = result.table;
-                var rows = _processCsvFile(table);
+            if (result.error)
+                _throwException('Error parsing CSV file. Header row missing');
+            self.pl.imp('Read successful', angular.toJson(result, 2));
+            self.setProgress('fileRead');
+            var table = result.table;
+            _processCsvFile(table).then(function(rows) {
                 self.setProgress('processCsv');
                 self.pl.imp(nl.fmt2('Processing CSV file successful - {} of {} records to be sent to server', 
                     self.statusCnts.process, self.statusCnts.total), angular.toJson(rows, 2));
@@ -196,18 +192,17 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
                     _done(true);
                     return;
                 }
-                _updateServer(rows).then(function() {
-                    _done();
-                });
-            } catch(e) {
+                self.updateServer(rows);
+            }, function(e) {
                 _error(e);
-            }
+            });
         }, function(e) {
             _error(nl.t('Error reading CSV file: {}', e));
         });
     }
 
     function _throwException(message, obj) {
+        if (self.showRowNumber && obj && obj.pos) message = nl.fmt2('Row {}: {}', obj.pos, message);
         throw({message: message, obj: obj});
     }
     
@@ -215,9 +210,9 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         self.setProgress('done');
         var msg = e && e.message ? e.message : 'Error encountered during import';
         var data = e && e.obj ? e.obj : self.statusCnts;
-        self.pl.imp('Status counts', angular.toJson(self.statusCnts, 2));
-        self.pl.error(msg, angular.toJson(data, 2));
-        self.dlg.scope.running = false;
+        if(self.pl) self.pl.imp('Status counts', angular.toJson(self.statusCnts, 2));
+        if(self.pl) self.pl.error(msg, angular.toJson(data, 2));
+        if(self.dlg) self.dlg.scope.running = false;
     }
     
     function _doneImpl(validateOnly) {
@@ -229,32 +224,48 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         msg = nl.fmt2(msg, self.statusCnts.total, self.statusCnts.process,
             self.statusCnts.success, self.statusCnts.error);
         if (self.statusCnts.error > 0)
-            self.pl.error(msg, angular.toJson(self.statusCnts, 2));
+            if(self.pl) self.pl.error(msg, angular.toJson(self.statusCnts, 2));
         else
-            self.pl.imp(msg, angular.toJson(self.statusCnts, 2));
-        self.dlg.scope.running = false;
+            if(self.pl) self.pl.imp(msg, angular.toJson(self.statusCnts, 2));
+        if(self.dlg) self.dlg.scope.running = false;
     }
     
     function _done(validateOnly) {
-        if (!self.reload) {
-            _doneImpl(validateOnly);
-            return;
-        }
-        nlGroupInfo.init(true, _grpid).then(function() {
-            nlGroupInfo.update(_grpid);
-            _groupInfo = nlGroupInfo.get(_grpid);
-            _doneImpl(validateOnly);
+        return nl.q(function(resolve, reject) {
+            if (!self.reload) {
+                _doneImpl(validateOnly);
+                resolve();
+                return;
+            }
+            nlGroupInfo.init(true, _grpid).then(function() {
+                nlGroupInfo.update(_grpid);
+                _groupInfo = nlGroupInfo.get(_grpid);
+                _doneImpl(validateOnly);
+                resolve();
+            });
         });
     }
     
-    var _progressLevels = {
+    var _progressLevelsFull = {
         start: [0, 0],
-        processCsv: [0, 5],
-        uploadToServer: [5, 98],
-        done: [98, 100]
+        fileRead: [0, 2],
+        processCsv: [2, 20],
+        uploadToServer: [20, 99],
+        done: [99, 100]
     };
     
+    var _progressLevelsValidateOnly = {
+        start: [0, 0],
+        fileRead: [0, 2],
+        processCsv: [2, 99],
+        uploadToServer: [99, 99],
+        done: [99, 100]
+    };
+
+    var _progressLevels = null;
+
     this.setProgress = function(currentAction, doneSubItems, maxSubItems) {
+        if (!self.pl) return;
         if (doneSubItems !== 0 && !doneSubItems) doneSubItems = 1;
         if (!maxSubItems) maxSubItems = 1;
         var levels = _progressLevels[currentAction];
@@ -263,24 +274,55 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     }
 
     function _processCsvFile(table) {
-        var headerInfo = _getHeaders(table);
-        self.pl.debug('Header row processsed', angular.toJson(headerInfo, 2));
-        var data = [];
-        for (var i=1; i<table.length; i++) {
+        return nl.q(function(resolve, reject) {
+            nl.timeout(function() {
+                try {
+                    var headerInfo = _getHeaders(table);
+                    self.pl.debug('Header row processsed', angular.toJson(headerInfo, 2));
+                    var data = [];
+                    _processCsvRowsT(table, headerInfo, 1, data, resolve, reject);
+                } catch (e) {
+                    reject(e);
+                }
+            }, 0);
+        });
+    }
+    
+    function _processCsvRowsT(table, headerInfo, start, data, resolve, reject) {
+        nl.timeout(function() {
+            try {
+                _processCsvRows(table, headerInfo, start, data, resolve, reject);
+            } catch (e) {
+                reject(e);
+            }
+        }, 0);
+    }
+
+    var PROCESS_CHUNK_SIZE = 487; // Some prime number instead of a round number
+    function _processCsvRows(table, headerInfo, start, data, resolve, reject) {
+        if (self.pl) self.pl.imp(nl.fmt2('{} of {} rows processed', start+1, table.length));
+        self.setProgress('processCsv', start, table.length+1);
+        if (start >= table.length) {
+            resolve(data);
+            return;
+        }
+        var end = start+PROCESS_CHUNK_SIZE;
+        if (end > table.length) end = table.length;
+        for (var i=start; i<end; i++) {
             var row = table[i];
             self.statusCnts.total++;
-            self.pl.debug('Validating row', angular.toJson(row, 2));
+            if (self.pl) self.pl.debug(nl.fmt2('Validating row {} of {}', i+1, table.length), angular.toJson(row, 2));
             row = _getRowObj(row, headerInfo, i);
             if (row == null) {
                 self.statusCnts.ignore++;
-                self.pl.debug('Validated row - ignoring');
+                if (self.pl) self.pl.debug('Validated row - ignoring');
             } else {
                 self.statusCnts.process++;
-                self.pl.debug('Validated row', angular.toJson(row, 2));
+                if (self.pl) self.pl.debug('Validated row', angular.toJson(row, 2));
                 data.push(row);
             }
         }
-        return data;
+        _processCsvRowsT(table, headerInfo, end, data, resolve, reject);
     }
     
     function _getHeaders(table) {
@@ -327,36 +369,38 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     }
 
     function _validateRow(row) {
-        _validateOp(row);
-        _validateGroup(row);
+        self.validateOp(row);
+        self.validateGroup(row);
         self.validateKeyColumns(row);
-        _validateUserType(row);
-        _validateState(row);
-        _validateNames(row);
-        _validateEmailAndMobile(row);
-        _validateOus(row);
-        _validateManagers(row);
-        _deleteUnwanted(row);
-        _validateDuplicates(row);
+        self.validateUserType(row);
+        self.validateState(row);
+        self.validateNames(row);
+        self.validateEmail(row);
+        self.validateMobile(row);
+        self.validateOu(row);
+        self.validateSecOu(row);
+        self.validateManagers(row);
+        self.deleteUnwanted(row);
+        self.validateDuplicates(row);
     }
 
     var _validOps = {'c': true, 'C': true, 'u': true, 'U': true, 'd': true, 'e': true, 'E': true, 'i': true};
-    function _validateOp(row) {
+    this.validateOp = function(row) {
         if (!(row.op in _validOps))
             _throwException('Invalid operation specified', row);
         if (row.op == 'd' && !nlRouter.isPermitted(_userInfo, 'admin_group'))
             _throwException('Modify with state=1 instead of delete', row);
         if (row.op == 'i') row.ignore = true;
-    }
+    };
     
-    function _validateGroup(row) {
+    this.validateGroup = function(row) {
         if (!row.gid) row.gid = _groupInfo.grpid;
         row.gid = row.gid.toLowerCase().trim();
         if (nlRouter.isPermitted(_userInfo, 'admin_group')) return;
 
         if (row.gid != _groupInfo.grpid)
             _throwException('Group id not allowed', row);
-    }
+    };
     
     this.validateKeyColumns = function(row) {
         if (!row.user_id)
@@ -382,7 +426,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             _throwException('Cannot change loginid of this user', row);
     };
 
-    function _validateUserType(row) {
+    this.validateUserType = function(row) {
         row.usertype = nlGroupInfo.getUtStrToInt(row.usertype, _grpid);
         if (row.usertype ===  null)
             _throwException('Invalid Usertype specified', row);
@@ -396,19 +440,21 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             if (row.usertype <= nlGroupInfo.UT_PADMIN) 
                 _throwException('Cannot create users of this type', row);
         }
-    }
+    };
 
-    function _validateState(row) {
-        row.state = (row.state === '1') ? 1 : (row.state === '0') ? 0 : null;
-        if (row.state === null)
+    this.validateState = function(row) {
+        row.state = parseInt(row.state);
+        if (row.state != 0 && row.state != 1)
             _throwException('Invalid state specified', row);
-    }
+    };
 
-    function _validateNames(row) {
+    this.validateNames = function(row) {
         if (!row.last_name) row.last_name= '';
         row.first_name = _toDisplayName(row.first_name);
         row.last_name = _toDisplayName(row.last_name);
-    }
+        if (row.first_name == '')
+            _throwException('First name is mandatory and can have only characters from a-z or A-Z or 0-9 or special character from set _ - . ( or ). Cannot start with space.', row);
+    };
 
     function _toDisplayName(input) {
         input = input.replace(/[^a-zA-Z0-9_-]/g, function(x) {
@@ -418,25 +464,31 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         return input.trim();
     }
 
-    function _validateEmailAndMobile(row) {
+    this.validateEmail = function(row) {
         if(!row.email)
-            _throwException('Email is mandatory', row);
+            _throwException('Properly formed email address is mandatory', row);
         var emailRe = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
         row.email = row.email.trim();
+    };
 
+    this.validateMobile = function(row) {
         if(!row.mobile) row.mobile = '';
         row.mobile = row.mobile.replace(/[^0-9]/g, function(x) {
             if (x == '+') return x;
             return '';
         });
         row.mobile = row.mobile.trim();
-    }
+    };
 
-    function _validateOus(row) {
+    this.validateOu = function(row) {
         row.org_unit = row.org_unit.trim();
+        if (!(row.org_unit))
+            _throwException('OU is mandatory', row);
         if (!(row.org_unit in _groupInfo.derived.ouDict))
             _throwException(nl.fmt2('Invalid OU: {}', row.org_unit), row);
+    };
         
+    this.validateSecOu = function(row) {
         if(!row.sec_ou_list) row.sec_ou_list = '';
         row.sec_ou_list = row.sec_ou_list.trim();
         if (row.sec_ou_list == '') return;
@@ -445,17 +497,18 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             if (!(sec_ou_list[i] in _groupInfo.derived.ouDict))
                 _throwException(nl.fmt2('Invalid Sec OU: {}', sec_ou_list[i]), row);
         }
-    }
+    };
 
-    function _deleteUnwanted(row) {
+    this.deleteUnwanted = function(row) {
         if ('created' in row) delete row.created;
         if ('udpated' in row) delete row.updated;
     }
     
-    function _validateDuplicates(row) {
+    this.validateDuplicates = function(row) {
         if (row.ignore || row.op != 'u') return;
         var user = _groupInfo.derived.keyToUsers[row.username];
         row.id = user.id;
+        if (user.user_id != row.user_id) return;
         if (user.state != row.state) return;
         if (user.email != row.email) return;
         if (user.usertype != row.usertype) return;
@@ -463,18 +516,30 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         if (user.sec_ou_list != row.sec_ou_list) return;
         if (user.first_name != row.first_name) return;
         if (user.last_name != row.last_name) return;
-        self.pl.imp('Update with no change ignored', angular.toJson(row, 2));
+        if (self.pl) {
+            self.pl.imp('Update with no change ignored', angular.toJson(row, 2));
+        }
         row.ignore = true;
-    }
+    };
 
-    function _validateManagers(row) {
+    this.validateManagers = function(row) {
         // Manager and Watchers to be validated here
-    }
+    };
     
-    function _updateServer(rows) {
+    this.updateServer = function(rows) {
         self.reload = false;
+        self.chunkStart = 0;
         return nl.q(function(resolve, reject) {
-            self.chunkStart = 0;
+            _updateServerImpl(rows).then(function() {
+                _done().then(function() {
+                    resolve();
+                });
+            });
+        });
+    };
+
+    function _updateServerImpl(rows) {
+        return nl.q(function(resolve, reject) {
             _updateChunkToServer(rows, resolve);
         });
     }
@@ -483,7 +548,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     function _updateChunkToServer(rows, resolve) {
         self.setProgress('uploadToServer', self.chunkStart, rows.length);
         if (self.chunkStart >= rows.length) {
-            self.pl.imp('all updates done');
+            if (self.pl) self.pl.imp('all updates done');
             resolve();
             return;
         }
@@ -493,7 +558,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             chunkEnd = rows.length;
         }
         var rowsChunk = rows.slice(self.chunkStart, chunkEnd);
-        self.pl.imp(nl.fmt2('updating server: row {} (update {} of {})', 
+        if (self.pl) self.pl.imp(nl.fmt2('updating server: row {} (update {} of {})', 
             rows[self.chunkStart].pos, self.chunkStart+1, rows.length));
         nlServerApi.groupUpdateUsers(_groupInfo.id, rowsChunk)
         .then(function(result) {
@@ -503,11 +568,11 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
                 var result = statuslist[i];
                 var row = rows[self.chunkStart+i];
                 if (result.error) {
-                    self.pl.warn(nl.fmt2('Updating row {} failed at server', 
+                    if (self.pl) self.pl.warn(nl.fmt2('Updating row {} failed at server', 
                         row.pos), result);
                     self.statusCnts.error++;
                 } else {
-                    self.pl.debug(nl.fmt2('Updated row {} at the server successfully',
+                    if (self.pl) self.pl.debug(nl.fmt2('Updated row {} at the server successfully',
                         row.pos));
                     self.statusCnts.success++;
                 }
@@ -515,7 +580,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             self.chunkStart = chunkEnd;
             _updateChunkToServer(rows, resolve);
         }, function(e) {
-            self.pl.warn(nl.fmt2('Updating the server chunk {} - {} failed', 
+            if (self.pl) self.pl.warn(nl.fmt2('Updating the server chunk {} - {} failed', 
                 self.chunkStart, chunkEnd), e);
             self.statusCnts.error += (chunkEnd - self.chunkStart);
             self.chunkStart = chunkEnd;

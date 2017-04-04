@@ -398,11 +398,12 @@ function(nl, nlDlg, nlConfig, Upload) {
     //---------------------------------------------------------------------------------------------
 	// get group user entities
     //---------------------------------------------------------------------------------------------
-	this.groupGetInfo = function(reload, grpid) {
+	this.groupGetInfo = function(reload, grpid, clean, max) {
 	    var cacheKey = 'group_get_info';
 	    if (grpid) cacheKey += '.' + grpid;
 	    return _getFromCacheOrServer(cacheKey, reload ? 0 : DEFAULT_CACHE_LIFE, 
-	       '_serverapi/group_get_info.json', {grpid: grpid});
+	       '_serverapi/group_get_info.json', {grpid: grpid, 
+	           clean: clean || false, max: max || null});
 	};
 
     this.groupUpdateUsers = function(grp, data) {
