@@ -19,7 +19,7 @@ function($stateProvider) {
         url : '^/login_now',
         views : {
             'appContent' : {
-                template : '',
+                templateUrl : 'view_controllers/auth/login.html',
                 controller : 'nl.auth.LoginCtrl'
             }
         }
@@ -37,7 +37,7 @@ function($stateProvider) {
         url : '^/impersonate',
         views : {
             'appContent' : {
-                template : '',
+                templateUrl : 'view_controllers/auth/login.html',
                 controller : 'nl.auth.ImpersonateCtrl'
             }
         }
@@ -67,80 +67,77 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig) {
 }];
 
 function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig) {
+    nl.pginfo.hidemenu = true;
     $scope.isLogin  = isLogin;
-    var loginDlg = nlDlg.create($scope);
+    $scope.logo = nl.url.resUrl('website/nittiologowhite.png');
+    $scope.bgImg = nl.url.resUrl('website/signin-bg1.jpg');
+    $scope.showHome = true;
+    $scope.showLogo = true;
+    
+    $scope.goHome = function() {
+        if (!$scope.showHome) return;
+        nl.location.url('/#/home');
+    };
+
+    $scope.lostPassword = function() {
+        nl.window.location.href = '/auth/pwlost';
+    };
 
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
             nl.log.debug('_loginControllerImpl:onPageEnter - enter');
+            nl.pginfo.hidemenu = true;
+            var params = nl.location.search();
+            if ('nohome' in params) $scope.showHome = false;
+            if ('nologo' in params) $scope.showLogo = false;
+
             nlServerApi.clearCache();
             var username = userInfo.username;
             if (isLogin) {
                 nl.pginfo.pageTitle = nl.t('Sign In');
-                loginDlg.scope.msg = _getMsg(nl.location.search());
-                loginDlg.scope.msgClass = '';
+                $scope.msg = _getMsg(params);
+                $scope.msgClass = '';
             } else {
                 username = '';
                 nl.pginfo.pageTitle = nl.t('Impersonate as user');
-                loginDlg.scope.msg = nl.t('Be care full. Ensure you logout as soon as the work is done');
-                loginDlg.scope.msgClass = 'nl-bg-red';
+                $scope.msg = nl.t('Be care full. Ensure you logout as soon as the work is done');
+                $scope.msgClass = 'nl-bg-red';
             }
-            loginDlg.scope.data = {username: username, password: '', remember: false};
-            loginDlg.scope.error = {};
+            $scope.data = {username: username, password: '', remember: true};
+            $scope.error = {};
 
             nl.log.debug('_loginControllerImpl:onPageEnter - done');
             resolve(true);
             nl.timeout(function() {
-                _showLoginDlg();
+                nlDlg.getField('username').focus();
             });
         });
     }
-    function _onPageLeave() {
-        loginDlg.close(false);
-        return true;
-    }
-    
-    nlRouter.initContoller($scope, '', _onPageEnter, _onPageLeave);
+    nlRouter.initContoller($scope, '', _onPageEnter);
     
     //---------------------------------------------------------------------------------------------
     // Controller private functions
     //---------------------------------------------------------------------------------------------
-    function _showLoginDlg() {
-        var buttonName = isLogin ? nl.t('Sign In') : nl.t('Impersonate');
-        var loginButton = {text: buttonName, onTap: function(e) {
-            if (e) e.preventDefault();
-            loginWithSignInOrEnter();
-        }};
-        var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
-            if (e) e.preventDefault();
-            loginDlg.close(false);
-            loginDlg.destroy();
-            nl.location.url('/welcome#home');
-        }};
-        loginDlg.show('view_controllers/auth/logindlg.html', [loginButton], cancelButton, false);
-    }
-    
     $scope.onUsernameEnter = function(keyEvent) {
 	  	if (keyEvent.which !== 13) return;
-	  	if(!_validateInputs(loginDlg.scope)) return;
+	  	if(!_validateInputs($scope)) return;
 	  	nlDlg.getField('password').focus();
 	};
 
     $scope.onPasswordEnter = function(keyEvent) {
 	  	if (keyEvent.which !== 13) return;
-	  	loginWithSignInOrEnter();
+	  	$scope.loginWithSignInOrEnter();
 	};
 	
-    function loginWithSignInOrEnter() {
-	  	if(!_validateInputs(loginDlg.scope)) return;
-            nlDlg.showLoadingScreen();
-            loginDlg.close(false);
-            if (isLogin) {
-                nlServerApi.authLogin(loginDlg.scope.data).then(_onLoginSuccess, _onLoginFailed);
-            } else {
-             nlServerApi.authImpersonate(loginDlg.scope.data.username).then(_onLoginSuccess, _onLoginFailed);
-         }
-	 }    	
+	$scope.loginWithSignInOrEnter = function() {
+        if (!_validateInputs($scope)) return;
+        nlDlg.showLoadingScreen();
+        if (isLogin) {
+            nlServerApi.authLogin($scope.data).then(_onLoginSuccess, _onLoginFailed);
+        } else {
+            nlServerApi.authImpersonate($scope.data.username).then(_onLoginSuccess, _onLoginFailed);
+        }
+    }    	
     
     function _getMsg(params) {
         var loginType = ('msg' in params) ? params.msg : '';
@@ -149,7 +146,7 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
             msg = 'You have been signed out. Sign in again?';
         }
         else if (loginType == 'auth_error') {
-            msg = 'You need to be signed in to access this page';
+            msg = 'You need to be signed in to access this page.';
         }
         else if (loginType == 'login_error') {
             msg = 'Username or password is incorrect. Try again?';
@@ -189,15 +186,12 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
     
     function _onLoginSuccess(data) {
         nlServerApi.getUserInfoFromCache().then(function(userInfo) {
-            loginDlg.destroy();
             nlDlg.hideLoadingScreen();
-
             var nextUrl = _getNextUrl(nl.location.search());
             if (!nextUrl.samePage) {
                 nl.window.location.href = nextUrl.url;
                 return;
             }
-            
             if (isLogin) {
                 var msg = nl.t('Welcome {}', userInfo.displayname);
                 nlDlg.popupStatus(msg);
@@ -214,7 +208,6 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
     function _onLoginFailed(data) {
         nl.log.warn('_onLoginFailed');
         nlDlg.hideLoadingScreen();
-        _showLoginDlg();
     }
 }
 

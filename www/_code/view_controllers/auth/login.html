@@ -1,0 +1,54 @@
+<style>
+.nl-website .bg-img {
+    background-image: url({{bgImg}});
+    background-position: 70% 0%;
+}
+</style>
+<div class='nl-thin-scroll nl-full nl-website'>
+<div class='section vh100 row row-center padding margin0'>
+<div class="bg-img"></div>
+
+<div class='col'></div>
+<div class='padding bg-black'>
+    <div ng-show='showLogo'>
+    <div class='text-center padding-mid {{showHome ? "nl-link-text" : ""}}'>
+        <img alt='Nittio Learn' title='Nittio Learn'
+             style='height: 24px'
+             src='{{logo}}'
+             ng-click='goHome()'>
+    </div>
+    </div>
+    
+    <div class='fsh6 padding-mid fwhite {{msgClass}}'
+         ng-show='msg' ng-bind-html='msg'>
+    </div>
+    <div class='padding-mid'></div>
+
+    <div class='row row-wrap row-top padding0 margin0'>
+        <div ng-class='resp2Col33' class='padding-mid fwhite'>
+            <div style='padding-top: 10px'>Username</div></div>
+        <div ng-class='resp2Col67' class='padding-mid'>
+            <nl-input fieldmodel='username' fieldtype='text' fieldcls='w100'
+                      ng-keypress="onUsernameEnter($event)"></nl-select>
+        </div>
+    </div>
+    <div class='row row-wrap row-top padding0 margin0'
+         ng-show='isLogin'>
+        <div ng-class='resp2Col33' class='padding-mid fwhite'>
+            <div style='padding-top: 10px'>Password</div></div>
+        <div ng-class='resp2Col67' class='padding-mid'>
+            <nl-input fieldmodel='password' fieldtype='password' fieldcls='w100'
+                      ng-keypress="onPasswordEnter($event)"></nl-select>
+        </div>
+    </div>
+    <div ng-show='isLogin' class='padding-mid nl-link-text fwhite'
+         ng-click='lostPassword()'>Lost Password?
+    </div>
+    <div class='padding-mid'></div>
+    <div class='nl-button' ng-click='loginWithSignInOrEnter()'>Sign in</div>
+</div>
+<div class='col'></div>
+
+</div>
+</div>
+</div>
