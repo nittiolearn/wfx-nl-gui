@@ -17,7 +17,7 @@
     </tr>
     <tr ng-repeat-end ng-show='card.showDetails'>
     	<td colspan='{{$root.screenSize == "small" ? cards.listConfig.smallColumns : cards.listConfig.columns.length}}'>
-			<nl-training-details trainingcard='card'></nl-training-details>
-    	</td>
+    		<div nl-compile='card.listDetails'></div>
+		</td>
     </tr>
 </table>
