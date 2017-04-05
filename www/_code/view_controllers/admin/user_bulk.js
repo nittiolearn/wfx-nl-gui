@@ -98,6 +98,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     var _grpid = null;
     var _groupInfo = null;
     var _userInfo = null;
+    var _SERVER_CHUNK_SIZE = 100;
     
     this.init = function(groupInfo, userInfo, grpid) {
         _groupInfo = groupInfo;
@@ -105,14 +106,15 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         _grpid = grpid;
     };
 
-    this.importUsers = function($scope) {
+    this.importUsers = function($scope, chunkSize, debugLog) {
+        if (chunkSize) _SERVER_CHUNK_SIZE = chunkSize;
         return nl.q(function(resolve, reject) {
             if (self.resolve) {
                 reject('Import operation is ongoing');
                 return;
             }
             self.resolve = resolve;
-            _import($scope);
+            _import($scope, debugLog);
         });
     };
     
@@ -125,7 +127,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         return true;
     }
 
-    function _import($scope) {
+    function _import($scope, debugLog) {
         var dlg = nlDlg.create($scope);
         self.dlg = dlg;
         dlg.setCssClass('nl-height-max nl-width-max');
@@ -139,6 +141,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         };
         self.pl = nlProgressLog.create(dlg.scope);
         self.pl.showLogDetails(true);
+        if (!debugLog) self.pl.hideDebugAndInfoLogs();
         self.pl.clear();
         
         var cancelButton = {
@@ -403,10 +406,9 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     };
     
     this.validateKeyColumns = function(row) {
-        if (!row.user_id)
-            _throwException('User id is missing', row);
-        // TODO-MUNNI-NOW: validate syntax required
-        row.user_id = row.user_id.toLowerCase().trim();
+        row.user_id = _toIdName(row.user_id || '');
+        if (row.user_id == '')
+            _throwException('User id is mandatory and can have only characters from a-z or 0-9 or special character _ or -.', row);
         if (!row.username) row.username = row.user_id + '.' + row.gid;
         row.username = row.username.toLowerCase().trim();
         
@@ -455,6 +457,14 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         if (row.first_name == '')
             _throwException('First name is mandatory and can have only characters from a-z or A-Z or 0-9 or special character from set _ - . ( or ). Cannot start with space.', row);
     };
+
+    function _toIdName(input) {
+        input = input.toLowerCase().trim();
+        input = input.replace(/[^a-zA-Z0-9_-]/g, function(x) {
+            return '';
+        });
+        return input.trim();
+    }
 
     function _toDisplayName(input) {
         input = input.replace(/[^a-zA-Z0-9_-]/g, function(x) {
@@ -544,7 +554,6 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         });
     }
 
-    var CHUNK_SIZE = 100;
     function _updateChunkToServer(rows, resolve) {
         self.setProgress('uploadToServer', self.chunkStart, rows.length);
         if (self.chunkStart >= rows.length) {
@@ -553,7 +562,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             return;
         }
         
-        var chunkEnd = self.chunkStart + CHUNK_SIZE;
+        var chunkEnd = self.chunkStart + _SERVER_CHUNK_SIZE;
         if (chunkEnd > rows.length) {
             chunkEnd = rows.length;
         }
@@ -564,12 +573,21 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         .then(function(result) {
             self.reload = self.reload || result.reload;
             var statuslist = result.statuslist;
+            var processed = result.processed;
+            if (result.processed < rowsChunk.length) {
+                if (self.pl) self.pl.warn(nl.fmt2('Processed only {} of {} at server', 
+                    processed, rowsChunk.length));
+            } else {
+                if (self.pl) self.pl.imp(nl.fmt2('Processed {} of {} at server', 
+                    processed, rowsChunk.length));
+            }
+
             for(var i=0; i<statuslist.length; i++) {
                 var result = statuslist[i];
                 var row = rows[self.chunkStart+i];
                 if (result.error) {
-                    if (self.pl) self.pl.warn(nl.fmt2('Updating row {} failed at server', 
-                        row.pos), result);
+                    if (self.pl) self.pl.warn(nl.fmt2('Updating row {} failed at server: {}', 
+                        row.pos, result.msg));
                     self.statusCnts.error++;
                 } else {
                     if (self.pl) self.pl.debug(nl.fmt2('Updated row {} at the server successfully',
@@ -577,7 +595,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
                     self.statusCnts.success++;
                 }
             }
-            self.chunkStart = chunkEnd;
+            self.chunkStart += processed;
             _updateChunkToServer(rows, resolve);
         }, function(e) {
             if (self.pl) self.pl.warn(nl.fmt2('Updating the server chunk {} - {} failed', 

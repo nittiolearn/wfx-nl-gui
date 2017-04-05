@@ -209,6 +209,7 @@ function ProgressLog(nl, $filter, nlExporter) {
     var search = {filter: '', level: 'debug', levels: searchLevels};
     this.progressLog = {progress: 0, logs: [], currentMessage: '', showLogs: false, search: search};
     var self = this;
+    self._hideDebugAndInfoLogs = false;
     
     this.progressLog.canShow = function(log) {
         var logLevel = searchLevelsPrio[log.status];
@@ -255,6 +256,10 @@ function ProgressLog(nl, $filter, nlExporter) {
         this.progressLog.showLogs = bShowLogs;
     };
 
+    this.hideDebugAndInfoLogs = function() {
+        self._hideDebugAndInfoLogs = true;
+    };
+
     this.getSearchInfo = function() {
         return this.progressLog.serch;
     };
@@ -277,10 +282,12 @@ function ProgressLog(nl, $filter, nlExporter) {
     };
 
     this.info = function(title, details) {
+        if (self._hideDebugAndInfoLogs) return;
         this._log('info', title, details);
     };
 
     this.debug = function(title, details) {
+        if (self._hideDebugAndInfoLogs) return;
         this._log('debug', title, details);
     };
 

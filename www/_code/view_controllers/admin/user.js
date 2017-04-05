@@ -40,6 +40,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
 	var _userInfo = null;
 	var _groupInfo = null;
 	var _grpid = null;
+	var _chunksize = 100; // Number of records to send to server for updating in one chunk
+	var _debuglog = false;
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
@@ -53,6 +55,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
             _grpid = params.grpid || null;
             var clean = ('clean' in params);
             var max = ('max' in params) ? parseInt(params.max) : null;
+            if ('chunksize' in params) _chunksize = parseInt(params.chunksize);
+            if ('debuglog' in params) _debuglog = true;
             if (_grpid && !nlRouter.isPermitted(_userInfo, 'admin_group')) {
                 nlDlg.popupAlert({title: 'Not allowed', template: 'You are not allowed to view this information.'})
                 .then(function() {
@@ -314,7 +318,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
     }
 
     function _import() {
-        nlAdminUserImport.importUsers($scope).then(function() {
+        nlAdminUserImport.importUsers($scope, _chunksize, _debuglog).then(function() {
             _groupInfo = nlGroupInfo.get(_grpid);
             _updateCards();
         }, function(msg) {
