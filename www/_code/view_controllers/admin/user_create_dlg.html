@@ -32,28 +32,33 @@
             <div ng-class='resp2Col33' class='nl-dlg-field-name'>First name</div>
             <div ng-class='resp2Col67' class='nl-dlg-field-value'>
                 <input type='text' ng-model='data.first_name'>
+                <div ng-show='error.first_name' class='nl-dlg-field-errormsg'>{{error.first_name}}</div>
             </div>
 
             <div ng-class='resp2Col33' class='nl-dlg-field-name'>Last name</div>
             <div ng-class='resp2Col67' class='nl-dlg-field-value'>
                 <input type='text' ng-model='data.last_name'>
+                <div ng-show='error.last_name' class='nl-dlg-field-errormsg'>{{error.last_name}}</div>
             </div>
 
             <div ng-class='resp2Col33' class='nl-dlg-field-name'>Email</div>
             <div ng-class='resp2Col67' class='nl-dlg-field-value'>
                 <input type='email' ng-model='data.email'>
+                <div ng-show='error.email' class='nl-dlg-field-errormsg'>{{error.email}}</div>
             </div>
 
             <div ng-class='resp2Col33' class='nl-dlg-field-name'>Organization unit</div>
             <div ng-class='resp2Col67' class='nl-dlg-field-value'>
                 <nl-tree-select info='data.org_unit' tabindex='0' autofocus=''>
                 </nl-tree-select>
+                <div ng-show='error.org_unit' class='nl-dlg-field-errormsg'>{{error.org_unit}}</div>
             </div>
 
             <div ng-class='resp2Col33' class='nl-dlg-field-name'>Secondary organization units</div>
             <div ng-class='resp2Col67' class='nl-dlg-field-value'>
                 <nl-tree-select info='data.sec_ou_list' tabindex='0' autofocus=''>
                 </nl-tree-select>
+                <div ng-show='error.sec_ou_list' class='nl-dlg-field-errormsg'>{{error.sec_ou_list}}</div>
             </div>
         </div>
         <br/>

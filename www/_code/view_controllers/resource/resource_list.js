@@ -300,10 +300,10 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
                 return true;
             }; 
             addModifyResourceDlg.resolve = function () {
-                addModifyResourceDlg.close();
                 // Avoid multiple callbacks which are comming due to "close" call
                 if (addModifyResourceDlg.resolvedCalled) return;
                 addModifyResourceDlg.resolvedCalled = true;
+                addModifyResourceDlg.close();
                 resolve(addModifyResourceDlg.resInfos);
             }; 
 			_showDlg(addModifyResourceDlg, card, $scope, restypes);

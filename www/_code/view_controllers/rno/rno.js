@@ -259,7 +259,6 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         cards.search.onSearch = _onSearch;
         nlCardsSrv.updateGrades(cards, _getUtSecOptions());
         // cards.search.img = nl.url.resUrl('info.png');
-        // cards.search.maxLimit = 1000;
     }
     
     function _onSearch(filter, grade) {

@@ -20,8 +20,8 @@ function(nl, nlServerApi) {
     };
     
     var _groupInfos = {};
-    this.init = function(reload, grpid) {
-        return nlServerApi.groupGetInfo(reload, grpid).then(function(result) {
+    this.init = function(reload, grpid, clean, max) {
+        return nlServerApi.groupGetInfo(reload, grpid, clean, max).then(function(result) {
             _groupInfos[grpid || ''] = result;
         }, function(e) {
             return e;

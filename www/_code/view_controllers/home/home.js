@@ -189,7 +189,7 @@ function(nl, nlRouter, $scope) {
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
             var next = nlRouter.isPermitted(userInfo, '/home') ?
-                '/home' : '/login_now';
+                '/home' : '/login_now?nohome';
             nl.location.url(next);
             nl.location.replace();
         });

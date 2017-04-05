@@ -23,6 +23,12 @@ function(nl) {
         return treeArray;
     };
     
+    this.treeToTreeArray = function(tree) {
+        var treeArray = [];
+        _treeToTreeArray(tree, treeArray);
+        return treeArray;
+    };
+
     this.updateSelectionTree = function(treeSelectInfo, selectedIds) {
         var itemDict = {};
         var treeList = treeSelectInfo.data;
@@ -130,6 +136,15 @@ function(nl) {
     function _isDecendantOf(item, folder) {
         if (item.id == folder.id) return false;
         return (item.id.indexOf(folder.id) == 0);
+    }
+    
+    function _treeToTreeArray(tree, treeArray) {
+        for(var i=0; i<tree.length; i++) {
+            var item = tree[i];
+            treeArray.push({id: item.id});
+            if (!item.children || item.children.length == 0) continue;
+            _treeToTreeArray(item.children, treeArray);
+        }
     }
     
     function _insertParentAndItem(itemId, treeArray, insertedKeys) {

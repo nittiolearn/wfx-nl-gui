@@ -209,6 +209,7 @@ function ProgressLog(nl, $filter, nlExporter) {
     var search = {filter: '', level: 'debug', levels: searchLevels};
     this.progressLog = {progress: 0, logs: [], currentMessage: '', showLogs: false, search: search};
     var self = this;
+    self._hideDebugAndInfoLogs = false;
     
     this.progressLog.canShow = function(log) {
         var logLevel = searchLevelsPrio[log.status];
@@ -233,14 +234,18 @@ function ProgressLog(nl, $filter, nlExporter) {
     };
     
     this.progressLog.onLogSave = function() {
+        var zip = new JSZip();
         var ret = '';
-        for(var l in self.progressLog.logs) {
-            var log = self.progressLog.logs[l];
+        for(var i=0; i<self.progressLog.logs.length; i++) {
+            var log = self.progressLog.logs[i];
             var row = nl.fmt2('{}, {}, {}\r\n', log.status, log.ts, log.title);
             if (log.details) row += nl.fmt2('{}\r\n', log.details);
             ret += row;
         }
-        nlExporter.exportTextFile("progress-log.txt", ret);
+        zip.file('progress-log.txt', ret);
+        nlExporter.saveZip(zip, 'progress-log.zip', null, function(sizeKb) {
+        }, function(e) {
+        });
     };
     
     this.progressLog.onClearLogs = function() {
@@ -249,6 +254,10 @@ function ProgressLog(nl, $filter, nlExporter) {
     
     this.showLogDetails = function(bShowLogs) {
         this.progressLog.showLogs = bShowLogs;
+    };
+
+    this.hideDebugAndInfoLogs = function() {
+        self._hideDebugAndInfoLogs = true;
     };
 
     this.getSearchInfo = function() {
@@ -273,10 +282,12 @@ function ProgressLog(nl, $filter, nlExporter) {
     };
 
     this.info = function(title, details) {
+        if (self._hideDebugAndInfoLogs) return;
         this._log('info', title, details);
     };
 
     this.debug = function(title, details) {
+        if (self._hideDebugAndInfoLogs) return;
         this._log('debug', title, details);
     };
 
