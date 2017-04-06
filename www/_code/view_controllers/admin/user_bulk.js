@@ -419,6 +419,14 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             if (row.username in _groupInfo.derived.keyToUsers)
                 _throwException('User id already exists', row);
         }
+        if (row.op == 'u' || row.op == 'U') {
+            var newUserName = row.user_id + '.' + row.gid;
+            if (newUserName != row.username &&
+                newUserName in _groupInfo.derived.keyToUsers) {
+                _throwException('User id already exists', row);
+            }
+        }
+        
         if (row.username in self.foundKeys)
             _throwException('Duplicate instances of Key/loginid found', row);
         self.foundKeys[row.username] = true;
@@ -459,11 +467,11 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     };
 
     function _toIdName(input) {
-        input = input.toLowerCase().trim();
-        input = input.replace(/[^a-zA-Z0-9_-]/g, function(x) {
+        input = input.toLowerCase();
+        input = input.replace(/[^a-z0-9_-]/g, function(x) {
             return '';
         });
-        return input.trim();
+        return input;
     }
 
     function _toDisplayName(input) {
