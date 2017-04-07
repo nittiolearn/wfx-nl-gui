@@ -82,8 +82,8 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlSendAssignmentSrv) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var SendAssignmentSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlGroupInfo',
-function(nl, nlDlg, nlServerApi, nlGroupInfo) {
+var SendAssignmentSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlGroupInfo',  'nlTreeSelect',
+function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
 	var _ouList = []; // List (tree) of OUs in the group is fetched when the dialog is popped up
     var _ou2Users = {}; // Dict of ou to list of users
 	var _selectedOuList = []; // List of OU ids (strings)
@@ -196,13 +196,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         var ouSelectionDlg = nlDlg.create(parentScope);
         ouSelectionDlg.setCssClass('nl-height-max nl-width-max');   
         ouSelectionDlg.scope.treeData = _ouList;
-        ouSelectionDlg.scope.treeOptions = {
-            defaultSelectedState: false,
-            twistieExpandedTpl: nl.fmt2('<img src="{}" class="nl-16">', nl.url.resUrl('folder.png')),
-            twistieCollapsedTpl: nl.fmt2('<img src="{}" class="nl-16">', nl.url.resUrl('folder_closed.png')),
-            twistieLeafTpl: nl.fmt2('<img src="{}" class="nl-16">', nl.url.resUrl('file.png')),
-            labelAttribute: 'text'
-        };
+        ouSelectionDlg.scope.data = {};
+        ouSelectionDlg.scope.data.org_unit = _getTreeInfo( '', true, true, _ouList);
         ouSelectionDlg.scope.onNodeClick = function(node, isSelected, tree) {};
         
         var okButton = {text : nl.t('Select'), onTap : function(e) {_onUgDlgOk(e);}};
@@ -210,9 +205,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         ouSelectionDlg.show('view_controllers/assignment/ou_selection_dlg.html',
             [okButton], cancelButton);
 
+
         function _onUgDlgOk(e) {
             _selectedOuList = [];
-            _updateSelectedOus(ouSelectionDlg.scope.treeData);
+            _updateSelectedOus(ouSelectionDlg.scope.data.org_unit.data);
             if (!_assertUgCount()) {
                 e.preventDefault();
                 return;
@@ -232,6 +228,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         }
     }
 
+
     //---------------------------------------------------------------------------------------------
     // OU User Dialog
     //---------------------------------------------------------------------------------------------
@@ -241,8 +238,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         if (!userTree) return;
         var ouUserSelectionDlg = nlDlg.create(parentScope);
         ouUserSelectionDlg.setCssClass('nl-height-max nl-width-max');   
-        ouUserSelectionDlg.scope.treeData = userTree;
         ouUserSelectionDlg.scope.data = {};
+        ouUserSelectionDlg.scope.data.sec_outree = _getTreeInfo( '', true, true, userTree);
         ouUserSelectionDlg.scope.data.allselectedUsers = true;
         ouUserSelectionDlg.scope.treeOptions = {
             defaultSelectedState: false,
@@ -315,6 +312,29 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
             }
             return allSelected;
         }
+    }
+
+    //---------------------------------------------------------------------------------------------
+    // Get tree info
+    //---------------------------------------------------------------------------------------------
+
+    function _getTreeInfo(itemList, treeIsShown, multiSelect, treeData) {
+        var selectedIds = _getIdDict(itemList);
+        var treeInfo = {data: nlTreeSelect.treeToTreeArray(treeData || [])};
+        nlTreeSelect.updateSelectionTree(treeInfo, selectedIds);
+        treeInfo.treeIsShown = treeIsShown;
+        treeInfo.multiSelect = multiSelect;
+        return treeInfo;
+    }
+
+    function _getIdDict(itemList) {
+        var selectedIds = {};
+        if (itemList == '') return selectedIds;
+        var items = itemList.split(',');
+        for (var i=0; i<items.length; i++) {
+            selectedIds[items[i].trim()] = true;
+        }
+        return selectedIds;
     }
 
     //---------------------------------------------------------------------------------------------

@@ -8,18 +8,12 @@
 		background-color: #f5f5f;
 		border-radius: 4px;
 	}
-	.nl-data-visibleTo {
-		vertical-align: middle;
-	}
 	.nl-sep8{
 		padding: 8px;
 	}
-	.nl-time-input-div {
-		padding: 5px 3px 5px 9px;
-	}
 	.nl-time-input {
 		border-radius: 4px;
-		padding: 2px 8px 1px 8px;
+		padding: 5px;
 		background-color: #EEEEFF;
 		margin: 0;
 		min-height: 34px;
@@ -29,9 +23,6 @@
 		text-align: right;
 		font-size: 24px;
 		padding: 0 5px;
-	}
-	.nl-select-sendassignment{
-		padding-right: 0px;
 	}
 </style>
 <nl-dlg title='Send assignment: select class and other optional details'>
@@ -64,52 +55,40 @@
     <div class='row row-wrap padding0 margin0'>
         <div ng-class='resp2Col67'>
             <div class='row row-wrap row-center padding-top margin0'>
-                <div ng-class='resp2Col33'>class/user group</div>
-                <div ng-class='resp2Col67'>
-                    <table><tr>
-                        <td style='vertical-align: middle; padding-left: 4px'>
-                            <button class='select-button' ng-click='onOuClick()' autofocus="true"> Select</button>
-                        </td>
-                        <td class='padding-small'>
-                            <div ng-if='data.visibleToGroupLength <= 1'
+                <div ng-class='resp2Col33' class='nl-dlg-field-name'>class/user group</div>
+                <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+                    <span><button class='select-button' ng-click='onOuClick()' autofocus="true"> Select</button></span>
+                    <span ng-if='data.visibleToGroupLength <= 1'
                                  class='padding-small'>
                                 <b ng-bind-html='data.visibleto'></b>
-                            </div>
-                            <div ng-if='data.visibleToGroupLength > 1'
+                    </span>
+                    <span ng-if='data.visibleToGroupLength > 1'
                                  class='padding-small nl-link-text'
                                  ng-click='onClickOnVisibleTo()'>
                                 <b ng-bind-html='data.visibleto'></b>
-                            </div>
-                        </td>
-                    </tr></table>
+                    </span>
                 </div>
-            </div>
+            </div>    
 
             <div class='row row-wrap row-center padding-top margin0'>
-                <div ng-class='resp2Col33'>users</div>
-                <div ng-class='resp2Col67'>
-                    <table><tr>
-                        <td style='vertical-align: middle; padding-left: 4px'>
-                            <button class='select-button' ng-click='onUserClick()'> Select</button>
-                        </td>
-                        <td class='padding-small'>
-                            <div ng-if='data.visibleToUsersLength == 0'
+                <div ng-class='resp2Col33' class='nl-dlg-field-name'>users</div>
+                <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+                    <span><button class='select-button' ng-click='onUserClick()'> Select</button></span>
+                    <span ng-if='data.visibleToUsersLength == 0'
                                  class='padding-small'>
                                 <b ng-bind-html='data.visibleToUsers'></b>
-                            </div>
-                            <div ng-if='data.visibleToUsersLength > 0'
+                    </span>
+                    <span ng-if='data.visibleToUsersLength > 0'
                                  class='padding-small nl-link-text'
                                  ng-click='onClickOnVisibleToUsers()'>
                                 <b ng-bind-html='data.visibleToUsers'></b>
-                            </div>
-                        </td>
-                    </tr></table>
+                    </span>
                 </div>
-            </div>
+            </div>    
 
             <div class='row row-wrap row-center padding-top margin0'>
-                <div ng-class='resp2Col33'>start time</div>
-                <div ng-class='resp2Col67' class='nl-time-input-div'>
+                <div ng-class='resp2Col33' class='nl-dlg-field-name'>start time</div>
+                <div ng-class='resp2Col67' class='nl-dlg-field-value'>
                     <div class='nl-time-input nl-link-text' ion-datetime-picker ng-model="data.starttime">
                         <div class='row row-center margin0 padding0'>
                             <div class='col col-90 margin0 padding0'>{{data.starttime| date: "yyyy-MM-dd H:mm"}}</div>
@@ -120,8 +99,8 @@
             </div>
 
             <div class='row row-wrap row-center padding-top margin0'>
-                <div ng-class='resp2Col33'>end time</div>
-                <div ng-class='resp2Col67' class='nl-time-input-div'>
+                <div ng-class='resp2Col33' class='nl-dlg-field-name'>end time</div>
+                <div ng-class='resp2Col67' class='nl-dlg-field-value'>
                     <div class='nl-time-input nl-link-text' ion-datetime-picker ng-model="data.endtime">
                         <div class='row row-center margin0 padding0'>
                             <div class='col col-90 margin0 padding0'>{{data.endtime| date: "yyyy-MM-dd H:mm"}}</div>
@@ -132,28 +111,30 @@
             </div>
 
             <div class='row row-wrap row-center padding-top margin0'>
-                <div ng-class='resp2Col33'>duration (minutes)</div>
-                <div ng-class='resp2Col67'>
+	            <div ng-class='resp2Col33' class='nl-dlg-field-name'>duration (minutes)</div>
+                <div ng-class='resp2Col67' class='nl-dlg-field-value'>
                     <input type='text' ng-model='data.maxduration'>
                 </div>
             </div>
 
             <div class='row row-wrap row-center padding-top margin0'>
-                <div ng-class='resp2Col33'>show answers</div>
-                <nl-select ng-class='resp2Col67' fieldmodel='showAnswers' class='nl-select-sendassignment'></nl-select>
+	            <div ng-class='resp2Col33' class='nl-dlg-field-name'>show answers</div>
+	            <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+					<nl-select fieldmodel='showAnswers'></nl-select>
+				</div>
             </div>
 
             <div class='row row-wrap row-center padding-top margin0'>
-                <div ng-class='resp2Col33'>forum</div>
-                <div ng-class='resp2Col67'>
+                <div ng-class='resp2Col33' class='nl-dlg-field-name'>forum</div>
+                <div ng-class='resp2Col67' class='nl-dlg-field-value'>
                     <input type='checkbox' ng-model='data.forum'><span>allow users to discuss in the forum</span>
                 </div>
             </div>
 
             <div class='row row-wrap row-center padding-top margin0'>
-                <div ng-class='resp2Col33'>remarks</div>
-                <div ng-class='resp2Col67'>
-                    <textarea style='resize:none' rows="8" cols="50" ng-model='data.remarks'></textarea>
+                <div ng-class='resp2Col33' class='nl-dlg-field-name'>remarks</div>
+                <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+                    <textarea rows="8" cols="50" ng-model='data.remarks'></textarea>
                 </div>
             </div>
         </div>

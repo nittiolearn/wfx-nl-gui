@@ -42,9 +42,9 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg) {
     nlRouter.initContoller($scope, '', _onPageEnter);
 
 	function _getTableColumns() {
-		return [{attr: 'title', name: 'Title', type: 'text', 'showInSmallScreen': true, cls: 'col'}, 
-				{attr: 'start_date', name: 'Start date', type: 'date', 'showInSmallScreen': false, cls: 'col'},
-				{attr: 'end_date', name: 'End date', type: 'date', 'showInSmallScreen': false, cls: 'col'}];		
+		return [{attr: 'title', name: 'Training', type: 'text', 'showInSmallScreen': true, cls: 'col'}, 
+				{attr: 'start_date', name: 'From', type: 'date', 'showInSmallScreen': false, cls: 'col'},
+				{attr: 'end_date', name: 'Till', type: 'date', 'showInSmallScreen': false, cls: 'col'}];		
 	}
 
 	function _getDataFromServer(fetchMore, resolve, reject) {
@@ -148,11 +148,9 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg) {
 		var startDateFromServer = (card !== null) ? trainingListDict[id].start : dlgScope.data.start_date;
 		var EndDateFromServer = (card !== null) ? trainingListDict[id].end : dlgScope.data.end_date;
 		if((id !== null) && (dlgScope.data.start_date === dlgScope.card.start_date)) {
-			console.log(dlgScope.data.start_date, dlgScope.card.start_date, trainingListDict[id].start);
 			dlgScope.data.start_date = trainingListDict[id].start;
 		}
 		if((id !== null) && (dlgScope.data.end_date === dlgScope.card.end_date)) {
-			console.log(dlgScope.data.end_date);
 			dlgScope.data.end_date = trainingListDict[id].end;
 		}
 		var data = {
@@ -192,6 +190,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg) {
    function _validateInputs(scope) {
         scope.error = {};
         if(!scope.data.title) return _validateFail(scope, 'title', 'Name is mandatory');
+        if(!scope.data.description) return _validateFail(scope, 'description', 'Provide description for module');
         if(!scope.data.start_date) return _validateFail(scope, 'start_date', 'start_date is mandatory');
         if(!scope.data.end_date) return _validateFail(scope, 'end_date', 'end_date is mandatory');
 		return true;
