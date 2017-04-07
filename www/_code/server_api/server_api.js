@@ -584,17 +584,25 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/resource_delete.json', {resid: resId});
 	};
 
-    this.resourceDeleteBulk = function(insertfrom){
+    this.resourceDeleteBulk = function(insertfrom) {
         return server.post('_serverapi/resource_delete_bulk.json', {insertfrom: insertfrom});
     };
 
-	this.courseExportReports = function(assignIds){
-		return server.post('_serverapi/course_export_reports.json', {assignids: assignIds})
+	this.courseExportReports = function(assignIds) {
+		return server.post('_serverapi/course_export_reports.json', {assignids: assignIds});
 	};
 	
-	this.courseExportCourses = function(courseIds){
-		return server.post('_serverapi/course_export_courses.json', {courseids: courseIds})
-	}
+	this.courseExportCourses = function(courseIds) {
+		return server.post('_serverapi/course_export_courses.json', {courseids: courseIds});
+	};
+
+    this.recyclebinList = function(params) {
+        return server.post('_serverapi/recycle_get_list.json', params);
+    };
+
+    this.recyclebinRestore = function(entityid) {
+        return server.post('_serverapi/recycle_restore.json', {entityid: entityid});
+    };
 
     //---------------------------------------------------------------------------------------------
     // Private methods
