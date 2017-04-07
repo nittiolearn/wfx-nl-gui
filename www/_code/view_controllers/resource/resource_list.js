@@ -391,10 +391,8 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 		var uploadAgainDlg = nlDlg.create($scope);
 		uploadAgainDlg.scope.resinfos = addModifyResourceDlg.resInfos;
 		var cancelButton = {text: nl.t('Close'), onTap: function(e) {
-			uploadAgainDlg.close();
-			return addModifyResourceDlg.resInfos;
 		}};
-        uploadAgainDlg.show('view_controllers/resource/upload_done_dlg.html', [], cancelButton, false);
+        uploadAgainDlg.show('view_controllers/resource/upload_done_dlg.html', [], cancelButton);
 	}
 }];
 

@@ -257,7 +257,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
     
     function _onCreateModify(event, dlgScope, user) {
         var d = dlgScope.data;
-        var row = {op: user ? 'u' : 'c', username: user.username,
+        var username = user ? user.username : nl.fmt2('{}.{}', d.user_id, _grpid);
+        var row = {op: user ? 'u' : 'c', username: username,
             user_id: d.user_id, usertype: d.usertype.name, state: d.state.id,
             first_name: d.first_name, last_name: d.last_name, email: d.email, 
             org_unit: _getTreeSelection(d.org_unit), 
