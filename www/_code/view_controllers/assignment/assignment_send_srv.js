@@ -331,8 +331,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
             _updateSelectedUsers();
             if (_selectedUserIds.length == 0) return _alertWhenNoUsers();
     
-            if(starttime) starttime = nl.fmt.date2UTCStr(starttime, 'second');
-            if(endtime) endtime = nl.fmt.date2UTCStr(endtime, 'second');
+            if(starttime) starttime = nl.fmt.date2UtcStr(starttime, 'second');
+            if(endtime) endtime = nl.fmt.date2UtcStr(endtime, 'second');
         
         	var learnmode = sendAssignmentDlg.scope.data.showAnswers.id;
         	var data = {lessonid: sendAssignmentDlg.scope.assignInfo.id,
