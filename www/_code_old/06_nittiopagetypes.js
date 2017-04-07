@@ -1487,9 +1487,8 @@ npagetypes = function() {
 		img.click(function() {
 			_BehFibParts_onImgSectionToggle(section);
 		});
-		var button = njs_helper.jobj('<span class="sectiontoolbarIcon visible" id="toggleSection"></span>');
+		var button = njs_helper.jobj('<span class="sectiontoolbarIcon visible toggleSection"></span>');
 		button.append(img);
-		section.pgSecView.remove('#toggleSection');
 		section.pgSecView.append(button);
 	}
 	
@@ -1545,6 +1544,8 @@ npagetypes = function() {
 			var layout = _getLayoutOfSec(section);
 			var secNo = section.secNo;
 			if (!_isInteractive(layout, secNo)) return;
+            if (_isCorrect(layout, secNo))
+                section.pgSecView.find('.toggleSection').remove();
 
 			var pageMode = _getPageMode(section.page);
 			if (pageMode == 'do') {

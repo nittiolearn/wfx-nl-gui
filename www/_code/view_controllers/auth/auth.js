@@ -171,6 +171,13 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
         	return nlDlg.setFieldError(scope, 'username',
         		nl.t('Username is required'));
         }
+        
+        var username = scope.data.username.toLowerCase();
+        username = username.replace(/[^a-z0-9_-]/g, function(x) {
+            if (x == '.') return x;
+            return '';
+        });
+        scope.data.username = username;
         if (scope.data.username.indexOf('.') < 0) {
         	return nlDlg.setFieldError(scope, 'username',
         		nl.t('Username needs to be of format "userid.groupid"'));

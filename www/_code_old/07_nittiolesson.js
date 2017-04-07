@@ -26,6 +26,8 @@ nlesson = function() {
 		this.getPageNoFromPageId = Lesson_getPageNoFromPageId;
 		this.getCurrentPageUrl = Lesson_getCurrentPageUrl;
 		this.getExistingPageIds = Lesson_getExistingPageIds;
+        this.getMinTextSize = Lesson_getMinTextSize;
+        this.updateOLessonFromTempl = Lesson_updateOLessonFromTempl;
 
 		// Initialize and render
 		this.initDom = Lesson_initDom;					// init
@@ -143,6 +145,30 @@ nlesson = function() {
 		return pageIdList;	
 	}
 	
+	function Lesson_getMinTextSize() {
+	    if (this.minTextSizeComputed !== undefined) return this.minTextSizeComputed;
+	    if (this.oLesson.minTextSize) {
+	        this.minTextSizeComputed = this.oLesson.minTextSize;
+	        return this.minTextSizeComputed;
+	    }
+        var td = this.parentTemplateContents.templateDefaults;
+        this.minTextSizeComputed = td.minTextSize || 30;
+        return this.minTextSizeComputed;
+	}
+	
+	function Lesson_updateOLessonFromTempl() {
+        if( this.renderCtx.launchMode() != 'do') return;
+        var oLesson = this.oLesson;
+        var td = this.parentTemplateContents.templateDefaults;
+	    if (oLesson.passScoreFromTempl) {
+	        oLesson.passScore = td.passScore;
+	        return;
+	    }
+	    if (oLesson.passScore) return;
+        oLesson.passScore = td.passScore;
+        oLesson.passScoreFromTempl = true;
+	}
+	
 	//--------------------------------------------------------------------------------------------
 	// Lesson Methods - Initialize and render
 	//--------------------------------------------------------------------------------------------
@@ -153,6 +179,7 @@ nlesson = function() {
         self.oLesson = jQuery.parseJSON(jLesson);
         self.parentTemplateContents = self.oLesson.parentTemplateContents || {};
         delete self.oLesson.parentTemplateContents;
+        self.updateOLessonFromTempl();
         _initPageTypes(self);
         self.bgimg = jQuery('#l_pageData .bgimg');
         self.postRenderingQueue = new PostRenderingQueue(self);
@@ -1456,7 +1483,7 @@ nlesson = function() {
                 me.sections[pos].preAdjustHtmlDom();
 				nittio.resizeImagesToAspectRatio(me.sections[pos].pgSecView);
 			}
-			me.updateFontSizes(me.lesson.oLesson.minTextSize || 30);
+			me.updateFontSizes(me.lesson.getMinTextSize());
 			for (var i=0; i<me.sections.length; i++) {
 				var pos = me.sectionCreateOrder[i];
 				me.sections[pos].adjustHtmlDom();
