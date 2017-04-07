@@ -821,7 +821,7 @@
 		function _deleteLesson($scope, lessonId) {
 			var msg = {
 				title : 'Please confirm',
-				template : nl.t('Deleting an assignment will delete all reports behind this assignment. This cannot be undone. Are you sure you want to delete?'),
+				template : nl.t('Are you sure you want to delete this module?'),
 				okText : nl.t('Delete')
 			};
 			nlDlg.popupConfirm(msg).then(function(result) {
