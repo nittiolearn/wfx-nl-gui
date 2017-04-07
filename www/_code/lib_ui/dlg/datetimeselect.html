@@ -1,7 +1,4 @@
 <style>
-	.nl-time-input-div {
-		padding: 5px 3px 5px 9px;
-	}
 	.nl-time-input {
 		border-radius: 4px;
 		padding: 2px 8px 1px 8px;
@@ -11,15 +8,17 @@
 		border-width: 0;
 	}
 
+	.nl-time-icon {
+		text-align: right;
+		font-size: 24px;
+		padding: 0 5px;
+	}
+
 </style>
 
-<td class='nl-dlg-field-name'>{{fieldname}}</td>
-<td class='nl-dlg-field-value'>
-    <div class='nl-time-input nl-link-text' ion-datetime-picker date ng-model="$parent.data[fieldmodel]">
-        <div class='row row-center margin0 padding0'>
-            <div class='col col-90 margin0 padding0'>{{$parent.data[fieldmodel] | date:"yyyy-MM-dd"}}</div>
-            <i class='col icon ion-android-time nl-time-icon text-right'></i>
-        </div>
+<div class='nl-dlg-field-value nl-time-input nl-link-text' ion-datetime-picker date-time ng-model="$parent.data[fieldmodel]">
+    <div class='row row-center margin0 padding0'>
+        <div class='col col-90 margin0 padding0'>{{$parent.data[fieldmodel] | date:"yyyy-MM-dd"}}</div>
+        <i class='col icon ion-android-time nl-time-icon text-right'></i>
     </div>
-    <div ng-show='$parent.error[fieldmodel]' class='nl-dlg-field-errormsg'>{{$parent.error[fieldmodel]}}</div>
-</td>
+</div>

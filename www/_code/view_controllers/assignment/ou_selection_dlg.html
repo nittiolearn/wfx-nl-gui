@@ -9,18 +9,13 @@
 			<p>Choose one or more elements from the organization tree to dispatch the assignment to all learners in the chosen set of organization units.</p>
 	</nl-dlg-help>
 	<nl-dlg-content>
-		<div class='nl-tree-structure'>		
-			<div style='padding: 2px'>
-				<label class="item item-input" style='border-color: #fff;'>
-				  <i class="icon ion-search placeholder-icon"></i>
-				  <input type="search" placeholder="Search" ng-model="nodeSearch">
-				</label>
-			</div>
-			<div ivh-treeview="treeData"
-			    ivh-treeview-filter="nodeSearch"
-				ivh-treeview-options="treeOptions"		    
-				ivh-treeview-on-cb-change="onNodeClick(ivhNode, ivhIsSelected, ivhTree)">
-			</div>
+		<div class='row row-wrap row-top padding0 margin0'>
+            <div ng-class='resp2Col33' class='nl-dlg-field-name'></div>
+            <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+                <nl-tree-select info='data.org_unit' tabindex='0' autofocus=''>
+                </nl-tree-select>
+            </div>
 		</div>
+		
 	</nl-dlg-content>
 </nl-dlg>

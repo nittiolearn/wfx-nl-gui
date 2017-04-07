@@ -1,11 +1,36 @@
 
 <nl-dlg title='{{dlgTitle}}'>
 <nl-dlg-content>
-    <table class='nl-table'>
-        <tr nl-form-input fieldname='Title' fieldmodel='title' fieldtype='text'></tr>
-        <tr nl-form-textarea fieldname='Course description' fieldmodel='description' fieldcls='nl-fixed-width'></tr>
-        <tr nl-date-time-select fieldname='Start date' fieldmodel='start_date' fieldtype='text'></tr>
-        <tr nl-date-time-select fieldname='End date' fieldmodel='end_date' fieldtype='text'></tr>
-    </table>
+	<div class='row row-wrap row-center padding-top margin0'>
+        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Title</div>
+	    <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+    	    <input type='text' ng-model='data.title'>
+	        <div ng-show='error.title' class='nl-dlg-field-errormsg'>{{error.title}}</div>
+    	</div>
+   </div>
+   
+    <div class='row row-wrap row-center padding-top margin0'>
+        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Description</div>
+        <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+            <textarea rows="8" cols="50" ng-model='data.description'></textarea>
+	        <div ng-show='error.description' class='nl-dlg-field-errormsg'>{{error.description}}</div>
+        </div>
+    </div>
+
+    <div class='row row-wrap row-center padding-top margin0'>
+        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Start date</div>
+        <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+            <nl-date-time-select fieldmodel='start_date' fieldCls='nl-dlg-field-value'></nl-date-time-select>
+	        <div ng-show='error.start_date' class='nl-dlg-field-errormsg'>{{error.start_date}}</div>
+		</div>
+    </div>
+
+    <div class='row row-wrap row-center padding-top margin0'>
+        <div ng-class='resp2Col33' class='nl-dlg-field-name'>End date</div>
+        <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+            <nl-date-time-select fieldmodel='end_date' fieldCls='nl-dlg-field-value'></nl-date-time-select>
+	        <div ng-show='error.end_date' class='nl-dlg-field-errormsg'>{{error.end_date}}</div>
+		</div>
+    </div>
 </nl-dlg-content>
 </nl-dlg>
