@@ -116,8 +116,8 @@ var _dashboardActions = {
     'course.do': {'url': '/#/course_report_list?my=1&{}', 'permission': 'course_do', 'termCheck': 'Restricted'},
     'rno.list': {'url': '/#/rno_list?{}', 'permission': 'basic_access', 'termCheck': 'Restricted'},
     'rno.view': {'url': '/#/rno_view?{}', 'permission': '', 'termCheck': 'Open'},
-    'sco.export': {'url': '/#/sco_export?{}', 'permission': 'lesson_approve'},
-    'sco.import': {'url': '/#/sco_import_list?{}', 'permission': 'lesson_approve'}
+    'sco.export': {'url': '/#/sco_export?{}', 'permission': 'sco_export'},
+    'sco.import': {'url': '/#/sco_import_list?{}', 'permission': 'sco_import'}
 };
 
 module_init();

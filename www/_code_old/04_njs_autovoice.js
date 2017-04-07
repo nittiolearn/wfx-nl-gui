@@ -157,14 +157,17 @@ function VoiceSynth() {
     };
 
     this.pause = function() {
+        if (!self.initDone) return;
         window.speechSynthesis.pause();
     };
 
     this.resume = function() {
+        if (!self.initDone) return;
         window.speechSynthesis.resume();
     };
 
     this.stop = function() {
+        if (!self.initDone) return;
         window.speechSynthesis.cancel();
     };
     
