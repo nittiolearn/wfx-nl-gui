@@ -245,7 +245,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
     }
     
     function _getTreeSelection(treeInfo) {
-        var selected = nlTreeSelect.getSelectedIds(treeInfo, true);
+        var selected = nlTreeSelect.getSelectedIds(treeInfo);
         var ret = '';
         var DELIM = '';
         for(var key in selected) {

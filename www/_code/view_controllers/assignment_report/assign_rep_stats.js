@@ -369,9 +369,9 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
     };
     
     this.getSelectedFilters = function(filterOptions) {
-        return {ous: nlTreeSelect.getSelectedIds(filterOptions.ouTree, true),
-            grades: nlTreeSelect.getSelectedIds(filterOptions.gradeTree, true),
-            subjects: nlTreeSelect.getSelectedIds(filterOptions.subjectTree, true)};
+        return {ous: nlTreeSelect.getSelectedIds(filterOptions.ouTree),
+            grades: nlTreeSelect.getSelectedIds(filterOptions.gradeTree),
+            subjects: nlTreeSelect.getSelectedIds(filterOptions.subjectTree)};
     }
     
     this.isFilterPresent = function(filters) {

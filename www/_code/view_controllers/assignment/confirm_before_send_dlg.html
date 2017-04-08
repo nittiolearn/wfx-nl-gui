@@ -1,13 +1,24 @@
 <nl-dlg title='Please confirm'>
 	<nl-dlg-content>
-    	<p>
-    	    You have chosen to send assignment to below <b>{{userList.length}} users.</b>
+    	<div class='padding-mid fsh6'>
+    	    You have chosen to send assignment to <b>{{count}} users.</b>
     	    Assignment once sent cannot be modified. 
     	    Are you sure you want to send the assignment?
-    	</p>
+    	</div>
     	
-    	<ol>
-    	    <li ng-repeat='user in userList track by $index'>{{user}}</li>
-    	</ol>
+    	<table class='nl-table nl-table-styled'>
+    	    <tr>
+                <th>User name</th>
+                <th>Organization</th>
+    	    </tr>
+    	    <tr ng-repeat='user in infos track by $index'>
+                <td>{{user.name}}</td>
+                <td>{{user.ou}}</td>
+    	    </tr>
+    	</table>
+    	<div ng-show='count > infos.length'
+    	     class='padding-mid fsh5 forange'>
+    	    More users are available in the list. Displaying {{infos.length}} of {{count}}.
+    	</div>
 	</nl-dlg-content>
 </nl-dlg>

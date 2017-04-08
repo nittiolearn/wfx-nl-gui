@@ -32,107 +32,184 @@ function(nl) {
     this.updateSelectionTree = function(treeSelectInfo, selectedIds) {
         var itemDict = {};
         var treeList = treeSelectInfo.data;
+        treeSelectInfo.rootItems = {};
         for(var i=0; i<treeList.length; i++) {
             var item = treeList[i];
             itemDict[item.id] = item;
+            item.pos = i;
             var idParts = item.id.split('.');
             if (!item.name) item.name = idParts[idParts.length -1];
+            if (!('canSelect' in item)) item.canSelect = true;
             item.indentation = idParts.length - 1;
             item.isVisible = (item.indentation < 1);
             item.isOpen = false;
             item.isFolder = false;
-            item.selected = (selectedIds && item.id in selectedIds) ? selectedIds[item.id] : false;
+            item.selected = (selectedIds && selectedIds[item.id]) ? true : false;
             idParts.pop();
             var parentId = idParts.join('.');
-            if (parentId) itemDict[parentId].isFolder = true;
+            if (parentId) {
+                var parent = itemDict[parentId];
+                parent.isFolder = true;
+                if (!('children' in parent)) parent.children = {};
+                parent.children[item.id] = item;
+            } else {
+                treeSelectInfo.rootItems[item.id] = item;
+            }
         }
-        this.updateFoldersAndCount(treeSelectInfo);
         treeSelectInfo.treeIsShown = true;
         treeSelectInfo.multiSelect = true;
+        treeSelectInfo.selectedIds = {};
+        if (selectedIds)
+            for(var key in selectedIds)
+                treeSelectInfo.selectedIds[key] = itemDict[key];
+        treeSelectInfo.itemDict = itemDict;
+
+        _updateAllFoldersStatus(treeSelectInfo.rootItems);
+        _updateVisibleData(treeSelectInfo);
+        _updateSelectionText(treeSelectInfo);
     };
 
-    this.getSelectedIds = function(treeSelectInfo, leafOnly) {
-        var treeList = treeSelectInfo.data;
-        var ret = {};
-        for(var i=0; i<treeList.length; i++) {
-            var item = treeList[i];
-            if (!item.selected) continue;
-            if (item.isFolder && leafOnly) continue;
-            ret[item.id] = item.selected;
-        }
-        return ret;
+    this.getSelectedIds = function(treeSelectInfo) {
+        return treeSelectInfo.selectedIds;
     };
     
     // Mainly for the directive usage
     this.toggleFolder = function(folder, treeSelectInfo) {
         var treeList = treeSelectInfo.data;
         folder.isOpen = !folder.isOpen;
-        for(var i=0; i<treeList.length; i++) {
-            var item = treeList[i];
-            if (!_isDecendantOf(item, folder)) continue;
-            if (folder.isOpen) {
-                var parentId = _getParentId(item.id);
-                if (parentId == folder.id) item.isVisible = true;
-            } else {
-                item.isVisible = false;
-            }
-        }
+        if (folder.isOpen) _showAllChildren(folder);
+        else _hideAllDecendants(folder, treeSelectInfo);
+        _updateVisibleData(treeSelectInfo);
     };
 
-    function _clearAll(treeSelectInfo) {
-        var treeList = treeSelectInfo.data;
-        for(var i=0; i<treeList.length; i++)
-            treeList[i].selected = false;
-    }
-    
     this.toggleSelection = function(curItem, treeSelectInfo) {
-        if (!treeSelectInfo.multiSelect && !curItem.selected)
-            _clearAll(treeSelectInfo);
-        curItem.selected = !curItem.selected;
-        return this.updateFoldersAndCount(treeSelectInfo);
-    };
-    
-    this.updateFoldersAndCount = function(treeSelectInfo) {
-        var folders = {};
-        var treeList = treeSelectInfo.data;
-        for(var i=0; i<treeList.length; i++) {
-            var item = treeList[i];
-            var parentId = _getParentId(item.id);
-            while (parentId) {
-                if (!folders[parentId]) folders[parentId] = {count: 0, selected: 0};
-                folders[parentId].count++;
-                if (item.selected) folders[parentId].selected++;
-                parentId = _getParentId(parentId);
+        if (!curItem.canSelect) return;
+        if (!treeSelectInfo.multiSelect && !curItem.selected) {
+            for(var key in treeSelectInfo.selectedIds) {
+                var item = treeSelectInfo.selectedIds[key];
+                _unselectItem(item, treeSelectInfo);
             }
         }
-
-        var selectedList = [];
-        for(var i=0; i<treeList.length; i++) {
-            var item = treeList[i];
-            var finfo = folders[item.id];
-            if (finfo)
-                item.selected = (finfo.selected == 0) ? false 
-                    : (finfo.selected == finfo.count) ? true : 'part';
-            if (item.selected === true) selectedList.push(item.name);
-        }
-        treeSelectInfo.selectedText = '';
-        if (selectedList.length == 1)
-            treeSelectInfo.selectedText = selectedList[0];
-        else if (selectedList.length > 1) 
-            treeSelectInfo.selectedText = nl.t('{} items: {}', selectedList.length, selectedList.join(', '));
+        if (!curItem.selected)
+            _selectItem(curItem, treeSelectInfo);
+        else
+            _unselectItem(curItem, treeSelectInfo);
     };
-
+    
     this.toggleSelectionOfFolder = function(folder, treeSelectInfo) {
         if (!treeSelectInfo.multiSelect) return;
-        var treeList = treeSelectInfo.data;
-        for(var i=0; i<treeList.length; i++) {
-            var item = treeList[i];
-            if (!_isDecendantOf(item, folder)) continue;
-            item.selected = !folder.selected;
-        }
-        return this.toggleSelection(folder, treeSelectInfo);
+        _updateSubTreeStatus(!folder.selected, folder, treeSelectInfo);
+        _updateStatusAndCaccadeToParents(_getParentId(folder.id), treeSelectInfo);
+        _updateSelectionText(treeSelectInfo);
     };
 
+    function _updateVisibleData(treeSelectInfo) {
+        treeSelectInfo.visibleData = [];
+        for(var i=0; i<treeSelectInfo.data.length; i++) {
+            var item = treeSelectInfo.data[i];
+            if (item.isVisible) treeSelectInfo.visibleData.push(item);
+        }
+    };
+    
+    function _showAllChildren(folder) {
+        if (!folder.children) return;
+        for(var key in folder.children) {
+            var child = folder.children[key];
+            child.isVisible = true;
+            if (child.isFolder) child.isOpen = false;
+        }
+    }
+    
+    function _hideAllDecendants(folder) {
+        if (!folder.children) return;
+        for(var key in folder.children) {
+            var child = folder.children[key];
+            child.isVisible = false;
+            if (child.isFolder) child.isOpen = false;
+            _hideAllDecendants(child);
+        }
+    }
+
+    function _selectItem(curItem, treeSelectInfo) {
+        curItem.selected = true;
+        treeSelectInfo.selectedIds[curItem.id] = curItem;
+        _updateStatusAndCaccadeToParents(_getParentId(curItem.id), treeSelectInfo);
+        _updateSelectionText(treeSelectInfo);
+    }
+    
+    function _unselectItem(curItem, treeSelectInfo) {
+        curItem.selected = false;
+        delete treeSelectInfo.selectedIds[curItem.id];
+        _updateStatusAndCaccadeToParents(_getParentId(curItem.id), treeSelectInfo);
+        _updateSelectionText(treeSelectInfo);
+    }
+
+    function _updateStatusAndCaccadeToParents(itemId, treeSelectInfo) {
+        if (!itemId) return;
+        var folder = treeSelectInfo.itemDict[itemId];
+        if (!folder || !folder.children) return;
+        
+        var keys = Object.keys(folder.children);
+        var selectedCount = 0;
+        var childPartSelected = false;
+        for (var key in folder.children)
+            if (folder.children[key].selected === true) selectedCount++;
+            else if (folder.children[key].selected === 'part') childPartSelected = true;
+            
+            
+        if (selectedCount == 0 && !childPartSelected) folder.selected = false;
+        else if (selectedCount < keys.length) folder.selected = 'part';
+        else folder.selected = true;
+        _updateStatusAndCaccadeToParents(_getParentId(folder.id), treeSelectInfo);
+    }
+
+    function _updateSubTreeStatus(selected, item, treeSelectInfo) {
+        item.selected = selected;
+        if (!item.isFolder) {
+            if (!item.canSelect)
+                item.selected = false;
+            else if (selected)
+                treeSelectInfo.selectedIds[item.id] = item;
+            else
+                delete treeSelectInfo.selectedIds[item.id];
+        }
+        if (!item.children) return;
+        var keys = Object.keys(item.children);
+        for (var key in item.children)
+            _updateSubTreeStatus(selected, item.children[key], treeSelectInfo);
+    }
+        
+    function _updateAllFoldersStatus(items) {
+        for (var key in items) {
+            var item = items[key];
+            if (!item.children) continue;
+            _updateAllFoldersStatus(item.children);
+            var selectedCount = 0;
+            var childPartSelected = false;
+            for (var key in item.children)
+                if (item.children[key].selected === true) selectedCount++;
+                else if (item.children[key].selected === 'part') childPartSelected = true;
+            var keys = Object.keys(item.children);
+            if (selectedCount == 0 && !childPartSelected) item.selected = false;
+            else if (selectedCount < keys.length) item.selected = 'part';
+            else item.selected = true;
+        }
+    }
+    
+    function _updateSelectionText(treeSelectInfo) {
+        treeSelectInfo.selectedText = '';
+        var keys = Object.keys(treeSelectInfo.selectedIds);
+        var count = keys.length;
+        var dispText = '';
+        var sep = '';
+        for (var i=0; i<50 && i<count; i++) {
+            dispText += sep + treeSelectInfo.selectedIds[keys[i]].name;
+            sep = ', ';
+        }
+        if (count > 1) dispText = nl.t('{} selected: {}', count, dispText);
+        treeSelectInfo.selectedText = dispText;
+    }
+    
     function _isDecendantOf(item, folder) {
         if (item.id == folder.id) return false;
         return (item.id.indexOf(folder.id) == 0);
