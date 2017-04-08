@@ -24,16 +24,18 @@ function($stateProvider, $urlRouterProvider) {
 	}});
 }];
 
-var TrainingListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlServerApi', 'nlMetaDlg',
-function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg) {
+var TrainingListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlServerApi', 'nlMetaDlg', 'nlSendAssignmentSrv', 'nlLessonSelect',
+function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg, nlSendAssignmentSrv, nlLessonSelect) {
 
 	var _userInfo = null;
 	var trainingListDict = {};
+	var _scope = null;
     function _onPageEnter(userInfo) {
         _userInfo = userInfo;
         trainingListDict = {};
         return nl.q(function(resolve, reject) {
 			nl.pginfo.pageTitle = nl.t('Trainings');
+			_scope = $scope;
 			$scope.cards = {};
 			$scope.cards.listConfig = {columns: _getTableColumns(), canShowDetils: true, smallColumns: 1};
 			_getDataFromServer(false, resolve, reject);
@@ -75,37 +77,40 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg) {
 			id : item.id,
 			training : item,
 			title : item.name,
-			start_date: nl.fmt.jsonDate2Str(item.start, 'date'),
-			end_date: nl.fmt.jsonDate2Str(item.end, 'date'),
+			moduleid: item.moduleid,
+			start_date: nl.fmt.jsonDate2Str(item.start, 'minute'),
+			end_date: nl.fmt.jsonDate2Str(item.end, 'minute'),
 			description: item.desc,
 			children : [],
 			details: {},
 			links: [],
 			listDetails: '<nl-training-details card="card"></nl-training-details>'
 		};
+		card.training.created = nl.fmt.jsonDate2Str(item.created, 'second');
+		card.training.updated = nl.fmt.jsonDate2Str(item.updated, 'second');
 		return card;
 	}
 
 	$scope.publishNewTraining = function() {
 		_editTrainingModule(null, null);
 	};
-	
+		
 	$scope.onCardInternalUrlClicked = function(card, internalUrl) {
 		if(internalUrl == 'training_nomination_list'){
-			_nominationList(card);
+			_nominationUserList(card);
 		}else if(internalUrl == 'training_edit'){
 			_editTrainingModule(card, card.id);
+		}else if(internalUrl == 'training_send'){
+			_assignTrainingModule(card);
 		}
 	};
 
-	function _nominationList(card) {
+
+	function _nominationUserList(card) {
 		nlDlg.showLoadingScreen();
-		nlDlg.popupAlert({title: 'Alert message', template:'Yet to be implemented'}).then(function(){
-			return;
-		});
-		// nlServerApi.getNominationList(card.id).then(function(list){
-			// _showNominatedUserList(list);
-		// });				
+		nlServerApi.getUserNominationList(card.id).then(function(list){
+			_showNominatedUserList(card, list);
+		});				
 	}
 
 	function _editTrainingModule(card, id){
@@ -113,9 +118,18 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg) {
 			_showTrainingEditDlg.setCssClass('nl-height-max nl-width-max');
 			_showTrainingEditDlg.scope.error = {};
 			_showTrainingEditDlg.scope.data = {};
-			_showTrainingEditDlg.scope.card = card;
 			_showTrainingEditDlg.scope.dlgTitle = card ? nl.t('Edit training module') : nl.t('Create new training');
-			_showTrainingEditDlg.scope.data = (card !== null) ? card : {title: '', description: '', start_date: '', end_date: ''};
+			_showTrainingEditDlg.scope.data = (card !== null) ? card : {title: '', description: '', start_date: '', end_date: '', moduleid: ''};
+
+			_showTrainingEditDlg.scope.searchLesson = function _searchLesson(){
+		    	nlLessonSelect.showSelectDlg($scope, _userInfo).then(function(selectionList) {
+		    		if (selectionList.length != 1) return;
+					_showTrainingEditDlg.scope.data.moduleid = selectionList[0].lessonId;
+			    	_showTrainingEditDlg.scope.data.modulename = selectionList[0].title;
+			    	_showTrainingEditDlg.scope.data.moduleicon = selectionList[0].icon;
+		    	});
+		    };
+
 		var PublishNewButton = {
 			text : nl.t('Create'),
 			onTap : function(e) {
@@ -142,24 +156,26 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg) {
 	        if(e) e.preventDefault();
 	        return null;
 	    }
-		nlDlg.showLoadingScreen();	    
+		nlDlg.showLoadingScreen();
+		var serverFunction, serverStartDate, serverEndDate = null;	    
+		if(id !== null){
+			var serverFunction = nlServerApi.trainingModify;
+			var serverStartDate =  nl.fmt.jsonDate2Str(trainingListDict[id].start, 'second');
+			var serverEndDate = nl.fmt.jsonDate2Str(trainingListDict[id].end, 'second');			
+		} else {
+			serverFunction = nlServerApi.trainingCreate;
+		}
 		
-		var serverFunction = (id != null) ? nlServerApi.trainingModify : nlServerApi.trainingCreate;
-		var startDateFromServer = (card !== null) ? trainingListDict[id].start : dlgScope.data.start_date;
-		var EndDateFromServer = (card !== null) ? trainingListDict[id].end : dlgScope.data.end_date;
-		if((id !== null) && (dlgScope.data.start_date === dlgScope.card.start_date)) {
-			dlgScope.data.start_date = trainingListDict[id].start;
-		}
-		if((id !== null) && (dlgScope.data.end_date === dlgScope.card.end_date)) {
-			dlgScope.data.end_date = trainingListDict[id].end;
-		}
+		if((id !== null) && (dlgScope.data.start_date ===  serverStartDate)) dlgScope.data.start_date = new Date(serverStartDate);
+		if((id !== null) && (dlgScope.data.end_date === serverEndDate)) dlgScope.data.end_date = new Date(serverEndDate);
+		
 		var data = {
 				name: dlgScope.data.title,
 				desc: dlgScope.data.description,
 				nomination : "self",
 				type : "external",
 				id : (id !== null) ? dlgScope.data.id : 0, 
-				moduleid: 0,
+				moduleid: dlgScope.data.moduleid,
 				start : dlgScope.data.start_date,
 				end : dlgScope.data.end_date
 		};
@@ -201,18 +217,35 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg) {
         	nl.t(errMsg));
     }
 
-	function _showNominatedUserList(userlist){
+	function _showNominatedUserList(card, userlist){
 		var _showNominatedUserDlg = nlDlg.create($scope);
 			_showNominatedUserDlg.setCssClass('nl-height-max nl-width-max');
 			_showNominatedUserDlg.scope.data = {};
+			_showNominatedUserDlg.scope.data.card = card;
 			_showNominatedUserDlg.scope.data.userlist = userlist;
-			_showNominatedUserDlg.scope.data.headerCol = [{attr: 'username', name: nl.t('Username')}, {attr: 'nominatedOn', name: nl.t('Nominated on')}, {attr: "status", name: nl.t('Status')}];
+			_showNominatedUserDlg.scope.data.headerCol = [{attr: 'name', name: nl.t('Username')}, {attr: 'score', name: nl.t('Score')}, {attr: "status", name: nl.t('Status')}];
 			_showNominatedUserDlg.scope.data.title = nl.t('Nominated users');
+			_showNominatedUserDlg.scope.assignTrainingModule = function(card){
+				_assignTrainingModule(card);
+			};
 		var cancelButton = {
 			text : nl.t('Cancel')
 		};
 		_showNominatedUserDlg.show('view_controllers/training_list/nominated_user_dlg.html', [], cancelButton);		
 	}
+
+	function _assignTrainingModule(trainingModule){
+        var trainingInfo = {type: 'module', id: trainingModule.moduleid, icon: null, 
+            title: '', description: '', esttime: '', showDateFields: false};
+	        trainingInfo.title = trainingInfo.title;
+	        trainingInfo.description = trainingModule.description;
+        	trainingInfo.authorName = _userInfo.displayname;
+
+        nlSendAssignmentSrv.show(_scope, trainingInfo).then(function(e) {
+            if (e) nl.location.url('/home'); 
+        });		
+	};
+
 }];
 
 var TrainingDetailsDirective = ['nl', 'nlDlg',
