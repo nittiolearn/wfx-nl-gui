@@ -138,13 +138,12 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
         dlgScope.options = {showAnswers: learningModeStrings};
         dlgScope.data = {
             ouUserTree: _ouUserTree,
-            starttime: '',
-            endtime: '',
+            starttime: _assignInfo.starttime || '',
+            endtime: _assignInfo.endtime || '',
             maxduration: _assignInfo.esttime,
             showAnswers: learningModeStrings[1],
             remarks: ''
         };
-
         dlgScope.onOuUserClick = function() {
             _showOuUserListDlg();                
         };
@@ -251,6 +250,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
     
         var learnmode = _dlg.scope.data.showAnswers.id;
         var data = {lessonid: _dlg.scope.assignInfo.id,
+                    istraining: _dlg.scope.assignInfo.istraining || false, 
                     type : _dlg.scope.assignInfo.type,
                     orgunits:ouUserInfo.ous, 
                     selectedusers: ouUserInfo.userids,
@@ -343,6 +343,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
     }
 
     function _showAfterAssignmentSentDlg(ctx) {
+        if (_assignInfo.returnBackAfterSend) {
+            _dlg.close();
+            return;
+        }
         var afterAssignmentSentDlg = nlDlg.create(_parentScope);
         afterAssignmentSentDlg.scope.data = {};
         if(ctx.data.type == 'lesson') {

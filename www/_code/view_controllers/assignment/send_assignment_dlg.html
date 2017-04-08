@@ -47,14 +47,16 @@
                 </div>
             </div>    
 
-            <div class='row row-wrap row-center padding-top margin0'>
+            <div class='row row-wrap row-center padding-top margin0'
+                 ng-hide='assignInfo.hideTimes'>
                 <div ng-class='resp2Col33' class='nl-dlg-field-name'>Start time</div>
                 <div ng-class='resp2Col67' class='nl-dlg-field-value'>
                     <nl-date-time-select fieldmodel='starttime'></nl-date-time-select>
                 </div>
             </div>
 
-            <div class='row row-wrap row-center padding-top margin0'>
+            <div class='row row-wrap row-center padding-top margin0'
+                 ng-hide='assignInfo.hideTimes'>
                 <div ng-class='resp2Col33' class='nl-dlg-field-name'>End time</div>
                 <div ng-class='resp2Col67' class='nl-dlg-field-value'>
                     <nl-date-time-select fieldmodel='endtime'></nl-date-time-select>
