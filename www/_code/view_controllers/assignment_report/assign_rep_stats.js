@@ -369,9 +369,9 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
     };
     
     this.getSelectedFilters = function(filterOptions) {
-        return {ous: nlTreeSelect.getSelectedIds(filterOptions.ouTree, true),
-            grades: nlTreeSelect.getSelectedIds(filterOptions.gradeTree, true),
-            subjects: nlTreeSelect.getSelectedIds(filterOptions.subjectTree, true)};
+        return {ous: nlTreeSelect.getSelectedIds(filterOptions.ouTree),
+            grades: nlTreeSelect.getSelectedIds(filterOptions.gradeTree),
+            subjects: nlTreeSelect.getSelectedIds(filterOptions.subjectTree)};
     }
     
     this.isFilterPresent = function(filters) {
@@ -438,6 +438,12 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
         }
         stats.avgPerc = stats.totalMaxScore > 0 ? Math.round((stats.totalScore / stats.totalMaxScore)*100) : 0;
         stats.leaderBoard = _getLeaderBoardList();
+        stats.leaderBoardLen = stats.leaderBoard.length;
+        var MAX_LIST_SIZE = 500;
+        if (stats.leaderBoardLen > MAX_LIST_SIZE) {
+            var removeCount = stats.leaderBoardLen - MAX_LIST_SIZE;
+            stats.leaderBoard.splice(MAX_LIST_SIZE, removeCount);
+        }
     };
     
     this.updateReports = function(reports) {

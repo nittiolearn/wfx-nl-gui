@@ -83,6 +83,9 @@
                     </div>
                 </div>
             </div>
+            <div ng-show='stats.leaderBoardLen > stats.leaderBoard.length'
+                 class='fsh4 forange padding-mid'>
+                Showing {{stats.leaderBoard.length}} of {{stats.leaderBoardLen}} records. You could apply a filter to view specific records.</div>
         </div>        
     </div>
 </nl-dlg-content>

@@ -5,7 +5,7 @@
      <i ng-show='!info.treeIsShown' class="icon ion-arrow-down-b fsh6 bold"></i>
      <i ng-show='info.treeIsShown' class="icon ion-arrow-up-b fsh6 bold"></i>
 </div>
-<div ng-repeat='item in info.data'
+<div ng-repeat='item in info.visibleData'
      class='row row-wrap row-center margin0 padding0 nl-link-text'
      ng-show='info.treeIsShown && item.isVisible'
      ng-click='onClick(item)'>
@@ -13,12 +13,13 @@
         <div style='padding-left: {{item.indentation*20}}px'>
             <i ng-show='item.isFolder && !item.isOpen' class="icon ion-arrow-right-b bold"></i>
             <i ng-show='item.isFolder && item.isOpen' class="icon ion-arrow-down-b bold"></i>
-            <i ng-show='item.selected === true' class="icon ion-android-checkbox-outline"
+            <i ng-show='item.selected === true' class="icon ion-android-checkbox fsh4"
                ng-click='onCheckBoxSelect(item, $event)'></i>
-            <i ng-show='item.selected === false' class="icon ion-android-checkbox-outline-blank"
+            <i ng-show='item.selected == "part"' class="icon ion-android-checkbox-blank fsh4"
                ng-click='onCheckBoxSelect(item, $event)'></i>
-            <i ng-show='item.selected == "part"' class="icon ion-android-checkbox-blank"
+            <i ng-show='!item.selected' class="icon ion-android-checkbox-outline-blank fsh4"
                ng-click='onCheckBoxSelect(item, $event)'></i>
+            <span ng-show='item.icon'><i class='icon {{item.icon}}'></i></span>
             <span>{{item.name}}</span>
         </div>
     </div>

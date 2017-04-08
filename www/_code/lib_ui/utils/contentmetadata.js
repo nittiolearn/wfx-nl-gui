@@ -184,7 +184,7 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
         if (cmField.type == 'text') return val || null;
         if (cmField.type == 'number') return val !== null? parseInt(val) : null;
         val.treeIsShown = false;
-        val = nlTreeSelect.getSelectedIds(val, true);
+        val = nlTreeSelect.getSelectedIds(val);
         var ret = [];
         for (var v in val) ret.push(v);
         if (ret.length == 0) return null;
