@@ -600,8 +600,8 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/recycle_get_list.json', params);
     };
 
-    this.recyclebinRestore = function(entityid) {
-        return server.post('_serverapi/recycle_restore.json', {entityid: entityid});
+    this.recyclebinRestore = function(recycleid) {
+        return server.post('_serverapi/recycle_restore.json', {recycleid: recycleid});
     };
 
     //---------------------------------------------------------------------------------------------

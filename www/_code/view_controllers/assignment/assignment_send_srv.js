@@ -132,6 +132,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
     }
 
     function _initDlgScope() {
+        _ouUserTree = {data: []};
         _dlg.setCssClass('nl-height-max nl-width-max');
         var dlgScope = _dlg.scope;
         dlgScope.assignInfo = _assignInfo;
@@ -140,7 +141,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
             ouUserTree: _ouUserTree,
             starttime: _assignInfo.starttime || '',
             endtime: _assignInfo.endtime || '',
-            maxduration: _assignInfo.esttime,
+            maxduration: parseInt(_assignInfo.esttime),
             showAnswers: learningModeStrings[1],
             remarks: ''
         };
@@ -243,6 +244,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
         var starttime = _dlg.scope.data.starttime || '';
         var endtime = _dlg.scope.data.endtime || '';
         var maxduration = _dlg.scope.data.maxduration;
+        maxduration = maxduration ? parseInt(maxduration) : 0;
         if (!_asertStartEndDurations(starttime, endtime, maxduration)) return;
 
         if(starttime) starttime = nl.fmt.date2UtcStr(starttime, 'second');
@@ -258,7 +260,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
                     not_after: endtime,
                     learnmode: learnmode,
                     forum: _dlg.scope.data.forum || false,
-                    max_duration: maxduration,
+                    max_duration: maxduration || '',
                     remarks: _dlg.scope.data.remarks || ''};
 
         _confirmAndSend(data, ouUserInfo);
@@ -266,7 +268,6 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
         
     function _asertStartEndDurations(starttime, endtime, maxduration) {
         if (!endtime) return true;
-        maxduration = maxduration ? parseInt(maxduration) : 0;
         
         var now = new Date();
         if (!starttime || starttime < now) starttime = now;
