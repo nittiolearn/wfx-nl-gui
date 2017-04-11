@@ -3,12 +3,12 @@
     <div class='row row-center margin0 padding0'
          autofocus=''
          tabindex="{{tabindex || 0}}">
-        <div class='col col-90 margin0 padding0'>{{$parent.data[fieldmodel] | date:"yyyy-MM-dd H:mm"}}</div>
+        <div class='col margin0 padding0'>{{$parent.data[fieldmodel] | date:"yyyy-MM-dd H:mm"}}</div>
         <i ng-show='$parent.data[fieldmodel]'
            class='icon ion-ios-close fsh4 padding-small forange'
            ng-click='$parent.data[fieldmodel]=null; $event.stopImmediatePropagation()'>
         </i>                
-        <i class='col icon ion-android-time nl-time-icon text-right'></i>
+        <i class='icon ion-android-time nl-time-icon text-right'></i>
     </div>
     <div ng-show='$parent.error[fieldmodel]' class='nl-dlg-field-errormsg'>{{$parent.error[fieldmodel]}}</div>
 </div>
