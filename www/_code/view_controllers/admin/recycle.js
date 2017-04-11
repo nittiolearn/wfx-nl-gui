@@ -59,7 +59,7 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
 
 	$scope.onCardLinkClicked = function(card, linkid) {
 		if (linkid === 'recyclebin_restore') {
-			restore(card);
+			_restore(card);
 		}
 	};
 	
@@ -125,11 +125,12 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
 
     function _restore(card) {
         nlDlg.popupConfirm({title: 'Please confirm', 
-            template: 'Are you sure you want retore this version?'})
+            template: 'Are you sure you want restore this version?'})
         .then(function(confirm) {
             if (!confirm) return;
             nlDlg.showLoadingScreen();
             nlServerApi.recyclebinRestore(card.id).then(function(item) {
+                _getDataFromServer();
                 nlDlg.hideLoadingScreen();
                 nlDlg.popupAlert({title: 'Done', template: 'Restored the version'});
             });

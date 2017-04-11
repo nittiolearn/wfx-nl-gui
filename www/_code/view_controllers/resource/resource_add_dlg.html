@@ -10,33 +10,34 @@
 </nl-dlg-help>
 <nl-dlg-content>
 <div>
-	<div class='row row-top row-wrap'>
-		<div ng-class='resp2Col20'>Resource type</div>
-		<nl-select ng-if='data.card == null' fieldmodel='restype' ng-class='resp2Col80'></nl-select>
-		<input ng-if='data.card !== null' ng-model='data.restype.id' ng-class='resp2Col80' readonly></input>
-	</div>
-	
-    <div class='row row-top row-wrap'>
-        <div ng-class='resp2Col20'>Choose file</div>
-        <div ng-class='resp2Col80'>
+	<div class='row row-top row-wrap padding0 margin0'>
+        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Resource type</div>
+        <div ng-class='resp2Col67' class='padding0'>
+            <nl-select ng-if='data.card == null' fieldmodel='restype'></nl-select>
+            <input ng-if='data.card !== null' ng-model='data.restype.id' readonly class='nl-dlg-field-value'></input>
+        </div>
+
+        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Choose file</div>
+        <div ng-class='resp2Col67' class='padding0'>
             <nl-resource-upload 
-            	ng-repeat='restype in options.restype'
-            	ng-if='restype.id == data.restype.id'
-            	fieldmodel='resource' 
-            	restype='{{restype.id}}'>
+                ng-repeat='restype in options.restype'
+                ng-if='restype.id == data.restype.id'
+                fieldmodel='resource' 
+                restype='{{restype.id}}'>
             </nl-resource-upload>
         </div>
-    </div>
-	<div class='row row-top row-wrap'>
-		<div ng-class='resp2Col20'>Remarks</div>
-		<div ng-class='resp2Col80'><nl-input fieldmodel='keywords' fieldtype='text' fieldcls='w100'></nl-input>
-		</div>			
-	</div>
-	<div ng-show='data.restype.id == "Image"' class='row row-top row-wrap'>
-		<div ng-class='resp2Col20'>Compression</div>
-            <div ng-class='resp2Col80'>
-                <nl-select fieldmodel='compressionlevel'></nl-select>
-            </div>
+
+        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Remarks</div>
+        <div ng-class='resp2Col67' class='padding0'>
+            <nl-input fieldmodel='keywords' fieldtype='text' fieldcls='w100'></nl-input>
+        </div>
+
+        <div ng-show='data.restype.id == "Image"'
+             ng-class='resp2Col33' class='nl-dlg-field-name'>Compression</div>
+        <div ng-show='data.restype.id == "Image"' 
+             ng-class='resp2Col67' class='padding0'>
+            <nl-select fieldmodel='compressionlevel'></nl-select>
+        </div>
 	</div>
 </div>
 </nl-dlg-content>
