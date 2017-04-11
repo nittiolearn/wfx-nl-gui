@@ -1,7 +1,8 @@
-<table class='nl-table nl-table-styled'>
+<table class='nl-table nl-table-styled fsh6 padding-mid'>
     <tr>
         <th ng-repeat='item in cards.listConfig.columns'
-        	ng-show='{{$root.screenSize != "small" || item.showInSmallScreen}}'>
+        	ng-show='$root.screenSize != "small" || item.showInSmallScreen'
+        	class='padding-mid'>
         	<span>{{item.name}}</span>
         </th>
     </tr>
@@ -9,14 +10,16 @@
     	class='{{cards.listConfig.canShowDetils ? "nl-link-text": ""}}'
     	ng-click='card.showDetails = !card.showDetails'>
         <td ng-repeat='item in cards.listConfig.columns'
-        	ng-show='{{$root.screenSize != "small" || item.showInSmallScreen}}'>
-        	<img ng-show='item.type == "img"'>
+        	ng-show='$root.screenSize != "small" || item.showInSmallScreen'
+        	class='padding-mid {{item.cls}}'>
+        	<img ng-show='item.type == "img"' ng-src='{{item.icon}}'>
         	<span ng-show='item.type == "text"'>{{card[item.attr]}}</span>
-        	<span ng-show='item.type == "date"'>{{card[item.attr]}}</span>
+        	<span ng-show='item.type == "date"'>{{card[item.attr] | date:"yyyy-MM-dd HH:mm"}}</span>
         </td>
     </tr>
     <tr ng-repeat-end ng-show='card.showDetails'>
-    	<td colspan='{{$root.screenSize == "small" ? cards.listConfig.smallColumns : cards.listConfig.columns.length}}'>
+    	<td colspan='{{$root.screenSize == "small" ? cards.listConfig.smallColumns : cards.listConfig.columns.length}}'
+    		class='padding-mid'>
     		<div nl-compile='card.listDetails'></div>
 		</td>
     </tr>

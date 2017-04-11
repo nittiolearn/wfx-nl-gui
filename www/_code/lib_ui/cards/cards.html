@@ -1,3 +1,16 @@
+<div class='row row-center margin0 padding0'
+	 style1='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'
+	 ng-if='cards.toolbar'>
+    <div class='col text-center fsh3 padding0'>
+    </div>
+    <span ng-repeat='tb in cards.toolbar'
+    	  title='{{tb.title}}'
+          class='nl-toolbar-icon'
+          ng-click='tb.onClick()'>
+        <i class="icon fsh3 {{tb.icon}}"></i>
+    </span>
+</div>
+
 <div ng-show='cards.search' class='nl-card-search row row-center'>
 	<input class='col' ng-model='search.filter'
 	       placeholder='{{cards.search.placeholder}}' ng-keypress='searchKeyHandler($event)'>

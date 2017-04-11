@@ -1,6 +1,6 @@
 <div class='nl-dlg-field-value nl-time-input nl-link-text' ion-datetime-picker 
      ng-model="$parent.data[fieldmodel]">
-    <div class='row row-center margin0 padding0'
+    <div class='row row-center margin0 padding-small'
          autofocus=''
          tabindex="{{tabindex || 0}}">
         <div class='col margin0 padding0'>{{$parent.data[fieldmodel] | date:"yyyy-MM-dd H:mm"}}</div>
@@ -8,7 +8,7 @@
            class='icon ion-ios-close fsh4 padding-small forange'
            ng-click='$parent.data[fieldmodel]=null; $event.stopImmediatePropagation()'>
         </i>                
-        <i class='icon ion-android-time nl-time-icon text-right'></i>
+        <i class='icon ion-android-time nl-time-icon'></i>
     </div>
-    <div ng-show='$parent.error[fieldmodel]' class='nl-dlg-field-errormsg'>{{$parent.error[fieldmodel]}}</div>
 </div>
+<div ng-show='$parent.error[fieldmodel]' class='nl-dlg-field-errormsg'>{{$parent.error[fieldmodel]}}</div>

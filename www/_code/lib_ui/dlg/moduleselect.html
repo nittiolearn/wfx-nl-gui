@@ -1,0 +1,21 @@
+<style>
+	.moduleselect {
+	  background-color: #EEEEFF;
+	}
+</style>
+<div class='nl-dlg-field-value nl-time-input nl-link-text'
+	 ng-click='onSearchLesson()'
+	 tabindex="0" autofocus>
+    <div class='row row-center margin0 padding-small {{fieldcls}}'>
+        <div class='col'>{{$parent.data[fieldmodel].title}}</div>
+        <i ng-show='$parent.data[fieldmodel]'
+           class='icon ion-ios-close fsh4 padding-small forange'
+           ng-click='$parent.data[fieldmodel]=null; $event.stopImmediatePropagation()'>
+        </i>                
+        <i class='icon ion-android-search nl-time-icon'
+           title='Search modules'
+           autofocus=''
+           tabindex="{{tabindex}}"></i>
+    </div>
+</div>
+<div ng-show='$parent.error[fieldmodel]' class='nl-dlg-field-errormsg'>{{$parent.error[fieldmodel]}}</div>

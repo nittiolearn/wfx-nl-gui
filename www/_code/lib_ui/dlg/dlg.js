@@ -11,6 +11,7 @@ function module_init() {
     .directive('nlInput', InputDirective)
     .directive('nlTextarea', TextareaDirective)
     .directive('nlSelect', SelectDirective)
+    .directive('nlModuleSelect', ModuleSelectDirective)
     .directive('nlFormInput', FormInputDirective)
     .directive('nlFormSelect', FormSelectDirective)
     .directive('nlFormTextarea', FormTextareaDirective)
@@ -253,6 +254,37 @@ function(nl, nlDlg) {
         'lib_ui/dlg/select.html');
 }];
 
+var ModuleSelectDirective = ['nl', 'nlDlg', 'nlLessonSelect',
+function(nl, nlDlg, nlLessonSelect) {
+    var tagName = 'input';
+	var templateUrl = 'lib_ui/dlg/moduleselect.html';
+    return {
+        restrict: 'E',
+        templateUrl: templateUrl,
+        scope: {
+            fieldname: '@',
+            fieldmodel: '@',
+            fieldtype: '@',
+            fieldcls: '@',
+            tabindex: '@',
+            placeholder: '@',
+            userinfo: '='
+        },
+        link: function($scope, iElem, iAttrs) {
+            nl.log.debug('linking field: ', $scope.fieldmodel);
+            var field = iElem.find(tagName)[0];
+            nlDlg.addField($scope.fieldmodel, field);
+            
+            $scope.onSearchLesson = function() {
+		    	nlLessonSelect.showSelectDlg($scope, $scope.userinfo).then(function(selectionList) {
+		    		if (selectionList.length != 1) return;
+					$scope.$parent.data[$scope.fieldmodel] = selectionList[0];
+		    	});
+            };
+        }
+    };
+}];
+
 var TextareaDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
     return _formFieldDirectiveImpl(nl, nlDlg, 'textarea',
@@ -279,7 +311,7 @@ function(nl, nlDlg) {
 
 var DateTimeSelectDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
-    return _formFieldDirectiveImpl(nl, nlDlg, 'timeselect',
+    return _formFieldDirectiveImpl(nl, nlDlg, 'input',
         'lib_ui/dlg/datetimeselect.html');
 }];
 

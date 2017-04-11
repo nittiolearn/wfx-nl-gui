@@ -1580,29 +1580,29 @@ img.nl-full-width {
     flex-shrink: 0;
 }
 
-.padding0 {
+.padding0, td.padding0, th.padding0 {
     padding: 0;
 }
 
-.padding-small {
+.padding-small, td.padding-small, th.padding-small {
     padding: 4px;
 }
 
-.padding-small-h {
+.padding-small-h, td.padding-small-h, th.padding-small-h {
     padding-left: 4px;
     padding-right: 4px;
 }
 
-.padding-mid {
+.padding-mid, td.padding-mid, th.padding-mid {
     padding: 8px;
 }
 
-.padding-small-v {
+.padding-small-v, td.padding-small-v, th.padding-small-v {
     padding-top: 4px;
     padding-bottom: 4px;
 }
 
-.padding-mid-v {
+.padding-mid-v, td.padding-mid-v, th.padding-mid-v {
     padding-top: 8px;
     padding-bottom: 8px;
 }

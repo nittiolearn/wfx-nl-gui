@@ -4,18 +4,17 @@
         <p><b>Define the course properties</b></p>
         <ul>
             <li><b>Title:</b> Mandatory - enter a title for your training.</li>
-            <li><b>Module id:</b> Mandatory - Select the module for your training by clicking on the search icon.</li>
+            <li><b>Module id:</b> Mandatory - Select the feedback form or the learning module for your training by clicking on the search icon.</li>
             <li><b>Start date:</b>Select the start date for your training.</li>
             <li><b>End date:</b>Select the end date for your training.</li>
-            <li><b>description:</b> Provide a short description which will help others in the group to understand the purpose of this training.</li>
+            <li><b>Description:</b> Provide a short description which will help others in the group to understand the purpose of this training.</li>
         </ul>
     </nl-dlg-help>
 <nl-dlg-content>
 	<div class='row row-wrap row-center padding-top margin0'>
         <div ng-class='resp2Col33' class='nl-dlg-field-name'>Title</div>
-	    <div ng-class='resp2Col67' class='nl-dlg-field-value'>
-    	    <input type='text' ng-model='data.title'>
-	        <div ng-show='error.title' class='nl-dlg-field-errormsg'>{{error.title}}</div>
+	    <div ng-class='resp2Col67' class='padding0'>
+    	    <nl-input fieldtype='text' fieldmodel='title'></nl-input>
     	</div>
    </div>
 
@@ -23,7 +22,6 @@
         <div ng-class='resp2Col33' class='nl-dlg-field-name'>Start date</div>
         <div ng-class='resp2Col67' class='nl-dlg-field-value'>
             <nl-date-time-select fieldmodel='start_date' fieldCls='nl-dlg-field-value'></nl-date-time-select>
-	        <div ng-show='error.start_date' class='nl-dlg-field-errormsg'>{{error.start_date}}</div>
 		</div>
     </div>
 
@@ -31,28 +29,20 @@
         <div ng-class='resp2Col33' class='nl-dlg-field-name'>End date</div>
         <div ng-class='resp2Col67' class='nl-dlg-field-value'>
             <nl-date-time-select fieldmodel='end_date' fieldCls='nl-dlg-field-value'></nl-date-time-select>
-	        <div ng-show='error.end_date' class='nl-dlg-field-errormsg'>{{error.end_date}}</div>
 		</div>
     </div>
    
     <div class='row row-wrap row-center padding-top margin0'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Module id</div>
+        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Feedback form or Module</div>
 	    <div ng-class='resp2Col67' class='nl-dlg-field-value'>
-	        <div class='row row-center padding0'>
-	            <input class='col' readonly 
-	             ng-model='data.modulename' type='text'>
-	            <i class='icon ion-android-search fsh4 padding-small nl-link-img'
-	               ng-click='searchLesson()'
-	               title='Search modules'></i>
-	        </div>
+	    	<nl-module-select fieldmodel='module' userinfo='userinfo'></nl-module-select>
 		</div>
 	</div>    
     
     <div class='row row-wrap row-center padding-top margin0'>
         <div ng-class='resp2Col33' class='nl-dlg-field-name'>Description</div>
         <div ng-class='resp2Col67' class='nl-dlg-field-value'>
-            <textarea rows="8" cols="50" ng-model='data.description'></textarea>
-	        <div ng-show='error.description' class='nl-dlg-field-errormsg'>{{error.description}}</div>
+            <nl-textarea fieldmodel='description'></nl-textarea>
         </div>
     </div>
 
