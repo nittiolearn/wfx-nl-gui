@@ -11,6 +11,7 @@ function module_init() {
 
 var g_noPopup = false;
 var DEFAULT_CACHE_LIFE = 1000*3600; // In milliseconds
+DEFAULT_CACHE_LIFE = 0; //TODO-MUNNI-NOW
 
 //-------------------------------------------------------------------------------------------------
 var NlServerApi = ['nl', 'nlDlg', 'nlConfig', 'Upload',
@@ -501,7 +502,7 @@ function(nl, nlDlg, nlConfig, Upload) {
     //---------------------------------------------------------------------------------------------
     this.cmGetFields = function() {
         return _getFromCacheOrServer('contentmeta_get_fields', DEFAULT_CACHE_LIFE, 
-           '_serverapi/contentmeta_get_fields.json', {});
+           '_serverapi/contentmeta_get_fields.json', {}, true);
     };
     
     this.cmGet = function(cid, ctype) {
@@ -647,24 +648,29 @@ function(nl, nlDlg, nlConfig, Upload) {
         return _cachedPost("EULA_INFO", false, url, data, true, noPopup);
     }
 
-    function _cachedPost(cacheKey, addTimestamp, url, data, reloadUserInfo, noPopup, upload) {
+    function _cachedPost(cacheKey, addTimestamp, url, data, reloadUserInfo, noPopup, upload, cachedValue) {
         return nl.q(function(resolve, reject) {
             server.post(url, data, reloadUserInfo, noPopup, upload)
             .then(function(result) {
-                var store = result;
-                if (addTimestamp) store = {updated: new Date(), data: result};
-                nlConfig.saveToDb(cacheKey, store, function() {
-                    resolve(result);
-                });
+                if (result && result.reuse_cache && cachedValue !== undefined) {
+                    resolve(cachedValue);
+                } else {
+                    var store = result;
+                    if (addTimestamp) store = {updated: new Date(), data: result};
+                    nlConfig.saveToDb(cacheKey, store, function() {
+                        resolve(result);
+                    });
+                }
             }, function(err) {
                 reject(err);
             });
         });
     }
     
-    function _getFromCacheOrServer(cacheKey, cacheLife, url, data, reloadUserInfo, noPopup, upload) {
+    function _getFromCacheOrServer(cacheKey, cacheLife, url, data) {
         return nl.q(function(resolve, reject) {
             nlConfig.loadFromDb(cacheKey, function(result) {
+                var cachedValue = undefined;
                 if (result !== null) {
                     var now = new Date();
                     if (now - result.updated < cacheLife) {
@@ -672,9 +678,11 @@ function(nl, nlDlg, nlConfig, Upload) {
                         resolve(result.data);
                         return;
                     }
-                    nl.log.info('server_api.cached: Cache stale', cacheKey);
+                    cachedValue = result.data;
+                    if (cachedValue.versionstamp) data.versionstamp = cachedValue.versionstamp;
+                    nl.log.info('server_api.cached: Cache might be stale', cacheKey);
                 }
-                _cachedPost(cacheKey, true, url, data, reloadUserInfo, noPopup, upload)
+                _cachedPost(cacheKey, true, url, data, false, false, false, cachedValue)
                 .then(function(result) {
                     nl.log.info('server_api.cached: Data fetched from server', cacheKey);
                     resolve(result);
