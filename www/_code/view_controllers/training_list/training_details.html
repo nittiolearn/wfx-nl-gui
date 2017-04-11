@@ -6,67 +6,85 @@
 </style>
 <div class='padding-mid'>
 	<div class='training_details' ng-show='$root.screenSize !== "small"'>
-		<div class='row row-center margin0 padding0'>
+		<div class='row row-center margin0 padding-mid'>
 			<div class='col'>
-				<span class='fsh6'><b>Created:</b> {{card.training.created}}</span>
-			</div>
-			<div class='col'>
-				<span class='fsh6'><b>Updated:</b> {{card.training.updated}}</span>
+				<span class='fsh5'>{{card.title}}</span>
 			</div>
 		</div>
-		<div class='row row-center margin0 padding0'>
+		<div class='row row-center margin0 padding-mid'>
 			<div class='col'>
-				<span class='fsh6'><b>Description:</b> {{card.training.desc}}</span>
+				<span><b>Start date:</b> {{card.start_date}}</span>
+			</div>
+			<div class='col'>
+				<span><b>End date:</b> {{card.end_date}}</span>
+			</div>
+		</div>
+		<div class='row row-center margin0 padding-mid'>
+			<div class='col'>
+				<span><b>Created:</b> {{card.training.created}}</span>
+			</div>
+			<div class='col'>
+				<span><b>Updated:</b> {{card.training.updated}}</span>
+			</div>
+		</div>
+		<div class='row row-center margin0 padding-mid'>
+			<div class='col'>
+				<span><b>Description</b></span>
+			</div>
+		</div>
+		<div class='row row-center'>
+			<div class='col'>
+				<span>{{card.training.desc}}</span>
 			</div>
 		</div>
 	</div>
-	<div class='padding-mid training_details' ng-show='$root.screenSize == "small"'>
-		<div class='row row-wrap padding0 margin0'>
+	<div class='padding-mid training_details' ng-show='$root.screenSize === "small"'>
+		<div class='row row-wrap margin0 padding-mid'>
 			<div class='col'>
-				<span class='fsh7'><i>Start date:</i> {{card.start_date}}</span>
+				<span><b>Start date:</b> {{card.start_date}}</span>
 			</div>
 		</div>
-		<div class='row row-center margin0 padding0'>
+		<div class='row row-center margin0 padding-mid'>
 			<div class='col'>
-				<span class='fsh7'><i>End date:</i> {{card.end_date}}</span>
+				<span><b>End date:</b> {{card.end_date}}</span>
 			</div>
 		</div>	
-		<div class='row row-center margin0 padding0'>
+		<div class='row row-center margin0 padding-mid'>
 			<div class='col'>
-				<span class='fsh7'><i>Created:</i> {{card.training.created}}</span>
+				<span><b>Created:</b> {{card.training.created}}</span>
 			</div>
 		</div>	
-		<div class='row row-center margin0 padding0'>
+		<div class='row row-center margin0 padding-mid'>
 			<div class='col'>
-				<span class='fsh7'><i>Updated:</i> {{card.training.updated}}</span>
+				<span><b>Updated:</b> {{card.training.updated}}</span>
 			</div>
 		</div>
-		<div class='row row-center margin0 padding0'>
+		<div class='row row-center margin0 padding-midk'>
 			<div class='col'>
-				<span class='fsh7'><i>Description:</i> {{card.training.desc}}</span>
+				<span><b>Description</b></span>
 			</div>
 		</div>
-		<div class='row row-center margin0 padding0'>
+		<div class='row row-center'>
 			<div class='col'>
-				<span class='fsh7'><i>Module id:</i> {{card.training.moduleid}}</span>
+				<span>{{card.training.desc}}</span>
 			</div>
 		</div>
 	</div>
     <div class='nl-mildtoolbar text-left'>
-        <span title='Nomination list'
+	    <span title='nominate users'
+	          class='nl-toolbar-icon'
+	          ng-click='onCardInternalUrlClicked(card, "training_assign")'>
+	        <i class="icon ion-person-add" style='font-size: 22px'></i>
+	    </span>
+        <span title='Nominated users list'
               class='nl-toolbar-icon'
               ng-click='onCardInternalUrlClicked(card, "training_nomination_list")'>
-            <i class="icon ion-person" style='font-size: 22px'></i>
+            <i class="icon ion-person-stalker" style='font-size: 22px'></i>
         </span>
         <span title='edit'
               class='nl-toolbar-icon'
               ng-click='onCardInternalUrlClicked(card, "training_edit")'>
             <i class="icon ion-edit" style='font-size: 22px'></i>
-        </span>
-        <span title='assign training module'
-              class='nl-toolbar-icon'
-              ng-click='onCardInternalUrlClicked(card, "training_send")'>
-            <i class="icon ion-android-send" style='font-size: 22px'></i>
         </span>
     </div>
 </div>

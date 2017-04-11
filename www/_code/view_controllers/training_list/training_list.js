@@ -51,6 +51,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg, nlSendAssignmentSr
 
 	function _getDataFromServer(fetchMore, resolve, reject) {
 		nlServerApi.getTrainingList().then(function(trainingList) {
+			console.log(trainingList);
 			_addSearchInfo($scope.cards);
 		    _updateTrainingCards(trainingList);
 			resolve(true);
@@ -100,7 +101,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg, nlSendAssignmentSr
 			_nominationUserList(card);
 		}else if(internalUrl == 'training_edit'){
 			_editTrainingModule(card, card.id);
-		}else if(internalUrl == 'training_send'){
+		}else if(internalUrl == 'training_assign'){
 			_assignTrainingModule(card);
 		}
 	};
@@ -108,7 +109,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg, nlSendAssignmentSr
 
 	function _nominationUserList(card) {
 		nlDlg.showLoadingScreen();
-		nlServerApi.getUserNominationList(card.id).then(function(list){
+		nlServerApi.getNominationList().then(function(list){
 			_showNominatedUserList(card, list);
 		});				
 	}
@@ -156,19 +157,10 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg, nlSendAssignmentSr
 	        if(e) e.preventDefault();
 	        return null;
 	    }
-		nlDlg.showLoadingScreen();
-		var serverFunction, serverStartDate, serverEndDate = null;	    
-		if(id !== null){
-			var serverFunction = nlServerApi.trainingModify;
-			var serverStartDate =  nl.fmt.jsonDate2Str(trainingListDict[id].start, 'second');
-			var serverEndDate = nl.fmt.jsonDate2Str(trainingListDict[id].end, 'second');			
-		} else {
-			serverFunction = nlServerApi.trainingCreate;
-		}
 		
-		if((id !== null) && (dlgScope.data.start_date ===  serverStartDate)) dlgScope.data.start_date = new Date(serverStartDate);
-		if((id !== null) && (dlgScope.data.end_date === serverEndDate)) dlgScope.data.end_date = new Date(serverEndDate);
-		
+		nlDlg.showLoadingScreen();	    
+		var serverFunction = (id !== null) ? nlServerApi.trainingModify : nlServerApi.trainingCreate;
+
 		var data = {
 				name: dlgScope.data.title,
 				desc: dlgScope.data.description,
@@ -176,8 +168,10 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg, nlSendAssignmentSr
 				type : "external",
 				id : (id !== null) ? dlgScope.data.id : 0, 
 				moduleid: dlgScope.data.moduleid,
-				start : dlgScope.data.start_date,
-				end : dlgScope.data.end_date
+				modulename: dlgScope.data.modulename,
+				moduleicon: dlgScope.data.moduleicon,
+				start : nl.fmt.json2Date(dlgScope.data.start_date),
+				end : nl.fmt.json2Date(dlgScope.data.end_date)
 		};
 		serverFunction(data).then(function(module){
 			_onModifyDone(module, $scope, id);
@@ -222,29 +216,49 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg, nlSendAssignmentSr
 			_showNominatedUserDlg.setCssClass('nl-height-max nl-width-max');
 			_showNominatedUserDlg.scope.data = {};
 			_showNominatedUserDlg.scope.data.card = card;
-			_showNominatedUserDlg.scope.data.userlist = userlist;
-			_showNominatedUserDlg.scope.data.headerCol = [{attr: 'name', name: nl.t('Username')}, {attr: 'score', name: nl.t('Score')}, {attr: "status", name: nl.t('Status')}];
+			var sortedlist = _sortByDepartment(userlist);
+			_showNominatedUserDlg.scope.data.userlist = sortedlist;
+			_showNominatedUserDlg.scope.data.headerCol = [{attr: 'name', name: nl.t('Username')}, {attr: 'department', name: nl.t('Department')}, {attr: "status", name: nl.t('Status')}];
 			_showNominatedUserDlg.scope.data.title = nl.t('Nominated users');
-			_showNominatedUserDlg.scope.assignTrainingModule = function(card){
-				_assignTrainingModule(card);
-			};
 		var cancelButton = {
 			text : nl.t('Cancel')
 		};
 		_showNominatedUserDlg.show('view_controllers/training_list/nominated_user_dlg.html', [], cancelButton);		
 	}
 
+	function _sortByDepartment(list){
+		var sortedList = list.sort(function(a, b){
+		    				var firstStr=a.department.toLowerCase(), secondStr=b.department.toLowerCase();
+    						if (firstStr < secondStr) return -1; 
+    						if (firstStr > secondStr) 	return 1;
+    						return 0;
+					});
+		return sortedList;
+	}
+	
 	function _assignTrainingModule(trainingModule){
         var trainingInfo = {type: 'module', id: trainingModule.moduleid, icon: null, 
-            title: '', description: '', esttime: '', showDateFields: false};
+            title: '', description: '', starttime: new Date(trainingModule.start_date),
+            endtime: new Date(trainingModule.end_date), esttime: '', hideTimes: true, training: true};
 	        trainingInfo.title = trainingInfo.title;
 	        trainingInfo.description = trainingModule.description;
         	trainingInfo.authorName = _userInfo.displayname;
-
-        nlSendAssignmentSrv.show(_scope, trainingInfo).then(function(e) {
-            if (e) nl.location.url('/home'); 
-        });		
+        nlServerApi.getNominationList().then(function(list){
+        	trainingInfo.nominatedUsers = _getUserDict(list);
+	        nlSendAssignmentSrv.show(_scope, trainingInfo).then(function(e) {
+	            if (e) nl.location.url('/home'); 
+	        });		
+        });
 	};
+	
+	function _getUserDict(list){
+		var userDict = {};
+		for(var i=0; i<list.length; i++){
+			var user = list[i];
+			userDict[user.id] = user.name;
+		}
+		return userDict;	
+	}
 
 }];
 
