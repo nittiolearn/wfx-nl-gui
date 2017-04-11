@@ -11,7 +11,6 @@ function module_init() {
 
 var g_noPopup = false;
 var DEFAULT_CACHE_LIFE = 1000*3600; // In milliseconds
-DEFAULT_CACHE_LIFE = 0; //TODO-MUNNI-NOW
 
 //-------------------------------------------------------------------------------------------------
 var NlServerApi = ['nl', 'nlDlg', 'nlConfig', 'Upload',
