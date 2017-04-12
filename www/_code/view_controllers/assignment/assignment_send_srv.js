@@ -44,7 +44,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlSendAssignmentSrv) {
                 resolve(true);
             }, function() {
                 resolve(false);
-            })
+            });
         });
     }
     nlRouter.initContoller($scope, '', _onPageEnter);
@@ -143,12 +143,11 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
             endtime: _assignInfo.endtime || '',
             maxduration: parseInt(_assignInfo.esttime),
             showAnswers: learningModeStrings[1],
-            remarks: ''
+            remarks: _assignInfo.remarks || ''
         };
         dlgScope.onOuUserClick = function() {
             _showOuUserListDlg();                
         };
-        
     }
 
     function _getOuToUserDict() {
@@ -262,7 +261,12 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
                     forum: _dlg.scope.data.forum || false,
                     max_duration: maxduration || '',
                     remarks: _dlg.scope.data.remarks || ''};
-
+        if ('assigntype' in _dlg.scope.assignInfo)
+        	data.assigntype = _dlg.scope.assignInfo.assigntype;
+        if ('trainingId' in _dlg.scope.assignInfo)
+        	data.trainingId = _dlg.scope.assignInfo.trainingId;
+        if ('trainingName' in _dlg.scope.assignInfo)
+        	data.trainingName = _dlg.scope.assignInfo.trainingName;
         _confirmAndSend(data, ouUserInfo);
     }
         

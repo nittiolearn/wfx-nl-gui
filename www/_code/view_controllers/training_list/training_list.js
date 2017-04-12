@@ -56,7 +56,6 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg, nlSendAssignmentSr
 
 	function _getDataFromServer(fetchMore, resolve, reject) {
 		nlServerApi.getTrainingList().then(function(trainingList) {
-			console.log(trainingList);
 			_addSearchInfo($scope.cards);
 		    _updateTrainingCards(trainingList);
 			resolve(true);
@@ -110,23 +109,45 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg, nlSendAssignmentSr
 	}
 		
 	$scope.onCardInternalUrlClicked = function(card, internalUrl) {
-		if(internalUrl == 'training_nomination_list'){
-			_nominationUserList(card);
+		if(internalUrl == 'training_assign'){
+			_assignTrainingModule(card);
+		}else if(internalUrl == 'training_report'){
+			_trainingReportView(card);
 		}else if(internalUrl == 'training_edit'){
 			_editTrainingModule(card, card.id);
-		}else if(internalUrl == 'training_assign'){
-			_assignTrainingModule(card);
 		}
 	};
 
-
-	function _nominationUserList(card) {
-		nlDlg.showLoadingScreen();
-		nlServerApi.getNominationList().then(function(list){
-			_showNominatedUserList(card, list);
-		});				
+	function _trainingReportView(card) {
+		_getNominations(card.id).then(function(nominations) {
+			console.log(nominations);
+		});
 	}
 
+	function _getNominations(trainingId) {
+		return nlServerApi.getTrainingReportList(trainingId).then(function(reports){
+			var ret = {};
+			for (var i=0; i<reports.length; i++) {
+				var rep = _getNominationInfo(reports[i]);
+				var oldRep = ret[rep.student];
+				if (!oldRep) {
+					ret[rep.student] = rep;
+					continue;
+				}
+				if (rep.updated < oldRep.updated) continue;
+				ret[rep.student] = rep;
+			}
+			return ret;
+		});
+	}
+	
+	function _getNominationInfo(report) {
+		return {student: report.student, repid: report.id,
+			name: report.studentname, completed: report.completed, 
+			updated: nl.fmt.json2Date(report.updated)};
+	}
+	
+	
 	function _editTrainingModule(card, id){
 		var _showTrainingEditDlg = nlDlg.create($scope);
 		_showTrainingEditDlg.setCssClass('nl-height-max nl-width-max');
@@ -181,7 +202,6 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg, nlSendAssignmentSr
 				end : nl.fmt.json2Date(dlgScope.data.end_date)
 		};
 		serverFunction(data).then(function(module){
-			console.log(module, id);
 			_onModifyDone(module, $scope, id);
 		});
 	}
@@ -244,23 +264,35 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg, nlSendAssignmentSr
 		return sortedList;
 	}
 	
+	function _getRemarks(training) {
+		var d1 = nl.fmt.date2Str(nl.fmt.json2Date(training.start), 'minute');
+		var d2 = nl.fmt.date2Str(nl.fmt.json2Date(training.end), 'minute');
+		return nl.fmt2('Open from {} till {} - {}', d1, d2, training.desc);
+	}
+	
 	function _assignTrainingModule(trainingModule) {
-        var trainingInfo = {type: 'module', id: trainingModule.training.moduleid, icon: trainingModule.training.moduleicon, 
-            title: '', description: '', starttime: new Date(trainingModule.start_date),
-            endtime: new Date(trainingModule.end_date), esttime: '', hideTimes: true};
-	        trainingInfo.title = trainingModule.training.modulename;
-	        trainingInfo.description = trainingModule.description;
-        	trainingInfo.authorName = _userInfo.displayname;
-	        nlSendAssignmentSrv.show(_scope, trainingInfo).then(function(e) {
-	            if (e) nl.location.url('/training_list'); 
-	        });		
+        var trainingInfo = {
+        	type: 'lesson', 
+        	id: trainingModule.training.moduleid, 
+        	trainingId: trainingModule.id,
+            trainingName: trainingModule.title, 
+        	remarks: _getRemarks(trainingModule.training),
+        	returnBackAfterSend: true,
 
-        // nlServerApi.getNominationList().then(function(list){
-        	// trainingInfo.nominatedUsers = _getUserDict(list);
-	        // nlSendAssignmentSrv.show(_scope, trainingInfo).then(function(e) {
-	            // if (e) nl.location.url('/home'); 
-	        // });		
-        // });
+            esttime: '',
+            starttime: '',
+            endtime: '',
+
+            title: trainingModule.title, 
+        	icon: trainingModule.training.moduleicon, 
+            description: trainingModule.description, 
+            authorName: _userInfo.displayname,
+
+            hideTimes: true};
+	        
+        nlSendAssignmentSrv.show(_scope, trainingInfo).then(function(e) {
+            if (e) nl.location.url('/training_list'); 
+        });		
 	};
 	
 	function _getUserDict(list){

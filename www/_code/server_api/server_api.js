@@ -538,21 +538,11 @@ function(nl, nlDlg, nlConfig, Upload) {
             id);
 	};
 
-	this.getNominationList = function(id){
-        return server.post('_serverapi/training_nomination_list.json', 
-            id);
+	this.getTrainingReportList = function(trainingid){
+		return server.post('_serverapi/training_get_report_list.json',
+				{trainingid: trainingid});
 	};
-
-	this.getUserNominationList = function(objId){
-        return server.post('_serverapi/training_nomination_list_of_user.json', 
-            id);
-	};
-
-	this.nominateUsers = function(objId, ulist){
-        return server.post('_serverapi/training_nominate.json', 
-            {id: id, ulist: ulist});
-	};
-
+	
     //---------------------------------------------------------------------------------------------
     // resource entities
     //---------------------------------------------------------------------------------------------
