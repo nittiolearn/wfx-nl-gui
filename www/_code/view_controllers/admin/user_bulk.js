@@ -485,7 +485,6 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     this.validateEmail = function(row) {
         if(!row.email)
             _throwException('Properly formed email address is mandatory', row);
-        var emailRe = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
         row.email = row.email.trim();
     };
 
@@ -550,7 +549,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         return nl.q(function(resolve, reject) {
             _updateServerImpl(rows).then(function() {
                 _done().then(function() {
-                    resolve();
+                    resolve(self.statusCnts.error);
                 });
             });
         });
