@@ -1116,9 +1116,7 @@ nl-cards {
 // search-box css code
 //------------------------------------------------------------------------------------------   
 .nl-card-search {
-  position: relative;
-  height: 32px;
-  padding: 18px 8px 2px 8px;
+  padding: 8px;
 
   input {
     height: 28px;
@@ -1580,29 +1578,29 @@ img.nl-full-width {
     flex-shrink: 0;
 }
 
-.padding0, td.padding0, th.padding0 {
+.padding0 {
     padding: 0;
 }
 
-.padding-small, td.padding-small, th.padding-small {
+.padding-small {
     padding: 4px;
 }
 
-.padding-small-h, td.padding-small-h, th.padding-small-h {
+.padding-small-h {
     padding-left: 4px;
     padding-right: 4px;
 }
 
-.padding-mid, td.padding-mid, th.padding-mid {
+.padding-mid {
     padding: 8px;
 }
 
-.padding-small-v, td.padding-small-v, th.padding-small-v {
+.padding-small-v {
     padding-top: 4px;
     padding-bottom: 4px;
 }
 
-.padding-mid-v, td.padding-mid-v, th.padding-mid-v {
+.padding-mid-v {
     padding-top: 8px;
     padding-bottom: 8px;
 }
@@ -1783,6 +1781,10 @@ img.nl-full-width {
   padding-left: $nlpad_x; 
 }
 
+.nl-table-padded td, .nl-table-padded th {
+  padding: $nlpad_x;
+}
+  
 //-------------------------------------------------------------------------------------------
 // Small screen specific
 //-------------------------------------------------------------------------------------------
@@ -1821,6 +1823,10 @@ img.nl-full-width {
 
   .padding, .padding-left, .padding-horizontal {
     padding-left: $nlpad_x_small; 
+  }
+  
+  .nl-table-padded td, .nl-table-padded th {
+    padding: $nlpad_x_small;
   }
   
   .padding-mid {

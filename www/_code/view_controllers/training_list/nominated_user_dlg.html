@@ -1,14 +1,26 @@
 <nl-dlg title='{{data.title}}'>
 <nl-dlg-content>
-<table class='nl-table nl-table-styled'>
+<table class='nl-table nl-table-styled fsh6 padding-mid'>
 	<tr>
         <th ng-repeat='item in data.headerCol'>
         	<span>{{item.name}}</span>
         </th>
 	</tr>
-    <tr ng-repeat-start='user in data.userlist'>
-        <td ng-repeat='item in data.headerCol'>
-        	<span>{{user[item.attr]}}</span>
+	<tr>{{}}</tr>
+    <tr ng-repeat-start='user in data.userList'>
+        <td>
+        	<span>{{user.name}}</span>
+        </td>
+        <td>
+        	<span>{{user.orgunit}}</span>
+        </td>
+        <td>
+        	<span ng-show='user.completed'>
+        		<i class='nl-24 ion-checkmark-circled nl-green padding-mid'></i>Completed
+        	</span>
+        	<span ng-show='!user.completed'>
+        		<i class='nl-24 ion-record fgrey padding-mid'></i>Pending
+        	</span>
         </td>
     </tr>
     <tr ng-repeat-end>

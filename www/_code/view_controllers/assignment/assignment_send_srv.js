@@ -123,9 +123,9 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
         nlDlg.showLoadingScreen();
         nlGroupInfo.init().then(function() {
             _groupInfo = nlGroupInfo.get();
-
             var ouToUsers = _getOuToUserDict();
             _formOuUserTree(_groupInfo.outree, ouToUsers, _ouUserTree.data);
+            if(_assignInfo.training) _selectedUsers = {};
             nlTreeSelect.updateSelectionTree(_ouUserTree, _selectedUsers);
             _showDlg(resolve, reject);
         });
@@ -173,6 +173,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
             var ouUsers = ouToUsers[item.id];
             for(var j=0; j < ouUsers.length; j++) {
                 var user = ouUsers[j];
+                if(_assignInfo.training && (_assignInfo.selectedUsers[user.id])) continue;
                 var treeItem = {id: nl.fmt2('{}.{}', item.id, user.id),
                     name: user.name, type: 'user', icon: userIcon, 
                     userObj: user};
@@ -182,7 +183,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
     }
 
     function _showDlg(resolve, reject) {
-        var sendButton = {text : nl.t('Send Assignment'), onTap : function(e) {
+    	var sndButton = _assignInfo.training ? nl.t('Nominate User') : nl.t('Send Assignment');
+        var sendButton = {text : sndButton, onTap : function(e) {
             _onSendAssignment(e);
         }};
         var cancelButton = {text : nl.t('Cancel'), onTap: function(e) {
@@ -209,7 +211,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
     
     function _assertUserCount() {
         if (Object.keys(_selectedUsers).length == 0) {
-            nlDlg.popupAlert({title:'Please select', template:nl.t('Please select the users to send the assignment to.')});
+        	var templateMsg = _assignInfo.training ? nl.t('Please select the users to nominate.') : nl.t('Please select the users to send the assignment to.');
+            nlDlg.popupAlert({title:'Please select', template: templateMsg});
             return false;
         }
         return true;
@@ -294,6 +297,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
         confirmDlg.setCssClass('nl-height-max nl-width-max');
         confirmDlg.scope.count = ouUserInfo.userids.length;
         confirmDlg.scope.infos = ouUserInfo.dispinfos;
+        confirmDlg.scope.assignInfo = _assignInfo;
         var okButton = {text : nl.t('Send'), onTap : function(e) {
             nlDlg.showLoadingScreen();
             _sendInBatches(data).then(function(ctx) {

@@ -1,5 +1,5 @@
 <div class='row row-center margin0 padding0'
-	 style1='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'
+	 style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'
 	 ng-if='cards.toolbar'>
     <div class='col text-center fsh3 padding0'>
     </div>
@@ -11,6 +11,7 @@
     </span>
 </div>
 
+<div class='padding-small'></div>
 <div ng-show='cards.search' class='nl-card-search row row-center'>
 	<input class='col' ng-model='search.filter'
 	       placeholder='{{cards.search.placeholder}}' ng-keypress='searchKeyHandler($event)'>
@@ -29,6 +30,7 @@
 	<span class='col col-20 nl-textellipsis nl-link-text'
 	      ng-click='showResultDetails()'>{{search.resultsStr}}</span>
 </div>
+
 <div ng-if='!cards.listConfig'  class='nl-card nl-link-text-container' 
 	ng-repeat="card in getCards()" 
 	ng-style="{height: h + 'px', width: w + 'px', 'font-size': fs + '%', 'margin-left': ml + 'px'}">
