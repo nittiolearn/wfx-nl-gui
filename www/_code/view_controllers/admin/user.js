@@ -257,7 +257,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
     
     function _onCreateModify(event, dlgScope, user) {
         var d = dlgScope.data;
-        var username = user ? user.username : nl.fmt2('{}.{}', d.user_id, _grpid);
+        var username = user ? user.username : nl.fmt2('{}.{}', d.user_id, _groupInfo.grpid);
         var row = {op: user ? 'u' : 'c', username: username,
             user_id: d.user_id, usertype: d.usertype.name, state: d.state.id,
             first_name: d.first_name, last_name: d.last_name, email: d.email, 
@@ -275,8 +275,12 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
             return;
         }
         nlDlg.showLoadingScreen();
-        nlAdminUserImport.updateServer([row]).then(function() {
+        nlAdminUserImport.updateServer([row]).then(function(errorCnt) {
             nlDlg.hideLoadingScreen();
+            if (errorCnt > 0) {
+                nlDlg.popupAlert({title: 'Processing Error', template: 'Server encountered error processing the request'});
+                return;
+            }
             _groupInfo = nlGroupInfo.get(_grpid);
             _updateCards();
         });
