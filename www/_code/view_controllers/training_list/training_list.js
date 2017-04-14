@@ -260,6 +260,10 @@
 		function _onModifyDone(card, $scope, id) {
 			nlDlg.hideLoadingScreen();
 			card = _createCard(card);
+			card['showDetails'] = true;
+			for(var i in $scope.cards.cardlist){
+				$scope.cards.cardlist[i].showDetails = false;
+			}
 			if (id !== null) {
 				var pos = _getCardPosition(card.id);
 				$scope.cards.cardlist.splice(pos, 1);

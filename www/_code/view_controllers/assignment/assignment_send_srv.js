@@ -353,8 +353,13 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
 
     function _showAfterAssignmentSentDlg(ctx) {
         if (_assignInfo.returnBackAfterSend) {
-            _dlg.close();
-            return;
+        	var msg = nl.t('{} {} has nominated for training.',  
+        		ctx.data.selectedusers.length, 
+        		ctx.data.selectedusers.length == 1 ? nl.t('user') : nl.t('users'));
+        	nlDlg.popupAlert({title: nl.t('Training nominated'), template:msg}).then(function(){
+				_dlg.close();
+			});    
+	        return;
         }
         var afterAssignmentSentDlg = nlDlg.create(_parentScope);
         afterAssignmentSentDlg.scope.data = {};

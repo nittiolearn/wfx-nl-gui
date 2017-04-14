@@ -579,18 +579,6 @@ function(nl, nlDlg, nlCourse, nlLessonSelect, nlExportLevel) {
     	return false;
     }
 
-    // TODO-MUNNI: Remove later
-	function _showContentCorrectionDlg(data, module, errMsg){
-		var _contentCorrectionDlg = nlDlg.create($scope);
-    		_contentCorrectionDlg.setCssClass('nl-height-max nl-width-max');
-			_contentCorrectionDlg.scope.data = {};
-			_contentCorrectionDlg.scope.data.title = nl.t('Warning');	
-			_contentCorrectionDlg.scope.data.content =  _objToJson(modeHandler.course.content);
-			_contentCorrectionDlg.scope.data.errMsg = nl.t('{}: module - {}', nl.t(errMsg), _objToJson(module));
-		var closeButton = {text : nl.t('Close')};
-		_contentCorrectionDlg.show('view_controllers/course/course_content_correction_dlg.html', [], closeButton, false);
-	}
-
     function _onLaunch($event, cm){
     	if(!_validateInputs(modeHandler.course, cm)) {
     		return;
