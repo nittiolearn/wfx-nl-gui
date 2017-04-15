@@ -27,7 +27,7 @@
             <tr nl-form-input fieldname='URL' fieldmodel='url' fieldtype='text' ng-keypress='onUrlEnter($event)'></tr>
             <tr nl-form-textarea fieldname='Params' fieldmodel='params' fieldcls='nl-fixed-width'></tr>
         </table>
-        <pre ng-hide='view!="json_res"' ng-bind-html='result.json' contenteditable="true"></pre>
+        <pre ng-hide='view!="json_res"' contenteditable="true">{{result.json}}</pre>
         <div ng-hide='view!="fmt_res"'>
             <h4 ng-bind-html='result.fmt.error'></h4>
             <div class='nl-card-search row row-center'>
