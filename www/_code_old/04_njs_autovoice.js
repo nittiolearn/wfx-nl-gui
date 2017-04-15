@@ -44,9 +44,14 @@ function getAudioManager() {
 //#############################################################################################
 function AutoVoice() {
     var self = this;
+    var _pauseCount = 0;
     
     this.ok = function() {
         return self.voiceSynth.ok();
+    };
+    
+    this.setStartPause = function(pauseCount) {
+        _pauseCount = pauseCount;
     };
     
     this.getVoiceButton = function(audioText) {
@@ -89,6 +94,10 @@ function AutoVoice() {
     }
 
     function _startAutoVoice(button, audioText) {
+        // Add a little pause at start
+        var pause ='';
+        for (var i=0; i<_pauseCount; i++) pause += ' \n';
+        audioText = pause + audioText;
         self.voiceSynth.speak(audioText, {
             onEnd: function() {
                 _onEnd(button);

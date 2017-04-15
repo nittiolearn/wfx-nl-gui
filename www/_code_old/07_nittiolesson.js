@@ -157,9 +157,13 @@ nlesson = function() {
 	}
 	
 	function Lesson_updateOLessonFromTempl() {
-        if( this.renderCtx.launchMode() != 'do') return;
         var oLesson = this.oLesson;
         var td = this.parentTemplateContents.templateDefaults;
+        var pauseCount = oLesson.autovoiceStartPause || td.autovoiceStartPause || 0;
+        this.globals.autoVoice.setStartPause(pauseCount);
+
+        if( this.renderCtx.launchMode() != 'do') return;
+
 	    if (oLesson.passScoreFromTempl) {
 	        oLesson.passScore = td.passScore;
 	        return;
