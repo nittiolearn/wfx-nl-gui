@@ -28,12 +28,15 @@ Needed first time setup steps:
    - In "Destination Path" choose location where you want to place the repository. Make sure the last part of 
      your repository name is "nittioapp". If you want to keep the repository directly under folder "c:\users\xxx", 
      please enter "c:\users\xxx\nittioapp"
+   - You would need to do the same for the "nittio" repository too.
 5. Synchronize repository content
    - Click on View->Synchronize menu option
    - Set remote repository URL https://bitbucket.org/nittio/nittioapp
    - Save this as default
    - Click the tool bar icon with hover text "Pull incomming changes from selected URL"
-6. Open a shell/command prompt into the root folder of repository (nittioapp folder).
+   - You might need to "update" the latest version of pulled changes - otherwise you might be
+     seeing still older version (which is version 0).
+6. Open a shell/command prompt into the root folder of "nittioapp" repository (nittioapp folder).
 7. Run "npm install" to update the needed node modules.
 8. Run "gulp rebuild" to build the nittioapp first time.
 
@@ -41,48 +44,50 @@ Syncing your code to latest code
 ================================
 1. Open TortoiseHg Workbench
 2. Synchronize repository content
+   - If you had done changes, please ensure that your changes are checked in before you pull.
    - Click the tool bar icon with hover text "Pull incomming changes from selected URL"
-3. Open a shell/command prompt into the root folder of repository (nittioapp folder).
-4. Run "npm install" to update the needed node modules.
-5. Run "gulp rebuild" to build the nittioapp first time.
+   - If you did not make any changes in your machine, you need to "update" the latest version
+     of pulled changes - otherwise you will be seeing still older version.
+   - If you had changes, you need to "merge" the latest version to your local version.
+   - This syncing has to be done for both "nittio" and "nittioapp" folders.
+3. Open a shell/command prompt into the root folder of "nittioapp" repository (nittioapp folder).
+4. Run "npm install" to update the needed node modules. (If needed - if you are doing this
+   after a long time, it is likely that one of your team members have installed few more npm
+   modules meanshile).
+5. Run "gulp rebuild" to build the nittioapp after the pull.
+6. If you notice the changes in the "nittio", you might see some generated modules. Checkin
+   changes in both nittio and nittioapp folders and push them to central repository.
 
-Running the app on your machine
-===============================
-1. Open a shell/command prompt into the root folder of repository (nittioapp folder).
-2. Run "ionic serve" to launch the app in a browser.
+Some important Google Dev Console URLs
+======================================
 
-Unit testing the app on your machine
-====================================
-1. Open a shell/command prompt into the root folder of repository (nittioapp folder).
-2. Run "gulp karma" to run all unit testcases in chrome browser.
-3. Once all tests are through, "gulp karma_all" to run all unit testcases in all configured browsers.
-4. Under [nittioapp folder]/coverage folder you will see a directory per browser. Go into Chrome folder
-   and click on index.html. This shows the code coverage achieved with your tests.
+Login as hello@nittio.com in a browser to access the google dev console URLs
 
-Setting up android platform
-===========================
-nittioapp can be built as a native andriod app (i.e. generate a .apk file which can be installed in android device).
-To do this, you have to do the following:
+- Google Dev Console Home:
+  https://console.cloud.google.com/home/dashboard?project=nittio-live
+  In the top bar you can change the project from "nittio-live" to "nittio-test". Be aware
+  all the time of the project you are viewing. Below are important links inside
+  
+- Checking on the logs
+  Stack Driver / Logging -> Logs
+  
+- Setting a new version as default version
+  App Engine -> Versions -> check the version -> Migrate traffic
+  
+- Check if quota has run out (e.g. for nittio_test project)
+  App Engine -> Quotas
+  
+- See monthly billing and budgets:
+  Billing -> Budget and alerts
+  Currently monthly billing budget is 100$. You get a mail at 50% and 90% limits.
+  If the 50% is spent much before half the month, budget needs to be updated
+  accordingly.
+  Also note that there is a daily App Engine Limit of 20$ set in app engine
+  App Engine -> Dashboard. You may want to tweek this when the usage is much higher.
+  
+- Uploading AD Sync related stuffs:
+  https://console.cloud.google.com/storage/browser/nittio-live.appspot.com/_public/nlloader/?project=nittio-live
 
-1. Install Android SDK (https://developer.android.com/sdk/installing/index.html - choose "Stand-alone SDK tools")
-2. Run the Android SDK Manager (tool name: android)
-3. Download and install the below packages in the SDK Manager:
-   - Android SDK Tools (Under Tools folder)
-   - Android SDK Build Tools Revision 21.*.* (Under Tools folder)
-   - SDK Platform for API version 21 (Under Android 5.0.1 API 21 folder)
-4. Open a shell/command prompt into the root folder of repository (nittioapp folder).
-5. Run "ionic platform remove android"
-6. Run "ionic platform add android"
-
-Building Android App
-====================
-1. Test the application locally.
-2. Open a shell/command prompt into the root folder of repository (nittioapp folder)
-3. Build Android apk file using the command "ionic build android"
-4. Your APK file will be found at [nittioapp filder]/platforms/android/ant-build/MainActivity-debug.apk
-5. Transfer the file to your android device (e.g. Email the above file to your own email id and access
-   the mail from phone)
-6. Install the APK file on the device and run it
 
 Before sending new minor version for testing
 ============================================
@@ -96,6 +101,7 @@ To make any changes and release a minor version (pre-release) for testing, do th
    - app.yaml: Ensure that the application field is 'nittio-test'
    - check in sources (including generated files)
    - Apply the new minor version tag (v74.per01) to the last checked in sources
+3. Use Google app engine launcher to upload the latest software.
 
 Releasing a version in nittio-live
 ==================================
