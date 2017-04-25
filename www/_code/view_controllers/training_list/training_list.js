@@ -8,7 +8,7 @@
 		angular.module('nl.training_list', []).config(configFn).directive('nlTrainingDetails', TrainingDetailsDirective).controller('nl.TrainingListCtrl', TrainingListCtrl);
 	}
 
-	//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
 	var configFn = ['$stateProvider', '$urlRouterProvider',
 	function($stateProvider, $urlRouterProvider) {
 		$stateProvider.state('app.training_list', {
@@ -22,12 +22,41 @@
 		});
 	}];
 
+//-------------------------------------------------------------------------------------------------
+	function TypeHandler(nl, nlServerApi, nlDlg) {
+	    var self = this;
+		this.getNominations = function(data, callbackFn) {
+		    _getTrainingNominations(data, callbackFn);
+	    };
+
+		function _getTrainingNominations(data, callbackFn) {
+			nlDlg.showLoadingScreen();
+			nlServerApi.getTrainingReportList(data).then(function(result) {
+	            var more = (result.length > data.max);
+	            data.start_at += result.length;
+	            var msg = nl.t('Got {} items from the server.{}', data.start_at, more ? 
+	                ' Fetching more items ...' : '');
+	            nlDlg.popupStatus(msg, more ? false : undefined);
+	            if (more) {
+	                _getTrainingNominations(data, callbackFn);
+	            }
+	            if(!more) nlDlg.hideLoadingScreen();
+	            callbackFn(false, result, more);
+			}, function(error) {
+	            nlDlg.popupStatus(error);
+	            callbackFn(true, error, false);
+			});
+		}
+	}
+//-------------------------------------------------------------------------------------------------
+
 	var TrainingListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlServerApi', 'nlMetaDlg', 'nlSendAssignmentSrv', 'nlLessonSelect',
 	function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg, nlSendAssignmentSrv, nlLessonSelect) {
 
 		var _userInfo = null;
 		var trainingListDict = {};
 		var _scope = null;
+		var mode = new TypeHandler(nl, nlServerApi, nlDlg);
 		function _onPageEnter(userInfo) {
 			_userInfo = userInfo;
 			trainingListDict = {};
@@ -124,14 +153,16 @@
 					title : item.modulename,
 					icon : item.moduleicon
 				},
-				start_date : item.start,
-				end_date : item.end,
+				start_date : nl.fmt.jsonDate2Str(item.start),
+				end_date : nl.fmt.jsonDate2Str(item.end),
 				description : item.desc,
 				children : [],
 				details : {},
 				links : [],
 				listDetails : '<nl-training-details card="card"></nl-training-details>'
 			};
+			card.training.created = nl.fmt.jsonDate2Str(item.created);
+			card.training.updated = nl.fmt.jsonDate2Str(item.updated);
 			return card;
 		}
 
@@ -141,46 +172,36 @@
 
 
 		$scope.onCardInternalUrlClicked = function(card, internalUrl) {
-			if (internalUrl == 'training_assign') {
-				_assignTrainingModule(card);
-			} else if (internalUrl == 'training_report') {
-				_trainingReportView(card);
+			if (internalUrl == 'training_assign' || internalUrl =='training_report') {
+				_trainingReportView(card, internalUrl);
 			} else if (internalUrl == 'training_edit') {
 				_editTrainingModule(card, card.id);
 			}
 		};
 
-		function _trainingReportView(card) {
-			_getNominations(card.id).then(function(nominations) {
-				var alertDlg = {
-					title : nl.t('Alert message'),
-					template : nl.t('There are no nominated users for this training module.')
-				};
-				if (Object.keys(nominations).length == 0)
-					return nlDlg.popupAlert(alertDlg);
-				_showNominatedUserList(card, nominations);
+		function _trainingReportView(card, linkid) {
+			var reports = {};
+			var data = {trainingid: card.id, max: 100, start_at: 0};
+			mode.getNominations(data, function(isError, result, more) {
+				if(isError) return;
+				reports = _getReportDict(result, reports);
+				if(!more) _gotNominatedList(card, linkid, reports);
 			});
 		}
 
-		function _getNominations(trainingId) {
-			nlDlg.showLoadingScreen();
-			return nlServerApi.getTrainingReportList(trainingId).then(function(reports) {
-				nlDlg.hideLoadingScreen();
-				var ret = {};
-				for (var i = 0; i < reports.length; i++) {
-					var rep = _getNominationInfo(reports[i]);
-					var oldRep = ret[rep.student];
-					if (!oldRep) {
-						ret[rep.student] = rep;
-						continue;
-					}
-					if (rep.updated < oldRep.updated)
-						continue;
-					ret[rep.student] = rep;
+		function _getReportDict(result, reports) {
+			for (var i = 0; i < result.length; i++) {
+				var rep = _getNominationInfo(result[i]);
+				var oldRep = reports[rep.student] ?  reports[rep.student] : null;
+				if (!oldRep) {
+					reports[rep.student] = rep;
+					continue;
 				}
-				return ret;
-			});
-		}
+				if (rep.updated < oldRep.updated) continue;
+				reports[rep.student] = rep;
+			}
+			return reports;
+		}	
 
 		function _getNominationInfo(report) {
 			return {
@@ -191,6 +212,21 @@
 				updated : nl.fmt.json2Date(report.updated),
 				orgunit : report.org_unit
 			};
+		}
+
+		function _gotNominatedList(card, linkid, reports){
+			if(linkid == 'training_report') _checkBeforeShowNominations(card, reports);
+			if(linkid == 'training_assign') _assignTrainingModule(card, reports);
+		}
+	
+		function _checkBeforeShowNominations(card, reports){
+			var alertDlg = {
+				title : nl.t('Alert message'),
+				template : nl.t('There are no nominated users for this training module.')
+			};
+	
+			if (Object.keys(reports).length == 0) return nlDlg.popupAlert(alertDlg);
+			_showNominatedUserList(card, reports);
 		}
 
 		function _editTrainingModule(card, id) {
@@ -222,12 +258,9 @@
 					_onModuleEdit(e, $scope, _showTrainingEditDlg.scope, card, id);
 				}
 			};
-			var cancelButton = {
-				text : nl.t('Cancel')
-			};
 
 			var buttonName = id ? editButton : publishNewButton;
-			_showTrainingEditDlg.show('view_controllers/training_list/training_edit_dlg.html', [buttonName], cancelButton);
+			_showTrainingEditDlg.show('view_controllers/training_list/training_edit_dlg.html', [], buttonName);
 		}
 
 		function _onModuleEdit(e, $scope, dlgScope, card, id) {
@@ -237,7 +270,6 @@
 				return null;
 			}
 
-			nlDlg.showLoadingScreen();
 			var serverFunction = (id !== null) ? nlServerApi.trainingModify : nlServerApi.trainingCreate;
 
 			var data = {
@@ -249,16 +281,17 @@
 				moduleid : dlgScope.data.module.lessonId,
 				modulename : dlgScope.data.module.title,
 				moduleicon : dlgScope.data.module.icon,
-				start : nl.fmt.json2Date(dlgScope.data.start_date),
-				end : nl.fmt.json2Date(dlgScope.data.end_date)
+				start : nl.fmt.json2Date(new Date(dlgScope.data.start_date), 'second'),
+				end : nl.fmt.json2Date(new Date(dlgScope.data.end_date), 'second')	
 			};
+			nlDlg.showLoadingScreen();
 			serverFunction(data).then(function(module) {
+				nlDlg.hideLoadingScreen();
 				_onModifyDone(module, $scope, id);
 			});
 		}
 
 		function _onModifyDone(card, $scope, id) {
-			nlDlg.hideLoadingScreen();
 			card = _createCard(card);
 			card['showDetails'] = true;
 			for(var i in $scope.cards.cardlist){
@@ -305,21 +338,12 @@
 			_showNominatedUserDlg.scope.data.card = card;
 			var sortedList = _getSortedList(userDict);
 			_showNominatedUserDlg.scope.data.userList = sortedList;
-			_showNominatedUserDlg.scope.data.headerCol = [{
-				attr : 'name',
-				name : nl.t('Username')
-			}, {
-				attr : 'orgunit',
-				name : nl.t('Department')
-			}, {
-				attr : 'completed',
-				name : nl.t('Status')
-			}];
+			_showNominatedUserDlg.scope.data.headerCol =[{attr : 'name', name : nl.t('Username')},
+														 {attr : 'orgunit', name : nl.t('Department')},
+														 {attr : 'completed', name : nl.t('Status')}];
 			_showNominatedUserDlg.scope.data.title = nl.t('Nominated users');
-			var cancelButton = {
-				text : nl.t('Cancel')
-			};
-			_showNominatedUserDlg.show('view_controllers/training_list/nominated_user_dlg.html', [], cancelButton);
+			var cancelButton = {text : nl.t('Cancel')};
+			_showNominatedUserDlg.show('view_controllers/training_list/nominated_user_dlg.html', [], cancelButton, true);
 		}
 
 		function _getSortedList(userDict) {
@@ -339,37 +363,34 @@
 			return nl.fmt2('Open from {} till {} - {}', d1, d2, training.desc);
 		}
 
-		function _assignTrainingModule(trainingModule) {
-			_getNominations(trainingModule.id).then(function(nominations) {
-				var trainingInfo = {
-					type : 'lesson',
-					id : trainingModule.training.moduleid,
-					trainingId : trainingModule.id,
-					trainingName : trainingModule.title,
-					remarks : _getRemarks(trainingModule.training),
-					returnBackAfterSend : true,
+		function _assignTrainingModule(trainingModule, nominations) {
+			var trainingInfo = {
+				type : 'lesson',
+				id : trainingModule.training.moduleid,
+				trainingId : trainingModule.id,
+				trainingName : trainingModule.title,
+				remarks : _getRemarks(trainingModule.training),
+				returnBackAfterSend : true,
 
-					dlgTitle : nl.t('Nominate users for training: {}', trainingModule.title),
+				dlgTitle : nl.t('Nominate users for training: {}', trainingModule.title),
 
-					esttime : '',
-					starttime : '',
-					endtime : '',
+				esttime : '',
+				starttime : '',
+				endtime : '',
 
-					title : trainingModule.title,
-					icon : trainingModule.training.moduleicon,
-					description : trainingModule.description,
-					authorName : _userInfo.displayname,
+				title : trainingModule.title,
+				icon : trainingModule.training.moduleicon,
+				description : trainingModule.description,
+				authorName : _userInfo.displayname,
 
-					hideTimes : true,
-					selectedUsers : nominations,
-					training : true
-				};
-				nlSendAssignmentSrv.show(_scope, trainingInfo).then(function(e) {
-					if (e)
-						nl.location.url('/training_list');
-				});
+				hideTimes : true,
+				selectedUsers : nominations,
+				training : true
+			};
+			nlSendAssignmentSrv.show(_scope, trainingInfo).then(function(e) {
+				if (e)
+					nl.location.url('/training_list');
 			});
-
 		};
 
 		function _getUserDict(list) {
@@ -380,7 +401,6 @@
 			}
 			return userDict;
 		}
-
 	}];
 
 	var TrainingDetailsDirective = ['nl', 'nlDlg',
@@ -400,5 +420,5 @@
 		};
 	}];
 
-	module_init();
+module_init();
 })();

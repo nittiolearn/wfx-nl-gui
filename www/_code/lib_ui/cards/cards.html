@@ -37,6 +37,9 @@
 	<nl-card card='card' class='nl-card-holder {{card.style}}'></nl-card>
 </div>
 
-<div ng-if='cards.listConfig' class='padding-mid'>
+<div ng-if='cards.listConfig && search.results !== 0 && cards.cardlist.length !== 0' class='padding-mid'>
 	<nl-listview cards='cards'></nl-listview>
+</div>
+<div ng-if='cards.listConfig && search.results == 0'>
+	<span class='padding-mid fsh2'>Nothing to display.</span>
 </div>

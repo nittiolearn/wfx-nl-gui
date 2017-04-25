@@ -537,9 +537,9 @@ function(nl, nlDlg, nlConfig, Upload) {
             id);
 	};
 
-	this.getTrainingReportList = function(trainingid){
+	this.getTrainingReportList = function(data){
 		return server.post('_serverapi/training_get_report_list.json',
-				{trainingid: trainingid});
+				data);
 	};
 	
     //---------------------------------------------------------------------------------------------

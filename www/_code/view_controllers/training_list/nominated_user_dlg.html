@@ -1,5 +1,9 @@
 <nl-dlg title='{{data.title}}' show-help='0'>
 <nl-dlg-content>
+<div class='padding-mid margin0 fsh3'>
+	<span ng-if='data.userList.length == 1'>{{data.userList.length}} user already nominated.</span>
+	<span ng-if='data.userList.length > 1'>{{data.userList.length}} users already nominated.</span>
+</div>
 <table class='nl-table nl-table-styled fsh6 padding-mid'>
 	<tr>
         <th ng-repeat='item in data.headerCol'>

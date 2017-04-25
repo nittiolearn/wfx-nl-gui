@@ -480,6 +480,7 @@ function ImageShrinker(nl, nlDlg) {
             shrinkSize = COMPRESSION_LEVEL[compressionLevel];
         }
         if(!bImg) {
+        	compInfo.compression = 'No compression';
             compInfo.status = 'No compression done';
             onDone(_file, compInfo);
             return;
@@ -492,6 +493,7 @@ function ImageShrinker(nl, nlDlg) {
         reader.onload = function (loadEvent) {
             var origUrl = loadEvent.target.result;
             if(!shrinkSize) {
+            	compInfo.compression = 'No compression';
                 compInfo.status = 'No compression done';
                 onDone(_file, compInfo);
                 return;
