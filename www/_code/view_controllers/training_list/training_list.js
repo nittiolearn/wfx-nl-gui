@@ -235,6 +235,7 @@
 			_showTrainingEditDlg.scope.error = {};
 			_showTrainingEditDlg.scope.data = {};
 			_showTrainingEditDlg.scope.dlgTitle = card ? nl.t('Edit training module') : nl.t('Create new training');
+			_showTrainingEditDlg.scope.showCloseIcon = (card !== null) ? 0 : 1;
 			_showTrainingEditDlg.scope.data = (card !== null) ? card : {
 				title : '',
 				description : '',
