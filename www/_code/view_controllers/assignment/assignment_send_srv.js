@@ -353,9 +353,9 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
 
     function _showAfterAssignmentSentDlg(ctx) {
         if (_assignInfo.returnBackAfterSend) {
-        	var msg = nl.t('{} {} has nominated for training.',  
+        	var msg = nl.t('{} {} nominated for training.',  
         		ctx.sentUserCnt, 
-        		ctx.sentUserCnt == 1 ? nl.t('user') : nl.t('users'));
+        		ctx.sentUserCnt == 1 ? nl.t('user has been') : nl.t('users have been'));
         	nlDlg.popupAlert({title: nl.t('Training nominated'), template:msg}).then(function(){
 				_dlg.close();
 			});    
