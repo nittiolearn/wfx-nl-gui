@@ -10,7 +10,8 @@ var iconToCls = {
     'buffering.icon': 'ion-load-a',
     'play.icon': 'ion-volume-medium',
     'pause.icon': 'ion-pause'
-}
+};
+
 function _setVoiceButtonIcon(button, icon) {
     button.html('');
     var voiceIcon = njs_helper.fmt2('<i class="icon {}"></icon>', iconToCls[icon]);
@@ -393,6 +394,7 @@ function AudioManager() {
     this.pauseAll = function() {
         if (!_currentInfo || !_currentInfo.playing) return;
         _currentInfo.audio.pause();
+        _currentInfo = null;
     };
     
     var _audioHolder = null;
@@ -470,6 +472,7 @@ function AudioManager() {
     }
     
     function _onButtonClick(info, audioUrl, pageId, button) {
+        _currentInfo = info;
         if (!info.canplay) {
             njs_helper.Dialog.popupStatus('Audio is loading. Please wait ...');
             _addPageAudio(audioUrl, pageId, button); // Needed for mobile
