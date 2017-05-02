@@ -21,7 +21,7 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo, $templa
     
     this.createReportStats = function(reptype) {
         return new ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect);
-    }
+    };
 
     this.export = function($scope, reports, _userInfo) {
         if (!ctx) {

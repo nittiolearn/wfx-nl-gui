@@ -53,18 +53,20 @@ function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
         self.start_at = ('start_at' in params) ? parseInt(params.start_at) : 0;
         self.completed = ('completed' in params) ? parseInt(params.completed) != 0 : true;
 
-        self.limit = ('limit' in params) ? params.limit : (reptype == 'assignment') ? null: 100;
+        self.limit = ('limit' in params) ? params.limit : (reptype == 'user') ? 100: null;
         self.dataFetched = false;
         self.fetchedCount = 0;
 	};
 
-	this.getAssignmentReports = function(filter, callbackFn) {
-	    _getAssignmentReports(filter, callbackFn);
+	this.getAssignmentReports = function(dateRange, callbackFn) {
+	    _getAssignmentReports('', dateRange, callbackFn);
     };
 
-    function _getAssignmentReports(filter, callbackFn) {
+    function _getAssignmentReports(filter, dateRange, callbackFn) {
 		var data = {reptype: reptype, assignid : self.assignid, userid : self.userid, 
 		    max: self.max, start_at: self.start_at, completed: self.completed};
+		if (dateRange.updatedFrom) data.updatedFrom = dateRange.updatedFrom;
+		if (dateRange.updatedTill) data.updatedTill = dateRange.updatedTill;
 		if (filter) data.search = filter;
 		nlServerApi.assignmentReport(data).then(function(result) {
             var more = (result.length > self.max);
@@ -75,7 +77,7 @@ function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
                 ' Fetching more items ...' : '');
             nlDlg.popupStatus(msg, more ? false : undefined);
             if (more) {
-                _getAssignmentReports(filter, callbackFn);
+                _getAssignmentReports(filter, dateRange, callbackFn);
             }
             
             callbackFn(false, result, more);
@@ -132,13 +134,48 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
             reportStats = NlAssignReportStats.createReportStats(reptype);
             nl.pginfo.pageTitle = mode.pageTitle(); 
             reportStats.init().then(function() {
-                _getDataFromServer('', resolve);
+	            if(reptype == 'group') {
+	            	_showRangeSelection(resolve);
+	            } else {
+	                _getDataFromServer(null, resolve);
+	            }
             }, function() {
                 resolve(false);
             });
 		});
 	}
 	nlRouter.initContoller($scope, '', _onPageEnter);
+
+    var rangeSelectionDlg = null;
+	function _showRangeSelection(resolve) {
+		rangeSelectionDlg = nlDlg.create($scope);
+		rangeSelectionDlg.setCssClass('nl-height-max nl-width-max');
+		rangeSelectionDlg.scope.data = {updatedFrom: '', updatedTill: ''};
+		rangeSelectionDlg.scope.error = {};
+		rangeSelectionDlg.scope.dlgTitle = nl.t('Select range of updated time');
+		var button = {text: nl.t('Get reports'), onTap: function(e){
+			if (!_validateInputs(rangeSelectionDlg.scope)) {
+				if (e) e.preventDefault();
+				return null;
+			}
+			_getDataFromServer(rangeSelectionDlg.scope.data, resolve);
+		}};
+
+        var cancelButton = {text: nl.t('Close')};
+        rangeSelectionDlg.show('view_controllers/assignment_report/range_selection_dlg.html', [button], cancelButton, false);
+	}
+
+	function _validateInputs(scope){
+		scope.error = {};
+		if (!scope.data.updatedFrom) return _validateFail(scope, 'updatedFrom', 'From date is mandatory');
+		if (!scope.data.updatedTill) return _validateFail(scope, 'updatedTill', 'Till date is mandatory');
+		if (scope.data.updatedFrom >= scope.data.updatedTill) return _validateFail(scope, 'updatedTill', 'Till date should be less than from date');
+		return true;
+	}
+					
+	function _validateFail(scope, attr, errMsg) {
+		return nlDlg.setFieldError(scope, attr, nl.t(errMsg));
+	}
 
 	function _getEmptyCard(nlCardsSrv) {
 		var help = help = nl.t('There are no assignments to display.');
@@ -165,8 +202,8 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	    $scope.onCardLinkClicked(card, internalUrl);
 	};	
 
-	function _getDataFromServer(filter, resolve) {
-		mode.getAssignmentReports(filter, function(isError, result, more) {
+	function _getDataFromServer(dateRange, resolve) {
+		mode.getAssignmentReports(dateRange, function(isError, result, more) {
 		    if (isError) {
 		        resolve(false);
 		        return;
