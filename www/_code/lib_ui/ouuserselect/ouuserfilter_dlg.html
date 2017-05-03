@@ -1,0 +1,21 @@
+<nl-dlg title='Filter users'>
+    <nl-dlg-help>
+    You may choose to apply some filters to view relevant users in the user tree.
+    </nl-dlg-help>
+	<nl-dlg-content>
+        <div class='row row-top row-wrap margin0 padding0'
+             ng-repeat='filter in filters'>
+            <div ng-class='$root.respCol221'
+                 class='bold padding-mid-v'>
+                {{filter.name}}
+            </div>
+            <div ng-class='$root.respCol221'
+                 class='padding-mid-v'>
+                <nl-tree-select info='filter.value'
+                                tabindex='0'
+                                autofocus=''>
+                </nl-tree-select>
+            </div>
+        </div>
+	</nl-dlg-content>
+</nl-dlg>

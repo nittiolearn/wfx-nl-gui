@@ -81,8 +81,8 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlSendAssignmentSrv) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var SendAssignmentSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlGroupInfo',  'nlTreeSelect',
-function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
+var SendAssignmentSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlGroupInfo', 'nlOuUserSelect',
+function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
     //---------------------------------------------------------------------------------------------
     // Main Assignment Dialog
     //---------------------------------------------------------------------------------------------
@@ -101,10 +101,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
     var _assignInfo = null;
 
     var _dlg = null;
-    var _groupInfo = null;
-    var _ouUserTree = {data: []};
-    var _allUsers = {};
-
+    var _ouUserSelector = null;
     var _selectedUsers = {};
 
     //---------------------------------------------------------------------------------------------
@@ -119,96 +116,49 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
     //---------------------------------------------------------------------------------------------
     function _impl(resolve, reject) {
         _dlg = nlDlg.create(_parentScope);
-        _initDlgScope();
         nlDlg.showLoadingScreen();
         nlGroupInfo.init().then(function() {
-            _groupInfo = nlGroupInfo.get();
-            var ouToUsers = _getOuToUserDict();
-            _formOuUserTree(_groupInfo.outree, ouToUsers, _ouUserTree.data);
-            if(_assignInfo.training) _selectedUsers = {};
-            nlTreeSelect.updateSelectionTree(_ouUserTree, _selectedUsers);
+            nlGroupInfo.update();
+            var dontShowUsers = _assignInfo.selectedUsers || {};
+            _ouUserSelector = nlOuUserSelect.getOuUserSelector(_parentScope, 
+                nlGroupInfo.get(), dontShowUsers);
+            if (_assignInfo.training) _selectedUsers = {};
+            _ouUserSelector.updateSelectedIds(_selectedUsers);
+
+            _initDlgScope();
             _showDlg(resolve, reject);
         });
     }
 
     function _initDlgScope() {
-        _ouUserTree = {data: []};
         _dlg.setCssClass('nl-height-max nl-width-max');
         var dlgScope = _dlg.scope;
         dlgScope.assignInfo = _assignInfo;
         dlgScope.options = {showAnswers: learningModeStrings};
         dlgScope.data = {
-            ouUserTree: _ouUserTree,
+            ouUserTree: _ouUserSelector.getTreeSelect(),
             starttime: _assignInfo.starttime || '',
             endtime: _assignInfo.endtime || '',
             maxduration: parseInt(_assignInfo.esttime),
             showAnswers: learningModeStrings[1],
             remarks: _assignInfo.remarks || ''
         };
-        dlgScope.onOuUserClick = function() {
-            _showOuUserListDlg();                
-        };
-    }
-
-    function _getOuToUserDict() {
-        var ouToUsers = {};
-        for(var uid in _groupInfo.users) {
-            var user = nlGroupInfo.getUserObj(uid);
-            if (!user.isActive()) continue;
-            if (!(user.org_unit in ouToUsers)) ouToUsers[user.org_unit] = [];
-            ouToUsers[user.org_unit].push(user);
-        }
-        return ouToUsers;
-    }
-    
-    var ouIcon = 'ion-person-stalker fsh4 fyellow';
-    var userIcon = 'ion-person fsh4 fgreen';
-    function _formOuUserTree(outree, ouToUsers, ouUserTree) {
-        for(var i=0; i<outree.length; i++) {
-            var item = outree[i];
-            ouUserTree.push({id: item.id, name: item.text,
-                type: 'ou', icon: ouIcon, canSelect: false});
-            if (item.children) _formOuUserTree(item.children, ouToUsers, ouUserTree);
-            if (!(item.id in ouToUsers)) continue;
-            var ouUsers = ouToUsers[item.id];
-            for(var j=0; j < ouUsers.length; j++) {
-                var user = ouUsers[j];
-                if(_assignInfo.training && (_assignInfo.selectedUsers[user.id])) continue;
-                var treeItem = {id: nl.fmt2('{}.{}', item.id, user.id),
-                    name: user.name, type: 'user', icon: userIcon, 
-                    userObj: user};
-                ouUserTree.push(treeItem);
-            }
-        }
     }
 
     function _showDlg(resolve, reject) {
-    	var sndButton = _assignInfo.training ? nl.t('Nominate User') : nl.t('Send Assignment');
-        var sendButton = {text : sndButton, onTap : function(e) {
+    	var buttonName = _assignInfo.training ? nl.t('Nominate User') : nl.t('Send Assignment');
+        var sendButton = {text : buttonName, onTap : function(e) {
+            _selectedUsers = _ouUserSelector.getSelectedUsers(); 
             _onSendAssignment(e);
         }};
         var cancelButton = {text : nl.t('Cancel'), onTap: function(e) {
+            _selectedUsers = _ouUserSelector.getSelectedUsers(); 
             resolve(e);
         }};
         _dlg.show('view_controllers/assignment/send_assignment_dlg.html',
             [sendButton], cancelButton);
     }
 
-    function _showOuUserListDlg() {
-        var ouUserDlg = nlDlg.create(_parentScope);
-        ouUserDlg.setCssClass('nl-height-max nl-width-max');   
-        ouUserDlg.scope.data = {ouUserTree: _ouUserTree};
-        
-        var okButton = {text : nl.t('Select'), onTap : function(e) {
-            _selectedUsers = nlTreeSelect.getSelectedIds(_ouUserTree);
-            if (!_assertUserCount()) e.preventDefault();
-        }};
-
-        var cancelButton = {text : nl.t('Cancel')};
-        ouUserDlg.show('view_controllers/assignment/ou_user_select_dlg.html',
-            [okButton], cancelButton);
-    }
-    
     function _assertUserCount() {
         if (Object.keys(_selectedUsers).length == 0) {
         	var templateMsg = _assignInfo.training ? nl.t('Please select the users to nominate.') : nl.t('Please select the users to send the assignment to.');
@@ -238,7 +188,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlTreeSelect) {
     // On Send and afterwards code
     //---------------------------------------------------------------------------------------------
     function _onSendAssignment(e) {
-        if(e) e.preventDefault(e); 
+        if(e) e.preventDefault(e);
         if (!_assertUserCount()) return;
         
         var ouUserInfo = _getOusAndUser();

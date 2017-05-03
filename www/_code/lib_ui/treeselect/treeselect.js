@@ -56,6 +56,8 @@ function(nl) {
                 treeSelectInfo.rootItems[item.id] = item;
             }
         }
+        treeSelectInfo.onFilterClick = null;
+        treeSelectInfo.filterIcon = '';
         treeSelectInfo.treeIsShown = true;
         treeSelectInfo.multiSelect = true;
         treeSelectInfo.selectedIds = {};
@@ -69,8 +71,23 @@ function(nl) {
         _updateSelectionText(treeSelectInfo);
     };
 
+    this.updateSelectedIds = function(treeSelectInfo, selectedIds) {
+        treeSelectInfo.selectedIds = {};
+        var itemDict = treeSelectInfo.itemDict;
+        for(var key in itemDict) {
+            var item = itemDict[key];
+            item.selected = (key in selectedIds);
+            if (item.selected) treeSelectInfo.selectedIds[key] = item;
+        }
+        _updateSelectionText(treeSelectInfo);
+    };
+    
     this.getSelectedIds = function(treeSelectInfo) {
-        return treeSelectInfo.selectedIds;
+        var ret = {};
+        // Semi deep copy
+        for(var key in treeSelectInfo.selectedIds)
+            ret[key] = treeSelectInfo.selectedIds[key];
+        return ret;
     };
     
     // Mainly for the directive usage

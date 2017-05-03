@@ -1,9 +1,14 @@
-<div class='nl-tree-select'>
-<div class='nl-link-text row row-wrap row-center margin0 padding-mid'
-     ng-click='info.treeIsShown = !info.treeIsShown'>
-     <div class='col nl-textellipsis'>{{info.selectedText}}</div>
-     <i ng-show='!info.treeIsShown' class="icon ion-arrow-down-b fsh6 bold"></i>
-     <i ng-show='info.treeIsShown' class="icon ion-arrow-up-b fsh6 bold"></i>
+<div class='nl-dlg-field-value nl-xxx-select'>
+<div class='nl-link-text row row-wrap row-center margin0 padding-small'
+     ng-click='info.treeIsShown = !info.treeIsShown'
+     autofocus=''
+     tabindex="{{tabindex || 0}}">
+     <div class='col padding-small nl-textellipsis'>{{info.selectedText}}</div>
+     <i ng-show='info.onFilterClick'
+        class="icon {{info.filterIcon || 'ion-funnel'}} nl-dlg-field-icon"
+        ng-click='info.onFilterClick($event)'></i>
+     <i ng-show='!info.treeIsShown' class="icon ion-arrow-down-b nl-dlg-field-icon"></i>
+     <i ng-show='info.treeIsShown' class="icon ion-arrow-up-b nl-dlg-field-icon"></i>
 </div>
 <div ng-repeat='item in info.visibleData'
      class='row row-wrap row-center margin0 padding0 nl-link-text'

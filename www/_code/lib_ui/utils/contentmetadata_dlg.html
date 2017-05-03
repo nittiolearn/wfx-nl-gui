@@ -9,9 +9,7 @@
         <div ng-class='respCol221'
              class='nl-dlg-field-value {{cmField.error ? "nl-dlg-field-error" : ""}}'>
             <nl-tree-select ng-if='cmField.type == "select" || cmField.type == "multi-select"'
-                            info='cmField.value'
-                            tabindex='0'
-                            autofocus=''>
+                            info='cmField.value'>
             </nl-tree-select>
             <input ng-if='cmField.type == "text" || cmField.type == "number"'
                    type='{{cmField.type}}' 
