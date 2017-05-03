@@ -7,10 +7,10 @@
 function module_init() {
     angular.module('nl.assign_rep', [])
     .config(configFn)
-    .controller('nl.AssignRepCtrl', AssignRepCtrl)
-    .controller('nl.AssignSummaryRepCtrl', AssignSummaryRepCtrl)
-    .controller('nl.AssignUserRepCtrl', AssignUserRepCtrl);
-  }
+    .controller('nl.AssignRepCtrl', getController('assignment'))
+    .controller('nl.AssignSummaryRepCtrl', getController('group'))
+    .controller('nl.AssignUserRepCtrl', getController('user'));
+}
    
 //-------------------------------------------------------------------------------------------------
 var configFn = ['$stateProvider', '$urlRouterProvider',
@@ -50,21 +50,27 @@ function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
         self.userid = ('userid' in params) ? params.userid : null;
         self.max = ('max' in params) ? parseInt(params.max) : 50;
         self.max--;
-        self.start_at = ('start_at' in params) ? parseInt(params.start_at) : 0;
         self.completed = ('completed' in params) ? parseInt(params.completed) != 0 : true;
+        self.limit = ('limit' in params) ? params.limit : (reptype == 'user') ? 100: null;
+        self.initVars();
+	};
 
-        self.limit = ('limit' in params) ? params.limit : (reptype == 'assignment') ? null: 100;
+	this.initVars = function() {
+		var params = nl.location.search();
+        self.start_at = ('start_at' in params) ? parseInt(params.start_at) : 0;
         self.dataFetched = false;
         self.fetchedCount = 0;
 	};
 
-	this.getAssignmentReports = function(filter, callbackFn) {
-	    _getAssignmentReports(filter, callbackFn);
+	this.getAssignmentReports = function(dateRange, callbackFn) {
+	    _getAssignmentReports('', dateRange, callbackFn);
     };
 
-    function _getAssignmentReports(filter, callbackFn) {
+    function _getAssignmentReports(filter, dateRange, callbackFn) {
 		var data = {reptype: reptype, assignid : self.assignid, userid : self.userid, 
 		    max: self.max, start_at: self.start_at, completed: self.completed};
+		if (dateRange.updatedFrom) data.updatedFrom = dateRange.updatedFrom;
+		if (dateRange.updatedTill) data.updatedTill = dateRange.updatedTill;
 		if (filter) data.search = filter;
 		nlServerApi.assignmentReport(data).then(function(result) {
             var more = (result.length > self.max);
@@ -75,9 +81,8 @@ function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
                 ' Fetching more items ...' : '');
             nlDlg.popupStatus(msg, more ? false : undefined);
             if (more) {
-                _getAssignmentReports(filter, callbackFn);
+                _getAssignmentReports(filter, dateRange, callbackFn);
             }
-            
             callbackFn(false, result, more);
             if (!more) self.dataFetched = true;
 		}, function(error) {
@@ -94,25 +99,20 @@ function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
 };
 
 //-------------------------------------------------------------------------------------------------
-var AssignRepCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'NlAssignReportStats',
-function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats) {
-    _assignRepImpl('assignment', nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats);
-}];
+function getController(ctrlType) {
+	return [
+		'nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'NlAssignReportStats',
+		'nlGroupInfo',
+		function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats,
+			nlGroupInfo) {
+	    _assignRepImpl(ctrlType, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, 
+	    	NlAssignReportStats, nlGroupInfo);
+	}];
+}
 
 //-------------------------------------------------------------------------------------------------
-var AssignSummaryRepCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'NlAssignReportStats',
-function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats) {
-    _assignRepImpl('group', nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats);
-}];
-
-//-------------------------------------------------------------------------------------------------
-var AssignUserRepCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'NlAssignReportStats',
-function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats) {
-    _assignRepImpl('user', nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats);
-}];
-
-//-------------------------------------------------------------------------------------------------
-function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats) {
+function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, 
+	NlAssignReportStats, nlGroupInfo) {
 	var _userInfo = null;
 	var my = 0;
 	var search = null;
@@ -127,18 +127,73 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
     		$scope.cards = {};
             _addSearchInfo($scope.cards);
     		$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
-            $scope.cards.cardlist = [];
+			if(reptype == 'group') $scope.cards.toolbar = _getToolbar();
             $scope.cards.staticlist = [];
-            reportStats = NlAssignReportStats.createReportStats(reptype);
             nl.pginfo.pageTitle = mode.pageTitle(); 
-            reportStats.init().then(function() {
-                _getDataFromServer('', resolve);
+            nlGroupInfo.init().then(function() {
+	            if(reptype == 'group') {
+	            	_showRangeSelection(resolve);
+	            } else {
+	                _getDataFromServer(null, resolve);
+	            }
             }, function() {
                 resolve(false);
             });
 		});
 	}
 	nlRouter.initContoller($scope, '', _onPageEnter);
+
+	function _getToolbar() {
+		return [{
+			title : 'Get reports for required date/time range',
+			icon : 'ion-android-time',
+			onClick : _onDatetimeIconClick
+		}];
+	}
+
+	function _onDatetimeIconClick() {
+        if(!mode.dataFetched) {
+            nlDlg.popupAlert({title: 'Data still loading', 
+                content: 'Still loading data from server. Please change date/time after the complete data is loaded.'});
+            return;
+        }
+        _showRangeSelection(null);
+	}
+        
+	var rangeSelectionDlg = null;
+	function _showRangeSelection(resolve) {
+		rangeSelectionDlg = nlDlg.create($scope);
+		rangeSelectionDlg.setCssClass('nl-height-max nl-width-max');
+		var updatedTillDate = new Date();
+		var updatedFromDate = updatedTillDate.getTime() - (7 * 24 * 60 * 60 * 1000);
+		rangeSelectionDlg.scope.data = {updatedFrom: new Date(updatedFromDate), updatedTill: updatedTillDate};
+		rangeSelectionDlg.scope.error = {};
+		rangeSelectionDlg.scope.dlgTitle = nl.t('Select range of updated time');
+		var button = {text: nl.t('Get reports'), onTap: function(e){
+			if (!_validateInputs(rangeSelectionDlg.scope)) {
+				if (e) e.preventDefault();
+				return null;
+			}
+			nlDlg.showLoadingScreen();
+			_getDataFromServer(rangeSelectionDlg.scope.data, resolve);
+		}};
+        var cancelButton = {text: nl.t('Close'), onTap: function(e) {
+        	if (resolve) resolve(false);
+        }};
+        rangeSelectionDlg.show('view_controllers/assignment_report/range_selection_dlg.html', [button], cancelButton, false);
+	}
+
+	function _validateInputs(scope){
+		scope.error = {};
+		if (!scope.data.updatedFrom) return _validateFail(scope, 'updatedFrom', 'From date is mandatory');
+		if (!scope.data.updatedTill) return _validateFail(scope, 'updatedTill', 'Till date is mandatory');
+		if (scope.data.updatedFrom >= scope.data.updatedTill) return _validateFail(scope, 'updatedTill', 'Till date should be less than from date');
+		return true;
+	}
+					
+	function _validateFail(scope, attr, errMsg) {
+		return nlDlg.setFieldError(scope, attr, nl.t(errMsg));
+	}
 
 	function _getEmptyCard(nlCardsSrv) {
 		var help = help = nl.t('There are no assignments to display.');
@@ -165,8 +220,12 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	    $scope.onCardLinkClicked(card, internalUrl);
 	};	
 
-	function _getDataFromServer(filter, resolve) {
-		mode.getAssignmentReports(filter, function(isError, result, more) {
+	function _getDataFromServer(dateRange, resolve) {
+		mode.initVars();
+		$scope.cards.cardlist = [];
+		$scope.cards.staticlist = [];
+        reportStats = NlAssignReportStats.createReportStats(reptype);
+		mode.getAssignmentReports(dateRange, function(isError, result, more) {
 		    if (isError) {
 		        resolve(false);
 		        return;
@@ -178,7 +237,8 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
             }
             _updateChartCard(reportStats);
             _updateStatusOverview();
-            resolve(true);
+            nlDlg.hideLoadingScreen();
+            if (resolve) resolve(true);
 		});
 	}
 	
@@ -196,7 +256,8 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	    'pending' : {icon: 'ion-ios-circle-filled fgrey', txt: 'Pending'},
         'failed' : {icon: 'ion-alert-circled fyellow', txt: 'Scored low'},
         'completed' : {icon: 'ion-checkmark-circled fgreen', txt: 'Completed'}
-	}
+	};
+
 	function _createReportCard(report) {
 	    var urlPart = (reptype == 'user' && report.student == _userInfo.userid)
 	       ? 'view_report_assign' : 'review_report_assign';

@@ -21,7 +21,7 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo, $templa
     
     this.createReportStats = function(reptype) {
         return new ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect);
-    }
+    };
 
     this.export = function($scope, reports, _userInfo) {
         if (!ctx) {
@@ -372,7 +372,7 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
         return {ous: nlTreeSelect.getSelectedIds(filterOptions.ouTree),
             grades: nlTreeSelect.getSelectedIds(filterOptions.gradeTree),
             subjects: nlTreeSelect.getSelectedIds(filterOptions.subjectTree)};
-    }
+    };
     
     this.isFilterPresent = function(filters) {
         if (!filters) return false;
@@ -380,12 +380,8 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
         if (Object.keys(filters.grades).length > 0) return true;
         if (Object.keys(filters.subjects).length > 0) return true;
         return false;
-    }
-
-    this.init = function() {
-        return nlGroupInfo.init();
     };
-    
+
     function _doesItPassTheFilter(rep, filters) {
         if (!filters) return true;
         if (!_doesItPassTheFilterForAttr(filters.ous, rep.org_unit)) return false;
