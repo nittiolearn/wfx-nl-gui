@@ -69,8 +69,8 @@ function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
     function _getAssignmentReports(filter, dateRange, callbackFn) {
 		var data = {reptype: reptype, assignid : self.assignid, userid : self.userid, 
 		    max: self.max, start_at: self.start_at, completed: self.completed};
-		if (dateRange.updatedFrom) data.updatedFrom = dateRange.updatedFrom;
-		if (dateRange.updatedTill) data.updatedTill = dateRange.updatedTill;
+		if (dateRange) data.updatedFrom = dateRange.updatedFrom;
+		if (dateRange) data.updatedTill = dateRange.updatedTill;
 		if (filter) data.search = filter;
 		nlServerApi.assignmentReport(data).then(function(result) {
             var more = (result.length > self.max);
