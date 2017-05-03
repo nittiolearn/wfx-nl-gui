@@ -171,6 +171,10 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
         nl.fmt.addAvp(avps, 'User type', user.getUtStr());
         nl.fmt.addAvp(avps, 'OU', user.org_unit);
         nl.fmt.addAvp(avps, 'Secondary OUs', user.sec_ou_list);
+        var metadata = nlGroupInfo.getUserMetadata(user, _grpid);
+        for(var i=0; i<metadata.length; i++) {
+            nl.fmt.addAvp(avps, metadata[i].name, metadata[i].value);
+        }
 		nl.fmt.addAvp(avps, 'Created on', user.created, 'date');
 		nl.fmt.addAvp(avps, 'Updated on', user.updated, 'date');
 		return avps;
@@ -190,6 +194,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
             last_name: '',
             email: '',
             state: dlg.scope.options.state[0]};
+            
         var user = null;
 
         if (card) {
@@ -211,6 +216,13 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
             dlg.scope.isModify = false;
             dlg.scope.data.org_unit = _getTreeInfo('', true, false);
             dlg.scope.data.sec_ou_list = _getTreeInfo('', false, true);
+        }
+
+        var metadata = nlGroupInfo.getUserMetadata(user, _grpid);
+        dlg.scope.data.metadata = metadata;
+        for(var i=0; i<metadata.length; i++) {
+            var mid = metadata[i].id;
+            dlg.scope.data[mid] = metadata[i].value || '';
         }
 
         var button = {
@@ -255,6 +267,16 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
         return ret;
     }
     
+    function _getMetadataJson(dlgScope) {
+        var mdValues = {};
+        var metadata = dlgScope.data.metadata;
+        for (var i=0; i<metadata.length; i++) {
+            var m = metadata[i];
+            mdValues[m.id] = dlgScope.data[m.id] || '';
+        }
+        return angular.toJson(mdValues);
+    }
+
     function _onCreateModify(event, dlgScope, user) {
         var d = dlgScope.data;
         var username = user ? user.username : nl.fmt2('{}.{}', d.user_id, _groupInfo.grpid);
@@ -262,7 +284,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
             user_id: d.user_id, usertype: d.usertype.name, state: d.state.id,
             first_name: d.first_name, last_name: d.last_name, email: d.email, 
             org_unit: _getTreeSelection(d.org_unit), 
-            sec_ou_list: _getTreeSelection(d.sec_ou_list)
+            sec_ou_list: _getTreeSelection(d.sec_ou_list),
+            metadata: _getMetadataJson(dlgScope)
         };
         dlgScope.error = {};
         nlAdminUserImport.initImportOperation();
@@ -297,6 +320,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
         if(!_validateField(nlAdminUserImport.validateMobile, row, dlgScope, '')) return false;
         if(!_validateField(nlAdminUserImport.validateOu, row, dlgScope, 'org_unit')) return false;
         if(!_validateField(nlAdminUserImport.validateSecOu, row, dlgScope, 'sec_ou_list')) return false;
+        if(!_validateField(nlAdminUserImport.validateMetadata, row, dlgScope, '')) return false;
         if(!_validateField(nlAdminUserImport.validateManagers, row, dlgScope, '')) return false;
         if(!_validateField(nlAdminUserImport.deleteUnwanted, row, dlgScope, '')) return false;
         if(!_validateField(nlAdminUserImport.validateDuplicates, row, dlgScope, '')) return false;

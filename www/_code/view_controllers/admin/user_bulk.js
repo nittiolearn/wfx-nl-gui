@@ -23,6 +23,7 @@ var _headers = [
     {id: 'state', name: "State", optional: true},
     {id: 'org_unit', name: "OU", oldnames: ["Class / user group"]},
     {id: 'sec_ou_list', name: "Sec OUs", oldnames: ["Secondary user groups"], optional: true},
+    {id: 'metadata', name: "Metadata", optional: true},
     {id: 'created', name: "Created UTC Time", optional: true},
     {id: 'updated', name: "Updated UTC Time", optional: true}
  ];
@@ -382,6 +383,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         self.validateMobile(row);
         self.validateOu(row);
         self.validateSecOu(row);
+        self.validateMetadata(row);
         self.validateManagers(row);
         self.deleteUnwanted(row);
         self.validateDuplicates(row);
@@ -516,6 +518,18 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         }
     };
 
+    this.validateMetadata = function(row) {
+        if(!row.metadata) row.metadata = '';
+        var md = {};
+        if (row.metadata) {
+            try {
+                md = angular.fromJson(row.metadata);
+            } catch (e) {
+                _throwException('Invalid Metadata - not valid JSON string', row);
+            }
+        }
+    };
+    
     this.deleteUnwanted = function(row) {
         if ('created' in row) delete row.created;
         if ('udpated' in row) delete row.updated;
@@ -533,6 +547,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         if (user.sec_ou_list != row.sec_ou_list) return;
         if (user.first_name != row.first_name) return;
         if (user.last_name != row.last_name) return;
+        if (user.metadata != row.metadata) return;
         if (self.pl) {
             self.pl.imp('Update with no change ignored', angular.toJson(row, 2));
         }

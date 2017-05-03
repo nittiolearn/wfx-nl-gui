@@ -54,6 +54,14 @@
                 </nl-tree-select>
                 <div ng-show='error.sec_ou_list' class='nl-dlg-field-errormsg'>{{error.sec_ou_list}}</div>
             </div>
+
+            <div ng-class='resp2Col33' class='nl-dlg-field-name'
+                 ng-repeat-start='m in data.metadata'>{{m.name}}</div>
+            <div ng-class='resp2Col67' class='padding0'
+                 ng-repeat-end>
+                <nl-input fieldmodel='{{m.id}}' fieldtype='text' fieldcls='w100'></nl-input>
+            </div>
+
         </div>
         <br/>
     </nl-dlg-content>

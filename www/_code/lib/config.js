@@ -67,7 +67,8 @@ function(nl, nlServerApi) {
             first_name: uInfo[this.FIRST_NAME] || '',
             last_name: uInfo[this.LAST_NAME] || '',
             isBleedingEdge: uInfo[this.ISBLEEDINGEDGE] || false,
-            perm_override: uInfo[this.PERM_OVERRIDE] || ''
+            perm_override: uInfo[this.PERM_OVERRIDE] || '',
+            metadata: uInfo[this.METADATA] || ''
         };
         ret.id = parseInt(uid);
         ret.user_id = ret.username.substring(0, ret.username.indexOf('.'));
@@ -94,7 +95,18 @@ function(nl, nlServerApi) {
     
     this.getStateOptions = function(grpid) {
         return _getStateOptions(grpid);
-    }
+    };
+    
+    this.getUserMetadata = function(userObj, grpid) {
+        var metadataValues = userObj && userObj.metadata ? angular.fromJson(userObj.metadata) : {};
+        var props = self.get(grpid).props || {};
+        var metadataFields = props.usermetadatafields ? angular.copy(props.usermetadatafields) : [];
+        for (var i=0; i< metadataFields.length; i++) {
+            var f = metadataFields[i];
+            f.value = metadataValues[f.id] || '';
+        }
+        return metadataFields;
+    };
     
     function _getUtIcon(ut) {
         if (!(ut in self.utIcons)) ut = self.UT_STUDENT_ADVANCED;
@@ -121,7 +133,7 @@ function(nl, nlServerApi) {
     function _getStateOptions(grpid) {
         return [{id: 1, name: 'Active'}, {id: 0, name: 'Inactive'}];
     }
-
+    
     function _initContants() {
         self.USERNAME = 0;
         self.STATE = 1;
@@ -135,6 +147,7 @@ function(nl, nlServerApi) {
         self.LAST_NAME = 9;
         self.ISBLEEDINGEDGE = 10;
         self.PERM_OVERRIDE = 11;
+        self.METADATA = 12;
 
         // Generic user types    
         self.UT_NITTIOADMIN=10;
@@ -161,26 +174,27 @@ function(nl, nlServerApi) {
     }
 
     function _updateGroupInfo(grpid) {
-        self.get(grpid).derived = {};
+        var groupInfo = self.get(grpid);
+        groupInfo.derived = {};
         // Update type names
-        var props = self.get(grpid).props || {};
+        var props = groupInfo.props || {};
         var typenames = props.usertypenames || {};
-        self.get(grpid).derived.typeNameToUt = {};
+        groupInfo.derived.typeNameToUt = {};
         for (var ut in typenames) {
-            self.get(grpid).derived.typeNameToUt[typenames[ut]] = parseInt(ut);
+            groupInfo.derived.typeNameToUt[typenames[ut]] = parseInt(ut);
         }
         // Update login id to user dict
         var udict = {};
-        for(var uid in self.get(grpid).users) {
+        for(var uid in groupInfo.users) {
             var user = self.getUserObj(uid, grpid);
             udict[user.username] = user;
         }
-        self.get(grpid).derived.keyToUsers = udict;
+        groupInfo.derived.keyToUsers = udict;
         
         // Update ou ids to ous dict
         var ouDict = {};
-        _getOusAsDict(self.get(grpid).outree, ouDict);
-        self.get(grpid).derived.ouDict = ouDict;
+        _getOusAsDict(groupInfo.outree, ouDict);
+        groupInfo.derived.ouDict = ouDict;
     }
 
     function _getOusAsDict(ouTree, ouDict) {
