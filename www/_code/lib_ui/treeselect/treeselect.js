@@ -36,7 +36,6 @@ function(nl) {
         for(var i=0; i<treeList.length; i++) {
             var item = treeList[i];
             itemDict[item.id] = item;
-            item.pos = i;
             var idParts = item.id.split('.');
             if (!item.name) item.name = idParts[idParts.length -1];
             if (!('canSelect' in item)) item.canSelect = true;
@@ -56,17 +55,26 @@ function(nl) {
                 treeSelectInfo.rootItems[item.id] = item;
             }
         }
-        treeSelectInfo.onFilterClick = null;
-        treeSelectInfo.filterIcon = '';
-        treeSelectInfo.treeIsShown = true;
-        treeSelectInfo.multiSelect = true;
+        _fillDefaut(treeSelectInfo, 'onFilterClick', null);
+        _fillDefaut(treeSelectInfo, 'filterIcon', '');
+        _fillDefaut(treeSelectInfo, 'filterIconTitle', 'Filter');
+        _fillDefaut(treeSelectInfo, 'treeIsShown', true);
+        _fillDefaut(treeSelectInfo, 'showCounts', false);
+        _fillDefaut(treeSelectInfo, 'multiSelect', true);
+        _fillDefaut(treeSelectInfo, 'removeEmptyFolders', false);
+        _fillDefaut(treeSelectInfo, 'folderType', 'NOT_DEFINED');
+
         treeSelectInfo.selectedIds = {};
         if (selectedIds)
             for(var key in selectedIds)
-                treeSelectInfo.selectedIds[key] = itemDict[key];
+                if (key in itemDict)
+                    treeSelectInfo.selectedIds[key] = itemDict[key];
         treeSelectInfo.itemDict = itemDict;
+        
+        if (treeSelectInfo.removeEmptyFolders && treeSelectInfo.folderType)
+            _removeEmptyItemsOfType(treeSelectInfo);
 
-        _updateAllFoldersStatus(treeSelectInfo.rootItems);
+        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems);
         _updateVisibleData(treeSelectInfo);
         _updateSelectionText(treeSelectInfo);
     };
@@ -79,6 +87,7 @@ function(nl) {
             item.selected = (key in selectedIds);
             if (item.selected) treeSelectInfo.selectedIds[key] = item;
         }
+        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems);
         _updateSelectionText(treeSelectInfo);
     };
     
@@ -90,6 +99,39 @@ function(nl) {
         return ret;
     };
     
+    function _fillDefaut(obj, attr, defVal) {
+        if (!(attr in obj)) obj[attr] = defVal;
+    }
+    
+    function _removeEmptyItemsOfType(treeSelectInfo) {
+        treeSelectInfo.rootItems = _removeEmptyItemsInDicsts(treeSelectInfo, 
+            treeSelectInfo.rootItems, treeSelectInfo.folderType);
+        var items = [];
+        for(var i=0; i<treeSelectInfo.data.length; i++) {
+            if (!(treeSelectInfo.data[i].id in treeSelectInfo.itemDict)) continue;
+            items.push(treeSelectInfo.data[i]);
+        }
+        treeSelectInfo.data = items;
+    }
+    function _removeEmptyItemsInDicsts(treeSelectInfo, items, itemType) {
+        var ret = {};
+        for(var key in items) {
+            var item = items[key];
+            var empty = false;
+            if (item.type === itemType) {
+                if (item.children) 
+                    item.children = _removeEmptyItemsInDicsts(treeSelectInfo, item.children, itemType);
+                if (!item.children || Object.keys(item.children).length == 0)
+                    empty = true;
+            }
+            if (empty)
+                delete treeSelectInfo.itemDict[item.id];
+            else
+                ret[item.id] = item;
+        }
+        return ret;
+    }
+
     // Mainly for the directive usage
     this.toggleFolder = function(folder, treeSelectInfo) {
         var treeList = treeSelectInfo.data;
@@ -116,7 +158,7 @@ function(nl) {
     this.toggleSelectionOfFolder = function(folder, treeSelectInfo) {
         if (!treeSelectInfo.multiSelect) return;
         _updateSubTreeStatus(!folder.selected, folder, treeSelectInfo);
-        _updateStatusAndCaccadeToParents(_getParentId(folder.id), treeSelectInfo);
+        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems);
         _updateSelectionText(treeSelectInfo);
     };
 
@@ -150,34 +192,15 @@ function(nl) {
     function _selectItem(curItem, treeSelectInfo) {
         curItem.selected = true;
         treeSelectInfo.selectedIds[curItem.id] = curItem;
-        _updateStatusAndCaccadeToParents(_getParentId(curItem.id), treeSelectInfo);
+        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems);
         _updateSelectionText(treeSelectInfo);
     }
     
     function _unselectItem(curItem, treeSelectInfo) {
         curItem.selected = false;
         delete treeSelectInfo.selectedIds[curItem.id];
-        _updateStatusAndCaccadeToParents(_getParentId(curItem.id), treeSelectInfo);
+        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems);
         _updateSelectionText(treeSelectInfo);
-    }
-
-    function _updateStatusAndCaccadeToParents(itemId, treeSelectInfo) {
-        if (!itemId) return;
-        var folder = treeSelectInfo.itemDict[itemId];
-        if (!folder || !folder.children) return;
-        
-        var keys = Object.keys(folder.children);
-        var selectedCount = 0;
-        var childPartSelected = false;
-        for (var key in folder.children)
-            if (folder.children[key].selected === true) selectedCount++;
-            else if (folder.children[key].selected === 'part') childPartSelected = true;
-            
-            
-        if (selectedCount == 0 && !childPartSelected) folder.selected = false;
-        else if (selectedCount < keys.length) folder.selected = 'part';
-        else folder.selected = true;
-        _updateStatusAndCaccadeToParents(_getParentId(folder.id), treeSelectInfo);
     }
 
     function _updateSubTreeStatus(selected, item, treeSelectInfo) {
@@ -191,25 +214,24 @@ function(nl) {
                 delete treeSelectInfo.selectedIds[item.id];
         }
         if (!item.children) return;
-        var keys = Object.keys(item.children);
         for (var key in item.children)
             _updateSubTreeStatus(selected, item.children[key], treeSelectInfo);
     }
         
-    function _updateAllFoldersStatus(items) {
+    function _updateAllFoldersStatusAndCounts(items) {
         for (var key in items) {
             var item = items[key];
             if (!item.children) continue;
-            _updateAllFoldersStatus(item.children);
-            var selectedCount = 0;
-            var childPartSelected = false;
-            for (var key in item.children)
-                if (item.children[key].selected === true) selectedCount++;
-                else if (item.children[key].selected === 'part') childPartSelected = true;
-            var keys = Object.keys(item.children);
-            if (selectedCount == 0 && !childPartSelected) item.selected = false;
-            else if (selectedCount < keys.length) item.selected = 'part';
-            else item.selected = true;
+            _updateAllFoldersStatusAndCounts(item.children);
+            item.childCount = 0;
+            item.selectedCount = 0;
+            for (var key1 in item.children) {
+                var child = item.children[key1];
+                item.childCount += child.isFolder ? child.childCount : 1;
+                item.selectedCount += child.isFolder ? child.selectedCount : (child.selected ? 1 : 0);
+            }
+            item.selected = item.selectedCount == 0 ? false 
+                : (item.selectedCount == item.childCount ? true : 'part');
         }
     }
     

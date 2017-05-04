@@ -120,11 +120,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         nlGroupInfo.init().then(function() {
             nlGroupInfo.update();
             var dontShowUsers = _assignInfo.selectedUsers || {};
-            _ouUserSelector = nlOuUserSelect.getOuUserSelector(_parentScope, 
-                nlGroupInfo.get(), dontShowUsers);
             if (_assignInfo.training) _selectedUsers = {};
+            _ouUserSelector = nlOuUserSelect.getOuUserSelector(_parentScope, 
+                nlGroupInfo.get(), {}, dontShowUsers);
             _ouUserSelector.updateSelectedIds(_selectedUsers);
-
             _initDlgScope();
             _showDlg(resolve, reject);
         });

@@ -12,35 +12,28 @@ function module_init() {
 //-------------------------------------------------------------------------------------------------
 var OuUserSelectSrv = ['nl', 'nlDlg', 'nlGroupInfo', 'nlTreeSelect',
 function(nl, nlDlg, nlGroupInfo, nlTreeSelect) {
-    this.getOuUserSelector = function(parentScope, groupInfo, dontShowUsers) {
+    this.getOuUserSelector = function(parentScope, groupInfo, selectedUsers, dontShowUsers) {
         return new OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, 
-            parentScope, groupInfo, dontShowUsers);
+            parentScope, groupInfo, selectedUsers, dontShowUsers);
     };
 }];
 
 //-------------------------------------------------------------------------------------------------
 function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, 
-    parentScope, groupInfo, dontShowUsers) {
+    parentScope, groupInfo, selectedUsers, dontShowUsers) {
     var self = this;
-    var _ouUserTree = {data: []};
+    var _ouUserTree = {data: [], treeIsShown: false, showCounts: true,
+        removeEmptyFolders: true, folderType: 'ou'};
     var _fullTreeData = [];
     var _filters = null;
     
     function _init() {
         var ouToUsers = _getOuToUserDict();
         _filters = _initFilters();
-        _filters = []; // TODO-MUNNI-NOW - remove to enable filters
-        _formOuUserTree(groupInfo.outree, ouToUsers, _ouUserTree.data, dontShowUsers);
-        nlTreeSelect.updateSelectionTree(_ouUserTree, {});
-
-        _ouUserTree.treeIsShown = false;
-        if (_filters.length > 0) {
-            _ouUserTree.onFilterClick = _onFilterClick;
-            _ouUserTree.filterIcon = _getFilterIcon();
-        }
-        _fullTreeData = _ouUserTree.data;
+        _formOuUserTree(groupInfo.outree, ouToUsers, _fullTreeData, dontShowUsers);
+        _updateSelectionTree(_fullTreeData, selectedUsers);
     }
-
+    
     this.getTreeSelect = function() {
         return _ouUserTree;
     };
@@ -53,8 +46,24 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect,
         nlTreeSelect.updateSelectedIds(_ouUserTree, selectedUsers);
     };
     
-    function _getFilterIcon() {
-        return 'ion-funnel fyellow';
+    function _updateSelectionTree(treeData, selectedIds) {
+        _ouUserTree.data = angular.copy(treeData);
+        nlTreeSelect.updateSelectionTree(_ouUserTree, selectedIds);
+        if (_filters.length > 0) {
+            _ouUserTree.onFilterClick = _onFilterClick;
+            _updateFilterIcon();
+        }
+    }
+
+    function _updateFilterIcon() {
+        var filters = _getFilters();
+        var empty = (Object.keys(filters).length == 0);
+        _ouUserTree.filterIcon = 'ion-funnel';
+        _ouUserTree.filterIconTitle = 'Filters users';
+        if (!empty) {
+            _ouUserTree.filterIcon += ' fyellow';
+            _ouUserTree.filterIconTitle = 'Some filters are applied';
+        }
     }
     
     function _onFilterClick(e) {
@@ -64,22 +73,24 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect,
         filterDlg.setCssClass('nl-height-max nl-width-max');   
         filterDlg.scope.ouUserTree = _ouUserTree;
         filterDlg.scope.filters = _filters;
-        
-        var filterButton = {text : nl.t('Apply'), onTap : function(e) {
-            _filterTreeData();
-        }};
-
-        var resetButton = {text : nl.t('Reset'), onTap : function(e) {
-            _filters = _initFilters();
-            filterDlg.scope.filters = _filters;
-            _filterTreeData();
-        }};
-
+        var filterButton = {text : nl.t('Apply'), onTap : _onFilterApply};
+        var resetButton = {text : nl.t('Reset'), onTap : _onFilterReset};
         var cancelButton = {text : nl.t('Cancel')};
         filterDlg.show('lib_ui/ouuserselect/ouuserfilter_dlg.html',
             [filterButton, resetButton], cancelButton);
     }
+    
+    function _onFilterApply(e) {
+        var filteredTreeData = _filterTreeData(_fullTreeData);
+        var selectedIds = nlTreeSelect.getSelectedIds(_ouUserTree);
+        _updateSelectionTree(filteredTreeData, selectedIds);
+    }
 
+    function _onFilterReset(e) {
+        _filters = _initFilters();
+        _onFilterApply(e);
+    }
+    
     function _getOuToUserDict() {
         var ouToUsers = {};
         var users = groupInfo.derived.keyToUsers || {};
@@ -167,23 +178,22 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect,
         return true;
     }
     
-    function _filterTreeData() {
+    function _filterTreeData(fullTreeData) {
         var filters = _getFilters();
         if (Object.keys(filters).length == 0) {
-            _ouUserTree.data = _fullTreeData;
-            return;
+            return fullTreeData;
         }
         var filteredTreeData = [];
-        for(var i=0; i<_fullTreeData.length; i++) {
-            var user = _fullTreeData[i].userObj;
+        for(var i=0; i<fullTreeData.length; i++) {
+            var user = fullTreeData[i].userObj;
             if (!user) {
-                filteredTreeData.push(_fullTreeData[i]);
+                filteredTreeData.push(fullTreeData[i]);
                 continue;
             }
             if (!_checkFilters(user, filters)) continue;
-            filteredTreeData.push(_fullTreeData[i]);
+            filteredTreeData.push(fullTreeData[i]);
         }
-        _ouUserTree.data = filteredTreeData;
+        return filteredTreeData;
     }
     
     _init();

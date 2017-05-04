@@ -5,6 +5,7 @@
      tabindex="{{tabindex || 0}}">
      <div class='col padding-small nl-textellipsis'>{{info.selectedText}}</div>
      <i ng-show='info.onFilterClick'
+        title='{{info.filterIconTitle}}'
         class="icon {{info.filterIcon || 'ion-funnel'}} nl-dlg-field-icon"
         ng-click='info.onFilterClick($event)'></i>
      <i ng-show='!info.treeIsShown' class="icon ion-arrow-down-b nl-dlg-field-icon"></i>
@@ -13,7 +14,7 @@
 <div ng-repeat='item in info.visibleData'
      class='row row-wrap row-center margin0 padding0 nl-link-text'
      ng-show='info.treeIsShown && item.isVisible'
-     ng-click='onClick(item)'>
+     ng-click='onClick(item, $event)'>
     <div style='padding: {{screenSize == "small" ? 5 : 10}}px 5px {{screenSize == "small" ? 5 : 10}}px 5px;'>
         <div style='padding-left: {{item.indentation*20}}px'>
             <i ng-show='item.isFolder && !item.isOpen' class="icon ion-arrow-right-b bold"></i>
@@ -26,6 +27,8 @@
                ng-click='onCheckBoxSelect(item, $event)'></i>
             <span ng-show='item.icon'><i class='icon {{item.icon}}'></i></span>
             <span>{{item.name}}</span>
+            <span ng-show='info.showCounts && item.isFolder'
+                  class='fsmall1'>({{item.selectedCount || 0}} of {{item.childCount || 0}})</span>
         </div>
     </div>
 </div>
