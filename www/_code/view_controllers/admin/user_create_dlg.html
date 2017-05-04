@@ -43,16 +43,9 @@
 
             <div ng-class='resp2Col33' class='nl-dlg-field-name'>Organization unit</div>
             <div ng-class='resp2Col67' class='nl-dlg-field-value'>
-                <nl-tree-select info='data.org_unit' tabindex='0' autofocus=''>
+                <nl-tree-select info='data.org_unit'>
                 </nl-tree-select>
                 <div ng-show='error.org_unit' class='nl-dlg-field-errormsg'>{{error.org_unit}}</div>
-            </div>
-
-            <div ng-class='resp2Col33' class='nl-dlg-field-name'>Secondary organization units</div>
-            <div ng-class='resp2Col67' class='nl-dlg-field-value'>
-                <nl-tree-select info='data.sec_ou_list' tabindex='0' autofocus=''>
-                </nl-tree-select>
-                <div ng-show='error.sec_ou_list' class='nl-dlg-field-errormsg'>{{error.sec_ou_list}}</div>
             </div>
 
             <div ng-class='resp2Col33' class='nl-dlg-field-name'
@@ -60,6 +53,13 @@
             <div ng-class='resp2Col67' class='padding0'
                  ng-repeat-end>
                 <nl-input fieldmodel='{{m.id}}' fieldtype='text' fieldcls='w100'></nl-input>
+            </div>
+
+            <div ng-class='resp2Col33' class='nl-dlg-field-name'>Secondary organization units</div>
+            <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+                <nl-tree-select info='data.sec_ou_list'>
+                </nl-tree-select>
+                <div ng-show='error.sec_ou_list' class='nl-dlg-field-errormsg'>{{error.sec_ou_list}}</div>
             </div>
 
         </div>

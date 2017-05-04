@@ -209,12 +209,12 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
             dlg.scope.data.last_name = user.last_name;
             dlg.scope.data.email = user.email;
             dlg.scope.data.state = {id: user.state, name: user.getStateStr()};
-            dlg.scope.data.org_unit = _getTreeInfo(user.org_unit, true, false);
+            dlg.scope.data.org_unit = _getTreeInfo(user.org_unit, false, false);
             dlg.scope.data.sec_ou_list = _getTreeInfo(user.sec_ou_list, false, true);
         } else {
             dlg.scope.dlgTitle = nl.t('New user');
             dlg.scope.isModify = false;
-            dlg.scope.data.org_unit = _getTreeInfo('', true, false);
+            dlg.scope.data.org_unit = _getTreeInfo('', false, false);
             dlg.scope.data.sec_ou_list = _getTreeInfo('', false, true);
         }
 
@@ -222,7 +222,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
         dlg.scope.data.metadata = metadata;
         for(var i=0; i<metadata.length; i++) {
             var mid = metadata[i].id;
-            dlg.scope.data[mid] = metadata[i].value || '';
+            dlg.scope.data[mid] = metadata[i].value;
         }
 
         var button = {
@@ -272,7 +272,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
         var metadata = dlgScope.data.metadata;
         for (var i=0; i<metadata.length; i++) {
             var m = metadata[i];
-            mdValues[m.id] = dlgScope.data[m.id] || '';
+            if (dlgScope.data[m.id] !== '') mdValues[m.id] = dlgScope.data[m.id];
         }
         return angular.toJson(mdValues);
     }
@@ -320,10 +320,9 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
         if(!_validateField(nlAdminUserImport.validateMobile, row, dlgScope, '')) return false;
         if(!_validateField(nlAdminUserImport.validateOu, row, dlgScope, 'org_unit')) return false;
         if(!_validateField(nlAdminUserImport.validateSecOu, row, dlgScope, 'sec_ou_list')) return false;
-        if(!_validateField(nlAdminUserImport.validateMetadata, row, dlgScope, '')) return false;
         if(!_validateField(nlAdminUserImport.validateManagers, row, dlgScope, '')) return false;
         if(!_validateField(nlAdminUserImport.deleteUnwanted, row, dlgScope, '')) return false;
-        if(!_validateField(nlAdminUserImport.validateDuplicates, row, dlgScope, '')) return false;
+        if(!_validateField(nlAdminUserImport.validateRealChange, row, dlgScope, '')) return false;
         return true;
     }
     
@@ -339,7 +338,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
     
     function _export() {
         nlDlg.showLoadingScreen();
-        nlAdminUserExport.exportUsers(_groupInfo).then(function() {
+        nlAdminUserExport.exportUsers(_groupInfo, _grpid).then(function() {
             nl.timeout(function() {
                 nlDlg.hideLoadingScreen();
             }, 2000);

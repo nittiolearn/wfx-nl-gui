@@ -23,22 +23,32 @@ var _headers = [
     {id: 'state', name: "State", optional: true},
     {id: 'org_unit', name: "OU", oldnames: ["Class / user group"]},
     {id: 'sec_ou_list', name: "Sec OUs", oldnames: ["Secondary user groups"], optional: true},
-    {id: 'metadata', name: "Metadata", optional: true},
     {id: 'created', name: "Created UTC Time", optional: true},
     {id: 'updated', name: "Updated UTC Time", optional: true}
- ];
+];
 
-var _headerNameToInfo = (function() {
+var _insertMetadataAt = 10;
+
+function _getHeadersWithMetadata(nlGroupInfo, grpid) {
+    var headers = angular.copy(_headers);
+    var metadata = nlGroupInfo.getUserMetadata(null, grpid);
+    for(var i=0; i<metadata.length; i++)
+        headers.splice(_insertMetadataAt+i, 0, {id: metadata[i].id, 
+            name: metadata[i].name, optional: true, metadata: true});
+    return headers;
+}
+
+function _getHeaderNameToInfo(headers) {
     var ret = {};
-    for(var i=0; i<_headers.length; i++) {
-        var item = _headers[i];
+    for(var i=0; i<headers.length; i++) {
+        var item = headers[i];
         ret[item.name.toLowerCase()] = item;
         if (!item.oldnames) continue;
         for (var j=0; j<item.oldnames.length; j++)
             ret[item.oldnames[j].toLowerCase()] = item;
     }
     return ret;
-})();
+};
 
 //-------------------------------------------------------------------------------------------------
 var AdminUserExportSrv = ['nl', 'nlDlg', 'nlGroupInfo', 'nlExporter',
@@ -58,27 +68,29 @@ function(nl, nlDlg, nlGroupInfo, nlExporter) {
         },
         updated: function(user) {
             return user.updated ? nl.fmt.date2UtcStr(user.updated) : '';
-        },
+        }
     };
     
-    this.exportUsers = function(groupInfo) {
+    this.exportUsers = function(groupInfo, grpid) {
         return nl.q(function(resolve, reject) {
             nl.timeout(function() {
-                _export(groupInfo, resolve);
+                _export(groupInfo, grpid, resolve);
             }, 1000);
         });
     };
 
     var DELIM = '\n';
-    function _export(groupInfo, resolve) {
-        var csv = nlExporter.getCsvString(_headers, 'name');
+    function _export(groupInfo, grpid, resolve) {
+        var headers = _getHeadersWithMetadata(nlGroupInfo, grpid);
+        var csv = nlExporter.getCsvString(headers, 'name');
         for(var key in groupInfo.derived.keyToUsers) {
             var user = groupInfo.derived.keyToUsers[key];
+            var md = _getMetadataDict(grpid, user);
             var row = [];
-            for(var i=0; i<_headers.length; i++) {
-                var attr = _headers[i];
+            for(var i=0; i<headers.length; i++) {
+                var attr = headers[i];
                 var toCsv = _toCsvFns[attr.id] || function(user) {
-                    return user[attr.id];
+                    return attr.metadata ? md[attr.id].value : user[attr.id];
                 }
                 var val = toCsv(user, attr, groupInfo);
                 if (val === null || val === undefined) val = '';
@@ -88,6 +100,14 @@ function(nl, nlDlg, nlGroupInfo, nlExporter) {
         }
         nlExporter.exportCsvFile('NittioUserData.csv', csv);
         resolve(true);
+    }
+
+    function _getMetadataDict(grpid, user) {
+        var metadata = nlGroupInfo.getUserMetadata(user, grpid);
+        var ret = {};
+        for(var i=0; i<metadata.length; i++)
+            ret[metadata[i].id] = metadata[i];
+        return ret;
     }
 }];
 
@@ -335,11 +355,13 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         var row = table[0];
         var ret = [];
         var found = {};
+        var headers = _getHeadersWithMetadata(nlGroupInfo, _grpid);
+        var headerNameToInfo = _getHeaderNameToInfo(headers);
         for(var i=0; i<row.length; i++) {
             var col = row[i].toLowerCase().trim();
-            if (!(col in _headerNameToInfo))
+            if (!(col in headerNameToInfo))
                 _throwException(nl.fmt2('Unknown header: {}', col)); 
-            var info = _headerNameToInfo[col];
+            var info = headerNameToInfo[col];
             if (info.id in found)
                 _throwException(nl.fmt2('Header repeated: {}', col));
             found[info.id] = true;
@@ -347,8 +369,8 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         }
         
         // Check if all mandatory headers are present
-        for(var i=0; i<_headers.length; i++) {
-            var info = _headers[i];
+        for(var i=0; i<headers.length; i++) {
+            var info = headers[i];
             if (!info.optional && !(info.id in found))
                 _throwException(nl.fmt2('Mandatory header missing: {}', info.name)); 
         }
@@ -362,17 +384,29 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             var colInfo = headerInfo[i];
             ret[colInfo.id] = row[i];
         }
-        for(var i=0; i<_headers.length; i++) {
-            if (_headers[i].id in ret) continue;
-            if (!_headers[i].optional && ret[i] === '')
-                _throwException(nl.fmt2('Mandatory field {} missing in row {}', _headers[i].name, i)); 
+        for(var i=0; i<headerInfo.length; i++) {
+            if (headerInfo[i].id in ret) continue;
+            if (!headerInfo[i].optional && ret[i] === '')
+                _throwException(nl.fmt2('Mandatory field {} missing in row {}', headerInfo[i].name, i)); 
         }
-        _validateRow(ret);
+        _updateMetadataAttr(ret, headerInfo);
+        _validateRow(ret, headerInfo);
         if (ret.ignore) return null;
         return ret;
     }
 
-    function _validateRow(row) {
+    function _updateMetadataAttr(row, headerInfo) {
+        var mdValues = {};
+        for(var i=0; i<headerInfo.length; i++) {
+            var h = headerInfo[i];
+            if (!h.metadata) continue;
+            if (row[h.id] !== '') mdValues[h.id] = row[h.id];
+            delete row[h.id];
+        }
+        row.metadata = angular.toJson(mdValues);
+    }
+    
+    function _validateRow(row, headerInfo) {
         self.validateOp(row);
         self.validateGroup(row);
         self.validateKeyColumns(row);
@@ -383,10 +417,9 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         self.validateMobile(row);
         self.validateOu(row);
         self.validateSecOu(row);
-        self.validateMetadata(row);
         self.validateManagers(row);
         self.deleteUnwanted(row);
-        self.validateDuplicates(row);
+        self.validateRealChange(row);
     }
 
     var _validOps = {'c': true, 'C': true, 'u': true, 'U': true, 'd': true, 'e': true, 'E': true, 'i': true};
@@ -518,24 +551,12 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         }
     };
 
-    this.validateMetadata = function(row) {
-        if(!row.metadata) row.metadata = '';
-        var md = {};
-        if (row.metadata) {
-            try {
-                md = angular.fromJson(row.metadata);
-            } catch (e) {
-                _throwException('Invalid Metadata - not valid JSON string', row);
-            }
-        }
-    };
-    
     this.deleteUnwanted = function(row) {
         if ('created' in row) delete row.created;
         if ('udpated' in row) delete row.updated;
     }
     
-    this.validateDuplicates = function(row) {
+    this.validateRealChange = function(row) {
         if (row.ignore || row.op != 'u') return;
         var user = _groupInfo.derived.keyToUsers[row.username];
         row.id = user.id;

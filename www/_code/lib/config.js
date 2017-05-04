@@ -103,7 +103,7 @@ function(nl, nlServerApi) {
         var metadataFields = props.usermetadatafields ? angular.copy(props.usermetadatafields) : [];
         for (var i=0; i< metadataFields.length; i++) {
             var f = metadataFields[i];
-            f.value = metadataValues[f.id] || '';
+            f.value = f.id in metadataValues ? metadataValues[f.id] : '';
         }
         return metadataFields;
     };
