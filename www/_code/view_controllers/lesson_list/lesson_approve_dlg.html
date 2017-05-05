@@ -4,7 +4,7 @@
 	border-radius: 4px;
 }
 </style>
-<nl-dlg title='Approve lessons'>
+<nl-dlg title='Approve module'>
     <nl-dlg-help>
     	<h3>Approve Lesson</h3>
 		<p><b>visibility:</b> Depending on your group type, you would have option to make the content available to other groups. By default the content is only available to users within the group.</p>
@@ -15,6 +15,20 @@
 				<div class='col col-20'>visibality</div>
 				<nl-select fieldmodel='exportLevel' class='col col-80'></nl-select>
 			</div>
+            <div class='row row-top row-wrap margin0 padding0'
+                 ng-repeat='filter in data.filters'>
+                <div ng-class='$root.resp2Col33'
+                     class='nl-dlg-field-name'>
+                    {{filter.name}}
+                </div>
+                <div ng-class='$root.resp2Col67'
+                     class='nl-dlg-field-value'>
+                    <nl-tree-select info='filter.value'
+                                    tabindex='0'
+                                    autofocus=''>
+                    </nl-tree-select>
+                </div>
+            </div>
 			<div class='row margin0 padding-vertical'>
 				<div class='col col-20'>visible to</div>
 				<div class='col col-80'>

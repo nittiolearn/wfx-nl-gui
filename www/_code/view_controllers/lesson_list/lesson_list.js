@@ -1002,9 +1002,10 @@
     }];
 
 	//-------------------------------------------------------------------------------------------------
-	var ApproveDlgSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlExportLevel',
-	function(nl, nlDlg, nlServerApi, nlExportLevel) {
-
+	var ApproveDlgSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlExportLevel', 
+	'nlGroupInfo', 'nlOuUserSelect',
+	function(nl, nlDlg, nlServerApi, nlExportLevel, nlGroupInfo, nlOuUserSelect) {
+        var _filterTrees = null;
 		this.show = function(parentScope, groupExportLevel, lessonId) {
 			var approveDlg = nlDlg.create(parentScope);
 			_initDlg(approveDlg, groupExportLevel, lessonId);
@@ -1014,12 +1015,42 @@
 				_onNodeClick(approveDlg, node, isSelected, tree);
 			};
 
-			nlServerApi.lessonPreApproveCheck(lessonId).then(function(data) {
-				nlDlg.hideLoadingScreen();
-				_onPreApproveDone(data, approveDlg, groupExportLevel);
-				_showDlg(approveDlg);
-			});
+            nlGroupInfo.init().then(function() {
+                nlGroupInfo.update();
+    			nlServerApi.lessonPreApproveCheck(lessonId).then(function(data) {
+    				nlDlg.hideLoadingScreen();
+    				var filterValues = _filterArrayToDict(data.usermetadata || {});
+                    _filterTrees = nlOuUserSelect.getMetadataFilterTrees(filterValues);
+                    approveDlg.scope.data.filters = _filterTrees.getFilters();
+    				_onPreApproveDone(data, approveDlg, groupExportLevel);
+    				_showDlg(approveDlg);
+    			});
+            });
 		};
+
+        function _filterArrayToDict(filters) {
+            var ret = {};
+            for(var key in filters) {
+                var values = filters[key];
+                ret[key] = {};
+                for (var i=0; i<values.length; i++) {
+                    ret[key][values[i]] = true;
+                }
+            }
+            return ret;
+        }
+        
+        function _filterDictToArray(filters) {
+            var ret = {};
+            for(var key in filters) {
+                var values = filters[key];
+                ret[key] = [];
+                for (var key1 in values) {
+                    ret[key].push(key1);
+                }
+            }
+            return ret;
+        }
 
 		function _visibleToStr(selectedOus) {
 			if (selectedOus.length == 0)
@@ -1102,12 +1133,14 @@
 
 		function _onApproveClick(e, approveDlg) {
 			if (e) e.preventDefault();
-			nlDlg.showLoadingScreen();
+            var filterValues = _filterDictToArray(_filterTrees.getSelectedFilters());
 			var data = {
-				lessonid : approveDlg.lessonId
+				lessonid: approveDlg.lessonId,
+                exportLevel: approveDlg.scope.data.exportLevel.id,
+                selectedOus: _getSelectedIds(approveDlg.scope.treeData),
+                usermetadata: filterValues
 			};
-			data.exportLevel = approveDlg.scope.data.exportLevel.id;
-			data.selectedOus = _getSelectedIds(approveDlg.scope.treeData);
+            nlDlg.showLoadingScreen();
 			nlServerApi.lessonApprove(data).then(function(status) {
 			nlDlg.hideLoadingScreen();
 	            approveDlg.close(false);
