@@ -35,8 +35,9 @@ function($stateProvider, $urlRouterProvider) {
 
 var AdminUserCtrl = ['nl', 'nlRouter', 'nlDlg', '$scope', 'nlCardsSrv',
 'nlGroupInfo', 'nlAdminUserExport', 'nlAdminUserImport', 'nlTreeSelect',
+'nlOuUserSelect',
 function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlGroupInfo,
-nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
+nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect) {
 	var _userInfo = null;
 	var _groupInfo = null;
 	var _grpid = null;
@@ -209,13 +210,13 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
             dlg.scope.data.last_name = user.last_name;
             dlg.scope.data.email = user.email;
             dlg.scope.data.state = {id: user.state, name: user.getStateStr()};
-            dlg.scope.data.org_unit = _getTreeInfo(user.org_unit, false, false);
-            dlg.scope.data.sec_ou_list = _getTreeInfo(user.sec_ou_list, false, true);
+            dlg.scope.data.org_unit = _getOuTree(user.org_unit, false, false);
+            dlg.scope.data.sec_ou_list = _getOuTree(user.sec_ou_list, false, true);
         } else {
             dlg.scope.dlgTitle = nl.t('New user');
             dlg.scope.isModify = false;
-            dlg.scope.data.org_unit = _getTreeInfo('', false, false);
-            dlg.scope.data.sec_ou_list = _getTreeInfo('', false, true);
+            dlg.scope.data.org_unit = _getOuTree('', false, false);
+            dlg.scope.data.sec_ou_list = _getOuTree('', false, true);
         }
 
         var metadata = nlGroupInfo.getUserMetadata(user, _grpid);
@@ -237,23 +238,9 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect) {
         dlg.show('view_controllers/admin/user_create_dlg.html', [button], cancelButton, false);
     }
 
-    function _getTreeInfo(itemList, treeIsShown, multiSelect) {
-        var selectedIds = _getIdDict(itemList);
-        var treeInfo = {data: nlTreeSelect.treeToTreeArray(_groupInfo.outree || [])};
-        nlTreeSelect.updateSelectionTree(treeInfo, selectedIds);
-        treeInfo.treeIsShown = treeIsShown;
-        treeInfo.multiSelect = multiSelect;
-        return treeInfo;
-    }
-    
-    function _getIdDict(itemList) {
-        var selectedIds = {};
-        if (itemList == '') return selectedIds;
-        var items = itemList.split(',');
-        for (var i=0; i<items.length; i++) {
-            selectedIds[items[i].trim()] = true;
-        }
-        return selectedIds;
+    function _getOuTree(selectedOus, treeIsShown, multiSelect) {
+        var selectedOusArray = selectedOus == '' ? [] : selectedOus.split(',');
+        return nlOuUserSelect.getOuTree(_groupInfo, selectedOusArray, treeIsShown, multiSelect);
     }
     
     function _getTreeSelection(treeInfo) {

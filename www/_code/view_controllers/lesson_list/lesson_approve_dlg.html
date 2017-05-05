@@ -6,48 +6,61 @@
 </style>
 <nl-dlg title='Approve module'>
     <nl-dlg-help>
-    	<h3>Approve Lesson</h3>
-		<p><b>visibility:</b> Depending on your group type, you would have option to make the content available to other groups. By default the content is only available to users within the group.</p>
-		<p><b>visible to:</b> By default, after approval, this content will be visible to all users who have permission to view approved content. Optionally, you could further restrict the visibility to a subset of classes / user groups. In this case, the content will be visible only to users who belong to one of the lised class/user group and have permission to view approved content.</p>
+    	<div class='padding-small'>
+            You may restrict the access to a subset of users based on their
+    	</div>
+    	<ul class='padding-small'>
+            <li ng-repeat='filter in data.filters'>{{filter.name}}</li>
+    	    <li>Organization</li>
+    	</ul>
+        <div class='padding-small'>
+            If one or more of the above filters are selected, only users with permission
+            to view approved content and belong to those organizations / have those attributes
+            will be allowed to view the content.
+        </div>
+    	<div ng-show='options.exportLevel.length > 1'
+    	     class='padding-small'>
+            <b>visibility:</b> 
+            Depending on your group type, you would have option to make the 
+            content available to other groups. By default the content is only 
+            available to users within the group.
+    	</div>
 	</nl-dlg-help>
     <nl-dlg-content>
-			<div class='row'>
-				<div class='col col-20'>visibality</div>
-				<nl-select fieldmodel='exportLevel' class='col col-80'></nl-select>
-			</div>
-            <div class='row row-top row-wrap margin0 padding0'
-                 ng-repeat='filter in data.filters'>
-                <div ng-class='$root.resp2Col33'
-                     class='nl-dlg-field-name'>
-                    {{filter.name}}
-                </div>
-                <div ng-class='$root.resp2Col67'
-                     class='nl-dlg-field-value'>
-                    <nl-tree-select info='filter.value'
-                                    tabindex='0'
-                                    autofocus=''>
-                    </nl-tree-select>
-                </div>
+        <div class='padding-small fsh6'>
+            You may restrict the access to a subset of users using below filters. 
+            If no filter is chosen, the content will be visible to all users
+            who have permission to view approved content.
+            <div class='padding-mid'></div>
+        </div>
+        <div class='row row-top row-wrap margin0 padding0'
+             ng-repeat='filter in data.filters'>
+            <div ng-class='resp2Col33'
+                 class='nl-dlg-field-name'>
+                {{filter.name}}
             </div>
-			<div class='row margin0 padding-vertical'>
-				<div class='col col-20'>visible to</div>
-				<div class='col col-80'>
-					<div><b>{{data.visibleTo}}</b></div>
-					<div class='padding-small'></div>
-					<div class='nl-tree-structure'>		
-						<div style='padding: 2px'>
-							<label class="item item-input" style='border-color: #fff;'>
-							  <i class="icon ion-search placeholder-icon"></i>
-							  <input type="search" placeholder="Search" ng-model="nodeSearch">
-							</label>
-						</div>
-						<div ivh-treeview="treeData"
-			 			ivh-treeview-filter="nodeSearch"
-			 			ivh-treeview-options="treeOptions"		    
-			 			ivh-treeview-on-cb-change="onNodeClick(ivhNode, ivhIsSelected, ivhTree)">
-						</div>
-					</div>	
-				</div>
+            <div ng-class='resp2Col67'
+                 class='nl-dlg-field-value'>
+                <nl-tree-select info='filter.value'
+                                tabindex='0'
+                                autofocus=''>
+                </nl-tree-select>
+            </div>
+        </div>
+        <div class='row row-top row-wrap margin0 padding0'>
+            <div ng-class='resp2Col33' class='nl-dlg-field-name'>Organizations</div>
+            <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+                <nl-tree-select info='data.org_unit'>
+                </nl-tree-select>
+                <div ng-show='error.org_unit' class='nl-dlg-field-errormsg'>{{error.org_unit}}</div>
 			</div>
+		</div>
+        <div class='row row-top row-wrap margin0 padding0'
+             ng-show='options.exportLevel.length > 1'>
+            <div ng-class='resp2Col33' class='nl-dlg-field-name'>Visibality</div>
+            <div ng-class='resp2Col67' class='padding0'>
+                <nl-select fieldmodel='exportLevel'></nl-select>
+            </div>
+        </div>
     </nl-dlg-content>
 </nl-dlg>

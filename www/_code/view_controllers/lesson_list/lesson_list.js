@@ -1003,25 +1003,18 @@
 
 	//-------------------------------------------------------------------------------------------------
 	var ApproveDlgSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlExportLevel', 
-	'nlGroupInfo', 'nlOuUserSelect',
-	function(nl, nlDlg, nlServerApi, nlExportLevel, nlGroupInfo, nlOuUserSelect) {
+	'nlGroupInfo', 'nlTreeSelect', 'nlOuUserSelect',
+	function(nl, nlDlg, nlServerApi, nlExportLevel, nlGroupInfo, nlTreeSelect, nlOuUserSelect) {
         var _filterTrees = null;
 		this.show = function(parentScope, groupExportLevel, lessonId) {
 			var approveDlg = nlDlg.create(parentScope);
 			_initDlg(approveDlg, groupExportLevel, lessonId);
 			nlDlg.showLoadingScreen();
 
-			approveDlg.scope.onNodeClick = function(node, isSelected, tree) {
-				_onNodeClick(approveDlg, node, isSelected, tree);
-			};
-
             nlGroupInfo.init().then(function() {
                 nlGroupInfo.update();
     			nlServerApi.lessonPreApproveCheck(lessonId).then(function(data) {
     				nlDlg.hideLoadingScreen();
-    				var filterValues = _filterArrayToDict(data.usermetadata || {});
-                    _filterTrees = nlOuUserSelect.getMetadataFilterTrees(filterValues);
-                    approveDlg.scope.data.filters = _filterTrees.getFilters();
     				_onPreApproveDone(data, approveDlg, groupExportLevel);
     				_showDlg(approveDlg);
     			});
@@ -1052,54 +1045,14 @@
             return ret;
         }
 
-		function _visibleToStr(selectedOus) {
-			if (selectedOus.length == 0)
-				return nl.t('all user groups/classes');
-			return nl.t('{} user groups/classes: {}', selectedOus.length, selectedOus);
-		}
-
-		function _updateOuTreeFromSelectedOus(tree, selectedOus) {
-			if (selectedOus.length == 0)
-				return _updateOuTree(tree, null);
-			var selectedIds = {};
-			for (var i in selectedOus)
-			selectedIds[selectedOus[i]] = selectedOus[i];
-			return _updateOuTree(tree, selectedIds);
-		}
-
-		function _updateOuTree(tree, selectedIds) {
-			for (var i in tree) {
-				var node = tree[i];
-				if (!selectedIds || node.id in selectedIds)
-					node.selected = true;
-				_updateOuTree(node.children, selectedIds);
-			}
-			return true;
-		}
-
-		function _getSelectedIds(tree) {
-			var ret = [];
-			var allSelected = _updateSelectedIds(tree, ret);
-			if (allSelected)
-				return [];
-			return ret;
-		}
-
-		function _updateSelectedIds(tree, selectedList) {
-			var allSelected = true;
-			for (var i in tree) {
-				var node = tree[i];
-				if (node.selected) {
-					selectedList.push(node.id);
-				} else {
-					allSelected = false;
-				}
-				var allChildrenSelected = _updateSelectedIds(node.children, selectedList);
-				if (!allChildrenSelected)
-					allSelected = false;
-			}
-			return allSelected;
-		}
+        function _getSelectedOusFromTree(treeInfo) {
+            var selected = nlTreeSelect.getSelectedIds(treeInfo);
+            var ret = [];
+            for(var key in selected) {
+                ret.push(key);
+            }
+            return ret;
+        }
 
 		function _initDlg(approveDlg, groupExportLevel, lessonId) {
 			approveDlg.lessonId = lessonId;
@@ -1107,28 +1060,22 @@
 			approveDlg.scope.error = {};
 			approveDlg.scope.data = {};
 			approveDlg.scope.options = {};
-			approveDlg.scope.treeOptions = {
-				defaultSelectedState : false,
-				twistieExpandedTpl : nl.fmt2('<img src="{}" class="nl-16">', nl.url.resUrl('folder.png')),
-				twistieCollapsedTpl : nl.fmt2('<img src="{}" class="nl-16">', nl.url.resUrl('folder_closed.png')),
-				twistieLeafTpl : nl.fmt2('<img src="{}" class="nl-16">', nl.url.resUrl('file.png')),
-				labelAttribute : 'text'
-			};
 			approveDlg.scope.options.exportLevel = nlExportLevel.getExportLevelInfo(groupExportLevel).elOptions;
 		}
 
 		function _onPreApproveDone(data, approveDlg, groupExportLevel) {
-			approveDlg.scope.treeData = data.ouTree;
+            var filterValues = _filterArrayToDict(data.usermetadata || {});
+            _filterTrees = nlOuUserSelect.getMetadataFilterTrees(filterValues, false);
+            approveDlg.scope.data.filters = _filterTrees.getFilters();
+
+            var groupInfo = nlGroupInfo.get();
+            approveDlg.scope.data.org_unit = nlOuUserSelect.getOuTree(groupInfo, 
+                data.selectedOus, true, true);
+
 			var el = data.exportLevel && data.exportLevel <= groupExportLevel ? data.exportLevel : nlExportLevel.EL_PRIVATE;
 			approveDlg.scope.data.exportLevel = {
 				id : el
 			};
-			_updateOuTreeFromSelectedOus(data.ouTree, data.selectedOus);
-			approveDlg.scope.data.visibleTo = _visibleToStr(_getSelectedIds(approveDlg.scope.treeData));
-		}
-
-		function _onNodeClick(approveDlg, node, isSelected, tree) {
-			approveDlg.scope.data.visibleTo = _visibleToStr(_getSelectedIds(approveDlg.scope.treeData));
 		}
 
 		function _onApproveClick(e, approveDlg) {
@@ -1137,7 +1084,7 @@
 			var data = {
 				lessonid: approveDlg.lessonId,
                 exportLevel: approveDlg.scope.data.exportLevel.id,
-                selectedOus: _getSelectedIds(approveDlg.scope.treeData),
+                selectedOus: _getSelectedOusFromTree(approveDlg.scope.data.org_unit),
                 usermetadata: filterValues
 			};
             nlDlg.showLoadingScreen();
