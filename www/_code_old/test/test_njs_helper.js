@@ -482,11 +482,10 @@ function _Dialog3(na, qRestarter) {
 
 function _Dialog4(na, qRestarter) {
 	na.setExpectedAssertions(1);
-	njs_helper.Dialog.popupStatus('This is a popupStatus message. Please wait ...', function() {
-		na.assert(true, 'popupStatus done');
-		na.checkExpectedAssertions();
-		qRestarter.chainDone();
-	});
+	njs_helper.Dialog.popupStatus('This is a popupStatus message. Please wait ...');
+	na.assert(true, 'popupStatus done');
+	na.checkExpectedAssertions();
+	qRestarter.chainDone();
 }
 
 //-------------------------------------------------------------------------------------------

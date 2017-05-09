@@ -35,7 +35,7 @@ function(nl, $ionicPopup, $ionicLoading) {
     
     var statusTimeoutPromise = null;
     this.popupStatus = function(msg, popdownTime) {
-        nl.log.debug('Dialog.popupStatus: ', msg);
+        nl.log.debug('nlDlg.popupStatus: ', msg);
         nl.pginfo.statusPopup = msg;
         if (popdownTime === undefined) popdownTime = 2000;
         if (popdownTime === false) popdownTime = 1000*3600*24;
@@ -88,14 +88,14 @@ function(nl, $ionicPopup, $ionicLoading) {
     };
 
     this.showLoadingScreen = function(delay) {
-        nl.log.debug('Dialog.showLoadingScreen: ', delay);
+        nl.log.debug('nlDlg.showLoadingScreen: ', delay);
         var loadingInfo = {templateUrl : 'lib_ui/utils/waiting.html', hideOnStateChange: false};
         if (delay !== undefined) loadingInfo.delay = delay;
         $ionicLoading.show(loadingInfo);
     };
 
     this.hideLoadingScreen = function() {
-        nl.log.debug('Dialog.hideLoadingScreen');
+        nl.log.debug('nlDlg.hideLoadingScreen');
         $ionicLoading.hide();
     };
 

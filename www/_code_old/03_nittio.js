@@ -863,6 +863,14 @@ nittio = function() {
 								[redirButton]);
 	}
 
+    //------------------------------------------------------------------------
+    // Setup Callback for Angular code
+    //------------------------------------------------------------------------
+    window.nlapp = null;
+    window.setupNlAppInGlobal = function(nlapp) {
+        window.nlapp = nlapp;
+    };
+
 	return {
 
 		// Basic Utilities

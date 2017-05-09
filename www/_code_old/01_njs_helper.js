@@ -536,11 +536,11 @@ function _SyncManager_doNext(self) {
 	if (self.pendingRequests.length == 0) {
 		var msg = self.error ? 'Failure during save' : 'Saved';
 		self.error = false;
-		njs_helper.Dialog.popdownFixedStatus(msg);
+		njs_helper.Dialog.popupStatus(msg);
 		return;
 	}
 
-	njs_helper.Dialog.popupFixedStatus('Saving data to the server ...');
+	njs_helper.Dialog.popupStatus('Saving data to the server ...', false);
 	self.syncInProgress = true;
 	self.error = false;
 	
@@ -657,25 +657,21 @@ BlankScreen.isVisible = function() {
 BlankScreen.show = function() {
 	if (BlankScreen._isShown) return;
 	BlankScreen._isShown = true;
-	
-	var bs = jQuery('#blankScreen');
-	var progressBar = bs.find('img');
-	var body = jQuery('.body');
-	bs.velocity({'z-index': BlankScreen.ZINDEX_SHOW, opacity: 1}, BlankScreen.ANIM_TIME);
-	progressBar.velocity({opacity: 1}, BlankScreen.ANIM_TIME);
-	body.velocity({translateX: -100000, translateY: -100000, 'z-index': BlankScreen.ZINDEX_HIDE, opacity: 0}, 0);
+    var rootScope = window.nlapp.nl.rootScope;
+    var nlDlg = window.nlapp.nlDlg;
+    rootScope.$apply(function() {
+        nlDlg.showLoadingScreen();
+    });
 };
 
 BlankScreen.hide = function() {
 	if (!BlankScreen._isShown) return;
 	BlankScreen._isShown = false;
-
-	var bs = jQuery('#blankScreen');
-	var progressBar = bs.find('img');
-	var body = jQuery('.body');
-	progressBar.velocity({opacity: 0}, 0);
-	bs.velocity({'z-index': BlankScreen.ZINDEX_HIDE, opacity: 0}, BlankScreen.ANIM_TIME);
-	body.velocity({translateX: [0, 0], translateY: [0, 0], 'z-index': 0, opacity: 1}, 0);
+    var rootScope = window.nlapp.nl.rootScope;
+    var nlDlg = window.nlapp.nlDlg;
+    rootScope.$apply(function() {
+        nlDlg.hideLoadingScreen();
+    });
 };
 
 //-------------------------------------------------------------------------------------------
@@ -1052,34 +1048,12 @@ Dialog.popdown = function(onCloseDone) {
 	Dialog._defaultPopupDlg.cancel(onCloseDone);
 };
 
-Dialog.popupStatus = function(content, nextFn) {
-	var box = jQuery('#statusBox');
-	box.html(content);
-	if (nextFn === undefined) nextFn = function() {};
-
-	box.show().velocity({height: ['32px', 0], opacity: [1, 0]}, BlankScreen.ANIM_TIME);
-	setTimeout(function() {
-		box.velocity({height : 0, opacity : 0}, BlankScreen.ANIM_TIME, function() {
-			box.hide();
-			nextFn();
-		});
-	}, 2000);
-};
-
-Dialog.popupFixedStatus = function(content) {
-	var box = jQuery('#statusBoxFixed');
-	box.html(content);
-	box.show().velocity({height: ['32px', 0], opacity: [1, 0]}, BlankScreen.ANIM_TIME);
-};
-
-Dialog.popdownFixedStatus = function(content) {
-	var box = jQuery('#statusBoxFixed');
-	box.children('.content').html(content);
-	window.setTimeout(function() {
-		box.velocity({height: [0, '2em'], opacity: [0, 1]}, BlankScreen.ANIM_TIME, function() {
-			box.hide();
-		});
-	}, 2000);
+Dialog.popupStatus = function(msg, popdownTime) {
+    var rootScope = window.nlapp.nl.rootScope;
+    var nlDlg = window.nlapp.nlDlg;
+    rootScope.$apply(function() {
+        nlDlg.popupStatus(msg, popdownTime);
+    });
 };
 
 function _addButtons(dlgId, dlgButtons, buttons, cancelButton) {
