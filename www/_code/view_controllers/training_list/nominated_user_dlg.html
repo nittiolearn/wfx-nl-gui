@@ -1,17 +1,49 @@
 <nl-dlg title='{{data.title}}' show-help='0'>
 <nl-dlg-content>
-<div class='padding-mid margin0 fsh3'>
-	<span ng-if='data.userList.length == 1'>{{data.userList.length}} user nominated.</span>
-	<span ng-if='data.userList.length > 1'>{{data.userList.length}} users nominated.</span>
+<div class='margin0 fsh4 row row-wrap row-center margin0 padding0'>
+    <span class='padding-mid col'>Nominated: {{data.userList.length}}</span>
+    <span class='padding-mid col text-right'>Completed: {{data.completedCnt}}</span>
+</div>
+<div class='padding-mid fsh6'>
+     <div>
+         You could select one or more pending items and mark them as completed.</div>
+     <div class='padding-mid-v fyellow'>
+        <i class="icon ion-alert-circled"></i> 
+        <span>
+            Once you mark an item as completed, you will not be able to undo it
+            and the lerner will not be able to provide their feedback online.
+        </span>
+     </div>
+     <div ng-show='data.selectedCnt' class='padding-mid-v'>
+         Pending items selected for marking as completed: {{data.selectedCnt}}</div>
 </div>
 <table class='nl-table nl-table-styled fsh6 padding-mid'>
 	<tr>
+        <th>
+            <i ng-show='data.selectAll'
+               title='Deselect all pending'
+               ng-click='data.toggleSelectAll()'
+               class="icon ion-android-checkbox-outline nl-dlg-field-icon"></i>
+            <i ng-show='!data.selectAll'
+               title='Select all pending'
+               ng-click='data.toggleSelectAll()'
+               class="icon ion-android-checkbox-outline-blank nl-dlg-field-icon"></i>
+        </th>
         <th ng-repeat='item in data.headerCol'>
         	<span>{{item.name}}</span>
         </th>
 	</tr>
-	<tr>{{}}</tr>
-    <tr ng-repeat-start='user in data.userList'>
+    <tr ng-repeat='user in data.userList'>
+        <td>
+            <div ng-show='!user.completed'>
+                <i ng-show='user.selected'
+                   ng-click='data.toggleSelect($index)'
+                   class="icon ion-android-checkbox-outline nl-dlg-field-icon"></i>
+                <i ng-show='!user.selected'
+                   ng-click='data.toggleSelect($index)'
+                   class="icon ion-android-checkbox-outline-blank nl-dlg-field-icon"></i>
+            </div>
+        </td>
         <td>
         	<span>{{user.name}}</span>
         </td>
@@ -19,15 +51,17 @@
         	<span>{{user.orgunit}}</span>
         </td>
         <td>
-        	<span ng-show='user.completed'>
-        		<i class='nl-24 ion-checkmark-circled nl-green padding-mid'></i>Completed
+        	<span class='row row-wrap row-center margin0 padding0'
+        	      ng-show='user.completed'>
+        		<i class='icon nl-dlg-field-icon ion-checkmark-circled nl-green padding-mid'></i>
+        		<span class='col padding-mid'>Completed</span>
         	</span>
-        	<span ng-show='!user.completed'>
-        		<i class='nl-24 ion-record fgrey padding-mid'></i>Pending
+        	<span class='row row-wrap row-center margin0 padding0'
+        	      ng-show='!user.completed'>
+        		<i class='icon nl-dlg-field-icon ion-record fgrey padding-mid'></i>
+        		<span class='col padding-mid'>Pending</span>
         	</span>
         </td>
-    </tr>
-    <tr ng-repeat-end>
     </tr>
 </table>
 </nl-dlg-content>

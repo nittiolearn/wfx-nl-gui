@@ -395,6 +395,11 @@ function(nl, nlDlg, nlConfig, Upload) {
 		return server.post('_serverapi/assignment_update_shared_users.json', data);		
 	};
 	
+    this.assignmentCloseReports = function(repids) {
+        //data = repids
+        return server.post('_serverapi/assignment_close_reports.json', {repids: repids});
+    };
+
     //---------------------------------------------------------------------------------------------
 	// get group user entities
     //---------------------------------------------------------------------------------------------

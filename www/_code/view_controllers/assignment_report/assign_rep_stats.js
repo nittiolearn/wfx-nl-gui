@@ -142,7 +142,8 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo, $templa
             {id: '_courseName', name:'course'},
             {id: '_courseId', name:'courseid', fmt: 'idstr'},
             {id: '_courseAssignId', name:'courseassignid', fmt: 'idstr'},
-            {id: '_courseReportId', name:'courserepid', fmt: 'idstr'}];
+            {id: '_courseReportId', name:'courserepid', fmt: 'idstr'},
+            {id: 'assign_remarks', name:'remarks'}];
     
         _hPageScores = [
             {id: 'pos', name: '#'},

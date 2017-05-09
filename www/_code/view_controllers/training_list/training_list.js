@@ -333,31 +333,105 @@
 		}
 
 		function _showNominatedUserList(card, userDict) {
-			var _showNominatedUserDlg = nlDlg.create($scope);
-			_showNominatedUserDlg.setCssClass('nl-height-max nl-width-max');
-			_showNominatedUserDlg.scope.data = {};
-			_showNominatedUserDlg.scope.data.card = card;
-			var sortedList = _getSortedList(userDict);
-			_showNominatedUserDlg.scope.data.userList = sortedList;
-			_showNominatedUserDlg.scope.data.headerCol =[{attr : 'name', name : nl.t('Username')},
-														 {attr : 'orgunit', name : nl.t('Department')},
-														 {attr : 'completed', name : nl.t('Status')}];
-			_showNominatedUserDlg.scope.data.title = nl.t('Nominated users');
-			var cancelButton = {text : nl.t('Cancel')};
-			_showNominatedUserDlg.show('view_controllers/training_list/nominated_user_dlg.html', [], cancelButton, true);
+            var _showNominatedUserDlg = nlDlg.create($scope);
+            _showNominatedUserDlg.setCssClass('nl-height-max nl-width-max');
+            _showNominatedUserDlg.scope.data = {};
+            var sd = _showNominatedUserDlg.scope.data;
+            sd.card = card;
+            _getSortedList(userDict, sd);
+            sd.headerCol =[{attr : 'name', name : nl.t('Username')},
+                {attr : 'orgunit', name : nl.t('Organization')},
+            	{attr : 'completed', name : nl.t('Status')}];
+            sd.title = nl.t('Nominated users');
+            sd.toggleSelectAll = function() {
+                sd.selectAll = !sd.selectAll;
+                sd.selectedCnt = 0;
+                for(var i=0; i<sd.userList.length; i++) {
+                    sd.userList[i].selected = sd.selectAll;
+                    if (sd.selectAll && !sd.userList[i].completed) sd.selectedCnt++;
+                }
+            };
+            sd.toggleSelect = function(pos) {
+                var user = sd.userList[pos];
+                user.selected = !user.selected;
+                if (user.selected) sd.selectedCnt++;
+                else sd.selectedCnt--;
+            };
+            
+            var markAsDone = {text: nl.t('Mark as completed'), onTap: function(e) {
+                _confirmBeforeMarkAsDone(e, sd.userList);
+            }};
+            var cancelButton = {text : nl.t('Close')};
+            _showNominatedUserDlg.show('view_controllers/training_list/nominated_user_dlg.html', 
+                [markAsDone], cancelButton);
 		}
 
-		function _getSortedList(userDict) {
+		function _getSortedList(userDict, sd) {
 			var ret = [];
-			for (var key in userDict) ret.push(userDict[key]);
-			return ret.sort(function(a, b) {
+            sd.selectedCnt = 0;
+			sd.completedCnt = 0;
+			for (var key in userDict) {
+			    var report = userDict[key];
+			    if (report.completed) sd.completedCnt++;
+			    report.selected = false;
+			    ret.push(report);
+			}
+			sd.userList = ret.sort(function(a, b) {
 				if (a.completed != b.completed) return a.completed ? -1 : 1;
 				if (a.orgunit != b.orgunit) return a.orgunit > b.orgunit ? 1 : -1;
 				if (a.name != b.name) return a.name > b.name ? 1 : -1;
 				return 0;
 			});
 		};
+		
+		function _confirmBeforeMarkAsDone(e, userList) {
+            var users = [];
+            for(var i=0; i<userList.length; i++) {
+                var user = userList[i];
+                if (!user.completed && user.selected) users.push(user);
+            }
+            if (users.length == 0) {
+                nlDlg.popupAlert({title: 'Please select', template: 'Please select one or more items to mark as completed.'});
+                if (e) e.preventDefault();
+                return;
+            }
+            var dlg = nlDlg.create($scope);
+            //dlg.setCssClass('nl-height-max nl-width-max');
+            dlg.scope.users = users;
+            var markAsDone = {text: nl.t('Mark as completed'), onTap: function(e) {
+                nlDlg.showLoadingScreen();
+                _markAsDone(users, 0);
+            }};
+            var cancelButton = {text : nl.t('Cancel')};
+            dlg.show('view_controllers/training_list/confirm_completion_dlg.html', 
+                [markAsDone], cancelButton);
+		}
 
+        var BATCH_SIZE = 50;
+        function _markAsDone(users, startPos) {
+            if (startPos >= users.length) {
+                nlDlg.hideLoadingScreen();
+                nlDlg.popupStatus(nl.fmt2('{} item(s) marked as completed.', users.length));
+                return;
+            }
+            nlDlg.popupStatus(nl.fmt2('{} of {} item(s) marked as completed.', startPos, users.length), false);
+            var endPos = startPos+BATCH_SIZE;
+            if (endPos > users.length) endPos = users.length;
+            var repids = [];
+            for(var i=startPos; i<endPos; i++) {
+                repids.push(users[i].repid);
+            }
+            nlServerApi.assignmentCloseReports(repids).then(function(resp) {
+                if (resp.fail > 0) {
+                    nlDlg.popdownStatus(0);
+                    nlDlg.popupAlert({title: 'Error', template: 
+                        'Server encountered some errors while processing the request'});
+                        return;
+                }
+                _markAsDone(users, startPos + resp.processed);
+            });
+        }
+        
 		function _getRemarks(training) {
 			var d1 = nl.fmt.date2Str(nl.fmt.json2Date(training.start), 'minute');
 			var d2 = nl.fmt.date2Str(nl.fmt.json2Date(training.end), 'minute');
