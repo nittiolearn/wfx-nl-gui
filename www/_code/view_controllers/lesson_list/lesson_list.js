@@ -1006,7 +1006,9 @@
 	'nlGroupInfo', 'nlTreeSelect', 'nlOuUserSelect',
 	function(nl, nlDlg, nlServerApi, nlExportLevel, nlGroupInfo, nlTreeSelect, nlOuUserSelect) {
         var _filterTrees = null;
-		this.show = function(parentScope, groupExportLevel, lessonId) {
+        var _nextPage = null;
+		this.show = function(parentScope, groupExportLevel, lessonId, nextPage) {
+		    _nextPage = nextPage || null;
 			var approveDlg = nlDlg.create(parentScope);
 			_initDlg(approveDlg, groupExportLevel, lessonId);
 			nlDlg.showLoadingScreen();
@@ -1089,23 +1091,19 @@
 			};
             nlDlg.showLoadingScreen();
 			nlServerApi.lessonApprove(data).then(function(status) {
-			nlDlg.hideLoadingScreen();
+    			nlDlg.hideLoadingScreen();
 	            approveDlg.close(false);
 	            approveDlg.destroy();
-				nl.window.location.reload();
+	            if (_nextPage) nl.window.location.href = _nextPage;
+	            else nl.window.location.reload();
 			});
 		}
 
 		function _showDlg(approveDlg) {
-			var approveButton = {
-				text : nl.t('Approve'),
-				onTap : function(e) {
-					_onApproveClick(e, approveDlg);
-				}
-			};
-			var cancelButton = {
-				text : nl.t('Cancel')
-			};
+			var approveButton = {text : nl.t('Approve'), onTap : function(e) {
+				_onApproveClick(e, approveDlg);
+			}};
+			var cancelButton = {text : nl.t('Cancel')};
 			approveDlg.show('view_controllers/lesson_list/lesson_approve_dlg.html', [approveButton], cancelButton, false);
 		}
 
