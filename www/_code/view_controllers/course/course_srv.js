@@ -95,6 +95,7 @@ var _dashboardActions = {
     'dashboard.home': {'url': '/#/home?{}', 'permission': 'basic_access', 'termCheck': 'Open'},
     'lesson.view': {'url': '/lesson/view/{}', 'permission': 'lesson_view'},
     'lesson.view_approved': {'url': '/#/lesson_list?type=approved&{}', 'permission': 'lesson_view'},
+    'lesson.self_assign_list': {'url': '/#/lesson_list?type=selfassign&{}', 'permission': 'lesson_view'},
     'lesson.create': {'url': '/#/lesson_list?type=new&{}', 'permission': 'lesson_create'},
     'lesson.create2': {'url': '/lesson/create2/{}', 'permission': 'lesson_create'},
     'lesson.my': {'url': '/#/lesson_list?type=my&{}', 'permission': 'lesson_create'},

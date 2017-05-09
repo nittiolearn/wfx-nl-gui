@@ -199,7 +199,7 @@ function UtterranceSplitter() {
     var self = this;
     var MAX_CHARS = 100;
     
-    var config = {voice: ['female',  'हिन्दी'], lang: 'hi', volume: 1, rate: 1, pitch: 1};
+    var config = {voice: ['female',  'हिन्दी'], lang: 'hi', volume: 1, rate: 0.8, pitch: 1};
 
     this.split = function(text) {
         var splitList = [];

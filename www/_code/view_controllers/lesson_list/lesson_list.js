@@ -37,7 +37,7 @@
 	};
 	var TYPENAMES = {
 		'new' : 0,
-		'approved' : 1,
+		'approved' : 1, 'selfassign' : 1,
 		'my' : 2,
 		'manage' : 3,
 		'review' : 4,
@@ -89,7 +89,7 @@
 
 		this.initFromUrl = function(params) {
 			if (!params) params = nl.location.search();
-			this.type = _convertType(params.type);
+			_convertType(params.type);
 			this.custtype = ('custtype' in params) ? parseInt(params.custtype) : null;
 			this.revstate = ('revstate' in params) ? parseInt(params.revstate) : null;
 			this.searchGrade = ('grade' in params) ? params.grade : null;
@@ -154,14 +154,8 @@
 		};
 
 		function _convertType(typeStr) {
-			if (typeStr === undefined)
-				return TYPES.APPROVED;
-			typeStr = typeStr.toLowerCase();
-			for (var t in TYPENAMES) {
-				if (t == typeStr)
-					return TYPENAMES[t];
-			}
-			return TYPES.APPROVED;
+			self.typeStr = (typeStr || '').toLowerCase();
+			self.type = (typeStr in TYPENAMES) ? TYPENAMES[self.typeStr] : TYPES.APPROVED;
 		}
 
 	}
@@ -372,7 +366,9 @@
 			if (mode.type == TYPES.APPROVED || mode.type == TYPES.MANAGE)
 				if(_showInDlg) {
 					internalUrl = 'lesson_select';
-				} else {
+				} else if (mode.typeStr == 'selfassign'){
+                    url = nl.fmt2('/lesson/do_report_selfassign?lessonid={}', lesson.id);
+                } else {
 					url = nl.fmt2('/lesson/view/{}/', lesson.id);
 				}
 			if (mode.type == TYPES.MY)
