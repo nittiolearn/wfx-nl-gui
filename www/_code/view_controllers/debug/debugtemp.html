@@ -1,15 +1,25 @@
-<div class='nl-thin-scroll nl-full'>
+<div class='nl-thin-scroll nl-full padding'>
+    <div class='padding fsh5 text-center'>
+        <div ng-show='screenSize == "small"'>Small Screen Size</div>
+        <div ng-show='screenSize == "medium"'>Medium Screen Size</div>
+        <div ng-show='screenSize == "large"'>Large Screen Size</div>
+    </div>
+    <div class='row row-wrap row-top padding0 margin0'>
+        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Spinner</div>
+        <div ng-class='resp2Col67' class='padding0'>
+            <nl-select fieldmodel='spinner'></nl-select>
+        </div>
+    </div>
+    
+    <div class='row row-wrap row-top padding0 margin0'>
+        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Duration (ms)</div>
+        <div ng-class='resp2Col67' class='padding0'>
+            <nl-input fieldmodel='duration' fieldtype='number' fieldcls='w100'></nl-input>
+        </div>
+    </div>
 
-<h1>Testing Charts</h1>
-<div class='vhfixed60 padding'>
-    <canvas id="line" 
-            class="chart chart-bar" 
-            chart-data="chartInfo.data"
-            chart-labels="chartInfo.labels" 
-            chart-legend="true" 
-            chart-series="chartInfo.series" 
-            chart-click="chartInfo.onClick">
-    </canvas> 
-</div>
-
+    <div class='padding-mid'></div>
+    <div class='row row-wrap row-top padding-mid margin0'>
+        <div class='nl-button padding-mid w100' ng-click='showLoading()'>Show loading</div>
+    </div>
 </div>

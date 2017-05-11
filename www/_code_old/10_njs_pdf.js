@@ -336,8 +336,12 @@ function PageRenderer_prepare() {
 	// Create the elements inside the pdf_holder
 	var self = this;
 	self._holder.empty();
-	var waiting = '<div class="njs_pdf_waiting"><div class="njs_pdf_waiting_msg"></div><img class="njs_pdf_progress_bar" src="{}/general/waiting1.gif"/></div>';
-	waiting = jQuery(njs_helper.fmt2(waiting, nittio.getStaticResFolder()));
+    var spinner = '<div class="njs_pdf_progress_bar"><ion-spinner icon="{}"></ion-spinner></div>';
+    spinner = jQuery(njs_helper.fmt2(spinner, window.nlapp.nlDlg.getSpinnerIcon()));
+    spinner = window.nlapp.compile(spinner);
+	var waiting = jQuery('<div class="njs_pdf_waiting"></div>');
+	waiting.append(jQuery('<div class="njs_pdf_waiting_msg"></div>'));
+	waiting.append(spinner);
 	waiting.hide(); 
 	self._holder.append(waiting);
 	self._state = PageRenderer.STATE_PREPARED;
@@ -471,13 +475,13 @@ function _PdfStatusBar_init(self, pdfHolder){
 
 function PdfStatusBar_errorMsg(msg) {
 	this._pdfStatusMsg.html(msg);
-	this._pdfProgressBar.hide();
+    this._pdfProgressBar.hide();
 	this._pdfWaitingDiv.show();
 }
 
 function PdfStatusBar_progressMsg(msg) {
 	this._pdfStatusMsg.html(msg);
-	this._pdfProgressBar.show();
+    this._pdfProgressBar.show();
 	this._pdfWaitingDiv.show();
 }
 

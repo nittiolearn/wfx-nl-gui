@@ -23,7 +23,7 @@
         <script async src='//www.google-analytics.com/analytics.js'></script>
    </head>
 
-    <body ng-class='{"nl-print": pgInfo.isPrintable}' class='{{=mush("bodyClass")}}'>
+    <body ng-class='{"nl-print": pgInfo.isPrintable}' class='{{=mush("bodyClass")}} nl-screen-{{=mush("screenSize")}}'>
         {{include 'website/_website.html'}}
         <ion-nav-view ng-hide='pgInfo.isWelcomePage'></ion-nav-view>
         <script>

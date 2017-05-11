@@ -403,8 +403,12 @@
                 _markAsDone(users, 0);
             }};
             var cancelButton = {text : nl.t('Cancel')};
-            dlg.show('view_controllers/training_list/confirm_completion_dlg.html', 
-                [markAsDone], cancelButton);
+            nl.timeout(function() {
+                // Showing this dialog has to be done in next angular cycle to avoid
+                // backdrop becoming invisible
+                dlg.show('view_controllers/training_list/confirm_completion_dlg.html', 
+                    [markAsDone], cancelButton);
+            });
 		}
 
         var BATCH_SIZE = 50;

@@ -10,9 +10,9 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlOldCodeBridge = ['nl', 'nlDlg', 'nlApproveDlg',
-function(nl, nlDlg, nlApproveDlg) {
-    this.bridge = null;
+var NlOldCodeBridge = ['nl', 'nlDlg', 'nlApproveDlg', '$compile',
+function(nl, nlDlg, nlApproveDlg, $compile) {
+    var self = this;
     this.expose = function() {
         if (!nl.window.setupNlAppInGlobal) {
             // This is not our old code
@@ -21,10 +21,16 @@ function(nl, nlDlg, nlApproveDlg) {
         self.bridge = {
             nl: nl,
             nlDlg: nlDlg,
-            nlApproveDlg: nlApproveDlg
+            nlApproveDlg: nlApproveDlg,
+            scope: nl.rootScope.$new(),
+            compile: _compile
         };
         nl.window.setupNlAppInGlobal(self.bridge);
     };
+    
+    function _compile(htmlDom) {
+        return $compile(htmlDom)(self.bridge.scope);
+    }
 }];
 
 //-------------------------------------------------------------------------------------------------

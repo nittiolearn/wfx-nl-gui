@@ -25,17 +25,38 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var DebugTempCtrl = ['nl', 'nlRouter', '$scope',
-function(nl, nlRouter, $scope) {
+var DebugTempCtrl = ['nl', 'nlRouter', '$scope', '$ionicLoading', 
+function(nl, nlRouter, $scope, $ionicLoading) {
+    var spinners = ["ios", "ios-small", "lines", "ripple", "spiral", "bubbles", "circles", "crescent", "dots"];
+    
+    function _updateSpinnerSelect() {
+        $scope.options = {spinner: []};
+        for (var i=0; i<spinners.length; i++) {
+            $scope.options.spinner.push({id: spinners[i], name: spinners[i]});
+        }
+        $scope.data = {spinner: {id: spinners[0]}};
+        $scope.data.duration = 5000;
+    };
+    
     var chartInfo = new ChartInfo(nl);
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
             nl.pginfo.pageTitle = nl.t('Debug Temp');
             chartInfo.setChartInfo($scope);
+            _updateSpinnerSelect();
             resolve(true);
         });
     }
     nlRouter.initContoller($scope, '', _onPageEnter);
+    $scope.showLoading = function() {
+        var spinner = $scope.data.spinner.id;
+        var template = nl.fmt2('<ion-spinner icon="{}"></ion-spinner>', spinner);
+        $ionicLoading.show({template: template, hideOnStateChange: false});
+        nl.timeout(function() {
+            $ionicLoading.hide();
+        }, $scope.data.duration);
+    };
+
 }];
 
 function ChartInfo(nl) {

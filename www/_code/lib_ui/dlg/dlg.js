@@ -87,9 +87,17 @@ function(nl, $ionicPopup, $ionicLoading) {
         return $ionicPopup.prompt(data);        
     };
 
+    // Spinners supported by ionic - for referance
+    // var spinners = ["ios", "ios-small", "lines", "ripple", "spiral", "bubbles", "circles", "crescent", "dots"];
+    this.getSpinnerIcon = function() {
+        return "ios";
+    };
+    
     this.showLoadingScreen = function(delay) {
         nl.log.debug('nlDlg.showLoadingScreen: ', delay);
-        var loadingInfo = {templateUrl : 'lib_ui/utils/waiting.html', hideOnStateChange: false};
+        var spinner = this.getSpinnerIcon();
+        spinner = nl.fmt2('<ion-spinner icon="{}"></ion-spinner>', spinner);
+        var loadingInfo = {template: spinner, hideOnStateChange: false};
         if (delay !== undefined) loadingInfo.delay = delay;
         $ionicLoading.show(loadingInfo);
     };

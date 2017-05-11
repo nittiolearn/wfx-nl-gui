@@ -573,7 +573,6 @@ nittio = function() {
 	//-----------------------------------------------------------------------------
     var W_SMALL = 700;
     var W_LARGE = 1000;
-    var g_screenSize = null;
     var g_isAspectRaioWide = true;
 	function initSizes(retainAspect) {
 	    
@@ -588,10 +587,6 @@ nittio = function() {
         var wBody = body.width(); 
         var hBody = body.height();
         g_isAspectRaioWide = (wBody >= hBody);
-        if (g_screenSize) body.removeClass(g_screenSize);
-        g_screenSize = wBody < W_SMALL ? 'small' : wBody < W_LARGE ? 'medium' : 'large';
-        g_screenSize = 'nl-screen-' + g_screenSize;
-        body.addClass(g_screenSize);
 
 		if (retainAspect == 0) {
 			jQuery('.inner_body').css({left: 0, right: 0, top: 0, bottom: 0});

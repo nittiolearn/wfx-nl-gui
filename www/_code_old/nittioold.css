@@ -1044,11 +1044,21 @@ div.njs_pdf_holder.inline_obj {
 
 .njs_pdf_holder .njs_pdf_waiting {
   text-align: center;
-  border-radius: 8px; 
-  padding: 8px;
   box-sizing: border-box;
   font-size: 60%;
   line-height: normal;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.njs_pdf_holder .njs_pdf_waiting, 
+.njs_pdf_holder .njs_pdf_progress_bar, 
+.njs_pdf_holder .njs_pdf_waiting_msg {
+  padding: 20px;
+}
+
+.njs_pdf_holder .njs_pdf_waiting_msg {
+  color: #FFFFFF;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
