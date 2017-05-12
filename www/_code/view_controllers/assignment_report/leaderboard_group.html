@@ -1,0 +1,39 @@
+<div class='fsh3 text-center padding-mid'>
+    <span ng-show='stats.totalMaxScore > 0'>Leaderboard</span>
+    <span ng-show='stats.totalMaxScore == 0'>Completion status</span>
+</div>
+<table class='nl-table nl-table-styled nl-table-padded fsh6 padding-mid'>
+    <tr ng-show='screenSize != "small"'>
+        <th></th>
+        <th>Name</th>
+        <th>Completion status</th>
+        <th style='text-align:right' ng-show='screenSize != "small"'>Average score</th>
+    </tr>
+
+    <tr ng-repeat='student in stats.leaderBoard track by student.id'
+        ng-click='stats.onGroupLBClick(student)'
+        class='nl-link-text'>
+        <td ng-show='screenSize != "small"' style='text-align:right'>{{$index+1}}</td>
+        <td>{{student.name}}</td>
+        <td style='text-align:center'>
+            <div class='row row-center row-wrap margin0 padding0'>
+                <i class='fsh3 icon {{stats.getGroupLBIcon(student)}}'></i>
+                <span ng-show='screenSize != "small"' class='padding-small'></span>
+                <span ng-show='screenSize != "small"'>{{student.compl}}%</span>
+                <span ng-show='screenSize != "small"' class='padding-small'></span>
+                <span ng-show='screenSize != "small"' class='fsmall1'>
+                    ({{student.done}} of {{student.total}})</span>
+                
+            </div>
+        </td>
+        <td ng-show='screenSize != "small"' style='text-align:right'>
+            <div ng-show='student.perc >= 0'>{{student.perc}}%</div>
+            <div ng-show='student.perc < 0'>-</div>
+        </td>
+    </tr>
+</table>
+
+<div ng-show='stats.leaderBoardLen > stats.leaderBoard.length'
+     class='fsh4 forange padding-mid'>
+    Showing {{stats.leaderBoard.length}} of {{stats.leaderBoardLen}} records. You could apply a filter to view specific records.
+</div>

@@ -386,24 +386,6 @@ ion-spinner.spinner svg {
   }
 }
 
-.nl-div-table {
-  display: table;
-  width: 100%;
-  .tr {
-    display: table-row;
-  }
-  .td, .th {
-    display: table-cell;
-    border: 1px solid $nlgrey;
-  }
-  .td *, .th * {
-    vertical-align: middle;
-  }
-  .th {
-    font-weight: bold; 
-  }
-}
-
 .nl-16 {
   align: center;
   width: 16px;

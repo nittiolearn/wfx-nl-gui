@@ -169,7 +169,14 @@ function Formatter() {
     
     this.getPastDate = function() {
         return new Date(2000, 0);
-    }
+    };
+    
+    this.fmtDateDelta = function(d, now) {
+        var dstr = this.date2Str(d, 'minute');
+        var diff = (now.getTime() - d.getTime())/1000/3600/24;
+        if (diff < 2) return dstr;
+        return _fmt2Impl('{} ({} days ago)', [dstr, Math.floor(diff)]);
+    };
     
     this.encodeUri = function(input) {
         return encodeURIComponent(input);

@@ -15,78 +15,42 @@
     </div>
 
     <div class='padding-mid'></div>
-    <div>
-        <div>
-            <div class='fsh3 text-center'>
-                <span ng-show='stats.passed + stats.failed < stats.students'
-                >{{stats.passed + stats.failed}} of </span><span
-                >{{stats.students}} completed</span>
-            </div>
-            <div class='text-center padding-vertical' style='height: 400px'>
-                <canvas class="chart chart-doughnut"
-                        chart-data="data.completionData"
-                        chart-labels="data.completionLabel"
-                        chart-colours="data.completionColor">
-                </canvas>
-            </div>
+    <div class='padding-mid'>
+        <div class='fsh3 text-center'>
+            <span ng-show='stats.passed + stats.failed < stats.students'
+            >{{stats.passed + stats.failed}} of {{stats.students}} completed</span>
+            <span ng-hide='stats.passed + stats.failed < stats.students'
+            >{{stats.students}} completed modules</span>
         </div>
-
-        <div ng-show='stats.totalMaxScore > 0 && stats.totalScore > 0'>
-            <div class='fsh3 text-center'>
-                Average score: {{stats.avgPerc}}%
-            </div>
-            <div class='text-center padding-vertical' style='height: 400px'>
-                <canvas
-                    class="chart chart-bar"
-                    chart-data="data.percDistData"
-                    chart-labels="data.percDistLabel"
-                    chart-series="['series A']">
-                </canvas>
-            </div>
-        </div>              
- 
-        <div ng-show='showLeaderBoard'>
-            <div class='fsh3 text-center padding-mid'>
-                <span ng-show='stats.totalMaxScore > 0'>Leaderboard</span>
-                <span ng-show='stats.totalMaxScore == 0'>Completion status</span>
-            </div>
-            <div class='nl-div-table'>
-                <div class='tr'>
-                    <div class='th padding-mid'></div>
-                    <div class='th padding-mid'>Name</div>
-                    <div class='th padding-mid text-right' ng-hide='stats.reptype == "assignment"'>Completed</div>
-                    <div class='th padding-mid text-right' ng-hide='stats.reptype == "assignment"'>Pending</div>
-                    <div class='th padding-mid text-right'>
-                        <div ng-show='stats.totalMaxScore > 0'>Score</div>
-                        <div ng-show='stats.totalMaxScore == 0'>Status</div>
-                    </div>
-                </div>
-                <div ng-repeat='student in stats.leaderBoard track by student.id'
-                     class='tr'>
-                    <div class='td padding-mid text-right'>{{$index+1}}</div>
-                    <div class='td padding-mid'>
-                        <a ng-href='/lesson/review_report_assign/{{student.repid}}'
-                           ng-show='student.repid'>{{student.name}}</a>
-                        <span ng-hide='student.repid'>{{student.name}}</span>
-                    </div>
-                    <div class='td padding-mid text-right' ng-hide='stats.reptype == "assignment"'>
-                        {{student.done}}
-                    </div>
-                    <div class='td padding-mid text-right' ng-hide='stats.reptype == "assignment"'>
-                        {{student.total - student.done}}
-                    </div>
-                    <div class='td padding-mid text-right'>
-                        <div ng-show='student.perc >= 0'>{{student.perc}}%</div>
-                        <div ng-show='student.perc == -1'>Completed</div>
-                        <div ng-show='student.perc == -2'>Partially completed</div>
-                        <div ng-show='student.perc == -3'>Not completed</div>
-                    </div>
-                </div>
-            </div>
-            <div ng-show='stats.leaderBoardLen > stats.leaderBoard.length'
-                 class='fsh4 forange padding-mid'>
-                Showing {{stats.leaderBoard.length}} of {{stats.leaderBoardLen}} records. You could apply a filter to view specific records.</div>
-        </div>        
+        <div class='text-center padding-vertical' style='height: 300px'>
+            <canvas class="chart chart-doughnut"
+                    chart-data="data.completionData"
+                    chart-labels="data.completionLabel"
+                    chart-colours="data.completionColor">
+            </canvas>
+        </div>
     </div>
+
+    <div ng-show='stats.totalMaxScore > 0 && stats.totalScore > 0'
+         class='padding-mid'>
+        <div class='fsh3 text-center'>
+            Average score: {{stats.avgPerc}}%
+        </div>
+        <div class='text-center padding-vertical' style='height: 300px'>
+            <canvas
+                class="chart chart-bar"
+                chart-data="data.percDistData"
+                chart-labels="data.percDistLabel"
+                chart-series="['series A']">
+            </canvas>
+        </div>
+    </div>              
+
+    <nl-leaderboard-assign ng-if='stats.reptype == "assignment"'>
+    </nl-leaderboard-assign>
+    <nl-leaderboard-group ng-if='stats.reptype == "group"'>
+    </nl-leaderboard-group>
+    <nl-leaderboard-user ng-if='stats.reptype == "user"'>
+    </nl-leaderboard-user>
 </nl-dlg-content>
 </nl-dlg>

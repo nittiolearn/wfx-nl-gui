@@ -18,14 +18,14 @@ function(nl, nlDlg, nlGroupInfo, nlTreeSelect) {
         return ouTree.get(groupInfo, selectedOus, treeIsShown, multiSelect);
     };
 
-    this.getMetadataFilterTrees = function(selectedIds, treeIsShown) {
+    this.getMetadataFilterTrees = function(selectedIds, treeIsShown, userListFilter) {
         return new MetadataFilterTrees(nl, nlDlg, nlTreeSelect, nlGroupInfo, 
-            selectedIds, treeIsShown);
+            selectedIds, treeIsShown, userListFilter);
     };
 
-    this.getOuUserSelector = function(parentScope, groupInfo, selectedUsers, dontShowUsers) {
+    this.getOuUserSelector = function(parentScope, groupInfo, selectedUsers, dontShowUsers, userListFilter) {
         return new OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, this, 
-            parentScope, groupInfo, selectedUsers, dontShowUsers);
+            parentScope, groupInfo, selectedUsers, dontShowUsers, userListFilter);
     };
 }];
 
@@ -50,7 +50,7 @@ function OuTree(nl, nlDlg, nlTreeSelect) {
 }
     
 //-------------------------------------------------------------------------------------------------
-function MetadataFilterTrees(nl, nlDlg, nlTreeSelect, nlGroupInfo, selectedIds, treeIsShown) {
+function MetadataFilterTrees(nl, nlDlg, nlTreeSelect, nlGroupInfo, selectedIds, treeIsShown, userListFilter) {
     var self = this;
     var _filters = [];
 
@@ -59,7 +59,8 @@ function MetadataFilterTrees(nl, nlDlg, nlTreeSelect, nlGroupInfo, selectedIds, 
         var users = groupInfo.derived.keyToUsers || {};
         for(var username in users) {
             var user = users[username];
-            if (!user.isActive()) continue;
+            if (!userListFilter && !user.isActive()) continue;
+            if (userListFilter && !(user.id in userListFilter)) continue;
             _updateFilterValuesFromMetadata(user);
         }
         _initFilters(selectedIds, treeIsShown);
@@ -157,7 +158,7 @@ function MetadataFilterTrees(nl, nlDlg, nlTreeSelect, nlGroupInfo, selectedIds, 
 
 //-------------------------------------------------------------------------------------------------
 function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect,
-    parentScope, groupInfo, selectedUsers, dontShowUsers) {
+    parentScope, groupInfo, selectedUsers, dontShowUsers, userListFilter) {
     var self = this;
     var _ouUserTree = {data: [], treeIsShown: false, showCounts: true,
         removeEmptyFolders: true, folderType: 'ou'};
@@ -166,7 +167,7 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect,
     
     function _init() {
         var ouToUsers = _getOuToUserDict();
-        _filterTrees = nlOuUserSelect.getMetadataFilterTrees({}, true);
+        _filterTrees = nlOuUserSelect.getMetadataFilterTrees({}, true, userListFilter);
         _formOuUserTree(groupInfo.outree, ouToUsers, _fullTreeData, dontShowUsers);
         _updateSelectionTree(_fullTreeData, selectedUsers);
     }
@@ -233,7 +234,8 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect,
         var users = groupInfo.derived.keyToUsers || {};
         for(var username in users) {
             var user = users[username];
-            if (!user.isActive()) continue;
+            if (!userListFilter && !user.isActive()) continue;
+            if (userListFilter && !(user.id in userListFilter)) continue;
             if (!(user.org_unit in ouToUsers)) ouToUsers[user.org_unit] = [];
             ouToUsers[user.org_unit].push(user);
         }

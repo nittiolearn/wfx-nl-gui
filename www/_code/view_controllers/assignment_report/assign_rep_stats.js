@@ -6,21 +6,80 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.assign_rep_stats', [])
-    .service('NlAssignReportStats', NlAssignReportStats);
+    .service('NlAssignReportStats', NlAssignReportStats)
+    .directive('nlLeaderboardAssign', SimpleDirective('leaderboard_assign'))
+    .directive('nlLeaderboardGroup', SimpleDirective('leaderboard_group'))
+    .directive('nlLeaderboardUser', SimpleDirective('leaderboard_user'))
+    .directive('nlRepStatus', NlRepStatus)
+    .directive('nlRepDetails', NlRepDetails);
 }
-   
+
+//-------------------------------------------------------------------------------------------------
+function SimpleDirective(template) {
+    return ['nl', function(nl) {
+        return {
+            restrict: 'E',
+            templateUrl: nl.fmt2('view_controllers/assignment_report/{}.html', template),
+            scope: true
+        };
+    }];
+}
+
+//-------------------------------------------------------------------------------------------------
+var _statusInfo = {
+    'pending' : {icon: 'ion-ios-circle-filled fgrey', txt: 'Pending'},
+    'failed' : {icon: 'ion-alert-circled fyellow', txt: 'Scored low'},
+    'completed' : {icon: 'ion-checkmark-circled fgreen', txt: 'Completed'}
+};
+
+var NlRepStatus = ['nl', 
+function(nl) {
+    return {
+        restrict: 'E',
+        templateUrl: 'view_controllers/assignment_report/rep_status_dir.html',
+        scope: {
+            rep: '='
+        },
+        link: function($scope, iElem, iAttrs) {
+            $scope.status = _statusInfo[$scope.rep._statusStr];
+        }
+    };
+}];
+
+var NlRepDetails = ['nl', 
+function(nl) {
+    return {
+        restrict: 'E',
+        templateUrl: 'view_controllers/assignment_report/rep_details_dir.html',
+        scope: {
+            rep: '=',
+            stats: '='
+        },
+        link: function($scope, iElem, iAttrs) {
+            $scope.avps = $scope.stats.getReportAvps($scope.rep);
+            if ($scope.rep.completed) {
+                $scope.onClick = function() {
+                    var fn = ($scope.stats.reptype == 'user') ? 'view' : 'review';
+                    nl.window.location.href = nl.fmt2('/lesson/{}_report_assign/{}', fn, $scope.rep.id);
+                };
+            }
+        }
+    };
+}];
+
 //-------------------------------------------------------------------------------------------------
 var NlAssignReportStats = ['nl', 'nlDlg', 'nlExporter', 'nlProgressLog', 
-'nlServerApi', 'nlGroupInfo', '$templateCache', 'nlTreeSelect',
-function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo, $templateCache, nlTreeSelect) {
-    
+'nlServerApi', 'nlGroupInfo', '$templateCache', 'nlTreeSelect', 'nlOuUserSelect',
+function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo, $templateCache, 
+    nlTreeSelect, nlOuUserSelect) {
     var self = this;
     var ctx = null;
     var dlg = null;
     var scopeData = {inProgress: false, exportPageScore: false, exportFeedback: false};
     
-    this.createReportStats = function(reptype) {
-        return new ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect);
+    this.createReportStats = function(reptype, parentScope) {
+        return new ReportStats(reptype, nl, nlDlg, nlServerApi, nlGroupInfo, 
+            nlTreeSelect, nlOuUserSelect, parentScope);
     };
 
     this.export = function($scope, reports, _userInfo) {
@@ -333,12 +392,13 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo, $templa
 }];
 
 //-------------------------------------------------------------------------------------------------
-function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
+function ReportStats(reptype, nl, nlDlg, nlServerApi, nlGroupInfo, 
+    nlTreeSelect, nlOuUserSelect, parentScope) {
     var self = this;
     var _lst = [];
     var _stats = {reptype: reptype};
 
-    var _ous = {};
+    var _usersFilter = {};
     var _grades = {};
     var _subjects = {};
 
@@ -355,29 +415,31 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
     };
 
     this.getFilteredStats = function(filters) {
-        var stats = {};
+        var stats = {reptype: reptype};
         _updateStats(stats, filters);
         return stats;
     };
 
     this.getFilterOptions = function(filters) {
         if (!filters) filters = {};
+        var ouUserSelector = nlOuUserSelect.getOuUserSelector(parentScope, 
+            nlGroupInfo.get(), filters.ouUsers, {}, _usersFilter);
         return {
-            ouTree: _dictToTreeList(_ous, filters.ous),
+            ouUserTree: ouUserSelector.getTreeSelect(),
             gradeTree: _dictToTreeList(_grades, filters.grades),
             subjectTree: _dictToTreeList(_subjects, filters.subjects)
         };
     };
     
     this.getSelectedFilters = function(filterOptions) {
-        return {ous: nlTreeSelect.getSelectedIds(filterOptions.ouTree),
+        return {ouUsers: nlTreeSelect.getSelectedIds(filterOptions.ouUserTree),
             grades: nlTreeSelect.getSelectedIds(filterOptions.gradeTree),
             subjects: nlTreeSelect.getSelectedIds(filterOptions.subjectTree)};
     };
     
     this.isFilterPresent = function(filters) {
         if (!filters) return false;
-        if (Object.keys(filters.ous).length > 0) return true;
+        if (Object.keys(filters.ouUsers).length > 0) return true;
         if (Object.keys(filters.grades).length > 0) return true;
         if (Object.keys(filters.subjects).length > 0) return true;
         return false;
@@ -385,7 +447,7 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
 
     function _doesItPassTheFilter(rep, filters) {
         if (!filters) return true;
-        if (!_doesItPassTheFilterForAttr(filters.ous, rep.org_unit)) return false;
+        if (!_doesItPassTheFilterForAttr(filters.ouUsers, rep._treeId)) return false;
         if (!_doesItPassTheFilterForAttr(filters.grades, rep._grade)) return false;
         if (!_doesItPassTheFilterForAttr(filters.subjects, rep.subject)) return false;
         return true;
@@ -398,6 +460,18 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
     }
     
     function _updateStats(stats, filters, lst) {
+        stats.getGroupLBIcon = function(lbRecord) {
+            return _getGroupLBIcon(stats, lbRecord);
+        };
+        
+        stats.onGroupLBClick = function(lbRecord) {
+            return _onGroupLBClick(stats, lbRecord);
+        };
+        
+        stats.getReportAvps = function(rep) {
+            return self.getReportAvps(rep);
+        };
+
         if(!lst || !stats.students) stats.students = 0;
         if(!lst || !stats.passed) stats.passed = 0;
         if(!lst || !stats.failed) stats.failed = 0;
@@ -412,7 +486,7 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
             var rep = lst[i];
             if (!_doesItPassTheFilter(rep, filters)) continue;
             stats.students++;
-            _ous[rep.org_unit] = true;
+            _usersFilter[rep.student] = true;
             _grades[rep._grade] = true;
             _subjects[rep.subject] = true;
             if (!rep.completed) {
@@ -462,6 +536,7 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
                 rep._email = userInfo[nlGroupInfo.EMAIL];
                 rep.org_unit = userInfo[nlGroupInfo.ORG_UNIT];
             }
+            rep._treeId = nl.fmt2('{}.{}', rep.org_unit, rep.student);
             rep._assignTypeStr = _getAssignTypeStr(rep.assigntype);
             rep._courseName = content.courseName || '';
             rep._courseId = content.courseId || '';
@@ -514,11 +589,17 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
             rec.perc = rec.maxScore ? Math.round(rec.score/rec.maxScore*100) : 
                 rec.done > 0 && rec.done == rec.total ? -1 :
                 rec.done > 0 ? -2 : -3;
+            rec.compl = Math.round(rec.done/rec.total*100);
             if (reptype != 'assignment' || rec.total > 1) rec.repid = null;
             ret.push(rec);
         }
         ret.sort(function(a, b) {
-            return b.perc - a.perc;
+            // Least pending, then most score, then most completed
+            var aPending = a.total - a.done;
+            var bPending = b.total - b.done;
+            if (aPending != bPending) return aPending - bPending;
+            if (a.perc != b.perc) return b.perc - a.perc;
+            return b.done - a.done;
         });
         return ret;
     }
@@ -554,6 +635,67 @@ function ReportStats(reptype, nl, nlServerApi, nlGroupInfo, nlTreeSelect) {
         if (!parentId) return;
         d[parentId] = true;
         _addParentIfMissing(d, parentId);
+    }
+    
+    this.getStatusInfo = function() {
+        return _statusInfo;
+    };
+
+    this.getReportAvps = function(report) {
+        var now = new Date();
+        var avps = [];
+        nl.fmt.addAvp(avps, 'Learner', report.studentname);
+        nl.fmt.addAvp(avps, 'Module', report.name);
+        if (report.completed && report._maxScore > 0) {
+            nl.fmt.addAvp(avps, 'Score', nl.fmt2('{} ({} of {})', report._percStr, report.score || 0, report._maxScore));
+            nl.fmt.addAvp(avps, 'Pass Score', nl.fmt2('{}%', report._passScore));
+        }
+        nl.fmt.addAvp(avps, 'Created on', nl.fmt.fmtDateDelta(report.created, now));
+        nl.fmt.addAvp(avps, 'Last updated on', nl.fmt.fmtDateDelta(report.updated, now));
+        if (report._timeMins) nl.fmt.addAvp(avps, 'Time spent', nl.fmt2('{} minutes', report._timeMins));
+        this.populateCommonAvps(report, avps);
+        return avps;
+    };
+
+    this.populateCommonAvps = function(report, avps) {
+        nl.fmt.addAvp(avps, 'Remarks', report.assign_remarks);
+        nl.fmt.addAvp(avps, 'Assigned By', report.assigned_by);
+        nl.fmt.addAvp(avps, 'Assigned To', report.assigned_to);
+        nl.fmt.addAvp(avps, 'Assigned On ', report.assigned_on, 'date');
+        nl.fmt.addAvp(avps, 'Subject', report.subject);
+        nl.fmt.addAvp(avps, 'Author', report.authorname);
+        nl.fmt.addAvp(avps, 'Module description', report.descMore);
+        nl.fmt.addAvp(avps, 'Earliest start time', report.not_before, 'date');
+        nl.fmt.addAvp(avps, 'Latest end time', report.not_after, 'date');
+        nl.fmt.addAvp(avps, 'Max duration', report.max_duration, 'minutes');
+        nl.fmt.addAvp(avps, 'Show answers', _learnmodeString(report.learnmode));
+        nl.fmt.addAvp(avps, 'Is published?', report.published, 'boolean');
+    };
+    
+    function _learnmodeString(learnmode) {
+        if (learnmode == 1)
+            return nl.fmt.t(['on every page']);
+        if (learnmode == 2)
+            return nl.fmt.t(['after submitting']);
+        if (learnmode == 3)
+            return nl.fmt.t(['only when published']);
+        return '';
+    }
+
+    function _getGroupLBIcon(stats, lbRecord) {
+        if (lbRecord.done == lbRecord.total) return _statusInfo['completed'].icon;
+        if (lbRecord.done > 0) return _statusInfo['failed'].icon;
+        return _statusInfo['pending'].icon;
+    }
+
+    function _onGroupLBClick(stats, lbRecord) {
+        var dlg = nlDlg.create(parentScope);
+        dlg.scope.reps = lbRecord.repList;
+        dlg.scope.stats = stats;
+        dlg.scope.dlgTitle = nl.fmt2('Learning records: {}', lbRecord.repList[0].studentname);
+        dlg.setCssClass('nl-height-max nl-width-max');
+        var cancelButton = {text: nl.t('Close')};
+        dlg.show('view_controllers/assignment_report/leaderboard_record_dlg.html', [], cancelButton);
     }
 }
 

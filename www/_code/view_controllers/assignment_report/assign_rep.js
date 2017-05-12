@@ -131,6 +131,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
             $scope.cards.staticlist = [];
             nl.pginfo.pageTitle = mode.pageTitle(); 
             nlGroupInfo.init().then(function() {
+                nlGroupInfo.update();
 	            if(reptype == 'group') {
 	            	_showRangeSelection(resolve);
 	            } else {
@@ -224,7 +225,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 		mode.initVars();
 		$scope.cards.cardlist = [];
 		$scope.cards.staticlist = [];
-        reportStats = NlAssignReportStats.createReportStats(reptype);
+        reportStats = NlAssignReportStats.createReportStats(reptype, $scope);
 		mode.getAssignmentReports(dateRange, function(isError, result, more) {
 		    if (isError) {
 		        resolve(false);
@@ -252,17 +253,11 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 		});
 	}
 	
-	var _statusInfo = {
-	    'pending' : {icon: 'ion-ios-circle-filled fgrey', txt: 'Pending'},
-        'failed' : {icon: 'ion-alert-circled fyellow', txt: 'Scored low'},
-        'completed' : {icon: 'ion-checkmark-circled fgreen', txt: 'Completed'}
-	};
-
 	function _createReportCard(report) {
 	    var urlPart = (reptype == 'user' && report.student == _userInfo.userid)
 	       ? 'view_report_assign' : 'review_report_assign';
 
-        var status = _statusInfo[report._statusStr];
+        var status = reportStats.getStatusInfo()[report._statusStr];
 		var card = {
 			id : report.id,
 			title : (reptype == 'assignment') ? report.studentname : report.name,
@@ -289,7 +284,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 				card['help'] += nl.t('<div class="nl-textellipsis padding-small"><span class="fsh3">{}</span> ({} of {})</div>', report._percStr, report._score || 0, report._maxScore);
 		}
 		
-        card.details = {help: card['help'], avps: _getReportAvps(report)};
+        card.details = {help: card['help'], avps: reportStats.getReportAvps(report)};
         card.links.push({id: 'details', text: nl.t('details')});
 		return card;
 	}
@@ -360,20 +355,13 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
         _populateLinks(linkAvp);
         if (reptype == 'assignment') nl.fmt.addAvp(avps, 'Name', report.name);
         nl.fmt.addAvp(avps, 'Number of reports', lst.length);
-        nl.fmt.addAvp(avps, 'Most recent update', _fmtDateDelta(lst[0].updated, now));
-        nl.fmt.addAvp(avps, 'Earliest update', _fmtDateDelta(lst[lst.length-1].updated, now));
+        nl.fmt.addAvp(avps, 'Most recent update', nl.fmt.fmtDateDelta(lst[0].updated, now));
+        nl.fmt.addAvp(avps, 'Earliest update', nl.fmt.fmtDateDelta(lst[lst.length-1].updated, now));
         if (reptype != 'assignment') return avps;
-        _populateCommonAvps(report, avps);
+        reportStats.populateCommonAvps(report, avps);
 		return avps;
 	}
 
-    function _fmtDateDelta(d, now) {
-        var dstr = nl.fmt.date2Str(d, 'minute');
-        var diff = (now.getTime() - d.getTime())/1000/3600/24;
-        if (diff < 2) return dstr;
-        return nl.fmt2('{} ({} days ago)', dstr, Math.floor(diff));
-    }
-	
     function _populateLinks(linkAvp) {
         var d = new Date();
         if (reptype == 'assignment') nl.fmt.addLinkToAvp(linkAvp, 'content', nl.fmt2('/lesson/view_assign/{}', mode.assignid));
@@ -381,49 +369,11 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
         nl.fmt.addLinkToAvp(linkAvp, 'charts', null, 'status_overview');
     }
 
-    function _getReportAvps(report) {
-        var now = new Date();
-        var avps = [];
-        nl.fmt.addAvp(avps, 'Learner', report.studentname);
-        nl.fmt.addAvp(avps, 'Name', report.name);
-        nl.fmt.addAvp(avps, 'Created on', _fmtDateDelta(report.created, now));
-        nl.fmt.addAvp(avps, 'Last updated on', _fmtDateDelta(report.updated, now));
-        if (report._timeMins) nl.fmt.addAvp(avps, 'Time spent', nl.fmt2('{} minutes', report._timeMins));
-        _populateCommonAvps(report, avps);
-        return avps;
-    }
-
-    function _populateCommonAvps(report, avps) {
-        nl.fmt.addAvp(avps, 'Remarks', report.assign_remarks);
-        nl.fmt.addAvp(avps, 'Assigned By', report.assigned_by);
-        nl.fmt.addAvp(avps, 'Assigned To', report.assigned_to);
-        nl.fmt.addAvp(avps, 'Assigned On ', report.assigned_on, 'date');
-        nl.fmt.addAvp(avps, 'Subject', report.subject);
-        nl.fmt.addAvp(avps, 'Author', report.authorname);
-        nl.fmt.addAvp(avps, 'Module description', report.descMore);
-        nl.fmt.addAvp(avps, 'Earliest start time', report.not_before, 'date');
-        nl.fmt.addAvp(avps, 'Latest end time', report.not_after, 'date');
-        nl.fmt.addAvp(avps, 'Max duration', report.max_duration, 'minutes');
-        nl.fmt.addAvp(avps, 'Show answers', _learnmodeString(report.learnmode));
-        nl.fmt.addAvp(avps, 'Is published?', report.published, 'boolean');
-    }
-    
-	function _learnmodeString(learnmode) {
-		if (learnmode == 1)
-			return nl.fmt.t(['on every page']);
-		if (learnmode == 2)
-			return nl.fmt.t(['after submitting']);
-		if (learnmode == 3)
-			return nl.fmt.t(['only when published']);
-		return '';
-	}
-
     var statusOverviewDlg = null;
 	function _statusOverview() {
 		statusOverviewDlg = nlDlg.create($scope);
 		statusOverviewDlg.setCssClass('nl-height-max nl-width-max');
-		statusOverviewDlg.scope.showLeaderBoard = (reptype != 'user');
-        statusOverviewDlg.scope.filters = {ous: {}, grades: {}, subjects: {}};
+        statusOverviewDlg.scope.filters = {ouUsers: {}, grades: {}, subjects: {}};
         statusOverviewDlg.scope.onFilter = function() {
             _showFilter(statusOverviewDlg.scope);
         };
@@ -466,6 +416,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
         filterDlg.scope.subjectlabel = _userInfo.groupinfo.subjectlabel;
         filterDlg.scope.gradelabel = _userInfo.groupinfo.gradelabel;
         filterDlg.scope.filterOptions = reportStats.getFilterOptions($scope.filters);
+        filterDlg.scope.reptype = reptype;
 
         var filterButton = {text: nl.t('Apply'), onTap: function(e) {
             $scope.filters = reportStats.getSelectedFilters(filterDlg.scope.filterOptions);
