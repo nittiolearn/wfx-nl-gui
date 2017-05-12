@@ -864,6 +864,9 @@ nittio = function() {
     window.nlapp = null;
     window.setupNlAppInGlobal = function(nlapp) {
         window.nlapp = nlapp;
+        jQuery(function() {
+            jQuery('#statusBox').show();
+        });
     };
 
 	return {

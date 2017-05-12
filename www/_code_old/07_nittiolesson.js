@@ -342,6 +342,7 @@ nlesson = function() {
         var iconSpan = jQuery('#do_toggle_icon');
         var icon = iconSpan.find('I');
         icon.removeClass();
+        icon.removeAttr('class'); // Remove all classes not working sometime?
 		if (ctx == 'do_pv') {
             icon.addClass('icon ion-ios-compose');
 			iconSpan.attr('title', " Change to edit mode");
@@ -1834,6 +1835,7 @@ nlesson = function() {
         var iconSpan = jQuery('#edit_icon_comment');
         var icon = iconSpan.find('I');
         icon.removeClass();
+        icon.removeAttr('class'); // Remove all classes not working sometime?
 		if(clist.length > 0){
             icon.addClass('icon ion-ios-chatbubble forange');
 		} else {
