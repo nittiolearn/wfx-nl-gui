@@ -955,7 +955,7 @@ EditBoxHelper.createInputBox = function(initialVal, secTemplate, section, cls, d
 	var regex = null;
 	
 	var ret = jQuery('<div/>');
-	var ta = jQuery(njs_helper.fmt2('<INPUT type="{}" class="{}"/>', inputType, cls));
+	var ta = jQuery(njs_helper.fmt2('<label><INPUT type="{}" class="{}"/></label>', inputType, cls));
 	if (inputType == 'number') {
 		var min = secTemplate.getOptionsMin();
 		var max = secTemplate.getOptionsMax();
