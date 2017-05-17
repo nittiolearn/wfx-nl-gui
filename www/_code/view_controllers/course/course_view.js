@@ -675,8 +675,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
             cm.timeMins = Math.round(cm.time/60);
         }
 
-        cm.passScore = parseInt(lessonReport.passScore || 0);
         if ('maxScore' in lessonReport) cm.maxScore = parseInt(lessonReport.maxScore);
+        cm.passScore = cm.maxScore ? parseInt(lessonReport.passScore || 0) : 0;
 
         if (lessonReport.completed && 'score' in lessonReport) {
             cm.score = parseInt(lessonReport.score);
@@ -1210,9 +1210,9 @@ function Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlCourse, _update
         if (!(cm.id in lessonReports)) return;
         if (!lessonReports[cm.id].completed) return;
         var lessonReport = lessonReports[cm.id];
-        var passScore = parseInt(lessonReport.passScore || 0);
         var score = parseInt(lessonReport.score || 0);
         var maxScore = parseInt(lessonReport.maxScore || 0);
+        var passScore = maxScore ? parseInt(lessonReport.passScore || 0) : 0;
         var perc = maxScore ? Math.round((score/maxScore)*100) : 100;
         if (perc >= passScore) return;
  

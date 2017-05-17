@@ -7,17 +7,35 @@
 <nl-dlg title='Approve module'>
     <nl-dlg-help>
     	<div class='padding-small'>
-            You may restrict the access to a subset of users based on their
-    	</div>
-    	<ul class='padding-small'>
-            <li ng-repeat='filter in data.filters'>{{filter.name}}</li>
-    	    <li>Organization</li>
-    	</ul>
-        <div class='padding-small'>
-            If one or more of the above filters are selected, only users with permission
-            to view approved content and belong to those organizations / have those attributes
-            will be allowed to view the content.
+    	    Approved modules are visible to users who have permission to view approved content. 
+    	    These are typically two kind of users who get to view the approved modules:
         </div>
+        <div class='padding-small'>
+    	    <ul>
+    	        <li class='padding-small'>Learners who self learn from the knowledge repository/library.</li>
+    	        <li class='padding-small'>Advanced users who assign learning modules to other learners.</li>
+    	    </ul>
+        </div>
+        <div class='padding-small'>
+            You may restrict the access to a subset of users using filters available below.
+            If no filter is chosen, the module will be accessible to all users who have permission
+            to view approved content.
+    	</div>
+        <div class='padding-small'>
+            If one or more of the filters are selected, only users with permission to view
+            approved content and belong to the selected filters will be allowed to access the module.
+        </div>
+        <div class='padding-small'>
+            <b>Note 1:</b> If you filter out your own organization, you will not be
+            able to use the module for sending it out as an assignment.
+        </div>
+        <div class='padding-small'>
+            <b>Note 2:</b> If a module is assigned to a user, it is accessible to that
+            user even if the module is not approved for the user's organization. The
+            filters chosen while approving a module controls only the set of users who
+            can access the module without the module being explicilty assigned to them.
+        </div>
+
     	<div ng-show='options.exportLevel.length > 1'
     	     class='padding-small'>
             <b>visibility:</b> 
@@ -28,9 +46,16 @@
 	</nl-dlg-help>
     <nl-dlg-content>
         <div class='padding-small fsh6'>
-            You may restrict the access to a subset of users using below filters. 
-            If no filter is chosen, the content will be visible to all users
-            who have permission to view approved content.
+            <div>
+                Once you approve, this module will be visible to other users who have
+                permission to view approved modules. 
+                They will be able to assign the module to other learners within your 
+                organization or self learn depending on their user rights.
+            </div>
+            <div class='padding-mid'></div>
+            <div>
+                Cick on help button above to see how to control access to your module.
+            </div>
             <div class='padding-mid'></div>
         </div>
         <div class='row row-top row-wrap margin0 padding0'

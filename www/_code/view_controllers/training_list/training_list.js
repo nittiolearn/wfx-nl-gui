@@ -23,40 +23,12 @@
 	}];
 
 //-------------------------------------------------------------------------------------------------
-	function TypeHandler(nl, nlServerApi, nlDlg) {
-	    var self = this;
-		this.getNominations = function(data, callbackFn) {
-		    _getTrainingNominations(data, callbackFn);
-	    };
-
-		function _getTrainingNominations(data, callbackFn) {
-			nlDlg.showLoadingScreen();
-			nlServerApi.getTrainingReportList(data).then(function(result) {
-	            var more = (result.length > data.max);
-	            data.start_at += result.length;
-	            var msg = nl.t('Got {} items from the server.{}', data.start_at, more ? 
-	                ' Fetching more items ...' : '');
-	            nlDlg.popupStatus(msg, more ? false : undefined);
-	            if (more) {
-	                _getTrainingNominations(data, callbackFn);
-	            }
-	            if(!more) nlDlg.hideLoadingScreen();
-	            callbackFn(false, result, more);
-			}, function(error) {
-	            nlDlg.popupStatus(error);
-	            callbackFn(true, error, false);
-			});
-		}
-	}
-//-------------------------------------------------------------------------------------------------
-
 	var TrainingListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlServerApi', 'nlMetaDlg', 'nlSendAssignmentSrv', 'nlLessonSelect',
 	function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMetaDlg, nlSendAssignmentSrv, nlLessonSelect) {
 
 		var _userInfo = null;
 		var trainingListDict = {};
 		var _scope = null;
-		var mode = new TypeHandler(nl, nlServerApi, nlDlg);
 		function _onPageEnter(userInfo) {
 			_userInfo = userInfo;
 			trainingListDict = {};
@@ -182,12 +154,29 @@
 		function _trainingReportView(card, linkid) {
 			var reports = {};
 			var data = {trainingid: card.id, max: 100, start_at: 0};
-			mode.getNominations(data, function(isError, result, more) {
+            nlDlg.showLoadingScreen();
+			_getTrainingNominations(data, function(isError, result, more) {
+                nlDlg.hideLoadingScreen();
 				if(isError) return;
 				reports = _getReportDict(result, reports);
 				if(!more) _gotNominatedList(card, linkid, reports);
 			});
 		}
+
+        function _getTrainingNominations(data, callbackFn) {
+            nlServerApi.getTrainingReportList(data).then(function(result) {
+                var more = (result.length > data.max);
+                data.start_at += result.length;
+                var msg = nl.t('Got {} items from the server.{}', data.start_at, more ? 
+                    ' Fetching more items ...' : '');
+                nlDlg.popupStatus(msg, more ? false : undefined);
+                if (more) _getTrainingNominations(data, callbackFn);
+                callbackFn(false, result, more);
+            }, function(error) {
+                nlDlg.popupStatus(error);
+                callbackFn(true, error, false);
+            });
+        }
 
 		function _getReportDict(result, reports) {
 			for (var i = 0; i < result.length; i++) {
