@@ -648,7 +648,7 @@ function ReportStats(reptype, nl, nlDlg, nlServerApi, nlGroupInfo,
         nl.fmt.addAvp(avps, 'Module', report.name);
         if (report.completed && report._maxScore > 0) {
             nl.fmt.addAvp(avps, 'Score', nl.fmt2('{} ({} of {})', report._percStr, report.score || 0, report._maxScore));
-            nl.fmt.addAvp(avps, 'Pass Score', nl.fmt2('{}%', report._passScore));
+            nl.fmt.addAvp(avps, 'Pass Score', report._passScore ? nl.fmt2('{}%', report._passScore) : '-');
         }
         nl.fmt.addAvp(avps, 'Created on', nl.fmt.fmtDateDelta(report.created, now));
         nl.fmt.addAvp(avps, 'Last updated on', nl.fmt.fmtDateDelta(report.updated, now));
