@@ -228,6 +228,7 @@ function Permission(nl) {
         '/course_view': {login: true, permission: 'course_do', termRestriction: TR_RESTRICTED},
         '/course_cert': {login: true, permission: 'course_do', termRestriction: TR_RESTRICTED},
         '/course_charts': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},
+        '/course_summary_report': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},
         '/dashboard': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         '/dashboard_view': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         '/searchlist': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},

@@ -25,8 +25,8 @@ var EditorFieldsDirective = ['nl', function(nl) {
     };
 }];
 //-------------------------------------------------------------------------------------------------
-var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlCourse', 'nlLessonSelect', 'nlExportLevel',
-function(nl, nlDlg, nlCourse, nlLessonSelect, nlExportLevel) {
+var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlLessonSelect', 'nlExportLevel',
+function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
 
     var modeHandler = null;
     var $scope = null;
@@ -612,7 +612,7 @@ function(nl, nlDlg, nlCourse, nlLessonSelect, nlExportLevel) {
     
     function _modifyAndUpdateToServer(modifiedData){
         nlDlg.showLoadingScreen();
-        nlCourse.courseModify(modifiedData).then(function(course) {
+        nlServerApi.courseModify(modifiedData).then(function(course) {
             nlDlg.hideLoadingScreen();
         });
     }

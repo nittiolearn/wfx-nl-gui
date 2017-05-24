@@ -3,6 +3,7 @@
 //-------------------------------------------------------------------------------------------------
 // course_charts.js:
 // Export and charts for course and course reports
+// Used in SMHS usecase - exporting syllabus scheduler status
 //-------------------------------------------------------------------------------------------------
 function module_init() {
 	angular.module('nl.course.charts', [])

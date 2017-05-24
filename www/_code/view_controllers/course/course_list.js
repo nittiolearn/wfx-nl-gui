@@ -41,22 +41,22 @@ function($stateProvider, $urlRouterProvider) {
 		}});
 }];
 
-var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlCourse', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg',
-function(nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg) {
-	_listCtrlImpl('course', nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg);
+var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg) {
+	_listCtrlImpl('course', nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg);
 }];
 
-var CourseAssignListCtrl = ['nl', 'nlRouter', '$scope', 'nlCourse', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg',
-function(nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg) {
-	_listCtrlImpl('assign', nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg);
+var CourseAssignListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg) {
+	_listCtrlImpl('assign', nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg);
 }];
 
-var CourseReportListCtrl = ['nl', 'nlRouter', '$scope', 'nlCourse', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg',
-function(nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg) {
-	_listCtrlImpl('report', nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg);
+var CourseReportListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg) {
+	_listCtrlImpl('report', nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg);
 }];
 
-function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg) {
+function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg) {
 	/* 
 	 * URLs handled
 	 * 'View published' : /course_list?type=course&my=0
@@ -217,17 +217,17 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, 
 	    if (_custtypeInUrl !== null) params.custtype = _custtypeInUrl;
 		if (type === 'course') {
 		    params.mine = my;
-			return nlCourse.courseGetList(params);
+			return nlServerApi.courseGetList(params);
 		}
 		if (type === 'assign') {
             params.mine = false;
-			return nlCourse.courseGetAssignmentList(params);
+			return nlServerApi.courseGetAssignmentList(params);
 		}
 		if (type === 'report' && assignId !== 0) {
             params.assignid = assignId;
-			return nlCourse.courseGetAssignmentReportList(params);
+			return nlServerApi.courseGetAssignmentReportList(params);
 		}
-		return nlCourse.courseGetMyReportList(params);
+		return nlServerApi.courseGetMyReportList(params);
 	}
 	
 	function _getStaticCards() {
@@ -376,7 +376,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, 
 		nlDlg.popupConfirm(msg).then(function(result) {
 			if (!result) return;
 			nlDlg.showLoadingScreen();
-			nlCourse.courseDelete(courseId).then(function(status) {
+			nlServerApi.courseDelete(courseId).then(function(status) {
 				nlDlg.hideLoadingScreen();
 				if (courseId in courseDict) delete courseDict[courseId];
 				for (var i in $scope.cards.cardlist) {
@@ -395,7 +395,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, 
 		nlDlg.popupConfirm(msg).then(function(result) {
 			if (!result) return;
 			nlDlg.showLoadingScreen();
-			nlCourse.courseAssignmentDelete(assignId).then(function(status) {
+			nlServerApi.courseAssignmentDelete(assignId).then(function(status) {
 				nlDlg.hideLoadingScreen();
 				for (var i in $scope.cards.cardlist) {
 					var card = $scope.cards.cardlist[i];
@@ -424,7 +424,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, 
 				icon: courseData.icon, 
 				description: courseData.description
 			};
-			nlCourse.courseUnpublish(courseId).then(function(course) {
+			nlServerApi.courseUnpublish(courseId).then(function(course) {
 				_onModifyDone(course, courseId, modifiedData, $scope);
 			});	
 		});
@@ -491,7 +491,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlCourse, nlDlg, nlCardsSrv, 
 		};
 		if (courseId !== null) modifiedData.courseid = courseId;
 		if (bPublish) modifiedData.publish = true;
-		var crModFn = (courseId != null) ? nlCourse.courseModify: nlCourse.courseCreate;
+		var crModFn = (courseId != null) ? nlServerApi.courseModify: nlServerApi.courseCreate;
 		return crModFn(modifiedData).then(function(course) {
 			_onModifyDone(course, courseId, modifiedData, $scope);
 			return course.id;

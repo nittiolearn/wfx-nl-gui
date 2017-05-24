@@ -7,6 +7,7 @@
 function module_init() {
     angular.module('nl.assign_rep', [])
     .config(configFn)
+    .service('nlRangeSelectionDlg', NlRangeSelectionDlg)
     .controller('nl.AssignRepCtrl', getController('assignment'))
     .controller('nl.AssignSummaryRepCtrl', getController('group'))
     .controller('nl.AssignUserRepCtrl', getController('user'));
@@ -102,17 +103,17 @@ function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
 function getController(ctrlType) {
 	return [
 		'nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'NlAssignReportStats',
-		'nlGroupInfo',
+		'nlGroupInfo', 'nlRangeSelectionDlg',
 		function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats,
-			nlGroupInfo) {
+			nlGroupInfo, nlRangeSelectionDlg) {
 	    _assignRepImpl(ctrlType, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, 
-	    	NlAssignReportStats, nlGroupInfo);
+	    	NlAssignReportStats, nlGroupInfo, nlRangeSelectionDlg);
 	}];
 }
-
+    
 //-------------------------------------------------------------------------------------------------
 function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, 
-	NlAssignReportStats, nlGroupInfo) {
+	NlAssignReportStats, nlGroupInfo, nlRangeSelectionDlg) {
 	var _userInfo = null;
 	var my = 0;
 	var search = null;
@@ -122,6 +123,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
+		nlRangeSelectionDlg.init();
 		return nl.q(function(resolve, reject) {
     		mode.initFromUrl();
     		$scope.cards = {};
@@ -161,39 +163,15 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
         _showRangeSelection(null);
 	}
         
-	var rangeSelectionDlg = null;
 	function _showRangeSelection(resolve) {
-		rangeSelectionDlg = nlDlg.create($scope);
-		rangeSelectionDlg.setCssClass('nl-height-max nl-width-max');
-		var updatedTillDate = new Date();
-		var updatedFromDate = updatedTillDate.getTime() - (7 * 24 * 60 * 60 * 1000);
-		rangeSelectionDlg.scope.data = {updatedFrom: new Date(updatedFromDate), updatedTill: updatedTillDate};
-		rangeSelectionDlg.scope.error = {};
-		rangeSelectionDlg.scope.dlgTitle = nl.t('Select range of updated time');
-		var button = {text: nl.t('Get reports'), onTap: function(e){
-			if (!_validateInputs(rangeSelectionDlg.scope)) {
-				if (e) e.preventDefault();
-				return null;
-			}
-			nlDlg.showLoadingScreen();
-			_getDataFromServer(rangeSelectionDlg.scope.data, resolve);
-		}};
-        var cancelButton = {text: nl.t('Close'), onTap: function(e) {
-        	if (resolve) resolve(false);
-        }};
-        rangeSelectionDlg.show('view_controllers/assignment_report/range_selection_dlg.html', [button], cancelButton, false);
-	}
-
-	function _validateInputs(scope){
-		scope.error = {};
-		if (!scope.data.updatedFrom) return _validateFail(scope, 'updatedFrom', 'From date is mandatory');
-		if (!scope.data.updatedTill) return _validateFail(scope, 'updatedTill', 'Till date is mandatory');
-		if (scope.data.updatedFrom >= scope.data.updatedTill) return _validateFail(scope, 'updatedTill', 'Till date should be less than from date');
-		return true;
-	}
-					
-	function _validateFail(scope, attr, errMsg) {
-		return nlDlg.setFieldError(scope, attr, nl.t(errMsg));
+	    nlRangeSelectionDlg.show($scope).then(function(data) {
+	        if (!data) {
+                if (resolve) resolve(false);
+                return;
+	        }
+            nlDlg.showLoadingScreen();
+            _getDataFromServer(data, resolve);
+	    });
 	}
 
 	function _getEmptyCard(nlCardsSrv) {
@@ -579,6 +557,56 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 			[], cancelButton, false);
 	}
 }
+
+//-------------------------------------------------------------------------------------------------
+var NlRangeSelectionDlg = ['nl', 'nlDlg', function(nl, nlDlg) {
+    var updatedTillDate = null;
+    var updatedFromDate = null;
+
+    this.init = function() {
+        var day = 24*60*60*1000; // 1 in ms
+        var now = new Date();
+        var offset = now.getTimezoneOffset()*60*1000; // in ms
+        now = Math.floor(now.getTime()/day)*day + offset; // Today 00:00 Hrs in local time
+        updatedTillDate = new Date(now + day);
+        updatedFromDate = new Date(now - (6 * day));
+    };
+    
+    this.show = function($scope) {
+        if (!updatedTillDate || !updatedFromDate) this.init();
+        var rangeSelectionDlg = nlDlg.create($scope);
+        rangeSelectionDlg.setCssClass('nl-height-max nl-width-max');
+        rangeSelectionDlg.scope.data = {updatedFrom: updatedFromDate, updatedTill: updatedTillDate};
+        rangeSelectionDlg.scope.error = {};
+        rangeSelectionDlg.scope.dlgTitle = nl.t('Select range of updated time');
+        var button = {text: nl.t('Get reports'), onTap: function(e){
+            if (!_validateInputs(rangeSelectionDlg.scope)) {
+                if (e) e.preventDefault();
+                return;
+            }
+            var sd = rangeSelectionDlg.scope.data;
+            updatedTillDate = sd.updatedTill;
+            updatedFromDate = sd.updatedFrom;
+            return rangeSelectionDlg.scope.data;
+        }};
+        var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
+            return false;
+        }};
+        return rangeSelectionDlg.show('view_controllers/assignment_report/range_selection_dlg.html', [button], cancelButton, false);
+    };
+
+    function _validateInputs(scope){
+        scope.error = {};
+        if (!scope.data.updatedFrom) return _validateFail(scope, 'updatedFrom', 'From date is mandatory');
+        if (!scope.data.updatedTill) return _validateFail(scope, 'updatedTill', 'Till date is mandatory');
+        if (scope.data.updatedFrom >= scope.data.updatedTill) return _validateFail(scope, 'updatedTill', 'Till date should be less than from date');
+        return true;
+    }
+                    
+    function _validateFail(scope, attr, errMsg) {
+        return nlDlg.setFieldError(scope, attr, nl.t(errMsg));
+    }
+}];
 
 //-------------------------------------------------------------------------------------------------
 module_init();
