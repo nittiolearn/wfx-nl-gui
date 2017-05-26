@@ -101,7 +101,7 @@
     	 	  ng-focus="attr.focus=true" ng-blur="attr.focus=false"
     	 	  tabindex="0">
             <div class='row row-center margin0 padding0'>
-                <div class='col'>{{values[attr.name] | date: "yyyy-MM-dd"}}</div>
+                <div class='col'>{{values[attr.name] | nlDateTimeFormat:"date"}}</div>
                 <i ng-show='values[attr.name]'
                    class='icon ion-ios-close fsh4 padding-small forange'
                    ng-click='values[attr.name]=null; $event.stopImmediatePropagation()'>

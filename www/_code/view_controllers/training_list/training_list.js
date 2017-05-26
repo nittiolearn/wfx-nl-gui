@@ -125,16 +125,16 @@
 					title : item.modulename,
 					icon : item.moduleicon
 				},
-				start_date : nl.fmt.jsonDate2Str(item.start),
-				end_date : nl.fmt.jsonDate2Str(item.end),
+				start_date : item.start,
+				end_date : item.end,
 				description : item.desc,
 				children : [],
 				details : {},
 				links : [],
 				listDetails : '<nl-training-details card="card"></nl-training-details>'
 			};
-			card.training.created = nl.fmt.jsonDate2Str(item.created);
-			card.training.updated = nl.fmt.jsonDate2Str(item.updated);
+			card.training.created = item.created;
+			card.training.updated = item.updated;
 			return card;
 		}
 
@@ -426,8 +426,8 @@
         }
         
 		function _getRemarks(training) {
-			var d1 = nl.fmt.date2Str(nl.fmt.json2Date(training.start), 'minute');
-			var d2 = nl.fmt.date2Str(nl.fmt.json2Date(training.end), 'minute');
+			var d1 = nl.fmt.fmtDateDelta(training.start);
+			var d2 = nl.fmt.fmtDateDelta(training.end);
 			return nl.fmt2('Open from {} till {} - {}', d1, d2, training.desc);
 		}
 

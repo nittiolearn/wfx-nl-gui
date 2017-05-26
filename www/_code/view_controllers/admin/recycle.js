@@ -93,7 +93,7 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
 	    var icon = '<i class=""></i>';
 	    var desc = '<div><b>Archived on:</b></div>';
 	    desc += '<div>{}</div>';
-	    desc = nl.fmt2(desc, nl.fmt.date2Str(item.created, 'minute'));
+	    desc = nl.fmt2(desc, nl.fmt.fmtDateDelta(item.created));
 	    if (item.username) desc += nl.fmt2('<div>by {}</div>', item.username);
 	    
 	    var card = {id: item.id,

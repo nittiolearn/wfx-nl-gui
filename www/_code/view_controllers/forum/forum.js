@@ -262,7 +262,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup, nlExporter, nlResou
     //-------------------------------------------------------------------------
     function _updateForumData(forumInfo) {
         $scope.msgTree = messageMgr.updateMessages(forumInfo.msgs);
-        $scope.since = messageMgr.range_since ? nl.fmt.date2Str(messageMgr.range_since) : '';
+        $scope.since = messageMgr.range_since ? nl.fmt.fmtDateDelta(messageMgr.range_since, new Date()) : '';
         $scope.msgCount = 0;
         $scope.searchFilter = null;
         for (var key in messageMgr.idToMsg) $scope.msgCount++;
@@ -487,12 +487,12 @@ function MessageManager(nl, nlRouter, nlServerApi, nlMarkup) {
     }
 
     function _initAttributes(self, msg, userInfo) {
-        msg.updated = nl.fmt.json2Date(msg.updated);
-        msg.created = nl.fmt.json2Date(msg.created);
-        
-        msg.htmlCreated = nl.fmt.date2Str(msg.created);
-        msg.htmlUpdated = nl.fmt.date2Str(msg.updated);
 
+        msg.htmlCreated = nl.fmt.fmtDateDelta(msg.created);
+        msg.htmlUpdated = nl.fmt.fmtDateDelta(msg.updated);
+
+        msg.updated = nl.fmt.json2Date(msg.updated);
+        msg.created = nl.fmt.json2Date(msg.created);        
         msg.canReply = (msg.parentid == 0);
         msg.canEdit = (userInfo.userid == msg.author);
         msg.canDelete = nlRouter.isPermitted(userInfo, 'forum_delete_msg');

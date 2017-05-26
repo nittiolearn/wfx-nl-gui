@@ -6,7 +6,7 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.ui.utils', ['nl.ui.keyboard'])
-    .filter('nlDateStr', NlDateStr) // Usage: {{someDate | nlDateStr:'dd-MMMM-yyyy'}}
+    .filter('nlDateTimeFormat', NlDateTimeFormat) // Usage: {{someDateJson | nlDateTimeFormat:"date|minute(default)"}}
     .filter('nlConvert', NlConvert) // Usage: {{someStr | nlConvert:convertDict}}
     .service('nlPrinter', PrinterSrv)
     .directive('nlCompile', Compile)
@@ -22,14 +22,11 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlDateStr = ['nl', '$filter',
-function(nl, $filter) {
-    function _fmtDateStr(dateStr, format, timezone) {
-        var newDate = nl.fmt.json2Date(dateStr);
-        var ret = $filter('date')(newDate, format, timezone);
-        return ret;
-    }
-    return _fmtDateStr;
+var NlDateTimeFormat = ['nl',
+function(nl) {
+    return function(dateJson, accuracy) {
+        return nl.fmt.fmtDateDelta(dateJson, undefined, accuracy);
+    };
 }];
 
 //-------------------------------------------------------------------------------------------------

@@ -80,7 +80,7 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
         var scope = $scope.$new();
         scope.fileInfo = fileInfo;
         if (!fileInfo.date) {
-            fileInfo.date = nl.fmt.date2Str(fileInfo.resource.lastModifiedDate, 'second');
+            fileInfo.date = fileInfo.resource.lastModifiedDate;
         }
         var msg = {title: fileInfo.resource.name, 
            templateUrl: 'view_controllers/resource/resource_desc.html',

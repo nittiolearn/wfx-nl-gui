@@ -16,16 +16,16 @@
 		<div class='padding-mid fsh5'>{{card.title}}</div>
 		<div class='row row-bottom row-wrap margin0 padding0 fsmall1'>
 			<div ng-class='$root.respCol221' class='padding-mid'>
-				<span class='training_attr'>From:</span><span>{{card.start_date | date:"yyyy:MM:dd H:mm"}}</span>
+				<span class='training_attr'>From:</span><span>{{card.start_date | nlDateTimeFormat}}</span>
 			</div>
 			<div ng-class='$root.respCol221' class='padding-mid'>
-				<span class='training_attr'>Till:</span><span>{{card.end_date | date:"yyyy:MM:dd H:mm"}}</span>
+				<span class='training_attr'>Till:</span><span>{{card.end_date | nlDateTimeFormat}}</span>
 			</div>
 			<div ng-class='$root.respCol221' class='padding-mid'>
-				<span class='training_attr'>Created:</span><span>{{card.training.created | date:"yyyy:MM:dd H:mm"}}</span>
+				<span class='training_attr'>Created:</span><span>{{card.training.created | nlDateTimeFormat}}</span>
 			</div>
 			<div ng-class='$root.respCol221' class='padding-mid'>
-				<span class='training_attr'>Updated:</span><span>{{card.training.updated | date:"yyyy:MM:dd H:mm"}}</span>
+				<span class='training_attr'>Updated:</span><span>{{card.training.updated | nlDateTimeFormat}}</span>
 			</div>
 			<div ng-class='$root.respCol221' class='padding-mid'>
 				<span class='training_attr'>Created by:</span><span>{{card.training.createdby}}</span>

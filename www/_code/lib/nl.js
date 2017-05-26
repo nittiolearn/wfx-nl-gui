@@ -171,8 +171,17 @@ function Formatter() {
         return new Date(2000, 0);
     };
     
-    this.fmtDateDelta = function(d, now) {
-        var dstr = this.date2Str(d, 'minute');
+    this.fmtDateDelta = function(d, now, accuracy) {
+    	if (!d) return '-';
+    	var options = null;
+    	if (accuracy == 'date') {
+			options = {day: '2-digit', month:'short', year:'numeric'};
+    	} else {
+			options = {hour12: true, day: '2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'};
+    	}
+        d = this.json2Date(d);
+		var dstr = d.toLocaleString(undefined, options);
+        if (!now) return dstr;
         var diff = (now.getTime() - d.getTime())/1000/3600/24;
         if (diff < 2) return dstr;
         return _fmt2Impl('{} ({} days ago)', [dstr, Math.floor(diff)]);
@@ -191,10 +200,10 @@ function Formatter() {
 		if (iconUrl) {
 			fieldValue = _fmt2Impl("<img src='{}' class='{}'> {}", [iconUrl, iconClass, fieldValue]);
 		}
-        if (fmtType == 'date') fieldValue = fieldValue ? this.jsonDate2Str(fieldValue)+' '+'Hrs' : '-';
-        if (fmtType == 'date2') fieldValue = fieldValue ? this.date2Str(fieldValue, 'date') : '-';
-		if (fmtType == 'boolean') fieldValue = fieldValue ? this.t(['Yes']) : this.t(['No']);
-		if (fmtType == 'minutes') fieldValue = fieldValue ? (fieldValue > 1 ? this.t(['{} minutes', fieldValue]) : this.t(['{} minute', fieldValue])) : this.t('-');
+        if (fmtType == 'date') fieldValue = fieldValue ? this.fmtDateDelta(fieldValue): '-';
+        else if (fmtType == 'datedelta') fieldValue = fieldValue ? this.fmtDateDelta(fieldValue, new Date()): '-';
+		else if (fmtType == 'boolean') fieldValue = fieldValue ? this.t(['Yes']) : this.t(['No']);
+		else if (fmtType == 'minutes') fieldValue = fieldValue ? (fieldValue > 1 ? this.t(['{} minutes', fieldValue]) : this.t(['{} minute', fieldValue])) : this.t('-');
 		if (!fieldValue) fieldValue = fieldDefault || '-';
 		avps.push({attr: this.t([fieldName]), val: fieldValue});
 	};

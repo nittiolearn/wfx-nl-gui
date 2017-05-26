@@ -162,7 +162,7 @@
                 </span>
                 <span ng-if="reportSent.type == 'report'">Summary</span>
                 <span ng-if="reportSent.type == 'observation'">Observation</span>
-                report sent on {{reportSent.sent_on | nlDateStr: 'dd-MMMM-yyyy'}} by {{reportSent.sent_by}}
+                report sent on {{reportSent.sent_on | nlDateTimeFormat:"date"}} by {{reportSent.sent_by}}
             </div>
     
             <hr/>

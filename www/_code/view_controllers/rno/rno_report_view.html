@@ -38,7 +38,7 @@
                     </tr>
                     <tr ng-if='reportSent'>
                         <td class='nl-dlg-field-name'>Sent on</td>
-                        <td>{{reportSent.sent_on | nlDateStr: 'dd-MMMM-yyyy'}}</td>
+                        <td>{{reportSent.sent_on | nlDateTimeFormat:"date"}}</td>
                     </tr>
                 </table>
             </div>

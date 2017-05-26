@@ -4,7 +4,7 @@
          autofocus=''
          tabindex="{{tabindex || 0}}"
          ng-model="$parent.data[fieldmodel]">
-        <div class='col margin0 padding0'>{{$parent.data[fieldmodel] | date:"yyyy-MM-dd H:mm"}}</div>
+        <div class='col margin0 padding0'>{{$parent.data[fieldmodel] | nlDateTimeFormat}}</div>
         <i ng-show='$parent.data[fieldmodel]'
            class='icon ion-ios-close nl-dlg-field-icon forange2'
            ng-click='$parent.data[fieldmodel]=null; $event.stopImmediatePropagation()'>
