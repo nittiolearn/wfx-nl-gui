@@ -105,7 +105,7 @@ function getController(ctrlType) {
 		'nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'NlAssignReportStats',
 		'nlGroupInfo', 'nlRangeSelectionDlg', 'nlOuUserSelect',
 		function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats,
-			nlGroupInfo, 'nlRangeSelectionDlg', nlOuUserSelect) {
+			nlGroupInfo, nlRangeSelectionDlg, nlOuUserSelect) {
 	    _assignRepImpl(ctrlType, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, 
 	    	NlAssignReportStats, nlGroupInfo, nlRangeSelectionDlg, nlOuUserSelect);
 	}];
@@ -163,7 +163,6 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
         _showRangeSelection(null);
 	}
         
-	var rangeSelectionDlg = null;
 	function _showRangeSelection(resolve) {
 	    nlRangeSelectionDlg.show($scope).then(function(data) {
 	        if (!data) {
@@ -583,6 +582,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 		ouSelectionDlg.setCssClass('nl-height-max nl-width-max');
         ouSelectionDlg.scope.data.org_unit = assignmentShareDlg.scope.data.ouUserTree;
 	}
+}
 
 //-------------------------------------------------------------------------------------------------
 var NlRangeSelectionDlg = ['nl', 'nlDlg', function(nl, nlDlg) {
