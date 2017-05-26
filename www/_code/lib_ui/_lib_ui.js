@@ -9,7 +9,7 @@ function module_init() {
                    'nl.ui.utils', 'nl.ui.markup', 'nl.ui.treeselect', 'nl.ui.ouuserselect',
                    'nl.ui.contentmetadata',
                    // External dependacies
-                   'ivh.treeview', 'ngFileUpload', 'chart.js', 'ion-datetime-picker']);
+                   'ngFileUpload', 'chart.js', 'ion-datetime-picker']);
 }
 
 //-------------------------------------------------------------------------------------------------
