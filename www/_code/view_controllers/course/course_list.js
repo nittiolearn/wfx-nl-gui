@@ -70,12 +70,10 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	var my = false;
 	var assignId = 0;
 	var _userInfo = null;
-	var _searchFilterInUrl = '';
 	var _custtypeInUrl = null;
     var _metadataEnabled = false;
     var _searchMetadata = null;
-    var _start_at = 0;
-    var _max = 50;
+    var _nextStartPos = 0;
     var _canFetchMore = true;
     var _resultList = [];
 
@@ -87,7 +85,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 			$scope.cards = {};
 			$scope.cards.staticlist = _getStaticCards();
 			$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
-			_getDataFromServer(_searchFilterInUrl, false, resolve, reject);
+			_getDataFromServer(false, resolve, reject);
 		});
 	}
 	nlRouter.initContoller($scope, '', _onPageEnter);
@@ -126,7 +124,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
         var params = nl.location.search();
         my = ('my' in params) ? parseInt(params.my) == 1: false;
         assignId = ('assignid' in params) ? parseInt(params.assignid) : 0;
-        _searchFilterInUrl = ('search' in params) ? params.search : '';
         _custtypeInUrl = ('custtype' in params) ? parseInt(params.custtype) : null;
         _metadataEnabled = ('enablemeta' in params) && (type == 'course') && !my;
         _searchMetadata = nlMetaDlg.getMetadataFromUrl();
@@ -145,24 +142,18 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	}
 
 	function _addSearchInfo(cards) {
-		cards.search = {placeholder: nl.t('Enter course name/description'),
-		                maxLimit: _max};
+		cards.search = {placeholder: nl.t('Enter course name/description')};
 		cards.search.onSearch = _onSearch;
-        if (_metadataEnabled) cards.canFetchMore = _canFetchMore;
+        cards.canFetchMore = _canFetchMore;
 	}
 	
 	function _onSearch(filter, grade, onSearchParamChange) {
-	    _searchFilterInUrl = filter;
-        if (!_metadataEnabled) {
-            _onSearchImpl();
-            return;
-        }
-        _searchMetadata.search = _searchFilterInUrl;
+        if (!_metadataEnabled) return;
+        _searchMetadata.search = filter;
         nlMetaDlg.showAdvancedSearchDlg($scope, _userInfo, 'course', _searchMetadata)
         .then(function(result) {
-            _searchFilterInUrl = result.metadata.search || '';
+            onSearchParamChange(result.metadata.search || '', grade);
             _searchMetadata = result.metadata;
-            onSearchParamChange(_searchFilterInUrl, grade);
             _onSearchImpl();
         });
     }
@@ -174,60 +165,64 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
     function _onSearchImpl(fetchMore) {
 		nlDlg.showLoadingScreen();
 		var promise = nl.q(function(resolve, reject) {
-			_getDataFromServer(_searchFilterInUrl, fetchMore, resolve, reject);
+			_getDataFromServer(fetchMore, resolve, reject);
 		});
 		promise.then(function(res) {
 			nlDlg.hideLoadingScreen();
 		});
 	}
 
-	function _getDataFromServer(filter, fetchMore, resolve, reject) {
-		_listingFunction(filter, fetchMore).then(function(resultList) {
-		    resultList = _getFullResultList(resultList);
-			if (resultList.length === 1 && type === 'report' && assignId === 0) {
-				var url = nl.fmt2('/course_view?id={}&mode=do', resultList[0].id);
+	function _getDataFromServer(fetchMore, resolve, reject) {
+        if (!fetchMore) {
+            _resultList = [];
+            _nextStartPos = null;
+        }
+
+        var params = {};
+        if (_nextStartPos) params.startpos = _nextStartPos;
+        if (_metadataEnabled) params.metadata = _searchMetadata;
+        if (_custtypeInUrl !== null) params.custtype = _custtypeInUrl;
+
+		_batchFetch(params, function(result) {
+            if (result.isError) {
+                if (resolve) resolve(false);
+                return;
+            }
+            _canFetchMore = result.canFetchMore;
+            _nextStartPos = result.nextStartPos;
+
+            var results = result.resultset;
+            _resultList = _resultList.concat(results);
+			if (_resultList.length === 1 && type === 'report' && assignId === 0) {
+				var url = nl.fmt2('/course_view?id={}&mode=do', _resultList[0].id);
 				nl.location.url(url);
                 nl.location.replace();
 				return;
 			}
-			nl.log.debug('Got result: ', resultList.length);
-			$scope.cards.cardlist = _getCards(_userInfo, resultList, nlCardsSrv);
+			nl.log.debug('Got result: ', _resultList.length);
+			$scope.cards.cardlist = _getCards(_userInfo, _resultList, nlCardsSrv);
 			_addSearchInfo($scope.cards);
+
+            if (!result.fetchDone) return;
 			resolve(true);
-		}, function(reason) {
-            resolve(false);
 		});
 	}
 	
-    function _getFullResultList(results) {
-        _resultList = _resultList.concat(results);
-        _canFetchMore = (results.length > _max);
-        _start_at += results.length;
-        return _resultList;
-    };
-
-	function _listingFunction(filter, fetchMore) {
-        if (!_canFetchMore || !fetchMore) {
-            _start_at = 0;
-            _canFetchMore = true;
-            _resultList = [];
-        }
-	    var params = {search: filter, start_at: _start_at, max: _max};
-        if (_metadataEnabled) params.metadata = _searchMetadata;
-	    if (_custtypeInUrl !== null) params.custtype = _custtypeInUrl;
+	function _batchFetch(params, callback) {
+        var listingFn = null;
 		if (type === 'course') {
 		    params.mine = my;
-			return nlServerApi.courseGetList(params);
-		}
-		if (type === 'assign') {
+			listingFn = nlServerApi.courseGetList;
+		} else if (type === 'assign') {
             params.mine = false;
-			return nlServerApi.courseGetAssignmentList(params);
-		}
-		if (type === 'report' && assignId !== 0) {
+			listingFn = nlServerApi.courseGetAssignmentList;
+		} else if (type === 'report' && assignId !== 0) {
             params.assignid = assignId;
-			return nlServerApi.courseGetAssignmentReportList(params);
+			listingFn = nlServerApi.courseGetAssignmentReportList;
+		} else {
+            listingFn = nlServerApi.courseGetMyReportList;
 		}
-		return nlServerApi.courseGetMyReportList(params);
+		nlServerApi.batchFetch(listingFn, params, callback);
 	}
 	
 	function _getStaticCards() {

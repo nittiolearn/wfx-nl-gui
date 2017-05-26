@@ -233,10 +233,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 	}
 	
 	function _addSearchInfo(cards) {
-		cards.search = {
-			placeholder : nl.t('Name/Subject/Remarks/Keyword'),
-			maxLimit: 20
-		};
+		cards.search = {placeholder : nl.t('Name/Subject/Remarks/Keyword')};
 		cards.search.onSearch = _onSearch;
 	};
 

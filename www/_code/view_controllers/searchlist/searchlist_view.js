@@ -76,7 +76,6 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	function _addSearchInfo(cards) {
 		cards.search = {placeholder: nl.t('Enter name/description')};
 		cards.search.onSearch = _onSearch;
-		cards.search.maxLimit = 100;
 		cards.search.img = nl.url.resUrl('info.png');
 	}
 	

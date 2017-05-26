@@ -505,8 +505,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	
 	function _addSearchInfo(cards) {
 		cards.search = {
-			placeholder : nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel),
-			maxLimit: 100
+			placeholder : nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)
 		};
 		cards.search.onSearch = _onSearch;
 	}

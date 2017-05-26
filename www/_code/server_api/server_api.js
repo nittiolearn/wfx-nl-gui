@@ -599,9 +599,37 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/recycle_restore.json', {recycleid: recycleid});
     };
 
+    // Utility for batch query
+    this.batchFetch = function(fetchFn, fetchParams, callback, fetchLimit) {
+        if (!fetchParams.max) {
+            var params = nl.location.search();
+            fetchParams.max = ('max' in params) ? parseInt(params.max) : 50;
+        }
+        if (fetchLimit === undefined) fetchLimit = fetchParams.max;
+        _batchFetchImpl(fetchFn, fetchParams, callback, 0, fetchLimit);
+    };
+    
     //---------------------------------------------------------------------------------------------
     // Private methods
     //---------------------------------------------------------------------------------------------
+    function _batchFetchImpl(fetchFn, fetchParams, callback, fetchedCount, fetchLimit) {
+        fetchFn(fetchParams).then(function(resp) {
+            fetchParams.startpos = resp.nextstartpos;
+            fetchedCount += resp.resultset.length;
+            var more = resp.more;
+            if (fetchLimit && fetchedCount >= fetchLimit) more = false;
+            if (more) _batchFetchImpl(fetchFn, fetchParams, callback, fetchedCount, fetchLimit);
+            callback({isError: false, resultset: resp.resultset, fetchDone: !more, canFetchMore: resp.more, 
+                nextStartPos: fetchParams.startpos});
+            var msg = nl.t('Got {} items from the server.{}', fetchedCount, more ? 
+                ' Fetching more items ...' : resp.more ? '  You could fetch more if needed.' : '');
+            nlDlg.popupStatus(msg, more ? false : undefined);
+        }, function(error) {
+            nlDlg.popupStatus(error);
+            callback({isError: true, errorMsg: error});
+        });
+    }
+
     function _getUserInfoFromCacheOrServer() {
         return nl.q(function(resolve, reject) {
             // First attempt in cache!

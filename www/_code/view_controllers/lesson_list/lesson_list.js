@@ -760,8 +760,7 @@
 
 		function _addSearchInfo(cards) {
 			cards.search = {
-				placeholder : nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel),
-				maxLimit: mode.max
+				placeholder : nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)
 			};
             cards.search.onSearch = _onSearch;
             if (mode.metadataEnabled) {
