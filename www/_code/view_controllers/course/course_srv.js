@@ -10,76 +10,13 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var CourseSrv = ['nl', 'nlServerApi',
-function(nl, nlServerApi) {
-	// TODO - cache output and use from cache when possible
-    this.courseGetList = function(data) {
-    	return nlServerApi.courseGetList(data);
-    };
-
-    this.courseGet = function(courseId, published) {
-    	return nlServerApi.courseGet(courseId, published);
-    };
-    
-    this.courseCreate = function(data) {
-    	return nlServerApi.courseCreate(data);
-    };
-    
-    this.courseModify = function(data) {
-    	return nlServerApi.courseModify(data);
-    };
-    
-    this.courseDelete = function(courseId) {
-    	return nlServerApi.courseDelete(courseId);
-    };
-    
-    this.courseUnpublish = function(courseId) {
-    	return nlServerApi.courseUnpublish(courseId);
-    };
-
-    this.courseAssignmentDelete = function(assignId) {
-    	return nlServerApi.courseAssignmentDelete(assignId);
-    };
-    
-	this.courseGetAssignmentList = function(data) {
-    	return nlServerApi.courseGetAssignmentList(data);
-	};
-	
-    this.courseGetAssignmentReportList = function(data) {
-        return nlServerApi.courseGetAssignmentReportList(data);
-    };
-    
-    this.courseGetAssignmentReportSummary = function(data) {
-        return nlServerApi.courseGetAssignmentReportSummary(data);
-    };
-    
-	this.courseGetMyReportList = function(data) {
-    	return nlServerApi.courseGetMyReportList(data);
-	};
-	
-	this.courseGetReport = function(repid, mine) {
-    	return nlServerApi.courseGetReport(repid, mine);
-	};
-	
-	this.courseReportUpdateStatus = function(repid, statusinfo) {
-    	return nlServerApi.courseReportUpdateStatus(repid, statusinfo);
-	};
-
-    this.courseCreateLessonReport = function(repid, refid, moduleid, attempt) {
-        return nlServerApi.courseCreateLessonReport(repid, refid, moduleid, attempt);
-    };
-    
+var CourseSrv = ['nl',
+function(nl) {
     this.getActionUrl = function(actionId, urlParams) {
         if (!(actionId in _dashboardActions)) return null;
         var action = _dashboardActions[actionId];
         return nl.fmt2(action.url, urlParams);
     };
-    
-    this.getApprovedList = function(){
-    	var data = {};
-    	return nlServerApi.lessonGetApprovedList(data);
-    };
-
 }];
 
 // Dashboard actions as defined in server side

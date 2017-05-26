@@ -31,7 +31,7 @@ function($stateProvider, $urlRouterProvider) {
 var MODES = {PRIVATE: 0, PUBLISHED: 1, REPORT_VIEW: 2, DO: 3, EDIT: 4, REPORTS_SUMMARY_VIEW: 5};
 var MODE_NAMES = {'private': 0, 'published': 1, 'report_view': 2, 'do': 3, 'edit': 4, 'reports_summary_view': 5};
 
-function ModeHandler(nl, nlCourse, nlDlg, nlGroupInfo, $scope) {
+function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
     var self=this;
     this.mode = MODES.PRIVATE;
     this.courseId = null;
@@ -65,19 +65,19 @@ function ModeHandler(nl, nlCourse, nlDlg, nlGroupInfo, $scope) {
     
     this.getCourse = function() {
         if (this.mode === MODES.PRIVATE || this.mode === MODES.EDIT || this.mode === MODES.PUBLISHED) {
-            return nlCourse.courseGet(this.courseId, this.mode === MODES.PUBLISHED);
+            return nlServerApi.courseGet(this.courseId, this.mode === MODES.PUBLISHED);
         }
         if (this.mode === MODES.REPORTS_SUMMARY_VIEW) {
             return nlGroupInfo.init().then(function() {
-                return nlCourse.courseGetAssignmentReportSummary({assignid: self.courseId});
+                return nlServerApi.courseGetAssignmentReportSummary({assignid: self.courseId});
             });
         }
         if (this.mode === MODES.REPORT_VIEW) {
             return nlGroupInfo.init().then(function() {
-                return nlCourse.courseGetReport(self.courseId, false);
+                return nlServerApi.courseGetReport(self.courseId, false);
             });
         }
-        return nlCourse.courseGetReport(this.courseId, true);
+        return nlServerApi.courseGetReport(this.courseId, true);
     };
     
     this.handleLink = function(cm, newTab, scope) {
@@ -107,7 +107,7 @@ function ModeHandler(nl, nlCourse, nlDlg, nlGroupInfo, $scope) {
         
         cm.attempt++;
         nlDlg.showLoadingScreen();
-        nlCourse.courseCreateLessonReport(self.course.id, refid, cm.id, cm.attempt).then(function(updatedCourseReport) {
+        nlServerApi.courseCreateLessonReport(self.course.id, refid, cm.id, cm.attempt).then(function(updatedCourseReport) {
             nlDlg.hideLoadingScreen();
             self.course = updatedCourseReport;
             scope.updateAllItemData();
@@ -211,7 +211,7 @@ var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIfra
 'nlCourseEditor', 'nlServerApi', 'nlGroupInfo', 'nlSendAssignmentSrv',
 function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     nlCourseEditor, nlServerApi, nlGroupInfo, nlSendAssignmentSrv) {
-    var modeHandler = new ModeHandler(nl, nlCourse, nlDlg, nlGroupInfo, $scope);
+    var modeHandler = new ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope);
     var nlContainer = new NlContainer(nl, $scope, modeHandler);
     nlContainer.setContainerInWindow();
     var treeList = new TreeList(nl);
@@ -599,7 +599,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         var today = new Date();
         folderStats.clear();
         var reopener = new Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, 
-            nlCourse, _updatedStatusinfoAtServer);
+            nlServerApi, _updatedStatusinfoAtServer);
         reopener.reopenIfNeeded().then(function() {
             _updateItemData(treeList.getRootItem(), today);
         });
@@ -715,7 +715,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         _saveAttemptNumber++;
         var currentSaveNumber = _saveAttemptNumber;
         var repid = parseInt($scope.params.id);
-        nlCourse.courseReportUpdateStatus(repid, JSON.stringify(modeHandler.course.statusinfo))
+        nlServerApi.courseReportUpdateStatus(repid, JSON.stringify(modeHandler.course.statusinfo))
         .then(function(courseReport) {
             if (currentSaveNumber > _saveDoneNumber)
                 _saveDoneNumber = currentSaveNumber;
@@ -1154,7 +1154,7 @@ function CourseReportSummarizer(nlGroupInfo, $scope) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlCourse, _updatedStatusinfoAtServer) {
+function Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlServerApi, _updatedStatusinfoAtServer) {
 
     this.reopenIfNeeded = function() {
         return nl.q(function(resolve, reject) {
@@ -1262,7 +1262,7 @@ function Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlCourse, _update
 
         var cm = reopenLessons[pos];
         cm.attempt++;
-        nlCourse.courseCreateLessonReport(modeHandler.course.id, cm.refid, cm.id, cm.attempt)
+        nlServerApi.courseCreateLessonReport(modeHandler.course.id, cm.refid, cm.id, cm.attempt)
         .then(function(updatedCourseReport) {
             modeHandler.course = updatedCourseReport;
             _createLessonReport(reopenLessons, pos+1, resolve);

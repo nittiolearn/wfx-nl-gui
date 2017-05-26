@@ -1,0 +1,22 @@
+<div class='nl-thin-scroll padding-small'>
+    <div class='row row-center margin0 padding0'
+         style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
+        <div class='col text-center fsh3 padding0'>
+        </div>
+        <span ng-repeat='tb in toolbar'
+              title='{{tb.title}}'
+              class='nl-toolbar-icon'
+              ng-click='tb.onClick()'>
+            <i class="icon {{tb.icon}}"></i>
+        </span>
+    </div>
+    
+    <div class='padding-small'></div>
+
+    <h1>Assignment Records: {{assignRecordsLen}}</h1>
+    <pre>{{assignRecords}}</pre>
+    <h1>Course Records</h1>
+    <pre>{{courseRecords}}</pre>
+    <h1>Report Records</h1>
+    <pre>{{reportRecords}}</pre>
+</div>

@@ -288,15 +288,6 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
 
     var imageShrinker = new ImageShrinker(nl, nlDlg);
 
-    var _restypeToExtension = {
-        Image: ['.jpg', '.png', '.gif', '.svg', '.bmp'], 
-        PDF: ['.pdf'] , 
-        Audio: ['.mp3', '.m4a'] , 
-        Video: ['.mp4'],
-        Attachment: [],
-        Zip: ['.zip'],
-        Csv: ['.csv']
-    }; 
     var _restypeToAcceptString = {
         Image: 'image/*', 
         PDF: '.pdf', 
@@ -316,20 +307,37 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         Csv: 10*1024*1024
     }; 
 
-    var _extToRestype = {};
+    // Frist in the list is the default restype for the extension
+    var _extToRestypes = {
+        '.jpg': ['Image'], '.png': ['Image'], '.gif': ['Image'], '.svg': ['Image'], '.bmp': ['Image'],
+        '.pdf': ['PDF'],
+        '.mp3': ['Audio'], '.m4a': ['Audio'],
+        '.mp4': ['Video', 'Audio'], 
+        '.zip': ['Zip'],
+        '.csv': ['Csv']};
 
-    function _initExtToRestype() {
-        for(var restype in _restypeToExtension) {
-            var exts = _restypeToExtension[restype];
-            for (var i=0; i<exts.length; i++) {
-                _extToRestype[exts[i]] = restype;
+    var _restypeToExtensions = {
+        Image: [], 
+        PDF: [] , 
+        Audio: [] , 
+        Video: [],
+        Attachment: [],
+        Zip: [],
+        Csv: []
+    }; 
+
+    function _initRestypeToExtensions() {
+        for(var ext in _extToRestypes) {
+            var restypes = _extToRestypes[ext];
+            for (var i=0; i<restypes.length; i++) {
+                _restypeToExtensions[restypes[i]].push(ext);
             }
         }
     }
-    _initExtToRestype();
+    _initRestypeToExtensions();
 
     this.getRestypeToExts = function(restype) {
-        return _restypeToExtension[restype];
+        return _restypeToExtensions[restype];
     };
 
     this.getRestypeToAcceptString = function(restype) {
@@ -337,7 +345,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
     };
 
     this.getRestypeFromExt = function(ext) {
-        if (ext in _extToRestype) return _extToRestype[ext];
+        if (ext in _extToRestypes) return _extToRestypes[ext][0];
         return 'Attachment';
     };
 
@@ -363,7 +371,6 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
             return;
         }
         nlDlg.popupStatus(nl.t('Compressing {}', fileInfo.resource.name), false);
-        // TODO: compression level from user choice in future
         var bImg = self.getRestypeFromExt(fileInfo.extn) == 'Image'; // actual restype could also be Attachment
         imageShrinker.getShrinkedFile(fileInfo.resource, fileInfo.extn, bImg, compressionlevel,
         function(_file, compInfo) {
@@ -403,16 +410,17 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         var fileNameLower = _file.name.toLowerCase();
         var index = fileNameLower.lastIndexOf('.');
         var extn = (index == -1) ? '' : fileNameLower.substring(index);
-        if (restype && restype === 'Attachment') return extn;
-        
-        if (restype && restype != this.getRestypeFromExt(extn)) return null;
-        return extn;
+        if (!restype || restype === 'Attachment') return extn;
+        var allowedExtns = this.getRestypeToExts(restype);
+        for (var i=0; i<allowedExtns.length; i++)
+            if (extn == allowedExtns[i]) return extn;
+        return null;
     }
     
     function _validateBeforeShrinking(fileInfo, status, compressionLevel) {
         var _file = fileInfo.resource;
         var restype = fileInfo.restype;
-        if (!(restype in _restypeToExtension)) {
+        if (!(restype in _restypeToExtensions)) {
             status.error = nl.t('Please choose the resource Type, followed by file');
             return false;
         }

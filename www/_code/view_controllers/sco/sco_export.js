@@ -25,8 +25,8 @@ function($stateProvider, $urlRouterProvider) {
 
 //-------------------------------------------------------------------------------------------------
 var ScoExportCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 
-                     '$templateCache', 'nlProgressLog', 'nlExporter', 'nlCourse', 'nlDlg',
-function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog, nlExporter, nlCourse, nlDlg) {
+                     '$templateCache', 'nlProgressLog', 'nlExporter', 'nlDlg',
+function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog, nlExporter, nlDlg) {
     var pl = nlProgressLog.create($scope);
     pl.showLogDetails(true);
     var scoExporter = new ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter);
@@ -44,7 +44,7 @@ function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog, nlExp
                 resolve(true);
                 return;
             }
-            nlCourse.courseGet(data.courseid, true).then(function(course) {
+            nlServerApi.courseGet(data.courseid, true).then(function(course) {
                 data.title = course.name;
                 if(!_getCourseModules(course, data.courseModules)) {
                     nlDlg.popupAlert({title: 'Error', template: 'Error opening the course'})

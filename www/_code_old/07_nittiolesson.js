@@ -168,7 +168,7 @@ nlesson = function() {
 	        oLesson.passScore = td.passScore;
 	        return;
 	    }
-	    if (oLesson.passScore) return;
+	    if ('passScore' in oLesson) return;
         oLesson.passScore = td.passScore;
         oLesson.passScoreFromTempl = true;
 	}
@@ -629,6 +629,15 @@ nlesson = function() {
 		this.oLesson.description = jQuery('#l_description').val();
 		this.oLesson.keywords = jQuery('#l_keywords').val();
         this.oLesson.esttime = jQuery('#l_esttime').val();
+        this.oLesson.passScore = jQuery('#l_passscore').val();
+        if (this.oLesson.passScore === '') delete this.oLesson.passScore;
+        else {
+            this.oLesson.passScore = parseInt(this.oLesson.passScore);
+            if (isNaN(this.oLesson.passScore) || this.oLesson.passScore < 0 || 
+                this.oLesson.passScore > 100) delete this.oLesson.passScore;
+            var td = this.parentTemplateContents.templateDefaults;
+            if (td.passScore == this.oLesson.passScore) delete this.oLesson.passScore;
+        }
         if ('allowed_max_score' in this.oLesson) {
             this.oLesson.allowed_max_score = parseInt(jQuery('#l_allowed_max_score').val());
         }
