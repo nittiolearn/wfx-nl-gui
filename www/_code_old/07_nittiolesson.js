@@ -224,6 +224,17 @@ nlesson = function() {
             po.init(self.oLesson.pages[i], self.bgimg);
             self.pages.push(po);
         }
+
+		if (self.renderCtx.launchCtx() == 'do_assign') {
+			var submit = '<span onclick="javascript:submitReportAssign()" class="nl-link-text padding"  style="display:inline-block"><i class="ion-ios-checkmark icon"></i> submit</span>';
+			submit = njs_helper.fmt2('<div style="font-size:150%; line-height:1.5em">This is the end of module. Please click on the {} button.</div>',
+				submit);
+			var oPage = {type: 'text', sections: [{text: submit}]};
+			var po = new Page(self);
+			po.init(oPage, self.bgimg);
+	        self.pages.push(po);
+	     }
+	        	
         self.pendingTimer = new njs_lesson_helper.PendingTimer();
         self.pendingTimer.updateIfNeeded(self);
         _Lesson_setupAutoSave(self);
