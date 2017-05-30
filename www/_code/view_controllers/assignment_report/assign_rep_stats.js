@@ -69,8 +69,8 @@ function(nl) {
 
 //-------------------------------------------------------------------------------------------------
 var NlAssignReportStats = ['nl', 'nlDlg', 'nlExporter', 'nlProgressLog', 
-'nlServerApi', 'nlGroupInfo', '$templateCache', 'nlTreeSelect', 'nlOuUserSelect',
-function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo, $templateCache, 
+'nlGroupInfo', '$templateCache', 'nlTreeSelect', 'nlOuUserSelect',
+function(nl, nlDlg, nlExporter, nlProgressLog, nlGroupInfo, $templateCache, 
     nlTreeSelect, nlOuUserSelect) {
     var self = this;
     var ctx = null;
@@ -78,7 +78,7 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo, $templa
     var scopeData = {inProgress: false, exportPageScore: false, exportFeedback: false};
     
     this.createReportStats = function(reptype, parentScope) {
-        return new ReportStats(reptype, nl, nlDlg, nlServerApi, nlGroupInfo, 
+        return new ReportStats(reptype, nl, nlDlg, nlGroupInfo, 
             nlTreeSelect, nlOuUserSelect, parentScope);
     };
 
@@ -392,7 +392,7 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlServerApi, nlGroupInfo, $templa
 }];
 
 //-------------------------------------------------------------------------------------------------
-function ReportStats(reptype, nl, nlDlg, nlServerApi, nlGroupInfo, 
+function ReportStats(reptype, nl, nlDlg, nlGroupInfo, 
     nlTreeSelect, nlOuUserSelect, parentScope) {
     var self = this;
     var _lst = [];

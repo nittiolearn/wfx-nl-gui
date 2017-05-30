@@ -47,50 +47,49 @@ function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
     var self = this;
 	this.initFromUrl = function() {
 		var params = nl.location.search();
-        self.assignid = ('assignid' in params) ? parseInt(params.assignid) : null;
-        self.userid = ('userid' in params) ? params.userid : null;
-        self.max = ('max' in params) ? parseInt(params.max) : 50;
-        self.max--;
-        self.completed = ('completed' in params) ? parseInt(params.completed) != 0 : true;
-        self.limit = ('limit' in params) ? params.limit : (reptype == 'user') ? 100: null;
+        self.limit = ('limit' in params) ? params.limit : (reptype == 'user') ? 50: null;
+
+		if (reptype == 'assignment') {
+            self.assignid = ('assignid' in params) ? parseInt(params.assignid) : null;
+            if (!self.assignid) return false;
+		} else if (reptype == 'user') {
+            self.userid = ('userid' in params) ? params.userid : null;
+		}
         self.initVars();
+        return true;
 	};
 
 	this.initVars = function() {
-		var params = nl.location.search();
-        self.start_at = ('start_at' in params) ? parseInt(params.start_at) : 0;
-        self.dataFetched = false;
-        self.fetchedCount = 0;
+        self.nextStartPos = null;
+        self.dataFetchInProgress = true;
+        self.canFetchMore = true;
 	};
 
 	this.getAssignmentReports = function(dateRange, callbackFn) {
-	    _getAssignmentReports('', dateRange, callbackFn);
-    };
-
-    function _getAssignmentReports(filter, dateRange, callbackFn) {
-		var data = {reptype: reptype, assignid : self.assignid, userid : self.userid, 
-		    max: self.max, start_at: self.start_at, completed: self.completed};
-		if (dateRange) data.updatedFrom = dateRange.updatedFrom;
-		if (dateRange) data.updatedTill = dateRange.updatedTill;
-		if (filter) data.search = filter;
-		nlServerApi.assignmentReport(data).then(function(result) {
-            var more = (result.length > self.max);
-            self.fetchedCount += result.length;
-            if (self.limit && self.fetchedCount >= self.limit) more = false;
-            self.start_at += result.length;
-            var msg = nl.t('Got {} items from the server.{}', self.start_at, more ? 
-                ' Fetching more items ...' : '');
-            nlDlg.popupStatus(msg, more ? false : undefined);
-            if (more) {
-                _getAssignmentReports(filter, dateRange, callbackFn);
+		var data = {reptype: reptype};
+        if (self.nextStartPos) data.startpos = self.nextStartPos;
+		if (reptype == 'assignment') {
+		    data.assignid = self.assignid;
+		} else if (reptype == 'user') {
+            data.userid = self.userid;
+            data.completed = true;
+		} else if (reptype == 'group' && dateRange) {
+		    data.updatedfrom = dateRange.updatedFrom;
+		    data.updatedtill = dateRange.updatedTill;
+		}
+		self.dataFetchInProgress = true;
+		nlServerApi.batchFetch(nlServerApi.assignmentReport, data, function(result) {
+            if (result.isError) {
+                self.dataFetchInProgress = false;
+                callbackFn(true, null);
+                return;
             }
-            callbackFn(false, result, more);
-            if (!more) self.dataFetched = true;
-		}, function(error) {
-            nlDlg.popupStatus(error);
-            callbackFn(true, error, false);
-		});
-	}
+            self.dataFetchInProgress = !result.fetchDone;
+            self.nextStartPos = result.nextStartPos;
+            self.canFetchMore = result.canFetchMore;
+            callbackFn(false, result.resultset);
+		}, self.limit);
+	};
 
 	this.pageTitle = function(rep) {
         if (reptype == 'group') return nl.t('Assignment Summary Report');
@@ -125,7 +124,11 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 		_userInfo = userInfo;
 		nlRangeSelectionDlg.init();
 		return nl.q(function(resolve, reject) {
-    		mode.initFromUrl();
+    		if (!mode.initFromUrl()) {
+                nlDlg.popupStatus('Incorect parameters');
+    		    resolve(false);
+    		    return;
+    		}
     		$scope.cards = {};
             _addSearchInfo($scope.cards);
     		$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
@@ -137,7 +140,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	            if(reptype == 'group') {
 	            	_showRangeSelection(resolve);
 	            } else {
-	                _getDataFromServer(null, resolve);
+	                _getDataFromServer(false, null, resolve);
 	            }
             }, function() {
                 resolve(false);
@@ -155,7 +158,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	}
 
 	function _onDatetimeIconClick() {
-        if(!mode.dataFetched) {
+        if(mode.dataFetchInProgress) {
             nlDlg.popupAlert({title: 'Data still loading', 
                 content: 'Still loading data from server. Please change date/time after the complete data is loaded.'});
             return;
@@ -170,7 +173,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
                 return;
 	        }
             nlDlg.showLoadingScreen();
-            _getDataFromServer(data, resolve);
+            _getDataFromServer(false, data, resolve);
 	    });
 	}
 
@@ -192,6 +195,8 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
             _assignmentExport($scope);
         } else if(linkid == 'status_overview'){
             _statusOverview();
+        } else if (linkid === 'fetch_more') {
+            _fetchMore();
 		}
 	};
 
@@ -199,14 +204,21 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	    $scope.onCardLinkClicked(card, internalUrl);
 	};	
 
-	function _getDataFromServer(dateRange, resolve) {
-		mode.initVars();
-		$scope.cards.cardlist = [];
-		$scope.cards.staticlist = [];
-        reportStats = NlAssignReportStats.createReportStats(reptype, $scope);
-		mode.getAssignmentReports(dateRange, function(isError, result, more) {
+    function _fetchMore(dateRange, resolve) {
+        nlDlg.showLoadingScreen();
+        _getDataFromServer(true, dateRange, resolve)
+    }
+    
+	function _getDataFromServer(fetchMore, dateRange, resolve) {
+	    if (!fetchMore) {
+            mode.initVars();
+            $scope.cards.cardlist = [];
+            $scope.cards.staticlist = [];
+            reportStats = NlAssignReportStats.createReportStats(reptype, $scope);
+	    }
+		mode.getAssignmentReports(dateRange, function(isError, result) {
 		    if (isError) {
-		        resolve(false);
+		        if (resolve) resolve(false);
 		        return;
 		    }
             reportStats.updateReports(result);
@@ -216,6 +228,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
             }
             _updateChartCard(reportStats);
             _updateStatusOverview();
+            _addSearchInfo($scope.cards);
             nlDlg.hideLoadingScreen();
             if (resolve) resolve(true);
 		});
@@ -413,7 +426,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
     }
     
     function _assignmentExport($scope) {
-        if(!mode.dataFetched) {
+        if(mode.dataFetchInProgress) {
             nlDlg.popupAlert({title: 'Data still loading', 
                 content: 'Still loading data from server. Please export after the complete data is loaded.'});
             return;
@@ -537,6 +550,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 			placeholder : nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)
 		};
 		cards.search.onSearch = _onSearch;
+        cards.canFetchMore = !mode.dataFetchInProgress && mode.canFetchMore;
 	}
 
 	function _onSearch(filter) {

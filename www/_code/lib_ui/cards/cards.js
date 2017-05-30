@@ -115,7 +115,7 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
                 });
             };
 
-            var defMaxLimit = 200;
+            var defMaxLimit = 100;
             var cacheAbove = 200;
             
             $scope.getCards = function(rebuildCache) {

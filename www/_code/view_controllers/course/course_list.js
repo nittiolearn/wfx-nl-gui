@@ -73,7 +73,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	var _custtypeInUrl = null;
     var _metadataEnabled = false;
     var _searchMetadata = null;
-    var _nextStartPos = 0;
+    var _nextStartPos = null;
     var _canFetchMore = true;
     var _resultList = [];
 

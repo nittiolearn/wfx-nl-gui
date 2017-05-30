@@ -378,7 +378,7 @@ function(nl, nlDlg, nlConfig, Upload) {
 	};
 
 	this.assignmentReport = function(data){
-		//data = reptype, assignid|userid, [search=xxx, max=nn, start_at=xx], completed=[true|false]
+		//data = reptype, assignid|userid, completed=[true|false], [mquery parameters]
 		//assignment_reports
 		return server.post('_serverapi/assignment_get_reports.json', data);
 	};
@@ -625,7 +625,7 @@ function(nl, nlDlg, nlConfig, Upload) {
                 ' Fetching more items ...' : resp.more ? '  You could fetch more if needed.' : '');
             nlDlg.popupStatus(msg, more ? false : undefined);
         }, function(error) {
-            nlDlg.popupStatus(error);
+            nlDlg.popdownStatus(0);
             callback({isError: true, errorMsg: error});
         });
     }
