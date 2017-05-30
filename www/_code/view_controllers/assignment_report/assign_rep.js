@@ -458,11 +458,6 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	};
 
 	function _showDlg(assignmentShareDlg, sharedUserList, alreadySharedUsers){
-
-		assignmentShareDlg.scope.removeSharedUser = function(id){
-			_removeSelectedUser(assignmentShareDlg, id);
-		};
-				
 		var updateButton =  {text : nl.t('Update'), onTap: function(e){
 			if(e) e.preventDefault();
 			var data = {repid: assignmentShareDlg.scope.data.card.id,
@@ -478,21 +473,9 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 			
 		assignmentShareDlg.scope.onSharedUserSelect = function(){
 			_showOuListDlg($scope, assignmentShareDlg, sharedUserList);
-		};	
+		};
+		
 		assignmentShareDlg.show('view_controllers/assignment_report/assignment_share_dlg.html', [updateButton], cancelButton, false);
-	}
-
-	function _removeSelectedUser(assignmentShareDlg, id){
-		var alreadySharedUsers = assignmentShareDlg.scope.data.sharedUsers;
-		for(var i in alreadySharedUsers){
-			var card = alreadySharedUsers[i];
-			if(card.id == id) {
-				assignmentShareDlg.scope.data.sharedUsers.splice(i, 1);
-				var index = assignmentShareDlg.scope.data.selectedSharedUserListIds.indexOf(id);
-				assignmentShareDlg.scope.data.selectedSharedUserListIds.splice(index, 1);
-			}
-		}
-		_updateVisibalityToUsers(alreadySharedUsers, assignmentShareDlg);
 	}
 
 	function _initAssignmentShareDlg(assignmentShareDlg, sharedUsersList){
