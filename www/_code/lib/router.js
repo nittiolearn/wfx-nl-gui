@@ -249,6 +249,7 @@ function Permission(nl) {
         '/assignment_summary_report': {login: true, permission: 'assignment_manage', termRestriction: TR_CLOSED},
         '/assignment_user_report': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
         '/admin_user': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
+        '/admin_group': {login: true, permission: 'admin_group', termRestriction: TR_CLOSED},
         '/training_list': {login: true, permission: 'training_manage', termRestriction: TR_CLOSED},
         '/recyclebin': {login: true, permission: 'lesson_approve', termRestriction: TR_CLOSED},
 

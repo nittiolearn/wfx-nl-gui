@@ -99,6 +99,11 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/course_get.json', {courseid: courseId, published: published});
     };
     
+    this.courseGetMany = function(courseIds, published) {
+        // return: course objects
+        return server.post('_serverapi/course_get_many.json', {courseids: courseIds, published: published});
+    };
+    
     this.courseCreate = function(data) {
         // data: name, description, icon, content
         // return: course object
@@ -133,7 +138,7 @@ function(nl, nlDlg, nlConfig, Upload) {
     };
     
 	this.courseGetAssignmentReportList = function(data) {
-        // data: assignid, search
+        // data: assignid, compact=true|false (false is default)
         // returns list of courseReport objects
         return server.post('_serverapi/course_get_assignment_report_list.json', data);
     };
@@ -415,6 +420,10 @@ function(nl, nlDlg, nlConfig, Upload) {
         //grp = id of the group
         //data = array of user updation records (one row of import CSV file)
         return server.post('_serverapi/group_update_users.json', {grp:grp, data:data});     
+    };
+
+    this.groupGetList = function(data) {
+        return server.post('_serverapi/group_get_list.json', data);     
     };
 
     //---------------------------------------------------------------------------------------------
