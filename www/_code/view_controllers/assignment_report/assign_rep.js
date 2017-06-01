@@ -119,6 +119,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	var mode = new TypeHandler(reptype, nl, nlServerApi, nlDlg);
 	var reportStats = null;
 	var nameAndScore = [];
+	var dateRange = null;
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
@@ -140,7 +141,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	            if(reptype == 'group') {
 	            	_showRangeSelection(resolve);
 	            } else {
-	                _getDataFromServer(false, null, resolve);
+	                _getDataFromServer(false, resolve);
 	            }
             }, function() {
                 resolve(false);
@@ -173,7 +174,8 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
                 return;
 	        }
             nlDlg.showLoadingScreen();
-            _getDataFromServer(false, data, resolve);
+            dateRange = data;
+            _getDataFromServer(false, resolve);
 	    });
 	}
 
@@ -204,12 +206,12 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	    $scope.onCardLinkClicked(card, internalUrl);
 	};	
 
-    function _fetchMore(dateRange, resolve) {
+    function _fetchMore() {
         nlDlg.showLoadingScreen();
-        _getDataFromServer(true, dateRange, resolve)
+        _getDataFromServer(true, null);
     }
     
-	function _getDataFromServer(fetchMore, dateRange, resolve) {
+	function _getDataFromServer(fetchMore, resolve) {
 	    if (!fetchMore) {
             mode.initVars();
             $scope.cards.cardlist = [];
