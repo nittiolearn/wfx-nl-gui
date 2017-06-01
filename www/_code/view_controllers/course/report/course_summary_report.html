@@ -10,13 +10,21 @@
             <i class="icon {{tb.icon}}"></i>
         </span>
     </div>
-    
     <div class='padding-small'></div>
-
-    <h1>Assignment Records: {{assignRecordsLen}}</h1>
-    <pre>{{assignRecords}}</pre>
-    <h1>Course Records</h1>
-    <pre>{{courseRecords}}</pre>
-    <h1>Report Records</h1>
-    <pre>{{reportRecords}}</pre>
+    
+    <div class='fsh3 row row-center margin0 padding0 nl-link-text'
+         ng-click='ui.showDetails = !ui.showDetails'>
+        <i ng-show='!ui.showDetails' class="padding-mid icon ion-arrow-right-b bold"></i>
+        <i ng-show='ui.showDetails' class="padding-mid icon ion-arrow-down-b bold"></i>
+        <div class='col padding-mid'>
+            <span ng-show='data.fetchInProgress'>Fetching the data. Please wait ...</span>
+            <span ng-hide='data.fetchInProgress'>Fetched {{data.reportRecords.length}} course learning records</span>
+        </div>
+    </div>
+    <div ng-show='ui.showDetails' class='fsh6'>
+        <h1>stats</h1>
+        <pre>{{stats}}</pre>
+        <h1>data</h1>
+        <pre>{{dataJson}}</pre>
+    </div>
 </div>

@@ -155,6 +155,10 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/course_get_my_report_list.json', data);
     };
 
+    this.courseGetAllReportList = function(data) {
+        return server.post('_serverapi/course_get_all_report_list.json', data);
+    };
+
     this.courseGetReport = function(repid, mine) {
         // returns the courseReport object
         return server.post('_serverapi/course_get_report.json', {repid: repid, mine: mine});
@@ -609,28 +613,29 @@ function(nl, nlDlg, nlConfig, Upload) {
     };
 
     // Utility for batch query
-    this.batchFetch = function(fetchFn, fetchParams, callback, fetchLimit) {
+    this.batchFetch = function(fetchFn, fetchParams, callback, fetchLimit, itemType) {
+        if (!itemType) itemType = 'item';
         if (!fetchParams.max) {
             var params = nl.location.search();
             fetchParams.max = ('max' in params) ? parseInt(params.max) : 50;
         }
         if (fetchLimit === undefined) fetchLimit = fetchParams.max;
-        _batchFetchImpl(fetchFn, fetchParams, callback, 0, fetchLimit);
+        _batchFetchImpl(fetchFn, fetchParams, callback, 0, fetchLimit, itemType);
     };
     
     //---------------------------------------------------------------------------------------------
     // Private methods
     //---------------------------------------------------------------------------------------------
-    function _batchFetchImpl(fetchFn, fetchParams, callback, fetchedCount, fetchLimit) {
+    function _batchFetchImpl(fetchFn, fetchParams, callback, fetchedCount, fetchLimit, itemType) {
         fetchFn(fetchParams).then(function(resp) {
             fetchParams.startpos = resp.nextstartpos;
             fetchedCount += resp.resultset.length;
             var more = resp.more;
             if (fetchLimit && fetchedCount >= fetchLimit) more = false;
-            if (more) _batchFetchImpl(fetchFn, fetchParams, callback, fetchedCount, fetchLimit);
+            if (more) _batchFetchImpl(fetchFn, fetchParams, callback, fetchedCount, fetchLimit, itemType);
             callback({isError: false, resultset: resp.resultset, fetchDone: !more, canFetchMore: resp.more, 
                 nextStartPos: fetchParams.startpos});
-            var msg = nl.t('Got {} items from the server.{}', fetchedCount, more ? 
+            var msg = nl.t('Got {} {}(s) from the server.{}', fetchedCount, itemType, more ? 
                 ' Fetching more items ...' : resp.more ? '  You could fetch more if needed.' : '');
             nlDlg.popupStatus(msg, more ? false : undefined);
         }, function(error) {
