@@ -24,6 +24,17 @@
     <div ng-show='ui.showDetails' class='fsh6'>
         <h1>stats</h1>
         <pre>{{stats}}</pre>
+        <h1>table</h1>
+        
+        <table class='nl-table nl-table-padded nl-table-styled'>
+            <tr>
+                <th ng-repeat='header in csvHeader'>{{header}}</th>
+            </tr>
+            <tr ng-repeat='row in csvRows'>
+                <td ng-repeat='cell in row'>{{cell}}</td>
+            </tr>
+        </table>
+
         <h1>data</h1>
         <pre>{{dataJson}}</pre>
     </div>

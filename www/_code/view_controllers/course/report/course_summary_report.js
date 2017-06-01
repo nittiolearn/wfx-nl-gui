@@ -24,14 +24,14 @@ function($stateProvider, $urlRouterProvider) {
 
 //-------------------------------------------------------------------------------------------------
 var CourseReportSummaryCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlServerApi', 
-'nlProgressLog', 'nlExporter', 'nlRangeSelectionDlg',
-function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlProgressLog, 
-    nlExporter, nlRangeSelectionDlg) {
-    
+'nlExporter', 'nlRangeSelectionDlg', 'nlGroupInfo',
+function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionDlg,
+    nlGroupInfo) {
     var _data = {urlParams: {}, fetchInProgress: false, canFetchMore: false,
         updatedFrom: null, updatedTill: null,
         courseRecords: {}, reportRecords: [], pendingCourseIds: {}};
     var _fetcher = new Fetcher(nl, nlDlg, nlServerApi, _data);
+    var _reportProcessor = new ReportProcessor(nl, nlGroupInfo, _data);
 
 	function _onPageEnter(userInfo) {
         nlRangeSelectionDlg.init();
@@ -42,7 +42,12 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlProgressLog,
             $scope.ui = {showDetails: true};
             $scope.data = _data;
             $scope.stats = {};
-            _showRangeSelection(resolve);
+            nlGroupInfo.init().then(function() {
+                resolve(true);
+                _showRangeSelection();
+            }, function(err) {
+                resolve(false);
+            });
 		});
 	}
 	nlRouter.initContoller($scope, '', _onPageEnter);
@@ -59,29 +64,33 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlProgressLog,
             title : 'Get reports for required date/time range',
             icon : 'ion-android-time',
             onClick : function() {
-                _showRangeSelection(null);
+                _showRangeSelection();
             }
         }];
     }
 
-    function _showRangeSelection(resolve) {
+    function _showRangeSelection() {
         if (_fetcher.isFetchInProgress()) return;
         nlRangeSelectionDlg.show($scope).then(function(dateRange) {
-            if (!dateRange) {
-                if (resolve) resolve(false);
-                return;
-            }
+            if (!dateRange) return;
             _data.updatedFrom = dateRange.updatedFrom;
             _data.updatedTill = dateRange.updatedTill;
-            _getDataFromServer(resolve);
+            $scope.csvHeader = _reportProcessor.getHeader();
+            $scope.csvRows = [];
+            _getDataFromServer();
         });
     }
 
-    function _getDataFromServer(resolve) {
+    function _getDataFromServer() {
+        nlDlg.showLoadingScreen();
         _fetcher.fetch(function(result) {
+            nlDlg.hideLoadingScreen();
             _updateScope();
-            if (resolve) resolve(!result.isError);
-            resolve = null;
+            if (!result.fetchDone) return;
+            for (var i=0; i<_data.reportRecords.length; i++) {
+                var report = _data.reportRecords[i];
+                $scope.csvRows.push(_reportProcessor.process(report));
+            }
         });
     }
     
@@ -178,6 +187,7 @@ function Fetcher(nl, nlDlg, nlServerApi, _data) {
     }
 
     var MAX_PER_BATCH = 50;
+    var courseProcessor = new CourseProcessor();
     function _fetchCoursesInBatchs(cids, startPos, onDoneCallback) {
         var courseIds = [];
         var maxLen = cids.length < startPos + MAX_PER_BATCH ? cids.length : startPos + MAX_PER_BATCH;
@@ -190,7 +200,7 @@ function Fetcher(nl, nlDlg, nlServerApi, _data) {
         nlServerApi.courseGetMany(courseIds, true).then(function(result) {
             for(var i=0; i<result.length; i++) {
                 var course = result[i];
-                _data.courseRecords[course.id] = course;
+                _data.courseRecords[course.id] = courseProcessor.process(course);
             }
             startPos += result.length;
             nlDlg.popupStatus(nl.fmt2('Fetched {} of {} course objects from server.', startPos, cids.length), false);
@@ -199,6 +209,100 @@ function Fetcher(nl, nlDlg, nlServerApi, _data) {
             onDoneCallback({isError: true, errorMsg: error});
         });
     }
+}
+
+//-------------------------------------------------------------------------------------------------
+function CourseProcessor() {
+
+    var _idToFullName = {};
+    
+    this.process = function(course) {
+        _idToFullName = {};
+        var ret = {id: course.id, name: course.name || '', created: course.created || null, 
+            updated: course.updated || null, certificates: [], lessons: []};
+        var modules = (course.content || {}).modules || [];
+        for (var i=0; i<modules.length; i++) {
+            var m = modules[i];
+            if (!m.id) continue;
+            _updateIdToFullName(m);
+            if (m.type == 'lesson') {
+                ret.lessons.push({id: m.id, name:_idToFullName[m.id]});
+                continue;
+            }
+            if (m.type != 'link') continue;
+            var urlParams = (m.urlParams || '').toLowerCase();
+            if (urlParams.indexOf('course_cert') < 0) continue;
+            ret.certificates.push(m.id);
+        }
+        return ret;
+    };
+    
+    var _DELIM = '.';
+    function _updateIdToFullName(m) {
+        var pid = _getParentId(m);
+        var prefix = pid && _idToFullName[pid] ? _idToFullName[pid] + _DELIM : '';
+        var myName = prefix + (m.name || '');
+        _idToFullName[m.id] = myName;
+    }
+
+    function _getParentId(m) {
+        var parentId = m.parentId || '';
+        if (parentId) return parentId;
+        var parents = m.id.split(_DELIM);
+        parents.pop();
+        return (parents.length == 0) ? '' : parents.join(_DELIM);
+    }
+}
+
+//-------------------------------------------------------------------------------------------------
+function ReportProcessor(nl, nlGroupInfo, _data) {
+    
+    this.getHeader = function() {
+        var headers = ['Organization', 'Username', 'Course', '%Complete', 
+            'Average Attempts', 'Certificates', 'Assigned On', 'Last Updated On'];
+        return headers;
+    };
+
+    this.process = function(report) {
+        var user = nlGroupInfo.getUserObj(''+report.student);
+        var course = _data.courseRecords[report.courseid];
+
+        var lessons = course.lessons;
+        var lessonReps = report.lessonReports || {};
+
+        var nLessons = 0;
+        var nLessonsDone = 0;
+        var nAttempts = 0;
+        var nLessonAttempts = 0;
+        for (var i=0; i<lessons.length; i++) {
+            nLessons++;
+            var lid = lessons[i].id;
+            var rep = lessonReps[lid];
+            if (!rep) continue;
+            if (rep.attempt) {
+                nAttempts += rep.attempt;
+                nLessonAttempts++;
+            }
+            if (!rep.completed) continue;
+            var perc = rep.maxScore ? Math.round(rep.score / rep.maxScore * 100) : 100;
+            if (!rep.passScore || perc >= rep.passScore) nLessonsDone++;
+        }
+        var percComplete = nLessons ? Math.round(nLessonsDone/nLessons*100) : 100;
+        var avgAttempts = nLessonAttempts ? Math.round(nAttempts/nLessonAttempts*10)/10 : '';
+
+        var nCerts = 0;
+        var certs = course.certificates;
+        var statusinfo = report.statusinfo || {};
+        for (var i=0; i<certs.length; i++) {
+            var cid = certs[i];
+            var sinfo = statusinfo[cid];
+            if (sinfo && sinfo.status == 'done') nCerts++;
+        }
+        
+        var ret = [user.org_unit, user.user_id, course.name, percComplete+'%', avgAttempts,
+            nCerts, nl.fmt.json2Date(report.created), nl.fmt.json2Date(report.updated)];
+        return ret;
+    };
 }
 
 //-------------------------------------------------------------------------------------------------
