@@ -12,30 +12,40 @@
     </div>
     <div class='padding-small'></div>
     
-    <div class='fsh3 row row-center margin0 padding0 nl-link-text'
-         ng-click='ui.showDetails = !ui.showDetails'>
-        <i ng-show='!ui.showDetails' class="padding-mid icon ion-arrow-right-b bold"></i>
-        <i ng-show='ui.showDetails' class="padding-mid icon ion-arrow-down-b bold"></i>
-        <div class='col padding-mid'>
-            <span ng-show='data.fetchInProgress'>Fetching the data. Please wait ...</span>
-            <span ng-hide='data.fetchInProgress'>Fetched {{data.reportRecords.length}} course learning records</span>
-        </div>
-    </div>
-    <div ng-show='ui.showDetails' class='fsh6'>
-        <h1>stats</h1>
-        <pre>{{stats}}</pre>
-        <h1>table</h1>
-        
-        <table class='nl-table nl-table-padded nl-table-styled'>
-            <tr>
-                <th ng-repeat='header in csvHeader'>{{header}}</th>
-            </tr>
-            <tr ng-repeat='row in csvRows'>
-                <td ng-repeat='cell in row'>{{cell}}</td>
-            </tr>
-        </table>
+    
+    <div ng-show='fetchInProgress' class='forange fsh5 row row-center margin0 padding-mid'>
+        <i class="icon ion-alert-circled padding-mid"></i>
+        <span class='col padding-mid'>Fetching the data from server. Please wait ...</span>
+    </div>    
+    <div ng-show='!fetchInProgress && !actualRecordCnt' class='forange fsh5 row row-center margin0 padding-mid'>
+        <i class="icon ion-alert-circled padding-mid"></i>
+        <span class='col padding-mid'>Please select the time range to fetch the reports.</span>
+    </div>    
+    
 
-        <h1>data</h1>
-        <pre>{{dataJson}}</pre>
-    </div>
+    <table class='nl-table nl-table-styled nl-table-padded'
+           ng-show='records.length > 0'>
+        <tr>
+            <th ng-repeat='mh in metaHeaders'>{{mh.name}}</th>
+            <th>Organization</th>
+            <th>User</th>
+            <th ng-hide='courseid'>Course</th>
+            <th>Status</th>
+        </tr>
+        <tr ng-repeat='record in records track by $index'>
+            <td ng-repeat='mh in metaHeaders'>{{record.usermd[mh.id]}}</td>
+            <td>{{record.user.org_unit}}</td>
+            <td>{{record.user.user_id}}</td>
+            <td ng-hide='courseid'>{{record.course.name}}</td>
+            <td>
+                <i class='icon fsh4 padding-mid {{record.stats.status.icon}}'></i>
+                {{record.stats.status.txt}}
+            </td>
+        </tr>
+    </table>
+    <div ng-show='actualRecordCnt > records.length'
+         class='forange fsh5 row row-center margin0 padding0'>
+        <i class="icon ion-alert-circled padding-mid"></i>
+        <span class='col padding-mid'>Showing {{records.length}} of {{actualRecordCnt}} records.</span>
+    </div>    
 </div>

@@ -226,8 +226,8 @@ nlesson = function() {
         }
 
 		if (self.renderCtx.launchCtx() == 'do_assign') {
-			var submit = '<span onclick="javascript:submitReportAssign()" class="nl-link-text padding"  style="display:inline-block"><i class="ion-ios-checkmark icon"></i> submit</span>';
-			submit = njs_helper.fmt2('<div style="font-size:150%; line-height:1.5em">This is the end of module. Please click on the {} button.</div>',
+			var submit = '<span onclick="javascript:submitReportAssign()" class="nl-link-img" style="padding: 8px" style="display:inline-block"><i class="ion-ios-checkmark icon"></i> submit</span>';
+			submit = njs_helper.fmt2('<div style="font-size:150%; line-height:1.5em">This is the end of this module. Click on the {} button if you have completed.</div>',
 				submit);
 			var oPage = {type: 'text', sections: [{text: submit}]};
 			var po = new Page(self);

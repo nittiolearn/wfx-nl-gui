@@ -28,23 +28,28 @@ var CourseReportSummaryCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlServerApi
 function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionDlg,
     nlGroupInfo) {
     var _data = {urlParams: {}, fetchInProgress: false, canFetchMore: false,
-        updatedFrom: null, updatedTill: null,
-        courseRecords: {}, reportRecords: [], pendingCourseIds: {}};
-    var _fetcher = new Fetcher(nl, nlDlg, nlServerApi, _data);
+        updatedFrom: null, updatedTill: null, courseRecords: {},
+        reportRecords: [], pendingCourseIds: {}};
+
     var _reportProcessor = new ReportProcessor(nl, nlGroupInfo, _data);
+    var _fetcher = new Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor);
 
 	function _onPageEnter(userInfo) {
         nlRangeSelectionDlg.init();
 		return nl.q(function(resolve, reject) {
-            nl.pginfo.pageTitle = nl.t('Course summary report');
-		    _initParams();
-		    $scope.toolbar = _getToolbar();
-            $scope.ui = {showDetails: true};
-            $scope.data = _data;
-            $scope.stats = {};
             nlGroupInfo.init().then(function() {
-                resolve(true);
-                _showRangeSelection();
+                nl.pginfo.pageTitle = nl.t('Course summary report');
+                _initParams();
+                _initScope();
+                _fetcher.fetchCourse(function(result) {
+                    if (result.isError) {
+                        resolve(false);
+                        return;
+                    }
+                    resolve(true);
+                    _updateScope();
+                    _showRangeSelection();
+                });
             }, function(err) {
                 resolve(false);
             });
@@ -56,16 +61,26 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         var params = nl.location.search();
         _data.urlParams.max = ('max' in params) ? parseInt(params.max) : 50;
         _data.urlParams.limit = ('limit' in params) ? parseInt(params.limit) : null;
-        _data.urlParams.courseId = params.courseid || null;
+        _data.urlParams.courseId = parseInt(params.courseid) || null;
+        if (_data.urlParams.courseId)
+            _data.pendingCourseIds[_data.urlParams.courseId] = true;
+    }
+    
+    function _initScope() {
+        $scope.toolbar = _getToolbar();
+        $scope.courseid = _data.urlParams.courseId;
+        $scope.metaHeaders = _reportProcessor.getMetaHeaders(true);
     }
 
     function _getToolbar() {
         return [{
             title : 'Get reports for required date/time range',
             icon : 'ion-android-time',
-            onClick : function() {
-                _showRangeSelection();
-            }
+            onClick : _showRangeSelection
+        }, {
+            title : 'Export reports',
+            icon : 'ion-ios-cloud-download',
+            onClick : _onExport
         }];
     }
 
@@ -75,8 +90,6 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
             if (!dateRange) return;
             _data.updatedFrom = dateRange.updatedFrom;
             _data.updatedTill = dateRange.updatedTill;
-            $scope.csvHeader = _reportProcessor.getHeader();
-            $scope.csvRows = [];
             _getDataFromServer();
         });
     }
@@ -86,32 +99,80 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         _fetcher.fetch(function(result) {
             nlDlg.hideLoadingScreen();
             _updateScope();
-            if (!result.fetchDone) return;
-            for (var i=0; i<_data.reportRecords.length; i++) {
-                var report = _data.reportRecords[i];
-                $scope.csvRows.push(_reportProcessor.process(report));
-            }
         });
     }
     
+    var MAX_LIST_SIZE= 500;
     function _updateScope() {
-        $scope.dataJson = angular.toJson(_data, 2);
-        $scope.stats.repcount = _data.reportRecords.length;
-        $scope.stats.courses = Object.keys(_data.courseRecords);
-        $scope.stats.coursecount = $scope.stats.courses.length;
+        var cn = _getCourseName();
+        var title = nl.t('Course summary report');
+        if (cn) title += ': ' + cn;
+        nl.pginfo.pageTitle = title;
+        
+        $scope.fetchInProgress = _data.fetchInProgress;
+        
+        var records = _data.reportRecords;
+        $scope.actualRecordCnt = records.length;
+        var max = records.length > MAX_LIST_SIZE ? MAX_LIST_SIZE: records.length;
+        $scope.records = [];
+        for (var i=0; i<max; i++) $scope.records.push(records[i]);
     }
+
+    function _getCourseName() {
+        if (!_data.urlParams.courseId) return '';
+        if (!_data.courseRecords[_data.urlParams.courseId]) return '';
+        return _data.courseRecords[_data.urlParams.courseId].name || '';
+    }
+
+    function _onExport() {
+        if (_fetcher.isFetchInProgress()) return;
+        var promise = nl.q(function(resolve, reject) {
+            nlDlg.showLoadingScreen();
+            _export(resolve, reject);
+        });
+        promise.then(function() {
+            nl.timeout(function() {
+                nlDlg.hideLoadingScreen();
+            }, 2000);
+        });
+    }
+
+    var _CSV_DELIM = '\n';
+    function _export(resolve, reject) {
+        try {
+            var header = _reportProcessor.getCsvHeader();
+            var csv = nlExporter.getCsvString(header);
+    
+            var records = _data.reportRecords;
+            for (var i=0; i<records.length; i++) {
+                var row = _reportProcessor.getCsvRow(records[i]);
+                csv += _CSV_DELIM + nlExporter.getCsvString(row);
+            }
+            nlExporter.exportCsvFile('CourseSummaryReport.csv', csv);
+            resolve(true);
+        } catch(e) {
+            console.error('Error while exporting', e);
+            nlDlg.popupAlert({title: 'Error while exporting', template: e});
+            reject(e);
+        }
+    }
+    
 }];
 
 //-------------------------------------------------------------------------------------------------
-function Fetcher(nl, nlDlg, nlServerApi, _data) {
+function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor) {
     var self = this;
     
     this.isFetchInProgress = function() {
         if (!_data.fetchInProgress) return false;
-        nlDlg.popupAlert('Already feching data from server. Please wait.');
+        nlDlg.popupAlert({title: 'Please wait', template: 'Currently feching data from server. You can initiate the next operation once the fetching is completed.'});
         return true;
     };
 
+    this.fetchCourse = function(onDoneCallback) {
+        return _fetchCourses(onDoneCallback);
+    };
+    
     this.fetch = function(onDoneCallback) {
         if (this.isFetchInProgress()) {
             onDoneCallback({isError: true});
@@ -120,38 +181,25 @@ function Fetcher(nl, nlDlg, nlServerApi, _data) {
         _data.fetchInProgress = true;
 
         _data.reportRecords = [];
-        _data.pendingCourseIds = {};
         _data.reportFetchStartPos = null;
 
-        _executeFunction(0, function(result) {
+        _fetchReports(function(result) {
             if (result.isError) {
                 _data.fetchInProgress = false;
-                canFetchMore
                 onDoneCallback(result);
                 return;
             }
             if (result.fetchDone) _data.fetchInProgress = false;
+
+            var records = result.resultset;
+            for (var i=0; i<records.length; i++) {
+                var report = records[i];
+                _data.reportRecords.push(_reportProcessor.process(report));
+            }
             onDoneCallback(result);
         });
     };
     
-    var functionList = [_fetchReports, _fetchCourses];
-    function _executeFunction(pos, onDoneCallback) {
-        functionList[pos](function(result) {
-            if (result.isError) {
-                onDoneCallback(result);
-                return;
-            }
-            if (!result.fetchDone) {
-                onDoneCallback(result);
-                return;
-            }
-            pos++;
-            if (pos < functionList.length) _executeFunction(pos, onDoneCallback);
-            else onDoneCallback(result);
-        });
-    }
-
     //-----------------------------------------------------------------------------------
     function _fetchReports(onDoneCallback) {
         var params = {compact: true, startpos: _data.reportFetchStartPos,
@@ -159,30 +207,47 @@ function Fetcher(nl, nlDlg, nlServerApi, _data) {
             updatedtill: _data.updatedTill};
         if (_data.urlParams.courseId) params.courseid = _data.urlParams.courseId;
         
-        nlServerApi.batchFetch(nlServerApi.courseGetAllReportList, params, function(result) {
+        nlServerApi.batchFetch(nlServerApi.courseGetAllReportList, params, function(result, promiseHolder) {
             if (result.isError) {
                 onDoneCallback(result);
                 return;
             }
+            if (result.fetchDone) {
+                _data.canFetchMore = result.canFetchMore;
+                _data.reportFetchStartPos = result.canFetchMore ? result.nextStartPos : null;
+            }
+
             var records = result.resultset;
             for(var i=0; i<records.length; i++) {
-                _data.reportRecords.push(records[i]);
                 var courseid = records[i].courseid;
                 if (courseid in _data.courseRecords) continue;
                 _data.pendingCourseIds[courseid] = true;
             }
 
-            onDoneCallback(result);
-            if (!result.fetchDone) return;
-            _data.canFetchMore = result.canFetchMore;
-            _data.reportFetchStartPos = result.canFetchMore ? result.nextStartPos : null;
+            if (Object.keys(_data.pendingCourseIds).length > 0) {
+                promiseHolder.promise = nl.q(function(resolve, reject) {
+                    _fetchCourses(function(result2) {
+                        if (result2.isError) {
+                            resolve(false);
+                            onDoneCallback(result2);
+                            return;
+                        }
+                        resolve(true);
+                        onDoneCallback(result);
+                    })
+                });
+            } else {
+                nl.timeout(function() {
+                    onDoneCallback(result);
+                });
+            }
         }, _data.urlParams.limit, 'course learning record');
     }
+    
     //-----------------------------------------------------------------------------------
     function _fetchCourses(onDoneCallback) {
         var cids = [];
         for (var cid in _data.pendingCourseIds) cids.push(parseInt(cid));
-        _data.pendingCourseIds = {};
         _fetchCoursesInBatchs(cids, 0, onDoneCallback);
     }
 
@@ -193,7 +258,6 @@ function Fetcher(nl, nlDlg, nlServerApi, _data) {
         var maxLen = cids.length < startPos + MAX_PER_BATCH ? cids.length : startPos + MAX_PER_BATCH;
         for(var i=startPos; i<maxLen; i++) courseIds.push(cids[i]);
         if (courseIds.length == 0) {
-            nlDlg.popupStatus('');
             onDoneCallback({isError: false, fetchDone: true});
             return;
         }
@@ -201,9 +265,9 @@ function Fetcher(nl, nlDlg, nlServerApi, _data) {
             for(var i=0; i<result.length; i++) {
                 var course = result[i];
                 _data.courseRecords[course.id] = courseProcessor.process(course);
+                delete _data.pendingCourseIds[course.id];
             }
             startPos += result.length;
-            nlDlg.popupStatus(nl.fmt2('Fetched {} of {} course objects from server.', startPos, cids.length), false);
             _fetchCoursesInBatchs(cids, startPos, onDoneCallback);
         }, function(error) {
             onDoneCallback({isError: true, errorMsg: error});
@@ -257,12 +321,11 @@ function CourseProcessor() {
 //-------------------------------------------------------------------------------------------------
 function ReportProcessor(nl, nlGroupInfo, _data) {
     
-    this.getHeader = function() {
-        var headers = ['Organization', 'Username', 'Course', '%Complete', 
-            'Average Attempts', 'Certificates', 'Assigned On', 'Last Updated On'];
-        return headers;
-    };
-
+    var _statusInfos = [
+        {id: 0, txt: 'pending', icon: 'ion-ios-circle-filled fgrey'},
+        {id: 1, txt: 'started', icon: 'ion-ios-circle-filled fgreen'},
+        {id: 2, txt: 'done', icon: 'ion-checkmark-circled fgreen'}];
+        
     this.process = function(report) {
         var user = nlGroupInfo.getUserObj(''+report.student);
         var course = _data.courseRecords[report.courseid];
@@ -273,7 +336,7 @@ function ReportProcessor(nl, nlGroupInfo, _data) {
         var nLessons = 0;
         var nLessonsDone = 0;
         var nAttempts = 0;
-        var nLessonAttempts = 0;
+        var nLessonsAttempted = 0;
         for (var i=0; i<lessons.length; i++) {
             nLessons++;
             var lid = lessons[i].id;
@@ -281,26 +344,74 @@ function ReportProcessor(nl, nlGroupInfo, _data) {
             if (!rep) continue;
             if (rep.attempt) {
                 nAttempts += rep.attempt;
-                nLessonAttempts++;
+                nLessonsAttempted++;
             }
             if (!rep.completed) continue;
             var perc = rep.maxScore ? Math.round(rep.score / rep.maxScore * 100) : 100;
             if (!rep.passScore || perc >= rep.passScore) nLessonsDone++;
         }
         var percComplete = nLessons ? Math.round(nLessonsDone/nLessons*100) : 100;
-        var avgAttempts = nLessonAttempts ? Math.round(nAttempts/nLessonAttempts*10)/10 : '';
+        var avgAttempts = nLessonsAttempted ? Math.round(nAttempts/nLessonsAttempted*10)/10 : '';
 
         var nCerts = 0;
         var certs = course.certificates;
+        var totalCerts = Object.keys(course.certificates).length;
         var statusinfo = report.statusinfo || {};
         for (var i=0; i<certs.length; i++) {
             var cid = certs[i];
             var sinfo = statusinfo[cid];
             if (sinfo && sinfo.status == 'done') nCerts++;
         }
+
+        var statusId = (percComplete == 100 && nCerts == totalCerts) ? 2
+            : (nAttempts == 0 && nCerts == 0) ? 0 : 1;
+        var status = _statusInfos[statusId];
+        var stats = {status: status,
+            percComplete: percComplete, nLessonsDone: nLessonsDone, nLessons: nLessons,
+            avgAttempts: avgAttempts, nAttempts: nAttempts, nLessonsAttempted: nLessonsAttempted,
+            nCerts: nCerts, totalCerts: totalCerts}
         
-        var ret = [user.org_unit, user.user_id, course.name, percComplete+'%', avgAttempts,
-            nCerts, nl.fmt.json2Date(report.created), nl.fmt.json2Date(report.updated)];
+        var ret = {raw_record: report, course: course, user: user,
+            usermd: _getMetadataDict(user), stats: stats,
+            created: nl.fmt.fmtDateDelta(report.created, null, 'date'), 
+            updated: nl.fmt.fmtDateDelta(report.updated, null, 'date')};
+        return ret;
+    };
+    
+    this.getMetaHeaders = function(bOnlyMajor) {
+        var headers = [];
+        var metadata = nlGroupInfo.getUserMetadata(null);
+        for(var i=0; i<metadata.length; i++) {
+            if (bOnlyMajor && !metadata[i].major) continue;
+            headers.push({id: metadata[i].id, name: metadata[i].name});
+        }
+        return headers;
+    }
+
+    function _getMetadataDict(user) {
+        var metadata = nlGroupInfo.getUserMetadata(user);
+        var ret = {};
+        for(var i=0; i<metadata.length; i++)
+            ret[metadata[i].id] = metadata[i].value|| '';
+        return ret;
+    }
+
+    this.getCsvHeader = function() {
+        var mh = this.getMetaHeaders(false);
+        var headers = [];
+        for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
+        headers = headers.concat(['Organization', 'User', 'Course', 'Status', 
+            'Average Attempts', 'Certificates', 'Assigned On', 'Last Updated On']);
+        return headers;
+    };
+    
+    this.getCsvRow = function(report) {
+        var mh = this.getMetaHeaders(false);
+        var ret = [];
+        for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id]);
+        ret = ret.concat([report.user.org_unit, report.user.user_id, report.course.name, 
+            report.stats.status.txt, report.stats.avgAttempts, report.stats.nCerts, 
+            report.created, report.updated]);
         return ret;
     };
 }

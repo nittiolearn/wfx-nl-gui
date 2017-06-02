@@ -632,15 +632,24 @@ function(nl, nlDlg, nlConfig, Upload) {
             fetchedCount += resp.resultset.length;
             var more = resp.more;
             if (fetchLimit && fetchedCount >= fetchLimit) more = false;
-            if (more) _batchFetchImpl(fetchFn, fetchParams, callback, fetchedCount, fetchLimit, itemType);
+            var promiseHolder = {};
             callback({isError: false, resultset: resp.resultset, fetchDone: !more, canFetchMore: resp.more, 
-                nextStartPos: fetchParams.startpos});
+                nextStartPos: fetchParams.startpos}, promiseHolder);
             var msg = nl.t('Got {} {}(s) from the server.{}', fetchedCount, itemType, more ? 
                 ' Fetching more items ...' : resp.more ? '  You could fetch more if needed.' : '');
             nlDlg.popupStatus(msg, more ? false : undefined);
+            if (!more) return;
+            if (!promiseHolder.promise)
+                _batchFetchImpl(fetchFn, fetchParams, callback, fetchedCount, fetchLimit, itemType);
+            else {
+                promiseHolder.promise.then(function(result) {
+                    if (!result) return;
+                    _batchFetchImpl(fetchFn, fetchParams, callback, fetchedCount, fetchLimit, itemType);
+                });
+            }
         }, function(error) {
             nlDlg.popdownStatus(0);
-            callback({isError: true, errorMsg: error});
+            callback({isError: true, errorMsg: error}, {});
         });
     }
 

@@ -51,6 +51,7 @@ var _dashboardActions = {
     'course.view_my': {'url': '/#/course_list?my=1&{}', 'permission': 'course_create'},
     'course.view_published': {'url': '/#/course_list?{}', 'permission': 'course_review'},
     'course.view_assigned': {'url': '/#/course_assign_list?{}', 'permission': 'course_review'},
+    'course.summary_report': {'url': '/#/course_summary_report?{}', 'permission': 'course_review'},
     'course.do': {'url': '/#/course_report_list?my=1&{}', 'permission': 'course_do', 'termCheck': 'Restricted'},
     'rno.list': {'url': '/#/rno_list?{}', 'permission': 'basic_access', 'termCheck': 'Restricted'},
     'rno.view': {'url': '/#/rno_view?{}', 'permission': '', 'termCheck': 'Open'},

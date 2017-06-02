@@ -114,6 +114,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 			nlSendAssignmentSrv.show($scope, assignInfo);
 		} else if (linkid === 'course_assign_delete'){
 			_deleteAssignment($scope, card.reportId);
+        } else if (linkid === 'course_report') {
+            _showCourseReport(card.courseId);
         } else if (linkid === 'course_report_list'){
             _showCourseReportList($scope, card.reportId);
 		}
@@ -282,7 +284,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 			if (course.is_published)
 				card.links.push({id: 'course_unpublish', text: nl.t('unpublish')});
 		} else if(nlRouter.isPermitted(userInfo, 'course_assign')) {
-			card.links.push({id: 'course_assign', text: nl.t('assign')});
+            card.links.push({id: 'course_assign', text: nl.t('assign')});
+            card.links.push({id: 'course_report', text: nl.t('report')});
 		}
 		_addMetadataLink(card);
 		card.links.push({id: 'details', text: nl.t('details')});
@@ -401,6 +404,11 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 			});	
 		});
 	}
+
+    function _showCourseReport(courseId) {
+        var url = nl.fmt2('/course_summary_report?courseid={}', courseId);
+        nl.location.url(url);
+    }
 
     function _showCourseReportList($scope, assignId) {
         var url = nl.fmt2('/course_report_list?assignid={}', assignId);
