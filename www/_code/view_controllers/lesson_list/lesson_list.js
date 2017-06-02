@@ -794,6 +794,7 @@
                 mode.searchFilter = result.metadata.search || '';
                 mode.searchGrade = result.metadata.grade || null;
                 mode.searchMetadata = result.metadata;
+                if (mode.custtype) mode.searchMetadata.custtype = mode.custtype;
                 onSearchParamChange(mode.searchFilter, mode.searchGrade);
                 _reloadFromServer();
             });

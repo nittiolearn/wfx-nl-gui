@@ -154,6 +154,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
         .then(function(result) {
             onSearchParamChange(result.metadata.search || '', grade);
             _searchMetadata = result.metadata;
+            if (_custtypeInUrl) _searchMetadata.custtype = _custtypeInUrl;
             _onSearchImpl();
         });
     }
