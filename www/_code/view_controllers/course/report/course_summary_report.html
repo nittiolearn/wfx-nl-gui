@@ -22,30 +22,84 @@
         <span class='col padding-mid'>Please select the time range to fetch the reports.</span>
     </div>    
     
+    <div ng-click='ui.showOrgs = !ui.showOrgs' class='fsh5 nl-link-text row row-center margin0 padding0'>
+        <i ng-show='!ui.showOrgs' class="icon ion-arrow-right-b bold padding-mid"></i>
+        <i ng-show='ui.showOrgs' class="icon ion-arrow-down-b bold padding-mid"></i>
+        <span class='col padding-mid'>Organization summary</span>
+    </div>
+    <div ng-show='ui.showOrgs' class='padding-mid'>
+        <div class='text-center padding-vertical' style='height: 300px'>
+            <canvas class="chart chart-doughnut"
+                    chart-data="doughnut.data"
+                    chart-labels="doughnut.label"
+                    chart-colours="doughnut.color">
+            </canvas>
+        </div>
 
-    <table class='nl-table nl-table-styled nl-table-padded'
-           ng-show='records.length > 0'>
-        <tr>
-            <th ng-repeat='mh in metaHeaders'>{{mh.name}}</th>
-            <th>Organization</th>
-            <th>User</th>
-            <th ng-hide='courseid'>Course</th>
-            <th>Status</th>
-        </tr>
-        <tr ng-repeat='record in records track by $index'>
-            <td ng-repeat='mh in metaHeaders'>{{record.usermd[mh.id]}}</td>
-            <td>{{record.user.org_unit}}</td>
-            <td>{{record.user.user_id}}</td>
-            <td ng-hide='courseid'>{{record.course.name}}</td>
-            <td>
-                <i class='icon fsh4 padding-mid {{record.stats.status.icon}}'></i>
-                {{record.stats.status.txt}}
-            </td>
-        </tr>
-    </table>
-    <div ng-show='actualRecordCnt > records.length'
-         class='forange fsh5 row row-center margin0 padding0'>
-        <i class="icon ion-alert-circled padding-mid"></i>
-        <span class='col padding-mid'>Showing {{records.length}} of {{actualRecordCnt}} records.</span>
-    </div>    
+        <table class='nl-table nl-table-styled nl-table-padded'>
+            <tr>
+                <th ng-repeat='mh in orgStats.metas'>{{mh.name}}</th>
+                <th>Organization</th>
+                <th style='text-align: right'>Assigned</th>
+                <th style='text-align: right'>Done</th>
+                <th style='text-align: right'>Started</th>
+                <th style='text-align: right'>Pending</th>
+            </tr>
+            <tr>
+                <th ng-repeat='mh in orgStats.metas'></th>
+                <th>Total</th>
+                <th style='text-align: right'>{{orgStats.overall.assigned}}</th>
+                <th style='text-align: right'>{{orgStats.overall.done}}</th>
+                <th style='text-align: right'>{{orgStats.overall.started}}</th>
+                <th style='text-align: right'>{{orgStats.overall.pending}}</th>
+            </tr>
+            <tr ng-repeat='record in orgStats.orgs track by $index'>
+                <td ng-repeat='key in record.keys'>{{key.v}}</td>
+                <td style='text-align: right'>{{record.assigned}}</td>
+                <td style='text-align: right'>{{record.done}}</td>
+                <td style='text-align: right'>{{record.started}}</td>
+                <td style='text-align: right'>{{record.pending}}</td>
+            </tr>
+        </table>
+        <div ng-show='orgStats.actualCnt > orgStats.orgs.length'
+             class='forange fsh5 row row-center margin0 padding0'>
+            <i class="icon ion-alert-circled padding-mid"></i>
+            <span class='col padding-mid'>Showing {{orgStats.orgs.length}} of {{orgStats.actualCnt}} records.</span>
+        </div>    
+    </div>
+
+    <div ng-click='ui.showUsers = !ui.showUsers' class='fsh5 nl-link-text row row-center margin0 padding0'>
+        <i ng-show='!ui.showUsers' class="icon ion-arrow-right-b bold padding-mid"></i>
+        <i ng-show='ui.showUsers' class="icon ion-arrow-down-b bold padding-mid"></i>
+        <span class='col padding-mid'>User reports</span>
+    </div>
+    <div ng-show='ui.showUsers' class='padding-mid'>
+        <table class='nl-table nl-table-styled nl-table-padded'
+               ng-show='records.length > 0'>
+            <tr>
+                <th ng-repeat='mh in metaHeaders'>{{mh.name}}</th>
+                <th>Organization</th>
+                <th>User</th>
+                <th ng-hide='courseid'>Course</th>
+                <th>Status</th>
+            </tr>
+            <tr ng-repeat='record in records track by $index'>
+                <td ng-repeat='mh in metaHeaders'>{{record.usermd[mh.id]}}</td>
+                <td>{{record.user.org_unit}}</td>
+                <td>{{record.user.user_id}}</td>
+                <td ng-hide='courseid'>{{record.course.name}}</td>
+                <td>
+                    <i class='icon fsh4 padding-mid {{record.stats.status.icon}}'></i>
+                    {{record.stats.status.txt}}
+                </td>
+            </tr>
+        </table>
+        <div ng-show='actualRecordCnt > records.length'
+             class='forange fsh5 row row-center margin0 padding0'>
+            <i class="icon ion-alert-circled padding-mid"></i>
+            <span class='col padding-mid'>Showing {{records.length}} of {{actualRecordCnt}} records.</span>
+        </div>    
+    </div>
+
+
 </div>

@@ -624,7 +624,7 @@ var NlRangeSelectionDlg = ['nl', 'nlDlg', function(nl, nlDlg) {
         scope.error = {};
         if (!scope.data.updatedFrom) return _validateFail(scope, 'updatedFrom', 'From date is mandatory');
         if (!scope.data.updatedTill) return _validateFail(scope, 'updatedTill', 'Till date is mandatory');
-        if (scope.data.updatedFrom >= scope.data.updatedTill) return _validateFail(scope, 'updatedTill', 'Till date should be less than from date');
+        if (scope.data.updatedFrom >= scope.data.updatedTill) return _validateFail(scope, 'updatedTill', 'Till date should be later than from date');
         return true;
     }
                     

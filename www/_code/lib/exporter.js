@@ -86,7 +86,7 @@ function(nl, nlDlg) {
             zip.generateAsync({type:'blob', compression: 'DEFLATE', 
                 compressionOptions:{level:9}})
             .then(function (zipContent) {
-                var size = Math.round(zipContent.size/1024);
+                var size = Math.ceil(zipContent.size/1024);
                 _msgOut(pl, nl.t('Download of {} ({} KB) initiated', fileName, size));
                 saveAs(zipContent, fileName);
                 if (resolve) resolve(size);
