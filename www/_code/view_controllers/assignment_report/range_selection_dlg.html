@@ -1,6 +1,9 @@
 <nl-dlg title='{{dlgTitle}}' show-help='1'>
 <nl-dlg-help>
-    <p><b>Define the range of last updated timestamp of assignment reports to be fetched:</b></p>
+    <p><b>Define the range of
+        <span ng-show='!isCreate'>last updated</span>
+        <span ng-show='isCreate'>created</span>
+        timestamp of the records to be fetched:</b></p>
     <ul>
         <li><b>From:</b> Mandatory - select the start time.</li>
         <li><b>Till:</b> Mandatory - select the end time.</li>

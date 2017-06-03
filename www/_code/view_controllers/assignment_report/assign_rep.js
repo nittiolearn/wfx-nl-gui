@@ -597,14 +597,15 @@ var NlRangeSelectionDlg = ['nl', 'nlDlg', function(nl, nlDlg) {
         updatedFromDate = new Date(now - (6 * day));
     };
     
-    this.show = function($scope) {
+    this.show = function($scope, isCreate) {
         if (!updatedTillDate || !updatedFromDate) this.init();
         var rangeSelectionDlg = nlDlg.create($scope);
         rangeSelectionDlg.setCssClass('nl-height-max nl-width-max');
+        rangeSelectionDlg.scope.isCreate = isCreate;
         rangeSelectionDlg.scope.data = {updatedFrom: updatedFromDate, updatedTill: updatedTillDate};
         rangeSelectionDlg.scope.error = {};
-        rangeSelectionDlg.scope.dlgTitle = nl.t('Select range of updated time');
-        var button = {text: nl.t('Get reports'), onTap: function(e){
+        rangeSelectionDlg.scope.dlgTitle = nl.t('{} time range', isCreate ? 'Assignment sent' : 'Report updated');
+        var button = {text: nl.t('Fetch'), onTap: function(e){
             if (!_validateInputs(rangeSelectionDlg.scope)) {
                 if (e) e.preventDefault();
                 return;

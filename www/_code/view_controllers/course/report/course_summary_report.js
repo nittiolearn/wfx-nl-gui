@@ -22,35 +22,36 @@ function($stateProvider, $urlRouterProvider) {
 		}});
 }];
 
-var MAX_LIST_SIZE = 500;
+var MAX_LIST_SIZE = 100;
 
 //-------------------------------------------------------------------------------------------------
 var CourseReportSummaryCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlServerApi', 
 'nlExporter', 'nlRangeSelectionDlg', 'nlGroupInfo',
 function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionDlg,
     nlGroupInfo) {
-    var _data = {urlParams: {}, fetchInProgress: false, canFetchMore: false,
-        updatedFrom: null, updatedTill: null, courseRecords: {},
-        reportRecords: [], pendingCourseIds: {}};
+    var _data = {urlParams: {}, fetchInProgress: false,
+        createdFrom: null, createdTill: null, courseRecords: {},
+        reportRecords: [], pendingCourseIds: {},
+        reportFetchStartPos: null};
 
     var _reportProcessor = new ReportProcessor(nl, nlGroupInfo, _data);
-    var _orgStats = new OrgStats(nl, nlGroupInfo, _data, _reportProcessor);
-    var _fetcher = new Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _orgStats);
+    var _summaryStats = new SummaryStats(nl, nlGroupInfo, _data, _reportProcessor, $scope);
+    var _fetcher = new Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats);
 
 	function _onPageEnter(userInfo) {
         nlRangeSelectionDlg.init();
 		return nl.q(function(resolve, reject) {
             nlGroupInfo.init().then(function() {
-                nl.pginfo.pageTitle = nl.t('Course summary report');
+                nl.pginfo.pageTitle = nl.t('Course report');
                 _initParams();
                 _initScope();
+                _summaryStats.init();
                 _fetcher.fetchCourse(function(result) {
                     if (result.isError) {
                         resolve(false);
                         return;
                     }
                     resolve(true);
-                    _orgStats.init();
                     _updateScope();
                     _showRangeSelection();
                 });
@@ -61,10 +62,11 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
 	}
 	nlRouter.initContoller($scope, '', _onPageEnter);
 
+    var DEFAULT_MAX_LIMIT=5000;
     function _initParams() {
         var params = nl.location.search();
         _data.urlParams.max = ('max' in params) ? parseInt(params.max) : 50;
-        _data.urlParams.limit = ('limit' in params) ? parseInt(params.limit) : null;
+        _data.urlParams.limit = ('limit' in params) ? parseInt(params.limit) : DEFAULT_MAX_LIMIT;
         _data.urlParams.courseId = parseInt(params.courseid) || null;
         if (_data.urlParams.courseId)
             _data.pendingCourseIds[_data.urlParams.courseId] = true;
@@ -79,28 +81,89 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
             label: ["completed", "started", "pending"],
             color: ['#007700', '#FFCC00', '#A0A0C0'],
         };
+        $scope.search = new Searcher(nl);
+        $scope.usearch = {filter: '',  onClick: _filterUserList, 
+            filterAttrs: _getUserFilterAttrs(), getFilterFields: _getUserFilterFields};
+        $scope.osearch = {filter: '', onClick: _filterOrgList,
+            filterAttrs: _getOrgFilterAttrs(), getFilterFields: _getOrgFilterFields};
     }
+    
+    $scope.canShow = function(tbid) {
+        if (_data.fetchInProgress) return false;
+        if (tbid != 'fetchmore') return true;
+        return _data.reportFetchStartPos != null;
+    };
     
     function _getToolbar() {
         return [{
-            title : 'Get reports for required date/time range',
+            title : 'Fetch more records in the currently selected date time range',
+            icon : 'ion-refresh',
+            id: 'fetchmore',
+            onClick : _fetchMore
+        }, {
+            title : 'Modify the date/time range and fetch records',
             icon : 'ion-android-time',
+            id: 'timerange',
             onClick : _showRangeSelection
         }, {
-            title : 'Export reports',
+            title : 'Export report',
             icon : 'ion-ios-cloud-download',
+            id: 'export',
             onClick : _onExport
         }];
+    }
+    
+    function _getUserFilterAttrs() {
+        var filterAttrs = {'course': true, 'user': true, 'userid': true,
+            'org': true, 'status': true};
+        var mh = _reportProcessor.getMetaHeaders(true);
+        for(var i=0; i<mh.length; i++) filterAttrs[mh[i].name.toLowerCase()] = true;
+        return filterAttrs;
+    }
+    
+    function _getUserFilterFields(record) {
+        var fields = {'course': record.course.name, 'user': record.user.name, 
+            'userid': record.user.username, 'org': record.user.org_unit,
+            'status': record.stats.status.txt};
+        var mh = _reportProcessor.getMetaHeaders(true);
+        for(var i=0; i<mh.length; i++) fields[mh[i].name.toLowerCase()] = record.usermd[mh[i].id];
+        return fields;
+    }
+    
+    function _getOrgFilterAttrs() {
+        var filterAttrs = {'org': true};
+        var mh = _reportProcessor.getMetaHeaders(true);
+        for(var i=0; i<mh.length; i++) filterAttrs[mh[i].name.toLowerCase()] = true;
+        return filterAttrs;
+    }
+    
+    function _getOrgFilterFields(record) {
+        var mh = _reportProcessor.getMetaHeaders(true);
+        if (record.keys.length != mh.length+1) return {};
+        var fields = {'org': record.keys[mh.length].v};
+        for(var i=0; i<mh.length; i++)
+            fields[mh[i].name.toLowerCase()] = record.keys[i].v;
+        return fields;
     }
 
     function _showRangeSelection() {
         if (_fetcher.isFetchInProgress()) return;
-        nlRangeSelectionDlg.show($scope).then(function(dateRange) {
+        nlRangeSelectionDlg.show($scope, true).then(function(dateRange) {
             if (!dateRange) return;
-            _data.updatedFrom = dateRange.updatedFrom;
-            _data.updatedTill = dateRange.updatedTill;
+            _data.createdFrom = dateRange.updatedFrom;
+            _data.createdTill = dateRange.updatedTill;
+
+            _data.reportRecords = [];
+            _summaryStats.reset();
+            _data.reportFetchStartPos = null;
+
             _getDataFromServer();
         });
+    }
+    
+    function _fetchMore() {
+        if (_fetcher.isFetchInProgress()) return;
+        _getDataFromServer();
     }
 
     function _getDataFromServer() {
@@ -113,22 +176,36 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
     
     function _updateScope() {
         var cn = _getCourseName();
-        var title = nl.t('Course summary report');
+        var title = nl.t('Course report');
         if (cn) title += ': ' + cn;
         nl.pginfo.pageTitle = title;
         
         $scope.fetchInProgress = _data.fetchInProgress;
+        $scope.canFetchMore = (_data.reportFetchStartPos != null);
         
+        _filterUserList();
+        _filterOrgList();
+    }
+    
+    function _filterUserList() {
+        var filter = $scope.search.getFilter($scope.usearch);
         var records = _data.reportRecords;
         $scope.actualRecordCnt = records.length;
         var max = records.length > MAX_LIST_SIZE ? MAX_LIST_SIZE: records.length;
+
         $scope.records = [];
-        for (var i=0; i<max; i++) $scope.records.push(records[i]);
-        
-        $scope.orgStats = _orgStats.getStatsData();
-        _updateDoughnutData($scope.orgStats.overall);
+        for (var i=0; i<records.length; i++) {
+            if ($scope.records.length >= max) break;
+            if ($scope.search.isFilterPass($scope.usearch, records[i], filter)) $scope.records.push(records[i]);
+        }
+        $scope.search.updateScope($scope.usearch, $scope.records.length, $scope.actualRecordCnt);
     }
 
+    function _filterOrgList() {
+        $scope.summaryStats = _summaryStats.getStatsData($scope.osearch.filter);
+        _updateDoughnutData($scope.summaryStats.overall);
+    }
+    
     function _updateDoughnutData(statsObj) {
         if (!statsObj) return;
         $scope.doughnut.data = [statsObj.done, statsObj.started, statsObj.pending];
@@ -167,12 +244,12 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
                 start += pending;
             }
 
-            var orgStats = _orgStats.getStatsData();
-            for(var start=0, i=1; start < orgStats.orgs.length; i++) {
-                var pending = orgStats.orgs.length - start;
+            var summaryStats = _summaryStats.getStatsData();
+            for(var start=0, i=1; start < summaryStats.orgs.length; i++) {
+                var pending = summaryStats.orgs.length - start;
                 pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
                 var fileName = nl.fmt2('CourseSummaryReport-{}.csv', i);
-                _createSummaryCsv(orgStats, zip, fileName, start, start+pending);
+                _createSummaryCsv(summaryStats, zip, fileName, start, start+pending);
                 start += pending;
             }
 
@@ -195,14 +272,14 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         zip.file(fileName, content);
     }
     
-    function _createSummaryCsv(orgStats, zip, fileName, start, end) {
+    function _createSummaryCsv(summaryStats, zip, fileName, start, end) {
         var header = [];
-        for(var i=0; i<orgStats.metas.length; i++) header.push(orgStats.metas[i].name);
+        for(var i=0; i<summaryStats.metas.length; i++) header.push(summaryStats.metas[i].name);
         header = header.concat(['Organization', 'Assigned', 'Done', 'Started', 'Pending']);
         var rows = [nlExporter.getCsvString(header)];
         for (var i=start; i<end; i++) {
             var row = [];
-            var record = orgStats.orgs[i];
+            var record = summaryStats.orgs[i];
             for (var j=0; j<record.keys.length; j++) row.push(record.keys[j].v);
             row = row.concat([record.assigned, record.done, record.started, record.pending]);
             rows.push(nlExporter.getCsvString(row));
@@ -213,11 +290,57 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
 }];
 
 //-------------------------------------------------------------------------------------------------
-function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _orgStats) {
+function Searcher(nl) {
+    this.onKeyDown = function(event, searchObj) {
+        var MAX_KEYSEARCH_DELAY = 200;
+        nl.debounce(searchObj.onClick, MAX_KEYSEARCH_DELAY)(event, searchObj);
+    };
+    
+    this.onDetails = function(event, searchObj) {
+        var text = nl.t('<p>Displaying <b>{}</b> of <b>{}</b> items.</p>', searchObj.visible, searchObj.total);
+        nlDlg.popupAlert({title: '', template: text});
+    };
+    
+    this.updateScope = function(searchObj, visible, total) {
+        searchObj.visible = visible;
+        searchObj.total = total;
+        var item = visible <= 1 ? 'item' : 'items'; 
+        var plus = total > visible ? '+' :  '';
+        searchObj.info = nl.t('{}{} {}', visible, plus, item);
+    };
+    
+    this.getFilter = function(searchObj) {
+        if (!searchObj.filter) return null;
+        var filter = searchObj.filter.toLowerCase();
+        var pos = filter.indexOf(':');
+        if (pos < 0) return {str: filter, attr: null};
+        var filt = filter.substring(pos+1);
+        filt = filt.trim();
+
+        var attr = filter.substring(0, pos);
+        if (attr in searchObj.filterAttrs) return {str: filt, attr: attr};
+        return {str: filter, attr: null};
+    };
+
+    this.isFilterPass = function(searchObj, record, filter) {
+        if (!filter || !filter.str) return true;
+        var fields = searchObj.getFilterFields(record);
+        if (filter.attr)
+            return (fields[filter.attr] || '').toLowerCase().indexOf(filter.str) >= 0;
+        for (var f in fields) {
+            if (fields[f].toLowerCase().indexOf(filter.str) >= 0) return true;
+        }
+        return false;
+    };
+}
+
+//-------------------------------------------------------------------------------------------------
+function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats) {
     var self = this;
     
-    this.isFetchInProgress = function() {
+    this.isFetchInProgress = function(dontShowAlert) {
         if (!_data.fetchInProgress) return false;
+        if (dontShowAlert) return true;
         nlDlg.popupAlert({title: 'Please wait', template: 'Currently feching data from server. You can initiate the next operation once the fetching is completed.'});
         return true;
     };
@@ -232,11 +355,6 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _orgStats) {
             return;
         }
         _data.fetchInProgress = true;
-
-        _data.reportRecords = [];
-        _orgStats.reset();
-        _data.reportFetchStartPos = null;
-
         _fetchReports(function(result) {
             if (result.isError) {
                 _data.fetchInProgress = false;
@@ -251,7 +369,7 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _orgStats) {
                 report = _reportProcessor.process(report);
                 if (!report) continue;
                 _data.reportRecords.push(report);
-                _orgStats.addToStats(report);
+                _summaryStats.addToStats(report);
             }
             onDoneCallback(result);
         });
@@ -260,8 +378,8 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _orgStats) {
     //-----------------------------------------------------------------------------------
     function _fetchReports(onDoneCallback) {
         var params = {compact: true, startpos: _data.reportFetchStartPos,
-            max: _data.urlParams.max, updatedfrom: _data.updatedFrom,
-            updatedtill: _data.updatedTill};
+            max: _data.urlParams.max, createdfrom: _data.createdFrom,
+            createdtill: _data.createdTill};
         if (_data.urlParams.courseId) params.courseid = _data.urlParams.courseId;
         
         nlServerApi.batchFetch(nlServerApi.courseGetAllReportList, params, function(result, promiseHolder) {
@@ -269,10 +387,7 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _orgStats) {
                 onDoneCallback(result);
                 return;
             }
-            if (result.fetchDone) {
-                _data.canFetchMore = result.canFetchMore;
-                _data.reportFetchStartPos = result.canFetchMore ? result.nextStartPos : null;
-            }
+            _data.reportFetchStartPos = result.canFetchMore ? result.nextStartPos : null;
 
             var records = result.resultset;
             for(var i=0; i<records.length; i++) {
@@ -479,7 +594,7 @@ function ReportProcessor(nl, nlGroupInfo, _data) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function OrgStats(nl, nlGroupInfo, _data, _reportProcessor) {
+function SummaryStats(nl, nlGroupInfo, _data, _reportProcessor, $scope) {
     
     var _metas = [];
     var _orgDict = {};
@@ -503,15 +618,26 @@ function OrgStats(nl, nlGroupInfo, _data, _reportProcessor) {
     };
     
     this.getStatsData = function() {
-        var ret = {metas: _metas, overall: _overallStats, orgs: []};
+        var ret = {metas: _metas, overall: _overallStats};
+        var records = [];
         for(var key in _orgDict)
-            ret.orgs.push(_orgDict[key]);
-        ret.orgs.sort(function(a, b) {
+            records.push(_orgDict[key]);
+        ret.actualCnt = records.length;
+
+        var filter = $scope.search.getFilter($scope.osearch);
+        var max = records.length > MAX_LIST_SIZE ? MAX_LIST_SIZE: records.length;
+
+        var filtered = [];
+        for (var i=0; i<records.length; i++) {
+            if (filtered.length >= max) break;
+            if ($scope.search.isFilterPass($scope.osearch, records[i], filter)) filtered.push(records[i]);
+        }
+        filtered.sort(function(a, b) {
             return b.assigned - a.assigned;
         });
-        ret.actualCnt = ret.orgs.length;
-        if (ret.orgs.length > MAX_LIST_SIZE)
-            ret.orgs.splice(MAX_LIST_SIZE);
+        ret.orgs = filtered;
+        
+        $scope.search.updateScope($scope.osearch, ret.orgs.length, ret.actualCnt);
         return ret;
     }
     

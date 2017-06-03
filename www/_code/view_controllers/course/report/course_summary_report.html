@@ -6,6 +6,7 @@
         <span ng-repeat='tb in toolbar'
               title='{{tb.title}}'
               class='nl-toolbar-icon'
+              ng-show='canShow(tb.id)'
               ng-click='tb.onClick()'>
             <i class="icon {{tb.icon}}"></i>
         </span>
@@ -21,39 +22,58 @@
         <i class="icon ion-alert-circled padding-mid"></i>
         <span class='col padding-mid'>Please select the time range to fetch the reports.</span>
     </div>    
+    <div ng-show='!fetchInProgress && canFetchMore' class='forange fsh5 row row-center margin0 padding-mid'>
+        <i class="icon ion-alert-circled padding-mid"></i>
+        <span class='col padding-mid'>Not all records are fetched from the server. Click on 'Fetch more' toolbar icon to fetch more records.</span>
+    </div>    
     
     <div ng-click='ui.showOrgs = !ui.showOrgs' class='fsh5 nl-link-text row row-center margin0 padding0'>
         <i ng-show='!ui.showOrgs' class="icon ion-arrow-right-b bold padding-mid"></i>
         <i ng-show='ui.showOrgs' class="icon ion-arrow-down-b bold padding-mid"></i>
-        <span class='col padding-mid'>Organization summary</span>
+        <span class='col padding-mid'>Organizational summary</span>
     </div>
     <div ng-show='ui.showOrgs' class='padding-mid'>
-        <div class='text-center padding-vertical' style='height: 300px'>
-            <canvas class="chart chart-doughnut"
-                    chart-data="doughnut.data"
-                    chart-labels="doughnut.label"
-                    chart-colours="doughnut.color">
-            </canvas>
+        <div class='nl-card-search row row-center margin0 padding0'>
+            <input class='col padding-mid w100' ng-model='osearch.filter'
+                   placeholder='Search organizations'
+                   ng-keydown='search.onKeyDown($event, osearch)'>
+            <div class='padding-small'></div>
+            <i class='icon fsh4 padding-mid ion-search fblue2 nl-link-text'
+               ng-click='osearch.onClick($event)'></i>
+            <div class='padding-small'></div>
+            <span class='col col-20 padding-small nl-textellipsis nl-link-text'
+                  ng-click='search.onDetails($event, osearch)'>{{osearch.info}}</span>
         </div>
 
-        <table class='nl-table nl-table-styled nl-table-padded'>
+        <div class='row row-center row-wrap margin0 padding0'
+             ng-show='summaryStats.actualCnt > 0'>
+            <div ng-class='respCol221' class='text-center padding-mid' style='height: 300px'>
+                <canvas class="chart chart-doughnut"
+                        chart-data="doughnut.data"
+                        chart-labels="doughnut.label"
+                        chart-colours="doughnut.color">
+                </canvas>
+            </div>
+        </div>
+
+        <table class='nl-table nl-table-styled'>
             <tr>
-                <th ng-repeat='mh in orgStats.metas'>{{mh.name}}</th>
-                <th>Organization</th>
+                <th ng-repeat='mh in summaryStats.metas'>{{mh.name}}</th>
+                <th>Org</th>
                 <th style='text-align: right'>Assigned</th>
                 <th style='text-align: right'>Done</th>
                 <th style='text-align: right'>Started</th>
                 <th style='text-align: right'>Pending</th>
             </tr>
             <tr>
-                <th ng-repeat='mh in orgStats.metas'></th>
+                <th ng-repeat='mh in summaryStats.metas'>-</th>
                 <th>Total</th>
-                <th style='text-align: right'>{{orgStats.overall.assigned}}</th>
-                <th style='text-align: right'>{{orgStats.overall.done}}</th>
-                <th style='text-align: right'>{{orgStats.overall.started}}</th>
-                <th style='text-align: right'>{{orgStats.overall.pending}}</th>
+                <th style='text-align: right'>{{summaryStats.overall.assigned}}</th>
+                <th style='text-align: right'>{{summaryStats.overall.done}}</th>
+                <th style='text-align: right'>{{summaryStats.overall.started}}</th>
+                <th style='text-align: right'>{{summaryStats.overall.pending}}</th>
             </tr>
-            <tr ng-repeat='record in orgStats.orgs track by $index'>
+            <tr ng-repeat='record in summaryStats.orgs track by $index'>
                 <td ng-repeat='key in record.keys'>{{key.v}}</td>
                 <td style='text-align: right'>{{record.assigned}}</td>
                 <td style='text-align: right'>{{record.done}}</td>
@@ -61,11 +81,6 @@
                 <td style='text-align: right'>{{record.pending}}</td>
             </tr>
         </table>
-        <div ng-show='orgStats.actualCnt > orgStats.orgs.length'
-             class='forange fsh5 row row-center margin0 padding0'>
-            <i class="icon ion-alert-circled padding-mid"></i>
-            <span class='col padding-mid'>Showing {{orgStats.orgs.length}} of {{orgStats.actualCnt}} records.</span>
-        </div>    
     </div>
 
     <div ng-click='ui.showUsers = !ui.showUsers' class='fsh5 nl-link-text row row-center margin0 padding0'>
@@ -74,11 +89,24 @@
         <span class='col padding-mid'>User reports</span>
     </div>
     <div ng-show='ui.showUsers' class='padding-mid'>
-        <table class='nl-table nl-table-styled nl-table-padded'
+
+        <div class='nl-card-search row row-center margin0 padding0'>
+            <input class='col padding-mid w100' ng-model='usearch.filter'
+                   placeholder='Search users'
+                   ng-keydown='search.onKeyDown($event, usearch)'>
+            <div class='padding-small'></div>
+            <i class='icon fsh4 padding-mid ion-search fblue2 nl-link-text'
+               ng-click='usearch.onClick($event)'></i>
+            <div class='padding-small'></div>
+            <span class='col col-20 padding-small nl-textellipsis nl-link-text'
+                  ng-click='search.onDetails($event, usearch)'>{{usearch.info}}</span>
+        </div>
+
+        <table class='nl-table nl-table-styled'
                ng-show='records.length > 0'>
             <tr>
                 <th ng-repeat='mh in metaHeaders'>{{mh.name}}</th>
-                <th>Organization</th>
+                <th>Org</th>
                 <th>User</th>
                 <th ng-hide='courseid'>Course</th>
                 <th>Status</th>
@@ -94,12 +122,5 @@
                 </td>
             </tr>
         </table>
-        <div ng-show='actualRecordCnt > records.length'
-             class='forange fsh5 row row-center margin0 padding0'>
-            <i class="icon ion-alert-circled padding-mid"></i>
-            <span class='col padding-mid'>Showing {{records.length}} of {{actualRecordCnt}} records.</span>
-        </div>    
     </div>
-
-
 </div>
