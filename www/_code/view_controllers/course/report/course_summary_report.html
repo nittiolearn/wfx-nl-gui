@@ -45,15 +45,13 @@
                   ng-click='search.onDetails($event, osearch)'>{{osearch.info}}</span>
         </div>
 
-        <div class='row row-center row-wrap margin0 padding0'
-             ng-show='summaryStats.actualCnt > 0'>
-            <div ng-class='respCol221' class='text-center padding-mid' style='height: 300px'>
-                <canvas class="chart chart-doughnut"
-                        chart-data="doughnut.data"
-                        chart-labels="doughnut.label"
-                        chart-colours="doughnut.color">
-                </canvas>
-            </div>
+        <div ng-show='summaryStats.actualCnt > 0'
+             class='text-center padding-mid' style='height: 300px'>
+            <canvas class="chart chart-doughnut"
+                    chart-data="doughnut.data"
+                    chart-labels="doughnut.label"
+                    chart-colours="doughnut.color">
+            </canvas>
         </div>
 
         <table class='nl-table nl-table-styled'>
