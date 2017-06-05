@@ -290,51 +290,6 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
 }];
 
 //-------------------------------------------------------------------------------------------------
-function Searcher(nl) {
-    this.onKeyDown = function(event, searchObj) {
-        var MAX_KEYSEARCH_DELAY = 200;
-        nl.debounce(searchObj.onClick, MAX_KEYSEARCH_DELAY)(event, searchObj);
-    };
-    
-    this.onDetails = function(event, searchObj) {
-        var text = nl.t('<p>Displaying <b>{}</b> of <b>{}</b> items.</p>', searchObj.visible, searchObj.total);
-        nlDlg.popupAlert({title: '', template: text});
-    };
-    
-    this.updateScope = function(searchObj, visible, total) {
-        searchObj.visible = visible;
-        searchObj.total = total;
-        var item = visible <= 1 ? 'item' : 'items'; 
-        var plus = total > visible ? '+' :  '';
-        searchObj.info = nl.t('{}{} {}', visible, plus, item);
-    };
-    
-    this.getFilter = function(searchObj) {
-        if (!searchObj.filter) return null;
-        var filter = searchObj.filter.toLowerCase();
-        var pos = filter.indexOf(':');
-        if (pos < 0) return {str: filter, attr: null};
-        var filt = filter.substring(pos+1);
-        filt = filt.trim();
-
-        var attr = filter.substring(0, pos);
-        if (attr in searchObj.filterAttrs) return {str: filt, attr: attr};
-        return {str: filter, attr: null};
-    };
-
-    this.isFilterPass = function(searchObj, record, filter) {
-        if (!filter || !filter.str) return true;
-        var fields = searchObj.getFilterFields(record);
-        if (filter.attr)
-            return (fields[filter.attr] || '').toLowerCase().indexOf(filter.str) >= 0;
-        for (var f in fields) {
-            if (fields[f].toLowerCase().indexOf(filter.str) >= 0) return true;
-        }
-        return false;
-    };
-}
-
-//-------------------------------------------------------------------------------------------------
 function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats) {
     var self = this;
     

@@ -1,0 +1,39 @@
+<div class='nl-card-search row row-center margin0 padding0'
+     ng-hide='info.search.disabled'>
+    <input class='col padding-mid w100' ng-model='info.search.filter'
+           placeholder='{{info.search.placeholder}}'
+           ng-keydown='searcher.onKeyDown($event)'>
+    <div class='padding-small'></div>
+    <i class='icon fsh4 padding-mid ion-search fblue2 nl-link-text'
+       ng-click='searcher.onClick($event)'></i>
+    <div class='padding-small'></div>
+    <span class='col col-20 padding-small nl-textellipsis nl-link-text'
+          ng-click='searcher.onDetails($event)'>{{searcher.infotxt}}</span>
+</div>
+
+<div ng-transclude></div>
+<table class='nl-table nl-table-styled'>
+    <tr>
+        <th ng-repeat='mh in summaryStats.metas'>{{mh.name}}</th>
+        <th>Org</th>
+        <th style='text-align: right'>Assigned</th>
+        <th style='text-align: right'>Done</th>
+        <th style='text-align: right'>Started</th>
+        <th style='text-align: right'>Pending</th>
+    </tr>
+    <tr>
+        <th ng-repeat='mh in summaryStats.metas'>-</th>
+        <th>Total</th>
+        <th style='text-align: right'>{{summaryStats.overall.assigned}}</th>
+        <th style='text-align: right'>{{summaryStats.overall.done}}</th>
+        <th style='text-align: right'>{{summaryStats.overall.started}}</th>
+        <th style='text-align: right'>{{summaryStats.overall.pending}}</th>
+    </tr>
+    <tr ng-repeat='record in summaryStats.orgs track by $index'>
+        <td ng-repeat='key in record.keys'>{{key.v}}</td>
+        <td style='text-align: right'>{{record.assigned}}</td>
+        <td style='text-align: right'>{{record.done}}</td>
+        <td style='text-align: right'>{{record.started}}</td>
+        <td style='text-align: right'>{{record.pending}}</td>
+    </tr>
+</table>
