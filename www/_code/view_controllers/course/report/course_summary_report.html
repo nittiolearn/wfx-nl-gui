@@ -1,4 +1,5 @@
 <div class='nl-thin-scroll padding-small'>
+<div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
     <div class='row row-center margin0 padding0'
          style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
         <div class='col text-center fsh3 padding0'>
@@ -6,7 +7,7 @@
         <span ng-repeat='tb in toolbar'
               title='{{tb.title}}'
               class='nl-toolbar-icon'
-              ng-show='canShow(tb.id)'
+              ng-show='canShowToolbarIcon(tb.id)'
               ng-click='tb.onClick()'>
             <i class="icon {{tb.icon}}"></i>
         </span>
@@ -18,7 +19,7 @@
         <i class="icon ion-alert-circled padding-mid"></i>
         <span class='col padding-mid'>Fetching the data from server. Please wait ...</span>
     </div>    
-    <div ng-show='!fetchInProgress && !actualRecordCnt' class='forange fsh5 row row-center margin0 padding-mid'>
+    <div ng-show='!fetchInProgress && noDataFound' class='forange fsh5 row row-center margin0 padding-mid'>
         <i class="icon ion-alert-circled padding-mid"></i>
         <span class='col padding-mid'>Please select the time range to fetch the reports.</span>
     </div>    
@@ -27,98 +28,47 @@
         <span class='col padding-mid'>Not all records are fetched from the server. Click on 'Fetch more' toolbar icon to fetch more records.</span>
     </div>    
     
-    <div ng-click='ui.showOrgs = !ui.showOrgs' class='fsh5 nl-link-text row row-center margin0 padding0'>
-        <i ng-show='!ui.showOrgs' class="icon ion-arrow-right-b bold padding-mid"></i>
-        <i ng-show='ui.showOrgs' class="icon ion-arrow-down-b bold padding-mid"></i>
+    <div class='padding-small'></div>
+    <div ng-click='ui.showOrgs = !ui.showOrgs' class='fsh5 nl-link-text2 row row-center margin0 padding0'>
+        <i ng-show='!ui.showOrgs' class="icon ion-arrow-right-b padding-mid"></i>
+        <i ng-show='ui.showOrgs' class="icon ion-arrow-down-b padding-mid"></i>
         <span class='col padding-mid'>Organizational summary</span>
     </div>
     <div ng-show='ui.showOrgs' class='padding-mid'>
-        <div class='nl-card-search row row-center margin0 padding0'>
-            <input class='col padding-mid w100' ng-model='osearch.filter'
-                   placeholder='Search organizations'
-                   ng-keydown='search.onKeyDown($event, osearch)'>
-            <div class='padding-small'></div>
-            <i class='icon fsh4 padding-mid ion-search fblue2 nl-link-text'
-               ng-click='osearch.onClick($event)'></i>
-            <div class='padding-small'></div>
-            <span class='col col-20 padding-small nl-textellipsis nl-link-text'
-                  ng-click='search.onDetails($event, osearch)'>{{osearch.info}}</span>
-        </div>
-
-        <div ng-show='summaryStats.actualCnt > 0'
-             class='text-center padding-mid' style='height: 300px'>
-            <canvas class="chart chart-doughnut"
-                    chart-data="doughnut.data"
-                    chart-labels="doughnut.label"
-                    chart-colours="doughnut.color">
-            </canvas>
-        </div>
-
-        <table class='nl-table nl-table-styled'>
-            <tr>
-                <th ng-repeat='mh in summaryStats.metas'>{{mh.name}}</th>
-                <th>Org</th>
-                <th style='text-align: right'>Assigned</th>
-                <th style='text-align: right'>Done</th>
-                <th style='text-align: right'>Started</th>
-                <th style='text-align: right'>Pending</th>
-            </tr>
-            <tr>
-                <th ng-repeat='mh in summaryStats.metas'>-</th>
-                <th>Total</th>
-                <th style='text-align: right'>{{summaryStats.overall.assigned}}</th>
-                <th style='text-align: right'>{{summaryStats.overall.done}}</th>
-                <th style='text-align: right'>{{summaryStats.overall.started}}</th>
-                <th style='text-align: right'>{{summaryStats.overall.pending}}</th>
-            </tr>
-            <tr ng-repeat='record in summaryStats.orgs track by $index'>
-                <td ng-repeat='key in record.keys'>{{key.v}}</td>
-                <td style='text-align: right'>{{record.assigned}}</td>
-                <td style='text-align: right'>{{record.done}}</td>
-                <td style='text-align: right'>{{record.started}}</td>
-                <td style='text-align: right'>{{record.pending}}</td>
-            </tr>
-        </table>
+        <nl-table info='otable'>
+            <div class='row padding0 margin0'>
+                <div class='col'></div>
+                <div class='padding-mid nl-link-text2'
+                     ng-click='ui.showOrgCharts = !ui.showOrgCharts'>
+                    <span ng-show='!ui.showOrgCharts'>Show charts
+                        <i class='padding-small'></i>
+                        <i class="icon ion-plus-circled fsh5"></i>
+                    </span>
+                    <span ng-show='ui.showOrgCharts'>Hide charts
+                        <i class='padding-small'></i>
+                        <i class="icon ion-minus-circled fsh5"></i>
+                    </span>
+                </div>
+            </div>
+            <div ng-show='ui.showOrgCharts && otable._internal.visibleRecs.length > 0'
+                 class='text-center padding-mid' style='height: 300px'>
+                <canvas class="chart chart-doughnut"
+                        chart-data="doughnut.data"
+                        chart-labels="doughnut.label"
+                        chart-colours="doughnut.color">
+                </canvas>
+            </div>
+        </nl-table>
     </div>
 
-    <div ng-click='ui.showUsers = !ui.showUsers' class='fsh5 nl-link-text row row-center margin0 padding0'>
-        <i ng-show='!ui.showUsers' class="icon ion-arrow-right-b bold padding-mid"></i>
-        <i ng-show='ui.showUsers' class="icon ion-arrow-down-b bold padding-mid"></i>
+    <div class='padding-small'></div>
+    <div ng-click='ui.showUsers = !ui.showUsers' class='fsh5 nl-link-text2 row row-center margin0 padding0'>
+        <i ng-show='!ui.showUsers' class="icon ion-arrow-right-b padding-mid"></i>
+        <i ng-show='ui.showUsers' class="icon ion-arrow-down-b padding-mid"></i>
         <span class='col padding-mid'>User reports</span>
     </div>
     <div ng-show='ui.showUsers' class='padding-mid'>
-
-        <div class='nl-card-search row row-center margin0 padding0'>
-            <input class='col padding-mid w100' ng-model='usearch.filter'
-                   placeholder='Search users'
-                   ng-keydown='search.onKeyDown($event, usearch)'>
-            <div class='padding-small'></div>
-            <i class='icon fsh4 padding-mid ion-search fblue2 nl-link-text'
-               ng-click='usearch.onClick($event)'></i>
-            <div class='padding-small'></div>
-            <span class='col col-20 padding-small nl-textellipsis nl-link-text'
-                  ng-click='search.onDetails($event, usearch)'>{{usearch.info}}</span>
-        </div>
-
-        <table class='nl-table nl-table-styled'
-               ng-show='records.length > 0'>
-            <tr>
-                <th ng-repeat='mh in metaHeaders'>{{mh.name}}</th>
-                <th>Org</th>
-                <th>User</th>
-                <th ng-hide='courseid'>Course</th>
-                <th>Status</th>
-            </tr>
-            <tr ng-repeat='record in records track by $index'>
-                <td ng-repeat='mh in metaHeaders'>{{record.usermd[mh.id]}}</td>
-                <td>{{record.user.org_unit}}</td>
-                <td>{{record.user.user_id}}</td>
-                <td ng-hide='courseid'>{{record.course.name}}</td>
-                <td>
-                    <i class='icon fsh4 padding-mid {{record.stats.status.icon}}'></i>
-                    {{record.stats.status.txt}}
-                </td>
-            </tr>
-        </table>
+        <nl-table info='utable'></table>
     </div>
+</div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
 </div>

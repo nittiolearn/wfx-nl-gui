@@ -1,0 +1,7 @@
+<div class='fsh4'>Details</div>
+<table class='nl-table nl-table-styled2 no-border'>
+    <tr ng-repeat='avp in rec.avps track by $index'>
+        <td><b>{{avp.attr}}</b></td>
+        <td ng-bind-html='avp.val'></td>
+    </tr>
+</table>

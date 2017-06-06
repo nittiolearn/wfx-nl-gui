@@ -386,6 +386,41 @@ ion-spinner.spinner svg {
   }
 }
 
+.nl-table-styled2 {
+  margin: 0;
+  width: 100%;
+  td *, th * {
+    vertical-align: middle;
+  }
+  tr { border-bottom: 1px solid rgba(0, 0, 0, 0.1);}
+}
+
+.no-border {
+  tr { border: none;}
+}
+
+.compact {
+  td { padding: 4px;}
+}
+
+.cozy {
+  td { padding: 8px;}
+}
+
+.comfy {
+  td { padding: 20px;}
+}
+
+tr.header {
+  background: $nlBlue3;
+  color: white;
+}
+
+tr.summary {
+  background: $nlBlue1;
+  color: white;
+}
+
 .nl-16 {
   align: center;
   width: 16px;
@@ -448,14 +483,19 @@ ion-spinner.spinner svg {
 //-----------------------------------------------------------------------------------------
 // link clickable classes: nl-link-text and nl-link-img
 //-----------------------------------------------------------------------------------------
-.nl-link-text {
+.nl-link-text, .nl-link-text2 {
   cursor: pointer;
   &, a, &:visited {
-    color: #000077;
     text-decoration: none;
   }
   &:hover, &:focus, &:active {
     background-color: rgba(128, 128, 255, 0.2);
+  }
+}
+
+.nl-link-text {
+  &, a, &:visited {
+    color: #000077;
   }
 }
 
@@ -1656,6 +1696,10 @@ img.nl-full-width {
 
 .fgrey {
   color: $grey;
+}
+
+.fgrey2 {
+  color: rgba(0, 0, 0, 0.5);
 }
 
 .bggrey {

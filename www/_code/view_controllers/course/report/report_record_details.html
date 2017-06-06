@@ -1,0 +1,36 @@
+<div class='row row-center row-wrap margin0 padding0'>
+    <div class='fsh4 padding-mid'>
+        {{rec._raw.user.name}} ({{rec._raw.user.username}})
+    </div>
+    <div class='padding-mid'>
+        <a ng-href='/#/course_view?id={{rec._raw.raw_record.id}}&mode=report_view'
+           target='_blank'
+           class='padding-mid nl-link-text'>View report</a>
+    </div>
+</div>
+
+<pre>{{}}</pre>
+
+<div class='row row-top row-wrap margin0 padding0'>
+    <div ng-class='$root.respCol221'>
+        <div class='padding-mid'><b>Assigned on: </b><span>{{rec._raw.created}}</span></div>
+        <div class='padding-mid'><b>Last updated on: </b><span>{{rec._raw.updated}}</span></div>
+        <div class='padding-mid'><b>Org: </b><span>{{rec._raw.user.org_unit}}</span></div>
+        <div ng-repeat='meta in info.metas' class='padding-mid'>
+              <b>{{meta.name}}: </b>
+              <span>{{rec._raw.usermd[meta.id]}}</span>
+        </div>
+    </div>
+    <div ng-class='$root.respCol221'>
+        <div class='padding-mid'><b>Progress: </b>
+            <span>{{rec._raw.stats.percCompleteStr}}</span>
+            <span> ({{rec._raw.stats.nLessonsDone}} of {{rec._raw.stats.nLessons}} modules)</span>
+        </div>
+        <div class='padding-mid'><b>Average attempts: </b>
+            <span>{{rec._raw.stats.avgAttempts}}</span>
+        </div>
+        <div class='padding-mid'><b>Certificates: </b>
+            <span>{{rec._raw.stats.nCerts}} of {{rec._raw.stats.totalCerts}}</span>
+        </div>
+    </div>
+</div>

@@ -26,15 +26,15 @@ var MAX_LIST_SIZE = 100;
 
 //-------------------------------------------------------------------------------------------------
 var CourseReportSummaryCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlServerApi', 
-'nlExporter', 'nlRangeSelectionDlg', 'nlGroupInfo',
+'nlExporter', 'nlRangeSelectionDlg', 'nlGroupInfo', 'nlTable',
 function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionDlg,
-    nlGroupInfo) {
+    nlGroupInfo, nlTable) {
     var _data = {urlParams: {}, fetchInProgress: false,
         createdFrom: null, createdTill: null, courseRecords: {},
-        reportRecords: [], pendingCourseIds: {},
+        reportRecords: {}, pendingCourseIds: {},
         reportFetchStartPos: null};
 
-    var _reportProcessor = new ReportProcessor(nl, nlGroupInfo, _data);
+    var _reportProcessor = new ReportProcessor(nl, nlGroupInfo, nlExporter, _data);
     var _summaryStats = new SummaryStats(nl, nlGroupInfo, _data, _reportProcessor, $scope);
     var _fetcher = new Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats);
 
@@ -76,24 +76,97 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         $scope.toolbar = _getToolbar();
         $scope.courseid = _data.urlParams.courseId;
         $scope.metaHeaders = _reportProcessor.getMetaHeaders(true);
-        $scope.ui = {showOrgs: true, showUsers: false};
+        $scope.ui = {showOrgs: true, showOrgCharts: true, showUsers: false};
         $scope.doughnut = {
             label: ["completed", "started", "pending"],
             color: ['#007700', '#FFCC00', '#A0A0C0'],
         };
-        $scope.search = new Searcher(nl);
-        $scope.usearch = {filter: '',  onClick: _filterUserList, 
-            filterAttrs: _getUserFilterAttrs(), getFilterFields: _getUserFilterFields};
-        $scope.osearch = {filter: '', onClick: _filterOrgList,
-            filterAttrs: _getOrgFilterAttrs(), getFilterFields: _getOrgFilterFields};
+        $scope.utable = {
+            columns: _getUserColumns(),
+            styleTable: 'nl-table-styled2 compact',
+            onRowClick: 'expand',
+            detailsTemplate: 'view_controllers/course/report/report_record_details.html',
+            clickHandler: _userRowClickHandler,
+            metas: _reportProcessor.getMetaHeaders(false)
+        };
+        nlTable.initTableObject($scope.utable);
+        $scope.otable = {
+            columns: _getOrgColumns(),
+            styleTable: 'nl-table-styled2 compact',
+            getSummaryRow: _getOrgSummaryRow
+        };
+        nlTable.initTableObject($scope.otable);
     }
     
-    $scope.canShow = function(tbid) {
-        if (_data.fetchInProgress) return false;
-        if (tbid != 'fetchmore') return true;
-        return _data.reportFetchStartPos != null;
-    };
+    function _getUserColumns() {
+        var columns = [];
+        columns.push({id: 'user.user_id', name: 'User', smallScreen: true});
+        columns.push({id: 'user.org_unit', name: 'Org'});
+        var mh = _reportProcessor.getMetaHeaders(true);
+        for(var i=0; i<mh.length; i++) {
+            columns.push({id: 'usermd.' + mh[i].id, name: mh[i].name});
+        }
+        if (!_data.urlParams.courseId) {
+            columns.push({id: 'course.name', name: 'Course', mediumScreen: false});
+        }
+        columns.push({id: 'stats.status.txt', name: 'Status', smallScreen: true, 
+            icon: 'stats.status.icon'});
+        columns.push({id: 'stats.percCompleteStr', name: 'Progress', mediumScreen: false,
+            styleTd: 'text-right'});
+
+        // Only search and details relevant columns
+        columns.push({id: 'user.name', name: 'User name', searchKey: 'username', 
+            smallScreen: false, mediumScreen: false, largeScreen: false});
+        columns.push({id: 'user.username', name: 'Login id', searchKey: 'login', 
+            smallScreen: false, mediumScreen: false, largeScreen: false});
+        return columns;
+    }
     
+    function _userRowClickHandler(rec, action) {
+        console.log('_userRowClickHandler: ', rec, action);
+        var raw = rec._raw;
+        return null;
+        return 'TODO: {{rec["user.org_unit"]}}';
+    }
+            
+    function _getOrgColumns() {
+        var columns = [];
+        var mh = _reportProcessor.getMetaHeaders(true);
+        columns.push({id: 'org', name: 'Org', smallScreen: true});
+        for(var i=0; i<mh.length; i++) {
+            columns.push({id: mh[i].id, name: mh[i].name});
+        }
+        columns.push({id: 'percStr', name: 'Completion', smallScreen: true, searchable: false, styleTd: 'text-right'});
+        columns.push({id: 'assigned', name: 'Assigned', searchable: false, styleTd: 'text-right'});
+        columns.push({id: 'done', name: 'Done', searchable: false, styleTd: 'text-right'});
+        columns.push({id: 'started', name: 'Started', searchable: false, styleTd: 'text-right'});
+        columns.push({id: 'pending', name: 'Pending', searchable: false, styleTd: 'text-right'});
+        return columns;
+    }
+
+    function _getOrgSummaryRow(visibleRecords) {
+        var summaryRecord = {'org': {txt: 'Overall'}};
+        var assigned = 0;
+        var done = 0;
+        var started = 0;
+        var pending = 0;
+        for (var i=0; i<visibleRecords.length; i++) {
+            var rec = visibleRecords[i];
+            assigned += rec.assigned.txt || 0;
+            done += rec.done.txt || 0;
+            started += rec.started.txt || 0;
+            pending += rec.pending.txt || 0;
+        }
+
+        summaryRecord['percStr'] = {txt: assigned > 0 ? Math.round(done/assigned*100) + ' %': ''};
+        summaryRecord['assigned'] = {txt: assigned};
+        summaryRecord['done'] = {txt: done};
+        summaryRecord['started'] = {txt: started};
+        summaryRecord['pending'] = {txt: pending};
+        _updateDoughnutData(summaryRecord);
+        return summaryRecord;
+    }
+
     function _getToolbar() {
         return [{
             title : 'Fetch more records in the currently selected date time range',
@@ -113,39 +186,12 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         }];
     }
     
-    function _getUserFilterAttrs() {
-        var filterAttrs = {'course': true, 'user': true, 'userid': true,
-            'org': true, 'status': true};
-        var mh = _reportProcessor.getMetaHeaders(true);
-        for(var i=0; i<mh.length; i++) filterAttrs[mh[i].name.toLowerCase()] = true;
-        return filterAttrs;
-    }
+    $scope.canShowToolbarIcon = function(tbid) {
+        if (_data.fetchInProgress) return false;
+        if (tbid != 'fetchmore') return true;
+        return _data.reportFetchStartPos != null;
+    };
     
-    function _getUserFilterFields(record) {
-        var fields = {'course': record.course.name, 'user': record.user.name, 
-            'userid': record.user.username, 'org': record.user.org_unit,
-            'status': record.stats.status.txt};
-        var mh = _reportProcessor.getMetaHeaders(true);
-        for(var i=0; i<mh.length; i++) fields[mh[i].name.toLowerCase()] = record.usermd[mh[i].id];
-        return fields;
-    }
-    
-    function _getOrgFilterAttrs() {
-        var filterAttrs = {'org': true};
-        var mh = _reportProcessor.getMetaHeaders(true);
-        for(var i=0; i<mh.length; i++) filterAttrs[mh[i].name.toLowerCase()] = true;
-        return filterAttrs;
-    }
-    
-    function _getOrgFilterFields(record) {
-        var mh = _reportProcessor.getMetaHeaders(true);
-        if (record.keys.length != mh.length+1) return {};
-        var fields = {'org': record.keys[mh.length].v};
-        for(var i=0; i<mh.length; i++)
-            fields[mh[i].name.toLowerCase()] = record.keys[i].v;
-        return fields;
-    }
-
     function _showRangeSelection() {
         if (_fetcher.isFetchInProgress()) return;
         nlRangeSelectionDlg.show($scope, true).then(function(dateRange) {
@@ -153,7 +199,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
             _data.createdFrom = dateRange.updatedFrom;
             _data.createdTill = dateRange.updatedTill;
 
-            _data.reportRecords = [];
+            _data.reportRecords = {};
             _summaryStats.reset();
             _data.reportFetchStartPos = null;
 
@@ -183,32 +229,15 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         $scope.fetchInProgress = _data.fetchInProgress;
         $scope.canFetchMore = (_data.reportFetchStartPos != null);
         
-        _filterUserList();
-        _filterOrgList();
-    }
-    
-    function _filterUserList() {
-        var filter = $scope.search.getFilter($scope.usearch);
-        var records = _data.reportRecords;
-        $scope.actualRecordCnt = records.length;
-        var max = records.length > MAX_LIST_SIZE ? MAX_LIST_SIZE: records.length;
-
-        $scope.records = [];
-        for (var i=0; i<records.length; i++) {
-            if ($scope.records.length >= max) break;
-            if ($scope.search.isFilterPass($scope.usearch, records[i], filter)) $scope.records.push(records[i]);
-        }
-        $scope.search.updateScope($scope.usearch, $scope.records.length, $scope.actualRecordCnt);
+        var reportAsList = _getReportsAsList();
+        $scope.noDataFound = (reportAsList.length == 0);
+        nlTable.updateTableObject($scope.utable, reportAsList);
+        nlTable.updateTableObject($scope.otable, _getSummaryAsList());
     }
 
-    function _filterOrgList() {
-        $scope.summaryStats = _summaryStats.getStatsData($scope.osearch.filter);
-        _updateDoughnutData($scope.summaryStats.overall);
-    }
-    
-    function _updateDoughnutData(statsObj) {
-        if (!statsObj) return;
-        $scope.doughnut.data = [statsObj.done, statsObj.started, statsObj.pending];
+    function _updateDoughnutData(summaryRecord) {
+        $scope.doughnut.data = [summaryRecord.done.txt, summaryRecord.started.txt,
+            summaryRecord.pending.txt];
     }
 
     function _getCourseName() {
@@ -219,38 +248,77 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
 
     function _onExport() {
         if (_fetcher.isFetchInProgress()) return;
-        nlDlg.showLoadingScreen();
-        var promise = nl.q(function(resolve, reject) {
-            _export(resolve, reject);
-        });
-        promise.then(function() {
-            nl.timeout(function() {
-                nlDlg.hideLoadingScreen();
-            }, 2000);
-        });
+        var dlg = nlDlg.create($scope);
+        dlg.scope.export = {summary: true, user: true, module: false};
+        
+        var exportButton = {
+            text : nl.t('Export'),
+            onTap : function(e) {
+                var exp = dlg.scope.export;
+                var selected = exp.summary || exp.user || exp.module;
+                if(!selected) {
+                    dlg.scope.warn = 'Please select atleast one type of report to export';
+                    if(e) e.preventDefault();
+                    return null;
+                }
+                _data.urlParams.exportTypes = exp;
+
+                nlDlg.showLoadingScreen();
+                var promise = nl.q(function(resolve, reject) {
+                    _export(resolve, reject);
+                });
+                promise.then(function() {
+                    nl.timeout(function() {
+                        nlDlg.hideLoadingScreen();
+                    }, 2000);
+                });
+            }
+        };
+        var cancelButton = {
+            text : nl.t('Cancel')
+        };
+        dlg.show('view_controllers/course/report/course_rep_export.html',
+            [exportButton], cancelButton);
     }
 
     var _CSV_DELIM = '\n';
     function _export(resolve, reject) {
         try {
             var zip = new JSZip();
-            
-            var records = _data.reportRecords;
-            for(var start=0, i=1; start < records.length; i++) {
-                var pending = records.length - start;
-                pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
-                var fileName = nl.fmt2('CourseUserReport-{}.csv', i);
-                _createDetailedCsv(records, zip, fileName, start, start+pending);
-                start += pending;
+
+            if (_data.urlParams.exportTypes.summary) {
+                var records = _getSummaryAsList();
+                for(var start=0, i=1; start < records.length; i++) {
+                    var pending = records.length - start;
+                    pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
+                    var fileName = nl.fmt2('CourseSummaryReport-{}.csv', i);
+                    _createSummaryCsv(records, zip, fileName, start, start+pending);
+                    start += pending;
+                }
             }
 
-            var summaryStats = _summaryStats.getStatsData();
-            for(var start=0, i=1; start < summaryStats.orgs.length; i++) {
-                var pending = summaryStats.orgs.length - start;
-                pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
-                var fileName = nl.fmt2('CourseSummaryReport-{}.csv', i);
-                _createSummaryCsv(summaryStats, zip, fileName, start, start+pending);
-                start += pending;
+            var moduleRows = _data.urlParams.exportTypes.module ? [] : null;
+
+            if (_data.urlParams.exportTypes.user || _data.urlParams.exportTypes.module) {
+                var records = _getReportsAsList();
+                for(var start=0, i=1; start < records.length; i++) {
+                    var pending = records.length - start;
+                    pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
+                    var fileName = nl.fmt2('CourseUserReport-{}.csv', i);
+                    _createUserCsv(records, zip, fileName, start, start+pending, moduleRows);
+                    start += pending;
+                }
+            }
+
+            if (_data.urlParams.exportTypes.module) {
+                var records = moduleRows;
+                for(var start=0, i=1; start < records.length; i++) {
+                    var pending = records.length - start;
+                    pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
+                    var fileName = nl.fmt2('CourseUserModuleReport-{}.csv', i);
+                    _createUserModuleCsv(records, zip, fileName, start, start+pending);
+                    start += pending;
+                }
             }
 
             nlExporter.saveZip(zip, 'CourseReport.zip', null, resolve, reject);
@@ -260,28 +328,63 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
             reject(e);
         }
     }
+
+    function _getReportsAsList() {
+        var ret = _dictToList(_data.reportRecords);
+        ret.sort(function(a, b) {
+            return (b.stats.status.id - a.stats.status.id);
+        });
+        return ret;
+    }
     
-    function _createDetailedCsv(records, zip, fileName, start, end) {
+    function _getSummaryAsList() {
+        var ret = _dictToList(_summaryStats.getStatsData());
+        ret.sort(function(a, b) {
+            if (a.perc == b.perc) return (b.assigned - a.assigned);
+            return (b.perc - a.perc);
+        });
+        return ret;
+    }
+
+    function _dictToList(d) {
+        var ret = [];
+        for(var k in d) ret.push(d[k]);
+        return ret;
+    }
+    
+    function _createUserModuleCsv(records, zip, fileName, start, end) {
+        var header = _reportProcessor.getCsvModuleHeader();
+        var rows = [nlExporter.getCsvString(header)];
+        for (var i=start; i<end; i++) rows.push(records[i]);
+        var content = rows.join(_CSV_DELIM);
+        zip.file(fileName, content);
+    }
+    
+    function _createUserCsv(records, zip, fileName, start, end, moduleRows) {
         var header = _reportProcessor.getCsvHeader();
         var rows = [nlExporter.getCsvString(header)];
         for (var i=start; i<end; i++) {
             var row = _reportProcessor.getCsvRow(records[i]);
             rows.push(nlExporter.getCsvString(row));
+            if (moduleRows) _reportProcessor.updateCsvModuleRows(records[i], moduleRows);
         }
-        var content = rows.join(_CSV_DELIM);
-        zip.file(fileName, content);
+        if (_data.urlParams.exportTypes.user) {
+            var content = rows.join(_CSV_DELIM);
+            zip.file(fileName, content);
+        }
     }
     
     function _createSummaryCsv(summaryStats, zip, fileName, start, end) {
-        var header = [];
-        for(var i=0; i<summaryStats.metas.length; i++) header.push(summaryStats.metas[i].name);
-        header = header.concat(['Organization', 'Assigned', 'Done', 'Started', 'Pending']);
+        var header = ['Org'];
+        var metas = _reportProcessor.getMetaHeaders(true);
+        for(var i=0; i<metas.length; i++) header.push(metas[i].name);
+        header = header.concat(['Completion', 'Assigned', 'Done', 'Started', 'Pending']);
         var rows = [nlExporter.getCsvString(header)];
         for (var i=start; i<end; i++) {
-            var row = [];
-            var record = summaryStats.orgs[i];
-            for (var j=0; j<record.keys.length; j++) row.push(record.keys[j].v);
-            row = row.concat([record.assigned, record.done, record.started, record.pending]);
+            var record = summaryStats[i];
+            var row = [record.org];
+            for (var j=0; j<metas.length; j++) row.push(record[metas[j].id]);
+            row = row.concat([record.perc ? record.perc+ '%' : '', record.assigned, record.done, record.started, record.pending]);
             rows.push(nlExporter.getCsvString(row));
         }
         var content = rows.join(_CSV_DELIM);
@@ -323,7 +426,10 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats)
                 var report = records[i];
                 report = _reportProcessor.process(report);
                 if (!report) continue;
-                _data.reportRecords.push(report);
+                var rid = report.raw_record.id;
+                if (rid in _data.reportRecords)
+                    _summaryStats.removeFromStats(_data.reportRecords[rid]);
+                _data.reportRecords[rid] = report;
                 _summaryStats.addToStats(report);
             }
             onDoneCallback(result);
@@ -446,7 +552,7 @@ function CourseProcessor() {
 }
 
 //-------------------------------------------------------------------------------------------------
-function ReportProcessor(nl, nlGroupInfo, _data) {
+function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
     this.STATUS_PENDING = 0;
     this.STATUS_STARTED = 1;
     this.STATUS_DONE = 2;
@@ -498,10 +604,10 @@ function ReportProcessor(nl, nlGroupInfo, _data) {
         var statusId = (percComplete == 100 && nCerts == totalCerts) ? this.STATUS_DONE
             : (nAttempts == 0 && nCerts == 0) ? this.STATUS_PENDING : this.STATUS_STARTED;
         var status = _statusInfos[statusId];
-        var stats = {status: status,
-            percComplete: percComplete, nLessonsDone: nLessonsDone, nLessons: nLessons,
-            avgAttempts: avgAttempts, nAttempts: nAttempts, nLessonsAttempted: nLessonsAttempted,
-            nCerts: nCerts, totalCerts: totalCerts}
+        var stats = {status: status, percComplete: percComplete, percCompleteStr: '' + percComplete + ' %',
+            nLessonsDone: nLessonsDone, nLessons: nLessons, avgAttempts: avgAttempts, 
+            nAttempts: nAttempts, nLessonsAttempted: nLessonsAttempted,
+            nCerts: nCerts, totalCerts: totalCerts};
         
         var ret = {raw_record: report, course: course, user: user,
             usermd: _getMetadataDict(user), stats: stats,
@@ -530,21 +636,71 @@ function ReportProcessor(nl, nlGroupInfo, _data) {
 
     this.getCsvHeader = function() {
         var mh = this.getMetaHeaders(false);
-        var headers = [];
+        var headers = ['User', 'Org'];
         for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
-        headers = headers.concat(['Organization', 'User', 'Course', 'Status', 
-            'Average Attempts', 'Certificates', 'Assigned On', 'Last Updated On']);
+        headers = headers.concat(['Course', 'Status', 'Progress',
+            'Average Attempts', 'Certificates', 'Assigned On', 'Last Updated On',
+            'Report id', 'Assign id', 'Course id']);
         return headers;
     };
     
     this.getCsvRow = function(report) {
         var mh = this.getMetaHeaders(false);
-        var ret = [];
+        var ret = [report.user.user_id, report.user.org_unit];
         for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id]);
-        ret = ret.concat([report.user.org_unit, report.user.user_id, report.course.name, 
-            report.stats.status.txt, report.stats.avgAttempts, report.stats.nCerts, 
-            report.created, report.updated]);
+        ret = ret.concat([report.course.name, report.stats.status.txt, '' + report.stats.percComplete + '%',
+            report.stats.avgAttempts, report.stats.nCerts, report.created, report.updated,
+            'id=' + report.raw_record.id, 'id=' + report.raw_record.assignid, 'id=' + report.raw_record.courseid]);
         return ret;
+    };
+    
+    this.getCsvModuleHeader = function() {
+        var mh = this.getMetaHeaders(false);
+        var headers = ['User', 'Org'];
+        for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
+        headers = headers.concat(['Course', 'Module', 'Status', 'Percentage', 
+            'Score', 'Max score', 'Started', 'Ended', 'Time spent (mins)', 'Attempts',
+            'Report id', 'Assign id', 'Course id']);
+        return headers;
+    };
+
+    this.updateCsvModuleRows = function(report, moduleRows) {
+        var modules = report.course.lessons;
+        var lessonReports = report.raw_record.lessonReports || {};
+        var mh = this.getMetaHeaders(false);
+        
+        for(var m=0; m<modules.length; m++) {
+            var module=modules[m];
+            var status = 'pending';
+            var perc='';
+            var score='';
+            var maxScore='';
+            var started = '';
+            var ended = '';
+            var timeSpent='';
+            var attempts = '';
+            if (module.id in lessonReports) {
+                var lrep = lessonReports[module.id];
+                maxScore = lrep.maxScore || 0;
+                score = lrep.score || 0;
+                perc = maxScore > 0 ? Math.round(score*100/maxScore) + '%' : '';
+                maxScore = maxScore || '';
+                score = score || '';
+                started = lrep.started || '';
+                ended = lrep.started || '';
+                timeSpent = Math.ceil((lrep.timeSpentSeconds||0)/60);
+                attempts = lrep.attempt || '';
+                status = (lrep.completed ? 'done' : 'started');
+            }
+            
+            var ret = [report.user.user_id, report.user.org_unit];
+            for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id]);
+            ret = ret.concat([report.course.name, module.name, status, perc, 
+                score, maxScore, started, ended, timeSpent, attempts,
+                'id=' + report.raw_record.id, 
+                'id=' + report.raw_record.assignid, 'id=' + report.raw_record.courseid]);
+            moduleRows.push(nlExporter.getCsvString(ret));
+        }
     };
 }
 
@@ -553,7 +709,6 @@ function SummaryStats(nl, nlGroupInfo, _data, _reportProcessor, $scope) {
     
     var _metas = [];
     var _orgDict = {};
-    var _overallStats = null;
     
     this.init = function() {
         _metas = _reportProcessor.getMetaHeaders(true);
@@ -561,61 +716,48 @@ function SummaryStats(nl, nlGroupInfo, _data, _reportProcessor, $scope) {
     
     this.reset = function() {
         _orgDict = {};
-        _overallStats = _initStatObj(null);
     };
     
+    this.removeFromStats = function(report) {
+        var keys = _keys(report);
+        var key = angular.toJson(keys);
+        if (!(key in _orgDict)) _orgDict[key] = _initStatObj(keys);
+        _updateStatsObj(report, _orgDict[key], -1);
+    };
+
     this.addToStats = function(report) {
         var keys = _keys(report);
         var key = angular.toJson(keys);
         if (!(key in _orgDict)) _orgDict[key] = _initStatObj(keys);
-        _updateStatsObj(report, _orgDict[key]);
-        _updateStatsObj(report, _overallStats);
+        _updateStatsObj(report, _orgDict[key], +1);
     };
     
     this.getStatsData = function() {
-        var ret = {metas: _metas, overall: _overallStats};
-        var records = [];
-        for(var key in _orgDict)
-            records.push(_orgDict[key]);
-        ret.actualCnt = records.length;
-
-        var filter = $scope.search.getFilter($scope.osearch);
-        var max = records.length > MAX_LIST_SIZE ? MAX_LIST_SIZE: records.length;
-
-        var filtered = [];
-        for (var i=0; i<records.length; i++) {
-            if (filtered.length >= max) break;
-            if ($scope.search.isFilterPass($scope.osearch, records[i], filter)) filtered.push(records[i]);
-        }
-        filtered.sort(function(a, b) {
-            return b.assigned - a.assigned;
-        });
-        ret.orgs = filtered;
-        
-        $scope.search.updateScope($scope.osearch, ret.orgs.length, ret.actualCnt);
-        return ret;
+        return _orgDict;
     }
     
     function _keys(report) {
-        var ret  = [];
+        var ret  = [{n: 'org', 'v': report.user.org_unit}];
         var usermeta = report.usermd;
-        for(var i=0; i<_metas.length; i++) {
-            ret.push({n: _metas[i].id, v:usermeta[_metas[i].id]});
-        }
-        ret.push({n: 'ou', v: report.user.org_unit});
+        for(var i=0; i<_metas.length; i++)
+            ret.push({n: [_metas[i].id], v:usermeta[_metas[i].id]});
         return ret;
     }
     
     function _initStatObj(keys) {
-        return {keys: keys, assigned: 0, done: 0, started: 0, pending: 0};
+        var ret = {perc: '', assigned: 0, done: 0, started: 0, pending: 0};
+        for (var i=0; i<keys.length; i++) ret[keys[i].n] = keys[i].v;
+        return ret;
     }
     
-    function _updateStatsObj(report, statsObj) {
-        statsObj.assigned++;
+    function _updateStatsObj(report, statsObj, delta) {
+        statsObj.assigned += delta;
         var stats = report.stats;
-        if (stats.status.id == _reportProcessor.STATUS_PENDING) statsObj.pending++;
-        else if (stats.status.id == _reportProcessor.STATUS_STARTED) statsObj.started++;
-        else statsObj.done++;
+        if (stats.status.id == _reportProcessor.STATUS_PENDING) statsObj.pending += delta;
+        else if (stats.status.id == _reportProcessor.STATUS_STARTED) statsObj.started += delta;
+        else statsObj.done += delta;
+        statsObj.perc = statsObj.assigned > 0 ? Math.round(statsObj.done/statsObj.assigned*100) : 0;
+        statsObj.percStr = statsObj.perc > 0 ? statsObj.perc + ' %' : '';
     }
 }
 

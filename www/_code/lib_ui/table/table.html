@@ -1,39 +1,51 @@
-<div class='nl-card-search row row-center margin0 padding0'
+<div class='padding-small'></div>
+<div class='row row-center margin0 padding0'
      ng-hide='info.search.disabled'>
     <input class='col padding-mid w100' ng-model='info.search.filter'
            placeholder='{{info.search.placeholder}}'
-           ng-keydown='searcher.onKeyDown($event)'>
+           ng-keydown='info._internal.searcher.onKeyDown($event)'>
     <div class='padding-small'></div>
-    <i class='icon fsh4 padding-mid ion-search fblue2 nl-link-text'
-       ng-click='searcher.onClick($event)'></i>
-    <div class='padding-small'></div>
-    <span class='col col-20 padding-small nl-textellipsis nl-link-text'
-          ng-click='searcher.onDetails($event)'>{{searcher.infotxt}}</span>
+    <i class='nl-link-text icon fsh4 fblue padding-mid ion-ios-search'
+       ng-click='info._internal.searcher.onClick($event)'></i>
 </div>
-
+<div class='padding-small'></div>
+<div class='fgrey2'>{{info._internal.searcher.infotxt}}</div>
+<div class='padding-small'></div>
 <div ng-transclude></div>
-<table class='nl-table nl-table-styled'>
-    <tr>
-        <th ng-repeat='mh in summaryStats.metas'>{{mh.name}}</th>
-        <th>Org</th>
-        <th style='text-align: right'>Assigned</th>
-        <th style='text-align: right'>Done</th>
-        <th style='text-align: right'>Started</th>
-        <th style='text-align: right'>Pending</th>
+<div class='padding-small'></div>
+<table class='{{info.styleTable}}'>
+    <tr class='{{info.styleHeader}}'>
+        <td ng-repeat='col in info.columns track by $index'
+            ng-show='col.canShow'
+            class='{{col.styleTd}}'>{{col.name}}</td>
     </tr>
-    <tr>
-        <th ng-repeat='mh in summaryStats.metas'>-</th>
-        <th>Total</th>
-        <th style='text-align: right'>{{summaryStats.overall.assigned}}</th>
-        <th style='text-align: right'>{{summaryStats.overall.done}}</th>
-        <th style='text-align: right'>{{summaryStats.overall.started}}</th>
-        <th style='text-align: right'>{{summaryStats.overall.pending}}</th>
+    <tr ng-show='info._internal.summaryRow'
+         class='{{info.styleSummary}}'>
+        <td ng-repeat='col in info.columns track by $index'
+            ng-show='col.canShow'
+            class='{{col.styleTd}}'>
+             <i ng-if='info._internal.summaryRow[col.id].icon && col.iconType == "ionicon"'
+                class='icon fsh4 padding-mid {{info._internal.summaryRow[col.id].icon}}'></i>
+            {{info._internal.summaryRow[col.id].txt || ''}}
+        </td>
     </tr>
-    <tr ng-repeat='record in summaryStats.orgs track by $index'>
-        <td ng-repeat='key in record.keys'>{{key.v}}</td>
-        <td style='text-align: right'>{{record.assigned}}</td>
-        <td style='text-align: right'>{{record.done}}</td>
-        <td style='text-align: right'>{{record.started}}</td>
-        <td style='text-align: right'>{{record.pending}}</td>
+    <tr ng-repeat-start='rec in info._internal.visibleRecs track by $index'
+        class='{{info.onRowClick ? "nl-link-text2" : ""}}'
+        ng-click='onItemClick(rec, info.onRowClick)'>
+        <td ng-repeat='col in info.columns track by $index'
+            ng-show='col.canShow'
+            class='{{col.styleTd}}'>
+             <i ng-if='rec[col.id].icon' class='icon fsh4 padding-mid {{rec[col.id].icon}}'></i>
+            {{rec[col.id].txt || ''}}
+        </td>
+    </tr>
+    <tr ng-repeat-end ng-show='rec.canShowDetails'>
+        <td colspan='100'>
+            <div class='padding'>
+                <div class='padding-mid training-details'>
+                    <div ng-show='rec.details' nl-compile='rec.details'></div>
+                </div>
+            </div>
+        </td>
     </tr>
 </table>

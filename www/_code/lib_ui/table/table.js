@@ -6,98 +6,13 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.ui.table', [])
-    .directive('nlTable', TableDirective);
+    .directive('nlTable', TableDirective)
+    .service('nlTable', TableSrv);
 }
 
 //-------------------------------------------------------------------------------------------------
 var TableDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
-    function _linkFn($scope, iElem, iAttrs) {
-        /*
-         * Sample info content:
-            var info = {
-                columns: [                                            // Mandatory
-                    {id: xx,                                          // Mandatory
-                     name: xx,                                           // Opt, default=id
-                     smallScreen:false|true,                             // Opt, default=false
-                     midScreen: true|false,                              // Opt, default=true
-                     largeScreen: true|false,                            // Opt, default=true
-                     searchable: true|false,                             // Opt, default=true
-                     searchKey: xx,                                      // Opt, default=id
-                     showInDetails: true|false                           // Opt, default=true
-                     }, ...],
-                search: {                                             // Opt, default=search
-                    disable: false/true                                  // Opt, default=false
-                    placeholder: 'Search',                               // Opt, default='Search'
-                    filter: '',                                          // Opt, default=''
-                },
-                styles: {table: '', tr: '', td: '', th: ''},          // Opt, default='' for all
-                maxVisible: 100,                                      // Opt, default=100
-                onItemClick: undefined|null|fn                        // Opt, default=show detials, 
-                                                                      //      null means no-onlick
-                itemToolBar: [{id: xx, icon: xx, title: xx, fn: xx}, ...] // Opt list of item toolbar
-                settingIcon: {                                        // Opt, default no setting icon
-                    click: undefined|fn                                   // Opt, default=show details
-                    icon: 
-                    }
-                
-                // Function registered by directive to be called by controller
-                // when ever there is cahnge in the records to be displayed.
-                updateScope: fn(records)
-                
-                // Internal stuff maintained by directive
-                _internal: {searcher: {}, recs: [], visibleRecs: []}
-            }
-         */
-        _initData($scope.info);
-    };
-    
-    function _initData(info) {
-        if (!info) info = {};
-        for (var i=0; i<info.columns.length; i++) {
-            var col = info.columns[i];
-            if (!col.name) col.name = col.id;
-            if (!col.smallScreen) col.smallScreen = false;
-            if (col.midScreen === undefined) col.midScreen = true;
-            if (col.largeScreen === undefined) col.largeScreen = true;
-
-            if (col.searchable === undefined) col.searchable = true;
-            if (!col.searchKey) col.searchKey = col.id;
-            if (col.showInDetails === undefined) col.showInDetails = true;
-        }
-
-        if (!info.search) info.search = {};
-        if (!info.search.disabled) info.search.disabled = false;
-        if (!info.search.placeholder) info.search.placeholder = 'Search';
-        if (!info.search.filter) info.search.filer = '';
-         
-        if (!info.styles) info.styles = {};
-        if (!info.styles.table) info.styles.table = '';
-        if (!info.styles.tr) info.styles.tr = '';
-        if (!info.styles.td) info.styles.td = '';
-        if (!info.styles.th) info.styles.th = '';
-
-        if (!info.maxVisible) info.maxVisible = 100;
-        if (info.onItemClick === null) info.onItemClick = _showDetails;
-        
-        info._internal = {
-            searcher: new Searcher(nl, info),
-            recs: [],
-            visibleRecs: []
-        };
-
-        info.updateScope = function(records) {
-            _updateScope(info, records);
-        };
-    }
-    
-    fucntion _showDetails(record) {
-    }
-    
-    function _updateScope(info, records) {
-        // TODO-MUNNI-NOW
-    }
-
     return {
         restrict: 'E', 
         transclude: true,
@@ -105,43 +20,208 @@ function(nl, nlDlg) {
         scope: {
             info: '='
         },
-        link: _linkFn};
+        link: function($scope, iElem, iAttrs) {
+            $scope.onItemClick = function(rec, action) {
+                $scope.info.onItemClick($scope, rec, action);
+            }
+        }
+    };
 }];
 
 //-------------------------------------------------------------------------------------------------
-function Searcher(nl, info) {
-    this.infotxt = '';
+var TableSrv = ['nl', 'nlDlg', '$templateCache',
+function(nl, nlDlg, $templateCache) {
 
-    this.onKeyDown = function(event) {
-        var MAX_KEYSEARCH_DELAY = 200;
-        nl.debounce(this.onClick, MAX_KEYSEARCH_DELAY)(event);
+    /* Sample content of table object which is passed to nlTable directive:
+    <nl-table info='tableobject'> (transclude content) </nl-table>
+    var info = {
+        columns: [                                            // Mandatory
+            {id: xx,                                          // Mandatory, attrid within record
+             name: xx,                                           // Opt, default=id
+             icon: xx,                                           // Opt, default=none
+                                                                 // icon is attrid storing the icon
+             iconType: ionicon|img,                              // Opt, default=ionicon
+             smallScreen:false|true,                             // Opt, default=false
+             mediumScreen: true|false,                           // Opt, default=true
+             largeScreen: true|false,                            // Opt, default=true
+             searchable: true|false,                             // Opt, default=true
+             searchKey: undefined|null|xx,                       // Opt, default=name
+             showInDetails: true|false                           // Opt, default=true
+             styleTd: ''                                         // Opt, default=''
+             }, ...],
+        search: {                                             // Opt, default=search
+            disable: false/true                                  // Opt, default=false
+            placeholder: 'Search',                               // Opt, default available
+            filter: '',                                          // Opt, default=''
+        },
+        getSummaryRow: undefined|fn                           // Opt, default= no summary
+        styleTable: '',                                       // Opt, default=cozy
+        styleHeader: '',                                      // Opt, default=header
+        styleSummary: '',                                     // Opt, default=summary
+        maxVisible: 100,                                      // Opt, default=100
+        onRowClick: undefined=none|"expand"|"xxx"             // Opt, default=none
+        detailsTemplate: undefined|"templateUrl"              // Opt, default=table_details.html
+        clickHandler: undefined|fn                            // Opt, Called with action-type
+        
+        // Function registered by directive to be called by controller
+        // when ever there is cahnge in the records to be displayed.
+        updateScope: fn(records),
+        
+        // Internal stuff maintained by directive
+        _internal: {searcher: {}, recs: [], visibleRecs: []}
+    }
+    */
+    this.initTableObject = function(info) {
+        if (!info) throw('table info object error');
+        for (var i=0; i<info.columns.length; i++) {
+            var col = info.columns[i];
+            if (!col.id) throw('table info object error');
+            if (!col.name) col.name = col.id;
+            if (!col.iconType) col.iconType = 'ionicon';
+            
+            if (!col.smallScreen) col.smallScreen = false;
+            if (col.mediumScreen === undefined) col.mediumScreen = true;
+            if (col.largeScreen === undefined) col.largeScreen = true;
+
+            if (col.searchable === undefined) col.searchable = true;
+            if (!col.searchKey) col.searchKey = col.name;
+            col.searchKey = col.searchable ? col.searchKey.toLowerCase() : null;
+            if (col.showInDetails === undefined) col.showInDetails = true;
+
+            if (!col.styleTd) col.styleTd = '';
+        }
+
+        if (!info.search) info.search = {};
+        if (!info.search.disabled) info.search.disabled = false;
+        if (!info.search.placeholder) info.search.placeholder = 'Start typing to search';
+        if (!info.search.filter) info.search.filter = '';
+         
+        if (!info.styleTable) info.styleTable = 'nl-table-styled2 cozy';
+        if (!info.styleHeader) info.styleHeader = 'header';
+        if (!info.styleSummary) info.styleSummary = 'summary';
+
+        if (!info.maxVisible) info.maxVisible = 100;
+        if (!info.onRowClick) info.onRowClick = null;
+        if (!info.detailsTemplate) info.detailsTemplate = 'lib_ui/table/table_details.html';
+        if (!info.clickHandler) info.clickHandler = null;
+        
+        info._internal = {
+            summaryRow: null,
+            recs: [],
+            visibleRecs: [],
+        };
+        info.onItemClick = _onItemClickHandler;
+        
+        info._internal.searcher = new Searcher(nl, nlDlg, info);
     };
 
-    this.onDetails = function(event) {
-        var visible = info._internal.visibleRecs.length;
-        var total = info._internal.recs.length;
-        var text = nl.t('<p>Displaying <b>{}</b> of <b>{}</b> items.</p>', visible, total);
-        nlDlg.popupAlert({title: '', template: text});
+    this.updateTableObject = function(info, records) {
+        info._internal.recs = records;
+        info._internal.searcher.onClick(null);
     };
+
+    function _onItemClickHandler($scope, rec, action) {
+        if (!action) return;
+        var info = $scope.info;
+        if (!info.clickHandler) return;
+        if (action != 'expand') return info.clickHandler(rec, action);
+        
+        rec.canShowDetails = !rec.canShowDetails;
+        if (!rec.canShowDetails) return;
+        
+        rec.details = $templateCache.get(info.detailsTemplate);
+        _defaultDetails(info, rec);
+    }
     
-    this.onClick = function(event) {
+    function _defaultDetails(info, record) {
+        record.avps = [];
+
+        for(var i=0; i<info.columns.length; i++) {
+            var col = info.columns[i];
+            if (!col.showInDetails) continue;
+            var item = record[col.id] || {txt: ''};
+            var icon = (item.icon && col.iconType == 'ionicon')
+                 ? nl.fmt2("<i class='icon fsh4 {}'></i> ", item.icon)
+                 : '';
+            var txt = icon + item.txt;
+            nl.fmt.addAvp(record.avps, col.name, txt);
+        }
+    }
+}];
+
+//-------------------------------------------------------------------------------------------------
+function Searcher(nl, nlDlg, info) {
+    var self = this;
+
+    function _init() {
+        self.infotxt = '';
+        self.searchAttrs = _getSearchAttrs();
+
+        nl.resizeHandler.onResize(function() {
+            _onResize();
+        });
+        _onResize();
+    }
+
+    self.onKeyDown = function(event) {
+        var MAX_KEYSEARCH_DELAY = 200;
+        nl.debounce(self.onClick, MAX_KEYSEARCH_DELAY)(event);
+    };
+
+    self.onClick = function(event) {
         var filter = _getFilter();
         var records = info._internal.recs;
         var max = records.length > info.maxVisible ? info.maxVisible: records.length;
         var visible = [];
         for (var i=0; i<records.length; i++) {
             if (visible.length >= max) break;
-            if (_isFilterPass(records[i], filter)) visible.push(records[i]);
+            if (_isFilterPass(records[i], filter))
+                visible.push(_getDisplayRecord(records[i]));
         }
+
         info._internal.visibleRecs = visible;
+        info._internal.summaryRow = null;
+        if (info.getSummaryRow)
+            info._internal.summaryRow = info.getSummaryRow(visible);
+        _updateInfoTxt();
+    };
+    
+    function _onResize() {
+        var screenSize = nl.rootScope.screenSize;
+        for(var i=0; i<info.columns.length; i++) {
+            var col = info.columns[i];
+            col.canShow = screenSize == 'small' ? col.smallScreen :
+                screenSize == 'medium' ? col.mediumScreen : col.largeScreen;
+        }
+    }
+    
+    function _getDisplayRecord(record) {
+        var ret = {_raw: record};
+        for(var i=0; i<info.columns.length; i++) {
+            var col = info.columns[i];
+            ret[col.id] = {txt: self.getFieldValue(record, col.id), 
+                icon: col.icon ? self.getFieldValue(record, col.icon) : ''};
+        }
+        return ret;
+    }
+
+    self.getFieldValue = function(record, fieldId) {
+        var pos = fieldId.indexOf('.');
+        if (pos < 0) return record[fieldId] || '';
+        var left = fieldId.substring(0, pos);
+        var right = fieldId.substring(pos+1);
+        return self.getFieldValue(record[left], right);
     };
 
     function _updateInfoTxt() {
         var visible = info._internal.visibleRecs.length;
         var total = info._internal.recs.length;
-        var item = visible <= 1 ? 'item' : 'items'; 
-        var plus = total > visible ? '+' :  '';
-        this.infotxt = nl.t('{}{} {}', visible, plus, item);
+        if (total == 0) {
+            self.infotxt = nl.t('There are no items to display');
+            return;
+        } 
+        var item = (total == 1) ? 'item' : 'items';
+        self.infotxt = nl.t('Displaying {} of {} {}.', visible, total, item);
     }
 
     function _getFilter() {
@@ -153,13 +233,13 @@ function Searcher(nl, info) {
         filt = filt.trim();
 
         var attr = filter.substring(0, pos);
-        if (attr in searchObj.filterAttrs) return {str: filt, attr: attr};
+        if (attr in self.searchAttrs) return {str: filt, attr: attr};
         return {str: filter, attr: null};
     }
 
     function _isFilterPass(record, filter) {
         if (!filter || !filter.str) return true;
-        var fields = searchObj.getFilterFields(record);
+        var fields = _getSearchFields(record);
         if (filter.attr)
             return (fields[filter.attr] || '').toLowerCase().indexOf(filter.str) >= 0;
         for (var f in fields) {
@@ -167,6 +247,26 @@ function Searcher(nl, info) {
         }
         return false;
     }
+    
+    function _getSearchAttrs() {
+        var searchAttrs = {};
+        for(var i=0; i<info.columns.length; i++) {
+            var searchAttr = info.columns[i].searchKey;
+            if (!searchAttr) continue;
+            searchAttrs[searchAttr] = info.columns[i].id;
+        }
+        return searchAttrs;
+    }
+
+    function _getSearchFields(record) {
+        var fields = [];
+        for(var attr in self.searchAttrs) {
+            fields[attr] = self.getFieldValue(record, self.searchAttrs[attr]);
+        }
+        return fields;
+    }
+    
+    _init();
 }
 
 //-------------------------------------------------------------------------------------------------
