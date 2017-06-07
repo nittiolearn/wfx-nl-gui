@@ -26,13 +26,6 @@ function(nlLog, $http, $q, $timeout, $location, $window, $rootScope) {
     this.http = $http;
 
     //---------------------------------------------------------------------------------------------
-    // All timeout calls within nittioapp is made via nl.timeout
-    this.timeout = $timeout;
-    this.debounce = function(fn, delay) {
-        return _debounce(this, fn, delay);
-    };
-
-    //---------------------------------------------------------------------------------------------
     // All $location calls within nittioapp is made via nl.location
     this.location = $location;
 
@@ -43,6 +36,13 @@ function(nlLog, $http, $q, $timeout, $location, $window, $rootScope) {
     //---------------------------------------------------------------------------------------------
     // All $window calls within nittioapp is made via nl.window
     this.rootScope = $rootScope;
+
+    //---------------------------------------------------------------------------------------------
+    // All timeout calls within nittioapp is made via nl.timeout
+    this.timeout = $timeout;
+    this.CreateDeboucer = function() {
+        return new _Debouncer(this);
+    };
 
     //---------------------------------------------------------------------------------------------
     // Formatting and translating Utilities
@@ -516,17 +516,25 @@ function _isMobileOrTab(nl) {
     return check;
 }
 
-function _debounce(nl, fn, delay) {
-    if (!delay) delay = 0;
-    
+function _Debouncer(nl) {
     var _promise = null;
-    return function() {
-        if (_promise) nl.timeout.cancel(_promise);
-        var args = arguments;
-        _promise = nl.timeout(function() {
-            fn.apply(null, args);
-            _promise = null;
-        }, delay);
+    
+    this.debounce = function(delay, fn) {
+        return function() {
+            var args = arguments;
+            if (_promise) {
+                nl.timeout.cancel(_promise);
+                _promise = null;
+            }
+            if (!delay) {
+                fn.apply(null, args);
+                return;
+            }
+            _promise = nl.timeout(function() {
+                fn.apply(null, args);
+                _promise = null;
+            }, delay);
+        };
     };
 }
 

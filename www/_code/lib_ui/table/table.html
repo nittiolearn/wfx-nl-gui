@@ -6,7 +6,7 @@
            ng-keydown='info._internal.searcher.onKeyDown($event)'>
     <div class='padding-small'></div>
     <i class='nl-link-text icon fsh4 fblue padding-mid ion-ios-search'
-       ng-click='info._internal.searcher.onClick($event)'></i>
+       ng-click='info._internal.searcher.onClick(0)'></i>
 </div>
 <div class='padding-small'></div>
 <div class='fgrey2'>{{info._internal.searcher.infotxt}}</div>
@@ -30,7 +30,7 @@
         </td>
     </tr>
     <tr ng-repeat-start='rec in info._internal.visibleRecs track by $index'
-        class='{{info.onRowClick ? "nl-link-text2" : ""}}'
+        class='{{info.onRowClick ? "nl-link-text2" : ""}} anim fade highlight'
         ng-click='onItemClick(rec, info.onRowClick)'>
         <td ng-repeat='col in info.columns track by $index'
             ng-show='col.canShow'
@@ -39,7 +39,7 @@
             {{rec[col.id].txt || ''}}
         </td>
     </tr>
-    <tr ng-repeat-end ng-show='rec.canShowDetails'>
+    <tr ng-repeat-end ng-show='rec.canShowDetails' class='anim fade'>
         <td colspan='100'>
             <div class='padding'>
                 <div class='padding-mid training-details'>

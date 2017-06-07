@@ -224,6 +224,7 @@ var _respColNgClasses = {
     respCol442 : {large: 4, medium: 4, small: 2},
     respCol441 : {large: 4, medium: 4, small: 1},
     respCol431 : {large: 4, medium: 3, small: 1},
+    respCol422 : {large: 4, medium: 2, small: 2},
     respCol421 : {large: 4, medium: 2, small: 1},
     respCol331 : {large: 3, medium: 3, small: 1},
     respCol321 : {large: 3, medium: 2, small: 1},

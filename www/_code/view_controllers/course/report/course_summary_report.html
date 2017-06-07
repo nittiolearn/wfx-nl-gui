@@ -15,15 +15,15 @@
     <div class='padding-small'></div>
     
     
-    <div ng-show='fetchInProgress' class='forange fsh5 row row-center margin0 padding-mid'>
+    <div ng-show='fetchInProgress' class='forange fsh5 row row-center margin0 padding-mid anim fade'>
         <i class="icon ion-alert-circled padding-mid"></i>
         <span class='col padding-mid'>Fetching the data from server. Please wait ...</span>
     </div>    
-    <div ng-show='!fetchInProgress && noDataFound' class='forange fsh5 row row-center margin0 padding-mid'>
+    <div ng-show='!fetchInProgress && noDataFound' class='forange fsh5 row row-center margin0 padding-mid anim fade'>
         <i class="icon ion-alert-circled padding-mid"></i>
         <span class='col padding-mid'>Please select the time range to fetch the reports.</span>
     </div>    
-    <div ng-show='!fetchInProgress && canFetchMore' class='forange fsh5 row row-center margin0 padding-mid'>
+    <div ng-show='!fetchInProgress && canFetchMore' class='forange fsh5 row row-center margin0 padding-mid anim fade'>
         <i class="icon ion-alert-circled padding-mid"></i>
         <span class='col padding-mid'>Not all records are fetched from the server. Click on 'Fetch more' toolbar icon to fetch more records.</span>
     </div>    
@@ -34,7 +34,8 @@
         <i ng-show='ui.showOrgs' class="icon ion-arrow-down-b padding-mid"></i>
         <span class='col padding-mid'>Organizational summary</span>
     </div>
-    <div ng-show='ui.showOrgs' class='padding-mid'>
+    <div class='sandbox'>
+    <div ng-show='ui.showOrgs' class='padding-mid anim fade flyfrom-t'>
         <nl-table info='otable'>
             <div class='row padding0 margin0'>
                 <div class='col'></div>
@@ -50,15 +51,22 @@
                     </span>
                 </div>
             </div>
+            <div class='sandbox'>
             <div ng-show='ui.showOrgCharts && otable._internal.visibleRecs.length > 0'
-                 class='text-center padding-mid' style='height: 300px'>
+                 class='anim fade flyfrom-t'>
+            <div class='text-center padding-mid' style='height: 300px'>
                 <canvas class="chart chart-doughnut"
                         chart-data="doughnut.data"
                         chart-labels="doughnut.label"
                         chart-colours="doughnut.color">
                 </canvas>
             </div>
+            </div>
+            </div>
+            
+            
         </nl-table>
+    </div>
     </div>
 
     <div class='padding-small'></div>
@@ -67,8 +75,10 @@
         <i ng-show='ui.showUsers' class="icon ion-arrow-down-b padding-mid"></i>
         <span class='col padding-mid'>User reports</span>
     </div>
-    <div ng-show='ui.showUsers' class='padding-mid'>
+    <div class='sandbox'>
+    <div ng-show='ui.showUsers' class='padding-mid anim fade flyfrom-t'>
         <nl-table info='utable'></table>
+    </div>
     </div>
 </div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
 </div>

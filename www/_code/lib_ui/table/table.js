@@ -165,10 +165,16 @@ function Searcher(nl, nlDlg, info) {
 
     self.onKeyDown = function(event) {
         var MAX_KEYSEARCH_DELAY = 200;
-        nl.debounce(self.onClick, MAX_KEYSEARCH_DELAY)(event);
+        var timeout = (event.which === 13) ? 0 : MAX_KEYSEARCH_DELAY;
+        self.onClick(timeout);
     };
 
-    self.onClick = function(event) {
+    self.clickDebounder = nl.CreateDeboucer();
+    self.onClick = function(timeout) {
+        self.clickDebounder.debounce(timeout, _onClick)();
+    };
+
+    function _onClick() {
         var filter = _getFilter();
         var records = info._internal.recs;
         var max = records.length > info.maxVisible ? info.maxVisible: records.length;
@@ -184,7 +190,7 @@ function Searcher(nl, nlDlg, info) {
         if (info.getSummaryRow)
             info._internal.summaryRow = info.getSummaryRow(visible);
         _updateInfoTxt();
-    };
+    }
     
     function _onResize() {
         var screenSize = nl.rootScope.screenSize;
