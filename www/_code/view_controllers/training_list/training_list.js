@@ -224,7 +224,6 @@
 			_showTrainingEditDlg.scope.error = {};
 			_showTrainingEditDlg.scope.data = {};
 			_showTrainingEditDlg.scope.dlgTitle = card ? nl.t('Edit training module') : nl.t('Create new training');
-			_showTrainingEditDlg.scope.showCloseIcon = (card !== null) ? 0 : 1;
 			_showTrainingEditDlg.scope.data = (card !== null) ? card : {
 				title : '',
 				description : '',
@@ -232,25 +231,12 @@
 				end_date : ''
 			};
 			_showTrainingEditDlg.scope.data.module = card ? card.module || '' : '';
-
 			_showTrainingEditDlg.scope.userinfo = _userInfo;
-
-			var publishNewButton = {
-				text : nl.t('Create'),
-				onTap : function(e) {
-					_onModuleEdit(e, $scope, _showTrainingEditDlg.scope, null, null);
-				}
-			};
-
-			var editButton = {
-				text : nl.t('Update'),
-				onTap : function(e) {
-					_onModuleEdit(e, $scope, _showTrainingEditDlg.scope, card, id);
-				}
-			};
-
-			var buttonName = id ? editButton : publishNewButton;
-			_showTrainingEditDlg.show('view_controllers/training_list/training_edit_dlg.html', [], buttonName);
+			var button = {text : id ? nl.t('Update'): nl.t('Create'), onTap : function(e) {
+				_onModuleEdit(e, $scope, _showTrainingEditDlg.scope, id ? card : null, id || null);
+			}};
+			var cancelButton = {text: nl.t('Cancel')};
+			_showTrainingEditDlg.show('view_controllers/training_list/training_edit_dlg.html', [button], cancelButton);
 		}
 
 		function _onModuleEdit(e, $scope, dlgScope, card, id) {
