@@ -739,9 +739,10 @@ nittio = function() {
         }
     }
 
-    function debounce(delay, fn) {
+    function debounce(delay, fn, cookie) {
         var timer = null;
         return function() {
+            if (cookie) timer = cookie.timer;
             if (timer) {
                 window.clearTimeout(timer);
             }
@@ -750,6 +751,7 @@ nittio = function() {
                 fn.apply(null, args);
                 timer = null;
             }, delay);
+            if (cookie) cookie.timer = timer;
         };
     }
 

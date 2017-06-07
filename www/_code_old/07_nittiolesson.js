@@ -470,6 +470,7 @@ nlesson = function() {
             return _adjustAndUpdate(this, pgNo);
         };
 
+        var _debouncePreloadPagesCookie = {};
         this.postRenderPage = function(pgNo) {
             if (pgNo < 0 || pgNo >= lesson.pages.length) return;
             var curPage = lesson.pages[pgNo];
@@ -477,7 +478,7 @@ nlesson = function() {
             var self = this;
             nittio.debounce(500, function() {
                 _preLoadOtherPages(self, pgNo);
-            })();
+            }, _debouncePreloadPagesCookie)();
         };
 
         function _preLoadOtherPages(self, pgNo) {
