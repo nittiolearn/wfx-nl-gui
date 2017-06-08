@@ -149,9 +149,8 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
             var prereqScore = null;
             if (cmid in lessonReports && lessonReports[cmid].completed) {
                 var lessonReport = lessonReports[cmid];
-                var maxScore = ('maxScore' in lessonReport) ? parseInt(lessonReport.maxScore) : 0;
-                var score = ('score' in lessonReport) ? parseInt(lessonReport.score) : 0;
-                prereqScore = maxScore > 0 ? Math.round((score/maxScore)*100) : 100;
+                var scores = _getScores(lessonReport, true);
+                prereqScore = scores.maxScore > 0 ? Math.round((scores.score/scores.maxScore)*100) : 100;
             } else if (cmid in statusinfo && statusinfo[cmid].status == 'done') {
                 prereqScore = 100;
             }
@@ -659,7 +658,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         cm.ended = null;
         cm.time = null;
         var status = 'none';
-
+        
         var lessonReports = modeHandler.course.lessonReports || {};
         var lessonReport = lessonReports[cm.id] || {};
         
@@ -675,11 +674,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
             cm.timeMins = Math.round(cm.time/60);
         }
 
-        if ('maxScore' in lessonReport) cm.maxScore = parseInt(lessonReport.maxScore);
+        var scores = _getScores(lessonReport);
+        if ('maxScore' in scores) cm.maxScore = scores.maxScore;
         cm.passScore = cm.maxScore ? parseInt(lessonReport.passScore || 0) : 0;
 
-        if (lessonReport.completed && 'score' in lessonReport) {
-            cm.score = parseInt(lessonReport.score);
+        if (lessonReport.completed && 'score' in scores) {
+            cm.score = scores.score;
             cm.perc = cm.maxScore ? Math.round((cm.score/cm.maxScore)*100) : 0;
             status = cm.perc >= cm.passScore ? 'success' : 'failed';
         }
@@ -1210,10 +1210,9 @@ function Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlServerApi, _upd
         if (!(cm.id in lessonReports)) return;
         if (!lessonReports[cm.id].completed) return;
         var lessonReport = lessonReports[cm.id];
-        var score = parseInt(lessonReport.score || 0);
-        var maxScore = parseInt(lessonReport.maxScore || 0);
-        var passScore = maxScore ? parseInt(lessonReport.passScore || 0) : 0;
-        var perc = maxScore ? Math.round((score/maxScore)*100) : 100;
+        var scores = _getScores(lessonReport, true);
+        var passScore = scores.maxScore ? parseInt(lessonReport.passScore || 0) : 0;
+        var perc = scores.maxScore ? Math.round((scores.score/scores.maxScore)*100) : 100;
         if (perc >= passScore) return;
  
         cm.attempt = lessonReport.attempt || 0;
@@ -1309,6 +1308,7 @@ function NlContainer(nl, $scope, modeHandler) {
         if (lesson.ended) lessonReportInfo.ended = lesson.ended;
         if (lesson.timeSpentSeconds) lessonReportInfo.timeSpentSeconds = lesson.timeSpentSeconds;
         if (lesson.passScore)  lessonReportInfo.passScore = lesson.passScore;
+        if (lesson.selfLearningMode)  lessonReportInfo.selfLearningMode = lesson.selfLearningMode;
         if (_onSaveHandler) _onSaveHandler(lessonReportInfo);
         $scope.updateAllItemData();
     };
@@ -1328,6 +1328,17 @@ function CourseViewDirective(template) {
         };
     }];
 }
+
+//-------------------------------------------------------------------------------------------------
+// General global function
+function _getScores(lessonReport, defaultZero) {
+    var ret = {};
+    var sl = lessonReport.selfLearningMode;
+    if (defaultZero || 'maxScore' in lessonReport) ret.maxScore = parseInt(sl ? 0 : lessonReport.maxScore||0);
+    if (defaultZero || 'score' in lessonReport) ret.score = parseInt(sl ? 0 : lessonReport.score||0);
+    return ret;
+}
+    
 
 //-------------------------------------------------------------------------------------------------
 module_init();

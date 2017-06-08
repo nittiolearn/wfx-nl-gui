@@ -664,11 +664,15 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
             var lid = lessons[i].id;
             var rep = lessonReps[lid];
             if (!rep) continue;
-            if (rep.attempt) {
+            if (!rep.selfLearningMode && rep.attempt) {
                 nAttempts += rep.attempt;
                 nLessonsAttempted++;
             }
             if (!rep.completed) continue;
+            if (rep.selfLearningMode) {
+                rep.maxScore = 0;
+                rep.score = 0;
+            }
             var perc = rep.maxScore ? Math.round(rep.score / rep.maxScore * 100) : 100;
             if (!rep.passScore || perc >= rep.passScore) nLessonsDone++;
         }
@@ -765,8 +769,8 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
             var attempts = '';
             if (module.id in lessonReports) {
                 var lrep = lessonReports[module.id];
-                maxScore = lrep.maxScore || 0;
-                score = lrep.score || 0;
+                maxScore = lrep.selfLearningMode ? 0 : lrep.maxScore || 0;
+                score = lrep.selfLearningMode ? 0 : lrep.score || 0;
                 perc = maxScore > 0 ? Math.round(score*100/maxScore) + '%' : '';
                 maxScore = maxScore || '';
                 score = score || '';

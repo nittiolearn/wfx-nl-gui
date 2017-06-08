@@ -352,11 +352,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		nl.fmt.addAvp(avps, 'Group', report.grpname);
 		nl.fmt.addAvp(avps, 'Created on', report.created, 'date');
 		nl.fmt.addAvp(avps, 'Updated on', report.updated, 'date');
-		nl.fmt.addAvp(avps, 'Report published?', report.published, 'boolean');
 		nl.fmt.addAvp(avps, 'Remarks', report.remarks);
-		nl.fmt.addAvp(avps, 'Start time', report.not_before, 'date');
-		nl.fmt.addAvp(avps, 'End time', report.not_after, 'date');
-        nl.fmt.addAvp(avps, 'Max duration', report.max_duration);
         nl.fmt.addAvp(avps, 'Discussion forum', report.forum, 'boolean');
 		return avps;
 	}

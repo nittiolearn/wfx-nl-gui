@@ -641,6 +641,8 @@ nlesson = function() {
 		this.oLesson.description = jQuery('#l_description').val();
 		this.oLesson.keywords = jQuery('#l_keywords').val();
         this.oLesson.esttime = jQuery('#l_esttime').val();
+        this.oLesson.selfLearningMode = (jQuery('#l_contenttype').val() == 'selflearning');
+        if (!this.oLesson.selfLearningMode) delete this.oLesson.selfLearningMode;
         this.oLesson.passScore = jQuery('#l_passscore').val();
         if (this.oLesson.passScore === '') delete this.oLesson.passScore;
         else {
@@ -1882,7 +1884,7 @@ nlesson = function() {
     function init(launchContext, templateCssClass, nlPlayerType, nlEmbedType) {
         g_nlPlayerType = nlPlayerType;
         g_nlEmbedType = nlEmbedType;
-		g_lesson.renderCtx.init(launchContext);
+		g_lesson.renderCtx.init(launchContext, g_lesson);
 		g_lesson.globals.templateCssClass = templateCssClass;
 
         njs_scorm.afterInit(function() {

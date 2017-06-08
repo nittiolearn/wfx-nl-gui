@@ -548,8 +548,8 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
                 rep._statusStr = 'pending';
                 continue;
             }
-            var maxScore = parseInt(content.maxScore || 0);
-            var score = parseInt(content.score || 0);
+            var maxScore = content.selfLearningMode ? 0 : parseInt(content.maxScore || 0);
+            var score = content.selfLearningMode ? 0 : parseInt(content.score || 0);
             if (score > maxScore) score = maxScore; // Some 3 year old bug where this happened - just for sake of old record!
             var passScore = maxScore ? parseInt(content.passScore || 0) : 0;
             var perc = maxScore > 0 ? Math.round((score/maxScore)*100) : 100;
