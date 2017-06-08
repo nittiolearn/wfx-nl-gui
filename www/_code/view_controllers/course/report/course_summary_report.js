@@ -76,11 +76,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         $scope.toolbar = _getToolbar();
         $scope.courseid = _data.urlParams.courseId;
         $scope.metaHeaders = _reportProcessor.getMetaHeaders(true);
-        $scope.ui = {showOrgs: true, showOrgCharts: true, showUsers: false};
-        $scope.doughnut = {
-            label: ["completed", "started", "pending"],
-            color: ['#007700', '#FFCC00', '#A0A0C0'],
-        };
+        $scope.ui = {showOrgCharts: true, showOrgs: true, showUsers: false};
         $scope.utable = {
             columns: _getUserColumns(),
             styleTable: 'nl-table-styled2 compact',
@@ -96,6 +92,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
             getSummaryRow: _getOrgSummaryRow
         };
         nlTable.initTableObject($scope.otable);
+        _initChartData();
     }
     
     function _getUserColumns() {
@@ -144,18 +141,19 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         return columns;
     }
 
-    function _getOrgSummaryRow(visibleRecords) {
+    function _getOrgSummaryRow(records) {
         var summaryRecord = {'org': {txt: 'Overall'}};
         var assigned = 0;
         var done = 0;
         var started = 0;
         var pending = 0;
-        for (var i=0; i<visibleRecords.length; i++) {
-            var rec = visibleRecords[i];
-            assigned += rec.assigned.txt || 0;
-            done += rec.done.txt || 0;
-            started += rec.started.txt || 0;
-            pending += rec.pending.txt || 0;
+        for (var i=0; i<records.length; i++) {
+            var rec = records[i];
+            if (!rec.passesFilter) continue;
+            assigned += rec.assigned;
+            done += rec.done;
+            started += rec.started;
+            pending += rec.pending;
         }
 
         summaryRecord['percStr'] = {txt: assigned > 0 ? Math.round(done/assigned*100) + ' %': ''};
@@ -163,7 +161,8 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         summaryRecord['done'] = {txt: done};
         summaryRecord['started'] = {txt: started};
         summaryRecord['pending'] = {txt: pending};
-        _updateDoughnutData(summaryRecord);
+
+        _updateChartData(summaryRecord);
         return summaryRecord;
     }
 
@@ -235,9 +234,94 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         nlTable.updateTableObject($scope.otable, _getSummaryAsList());
     }
 
-    function _updateDoughnutData(summaryRecord) {
-        $scope.doughnut.data = [summaryRecord.done.txt, summaryRecord.started.txt,
-            summaryRecord.pending.txt];
+    function _initChartData() {
+        var labels =  ['done', 'started', 'pending'];
+        var colors = ['#007700', '#FFCC00', '#A0A0C0'];
+
+        $scope.charts = [{
+            type: 'doughnut',
+            title: 'Progress',
+            data: [0, 0, 0],
+            labels: labels,
+            colors: colors
+        },
+        {
+            type: 'line',
+            title: 'Updates over time',
+            data: [[]],
+            labels: [],
+            series: ['S1'],
+            colors: colors
+        }];
+    }
+    
+    function _updateChartData(summaryRecord) {
+        _updateProgressChartData(summaryRecord);
+        _updateTimeChartData();
+        nl.timeout(function() {
+            _updateProgressChartData(summaryRecord);
+            _updateTimeChartData();
+        });
+    }
+    
+    function _updateProgressChartData(summaryRecord) {
+        var c = $scope.charts[0];
+        c.data = [summaryRecord.done.txt, summaryRecord.started.txt, summaryRecord.pending.txt];
+        c.title = nl.t('Progress: {} of {} done', summaryRecord.done.txt, summaryRecord.assigned.txt);
+    }
+        
+    function _updateTimeChartData() {
+        var c = $scope.charts[1];
+        var ranges = _getRanges(_data.createdFrom, _data.createdTill, 10);
+        
+        for(var key in _data.reportRecords) {
+            var rec = _data.reportRecords[key];
+            var orgEntry = _summaryStats.getOrgEntry(rec);
+            if (!orgEntry || !orgEntry.passesFilter) continue;
+            for(var i=0; i<ranges.length; i++) {
+                if (nl.fmt.json2Date(rec.raw_record.updated) >= ranges[i].end) continue;
+                ranges[i].count++;
+                break;
+            }
+        }
+        
+        c.labels = [];
+        c.data = [[]];
+        for (var i=0; i<ranges.length; i++) {
+            var r = ranges[i];
+            c.labels.push(r.label);
+            c.data[0].push(r.count);
+        }
+    }
+    
+    function _getRanges(from, till, maxBuckets) {
+        if (!from || !till) return [];
+
+        var day = 24*60*60*1000; // 1 day in ms
+        var now = new Date();
+
+        var offset = now.getTimezoneOffset()*60*1000; // in ms
+        var start = Math.floor((from.getTime()-offset)/day)*day + offset; // Today 00:00 Hrs in local time
+        var till = till;
+        
+        var rangeSize = Math.ceil((till.getTime() - start)/day/maxBuckets);
+        var multiDays = (rangeSize > 1);
+        rangeSize *= day;
+        
+        var ranges = [];
+        var lastTime = new Date(start);
+        while (true) {
+            if (lastTime >= till) break;
+            var range = {start: lastTime, end: new Date(lastTime.getTime() + rangeSize),
+                count: 0};
+            var s = nl.fmt.fmtDateDelta(range.start, null, 'date-mini');
+            var e = nl.fmt.fmtDateDelta(range.end, null, 'date-mini');
+            range.label = multiDays ? nl.fmt2('{} - {}', s, e) : s;
+            lastTime = range.end;
+            ranges.push(range);
+        }
+        console.log('ranges:', ranges);
+        return ranges;
     }
 
     function _getCourseName() {
@@ -340,8 +424,8 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
     function _getSummaryAsList() {
         var ret = _dictToList(_summaryStats.getStatsData());
         ret.sort(function(a, b) {
-            if (a.perc == b.perc) return (b.assigned - a.assigned);
-            return (b.perc - a.perc);
+            if (a.assigned == b.assigned) return (b.perc - a.perc);
+            return (b.assigned - a.assigned);
         });
         return ret;
     }
@@ -732,6 +816,12 @@ function SummaryStats(nl, nlGroupInfo, _data, _reportProcessor, $scope) {
         _updateStatsObj(report, _orgDict[key], +1);
     };
     
+    this.getOrgEntry = function(report) {
+        var keys = _keys(report);
+        var key = angular.toJson(keys);
+        return _orgDict[key] || null;
+    };
+
     this.getStatsData = function() {
         return _orgDict;
     }

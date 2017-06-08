@@ -179,6 +179,8 @@ function Formatter() {
     	var options = null;
     	if (accuracy == 'date') {
 			options = {day: '2-digit', month:'short', year:'numeric'};
+        } else if (accuracy == 'date-mini'){
+            options = {day: '2-digit', month:'short'};
     	} else {
 			options = {hour12: true, day: '2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'};
     	}

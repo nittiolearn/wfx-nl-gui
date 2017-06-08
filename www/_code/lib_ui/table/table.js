@@ -119,6 +119,10 @@ function(nl, nlDlg, $templateCache) {
         info._internal.recs = records;
         info._internal.searcher.onClick(null);
     };
+    
+    this.getSummaryRow = function(info) {
+        return info._internal.summaryRow;
+    };
 
     function _onItemClickHandler($scope, rec, action) {
         if (!action) return;
@@ -180,15 +184,17 @@ function Searcher(nl, nlDlg, info) {
         var max = records.length > info.maxVisible ? info.maxVisible: records.length;
         var visible = [];
         for (var i=0; i<records.length; i++) {
-            if (visible.length >= max) break;
-            if (_isFilterPass(records[i], filter))
+             records[i].passesFilter = false;
+            if (!_isFilterPass(records[i], filter)) continue;
+            if (visible.length < max)
                 visible.push(_getDisplayRecord(records[i]));
+             records[i].passesFilter = true;
         }
 
         info._internal.visibleRecs = visible;
         info._internal.summaryRow = null;
         if (info.getSummaryRow)
-            info._internal.summaryRow = info.getSummaryRow(visible);
+            info._internal.summaryRow = info.getSummaryRow(records);
         _updateInfoTxt();
     }
     

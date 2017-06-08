@@ -40,6 +40,7 @@
             <div class='row padding0 margin0'>
                 <div class='col'></div>
                 <div class='padding-mid nl-link-text2'
+                     ng-show='otable._internal.visibleRecs.length > 0'
                      ng-click='ui.showOrgCharts = !ui.showOrgCharts'>
                     <span ng-show='!ui.showOrgCharts'>Show charts
                         <i class='padding-small'></i>
@@ -52,19 +53,40 @@
                 </div>
             </div>
             <div class='sandbox'>
-            <div ng-show='ui.showOrgCharts && otable._internal.visibleRecs.length > 0'
-                 class='anim fade flyfrom-t'>
-            <div class='text-center padding-mid' style='height: 300px'>
-                <canvas class="chart chart-doughnut"
-                        chart-data="doughnut.data"
-                        chart-labels="doughnut.label"
-                        chart-colours="doughnut.color">
-                </canvas>
+                <div ng-show='ui.showOrgCharts && otable._internal.visibleRecs.length > 0'
+                     class='anim fade flyfrom-t row row-top row-wrap margin0 padding0'>
+                    <div ng-class='respCol221' class='text-center padding-mid'>
+                        <div class='padding-small'></div>
+                        <div class='fsh4 padding-mid'>{{charts[0].title}}</div>
+                        <div>
+                            <canvas class='chart chart-doughnut'
+                                    height='300'
+                                    width='300'
+                                    chart-data='charts[0].data'
+                                    chart-labels='charts[0].labels'
+                                    chart-colours='charts[0].colors'
+                                    chart-series='charts[0].series'
+                                    chart-options='charts[0].options'>
+                            </canvas>
+                        </div>
+                    </div>
+                    <div ng-class='respCol221' class='text-center padding-mid'>
+                        <div class='padding-small'></div>
+                        <div class='fsh4 padding-mid'>{{charts[1].title}}</div>
+                        <div>
+                            <canvas class='chart chart-line'
+                                    height='300'
+                                    width='500'
+                                    chart-data='charts[1].data'
+                                    chart-labels='charts[1].labels'
+                                    chart-colours='charts[1].colors'
+                                    chart-series='charts[1].series'
+                                    chart-options='charts[1].options'>
+                            </canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
-            </div>
-            </div>
-            
-            
         </nl-table>
     </div>
     </div>
