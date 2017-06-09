@@ -118,6 +118,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
             _showCourseReport(card.courseId);
         } else if (linkid === 'course_report_list'){
             _showCourseReportList($scope, card.reportId);
+		} else if (linkid == 'course_copy') {
+			_copyCourse($scope, card);
 		}
 	};
 
@@ -279,7 +281,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		card.details = {help: card.help, avps: _getCourseAvps(course)};
 		card.links = [];
 		if (my) { 
-			card.links.push({id: 'course_modify', text: nl.t('modify')});
+			card.links.push({id: 'course_copy', text: nl.t('copy')});
 			card.links.push({id: 'course_delete', text: nl.t('delete')});
 			if (course.is_published)
 				card.links.push({id: 'course_unpublish', text: nl.t('unpublish')});
@@ -304,6 +306,10 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 
 	function  _getCourseAvps(course) {
 		var avps = [];
+		if (nlRouter.isPermitted(_userInfo, 'admin_user')) {
+			var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
+			_populateLinks(linkAvp, course.id, course);
+		}
 		nl.fmt.addAvp(avps, 'Name', course.name);
 		nl.fmt.addAvp(avps, 'Author', course.authorname);
 		nl.fmt.addAvp(avps, 'Group', course.grpname);
@@ -314,6 +320,10 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		nl.fmt.addAvp(avps, 'Is published?', course.is_published, 'boolean');
 		nl.fmt.addAvp(avps, 'Description', course.description);
 		return avps;
+	}
+
+	function _populateLinks(linkAvp, courseId, course) {
+		nl.fmt.addLinkToAvp(linkAvp, 'course modify', null, 'course_modify');
 	}
 
 	function _createReportCard(report, userInfo, isReport) {
@@ -414,6 +424,28 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
         var url = nl.fmt2('/course_report_list?assignid={}', assignId);
         nl.location.url(url);
     }
+	
+	function _copyCourse($scope, card) {
+		var course = angular.fromJson(card.json);
+	    var courseName = nl.t('{}', card.title); 
+	    var newtitle = (courseName.indexOf("Copy of") == 0) ? courseName : nl.t('Copy of {}', card.title);
+		var dlgScope = {error: {}, data: {
+			name: newtitle,
+			icon: course.icon,
+			description: course.description,
+			content: angular.toJson(course.content, 2)	
+		}};
+		var msg = {
+			title : 'Copy module',
+			template : nl.t('Are you sure you want to make a private copy of this module?'),
+			okText : nl.t('Copy')
+		};
+		nlDlg.popupConfirm(msg).then(function(result) {
+			if (!result) return;
+			_onCourseSave(null, $scope, dlgScope, null, false);
+		});
+
+	}
 	
 	function _unpublishCourse($scope, courseId) {
 		var msg = {title: 'Please confirm', 

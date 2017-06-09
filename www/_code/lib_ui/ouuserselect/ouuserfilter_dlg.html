@@ -1,10 +1,16 @@
-<nl-dlg title='Filter users'>
+<nl-dlg title='Select users'>
     <nl-dlg-help>
-    You may choose to apply some filters to view relevant users in the user tree.
+    You may select a subset of users based on user attributes or just provide a list of user ids.
     </nl-dlg-help>
 	<nl-dlg-content>
+        <div class='row row-top row-wrap margin0 padding0'>
+	        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Select based on</div>
+	        <div ng-class='resp2Col67' class='padding0 nl-dlg-field-value' >
+	            <nl-select fieldmodel='filterBasedOn'></nl-select>
+	        </div>
+	    </div>
         <div class='row row-top row-wrap margin0 padding0'
-             ng-repeat='filter in filters'>
+             ng-repeat='filter in filters' ng-show='data.filterBasedOn.id == "filter"'>
             <div ng-class='$root.resp2Col33'
                  class='nl-dlg-field-name'>
                 {{filter.name}}
@@ -17,5 +23,17 @@
                 </nl-tree-select>
             </div>
         </div>
+        <div class='row row-top row-wrap margin0 padding0'>
+		    <div ng-class='$root.resp2Col33'
+		         class='nl-dlg-field-name' ng-show='data.filterBasedOn.id == "userids"'>
+		         Userids
+		    </div>
+		    <div ng-class='$root.resp2Col67'
+		    	 ng-show='data.filterBasedOn.id == "userids"'
+		    	 class='nl-dlg-field-value'>
+			   <textarea ng-model='data.selectedIds' rows="10" 
+			   		placeholder='list of userids seperated by comma or newline'></textarea>		    	
+		    </div>
+		</div>
 	</nl-dlg-content>
 </nl-dlg>
