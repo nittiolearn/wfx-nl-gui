@@ -203,30 +203,72 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect,
             _ouUserTree.filterIconTitle = 'Some filters are applied';
         }
     }
-    
+    var filterMode = [{id: 'filter', name:nl.t('Select based on user attributes')},
+        			  {id: 'userids', name:nl.t('Select based on userids')}];
+    var previousFilterMode = filterMode[0];
+	var manuallySelectedIdStr = '';
+	
     function _onFilterClick(e) {
         e.stopImmediatePropagation();
         e.preventDefault();
         var filterDlg = nlDlg.create(parentScope);
         filterDlg.setCssClass('nl-height-max nl-width-max');   
         filterDlg.scope.ouUserTree = _ouUserTree;
+        filterDlg.scope.data = {};
+        filterDlg.scope.data.selectedIds = manuallySelectedIdStr;
+        filterDlg.scope.options = {filterBasedOn: filterMode};
+        filterDlg.scope.data.filterBasedOn = previousFilterMode;
         filterDlg.scope.filters = _filterTrees.getFilters();
-        var filterButton = {text : nl.t('Apply'), onTap : _onFilterApply};
-        var resetButton = {text : nl.t('Reset'), onTap : _onFilterReset};
+        var filterButton = {text : nl.t('Apply'), onTap : function(){
+        		previousFilterMode = filterDlg.scope.data.filterBasedOn;
+		    	manuallySelectedIdStr = filterDlg.scope.data.selectedIds;
+        		_onFilterApply(e, filterDlg);
+        	}};
+        var resetButton = {text : nl.t('Reset'), onTap : function(){
+        		_onFilterReset(e, filterDlg);
+        	}};
         var cancelButton = {text : nl.t('Cancel')};
         filterDlg.show('lib_ui/ouuserselect/ouuserfilter_dlg.html',
             [filterButton, resetButton], cancelButton);
     }
-    
-    function _onFilterApply(e) {
-        var filteredTreeData = _filterTrees.filterTreeData(_fullTreeData);
-        var selectedIds = nlTreeSelect.getSelectedIds(_ouUserTree);
-        _updateSelectionTree(filteredTreeData, selectedIds);
+	    
+    function _onFilterApply(e, filterDlg) {
+        _updateSelectionTree(_fullTreeData, {});
+        var selectedIds = {};
+
+        if(filterDlg.scope.data.filterBasedOn.id == 'filter') {
+	        var filteredTreeData = _filterTrees.filterTreeData(_fullTreeData);
+	        for(var i=0; i<filteredTreeData.length; i++) {
+	        	var treeItem = filteredTreeData[i];
+	        	if(treeItem.userObj == undefined) continue;
+        		selectedIds[treeItem.id] = treeItem;
+	        }
+		}
+        if(filterDlg.scope.data.filterBasedOn.id == 'userids') {
+        	var selectedIdTemp = filterDlg.scope.data.selectedIds.replace(/[\s\n\r]+/g, ",");
+        	selectedIdTemp = selectedIdTemp.split(',');
+        	var manualSelectedIds = {};
+        	for(var i=0; i<selectedIdTemp.length; i++) {
+        		var selectedId = selectedIdTemp[i].trim();
+        		selectedId = selectedId.split('.')[0];
+        		if (selectedId) manualSelectedIds[selectedId] = true;
+        	}
+	    	
+	    	var selectedIds = {};
+	        for(var i=0; i<_fullTreeData.length; i++) {
+	        	var treeItem = _fullTreeData[i];
+	        	if(treeItem.userObj == undefined) continue;
+	        	if (treeItem.userObj.username.split('.')[0] in manualSelectedIds)
+	        		selectedIds[treeItem.id] = treeItem;
+	        }
+        }
+        _updateSelectionTree(_fullTreeData, selectedIds);
     }
 
-    function _onFilterReset(e) {
+    function _onFilterReset(e, filterDlg) {
         _filterTrees.initFilters({}, true);
-        _onFilterApply(e);
+    	manuallySelectedIdStr = '';
+        _updateSelectionTree(_fullTreeData, {});
     }
     
     function _getOuToUserDict() {
