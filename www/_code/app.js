@@ -62,7 +62,7 @@ ChartJsProvider, $sceDelegateProvider) {
     }]);
     
     // if none of the above states are matched, use this as the fallback
-    $urlRouterProvider.otherwise('/home');
+    if (!NL_SERVER_INFO.oldCode) $urlRouterProvider.otherwise('/home');
 
     $stateProvider.state('app', {
         cache: true,
@@ -70,6 +70,7 @@ ChartJsProvider, $sceDelegateProvider) {
         templateUrl : 'applayout.html',
         controller : 'nl.AppCtrl'
     });
+
 	_chartInfoInit(ChartJsProvider); 
 }];
 
