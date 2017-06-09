@@ -185,9 +185,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 			"<div class='nl-textellipsis'>{}: {}</div>" +
 			"<div class='nl-textellipsis'>by: <b>{}</b></div>";
 		if (mode.type == TYPES.PAST || mode.type == TYPES.SHARED) {
-		    descFmt += "<img src={} class='nl-24'> completed";
+		    descFmt += "<i class='icon fsh4 ion-checkmark-circled fgreen'></i> completed";
 			card['help'] = nl.t(descFmt, assignment.assigned_to, _userInfo.groupinfo.subjectlabel, assignment.subject, 
-			    assignment.assigned_by, nl.url.resUrl('general/tick.png'));
+			    assignment.assigned_by);
 		} else {
             descFmt += "<div>{}</div>";
 			card['help'] = nl.t(descFmt, assignment.assigned_to, _userInfo.groupinfo.subjectlabel, assignment.subject, 

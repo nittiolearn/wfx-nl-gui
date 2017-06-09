@@ -564,22 +564,31 @@ nlesson = function() {
 		_showPageHint(this);		
 	}
 
+    var _zodiIcons = {
+        'wrong': 'ion-close-circled forange',
+        'warn': 'ion-alert-circled forange',
+        'partial': 'ion-ios-circle-filled fyellow',
+        'correct': 'ion-checkmark-circled fgreen'
+    };
+    
 	function _showPageHint(lesson) {
 		var ret = _getZodiData(lesson);
-		var pageHintTitle = njs_helper.fmt2('<img src="{}/zodi/{}.png"> {}', nittio.getStaticResFolder(), 
-										ret.icon, ret.title);
-		var pageHint = '';
-		if (ret.help != '') pageHint += njs_helper.fmt2('<div class="pageHintHelp">{}</div>', ret.help);
-		if (ret.hint != '') pageHint += njs_helper.fmt2('<div class="pageHint">{}</div>', ret.hint);
-		njs_helper.Dialog.popup(pageHintTitle, pageHint, undefined, undefined, njs_helper.Dialog.sizeLarge());
+        var content = ret.icon ? njs_helper.fmt2('<i class="icon fsh4 {}"></i><span class="padding-mid"></span>',
+            _zodiIcons[ret.icon]) : '';
+        content = njs_helper.fmt2('<div class="padding-bottom">{}<span class="fsh6">{}</span></div>', content, ret.help);
+        if (ret.hint)
+            content += njs_helper.fmt2('<div>{}</div>', ret.hint);
+        content = njs_helper.fmt2('<div class="padding">{}</div>', content);
+		njs_helper.Dialog.popup(ret.title, content, undefined, undefined, njs_helper.Dialog.sizeLarge());
 	}
 
 	function _getZodiData(lesson) {
 		var oLesson = lesson.oLesson;
 		var pageNo = lesson.getCurrentPageNo();
 		var curPage = lesson.pages[pageNo];
+		var isDoMode = lesson.renderCtx.launchMode() == 'do';
 
-		var ret = {help: ''};
+		var ret = {help: '', icon: ''};
 		
 		var tempData = {lessPara: true};
 		ret.hint = ('hint' in curPage.oPage) ? njs_lesson_markup.markupToHtml(curPage.oPage.hint, tempData) : '';
@@ -587,35 +596,39 @@ nlesson = function() {
 		var maxScore = curPage.getMaxScore();
 		
 		if (maxScore <= 0) {
-			ret.icon = 'na';
 			ret.title = 'Know more';
 			return ret;
 		}
 
 		if (lesson.oLesson.notAnswered.indexOf(pageNo) > -1) {
-			ret.icon = 'wrong';
-			ret.title = 'You have not answered';
-            ret.help = 'Please choose your answer.';
+            ret.icon = 'warn';
+			ret.title = 'Not answered';
+            ret.help = isDoMode ? 'You have not answered. Please choose an answer and check again.'
+                : 'No answer was provided';
+            if (isDoMode) ret.hint = '';
 			return ret;
 		}
 			
 		if (score == 0) {
 			ret.icon = 'wrong';
-			ret.title = 'Try again';
-            ret.help = 'Oops - that is not right. Please try again.';
+			ret.title = 'Incorrect';
+            ret.help = isDoMode ? 'Oops - that is not right. Please try again.'
+                : 'Answer chosen was not correct.';
 			return ret;
 		}
 
 		if (score == maxScore)  {
 			ret.icon = 'correct';
 			ret.title = 'Correct';
-			ret.help = '';
+			ret.help = isDoMode ? 'Well done. You got it right.'
+                : 'Answer chosen was correct.';
 			return ret;
 		}
 
 		ret.icon = 'partial';
         ret.title = 'Partially correct';
-		ret.help = 'You got some parts correct. Please try again.';
+		ret.help = isDoMode ? 'You got some parts correct. Please try again.'
+            : 'Answer chosen was partially correct.';
 		return ret;
 	}
 	

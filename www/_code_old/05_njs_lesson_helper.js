@@ -423,21 +423,14 @@ function _SubmitAndScoreDialog_getShowReportParameters(lesson, dialogParams) {
 	var l = lesson.oLesson;
 	dialogParams.score = l.score;
 	dialogParams.maxScore = l.maxScore;
-	var reportversion = ('reportversion' in l) ? l.reportversion : 0;
-
 	dialogParams.perc = 0;
 	if (l.maxScore > 0) {
         dialogParams.perc = (100*l.score/l.maxScore).toFixed(0);
 	}
 	
 	dialogParams.correct = _SubmitAndScoreDialog_isCorrect(l.score, l.maxScore);
-	dialogParams.overallinfo = '';
-	if (reportversion > 1) {
-		dialogParams.overallinfo = njs_helper.fmt2('{} - started <br/>{} - ended', 
-			nittio.dateToString(l.started), nittio.dateToString(l.ended));
-	}
 	// Computed substitution at lesson level
-	var pageRowTempl = '<tr class="{htmlClass}"><td>{page}</td><td class="done"><img src="{staticResFolder}/general/{correct}.png"></td><td class="score">{score}</td><td class="score">{maxScore}</td><td class="more">{more}</td></tr>';
+	var pageRowTempl = '<tr class="{htmlClass}"><td>{page}</td><td class="done"><i class="icon fsh4 {correct}"></i></td><td class="score">{score}</td><td class="score">{maxScore}</td><td class="more">{more}</td></tr>';
 	dialogParams.pageScoreDetails = '';
 
 	for (var i=0; i<lesson.pages.length; i++) {				
@@ -447,12 +440,12 @@ function _SubmitAndScoreDialog_getShowReportParameters(lesson, dialogParams) {
 		rowDetails.score = page.getScore(); 
 		rowDetails.maxScore = page.getMaxScore(); 
 		rowDetails.correct = _SubmitAndScoreDialog_isCorrect(rowDetails.score, rowDetails.maxScore);
+		rowDetails.correct = _zodiIcons[rowDetails.correct];
 		if (rowDetails.maxScore == 0) {
 			rowDetails.maxScore = '-';
 		}
 		rowDetails.more = _SubmitAndScoreDialog_makeMoreLink(i, page.sections[0].oSection.text); 
 		rowDetails.htmlClass = 'normal';
-		rowDetails.staticResFolder = nittio.getStaticResFolder();
 		dialogParams.pageScoreDetails += njs_helper.fmt1(pageRowTempl, rowDetails);
 	}
 }
@@ -463,7 +456,7 @@ function _SubmitAndScoreDialog_getSubmitWindowParameters(lesson, dialogParams) {
 	var l = lesson.oLesson;
 	var pendingPages = l.notAnswered.length + l.partAnswered.length;
     var totalPages = pendingPages + l.answered.length;
-    dialogParams.centerMsg = 'text-align: center'; 
+    dialogParams.centerMsg = 'text-center'; 
 
 	if (pendingPages > 0) {
 	    var fmt = 'You have not completed {} out of {} question/interaction(s).';
@@ -498,6 +491,13 @@ function _SubmitAndScoreDialog_isCompleted(pageNo, oLesson) {
 	}
 	return true;
 }
+
+var _zodiIcons = {
+    'na': '',
+    'cross': 'ion-close-circled forange',
+    'partial': 'ion-ios-circle-filled fyellow',
+    'tick': 'ion-checkmark-circled fgreen'
+};
 
 function _SubmitAndScoreDialog_isCorrect(score, maxScore) {
 	if (maxScore <= 0) {
