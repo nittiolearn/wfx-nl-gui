@@ -76,6 +76,7 @@ function(nlLog, $http, $q, $timeout, $location, $window, $rootScope) {
     
     this.resizeHandler = new ResizeHalder();
 
+    this.idleMonitor = new IdleMonitor(this);
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -91,6 +92,35 @@ function ResizeHalder() {
         this.handlers.push(fn);
     };
 }
+
+//-------------------------------------------------------------------------------------------------
+function IdleMonitor(nl) {
+    this.getIdleSeconds = function() {
+        if (!_interval) _init();
+        return _idleTime;
+    }
+    
+    var _idleTime = 0;
+    var _kp = 0;
+    var _mm = 0;
+    var _interval = null;
+    
+    function _init() {
+        var freqInSeconds = 5;
+        _interval = nl.window.setInterval(function() {
+            _idleTime += freqInSeconds;
+        }, freqInSeconds*1000);
+        angular.element(nl.window.document).bind('keypress', function() {
+            _idleTime = -1*freqInSeconds;
+            _kp++;
+        });
+        angular.element(nl.window.document).bind('mousemove', function() {
+            _idleTime = -1*freqInSeconds;
+            _mm++;
+        });
+    }
+}
+
 //-------------------------------------------------------------------------------------------------
 function _sliceArguments(args, startPos) {
     var ret = [];

@@ -984,7 +984,7 @@ nlesson = function() {
 		}, false, true);
 	}
 
-    var AUTOSAVE_TIMEOUT = 60*1000; // Auto save every one minute	
+    var AUTOSAVE_TIMEOUT = 60; // Auto save every one minute	
     function _Lesson_setupAutoSave(lesson) {
         // Autosave only when doing assignments
         if (lesson.renderCtx.launchCtx() != 'do_assign') return;
@@ -992,8 +992,14 @@ nlesson = function() {
 
         var onCompleteFn = null;
         window.setInterval(function() {
+            var idleMonitor = window.nlapp.nl.idleMonitor;
+            if (idleMonitor.getIdleSeconds() > AUTOSAVE_TIMEOUT + 5) {
+                // No activity for more that one autosave period
+                lesson.sessionStartTime = new Date(); // For timeSpentCalculations
+                return;
+            }
             lesson.saveAssignReport(true);
-        }, AUTOSAVE_TIMEOUT);
+        }, AUTOSAVE_TIMEOUT*1000);
     }
 
 	function _Lesson_saveInternal(lesson, ajaxUrl, onCompleteFn, bRaw, bForce, backgroundTask) {
