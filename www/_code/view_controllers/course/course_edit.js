@@ -72,6 +72,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
     };
     
 	this.initSelectedItem = function(cm) {
+		_updateDropdowns(cm);
 		return _initEditorTempJson(cm);
 	};
 
@@ -90,11 +91,27 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
         nl.pginfo.pageTitle = modeHandler.course.name;	
 	}
 
-    function _onSelectChange(e, cm, attr) {
-        if (!cm || cm.id == '_root') return;
-        if (attr.name == 'type') _onElementTypeChange(e, cm);
+    function _updateDropdowns(cm) {
+    	var attrs = $scope.editor.module_attributes;
+    	for(var i=0; i<attrs.length; i++) {
+    		var attr = attrs[i];
+    		if (!attr.updateDropdown) continue;
+    		attr.updateDropdown(cm, attr);
+    	}
     }
     
+	function _updateTypeDropdown(cm, attr) {
+		attr.values = ['module', 'lesson', 'info', 'certificate'];
+    	if (cm.type == 'link') attr.values.push('link');
+		return;
+	}
+
+    function _onSelectChange(e, cm, attr) {
+        if (!cm || cm.id == '_root') return;
+        attr.updateDropdown(cm, attr);
+        if (attr.name == 'type') _onElementTypeChange(e, cm);
+    }
+
 	function _onElementTypeChange(e, cm){
         var childrenElem = [];
         for(var i=0; i < _allModules.length; i++){
@@ -147,7 +164,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
     var courseAttrs = [
         {name: 'grp_additionalAttrs', type: 'group', text: 'Show advanced attributes'},
     	{name: 'planning', text:'Schedule planning', desc: 'Enable schedule planning for this course', group: 'grp_additionalAttrs', type: 'boolean'},
-    	{name: 'certificate', text: 'Certificate configuration', type: 'object', group: 'grp_additionalAttrs'},
+    	{name: 'certificate', text: 'Certificate configuration', type: 'hidden', group: 'grp_additionalAttrs'},
     	{name: 'custtype', text: 'Custom type', type: 'number', group: 'grp_additionalAttrs'},
         {name: 'exportLevel', text: 'Visibility', type: 'list', values: [], valueNames: {}, group: 'grp_additionalAttrs'},
         {name: 'contentmetadata', text: 'Metadata', type: 'object', group: 'grp_additionalAttrs', debug: true},
@@ -178,12 +195,14 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
     };
     
     var moduleAttrs = [
-        {name: 'name', fields: ['module', 'lesson', 'link', 'info'], type: 'string', text: 'Name'}, 
-        {name: 'type', fields: ['module', 'lesson', 'link', 'info'], type: 'list', text: 'Element type', values: ['module', 'lesson', 'info', 'link'],
-            valueNames: {'module': 'Folder', 'lesson': 'Module', 'link': 'Link', 'info': 'Information'}},
+        {name: 'name', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'string', text: 'Name'}, 
+        {name: 'type', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'list', text: 'Element type', values: ['module', 'lesson', 'info', 'link', 'certificate'],
+            valueNames: {'module': 'Folder', 'lesson': 'Module', 'link': 'Link', 'info': 'Information', 'certificate': 'Certificate'},
+            updateDropdown: _updateTypeDropdown},
         {name: 'refid', fields: ['lesson'], type: 'lessonlink', contentType: 'integer', text: 'Module-id'},
         {name: 'action', fields: ['link'], type: 'lessonlink', text: 'Action'},
         {name: 'urlParams', fields: ['link'], type: 'string', text: 'Url-Params'},
+        {name: 'certificate_image', fields: ['certificate'], type: 'string', text: 'Certificate image'},
         {name: 'grp_depAttrs', fields: ['lesson', 'link', 'info'], type: 'group', text: 'Planning and dependencies'},
         {name: 'start_date', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Start date', group: 'grp_depAttrs'},
         {name: 'planned_date', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Planned date', group: 'grp_depAttrs'},
@@ -195,8 +214,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
         {name: 'maxAttempts', fields: ['lesson'], type: 'number', text: 'Maximum attempts', group: 'grp_additionalAttrs'},
         {name: 'hide_remarks', fields: ['info', 'link'], type: 'boolean', text: 'Disable remarks', group: 'grp_additionalAttrs'},
         {name: 'autocomplete', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
-        {name: 'parentId', fields: ['module', 'lesson', 'link', 'info'], type: 'readonly', debug: true, text: 'Parent ID', group: 'grp_additionalAttrs', readonly: true}, 
-        {name: 'id', fields: ['module', 'lesson', 'link', 'info'], type: 'readonly', text: 'Unique ID', group: 'grp_additionalAttrs', readonly: true}, 
+        {name: 'parentId', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'readonly', debug: true, text: 'Parent ID', group: 'grp_additionalAttrs', readonly: true}, 
+        {name: 'id', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'readonly', text: 'Unique ID', group: 'grp_additionalAttrs', readonly: true}, 
     	{name: 'totalItems', fields : ['module'], type: 'readonly', text: 'Total items', group: 'grp_additionalAttrs'}
     ];
     
@@ -439,14 +458,23 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
         var allowedAttributes = allowedModuleAttrs[cm.type] || [];
     	var attrs = Object.keys(allowedAttributes);
         var editedModule = {};
-        for(var i=0; i<attrs.length; i++){
-    		var attr = attrs[i];
-    		if (!(attr in allowedAttributes)) continue;
-    		var allowedAttr = allowedAttributes[attr];
-            if(cm[attr] === null || cm[attr] === undefined || cm[attr] === '') continue;
-            editedModule[attr] = cm[attr];
-        }
-        return editedModule;
+        var certificateModule = {type: 'certificate', hide_remarks: true, autocomplete: true, urlParams: '/#/course_cert'};
+		if(cm.type == 'certificate') {
+			certificateModule['name'] = cm.name;
+			certificateModule['parentId'] = cm.parentId;
+			certificateModule['id'] = cm.id;			
+			certificateModule['certificate_image'] = cm.certificate_image;
+			return certificateModule;
+		} else {
+	        for(var i=0; i<attrs.length; i++){
+	    		var attr = attrs[i];
+	    		if (!(attr in allowedAttributes)) continue;
+	    		var allowedAttr = allowedAttributes[attr];
+	            if(cm[attr] === null || cm[attr] === undefined || cm[attr] === '') continue;
+	            editedModule[attr] = cm[attr];
+	        }
+	        return editedModule;
+	    }
     }
 	
     function _searchLesson(e, cm){
@@ -573,7 +601,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
     function _validateFail(errorLocation, attr, errMsg, cm) {
         errorLocation.title = attr;
         errorLocation.template = nl.fmt2('<p><b>Error:</b> {}</p>', errMsg);
-        if (cm) {
+        if(cm) {
             errorLocation.template += nl.fmt2('<p><b>Item:</b> {}</p>', cm.name);
         }
     	return false;
