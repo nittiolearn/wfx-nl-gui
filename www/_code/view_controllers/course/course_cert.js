@@ -58,13 +58,11 @@ function(nl, nlRouter, $scope, nlDlg, nlPrinter) {
         if (!course || !course.content || !course.content.modules) return;
         $scope.courseName = course.name;
 
-        var certinfo = course.content.certificate;
-        $scope.bgimg = certinfo && certinfo.bg ? certinfo.bg : '';
-
         var cm = nlContainer.getCurrentModule();
         if (!cm) return;
-        if (cm.type != 'link') return;
-
+        if (cm.type != 'certificate') return;
+        $scope.bgimg = cm.certificate_image || '';
+        
         var statusinfos = course.statusinfo || {};
         var statusinfo = statusinfos[cm.id] || {};
         if (statusinfo.status != 'done' || !statusinfo.date) return;

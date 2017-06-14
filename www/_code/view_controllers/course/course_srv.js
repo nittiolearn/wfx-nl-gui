@@ -17,6 +17,25 @@ function(nl) {
         var action = _dashboardActions[actionId];
         return nl.fmt2(action.url, urlParams);
     };
+
+	var CURRENT_CONTENT_VERSION=2;    
+    this.migrateCourse = function(course) {
+        if (course.content.contentVersion == CURRENT_CONTENT_VERSION) return course;
+        var ret = angular.copy(course);
+        if (!course.content.contentVersion) {
+            for(var i=0; i<course.content.modules.length; i++) {
+            	var item = course.content.modules[i];
+            	if(item.type != 'link' || item.urlParams != '/#/course_cert' || item.action != 'none') continue;
+            	item.type = 'certificate';
+            	item.autocomplete =  true;
+            	item.hide_remarks = true;
+            	item.certificate_image = (course.content.certificate || {}).bg || '';
+            }
+        }
+        if (course.content.certificate) delete course.content.certificate;
+        course.content.contentVersion = CURRENT_CONTENT_VERSION;
+        return course;		
+    };
 }];
 
 // Dashboard actions as defined in server side

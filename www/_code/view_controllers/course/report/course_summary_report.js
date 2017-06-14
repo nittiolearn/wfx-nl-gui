@@ -26,9 +26,9 @@ var MAX_LIST_SIZE = 100;
 
 //-------------------------------------------------------------------------------------------------
 var CourseReportSummaryCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlServerApi', 
-'nlExporter', 'nlRangeSelectionDlg', 'nlGroupInfo', 'nlTable',
+'nlExporter', 'nlRangeSelectionDlg', 'nlGroupInfo', 'nlTable', 'nlCourse',
 function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionDlg,
-    nlGroupInfo, nlTable) {
+    nlGroupInfo, nlTable, nlCourse) {
     var _data = {urlParams: {}, fetchInProgress: false,
         createdFrom: null, createdTill: null, courseRecords: {},
         reportRecords: {}, pendingCourseIds: {},
@@ -36,7 +36,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
 
     var _reportProcessor = new ReportProcessor(nl, nlGroupInfo, nlExporter, _data);
     var _summaryStats = new SummaryStats(nl, nlGroupInfo, _data, _reportProcessor, $scope);
-    var _fetcher = new Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats);
+    var _fetcher = new Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats, nlCourse);
 
 	function _onPageEnter(userInfo) {
         nlRangeSelectionDlg.init();
@@ -477,7 +477,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
 }];
 
 //-------------------------------------------------------------------------------------------------
-function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats) {
+function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats, nlCourse) {
     var self = this;
     
     this.isFetchInProgress = function(dontShowAlert) {
@@ -569,7 +569,7 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats)
     }
 
     var MAX_PER_BATCH = 50;
-    var courseProcessor = new CourseProcessor();
+    var courseProcessor = new CourseProcessor(nlCourse);
     function _fetchCoursesInBatchs(cids, startPos, onDoneCallback) {
         var courseIds = [];
         var maxLen = cids.length < startPos + MAX_PER_BATCH ? cids.length : startPos + MAX_PER_BATCH;
@@ -593,11 +593,12 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats)
 }
 
 //-------------------------------------------------------------------------------------------------
-function CourseProcessor() {
+function CourseProcessor(nlCourse) {
 
     var _idToFullName = {};
     
     this.process = function(course) {
+		course = nlCourse.migrateCourse(course);
         _idToFullName = {};
         var ret = {id: course.id, name: course.name || '', created: course.created || null, 
             updated: course.updated || null, certificates: [], lessons: []};
@@ -610,9 +611,7 @@ function CourseProcessor() {
                 ret.lessons.push({id: m.id, name:_idToFullName[m.id]});
                 continue;
             }
-            if (m.type != 'link') continue;
-            var urlParams = (m.urlParams || '').toLowerCase();
-            if (urlParams.indexOf('course_cert') < 0) continue;
+            if (m.type != 'certificate') continue;
             ret.certificates.push(m.id);
         }
         return ret;

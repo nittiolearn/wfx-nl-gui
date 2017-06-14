@@ -41,7 +41,6 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
 		var params = nl.location.search();
         if ('debug' in params) _debug = true;
         _updateCourseAndModuleAttrOptions(userInfo);
-
         $scope.editor = {
         	jsonTempStore: {},
         	course_params: _courseParams,
@@ -458,7 +457,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
         var allowedAttributes = allowedModuleAttrs[cm.type] || [];
     	var attrs = Object.keys(allowedAttributes);
         var editedModule = {};
-        var certificateModule = {type: 'certificate', hide_remarks: true, autocomplete: true, urlParams: '/#/course_cert'};
+        var certificateModule = {type: 'certificate', action:'none', hide_remarks: true, autocomplete: true, urlParams: '/#/course_cert'};
 		if(cm.type == 'certificate') {
 			certificateModule['name'] = cm.name;
 			certificateModule['parentId'] = cm.parentId;
