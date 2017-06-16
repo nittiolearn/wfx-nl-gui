@@ -2,7 +2,8 @@
 <div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
     <div class='row row-center margin0 padding0'
          style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
-        <div class='col text-center fsh3 padding0'>
+        <div class='col text-center fsh6 padding-mid' style='height: 36px; overflow: hidden'>
+            <span ng-show='screenSize != "small"'>{{timeRangeStr}}</span>
         </div>
         <span ng-repeat='tb in toolbar'
               title='{{tb.title}}'
@@ -13,17 +14,18 @@
         </span>
     </div>
     <div class='padding-small'></div>
-    
-    
-    <div ng-show='fetchInProgress' class='forange fsh5 row row-center margin0 padding-mid anim fade'>
+    <div ng-show='screenSize == "small"' class='fsh6 padding-mid anim fade'>
+        {{timeRangeStr}}
+    </div>    
+    <div ng-show='fetchInProgress' class='forange fsh6 row row-center margin0 padding-mid anim fade'>
         <i class="icon ion-alert-circled padding-mid"></i>
         <span class='col padding-mid'>Fetching the data from server. Please wait ...</span>
     </div>    
-    <div ng-show='!fetchInProgress && noDataFound' class='forange fsh5 row row-center margin0 padding-mid anim fade'>
+    <div ng-show='!fetchInProgress && noDataFound' class='forange fsh6 row row-center margin0 padding-mid anim fade'>
         <i class="icon ion-alert-circled padding-mid"></i>
         <span class='col padding-mid'>Please select the time range to fetch the reports.</span>
     </div>    
-    <div ng-show='!fetchInProgress && canFetchMore' class='forange fsh5 row row-center margin0 padding-mid anim fade'>
+    <div ng-show='!fetchInProgress && canFetchMore' class='forange fsh6 row row-center margin0 padding-mid anim fade'>
         <i class="icon ion-alert-circled padding-mid"></i>
         <span class='col padding-mid'>Not all records are fetched from the server. Click on 'Fetch more' toolbar icon to fetch more records.</span>
     </div>    

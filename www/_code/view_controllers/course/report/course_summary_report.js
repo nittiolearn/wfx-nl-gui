@@ -197,6 +197,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
             if (!dateRange) return;
             _data.createdFrom = dateRange.updatedFrom;
             _data.createdTill = dateRange.updatedTill;
+            _updateTimeRangeStr();
 
             _data.reportRecords = {};
             _summaryStats.reset();
@@ -204,6 +205,12 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
 
             _getDataFromServer();
         });
+    }
+    
+    function _updateTimeRangeStr() {
+        $scope.timeRangeStr = nl.t('From {} till {}', 
+            nl.fmt.fmtDateDelta(_data.createdFrom), 
+            nl.fmt.fmtDateDelta(_data.createdTill));
     }
     
     function _fetchMore() {
@@ -639,11 +646,13 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
     this.STATUS_PENDING = 0;
     this.STATUS_STARTED = 1;
     this.STATUS_DONE = 2;
+    this.STATUS_FAILED = 3;
     
     var _statusInfos = [
         {id: this.STATUS_PENDING, txt: 'pending', icon: 'ion-ios-circle-filled fgrey'},
         {id: this.STATUS_STARTED, txt: 'started', icon: 'ion-ios-circle-filled fgreen'},
-        {id: this.STATUS_DONE, txt: 'done', icon: 'ion-checkmark-circled fgreen'}];
+        {id: this.STATUS_DONE, txt: 'done', icon: 'ion-checkmark-circled fgreen'},
+        {id: this.STATUS_FAILED, txt: 'failed', icon: 'icon ion-close-circled forange'}];
         
     this.process = function(report) {
         var user = nlGroupInfo.getUserObj(''+report.student);
@@ -655,7 +664,8 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
         var lessonReps = report.lessonReports || {};
 
         var nLessons = 0;
-        var nLessonsDone = 0;
+        var nLessonsPassed = 0;
+        var nLessonsFailed = 0;
         var nAttempts = 0;
         var nLessonsAttempted = 0;
         for (var i=0; i<lessons.length; i++) {
@@ -673,8 +683,10 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
                 rep.score = 0;
             }
             var perc = rep.maxScore ? Math.round(rep.score / rep.maxScore * 100) : 100;
-            if (!rep.passScore || perc >= rep.passScore) nLessonsDone++;
+            if (!rep.passScore || perc >= rep.passScore) nLessonsPassed++;
+            else nLessonsFailed++;
         }
+        var nLessonsDone = nLessonsPassed + nLessonsFailed;
         var percComplete = nLessons ? Math.round(nLessonsDone/nLessons*100) : 100;
         var avgAttempts = nLessonsAttempted ? Math.round(nAttempts/nLessonsAttempted*10)/10 : '';
 
@@ -688,11 +700,13 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
             if (sinfo && sinfo.status == 'done') nCerts++;
         }
 
-        var statusId = (percComplete == 100 && nCerts == totalCerts) ? this.STATUS_DONE
+        var statusId = (percComplete == 100 && nCerts == totalCerts && nLessonsFailed == 0) ? this.STATUS_DONE
+            : (percComplete == 100 && nLessonsFailed > 0) ? this.STATUS_FAILED
             : (nAttempts == 0 && nCerts == 0) ? this.STATUS_PENDING : this.STATUS_STARTED;
         var status = _statusInfos[statusId];
         var stats = {status: status, percComplete: percComplete, percCompleteStr: '' + percComplete + ' %',
-            nLessonsDone: nLessonsDone, nLessons: nLessons, avgAttempts: avgAttempts, 
+            nLessonsDone: nLessonsDone, nLessonsPassed: nLessonsPassed, nLessonsFailed: nLessonsPassed, 
+            nLessons: nLessons, avgAttempts: avgAttempts, 
             nAttempts: nAttempts, nLessonsAttempted: nLessonsAttempted,
             nCerts: nCerts, totalCerts: totalCerts};
         
@@ -770,14 +784,16 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
                 var lrep = lessonReports[module.id];
                 maxScore = lrep.selfLearningMode ? 0 : lrep.maxScore || 0;
                 score = lrep.selfLearningMode ? 0 : lrep.score || 0;
-                perc = maxScore > 0 ? Math.round(score*100/maxScore) + '%' : '';
+                var percentage = maxScore > 0 ? Math.round(score*100/maxScore) : 100;
+                var passed = (!lrep.passScore || percentage >= lrep.passScore);
+                perc =  maxScore > 0 ? percentage + '%' : '';
                 maxScore = maxScore || '';
                 score = score || '';
                 started = lrep.started || '';
                 ended = lrep.started || '';
                 timeSpent = Math.ceil((lrep.timeSpentSeconds||0)/60);
                 attempts = lrep.attempt || '';
-                status = (lrep.completed ? 'done' : 'started');
+                status = (lrep.completed ? (passed ? 'done' : 'failed'): 'started');
             }
             
             var ret = [report.user.user_id, report.user.org_unit];
