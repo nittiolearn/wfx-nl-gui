@@ -123,7 +123,8 @@ function(nl) {
 var AppCtrl = ['nl', '$scope', 'nlKeyboardHandler', 'nlServerApi', 'nlRouter', 'nlLogViewer', 'nlOldCodeBridge',
 function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer, nlOldCodeBridge) {
     nl.log.info('UserAgent: ', navigator.userAgent);
-    nlOldCodeBridge.expose();
+    if (NL_SERVER_INFO.oldCode) nlOldCodeBridge.expose();
+
     nl.rootScope.imgBasePath = nl.url.resUrl();
     nl.rootScope.pgInfo = nl.pginfo;
     nl.rootScope.pgBgimg = null;
