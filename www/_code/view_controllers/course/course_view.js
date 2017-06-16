@@ -258,6 +258,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     nlRouter.initContoller($scope, '', _onPageEnter, _onPageLeave);
 
     function _onCourseRead(course) {
+		course = nlCourse.migrateCourse(course);
         modeHandler.initTitle(course);
         _initAttributesDicts(course);
         courseReportSummarizer.updateUserReports(course);
@@ -533,7 +534,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
             if($scope.ext.isEditorMode()) return;
             var openModule = $scope.ext.isStaticMode() || (cm.state.status == 'delayed') || 
                 (cm.state.status == 'pending') || (cm.state.status == 'started');
-        	openModule = openModule && (cm.type == 'lesson' || cm.type == 'link');
+        	openModule = openModule && (cm.type == 'lesson' || cm.type == 'link' || cm.type == 'certificate');
             if (openModule) _onLaunchImpl(cm);            	                	
         }
         _confirmIframeClose(null, _impl);
@@ -549,7 +550,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     
     function _onLaunchImpl(cm) {
         if (cm.type === 'lesson') modeHandler.handleLessonLink(cm, false, $scope);
-        else if(cm.type === 'link') modeHandler.handleLink(cm, false, $scope);
+        else if(cm.type === 'link' || cm.type === 'certificate') modeHandler.handleLink(cm, false, $scope);
     }
 
     $scope.onReattempt = function(e, cm) {
@@ -607,7 +608,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     function _updateItemData(cm, today) {
         if (cm.type === 'module') {
             _updateModuleData(cm, today);
-        } else if (cm.type === 'info' || cm.type === 'link') {
+        } else if (cm.type === 'info' || cm.type === 'link' || cm.type === 'certificate') {
             _updateLinkData(cm, today);
         } else {
             _updateLessonData(cm, today);
@@ -886,7 +887,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, folderSta
         if (!this.item) return false;
         if (this.isStaticMode()) return false;
         if (this.item.hide_remarks) return false;
-        return (this.item.type == 'link' || this.item.type == 'info');
+        return (this.item.type == 'link' || this.item.type == 'info' || this.item.type == 'certificate');
     };
     
     this.canUpdateStatus = function() {
@@ -894,6 +895,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, folderSta
         if (modeHandler.mode != MODES.DO) return false;
         if (this.item.type != 'link' && this.item.type != 'info') return false;
         if (this.item.type == 'link' && this.item.autocomplete) return false;
+        if (this.item.type == 'certificate' && this.item.autocomplete) return false;
         return (this.item.state.status == 'pending' 
             || this.item.state.status == 'delayed' || this.item.state.status == 'success');
     };
@@ -909,14 +911,14 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, folderSta
     };
 
     this.canLaunch = function() {
-        if (!this.item || (this.item.type != 'lesson' && this.item.type != 'link')) return false;
+        if (!this.item || (this.item.type != 'lesson' && this.item.type != 'link' && this.item.type != 'certificate')) return false;
         if (this.isStaticMode()) return true;        
         if (modeHandler.mode == MODES.DO) return (this.item.state.status != 'waiting');
         return (this.item.state.status == 'success' || this.item.state.status == 'failed');
     };
 
     this.getLaunchString = function() {
-        if (this.isStaticMode()|| this.item.type =='link') return 'Open';
+        if (this.isStaticMode()|| this.item.type =='link' || this.item.type =='certificate') return 'Open';
         if (this.item.state.status == 'success' || this.item.state.status == 'failed') return 'View report';
         return 'Open';
     };
@@ -963,6 +965,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, folderSta
         'lesson': 'ion-document-text fblue',
         'quiz': 'ion-ios-help fblue',
         'info': 'ion-information-circled fblue',
+        'certificate': 'ion-android-star fblue',
         'link': 'ion-document fblue',
         'user': 'ion-person forange2'
     };
@@ -1220,7 +1223,7 @@ function Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlServerApi, _upd
         for (var i in cm.reopen_on_fail) {
             var depModule = treeList.getItem(cm.reopen_on_fail[i]);
             if (!depModule) continue;
-            if (depModule.type == 'info' || depModule.type == 'link') {
+            if (depModule.type == 'info' || depModule.type == 'link' || depModule.type == 'certificate') {
                 if (!(depModule.id in statusinfos)) continue;
                 statusinfos[depModule.id] = {status: '',
                     date: nl.fmt.date2Str(new Date(), 'date'), 
