@@ -10,8 +10,9 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlOldCodeBridge = ['nl', 'nlDlg', 'nlApproveDlg', '$compile',
-function(nl, nlDlg, nlApproveDlg, $compile) {
+var NlOldCodeBridge = ['nl', 'nlDlg', 'nlServerApi', 'nlApproveDlg', 'nlMarkup',
+'$compile',
+function(nl, nlDlg, nlServerApi, nlApproveDlg, nlMarkup, $compile) {
     var self = this;
     this.expose = function() {
         if (!nl.window.setupNlAppInGlobal) {
@@ -21,6 +22,7 @@ function(nl, nlDlg, nlApproveDlg, $compile) {
         self.bridge = {
             nl: nl,
             nlDlg: nlDlg,
+            nlMarkup: nlMarkup,
             nlApproveDlg: nlApproveDlg,
             scope: nl.rootScope.$new(),
             compile: _compile

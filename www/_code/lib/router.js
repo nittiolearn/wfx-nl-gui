@@ -23,8 +23,8 @@ function UrlString(location) {
     this.init();
 }
 
-var NlRouter = ['nl', 'nlDlg', 'nlServerApi', '$state',
-function(nl, nlDlg, nlServerApi, $state) {
+var NlRouter = ['nl', 'nlDlg', 'nlServerApi', 'nlMarkup', '$state',
+function(nl, nlDlg, nlServerApi, nlMarkup, $state) {
     var permission = new Permission(nl);
     var defaultFn = function() {return function(resolve, reject) {resolve(true);};};
 
@@ -94,6 +94,7 @@ function(nl, nlDlg, nlServerApi, $state) {
             _sendGoogleAnalytics(userInfo);
             nl.rootScope.pgBgimg = _getUserBgimg(userInfo);
             nl.pginfo.username = (userInfo.username == '') ? '' : userInfo.displayname;
+            nlMarkup.setGid((userInfo.username == '') ? 0 : userInfo.groupinfo.id);
             nl.pginfo.groupCustomCss = userInfo.groupinfo && userInfo.groupinfo.groupCustomCss
                 ? userInfo.groupinfo.groupCustomCss : '';
             var pagePerm = permission.getPermObj(pageUrl);
