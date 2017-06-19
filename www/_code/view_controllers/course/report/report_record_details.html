@@ -1,11 +1,20 @@
 <div class='row row-center row-wrap margin0 padding0'>
-    <div class='fsh4 padding-mid'>
+    <div class='fsh4 padding-mid col'>
         {{rec._raw.user.name}} ({{rec._raw.user.username}})
     </div>
     <div class='padding-mid'>
         <a ng-href='/#/course_view?id={{rec._raw.raw_record.id}}&mode=report_view'
            target='_blank'
-           class='padding-mid nl-link-text'>View report</a>
+           class='row row-center padding0 margin0 nl-link-text'>
+           <i class='ion-ios-eye icon nl-dlg-field-icon'></i>
+           <span ng-show='$root.screenSize != "small"' class='padding-mid'>View report</span>
+        </a>
+    </div>
+    <div class='padding-mid'>
+        <div class='row row-center padding0 margin0 nl-link-text' ng-click='onItemClick(rec, "delete")'>
+           <i class='ion-ios-trash icon nl-dlg-field-icon'></i>
+           <span ng-show='$root.screenSize != "small"' class='padding-mid'>Delete</span>
+        </div>
     </div>
 </div>
 
@@ -36,11 +45,3 @@
          class='padding-mid' ng-class='$root.respCol422'><b>{{meta.name}}:</b></div>
     <div ng-repeat-end class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.usermd[meta.id]}}</div>
 </div>
-
-<div class='fsh5 padding-mid'>
-    Status of modules
-</div>
-
-<table class='nl-table-styled2'>
-    <tr><td>Module</td><td>TODO</td></tr>
-</table>

@@ -120,10 +120,24 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
     }
     
     function _userRowClickHandler(rec, action) {
-        console.log('_userRowClickHandler: ', rec, action);
-        var raw = rec._raw;
-        return null;
-        return 'TODO: {{rec["user.org_unit"]}}';
+        if (action == 'delete') {
+            return _deleteReport(rec);
+        }
+    }
+    
+    function _deleteReport(report) {
+        var template = nl.t('Once deleted, you will not be able to recover this report. Are you sure you want to delete this report?');
+        nlDlg.popupConfirm({title: 'Please confirm', template: template,
+            okText : nl.t('Delete')}).then(function(res) {
+            if (!res) return;
+            var repid = report._raw.raw_record.id;
+            nlServerApi.courseReportDelete(repid).then(function(statusInfo) {
+                if (repid in _data.reportRecords)
+                    _summaryStats.removeFromStats(_data.reportRecords[repid]);
+                delete _data.reportRecords[repid];
+                _updateScope();
+            });
+        });
     }
             
     function _getOrgColumns() {

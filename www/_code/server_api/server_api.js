@@ -131,6 +131,11 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/course_assignment_delete.json', {assignid: assignId});
     };
     
+    this.courseReportDelete = function(repid) {
+        // return: status info array
+        return server.post('_serverapi/course_report_delete.json', {repid: repid});
+    };
+    
     this.courseGetAssignmentList = function(data) {
         // data: mine, search
         // returns list of courseAssignment objects
