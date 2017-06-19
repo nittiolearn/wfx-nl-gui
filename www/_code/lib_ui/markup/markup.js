@@ -24,13 +24,13 @@ function (nlMarkup) {
 var NlMarkupSrv = ['nl', function (nl) {
 
 var parentStack = new ParentStack();
-var _userInfo = {};
+var _gid = 0;
 
 //-----------------------------------------------------------------------------------
 // Public methods
 //-----------------------------------------------------------------------------------
-this.setUserInfo = function(userInfo) {
-    _userInfo = userInfo;
+this.setGid = function(gid) {
+    _gid = gid;
 };
 
 this.getHtml = function(markupStr, retData) {
@@ -100,7 +100,7 @@ function _markupToHtmlXxxInline(line, xxxFn, bInline) {
 }
 
 function _checkMarkup(str, markup) {
-    var re = new RegExp(njs_helper.fmt2('^\\s*{}', markup));
+    var re = new RegExp(nl.fmt2('^\\s*{}', markup));
     if (str.match(re)) return true;
     return false;
 }
@@ -110,8 +110,8 @@ function _markupToHtmlImg(str, bInline) {
     var cls = bInline ? 'inline_obj' : 'retain_aspect_ratio';
     return _parseWikiMarker(str, 'img:', function(imgUrl, avpairs) {
         if (imgUrl == '') return '';
-        var html = njs_helper.fmt2('<img class="{} njs_img" src="{}" />', cls, imgUrl);
-        if ('link' in avpairs) html = njs_helper.fmt2('<a href="{}">{}</a>', avpairs['link'], html);
+        var html = nl.fmt2('<img class="{} njs_img" src="{}" />', cls, imgUrl);
+        if ('link' in avpairs) html = nl.fmt2('<a href="{}">{}</a>', avpairs['link'], html);
         return html;
     });
 }
@@ -123,8 +123,8 @@ function _markupToHtmlPdf(str, bInline) {
         if (link == '') return '';
         var page = ('page' in avpairs) ? parseInt(avpairs['page']) : 1;
         var scale = ('scale' in avpairs) ? parseFloat(avpairs['scale']) : 1.0;
-        var attrs = njs_helper.fmt2('njsPdfUrl="{}" njsPdfPage="{}" njsPdfScale="{}"', link, page, scale);
-        return njs_helper.fmt2('<div class="njs_pdf_holder {}" {}></div>', cls, attrs);
+        var attrs = nl.fmt2('njsPdfUrl="{}" njsPdfPage="{}" njsPdfScale="{}"', link, page, scale);
+        return nl.fmt2('<div class="njs_pdf_holder {}" {}></div>', cls, attrs);
     });
 }
 
@@ -133,12 +133,12 @@ function _markupToHtmlAudio(str, bInline) {
     return _parseWikiMarker(str, 'audio:', function(link, avpairs) {
         if (link == '') return '';
         var title = '';
-        if ('text' in avpairs) title = njs_helper.fmt2('<div>{}</div>',"avpairs['text']");
+        if ('text' in avpairs) title = nl.fmt2('<div>{}</div>',"avpairs['text']");
         
         var pos = ('start' in avpairs) || ('end' in avpairs) ? '#t=' : '';
-        pos += 'start' in avpairs ? njs_helper.fmt2('{}', avpairs['start']) : '';
-        pos += 'end' in avpairs ? njs_helper.fmt2(',{}', avpairs['end']) : '';          
-        return njs_helper.fmt2('{}<audio preload controls class="njs_audio" src="{}{}" />',title,link,pos); 
+        pos += 'start' in avpairs ? nl.fmt2('{}', avpairs['start']) : '';
+        pos += 'end' in avpairs ? nl.fmt2(',{}', avpairs['end']) : '';          
+        return nl.fmt2('{}<audio preload controls class="njs_audio" src="{}{}" />',title,link,pos); 
     });
 }
 
@@ -157,14 +157,14 @@ function _markupToHtmlVideo(str, bInline) {
             if (url.indexOf('http://') != 0 && url.indexOf('https://') != 0) {
                 protocol = 'http://';           
             }
-            var pos = 'start' in avpairs ? njs_helper.fmt2('&start={}', avpairs['start']) : '';
-            pos += 'end' in avpairs ? njs_helper.fmt2('&end={}', avpairs['end']) : '';
-            return njs_helper.fmt2('<iframe data-njsYouTube src="{}{}?modestBranding=1&rel=0&html5=1&enablejsapi=1{}" class="reset_height" allowfullscreen></iframe>', protocol, url, pos);     
+            var pos = 'start' in avpairs ? nl.fmt2('&start={}', avpairs['start']) : '';
+            pos += 'end' in avpairs ? nl.fmt2('&end={}', avpairs['end']) : '';
+            return nl.fmt2('<iframe data-njsYouTube src="{}{}?modestBranding=1&rel=0&html5=1&enablejsapi=1{}" class="reset_height" allowfullscreen></iframe>', protocol, url, pos);     
         }
         var pos = ('start' in avpairs) || ('end' in avpairs) ? '#t=' : '';
-        pos += 'start' in avpairs ? njs_helper.fmt2('{}', avpairs['start']) : '';
-        pos += 'end' in avpairs ? njs_helper.fmt2(',{}', avpairs['end']) : '';          
-        return njs_helper.fmt2('<video preload controls class="njs_video reset_height"><source src="{}{}"/></video>',link,pos);
+        pos += 'start' in avpairs ? nl.fmt2('{}', avpairs['start']) : '';
+        pos += 'end' in avpairs ? nl.fmt2(',{}', avpairs['end']) : '';          
+        return nl.fmt2('<video preload controls class="njs_video reset_height"><source src="{}{}"/></video>',link,pos);
     });
 }
 
@@ -173,7 +173,7 @@ function _markupToIframe(str, bInline) {
     if(_checkMarkup(str, 'scorm:')) str = str.replace('scorm:','iframe:');
     return _parseWikiMarker(str, 'iframe:', function(link, avpairs) {
         if (link == '') return '';
-        return njs_helper.fmt2('<iframe src="{}" class="reset_height"></iframe>',link);
+        return nl.fmt2('<iframe src="{}" class="reset_height"></iframe>',link);
     });
 }
 
@@ -218,7 +218,7 @@ function _getFlexHtmlListRow(line, level, isBullet) {
     var ret = '<div class="njsFlexList">';
     for(var i=0; i<level; i++)
         ret += '<div class="njsFlexListBulletHolder"></div>';
-    ret += njs_helper.fmt2('<div class="njsFlexListBulletHolder"><div class="{}">{}</div></div>', cls, content);
+    ret += nl.fmt2('<div class="njsFlexListBulletHolder"><div class="{}">{}</div></div>', cls, content);
     return ret + '<div class="njsFlexListText">' 
         + _lineWikiToHtml(line.substring(1)) + '</div></div>';
 }
@@ -237,7 +237,7 @@ function _handleLink(line) {
         if (link == '') return '';
         var title = 'text' in avpairs ? avpairs['text'] : link;
         var newTab = 'popup' in avpairs && avpairs['popup'] == "1" ? 'target="_blank"' : '';
-        return njs_helper.fmt2('<a {} href="{}">{}</a>', newTab, link, title);
+        return nl.fmt2('<a {} href="{}">{}</a>', newTab, link, title);
     });
 }
 
@@ -256,7 +256,7 @@ function _breakWikiMarkup(line) {
 }
 
 function _parseWikiMarker(line, marker, fn) {
-    var regex=new RegExp(njs_helper.fmt2('({})([^\\[]*)(\\[.*?\\])?', marker), 'g');
+    var regex=new RegExp(nl.fmt2('({})([^\\[]*)(\\[.*?\\])?', marker), 'g');
     return line.replace(regex, function(match, mark, link, param, offset, allstr) {
         param = (typeof param === 'string' && param !== '') ? param.substring(1, param.length-1) : '';
         link = (typeof link !== 'string') ? '' : link;
@@ -276,8 +276,8 @@ var _d='1262923201347'; // Some kind of fixed string in URL as a distractor
 var _v='01';
 function _convertUrl(link) {
     if (link.indexOf('/resource/resview/') < 0) return link;
-    if (!_userInfo.username) return link;
-    return nl.fmt2('{}?_d={}&_v={}&_g={}', link, _d, _v, _userInfo.groupinfo.id);
+    if (!_gid) return link;
+    return nl.fmt2('{}?_d={}&_v={}&_g={}', link, _d, _v, _gid);
 }
 
 }];

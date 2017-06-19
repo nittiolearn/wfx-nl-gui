@@ -657,9 +657,9 @@ BlankScreen.isVisible = function() {
 BlankScreen.show = function() {
 	if (BlankScreen._isShown) return;
 	BlankScreen._isShown = true;
-    var rootScope = window.nlapp.nl.rootScope;
+    var nl = window.nlapp.nl;
     var nlDlg = window.nlapp.nlDlg;
-    rootScope.$apply(function() {
+    nl.timeout(function() {
         nlDlg.showLoadingScreen();
     });
 };
@@ -667,9 +667,9 @@ BlankScreen.show = function() {
 BlankScreen.hide = function() {
 	if (!BlankScreen._isShown) return;
 	BlankScreen._isShown = false;
-    var rootScope = window.nlapp.nl.rootScope;
+    var nl = window.nlapp.nl;
     var nlDlg = window.nlapp.nlDlg;
-    rootScope.$apply(function() {
+    nl.timeout(function() {
         nlDlg.hideLoadingScreen();
     });
 };
@@ -1049,9 +1049,9 @@ Dialog.popdown = function(onCloseDone) {
 };
 
 Dialog.popupStatus = function(msg, popdownTime) {
-    var rootScope = window.nlapp.nl.rootScope;
+    var nl = window.nlapp.nl;
     var nlDlg = window.nlapp.nlDlg;
-    rootScope.$apply(function() {
+    nl.timeout(function() {
         nlDlg.popupStatus(msg, popdownTime);
     });
 };

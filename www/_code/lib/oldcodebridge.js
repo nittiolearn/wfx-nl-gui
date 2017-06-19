@@ -19,19 +19,15 @@ function(nl, nlDlg, nlServerApi, nlApproveDlg, nlMarkup, $compile) {
             // This is not our old code
             return;
         }
-        nlServerApi.getUserInfoFromCache().then(function(userInfo) {
-            nlMarkup.setUserInfo(userInfo);
-            self.bridge = {
-                nl: nl,
-                nlDlg: nlDlg,
-                nlMarkup: nlMarkup,
-                nlApproveDlg: nlApproveDlg,
-                scope: nl.rootScope.$new(),
-                compile: _compile,
-                userInfo: userInfo
-            };
-            nl.window.setupNlAppInGlobal(self.bridge);
-        });
+        self.bridge = {
+            nl: nl,
+            nlDlg: nlDlg,
+            nlMarkup: nlMarkup,
+            nlApproveDlg: nlApproveDlg,
+            scope: nl.rootScope.$new(),
+            compile: _compile
+        };
+        nl.window.setupNlAppInGlobal(self.bridge);
     };
     
     function _compile(htmlDom) {
