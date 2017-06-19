@@ -1,0 +1,69 @@
+<nl-dlg title='{{dlgTitle}}' show-close='1'>
+	<nl-dlg-help>
+		<div>
+			<h2>Configure course dependencies</h2>
+			<p>
+				You could specify a set of prerequisite conditions that have to be met for current item. Only after all the specified
+				conditions are met, the curent item is made available to the learner. If the prerequisites are not met, this current
+				item is shown in a locked state to the learner. 
+			</p>
+			<p>
+				If you need to specify multiple conditions, please press on the plus icon.
+			</p>
+			<ul>
+				<li class='padding-mid'><b>Start after:</b> you could select any item above the current item which is a prerequisite
+					for the current item. Only after the specified item is completed, the current item will be unlocked for the
+					learner.</li>
+				<li class='padding-mid'><b>Mininum score:</b> optioanlly, you could also configure the minimum score required in the
+					specified module for the prerequisite condition to be satisfied. For example, you may want to open up the
+					certificate only if the user has scored at least 90% in the quiz.</li>
+			</ul>
+		</div>
+	</nl-dlg-help>
+	<nl-dlg-content>
+		<table class='nl-table-styled2 nl-table-padded fsh6'>
+		    <tr>
+		    	<th></th>
+		        <th style='width:70%'>Start after</th>
+		        <th>Minimum score</th>
+				<th ng-if='showMaxScore'>Maximum score</th>
+		    </tr>
+		    <tr ng-repeat-start='item in moduleList track by $index'
+		        class='{{item.error ? "nl-bg-red" : ""}}'>
+		    	<td><span class='icon ion-ios-trash fsh4 padding-small nl-link-img'
+		    			  ng-click='moduleList.splice($index, 1)'>
+		    		</span>
+		    	</td>
+				<td>
+					<div class='nl-dlg-field-value'> 
+					    <select ng-model='item.module' 
+					    		ng-change='onFieldChange(fieldmodel)'
+					            ng-options='opt as opt.name for opt in moduleOptions track by opt.id'
+					            class='{{fieldcls}}'
+					            autofocus=''
+					            tabindex="{{tabindex}}">
+					    </select>
+				    </div>
+				</td>
+				<td><input ng-model='item.min_score' type="number" min='0' max='100'></input></td>
+				<td ng-if='showMaxScore'><input ng-model='item.max_score' type="number" min='0' max='100'></input></td>
+		    </tr>
+		    <tr ng-repeat-end ng-show='item.error'>
+		    	<td style='padding: 0'>
+		    	</td>
+				<td style='padding-top: 4px' colspan='3'>
+					<div class='forange padding-small'>{{item.error}}</div>
+				</td>
+		    </tr>
+		    <tr>
+		    	<td>
+			        <i class='icon ion-plus-circled fsh4 padding-small nl-link-img'
+			           ng-click='moduleList.push({})'
+			           title='Edit module'></i>
+		    	</td>
+		    	<td colspan="3">
+		    	</td>
+		    </tr>
+		</table>
+	</nl-dlg-content>
+</nl-dlg>

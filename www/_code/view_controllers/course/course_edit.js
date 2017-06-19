@@ -24,6 +24,7 @@ var EditorFieldsDirective = ['nl', function(nl) {
         }
     };
 }];
+
 //-------------------------------------------------------------------------------------------------
 var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlLessonSelect', 'nlExportLevel',
 function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
@@ -62,6 +63,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
             updateTitle: _updateTitle,
             onSelectChange: _onSelectChange,
             validateTextField: _validateTextField,
+			editAttribute: _editAttribute,
+			getDisplayValue: _getDisplayValue
         };
     };
 
@@ -144,7 +147,24 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
 				if(res) return;
 			});
 		}
-	}	
+	}
+
+	function _editAttribute(e, cm, attr) {
+		if (attr.name == 'start_after') {
+			var dlg = new StartAfterDlg(nl, nlDlg, $scope, _allModules, cm);
+			dlg.show();
+		}
+	}
+	
+	function _getDisplayValue(cm, attr) {
+		if (attr.name == 'start_after') {
+			if (!cm.start_after) return '';
+			var cnt  = cm.start_after.length;
+			var plural = cnt > 1 ? 'dependencies' : 'dependency';
+			return nl.fmt2('{} {} specified', cnt, plural);
+		}
+		return '';
+	}
 	
     function _getCourseAttributes(course) {
         var ret = angular.copy(courseAttrs);
@@ -202,11 +222,11 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
         {name: 'action', fields: ['link'], type: 'lessonlink', text: 'Action'},
         {name: 'urlParams', fields: ['link'], type: 'string', text: 'Url-Params'},
         {name: 'certificate_image', fields: ['certificate'], type: 'string', text: 'Certificate image'},
-        {name: 'grp_depAttrs', fields: ['lesson', 'link', 'info'], type: 'group', text: 'Planning and dependencies'},
+        {name: 'start_after', fields: ['lesson', 'link', 'info'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
+        {name: 'grp_depAttrs', fields: ['lesson', 'link', 'info'], type: 'group', text: 'Planning'},
         {name: 'start_date', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Start date', group: 'grp_depAttrs'},
         {name: 'planned_date', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Planned date', group: 'grp_depAttrs'},
         {name: 'grp_additionalAttrs', fields: ['module', 'lesson', 'link', 'info'], type: 'group', text: 'Show advanced attributes'},
-        {name: 'start_after', fields: ['lesson', 'link', 'info'], type: 'object', contentType: 'object', text: 'Start after', group: 'grp_additionalAttrs'},
         {name: 'reopen_on_fail', fields: ['lesson'], type: 'object', text: 'Reopen on fail', contentType: 'object',group: 'grp_additionalAttrs'},
         {name: 'icon', fields: ['module', 'lesson', 'link', 'info'], type: 'string', text: 'Module icon', group: 'grp_additionalAttrs'},
         {name: 'text', fields: ['module', 'lesson', 'link', 'info'], type: 'text', text: 'Description', group: 'grp_additionalAttrs'},
@@ -628,7 +648,6 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
 			$scope.editorCb.updateChildrenLinks();
 		}};
 		_organiseModuleDlg.show('view_controllers/course/course_organiser.html', [], closeButton, false);
-    		
     }
     
 	function _moveItem(movedItem, fromIndex, toIndex) {
@@ -645,6 +664,104 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
     }
 }];
 
+//-------------------------------------------------------------------------------------------------
+function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm) {
+
+	var dlg = nlDlg.create($scope);
+
+	this.show = function() {
+		dlg.setCssClass('nl-height-max nl-width-max');
+		dlg.scope.dlgTitle = nl.t('Configure dependencies');
+		dlg.scope.showMaxScore = true;
+		dlg.scope.moduleOptions = _getAvailableModules();
+		if(dlg.scope.moduleOptions.length == 0) {
+			var msg = {title: nl.t('Error'), template: nl.t('It is not possible to configure start after for the first item.')};
+			nlDlg.popupAlert(msg);
+			return;
+		}
+		dlg.scope.moduleList = _getModuleListFromCm();
+		var okButton = {text: nl.t('Ok'), onTap: function(e) {
+			_onOk(e);
+		}};
+		var closeButton = {text: nl.t('Cancel')};
+		dlg.show('view_controllers/course/course_start_after_configure.html', [okButton], closeButton);
+	};
+
+	function _getModuleListFromCm() {
+		var ret = [];
+		var items = cm.start_after || [];
+		for(var i=0; i<items.length; i++) {
+			var item = items[i];
+			ret.push({module: {id: item.module}, min_score: item.min_score || '', max_score: item.max_score || '', error: ''});
+		}
+		if(ret.length == 0) ret.push({});
+		return ret;
+	}
+
+	function _onOk(e) {
+		var modulesFromGui = dlg.scope.moduleList;
+		var modulesToStore = [];
+		var foundModuleIds = {};
+		_errorFound = false;
+		for(var i=0; i<modulesFromGui.length; i++) {
+			var item = modulesFromGui[i];
+			if(item.module === undefined) continue;
+			if(item.module.id in foundModuleIds) {
+				_validateFail(item, 'Dependency to this item is already set above');
+				continue;
+			}
+			foundModuleIds[item.module.id] = true;
+			var moduleToStore = {module: item.module.id};
+			if (item.min_score) moduleToStore.min_score = parseInt(item.min_score);
+			if (item.max_score) moduleToStore.max_score = parseInt(item.max_score);
+			if (moduleToStore.min_score < 0 || moduleToStore.min_score > 100) {
+				_validateFail(item, 'Minimum score has to be between 0 and 100');
+				continue;
+			}
+			if (moduleToStore.max_score < 0 || moduleToStore.max_score > 100) {
+				_validateFail(item, 'Maximum score has to be between 0 and 100');
+				continue;
+			}
+			if (moduleToStore.max_score < moduleToStore.min_score) {
+				_validateFail(item, 'Maximum score cannot be smaller than minimmum score');
+				continue;
+			}
+			_validateSuccess(item);
+			modulesToStore.push(moduleToStore);
+		}
+		if (_errorFound) {
+	        if(e) e.preventDefault();
+	        return;
+		}
+		cm.start_after = modulesToStore;
+		if (modulesToStore.length == 0) delete cm.start_after;
+		$scope.editorCb.showVisible(cm);
+	}
+	
+	var _errorFound = false;
+	function _validateFail(item, msg) {
+		item.error = msg;
+		_errorFound = true;
+	}
+
+	function _validateSuccess(item) {
+		item.error = null;
+		return true;
+	}
+	
+	function _getAvailableModules() {
+		var availableIdsArray = [];
+		for(var i=0; i<_allModules.length; i++) {
+			var item = _allModules[i];
+			if(item.id == cm.id) break;
+			if(item.type == 'module') continue;
+			var dict = {id: item.id, name:item.name};
+			availableIdsArray.push(dict);
+		}
+		return availableIdsArray;
+	}
+}
+	
 //-------------------------------------------------------------------------------------------------
 function CourseEditDirective(template) {
     return ['nl', function(nl) {

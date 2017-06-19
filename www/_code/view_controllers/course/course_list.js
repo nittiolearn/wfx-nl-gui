@@ -337,10 +337,16 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		}
 	    var card = {reportId: report.id,
 	    			title: title, 
-	    			icon: report.icon, 
 	    			url: url,
 	    			help: report.remarks,
 	    			children: []};
+	    if (report.icon && report.icon.indexOf('icon:') == 0) {
+			var icon2 = report.icon.substring(5);
+			if (!icon2) icon2='ion-ios-bookmarks fblue';
+			card.icon2 = icon2;
+		} else {
+			card.icon = report.icon;
+		}
 		card.details = {help: card.help, avps: _getReportAvps(report, isReport)};
 		card.links = [];
         if (!isReport)

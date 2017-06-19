@@ -127,6 +127,16 @@
                   ng-focus="attr.focus=true" ng-blur="attr.focus=false">
         </textarea>
     </div>
+    <div ng-class='$root.resp2Col67'
+         ng-if='attr.type === "object_with_gui"'
+         class='nl-dlg-field-value padding-mid'>
+        <div class='row row-center padding0 nl-xxx-select nl-link-img'
+        	 ng-click='editor.editAttribute($event, values, attr)'
+             title='Edit'>
+            <span class='col nl-textellipsis' ng-bind-html='editor.getDisplayValue(values, attr)'></span>
+            <i class='icon ion-edit icon nl-dlg-field-icon'></i>
+        </div>
+    </div>
     <div ng-class='$root.resp2Col67' 
     	 ng-if='attr.type === "lessonlink"'
     	 class='nl-dlg-field-value padding-mid'>
