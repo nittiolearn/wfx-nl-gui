@@ -27,25 +27,28 @@ var RecycleBinCtrl = ['nl', 'nlRouter', 'nlDlg', '$scope', 'nlCardsSrv',
 function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
 	var _params = {mine: true, restored: false};
     var _groupInfo = null;
+    var _isAdmin = false;
+
+    var _nextStartPos = null;
+    var _canFetchMore = true;
 
 	function _onPageEnter(userInfo) {
 		return nl.q(function(resolve, reject) {
+		    _isAdmin = nlRouter.isPermitted(userInfo, 'admin_user');
             var params = nl.location.search();
             _copyBoolIf(params, _params, 'mine');
             _copyIf(params, _params, 'entitytype');
             _copyIf(params, _params, 'actiontype');
             _copyBoolIf(params, _params, 'restored');
-            _copyIntIf(params, _params, 'max');
-            _copyIntIf(params, _params, 'start_at');
-            if (!nlRouter.isPermitted(userInfo, 'admin_user')) _params.mine = true;
+            if (!_isAdmin) _params.mine = true;
 
             $scope.cards = {};
-            $scope.cards.search = {placeholder: nl.t('Search')};
-            nl.pginfo.pageTitle = nl.t('Recycle bin');
+            $scope.cards.search = {placeholder: nl.t('Search'), onSearch: _onSearch};
+            nl.pginfo.pageTitle = nl.t('Archived items');
 
             nlGroupInfo.init().then(function() {
                 _groupInfo = nlGroupInfo.get();
-                _getDataFromServer(resolve);
+                _getDataFromServer(false, resolve);
             });
 
 		});
@@ -60,47 +63,156 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
 	$scope.onCardLinkClicked = function(card, linkid) {
 		if (linkid === 'recyclebin_restore') {
 			_restore(card);
+        } else if (linkid === 'fetch_more') {
+            _fetchMore();
 		}
 	};
 	
-    function _getDataFromServer(resolve) {
-        nlServerApi.recyclebinList(_params).then(function(lst) {
+    function _onSearch(filter, grade, onSearchParamChange) {
+        var dlg = nlDlg.create($scope);
+        dlg.scope.error = {};
+        dlg.scope.show = {entitytype: true, actiontype: true, restored: true, 
+            mine: _isAdmin, name: true, entityid: _isAdmin};
+        dlg.scope.options = _getFilerOptions();
+        dlg.scope.data = angular.copy(_getCurrentFilters(dlg.scope.options));
+
+        var okButton = {text : nl.t('Fetch'), onTap : function(e) {
+            _currentFilters = dlg.scope.data;
+            _getDataFromServer(false);
+        }};
+        var closeButton = {text : nl.t('Cancel')};
+        dlg.show('view_controllers/admin/recycle_filter_dlg.html', [okButton], closeButton);
+    }
+    
+    function _getFilerOptions() {
+        var opts = {
+            entitytype: [
+                {id: 'all', name: 'All items'},
+                {id: 'lesson', name: 'Only modules'},
+                {id: 'course', name: 'Only courses'},
+                {id: 'course_assignment', name: 'Only course assignments'},
+                {id: 'course_report', name: 'Only course reports'},
+                {id: 'training', name: 'Only trainings'}],
+            actiontype: [
+                {id: 'all', name: 'All versions'},
+                {id: 'deleted', name: 'Deleted versions only'},
+                {id: 'versioned', name: 'Approved versions only'}],
+            restored: [
+                {id: 'all', name: 'Both restored and not yet restored items'},
+                {id: 'not_restored', name: 'Items that are yet to be restored'},
+                {id: 'restored', name: 'Items that were already restored'}],
+            mine: [
+                {id: 'all', name: 'Items archived by anyone'},
+                {id: 'mine', name: 'Items archived by me'}],
+        };
+        return opts;
+    }
+
+    var _currentFilters = null;
+    function _getCurrentFilters(opts) {
+        if (_currentFilters) return _currentFilters;
+        if (!opts) opts = _getFilerOptions();
+        _currentFilters = {
+            entitytype: {id: _params.entitytype || opts.entitytype[0].id},
+            actiontype: {id: _params.actiontype || opts.actiontype[1].id},
+            restored: {id: _params.restored === undefined ? 'all' : _params.restored ? 'restored' : 'not_restored'},
+            mine: {id: _params.mine ? 'mine' : 'all'},
+            name: '',
+            entityid: ''
+        };
+        return _currentFilters;
+    }
+
+    function _getServerParams() {
+        var filters = _getCurrentFilters();
+        var serverParams = {};
+        if (filters.entitytype && filters.entitytype.id != 'all')
+            serverParams.entitytype = filters.entitytype.id;
+        if (filters.actiontype && filters.actiontype.id != 'all')
+            serverParams.actiontype = filters.actiontype.id;
+        if (filters.restored && filters.restored.id != 'all')
+            serverParams.restored = (filters.restored.id == 'restored');
+        serverParams.mine = (!_isAdmin || !filters.mine || filters.mine.id != 'all');
+        if (filters.name)
+            serverParams.name = filters.name;
+        if (filters.entityid)
+            serverParams.entityid = parseInt(filters.entityid);
+        return serverParams;
+    }
+    
+    function _getDataFromServer(fetchMore, resolve) {
+        if (!fetchMore) {
+            _cards = {};
+            _nextStartPos = null;
+        }
+        
+        var params = _getServerParams();
+        if (_nextStartPos) params.startpos = _nextStartPos;
+
+        nlDlg.showLoadingScreen();
+        nlServerApi.batchFetch(nlServerApi.recyclebinList, params, function(result) {
+            if (result.isError) {
+                if (resolve) resolve(false);
+                return;
+            }
+            _canFetchMore = result.canFetchMore;
+            _nextStartPos = result.nextStartPos;
+
+            var lst = result.resultset;
             _updateCards(lst);
+            
+            if (!result.fetchDone) return;
             if (resolve) resolve(true);
-        }, function(err) {
-            if (resolve) resolve(false);
+            nlDlg.hideLoadingScreen();
         });
     }
 
+    function _fetchMore() {
+        _getDataFromServer(true);
+    }
+
+    var _cards = {};
 	function _updateCards(lst) {
-		var cards = [];
 		for (var i=0; i<lst.length; i++) {
 		    var user = _groupInfo.users[''+lst[i].user];
 		    if (user) lst[i].username = nlGroupInfo.formatUserName(user);
             lst[i].created = nl.fmt.json2Date(lst[i].created);
             lst[i].updated = nl.fmt.json2Date(lst[i].updated);
 			var card = _createCard(lst[i]);
-			cards.push(card);
+			_cards[lst[i].id] = card;
 		}
+        var cards = [];
+        for (var k in _cards) cards.push(_cards[k]);
         cards.sort(function(a, b) {
-            return (b.updated - a.updated);
+            return (b.created - a.created);
         });
 		$scope.cards.rebuildCache = true;
 		$scope.cards.cardlist = cards;
+        $scope.cards.canFetchMore = _canFetchMore;
 	}
 	
+	var _typeIcons = {
+	    'lesson' : 'ion-easel fblue',
+        'course' : 'ion-ios-book fblue',
+        'course_assignment' : 'ion-paper-airplane fblue',
+        'course_report' : 'ion-pie-graph fblue',
+        'training' : 'ion-calendar fblue'
+	};
+	
 	function _createCard(item) {
-	    var icon = '<i class=""></i>';
-	    var desc = '<div><b>Archived on:</b></div>';
+	    var desc = item.actiontype == 'deleted' ? 'Deleted' : 'Archived';
+	    var desc = nl.fmt2('<div><b>{} on:</b></div>', desc);
 	    desc += '<div>{}</div>';
 	    desc = nl.fmt2(desc, nl.fmt.fmtDateDelta(item.created));
 	    if (item.username) desc += nl.fmt2('<div>by {}</div>', item.username);
 	    
 	    var card = {id: item.id,
+            updated: item.updated,
+            created: item.created,
             title: item.name,
             username: item.username,
             internalUrl: 'recyclebin_restore',
-            icon2: 'ion-ios-undo fblue',
+            icon2: _typeIcons[item.entitytype] || 'ion-ios-undo fblue',
 			help: desc,
 			children: []};
 
@@ -120,6 +232,7 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
         nl.fmt.addAvp(avps, 'Remarks', item.desc);
         nl.fmt.addAvp(avps, 'Restored', item.restored, 'boolean');
         nl.fmt.addAvp(avps, 'Updated on', item.updated, 'date');
+        nl.fmt.addAvp(avps, 'Entity id', item.entityid);
 		return avps;
 	}
 
@@ -130,7 +243,7 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
             if (!confirm) return;
             nlDlg.showLoadingScreen();
             nlServerApi.recyclebinRestore(card.id).then(function(item) {
-                _getDataFromServer();
+                _getDataFromServer(false);
                 nlDlg.hideLoadingScreen();
                 nlDlg.popupAlert({title: 'Done', template: 'Restored the version'});
             });

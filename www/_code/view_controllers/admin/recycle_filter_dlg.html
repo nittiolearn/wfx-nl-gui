@@ -1,0 +1,48 @@
+<nl-dlg title='Narrow down what you are looking for'>
+    <nl-dlg-help>
+    <div class='padding-mid fsh6'>
+    Whenever a course, module, training, course assignment or a course learning report
+    is deleted, it is preserved in this archive and can be restored later.
+    </div>
+    <div class='padding-mid fsh6'>
+    Further a course or a module is archived each time it is approved. This allows you 
+    to restore back a specific approved version from the past.
+    </div>
+    <div class='padding-mid fsh6'>
+    Here, you could specify fitlers to narrow down what exactly you are looking for.
+    </div>
+    </nl-dlg-help>
+    <nl-dlg-content>
+        <div class='row row-wrap row-top padding0 margin0'>
+            <div ng-show='show.entitytype' class='w100 nl-dlg-field-name'>What kind of item are you looking for?</div>
+            <div ng-show='show.entitytype' class='w100' class='padding0'>
+                <nl-select fieldmodel='entitytype'></nl-select>
+            </div>
+
+            <div ng-show='show.actiontype' class='w100 nl-dlg-field-name'>Which version are you looking for?</div>
+            <div ng-show='show.actiontype' class='w100' class='padding0'>
+                <nl-select fieldmodel='actiontype'></nl-select>
+            </div>
+
+            <div ng-show='show.restored' class='w100 nl-dlg-field-name'>Was it already restored?</div>
+            <div ng-show='show.restored' class='w100' class='padding0'>
+                <nl-select fieldmodel='restored'></nl-select>
+            </div>
+
+            <div ng-show='show.mine' class='w100 nl-dlg-field-name'>Who archived the item?</div>
+            <div ng-show='show.mine' class='w100' class='padding0'>
+                <nl-select fieldmodel='mine'></nl-select>
+            </div>
+
+            <div ng-show='show.name' class='w100 nl-dlg-field-name'>Object name (exact match)</div>
+            <div ng-show='show.name' class='w100' class='padding0'>
+                <nl-input fieldmodel='name' fieldtype='text'></nl-input>
+            </div>
+            <div ng-show='show.entityid' class='w100 nl-dlg-field-name'>Object id (exact match)</div>
+            <div ng-show='show.entityid' class='w100' class='padding0'>
+                <nl-input fieldmodel='entityid' fieldtype='number'></nl-input>
+            </div>
+        </div>
+        <br/>
+    </nl-dlg-content>
+</nl-dlg>
