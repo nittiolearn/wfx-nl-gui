@@ -20,7 +20,9 @@ function(nl) {
 
 	var CURRENT_CONTENT_VERSION=2;    
     this.migrateCourse = function(course) {
+        if (!course.content) course.content = {};
         if (course.content.contentVersion == CURRENT_CONTENT_VERSION) return course;
+        if (!course.content.modules) course.content.modules= [];
         var ret = angular.copy(course);
         if (!course.content.contentVersion) {
             for(var i=0; i<course.content.modules.length; i++) {

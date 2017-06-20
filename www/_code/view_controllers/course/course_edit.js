@@ -188,17 +188,16 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
         {name: 'exportLevel', text: 'Visibility', type: 'list', values: [], valueNames: {}, group: 'grp_additionalAttrs'},
         {name: 'contentmetadata', text: 'Metadata', type: 'object', group: 'grp_additionalAttrs', debug: true},
     	{name: 'lastId', text: 'Last Id', type: 'readonly', group: 'grp_additionalAttrs', debug: true},
-        {name: 'modules', text: 'Modules', type: 'hidden', group: 'grp_additionalAttrs', debug: true}
+        {name: 'modules', text: 'Modules', type: 'hidden', group: 'grp_additionalAttrs', debug: true},
+        {name: 'contentVersion', text: 'Content Version', type: 'hidden', group: 'grp_additionalAttrs', debug: true}
     ];
     
     var _courseAttrHelp = {
-    	grp_additionalAttrs: {name: 'Advanced attributes', desc: 'You will be able to enable planning dates, configure certificates and other less used parameters under advanced attributes.'},
     	planning: {desc: 'Start and end dates are considered only if schedule planning is enabled.'},
-    	certificate: {desc: 'JSON string of below form: <pre>{"bg": "certificate_background_image_url"}</pre>'},
     	custtype: {desc: 'You can define a custom type to help in searchability.'},
+        exportLevel: {desc: 'This attribute is visible only if the group has option to export content to other groups.'},
         contentmetadata: {desc: 'Debug the metadata attributes.'},
-    	lastId: {desc: 'Internally used.'},
-    	modules: {desc: 'Debug the overall module list.'}
+    	lastId: {desc: 'Internally used.'}
     };
     
     var _courseParams = [
@@ -209,13 +208,13 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
     
     var _courseParamsHelp = {
     		name: {desc: 'Mandatory - enter a name for your course. It is recommended to keep the course name under 30 characters.'},
-    		icon: {desc: 'Mandatory - enter a URL for the course icon that will be displayed when this course is searched.'},
+    		icon: {desc: 'Mandatory - enter a URL for the course icon that will be displayed when this course is searched. The default value is "icon:" which displays a default course icon.'},
     		description: {desc: 'Provide a short description which will help others in the group to understand the purpose of this course. It is recommended to keep the course description under 100 characters.'}
     };
     
     var moduleAttrs = [
         {name: 'name', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'string', text: 'Name'}, 
-        {name: 'type', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'list', text: 'Element type', values: ['module', 'lesson', 'info', 'link', 'certificate'],
+        {name: 'type', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'list', text: 'Element type', values: ['module', 'lesson', 'certificate', 'info', 'link'],
             valueNames: {'module': 'Folder', 'lesson': 'Module', 'link': 'Link', 'info': 'Information', 'certificate': 'Certificate'},
             updateDropdown: _updateTypeDropdown},
         {name: 'refid', fields: ['lesson'], type: 'lessonlink', contentType: 'integer', text: 'Module-id'},
@@ -226,10 +225,10 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
         {name: 'grp_depAttrs', fields: ['lesson', 'link', 'info'], type: 'group', text: 'Planning'},
         {name: 'start_date', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Start date', group: 'grp_depAttrs'},
         {name: 'planned_date', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Planned date', group: 'grp_depAttrs'},
-        {name: 'grp_additionalAttrs', fields: ['module', 'lesson', 'link', 'info'], type: 'group', text: 'Show advanced attributes'},
+        {name: 'grp_additionalAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'group', text: 'Show advanced attributes'},
         {name: 'reopen_on_fail', fields: ['lesson'], type: 'object', text: 'Reopen on fail', contentType: 'object',group: 'grp_additionalAttrs'},
-        {name: 'icon', fields: ['module', 'lesson', 'link', 'info'], type: 'string', text: 'Module icon', group: 'grp_additionalAttrs'},
-        {name: 'text', fields: ['module', 'lesson', 'link', 'info'], type: 'text', text: 'Description', group: 'grp_additionalAttrs'},
+        {name: 'icon', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
+        {name: 'text', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'text', text: 'Description', group: 'grp_additionalAttrs'},
         {name: 'maxAttempts', fields: ['lesson'], type: 'number', text: 'Maximum attempts', group: 'grp_additionalAttrs'},
         {name: 'hide_remarks', fields: ['info', 'link'], type: 'boolean', text: 'Disable remarks', group: 'grp_additionalAttrs'},
         {name: 'autocomplete', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
@@ -240,15 +239,16 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
     
     var moduleAttrHelp = {
     	name: {desc: 'Name of the item to be displayed in the course tree.'},
-    	type: {desc: 'Each item could be a Folder (containing other items) or a Module (a learning module/quiz) or Information or a Link (internal URL like certificate or external URL to be launched from the course).'},
+    	type: {desc: 'Each item could be a Folder (containing other items), Module (a learning module/quiz), Certificate or Information (example a declaration).'},
     	refid: {desc: 'The id of the learning module/quiz to be launched. You could search for all approved modules by clicking on the search icon. Click on the link icon to preview the module.'},
     	action: {desc: 'The action whose URL is used for the link. Click on the icon to view the link'},
     	urlParams: {desc: 'The urlParams to append to the URL (see Dashboard create/modify dialog for more information).'},
+    	certificate_image: {desc: 'Provide a background image for your certificates.'},
     	grp_depAttrs: {desc: 'Enabling this would display planning attributes such as "Start date" and "Planned date".'},
     	start_date: {desc: 'Earliest planned start date. Is applicable only if "planning" is set to true for the course.'},
     	planned_date: {desc: 'Expected planned completion date. Is applicable only if "planning" is set to true for the course.'},
     	grp_additionalAttrs: {name: 'Advanced attributes', desc: 'Enabling this would display additional attributes depeneding on the selected "Element type" of the module.'},
-    	start_after: {desc: 'You could provide a list of items the current item is dependant on. Till the listed items are completed by a learner, the current item will be in locked state and cannot be viewed by the learner. Further you could define minimum/maximum scores to be achieved in earlier items before this item is unlocked. This attribute is a JSON string. The id used for module attribute below is the unique id of that item.<br> Example:<br> <div><pre>[{"module": "_id1", "min_score": 70}, {"module": "_id2", "min_score": 70, "max_score": 90"}]</pre></div>'},
+    	start_after: {desc: 'You could specify a set of prerequisite conditions that have to be met for current item. Only after all the specified conditions are met, the curent item is made available to the learner. If the prerequisites are not met, this current item is shown in a locked state to the learner.'},
     	reopen_on_fail: {desc: 'You could reopen a set of learning modules if the learner failed in the quiz. To do this, you need to configure this attribute on the quiz module. You can list the items (refered by their unique id) which have to be reopened if the learner failed to acheive minimum pass score in the current module. This attribute is a JSON string representing an array of strings: each string is unque id of the item that should be re-opened.<br> Example:<br></div><pre>["_id1", "_id2"]</pre></div>'},
 		icon: {desc: 'Icon to be displayed for this item in the course tree. If not provided, this is derived from the type. "quiz" is a predefined icon.'},
 		text: {desc: 'Provide a description which is shown in the content area / details popup when the element is clicked.'},
@@ -290,9 +290,14 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
         var grpExportLevel = ginfo.exportLevel || nlExportLevel.EL_PRIVATE;
         if (grpExportLevel == nlExportLevel.EL_PUBLIC) grpExportLevel = nlExportLevel.EL_LOGEDIN;
         var info = nlExportLevel.getExportLevelInfo(grpExportLevel);
+        
         var attr = allowedCourseAttrs.exportLevel;
         attr.values = info.elList;
         attr.valueNames = info.elDesc;
+        if (grpExportLevel == nlExportLevel.EL_PRIVATE) {
+            attr.type = 'hidden';
+            delete allowedCourseAttrs.exportLevel;
+        }
     }
 
     function _addModule(e, cm) {

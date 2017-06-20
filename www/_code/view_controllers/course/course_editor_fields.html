@@ -10,7 +10,7 @@
 		padding: 0px 8px 20px 8px;
 	}
 </style>
-<div class='row row-center row-wrap margin0 padding0'
+<div class='row row-top row-wrap margin0 padding0'
      ng-repeat='attr in attrs'
      ng-if='(!attr.fields || attr.fields.indexOf(values.type) >= 0) && (!attr.debug || editor.debug) && (!attr.group || editor.showGroup[attr.group])'>
     <div class='w100 nl-link-text padding-mid' 
@@ -26,7 +26,12 @@
     </div>
     
 	<div ng-if='attr.type !== "group" && attr.type !== "hidden"' ng-class='$root.resp2Col33'
-	     class='padding-mid'>{{attr.text||attr.name}}</div>
+	     class='padding-mid' ng-click='attr.showHelp = !attr.showHelp'>
+	     <div class='row row-center row-wrap margin0 padding0'>
+             <span class='col padding0'>{{attr.text||attr.name}}</span>
+             <i class='padding-mid nl-link-text icon fsh4 fgrey2 ion-ios-help'></i>
+	     </div>
+	</div>
     <div ng-class='$root.resp2Col67'
          ng-if='attr.type === "string" || attr.type === "number" || attr.type === "icon"'
          class='nl-dlg-field-value padding-mid'>
@@ -81,16 +86,19 @@
     
     <div ng-class='$root.resp2Col67'
          ng-if='attr.type === "boolean"'
-         class='nl-link-text padding-mid'
+         class='padding-mid'
          ng-click='values[attr.name] = !values[attr.name]'
          ng-focus="attr.focus=true" ng-blur="attr.focus=false"
          tabindex="0"
          ng-keypress='$event.keyCode == 32 ? values[attr.name] = !values[attr.name] : ""'>
-        <span>
-            <i ng-show='values[attr.name]' class="icon ion-android-checkbox-outline black"></i>
-            <i ng-hide='values[attr.name]' class="icon ion-android-checkbox-outline-blank black"></i>
-            <span>{{attr.desc||attr.text||attr.name}}</span>
-        </span>
+        <div class='padding-mid nl-link-text'>
+            <span>
+                <i ng-show='values[attr.name]' class="icon ion-android-checkbox-outline black"></i>
+                <i ng-hide='values[attr.name]' class="icon ion-android-checkbox-outline-blank black"></i>
+                <span>{{attr.desc||attr.text||attr.name}}</span>
+            </span>
+        </div>
+        
     </div>
 
     <div ng-class='$root.resp2Col67' 
@@ -152,7 +160,7 @@
                title='Search modules'></i>
         </div>
 	</div>
-	<div class='w100 inline-help-padding' ng-show='editor.showHelp && attr.type !== "hidden"'>
+	<div class='w100 inline-help-padding' ng-show='attr.showHelp && help[attr.name].desc && attr.type !== "hidden"'>
 	    <nl-inline-help>
 	        <div>
 		        <span class='fsh6 fblue2'>{{help[attr.name].name || attr.text}}:</span>
