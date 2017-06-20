@@ -191,19 +191,26 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
         $scope.cards.canFetchMore = _canFetchMore;
 	}
 	
-	var _typeIcons = {
-	    'lesson' : 'ion-easel fblue',
-        'course' : 'ion-ios-book fblue',
-        'course_assignment' : 'ion-paper-airplane fblue',
-        'course_report' : 'ion-pie-graph fblue',
-        'training' : 'ion-calendar fblue'
+	var _typeInfos = {
+	    'lesson' : {name: 'Module', icon: 'ion-easel fblue'},
+        'course' : {name: 'Course', icon: 'ion-ios-book fblue'},
+        'course_assignment' : {name: 'Course assignment', icon: 'ion-paper-airplane fblue'},
+        'course_report' : {name: 'Course report', icon: 'ion-pie-graph fblue'},
+        'training' : {name: 'Training', icon: 'ion-calendar fblue'}
 	};
 	
+	function _getTypeIcon(entitytype) {
+        return entitytype in _typeInfos ? _typeInfos[entitytype].icon : 'ion-ios-undo fblue';
+	}
+	
+    function _getTypeName(entitytype) {
+        return entitytype in _typeInfos ? _typeInfos[entitytype].name : entitytype;
+    }
+    
 	function _createCard(item) {
-	    var desc = item.actiontype == 'deleted' ? 'Deleted' : 'Archived';
-	    var desc = nl.fmt2('<div><b>{} on:</b></div>', desc);
-	    desc += '<div>{}</div>';
-	    desc = nl.fmt2(desc, nl.fmt.fmtDateDelta(item.created));
+	    var actionType = item.actiontype == 'deleted' ? 'deleted' : 'archived';
+	    var desc = nl.fmt2('<div><b>{} {} on:</b> {}</div>', 
+	       _getTypeName(item.entitytype), actionType, nl.fmt.fmtDateDelta(item.created));
 	    if (item.username) desc += nl.fmt2('<div>by {}</div>', item.username);
 	    
 	    var card = {id: item.id,
@@ -212,7 +219,7 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
             title: item.name,
             username: item.username,
             internalUrl: 'recyclebin_restore',
-            icon2: _typeIcons[item.entitytype] || 'ion-ios-undo fblue',
+            icon2: _getTypeIcon(item.entitytype),
 			help: desc,
 			children: []};
 
@@ -225,7 +232,7 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
 	function  _getAvps(item) {
 		var avps = [];
         nl.fmt.addAvp(avps, 'Name', item.name);
-        nl.fmt.addAvp(avps, 'Type', item.entitytype);
+        nl.fmt.addAvp(avps, 'Type', _getTypeName(item.entitytype));
 		nl.fmt.addAvp(avps, 'Archived on', item.created, 'date');
 		if (item.username)
             nl.fmt.addAvp(avps, 'Archived by', item.username);

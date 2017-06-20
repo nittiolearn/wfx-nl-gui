@@ -540,9 +540,8 @@ function(nl, nlDlg, nlConfig, Upload) {
     //---------------------------------------------------------------------------------------------
 	//offline training entities
     //---------------------------------------------------------------------------------------------
-	this.getTrainingList = function(){
-        return server.post('_serverapi/training_get_list.json', 
-            {});
+	this.getTrainingList = function(params) {
+        return server.post('_serverapi/training_get_list.json', params);
 	};
 
 	this.trainingCreate = function(data){
@@ -556,8 +555,7 @@ function(nl, nlDlg, nlConfig, Upload) {
 	};
 
 	this.trainingDelete = function(id){
-        return server.post('_serverapi/training_delete.json', 
-            id);
+        return server.post('_serverapi/training_delete.json', {id: id});
 	};
 
 	this.getTrainingReportList = function(data){

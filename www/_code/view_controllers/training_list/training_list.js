@@ -29,12 +29,19 @@
 		var _userInfo = null;
 		var trainingListDict = {};
 		var _scope = null;
+        var _nextStartPos = null;
+        var _canFetchMore = true;
+        var _canShowDelete = false;
+
 		function _onPageEnter(userInfo) {
 			_userInfo = userInfo;
 			trainingListDict = {};
 			return nl.q(function(resolve, reject) {
 				nl.pginfo.pageTitle = nl.t('Trainings');
 				_scope = $scope;
+                var params = nl.location.search();
+                _canShowDelete = ('debug' in params) &&
+                    nlRouter.isPermitted(userInfo, 'admin_user');
 				$scope.cards = {
 					toolbar : _getToolbar()
 				};
@@ -43,7 +50,8 @@
 					canShowDetils : true,
 					smallColumns : 1
 				};
-				_getDataFromServer(false, resolve, reject);
+                $scope.cards.cardlist = [];
+				_getDataFromServer(false, resolve);
 			});
 		}
 
@@ -80,24 +88,44 @@
 			}];
 		}
 
-		function _getDataFromServer(fetchMore, resolve, reject) {
-			nlServerApi.getTrainingList().then(function(trainingList) {
+		function _getDataFromServer(fetchMore, resolve) {
+            if (!fetchMore) {
+                $scope.cards.cardlist = [];
+                _nextStartPos = null;
+            }
+            var params = {};
+            if (_nextStartPos) params.startpos = _nextStartPos;
+
+            nlDlg.showLoadingScreen();
+            nlServerApi.batchFetch(nlServerApi.getTrainingList, params, function(result) {
+                if (result.isError) {
+                    if (resolve) resolve(false);
+                    return;
+                }
+                _canFetchMore = result.canFetchMore;
+                _nextStartPos = result.nextStartPos;
+
+                var trainingList = result.resultset;
 				_addSearchInfo($scope.cards);
 				_updateTrainingCards(trainingList);
-				resolve(true);
-			}, function(reason) {
-				resolve(false);
+                if (!result.fetchDone) return;
+                if (resolve) resolve(true);
+                nlDlg.hideLoadingScreen();
 			});
 		}
+
+        function _fetchMore() {
+            _getDataFromServer(true);
+        }
 
 		function _addSearchInfo(cards) {
 			cards.search = {
 				placeholder : nl.t('Enter course name/description')
 			};
+            cards.canFetchMore = _canFetchMore;
 		}
 
 		function _updateTrainingCards(trainingList) {
-			$scope.cards.cardlist = [];
 			for (var i = 0; i < trainingList.length; i++) {
 				var card = _createCard(trainingList[i]);
 				$scope.cards.cardlist.push(card);
@@ -118,6 +146,7 @@
 			item.descMulti = _splitMultilineString(item.desc);
 			var card = {
 				id : item.id,
+				canShowDelete: _canShowDelete,
 				training : item,
 				title : item.name,
 				module : {
@@ -143,13 +172,21 @@
 		}
 
 
-		$scope.onCardInternalUrlClicked = function(card, internalUrl) {
-			if (internalUrl == 'training_assign' || internalUrl =='training_report') {
-				_trainingReportView(card, internalUrl);
-			} else if (internalUrl == 'training_edit') {
-				_editTrainingModule(card, card.id);
-			}
-		};
+        $scope.onCardInternalUrlClicked = function(card, internalUrl) {
+            $scope.onCardLinkClicked(card, internalUrl);
+        };
+        
+        $scope.onCardLinkClicked = function(card, internalUrl) {
+            if (internalUrl == 'training_assign' || internalUrl =='training_report') {
+                _trainingReportView(card, internalUrl);
+            } else if (internalUrl == 'training_edit') {
+                _editTrainingModule(card, card.id);
+            } else if (internalUrl == 'training_delete') {
+                _deleteTrainingModule(card, card.id);
+            } else if (internalUrl === 'fetch_more') {
+                _fetchMore();
+            }
+        };
 
 		function _trainingReportView(card, linkid) {
 			var reports = {};
@@ -218,6 +255,20 @@
 			_showNominatedUserList(card, reports);
 		}
 
+        function _deleteTrainingModule(card, id) {
+            var template = nl.t('Once deleted, you will not be able to recover this training. Are you sure you want to delete this training?');
+            nlDlg.popupConfirm({title: 'Please confirm', template: template,
+                okText : nl.t('Delete')}).then(function(res) {
+                if (!res) return;
+                nlDlg.showLoadingScreen();
+                nlServerApi.trainingDelete(id).then(function(statusInfo) {
+                    nlDlg.hideLoadingScreen();
+                    var pos = _getCardPosition(card.id);
+                    $scope.cards.cardlist.splice(pos, 1);
+                });
+            });
+        }
+        
 		function _editTrainingModule(card, id) {
 			var _showTrainingEditDlg = nlDlg.create($scope);
 			_showTrainingEditDlg.setCssClass('nl-height-max nl-width-max');

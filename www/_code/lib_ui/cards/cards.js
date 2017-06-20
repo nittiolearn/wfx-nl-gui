@@ -118,7 +118,7 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             var defMaxLimit = 100;
             var cacheAbove = 200;
             
-            $scope.getCards = function(rebuildCache) {
+            $scope.getCards = function(rebuildCache, dontShowFetchMore) {
             	if (!$scope.cards || !$scope.cards.cardlist) return [];
             	rebuildCache = rebuildCache || $scope.cards.rebuildCache;
             	$scope.cards.rebuildCache = false;
@@ -135,7 +135,7 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
                 var maxLimit = search.maxLimit || defMaxLimit;
                 if (len > maxLimit) len = maxLimit;
             	ret = ret.concat(filteredData.slice(0, len));
-                if ($scope.cards.canFetchMore) ret.push(fetchMoreCard);
+                if (!dontShowFetchMore && $scope.cards.canFetchMore) ret.push(fetchMoreCard);
 
                 $scope.search.resultsStr
                     = len <= 1 ? nl.t('{} result', len)

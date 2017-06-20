@@ -52,6 +52,12 @@
 	              ng-click='onCardInternalUrlClicked(card, "training_edit")'>
 	            <i class="icon ion-edit" style='font-size: 22px'></i>
 	        </span>
+            <span title='Delete'
+                  class='nl-toolbar-icon'
+                  ng-show='card.canShowDelete'
+                  ng-click='onCardInternalUrlClicked(card, "training_delete")'>
+                <i class="icon ion-ios-trash" style='font-size: 22px'></i>
+            </span>
 	    </div>
 	</div>
 </div>

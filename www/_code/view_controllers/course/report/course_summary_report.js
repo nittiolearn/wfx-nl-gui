@@ -131,7 +131,9 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
             okText : nl.t('Delete')}).then(function(res) {
             if (!res) return;
             var repid = report._raw.raw_record.id;
+            nlDlg.showLoadingScreen();
             nlServerApi.courseReportDelete(repid).then(function(statusInfo) {
+                nlDlg.hideLoadingScreen();
                 if (repid in _data.reportRecords)
                     _summaryStats.removeFromStats(_data.reportRecords[repid]);
                 delete _data.reportRecords[repid];
