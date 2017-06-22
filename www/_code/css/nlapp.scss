@@ -1965,3 +1965,73 @@ img.nl-full-width {
 .highlight.ng-leave {
   background-color: rgba(128, 0, 0, 0.1);
 }
+
+/**
+ * Bullet and numbering in content (defined in nittioold.css as well as nlapp.scss)
+ */
+.njsFlexList {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: -moz-flex;
+  display: -ms-flexbox;
+  display: flex;
+  width: 100%;
+
+  /* row-wrap */
+  -webkit-flex-wrap: wrap;
+  -moz-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+
+  /* row-baseline */
+  -webkit-box-align: baseline;
+  -ms-flex-align: baseline;
+  -webkit-align-items: baseline;
+  -moz-align-items: baseline;
+  align-items: baseline;
+}
+
+.njsFlexListBulletHolder {
+  padding: 0 4px;
+  min-width: 1.2em;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.njsFlexListBullet {
+  font-family: "Ionicons";
+  font-size: 50%;
+}
+
+.njsFlexListBullet:after {
+  content: "\f3a6";
+}
+
+.njsFlexListBullet.level-1:after {
+  content: "\f21b";
+}
+
+.njsFlexListBullet.level-2:after {
+  content: "\f24f";
+}
+
+.njsFlexListNumber {
+  font-size: 90%;
+}
+
+.njsFlexListNumber:after {
+  content: '.';
+}
+
+.njsFlexListText {
+  -webkit-box-flex: 1;
+  -webkit-flex: 1;
+  -moz-box-flex: 1;
+  -moz-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  display: block;
+  width: 100%;
+  padding: 0 4px;
+}

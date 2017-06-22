@@ -122,6 +122,8 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
     
     this.export = function(lessonIds, version, moduleTitle, mathjax, scope, lessonNames) {
         pl.clear();
+        self.lessons = {};
+        self.resources = {};
         self.moduleTitle = moduleTitle;
         self.savedSize = 0;
         self.lessonIds = lessonIds;

@@ -11,8 +11,8 @@ function breakWikiMarkup(line) {
     return window.nlapp.nlMarkup.breakWikiMarkup(line);
 }
 
-function parseWikiMarker(line, marker, fn) {
-    return window.nlapp.nlMarkup.parseWikiMarker(line, marker, fn);
+function parseWikiMarker(line, marker, fn, dontConvertUrl) {
+    return window.nlapp.nlMarkup.parseWikiMarker(line, marker, fn, dontConvertUrl);
 }
 
 return {

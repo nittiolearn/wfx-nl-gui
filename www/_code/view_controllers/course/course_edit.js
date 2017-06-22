@@ -26,8 +26,8 @@ var EditorFieldsDirective = ['nl', function(nl) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlLessonSelect', 'nlExportLevel',
-function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
+var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlLessonSelect', 'nlExportLevel', 'nlRouter',
+function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
 
     var modeHandler = null;
     var $scope = null;
@@ -104,7 +104,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
     
 	function _updateTypeDropdown(cm, attr) {
 		attr.values = ['module', 'lesson', 'info', 'certificate'];
-    	if (cm.type == 'link') attr.values.push('link');
+    	if (cm.type == 'link' || nlRouter.isPermitted(_userInfo, 'admin_user'))
+    	   attr.values.push('link');
 		return;
 	}
 
@@ -221,7 +222,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
         {name: 'action', fields: ['link'], type: 'lessonlink', text: 'Action'},
         {name: 'urlParams', fields: ['link'], type: 'string', text: 'Url-Params'},
         {name: 'certificate_image', fields: ['certificate'], type: 'string', text: 'Certificate image'},
-        {name: 'start_after', fields: ['lesson', 'link', 'info'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
+        {name: 'start_after', fields: ['lesson', 'link', 'info', 'certificate'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
         {name: 'grp_depAttrs', fields: ['lesson', 'link', 'info'], type: 'group', text: 'Planning'},
         {name: 'start_date', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Start date', group: 'grp_depAttrs'},
         {name: 'planned_date', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Planned date', group: 'grp_depAttrs'},
@@ -486,7 +487,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel) {
 		if(cm.type == 'certificate') {
 			certificateModule['name'] = cm.name;
 			certificateModule['parentId'] = cm.parentId;
-			certificateModule['id'] = cm.id;			
+            certificateModule['id'] = cm.id;
+            certificateModule['start_after'] = cm.start_after;
 			certificateModule['certificate_image'] = cm.certificate_image;
 			return certificateModule;
 		} else {

@@ -2012,15 +2012,7 @@ i.italic {
 }
 
 /**
- * Grid
- * --------------------------------------------------
- * Using flexbox for the grid, inspired by ionic who is 
- * impired by Philip Walton:
- * http://philipwalton.github.io/solved-by-flexbox/demos/grids/
- * 
- * By default each .col within a .row will evenly take up
- * available width, and the height of each .col with take
- * up the height of the tallest .col in the same .row.
+ * Bullet and numbering in content (defined in nittioold.css as well as nlapp.scss)
  */
 .njsSlides .njsFlexList {
   display: -webkit-box;

@@ -37,8 +37,8 @@ this.getHtml = function(markupStr, retData) {
     return _markupToHtml(markupStr, retData);
 };
 
-this.parseWikiMarker = function(line, marker, fn) {
-    return _parseWikiMarker(line, marker, fn);
+this.parseWikiMarker = function(line, marker, fn, dontConvertUrl) {
+    return _parseWikiMarker(line, marker, fn, dontConvertUrl);
 };
 
 this.breakWikiMarkup = function(line) {
@@ -255,7 +255,7 @@ function _breakWikiMarkup(line) {
     return ret;
 }
 
-function _parseWikiMarker(line, marker, fn) {
+function _parseWikiMarker(line, marker, fn, dontConvertUrl) {
     var regex=new RegExp(nl.fmt2('({})([^\\[]*)(\\[.*?\\])?', marker), 'g');
     return line.replace(regex, function(match, mark, link, param, offset, allstr) {
         param = (typeof param === 'string' && param !== '') ? param.substring(1, param.length-1) : '';
@@ -267,7 +267,7 @@ function _parseWikiMarker(line, marker, fn) {
             if (avpair.length != 2) continue;
             avpairs[avpair[0]] = avpair[1];
         }
-        link = _convertUrl(link);
+        if (!dontConvertUrl) link = _convertUrl(link);
         return fn(link, avpairs, mark);
     });
 }
