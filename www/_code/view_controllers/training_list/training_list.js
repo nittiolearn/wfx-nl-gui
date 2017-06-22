@@ -144,9 +144,12 @@
 		function _createCard(item) {
 			trainingListDict[item.id] = item;
 			item.descMulti = _splitMultilineString(item.desc);
+			var canShowEdit = _userInfo.userid == item.publisher;
+			console.log(_userInfo, item);
 			var card = {
 				id : item.id,
 				canShowDelete: _canShowDelete,
+                canShowEdit: canShowEdit,
 				training : item,
 				title : item.name,
 				module : {
