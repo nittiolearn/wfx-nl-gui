@@ -42,6 +42,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         nlRangeSelectionDlg.init();
 		return nl.q(function(resolve, reject) {
             nlGroupInfo.init().then(function() {
+                _data.urlParams.isAdmin = nlRouter.isPermitted(userInfo, 'admin_user');
                 nl.pginfo.pageTitle = nl.t('Course report');
                 _initParams();
                 _initScope();
@@ -97,7 +98,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
     
     function _getUserColumns() {
         var columns = [];
-        columns.push({id: 'user.user_id', name: 'User', smallScreen: true});
+        columns.push({id: 'user.user_id', name: 'User Id', smallScreen: true});
         columns.push({id: 'user.org_unit', name: 'Org'});
         var mh = _reportProcessor.getMetaHeaders(true);
         for(var i=0; i<mh.length; i++) {
@@ -112,9 +113,11 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
             styleTd: 'text-right'});
 
         // Only search and details relevant columns
-        columns.push({id: 'user.name', name: 'User name', searchKey: 'username', 
+        columns.push({id: 'user.name', name: 'User Name', searchKey: 'username', 
             smallScreen: false, mediumScreen: false, largeScreen: false});
-        columns.push({id: 'user.username', name: 'Login id', searchKey: 'login', 
+        columns.push({id: 'user.email', name: 'Email Id', searchKey: 'email', 
+            smallScreen: false, mediumScreen: false, largeScreen: false});
+        columns.push({id: 'user.username', name: 'Login Id', searchKey: 'login', 
             smallScreen: false, mediumScreen: false, largeScreen: false});
         return columns;
     }
@@ -152,6 +155,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         columns.push({id: 'percStr', name: 'Completion', smallScreen: true, searchable: false, styleTd: 'text-right'});
         columns.push({id: 'assigned', name: 'Assigned', searchable: false, styleTd: 'text-right'});
         columns.push({id: 'done', name: 'Done', searchable: false, styleTd: 'text-right'});
+        columns.push({id: 'failed', name: 'Failed', searchable: false, styleTd: 'text-right'});
         columns.push({id: 'started', name: 'Started', searchable: false, styleTd: 'text-right'});
         columns.push({id: 'pending', name: 'Pending', searchable: false, styleTd: 'text-right'});
         return columns;
@@ -161,6 +165,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         var summaryRecord = {'org': {txt: 'Overall'}};
         var assigned = 0;
         var done = 0;
+        var failed = 0;
         var started = 0;
         var pending = 0;
         for (var i=0; i<records.length; i++) {
@@ -168,6 +173,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
             if (!rec.passesFilter) continue;
             assigned += rec.assigned;
             done += rec.done;
+            failed += rec.failed;
             started += rec.started;
             pending += rec.pending;
         }
@@ -175,6 +181,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         summaryRecord['percStr'] = {txt: assigned > 0 ? Math.round(done/assigned*100) + ' %': ''};
         summaryRecord['assigned'] = {txt: assigned};
         summaryRecord['done'] = {txt: done};
+        summaryRecord['failed'] = {txt: failed};
         summaryRecord['started'] = {txt: started};
         summaryRecord['pending'] = {txt: pending};
 
@@ -258,13 +265,13 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
     }
 
     function _initChartData() {
-        var labels =  ['done', 'started', 'pending'];
-        var colors = ['#007700', '#FFCC00', '#A0A0C0'];
+        var labels =  ['done', 'failed', 'started', 'pending'];
+        var colors = ['#007700', '#770000', '#FFCC00', '#A0A0C0'];
 
         $scope.charts = [{
             type: 'doughnut',
             title: 'Progress',
-            data: [0, 0, 0],
+            data: [0, 0, 0, 0],
             labels: labels,
             colors: colors
         },
@@ -289,7 +296,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
     
     function _updateProgressChartData(summaryRecord) {
         var c = $scope.charts[0];
-        c.data = [summaryRecord.done.txt, summaryRecord.started.txt, summaryRecord.pending.txt];
+        c.data = [summaryRecord.done.txt, summaryRecord.failed.txt, summaryRecord.started.txt, summaryRecord.pending.txt];
         c.title = nl.t('Progress: {} of {} done', summaryRecord.done.txt, summaryRecord.assigned.txt);
     }
         
@@ -343,7 +350,6 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
             lastTime = range.end;
             ranges.push(range);
         }
-        console.log('ranges:', ranges);
         return ranges;
     }
 
@@ -356,7 +362,8 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
     function _onExport() {
         if (_fetcher.isFetchInProgress()) return;
         var dlg = nlDlg.create($scope);
-        dlg.scope.export = {summary: true, user: true, module: false};
+        dlg.scope.export = {summary: true, user: true, module: false, ids: false,
+            canShowIds: _data.urlParams.isAdmin};
         
         var exportButton = {
             text : nl.t('Export'),
@@ -485,13 +492,13 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         var header = ['Org'];
         var metas = _reportProcessor.getMetaHeaders(true);
         for(var i=0; i<metas.length; i++) header.push(metas[i].name);
-        header = header.concat(['Completion', 'Assigned', 'Done', 'Started', 'Pending']);
+        header = header.concat(['Completion', 'Assigned', 'Done', 'Failed', 'Started', 'Pending']);
         var rows = [nlExporter.getCsvString(header)];
         for (var i=start; i<end; i++) {
             var record = summaryStats[i];
             var row = [record.org];
             for (var j=0; j<metas.length; j++) row.push(record[metas[j].id]);
-            row = row.concat([record.perc ? record.perc+ '%' : '', record.assigned, record.done, record.started, record.pending]);
+            row = row.concat([record.perc ? record.perc+ '%' : '', record.assigned, record.done, record.failed, record.started, record.pending]);
             rows.push(nlExporter.getCsvString(row));
         }
         var content = rows.join(_CSV_DELIM);
@@ -624,18 +631,15 @@ function CourseProcessor(nlCourse) {
 		course = nlCourse.migrateCourse(course);
         _idToFullName = {};
         var ret = {id: course.id, name: course.name || '', created: course.created || null, 
-            updated: course.updated || null, certificates: [], lessons: []};
+            updated: course.updated || null, certificates: [], lessons: [], nonLessons: []};
         var modules = (course.content || {}).modules || [];
         for (var i=0; i<modules.length; i++) {
             var m = modules[i];
             if (!m.id) continue;
             _updateIdToFullName(m);
-            if (m.type == 'lesson') {
-                ret.lessons.push({id: m.id, name:_idToFullName[m.id]});
-                continue;
-            }
-            if (m.type != 'certificate') continue;
-            ret.certificates.push(m.id);
+            if (m.type == 'lesson') ret.lessons.push({id: m.id, name:_idToFullName[m.id]});
+            else if (m.type == 'certificate') ret.certificates.push(m.id);
+            else ret.nonLessons.push(m.id);
         }
         return ret;
     };
@@ -659,16 +663,21 @@ function CourseProcessor(nlCourse) {
 
 //-------------------------------------------------------------------------------------------------
 function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
+    var self = this;
     this.STATUS_PENDING = 0;
     this.STATUS_STARTED = 1;
     this.STATUS_DONE = 2;
-    this.STATUS_FAILED = 3;
+    this.STATUS_PASSED = 3;
+    this.STATUS_FAILED = 4;
+    this.STATUS_CERTIFIED = 5;
     
     var _statusInfos = [
         {id: this.STATUS_PENDING, txt: 'pending', icon: 'ion-ios-circle-filled fgrey'},
         {id: this.STATUS_STARTED, txt: 'started', icon: 'ion-ios-circle-filled fgreen'},
         {id: this.STATUS_DONE, txt: 'done', icon: 'ion-checkmark-circled fgreen'},
-        {id: this.STATUS_FAILED, txt: 'failed', icon: 'icon ion-close-circled forange'}];
+        {id: this.STATUS_PASSED, txt: 'passed', icon: 'ion-checkmark-circled fgreen'},
+        {id: this.STATUS_FAILED, txt: 'failed', icon: 'icon ion-close-circled forange'},
+        {id: this.STATUS_CERTIFIED, txt: 'certified', icon: 'icon ion-android-star fgreen'}];
         
     this.process = function(report) {
         var user = nlGroupInfo.getUserObj(''+report.student);
@@ -676,56 +685,68 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
         var course = _data.courseRecords[report.courseid];
         if (!course) return null;
 
+        var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
+            timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
+            nCerts: course.certificates.length};
+            
+        var statusinfo = report.statusinfo || {};
+        var items = course.nonLessons;
+        stats.nOthers = items.length;
+        stats.nOthersDone = 0;
+        for (var i=0; i<items.length; i++) {
+            var cid = items[i];
+            var sinfo = statusinfo[cid];
+            if (sinfo && sinfo.status == 'done') stats.nOthersDone++;
+        }
+
         var lessons = course.lessons;
         var lessonReps = report.lessonReports || {};
-
-        var nLessons = 0;
-        var nLessonsPassed = 0;
-        var nLessonsFailed = 0;
-        var nAttempts = 0;
-        var nLessonsAttempted = 0;
         for (var i=0; i<lessons.length; i++) {
-            nLessons++;
+            stats.nLessons++;
             var lid = lessons[i].id;
             var rep = lessonReps[lid];
             if (!rep) continue;
             if (!rep.selfLearningMode && rep.attempt) {
-                nAttempts += rep.attempt;
-                nLessonsAttempted++;
+                stats.nAttempts += rep.attempt;
+                stats.nLessonsAttempted++;
             }
+            stats.timeSpentSeconds += rep.timeSpentSeconds || 0;
             if (!rep.completed) continue;
             if (rep.selfLearningMode) {
                 rep.maxScore = 0;
                 rep.score = 0;
             }
+            if (rep.maxScore) {
+                stats.nScore += rep.score;
+                stats.nMaxScore += rep.maxScore;
+                stats.nQuiz++;
+            }
             var perc = rep.maxScore ? Math.round(rep.score / rep.maxScore * 100) : 100;
-            if (!rep.passScore || perc >= rep.passScore) nLessonsPassed++;
-            else nLessonsFailed++;
+            if (!rep.passScore || perc >= rep.passScore) stats.nLessonsPassed++;
+            else stats.nLessonsFailed++;
         }
-        var nLessonsDone = nLessonsPassed + nLessonsFailed;
-        var percComplete = nLessons ? Math.round(nLessonsDone/nLessons*100) : 100;
-        var avgAttempts = nLessonsAttempted ? Math.round(nAttempts/nLessonsAttempted*10)/10 : '';
-
-        var nCerts = 0;
-        var certs = course.certificates;
-        var totalCerts = Object.keys(course.certificates).length;
-        var statusinfo = report.statusinfo || {};
-        for (var i=0; i<certs.length; i++) {
-            var cid = certs[i];
-            var sinfo = statusinfo[cid];
-            if (sinfo && sinfo.status == 'done') nCerts++;
-        }
-
-        var statusId = (percComplete == 100 && nCerts == totalCerts && nLessonsFailed == 0) ? this.STATUS_DONE
-            : (percComplete == 100 && nLessonsFailed > 0) ? this.STATUS_FAILED
-            : (nAttempts == 0 && nCerts == 0) ? this.STATUS_PENDING : this.STATUS_STARTED;
-        var status = _statusInfos[statusId];
-        var stats = {status: status, percComplete: percComplete, percCompleteStr: '' + percComplete + ' %',
-            nLessonsDone: nLessonsDone, nLessonsPassed: nLessonsPassed, nLessonsFailed: nLessonsPassed, 
-            nLessons: nLessons, avgAttempts: avgAttempts, 
-            nAttempts: nAttempts, nLessonsAttempted: nLessonsAttempted,
-            nCerts: nCerts, totalCerts: totalCerts};
+        stats.nLessonsDone = stats.nLessonsPassed + stats.nLessonsFailed;
+        var weightedProgressMax = stats.nLessons*10 + stats.nOthers;
+        var weightedProgress = stats.nLessonsDone*10 + stats.nOthersDone;
+        stats.percComplete = weightedProgressMax ? Math.round(weightedProgress/weightedProgressMax*100) : 100;
+        stats.percCompleteStr = '' + stats.percComplete + ' %';
         
+        var plural = stats.nLessons > 1 ? 'modules' : 'module';
+        var modulesCompleted = stats.nLessons ? nl.fmt2('{} of {} {}', stats.nLessonsDone, stats.nLessons, plural) : '';
+        plural = stats.nOthers > 1 ? 'other items' : 'other item';
+        var othersCompleted = stats.nOthers ? nl.fmt2('{} of {} {}', stats.nOthersDone, stats.nOthers, plural) : '';
+        var delim = modulesCompleted && othersCompleted ? ' and ' : '';
+        stats.percCompleteDesc = nl.fmt2('{}{}{} completed', modulesCompleted, delim, othersCompleted);
+        
+        stats.avgAttempts = stats.nLessonsAttempted ? Math.round(stats.nAttempts/stats.nLessonsAttempted*10)/10 : '';
+        stats.percScore = stats.nMaxScore ? Math.round(stats.nScore/stats.nMaxScore*100) : 0;
+        stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
+
+        stats.timeSpentStr = Math.ceil(stats.timeSpentSeconds/60);
+        stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
+            : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
+
+        stats.status = _statusInfos[_getStatusId(stats)];
         var ret = {raw_record: report, course: course, user: user,
             usermd: _getMetadataDict(user), stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'date'), 
@@ -733,6 +754,15 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
         return ret;
     };
     
+    function _getStatusId(stats) {
+        if (stats.percComplete == 0) return self.STATUS_PENDING;
+        if (stats.percComplete < 100) return self.STATUS_STARTED;
+        if (stats.nLessonsFailed > 0) return self.STATUS_FAILED;
+        if (stats.nCerts > 0) return self.STATUS_CERTIFIED;
+        if (stats.nMaxScore == 0) return self.STATUS_DONE;
+        return self.STATUS_PASSED;
+    }
+
     this.getMetaHeaders = function(bOnlyMajor) {
         var headers = [];
         var metadata = nlGroupInfo.getUserMetadata(null);
@@ -753,31 +783,40 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
 
     this.getCsvHeader = function() {
         var mh = this.getMetaHeaders(false);
-        var headers = ['User', 'Org'];
+        var headers = ['User Id', 'User Name', 'Email Id', 'Org'];
         for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
-        headers = headers.concat(['Course', 'Status', 'Progress',
-            'Average Attempts', 'Certificates', 'Assigned On', 'Last Updated On',
-            'Report id', 'Assign id', 'Course id']);
+        headers = headers.concat(['Course Name', 'Assigned On', 'Last Updated On', 
+            'Status', 'Progress', 'Progress Details', 'Quiz Attempts',
+            'Achieved %', 'Maximum Score', 'Achieved Score', 'Time Spent (minutes)']);
+        if (_data.urlParams.exportTypes.ids)
+            headers = headers.concat(['Report id', 'Assign id', 'Course id']);
         return headers;
     };
     
     this.getCsvRow = function(report) {
         var mh = this.getMetaHeaders(false);
-        var ret = [report.user.user_id, report.user.org_unit];
+        var ret = [report.user.user_id, report.user.name, report.user.email, report.user.org_unit];
         for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id]);
-        ret = ret.concat([report.course.name, report.stats.status.txt, '' + report.stats.percComplete + '%',
-            report.stats.avgAttempts, report.stats.nCerts, report.created, report.updated,
-            'id=' + report.raw_record.id, 'id=' + report.raw_record.assignid, 'id=' + report.raw_record.courseid]);
+        ret = ret.concat([report.course.name, report.created, report.updated,
+            report.stats.status.txt, '' + report.stats.percComplete + '%',
+            report.stats.percCompleteDesc, report.stats.avgAttempts,
+            report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore,
+            Math.ceil(report.stats.timeSpentSeconds/60)]);
+        if (_data.urlParams.exportTypes.ids)
+            ret = ret.concat(['id=' + report.raw_record.id, 'id=' + report.raw_record.assignid, 
+                'id=' + report.raw_record.courseid]);
         return ret;
     };
     
     this.getCsvModuleHeader = function() {
         var mh = this.getMetaHeaders(false);
-        var headers = ['User', 'Org'];
+        var headers = ['User Id', 'User Name', 'Email Id', 'Org'];
         for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
-        headers = headers.concat(['Course', 'Module', 'Status', 'Percentage', 
-            'Score', 'Max score', 'Started', 'Ended', 'Time spent (mins)', 'Attempts',
-            'Report id', 'Assign id', 'Course id']);
+        headers = headers.concat(['Course Name', 'Module Name', 'Started', 'Ended', 
+            'Status', 'Attempts', 'Achieved %', 'Maximum Score', 'Achieved Score', 'Pass %', 
+            'Time Spent (minutes)']);
+        if (_data.urlParams.exportTypes.ids)
+            headers = headers.concat(['Report id', 'Assign id', 'Course id']);
         return headers;
     };
 
@@ -792,6 +831,7 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
             var perc='';
             var score='';
             var maxScore='';
+            var passScore = '';
             var started = '';
             var ended = '';
             var timeSpent='';
@@ -799,6 +839,7 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
             if (module.id in lessonReports) {
                 var lrep = lessonReports[module.id];
                 maxScore = lrep.selfLearningMode ? 0 : lrep.maxScore || 0;
+                passScore = lrep.passScore || '';
                 score = lrep.selfLearningMode ? 0 : lrep.score || 0;
                 var percentage = maxScore > 0 ? Math.round(score*100/maxScore) : 100;
                 var passed = (!lrep.passScore || percentage >= lrep.passScore);
@@ -809,15 +850,18 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
                 ended = lrep.started || '';
                 timeSpent = Math.ceil((lrep.timeSpentSeconds||0)/60);
                 attempts = lrep.attempt || '';
-                status = (lrep.completed ? (passed ? 'done' : 'failed'): 'started');
+                status = !lrep.completed ? 'started' :
+                    !maxScore ? 'done' :
+                    passed ? 'passed' : 'failed';
             }
             
-            var ret = [report.user.user_id, report.user.org_unit];
+            var ret = [report.user.user_id, report.user.name, report.user.email, report.user.org_unit];
             for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id]);
-            ret = ret.concat([report.course.name, module.name, status, perc, 
-                score, maxScore, started, ended, timeSpent, attempts,
-                'id=' + report.raw_record.id, 
-                'id=' + report.raw_record.assignid, 'id=' + report.raw_record.courseid]);
+            ret = ret.concat([report.course.name, module.name, started, ended, status, attempts, perc, 
+                maxScore, score, passScore ? passScore + '%' : '', timeSpent]);
+            if (_data.urlParams.exportTypes.ids)
+                ret = ret.concat(['id=' + report.raw_record.id, 
+                    'id=' + report.raw_record.assignid, 'id=' + report.raw_record.courseid]);
             moduleRows.push(nlExporter.getCsvString(ret));
         }
     };
@@ -870,7 +914,7 @@ function SummaryStats(nl, nlGroupInfo, _data, _reportProcessor, $scope) {
     }
     
     function _initStatObj(keys) {
-        var ret = {perc: '', assigned: 0, done: 0, started: 0, pending: 0};
+        var ret = {perc: '', assigned: 0, done: 0, failed: 0, started: 0, pending: 0};
         for (var i=0; i<keys.length; i++) ret[keys[i].n] = keys[i].v;
         return ret;
     }
@@ -880,6 +924,7 @@ function SummaryStats(nl, nlGroupInfo, _data, _reportProcessor, $scope) {
         var stats = report.stats;
         if (stats.status.id == _reportProcessor.STATUS_PENDING) statsObj.pending += delta;
         else if (stats.status.id == _reportProcessor.STATUS_STARTED) statsObj.started += delta;
+        else if (stats.status.id == _reportProcessor.STATUS_FAILED) statsObj.failed += delta;
         else statsObj.done += delta;
         statsObj.perc = statsObj.assigned > 0 ? Math.round(statsObj.done/statsObj.assigned*100) : 0;
         statsObj.percStr = statsObj.perc > 0 ? statsObj.perc + ' %' : '';

@@ -25,8 +25,8 @@
             ng-show='col.canShow'
             class='{{col.styleTd}}'>
              <i ng-if='info._internal.summaryRow[col.id].icon && col.iconType == "ionicon"'
-                class='icon fsh4 padding-mid {{info._internal.summaryRow[col.id].icon}}'></i>
-            {{info._internal.summaryRow[col.id].txt || ''}}
+                class='icon fsh4 {{info._internal.summaryRow[col.id].icon}}'></i>
+            <span>{{info._internal.summaryRow[col.id].txt || ''}}</span>
         </td>
     </tr>
     <tr ng-repeat-start='rec in info._internal.visibleRecs track by $index'
@@ -35,8 +35,8 @@
         <td ng-repeat='col in info.columns track by $index'
             ng-show='col.canShow'
             class='{{col.styleTd}}'>
-             <i ng-if='rec[col.id].icon' class='icon fsh4 padding-mid {{rec[col.id].icon}}'></i>
-            {{rec[col.id].txt || ''}}
+             <i ng-if='rec[col.id].icon' class='icon fsh4 {{rec[col.id].icon}}'></i>
+             <span>{{rec[col.id].txt || ''}}</span>
         </td>
     </tr>
     <tr ng-repeat-end ng-show='rec.canShowDetails'>

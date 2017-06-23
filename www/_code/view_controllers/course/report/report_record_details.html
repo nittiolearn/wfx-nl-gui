@@ -31,15 +31,24 @@
     <div class='padding-mid' ng-class='$root.respCol422'><b>Progress:</b></div>
     <div class='padding-mid' ng-class='$root.respCol422'>
         <span>{{rec._raw.stats.percCompleteStr}}</span>
-        <span> ({{rec._raw.stats.nLessonsDone}} of {{rec._raw.stats.nLessons}} modules)</span>
+        <span> ({{rec._raw.stats.percCompleteDesc}})</span>
     </div>
-    <div class='padding-mid' ng-class='$root.respCol422'><b>Average attempts:</b></div>
-    <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.stats.avgAttempts}}</div>
 
-    <div class='padding-mid' ng-class='$root.respCol422'><b>Certificates:</b></div>
-    <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.stats.nCerts}} of {{rec._raw.stats.totalCerts}}</div>
-    <div class='padding-mid' ng-class='$root.respCol422'><b>Org:</b></div>
-    <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.user.org_unit}}</div>
+    <div class='padding-mid' ng-class='$root.respCol422'><b>Time spent:</b></div>
+    <div class='padding-mid' ng-class='$root.respCol422'>
+        <span>{{rec._raw.stats.timeSpentStr}}</span>
+    </div>
+
+    <div class='padding-mid' ng-class='$root.respCol422'><b>Score:</b></div>
+    <div class='padding-mid' ng-class='$root.respCol422'>
+        <span>{{rec._raw.stats.percScoreStr}}</span>
+        <span> (scored {{rec._raw.stats.nScore}} of {{rec._raw.stats.nMaxScore}} in {{rec._raw.stats.nQuiz}} quiz{{rec._raw.stats.nQuiz > 1 ? 'zes' : ''}})</span>
+    </div>
+
+    <div class='padding-mid' ng-class='$root.respCol422'><b>Quiz attempts:</b></div>
+    <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.stats.avgAttempts || '-'}}
+        <span ng-show='rec._raw.stats.nLessonsAttempted > 1'>(average from {{rec._raw.stats.nLessonsAttempted}} quizzes)</span>
+    </div>
 
     <div ng-repeat-start='meta in info.metas'
          class='padding-mid' ng-class='$root.respCol422'><b>{{meta.name}}:</b></div>
