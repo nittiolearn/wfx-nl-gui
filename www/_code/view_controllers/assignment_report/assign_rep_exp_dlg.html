@@ -13,6 +13,12 @@
             <i ng-hide='scopeData.exportFeedback' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
             <span>export page level feedback</span>
         </div>
+        <div class='padding-small nl-link-text' 
+             ng-click='scopeData.exportIds = !scopeData.exportIds'>
+            <i ng-show='scopeData.exportIds' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='scopeData.exportIds' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>export internal identifiers</span>
+        </div>
         <div class='padding-small'></div> 
         <div class='padding-small'>
             <div class='nl-button' ng-click='onExport()'>Export</div>

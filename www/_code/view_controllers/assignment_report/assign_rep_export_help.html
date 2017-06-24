@@ -25,11 +25,9 @@
             record is exported into one or more .csv file(s) depending on
             the number of entries. </b>
         </p>
-        <h1>report-overview-[n].csv</h1>
+        <h1>Common fields</h1>
         <p>
-            Each row of these csv files is a learning record of one
-            user learning one module. The following fields are exported
-            in these csv files:
+            Each row of these csv files contains the below common fileds:
         </p>
         <table class='mytable'>
             <tr class='header'>
@@ -37,129 +35,122 @@
                 <th>Description</th>
             </tr>
             <tr>
-                <td class='name'> user loginid </td>
+                <td class='name'> User Id </td>
                 <td class='desc'>
-                This is the unique login id of the user. Either the login id
-                or the email id could be used as a key to uniquely lookup the
+                This is the unique user id of the user. Either the User Id
+                or the Email Id could be used as a key to uniquely lookup the
                 user from your MIS database.
                 </td>
             </tr>
             <tr>
-                <td class='name'> user name </td>
-                <td class='desc'> The name of the user. </td>
+                <td class='name'> User Name </td>
+                <td class='desc'> The full name of the user. </td>
             </tr>
             <tr>
-                <td class='name'> module name </td>
+                <td class='name'> Email Id </td>
+                <td class='desc'> Email Id of the user to whom the assignment has been assigned. </td>
+            </tr>
+            <tr>
+                <td class='name'> Org </td>
+                <td class='desc'> Organization unit the user belongs to in your org structure. </td>
+            </tr>
+            <tr>
+                <td class='name'> Meta data fields </td>
+                <td class='desc'> User metadata configured for your organizations (e.g. location, grade, ...). </td>
+            </tr>
+            <tr>
+                <td class='name'> Course Name </td>
+                <td class='desc'> Name of the course. All the course related parameters are valid only if Assign Type is "course assignment". </td>
+            </tr>
+            <tr>
+                <td class='name'> Module Name </td>
                 <td class='desc'> The name of the learning or quiz module. </td>
             </tr>
             <tr>
-                <td class='name'> status </td>
+                <td class='name'> Assign Type </td>
+                <td class='desc'> One of the below values:
+                    <ul>
+                        <li><b>module assignment:</b>This learning record is based on a module assigned to the learner.</li>
+                        <li><b>course assignment:</b>This learning record is based on a module inside a course assigned to the learner.</li>
+                        <li><b>self assignment:</b>This learning record is based on self learning.</li>
+                        <li><b>training:</b>This learning record is based on a external training assigned to the learner.</li>
+                    </ul>
+                 </td>
+            </tr>
+        </table>
+
+        <h1>report-overview-[n].csv</h1>
+        <p>
+            Each row of these csv files is a learning record of one
+            user learning one module. The following fields are exported
+            in these csv files additional to the common fields:
+        </p>
+        <table class='mytable'>
+            <tr class='header'>
+                <th>Name</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td class='name'> Assigned On </td>
+                <td class='desc'> Date and time of assignment creation. </td>
+            </tr>
+            <tr>
+                <td class='name'> Started On </td>
+                <td class='desc'> Date and time when the learner starts the assignment.</td>
+            </tr>
+            <tr>
+                <td class='name'> Ended On </td>
+                <td class='desc'> Date and time when the learner completes the assignment. </td>
+            </tr>
+            <tr>
+                <td class='name'> Last Updated On </td>
+                <td class='desc'> Last updated date and time of the assignment.
+                    When a learner has not started, updated time will be same as
+                    created. After the learner completes, the updated time will be
+                    same as ended time. If the assignment administrator later
+                    updates the assignment after completion by the learner, this
+                    timestamp could be later than ended time stamp. </td>
+            </tr>
+            <tr>
+                <td class='name'> Status </td>
                 <td class='desc'> The status could be
                 <ul>
                     <li>
-                        <b>completed:</b> The user has successfully completed the module and scored above the defined pass criteria. If no criteria is defined in the module, by the default pass criteria is 70%.
+                        <b>completed:</b> The learner has successfully completed the module and scored above the defined pass criteria. If no criteria is defined in the module, by the default pass criteria is 70%.
                     </li>
                     <li>
-                        <b>failed:</b> The user has submitted but scored below the pass criteria.
+                        <b>failed:</b> The learner has submitted but scored below the pass criteria.
                     </li>
                     <li>
-                        <b>pending:</b> The user has not yet submitted.
+                        <b>pending:</b> The learner has not yet submitted.
                     </li>
                 </ul>
                 </td>
             </tr>
             <tr>
-                <td class='name'> % </td>
-                <td class='desc'> Percentage score of the user (score / maxScore x 100). </td>
+                <td class='name'> Achieved % </td>
+                <td class='desc'> Percentage score of the learner (score / maxScore x 100). </td>
             </tr>
             <tr>
-                <td class='name'> score </td>
-                <td class='desc'> The actual score of the user.</td>
-            </tr>
-            <tr>
-                <td class='name'> maxScore </td>
+                <td class='name'> Maximum Score </td>
                 <td class='desc'> The miximum possible score for this module.</td>
             </tr>
             <tr>
-                <td class='name'> passScore </td>
+                <td class='name'> Achived Score </td>
+                <td class='desc'> The actual score of the learner.</td>
+            </tr>
+            <tr>
+                <td class='name'> Pass % </td>
                 <td class='desc'> The minimum score required to pass. </td>
             </tr>
             <tr>
-                <td class='name'> time spent </td>
+                <td class='name'> Time Spent (minutes) </td>
                 <td class='desc'> The total time spent on this module. </td>
-            </tr>
-            <tr>
-                <td class='name'> created </td>
-                <td class='desc'> Date and time of assignment creation. </td>
-            </tr>
-            <tr>
-                <td class='name'> started </td>
-                <td class='desc'> Date and time when the user starts the assignment.</td>
-            </tr>
-            <tr>
-                <td class='name'> ended </td>
-                <td class='desc'> Date and time when the user completes the assignment. </td>
-            </tr>
-            <tr>
-                <td class='name'> updated </td>
-                <td class='desc'> Last updated date and time of the assignment.
-                    When a user has not started, updated time will be same as
-                    created. After the user completes, the updated time will be
-                    same as ended time. If the assignment administrator later
-                    updates the assignment after completion by the user, this
-                    timestamp could be later than ended time stamp. </td>
-            </tr>
-            <tr>
-                <td class='name'> email </td>
-                <td class='desc'> email id of the user to whom the assignment has been assigned. </td>
-            </tr>
-            <tr>
-                <td class='name'> org </td>
-                <td class='desc'> class/organization unit the user belongs to in your org structure. </td>
-            </tr>
-            <tr>
-                <td class='name'> assign type </td>
-                <td class='desc'> One of the below values:
-                    <ul>
-                        <li><b>module assignment:</b>This learning record is based on a module assigned to the user.</li>
-                        <li><b>course assignment:</b>This learning record is based on a module inside a course assigned to the user.</li>
-                        <li><b>self assignment:</b>This learning record is based on user self learning.</li>
-                    </ul>
-                 </td>
-            </tr>
-            <tr>
-                <td class='name'> recordid </td><td class='desc'> Unique id of the this learning record. 
-                    All the id parameters mentioned are useful only in case of building a database of the
-                    exported records.</td>
-            </tr>
-            <tr>
-                <td class='name'> userid </td><td class='desc'> Unique id of the user. </td>
-            </tr>
-            <tr>
-                <td class='name'> assignid </td><td class='desc'> Unique id of the assignment. Valid only incase of module assignment.</td>
-            </tr>
-            <tr>
-                <td class='name'> moduleid </td><td class='desc'> Unique id of the module. </td>
-            </tr>
-            <tr>
-                <td class='name'> course </td><td class='desc'> Name of the course. All the course related parameters are valid only if assigntype is "course assignment". </td>
-            </tr>
-            <tr>
-                <td class='name'> courseid </td><td class='desc'> Unique course id </td>
-            </tr>
-            <tr>
-                <td class='name'> courseassignid </td><td class='desc'> Unique course assignment id </td>
-            </tr>
-            <tr>
-                <td class='name'> courserepid </td><td class='desc'> Unique report id of each user doing the course </td>
-            </tr>
-            <tr>
-                <td class='name'> remarks </td><td class='desc'> Assignment remarks mentioned when sending out the assignment </td>
             </tr>
         </table>
         <h1>page-scores-[n].csv</h1>
         <p>
-            This csv file displays the page level scores of the users who have submitted the module. The following fields are exported:
+            This csv file displays the page level scores of the learners who have submitted the module. The following fields are exported:
         </p>
         <table class='mytable'>
             <tr class='header'>
@@ -167,37 +158,21 @@
                 <th>Description</th>
             </tr>
             <tr>
-                <td class='name'> # </td><td class='desc'> Serial number. </td>
+                <td class='name'> Page No </td><td class='desc'> Page number of the module for which the score is to be displayed. </td>
             </tr>
             <tr>
-            <tr>
-                <td class='name'> user loginid </td><td class='desc'> See above.</td>
+                <td class='name'> Page Title </td><td class='desc'> This field includes information provided in the title section of the page. </td>
             </tr>
             <tr>
-                <td class='name'> user name </td><td class='desc'> See above.</td>
+                <td class='name'> Maximum Score </td><td class='desc'> Maximum possible page score. </td>
             </tr>
             <tr>
-                <td class='name'> module name </td><td class='desc'> See above.</td>
-            </tr>
-            <tr>
-                <td class='name'> page no </td><td class='desc'> Page number of the module for which the score is to be displayed. </td>
-            </tr>
-            <tr>
-                <td class='name'> page title </td><td class='desc'> This field includes information provided in the title section of the page. </td>
-            </tr>
-            <tr>
-                <td class='name'> score </td><td class='desc'> Page score attained by the user. </td>
-            </tr>
-            <tr>
-                <td class='name'> maxScore </td><td class='desc'> Maximum possible page score. </td>
-            </tr>
-            <tr>
-                <td class='name'> other parameters </td><td class='desc'> See above.</td>
+                <td class='name'> Achieved Score </td><td class='desc'> Page score attained by the learner. </td>
             </tr>
         </table>
         <h1>feedback-[n].csv</h1>
         <p>
-            This csv file displays the feedback provided by the user in
+            This csv file displays the feedback provided by the learner in
             the questionnaire pages of the module. The following fields are exported:
         </p>
         <table class='mytable'>
@@ -206,32 +181,16 @@
                 <th>Description</th>
             </tr>
             <tr>
-                <td class='name'> # </td><td class='desc'> Serial number. </td>
+                <td class='name'> Page No </td><td class='desc'> Page number of the module for which the score is to be displayed. </td>
             </tr>
             <tr>
-            <tr>
-                <td class='name'> user loginid </td><td class='desc'> See above.</td>
+                <td class='name'> Page Title </td><td class='desc'> This field includes information provided in the title section of the page. </td>
             </tr>
             <tr>
-                <td class='name'> user name </td><td class='desc'> See above.</td>
+                <td class='name'> Question </td><td class='desc'> The question for which the feedback is to be provided. </td>
             </tr>
             <tr>
-                <td class='name'> module name </td><td class='desc'> See above.</td>
-            </tr>
-            <tr>
-                <td class='name'> page no </td><td class='desc'> See above.</td>
-            </tr>
-            <tr>
-                <td class='name'> page title </td><td class='desc'> See above.</td>
-            </tr>
-            <tr>
-                <td class='name'> question </td><td class='desc'> The question for which the feedback is to be provided. </td>
-            </tr>
-            <tr>
-                <td class='name'> response </td><td class='desc'> Users response to the question. </td>
-            </tr>
-            <tr>
-                <td class='name'> other parameters </td><td class='desc'> See above.</td>
+                <td class='name'> Response </td><td class='desc'> Users response to the question. </td>
             </tr>
         </table>
     </body>

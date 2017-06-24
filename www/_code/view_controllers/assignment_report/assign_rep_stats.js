@@ -69,33 +69,32 @@ function(nl) {
 
 //-------------------------------------------------------------------------------------------------
 var NlAssignReportStats = ['nl', 'nlDlg', 'nlExporter', 'nlProgressLog', 
-'nlGroupInfo', '$templateCache', 'nlTreeSelect', 'nlOuUserSelect',
+'nlGroupInfo', '$templateCache', 'nlTreeSelect', 'nlOuUserSelect', 'nlRouter',
 function(nl, nlDlg, nlExporter, nlProgressLog, nlGroupInfo, $templateCache, 
-    nlTreeSelect, nlOuUserSelect) {
+    nlTreeSelect, nlOuUserSelect, nlRouter) {
     var self = this;
     var ctx = null;
     var dlg = null;
-    var scopeData = {inProgress: false, exportPageScore: false, exportFeedback: false};
+    var _metaFields = null;
+    var scopeData = {inProgress: false, exportPageScore: false, exportFeedback: false,
+        exportIds: false, canShowIds: false};
     
     this.createReportStats = function(reptype, parentScope) {
-        return new ReportStats(reptype, nl, nlDlg, nlGroupInfo, 
+        var reportStats = new ReportStats(reptype, nl, nlDlg, nlGroupInfo, 
             nlTreeSelect, nlOuUserSelect, parentScope);
+        _metaFields = reportStats.getMetaHeaders();
+        return reportStats;
     };
 
     this.export = function($scope, reports, _userInfo) {
-        if (!ctx) {
-            _initExportHeaders(_userInfo);
-            ctx = {pl: nlProgressLog.create($scope),
-                overviewRows: [nlExporter.getCsvHeader(_hOverview)],
-                pScoreRows: [nlExporter.getCsvHeader(_hPageScores)],
-                feedbackRows: [nlExporter.getCsvHeader(_hFeedback)]};
-            ctx.pl.showLogDetails(true);
-        }
-        dlg = _showDlg($scope, reports);
+        scopeData.canShowIds = nlRouter.isPermitted(_userInfo, 'admin_user');
+        ctx = {pl: nlProgressLog.create($scope)};
+        dlg = _showDlg($scope, reports, _userInfo);
     };
     
-    function _onExport(reports) {
-        _initCtx(reports);
+    function _onExport(reports, _userInfo) {
+        _initCtx(reports, _userInfo);
+
         scopeData.inProgress = true;
         _setProgress('start');
 
@@ -169,82 +168,61 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlGroupInfo, $templateCache,
     var _hOverview = [];
     var _hPageScores = [];
     var _hFeedback = [];
-
-    function _initExportHeaders(_userInfo) {
-        _hOverview = [
-            {id: '_loginid', name:'user loginid'},
-            {id: 'studentname', name:'user name'},
-            {id: 'name', name:'module name'},
-
-            {id: '_statusStr', name:'status'},
-            {id: '_percStr', name:'%'},
-            {id: '_score', name:'score'},
-            {id: '_maxScore', name:'maxScore'},
-            {id: '_passScore', name:'passScore'},
-            {id: '_timeMins', name:'time spent'},
-
-            {id: 'created', name:'created', fmt: 'minute'},
-            {id: 'started', name:'started', fmt: 'minute'},
-            {id: 'ended', name:'ended', fmt: 'minute'},
-            {id: 'updated', name:'updated', fmt: 'minute'},
-
-            {id: '_email', name:'email'},
-            {id: 'org_unit', name:'org'},
-            {id: 'subject', name:_userInfo.groupinfo.subjectlabel},
-            {id: '_grade', name:_userInfo.groupinfo.gradelabel},
-            {id: '_assignTypeStr', name:'assign type'},
+    var _commonFields1 = [
+            {id: '_user_id', name:'User Id'},
+            {id: 'studentname', name:'User Name'},
+            {id: '_email', name:'Email Id'},
+            {id: 'org_unit', name:'Org'}];
             
-            {id: 'id', name:'recordid', fmt: 'idstr'},
-            {id: 'student', name:'userid', fmt: 'idstr'},
-            {id: 'assignment', name:'assignid', fmt: 'idstr'},
-            {id: 'lesson_id', name:'moduleid', fmt: 'idstr'},
-            {id: '_courseName', name:'course'},
-            {id: '_courseId', name:'courseid', fmt: 'idstr'},
-            {id: '_courseAssignId', name:'courseassignid', fmt: 'idstr'},
-            {id: '_courseReportId', name:'courserepid', fmt: 'idstr'},
-            {id: 'assign_remarks', name:'remarks'}];
-    
-        _hPageScores = [
-            {id: 'pos', name: '#'},
-            {id: '_loginid', name:'user loginid'},
-            {id: 'studentname', name:'user name'},
-            {id: 'name', name:'module name'},
+    var _commonFields2 = [
+            {id: '_courseName', name:'Course Name'},
+            {id: 'name', name:'Module Name'}];
 
-            {id: 'page', name:'page no'},
-            {id: 'title', name:'page title'},
-            {id: 'score', name:'score'},
-            {id: 'maxScore', name:'maxScore'},
+    var _idFields = [
+            {id: 'id', name:'Report Id', fmt: 'idstr'},
+            {id: '_assignid', name:'Assign Id', fmt: 'idstr'},
+            {id: 'lesson_id', name:'Module Id', fmt: 'idstr'},
+            {id: '_courseId', name:'Course Id', fmt: 'idstr'},
+            {id: '_courseReportId', name:'Course Report Id', fmt: 'idstr'}
+    ];
+    
+    var _h1Overview = [
+            {id: 'created', name:'Assigned On', fmt: 'minute'},
+            {id: 'started', name:'Started On', fmt: 'minute'},
+            {id: 'ended', name:'Ended On', fmt: 'minute'},
+            {id: 'updated', name:'Last Updated On', fmt: 'minute'},
+
+            {id: '_statusStr', name:'Status'},
+            {id: '_percStr', name:'Achieved %'},
+            {id: '_maxScore', name:'Maximum Score'},
+            {id: '_score', name:'Achieved Score'},
+            {id: '_passScoreStr', name:'Pass %'},
+            {id: '_timeMins', name:'Time Spent (minutes)'}];
+    var _h1PageScores = [
+            {id: 'page', name:'Page No'},
+            {id: 'title', name:'Page Title'},
+            {id: 'maxScore', name:'Maximum Score'},
+            {id: 'score', name:'Acheived Score'}];
+    var _h1Feedback = [
+            {id: 'page', name:'Page No'},
+            {id: 'title', name:'Page Title'},
+            {id: 'question', name:'Question'},
+            {id: 'response', name:'Response'}];
             
-            {id: '_email', name:'email'},
-            {id: 'org_unit', name:'org'},
-            {id: 'subject', name:_userInfo.groupinfo.subjectlabel},
-            {id: '_grade', name:_userInfo.groupinfo.gradelabel},
+    function _initExportHeaders(_userInfo, exportIds) {
+        var _commonFields3 = [
+                {id: 'subject', name:_userInfo.groupinfo.subjectlabel},
+                {id: '_grade', name:_userInfo.groupinfo.gradelabel},
+                {id: '_assignTypeStr', name:'Assign Type'},
+                {id: 'assign_remarks', name:'Remarks'}];
 
-            {id: 'id', name:'recordid', fmt: 'idstr'},
-            {id: 'student', name:'userid', fmt: 'idstr'},
-            {id: 'assignment', name:'assignid', fmt: 'idstr'},
-            {id: 'lesson_id', name:'moduleid', fmt: 'idstr'}];
+        _hOverview = _commonFields1.concat(_metaFields, _commonFields2, _h1Overview, _commonFields3,
+                exportIds ? _idFields :  []);
+        _hPageScores = _commonFields1.concat(_metaFields, _commonFields2, _h1PageScores, _commonFields3,
+                exportIds ? _idFields :  []);
+        _hFeedback = _commonFields1.concat(_metaFields, _commonFields2, _h1Feedback, _commonFields3,
+                exportIds ? _idFields :  []);
     
-        _hFeedback = [
-            {id: 'pos', name: '#'},
-            {id: '_loginid', name:'user loginid'},
-            {id: 'studentname', name:'user name'},
-            {id: 'name', name:'module name'},
-
-            {id: 'page', name:'page no'},
-            {id: 'title', name:'page title'},
-            {id: 'question', name:'question'},
-            {id: 'response', name:'response'},
-                        
-            {id: '_email', name:'email'},
-            {id: 'org_unit', name:'org'},
-            {id: 'subject', name:_userInfo.groupinfo.subjectlabel},
-            {id: '_grade', name:_userInfo.groupinfo.gradelabel},
-
-            {id: 'id', name:'recordid', fmt: 'idstr'},
-            {id: 'student', name:'userid', fmt: 'idstr'},
-            {id: 'assignment', name:'assignid', fmt: 'idstr'},
-            {id: 'lesson_id', name:'moduleid', fmt: 'idstr'}];
     }
 
     function _processReportRecord(pos) {
@@ -254,13 +232,18 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlGroupInfo, $templateCache,
         var content = angular.fromJson(rep.content);
         if (!content.learningData && !content.pages) return;
 
-        var currentPageRecord = {pos: 0, _loginid: rep._loginid, 
+        var currentPageRecord = {pos: 0, _user_id: rep._user_id, 
             studentname: nlGroupInfo.formatUserNameFromRecord(rep), name: rep.name,
             page: null, title: '', score: 0, maxScore: 0, 
             org_unit: rep.org_unit, subject: rep.subject, _grade: rep._grade,
-            id: rep.id, student: rep.student, assignment: rep.assignment,
-            lesson_id: rep.lesson_id, _email: rep._email};
-        
+            id: rep.id, student: rep.student, lesson_id: rep.lesson_id, 
+            _email: rep._email, _courseName: rep._courseName,
+            _assignTypeStr: rep._assignTypeStr, assign_remarks: rep.assign_remarks,
+            _courseId: rep._courseId, _courseReportId: rep._courseReportId};
+            
+        for(var i=0; i<_metaFields.length; i++)
+            currentPageRecord[_metaFields[i].id] = rep[_metaFields[i].id];
+
         if (content.learningData) {
             _processReportRecordPageData(currentPageRecord, content);
         } else {
@@ -343,7 +326,12 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlGroupInfo, $templateCache,
         }
     }
 
-    function _initCtx(reports) {
+    function _initCtx(reports, _userInfo) {
+        _initExportHeaders(_userInfo, scopeData.exportIds)
+        ctx.overviewRows = [nlExporter.getCsvHeader(_hOverview)];
+        ctx.pScoreRows = [nlExporter.getCsvHeader(_hPageScores)];
+        ctx.feedbackRows = [nlExporter.getCsvHeader(_hFeedback)];
+        ctx.pl.showLogDetails(true);
         ctx.pl.clear();
         ctx.reports = reports;
         ctx.zip = new JSZip();
@@ -354,12 +342,12 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlGroupInfo, $templateCache,
         ctx.feedbackFiles = 0;
     }
     
-    function _showDlg($scope, reports) {
+    function _showDlg($scope, reports, _userInfo) {
         var dlg = nlDlg.create($scope);
         dlg.scope.progressLog = ctx.pl.progressLog;
         dlg.scope.scopeData = scopeData;
         dlg.scope.onExport = function() {
-            _onExport(reports);
+            _onExport(reports, _userInfo);
         };
         dlg.setCssClass('nl-height-max nl-width-max');
         var cancelButton = {text: nl.t('Close')};
@@ -397,6 +385,7 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
     var self = this;
     var _lst = [];
     var _stats = {reptype: reptype};
+    var _metaFields = _getMetaHeaders();
 
     var _usersFilter = {};
     var _grades = {};
@@ -406,6 +395,20 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
     this.STATUS_FAILED = 0;
     this.STATUS_PASSED = 1;
     
+    this.getMetaHeaders = function() {
+        return _metaFields;
+    };
+    
+    function _getMetaHeaders(bOnlyMajor) {
+        var headers = [];
+        var metadata = nlGroupInfo.getUserMetadata(null);
+        for(var i=0; i<metadata.length; i++) {
+            if (bOnlyMajor && !metadata[i].major) continue;
+            headers.push({id: metadata[i].id, name: metadata[i].name});
+        }
+        return headers;
+    }
+
     this.getRecords = function() {
         return _lst;
     };
@@ -527,20 +530,24 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
             rep.created = nl.fmt.json2Date(rep.created);
             if (rep.started) rep.started = nl.fmt.json2Date(rep.started);
             if (rep.ended) rep.ended = nl.fmt.json2Date(rep.ended);
-            rep._loginid = '';
+            rep._user_id = '';
             rep._email = '';
-            if (groupInfo && groupInfo.users[''+rep.student]) {
-                var userInfo = groupInfo.users[''+rep.student];
-                rep.studentname = nlGroupInfo.formatUserName(userInfo);
-                rep._loginid = userInfo[nlGroupInfo.USERNAME];
-                rep._email = userInfo[nlGroupInfo.EMAIL];
-                rep.org_unit = userInfo[nlGroupInfo.ORG_UNIT];
+            var user = nlGroupInfo.getUserObj(''+rep.student);
+            if (user) {
+                rep.studentname = user.name;
+                rep._user_id = user.user_id;
+                rep._email = user.email;
+                rep.org_unit = user.org_unit;
+                var metadata = nlGroupInfo.getUserMetadata(user);
+                for(var j=0; j<metadata.length; j++)
+                    rep[metadata[j].id] = metadata[j].value|| '';
             }
             rep._treeId = nl.fmt2('{}.{}', rep.org_unit, rep.student);
-            rep._assignTypeStr = _getAssignTypeStr(rep.assigntype);
+            rep._assignid = content.trainingId ? content.trainingId : 
+                content.courseAssignId ? content.courseAssignId : rep.assignment;
+            rep._assignTypeStr = _getAssignTypeStr(rep.assigntype, content);
             rep._courseName = content.courseName || '';
             rep._courseId = content.courseId || '';
-            rep._courseAssignId = content.courseAssignId || '';
             rep._courseReportId = content.courseReportId || '';
             rep._grade = content.grade || '';
             if (!rep.completed) {
@@ -557,6 +564,7 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
             rep._score = score > 0 ? score : '';
             rep._maxScore = maxScore > 0 ? maxScore : '';
             rep._passScore = passScore > 0 ? passScore : '';
+            rep._passScoreStr = rep._passScore ? '' + rep._passScore + '%' : '';
             rep._perc = perc;
             rep._percStr = maxScore > 0 ? '' + perc + '%' : '';
             rep._timeMins = content.timeSpentSeconds ? Math.round(content.timeSpentSeconds/60) : '';
@@ -604,9 +612,10 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
         return ret;
     }
     
-    function _getAssignTypeStr(assigntype) {
+    function _getAssignTypeStr(assigntype, content) {
         if (assigntype == 1) return 'self assignment';
         if (assigntype == 2) return 'course assignment';
+        if (content.trainingId) return 'training';
         return 'module assignment';
     }
 

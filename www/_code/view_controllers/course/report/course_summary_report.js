@@ -780,7 +780,8 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
             ret[metadata[i].id] = metadata[i].value|| '';
         return ret;
     }
-
+    
+    var _idFields = ['Report Id', 'Assign Id', 'Course Id'];
     this.getCsvHeader = function() {
         var mh = this.getMetaHeaders(false);
         var headers = ['User Id', 'User Name', 'Email Id', 'Org'];
@@ -789,7 +790,7 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
             'Status', 'Progress', 'Progress Details', 'Quiz Attempts',
             'Achieved %', 'Maximum Score', 'Achieved Score', 'Time Spent (minutes)']);
         if (_data.urlParams.exportTypes.ids)
-            headers = headers.concat(['Report id', 'Assign id', 'Course id']);
+            headers = headers.concat(_idFields);
         return headers;
     };
     
@@ -816,7 +817,7 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
             'Status', 'Attempts', 'Achieved %', 'Maximum Score', 'Achieved Score', 'Pass %', 
             'Time Spent (minutes)']);
         if (_data.urlParams.exportTypes.ids)
-            headers = headers.concat(['Report id', 'Assign id', 'Course id']);
+            headers = headers.concat(_idFields);
         return headers;
     };
 
