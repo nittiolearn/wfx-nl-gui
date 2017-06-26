@@ -1636,6 +1636,7 @@ function LoginDlg(inputChain, titleMsg) {
 // Exposed methods
 //-------------------------------------------------------------------------------------------
 return {
+    CONSTANTS: CONSTANTS,
 	fmt1: fmt1,
 	fmt2: fmt2,
 	escape: escape,

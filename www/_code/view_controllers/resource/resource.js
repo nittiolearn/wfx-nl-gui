@@ -160,7 +160,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, Upload, nlPdf, nlProgressFn) 
             uploadDlg.scope.options.subject = _getOptions(userInfo, 'subjects'); 
 
             uploadDlg.scope.data.name = '';
-            uploadDlg.scope.data.singlePage = true;
+            uploadDlg.scope.data.singlePage = false;
             uploadDlg.scope.data.grade = uploadDlg.scope.options.grade[0];
             uploadDlg.scope.data.subject = uploadDlg.scope.options.subject[0];
             uploadDlg.scope.data.description = '';

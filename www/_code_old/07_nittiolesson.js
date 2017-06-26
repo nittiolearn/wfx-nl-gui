@@ -1301,6 +1301,7 @@ nlesson = function() {
                 continue;
             }
             var maxScore = ('pageMaxScore' in p) ? p.pageMaxScore
+                : ('maxScore' in p) ? p.maxScore
                 : npagetypes.getPageTypeAttribute(p.type, 'score', 0);
             if (!maxScore) {
                 pageInfos.push({pos: i, maxScore: 0, newPos: i});
@@ -1826,6 +1827,15 @@ nlesson = function() {
 		njs_helper.switchoffContenxtMenu(jQuery(this.pgSecView.find('.njs_img')));
 		njs_helper.switchoffContenxtMenu(jQuery(this.pgSecView.find('.njs_audio')));
 		njs_helper.switchoffContenxtMenu(jQuery(this.pgSecView.find('.njs_video')));
+
+        // Needed to workaround ionic issues
+		this.secViewContent.find('select.questionnaire, select.pgSecText').each(function() {
+		    var elem = jQuery(this);
+            elem.off('touchstart');
+            elem.on('touchstart', function(e) {
+                e.stopPropagation();
+            });
+        });
 	}
 
     function Section_preAdjustHtmlDom() {
