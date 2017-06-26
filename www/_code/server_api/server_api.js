@@ -431,6 +431,10 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/group_update_users.json', {grp:grp, data:data});     
     };
 
+    this.groupUpdateOrgTree = function(grp, data) {
+        return server.post('_serverapi/group_update_org_tree.json', {grp:grp, data:data});
+    };
+
     this.groupGetList = function(data) {
         return server.post('_serverapi/group_get_list.json', data);     
     };

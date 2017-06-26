@@ -155,7 +155,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         dlg.scope.error = {};
         dlg.scope.started = false;
         dlg.scope.running = false;
-        dlg.scope.data = {filelist: [], validateOnly: true};
+        dlg.scope.data = {filelist: [], validateOnly: true, createMissingOus: false};
         dlg.scope.onImport = function(e) {
             _progressLevels = dlg.scope.data.validateOnly ? _progressLevelsValidateOnly : _progressLevelsFull;
             _onImport(e, dlg.scope);
@@ -185,6 +185,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         self.statusCnts = {total: 0, ignore: 0, process: 0, success: 0, error: 0};
         self.foundKeys = {};
         self.showRowNumber = false;
+        self.missingOus = {};
     };
     
     function _onImport(e, dlgScope) {
@@ -216,7 +217,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
                     _done(true);
                     return;
                 }
-                self.updateServer(rows);
+                self.updateServer(rows, dlgScope.data.createMissingOus);
             }, function(e) {
                 _error(e);
             });
@@ -324,7 +325,8 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
 
     var PROCESS_CHUNK_SIZE = 487; // Some prime number instead of a round number
     function _processCsvRows(table, headerInfo, start, data, resolve, reject) {
-        if (self.pl) self.pl.imp(nl.fmt2('{} of {} rows processed', start+1, table.length));
+        var doneCnt = start >= table.length ? table.length : start+1;
+        if (self.pl) self.pl.imp(nl.fmt2('{} of {} rows processed', doneCnt, table.length));
         self.setProgress('processCsv', start, table.length+1);
         if (start >= table.length) {
             resolve(data);
@@ -531,13 +533,23 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         });
         row.mobile = row.mobile.trim();
     };
+    
+    function _checkOu(ou, row) {
+        if (ou in _groupInfo.derived.ouDict) return;
+        var msg = nl.fmt2('OU not present in tree: {}', ou);
+        if (ou in self.missingOus) {
+            self.pl.debug(msg, row);
+        } else {
+            self.pl.warn(msg, row);
+            self.missingOus[ou] = true;
+        }
+    }
 
     this.validateOu = function(row) {
         row.org_unit = row.org_unit.trim();
         if (!(row.org_unit))
             _throwException('OU is mandatory', row);
-        if (!(row.org_unit in _groupInfo.derived.ouDict))
-            _throwException(nl.fmt2('Invalid OU: {}', row.org_unit), row);
+        _checkOu(row.org_unit, row);
     };
         
     this.validateSecOu = function(row) {
@@ -546,8 +558,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         if (row.sec_ou_list == '') return;
         var sec_ou_list = row.sec_ou_list.split(',');
         for(var i=0; i<sec_ou_list.length; i++) {
-            if (!(sec_ou_list[i] in _groupInfo.derived.ouDict))
-                _throwException(nl.fmt2('Invalid Sec OU: {}', sec_ou_list[i]), row);
+            _checkOu(sec_ou_list[i], row);
         }
     };
 
@@ -579,11 +590,11 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         // Manager and Watchers to be validated here
     };
     
-    this.updateServer = function(rows) {
+    this.updateServer = function(rows, createMissingOus) {
         self.reload = false;
         self.chunkStart = 0;
         return nl.q(function(resolve, reject) {
-            _updateServerImpl(rows).then(function() {
+            _updateServerImpl(rows, createMissingOus).then(function() {
                 _done().then(function() {
                     resolve(self.statusCnts.error);
                 });
@@ -591,12 +602,37 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         });
     };
 
-    function _updateServerImpl(rows) {
+    function _updateServerImpl(rows, createMissingOus) {
         return nl.q(function(resolve, reject) {
-            _updateChunkToServer(rows, resolve);
+            var missingCnt = Object.keys(self.missingOus).length;
+            if (missingCnt == 0) {
+                _updateChunkToServer(rows, resolve);
+                return;
+            }
+            if (self.pl) self.pl.warn(nl.fmt2('{} ou(s) are not present in tree', missingCnt), self.missingOus);
+            if (!createMissingOus) {
+                self.statusCnts.error += rows.length;
+                resolve();
+                return;
+            }
+            _updateOuTree().then(function(ret) {
+                console.log(ret);
+                _updateChunkToServer(rows, resolve);
+            }, function(e) {
+                if (self.pl) self.pl.warn('Updating ouTree failed', e);
+                self.statusCnts.error += rows.length;
+                resolve();
+            });
         });
     }
 
+    function _updateOuTree() {
+        var missingOus = [];
+        for (var ou in self.missingOus) missingOus.push(ou);
+        missingOus.sort();
+        return nlServerApi.groupUpdateOrgTree(_groupInfo.id, missingOus);
+    }
+    
     function _updateChunkToServer(rows, resolve) {
         self.setProgress('uploadToServer', self.chunkStart, rows.length);
         if (self.chunkStart >= rows.length) {
