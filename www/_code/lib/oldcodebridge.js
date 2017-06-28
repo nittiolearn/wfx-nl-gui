@@ -11,8 +11,8 @@ function module_init() {
 
 //-------------------------------------------------------------------------------------------------
 var NlOldCodeBridge = ['nl', 'nlDlg', 'nlServerApi', 'nlApproveDlg', 'nlMarkup',
-'$compile',
-function(nl, nlDlg, nlServerApi, nlApproveDlg, nlMarkup, $compile) {
+'$compile', 'NittioLesson',
+function(nl, nlDlg, nlServerApi, nlApproveDlg, nlMarkup, $compile, NittioLesson) {
     var self = this;
     this.expose = function() {
         if (!nl.window.setupNlAppInGlobal) {
@@ -24,6 +24,7 @@ function(nl, nlDlg, nlServerApi, nlApproveDlg, nlMarkup, $compile) {
             nlDlg: nlDlg,
             nlMarkup: nlMarkup,
             nlApproveDlg: nlApproveDlg,
+            NittioLesson: NittioLesson,
             scope: nl.rootScope.$new(),
             compile: _compile
         };

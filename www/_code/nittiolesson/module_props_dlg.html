@@ -1,0 +1,89 @@
+<nl-dlg title='{{dlgTitle}}'>
+<nl-dlg-help>
+	<div>
+		<h3>Module Properties</h3>
+		<p>This is automatically shown to you when a new module is created.
+			You can always press the property toolbar icon to get to this window again.</p>
+		<ul>
+			<li><b>name:</b> Mandatory - enter a name for your module.</li>
+			<li><b>Grade, Subject:</b> Choose the grade and subject for which this module is created.</li>
+			<li><b>image:</b> Choose the icon that will be displayed when this module is searched. Try 'Custom' when you are not satisfied with the provided options.</li>
+			<li><b>custom url:</b> If you choose 'Custom' in image field, you can enter URL (link) of the custom image. The URL could be an image uploaded within the system or a link to external source in internet.</li>
+			<li><b>PDF URL:</b> Mandatory - enter the URL of PDF file to create the module.</li>
+			<li><b>Single Page:</b> If checked, the complete PDF content is generated in one page. Otherwise, each PDF page will be rendered in one Nittio Page</li>
+			<li><b>description:</b> Write a description which will help others in the group to understand the purpose of this module.</li>
+			<li><b>keywords:</b> Some keywords to help in search. You could use this categorize your content.</li>				
+			<li><b>estimated time (minutes):</b> Estimated time in minutes (between 1 and 600) to complete this learning module. When this learning module is sent as an assignment, the assignment duration is per-filled with the estimated time if available.</li>
+            <li><b>pass score %:</b> Minimum pass score in percentage (between 0 and 100 - both inclusive) for passing this module. Set this to zero to consider any score as passed. Clean the value to go back to the default value.</li>
+
+            <li><b>score limit:</b> This parameter is specific to question bank. When the 
+                question bank is distributed, a random subset of questions will be 
+                chosen from the bank. The total score of the chosen questions will be kept 
+                equal to the score limit. If the maximum scores are different for different 
+                pages, it is possible that the maximum score of chosen pages is slightly less
+                than the score limit. </li>
+            <li><b>discussion topic:</b> provide name of the discussion topic which should be displayed when the learner clicks on discussion forum icon from this lesson. This could be further change at page level. This field is the default at lesson level.</li>
+            <li><b>Template specific attributes:</b>
+                <p>These properties customizes the module editor and are expected to be configured in a template module.</p>
+                <ul>
+                    <li><b>styles:</b> define custom CSS classes to be used in styling the module content.</li>
+                    <li><b>background images:</b> Provide a list of background images (to be displayed in change look dialog) as a JSON array of strings.</li>
+                    <li style='display:none'><b>module icons:</b> Provide a list of module icons (to be displayed in module properties) as a JSON array of strings.</li>
+                    <li><b>page types:</b> Provide page types and layout as a JSON object.</li>
+                    <li><b>animation schemes:</b> Provide animation schemes as a JSON object.</li>
+                </ul>
+            </li>
+			<li><b>status:</b> State of the module can be one of following: </li>
+		</ul>
+	</div>
+
+</nl-dlg-help>
+<nl-dlg-content>
+    <div class='row row-top row-wrap margin0 padding-mid'
+         ng-repeat='item in data.moduleProps'>
+        <div ng-class='resp2Col33'
+        	 ng-show='item.type !== "additional"'
+             class='nl-dlg-field-name padding-mid fsh6'>
+            {{item.name}}
+        </div>
+        <div ng-class='resp2Col33'
+        	 ng-show='item.type === "additional"'
+             class='nl-dlg-field-name padding-mid fsh6'
+             style="color: blue">
+            {{item.name}}
+        </div>
+        <div ng-class='resp2Col67'
+        	 class='nl-dlg-field-value padding-mid'
+        	 ng-if='item.type == "string" || item.type == "number"'>
+        	<input ng-model='data.lessonData[item.id]' 
+        	 	   type='{{item.type == "number" ? "number" : "text"}}'
+        	 	   class='w100 padding-mid'></input>
+        	<div ng-show='$parent.error[fieldmodel]' class='nl-dlg-field-errormsg'>{{$parent.error[fieldmodel]}}</div>
+        </div>
+        <div ng-class='resp2Col67'
+        	 class='nl-dlg-field-value padding-mid'
+        	 ng-if='item.type == "textarea"'>
+        	<textarea ng-model='data.lessonData[item.id]'></textarea>
+        	<div ng-show='$parent.error[fieldmodel]' class='nl-dlg-field-errormsg'>{{$parent.error[fieldmodel]}}</div>
+        </div>
+        <div ng-class='resp2Col67'
+        	 class='nl-dlg-field-value padding-mid'
+        	 ng-if='item.type == "select" && item.id !== "custtype"'>
+		    <select ng-model='data[item.id]' 
+		            ng-options='opt as opt.name for opt in options[item.id] track by opt.id'
+		            autofocus=''
+		            tabindex="{{tabindex}}">
+		    </select>
+        </div>
+        <div ng-class='resp2Col67'
+        	 class='nl-dlg-field-value padding-mid'
+        	 ng-if='item.type == "select" && item.id === "custtype"'>
+		    <select ng-model='data.learningType' 
+		            ng-options='opt as opt.name for opt in options.learningMode track by opt.id'
+		            autofocus=''
+		            tabindex="{{tabindex}}">
+		    </select>
+        </div>
+    </div>
+</nl-dlg-content>
+</nl-dlg>

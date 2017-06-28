@@ -190,6 +190,9 @@ nlesson = function() {
         njs_scorm.onInitLesson(self, g_nlPlayerType, g_nlEmbedType,
             nittio.getUsername(), nittio.getUserdispname());
         window.nlapp.nlMarkup.setGid((g_nlPlayerType == 'sco') ? 0 : nittio.getGid());
+        var dropdownOptions = jQuery('#dropdownOptions').val();
+        dropdownOptions = jQuery.parseJSON(dropdownOptions);
+        window.nlapp.NittioLesson.init(self.oLesson, dropdownOptions);
     }
 
     function Lesson_postInitDom() {
