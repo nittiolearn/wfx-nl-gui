@@ -659,7 +659,7 @@ BlankScreen.show = function() {
 	BlankScreen._isShown = true;
     var nl = window.nlapp.nl;
     var nlDlg = window.nlapp.nlDlg;
-    nl.timeout(function() {
+    nl.rootScope.$apply(function() {
         nlDlg.showLoadingScreen();
     });
 };
@@ -669,7 +669,7 @@ BlankScreen.hide = function() {
 	BlankScreen._isShown = false;
     var nl = window.nlapp.nl;
     var nlDlg = window.nlapp.nlDlg;
-    nl.timeout(function() {
+    nl.rootScope.$apply(function() {
         nlDlg.hideLoadingScreen();
     });
 };
