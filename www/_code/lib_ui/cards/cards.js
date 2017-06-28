@@ -107,8 +107,8 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
                     nlDlg.popupAlert({title: '', template: text});
                     return;
                 }
-                text += nl.t('<p>You may <b>Featch more</b> items from the server if you are not finding what you are looking for.</p>');
-                nlDlg.popupConfirm({title: '', template: text, okText: 'Featch more', cancelText: 'Close'})
+                text += nl.t('<p>You may <b>Fetch more</b> items from the server if you are not finding what you are looking for.</p>');
+                nlDlg.popupConfirm({title: '', template: text, okText: 'Fetch more', cancelText: 'Close'})
                 .then(function(res) {
                     if (!res) return;
                     $scope.$parent.onCardInternalUrlClicked(fetchMoreCard, 'fetch_more');

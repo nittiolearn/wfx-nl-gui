@@ -408,6 +408,10 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 			nlDlg.showLoadingScreen();
 			nlServerApi.courseAssignmentDelete(assignId).then(function(status) {
 				nlDlg.hideLoadingScreen();
+				if (!status) {
+				    nlDlg.popupAlert({title: 'Partially done', template: 'Not all reports could be deleted due to timeout. Please try again.'});
+				    return;
+				}
 				for (var i in $scope.cards.cardlist) {
 					var card = $scope.cards.cardlist[i];
 					if (card.reportId !== assignId) continue;

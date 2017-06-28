@@ -14,6 +14,7 @@
             <span>export page level feedback</span>
         </div>
         <div class='padding-small nl-link-text' 
+             ng-show='export.canShowIds'
              ng-click='scopeData.exportIds = !scopeData.exportIds'>
             <i ng-show='scopeData.exportIds' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='scopeData.exportIds' class="fsh4 icon ion-android-checkbox-outline-blank"></i>

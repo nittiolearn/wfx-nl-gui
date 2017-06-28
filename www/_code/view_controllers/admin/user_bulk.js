@@ -211,8 +211,15 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             var table = result.table;
             _processCsvFile(table).then(function(rows) {
                 self.setProgress('processCsv');
-                self.pl.imp(nl.fmt2('Processing CSV file successful - {} of {} records to be sent to server', 
-                    self.statusCnts.process, self.statusCnts.total), angular.toJson(rows, 2));
+                var missingCnt = Object.keys(self.missingOus).length;
+                if (missingCnt == 0) {
+                    self.pl.imp(nl.fmt2('Processing CSV file successful - {} of {} records to be sent to server', 
+                        self.statusCnts.process, self.statusCnts.total), angular.toJson(rows, 2));
+                } else if (dlgScope.data.createMissingOus) {
+                    self.pl.imp(nl.fmt2('{} ou(s) are not present in tree - these will be added to the tree before updating user information.', missingCnt), self.missingOus);
+                } else {
+                    self.pl.error(nl.fmt2('{} ou(s) are not present in tree. You may enable the option to create missing organization units.', missingCnt), self.missingOus);
+                }
                 if (dlgScope.data.validateOnly) {
                     _done(true);
                     return;
@@ -539,9 +546,10 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         var msg = nl.fmt2('OU not present in tree: {}', ou);
         if (ou in self.missingOus) {
             self.pl.debug(msg, row);
+            self.missingOus[ou]++;
         } else {
             self.pl.warn(msg, row);
-            self.missingOus[ou] = true;
+            self.missingOus[ou] = 1;
         }
     }
 
@@ -604,22 +612,20 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
 
     function _updateServerImpl(rows, createMissingOus) {
         return nl.q(function(resolve, reject) {
-            var missingCnt = Object.keys(self.missingOus).length;
-            if (missingCnt == 0) {
+            if (Object.keys(self.missingOus).length == 0) {
                 _updateChunkToServer(rows, resolve);
                 return;
             }
-            if (self.pl) self.pl.warn(nl.fmt2('{} ou(s) are not present in tree', missingCnt), self.missingOus);
             if (!createMissingOus) {
                 self.statusCnts.error += rows.length;
                 resolve();
                 return;
             }
             _updateOuTree().then(function(ret) {
-                console.log(ret);
+                self.reload = true;
                 _updateChunkToServer(rows, resolve);
             }, function(e) {
-                if (self.pl) self.pl.warn('Updating ouTree failed', e);
+                if (self.pl) self.pl.error('Updating ouTree failed', e);
                 self.statusCnts.error += rows.length;
                 resolve();
             });
