@@ -1,89 +1,123 @@
-<nl-dlg title='{{dlgTitle}}'>
-<nl-dlg-help>
-	<div>
-		<h3>Module Properties</h3>
-		<p>This is automatically shown to you when a new module is created.
-			You can always press the property toolbar icon to get to this window again.</p>
-		<ul>
-			<li><b>name:</b> Mandatory - enter a name for your module.</li>
-			<li><b>Grade, Subject:</b> Choose the grade and subject for which this module is created.</li>
-			<li><b>image:</b> Choose the icon that will be displayed when this module is searched. Try 'Custom' when you are not satisfied with the provided options.</li>
-			<li><b>custom url:</b> If you choose 'Custom' in image field, you can enter URL (link) of the custom image. The URL could be an image uploaded within the system or a link to external source in internet.</li>
-			<li><b>PDF URL:</b> Mandatory - enter the URL of PDF file to create the module.</li>
-			<li><b>Single Page:</b> If checked, the complete PDF content is generated in one page. Otherwise, each PDF page will be rendered in one Nittio Page</li>
-			<li><b>description:</b> Write a description which will help others in the group to understand the purpose of this module.</li>
-			<li><b>keywords:</b> Some keywords to help in search. You could use this categorize your content.</li>				
-			<li><b>estimated time (minutes):</b> Estimated time in minutes (between 1 and 600) to complete this learning module. When this learning module is sent as an assignment, the assignment duration is per-filled with the estimated time if available.</li>
-            <li><b>pass score %:</b> Minimum pass score in percentage (between 0 and 100 - both inclusive) for passing this module. Set this to zero to consider any score as passed. Clean the value to go back to the default value.</li>
-
-            <li><b>score limit:</b> This parameter is specific to question bank. When the 
-                question bank is distributed, a random subset of questions will be 
-                chosen from the bank. The total score of the chosen questions will be kept 
-                equal to the score limit. If the maximum scores are different for different 
-                pages, it is possible that the maximum score of chosen pages is slightly less
-                than the score limit. </li>
-            <li><b>discussion topic:</b> provide name of the discussion topic which should be displayed when the learner clicks on discussion forum icon from this lesson. This could be further change at page level. This field is the default at lesson level.</li>
-            <li><b>Template specific attributes:</b>
-                <p>These properties customizes the module editor and are expected to be configured in a template module.</p>
-                <ul>
-                    <li><b>styles:</b> define custom CSS classes to be used in styling the module content.</li>
-                    <li><b>background images:</b> Provide a list of background images (to be displayed in change look dialog) as a JSON array of strings.</li>
-                    <li style='display:none'><b>module icons:</b> Provide a list of module icons (to be displayed in module properties) as a JSON array of strings.</li>
-                    <li><b>page types:</b> Provide page types and layout as a JSON object.</li>
-                    <li><b>animation schemes:</b> Provide animation schemes as a JSON object.</li>
-                </ul>
-            </li>
-			<li><b>status:</b> State of the module can be one of following: </li>
-		</ul>
-	</div>
-
-</nl-dlg-help>
+<nl-dlg title='{{dlgTitle}}' show-help='0'>
 <nl-dlg-content>
-    <div class='row row-top row-wrap margin0 padding-mid'
-         ng-repeat='item in data.moduleProps'>
-        <div ng-class='resp2Col33'
-        	 ng-show='item.type !== "additional"'
-             class='nl-dlg-field-name padding-mid fsh6'>
-            {{item.name}}
-        </div>
-        <div ng-class='resp2Col33'
-        	 ng-show='item.type === "additional"'
-             class='nl-dlg-field-name padding-mid fsh6'
-             style="color: blue">
-            {{item.name}}
-        </div>
+    <div class='row row-top row-wrap margin0 padding-mid' 
+         ng-repeat='item in data.moduleProps'
+         ng-if='!item.group || data.showAdditional[item.group]'>
+	    <div class='w100 nl-link-text padding-mid' 
+	         ng-if='item.type === "group"'
+	         ng-click='data.showAdditional[item.id] = !data.showAdditional[item.id]'
+	         tabindex='0'
+	         ng-keypress='$event.keyCode == 32 ? data.showAdditional[item.id] = !data.showAdditional[item.id] : ""'>
+	        <span class='fsh6'>
+	            <i ng-show='data.showAdditional[item.id]' class="icon ion-android-checkbox-outline"></i>
+	            <i ng-hide='data.showAdditional[item.id]' class="icon ion-android-checkbox-outline-blank"></i>
+	            {{item.name}}
+	        </span>
+	    </div>
+		<div ng-if='item.type !== "group" && item.type !== "hidden" && item.id !== "pdfUrl"' ng-class='resp2Col33'
+		     class='padding-mid' ng-click='item.showHelp = !item.showHelp'>
+		     <div class='row row-center row-wrap margin0 padding0'>
+	             <span class='col padding0'>{{item.name}}</span>
+	             <i class='padding-mid nl-link-text icon fsh4 fgrey2 ion-ios-help'></i>
+		     </div>
+		</div>
+		<div ng-if='item.id == "pdfUrl" && data.isPdf' ng-class='resp2Col33'
+		     class='padding-mid' ng-click='item.showHelp = !item.showHelp'>
+		     <div class='row row-center row-wrap margin0 padding0'>
+	             <span class='col padding0'>{{item.name}}</span>
+	             <i class='padding-mid nl-link-text icon fsh4 fgrey2 ion-ios-help'></i>
+		     </div>
+		</div>
         <div ng-class='resp2Col67'
         	 class='nl-dlg-field-value padding-mid'
-        	 ng-if='item.type == "string" || item.type == "number"'>
+        	 ng-show='item.type == "string" || item.type == "number"'>
         	<input ng-model='data.lessonData[item.id]' 
         	 	   type='{{item.type == "number" ? "number" : "text"}}'
         	 	   class='w100 padding-mid'></input>
-        	<div ng-show='$parent.error[fieldmodel]' class='nl-dlg-field-errormsg'>{{$parent.error[fieldmodel]}}</div>
+        	<div ng-show='error[item.id]' class='nl-dlg-field-errormsg'>{{error[item.id]}}</div>
         </div>
         <div ng-class='resp2Col67'
         	 class='nl-dlg-field-value padding-mid'
-        	 ng-if='item.type == "textarea"'>
+        	 ng-show='item.type == "pdfString" && data.isPdf'>
+        	 <div class='row row-top row-wrap margin0 padding0'>
+        	 	<div ng-class='resp2Col80'
+        	 		 class='padding0 margin0'>
+		        	<input ng-model='data.lessonData[item.id]' 
+		        	 	   type='{{item.type == "number" ? "number" : "text"}}'
+		        	 	   class='w100 padding-mid'></input>
+		        </div>
+		   		<div ng-class='resp2Col20'
+		   			 class='padding-mid'>
+			        <span class='fsh6 nl-link-text' ng-click='data.pdfSinglePage = !data.pdfSinglePage'>
+			            <i ng-show='data.pdfSinglePage' class="icon ion-android-checkbox-outline"></i>
+			            <i ng-hide='data.pdfSinglePage' class="icon ion-android-checkbox-outline-blank"></i>
+			            Single page
+			        </span>
+		        </div>
+        	 </div>
+        	<div ng-show='error[item.id]' class='nl-dlg-field-errormsg'>{{error[item.id]}}</div>
+        </div>
+        <div ng-class='resp2Col67'
+        	 class='nl-dlg-field-value padding-mid'
+        	 ng-show='item.type == "textarea"'>
         	<textarea ng-model='data.lessonData[item.id]'></textarea>
-        	<div ng-show='$parent.error[fieldmodel]' class='nl-dlg-field-errormsg'>{{$parent.error[fieldmodel]}}</div>
+        	<div ng-show='error[item.id]' class='nl-dlg-field-errormsg'>{{error[item.id]}}</div>
         </div>
         <div ng-class='resp2Col67'
         	 class='nl-dlg-field-value padding-mid'
-        	 ng-if='item.type == "select" && item.id !== "custtype"'>
+        	 ng-show='item.type == "select" && item.id !== "content_type" && item.id !== "image"'>
 		    <select ng-model='data[item.id]' 
-		            ng-options='opt as opt.name for opt in options[item.id] track by opt.id'
+		            ng-options="elem.name group by elem.group for elem in options[item.id] track by elem.id"
 		            autofocus=''
 		            tabindex="{{tabindex}}">
 		    </select>
+		</div>
+        <div ng-class='resp2Col67'
+        	 class='nl-dlg-field-value padding-mid'
+        	 ng-show='item.type == "select" && item.id == "image"'>
+		    <select ng-model='data[item.id]' 
+		            ng-options="elem as elem.name group by elem.group for elem in options[item.id] track by elem.id"
+		            autofocus=''
+		            ng-change='data.imageChange(data[item.id])'
+		            tabindex="{{tabindex}}">
+		    </select>
+		    <i class='sep4'></i>
+	        <div ng-show='item.id == "image"' class='row row-center padding0 margin0'>
+		        <div class='col padding0 margin0'>
+			        <input ng-model='data.imageUrl' class='w100'
+			        	   type='text'
+			        	   ng-if='data.image.id === "Custom"'>
+	        	</div>
+	        </div>
+	        <div ng-show='item.id == "image"' class='row row-center padding-mid margin0'>
+		        <div class='col padding-mid margin0'>
+		        	<img ng-show='data.image.id != "Custom"' ng-src='{{data.imageConvert}}' class='nl-100'/>
+		        	<img ng-show='data.image.id == "Custom" && data.imageUrl !==  null' ng-src='{{data.imageUrl}}' class='nl-100'/>
+	        	</div>
+	        </div>
         </div>
         <div ng-class='resp2Col67'
         	 class='nl-dlg-field-value padding-mid'
-        	 ng-if='item.type == "select" && item.id === "custtype"'>
+        	 ng-show='item.type == "select" && item.id === "content_type"'>
 		    <select ng-model='data.learningType' 
 		            ng-options='opt as opt.name for opt in options.learningMode track by opt.id'
 		            autofocus=''
 		            tabindex="{{tabindex}}">
 		    </select>
         </div>
+        <div ng-class='resp2Col67'
+        	 class='nl-dlg-field-value padding-top'
+        	 ng-show='item.type === "status"'>
+        	 <img ng-src='{{data.lessonState.icon}}' class='{{data.lessonState.cls}}'/><i class='{{data.lessonState.cls}}'>{{data.lessonState.title || "unknown"}} </i> 
+        </div>
+		<div class='w100 inline-help-padding padding-mid' ng-show='item.showHelp && data.moduleHelp[item.id].desc && item.type !== "hidden"'>
+		    <nl-inline-help>
+		        <div>
+			        <span class='fsh6 fblue2'>{{data.moduleHelp[item.id].name || item.name}}:</span>
+			        <span ng-bind-html='data.moduleHelp[item.id].desc'></span>
+		        </div>
+		    </nl-inline-help>
+		</div>
     </div>
 </nl-dlg-content>
 </nl-dlg>
