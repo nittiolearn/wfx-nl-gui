@@ -651,16 +651,6 @@ nlesson = function() {
 			this.pages[i].updateContent();
 		}
 
-		// Update lesson properties
-		this.oLesson.name = jQuery('#l_name').val();
-		this.oLesson.subject = jQuery('#l_subject').val();
-		this.oLesson.grade = jQuery('#l_grade').val();
-		this.oLesson.description = jQuery('#l_description').val();
-		this.oLesson.keywords = jQuery('#l_keywords').val();
-        this.oLesson.esttime = jQuery('#l_esttime').val();
-        this.oLesson.selfLearningMode = (jQuery('#l_contenttype').val() == 'selflearning');
-        if (!this.oLesson.selfLearningMode) delete this.oLesson.selfLearningMode;
-        this.oLesson.passScore = jQuery('#l_passscore').val();
         if (this.oLesson.passScore === '') delete this.oLesson.passScore;
         else {
             this.oLesson.passScore = parseInt(this.oLesson.passScore);
@@ -669,17 +659,6 @@ nlesson = function() {
             var td = this.parentTemplateContents.templateDefaults;
             if (td.passScore == this.oLesson.passScore) delete this.oLesson.passScore;
         }
-        if ('allowed_max_score' in this.oLesson) {
-            this.oLesson.allowed_max_score = parseInt(jQuery('#l_allowed_max_score').val());
-        }
-        this.oLesson.forumTopic = jQuery('#l_lessonForumTopic').val();
-        this.oLesson.templateStylesCss = jQuery('#l_templateStylesCss').val();
-        this.oLesson.templateBgimgs = jQuery('#l_templateBgimgs').val();
-        this.oLesson.templateIcons = jQuery('#l_templateIcons').val();
-        this.oLesson.templatePageTypes = jQuery('#l_templatePageTypes').val();
-        this.oLesson.templateAnimations = jQuery('#l_templateAnimations').val();
-		this.oLesson.image = jQuery('#imageFullName').val();		
-		this.oLesson.template = jQuery('#templateFullName').val();
 	}
 	
 	function Lesson_getContent() {
@@ -1026,8 +1005,6 @@ nlesson = function() {
             });
         };
 
-        if (!_Lesson_saveCheckName()) return onComplete(null, true);
-
         var ajaxParams = {content: '', lessonId: jQuery('#l_lessonId').val(), 
                           comments: '', responses: ''};
         var bComment = _Lesson_saveUpdateCommentData(ajaxParams);
@@ -1063,14 +1040,6 @@ nlesson = function() {
 		return false;
 	}
 
-    function _Lesson_saveCheckName() {
-        if (jQuery('#l_name').val() == '') {
-            njs_helper.Dialog.popup('Module name cannot be empty', 'Please update the module properties before saving');
-            return false;
-        }
-        return true;
-    }
-    
     function _Lesson_saveUpdatePgNo(lesson) {
         var pgNo = lesson.getCurrentPageNo();
         lesson.oLesson.currentPageNo = pgNo;

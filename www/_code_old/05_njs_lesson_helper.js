@@ -556,131 +556,6 @@ LessonDlgs.createDlg = function(dlg, dlgId, bId, bName, bFunc, cFunc) {
 };
 
 //#############################################################################################
-// Lesson properties dialog
-//#############################################################################################
-function LessonPropsDlgHolder() {
-    var _propsDlg = null;
-    var _lesson = null;
-
-    this.init = function(propsDlg, lesson) {
-        _propsDlg = propsDlg;
-        _lesson = lesson;
-        if (!_iconPath) _iconPath = jQuery('#properties_icon').attr('njsIconPath');
-
-        var iconList = jQuery('#l_image');
-        iconList.change(function(e){
-            _changePropertiesDlgImage(iconList);
-        });
-        jQuery('#l_prop_cust_icon').change(function(e) {
-            _changePropertiesDlgImage(iconList);
-        });
-
-        jQuery('#l_prop_cust_icon').change(function(e) {
-            _changePropertiesDlgImage(iconList);
-        });
-        
-        _initContentType();
-    };
-    
-    this.showDlg = function() {
-        var iconList = jQuery('#l_image');
-        _changePropertiesDlgImage(iconList);
-        _onContentTypeChange();
-
-        var oLesson = _lesson.oLesson;
-        var td = nlesson.theLesson.parentTemplateContents.templateDefaults;
-        var passScore = ('passScore' in oLesson) ? oLesson.passScore : td.passScore || '';
-        jQuery('#l_passscore').val(passScore);
-
-        _propsDlg.show();
-    };
-
-    this.onOk = function() {
-        if (!_validate()) return false;
-        jQuery('#title_name').html(jQuery('#l_name').val());
-        var imgFullName = jQuery('#l_image').val();
-        if (imgFullName == 'Custom') {
-            imgFullName = 'img:' + _getImgUrl(jQuery('#l_prop_cust_icon').val());
-        }
-        jQuery('#imageFullName').val(imgFullName);
-        _propsDlg.close();
-        return true;
-    };
-    
-    var _iconPath = null;
-    function _changePropertiesDlgImage(iconList) {
-        var iconUrl = iconList.val();
-        if (iconUrl == 'Custom') {
-            jQuery('#l_prop_cust_icon_row').show();
-            iconUrl = _getImgUrl(jQuery('#l_prop_cust_icon').val());
-        } else {
-            jQuery('#l_prop_cust_icon_row').hide();
-            iconUrl = _iconPath + iconUrl;
-        }
-        jQuery('#properties_icon').attr('src', iconUrl);
-    }
-
-    function _getImgUrl(iconUrl) {
-        if (iconUrl.indexOf('img:') === 0) return iconUrl.substr(4);
-        return iconUrl;
-    }
-
-    function _initContentType() {
-        var contentType = jQuery('#l_contenttype');
-        contentType.html('');
-        contentType.append(njs_helper.fmt2('<option value="{}">{}</option>', 
-            'quiz', 'Assessment module'));
-        contentType.append(njs_helper.fmt2('<option value="{}">{}</option>', 
-            'selflearning', 'Self learning module'));
-        var val = (_lesson.oLesson.selfLearningMode) ? 'selflearning' : 'quiz';
-        contentType.select2('val', val);
-        contentType.change(function(e) {
-            _onContentTypeChange();
-        });
-    }
-    
-    function _onContentTypeChange() {
-        var ct = jQuery('#l_contenttype').val();
-        var passScoreRow = jQuery('#l_passscore_row');
-        if (ct == 'selflearning') {
-            passScoreRow.hide();
-        } else {
-            passScoreRow.show();
-        }
-    }
-    
-    function _validate() {
-        if (!_propsDlg.validate()) return false;
-        if (!_validateJsonField('#l_templateBgimgs')) return false;
-        if (!_validateJsonField('#l_templatePageTypes')) return false;
-        if (!_validateJsonField('#l_templateAnimations')) return false;
-        return true;
-    }
-
-    function _validateJsonField(fieldId) {
-        var field = jQuery(fieldId);
-        var ret = true;
-        try {
-            if (field.val()) JSON.parse(field.val());
-        } catch (e) {
-            console.log('Error validating field: ', fieldId, e);
-            ret = false;
-        }
-        _markFieldValidity(field, ret);
-        return ret;
-    }
-
-    function _markFieldValidity(field, bValid) {
-        if (bValid) {
-            field.css({'background-color' : '#FFFFFF'});
-            return;
-        }
-        field.css({'background-color' : '#FFAAAA'});
-        field.focus();
-    }
-}
-
-//#############################################################################################
 // SectionTemplate - Class parsing section template string
 //#############################################################################################
 function SectionTemplate(templString, errAlert) {
@@ -1276,7 +1151,6 @@ return {
 	RenderingContext: RenderingContext,
 	SubmitAndScoreDialog: SubmitAndScoreDialog,
 	LessonDlgs: LessonDlgs,
-	LessonPropsDlgHolder: LessonPropsDlgHolder,
 	SectionTemplate: SectionTemplate,
 	EditBoxHelper: EditBoxHelper,
 	SelectHelper: SelectHelper,
