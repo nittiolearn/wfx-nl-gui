@@ -27,7 +27,7 @@ function(nl) {
         if (!course.content.contentVersion) {
             for(var i=0; i<course.content.modules.length; i++) {
             	var item = course.content.modules[i];
-            	if(item.type != 'link' || item.urlParams != '/#/course_cert' || item.action != 'none') continue;
+            	if(item.type != 'link' || item.urlParams.indexOf('course_cert') < 0) continue;
             	item.type = 'certificate';
             	item.autocomplete =  true;
             	item.hide_remarks = true;
