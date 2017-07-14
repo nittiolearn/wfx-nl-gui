@@ -173,9 +173,9 @@ function Searcher(nl, nlDlg, info) {
         self.onClick(timeout);
     };
 
-    self.clickDebounder = nl.CreateDeboucer();
+    self.clickDebouncer = nl.CreateDeboucer();
     self.onClick = function(timeout) {
-        self.clickDebounder.debounce(timeout, _onClick)();
+        self.clickDebouncer.debounce(timeout, _onClick)();
     };
 
     function _onClick() {
@@ -229,7 +229,7 @@ function Searcher(nl, nlDlg, info) {
         var visible = info._internal.visibleRecs.length;
         var total = info._internal.recs.length;
         if (total == 0) {
-            self.infotxt = nl.t('There are no items to display');
+            self.infotxt = nl.t('There are no items to display.');
             return;
         } 
         var item = (total == 1) ? 'item' : 'items';

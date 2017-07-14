@@ -54,9 +54,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 			_type = params.type || 'my'; // can be my, all or upload
 			search = ('search' in params) ? params.search : null;
 			nl.pginfo.pageTitle = _updatePageTitle(); 
-			$scope.cards = {};
-			$scope.cards.staticlist = _getStaticCard();
-			$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
+			$scope.cards = {
+			    staticlist: _getStaticCard(),
+			    emptycard: nlCardsSrv.getEmptyCard({help : nl.t('There are no assignments to display.')}),
+		        search: {onSearch: _onSearch, placeholder : nl.t('Name/Subject/Remarks/Keyword')}
+		    };
+            nlCardsSrv.initCards($scope.cards);
 			if (_type == 'upload') {
 				_addModifyResource($scope, null);
 				resolve(true);
@@ -70,13 +73,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 	
 	function _updatePageTitle(){
 		return _isMine(_type) ? nl.t('My resources') : nl.t('All resources');
-	}
-	
-	function _getEmptyCard(nlCardsSrv) {
-		var help = help = nl.t('There are no assignments to display.');
-		return nlCardsSrv.getEmptyCard({
-			help : help
-		});
 	}
 	
 	function _getStaticCard() {
@@ -125,8 +121,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 		var data = {mine: _isMine(_type)};
 		if (search) data.search = search;
 		nlServerApi.resourceGetList(data).then(function(resultList) {
-			$scope.cards.cardlist = _getResourceCards(_userInfo, resultList);
-			_addSearchInfo($scope.cards);
+            nlCardsSrv.updateCards($scope.cards, {
+                cardlist: _getResourceCards(_userInfo, resultList)
+            });
 			resolve(true);
 		}, function(reason) {
 			resolve(false);
@@ -232,11 +229,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 		}
 	}
 	
-	function _addSearchInfo(cards) {
-		cards.search = {placeholder : nl.t('Name/Subject/Remarks/Keyword')};
-		cards.search.onSearch = _onSearch;
-	};
-
 	function _onSearch(filter) {
 		search = filter;
 		_updateDataFromServer();

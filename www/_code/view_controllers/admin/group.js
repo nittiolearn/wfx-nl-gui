@@ -22,17 +22,19 @@ function($stateProvider, $urlRouterProvider) {
 		}});
 }];
 
-var AdminGroupCtrl = ['nl', 'nlRouter', 'nlDlg', '$scope', 'nlServerApi', 'nlExporter',
-function(nl, nlRouter, nlDlg, $scope, nlServerApi, nlExporter) {
+var AdminGroupCtrl = ['nl', 'nlRouter', 'nlDlg', '$scope', 'nlServerApi', 'nlExporter', 'nlCardsSrv',
+function(nl, nlRouter, nlDlg, $scope, nlServerApi, nlExporter, nlCardsSrv) {
     var _records = [];
     var _fetchDone = false;
 
 	function _onPageEnter(userInfo) {
 		return nl.q(function(resolve, reject) {
             nl.pginfo.pageTitle = nl.t('Group bulk export');
-            $scope.cards = {toolbar : _getToolbar()};
-            _addSearchInfo($scope.cards);
-            
+            $scope.cards = {
+                toolbar : _getToolbar(),
+                search: {placeholder : nl.t('Enter group id/name/description')}
+            };
+            nlCardsSrv.initCards($scope.cards);
             nlServerApi.batchFetch(nlServerApi.groupGetList, {}, function(result) {
                 if (result.isError) {
                     resolve(false);
@@ -57,18 +59,13 @@ function(nl, nlRouter, nlDlg, $scope, nlServerApi, nlExporter) {
         }];
     }
 
-    function _addSearchInfo(cards) {
-        cards.search = {
-            placeholder : nl.t('Enter group id/name/description')
-        };
-    }
-
     function _updateCards() {
-        $scope.cards.cardlist = [];
+        var cardlist = [];
         for (var i = 0; i < _records.length; i++) {
             var card = _createCard(_records[i]);
-            $scope.cards.cardlist.push(card);
+            cardlist.push(card);
         }
+        nlCardsSrv.updateCards($scope.cards, {cardlist: cardlist});
     }
 
     function _createCard(item) {

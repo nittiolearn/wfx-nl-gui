@@ -31,10 +31,8 @@ function(nl, nlRouter, $scope, nlDlg, nlLogViewer, nlServerApi, nlCardsSrv, nlEx
         return nl.q(function(resolve, reject) {
             nl.pginfo.pageTitle = nl.t('Debug utilities');
             nl.pginfo.pageSubTitle = nl.fmt2('({})', userInfo.displayname);
-            $scope.cards = {};
-            $scope.cards.staticlist = [];
-            $scope.cards.emptycard = nlCardsSrv.getEmptyCard();
-            $scope.cards.cardlist = _getCards();
+            $scope.cards = {cardlist: _getCards()};
+            nlCardsSrv.initCards($scope.cards);
             nl.log.debug('DebugCtrl:onPageEnter - done');
             resolve(true);
         });

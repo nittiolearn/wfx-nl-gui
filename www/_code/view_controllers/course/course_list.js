@@ -82,9 +82,12 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		return nl.q(function(resolve, reject) {
 			_initParams();
 			nl.pginfo.pageTitle = _getPageTitle();
-			$scope.cards = {};
-			$scope.cards.staticlist = _getStaticCards();
-			$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
+			$scope.cards = {
+			    staticlist: _getStaticCards(), 
+			    emptycard: _getEmptyCard(nlCardsSrv),
+                search: {onSearch: _onSearch, placeholder: nl.t('Enter course name/description')}
+            };
+            nlCardsSrv.initCards($scope.cards);
 			_getDataFromServer(false, resolve, reject);
 		});
 	}
@@ -145,18 +148,12 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		}
 	}
 
-	function _addSearchInfo(cards) {
-		cards.search = {placeholder: nl.t('Enter course name/description')};
-		cards.search.onSearch = _onSearch;
-        cards.canFetchMore = _canFetchMore;
-	}
-	
-	function _onSearch(filter, grade, onSearchParamChange) {
+	function _onSearch(filter, searchCategory, onSearchParamChange) {
         if (!_metadataEnabled) return;
         _searchMetadata.search = filter;
         nlMetaDlg.showAdvancedSearchDlg($scope, _userInfo, 'course', _searchMetadata)
         .then(function(result) {
-            onSearchParamChange(result.metadata.search || '', grade);
+            onSearchParamChange(result.metadata.search || '', searchCategory);
             _searchMetadata = result.metadata;
             if (_custtypeInUrl) _searchMetadata.custtype = _custtypeInUrl;
             _onSearchImpl();
@@ -205,8 +202,10 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 				return;
 			}
 			nl.log.debug('Got result: ', _resultList.length);
-			$scope.cards.cardlist = _getCards(_userInfo, _resultList, nlCardsSrv);
-			_addSearchInfo($scope.cards);
+			nlCardsSrv.updateCards($scope.cards, {
+			    cardlist: _getCards(_userInfo, _resultList, nlCardsSrv),
+			    canFetchMore: _canFetchMore
+			});
 
             if (!result.fetchDone) return;
 			resolve(true);
@@ -395,6 +394,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 					if (card.courseId !== courseId) continue;
 					$scope.cards.cardlist.splice(i, 1);
 				}
+                nlCardsSrv.updateCards($scope.cards);
 			});	
 		});
 	}
@@ -417,6 +417,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 					if (card.reportId !== assignId) continue;
 					$scope.cards.cardlist.splice(i, 1);
 				}
+                nlCardsSrv.updateCards($scope.cards);
 			});	
 		});
 	}
@@ -549,6 +550,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
             $scope.cards.cardlist.splice(pos, 1);
 	    }
 		$scope.cards.cardlist.splice(0, 0, card);			
+        nlCardsSrv.updateCards($scope.cards);
 	}
 
     function _validateInputs(scope) {

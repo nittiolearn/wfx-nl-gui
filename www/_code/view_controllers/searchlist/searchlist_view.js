@@ -38,9 +38,12 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 		return nl.q(function(resolve, reject) {
 			nl.pginfo.pageTitle = nl.t('Search results');
 	        var params = nl.location.search();
-        	$scope.cards = {};
-			$scope.cards.staticlist = _getStaticCards();
-			$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
+        	$scope.cards = {
+                search: {onSearch: _onSearch, placeholder: nl.t('Enter name/description'), 
+        	       icon: 'ion-information-circled'
+        	    }
+        	};
+            nlCardsSrv.initCards($scope.cards);
 			_getDataFromServer(false, resolve, reject);
 		});
 	}
@@ -53,8 +56,9 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
             var resultList = _getResultList(searchListObj);
             var repFields = searchListObj.config.report_fields;
             if (searchListObj.config.title) nl.pginfo.pageTitle = searchListObj.config.title;
-			$scope.cards.cardlist = _getCards(_userInfo, resultList, repFields, nlCardsSrv);
-			_addSearchInfo($scope.cards);
+            nlCardsSrv.updateCards($scope.cards, {
+                cardlist: _getCards(_userInfo, resultList, repFields, nlCardsSrv)
+            });
 			resolve(true);
 		}, function(reason) {
             resolve(false);
@@ -71,12 +75,6 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	        return nl.fmt.json2Date(b.updated) - nl.fmt.json2Date(a.updated);
 	    });
 	    return ret;
-	}
-	
-	function _addSearchInfo(cards) {
-		cards.search = {placeholder: nl.t('Enter name/description')};
-		cards.search.onSearch = _onSearch;
-		cards.search.img = nl.url.resUrl('info.png');
 	}
 	
     function _updateSearchDlgScope(scope) {
@@ -154,16 +152,6 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
         return avps;
     }
     
-	function _getStaticCards() {
-		return [];
-	}
-
-	function _getEmptyCard(nlCardsSrv) {
-		var help = null;
-			help = nl.t('There are no results to display.');
-	    return nlCardsSrv.getEmptyCard({help:help});
-	}
-
 	function _initParams() {
         var params = nl.location.search();
         _searchlistId = ('id' in params) ? parseInt(params.id) : 0;

@@ -115,9 +115,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		return nl.q(function(resolve, reject) {
 			mode.initFromUrl(_userInfo);
 			nl.pginfo.pageTitle = mode.pageTitle();
-			$scope.cards = {};
-			$scope.cards.staticlist = [];
-			$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
+			$scope.cards = {
+                emptycard: nlCardsSrv.getEmptyCard({help : nl.t('There are no assignments to display.')}),
+                search: {onSearch: _onSearch, placeholder: nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)}
+            };
+            nlCardsSrv.initCards($scope.cards);
 			_getDataFromServer(_searchFilterInUrl, resolve, reject);
 		});
 	}
@@ -134,18 +136,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		}
 	};
 	
-	function _getEmptyCard(nlCardsSrv) {
-		var help = help = nl.t('There are no assignments to display.');
-		return nlCardsSrv.getEmptyCard({
-			help : help
-		});
-	}
-	
 	function _getDataFromServer(filter, resolve, reject) {
 		mode.listingFunction(filter).then(function(resultList) {
 			nl.log.debug('Got result: ', resultList.length);
-			$scope.cards.cardlist = _getCards(_userInfo, resultList, nlCardsSrv);
-			_addSearchInfo($scope.cards);
+            nlCardsSrv.updateCards($scope.cards, 
+                {cardlist: _getCards(_userInfo, resultList, nlCardsSrv)});
 			resolve(true);
 		}, function(reason) {
 			resolve(false);
@@ -266,13 +261,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		}
 	}
 
-	function _addSearchInfo(cards) {
-		cards.search = {
-			placeholder : nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)
-		};
-		cards.search.onSearch = _onSearch;
-	}
-
 	function _onSearch(filter) {
 		nlDlg.showLoadingScreen();
 		var promise = nl.q(function(resolve, reject) {
@@ -298,11 +286,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 			nlDlg.showLoadingScreen();
 			nlServerApi.assignmentDelete(assignId).then(function(status) {
 				nlDlg.hideLoadingScreen();
-				for (var i in $scope.cards.cardlist) {
-					var card = $scope.cards.cardlist[i];
+				var cardlist = $scope.cards.cardlist;
+				for (var i in cardlist) {
+					var card = cardlist[i];
 					if (card.Id !== assignId) continue;
-					$scope.cards.cardlist.splice(i, 1);
+					cardlist.splice(i, 1);
 				}
+                nlCardsSrv.updateCards($scope.cards, {cardlist: cardlist});
 				nlDlg.closeAll();
 				_reloadFromServer();
 			});	

@@ -48,9 +48,9 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect) {
 		_userInfo = userInfo;
 		return nl.q(function(resolve, reject) {
 
-            $scope.cards = {};
-            $scope.cards.staticlist = _getStaticCards();
-            $scope.cards.search = {placeholder: nl.t('Search user name/email/loginid')};
+            $scope.cards = {staticlist: _getStaticCards(), 
+                search:{placeholder: nl.t('Search user name/email/loginid')}};
+            nlCardsSrv.initCards($scope.cards);
 
             var params = nl.location.search();
             _grpid = params.grpid || null;
@@ -134,8 +134,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect) {
         cards.sort(function(a, b) {
             return ((b.updated || 0) - (a.updated || 0));
         });
-		$scope.cards.rebuildCache = true;
-		$scope.cards.cardlist = cards;
+        nlCardsSrv.updateCards($scope.cards, {cardlist: cards});
 	}
 	
 	function _createCard(user) {
