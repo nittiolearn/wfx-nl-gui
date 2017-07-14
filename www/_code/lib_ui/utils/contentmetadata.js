@@ -31,16 +31,21 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
     
     this.showMetadata = function($scope, _userInfo, ctype, cid, card) {
         return nl.q(function(resolve, reject) {
-            var params = {$scope: $scope, _userInfo: _userInfo, cid: cid, ctype: ctype, card: card,
-                resolve: resolve, reject: reject};
+            var params = {$scope: $scope, _userInfo: _userInfo, 
+                resolve: resolve, reject: reject,
+                ctype: ctype, cid: cid, card: card,
+                config: {}};
             return _showImpl(params);
         });
     };
     
-    this.showAdvancedSearchDlg = function($scope, _userInfo, ctype, metadata) {
+    this.showAdvancedSearchDlg = function($scope, _userInfo, ctype, metadata, config) {
+        if (!config) config = {};
         return nl.q(function(resolve, reject) {
-            var params = {$scope: $scope, _userInfo: _userInfo, ctype: ctype, cid: null, card: null,
-                resolve: resolve, reject: reject, metadata: metadata};
+            var params = {$scope: $scope, _userInfo: _userInfo, 
+                resolve: resolve, reject: reject, 
+                ctype: ctype, cid: null, card: null,
+                config: config, metadata: metadata};
             _showImpl(params);
         });
     };
@@ -80,12 +85,14 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
         var isSearch = !params.cid;
 
         if (isSearch) {
-            data.cmFields.push({id: 'search', name: 'Search', type: 'text', value: metadata.search || ''});
+            var searchField = {id: 'search', name: 'Search', type: 'text', value: metadata.search || ''};
+            _hiddenFields.push(searchField);
         }
-        
+
+        var allowedFields = params.config.allowedFields || null;
         for(var i=0; i<cmFields.length; i++) {
             var cmField = cmFields[i];
-            if (cmField.hidden) {
+            if (cmField.hidden || (allowedFields && !allowedFields[cmField.id])) {
                 _hiddenFields.push(cmField);
                 continue;
             }

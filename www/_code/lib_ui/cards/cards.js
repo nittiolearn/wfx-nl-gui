@@ -30,12 +30,13 @@ function(nl) {
 		return card;
 	};
 	
+	// Used currently only by RNO
 	this.updateGrades = function(cards, grades) {
 		cards.grades = [{id: null, desc: 'All', grp: ''}].concat(grades);
 	};
 }];
 
-var discardSearchWords = { "content_include": true};
+var discardSearchWords = {};
 var NlFilter = ['nl', '$filter',
 function(nl, $filter) {
 	return function(inputArray, filterString, filterGrade) {
@@ -88,6 +89,7 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             cards: '='
         },
         link: function($scope, iElem, iAttrs) {
+            $scope.internalToobar = [];
             nl.timeout(function() {
                 _updateCardDimensions($scope, iElem);
             }); // 0 timeout - just executes after DOM rendering is complete
@@ -114,11 +116,13 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
                     $scope.$parent.onCardInternalUrlClicked(fetchMoreCard, 'fetch_more');
                 });
             };
+            var fetchMoreTbIcon = {title: 'Fetch More', icon: 'ion-refresh', onClick: $scope.showResultDetails};
 
             var defMaxLimit = 100;
             var cacheAbove = 200;
             
             $scope.getCards = function(rebuildCache, dontShowFetchMore) {
+                $scope.internalToobar = [];
             	if (!$scope.cards || !$scope.cards.cardlist) return [];
             	rebuildCache = rebuildCache || $scope.cards.rebuildCache;
             	$scope.cards.rebuildCache = false;
@@ -136,6 +140,7 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
                 if (len > maxLimit) len = maxLimit;
             	ret = ret.concat(filteredData.slice(0, len));
                 if (!dontShowFetchMore && $scope.cards.canFetchMore) ret.push(fetchMoreCard);
+                if ($scope.cards.canFetchMore) $scope.internalToobar = [fetchMoreTbIcon];
 
                 $scope.search.resultsStr
                     = len <= 1 ? nl.t('{} result', len)

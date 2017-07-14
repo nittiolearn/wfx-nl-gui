@@ -1,7 +1,7 @@
 <div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
 <div class='row row-center margin0 padding0'
 	 style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'
-	 ng-if='cards.toolbar'>
+	 ng-if='cards.toolbar || internalToobar.length > 0'>
     <div class='col text-center fsh3 padding0'>
     </div>
     <span ng-repeat='tb in cards.toolbar'
@@ -10,14 +10,20 @@
           ng-click='tb.onClick()'>
         <i class="icon {{tb.icon}}"></i>
     </span>
+    <span ng-repeat='tb in internalToobar'
+          title='{{tb.title}}'
+          class='nl-toolbar-icon'
+          ng-click='tb.onClick()'>
+        <i class="icon {{tb.icon}}"></i>
+    </span>
 </div>
 
 <div class='padding-small'></div>
-<div ng-show='cards.search' class='nl-card-search row row-center'>
+<div ng-show='cards.search' class='nl-card-search row row-center margin0 padding-mid'>
 	<input class='col' ng-model='search.filter'
 	       placeholder='{{cards.search.placeholder}}' ng-keypress='searchKeyHandler($event)'>
-	<i class='sep4'></i>
 
+	<i ng-show='cards.grades' class='sep4'></i>
     <select ng-show='cards.grades' class='col-20 nl-grade-search' ng-model="search.grade" 
             ng-change='search.onSearch()'
             ng-options="grade.desc group by grade.grp for grade in cards.grades track by grade.id">
@@ -27,10 +33,10 @@
 	<img class='nl-link-img' ng-src='{{search.img}}' ng-show='search.onSearch'
 		 tabindex="0"
 		 ng-click='search.onSearch()'/>
-	<i class='sep4'></i>
-	<span class='col col-20 nl-textellipsis nl-link-text'
-	      ng-click='showResultDetails()'>{{search.resultsStr}}</span>
 </div>
+<div class='padding-small'></div>
+<div class='fgrey2'><span class='padding-small'></span><span>{{search.resultsStr}}</span></div>
+<div class='padding-small'></div>
 
 <div ng-if='!cards.listConfig'  class='nl-card nl-link-text-container' 
 	ng-repeat="card in getCards()" 

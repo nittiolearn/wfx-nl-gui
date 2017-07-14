@@ -129,7 +129,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
         my = ('my' in params) ? parseInt(params.my) == 1: false;
         assignId = ('assignid' in params) ? parseInt(params.assignid) : 0;
         _custtypeInUrl = ('custtype' in params) ? parseInt(params.custtype) : null;
-        _metadataEnabled = ('enablemeta' in params) && (type == 'course') && !my;
+        _metadataEnabled = (type == 'course') && !my;
         _searchMetadata = nlMetaDlg.getMetadataFromUrl();
 	}
 

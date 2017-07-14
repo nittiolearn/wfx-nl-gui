@@ -27,7 +27,7 @@
 	}];
 
 	//-------------------------------------------------------------------------------------------------
-	var TYPES = {
+	var MODES = {
 		NEW : 0,
 		APPROVED : 1,
 		MY : 2,
@@ -35,7 +35,7 @@
 		REVIEW : 4,
 		SENDASSIGNMENT : 5
 	};
-	var TYPENAMES = {
+	var MODENAMES = {
 		'new' : 0,
 		'approved' : 1, 'selfassign' : 1,
 		'my' : 2,
@@ -50,7 +50,6 @@
 		APPROVED : 3,
 		APPROVEDREWORK : 4,
 		APPROVEDREVIEW : 5
-
 	};
 
 	var LESSONTYPES = {
@@ -70,92 +69,83 @@
 	};
 
 	//-------------------------------------------------------------------------------------------------
-	function TypeHandler(nl, nlServerApi, nlMetaDlg) {
-		this.type = TYPES.NEW;
+	function ModeHandler(nl, nlServerApi, nlMetaDlg) {
+        var self=this;
+		this.mode = MODES.NEW;
+        this.title = null;
+
 		this.custtype = null;
-		this.searchFilter = null;
-        this.searchGrade = null;
-        this.searchMetadata = {};
-		this.revstate = null;
-		this.title = null;
-		this.content = null;
-        this.canEnableMetadata = false;
         this.metadataEnabled = false;
-		var self=this;
-        self.start_at = 0;
-        self.max = 50;
-        self.canFetchMore = true;
-        self.resultList = [];
+        this.searchMetadata = {};
+
+        this.nextStartPos = null;
+        this.canFetchMore = true;
+        this.resultList = [];
+
+        this.revstate = 1;
 
 		this.initFromUrl = function(params) {
 			if (!params) params = nl.location.search();
-			_convertType(params.type);
-			this.custtype = ('custtype' in params) ? parseInt(params.custtype) : null;
-			this.revstate = ('revstate' in params) ? parseInt(params.revstate) : null;
-			this.searchGrade = ('grade' in params) ? params.grade : null;
-			this.searchFilter = ('search' in params) ? params.search : null;
-			this.searchMetadata = (!params.showInDlg) ? nlMetaDlg.getMetadataFromUrl() : {};
-            this.canEnableMetadata = ('enablemeta' in params);
-			this.title = params.title || null;
-			this.content = params.content || null;
+			_convertMode(params.type);
+			self.custtype = ('custtype' in params) ? parseInt(params.custtype) : null;
+			self.revstate = ('revstate' in params) ? parseInt(params.revstate) : 1;
+			self.searchMetadata = (!params.showInDlg) ? nlMetaDlg.getMetadataFromUrl() : {};
+			self.title = params.title || null;
 		};
 		
-        this.getFullResultList = function(results) {
-            self.resultList = self.resultList.concat(results);
-            self.canFetchMore = (results.length > self.max);
-            self.start_at += results.length;
-            return self.resultList;
-        };
-        
-		this.listingFunction = function(fetchMore) {
+		this.listingFunction = function(fetchMore, cbFn) {
 		    if (!self.canFetchMore || !fetchMore) {
-		        self.start_at = 0;
 		        self.canFetchMore = true;
                 self.resultList = [];
 		    }
-			var data = {start_at: self.start_at, max: self.max};
-			if (this.custtype !== null) data.custtype = this.custtype;
-			if (this.searchFilter !== null) data.search = this.searchFilter;
-			if (this.searchGrade !== null) data.grade = this.searchGrade;
-            if (this.content !== null) data.content = this.content;
-            if (this.metadataEnabled) data.metadata = this.searchMetadata;
-			if (this.type == TYPES.NEW) {
-				return nlServerApi.lessonGetTemplateList(data);
-			} else if (this.type == TYPES.MY) {
-				return nlServerApi.lessonGetPrivateList(data);
-			} else if (this.type == TYPES.MANAGE) {
-				return nlServerApi.lessonGetManageApprovedList(data);
-			} else if (this.type == TYPES.REVIEW) {
-				data.revstate = this.revstate;
-				return nlServerApi.lessonGetReviewList(data);
-			} else if (this.type == TYPES.SENDASSIGNMENT) {
-				return nlServerApi.lessonGetApprovedList(data);
-			} else {
-				return nlServerApi.lessonGetApprovedList(data);
+			var data = {};
+            if (self.nextStartPos) data.startpos = self.nextStartPos;
+			if (self.custtype !== null) data.custtype = self.custtype;
+            data.metadata = self.searchMetadata;
+            
+            var fn = nlServerApi.lessonGetApprovedList;
+			if (self.mode == MODES.NEW) {
+				fn = nlServerApi.lessonGetTemplateList;
+			} else if (self.mode == MODES.MY) {
+				fn = nlServerApi.lessonGetPrivateList;
+			} else if (self.mode == MODES.MANAGE) {
+				fn = nlServerApi.lessonGetManageApprovedList;
+			} else if (self.mode == MODES.REVIEW) {
+				data.revstate = self.revstate;
+				fn = nlServerApi.lessonGetReviewList;
+			} else if (self.mode == MODES.SENDASSIGNMENT) {
+				fn = nlServerApi.lessonGetApprovedList;
 			}
+            nlServerApi.batchFetch(fn, data, function(result) {
+                if (result.isError) {
+                    cbFn(result);
+                    return;
+                }
+                self.canFetchMore = result.canFetchMore;
+                self.nextStartPos = result.nextStartPos;
+                cbFn(result);
+            });
 		};
 
 		this.pageTitle = function() {
-			if (this.title)
-				return this.title;
-			if (this.type == TYPES.NEW)
-				return nl.t('Create new: select the template');
-			if (this.type == TYPES.APPROVED)
-				return nl.t('Approved modules');
-			if (this.type == TYPES.MY)
-				return nl.t('My modules');
-			if (this.type == TYPES.MANAGE)
-				return nl.t('Manage approved modules');
-			if (this.type == TYPES.REVIEW)
-				return nl.t('Review modules');
-			if (this.type == TYPES.SENDASSIGNMENT)
-				return nl.t('Send Assignment');
+			if (self.title) return self.title;
+			if (self.mode == MODES.NEW) return nl.t('Create new: select the template');
+			if (self.mode == MODES.APPROVED) return nl.t('Approved modules');
+			if (self.mode == MODES.MY) return nl.t('My modules');
+			if (self.mode == MODES.MANAGE) return nl.t('Manage approved modules');
+			if (self.mode == MODES.REVIEW) return nl.t('Review modules');
+			if (self.mode == MODES.SENDASSIGNMENT) return nl.t('Send Assignment');
 			return '';
 		};
 
-		function _convertType(typeStr) {
-			self.typeStr = (typeStr || '').toLowerCase();
-			self.type = (typeStr in TYPENAMES) ? TYPENAMES[self.typeStr] : TYPES.APPROVED;
+        this.getAllowedMetadataFeilds = function() {
+            if (self.mode == MODES.MY || self.mode == MODES.MANAGE) return {grade: true, subject: true};
+            return null; // All metadata fields are allowed
+        };
+
+		function _convertMode(modeStr) {
+			self.modeStr = (modeStr || '').toLowerCase();
+			self.mode = (self.modeStr in MODENAMES) ? MODENAMES[self.modeStr] : MODES.APPROVED;
 		}
 
 	}
@@ -193,9 +183,8 @@
 	
 	this.show = function($scope, initialUserInfo, params) {
 		var _showInDlg = params && params.showInDlg;
-		var mode = new TypeHandler(nl, nlServerApi, nlMetaDlg);
+		var mode = new ModeHandler(nl, nlServerApi, nlMetaDlg);
 		var _userInfo = null;
-		var _allCardsForReview = [];
 
 		function _onPageEnter(userInfo) {
 			_userInfo = userInfo;
@@ -205,10 +194,9 @@
 				$scope.cards = {};
 				$scope.cards.staticlist = _getStaticCard();
 				$scope.cards.emptycard = nlCardsSrv.getEmptyCard();
-                mode.metadataEnabled = mode.canEnableMetadata && (
-                    (mode.type == TYPES.APPROVED) ||
-                    (mode.type == TYPES.MANAGE) ||
-                    (mode.type == TYPES.SENDASSIGNMENT));
+                mode.metadataEnabled = (mode.mode == MODES.APPROVED) ||
+                    (mode.mode == MODES.MANAGE) ||
+                    (mode.mode == MODES.SENDASSIGNMENT);
                 _getDataFromServer(false, resolve, reject);
 			});
 		}
@@ -228,62 +216,37 @@
 		}
 
 		function _getStaticCard() {
-			var ret = [];
-			if (mode.type == TYPES.APPROVED || mode.type == TYPES.MANAGE || mode.type == TYPES.MY || mode.type == TYPES.SENDASSIGNMENT)
-				return ret;
-			var card = {};
-			if (mode.type == TYPES.NEW) {
-				card = {
-					title : nl.t('Create'),
-					icon : nl.url.resUrl('dashboard/crnewwsheet.png'),
-					description : nl.t('can create'),
-					children : [{
-						title : "Click on one of the listed templates or"
-					}, {
-						title : "Create based on default template",
-						url : "/lesson/create2#/",
-						linkId : "admin_group",
-						children : []
-					}],
-					style : 'nl-bg-blue'
-				};
-                if (_userInfo.permissions.lesson_create_adv) {
-                    card.children.push({
-                        title : "Create based on pdf",
-                        url : "/lesson/create2/0/0/pdf#/",
-                        linkId : "admin_group",
-                        children : []
-                    });
-                    card.children.push({
-                        title : "create a new template",
-                        url : "/lesson/create2/0/1#/",
-                        linkId : "admin_group",
-                        children : []
-                    });
-                }
-			} else if (mode.type == TYPES.REVIEW) {
-				card = {
-					title : nl.t('Review'),
-					icon : nl.url.resUrl('dashboard/wsheet.png'),
-					children : [{
-						title : "view all",
-						internalUrl : "view_all",
-						children : []
-					}, {
-						title : "view pending reviews",
-						internalUrl : "view_pending",
-						children : []
-					}, {
-						title : "view closed reviews",
-						internalUrl : "view_closed",
-						children : []
-					}],
-					style : 'nl-bg-blue'
-				};
-			}
-			card.links = [];
-			ret.push(card);
-			return ret;
+            if (mode.mode != MODES.NEW) return [];
+			var card = {
+				title : nl.t('Create'),
+				icon : nl.url.resUrl('dashboard/crnewwsheet.png'),
+				description : nl.t('can create'),
+				children : [{
+					title : "Click on one of the listed templates or"
+				}, {
+					title : "Create based on default template",
+					url : "/lesson/create2#/",
+					linkId : "admin_group",
+					children : []
+				}],
+				style : 'nl-bg-blue',
+				links: []
+			};
+            if (_userInfo.permissions.lesson_create_adv) {
+                card.children.push({
+                    title : "Create based on pdf",
+                    url : "/lesson/create2/0/0/pdf#/",
+                    linkId : "admin_group",
+                    children : []
+                });
+                card.children.push({
+                    title : "create a new template",
+                    url : "/lesson/create2/0/1#/",
+                    linkId : "admin_group",
+                    children : []
+                });
+            }
+			return [card];
 		}
 
 		$scope.onCardInternalUrlClicked = function(card, internalUrl) {
@@ -310,12 +273,6 @@
                 nl.window.location.href = nl.fmt2('/lesson/view_priv/{}/', lessonId);
 			} else if (internalUrl === 'lesson_reopen') {
 				_reopenLesson($scope, lessonId);
-			} else if (internalUrl === 'view_all') {
-				_showReviewCards($scope, REVSTATE.ALL);
-			} else if (internalUrl === 'view_pending') {
-				_showReviewCards($scope, REVSTATE.PENDING);
-			} else if (internalUrl === 'view_closed') {
-				_showReviewCards($scope, REVSTATE.CLOSED);
 			} else if (internalUrl === 'send_assignment') {
 				var content = angular.fromJson(card.content);
 				var assignInfo = {
@@ -337,17 +294,21 @@
 		};
 
 		function _getDataFromServer(fetchMore, resolve, reject) {
-			mode.listingFunction(fetchMore).then(function(resultList) {
-			    resultList = mode.getFullResultList(resultList);
-				nl.log.debug('Got result: ', resultList.length);
-				$scope.cards.cardlist = _getLessonCards(_userInfo, resultList);
-				_allCardsForReview = $scope.cards.cardlist;
-				if (mode.type == TYPES.REVIEW)
-					_showReviewCards($scope, REVSTATE.PENDING);
-				_addSearchInfo($scope.cards);
-				resolve(true);
-			}, function(reason) {
-				resolve(false);
+			mode.listingFunction(fetchMore, function(result) {
+			    if (result.isError) {
+			        resolve(false);
+			        return;
+			    }
+
+                var results = result.resultset;
+                nl.log.debug('Got result: ', results.length);
+
+                mode.resultList = mode.resultList.concat(results);
+                $scope.cards.cardlist = _getLessonCards(_userInfo, mode.resultList);
+                _addSearchInfo($scope.cards);
+    
+                if (!result.fetchDone) return;
+                resolve(true);
 			});
 		}
 
@@ -363,26 +324,25 @@
 		function _createLessonCard(lesson, userInfo) {
 			var url = null;
 			var internalUrl = null;
-			if (mode.type == TYPES.APPROVED || mode.type == TYPES.MANAGE)
+			if (mode.mode == MODES.APPROVED || mode.mode == MODES.MANAGE)
 				if(_showInDlg) {
 					internalUrl = 'lesson_select';
-				} else if (mode.typeStr == 'selfassign'){
+				} else if (mode.modeStr == 'selfassign'){
                     url = nl.fmt2('/lesson/do_report_selfassign?lessonid={}', lesson.id);
                 } else {
 					url = nl.fmt2('/lesson/view/{}/', lesson.id);
 				}
-			if (mode.type == TYPES.MY)
+			if (mode.mode == MODES.MY)
 				url = nl.fmt2('/lesson/edit/{}/', lesson.id);
-			if (mode.type == TYPES.REVIEW)
+			if (mode.mode == MODES.REVIEW)
 				url = nl.fmt2('/lesson/view_review/{}/', lesson.id);
-			if (mode.type == TYPES.NEW)
+			if (mode.mode == MODES.NEW)
 				url = nl.fmt2('/lesson/create2/{}/', lesson.id);
-			if (mode.type == TYPES.SENDASSIGNMENT)
+			if (mode.mode == MODES.SENDASSIGNMENT)
 				internalUrl = 'send_assignment';
 			var card = {
 				lessonId : lesson.id,
 				grp: lesson.grp,
-				revstateId : lesson.revstate,
 				title : lesson.name,
 				subject : lesson.subject,
 				grade : lesson.grade,
@@ -399,28 +359,28 @@
 				avps : _getLessonListAvps(lesson)
 			};
 			card.links = [];
-			if (mode.type == TYPES.MY) {
+			if (mode.mode == MODES.MY) {
 				_addHelpToMycontent(card, lesson);
-			} else if (mode.type == TYPES.APPROVED) {
+			} else if (mode.mode == MODES.APPROVED) {
 				_addHelpToApproved(card, lesson);
 				if (!_showInDlg && lesson.grp == _userInfo.groupinfo.id)
 					card.links.push({id : 'lesson_copy', text : nl.t('copy')});
                 _addMetadataLink(card);
-    		} else if (mode.type == TYPES.SENDASSIGNMENT) {
+    		} else if (mode.mode == MODES.SENDASSIGNMENT) {
 				card.links.push({id : 'lesson_view', text : nl.t('view')});
 				_addHelpToApproved(card, lesson);
                 _addMetadataLink(card);
-			} else if (mode.type == TYPES.NEW) {
+			} else if (mode.mode == MODES.NEW) {
 				card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br> by:{}<br> <span class='nl-template-color'>Template</span><br> <span>{}</span>", lesson.grade, lesson.subject, lesson.authorname, lesson.description);
                 _addMetadataLink(card);
-			} else if (mode.type == TYPES.MANAGE) {
+			} else if (mode.mode == MODES.MANAGE) {
 				if (lesson.ltype == LESSONTYPES.LESSON || lesson.ltype == null)
 					card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br> by:{}<br>", lesson.grade, lesson.subject, lesson.authorname);
 				if (lesson.ltype == LESSONTYPES.TEMPLATE)
 					card['help'] = nl.t("<span class='nl-card-description'><b>{}, {}</b></span><br> by:{}<br> <span class='nl-template-color'>Template</span><br>", lesson.grade, lesson.subject, lesson.authorname);
 				_addDisapproveLink(card);
                 _addMetadataLink(card);
-			} else if (mode.type == TYPES.REVIEW) {
+			} else if (mode.mode == MODES.REVIEW) {
 				if (lesson.revstate == REVSTATE.PENDING && lesson.state == STATUS.UNDERREVIEW) {
 					_addReviewLinkForUnderReview(card, lesson);
 				} else if (lesson.revstate == REVSTATE.CLOSED && lesson.state == STATUS.UNDERREVIEW) {
@@ -637,7 +597,7 @@
 			nl.fmt.addAvp(avps, 'Name', lesson.name);
 			nl.fmt.addAvp(avps, _userInfo.groupinfo.subjectlabel, lesson.subject);
 			nl.fmt.addAvp(avps, _userInfo.groupinfo.gradelabel, lesson.grade);
-			if (mode.type == TYPES.MY || mode.type == TYPES.REVIEW)
+			if (mode.mode == MODES.MY || mode.mode == MODES.REVIEW)
 				_addIconsToDeatilsDialog(avps, lesson);
 			nl.fmt.addAvp(avps, 'Keywords', lesson.keywords);
 			nl.fmt.addAvp(avps, 'Created on ', lesson.created, 'date');
@@ -645,12 +605,12 @@
 			nl.fmt.addAvp(avps, 'Author', lesson.authorname);
 			nl.fmt.addAvp(avps, 'Group', lesson.grpname);
 			nl.fmt.addAvp(avps, 'Is Template', lesson.ltype, 'boolean');
-			if (mode.type == TYPES.APPROVED || mode.type == TYPES.MANAGE || mode.type == TYPES.NEW) {
+			if (mode.mode == MODES.APPROVED || mode.mode == MODES.MANAGE || mode.mode == MODES.NEW) {
 				nl.fmt.addAvp(avps, 'Approved by', lesson.approvername);
 				nl.fmt.addAvp(avps, 'Approved on', lesson.approvedon, 'date');
 				nl.fmt.addAvp(avps, 'Approved to', lesson.oulist, '-', 'all classes/user groups');
 			}
-			if (mode.type == TYPES.REVIEW) {
+			if (mode.mode == MODES.REVIEW) {
 				nl.fmt.addAvp(avps, 'Remarks', lesson.remarks);
 				if (lesson.revstate == REVSTATE.PENDING)
 					nl.fmt.addAvp(avps, 'Review status', 'Review pending', 'text', '-', nl.url.resUrl('toolbar-edit/comments1.png'), 'nl-16');
@@ -664,18 +624,18 @@
 
 		function _populateLinks(linkAvp, lessonId, lesson) {
 			var d = new Date();
-			if (mode.type == TYPES.NEW) {
+			if (mode.mode == MODES.NEW) {
 				nl.fmt.addLinkToAvp(linkAvp, 'select', nl.fmt2('/lesson/create2/{}/0#/', lessonId));
                 _addMetadataLinkToDetails(linkAvp);
-			} else if (mode.type == TYPES.MY) {
+			} else if (mode.mode == MODES.MY) {
 				_addLinksToMycontentDetailsDlg(linkAvp, lessonId, lesson);
-			} else if (mode.type == TYPES.MANAGE) {
+			} else if (mode.mode == MODES.MANAGE) {
 				_addLinksToManageDetailsDlg(linkAvp, lessonId, lesson);
-			} else if (mode.type == TYPES.APPROVED) {
+			} else if (mode.mode == MODES.APPROVED) {
 				_addLinksToApprovedDetailsDlg(linkAvp, lessonId, lesson);
-			} else if (mode.type == TYPES.REVIEW) {
+			} else if (mode.mode == MODES.REVIEW) {
 				_addLinksToReviewDetailsDlg(linkAvp, lessonId, lesson);
-			} else if (mode.type == TYPES.SENDASSIGNMENT) {
+			} else if (mode.mode == MODES.SENDASSIGNMENT) {
 				nl.fmt.addLinkToAvp(linkAvp, 'view', nl.fmt2('/lesson/view/{}', lessonId));
 				nl.fmt.addLinkToAvp(linkAvp, 'select', null, 'send_assignment');
                 _addMetadataLinkToDetails(linkAvp);
@@ -763,42 +723,20 @@
 				placeholder : nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)
 			};
             cards.search.onSearch = _onSearch;
-            if (mode.metadataEnabled) {
-                cards.canFetchMore = mode.canFetchMore;
-                return;
-            }
-			
-			var grades = [];
-			for(var i=0; i<_userInfo.groupinfo.grades.length; i++) {
-			    var g = _userInfo.groupinfo.grades[i];
-			    var pos = g.indexOf('.');
-                var grp = (pos > -1) ? g.slice(0, pos) : '';
-                var desc = (pos > -1) ? g.slice(pos+1) : g;
-                desc = desc.replace('.', ' - ');
-			    grades.push({id: g, desc: desc, grp: grp});
-			}
-			nlCardsSrv.updateGrades(cards, grades);
+            cards.canFetchMore = mode.canFetchMore;
 		}
 
-		function _onSearch(filter, grade, onSearchParamChange) {
-			mode.searchFilter = filter;
-			mode.searchGrade = grade;
-            if (!mode.metadataEnabled) {
-                _reloadFromServer();
-                return;
-            }
-            mode.searchMetadata.search = mode.searchFilter;
-            mode.searchMetadata.grade = mode.searchGrade;
-            nlMetaDlg.showAdvancedSearchDlg($scope, _userInfo, 'module', mode.searchMetadata)
+        function _onSearch(filter, grade, onSearchParamChange) {
+            mode.searchMetadata.search = filter;
+            var cmConfig = {allowedFields: mode.getAllowedMetadataFeilds()};
+            nlMetaDlg.showAdvancedSearchDlg($scope, _userInfo, 'module', mode.searchMetadata, cmConfig)
             .then(function(result) {
-                mode.searchFilter = result.metadata.search || '';
-                mode.searchGrade = result.metadata.grade || null;
                 mode.searchMetadata = result.metadata;
                 if (mode.custtype) mode.searchMetadata.custtype = mode.custtype;
-                onSearchParamChange(mode.searchFilter, mode.searchGrade);
+                onSearchParamChange(mode.searchMetadata.search, grade);
                 _reloadFromServer();
             });
-		}
+        }
 
         function _fetchMore() {
             _reloadFromServer(true);
@@ -862,7 +800,7 @@
 
 		function _copyLesson($scope, lessonId) {
 			var data = {};
-			if (mode.type == TYPES.MY) {
+			if (mode.mode == MODES.MY) {
 				data = {
 					lessonid : lessonId,
 					private : true
@@ -885,7 +823,7 @@
 					nlDlg.showLoadingScreen();
 					$scope.newLessonId = status;
 					$scope.statusType = false;
-					if (mode.type != TYPES.MY)
+					if (mode.mode != MODES.MY)
 						$scope.statusType = true;
 					var copyLessonDlg = nlDlg.create($scope);
 					copyLessonDlg.scope.error = {};
@@ -943,17 +881,6 @@
 					_updateCardAfterReviewlist();
 				});
 			});
-		}
-
-		function _showReviewCards($scope, revstate) {
-			var cards = [];
-			for (var i in _allCardsForReview) {
-				var card = _allCardsForReview[i];
-				if (revstate == REVSTATE.ALL || card.revstateId == revstate) {
-					cards.push(card);
-				};
-			}
-			$scope.cards.cardlist = cards;
 		}
 
 		function _updateCardlist($scope, lessonId) {
