@@ -92,10 +92,17 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
         var allowedFields = params.config.allowedFields || null;
         for(var i=0; i<cmFields.length; i++) {
             var cmField = cmFields[i];
+            cmField.value = _valueToGuiField(cmField, metadata, isSearch);
             if (cmField.hidden || (allowedFields && !allowedFields[cmField.id])) {
                 _hiddenFields.push(cmField);
                 continue;
             }
+            data.cmFields.push(cmField);
+        }
+
+        var additionalFields = params.config.additionalFields || {};
+        for(var f in additionalFields) {
+            var cmField = additionalFields[f];
             cmField.value = _valueToGuiField(cmField, metadata, isSearch);
             data.cmFields.push(cmField);
         }

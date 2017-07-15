@@ -94,9 +94,10 @@ function ModeHandler(nl, nlServerApi, nlMetaDlg) {
 	};
 	
 	this.listingFunction = function(fetchMore, cbFn) {
-	    if (!self.canFetchMore || !fetchMore) {
+	    if (!fetchMore) {
 	        self.canFetchMore = true;
             self.resultList = [];
+            self.nextStartPos = null;
 	    }
 		var data = {};
         if (self.nextStartPos) data.startpos = self.nextStartPos;
@@ -139,7 +140,7 @@ function ModeHandler(nl, nlServerApi, nlMetaDlg) {
 	};
 
     this.getAllowedMetadataFeilds = function() {
-        if (self.mode == MODES.MY || self.mode == MODES.MANAGE) return {grade: true, subject: true};
+        if (self.mode == MODES.MY || self.mode == MODES.REVIEW) return {grade: true, subject: true};
         return null; // All metadata fields are allowed
     };
 
@@ -721,12 +722,23 @@ this.show = function($scope, initialUserInfo, params) {
 		nl.fmt.addLinkToAvp(linkAvp, 'view', nl.fmt2('/lesson/view_review/{}', lessonId));
 	}
 
+
+    var REV_PENDING = 'Show pending items';
+    var REV_DONE = 'Show completed items';
+    var _additionaMetaFields = {
+        revstate: {id: 'revstate', name: 'Review state', type: 'select', 
+            values: [REV_PENDING, REV_DONE]}
+    };
+
     function _onSearch(filter, searchCategory, onSearchParamChange) {
         mode.searchMetadata.search = filter;
-        var cmConfig = {allowedFields: mode.getAllowedMetadataFeilds()};
+        var cmConfig = {allowedFields: mode.getAllowedMetadataFeilds(),
+            additionalFields: _additionaMetaFields};
+        mode.searchMetadata.revstate = mode.revstate == 1 ? REV_PENDING : REV_DONE;
         nlMetaDlg.showAdvancedSearchDlg($scope, _userInfo, 'module', mode.searchMetadata, cmConfig)
         .then(function(result) {
             mode.searchMetadata = result.metadata;
+            mode.revstate = mode.searchMetadata.revstate == REV_PENDING ? 1 : 2;
             if (mode.custtype) mode.searchMetadata.custtype = mode.custtype;
             onSearchParamChange(mode.searchMetadata.search || '', searchCategory);
             _reloadFromServer();
