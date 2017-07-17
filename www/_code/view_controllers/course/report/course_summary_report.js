@@ -848,7 +848,7 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
                 maxScore = maxScore || '';
                 score = score || '';
                 started = lrep.started || '';
-                ended = lrep.started || '';
+                ended = lrep.ended || '';
                 timeSpent = Math.ceil((lrep.timeSpentSeconds||0)/60);
                 attempts = lrep.attempt || '';
                 status = !lrep.completed ? 'started' :

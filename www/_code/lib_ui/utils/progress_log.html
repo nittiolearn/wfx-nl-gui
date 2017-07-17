@@ -60,13 +60,13 @@
 </div>
 
 <div ng-show='progressLog.showLogs'>
-    <div class='nl-card-search row row-center margin0 padding-small'>
+    <div class='row row-center margin0 padding-small'>
         <span>{{progressLog.logs.length || 0}} messages</span>
         <i class='sep4'></i>
-        <input class='col' ng-model='progressLog.search.filter'
+        <input class='col padding-small' ng-model='progressLog.search.filter'
                placeholder='search'>
         <i class='sep4'></i>
-        <select class='col-20 nl-grade-search' ng-model="progressLog.search.level" 
+        <select class='col-20 nl-search-dropdown' ng-model="progressLog.search.level" 
                 ng-options="level for level in progressLog.search.levels track by level">
         </select>
         <i class='sep4'></i>

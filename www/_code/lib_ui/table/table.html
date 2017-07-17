@@ -1,16 +1,17 @@
-<div class='padding-small'></div>
-<div class='row row-center margin0 padding0'
-     ng-hide='info.search.disabled'>
-    <input class='col padding-mid w100' ng-model='info.search.filter'
-           placeholder='{{info.search.placeholder}}'
-           ng-keydown='info._internal.searcher.onKeyDown($event)'>
+<div ng-hide='info.search.disabled'>
     <div class='padding-small'></div>
-    <i class='nl-link-text icon fsh4 fblue padding-mid ion-ios-search'
-       ng-click='info._internal.searcher.onClick(0)'></i>
+    <div class='row row-center margin0 padding0'>
+        <input class='col padding-mid' ng-model='info.search.filter'
+               placeholder='{{info.search.placeholder}}'
+               ng-keydown='info._internal.searcher.onKeyDown($event)'>
+        <div class='padding-small'></div>
+        <i class='nl-link-text icon fsh4 fblue padding-mid ion-ios-search'
+           ng-click='info._internal.searcher.onClick(0)'></i>
+    </div>
+    <div class='padding-small'></div>
+    <div class='fgrey2'>{{info._internal.searcher.infotxt}}</div>
+    <div class='padding-small'></div>
 </div>
-<div class='padding-small'></div>
-<div class='fgrey2'>{{info._internal.searcher.infotxt}}</div>
-<div class='padding-small'></div>
 <div ng-transclude></div>
 <div class='padding-small'></div>
 <table class='{{info.styleTable}}'>

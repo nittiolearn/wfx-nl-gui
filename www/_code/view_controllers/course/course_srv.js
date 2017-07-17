@@ -57,7 +57,7 @@ var _dashboardActions = {
     'lesson.create': {'url': '/#/lesson_list?type=new&{}', 'permission': 'lesson_create'},
     'lesson.create2': {'url': '/lesson/create2/{}', 'permission': 'lesson_create'},
     'lesson.my': {'url': '/#/lesson_list?type=my&{}', 'permission': 'lesson_create'},
-    'lesson.review': {'url': '/#/lesson_list?type=review&{}', 'permission': 'lesson_review'},
+    'lesson.review': {'url': '/#/lesson_list?type=review&{}', 'permission': 'lesson_create'},
     'lesson.manage': {'url': '/#/lesson_list?type=manage&{}', 'permission': 'lesson_approve'},
     'searchlist.view': {'url': '/#/searchlist_view?id={}', 'permission': 'basic_access'},
     'assign_desk.create': {'url': '/#/lesson_list?type=sendassignment&{}', 'permission': 'assignment_send'},

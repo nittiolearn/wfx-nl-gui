@@ -25,16 +25,14 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var DebugCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlLogViewer', 'nlServerApi', 'nlCardsSrv',
-function(nl, nlRouter, $scope, nlDlg, nlLogViewer, nlServerApi, nlCardsSrv) {
+var DebugCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlLogViewer', 'nlServerApi', 'nlCardsSrv', 'nlExporter',
+function(nl, nlRouter, $scope, nlDlg, nlLogViewer, nlServerApi, nlCardsSrv, nlExporter) {
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
             nl.pginfo.pageTitle = nl.t('Debug utilities');
             nl.pginfo.pageSubTitle = nl.fmt2('({})', userInfo.displayname);
-            $scope.cards = {};
-            $scope.cards.staticlist = [];
-            $scope.cards.emptycard = nlCardsSrv.getEmptyCard();
-            $scope.cards.cardlist = _getCards();
+            $scope.cards = {cardlist: _getCards()};
+            nlCardsSrv.initCards($scope.cards);
             nl.log.debug('DebugCtrl:onPageEnter - done');
             resolve(true);
         });
@@ -90,7 +88,7 @@ function(nl, nlRouter, $scope, nlDlg, nlLogViewer, nlServerApi, nlCardsSrv) {
                 nlDlg.popupStatus('Local cache cleared');
             });
         } else if (internalUrl === 'debug_restapi') {
-            var restApi = new RestApi(nl, nlDlg, nlServerApi);
+            var restApi = new RestApi(nl, nlDlg, nlServerApi, nlExporter);
             restApi.showDlg($scope);
         } else if (internalUrl === 'debug_reload') {
             nl.window.location.reload(true);
@@ -124,7 +122,7 @@ function _createDlgAndShow(nl, nlDlg, $scope, data, template, buttonName, onButt
     return dlg;
 }
 
-function RestApi(nl, nlDlg, nlServerApi) {
+function RestApi(nl, nlDlg, nlServerApi, nlExporter) {
     this.showDlg = function($scope) {
         var data = {url: '_serverapi/course_get_list.json', params: '{}', loop: false};
         var template = 'view_controllers/debug/restapi_dlg.html';
@@ -143,13 +141,18 @@ function RestApi(nl, nlDlg, nlServerApi) {
     };
     
     function _saveAsCsv(scope) {
-        var csv = _writeCsvLine(scope.result.fmt.header, false);
-        var rows = scope.result.fmt.rows;
-        for (var i=0; i<rows.length; i++) {
-            csv += _writeCsvLine(rows[i], true);
-        }
-        csv = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
-        window.open(csv);
+        nlDlg.showLoadingScreen();
+        nl.timeout(function() {
+            var csv = _writeCsvLine(scope.result.fmt.header, false);
+            var rows = scope.result.fmt.rows;
+            for (var i=0; i<rows.length; i++) {
+                csv += _writeCsvLine(rows[i], true);
+            }
+            nlExporter.exportCsvFile('download.csv', csv);
+            nl.timeout(function() {
+                nlDlg.hideLoadingScreen();
+            }, 2000);
+        });
     }
 
     function _writeCsvLine(row, bNewLine) {
@@ -228,7 +231,11 @@ function RestApi(nl, nlDlg, nlServerApi) {
 
     var _formatError = nl.t('Sorry, only array of objects can be formatted.');
     function _formatResult(result) {
-        if (!angular.isArray(result)) return null;
+        if (!angular.isArray(result)) {
+            if (!angular.isObject(result)) return null;
+            result = result.resultset;
+            if (!result || !angular.isArray(result)) return null;
+        }
         if (result.length > 0 && angular.isArray(result[0]))
             return _formatTable(result);
         return _formatArray(result);

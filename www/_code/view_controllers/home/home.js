@@ -58,18 +58,18 @@ function($stateProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var HomeCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlConfig', 'nlDlg',
-function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
-    HomeCtrlImpl(true, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg);
+var HomeCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlConfig', 'nlDlg', 'nlCardsSrv',
+function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv) {
+    HomeCtrlImpl(true, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv);
 }];
 
-var DashboardViewCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlConfig', 'nlDlg',
-function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
-    HomeCtrlImpl(false, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg);
+var DashboardViewCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlConfig', 'nlDlg', 'nlCardsSrv',
+function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv) {
+    HomeCtrlImpl(false, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv);
 }];
 
 //-------------------------------------------------------------------------------------------------
-function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
+function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv) {
 
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
@@ -102,9 +102,11 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
     }
     
     function _initDashboardCards(userInfo, parent, cardListFromServer, resolve) {
-        $scope.cards = {};
-        $scope.cards.staticlist = parent ? [] : _getUnauthorizedCards(userInfo);
-        $scope.cards.cardlist = _getDashboardCards(userInfo, parent, cardListFromServer);
+        $scope.cards = {
+            staticlist: parent ? [] : _getUnauthorizedCards(userInfo),
+            cardlist: _getDashboardCards(userInfo, parent, cardListFromServer)
+        };
+        nlCardsSrv.initCards($scope.cards);
         _eulaWarning();
         resolve(true);
     }

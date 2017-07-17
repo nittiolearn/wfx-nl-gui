@@ -1,7 +1,7 @@
 <div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
 <div class='row row-center margin0 padding0'
 	 style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'
-	 ng-if='cards.toolbar'>
+	 ng-if='cards.toolbar || cards.canFetchMore'>
     <div class='col text-center fsh3 padding0'>
     </div>
     <span ng-repeat='tb in cards.toolbar'
@@ -10,31 +10,45 @@
           ng-click='tb.onClick()'>
         <i class="icon {{tb.icon}}"></i>
     </span>
+    <span ng-show='cards.canFetchMore'
+          title='Fetch More'
+          class='nl-toolbar-icon'
+          ng-click='showResultDetails()'>
+        <i class="icon ion-refresh"></i>
+    </span>
 </div>
 
-<div class='padding-small'></div>
-<div ng-show='cards.search' class='nl-card-search row row-center'>
-	<input class='col' ng-model='search.filter'
-	       placeholder='{{cards.search.placeholder}}' ng-keypress='searchKeyHandler($event)'>
-	<i class='sep4'></i>
-
-    <select ng-show='cards.grades' class='col-20 nl-grade-search' ng-model="search.grade" 
-            ng-change='search.onSearch()'
-            ng-options="grade.desc group by grade.grp for grade in cards.grades track by grade.id">
-    </select>
-
-    <i class='sep4'></i>	
-	<img class='nl-link-img' ng-src='{{search.img}}' ng-show='search.onSearch'
-		 tabindex="0"
-		 ng-click='search.onSearch()'/>
-	<i class='sep4'></i>
-	<span class='col col-20 nl-textellipsis nl-link-text'
-	      ng-click='showResultDetails()'>{{search.resultsStr}}</span>
+<div ng-show='cards.search' class='padding-mid'>
+    <div class='padding-small'></div>
+    <div class='row row-center margin0 padding0'>
+        <input class='col padding-mid'
+               ng-model='cards._internal.search.filter'
+               placeholder='{{cards.search.placeholder}}'
+               ng-keydown='searchKeyHandler($event)'>
+    
+        <div ng-show='cards.searchDropdown' class='padding-small'></div>
+        <select ng-show='cards.searchDropdown' class='col-20 nl-search-dropdown' ng-model="cards._internal.search.category" 
+                ng-change='onSearchButton()'
+                ng-options="item.desc group by item.grp for item in cards.searchDropdown track by item.id">
+        </select>
+    
+        <div class='padding-small'></div>
+        <i class='nl-link-text icon fsh4 fblue padding-mid {{cards.search.icon}}'
+           tabindex="0" ng-click='onSearchButton()'></i>
+    </div>
+    <div class='padding-small'></div>
+    <div class='fgrey2 {{cards.canFetchMore ? "nl-link-text" : ""}}'
+         ng-click='showResultDetails()'>
+         <div class='padding-mid' ng-bind-html='cards._internal.search.infotxt'></div>
+    </div>
+</div>
+<div ng-hide='cards.search' class='padding-mid'>
 </div>
 
-<div ng-if='!cards.listConfig'  class='nl-card nl-link-text-container' 
-	ng-repeat="card in getCards()" 
-	ng-style="{height: h + 'px', width: w + 'px', 'font-size': fs + '%', 'margin-left': ml + 'px'}">
+<div ng-if='!cards.listConfig'
+     class='nl-card nl-link-text-container anim fade' 
+	 ng-repeat="card in cards._internal.visibleCards" 
+	 ng-style="{height: h + 'px', width: w + 'px', 'font-size': fs + '%', 'margin-left': ml + 'px'}">
 	<nl-card card='card' class='nl-card-holder {{card.style}}'></nl-card>
 </div>
 

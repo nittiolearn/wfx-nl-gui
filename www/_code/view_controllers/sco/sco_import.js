@@ -25,8 +25,8 @@ function($stateProvider, $urlRouterProvider) {
 
 //-------------------------------------------------------------------------------------------------
 var ScoImportListCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlServerApi', 'nlResourceUploader',
-                     'nlProgressLog',
-function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlResourceUploader, nlProgressLog) {
+                     'nlProgressLog', 'nlCardsSrv',
+function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlResourceUploader, nlProgressLog, nlCardsSrv) {
     var importer = new ScormImporter(nl, nlDlg, $scope, nlServerApi, 
         nlResourceUploader, nlProgressLog);
     var viewer = new ScormViewer(nl, nlDlg, $scope, nlServerApi);
@@ -39,8 +39,11 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlResourceUploader, nlProgres
             var params = nl.location.search();
             var searchFilter = params.search || '';
             template = parseInt(params.template || 0);
-            $scope.cards = {};
-            $scope.cards.staticlist = _getStaticCards();
+            $scope.cards = {
+                staticlist: _getStaticCards(),
+                search: {onSearch: _onSearch, placeholder: nl.t('Enter SCORM module name')}
+            };
+            nlCardsSrv.initCards($scope.cards);
             _getDataFromServer(searchFilter, resolve, reject);
         });
     }
@@ -82,11 +85,6 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlResourceUploader, nlProgres
         return [card];
     }
 
-    function _addSearchInfo(cards) {
-        cards.search = {placeholder: nl.t('Enter SCORM module name')};
-        cards.search.onSearch = _onSearch;
-    }
-    
     function _onSearch(filter) {
         nlDlg.showLoadingScreen();
         var promise = nl.q(function(resolve, reject) {
@@ -100,8 +98,9 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlResourceUploader, nlProgres
     function _getDataFromServer(filter, resolve, reject) {
         nlServerApi.scoGetManifestList(filter).then(function(resultList) {
             nl.log.debug('Got result: ', resultList.length);
-            $scope.cards.cardlist = _getCards(resultList);
-            _addSearchInfo($scope.cards);
+            nlCardsSrv.updateCards($scope.cards, {
+                cardlist: _getCards(resultList)
+            });
             resolve(true);
         }, function(reason) {
             resolve(false);

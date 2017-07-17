@@ -42,10 +42,9 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
             _copyBoolIf(params, _params, 'restored');
             if (!_isAdmin) _params.mine = true;
 
-            $scope.cards = {};
-            $scope.cards.search = {placeholder: nl.t('Search'), onSearch: _onSearch};
+            $scope.cards = {search: {onSearch: _onSearch}};
+            nlCardsSrv.initCards($scope.cards);
             nl.pginfo.pageTitle = nl.t('Archived items');
-
             nlGroupInfo.init().then(function() {
                 _groupInfo = nlGroupInfo.get();
                 _getDataFromServer(false, resolve);
@@ -68,7 +67,7 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
 		}
 	};
 	
-    function _onSearch(filter, grade, onSearchParamChange) {
+    function _onSearch(filter) {
         var dlg = nlDlg.create($scope);
         dlg.scope.error = {};
         dlg.scope.show = {entitytype: true, actiontype: true, restored: true, 
@@ -186,9 +185,10 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
         cards.sort(function(a, b) {
             return (b.created - a.created);
         });
-		$scope.cards.rebuildCache = true;
-		$scope.cards.cardlist = cards;
-        $scope.cards.canFetchMore = _canFetchMore;
+
+        nlCardsSrv.updateCards($scope.cards, {
+            cardlist: cards, canFetchMore: _canFetchMore
+        });
 	}
 	
 	var _typeInfos = {

@@ -130,11 +130,12 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
     		    resolve(false);
     		    return;
     		}
-    		$scope.cards = {};
-            _addSearchInfo($scope.cards);
-    		$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
-			if(reptype == 'group') $scope.cards.toolbar = _getToolbar();
-            $scope.cards.staticlist = [];
+    		$scope.cards = {
+                search: {onSearch: _onSearch, placeholder: nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)},
+                emptycard: nlCardsSrv.getEmptyCard({help : nl.t('There are no assignments to display.')})
+    		};
+            if(reptype == 'group') $scope.cards.toolbar = _getToolbar();
+            nlCardsSrv.initCards($scope.cards);
             nl.pginfo.pageTitle = mode.pageTitle(); 
             nlGroupInfo.init().then(function() {
                 nlGroupInfo.update();
@@ -179,13 +180,6 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	    });
 	}
 
-	function _getEmptyCard(nlCardsSrv) {
-		var help = help = nl.t('There are no assignments to display.');
-		return nlCardsSrv.getEmptyCard({
-			help : help
-		});
-	}
-
 	$scope.onCardLinkClicked = function(card, linkid) {
 		if(linkid == 'assignment_update'){
 			nl.window.location.href = nl.t('/lesson/update_report_assign/{}', card.id);
@@ -214,8 +208,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	function _getDataFromServer(fetchMore, resolve) {
 	    if (!fetchMore) {
             mode.initVars();
-            $scope.cards.cardlist = [];
-            $scope.cards.staticlist = [];
+            nlCardsSrv.updateCards($scope.cards, {cardlist: [], staticlist: []});
             reportStats = NlAssignReportStats.createReportStats(reptype, $scope);
 	    }
 		mode.getAssignmentReports(dateRange, function(isError, result) {
@@ -230,7 +223,10 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
             }
             _updateChartCard(reportStats);
             _updateStatusOverview();
-            _addSearchInfo($scope.cards);
+
+            nlCardsSrv.updateCards($scope.cards, {
+                canFetchMore: !mode.dataFetchInProgress && mode.canFetchMore
+            });
             nlDlg.hideLoadingScreen();
             if (resolve) resolve(true);
 		});
@@ -530,14 +526,6 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 		if(alreadySharedUsers.length > 1) assignmentShareDlg.scope.data.sharedWith = nl.t('Shared With {} users:', alreadySharedUsers.length);
 	}
 	
-	function _addSearchInfo(cards) {
-		cards.search = {
-			placeholder : nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)
-		};
-		cards.search.onSearch = _onSearch;
-        cards.canFetchMore = !mode.dataFetchInProgress && mode.canFetchMore;
-	}
-
 	function _onSearch(filter) {
 	    return; // Do nothing as all data are already fetched - just search locally!
 	}
