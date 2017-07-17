@@ -3,6 +3,8 @@
            ng-model='$parent.data[fieldmodel]' 
            ng-class='{"nl-dlg-field-error": $parent.error[fieldmodel]}'
            class='{{fieldcls}}'
+           min='{{fieldminvalue}}'
+           max='{{fieldmaxvalue}}'
            tabindex='{{tabindex}}'
            autofocus=''
            placeholder="{{placeholder}}">

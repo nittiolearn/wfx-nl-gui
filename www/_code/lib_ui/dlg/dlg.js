@@ -335,7 +335,9 @@ function _formFieldDirectiveImpl(nl, nlDlg, tagName, templateUrl, transclude) {
             fieldtype: '@',
             fieldcls: '@',
             tabindex: '@',
-            placeholder: '@'
+            placeholder: '@',
+            fieldmaxvalue: '@',
+            fieldminvalue: '@'
         },
         link: function($scope, iElem, iAttrs) {
             nl.log.debug('linking field: ', $scope.fieldmodel);
