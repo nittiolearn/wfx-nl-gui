@@ -42,36 +42,36 @@ function(nl, nlRouter, $scope, nlDlg, nlLogViewer, nlServerApi, nlCardsSrv, nlEx
     function _getCards() {
         var cards = [];
 
-        var card = {title: nl.t('Reload'), 
-            icon: nl.url.resUrl('alerts.png'), 
+        var card = {title: nl.t('Reload'),
+            icon2: 'ion-ios-refresh fblue', 
             internalUrl: 'debug_reload',
             help: nl.t('Reload page'), 
             children: [], links: []};
         cards.push(card);
 
         card = {title: nl.t('Change server'), 
-            icon: nl.url.resUrl('alerts.png'), 
+            icon2: 'ion-shuffle fblue', 
             internalUrl: 'debug_change_server',
             help: nl.t('Change Server URL'), 
             children: [], links: []};
         cards.push(card);
 
         card = {title: nl.t('View logs'), 
-            icon: nl.url.resUrl('alerts.png'), 
+            icon2: 'ion-document-text fblue', 
             internalUrl: 'debug_logviewer',
             help: nl.t('View logs, configure log levels'), 
             children: [], links: []};
         cards.push(card);
 
         card = {title: nl.t('Clear Cache'), 
-            icon: nl.url.resUrl('alerts.png'), 
+            icon2: 'ion-ipad fblue', 
             internalUrl: 'debug_clearcache',
             help: nl.t('Clear local cache'), 
             children: [], links: []};
         cards.push(card);
         
         card = {title: nl.t('Execute Rest API'), 
-            icon: nl.url.resUrl('alerts.png'), 
+            icon2: 'ion-arrow-swap fblue', 
             internalUrl: 'debug_restapi',
             help: nl.t('Execute a REST API on the server'), 
             children: [], links: []};

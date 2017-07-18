@@ -5,7 +5,9 @@
 // assignment module
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-	angular.module('nl.assignment', []).config(configFn).controller('nl.AssignmentDeskCtrl', AssignmentDeskCtrl);
+	angular.module('nl.assignment', [])
+	.config(configFn)
+	.controller('nl.AssignmentDeskCtrl', AssignmentDeskCtrl);
 }
 
 //-------------------------------------------------------------------------------------------------

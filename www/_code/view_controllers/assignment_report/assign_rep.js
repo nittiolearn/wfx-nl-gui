@@ -479,7 +479,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	function _initAssignmentShareDlg(assignmentShareDlg, sharedUsersList){
 		assignmentShareDlg.setCssClass('nl-height-max nl-width-max');
 		assignmentShareDlg.scope.data.users = sharedUsersList;
-		assignmentShareDlg.scope.data.removeicon = nl.url.resUrl('quick-links/close.png');
+		assignmentShareDlg.scope.data.removeicon = nl.url.resUrl('close2.png');
 		assignmentShareDlg.scope.data.sharedWith = nl.t('Not shared with any user:');
 		assignmentShareDlg.scope.data.sharedUsersIds = _updateOuTree(sharedUsersList, assignmentShareDlg);
 		assignmentShareDlg.scope.data.sharedUsers = assignmentShareDlg.scope.data.sharedUsersIds[0];

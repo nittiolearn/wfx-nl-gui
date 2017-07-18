@@ -956,7 +956,7 @@ function RnoReportManageForm(nl, nlDlg, nlCardsSrv, nlPrinter, _rnoServer, _obse
             sender: metaMailData.sender || 'Nittio Learn',
             brandingTopImgs: metaMailData.brandingTopImgs || [],
             brandingBottomImgs: metaMailData.brandingBottomImgs || [],
-            bgimg: ('bgimg' in metaMailData) ? metaMailData.bgimg : nl.url.resUrl('background/bg-sky.png'),
+            bgimg: ('bgimg' in metaMailData) ? metaMailData.bgimg : nl.url.resUrl('bg-sky2.png'),
             parentLogin: metaMailData.parent_login_id,
             type: bReport ? 'report' : 'observation',
             typeStr: bReport ? 'Progress report' : 'Observation report',
