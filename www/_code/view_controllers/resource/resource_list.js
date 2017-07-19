@@ -56,7 +56,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 			nl.pginfo.pageTitle = _updatePageTitle(); 
 			$scope.cards = {
 			    staticlist: _getStaticCard(),
-			    emptycard: nlCardsSrv.getEmptyCard({help : nl.t('There are no assignments to display.')}),
 		        search: {onSearch: _onSearch, placeholder : nl.t('Name/Subject/Remarks/Keyword')}
 		    };
             nlCardsSrv.initCards($scope.cards);

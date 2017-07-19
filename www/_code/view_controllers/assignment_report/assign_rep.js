@@ -131,8 +131,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
     		    return;
     		}
     		$scope.cards = {
-                search: {onSearch: _onSearch, placeholder: nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)},
-                emptycard: nlCardsSrv.getEmptyCard({help : nl.t('There are no assignments to display.')})
+                search: {onSearch: _onSearch, placeholder: nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)}
     		};
             if(reptype == 'group') $scope.cards.toolbar = _getToolbar();
             nlCardsSrv.initCards($scope.cards);

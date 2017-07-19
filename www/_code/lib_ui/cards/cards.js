@@ -21,22 +21,10 @@ var CardsSrv = ['nl', '$filter',
 function(nl, $filter) {
     var self = this;
 
-    this.getEmptyCard = function(emptyCard) {
-        var card = (emptyCard) ? emptyCard : {};
-        if (!card.title) card.title = nl.t('Nothing to display');
-        if (!card.help) card.help = nl.t('There is no data to display.');
-        if (!card.icon && !card.icon2) card.icon2 = 'ion-minus-circled fblue';
-        card.links = [];
-        card.style = 'nl-bg-blue';
-        card.children = [];
-        return card;
-    };
-
     // Just for documentation    
     var _knownAttrs = {
         'toolbar': 1, 
         'search': 1, 
-        'emptycard': 1,
         'staticlist': 1,
         'searchCategories': 1, // Currently used only in RNO code
 
@@ -58,7 +46,6 @@ function(nl, $filter) {
     this.updateCards = function(cards, params) {
         if (!params) params = {};
         for(var attr in params) cards[attr] = params[attr];
-        if (!cards.emptycard) cards.emptycard = this.getEmptyCard();
         if (!cards.staticlist) cards.staticlist = [];
         if (!cards.cardlist) cards.cardlist = [];
         if ('searchCategories' in cards)
@@ -86,26 +73,41 @@ function(nl, $filter) {
         var recs = cards.staticlist.concat(filteredCards.slice(0, len));
         cards._internal.search.visible = len;
         _updateInfotext(cards.cardlist.length, len, cards);
-        if (!cards.listConfig && recs.length == 0) recs.push(cards.emptycard);
         cards._internal.visibleCards = recs;
     }
 
+    function _animateInfotext(cards, oldInfotxt) {
+        if (oldInfotxt == cards._internal.search.infotxt) return;
+        cards._internal.search.clsAnimate = 'anim-highlight-on';
+        nl.timeout(function() {
+            cards._internal.search.clsAnimate = '';
+        }, 800);
+    }
+    
     function _updateInfotext(total, visible, cards) {
+        var oldInfotxt = cards._internal.search.infotxt;
         var msg1 = nl.t('There are no items to display.');
+        cards._internal.search.cls = 'fgrey2';
+        cards._internal.search.showDetails = false;
         if (total == 0) {
-            cards._internal.search.infotxt = msg1;
+            cards._internal.search.infotxt = nl.fmt2('<i class="padding-mid icon ion-alert-circled"></i>{}', 
+                msg1);
             cards._internal.search.infotxt2 = msg1;
-            return;
+            cards._internal.search.cls = 'forange fsh4 nl-link-text';
+            return _animateInfotext(cards, oldInfotxt);
         }
         var item = (total == 1) ? 'item' : 'items';
         msg1 = nl.t('Displaying <b>{}</b> of <b>{}</b> {}.', visible, total, item);
         if (!cards.canFetchMore) {
             cards._internal.search.infotxt = msg1;
             cards._internal.search.infotxt2 = msg1;
-            return;
+            return _animateInfotext(cards, oldInfotxt);
         }
+        cards._internal.search.cls = 'fgrey2 nl-link-text';
+        cards._internal.search.showDetails = true;
         cards._internal.search.infotxt = nl.t('{} <b>Fetch more <i class="icon ion-refresh"></i></b>', msg1);
         cards._internal.search.infotxt2 = nl.t('{} Do you want to fetch more items from server?', msg1);
+        return _animateInfotext(cards, oldInfotxt);
     }
 }];
 
@@ -164,6 +166,7 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             
             $scope.showResultDetails = function() {
                 if (!$scope.cards || !$scope.cards._internal) return;
+                if (!$scope.cards._internal.search.showDetails) return;
                 var text = $scope.cards._internal.search.infotxt2;
                 if (!$scope.cards.canFetchMore) {
                     nlDlg.popupAlert({title: '', template: text});

@@ -40,7 +40,6 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	        my = ('my' in params) ? parseInt(params.my) == 1: false;
         	$scope.cards = {
         	    staticlist: _getStaticCards(),
-        	    emptycard: nlCardsSrv.getEmptyCard({help:nl.t('There are no search lists created yet.')}),
         	    search: {onSearch: _onSearch, placeholder: nl.t('Enter name/description')}
         	};
             nlCardsSrv.initCards($scope.cards);

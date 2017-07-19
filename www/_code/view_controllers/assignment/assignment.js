@@ -118,7 +118,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 			mode.initFromUrl(_userInfo);
 			nl.pginfo.pageTitle = mode.pageTitle();
 			$scope.cards = {
-                emptycard: nlCardsSrv.getEmptyCard({help : nl.t('There are no assignments to display.')}),
                 search: {onSearch: _onSearch, placeholder: nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)}
             };
             nlCardsSrv.initCards($scope.cards);

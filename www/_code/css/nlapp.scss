@@ -1923,6 +1923,14 @@ img.nl-full-width {
   background-color: rgba(128, 0, 0, 0.1);
 }
 
+.anim-highlight-off {
+  transition: color 0.4s cubic-bezier(.9,.92,.56,1.43) 0s;
+}
+
+.anim-highlight-on {
+  color: black;
+}
+
 /**
  * Bullet and numbering in content (defined in nittioold.css as well as nlapp.scss)
  */

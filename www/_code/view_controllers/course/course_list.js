@@ -84,7 +84,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 			nl.pginfo.pageTitle = _getPageTitle();
 			$scope.cards = {
 			    staticlist: _getStaticCards(), 
-			    emptycard: _getEmptyCard(nlCardsSrv),
                 search: {onSearch: _onSearch, placeholder: nl.t('Enter course name/description')}
             };
             nlCardsSrv.initCards($scope.cards);
@@ -672,20 +671,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		}
 		nl.log.error('Cannot find modified card', courseId);
 		return 0;
-	}
-	
-	function _getEmptyCard(nlCardsSrv) {
-		var help = null;
-		if (type === 'course' && !my) {
-			help = nl.t('There are no courses published yet.');
-		}
-		if (type === 'assign') {
-			help = nl.t('There are no course assignments yet.');
-		}
-		if (type === 'report' && assignId === 0) {
-			help = nl.t('There are no courses assigned to you yet.');
-		}
-	    return nlCardsSrv.getEmptyCard({help:help});
 	}
 }
 

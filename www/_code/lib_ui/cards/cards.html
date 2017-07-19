@@ -37,7 +37,7 @@
            tabindex="0" ng-click='onSearchButton()'></i>
     </div>
     <div class='padding-small'></div>
-    <div class='fgrey2 {{cards.canFetchMore ? "nl-link-text" : ""}}'
+    <div class='{{cards._internal.search.cls}} anim-highlight-off {{cards._internal.search.clsAnimate}}'
          ng-click='showResultDetails()'>
          <div class='padding-mid' ng-bind-html='cards._internal.search.infotxt'></div>
     </div>
@@ -52,12 +52,7 @@
 	<nl-card card='card' class='nl-card-holder {{card.style}}'></nl-card>
 </div>
 
-<div ng-if='cards.listConfig && search.results == 0'
-     class='padding-mid anim-enter fade'>
-    <div class='padding-mid'></div>
-    <span class='fsh2'>Nothing to display.</span>
-</div>
-<div ng-if='cards.listConfig && search.results !== 0 && cards.cardlist.length !== 0'
+<div ng-if='cards.listConfig'
      class='padding-mid anim-enter fade'>
 	<nl-listview cards='cards'></nl-listview>
 </div>
