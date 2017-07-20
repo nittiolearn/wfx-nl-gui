@@ -67,8 +67,8 @@ var STATUS_ICON = [
     'fyellow ion-chatbubble-working',
     'forange ion-alert-circled',
     'fgreen ion-checkmark-circled',
-    'fgreen ion-chatbubble-working',
-    'forange ion-alert-circled'
+    'forange ion-alert-circled',
+    'fgreen ion-chatbubble-working'
 ];
 
 var LESSONTYPES = {
@@ -397,8 +397,10 @@ this.show = function($scope, initialUserInfo, params) {
             content = nl.fmt2('{}{}{}', gradeSubj, template, author);
         else if (mode.mode == MODES.NEW)
             content = nl.fmt2('{}{}{}', gradeSubj, author, desc);
-        else if (mode.mode == MODES.REVIEW)
-            content = nl.fmt2('{}{}{}', gradeSubj, author, status);
+        else if (mode.mode == MODES.REVIEW) {
+            var revstatus = nl.fmt2("{}{}", _getRevstateStr(lesson), gap);
+            content = nl.fmt2('{}{}{}{}', gradeSubj, author, template, revstatus);
+        }
         card.help = nl.t("<span class='nl-card-description'>{}</span>", content);
     }
 
@@ -499,9 +501,12 @@ this.show = function($scope, initialUserInfo, params) {
             || mode.modeStr == 'selfassign' || _showInDlg) return null;
         if (!_userInfo.permissions.lesson_approve) return null;
         if (mode.mode == MODES.APPROVED || mode.mode == MODES.MANAGE) return 'disapprove';
-        if (lesson.state == STATUS.APPROVED || lesson.state == STATUS.APPROVEDREWORK 
-            || lesson.state == STATUS.APPROVEDREVIEW) return 'disapprove';
-        return 'approve';
+        if (mode.mode == MODES.MY)
+            return (lesson.state == STATUS.APPROVED || lesson.state == STATUS.APPROVEDREWORK 
+                || lesson.state == STATUS.APPROVEDREVIEW) ? 'disapprove' : 'approve';
+        if (mode.mode == MODES.REVIEW)
+            return (mode.revstate == REVSTATE.PENDING) ? 'approve' : null;
+        return null;
     }
 
 	function _addApproveLink(lesson, card) {
@@ -551,11 +556,14 @@ this.show = function($scope, initialUserInfo, params) {
     function _onSearch(filter, searchCategory, onSearchParamChange) {
         mode.searchMetadata.search = filter;
         var cmConfig = {allowedFields: mode.getAllowedMetadataFeilds(),
-            additionalFields: mode.mode == MODES.REVIEW ? _additionaMetaFields : {}};
+            additionalFields: mode.mode == MODES.REVIEW ? _additionaMetaFields : {},
+            canFetchMore: $scope.cards.canFetchMore,
+            banner: $scope.cards._internal.search.infotxt2};
         if (mode.mode == MODES.REVIEW)
             mode.searchMetadata.revstate = mode.revstate == 1 ? REV_PENDING : REV_DONE;
         nlMetaDlg.showAdvancedSearchDlg($scope, _userInfo, 'module', mode.searchMetadata, cmConfig)
         .then(function(result) {
+            if (result.canFetchMore) return _fetchMore();
             mode.searchMetadata = result.metadata;
             if (mode.mode == MODES.REVIEW)
                 mode.revstate = mode.searchMetadata.revstate == REV_PENDING ? 1 : 2;

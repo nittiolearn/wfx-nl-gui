@@ -1,7 +1,7 @@
 <div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
 <div class='row row-center margin0 padding0'
 	 style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'
-	 ng-if='cards.toolbar || cards.canFetchMore'>
+	 ng-if='cards.toolbar'>
     <div class='col text-center fsh3 padding0'>
     </div>
     <span ng-repeat='tb in cards.toolbar'
@@ -9,12 +9,6 @@
           class='nl-toolbar-icon'
           ng-click='tb.onClick()'>
         <i class="icon {{tb.icon}}"></i>
-    </span>
-    <span ng-show='cards.canFetchMore'
-          title='Fetch More'
-          class='nl-toolbar-icon'
-          ng-click='showResultDetails()'>
-        <i class="icon ion-refresh"></i>
     </span>
 </div>
 

@@ -23,8 +23,8 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var TrainingListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlMetaDlg', 'nlSendAssignmentSrv',
-function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlMetaDlg, nlSendAssignmentSrv) {
+var TrainingListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlSendAssignmentSrv',
+function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentSrv) {
 
 	var _userInfo = null;
 	var trainingListDict = {};

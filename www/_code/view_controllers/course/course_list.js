@@ -84,7 +84,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 			nl.pginfo.pageTitle = _getPageTitle();
 			$scope.cards = {
 			    staticlist: _getStaticCards(), 
-                search: {onSearch: _onSearch, placeholder: nl.t('Enter course name/description')}
+                search: {onSearch: _metadataEnabled ? _onSearch: null, 
+                         placeholder: nl.t('Enter course name/description')}
             };
             nlCardsSrv.initCards($scope.cards);
 			_getDataFromServer(false, resolve, reject);
@@ -152,6 +153,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
         _searchMetadata.search = filter;
         nlMetaDlg.showAdvancedSearchDlg($scope, _userInfo, 'course', _searchMetadata)
         .then(function(result) {
+            if (result.canFetchMore) return _fetchMore();
             onSearchParamChange(result.metadata.search || '', searchCategory);
             _searchMetadata = result.metadata;
             if (_custtypeInUrl) _searchMetadata.custtype = _custtypeInUrl;

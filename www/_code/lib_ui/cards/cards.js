@@ -116,7 +116,7 @@ function(nl, $filter) {
     }
 }];
 
-var discardSearchWords = {};
+var _keywords = {'grp': true};
 var NlFilter = ['nl', '$filter',
 function(nl, $filter) {
 	return function(inputArray, filterString, filterCateogry) {
@@ -132,7 +132,9 @@ function(nl, $filter) {
 		filterString = filterString.replace(/"/g, "");
 		var filterStrings = filterString.split(" ");
 		for (var i=0; i<filterStrings.length; i++) {
-		    if (filterStrings[i] in discardSearchWords) continue;
+		    var pos = filterStrings[i].indexOf(':');
+		    var keyword = pos > 0 ? filterStrings[i].substring(0, pos) : null;
+		    if (keyword in _keywords) continue;
             filteredInput = $filter('filter')(filteredInput, filterStrings[i]);
 		}
     	return filteredInput;
@@ -199,15 +201,21 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
 
             $scope.onSearchButton = function() {
                 nlCardsSrv.updateInternal($scope.cards, 0);
-                if (!('onSearch' in $scope.cards.search)) return;
+                if (!$scope.cards.search.onSearch) {
+                    $scope.showResultDetails();
+                    return;
+                }
                 var search = $scope.cards._internal.search;
             	return $scope.cards.search.onSearch(search.filter, search.category.id, _onSearchParamChange);
             };
 
 			$scope.searchKeyHandler = function(event) {
                 var MAX_KEYSEARCH_DELAY = 200;
-                var timeout = (event.which === 13) ? 0 : MAX_KEYSEARCH_DELAY;
-                nlCardsSrv.updateInternal($scope.cards, timeout);
+                if (event.which === 13) {
+                    $scope.onSearchButton();
+                    return;
+                }
+                nlCardsSrv.updateInternal($scope.cards, MAX_KEYSEARCH_DELAY);
 			};
 
 			function _onSearchParamChange(filter, category) {
