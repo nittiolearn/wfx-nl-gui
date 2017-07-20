@@ -4,10 +4,18 @@
     <div ng-show='card.fullDesc' class='nl-card-fullDesc'
          nl-compile='card.help'>
     </div>
-	<nl-card-image ng-show='!card.fullDesc'></nl-card-image>
+    <a ng-if='card.url' ng-href='{{card.url}}' nl-wait-on-click
+       class='nl-card-img nl-link-img'>
+        <nl-card-image></nl-card-image>
+    </a>
+    <div ng-if='!card.url'
+         class='fsh4 nl-card-img {{card.internalUrl ? "nl-link-img" : ""}}'
+         ng-click='onCardInternalUrlClicked(card, card.internalUrl)'>
+        <nl-card-image></nl-card-image>
+    </div>
 	<nl-card-desc ng-show='!card.fullDesc'></nl-card-desc>
 	<div class='nl-card-links'>
 	    <span ng-repeat='link in card.links' ng-click='onCardLinkClicked(card, link.id)'
 	          class='nl-link-text'>{{link.text}}</span>
 	</div>    
-</div>    
+</div>

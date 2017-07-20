@@ -223,22 +223,20 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 	}
 	
     function _getStaticCards() {
-        var card0 = {title: nl.t('Statistics'), 
+        var ret = [{title: nl.t('Statistics'), 
                     icon: nl.url.resUrl('dashboard/reports.png'), 
                     url: nl.fmt2('/#/rno_stats?metadata={}&role={}', 
                         _pageGlobals.metadataId, _pageGlobals.role),
                     help: nl.t('View key statistics by click on this card.'), 
-                    children: [], style: 'nl-bg-blue'};
-        card0.links = [];
+                    children: [], style: 'nl-bg-blue', links: []}];
         if (_pageGlobals.role != 'admin' ||
-            !nlRouter.isPermitted(_pageGlobals.userInfo, 'admin_user')) return [card0];
-        var card = {title: _pageGlobals.metadata.createCardTitle, 
+            !nlRouter.isPermitted(_pageGlobals.userInfo, 'admin_user')) return ret;
+        ret.push({title: _pageGlobals.metadata.createCardTitle, 
                     icon: _pageGlobals.metadata.createCardIcon, 
                     internalUrl: 'rno_create',
                     help: _pageGlobals.metadata.createCardHelp, 
-                    children: [], style: 'nl-bg-blue'};
-        card.links = [];
-        return [card0, card];
+                    children: [], style: 'nl-bg-blue', links: []});
+        return ret;
     }
 
 	function _getDataFromServer(resolve, reject) {

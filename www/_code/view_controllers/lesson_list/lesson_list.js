@@ -196,7 +196,10 @@ this.showSelectDlg = function($scope, initialUserInfo) {
 			_selectDlg.close();
 		};
 		var params = {showInDlg: true, type: 'approved'};
-		_selectDlg.show('view_controllers/lesson_list/lesson_select_dlg.html', [], closeButton);
+		params.resolve = function(result) {
+		    if (!result) return;
+            _selectDlg.show('view_controllers/lesson_list/lesson_select_dlg.html', [], closeButton);
+		}
 		self.show(_selectDlg.scope, initialUserInfo, params);
 	});
 };
@@ -225,8 +228,9 @@ this.show = function($scope, initialUserInfo, params) {
 
 	if (_showInDlg) {
 		nlDlg.showLoadingScreen();
-    	_onPageEnter(initialUserInfo).then(function() {
+    	_onPageEnter(initialUserInfo).then(function(result) {
 			nlDlg.hideLoadingScreen();
+			if (params.resolve) params.resolve(result);
     	});
 	} else {
 		nlRouter.initContoller($scope, '', _onPageEnter);
@@ -640,47 +644,24 @@ this.show = function($scope, initialUserInfo, params) {
 	}
 
 	function _copyLesson($scope, lessonId) {
-		var data = {};
-		if (mode.mode == MODES.MY) {
-			data = {
-				lessonid : lessonId,
-				private : true
-			};
-		} else {
-			data = {
-				lessonid : lessonId,
-				private : false
-			};
-		}
 		var msg = {
 			title : 'Copy module',
 			template : nl.t('Are you sure you want to make a private copy of this module?'),
 			okText : nl.t('Copy')
 		};
 		nlDlg.popupConfirm(msg).then(function(result) {
-			if (!result)
-				return;
-			nlServerApi.lessonCopy(data).then(function(status) {
-				nlDlg.showLoadingScreen();
-				$scope.newLessonId = status;
-				$scope.statusType = false;
-				if (mode.mode != MODES.MY)
-					$scope.statusType = true;
+			if (!result) return;
+            var data = {lessonid : lessonId, private: mode.mode == MODES.MY};
+            nlDlg.showLoadingScreen();
+			nlServerApi.lessonCopy(data).then(function(newLessonId) {
+				$scope.newLessonId = newLessonId;
+				$scope.isApproved = (mode.mode != MODES.MY);
 				var copyLessonDlg = nlDlg.create($scope);
 				copyLessonDlg.scope.error = {};
-				var copyButton = {
-					text : nl.t('Ok'),
-					onTap : function(e) {
-						_reloadFromServer();
-					}
-				};
-				var closeButton = {
-					text : nl.t('Close'),
-					onTap : function(e) {
-						_reloadFromServer();
-					}
-				};
-				copyLessonDlg.show('view_controllers/lesson_list/copy_lesson.html', [copyButton], closeButton, false);
+				var closeButton = {text : nl.t('Close'), onTap : function(e) {
+					_reloadFromServer();
+				}};
+				copyLessonDlg.show('view_controllers/lesson_list/copy_lesson.html', [], closeButton);
 				nlDlg.hideLoadingScreen();
 			});
 

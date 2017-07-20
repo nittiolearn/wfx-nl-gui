@@ -34,9 +34,9 @@ function(nl, $filter) {
     };
 
     this.initCards = function(cards, params) {
-        var params = nl.location.search();
-        var searchParam = ('search' in params) ? params.search : '';
-        var category = ('category' in params) ? params.category : null;
+        var urlParams = nl.location.search();
+        var searchParam = ('search' in urlParams) ? urlParams.search : '';
+        var category = ('category' in urlParams) ? urlParams.category : null;
         cards._internal = {visibleCards: [], clickDebouncer: nl.CreateDeboucer(),
             search: {filter: searchParam, category: {id: category}, infotxt: ''}
         };
@@ -48,8 +48,13 @@ function(nl, $filter) {
         for(var attr in params) cards[attr] = params[attr];
         if (!cards.staticlist) cards.staticlist = [];
         if (!cards.cardlist) cards.cardlist = [];
-        if ('searchCategories' in cards)
-            cards.searchDropdown = [{id: null, desc: 'All', grp: ''}].concat(cards.searchCategories);
+        if ('searchCategories' in cards) {
+            cards.searchDropdown = [{id: null, desc: 'All', grp: ''}];
+            for (var i=0; i<cards.searchCategories.length; i++) {
+                var c = cards.searchCategories[i];
+                cards.searchDropdown.push({id: c, desc: c, grp: ''});
+            }
+        }
         if (cards.search) {
             if(!cards.search.placeholder)
                 cards.search.placeholder = 'Start typing to search';            
@@ -155,12 +160,12 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
         },
         link: function($scope, iElem, iAttrs) {
             nl.timeout(function() {
-                _updateCardDimensions($scope, iElem);
+                _updateCardDimensions(nl, $scope, iElem);
             }); // 0 timeout - just executes after DOM rendering is complete
             
             angular.element(nl.window).on('resize', function() {
                 $scope.$apply(function() {
-                    _updateCardDimensions($scope, iElem);
+                    _updateCardDimensions(nl, $scope, iElem);
                 });
             });
             
@@ -180,6 +185,7 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             };
 
             $scope.onCardInternalUrlClicked = function(card, internalUrl) {
+                if (!internalUrl) return;
                 if (internalUrl == 'show_results_details') {
                     $scope.showResultDetails();
                     return;
@@ -215,7 +221,7 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
 var SCROLL_WIDTH = 8;
 var _defCardWidth = 360;
 var _defCardAr = 2/3;
-function _updateCardDimensions($scope, cardsContainer) {
+function _updateCardDimensions(nl, $scope, cardsContainer) {
     var w = _getCardWidth(cardsContainer);
     $scope.w = w;
     $scope.h = _defCardAr*w;

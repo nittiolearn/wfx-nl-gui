@@ -202,7 +202,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 			}
 			nl.log.debug('Got result: ', _resultList.length);
 			nlCardsSrv.updateCards($scope.cards, {
-			    cardlist: _getCards(_userInfo, _resultList, nlCardsSrv),
+			    cardlist: _getCards(_resultList, nlCardsSrv),
 			    canFetchMore: _canFetchMore
 			});
 
@@ -232,31 +232,31 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		var ret = [];
 		if (type !== 'course' || !my) return ret;
 		var card = {title: nl.t('Create'), 
-					icon: nl.url.resUrl('dashboard/course_create.png'), 
+					icon2: 'ion-ios-bookmarks-outline fblue', 
+                    iconBr: 'fsh3 ion-plus-round fwhite bgblue round padding-small-h', 
 					internalUrl: 'course_create',
 					help: nl.t('You can create a new course by clicking on this card'), 
-					children: [], style: 'nl-bg-blue'};
-		card.links = [];
+					children: [], style: 'nl-bg-blue', links: []};
 		ret.push(card);
 		return ret;
 	}
 
-	function _getCards(userInfo, resultList, nlCardsSrv) {
+	function _getCards(resultList, nlCardsSrv) {
 		var cards = [];
 		for (var i = 0; i < resultList.length; i++) {
-			var card = _createCard(resultList[i], userInfo);
+			var card = _createCard(resultList[i]);
 			cards.push(card);
 		}
 		return cards;
 	}
 	
-	function _createCard(cardInfo, userInfo) {
-		if (type === 'course') return _createCourseCard(cardInfo, userInfo);
-		if (type === 'assign') return _createReportCard(cardInfo, userInfo, false);
-		return _createReportCard(cardInfo, userInfo, true);
+	function _createCard(cardInfo) {
+		if (type === 'course') return _createCourseCard(cardInfo);
+		if (type === 'assign') return _createReportCard(cardInfo, false);
+		return _createReportCard(cardInfo, true);
 	}
 	
-	function _createCourseCard(course, userInfo) {
+	function _createCourseCard(course) {
 		courseDict[course.id] = course;
 		var mode = my ? 'edit' : 'published';
 		var url = nl.fmt2('#/course_view?id={}&mode={}', course.id, mode);
@@ -283,7 +283,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 			card.links.push({id: 'course_delete', text: nl.t('delete')});
 			if (course.is_published)
 				card.links.push({id: 'course_unpublish', text: nl.t('unpublish')});
-		} else if(nlRouter.isPermitted(userInfo, 'course_assign')) {
+		} else if(nlRouter.isPermitted(_userInfo, 'course_assign')) {
             card.links.push({id: 'course_assign', text: nl.t('assign')});
             card.links.push({id: 'course_report', text: nl.t('report')});
 		}
@@ -324,7 +324,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		nl.fmt.addLinkToAvp(linkAvp, 'course modify', null, 'course_modify');
 	}
 
-	function _createReportCard(report, userInfo, isReport) {
+	function _createReportCard(report, isReport) {
 		var url = nl.fmt2('#/course_view?mode=reports_summary_view&id={}', report.id);
 		var title = report.name;
 		if (isReport) {
@@ -349,7 +349,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		card.links = [];
         if (!isReport)
             card.links.push({id:'course_report_list', text: nl.t('reports')});
-		if (!isReport && nlRouter.isPermitted(userInfo, 'course_assign'))
+		if (!isReport && nlRouter.isPermitted(_userInfo, 'course_assign'))
 			card.links.push({id:'course_assign_delete', text: nl.t('delete')});
 		card.links.push({id: 'details', text: nl.t('details')});
 		return card;
@@ -432,23 +432,25 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
     }
 	
 	function _copyCourse($scope, card) {
-		var course = angular.fromJson(card.json);
-	    var courseName = nl.t('{}', card.title); 
-	    var newtitle = (courseName.indexOf("Copy of") == 0) ? courseName : nl.t('Copy of {}', card.title);
-		var dlgScope = {error: {}, data: {
-			name: newtitle,
-			icon: course.icon,
-			description: course.description,
-			content: angular.toJson(course.content, 2)	
-		}};
 		var msg = {
-			title : 'Copy module',
-			template : nl.t('Are you sure you want to make a private copy of this module?'),
+			title : 'Copy course',
+			template : nl.t('Are you sure you want to make a private copy of this course?'),
 			okText : nl.t('Copy')
 		};
 		nlDlg.popupConfirm(msg).then(function(result) {
 			if (!result) return;
-			_onCourseSave(null, $scope, dlgScope, null, false);
+            nlDlg.showLoadingScreen();
+            nlServerApi.courseGet(card.courseId, false).then(function(course) {
+                var courseName = course.name; 
+                courseName = (courseName.indexOf("Copy of") == 0) ? courseName : nl.t('Copy of {}', courseName);
+                var dlgScope = {error: {}, data: {
+                    name: courseName,
+                    icon: course.icon,
+                    description: course.description,
+                    content: angular.toJson(course.content, 2)  
+                }};
+                _onCourseSave(null, $scope, dlgScope, null, false);
+            });
 		});
 
 	}
@@ -488,35 +490,26 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	}
 	
 	function _modifyCourse($scope, courseId) {
-		var modifyDlg = nlDlg.create($scope);
-		modifyDlg.setCssClass('nl-height-max nl-width-max');
-        modifyDlg.scope.error = {};
-		var course = courseDict[courseId];
-		$scope.dlgTitle = nl.t('Modify course');
-		modifyDlg.scope.data = {name: course.name, icon: course.icon, 
-								description: course.description, content: angular.toJson(course.content, 2)};
-		
-		var buttons = [];
-		var saveButton = {
-			text : nl.t('Save'),
-			onTap : function(e) {
-				_onCourseSave(e, $scope, modifyDlg.scope, courseId, false);
-			}
-		};
-		buttons.push(saveButton);
-		var publishButton = {
-			text : nl.t('Publish'),
-			onTap : function(e) {
-				_onCourseSave(e, $scope, modifyDlg.scope, courseId, true);
-			}
-		};
-		buttons.push(publishButton);
-
-		var cancelButton = {
-			text : nl.t('Cancel')
-		};
-		modifyDlg.show('view_controllers/course/course_create_dlg.html',
-			buttons, cancelButton, false);
+        nlDlg.showLoadingScreen();
+        nlServerApi.courseGet(courseId, false).then(function(course) {
+            nlDlg.hideLoadingScreen();
+            var modifyDlg = nlDlg.create($scope);
+            modifyDlg.setCssClass('nl-height-max nl-width-max');
+            modifyDlg.scope.error = {};
+            $scope.dlgTitle = nl.t('Modify course');
+            modifyDlg.scope.data = {name: course.name, icon: course.icon, 
+                                    description: course.description, content: angular.toJson(course.content, 2)};
+            
+            var saveButton = {text : nl.t('Save'), onTap : function(e) {
+                _onCourseSave(e, $scope, modifyDlg.scope, courseId, false);
+            }};
+            var publishButton = {text : nl.t('Publish'), onTap : function(e) {
+                _onCourseSave(e, $scope, modifyDlg.scope, courseId, true);
+            }};
+            var cancelButton = {text : nl.t('Cancel')};
+            modifyDlg.show('view_controllers/course/course_create_dlg.html',
+                [saveButton, publishButton], cancelButton);
+        });
 	}
 	
 	function _onCourseSave(e, $scope, dlgScope, courseId, bPublish) {

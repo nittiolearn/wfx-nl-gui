@@ -1075,6 +1075,13 @@ nl-cards {
     max-height: 100%;
     max-width: 100%;
   }
+  .icon-tl, .icon-tr, .icon-bl, .icon-br {
+    position: absolute;
+  }
+  .icon-tl {top: 5%; left: 5%;}
+  .icon-tr {top: 5%; right: 5%;}
+  .icon-bl {bottom: 5%; left: 5%;}
+  .icon-br {bottom: 5%; right: 5%;}
 }
 
 .nl-card-desc {
@@ -1661,6 +1668,18 @@ img.nl-full-width {
 
 .bggrey {
   background-color: $grey;
+}
+
+.bgwhite {
+  background-color: #FFFFFF;
+}
+
+.bgblue {
+  background-color: $nlBlue1;
+}
+
+.round {
+  border-radius: 50%;
 }
 
 //---------------------------------------------------------------------------

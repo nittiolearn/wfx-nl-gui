@@ -422,10 +422,12 @@ function MessageManager(nl, nlRouter, nlServerApi, nlMarkup) {
             if (!searchTerm) {
                 msg.hideWhenSearched = false;
             } else {
-                var markup = msg.htmlMarkup.toLowerCase();
-                var author = msg.authorname.toLowerCase();
+                var title = (msg.title || '').toLowerCase();
+                var markup = (msg.htmlMarkup || '').toLowerCase();
+                var author = (msg.authorname || '').toLowerCase();
                 msg.hideWhenSearched = (markup.indexOf(searchTerm) < 0) &&
-                    (author.indexOf(searchTerm) < 0);
+                    (author.indexOf(searchTerm) < 0) &&
+                    (title.indexOf(searchTerm) < 0);
             }
         }
     };
