@@ -73,8 +73,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	var _custtypeInUrl = null;
     var _metadataEnabled = false;
     var _searchMetadata = null;
-    var _nextStartPos = null;
-    var _canFetchMore = true;
     var _resultList = [];
 
 	function _onPageEnter(userInfo) {
@@ -88,7 +86,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
                          placeholder: nl.t('Enter course name/description')}
             };
             nlCardsSrv.initCards($scope.cards);
-			_getDataFromServer(false, resolve, reject);
+			_getDataFromServer(resolve);
 		});
 	}
 	nlRouter.initContoller($scope, '', _onPageEnter);
@@ -151,50 +149,34 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	function _onSearch(filter, searchCategory, onSearchParamChange) {
         if (!_metadataEnabled) return;
         _searchMetadata.search = filter;
-        nlMetaDlg.showAdvancedSearchDlg($scope, _userInfo, 'course', _searchMetadata)
+        var cmConfig = {canFetchMore: $scope.cards.canFetchMore,
+            banner: $scope.cards._internal.search.infotxt2};
+        nlMetaDlg.showAdvancedSearchDlg($scope, _userInfo, 'course', _searchMetadata, cmConfig)
         .then(function(result) {
             if (result.canFetchMore) return _fetchMore();
             onSearchParamChange(result.metadata.search || '', searchCategory);
             _searchMetadata = result.metadata;
             if (_custtypeInUrl) _searchMetadata.custtype = _custtypeInUrl;
-            _onSearchImpl();
+            _getDataFromServer();
         });
     }
 
     function _fetchMore() {
-        _onSearchImpl(true);
+        _getDataFromServer(null, true);
     }
     
-    function _onSearchImpl(fetchMore) {
-		nlDlg.showLoadingScreen();
-		var promise = nl.q(function(resolve, reject) {
-			_getDataFromServer(fetchMore, resolve, reject);
-		});
-		promise.then(function(res) {
-			nlDlg.hideLoadingScreen();
-		});
-	}
-
-	function _getDataFromServer(fetchMore, resolve, reject) {
-        if (!fetchMore) {
-            _resultList = [];
-            _nextStartPos = null;
-        }
-
+    var _pageFetcher = nlServerApi.getPageFetcher();
+	function _getDataFromServer(resolve, fetchMore) {
+        if (!fetchMore) _resultList = [];
         var params = {};
-        if (_nextStartPos) params.startpos = _nextStartPos;
         if (_metadataEnabled) params.metadata = _searchMetadata;
         if (_custtypeInUrl !== null) params.custtype = _custtypeInUrl;
-
-		_batchFetch(params, function(result) {
-            if (result.isError) {
+        var listingFn = _getListFnAndUpdateParams(params);
+        _pageFetcher.fetchPage(listingFn, params, fetchMore, function(results) {
+            if (!results) {
                 if (resolve) resolve(false);
                 return;
             }
-            _canFetchMore = result.canFetchMore;
-            _nextStartPos = result.nextStartPos;
-
-            var results = result.resultset;
             _resultList = _resultList.concat(results);
 			if (_resultList.length === 1 && type === 'report' && assignId === 0) {
 				var url = nl.fmt2('/course_view?id={}&mode=do', _resultList[0].id);
@@ -202,18 +184,15 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
                 nl.location.replace();
 				return;
 			}
-			nl.log.debug('Got result: ', _resultList.length);
 			nlCardsSrv.updateCards($scope.cards, {
 			    cardlist: _getCards(_resultList, nlCardsSrv),
-			    canFetchMore: _canFetchMore
+			    canFetchMore: _pageFetcher.canFetchMore()
 			});
-
-            if (!result.fetchDone) return;
-			resolve(true);
+			if (resolve) resolve(true);
 		});
 	}
 	
-	function _batchFetch(params, callback) {
+	function _getListFnAndUpdateParams(params) {
         var listingFn = null;
 		if (type === 'course') {
 		    params.mine = my;
@@ -227,7 +206,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		} else {
             listingFn = nlServerApi.courseGetMyReportList;
 		}
-		nlServerApi.batchFetch(listingFn, params, callback);
+		return listingFn;
 	}
 	
 	function _getStaticCards() {
@@ -376,7 +355,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
     function _metadataCourse($scope, courseId, card) {
         nlMetaDlg.showMetadata($scope, _userInfo, 'course', courseId, card)
         .then(function() {
-            _onSearchImpl();
+            _getDataFromServer();
         });
     }
 

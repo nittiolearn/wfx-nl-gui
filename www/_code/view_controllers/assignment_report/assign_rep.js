@@ -43,11 +43,16 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
+var DEFAULT_MAX_LIMIT=5000;
+
 function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
     var self = this;
 	this.initFromUrl = function() {
 		var params = nl.location.search();
-        self.limit = ('limit' in params) ? params.limit : (reptype == 'user') ? 50: null;
+        self.limit = ('limit' in params) ? params.limit 
+            : (reptype == 'user') ? 50
+            : (reptype == 'group') ? DEFAULT_MAX_LIMIT
+            : null;
 
 		if (reptype == 'assignment') {
             self.assignid = ('assignid' in params) ? parseInt(params.assignid) : null;
@@ -55,19 +60,11 @@ function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
 		} else if (reptype == 'user') {
             self.userid = ('userid' in params) ? params.userid : null;
 		}
-        self.initVars();
         return true;
 	};
 
-	this.initVars = function() {
-        self.nextStartPos = null;
-        self.dataFetchInProgress = true;
-        self.canFetchMore = true;
-	};
-
-	this.getAssignmentReports = function(dateRange, callbackFn) {
+	this.getAssignmentReportsParams = function(dateRange) {
 		var data = {reptype: reptype};
-        if (self.nextStartPos) data.startpos = self.nextStartPos;
 		if (reptype == 'assignment') {
 		    data.assignid = self.assignid;
 		} else if (reptype == 'user') {
@@ -77,18 +74,7 @@ function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
 		    data.updatedfrom = dateRange.updatedFrom;
 		    data.updatedtill = dateRange.updatedTill;
 		}
-		self.dataFetchInProgress = true;
-		nlServerApi.batchFetch(nlServerApi.assignmentReport, data, function(result) {
-            if (result.isError) {
-                self.dataFetchInProgress = false;
-                callbackFn(true, null);
-                return;
-            }
-            self.dataFetchInProgress = !result.fetchDone;
-            self.nextStartPos = result.nextStartPos;
-            self.canFetchMore = result.canFetchMore;
-            callbackFn(false, result.resultset);
-		}, self.limit);
+		return data;
 	};
 
 	this.pageTitle = function(rep) {
@@ -131,7 +117,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
     		    return;
     		}
     		$scope.cards = {
-                search: {onSearch: _onSearch, placeholder: nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)}
+                search: {placeholder: nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)}
     		};
             if(reptype == 'group') $scope.cards.toolbar = _getToolbar();
             nlCardsSrv.initCards($scope.cards);
@@ -141,7 +127,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	            if(reptype == 'group') {
 	            	_showRangeSelection(resolve);
 	            } else {
-	                _getDataFromServer(false, resolve);
+	                _getDataFromServer(resolve);
 	            }
             }, function() {
                 resolve(false);
@@ -159,7 +145,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	}
 
 	function _onDatetimeIconClick() {
-        if(mode.dataFetchInProgress) {
+        if(_pageFetcher.fetchInProgress()) {
             nlDlg.popupAlert({title: 'Data still loading', 
                 content: 'Still loading data from server. Please change date/time after the complete data is loaded.'});
             return;
@@ -175,7 +161,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	        }
             nlDlg.showLoadingScreen();
             dateRange = data;
-            _getDataFromServer(false, resolve);
+            _getDataFromServer(resolve);
 	    });
 	}
 
@@ -200,35 +186,35 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	};	
 
     function _fetchMore() {
-        nlDlg.showLoadingScreen();
-        _getDataFromServer(true, null);
+        _getDataFromServer(null, true);
     }
     
-	function _getDataFromServer(fetchMore, resolve) {
+    var _pageFetcher = nlServerApi.getPageFetcher();
+	function _getDataFromServer(resolve, fetchMore) {
 	    if (!fetchMore) {
-            mode.initVars();
             nlCardsSrv.updateCards($scope.cards, {cardlist: [], staticlist: []});
             reportStats = NlAssignReportStats.createReportStats(reptype, $scope);
 	    }
-		mode.getAssignmentReports(dateRange, function(isError, result) {
-		    if (isError) {
-		        if (resolve) resolve(false);
-		        return;
-		    }
-            reportStats.updateReports(result);
-            _appendAssignmentReportCards(result, $scope.cards.cardlist);
-            if ($scope.cards.staticlist.length == 0 && result.length > 0) {
+	    var params = mode.getAssignmentReportsParams(dateRange);
+        _pageFetcher.fetchBatchOfPages(nlServerApi.assignmentReport, params, fetchMore, function(results, batchDone) {
+            if (!results) {
+                if (resolve) resolve(false);
+                return;
+            }
+
+            reportStats.updateReports(results);
+            _appendAssignmentReportCards(results, $scope.cards.cardlist);
+            if ($scope.cards.staticlist.length == 0 && results.length > 0) {
                 _appendChartCard($scope.cards.staticlist);
             }
             _updateChartCard(reportStats);
             _updateStatusOverview();
 
             nlCardsSrv.updateCards($scope.cards, {
-                canFetchMore: !mode.dataFetchInProgress && mode.canFetchMore
+                canFetchMore: !_pageFetcher.fetchInProgress() && _pageFetcher.canFetchMore()
             });
-            nlDlg.hideLoadingScreen();
             if (resolve) resolve(true);
-		});
+        }, mode.limit);
 	}
 	
 	function _appendAssignmentReportCards(resultList, cardlist) {
@@ -423,7 +409,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
     }
     
     function _assignmentExport($scope) {
-        if(mode.dataFetchInProgress) {
+        if(_pageFetcher.fetchInProgress()) {
             nlDlg.popupAlert({title: 'Data still loading', 
                 content: 'Still loading data from server. Please export after the complete data is loaded.'});
             return;
@@ -524,11 +510,6 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 		if(alreadySharedUsers.length == 1) assignmentShareDlg.scope.data.sharedWith = nl.t('Shared With {} user:', alreadySharedUsers.length);
 		if(alreadySharedUsers.length > 1) assignmentShareDlg.scope.data.sharedWith = nl.t('Shared With {} users:', alreadySharedUsers.length);
 	}
-	
-	function _onSearch(filter) {
-	    return; // Do nothing as all data are already fetched - just search locally!
-	}
-	
 	
 	function _showOuListDlg(parentScope, assignmentShareDlg, ouList){
 		var ouSelectionDlg = nlDlg.create(parentScope);

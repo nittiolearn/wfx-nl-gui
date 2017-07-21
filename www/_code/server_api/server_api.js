@@ -614,47 +614,14 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/recycle_restore.json', {recycleid: recycleid});
     };
 
-    // Utility for batch query
-    this.batchFetch = function(fetchFn, fetchParams, callback, fetchLimit, itemType) {
-        if (!itemType) itemType = 'item';
-        if (!fetchParams.max) {
-            var params = nl.location.search();
-            fetchParams.max = ('max' in params) ? parseInt(params.max) : 50;
-        }
-        if (fetchLimit === undefined) fetchLimit = fetchParams.max;
-        _batchFetchImpl(fetchFn, fetchParams, callback, 0, fetchLimit, itemType);
+    // Utility for page and batch query
+    this.getPageFetcher = function(defMax, itemType) {
+        return new PageFetcher(nl, nlDlg, defMax, itemType);
     };
     
     //---------------------------------------------------------------------------------------------
     // Private methods
     //---------------------------------------------------------------------------------------------
-    function _batchFetchImpl(fetchFn, fetchParams, callback, fetchedCount, fetchLimit, itemType) {
-        fetchFn(fetchParams).then(function(resp) {
-            fetchParams.startpos = resp.nextstartpos;
-            fetchedCount += resp.resultset.length;
-            var more = resp.more;
-            if (fetchLimit && fetchedCount >= fetchLimit) more = false;
-            var promiseHolder = {};
-            callback({isError: false, resultset: resp.resultset, fetchDone: !more, canFetchMore: resp.more, 
-                nextStartPos: fetchParams.startpos}, promiseHolder);
-            var msg = nl.t('Got {} {}(s) from the server.{}', fetchedCount, itemType, more ? 
-                ' Fetching more items ...' : resp.more ? '  You could fetch more if needed.' : '');
-            nlDlg.popupStatus(msg, more ? false : undefined);
-            if (!more) return;
-            if (!promiseHolder.promise)
-                _batchFetchImpl(fetchFn, fetchParams, callback, fetchedCount, fetchLimit, itemType);
-            else {
-                promiseHolder.promise.then(function(result) {
-                    if (!result) return;
-                    _batchFetchImpl(fetchFn, fetchParams, callback, fetchedCount, fetchLimit, itemType);
-                });
-            }
-        }, function(error) {
-            nlDlg.popdownStatus(0);
-            callback({isError: true, errorMsg: error}, {});
-        });
-    }
-
     function _getUserInfoFromCacheOrServer() {
         return nl.q(function(resolve, reject) {
             // First attempt in cache!
@@ -930,5 +897,74 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload) {
     }
 }
 
+//----------------------------------------------------------------------------------------------
+function PageFetcher(nl, nlDlg, defMax, itemType) {
+    var params = nl.location.search();
+    var _max = ('max' in params) ? parseInt(params.max) : defMax || 50;
+    var _itemType = itemType || 'item';
+
+    var _fetchInProgress = false;
+    var _canFetchMore = true;
+    var _nextStartPos = null;
+    this.fetchInProgress = function() { return _fetchInProgress;};
+    this.canFetchMore = function() { return _canFetchMore;};
+
+    var _fetchLimit = undefined;
+    var _fetchedCount = 0;
+    this.fetchPage = function(listingFn, params, fetchMore, callback) {
+        _fetchLimit = undefined;
+        _fetchedCount = 0;
+        nlDlg.showLoadingScreen();
+        return _fetchPageImpl(listingFn, params, fetchMore, callback);
+    };
+
+    this.fetchBatchOfPages = function(listingFn, params, fetchMore, callback, fetchLimit) {
+        _fetchLimit = fetchLimit;
+        _fetchedCount = 0;
+        nlDlg.showLoadingScreen();
+        function _batchCallback(results, batchDone) {
+            var promiseHolder = {};
+            callback(results, batchDone, promiseHolder);
+            if (!results || batchDone) return;
+            if (!promiseHolder.promise)
+                _fetchPageImpl(listingFn, params, true, _batchCallback);
+            else {
+                promiseHolder.promise.then(function(result) {
+                    if (!result) return;
+                    _fetchPageImpl(listingFn, params, true, _batchCallback);
+                });
+            }
+        }
+        return _fetchPageImpl(listingFn, params, fetchMore, _batchCallback);
+    };
+
+    function _fetchPageImpl(listingFn, params, fetchMore, callback) {
+        _fetchInProgress = true;
+        if (!fetchMore) _nextStartPos = null;
+        if (!params.max) params.max = _max;
+        params.startpos = _nextStartPos;
+        listingFn(params).then(function(resp) {
+            nlDlg.hideLoadingScreen();
+            _nextStartPos = resp.nextstartpos;
+            _canFetchMore = resp.more;
+            _fetchedCount += resp.resultset.length;
+            var batchDone = _fetchLimit === undefined ? true
+                : !_canFetchMore || (_fetchLimit !== null && _fetchLimit <= _fetchedCount);
+            var msg = nl.t('Got {} {}(s) from the server.{}', _fetchedCount, _itemType, 
+                (_fetchLimit === undefined ? ''
+                : !batchDone ? ' Fetching more items ...' 
+                : '  You could fetch more if needed.'));
+            nlDlg.popupStatus(msg, batchDone ? undefined : false);
+            if (batchDone) _fetchInProgress = false;
+            callback(resp.resultset, batchDone);
+        }, function(error) {
+            nlDlg.popdownStatus(0);
+            _fetchInProgress = false;
+            callback(false);
+        });
+    }
+}
+    
+//----------------------------------------------------------------------------------------------
 module_init();
 })();

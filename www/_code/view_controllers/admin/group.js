@@ -27,6 +27,7 @@ function(nl, nlRouter, nlDlg, $scope, nlServerApi, nlExporter, nlCardsSrv) {
     var _records = [];
     var _fetchDone = false;
 
+    var _pageFetcher = nlServerApi.getPageFetcher();
 	function _onPageEnter(userInfo) {
 		return nl.q(function(resolve, reject) {
             nl.pginfo.pageTitle = nl.t('Group bulk export');
@@ -35,16 +36,15 @@ function(nl, nlRouter, nlDlg, $scope, nlServerApi, nlExporter, nlCardsSrv) {
                 search: {placeholder : nl.t('Enter group id/name/description')}
             };
             nlCardsSrv.initCards($scope.cards);
-            nlServerApi.batchFetch(nlServerApi.groupGetList, {}, function(result) {
-                if (result.isError) {
+            _pageFetcher.fetchBatchOfPages(nlServerApi.groupGetList, {}, false, function(results, batchDone) {
+                if (!results) {
                     resolve(false);
                     return;
                 }
                 resolve(true);
-                var records = result.resultset;
-                for (var i=0; i<records.length; i++) _records.push(records[i]);
+                for (var i=0; i<results.length; i++) _records.push(results[i]);
                 _updateCards();
-                _fetchDone = result.fetchDone;
+                _fetchDone = batchDone;
             }, null);
 		});
 	}

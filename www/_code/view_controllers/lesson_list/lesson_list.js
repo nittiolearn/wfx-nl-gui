@@ -95,11 +95,7 @@ function ModeHandler(nl, nlServerApi, nlMetaDlg) {
 	this.custtype = null;
     this.metadataEnabled = false;
     this.searchMetadata = {};
-
-    this.nextStartPos = null;
-    this.canFetchMore = true;
     this.resultList = [];
-
     this.revstate = 1;
 
 	this.initFromUrl = function(params) {
@@ -111,17 +107,7 @@ function ModeHandler(nl, nlServerApi, nlMetaDlg) {
 		self.title = params.title || null;
 	};
 	
-	this.listingFunction = function(fetchMore, cbFn) {
-	    if (!fetchMore) {
-	        self.canFetchMore = true;
-            self.resultList = [];
-            self.nextStartPos = null;
-	    }
-		var data = {};
-        if (self.nextStartPos) data.startpos = self.nextStartPos;
-		if (self.custtype !== null) data.custtype = self.custtype;
-        data.metadata = self.searchMetadata;
-        
+	this.getListFnAndUpdateParams = function(params) {
         var fn = nlServerApi.lessonGetApprovedList;
 		if (self.mode == MODES.NEW) {
 			fn = nlServerApi.lessonGetTemplateList;
@@ -130,20 +116,12 @@ function ModeHandler(nl, nlServerApi, nlMetaDlg) {
 		} else if (self.mode == MODES.MANAGE) {
 			fn = nlServerApi.lessonGetManageApprovedList;
 		} else if (self.mode == MODES.REVIEW) {
-			data.revstate = self.revstate;
+			params.revstate = self.revstate;
 			fn = nlServerApi.lessonGetReviewList;
 		} else if (self.mode == MODES.SENDASSIGNMENT) {
 			fn = nlServerApi.lessonGetApprovedList;
 		}
-        nlServerApi.batchFetch(fn, data, function(result) {
-            if (result.isError) {
-                cbFn(result);
-                return;
-            }
-            self.canFetchMore = result.canFetchMore;
-            self.nextStartPos = result.nextStartPos;
-            cbFn(result);
-        });
+		return fn;
 	};
 
 	this.pageTitle = function() {
@@ -222,7 +200,7 @@ this.show = function($scope, initialUserInfo, params) {
             mode.metadataEnabled = (mode.mode == MODES.APPROVED) ||
                 (mode.mode == MODES.MANAGE) ||
                 (mode.mode == MODES.SENDASSIGNMENT);
-            _getDataFromServer(false, resolve, reject);
+            _getDataFromServer(resolve);
 		});
 	}
 
@@ -318,23 +296,24 @@ this.show = function($scope, initialUserInfo, params) {
 	    $scope.onCardInternalUrlClicked(card, linkId);
 	};
 
-	function _getDataFromServer(fetchMore, resolve, reject) {
-		mode.listingFunction(fetchMore, function(result) {
-		    if (result.isError) {
-		        resolve(false);
-		        return;
-		    }
-
-            var results = result.resultset;
-            nl.log.debug('Got result: ', results.length);
-
+    var _pageFetcher = nlServerApi.getPageFetcher();
+	function _getDataFromServer(resolve, fetchMore) {
+        var params = {};
+        if (!fetchMore) mode.resultList = [];
+        if (mode.custtype !== null) params.custtype = mode.custtype;
+        params.metadata = mode.searchMetadata;
+        var listingFn = mode.getListFnAndUpdateParams(params);
+        _pageFetcher.fetchPage(listingFn, params, fetchMore, function(results) {
+            if (!results) {
+                if (resolve) resolve(false);
+                return;
+            }
             mode.resultList = mode.resultList.concat(results);
             nlCardsSrv.updateCards($scope.cards, {
                 cardlist: _getLessonCards(_userInfo, mode.resultList),
-                canFetchMore: mode.canFetchMore
+                canFetchMore: _pageFetcher.canFetchMore()
             });
-            if (!result.fetchDone) return;
-            resolve(true);
+            if (resolve) resolve(true);
 		});
 	}
 
@@ -570,24 +549,14 @@ this.show = function($scope, initialUserInfo, params) {
             nl.pginfo.pageTitle = mode.pageTitle();
             if (mode.custtype) mode.searchMetadata.custtype = mode.custtype;
             onSearchParamChange(mode.searchMetadata.search || '', searchCategory);
-            _reloadFromServer();
+            _getDataFromServer();
         });
     }
 
     function _fetchMore() {
-        _reloadFromServer(true);
+        _getDataFromServer(null, true);
     }
     
-	function _reloadFromServer(fetchMore) {
-		nlDlg.showLoadingScreen();
-		var promise = nl.q(function(resolve, reject) {
-			_getDataFromServer(fetchMore, resolve, reject);
-		});
-		promise.then(function(res) {
-			nlDlg.hideLoadingScreen();
-		});
-	}
-
     function _deleteLesson($scope, lessonId) {
         _confirmAndCall($scope, lessonId, nlServerApi.lessonDelete, false, {
             template : nl.t('Are you sure you want to delete this module?'),
@@ -624,7 +593,7 @@ this.show = function($scope, initialUserInfo, params) {
             method(lessonId).then(function(status) {
                 nlDlg.hideLoadingScreen();
                 nlDlg.closeAll();
-                if (reload) _reloadFromServer();
+                if (reload) _getDataFromServer();
                 else _updateCardlist($scope, lessonId);
             });
         });
@@ -643,7 +612,7 @@ this.show = function($scope, initialUserInfo, params) {
 	function _metadataLesson($scope, lessonId, card) {
 	    nlMetaDlg.showMetadata($scope, _userInfo, 'module', lessonId, card)
 	    .then(function() {
-	        _reloadFromServer();
+	        _getDataFromServer();
 	    });
 	}
 
@@ -667,7 +636,7 @@ this.show = function($scope, initialUserInfo, params) {
 				var copyLessonDlg = nlDlg.create($scope);
 				copyLessonDlg.scope.error = {};
 				var closeButton = {text : nl.t('Close'), onTap : function(e) {
-					_reloadFromServer();
+					_getDataFromServer();
 				}};
 				copyLessonDlg.show('view_controllers/lesson_list/copy_lesson.html', [], closeButton);
 				nlDlg.hideLoadingScreen();

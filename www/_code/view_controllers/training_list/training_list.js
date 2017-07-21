@@ -29,8 +29,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 	var _userInfo = null;
 	var trainingListDict = {};
 	var _scope = null;
-    var _nextStartPos = null;
-    var _canFetchMore = true;
     var _canShowDelete = false;
 
 	function _onPageEnter(userInfo) {
@@ -52,7 +50,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
             	}
             };
             nlCardsSrv.initCards($scope.cards);
-			_getDataFromServer(false, resolve);
+			_getDataFromServer(resolve);
 		});
 	}
 
@@ -89,41 +87,33 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 		}];
 	}
 
-	function _getDataFromServer(fetchMore, resolve) {
+    function _fetchMore() {
+        _getDataFromServer(null, true);
+    }
+
+    var _pageFetcher = nlServerApi.getPageFetcher();
+	function _getDataFromServer(resolve, fetchMore) {
         if (!fetchMore) {
             nlCardsSrv.updateCards($scope.cards, {cardlist: []});
-            _nextStartPos = null;
         }
         var params = {};
-        if (_nextStartPos) params.startpos = _nextStartPos;
-
-        nlDlg.showLoadingScreen();
-        nlServerApi.batchFetch(nlServerApi.getTrainingList, params, function(result) {
-            if (result.isError) {
+        _pageFetcher.fetchPage(nlServerApi.getTrainingList, params, fetchMore, function(results) {
+            if (!results) {
                 if (resolve) resolve(false);
                 return;
             }
-            _canFetchMore = result.canFetchMore;
-            _nextStartPos = result.nextStartPos;
-
-            var trainingList = result.resultset;
-			_updateTrainingCards(trainingList);
-            if (!result.fetchDone) return;
+			_updateTrainingCards(results);
+            nlCardsSrv.updateCards($scope.cards, 
+                {canFetchMore: _pageFetcher.canFetchMore()});
             if (resolve) resolve(true);
-            nlDlg.hideLoadingScreen();
 		});
 	}
-
-    function _fetchMore() {
-        _getDataFromServer(true);
-    }
 
 	function _updateTrainingCards(trainingList) {
 		for (var i = 0; i < trainingList.length; i++) {
 			var card = _createCard(trainingList[i]);
 			$scope.cards.cardlist.push(card);
 		}
-        nlCardsSrv.updateCards($scope.cards, {canFetchMore: _canFetchMore});
 	}
 
 	function _splitMultilineString(desc) {
