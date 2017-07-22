@@ -92,7 +92,6 @@ function ModeHandler(nl, nlServerApi, nlMetaDlg) {
 	this.mode = MODES.NEW;
     this.title = null;
 
-	this.custtype = null;
     this.metadataEnabled = false;
     this.searchMetadata = {};
     this.resultList = [];
@@ -101,7 +100,6 @@ function ModeHandler(nl, nlServerApi, nlMetaDlg) {
 	this.initFromUrl = function(params) {
 		if (!params) params = nl.location.search();
 		_convertMode(params.type);
-		self.custtype = ('custtype' in params) ? parseInt(params.custtype) : null;
 		self.revstate = ('revstate' in params) ? parseInt(params.revstate) : 1;
 		self.searchMetadata = (!params.showInDlg) ? nlMetaDlg.getMetadataFromUrl() : {};
 		self.title = params.title || null;
@@ -186,6 +184,7 @@ this.show = function($scope, initialUserInfo, params) {
 	var _showInDlg = params && params.showInDlg;
 	var mode = new ModeHandler(nl, nlServerApi, nlMetaDlg);
 	var _userInfo = null;
+    var _pageFetcher = nlServerApi.getPageFetcher();
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
@@ -296,11 +295,9 @@ this.show = function($scope, initialUserInfo, params) {
 	    $scope.onCardInternalUrlClicked(card, linkId);
 	};
 
-    var _pageFetcher = nlServerApi.getPageFetcher();
 	function _getDataFromServer(resolve, fetchMore) {
         var params = {};
         if (!fetchMore) mode.resultList = [];
-        if (mode.custtype !== null) params.custtype = mode.custtype;
         params.metadata = mode.searchMetadata;
         var listingFn = mode.getListFnAndUpdateParams(params);
         _pageFetcher.fetchPage(listingFn, params, fetchMore, function(results) {
@@ -321,12 +318,16 @@ this.show = function($scope, initialUserInfo, params) {
 		var cards = [];
 		for (var i = 0; i < resultList.length; i++)
 			cards.push(_createLessonCard(resultList[i], userInfo));
+        cards.sort(function(a, b) {
+            return (b.updated - a.updated);
+        });
 		return cards;
 	}
 
 	function _createLessonCard(lesson, userInfo) {
         var card = {
             lessonId : lesson.id,
+            updated: nl.fmt.json2Date(lesson.updated),
             grp: lesson.grp,
             title : lesson.name,
             subject : lesson.subject,
@@ -547,7 +548,6 @@ this.show = function($scope, initialUserInfo, params) {
             if (mode.mode == MODES.REVIEW)
                 mode.revstate = mode.searchMetadata.revstate == REV_PENDING ? 1 : 2;
             nl.pginfo.pageTitle = mode.pageTitle();
-            if (mode.custtype) mode.searchMetadata.custtype = mode.custtype;
             onSearchParamChange(mode.searchMetadata.search || '', searchCategory);
             _getDataFromServer();
         });

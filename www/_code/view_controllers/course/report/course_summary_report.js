@@ -206,7 +206,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
     }
     
     $scope.canShowToolbarIcon = function(tbid) {
-        if (_fetcher.fetchInProgress(false)) return false;
+        if (_fetcher.fetchInProgress(true)) return false;
         if (tbid == 'fetchmore') return _fetcher.canFetchMore();
         return true;
     };
@@ -233,11 +233,11 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
     
     function _fetchMore() {
         if (_fetcher.fetchInProgress()) return;
-        _getDataFromServer();
+        _getDataFromServer(true);
     }
 
-    function _getDataFromServer() {
-        _fetcher.fetchReports(function(result) {
+    function _getDataFromServer(fetchMore) {
+        _fetcher.fetchReports(fetchMore, function(result) {
             _updateScope();
         });
     }
@@ -248,7 +248,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         if (cn) title += ': ' + cn;
         nl.pginfo.pageTitle = title;
         
-        $scope.fetchInProgress = _fetcher.fetchInProgress(false);
+        $scope.fetchInProgress = _fetcher.fetchInProgress(true);
         $scope.canFetchMore = _fetcher.canFetchMore();
         
         var reportAsList = _getReportsAsList();
@@ -519,12 +519,12 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats,
         return _fetchCourses(onDoneCallback);
     };
     
-    this.fetchReports = function(onDoneCallback) {
+    this.fetchReports = function(fetchMore, onDoneCallback) {
         if (this.fetchInProgress()) {
             onDoneCallback(false);
             return;
         }
-        _fetchReports(function(results) {
+        _fetchReports(fetchMore, function(results) {
             if (!results) {
                 onDoneCallback(false);
                 return;

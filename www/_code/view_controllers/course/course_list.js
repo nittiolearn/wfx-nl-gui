@@ -70,7 +70,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	var my = false;
 	var assignId = 0;
 	var _userInfo = null;
-	var _custtypeInUrl = null;
     var _metadataEnabled = false;
     var _searchMetadata = null;
     var _resultList = [];
@@ -129,7 +128,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
         var params = nl.location.search();
         my = ('my' in params) ? parseInt(params.my) == 1: false;
         assignId = ('assignid' in params) ? parseInt(params.assignid) : 0;
-        _custtypeInUrl = ('custtype' in params) ? parseInt(params.custtype) : null;
         _metadataEnabled = (type == 'course') && !my;
         _searchMetadata = nlMetaDlg.getMetadataFromUrl();
 	}
@@ -156,7 +154,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
             if (result.canFetchMore) return _fetchMore();
             onSearchParamChange(result.metadata.search || '', searchCategory);
             _searchMetadata = result.metadata;
-            if (_custtypeInUrl) _searchMetadata.custtype = _custtypeInUrl;
             _getDataFromServer();
         });
     }
@@ -168,9 +165,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
     var _pageFetcher = nlServerApi.getPageFetcher();
 	function _getDataFromServer(resolve, fetchMore) {
         if (!fetchMore) _resultList = [];
-        var params = {};
-        if (_metadataEnabled) params.metadata = _searchMetadata;
-        if (_custtypeInUrl !== null) params.custtype = _custtypeInUrl;
+        var params = {metadata: _searchMetadata};
         var listingFn = _getListFnAndUpdateParams(params);
         _pageFetcher.fetchPage(listingFn, params, fetchMore, function(results) {
             if (!results) {
