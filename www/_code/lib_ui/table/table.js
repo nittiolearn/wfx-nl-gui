@@ -232,8 +232,9 @@ function Searcher(nl, nlDlg, info) {
             self.infotxt = nl.t('There are no items to display.');
             return;
         } 
+        var match = (visible == 1) ? 'match' : 'matches';
         var item = (total == 1) ? 'item' : 'items';
-        self.infotxt = nl.t('Displaying {} of {} {}.', visible, total, item);
+        self.infotxt = nl.t('Found {} {} from {} {} searched.', visible, match, total, item);
     }
 
     function _getFilter() {

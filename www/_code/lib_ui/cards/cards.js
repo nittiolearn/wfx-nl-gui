@@ -102,16 +102,17 @@ function(nl, $filter) {
             return _animateInfotext(cards, oldInfotxt);
         }
         var item = (total == 1) ? 'item' : 'items';
-        msg1 = nl.t('Displaying <b>{}</b> of <b>{}</b> {}.', visible, total, item);
+        var match = (visible == 1) ? 'match' : 'matches';
+        msg1 = nl.t('Found <b>{}</b> {} from <b>{}</b> {} searched.', visible, match, total, item);
         if (!cards.canFetchMore) {
-            cards._internal.search.infotxt = msg1;
+            cards._internal.search.infotxt = nl.t('{} Search complete.', msg1);
             cards._internal.search.infotxt2 = msg1;
             return _animateInfotext(cards, oldInfotxt);
         }
         cards._internal.search.cls = 'fgrey2 nl-link-text';
         cards._internal.search.showDetails = true;
-        cards._internal.search.infotxt = nl.t('{} <b>Fetch more <i class="icon ion-refresh"></i></b>', msg1);
-        cards._internal.search.infotxt2 = nl.t('{} Do you want to fetch more items from server?', msg1);
+        cards._internal.search.infotxt = nl.t('{} <b>Search more <i class="icon ion-refresh"></i></b>.', msg1);
+        cards._internal.search.infotxt2 = nl.t('{} Not found what you are looking for? Do you want to fetch more items from the server?', msg1);
         return _animateInfotext(cards, oldInfotxt);
     }
 }];
