@@ -68,7 +68,7 @@
 		           	<nl-tree-select info='options[item.id]'></nl-tree-select>     	 	
         		</div>
         	</div>
-	        <div ng-show='item.id === "image"' class='row row-top padding0 margin0'>
+	        <div ng-if='item.id === "image"' class='row row-top padding0 margin0'>
 		        <div class='padding-mid'>
 		        	<img ng-show='data.image.id != "Custom"' ng-src='{{data.imageConvert}}' class='nl-100'/>
 		        	<img ng-show='data.image.id == "Custom" && data.imageUrl !==  null' ng-src='{{data.imageUrl}}' class='nl-100'/>
@@ -78,7 +78,6 @@
 		        	<nl-input ng-if='item.id == "image" && data.image.id === "Custom"' fieldmodel='imageUrl' fieldtype='text' fieldcls='margin0 padding-small'></nl-input>
 				</div>
 	        </div>
-		    <div ng-show='error[item.id]' class='nl-dlg-field-errormsg'>{{error[item.id]}}</div>
 	    </div>
         <div ng-class='resp2Col67'
         	 ng-if='item.type === "select"'>

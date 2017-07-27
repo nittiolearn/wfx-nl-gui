@@ -10,8 +10,8 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NittioLessonSrv = ['nl', 'nlDlg', 'nlTreeSelect', 'nlOuUserSelect',
-function(nl, nlDlg, nlTreeSelect, nlOuUserSelect) {
+var NittioLessonSrv = ['nl', 'nlDlg', 'nlTreeSelect', 'nlOuUserSelect', 'nlModuleStatusInfo',
+function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo) {
 	var _oLesson = null;
 	var _moduleConfig = null;
 	var _isPdf = false;
@@ -57,14 +57,14 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect) {
                      	{title: 'Approved, next update under revision', icon : 'ion-ios-circle-filled fgreen', cls : 'green'},
                      	{title: 'Approved, next update under review', icon : 'ion-ios-circle-filled fgreen', cls : 'green'}];
 
-	var lessonStatusDesc = nl.t('<div><span><b>State of the module can be one of following:</b></span></div>' +
-	 							'<div><ul><li><i class="padding-mid icon nl-dlg-field-icon {}"></i> Private: Module created and not yet shared for review.</li>' + 
-								'<li><i class="padding-mid icon nl-dlg-field-icon {}"></i> Under review: Author has shared the module for review.</li>' +
-								'<li><i class="padding-mid icon nl-dlg-field-icon {}"></i> Under revision: Author is reworking on the module after review.</li>' + 
-								'<li><i class="padding-mid icon nl-dlg-field-icon {}"></i> Approved: Module is approved.</li>' + 
-								'<li><i class="padding-mid icon nl-dlg-field-icon {}"></i> Approved, next update under revision: Module is approved and the author is working on next update.</li>' +
-								'<li><i class="padding-mid icon nl-dlg-field-icon {}"></i> Approved, next update under review: Module is approved and the next update is shared for review.</li></ul></div>', 
-								lessonStates[0].icon, lessonStates[1].icon, lessonStates[2].icon, lessonStates[3].icon, lessonStates[4].icon, lessonStates[5].icon);
+	var lessonStatusDesc = (function() {
+		var infos = nlModuleStatusInfo.getStatusInfos();
+		var ret = '<div><b>Status of the module can be one of following:</b></div>';
+		for (var i=0; i<infos.length; i++)
+			ret += nl.fmt.fmt1('<div class="row row-center padding0 margin0"><i class="icon fsh4 {icon}"></i>' + 
+				'<div class="col padding-mid"><b>{title}:</b> {help}</div></div>', infos[i]);
+		return ret;
+	})();
 
 	var moduleHelp = {
 					  name: {desc: nl.t('Mandatory - enter a name for your module.')},
@@ -156,9 +156,9 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect) {
     	scope.error = {};
     	var data = scope.data;
         if(!data.name) return _validateFail(scope, 'name', 'Module name is mandatory');
-        if(Object.keys(nlTreeSelect.getSelectedIds(_gradeInfo)).length == 0) return _validateFail(scope, 'grade', 'Grade is mandatory for module');
-        if(Object.keys(nlTreeSelect.getSelectedIds(_subjectInfo)).length == 0) return _validateFail(scope, 'subject', 'Subject is mandatory for module');
-        if(Object.keys(nlTreeSelect.getSelectedIds(_iconInfo)).length == 0) return _validateFail(scope, 'image', 'Image is mandatory for module');
+        if(Object.keys(nlTreeSelect.getSelectedIds(_gradeInfo)).length == 0) return _validateFail(scope, 'grade', 'This field is mandatory');
+        if(Object.keys(nlTreeSelect.getSelectedIds(_subjectInfo)).length == 0) return _validateFail(scope, 'subject', 'This field is mandatory');
+        if(Object.keys(nlTreeSelect.getSelectedIds(_iconInfo)).length == 0) return _validateFail(scope, 'image', 'This field is mandatory');
         if(_isPdf && !data.pdfUrl) return _validateFail(scope, 'pdfUrl', 'Pdf url is mandatory');
         if(!_validateJsonField(data.templateBgimgs)) return _validateFail(scope, 'templateBgimgs', 'Error while parsing json');
         if(!_validateJsonField(data.templatePageTypes)) return _validateFail(scope, 'templatePageTypes', 'Error while parsing json');
@@ -218,12 +218,14 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect) {
         _gradeInfo.treeIsShown = false;
         _gradeInfo.multiSelect = false;
 		_gradeInfo.showSearchField = true;
+		_gradeInfo.fieldmodelid = 'grade';
         
         _subjectInfo = {data: nlTreeSelect.strArrayToTreeArray(_moduleConfig.subjects || [])};
         nlTreeSelect.updateSelectionTree(_subjectInfo, selectedSubject);
         _subjectInfo.treeIsShown = false;
         _subjectInfo.multiSelect = false;
 		_subjectInfo.showSearchField = true;
+		_subjectInfo.fieldmodelid = 'subject';
 
 		var selectedImage = {};
 		var selectedImg = null;
@@ -233,6 +235,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect) {
         _iconInfo.treeIsShown = false;
         _iconInfo.multiSelect = false;
 		_iconInfo.showSearchField = true;
+		_iconInfo.fieldmodelid = 'image';
 		editDlg.scope.options = {grade: _gradeInfo, 
 								 subject: _subjectInfo,
 								 image: _iconInfo,

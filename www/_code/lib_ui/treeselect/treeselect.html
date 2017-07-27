@@ -1,6 +1,6 @@
 <div class='nl-dlg-field-value nl-xxx-select'
 	ng-keydown='onKeydown($event, tabindex)'>
-<div class='nl-link-text row row-wrap row-center margin0 padding-small'
+<div class='nl-tree-select-box nl-link-text row row-wrap row-center margin0 padding-small'
      ng-click='info.treeIsShown = !info.treeIsShown'
      autofocus=''
      tabindex="{{tabindex || 0}}">
@@ -28,11 +28,11 @@
             <i ng-show='item.isFolder && !item.isOpen' class="icon ion-arrow-right-b bold"></i>
             <i ng-show='item.isFolder && item.isOpen' class="icon ion-arrow-down-b bold"></i>
             <i ng-show='item.selected === true' class="icon ion-android-checkbox fsh4"
-               ng-click='onCheckBoxSelect(item, $event)'></i>
+               ng-click='onCheckBoxSelect(item, $event, $index)'></i>
             <i ng-show='item.selected == "part"' class="icon ion-android-checkbox-blank fsh4"
-               ng-click='onCheckBoxSelect(item, $event)'></i>
+               ng-click='onCheckBoxSelect(item, $event, $index)'></i>
             <i ng-show='!item.selected && item.multiSelect === true' class="icon ion-android-checkbox-outline-blank fsh4"
-               ng-click='onCheckBoxSelect(item, $event)'></i>
+               ng-click='onCheckBoxSelect(item, $event, $index)'></i>
             <span ng-show='item.icon'><i class='icon {{item.icon}}'></i></span>
             <span ng-show='item.image'><img class='fsh4 nl-24' style='margin-bottom: -4px' ng-src='{{item.image}}'/></span>
             <span>{{item.name}}</span>
@@ -42,3 +42,4 @@
     </div>
 </div>
 </div>
+<div ng-show='$parent.error[info.fieldmodelid]' class='nl-dlg-field-errormsg'>{{$parent.error[info.fieldmodelid]}}</div>

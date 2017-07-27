@@ -7,6 +7,7 @@
 function module_init() {
 	angular.module('nl.lessonlist', []).config(configFn)
 	.controller('nl.LessonListCtrl', LessonListCtrl)
+	.service('nlModuleStatusInfo', ModuleStatusInfoSrv)
 	.service('nlExportLevel', ExportLevelSrv)
 	.service('nlApproveDlg', ApproveDlgSrv)
 	.service('nlLessonSelect', LessonSelectSrv);
@@ -69,6 +70,15 @@ var STATUS_ICON = [
     'fgreen ion-checkmark-circled',
     'forange ion-alert-circled',
     'fgreen ion-chatbubble-working'
+];
+
+var STATUS_HELP = [
+    'Module created and not yet shared for review.',
+    'Author has shared the module for review.',
+    'Reviewer has rejected the module and the author needs to rework.',
+    'Module is approved.',
+    'Module is approved. Reviewer has rejected the next update and the author needs to rework.',
+    'Module is approved and the next update is shared for review.'
 ];
 
 var LESSONTYPES = {
@@ -651,6 +661,26 @@ this.show = function($scope, initialUserInfo, params) {
 	};
 }; // End of init function
 }];
+
+//-------------------------------------------------------------------------------------------------
+var ModuleStatusInfoSrv = ['nl', 
+function(nl) {
+	this.getStatusInfos = function() {
+		var ret = [];
+		ret.push(_item(STATUS.PRIVATE));
+		ret.push(_item(STATUS.UNDERREVIEW));
+		ret.push(_item(STATUS.UNDERREVISION));
+		ret.push(_item(STATUS.APPROVED));
+		ret.push(_item(STATUS.APPROVEDREVIEW));
+		ret.push(_item(STATUS.APPROVEDREWORK));
+		return ret;
+	};
+	
+	function _item(status) {
+		return {status: status, title: STATUS_STR[status], icon: STATUS_ICON[status], help: STATUS_HELP[status]};
+	}
+}];
+
 
 //-------------------------------------------------------------------------------------------------
 var ExportLevelSrv = [function() {

@@ -56,6 +56,7 @@ function(nl) {
                 treeSelectInfo.rootItems[item.id] = item;
             }
         }
+        _fillDefaut(treeSelectInfo, 'fieldmodelid', null);
         _fillDefaut(treeSelectInfo, 'onSelectChange', null);
         _fillDefaut(treeSelectInfo, 'onFilterClick', null);
         _fillDefaut(treeSelectInfo, 'filterIcon', '');
@@ -146,7 +147,13 @@ function(nl) {
 		return true;
     }
     
+    var _known = {13:true, 35:true, 36:true, 37:true, 38:true, 39:true, 40:true};
     this.onKeydown = function(e, treeSelectInfo) {
+    	if (e.which in _known) {
+	        e.stopImmediatePropagation();
+	        e.preventDefault();
+    	}
+
 		if(e.which === 40) { // down arrow
 			treeSelectInfo.treeIsShown = true;
 			return _updateCurrentItem(treeSelectInfo, treeSelectInfo.currentItemPos+1);
@@ -181,15 +188,17 @@ function(nl) {
 			_setCurrentItemPos(treeSelectInfo, parent);
 			return false;
 		} else if(e.which === 13) { // enter button
-			if (treeSelectInfo.currentItemPos < 0) {
+			if (!treeSelectInfo.treeIsShown) {
 				treeSelectInfo.treeIsShown = true;
-				return _updateCurrentItem(treeSelectInfo, 0);
+				if (treeSelectInfo.currentItemPos < 0) return _updateCurrentItem(treeSelectInfo, 0);
+				return false;
 			}
+	        if (!treeSelectInfo.multiSelect) return false;
 			var item = treeSelectInfo.visibleData[treeSelectInfo.currentItemPos];
 			if (item.isFolder) this.toggleSelectionOfFolder(item, treeSelectInfo);
             else this.toggleSelection(item, treeSelectInfo);
             return true;
-		} else if(e.which === 9) {
+		} else if(e.which === 9) { // Tab/shift-tab
 			treeSelectInfo.treeIsShown = false;
             return true;
 		}
@@ -392,6 +401,10 @@ function(nl, nlDlg, nlTreeSelect) {
             info: '=' // dict with array of: {id, name, indentation, isVisisble, isFolder, isOpen, selected} 
         },
         link: function($scope, iElem, iAttrs) {
+        	if ($scope.info.fieldmodelid) {
+	            var treeSelectBox = iElem[0].querySelector('.nl-tree-select-box');
+	            nlDlg.addField($scope.info.fieldmodelid, treeSelectBox);
+        	}
         	var searchField = iElem[0].querySelector('.searchField');
         	var previousSelectedText = null;
             $scope.onClick = function(item, e, pos) {
@@ -429,7 +442,8 @@ function(nl, nlDlg, nlTreeSelect) {
 				return ret;
            	}
             
-            $scope.onCheckBoxSelect = function(item, e) {
+            $scope.onCheckBoxSelect = function(item, e, pos) {
+            	$scope.info.currentItemPos = pos;
                 if (!item.isFolder || !$scope.info.multiSelect) return;
                 e.stopImmediatePropagation();
                 e.preventDefault();
