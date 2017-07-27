@@ -13,6 +13,7 @@ function module_init() {
 //-------------------------------------------------------------------------------------------------
 var TreeSelectSrv = ['nl',
 function(nl) {
+	var self = this;
     this.strArrayToTreeArray = function(strArray) {
         var insertedKeys = {};
         var treeArray = [];
@@ -55,12 +56,15 @@ function(nl) {
                 treeSelectInfo.rootItems[item.id] = item;
             }
         }
+        _fillDefaut(treeSelectInfo, 'onSelectChange', null);
         _fillDefaut(treeSelectInfo, 'onFilterClick', null);
         _fillDefaut(treeSelectInfo, 'filterIcon', '');
         _fillDefaut(treeSelectInfo, 'filterIconTitle', 'Filter');
         _fillDefaut(treeSelectInfo, 'treeIsShown', true);
         _fillDefaut(treeSelectInfo, 'showCounts', false);
         _fillDefaut(treeSelectInfo, 'multiSelect', true);
+        _fillDefaut(treeSelectInfo, 'showSearchField', false);
+        _fillDefaut(treeSelectInfo, 'searchText', '');
         _fillDefaut(treeSelectInfo, 'removeEmptyFolders', false);
         _fillDefaut(treeSelectInfo, 'folderType', 'NOT_DEFINED');
 
@@ -132,6 +136,76 @@ function(nl) {
         return ret;
     }
 
+    function _updateCurrentItem(treeSelectInfo, newPos) {
+		if (newPos >= treeSelectInfo.visibleData.length || newPos < 0) return false; 
+    	treeSelectInfo.currentItemPos = newPos;
+		if (treeSelectInfo.multiSelect) return false;
+		var item = treeSelectInfo.visibleData[treeSelectInfo.currentItemPos];
+		if (item.isFolder || !item.canSelect ||item.selected) return false;
+		self.toggleSelection(item, treeSelectInfo);
+		return true;
+    }
+    
+    this.onKeydown = function(e, treeSelectInfo) {
+		if(e.which === 40) { // down arrow
+			treeSelectInfo.treeIsShown = true;
+			return _updateCurrentItem(treeSelectInfo, treeSelectInfo.currentItemPos+1);
+		} else if(e.which === 35) { // end
+			treeSelectInfo.treeIsShown = true;
+			return _updateCurrentItem(treeSelectInfo, treeSelectInfo.visibleData.length-1);
+		} else if(e.which === 38) { // up arrow
+			if (treeSelectInfo.currentItemPos > 0) return _updateCurrentItem(treeSelectInfo, treeSelectInfo.currentItemPos-1);
+			treeSelectInfo.currentItemPos = -1;
+			treeSelectInfo.treeIsShown = false;
+			return false;
+		} else if(e.which === 36) { // home
+			if (treeSelectInfo.currentItemPos > 0) return _updateCurrentItem(treeSelectInfo, 0);
+			return false;
+		} else if(e.which === 39) { // right arrow
+			if (treeSelectInfo.currentItemPos < 0) return false;
+			var item = treeSelectInfo.visibleData[treeSelectInfo.currentItemPos];
+			if(!item.isFolder || item.isOpen) return false;
+			this.toggleFolder(item, treeSelectInfo);
+			return false;
+		} else if(e.which === 37) { // left arrow
+			if (treeSelectInfo.currentItemPos < 0) return false;
+			var item = treeSelectInfo.visibleData[treeSelectInfo.currentItemPos];
+			if(item.isFolder) {
+				if (item.isOpen) this.toggleFolder(item, treeSelectInfo);
+				return false;
+			}
+			var parentId = _getParentId(item.id);
+			var parent = treeSelectInfo.itemDict[parentId];
+			if (!parent) return false;
+			this.toggleFolder(parent, treeSelectInfo);
+			_setCurrentItemPos(treeSelectInfo, parent);
+			return false;
+		} else if(e.which === 13) { // enter button
+			if (treeSelectInfo.currentItemPos < 0) {
+				treeSelectInfo.treeIsShown = true;
+				return _updateCurrentItem(treeSelectInfo, 0);
+			}
+			var item = treeSelectInfo.visibleData[treeSelectInfo.currentItemPos];
+			if (item.isFolder) this.toggleSelectionOfFolder(item, treeSelectInfo);
+            else this.toggleSelection(item, treeSelectInfo);
+            return true;
+		} else if(e.which === 9) {
+			treeSelectInfo.treeIsShown = false;
+            return true;
+		}
+        return false;
+    };
+
+	function _setCurrentItemPos(treeSelectInfo, currentItem) {
+		for(var i=0; i<treeSelectInfo.visibleData.length; i++) {
+			var item = treeSelectInfo.visibleData[i];
+			if(item.id === currentItem.id) {
+				treeSelectInfo.currentItemPos = i;
+				break;
+			}					
+		}
+	};
+	
     // Mainly for the directive usage
     this.toggleFolder = function(folder, treeSelectInfo) {
         var treeList = treeSelectInfo.data;
@@ -162,13 +236,41 @@ function(nl) {
         _updateSelectionText(treeSelectInfo);
     };
 
+	this.updateVisibleData = function(treeSelectInfo) {
+		_updateVisibleData(treeSelectInfo);
+	};
+	
     function _updateVisibleData(treeSelectInfo) {
         treeSelectInfo.visibleData = [];
+        var folderDict = {};
+        var searchText = treeSelectInfo.searchText.toLowerCase();
+
         for(var i=0; i<treeSelectInfo.data.length; i++) {
             var item = treeSelectInfo.data[i];
-            if (item.isVisible) treeSelectInfo.visibleData.push(item);
+            if (!item.isVisible) continue;
+            if (treeSelectInfo.searchText == "") {
+            	treeSelectInfo.visibleData.push(item);
+            	continue;
+	        }
+	        var name = item.name.toLowerCase();
+            if(name.indexOf(searchText) == -1) continue;
+    		treeSelectInfo.visibleData.push(item);
+
+        	if(item.isFolder) folderDict[item.id] = true;
+        	else _makeParentVisible(treeSelectInfo, item, folderDict);
         }
+        if (treeSelectInfo.currentItemPos == undefined) treeSelectInfo.currentItemPos = -1;
+        if (treeSelectInfo.currentItemPos >= treeSelectInfo.visibleData.length) treeSelectInfo.currentItemPos = -1;
     };
+
+    function _makeParentVisible(treeSelectInfo, item, folderDict) {
+		var parentId = _getParentId(item.id);
+		if (!parentId || parentId in folderDict) return;
+    	folderDict[parentId] = true;
+		var parent = treeSelectInfo.itemDict[parentId];
+		treeSelectInfo.visibleData.push(parent);
+		_makeParentVisible(treeSelectInfo, parent, folderDict);
+    }
     
     function _showAllChildren(folder) {
         if (!folder.children) return;
@@ -290,18 +392,53 @@ function(nl, nlDlg, nlTreeSelect) {
             info: '=' // dict with array of: {id, name, indentation, isVisisble, isFolder, isOpen, selected} 
         },
         link: function($scope, iElem, iAttrs) {
-            $scope.onClick = function(item, e) {
+        	var searchField = iElem[0].querySelector('.searchField');
+        	var previousSelectedText = null;
+            $scope.onClick = function(item, e, pos) {
+            	$scope.info.currentItemPos = pos;
                 if (item.isFolder) {
                     nlTreeSelect.toggleFolder(item, $scope.info);
                 } else {
                     nlTreeSelect.toggleSelection(item, $scope.info);
+                    if($scope.info.onSelectChange) $scope.info.onSelectChange();
                 }
             };
+            
+            $scope.onKeydown = function(e) {
+                if(!$scope.info.treeIsShown && (_isPrintableChar(e.keyCode) || e.keyCode == 40)) {
+					nl.timeout(function() {
+						searchField.focus();
+					});
+					if (e.keyCode != 40) $scope.info.searchText = e.key;
+					$scope.info.treeIsShown = true;
+	            	nlTreeSelect.updateVisibleData($scope.info);
+            	}
+            	if (nlTreeSelect.onKeydown(e, $scope.info)) {
+	                if($scope.info.onSelectChange) $scope.info.onSelectChange();
+	            }
+           	};
+           	
+           	function _isPrintableChar(keycode) {
+				var ret = 
+					(keycode > 64 && keycode < 91)   || // letter keys
+					(keycode > 47 && keycode < 58)   || // number keys
+					(keycode > 95 && keycode < 112)  || // numpad keys
+					keycode == 32					 || // spacebar
+					(keycode > 185 && keycode < 193) || // ;=,-./` (in order)
+					(keycode > 218 && keycode < 223);   // [\]' (in order)
+				return ret;
+           	}
+            
             $scope.onCheckBoxSelect = function(item, e) {
                 if (!item.isFolder || !$scope.info.multiSelect) return;
                 e.stopImmediatePropagation();
                 e.preventDefault();
                 nlTreeSelect.toggleSelectionOfFolder(item, $scope.info);
+            };
+            
+            $scope.onSearchTextChange = function(e) {
+            	$scope.info.currentItemPos = 0;
+            	nlTreeSelect.updateVisibleData($scope.info);
             };
         }
     };
