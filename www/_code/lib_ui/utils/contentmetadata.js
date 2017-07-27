@@ -31,16 +31,21 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
     
     this.showMetadata = function($scope, _userInfo, ctype, cid, card) {
         return nl.q(function(resolve, reject) {
-            var params = {$scope: $scope, _userInfo: _userInfo, cid: cid, ctype: ctype, card: card,
-                resolve: resolve, reject: reject};
+            var params = {$scope: $scope, _userInfo: _userInfo, 
+                resolve: resolve, reject: reject,
+                ctype: ctype, cid: cid, card: card,
+                config: {}};
             return _showImpl(params);
         });
     };
     
-    this.showAdvancedSearchDlg = function($scope, _userInfo, ctype, metadata) {
+    this.showAdvancedSearchDlg = function($scope, _userInfo, ctype, metadata, config) {
+        if (!config) config = {};
         return nl.q(function(resolve, reject) {
-            var params = {$scope: $scope, _userInfo: _userInfo, ctype: ctype, cid: null, card: null,
-                resolve: resolve, reject: reject, metadata: metadata};
+            var params = {$scope: $scope, _userInfo: _userInfo, 
+                resolve: resolve, reject: reject, 
+                ctype: ctype, cid: null, card: null,
+                config: config, metadata: metadata};
             _showImpl(params);
         });
     };
@@ -51,10 +56,12 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
         params.dlg = nlDlg.create(params.$scope);
         params.dlg.setCssClass('nl-height-max nl-width-max');
         if (params.cid)
-            params.$scope.dlgTitle = nl.t('Metadata: {}', params.card.title);
+            params.dlg.scope.dlgTitle = nl.t('Metadata: {}', params.card.title);
         else
-            params.$scope.dlgTitle = nl.t('Advanced search');
+            params.dlg.scope.dlgTitle = nl.t('Advanced search');
         params.dlg.scope.data = {};
+        params.dlg.scope.banner = params.config.banner;
+        params.dlg.scope.canFetchMore = params.config.canFetchMore;
         
         nlDlg.showLoadingScreen();
         var promise1 = nlServerApi.cmGetFields();
@@ -73,6 +80,14 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
         });
     }
 
+    function _getImportFromGroup(search) {
+        if (!search) return null;
+        var words = search.toLowerCase().split(' ');
+        if (words[0].indexOf('grp:') != 0) return null;
+        var grp = words[0].substring(4);
+        return grp.trim();
+    }
+
     function _showDlg(params, cmFields, metadata) {
         var data = params.dlg.scope.data;
         data.cmFields = [];
@@ -80,15 +95,28 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
         var isSearch = !params.cid;
 
         if (isSearch) {
-            data.cmFields.push({id: 'search', name: 'Search', type: 'text', value: metadata.search || ''});
+            var searchField = {id: 'search', name: 'Search', type: 'text', value: metadata.search || ''};
+            _hiddenFields.push(searchField);
+            var importfromgrp = _getImportFromGroup(metadata.search);
+            if (importfromgrp !== null)
+                data.cmFields.push({id: 'importfromgrp', name: 'Search in group', 
+                    type: 'text', value: importfromgrp});
         }
-        
+
+        var allowedFields = params.config.allowedFields || null;
         for(var i=0; i<cmFields.length; i++) {
             var cmField = cmFields[i];
-            if (cmField.hidden) {
+            cmField.value = _valueToGuiField(cmField, metadata, isSearch);
+            if (cmField.hidden || (allowedFields && !allowedFields[cmField.id])) {
                 _hiddenFields.push(cmField);
                 continue;
             }
+            data.cmFields.push(cmField);
+        }
+
+        var additionalFields = params.config.additionalFields || {};
+        for(var f in additionalFields) {
+            var cmField = additionalFields[f];
             cmField.value = _valueToGuiField(cmField, metadata, isSearch);
             data.cmFields.push(cmField);
         }
@@ -103,8 +131,12 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
         }
         if (isSearch) {
             buttons.push({ text : nl.t('Search'), onTap : function(e) {
-                _onSearch(e, params, metadata);
+                if (params.resolve) params.resolve({metadata: _getMetadata(params, false)});
             }});
+            if (params.dlg.scope.canFetchMore)
+                buttons.push({ text : nl.t('Fetch more'), onTap : function(e) {
+                    if (params.resolve) params.resolve({canFetchMore: true});
+                }});
         }
         var cancelButton = {text : nl.t('Close')};
         params.dlg.show('lib_ui/utils/contentmetadata_dlg.html', buttons, cancelButton);
@@ -125,11 +157,6 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
         });
     }
     
-    function _onSearch(e, params, metadataIn) {
-        var metadata = _getMetadata(params, false);
-        if (params.resolve) params.resolve({metadata: metadata});
-    }
-    
     function _getMetadata(params, isUpdate) {
         var cmFields = params.dlg.scope.data.cmFields;
         var metadata = {};
@@ -143,6 +170,13 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
             if (!_guiFieldToMetadataDict(params, cmField, metadata, isUpdate)) error = true;
         }
         if (isUpdate && error) return null;
+        if ('importfromgrp' in metadata) {
+            var grp = metadata.importfromgrp;
+            var words = metadata.search.split(' ');
+            words.shift();
+            words.unshift('grp:' + grp);
+            metadata.search = words.join(' ');
+        }
         return metadata;
     }
     

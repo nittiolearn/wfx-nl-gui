@@ -1015,13 +1015,13 @@ nl-cards {
   left: 0;
   width: 100%;
   height: 100%;
+  display: block;
 }
 
 .nl-card {
   display: inline-block;
   text-align: center;
   position: relative;
-  margin-top: 20px;
   
   /* Stuff changed in javascript*/
   height: 240px;
@@ -1063,19 +1063,6 @@ nl-cards {
   text-overflow : ellipsis;
   overflow : hidden;  
 }
-.nl-review-color {
-  color: #FA0;
-}
-.nl-revision-color {
-  color: #C04040;
-}
-.nl-template-color{
-  color: #40C040;
-  font-weight: 700;
-}
-.nl-grades{
-  border: 1px solid black;
-}
 
 .nl-card-img {
   position: absolute;
@@ -1088,6 +1075,13 @@ nl-cards {
     max-height: 100%;
     max-width: 100%;
   }
+  .icon-tl, .icon-tr, .icon-bl, .icon-br {
+    position: absolute;
+  }
+  .icon-tl {top: 5%; left: 5%;}
+  .icon-tr {top: 5%; right: 5%;}
+  .icon-bl {bottom: 5%; left: 5%;}
+  .icon-br {bottom: 5%; right: 5%;}
 }
 
 .nl-card-desc {
@@ -1133,8 +1127,6 @@ nl-cards {
 
 
 .nl-card-details-dlg-img {
-  height: 100px;
-  width: 100px;
   text-align: center;
   img {
     max-height: 100px;
@@ -1153,35 +1145,7 @@ nl-cards {
 //-----------------------------------------------------------------------------------------
 // search-box css code
 //------------------------------------------------------------------------------------------   
-.nl-card-search {
-  padding: 8px;
-
-  input {
-    height: 28px;
-    border: 1px solid #9999ff;
-    border-radius: 4px;
-    box-shadow: 1px 1px 2px #888888;
-    &:focus {
-      box-shadow: 0 0 5px rgba(81, 203, 238, 1);
-    }
-  }
-  img {
-    height: 28px;
-    width: 28px;
-    padding: 4px;
-    border-radius: 4px;
-    box-shadow: 1px 1px 5px #888888;
-    background-color: #F5F5F5;
-  }
-  span {
-    height: 28px;
-    padding: 4px;
-    text-align: center;
-    background-color: $nldarkgrey;
-  }
-}
-
-.nl-grade-search {
+.nl-search-dropdown {
   padding:3px;
   margin: 0;
   border-radius:4px;
@@ -1706,6 +1670,18 @@ img.nl-full-width {
   background-color: $grey;
 }
 
+.bgwhite {
+  background-color: #FFFFFF;
+}
+
+.bgblue {
+  background-color: $nlBlue1;
+}
+
+.round {
+  border-radius: 50%;
+}
+
 //---------------------------------------------------------------------------
 // Font sizes
 //---------------------------------------------------------------------------
@@ -1964,6 +1940,14 @@ img.nl-full-width {
 
 .highlight.ng-leave {
   background-color: rgba(128, 0, 0, 0.1);
+}
+
+.anim-highlight-off {
+  transition: color 0.4s cubic-bezier(.9,.92,.56,1.43) 0s;
+}
+
+.anim-highlight-on {
+  color: black;
 }
 
 /**

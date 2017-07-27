@@ -70,11 +70,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	var my = false;
 	var assignId = 0;
 	var _userInfo = null;
-	var _custtypeInUrl = null;
     var _metadataEnabled = false;
     var _searchMetadata = null;
-    var _nextStartPos = null;
-    var _canFetchMore = true;
     var _resultList = [];
 
 	function _onPageEnter(userInfo) {
@@ -82,10 +79,13 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		return nl.q(function(resolve, reject) {
 			_initParams();
 			nl.pginfo.pageTitle = _getPageTitle();
-			$scope.cards = {};
-			$scope.cards.staticlist = _getStaticCards();
-			$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
-			_getDataFromServer(false, resolve, reject);
+			$scope.cards = {
+			    staticlist: _getStaticCards(), 
+                search: {onSearch: _metadataEnabled ? _onSearch: null, 
+                         placeholder: nl.t('Enter course name/description')}
+            };
+            nlCardsSrv.initCards($scope.cards);
+			_getDataFromServer(resolve);
 		});
 	}
 	nlRouter.initContoller($scope, '', _onPageEnter);
@@ -128,8 +128,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
         var params = nl.location.search();
         my = ('my' in params) ? parseInt(params.my) == 1: false;
         assignId = ('assignid' in params) ? parseInt(params.assignid) : 0;
-        _custtypeInUrl = ('custtype' in params) ? parseInt(params.custtype) : null;
-        _metadataEnabled = ('enablemeta' in params) && (type == 'course') && !my;
+        _metadataEnabled = (type == 'course') && !my;
         _searchMetadata = nlMetaDlg.getMetadataFromUrl();
 	}
 
@@ -145,58 +144,34 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		}
 	}
 
-	function _addSearchInfo(cards) {
-		cards.search = {placeholder: nl.t('Enter course name/description')};
-		cards.search.onSearch = _onSearch;
-        cards.canFetchMore = _canFetchMore;
-	}
-	
-	function _onSearch(filter, grade, onSearchParamChange) {
+	function _onSearch(filter, searchCategory, onSearchParamChange) {
         if (!_metadataEnabled) return;
         _searchMetadata.search = filter;
-        nlMetaDlg.showAdvancedSearchDlg($scope, _userInfo, 'course', _searchMetadata)
+        var cmConfig = {canFetchMore: $scope.cards.canFetchMore,
+            banner: $scope.cards._internal.search.infotxt2};
+        nlMetaDlg.showAdvancedSearchDlg($scope, _userInfo, 'course', _searchMetadata, cmConfig)
         .then(function(result) {
-            onSearchParamChange(result.metadata.search || '', grade);
+            if (result.canFetchMore) return _fetchMore();
+            onSearchParamChange(result.metadata.search || '', searchCategory);
             _searchMetadata = result.metadata;
-            if (_custtypeInUrl) _searchMetadata.custtype = _custtypeInUrl;
-            _onSearchImpl();
+            _getDataFromServer();
         });
     }
 
     function _fetchMore() {
-        _onSearchImpl(true);
+        _getDataFromServer(null, true);
     }
     
-    function _onSearchImpl(fetchMore) {
-		nlDlg.showLoadingScreen();
-		var promise = nl.q(function(resolve, reject) {
-			_getDataFromServer(fetchMore, resolve, reject);
-		});
-		promise.then(function(res) {
-			nlDlg.hideLoadingScreen();
-		});
-	}
-
-	function _getDataFromServer(fetchMore, resolve, reject) {
-        if (!fetchMore) {
-            _resultList = [];
-            _nextStartPos = null;
-        }
-
-        var params = {};
-        if (_nextStartPos) params.startpos = _nextStartPos;
-        if (_metadataEnabled) params.metadata = _searchMetadata;
-        if (_custtypeInUrl !== null) params.custtype = _custtypeInUrl;
-
-		_batchFetch(params, function(result) {
-            if (result.isError) {
+    var _pageFetcher = nlServerApi.getPageFetcher();
+	function _getDataFromServer(resolve, fetchMore) {
+        if (!fetchMore) _resultList = [];
+        var params = {metadata: _searchMetadata};
+        var listingFn = _getListFnAndUpdateParams(params);
+        _pageFetcher.fetchPage(listingFn, params, fetchMore, function(results) {
+            if (!results) {
                 if (resolve) resolve(false);
                 return;
             }
-            _canFetchMore = result.canFetchMore;
-            _nextStartPos = result.nextStartPos;
-
-            var results = result.resultset;
             _resultList = _resultList.concat(results);
 			if (_resultList.length === 1 && type === 'report' && assignId === 0) {
 				var url = nl.fmt2('/course_view?id={}&mode=do', _resultList[0].id);
@@ -204,16 +179,15 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
                 nl.location.replace();
 				return;
 			}
-			nl.log.debug('Got result: ', _resultList.length);
-			$scope.cards.cardlist = _getCards(_userInfo, _resultList, nlCardsSrv);
-			_addSearchInfo($scope.cards);
-
-            if (!result.fetchDone) return;
-			resolve(true);
+			nlCardsSrv.updateCards($scope.cards, {
+			    cardlist: _getCards(_resultList, nlCardsSrv),
+			    canFetchMore: _pageFetcher.canFetchMore()
+			});
+			if (resolve) resolve(true);
 		});
 	}
 	
-	function _batchFetch(params, callback) {
+	function _getListFnAndUpdateParams(params) {
         var listingFn = null;
 		if (type === 'course') {
 		    params.mine = my;
@@ -227,38 +201,38 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		} else {
             listingFn = nlServerApi.courseGetMyReportList;
 		}
-		nlServerApi.batchFetch(listingFn, params, callback);
+		return listingFn;
 	}
 	
 	function _getStaticCards() {
 		var ret = [];
 		if (type !== 'course' || !my) return ret;
 		var card = {title: nl.t('Create'), 
-					icon: nl.url.resUrl('dashboard/course_create.png'), 
+					icon2: 'ion-ios-bookmarks-outline fblue', 
+                    iconBr: 'fsh3 ion-plus-round fwhite bgblue round padding-small-h', 
 					internalUrl: 'course_create',
 					help: nl.t('You can create a new course by clicking on this card'), 
-					children: [], style: 'nl-bg-blue'};
-		card.links = [];
+					children: [], style: 'nl-bg-blue', links: []};
 		ret.push(card);
 		return ret;
 	}
 
-	function _getCards(userInfo, resultList, nlCardsSrv) {
+	function _getCards(resultList, nlCardsSrv) {
 		var cards = [];
 		for (var i = 0; i < resultList.length; i++) {
-			var card = _createCard(resultList[i], userInfo);
+			var card = _createCard(resultList[i]);
 			cards.push(card);
 		}
 		return cards;
 	}
 	
-	function _createCard(cardInfo, userInfo) {
-		if (type === 'course') return _createCourseCard(cardInfo, userInfo);
-		if (type === 'assign') return _createReportCard(cardInfo, userInfo, false);
-		return _createReportCard(cardInfo, userInfo, true);
+	function _createCard(cardInfo) {
+		if (type === 'course') return _createCourseCard(cardInfo);
+		if (type === 'assign') return _createReportCard(cardInfo, false);
+		return _createReportCard(cardInfo, true);
 	}
 	
-	function _createCourseCard(course, userInfo) {
+	function _createCourseCard(course) {
 		courseDict[course.id] = course;
 		var mode = my ? 'edit' : 'published';
 		var url = nl.fmt2('#/course_view?id={}&mode={}', course.id, mode);
@@ -285,7 +259,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 			card.links.push({id: 'course_delete', text: nl.t('delete')});
 			if (course.is_published)
 				card.links.push({id: 'course_unpublish', text: nl.t('unpublish')});
-		} else if(nlRouter.isPermitted(userInfo, 'course_assign')) {
+		} else if(nlRouter.isPermitted(_userInfo, 'course_assign')) {
             card.links.push({id: 'course_assign', text: nl.t('assign')});
             card.links.push({id: 'course_report', text: nl.t('report')});
 		}
@@ -326,7 +300,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		nl.fmt.addLinkToAvp(linkAvp, 'course modify', null, 'course_modify');
 	}
 
-	function _createReportCard(report, userInfo, isReport) {
+	function _createReportCard(report, isReport) {
 		var url = nl.fmt2('#/course_view?mode=reports_summary_view&id={}', report.id);
 		var title = report.name;
 		if (isReport) {
@@ -351,7 +325,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		card.links = [];
         if (!isReport)
             card.links.push({id:'course_report_list', text: nl.t('reports')});
-		if (!isReport && nlRouter.isPermitted(userInfo, 'course_assign'))
+		if (!isReport && nlRouter.isPermitted(_userInfo, 'course_assign'))
 			card.links.push({id:'course_assign_delete', text: nl.t('delete')});
 		card.links.push({id: 'details', text: nl.t('details')});
 		return card;
@@ -376,7 +350,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
     function _metadataCourse($scope, courseId, card) {
         nlMetaDlg.showMetadata($scope, _userInfo, 'course', courseId, card)
         .then(function() {
-            _onSearchImpl();
+            _getDataFromServer();
         });
     }
 
@@ -395,6 +369,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 					if (card.courseId !== courseId) continue;
 					$scope.cards.cardlist.splice(i, 1);
 				}
+                nlCardsSrv.updateCards($scope.cards);
 			});	
 		});
 	}
@@ -417,6 +392,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 					if (card.reportId !== assignId) continue;
 					$scope.cards.cardlist.splice(i, 1);
 				}
+                nlCardsSrv.updateCards($scope.cards);
 			});	
 		});
 	}
@@ -432,23 +408,25 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
     }
 	
 	function _copyCourse($scope, card) {
-		var course = angular.fromJson(card.json);
-	    var courseName = nl.t('{}', card.title); 
-	    var newtitle = (courseName.indexOf("Copy of") == 0) ? courseName : nl.t('Copy of {}', card.title);
-		var dlgScope = {error: {}, data: {
-			name: newtitle,
-			icon: course.icon,
-			description: course.description,
-			content: angular.toJson(course.content, 2)	
-		}};
 		var msg = {
-			title : 'Copy module',
-			template : nl.t('Are you sure you want to make a private copy of this module?'),
+			title : 'Copy course',
+			template : nl.t('Are you sure you want to make a private copy of this course?'),
 			okText : nl.t('Copy')
 		};
 		nlDlg.popupConfirm(msg).then(function(result) {
 			if (!result) return;
-			_onCourseSave(null, $scope, dlgScope, null, false);
+            nlDlg.showLoadingScreen();
+            nlServerApi.courseGet(card.courseId, false).then(function(course) {
+                var courseName = course.name; 
+                courseName = (courseName.indexOf("Copy of") == 0) ? courseName : nl.t('Copy of {}', courseName);
+                var dlgScope = {error: {}, data: {
+                    name: courseName,
+                    icon: course.icon,
+                    description: course.description,
+                    content: angular.toJson(course.content, 2)  
+                }};
+                _onCourseSave(null, $scope, dlgScope, null, false);
+            });
 		});
 
 	}
@@ -488,35 +466,26 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	}
 	
 	function _modifyCourse($scope, courseId) {
-		var modifyDlg = nlDlg.create($scope);
-		modifyDlg.setCssClass('nl-height-max nl-width-max');
-        modifyDlg.scope.error = {};
-		var course = courseDict[courseId];
-		$scope.dlgTitle = nl.t('Modify course');
-		modifyDlg.scope.data = {name: course.name, icon: course.icon, 
-								description: course.description, content: angular.toJson(course.content, 2)};
-		
-		var buttons = [];
-		var saveButton = {
-			text : nl.t('Save'),
-			onTap : function(e) {
-				_onCourseSave(e, $scope, modifyDlg.scope, courseId, false);
-			}
-		};
-		buttons.push(saveButton);
-		var publishButton = {
-			text : nl.t('Publish'),
-			onTap : function(e) {
-				_onCourseSave(e, $scope, modifyDlg.scope, courseId, true);
-			}
-		};
-		buttons.push(publishButton);
-
-		var cancelButton = {
-			text : nl.t('Cancel')
-		};
-		modifyDlg.show('view_controllers/course/course_create_dlg.html',
-			buttons, cancelButton, false);
+        nlDlg.showLoadingScreen();
+        nlServerApi.courseGet(courseId, false).then(function(course) {
+            nlDlg.hideLoadingScreen();
+            var modifyDlg = nlDlg.create($scope);
+            modifyDlg.setCssClass('nl-height-max nl-width-max');
+            modifyDlg.scope.error = {};
+            $scope.dlgTitle = nl.t('Modify course');
+            modifyDlg.scope.data = {name: course.name, icon: course.icon, 
+                                    description: course.description, content: angular.toJson(course.content, 2)};
+            
+            var saveButton = {text : nl.t('Save'), onTap : function(e) {
+                _onCourseSave(e, $scope, modifyDlg.scope, courseId, false);
+            }};
+            var publishButton = {text : nl.t('Publish'), onTap : function(e) {
+                _onCourseSave(e, $scope, modifyDlg.scope, courseId, true);
+            }};
+            var cancelButton = {text : nl.t('Cancel')};
+            modifyDlg.show('view_controllers/course/course_create_dlg.html',
+                [saveButton, publishButton], cancelButton);
+        });
 	}
 	
 	function _onCourseSave(e, $scope, dlgScope, courseId, bPublish) {
@@ -549,6 +518,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
             $scope.cards.cardlist.splice(pos, 1);
 	    }
 		$scope.cards.cardlist.splice(0, 0, card);			
+        nlCardsSrv.updateCards($scope.cards);
 	}
 
     function _validateInputs(scope) {
@@ -670,20 +640,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		}
 		nl.log.error('Cannot find modified card', courseId);
 		return 0;
-	}
-	
-	function _getEmptyCard(nlCardsSrv) {
-		var help = null;
-		if (type === 'course' && !my) {
-			help = nl.t('There are no courses published yet.');
-		}
-		if (type === 'assign') {
-			help = nl.t('There are no course assignments yet.');
-		}
-		if (type === 'report' && assignId === 0) {
-			help = nl.t('There are no courses assigned to you yet.');
-		}
-	    return nlCardsSrv.getEmptyCard({help:help});
 	}
 }
 

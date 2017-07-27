@@ -38,9 +38,11 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 			nl.pginfo.pageTitle = nl.t('Search list dashboard');
 	        var params = nl.location.search();
 	        my = ('my' in params) ? parseInt(params.my) == 1: false;
-        	$scope.cards = {};
-			$scope.cards.staticlist = _getStaticCards();
-			$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
+        	$scope.cards = {
+        	    staticlist: _getStaticCards(),
+        	    search: {onSearch: _onSearch, placeholder: nl.t('Enter name/description')}
+        	};
+            nlCardsSrv.initCards($scope.cards);
 			_getDataFromServer(_searchFilterInUrl, resolve, reject);
 		});
 	}
@@ -50,17 +52,13 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	function _getDataFromServer(filter, resolve, reject) {
 		nlServerApi.searchListGetList({mine: my, search: filter})
 		.then(function(resultList) {
-			$scope.cards.cardlist = _getCards(_userInfo, resultList, nlCardsSrv);
-			_addSearchInfo($scope.cards);
+            nlCardsSrv.updateCards($scope.cards, {
+                cardlist: _getCards(_userInfo, resultList, nlCardsSrv)
+            });
 			resolve(true);
 		}, function(reason) {
             resolve(false);
 		});
-	}
-	
-	function _addSearchInfo(cards) {
-		cards.search = {placeholder: nl.t('Enter name/description')};
-		cards.search.onSearch = _onSearch;
 	}
 	
 	function _onSearch(filter) {
@@ -126,12 +124,6 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 		card.links = [];
 		ret.push(card);
 		return ret;
-	}
-
-	function _getEmptyCard(nlCardsSrv) {
-		var help = null;
-			help = nl.t('There are no search lists created yet.');
-	    return nlCardsSrv.getEmptyCard({help:help});
 	}
 
 	$scope.onCardInternalUrlClicked = function(card, internalUrl) {
@@ -205,6 +197,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
             $scope.cards.cardlist.splice(pos, 1);
 	    }
 		$scope.cards.cardlist.splice(0, 0, card);			
+        nlCardsSrv.updateCards($scope.cards);
 	}
 
     function _validateInputs(scope) {
@@ -277,6 +270,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 					if (card.searchlistId !== searchlistId) continue;
 					$scope.cards.cardlist.splice(i, 1);
 				}
+                nlCardsSrv.updateCards($scope.cards);
 			});	
 		});
 	}

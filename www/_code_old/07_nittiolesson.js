@@ -1753,10 +1753,6 @@ nlesson = function() {
 		this.pgSecText.attr('placeholder', help);
 		this.pgSecText.attr('title', help);		
 		this.pgSecText.css(pagetype.getSectionPos(this.secNo));
-		this.pgSecText.click(function(){
-				jQuery('.selectionForImageInsert').removeClass('selectionForImageInsert');
-				jQuery(this).addClass('selectionForImageInsert');
-			});		
 		pgSec.append(this.pgSecText);	
 		this.page.setNextTabIndex(this.pgSecText);
 

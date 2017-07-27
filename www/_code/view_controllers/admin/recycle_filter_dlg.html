@@ -1,4 +1,4 @@
-<nl-dlg title='Narrow down what you are looking for'>
+<nl-dlg title='Advanced search'>
     <nl-dlg-help>
     <div class='padding-mid fsh6'>
     Whenever a course, module, training, course assignment or a course learning report
@@ -13,6 +13,17 @@
     </div>
     </nl-dlg-help>
     <nl-dlg-content>
+        <div class='padding-mid fsh6'>
+            <b>Refining the result:</b>
+            You may change the search filters and press the search 
+            button to retreive fresh set of items that match the
+            updated filter.
+        </div>
+        <div class='padding-mid fsh6' ng-show='canFetchMore'>
+            <b>Fetching more items:</b>
+            To fetch more items with the current search filters,
+            press the fetch more button.
+        </div>
         <div class='row row-wrap row-top padding0 margin0'>
             <div ng-show='show.entitytype' class='w100 nl-dlg-field-name'>What kind of item are you looking for?</div>
             <div ng-show='show.entitytype' class='w100' class='padding0'>

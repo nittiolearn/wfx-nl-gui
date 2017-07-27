@@ -12,38 +12,41 @@
     </span>
 </div>
 
-<div class='padding-small'></div>
-<div ng-show='cards.search' class='nl-card-search row row-center'>
-	<input class='col' ng-model='search.filter'
-	       placeholder='{{cards.search.placeholder}}' ng-keypress='searchKeyHandler($event)'>
-	<i class='sep4'></i>
-
-    <select ng-show='cards.grades' class='col-20 nl-grade-search' ng-model="search.grade" 
-            ng-change='search.onSearch()'
-            ng-options="grade.desc group by grade.grp for grade in cards.grades track by grade.id">
-    </select>
-
-    <i class='sep4'></i>	
-	<img class='nl-link-img' ng-src='{{search.img}}' ng-show='search.onSearch'
-		 tabindex="0"
-		 ng-click='search.onSearch()'/>
-	<i class='sep4'></i>
-	<span class='col col-20 nl-textellipsis nl-link-text'
-	      ng-click='showResultDetails()'>{{search.resultsStr}}</span>
+<div ng-show='cards.search' class='padding-mid'>
+    <div class='padding-small'></div>
+    <div class='row row-center margin0 padding0'>
+        <input class='col padding-mid'
+               ng-model='cards._internal.search.filter'
+               placeholder='{{cards.search.placeholder}}'
+               ng-keydown='searchKeyHandler($event)'>
+    
+        <div ng-show='cards.searchDropdown' class='padding-small'></div>
+        <select ng-show='cards.searchDropdown' class='col-20 nl-search-dropdown' ng-model="cards._internal.search.category" 
+                ng-change='onSearchButton()'
+                ng-options="item.desc group by item.grp for item in cards.searchDropdown track by item.id">
+        </select>
+    
+        <div class='padding-small'></div>
+        <i class='nl-link-text icon fsh4 fblue padding-mid {{cards.search.icon}}'
+           tabindex="0" ng-click='onSearchButton()'></i>
+    </div>
+    <div class='padding-small'></div>
+    <div class='{{cards._internal.search.cls}} anim-highlight-off {{cards._internal.search.clsAnimate}}'
+         ng-click='showResultDetails()'>
+         <div class='padding-mid' ng-bind-html='cards._internal.search.infotxt'></div>
+    </div>
+</div>
+<div ng-hide='cards.search' class='padding-mid'>
 </div>
 
-<div ng-if='!cards.listConfig'  class='nl-card nl-link-text-container' 
-	ng-repeat="card in getCards()" 
-	ng-style="{height: h + 'px', width: w + 'px', 'font-size': fs + '%', 'margin-left': ml + 'px'}">
+<div ng-if='!cards.listConfig'
+     class='nl-card nl-link-text-container anim fade' 
+	 ng-repeat="card in cards._internal.visibleCards" 
+	 ng-style="{height: h + 'px', width: w + 'px', 'font-size': fs + '%', 'margin-left': ml + 'px'}">
 	<nl-card card='card' class='nl-card-holder {{card.style}}'></nl-card>
 </div>
 
-<div ng-if='cards.listConfig && search.results == 0'
-     class='padding-mid anim-enter fade'>
-    <div class='padding-mid'></div>
-    <span class='fsh2'>Nothing to display.</span>
-</div>
-<div ng-if='cards.listConfig && search.results !== 0 && cards.cardlist.length !== 0'
+<div ng-if='cards.listConfig'
      class='padding-mid anim-enter fade'>
 	<nl-listview cards='cards'></nl-listview>
 </div>

@@ -1,11 +1,11 @@
 <table class='nl-table nl-table-styled nl-table-padded fsh6 padding-mid'>
-    <tr>
+    <tr ng-show='cards._internal.visibleCards.length > 0'>
         <th ng-repeat='item in cards.listConfig.columns'
         	ng-show='$root.screenSize != "small" || item.showInSmallScreen'>
         	<span>{{item.name}}</span>
         </th>
     </tr>
-    <tr ng-repeat-start='card in getCards(undefined, true)'
+    <tr ng-repeat-start='card in cards._internal.visibleCards'
     	class='{{cards.listConfig.canShowDetils ? "nl-link-text": ""}} anim fade highlight'
     	ng-click='card.showDetails = !card.showDetails'>
         <td ng-repeat='item in cards.listConfig.columns'

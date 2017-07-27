@@ -29,10 +29,8 @@ var CourseReportSummaryCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlServerApi
 'nlExporter', 'nlRangeSelectionDlg', 'nlGroupInfo', 'nlTable', 'nlCourse',
 function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionDlg,
     nlGroupInfo, nlTable, nlCourse) {
-    var _data = {urlParams: {}, fetchInProgress: false,
-        createdFrom: null, createdTill: null, courseRecords: {},
-        reportRecords: {}, pendingCourseIds: {},
-        reportFetchStartPos: null};
+    var _data = {urlParams: {}, createdFrom: null, createdTill: null, 
+        courseRecords: {}, reportRecords: {}, pendingCourseIds: {}};
 
     var _reportProcessor = new ReportProcessor(nl, nlGroupInfo, nlExporter, _data);
     var _summaryStats = new SummaryStats(nl, nlGroupInfo, _data, _reportProcessor, $scope);
@@ -48,7 +46,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
                 _initScope();
                 _summaryStats.init();
                 _fetcher.fetchCourse(function(result) {
-                    if (result.isError) {
+                    if (!result) {
                         resolve(false);
                         return;
                     }
@@ -66,7 +64,6 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
     var DEFAULT_MAX_LIMIT=5000;
     function _initParams() {
         var params = nl.location.search();
-        _data.urlParams.max = ('max' in params) ? parseInt(params.max) : 50;
         _data.urlParams.limit = ('limit' in params) ? parseInt(params.limit) : DEFAULT_MAX_LIMIT;
         _data.urlParams.courseId = parseInt(params.courseid) || null;
         if (_data.urlParams.courseId)
@@ -209,13 +206,13 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
     }
     
     $scope.canShowToolbarIcon = function(tbid) {
-        if (_data.fetchInProgress) return false;
-        if (tbid != 'fetchmore') return true;
-        return _data.reportFetchStartPos != null;
+        if (_fetcher.fetchInProgress(true)) return false;
+        if (tbid == 'fetchmore') return _fetcher.canFetchMore();
+        return true;
     };
     
     function _showRangeSelection() {
-        if (_fetcher.isFetchInProgress()) return;
+        if (_fetcher.fetchInProgress()) return;
         nlRangeSelectionDlg.show($scope, true).then(function(dateRange) {
             if (!dateRange) return;
             _data.createdFrom = dateRange.updatedFrom;
@@ -224,8 +221,6 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
 
             _data.reportRecords = {};
             _summaryStats.reset();
-            _data.reportFetchStartPos = null;
-
             _getDataFromServer();
         });
     }
@@ -237,14 +232,12 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
     }
     
     function _fetchMore() {
-        if (_fetcher.isFetchInProgress()) return;
-        _getDataFromServer();
+        if (_fetcher.fetchInProgress()) return;
+        _getDataFromServer(true);
     }
 
-    function _getDataFromServer() {
-        nlDlg.showLoadingScreen();
-        _fetcher.fetchReports(function(result) {
-            nlDlg.hideLoadingScreen();
+    function _getDataFromServer(fetchMore) {
+        _fetcher.fetchReports(fetchMore, function(result) {
             _updateScope();
         });
     }
@@ -255,8 +248,8 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         if (cn) title += ': ' + cn;
         nl.pginfo.pageTitle = title;
         
-        $scope.fetchInProgress = _data.fetchInProgress;
-        $scope.canFetchMore = (_data.reportFetchStartPos != null);
+        $scope.fetchInProgress = _fetcher.fetchInProgress(true);
+        $scope.canFetchMore = _fetcher.canFetchMore();
         
         var reportAsList = _getReportsAsList();
         $scope.noDataFound = (reportAsList.length == 0);
@@ -360,7 +353,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
     }
 
     function _onExport() {
-        if (_fetcher.isFetchInProgress()) return;
+        if (_fetcher.fetchInProgress()) return;
         var dlg = nlDlg.create($scope);
         dlg.scope.export = {summary: true, user: true, module: false, ids: false,
             canShowIds: _data.urlParams.isAdmin};
@@ -509,9 +502,14 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
 //-------------------------------------------------------------------------------------------------
 function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats, nlCourse) {
     var self = this;
+    var _pageFetcher = nlServerApi.getPageFetcher(50, 'course learning record');
     
-    this.isFetchInProgress = function(dontShowAlert) {
-        if (!_data.fetchInProgress) return false;
+    this.canFetchMore = function() {
+        return _pageFetcher.canFetchMore();
+    };
+    
+    this.fetchInProgress = function(dontShowAlert) {
+        if (!_pageFetcher.fetchInProgress()) return false;
         if (dontShowAlert) return true;
         nlDlg.popupAlert({title: 'Please wait', template: 'Currently feching data from server. You can initiate the next operation once the fetching is completed.'});
         return true;
@@ -521,23 +519,18 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats,
         return _fetchCourses(onDoneCallback);
     };
     
-    this.fetchReports = function(onDoneCallback) {
-        if (this.isFetchInProgress()) {
-            onDoneCallback({isError: true});
+    this.fetchReports = function(fetchMore, onDoneCallback) {
+        if (this.fetchInProgress()) {
+            onDoneCallback(false);
             return;
         }
-        _data.fetchInProgress = true;
-        _fetchReports(function(result) {
-            if (result.isError) {
-                _data.fetchInProgress = false;
-                onDoneCallback(result);
+        _fetchReports(fetchMore, function(results) {
+            if (!results) {
+                onDoneCallback(false);
                 return;
             }
-            if (result.fetchDone) _data.fetchInProgress = false;
-
-            var records = result.resultset;
-            for (var i=0; i<records.length; i++) {
-                var report = records[i];
+            for (var i=0; i<results.length; i++) {
+                var report = results[i];
                 report = _reportProcessor.process(report);
                 if (!report) continue;
                 var rid = report.raw_record.id;
@@ -546,27 +539,24 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats,
                 _data.reportRecords[rid] = report;
                 _summaryStats.addToStats(report);
             }
-            onDoneCallback(result);
+            onDoneCallback(results);
         });
     };
     
     //-----------------------------------------------------------------------------------
-    function _fetchReports(onDoneCallback) {
-        var params = {compact: true, startpos: _data.reportFetchStartPos,
-            max: _data.urlParams.max, createdfrom: _data.createdFrom,
+    function _fetchReports(fetchMore, onDoneCallback) {
+        var params = {compact: true, createdfrom: _data.createdFrom,
             createdtill: _data.createdTill};
         if (_data.urlParams.courseId) params.courseid = _data.urlParams.courseId;
         
-        nlServerApi.batchFetch(nlServerApi.courseGetAllReportList, params, function(result, promiseHolder) {
-            if (result.isError) {
-                onDoneCallback(result);
+        _pageFetcher.fetchBatchOfPages(nlServerApi.courseGetAllReportList, params, fetchMore, 
+        function(results, batchDone, promiseHolder) {
+            if (!results) {
+                onDoneCallback(false);
                 return;
             }
-            _data.reportFetchStartPos = result.canFetchMore ? result.nextStartPos : null;
-
-            var records = result.resultset;
-            for(var i=0; i<records.length; i++) {
-                var courseid = records[i].courseid;
+            for(var i=0; i<results.length; i++) {
+                var courseid = results[i].courseid;
                 if (courseid in _data.courseRecords) continue;
                 _data.pendingCourseIds[courseid] = true;
             }
@@ -574,21 +564,21 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats,
             if (Object.keys(_data.pendingCourseIds).length > 0) {
                 promiseHolder.promise = nl.q(function(resolve, reject) {
                     _fetchCourses(function(result2) {
-                        if (result2.isError) {
+                        if (!result2) {
                             resolve(false);
-                            onDoneCallback(result2);
+                            onDoneCallback(false);
                             return;
                         }
                         resolve(true);
-                        onDoneCallback(result);
+                        onDoneCallback(results);
                     })
                 });
             } else {
                 nl.timeout(function() {
-                    onDoneCallback(result);
+                    onDoneCallback(results);
                 });
             }
-        }, _data.urlParams.limit, 'course learning record');
+        }, _data.urlParams.limit);
     }
     
     //-----------------------------------------------------------------------------------
@@ -605,7 +595,7 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats,
         var maxLen = cids.length < startPos + MAX_PER_BATCH ? cids.length : startPos + MAX_PER_BATCH;
         for(var i=startPos; i<maxLen; i++) courseIds.push(cids[i]);
         if (courseIds.length == 0) {
-            onDoneCallback({isError: false, fetchDone: true});
+            onDoneCallback(true);
             return;
         }
         nlServerApi.courseGetMany(courseIds, true).then(function(result) {
@@ -617,7 +607,7 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats,
             startPos += result.length;
             _fetchCoursesInBatchs(cids, startPos, onDoneCallback);
         }, function(error) {
-            onDoneCallback({isError: true, errorMsg: error});
+            onDoneCallback(false);
         });
     }
 }
@@ -848,7 +838,7 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
                 maxScore = maxScore || '';
                 score = score || '';
                 started = lrep.started || '';
-                ended = lrep.started || '';
+                ended = lrep.ended || '';
                 timeSpent = Math.ceil((lrep.timeSpentSeconds||0)/60);
                 attempts = lrep.attempt || '';
                 status = !lrep.completed ? 'started' :

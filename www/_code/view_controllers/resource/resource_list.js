@@ -40,7 +40,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 	var _userInfo = null;
 	var _allCardsForReview = [];
 	var _type = 'my';
-	var search = null;
 	var _bFirstLoadInitiated = false;
 	
 	function _isMine(_type) {
@@ -52,16 +51,17 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 		return nl.q(function(resolve, reject) {
 			var params = nl.location.search();
 			_type = params.type || 'my'; // can be my, all or upload
-			search = ('search' in params) ? params.search : null;
 			nl.pginfo.pageTitle = _updatePageTitle(); 
-			$scope.cards = {};
-			$scope.cards.staticlist = _getStaticCard();
-			$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
+			$scope.cards = {
+			    staticlist: _getStaticCard(),
+		        search: {}
+		    };
+            nlCardsSrv.initCards($scope.cards);
 			if (_type == 'upload') {
 				_addModifyResource($scope, null);
 				resolve(true);
 			} else {
-				_getDataFromServer(resolve, reject);
+				_getDataFromServer(resolve);
 			}
 		});
 	}
@@ -70,13 +70,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 	
 	function _updatePageTitle(){
 		return _isMine(_type) ? nl.t('My resources') : nl.t('All resources');
-	}
-	
-	function _getEmptyCard(nlCardsSrv) {
-		var help = help = nl.t('There are no assignments to display.');
-		return nlCardsSrv.getEmptyCard({
-			help : help
-		});
 	}
 	
 	function _getStaticCard() {
@@ -98,52 +91,42 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
     	var resid = card.Id || 0;
     	if (internalUrl === 'resource_delete') _deleteResource($scope, resid);
     	if (internalUrl === 'resource_upload') _addModifyResource($scope, null);
-    	if(internalUrl === 'resource_copy') _showLinkCopyDlg($scope, card);
-		if(internalUrl === 'resource_modify')  _addModifyResource($scope, card);
+    	if (internalUrl === 'resource_copy') _showLinkCopyDlg($scope, card);
+		if (internalUrl === 'resource_modify') _addModifyResource($scope, card);
+        if (internalUrl === 'fetch_more') _getDataFromServer(null, true);
     };
 
-	$scope.onCardLinkClicked = function(card, linkId){
-		var resid = card.Id;
-		if(linkId == 'resource_modify'){
-			_addModifyResource($scope, card);
-		} else if(linkId == 'resource_delete'){
-			_deleteResource($scope, resid);
-		}
+	$scope.onCardLinkClicked = function(card, linkId) {
+	    $scope.onCardInternalUrlClicked(card, linkId);
 	};
 
-	function _updateDataFromServer() {
-		return nl.q(function(resolve, reject) {
-			nlDlg.showLoadingScreen();
-			_getDataFromServer(resolve, reject);
-		}).then(function() {
-			nlDlg.hideLoadingScreen();
-		});
-	}
-	
-	function _getDataFromServer(resolve, reject) {
+    var _pageFetcher = nlServerApi.getPageFetcher(20);
+	function _getDataFromServer(resolve, fetchMore) {
 		_bFirstLoadInitiated = true;
 		var data = {mine: _isMine(_type)};
-		if (search) data.search = search;
-		nlServerApi.resourceGetList(data).then(function(resultList) {
-			$scope.cards.cardlist = _getResourceCards(_userInfo, resultList);
-			_addSearchInfo($scope.cards);
-			resolve(true);
-		}, function(reason) {
-			resolve(false);
+		_pageFetcher.fetchPage(nlServerApi.resourceGetList, 
+		    data, fetchMore, function(resultList) {
+	        if(!resultList) {
+	            if (resolve) resolve(false);
+	            return;
+	        }
+	        $scope.cards.canFetchMore = _pageFetcher.canFetchMore();
+            if (!fetchMore) $scope.cards.cardlist = [];
+            _updateResourceCards(resultList, $scope.cards.cardlist);
+            nlCardsSrv.updateCards($scope.cards);
+			if (resolve) resolve(true);
 		});
 	}
 
-	
-	function _getResourceCards(userInfo, resultList) {
-		var cards = [];
+	function _updateResourceCards(resultList, cards) {
 		for (var i = 0; i < resultList.length; i++) {
-			var card = _createResourceCard(resultList[i], userInfo);
+			var card = _createResourceCard(resultList[i]);
 			cards.push(card);
 		}
 		return cards;
 	}
 
-	function _createResourceCard(resource, userInfo) {
+	function _createResourceCard(resource) {
 		var url = null;
 		var image = null;
 		var internalUrl = 'resource_copy';
@@ -180,7 +163,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 			help : resource.description,
 			avps : _getResourceListAvps(resource)
 		};
-		if (_isMine(_type) && userInfo.permissions.admin_user) {
+		if (_isMine(_type) && _userInfo.permissions.admin_user) {
 			card.links = [{id : 'resource_modify', text : nl.t('modify')},
 						  {id : 'resource_delete', text : nl.t('delete')},
 					  	  {id : 'details', text : nl.t('details')}];
@@ -232,21 +215,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 		}
 	}
 	
-	function _addSearchInfo(cards) {
-		cards.search = {placeholder : nl.t('Name/Subject/Remarks/Keyword')};
-		cards.search.onSearch = _onSearch;
-	};
-
-	function _onSearch(filter) {
-		search = filter;
-		_updateDataFromServer();
-	}
-
 	function _addModifyResource($scope, card){
 		nlResourceAddModifySrv.show($scope, card, _userInfo.groupinfo.restypes)
 		.then(function(resInfos) {
 			if (_bFirstLoadInitiated && resInfos.length == 0) return;
-			_updateDataFromServer();
+			_getDataFromServer();
 		});
 	}
 
@@ -271,9 +244,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 			if (!result) return;
 			nlDlg.showLoadingScreen();
 			nlServerApi.resourceDelete(resid).then(function(status) {
-				nlDlg.hideLoadingScreen();
-				nlDlg.closeAll();
-				_updateDataFromServer();
+                nlDlg.closeAll();
+				_getDataFromServer();
 			});	
 		});
 	}

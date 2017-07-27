@@ -62,7 +62,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
     var _rnoServer = new RnoServer(nl, nlServerApi, nlDlg, true);
     var _observationManager = new ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg);
     var _cards = {};
-    var _rnoReportManageForm = new RnoReportManageForm(nl, nlDlg, nlPrinter, _rnoServer, _observationManager, _cards);
+    nlCardsSrv.initCards(_cards);
+    var _rnoReportManageForm = new RnoReportManageForm(nl, nlDlg, nlCardsSrv, nlPrinter, _rnoServer, _observationManager, _cards);
 
     function _onPageEnter(userInfo) {
         nl.pginfo.hidemenu = true;
@@ -149,11 +150,11 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 	 */
     var _rnoDict = {};
     var _searchFilterInUrl = '';
-    var _gradeFilterInUrl = '';
+    var _searchCategoryInUrl = '';
     var _rnoServer = new RnoServer(nl, nlServerApi, nlDlg, false);
 	var _observationManager = new ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg);
     var _cards = {};
-    var _rnoReportManageForm = new RnoReportManageForm(nl, nlDlg, nlPrinter, _rnoServer, _observationManager, _cards);
+    var _rnoReportManageForm = new RnoReportManageForm(nl, nlDlg, nlCardsSrv, nlPrinter, _rnoServer, _observationManager, _cards);
 
 	function _onPageEnter(userInfo) {
 	    _pageGlobals.userInfo = userInfo;
@@ -173,8 +174,11 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
                 if (_pageGlobals.role == 'admin') nl.pginfo.pageTitle += ' - administration'; 
                 if (_pageGlobals.role == 'review') nl.pginfo.pageTitle += ' - review'; 
                 $scope.cards = _cards;
-                _cards.staticlist = _getStaticCards();
-                _cards.emptycard = nlCardsSrv.getEmptyCard();
+                nlCardsSrv.initCards(_cards, {
+                    staticlist: _getStaticCards(),
+                    search: {onSearch: _onSearch, placeholder: _pageGlobals.metadata.searchTitle},
+                    searchCategories: _getUtSecOptions()
+                });
                 _getDataFromServer(resolve, reject);
             });
 		});
@@ -211,7 +215,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 		_rnoDict = {};
         var params = nl.location.search();
         _searchFilterInUrl = ('search' in params) ? params.search : '';
-        _gradeFilterInUrl = ('grade' in params) ? params.grade : '';
+        _searchCategoryInUrl = ('category' in params) ? params.category : '';
         _pageGlobals.metadataId = ('metadata' in params) ? parseInt(params.metadata) : 0;
         _pageGlobals.metadataIdParent = _pageGlobals.metadataId;
         _pageGlobals.role = ('role' in params) ? params.role : 'observe';
@@ -219,26 +223,24 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 	}
 	
     function _getStaticCards() {
-        var card0 = {title: nl.t('Statistics'), 
+        var ret = [{title: nl.t('Statistics'), 
                     icon: nl.url.resUrl('dashboard/reports.png'), 
                     url: nl.fmt2('/#/rno_stats?metadata={}&role={}', 
                         _pageGlobals.metadataId, _pageGlobals.role),
                     help: nl.t('View key statistics by click on this card.'), 
-                    children: [], style: 'nl-bg-blue'};
-        card0.links = [];
+                    children: [], style: 'nl-bg-blue', links: []}];
         if (_pageGlobals.role != 'admin' ||
-            !nlRouter.isPermitted(_pageGlobals.userInfo, 'admin_user')) return [card0];
-        var card = {title: _pageGlobals.metadata.createCardTitle, 
+            !nlRouter.isPermitted(_pageGlobals.userInfo, 'admin_user')) return ret;
+        ret.push({title: _pageGlobals.metadata.createCardTitle, 
                     icon: _pageGlobals.metadata.createCardIcon, 
                     internalUrl: 'rno_create',
                     help: _pageGlobals.metadata.createCardHelp, 
-                    children: [], style: 'nl-bg-blue'};
-        card.links = [];
-        return [card0, card];
+                    children: [], style: 'nl-bg-blue', links: []});
+        return ret;
     }
 
 	function _getDataFromServer(resolve, reject) {
-	    var utSec = _gradeFilterInUrl.split('.');	    
+	    var utSec = _searchCategoryInUrl.split('.');	    
         nlServerApi.rnoGetList({metadata: _pageGlobals.metadataIdParent,
                                 search: _searchFilterInUrl, user_type: utSec[0] || '', 
                                 section: utSec[1] || '',
@@ -246,25 +248,19 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
                                 max: _pageGlobals.max})
         .then(function(resultList) {
 			nl.log.debug('Got result: ', resultList.length);
-			_cards.cardlist = _getCards(resultList, nlCardsSrv);
-			_addSearchInfo(_cards);
+            nlCardsSrv.updateCards(_cards, {
+                cardlist: _getCards(resultList, nlCardsSrv)
+            });
 			resolve(true);
 		}, function(reason) {
             resolve(false);
 		});
 	}
 
-    function _addSearchInfo(cards) {
-        cards.search = {placeholder: _pageGlobals.metadata.searchTitle};
-        cards.search.onSearch = _onSearch;
-        nlCardsSrv.updateGrades(cards, _getUtSecOptions());
-        // cards.search.img = nl.url.resUrl('info.png');
-    }
-    
-    function _onSearch(filter, grade) {
+    function _onSearch(filter, category) {
         nlDlg.showLoadingScreen();
         var promise = nl.q(function(resolve, reject) {
-            _gradeFilterInUrl = grade || '';
+            _searchCategoryInUrl = category || '';
             _searchFilterInUrl = filter || '';
             _getDataFromServer(resolve, reject);
         });
@@ -293,7 +289,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 					icon: _getCardIcon(nl, rno.config), 
                     internalUrl: internalUrl,
 					help: help,
-					grade: _getCardGrade(rno),
+					category: _getUtSec(rno),
 					children: [], links: []};
         if (_pageGlobals.role != 'admin') {
             card.links.push({id: 'rno_modify', text: nl.t('modify')});
@@ -315,7 +311,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 		return card;
 	}
 	
-	function _getCardGrade(rno) {
+	function _getUtSec(rno) {
         if (!rno.config.section) return rno.config.user_type;
         if (!rno.config.user_type) return rno.config.section;
         return rno.config.user_type + '.' + rno.config.section;
@@ -373,6 +369,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 					if (card.rnoId !== rnoId) continue;
 					_cards.cardlist.splice(i, 1);
 				}
+                nlCardsSrv.updateCards(_cards);
 			});	
 		});
 	}
@@ -464,6 +461,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
             _cards.cardlist.splice(pos, 1);
 	    }
 		_cards.cardlist.splice(0, 0, card);			
+        nlCardsSrv.updateCards(_cards);
 	}
 
     function _validateInputs(scope) {
@@ -713,7 +711,7 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function RnoReportManageForm(nl, nlDlg, nlPrinter, _rnoServer, _observationManager, _cards) {
+function RnoReportManageForm(nl, nlDlg, nlCardsSrv, nlPrinter, _rnoServer, _observationManager, _cards) {
     var $scope = null;
     var rno = null;
     var formScope = null;
@@ -818,11 +816,13 @@ function RnoReportManageForm(nl, nlDlg, nlPrinter, _rnoServer, _observationManag
     function _onDlgClose() {
         _saveReport(false);
         $scope.cards = _cards;
+        nlCardsSrv.updateCards(_cards);
     }
 
     function _onSave() {
         _saveReport(true);
         $scope.cards = _cards;
+        nlCardsSrv.updateCards(_cards);
     }
 
     function _onCreateObservation() {
@@ -954,7 +954,7 @@ function RnoReportManageForm(nl, nlDlg, nlPrinter, _rnoServer, _observationManag
             sender: metaMailData.sender || 'Nittio Learn',
             brandingTopImgs: metaMailData.brandingTopImgs || [],
             brandingBottomImgs: metaMailData.brandingBottomImgs || [],
-            bgimg: ('bgimg' in metaMailData) ? metaMailData.bgimg : nl.url.resUrl('background/bg-sky.png'),
+            bgimg: ('bgimg' in metaMailData) ? metaMailData.bgimg : nl.url.resUrl('bg-sky2.png'),
             parentLogin: metaMailData.parent_login_id,
             type: bReport ? 'report' : 'observation',
             typeStr: bReport ? 'Progress report' : 'Observation report',

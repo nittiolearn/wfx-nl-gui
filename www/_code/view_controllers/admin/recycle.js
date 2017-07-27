@@ -29,9 +29,6 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
     var _groupInfo = null;
     var _isAdmin = false;
 
-    var _nextStartPos = null;
-    var _canFetchMore = true;
-
 	function _onPageEnter(userInfo) {
 		return nl.q(function(resolve, reject) {
 		    _isAdmin = nlRouter.isPermitted(userInfo, 'admin_user');
@@ -42,13 +39,12 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
             _copyBoolIf(params, _params, 'restored');
             if (!_isAdmin) _params.mine = true;
 
-            $scope.cards = {};
-            $scope.cards.search = {placeholder: nl.t('Search'), onSearch: _onSearch};
+            $scope.cards = {search: {onSearch: _onSearch}};
+            nlCardsSrv.initCards($scope.cards);
             nl.pginfo.pageTitle = nl.t('Archived items');
-
             nlGroupInfo.init().then(function() {
                 _groupInfo = nlGroupInfo.get();
-                _getDataFromServer(false, resolve);
+                _getDataFromServer(resolve);
             });
 
 		});
@@ -68,23 +64,28 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
 		}
 	};
 	
-    function _onSearch(filter, grade, onSearchParamChange) {
+    function _onSearch(filter) {
         var dlg = nlDlg.create($scope);
+        dlg.scope.canFetchMore = _pageFetcher.canFetchMore();
         dlg.scope.error = {};
         dlg.scope.show = {entitytype: true, actiontype: true, restored: true, 
             mine: _isAdmin, name: true, entityid: _isAdmin};
-        dlg.scope.options = _getFilerOptions();
+        dlg.scope.options = _getFilterOptions();
         dlg.scope.data = angular.copy(_getCurrentFilters(dlg.scope.options));
 
-        var okButton = {text : nl.t('Fetch'), onTap : function(e) {
+        var okButton = {text : nl.t('Search'), onTap : function(e) {
             _currentFilters = dlg.scope.data;
-            _getDataFromServer(false);
+            _getDataFromServer();
+        }};
+        var fetchMoreButton = {text : nl.t('Fetch more'), onTap : function(e) {
+            _fetchMore();
         }};
         var closeButton = {text : nl.t('Cancel')};
-        dlg.show('view_controllers/admin/recycle_filter_dlg.html', [okButton], closeButton);
+        dlg.show('view_controllers/admin/recycle_filter_dlg.html', 
+            [okButton, fetchMoreButton], closeButton);
     }
     
-    function _getFilerOptions() {
+    function _getFilterOptions() {
         var opts = {
             entitytype: [
                 {id: 'all', name: 'All items'},
@@ -111,7 +112,7 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
     var _currentFilters = null;
     function _getCurrentFilters(opts) {
         if (_currentFilters) return _currentFilters;
-        if (!opts) opts = _getFilerOptions();
+        if (!opts) opts = _getFilterOptions();
         _currentFilters = {
             entitytype: {id: _params.entitytype || opts.entitytype[0].id},
             actiontype: {id: _params.actiontype || opts.actiontype[1].id},
@@ -140,35 +141,25 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
         return serverParams;
     }
     
-    function _getDataFromServer(fetchMore, resolve) {
-        if (!fetchMore) {
-            _cards = {};
-            _nextStartPos = null;
-        }
-        
+    var _pageFetcher = nlServerApi.getPageFetcher();
+    function _getDataFromServer(resolve, fetchMore) {
+        if (!fetchMore) _cards = {};
         var params = _getServerParams();
-        if (_nextStartPos) params.startpos = _nextStartPos;
-
-        nlDlg.showLoadingScreen();
-        nlServerApi.batchFetch(nlServerApi.recyclebinList, params, function(result) {
-            if (result.isError) {
+        _pageFetcher.fetchPage(nlServerApi.recyclebinList, params, fetchMore, function(results) {
+            if (!results) {
                 if (resolve) resolve(false);
                 return;
             }
-            _canFetchMore = result.canFetchMore;
-            _nextStartPos = result.nextStartPos;
-
-            var lst = result.resultset;
-            _updateCards(lst);
-            
-            if (!result.fetchDone) return;
+            _updateCards(results);
+            nlCardsSrv.updateCards($scope.cards, {
+                canFetchMore: _pageFetcher.canFetchMore()
+            });
             if (resolve) resolve(true);
-            nlDlg.hideLoadingScreen();
         });
     }
 
     function _fetchMore() {
-        _getDataFromServer(true);
+        _getDataFromServer(null, true);
     }
 
     var _cards = {};
@@ -186,9 +177,7 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
         cards.sort(function(a, b) {
             return (b.created - a.created);
         });
-		$scope.cards.rebuildCache = true;
-		$scope.cards.cardlist = cards;
-        $scope.cards.canFetchMore = _canFetchMore;
+        $scope.cards.cardlist = cards;
 	}
 	
 	var _typeInfos = {
@@ -250,7 +239,7 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
             if (!confirm) return;
             nlDlg.showLoadingScreen();
             nlServerApi.recyclebinRestore(card.id).then(function(item) {
-                _getDataFromServer(false);
+                _getDataFromServer();
                 nlDlg.hideLoadingScreen();
                 nlDlg.popupAlert({title: 'Done', template: 'Restored the version'});
             });

@@ -43,11 +43,16 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
+var DEFAULT_MAX_LIMIT=5000;
+
 function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
     var self = this;
 	this.initFromUrl = function() {
 		var params = nl.location.search();
-        self.limit = ('limit' in params) ? params.limit : (reptype == 'user') ? 50: null;
+        self.limit = ('limit' in params) ? params.limit 
+            : (reptype == 'user') ? 50
+            : (reptype == 'group') ? DEFAULT_MAX_LIMIT
+            : null;
 
 		if (reptype == 'assignment') {
             self.assignid = ('assignid' in params) ? parseInt(params.assignid) : null;
@@ -55,19 +60,11 @@ function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
 		} else if (reptype == 'user') {
             self.userid = ('userid' in params) ? params.userid : null;
 		}
-        self.initVars();
         return true;
 	};
 
-	this.initVars = function() {
-        self.nextStartPos = null;
-        self.dataFetchInProgress = true;
-        self.canFetchMore = true;
-	};
-
-	this.getAssignmentReports = function(dateRange, callbackFn) {
+	this.getAssignmentReportsParams = function(dateRange) {
 		var data = {reptype: reptype};
-        if (self.nextStartPos) data.startpos = self.nextStartPos;
 		if (reptype == 'assignment') {
 		    data.assignid = self.assignid;
 		} else if (reptype == 'user') {
@@ -77,18 +74,7 @@ function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
 		    data.updatedfrom = dateRange.updatedFrom;
 		    data.updatedtill = dateRange.updatedTill;
 		}
-		self.dataFetchInProgress = true;
-		nlServerApi.batchFetch(nlServerApi.assignmentReport, data, function(result) {
-            if (result.isError) {
-                self.dataFetchInProgress = false;
-                callbackFn(true, null);
-                return;
-            }
-            self.dataFetchInProgress = !result.fetchDone;
-            self.nextStartPos = result.nextStartPos;
-            self.canFetchMore = result.canFetchMore;
-            callbackFn(false, result.resultset);
-		}, self.limit);
+		return data;
 	};
 
 	this.pageTitle = function(rep) {
@@ -130,18 +116,18 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
     		    resolve(false);
     		    return;
     		}
-    		$scope.cards = {};
-            _addSearchInfo($scope.cards);
-    		$scope.cards.emptycard = _getEmptyCard(nlCardsSrv);
-			if(reptype == 'group') $scope.cards.toolbar = _getToolbar();
-            $scope.cards.staticlist = [];
+    		$scope.cards = {
+                search: {placeholder: nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)}
+    		};
+            if(reptype == 'group') $scope.cards.toolbar = _getToolbar();
+            nlCardsSrv.initCards($scope.cards);
             nl.pginfo.pageTitle = mode.pageTitle(); 
             nlGroupInfo.init().then(function() {
                 nlGroupInfo.update();
 	            if(reptype == 'group') {
 	            	_showRangeSelection(resolve);
 	            } else {
-	                _getDataFromServer(false, resolve);
+	                _getDataFromServer(resolve);
 	            }
             }, function() {
                 resolve(false);
@@ -159,7 +145,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	}
 
 	function _onDatetimeIconClick() {
-        if(mode.dataFetchInProgress) {
+        if(_pageFetcher.fetchInProgress()) {
             nlDlg.popupAlert({title: 'Data still loading', 
                 content: 'Still loading data from server. Please change date/time after the complete data is loaded.'});
             return;
@@ -175,15 +161,8 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	        }
             nlDlg.showLoadingScreen();
             dateRange = data;
-            _getDataFromServer(false, resolve);
+            _getDataFromServer(resolve);
 	    });
-	}
-
-	function _getEmptyCard(nlCardsSrv) {
-		var help = help = nl.t('There are no assignments to display.');
-		return nlCardsSrv.getEmptyCard({
-			help : help
-		});
 	}
 
 	$scope.onCardLinkClicked = function(card, linkid) {
@@ -207,33 +186,35 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	};	
 
     function _fetchMore() {
-        nlDlg.showLoadingScreen();
-        _getDataFromServer(true, null);
+        _getDataFromServer(null, true);
     }
     
-	function _getDataFromServer(fetchMore, resolve) {
+    var _pageFetcher = nlServerApi.getPageFetcher();
+	function _getDataFromServer(resolve, fetchMore) {
 	    if (!fetchMore) {
-            mode.initVars();
-            $scope.cards.cardlist = [];
-            $scope.cards.staticlist = [];
+            nlCardsSrv.updateCards($scope.cards, {cardlist: [], staticlist: []});
             reportStats = NlAssignReportStats.createReportStats(reptype, $scope);
 	    }
-		mode.getAssignmentReports(dateRange, function(isError, result) {
-		    if (isError) {
-		        if (resolve) resolve(false);
-		        return;
-		    }
-            reportStats.updateReports(result);
-            _appendAssignmentReportCards(result, $scope.cards.cardlist);
-            if ($scope.cards.staticlist.length == 0 && result.length > 0) {
+	    var params = mode.getAssignmentReportsParams(dateRange);
+        _pageFetcher.fetchBatchOfPages(nlServerApi.assignmentReport, params, fetchMore, function(results, batchDone) {
+            if (!results) {
+                if (resolve) resolve(false);
+                return;
+            }
+
+            reportStats.updateReports(results);
+            _appendAssignmentReportCards(results, $scope.cards.cardlist);
+            if ($scope.cards.staticlist.length == 0 && results.length > 0) {
                 _appendChartCard($scope.cards.staticlist);
             }
             _updateChartCard(reportStats);
             _updateStatusOverview();
-            _addSearchInfo($scope.cards);
-            nlDlg.hideLoadingScreen();
+
+            nlCardsSrv.updateCards($scope.cards, {
+                canFetchMore: !_pageFetcher.fetchInProgress() && _pageFetcher.canFetchMore()
+            });
             if (resolve) resolve(true);
-		});
+        }, mode.limit);
 	}
 	
 	function _appendAssignmentReportCards(resultList, cardlist) {
@@ -428,7 +409,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
     }
     
     function _assignmentExport($scope) {
-        if(mode.dataFetchInProgress) {
+        if(_pageFetcher.fetchInProgress()) {
             nlDlg.popupAlert({title: 'Data still loading', 
                 content: 'Still loading data from server. Please export after the complete data is loaded.'});
             return;
@@ -483,7 +464,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	function _initAssignmentShareDlg(assignmentShareDlg, sharedUsersList){
 		assignmentShareDlg.setCssClass('nl-height-max nl-width-max');
 		assignmentShareDlg.scope.data.users = sharedUsersList;
-		assignmentShareDlg.scope.data.removeicon = nl.url.resUrl('quick-links/close.png');
+		assignmentShareDlg.scope.data.removeicon = nl.url.resUrl('close2.png');
 		assignmentShareDlg.scope.data.sharedWith = nl.t('Not shared with any user:');
 		assignmentShareDlg.scope.data.sharedUsersIds = _updateOuTree(sharedUsersList, assignmentShareDlg);
 		assignmentShareDlg.scope.data.sharedUsers = assignmentShareDlg.scope.data.sharedUsersIds[0];
@@ -529,19 +510,6 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 		if(alreadySharedUsers.length == 1) assignmentShareDlg.scope.data.sharedWith = nl.t('Shared With {} user:', alreadySharedUsers.length);
 		if(alreadySharedUsers.length > 1) assignmentShareDlg.scope.data.sharedWith = nl.t('Shared With {} users:', alreadySharedUsers.length);
 	}
-	
-	function _addSearchInfo(cards) {
-		cards.search = {
-			placeholder : nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)
-		};
-		cards.search.onSearch = _onSearch;
-        cards.canFetchMore = !mode.dataFetchInProgress && mode.canFetchMore;
-	}
-
-	function _onSearch(filter) {
-	    return; // Do nothing as all data are already fetched - just search locally!
-	}
-	
 	
 	function _showOuListDlg(parentScope, assignmentShareDlg, ouList){
 		var ouSelectionDlg = nlDlg.create(parentScope);

@@ -17,41 +17,125 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var CardsSrv = ['nl',
-function(nl) {
-	this.getEmptyCard = function(emptyCard) {
-		var card = (emptyCard) ? emptyCard : {};
-		if (!card.title) card.title = nl.t('Nothing to display');
-		if (!card.help) card.help = nl.t('There is no data to display.');
-		if (!card.icon && !card.icon2) card.icon2 = 'ion-minus-circled fblue';
-		card.links = [];
-		card.style = 'nl-bg-blue';
-		card.children = [];
-		return card;
-	};
-	
-	this.updateGrades = function(cards, grades) {
-		cards.grades = [{id: null, desc: 'All', grp: ''}].concat(grades);
-	};
+var CardsSrv = ['nl', '$filter', 
+function(nl, $filter) {
+    var self = this;
+
+    // Just for documentation    
+    var _knownAttrs = {
+        'toolbar': 1, 
+        'search': 1, 
+        'staticlist': 1,
+        'searchCategories': 1, // Currently used only in RNO code
+
+        'cardlist': 1, 
+        'canFetchMore': 1,
+        'listConfig': 1
+    };
+
+    this.initCards = function(cards, params) {
+        var urlParams = nl.location.search();
+        var searchParam = ('search' in urlParams) ? urlParams.search : '';
+        var category = ('category' in urlParams) ? urlParams.category : null;
+        cards._internal = {visibleCards: [], clickDebouncer: nl.CreateDeboucer(),
+            search: {filter: searchParam, category: {id: category}, infotxt: ''}
+        };
+        this.updateCards(cards, params);
+    };
+
+    this.updateCards = function(cards, params) {
+        if (!params) params = {};
+        for(var attr in params) cards[attr] = params[attr];
+        if (!cards.staticlist) cards.staticlist = [];
+        if (!cards.cardlist) cards.cardlist = [];
+        if ('searchCategories' in cards) {
+            cards.searchDropdown = [{id: null, desc: 'All', grp: ''}];
+            for (var i=0; i<cards.searchCategories.length; i++) {
+                var c = cards.searchCategories[i];
+                cards.searchDropdown.push({id: c, desc: c, grp: ''});
+            }
+        }
+        if (cards.search) {
+            if(!cards.search.placeholder)
+                cards.search.placeholder = 'Start typing to search';            
+            if (!cards.search.icon) cards.search.icon = 'ion-ios-search';
+        } 
+        _updateInternal(cards);
+    };
+    
+    this.updateInternal = function(cards, timeout) {
+        cards._internal.clickDebouncer.debounce(timeout, _updateInternal)(cards);
+    };
+
+    var _MAX_VISIBLE = 100;
+    function _updateInternal(cards) {
+        var filteredCards = cards.cardlist;
+        if (cards.search) {
+            var search = cards._internal.search;
+            filteredCards = $filter('nlFilter')(filteredCards, search.filter, search.category);
+        }
+        var len = filteredCards.length > _MAX_VISIBLE ? _MAX_VISIBLE : filteredCards.length;
+        var recs = cards.staticlist.concat(filteredCards.slice(0, len));
+        cards._internal.search.visible = len;
+        _updateInfotext(cards.cardlist.length, len, cards);
+        cards._internal.visibleCards = recs;
+    }
+
+    function _animateInfotext(cards, oldInfotxt) {
+        if (oldInfotxt == cards._internal.search.infotxt) return;
+        cards._internal.search.clsAnimate = 'anim-highlight-on';
+        nl.timeout(function() {
+            cards._internal.search.clsAnimate = '';
+        }, 800);
+    }
+    
+    function _updateInfotext(total, visible, cards) {
+        var oldInfotxt = cards._internal.search.infotxt;
+        var msg1 = nl.t('There are no items to display.');
+        cards._internal.search.cls = 'fgrey2';
+        cards._internal.search.showDetails = false;
+        if (total == 0) {
+            cards._internal.search.infotxt = nl.fmt2('<i class="padding-mid icon ion-alert-circled"></i>{}', 
+                msg1);
+            cards._internal.search.infotxt2 = msg1;
+            cards._internal.search.cls = 'forange fsh4 nl-link-text';
+            return _animateInfotext(cards, oldInfotxt);
+        }
+        var item = (total == 1) ? 'item' : 'items';
+        var match = (visible == 1) ? 'match' : 'matches';
+        msg1 = nl.t('Found <b>{}</b> {} from <b>{}</b> {} searched.', visible, match, total, item);
+        if (!cards.canFetchMore) {
+            cards._internal.search.infotxt = nl.t('{} Search complete.', msg1);
+            cards._internal.search.infotxt2 = msg1;
+            return _animateInfotext(cards, oldInfotxt);
+        }
+        cards._internal.search.cls = 'fgrey2 nl-link-text';
+        cards._internal.search.showDetails = true;
+        cards._internal.search.infotxt = nl.t('{} <b>Search more <i class="icon ion-refresh"></i></b>.', msg1);
+        cards._internal.search.infotxt2 = nl.t('{} Not found what you are looking for? Do you want to fetch more items from the server?', msg1);
+        return _animateInfotext(cards, oldInfotxt);
+    }
 }];
 
-var discardSearchWords = { "content_include": true};
+var _keywords = {'grp': true};
 var NlFilter = ['nl', '$filter',
 function(nl, $filter) {
-	return function(inputArray, filterString, filterGrade) {
+	return function(inputArray, filterString, filterCateogry) {
 		var filteredInput = inputArray;
-		if (filterGrade.id) {
+		if (filterCateogry.id) {
 			filteredInput = [];
 	    	for (var i=0; i < inputArray.length; i++) {
 	    		var card = inputArray[i];
-	    		if (card.grade != filterGrade.id) continue;
+	    		if (card.category != filterCateogry.id) continue;
 		    	filteredInput.push(card);
 	    	}
 	    }
 		filterString = filterString.replace(/"/g, "");
 		var filterStrings = filterString.split(" ");
 		for (var i=0; i<filterStrings.length; i++) {
-		    if (filterStrings[i] in discardSearchWords) continue;
+		    var pos = filterStrings[i].indexOf(':');
+		    var keyword = pos > 0 ? filterStrings[i].substring(0, pos) : null;
+		    if (keyword in _keywords) continue;
             filteredInput = $filter('filter')(filteredInput, filterStrings[i]);
 		}
     	return filteredInput;
@@ -59,7 +143,6 @@ function(nl, $filter) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-
 var ListviewDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
     return {
@@ -69,17 +152,8 @@ function(nl, nlDlg) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-
 var CardsDirective = ['nl', 'nlDlg', '$filter', 'nlCardsSrv',
 function(nl, nlDlg, $filter, nlCardsSrv) {
-    var defaultEmptyCard = nlCardsSrv.getEmptyCard();
-    var fetchMoreCard = {
-        title : nl.t('Fetch More'),
-        icon2 : 'ion-refresh fblue',
-        internalUrl : 'show_results_details',
-        help : nl.t('Did not find what you were looking for? Fetch more items from the server.'),
-        children : [],
-        style : 'nl-bg-blue'};
     return {
         restrict: 'E',
         transclude: true,
@@ -89,68 +163,32 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
         },
         link: function($scope, iElem, iAttrs) {
             nl.timeout(function() {
-                _updateCardDimensions($scope, iElem);
+                _updateCardDimensions(nl, $scope, iElem);
             }); // 0 timeout - just executes after DOM rendering is complete
             
             angular.element(nl.window).on('resize', function() {
                 $scope.$apply(function() {
-                    _updateCardDimensions($scope, iElem);
+                    _updateCardDimensions(nl, $scope, iElem);
                 });
             });
             
             $scope.showResultDetails = function() {
-                if (!$scope.cards || !$scope.cards.search) return;
-                var results = $scope.search.results || 0;
-                var total = $scope.cards.cardlist.length;
-                var text = nl.t('<p>Displaying <b>{}</b> of <b>{}</b> items.</p>', results, total);
+                if (!$scope.cards || !$scope.cards._internal) return;
+                if (!$scope.cards._internal.search.showDetails) return;
+                var text = $scope.cards._internal.search.infotxt2;
                 if (!$scope.cards.canFetchMore) {
                     nlDlg.popupAlert({title: '', template: text});
                     return;
                 }
-                text += nl.t('<p>You may <b>Fetch more</b> items from the server if you are not finding what you are looking for.</p>');
                 nlDlg.popupConfirm({title: '', template: text, okText: 'Fetch more', cancelText: 'Close'})
                 .then(function(res) {
                     if (!res) return;
-                    $scope.$parent.onCardInternalUrlClicked(fetchMoreCard, 'fetch_more');
+                    $scope.$parent.onCardInternalUrlClicked({}, 'fetch_more');
                 });
             };
 
-            var defMaxLimit = 100;
-            var cacheAbove = 200;
-            
-            $scope.getCards = function(rebuildCache, dontShowFetchMore) {
-            	if (!$scope.cards || !$scope.cards.cardlist) return [];
-            	rebuildCache = rebuildCache || $scope.cards.rebuildCache;
-            	$scope.cards.rebuildCache = false;
-            	if (!rebuildCache 
-            	    && $scope.cards.cardlist.length > cacheAbove && $scope.cachedList) {
-            	    return $scope.cachedList;
-            	}
-                var ret = $scope.cards.staticlist || [];
-            	var filteredData = $filter('nlFilter')($scope.cards.cardlist,
-            										 $scope.search.filter, $scope.search.grade);
-                var search = $scope.cards.search || {};
-                if (search.img) $scope.search.img = search.img;
-                var len = filteredData.length;
-                var maxLimit = search.maxLimit || defMaxLimit;
-                if (len > maxLimit) len = maxLimit;
-            	ret = ret.concat(filteredData.slice(0, len));
-                if (!dontShowFetchMore && $scope.cards.canFetchMore) ret.push(fetchMoreCard);
-
-                $scope.search.resultsStr
-                    = len <= 1 ? nl.t('{} result', len)
-                    : filteredData.length > maxLimit ? nl.t('{}+ results', maxLimit)
-                    : nl.t('{} results', len);
-                $scope.search.results = len;
-                
-                $scope.cachedList = ret;
-            	if (ret.length > 0) return ret;
-            	var emptyCard = $scope.cards.emptycard || defaultEmptyCard;
-            	ret.push(emptyCard);
-            	return ret;
-            };
-
             $scope.onCardInternalUrlClicked = function(card, internalUrl) {
+                if (!internalUrl) return;
                 if (internalUrl == 'show_results_details') {
                     $scope.showResultDetails();
                     return;
@@ -161,30 +199,38 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             $scope.onCardLinkClicked = function(card, linkid) {
 				$scope.$parent.onCardLinkClicked(card, linkid);
             };
-            var params = nl.location.search();
-			var searchParam = ('search' in params) ? params.search : '';
-			var grade = ('grade' in params) ? params.grade : null;
-            $scope.search = {filter: searchParam, img: nl.url.resUrl('search.png'), grade: {id: grade}};
-            $scope.search.onSearch = function() {
-                $scope.getCards(true); // Rebuild cache
-            	if (!('onSearch' in $scope.cards.search)) return;
-            	return $scope.cards.search.onSearch($scope.search.filter, $scope.search.grade.id, _onSearchParamChange);
+
+            $scope.onSearchButton = function() {
+                nlCardsSrv.updateInternal($scope.cards, 0);
+                if (!$scope.cards.search.onSearch) {
+                    $scope.showResultDetails();
+                    return;
+                }
+                var search = $scope.cards._internal.search;
+            	return $scope.cards.search.onSearch(search.filter, search.category.id, _onSearchParamChange);
             };
-			$scope.searchKeyHandler = function(keyevent) {
-				if(keyevent.which === 13) {
-					return $scope.search.onSearch($scope.search.filter, $scope.search.grade.id, _onSearchParamChange);
-				}				
+
+			$scope.searchKeyHandler = function(event) {
+                var MAX_KEYSEARCH_DELAY = 200;
+                if (event.which === 13) {
+                    $scope.onSearchButton();
+                    return;
+                }
+                nlCardsSrv.updateInternal($scope.cards, MAX_KEYSEARCH_DELAY);
 			};
-			function _onSearchParamChange(filter, grade) {
-                $scope.search.filter = filter;
-                $scope.search.grade = {id: grade};
+
+			function _onSearchParamChange(filter, category) {
+                $scope.cards._internal.search.filter = filter || '';
+                $scope.cards._internal.search.category = {id: category || null};
 			}
          }
     };
 }];
 
 var SCROLL_WIDTH = 8;
-function _updateCardDimensions($scope, cardsContainer) {
+var _defCardWidth = 360;
+var _defCardAr = 2/3;
+function _updateCardDimensions(nl, $scope, cardsContainer) {
     var w = _getCardWidth(cardsContainer);
     $scope.w = w;
     $scope.h = _defCardAr*w;
@@ -198,8 +244,6 @@ function _updateCardDimensions($scope, cardsContainer) {
     $scope.ml = (contWidth - w*cardsPerRow) / margins;
 }
 
-var _defCardWidth = 360;
-var _defCardAr = 2/3;
 function _getCardWidth(cardsContainer) {
     var w = _defCardWidth;
 

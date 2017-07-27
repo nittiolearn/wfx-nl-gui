@@ -545,7 +545,6 @@ LessonDlgs.contentsDlg = new njs_helper.Dialog();
 LessonDlgs.pageTypeDlg = new njs_helper.Dialog();
 LessonDlgs.pagePropsDlg = new njs_helper.Dialog();
 LessonDlgs.changeLookDlg = new njs_helper.Dialog();
-LessonDlgs.searchBoxDlg = new njs_helper.Dialog();
 LessonDlgs.notesDlg = new njs_helper.Dialog();
 
 LessonDlgs.createDlg = function(dlg, dlgId, bId, bName, bFunc, cFunc) {
@@ -953,8 +952,7 @@ EditBoxHelper.createInputBox = function(initialVal, secTemplate, section, cls, d
 	var inputType = secTemplate.getOptionsType();
 	var regex = null;
 	
-	var ret = jQuery('<div/>');
-	var ta = jQuery(njs_helper.fmt2('<label><INPUT type="{}" class="{}"/></label>', inputType, cls));
+	var ta = jQuery(njs_helper.fmt2('<INPUT type="{}" class="{}"/>', inputType, cls));
 	if (inputType == 'number') {
 		var min = secTemplate.getOptionsMin();
 		var max = secTemplate.getOptionsMax();
@@ -970,8 +968,8 @@ EditBoxHelper.createInputBox = function(initialVal, secTemplate, section, cls, d
 	ta.attr('placeholder', defaultHelp);
 	ta.attr('title', defaultHelp);
 	section.page.setNextTabIndex(ta);
-	ret.append(ta);
-	return ret;
+    var ret = jQuery('<label/>').append(ta);
+    return jQuery('<div/>').append(ret);
 };
 
 EditBoxHelper.createTextBox = function(initialVal, isEditorButton, section, cls, defaultHelp) {

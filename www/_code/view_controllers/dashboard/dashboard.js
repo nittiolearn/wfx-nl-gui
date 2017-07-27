@@ -25,8 +25,8 @@ function($stateProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var DashboardCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
+var DashboardCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	var cardDict = {};
 	var my = false;
 	function _onPageEnter(userInfo) {
@@ -34,8 +34,11 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 			nl.pginfo.pageTitle = nl.t('Custom Dashboards');
 	        var params = nl.location.search();
 	        my = ('my' in params) ? parseInt(params.my) == 1: false;
-        	$scope.cards = {};
-			$scope.cards.staticlist = _getStaticCards();
+        	$scope.cards = {
+        	    staticlist: _getStaticCards(),
+        	    search: {onSearch: _onSearch, placeholder: nl.t('Enter dashboard name/description')}
+        	};
+            nlCardsSrv.initCards($scope.cards);
 			var searchFilterInUrl = ('search' in params) ? params.search : '';
 			_getDataFromServer(searchFilterInUrl, resolve, reject);
 		});
@@ -181,6 +184,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
                 $scope.cards.cardlist.splice(pos, 1);
 		    }
 			$scope.cards.cardlist.splice(0, 0, card);			
+            nlCardsSrv.updateCards($scope.cards);
 		});
 	}
 	
@@ -285,15 +289,11 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 					if (card.dashboardId !== dashboardId) continue;
 					$scope.cards.cardlist.splice(i, 1);
 				}
+                nlCardsSrv.updateCards($scope.cards);
 			});	
 		});
 	}
 
-	function _addSearchInfo(cards) {
-		cards.search = {placeholder: nl.t('Enter dashboard name/description')};
-		cards.search.onSearch = _onSearch;
-	}
-	
 	function _onSearch(filter) {
 		nlDlg.showLoadingScreen();
 		var promise = nl.q(function(resolve, reject) {
@@ -305,18 +305,16 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
 	}
 	
 	function _getDataFromServer(filter, resolve, reject) {
-			var params = {search: filter};
-			params.mine = my;
-            
-            var data = nlServerApi.dashboardGetList(params);
-            data.then(function(resultList){
-            	$scope.cards.cardlist = _getCustomDashboardCards(resultList);
-            	_addSearchInfo($scope.cards);
-            	resolve(true);	
-            }, function(error) {
-                resolve(false);
-            });
-         }
+		var params = {search: filter, mine: my};
+        var data = nlServerApi.dashboardGetList(params);
+        data.then(function(resultList){
+            nlCardsSrv.updateCards($scope.cards, 
+                {cardlist: _getCustomDashboardCards(resultList)});
+        	resolve(true);	
+        }, function(error) {
+            resolve(false);
+        });
+     }
 	
 }];
 module_init();

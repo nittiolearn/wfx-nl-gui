@@ -1,16 +1,6 @@
-<a ng-if='card.url' ng-href='{{card.url}}' nl-wait-on-click
-   class='nl-card-img nl-link-img'>
-    <img ng-if='card.icon' ng-src='{{card.icon}}'></img>
-    <div ng-if='card.icon2' class='fsh4'><i class='fsh1 {{card.icon2}}'></i></div>
-</a>
-<div ng-if='!card.url && card.internalUrl'
-     class='nl-card-img nl-link-img'
-     ng-click='onCardInternalUrlClicked(card, card.internalUrl)'>
-    <img ng-if='card.icon' ng-src='{{card.icon}}'></img>
-    <div ng-if='card.icon2' class='fsh4'><i class='fsh1 {{card.icon2}}'></i></div>
-</div>
-<div ng-if='!card.url && !card.internalUrl'
-     class='nl-card-img'>
-    <img ng-if='card.icon' ng-src='{{card.icon}}'></img>
-    <div ng-if='card.icon2' class='fsh4'><i class='fsh1 {{card.icon2}}'></i></div>
-</div>
+<img ng-if='card.icon' ng-src='{{card.icon}}'></img>
+<div ng-if='card.icon2'><i class='fsh1 {{card.icon2}}'></i></div>
+<i ng-if='card.iconTl' class='icon-tl {{card.iconTl}}'></i>
+<i ng-if='card.iconTr' class='icon-tr {{card.iconTr}}'></i>
+<i ng-if='card.iconBl' class='icon-bl {{card.iconBl}}'></i>
+<i ng-if='card.iconBr' class='icon-br {{card.iconBr}}'></i>
