@@ -95,8 +95,10 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
     nlRouter.initContoller($scope, '', _onPageEnter);
 
     function _initBgimg(data) {
-        if (!('dashboard_props' in data) || !(data.dashboard_props.bgimgs)) return;
-        var bgimgs = data.dashboard_props.bgimgs;
+        var bgimgs = (data.dashboard_props || {}).bgimgs;
+        if (!bgimgs && data.groupinfo && data.groupinfo.bgimg)
+            bgimgs = [data.groupinfo.bgimg];
+        if (!bgimgs) return;
         var pos = Math.floor((Math.random() * bgimgs.length));
         nl.rootScope.pgBgimg = bgimgs[pos];
     }

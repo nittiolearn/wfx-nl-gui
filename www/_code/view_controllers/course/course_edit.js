@@ -722,11 +722,11 @@ function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm) {
 			if (item.min_score) moduleToStore.min_score = parseInt(item.min_score);
 			if (item.max_score) moduleToStore.max_score = parseInt(item.max_score);
 			if (moduleToStore.min_score < 0 || moduleToStore.min_score > 100) {
-				_validateFail(item, 'Minimum score has to be between 0 and 100');
+				_validateFail(item, 'Minimum score % has to be between 0 and 100');
 				continue;
 			}
 			if (moduleToStore.max_score < 0 || moduleToStore.max_score > 100) {
-				_validateFail(item, 'Maximum score has to be between 0 and 100');
+				_validateFail(item, 'Maximum score % has to be between 0 and 100');
 				continue;
 			}
 			if (moduleToStore.max_score < moduleToStore.min_score) {
