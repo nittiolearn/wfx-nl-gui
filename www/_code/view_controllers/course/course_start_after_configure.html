@@ -25,14 +25,15 @@
 		    <tr>
 		    	<th></th>
 		        <th style='width:70%'>Start after</th>
-		        <th>Minimum score</th>
-				<th ng-if='showMaxScore'>Maximum score</th>
+		        <th>Minimum score %</th>
+				<th ng-if='showMaxScore'>Maximum score %</th>
 		    </tr>
 		    <tr ng-repeat-start='item in moduleList track by $index'
 		        class='{{item.error ? "nl-bg-red" : ""}}'>
-		    	<td><span class='icon ion-ios-trash fsh4 padding-small nl-link-img'
-		    			  ng-click='moduleList.splice($index, 1)'>
-		    		</span>
+		    	<td class="nl-link-text"
+		    	    title='Remove this dependency'
+		    	    ng-click='moduleList.splice($index, 1)'>
+		    	    <i class='icon ion-ios-trash fsh4 fblue2'></i>
 		    	</td>
 				<td>
 					<div class='nl-dlg-field-value'> 
@@ -56,11 +57,11 @@
 				</td>
 		    </tr>
 		    <tr>
-		    	<td>
-			        <i class='icon ion-plus-circled fsh4 padding-small nl-link-img'
-			           ng-click='moduleList.push({})'
-			           title='Edit module'></i>
-		    	</td>
+                <td class='nl-link-text'
+                    title='Add a new dependency'
+                    ng-click='moduleList.push({})'>
+                    <i class='icon ion-plus-circled fsh4 fblue2'></i>
+                </td>
 		    	<td colspan="3">
 		    	</td>
 		    </tr>

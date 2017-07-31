@@ -92,7 +92,7 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state) {
         }
         _getUserInfo(pageUrl).then(function(userInfo) {
             _sendGoogleAnalytics(userInfo);
-            nl.rootScope.pgBgimg = _getUserBgimg(userInfo);
+            nl.rootScope.pgBgimg = null;
             nl.pginfo.username = (userInfo.username == '') ? '' : userInfo.displayname;
             nlMarkup.setGid((userInfo.username == '') ? 0 : userInfo.groupinfo.id);
             nl.pginfo.groupCustomCss = userInfo.groupinfo && userInfo.groupinfo.groupCustomCss
@@ -146,10 +146,6 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state) {
         nlDlg.closeAll();
     }
     
-    function _getUserBgimg(uInfo) {
-        return ('groupinfo' in uInfo && uInfo.groupinfo.bgimg) ? uInfo.groupinfo.bgimg : null;
-    }
-
     function _getUserInfo(pageUrl) {
         if (permission.isOpenPage(pageUrl)) return nlServerApi.getUserInfoFromCache();
         return nlServerApi.getUserInfoFromCacheOrServer();
