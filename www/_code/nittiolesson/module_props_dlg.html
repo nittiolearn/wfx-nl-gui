@@ -1,103 +1,18 @@
 <nl-dlg title='{{dlgTitle}}' show-help='0'>
 <nl-dlg-content>
-    <nl-inline-help>
-        <div class='fsh6'>
-	    	Name is the only mandatory property. You may leave the rest of the properties to default. Properties could be changed anytime later.
-        </div>
-    </nl-inline-help>
-
-    <div class='row row-top row-wrap margin0 padding-mid' 
-         ng-repeat='item in data.moduleProps'
-         ng-if='data.canShow(item.condition, item)'>
-
-	    <div class='w100 nl-link-text padding-mid' 
-	         ng-if='item.type === "group"'
-	         ng-click='data.showAdditional[item.id] = !data.showAdditional[item.id]'
-	         tabindex='0'
-	         ng-keypress='$event.keyCode == 32 ? data.showAdditional[item.id] = !data.showAdditional[item.id] : ""'>
+	<div class='padding-mid'>
+	    <nl-inline-help>
 	        <div class='fsh6'>
-	            <i ng-show='data.showAdditional[item.id]' class="icon ion-android-checkbox-outline"></i>
-	            <i ng-hide='data.showAdditional[item.id]' class="icon ion-android-checkbox-outline-blank"></i>
-	            {{item.name}}
+		    	Name is the only mandatory property. You may leave the rest of the properties to default. Properties could be changed anytime later.
 	        </div>
-	    </div>
-		<div class='w100 inline-help-padding padding-mid' 
-			 ng-if='item.type === "group" && data.showAdditional[item.id] && data.moduleHelp[item.id].desc && item.type !== "hidden"'>
-		    <nl-inline-help>
-		        <div>
-			        <span ng-bind-html='data.moduleHelp[item.id].desc'></span>
-		        </div>
-		    </nl-inline-help>
-		</div>
-	    
-		<div ng-if='item.type !== "group"'
-			 ng-class='resp2Col33'
-		     class='padding-mid' ng-click='item.showHelp = !item.showHelp'>
-		     <div class='row row-center row-wrap margin0 padding0'>
-	             <span class='col padding0'>{{item.name}}</span>
-	             <i class='padding-mid nl-link-text icon fsh4 fgrey2 ion-ios-help'></i>
-		     </div>
-	    </div>
-        <div ng-class='resp2Col67'
-        	 ng-if='item.type === "string"'>
-        	<nl-input fieldmodel='{{item.id}}' fieldtype='text' fieldcls='w100 padding0'></nl-input>
-        </div>
-        <div ng-class='resp2Col67'
-        	 ng-if='item.type === "number"'>
-        	<nl-input fieldmodel='{{item.id}}' fieldtype='number' fieldcls='w100 padding0' fieldminvalue='{{item.min}}' fieldmaxvalue='{{item.max}}'></nl-input>
-        </div>
+	    </nl-inline-help>
+	</div>
 
-   		<div ng-class='resp2Col67' class='margin0 padding-top'
-   			 ng-if='item.type == "check"'>
-	        <span class='fsh6 nl-link-text padding-mid' ng-click='data[item.id] = !data[item.id]' 
-	        	tabindex='0'
-	        	ng-keypress='$event.keyCode == 32 ? data[item.id] = !data[item.id] : "" '>
-	            <i ng-show='data[item.id]' class="icon ion-android-checkbox-outline"></i>
-	            <i ng-hide='data[item.id]' class="icon ion-android-checkbox-outline-blank"></i>
-	        	Check this to view entire pdf in single page of lesson module.
-	        </span>
-        </div>
-        <div ng-class='resp2Col67' ng-if='item.type == "textarea"'>
-            <nl-textarea fieldmodel='{{item.id}}'></nl-textarea>
-        </div>
-        <div ng-class='resp2Col67' 
-        	ng-if='item.type == "treeSelect"'>
-        	<div class='row row-center margin0 padding0'
-        		ng-if='item.id !== "image"'>
-        		<div class='col col-100'>
-		           	<nl-tree-select info='options[item.id]'></nl-tree-select>     	 	
-        		</div>
-        	</div>
-	        <div ng-if='item.id === "image"' class='row row-top padding0 margin0'>
-		        <div class='padding-mid'>
-		        	<img ng-show='data.image.id != "Custom"' ng-src='{{data.imageConvert}}' class='nl-100'/>
-		        	<img ng-show='data.image.id == "Custom" && data.imageUrl !==  null' ng-src='{{data.imageUrl}}' class='nl-100'/>
-	        	</div>
-				<div class='col'>
-		           	<nl-tree-select info='options[item.id]'></nl-tree-select>     	 	
-		        	<nl-input ng-if='item.id == "image" && data.image.id === "Custom"' fieldmodel='imageUrl' fieldtype='text' fieldcls='margin0 padding-small'></nl-input>
-				</div>
-	        </div>
-	    </div>
-        <div ng-class='resp2Col67'
-        	 ng-if='item.type === "select"'>
-        	<nl-select fieldmodel='{{item.id}}'></nl-select>
-        </div>
-        <div ng-class='resp2Col67'
-        	 class='nl-dlg-field-value'
-        	 style='padding-top: 15px'
-        	 ng-if='item.type === "status"'>
-	    	<i class='icon nl-dlg-field-icon {{data.lessonState.icon}}'></i>
-	    	<span>{{data.lessonState.title}}</span>
-        </div>
-		<div class='w100 inline-help-padding padding-mid' ng-if='item.showHelp && data.moduleHelp[item.id].desc && item.type !== "hidden"'>
-		    <nl-inline-help>
-		        <div>
-			        <span class='fsh6 fblue2'>{{data.moduleHelp[item.id].name || item.name}}:</span>
-			        <span ng-bind-html='data.moduleHelp[item.id].desc'></span>
-		        </div>
-		    </nl-inline-help>
-		</div>
+    <nl-dlg-field class='row row-top row-wrap margin0 padding0'
+    			  ng-repeat='item in data.moduleProps'
+    			  ng-if='data.canShow(item.condition, item)'
+    			  data='data' error='error' options='options' item='item'>
+     </nl-dlg-field>
     </div>
 </nl-dlg-content>
 </nl-dlg>

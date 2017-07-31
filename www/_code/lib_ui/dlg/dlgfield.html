@@ -1,0 +1,97 @@
+<div class='w100 padding-mid nl-link-text padding-mid' 
+     ng-if='item.type === "group"'
+     ng-click='data.showGroup[item.id] = !data.showGroup[item.id]'
+     tabindex='0'
+     ng-keypress='$event.keyCode == 32 ? data.showGroup[item.id] = !data.showGroup[item.id] : ""'>
+    <div class='fsh6'>
+        <i ng-show='data.showGroup[item.id]' class="icon ion-android-checkbox-outline"></i>
+        <i ng-hide='data.showGroup[item.id]' class="icon ion-android-checkbox-outline-blank"></i>
+        {{item.name}}
+    </div>
+</div>
+
+<div class='w100 padding-mid' 
+	 ng-if='item.type === "group" && data.showGroup[item.id] && item.help && item.type !== "hidden"'>
+    <nl-inline-help>
+        <div>
+	        <span ng-bind-html='item.help'></span>
+        </div>
+    </nl-inline-help>
+</div>
+
+<div ng-if='item.type !== "group"'
+	 ng-class='$root.resp2Col33'
+     class='padding-mid' ng-click='item.showHelp = !item.showHelp'>
+     <div class='row row-center row-wrap margin0 padding0'>
+         <span class='col padding0'>{{item.name}}</span>
+         <i class='padding-mid nl-link-text icon fsh4 fgrey2 ion-ios-help'></i>
+     </div>
+</div>
+<div ng-class='$root.resp2Col67'
+	 ng-if='item.type === "string"'>
+	<nl-input fieldmodel='{{item.id}}' fieldtype='text' fieldcls='w100 padding0'></nl-input>
+</div>
+<div ng-class='$root.resp2Col67'
+	 ng-if='item.type === "number"'>
+	<nl-input fieldmodel='{{item.id}}' fieldtype='number' fieldcls='w100 padding0' fieldminvalue='{{item.min}}' fieldmaxvalue='{{item.max}}'></nl-input>
+</div>
+
+<div ng-class='$root.resp2Col67' class='margin0 padding-top'
+	 ng-if='item.type == "check"'>
+    <span class='fsh6 nl-link-text padding-mid' ng-click='data[item.id] = !data[item.id]' 
+    	tabindex='0'
+    	ng-keypress='$event.keyCode == 32 ? data[item.id] = !data[item.id] : "" '>
+        <i ng-show='data[item.id]' class="icon ion-android-checkbox-outline"></i>
+        <i ng-hide='data[item.id]' class="icon ion-android-checkbox-outline-blank"></i>
+        <span ng-bind-html='item.title'></span>
+    </span>
+</div>
+<div ng-class='$root.resp2Col67' ng-if='item.type == "textarea"'>
+    <nl-textarea fieldmodel='{{item.id}}'></nl-textarea>
+</div>
+<div ng-class='$root.resp2Col67' 
+	ng-if='item.type == "tree-select"'>
+	<div class='row row-center margin0 padding0'
+		ng-if='item.id !== "image"'>
+		<div class='col col-100'>
+           	<nl-tree-select info='options[item.id]'></nl-tree-select>     	 	
+		</div>
+	</div>
+</div>
+<div ng-class='$root.resp2Col67' 
+	ng-if='item.type == "tree-select-img"'>
+    <div class='row row-top padding0 margin0'>
+        <div class='padding-mid'>
+        	<img ng-src='{{data[item.id].url}}' class='nl-100'/>
+    	</div>
+		<div class='col'>
+           	<nl-tree-select info='options[item.id]'></nl-tree-select>     	 	
+           	<div class='padding-mid'></div>
+        	<input ng-show='data[item.id].isCustomSelected' 
+        		   ng-model='data[item.id].customUrl'
+        		   ng-change='data.onIconChange()' 
+        		   type='text' class='margin0 w100'>
+		</div>
+    </div>
+</div>
+<div ng-class='$root.resp2Col67'
+	 ng-if='item.type === "select"'>
+	<nl-select fieldmodel='{{item.id}}'></nl-select>
+</div>
+<div ng-class='$root.resp2Col67'
+	 class='nl-dlg-field-value'
+	 style='padding-top: 15px'
+	 ng-if='item.type === "div"'>
+	<div class='row row-center margin0 padding0'> 
+		<i ng-show='data[item.id].icon' class="icon fsh4 {{data[item.id].icon}}"></i>
+		<div ng-show='data[item.id].title' class="col padding-mid" ng-bind-html='data[item.id].title'></div>
+	</div>
+</div>
+<div class='w100 padding-mid' ng-if='item.showHelp && item.help && item.type !== "hidden"'>
+    <nl-inline-help>
+        <div>
+	        <span class='fsh6 fblue2'>{{item.name}}:</span>
+	        <span ng-bind-html='item.help'></span>
+        </div>
+    </nl-inline-help>
+</div>

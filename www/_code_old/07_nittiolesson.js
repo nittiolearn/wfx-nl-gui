@@ -915,11 +915,11 @@ nlesson = function() {
 		this.lastSavedContent = jQuery('#l_content').val();
 		var lesson = this;
 		window.onbeforeunload = function(e) {
-			if (nittio.getOnLeaveCheck()) {
+			var lessonId = jQuery('#l_lessonId').val();
+			if (nittio.getOnLeaveCheck() && lessonId != "0") {
 				lesson.stopAudio();
 		        lesson.globals.animationManager.clearAnimations();
-				var lessonId = jQuery('#l_lessonId').val();
-				if ((lesson.renderCtx.launchCtx() != 'do_review') && (lesson.lastSavedContent != lesson.getContent() || lessonId == "0")) {
+				if ((lesson.renderCtx.launchCtx() != 'do_review') && (lesson.lastSavedContent != lesson.getContent())) {
 					return "Warning: there are some un-saved data in this page.";
 				}
 				if (njsCommentEditor.isValid() && njsCommentEditor.theLessonComment.isModified()) {

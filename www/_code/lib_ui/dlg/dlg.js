@@ -8,6 +8,7 @@ function module_init() {
     angular.module('nl.ui.dlg', [])
     .service('nlDlg', DlgSrv)
     .directive('nlDlg', DlgDirective)
+    .directive('nlDlgField', DlgFieldDirective)
     .directive('nlInput', InputDirective)
     .directive('nlTextarea', TextareaDirective)
     .directive('nlSelect', SelectDirective)
@@ -246,6 +247,23 @@ function(nl, $window, nlKeyboardHandler) {
             showClose: '@'
         },
         link: postLink
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
+var DlgFieldDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return {
+        restrict: 'E',
+        templateUrl: 'lib_ui/dlg/dlgfield.html',
+        scope: {
+            data: '=',
+            error: '=',
+            options: '=',
+            item: '='
+        },
+        link: function($scope, iElem, iAttrs) {
+        }
     };
 }];
 

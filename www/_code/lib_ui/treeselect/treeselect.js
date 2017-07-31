@@ -193,7 +193,10 @@ function(nl) {
 				if (treeSelectInfo.currentItemPos < 0) return _updateCurrentItem(treeSelectInfo, 0);
 				return false;
 			}
-	        if (!treeSelectInfo.multiSelect) return false;
+	        if (!treeSelectInfo.multiSelect) {
+				treeSelectInfo.treeIsShown = false;
+	        	return false;
+	        }
 			var item = treeSelectInfo.visibleData[treeSelectInfo.currentItemPos];
 			if (item.isFolder) this.toggleSelectionOfFolder(item, treeSelectInfo);
             else this.toggleSelection(item, treeSelectInfo);
@@ -413,6 +416,8 @@ function(nl, nlDlg, nlTreeSelect) {
                     nlTreeSelect.toggleFolder(item, $scope.info);
                 } else {
                     nlTreeSelect.toggleSelection(item, $scope.info);
+                    if (item.selected && !$scope.info.multiSelect)
+						$scope.info.treeIsShown = false;
                     if($scope.info.onSelectChange) $scope.info.onSelectChange();
                 }
             };
