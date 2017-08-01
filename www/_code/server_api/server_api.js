@@ -615,8 +615,8 @@ function(nl, nlDlg, nlConfig, Upload) {
     };
 
     // Utility for page and batch query
-    this.getPageFetcher = function(defMax, itemType) {
-        return new PageFetcher(nl, nlDlg, defMax, itemType);
+    this.getPageFetcher = function(attrs) {
+        return new PageFetcher(nl, nlDlg, attrs);
     };
     
     //---------------------------------------------------------------------------------------------
@@ -898,10 +898,12 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload) {
 }
 
 //----------------------------------------------------------------------------------------------
-function PageFetcher(nl, nlDlg, defMax, itemType) {
-    var params = nl.location.search();
-    var _max = ('max' in params) ? parseInt(params.max) : defMax || 50;
-    var _itemType = itemType || 'item';
+function PageFetcher(nl, nlDlg, attrs) {
+    if (!attrs) attrs = {};
+    var urlParams = nl.location.search();
+    var _max = ('max' in urlParams) ? parseInt(urlParams.max) : attrs.defMax || 50;
+    var _itemType = attrs.itemType || 'item';
+    var _blockTillDone = attrs.blockTillDone || false;
 
     var _fetchInProgress = false;
     var _canFetchMore = true;
@@ -944,7 +946,7 @@ function PageFetcher(nl, nlDlg, defMax, itemType) {
         if (!params.max) params.max = _max;
         params.startpos = _nextStartPos;
         listingFn(params).then(function(resp) {
-            nlDlg.hideLoadingScreen();
+            if (!_blockTillDone || !resp.more) nlDlg.hideLoadingScreen();
             _nextStartPos = resp.nextstartpos;
             _canFetchMore = resp.more;
             _fetchedCount += resp.resultset.length;

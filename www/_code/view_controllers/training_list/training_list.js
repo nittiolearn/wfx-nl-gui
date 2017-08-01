@@ -174,37 +174,23 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
         }
     };
 
+    var _reprotFetcher = nlServerApi.getPageFetcher({defMax: 500, blockTillDone: true});
 	function _trainingReportView(card, linkid) {
-		var reports = {};
-		var data = {trainingid: card.id, max: 100, start_at: 0};
-        nlDlg.showLoadingScreen();
-		_getTrainingNominations(data, function(isError, result, more) {
-            nlDlg.hideLoadingScreen();
-			if(isError) return;
-			reports = _getReportDict(result, reports);
-			if(!more) _gotNominatedList(card, linkid, reports);
-		});
-	}
-
-    function _getTrainingNominations(data, callbackFn) {
-        nlServerApi.getTrainingReportList(data).then(function(result) {
-            var more = (result.length > data.max);
-            data.start_at += result.length;
-            var msg = nl.t('Got {} items from the server.{}', data.start_at, more ? 
-                ' Fetching more items ...' : '');
-            nlDlg.popupStatus(msg, more ? false : undefined);
-            if (more) _getTrainingNominations(data, callbackFn);
-            callbackFn(false, result, more);
-        }, function(error) {
-            nlDlg.popupStatus(error);
-            callbackFn(true, error, false);
-        });
+		var data = {trainingid: card.id};
+        var fetchMore = false;
+        var reports = {};
+        _reprotFetcher.fetchBatchOfPages(nlServerApi.getTrainingReportList, 
+            data, fetchMore, function(results, batchDone, promiseHolder) {
+            if (!results) return;
+            _updateReportsDict(results, reports);
+            if(batchDone) _gotNominatedList(card, linkid, reports);
+        }, null);
     }
 
-	function _getReportDict(result, reports) {
-		for (var i = 0; i < result.length; i++) {
-			var rep = _getNominationInfo(result[i]);
-			var oldRep = reports[rep.student] ?  reports[rep.student] : null;
+	function _updateReportsDict(results, reports) {
+		for (var i = 0; i < results.length; i++) {
+			var rep = _getNominationInfo(results[i]);
+			var oldRep = reports[rep.student] || null;
 			if (!oldRep) {
 				reports[rep.student] = rep;
 				continue;
@@ -212,7 +198,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 			if (rep.updated < oldRep.updated) continue;
 			reports[rep.student] = rep;
 		}
-		return reports;
 	}	
 
 	function _getNominationInfo(report) {
@@ -481,8 +466,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 			training : true
 		};
 		nlSendAssignmentSrv.show(_scope, trainingInfo).then(function(e) {
-			if (e)
-				nl.location.url('/training_list');
 		});
 	};
 

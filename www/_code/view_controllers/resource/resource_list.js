@@ -100,7 +100,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 	    $scope.onCardInternalUrlClicked(card, linkId);
 	};
 
-    var _pageFetcher = nlServerApi.getPageFetcher(20);
+    var _pageFetcher = nlServerApi.getPageFetcher({defMax: 20});
 	function _getDataFromServer(resolve, fetchMore) {
 		_bFirstLoadInitiated = true;
 		var data = {mine: _isMine(_type)};

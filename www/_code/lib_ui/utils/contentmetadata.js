@@ -101,6 +101,8 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
             if (importfromgrp !== null)
                 data.cmFields.push({id: 'importfromgrp', name: 'Search in group', 
                     type: 'text', value: importfromgrp});
+            var custtypeField = {id: 'custtype', name: 'Custtype', type: 'text', value: metadata.custtype || ''};
+            _hiddenFields.push(custtypeField);
         }
 
         var allowedFields = params.config.allowedFields || null;
