@@ -392,6 +392,7 @@ function Ajax(cb, retryAfterLogin, showErrorMsg) {
 
 		var self = this;
 		ajaxParams.success = function(data, textStatus, jqXHR) {
+		    if (typeof data === 'string' || data instanceof String) data = jQuery.parseJSON(data);
 			if ('NOT_LOGGED_IN' in data) {
 				if (retryAfterLogin) {
 					self.retryLogin(url, params, contentType, processData, onProgress);
