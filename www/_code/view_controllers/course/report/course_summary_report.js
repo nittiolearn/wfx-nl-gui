@@ -502,7 +502,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
 //-------------------------------------------------------------------------------------------------
 function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats, nlCourse) {
     var self = this;
-    var _pageFetcher = nlServerApi.getPageFetcher(50, 'course learning record');
+    var _pageFetcher = nlServerApi.getPageFetcher({defMax: 50, itemType: 'course learning record'});
     
     this.canFetchMore = function() {
         return _pageFetcher.canFetchMore();

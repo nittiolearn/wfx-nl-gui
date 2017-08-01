@@ -52,24 +52,21 @@ function TypeHandler(nl, nlServerApi) {
 		this.title = params.title || null;
 	};
 
-	this.listingFunction = function(filter) {
-		var data = {
-			search : filter
-		};
-		if (this.custtype !== null) data.custtype = this.custtype;
+    this.getListFnAndUpdateParams = function(params) {
+		if (this.custtype !== null) params.custtype = this.custtype;
 		if (this.type == TYPES.PAST) {
-			data.bPast = true;
-			return nlServerApi.assignmentGetMyList(data);
+			params.bPast = true;
+			return nlServerApi.assignmentGetMyList;
 		} else if (this.type == TYPES.SHARED) {
-			return nlServerApi.assignmentGetSharedList(data);
+			return nlServerApi.assignmentGetSharedList;
 		} else if (this.type == TYPES.MANAGE) {
-			data.mine = false;
-			return nlServerApi.assignmentGetSentList(data);
+			params.mine = false;
+			return nlServerApi.assignmentGetSentList;
 		} else if (this.type == TYPES.SENT) {
-			data.mine = true;
-			return nlServerApi.assignmentGetSentList(data);
+			params.mine = true;
+			return nlServerApi.assignmentGetSentList;
 		} else {
-			return nlServerApi.assignmentGetMyList(data);
+			return nlServerApi.assignmentGetMyList;
 		}
 	};
 
@@ -109,19 +106,17 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 
 	var mode = new TypeHandler(nl, nlServerApi);
 	var _userInfo = null;
-	var _searchFilterInUrl = '';
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
-		_initParams();
 		return nl.q(function(resolve, reject) {
 			mode.initFromUrl(_userInfo);
 			nl.pginfo.pageTitle = mode.pageTitle();
 			$scope.cards = {
-                search: {onSearch: _onSearch, placeholder: nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)}
+                search: {placeholder: nl.t('Name/{}/Remarks/Keyword', _userInfo.groupinfo.subjectlabel)}
             };
             nlCardsSrv.initCards($scope.cards);
-			_getDataFromServer(_searchFilterInUrl, resolve, reject);
+			_getDataFromServer(resolve);
 		});
 	}
 
@@ -129,26 +124,48 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	nlRouter.initContoller($scope, '', _onPageEnter);
 	
 	$scope.onCardInternalUrlClicked = function(card, internalUrl) {
-		var assignId = card.Id;
+		var assignId = card.id;
 		if (internalUrl === 'assign_delete') {
 			_deleteAssignment($scope, assignId);
 		} else if (internalUrl === 'assign_publish'){
 			_publishAssignment($scope, assignId);
-		}
+		} else if (internalUrl === 'view_content') {
+            var url = nl.t('/lesson/view_assign/{}/', card.id);
+            nl.window.location.href = url;
+        } else if (internalUrl === 'fetch_more') {
+            _fetchMore();
+        }
 	};
 	
-	function _getDataFromServer(filter, resolve, reject) {
-		mode.listingFunction(filter).then(function(resultList) {
-			nl.log.debug('Got result: ', resultList.length);
-            nlCardsSrv.updateCards($scope.cards, 
-                {cardlist: _getCards(_userInfo, resultList, nlCardsSrv)});
-			resolve(true);
-		}, function(reason) {
-			resolve(false);
-		});
+    $scope.onCardLinkClicked = function(card, linkId) {
+        $scope.onCardInternalUrlClicked(card, linkId);
+    };
+
+    function _fetchMore() {
+        _getDataFromServer(null, true);
+    }
+    
+    var _pageFetcher = nlServerApi.getPageFetcher();
+    var _resultList = [];
+	function _getDataFromServer(resolve, fetchMore) {
+        if (!fetchMore) _resultList = [];
+	    var params = {};
+		var listingFn = mode.getListFnAndUpdateParams(params);
+        _pageFetcher.fetchPage(listingFn, params, fetchMore, function(results) {
+            if (!results) {
+                if (resolve) resolve(false);
+                return;
+            }
+            _resultList = _resultList.concat(results);
+            nlCardsSrv.updateCards($scope.cards, {
+                cardlist: _getCards(_userInfo, _resultList),
+                canFetchMore: _pageFetcher.canFetchMore()
+            });
+            if (resolve) resolve(true);
+        });
 	}
 	
-	function _getCards(userInfo, resultList, nlCardsSrv) {
+	function _getCards(userInfo, resultList) {
 		var cards = [];
 		for (var i = 0; i < resultList.length; i++) {
 			var card = _createAssignmentCard(resultList[i], userInfo);
@@ -159,7 +176,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 
 	function _createAssignmentCard(assignment, userInfo) {
 		var url = null;
-		var internalUrl = null;
 		if (mode.type == TYPES.SHARED) {
 			url = nl.fmt2('/lesson/view_shared_report_assign/{}/', assignment.id);
 		} else if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
@@ -170,10 +186,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 			url = nl.fmt2('/lesson/do_report_assign/{}/', assignment.id);				
 		} 
 		var card = {
-			Id : assignment.id,
+			id : assignment.id,
 			title : assignment.name,
 			icon : nl.url.lessonIconUrl(assignment.icon || assignment.image),
-			internalUrl: internalUrl, 
 			url : url,
 			children : []
 		};
@@ -195,19 +210,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		};
 		card.links = [];
 		if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
-			card.links.push({
-				id : assignment.id,
-				text : nl.t('content')
-			},{
-				id : 'details',
-				text : nl.t('details')
-			});
-		} else {
-			card.links.push({
-				id : 'details',
-				text : nl.t('details')
-			});
+			card.links.push({id : 'view_content', text : nl.t('content')});
 		}
+        card.links.push({id : 'details', text : nl.t('details')});
 		return card;
 	}
 
@@ -262,22 +267,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		}
 	}
 
-	function _onSearch(filter) {
-		nlDlg.showLoadingScreen();
-		var promise = nl.q(function(resolve, reject) {
-			_getDataFromServer(filter, resolve, reject);
-		});
-		promise.then(function(res) {
-			nlDlg.hideLoadingScreen();
-		});
-	}
-
-
-	$scope.onCardLinkClicked = function(card, linkid) {
-		var url = nl.t('/lesson/view_assign/{}/', linkid);
-		nl.window.location.href = url;
-	};
-
 	function _deleteAssignment($scope, assignId) {
 		var msg = {title: 'Please confirm', 
 				   template: nl.t('Deleting an assignment will delete all reports behind this assignment. This cannot be undone. Are you sure you want to delete?'),
@@ -290,7 +279,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 				var cardlist = $scope.cards.cardlist;
 				for (var i in cardlist) {
 					var card = cardlist[i];
-					if (card.Id !== assignId) continue;
+					if (card.id !== assignId) continue;
 					cardlist.splice(i, 1);
 				}
                 nlCardsSrv.updateCards($scope.cards, {cardlist: cardlist});
@@ -309,18 +298,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	}
 
 	function _reloadFromServer() {
-		nlDlg.showLoadingScreen();
-		var promise = nl.q(function(resolve, reject) {
-			_getDataFromServer(_searchFilterInUrl, resolve, reject);
-		});
-		promise.then(function(res) {
-			nlDlg.hideLoadingScreen();
-		});
-	}
-
-	function _initParams() {
-		var params = nl.location.search();
-		_searchFilterInUrl = ('search' in params) ? params.search : '';
+		_getDataFromServer();
 	}
 }];
 

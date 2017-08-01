@@ -28,7 +28,6 @@ var SearchlistCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCar
 function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	var searchDict = {};
 	var my = false;
-	var _searchFilterInUrl = '';
 	var _userInfo = null;
 
 	function _onPageEnter(userInfo) {
@@ -40,38 +39,41 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	        my = ('my' in params) ? parseInt(params.my) == 1: false;
         	$scope.cards = {
         	    staticlist: _getStaticCards(),
-        	    search: {onSearch: _onSearch, placeholder: nl.t('Enter name/description')}
+        	    search: {placeholder: nl.t('Enter name/description')}
         	};
             nlCardsSrv.initCards($scope.cards);
-			_getDataFromServer(_searchFilterInUrl, resolve, reject);
+			_getDataFromServer(resolve);
 		});
 	}
 
 	nlRouter.initContoller($scope, '', _onPageEnter);
 
-	function _getDataFromServer(filter, resolve, reject) {
-		nlServerApi.searchListGetList({mine: my, search: filter})
-		.then(function(resultList) {
+    function _fetchMore() {
+        _getDataFromServer(null, true);
+    }
+    
+    var _pageFetcher = nlServerApi.getPageFetcher();
+    var _resultList = [];
+
+	function _getDataFromServer(resolve, fetchMore) {
+        if (!fetchMore) _resultList = [];
+        var params = {mine: my};
+        _pageFetcher.fetchPage(nlServerApi.searchListGetList, params, fetchMore, 
+            function(results) {
+            if (!results) {
+                if (resolve) resolve(false);
+                return;
+            }
+            _resultList = _resultList.concat(results);
             nlCardsSrv.updateCards($scope.cards, {
-                cardlist: _getCards(_userInfo, resultList, nlCardsSrv)
+                cardlist: _getCards(_userInfo, _resultList),
+                canFetchMore: _pageFetcher.canFetchMore()
             });
-			resolve(true);
-		}, function(reason) {
-            resolve(false);
+			if (resolve) resolve(true);
 		});
 	}
 	
-	function _onSearch(filter) {
-		nlDlg.showLoadingScreen();
-		var promise = nl.q(function(resolve, reject) {
-			_getDataFromServer(filter, resolve, reject);
-		});
-		promise.then(function(res) {
-			nlDlg.hideLoadingScreen();
-		});
-	}
-
-    function _getCards(userInfo, resultList, nlCardsSrv) {
+    function _getCards(userInfo, resultList) {
         var cards = [];
         for (var i = 0; i < resultList.length; i++) {
             var card = _createSearchlistCard(resultList[i]);
@@ -129,15 +131,17 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	$scope.onCardInternalUrlClicked = function(card, internalUrl) {
 		if (internalUrl === 'searchlist_create') {
 			_createOrModifySearchlist($scope, null);
-		}
+        } else if (internalUrl === 'searchlist_modify') {
+            _createOrModifySearchlist($scope, card.searchlistId);
+        } else if (internalUrl === 'searchlist_delete') {
+            _deleteSearchlist($scope, card.searchlistId);
+        } else if (internalUrl === 'fetch_more') {
+            _fetchMore();
+        }
     };
 
-	$scope.onCardLinkClicked = function(card, linkid) {
-		if (linkid === 'searchlist_modify') {
-			_createOrModifySearchlist($scope, card.searchlistId);
-		} else if (linkid === 'searchlist_delete') {
-			_deleteSearchlist($scope, card.searchlistId);
-		}
+	$scope.onCardLinkClicked = function(card, linkId) {
+        $scope.onCardInternalUrlClicked(card, linkId);
 	};
 
 	function _createOrModifySearchlist($scope, searchlistId) {
@@ -279,7 +283,6 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 		searchDict = {};
         var params = nl.location.search();
         my = ('my' in params) ? parseInt(params.my) == 1: false;
-        _searchFilterInUrl = ('search' in params) ? params.search : '';
 	}
 }]; 
 
