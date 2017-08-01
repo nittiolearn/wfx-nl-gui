@@ -29,11 +29,14 @@
 </div>
 <div ng-class='$root.resp2Col67'
 	 ng-if='item.type === "string"'>
-	<nl-input fieldmodel='{{item.id}}' fieldtype='text' fieldcls='w100 padding0'></nl-input>
+	<nl-input fieldmodel='{{item.id}}' fieldtype='text' fieldcls='w100 padding0'
+			  placeholder='{{data.getPlaceHolder ? data.getPlaceHolder(item) : item.placeholder || ""}}'></nl-input>
 </div>
 <div ng-class='$root.resp2Col67'
 	 ng-if='item.type === "number"'>
-	<nl-input fieldmodel='{{item.id}}' fieldtype='number' fieldcls='w100 padding0' fieldminvalue='{{item.min}}' fieldmaxvalue='{{item.max}}'></nl-input>
+	<nl-input fieldmodel='{{item.id}}' fieldtype='number' fieldcls='w100 padding0'
+			  fieldminvalue='{{item.min}}' fieldmaxvalue='{{item.max}}'
+			  placeholder='{{data.getPlaceHolder ? data.getPlaceHolder(item) : item.placeholder || ""}}'></nl-input>
 </div>
 
 <div ng-class='$root.resp2Col67' class='margin0 padding-top'

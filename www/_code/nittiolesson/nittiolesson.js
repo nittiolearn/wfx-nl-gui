@@ -21,8 +21,8 @@ function(NittioLessonModulePropsDlg, NittioLessonPagePropsDlg) {
 		return NittioLessonModulePropsDlg.showDlg(isCreate, bFromPdf);
 	};
 	
-	this.showPagePropertiesDlg = function(oPage) {
-		return NittioLessonPagePropsDlg.showDlg(oPage);
+	this.showPagePropertiesDlg = function(oPage, defMaxScore) {
+		return NittioLessonPagePropsDlg.showDlg(oPage, defMaxScore);
 	};
 }]; 
 

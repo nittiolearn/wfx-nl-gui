@@ -149,7 +149,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo) {
 					resolve(false);
 				});
 			}};
-			editDlg.show('nittiolesson/module_props_dlg.html', [okButton], cancelButton);
+			editDlg.show('lib_ui/dlg/dlgfieldsview.html', [okButton], cancelButton);
 		});
 	};
 
@@ -208,8 +208,8 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo) {
 		editDlg.scope.dlgTitle = nl.t('Module properties');
 				
 		editDlg.scope.data = {};
-		editDlg.scope.data.moduleProps = _moduleProps;
-		editDlg.scope.data.isModule = true;
+		editDlg.scope.data.items = _moduleProps;
+		editDlg.scope.data.fixedHelp = 'Name is the only mandatory property. You may leave the rest of the properties to default. Properties could be changed anytime later.';
 		editDlg.scope.data.name = _oLesson.name;
 		editDlg.scope.data.forumTopic = _oLesson.forumTopic;
 		editDlg.scope.data.description = _oLesson.description;

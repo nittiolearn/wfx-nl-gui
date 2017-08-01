@@ -543,7 +543,6 @@ function LessonDlgs() {
 
 LessonDlgs.contentsDlg = new njs_helper.Dialog();
 LessonDlgs.pageTypeDlg = new njs_helper.Dialog();
-LessonDlgs.pagePropsDlg = new njs_helper.Dialog();
 LessonDlgs.changeLookDlg = new njs_helper.Dialog();
 LessonDlgs.notesDlg = new njs_helper.Dialog();
 

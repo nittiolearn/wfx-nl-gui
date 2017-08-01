@@ -1,15 +1,13 @@
 <nl-dlg title='{{dlgTitle}}' show-help='0'>
 <nl-dlg-content>
-	<div class='padding-mid'>
+	<div class='padding-mid' ng-show='data.fixedHelp'>
 	    <nl-inline-help>
-	        <div class='fsh6'>
-		    	Name is the only mandatory property. You may leave the rest of the properties to default. Properties could be changed anytime later.
-	        </div>
+	        <div class='fsh6' ng-bind-html='data.fixedHelp'></div>
 	    </nl-inline-help>
 	</div>
 
     <nl-dlg-field class='row row-top row-wrap margin0 padding0'
-    			  ng-repeat='item in data.moduleProps'
+    			  ng-repeat='item in data.items'
     			  ng-if='data.canShow(item.condition, item)'
     			  data='data' error='error' options='options' item='item'>
      </nl-dlg-field>
