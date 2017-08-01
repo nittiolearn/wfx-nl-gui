@@ -953,9 +953,9 @@ function PageFetcher(nl, nlDlg, attrs) {
             var batchDone = _fetchLimit === undefined ? true
                 : !_canFetchMore || (_fetchLimit !== null && _fetchLimit <= _fetchedCount);
             var msg = nl.t('Got {} {}(s) from the server.{}', _fetchedCount, _itemType, 
-                (_fetchLimit === undefined ? ''
-                : !batchDone ? ' Fetching more items ...' 
-                : '  You could fetch more if needed.'));
+                !batchDone ? ' Fetching more items ...' 
+                : _canFetchMore ? '  You could fetch more if needed.'
+                : '');
             nlDlg.popupStatus(msg, batchDone ? undefined : false);
             if (batchDone) _fetchInProgress = false;
             callback(resp.resultset, batchDone);

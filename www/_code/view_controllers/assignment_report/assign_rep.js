@@ -211,7 +211,8 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
             _updateStatusOverview();
 
             nlCardsSrv.updateCards($scope.cards, {
-                canFetchMore: !_pageFetcher.fetchInProgress() && _pageFetcher.canFetchMore()
+                canFetchMore: !_pageFetcher.fetchInProgress() && _pageFetcher.canFetchMore(),
+                fetchInProgress: _pageFetcher.fetchInProgress()
             });
             if (resolve) resolve(true);
         }, mode.limit);
