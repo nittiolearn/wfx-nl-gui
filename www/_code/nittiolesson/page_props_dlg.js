@@ -20,7 +20,7 @@ function(nl, nlDlg) {
 	this.init = function(moduleConfig) {
 		_moduleConfig = moduleConfig;
 		_pageProps = [{id:'pageId', name: nl.t('Page id'), type:'div'},
-			{id:'maxScore', name: nl.t('Score'), type:'number', condition: 'isMaxScore'},
+			{id:'maxScore', name: nl.t('Maximum score'), type:'number', condition: 'isMaxScore'},
 			{id:'minPageTime', name: nl.t('Minimum time'), type:'number', min: 0},
 			{id:'forumTopic', name: nl.t('Discussion topic'), type:'string'},
 			{id:'audioUrl', name: nl.t('Audio url'), type:'string'},
@@ -78,7 +78,7 @@ function(nl, nlDlg) {
 		pagePropsDlg.scope.data = {};
 		pagePropsDlg.scope.data.items = _pageProps;
 		pagePropsDlg.scope.data.pageId = {title: nl.t('<span class="fsh6">#/id{}</span>', _oPage.pageId)};
-		pagePropsDlg.scope.data.maxScore = 'maxScore' in _oPage ? _oPage.maxScore : '';
+		pagePropsDlg.scope.data.maxScore = 'pageMaxScore' in _oPage ? _oPage.pageMaxScore : '';
 		pagePropsDlg.scope.data.minPageTime = parseInt(_oPage.minPageTime || 0);
 		pagePropsDlg.scope.data.forumTopic = _oPage.forumTopic;
 		pagePropsDlg.scope.data.audioUrl = _oPage.audioUrl;
@@ -88,18 +88,25 @@ function(nl, nlDlg) {
 		pagePropsDlg.scope.data.visibility = _oPage.visibility === 'editor' ? visibilityOpt[1] : visibilityOpt[0];
 		pagePropsDlg.scope.data.canShow = function(condition, item) {
 			if (condition == 'isBleedingEdge') return (_moduleConfig.grpProps.isBleedingEdge);
-			if (condition == 'isMaxScore') return (_oPage.maxScore > 0);
+			if (condition == 'isMaxScore') return (_defMaxScore > 0);
 			return true;
 		};
 		
 		pagePropsDlg.scope.data.getPlaceHolder = function (item) {
-			if(item.id == 'maxScore') return nl.t('Default max score : {}', _defMaxScore);
+			if(item.id == 'maxScore') return nl.t('Default: {}', _defMaxScore);
 			return item.placeholder || ""; 
 		};
 	};
 	
+    var MINIMUM_MAXSCORE = 1;
 	function _updateOpageProps(data) {
-		_oPage.maxScore = data.maxScore ?  data.maxScore : _defMaxScore;
+	    if (data.maxScore !== '' && data.maxScore >= MINIMUM_MAXSCORE) {
+	        _oPage.pageMaxScore = data.maxScore;
+            _oPage.maxScore = data.maxScore;
+	    } else {
+	        delete _oPage.pageMaxScore;
+            _oPage.maxScore = _defMaxScore;
+	    }
 		_oPage.minPageTime = data.minPageTime;
 		_oPage.forumTopic = data.forumTopic;
 		_oPage.audioUrl = data.audioUrl;
