@@ -21,7 +21,7 @@ function($stateProvider, $urlRouterProvider) {
         url : '^/course_view',
         views : {
             'appContent' : {
-                templateUrl : 'view_controllers/course/course_view.html',
+                templateUrl : 'view_controllers/course/view/course_view.html',
                 controller : 'nl.CourseViewCtrl'
             }
         }
@@ -1326,7 +1326,7 @@ function CourseViewDirective(template) {
     return ['nl', function(nl) {
         return {
             restrict: 'E',
-            templateUrl: nl.fmt2('view_controllers/course/{}.html', template),
+            templateUrl: nl.fmt2('view_controllers/course/view/{}.html', template),
             scope: true
         };
     }];

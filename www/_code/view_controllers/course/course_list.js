@@ -483,7 +483,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
                 _onCourseSave(e, $scope, modifyDlg.scope, courseId, true);
             }};
             var cancelButton = {text : nl.t('Cancel')};
-            modifyDlg.show('view_controllers/course/course_create_dlg.html',
+            modifyDlg.show('view_controllers/course/course_modify_dlg.html',
                 [saveButton, publishButton], cancelButton);
         });
 	}

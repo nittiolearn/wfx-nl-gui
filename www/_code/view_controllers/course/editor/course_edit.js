@@ -7,7 +7,7 @@
 function module_init() {
     angular.module('nl.course_edit', [])
     .service('nlCourseEditor', NlCourseEditorSrv)
-    .directive('nlCourseEditor', CourseEditDirective('course_editor'))
+    .directive('nlCourseEditor', CourseEditDirective)
     .directive('nlCourseEditorFields', EditorFieldsDirective);
 }
 
@@ -15,7 +15,7 @@ function module_init() {
 var EditorFieldsDirective = ['nl', function(nl) {
     return {
         restrict: 'E',
-        templateUrl: 'view_controllers/course/course_editor_fields.html',
+        templateUrl: 'view_controllers/course/editor/course_editor_fields.html',
         scope: {
             attrs: '=',
             help: '=',
@@ -654,7 +654,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
 			$scope.editorCb.showVisible(null);
 			$scope.editorCb.updateChildrenLinks();
 		}};
-		_organiseModuleDlg.show('view_controllers/course/course_organiser.html', [], closeButton, false);
+		_organiseModuleDlg.show('view_controllers/course/editor/course_organiser.html', [], closeButton, false);
     }
     
 	function _moveItem(movedItem, fromIndex, toIndex) {
@@ -691,7 +691,7 @@ function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm) {
 			_onOk(e);
 		}};
 		var closeButton = {text: nl.t('Cancel')};
-		dlg.show('view_controllers/course/course_start_after_configure.html', [okButton], closeButton);
+		dlg.show('view_controllers/course/editor/course_start_after_configure.html', [okButton], closeButton);
 	};
 
 	function _getModuleListFromCm() {
@@ -770,15 +770,13 @@ function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm) {
 }
 	
 //-------------------------------------------------------------------------------------------------
-function CourseEditDirective(template) {
-    return ['nl', function(nl) {
-        return {
-            restrict: 'E',
-            templateUrl: nl.fmt2('view_controllers/course/{}.html', template),
-            scope: true
-        };
-    }];
-}
+var CourseEditDirective = ['nl', function(nl) {
+    return {
+        restrict: 'E',
+        templateUrl: 'view_controllers/course/editor/course_editor.html',
+        scope: true
+    };
+}];
 
 //-------------------------------------------------------------------------------------------------
 module_init();
