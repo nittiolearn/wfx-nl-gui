@@ -1,0 +1,30 @@
+<style>
+    .bgholder {
+        position: relative;
+    }
+    .bgimg {
+        max-height: 100%;
+        max-width: 100%;
+        text-align: center;
+    }
+    .pinholder {
+        position: absolute;
+        border-radius: 50%;
+        transform: translateX(-50%) translateY(-50%);
+    }
+    
+</style>
+<div class='row row-center padding0 margin0'
+     style='height: 100%; background: {{canvas.bgcolor}}'>
+    <div class='col padding0'></div>
+    <div class='bgholder'>
+        <img class='bgimg' ng-src='{{canvas.bgimg}}'>
+        <div ng-repeat='pin in canvas.pins track by $index'
+             class='padding-mid fsh4 bgwhite pinholder'
+             style='top: {{pin.top}}%; left: {{pin.left}}%;'
+             title={{pin.title}}>
+            <i class='icon ion-location fsh4 fblue2'></i>
+        </div>
+    </div>
+    <div class='col padding0'></div>
+</div>

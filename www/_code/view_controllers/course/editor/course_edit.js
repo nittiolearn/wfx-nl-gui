@@ -7,23 +7,27 @@
 function module_init() {
     angular.module('nl.course_edit', [])
     .service('nlCourseEditor', NlCourseEditorSrv)
-    .directive('nlCourseEditor', CourseEditDirective)
-    .directive('nlCourseEditorFields', EditorFieldsDirective);
+    .directive('nlCourseEditor', CourseEditDirective())
+    .directive('nlCourseEditorFields', EditorFieldsDirective());
 }
 
 //-------------------------------------------------------------------------------------------------
-var EditorFieldsDirective = ['nl', function(nl) {
-    return {
-        restrict: 'E',
-        templateUrl: 'view_controllers/course/editor/course_editor_fields.html',
-        scope: {
-            attrs: '=',
-            help: '=',
-            values: '=',
-            editor: '='
-        }
+function CourseEditDirective() {
+    var templateUrl = 'view_controllers/course/editor/course_editor.html';
+    return _nl.elemDirective(templateUrl, true);
+}
+
+//-------------------------------------------------------------------------------------------------
+function EditorFieldsDirective() {
+    var scope = {
+        attrs: '=',
+        help: '=',
+        values: '=',
+        editor: '='
     };
-}];
+    var templateUrl = 'view_controllers/course/editor/course_editor_fields.html';
+    return _nl.elemDirective(templateUrl, scope);
+}
 
 //-------------------------------------------------------------------------------------------------
 var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlLessonSelect', 'nlExportLevel', 'nlRouter',
@@ -182,7 +186,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
     }
 
     var courseAttrs = [
-        {name: 'grp_additionalAttrs', type: 'group', text: 'Show advanced attributes'},
+        {name: 'grp_additionalAttrs', type: 'group', text: 'Advanced properties'},
     	{name: 'planning', text:'Schedule planning', desc: 'Enable schedule planning for this course', group: 'grp_additionalAttrs', type: 'boolean'},
     	{name: 'certificate', text: 'Certificate configuration', type: 'hidden', group: 'grp_additionalAttrs'},
     	{name: 'custtype', text: 'Custom type', type: 'number', group: 'grp_additionalAttrs'},
@@ -190,15 +194,23 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
         {name: 'contentmetadata', text: 'Metadata', type: 'object', group: 'grp_additionalAttrs', debug: true},
     	{name: 'lastId', text: 'Last Id', type: 'readonly', group: 'grp_additionalAttrs', debug: true},
         {name: 'modules', text: 'Modules', type: 'hidden', group: 'grp_additionalAttrs', debug: true},
-        {name: 'contentVersion', text: 'Content Version', type: 'hidden', group: 'grp_additionalAttrs', debug: true}
+        {name: 'contentVersion', text: 'Content Version', type: 'hidden', group: 'grp_additionalAttrs', debug: true},
+        {name: 'grp_canvasAttrs', type: 'group', text: 'Canvas properties (Nittio Labs)', debug: true},
+        {name: 'canvasview', type: 'boolean', text: 'Canvas mode', desc: 'View the course in a visual canvas mode', group: 'grp_canvasAttrs', debug:true},
+        {name: 'bgimg', type: 'string', text: 'Background image', group: 'grp_canvasAttrs', debug:true},
+        {name: 'bgcolor', type: 'string', text: 'Background color', group: 'grp_canvasAttrs', debug:true}
     ];
     
     var _courseAttrHelp = {
     	planning: {desc: 'Start and end dates are considered only if schedule planning is enabled.'},
     	custtype: {desc: 'You can define a custom type to help in searchability.'},
-        exportLevel: {desc: 'This attribute is visible only if the group has option to export content to other groups.'},
-        contentmetadata: {desc: 'Debug the metadata attributes.'},
-    	lastId: {desc: 'Internally used.'}
+        exportLevel: {desc: 'This property is visible only if the group has option to export content to other groups.'},
+        contentmetadata: {desc: 'Metadata attributes.'},
+    	lastId: {desc: 'Internally used.'},
+        grp_canvasAttrs: {desc: 'Canvas mode is a visual represenation of course where laarning items are placed in the backdrop of an image. Learners will be able to navigate into the specific section in a more visual way.'},
+        canvasview: {desc: 'To view the course in a visual canvas, set this mode.'},
+        bgimg: {desc: 'Select the background image to be displayed in the canvas.'},
+        bgcolor: {desc: 'The background image is resized to retain aspect ratio. This could result in horizontal or vertical bands. You can choose the color of the bands to align with the edge of the image.'}
     };
     
     var _courseParams = [
@@ -226,7 +238,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
         {name: 'grp_depAttrs', fields: ['lesson', 'link', 'info'], type: 'group', text: 'Planning'},
         {name: 'start_date', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Start date', group: 'grp_depAttrs'},
         {name: 'planned_date', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Planned date', group: 'grp_depAttrs'},
-        {name: 'grp_additionalAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'group', text: 'Show advanced attributes'},
+        {name: 'grp_additionalAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'group', text: 'Advanced properties'},
         {name: 'reopen_on_fail', fields: ['lesson'], type: 'object', text: 'Reopen on fail', contentType: 'object',group: 'grp_additionalAttrs'},
         {name: 'icon', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
         {name: 'text', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'text', text: 'Description', group: 'grp_additionalAttrs'},
@@ -235,7 +247,12 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
         {name: 'autocomplete', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
         {name: 'parentId', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'readonly', debug: true, text: 'Parent ID', group: 'grp_additionalAttrs', readonly: true}, 
         {name: 'id', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'readonly', text: 'Unique ID', group: 'grp_additionalAttrs', readonly: true}, 
-    	{name: 'totalItems', fields : ['module'], type: 'readonly', text: 'Total items', group: 'grp_additionalAttrs'}
+    	{name: 'totalItems', fields : ['module'], type: 'readonly', text: 'Total items', group: 'grp_additionalAttrs'},
+        {name: 'grp_canvasAttrs', type: 'group', text: 'Canvas properties (Nittio Labs)', debug: true, fields: ['module', 'lesson', 'link', 'info', 'certificate']},
+        {name: 'posX', type: 'number', text: 'X Position', group: 'grp_canvasAttrs', debug:true, fields: ['module', 'lesson', 'link', 'info', 'certificate']},
+        {name: 'posY', type: 'number', text: 'Y Position', group: 'grp_canvasAttrs', debug:true, fields: ['module', 'lesson', 'link', 'info', 'certificate']},
+        {name: 'bgimg', type: 'string', text: 'Background image', group: 'grp_canvasAttrs', debug:true, fields: ['module']},
+        {name: 'bgcolor', type: 'string', text: 'Background color', group: 'grp_canvasAttrs', debug:true, fields: ['module']}
     ];
     
     var moduleAttrHelp = {
@@ -245,12 +262,12 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
     	action: {desc: 'The action whose URL is used for the link. Click on the icon to view the link'},
     	urlParams: {desc: 'The urlParams to append to the URL (see Dashboard create/modify dialog for more information).'},
     	certificate_image: {desc: 'Provide a background image for your certificates.'},
-    	grp_depAttrs: {desc: 'Enabling this would display planning attributes such as "Start date" and "Planned date".'},
+    	grp_depAttrs: {desc: 'Enabling this would display planning properties such as "Start date" and "Planned date".'},
     	start_date: {desc: 'Earliest planned start date. Is applicable only if "planning" is set to true for the course.'},
     	planned_date: {desc: 'Expected planned completion date. Is applicable only if "planning" is set to true for the course.'},
-    	grp_additionalAttrs: {name: 'Advanced attributes', desc: 'Enabling this would display additional attributes depeneding on the selected "Element type" of the module.'},
+    	grp_additionalAttrs: {name: 'Advanced properties', desc: 'Enabling this would display additional properties depeneding on the selected "Element type" of the module.'},
     	start_after: {desc: 'You could specify a set of prerequisite conditions that have to be met for current item. Only after all the specified conditions are met, the curent item is made available to the learner. If the prerequisites are not met, this current item is shown in a locked state to the learner.'},
-    	reopen_on_fail: {desc: 'You could reopen a set of learning modules if the learner failed in the quiz. To do this, you need to configure this attribute on the quiz module. You can list the items (refered by their unique id) which have to be reopened if the learner failed to acheive minimum pass score in the current module. This attribute is a JSON string representing an array of strings: each string is unque id of the item that should be re-opened.<br> Example:<br></div><pre>["_id1", "_id2"]</pre></div>'},
+    	reopen_on_fail: {desc: 'You could reopen a set of learning modules if the learner failed in the quiz. To do this, you need to configure this property on the quiz module. You can list the items (refered by their unique id) which have to be reopened if the learner failed to acheive minimum pass score in the current module. This property is a JSON string representing an array of strings: each string is unque id of the item that should be re-opened.<br> Example:<br></div><pre>["_id1", "_id2"]</pre></div>'},
 		icon: {desc: 'Icon to be displayed for this item in the course tree. If not provided, this is derived from the type. "quiz" is a predefined icon.'},
 		text: {desc: 'Provide a description which is shown in the content area / details popup when the element is clicked.'},
 		maxAttempts: {desc: 'Number of time the learner can do this module. Only the learning data from the last attempt is considered. 0 means infinite. 1 is the default.'},
@@ -258,7 +275,12 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
 		autocomplete: {desc: 'If this flag is checked, the link is automatically marked completed when the learner views for the first time.'},
 		parentId: {desc: 'Defines the unique id of the folder item under which the current module is located.'},
 		id: {desc: 'Defines the unique id of the current item. This is automatically generated.'},
-		totalItems: {desc: 'Displays the number of total modules the folders currently has.'} 
+		totalItems: {desc: 'Displays the number of total modules the folders currently has.'},
+        grp_canvasAttrs: {desc: 'Canvas mode is a visual represenation of course where laarning items are placed in the backdrop of an image. Learners will be able to navigate into the specific section in a more visual way.'},
+        posX: {desc: 'Define the horizontal position of this item in the canvas as a percentage number. Left end of the screen is 0 and the right end is 100.'},
+        posY: {desc: 'Define the vertical position of this item in the canvas as a percentage number. Top end of the screen is 0 and the bottom end is 100.'},
+        bgimg: {desc: 'Select the background image to be displayed in the canvas when the folder is opened.'},
+        bgcolor: {desc: 'The background image is resized to retain aspect ratio. This could result in horizontal or vertical bands. You can choose the color of the bands to align with the edge of the image.'}
     };
     
     var allowedModuleAttrs = (function () {
@@ -769,15 +791,6 @@ function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm) {
 	}
 }
 	
-//-------------------------------------------------------------------------------------------------
-var CourseEditDirective = ['nl', function(nl) {
-    return {
-        restrict: 'E',
-        templateUrl: 'view_controllers/course/editor/course_editor.html',
-        scope: true
-    };
-}];
-
 //-------------------------------------------------------------------------------------------------
 module_init();
 })();

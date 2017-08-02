@@ -207,9 +207,9 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
 
 //-------------------------------------------------------------------------------------------------
 var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg', 'nlExporter',
-'nlCourseEditor', 'nlServerApi', 'nlGroupInfo', 'nlSendAssignmentSrv',
+'nlCourseEditor', 'nlCourseCanvas', 'nlServerApi', 'nlGroupInfo', 'nlSendAssignmentSrv',
 function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
-    nlCourseEditor, nlServerApi, nlGroupInfo, nlSendAssignmentSrv) {
+    nlCourseEditor, nlCourseCanvas, nlServerApi, nlGroupInfo, nlSendAssignmentSrv) {
     var modeHandler = new ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope);
     var nlContainer = new NlContainer(nl, $scope, modeHandler);
     nlContainer.setContainerInWindow();
@@ -324,6 +324,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
 	}
 
     function _initAttributesDicts() {
+        nlCourseCanvas.init($scope, modeHandler, _userInfo);
         if (!$scope.ext.isStaticMode()) return;
         $scope.editorCb = {
         	initModule: function(cm) {
@@ -357,16 +358,23 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         nlCourseEditor.init($scope, modeHandler, _userInfo);
     }
 
-    function _initExpandedView() {
+    function _initView() {
         $scope.expandedView = (nl.rootScope.screenSize != 'small'); 
         $scope.showExpandedViewIcon = $scope.expandedView;
         _updateExpandViewIcon();
     }
+    _initView();
     
     nl.resizeHandler.onResize(function() {
-        _initExpandedView();
+        _initView();
     });
-    _initExpandedView();
+
+    $scope.popupView = false;
+    function _popout(bPopout) {
+        nl.pginfo.isMenuShown = !bPopout;
+        $scope.popupView = bPopout;
+    }
+
 
     function _showVisible() {
         $scope.modules = [];
@@ -428,12 +436,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         _confirmIframeClose(null, _impl);
     };
     
-    $scope.popupView = false;
-    function _popout(bPopout) {
-        nl.pginfo.isMenuShown = !bPopout;
-        $scope.popupView = bPopout;
-    }
-
 	$scope.showAddInfo = function(e, cm){
 		if($scope.showAddInform) {
 			_showAddInfo(false);
@@ -1323,13 +1325,8 @@ function NlContainer(nl, $scope, modeHandler) {
 
 //-------------------------------------------------------------------------------------------------
 function CourseViewDirective(template) {
-    return ['nl', function(nl) {
-        return {
-            restrict: 'E',
-            templateUrl: nl.fmt2('view_controllers/course/view/{}.html', template),
-            scope: true
-        };
-    }];
+    return _nl.elemDirective('view_controllers/course/view/' + template 
+        + '.html', true);
 }
 
 //-------------------------------------------------------------------------------------------------

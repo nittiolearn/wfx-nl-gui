@@ -1264,9 +1264,7 @@ function _getCardIcon(nl, rnoConfig) {
 
 //-------------------------------------------------------------------------------------------------
 function _simpleElemDirective(viewName) {
-    return [function(){
-        return {restrict: 'E', templateUrl: 'view_controllers/rno/' + viewName};
-    }];
+    return _nl.elemDirective('view_controllers/rno/' + viewName);
 }
 
 module_init();
