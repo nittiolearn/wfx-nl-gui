@@ -26,27 +26,29 @@
     }
 </style>
 <nl-course-view-toolbar></nl-course-view-toolbar>
-<div ng-if='!popupView' class='{{expandedView ? "frame1" : "frame0"}}'
+<div ng-show='vp.t' class='{{vp.i || vp.c || vp.d ? "frame1" : "frame0"}}'
 	 style='border-right: 1px solid rgba(0, 0, 0, 0.1)'>
     <nl-course-view-list></nl-course-view-list>
 </div>
-<div ng-if='popupView || expandedView'
-     class='padding-small {{popupView ? "frame0" : "frame2"}}'>
+<div ng-show='vp.i || vp.c || vp.d'
+     class='padding-small {{vp.t ? "frame2" : "frame0"}}'>
     <div class='padding-mid nl-thin-scroll' style='height: 100%'>
-        <div ng-if='iframeUrl' style='position: absolute; top: 4px; bottom: 4px; left: 4px; right: 4px;'>
+        <div ng-show='vp.i' style='position: absolute; top: 4px; bottom: 4px; left: 4px; right: 4px;'>
             <nl-course-view-frame></nl-course-view-frame>
         </div>
-	    <div class='fsh3 padding-mid nl-textellipsis'
-	    	 ng-if='!iframeUrl && !ext.isEditorMode()'>
+        <nl-course-canvas-view ng-show='vp.c'>
+        </nl-course-canvas-view>
+	    <div ng-show='vp.d && !ext.isEditorMode()'
+	         class='fsh3 padding-mid nl-textellipsis'>
 	        <img ng-if='ext.isIconImg(ext.item)' class='nl-icon' ng-src='{{ext.item.icon}}'>
 	        <i ng-show='!ext.isIconImg(ext.item)' class="icon {{ext.getIconCls(ext.item)}} bold fsh5"></i>
 	        {{ext.item.name}}
 	    </div>
-        <nl-course-view-content-active ng-if='!iframeUrl && !ext.isStaticMode()'>
-        </nl-course-view-content-active>
-        <nl-course-editor ng-if='!iframeUrl && ext.isEditorMode()'>
+        <nl-course-editor ng-show='vp.d && ext.isEditorMode()'>
         </nl-course-editor>
-        <nl-course-view-content-static ng-if='!iframeUrl && ext.isStaticMode() && !ext.isEditorMode()'>
+        <nl-course-view-content-static ng-show='vp.d && ext.isStaticMode() && !ext.isEditorMode()'>
         </nl-course-view-content-static>
+        <nl-course-view-content-active ng-show='vp.d && !ext.isStaticMode()'>
+        </nl-course-view-content-active>
     </div>
 </div>

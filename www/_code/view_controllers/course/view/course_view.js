@@ -193,6 +193,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
                 url += 'embedded=true';
                 $scope.iframeUrl = url;
                 $scope.iframeModule = $scope.ext.item.id;
+                $scope.updateVisiblePanes();
             });
         }
         return true;
@@ -218,7 +219,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     var _userInfo = null;
     $scope.MODES = MODES;
     var folderStats = new FolderStats($scope);
-    $scope.ext = new ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, folderStats);
+    $scope.ext = new ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseCanvas, folderStats);
 
     function _onPageEnter(userInfo) {
         _userInfo = userInfo;
@@ -238,7 +239,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
             var courseId = parseInt($scope.params.id);
             modeHandler.getCourse().then(function(course) {
                 _onCourseRead(course);
-                _showVisible();
                 resolve(true);
             }, function(error) {
                 resolve(false);
@@ -260,6 +260,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     function _onCourseRead(course) {
 		course = nlCourse.migrateCourse(course);
         modeHandler.initTitle(course);
+        nlCourseCanvas.init($scope, modeHandler, treeList, _userInfo);
         _initAttributesDicts(course);
         courseReportSummarizer.updateUserReports(course);
         $scope.courseContent = course.content;
@@ -284,6 +285,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         nl.timeout(function() {
             _updateAllItemData();
             $scope.ext.setCurrentItem(treeList.getRootItem());
+            _showVisible();
         });
     }
 
@@ -324,7 +326,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
 	}
 
     function _initAttributesDicts() {
-        nlCourseCanvas.init($scope, modeHandler, _userInfo);
         if (!$scope.ext.isStaticMode()) return;
         $scope.editorCb = {
         	initModule: function(cm) {
@@ -358,23 +359,59 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         nlCourseEditor.init($scope, modeHandler, _userInfo);
     }
 
-    function _initView() {
-        $scope.expandedView = (nl.rootScope.screenSize != 'small'); 
-        $scope.showExpandedViewIcon = $scope.expandedView;
-        _updateExpandViewIcon();
+    // One or more of the below panes could be visible at any time
+    // t = tree, c = canvas, d = details, i = iframe. c/d/i are part of
+    // content area.
+    $scope.vp = {}; // Finally whatever is visible currently in a dict
+    $scope.iframeUrl = null;     // true if content area contains iframe.
+    $scope.iframeModule = null;
+    $scope.canvasMode = false;    // true if content has canvas enabled.
+    $scope.canvasShown = false;  // true if content area contains canvas.
+    $scope.popupView = false;    // true if content area is popped out.
+    $scope.expandedView = false; // true if tree + content area is shown
+
+    $scope.updateVisiblePanes = function() {
+        var oldExpandedView = $scope.expandedView;
+        $scope.expandedView = (nl.rootScope.screenSize != 'small');
+        if (oldExpandedView && !$scope.expandedView && $scope.iframeUrl) {
+            $scope.popupView = true;
+        }
+
+        $scope.vp = {};
+        var vp = $scope.vp;
+        if ($scope.canvasMode && !$scope.ext.isEditorMode()) {
+            // canvas mode non-editor
+            if ($scope.iframeUrl) vp.i = true;
+            else if ($scope.canvasShown) vp.c = true;
+            else vp.d = true;
+        } else {
+            // canvas mode editor, structured mode editor/non-editor
+            if (!$scope.popupView) vp.t = true;
+            if ($scope.iframeUrl) vp.i = true;
+            else if ($scope.popupView || $scope.expandedView) {
+                if ($scope.canvasShown) vp.c = true;
+                else vp.d = true;
+            }
+        }
     }
-    _initView();
     
     nl.resizeHandler.onResize(function() {
-        _initView();
+        $scope.updateVisiblePanes();
     });
 
-    $scope.popupView = false;
     function _popout(bPopout) {
         nl.pginfo.isMenuShown = !bPopout;
         $scope.popupView = bPopout;
+        $scope.updateVisiblePanes();
     }
 
+    $scope.toggleCanvasMode = function(e) {
+        if (!$scope.canvasMode) return;
+
+        $scope.canvasShown = !$scope.canvasShown;
+        if ($scope.canvasShown) nlCourseCanvas.update();
+        $scope.updateVisiblePanes();
+    };
 
     function _showVisible() {
         $scope.modules = [];
@@ -384,6 +421,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
             if (!cm.visible) continue;
             $scope.modules.push(cm);
         }
+        $scope.updateVisiblePanes();
     }
 
     $scope.download = function() {
@@ -415,6 +453,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         if ($scope.ext.isStaticMode()) {
             $scope.iframeUrl = null;
             $scope.iframeModule = null;
+            $scope.updateVisiblePanes();
             nextFn();
             return;
         }
@@ -424,17 +463,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
                 if (!res) return;
                 $scope.iframeUrl = null;
                 $scope.iframeModule = null;
+                $scope.updateVisiblePanes();
                 nextFn();
             });
     }
-    
-    $scope.expandViewClick = function() {
-        function _impl() {
-            $scope.expandedView = !$scope.expandedView;
-            _updateExpandViewIcon();
-        }
-        _confirmIframeClose(null, _impl);
-    };
     
 	$scope.showAddInfo = function(e, cm){
 		if($scope.showAddInform) {
@@ -476,6 +508,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         nl.timeout(function() {
             $scope.iframeUrl = null;
             $scope.iframeModule = null;
+            $scope.updateVisiblePanes();
             if($scope.popupView) _popout(false);
         });
     };
@@ -486,16 +519,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         });
     };
 
-    function _updateExpandViewIcon() {
-        if ($scope.expandedView) {
-            $scope.expandViewText = nl.t('Expand list and hide content');
-            $scope.expandViewIcon = 'ion-ios-list';
-            return;
-        }
-        $scope.expandViewText = nl.t('Shrink list to show content');
-        $scope.expandViewIcon = 'ion-arrow-shrink';
-    }
-    
     var forumDlg = null;
     $scope.launchForum = function() {
         if (!forumDlg) {
@@ -852,7 +875,7 @@ function FolderStats($scope) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, folderStats) {
+function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseCanvas, folderStats) {
     
     this.item = null;
     this.stats = null;
@@ -869,6 +892,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, folderSta
         nlContainer.onSave(function(lessonReportInfo) {
             modeHandler.course.lessonReports[cm.id] = lessonReportInfo;
         });
+        nlCourseCanvas.update();
     };
     
     var _updateStatusFn = null;

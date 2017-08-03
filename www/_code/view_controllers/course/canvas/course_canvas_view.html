@@ -1,29 +1,37 @@
-<style>
-    .bgholder {
-        position: relative;
-    }
-    .bgimg {
-        max-height: 100%;
-        max-width: 100%;
-        text-align: center;
-    }
-    .pinholder {
-        position: absolute;
-        border-radius: 50%;
-        transform: translateX(-50%) translateY(-50%);
-    }
-    
-</style>
 <div class='row row-center padding0 margin0'
-     style='height: 100%; background: {{canvas.bgcolor}}'>
+     style='height: 100%; background: {{canvas.bgcolor || "rgba(255, 255, 255, 0.5)"}}'>
     <div class='col padding0'></div>
-    <div class='bgholder'>
-        <img class='bgimg' ng-src='{{canvas.bgimg}}'>
+    <div class='nl-cv-canvas {{canvas.bgimg ? "" : "empty"}}'>
+        <img class='bgimg' ng-show='canvas.bgimg' ng-src='{{canvas.bgimg}}'>
         <div ng-repeat='pin in canvas.pins track by $index'
-             class='padding-mid fsh4 bgwhite pinholder'
-             style='top: {{pin.top}}%; left: {{pin.left}}%;'
-             title={{pin.title}}>
-            <i class='icon ion-location fsh4 fblue2'></i>
+             class='padding-small bgwhite nl-link-img pin {{canvas.currentPin == $index ? "expanded" : ""}}'
+             style='top: {{pin.t}}; bottom: {{pin.b}}; left: {{pin.l}}; right: {{pin.r}};'
+             title={{pin.cm.name}}
+             ng-click='canvas.showPin($index)'>
+            <div class='row row-center margin0 padding0'>
+                <span class='padding0 fsh4'><i class='icon {{pin.cm.state.icon}} fsh4'></i></span>
+                <span ng-show='canvas.currentPin == $index' class='col fsh6 padding-mid'>{{pin.cm.name}}</span>
+                <span ng-show='canvas.currentPin == $index' class='padding-mid'
+                      ng-click='canvas.closePins($event)'>
+                      <i class='icon ion-ios-close forange fsh4'></i>
+                </span>
+            </div>
+            <div ng-show='canvas.currentPin == $index'
+                 class='row row-center margin0 padding0'>
+                <div>
+                    <div class='row row-center margin0 padding0 nl-link-text' ng-click='canvas.showDetails($event, $index)'>
+                       <i class='ion-ios-eye icon nl-dlg-field-icon padding-small'></i>
+                       <span ng-show='$root.screenSize != "small"' class='padding-small'>details</span>
+                    </div>
+                </div>
+                <div class='col padding0'></div>
+                <div>
+                    <div class='row row-center margin0 padding0 nl-link-text' ng-click='canvas.launch($event, $index)'>
+                       <i class='ion-android-open icon nl-dlg-field-icon padding-small'></i>
+                       <span ng-show='$root.screenSize != "small"' class='padding-small'>launch</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <div class='col padding0'></div>

@@ -1398,6 +1398,32 @@ img.nl-icon {
   background-color: $nldarkgrey;
 }
 
+.nl-cv-canvas {
+  position: relative;
+  &.empty {
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0, 0, 255, 0.1);
+  }
+  .bgimg {
+    max-height: 100%;
+    max-width: 100%;
+    text-align: center;
+  }
+  .pin {
+    position: absolute;
+    border-radius: 4px;
+    opacity: 0.8;
+    &:hover, &:focus, &:active {
+      opacity: 1;
+    }
+    &.expanded {
+      opacity: 1;
+      z-index: 1;
+    }
+  }
+}
+
 /*-----------------------------------------------------------------------------------------*
  * rno elements
  *-----------------------------------------------------------------------------------------*/
