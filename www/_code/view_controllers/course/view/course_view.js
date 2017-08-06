@@ -11,6 +11,8 @@ function module_init() {
     .directive('nlCourseViewContentActive', CourseViewDirective('course_view_content_active'))
     .directive('nlCourseViewContentStatic', CourseViewDirective('course_view_content_static'))
     .directive('nlCourseViewFrame', CourseViewDirective('course_view_frame'))
+    .directive('nlCourseViewIcon', CourseViewDirective('course_view_icon', 
+        {cm: '=', ext: '=', cls: '@'}))
     .config(configFn).controller('nl.CourseViewCtrl', NlCourseViewCtrl);
 }
 
@@ -944,6 +946,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
     };
 
     this.getLaunchString = function() {
+        if (!this.item) return '';
         if (this.isStaticMode()|| this.item.type =='link' || this.item.type =='certificate') return 'Open';
         if (this.item.state.status == 'success' || this.item.state.status == 'failed') return 'View report';
         return 'Open';
@@ -1348,9 +1351,10 @@ function NlContainer(nl, $scope, modeHandler) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function CourseViewDirective(template) {
+function CourseViewDirective(template, scope) {
+    if (scope === undefined) scope = true;
     return _nl.elemDirective('view_controllers/course/view/' + template 
-        + '.html', true);
+        + '.html', scope);
 }
 
 //-------------------------------------------------------------------------------------------------

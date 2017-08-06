@@ -505,24 +505,20 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
         var allowedAttributes = allowedModuleAttrs[cm.type] || [];
     	var attrs = Object.keys(allowedAttributes);
         var editedModule = {};
-        var certificateModule = {type: 'certificate', action:'none', hide_remarks: true, autocomplete: true, urlParams: '/#/course_cert'};
+        for(var i=0; i<attrs.length; i++){
+            var attr = attrs[i];
+            if (!(attr in allowedAttributes)) continue;
+            var allowedAttr = allowedAttributes[attr];
+            if(cm[attr] === null || cm[attr] === undefined || cm[attr] === '') continue;
+            editedModule[attr] = cm[attr];
+        }
 		if(cm.type == 'certificate') {
-			certificateModule['name'] = cm.name;
-			certificateModule['parentId'] = cm.parentId;
-            certificateModule['id'] = cm.id;
-            certificateModule['start_after'] = cm.start_after;
-			certificateModule['certificate_image'] = cm.certificate_image;
-			return certificateModule;
-		} else {
-	        for(var i=0; i<attrs.length; i++){
-	    		var attr = attrs[i];
-	    		if (!(attr in allowedAttributes)) continue;
-	    		var allowedAttr = allowedAttributes[attr];
-	            if(cm[attr] === null || cm[attr] === undefined || cm[attr] === '') continue;
-	            editedModule[attr] = cm[attr];
-	        }
-	        return editedModule;
+            editedModule['action']= 'none'; 
+            editedModule['hide_remarks']= true;
+            editedModule['autocomplete']= true; 
+            editedModule['urlParams']= '/#/course_cert';
 	    }
+        return editedModule;
     }
 	
     function _searchLesson(e, cm){

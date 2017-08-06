@@ -19,8 +19,7 @@
 					    	<i ng-show='!cm.isOpen' class="icon ion-arrow-right-b bold fsh3"></i>
 		        			<i ng-show='cm.isOpen' class="icon ion-arrow-down-b bold fsh3"></i>
 						</span>
-		                <img ng-if='ext.isIconImg(cm)' class='nl-icon' ng-src='{{cm.icon}}'>
-		                <i ng-show='!ext.isIconImg(cm)' class="icon {{ext.getIconCls(cm)}} bold fsh3"></i>
+						<nl-course-view-icon ext='ext' cm='cm'></nl-course-view-icon>
 						<span class='col nl-textellipsis'>{{cm.name}}</span>
 		        	</div>
 	        	</div>

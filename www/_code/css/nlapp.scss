@@ -1398,28 +1398,41 @@ img.nl-icon {
   background-color: $nldarkgrey;
 }
 
-.nl-cv-canvas {
-  position: relative;
-  &.empty {
+nl-course-canvas-view .holder1 {
+  position: absolute; top: 0; left: 0; height: 100%; width: 100%;
+  .bgimg {
+    position: absolute;
     height: 100%;
     width: 100%;
-    background-color: rgba(0, 0, 255, 0.1);
-  }
-  .bgimg {
-    max-height: 100%;
-    max-width: 100%;
     text-align: center;
+  }
+  .bgimgmsg {
+    position: absolute;
+    width: 100%;
   }
   .pin {
     position: absolute;
     border-radius: 4px;
-    opacity: 0.8;
-    &:hover, &:focus, &:active {
-      opacity: 1;
+    border: 1px solid white;
+    background-color: $nldarkgrey;
+    &.selected {
+      background-color: white;
+      border-color: $nldarkgrey;
     }
     &.expanded {
-      opacity: 1;
       z-index: 1;
+    }
+    &.quadL.quadT {
+      transform: translate(-15px, -15px);
+    }
+    &.quadL.quadB {
+      transform: translate(-15px, 15px);
+    }
+    &.quadR.quadT {
+      transform: translate(15px, -15px);
+    }
+    &.quadR.quadB {
+      transform: translate(15px, 15px);
     }
   }
 }

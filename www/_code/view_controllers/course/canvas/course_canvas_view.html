@@ -1,38 +1,61 @@
-<div class='row row-center padding0 margin0'
-     style='height: 100%; background: {{canvas.bgcolor || "rgba(255, 255, 255, 0.5)"}}'>
-    <div class='col padding0'></div>
-    <div class='nl-cv-canvas {{canvas.bgimg ? "" : "empty"}}'>
-        <img class='bgimg' ng-show='canvas.bgimg' ng-src='{{canvas.bgimg}}'>
-        <div ng-repeat='pin in canvas.pins track by $index'
-             class='padding-small bgwhite nl-link-img pin {{canvas.currentPin == $index ? "expanded" : ""}}'
-             style='top: {{pin.t}}; bottom: {{pin.b}}; left: {{pin.l}}; right: {{pin.r}};'
-             title={{pin.cm.name}}
-             ng-click='canvas.showPin($index)'>
-            <div class='row row-center margin0 padding0'>
-                <span class='padding0 fsh4'><i class='icon {{pin.cm.state.icon}} fsh4'></i></span>
-                <span ng-show='canvas.currentPin == $index' class='col fsh6 padding-mid'>{{pin.cm.name}}</span>
-                <span ng-show='canvas.currentPin == $index' class='padding-mid'
-                      ng-click='canvas.closePins($event)'>
-                      <i class='icon ion-ios-close forange fsh4'></i>
+<style>
+    nl-course-canvas-view .holder1 {
+        background: {{canvas.bgcolor || "rgba(255, 255, 255, 0.5)"}};
+    }
+    nl-course-canvas-view .holder2 {
+        position: absolute;
+        top: {{canvas.t}}%; 
+        left: {{canvas.l}}%; 
+        height: {{canvas.h}}%; 
+        width: {{canvas.w}}%;
+    }
+</style>
+
+<div class='holder1' ng-click='canvas.closePins($event)'>
+<div ng-hide1='canvas.loadedimg' class='bgimgmsg padding fsh6' ng-bind-html='canvas.bgimgmsg'>
+</div>
+<div class='holder2'>
+    <img ng-if='canvas.loadedimg' class='bgimg anim fade' ng-src='{{canvas.loadedimg}}'>
+    <div ng-repeat='pin in canvas.pins track by $index'
+         class='anim nl-link-img pin {{pin.quadCls}} {{canvas.currentPin == $index ? "expanded fade" : ""}} {{pin.selected? "selected" : ""}}'
+         style='top: {{pin.t}}; bottom: {{pin.b}}; left: {{pin.l}}; right: {{pin.r}};'
+         title={{pin.cm.name}}
+         ng-click='canvas.showPin($event, $index)'>
+        <div class='row row-center margin0 padding0'>
+            <span class='padding-small fsh5 text-center'>
+                <span ng-if='!ext.isStaticMode()'
+                      class='row row-center margin0 padding0 text-center'
+                      style='width: 28px; height: 28px'>
+                    <i class='fsh4 col padding0 margin0 icon {{pin.cm.state.icon}}'></i>
                 </span>
-            </div>
-            <div ng-show='canvas.currentPin == $index'
-                 class='row row-center margin0 padding0'>
-                <div>
-                    <div class='row row-center margin0 padding0 nl-link-text' ng-click='canvas.showDetails($event, $index)'>
-                       <i class='ion-ios-eye icon nl-dlg-field-icon padding-small'></i>
-                       <span ng-show='$root.screenSize != "small"' class='padding-small'>details</span>
-                    </div>
-                </div>
-                <div class='col padding0'></div>
-                <div>
-                    <div class='row row-center margin0 padding0 nl-link-text' ng-click='canvas.launch($event, $index)'>
-                       <i class='ion-android-open icon nl-dlg-field-icon padding-small'></i>
-                       <span ng-show='$root.screenSize != "small"' class='padding-small'>launch</span>
-                    </div>
-                </div>
-            </div>
+                <nl-course-view-icon ng-if='ext.isStaticMode()'
+                                     ext='ext' cm='pin.cm' 
+                                     cls='fsh4 col padding0 margin0'
+                                     class='row row-center margin0 padding0 text-center'
+                                     style='width: 28px; height: 28px'>
+                </nl-course-view-icon>
+            </span>
+            <span ng-show='canvas.currentPin == $index'
+                  class='padding-small'>{{pin.cm.name}}</span>
+            <span ng-show='ext.isEditorMode() && canvas.currentPin == $index'
+                  ng-click='canvas.showDetails($event, $index)'
+                  title='Edit'
+                  class='padding-small nl-link-text fsh5'>
+                <i class='ion-ios-compose icon nl-toolbar-icon padding-small fsh4'></i>
+            </span>
+            <span ng-show='!ext.isEditorMode() && canvas.currentPin == $index'
+                  ng-click='canvas.showDetails($event, $index)'
+                  title='View details'
+                  class='padding-small nl-link-text fsh5'>
+                <i class='ion-information-circled icon nl-toolbar-icon padding-small fsh4'></i>
+            </span>
+            <span ng-show='ext.canLaunch() && canvas.currentPin == $index'
+                  ng-click='canvas.launch($event, $index)'
+                  title='View details'
+                  class='padding-small nl-link-text fsh5'>
+                <i class='ion-android-open icon nl-toolbar-icon padding-small fsh4'></i>
+            </span>
         </div>
     </div>
-    <div class='col padding0'></div>
+</div>
 </div>

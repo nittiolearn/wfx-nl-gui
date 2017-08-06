@@ -5,7 +5,7 @@
 
     <!-- course editor icons -->
     <span title='Change to canvas preview mode'
-          ng-show='ext.isEditorMode() && canvasMode && vp.d'
+          ng-show='ext.isEditorMode() && canvasMode && !vp.c'
           class='nl-toolbar-icon'
           ng-click='toggleCanvasMode($event)'>
         <i class="icon fsh3 ion-ios-eye"></i>

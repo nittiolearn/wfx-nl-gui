@@ -36,13 +36,12 @@
         <div ng-show='vp.i' style='position: absolute; top: 4px; bottom: 4px; left: 4px; right: 4px;'>
             <nl-course-view-frame></nl-course-view-frame>
         </div>
-        <nl-course-canvas-view ng-show='vp.c'>
+        <nl-course-canvas-view ng-show='vp.c' class='anim fade'>
         </nl-course-canvas-view>
 	    <div ng-show='vp.d && !ext.isEditorMode()'
-	         class='fsh3 padding-mid nl-textellipsis'>
-	        <img ng-if='ext.isIconImg(ext.item)' class='nl-icon' ng-src='{{ext.item.icon}}'>
-	        <i ng-show='!ext.isIconImg(ext.item)' class="icon {{ext.getIconCls(ext.item)}} bold fsh5"></i>
-	        {{ext.item.name}}
+	         class='padding-mid nl-textellipsis'>
+            <nl-course-view-icon ext='ext' cm='ext.item'></nl-course-view-icon>
+	        <span class='padding-small fsh3'>{{ext.item.name}}</span>
 	    </div>
         <nl-course-editor ng-show='vp.d && ext.isEditorMode()'>
         </nl-course-editor>
