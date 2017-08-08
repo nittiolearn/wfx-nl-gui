@@ -308,6 +308,11 @@ ion-spinner.spinner svg {
   fill: #EEFFEE;
 }
 
+ion-spinner.spinner.dark svg {
+  stroke: #000000;
+  fill: #110011;
+}
+
 .nl-screen-medium ion-spinner.spinner svg {
   width: 42px;
   height: 42px;
@@ -1400,22 +1405,28 @@ img.nl-icon {
 
 nl-course-canvas-view .holder1 {
   position: absolute; top: 0; left: 0; height: 100%; width: 100%;
+  .holder2 {
+    opacity: 0;
+    &.visible {
+      opacity: 1;
+    }
+  }
   .bgimg {
     position: absolute;
     height: 100%;
     width: 100%;
     text-align: center;
   }
-  .bgimgmsg {
-    position: absolute;
-    width: 100%;
-  }
   .pin {
     position: absolute;
     border-radius: 4px;
-    border: 1px solid white;
-    background-color: $nldarkgrey;
-    &.selected {
+    border: 2px solid white;
+    background-color: white;
+    & > div {
+      border-radius: 4px;
+      background-color: $nldarkgrey;
+    }
+    &.selected > div {
       background-color: white;
       border-color: $nldarkgrey;
     }

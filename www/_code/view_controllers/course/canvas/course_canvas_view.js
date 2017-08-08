@@ -11,53 +11,33 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var CourseCanvasViewDirective = ['nl', 'nlDlg',
-function(nl, nlDlg) {
+var CourseCanvasViewDirective = ['nl', 'nlDlg', 'nlCourseCanvas',
+function(nl, nlDlg, nlCourseCanvas) {
 
-    var _imgToSizeCache = {};
-    function _loadBgImg(imgUrl, canvas, onLoadDone) {
-        if (_imgToSizeCache[imgUrl]) return onLoadDone(_imgToSizeCache[imgUrl]);
-        nlDlg.popupStatus('Loading background image ...', false);
-        nlDlg.showLoadingScreen();
-        
-        var imgSize = {w: 0, h: 0};
-        var document = window.document;
-        var img = document.createElement('img');
-        img.onerror = function (e) {
-            var template = nl.fmt2('Error loading background image: {}', imgUrl);
-            nlDlg.popupAlert({title: 'Warning', template: template}).then(function() {
-                onLoadDone(imgSize);
-            });
-        };
-        img.onload = function (data) {
-            if (!img.width || !img.height) {
-                onLoadDone(imgSize);
-                return;
-            }
-            imgSize = {w: img.width, h: img.height};
-            _imgToSizeCache[imgUrl] = imgSize;
-            onLoadDone(imgSize);
-        };
-        img.src = imgUrl;
-    }
-    
     function _positionBgImage($scope, holder1) {
         var canvas = $scope.canvas;
         if (!canvas) return;
         var imgUrl = canvas.bgimg;
-        if (!imgUrl) return;
-        var size = _loadBgImg(imgUrl, canvas, function(imgSize) {
-            nlDlg.popdownStatus();
-            nlDlg.hideLoadingScreen();
+        if (!imgUrl) {
+            canvas.status = 'ok'; 
+            return;
+        }
+
+        canvas.status = 'loading'; 
+        var size = nlCourseCanvas.loadBgImg(imgUrl, function(imgSize) {
             nl.timeout(function() {
-                canvas.bgimgmsg = '';
-                var w = holder1.offsetWidth;
-                var h = holder1.offsetHeight;
-                if (!w || !h || !imgSize.w || !imgSize.h) return;
+                if (!imgSize.w || !imgSize.h) {
+                    canvas.status = 'error';
+                    return;
+                }
                 canvas.t = 0;
                 canvas.l = 0;
                 canvas.h = 100;
                 canvas.w = 100;
+                canvas.status = 'ok';
+                var w = holder1.offsetWidth;
+                var h = holder1.offsetHeight;
+                if (!w || !h) return;
                 // arr = aspectRatioRatio
                 var arr = (w/h)*(imgSize.h/imgSize.w);
                 if (arr < 1) {
@@ -103,6 +83,12 @@ function(nl, nlDlg) {
         _setupFunctions();
         course = _modeHandler.course || {};
         treeList = _treeList;
+        $scope.canvasMode = (course.content || {}).canvasview || false;
+        if (!$scope.canvasMode) {
+            $scope.canvasShown = false;
+            return;
+        }
+        if (!$scope.ext.isEditorMode()) $scope.canvasShown = true;
     };
     
     function _setupFunctions() {
@@ -113,7 +99,7 @@ function(nl, nlDlg) {
             e.stopImmediatePropagation();
             e.preventDefault();
             c.currentPin = index;
-            $scope.onClick(e, c.pins[index].cm);
+            $scope.ext.setCurrentItem(c.pins[index].cm);
         };
 
         c.closePins = function(e) {
@@ -122,31 +108,37 @@ function(nl, nlDlg) {
             c.currentPin = -1;
         };
         
-        c.showDetails = function(e, index) {
+        c.onDetails = function(e, index) {
             e.stopImmediatePropagation();
             e.preventDefault();
             $scope.canvasShown = false;
             $scope.updateVisiblePanes();
         };
 
-        c.launch = function(e, index) {
+        c.onOpen = function(e, index) {
             e.stopImmediatePropagation();
             e.preventDefault();
-            $scope.canvasShown = false;
-            $scope.onLaunch(e, $scope.ext.item);
+            var current = $scope.ext.item;
+            if (current.type == 'module') {
+                var children = treeList.getChildren(current);
+                if (children.length > 0) {
+                    if (!current.isOpen) treeList.toggleItem(current);
+                    $scope.showVisible(children[0]);
+                }
+            } else if ($scope.ext.canLaunch()) {
+                $scope.canvasShown = false;
+                $scope.onLaunch(e, $scope.ext.item);
+            }
         };
     }
+
     this.update = function() {
-        $scope.canvasMode = (course.content || {}).canvasview || false;
         if (!$scope.canvasMode) {
             $scope.canvasShown = false;
             return;
         }
-        if (!$scope.ext.isEditorMode()) $scope.canvasShown = true;
         var selected = $scope.ext.item;
-        var item = $scope.ext.isEditorMode() || $scope.ext.item.type != 'module'
-            ? treeList.getParent($scope.ext.item) || $scope.ext.item
-            : $scope.ext.item;
+        var item = treeList.getParent($scope.ext.item) || $scope.ext.item;
         _updateCanvas(item, selected, $scope.canvas);
         if ($scope.onCanvasChange) $scope.onCanvasChange();
     };
@@ -193,6 +185,8 @@ function(nl, nlDlg) {
     function _getCanvasPin(cm, selected, slotUsed) {
         var pin= {cm: cm, ok: false};
         if (selected && selected.id == cm.id) pin.selected=true;
+        var children = treeList.getChildren(cm);
+        pin.hasChildren = (children.length > 0);
         _updateCanvasPin(pin, slotUsed);
         return pin;
     }
@@ -256,6 +250,25 @@ function(nl, nlDlg) {
         if (!('posY' in cm)) cm.posY = Math.round(100*(slotY+0.5)/SLOTY);
         if (nextSlot < SLOTX*SLOTY-1) nextSlot++;
         return nextSlot;
+    }
+
+    var _imgToSizeCache = {};
+    this.loadBgImg = function(imgUrl, onLoadDone) {
+        if (_imgToSizeCache[imgUrl]) return onLoadDone(_imgToSizeCache[imgUrl]);
+        
+        var imgSize = {w: 0, h: 0};
+        var document = window.document;
+        var img = document.createElement('img');
+        img.onerror = function (e) {
+            _imgToSizeCache[imgUrl] = imgSize;
+            onLoadDone(imgSize);
+        };
+        img.onload = function (data) {
+            imgSize = {w: img.width, h: img.height};
+            _imgToSizeCache[imgUrl] = imgSize;
+            onLoadDone(imgSize);
+        };
+        img.src = imgUrl;
     }
 }];
 

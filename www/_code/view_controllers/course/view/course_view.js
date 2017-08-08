@@ -337,12 +337,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         		return treeList.getParent(cm);
         	},
         	showVisible: function(cm) {
-        		if (cm) {
-        			$scope.ext.setCurrentItem(cm);
-        		} else {
-		            $scope.ext.setCurrentItem(treeList.getRootItem());
-        		}
-    			_showVisible();
+        	    $scope.showVisible(cm);
         	},
         	moveItem: function(movedItem, fromIndex, toIndex, allModules){
         		return _moveItem(movedItem, fromIndex, toIndex, allModules);
@@ -407,14 +402,21 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         $scope.updateVisiblePanes();
     }
 
-    $scope.toggleCanvasMode = function(e) {
+    $scope.updateCanvasShown = function(e, shown) {
         if (!$scope.canvasMode) return;
 
-        $scope.canvasShown = !$scope.canvasShown;
+        $scope.canvasShown = shown;
         if ($scope.canvasShown) nlCourseCanvas.update();
-        $scope.updateVisiblePanes();
+        if(!$scope.expandedView) _popout(true);
+        else $scope.updateVisiblePanes();
     };
 
+    $scope.showVisible = function(cm) {
+        if (cm) $scope.ext.setCurrentItem(cm);
+        else $scope.ext.setCurrentItem(treeList.getRootItem());
+        _showVisible();
+    };
+    
     function _showVisible() {
         $scope.modules = [];
 	    var allModules = nlCourseEditor.getAllModules();
@@ -434,11 +436,15 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         _sendAssignment();
     };
 
-    $scope.collapseAll = function() {
+    $scope.collapseAll = function(bShowCanvas) {
         function _impl() {
 	        if($scope.ext.isEditorMode()){
 		        if(!nlCourseEditor.validateInputs($scope.ext.item)) return;    	
 	        }
+            if(!$scope.ext.isEditorMode() && $scope.canvasMode) {
+                $scope.canvasShown = bShowCanvas;
+                if ($scope.canvasShown) nlCourseCanvas.update();
+            }
             treeList.collapseAll();
             _showVisible();
             $scope.ext.setCurrentItem(treeList.getRootItem());
@@ -1146,6 +1152,9 @@ function CourseReportSummarizer(nlGroupInfo, $scope) {
             module.name = nlGroupInfo.formatUserNameFromRecord(userReport);
             module.userid = userReport.student;
             module.icon = 'user';
+            if ('posX' in module) delete module.posX;
+            if ('posY' in module) delete module.posY;
+            
             var start_after = module.start_after || [];
             for(var j in start_after) {
                 var sa = start_after[j];

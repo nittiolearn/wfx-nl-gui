@@ -33,7 +33,7 @@
 <div ng-show='vp.i || vp.c || vp.d'
      class='padding-small {{vp.t ? "frame2" : "frame0"}}'>
     <div class='padding-mid nl-thin-scroll' style='height: 100%'>
-        <div ng-show='vp.i' style='position: absolute; top: 4px; bottom: 4px; left: 4px; right: 4px;'>
+        <div ng-if='vp.i' style='position: absolute; top: 4px; bottom: 4px; left: 4px; right: 4px;'>
             <nl-course-view-frame></nl-course-view-frame>
         </div>
         <nl-course-canvas-view ng-show='vp.c' class='anim fade'>
@@ -43,11 +43,11 @@
             <nl-course-view-icon ext='ext' cm='ext.item'></nl-course-view-icon>
 	        <span class='padding-small fsh3'>{{ext.item.name}}</span>
 	    </div>
-        <nl-course-editor ng-show='vp.d && ext.isEditorMode()'>
+        <nl-course-editor ng-if='vp.d && ext.isEditorMode()'>
         </nl-course-editor>
-        <nl-course-view-content-static ng-show='vp.d && ext.isStaticMode() && !ext.isEditorMode()'>
+        <nl-course-view-content-static ng-if='vp.d && ext.isStaticMode() && !ext.isEditorMode()'>
         </nl-course-view-content-static>
-        <nl-course-view-content-active ng-show='vp.d && !ext.isStaticMode()'>
+        <nl-course-view-content-active ng-if='vp.d && !ext.isStaticMode()'>
         </nl-course-view-content-active>
     </div>
 </div>
