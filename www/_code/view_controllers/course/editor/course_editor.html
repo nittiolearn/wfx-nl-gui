@@ -12,19 +12,16 @@
 
 <div ng-show='ext.item.id == "_root"' class='padding-mid'>
 	<nl-course-editor-fields attrs='editor.course_params'
-							 help='editor.course_paramsHelp',
 							 values='editor.course'
 							 editor='editor'>
 	</nl-course-editor-fields>
 	<nl-course-editor-fields attrs='editor.course_attributes'
-							 help='editor.course_attrsHelp'
 							 values='editor.course.content'
 							 editor='editor'>
 	</nl-course-editor-fields>
 </div>
 <div ng-show='ext.item.id != "_root"' class='padding-mid'>
 	<nl-course-editor-fields attrs='editor.module_attributes'
-							 help='editor.module_attrHelp'
 					 		 values='ext.item'
 					 		 editor='editor'>
 	</nl-course-editor-fields>

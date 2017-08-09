@@ -132,6 +132,11 @@ function(nl, nlDlg) {
         };
     }
 
+    this.updateCanvasMode = function(newMode) {
+        $scope.canvasMode = (course.content || {}).canvasview || false;
+        this.update();
+    };
+    
     this.update = function() {
         if (!$scope.canvasMode) {
             $scope.canvasShown = false;

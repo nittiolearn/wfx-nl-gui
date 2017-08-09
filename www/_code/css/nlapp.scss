@@ -1426,9 +1426,11 @@ nl-course-canvas-view .holder1 {
       border-radius: 4px;
       background-color: $nldarkgrey;
     }
+    &.selected {
+      border-color: $nldarkgrey;
+    }
     &.selected > div {
       background-color: white;
-      border-color: $nldarkgrey;
     }
     &.expanded {
       z-index: 1;

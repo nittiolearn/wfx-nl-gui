@@ -342,8 +342,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         	moveItem: function(movedItem, fromIndex, toIndex, allModules){
         		return _moveItem(movedItem, fromIndex, toIndex, allModules);
         	},
-        	updateChildrenLinks: function(){
-        		return treeList.updateChildrenLinks();
+        	updateChildrenLinks: function(allModules) {
+        		return treeList.updateChildrenLinks(allModules);
         	},
         	launchModule: function(e, cm){
         	        e.stopImmediatePropagation();
@@ -1020,15 +1020,6 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
         this.addItem(rootItem);
     };
     
-    this.deleteItem = function(item) {
-        var itemId = item[ID_ATTR];
-        delete this.items[itemId];
-        var parent = this.getParent(item);
-        // TODO - remove the item from parents children; 
-        // call this when an item is deleted (call this for all child nodes deleted)
-        // call this also when moving 
-    };
-    
     this.addItem = function(item) {
         var itemId = item[ID_ATTR];
         this.items[itemId] = item;
@@ -1099,12 +1090,14 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
         return this.children[itemId];
     };
     
-    this.updateChildrenLinks = function() {
-        this.children = {};
-        for(var i in this.items) {
-        	var item = this.items[i];
-        	var parent = this.getParent(item);
-	        if (parent) this.getChildren(parent).push(item);
+    this.updateChildrenLinks = function(allModules) {
+        this.clear();
+        for(var i=0; i<allModules.length; i++) {
+            var item = allModules[i];
+            var itemId = item[ID_ATTR];
+            this.items[itemId] = item;
+            var parent = this.getParent(item);
+            if (parent) this.getChildren(parent).push(item);
         }
     };
 

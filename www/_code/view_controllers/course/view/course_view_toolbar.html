@@ -5,13 +5,13 @@
 
     <!-- course editor icons -->
     <span title='Change to canvas preview mode'
-          ng-show='ext.isEditorMode() && canvasMode && !vp.c'
+          ng-show='ext.isEditorMode() && canvasMode && !vp.c && !vp.i'
           class='nl-toolbar-icon'
           ng-click='updateCanvasShown($event, true)'>
         <i class="icon fsh3 ion-ios-eye"></i>
     </span>
     <span title='Change to edit mode'
-          ng-show='ext.isEditorMode() && canvasMode && !vp.d'
+          ng-show='ext.isEditorMode() && canvasMode && !vp.d && !vp.i'
           class='nl-toolbar-icon'
           ng-click='updateCanvasShown($event, false)'>
         <i class="icon fsh3 ion-ios-compose"></i>
