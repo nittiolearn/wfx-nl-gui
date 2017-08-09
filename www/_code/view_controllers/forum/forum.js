@@ -107,12 +107,13 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup, nlExporter, nlResou
                 serverFn = nlServerApi.forumCreateOrModifyMsg;
             }
             
-            _updateServer(serverFn, extraParams, true)
-			.then(function() {
+            _updateServer(serverFn, extraParams, function(result) {
+                if (!result) {
+                    resolve(false);
+                    return;
+                }
                 $scope.currentTopicId = messageMgr.getTopicMsgId(params.topic);
                 resolve(true);
-			}, function(error) {
-			    resolve(false);
 			});
 		});
 	}
@@ -260,39 +261,41 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlMarkup, nlExporter, nlResou
     };
 
     //-------------------------------------------------------------------------
-    function _updateForumData(forumInfo) {
-        $scope.msgTree = messageMgr.updateMessages(forumInfo.msgs);
+    function _refreshDataFromServer() {
+        _updateServer(nlServerApi.forumGetMsgs, {});
+    }
+    
+    function _loadOlderMessages() {
+        _updateServer(nlServerApi.forumGetMsgs, {updatedtill: messageMgr.range_since});
+    }
+
+    var _pageFetcher = nlServerApi.getPageFetcher({noStatus: true});
+    function _updateServer(nlServerApiFn, extraParams, callback) {
+        var params = angular.copy(serverParams);
+        for (var key in extraParams) params[key] = extraParams[key];
+        if (messageMgr.range_till && !('updatedtill' in params)) params.updatedfrom = messageMgr.range_till;
+        
+        var fetchMore = false;
+        _pageFetcher.fetchPage(nlServerApiFn, 
+            params, fetchMore, function(resultList) {
+            if(!resultList) {
+                if (callback) callback(false);
+                return;
+            }
+            if (!params.updatedfrom) $scope.moreResults = _pageFetcher.canFetchMore();
+            _updateForumData(resultList);
+            if (callback) callback(true);
+        });
+    }
+    
+    function _updateForumData(msgs) {
+        $scope.msgTree = messageMgr.updateMessages(msgs);
         $scope.since = messageMgr.range_since ? nl.fmt.fmtDateDelta(messageMgr.range_since, new Date()) : '';
         $scope.msgCount = 0;
         $scope.searchFilter = null;
         for (var key in messageMgr.idToMsg) $scope.msgCount++;
         var msg = messageMgr.getMsg($scope.currentTopicId);
         if (!msg) $scope.currentTopicId = 0;
-    }
-    
-    function _refreshDataFromServer() {
-        _updateServer(nlServerApi.forumGetMsgs, {});
-    }
-    
-    function _loadOlderMessages() {
-        _updateServer(nlServerApi.forumGetMsgs, {till: messageMgr.range_since})
-        .then(function(forumInfo) {
-            $scope.moreResults = (forumInfo.moreResults == true);
-        });
-    }
-
-    function _updateServer(nlServerApiFn, extraParams, noLoadingScreen) {
-        var params = angular.copy(serverParams);
-        for (var key in extraParams) {
-            params[key] = extraParams[key];
-        }
-        if (messageMgr.range_till && !('till' in params)) params.since = messageMgr.range_till;
-        if (!noLoadingScreen) nlDlg.showLoadingScreen();
-        return nlServerApiFn(params).then(function(forumInfo) {
-            if (!noLoadingScreen) nlDlg.hideLoadingScreen();
-            _updateForumData(forumInfo);
-            return forumInfo;
-        });
     }
     
     var FT_MENTOR = 1;

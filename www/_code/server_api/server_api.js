@@ -956,7 +956,7 @@ function PageFetcher(nl, nlDlg, attrs) {
                 !batchDone ? ' Fetching more items ...' 
                 : _canFetchMore ? '  You could fetch more if needed.'
                 : '');
-            nlDlg.popupStatus(msg, batchDone ? undefined : false);
+            if (!attrs.noStatus) nlDlg.popupStatus(msg, batchDone ? undefined : false);
             if (batchDone) _fetchInProgress = false;
             callback(resp.resultset, batchDone);
         }, function(error) {
