@@ -149,7 +149,6 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
      * role=admion: shows the admin's dashboard
 	 */
     var _rnoDict = {};
-    var _searchFilterInUrl = '';
     var _searchCategoryInUrl = '';
     var _rnoServer = new RnoServer(nl, nlServerApi, nlDlg, false);
 	var _observationManager = new ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg);
@@ -179,7 +178,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
                     search: {onSearch: _onSearch, placeholder: _pageGlobals.metadata.searchTitle},
                     searchCategories: _getUtSecOptions()
                 });
-                _getDataFromServer(resolve, reject);
+                _getDataFromServer(resolve);
             });
 		});
 	}
@@ -197,7 +196,9 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
             _rnoServer.getData(rno).then(function() {
                 _reportManage($scope, rno);
             });
-		}
+        } else if (internalUrl === 'fetch_more') {
+            _getDataFromServer(null, true);
+        }
     };
 
 	$scope.onCardLinkClicked = function(card, internalUrl) {
@@ -214,12 +215,12 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 	function _initParams() {
 		_rnoDict = {};
         var params = nl.location.search();
-        _searchFilterInUrl = ('search' in params) ? params.search : '';
         _searchCategoryInUrl = ('category' in params) ? params.category : '';
         _pageGlobals.metadataId = ('metadata' in params) ? parseInt(params.metadata) : 0;
         _pageGlobals.metadataIdParent = _pageGlobals.metadataId;
         _pageGlobals.role = ('role' in params) ? params.role : 'observe';
         _pageGlobals.enableDelete  = ('candelete' in params);
+        if ('max' in params) _pageGlobals.max = parseInt(params.max);
 	}
 	
     function _getStaticCards() {
@@ -239,43 +240,41 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
         return ret;
     }
 
-	function _getDataFromServer(resolve, reject) {
-	    var utSec = _searchCategoryInUrl.split('.');	    
-        nlServerApi.rnoGetList({metadata: _pageGlobals.metadataIdParent,
-                                search: _searchFilterInUrl, user_type: utSec[0] || '', 
-                                section: utSec[1] || '',
-                                role: _pageGlobals.role,
-                                max: _pageGlobals.max})
-        .then(function(resultList) {
-			nl.log.debug('Got result: ', resultList.length);
-            nlCardsSrv.updateCards(_cards, {
-                cardlist: _getCards(resultList, nlCardsSrv)
-            });
-			resolve(true);
-		}, function(reason) {
-            resolve(false);
-		});
+    var _pageFetcher = nlServerApi.getPageFetcher();
+	function _getDataFromServer(resolve, fetchMore) {
+	    var utSec = _searchCategoryInUrl.split('.');
+        var params =  {metadata: _pageGlobals.metadataIdParent,
+            user_type: utSec[0] || '', section: utSec[1] || '',
+            role: _pageGlobals.role, max: _pageGlobals.max};
+        _pageFetcher.fetchPage(nlServerApi.rnoGetList,
+            params, fetchMore, function(resultList) {
+            if(!resultList) {
+                if (resolve) resolve(false);
+                return;
+            }
+            _cards.canFetchMore = _pageFetcher.canFetchMore();
+            if (!fetchMore) _cards.cardlist = [];
+            _updateCards(resultList, _cards.cardlist);
+            nlCardsSrv.updateCards(_cards);
+            if (resolve) resolve(true);
+        });
 	}
 
     function _onSearch(filter, category) {
-        nlDlg.showLoadingScreen();
-        var promise = nl.q(function(resolve, reject) {
-            _searchCategoryInUrl = category || '';
-            _searchFilterInUrl = filter || '';
-            _getDataFromServer(resolve, reject);
-        });
-        promise.then(function(res) {
-            nlDlg.hideLoadingScreen();
-        });
+        var newCategory = category || '';
+        if (_searchCategoryInUrl == newCategory) return;
+        _searchCategoryInUrl = newCategory;
+        _getDataFromServer();
     }
 
-	function _getCards(resultList, nlCardsSrv) {
-		var cards = [];
+	function _updateCards(resultList, cards) {
 		for (var i = 0; i < resultList.length; i++) {
 			var card = _createCard(resultList[i]);
 			cards.push(card);
 		}
-		return cards;
+        cards.sort(function(a, b) {
+            return b.updated - a.updated;
+        });
 	}
 	
 	function _createCard(rno) {
@@ -285,6 +284,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 		var internalUrl = 'rno_report_manage';
 		var help = (_pageGlobals.role == 'admin') ? 'Manage observations and reports records' : 'Manage observations and reports';
 	    var card = {rnoId: rno.id,
+	                udpated: rno.updated,
 	                title: nl.fmt2('{} {}', rno.config.first_name, rno.config.last_name), 
 					icon: _getCardIcon(nl, rno.config), 
                     internalUrl: internalUrl,
@@ -642,9 +642,9 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
     function _onObservationSave(rno, scope, observationId, cbFn) {
         nlDlg.showLoadingScreen();
         nlResourceUploader.uploadInSequence(scope.data.newAttachments, '', 'high')
-        .then(function resolve(resInfos) {
+        .then(function(resInfos) {
             _onResourcesUploaded(rno, scope, observationId, resInfos, cbFn);
-        }, function reject(msg) {
+        }, function(msg) {
             nlDlg.popdownStatus(0);
             nlDlg.popupAlert({title: nl.t('Error'), template: msg});
         });
@@ -681,10 +681,10 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
             selected: isSelected};
         
         rno.data.observations.splice(0, 0, observation); // Insert to top of array
-        _rnoServer.updateData(rno).then(function resolve() {
+        _rnoServer.updateData(rno).then(function() {
             nlDlg.popupStatus('Done');
             cbFn();
-        }, function reject() {
+        }, function() {
             nlDlg.popdownStatus(0);
         });
     }

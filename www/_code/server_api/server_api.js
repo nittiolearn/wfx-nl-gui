@@ -330,10 +330,9 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/sco_export.json', data);
     };
     
-    this.scoGetManifestList = function(search) {
-        // create or modify Manifest information
+    this.scoGetManifestList = function(data) {
         // returns list of manifest ids of imported sco content for this group
-        return server.post('_serverapi/sco_get_manifest_list.json', {search: search});
+        return server.post('_serverapi/sco_get_manifest_list.json', data);
     };
 
     this.scoUpdateManifest = function(data) {

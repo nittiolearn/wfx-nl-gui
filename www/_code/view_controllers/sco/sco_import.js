@@ -37,14 +37,13 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlResourceUploader, nlProgres
         return nl.q(function(resolve, reject) {
             nl.pginfo.pageTitle = nl.t('SCORM Import');
             var params = nl.location.search();
-            var searchFilter = params.search || '';
             template = parseInt(params.template || 0);
             $scope.cards = {
                 staticlist: _getStaticCards(),
-                search: {onSearch: _onSearch, placeholder: nl.t('Enter SCORM module name')}
+                search: {placeholder: nl.t('Enter SCORM module name')}
             };
             nlCardsSrv.initCards($scope.cards);
-            _getDataFromServer(searchFilter, resolve, reject);
+            _getDataFromServer(resolve);
         });
     }
     nlRouter.initContoller($scope, '', _onPageEnter);
@@ -54,10 +53,12 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlResourceUploader, nlProgres
             viewer.show(card, card.manifestid);
         } else if (internalUrl === 'new_sco') {
             importer.import(template, 0, function() {
-                _onSearch('');
+                _getDataFromServer();
             });
         } else if (internalUrl === 'modify_sco') {
             importer.import(template, card.manifestid);
+        } else if (internalUrl === 'fetch_more') {
+            _getDataFromServer(null, true);
         }
     };
     $scope.onCardLinkClicked = $scope.onCardInternalUrlClicked;
@@ -85,35 +86,31 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlResourceUploader, nlProgres
         return [card];
     }
 
-    function _onSearch(filter) {
-        nlDlg.showLoadingScreen();
-        var promise = nl.q(function(resolve, reject) {
-            _getDataFromServer(filter, resolve, reject);
-        });
-        promise.then(function(res) {
-            nlDlg.hideLoadingScreen();
-        });
-    }
-
-    function _getDataFromServer(filter, resolve, reject) {
-        nlServerApi.scoGetManifestList(filter).then(function(resultList) {
-            nl.log.debug('Got result: ', resultList.length);
-            nlCardsSrv.updateCards($scope.cards, {
-                cardlist: _getCards(resultList)
-            });
-            resolve(true);
-        }, function(reason) {
-            resolve(false);
+    var _pageFetcher = nlServerApi.getPageFetcher();
+    function _getDataFromServer(resolve, fetchMore) {
+        var params = {};
+        _pageFetcher.fetchPage(nlServerApi.scoGetManifestList, 
+            params, fetchMore, function(resultList) {
+            if(!resultList) {
+                if (resolve) resolve(false);
+                return;
+            }
+            $scope.cards.canFetchMore = _pageFetcher.canFetchMore();
+            if (!fetchMore) $scope.cards.cardlist = [];
+            _updateCards(resultList, $scope.cards.cardlist);
+            nlCardsSrv.updateCards($scope.cards);
+            if (resolve) resolve(true);
         });
     }
     
-    function _getCards(resultList) {
-        var cards = [];
+    function _updateCards(resultList, cards) {
         for (var i = 0; i < resultList.length; i++) {
             var card = _createCard(resultList[i]);
             cards.push(card);
         }
-        return cards;
+        cards.sort(function(a, b) {
+            return b.updated - a.updated;
+        });
     }
     
     function _createCard(manifest) {
@@ -123,6 +120,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlResourceUploader, nlProgres
         var desc = nl.t("<span class='nl-card-description'>uploaded by <b>{}</b> on <b>{}<b></span>", 
             manifest.authorname, nl.fmt.date2Str(manifest.updated, 'minute'));
         var card = {manifestid: manifest.id,
+                    updated: manifest.updated,
                     title: manifest.name, 
                     icon: nl.url.resUrl('dashboard/wsheet.png'), 
                     internalUrl: 'view_sco',
@@ -148,7 +146,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlResourceUploader, nlProgres
         nlDlg.showLoadingScreen();
         nlServerApi.scoDeleteManifest(manifestid).then(function(status) {
             nlDlg.popupStatus('Manifest deleted');
-            _onSearch('');
+            _getDataFromServer();
         });
     }
 }];
