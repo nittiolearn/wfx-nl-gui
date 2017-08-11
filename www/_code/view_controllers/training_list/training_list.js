@@ -174,12 +174,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
         }
     };
 
-    var _reprotFetcher = nlServerApi.getPageFetcher({defMax: 500, blockTillDone: true});
+    var _reportFetcher = nlServerApi.getPageFetcher({defMax: 500, blockTillDone: true});
 	function _trainingReportView(card, linkid) {
 		var data = {trainingid: card.id};
         var fetchMore = false;
         var reports = {};
-        _reprotFetcher.fetchBatchOfPages(nlServerApi.getTrainingReportList, 
+        _reportFetcher.fetchBatchOfPages(nlServerApi.getTrainingReportList, 
             data, fetchMore, function(results, batchDone, promiseHolder) {
             if (!results) return;
             _updateReportsDict(results, reports);

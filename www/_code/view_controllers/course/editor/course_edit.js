@@ -7,27 +7,32 @@
 function module_init() {
     angular.module('nl.course_edit', [])
     .service('nlCourseEditor', NlCourseEditorSrv)
-    .directive('nlCourseEditor', CourseEditDirective('course_editor'))
-    .directive('nlCourseEditorFields', EditorFieldsDirective);
+    .directive('nlCourseEditor', CourseEditDirective())
+    .directive('nlCourseEditorFields', EditorFieldsDirective());
 }
 
 //-------------------------------------------------------------------------------------------------
-var EditorFieldsDirective = ['nl', function(nl) {
-    return {
-        restrict: 'E',
-        templateUrl: 'view_controllers/course/course_editor_fields.html',
-        scope: {
-            attrs: '=',
-            help: '=',
-            values: '=',
-            editor: '='
-        }
-    };
-}];
+function CourseEditDirective() {
+    var templateUrl = 'view_controllers/course/editor/course_editor.html';
+    return _nl.elemDirective(templateUrl, true);
+}
 
 //-------------------------------------------------------------------------------------------------
-var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlLessonSelect', 'nlExportLevel', 'nlRouter',
-function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
+function EditorFieldsDirective() {
+    var scope = {
+        attrs: '=',
+        help: '=',
+        values: '=',
+        editor: '='
+    };
+    var templateUrl = 'view_controllers/course/editor/course_editor_fields.html';
+    return _nl.elemDirective(templateUrl, scope);
+}
+
+//-------------------------------------------------------------------------------------------------
+var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlLessonSelect', 
+'nlExportLevel', 'nlRouter', 'nlCourseCanvas',
+function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCourseCanvas) {
 
     var modeHandler = null;
     var $scope = null;
@@ -45,14 +50,10 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
         $scope.editor = {
         	jsonTempStore: {},
         	course_params: _courseParams,
-        	course_paramsHelp: _courseParamsHelp,
             course_attributes: _getCourseAttributes(modeHandler.course),
-            course_attrsHelp: _courseAttrHelp,
             module_attributes: moduleAttrs,
-            module_attrHelp: moduleAttrHelp,
             course: modeHandler.course,
             debug: _debug,
-            showHelp: false,
             showGroup: {},
             onLaunch: _onLaunch,
             addModule: _addModule,
@@ -60,8 +61,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
             searchLesson: _searchLesson,
             organiseModules: _organiseModulesDlg,
             saveCourse: _saveCourse,
-            updateTitle: _updateTitle,
-            onSelectChange: _onSelectChange,
+            onBooleanClick: _onBooleanClick,
+            onAttrChange: _onAttrChange,
             validateTextField: _validateTextField,
 			editAttribute: _editAttribute,
 			getDisplayValue: _getDisplayValue
@@ -82,17 +83,6 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
 		return _validateInputs(modeHandler.course, cm);		
 	};
 	
-	function _updateTitle(e){
-		var title = modeHandler.course.name;
-		if(title.length === 30) {
-			var msg = {title: nl.t('Name is too long'), template: nl.t('Name of the course must be less than 30 character.')};
-			nlDlg.popupAlert(msg).then(function(res){
-				if(res) return;
-			});
-		}
-        nl.pginfo.pageTitle = modeHandler.course.name;	
-	}
-
     function _updateDropdowns(cm) {
     	var attrs = $scope.editor.module_attributes;
     	for(var i=0; i<attrs.length; i++) {
@@ -109,10 +99,32 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
 		return;
 	}
 
-    function _onSelectChange(e, cm, attr) {
-        if (!cm || cm.id == '_root') return;
-        attr.updateDropdown(cm, attr);
-        if (attr.name == 'type') _onElementTypeChange(e, cm);
+    function _onBooleanClick(e, attr, item) {
+        item[attr.name] = !item[attr.name];
+        _onAttrChange(e, attr, item);
+    }
+
+    function _onAttrChange(e, attr, item) {
+        console.log('_onAttrChange', e, attr, item);
+        if (attr.level == 'course' && attr.name == 'name') {
+            var title = item.name;
+            if(!title)
+                nlDlg.popupAlert({title: nl.t('Name is mandatory'), 
+                    template: nl.t('Name of the course cannot be empty.')});
+            else if (title.length === 30)
+                nlDlg.popupAlert({title: nl.t('Name too long'), 
+                    template: nl.t('It is recommended to keep the course name under 30 characters.')});
+            else
+                nl.pginfo.pageTitle = title;
+            return;
+        } else if (attr.level == 'content' && attr.name == 'canvasview') {
+            nlCourseCanvas.updateCanvasMode();
+            return;
+        } else if (attr.level == 'modules' && attr.name == 'type') {
+            attr.updateDropdown(item, attr);
+            if (attr.name == 'type') _onElementTypeChange(e, item);
+            return;
+        }
     }
 
 	function _onElementTypeChange(e, cm){
@@ -131,9 +143,9 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
 		        	if (_isDescendantOf(_allModules[i], cm)) indicesToRemove.push(i);
 		        }
 		        indicesToRemove.splice(0, 1);
-		        _romoveElements(indicesToRemove);
+		        _removeElements(indicesToRemove);
+                $scope.editorCb.updateChildrenLinks(_allModules);               
 				$scope.editorCb.showVisible(cm);
-				$scope.editorCb.updateChildrenLinks();				 
 			});
 		}
 	}
@@ -181,8 +193,20 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
         return ret;
     }
 
+    var _courseParams = [
+        {name: 'name', text: 'Name', type: 'string', isTitle: true},
+        {name: 'icon', text: 'Image', type: 'icon', icon: true},
+        {name: 'description', text: 'Course description', type: 'text', maxlen: 100}
+    ];
+    
+    var _courseParamsHelp = {
+            name: 'Mandatory - enter a name for your course. It is recommended to keep the course name under 30 characters.',
+            icon: 'Mandatory - enter a URL for the course icon that will be displayed when this course is searched. The default value is "icon:" which displays a default course icon.',
+            description: 'Provide a short description which will help others in the group to understand the purpose of this course. It is recommended to keep the course description under 100 characters.'
+    };
+    
     var courseAttrs = [
-        {name: 'grp_additionalAttrs', type: 'group', text: 'Show advanced attributes'},
+        {name: 'grp_additionalAttrs', type: 'group', text: 'Advanced properties'},
     	{name: 'planning', text:'Schedule planning', desc: 'Enable schedule planning for this course', group: 'grp_additionalAttrs', type: 'boolean'},
     	{name: 'certificate', text: 'Certificate configuration', type: 'hidden', group: 'grp_additionalAttrs'},
     	{name: 'custtype', text: 'Custom type', type: 'number', group: 'grp_additionalAttrs'},
@@ -190,27 +214,23 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
         {name: 'contentmetadata', text: 'Metadata', type: 'object', group: 'grp_additionalAttrs', debug: true},
     	{name: 'lastId', text: 'Last Id', type: 'readonly', group: 'grp_additionalAttrs', debug: true},
         {name: 'modules', text: 'Modules', type: 'hidden', group: 'grp_additionalAttrs', debug: true},
-        {name: 'contentVersion', text: 'Content Version', type: 'hidden', group: 'grp_additionalAttrs', debug: true}
+        {name: 'contentVersion', text: 'Content Version', type: 'hidden', group: 'grp_additionalAttrs', debug: true},
+        {name: 'grp_canvasAttrs', type: 'group', text: 'Canvas properties'},
+        {name: 'canvasview', type: 'boolean', text: 'Canvas mode', desc: 'View the course in a visual canvas mode', group: 'grp_canvasAttrs'},
+        {name: 'bgimg', type: 'string', text: 'Background image', group: 'grp_canvasAttrs'},
+        {name: 'bgcolor', type: 'string', text: 'Background color', group: 'grp_canvasAttrs'}
     ];
     
     var _courseAttrHelp = {
-    	planning: {desc: 'Start and end dates are considered only if schedule planning is enabled.'},
-    	custtype: {desc: 'You can define a custom type to help in searchability.'},
-        exportLevel: {desc: 'This attribute is visible only if the group has option to export content to other groups.'},
-        contentmetadata: {desc: 'Debug the metadata attributes.'},
-    	lastId: {desc: 'Internally used.'}
-    };
-    
-    var _courseParams = [
-    	{name: 'name', text: 'Name', type: 'string', title: true},
-    	{name: 'icon', text: 'Image', type: 'icon', icon: true},
-    	{name: 'description', text: 'Course description', type: 'text', maxlen: 100}
-    ];
-    
-    var _courseParamsHelp = {
-    		name: {desc: 'Mandatory - enter a name for your course. It is recommended to keep the course name under 30 characters.'},
-    		icon: {desc: 'Mandatory - enter a URL for the course icon that will be displayed when this course is searched. The default value is "icon:" which displays a default course icon.'},
-    		description: {desc: 'Provide a short description which will help others in the group to understand the purpose of this course. It is recommended to keep the course description under 100 characters.'}
+    	planning: 'Start and end dates are considered only if schedule planning is enabled.',
+    	custtype: 'You can define a custom type to help in searchability.',
+        exportLevel: 'This property is visible only if the group has option to export content to other groups.',
+        contentmetadata: 'Metadata attributes.',
+    	lastId: 'Internally used.',
+        grp_canvasAttrs: 'Canvas mode is a visual represenation of course where laarning items are placed in the backdrop of an image. Learners will be able to navigate into the specific section in a more visual way.',
+        canvasview: 'You can create a visual game like courses when you enable this mode. In this mode, learners will view the course items in a visual canvas instead of a structured tree. Each folder in the course will open into another canvas with the sub-items represented in the canvas.',
+        bgimg: 'Select the background image to be displayed in the canvas.',
+        bgcolor: 'The background image is resized to retain aspect ratio. This could result in horizontal or vertical bands. You can choose the color of the bands to align with the edge of the image.'
     };
     
     var moduleAttrs = [
@@ -226,7 +246,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
         {name: 'grp_depAttrs', fields: ['lesson', 'link', 'info'], type: 'group', text: 'Planning'},
         {name: 'start_date', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Start date', group: 'grp_depAttrs'},
         {name: 'planned_date', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Planned date', group: 'grp_depAttrs'},
-        {name: 'grp_additionalAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'group', text: 'Show advanced attributes'},
+        {name: 'grp_additionalAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'group', text: 'Advanced properties'},
         {name: 'reopen_on_fail', fields: ['lesson'], type: 'object', text: 'Reopen on fail', contentType: 'object',group: 'grp_additionalAttrs'},
         {name: 'icon', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
         {name: 'text', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'text', text: 'Description', group: 'grp_additionalAttrs'},
@@ -235,31 +255,52 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
         {name: 'autocomplete', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
         {name: 'parentId', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'readonly', debug: true, text: 'Parent ID', group: 'grp_additionalAttrs', readonly: true}, 
         {name: 'id', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'readonly', text: 'Unique ID', group: 'grp_additionalAttrs', readonly: true}, 
-    	{name: 'totalItems', fields : ['module'], type: 'readonly', text: 'Total items', group: 'grp_additionalAttrs'}
+    	{name: 'totalItems', fields : ['module'], type: 'readonly', text: 'Total items', group: 'grp_additionalAttrs'},
+        {name: 'grp_canvasAttrs', type: 'group', text: 'Canvas properties', fields: ['module', 'lesson', 'link', 'info', 'certificate']},
+        {name: 'posX', type: 'number', text: 'X Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate']},
+        {name: 'posY', type: 'number', text: 'Y Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate']},
+        {name: 'bgimg', type: 'string', text: 'Background image', group: 'grp_canvasAttrs', fields: ['module']},
+        {name: 'bgcolor', type: 'string', text: 'Background color', group: 'grp_canvasAttrs', fields: ['module']}
     ];
     
-    var moduleAttrHelp = {
-    	name: {desc: 'Name of the item to be displayed in the course tree.'},
-    	type: {desc: 'Each item could be a Folder (containing other items), Module (a learning module/quiz), Certificate or Information (example a declaration).'},
-    	refid: {desc: 'The id of the learning module/quiz to be launched. You could search for all approved modules by clicking on the search icon. Click on the link icon to preview the module.'},
-    	action: {desc: 'The action whose URL is used for the link. Click on the icon to view the link'},
-    	urlParams: {desc: 'The urlParams to append to the URL (see Dashboard create/modify dialog for more information).'},
-    	certificate_image: {desc: 'Provide a background image for your certificates.'},
-    	grp_depAttrs: {desc: 'Enabling this would display planning attributes such as "Start date" and "Planned date".'},
-    	start_date: {desc: 'Earliest planned start date. Is applicable only if "planning" is set to true for the course.'},
-    	planned_date: {desc: 'Expected planned completion date. Is applicable only if "planning" is set to true for the course.'},
-    	grp_additionalAttrs: {name: 'Advanced attributes', desc: 'Enabling this would display additional attributes depeneding on the selected "Element type" of the module.'},
-    	start_after: {desc: 'You could specify a set of prerequisite conditions that have to be met for current item. Only after all the specified conditions are met, the curent item is made available to the learner. If the prerequisites are not met, this current item is shown in a locked state to the learner.'},
-    	reopen_on_fail: {desc: 'You could reopen a set of learning modules if the learner failed in the quiz. To do this, you need to configure this attribute on the quiz module. You can list the items (refered by their unique id) which have to be reopened if the learner failed to acheive minimum pass score in the current module. This attribute is a JSON string representing an array of strings: each string is unque id of the item that should be re-opened.<br> Example:<br></div><pre>["_id1", "_id2"]</pre></div>'},
-		icon: {desc: 'Icon to be displayed for this item in the course tree. If not provided, this is derived from the type. "quiz" is a predefined icon.'},
-		text: {desc: 'Provide a description which is shown in the content area / details popup when the element is clicked.'},
-		maxAttempts: {desc: 'Number of time the learner can do this module. Only the learning data from the last attempt is considered. 0 means infinite. 1 is the default.'},
-		hide_remarks: {name: 'Remarks', desc: 'By default the learner will be shown a text field where the learner can add remarks. This behavior can be disabled by checking this flag.'},
-		autocomplete: {desc: 'If this flag is checked, the link is automatically marked completed when the learner views for the first time.'},
-		parentId: {desc: 'Defines the unique id of the folder item under which the current module is located.'},
-		id: {desc: 'Defines the unique id of the current item. This is automatically generated.'},
-		totalItems: {desc: 'Displays the number of total modules the folders currently has.'} 
+    var _moduleAttrHelp = {
+    	name: 'Name of the item to be displayed in the course tree.',
+    	type: 'Each item could be a Folder (containing other items), Module (a learning module/quiz), Certificate or Information (example a declaration).',
+    	refid: 'The id of the learning module/quiz to be launched. You could search for all approved modules by clicking on the search icon. Click on the link icon to preview the module.',
+    	action: 'The action whose URL is used for the link. Click on the icon to view the link',
+    	urlParams: 'The urlParams to append to the URL (see Dashboard create/modify dialog for more information).',
+    	certificate_image: 'Provide a background image for your certificates.',
+    	grp_depAttrs: 'Enabling this would display planning properties such as "Start date" and "Planned date".',
+    	start_date: 'Earliest planned start date. Is applicable only if "planning" is set to true for the course.',
+    	planned_date: 'Expected planned completion date. Is applicable only if "planning" is set to true for the course.',
+    	grp_additionalAttrs: 'Enabling this would display additional properties depeneding on the selected "Element type" of the module.',
+    	start_after: 'You could specify a set of prerequisite conditions that have to be met for current item. Only after all the specified conditions are met, the curent item is made available to the learner. If the prerequisites are not met, this current item is shown in a locked state to the learner.',
+    	reopen_on_fail: 'You could reopen a set of learning modules if the learner failed in the quiz. To do this, you need to configure this property on the quiz module. You can list the items (refered by their unique id) which have to be reopened if the learner failed to acheive minimum pass score in the current module. This property is a JSON string representing an array of strings: each string is unque id of the item that should be re-opened.<br> Example:<br></div><pre>["_id1", "_id2"]</pre></div>',
+		icon: 'Icon to be displayed for this item in the course tree. If not provided, this is derived from the type. "quiz" is a predefined icon.',
+		text: 'Provide a description which is shown in the content area / details popup when the element is clicked.',
+		maxAttempts: 'Number of time the learner can do this module. Only the learning data from the last attempt is considered. 0 means infinite. 1 is the default.',
+		hide_remarks: 'By default the learner will be shown a text field where the learner can add remarks. This behavior can be disabled by checking this flag.',
+		autocomplete: 'If this flag is checked, the link is automatically marked completed when the learner views for the first time.',
+		parentId: 'Defines the unique id of the folder item under which the current module is located.',
+		id: 'Defines the unique id of the current item. This is automatically generated.',
+		totalItems: 'Displays the number of total modules the folders currently has.',
+        grp_canvasAttrs: 'Canvas mode is a visual represenation of course where laarning items are placed in the backdrop of an image. Learners will be able to navigate into the specific section in a more visual way.',
+        posX: 'Define the horizontal position of this item in the canvas as a percentage number. Left end of the screen is 0 and the right end is 100.',
+        posY: 'Define the vertical position of this item in the canvas as a percentage number. Top end of the screen is 0 and the bottom end is 100.',
+        bgimg: 'Select the background image to be displayed in the canvas when the folder is opened.',
+        bgcolor: 'The background image is resized to retain aspect ratio. This could result in horizontal or vertical bands. You can choose the color of the bands to align with the edge of the image.'
     };
+    
+    function _updateHelps(attrs, attrHelp, level) {
+        for(var i=0; i<attrs.length; i++) {
+            var attr = attrs[i];
+            attr.level = level;
+            attr.help = attrHelp[attr.name] || null;
+        }
+    }
+    _updateHelps(_courseParams, _courseParamsHelp, 'course');
+    _updateHelps(courseAttrs, _courseAttrHelp, 'content');
+    _updateHelps(moduleAttrs, _moduleAttrHelp, 'modules');
     
     var allowedModuleAttrs = (function () {
     	var ret = {};
@@ -363,13 +404,13 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
 	        for(var i=0; i < _allModules.length; i++){
 	        	if (_isDescendantOf(_allModules[i], cm)) indicesToRemove.push(i);
 	        }
-	        _romoveElements(indicesToRemove);
+	        _removeElements(indicesToRemove);
+            $scope.editorCb.updateChildrenLinks(_allModules);
 			$scope.editorCb.showVisible(null);
-			$scope.editorCb.updateChildrenLinks();
 		});
     }
 
-	function _romoveElements(indicesToRemove) {
+	function _removeElements(indicesToRemove) {
         for (var j = indicesToRemove.length -1; j >= 0; j--){
 		    _allModules.splice(indicesToRemove[j],1);
 		}
@@ -483,24 +524,20 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
         var allowedAttributes = allowedModuleAttrs[cm.type] || [];
     	var attrs = Object.keys(allowedAttributes);
         var editedModule = {};
-        var certificateModule = {type: 'certificate', action:'none', hide_remarks: true, autocomplete: true, urlParams: '/#/course_cert'};
+        for(var i=0; i<attrs.length; i++){
+            var attr = attrs[i];
+            if (!(attr in allowedAttributes)) continue;
+            var allowedAttr = allowedAttributes[attr];
+            if(cm[attr] === null || cm[attr] === undefined || cm[attr] === '') continue;
+            editedModule[attr] = cm[attr];
+        }
 		if(cm.type == 'certificate') {
-			certificateModule['name'] = cm.name;
-			certificateModule['parentId'] = cm.parentId;
-            certificateModule['id'] = cm.id;
-            certificateModule['start_after'] = cm.start_after;
-			certificateModule['certificate_image'] = cm.certificate_image;
-			return certificateModule;
-		} else {
-	        for(var i=0; i<attrs.length; i++){
-	    		var attr = attrs[i];
-	    		if (!(attr in allowedAttributes)) continue;
-	    		var allowedAttr = allowedAttributes[attr];
-	            if(cm[attr] === null || cm[attr] === undefined || cm[attr] === '') continue;
-	            editedModule[attr] = cm[attr];
-	        }
-	        return editedModule;
+            editedModule['action']= 'none'; 
+            editedModule['hide_remarks']= true;
+            editedModule['autocomplete']= true; 
+            editedModule['urlParams']= '/#/course_cert';
 	    }
+        return editedModule;
     }
 	
     function _searchLesson(e, cm){
@@ -537,6 +574,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
     	}
 
     	if (cm && cm.id != '_root') return _validateModule(data, cm, errorLocation);
+
         if(!data.name) return _validateFail(errorLocation, 'Name', 'Course name is mandatory');
         if(!data.icon) return _validateFail(errorLocation, 'Icon', 'Course icon URL is mandatory');
         if(!_validateContent(data, errorLocation)) return false;            
@@ -651,10 +689,10 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter) {
 			_moveItem(item, fromIndex, toIndex);
 		};
 		var closeButton = {text : nl.t('Close'), onTap: function(e){
+            $scope.editorCb.updateChildrenLinks(_allModules);
 			$scope.editorCb.showVisible(null);
-			$scope.editorCb.updateChildrenLinks();
 		}};
-		_organiseModuleDlg.show('view_controllers/course/course_organiser.html', [], closeButton, false);
+		_organiseModuleDlg.show('view_controllers/course/editor/course_organiser.html', [], closeButton, false);
     }
     
 	function _moveItem(movedItem, fromIndex, toIndex) {
@@ -691,7 +729,7 @@ function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm) {
 			_onOk(e);
 		}};
 		var closeButton = {text: nl.t('Cancel')};
-		dlg.show('view_controllers/course/course_start_after_configure.html', [okButton], closeButton);
+		dlg.show('view_controllers/course/editor/course_start_after_configure.html', [okButton], closeButton);
 	};
 
 	function _getModuleListFromCm() {
@@ -769,17 +807,6 @@ function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm) {
 	}
 }
 	
-//-------------------------------------------------------------------------------------------------
-function CourseEditDirective(template) {
-    return ['nl', function(nl) {
-        return {
-            restrict: 'E',
-            templateUrl: nl.fmt2('view_controllers/course/{}.html', template),
-            scope: true
-        };
-    }];
-}
-
 //-------------------------------------------------------------------------------------------------
 module_init();
 })();

@@ -16,13 +16,8 @@ function module_init() {
 
 //-------------------------------------------------------------------------------------------------
 function SimpleDirective(template) {
-    return ['nl', function(nl) {
-        return {
-            restrict: 'E',
-            templateUrl: nl.fmt2('view_controllers/assignment_report/{}.html', template),
-            scope: true
-        };
-    }];
+    return _nl.elemDirective('view_controllers/assignment_report/' + template 
+        + '.html', true);
 }
 
 //-------------------------------------------------------------------------------------------------

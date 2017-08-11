@@ -11,6 +11,8 @@ function module_init() {
     .directive('nlCourseViewContentActive', CourseViewDirective('course_view_content_active'))
     .directive('nlCourseViewContentStatic', CourseViewDirective('course_view_content_static'))
     .directive('nlCourseViewFrame', CourseViewDirective('course_view_frame'))
+    .directive('nlCourseViewIcon', CourseViewDirective('course_view_icon', 
+        {cm: '=', ext: '=', cls: '@'}))
     .config(configFn).controller('nl.CourseViewCtrl', NlCourseViewCtrl);
 }
 
@@ -21,7 +23,7 @@ function($stateProvider, $urlRouterProvider) {
         url : '^/course_view',
         views : {
             'appContent' : {
-                templateUrl : 'view_controllers/course/course_view.html',
+                templateUrl : 'view_controllers/course/view/course_view.html',
                 controller : 'nl.CourseViewCtrl'
             }
         }
@@ -193,6 +195,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
                 url += 'embedded=true';
                 $scope.iframeUrl = url;
                 $scope.iframeModule = $scope.ext.item.id;
+                $scope.updateVisiblePanes();
             });
         }
         return true;
@@ -207,9 +210,9 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
 
 //-------------------------------------------------------------------------------------------------
 var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg', 'nlExporter',
-'nlCourseEditor', 'nlServerApi', 'nlGroupInfo', 'nlSendAssignmentSrv',
+'nlCourseEditor', 'nlCourseCanvas', 'nlServerApi', 'nlGroupInfo', 'nlSendAssignmentSrv',
 function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
-    nlCourseEditor, nlServerApi, nlGroupInfo, nlSendAssignmentSrv) {
+    nlCourseEditor, nlCourseCanvas, nlServerApi, nlGroupInfo, nlSendAssignmentSrv) {
     var modeHandler = new ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope);
     var nlContainer = new NlContainer(nl, $scope, modeHandler);
     nlContainer.setContainerInWindow();
@@ -218,7 +221,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     var _userInfo = null;
     $scope.MODES = MODES;
     var folderStats = new FolderStats($scope);
-    $scope.ext = new ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, folderStats);
+    $scope.ext = new ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseCanvas, folderStats);
 
     function _onPageEnter(userInfo) {
         _userInfo = userInfo;
@@ -238,7 +241,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
             var courseId = parseInt($scope.params.id);
             modeHandler.getCourse().then(function(course) {
                 _onCourseRead(course);
-                _showVisible();
                 resolve(true);
             }, function(error) {
                 resolve(false);
@@ -260,6 +262,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     function _onCourseRead(course) {
 		course = nlCourse.migrateCourse(course);
         modeHandler.initTitle(course);
+        nlCourseCanvas.init($scope, modeHandler, treeList, _userInfo);
         _initAttributesDicts(course);
         courseReportSummarizer.updateUserReports(course);
         $scope.courseContent = course.content;
@@ -284,6 +287,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         nl.timeout(function() {
             _updateAllItemData();
             $scope.ext.setCurrentItem(treeList.getRootItem());
+            _showVisible();
         });
     }
 
@@ -333,18 +337,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         		return treeList.getParent(cm);
         	},
         	showVisible: function(cm) {
-        		if (cm) {
-        			$scope.ext.setCurrentItem(cm);
-        		} else {
-		            $scope.ext.setCurrentItem(treeList.getRootItem());
-        		}
-    			_showVisible();
+        	    $scope.showVisible(cm);
         	},
         	moveItem: function(movedItem, fromIndex, toIndex, allModules){
         		return _moveItem(movedItem, fromIndex, toIndex, allModules);
         	},
-        	updateChildrenLinks: function(){
-        		return treeList.updateChildrenLinks();
+        	updateChildrenLinks: function(allModules) {
+        		return treeList.updateChildrenLinks(allModules);
         	},
         	launchModule: function(e, cm){
         	        e.stopImmediatePropagation();
@@ -357,17 +356,67 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         nlCourseEditor.init($scope, modeHandler, _userInfo);
     }
 
-    function _initExpandedView() {
-        $scope.expandedView = (nl.rootScope.screenSize != 'small'); 
-        $scope.showExpandedViewIcon = $scope.expandedView;
-        _updateExpandViewIcon();
+    // One or more of the below panes could be visible at any time
+    // t = tree, c = canvas, d = details, i = iframe. c/d/i are part of
+    // content area.
+    $scope.vp = {}; // Finally whatever is visible currently in a dict
+    $scope.iframeUrl = null;     // true if content area contains iframe.
+    $scope.iframeModule = null;
+    $scope.canvasMode = false;    // true if content has canvas enabled.
+    $scope.canvasShown = false;  // true if content area contains canvas.
+    $scope.popupView = false;    // true if content area is popped out.
+    $scope.expandedView = false; // true if tree + content area is shown
+
+    $scope.updateVisiblePanes = function() {
+        var oldExpandedView = $scope.expandedView;
+        $scope.expandedView = (nl.rootScope.screenSize != 'small');
+        if (oldExpandedView && !$scope.expandedView && $scope.iframeUrl) {
+            $scope.popupView = true;
+        }
+
+        $scope.vp = {};
+        var vp = $scope.vp;
+        if ($scope.canvasMode && !$scope.ext.isEditorMode()) {
+            // canvas mode non-editor
+            if ($scope.iframeUrl) vp.i = true;
+            else if ($scope.canvasShown) vp.c = true;
+            else vp.d = true;
+        } else {
+            // canvas mode editor, structured mode editor/non-editor
+            if (!$scope.popupView) vp.t = true;
+            if ($scope.iframeUrl) vp.i = true;
+            else if ($scope.popupView || $scope.expandedView) {
+                if ($scope.canvasShown) vp.c = true;
+                else vp.d = true;
+            }
+        }
     }
     
     nl.resizeHandler.onResize(function() {
-        _initExpandedView();
+        $scope.updateVisiblePanes();
     });
-    _initExpandedView();
 
+    function _popout(bPopout) {
+        nl.pginfo.isMenuShown = !bPopout;
+        $scope.popupView = bPopout;
+        $scope.updateVisiblePanes();
+    }
+
+    $scope.updateCanvasShown = function(e, shown) {
+        if (!$scope.canvasMode) return;
+
+        $scope.canvasShown = shown;
+        if ($scope.canvasShown) nlCourseCanvas.update();
+        if(!$scope.expandedView) _popout(true);
+        else $scope.updateVisiblePanes();
+    };
+
+    $scope.showVisible = function(cm) {
+        if (cm) $scope.ext.setCurrentItem(cm);
+        else $scope.ext.setCurrentItem(treeList.getRootItem());
+        _showVisible();
+    };
+    
     function _showVisible() {
         $scope.modules = [];
 	    var allModules = nlCourseEditor.getAllModules();
@@ -376,6 +425,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
             if (!cm.visible) continue;
             $scope.modules.push(cm);
         }
+        $scope.updateVisiblePanes();
     }
 
     $scope.download = function() {
@@ -386,11 +436,15 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         _sendAssignment();
     };
 
-    $scope.collapseAll = function() {
+    $scope.collapseAll = function(bShowCanvas) {
         function _impl() {
 	        if($scope.ext.isEditorMode()){
 		        if(!nlCourseEditor.validateInputs($scope.ext.item)) return;    	
 	        }
+            if(!$scope.ext.isEditorMode() && $scope.canvasMode) {
+                $scope.canvasShown = bShowCanvas;
+                if ($scope.canvasShown) nlCourseCanvas.update();
+            }
             treeList.collapseAll();
             _showVisible();
             $scope.ext.setCurrentItem(treeList.getRootItem());
@@ -407,6 +461,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         if ($scope.ext.isStaticMode()) {
             $scope.iframeUrl = null;
             $scope.iframeModule = null;
+            $scope.updateVisiblePanes();
             nextFn();
             return;
         }
@@ -416,24 +471,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
                 if (!res) return;
                 $scope.iframeUrl = null;
                 $scope.iframeModule = null;
+                $scope.updateVisiblePanes();
                 nextFn();
             });
     }
     
-    $scope.expandViewClick = function() {
-        function _impl() {
-            $scope.expandedView = !$scope.expandedView;
-            _updateExpandViewIcon();
-        }
-        _confirmIframeClose(null, _impl);
-    };
-    
-    $scope.popupView = false;
-    function _popout(bPopout) {
-        nl.pginfo.isMenuShown = !bPopout;
-        $scope.popupView = bPopout;
-    }
-
 	$scope.showAddInfo = function(e, cm){
 		if($scope.showAddInform) {
 			_showAddInfo(false);
@@ -474,6 +516,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         nl.timeout(function() {
             $scope.iframeUrl = null;
             $scope.iframeModule = null;
+            $scope.updateVisiblePanes();
             if($scope.popupView) _popout(false);
         });
     };
@@ -484,16 +527,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         });
     };
 
-    function _updateExpandViewIcon() {
-        if ($scope.expandedView) {
-            $scope.expandViewText = nl.t('Expand list and hide content');
-            $scope.expandViewIcon = 'ion-ios-list';
-            return;
-        }
-        $scope.expandViewText = nl.t('Shrink list to show content');
-        $scope.expandViewIcon = 'ion-arrow-shrink';
-    }
-    
     var forumDlg = null;
     $scope.launchForum = function() {
         if (!forumDlg) {
@@ -850,7 +883,7 @@ function FolderStats($scope) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, folderStats) {
+function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseCanvas, folderStats) {
     
     this.item = null;
     this.stats = null;
@@ -867,6 +900,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, folderSta
         nlContainer.onSave(function(lessonReportInfo) {
             modeHandler.course.lessonReports[cm.id] = lessonReportInfo;
         });
+        nlCourseCanvas.update();
     };
     
     var _updateStatusFn = null;
@@ -918,6 +952,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, folderSta
     };
 
     this.getLaunchString = function() {
+        if (!this.item) return '';
         if (this.isStaticMode()|| this.item.type =='link' || this.item.type =='certificate') return 'Open';
         if (this.item.state.status == 'success' || this.item.state.status == 'failed') return 'View report';
         return 'Open';
@@ -983,15 +1018,6 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
         this.items = {};
         this.children = {};
         this.addItem(rootItem);
-    };
-    
-    this.deleteItem = function(item) {
-        var itemId = item[ID_ATTR];
-        delete this.items[itemId];
-        var parent = this.getParent(item);
-        // TODO - remove the item from parents children; 
-        // call this when an item is deleted (call this for all child nodes deleted)
-        // call this also when moving 
     };
     
     this.addItem = function(item) {
@@ -1064,12 +1090,14 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
         return this.children[itemId];
     };
     
-    this.updateChildrenLinks = function() {
-        this.children = {};
-        for(var i in this.items) {
-        	var item = this.items[i];
-        	var parent = this.getParent(item);
-	        if (parent) this.getChildren(parent).push(item);
+    this.updateChildrenLinks = function(allModules) {
+        this.clear();
+        for(var i=0; i<allModules.length; i++) {
+            var item = allModules[i];
+            var itemId = item[ID_ATTR];
+            this.items[itemId] = item;
+            var parent = this.getParent(item);
+            if (parent) this.getChildren(parent).push(item);
         }
     };
 
@@ -1117,6 +1145,9 @@ function CourseReportSummarizer(nlGroupInfo, $scope) {
             module.name = nlGroupInfo.formatUserNameFromRecord(userReport);
             module.userid = userReport.student;
             module.icon = 'user';
+            if ('posX' in module) delete module.posX;
+            if ('posY' in module) delete module.posY;
+            
             var start_after = module.start_after || [];
             for(var j in start_after) {
                 var sa = start_after[j];
@@ -1322,14 +1353,10 @@ function NlContainer(nl, $scope, modeHandler) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function CourseViewDirective(template) {
-    return ['nl', function(nl) {
-        return {
-            restrict: 'E',
-            templateUrl: nl.fmt2('view_controllers/course/{}.html', template),
-            scope: true
-        };
-    }];
+function CourseViewDirective(template, scope) {
+    if (scope === undefined) scope = true;
+    return _nl.elemDirective('view_controllers/course/view/' + template 
+        + '.html', scope);
 }
 
 //-------------------------------------------------------------------------------------------------

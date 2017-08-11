@@ -330,10 +330,9 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/sco_export.json', data);
     };
     
-    this.scoGetManifestList = function(search) {
-        // create or modify Manifest information
+    this.scoGetManifestList = function(data) {
         // returns list of manifest ids of imported sco content for this group
-        return server.post('_serverapi/sco_get_manifest_list.json', {search: search});
+        return server.post('_serverapi/sco_get_manifest_list.json', data);
     };
 
     this.scoUpdateManifest = function(data) {
@@ -953,10 +952,10 @@ function PageFetcher(nl, nlDlg, attrs) {
             var batchDone = _fetchLimit === undefined ? true
                 : !_canFetchMore || (_fetchLimit !== null && _fetchLimit <= _fetchedCount);
             var msg = nl.t('Got {} {}(s) from the server.{}', _fetchedCount, _itemType, 
-                (_fetchLimit === undefined ? ''
-                : !batchDone ? ' Fetching more items ...' 
-                : '  You could fetch more if needed.'));
-            nlDlg.popupStatus(msg, batchDone ? undefined : false);
+                !batchDone ? ' Fetching more items ...' 
+                : _canFetchMore ? '  You could fetch more if needed.'
+                : '');
+            if (!attrs.noStatus) nlDlg.popupStatus(msg, batchDone ? undefined : false);
             if (batchDone) _fetchInProgress = false;
             callback(resp.resultset, batchDone);
         }, function(error) {

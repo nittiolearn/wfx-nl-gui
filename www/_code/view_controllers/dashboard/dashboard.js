@@ -36,11 +36,10 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	        my = ('my' in params) ? parseInt(params.my) == 1: false;
         	$scope.cards = {
         	    staticlist: _getStaticCards(),
-        	    search: {onSearch: _onSearch, placeholder: nl.t('Enter dashboard name/description')}
+        	    search: {placeholder: nl.t('Enter dashboard name/description')}
         	};
             nlCardsSrv.initCards($scope.cards);
-			var searchFilterInUrl = ('search' in params) ? params.search : '';
-			_getDataFromServer(searchFilterInUrl, resolve, reject);
+			_getDataFromServer(resolve);
 		});
 	}
 
@@ -49,26 +48,24 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 	$scope.onCardInternalUrlClicked = function(card, internalUrl) {
 		if (internalUrl === 'dashboard_create') {
 			_createOrModifyDashboard($scope, null, false);
-		}
+		} else if (internalUrl === 'dashboard_modify') {
+            _createOrModifyDashboard($scope, card.dashboardId, false);
+        } else if (internalUrl === 'dashboard_content') {
+            _createOrModifyDashboard($scope, card.dashboardId, true);
+        } else if (internalUrl === 'dashboard_delete') {
+            _deleteDashboard($scope, card.dashboardId);
+        } else if (internalUrl === 'fetch_more') _getDataFromServer(null, true);
     };
 	
 	$scope.onCardLinkClicked = function(card, linkid) {
-		if (linkid === 'dashboard_modify') {
-			_createOrModifyDashboard($scope, card.dashboardId, false);
-		} else if (linkid === 'dashboard_content') {
-            _createOrModifyDashboard($scope, card.dashboardId, true);
-        } else if (linkid === 'dashboard_delete') {
-            _deleteDashboard($scope, card.dashboardId);
-        }
+        $scope.onCardInternalUrlClicked(card, linkId);
 	};
 
-	function _getCustomDashboardCards(resultList) {
-		var cards = [];
+	function _updateCustomDashboardCards(resultList, cards) {
 		for(var i=0; i<resultList.length; i++){
 			var card = _createCustomDashboardCard(resultList[i]);
 			cards.push(card);
 		}
-		return cards;
 	}
 	
 	function _createCustomDashboardCard(dashboard){
@@ -294,25 +291,20 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 		});
 	}
 
-	function _onSearch(filter) {
-		nlDlg.showLoadingScreen();
-		var promise = nl.q(function(resolve, reject) {
-			_getDataFromServer(filter, resolve, reject);
-		});
-		promise.then(function(res) {
-			nlDlg.hideLoadingScreen();
-		});
-	}
-	
-	function _getDataFromServer(filter, resolve, reject) {
-		var params = {search: filter, mine: my};
-        var data = nlServerApi.dashboardGetList(params);
-        data.then(function(resultList){
-            nlCardsSrv.updateCards($scope.cards, 
-                {cardlist: _getCustomDashboardCards(resultList)});
-        	resolve(true);	
-        }, function(error) {
-            resolve(false);
+    var _pageFetcher = nlServerApi.getPageFetcher();
+	function _getDataFromServer(resolve, fetchMore) {
+		var params = {mine: my};
+        _pageFetcher.fetchPage(nlServerApi.dashboardGetList, 
+            params, fetchMore, function(resultList) {
+            if(!resultList) {
+                if (resolve) resolve(false);
+                return;
+            }
+            $scope.cards.canFetchMore = _pageFetcher.canFetchMore();
+            if (!fetchMore) $scope.cards.cardlist = [];
+            _updateCustomDashboardCards(resultList, $scope.cards.cardlist);
+            nlCardsSrv.updateCards($scope.cards);
+            if (resolve) resolve(true);
         });
      }
 	

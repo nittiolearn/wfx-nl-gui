@@ -30,6 +30,7 @@ function(nl, $filter) {
 
         'cardlist': 1, 
         'canFetchMore': 1,
+        'fetchInProgress': 1,
         'listConfig': 1
     };
 
@@ -74,10 +75,11 @@ function(nl, $filter) {
             var search = cards._internal.search;
             filteredCards = $filter('nlFilter')(filteredCards, search.filter, search.category);
         }
+        var matchedLen = filteredCards.length;
         var len = filteredCards.length > _MAX_VISIBLE ? _MAX_VISIBLE : filteredCards.length;
         var recs = cards.staticlist.concat(filteredCards.slice(0, len));
         cards._internal.search.visible = len;
-        _updateInfotext(cards.cardlist.length, len, cards);
+        _updateInfotext(cards.cardlist.length, matchedLen, len, cards);
         cards._internal.visibleCards = recs;
     }
 
@@ -89,7 +91,7 @@ function(nl, $filter) {
         }, 800);
     }
     
-    function _updateInfotext(total, visible, cards) {
+    function _updateInfotext(total, matched, visible, cards) {
         var oldInfotxt = cards._internal.search.infotxt;
         var msg1 = nl.t('There are no items to display.');
         cards._internal.search.cls = 'fgrey2';
@@ -103,9 +105,13 @@ function(nl, $filter) {
         }
         var item = (total == 1) ? 'item' : 'items';
         var match = (visible == 1) ? 'match' : 'matches';
-        msg1 = nl.t('Found <b>{}</b> {} from <b>{}</b> {} searched.', visible, match, total, item);
+        var plus = matched > visible ? '+' : '';
+        msg1 = nl.t('Found <b>{}{}</b> {} from <b>{}</b> {} searched.', 
+            visible, plus, match, total, item);
         if (!cards.canFetchMore) {
-            cards._internal.search.infotxt = nl.t('{} Search complete.', msg1);
+            cards._internal.search.infotxt = cards.fetchInProgress 
+                ? nl.t('{} Fetching more.', msg1) 
+                : nl.t('{} Search complete.', msg1);
             cards._internal.search.infotxt2 = msg1;
             return _animateInfotext(cards, oldInfotxt);
         }

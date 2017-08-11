@@ -1,11 +1,22 @@
 "use strict";
-
-(function() {
-
 //-------------------------------------------------------------------------------------------------
 // app.js:
-// Main application module with controllers for the overall layout
+// Main application module with controllers for the overall layout.
+// Also defines _nl which is set of global functions used everywhere.
 //-------------------------------------------------------------------------------------------------
+var _nl = {
+    elemDirective: function(templateUrl, scope) {
+        return [function() {
+            var ret = {restrict: 'E', templateUrl: templateUrl};
+            if (scope !== undefined) ret.scope = scope;
+            return ret;
+        }];
+    }
+};
+
+//-------------------------------------------------------------------------------------------------
+(function() {
+
 function module_init() {
     _patchToIonicRightClickIssue();
     
@@ -271,5 +282,6 @@ function _updateResponsiveColClasses(nl) {
     }
 }
 
+//-------------------------------------------------------------------------------------------------
 module_init();
 })();

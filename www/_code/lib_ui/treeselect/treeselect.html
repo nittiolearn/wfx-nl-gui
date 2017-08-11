@@ -31,7 +31,7 @@
                ng-click='onCheckBoxSelect(item, $event, $index)'></i>
             <i ng-show='item.selected == "part"' class="icon ion-android-checkbox-blank fsh4"
                ng-click='onCheckBoxSelect(item, $event, $index)'></i>
-            <i ng-show='!item.selected && item.multiSelect === true' class="icon ion-android-checkbox-outline-blank fsh4"
+            <i ng-show='!item.selected && info.multiSelect' class="icon ion-android-checkbox-outline-blank fsh4"
                ng-click='onCheckBoxSelect(item, $event, $index)'></i>
             <span ng-show='item.icon'><i class='icon {{item.icon}}'></i></span>
             <span ng-show='item.image'><img class='fsh4 nl-24' style='margin-bottom: -4px' ng-src='{{item.image}}'/></span>

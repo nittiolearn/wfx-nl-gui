@@ -1,0 +1,74 @@
+<style>
+    nl-course-canvas-view .holder1 {
+        background: {{canvas.bgcolor || "rgba(255, 255, 255, 0.5)"}};
+    }
+    nl-course-canvas-view .holder2 {
+        position: absolute;
+        top: {{canvas.t}}%; 
+        left: {{canvas.l}}%; 
+        height: {{canvas.h}}%; 
+        width: {{canvas.w}}%;
+    }
+</style>
+
+<div class='holder1' ng-click='canvas.closePins($event)'>
+    <div class='holder2 {{canvas.status == "ok" ? "visible" : ""}}'>
+        <img ng-if='canvas.loadedimg' class='bgimg anim fade' ng-src='{{canvas.loadedimg}}'>
+        <div ng-repeat='pin in canvas.pins track by $index'
+             class='pin {{pin.quadCls}} {{canvas.currentPin == $index ? "expanded" : ""}} {{pin.selected? "selected" : ""}}'
+             style='top: {{pin.t}}; bottom: {{pin.b}}; left: {{pin.l}}; right: {{pin.r}};'
+             ng-click='canvas.showPin($event, $index)'>
+        <div class='nl-link-img'>
+            <div class='row row-center margin0 padding0'>
+                <div class='padding-small fsh5 text-center'
+                     title='{{canvas.currentPin == $index ? "" : pin.cm.name}}'>
+                    <span ng-if='!ext.isStaticMode()'
+                          class='row row-center margin0 padding0 text-center'
+                          style='width: 28px; height: 28px'>
+                        <i class='fsh4 col padding0 margin0 icon {{pin.cm.state.icon}}'></i>
+                    </span>
+                    <nl-course-view-icon ng-if='ext.isStaticMode()'
+                                         ext='ext' cm='pin.cm' 
+                                         cls='fsh4 col padding0 margin0'
+                                         class='row row-center margin0 padding0 text-center'
+                                         style='width: 28px; height: 28px'>
+                    </nl-course-view-icon>
+                </div>
+                <div ng-show='canvas.currentPin == $index'
+                     class='col padding0'>
+                    <div class='padding-mid'>{{pin.cm.name}}</div>
+                </div>
+                <div ng-show='canvas.currentPin == $index'
+                     ng-click='canvas.onDetails($event, $index)'
+                     title='{{ext.isEditorMode() ? "Edit" : "Details"}}'
+                     class='padding-small nl-link-text fsh5'>
+                    <i class='{{ext.isEditorMode() ? "ion-ios-compose" : "ion-information-circled"}} icon nl-toolbar-icon padding-small fsh4'></i>
+                </div>
+                <div ng-show='canvas.currentPin == $index && (ext.canLaunch() || pin.hasChildren)'
+                     ng-click='canvas.onOpen($event, $index)'
+                     title='Open'
+                     class='padding-small nl-link-text fsh5'>
+                    <i class='ion-play icon nl-toolbar-icon padding-small fsh4'></i>
+                </div>
+            </div>
+            <div ng-show='canvas.currentPin == $index && pin.cm.text'
+                 class='padding-mid'>{{pin.cm.text}}</div>
+        </div>
+        </div>
+    </div>
+    <div class='holder1 row row-center margin0 padding0'
+         ng-show='canvas.status == "loading"'>
+        <div class='col margin0 padding0'></div>
+        <div>
+            <div class='padding-mid'>Loading background image</div>
+            <div class='text-center'><ion-spinner icon='ios' class='dark'></ion-spinner></div>
+        </div>
+        <div class='col margin0 padding0'></div>
+    </div>
+    <div class='holder1 row row-center margin0 padding0 forange fsh6'
+         ng-show='canvas.status == "error"'>
+        <div class='col margin0 padding0'></div>
+        <div>Error loading background image</div>
+        <div class='col margin0 padding0'></div>
+    </div>
+</div>

@@ -36,7 +36,6 @@ function(nl, nlServerApi, nlDlg, nlExporter) {
     var $scope = null;
     var _impl = null;
     var _ratingInfo = null;
-    var _fetchedDataCount = 0;
     var _loadedCentres = {};
     var self = this;
 
@@ -61,7 +60,6 @@ function(nl, nlServerApi, nlDlg, nlExporter) {
         $scope.showFilter = false;
         $scope.showHelp = false;
         $scope.role = _pageGlobals.role;
-        $scope.loadingInProgress = false;
 
         $scope.rnoCount = 0;
         $scope.obsCount = 0;
@@ -79,105 +77,28 @@ function(nl, nlServerApi, nlDlg, nlExporter) {
             nlDlg.popupStatus('Please select the centre to proceed ...', false);
             return;
         }
-        _fetchedDataCount = 0;
         _loadData();
     };
 
+    var _pageFetcher = nlServerApi.getPageFetcher();
     function _loadData(centreName) {
-        $scope.loadingInProgress = true;
-        var msg = _fetchedDataCount > 0 ? 
-            nl.t('Fetched data of {} students. Fetching more ...', _fetchedDataCount) :
-            nl.t('Fetching data ...');
-        nlDlg.popupStatus(msg, false);
         var params = {metadata: _pageGlobals.metadataIdParent, 
-            search: '', user_type: '', section: '', role: _pageGlobals.role, 
-            max: _pageGlobals.max, start_at: _fetchedDataCount};
-        if (_pageGlobals.metadataIdParent != _pageGlobals.metadataId) {
+            user_type: '', section: '', role: _pageGlobals.role, 
+            max: _pageGlobals.max};
+        if (_pageGlobals.metadataIdParent != _pageGlobals.metadataId)
             params.metadata2 = _pageGlobals.metadataId;
-        }
         if (centreName) params.centre = centreName;
-        nlServerApi.rnoGetDataList(params).then(function(resultList) {
-            _fetchedDataCount += resultList.length;
-            _impl.processRnoList(resultList, $scope);
+        var fetchMore = false;
+        _pageFetcher.fetchBatchOfPages(nlServerApi.rnoGetDataList, params, fetchMore, function(results, batchDone) {
+            if (!results) return;
+            _impl.processRnoList(results, $scope);
             $scope.options.cls = _impl.getClasses();
             $scope.options.name = _impl.getNames($scope.data.cls.id);
             _impl.updateStatistics($scope, $scope.data.cls.id, $scope.data.name.id);
-            if (resultList.length > _pageGlobals.max) {
-                _loadData(centreName);
-            } else {
-                $scope.loadingInProgress = false;
-                if (centreName) _loadedCentres[centreName] = true;
-                var msg = nl.t('Fetched data of {} students.', _fetchedDataCount);
-                nlDlg.popupStatus(msg);
-                // TODO-MUNNI: Remove load dummy data code after initial stabilizations
-                // are done.
-                //_loadDummyData();
-            }
-        });
+            if (batchDone) _loadedCentres[centreName] = true;
+        }, null);
     }
 
-    function _loadDummyData() {
-        var recordsPerChunk = 1000;
-        var maxChunks = 10;
-        var timeBetweenChunks = 3000;
-        _loadDummyDataInChunks(0);
-        
-        function _loadDummyDataInChunks(chunkNumber) {
-            if (chunkNumber >= maxChunks) {
-                nlDlg.popupStatus('Loaded dummy chunks: ' + maxChunks);
-                return;
-            }
-            nlDlg.popupStatus('Loading dummy chunk: ' + (chunkNumber+1), false);
-            nl.timeout(function() {
-                var resultList = _getDummyData(recordsPerChunk, chunkNumber*recordsPerChunk);
-                _impl.processRnoList(resultList, $scope);
-                $scope.options.cls = _impl.getClasses();
-                $scope.options.name = _impl.getNames($scope.data.cls.id);
-                _impl.updateStatistics($scope, $scope.data.cls.id, $scope.data.name.id);
-                chunkNumber++;
-                _loadDummyDataInChunks(chunkNumber);
-            }, timeBetweenChunks);
-        }
-
-        function _getDummyData(cnt, startId) {
-            var resultList = [];
-            for(var i=0; i<cnt; i++) {
-                var id = 10000+i+startId;
-                var cfg = {first_name: 'Simulated', last_name: '' + id, 
-                    centre: 'Centre 1', user_type: 'Toddler', section: 'Section A'};
-                var data = {observations: [], reportsSent: {}};
-                for(var j=0; j<12; j++) {
-                    for(var k=0; k<4; k++) {
-                        data.observations.push(_dummyObservation(j, k));
-                        data.reportsSent['report/'+j+'/'+k] = _dummyReportSent(j, k);
-                    }
-                }
-                var rno = {id: id, config: angular.toJson(cfg), data: angular.toJson(data)};
-                resultList.push(rno);
-            }
-            return resultList;
-        }
-
-        function _dummyObservation(monthIndex, dateIndex) {
-            var d1=new Date();
-            d1.setMonth(d1.getMonth() - monthIndex);
-            d1.setDate(d1.getDate() - dateIndex);
-            return {created: d1, sent: {sent_on: d1}, ratings: {
-                '101': 'emerging',
-                '102': 'emerging',
-                '103': 'emerging',
-                '104': 'emerging'
-            }};
-        }
-
-        function _dummyReportSent(monthIndex, dateIndex) {
-            var d1=new Date();
-            d1.setMonth(d1.getMonth() - monthIndex);
-            d1.setDate(d1.getDate() - dateIndex);
-            return {sent_on: d1, type: 'report'};
-        }
-    }
-    
     function _viewSummary() {
         $scope.showObservationStats = false;
         $scope.showObservationTable = false;
@@ -194,8 +115,7 @@ function(nl, nlServerApi, nlDlg, nlExporter) {
             _onNameChange();
             return;
         }
-        if ($scope.loadingInProgress) return;
-        _fetchedDataCount = 0;
+        if (_pageFetcher.fetchInProgress()) return;
         _loadData($scope.data.centre.id);
     }
 

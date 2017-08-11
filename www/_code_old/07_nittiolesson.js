@@ -62,6 +62,7 @@ nlesson = function() {
 		this.postRender = Lesson_postRender;			// (onSlideChange)
 	
 		// Save
+		this.updateState = Lesson_updateState;
 		this.saveLesson = Lesson_saveLesson;
 		this.saveLessonRaw = Lesson_saveLessonRaw;
 		this.saveComments = Lesson_saveComments;
@@ -659,6 +660,7 @@ nlesson = function() {
             var td = this.parentTemplateContents.templateDefaults;
             if (td.passScore == this.oLesson.passScore) delete this.oLesson.passScore;
         }
+        this.oLesson.template = jQuery('#templateFullName').val();
 	}
 	
 	function Lesson_getContent() {
@@ -930,6 +932,11 @@ nlesson = function() {
 		return true;
 	}
 
+    function Lesson_updateState(newState) {
+        this.oLesson.state = newState;
+        this.lastSavedContent = this.getContent();
+    }
+    
 	function Lesson_saveLesson(onCompleteFn) {
 		_Lesson_saveInternal(this, '/lesson/save.json/', onCompleteFn, false, false);
 	}

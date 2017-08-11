@@ -308,6 +308,11 @@ ion-spinner.spinner svg {
   fill: #EEFFEE;
 }
 
+ion-spinner.spinner.dark svg {
+  stroke: #000000;
+  fill: #110011;
+}
+
 .nl-screen-medium ion-spinner.spinner svg {
   width: 42px;
   height: 42px;
@@ -1396,6 +1401,53 @@ img.nl-icon {
 
 .nl-cv-item.selected {
   background-color: $nldarkgrey;
+}
+
+nl-course-canvas-view .holder1 {
+  position: absolute; top: 0; left: 0; height: 100%; width: 100%;
+  .holder2 {
+    opacity: 0;
+    &.visible {
+      opacity: 1;
+    }
+  }
+  .bgimg {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    text-align: center;
+  }
+  .pin {
+    position: absolute;
+    border-radius: 4px;
+    border: 2px solid white;
+    background-color: white;
+    & > div {
+      border-radius: 4px;
+      background-color: $nldarkgrey;
+    }
+    &.selected {
+      border-color: $nldarkgrey;
+    }
+    &.selected > div {
+      background-color: white;
+    }
+    &.expanded {
+      z-index: 1;
+    }
+    &.quadL.quadT {
+      transform: translate(-15px, -15px);
+    }
+    &.quadL.quadB {
+      transform: translate(-15px, 15px);
+    }
+    &.quadR.quadT {
+      transform: translate(15px, -15px);
+    }
+    &.quadR.quadB {
+      transform: translate(15px, 15px);
+    }
+  }
 }
 
 /*-----------------------------------------------------------------------------------------*
