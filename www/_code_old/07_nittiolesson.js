@@ -660,7 +660,6 @@ nlesson = function() {
             var td = this.parentTemplateContents.templateDefaults;
             if (td.passScore == this.oLesson.passScore) delete this.oLesson.passScore;
         }
-        this.oLesson.template = jQuery('#templateFullName').val();
 	}
 	
 	function Lesson_getContent() {

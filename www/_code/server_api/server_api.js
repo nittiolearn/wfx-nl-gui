@@ -502,6 +502,12 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/lesson_reopen.json', {lessonid: lessonId});
 	};
 	
+	this.lessonInviteReview = function(data) {
+    	//Share module for review
+        return server.post('_serverapi/lesson_invite_review.json', data);
+		
+	};
+	
 	this.lessonCloseReview = function(lessonId) {
     	//data: lessonId
     	//Mark completion of lesson review

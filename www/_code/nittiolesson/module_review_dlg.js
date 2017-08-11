@@ -10,8 +10,8 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NittioLessonModuleReviewSrv = ['nl', 'nlDlg', 'nlTreeSelect', 'nlGroupInfo', 'nlOuUserSelect',
-function(nl, nlDlg, nlTreeSelect, nlGroupInfo, nlOuUserSelect) {
+var NittioLessonModuleReviewSrv = ['nl', 'nlDlg', 'nlTreeSelect', 'nlGroupInfo', 'nlOuUserSelect', 'nlServerApi',
+function(nl, nlDlg, nlTreeSelect, nlGroupInfo, nlOuUserSelect, nlServerApi) {
 	var _uiParams = null;
 	var _oLesson = null;
 	var _reviewerSelector = {};
@@ -23,23 +23,24 @@ function(nl, nlDlg, nlTreeSelect, nlGroupInfo, nlOuUserSelect) {
 	    			  help: nl.t('Choose one or more reviewers to send the learning module for review.')}];
 	};
 
-	this.sendForReview = function() {
+	this.sendForReview = function(lessonId) {
 		return nl.q(function(resolve, reject) {
 			nlGroupInfo.init().then(function() {
-				_sendForReview(resolve);
+				_sendForReview(lessonId, resolve);
 			});
 		});	
 	};
 	
-	function _sendForReview(resolve) {
+	function _sendForReview(lessonId, resolve) {
 		nlGroupInfo.update();
 		var dontShowUsers = nlGroupInfo.getAllUserIdsWithoutPerm('lesson_create');
+		var parentScope = nl.rootScope;
+
         _reviewerSelector = nlOuUserSelect.getOuUserSelector(parentScope, 
             nlGroupInfo.get(), {}, dontShowUsers);
         _reviewerSelector.treeIsShown = true;
         _reviewerSelector.multiSelect = true;
 
-		var parentScope = nl.rootScope;
 		var moduleReviewDlg = nlDlg.create(parentScope);
 		moduleReviewDlg.setCssClass('nl-height-max nl-width-max');
 
@@ -57,8 +58,22 @@ function(nl, nlDlg, nlTreeSelect, nlGroupInfo, nlOuUserSelect) {
         dlgScope.error = {};
         
 		var okButton = {text: nl.t('Invite'), onTap: function(e) {
-			resolve({reviewers: _getSelectedReviewerIds(), 
-				remarks: moduleReviewDlg.scope.data.remarks});
+			nl.timeout(function() {
+				nlDlg.showLoadingScreen();
+				var data = {lessonid: lessonId, reviewers: _getSelectedReviewers(),
+					remarks: dlgScope.data.remarks};
+				nlServerApi.lessonInviteReview(data).then(function() {
+					var template = nl.t('Module {} sent for review to {} users successfully.',
+						_oLesson.name, data.reviewers.length);
+					nlDlg.popupAlert({title: 'Sent for review', template: template}).then(function() {
+						resolve(true);
+					});
+				}, function() {
+					resolve(false);
+				});
+			});
+			
+			resolve({});
 		}};
 		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
 			resolve(false);
@@ -66,10 +81,13 @@ function(nl, nlDlg, nlTreeSelect, nlGroupInfo, nlOuUserSelect) {
 		moduleReviewDlg.show('lib_ui/dlg/dlgfieldsview.html', [okButton], cancelButton);
 	}
 
-	function _getSelectedReviewerIds() {
+	function _getSelectedReviewers() {
 		var reviewersDict = _reviewerSelector.getSelectedUsers();
 		var ret = [];
-		for(var i in reviewersDict) ret.push(reviewersDict[i].userObj.id);
+		for(var i in reviewersDict) {
+			var user = reviewersDict[i].userObj;
+			ret.push({id: user.id, name: user.name});
+		}
 		return ret;
 	}
 

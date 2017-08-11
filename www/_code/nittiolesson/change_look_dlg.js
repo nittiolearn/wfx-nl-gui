@@ -79,7 +79,7 @@ function(nl, nlDlg) {
 			var ret = _templateList[0];
 			var index = selected.indexOf('[');
 	        ret.bgImg = selected.substring(4, index);
-	        ret.bgShade = selected.substring(index);
+	        ret.bgShade = selected.substring(index+1, selected.length-1);
 	        return ret;			
 		}
 		for(var i in _templateList) {

@@ -53,22 +53,19 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo) {
 	var learningMode = [{id:'assesment', name:nl.t('Assesment module')},
 						{id:'self', name: nl.t('Self learning module')}];
 
-	var lessonStates = [{title: 'Private', icon : 'ion-ios-circle-filled fgrey', cls : 'grey'},
-                     	{title: 'Under review', icon : 'ion-ios-circle-filled fyellow', cls : 'yellow'},
-                     	{title: 'Under revision', icon : 'ion-ios-circle-filled nl-revision-color', cls : 'maroon'},
-                     	{title: 'Approved', icon : 'ion-ios-circle-filled fgreen', cls : 'green'},
-                     	{title: 'Approved, next update under revision', icon : 'ion-ios-circle-filled fgreen', cls : 'green'},
-                     	{title: 'Approved, next update under review', icon : 'ion-ios-circle-filled fgreen', cls : 'green'}];
-
-	var lessonStatusDesc = (function() {
+	var lessonStates = {};
+	var lessonStatusDesc = null;
+	function _initLessonStates() {
 		var infos = nlModuleStatusInfo.getStatusInfos();
-		var ret = '<div><b>Status of the module can be one of following:</b></div>';
-		for (var i=0; i<infos.length; i++)
-			ret += nl.fmt.fmt1('<div class="row row-center padding0 margin0"><i class="icon fsh4 {icon}"></i>' + 
+		lessonStatusDesc = '<div><b>Status of the module can be one of following:</b></div>';
+		for (var i=0; i<infos.length; i++) {
+			lessonStates[infos[i].status] = infos[i];
+			lessonStatusDesc += nl.fmt.fmt1('<div class="row row-center padding0 margin0"><i class="icon fsh4 {icon}"></i>' + 
 				'<div class="col padding-mid"><b>{title}:</b> {help}</div></div>', infos[i]);
-		return ret;
-	})();
+		}
+	}
 
+	_initLessonStates();
 	var moduleHelp = {
 		name: nl.t('Mandatory - enter a name for your module.'),
 		grade: nl.t('This helps in classifying and searching the module.'),
