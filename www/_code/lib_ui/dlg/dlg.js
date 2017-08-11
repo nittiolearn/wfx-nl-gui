@@ -263,6 +263,10 @@ function(nl, nlDlg) {
             item: '='
         },
         link: function($scope, iElem, iAttrs) {
+            $scope.onFieldChange = function(fieldModel) {
+            	if (!('onFieldChange' in $scope.$parent)) return;
+            	$scope.$parent.onFieldChange(fieldModel);
+            };
         }
     };
 }];

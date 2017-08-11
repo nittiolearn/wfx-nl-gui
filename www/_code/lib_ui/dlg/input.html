@@ -1,6 +1,7 @@
 <div class='nl-dlg-field-value'>
     <input type='{{fieldtype}}' 
-           ng-model='$parent.data[fieldmodel]' 
+           ng-model='$parent.data[fieldmodel]'
+           ng-change='onFieldChange(fieldmodel)'
            ng-class='{"nl-dlg-field-error": $parent.error[fieldmodel]}'
            class='{{fieldcls}}'
            min='{{fieldminvalue}}'

@@ -1,0 +1,42 @@
+<style>
+.changeDlgImg {
+  max-width: 100%; 
+  max-height: 80vh;
+}
+.changeLookTxt {
+  position: absolute; 
+  top: 50%; 
+  transform: translateY(-50%);
+  width: 100%;
+  color: #000000;
+}
+.changeLookTxt.bgdark {
+  color: #FFFFFF;
+}
+</style>
+<nl-dlg title='{{dlgTitle}}' show-help='0'>
+<nl-dlg-content class='change_look_dlg'>
+    <nl-dlg-field class='row row-top row-wrap margin0 padding0'
+    			  data='data' error='error' options='options' item='templateList'>
+	</nl-dlg-field>
+
+    <nl-dlg-field class='row row-top row-wrap margin0 padding0'
+    			  ng-show='data.templateList.id == "Custom"'
+    			  data='data' error='error' options='options' item='customUrl'>
+	</nl-dlg-field>
+
+    <nl-dlg-field class='row row-top row-wrap margin0 padding0'
+    			  ng-show='data.templateList.id == "Custom"'
+    			  data='data' error='error' options='options' item='customBgShade'>
+	</nl-dlg-field>
+
+	<div class='text-center' style='position: relative'>
+		<div class='padding-mid w100'>
+			<img ng-show='data.templateList.bgImg' ng-src='{{data.templateList.bgImg}}' class='changeDlgImg'>
+		</div>
+		<div class='changeLookTxt fsh4 {{data.templateList.bgShade}}'>
+			{{data.templateList.name}}
+		</div>
+	</div>
+</nl-dlg-content>
+</nl-dlg>

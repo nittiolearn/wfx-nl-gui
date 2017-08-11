@@ -1937,7 +1937,7 @@ nlesson = function() {
     var g_templateList = [];
 	function loadTemplateInfos(onLoadComplete) {
 		if (Object.keys(g_templateDict).length > 0) {
-			onLoadComplete();
+			onLoadComplete(g_templateList);
 			return;
 		}
 
@@ -1952,7 +1952,7 @@ nlesson = function() {
             });
 		    g_templateList = templateBgimgs;
             _onTemplateInfos(true);
-            onLoadComplete();
+            onLoadComplete(g_templateList);
             return;
         }
 
@@ -1960,7 +1960,7 @@ nlesson = function() {
 			if (errorType != njs_helper.Ajax.ERROR_NONE) return;
 			g_templateList = data;
 			_onTemplateInfos(false);
-			onLoadComplete();
+			onLoadComplete(g_templateList);
 		});
 		_ajax.send('/lesson/template_infos.json', {});
 	}
@@ -1988,27 +1988,6 @@ nlesson = function() {
 	    return g_templateList[0];
 	}
 
-    function updateBgImages(templList) {
-        templList.html('');
-        var currentOptGroup = '';
-        var curParent = templList;
-        for (var i = 0; i < g_templateList.length; i++) {
-            var t = g_templateDict[g_templateList[i].id];
-            if (t.group != '' && t.group != currentOptGroup) {
-                currentOptGroup = t.group;
-                curParent = jQuery(njs_helper.fmt2('<optgroup label={}>', currentOptGroup));
-                templList.append(curParent);
-            } else if (t.group == '') {
-                curParent = templList;
-            }
-            curParent.append(njs_helper.fmt2('<option value="{}">{}</option>', 
-                t.id, t.name));
-        }
-        var selected = jQuery('#templateFullName').val();
-        if (selected.indexOf('img:') == 0) selected = 'Custom';
-        templList.select2('val', selected);
-    }
-
 	function updateTemplate(cssClass, bgImg) {
 		jQuery('.njsSlides').removeClass(g_lesson.globals.templateCssClass).addClass(cssClass);
 		g_lesson.globals.templateCssClass = cssClass;
@@ -2029,7 +2008,6 @@ nlesson = function() {
 		init : init,
 		loadTemplateInfos: loadTemplateInfos,
 		getTemplateInfo : getTemplateInfo,
-		updateBgImages : updateBgImages,
 		updateTemplate : updateTemplate,
 		theLesson : g_lesson,
 		showCommentIndicator : showCommentIndicator,
