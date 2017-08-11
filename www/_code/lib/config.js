@@ -49,6 +49,31 @@ function(nl, nlServerApi) {
         return uInfo[this.STATE] ? true : false;
     };
     
+    this.getAllUserIdsWithoutPerm = function (permission) {
+    	return _getAllUserIdsWithOrWihtoutPerm(permission, false);
+    };
+    
+    function _getAllUserIdsWithOrWihtoutPerm(permission, withPerm) {
+    	var ret = {};
+        var groupInfo = self.get();
+        var permissions = groupInfo.props.permissions;
+        var users = groupInfo.derived.keyToUsers;
+        for(var key in users) {
+        	var user = users[key];
+        	if (!user.isActive()) continue;
+        	var permitted = self.checkPermissionOfUser(user, permission, permissions);
+        	if (withPerm &&  !permitted || !withPerm && permitted) continue;
+        	ret[user.id] = true;
+        }
+        return ret;
+    };
+
+    this.checkPermissionOfUser = function (user, permission, permissions) {
+    	if (!permissions) permissions = self.get().props.permissions;
+    	var permissionsObj = permissions[user.usertype]; 
+    	return permissions[user.usertype][permission] || false;
+    };
+
     // Admin specific stuff
     _initContants();
     
