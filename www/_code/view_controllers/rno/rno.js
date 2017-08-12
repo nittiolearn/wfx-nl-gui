@@ -284,7 +284,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlResourceUploade
 		var internalUrl = 'rno_report_manage';
 		var help = (_pageGlobals.role == 'admin') ? 'Manage observations and reports records' : 'Manage observations and reports';
 	    var card = {rnoId: rno.id,
-	                udpated: rno.updated,
+	                updated: rno.updated,
 	                title: nl.fmt2('{} {}', rno.config.first_name, rno.config.last_name), 
 					icon: _getCardIcon(nl, rno.config), 
                     internalUrl: internalUrl,

@@ -57,7 +57,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
         } else if (internalUrl === 'fetch_more') _getDataFromServer(null, true);
     };
 	
-	$scope.onCardLinkClicked = function(card, linkid) {
+	$scope.onCardLinkClicked = function(card, linkId) {
         $scope.onCardInternalUrlClicked(card, linkId);
 	};
 
