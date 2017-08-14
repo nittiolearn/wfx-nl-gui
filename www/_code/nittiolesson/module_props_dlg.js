@@ -109,8 +109,11 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo) {
 					if (e) e.preventDefault();
 					return;
 				}
-				_oLesson.grade = Object.keys(nlTreeSelect.getSelectedIds(_gradeInfo))[0];
-				_oLesson.subject = Object.keys(nlTreeSelect.getSelectedIds(_subjectInfo))[0];;
+				var selectedGrades = Object.keys(nlTreeSelect.getSelectedIds(_gradeInfo));
+				var selectedSubjects = Object.keys(nlTreeSelect.getSelectedIds(_subjectInfo));
+		        _oLesson.grade = selectedGrades.length == 0 ? _gradeInfo.data[0].id : selectedGrades[0];
+		        _oLesson.subject = selectedSubjects.length == 0 ? _subjectInfo.data[0].id : selectedSubjects[0];
+
 				_oLesson.pdfSinglePage = editDlg.scope.data.pdfSinglePage;
 				_lastStateOptional = editDlg.scope.data.showGroup.optional_attr;
 				_lastStateAdditional = editDlg.scope.data.showGroup.additional_attr;
@@ -118,10 +121,12 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo) {
 				if (editDlg.scope.data.image.isCustomSelected) {
 					_oLesson.image = "img:" + editDlg.scope.data.image.customUrl;
 				} else {
-					var selectedImgs = nlTreeSelect.getSelectedIds(_iconInfo);
-					for (var imageId in selectedImgs)
-						_oLesson.image = selectedImgs[imageId].origId;
-				};
+					var selectedIcons = nlTreeSelect.getSelectedIds(_iconInfo);
+					var selectedIconKeys = Object.keys(selectedIcons);
+			        _oLesson.image = selectedIconKeys.length == 0 
+			        	? _iconInfo.data[1].origId 
+			        	: selectedIcons[selectedIconKeys[0]].origId;
+				}
 				
 				if(editDlg.scope.data.learningMode.id == 'self') {
 					_oLesson.selfLearningMode = true;
@@ -174,9 +179,6 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo) {
     	scope.error = {};
     	var data = scope.data;
         if(!data.name) return _validateFail(scope, 'name', 'Module name is mandatory');
-        if(Object.keys(nlTreeSelect.getSelectedIds(_gradeInfo)).length == 0) return _validateFail(scope, 'grade', 'This field is mandatory');
-        if(Object.keys(nlTreeSelect.getSelectedIds(_subjectInfo)).length == 0) return _validateFail(scope, 'subject', 'This field is mandatory');
-        if(Object.keys(nlTreeSelect.getSelectedIds(_iconInfo)).length == 0) return _validateFail(scope, 'image', 'This field is mandatory');
         if(data.image.isCustomSelected && (!data.image.customUrl)) return _validateFail(scope, 'image', 'Custom url is mandatory, please enter custom url');
         if(_isPdf && !data.pdfUrl) return _validateFail(scope, 'pdfUrl', 'Pdf url is mandatory');
         if(!_validateJsonField(data.templateBgimgs)) return _validateFail(scope, 'templateBgimgs', 'Error while parsing json');

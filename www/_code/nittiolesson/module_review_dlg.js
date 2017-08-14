@@ -38,9 +38,6 @@ function(nl, nlDlg, nlTreeSelect, nlGroupInfo, nlOuUserSelect, nlServerApi) {
 
         _reviewerSelector = nlOuUserSelect.getOuUserSelector(parentScope, 
             nlGroupInfo.get(), {}, dontShowUsers);
-        _reviewerSelector.treeIsShown = true;
-        _reviewerSelector.multiSelect = true;
-
 		var moduleReviewDlg = nlDlg.create(parentScope);
 		moduleReviewDlg.setCssClass('nl-height-max nl-width-max');
 
@@ -49,21 +46,27 @@ function(nl, nlDlg, nlTreeSelect, nlGroupInfo, nlOuUserSelect, nlServerApi) {
 		dlgScope.data = {};
 		dlgScope.data.items = _uiParams;
         dlgScope.data.remarks = '';
-        dlgScope.data.reviewers = null;
+        dlgScope.data.reviewers = '';
+        dlgScope.error = {};
 		dlgScope.data.canShow = function(condition, item) {
         	return true;
         };
 
         dlgScope.options = {reviewers: _reviewerSelector.getTreeSelect()};
-        dlgScope.error = {};
-        
+        dlgScope.options.reviewers.fieldmodelid = 'reviewers';
+        dlgScope.options.reviewers.treeIsShown = true;
+        dlgScope.options.reviewers.multiSelect = true;
 		var okButton = {text: nl.t('Invite'), onTap: function(e) {
+			if(!_validateInputs(dlgScope)) {
+				if(e) e.preventDefault();
+				return;
+			}
 			nl.timeout(function() {
 				nlDlg.showLoadingScreen();
 				var data = {lessonid: lessonId, reviewers: _getSelectedReviewers(),
 					remarks: dlgScope.data.remarks};
 				nlServerApi.lessonInviteReview(data).then(function() {
-					var template = nl.t('Module {} sent for review to {} users successfully.',
+					var template = nl.t('Module "{}" sent for review to {} users successfully.',
 						_oLesson.name, data.reviewers.length);
 					nlDlg.popupAlert({title: 'Sent for review', template: template}).then(function() {
 						resolve(true);
@@ -72,14 +75,22 @@ function(nl, nlDlg, nlTreeSelect, nlGroupInfo, nlOuUserSelect, nlServerApi) {
 					resolve(false);
 				});
 			});
-			
-			resolve({});
 		}};
 		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
 			resolve(false);
 		}};
 		moduleReviewDlg.show('lib_ui/dlg/dlgfieldsview.html', [okButton], cancelButton);
 	}
+
+	function _validateInputs(dlgScope) {
+        if(Object.keys(_reviewerSelector.getSelectedUsers()).length == 0) return _validateFail(dlgScope, 'reviewers', 'Please select users from the list to inivite for review.');
+		return true;
+	};
+
+    function _validateFail(scope, attr, errMsg) {
+    	return nlDlg.setFieldError(scope, attr,
+        	nl.t(errMsg));
+    }
 
 	function _getSelectedReviewers() {
 		var reviewersDict = _reviewerSelector.getSelectedUsers();

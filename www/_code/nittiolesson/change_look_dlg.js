@@ -50,7 +50,6 @@ function(nl, nlDlg) {
 			help: 'Depending on whether your image is dark or light, you can set the text color to one which is clearly visible in the background. With this, you can control the colors used for different types of text (normal, heading, link, ...)'};
 
 		dlgScope.onFieldChange = function(fieldModel) {
-			console.log('onFieldChange', fieldModel);
 			if(fieldModel == 'customBgShade') return _onCustomChange();
 			if(fieldModel == 'customUrl') return _onCustomChange();
 		};
@@ -62,6 +61,10 @@ function(nl, nlDlg) {
 		};
 
 		var okButton = {text: nl.t('Change'), onTap: function(e) {
+			if(!_validateInputs(dlgScope)) {
+				if (e) e.preventDefault();
+				return;
+			}
 			var selected = dlgScope.data.templateList;
 			selected.cssClass = nl.fmt2('{} look{}', selected.bgShade, selected.id);
         	_oLesson.template = (selected.id == 'Custom') ?  nl.fmt2('img:{}[{}]', selected.bgImg, selected.bgShade) : selected.id;
@@ -88,6 +91,18 @@ function(nl, nlDlg) {
 		}
 		return _templateList[1];
 	}
+	
+	function _validateInputs(dlgScope) {
+		dlgScope.error = {}; 
+        if((dlgScope.data.templateList.id  == 'Custom') && (!dlgScope.data.customUrl)) return _validateFail(dlgScope, 'customUrl', 'Image url is mandatory, please enter custom image url');
+		return true;
+	}
+
+    function _validateFail(scope, attr, errMsg) {
+    	return nlDlg.setFieldError(scope, attr,
+        	nl.t(errMsg));
+    }
+
 }];
 //-------------------------------------------------------------------------------------------------
 module_init();
