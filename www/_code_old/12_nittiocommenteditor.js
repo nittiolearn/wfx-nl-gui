@@ -318,8 +318,8 @@ njsCommentEditor = function() {
 	}
 	function createCommentRow(rowDetails) {		
 		tab = jQuery('#comment_editor_body > table');
-		var authortempl = '<tr id="comment_row_{index}" class="normal commentRow" rowIndex={index}><td><input type="checkbox" id="comment_row_sel_{index}" onclick="njsCommentEditor.onRowClick({index});"></input><td>{pgNo}</td><td class= "comment"><div class="commentarea"><div class="cauthor">{authorname}: </div><div class="ctimestamp">{uicreated}</div><div class="padding-small"></div><span>{comment}</span></div></td><td><input type="checkbox" id="comment_row_status_{index}" onclick="njsCommentEditor.onCommentStatusClick({index});" {uistatus}></input></td></tr>';
-		var templ = '<tr id="comment_row_{index}" class="normal commentRow" rowIndex={index}><td>{pgNo}</td><td class= "comment"><div class= "commentarea"><div class="cauthor">{authorname}: </div><div class="ctimestamp">{uicreated}</div><div class="padding-small"></div><span>{comment}</span></div></td><td>{status}</td></tr>';
+		var authortempl = '<tr id="comment_row_{index}" class="normal commentRow" rowIndex={index}><td><input type="checkbox" id="comment_row_sel_{index}" onclick="njsCommentEditor.onRowClick({index});"></input><td class="nl-link-text" onclick="njsCommentEditor.onPageClick({pgNo})">{pgNo}</td><td class= "comment"><div class="commentarea"><div class="cauthor">{authorname}: </div><div class="ctimestamp">{uicreated}</div><div class="padding-small"></div><span>{comment}</span></div></td><td><input type="checkbox" id="comment_row_status_{index}" onclick="njsCommentEditor.onCommentStatusClick({index});" {uistatus}></input></td></tr>';
+		var templ = '<tr id="comment_row_{index}" class="normal commentRow" rowIndex={index}><td class="nl-link-text" onclick="njsCommentEditor.onPageClick({pgNo})">{pgNo}</td><td class= "comment"><div class= "commentarea"><div class="cauthor">{authorname}: </div><div class="ctimestamp">{uicreated}</div><div class="padding-small"></div><span>{comment}</span></div></td><td>{status}</td></tr>';
 		if (g_bAuthorMode){
 			templ = authortempl;
 		}			
@@ -378,6 +378,14 @@ njsCommentEditor = function() {
 		_enableButtonsPerState(g_selectedRowIndex);
 	}
 	
+	function onPageClick(pageNo) {
+		var lesson = nlesson.theLesson;
+		pageNo--;
+		_commentEditorDlg.close();
+		if (pageNo != lesson.globals.slides.getCurPageNo()) lesson.globals.slides.gotoPage(pageNo);
+		return true;
+	}
+
 	var g_filterPressed = true;
 	function onFilterCommentsClick() {
 		var butId = 'comment_editor_icon_filter';
@@ -534,6 +542,7 @@ njsCommentEditor = function() {
 		on_commentEdit_done : on_commentEdit_done,
 		onCommentStatusClick : onCommentStatusClick,
 		onRowClick : onRowClick,
+		onPageClick: onPageClick,
 		onFilterCommentsClick : onFilterCommentsClick,
 		on_commentEdit_cancel : on_commentEdit_cancel,				
 		theLessonComment : g_lessonComment,

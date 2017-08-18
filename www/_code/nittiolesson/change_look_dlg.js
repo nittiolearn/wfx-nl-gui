@@ -14,14 +14,16 @@ var NittioLessonChangeLookSrv = ['nl', 'nlDlg',
 function(nl, nlDlg) {
 	var _oLesson = null;
 	var _templateList = null;
+	var _templateAnimations = null;
 	var _customBgShade = [{id: 'bglight', name: 'Dark text color for lighter background'},
 		{id: 'bgdark', name: 'Light text color for darker background'}];
 	this.init = function(oLesson, moduleConfig) {
 		_oLesson = oLesson;
 	};
 	
-	this.showDlg = function(templateList) {
+	this.showDlg = function(templateList, templateAnimations) {
 		_templateList = templateList;
+		_templateAnimations = templateAnimations;
 		return nl.q(function(resolve, reject) {
 			 _showDlg(resolve);
 		});
@@ -37,7 +39,10 @@ function(nl, nlDlg) {
 		var selected = _getSelected();
 		dlgScope.data = {};
 		dlgScope.data.showHelp = {};
-		dlgScope.options = {templateList: _templateList, customBgShade: _customBgShade};
+		var animInfo = _getAnimationInfo();
+		dlgScope.showAnimScheme =  animInfo.show;
+		dlgScope.options = {templateList: _templateList, customBgShade: _customBgShade, animScheme: animInfo.opts};
+        dlgScope.data.animScheme = animInfo.selected;
 		dlgScope.data.templateList = selected;
 		dlgScope.data.customBgShade = selected.bgShade == "bgdark" ? _customBgShade[1] : _customBgShade[0];
 		dlgScope.data.customUrl = selected.id == 'Custom' ? selected.bgImg : ''; 
@@ -48,6 +53,8 @@ function(nl, nlDlg) {
 			help: 'If you select "Custom" background, you can enter the URL (link) of the custom image. The URL could be an image uploaded within the system or a link to external source in internet.'};
 		dlgScope.customBgShade = {id: 'customBgShade', name: 'Text Color', type: 'select',
 			help: 'Depending on whether your image is dark or light, you can set the text color to one which is clearly visible in the background. With this, you can control the colors used for different types of text (normal, heading, link, ...)'};
+		dlgScope.animScheme = {id: 'animScheme', name: 'Animation schemes', type: 'select',
+			help: 'You could animate your content according to different available schemes.'};
 
 		dlgScope.onFieldChange = function(fieldModel) {
 			if(fieldModel == 'customBgShade') return _onCustomChange();
@@ -68,6 +75,8 @@ function(nl, nlDlg) {
 			var selected = dlgScope.data.templateList;
 			selected.cssClass = nl.fmt2('{} look{}', selected.bgShade, selected.id);
         	_oLesson.template = (selected.id == 'Custom') ?  nl.fmt2('img:{}[{}]', selected.bgImg, selected.bgShade) : selected.id;
+            if (!_oLesson.props) _oLesson.props = {};
+            _oLesson.props.animationScheme = dlgScope.data.animScheme ? dlgScope.data.animScheme.id : '';
 			resolve(selected);
 		}};
 		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
@@ -75,6 +84,20 @@ function(nl, nlDlg) {
 		}};
 		changeLookDlg.show('nittiolesson/change_look_dlg.html', [okButton], cancelButton);
 	}
+	
+    function _getAnimationInfo() {
+        var ret = {opts: [], selected: null, show: false};
+        var lessonProps = _oLesson.props || {};
+        var selectedId = lessonProps.animationScheme || null;
+        for (var s in _templateAnimations) {
+            if (s == 'customEffects') continue;
+            ret.show = true;
+            var opt = {id: s, name: _templateAnimations[s].name || s};
+            ret.opts.push(opt);
+            if (s == selectedId) ret.selected = opt;
+        }
+        return ret;
+    }
 
 	function _getSelected() {
 		var selected = _oLesson.template || '';
@@ -107,3 +130,4 @@ function(nl, nlDlg) {
 //-------------------------------------------------------------------------------------------------
 module_init();
 })();
+

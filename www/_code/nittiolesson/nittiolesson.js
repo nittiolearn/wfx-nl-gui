@@ -28,8 +28,8 @@ function(NittioLessonModulePropsDlg, NittioLessonPagePropsDlg, NittioLessonChang
 	this.showPagePropertiesDlg = function(oPage, defMaxScore) {
 		return NittioLessonPagePropsDlg.showDlg(oPage, defMaxScore);
 	};
-	this.showChangeLookDlg = function(templateList) {
-		return NittioLessonChangeLookDlg.showDlg(templateList);
+	this.showChangeLookDlg = function(templateList, templateAnimations) {
+		return NittioLessonChangeLookDlg.showDlg(templateList, templateAnimations);
 	};
 	this.sendForReview = function(lessonId) {
 		return NittioLessonModuleReviewDlg.sendForReview(lessonId);

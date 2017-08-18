@@ -180,37 +180,6 @@ function AnimationManager() {
 		var tempAnimation = self.getTemplateAnimations(lesson);
 		return tempAnimation[lessonProps.animationScheme] || null;
 	};
-
-	this.updateAnimationSchemesInDlg = function(lesson) {
-		var animField = jQuery('#l_look_animation');
-		animField.html('');
-		animField.append('<option value=""></option>');
-
-		var tempAnimation = self.getTemplateAnimations(lesson);
-		var hidden = true;
-		for (var s in tempAnimation) {
-			if (s == 'customEffects') continue;
-			hidden = false;
-			var name = tempAnimation[s].name || s;
-			animField.append(njs_helper.fmt2('<option value="{}">{}</option>', s, name));
-		}
-		
-		if (hidden) {
-			jQuery('#l_look_animation_row').hide();
-			jQuery('#animation_scheme_help').hide();
-		} else {
-			jQuery('#l_look_animation_row').show();
-			jQuery('#animation_scheme_help').show();
-			var lessonProps = lesson.oLesson.props || {};
-			animField.select2('val', lessonProps.animationScheme);
-		}
-	};
-	
-	this.updateAnimationSchemesFromDlg = function(lesson) {
-		var animScheme = jQuery('#l_look_animation').val();
-		if (!lesson.oLesson.props) lesson.oLesson.props = {};
-		if (animScheme) lesson.oLesson.props.animationScheme = animScheme;
-	};
 };
 
 var ZINDEX_HIDE = -100;
