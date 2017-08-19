@@ -105,7 +105,6 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     }
 
     function _onAttrChange(e, attr, item) {
-        console.log('_onAttrChange', e, attr, item);
         if (attr.level == 'course' && attr.name == 'name') {
             var title = item.name;
             if(!title)

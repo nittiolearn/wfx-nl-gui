@@ -629,7 +629,7 @@ function CourseProcessor(nlCourse) {
             _updateIdToFullName(m);
             if (m.type == 'lesson') ret.lessons.push({id: m.id, name:_idToFullName[m.id]});
             else if (m.type == 'certificate') ret.certificates.push(m.id);
-            else ret.nonLessons.push(m.id);
+            else if (m.type != 'module') ret.nonLessons.push(m.id);
         }
         return ret;
     };
@@ -848,6 +848,8 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
             
             var ret = [report.user.user_id, report.user.name, report.user.email, report.user.org_unit];
             for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id]);
+            if (started) started = nl.fmt.date2Str(nl.fmt.json2Date(started));
+            if (ended) ended = nl.fmt.date2Str(nl.fmt.json2Date(ended));
             ret = ret.concat([report.course.name, module.name, started, ended, status, attempts, perc, 
                 maxScore, score, passScore ? passScore + '%' : '', timeSpent]);
             if (_data.urlParams.exportTypes.ids)
