@@ -37,7 +37,13 @@ function(nl, nlDlg) {
             minPageTime : nl.t('Provide minimum time in seconds that the learner has to spend in this page before moving forward. If not provided, this value is assumed to be 0 - i.e. no restriction.'),
             forumTopic : nl.t('Provide name of the discussion topic which should be displayed when the learner clicks on discussion forum icon from this page.'),
             audioUrl : nl.t('Provide background audio to play when the page is displayed'),
-            autoVoice : nl.t('Provide text that should be played as audio when the page is displayed'),
+            autoVoice : nl.t('<p>Provide text that should be played as audio when the page is displayed.</p>'
+                + '<p>Keep each line short. Use ",", "." and new line to control the pauses.</p>'
+                + '<p>You can also control the voice, language, rate, and pitch using the "@voice()" command. For example, type in the below line as first line in your text to get male, UK English voice spoken in lower pitch and faster rate:</p>'
+                + '<p class="fblack">@voice( male,UK,lang=en,rate=2,pitch=0.6)</p>'
+                + '<p><b>lang:</b> "en" is "English", "hi" is "Hindi", "zh" is "Chinese". Actual languages supported depends on the browser.</p>'
+                + '<p><b>rate:</b> Any number between 0.1 and 10 (1 is normal speed)</p>'
+                + '<p><b>pitch:</b> Any number between 0 and 2 (1 is normal pitch)</p>'),
             hint : nl.t('Provide addtional hints to the learner which will be displayed to the learner in report mode'),
             visibility : nl.t('Should the page be visible in learning mode (assignments) or just as a note to editor (i.e. hidden page). By default a page is visible in all modes.')
 	};

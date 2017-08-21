@@ -526,10 +526,13 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         return input.trim();
     }
 
+    var EMAIL_REGEX = new RegExp("[^@]+@[^@]+");
     this.validateEmail = function(row) {
         if(!row.email)
             _throwException('Properly formed email address is mandatory', row);
         row.email = row.email.trim();
+        if (row.email == 'NA' || EMAIL_REGEX.test(row.email)) return;
+        _throwException('Properly formed email address is mandatory', row);
     };
 
     this.validateMobile = function(row) {
