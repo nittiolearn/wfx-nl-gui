@@ -478,6 +478,12 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/lesson_copy.json', data);
 	};
 
+	this.lessonSave = function(data) {
+        // data: lessonId(=0 for new lesson), content=json
+        //returns the lessonId
+        return server.post('_serverapi/lesson_save.json', data);
+	};
+
 	this.lessonPreApproveCheck = function(lessonId){
 	    //data = lessonid
 	    //copy the lesson
@@ -618,6 +624,15 @@ function(nl, nlDlg, nlConfig, Upload) {
     this.recyclebinRestore = function(recycleid) {
         return server.post('_serverapi/recycle_restore.json', {recycleid: recycleid});
     };
+    //---------------------------------------------------------------------------------------------
+    // translate text entities
+    //---------------------------------------------------------------------------------------------
+    
+    this.translateTexts = function(data) {
+    	return server.post('_serverapi/translate_texts.json', {data: data});
+    };
+
+    //---------------------------------------------------------------------------------------------
 
     // Utility for page and batch query
     this.getPageFetcher = function(attrs) {

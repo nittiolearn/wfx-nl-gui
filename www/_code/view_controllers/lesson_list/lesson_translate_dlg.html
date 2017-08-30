@@ -1,0 +1,45 @@
+<div class='nl-thin-scroll'>
+	<div class='row row-top row-wrap margin0 padding-top'>
+		<div ng-class='resp2Col33'
+		     class='padding-mid' ng-click='data.showHelp["selectedModule"] = !data.showHelp["selectedModule"]'>
+		     <div class='row row-center row-wrap margin0 padding0'>
+	             <span class='col padding0'>Select the module</span>
+	             <i class='padding-mid nl-link-text icon fsh4 fgrey2 ion-ios-help'></i>
+		     </div>
+		</div>
+	    <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+	    	<nl-module-select fieldmodel='selectedModule' userinfo='userinfo'></nl-module-select>
+		</div>
+		<div class='w100 padding-mid' ng-if='data.showHelp["selectedModule"]'>
+		    <nl-inline-help>
+		        <div>
+			        <span>Please select an approved module to translate. If you do not see your module in the list, it is likely that you have not approved it yet. Please approve it to select it here.</span>
+		        </div>
+		    </nl-inline-help>
+		</div>
+	</div>
+	<div class='row row-top row-wrap margin0 padding-top'>
+		<div ng-class='resp2Col33'
+		     class='padding-mid' ng-click='data.showHelp["language"] = !data.showHelp["language"]'>
+		     <div class='row row-center row-wrap margin0 padding0'>
+	             <span class='col padding0'>Select the target language</span>
+	             <i class='padding-mid nl-link-text icon fsh4 fgrey2 ion-ios-help'></i>
+		     </div>
+		</div>
+	    <div ng-class='resp2Col67' 
+	    	 class='nl-dlg-field-value padding-mid'>
+	           	<nl-tree-select info='options.language'></nl-tree-select>     	 	
+		</div>
+		<div class='w100 padding-mid' ng-if='data.showHelp["language"]'>
+		    <nl-inline-help>
+		        <div>
+			        <span>Select the language to which you would like to translate your module.</span>
+		        </div>
+		    </nl-inline-help>
+		</div>
+	</div>
+    <div class='popup-buttons no-border'>
+        <button ng-click='onTranslate()' class='button'>Translate</button>
+        <button ng-click='onCancel()' class='button'>Cancel</button>
+    </div>
+</div>

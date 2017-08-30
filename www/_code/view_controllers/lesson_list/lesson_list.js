@@ -5,7 +5,7 @@
 // lesson list module
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-	angular.module('nl.lessonlist', []).config(configFn)
+	angular.module('nl.lessonlist', ['nl.lessontranslate']).config(configFn)
 	.controller('nl.LessonListCtrl', LessonListCtrl)
 	.service('nlModuleStatusInfo', ModuleStatusInfoSrv)
 	.service('nlExportLevel', ExportLevelSrv)

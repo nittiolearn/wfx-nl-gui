@@ -238,6 +238,7 @@ function Permission(nl) {
 		'/assignment': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},		
         '/assignment_send': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},       
         '/lesson_list': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},        
+        '/lesson_translate': {login: true, permission: 'lesson_create', termRestriction: TR_CLOSED},        
         '/upload_pdf': {login: true, permission: 'lesson_create_adv', termRestriction: TR_CLOSED},        
         '/resource_list': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},        
         '/resource_upload': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},        
