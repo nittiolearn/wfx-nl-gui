@@ -31,13 +31,14 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 	var _scope = null;
 	var _translateDict = {};
 	var _translateArray = [];
+	var _preSelectedLessonId = null;
+	var _preSelectedLanguage = null;
 	var _traslateLangTree = [{id:'bn', name:'Bengali', group:'Indian languages'},
-		{id:'gu', name:'Gujarathi', group:'Indian languages'},
-		{id:'hi', name:'Hindhi', group:'Indian languages'},
+		{id:'gu', name:'Gujarati', group:'Indian languages'},
+		{id:'hi', name:'Hindi', group:'Indian languages'},
 		{id:'kn', name:'Kannada', group:'Indian languages'},
 		{id:'ml', name:'Malayalam', group:'Indian languages'},
 		{id:'mr', name:'Marathi', group:'Indian languages'},
-		{id:'bn', name:'Bengali', group:'Indian languages'},
 		{id:'pa', name:'Punjabi', group:'Indian languages'},
 		{id:'sd', name:'Sindhi', group:'Indian languages'},
 		{id:'ta', name:'Tamil', group:'Indian languages'},
@@ -47,12 +48,16 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 		{id:'sq', name:'Albanian'},
 		{id:'am', name:'Amharic'},
 		{id:'ar', name:'Arabic'},
-		{id:'hy', name:'Armanian'},
+		{id:'hy', name:'Armenian'},
+		{id:'az', name:'Azeerbaijani'},
 		{id:'eu', name:'Basque'},
 		{id:'be', name:'Belarusian'},
 		{id:'bs', name:'Bosnian'},
 		{id:'bg', name:'Bulgarian'},
 		{id:'ca', name:'Catalan'},
+		{id:'ceb', name:'Cebuano'},
+		{id:'zh-CN', name:'Chinese (Simplified)'},
+		{id:'zh-TW', name:'Chinese (Traditional)'},
 		{id:'co', name:'Corsican'},
 		{id:'hr', name:'Croatian'},
 		{id:'cs', name:'Czech'},
@@ -64,11 +69,11 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 		{id:'fi', name:'Finnish'},
 		{id:'fr', name:'French'},
 		{id:'fy', name:'Frisian'},
-		{id:'gl', name:'galician'},
+		{id:'gl', name:'Galician'},
 		{id:'ka', name:'Georgian'},
 		{id:'de', name:'German'},
 		{id:'el', name:'Greek'},
-		{id:'ht', name:'Haitian creole'},
+		{id:'ht', name:'Haitian Creole'},
 		{id:'ha', name:'Hausa'},
 		{id:'haw', name:'Hawaiian'},
 		{id:'iw', name:'Hebrew'},
@@ -76,30 +81,30 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 		{id:'hu', name:'Hungarian'},
 		{id:'is', name:'Icelandic'},
 		{id:'ig', name:'Igbo'},
-		{id:'id', name:'Indonasian'},
+		{id:'id', name:'Indonesian'},
 		{id:'ga', name:'Irish'},
 		{id:'it', name:'Italian'},
 		{id:'ja', name:'Japanese'},
-		{id:'jw', name:'Jawanese'},
+		{id:'jw', name:'Javanese'},
 		{id:'kk', name:'Kazakh'},
 		{id:'km', name:'Khmer'},
 		{id:'ko', name:'Korean'},
 		{id:'ku', name:'Kurdish'},
-		{id:'ky', name:'krygyz'},
+		{id:'ky', name:'kyrgyz'},
 		{id:'lo', name:'Lao'},
 		{id:'la', name:'Latin'},
 		{id:'lv', name:'Latvian'},
 		{id:'lt', name:'Lithuanian'},
 		{id:'lb', name:'Luxembourgish'},
-		{id:'mk', name:'Mecedonian'},
+		{id:'mk', name:'Macedonian'},
 		{id:'mg', name:'Malagasy'},
 		{id:'ms', name:'Malay'},
 		{id:'mi', name:'Maori'},
-		{id:'mn', name:'Mangolian'},
-		{id:'my', name:'Myanmar'},
+		{id:'mn', name:'Mongolian'},
+		{id:'my', name:'Myanmar (Burmese)'},
 		{id:'ne', name:'Nepali'},
 		{id:'no', name:'Norwegian'},
-		{id:'ny', name:'Nyanja'},
+		{id:'ny', name:'Nyanja (Chichewa)'},
 		{id:'ps', name:'Pashto'},
 		{id:'fa', name:'Persian'},
 		{id:'pl', name:'Polish'},
@@ -107,45 +112,54 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 		{id:'pa', name:'Punjabhi'},
 		{id:'ro', name:'Romanian'},
 		{id:'ru', name:'Russian'},
-		{id:'sm', name:'Somoan'},
+		{id:'sm', name:'Samoan'},
 		{id:'gd', name:'Scots Gaelic'},
 		{id:'sr', name:'Serbian'},
 		{id:'st', name:'Sesotho'},
 		{id:'sn', name:'Shona'},
-		{id:'si', name:'Sinhala'},
+		{id:'si', name:'Sinhala (Sinhalese)'},
 		{id:'sk', name:'Slovak'},
-		{id:'sl', name:'Slovanian'},
+		{id:'sl', name:'Slovenian'},
 		{id:'so', name:'Somali'},
 		{id:'es', name:'Spanish'},
 		{id:'su', name:'Sundanese'},
 		{id:'sw', name:'Swahili'},
 		{id:'sv', name:'Swedish'},
-		{id:'tl', name:'Tagalog'},
+		{id:'tl', name:'Tagalog (Filipino)'},
 		{id:'tg', name:'Tajik'},
 		{id:'th', name:'Thai'},
 		{id:'tr', name:'Turkish'},
-		{id:'uk', name:'Ukranian'},
+		{id:'uk', name:'Ukrainian'},
 		{id:'uz', name:'Uzbek'},
 		{id:'vi', name:'Vietnamese'},
 		{id:'cy', name:'Welsh'},
 		{id:'xh', name:'Xhosa'},
-		{id:'yi', name:'Yiddhish'},
-		{id:'yo', name:'Yorubha'}];
+		{id:'yi', name:'Yiddish'},
+		{id:'yo', name:'Yorubha'},
+		{id:'zu', name:'Zulu'}];
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
-		$scope.userinfo = _userInfo;
-		return nl.q(function(resolve, reject) {
+		return nl.q(function (resolve, reject) {
+			$scope.userinfo = _userInfo;
+	        $scope.data = {showHelp: {}};
 			nl.pginfo.pageTitle = nl.t('Translate module');
-            $scope.data = {showHelp: {}};
-			if(resolve) resolve(true);	
+	
+			if (_preSelectedLessonId) {
+				_getContent(_preSelectedLessonId).then(function(oLesson) {
+			        $scope.data.selectedModule = {lessonId:_preSelectedLessonId, title: oLesson.name};
+					if(resolve) resolve(true);	
+				});
+			} else {
+				if(resolve) resolve(true);	
+			}
 		});
 	}
 	nlRouter.initContoller($scope, '', _onPageEnter);
-
+	
     var arrayParams = _getLanguageTree('');
     _languageInfo = {data: arrayParams[0] || []};
-    nlTreeSelect.updateSelectionTree(_languageInfo, {});
+    nlTreeSelect.updateSelectionTree(_languageInfo, arrayParams[1], 2);
     _languageInfo.treeIsShown = false;
     _languageInfo.multiSelect = false;
 	_languageInfo.showSearchField = true;
@@ -153,24 +167,35 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 
 	$scope.options = {language: _languageInfo};
 
-	function _getLanguageTree(selectedId) {
+	function _getContent(lessonId) {
+		return nl.q(function(resolve, reject) {
+			nlServerApi.lessonGetContent(lessonId, 'view').then(function(result) {
+				resolve(result.lesson);
+			});
+		});
+	}
+	
+	function _getLanguageTree() {
+	    var params = nl.location.search();
+        _preSelectedLessonId = ('id' in params) ? parseInt(params.id) : '';
+		_preSelectedLanguage = ('lang' in params) ? params.lang : null;
         var insertedKeys = {};
-        var selectedImageId = {};
+        var selectedLangId = {};
         var treeArray = [];
         for(var i=0; i<_traslateLangTree.length; i++) {
             var itemObj = _traslateLangTree[i];
-            _getIconNodeWithParents(itemObj, treeArray, insertedKeys, selectedId);
+            _getIconNodeWithParents(itemObj, treeArray, insertedKeys, _preSelectedLanguage, selectedLangId);
         }
-        return [treeArray, selectedImageId];
+        return [treeArray, selectedLangId];
     }
 
-    function _getIconNodeWithParents(itemObj, treeArray, insertedKeys, selectedId, selectedImageId) {
+    function _getIconNodeWithParents(itemObj, treeArray, insertedKeys, _preSelectedLanguage, selectedLangId) {
         if (itemObj.group && !insertedKeys[itemObj.group]) {
         	insertedKeys[itemObj.group] = true;
-        	treeArray.push({id: itemObj.group, name: itemObj.group});
+        	treeArray.push({id: itemObj.group, name: itemObj.group, isOpen: true});
         }
         var itemId = itemObj.group ? itemObj.group + '.' + itemObj.id : itemObj.id;
-        
+        if(itemObj.id === _preSelectedLanguage) selectedLangId[itemId] = true;
         if (insertedKeys[itemId]) return;
     	insertedKeys[itemId] = true;        
         treeArray.push({id: itemId, name: itemObj.name, origId: itemObj.id});
@@ -187,8 +212,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 
 		
 		nlDlg.showLoadingScreen();
-		nlServerApi.lessonGetContent(lessonId, 'view').then(function(result) {
-			var oLesson = result.lesson;
+		_getContent(lessonId).then(function(oLesson) {
 			_translateLessonContentToArray(oLesson);
 			nlServerApi.translateTexts({target: targetLang, inputs: _translateArray})
 			.then(function(translatedModule) {
@@ -197,6 +221,12 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 
 				var data = {content:angular.toJson(oLesson), createNew: true};
 				nlServerApi.lessonSave(data).then(function(newLessonId) {
+					$scope.newLessonId = newLessonId;
+					$scope.isApproved = false;
+					var copyLessonDlg = nlDlg.create($scope);
+					copyLessonDlg.scope.error = {};
+					var closeButton = {text : nl.t('Close')};
+					copyLessonDlg.show('view_controllers/lesson_list/copy_lesson.html', [], closeButton);
 					nlDlg.hideLoadingScreen();
 				});
 			});
@@ -207,19 +237,21 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 		nlDlg.popupAlert({title: 'Alert message', template: msg});
 	}
 	
-	function _addToArrayAndDict(value, typename, page, section) {
+	function _addToArrayAndDict(value, typename, page, section, prefix) {
 		var info = {type: typename};
 		if (page !== undefined) info.page = page;
 		if (section !== undefined) info.section = section;
+		if (prefix != undefined) info.prefix = prefix;
 		_translateDict[_translateArray.length]= info;
 		_translateArray.push(value);
 	}
 	
+	var wikiMarkups = {img: true, audio: true, video: true, link: true, pdf: true, embed: true, iframe: true};
+	// TODO: currently not translating link: text.
 	function _translateLessonContentToArray(oLesson, newLessonid) {
 		_addToArrayAndDict(oLesson.name, 'module.name');
 		if(oLesson.description)
 			_addToArrayAndDict(oLesson.description, 'module.description');
-
 		for(var i=0; i<oLesson.pages.length; i++) {
 			var page = oLesson.pages[i];
 			if(page.autoVoice)
@@ -228,6 +260,13 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 				_addToArrayAndDict(page.hint, 'page.hint', i);
 			for(var j=0; j<page.sections.length; j++) {
 				var section = page.sections[j];
+				if(section.text == "") continue;
+				var splitedText = section.text.split(':');
+				if (splitedText[0] in wikiMarkups) continue;
+				if (splitedText[0] == 'text' || splitedText[0] == 'select' || splitedText[0].indexOf('multi-select') == 0) {
+					_addToArrayAndDict(splitedText[1], 'section.text', i, j, splitedText[0]);					
+					continue;
+				}
 				_addToArrayAndDict(section.text, 'section.text', i, j);
 			}
 		}
@@ -245,13 +284,13 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 				oLesson.description = translatedArray[i].translatedText;
 				break;
 			case 'page.autoVoice':
-				oLesson.pages[elem.page].autoVoice = translatedArray[i].translatedText;
+				oLesson.pages[elem.page].autoVoice = "@voice(ignore)\n" + translatedArray[i].translatedText;
 				break;
 			case 'page.hint':
 				oLesson.pages[elem.page].hint = translatedArray[i].translatedText;				
 				break;
 			case 'section.text':
-				oLesson.pages[elem.page].sections[elem.section].text = translatedArray[i].translatedText;
+				oLesson.pages[elem.page].sections[elem.section].text = elem.prefix ? elem.prefix +":"+ translatedArray[i].translatedText : translatedArray[i].translatedText;
 				break;
 			}
 		}

@@ -30,7 +30,8 @@ function(nl) {
         return treeArray;
     };
 
-    this.updateSelectionTree = function(treeSelectInfo, selectedIds) {
+    this.updateSelectionTree = function(treeSelectInfo, selectedIds, openUptoLevel) {
+    	if (!openUptoLevel || openUptoLevel < 1) openUptoLevel = 1;
         var itemDict = {};
         var treeList = treeSelectInfo.data;
         treeSelectInfo.rootItems = {};
@@ -41,7 +42,7 @@ function(nl) {
             if (!item.name) item.name = idParts[idParts.length -1];
             if (!('canSelect' in item)) item.canSelect = true;
             item.indentation = idParts.length - 1;
-            item.isVisible = (item.indentation < 1);
+            item.isVisible = (item.indentation < openUptoLevel);
             item.isOpen = false;
             item.isFolder = false;
             item.selected = (selectedIds && selectedIds[item.id]) ? true : false;
@@ -266,10 +267,10 @@ function(nl) {
 	        }
 	        var name = item.name.toLowerCase();
             if(name.indexOf(searchText) == -1) continue;
-    		treeSelectInfo.visibleData.push(item);
 
-        	if(item.isFolder) folderDict[item.id] = true;
+        	if(item.isFolder) folderDict[item.id] = true;        		
         	else _makeParentVisible(treeSelectInfo, item, folderDict);
+        	treeSelectInfo.visibleData.push(item);
         }
         if (treeSelectInfo.currentItemPos == undefined) treeSelectInfo.currentItemPos = -1;
         if (treeSelectInfo.currentItemPos >= treeSelectInfo.visibleData.length) treeSelectInfo.currentItemPos = -1;
@@ -456,7 +457,7 @@ function(nl, nlDlg, nlTreeSelect) {
             };
             
             $scope.onSearchTextChange = function(e) {
-            	$scope.info.currentItemPos = 0;
+            	//$scope.info.currentItemPos = 0;
             	nlTreeSelect.updateVisibleData($scope.info);
             };
         }

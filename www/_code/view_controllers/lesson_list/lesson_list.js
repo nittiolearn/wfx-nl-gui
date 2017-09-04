@@ -185,7 +185,7 @@ this.showSelectDlg = function($scope, initialUserInfo) {
 		params.resolve = function(result) {
 		    if (!result) return;
             _selectDlg.show('view_controllers/lesson_list/lesson_select_dlg.html', [], closeButton);
-		}
+		};
 		self.show(_selectDlg.scope, initialUserInfo, params);
 	});
 };
