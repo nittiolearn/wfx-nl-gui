@@ -26,8 +26,9 @@
         <tr ng-repeat='attr in editor.module_attributes'
             ng-show='!attr.debug && attr.type != "hidden" && ext.item[attr.name] !== undefined'>
             <td>{{attr.text||attr.name}}</td>
+            <td ng-show='attr.type == "wikitext"' nl-compile='ext.item[attr.valueName]' class='nl-content-holder'></td>
             <td ng-show='attr.type == "date"'>{{ext.item[attr.name] | nlDateTimeFormat:"date"}}</td>
-            <td ng-hide='attr.type == "date"'>{{ext.item[attr.name]}}</td>
+            <td ng-show='attr.type != "date" && attr.type != "wikitext"'>{{ext.item[attr.name]}}</td>
         </tr>
     </table>
 

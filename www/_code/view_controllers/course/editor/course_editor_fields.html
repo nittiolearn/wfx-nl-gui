@@ -103,13 +103,19 @@
         </div>
 	</div>
     <div ng-class='$root.resp2Col67'
-         ng-if='attr.type === "text"'
+         ng-if='attr.type === "text" || attr.type == "wikitext"'
          class='nl-dlg-field-value padding-mid'>
         <textarea rows="5" ng-model='values[attr.name]'
                   class='w100'
                   ng-change='editor.validateTextField(values[attr.name], attr)'
                   ng-focus="attr.focus=true" ng-blur="attr.focus=false">
         </textarea>
+        <div ng-if='attr.type == "wikitext"'>
+        <div class='padding-small'></div>
+        <div>Preview:</div>
+        <div class='padding-small'></div>
+        <div nl-compile='values[attr.valueName]' class='nl-content-holder'></div>
+        </div>
     </div>
     <div ng-class='$root.resp2Col67'
          ng-if='attr.type === "object"'

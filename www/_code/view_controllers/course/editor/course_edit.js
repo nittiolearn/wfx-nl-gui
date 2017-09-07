@@ -248,7 +248,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'grp_additionalAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'group', text: 'Advanced properties'},
         {name: 'reopen_on_fail', fields: ['lesson'], type: 'object', text: 'Reopen on fail', contentType: 'object',group: 'grp_additionalAttrs'},
         {name: 'icon', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
-        {name: 'text', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'text', text: 'Description', group: 'grp_additionalAttrs'},
+        {name: 'text', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'wikitext', valueName: 'textHtml', text: 'Description', group: 'grp_additionalAttrs'},
         {name: 'maxAttempts', fields: ['lesson'], type: 'number', text: 'Maximum attempts', group: 'grp_additionalAttrs'},
         {name: 'hide_remarks', fields: ['info', 'link'], type: 'boolean', text: 'Disable remarks', group: 'grp_additionalAttrs'},
         {name: 'autocomplete', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},

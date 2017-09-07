@@ -205,6 +205,7 @@ function UtterranceSplitter() {
         var splitList = [];
         var lines = text.split('\n');
         for(var i=0; i<lines.length; i++) {
+        	if(lines[i].indexOf('@voice(ignore)') >= 0) break;
             _splitLine(lines[i], splitList);
         }
         return splitList;

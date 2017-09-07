@@ -210,9 +210,9 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
 
 //-------------------------------------------------------------------------------------------------
 var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg', 'nlExporter',
-'nlCourseEditor', 'nlCourseCanvas', 'nlServerApi', 'nlGroupInfo', 'nlSendAssignmentSrv',
+'nlCourseEditor', 'nlCourseCanvas', 'nlServerApi', 'nlGroupInfo', 'nlSendAssignmentSrv', 'nlMarkup',
 function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
-    nlCourseEditor, nlCourseCanvas, nlServerApi, nlGroupInfo, nlSendAssignmentSrv) {
+    nlCourseEditor, nlCourseCanvas, nlServerApi, nlGroupInfo, nlSendAssignmentSrv, nlMarkup) {
     var modeHandler = new ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope);
     var nlContainer = new NlContainer(nl, $scope, modeHandler);
     nlContainer.setContainerInWindow();
@@ -623,6 +623,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     function _initModule(cm) {
         treeList.addItem(cm);
         _updateState(cm, 'none');
+        var retData = {lessPara: true};
+    	cm.textHtml = cm.text ? nlMarkup.getHtml(cm.text, retData): '';
         cm.planned_date = cm.planned_date ? nl.fmt.json2Date(cm.planned_date) : null;
         cm.start_date = cm.start_date ? nl.fmt.json2Date(cm.start_date) : null;
         if (!('maxAttempts' in cm) && cm.type == 'lesson') cm.maxAttempts = 1;

@@ -40,8 +40,8 @@
         </canvas> 
     </div>
 </div>
-<div ng-if='ext.item.type == "module" && ext.item.text' class='padding-top'>
-    {{ext.item.text}}
+<div ng-if='ext.item.type == "module" && ext.item.textHtml' class='padding-top'>
+    <div nl-compile='ext.item.textHtml' class='nl-content-holder'></div>
 </div>
 <div ng-if='ext.item.type != "module"'>
     <table class='nl-table nl-table-styled'>
@@ -113,8 +113,8 @@
         <a ng-href='{{attempt.url}}'>{{attempt.text}}</a>
     </div>
 
-    <div ng-if='ext.item.text' class='padding-top'>
-        {{ext.item.text}}
+    <div ng-if='ext.item.textHtml' class='padding-top'>
+	    <div nl-compile='ext.item.textHtml' class='nl-content-holder'></div>
     </div>
     <div ng-if='ext.canShowRemarks()' class='padding-top'>
         <div class='padding-small'></div>
