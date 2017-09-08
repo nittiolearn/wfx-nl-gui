@@ -31,8 +31,8 @@ function EditorFieldsDirective() {
 
 //-------------------------------------------------------------------------------------------------
 var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlLessonSelect', 
-'nlExportLevel', 'nlRouter', 'nlCourseCanvas',
-function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCourseCanvas) {
+'nlExportLevel', 'nlRouter', 'nlCourseCanvas', 'nlMarkup',
+function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCourseCanvas, nlMarkup) {
 
     var modeHandler = null;
     var $scope = null;
@@ -65,6 +65,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
             onAttrChange: _onAttrChange,
             validateTextField: _validateTextField,
 			editAttribute: _editAttribute,
+			showWikiMarkupPreview: _showWikiMarkupPreview,
 			getDisplayValue: _getDisplayValue
         };
     };
@@ -166,6 +167,13 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			var dlg = new StartAfterDlg(nl, nlDlg, $scope, _allModules, cm);
 			dlg.show();
 		}
+	}
+	
+	function _showWikiMarkupPreview(e, cm, attr) {
+		attr.showPreview = !attr.showPreview;
+		nl.resizeHandler.broadcast('nl-adjust-height');
+        var retData = {lessPara: true};
+    	cm.textHtml = cm.text ? nlMarkup.getHtml(cm.text, retData): '';
 	}
 	
 	function _getDisplayValue(cm, attr) {
@@ -276,7 +284,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     	start_after: 'You could specify a set of prerequisite conditions that have to be met for current item. Only after all the specified conditions are met, the curent item is made available to the learner. If the prerequisites are not met, this current item is shown in a locked state to the learner.',
     	reopen_on_fail: 'You could reopen a set of learning modules if the learner failed in the quiz. To do this, you need to configure this property on the quiz module. You can list the items (refered by their unique id) which have to be reopened if the learner failed to acheive minimum pass score in the current module. This property is a JSON string representing an array of strings: each string is unque id of the item that should be re-opened.<br> Example:<br></div><pre>["_id1", "_id2"]</pre></div>',
 		icon: 'Icon to be displayed for this item in the course tree. If not provided, this is derived from the type. "quiz" is a predefined icon.',
-		text: 'Provide a description which is shown in the content area / details popup when the element is clicked.',
+		text: _getDescriptionHelp(),
 		maxAttempts: 'Number of time the learner can do this module. Only the learning data from the last attempt is considered. 0 means infinite. 1 is the default.',
 		hide_remarks: 'By default the learner will be shown a text field where the learner can add remarks. This behavior can be disabled by checking this flag.',
 		autocomplete: 'If this flag is checked, the link is automatically marked completed when the learner views for the first time.',
@@ -290,6 +298,15 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         bgcolor: 'The background image is resized to retain aspect ratio. This could result in horizontal or vertical bands. You can choose the color of the bands to align with the edge of the image.'
     };
     
+    function _getDescriptionHelp() {
+    	return('<p>Provide a description which is shown in the content area / details popup when the element is clicked. You insert images/videos and style the content using the same markup tags supported by module editor. Markup syntax is as below:</p>' +
+    		   '<ul><li>Use <b>img:</b> to add an image. (example: img:imageUrl)</li>' + 
+    		   '<li>Use <b>video:</b> to add a video. (example: video:videoUrl)</li>' +
+    		   '<li>Use <b>link:</b> to add an external link. (example: link:https://www.xxxxx.com[text="link name"|popup=1])</li>' +
+    		   '<li>Use <b>audio:</b> to add an audio. (example: audio:audioUrl)</li>' +
+    		   '<li>Use <b>H1, H2, H3, H4, H5, H6</b> attributes to mark a header line. (example: H1 Hello world!)</li>' +
+    		   '<li>Use <b>- and #</b> to have bulleted list or numbered list respectively (example: - Hello world!)</li></ul>');
+    }
     function _updateHelps(attrs, attrHelp, level) {
         for(var i=0; i<attrs.length; i++) {
             var attr = attrs[i];
@@ -554,6 +571,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 
     function _validateInputs(data, cm) {
         var errorLocation = {};
+        var retData = {lessPara: true};
+    	cm.textHtml = cm.text ? nlMarkup.getHtml(cm.text, retData): '';
         var ret = _validateInputsImpl(data, cm, errorLocation);
         if (!ret) {
             nlDlg.popupAlert({title: nl.t('Error: {}', errorLocation.title), template:errorLocation.template});

@@ -7,7 +7,8 @@
 function module_init() {
 	angular.module('nl.ui.markup', [])
 	.filter('nlMarkupToHtml', NlMarkupToHtml)
-    .service('nlMarkup', NlMarkupSrv);
+    .service('nlMarkup', NlMarkupSrv)
+    .directive('nlAdjustHeight', AdjustHeightDirective);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -142,10 +143,12 @@ function _markupToHtmlAudio(str, bInline) {
     });
 }
 
+var adjustHeightDirStr = ' nl-adjust-height="0.5625"';
 function _markupToHtmlVideo(str, bInline) {
     if (!_checkMarkup(str, 'embed:') && !_checkMarkup(str, 'video:')) return '';
     if(_checkMarkup(str, 'video:')) str = str.replace('video:','embed:');
     return _parseWikiMarker(str, 'embed:', function(link, avpairs) {
+    	var adjustHeightDir = nl.pginfo.isOldCode ? ' ' : adjustHeightDirStr;
         if (link == '') return '';
         if (link.indexOf('www.youtube.com') >= 0) {
             if (link.indexOf('watch?v=') < 0) {
@@ -159,12 +162,12 @@ function _markupToHtmlVideo(str, bInline) {
             }
             var pos = 'start' in avpairs ? nl.fmt2('&start={}', avpairs['start']) : '';
             pos += 'end' in avpairs ? nl.fmt2('&end={}', avpairs['end']) : '';
-            return nl.fmt2('<iframe data-njsYouTube src="{}{}?modestBranding=1&rel=0&html5=1&enablejsapi=1{}" class="reset_height" allowfullscreen></iframe>', protocol, url, pos);     
+            return nl.fmt2('<iframe{} data-njsYouTube src="{}{}?modestBranding=1&rel=0&html5=1&enablejsapi=1{}" class="reset_height" allowfullscreen></iframe>', adjustHeightDir, protocol, url, pos);     
         }
         var pos = ('start' in avpairs) || ('end' in avpairs) ? '#t=' : '';
         pos += 'start' in avpairs ? nl.fmt2('{}', avpairs['start']) : '';
         pos += 'end' in avpairs ? nl.fmt2(',{}', avpairs['end']) : '';          
-        return nl.fmt2('<video preload controls class="njs_video reset_height"><source src="{}{}"/></video>',link,pos);
+        return nl.fmt2('<video{} preload controls class="njs_video reset_height"><source src="{}{}"/></video>', adjustHeightDir, link, pos);
     });
 }
 
@@ -172,8 +175,9 @@ function _markupToIframe(str, bInline) {
     if (!_checkMarkup(str, 'iframe:') && !_checkMarkup(str, 'scorm:')) return '';
     if(_checkMarkup(str, 'scorm:')) str = str.replace('scorm:','iframe:');
     return _parseWikiMarker(str, 'iframe:', function(link, avpairs) {
+    	var adjustHeightDir = nl.pginfo.isOldCode ? ' ' : adjustHeightDirStr;
         if (link == '') return '';
-        return nl.fmt2('<iframe src="{}" class="reset_height"></iframe>',link);
+        return nl.fmt2('<iframe{} src="{}" class="reset_height"></iframe>', adjustHeightDir, link);
     });
 }
 
@@ -338,6 +342,30 @@ function ParentStack() {
         }
     };
 }
+
+//-------------------------------------------------------------------------------------------------
+var AdjustHeightDirective = ['nl',
+function(nl) {
+	function _updateHeight(element, factor) {
+    	nl.timeout(function() {
+        	var width = element[0].getBoundingClientRect().width;
+        	element.css({height: (width > 0 ? width*factor : 400) + 'px'});
+    	});
+	}
+
+	function _postLink(scope, element, attrs) {
+		var factor = parseFloat(attrs.nlAdjustHeight||0.5625);
+		_updateHeight(element, factor);
+	    nl.resizeHandler.onResize(function() {
+			_updateHeight(element, factor);
+	    });
+	    nl.resizeHandler.onEvent('nl_adjust_height', function() {
+			_updateHeight(element, factor);
+	    });
+	}
+	
+	return {restrict: "A", link: _postLink}; 
+}];
 
 //-------------------------------------------------------------------------------------------------
 module_init();

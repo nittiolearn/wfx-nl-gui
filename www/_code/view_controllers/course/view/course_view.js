@@ -390,7 +390,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
                 else vp.d = true;
             }
         }
-    }
+    };
     
     nl.resizeHandler.onResize(function() {
         $scope.updateVisiblePanes();

@@ -92,6 +92,20 @@
         </div>
     </div>
 
+    <div class='row row-wrap row-top padding-top margin0' ng-show='enableEmailNotifications'>
+        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Email notifications</div>
+        <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+            <div class='nl-link-text row row-center padding0 margin0'
+                 ng-click='data.email = !data.email'
+                 autofocus=''
+                 tabindex="{{tabindex || 0}}">
+                <i ng-show='data.email' class="icon ion-android-checkbox-outline nl-dlg-field-icon"></i>
+                <i ng-show='!data.email' class="icon ion-android-checkbox-outline-blank nl-dlg-field-icon"></i>
+                <span class='col padding0 padding-mid-v'>notify learners by email</span>
+            </div>
+        </div>
+    </div>
+
     <div class='row row-wrap row-top padding-top margin0'>
         <div ng-class='resp2Col33' class='nl-dlg-field-name'>Remarks</div>
         <div ng-class='resp2Col67' class='padding0'>

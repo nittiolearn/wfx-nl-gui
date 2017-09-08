@@ -1495,7 +1495,7 @@ nlesson = function() {
             this.propAudio.html(audioHtml);         
         } else if (this.oPage.autoVoice) {
             this.autoVoiceButton = this.lesson.globals.autoVoice.getVoiceButton(this.oPage.autoVoice);
-            this.propAudio.html(this.autoVoiceButton.html);
+            this.propAudio.html(this.autoVoiceButton ? this.autoVoiceButton.html : '');
         } else {
             this.propAudio.html('');
         }

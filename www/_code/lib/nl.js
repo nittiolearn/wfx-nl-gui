@@ -81,15 +81,22 @@ function(nlLog, $http, $q, $timeout, $location, $window, $rootScope) {
 
 //-------------------------------------------------------------------------------------------------
 function ResizeHalder() {
-    this.handlers = [];
-    this.broadcast = function() {
-        for(var i=0; i< this.handlers.length; i++) {
-            this.handlers[i]();
+    this.handlers = {};
+    this.broadcast = function(eventName) {
+    	if (!eventName) eventName = 'resize';
+    	var handlers = this.handlers[eventName] || [];
+        for(var i=0; i< handlers.length; i++) {
+            handlers[i]();
         }
     };
     
     this.onResize = function(fn) {
-        this.handlers.push(fn);
+    	this.onEvent('resize', fn);
+    };
+
+    this.onEvent = function(eventName, fn) {
+    	if (!(eventName in this.handlers)) this.handlers[eventName] = [];
+        this.handlers[eventName].push(fn);
     };
 }
 
@@ -98,7 +105,7 @@ function IdleMonitor(nl) {
     this.getIdleSeconds = function() {
         if (!_interval) _init();
         return _idleTime;
-    }
+    };
     
     var _idleTime = 0;
     var _kp = 0;
@@ -537,6 +544,8 @@ function NlPageInfo(nl) {
     this.statusPopup = false;
     this.isMobileOrTab = _isMobileOrTab(nl);
     this.groupCustomCss = '';
+    
+    this.isOldCode = false;
 }
 
 function _isMobileOrTab(nl) {

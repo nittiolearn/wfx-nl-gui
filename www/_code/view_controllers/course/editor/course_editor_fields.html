@@ -105,16 +105,28 @@
     <div ng-class='$root.resp2Col67'
          ng-if='attr.type === "text" || attr.type == "wikitext"'
          class='nl-dlg-field-value padding-mid'>
+        <div ng-if='attr.type == "wikitext"'>
+        <div class='padding-small'></div>
+        <div class='row row-center margin0 padding0'>
+        	<div class='col'></div>
+            <div class='nl-link-text padding-mid fsh6' 
+            	 ng-click='editor.showWikiMarkupPreview($event, values, attr)'>
+            	<span ng-show='!attr.showPreview'>
+            		<i class="icon ion-ios-eye padding-mid"></i><span>preview</span>
+            	</span>
+            	<span ng-show='attr.showPreview'>
+            		<i class="icon ion-ios-compose padding-mid"></i><span>edit</span>
+            	</span>
+            </div>
+        </div>
+        <div class='padding-small'></div>
         <textarea rows="5" ng-model='values[attr.name]'
                   class='w100'
+                  ng-hide='attr.showPreview'
                   ng-change='editor.validateTextField(values[attr.name], attr)'
                   ng-focus="attr.focus=true" ng-blur="attr.focus=false">
         </textarea>
-        <div ng-if='attr.type == "wikitext"'>
-        <div class='padding-small'></div>
-        <div>Preview:</div>
-        <div class='padding-small'></div>
-        <div nl-compile='values[attr.valueName]' class='nl-content-holder'></div>
+        <div ng-show='attr.showPreview' nl-compile='values[attr.valueName]' class='nl-content-holder'></div>
         </div>
     </div>
     <div ng-class='$root.resp2Col67'

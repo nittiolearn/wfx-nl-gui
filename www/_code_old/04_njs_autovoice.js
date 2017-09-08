@@ -69,15 +69,23 @@ function AutoVoice() {
     
     function _getVoiceButton(audioText) {
         var button = {state: 'none'}; // none | playing | paused
+
+        var splitter = new UtterranceSplitter();
+        var audioTextItems = splitter.split(audioText);
+        if (audioTextItems.length == 0) return null;
+
+        // Add a little pause at start
+        for (var i=0; i<_pauseCount; i++) audioTextItems.unshift(splitter.getPause());
+
         button.html = _getVoiceButtonDom();
         _updateIcon(button);
         button.html.on('click', function () {
-            _onButtonClick(button, audioText);
+            _onButtonClick(button, audioTextItems);
         });
         button.play = function() {
             button.state = 'none';
             if (_canAutoPlay) {
-                _onButtonClick(button, audioText);
+                _onButtonClick(button, audioTextItems);
             } else {
                 _updateIcon(button);
             }
@@ -94,21 +102,17 @@ function AutoVoice() {
         }
     }
 
-    function _startAutoVoice(button, audioText) {
-        // Add a little pause at start
-        var pause ='';
-        for (var i=0; i<_pauseCount; i++) pause += ' \n';
-        audioText = pause + audioText;
-        self.voiceSynth.speak(audioText, {
+    function _startAutoVoice(button, audioTextItems) {
+        self.voiceSynth.speak(audioTextItems, {
             onEnd: function() {
                 _onEnd(button);
             }
         });
     }
     
-    function _onButtonClick(button, audioText) {
+    function _onButtonClick(button, audioTextItems) {
         if (button.state == 'none' || button.state == 'paused') {
-            _startAutoVoice(button, audioText);
+            _startAutoVoice(button, audioTextItems);
             _canAutoPlay = true;
             button.state = 'playing';
         } else if (button.state == 'playing') {
@@ -139,14 +143,12 @@ function VoiceSynth() {
         return self.initDone;
     };
 
-    this.speak = function(audioText, params) {
+    this.speak = function(audioTextItems, params) {
         if (!self.initDone) return false;
         
         window.speechSynthesis.cancel();
-        var splitter = new UtterranceSplitter();
-        var items = splitter.split(audioText);
-        for (var i = 0; i < items.length; i++) {
-            var item = items[i];
+        for (var i = 0; i < audioTextItems.length; i++) {
+            var item = audioTextItems[i];
             var voice = self.voices.getBestFitSystemVoice(item.voice, item.lang);
 
             //Create utterance object
@@ -158,7 +160,7 @@ function VoiceSynth() {
             utterance.pitch = item.pitch || 1;
             utterance.text = item.text;
             utterance.lang = item.lang || voice.lang;
-            if (i == items.length - 1) {
+            if (i == audioTextItems.length - 1) {
                 utterance.onend = params.onEnd;
                 utterance.addEventListener('end', params.onEnd);
             }
@@ -200,6 +202,12 @@ function UtterranceSplitter() {
     var MAX_CHARS = 100;
     
     var config = {voice: ['female',  'हिन्दी'], lang: 'hi', volume: 1, rate: 0.8, pitch: 1};
+
+    this.getPause = function() {
+        return {text: ' ', 
+            voice: config.voice, lang: config.lang, 
+            volume: config.volume, rate: config.rate, pitch: config.pitch};
+    };
 
     this.split = function(text) {
         var splitList = [];

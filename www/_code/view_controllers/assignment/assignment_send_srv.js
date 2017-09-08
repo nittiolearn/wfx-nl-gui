@@ -129,10 +129,25 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         });
     }
 
+    function _isAssignmentEnabled() {
+		var props = nlGroupInfo.get().props;
+		var isMailEnabled = false;
+		for(var i=0; i<props.taskNotifications.length; i++) {
+			if(props.taskNotifications[i] != 3) continue;
+			isMailEnabled = true;
+			break;
+		}
+		if(!isMailEnabled) return false;
+		for(var i=0; i<props.tasks.length; i++)
+			if(props.tasks[i] == 3) return true;
+		return false;
+    }
+    
     function _initDlgScope() {
         _dlg.setCssClass('nl-height-max nl-width-max');
         var dlgScope = _dlg.scope;
         dlgScope.assignInfo = _assignInfo;
+        dlgScope.enableEmailNotifications = _isAssignmentEnabled();
         dlgScope.options = {showAnswers: learningModeStrings};
         dlgScope.data = {
             ouUserTree: _ouUserSelector.getTreeSelect(),
@@ -211,6 +226,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
                     not_after: endtime,
                     learnmode: learnmode,
                     forum: _dlg.scope.data.forum || false,
+                    email: _dlg.scope.data.email || false,
                     max_duration: maxduration || '',
                     remarks: _dlg.scope.data.remarks || ''};
         if ('assigntype' in _dlg.scope.assignInfo)

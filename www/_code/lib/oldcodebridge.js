@@ -19,6 +19,7 @@ function(nl, nlDlg, nlServerApi, nlApproveDlg, nlMarkup, $compile, NittioLesson)
             // This is not our old code
             return;
         }
+        nl.pginfo.isOldCode = true;
         self.bridge = {
             nl: nl,
             nlDlg: nlDlg,
