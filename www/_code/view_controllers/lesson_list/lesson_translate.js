@@ -249,6 +249,8 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 	var wikiMarkups = {img: true, audio: true, video: true, link: true, pdf: true, embed: true, iframe: true};
 	// TODO: currently not translating link: text.
 	function _translateLessonContentToArray(oLesson, newLessonid) {
+        _translateDict = {};
+        _translateArray = [];
 		_addToArrayAndDict(oLesson.name, 'module.name');
 		if(oLesson.description)
 			_addToArrayAndDict(oLesson.description, 'module.description');
