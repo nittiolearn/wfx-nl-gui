@@ -46,6 +46,10 @@ function(nl, nlDlg) {
         return _getCsvString(row, attrName);
     };
 
+    this.quoteCsvString = function(str) {
+        return _quote(str);
+    };
+
     this.MAX_RECORDS_PER_CSV = 50000;
     
     // Data should be array of array of strings

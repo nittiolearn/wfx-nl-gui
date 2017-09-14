@@ -143,10 +143,10 @@ function RestApi(nl, nlDlg, nlServerApi, nlExporter) {
     function _saveAsCsv(scope) {
         nlDlg.showLoadingScreen();
         nl.timeout(function() {
-            var csv = _writeCsvLine(scope.result.fmt.header, false);
+            var csv = _writeCsvLine(nlExporter, scope.result.fmt.header, false);
             var rows = scope.result.fmt.rows;
             for (var i=0; i<rows.length; i++) {
-                csv += _writeCsvLine(rows[i], true);
+                csv += _writeCsvLine(nlExporter, rows[i], true);
             }
             nlExporter.exportCsvFile('download.csv', csv);
             nl.timeout(function() {
@@ -155,17 +155,13 @@ function RestApi(nl, nlDlg, nlServerApi, nlExporter) {
         });
     }
 
-    function _writeCsvLine(row, bNewLine) {
+    function _writeCsvLine(nlExporter, row, bNewLine) {
         var ret = bNewLine ? '\n' : '';
         for (var i=0; i<row.length; i++) {
             if (i>0) ret += ',';
-            ret += _csvEscape(row[i]);
+            ret += nlExporter.quoteCsvString(row[i]);
         }
         return ret;
-    }
-
-    function _csvEscape(elem) {
-        return '"' + elem + '"';
     }
 
     function _onExecute(e, scope) {

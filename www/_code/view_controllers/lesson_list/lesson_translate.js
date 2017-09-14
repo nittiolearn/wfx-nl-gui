@@ -292,7 +292,9 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 				oLesson.pages[elem.page].hint = translatedArray[i].translatedText;				
 				break;
 			case 'section.text':
-				oLesson.pages[elem.page].sections[elem.section].text = elem.prefix ? elem.prefix +":"+ translatedArray[i].translatedText : translatedArray[i].translatedText;
+			    var section = oLesson.pages[elem.page].sections[elem.section];
+				section.text = elem.prefix ? elem.prefix +":"+ translatedArray[i].translatedText : translatedArray[i].translatedText;
+                if ('correctanswer' in section) delete section.correctanswer;
 				break;
 			}
 		}
