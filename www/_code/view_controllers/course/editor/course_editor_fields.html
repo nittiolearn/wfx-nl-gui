@@ -120,14 +120,14 @@
             </div>
         </div>
         <div class='padding-small'></div>
+        <div ng-show='attr.showPreview' nl-compile='values[attr.valueName]' class='nl-content-holder'></div>
+        </div>
         <textarea rows="5" ng-model='values[attr.name]'
                   class='w100'
                   ng-hide='attr.showPreview'
                   ng-change='editor.validateTextField(values[attr.name], attr)'
                   ng-focus="attr.focus=true" ng-blur="attr.focus=false">
         </textarea>
-        <div ng-show='attr.showPreview' nl-compile='values[attr.valueName]' class='nl-content-holder'></div>
-        </div>
     </div>
     <div ng-class='$root.resp2Col67'
          ng-if='attr.type === "object"'
