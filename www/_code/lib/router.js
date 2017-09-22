@@ -169,10 +169,11 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state) {
     }
 
     function _sendGoogleAnalytics(userInfo, reqtype) {
-        var userid = userInfo.username || 'none';
+        var userid = userInfo.nittioImpersonatedBy || userInfo.username || 'none';
         var useridParts = userid.split('.');
         var groupid = useridParts.length > 1 ? useridParts[1] : 'none';
         var usertype = userInfo.usertype || 'none';
+        if (userInfo.nittioImpersonatedBy) usertype = 'none';
 
         var urlParts = nl.location.path().split('/');
         if (!reqtype) {
