@@ -658,6 +658,28 @@ npagetypes = function() {
 		return count;
 	}
 
+	function _hideSticker(section) {
+		section.pgSecSticker.hide();
+	}
+	
+	function _showStickerCorrect(section) {
+		_showSticker(section, 'fgreen ion-checkmark-round');
+	}
+		
+	function _showStickerWrong(section) {
+		_showSticker(section, 'forange ion-close-round');
+	}
+
+	function _showStickerHint(section) {
+		_showSticker(section, 'ion-arrow-graph-down-left');
+	}
+
+	function _showSticker(section, icon) {
+		section.pgSecSticker.show();
+		var html = njs_helper.fmt2('<i class="icon {}"></i>', icon);
+		section.pgSecSticker.html(html);
+	}
+	
 	//#############################################################################################
 	// Behaviour classes
 	//#############################################################################################
@@ -835,15 +857,20 @@ npagetypes = function() {
 			return [answered, score];
 		},
 		'adjustHtml' : function(section) {
+			_hideSticker(section);
 			if (_getPageMode(section.page) != 'report') return;
-			if (section.oSection.answer != 1) return;
-			
 			var layout = _getLayoutOfSec(section);
 			var secNo = section.secNo;
+			if (section.oSection.answer != 1) {
+				if (_isCorrect(layout, secNo)) _showStickerHint(section);
+				return;
+			}
 			if (_isCorrect(layout, secNo)) {
 				section.pgSecView.addClass('answer_right');
+				_showStickerCorrect(section);
 			} else {
 				section.pgSecView.addClass('answer_wrong');
+				_showStickerWrong(section);
 			}
 		}
 	};
@@ -1027,6 +1054,7 @@ npagetypes = function() {
 			return [answered, score];
 		},
 		'adjustHtml' : function(section) {
+			_hideSticker(section);
 			var nOptions = _getAnswerCount(section.page);
 			if (_getPageMode(section.page) == 'edit') return;
 			if (!_isCorrect(_getLayoutOfSec(section), section.secNo)) return;
@@ -1044,9 +1072,11 @@ npagetypes = function() {
 			if (_getPageMode(section.page) == 'report') {
 				if (_BehMatch_IsMatching(section.secNo, answer, nOptions)) {
 					section.pgSecView.addClass('answer_right');
+					_showStickerCorrect(section);
 					partner.pgSecView.addClass('answer_right');
 				} else {
-					section.pgSecView.addClass('answer_wrong');			
+					section.pgSecView.addClass('answer_wrong');
+					_showStickerWrong(section);			
 					partner.pgSecView.addClass('answer_wrong');			
 				}
 			}
@@ -1161,6 +1191,7 @@ npagetypes = function() {
 			return [answered, score];
 		},
 		'adjustHtml' : function(section) {
+			_hideSticker(section);
 			var layout = _getLayoutOfSec(section);
 			var secPos = section.secNo;
 			if (!_isAnswer(layout, secPos)) return;
@@ -1172,8 +1203,10 @@ npagetypes = function() {
 				posStr = section.oSection.answer;
 				if (posStr == section.secNo) {
 					section.pgSecView.addClass('answer_right');
+					_showStickerCorrect(section);
 				} else {
 					section.pgSecView.addClass('answer_wrong');
+					_showStickerWrong(section);
 				}
 			}
 			section.pgSecView.children('.positionInOrder').remove();
@@ -1353,6 +1386,7 @@ npagetypes = function() {
 			_showPgSecText(section);
 		},
 		'adjustHtml' : function(section) {
+			_hideSticker(section);
 			if (!_isAnswer(_getLayoutOfSec(section), section.secNo)) return;
 			if (_getPageMode(section.page) != 'report') return;
 
@@ -1361,8 +1395,12 @@ npagetypes = function() {
 
 			if (_BehFib_IsMatching(answer, canswer)) {
 				section.pgSecView.addClass('answer_right');
+				_showStickerCorrect(section);
 			} else if (answer.toLowerCase().trim() != ''){
 				section.pgSecView.addClass('answer_wrong');
+				_showStickerWrong(section);
+			} else {
+				_showStickerHint(section);
 			}
 		},
 		'getSectionText' : function(section) {
@@ -1415,6 +1453,9 @@ npagetypes = function() {
 				section.pgSecText.removeAttr('disabled');
 			}
 			return _getBehaviourFnFromBaseClass(BehDesc, 'onRender')(section);
+		},
+		'adjustHtml' : function(section) {
+			_hideSticker(section);
 		}
 	};
 
@@ -1784,6 +1825,9 @@ npagetypes = function() {
 			}
 			_showPgSecView(section);
 		},
+		'adjustHtml' : function(section) {
+			_hideSticker(section);
+		},
 		'onScore' : function(page) {
 			_BehQuestionnaire_updateAnswers(page);
 			return _BehQuestionnaire_onScore(page);
@@ -1824,6 +1868,7 @@ npagetypes = function() {
 			return false;
 		},
 		'adjustHtml' : function(section) {
+			_hideSticker(section);
 			if (!_isAnswer(_getLayoutOfSec(section), section.secNo)) return;
 			if (_getPageMode(section.page) != 'report') return;
 			
@@ -1831,8 +1876,10 @@ npagetypes = function() {
 			var score = _BehManyQuestions_checkAnswer(section, answerData);
 			if (score == 1) {
 				section.pgSecView.addClass('answer_right');
+				_showStickerCorrect(section);
 			} else if (score == 0){
 				section.pgSecView.addClass('answer_wrong');
+				_showStickerWrong(section);
 			}
 		},
 		'maxScore' : function(page) {

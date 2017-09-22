@@ -1721,6 +1721,9 @@ nlesson = function() {
 		
         var secString = njs_helper.fmt2('<div class="pgSecView{}{}" secNo="{}"/>', aspectWrt, secBehaviourCls, this.secNo);
 		this.pgSecView = njs_helper.jobj(secString);
+		this.pgSecSticker = njs_helper.jobj('<div class="pgSecSticker"></div>');
+		this.pgSecSticker.hide();
+		this.pgSecView.append(this.pgSecSticker);
 		this.secViewContent = njs_helper.jobj('<div class="secViewContent"/>');
         this.pgSecView.append(this.secViewContent);
 		
