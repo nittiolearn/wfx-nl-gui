@@ -121,7 +121,10 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
     $scope.onUsernameEnter = function(keyEvent) {
 	  	if (keyEvent.which !== 13) return;
 	  	if(!_validateInputs($scope)) return;
-	  	nlDlg.getField('password').focus();
+	  	if (isLogin)
+	  	    nlDlg.getField('password').focus();
+  	    else
+            $scope.loginWithSignInOrEnter();
 	};
 
     $scope.onPasswordEnter = function(keyEvent) {
@@ -205,9 +208,8 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
                 nl.location.url(nextUrl.url);
             } else {
                 var msg = nl.t('Impersonated as {}. Remember to logout as soon you are done!', userInfo.username);
-                nlDlg.popupAlert({title:'Impersonated!', template:msg}).then(function() {
-                    nl.location.url(nextUrl.url);
-                });
+                nlDlg.popupStatus(msg);
+                nl.location.url(nextUrl.url);
             }
         });
     }

@@ -277,7 +277,7 @@ function _parseWikiMarker(line, marker, fn, dontConvertUrl) {
 }
 
 var _d='1262923201347'; // Some kind of fixed string in URL as a distractor
-var _v='02';
+var _v='03';
 function _convertUrl(link) {
     if (link.indexOf('/resource/resview/') < 0) return link;
     if (!_gid) return link;
