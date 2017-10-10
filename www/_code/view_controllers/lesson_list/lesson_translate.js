@@ -210,13 +210,11 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 		for (var key in selectedLangs) targetLang = selectedLangs[key].origId;
 		if(!targetLang) return _errorMessage(nl.t('Please select the target language'));
 
-		
 		nlDlg.showLoadingScreen();
 		_getContent(lessonId).then(function(oLesson) {
 			_translateLessonContentToArray(oLesson);
-			nlServerApi.translateTexts({target: targetLang, inputs: _translateArray})
-			.then(function(translatedModule) {
-				_updateModule(oLesson, translatedModule.translations);
+			_translateTexts(targetLang).then(function(translations) {
+				_updateModule(oLesson, translations);
 				oLesson.lang = targetLang;
 
 				var data = {content:angular.toJson(oLesson), createNew: true};
@@ -232,6 +230,44 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 			});
 		});
 	};
+	
+    var _translations = [];
+    var _MAX_CHARS_PER_SERVER_TRANSLATE_CALL = 10000;
+	function _translateTexts(targetLang) {
+        return nl.q(function (resolve, reject) {
+            _translations = [];
+            _translateTextsImpl(targetLang, 0, resolve, reject);
+        });
+    }
+    
+    function _translateTextsImpl(targetLang, startAt, resolve, reject) {
+        if (startAt >= _translateArray.length) {
+            nlDlg.popdownStatus(0);
+            resolve(_translations);
+            return;
+        }
+        var toServerArray = [];
+        var nChars = 0;
+        for (var i=startAt; i<_translateArray.length; i++) {
+            toServerArray.push(_translateArray[i]);
+            nChars += _translateArray[i].length;
+            if (nChars >= _MAX_CHARS_PER_SERVER_TRANSLATE_CALL) break;
+        }
+        var newStartAt = startAt+toServerArray.length;
+        
+        nlDlg.popupStatus(nl.fmt2('Tranlating {} of {} items', newStartAt, _translateArray.length), false);
+        var data = {target: targetLang, inputs: toServerArray};
+        if (startAt != 0) data.disablereqcnt = true;
+        nlServerApi.translateTexts(data).then(function(translatedModule) {
+            var translations = translatedModule.translations;
+            for(var i=0; i<translations.length; i++)
+                _translations.push(translations[i]);
+            _translateTextsImpl(targetLang, newStartAt, resolve, reject);
+        }, function() {
+            nlDlg.popdownStatus(0);
+            reject();
+        });
+	}
 	  	
 	function _errorMessage(msg) {
 		nlDlg.popupAlert({title: 'Alert message', template: msg});

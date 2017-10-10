@@ -140,6 +140,11 @@ function Exporter(nl, nlServerApi, nlExporter, pl, $scope) {
     function _getCourseData(resolve, reject) {
         pl.imp(nl.fmt2('Getting course data for {} courses', 
             Object.keys(self.courseIds).length), angular.toJson(self.courseIds, 2));
+        if (Object.keys(self.courseIds).length == 0) {
+            pl.error("No course found to export");
+            reject();
+            return;
+        }
         nlServerApi.courseExportCourses(self.courseIds).then(function(courses){
 	        self.courses = courses;
 	        pl.debug(nl.fmt2('Got course data for {} courses', 
