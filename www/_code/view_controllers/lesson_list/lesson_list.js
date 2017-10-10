@@ -775,7 +775,7 @@ function(nl, nlDlg, nlServerApi, nlExportLevel, nlGroupInfo, nlTreeSelect, nlOuU
 
         var groupInfo = nlGroupInfo.get();
         approveDlg.scope.data.org_unit = nlOuUserSelect.getOuTree(groupInfo, 
-            data.selectedOus, true, true);
+            data.selectedOus, false, true);
 
 		var el = data.exportLevel && data.exportLevel <= groupExportLevel ? data.exportLevel : nlExportLevel.EL_PRIVATE;
 		approveDlg.scope.data.exportLevel = {
