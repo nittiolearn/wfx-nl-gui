@@ -24,6 +24,7 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
+var _uploadControl = {MAX_PARALLEL: 1, UPLOAD_TRIES: 3, RETRY_INTERVAL: 5000};
 var ScoImportListCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlServerApi', 'nlResourceUploader',
                      'nlProgressLog', 'nlCardsSrv',
 function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlResourceUploader, nlProgressLog, nlCardsSrv) {
@@ -38,6 +39,9 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlResourceUploader, nlProgres
             nl.pginfo.pageTitle = nl.t('SCORM Import');
             var params = nl.location.search();
             template = parseInt(params.template || 0);
+            _uploadControl.MAX_PARALLEL = parseInt(params.parallel || 1);
+            _uploadControl.UPLOAD_TRIES = parseInt(params.tries || 3);
+            _uploadControl.RETRY_INTERVAL = parseInt(params.interval || 5000);
             $scope.cards = {
                 staticlist: _getStaticCards(),
                 search: {placeholder: nl.t('Enter SCORM module name')}
@@ -274,7 +278,7 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         .then(_q(_createScormLessons))
         .then(_q(_uploadResources))
         .then(function() {
-            _onComplete(true);
+            _onComplete(self.allOk);
         }, function() {
             _onComplete(false);
         });
@@ -312,6 +316,7 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         self.scos = [];
         self.actionsDone = 0;
         self.actionsMax = 0;
+        self.allOk = true;
 
         $scope.started = true;
 
@@ -486,8 +491,7 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
                 if (deleteAssets[i].resid) delete deleteAssets[i].resid;
             resolve(true);
         }, function(msg) {
-            pl.error('Error deleting current resource');
-            reject();
+            _err(reject, 'Error deleting current resource');
         }); 
     }
 
@@ -547,7 +551,6 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
     }
 
     function _uploadResource(resolve, reject, pos) {
-        if (pos > 0) self.actionsDone++;
         _setProgress('action', self.actionsDone, self.actionsMax);
         if (pos == self.assets.length) {
             pl.imp(nl.fmt2('Uploaded {} SCORM assets', self.assets.length));
@@ -556,42 +559,91 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         }
         if ($scope.abort) return _err(reject, 'Aborting on user request');
 
-        var asset = self.assets[pos];
-        pos++;
-        var aofb = nl.fmt2(' {} of {}', pos, self.assets.length);
-
-        var fname = asset.href;
-        var mimetype = _guessMimeType(fname);
-        var f = self.zip.file(fname);
-        if (!f) {
-            nlDlg.popdownStatus(0);
-            pl.warn('Error accessing file from Zip:' + fname);
+        var promises = [];
+        for (var i=0; i<_uploadControl.MAX_PARALLEL; i++) {
+            promises.push(_uploadOneResourceWithRetries(pos));
+            pos++;
+            if (pos == self.assets.length) break;
+        }
+        _waitForAllPromises(promises, 0, resolve, reject, pos);
+    }
+    
+    function _waitForAllPromises(promises, promisePos, resolve, reject, pos) {
+        if (promisePos == promises.length) {
             _uploadResource(resolve, reject, pos);
+            return;            
+        }
+        promises[promisePos].then(function() {
+            self.actionsDone++;
+            _setProgress('action', self.actionsDone, self.actionsMax);
+            promisePos++;
+            _waitForAllPromises(promises, promisePos, resolve, reject, pos);
+        });
+    }
+
+    function _uploadOneResourceWithRetries(pos) {
+        return nl.q(function(resolve, reject) {
+            var asset = self.assets[pos];
+            var aofb = nl.fmt2(' {} of {}', pos+1, self.assets.length);
+            var fname = asset.href;
+            var mimetype = _guessMimeType(fname);
+            var f = self.zip.file(fname);
+            if (!f) {
+                nlDlg.popdownStatus(0);
+                pl.warn('Error accessing file from Zip:' + fname);
+                resolve(false);
+                return;
+            }
+            f.async('arraybuffer').then(function(content) {
+                try {
+                    var blob = new Blob([content], {type: mimetype});
+                    blob = new File([blob], fname, {type: mimetype});
+                    var reskey = _getReskey(fname);
+                    var resInfo = {resource: blob, restype: 'Attachment', extn: '', 
+                        reskey: reskey, insertfrom: _getInsertfrom()};
+                    pl.debug('Uploading resource' + aofb, asset);
+                    _uploadOneResourceOneAttempt(resInfo, aofb, 0).then(function(resInfos) {
+                        pl.debug('Uploaded resource' + aofb, asset);
+                        var resInfo = resInfos[0];
+                        asset.resid = resInfo.resid;
+                        nlDlg.popdownStatus(0);
+                        resolve(true);
+                    }, function() {
+                        _err2('Multiple attempts to upload failed:' + fname);
+                        resolve(false);
+                        return;
+                    });
+                } catch(e) {
+                    nlDlg.popdownStatus(0);
+                    _err2('Exception uploading resource' + aofb, e);
+                    resolve(false);
+                    return;
+                }
+            });
+        });
+    }
+
+    function _uploadOneResourceOneAttempt(resInfo, aofb, attempts) {
+        return nl.q(function(resolve, reject) {
+            _uploadOneResourceOneAttemptImpl(resolve, reject, resInfo, aofb, attempts);
+        });
+    }
+    
+    function _uploadOneResourceOneAttemptImpl(resolve, reject, resInfo, aofb, attempts) {
+        if (attempts >= _uploadControl.UPLOAD_TRIES) {
+            reject(false);
             return;
         }
-        f.async('arraybuffer').then(function(content) {
-            try {
-                pl.debug('Upload resource' + aofb, asset);
-                var blob = new Blob([content], {type: mimetype});
-                blob = new File([blob], fname, {type: mimetype});
-                var reskey = _getReskey(fname);
-                var resInfo = {resource: blob, restype: 'Attachment', extn: '', 
-                    reskey: reskey, insertfrom: _getInsertfrom()};
-                nlResourceUploader.uploadInSequence([resInfo], 'SCORM', null, null)
-                .then(function(resInfos) {
-                    var resInfo = resInfos[0];
-                    asset.resid = resInfo.resid;
-                    nlDlg.popdownStatus(0);
-                    pl.debug('Uploaded resource' + aofb, resInfo);
-                    _uploadResource(resolve, reject, pos);
-                }, function(msg) {
-                    nlDlg.popdownStatus(0);
-                    return _err(reject, 'Error uploading resource:' + msg);
-                });
-            } catch(e) {
-                nlDlg.popdownStatus(0);
-                return _err(reject, 'Exception uploading resource', e);
-            }
+        attempts++;
+        nlResourceUploader.uploadInSequence([resInfo], 'SCORM', null, null)
+        .then(function(resInfos) {
+            resolve(resInfos);
+        }, function(msg) {
+            nlDlg.popdownStatus(0);
+            pl.warn(nl.fmt2('Error uploading resource{} (attempt {})', aofb, attempts), msg);
+            nl.timeout(function() {
+                _uploadOneResourceOneAttemptImpl(resolve, reject, resInfo, aofb, attempts);
+            }, _uploadControl.RETRY_INTERVAL);
         });
     }
     
@@ -626,6 +678,11 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         pl.error(msg, details);
         reject(false);
         return false;
+    }
+    
+    function _err2(msg, details) {
+        pl.error(msg, details);
+        self.allOk = false;
     }
 }
 
