@@ -401,8 +401,8 @@ nlesson = function() {
 	// Lesson Methods - Initialize and render - internal methods
 	//--------------------------------------------------------------------------------------------
 	function Lesson_createHtmlDom() {
-		var hPages = jQuery(njs_helper.fmt2("<div class='njsSlides {} mode_{}'></div>", 
-							this.globals.templateCssClass, this.renderCtx.launchMode()));
+		var hPages = jQuery(njs_helper.fmt2("<div class='njsSlides mode_{}'></div>", 
+							this.renderCtx.launchMode()));
 		for (var i = 0; i < this.pages.length; i++) {
 			hPages.append(this.pages[i].createHtmlDom());
 		}
@@ -1335,6 +1335,7 @@ nlesson = function() {
 
 		this.updateHtmlDom = Page_updateHtmlDom;
         this.updateAudio = Page_updateAudio;
+        this.updateBgImg = Page_updateBgImg;
 		this.adjustHtmlDom = Page_adjustHtmlDom;
 		this.markFroRedraw = Page_markFroRedraw;
 
@@ -1407,6 +1408,7 @@ nlesson = function() {
 	function Page_updatePagePropertiesDom(pgNo) {
 		this.markFroRedraw();
         this.updateAudio();
+        this.updateBgImg();
         this.lesson.preRender(pgNo);
         this.lesson.postRender();
 	}
@@ -1446,13 +1448,13 @@ nlesson = function() {
 	}
 
 	function Page_createHtmlDom() {
-		var hPage = njs_helper.jobj(njs_helper.fmt2('<section id="{}"/>', this.getPageIdStr()));
-		var newBg = this.bgimg.clone();
-		hPage.append(newBg);
+		var hPage = njs_helper.jobj(njs_helper.fmt2('<section id="{}" class="{}"/>', 
+            this.getPageIdStr(), g_lesson.globals.templateCssClass));
+        this.hPage = hPage;
+        var newBg = this.updateBgImg();
 		this.setNextTabIndex(newBg);
 
 		var hPageHolder = njs_helper.jobj('<div class="pgHolder" />');
-		this.hPage = hPage;
 		this.hPageHolder = hPageHolder;
 		//this.lesson.globals.animationManager.hidePage(this);
 		hPage.append(hPageHolder);
@@ -1500,7 +1502,42 @@ nlesson = function() {
             this.propAudio.html('');
         }
     }
+    
+    function _removeAllTemplateStyles(elem) {
+        var classList = (elem.attr('class') || '').split(/\s+/);
+        var delCnt = 0;
+        for(var i=0; i<classList.length; i++) {
+            if (!classList[i]) {
+                delCnt++;
+                continue;
+            }
+            if (classList[i] != 'bglight' && classList[i] != 'bgdark' 
+                && classList[i].indexOf('look') != 0) continue;
+            delCnt++;
+            elem.removeClass(classList[i]);
+        }
+        if (delCnt == classList.length) {
+            elem.removeAttr('class');
+        }
+    }
 	
+    function Page_updateBgImg() {
+        this.hPage.find('.bgimg').remove();
+        var newBg = null;
+        var cssClass = '';
+        if (this.oPage.bgimg) {
+            newBg = jQuery(njs_helper.fmt2('<img class="bgimg bgimgcustom" src="{}">', this.oPage.bgimg));
+            cssClass = this.oPage.bgshade;
+        } else {
+            newBg = this.bgimg.clone();
+            cssClass = this.lesson.globals.templateCssClass;
+        }
+        _removeAllTemplateStyles(this.hPage);
+        this.hPage.addClass(cssClass);
+        this.hPage.prepend(newBg);
+        return newBg;
+    }
+
 	function Page_adjustHtmlDom() {
 		var me = this;
 		MathJax.Hub.Queue(['Typeset', MathJax.Hub, this.hPage.get(0)]);
@@ -1998,13 +2035,16 @@ nlesson = function() {
 	}
 
 	function updateTemplate(cssClass, bgImg) {
-		jQuery('.njsSlides').removeClass(g_lesson.globals.templateCssClass).addClass(cssClass);
-		g_lesson.globals.templateCssClass = cssClass;
-		
 		jQuery('.bgimg').each(function() {
-			jQuery(this).attr('src', bgImg);
+		    var elem = jQuery(this);
+		    if (!elem.hasClass('bgimgcustom')) {
+		        elem.attr('src', bgImg);
+                _removeAllTemplateStyles(elem.parent());
+		        elem.parent().addClass(cssClass);
+		    }
 		});
 		g_lesson.bgimg = jQuery('#l_pageData .bgimg');
+        g_lesson.globals.templateCssClass = cssClass;
 	}
 	
 	function doModeToggle() {

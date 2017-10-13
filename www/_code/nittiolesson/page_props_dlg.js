@@ -26,6 +26,8 @@ function(nl, nlDlg) {
 			{id:'audioUrl', name: nl.t('Audio url'), type:'string'},
 			{id:'autoVoice', name: nl.t('Audio script'), type:'textarea'},
 			{id:'hint', name: nl.t('Page hint'), type:'textarea'},
+            {id:'bgimg', name: nl.t('Background image'), type:'string'},
+            {id:'bgshade', name: nl.t('Text Color'), type:'select', condition: 'isBgimg'},
 			{id:'visibility', name: nl.t('Visibility'), type: 'select', condition: 'isBleedingEdge'}];
 			
 		_updatePageProps(_pageProps);
@@ -45,13 +47,16 @@ function(nl, nlDlg) {
                 + '<p><b>rate:</b> Any number between 0.1 and 10 (1 is normal speed)</p>'
                 + '<p><b>pitch:</b> Any number between 0 and 2 (1 is normal pitch)</p>'),
             hint : nl.t('Provide addtional hints to the learner which will be displayed to the learner in report mode'),
+            bgimg : nl.t('Provide URL of the background image for this page. If not specified, the module background image will be taken'),
+            bgshade : nl.t('Valid only if background image is set for the page. Depending on whether your image is dark or light, you can set the text color to one which is clearly visible in the background. With this, you can control the colors used for different types of text (normal, heading, link, ...)'),
             visibility : nl.t('Should the page be visible in learning mode (assignments) or just as a note to editor (i.e. hidden page). By default a page is visible in all modes.')
 	};
 	
 	var visibilityOpt = [{id:'always', name:nl.t('Always')},
 						{id:'editor', name: nl.t("Editor's note")}];
 
-	
+    var bgshades = [{id: 'bglight', name: 'Dark text color for lighter background'},
+                    {id: 'bgdark', name: 'Light text color for darker background'}];
 	function _updatePageProps(_pageProps) {
 		for (var i=0; i<_pageProps.length; i++) {
 			var prop = _pageProps[i];
@@ -90,11 +95,14 @@ function(nl, nlDlg) {
 		pagePropsDlg.scope.data.audioUrl = _oPage.audioUrl;
 		pagePropsDlg.scope.data.autoVoice = _oPage.autoVoice;
 		pagePropsDlg.scope.data.hint = _oPage.hint;
-		pagePropsDlg.scope.options = {visibility: visibilityOpt};
+        pagePropsDlg.scope.data.bgimg = _oPage.bgimg || '';
+        pagePropsDlg.scope.data.bgshade = _oPage.bgshade == "bgdark" ? bgshades[1] : bgshades[0];
+		pagePropsDlg.scope.options = {visibility: visibilityOpt, bgshade: bgshades};
 		pagePropsDlg.scope.data.visibility = _oPage.visibility === 'editor' ? visibilityOpt[1] : visibilityOpt[0];
 		pagePropsDlg.scope.data.canShow = function(condition, item) {
 			if (condition == 'isBleedingEdge') return (_moduleConfig.grpProps.isBleedingEdge);
 			if (condition == 'isMaxScore') return (_defMaxScore > 0);
+            if (condition == 'isBgimg') return (pagePropsDlg.scope.data.bgimg != '');
 			return true;
 		};
 		
@@ -118,6 +126,8 @@ function(nl, nlDlg) {
 		_oPage.audioUrl = data.audioUrl;
 		_oPage.autoVoice = data.autoVoice;
 		_oPage.hint = data.hint;
+        _oPage.bgimg = data.bgimg;
+        _oPage.bgshade = data.bgshade.id;
 		_oPage.visibility = data.visibility.id;
 	}
 }];
