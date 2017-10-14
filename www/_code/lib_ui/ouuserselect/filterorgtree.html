@@ -1,0 +1,30 @@
+<div class='row row-top row-wrap margin0 padding-mid'>
+    <div ng-class='$root.resp2Col33' class='nl-dlg-field-name'>Organization</div>
+    <div ng-class='$root.resp2Col67' class='nl-dlg-field-value'>
+        <nl-tree-select info='data.org_unit'>
+        </nl-tree-select>
+	</div>
+</div>
+<div class='row row-top row-wrap margin0 padding-mid'
+     ng-repeat='mdFilter in data.mdFilters'>
+    <div ng-class='$root.resp2Col33'
+         class='nl-dlg-field-name'>
+        {{mdFilter.name}}
+    </div>
+    <div ng-class='$root.resp2Col67'
+         class='nl-dlg-field-value'>
+        <nl-tree-select info='mdFilter.value'
+                        tabindex='0'
+                        autofocus=''>
+        </nl-tree-select>
+    </div>
+</div>
+<div class='row row-top row-wrap margin0 padding-mid'>
+    <div ng-class='$root.resp2Col33' class='nl-dlg-field-name'>
+    	{{data.moreTitle}}
+    </div>
+   	<div ng-class='$root.resp2Col67' 
+    	 class='nl-dlg-field-value'>
+    	<nl-tree-select info='data.moreTree'></nl-tree-select>     	 	
+	</div>
+</div>

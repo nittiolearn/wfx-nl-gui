@@ -277,7 +277,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 		var info = {type: typename};
 		if (page !== undefined) info.page = page;
 		if (section !== undefined) info.section = section;
-		if (prefix != undefined) info.prefix = prefix;
+		if (prefix !== undefined) info.prefix = prefix;
 		_translateDict[_translateArray.length]= info;
 		_translateArray.push(value);
 	}

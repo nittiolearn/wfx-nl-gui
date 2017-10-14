@@ -26,9 +26,10 @@ var MAX_LIST_SIZE = 100;
 
 //-------------------------------------------------------------------------------------------------
 var CourseReportSummaryCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlServerApi', 
-'nlExporter', 'nlRangeSelectionDlg', 'nlGroupInfo', 'nlTable', 'nlCourse', 'nlOuUserSelect', 'nlTreeSelect',
+'nlExporter', 'nlRangeSelectionDlg', 'nlGroupInfo', 'nlTable', 'nlCourse', 'nlTreeSelect', 
+'nlOrgMdMoreFilters',
 function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionDlg,
-    nlGroupInfo, nlTable, nlCourse, nlOuUserSelect, nlTreeSelect) {
+    nlGroupInfo, nlTable, nlCourse, nlTreeSelect, nlOrgMdMoreFilters) {
     var _data = {urlParams: {}, createdFrom: null, createdTill: null, 
         courseRecords: {}, reportRecords: {}, pendingCourseIds: {}};
 
@@ -352,8 +353,6 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         return _data.courseRecords[_data.urlParams.courseId].name || '';
     }
 
-    var _filterTrees = null;
-
     function _onExport() {
         if (_fetcher.fetchInProgress()) return;
         var dlg = nlDlg.create($scope);
@@ -363,7 +362,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         dlg.scope.data = {};
         nlGroupInfo.update();
 		_setExportFilters(dlg);
-
+		var filterData = dlg.scope.filtersData;
         var exportButton = {
             text : nl.t('Export'),
             onTap : function(e) {
@@ -375,9 +374,10 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
                     return null;
                 }
                 _data.urlParams.exportTypes = exp;
-				_data.filterValues = _filterTrees.getSelectedFilters();
-				_data.selectedOus = _getSelectedOusFromTree(dlg.scope.data.org_unit);
-				_data.selectedCourse = _getSelectedCourseModuleIds();
+				_data.selectedOus = nlOrgMdMoreFilters.getSelectedOus(filterData);
+				_data.selectedMds = nlOrgMdMoreFilters.getSelectedMds(filterData);
+				_data.selectedCourses = nlOrgMdMoreFilters.getSelectedMores(filterData);
+
                 nlDlg.showLoadingScreen();
                 var promise = nl.q(function(resolve, reject) {
                     _export(resolve, reject);
@@ -389,52 +389,15 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
                 });
             }
         };
-        var cancelButton = {
-            text : nl.t('Cancel')
-        };
+        var cancelButton = {text : nl.t('Cancel')};
         dlg.show('view_controllers/course/report/course_rep_export.html',
             [exportButton], cancelButton);
     }
 
-    function _getSelectedOusFromTree(treeInfo) {
-        var selected = nlTreeSelect.getSelectedIds(treeInfo);
-        var ret = {};
-        for(var key in selected) {
-            ret[key] = true;
-        }
-        return ret;
-    }
-
-	function _getSelectedCourseModuleIds() {
-		var selected = nlTreeSelect.getSelectedIds(_courseTree);
-		var ret = {};
-		for(var key in selected) {
-			var item = selected[key];
-			var indexOfA = item.id.indexOf('A');
-			var indexOfDot = item.id.indexOf('.');
-			var id = item.id.slice(indexOfA + 1, indexOfDot);
-			ret[id] = true; 
-			ret[item.id] = true;
-		}
-		return ret;
-	}
-	var _courseTree = [];
 	function _setExportFilters(dlg) {
-        var filterDicts = _filterArrayToDict(nlGroupInfo.getUserMetadata(null) || {});
-        _filterTrees = nlOuUserSelect.getMetadataFilterTrees(filterDicts, false);
-        dlg.scope.data.filters = _filterTrees.getFilters();
 		var records = _getReportsAsList();
-		_courseTree = {data: _getCourseModuleTree(records) || []};
-	    nlTreeSelect.updateSelectionTree(_courseTree, {});
-	    _courseTree.treeIsShown = false;
-	    _courseTree.multiSelect = true;
-		_courseTree.showSearchField = false;
-		_courseTree.fieldmodelid = 'courseTree';
-
-		dlg.scope.options = {courseTree: _courseTree};
-        var groupInfo = nlGroupInfo.get();
-        dlg.scope.data.org_unit = nlOuUserSelect.getOuTree(groupInfo, 
-            [], false, true);
+		var courseTree = {data: _getCourseModuleTree(records) || []};
+		dlg.scope.filtersData = nlOrgMdMoreFilters.getData(courseTree, 'Course and module');
 	}
 
 	function _getCourseModuleTree(records) {
@@ -463,18 +426,6 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         treeArray.push({id: moduleKey, name: lessonObj.name, origId: lessonObj.id});
     }
 
-    function _filterArrayToDict(filters) {
-        var ret = {};
-        for(var key in filters) {
-            var values = filters[key];
-            ret[key] = {};
-            for (var i=0; i<values.length; i++) {
-                ret[key][values[i]] = true;
-            }
-        }
-        return ret;
-    }
-
     var _CSV_DELIM = '\n';
     function _export(resolve, reject) {
         try {
@@ -482,6 +433,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
             var moduleRows = _data.urlParams.exportTypes.module ? [] : null;
 
 		    var expSummaryStats = new SummaryStats(nl, nlGroupInfo, _data, _reportProcessor, $scope);
+				expSummaryStats.init();
             var records = _getReportsAsList();
             for(var start=0, i=1; start < records.length; i++) {
                 var pending = records.length - start;
@@ -490,6 +442,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
             	_createUserCsv(records, zip, fileName, start, start+pending, moduleRows, expSummaryStats);	
                 start += pending;
             }
+
 
             if (_data.urlParams.exportTypes.summary) {
                 var records = _getSummaryAsList(expSummaryStats);
@@ -559,13 +512,13 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
         for (var i=start; i<end; i++) {
             var row = _reportProcessor.getCsvRow(records[i]);
 
-			var selectedCourseId = _checkFilter(_data.selectedCourse, records[i].course.id);
+			var selectedCourseId = _checkFilter(_data.selectedCourses, records[i].course.id);
 			var selectedOus = _checkFilter(_data.selectedOus, records[i].user.org_unit);
  			
 			var selectedMetaFields = true;
-            for(var meta in _data.filterValues) {
-            	var selectedMetas = _data.filterValues[meta];
-            	if (_checkFilter(_data.filterValues[meta], records[i].usermd[meta])) continue;
+            for(var meta in _data.selectedMds) {
+            	var selectedMetas = _data.selectedMds[meta];
+            	if (_checkFilter(_data.selectedMds[meta], records[i].usermd[meta])) continue;
             	selectedMetaFields = false;
             	break;
             }
@@ -585,7 +538,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
     
     function _createSummaryCsv(summaryStats, zip, fileName, start, end) {
         var header = ['Org'];
-        var metas = _reportProcessor.getMetaHeaders(true);
+        var metas = _reportProcessor.getMetaHeaders(false);
         for(var i=0; i<metas.length; i++) header.push(metas[i].name);
         header = header.concat(['Completion', 'Assigned', 'Done', 'Failed', 'Started', 'Pending']);
         var rows = [nlExporter.getCsvString(header)];
@@ -920,7 +873,7 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
         for(var m=0; m<modules.length; m++) {
             var module=modules[m];
             var moduleKey = 'A'+report.course.id + '.' + module.id.split('.').join('_');
-        	if (!_checkFilter(_data.selectedCourse, moduleKey)) continue;
+        	if (!_checkFilter(_data.selectedCourses, moduleKey)) continue;
             var status = 'pending';
             var perc='';
             var score='';
@@ -970,7 +923,7 @@ function SummaryStats(nl, nlGroupInfo, _data, _reportProcessor, $scope) {
     var _orgDict = {};
     
     this.init = function() {
-        _metas = _reportProcessor.getMetaHeaders(true);
+        _metas = _reportProcessor.getMetaHeaders(false);
     };
     
     this.reset = function() {

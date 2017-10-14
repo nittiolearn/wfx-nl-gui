@@ -32,35 +32,8 @@
         <div class='row row-top row-wrap margin0 padding-mid'>
         	<span class='fsh4'>Filter data and export subset of records</span>
         </div>
-
-        <div class='row row-top row-wrap margin0 padding-mid'
-             ng-repeat='filter in data.filters'>
-            <div ng-class='resp2Col33'
-                 class='nl-dlg-field-name'>
-                {{filter.name}}
-            </div>
-            <div ng-class='resp2Col67'
-                 class='nl-dlg-field-value'>
-                <nl-tree-select info='filter.value'
-                                tabindex='0'
-                                autofocus=''>
-                </nl-tree-select>
-            </div>
-        </div>        
-        <div class='row row-top row-wrap margin0 padding-mid'>
-            <div ng-class='resp2Col33' class='nl-dlg-field-name'>Organization</div>
-            <div ng-class='resp2Col67' class='nl-dlg-field-value'>
-                <nl-tree-select info='data.org_unit'>
-                </nl-tree-select>
-                <div ng-show='error.org_unit' class='nl-dlg-field-errormsg'>{{error.org_unit}}</div>
-			</div>
-		</div>
-        <div class='row row-top row-wrap margin0 padding-mid'>
-            <div ng-class='resp2Col33' class='nl-dlg-field-name'>Course and module</div>
-	       	<div ng-class='resp2Col67' 
-		    	 class='nl-dlg-field-value'>
-		    	<nl-tree-select info='options.courseTree'></nl-tree-select>     	 	
-			</div>
-		</div>
+        
+        <nl-org-metadata-more-filters data='filtersData'>
+        </nl-org-metadata-filters>
     </nl-dlg-content>
 </nl-dlg>
