@@ -624,6 +624,7 @@ nittio = function() {
 			if (parentLink.length == 1) {
 				parent.addClass('aspect_wrt_with_imglink');
 			}
+            if (imgObj.hasClass('bgcover')) parent.css({'background-size': 'cover'});
 			imgObj.hide();
 		});
 		

@@ -350,6 +350,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         var info = nlExportLevel.getExportLevelInfo(grpExportLevel);
         
         var attr = allowedCourseAttrs.exportLevel;
+        if (!attr) return;
         attr.values = info.elList;
         attr.valueNames = info.elDesc;
         if (grpExportLevel == nlExportLevel.EL_PRIVATE) {

@@ -111,8 +111,10 @@ function _markupToHtmlImg(str, bInline) {
     var cls = bInline ? 'inline_obj' : 'retain_aspect_ratio';
     return _parseWikiMarker(str, 'img:', function(imgUrl, avpairs) {
         if (imgUrl == '') return '';
+        cls += 'cover' in avpairs && avpairs['cover'] == "1" ? ' bgcover' : '';
         var html = nl.fmt2('<img class="{} njs_img" src="{}" />', cls, imgUrl);
-        if ('link' in avpairs) html = nl.fmt2('<a href="{}">{}</a>', avpairs['link'], html);
+        var newTab = 'popup' in avpairs && avpairs['popup'] == "1" ? ' target="_blank"' : '';
+        if ('link' in avpairs) html = nl.fmt2('<a{} href="{}">{}</a>', newTab, avpairs['link'], html);
         return html;
     });
 }
@@ -240,8 +242,8 @@ function _handleLink(line) {
     return _parseWikiMarker(line, 'link:', function(link, avpairs) {
         if (link == '') return '';
         var title = 'text' in avpairs ? avpairs['text'] : link;
-        var newTab = 'popup' in avpairs && avpairs['popup'] == "1" ? 'target="_blank"' : '';
-        return nl.fmt2('<a {} href="{}">{}</a>', newTab, link, title);
+        var newTab = 'popup' in avpairs && avpairs['popup'] == "1" ? ' target="_blank"' : '';
+        return nl.fmt2('<a{} href="{}">{}</a>', newTab, link, title);
     });
 }
 
