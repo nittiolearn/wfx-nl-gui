@@ -20,11 +20,9 @@
             <i ng-hide='scopeData.exportIds' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
             <span>export internal identifiers</span>
         </div>
-        <div class='padding-small'></div> 
-        <div class='padding-small'>
-            <div class='nl-button' ng-click='onExport()'>Export</div>
-        </div>
+        <nl-org-metadata-more-filters data='filtersData' ng-if='scopeData.reptype != "user"'>
+        </nl-org-metadata-more-filters>
     </div>
-    <nl-progress-log></nl-progress-log>
+    <nl-progress-log ng-show='scopeData.showProgressLog'></nl-progress-log>
 </nl-dlg-content>
 </nl-dlg>

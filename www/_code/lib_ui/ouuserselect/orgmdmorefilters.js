@@ -67,7 +67,8 @@ function(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect) {
 			var indexOfA = item.id.indexOf('A');
 			var indexOfDot = item.id.indexOf('.');
 			var parentId = item.id.slice(indexOfA + 1, indexOfDot);
-			ret[parentId] = true; 
+			if(item.origId) ret[item.origId] = true;
+			if(item.id.indexOf('.') > 0) ret[parentId] = true; 
 			ret[item.id] = true;
 		}
 		return ret;

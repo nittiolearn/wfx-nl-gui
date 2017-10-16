@@ -64,17 +64,18 @@ function(nl) {
 
 //-------------------------------------------------------------------------------------------------
 var NlAssignReportStats = ['nl', 'nlDlg', 'nlExporter', 'nlProgressLog', 
-'nlGroupInfo', '$templateCache', 'nlTreeSelect', 'nlOuUserSelect', 'nlRouter',
+'nlGroupInfo', '$templateCache', 'nlTreeSelect', 'nlOuUserSelect', 'nlRouter', 'nlOrgMdMoreFilters',
 function(nl, nlDlg, nlExporter, nlProgressLog, nlGroupInfo, $templateCache, 
-    nlTreeSelect, nlOuUserSelect, nlRouter) {
+    nlTreeSelect, nlOuUserSelect, nlRouter, nlOrgMdMoreFilters) {
     var self = this;
     var ctx = null;
     var dlg = null;
     var _metaFields = null;
-    var scopeData = {inProgress: false, exportPageScore: false, exportFeedback: false,
+    var scopeData = {showProgressLog: false, inProgress: false, exportPageScore: false, exportFeedback: false,
         exportIds: false, canShowIds: false};
     
     this.createReportStats = function(reptype, parentScope) {
+    	scopeData.reptype = reptype;
         var reportStats = new ReportStats(reptype, nl, nlDlg, nlGroupInfo, 
             nlTreeSelect, nlOuUserSelect, parentScope);
         _metaFields = reportStats.getMetaHeaders();
@@ -82,12 +83,14 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlGroupInfo, $templateCache,
     };
 
     this.export = function($scope, reports, _userInfo) {
+		if (_checkInProgress()) return;
         scopeData.canShowIds = nlRouter.isPermitted(_userInfo, 'admin_user');
         ctx = {pl: nlProgressLog.create($scope)};
         dlg = _showDlg($scope, reports, _userInfo);
     };
     
     function _onExport(reports, _userInfo) {
+    	scopeData.showProgressLog = true;
         _initCtx(reports, _userInfo);
 
         scopeData.inProgress = true;
@@ -322,7 +325,7 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlGroupInfo, $templateCache,
     }
 
     function _initCtx(reports, _userInfo) {
-        _initExportHeaders(_userInfo, scopeData.exportIds)
+        _initExportHeaders(_userInfo, scopeData.exportIds);
         ctx.overviewRows = [nlExporter.getCsvHeader(_hOverview)];
         ctx.pScoreRows = [nlExporter.getCsvHeader(_hPageScores)];
         ctx.feedbackRows = [nlExporter.getCsvHeader(_hFeedback)];
@@ -337,18 +340,80 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlGroupInfo, $templateCache,
         ctx.feedbackFiles = 0;
     }
     
+    function _checkInProgress() {
+        if (scopeData.inProgress) {
+        	nlDlg.popupAlert({title: 'Please wait', template: 'Export is in progress. Please wait till it is complete'});
+        	return true;
+        }
+        return false;
+    }
+    
     function _showDlg($scope, reports, _userInfo) {
+    	scopeData.showProgressLog = false;
         var dlg = nlDlg.create($scope);
         dlg.scope.progressLog = ctx.pl.progressLog;
         dlg.scope.scopeData = scopeData;
-        dlg.scope.onExport = function() {
-            _onExport(reports, _userInfo);
-        };
+        _setFiltersAndTree(dlg, reports);
+        var filterData = dlg.scope.filtersData;
         dlg.setCssClass('nl-height-max nl-width-max');
+        var exportButton = {text: nl.t('Export'), onTap: function(e) {
+            if(e) e.preventDefault();
+	    	if (_checkInProgress()) return;
+    		var selectedOus = nlOrgMdMoreFilters.getSelectedOus(filterData);
+			var selectedMds = nlOrgMdMoreFilters.getSelectedMds(filterData);
+			var selectedCourses = nlOrgMdMoreFilters.getSelectedMores(filterData);
+			_filterAndExportReports(reports, _userInfo, selectedOus, selectedMds, selectedCourses);
+        }};
         var cancelButton = {text: nl.t('Close')};
-        dlg.show('view_controllers/assignment_report/assign_rep_exp_dlg.html', [], cancelButton);
+        dlg.show('view_controllers/assignment_report/assign_rep_exp_dlg.html', [exportButton], cancelButton);
         return dlg;
     }
+
+	function _setFiltersAndTree(dlg, reports) {
+		var courseTree = {data: _getCourseModuleTree(reports) || []};
+		dlg.scope.filtersData = nlOrgMdMoreFilters.getData(courseTree, 'Module');
+	}
+
+	function _getCourseModuleTree(reports) {
+		var treeArray = [];
+		var insertedKeys = {};
+		for(var i=0; i<reports.length; i++) {
+			var module = reports[i];
+			var moduleKey = null;
+			var courseKey = null;
+			var moduleKey = 'A'+module.lesson_id;
+			if(moduleKey in insertedKeys) continue;
+			insertedKeys[moduleKey] = true;
+			treeArray.push({id:moduleKey, name:module.name, origId: module.lesson_id});
+		}
+		return treeArray;
+	}
+	
+	function _filterAndExportReports(reports, _userInfo, _selectedOus, selectedMds, selectedCourses) {
+		var filteredReports = [];
+		for(var i=0; i<reports.length; i++) {
+			var selectedOus = _checkFilter(_selectedOus, reports[i].org_unit);
+			var lesson_id = 'A'+reports[i].lesson_id;
+			var selectedCourseId = _checkFilter(selectedCourses, lesson_id);
+			
+			var selectedMetaFields = true;
+	        for(var meta in selectedMds) {
+	        	var selectedMetas = selectedMds[meta];
+	        	var rep = reports[i];
+	        	if (_checkFilter(selectedMds[meta], rep[meta])) continue;
+	        	selectedMetaFields = false;
+	        	break;
+	        }
+            if(selectedCourseId && selectedOus && selectedMetaFields) {
+	            filteredReports.push(reports[i]);
+            }
+		}
+        _onExport(filteredReports, _userInfo);
+	}
+
+	function _checkFilter(filterItems, userField) {
+		return Object.keys(filterItems).length == 0 || (userField in filterItems);
+	}
 
     var _progressLevels = {
         start: [0, 0],
