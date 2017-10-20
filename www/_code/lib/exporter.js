@@ -129,13 +129,12 @@ function(nl, nlDlg) {
     }
 
     this.exportTextFile = function(fileName, data, uri) {
-        if(!uri) uri = 'data:text/plain;charset=utf-8,';
-        data = uri + nl.fmt.encodeUri(data);
-        _saveFile(fileName, data);
+        if(!uri) uri = 'data:text/plain;charset=utf-8';
+        _saveFile(fileName, data, uri);
     };
 
     this.exportCsvFile = function(fileName, data) {
-        var uri = 'data:text/csv;charset=utf-8,';
+        var uri = 'data:text/csv;charset=utf-8';
         this.exportTextFile(fileName, data, uri);
     };
 
@@ -175,11 +174,9 @@ function(nl, nlDlg) {
         return val;
     }
 
-    function _saveFile(fileName, csvContent) {
-        var link = document.createElement('a');
-        link.setAttribute('href', csvContent);
-        link.setAttribute('download', fileName);
-        link.click();
+    function _saveFile(fileName, csvContent, uri) {
+        var blob = new Blob([csvContent], {type: uri});
+        saveAs(blob, fileName);
     }
     
 }];

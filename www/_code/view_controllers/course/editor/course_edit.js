@@ -552,7 +552,10 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
             editedModule['action']= 'none'; 
             editedModule['hide_remarks']= true;
             editedModule['autocomplete']= true; 
-            editedModule['urlParams']= '/#/course_cert';
+
+            // Not /#/course_cert as same URL (/) will not be loaded 
+            // in iframe by some browser
+            editedModule['urlParams']= '/default/home/#/course_cert';
 	    }
         return editedModule;
     }

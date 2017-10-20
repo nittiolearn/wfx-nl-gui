@@ -3,7 +3,7 @@
         .cert {
             position: relative;
         }
-        .bgimg {
+        .minbgimg {
         	min-height: 90vh;
             width: 100%;
         }
@@ -62,7 +62,8 @@
     </style>
     <div ng-if='available'
          class='cert'>
-         <img class='bgimg' ng-src='{{bgimg}}'>
+         <div ng-if='!bgimg' class='minbgimg'></div>
+         <img ng-if='bgimg' class='minbgimg' ng-src='{{bgimg}}'>
          <div class='content'>
             <p class='fmttitle'>This is to certify that</p>
             <p class='fmtuser'>{{userName}}</p>
