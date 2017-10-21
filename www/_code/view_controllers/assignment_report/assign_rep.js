@@ -501,12 +501,12 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 				}
 			}
 		}
-		_updateVisibalityToUsers(alreadySharedUsers, assignmentShareDlg);
+		_updateVisibilityToUsers(alreadySharedUsers, assignmentShareDlg);
 		sharedUsersAndIds.push(alreadySharedUsers, alreadySharedUsersIds);
 		return sharedUsersAndIds;
 	}
 
-	function _updateVisibalityToUsers(alreadySharedUsers, assignmentShareDlg){
+	function _updateVisibilityToUsers(alreadySharedUsers, assignmentShareDlg){
 		if(alreadySharedUsers.length == 0) assignmentShareDlg.scope.data.sharedWith = nl.t('Shared With no users:');
 		if(alreadySharedUsers.length == 1) assignmentShareDlg.scope.data.sharedWith = nl.t('Shared With {} user:', alreadySharedUsers.length);
 		if(alreadySharedUsers.length > 1) assignmentShareDlg.scope.data.sharedWith = nl.t('Shared With {} users:', alreadySharedUsers.length);
@@ -537,7 +537,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 					alreadySharedUsers.push(userObject);
 					alreadySharedUsersIds.push(node.userObj.id);		
 			}
-			_updateVisibalityToUsers(alreadySharedUsers, assignmentShareDlg);
+			_updateVisibilityToUsers(alreadySharedUsers, assignmentShareDlg);
 			sharedUsersAndIds.push(alreadySharedUsers, alreadySharedUsersIds);
 			return sharedUsersAndIds;
 		}
