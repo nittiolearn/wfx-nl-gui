@@ -291,6 +291,7 @@ njs_slides = function() {
 	    var myTransitionId = g_transitionId;
 	    function postAnim() {
 	        if (myTransitionId != g_transitionId) return;
+            newPage.css({transform: 'none'});
 	        postAnimationFn();
 	    }
 	    

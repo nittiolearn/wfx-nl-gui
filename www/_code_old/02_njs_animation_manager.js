@@ -152,7 +152,7 @@ function AnimationManager() {
 		};
 		var hObj = hObjs[pos];
 		_currentAnimObjs[objId] = hObj;
-		hObj.velocity('finish').velocity(props, opts);
+        _animateImpl(hObj, props, opts);
 	}
 
 	function _hide(hobj) {
@@ -166,9 +166,18 @@ function AnimationManager() {
 	function _animateNow(hobj, effect) {
 		var	props = _effects[effect]();
         var opts = {duration: 0, delay: 0, easing:'easeOutQuad'};
-		hobj.velocity('finish').velocity(props, opts);
+        _animateImpl(hobj, props, opts);
 	}
 	
+    function _animateImpl(hobj, props, opts) {
+        var oldComplete = opts.complete || null;
+        opts.complete = function() {
+            hobj.css({transform: 'none'});
+            if (oldComplete) oldComplete();
+        };
+        hobj.velocity('finish').velocity(props, opts);
+    }
+    
 	//--------------------------------------------------------------------------------------------
 	// Helpers around aniation feature in lesson object
 	this.getTemplateAnimations = function(lesson) {
