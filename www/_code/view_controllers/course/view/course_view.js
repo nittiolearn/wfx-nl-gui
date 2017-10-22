@@ -466,9 +466,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
             nextFn();
             return;
         }
+        // If iframe has swf object in wmode=window, it will appear on top of rest of element. It has to be hidden.
+        $scope.vp.iframehide = true;
         nlDlg.popupConfirm({title: nl.t('Please confirm'), 
             template: nl.t('Do you want to navigate away from current module?')})
             .then(function(res) {
+                $scope.vp.iframehide = false;
                 if (!res) return;
                 $scope.iframeUrl = null;
                 $scope.iframeModule = null;

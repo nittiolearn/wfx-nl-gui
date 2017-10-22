@@ -24,6 +24,10 @@
         width: auto;
         height: auto;
     }
+    .iframehide iframe {
+        width: 0px !important;
+        height: 0px !important;
+    }
 </style>
 <nl-course-view-toolbar></nl-course-view-toolbar>
 <div ng-show='vp.t' class='{{vp.i || vp.c || vp.d ? "frame1" : "frame0"}}'
@@ -34,7 +38,7 @@
      class='padding-small {{vp.t ? "frame2" : "frame0"}}'>
     <div class='padding-mid nl-thin-scroll' style='height: 100%'>
         <div ng-if='vp.i' style='position: absolute; top: 4px; bottom: 4px; left: 4px; right: 4px;'>
-            <nl-course-view-frame></nl-course-view-frame>
+            <nl-course-view-frame ng-class='{"iframehide": vp.iframehide}'></nl-course-view-frame>
         </div>
         <nl-course-canvas-view ng-show='vp.c' class='anim fade'>
         </nl-course-canvas-view>
