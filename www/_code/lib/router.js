@@ -72,6 +72,21 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state) {
         windowDescription = descr;
     };
     
+    this.updateBodyClass = function(cls, bAdd) {
+        var classes = nl.rootScope.bodyClass || '';
+        var classes = classes.split(' ');
+        var newClasses = [];
+        var addClsToEnd = bAdd;
+        for(var i=0; i<classes.length; i++) {
+            if (!classes[i]) continue;
+            if (classes[i] == cls && !bAdd) continue;
+            if (classes[i] == cls && bAdd) addClsToEnd = false;
+            newClasses.push(classes[i]);
+        }
+        if (addClsToEnd) newClasses.push(cls);
+        nl.rootScope.bodyClass = newClasses.join(' ');
+    }
+
     this.sendGoogleAnalytics = function(userInfo, reqtype) {
         _sendGoogleAnalytics(userInfo, reqtype);
     };

@@ -273,6 +273,11 @@ ul ul, ul ol, ol ol, ol ul {
     background-color: transparent;
 }
 
+.iframeActive .pane {
+  // To solve a Firefox bug (see issue #781)
+  transform: none !important;
+}
+
 /*-----------------------------------------------------------------------------------------*
  * Popup-container specific overrides
  *-----------------------------------------------------------------------------------------*/
