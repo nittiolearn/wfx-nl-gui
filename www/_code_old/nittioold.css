@@ -263,6 +263,54 @@ input[type="file"] {
   right: 2px;
   bottom: 2px;
   opacity: 0;
+  transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+}
+
+#toolbelt {
+  position: absolute;
+  top: 42px;
+  right: 2px;
+  bottom: 2px;
+  width: 0;
+  height: auto;
+  background-color: #F0F0F0;
+  opacity: 0;
+  transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+}
+
+.toolbeltShown #toolbelt {
+  width: 196px;
+  opacity: 1;
+}
+
+.toolbeltShown .body {
+  right: 200px;
+}
+
+.toolbeltTitle {
+	font-size: 120%;
+	color: white;
+	background-color: #777777;
+}
+
+i.toolbeltIcon {
+	font-size: 22px !important;
+	width: 30px !important;
+	height: 30px !important;
+}
+
+i.toolbeltIcon.icon:hover {
+	background-color: inherit;
+	box-shadow: none;
+}
+
+.compactToolbelt .toolbeltRow {
+	display: inline-block;
+	width: auto;
+}
+
+.compactToolbelt .toolbeltTxt {
+	display: none;
 }
 
 .embedded_player .body, .embedded_player .toolBar {
@@ -458,6 +506,11 @@ a.enabled {
   width: auto;
   height: auto;
   padding: 0;
+  transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+}
+
+.toolbeltshown #pageNoArea {
+  right: 202px;
 }
 
 .pgNoStyle {
