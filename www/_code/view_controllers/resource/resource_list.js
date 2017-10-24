@@ -216,6 +216,16 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 	}
 	
 	function _addModifyResource($scope, card){
+	    // TODO-NAVEEN-NOW (remove this later)
+        var params = nl.location.search();
+        if (params.insert) {
+            nlResourceAddModifySrv.insertOrUpdateResource($scope, _userInfo.groupinfo.restypes, 'imgx:', true)
+            .then(function(url) {
+                nlDlg.popupAlert({title: 'url', template: url === null ? 'null': url});
+            });
+        }
+        // end TODO-NAVEEN-NOW
+
 		nlResourceAddModifySrv.show($scope, card, _userInfo.groupinfo.restypes)
 		.then(function(resInfos) {
 			if (_bFirstLoadInitiated && resInfos.length == 0) return;
@@ -259,35 +269,42 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 						{id: 'medium', name:'Medium compression'},
 						{id: 'high', name:'High compression'}];
 
-	this.show = function($scope, card, restypes, onlyOnce) {
+	this.show = function($scope, card, restypes, onlyOnce, markupHandler) {
+	    if (!markupHandler) markupHandler = new MarkupHandler(nl, nlDlg);
 		return nl.q(function(resolve, reject) {
 			var addModifyResourceDlg = nlDlg.create($scope);
 			_initResourceDlg(addModifyResourceDlg, card, restypes);
+            markupHandler.initScope(addModifyResourceDlg.scope);
             addModifyResourceDlg.resolveAfterOnce = function () {
                 if (!onlyOnce) return false;
-                addModifyResourceDlg.resolve();
+                addModifyResourceDlg.resolve(true);
                 return true;
             }; 
-            addModifyResourceDlg.resolve = function () {
+            addModifyResourceDlg.resolve = function (afterFirstOk) {
                 // Avoid multiple callbacks which are comming due to "close" call
                 if (addModifyResourceDlg.resolvedCalled) return;
                 addModifyResourceDlg.resolvedCalled = true;
                 addModifyResourceDlg.close();
-                resolve(addModifyResourceDlg.resInfos);
+                resolve(markupHandler.processResults(addModifyResourceDlg, afterFirstOk));
             }; 
-			_showDlg(addModifyResourceDlg, card, $scope, restypes);
+			_showDlg(addModifyResourceDlg, card, $scope, restypes, markupHandler);
 		});
 	};
 
-	function _showDlg(addModifyResourceDlg, card, $scope, restypes){
-		var buttonName = (card === null) ? nl.t('Upload') : nl.t('Modify');
+	function _showDlg(addModifyResourceDlg, card, $scope, restypes, markupHandler) {
+		var buttonName = addModifyResourceDlg.scope.data.buttonname;
         var modifyButton = {text: buttonName, onTap: function(e) {
         	if(e) e.preventDefault();
+        	if (addModifyResourceDlg.scope.data.source.id != 'upload') {
+                if(!markupHandler.validate()) return;
+                addModifyResourceDlg.resolve(true);
+                return;
+        	}
         	_onUploadOrModify(e, addModifyResourceDlg, card, $scope);
         }};
         	
 		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
-            addModifyResourceDlg.resolve();
+            addModifyResourceDlg.resolve(false);
 		}};
         addModifyResourceDlg.show('view_controllers/resource/resource_add_dlg.html', 
         [modifyButton], cancelButton, false);
@@ -306,7 +323,7 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 		addModifyResourceDlg.scope.options.restype = _getRestypeList(restypes);
 
 		if (!card) {
-			addModifyResourceDlg.scope.data.restype.id = addModifyResourceDlg.scope.options.restype[0].name;
+			addModifyResourceDlg.scope.data.restype.id = addModifyResourceDlg.scope.options.restype[0].id;
 			addModifyResourceDlg.scope.data.pagetitle = nl.t('Upload resource');
 			return;
 		}
@@ -363,7 +380,154 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 		}};
         uploadAgainDlg.show('view_controllers/resource/upload_done_dlg.html', [], cancelButton);
 	}
+
+    this.insertOrUpdateResource = function($scope, restypes, markupText, showMarkupOptions) {
+        var markupHandler = new MarkupHandler(nl, nlDlg, true, markupText, showMarkupOptions);
+        var opt = {onlyOnce: true, insertOrUpdateResource: true, markupText: markupText};
+        return this.show($scope, null, restypes, true, markupHandler);
+    };
+
 }];
+
+function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkupOptions) {
+    var _scope =  null;
+    this.initScope = function(scope) {
+        _scope = scope;
+        _scope.markupInfo = {};
+         
+         _scope.data.buttonname =  insertOrUpdateResource ? 'OK' : _scope.card ? 'Modify' : 'Upload';
+
+        _scope.options.source = [
+            {id: 'upload', name: nl.t('Upload from your device to the server')}, 
+            {id: 'url', name: nl.t('Provide a URL from internet')}];
+        _scope.data.source = _scope.options.source[0];
+        _scope.data.url = '';
+
+        if (!insertOrUpdateResource) return;
+        var markupInfo = _scope.markupInfo;
+        markupInfo.insertOrUpdateResource = true;
+        markupInfo.showMarkupOptions = showMarkupOptions;
+        markupInfo.restypeInfo = _getRestypeInfoFromMarkup(markupText);
+        if (markupInfo.restypeInfo) {
+            _scope.data.restype.id = markupInfo.restypeInfo.type;
+            _scope.data.pagetitle = 'Insert ' + markupInfo.restypeInfo.title;
+        } else {
+            _scope.data.pagetitle = 'Insert media';
+        }
+        _initMarkupParams(markupInfo.restypeInfo);
+    }
+    
+    this.validate = function() {
+        if (_scope.data.source.id == 'url' && !_scope.data.url)
+            return _validateFail(_scope, 'url', 
+            'Please specify a valid URL');
+        return true;
+    }
+
+    function _validateFail(scope, attr, errMsg) {
+        return nlDlg.setFieldError(scope, attr,
+            nl.t(errMsg));
+    }
+
+    this.processResults = function(addModifyResourceDlg, afterFirstOk) {
+        if (!insertOrUpdateResource) return addModifyResourceDlg.resInfos;
+        if (!afterFirstOk) return null;
+        var sd = _scope.data;
+        var resInfo = sd.source.id == 'upload' && addModifyResourceDlg.resInfos.length == 1 ?
+            addModifyResourceDlg.resInfos[0] : null;
+        var url = sd.source.id == 'url' ? sd.url : resInfo ? resInfo.url : '';
+        if (!url) return null;
+        if (!showMarkupOptions) return url;
+        return _getMarkupUrl(sd, url);
+    }
+
+    var _markupToInfo = {
+        'img:': {type: 'Image', prefix: 'img:', title: 'image'},
+        'pdf:': {type: 'PDF', prefix: 'pdf:', title: 'PDF'},
+        'audio:': {type: 'Audio', prefix: 'audio:', title: 'audio'},
+        'video:': {type: 'Video', prefix: 'video:', title: 'video'},
+        'link:': {type: 'Attachment', prefix: 'link:', title: 'link'}
+    };
+
+    var _restypeToMarkup = {};
+    function _initRestypeToMarkup() {
+        for(var markup in _markupToInfo) {
+            var info = _markupToInfo[markup];
+            _restypeToMarkup[info.type] = info;
+        }
+    }
+    _initRestypeToMarkup();
+
+    function _getRestypeInfoFromMarkup(markupText) {
+        var pos = markupText ? markupText.indexOf(':') : -1;
+        if (pos < 0) return null;
+        var type = markupText.substring(0, pos+1);
+        var ret = type in _markupToInfo ? angular.copy(_markupToInfo[type]) : null;
+        return ret;
+    }
+    
+    function _initMarkupParams(restypeInfo) {
+        var sd = _scope.data;
+        _scope.options.markupCover = [
+            {id: 'retain_ar', name: nl.t('Retain the aspect ratio of the image')},
+            {id: 'stretch', name: nl.t('Stretch the image to occupy the complete area')}];
+        sd.markupCover = _scope.options.markupCover[0];
+        sd.markupLink = '';
+        sd.markupText = '';
+        sd.markupPopup = true;
+
+        sd.markupPage = 1;
+        sd.markupScale = '1.0';
+
+        sd.markupStart = 0;
+        sd.markupEnd = 0;
+    }
+    
+    function _getMarkupUrl(sd, url) {
+        var prefix = '';
+        var params = [];
+        if (!(sd.restype.id in _restypeToMarkup)) return ret;
+        var markupInfo = _restypeToMarkup[sd.restype.id];
+        if (sd.restype.id == 'Image') {
+            prefix = 'img:';
+            _addMarkupParam(params, 'cover', sd.markupCover.id, 'retain_ar', {stretch: 1});
+            var isLink = _addMarkupParam(params, 'link', sd.markupLink, '');
+            if (isLink) _addMarkupParamBool(params, 'popup', sd.markupPopup, false);
+        } else if (sd.restype.id == 'Attachment') {
+            prefix = 'link:';
+            _addMarkupParam(params, 'text', sd.markupText, '');
+            _addMarkupParamBool(params, 'popup', sd.markupPopup, false);
+        } else if (sd.restype.id == 'PDF') {
+            prefix = 'pdf:';
+            _addMarkupParam(params, 'page', sd.markupPage, 1);
+            _addMarkupParam(params, 'scale', sd.markupScale, '1.0');
+        } else if (sd.restype.id == 'Audio') {
+            prefix = 'audio:';
+            _addMarkupParam(params, 'start', sd.markupStart, 0);
+            _addMarkupParam(params, 'stop', sd.markupStop, 0);
+        } else if (sd.restype.id == 'Vedio') {
+            prefix = 'video:';
+            _addMarkupParam(params, 'start', sd.markupStart, 0);
+            _addMarkupParam(params, 'stop', sd.markupStop, 0);
+        }
+        params = params.join('|');
+        url = prefix + url;
+        if (params) url = nl.fmt2('{}[{}]', url, params);
+        return url;
+    }
+
+    function _addMarkupParam(params, param, dlgVal, defVal, convertDict) {
+        if (!convertDict) convertDict = {};
+        if (dlgVal === defVal) return false;
+        var val = dlgVal in convertDict ? convertDict[dlgVal] : dlgVal;
+        params.push(nl.fmt2('{}={}', param, val));
+        return true;
+    }
+    
+    function _addMarkupParamBool(params, param, dlgVal, defVal) {
+        _addMarkupParam(params, param, dlgVal ? '1' : '0', defVal ? '1' : '0');
+    }
+}
 
 //-------------------------------------------------------------------------------------------------
 var SelectallDirective = ['nl', function (nl) {
