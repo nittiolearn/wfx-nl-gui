@@ -12,6 +12,7 @@ function module_init() {
     .directive('nlInput', InputDirective)
     .directive('nlTextarea', TextareaDirective)
     .directive('nlSelect', SelectDirective)
+    .directive('nlCheckbox', CheckboxDirective)
     .directive('nlModuleSelect', ModuleSelectDirective)
     .directive('nlFormInput', FormInputDirective)
     .directive('nlFormSelect', FormSelectDirective)
@@ -282,6 +283,12 @@ var SelectDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
     return _formFieldDirectiveImpl(nl, nlDlg, 'input',
         'lib_ui/dlg/select.html');
+}];
+
+var CheckboxDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return _formFieldDirectiveImpl(nl, nlDlg, 'div',
+        'lib_ui/dlg/checkbox.html');
 }];
 
 var ModuleSelectDirective = ['nl', 'nlDlg', 'nlLessonSelect',
