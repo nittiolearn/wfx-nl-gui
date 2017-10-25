@@ -234,6 +234,18 @@ var _effects = {
 
 };
 
+function animEffect(elem, animCls, postAnimFn, animTime) {
+    if (!animTime) animTime = 50;
+    elem.addClass(animCls);
+    setTimeout(function() {
+        if (postAnimFn) postAnimFn();
+        setTimeout(function() {
+            elem.removeClass(animCls);
+        }, animTime);
+    }, animTime);
+}
+
 return { 
-	getAnimationManager: getAnimationManager
+	getAnimationManager: getAnimationManager,
+	animEffect: animEffect 
 };}();

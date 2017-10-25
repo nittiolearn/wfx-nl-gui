@@ -729,64 +729,6 @@ nittio = function() {
 		return g_isAspectRaioWide;
 	}
 
-	var _isToolBeltCompact = true;
-	function setupToolbelt(tools) {
-		var tb = jQuery('#toolbelt');
-		tb.html('');
-		if (tools.length == 0)
-			return;
-		jQuery('.pagecanvas').addClass('toolbeltShown');
-
-		function _onToggleToolbelt() {
-			_isToolBeltCompact = !_isToolBeltCompact;
-			if (_isToolBeltCompact)
-				tb.addClass('compactToolbelt');
-			else
-				tb.removeClass('compactToolbelt');
-			var toggleTool = tb.find('#toggle_toolbelt');
-			var icon = toggleTool.find('.toolbeltIcon');
-			icon.removeClass();
-			icon.removeAttr('class');
-			// Remove all classes not working sometime?
-			icon.addClass('icon');
-			icon.addClass( _isToolBeltCompact ? 'ion-arrow-expand' : 'ion-arrow-shrink');
-			var txt = toggleTool.find('.toolbeltTxt');
-			txt.html( _isToolBeltCompact ? 'Expand tool panel' : 'Compact tool panel');
-		}
-
-		_onToggleToolbelt();
-
-		var tool = {
-			id : 'toggle_toolbelt',
-			icon : 'ion-arrow-shrink',
-			name : 'Compact tool panel',
-			onclick : _onToggleToolbelt
-		};
-		tb.append(_getToolbeltIcon(tool));
-
-		var lastGrp = null;
-		for (var i = 0; i < tools.length; i++) {
-			var tool = tools[i];
-			if (lastGrp != tool.grp && tool.grp) {
-				//tb.append('<hr style="margin:5px 0">');
-				tb.append(njs_helper.fmt2('<div class="padding-small toolbeltTitle">{}</div>', tool.grp));
-			}
-			lastGrp = tool.grp;
-			tb.append(_getToolbeltIcon(tool));
-		}
-	}
-
-	function _getToolbeltIcon(tool) {
-		var iconCls = tool.font == 'material-icons' ? 'material-icons' : tool.icon;
-		var iconTxt = tool.font == 'material-icons' ? tool.icon : '';
-		var title = tool.name + tool.shortcut ? tool.shortcut : '';
-		var toolHtml = jQuery(njs_helper.fmt2('<div id="{}" class="toolbeltRow row row-center margin0 padding0 nl-link-img" title="{}"></div>', tool.id, title));
-		toolHtml.append(njs_helper.fmt2('<span class="nl-toolbar-icon"><i class="toolbeltIcon icon {}">{}</i></span>', iconCls, iconTxt));
-		toolHtml.append(njs_helper.fmt2('<span class="col toolbeltTxt">{}</span>', tool.name));
-		toolHtml.click(tool.onclick);
-		return toolHtml;
-	}
-
 	//-----------------------------------------------------------------------------
 	// Slides initializations
 	//-----------------------------------------------------------------------------
@@ -1055,7 +997,6 @@ nittio = function() {
 		getUserdispname : getUserdispname,
 		getGid : getGid,
 		getSlidesObj : getSlidesObj,
-		setupToolbelt : setupToolbelt,
 
 		// Keyboard shortcuts
 		bindHotkey : bindHotkey,

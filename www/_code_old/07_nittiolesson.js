@@ -213,7 +213,7 @@ nlesson = function() {
             var scormMode = njs_scorm.getScormLmsLessonMode();
             var hideOuterNavigator = (scormMode !== null);
             if (hideOuterNavigator) jQuery('.pagecanvas').addClass('scormlms');
-            var hideOuterToolbar = hideOuterNavigator && (self.renderCtx.launchMode() != 'edit');
+            var hideOuterToolbar = hideOuterNavigator || (self.renderCtx.launchMode() == 'edit');
             if (!hideOuterToolbar) jQuery('.toolBar').show();
         }
 
@@ -1899,15 +1899,8 @@ nlesson = function() {
 		var clist = njsCommentEditor.theLessonComment.getOpenComments(pageId);
 		
 		
-        var iconSpan = jQuery('#edit_icon_comment');
-        var icon = iconSpan.find('I');
-        icon.removeClass();
-        icon.removeAttr('class'); // Remove all classes not working sometime?
-		if(clist.length > 0){
-            icon.addClass('icon ion-ios-chatbubble forange');
-		} else {
-            icon.addClass('icon ion-ios-chatbubble-outline');
-		}
+		var newIcon = clist.length > 0 ? 'ion-ios-chatbubble forange' : 'ion-ios-chatbubble-outline';
+        njs_toolbelt.Toolbelt.updateTool('edit_icon_comment', null, newIcon, null);
 	}
 	
 	function on_loadcomment() {			
