@@ -1919,7 +1919,6 @@ nlesson = function() {
         this.setFocusHandlers = function(page, secNo, pgSecText) {
             pgSecText.focus(function() {
                 _focusedSection = {page: page, secNo: secNo, pgSecText: pgSecText}; 
-                console.warn('focus', _focusedSection);
             });
         };
         

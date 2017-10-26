@@ -22,7 +22,9 @@ function Toolbelt() {
     function _showToolbelt() {
         setTimeout(function() {
             jQuery('.pagecanvas').addClass('toolbeltShown');
-            nittio.onWindowResize();
+            setTimeout(function() {
+                nittio.onWindowResize();
+            }, 1000);
         }, 1000);
     }
         
