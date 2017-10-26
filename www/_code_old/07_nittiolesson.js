@@ -112,6 +112,7 @@ nlesson = function() {
         this.globals.audioManager = njs_autovoice.getAudioManager();
 		this.globals.animationManager = njs_animate.getAnimationManager();
         this.globals.pageTimer = new njs_lesson_helper.PageTimer(this);
+        this.globals.selectionHandler = new SectionSelectionHandler(this);
 	}
 
 	//--------------------------------------------------------------------------------------------
@@ -1738,7 +1739,7 @@ nlesson = function() {
 		this.secNo = secNo; // Original position
 		this.secPosShuffled = secPosShuffled; // Position after randomizing
 	}
-	
+
 	function Section_createHtmlDom() {
 		var pagetype = this.page.pagetype;
 
@@ -1801,12 +1802,13 @@ nlesson = function() {
 		this.pgSecText.css(pagetype.getSectionPos(this.secNo));
 		pgSec.append(this.pgSecText);	
 		this.page.setNextTabIndex(this.pgSecText);
-
+		this.lesson.globals.selectionHandler.setFocusHandlers(this.page, this.secNo, this.pgSecText);
+		
 		var onCreateFn = this.page.pagetype.getSectionOnCreateFn(this.secNo);
 		onCreateFn(this);
 		return pgSec;
 	}
-	
+
 	function Section_getViewHtml() {
 		var template = this.getTemplateFromEditor();
 		var sectionTemplate = new njs_lesson_helper.SectionTemplate(template, this);
@@ -1907,6 +1909,63 @@ nlesson = function() {
 		showCommentIndicator();
 		nittio.enableButton('edit_icon_comment',true);						
 	}
+
+    //#############################################################################################
+    // Section Selection Handler
+    //#############################################################################################
+    function SectionSelectionHandler(lesson) {
+        
+        var _focusedSection = {}; 
+        this.setFocusHandlers = function(page, secNo, pgSecText) {
+            pgSecText.focus(function() {
+                _focusedSection = {page: page, secNo: secNo, pgSecText: pgSecText}; 
+                console.warn('focus', _focusedSection);
+            });
+        };
+        
+        this.refocus = function() {
+            if (!_isSectionSelected()) return;
+            setTimeout(function() {
+                _focusedSection.pgSecText.focus();
+            });
+        };
+        
+        this.getSelectedText = function(flags) {
+            if (!flags) flags = {};
+            if (!_isSectionSelected()) {
+                if (flags.warnMsg) 
+                    njs_helper.Dialog.popup('Warning', flags.warnMsg, undefined, undefined, sizes=njs_helper.Dialog.sizeSmall());
+                return null;
+            }
+            var selected = _focusedSection.pgSecText[0];
+            var selectedText = selected.value.substring(selected.selectionStart, selected.selectionEnd);
+            if (flags.refocus) this.refocus();
+            return selectedText;
+        };
+        
+        this.updateSelectedText = function(newText) {
+            if (!_isSectionSelected()) {
+                njs_helper.Dialog.popupStatus('Sorry, no section selected');
+                return;
+            }
+            var selected = _focusedSection.pgSecText[0];
+            var newStart = selected.selectionStart;
+            var newEnd = newStart + newText.length;
+            newText = selected.value.substring(0, selected.selectionStart) + 
+                newText + selected.value.substring(selected.selectionEnd);
+            selected.value = newText;
+            selected.selectionStart = newStart;
+            selected.selectionEnd = newEnd;
+            this.refocus();
+        };
+        
+        function _isSectionSelected() {
+            var currentPage = lesson.pages[lesson.getCurrentPageNo()];
+            return (_focusedSection.pgSecText !== null && _focusedSection.secNo !== null &&
+                _focusedSection.page == currentPage);
+        }
+    
+    };
 
 	//---------------------------------------------------------------------------------------------
 	// Exposed Functions

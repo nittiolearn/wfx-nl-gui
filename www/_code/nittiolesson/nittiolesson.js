@@ -11,14 +11,17 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NittioLessonSrv = ['NittioLessonModulePropsDlg', 'NittioLessonPagePropsDlg', 'NittioLessonChangeLookDlg',
-'NittioLessonModuleReviewDlg',
-function(NittioLessonModulePropsDlg, NittioLessonPagePropsDlg, NittioLessonChangeLookDlg, NittioLessonModuleReviewDlg) {
+var NittioLessonSrv = ['nl', 'NittioLessonModulePropsDlg', 'NittioLessonPagePropsDlg', 'NittioLessonChangeLookDlg',
+'NittioLessonModuleReviewDlg', 'nlResourceAddModifySrv',
+function(nl, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg, NittioLessonChangeLookDlg, 
+    NittioLessonModuleReviewDlg, nlResourceAddModifySrv) {
+    var _moduleConfig = null;
 	this.init = function(oLesson, moduleConfig) {
 		NittioLessonModulePropsDlg.init(oLesson, moduleConfig);
 		NittioLessonPagePropsDlg.init(moduleConfig);
 		NittioLessonChangeLookDlg.init(oLesson, moduleConfig);
 		NittioLessonModuleReviewDlg.init(oLesson);
+		_moduleConfig = moduleConfig;
 	};
 
 	this.showModulePropertiesDlg = function(isCreate, bFromPdf) {
@@ -34,6 +37,10 @@ function(NittioLessonModulePropsDlg, NittioLessonPagePropsDlg, NittioLessonChang
 	this.sendForReview = function(lessonId) {
 		return NittioLessonModuleReviewDlg.sendForReview(lessonId);
 	};
+    this.insertOrUpdateResource = function(markupText) {
+        return nlResourceAddModifySrv.insertOrUpdateResource(nl.rootScope, 
+            _moduleConfig.restypes, markupText, true);
+    };
 }]; 
 
 module_init();

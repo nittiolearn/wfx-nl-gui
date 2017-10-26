@@ -216,16 +216,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 	}
 	
 	function _addModifyResource($scope, card){
-	    // TODO-NAVEEN-NOW (remove this later)
-        var params = nl.location.search();
-        if (params.insert) {
-            nlResourceAddModifySrv.insertOrUpdateResource($scope, _userInfo.groupinfo.restypes, 'imgx:', true)
-            .then(function(url) {
-                nlDlg.popupAlert({title: 'url', template: url === null ? 'null': url});
-            });
-        }
-        // end TODO-NAVEEN-NOW
-
 		nlResourceAddModifySrv.show($scope, card, _userInfo.groupinfo.restypes)
 		.then(function(resInfos) {
 			if (_bFirstLoadInitiated && resInfos.length == 0) return;
@@ -398,8 +388,8 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
          _scope.data.buttonname =  insertOrUpdateResource ? 'OK' : _scope.card ? 'Modify' : 'Upload';
 
         _scope.options.source = [
-            {id: 'upload', name: nl.t('Upload from your device to the server')}, 
-            {id: 'url', name: nl.t('Provide a URL from internet')}];
+            {id: 'url', name: nl.t('Provide a URL from internet')},
+            {id: 'upload', name: nl.t('Upload from your device to the server')}];
         _scope.data.source = _scope.options.source[0];
         _scope.data.url = '';
 
@@ -459,28 +449,51 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
     _initRestypeToMarkup();
 
     function _getRestypeInfoFromMarkup(markupText) {
+        if (markupText) markupText = markupText.trim();
         var pos = markupText ? markupText.indexOf(':') : -1;
         if (pos < 0) return null;
         var type = markupText.substring(0, pos+1);
         var ret = type in _markupToInfo ? angular.copy(_markupToInfo[type]) : null;
+        if (!ret) return null;
+        ret.params = {};
+
+        markupText = markupText.substring(pos+1);
+        pos = markupText.indexOf('[');
+        ret.url = pos < 0 ? markupText: markupText.substring(0, pos);
+        if (pos < 0) return ret;
+
+        markupText = markupText.substring(pos+1);
+        pos = markupText.indexOf(']');
+        if (pos < 0) return ret;
+        markupText = markupText.substring(0, pos);
+        var params = markupText.split('|');
+        for(var i=0; i<params.length; i++) {
+            var param = params[i];
+            pos = param.indexOf('=');
+            var attr = param.substring(0, pos);
+            ret.params[attr] = param.substring(pos+1);
+        }
         return ret;
     }
-    
+
     function _initMarkupParams(restypeInfo) {
+        if (!restypeInfo) restypeInfo = {params: {}};
         var sd = _scope.data;
+        sd.url = restypeInfo.url || '';
+
         _scope.options.markupCover = [
             {id: 'retain_ar', name: nl.t('Retain the aspect ratio of the image')},
             {id: 'stretch', name: nl.t('Stretch the image to occupy the complete area')}];
-        sd.markupCover = _scope.options.markupCover[0];
-        sd.markupLink = '';
-        sd.markupText = '';
-        sd.markupPopup = true;
+        sd.markupCover = restypeInfo.params.cover || _scope.options.markupCover[0];
+        sd.markupLink = restypeInfo.params.link || '';
+        sd.markupText = restypeInfo.params.text || '';
+        sd.markupPopup = ('popup' in restypeInfo.params) ? (restypeInfo.params.popup == '1') : true;
 
-        sd.markupPage = 1;
-        sd.markupScale = '1.0';
+        sd.markupPage = ('page' in restypeInfo.params) ? parseInt(restypeInfo.params.page) : 1;
+        sd.markupScale = restypeInfo.params.scale || '1.0';
 
-        sd.markupStart = 0;
-        sd.markupEnd = 0;
+        sd.markupStart = ('start' in restypeInfo.params) ? parseInt(restypeInfo.params.start) : 0;
+        sd.markupEnd = ('end' in restypeInfo.params) ? parseInt(restypeInfo.params.end) : 0;
     }
     
     function _getMarkupUrl(sd, url) {
