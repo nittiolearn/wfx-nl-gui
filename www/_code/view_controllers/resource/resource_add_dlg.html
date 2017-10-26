@@ -12,7 +12,7 @@
 <div>
     <div class='row row-top row-wrap padding0 margin0'
          ng-show='markupInfo.insertOrUpdateResource'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Source location</div>
+        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Source</div>
         <div ng-class='resp2Col67' class='padding0'>
             <nl-select fieldmodel='source'></nl-select>
         </div>
@@ -90,7 +90,7 @@
 
     <div class='row row-top row-wrap padding0 margin0'
          ng-show='markupInfo.showMarkupOptions && (data.restype.id == "Image" && data.markupLink || data.restype.id == "Attachment")'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Link Popup</div>
+        <div ng-class='resp2Col33' class='nl-dlg-field-name'></div>
         <div ng-class='resp2Col67' class='padding0'>
             <nl-checkbox fieldmodel='markupPopup' 
                          fieldname='Open link a new window'

@@ -848,18 +848,22 @@ nittio = function() {
 		};
 	}
 
+    var _retainAspect = true;
+    var _skChecker = null;
+    function onWindowResize() {
+        initSizes(_retainAspect);
+        if (!_skChecker) _skChecker = new SoftKeyChecker();
+        if (_skChecker.isSoftKeyOn()) return;
+        callOnResizeHandlers();
+    }
+    
 	function _initPage(retainAspect, bPrint) {
 		// Do the rest on completion of page load
 		jQuery(function() {
 			if (!bPrint) {
+			    _retainAspect = retainAspect;
 				initSizes(retainAspect);
-				var skChecker = new SoftKeyChecker();
-				jQuery(window).resize(debounce(200, function() {
-					initSizes(retainAspect);
-					if (skChecker.isSoftKeyOn())
-						return;
-					callOnResizeHandlers();
-				}));
+				jQuery(window).resize(debounce(200, onWindowResize));
 				initMenus();
 				initValidators();
 			}
@@ -1018,6 +1022,7 @@ nittio = function() {
 
 		resizeImagesToAspectRatio : resizeImagesToAspectRatio,
 		isAspectRaioWide : isAspectRaioWide,
+		onWindowResize: onWindowResize,
 
 		//Print
 		onPrint : onPrint,

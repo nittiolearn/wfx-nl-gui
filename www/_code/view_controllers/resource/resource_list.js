@@ -263,20 +263,23 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 	    if (!markupHandler) markupHandler = new MarkupHandler(nl, nlDlg);
 		return nl.q(function(resolve, reject) {
 			var addModifyResourceDlg = nlDlg.create($scope);
-			_initResourceDlg(addModifyResourceDlg, card, restypes);
-            markupHandler.initScope(addModifyResourceDlg.scope);
+            addModifyResourceDlg.resolve = function (afterFirstOk, beforeShow) {
+                // Avoid multiple callbacks which are comming due to "close" call
+                if (addModifyResourceDlg.resolvedCalled) return;
+                addModifyResourceDlg.resolvedCalled = true;
+                if (!beforeShow) addModifyResourceDlg.close();
+                resolve(markupHandler.processResults(addModifyResourceDlg, afterFirstOk));
+            }; 
             addModifyResourceDlg.resolveAfterOnce = function () {
                 if (!onlyOnce) return false;
                 addModifyResourceDlg.resolve(true);
                 return true;
             }; 
-            addModifyResourceDlg.resolve = function (afterFirstOk) {
-                // Avoid multiple callbacks which are comming due to "close" call
-                if (addModifyResourceDlg.resolvedCalled) return;
-                addModifyResourceDlg.resolvedCalled = true;
-                addModifyResourceDlg.close();
-                resolve(markupHandler.processResults(addModifyResourceDlg, afterFirstOk));
-            }; 
+            _initResourceDlg(addModifyResourceDlg, card, restypes);
+            if(!markupHandler.initScope(addModifyResourceDlg.scope)) {
+                addModifyResourceDlg.resolve(false, true);
+                return false;
+            }
 			_showDlg(addModifyResourceDlg, card, $scope, restypes, markupHandler);
 		});
 	};
@@ -388,23 +391,27 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
          _scope.data.buttonname =  insertOrUpdateResource ? 'OK' : _scope.card ? 'Modify' : 'Upload';
 
         _scope.options.source = [
-            {id: 'url', name: nl.t('Provide a URL from internet')},
-            {id: 'upload', name: nl.t('Upload from your device to the server')}];
+            {id: 'url', name: nl.t('Provide a URL')},
+            {id: 'upload', name: nl.t('Upload from your device')}];
         _scope.data.source = _scope.options.source[0];
         _scope.data.url = '';
 
-        if (!insertOrUpdateResource) return;
+        if (!insertOrUpdateResource) return true;
         var markupInfo = _scope.markupInfo;
         markupInfo.insertOrUpdateResource = true;
         markupInfo.showMarkupOptions = showMarkupOptions;
         markupInfo.restypeInfo = _getRestypeInfoFromMarkup(markupText);
+        if (!markupInfo.restypeInfo) {
+            nlDlg.popupAlert({title: 'Error', template: nl.t('Invalid markup text is selected: <b>{}</b>', markupText)});
+            return false;
+        }
         if (markupInfo.restypeInfo) {
             _scope.data.restype.id = markupInfo.restypeInfo.type;
             _scope.data.pagetitle = 'Insert ' + markupInfo.restypeInfo.title;
         } else {
             _scope.data.pagetitle = 'Insert media';
         }
-        _initMarkupParams(markupInfo.restypeInfo);
+        return _initMarkupParams(markupInfo.restypeInfo);
     }
     
     this.validate = function() {
@@ -436,6 +443,7 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
         'pdf:': {type: 'PDF', prefix: 'pdf:', title: 'PDF'},
         'audio:': {type: 'Audio', prefix: 'audio:', title: 'audio'},
         'video:': {type: 'Video', prefix: 'video:', title: 'video'},
+        'embed:': {type: 'Video', prefix: 'video:', title: 'video'},
         'link:': {type: 'Attachment', prefix: 'link:', title: 'link'}
     };
 
@@ -464,7 +472,7 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
 
         markupText = markupText.substring(pos+1);
         pos = markupText.indexOf(']');
-        if (pos < 0) return ret;
+        if (pos < 0) return null;
         markupText = markupText.substring(0, pos);
         var params = markupText.split('|');
         for(var i=0; i<params.length; i++) {
@@ -484,7 +492,8 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
         _scope.options.markupCover = [
             {id: 'retain_ar', name: nl.t('Retain the aspect ratio of the image')},
             {id: 'stretch', name: nl.t('Stretch the image to occupy the complete area')}];
-        sd.markupCover = restypeInfo.params.cover || _scope.options.markupCover[0];
+        sd.markupCover = ('cover' in restypeInfo.params && restypeInfo.params.cover == '1')
+            ? _scope.options.markupCover[1] : _scope.options.markupCover[0];
         sd.markupLink = restypeInfo.params.link || '';
         sd.markupText = restypeInfo.params.text || '';
         sd.markupPopup = ('popup' in restypeInfo.params) ? (restypeInfo.params.popup == '1') : true;
@@ -494,6 +503,7 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
 
         sd.markupStart = ('start' in restypeInfo.params) ? parseInt(restypeInfo.params.start) : 0;
         sd.markupEnd = ('end' in restypeInfo.params) ? parseInt(restypeInfo.params.end) : 0;
+        return true;
     }
     
     function _getMarkupUrl(sd, url) {
@@ -517,11 +527,11 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
         } else if (sd.restype.id == 'Audio') {
             prefix = 'audio:';
             _addMarkupParam(params, 'start', sd.markupStart, 0);
-            _addMarkupParam(params, 'stop', sd.markupStop, 0);
-        } else if (sd.restype.id == 'Vedio') {
+            _addMarkupParam(params, 'stop', sd.markupEnd, 0);
+        } else if (sd.restype.id == 'Video') {
             prefix = 'video:';
             _addMarkupParam(params, 'start', sd.markupStart, 0);
-            _addMarkupParam(params, 'stop', sd.markupStop, 0);
+            _addMarkupParam(params, 'end', sd.markupEnd, 0);
         }
         params = params.join('|');
         url = prefix + url;
