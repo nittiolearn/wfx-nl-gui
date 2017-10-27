@@ -198,6 +198,9 @@ function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer, nlOl
 }];
 
 function _initScreenSize(nl) {
+    var ua = navigator.userAgent.toLowerCase();
+    var isSafari = ua.indexOf('safari/') != -1 && ua.indexOf('chrome/') == -1;
+    nl.rootScope.nlBrowserClasses = isSafari ? 'isSafari' : '';
     angular.element(nl.window).bind('resize', function() {
         nl.rootScope.$apply(function() {
             _onResize(nl);

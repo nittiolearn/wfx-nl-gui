@@ -388,12 +388,13 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
         _scope = scope;
         _scope.markupInfo = {};
          
-         _scope.data.buttonname =  insertOrUpdateResource ? 'OK' : _scope.card ? 'Modify' : 'Upload';
+        _scope.help = _getHelp();
+        _scope.data.buttonname = insertOrUpdateResource ? 'OK' : _scope.card ? 'Modify' : 'Upload';
 
         _scope.options.source = [
             {id: 'url', name: nl.t('Provide a URL')},
             {id: 'upload', name: nl.t('Upload from your device')}];
-        _scope.data.source = _scope.options.source[0];
+        _scope.data.source = insertOrUpdateResource ? _scope.options.source[0] : _scope.options.source[1];
         _scope.data.url = '';
 
         if (!insertOrUpdateResource) return true;
@@ -412,13 +413,32 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
             _scope.data.pagetitle = 'Insert media';
         }
         return _initMarkupParams(markupInfo.restypeInfo);
-    }
+    };
     
     this.validate = function() {
         if (_scope.data.source.id == 'url' && !_scope.data.url)
             return _validateFail(_scope, 'url', 
             'Please specify a valid URL');
         return true;
+    };
+
+    function _getHelp() {
+        return {
+            source: {name: nl.t('Source'), help: nl.t('You can directly provide a URL or upload a file from your device to the server.')},
+            restype: {name: nl.t('Media type'), help: nl.t('Select the type of file (image, video, ...).')},
+            url: {name: nl.t('URL'), help: nl.t('Copy and paste or type in the URL.')},
+            resource: {name: nl.t('Choose file'), help: nl.t('Choose a file from your device to upload. On mobile devices, you will be able to use your camera or recorder to capture images, record videos and audios directly from here.')},
+            keywords: {name: nl.t('Remarks'), help: nl.t('Provide a title or some remarks while uploading. This will help you later to identify this file in the reource repository.')},
+            compressionlevel: {name: nl.t('Compression'), help: nl.t('This is supported only for images. By default medium compression level is chosen which is good enough for high definition screen viewing. Do not compress animated GIFs. It is recommended to not alter this value otherwise.')},
+            markupCover: {name: nl.t('Stretch'), help: nl.t('If you choose to retain aspect ratio, you might see empty spaces in the top and bottom or on the sides depending on the image size. If you choose to stretch the image, the complete area will be covered by the image.')},
+            markupLink: {name: nl.t('Link URL'), help: nl.t('You may optionally make your image a clickable link.')},
+            markupText: {name: nl.t('Link title'), help: nl.t('Enter the text to be displayed for the link.')},
+            markupPopup: {name: nl.t(''), help: nl.t('External links are best suited to be opened in a new window.')},
+            markupPage: {name: nl.t('Page number'), help: nl.t('Select the page number of the PDF to be displayed.')},           
+            markupScale: {name: nl.t('Scale ratio'), help: nl.t('You could scale the PDF viewing area with respect to width of the section. Use scale 1.0 to scale the PDF to use 100% of width. Using a scale of 1.2 will use 120% of width of the container resulting in a horizontal scroll bar. If you want to avoid a vertical scroll bar, you could try using a smaller scale like 0.8.')},
+            markupStart: {name: nl.t('Start from (seconds)'), help: nl.t('Play your video or audio starting from the given second.')},
+            markupEnd: {name: nl.t(' End at (seconds)'), help: nl.t('End playing your video or audio at the given second.')}
+        };  
     }
 
     function _validateFail(scope, attr, errMsg) {
@@ -436,7 +456,7 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
         if (!url) return null;
         if (!showMarkupOptions) return url;
         return _getMarkupUrl(sd, url);
-    }
+    };
 
     var _markupToInfo = {
         'img:': {type: 'Image', prefix: 'img:', title: 'image'},

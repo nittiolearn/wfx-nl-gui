@@ -1,136 +1,85 @@
-<nl-dlg title='{{data.pagetitle}}'>
-<nl-dlg-help>
-	<div class='njsHelp'>
-		<H3>Upload a resource from your device to the cloud.</H3>
-		<p><b>Resource Type:</b> Choose the resource type.</p>
-        <p><b>Resouce:</b> Choose a local file from your device. Depending on the chosen resource type, the supported file types are displayed.</p>
-        <p><b>Remarks:</b> You may provide a tile or some remarks - you may later search the reource repository with this string later.</p>
-        <p><b>Compression:</b> This is supported only for image resources. By default medium compression level is chosen which is good enough for high definition screen viewing. It is recommended to not alter this value unless you facing feature/quality loss with compression (e.g. animated GIFs are not compressable).</p>
-	</div>
-</nl-dlg-help>
+<nl-dlg title='{{data.pagetitle}}' show-help='0'>
 <nl-dlg-content>
 <div>
-    <div class='row row-top row-wrap padding0 margin0'
-         ng-show='markupInfo.insertOrUpdateResource'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Source</div>
-        <div ng-class='resp2Col67' class='padding0'>
-            <nl-select fieldmodel='source'></nl-select>
-        </div>
-    </div>
+    <nl-dlg-row attr='source' data='data' help='help'
+                ng-show='markupInfo.insertOrUpdateResource'>                
+        <nl-select fieldmodel='source'></nl-select>
+    </nl-dlg-row> 
 
-	<div class='row row-top row-wrap padding0 margin0'
-         ng-show='!markupInfo.restypeInfo'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Resource type</div>
-        <div ng-class='resp2Col67' class='padding0'>
-            <nl-select ng-if='data.card == null' fieldmodel='restype'></nl-select>
-            <input ng-if='data.card !== null' ng-model='data.restype.id' readonly class='nl-dlg-field-value'></input>
-        </div>
-    </div>
+    <nl-dlg-row attr='restype' data='data' help='help'
+                ng-show='!markupInfo.restypeInfo'>
+        <nl-select ng-if='data.card == null' fieldmodel='restype'></nl-select>
+        <input ng-if='data.card !== null' ng-model='data.restype.id' readonly class='nl-dlg-field-value'></input>
+    </nl-dlg-row> 
 
-    <div class='row row-top row-wrap padding0 margin0'
-         ng-show='data.source.id == "url"'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>URL</div>
-        <div ng-class='resp2Col67' class='padding0'>
-            <nl-input fieldmodel='url' fieldtype='text' fieldcls='w100'></nl-input>
-        </div>
-    </div>
+    <nl-dlg-row attr='url' data='data' help='help'
+                ng-show='data.source.id == "url"'>
+        <nl-input fieldmodel='url' fieldtype='text' fieldcls='w100'></nl-input>
+    </nl-dlg-row> 
 
-    <div class='row row-top row-wrap padding0 margin0'
-         ng-show='data.source.id == "upload"'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Choose file</div>
-        <div ng-class='resp2Col67' class='padding0'>
-            <nl-resource-upload 
-                ng-repeat='restype in options.restype'
-                ng-if='restype.id == data.restype.id'
-                fieldmodel='resource' 
-                restype='{{restype.id}}'>
-            </nl-resource-upload>
-        </div>
-    </div>
+    <nl-dlg-row attr='resource' data='data' help='help'
+                ng-show='data.source.id == "upload"'>
+        <nl-resource-upload 
+            ng-repeat='restype in options.restype'
+            ng-if='restype.id == data.restype.id'
+            fieldmodel='resource' 
+            restype='{{restype.id}}'>
+        </nl-resource-upload>
+    </nl-dlg-row> 
 
-    <div class='row row-top row-wrap padding0 margin0'
-         ng-show='data.source.id == "upload"'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Remarks</div>
-        <div ng-class='resp2Col67' class='padding0'>
-            <nl-input fieldmodel='keywords' fieldtype='text' fieldcls='w100'></nl-input>
-        </div>
-    </div>
+    <nl-dlg-row attr='keywords' data='data' help='help'
+                ng-show='data.source.id == "upload"'>
+        <nl-input fieldmodel='keywords' fieldtype='text' fieldcls='w100'></nl-input>
+    </nl-dlg-row> 
 
-    <div class='row row-top row-wrap padding0 margin0'
-         ng-show='data.source.id == "upload" && data.restype.id == "Image"'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Compression</div>
-        <div ng-class='resp2Col67' class='padding0'>
-            <nl-select fieldmodel='compressionlevel'></nl-select>
-        </div>
-	</div>
+    <nl-dlg-row attr='compressionlevel' data='data' help='help'
+                ng-show='data.source.id == "upload" && data.restype.id == "Image"'>
+        <nl-select fieldmodel='compressionlevel'></nl-select>
+    </nl-dlg-row> 
 
-    <div class='row row-top row-wrap padding0 margin0'
-         ng-show='markupInfo.showMarkupOptions && data.restype.id == "Image"'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Stretch</div>
-        <div ng-class='resp2Col67' class='padding0'>
-            <nl-select fieldmodel='markupCover'></nl-select>
-        </div>
-    </div>
+    <nl-dlg-row attr='markupCover' data='data' help='help'
+                ng-show='markupInfo.showMarkupOptions && data.restype.id == "Image"'>
+        <nl-select fieldmodel='markupCover'></nl-select>
+    </nl-dlg-row> 
 
-    <div class='row row-top row-wrap padding0 margin0'
-         ng-show='markupInfo.showMarkupOptions && data.restype.id == "Image"'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Link URL</div>
-        <div ng-class='resp2Col67' class='padding0'>
-            <nl-input fieldmodel='markupLink' fieldtype='text' fieldcls='w100'></nl-input>
-        </div>
-    </div>
+    <nl-dlg-row attr='markupLink' data='data' help='help'
+                ng-show='markupInfo.showMarkupOptions && data.restype.id == "Image"'>
+        <nl-input fieldmodel='markupLink' fieldtype='text' fieldcls='w100'></nl-input>
+    </nl-dlg-row> 
 
-    <div class='row row-top row-wrap padding0 margin0'
-         ng-show='markupInfo.showMarkupOptions && data.restype.id == "Attachment"'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Link Title</div>
-        <div ng-class='resp2Col67' class='padding0'>
-            <nl-input fieldmodel='markupText' fieldtype='text' fieldcls='w100'></nl-input>
-        </div>
-    </div>
+    <nl-dlg-row attr='markupText' data='data' help='help'
+                ng-show='markupInfo.showMarkupOptions && data.restype.id == "Attachment"'>
+        <nl-input fieldmodel='markupText' fieldtype='text' fieldcls='w100'></nl-input>
+    </nl-dlg-row> 
 
-    <div class='row row-top row-wrap padding0 margin0'
-         ng-show='markupInfo.showMarkupOptions && (data.restype.id == "Image" && data.markupLink || data.restype.id == "Attachment")'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'></div>
-        <div ng-class='resp2Col67' class='padding0'>
-            <nl-checkbox fieldmodel='markupPopup' 
-                         fieldname='Open link a new window'
-                         fieldcls= 'padding-mid'
-                         tabindex="0">
-            </nl-checkbox>
-        </div>
-    </div>
-    <div class='row row-top row-wrap padding0 margin0'
-         ng-show='markupInfo.showMarkupOptions && data.restype.id == "PDF"'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Page number</div>
-        <div ng-class='resp2Col67' class='padding0'>
-            <nl-input fieldmodel='markupPage' fieldtype='number' fieldminvalue=1 fieldcls='w100'></nl-input>
-        </div>
-    </div>
+    <nl-dlg-row attr='markupPopup' data='data' help='help'
+                ng-show='markupInfo.showMarkupOptions && (data.restype.id == "Image" && data.markupLink || data.restype.id == "Attachment")'>
+        <nl-checkbox fieldmodel='markupPopup' 
+                     fieldname='Open link a new window'
+                     fieldcls= 'padding-mid'
+                     tabindex="0">
+        </nl-checkbox>
+    </nl-dlg-row> 
 
-    <div class='row row-top row-wrap padding0 margin0'
-         ng-show='markupInfo.showMarkupOptions && data.restype.id == "PDF"'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Scale ratio</div>
-        <div ng-class='resp2Col67' class='padding0'>
-            <nl-input fieldmodel='markupScale' fieldtype='text' fieldcls='w100'></nl-input>
-        </div>
-    </div>
+    <nl-dlg-row attr='markupPage' data='data' help='help'
+                ng-show='markupInfo.showMarkupOptions && data.restype.id == "PDF"'>
+        <nl-input fieldmodel='markupPage' fieldtype='number' fieldminvalue=1 fieldcls='w100'></nl-input>
+    </nl-dlg-row> 
 
-    <div class='row row-top row-wrap padding0 margin0'
+    <nl-dlg-row attr='markupScale' data='data' help='help'
+                ng-show='markupInfo.showMarkupOptions && data.restype.id == "PDF"'>
+        <nl-input fieldmodel='markupScale' fieldtype='text' fieldcls='w100'></nl-input>
+    </nl-dlg-row> 
+
+    <nl-dlg-row attr='markupStart' data='data' help='help'
          ng-show='markupInfo.showMarkupOptions && (data.restype.id == "Video" || data.restype.id == "Audio")'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Start from (seconds)</div>
-        <div ng-class='resp2Col67' class='padding0'>
-            <nl-input fieldmodel='markupStart' fieldtype='number' fieldminvalue=0 fieldcls='w100'></nl-input>
-        </div>
-    </div>
+        <nl-input fieldmodel='markupStart' fieldtype='number' fieldminvalue=0 fieldcls='w100'></nl-input>
+    </nl-dlg-row> 
 
-    <div class='row row-top row-wrap padding0 margin0'
-         ng-show='markupInfo.showMarkupOptions && (data.restype.id == "Video" || data.restype.id == "Audio")'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>End at (seconds)</div>
-        <div ng-class='resp2Col67' class='padding0'>
-            <nl-input fieldmodel='markupEnd' fieldtype='number' fieldminvalue=0 fieldcls='w100'></nl-input>
-        </div>
-    </div>
-
+    <nl-dlg-row attr='markupEnd' data='data' help='help'
+                ng-show='markupInfo.showMarkupOptions && (data.restype.id == "Video" || data.restype.id == "Audio")'>
+        <nl-input fieldmodel='markupEnd' fieldtype='number' fieldminvalue=0 fieldcls='w100'></nl-input>
+    </nl-dlg-row> 
 </div>
 </nl-dlg-content>
 </nl-dlg>

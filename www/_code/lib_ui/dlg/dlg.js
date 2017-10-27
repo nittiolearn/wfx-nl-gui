@@ -8,6 +8,7 @@ function module_init() {
     angular.module('nl.ui.dlg', [])
     .service('nlDlg', DlgSrv)
     .directive('nlDlg', DlgDirective)
+    .directive('nlDlgRow', DlgRowDirective)
     .directive('nlDlgField', DlgFieldDirective)
     .directive('nlInput', InputDirective)
     .directive('nlTextarea', TextareaDirective)
@@ -248,6 +249,27 @@ function(nl, $window, nlKeyboardHandler) {
             showClose: '@'
         },
         link: postLink
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
+var DlgRowDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return {
+        restrict: 'E',
+        transclude: true,
+        templateUrl: 'lib_ui/dlg/dlg_row.html',
+        scope: {
+            data: '=',
+            help: '=',
+            attr: '@'
+        },
+        link: function($scope, iElem, iAttrs) {
+            $scope.onFieldChange = function(fieldModel) {
+                if (!('onFieldChange' in $scope.$parent)) return;
+                $scope.$parent.onFieldChange(fieldModel);
+            };
+        }
     };
 }];
 

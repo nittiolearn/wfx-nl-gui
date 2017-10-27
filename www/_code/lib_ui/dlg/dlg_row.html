@@ -1,0 +1,28 @@
+<style>
+.dlgrow-help-padding{
+  min-height: 30px;
+  padding: 0px 8px 20px 8px;
+}
+</style>
+
+<div class='row row-top row-wrap padding0 margin0'>
+    <div ng-class='$root.resp2Col33' class='padding-mid' 
+         ng-click='help[attr].isShown = !help[attr].isShown'>
+         <div class='row row-center row-wrap margin0 padding0'>
+            <span class='col padding0'><b>{{help && help[attr] ? help[attr].name : attr}}</b></span>
+            <i class='padding-mid nl-link-text icon fsh4 fgrey2 ion-ios-help'
+               ng-show='help && help[attr]'></i>
+        </div>
+    </div>
+    <div ng-class='$root.resp2Col67'>
+        <div ng-transclude></div>
+    </div>
+    <div class='w100 dlgrow-help-padding' ng-show='help && help[attr] && help[attr].isShown'>
+        <nl-inline-help>
+            <div>
+                <span class='fblue2' ng-show='help[attr].name'><b>{{help[attr].name}}:</b></span>
+                <span ng-bind-html='help[attr].help'></span>
+            </div>
+        </nl-inline-help>
+    </div>
+</div>
