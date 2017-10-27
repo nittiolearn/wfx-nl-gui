@@ -384,7 +384,7 @@ this.show = function($scope, initialUserInfo, params) {
         else if (mode.mode == MODES.APPROVED
             || mode.mode == MODES.SENDASSIGNMENT
             || mode.mode == MODES.MANAGE)
-            content = nl.fmt2('{}{}{}', gradeSubj, template, author);
+            content = nl.fmt2('{}{}{}{}', gradeSubj, template, author, desc);
         else if (mode.mode == MODES.NEW)
             content = nl.fmt2('{}{}{}', gradeSubj, author, desc);
         else if (mode.mode == MODES.REVIEW) {
