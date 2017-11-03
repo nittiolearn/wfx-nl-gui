@@ -34,20 +34,20 @@ function Toolbelt() {
 
     function _initDefaultIcons() {
         var tool = {id : 'toggle_toolbelt', icon : '', name : '', onclick : _toggleDisplayMode};
-        var grp = _getGrpElem('toolbeltDefIcon');
-        grp.append(_getToolbeltIcon(tool, 'toolbeltDefIcon'));
+        var grp = _getGrpElem('toolbeltDefIcon', _tb);
+        grp.append(_getToolbeltRow(tool, 'toolbeltDefIcon'));
     }
 
-    function _getGrpElem(toolCls) {
+    function _getGrpElem(toolCls, parent) {
         if (!toolCls) toolCls = '';
         var elem = jQuery(njs_helper.fmt2(
             '<div class="toolbeltGrp row row-wrap {}"></div>', toolCls));
-        _tb.append(elem);
+        parent.append(elem);
         return elem;
     }
 
-    function _getGrpElemAndSetupClick(grpTitle) {
-        var grpElem = _getGrpElem();
+    function _getGrpElemAndSetupClick(grpTitle, parent) {
+        var grpElem = _getGrpElem('', parent);
         grpTitle.click(function() {
             if (!grpElem.hasClass('animated-hide')) {
                 grpElem.addClass('animated-hide');
@@ -63,14 +63,16 @@ function Toolbelt() {
         var currentGrpElem = null;
         for (var i = 0; i < tools.length; i++) {
             var tool = tools[i];
-            if (currentGrp != tool.grp && tool.grp) {
+            if (currentGrp != tool.grpid && tool.grpid) {
+                var grpItem = jQuery(njs_helper.fmt2('<div id="{}" class="toolbeltGrpHolder"></div>', _getGrpId(tool.grpid)));
                 var grpTitle = jQuery(njs_helper.fmt2(
                     '<div class="padding-small toolbeltTitle nl-link-text">{}</div>', tool.grp));
-                _tb.append(grpTitle);
-                currentGrpElem = _getGrpElemAndSetupClick(grpTitle);
+                _tb.append(grpItem);
+                grpItem.append(grpTitle);
+                currentGrpElem = _getGrpElemAndSetupClick(grpTitle, grpItem);
             }
-            currentGrp = tool.grp;
-            currentGrpElem.append(_getToolbeltIcon(tool));
+            currentGrp = tool.grpid;
+            currentGrpElem.append(_getToolbeltRow(tool));
         }
     }
     
@@ -87,7 +89,7 @@ function Toolbelt() {
         self.updateTool('toggle_toolbelt', null, icon, title);
     }
 
-    function _getToolbeltIcon(tool, toolCls) {
+    function _getToolbeltRow(tool, toolCls) {
         if (!toolCls) toolCls = '';
         var iconCls = tool.font == 'material-icons' ? 'material-icons' : tool.icon;
         var iconTxt = tool.font == 'material-icons' ? tool.icon : '';
@@ -96,9 +98,8 @@ function Toolbelt() {
         toolHtml.append(njs_helper.fmt2('<span class="nl-toolbar-icon"><i class="toolbeltIcon icon {}">{}</i></span>', iconCls, iconTxt));
         toolHtml.append(njs_helper.fmt2('<span class="col toolbeltTxt">{}</span>', tool.name));
         toolHtml.click(function() {
-            njs_animate.animEffect(toolHtml, 'toolbeltToolHighlight', function() {
-                tool.onclick();
-            });
+            tool.onclick();
+            njs_animate.animEffect(toolHtml, 'toolbeltToolHighlight');
         });
         return toolHtml;
     }
@@ -113,6 +114,23 @@ function Toolbelt() {
             icon.removeAttr('class');
             icon.addClass('toolbeltIcon icon ' + iconCls);
         }
+    }
+
+    this.toggleTool = function(toolId, bShow) {
+        _toggleElem(_tb.find('#' + toolId), bShow);
+    }
+
+    this.toggleToolGroup = function(grpName, bShow) {
+        _toggleElem(_tb.find('#' + _getGrpId(grpName)), bShow);
+    }
+
+    function _toggleElem(elem, bShow) {
+        if (bShow) elem.removeClass('animated-hide');
+        else elem.addClass('animated-hide');
+    }
+    
+    function _getGrpId(grpName) {
+        return 'toolbelt_grp_' + grpName.replace(/\s+/g, '_').toLowerCase();
     }
 }
 

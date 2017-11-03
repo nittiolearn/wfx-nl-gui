@@ -266,6 +266,9 @@ input[type="file"] {
   transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
 }
 
+/*----------------------------------------------------------------------------------------------------------------------
+ * Toolbelt
+ * --------------------------------------------------------------------------------------------------------------------*/
 #toolbelt {
   position: absolute;
   top: 42px;
@@ -302,20 +305,19 @@ input[type="file"] {
   background-color: rgba(255, 255, 255, 0.5);
 }
 
+.toolbeltGrpHolder {
+  transition: 600ms ease all;
+  max-height: 1000px;
+  overflow: hidden;
+}
+
 .toolbeltGrp {
   justify-content: flex-start;
   padding: 0 4px;
   margin: 0;
-  transition: 400ms ease all;
+  transition: 600ms ease all;
   overflow: hidden;
   max-height: 1000px;
-}
-
-.animated-hide {
-  z-index: -1;
-  max-height: 0;
-  opacity: 0;
-  background-color: rgba(128, 128, 255, 0.2);
 }
 
 .toolbeltGrp.toolbeltDefIcon {
@@ -346,7 +348,8 @@ i.toolbeltIcon.icon:hover {
 }
 
 .toolbeltRow {
-  transition: 100ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+  transition: 600ms ease all;
+  max-height: 1000px;
 }
 
 .toolbeltTxt {
@@ -362,10 +365,23 @@ i.toolbeltIcon.icon:hover {
   display: none;
 }
 
-.toolbeltToolHighlight {
-  box-shadow: inset 0 0 5px rgba(0, 0, 128, 0.5);
+.anim-highlight {
+  box-shadow: 0px 0px 10px rgba(0, 0, 128, 0.8);
+  background-color: rgba(128, 128, 255, 0.4) !important;
 }
 
+.animated-hide {
+  z-index: -1 !important;
+  max-height: 0 !important;
+  opacity: 0 !important;
+  box-shadow: 0px 0px 10px rgba(0, 0, 128, 0.8) !important;
+  background-color: rgba(128, 128, 255, 0.4) !important;
+}
+
+
+/*----------------------------------------------------------------------------------------------------------------------
+ * Inner body and more
+ * --------------------------------------------------------------------------------------------------------------------*/
 .embedded_player .body, .embedded_player .toolBar {
   top: 5px;
 }
@@ -377,6 +393,47 @@ i.toolbeltIcon.icon:hover {
   right: 0;
   bottom: 0;
   transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+}
+
+#module_popup_holder {
+  display: none;
+  transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+  z-index: 1;
+}
+
+#module_popup {
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  height: 80%;
+  width: 80%;
+  background-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 5px 5px 10px rgba(128,128,128,0.8);
+  transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+}
+
+#module_popup .close_button {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  border-radius: 50%;
+  font-size: 15px;
+  padding: 2px 6px;
+  background-color: #F0F0F0;
+  border: 1px solid #AAAAAA;
+  color: 404040;
+  font-weight: 800;
+  z-index: 2;
+}
+
+#module_popup_content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  opacity: 0;
+  overflow: hidden;
 }
 
 a.enabled {
@@ -582,7 +639,7 @@ a.enabled {
   padding: 0 4px;
 }
 
-#pgNo {
+#pgNo, #module_popup_pgNo {
   padding: 8px 10px;
   min-height: 36px;
   min-width: 36px;
@@ -1121,7 +1178,7 @@ td.submitselection{
   bottom: 0;
 }
 
-.njsSlides > section > .bgimg {
+.njsSlides > section > .bgimg, #module_popup_holder > .bgimg {
   position: absolute;
   top: 0;
   left: 0;
@@ -1133,6 +1190,7 @@ td.submitselection{
   box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
   z-index: -1;
   outline: none;
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
 .njsSlides > section img {
