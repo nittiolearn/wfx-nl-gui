@@ -1,0 +1,47 @@
+<style>
+    .popup_props_preview {
+        position: relative;
+        top: 0;
+        height: 400px;
+        left: 1%;
+        width: 98%;
+        box-shadow: inset 0 0 5px rgba(200,200,255,0.8);
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+    .popup_props_preview2 {
+        position: absolute;
+        top: 6%;
+        height: 86%;
+        left: 4%;
+        width: 92%;
+        box-shadow: inset 0 0 5px rgba(200,200,255,0.8);
+    }
+    .popup_props_sec {
+        position: absolute;
+        background-color: rgba(0, 0, 128, 0.8);
+    }
+</style>
+<nl-dlg title='{{dlgTitle}}'
+        show-help='{{showHelp}}'
+        show-close='{{showClose}}'>
+<nl-dlg-content>
+<div>
+    <nl-dlg-row attr='pagetype' data='data' help='help'>
+        <nl-select fieldmodel='pagetype'></nl-select>
+    </nl-dlg-row> 
+    <nl-dlg-row attr='layout' data='data' help='help'>
+        <nl-select fieldmodel='layout'></nl-select>
+    </nl-dlg-row>
+    <nl-dlg-row attr='preview' data='data' help='help'>
+        <div class='popup_props_preview'>
+            <div class='popup_props_preview2'>
+                <div ng-repeat='sec in sections'
+                     style='top: {{sec.t}}%; left: {{sec.l}}%; height: {{sec.h}}%; width: {{sec.w}}%'
+                     class='popup_props_sec'>
+                </div>
+            </div>
+        </div>
+    </nl-dlg-row>
+</div>
+</nl-dlg-content>
+</nl-dlg>

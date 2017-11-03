@@ -235,13 +235,11 @@ var _effects = {
 };
 
 function animEffect(elem, animCls, postAnimFn, animTime) {
-    if (!animTime) animTime = 50;
+    if (!animTime) animTime = 400;
     elem.addClass(animCls);
     setTimeout(function() {
+        elem.removeClass(animCls);
         if (postAnimFn) postAnimFn();
-        setTimeout(function() {
-            elem.removeClass(animCls);
-        }, animTime);
     }, animTime);
 }
 

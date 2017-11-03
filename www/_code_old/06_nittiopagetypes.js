@@ -395,6 +395,7 @@ npagetypes = function() {
 		this.getMaxScore = PageType_getMaxScore;
 		this.isScoreEditable = PageType_isScoreEditable;
 		this.isDoToggleSupported = PageType_isDoToggleSupported;
+        this.isInteractive = PageType_isInteractive;
 	}
 
 	function PageType_init(oPage) {
@@ -557,6 +558,10 @@ npagetypes = function() {
 	function PageType_isScoreEditable(page) {
 		var functionPointer = _getBehaviourFn(this.interaction, 'is_score_editable');
 		return functionPointer(page);
+	}
+	
+	function PageType_isInteractive(section) {
+        return _isInteractive(_getLayoutOfSec(section), section.secNo);
 	}
 
 	function PageType_isDoToggleSupported(page) {
@@ -1997,6 +2002,21 @@ npagetypes = function() {
 	var PageInteractionTypeMap = {};
 	var InteractionToLayouts = {};
 	
+    function getInteractionsAndLayouts() {
+        var interactions = [];
+        var bleedingEdgeUser = nittio.isBleedingEdge();
+        for (var i = 0; i < PageInteractionTypes.length; i++) {
+            var intr = PageInteractionTypes[i];
+            var bleedingEdgePage = _getInteractionAttribute(intr, 'bleedingEdge', false);
+            if (bleedingEdgeUser || !bleedingEdgePage) {
+                interactions.push(intr);
+            }
+        }
+        
+        return {interactions: interactions, interactionToLayouts: InteractionToLayouts,
+            ptMap: PageTypeMap};
+    }
+    
 	//#############################################################################################
 	// PageInteractionType: Defines the type of interaction a page offers/exhibits. This is a
 	// combination of the behaviour of the page and static data which defines the interaction.
@@ -2529,6 +2549,7 @@ npagetypes = function() {
 		onEditLayoutButtonClick : onEditLayoutButtonClick,
 		PageType: PageType,
 		getPageTypeAttribute: getPageTypeAttribute,
+		getInteractionsAndLayouts: getInteractionsAndLayouts,
 
 		ANSWERED_NA: ANSWERED_NA,
 		ANSWERED_NO: ANSWERED_NO,
