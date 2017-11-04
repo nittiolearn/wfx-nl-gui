@@ -30,8 +30,8 @@ function(nl, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg, NittioLessonC
 		return NittioLessonModulePropsDlg.showDlg(isCreate, bFromPdf);
 	};
 	
-	this.showPagePropertiesDlg = function(oPage, defMaxScore) {
-		return NittioLessonPagePropsDlg.showDlg(oPage, defMaxScore);
+	this.showPagePropertiesDlg = function(oPage, defMaxScore, isPopup) {
+		return NittioLessonPagePropsDlg.showDlg(oPage, defMaxScore, isPopup);
 	};
 	this.showChangeLookDlg = function(templateList, templateAnimations) {
 		return NittioLessonChangeLookDlg.showDlg(templateList, templateAnimations);

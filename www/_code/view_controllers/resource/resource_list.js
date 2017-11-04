@@ -430,7 +430,7 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
             resource: {name: nl.t('Choose file'), help: nl.t('Choose a file from your device to upload. On mobile devices, you will be able to use your camera or recorder to capture images, record videos and audios directly from here.')},
             keywords: {name: nl.t('Remarks'), help: nl.t('Provide a title or some remarks while uploading. This will help you later to identify this file in the reource repository.')},
             compressionlevel: {name: nl.t('Compression'), help: nl.t('This is supported only for images. By default medium compression level is chosen which is good enough for high definition screen viewing. Do not compress animated GIFs. It is recommended to not alter this value otherwise.')},
-            markupCover: {name: nl.t('Stretch'), help: nl.t('If you choose to retain aspect ratio, you might see empty spaces in the top and bottom or on the sides depending on the image size. If you choose to stretch the image, the complete area will be covered by the image.')},
+            markupCover: {name: nl.t('Cover'), help: nl.t('If you show the complete area, you might see empty spaces in the top and bottom or on the sides depending on the image size. If you choose to cover the complete area, some portions of the image may not be visible depending on the available area dimension.')},
             markupLink: {name: nl.t('Link URL'), help: nl.t('You may optionally make your image a clickable link.')},
             markupText: {name: nl.t('Link title'), help: nl.t('Enter the text to be displayed for the link.')},
             markupPopup: {name: nl.t(''), help: nl.t('External links are best suited to be opened in a new window.')},
@@ -510,8 +510,8 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
         sd.url = restypeInfo.url || '';
 
         _scope.options.markupCover = [
-            {id: 'retain_ar', name: nl.t('Retain the aspect ratio of the image')},
-            {id: 'stretch', name: nl.t('Stretch the image to occupy the complete area')}];
+            {id: 'retain_ar', name: nl.t('Show the complete image')},
+            {id: 'stretch', name: nl.t('Cover the complete area')}];
         sd.markupCover = ('cover' in restypeInfo.params && restypeInfo.params.cover == '1')
             ? _scope.options.markupCover[1] : _scope.options.markupCover[0];
         sd.markupLink = restypeInfo.params.link || '';

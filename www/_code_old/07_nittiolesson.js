@@ -22,10 +22,12 @@ nlesson = function() {
 
 		// Getters for basic properties
 		this.getCurrentPageNo = Lesson_getCurrentPageNo;
-		this.getCurrentPageId = Lesson_getCurrentPageId;
+        this.getCurrentPage = Lesson_getCurrentPage;
+        this.getCurrentPageId = Lesson_getCurrentPageId;
 		this.getPageNoFromPageId = Lesson_getPageNoFromPageId;
 		this.getCurrentPageUrl = Lesson_getCurrentPageUrl;
 		this.getExistingPageIds = Lesson_getExistingPageIds;
+        this.cloneBgImgForPage = Lesson_cloneBgImgForPage;
         this.getMinTextSize = Lesson_getMinTextSize;
         this.updateOLessonFromTempl = Lesson_updateOLessonFromTempl;
 
@@ -122,8 +124,12 @@ nlesson = function() {
 		return this.globals.slides.getCurPageNo();
 	}
 	
+    function Lesson_getCurrentPage() {
+        return this.pages[this.getCurrentPageNo()];     
+    }
+
 	function Lesson_getCurrentPageId() {
-		return this.pages[this.getCurrentPageNo()].getPageId();		
+		return this.getCurrentPage().getPageId();		
 	}
 	
 	function Lesson_getPageNoFromPageId(pageId) {
@@ -147,6 +153,21 @@ nlesson = function() {
 		return pageIdList;	
 	}
 	
+    function Lesson_cloneBgImgForPage(page) {
+        var ret = {};
+        if (page && page.oPage.bgimg) {
+            ret.bgimg = jQuery(njs_helper.fmt2('<img class="bgimg bgimgcustom" src="{}">', page.oPage.bgimg));
+            ret.bgshade = page.oPage.bgshade;
+        } else if (modulePopup.isPopupOpen()) {
+            ret.bgimg = jQuery('<div class="bgimg module_popup_img"></div>');
+            ret.bgshade = 'bglight';
+        } else {
+            ret.bgimg = this.bgimg.clone();
+            ret.bgshade = this.globals.templateCssClass;
+        }
+        return ret;
+    }
+    
 	function Lesson_getMinTextSize() {
 	    if (this.minTextSizeComputed !== undefined) return this.minTextSizeComputed;
 	    if (this.oLesson.minTextSize) {
@@ -194,7 +215,8 @@ nlesson = function() {
         window.nlapp.nlMarkup.setGid((g_nlPlayerType == 'sco') ? 0 : nittio.getGid());
         var moduleConfig = jQuery('#module_config').val();
         moduleConfig = jQuery.parseJSON(moduleConfig);
-        window.nlapp.NittioLesson.init(self.oLesson, moduleConfig);
+        window.nlapp.NittioLesson.init(self.oLesson, moduleConfig,
+            npagetypes.getInteractionsAndLayouts());
     }
 
     function Lesson_postInitDom() {
@@ -401,16 +423,19 @@ nlesson = function() {
 	//--------------------------------------------------------------------------------------------
 	// Lesson Methods - Initialize and render - internal methods
 	//--------------------------------------------------------------------------------------------
-	function Lesson_createHtmlDom() {
+	function Lesson_createHtmlDom(parent) {
 		var hPages = jQuery(njs_helper.fmt2("<div class='njsSlides mode_{}'></div>", 
 							this.renderCtx.launchMode()));
 		for (var i = 0; i < this.pages.length; i++) {
 			hPages.append(this.pages[i].createHtmlDom());
 		}
-		jQuery('#l_html').append(hPages);
+		if (!parent) parent = jQuery('#l_html');
+		parent.append(hPages);
+		return hPages;
 	}
 	
 	function Lesson_onEscape() {
+	    this.globals.selectionHandler.unselectSection();
 		var pgNo = this.getCurrentPageNo();
 		var curPage = this.pages[pgNo];
 		if (!curPage) return false;
@@ -649,6 +674,7 @@ nlesson = function() {
 		}
 
 		// Update all section texts first
+		modulePopup.updateContent();
 		for (var i = 0; i < this.pages.length; i++) {
 			this.pages[i].updateContent();
 		}
@@ -1094,7 +1120,8 @@ nlesson = function() {
 
 		hNewPage.insertAfter(hCurPage);
 		this.pages.splice(curPos + 1, 0, newPage);
-		this.oLesson.pages.splice(curPos + 1, 0, newPage.oPage);
+		if (!modulePopup.isPopupOpen())
+    		this.oLesson.pages.splice(curPos + 1, 0, newPage.oPage);
 		
 		this.globals.slides.reinit();
 		this.globals.slides.next();
@@ -1116,6 +1143,7 @@ nlesson = function() {
 		
 		this.globals.slides.reinit();
 		this.globals.slides.gotoPage(pageNo);
+        this.reRender(false);
 		return true;
 	}
 
@@ -1139,7 +1167,8 @@ nlesson = function() {
 		hPg1.insertAfter(hPg2);
 
 		_swap(this.pages, swapStart, swapStart+1);
-		_swap(this.oLesson.pages, swapStart, swapStart+1);
+        if (!modulePopup.isPopupOpen())
+    		_swap(this.oLesson.pages, swapStart, swapStart+1);
 
 		return true;
 	}
@@ -1154,7 +1183,8 @@ nlesson = function() {
 	function Lesson_cutPage(pageNo) {
 		clipBoard = this.pages[pageNo].getContent();
 		this.pages[pageNo].hPage.remove();
-		this.oLesson.pages.splice(pageNo, 1);
+        if (!modulePopup.isPopupOpen())
+    		this.oLesson.pages.splice(pageNo, 1);
 		this.pages.splice(pageNo, 1);
 
 		this.reinitSlides(1);
@@ -1177,7 +1207,8 @@ nlesson = function() {
 		var hCurPage = this.pages[pageNo].hPage;
 		hNewPage.insertAfter(hCurPage);
 		this.pages.splice(pageNo + 1, 0, newPage);
-		this.oLesson.pages.splice(pageNo + 1, 0, newPage.oPage);
+        if (!modulePopup.isPopupOpen())
+    		this.oLesson.pages.splice(pageNo + 1, 0, newPage.oPage);
 		return true;
 	}
 
@@ -1524,19 +1555,11 @@ nlesson = function() {
 	
     function Page_updateBgImg() {
         this.hPage.find('.bgimg').remove();
-        var newBg = null;
-        var cssClass = '';
-        if (this.oPage.bgimg) {
-            newBg = jQuery(njs_helper.fmt2('<img class="bgimg bgimgcustom" src="{}">', this.oPage.bgimg));
-            cssClass = this.oPage.bgshade;
-        } else {
-            newBg = this.bgimg.clone();
-            cssClass = this.lesson.globals.templateCssClass;
-        }
         _removeAllTemplateStyles(this.hPage);
-        this.hPage.addClass(cssClass);
-        this.hPage.prepend(newBg);
-        return newBg;
+        var bginfo = this.lesson.cloneBgImgForPage(this);
+        this.hPage.addClass(bginfo.bgshade);
+        this.hPage.prepend(bginfo.bgimg);
+        return bginfo.bgimg;
     }
 
 	function Page_adjustHtmlDom() {
@@ -1860,6 +1883,21 @@ nlesson = function() {
         this.pgSecText.css(pagetype.getSectionPos(this.secNo));
         if (this.lesson.renderCtx.launchCtx() == 'edit_templ')
             this.pgSecTemplate.css(pagetype.getSectionPos(this.secNo));
+        _Section_setupOnclick(this, pagetype);
+    }
+    
+    function _Section_setupOnclick(section, pagetype) {
+        if (!section.oSection.popups || !section.oSection.popups.onclick) {
+            if (!pagetype.isInteractive(section))
+                section.pgSecView.removeClass('beh_interactive');
+            return;
+        }
+        section.pgSecView.addClass('beh_interactive');
+        if (section.pgSecView.modulePopupSetup) return;
+        section.pgSecView.modulePopupSetup = true;
+        section.pgSecView.on('click', function() {
+            modulePopup.show(section);
+        });
     }
     
 	function Section_adjustHtmlDom() {
@@ -1910,61 +1948,265 @@ nlesson = function() {
 		nittio.enableButton('edit_icon_comment',true);						
 	}
 
-    //#############################################################################################
-    // Section Selection Handler
-    //#############################################################################################
-    function SectionSelectionHandler(lesson) {
-        
-        var _focusedSection = {}; 
-        this.setFocusHandlers = function(page, secNo, pgSecText) {
-            pgSecText.focus(function() {
-                _focusedSection = {page: page, secNo: secNo, pgSecText: pgSecText}; 
-            });
-        };
-        
-        this.refocus = function() {
-            if (!_isSectionSelected()) return;
-            setTimeout(function() {
-                _focusedSection.pgSecText.focus();
-            });
-        };
-        
-        this.getSelectedText = function(flags) {
-            if (!flags) flags = {};
-            if (!_isSectionSelected()) {
-                if (flags.warnMsg) 
-                    njs_helper.Dialog.popup('Warning', flags.warnMsg, undefined, undefined, sizes=njs_helper.Dialog.sizeSmall());
-                return null;
-            }
-            var selected = _focusedSection.pgSecText[0];
-            var selectedText = selected.value.substring(selected.selectionStart, selected.selectionEnd);
-            if (flags.refocus) this.refocus();
-            return selectedText;
-        };
-        
-        this.updateSelectedText = function(newText) {
-            if (!_isSectionSelected()) {
-                njs_helper.Dialog.popupStatus('Sorry, no section selected');
-                return;
-            }
-            var selected = _focusedSection.pgSecText[0];
-            var newStart = selected.selectionStart;
-            var newEnd = newStart + newText.length;
-            newText = selected.value.substring(0, selected.selectionStart) + 
-                newText + selected.value.substring(selected.selectionEnd);
-            selected.value = newText;
-            selected.selectionStart = newStart;
-            selected.selectionEnd = newEnd;
-            this.refocus();
-        };
-        
-        function _isSectionSelected() {
-            var currentPage = lesson.pages[lesson.getCurrentPageNo()];
-            return (_focusedSection.pgSecText !== null && _focusedSection.secNo !== null &&
-                _focusedSection.page == currentPage);
-        }
-    
+//#############################################################################################
+// Section Selection Handler
+//#############################################################################################
+function SectionSelectionHandler(lesson) {
+    var _focusedSection = {}; 
+    var self = this;
+    this.setFocusHandlers = function(page, secNo, pgSecText) {
+        if (lesson.renderCtx.launchMode() != 'edit') return;
+        pgSecText.focus(function() {
+            _focusedSection = {page: page, secNo: secNo, pgSecText: pgSecText}; 
+            self.updateToolbelt();
+        });
     };
+
+    this.unselectSection = function() {
+        if (lesson.renderCtx.launchMode() != 'edit') return;
+        _focusedSection = {}; 
+        self.updateToolbelt();
+    };
+    
+    this.refocus = function() {
+        if (!_isSectionSelected()) return;
+        setTimeout(function() {
+            _focusedSection.pgSecText.focus();
+        });
+    };
+    
+    this.getSelectedSectionInfo = function(flags) {
+        if (!_isSectionSelected()) {
+            if (flags && flags.warnMsg) 
+                njs_helper.Dialog.popup('Warning', flags.warnMsg, undefined, undefined, sizes=njs_helper.Dialog.sizeSmall());
+            return null;
+        }
+        return _focusedSection;
+    };
+    
+    this.getSelectedSectionObj = function(flags) {
+        this.getSelectedSectionInfo(flags);
+        return _getSection();
+    };
+    
+    this.getSelectedText = function(flags) {
+        if (!this.getSelectedSectionInfo()) return null;
+        var selected = _focusedSection.pgSecText[0];
+        var selectedText = selected.value.substring(selected.selectionStart, selected.selectionEnd);
+        if (flags && flags.refocus) this.refocus();
+        return selectedText;
+    };
+    
+    this.updateSelectedText = function(newText) {
+        if (!_isSectionSelected()) {
+            njs_helper.Dialog.popupStatus('Sorry, no section selected');
+            return;
+        }
+        var selected = _focusedSection.pgSecText[0];
+        var newStart = selected.selectionStart;
+        var newEnd = newStart + newText.length;
+        newText = selected.value.substring(0, selected.selectionStart) + 
+            newText + selected.value.substring(selected.selectionEnd);
+        selected.value = newText;
+        selected.selectionStart = newStart;
+        selected.selectionEnd = newEnd;
+        this.refocus();
+    };
+
+    var _allTools = [];        
+    this.setupToolbelt = function(lessonId, canApprove, isRaw) {
+        if (lesson.renderCtx.launchMode() != 'edit') return;
+
+        _allTools.push({id: 'edit_icon_change_mode', grpid: 'module', grp: 'Module', icon: 'ion-ios-eye', name:'Preview', shortcut: ' (Alt+T)', onclick: _fn(on_changemode)});
+        _allTools.push({id: 'edit_icon_props', grpid: 'module', grp: 'Module', icon:'ion-ios-gear', name: 'Module Properties', title:'Update module name and other module level properties', onclick: on_props});
+        _allTools.push({id: 'edit_icon_look', grpid: 'module', grp: 'Module', icon:'ion-images', name:'Change Look', title: 'Change default background image of all pages', onclick: on_look});
+        _allTools.push({id: 'edit_icon_save', grpid: 'module', grp: 'Module', icon: 'save', font:'material', font:'material-icons', name:'Save', shortcut: ' (Ctrl+S)', onclick: on_save});
+        if (canApprove && lessonId > 0)
+            _allTools.push({id: 'edit_icon_approve', grpid: 'module', grp: 'Module', icon:'ion-ios-checkmark',  name:'Approve',  title:'Approve the module and make it available to other authors', onclick: _fn(on_approve, lessonId)});
+
+        _allTools.push({id: 'edit_icon_addpage', grpid: 'pages', grp: 'Page', icon:'ion-ios-plus', name:'Add Page', title:'Add a new page', shortcut: ' (Alt+Insert)', onclick: on_addpage});
+        _allTools.push({id: 'edit_icon_delpage', grpid: 'pages', grp: 'Page', icon:'ion-ios-trash', name:'Delete Page', title:'Delete this page', shortcut: ' (Alt+Del)', onclick: on_delpage});
+        _allTools.push({id: 'edit_icon_changepagetype', grpid: 'pages', grp: 'Page', icon:'view_quilt', name:'Change Layout', title:'Change the layout of this page', font:'material-icons', onclick: on_changepagetype});
+        _allTools.push({id: 'edit_icon_pageprops', grpid: 'pages', grp: 'Page', icon:'ion-ios-settings-strong', name:'Page Properties', title:'Update page properties', shortcut: ' (Alt-P)', onclick: on_pageProps});
+        _allTools.push({id: 'edit_icon_pageorg', grpid: 'pages', grp: 'Page', icon:'ion-shuffle', name:'Page Organizer', title:'Organize the pages', shortcut: ' (Alt+O)', onclick: on_pageorganizer});
+
+        _allTools.push({id: 'edit_icon_img', grpid: 'media', grp: 'Section Media', icon:'ion-aperture', name:'Insert Image', onclick: on_insert_img});
+        _allTools.push({id: 'edit_icon_video', grpid: 'media', grp: 'Section Media', icon:'ion-social-youtube', name:'Insert Video', onclick: on_insert_video});
+        _allTools.push({id: 'edit_icon_link', grpid: 'media', grp: 'Section Media', icon:'ion-link', name:'Insert Link', onclick: on_insert_link});
+        _allTools.push({id: 'edit_icon_media', grpid: 'media', grp: 'Section Media', icon:'ion-ios-photos', name:'Update Media', onclick: on_update_media});
+
+        _allTools.push({id: 'edit_icon_popup_edit', grpid: 'popup', grp: 'Section Popup', icon:'ion-ios-pricetag', name:'Create Popup', onclick: on_popup_edit});
+        _allTools.push({id: 'edit_icon_popup_delete', grpid: 'popup', grp: 'Section Popup', icon:'ion-backspace', name:'Delete Popup', onclick: on_popup_delete});
+
+        _allTools.push({id: 'edit_icon_comment', grpid: 'review', grp: 'Module Review', icon:'ion-ios-chatbubble-outline', title:'Manage Comments', name:'Comments', onclick: on_managecomment});
+        if (lessonId > 0)
+            _allTools.push({id: 'edit_icon_review', grpid: 'review', grp: 'Module Review', icon:'ion-ios-glasses', name:'Invite for Review', onclick: on_sendforreview});
+        if (isRaw)
+            _allTools.push({id: 'edit_icon_raw', grpid: 'advanced', grp: 'Advanced', icon:'ion-settings', name:'Raw Edit', onclick: on_rawedit});
+
+        njs_toolbelt.Toolbelt.setup(_allTools);     
+    };
+    
+    this.updateToolbelt = function() {
+        if (lesson.renderCtx.launchMode() != 'edit') return;
+        
+        if (modulePopup.isPopupOpen()) {
+            njs_toolbelt.Toolbelt.updateToolGrp('pages', 'Popup Page');
+        } else {
+            njs_toolbelt.Toolbelt.updateToolGrp('pages', 'Page');
+        }
+
+        if (!_isSectionSelected() || lesson.renderCtx.lessonMode() != 'edit') {
+            njs_toolbelt.Toolbelt.toggleToolGroup('Media', false);
+            njs_toolbelt.Toolbelt.toggleToolGroup('Popup', false);
+        } else {
+            njs_toolbelt.Toolbelt.toggleToolGroup('Media', true);
+            var sec = _getSection();
+            var pagetype = sec.page.pagetype;
+            njs_toolbelt.Toolbelt.toggleToolGroup('Popup', true);
+            var osec = sec.oSection;
+            if (osec && osec.popups) {
+                njs_toolbelt.Toolbelt.updateTool('edit_icon_popup_edit', 'Edit Popup', null, 'Edit the popup of the selected section');
+                njs_toolbelt.Toolbelt.toggleTool('edit_icon_popup_delete', true);
+            } else {
+                njs_toolbelt.Toolbelt.updateTool('edit_icon_popup_edit', 'Create Popup', null, 'Create a popup for the selected section');
+                njs_toolbelt.Toolbelt.toggleTool('edit_icon_popup_delete', false);
+            }
+        }
+    };
+    
+    function _isSectionSelected() {
+        var currentPage = lesson.pages[lesson.getCurrentPageNo()];
+        return (_focusedSection.pgSecText !== null && _focusedSection.secNo !== null &&
+            _focusedSection.page == currentPage);
+    }
+
+    function _getSection() {
+        return _focusedSection ? _focusedSection.page.sections[_focusedSection.secNo] : null;
+    }
+}
+
+//---------------------------------------------------------------------------------------------
+// Module Popup Handler
+//---------------------------------------------------------------------------------------------
+function ModulePopupHadler() {
+    var _stack = [];
+
+    this.isPopupOpen = function() {
+        return (_stack.length > 0);
+    };
+    
+    this.deletePopup = function(section) {
+        var msg = 'Are you sure you want to delete the popup defined for this section?';
+        var cancelButton = {id: 'cancel', text: 'Cancel'};
+        var okButton = {id: 'ok', text: 'Delete Popup', fn: function() {
+            njs_helper.Dialog.popdown();
+            if (section.oSection.popups) delete section.oSection.popups;
+            g_lesson.globals.selectionHandler.unselectSection();
+        }};
+        njs_helper.Dialog.popup('Please Confirm', msg, [okButton], cancelButton);
+    };
+    
+    this.createPopup = function(section) {
+        if (!section.oSection.popups) section.oSection.popups = {};
+        if (section.oSection.popups.onclick) return;
+        section.oSection.popups.onclick = [];
+        var pages = section.oSection.popups.onclick;
+        var pt = 'S4';
+        var ptInfo = npagetypes.getInteractionsAndLayouts();
+        if (!(pt in ptInfo.ptMap)) {
+            pt = ptInfo.interactionToLayouts[ptInfo.interactions[0].id][0].pagetype_id;
+        }
+        pages.push({type: pt, sections: [{type: 'txt', text: ''}]});
+    };
+    
+    this.show = function(section) {
+        var context = {section: section, 
+            postRenderingQueue: g_lesson.postRenderingQueue,
+            pages: g_lesson.pages,
+            slides: g_lesson.globals.slides,
+            lessonCtx: g_lesson.renderCtx.lessonCtx()};
+        _stack.push(context);
+        
+        var holder = jQuery('#module_popup_holder');
+        holder.show();
+        jQuery('#pageNoArea').hide();
+
+        g_lesson.postRenderingQueue = new PostRenderingQueue(g_lesson);
+
+        var pages = section.oSection.popups.onclick;
+        var content = jQuery('#module_popup_content');
+        g_lesson.pages = [];
+        for (var i = 0; i < pages.length; i++) {
+            var po = new Page(g_lesson);
+            po.init(pages[i], g_lesson.bgimg);
+            g_lesson.pages.push(po);
+        }
+        context.hPages = g_lesson.createHtmlDom(content);
+
+        var pgNo = holder.find('#module_popup_pgNo');
+        var navLeft = holder.find('#module_popup_navigate_left');
+        var navRight = holder.find('#module_popup_navigate_right');
+        var slides = new njs_slides.SlideSet(context.hPages, pgNo, navLeft, navRight);
+        slides.onSlideBeforeChange(function(curPgNo, newPgNo) {
+            g_lesson.preRender(newPgNo);
+            return true;
+        });
+        slides.onSlideChange(function() {
+            g_lesson.postRender();
+            g_lesson.onEscape();
+        });
+        slides.activate();
+        content.css({opacity: 1});
+        g_lesson.globals.slides = slides;
+    };
+    
+    this.close = function() {
+        if (_stack.length == 0) return false;
+        this.updateContent();
+
+        var top = _stack.pop();
+        top.hPages.remove();
+        g_lesson.globals.slides = top.slides;
+
+        g_lesson.postRenderingQueue = top.postRenderingQueue;
+        g_lesson.pages = top.pages;
+        g_lesson.globals.slides = top.slides;
+        g_lesson.globals.slides.activate(null, true);
+        g_lesson.globals.slides.showHideNavBar();
+        if (g_lesson.renderCtx.lessonCtx() != top.lessonCtx) {
+            g_lesson.reRender(false);
+        }
+        
+        if (_stack.length > 0) return true;
+
+        jQuery('#pageNoArea').show();
+        var holder = jQuery('#module_popup_holder');
+        var content = jQuery('#module_popup_content');
+        content.css({opacity: 0});
+        holder.hide();
+        g_lesson.globals.selectionHandler.updateToolbelt();
+        return true;
+    };
+    
+    this.updateContent = function() {
+        var oPages = _updateContent(g_lesson.pages);
+        for(var i=_stack.length-1; i>=0; i--) {
+            _stack[i].section.oSection.popups.onclick = oPages;
+            oPages = _updateContent(_stack[i].pages);
+        }
+    };
+    
+    function _updateContent(pages) {
+        var oPages = [];
+        for(var i=0; i<pages.length; i++) {
+            pages[i].updateContent();
+            oPages.push(pages[i].oPage);
+        }
+        return oPages;
+    }
+}
+var modulePopup = new ModulePopupHadler();
 
 	//---------------------------------------------------------------------------------------------
 	// Exposed Functions
@@ -2007,6 +2249,7 @@ nlesson = function() {
 			});
 			g_lesson.globals.slides.onSlideChange(function() {
 				g_lesson.postRender();
+				g_lesson.onEscape();
 			});
             
 			window.setTimeout(function() {
@@ -2111,6 +2354,7 @@ nlesson = function() {
 		updateTemplate : updateTemplate,
 		theLesson : g_lesson,
 		showCommentIndicator : showCommentIndicator,
-		doModeToggle : doModeToggle
+		doModeToggle : doModeToggle,
+		modulePopup: modulePopup
 	};
 }(); 

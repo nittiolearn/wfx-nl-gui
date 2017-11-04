@@ -17,15 +17,16 @@ function(nl, nlDlg) {
 	var _pagePropsHelp = {};
 	var _oPage = null;
 	var _defMaxScore = null;
+    var _isPopup = false;
 	this.init = function(moduleConfig) {
 		_moduleConfig = moduleConfig;
 		_pageProps = [{id:'pageId', name: nl.t('Page id'), type:'div'},
 			{id:'maxScore', name: nl.t('Maximum score'), type:'number', condition: 'isMaxScore'},
 			{id:'minPageTime', name: nl.t('Minimum time'), type:'number', min: 0},
-			{id:'forumTopic', name: nl.t('Discussion topic'), type:'string'},
+			{id:'forumTopic', name: nl.t('Discussion topic'), type:'string', condition: 'notPopup'},
 			{id:'audioUrl', name: nl.t('Audio url'), type:'string'},
 			{id:'autoVoice', name: nl.t('Audio script'), type:'textarea'},
-			{id:'hint', name: nl.t('Page hint'), type:'textarea'},
+			{id:'hint', name: nl.t('Page hint'), type:'textarea', condition: 'notPopup'},
             {id:'bgimg', name: nl.t('Background image'), type:'string'},
             {id:'bgshade', name: nl.t('Text Color'), type:'select', condition: 'isBgimg'},
 			{id:'visibility', name: nl.t('Visibility'), type: 'select', condition: 'isBleedingEdge'}];
@@ -63,10 +64,11 @@ function(nl, nlDlg) {
 			prop.help = _pagePropsHelp[prop.id] || null;
 		}
 	}
-		
-	this.showDlg = function(oPage, defMaxScore) {
+	
+	this.showDlg = function(oPage, defMaxScore, isPopup) {
 		_oPage = oPage;
 		_defMaxScore = defMaxScore;
+		_isPopup = isPopup;
 		var parentScope = nl.rootScope;
 		return nl.q(function(resolve, reject) {
 			var pagePropsDlg = nlDlg.create(parentScope);
@@ -84,7 +86,7 @@ function(nl, nlDlg) {
 	};
 	
 	function _initPagePropsDlg(pagePropsDlg) {
-		pagePropsDlg.scope.dlgTitle = nl.t('Page properties');
+		pagePropsDlg.scope.dlgTitle = nl.t('{}Page Properties', _isPopup ? 'Popup ' : '');
 
 		pagePropsDlg.scope.data = {};
 		pagePropsDlg.scope.data.items = _pageProps;
@@ -103,6 +105,7 @@ function(nl, nlDlg) {
 			if (condition == 'isBleedingEdge') return (_moduleConfig.grpProps.isBleedingEdge);
 			if (condition == 'isMaxScore') return (_defMaxScore > 0);
             if (condition == 'isBgimg') return (pagePropsDlg.scope.data.bgimg != '');
+            if (condition == 'notPopup') return (!_isPopup);
 			return true;
 		};
 		

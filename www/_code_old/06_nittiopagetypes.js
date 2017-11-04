@@ -102,24 +102,30 @@ npagetypes = function() {
 	var lastPageType = '';
 	var lastCustomLayout = [];
 	
-	function pageTypeDlgShow(bInsert) {
-		
+	function pageTypeDlgShow(bInsert, isPopup) {
+		var popup = isPopup ? 'Popup ' : '';
 		var title = jQuery('#pageType_title');
 		
 		if (bInsert) {
-			title.html('Add page');
+			title.html(njs_helper.fmt2('Add {}Page', popup));
 			_changeSelections(PageTypeMap[lastSelectedPageType], []);
 			jQuery('#previewLayout').attr('operationMode', 'insert');
 			jQuery('.pageTypeHelpInsert').show();
 			jQuery('.pageTypeHelpChange').hide();
 		} else {
-			title.html('Change page type');
+			title.html(njs_helper.fmt2('Change {}Page Layout', popup));
 			var pagetype = _getCurrentPageType();
 			_changeSelections(pagetype.pt, _getCurrentPageLayout());
 			jQuery('#previewLayout').attr('operationMode', 'change');
 			jQuery('.pageTypeHelpInsert').hide();
 			jQuery('.pageTypeHelpChange').show();
 		}
+		
+		var holder = jQuery('#previewHolder');
+		holder.find('.bgimg').remove();
+        var page = bInsert ? null : nlesson.theLesson.getCurrentPage();
+        var bginfo = nlesson.theLesson.cloneBgImgForPage(page);
+        holder.prepend(bginfo.bgimg);
 
 		_LayoutEditorHide();
 		njs_lesson_helper.LessonDlgs.pageTypeDlg.show();

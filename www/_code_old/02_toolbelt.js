@@ -17,7 +17,7 @@ function Toolbelt() {
         _toggleDisplayMode();
         _buildToolbelt(tools);
         _showToolbelt();
-    }
+    };
     
     function _showToolbelt() {
         setTimeout(function() {
@@ -114,15 +114,20 @@ function Toolbelt() {
             icon.removeAttr('class');
             icon.addClass('toolbeltIcon icon ' + iconCls);
         }
-    }
+    };
 
+    this.updateToolGrp = function(grpId, name) {
+        var grpTitle = _tb.find('#' + _getGrpId(grpId) + ' .toolbeltTitle');
+        grpTitle.html(name);
+    };
+    
     this.toggleTool = function(toolId, bShow) {
         _toggleElem(_tb.find('#' + toolId), bShow);
-    }
+    };
 
-    this.toggleToolGroup = function(grpName, bShow) {
-        _toggleElem(_tb.find('#' + _getGrpId(grpName)), bShow);
-    }
+    this.toggleToolGroup = function(grpId, bShow) {
+        _toggleElem(_tb.find('#' + _getGrpId(grpId)), bShow);
+    };
 
     function _toggleElem(elem, bShow) {
         if (bShow) elem.removeClass('animated-hide');

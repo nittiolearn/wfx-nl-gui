@@ -4,7 +4,7 @@ njsPageOrg = function() {
 	var _pageOrgDlg = new njs_helper.Dialog();
 
 	// All index are 0-based. Index -1 refers to header row
-	function showOrganizer(onDoneFn) {
+	function showOrganizer(isPopup, onDoneFn) {
 		g_onDoneFn = onDoneFn;
 		var lesson = nlesson.theLesson;
 		lesson.updateContent();
@@ -22,6 +22,8 @@ njsPageOrg = function() {
 		}};
 		_pageOrgDlg.create('page_org', dlg, [], cancelButton);
 		_reinitRows(lesson, 0, -1, lesson.getCurrentPageNo());
+        var title = jQuery('#page_org_title');
+        title.html(njs_helper.fmt2('Organize {}Pages', isPopup ? 'Popup ' : ''));
 		_pageOrgDlg.show();
 
 		bindHotkeys();

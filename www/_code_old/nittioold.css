@@ -407,7 +407,7 @@ i.toolbeltIcon.icon:hover {
   left: 10%;
   height: 80%;
   width: 80%;
-  background-color: rgba(255, 255, 255, 0.6);
+  background-color: rgba(230, 230, 255, 0.9);
   box-shadow: 5px 5px 10px rgba(128,128,128,0.8);
   transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
 }
@@ -424,6 +424,10 @@ i.toolbeltIcon.icon:hover {
   color: 404040;
   font-weight: 800;
   z-index: 2;
+}
+
+.module_popup_img {
+  background-color: rgba(245, 245, 255, 1) !important;
 }
 
 #module_popup_content {
