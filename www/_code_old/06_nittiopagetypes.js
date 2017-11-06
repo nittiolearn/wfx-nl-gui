@@ -17,6 +17,16 @@ npagetypes = function() {
 	var ANSWERED_PART = 1;
 	var ANSWERED_YES = 2;
 
+    function mergeAnswerStatus(a, b) {
+        if (a == ANSWERED_NA) return b;
+        if (b == ANSWERED_NA) return a;
+        if (a == ANSWERED_PART || b == ANSWERED_PART) return ANSWERED_PART;
+        if (a == ANSWERED_YES && b == ANSWERED_YES) return ANSWERED_YES;
+        if (a == ANSWERED_NO && b == ANSWERED_NO) return ANSWERED_NO;
+        return ANSWERED_PART;
+    }
+
+
 	//#############################################################################################
 	// Called once at page load to initialize some variables
 	//#############################################################################################
@@ -2560,6 +2570,7 @@ npagetypes = function() {
 		ANSWERED_NA: ANSWERED_NA,
 		ANSWERED_NO: ANSWERED_NO,
 		ANSWERED_PART: ANSWERED_PART,
-		ANSWERED_YES: ANSWERED_YES
+		ANSWERED_YES: ANSWERED_YES,
+		mergeAnswerStatus: mergeAnswerStatus
 	};
 }(); 

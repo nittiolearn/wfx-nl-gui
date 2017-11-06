@@ -118,7 +118,7 @@ njsPageOrg = function() {
 		var rowDetails = {};
 		rowDetails.pageNo = i;
 		rowDetails.page = _makePageNoLink(i);
-		rowDetails.maxScore = pages[i].getMaxScore();
+		rowDetails.maxScore = pages[i].getMaxScore() + pages[i].getPopupMaxScore();
 		rowDetails.more = _makeMoreLink(i, pages[i].sections[0].oSection.text);
 		return njs_helper.fmt1(templ, rowDetails);
 	}

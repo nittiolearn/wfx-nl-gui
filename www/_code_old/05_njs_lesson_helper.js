@@ -421,12 +421,8 @@ function _SubmitAndScoreDialog_getShowReportParameters(lesson, dialogParams) {
 	dialogParams.staticResFolder = nittio.getStaticResFolder();
 
 	var l = lesson.oLesson;
-	dialogParams.score = l.score;
-	dialogParams.maxScore = l.maxScore;
-	dialogParams.perc = 0;
-	if (l.maxScore > 0) {
-        dialogParams.perc = (100*l.score/l.maxScore).toFixed(0);
-	}
+	dialogParams.score = 0;
+	dialogParams.maxScore = 0;
 	
 	dialogParams.correct = _SubmitAndScoreDialog_isCorrect(l.score, l.maxScore);
 	// Computed substitution at lesson level
@@ -437,17 +433,23 @@ function _SubmitAndScoreDialog_getShowReportParameters(lesson, dialogParams) {
 		var page = lesson.pages[i];
 		var rowDetails = {};
 		rowDetails.page = _SubmitAndScoreDialog_makePageNoLink(i); 
-		rowDetails.score = page.getScore(); 
-		rowDetails.maxScore = page.getMaxScore(); 
+		rowDetails.score = (page.getScore() + page.getPopupScore()); 
+		rowDetails.maxScore = (page.getMaxScore() + page.getPopupMaxScore());
+        dialogParams.score += rowDetails.score;
+        dialogParams.maxScore += rowDetails.maxScore;
 		rowDetails.correct = _SubmitAndScoreDialog_isCorrect(rowDetails.score, rowDetails.maxScore);
 		rowDetails.correct = _zodiIcons[rowDetails.correct];
-		if (rowDetails.maxScore == 0) {
-			rowDetails.maxScore = '-';
-		}
+        rowDetails.score = rowDetails.score || '-'; 
+        rowDetails.maxScore = rowDetails.maxScore || '-'; 
 		rowDetails.more = _SubmitAndScoreDialog_makeMoreLink(i, page.sections[0].oSection.text); 
 		rowDetails.htmlClass = 'normal';
 		dialogParams.pageScoreDetails += njs_helper.fmt1(pageRowTempl, rowDetails);
 	}
+
+    dialogParams.perc = 0;
+    if (dialogParams.maxScore > 0) {
+        dialogParams.perc = (100*dialogParams.score/dialogParams.maxScore).toFixed(0);
+    }
 }
 
 function _SubmitAndScoreDialog_getSubmitWindowParameters(lesson, dialogParams) {

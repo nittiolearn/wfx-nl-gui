@@ -142,7 +142,7 @@ nlesson = function() {
 	function Lesson_getCurrentPageUrl() {
 		var url = window.location.href.replace(/\#.*/, ''); // remove # anchors
 		url = url.replace(/\?.*/, ''); // remove query strings
-		return url + '#/' + this.pages[this.getCurrentPageNo()].getPageIdStr();
+		return url + '#/' + this.getCurrentPage().getPageIdStr();
 	}
 	
 	function Lesson_getExistingPageIds() {
@@ -391,18 +391,18 @@ nlesson = function() {
 		}
 
 		this.reRenderedList = {};
-		var curPage = this.pages[this.getCurrentPageNo()];
+		var curPage = this.getCurrentPage();
 		curPage.reRenderDoMode(false);
 	}
 	
 	function Lesson_updatePagePropertiesDom() {
-		var curPage = this.pages[this.getCurrentPageNo()];
+		var curPage = this.getCurrentPage();
 		curPage.updatePagePropertiesDom(this.getCurrentPageNo());
 	}
 
     var forumDlg = null;
     function Lesson_showForum(forumType, forumRefid) {
-        var curPage = this.pages[this.getCurrentPageNo()];
+        var curPage = this.getCurrentPage();
         if (forumType == '') return;
         if (forumDlg === null) {
             forumDlg = new njs_helper.Dialog();
@@ -436,8 +436,7 @@ nlesson = function() {
 	
 	function Lesson_onEscape() {
 	    this.globals.selectionHandler.unselectSection();
-		var pgNo = this.getCurrentPageNo();
-		var curPage = this.pages[pgNo];
+		var curPage = this.getCurrentPage();
 		if (!curPage) return false;
 		return curPage.onEscape();
 	}
@@ -564,7 +563,7 @@ nlesson = function() {
 	}
 	
 	function _shallShowZodi(lesson) {
-		var curPage = lesson.pages[lesson.getCurrentPageNo()];
+		var curPage = lesson.getCurrentPage();
 		if ('hint' in curPage.oPage && curPage.oPage.hint != '') return true;
 		if (curPage.getMaxScore() > 0) return true;
 		return false;
@@ -573,7 +572,7 @@ nlesson = function() {
 	function Lesson_showOrHideDoToggleIcon() {
 		if (this.renderCtx.launchMode() != 'do') return;
 		
-		var curPage = this.pages[this.getCurrentPageNo()];
+		var curPage = this.getCurrentPage();
 		if (this.renderCtx.pageCtx(curPage) != 'do_zodi' && curPage.pagetype.isDoToggleSupported()) {
 			curPage.reRenderDoMode();
 			jQuery('#do_toggle_icon').show();
@@ -585,8 +584,7 @@ nlesson = function() {
 	function Lesson_showPageReport(bFeedback) {
         this.updateScore();
 		if(bFeedback){
-			var pageNo  = this.getCurrentPageNo();
-			var curPage = this.pages[pageNo];
+			var curPage = this.getCurrentPage();
 			var score = curPage.getScore();
 			var maxScore = curPage.getMaxScore();
 			if (maxScore > 0 && score == maxScore)
@@ -616,7 +614,7 @@ nlesson = function() {
 	function _getZodiData(lesson) {
 		var oLesson = lesson.oLesson;
 		var pageNo = lesson.getCurrentPageNo();
-		var curPage = lesson.pages[pageNo];
+		var curPage = lesson.getCurrentPage();
 		var isDoMode = lesson.renderCtx.launchMode() == 'do';
 
 		var ret = {help: '', icon: ''};
@@ -667,6 +665,7 @@ nlesson = function() {
 		this.oLesson.maxScore = 0;
 		for (var i = 0; i < this.pages.length; i++) {
 			this.oLesson.maxScore += this.pages[i].getMaxScore();
+            this.oLesson.maxScore += this.pages[i].getPopupMaxScore();
 		}
 
 		if (this.renderCtx.launchMode() != 'edit') {
@@ -733,6 +732,9 @@ nlesson = function() {
         {name: 'scoreOverride', noMinify: true},
         {name: 'maxScore', noCopyBack: true, noMinify: true},
         {name: 'pageMaxScore', noCopyBack: true, noMinify: true},
+        {name: 'answerStatus', noMinify: true}, 
+        {name: 'popupScore', noMinify: true}, 
+        {name: 'popupMaxScore', noMinify: true}, 
         {name: 'answered', noMinify: true},
         {name: 'remarks', noMinify: true},
         {name: 'notes', noMinify: true},
@@ -818,14 +820,17 @@ nlesson = function() {
             if (_ldAttrList[i].noCopyFrom) continue;
             _copyIf(lesson.oLesson, ld, _ldAttrList[i].name);
         }
-        
         if (!ld.pages) ld.pages = {};
-        for(var i=0; i<lesson.pages.length; i++) {
-            var oPage = lesson.pages[i].oPage;
+        _Lesson_updateLearningDataFromOPages(ld.pages, lesson.oLesson.pages);
+	}
+
+    function _Lesson_updateLearningDataFromOPages(ldPages, oPages) {
+        for(var i=0; i<oPages.length; i++) {
+            var oPage = oPages[i];
             var title = oPage.sections && oPage.sections[0] ? oPage.sections[0].text : '';
             title = njs_lesson_helper.formatTitle(title);
-            if (!ld.pages[oPage.pageId]) ld.pages[oPage.pageId] = {};
-            var pld = ld.pages[oPage.pageId];
+            if (!ldPages[oPage.pageId]) ldPages[oPage.pageId] = {};
+            var pld = ldPages[oPage.pageId];
             pld.pageNo = i+1;
             pld.title = title;
             pld.sections = [];
@@ -844,12 +849,15 @@ nlesson = function() {
                     shallAdd = true;
                     _copyIf(oSection, sld, _ldSectionAttrList[k].name);
                 }
+                if (oSection.popups && oSection.popups.onclick) {
+                    _Lesson_updateLearningDataFromOPages(ldPages, oSection.popups.onclick);
+                }
                 if (!shallAdd) continue;
                 sld.sectionNumber = j;
                 pld.sections.push(sld);
             }
         }
-	}
+    }
 
     function _Lesson_updateOLessonFromLearningData(lesson) {
         var ld = lesson.oLesson.learningData;
@@ -858,6 +866,13 @@ nlesson = function() {
         for(var i=0; i<_ldAttrList.length; i++) {
             if (_ldAttrList[i].noCopyBack) continue;
             _copyIf(ld, lesson.oLesson, _ldAttrList[i].name);
+        }
+        _Lesson_updateOPagesFromLearningData(lesson.oLesson.pages, lesson);
+    }
+    
+    function _Lesson_updateOPagesFromLearningData(oPages, lesson) {
+        for(var i=0; i<oPages.length; i++) {
+            _Lesson_updateOPageFromLearningData(oPages[i], lesson)
         }
     }
     
@@ -869,6 +884,10 @@ nlesson = function() {
         for(var i=0; i<_ldPageAttrList.length; i++) {
             if (_ldPageAttrList[i].noCopyBack) continue;
             _copyIf(pld, oPage, _ldPageAttrList[i].name);
+        }
+        for(var i=0; i<oPage.sections.length; i++) {
+            var popupPages = (oPage.sections[i].popups || {}).onclick || [];
+            _Lesson_updateOPagesFromLearningData(popupPages, lesson);
         }
         if (!pld.sections) return;
         for(var i=0; i<pld.sections.length; i++) {
@@ -895,40 +914,56 @@ nlesson = function() {
 	}
 
 	function Lesson_updateScoreReport() {
-		this.oLesson.score = 0;
-		for (var i = 0; i < this.pages.length; i++) {
-			var pageScore = ('score' in this.oLesson.pages[i]) ? this.oLesson.pages[i].score : 0;
-			this.oLesson.score += pageScore;
-		}
+        this.oLesson.score = 0;
+		var pagesList = modulePopup.getPagesListFromStack();
+	    var pages = pagesList[0];
+        for (var i = 0; i < pages.length; i++) {
+            this.oLesson.score += (pages[i].oPage.score || 0);
+            this.oLesson.score += (pages[i].oPage.popupScore || 0);
+        }
 	}
 	
 	function Lesson_updateScoreDo() {		
         if (njs_scorm.getScormLmsLessonMode() !== null) return;
-		this.oLesson.maxScore = 0;
-		this.oLesson.score = 0;
-		this.oLesson.answered = [];
-		this.oLesson.notAnswered = [];
-        this.oLesson.partAnswered = [];
-		for (var i = 0; i < this.pages.length; i++) {
-			var pageMaxScore = this.pages[i].getMaxScore();
-			this.oLesson.maxScore += pageMaxScore;
-			var pageScoreInfo = this.pages[i].computeScore();
-			if (pageMaxScore != 0) {
-				if ('scoreOverride' in this.oLesson.pages[i]) pageScoreInfo[1] = this.oLesson.pages[i].scoreOverride;
-				this.oLesson.pages[i].score = pageScoreInfo[1];
-				this.oLesson.score += pageScoreInfo[1];
-			}
-			if (pageScoreInfo[0] == npagetypes.ANSWERED_YES) {
-				this.oLesson.answered.push(i);
-			} else if (pageScoreInfo[0] == npagetypes.ANSWERED_PART) {
-				this.oLesson.partAnswered.push(i);
-			} else if (pageScoreInfo[0] == npagetypes.ANSWERED_NO) {
-				this.oLesson.notAnswered.push(i);
-			}
+        var pagesList = modulePopup.getPagesListFromStack();
+        for(var p=pagesList.length-1; p>=0; p--) {
+            var pages = pagesList[p];
+            var oLesson = (p == 0) ? this.oLesson : {};
+            _Lesson_updateScoreDoImpl(oLesson, pages);
+        }
+    }
+
+    function _Lesson_updateScoreDoImpl(oLesson, pages) {       
+		oLesson.maxScore = 0;
+		oLesson.score = 0;
+		oLesson.answered = [];
+		oLesson.notAnswered = [];
+        oLesson.partAnswered = [];
+		for (var i = 0; i < pages.length; i++) {
+            pages[i].computeScore();
+            var oPage =  pages[i].oPage;
+			oLesson.maxScore += (oPage.maxScore + oPage.popupMaxScore);
+            oLesson.score += (oPage.score + oPage.popupScore);
+
+            if (oPage.answerStatus == npagetypes.ANSWERED_YES) {
+                oLesson.answered.push(i);
+            } else if (oPage.answerStatus == npagetypes.ANSWERED_PART) {
+                oLesson.partAnswered.push(i);
+            } else if (oPage.answerStatus == npagetypes.ANSWERED_NO) {
+                oLesson.notAnswered.push(i);
+            }
 		}
 	}
-		
+	
 	function Lesson_submitReport() {
+        if (modulePopup.isPopupOpen()) {
+            njs_helper.Dialog.popup('Warning', 
+                'Please close all popups before submitting.', 
+                undefined, undefined, sizes=njs_helper.Dialog.sizeSmall());
+            return;
+            
+        }
+	    
 		this.updateScore();
 		njs_lesson_helper.SubmitAndScoreDialog.showSubmitWindow(this);
 	}
@@ -1074,8 +1109,7 @@ nlesson = function() {
 	}
 
     function _Lesson_saveUpdatePgNo(lesson) {
-        var pgNo = lesson.getCurrentPageNo();
-        lesson.oLesson.currentPageNo = pgNo;
+        lesson.oLesson.currentPageNo = modulePopup.getMainPageNo();
     }
     
     function _Lesson_saveUpdateTime(lesson) {
@@ -1217,7 +1251,7 @@ nlesson = function() {
 	}
 
 	function Lesson_getPageStudentNotes() {
-		var oPage = this.pages[this.getCurrentPageNo()].oPage;
+		var oPage = this.getCurrentPage().oPage;
 		if ('notes' in oPage) {
 			return oPage.notes;
 		}
@@ -1225,12 +1259,12 @@ nlesson = function() {
 	}
 
 	function Lesson_setPageStudentNotes(notes) {
-		var oPage = this.pages[this.getCurrentPageNo()].oPage;
+		var oPage = this.getCurrentPage().oPage;
 		oPage.notes = notes;
 	}
 
 	function Lesson_getPageTeacherRemarks() {
-		var oPage = this.pages[this.getCurrentPageNo()].oPage;		
+		var oPage = this.getCurrentPage().oPage;		
 		if ('remarks' in oPage) {
 			return oPage.remarks;			
 		}
@@ -1238,27 +1272,27 @@ nlesson = function() {
 	}
 
 	function Lesson_setPageTeacherRemarks(remarks) {
-		var oPage = this.pages[this.getCurrentPageNo()].oPage;		
+		var oPage = this.getCurrentPage().oPage;		
 		oPage.remarks = remarks;
 	}
 	
 	function Lesson_isPageScoreEditable() {
-		var page = this.pages[this.getCurrentPageNo()];
+		var page = this.getCurrentPage();
 		return page.pagetype.isScoreEditable(page);
 	}
 
 	function Lesson_getPageMaxScore() {
-		var page = this.pages[this.getCurrentPageNo()];
+		var page = this.getCurrentPage();
 		return page.getMaxScore();
 	}
 
 	function Lesson_getPageScore() {
-		var page = this.pages[this.getCurrentPageNo()];
+		var page = this.getCurrentPage();
 		return page.getScore();
 	}
 
 	function Lesson_setPageScore(score) {
-		var oPage = this.pages[this.getCurrentPageNo()].oPage;
+		var oPage = this.getCurrentPage().oPage;
 		oPage.score = Number(score);
 		oPage.scoreOverride = oPage.score;
 	}
@@ -1381,6 +1415,8 @@ nlesson = function() {
 		this.getMaxScore = Page_getMaxScore;
 		this.getScore = Page_getScore;
 		this.computeScore = Page_computeScore;
+		this.getPopupScore = Page_getPopupScore;
+        this.getPopupMaxScore = Page_getPopupMaxScore;
 
 		// Utilities and internally used methods
 		this.initPageTypeObject = Page_initPageTypeObject;
@@ -1449,7 +1485,6 @@ nlesson = function() {
 	// Initialize and render - internal methods
 	//---------------------------------------------------------------------------------------------
 	function Page_init(oPage, bgimg) {
-        _Lesson_updateOPageFromLearningData(oPage, this.lesson);
 		this.oPage = oPage;
 		this.bgimg = bgimg;
 		this.sections = [];		
@@ -1646,23 +1681,61 @@ nlesson = function() {
 	}
 
 	function Page_getMaxScore() {
-		var maxScore = ('pageMaxScore' in this.oPage) ? this.oPage.pageMaxScore: this.pagetype.getMaxScore(this);
-		this.oPage.maxScore = maxScore;
-		return maxScore;
+        _Page_updateMaxScores(this.oPage, this);
+        return this.oPage.maxScore;
 	}
 
+    function Page_getPopupMaxScore() {
+        return this.oPage.popupMaxScore;
+    }
+    
+    function _Page_updateMaxScores(oPage, page) {
+        oPage.maxScore = ('pageMaxScore' in oPage) ? oPage.pageMaxScore
+            : page ? page.pagetype.getMaxScore(page) : oPage.maxScore;
+        if (!oPage.maxScore) oPage.maxScore = 0;
+
+        oPage.popupMaxScore = 0;
+        for (var i=0; i<oPage.sections.length; i++) {
+            var oSection = oPage.sections[i];
+            if (!oSection.popups || !oSection.popups.onclick) continue;
+
+            var oSubPages = oSection.popups.onclick;
+            for (var j=0; j<oSubPages.length; j++) {
+                _Page_updateMaxScores(oSubPages[j]);
+                oPage.popupMaxScore += (oSubPages[j].maxScore + oSubPages[j].popupMaxScore);
+            }
+        }
+        return oPage.popupMaxScore;
+    }
+
 	function Page_computeScore() {
-		var fn = this.pagetype.getScoreFn();
-		return fn(this);
+	    var oPage = this.oPage;
+        this.getMaxScore(); // For side effect of setting maxScore and popupMaxScore
+        var scoreInfo = this.pagetype.getScoreFn()(this);
+        oPage.answerStatus = scoreInfo[0];
+	    oPage.score = 'scoreOverride' in oPage ? oPage.scoreOverride : scoreInfo[1];
+        oPage.popupScore = 0;
+
+        for (var i=0; i<oPage.sections.length; i++) {
+            var oSection = oPage.sections[i];
+            if (!oSection.popups || !oSection.popups.onclick) continue;
+            var oSubPages = oSection.popups.onclick;
+            for (var j=0; j<oSubPages.length; j++) {
+                oPage.popupScore += (oSubPages[j].maxScore && oSubPages[j].score ? oSubPages[j].score : 0);
+                oPage.popupScore += (oSubPages[j].popupMaxScore && oSubPages[j].popupScore ? oSubPages[j].popupScore : 0);
+                oPage.answerStatus = npagetypes.mergeAnswerStatus(oSubPages[j].answerStatus, oPage.answerStatus);
+            }
+        }
 	}
 	
 	function Page_getScore() {
-		if ('score' in this.oPage) {
-			return this.oPage.score;
-		}
-		return '-';
+		return this.oPage.score || 0;
 	}
-	
+
+    function Page_getPopupScore() {
+        return this.oPage.popupScore || 0;
+    }
+
 	//---------------------------------------------------------------------------------------------
 	// Utilities for Page class
 	//---------------------------------------------------------------------------------------------
@@ -2035,8 +2108,10 @@ function SectionSelectionHandler(lesson) {
         _allTools.push({id: 'edit_icon_link', grpid: 'media', grp: 'Section Media', icon:'ion-link', name:'Insert Link', onclick: on_insert_link});
         _allTools.push({id: 'edit_icon_media', grpid: 'media', grp: 'Section Media', icon:'ion-ios-photos', name:'Update Media', onclick: on_update_media});
 
-        _allTools.push({id: 'edit_icon_popup_edit', grpid: 'popup', grp: 'Section Popup', icon:'ion-ios-pricetag', name:'Create Popup', onclick: on_popup_edit});
-        _allTools.push({id: 'edit_icon_popup_delete', grpid: 'popup', grp: 'Section Popup', icon:'ion-backspace', name:'Delete Popup', onclick: on_popup_delete});
+        if (isRaw) {
+            _allTools.push({id: 'edit_icon_popup_edit', grpid: 'popup', grp: 'Section Popup', icon:'ion-ios-pricetag', name:'Create Popup', onclick: on_popup_edit});
+            _allTools.push({id: 'edit_icon_popup_delete', grpid: 'popup', grp: 'Section Popup', icon:'ion-backspace', name:'Delete Popup', onclick: on_popup_delete});
+        }
 
         _allTools.push({id: 'edit_icon_comment', grpid: 'review', grp: 'Module Review', icon:'ion-ios-chatbubble-outline', title:'Manage Comments', name:'Comments', onclick: on_managecomment});
         if (lessonId > 0)
@@ -2076,7 +2151,7 @@ function SectionSelectionHandler(lesson) {
     };
     
     function _isSectionSelected() {
-        var currentPage = lesson.pages[lesson.getCurrentPageNo()];
+        var currentPage = lesson.getCurrentPage();
         return (_focusedSection.pgSecText !== null && _focusedSection.secNo !== null &&
             _focusedSection.page == currentPage);
     }
@@ -2091,11 +2166,24 @@ function SectionSelectionHandler(lesson) {
 //---------------------------------------------------------------------------------------------
 function ModulePopupHadler() {
     var _stack = [];
+    var _mainPages = null;
+    var _mainPageNo = 0;
 
     this.isPopupOpen = function() {
         return (_stack.length > 0);
     };
     
+    this.getPagesListFromStack = function() {
+        var pagesList = [];
+        for(var i=0; i< _stack.length; i++) pagesList.push(_stack[i].pages);
+        pagesList.push(g_lesson.pages);
+        return pagesList;
+    };
+    
+    this.getMainPageNo = function() {
+        return this.isPopupOpen() ? _mainPageNo : g_lesson.getCurrentPageNo();
+    };
+
     this.deletePopup = function(section) {
         var msg = 'Are you sure you want to delete the popup defined for this section?';
         var cancelButton = {id: 'cancel', text: 'Cancel'};
@@ -2126,6 +2214,10 @@ function ModulePopupHadler() {
             pages: g_lesson.pages,
             slides: g_lesson.globals.slides,
             lessonCtx: g_lesson.renderCtx.lessonCtx()};
+        if (_stack.length == 0) {
+            _mainPages = g_lesson.pages;
+            _mainPageNo = g_lesson.getCurrentPageNo();
+        }
         _stack.push(context);
         
         var holder = jQuery('#module_popup_holder');
@@ -2164,6 +2256,7 @@ function ModulePopupHadler() {
     this.close = function() {
         if (_stack.length == 0) return false;
         this.updateContent();
+        g_lesson.updateScore();
 
         var top = _stack.pop();
         top.hPages.remove();
