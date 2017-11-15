@@ -32,6 +32,20 @@
     <nl-dlg-row attr='layout' data='data' help='help'>
         <nl-select fieldmodel='layout'></nl-select>
     </nl-dlg-row>
+	<div class='row row-top row-wrap padding0 margin0' ng-show='!data.showLayoutEdit'>
+	    <div ng-class='resp2Col33' class='padding-mid'></div>
+	    <div ng-class='resp2Col67'>
+			<span class='nl-dlg-field-value'>
+				<button type="button" ng-keypress='$event.keyCode == 13  ? data.showLayoutEdit = !data.showLayoutEdit : ""' ng-click='data.showLayoutEdit = !data.showLayoutEdit'>Edit layout attributes</button>
+			</span>
+		</div>
+	</div>
+	<div ng-show='data.showLayoutEdit' class='nl-dlg-field-value'>
+		<nl-textarea fieldmodel='sectionLayout' fieldcls='nl-fixed-width'></nl-textarea>
+		<div style='padding:8px 4px'>
+			<button type="button" ng-keypress='$event.keyCode == 13 ? editLayoutDone() : "" ' ng-click='editLayoutDone()'>Done</button>
+		</div>
+	</div>
     <nl-dlg-row attr='preview' data='data' help='help'>
         <div class='popup_props_preview'>
             <div class='popup_props_preview2'>

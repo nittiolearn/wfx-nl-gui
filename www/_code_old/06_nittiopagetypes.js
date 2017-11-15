@@ -33,7 +33,6 @@ npagetypes = function() {
 	function init(templatePageTypes) {
 	    var data = templatePageTypes.length > 0 ? templatePageTypes : defaultPageTypes;
 		_initStaticListsAndMaps(data);
-		_initPageTypeFieldsForEditor();
 	}
 
     var defaultPageType = 'H';
@@ -78,213 +77,19 @@ npagetypes = function() {
             if (pt.id in PageTypeMap) continue;
             PageTypeMap[pt.id] = pt;
         }
-
-        lastSelectedPageType = defaultPageType;
-        lastInteraction = '';
-        lastPageType = '';
-        lastCustomLayout = [];
-
-	}
-	
-	function _initPageTypeFieldsForEditor() {
-		var intrObj = jQuery('#l_interactiontype');
-		intrObj.html('');
-		var bleedingEdgeUser = nittio.isBleedingEdge();
-		for (var i = 0; i < PageInteractionTypes.length; i++) {
-			var intr = PageInteractionTypes[i];
-			var bleedingEdgePage = _getInteractionAttribute(intr, 'bleedingEdge', false);
-
-			if (bleedingEdgeUser || !bleedingEdgePage) {
-				intrObj.append(njs_helper.fmt2('<option value="{}">{}</option>', intr.id, intr.desc));
-			}
-		}
-
-		jQuery(document).on('change', '#l_interactiontype', function() {
-			_onInteractionTypeChange();
-		});
-		jQuery(document).on('change', '#l_pagetype', function() {
-			_onLayoutChange();
-		});
-	}
-
-	var lastSelectedPageType = defaultPageType;
-	var lastInteraction = '';
-	var lastPageType = '';
-	var lastCustomLayout = [];
-	
-	function pageTypeDlgShow(bInsert, isPopup) {
-		var popup = isPopup ? 'Popup ' : '';
-		var title = jQuery('#pageType_title');
-		
-		if (bInsert) {
-			title.html(njs_helper.fmt2('Add {}Page', popup));
-			_changeSelections(PageTypeMap[lastSelectedPageType], []);
-			jQuery('#previewLayout').attr('operationMode', 'insert');
-			jQuery('.pageTypeHelpInsert').show();
-			jQuery('.pageTypeHelpChange').hide();
-		} else {
-			title.html(njs_helper.fmt2('Change {}Page Layout', popup));
-			var pagetype = _getCurrentPageType();
-			_changeSelections(pagetype.pt, _getCurrentPageLayout());
-			jQuery('#previewLayout').attr('operationMode', 'change');
-			jQuery('.pageTypeHelpInsert').hide();
-			jQuery('.pageTypeHelpChange').show();
-		}
-		
-		var holder = jQuery('#previewHolder');
-		holder.find('.bgimg').remove();
-        var page = bInsert ? null : nlesson.theLesson.getCurrentPage();
-        var bginfo = nlesson.theLesson.cloneBgImgForPage(page);
-        holder.prepend(bginfo.bgimg);
-
-		_LayoutEditorHide();
-		njs_lesson_helper.LessonDlgs.pageTypeDlg.show();
 	}
 	
 	//-----------------------------------------------------------------------------------------
-	function _BeautyStringifyLayouts(layoutsObj) {
-		var jsonStr = '';
-		for (var i=0; i<layoutsObj.length; i++) {
-			var secLayout = layoutsObj[i];
-			jsonStr += _BeautyStringifyLayout(secLayout, i);
-			if (i <layoutsObj.length -1) {
-				jsonStr += ',\r\n';
-			}
-		}
-		return jsonStr;
-	}
-
-	var LAYOUT_ORDER = ['pos', 't', 'h', 'l', 'w'];
-	var LAYOUT_COLLEN = {'pos': 2, 't': 5, 'h': 5, 'l': 5, 'w': 5};
-	var LAYOUT_ORDER_OTHER = ['t1', 'h1', 'l1', 'w1', 'aligntype', 'style', 'fmtgroup', 'ans', 'correct', 'mode'];
-    var LAYOUT_ATTR_TYPE = {'t1': 'int', 'h1': 'int', 'l1': 'int', 'w1': 'int'};
-	function _BeautyStringifyLayout(secLayout, i) {
-		secLayout.pos = i+1;
-		var ret = '{';
-		var bCommaNeeded = false;
-		for (var i in LAYOUT_ORDER) {
-			var attr = LAYOUT_ORDER[i];
-			var valLen = LAYOUT_COLLEN[attr];
-			var val = secLayout[attr];
-			if (bCommaNeeded) ret += ', ';
-			ret += '"' + attr + '":' + _FillLeadingBlanks(''+val, valLen);
-			bCommaNeeded = true;
-		}
-		for (var i in LAYOUT_ORDER_OTHER) {
-			var attr = LAYOUT_ORDER_OTHER[i];
-			if (!(attr in secLayout)) continue;
-			var quote = (attr in LAYOUT_ATTR_TYPE && LAYOUT_ATTR_TYPE[attr] == 'int') ? '' : '"';
-			ret += ', "' + attr + '":' + quote + secLayout[attr] + quote;
-		}
-		for (var i in secLayout) {
-			if (LAYOUT_ORDER.indexOf(i) != -1) continue;
-			if (LAYOUT_ORDER_OTHER.indexOf(i) != -1) continue;
-			throw 'Unknown attribute type: ' +  i;
-		}
-		return ret + '}';
-	}
-
-	function _FillLeadingBlanks(str, requiredLen) {
-		if (str.length >= requiredLen) return str;
-		var blankLen = requiredLen - str.length;
-		var blank = '';
-		for (var b=0; b<blankLen; b++) {
-			blank += ' ';
-		}
-		return blank + str;
-	}
-	
-	//-----------------------------------------------------------------------------------------
-	var editLayoutOpen = false;
-	function onEditLayoutButtonClick() {
-		editLayoutOpen = !editLayoutOpen;
-
-		var button = jQuery('#editLayoutButton');
-		if (editLayoutOpen) {
-			_updateLayoutEditor();
-			_LayoutEditorShow();
-		} else {
-			_LayoutEditorHide();
-			_updateFromLayoutEditor();
-			var pageType = jQuery('#l_pagetype').val();
-			_redrawPreview(pageType);
-		}
-	}
-
-	function _updateLayoutEditor() {
-		var layoutJson = '[]';
-		if (lastCustomLayout.length > 0) {
-			layoutJson = _BeautyStringifyLayouts(lastCustomLayout);
-		} else {
-			var pt = new PageType();
-			pt.initInternal(lastPageType);
-			layoutJson = _BeautyStringifyLayouts(pt.getLayout());
-		}
-		jQuery('#l_layoutEditor').val(layoutJson);
-	}
-
-	function _updateFromLayoutEditor() {
-		var layoutJson = jQuery('#l_layoutEditor').val();
-		if (layoutJson == '') {
-			lastCustomLayout = [];
-			return;
-		}
-		layoutJson = '[' + layoutJson +']';
-		lastCustomLayout = jQuery.parseJSON(layoutJson);
-		for (var i=0; i<lastCustomLayout.length; i++) {
-			if ('pos' in lastCustomLayout[i]) delete lastCustomLayout[i].pos;
-		}
-	}
-
-	function _LayoutEditorShow() {
-		jQuery('#l_layoutEditor_row').show();
-		jQuery('#editLayoutButton').html('Done');
-		editLayoutOpen = true;
-	}
-	
-	function _LayoutEditorHide() {
-		jQuery('#l_layoutEditor_row').hide();
-		jQuery('#editLayoutButton').html('Edit layout and attributes');
-		editLayoutOpen = false;
-	}
-
-
-	//-----------------------------------------------------------------------------------------
-	function pageTypeDlgDone() {
-		njs_lesson_helper.LessonDlgs.pageTypeDlg.close();
-		lastSelectedPageType = jQuery('#l_pagetype').val();
-
-		if (editLayoutOpen) onEditLayoutButtonClick();
-		
+	function pageSelectionDone(ptInfo, bInsert) {
 		var pt = new PageType();
-		pt.initInternal(lastPageType);
-		if(_isEqualLayouts(lastCustomLayout, pt.getLayout())) {
-			lastCustomLayout = [];
+		pt.initInternal(ptInfo.pt);
+		if(_isEqualLayouts(ptInfo.layout, pt.getLayout())) {
+			ptInfo.layout = [];
 		}
+		if (bInsert) nlesson.theLesson.addPage(ptInfo.pt, ptInfo.layout);
+		else nlesson.theLesson.changePageType(ptInfo.pt, ptInfo.layout);
+	}
 
-		if (jQuery('#previewLayout').attr('operationMode') === 'insert') {
-			nlesson.theLesson.addPage(lastSelectedPageType, lastCustomLayout);
-			return;
-		}
-		if (!confirm('Changing page type may result in loss of data. Do you want to proceed?')) {
-			return;
-		}
-		nlesson.theLesson.changePageType(lastSelectedPageType, lastCustomLayout);
-	}
-	
-	function _getCurrentPageType() {
-		var lesson = nlesson.theLesson;
-		var pageNo = lesson.getCurrentPageNo();
-		return lesson.pages[pageNo].pagetype;
-	}
-	
-	function _getCurrentPageLayout() {
-		var lesson = nlesson.theLesson;
-		var pageNo = lesson.getCurrentPageNo();
-		var oPage = lesson.oLesson.pages[pageNo];
-		return 'sectionLayout' in oPage ? oPage.sectionLayout : [];
-	}
-	
 	function _isEqualLayouts(layout1, layout2) {
 		if (layout1.length != layout2.length) return false;
 		for (var i in layout1) {
@@ -298,83 +103,6 @@ npagetypes = function() {
 		return true;
 	}
 
-	function _changeSelections(pt, layout) {
-		if (pt.interaction != lastInteraction) {
-			jQuery('#l_interactiontype').select2('val', pt.interaction);
-			_reinitPageTypesIfRequired();
-		}
-		jQuery('#l_pagetype').select2('val', pt.id);
-		_changeLayoutIfNeeded();
-		lastCustomLayout = layout;
-		_redrawPreview(pt.id);
-	}
-	
-	function _reinitPageTypes(interaction) {
-		var layoutObj = jQuery('#l_pagetype');
-		layoutObj.html('');
-		if (! (interaction in InteractionToLayouts)) return;
-		var layouts = InteractionToLayouts[interaction];
-		for (var i = 0; i < layouts.length; i++) {
-			var layout = layouts[i];
-			layoutObj.append(njs_helper.fmt2('<option value="{}">{}</option>', layout.pagetype_id, layout.desc));
-		}
-		lastInteraction = interaction;
-	}
-
-	function _reinitPageTypesIfRequired() {
-		jQuery('#l_interactiontype').focus();
-
-		var interaction = jQuery('#l_interactiontype').val();
-		if (interaction == lastInteraction) return false;
-		
-		_reinitPageTypes(interaction);
-		return true;
-	}
-
-	function _redrawPreview(pageType) {
-		var preview = jQuery('#previewLayout');
-		preview.html('');
-		
-		var pt = new PageType();
-		if (lastCustomLayout.length > 0) {
-			pt.initInternal(pageType, lastCustomLayout);
-		} else {
-			pt.initInternal(pageType);
-		}
-		
-		var secCount = pt.getSectionCount();
-		for(var i=0; i<secCount; i++) {
-			_appendSectionDiv(preview, pt, i);
-		}
-		lastPageType = pageType;
-	}
-	
-	function _appendSectionDiv(preview, pt, secPos) {
-		var secDivFmt = '<DIV class="sectionPreview"><DIV class="secNo pgNoStyle">{}</DIV></DIV>';
-		var secDiv = njs_helper.jobj(njs_helper.fmt2(secDivFmt, secPos+1));
-		secDiv.css(pt.getSectionPos(secPos));
-		if (_isInteractive(pt.layout, secPos)) secDiv.addClass('interactive');
-		preview.append(secDiv);
-	}
-	
-	function _onInteractionTypeChange() {
-		if(_reinitPageTypesIfRequired()) jQuery('#l_pagetype').trigger('change');
-	}
-
-	function _onLayoutChange() {
-		if (!_changeLayoutIfNeeded()) return;
-		var pageType = jQuery('#l_pagetype').val();
-		_redrawPreview(pageType);
-	}
-	
-	function _changeLayoutIfNeeded() {
-		var pageType = jQuery('#l_pagetype').val();
-		if (pageType == lastPageType) return false;
-		_LayoutEditorHide();
-		lastCustomLayout = [];
-		return true;
-	}
-	
 	//#############################################################################################
 	// PageType is the externally exported class which abstracts the functionality of this
 	// Java script. With each page in a lesson, a PageType object will be created and attached.
@@ -2560,9 +2288,7 @@ npagetypes = function() {
 	//---------------------------------------------------------------------------------------------
 	return {
 		init : init,
-		pageTypeDlgShow : pageTypeDlgShow,
-		pageTypeDlgDone : pageTypeDlgDone,
-		onEditLayoutButtonClick : onEditLayoutButtonClick,
+		pageSelectionDone : pageSelectionDone,
 		PageType: PageType,
 		getPageTypeAttribute: getPageTypeAttribute,
 		getInteractionsAndLayouts: getInteractionsAndLayouts,
