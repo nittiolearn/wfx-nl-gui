@@ -1932,10 +1932,6 @@ div.line.lineColor0 { background-color: #FF7777;}
   background: #CCCCFF;
 }
 
-.bglight h1, .bglight h2, .bglight h3, .bglight h4, .bglight h5, .bglight h6 {
-  color: #333366;
-}
-
 .bglight .pgSec textarea, .bglight .pgSec select, .bglight .pgSecView.beh_interactive, .bglight .pgSecView div.questionnaire.report {
   box-shadow: 0 0 5px rgba(100,100,150,0.8);
 }
