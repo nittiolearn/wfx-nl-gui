@@ -26,6 +26,7 @@ function($stateProvider, $urlRouterProvider) {
 //-------------------------------------------------------------------------------------------------
 var LessonTranslateCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlCardsSrv', 'nlLessonSelect', 'nlTreeSelect', 'nlServerApi',
 function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, nlServerApi) {
+    var markupSplitter = new MarkupSplitter(nl);
 	var _userInfo = null;
 	var _languageInfo = [];
 	var _scope = null;
@@ -210,27 +211,35 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 		for (var key in selectedLangs) targetLang = selectedLangs[key].origId;
 		if(!targetLang) return _errorMessage(nl.t('Please select the target language'));
 
+        nlDlg.popupStatus('Getting the module content ...', false);
 		nlDlg.showLoadingScreen();
 		_getContent(lessonId).then(function(oLesson) {
-			_translateLessonContentToArray(oLesson);
-			_translateTexts(targetLang).then(function(translations) {
-				_updateModule(oLesson, translations);
-				oLesson.lang = targetLang;
-
-				var data = {content:angular.toJson(oLesson), createNew: true};
-				nlServerApi.lessonSave(data).then(function(newLessonId) {
-					$scope.newLessonId = newLessonId;
-					$scope.isApproved = false;
-					var copyLessonDlg = nlDlg.create($scope);
-					copyLessonDlg.scope.error = {};
-					var closeButton = {text : nl.t('Close')};
-					copyLessonDlg.show('view_controllers/lesson_list/copy_lesson.html', [], closeButton);
-					nlDlg.hideLoadingScreen();
-				});
-			});
+            nlDlg.popupStatus('Analyzing the items requiring translation ...', false);
+            nl.timeout(function() {
+                _prepareAndTranslate(oLesson, targetLang);
+            });
 		});
 	};
 	
+    function _prepareAndTranslate(oLesson, targetLang) {
+        _createTranslationArrayFromLessonContent(oLesson);
+        _translateTexts(targetLang).then(function(translations) {
+            _updateModule(translations);
+            oLesson.lang = targetLang;
+
+            var data = {content:angular.toJson(oLesson), createNew: true};
+            nlServerApi.lessonSave(data).then(function(newLessonId) {
+                $scope.newLessonId = newLessonId;
+                $scope.isApproved = false;
+                var copyLessonDlg = nlDlg.create($scope);
+                copyLessonDlg.scope.error = {};
+                var closeButton = {text : nl.t('Close')};
+                copyLessonDlg.show('view_controllers/lesson_list/copy_lesson.html', [], closeButton);
+                nlDlg.hideLoadingScreen();
+            });
+        });
+    }
+
     var _translations = [];
     var _MAX_CHARS_PER_SERVER_TRANSLATE_CALL = 10000;
 	function _translateTexts(targetLang) {
@@ -255,7 +264,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
         }
         var newStartAt = startAt+toServerArray.length;
         
-        nlDlg.popupStatus(nl.fmt2('Tranlating {} of {} items', newStartAt, _translateArray.length), false);
+        nlDlg.popupStatus(nl.fmt2('Translating {} of {} items', newStartAt, _translateArray.length), false);
         var data = {target: targetLang, inputs: toServerArray};
         if (startAt != 0) data.disablereqcnt = true;
         nlServerApi.translateTexts(data).then(function(translatedModule) {
@@ -273,74 +282,326 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 		nlDlg.popupAlert({title: 'Alert message', template: msg});
 	}
 	
-	function _addToArrayAndDict(value, typename, page, section, prefix) {
-		var info = {type: typename};
-		if (page !== undefined) info.page = page;
-		if (section !== undefined) info.section = section;
-		if (prefix !== undefined) info.prefix = prefix;
+	function _addTxtToArrayAndDict(txt, typename, targetObjInfo, pos) {
+		var info = {type: typename, targetObjInfo: targetObjInfo, pos: pos};
 		_translateDict[_translateArray.length]= info;
-		_translateArray.push(value);
+		_translateArray.push(txt);
 	}
 	
-	var wikiMarkups = {img: true, audio: true, video: true, link: true, pdf: true, embed: true, iframe: true};
-	// TODO: currently not translating link: text.
-	function _translateLessonContentToArray(oLesson, newLessonid) {
+    function _addMarkupsToArrayAndDict(markup, typename, targetObjInfo) {
+        targetObjInfo.splitArray = markupSplitter.split(markup);
+        targetObjInfo.lastTranslatedPosition = -1;
+        for(var i=0; i<targetObjInfo.splitArray.length; i++) {
+            var elem = targetObjInfo.splitArray[i];
+            if (!elem.translate) continue;
+            _addTxtToArrayAndDict(elem.txt, typename, targetObjInfo, i);
+            targetObjInfo.lastTranslatedPosition = i;
+        }
+    }
+
+    function _getTranslatedMarkup(translated, elem) {
+        elem.targetObjInfo.splitArray[elem.pos].txt = translated;
+        if (elem.pos != elem.targetObjInfo.lastTranslatedPosition) return null;
+        var markup = '';
+        for(var i=0; i<elem.targetObjInfo.splitArray.length; i++)
+            markup += elem.targetObjInfo.splitArray[i].txt;
+        return markup;
+    }
+
+	function _createTranslationArrayFromLessonContent(oLesson) {
         _translateDict = {};
         _translateArray = [];
-		_addToArrayAndDict(oLesson.name, 'module.name');
+		_addTxtToArrayAndDict(oLesson.name, 'module.name', {obj: oLesson});
 		if(oLesson.description)
-			_addToArrayAndDict(oLesson.description, 'module.description');
-		for(var i=0; i<oLesson.pages.length; i++) {
-			var page = oLesson.pages[i];
-			if(page.autoVoice)
-				_addToArrayAndDict(page.autoVoice, 'page.autoVoice', i);
-			if(page.hint)
-				_addToArrayAndDict(page.hint, 'page.hint', i);
-			for(var j=0; j<page.sections.length; j++) {
-				var section = page.sections[j];
-				if(section.text == "") continue;
-				var splitedText = section.text.split(':');
-				if (splitedText[0] in wikiMarkups) continue;
-				if (splitedText[0] == 'text' || splitedText[0] == 'select' || splitedText[0].indexOf('multi-select') == 0) {
-					_addToArrayAndDict(splitedText[1], 'section.text', i, j, splitedText[0]);					
-					continue;
-				}
-				_addToArrayAndDict(section.text, 'section.text', i, j);
-			}
+			_addTxtToArrayAndDict(oLesson.description, 'module.description', {obj: oLesson});
+        if(oLesson.forumTopic)
+            _addTxtToArrayAndDict(oLesson.forumTopic, 'module.forumTopic', {obj: oLesson});
+	    _createTranslationArrayFromPages(oLesson, oLesson.pages);
+	}
+
+    function _createTranslationArrayFromPages(oLesson, pages) {
+        for(var i=0; i<pages.length; i++)
+            _createTranslationArrayFromPage(oLesson, pages[i]);
+    }
+
+    function _createTranslationArrayFromPage(oLesson, page) {
+        if(page.forumTopic)
+            _addTxtToArrayAndDict(page.forumTopic, 'page.forumTopic', {obj: page});
+        if(page.autoVoice)
+            _addMarkupsToArrayAndDict(page.autoVoice, 'page.autoVoice', {obj: page});
+		if(page.hint)
+			_addMarkupsToArrayAndDict(page.hint, 'page.hint', {obj: page});
+		for(var i=0; i<page.sections.length; i++) {
+			var section = page.sections[i];
+			if(section.text == "") continue;
+			_addMarkupsToArrayAndDict(section.text, 'section.text', {obj: section});
+            if (!section.popups || !section.popups.onclick) continue;
+            _createTranslationArrayFromPages(oLesson, section.popups.onclick);
 		}
-	};
-	
-	function _updateModule(oLesson, translatedArray) {
+	}
+
+	function _updateModule(translatedArray) {
 		for(var i=0; i<translatedArray.length; i++) {
 			var elem = _translateDict[i];
 			if (!elem) continue;
+            var translated = _unquote(translatedArray[i].translatedText);
+            var targetObj = elem.targetObjInfo.obj;
 			switch (elem.type) {
 			case 'module.name':
-				oLesson.name = translatedArray[i].translatedText;
+				targetObj.name = translated;
 				break;
 			case 'module.description':
-				oLesson.description = translatedArray[i].translatedText;
+				targetObj.description = translated;
 				break;
+            case 'module.forumTopic':
+                targetObj.forumTopic = translated;
+                break;
+            case 'page.forumTopic':
+                targetObj.forumTopic = translated;
+                break;
 			case 'page.autoVoice':
-				oLesson.pages[elem.page].autoVoice = "@voice(ignore)\n" + translatedArray[i].translatedText;
+			    var markup = _getTranslatedMarkup(translated, elem);
+			    if (markup !== null) targetObj.autoVoice = "@voice(ignore)\n" + markup;
 				break;
 			case 'page.hint':
-				oLesson.pages[elem.page].hint = translatedArray[i].translatedText;				
+                var markup = _getTranslatedMarkup(translated, elem);
+                if (markup !== null) targetObj.hint = markup;
 				break;
 			case 'section.text':
-			    var section = oLesson.pages[elem.page].sections[elem.section];
-				section.text = elem.prefix ? elem.prefix +":"+ translatedArray[i].translatedText : translatedArray[i].translatedText;
-                if ('correctanswer' in section) delete section.correctanswer;
+                var markup = _getTranslatedMarkup(translated, elem);
+                if (markup !== null) targetObj.text = markup;
+                if ('correctanswer' in targetObj) delete targetObj.correctanswer;
 				break;
 			}
 		}
 	}
+	
+    function _unquote(input) {
+        return input.replace(/&quot;/g, '\\"');
+    }
 	
 	$scope.onCancel = function() {
 		nl.location.url('/home');
 	};
 	
 }];
+
+function MarkupSplitter(nl) {
+    this.split = function(txt) {
+        var splitArray = [];
+        _splitMathMl(txt, splitArray);
+        splitArray = _reduceArray(splitArray);
+        return splitArray;
+    };
+    
+    function _reduceArray(splitArray) {
+        var ret = [];
+        for(var i=0; i<splitArray.length; i++) {
+            var elem = splitArray[i];
+            if (elem.txt.trim() == '') elem.translate = false;
+            if (ret.length == 0 || ret[ret.length -1].translate != elem.translate) ret.push(elem);
+            else ret[ret.length -1].txt += elem.txt; 
+        }
+        return ret;
+    }
+
+    function _splitMathMl(txt, splitArray) {
+        var pos1 = txt.indexOf('`');
+        var pos2 = pos1 >= 0 ? txt.indexOf('`', pos1+1) : -1;
+        if (pos2 < 0) return _splitLines(txt, splitArray);
+        if (pos1 > 0) _splitLines(txt.substring(0, pos1), splitArray);
+        splitArray.push({txt: txt.substring(pos1, pos2+1), translate: false});
+        if (pos2 < txt.length - 1) _splitMathMl(txt.substring(pos2+1), splitArray);
+    }
+
+    function _splitLines(txt, splitArray) {
+        var lines = txt.split('\n');
+        for(var i=0; i<lines.length; i++) {
+            _splitLine(lines[i], splitArray);
+            if (i < lines.length - 1) splitArray.push({txt: '\n', translate: false});
+        }
+    }
+
+    function _splitLine(txt, splitArray) {
+        if (!txt) return;
+        for(var i=0; i<_lineStartMarkups.length; i++) {
+            var markup = _lineStartMarkups[i];
+            var pos = txt.indexOf(markup.keyword);
+            if (pos != 0) continue;
+            if (!markup.handler) {
+                splitArray.push({txt: txt, translate: false});
+                return;
+            }
+            splitArray.push({txt: txt.substring(0, markup.keyword.length), translate: false});
+            markup.handler(txt.substring(markup.keyword.length), splitArray, markup);
+            return;
+        }
+        _splitNumberedMarkups(txt, splitArray);
+    }
+    
+    function _splitNumberedMarkups(txt, splitArray) {
+        for(var i=0; i<_numberedMarkups.length; i++) {
+            var markup = _numberedMarkups[i];
+            var pos = txt.indexOf(markup.keyword);
+            if (pos != 0) continue;
+            splitArray.push({txt: txt.substring(0, markup.keyword.length), translate: false});
+            markup.handler(txt.substring(markup.keyword.length), splitArray, markup);
+            return;
+        }
+        _splitInlineMarkups(txt, splitArray);
+    }
+
+    function _splitInlineMarkups(txt, splitArray) {
+        if (!txt) return;
+        for(var i=0; i<_inlineMarkups.length; i++) {
+            var markup = _inlineMarkups[i];
+            var pos = txt.indexOf(markup.keyword);
+            if (pos < 0) continue;
+            if (pos > 0) {
+                splitArray.push({txt: txt.substring(0, pos), translate: true});
+                txt = txt.substring(pos);
+            }
+
+            pos = txt.indexOf('[');
+            if (pos >= 0) {
+                var pos2 = txt.indexOf(']');
+                if (pos2 < 0) pos2 = txt.length;
+                else pos2++;
+                var inlineMarkup = txt.substring(0, pos2);
+                markup.handler(inlineMarkup, splitArray, markup);
+                txt = (pos2 < txt.length-1) ? txt.substring(pos2) : '';
+                _splitInlineMarkups(txt, splitArray);
+                return;
+            }
+            pos = txt.indexOf(' ');
+            if (pos < 0) pos = txt.length;
+            splitArray.push({txt: txt.substring(0, pos), translate: false});
+            if (pos < txt.length) _splitInlineMarkups(txt.substring(pos), splitArray);
+            return;
+        }
+        splitArray.push({txt: txt, translate: true});
+    }
+    
+    function _splitAttr(txt, splitArray, markupInfo) {
+        var pos = txt.indexOf('[');
+        if (pos < 0) {
+            splitArray.push({txt: txt, translate: false});
+            return;
+        }
+
+        splitArray.push({txt: txt.substring(0, pos+1), translate: false});
+        txt = txt.substring(pos+1);
+        while(true) {
+            if (!txt) return;
+            pos = txt.indexOf('=');
+            if (pos < 0) {
+                splitArray.push({txt: txt, translate: false});
+                return;
+            }
+            var attr = txt.substring(0, pos);
+            if (attr in markupInfo.attrs) {
+                splitArray.push({txt: txt.substring(0, pos+1), translate: false});
+                txt = txt.substring(pos+1);
+                var pos2 = txt.indexOf('|');
+                if (pos2 < 0) pos2 = txt.indexOf(']');
+                if (pos2 < 0) pos2 = txt.length;
+                splitArray.push({txt: txt.substring(0, pos2), translate: true});
+                txt = pos2 < txt.length ? txt.substring(pos2) : '';
+            } else {
+                var pos2 = txt.indexOf('|');
+                if (pos2 < 0) pos2 = txt.indexOf(']');
+                splitArray.push({txt: (pos2 < 0) ? txt : txt.substring(0, pos2+1), translate: false});
+                txt = pos2 >= 0 ? txt.substring(pos2+1) : '';
+            }
+        }
+    }
+    
+    function _splitComma(txt, splitArray, markupInfo) {
+        while(true) {
+            var pos = txt.indexOf(',');
+            if (pos < 0) {
+                splitArray.push({txt: txt, translate: true});
+                return;
+            }
+            if (pos > 0) splitArray.push({txt: txt.substring(0, pos), translate: true});
+            splitArray.push({txt: ',', translate: false});
+            txt = txt.substring(pos+1);
+        }
+    }
+    
+    var _lineStartMarkups = [
+        {keyword: 'H1', handler: _splitInlineMarkups},
+        {keyword: 'H2', handler: _splitInlineMarkups},
+        {keyword: 'H3', handler: _splitInlineMarkups},
+        {keyword: 'H4', handler: _splitInlineMarkups},
+        {keyword: 'H5', handler: _splitInlineMarkups},
+        {keyword: 'H6', handler: _splitInlineMarkups},
+
+        {keyword: 'video:'}, 
+        {keyword: 'embed:'}, 
+        {keyword: 'pdf:'}, 
+        {keyword: 'iframe:'},
+        {keyword: 'img:'}, 
+        {keyword: 'audio:', handler: _splitAttr, attrs: {'text': true}}, 
+
+        {keyword: '@voice('}, 
+
+        {keyword: 'text:', handler: _splitComma}, 
+        {keyword: 'select:', handler: _splitComma}, 
+        {keyword: 'multi-select:', handler: _splitComma}, 
+        {keyword: 'multi-select1:', handler: _splitComma}, 
+        {keyword: 'multi-select2:', handler: _splitComma}, 
+        {keyword: 'multi-select3:', handler: _splitComma}, 
+        {keyword: 'multi-select4:', handler: _splitComma}, 
+        {keyword: 'multi-select5:', handler: _splitComma}, 
+        {keyword: 'multi-select6:', handler: _splitComma}
+    ];
+
+    var _numberedMarkups = [
+        {keyword: '-', handler: _splitNumberedMarkups},
+        {keyword: '#', handler: _splitNumberedMarkups}
+    ];
+
+    var _inlineMarkups = [
+        {keyword: 'link:', handler: _splitAttr, attrs: {'text': true}}];
+
+    // This is provided as a testcase for this whole class
+    this.testCase = function() {
+        var data = [
+        '`Some mathml content',
+        'spanning across lines` and this is ok `',
+        'mathml done`',
+        'H1 some thing',
+        'H2 some thing',
+        ' H6 some thing with space before',
+        '- first bullet',
+        '-- second bullet',
+        '# first numbered',
+        '## second numbered',
+        '--### bullet numbered',
+        'link:this_is_link_url',
+        'link:this_is_link_url[text=link text] link:this_is_link_url link:this_is_link_url[text=link text]',
+        'link:this_is_link_url[text=link text|b=b]',
+        'link:this_is_link_url[a=a|text=link text]',
+        'link:this_is_link_url[a=a|text=link text|b=b]',
+        'link:this_is_link_url[a=a|b=b]',
+        '--### link:this_is_link_url[a=a|b=b]',
+        'img:imgurl.com/a.png',
+        'img:imgurl.com/a.png[cover=1]',
+        'img:imgurl.com/a.png[cover=1|link=img link title]',
+        'video:videourl',
+        'audio:videourl[text=abc]',
+        'video:videourl[stop=1|text=abc|start=0]',
+        'video:videourl[start=1|stop=10]',
+        '@voice(en)',
+        'multi-select5:a,b,c,d'
+        ];
+        data = data.join('\n');
+        console.warn('before split:', data);
+        var split = this.split(data);
+        console.warn('after split:', split);
+    };
+}
 
 //-------------------------------------------------------------------------------------------------
 module_init();
