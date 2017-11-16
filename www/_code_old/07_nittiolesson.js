@@ -1401,6 +1401,7 @@ nlesson = function() {
 
 		this.updateHtmlDom = Page_updateHtmlDom;
         this.updateAudio = Page_updateAudio;
+        this.pauseAudio = Page_pauseAudio;
         this.updateBgImg = Page_updateBgImg;
 		this.adjustHtmlDom = Page_adjustHtmlDom;
 		this.markFroRedraw = Page_markFroRedraw;
@@ -1501,10 +1502,12 @@ nlesson = function() {
 			this.oPage.sections.push(this.createOSection());
 		}
 
-		// remove extra sections if present
+		/*
+        // remove extra sections if present - commented
 		if (len > neededLen) {
 			this.oPage.sections.splice(neededLen, len - neededLen);
 		}
+		*/
 
 		this.sectionCreateOrder = njs_helper.randSet(neededLen, this.pagetype.getRandomizableElems());
 		for (var i = 0; i < neededLen; i++) {
@@ -1568,6 +1571,11 @@ nlesson = function() {
         } else {
             this.propAudio.html('');
         }
+    }
+    
+    function Page_pauseAudio() {
+        this.lesson.globals.audioManager.pause(this.getPageId());
+        if (this.autoVoiceButton) this.autoVoiceButton.pause();
     }
     
     function _removeAllTemplateStyles(elem) {
@@ -2108,10 +2116,8 @@ function SectionSelectionHandler(lesson) {
         _allTools.push({id: 'edit_icon_link', grpid: 'media', grp: 'Section Media', icon:'ion-link', name:'Insert Link', onclick: on_insert_link});
         _allTools.push({id: 'edit_icon_media', grpid: 'media', grp: 'Section Media', icon:'ion-ios-photos', name:'Update Media', onclick: on_update_media});
 
-        if (isRaw) {
-            _allTools.push({id: 'edit_icon_popup_edit', grpid: 'popup', grp: 'Section Popup', icon:'ion-ios-pricetag', name:'Create Popup', onclick: on_popup_edit});
-            _allTools.push({id: 'edit_icon_popup_delete', grpid: 'popup', grp: 'Section Popup', icon:'ion-backspace', name:'Delete Popup', onclick: on_popup_delete});
-        }
+        _allTools.push({id: 'edit_icon_popup_edit', grpid: 'popup', grp: 'Section Popup', icon:'ion-ios-pricetag', name:'Create Popup', onclick: on_popup_edit});
+        _allTools.push({id: 'edit_icon_popup_delete', grpid: 'popup', grp: 'Section Popup', icon:'ion-backspace', name:'Delete Popup', onclick: on_popup_delete});
 
         _allTools.push({id: 'edit_icon_comment', grpid: 'review', grp: 'Module Review', icon:'ion-ios-chatbubble-outline', title:'Manage Comments', name:'Comments', onclick: on_managecomment});
         if (lessonId > 0)
@@ -2217,8 +2223,10 @@ function ModulePopupHadler() {
         if (_stack.length == 0) {
             _mainPages = g_lesson.pages;
             _mainPageNo = g_lesson.getCurrentPageNo();
+            g_lesson.pages[_mainPageNo].propAudio.hide();
         }
         _stack.push(context);
+        g_lesson.getCurrentPage().pauseAudio();
         
         var holder = jQuery('#module_popup_holder');
         holder.show();
@@ -2248,6 +2256,7 @@ function ModulePopupHadler() {
             g_lesson.postRender();
             g_lesson.onEscape();
         });
+        g_lesson.preRender(0);
         slides.activate();
         content.css({opacity: 1});
         g_lesson.globals.slides = slides;
@@ -2255,6 +2264,7 @@ function ModulePopupHadler() {
     
     this.close = function() {
         if (_stack.length == 0) return false;
+        g_lesson.getCurrentPage().pauseAudio();
         this.updateContent();
         g_lesson.updateScore();
 
@@ -2278,6 +2288,7 @@ function ModulePopupHadler() {
         var content = jQuery('#module_popup_content');
         content.css({opacity: 0});
         holder.hide();
+        g_lesson.pages[_mainPageNo].propAudio.show();
         g_lesson.globals.selectionHandler.updateToolbelt();
         return true;
     };
