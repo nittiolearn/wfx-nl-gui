@@ -163,7 +163,6 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
     nlTreeSelect.updateSelectionTree(_languageInfo, arrayParams[1], 2);
     _languageInfo.treeIsShown = false;
     _languageInfo.multiSelect = false;
-	_languageInfo.showSearchField = true;
 	_languageInfo.fieldmodelid = 'language';
 
 	$scope.options = {language: _languageInfo};

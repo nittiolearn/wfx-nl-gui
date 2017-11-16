@@ -237,14 +237,12 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo) {
         nlTreeSelect.updateSelectionTree(_gradeInfo, selectedGrade);
         _gradeInfo.treeIsShown = false;
         _gradeInfo.multiSelect = false;
-		_gradeInfo.showSearchField = true;
 		_gradeInfo.fieldmodelid = 'grade';
         
         _subjectInfo = {data: nlTreeSelect.strArrayToTreeArray(_moduleConfig.subjects || [])};
         nlTreeSelect.updateSelectionTree(_subjectInfo, selectedSubject);
         _subjectInfo.treeIsShown = false;
         _subjectInfo.multiSelect = false;
-		_subjectInfo.showSearchField = true;
 		_subjectInfo.fieldmodelid = 'subject';
 
 		var selectedImage = {};
@@ -254,7 +252,6 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo) {
         nlTreeSelect.updateSelectionTree(_iconInfo, arrayParams[1]);
         _iconInfo.treeIsShown = false;
         _iconInfo.multiSelect = false;
-		_iconInfo.showSearchField = true;
 		_iconInfo.fieldmodelid = 'image';
 		editDlg.scope.options = {grade: _gradeInfo, 
 								 subject: _subjectInfo,
