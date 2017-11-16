@@ -544,7 +544,6 @@ function LessonDlgs() {
 }
 
 LessonDlgs.contentsDlg = new njs_helper.Dialog();
-LessonDlgs.pageTypeDlg = new njs_helper.Dialog();
 LessonDlgs.notesDlg = new njs_helper.Dialog();
 
 LessonDlgs.createDlg = function(dlg, dlgId, bId, bName, bFunc, cFunc) {

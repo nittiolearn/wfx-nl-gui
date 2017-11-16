@@ -12,13 +12,27 @@
      <i ng-show='!info.treeIsShown' class="icon ion-arrow-down-b nl-dlg-field-icon"></i>
      <i ng-show='info.treeIsShown' class="icon ion-arrow-up-b nl-dlg-field-icon"></i>
 </div>
- <div class='padding-mid'
+<div class='padding-mid'
 	  ng-show='info.treeIsShown && info.showSearchField'>
 	<div class='row row-wrap row-center margin0 padding0'>
 		<input class='padding-mid col searchField' ng-model='info.searchText' ng-change='onSearchTextChange($event)' 
 			   placeholder="Enter search string to filter required element from the tree">
+	    <span title='Select all'
+	          ng-show='info.multiSelect'
+	          class='nl-toolbar-icon'
+	          tabindex='0'
+	          ng-click='selectDeselectAll($event, true)'>
+	        <i class="icon fsh3 ion-android-checkbox-outline"></i>
+	    </span>
+	    <span title='Deselect all'
+	          ng-show='info.multiSelect'
+	          class='nl-toolbar-icon'
+	          tabindex='0'
+	          ng-click='selectDeselectAll($event, false)'>
+	        <i class="icon fsh3 ion-android-checkbox-outline-blank"></i>
+	    </span>
 	</div>
- </div>
+</div>
 <div ng-repeat='item in info.visibleData'
      class='row row-wrap row-center margin0 padding0 nl-link-text {{$index == info.currentItemPos ? "activated": ""}}'
      ng-show='info.treeIsShown && item.isVisible'
