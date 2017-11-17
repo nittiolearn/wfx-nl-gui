@@ -241,6 +241,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 
     var _translations = [];
     var _MAX_CHARS_PER_SERVER_TRANSLATE_CALL = 10000;
+    var _MAX_ITEMS_PER_SERVER_TRANSLATE_CALL = 100;
 	function _translateTexts(targetLang) {
         return nl.q(function (resolve, reject) {
             _translations = [];
@@ -260,6 +261,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
             toServerArray.push(_translateArray[i]);
             nChars += _translateArray[i].length;
             if (nChars >= _MAX_CHARS_PER_SERVER_TRANSLATE_CALL) break;
+            if (_translateArray.length >= _MAX_ITEMS_PER_SERVER_TRANSLATE_CALL) break;
         }
         var newStartAt = startAt+toServerArray.length;
         

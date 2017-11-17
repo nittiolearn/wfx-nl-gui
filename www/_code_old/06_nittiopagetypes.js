@@ -506,6 +506,7 @@ npagetypes = function() {
 		},
 		'onReInitialize' : function(section) {
 			section.pgSecView.off();
+            section.pgSecView.modulePopupSetup = false;
 			section.pgSecView.removeClass('answer_right');
 			section.pgSecView.removeClass('answer_wrong');
 			

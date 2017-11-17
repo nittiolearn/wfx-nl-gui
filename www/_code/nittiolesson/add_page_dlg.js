@@ -26,13 +26,14 @@ function(nl, nlDlg) {
 //-------------------------------------------------------------------------------------------------
 function AddPageDlg(ptInfo, nl, nlDlg) {
     
+    var _lastSelectedPageType = null;
 	this.show = function(page, isPopup) {
 		return nl.q(function(resolve, reject) {
             var parentScope = nl.rootScope;
             var dlg = nlDlg.create(parentScope);
             dlg.setCssClass('nl-height-max nl-width-max');
             _initDlgScope(dlg.scope, page, isPopup);
-			_showPopupDlg(dlg, resolve, page);
+			_showDlg(dlg, resolve, page);
 		});
 	};
 	
@@ -45,11 +46,12 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         dlgScope.options = {};
         dlgScope.help = _getHelp();
 
-        var defPt = page ? page.pagetype : null;
+        var defPt = page ? page.pagetype.pt : _lastSelectedPageType;
+        var defSectionLayout = page ? page.pagetype.layout : null;
 
         dlgScope.options.pagetype = _pageTypes;
-        dlgScope.data.pagetype = defPt ? {id: defPt.pt.interaction} : dlgScope.options.pagetype[0];
-        _onPtChange(dlgScope, defPt);
+        dlgScope.data.pagetype = defPt ? {id: defPt.interaction} : dlgScope.options.pagetype[0];
+        _onPtChange(dlgScope, defPt, defSectionLayout);
 
         dlgScope.onFieldChange = function(fieldId) {
             if (fieldId == 'pagetype') _onPtChange(dlgScope);
@@ -62,11 +64,12 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         };
     }
 
-	function _showPopupDlg(dlg, resolve, page) {
+	function _showDlg(dlg, resolve, page) {
         var sd = dlg.scope.data;
         var okButton = {text: nl.t('OK'), onTap: function(e) {
             if (e) e.preventDefault();
         	if(!page) {
+                _lastSelectedPageType = _layoutDict[sd.layout.id];
 	            resolve({pt:sd.layout.id, layout: _layoutsFromBeautyString(sd.sectionLayout)});
     		    dlg.close();
     		    return;
@@ -76,6 +79,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         			   template: 'Changing page type may result in loss of data. Do you want to proceed?'};
 	        nlDlg.popupConfirm(msg).then(function(confirm) {
     		    if (!confirm) return;
+    		    _lastSelectedPageType = _layoutDict[sd.layout.id];
     		    resolve({pt:sd.layout.id, layout: _layoutsFromBeautyString(sd.sectionLayout)});
     		    dlg.close();
     		});
@@ -95,6 +99,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
     
     var _pageTypes = [];    
     var _layouts = {};
+    var _layoutDict = {};
     function _initPageTypesAndLayouts() {
         for(var i=0; i<ptInfo.interactions.length; i++) {
             var inter = ptInfo.interactions[i];
@@ -103,19 +108,20 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
             _layouts[inter.id] = [];
             for(var j=0; j<layouts.length; j++) {
                 _layouts[inter.id].push({id: layouts[j].pagetype_id, name: layouts[j].desc});
+                _layoutDict[layouts[j].pagetype_id] = {id: layouts[j].pagetype_id, interaction:inter.id};
             }
         }
     }
 
-    function _onPtChange(dlgScope, defPt) {
+    function _onPtChange(dlgScope, defPt, defSectionLayout) {
         dlgScope.options.layout = _layouts[dlgScope.data.pagetype.id];
-        dlgScope.data.layout = defPt ? {id: defPt.pt.id} : dlgScope.options.layout[0];
-        _onLayoutChange(dlgScope, defPt);
+        dlgScope.data.layout = defPt ? {id: defPt.id} : dlgScope.options.layout[0];
+        _onLayoutChange(dlgScope, defPt, defSectionLayout);
     }
 
-    function _onLayoutChange(dlgScope, defPt) {
+    function _onLayoutChange(dlgScope, defPt, defSectionLayout) {
         var pt = ptInfo.ptMap[dlgScope.data.layout.id];
-        var layoutObj = defPt ? defPt.layout : pt.layout;
+        var layoutObj = defSectionLayout ? defSectionLayout : pt.layout;
         dlgScope.data.sectionLayout = _beautyStringifyLayouts(layoutObj);
 		_formSections(dlgScope, layoutObj); 
     }

@@ -463,6 +463,10 @@ a.enabled {
   display: none;
 }
 
+.popup_active.toolBar {
+  z-index: 1;
+}
+
 .toolBarContainer {
   display: flex;
   flex-wrap: wrap;
@@ -1453,16 +1457,6 @@ div.pgSecView.answer_wrong {
   background-color: #FF0000;
   color: #FFFFFF;
   padding: 5px;
-}
-
-div.pgSecView.answer_right.bright {
-  background-color: #00FF00;
-  color: #FFFFFF;
-}
-
-div.pgSecView.answer_wrong.bright {
-  background-color: #FF0000;
-  color: #FFFFFF;
 }
 
 .pgSecView ul, .pgSecView ol  {

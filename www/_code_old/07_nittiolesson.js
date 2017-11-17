@@ -2001,8 +2001,6 @@ nlesson = function() {
 			this.pgSecView.attr('placeholder', help);
 			this.pgSecView.attr('title', help);
 			this.pgSecView.css(pagetype.getSectionPos(this.secNo));
-			this.pgSecView.css({'opacity':'0.4', 'cursor':'auto'});
-			this.pgSecView.addClass('bright');
 		}
 
 		var onReInitFn = pagetype.getSectionOnReInitFn();
@@ -2228,6 +2226,7 @@ function ModulePopupHadler() {
         _stack.push(context);
         g_lesson.getCurrentPage().pauseAudio();
         
+        jQuery('.toolBar').addClass('popup_active');
         var holder = jQuery('#module_popup_holder');
         holder.show();
         jQuery('#pageNoArea').hide();
@@ -2277,12 +2276,14 @@ function ModulePopupHadler() {
         g_lesson.globals.slides = top.slides;
         g_lesson.globals.slides.activate(null, true);
         g_lesson.globals.slides.showHideNavBar();
+        g_lesson.showOrHideZodiIcon();
         if (g_lesson.renderCtx.lessonCtx() != top.lessonCtx) {
             g_lesson.reRender(false);
         }
         
         if (_stack.length > 0) return true;
 
+        jQuery('.toolBar').removeClass('popup_active');
         jQuery('#pageNoArea').show();
         var holder = jQuery('#module_popup_holder');
         var content = jQuery('#module_popup_content');
