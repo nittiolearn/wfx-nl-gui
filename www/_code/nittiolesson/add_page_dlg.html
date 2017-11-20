@@ -16,10 +16,6 @@
         width: 92%;
         box-shadow: inset 0 0 5px rgba(200,200,255,0.8);
     }
-    .popup_props_sec {
-        position: absolute;
-        background-color: rgba(0, 0, 128, 0.8);
-    }
 </style>
 <nl-dlg title='{{dlgTitle}}'
         show-help='{{showHelp}}'
@@ -32,7 +28,7 @@
     <nl-dlg-row attr='layout' data='data' help='help'>
         <nl-select fieldmodel='layout'></nl-select>
     </nl-dlg-row>
-	<div class='row row-top row-wrap padding0 margin0' ng-show='!data.showLayoutEdit'>
+	<div class='row row-top row-wrap padding0 margin0' ng-show='isRaw && !data.showLayoutEdit'>
 	    <div ng-class='resp2Col33' class='padding-mid'></div>
 	    <div ng-class='resp2Col67'>
 			<span class='nl-dlg-field-value'>
@@ -46,16 +42,65 @@
 			<button type="button" ng-keypress='$event.keyCode == 13 ? editLayoutDone() : "" ' ng-click='editLayoutDone()'>Done</button>
 		</div>
 	</div>
-    <nl-dlg-row attr='preview' data='data' help='help'>
-        <div class='popup_props_preview'>
-            <div class='popup_props_preview2'>
-                <div ng-repeat='sec in sections'
-                     style='top: {{sec.t}}%; left: {{sec.l}}%; height: {{sec.h}}%; width: {{sec.w}}%'
-                     class='popup_props_sec'>
-                </div>
-            </div>
+    <div class='row row-top row-wrap padding0 margin0'>
+        <div ng-class='respCol221' class='text-center padding-mid'>
+	        <div class='popup_props_preview {{data.bgImg == "module_popup_img" ? "module_popup_img" : ""}}'>
+            	<img ng-show='data.bgImg != "module_popup_img"' ng-src='{{data.bgImg}}' class='bgimg'>
+	            <div class='popup_props_preview2'>
+	                <div ng-repeat='sec in sections'
+	                	 ng-click='onClickOnSection(sec)'
+	                     style='position: absolute; top: {{sec.t}}%; left: {{sec.l}}%; height: {{sec.h}}%; width: {{sec.w}}%'
+	                     class='{{sec.style}} nl-link-text'>
+	                </div>
+	            </div>
+	        </div>
         </div>
-    </nl-dlg-row>
+        <div ng-class='respCol221'>
+        	<div ng-hide='data.onSectionClick' class='padding fsh4'>
+        		Please click on a section to edit the properties of that section.
+	        </div>
+        	<div ng-show='data.onSectionClick'>
+	        	<span class='fsh4'>Edit layout atributes:</b></span>
+	        	<div class='row row-wrap row-center margin0'>
+	        		<div ng-class='respCol442' class='padding-mid'><b>Top</b></div>
+					<div ng-class='respCol442' ><input class='nl-input' type='number' min='0' ng-change='onClickOnDone()' ng-model='data.section.t'></div>
+		       		<div ng-class='respCol442' class='padding-mid'><b>Left</b></div>
+					<div ng-class='respCol442'><input class='nl-input' type='number' min='0' ng-change='onClickOnDone()' ng-model='data.section.l'></div>
+	        	</div>
+	        	<div class='row row-wrap row-center margin0'>
+	        		<div ng-class='respCol442' class='padding-mid'><b>Height</b></div>
+					<div ng-class='respCol442'><input class='nl-input' type='number' min='0' ng-change='onClickOnDone()' ng-model='data.section.h'></div>
+		       		<div ng-class='respCol442' class='padding-mid'><b>Width</b></div>
+					<div ng-class='respCol442'><input class='nl-input' type='number' min='0' ng-change='onClickOnDone()' ng-model='data.section.w'></div>
+	        	</div>
+				<!-- <div><b>Mobile positions</b></div>
+	        	<div class='row row-wrap row-center margin0'>
+	        		<div ng-class='respCol442' class='padding-mid'><b>Top1</b></div>
+					<div ng-class='respCol442' ><input class='nl-input' type='number' min='0' ng-change='onClickOnDone()' ng-model='data.section.t1'></div>
+		       		<div ng-class='respCol442' class='padding-mid'><b>Left1</b></div>
+					<div ng-class='respCol442'><input class='nl-input' type='number' min='0' ng-change='onClickOnDone()' ng-model='data.section.l1'></div>
+	        	</div>
+	        	<div class='row row-wrap row-center margin0'>
+	        		<div ng-class='respCol442' class='padding-mid'><b>Height1</b></div>
+					<div ng-class='respCol442'><input class='nl-input' type='number' min='0' ng-change='onClickOnDone()' ng-model='data.section.h1'></div>
+		       		<div ng-class='respCol442' class='padding-mid'><b>Width1</b></div>
+					<div ng-class='respCol442'><input class='nl-input' type='number' min='0' ng-change='onClickOnDone()' ng-model='data.section.w1'></div>
+	        	</div> -->		    
+	        	<nl-dlg-row attr='aligntype' data='data' help='help'>
+			        <nl-select fieldmodel='aligntype'></nl-select>
+			    </nl-dlg-row> 
+			    <nl-dlg-row attr='hozAlignment' data='data' help='help'>
+			        <nl-select fieldmodel='hozAlignment'></nl-select>
+			    </nl-dlg-row> 
+			    <nl-dlg-row attr='style' data='data' help='help'>
+			        <nl-input fieldmodel='style' fieldcls='nl-input' fieldtype='text'></nl-input>
+			    </nl-dlg-row> 
+				<div style='padding:8px 4px'>
+					<button type="button" ng-keypress='$event.keyCode == 13 ? onEditLayoutClose() : "" ' ng-click='onEditLayoutClose()'>Close</button>
+				</div>
+	        </div>
+        </div>        
+    </div>
 </div>
 </nl-dlg-content>
 </nl-dlg>

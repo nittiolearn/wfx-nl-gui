@@ -36,8 +36,8 @@ function(nl, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg, NittioLessonC
 	this.showChangeLookDlg = function(templateList, templateAnimations) {
 		return NittioLessonChangeLookDlg.showDlg(templateList, templateAnimations);
 	};
-    this.showAddPageDlg = function(page, isPopup) {
-        return NittioLessonAddPageDlg.showDlg(page, isPopup);
+    this.showAddPageDlg = function(page, isPopup, bgImgUrl) {
+        return NittioLessonAddPageDlg.showDlg(page, isPopup, bgImgUrl);
     };
 	this.sendForReview = function(lessonId) {
 		return NittioLessonModuleReviewDlg.sendForReview(lessonId);

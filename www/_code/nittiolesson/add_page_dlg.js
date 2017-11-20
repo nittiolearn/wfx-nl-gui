@@ -18,35 +18,46 @@ function(nl, nlDlg) {
         _dlg = new AddPageDlg(ptInfo, nl, nlDlg);
     };
     
-    this.showDlg = function(page, isPopup) {
-        return _dlg.show(page, isPopup);
+    this.showDlg = function(page, isPopup, bgImgUrl) {
+        return _dlg.show(page, isPopup, bgImgUrl);
     };
 }];
     
 //-------------------------------------------------------------------------------------------------
 function AddPageDlg(ptInfo, nl, nlDlg) {
     
-	this.show = function(page, isPopup) {
+	this.show = function(page, isPopup, bgImgUrl) {
 		return nl.q(function(resolve, reject) {
             var parentScope = nl.rootScope;
             var dlg = nlDlg.create(parentScope);
             dlg.setCssClass('nl-height-max nl-width-max');
-            _initDlgScope(dlg.scope, page, isPopup);
+            _initDlgScope(dlg.scope, page, isPopup, bgImgUrl);
 			_showPopupDlg(dlg, resolve, page);
 		});
 	};
 	
-    function _initDlgScope(dlgScope, page, isPopup) {
+    function _initDlgScope(dlgScope, page, isPopup, bgImgUrl) {
         dlgScope.showHelp = '0';
         dlgScope.showClose = '1';
         dlgScope.dlgTitle = nl.fmt2(page ?  'Change {}Page Layout' : 'Add {}Page', (isPopup ? 'Popup ': ''));
-
+        var params = nl.window.location.search;
+        dlgScope.isRaw = params.indexOf('rawedit') > 0 ? true : false;
         dlgScope.data = {};
         dlgScope.options = {};
         dlgScope.help = _getHelp();
 
-        var defPt = page ? page.pagetype : null;
+        if (page && page.oPage.bgimg) {
+            dlgScope.data.bgImg = page.oPage.bgimg;
+            dlgScope.data.bgshade = page.oPage.bgshade;
+        } else if (isPopup) {
+            dlgScope.data.bgImg = "module_popup_img";
+            dlgScope.data.bgshade = 'bglight';
+        } else {
+        	dlgScope.data.bgImg = bgImgUrl;
+            dlgScope.data.bgshade = 'bglight';
+        }
 
+        var defPt = page ? page.pagetype : null;
         dlgScope.options.pagetype = _pageTypes;
         dlgScope.data.pagetype = defPt ? {id: defPt.pt.interaction} : dlgScope.options.pagetype[0];
         _onPtChange(dlgScope, defPt);
@@ -54,11 +65,58 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         dlgScope.onFieldChange = function(fieldId) {
             if (fieldId == 'pagetype') _onPtChange(dlgScope);
             else if (fieldId == 'layout') _onLayoutChange(dlgScope);
+			else if (fieldId == 'aligntype') return;
+			else if (fieldId == 'style') dlgScope.onClickOnDone();
+			else {
+	        	dlgScope.data.onSectionClick = false;
+	        	dlgScope.data.section = {};
+			}
         };
         
         dlgScope.editLayoutDone = function() {
         	dlgScope.data.showLayoutEdit = false;
         	_onLayoutEditDone(dlgScope);
+        };
+        
+        dlgScope.data.isPopup = function() {
+        	return isPopup;
+        };
+        
+        dlgScope.onClickOnSection = function(section) {
+        	dlgScope.data.onSectionClick = true;
+        	dlgScope.data.section = {pos: section.pos, l: section.l, t: section.t, h:section.h, w:section.w, 
+        							 style: section.style, fmtgroup: section.fmtgroup};
+        	dlgScope.options.aligntype = [{id: 'content', name: nl.t('Top')}, {id: 'title', name: nl.t('Middle')}, {id: 'option', name: nl.t('Options')}];
+			dlgScope.data.aligntype =  section.aligntype == 'title' ? dlgScope.options.aligntype[1] : dlgScope.options.aligntype[0];
+			dlgScope.options.hozAlignment = _getHorizontalAlignments();
+			dlgScope.data.hozAlignment = dlgScope.options.hozAlignment[0];
+			dlgScope.data.style = section.style;
+        };
+        
+        function _getHorizontalAlignments() {
+        	return [{id: 'center', name: nl.t('Center')},
+        			{id: 'justify', name: nl.t('Justify')},
+        			{id: 'left', name: nl.t('Left')},
+        			{id: 'right', name: nl.t('Right')}];
+        }
+        
+        dlgScope.onClickOnDone = function() {
+        	var section = dlgScope.data.section;
+        	var newObj = angular.copy(section);
+        	if ('pos' in newObj) delete newObj.pos;
+        	newObj.aligntype = dlgScope.data.aligntype.id;
+        	newObj.style = dlgScope.data.style;
+
+        	var sectionLayout = _layoutsFromBeautyString(dlgScope.data.sectionLayout);
+        	for(var i=0; i<sectionLayout.length; i++) {
+        		if(section.pos === i) sectionLayout.splice(i, 1, newObj);
+        	}
+        	dlgScope.data.sectionLayout = _beautyStringifyLayouts(sectionLayout);
+        	_onLayoutEditDone(dlgScope);
+        };
+        
+        dlgScope.onEditLayoutClose = function() {
+        	dlgScope.data.onSectionClick = false;
         };
     }
 
@@ -89,7 +147,10 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
     function _getHelp() {
         return {
             pagetype: {name: nl.t('Page Type'), help: nl.t('specifies the purpose of the page - some of the page types are for presenting information(text, images and videos) while others are for providing various interactions with the learner.')},
-            layout: {name: nl.t('Layout'), help: nl.t('specifies the number of sections in the page and their positions within the page.')}
+            layout: {name: nl.t('Layout'), help: nl.t('specifies the number of sections in the page and their positions within the page.')},
+        	aligntype: {name: nl.t('Aligntype'), help: nl.t('specifies the section alignment either left aligned or middle aligned')},
+        	style: {name: nl.t('Style'), help:nl.t('specifies section styles')},
+        	hozAlignment: {name:nl.t('Horizontal alignment'), help:nl.t('Set the horizontal alignment of the section')}
         };  
     }
     
@@ -130,19 +191,26 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         dlgScope.sections = [];
         for(var i=0; i<pagelayout.length; i++) {
             var layout = pagelayout[i];
-            dlgScope.sections.push({t:layout.t, l:layout.l, h:layout.h, w:layout.w});
+            dlgScope.sections.push({t:layout.t, l:layout.l, h:layout.h, w:layout.w, 
+            	t1:layout.t1, l1:layout.l1, h1:layout.h1, w1:layout.w1, 
+				aligntype: layout.aligntype, fmtgroup: layout.fmtgroup, style: layout.style});
         }
 	}
     
 	function _layoutsFromBeautyString(beautyStr) {
-		return angular.fromJson('[' + beautyStr + ']');
+		var layoutsObj = angular.fromJson('[' + beautyStr + ']');
+		for (var i=0; i<layoutsObj.length; i++) {
+			var secLayout = layoutsObj[i];
+			if ('pos' in secLayout) delete secLayout.pos;
+		}
+		return layoutsObj;
 	}
 	
 	function _beautyStringifyLayouts(layoutsObj) {
 		var jsonStr = '';
 		for (var i=0; i<layoutsObj.length; i++) {
 			var secLayout = layoutsObj[i];
-			jsonStr += _BeautyStringifyLayout(secLayout, i);
+			jsonStr += _beautyStringifyLayout(secLayout, i);
 			if (i <layoutsObj.length -1) {
 				jsonStr += ',\r\n';
 			}
@@ -154,7 +222,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 	var LAYOUT_COLLEN = {'pos': 2, 't': 5, 'h': 5, 'l': 5, 'w': 5};
 	var LAYOUT_ORDER_OTHER = ['t1', 'h1', 'l1', 'w1', 'aligntype', 'style', 'fmtgroup', 'ans', 'correct', 'mode'];
     var LAYOUT_ATTR_TYPE = {'t1': 'int', 'h1': 'int', 'l1': 'int', 'w1': 'int'};
-	function _BeautyStringifyLayout(secLayout, i) {
+	function _beautyStringifyLayout(secLayout, i) {
 		secLayout.pos = i+1;
 		var ret = '{';
 		var bCommaNeeded = false;
@@ -177,6 +245,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 			if (LAYOUT_ORDER_OTHER.indexOf(i) != -1) continue;
 			throw 'Unknown attribute type: ' +  i;
 		}
+		delete secLayout.pos;
 		return ret + '}';
 	}
 
