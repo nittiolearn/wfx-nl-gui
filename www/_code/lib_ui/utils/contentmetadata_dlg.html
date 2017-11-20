@@ -14,11 +14,11 @@
     </div>
     <div class='row row-top row-wrap margin0 padding0'
          ng-repeat='cmField in data.cmFields track by cmField.id'>
-        <div ng-class='respCol221'
+        <div ng-class='$root.resp2Col33'
              class='nl-dlg-field-name'>
             {{cmField.name}}
         </div>
-        <div ng-class='respCol221'
+        <div ng-class='$root.resp2Col67'
              class='nl-dlg-field-value {{cmField.error ? "nl-dlg-field-error" : ""}}'>
             <nl-tree-select ng-if='cmField.type == "select" || cmField.type == "multi-select"'
                             info='cmField.value'>

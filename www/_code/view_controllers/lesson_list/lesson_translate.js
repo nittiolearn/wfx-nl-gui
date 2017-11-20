@@ -261,7 +261,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
             toServerArray.push(_translateArray[i]);
             nChars += _translateArray[i].length;
             if (nChars >= _MAX_CHARS_PER_SERVER_TRANSLATE_CALL) break;
-            if (_translateArray.length >= _MAX_ITEMS_PER_SERVER_TRANSLATE_CALL) break;
+            if (toServerArray.length >= _MAX_ITEMS_PER_SERVER_TRANSLATE_CALL) break;
         }
         var newStartAt = startAt+toServerArray.length;
         
