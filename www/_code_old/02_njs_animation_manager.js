@@ -13,14 +13,14 @@ function AnimationManager() {
 		_hide(page.hPageHolder);
 	};
 	
-	this.setupAnimation = function(page) {
+	this.setupAnimation = function(page, onDone) {
 		_hide(page.hPageHolder);
 		self.clearAnimations();
 		var notFoundSections = _hideEachSection(page);
 		_show(page.hPageHolder);
 		_initAnimQueue(page, notFoundSections);
 		_addNotFoundItemsToAnimQueue(notFoundSections);
-		_processAnimationQueue(page);
+		_processAnimationQueue(page, onDone);
 	};
 
 	this.clearAnimations = function() {
@@ -98,17 +98,19 @@ function AnimationManager() {
 	var _secPosToLines = {};
 	var _currentAnimObjs = {};
 	
-	function _processAnimationQueue(page) {
-		if (_animQueue.length == 0) return;
+	function _processAnimationQueue(page, onDone) {
 		if (Object.keys(_currentAnimObjs).length > 0) return;
-		
+        if (_animQueue.length == 0) {
+            if (onDone) onDone();
+            return;
+        }
 		var animItems = _animQueue.shift();
 		for(var i=0; i<animItems.length; i++) {
-			_startAnimation(animItems[i], page);
+			_startAnimation(animItems[i], page, onDone);
 		}
 	}
 
-	function _startAnimation(animItem, page) {
+	function _startAnimation(animItem, page, onDone) {
 		var hObjs = [];
 		if (animItem.level == 'content' && _secPosToLines[animItem.id]) {
 			var pos = parseInt(animItem.id||0);
@@ -116,10 +118,10 @@ function AnimationManager() {
 		} else {
 			hObjs.push(_htmlObjsToAnimate[animItem.id]);
 		}
-		_animateSectionLine(animItem, page, hObjs, 0);
+		_animateSectionLine(animItem, page, hObjs, 0, onDone);
 	}
 
-	function _animateSectionLine(animItem, page, hObjs, pos) {
+	function _animateSectionLine(animItem, page, hObjs, pos, onDone) {
 		var animScheme = self.getAnimationScheme(page.lesson) || {};
 		var da = animScheme.defaultAnimations || {};
 		da.easing = da.easing || 'easeOutQuad';
@@ -145,9 +147,9 @@ function AnimationManager() {
 		opts.complete = function() {
 			delete _currentAnimObjs[objId];
 			if (pos < hObjs.length-1) {
-				_animateSectionLine(animItem, page, hObjs, pos+1);
+				_animateSectionLine(animItem, page, hObjs, pos+1, onDone);
 			} else {
-				_processAnimationQueue(page);
+				_processAnimationQueue(page, onDone);
 			}
 		};
 		var hObj = hObjs[pos];

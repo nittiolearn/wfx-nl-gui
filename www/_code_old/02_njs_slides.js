@@ -83,16 +83,6 @@ njs_slides = function() {
 		me.pages = [];
 		me.curPage = 0;
 		me.pageTransition = new PageTransition(me, 'default');
-
-        if (me.pageNo) me.pageNo.show();
-        if (me.navLeft) {
-            me.navLeft.click(function() { me.prev(); });
-            me.navLeft.show();
-        }
-        if (me.navRight) {
-    		me.navRight.click(function() { me.next(); });
-            me.navRight.show();
-        }
 		me.reinit();
 	}
 	
@@ -131,9 +121,13 @@ njs_slides = function() {
         }
 
         var inactiveButtonCls = 'nl-nav-inactive';
-        if (me.pageNo) me.pageNo.show();
-
+        if (me.pageNo) {
+            me.pageNo.html(this.curPage+1);
+            me.pageNo.show();
+        }
         if (me.navLeft) {
+            me.navLeft.off('click');
+            me.navLeft.on('click', function() { me.prev(); });
             me.navLeft.show();
             if (me.curPage == 0) {
                 me.navLeft.addClass(inactiveButtonCls);
@@ -144,6 +138,8 @@ njs_slides = function() {
             }
         }
         if (me.navRight) {
+            me.navRight.off('click');
+            me.navRight.on('click', function() { me.next(); });
             me.navRight.show();
             if (me.curPage == me.pages.length - 1) {
                 me.navRight.addClass(inactiveButtonCls);
@@ -220,7 +216,6 @@ njs_slides = function() {
 	}
 
 	function SlideSet_gotoPagePost() {
-		if (this.pageNo) this.pageNo.html(this.curPage+1);
 		this.showHideNavBar();
 
 		for(var i in this.slideChangeHandlers) {

@@ -1633,9 +1633,14 @@ nlesson = function() {
 	
 	function Page_postRender() {
 		var me = this;
+        me.pageAnimationDone = true;
 		MathJax.Hub.Queue(function() {
-            if (me.lesson.renderCtx.lessonMode() != 'edit')
-		        me.lesson.globals.animationManager.setupAnimation(me);
+            if (me.lesson.renderCtx.lessonMode() != 'edit') {
+                me.pageAnimationDone = false;
+                me.lesson.globals.animationManager.setupAnimation(me, function() {
+                    me.pageAnimationDone = true;
+                });
+            }
 			me.onEscape();
 		});
 	}
@@ -1724,11 +1729,13 @@ nlesson = function() {
 	    oPage.score = 'scoreOverride' in oPage ? oPage.scoreOverride : scoreInfo[1];
         oPage.popupScore = 0;
 
-        for (var i=0; i<oPage.sections.length; i++) {
-            var oSection = oPage.sections[i];
+        for (var i=0; i<this.sections.length; i++) {
+            if (this.pagetype.isInteractive(this.sections[i])) continue;
+            var oSection = this.sections[i].oSection;
             if (!oSection.popups || !oSection.popups.onclick) continue;
             var oSubPages = oSection.popups.onclick;
             for (var j=0; j<oSubPages.length; j++) {
+                if (!oSubPages[j].maxScore && !oSubPages[j].popupMaxScore) continue;
                 oPage.popupScore += (oSubPages[j].maxScore && oSubPages[j].score ? oSubPages[j].score : 0);
                 oPage.popupScore += (oSubPages[j].popupMaxScore && oSubPages[j].popupScore ? oSubPages[j].popupScore : 0);
                 oPage.answerStatus = npagetypes.mergeAnswerStatus(oSubPages[j].answerStatus, oPage.answerStatus);
@@ -2201,7 +2208,7 @@ function ModulePopupHadler() {
     
     this.createPopup = function(section) {
         if (!section.oSection.popups) section.oSection.popups = {};
-        if (section.oSection.popups.onclick) return;
+        if (section.oSection.popups.onclick) return true;
         section.oSection.popups.onclick = [];
         var pages = section.oSection.popups.onclick;
         var pt = 'S4';
@@ -2210,9 +2217,22 @@ function ModulePopupHadler() {
             pt = ptInfo.interactionToLayouts[ptInfo.interactions[0].id][0].pagetype_id;
         }
         pages.push({type: pt, sections: [{type: 'txt', text: ''}]});
+        return true;
+    };
+    
+    this.canShowPopup = function(section) {
+        if (g_lesson.renderCtx.launchCtx() != 'do_assign') return true;
+        if (!section.page.pagetype.isInteractive(section)) return true;
+        if (g_lesson.oLesson.selfLearningMode) return true;
+        return false;
     };
     
     this.show = function(section) {
+        if (!this.canShowPopup(section)) return;
+        if (!section.page.pageAnimationDone) {
+            njs_helper.Dialog.popupStatus('Please wait till the page is played completely.');
+            return;
+        }
         var context = {section: section, 
             postRenderingQueue: g_lesson.postRenderingQueue,
             pages: g_lesson.pages,
@@ -2226,7 +2246,6 @@ function ModulePopupHadler() {
         _stack.push(context);
         g_lesson.getCurrentPage().pauseAudio();
         
-        jQuery('.toolBar').addClass('popup_active');
         var holder = jQuery('#module_popup_holder');
         holder.show();
         jQuery('#pageNoArea').hide();
@@ -2275,7 +2294,6 @@ function ModulePopupHadler() {
         g_lesson.pages = top.pages;
         g_lesson.globals.slides = top.slides;
         g_lesson.globals.slides.activate(null, true);
-        g_lesson.globals.slides.showHideNavBar();
         g_lesson.showOrHideZodiIcon();
         if (g_lesson.renderCtx.lessonCtx() != top.lessonCtx) {
             g_lesson.reRender(false);
@@ -2283,7 +2301,6 @@ function ModulePopupHadler() {
         
         if (_stack.length > 0) return true;
 
-        jQuery('.toolBar').removeClass('popup_active');
         jQuery('#pageNoArea').show();
         var holder = jQuery('#module_popup_holder');
         var content = jQuery('#module_popup_content');
