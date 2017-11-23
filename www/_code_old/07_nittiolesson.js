@@ -286,12 +286,12 @@ nlesson = function() {
     function Lesson_updateTemplateCustomizations() {
         if (oldTemplateStylesCss != this.oLesson.templateStylesCss) {
             oldTemplateStylesCss = this.oLesson.templateStylesCss;
-            jQuery('#l_html').find('#templateStylesCss').remove();
+            jQuery('#templateStyleHolder').find('#templateStylesCss').remove();
             var stylesCss = this.parentTemplateContents.templateStylesCss;
             stylesCss += this.oLesson.templateStylesCss;
             if (stylesCss) {
                 var styleElem = njs_helper.fmt2('<style id="templateStylesCss">{}</style>', stylesCss);
-                jQuery('#l_html').prepend(styleElem);
+                jQuery('#templateStyleHolder').prepend(styleElem);
             }
         }
         if (oldTemplateBgimgs != this.oLesson.templateBgimgs) {

@@ -1149,6 +1149,25 @@ nl-cards {
   background-color: rgba(229, 229, 255, 1); 
 }
 
+.module_popup_img {
+  background-color: rgba(245, 245, 255, 1) !important;
+}
+
+.njsSlides > section > .bgimg, .popup_props_preview > .bgimg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  box-shadow: inset 0 0 2px #004455, 0 0 5px #004455;
+  z-index: -1;
+  outline: none;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
 //-----------------------------------------------------------------------------------------
 // search-box css code
 //------------------------------------------------------------------------------------------   

@@ -16,10 +16,6 @@
         width: 92%;
         box-shadow: inset 0 0 5px rgba(200,200,255,0.8);
     }
-    .popup_props_sec {
-        position: absolute;
-        background-color: rgba(0, 0, 128, 0.8);
-    }
 </style>
 <nl-dlg title='{{dlgTitle}}'
         show-help='{{showHelp}}'
@@ -32,7 +28,7 @@
     <nl-dlg-row attr='layout' data='data' help='help'>
         <nl-select fieldmodel='layout'></nl-select>
     </nl-dlg-row>
-	<div class='row row-top row-wrap padding0 margin0' ng-show='!data.showLayoutEdit'>
+	<div class='row row-top row-wrap padding0 margin0' ng-show='isRaw && !data.showLayoutEdit'>
 	    <div ng-class='resp2Col33' class='padding-mid'></div>
 	    <div ng-class='resp2Col67'>
 			<span class='nl-dlg-field-value'>
@@ -46,16 +42,155 @@
 			<button type="button" ng-keypress='$event.keyCode == 13 ? editLayoutDone() : "" ' ng-click='editLayoutDone()'>Done</button>
 		</div>
 	</div>
-    <nl-dlg-row attr='preview' data='data' help='help'>
-        <div class='popup_props_preview'>
-            <div class='popup_props_preview2'>
-                <div ng-repeat='sec in sections'
-                     style='top: {{sec.t}}%; left: {{sec.l}}%; height: {{sec.h}}%; width: {{sec.w}}%'
-                     class='popup_props_sec'>
-                </div>
-            </div>
+    <div class='row row-top row-wrap padding0 margin0'>
+        <div ng-class='respCol221' class='text-center padding-mid'>
+	        <div class='popup_props_preview {{data.bgImg == "module_popup_img" ? "module_popup_img" : ""}}'>
+            	<img ng-show='data.bgImg != "module_popup_img"' ng-src='{{data.bgImg}}' class='bgimg'>
+	            <div class='popup_props_preview2'>
+	            	<div class='njsSlides {{bgShade}}'>
+		                <div ng-repeat='sec in sections'
+		                	 ng-click='onClickOnSection(sec)'
+		                     style='position: absolute; top: {{sec.t}}%; left: {{sec.l}}%; height: {{sec.h}}%; width: {{sec.w}}%'
+		                     class='{{sec.style}} nl-link-text'>
+		                </div>
+	                </div>
+	            </div>
+	        </div>
         </div>
-    </nl-dlg-row>
+        <div ng-class='respCol221'>
+        	<div ng-hide='data.onSectionClick' class='padding fsh4'>
+        		Please click on a section to edit the properties of that section.
+	        </div>
+        	<div ng-show='data.onSectionClick' class='padding0'>
+        		<div class='row row-center margin0 padding0'>
+				    <div class='w100 nl-link-text padding-mid fsh6' 
+				         ng-click='data.showStyles = !data.showStyles'>
+				        <span class='fsh6'>
+				            <i ng-show='data.showStyles' class="icon ion-android-checkbox-outline"></i>
+				            <i ng-hide='data.showStyles' class="icon ion-android-checkbox-outline-blank"></i>
+				            <span>Styles</span>
+				        </span>
+				    </div>
+			    </div>
+				<div class='row row-center padding0 margin0'
+					 style='height: 38px; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'
+					 ng-show='data.showStyles'>
+				    <span class='nl-toolbar-icon padding0'
+				        ng-click='data.underline = !data.underline; onClickOnDone()'>
+				    	<i class="icon material-icons" style='text-align: left'>ic_format_underlined</i>
+				    </span>
+
+			        <span class='nl-toolbar-icon padding0' 
+			        	ng-click='onClickOnDone(); data.bold = !data.bold'>
+			            <i class="icon material-icons">ic_format_bold</i>
+			        </span>
+					<span class="nl-toolbar-icon padding0"
+						ng-click='onClickOnDone(); data.italic = !data.italic'>
+						<i class="icon material-icons">ic_format_italic</i>
+					</span>
+					<span class="nl-toolbar-icon padding0"
+						ng-click='onClickOnDone(); data.alignCenter = !data.alignCenter'>
+						<i class="icon material-icons">ic_format_align_center</i>
+					</span>
+					<span class="nl-toolbar-icon padding0"
+						ng-click='onClickOnDone(); data.alignjustify = !data.alignjustify'>
+						<i class="icon material-icons">ic_format_align_justify</i>
+					</span>
+					<span class="nl-toolbar-icon padding0"
+						ng-click='onClickOnDone(); data.alignleft = !data.alignleft'>
+						<i class="icon material-icons">ic_format_align_left</i>
+					</span>
+					<span class="nl-toolbar-icon padding0"
+						ng-click='onClickOnDone(); data.alignright = !data.alignright'>
+						<i class="icon material-icons">ic_format_align_right</i>
+					</span>
+					<span class="nl-toolbar-icon padding0"
+						ng-click='onClickOnDone(); data.vericalMiddle = !data.vericalMiddle'>
+						<i class="icon material-icons">ic_vertical_align_center</i>
+					</span>
+					<span class="nl-toolbar-icon padding0"
+						ng-click='onClickOnDone(); data.verticalTop = !data.verticalTop'>
+						<i class="icon material-icons">ic_vertical_align_top</i>
+					</span>
+				</div>			    
+				<div class='row row-top row-wrap margin0 padding0' ng-show='data.showStyles'>
+		        	<div ng-class='respCol221'>
+			        	<nl-dlg-row attr='Vertical' data='data'>
+					        <nl-select fieldmodel='aligntype'></nl-select>
+					    </nl-dlg-row> 
+		        	</div>
+		        	<div ng-class='respCol221'>
+					    <nl-dlg-row attr='Horizontal' data='data'>
+					        <nl-select fieldmodel='hozAlignment'></nl-select>
+					    </nl-dlg-row> 
+		        	</div>
+				</div>
+			    <nl-dlg-row attr='Color' data='data' ng-show='data.showStyles'>
+			        <nl-select fieldmodel='colors'></nl-select>
+			    </nl-dlg-row> 
+			    <nl-dlg-row attr='Shape' data='data' ng-show='data.showStyles'>
+			        <nl-select fieldmodel='shapes'></nl-select>
+			    </nl-dlg-row> 
+			    <nl-dlg-row attr='Shadow' data='data' ng-show='data.showStyles'>
+			        <nl-select fieldmodel='shadow'></nl-select>
+			    </nl-dlg-row>
+			    <nl-dlg-row attr='Font size' data='data' ng-show='data.showStyles'>
+			        <nl-select fieldmodel='fontsize'></nl-select>
+			    </nl-dlg-row>
+				<div class='row row-top row-wrap margin0 padding0'>
+				    <div class='w100 nl-link-text padding-mid fsh6' 
+				         ng-click='data.showPositions = !data.showPositions'
+				         tabindex='0'
+				         ng-keypress='$event.keyCode == 32 ? data.showPositions = !data.showPositions : ""'>
+				        <span class='fsh6'>
+				            <i ng-show='data.showPositions' class="icon ion-android-checkbox-outline"></i>
+				            <i ng-hide='data.showPositions' class="icon ion-android-checkbox-outline-blank"></i>
+				            <span>Position</span>
+				        </span>
+				    </div>
+				</div>			    
+	        	<div ng-show='data.showPositions' class='row row-wrap row-center margin0'>
+	        		<div ng-class='respCol442' class='padding-mid'><b>Top</b></div>
+					<div ng-class='respCol442' ><input class='nl-input' type='number' min='-7.0' max='109.3' ng-change='onClickOnDone()' ng-model='data.section.t'></div>
+	        		<div ng-class='respCol442' class='padding-mid'><b>Height</b></div>
+					<div ng-class='respCol442'><input class='nl-input' type='number' min='0' max='{{109.3 - data.section.t}}' ng-change='onClickOnDone()' ng-model='data.section.h'></div>
+	        	</div>
+	        	<div ng-show='data.showPositions' class='row row-wrap row-center margin0'>
+		       		<div ng-class='respCol442' class='padding-mid'><b>Left</b></div>
+					<div ng-class='respCol442'><input class='nl-input' type='number' min='-4.3' max='104.3' ng-change='onClickOnDone()' ng-model='data.section.l'></div>
+		       		<div ng-class='respCol442' class='padding-mid'><b>Width</b></div>
+					<div ng-class='respCol442'><input class='nl-input' type='number' min='0' max='{{104.3 - data.section.l}}' ng-change='onClickOnDone()' ng-model='data.section.w'></div>
+	        	</div>
+				<div class='row row-top row-wrap margin0 padding0'>
+				    <div class='w100 nl-link-text padding-mid fsh6' 
+				         ng-click='data.showMobilePositions = !data.showMobilePositions'
+				         tabindex='0'
+				         ng-keypress='$event.keyCode == 32 ? data.showMobilePositions = !data.showMobilePositions : ""'>
+				        <span class='fsh6'>
+				            <i ng-show='data.showMobilePositions' class="icon ion-android-checkbox-outline"></i>
+				            <i ng-hide='data.showMobilePositions' class="icon ion-android-checkbox-outline-blank"></i>
+				            <span>Potrait position</span>
+				        </span>
+				    </div>
+				</div>
+	        	<div ng-show='data.showMobilePositions' class='row row-wrap row-center margin0'>
+	        		<div ng-class='respCol442' class='padding-mid'><b>Top1</b></div>
+					<div ng-class='respCol442' ><input class='nl-input' type='number' min='0' ng-change='onClickOnDone()' ng-model='data.section.t1'></div>
+		       		<div ng-class='respCol442' class='padding-mid'><b>Left1</b></div>
+					<div ng-class='respCol442'><input class='nl-input' type='number' min='0' ng-change='onClickOnDone()' ng-model='data.section.l1'></div>
+	        	</div>
+	        	<div ng-show='data.showMobilePositions' class='row row-wrap row-center margin0'>
+	        		<div ng-class='respCol442' class='padding-mid'><b>Height1</b></div>
+					<div ng-class='respCol442'><input class='nl-input' type='number' min='0' ng-change='onClickOnDone()' ng-model='data.section.h1'></div>
+		       		<div ng-class='respCol442' class='padding-mid'><b>Width1</b></div>
+					<div ng-class='respCol442'><input class='nl-input' type='number' min='0' ng-change='onClickOnDone()' ng-model='data.section.w1'></div>
+	        	</div>				
+	        	<div style='padding:8px 4px'>
+					<button type="button" ng-keypress='$event.keyCode == 13 ? onEditLayoutClose() : "" ' ng-click='onEditLayoutClose()'>Close</button>
+				</div>
+	        </div>
+        </div>        
+    </div>
 </div>
 </nl-dlg-content>
 </nl-dlg>
