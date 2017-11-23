@@ -506,6 +506,7 @@ npagetypes = function() {
 		},
 		'onReInitialize' : function(section) {
 			section.pgSecView.off();
+            section.pgSecView.modulePopupSetup = false;
 			section.pgSecView.removeClass('answer_right');
 			section.pgSecView.removeClass('answer_wrong');
 			
@@ -1320,7 +1321,7 @@ npagetypes = function() {
 				return _enterTheAnswer;
 			}
 			var ret = 	'Step 1: Enter an image (img:...). ' + 
-						'Step 2: View the image by pressing the section preview button at bottom of this box (not whole page preview). ' +
+						'Step 2: View the image by pressing the section preview button at top left of this box (not whole page preview). ' +
 						'Step 3: To draw a marker line, click on one of the answer boxes first and then click on a point in the image. ';
 			
 			return ret;
@@ -1766,17 +1767,18 @@ npagetypes = function() {
 	// combination of the behaviour of the page and static data which defines the interaction.
 	//#############################################################################################
 	var defaultPageInteractionTypes = [
-		{'id' : 'TITLE', 'desc' : 'Information (title layouts)', 'default_aligntype' : 'title'},
-		{'id' : 'INFO', 'desc' : 'Information (basic layouts)', 'default_aligntype' : 'content'},
-		{'id' : 'INFO2', 'desc' : 'Information (extended layouts)', 'default_aligntype' : 'content'},
-		{'id' : 'MCQ', 'desc' : 'Multiple choice', 'default_aligntype' : 'option', 'beh' : BehMcq},
-		{'id' : 'MATCH', 'desc' : 'Match it', 'default_aligntype' : 'option', 'beh' : BehMatch},
-		{'id' : 'ORDER', 'desc' : 'Order it', 'default_aligntype' : 'option', 'beh' : BehOrder},
-		{'id' : 'FILL', 'desc' : 'Fill in the blanks', 'default_aligntype' : 'option', 'beh' : BehFib},
-		{'id' : 'DESC', 'desc' : 'Descriptive', 'default_aligntype' : 'option', 'beh' : BehDesc},
-		{'id' : 'PARTFILL', 'desc' : 'Fill in the parts', 'default_aligntype' : 'option', 'beh' : BehFibParts},
-		{'id' : 'QUESTIONNAIRE', 'desc' : 'Feedback', 'default_aligntype' : 'content', 'beh' : BehQuestionnaire},
-		{'id' : 'MANYQUESTIONS', 'bleedingEdge' : false, 'desc' : 'Many questions', 'default_aligntype' : 'content', 'beh' : BehManyQuestions}
+		{'id' : 'TITLE', 'desc' : 'Title', 'default_aligntype' : 'title'},
+        {'id' : 'INFOS', 'desc' : 'Information - Compact *', 'default_aligntype' : 'title'},
+		{'id' : 'INFO', 'desc' : 'Information - Detailed', 'default_aligntype' : 'content'},
+		{'id' : 'INFO2', 'desc' : 'Information - Detailed segmented', 'default_aligntype' : 'content'},
+		{'id' : 'MCQ', 'desc' : 'Question - Multiple Choice, True False', 'default_aligntype' : 'option', 'beh' : BehMcq},
+		{'id' : 'MATCH', 'desc' : 'Question - Matching', 'default_aligntype' : 'option', 'beh' : BehMatch},
+		{'id' : 'ORDER', 'desc' : 'Question - Ordering', 'default_aligntype' : 'option', 'beh' : BehOrder},
+		{'id' : 'FILL', 'desc' : 'Question - Fill in the blanks', 'default_aligntype' : 'option', 'beh' : BehFib},
+		{'id' : 'DESC', 'desc' : 'Question - Descriptive', 'default_aligntype' : 'option', 'beh' : BehDesc},
+		{'id' : 'PARTFILL', 'desc' : 'Question - Mark the parts of image', 'default_aligntype' : 'option', 'beh' : BehFibParts},
+        {'id' : 'MANYQUESTIONS', 'bleedingEdge' : false, 'desc' : 'Question - Many questions', 'default_aligntype' : 'content', 'beh' : BehManyQuestions},
+		{'id' : 'QUESTIONNAIRE', 'desc' : 'Feedback', 'default_aligntype' : 'content', 'beh' : BehQuestionnaire}
 	];
 
 	//#############################################################################################

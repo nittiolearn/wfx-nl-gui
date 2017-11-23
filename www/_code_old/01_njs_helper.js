@@ -170,7 +170,7 @@ function TextFitmentChecker(section) {
 	this.doesItFit = function(textSize) {
 		var fsz = '' + textSize + '%';
 		section.secViewContent.css({'font-size': fsz, 'height': 'auto'});
-		var hNew = section.secViewContent.height();
+		var hNew = section.secViewContent.outerHeight();
 		if (hNew > hOrig) return false;
 		
 		var wNew = _getChildMaxWidth(section.secViewContent);

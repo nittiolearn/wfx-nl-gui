@@ -459,6 +459,10 @@ a.enabled {
   display: none;
 }
 
+.popup_active.toolBar {
+  z-index: 1;
+}
+
 .toolBarContainer {
   display: flex;
   flex-wrap: wrap;
@@ -1436,16 +1440,6 @@ div.pgSecView.answer_wrong {
   padding: 5px;
 }
 
-div.pgSecView.answer_right.bright {
-  background-color: #00FF00;
-  color: #FFFFFF;
-}
-
-div.pgSecView.answer_wrong.bright {
-  background-color: #FF0000;
-  color: #FFFFFF;
-}
-
 .pgSecView ul, .pgSecView ol  {
   width: 85%;
 }
@@ -1911,10 +1905,6 @@ div.line.lineColor0 { background-color: #FF7777;}
 
 .bglight .pgSec textarea.pgSecText:focus, .bglight .pgSec textarea.questionnaire:focus, .bglight .pgSec select:focus {
   background: #CCCCFF;
-}
-
-.bglight h1, .bglight h2, .bglight h3, .bglight h4, .bglight h5, .bglight h6 {
-  color: #333366;
 }
 
 .bglight .pgSec textarea, .bglight .pgSec select, .bglight .pgSecView.beh_interactive, .bglight .pgSecView div.questionnaire.report {

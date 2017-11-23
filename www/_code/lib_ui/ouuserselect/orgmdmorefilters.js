@@ -37,7 +37,6 @@ function(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect) {
 	    nlTreeSelect.updateSelectionTree(moreTree, _selectedMores);
 	    moreTree.treeIsShown = false;
 	    moreTree.multiSelect = true;
-		moreTree.showSearchField = false;
 		moreTree.fieldmodelid = 'courseTree';
 
 		filtersData.moreTree = moreTree;

@@ -136,7 +136,7 @@ function _markupToHtmlAudio(str, bInline) {
     return _parseWikiMarker(str, 'audio:', function(link, avpairs) {
         if (link == '') return '';
         var title = '';
-        if ('text' in avpairs) title = nl.fmt2('<div>{}</div>',"avpairs['text']");
+        if ('text' in avpairs) title = nl.fmt2('<div>{}</div>',avpairs['text']);
         
         var pos = ('start' in avpairs) || ('end' in avpairs) ? '#t=' : '';
         pos += 'start' in avpairs ? nl.fmt2('{}', avpairs['start']) : '';

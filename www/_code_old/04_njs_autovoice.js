@@ -90,6 +90,11 @@ function AutoVoice() {
                 _updateIcon(button);
             }
         };
+        button.pause = function() {
+            if (button.state == 'playing') self.voiceSynth.pause();
+            button.state = 'paused';
+            _updateIcon(button);
+        };
         return button;
     };
     
@@ -398,6 +403,14 @@ function AudioManager() {
         }
         if (!_canAutoPlay) return;
         _currentInfo.audio.play();
+    };
+
+    this.pause = function(pageId) {
+        var info = _audioHolder ? _audioHolder[pageId] : null;
+        if (!info) return;
+        if (!info.playing) return;
+        info.audio.pause();
+        _updateIcon(info);
     };
 
     this.pauseAll = function() {
