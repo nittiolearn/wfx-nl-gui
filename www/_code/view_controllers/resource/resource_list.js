@@ -216,7 +216,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 	}
 	
 	function _addModifyResource($scope, card){
-		nlResourceAddModifySrv.show($scope, card, _userInfo.groupinfo.restypes)
+	    // TODO-MUNNI-NOW
+		//nlResourceAddModifySrv.show($scope, card, _userInfo.groupinfo.restypes)
+        nlResourceAddModifySrv.insertOrUpdateResource($scope, _userInfo.groupinfo.restypes, 'video:', true)
 		.then(function(resInfos) {
 			if (_bFirstLoadInitiated && resInfos.length == 0) return;
 			_getDataFromServer();
@@ -376,7 +378,6 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 
     this.insertOrUpdateResource = function($scope, restypes, markupText, showMarkupOptions) {
         var markupHandler = new MarkupHandler(nl, nlDlg, true, markupText, showMarkupOptions);
-        var opt = {onlyOnce: true, insertOrUpdateResource: true, markupText: markupText};
         return this.show($scope, null, restypes, true, markupHandler);
     };
 
@@ -406,12 +407,14 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
             nlDlg.popupAlert({title: 'Error', template: nl.t('Invalid markup text is selected: <b>{}</b>', markupText)});
             return false;
         }
-        if (markupInfo.restypeInfo) {
-            _scope.data.restype.id = markupInfo.restypeInfo.type;
-            _scope.data.pagetitle = 'Insert ' + markupInfo.restypeInfo.title;
-        } else {
-            _scope.data.pagetitle = 'Insert media';
-        }
+        _scope.data.restype.id = markupInfo.restypeInfo.type;
+        if (_scope.data.restype.id == 'Audio')
+            _scope.options.source.push({id: 'record', name: nl.t('Record your voice')});
+        else if (_scope.data.restype.id == 'Video')
+            _scope.options.source.push({id: 'record', name: nl.t('Record a video')});
+        _scope.recorder = new NlMediaRecorder(nlDlg);
+            
+        _scope.data.pagetitle = 'Insert ' + markupInfo.restypeInfo.title;
         return _initMarkupParams(markupInfo.restypeInfo);
     };
     
@@ -450,7 +453,8 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
         if (!insertOrUpdateResource) return addModifyResourceDlg.resInfos;
         if (!afterFirstOk) return null;
         var sd = _scope.data;
-        var resInfo = sd.source.id == 'upload' && addModifyResourceDlg.resInfos.length == 1 ?
+        var resInfo = (sd.source.id == 'upload' || sd.source.id == 'record') 
+            && addModifyResourceDlg.resInfos.length == 1 ?
             addModifyResourceDlg.resInfos[0] : null;
         var url = sd.source.id == 'url' ? sd.url : resInfo ? resInfo.url : '';
         if (!url) return null;
@@ -594,5 +598,72 @@ var SelectallDirective = ['nl', function (nl) {
     };
 }];
 
+//-------------------------------------------------------------------------------------------------
+function NlMediaRecorder(nlDlg) {
+    
+    var _stream = null;
+    self = this;
+    this.recordedUrl = null;
+    
+    this.record = function(sd) {
+        self.recordingOngoing = true;
+        var cfg= {audio: true, video: true};
+        if(!_hasGetUserMedia()) return false;
+        navigator.mediaDevices.getUserMedia(cfg).then(_onGotMedia);
+    };
+
+    this.stop = function(sd) {
+        if (!_stream) return;
+        nlDlg.showLoadingScreen();
+        var tracks = _stream.getTracks();
+        for(var i=0; i<tracks.length; i++) tracks[i].stop();
+    };
+
+    function _onGotMedia(stream) {
+        _stream = stream;
+        var preview = document.getElementById("res_add_dlg_recorder_preview");
+        preview.srcObject = stream;
+        preview.captureStream = preview.captureStream || preview.mozCaptureStream;
+        preview.onplaying = _startRecording;
+    }
+    
+    var maxRecordingTimeMS = 30*1000;
+    function _startRecording() {
+        var preview = document.getElementById("res_add_dlg_recorder_preview");
+        var stream = preview.captureStream();
+        var recorder = new MediaRecorder(stream);
+        var data = [];
+        recorder.ondataavailable = function(event) {
+            data.push(event.data);
+        };
+        recorder.onstop = function() {
+            _onRecordingDone(data);
+        };
+    
+        recorder.start();
+        console.log(recorder.state + " for " + (maxRecordingTimeMS/1000) + " seconds...");
+        
+        setTimeout(function() {
+            if (recorder.state == 'recording') recorder.stop();
+        }, maxRecordingTimeMS);
+    }
+    
+    function _onRecordingDone(recordedChunks) {
+        console.log('recording is done');
+        var recordedBlob = new Blob(recordedChunks, {type: "video/webm"});
+        self.recordedUrl = URL.createObjectURL(recordedBlob);
+        console.log("Successfully recorded " + recordedBlob.size + " bytes of " +
+            recordedBlob.type + " media.");
+        self.recordingOngoing = false;
+        nlDlg.hideLoadingScreen();
+    }
+    
+    function _hasGetUserMedia() {
+        return !!(navigator.getUserMedia || navigator.webkitGetUserMedia ||
+            navigator.mozGetUserMedia || navigator.msGetUserMedia);
+    }
+}
+
+//-------------------------------------------------------------------------------------------------
 module_init();
 })();

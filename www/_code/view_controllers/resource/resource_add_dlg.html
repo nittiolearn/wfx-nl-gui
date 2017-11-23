@@ -27,6 +27,29 @@
         </nl-resource-upload>
     </nl-dlg-row> 
 
+    <div ng-show='data.source.id == "record"'>
+        <style>
+            .video_preview {
+                width: 360px;
+                height: 180px;
+                background-color: black;
+            }
+        </style>
+        <video id="res_add_dlg_recorder_preview"
+               class='video_preview' autoplay muted
+               ng-hide='recorder.recordedUrl'></video>
+        <video class='video_preview' controls
+               ng-src='recorder.recordedUrl'
+               ng-show='recorder.recordedUrl'></video>
+        <div class='row row-center margin0 padding-small'>
+            <div class="button padding-small" ng-hide='recorder.recordingOngoing' ng-click='recorder.record(data)'>Record</div>
+            <div class="button padding-small" ng-show='recorder.recordingOngoing' ng-click='recorder.stop(data)'>Stop</div>
+            <div class="button padding-small" ng-show='recorder.recordedUrl'>
+                <a ng-src='recorder.recordedUrl' download='NittioRecording.webm'>Download</a>
+            </div>
+        </div>
+    </div> 
+
     <nl-dlg-row attr='keywords' data='data' help='help'
                 ng-show='data.source.id == "upload"'>
         <nl-input fieldmodel='keywords' fieldtype='text' fieldcls='w100'></nl-input>
