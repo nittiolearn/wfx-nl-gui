@@ -2098,3 +2098,77 @@ img.nl-full-width {
   width: 100%;
   padding: 0 4px;
 }
+
+/**
+ * Default styles for modules (moved from parent template)
+ */
+/*----------------------------------------------------------------------------------------------------*/
+/* Paddings, Margins by default for all */
+.njsSlides .secViewContent {padding: 8px;}
+.njsSlides p {margin: 0;}
+.njsSlides .padding-0 .secViewContent {padding: 0px;}
+
+/*----------------------------------------------------------------------------------------------------*/
+/* Allignments */
+.njsSlides .align-justify{text-align:justify;}
+.njsSlides .align-left{text-align:left;}
+.njsSlides .align-right{text-align:right;}
+.njsSlides .align-center{text-align:center;}
+
+/*----------------------------------------------------------------------------------------------------*/
+/* Shadow */
+.njsSlides .shadow-1 {box-shadow: 0 0 5px rgba(128,255,255,0.5);}
+.njsSlides .bglight .shadow-1 {box-shadow: 0 0 5px rgba(0,128,128,0.5);}
+.njsSlides .shadow-2 {box-shadow: 0 0 10px rgba(128,255,255,0.8);}
+.njsSlides .bglight .shadow-2 {box-shadow: 0 0 10px rgba(0,128,128,0.8);}
+.njsSlides .shadow-3 {box-shadow: 10px 15px 10px rgba(255,255,255,0.7);}
+.njsSlides .bglight .shadow-3 {box-shadow: 10px 15px 10px rgba(128,128,128,0.7);}
+
+/*----------------------------------------------------------------------------------------------------*/
+/* Background colors */
+.njsSlides .bg-light1, .njsSlides .bglight .bg-light1 {background-color: rgba(255, 255, 255, 0.6); color: black;}
+.njsSlides .bg-light2, .njsSlides .bglight .bg-light2 {background-color: rgba(143,170,220,0.8); color: black;}
+.njsSlides .bg-light3, .njsSlides .bglight .bg-light3 {background-color: rgba(143,220,170,0.8); color: black;}
+.njsSlides .bg-light4, .njsSlides .bglight .bg-light4 {background-color: rgba(220,170,170,0.8); color: black;}
+.njsSlides .bg-light5, .njsSlides .bglight .bg-light5 {background-color: rgba(255,255,170,0.8); color: black;}
+
+.njsSlides .bg-dark1, .njsSlides .bglight .bg-dark1 {background-color: rgba(0, 0, 0, 0.5); color: white;}
+.njsSlides .bg-dark2, .njsSlides .bglight .bg-dark2 {background-color: rgba(0, 32, 96, 0.8); color: white;}
+.njsSlides .bg-dark3, .njsSlides .bglight .bg-dark3 {background-color: rgba(0, 100, 0, 0.8); color: white;}
+.njsSlides .bg-dark4, .njsSlides .bglight .bg-dark4 {background-color: rgba(100, 0, 0, 0.8); color: white;}
+.njsSlides .bg-dark5, .njsSlides .bglight .bg-dark5 {background-color: rgba(150, 100, 0, 0.8); color: white;}
+
+.njsSlides .bg-pastel1, .njsSlides .bglight .bg-pastel1 {background-color: rgba(0, 176, 240, 0.8);}
+.njsSlides .bg-pastel2, .njsSlides .bglight .bg-pastel2 {background-color: rgba(154, 205, 50, 0.8);}
+.njsSlides .bg-pastel3, .njsSlides .bglight .bg-pastel3 {background-color: rgba(0, 139, 139, 0.8);}
+.njsSlides .bg-pastel4, .njsSlides .bglight .bg-pastel4 {background-color: rgba(110, 139, 61, 0.8);}
+.njsSlides .bg-pastel5, .njsSlides .bglight .bg-pastel5 {background-color: rgba(69, 139, 116, 0.8);}
+
+.njsSlides .bg-bright1, .njsSlides .bglight .bg-bright1 {background-color: rgba(0, 0, 255, 0.8);}
+.njsSlides .bg-bright2, .njsSlides .bglight .bg-bright2 {background-color: rgba(0, 255, 0, 0.8);}
+.njsSlides .bg-bright3, .njsSlides .bglight .bg-bright3 {background-color: rgba(255, 0, 0, 0.8);}
+.njsSlides .bg-bright4, .njsSlides .bglight .bg-bright4 {background-color: rgba(255, 255, 0, 0.8);}
+.njsSlides .bg-bright5, .njsSlides .bglight .bg-bright5 {background-color: rgba(255, 192, 0, 0.8);}
+
+/*----------------------------------------------------------------------------------------------------*/
+/* Shapes */
+.njsSlides .shape-rounded-small {border-radius: 8px;}
+.njsSlides .shape-rounded-h {border-radius: 20% / 50%;}
+.njsSlides .shape-rounded-v {border-radius: 50% / 20%;}
+.njsSlides .shape-oval {border-radius: 50%;}
+.njsSlides .shape-leaf1 {border-radius: 0 35%;}
+.njsSlides .shape-leaf2 {border-radius: 35% 0;}
+
+/*----------------------------------------------------------------------------------------------------*/
+/* Font sizes */
+.njsSlides .size-title1 p, .njsSlides .title p {font-size: 200%; text-shadow: 0 1px 0 #cccccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbbbbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaaaaa, 0 6px 1px rgba(0, 0, 0, 0.1), 0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3), 0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25), 0 20px 20px rgba(0, 0, 0, 0.15);}
+.njsSlides .size-title2 p {font-size: 180%}
+.njsSlides .size-title3 p {font-size: 150%}
+.njsSlides .size-title4 p {font-size: 120%;}
+
+/*----------------------------------------------------------------------------------------------------*/
+/* Font decorations */
+.njsSlides .font-bold .secViewContent {font-weight: bold;}
+.njsSlides .font-underline .secViewContent {text-decoration: underline;}
+.njsSlides .font-italic .secViewContent {font-style: italic;}
+

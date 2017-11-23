@@ -2112,7 +2112,7 @@ function SectionSelectionHandler(lesson) {
 
         _allTools.push({id: 'edit_icon_addpage', grpid: 'pages', grp: 'Page', icon:'ion-ios-plus', name:'Add Page', title:'Add a new page', shortcut: ' (Alt+Insert)', onclick: on_addpage});
         _allTools.push({id: 'edit_icon_delpage', grpid: 'pages', grp: 'Page', icon:'ion-ios-trash', name:'Delete Page', title:'Delete this page', shortcut: ' (Alt+Del)', onclick: on_delpage});
-        _allTools.push({id: 'edit_icon_changepagetype', grpid: 'pages', grp: 'Page', icon:'view_quilt', name:'Change Layout', title:'Change the layout of this page', font:'material-icons', onclick: on_changepagetype});
+        _allTools.push({id: 'edit_icon_changepagetype', grpid: 'pages', grp: 'Page', icon:'view_quilt', name:'Change Format', title:'Change the layout and styling of this page', font:'material-icons', onclick: on_changepagetype});
         _allTools.push({id: 'edit_icon_pageprops', grpid: 'pages', grp: 'Page', icon:'ion-ios-settings-strong', name:'Page Properties', title:'Update page properties', shortcut: ' (Alt-P)', onclick: on_pageProps});
         _allTools.push({id: 'edit_icon_pageorg', grpid: 'pages', grp: 'Page', icon:'ion-shuffle', name:'Page Organizer', title:'Organize the pages', shortcut: ' (Alt+O)', onclick: on_pageorganizer});
 

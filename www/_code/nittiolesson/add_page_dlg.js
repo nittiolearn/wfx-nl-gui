@@ -18,32 +18,31 @@ function(nl, nlDlg) {
         _dlg = new AddPageDlg(ptInfo, nl, nlDlg);
     };
     
-    this.showDlg = function(page, isPopup, bgImgUrl) {
-        return _dlg.show(page, isPopup, bgImgUrl);
+    this.showDlg = function(cfg) {
+        return _dlg.show(cfg.page, cfg);
     };
 }];
     
 //-------------------------------------------------------------------------------------------------
 function AddPageDlg(ptInfo, nl, nlDlg) {
-    
     var _lastSelectedPageType = null;
-	this.show = function(page, isPopup, bgImgUrl) {
+	this.show = function(page, cfg) {
 		return nl.q(function(resolve, reject) {
             var parentScope = nl.rootScope;
             var dlg = nlDlg.create(parentScope);
             dlg.setCssClass('nl-height-max nl-width-max');
-            _initDlgScope(dlg.scope, page, isPopup, bgImgUrl);
+            _initDlgScope(dlg.scope, page, cfg);
 			_showDlg(dlg, resolve, page);
 		});
 	};
 	
-    function _initDlgScope(dlgScope, page, isPopup, bgImgUrl) {
+    function _initDlgScope(dlgScope, page, cfg) {
         dlgScope.showHelp = '0';
         dlgScope.showClose = '1';
-        dlgScope.dlgTitle = nl.fmt2(page ?  'Change {}Page Layout' : 'Add {}Page', (isPopup ? 'Popup ': ''));
+        dlgScope.dlgTitle = nl.fmt2(page ?  'Change {}Page Layout' : 'Add {}Page', (cfg.isPopup ? 'Popup ': ''));
         var params = nl.window.location.search;
         dlgScope.isRaw = params.indexOf('rawedit') > 0 ? true : false;
-        dlgScope.data = {};
+        dlgScope.data = {section: null};
         dlgScope.data.showStyles = true;
         dlgScope.options = {};
         dlgScope.help = _getHelp();
@@ -51,12 +50,12 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         if (page && page.oPage.bgimg) {
             dlgScope.data.bgImg = page.oPage.bgimg;
             dlgScope.data.bgshade = page.oPage.bgshade;
-        } else if (isPopup) {
-            dlgScope.data.bgImg = "module_popup_img";
+        } else if (cfg.isPopup) {
+            dlgScope.data.bgImg = 'module_popup_img';
             dlgScope.data.bgshade = 'bglight';
         } else {
-        	dlgScope.data.bgImg = bgImgUrl;
-            dlgScope.data.bgshade = 'bglight';
+        	dlgScope.data.bgImg = cfg.modulebgimg;
+            dlgScope.data.bgshade = cfg.modulebgshade;
         }
 
         var defPt = page ? page.pagetype.pt : _lastSelectedPageType;
@@ -65,177 +64,21 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         dlgScope.data.pagetype = defPt ? {id: defPt.interaction} : dlgScope.options.pagetype[0];
         _onPtChange(dlgScope, defPt, defSectionLayout);
 
-        dlgScope.onFieldChange = function(fieldId) {
-            if (fieldId == 'pagetype') _onPtChange(dlgScope);
-            else if (fieldId == 'layout') _onLayoutChange(dlgScope);
-			else if (fieldId == 'aligntype') dlgScope.onClickOnDone();
-			else if (fieldId == 'style') dlgScope.onClickOnDone();
-			else if (fieldId == 'colors') dlgScope.onClickOnDone();
-			else if (fieldId == 'shapes') dlgScope.onClickOnDone();
-			else if (fieldId == 'shadow') dlgScope.onClickOnDone();
-			else if (fieldId == 'hozAlignment') dlgScope.onClickOnDone();
-			else if (fieldId == 'fontsize') dlgScope.onClickOnDone();
-			else {
-	        	dlgScope.data.onSectionClick = false;
-	        	dlgScope.data.section = {};
-			}
+        dlgScope.onSectionSelect = function(section) {
+            dlgScope.data.section = section;
+            _initStyleOptions(dlgScope, cfg.templateDefaults);
+            _updateStyles(dlgScope, section);
         };
         
         dlgScope.editLayoutDone = function() {
-        	dlgScope.data.showLayoutEdit = false;
-        	_onLayoutEditDone(dlgScope);
+            dlgScope.data.showLayoutEdit = false;
+            _onLayoutEditDone(dlgScope);
         };
-        
-        dlgScope.data.isPopup = function() {
-        	return isPopup;
-        };
-        
-        dlgScope.onClickOnSection = function(section) {
-        	dlgScope.data.onSectionClick = true;
-        	dlgScope.data.section = {pos: section.pos, l: section.l, t: section.t, h:section.h, w:section.w,
-        		l1: section.l1, t1: section.t1, h1:section.h1, w1:section.w1, 
-        		style: section.style, fmtgroup: section.fmtgroup};
 
-        	dlgScope.options.aligntype = [{id: 'content', name: nl.t('Top')}, {id: 'title', name: nl.t('Middle')}];
-			dlgScope.data.aligntype =  section.aligntype == 'content' ? dlgScope.options.aligntype[0] : dlgScope.options.aligntype[1];
-
-			_initOptionsFromTemplate(dlgScope.options);
-        	_updateStyles(section);
-        	
-        };
-        
-        function _getHorizontalAlignments() {
-        	return [{id: 'align-center', name: nl.t('Center')},
-        			{id: 'align-justify', name: nl.t('Justify')},
-        			{id: 'align-left', name: nl.t('Left')},
-        			{id: 'align-right', name: nl.t('Right')}];
-        }
-        
-        function _updateStyles(section) {
-        	var styles = section.style ? section.style.split(' ') : "";
-        	var ret = {color: '', shape: '', shadow: '', halign: '', size: '', underline: false, bold: false, italic: false};
-        	for(var i=0; i<styles.length; i++) {
-        		var style = styles[i].trim();
-        		if (!style) continue;
-        		if (style.indexOf('bg-') == 0) ret.color = style;
-        		if (style.indexOf('shape-') == 0) ret.shape = style;
-        		if (style.indexOf('size-') == 0) ret.size = style;
-        		if (style.indexOf('shadow-') == 0) ret.shadow = style;
-        		if (style.indexOf('align-') == 0) ret.halign = style;
-
-        		if (style.indexOf('font-bold') == 0) ret.bold = true;
-        		if (style.indexOf('font-underline') == 0) ret.underline = true;
-        		if (style.indexOf('font-italic') == 0) ret.italic = true;
-        	}
-        	
-			dlgScope.data.hozAlignment = _getHozAlign(ret);
-        	dlgScope.data.colors = _updateSectionStyle(dlgScope.options.colors, ret, 'color');
-        	dlgScope.data.shapes = _updateSectionStyle(dlgScope.options.shapes, ret, 'shape');
-        	dlgScope.data.shadow = _updateSectionStyle(dlgScope.options.shadow, ret, 'shadow');
-        	dlgScope.data.fontsize = _updateSectionStyle(dlgScope.options.fontsize, ret, 'size');
-        	dlgScope.data.underline = ret.underline;
-        	dlgScope.data.bold = ret.underline;
-        	dlgScope.data.italic = ret.underline;
-        }
-        
-        function _getHozAlign(ret) {
-        	if(ret.halign == '') {
-        		if(dlgScope.data.aligntype.id == 'title') return dlgScope.options.hozAlignment[0];
-        		if(dlgScope.data.aligntype.id == 'content') return dlgScope.options.hozAlignment[2];
-        	} else {
-        		for(var i=0; i<dlgScope.options.hozAlignment.length; i++) {
-        			var dict = dlgScope.options.hozAlignment[i];
-        			if(ret.halign == dict.id) return dict;
-        		}
-        	}
-        }
-
-        function _updateSectionStyle(stylesArray, style, elem) {
-        	if(style[elem] == '') return stylesArray[0];
-        	for(var i=0; i<stylesArray.length; i++) {
-        		var dict = stylesArray[i];
-        		if(dict.id == style[elem]) return dict;
-        	}
-        	return stylesArray[0];
-        }
-        
-        function _initOptionsFromTemplate() {
-       		dlgScope.options.hozAlignment = _getHorizontalAlignments();
-			dlgScope.options.colors = _getBackgroundColors();
-        	dlgScope.options.shapes = _getSectionShapes();
-        	dlgScope.options.shadow = _getSectionShadow();
-        	dlgScope.options.fontsize = _getSectionSize();
- 
-        }
-
-        function _getBackgroundColors() {
-        	return [{id:'', name:nl.t('Default')},
-        			{id:'bg-light1', name: nl.t('Light background1')},
-        			{id:'bg-light2', name: nl.t('Light background2')},
-        			{id:'bg-light3', name: nl.t('Light background3')},
-        			{id:'bg-light4', name: nl.t('Light background4')},
-        			{id:'bg-light5', name: nl.t('Light background5')},
-        			{id:'bg-dark1', name: nl.t('Dark background1')},
-        			{id:'bg-dark2', name: nl.t('Dark background2')},
-        			{id:'bg-dark3', name: nl.t('Dark background3')},
-        			{id:'bg-dark4', name: nl.t('Dark background4')},
-        			{id:'bg-dark5', name: nl.t('Dark background5')},
-        			{id:'bg-bright1', name: nl.t('Bright1')},
-        			{id:'bg-bright2', name: nl.t('Bright2')},
-        			{id:'bg-bright3', name: nl.t('Red')},
-        			{id:'bg-bright4', name: nl.t('Bright4')},
-        			{id:'bg-bright5', name: nl.t('Bright5')},
-        			{id:'bg-pastel1', name: nl.t('Pastel1')},
-        			{id:'bg-pastel2', name: nl.t('Pastel2')},
-        			{id:'bg-pastel3', name: nl.t('Cyan')},
-        			{id:'bg-pastel4', name: nl.t('Pastel4')},
-        			{id:'bg-pastel5', name: nl.t('Aquamarine')}];	
-        }
-        
-        function _getSectionShapes() {
-        	return [{id:'', name: nl.t('Rectangle')},
-        			{id:'shape-rounded-small', name: nl.t('Small rounded rectangle')},
-        			{id:'shape-rounded-h', name: nl.t('Rounded horizontal')},
-        			{id:'shape-rounded-v', name: nl.t('Rounded vertical')},
-        			{id:'shape-oval', name: nl.t('Oval')},
-        			{id:'shape-leaf1', name: nl.t('Leaf1')},
-        			{id:'shape-leaf2', name: nl.t('Leaf2')}];
-        }
-        
-        function _getSectionShadow() {
-        	return [{id:'no', name:nl.t('No shadow')},
-        			{id:'shadow-1', name: nl.t('Shadow-1')},
-        			{id:'shadow-2', name: nl.t('Shadow-2')},
-        			{id:'shadow-3', name: nl.t('Shadow-3')}];
-        }
-        
-        function _getSectionSize() {
-        	return [{id: 'size-title1', name: nl.t('Title1')},
-        			{id: 'size-title2', name: nl.t('Title2')},
-        			{id: 'size-title3', name: nl.t('Title3')},
-        			{id: 'size-title4', name: nl.t('Title4')}];
-        }
-                
-        dlgScope.onClickOnDone = function() {
-        	var section = dlgScope.data.section;
-        	var newObj = angular.copy(section);
-        	if ('pos' in newObj) delete newObj.pos;
-        	newObj.aligntype = dlgScope.data.aligntype.id;
-        	newObj.style = nl.t('{} {} {} {} {} {} {} {}', dlgScope.data.colors.id, dlgScope.data.shapes.id, dlgScope.data.shadow.id,
-        						 dlgScope.data.hozAlignment.id, dlgScope.data.fontsize.id, dlgScope.data.underline ? 'font-underline' : '',
-        						 dlgScope.data.bold ? 'font-bold' : '', dlgScope.data.italic ? 'font-italic' : '');
-
-        	var sectionLayout = _layoutsFromBeautyString(dlgScope.data.sectionLayout);
-        	for(var i=0; i<sectionLayout.length; i++) {
-        		if(section.pos === i+1) sectionLayout.splice(i, 1, newObj);
-        	}
-        	dlgScope.data.sectionLayout = _beautyStringifyLayouts(sectionLayout);
-        	_onLayoutEditDone(dlgScope);
-        };
-        
-        dlgScope.onEditLayoutClose = function() {
-        	dlgScope.data.onSectionClick = false;
-	        dlgScope.onClickOnDone();
+        dlgScope.onFieldChange = function(fieldId) {
+            if (fieldId == 'pagetype') _onPtChange(dlgScope);
+            else if (fieldId == 'layout') _onLayoutChange(dlgScope);
+            else _onSectionPropChange(dlgScope);
         };
     }
 
@@ -308,22 +151,143 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 		_formSections(dlgScope, layoutObj); 
     }
     
+    function _formSections(dlgScope, pagelayout) {
+        dlgScope.sections = [];
+        for(var i=0; i<pagelayout.length; i++) {
+            var section = angular.copy(pagelayout[i]);
+            section.pos = i+1;
+            dlgScope.sections.push(section);
+        }
+    }
+    
+    function _initStyleOptions(dlgScope, templateDefaults) {
+        dlgScope.options.colors = _getBackgroundColors(templateDefaults);
+        dlgScope.options.shapes = _getSectionShapes();
+        dlgScope.options.shadow = _getSectionShadow();
+        dlgScope.options.fontsize = _getSectionSize();
+    }
+
+    function _getBackgroundColors(templateDefaults) {
+        if (templateDefaults && templateDefaults.styles && templateDefaults.styles.colors)
+            return templateDefaults.styles.colors;
+        return [{"id": "", "name": "None"},
+            {"id": "bg-light1", "name": "Translucent White", "group": "Light colors"},
+            {"id": "bg-light2", "name": "Light Blue", "group": "Light colors"},
+            {"id": "bg-light3", "name": "Light Green", "group": "Light colors"},
+            {"id": "bg-light4", "name": "Light Red", "group": "Light colors"},
+            {"id": "bg-light5", "name": "Light Yellow", "group": "Light colors"},
+            {"id": "bg-pastel1", "name": "Light Turquoise", "group": "Pastel colors"},
+            {"id": "bg-pastel2", "name": "Light Yellow Green", "group": "Pastel colors"},
+            {"id": "bg-pastel3", "name": "Dark Cyan", "group": "Pastel colors"},
+            {"id": "bg-pastel4", "name": "Olive Green", "group": "Pastel colors"},
+            {"id": "bg-pastel5", "name": "Steel Blue", "group": "Pastel colors"},
+            {"id": "bg-dark1", "name": "Translucent Dark Grey", "group": "Dark colors"},
+            {"id": "bg-dark2", "name": "Dark Blue", "group": "Dark colors"},
+            {"id": "bg-dark3", "name": "Dark Green", "group": "Dark colors"},
+            {"id": "bg-dark4", "name": "Dark Red", "group": "Dark colors"},
+            {"id": "bg-dark5", "name": "Dark Yellow", "group": "Dark colors"},
+            {"id": "bg-bright1", "name": "Blue", "group": "Bright colors"},
+            {"id": "bg-bright2", "name": "Green", "group": "Bright colors"},
+            {"id": "bg-bright3", "name": "Red", "group": "Bright colors"},
+            {"id": "bg-bright4", "name": "Yellow", "group": "Bright colors"},
+            {"id": "bg-bright5", "name": "Orange", "group": "Bright colors"}];
+    }
+
+    function _getSectionShapes() {
+        return [{id:'', name: nl.t('Rectangle')},
+                {id:'shape-rounded-small', name: nl.t('Small rounded rectangle')},
+                {id:'shape-rounded-h', name: nl.t('Rounded horizontal')},
+                {id:'shape-rounded-v', name: nl.t('Rounded vertical')},
+                {id:'shape-oval', name: nl.t('Circular or Oval')},
+                {id:'shape-leaf1', name: nl.t('Leaf Left')},
+                {id:'shape-leaf2', name: nl.t('Leaf Right')}];
+    }
+    
+    function _getSectionShadow() {
+        return [{id:'no', name: 'No shadow'},
+                {id:'shadow-1', name: 'Light Shadow'},
+                {id:'shadow-2', name: 'Medium Shadow'},
+                {id:'shadow-3', name: 'Heavy Shadow'}];
+    }
+    
+    function _getSectionSize() {
+        return [{id: 'size-title1', name: nl.t('Title 1')},
+                {id: 'size-title2', name: nl.t('Title 2')},
+                {id: 'size-title3', name: nl.t('Title 3')},
+                {id: 'size-title4', name: nl.t('Title 4')}];
+    }
+            
+    function _updateStyles(dlgScope, section) {
+        dlgScope.data.styles = {vAlignTop: (section.aligntype == 'content'), 
+            hAlign: '',
+            bold: false, underline: false, italic: false};
+
+        var styles = section.style ? section.style.split(' ') : "";
+        for(var i=0; i<styles.length; i++) {
+            var style = styles[i].trim();
+            if (!style) continue;
+            if (style.indexOf('bg-') == 0) _updateStyleOption(dlgScope, style, 'colors');
+            if (style.indexOf('shape-') == 0) _updateStyleOption(dlgScope, style, 'shapes');
+            if (style.indexOf('size-') == 0) _updateStyleOption(dlgScope, style, 'fontsize');
+            if (style.indexOf('shadow-') == 0) _updateStyleOption(dlgScope, style, 'shadow');
+
+            if (style.indexOf('align-') == 0) dlgScope.data.styles.hAlign = style;
+            if (style.indexOf('font-bold') == 0) dlgScope.data.styles.bold = true;
+            if (style.indexOf('font-underline') == 0) dlgScope.data.styles.underline = true;
+            if (style.indexOf('font-italic') == 0) dlgScope.data.styles.italic = true;
+        }
+        _updateHAlign(dlgScope.data.styles);
+    }
+    
+    function _updateStyleOption(dlgScope, style, attr) {
+        var opts = dlgScope.options[attr];
+        for(var i=0; i<opts.length; i++) {
+            if(opts[i].id == style) {
+                dlgScope.data[attr] = opts[i];
+                return;
+            }
+        }
+        dlgScope.data[attr] = opts[0];
+    }
+
+    var _hAlignList = {'align-justify': true, 'align-center': true, 'align-left': true, 'align-right': true};
+    function _updateHAlign(styles) {
+        if(styles.hAlign in _hAlignList) return styles.hAlign;
+        return styles.vAlignTop ? 'align-center' : 'align-left';
+    }
+
+    function _onSectionPropChange(dlgScope) {
+        var section = angular.copy(dlgScope.data.section);
+        if ('pos' in section) delete section.pos;
+        
+        var vAlignTop = dlgScope.data.styles.vAlignTop;
+        var hAlign = dlgScope.data.styles.hAlign;
+
+        if (vAlignTop) section.aligntype = 'content';
+        else if (section.aligntype == 'content') section.aligntype = 'title';
+        if (vAlignTop && hAlign == 'align-left') hAlign = '';
+        if (!vAlignTop && hAlign == 'align-center') hAlign = '';
+        
+        section.style = nl.fmt2('{} {} {} {} {} {} {} {}', dlgScope.data.colors.id, dlgScope.data.shapes.id, 
+           dlgScope.data.shadow.id, dlgScope.data.fontsize.id, hAlign,
+           dlgScope.data.styles.bold ? 'font-bold' : '', 
+           dlgScope.data.styles.italic ? 'font-italic' : '',
+           dlgScope.data.styles.underline ? 'font-underline' : '');
+
+        var sectionLayout = _layoutsFromBeautyString(dlgScope.data.sectionLayout);
+        for(var i=0; i<sectionLayout.length; i++) {
+            if(section.pos === i+1) sectionLayout.splice(i, 1, section);
+        }
+        dlgScope.data.sectionLayout = _beautyStringifyLayouts(sectionLayout);
+        _onLayoutEditDone(dlgScope);
+    }
+
     function _onLayoutEditDone(dlgScope) {
         dlgScope.data.sectionLayout = _layoutsFromBeautyString(dlgScope.data.sectionLayout);     
 		_formSections(dlgScope, dlgScope.data.sectionLayout);
         dlgScope.data.sectionLayout = _beautyStringifyLayouts(dlgScope.data.sectionLayout);     
     }
 
-	function _formSections(dlgScope, pagelayout) {
-        dlgScope.sections = [];
-        for(var i=0; i<pagelayout.length; i++) {
-            var layout = pagelayout[i];
-            dlgScope.sections.push({pos: i+1, t:layout.t, l:layout.l, h:layout.h, w:layout.w, 
-            	t1:layout.t1, l1:layout.l1, h1:layout.h1, w1:layout.w1, 
-				aligntype: layout.aligntype, fmtgroup: layout.fmtgroup, style: layout.style});
-        }
-	}
-    
 	function _layoutsFromBeautyString(beautyStr) {
 		var layoutsObj = angular.fromJson('[' + beautyStr + ']');
 		for (var i=0; i<layoutsObj.length; i++) {
@@ -358,7 +322,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 			var valLen = LAYOUT_COLLEN[attr];
 			var val = secLayout[attr];
 			if (bCommaNeeded) ret += ', ';
-			ret += '"' + attr + '":' + _FillLeadingBlanks(''+val, valLen);
+			ret += '"' + attr + '":' + _fillLeadingBlanks(''+val, valLen);
 			bCommaNeeded = true;
 		}
 		for (var i in LAYOUT_ORDER_OTHER) {
@@ -376,7 +340,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 		return ret + '}';
 	}
 
-	function _FillLeadingBlanks(str, requiredLen) {
+	function _fillLeadingBlanks(str, requiredLen) {
 		if (str.length >= requiredLen) return str;
 		var blankLen = requiredLen - str.length;
 		var blank = '';
