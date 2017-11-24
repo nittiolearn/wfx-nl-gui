@@ -97,9 +97,30 @@ npagetypes = function() {
 			var rhs = layout2[i];
 			if (lhs.length != rhs.length) return false;
 			for (var a in lhs) {
-				if (lhs[a] != rhs[a]) return false;
+				if (a == 'style') {
+					if(!_isSameSet(lhs.style, rhs.style)) return false;
+				} else if (lhs[a] != rhs[a]) return false;
 			}
 		}
+		return true;
+	}
+	
+	function _isSameSet(lhs, rhs) {
+		var lhsStyleArray = lhs.split(' ');
+		var lhsStyleDict = {};
+		for(var i=0; i<lhsStyleArray.length; i++) {
+			var item = lhsStyleArray[i].trim();
+			if (item == "") continue;
+			lhsStyleDict[item] = false;
+		}
+		var rhsStyleArray = rhs.split(' ');
+		for (var i=0; i<rhsStyleArray.length; i++) {
+			var item = rhsStyleArray[i].trim();
+			if (item == "") continue;
+			if (!(item in lhsStyleDict)) return false;
+			lhsStyleDict[item] = true;
+		}		
+		for (var item in lhsStyleDict) if (!lhsStyleDict[item]) return false;
 		return true;
 	}
 
