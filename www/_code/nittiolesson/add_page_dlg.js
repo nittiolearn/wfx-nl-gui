@@ -80,6 +80,10 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
             else if (fieldId == 'layout') _onLayoutChange(dlgScope);
             else _onSectionPropChange(dlgScope);
         };
+        
+        dlgScope.onSectionPropChange = function() {
+        	_onSectionPropChange(dlgScope);
+        };
     }
 
 	function _showDlg(dlg, resolve, page) {
@@ -89,7 +93,6 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         	if(!page) {
                 _lastSelectedPageType = _layoutDict[sd.layout.id];
 	            resolve({pt:sd.layout.id, layout: _layoutsFromBeautyString(sd.sectionLayout)});
-    		    console.log(_layoutsFromBeautyString(sd.sectionLayout));
     		    dlg.close();
     		    return;
         	}
@@ -139,12 +142,14 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
     }
 
     function _onPtChange(dlgScope, defPt, defSectionLayout) {
+    	dlgScope.data.section = null;
         dlgScope.options.layout = _layouts[dlgScope.data.pagetype.id];
         dlgScope.data.layout = defPt ? {id: defPt.id} : dlgScope.options.layout[0];
         _onLayoutChange(dlgScope, defPt, defSectionLayout);
     }
 
     function _onLayoutChange(dlgScope, defPt, defSectionLayout) {
+    	dlgScope.data.section = null;
         var pt = ptInfo.ptMap[dlgScope.data.layout.id];
         var layoutObj = defSectionLayout ? defSectionLayout : pt.layout;
         dlgScope.data.sectionLayout = _beautyStringifyLayouts(layoutObj);
@@ -204,14 +209,15 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
     }
     
     function _getSectionShadow() {
-        return [{id:'no', name: 'No shadow'},
+        return [{id:'', name: 'No shadow'},
                 {id:'shadow-1', name: 'Light Shadow'},
                 {id:'shadow-2', name: 'Medium Shadow'},
                 {id:'shadow-3', name: 'Heavy Shadow'}];
     }
     
     function _getSectionSize() {
-        return [{id: 'size-title1', name: nl.t('Title 1')},
+        return [{id: '', name: nl.t('Normal')},
+                {id: 'size-title1', name: nl.t('Title 1')},
                 {id: 'size-title2', name: nl.t('Title 2')},
                 {id: 'size-title3', name: nl.t('Title 3')},
                 {id: 'size-title4', name: nl.t('Title 4')}];
@@ -221,6 +227,11 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         dlgScope.data.styles = {vAlignTop: (section.aligntype == 'content'), 
             hAlign: '',
             bold: false, underline: false, italic: false};
+
+        dlgScope.data.colors = dlgScope.options.colors[0];
+        dlgScope.data.shapes = dlgScope.options.shapes[0];
+        dlgScope.data.shadow = dlgScope.options.shadow[0];
+        dlgScope.data.fontsize = dlgScope.options.fontsize[0];
 
         var styles = section.style ? section.style.split(' ') : "";
         for(var i=0; i<styles.length; i++) {
@@ -258,8 +269,10 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 
     function _onSectionPropChange(dlgScope) {
         var section = angular.copy(dlgScope.data.section);
-        if ('pos' in section) delete section.pos;
-        
+        section.w = section.w ?  section.w : (104.3 - section.l);
+        section.h = section.h ?  section.h : (109.3 - section.t);
+        section.w1 = section.w1 ?  section.w1 : (104.3 - section.l1);
+        section.h1 = section.h1 ?  section.h1 : (109.3 - section.t1);
         var vAlignTop = dlgScope.data.styles.vAlignTop;
         var hAlign = dlgScope.data.styles.hAlign;
 
@@ -268,11 +281,15 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         if (vAlignTop && hAlign == 'align-left') hAlign = '';
         if (!vAlignTop && hAlign == 'align-center') hAlign = '';
         
-        section.style = nl.fmt2('{} {} {} {} {} {} {} {}', dlgScope.data.colors.id, dlgScope.data.shapes.id, 
-           dlgScope.data.shadow.id, dlgScope.data.fontsize.id, hAlign,
-           dlgScope.data.styles.bold ? 'font-bold' : '', 
-           dlgScope.data.styles.italic ? 'font-italic' : '',
-           dlgScope.data.styles.underline ? 'font-underline' : '');
+        section.style = '';
+        _appendToStyle(section, dlgScope.data.colors.id);
+        _appendToStyle(section, dlgScope.data.shapes.id);
+        _appendToStyle(section, dlgScope.data.shadow.id);
+        _appendToStyle(section, dlgScope.data.fontsize.id);
+        _appendToStyle(section, hAlign);
+        if(dlgScope.data.styles.bold) _appendToStyle(section, 'font-bold');
+        if(dlgScope.data.styles.italic) _appendToStyle(section, 'font-italic');
+        if(dlgScope.data.styles.underline) _appendToStyle(section, 'font-underline');
 
         var sectionLayout = _layoutsFromBeautyString(dlgScope.data.sectionLayout);
         for(var i=0; i<sectionLayout.length; i++) {
@@ -280,6 +297,12 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         }
         dlgScope.data.sectionLayout = _beautyStringifyLayouts(sectionLayout);
         _onLayoutEditDone(dlgScope);
+    }
+
+    function _appendToStyle(section, style) {
+    	if (!style) return;
+    	if (section.style) section.style += ' ';
+    	section.style += style;
     }
 
     function _onLayoutEditDone(dlgScope) {
