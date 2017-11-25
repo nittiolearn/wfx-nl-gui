@@ -269,7 +269,10 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 
     function _onSectionPropChange(dlgScope) {
         var section = angular.copy(dlgScope.data.section);
-        
+        section.w = section.w ?  section.w : (104.3 - section.l);
+        section.h = section.h ?  section.h : (109.3 - section.t);
+        section.w1 = section.w1 ?  section.w1 : (104.3 - section.l1);
+        section.h1 = section.h1 ?  section.h1 : (109.3 - section.t1);
         var vAlignTop = dlgScope.data.styles.vAlignTop;
         var hAlign = dlgScope.data.styles.hAlign;
 

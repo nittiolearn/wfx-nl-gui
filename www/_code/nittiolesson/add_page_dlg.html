@@ -202,27 +202,27 @@ show-close='{{showClose}}'>
 								<b>Top1</b>
 							</div>
 							<div ng-class='respCol442' >
-								<input class='nl-input' type='number' min='0' ng-change='onSectionPropChange()' ng-model='data.section.t1'>
+								<input class='nl-input' type='number' min='-7.0' max='109.3' ng-change='onSectionPropChange()' ng-model='data.section.t1'>
 							</div>
-							<div ng-class='respCol442' class='padding-mid'>
-								<b>Left1</b>
-							</div>
-							<div ng-class='respCol442'>
-								<input class='nl-input' type='number' min='0' ng-change='onSectionPropChange()' ng-model='data.section.l1'>
-							</div>
-						</div>
-						<div ng-show='data.showPortraitPositions' class='row row-wrap row-center margin0'>
 							<div ng-class='respCol442' class='padding-mid'>
 								<b>Height1</b>
 							</div>
 							<div ng-class='respCol442'>
-								<input class='nl-input' type='number' min='0' ng-change='onSectionPropChange()' ng-model='data.section.h1'>
+								<input class='nl-input' type='number' min='0' max='{{109.3 - data.section.t1}}' ng-change='onSectionPropChange()' ng-model='data.section.h1'>
+							</div>
+						</div>
+						<div ng-show='data.showPortraitPositions' class='row row-wrap row-center margin0'>
+							<div ng-class='respCol442' class='padding-mid'>
+								<b>Left1</b>
+							</div>
+							<div ng-class='respCol442'>
+								<input class='nl-input' type='number' min='-4.3' max='104.3' ng-change='onSectionPropChange()' ng-model='data.section.l1'>
 							</div>
 							<div ng-class='respCol442' class='padding-mid'>
 								<b>Width1</b>
 							</div>
 							<div ng-class='respCol442'>
-								<input class='nl-input' type='number' min='0' ng-change='onSectionPropChange()' ng-model='data.section.w1'>
+								<input class='nl-input' type='number' min='0' max='{{104.3 - data.section.l1}}' ng-change='onSectionPropChange()' ng-model='data.section.w1'>
 							</div>
 						</div>
 					</div>
