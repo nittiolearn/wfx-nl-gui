@@ -1,5 +1,11 @@
 <nl-dlg title='{{data.pagetitle}}' show-help='0'>
 <nl-dlg-content>
+<style>
+    .video_preview {
+        width: 100%;
+        height: 360px;
+    }
+</style>
 <div>
     <nl-dlg-row attr='source' data='data' help='help'
                 ng-show='markupInfo.insertOrUpdateResource'>                
@@ -27,28 +33,46 @@
         </nl-resource-upload>
     </nl-dlg-row> 
 
-    <div ng-show='data.source.id == "record"'>
-        <style>
-            .video_preview {
-                width: 360px;
-                height: 180px;
-                background-color: black;
-            }
-        </style>
-        <video id="res_add_dlg_recorder_preview"
-               class='video_preview' autoplay muted
-               ng-hide='recorder.recordedUrl'></video>
-        <video class='video_preview' controls
-               ng-src='recorder.recordedUrl'
-               ng-show='recorder.recordedUrl'></video>
-        <div class='row row-center margin0 padding-small'>
-            <div class="button padding-small" ng-hide='recorder.recordingOngoing' ng-click='recorder.record(data)'>Record</div>
-            <div class="button padding-small" ng-show='recorder.recordingOngoing' ng-click='recorder.stop(data)'>Stop</div>
-            <div class="button padding-small" ng-show='recorder.recordedUrl'>
-                <a ng-src='recorder.recordedUrl' download='NittioRecording.webm'>Download</a>
-            </div>
+    <nl-dlg-row ng-show='data.source.id == "record"' class='text-center'>
+        <div class="button padding-small"
+             ng-click='recorder.toggle(data)'>
+
+            <i ng-show='recorder.state == "pending" && data.restype.id == "Video"'
+               class='ion-videocamera fsh2 padding-small'></i>
+            <i ng-show='recorder.state == "pending" && data.restype.id == "Audio"'
+               class='ion-mic-a fsh2 padding-small'></i>
+            <span ng-show='recorder.state == "pending"'
+                  class='padding-small'>Record</span>
+
+            <i ng-show='recorder.state == "recording"'
+                    class='anim_blink forange ion-android-radio-button-on fsh2 padding-small'></i>
+            <span ng-show='recorder.state == "recording"'
+                  class='padding-small'>Stop</span>
+
+            <i ng-show='recorder.state == "done"'
+                    class='ion-ios-refresh fsh2 padding-small'></i>
+            <span ng-show='recorder.state == "done"'
+                  class='padding-small'>Rerecord</span>
         </div>
-    </div> 
+        <div class='padding-small'>{{recorder.statusMsg}}</div>
+        <div class='padding-mid'>
+            <video id='res_add_dlg_recorder_preview'
+                   class='video_preview' autoplay muted
+                   ng-show='recorder.state != "done"'>
+            </video>
+            <video id='res_add_dlg_recorder_preview2'
+                   class='video_preview' controls
+                   ng-show='recorder.state == "done"'>
+            </video>
+        </div>
+        <div ng-show='recorder.state == "done" && recorder.recordedUrl'
+             class='fsmall2'>
+             <a id='res_add_dlg_recorder_download' 
+                ng-href='{{recorder.recordedUrl}}'
+                download='{{recorder.getRecordedFileName()}}'>
+                <i class='icon ion-arrow-down-a padding-small'></i><span>Download</span></a>
+        </div>
+    </nl-dlg-row> 
 
     <nl-dlg-row attr='keywords' data='data' help='help'
                 ng-show='data.source.id == "upload"'>

@@ -216,9 +216,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 	}
 	
 	function _addModifyResource($scope, card){
-	    // TODO-MUNNI-NOW
-		//nlResourceAddModifySrv.show($scope, card, _userInfo.groupinfo.restypes)
-        nlResourceAddModifySrv.insertOrUpdateResource($scope, _userInfo.groupinfo.restypes, 'video:', true)
+		nlResourceAddModifySrv.show($scope, card, _userInfo.groupinfo.restypes)
 		.then(function(resInfos) {
 			if (_bFirstLoadInitiated && resInfos.length == 0) return;
 			_getDataFromServer();
@@ -290,7 +288,8 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 		var buttonName = addModifyResourceDlg.scope.data.buttonname;
         var modifyButton = {text: buttonName, onTap: function(e) {
         	if(e) e.preventDefault();
-        	if (addModifyResourceDlg.scope.data.source.id != 'upload') {
+        	if (addModifyResourceDlg.scope.data.source.id != 'upload'
+        	   && addModifyResourceDlg.scope.data.source.id != 'record') {
                 if(!markupHandler.validate()) return;
                 addModifyResourceDlg.resolve(true);
                 return;
@@ -337,15 +336,27 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 		return data;
 	}
 
+    this.validate = function() {
+        if (_scope.data.source.id == 'record' && !_scope.recorder.recordedBlob)
+            return _validateFail(_scope, 'source', 
+            'Before uploading, please click on the "record button" and record your voice/video');
+        return true;
+    };
+
 	function _onUploadOrModify(e, addModifyResourceDlg, card, $scope) {
-		
-		var resourceList = addModifyResourceDlg.scope.data.resource;
-		var compressionlevel = addModifyResourceDlg.scope.data.compressionlevel.id;
-		var keyword = addModifyResourceDlg.scope.data.keywords || '';
-		var resid =  (card !== null) ? addModifyResourceDlg.scope.data.card.Id : null;
+	    var sd = addModifyResourceDlg.scope.data;
+	    var recorder = addModifyResourceDlg.scope.recorder;
+		var resourceList = sd.source.id == 'record' ? recorder.getResourceList(sd) : sd.resource;
+		var compressionlevel = sd.compressionlevel.id;
+		var keyword = sd.keywords || '';
+		var resid =  (card !== null) ? sd.card.Id : null;
 	    if(resourceList.length == 0) {
 		    if (e) e.preventDefault();
-	    	addModifyResourceDlg.scope.error.resource = 'Please select the resource to upload';
+		    if (sd.source.id == 'record') {
+                addModifyResourceDlg.scope.error.source = 'Please record before uploading.';
+		    } else {
+                addModifyResourceDlg.scope.error.resource = 'Please select the resource to upload';
+		    }
 	    	return;
 		}
 		nlDlg.showLoadingScreen();
@@ -408,11 +419,13 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
             return false;
         }
         _scope.data.restype.id = markupInfo.restypeInfo.type;
-        if (_scope.data.restype.id == 'Audio')
-            _scope.options.source.push({id: 'record', name: nl.t('Record your voice')});
-        else if (_scope.data.restype.id == 'Video')
-            _scope.options.source.push({id: 'record', name: nl.t('Record a video')});
-        _scope.recorder = new NlMediaRecorder(nlDlg);
+        _scope.recorder = new NlMediaRecorder(nl, nlDlg);
+        if (_scope.recorder.canRecordMedia()) {
+            if (_scope.data.restype.id == 'Audio')
+                _scope.options.source.push({id: 'record', name: nl.t('Record your voice')});
+            else if (_scope.data.restype.id == 'Video')
+                _scope.options.source.push({id: 'record', name: nl.t('Record a video')});
+        }
             
         _scope.data.pagetitle = 'Insert ' + markupInfo.restypeInfo.title;
         return _initMarkupParams(markupInfo.restypeInfo);
@@ -599,68 +612,147 @@ var SelectallDirective = ['nl', function (nl) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-function NlMediaRecorder(nlDlg) {
-    
-    var _stream = null;
+function NlMediaRecorder(nl, nlDlg) {
     self = this;
+    var _recorder = null;
+    var _stream = null;
     this.recordedUrl = null;
+    this.recordedBlob = null;
+    this.recordingStartTime = null;
+    this.state = 'pending';
+    this.statusMsg = _getStatusMsg();
+    
+    this.canRecordMedia = function() {
+        return !!navigator.mediaDevices;
+    };
+    
+    this.toggle = function(sd) {
+        if (this.state == 'recording') this.stop(sd);
+        else this.record(sd);
+    };
     
     this.record = function(sd) {
-        self.recordingOngoing = true;
-        var cfg= {audio: true, video: true};
-        if(!_hasGetUserMedia()) return false;
+        this.recordedBlob = null;
+        this.state = 'starting';
+        this.statusMsg = _getStatusMsg();
+        this.recordedUrl = null;
+        this.recordingStartTime = null;
+        this.isVideo = (sd.restype.id == 'Video');
+        var cfg= {audio: true, video: this.isVideo};
         navigator.mediaDevices.getUserMedia(cfg).then(_onGotMedia);
     };
 
     this.stop = function(sd) {
-        if (!_stream) return;
+        if (!_recorder || this.state != 'recording') return;
+        this.state = 'stopping';
+        this.statusMsg = _getStatusMsg();
         nlDlg.showLoadingScreen();
-        var tracks = _stream.getTracks();
-        for(var i=0; i<tracks.length; i++) tracks[i].stop();
+        setTimeout(function() {
+            _recorder.stop();
+        }, 0);
+    };
+    
+    this.getResourceList = function(sd) {
+        if (!this.recordedBlob) return [];
+        var file = new File([this.recordedBlob], self.getRecordedFileName(), 
+            {type: self.getMimeType()});
+        var ret = {resource: file, restype: sd.restype.id, extn: self.getExtn()};
+        return [ret];
     };
 
+    this.getMimeType = function() {
+        return self.isVideo ? 'video/webm' : 'audio/m4a';
+    };
+
+    this.getExtn = function() {
+        return self.isVideo ? '.webm' : '.m4a';
+    };
+
+    this.getRecordedFileName = function() {
+        return 'NittioRecording' + self.getExtn();
+    };
+    
     function _onGotMedia(stream) {
         _stream = stream;
         var preview = document.getElementById("res_add_dlg_recorder_preview");
         preview.srcObject = stream;
         preview.captureStream = preview.captureStream || preview.mozCaptureStream;
-        preview.onplaying = _startRecording;
+        preview.onplaying = _startPreRecording;
     }
     
-    var maxRecordingTimeMS = 30*1000;
-    function _startRecording() {
+    function _startPreRecording() {
         var preview = document.getElementById("res_add_dlg_recorder_preview");
         var stream = preview.captureStream();
-        var recorder = new MediaRecorder(stream);
+        _recorder = new MediaRecorder(stream);
         var data = [];
-        recorder.ondataavailable = function(event) {
+        _recorder.ondataavailable = function(event) {
             data.push(event.data);
         };
-        recorder.onstop = function() {
+        _recorder.onstop = function() {
             _onRecordingDone(data);
         };
-    
-        recorder.start();
-        console.log(recorder.state + " for " + (maxRecordingTimeMS/1000) + " seconds...");
-        
-        setTimeout(function() {
-            if (recorder.state == 'recording') recorder.stop();
-        }, maxRecordingTimeMS);
+
+        self.state = 'prerecording';
+        self.statusMsg = _getStatusMsg();
+        self.recordingStartTime = (new Date()).getTime();
+        _executeCheckingLoop();
     }
-    
+
+    var maxRecordingTimeMS = 10*60*1000;
+    var preRecordingTimeMS = 5000;
+    function _executeCheckingLoop() {
+        nl.timeout(function() {
+            var diff = ((new Date()).getTime() - self.recordingStartTime);
+            if (self.state == 'prerecording') {
+                if (diff >= preRecordingTimeMS) {
+                    _recorder.start();                    
+                    self.state = 'recording';
+                    self.recordingStartTime = (new Date()).getTime();
+                }
+                self.statusMsg = _getStatusMsg();
+                _executeCheckingLoop();
+            } else if (self.state == 'recording') {
+                if (diff >= maxRecordingTimeMS) {
+                    self.recordingStartTime = null;
+                    self.stop();
+                } else {
+                    self.statusMsg = _getStatusMsg();
+                    _executeCheckingLoop();
+                }
+            }
+        }, 100);
+    }
+
     function _onRecordingDone(recordedChunks) {
-        console.log('recording is done');
-        var recordedBlob = new Blob(recordedChunks, {type: "video/webm"});
-        self.recordedUrl = URL.createObjectURL(recordedBlob);
-        console.log("Successfully recorded " + recordedBlob.size + " bytes of " +
-            recordedBlob.type + " media.");
-        self.recordingOngoing = false;
+        self.recordedBlob = new Blob(recordedChunks, {type: self.getMimeType()});
+        self.recordedUrl = URL.createObjectURL(self.recordedBlob);
+        var preview2 = document.getElementById("res_add_dlg_recorder_preview2");
+        preview2.src = self.recordedUrl;
+        self.state = 'done';
+        self.statusMsg = _getStatusMsg();
+
+        _stopRecording();
         nlDlg.hideLoadingScreen();
     }
-    
-    function _hasGetUserMedia() {
-        return !!(navigator.getUserMedia || navigator.webkitGetUserMedia ||
-            navigator.mozGetUserMedia || navigator.msGetUserMedia);
+
+    function _stopRecording() {
+        var tracks = _stream.getTracks();
+        for(var i=0; i<tracks.length; i++) tracks[i].stop();
+    }
+
+    function _getStatusMsg() {
+        if (self.state == 'pending') return 'Press record to start recording.';
+        if (self.state == 'starting' || self.state == 'stopping') return 'Please wait ...';
+        if (self.state == 'done') return 'Recording done.';
+        
+        if (!self.recordingStartTime) return '';
+        var diff = (new Date()).getTime() - self.recordingStartTime;
+        if (self.state == 'prerecording') {
+            diff = preRecordingTimeMS - diff;
+            diff = diff >= 0 ? Math.round(diff/1000) : 0;
+            return nl.t('Recording will start in {} seconds.', diff);
+        }
+        return nl.t('Recording: {} seconds.', Math.round(diff/1000));
     }
 }
 
