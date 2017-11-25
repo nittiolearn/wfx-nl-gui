@@ -313,6 +313,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         '.pdf': ['PDF'],
         '.mp3': ['Audio'], '.m4a': ['Audio'],
         '.mp4': ['Video', 'Audio'], 
+        '.webm': ['Video', 'Audio'], 
         '.zip': ['Zip'],
         '.csv': ['Csv']};
 

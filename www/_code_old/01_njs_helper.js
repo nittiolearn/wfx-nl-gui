@@ -1105,8 +1105,8 @@ function AddResourceDlg(inputChain, resInfo) {
 	var _restypeToExtension = {
 		Image: ['.jpg', '.png', '.gif', '.svg', '.bmp'], 
 		PDF: ['.pdf'] , 
-        Audio: ['.mp3', '.mp4', '.m4a'], 
-		Video: ['.mp4'],
+        Audio: ['.mp3', '.mp4', '.m4a', '.webm'], 
+		Video: ['.mp4', '.webm'],
 		Attachment: []
 	}; 
 

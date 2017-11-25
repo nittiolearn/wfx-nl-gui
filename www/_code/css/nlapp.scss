@@ -1980,6 +1980,13 @@ img.nl-full-width {
   overflow: hidden;
 }
 
+.anim_blink {
+  animation: blinker 1s linear infinite;
+}
+@keyframes blinker {  
+  50% { opacity: 0; }
+}
+
 .anim, .anim.ng-move, .anim.ng-enter, .anim.ng-leave.ng-leave-active,
 .anim-enter.ng-move, .anim-enter.ng-enter, .anim-enter.ng-leave.ng-leave-active {
   -webkit-transition: all 0.4s cubic-bezier(.9,.92,.56,1.43) 0s;
