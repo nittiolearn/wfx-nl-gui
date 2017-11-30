@@ -1,0 +1,21 @@
+<nl-dlg title='{{data.dlgTitle}}' show-help='0'>
+<nl-dlg-content>
+	<div>
+		<nl-dlg-row attr='audioUrl' data='data' help='help'>
+			<div class='row row-center row-wrap margin0 padding0'>
+				<div class='col padding0'>
+					<nl-input fieldmodel='audioUrl'></nl-input>
+				</div>				
+				<div class='padding-small'>
+					<button type="button" ng-keypress='$event.keyCode == 13 ? clickOnMoreOptions() : "" ' ng-click='clickOnMoreOptions()'>
+						<i class='icon ion-more' title='Select audio'></i>
+					</button>
+				</div>
+			</div>
+		</nl-dlg-row>		
+		<nl-dlg-row attr='autoVoice' data='data' help='help'>
+			<nl-textarea fieldmodel='autoVoice' fieldcls='nl-fixed-width'></nl-textarea>
+		</nl-dlg-row>
+	</div>
+</nl-dlg-content>
+</nl-dlg>

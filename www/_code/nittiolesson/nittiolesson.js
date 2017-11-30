@@ -7,15 +7,15 @@
 function module_init() {
 	angular.module('nl.nittiolesson', ['nl.nittiolesson.module_props', 'nl.nittiolesson.page_props',
 	'nl.nittiolesson.change_look', 'nl.nittiolesson.module_review',
-	'nl.nittiolesson.add_page'])
+	'nl.nittiolesson.add_page', 'nl.nittiolesson.page_voice'])
 	.service('NittioLesson', NittioLessonSrv);
 }
 
 //-------------------------------------------------------------------------------------------------
 var NittioLessonSrv = ['nl', 'NittioLessonModulePropsDlg', 'NittioLessonPagePropsDlg', 'NittioLessonChangeLookDlg',
-'NittioLessonModuleReviewDlg', 'nlResourceAddModifySrv', 'NittioLessonAddPageDlg',
+'NittioLessonModuleReviewDlg', 'nlResourceAddModifySrv', 'NittioLessonAddPageDlg', 'NittioLessonAddPageVoice',
 function(nl, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg, NittioLessonChangeLookDlg, 
-    NittioLessonModuleReviewDlg, nlResourceAddModifySrv, NittioLessonAddPageDlg) {
+    NittioLessonModuleReviewDlg, nlResourceAddModifySrv, NittioLessonAddPageDlg, NittioLessonAddPageVoice) {
     var _moduleConfig = null;
 	this.init = function(oLesson, moduleConfig, ptInfo) {
 		NittioLessonModulePropsDlg.init(oLesson, moduleConfig);
@@ -45,6 +45,9 @@ function(nl, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg, NittioLessonC
     this.insertOrUpdateResource = function(markupText) {
         return nlResourceAddModifySrv.insertOrUpdateResource(nl.rootScope, 
             _moduleConfig.restypes, markupText, true);
+    };
+    this.showPageVoiceDlg = function(oPage) {
+    	return NittioLessonAddPageVoice.showAddVoiceDlg(oPage, _moduleConfig.restypes);
     };
 }]; 
 
