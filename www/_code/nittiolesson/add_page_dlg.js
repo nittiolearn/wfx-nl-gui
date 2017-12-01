@@ -43,7 +43,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         var params = nl.window.location.search;
         dlgScope.isRaw = params.indexOf('rawedit') > 0 ? true : false;
         dlgScope.data = {section: null};
-        dlgScope.data.showStyles = true;
+    	dlgScope.data.toolTab = {attr: 'style'};
         dlgScope.options = {};
         dlgScope.help = _getHelp();
 
@@ -269,10 +269,25 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 
     function _onSectionPropChange(dlgScope) {
         var section = angular.copy(dlgScope.data.section);
-        section.w = section.w ?  section.w : (104.3 - section.l);
-        section.h = section.h ?  section.h : (109.3 - section.t);
-        section.w1 = section.w1 ?  section.w1 : (104.3 - section.l1);
-        section.h1 = section.h1 ?  section.h1 : (109.3 - section.t1);
+
+        if(section.t === undefined) section.t = 0;
+        if(section.l === undefined) section.l = 0;
+        if(section.h === undefined) section.h = (109.3 - section.t);
+        if(section.w === undefined) section.w = (104.3 - section.l);
+
+        if(section.t1 !== undefined || section.l1 !== undefined ||
+        	section.h1 !== undefined || section.w1 !== undefined) {
+	        if(section.t1 === undefined) section.t1 = 0;
+	        if(section.l1 === undefined) section.l1 = 0;
+	        if(section.h1 === undefined) section.h1 = (109.3 - section.t1);
+	        if(section.w1 === undefined) section.w1 = (104.3 - section.l1);
+        } else {
+        	delete section.t1;
+        	delete section.l1;
+        	delete section.h1;
+        	delete section.w1;
+        }
+
         var vAlignTop = dlgScope.data.styles.vAlignTop;
         var hAlign = dlgScope.data.styles.hAlign;
 

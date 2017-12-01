@@ -72,9 +72,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlSendAssignmentSrv) {
             assignInfo.description = result.description;
         }
         nlSendAssignmentSrv.show($scope, assignInfo).then(function(e) {
-            // e is defined only when close button is clicked
-            // When redirecting e is null
-            if (e) nl.location.url('/home'); 
+            nl.location.url('/home'); 
         });
     }
     
@@ -335,7 +333,9 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             afterAssignmentSentDlg.scope.data.url = nl.fmt2('#/course_report_list?assignid={}', ctx.data.assignid);
             afterAssignmentSentDlg.scope.data.pageTitle = nl.t('Course assigned');
         }
-        var cancelButton = {text : nl.t('Close')};
+        var cancelButton = {text : nl.t('Close'), onTap: function(e) {
+				_dlg.close();
+	        }};
             afterAssignmentSentDlg.show('view_controllers/assignment/after_assignment_sent_dlg.html',
                 [], cancelButton);
     }

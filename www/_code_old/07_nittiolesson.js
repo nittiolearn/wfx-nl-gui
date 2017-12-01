@@ -2115,6 +2115,7 @@ function SectionSelectionHandler(lesson) {
         _allTools.push({id: 'edit_icon_changepagetype', grpid: 'pages', grp: 'Page', icon:'view_quilt', name:'Change Format', title:'Change the layout and styling of this page', font:'material-icons', onclick: on_changepagetype});
         _allTools.push({id: 'edit_icon_pageprops', grpid: 'pages', grp: 'Page', icon:'ion-ios-settings-strong', name:'Page Properties', title:'Update page properties', shortcut: ' (Alt-P)', onclick: on_pageProps});
         _allTools.push({id: 'edit_icon_pageorg', grpid: 'pages', grp: 'Page', icon:'ion-shuffle', name:'Page Organizer', title:'Organize the pages', shortcut: ' (Alt+O)', onclick: on_pageorganizer});
+        _allTools.push({id: 'edit_icon_pagevoice', grpid: 'pages', grp: 'Page', icon: 'ion-mic-c', name:'Page Voice', title:'Add page voice', onclick: on_pagevoice});
 
         _allTools.push({id: 'edit_icon_img', grpid: 'media', grp: 'Section Media', icon:'ion-aperture', name:'Insert Image', onclick: on_insert_img});
         _allTools.push({id: 'edit_icon_video', grpid: 'media', grp: 'Section Media', icon:'ion-social-youtube', name:'Insert Video', onclick: on_insert_video});
