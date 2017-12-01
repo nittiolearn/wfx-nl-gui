@@ -309,6 +309,17 @@ $animation-duration: 200ms !default;
   }
 }
 
+.pgNoStyle {
+  color: #FFFFFF;
+  background-color: #004455;
+  border-radius: 50%;
+  text-align: center;
+  font-size: 12px;
+  line-height: 150%;
+  border: 2px solid #FFFFFF;
+  padding: 0 4px;
+}
+
 /*-----------------------------------------------------------------------------------------*
  * Loading-background specific overrides
  *-----------------------------------------------------------------------------------------*/
@@ -1153,7 +1164,7 @@ nl-cards {
   background-color: rgba(245, 245, 255, 1) !important;
 }
 
-.njsSlides > section > .bgimg, .section_layout_preview > .bgimg {
+.njsSlides > section > .bgimg, .page_format_preview > .bgimg {
   position: absolute;
   top: 0;
   left: 0;

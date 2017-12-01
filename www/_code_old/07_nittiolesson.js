@@ -1196,7 +1196,7 @@ nlesson = function() {
 	}
 
 	function Lesson_swapPage(swapStart) {
-		var hPg1 = this.pages[swapStart].hPage.remove();
+		var hPg1 = this.pages[swapStart].hPage.detach();
 		var hPg2 = this.pages[swapStart+1].hPage;
 		hPg1.insertAfter(hPg2);
 

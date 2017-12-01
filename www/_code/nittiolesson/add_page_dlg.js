@@ -39,13 +39,14 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
     function _initDlgScope(dlgScope, page, cfg) {
         dlgScope.showHelp = '0';
         dlgScope.showClose = '1';
-        dlgScope.dlgTitle = nl.fmt2(page ?  'Change {}Page Layout' : 'Add {}Page', (cfg.isPopup ? 'Popup ': ''));
+        dlgScope.dlgTitle = nl.fmt2(page ?  'Change {}Page Format' : 'Add {}Page', (cfg.isPopup ? 'Popup ': ''));
         var params = nl.window.location.search;
         dlgScope.isRaw = params.indexOf('rawedit') > 0 ? true : false;
         dlgScope.data = {section: null};
     	dlgScope.data.toolTab = {attr: 'style'};
         dlgScope.options = {};
         dlgScope.help = _getHelp();
+        _updatePreviewPositions(dlgScope);
 
         if (page && page.oPage.bgimg) {
             dlgScope.data.bgImg = page.oPage.bgimg;
@@ -64,8 +65,11 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         dlgScope.data.pagetype = defPt ? {id: defPt.interaction} : dlgScope.options.pagetype[0];
         _onPtChange(dlgScope, defPt, defSectionLayout);
 
-        dlgScope.onSectionSelect = function(section) {
+        dlgScope.onSectionSelect = function(e, section) {
             dlgScope.data.section = section;
+            if (!section) return;
+            if (e) e.stopImmediatePropagation();
+            _updatePreviewPositions(dlgScope)
             _initStyleOptions(dlgScope, cfg.templateDefaults);
             _updateStyles(dlgScope, section);
         };
@@ -84,6 +88,35 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         dlgScope.onSectionPropChange = function() {
         	_onSectionPropChange(dlgScope);
         };
+        
+        dlgScope.changeTab = function(tabName) {
+            dlgScope.data.toolTab.attr = tabName;
+            _updatePreviewPositions(dlgScope);
+        };
+        
+        nl.resizeHandler.onResize(function() {
+            _updatePreviewPositions(dlgScope);
+        });
+    }
+
+    function _updatePreviewPositions(dlgScope) {
+        var w = nl.rootScope.screenWidth*0.42;
+        var h = w*9/16;
+        
+        if (dlgScope.data.toolTab.attr == "mobPosition") {
+            h = nl.rootScope.screenHeight*0.65;
+            w = h*9/16;
+        }
+        dlgScope.previewPositions = {height: Math.round(h) + 'px', width: Math.round(w) + 'px'};
+        
+        var sec = dlgScope.data.section;
+        if (!sec) return;
+        var isMobile = dlgScope.data.toolTab.attr == "mobPosition";
+        var t = (isMobile ? sec.t1 : sec.t);
+        if (t < 0) t=0;
+        var r = (isMobile ? sec.l1+sec.w1 : sec.l+sec.w);
+        if (r > 100) r=100;
+        dlgScope.markerPositions = {top: (t-5) + '%', left: (r) + '%'};
     }
 
 	function _showDlg(dlg, resolve, page) {
@@ -115,13 +148,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
     function _getHelp() {
         return {
             pagetype: {name: nl.t('Page Type'), help: nl.t('specifies the purpose of the page - some of the page types are for presenting information(text, images and videos) while others are for providing various interactions with the learner.')},
-            layout: {name: nl.t('Layout'), help: nl.t('specifies the number of sections in the page and their positions within the page.')},
-        	aligntype: {name: nl.t('Vertical')},
-        	hozAlignment: {name: nl.t('Horizontal')},
-        	colors: {name: nl.t('Color')},
-        	shapes: {name: nl.t('Shape')},
-        	shadow: {name: nl.t('Shadow')},
-        	fontsize: {name: nl.t('Font size')}
+            layout: {name: nl.t('Layout'), help: nl.t('specifies the number of sections in the page and their positions within the page.')}
         };  
     }
     
@@ -161,6 +188,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         for(var i=0; i<pagelayout.length; i++) {
             var section = angular.copy(pagelayout[i]);
             section.pos = i+1;
+            _cleanupPositions(section);
             dlgScope.sections.push(section);
         }
     }
@@ -247,7 +275,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
             if (style.indexOf('font-underline') == 0) dlgScope.data.styles.underline = true;
             if (style.indexOf('font-italic') == 0) dlgScope.data.styles.italic = true;
         }
-        _updateHAlign(dlgScope.data.styles);
+        dlgScope.data.styles.hAlign = _updateHAlign(dlgScope.data.styles);
     }
     
     function _updateStyleOption(dlgScope, style, attr) {
@@ -264,29 +292,24 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
     var _hAlignList = {'align-justify': true, 'align-center': true, 'align-left': true, 'align-right': true};
     function _updateHAlign(styles) {
         if(styles.hAlign in _hAlignList) return styles.hAlign;
-        return styles.vAlignTop ? 'align-center' : 'align-left';
+        return styles.vAlignTop ? 'align-left' : 'align-center';
     }
 
-    function _onSectionPropChange(dlgScope) {
-        var section = angular.copy(dlgScope.data.section);
-
+    function _cleanupPositions(section) {
         if(section.t === undefined) section.t = 0;
         if(section.l === undefined) section.l = 0;
-        if(section.h === undefined) section.h = (109.3 - section.t);
-        if(section.w === undefined) section.w = (104.3 - section.l);
+        if(section.h === undefined) section.h = 100;
+        if(section.w === undefined) section.w = 100;
 
-        if(section.t1 !== undefined || section.l1 !== undefined ||
-        	section.h1 !== undefined || section.w1 !== undefined) {
-	        if(section.t1 === undefined) section.t1 = 0;
-	        if(section.l1 === undefined) section.l1 = 0;
-	        if(section.h1 === undefined) section.h1 = (109.3 - section.t1);
-	        if(section.w1 === undefined) section.w1 = (104.3 - section.l1);
-        } else {
-        	delete section.t1;
-        	delete section.l1;
-        	delete section.h1;
-        	delete section.w1;
-        }
+        if(section.t1 === undefined) section.t1 = section.t;
+        if(section.l1 === undefined) section.l1 = section.l;
+        if(section.h1 === undefined) section.h1 = section.h;
+        if(section.w1 === undefined) section.w1 = section.w;
+    }
+    
+    function _onSectionPropChange(dlgScope) {
+        var section = angular.copy(dlgScope.data.section);
+        _cleanupPositions(section);
 
         var vAlignTop = dlgScope.data.styles.vAlignTop;
         var hAlign = dlgScope.data.styles.hAlign;
@@ -331,6 +354,10 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 		for (var i=0; i<layoutsObj.length; i++) {
 			var secLayout = layoutsObj[i];
 			if ('pos' in secLayout) delete secLayout.pos;
+            if (secLayout.t == secLayout.t1) delete secLayout.t1;
+            if (secLayout.h == secLayout.h1) delete secLayout.h1;
+            if (secLayout.l == secLayout.l1) delete secLayout.l1;
+            if (secLayout.w == secLayout.w1) delete secLayout.w1;
 		}
 		return layoutsObj;
 	}

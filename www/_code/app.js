@@ -222,6 +222,7 @@ function _updateScreenSize(nl) {
     var h = nl.window.innerHeight - 60;
     var hv = (w - 20)*9/16;
     if (h < hv) hv = h; 
+    nl.rootScope.screenHeight = h;
     nl.rootScope.screenWidth = w;
     nl.rootScope.videoWidth = hv*16/9;
     if (w < W_SMALL) {

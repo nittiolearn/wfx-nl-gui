@@ -98,7 +98,7 @@ npagetypes = function() {
 			if (lhs.length != rhs.length) return false;
 			for (var a in lhs) {
 				if (a == 'style') {
-					if(!_isSameSet(lhs.style, rhs.style)) return false;
+					if(!_isSameSet(lhs.style, rhs.style || '')) return false;
 				} else if (lhs[a] != rhs[a]) return false;
 			}
 		}

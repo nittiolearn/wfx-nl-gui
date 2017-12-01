@@ -33,6 +33,11 @@
         </nl-resource-upload>
     </nl-dlg-row> 
 
+    <nl-dlg-row attr='recordingName' data='data' help='help'
+                ng-show='data.source.id == "record"'>
+        <nl-input fieldmodel='recordingName' fieldtype='text' fieldcls='w100'></nl-input>
+    </nl-dlg-row> 
+
     <nl-dlg-row ng-show='data.source.id == "record"' class='text-center'>
         <div class="button padding-small"
              ng-click='recorder.toggle(data)'>
@@ -69,7 +74,7 @@
              class='fsmall2'>
              <a id='res_add_dlg_recorder_download' 
                 ng-href='{{recorder.recordedUrl}}'
-                download='{{recorder.getRecordedFileName()}}'>
+                download='{{recorder.getRecordedFileName(data)}}'>
                 <i class='icon ion-arrow-down-a padding-small'></i><span>Download</span></a>
         </div>
     </nl-dlg-row> 

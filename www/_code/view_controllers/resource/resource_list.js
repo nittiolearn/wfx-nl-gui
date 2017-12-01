@@ -307,7 +307,7 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 	function _initResourceDlg(addModifyResourceDlg, card, restypes) {
 		addModifyResourceDlg.resInfos = [];
 	    addModifyResourceDlg.setCssClass('nl-height-max nl-width-max');
-		addModifyResourceDlg.scope.data = {};
+		addModifyResourceDlg.scope.data = {recordingName: 'NittioRecording'};
 	    addModifyResourceDlg.scope.error = {};
 		addModifyResourceDlg.scope.options = {};
 		addModifyResourceDlg.scope.data.card = card;
@@ -444,6 +444,7 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
             restype: {name: nl.t('Media type'), help: nl.t('Select the type of file (image, video, ...).')},
             url: {name: nl.t('URL'), help: nl.t('Copy and paste or type in the URL.')},
             resource: {name: nl.t('Choose file'), help: nl.t('Choose a file from your device to upload. On mobile devices, you will be able to use your camera or recorder to capture images, record videos and audios directly from here.')},
+            recordingName: {name: nl.t('Name'), help: nl.t('Provide a name for your recording.')},
             keywords: {name: nl.t('Remarks'), help: nl.t('Provide a title or some remarks while uploading. This will help you later to identify this file in the reource repository.')},
             compressionlevel: {name: nl.t('Compression'), help: nl.t('This is supported only for images. By default medium compression level is chosen which is good enough for high definition screen viewing. Do not compress animated GIFs. It is recommended to not alter this value otherwise.')},
             markupCover: {name: nl.t('Cover'), help: nl.t('If you show the complete area, you might see empty spaces in the top and bottom or on the sides depending on the image size. If you choose to cover the complete area, some portions of the image may not be visible depending on the available area dimension.')},
@@ -654,24 +655,32 @@ function NlMediaRecorder(nl, nlDlg) {
     
     this.getResourceList = function(sd) {
         if (!this.recordedBlob) return [];
-        var file = new File([this.recordedBlob], self.getRecordedFileName(), 
+        var file = new File([this.recordedBlob], self.getRecordedFileName(sd), 
             {type: self.getMimeType()});
         var ret = {resource: file, restype: sd.restype.id, extn: self.getExtn()};
         return [ret];
     };
 
     this.getMimeType = function() {
-        return self.isVideo ? 'video/webm' : 'audio/m4a';
+        return self.isVideo ? 'video/mp4' : 'audio/mp3';
     };
 
     this.getExtn = function() {
-        return self.isVideo ? '.webm' : '.m4a';
+        return self.isVideo ? '.mp4' : '.mp3';
     };
 
-    this.getRecordedFileName = function() {
-        return 'NittioRecording' + self.getExtn();
+    this.getRecordedFileName = function(sd) {
+        return _toIdName(sd.recordingName) + self.getExtn();
     };
     
+    function _toIdName(input) {
+        input = input.toLowerCase();
+        input = input.replace(/[^a-z0-9_-]/g, function(x) {
+            return '-';
+        });
+        return input;
+    }
+
     function _onGotMedia(stream) {
         _stream = stream;
         var preview = document.getElementById("res_add_dlg_recorder_preview");
