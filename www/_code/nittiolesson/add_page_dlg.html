@@ -8,6 +8,16 @@
 		box-shadow: inset 0 0 5px rgba(200,200,255,0.8);
 		background-color: rgba(0, 0, 0, 0.1);
 	}
+	.section_layout_portrait {
+		position: relative;
+		top: 0;
+		height: 400px;
+		left: 26%;
+		width: 48%;
+		box-shadow: inset 0 0 5px rgba(200,200,255,0.8);
+		background-color: rgba(0, 0, 0, 0.1);
+	}	
+
 	.section_layout_preview2 {
 		position: absolute;
 		top: 6%;
@@ -28,6 +38,16 @@
 	.nl-editor-icon-selected {
 		border-radius: 5px;
 		background-color: rgba(211, 211, 211, 1);
+	}
+	.selected1 {
+		background-color: rgba(211, 211, 211, 1);
+		border-radius: 8px 8px 0 0;
+		border-top: 1px solid black;
+		border-left: 1px solid black;
+		border-right: 1px solid black;
+	}
+	.selected2 {
+		border-bottom: 1px solid black;
 	}
 </style>
 <nl-dlg title='{{dlgTitle}}'
@@ -60,13 +80,16 @@ show-close='{{showClose}}'>
 			</div>
 			<div class='row row-top row-wrap padding0 margin0'>
 				<div ng-class='respCol221' class='text-center padding-mid'>
-					<div class='section_layout_preview {{data.bgImg == "module_popup_img" ? "module_popup_img" : ""}}'>
-						<img ng-show='data.bgImg != "module_popup_img"' ng-src='{{data.bgImg}}' class='bgimg'>
+					<div class='{{(data.toolTab.attr == "mobPosition") ? "section_layout_portrait" : "section_layout_preview"}} {{data.bgImg == "module_popup_img" ? "module_popup_img" : ""}}'>
+						<img ng-show='data.bgImg != "module_popup_img"' ng-src='{{data.bgImg}}' class='bgimg' style='{{(data.toolTab.attr == "mobPosition") ? "height:100%" : ""}}'>
 						<div class='section_layout_preview2'>
 							<div class='njsSlides {{data.bgshade}}'>
 								<div ng-repeat='sec in sections'
 								ng-click='onSectionSelect(sec)'
-								style='position: absolute; top: {{sec.t}}%; left: {{sec.l}}%; height: {{sec.h}}%; width: {{sec.w}}%'
+								style='position: absolute; top: {{(data.toolTab.attr == "mobPosition") ? sec.t1: sec.t}}%; 
+								left: {{(data.toolTab.attr == "mobPosition") ? sec.l1 : sec.l}}%; 
+								height: {{(data.toolTab.attr == "mobPosition") ? sec.h1 : sec.h}}%; 
+								width: {{(data.toolTab.attr == "mobPosition") ? sec.w1 : sec.w}}%'
 								class='{{sec.style}} pgSec nl_section_layout nl-link-text '>
 									<div class='secViewContent' style='height: 100%;'>
 										<div class='row {{sec.aligntype == "content" ? "row-top" : "row-center"}} margin0 padding0'
@@ -85,144 +108,153 @@ show-close='{{showClose}}'>
 					<div ng-hide='data.section' class='padding fsh4'>
 						Please click on a section to edit the properties of that section.
 					</div>
+					<div ng-show='data.section' 
+						class='row row-wrap row-center margin0 padding0 text-center'>
+						<div class='col col-33 padding-small {{(data.toolTab.attr == "style") ? "selected1" : "selected2"}} nl-link-text'
+							ng-click='data.toolTab.attr = "style"'>Styles</div>
+						<div class='col col-33 padding-small {{(data.toolTab.attr == "position") ? "selected1" : "selected2"}} nl-link-text'
+							ng-click='data.toolTab.attr = "position"'>Position</div>
+						<div class='col col-33 padding-small {{(data.toolTab.attr == "mobPosition") ? "selected1" : "selected2"}} nl-link-text'
+							ng-click='data.toolTab.attr = "mobPosition"'>Portrait mode</div>
+					</div>
+					<div class='padding-small'></div>
 					<div ng-show='data.section' class='padding0'>
-						<div class='row row-center padding0 margin0 nl-toolbar text-left'
-						style='height: 38px; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
-
-							<span class='nl-toolbar-icon padding-small'
-								title='bold'
-								ng-click='data.styles.bold = !data.styles.bold; onSectionPropChange()'>
-								<i class=' icon material-icons {{data.styles.bold ? "nl-editor-icon-selected" : ""}}'>format_bold</i>
-							</span>
-							<span class='nl-toolbar-icon padding-small'
-								title='italic'
-								ng-click='data.styles.italic = !data.styles.italic; onSectionPropChange()'>
-								<i class='icon material-icons {{data.styles.italic ? "nl-editor-icon-selected" : ""}}'>format_italic</i>
-							</span>
-							<span class='nl-toolbar-icon padding-small'
-								title='underline'
-								ng-click='data.styles.underline = !data.styles.underline; onSectionPropChange()'>
-								<i class='icon material-icons {{data.styles.underline ? "nl-editor-icon-selected" : ""}}'>format_underline</i>
-							</span>
-							<span class='padding-small section_toolbar_sep'></span>
-							<span class='padding-small'></span>
-
-							<span class='nl-toolbar-icon padding0'
-								title='left align'
-								ng-click='data.styles.hAlign = "align-left"; onSectionPropChange()'>
-								<i class='icon material-icons {{data.styles.hAlign == "align-left" ? "nl-editor-icon-selected" : ""}}'>format_align_left</i> 
-							</span>
-							<span class='nl-toolbar-icon padding0'
-								title='center align'
-								ng-click='data.styles.hAlign = "align-center"; onSectionPropChange()'>
-								<i class='icon material-icons {{data.styles.hAlign == "align-center" ? "nl-editor-icon-selected" : ""}}'>format_align_center</i>
-							</span>
-							<span class='nl-toolbar-icon padding0'
-								title='align right'
-								ng-click='data.styles.hAlign = "align-right"; onSectionPropChange();'>
-								<i class='icon material-icons {{data.styles.hAlign == "align-right" ? "nl-editor-icon-selected" : ""}}'>format_align_right</i>
-							</span>
-							<span class='nl-toolbar-icon padding0'
-								title='justify'
-								ng-click='data.styles.hAlign = "align-justify"; onSectionPropChange()'>
-								<i class='icon material-icons {{data.styles.hAlign == "align-justify" ? "nl-editor-icon-selected" : ""}}'>format_align_justify</i>
-							</span>
-							<span class='padding-small section_toolbar_sep'></span>
-							<span class='padding-small'></span>
-							
-							<span class='nl-toolbar-icon padding0'
-								title='vertical center'
-								ng-click='data.styles.vAlignTop = false; onSectionPropChange()'>
-								<i class='icon material-icons {{!data.styles.vAlignTop ? "nl-editor-icon-selected" : ""}}'>vertical_align_center</i>
-							</span>
-							<span class='nl-toolbar-icon padding0'
-								title='vertical top'
-								ng-click='data.styles.vAlignTop = true; onSectionPropChange()'>
-								<i class='icon material-icons {{data.styles.vAlignTop ? "nl-editor-icon-selected" : ""}}'>vertical_align_top</i>
-							</span>
+						<div ng-show='data.toolTab.attr == "style"'>
+							<div class='row row-center padding0 margin0 nl-toolbar text-left'
+								style='height: 38px; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
+								<span class='nl-toolbar-icon padding-small'
+									title='bold'
+									ng-click='data.styles.bold = !data.styles.bold; onSectionPropChange()'>
+									<i class=' icon material-icons {{data.styles.bold ? "nl-editor-icon-selected" : ""}}'>format_bold</i>
+								</span>
+								<span class='nl-toolbar-icon padding-small'
+									title='italic'
+									ng-click='data.styles.italic = !data.styles.italic; onSectionPropChange()'>
+									<i class='icon material-icons {{data.styles.italic ? "nl-editor-icon-selected" : ""}}'>format_italic</i>
+								</span>
+								<span class='nl-toolbar-icon padding-small'
+									title='underline'
+									ng-click='data.styles.underline = !data.styles.underline; onSectionPropChange()'>
+									<i class='icon material-icons {{data.styles.underline ? "nl-editor-icon-selected" : ""}}'>format_underline</i>
+								</span>
+								<span class='padding-small section_toolbar_sep'></span>
+								<span class='padding-small'></span>
+	
+								<span class='nl-toolbar-icon padding0'
+									title='left align'
+									ng-click='data.styles.hAlign = "align-left"; onSectionPropChange()'>
+									<i class='icon material-icons {{data.styles.hAlign == "align-left" ? "nl-editor-icon-selected" : ""}}'>format_align_left</i> 
+								</span>
+								<span class='nl-toolbar-icon padding0'
+									title='center align'
+									ng-click='data.styles.hAlign = "align-center"; onSectionPropChange()'>
+									<i class='icon material-icons {{data.styles.hAlign == "align-center" ? "nl-editor-icon-selected" : ""}}'>format_align_center</i>
+								</span>
+								<span class='nl-toolbar-icon padding0'
+									title='align right'
+									ng-click='data.styles.hAlign = "align-right"; onSectionPropChange();'>
+									<i class='icon material-icons {{data.styles.hAlign == "align-right" ? "nl-editor-icon-selected" : ""}}'>format_align_right</i>
+								</span>
+								<span class='nl-toolbar-icon padding0'
+									title='justify'
+									ng-click='data.styles.hAlign = "align-justify"; onSectionPropChange()'>
+									<i class='icon material-icons {{data.styles.hAlign == "align-justify" ? "nl-editor-icon-selected" : ""}}'>format_align_justify</i>
+								</span>
+								<span class='padding-small section_toolbar_sep'></span>
+								<span class='padding-small'></span>
+								
+								<span class='nl-toolbar-icon padding0'
+									title='vertical center'
+									ng-click='data.styles.vAlignTop = false; onSectionPropChange()'>
+									<i class='icon material-icons {{!data.styles.vAlignTop ? "nl-editor-icon-selected" : ""}}'>vertical_align_center</i>
+								</span>
+								<span class='nl-toolbar-icon padding0'
+									title='vertical top'
+									ng-click='data.styles.vAlignTop = true; onSectionPropChange()'>
+									<i class='icon material-icons {{data.styles.vAlignTop ? "nl-editor-icon-selected" : ""}}'>vertical_align_top</i>
+								</span>
+							</div>
+							<nl-dlg-row attr='Color' data='data'>
+								<nl-select fieldmodel='colors'></nl-select>
+							</nl-dlg-row>
+							<nl-dlg-row attr='Shape' data='data'>
+								<nl-select fieldmodel='shapes'></nl-select>
+							</nl-dlg-row>
+							<nl-dlg-row attr='Shadow' data='data'>
+								<nl-select fieldmodel='shadow'></nl-select>
+							</nl-dlg-row>
+							<nl-dlg-row attr='Font size' data='data'>
+								<nl-select fieldmodel='fontsize'></nl-select>
+							</nl-dlg-row>
 						</div>
-						<nl-dlg-row attr='Color' data='data'>
-							<nl-select fieldmodel='colors'></nl-select>
-						</nl-dlg-row>
-						<nl-dlg-row attr='Shape' data='data'>
-							<nl-select fieldmodel='shapes'></nl-select>
-						</nl-dlg-row>
-						<nl-dlg-row attr='Shadow' data='data'>
-							<nl-select fieldmodel='shadow'></nl-select>
-						</nl-dlg-row>
-						<nl-dlg-row attr='Font size' data='data'>
-							<nl-select fieldmodel='fontsize'></nl-select>
-						</nl-dlg-row>
-						<div class='row row-top row-wrap margin0 padding0'>
-							<div class='w100 nl-link-text padding-mid fsh6'
-							ng-click='data.showPositions = !data.showPositions'
-							tabindex='0'
-							ng-keypress='$event.keyCode == 32 ? data.showPositions = !data.showPositions : ""'>
-								<span class='fsh6'> <i ng-show='data.showPositions' class="icon ion-android-checkbox-outline"></i> <i ng-hide='data.showPositions' class="icon ion-android-checkbox-outline-blank"></i> <span>Position</span> </span>
+						<div ng-show='data.toolTab.attr == "position"'>
+							<div class='row row-top row-wrap margin0 padding0'>
+								<div class='w100 fsh6'>
+									<span class='fsh6'>Position</span>
+								</div>
 							</div>
-						</div>
-						<div ng-show='data.showPositions' class='row row-wrap row-center margin0'>
-							<div ng-class='respCol442' class='padding-mid'>
-								<b>Top</b>
+							<div class='row row-wrap row-center margin0'>
+								<div ng-class='respCol442' class='padding-mid'>
+									<b>Top</b>
+								</div>
+								<div ng-class='respCol442' >
+									<input class='nl-input' type='number' min='-7.0' max='109.3' ng-change='onSectionPropChange()' ng-model='data.section.t'>
+								</div>
+								<div ng-class='respCol442' class='padding-mid'>
+									<b>Height</b>
+								</div>
+								<div ng-class='respCol442'>
+									<input class='nl-input' type='number' min='0' max='{{109.3 - data.section.t}}' ng-change='onSectionPropChange()' ng-model='data.section.h'>
+								</div>
 							</div>
-							<div ng-class='respCol442' >
-								<input class='nl-input' type='number' min='-7.0' max='109.3' ng-change='onSectionPropChange()' ng-model='data.section.t'>
-							</div>
-							<div ng-class='respCol442' class='padding-mid'>
-								<b>Height</b>
-							</div>
-							<div ng-class='respCol442'>
-								<input class='nl-input' type='number' min='0' max='{{109.3 - data.section.t}}' ng-change='onSectionPropChange()' ng-model='data.section.h'>
-							</div>
-						</div>
-						<div ng-show='data.showPositions' class='row row-wrap row-center margin0'>
-							<div ng-class='respCol442' class='padding-mid'>
-								<b>Left</b>
-							</div>
-							<div ng-class='respCol442'>
-								<input class='nl-input' type='number' min='-4.3' max='104.3' ng-change='onSectionPropChange()' ng-model='data.section.l'>
-							</div>
-							<div ng-class='respCol442' class='padding-mid'>
-								<b>Width</b>
-							</div>
-							<div ng-class='respCol442'>
-								<input class='nl-input' type='number' min='0' max='{{104.3 - data.section.l}}' ng-change='onSectionPropChange()' ng-model='data.section.w'>
-							</div>
-						</div>
-						<div class='row row-top row-wrap margin0 padding0'>
-							<div class='w100 nl-link-text padding-mid fsh6'
-							ng-click='data.showPortraitPositions = !data.showPortraitPositions'
-							tabindex='0'
-							ng-keypress='$event.keyCode == 32 ? data.showPortraitPositions = !data.showPortraitPositions : ""'>
-								<span class='fsh6'> <i ng-show='data.showPortraitPositions' class="icon ion-android-checkbox-outline"></i> <i ng-hide='data.showPortraitPositions' class="icon ion-android-checkbox-outline-blank"></i> <span>Potrait position</span> </span>
+							<div class='row row-wrap row-center margin0'>
+								<div ng-class='respCol442' class='padding-mid'>
+									<b>Left</b>
+								</div>
+								<div ng-class='respCol442'>
+									<input class='nl-input' type='number' min='-4.3' max='104.3' ng-change='onSectionPropChange()' ng-model='data.section.l'>
+								</div>
+								<div ng-class='respCol442' class='padding-mid'>
+									<b>Width</b>
+								</div>
+								<div ng-class='respCol442'>
+									<input class='nl-input' type='number' min='0' max='{{104.3 - data.section.l}}' ng-change='onSectionPropChange()' ng-model='data.section.w'>
+								</div>
 							</div>
 						</div>
-						<div ng-show='data.showPortraitPositions' class='row row-wrap row-center margin0'>
-							<div ng-class='respCol442' class='padding-mid'>
-								<b>Top1</b>
+						<div ng-show='data.toolTab.attr == "mobPosition"'>
+							<div class='row row-top row-wrap margin0 padding0'>
+								<div class='w100 fsh6'>
+									<span class='fsh6'>Portrait position</span>
+								</div>
 							</div>
-							<div ng-class='respCol442' >
-								<input class='nl-input' type='number' min='-7.0' max='109.3' ng-change='onSectionPropChange()' ng-model='data.section.t1'>
+							<div class='row row-wrap row-center margin0'>
+								<div ng-class='respCol442' class='padding-mid'>
+									<b>Top1</b>
+								</div>
+								<div ng-class='respCol442' >
+									<input class='nl-input' type='number' min='-7.0' max='109.3' ng-change='onSectionPropChange()' ng-model='data.section.t1'>
+								</div>
+								<div ng-class='respCol442' class='padding-mid'>
+									<b>Height1</b>
+								</div>
+								<div ng-class='respCol442'>
+									<input class='nl-input' type='number' min='0' max='{{109.3 - data.section.t1}}' ng-change='onSectionPropChange()' ng-model='data.section.h1'>
+								</div>
 							</div>
-							<div ng-class='respCol442' class='padding-mid'>
-								<b>Height1</b>
-							</div>
-							<div ng-class='respCol442'>
-								<input class='nl-input' type='number' min='0' max='{{109.3 - data.section.t1}}' ng-change='onSectionPropChange()' ng-model='data.section.h1'>
-							</div>
-						</div>
-						<div ng-show='data.showPortraitPositions' class='row row-wrap row-center margin0'>
-							<div ng-class='respCol442' class='padding-mid'>
-								<b>Left1</b>
-							</div>
-							<div ng-class='respCol442'>
-								<input class='nl-input' type='number' min='-4.3' max='104.3' ng-change='onSectionPropChange()' ng-model='data.section.l1'>
-							</div>
-							<div ng-class='respCol442' class='padding-mid'>
-								<b>Width1</b>
-							</div>
-							<div ng-class='respCol442'>
-								<input class='nl-input' type='number' min='0' max='{{104.3 - data.section.l1}}' ng-change='onSectionPropChange()' ng-model='data.section.w1'>
+							<div class='row row-wrap row-center margin0'>
+								<div ng-class='respCol442' class='padding-mid'>
+									<b>Left1</b>
+								</div>
+								<div ng-class='respCol442'>
+									<input class='nl-input' type='number' min='-4.3' max='104.3' ng-change='onSectionPropChange()' ng-model='data.section.l1'>
+								</div>
+								<div ng-class='respCol442' class='padding-mid'>
+									<b>Width1</b>
+								</div>
+								<div ng-class='respCol442'>
+									<input class='nl-input' type='number' min='0' max='{{104.3 - data.section.l1}}' ng-change='onSectionPropChange()' ng-model='data.section.w1'>
+								</div>
 							</div>
 						</div>
 					</div>

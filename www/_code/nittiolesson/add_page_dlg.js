@@ -43,7 +43,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         var params = nl.window.location.search;
         dlgScope.isRaw = params.indexOf('rawedit') > 0 ? true : false;
         dlgScope.data = {section: null};
-        dlgScope.data.showStyles = true;
+    	dlgScope.data.toolTab = {attr: 'style'};
         dlgScope.options = {};
         dlgScope.help = _getHelp();
 
