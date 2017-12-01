@@ -2354,11 +2354,14 @@ var modulePopup = new ModulePopupHadler();
 			g_lesson.initDom();
 		});
 		
+        var g_lessonId = null;
 		nittio.onEscape(function() {
+		    if (g_lessonId == 0) return;
 			return g_lesson.onEscape();
 		});
 		
         nittio.onResize(function() {
+            if (g_lessonId == 0) return;
             if (njs_scorm.getScormLmsLessonMode() === null) g_lesson.reRender(true);
         });
         
@@ -2369,10 +2372,13 @@ var modulePopup = new ModulePopupHadler();
 				g_lesson.preRender(newPgNo);
 				return true;
 			});
-			g_lesson.globals.slides.onSlideChange(function() {
-				g_lesson.postRender();
-				g_lesson.onEscape();
-			});
+            g_lessonId = parseInt(jQuery('#l_lessonId').val());
+            if (g_lessonId != 0) {
+                g_lesson.globals.slides.onSlideChange(function() {
+                    g_lesson.postRender();
+                    g_lesson.onEscape();
+                });
+            }
             
 			window.setTimeout(function() {
 			    if (g_lesson.oLesson.currentPageNo && 
