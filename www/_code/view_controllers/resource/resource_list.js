@@ -420,7 +420,9 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
         }
         _scope.data.restype.id = markupInfo.restypeInfo.type;
         _scope.recorder = new NlMediaRecorder(nl, nlDlg);
-        if (_scope.recorder.canRecordMedia()) {
+        var params = nl.window.location.search;
+        var isRaw = params.indexOf('rawedit') > 0 ? true : false;
+        if (isRaw && _scope.recorder.canRecordMedia()) {
             if (_scope.data.restype.id == 'Audio')
                 _scope.options.source.push({id: 'record', name: nl.t('Record your voice')});
             else if (_scope.data.restype.id == 'Video')
@@ -624,7 +626,31 @@ function NlMediaRecorder(nl, nlDlg) {
     this.statusMsg = _getStatusMsg();
     
     this.canRecordMedia = function() {
-        return !!navigator.mediaDevices;
+        if (!navigator.mediaDevices) return false;
+        if (!MediaRecorder) return false;
+        var mimes = [
+            'video/webm', 
+            'video/webm;codecs=vp8',
+            'video/webm;codecs=vp9',
+            'video/webm;codecs=h264',
+            'video/webm;codecs=avc1',
+            'video/webm;codecs=daala', 
+            'video/x-matroska;codecs=avc1',
+            'video/mpeg',
+
+            'audio/webm',
+            'audio/webm;codecs=opus',
+            'audio/mp3',
+            'audio/m4a',
+        ];
+
+        var ret=false;
+        for (var i=0; i<mimes.length; i++) { 
+            var mimetypeSupported = MediaRecorder.isTypeSupported(mimes[i]);
+            if (mimetypeSupported) ret = true;
+            console.log('Mimetype support:', mimes[i], mimetypeSupported); 
+        }
+        return ret;
     };
     
     this.toggle = function(sd) {
@@ -662,11 +688,11 @@ function NlMediaRecorder(nl, nlDlg) {
     };
 
     this.getMimeType = function() {
-        return self.isVideo ? 'video/mp4' : 'audio/mp3';
+        return self.isVideo ? 'video/webm' : 'audio/webm';
     };
 
     this.getExtn = function() {
-        return self.isVideo ? '.mp4' : '.mp3';
+        return self.isVideo ? '.webm' : '.webm';
     };
 
     this.getRecordedFileName = function(sd) {
@@ -692,7 +718,11 @@ function NlMediaRecorder(nl, nlDlg) {
     function _startPreRecording() {
         var preview = document.getElementById("res_add_dlg_recorder_preview");
         var stream = preview.captureStream();
-        _recorder = new MediaRecorder(stream);
+        var opts = {
+            //audioBitsPerSecond : 128000,
+            //videoBitsPerSecond : 2500000,
+            mimeType : self.getMimeType()};
+        _recorder = new MediaRecorder(stream, opts);
         var data = [];
         _recorder.ondataavailable = function(event) {
             data.push(event.data);
@@ -709,6 +739,7 @@ function NlMediaRecorder(nl, nlDlg) {
 
     var maxRecordingTimeMS = 10*60*1000;
     var preRecordingTimeMS = 5000;
+    var checkingLoopCounter = 0;
     function _executeCheckingLoop() {
         nl.timeout(function() {
             var diff = ((new Date()).getTime() - self.recordingStartTime);
@@ -717,6 +748,7 @@ function NlMediaRecorder(nl, nlDlg) {
                     _recorder.start();                    
                     self.state = 'recording';
                     self.recordingStartTime = (new Date()).getTime();
+                    checkingLoopCounter = 0;
                 }
                 self.statusMsg = _getStatusMsg();
                 _executeCheckingLoop();
@@ -726,6 +758,8 @@ function NlMediaRecorder(nl, nlDlg) {
                     self.stop();
                 } else {
                     self.statusMsg = _getStatusMsg();
+                    checkingLoopCounter++;
+                    if (checkingLoopCounter % 50 == 0) _recorder.requestData();
                     _executeCheckingLoop();
                 }
             }
