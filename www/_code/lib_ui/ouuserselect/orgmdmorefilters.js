@@ -21,8 +21,6 @@ function(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect) {
 	var _selectedMores = {};
 	
     this.getData = function(moreTree, moreTitle) {
-		nlGroupInfo.init();
-		nlGroupInfo.update();
         var groupInfo = nlGroupInfo.get();
 
         var filtersData = {};
