@@ -133,6 +133,7 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
         _q(_downloadPackageZip)()
         .then(_q(_openPackageZip))
         .then(_q(_downloadModules))
+        .then(_q(_downloadIndexModule))
         .then(_q(_downloadResources))
         .then(_q(_generateMetadataXml))
         .then(_q(_savePackageZip))
@@ -233,6 +234,53 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
         var pdm = new ParallelDownloadManager(nl, nlServerApi, pl, self, 
             'resources', urls, resolve, reject);
         pdm.download();
+    }
+    
+    function _downloadIndexModule(resolve, reject) {
+        pl.debug('Downloading index module from server');
+        var lessoninfos = [];
+        for(var i=0; i<self.lessonIds.length; i++) {
+            var lid = self.lessonIds[i];
+            var lesson = self.lessons[lid].lesson;
+            lessoninfos.push({id: lid, name: lesson.name, 
+                description: lesson.description, image: lesson.image});
+        }
+        var pkginfo = {title: self.moduleTitle};
+        
+        nlServerApi.scoExport({lessoninfos: lessoninfos, scoversion: self.version, pkginfo: pkginfo})
+        .then(function(result) {
+            pl.info('Downloaded index module from server', result.html);
+            pl.info(nl.fmt2('Index module uses {} resources (assets)', Object.keys(result.resurls).length),
+                angular.toJson(result.resurls, 2));
+            var filename = nl.fmt2('{}/module_list.html', CONTENT_FOLDER);
+            self.zip.file(filename, result.html);
+            var indexLink = nl.fmt2('<a href="{}">Click here.</a>', filename);
+            var indexJs = nl.fmt2('window.location = "{}";', filename);
+            var indexHtml = nl.fmt2('<html><head><script>{}</script></head><body>{}</body></html>', indexJs, indexLink);
+            self.zip.file('index.html', indexHtml);
+            var newUrls = [];
+            for(var urlFull in result.resurls) {
+                var url = _removeQueryParams(urlFull);
+                if (!_isKnownExtn(url)) {
+                    pl.info(nl.fmt2('resource ignored: {}', url));
+                    continue;
+                }
+                if (url in self.resources) {
+                    self.resources[url].usageCnt++;
+                    continue;
+                }
+                newUrls.push(url);
+                self.resources[url] = {packaged: false, usageCnt: 1, urlFull: urlFull};
+            }
+            pl.info(nl.fmt2('{} new resources (assets) to package', newUrls.length),
+                angular.toJson(newUrls, 2));
+            self.setProgress('indexModule');
+            resolve(true);
+        }, function(e) {
+            var msg = 'Downloading index module from server failed';
+            pl.error(msg, e);
+            resolve(false);
+        });
     }
     
     var _metadataXmlTemplate = {
@@ -338,7 +386,8 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
         start: [0, 0],
         downloadPkgZip: [0, 3],
         openPkgZip: [3, 5],
-        modules: [5, 20],
+        modules: [5, 18],
+        indexModule: [18, 20],
         resources: [20, 95],
         generateMetadata: [95, 98],
         done: [98, 100]
@@ -409,6 +458,15 @@ function ParallelDownloadManager(nl, nlServerApi, pl, scoExporter, type, urls, r
         return nlServerApi.scoExport({lessonid: lessonid, mathjax: scoExporter.mathjax})
         .then(function(result) {
             pl.info('Downloaded SCO content from server', result.html);
+            var image = result.lesson.image;
+            if (image) {
+                image = nl.url.lessonIconUrl(image);
+                if (image.indexOf('/static') == 0 || image.indexOf('/resource/resview') == 0) {
+                    result.resurls[image] = 'res' + image;
+                    image = 'res' + image;
+                }
+                result.lesson.image = image;
+            }
             pl.info(nl.fmt2('SCO uses {} resources (assets)', Object.keys(result.resurls).length),
                 angular.toJson(result.resurls, 2));
             scoExporter.lessons[lessonid] = {lesson: result.lesson, packaged: false};
@@ -462,18 +520,17 @@ function ParallelDownloadManager(nl, nlServerApi, pl, scoExporter, type, urls, r
             });
         });
     }
+}
 
-    function _removeQueryParams(url) {
-        var pos = url.indexOf('?'); 
-        return (pos < 0) ? url : url.substring(0, pos);
-    }
-    
-    function _isKnownExtn(url) {
-        var path = url.split('/');
-        var file = path[path.length-1];
-        return (file.indexOf('.') >= 0);
-    }
-    
+function _removeQueryParams(url) {
+    var pos = url.indexOf('?'); 
+    return (pos < 0) ? url : url.substring(0, pos);
+}
+
+function _isKnownExtn(url) {
+    var path = url.split('/');
+    var file = path[path.length-1];
+    return (file.indexOf('.') >= 0);
 }
 
 //-------------------------------------------------------------------------------------------------
