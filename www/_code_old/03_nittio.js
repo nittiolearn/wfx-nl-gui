@@ -811,7 +811,7 @@ nittio = function() {
 		_isPageLesson = true;
 	}
 
-	function initPage(bDebug, retainAspect, transition, staticResFolder, staticTemplFolder, staticIconFolder, staticVersion, bPrint, username, userdispname, gid) {
+	function initPage(bDebug, retainAspect, transition, staticResFolder, staticTemplFolder, staticIconFolder, staticVersion, username, userdispname, gid) {
 		g_transition = transition;
 		g_staticResFolder = staticResFolder;
 		g_staticTemplFolder = staticTemplFolder;
@@ -823,10 +823,10 @@ nittio = function() {
 		njs_helper.log_init(bDebug);
 		if (_isPageLesson) {
 			njs_scorm.afterInit(function() {
-				_initPage(retainAspect, bPrint);
+				_initPage(retainAspect);
 			});
 		} else {
-			_initPage(retainAspect, bPrint);
+			_initPage(retainAspect);
 		}
 	}
 
@@ -857,16 +857,14 @@ nittio = function() {
         callOnResizeHandlers();
     }
     
-	function _initPage(retainAspect, bPrint) {
+	function _initPage(retainAspect) {
 		// Do the rest on completion of page load
 		jQuery(function() {
-			if (!bPrint) {
-			    _retainAspect = retainAspect;
-				initSizes(retainAspect);
-				jQuery(window).resize(debounce(200, onWindowResize));
-				initMenus();
-				initValidators();
-			}
+		    _retainAspect = retainAspect;
+			initSizes(retainAspect);
+			jQuery(window).resize(debounce(200, onWindowResize));
+			initMenus();
+			initValidators();
 
 			convertDates();
             var shallHide = njs_scorm.nlPlayerType() != 'sco';
@@ -875,17 +873,6 @@ nittio = function() {
 			}
 			renderPageLists();
 			resizeImagesToAspectRatio(jQuery('body'));
-
-			if (bPrint) {
-				callPrintHandlers();
-				MathJax.Hub.Queue(function() {
-					jQuery('.body').css({
-						opacity : 1
-					});
-					window.print();
-				});
-				return;
-			}
 
 			initSlides();
 			jQuery('.body').css({
@@ -936,34 +923,14 @@ nittio = function() {
 		return g_staticVersion;
 	}
 
-	var printCallbackArray = [];
-	function printHandler(fn) {
-		printCallbackArray.push(fn);
-	}
-
-	function callPrintHandlers() {
-		for (var i = 0; i < printCallbackArray.length; i++) {
-			printCallbackArray[i]();
-		}
-	}
+    var printCallback = null;
+    function printHandler(fn) {
+        printCallback = fn;
+    }
 
 	function onPrint(event) {
-		var search = window.location.search;
-		if (!search) {
-			search = '?njs_print=true';
-		} else {
-			search += '&njs_print=true';
-		}
-		var newUrl = window.location.protocol + '//' + window.location.host + window.location.pathname + search + window.location.hash;
-
-		var redirButton = {
-			id : 'redirect',
-			text : 'Redirect',
-			fn : function() {
-				window.location.href = newUrl;
-			}
-		};
-		njs_helper.Dialog.popup('Please confirm', 'Are you sure you want to redirect to print page?', [redirButton]);
+	    if (printCallback) printCallback();
+        return;
 	}
 
 	//------------------------------------------------------------------------

@@ -511,6 +511,29 @@ nlesson = function() {
             }, _debouncePreloadPagesCookie)();
         };
 
+        var _loadingPages = {};
+        this.preLoadAllPages = function(onDoneFn) {
+            var self = this;
+            if (_onPreLoadDoneFn) _onPreLoadDoneFn(false);
+            _onPreLoadDoneFn = onDoneFn;
+            for (var i=0; i<lesson.pages.length; i++) {
+                var curPage = lesson.pages[i];
+                var pageId = curPage.getPageId();
+                if (pageId in self.renderedPages) continue;
+                _loadingPages[pageId] = true;
+                _adjustAndUpdateInQueue(self, i);
+            }
+            self.onPreLoadDone(null);
+        };
+
+        var _onPreLoadDoneFn = null;
+        this.onPreLoadDone = function(pageId) {
+            if (pageId in _loadingPages) delete _loadingPages[pageId];
+            if (!_onPreLoadDoneFn || Object.keys(_loadingPages).length > 0) return;
+            _onPreLoadDoneFn(true);
+            _onPreLoadDoneFn = null;
+        };
+        
         function _preLoadOtherPages(self, pgNo) {
             var pgStart = pgNo - 4;
             if (pgStart < 0) pgStart = 0;
@@ -1619,6 +1642,7 @@ nlesson = function() {
 				var pos = me.sectionCreateOrder[i];
 				me.sections[pos].adjustHtmlDom();
 			}
+            me.lesson.postRenderingQueue.onPreLoadDone(me.getPageId());
 		});
 	}
 	
@@ -2395,10 +2419,17 @@ var modulePopup = new ModulePopupHadler();
 			njsCommentEditor.initCommentEditor(on_loadcomment,true);
 		});
 		
-		nittio.printHandler(function() {
-			for(var i = 0; i < g_lesson.pages.length; i++){
-				g_lesson.postRenderingQueue.postRenderPage(i);
-			}
+        nittio.printHandler(function() {
+            njs_helper.Dialog.moveBack();
+            njs_helper.Dialog.popupStatus('Preparing to print - please wait ...', false);
+            g_lesson.postRenderingQueue.preLoadAllPages(function(status) {
+		        if (!status) return;
+		        njs_helper.Dialog.popupStatus('', 0);
+		        setTimeout(function() {
+	                window.print();
+	                njs_helper.Dialog.moveFront();
+                }, 100);
+            });
 		});
 	}
 
