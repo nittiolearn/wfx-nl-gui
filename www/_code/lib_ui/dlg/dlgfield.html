@@ -38,7 +38,6 @@
 			  fieldminvalue='{{item.min}}' fieldmaxvalue='{{item.max}}'
 			  placeholder='{{data.getPlaceHolder ? data.getPlaceHolder(item) : item.placeholder || ""}}'></nl-input>
 </div>
-
 <div ng-class='$root.resp2Col67' class='margin0 padding-top'
 	 ng-if='item.type == "check"'>
     <span class='fsh6 nl-link-text padding-mid' ng-click='data[item.id] = !data[item.id]' 
@@ -62,20 +61,11 @@
 	</div>
 </div>
 <div ng-class='$root.resp2Col67' 
-	ng-if='item.type == "tree-select-img"'>
-    <div class='row row-top padding0 margin0'>
-        <div class='padding-mid'>
-        	<img ng-src='{{data[item.id].url}}' class='nl-100'/>
-    	</div>
-		<div class='col'>
-           	<nl-tree-select info='options[item.id]'></nl-tree-select>     	 	
-           	<div class='padding-mid'></div>
-        	<input ng-show='data[item.id].isCustomSelected' 
-        		   ng-model='data[item.id].customUrl'
-        		   ng-change='data.onIconChange()' 
-        		   type='text' class='margin0 w100'>
-		</div>
-    </div>
+	 ng-if='item.type == "image-select"'>
+	<nl-image-select fieldmodel='{{item.id}}' canclear='{{item.canClear ? 1 : 0}}'
+					 tabindex='0'>
+	</nl-image-select>
+</div>
 </div>
 <div ng-class='$root.resp2Col67'
 	 ng-if='item.type === "select"'>

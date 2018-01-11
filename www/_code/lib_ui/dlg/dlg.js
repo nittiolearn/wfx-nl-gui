@@ -13,6 +13,8 @@ function module_init() {
     .directive('nlInput', InputDirective)
     .directive('nlTextarea', TextareaDirective)
     .directive('nlSelect', SelectDirective)
+    .directive('nlInputOnSelect', InputOnSelectDirective)
+    .directive('nlImageSelect', ImageSelectDirective)
     .directive('nlCheckbox', CheckboxDirective)
     .directive('nlModuleSelect', ModuleSelectDirective)
     .directive('nlFormInput', FormInputDirective)
@@ -290,6 +292,10 @@ function(nl, nlDlg) {
             	if (!('onFieldChange' in $scope.$parent)) return;
             	$scope.$parent.onFieldChange(fieldModel);
             };
+            $scope.onFieldClick = function(fieldModel) {
+            	if (!('onFieldClick' in $scope.$parent)) return;
+            	$scope.$parent.onFieldClick(fieldModel);
+            };
         }
     };
 }];
@@ -305,6 +311,41 @@ var SelectDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
     return _formFieldDirectiveImpl(nl, nlDlg, 'input',
         'lib_ui/dlg/select.html');
+}];
+
+var InputOnSelectDirective = ['nl', 'nlDlg', 
+function(nl, nlDlg) {
+    return _formFieldDirectiveImpl(nl, nlDlg, ['input', 'select'],
+        'lib_ui/dlg/inputonselect.html');	
+}];
+
+var ImageSelectDirective = ['nl',
+function(nl) {
+    return {
+        restrict: 'E',
+        templateUrl: 'lib_ui/dlg/imageselect.html',
+        scope: {
+            fieldmodel: '@',
+            canclear: '@',
+            tabindex: '@'
+        },
+        link: function($scope, iElem, iAttrs) {
+            $scope.onFieldClick = function(e, fieldmodel) {
+                if (!('onFieldClick' in $scope.$parent)) return;
+                $scope.$parent.onFieldClick(fieldmodel);
+            };
+
+            $scope.onKeypress = function(e, fieldmodel) {
+            	if (e.keyCode != 13) return;
+            	$scope.onFieldClick(e, fieldmodel);
+            };
+            
+            $scope.onFieldClear = function(e, fieldmodel) {
+				$scope.$parent.data[fieldmodel] = ''; 
+				e.stopImmediatePropagation();
+            };
+        }
+    };
 }];
 
 var CheckboxDirective = ['nl', 'nlDlg',
@@ -383,6 +424,7 @@ function _formFieldDirectiveImpl(nl, nlDlg, tagName, templateUrl, transclude) {
         scope: {
             fieldname: '@',
             fieldmodel: '@',
+            fieldmodel2: '@',
             fieldtype: '@',
             fieldcls: '@',
             tabindex: '@',
@@ -392,8 +434,12 @@ function _formFieldDirectiveImpl(nl, nlDlg, tagName, templateUrl, transclude) {
         },
         link: function($scope, iElem, iAttrs) {
             nl.log.debug('linking field: ', $scope.fieldmodel);
-            var field = iElem.find(tagName)[0];
-            nlDlg.addField($scope.fieldmodel, field);
+            if (!tagName) tagName= [];
+            if (!Array.isArray(tagName)) tagName = [tagName];
+        	for(var i=0; i<tagName.length; i++) {
+	            var field = iElem.find(tagName[i])[0];
+	            if (field) nlDlg.addField($scope.fieldmodel, field);
+            }
             $scope.onFieldChange = function(fieldModel) {
             	if (!('onFieldChange' in $scope.$parent)) return;
             	$scope.$parent.onFieldChange(fieldModel);
