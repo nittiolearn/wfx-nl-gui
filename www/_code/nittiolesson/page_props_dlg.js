@@ -104,7 +104,8 @@ function(nl, nlDlg, nlResourceAddModifySrv) {
 			var promise = nlResourceAddModifySrv.insertOrUpdateResource(_parentScope, 
 				            _moduleConfig.restypes, markupText, false, _resourceList, 'bg');
     		promise.then(function(result) {
-	            pagePropsDlg.scope.data.bgimg = result.url || pagePropsDlg.scope.data.bgimg;
+    			if (!result || !result.url || !result.bgShade) return;
+	            pagePropsDlg.scope.data.bgimg = result.url;
 	            pagePropsDlg.scope.data.bgshade = result.bgShade;
     		});
 		};

@@ -5,26 +5,83 @@
         width: 100%;
         height: 360px;
     }
+	.nl-img-preview {
+	  display: inline-block;
+	  text-align: center;
+	  position: relative;
+	  max-height: 400px;
+	  max-width: 300px;
+	  font-size: 100%;
+	  line-height: 170%;
+	}
+	.nl-link-img.selected {
+		background-color: rgba(128, 128, 255, 0.5);
+	}
 </style>
 <div>
-    <nl-dlg-row attr='source' data='data' help='help'
-                ng-show='markupInfo.insertOrUpdateResource'>                
-        <nl-select fieldmodel='source'></nl-select>
-    </nl-dlg-row> 
+	<div class='row margin0 padding0'>
+	    <div ng-show='data.error.generalError' class='nl-dlg-field-errormsg'>{{data.error.generalError}}</div>
+	</div>
 
-    <nl-dlg-row attr='restype' data='data' help='help'
-                ng-show='!markupInfo.restypeInfo'>
-        <nl-select ng-if='data.card == null' fieldmodel='restype'></nl-select>
-        <input ng-if='data.card !== null' ng-model='data.restype.id' readonly class='nl-dlg-field-value'></input>
-    </nl-dlg-row> 
-
+	<div class='row margin0 padding0 row-stretch text-center'
+		ng-show='markupInfo.insertOrUpdateResource'> 
+		<div class='padding0 {{(data.selectedTab == "library" && !data.advOptions) ? "page_format_tab_selected" : "page_format_tab_not_selected"}} nl-link-text'
+			ng-click='changeTab("library")'
+			ng-show='data.restype.id == "Image"'>
+			<div class='row row-center margin0 padding0'>
+				<span class='padding-small'></span>
+				<i class="icon ion-images bold fsh3 padding-small"></i>
+				<span ng-show='screenSize != "small"' class='padding-small'>Choose from library</span>
+				<span class='padding-small'></span>
+			</div>
+		</div>
+		<div class='padding0 {{(data.selectedTab == "url" && !data.advOptions) ? "page_format_tab_selected" : "page_format_tab_not_selected"}} nl-link-text'
+			ng-click='changeTab("url")'>
+			<div class='row row-center margin0 padding0'>
+				<span class='padding-small'></span>
+				<i class="icon ion-code-working bold fsh3 padding-small"></i>
+				<span ng-show='screenSize != "small"' class='padding-small'>Provide URL</span>
+				<span class='padding-small'></span>
+			</div>
+		</div>
+		<div class='padding0 {{(data.selectedTab == "upload" && !data.advOptions) ? "page_format_tab_selected" : "page_format_tab_not_selected"}} nl-link-text'
+			ng-click='changeTab("upload")'>
+			<div class='row row-center margin0 padding0'>
+				<span class='padding-small'></span>
+				<i class="icon ion-upload fsh3 bold padding-small"></i>
+				<span ng-show='screenSize != "small"' class='padding-small'>Upload from device</span>
+				<span class='padding-small'></span>
+			</div>
+		</div>
+		<div class='padding0 {{(data.selectedTab == "record" && !data.advOptions) ? "page_format_tab_selected" : "page_format_tab_not_selected"}} nl-link-text'
+			ng-click='changeTab("record")'
+			ng-show='{{data.enableAudioRecord || data.enableVideoRecord}}'>
+			<div class='row row-center margin0 padding0'>
+				<span class='padding-small'></span>
+				<i class='icon {{data.enableAudioRecord ? "ion-mic-a" : "ion-videocamera"}} bold fsh3 padding-small'></i>
+				<span ng-show='screenSize != "small"' class='padding-small'>{{data.enableAudioRecord ? "Record Audio" : "Record Video"}}</span>
+				<span class='padding-small'></span>
+			</div>
+		</div>
+		<div class='col padding0 page_format_tab_not_selected'>
+		</div>
+		<div class='padding0 margin0 {{data.advOptions ? "page_format_tab_selected" : "page_format_tab_not_selected"}} nl-link-text}} nl-link-img'
+			ng-click='changeTab("adv_options")'
+			ng-show='markupInfo.showMarkupOptions'>
+			<div class='row row-center margin0 padding0'>
+				<span class='padding-small'></span>
+        		<i class="icon fsh3 ion-ios-gear padding-small bold"></i>
+				<span class='padding-small'></span>
+    		</div>
+    	</div>
+	</div>
     <nl-dlg-row attr='url' data='data' help='help'
-                ng-show='data.source.id == "url"'>
+                ng-show='data.selectedTab == "url" && !data.advOptions'>
         <nl-input fieldmodel='url' fieldtype='text' fieldcls='w100'></nl-input>
     </nl-dlg-row> 
 
     <nl-dlg-row attr='resource' data='data' help='help'
-                ng-show='data.source.id == "upload"'>
+                ng-show='markupInfo.restypeInfo && data.selectedTab == "upload" && !data.advOptions'>
         <nl-resource-upload 
             ng-repeat='restype in options.restype'
             ng-if='restype.id == data.restype.id'
@@ -33,12 +90,17 @@
         </nl-resource-upload>
     </nl-dlg-row> 
 
+    <nl-dlg-row attr='bgShade' data='data' help='help'
+                ng-show='(data.selectedTab == "url" || data.selectedTab == "upload") && !data.advOptions && data.resourceFilter == "bg"'>
+        <nl-select fieldmodel='bgShade'></nl-select>
+    </nl-dlg-row> 
+
     <nl-dlg-row attr='recordingName' data='data' help='help'
-                ng-show='data.source.id == "record"'>
+                ng-show='data.selectedTab == "record" && !data.advOptions'>
         <nl-input fieldmodel='recordingName' fieldtype='text' fieldcls='w100'></nl-input>
     </nl-dlg-row> 
 
-    <nl-dlg-row ng-show='data.source.id == "record"' class='text-center'>
+    <nl-dlg-row ng-show='data.selectedTab == "record" && !data.advOptions' class='text-center'>
         <div class="button padding-small"
              ng-click='recorder.toggle(data)'>
 
@@ -80,32 +142,32 @@
     </nl-dlg-row> 
 
     <nl-dlg-row attr='keywords' data='data' help='help'
-                ng-show='data.source.id == "upload"'>
+                ng-show='markupInfo.restypeInfo && data.selectedTab == "upload" && !data.advOptions'>
         <nl-input fieldmodel='keywords' fieldtype='text' fieldcls='w100'></nl-input>
     </nl-dlg-row> 
 
     <nl-dlg-row attr='compressionlevel' data='data' help='help'
-                ng-show='data.source.id == "upload" && data.restype.id == "Image"'>
+                ng-show='markupInfo.restypeInfo && data.selectedTab == "upload" && data.restype.id == "Image" && !data.advOptions'>
         <nl-select fieldmodel='compressionlevel'></nl-select>
     </nl-dlg-row> 
 
     <nl-dlg-row attr='markupCover' data='data' help='help'
-                ng-show='markupInfo.showMarkupOptions && data.restype.id == "Image"'>
+                ng-show='markupInfo.showMarkupOptions && data.restype.id == "Image" && data.advOptions'>
         <nl-select fieldmodel='markupCover'></nl-select>
     </nl-dlg-row> 
 
     <nl-dlg-row attr='markupLink' data='data' help='help'
-                ng-show='markupInfo.showMarkupOptions && data.restype.id == "Image"'>
+                ng-show='markupInfo.showMarkupOptions && data.restype.id == "Image" && data.selectedTab !== "library" && data.advOptions'>
         <nl-input fieldmodel='markupLink' fieldtype='text' fieldcls='w100'></nl-input>
     </nl-dlg-row> 
-
+		
     <nl-dlg-row attr='markupText' data='data' help='help'
-                ng-show='markupInfo.showMarkupOptions && data.restype.id == "Attachment"'>
+                ng-show='markupInfo.showMarkupOptions && data.restype.id == "Attachment" && data.advOptions'>
         <nl-input fieldmodel='markupText' fieldtype='text' fieldcls='w100'></nl-input>
     </nl-dlg-row> 
 
     <nl-dlg-row attr='markupPopup' data='data' help='help'
-                ng-show='markupInfo.showMarkupOptions && (data.restype.id == "Image" && data.markupLink || data.restype.id == "Attachment")'>
+                ng-show='markupInfo.showMarkupOptions && (data.restype.id == "Image" && data.markupLink || data.restype.id == "Attachment") && data.advOptions'>
         <nl-checkbox fieldmodel='markupPopup' 
                      fieldname='Open link a new window'
                      fieldcls= 'padding-mid'
@@ -114,24 +176,75 @@
     </nl-dlg-row> 
 
     <nl-dlg-row attr='markupPage' data='data' help='help'
-                ng-show='markupInfo.showMarkupOptions && data.restype.id == "PDF"'>
+                ng-show='markupInfo.showMarkupOptions && data.restype.id == "PDF" && data.advOptions'>
         <nl-input fieldmodel='markupPage' fieldtype='number' fieldminvalue=1 fieldcls='w100'></nl-input>
     </nl-dlg-row> 
 
     <nl-dlg-row attr='markupScale' data='data' help='help'
-                ng-show='markupInfo.showMarkupOptions && data.restype.id == "PDF"'>
+                ng-show='markupInfo.showMarkupOptions && data.restype.id == "PDF" && data.advOptions'>
         <nl-input fieldmodel='markupScale' fieldtype='text' fieldcls='w100'></nl-input>
     </nl-dlg-row> 
 
     <nl-dlg-row attr='markupStart' data='data' help='help'
-         ng-show='markupInfo.showMarkupOptions && (data.restype.id == "Video" || data.restype.id == "Audio")'>
+         ng-show='markupInfo.showMarkupOptions && (data.restype.id == "Video" || data.restype.id == "Audio") && data.advOptions'>
         <nl-input fieldmodel='markupStart' fieldtype='number' fieldminvalue=0 fieldcls='w100'></nl-input>
     </nl-dlg-row> 
 
     <nl-dlg-row attr='markupEnd' data='data' help='help'
-                ng-show='markupInfo.showMarkupOptions && (data.restype.id == "Video" || data.restype.id == "Audio")'>
+                ng-show='markupInfo.showMarkupOptions && (data.restype.id == "Video" || data.restype.id == "Audio") && data.advOptions'>
         <nl-input fieldmodel='markupEnd' fieldtype='number' fieldminvalue=0 fieldcls='w100'></nl-input>
-    </nl-dlg-row> 
+    </nl-dlg-row>
+    <div class='row row-center padding0 margin0'
+        ng-show='data.selectedTab == "library" && !data.advOptions'>
+        <div class='col col-33 padding0 margin0'>
+        	<nl-select fieldmodel='librarySearchDropdown'></nl-select> 
+        </div>
+        <div class='col padding0 margin0'>
+			<nl-input fieldmodel='librarySearchText' fieldtype='text' placeholder='Start typing to search'></nl-input>        	
+        </div>
+		<span>
+		    <i class='icon ion-ios-search nl-dlg-field-icon fsh4'></i>
+		</span>
+    </div>
+	<div class='row row-top row-wrap margin0 padding0'
+		ng-show='data.selectedTab == "library" && !data.advOptions'>
+		<div ng-repeat='resource in data.resourceList' ng-class='respCol421'>
+            <div class='text-center padding-mid'>
+                <div class='fsh4 padding-mid nl-img-preview'
+                	ng-click='onLibraryResourceSelect(resource)'>
+                	<div class='nl-link-img {{(resource.background == data.bgimage || resource.bgImg == data.bgimage) ? "selected" : ""}}'
+                		tabindex="0"
+                		ng-keypress='$event.keyCode == 13 ? onLibraryResourceSelect(resource) : ""'>
+                		<div class='padding-small'>{{resource.name}}</div>
+						<img ng-src='{{resource.background}}'>
+                	</div>
+				</div>
+            </div>
+		</div>
+	</div>
+	<div ng-show='!markupInfo.restypeInfo'>
+	    <nl-dlg-row attr='restype' data='data' help='help'
+	                ng-show='!markupInfo.restypeInfo'>
+	        <nl-select ng-if='data.card == null' fieldmodel='restype'></nl-select>
+	        <input ng-if='data.card !== null' ng-model='data.restype.id' readonly class='nl-dlg-field-value'></input>
+	    </nl-dlg-row> 
+	    <nl-dlg-row attr='resource' data='data' help='help'>
+	        <nl-resource-upload 
+	            ng-repeat='restype in options.restype'
+	            ng-if='restype.id == data.restype.id'
+	            fieldmodel='resource' 
+	            restype='{{restype.id}}'>
+	        </nl-resource-upload>
+	    </nl-dlg-row> 
+	    <nl-dlg-row attr='keywords' data='data' help='help'>
+	        <nl-input fieldmodel='keywords' fieldtype='text' fieldcls='w100'></nl-input>
+	    </nl-dlg-row> 
+	
+	    <nl-dlg-row attr='compressionlevel' data='data' help='help'
+	                ng-show='data.restype.id == "Image"'>
+	        <nl-select fieldmodel='compressionlevel'></nl-select>
+	    </nl-dlg-row> 
+	</div>
 </div>
 </nl-dlg-content>
 </nl-dlg>

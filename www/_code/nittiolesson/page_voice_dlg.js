@@ -35,8 +35,8 @@ function(nl, nlDlg, nlResourceAddModifySrv) {
 		
 		dlgScope.clickOnMoreOptions = function() {
 			nlResourceAddModifySrv.insertOrUpdateResource(parentScope, 
-            _restypes, 'audio:' + dlgScope.data.audioUrl, false).then(function(url) {
-            	if(url) dlgScope.data.audioUrl = url;
+            _restypes, 'audio:' + dlgScope.data.audioUrl, false).then(function(result) {
+            	if(result && result.url) dlgScope.data.audioUrl = result.url;
             });
 		};
 		
