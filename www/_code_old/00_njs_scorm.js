@@ -49,7 +49,7 @@ function _callAfterInitFns() {
 
 function _initScoBot(l) {
     var passScore = l.passScore ? l.passScore/100: 0.7;
-    scorm = new SCOBotBase({                   // in 4.x.x
+    var scormAttrs = {                   // in 4.x.x
         debug         : true,                  // true or false
         time_type     : "UTC",                 // UTC, GMT or ""
         preferred_API : "findAPI",             // findAPI, findSCORM12, findSCORM2004  ** new in 4.0.9 **
@@ -57,7 +57,9 @@ function _initScoBot(l) {
         use_standalone : false,
         success_status: 'passed'             // passed, failed, unknown
         //cmi           : your_own_runtime_data  // optional way to pass in a customize runtime object for non-LMS
-    });
+    };
+    _useStandaloneIfNeeded(scormAttrs);
+    scorm = new SCOBotBase(scormAttrs);
     g_SB = new SCOBot({
         interaction_mode      : 'journaled',      // state (single interaction) or journaled (history of interactions)
         scaled_passing_score  : passScore,        // uses cmi.score.scaled to equate cmi.success_status
@@ -421,6 +423,63 @@ function ScormLms(g_lesson, g_version) {
         else l.notAnswered.push(0);
         return isDone;
     }
+}
+
+function _useStandaloneIfNeeded(scormAttrs) {
+    if (window.location.href.indexOf('use_standalone') < 0) return;
+    scormAttrs.use_standalone = true;
+    // See SCOBot_API_1484_11 in scorm.bot.js
+    scormAttrs.cmi= {
+        _version: "Nittio Learn Standalone",
+        comments_from_learner: {
+            _children: "comment,location,timestamp",
+            _count:    "0"
+        },
+        comments_from_lms:     {
+            _children: "comment,location,timestamp",
+            _count:    "0"
+        },
+        completion_status:     "unknown",
+        completion_threshold:  "0.7",
+        credit:                "no-credit",
+        entry:                 "ab-initio",
+        exit:                  "",
+        interactions:          {
+            _children: "id,type,objectives,timestamp,correct_responses,weighting,learner_response,result,latency,description",
+            _count:    "0"
+        },
+        launch_data:           "?name1=value1&name2=value2&name3=value3", // {\"name1\": \"value1\", \"name2\": \"value2\", \"name3\": \"value3\"} or ?name1=value1&name2=value2&name3=value3
+        learner_id:            "100",
+        learner_name:          "Simulated User",
+        learner_preference:    {
+            _children:        "audio_level,language,delivery_speed,audio_captioning",
+            audio_level:      "1",
+            language:         "",
+            delivery_speed:   "1",
+            audio_captioning: "0"
+        },
+        location:              "",
+        max_time_allowed:      "", // PT26.4S for 26.4 Seconds
+        mode:                  "browse",
+        objectives:            {
+            _children: "id,score,success_status,completion_status,description",
+            _count:    "0"
+        },
+        progress_measure:      "",
+        scaled_passing_score:  "0.7",
+        score:                 {
+            _children: "scaled,raw,min,max",
+            scaled:    "",
+            raw:       "",
+            min:       "",
+            max:       ""
+        },
+        session_time:          "PT0H0M0S",
+        success_status:        "unknown",
+        suspend_data:          "",
+        time_limit_action:     "", // exit, no message or continue, message etc ...
+        total_time:            "PT0H0M0S"
+    };
 }
 
 return {

@@ -869,7 +869,8 @@ nittio = function() {
 			}
 
 			convertDates();
-			if (window.location.protocol.toLowerCase().indexOf('file') >= 0) {
+            var shallHide = njs_scorm.nlPlayerType() != 'sco';
+			if (shallHide && window.location.protocol.toLowerCase().indexOf('file') >= 0) {
 				jQuery('.pagecanvas').hide();
 			}
 			renderPageLists();
