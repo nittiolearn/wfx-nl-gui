@@ -298,10 +298,6 @@ nlesson = function() {
             oldTemplateBgimgs = this.oLesson.templateBgimgs;
             g_templateDict = {};
         }
-        if (oldTemplateIcons != this.oLesson.templateIcons) {
-            oldTemplateIcons = this.oLesson.templateIcons;
-            // TODO-MUNNI: implement in next release
-        }
         if (oldTemplatePageTypes != this.oLesson.templatePageTypes) {
             oldTemplatePageTypes = this.oLesson.templatePageTypes;
             _initPageTypes(this);
@@ -731,7 +727,6 @@ nlesson = function() {
         delete content.templateAnimations;
         delete content.templateStylesCss;
         delete content.templateBgimgs;
-        delete content.templateIcons;
         return JSON.stringify(content);
     }
 
@@ -2129,7 +2124,6 @@ function SectionSelectionHandler(lesson) {
 
         _allTools.push({id: 'edit_icon_change_mode', grpid: 'module', grp: 'Module', icon: 'ion-ios-eye', name:'Preview', shortcut: ' (Alt+T)', onclick: _fn(on_changemode)});
         _allTools.push({id: 'edit_icon_props', grpid: 'module', grp: 'Module', icon:'ion-ios-gear', name: 'Module Properties', title:'Update module name and other module level properties', onclick: on_props});
-        _allTools.push({id: 'edit_icon_look', grpid: 'module', grp: 'Module', icon:'ion-images', name:'Change Look', title: 'Change default background image of all pages', onclick: on_look});
         _allTools.push({id: 'edit_icon_save', grpid: 'module', grp: 'Module', icon: 'save', font:'material', font:'material-icons', name:'Save', shortcut: ' (Ctrl+S)', onclick: on_save});
         if (canApprove && lessonId > 0)
             _allTools.push({id: 'edit_icon_approve', grpid: 'module', grp: 'Module', icon:'ion-ios-checkmark',  name:'Approve',  title:'Approve the module and make it available to other authors', onclick: _fn(on_approve, lessonId)});
@@ -2444,25 +2438,15 @@ var modulePopup = new ModulePopupHadler();
         var parentBgimgs = g_lesson.parentTemplateContents.templateBgimgs;
         var templateBgimgs = g_lesson.oLesson.templateBgimgs ? JSON.parse(g_lesson.oLesson.templateBgimgs) : [];
         templateBgimgs = _mergeArrayAttrs(parentBgimgs, templateBgimgs);
-		if (templateBgimgs.length > 0) {
-            templateBgimgs.sort(function(a, b) {
-                if (a.group != b.group) return a.group < b.group ? -1 : 1;
-                if (a.name == b.name) return 0;
-                return (a.name < b.name) ? -1 : 1;
-            });
-		    g_templateList = templateBgimgs;
-            _onTemplateInfos(true);
-            onLoadComplete(g_templateList);
-            return;
-        }
-
-		var _ajax = new njs_helper.Ajax(function(data, errorType, errorMsg) {
-			if (errorType != njs_helper.Ajax.ERROR_NONE) return;
-			g_templateList = data;
-			_onTemplateInfos(false);
-			onLoadComplete(g_templateList);
-		});
-		_ajax.send('/lesson/template_infos.json', {});
+        templateBgimgs.sort(function(a, b) {
+            if (a.group != b.group) return a.group < b.group ? -1 : 1;
+            if (a.name == b.name) return 0;
+            return (a.name < b.name) ? -1 : 1;
+        });
+	    g_templateList = templateBgimgs;
+        _onTemplateInfos(true);
+        onLoadComplete(g_templateList);
+        return;
 	}
 
 	function _onTemplateInfos(bCustomList) {

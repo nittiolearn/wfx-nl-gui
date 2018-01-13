@@ -6,35 +6,31 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
 	angular.module('nl.nittiolesson', ['nl.nittiolesson.module_props', 'nl.nittiolesson.page_props',
-	'nl.nittiolesson.change_look', 'nl.nittiolesson.module_review',
+	'nl.nittiolesson.module_review',
 	'nl.nittiolesson.add_page', 'nl.nittiolesson.page_voice'])
 	.service('NittioLesson', NittioLessonSrv);
 }
 
 //-------------------------------------------------------------------------------------------------
-var NittioLessonSrv = ['nl', 'NittioLessonModulePropsDlg', 'NittioLessonPagePropsDlg', 'NittioLessonChangeLookDlg',
+var NittioLessonSrv = ['nl', 'NittioLessonModulePropsDlg', 'NittioLessonPagePropsDlg',
 'NittioLessonModuleReviewDlg', 'nlResourceAddModifySrv', 'NittioLessonAddPageDlg', 'NittioLessonAddPageVoice',
-function(nl, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg, NittioLessonChangeLookDlg, 
+function(nl, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg,  
     NittioLessonModuleReviewDlg, nlResourceAddModifySrv, NittioLessonAddPageDlg, NittioLessonAddPageVoice) {
     var _moduleConfig = null;
 	this.init = function(oLesson, moduleConfig, ptInfo) {
 		NittioLessonModulePropsDlg.init(oLesson, moduleConfig);
 		NittioLessonPagePropsDlg.init(moduleConfig);
-		NittioLessonChangeLookDlg.init(oLesson, moduleConfig);
 		NittioLessonModuleReviewDlg.init(oLesson);
 		NittioLessonAddPageDlg.init(ptInfo);
 		_moduleConfig = moduleConfig;
 	};
 
-	this.showModulePropertiesDlg = function(isCreate, bFromPdf) {
-		return NittioLessonModulePropsDlg.showDlg(isCreate, bFromPdf);
+	this.showModulePropertiesDlg = function(isCreate, bFromPdf, resourceList, templateAnimations) {
+		return NittioLessonModulePropsDlg.showDlg(isCreate, bFromPdf, resourceList, templateAnimations);
 	};
 	
-	this.showPagePropertiesDlg = function(oPage, defMaxScore, isPopup) {
-		return NittioLessonPagePropsDlg.showDlg(oPage, defMaxScore, isPopup);
-	};
-	this.showChangeLookDlg = function(templateList, templateAnimations) {
-		return NittioLessonChangeLookDlg.showDlg(templateList, templateAnimations);
+	this.showPagePropertiesDlg = function(oPage, defMaxScore, isPopup, resourceList) {
+		return NittioLessonPagePropsDlg.showDlg(oPage, defMaxScore, isPopup, resourceList);
 	};
     this.showAddPageDlg = function(cfg) {
         return NittioLessonAddPageDlg.showDlg(cfg);
@@ -42,9 +38,10 @@ function(nl, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg, NittioLessonC
 	this.sendForReview = function(lessonId) {
 		return NittioLessonModuleReviewDlg.sendForReview(lessonId);
 	};
-    this.insertOrUpdateResource = function(markupText) {
+    this.insertOrUpdateResource = function(markupText, resourceList, resourceFilter) {
+    	// resoureFilter = 'bg' | 'icon' | false
         return nlResourceAddModifySrv.insertOrUpdateResource(nl.rootScope, 
-            _moduleConfig.restypes, markupText, true);
+            _moduleConfig.restypes, markupText, true, resourceList, resourceFilter);
     };
     this.showPageVoiceDlg = function(oPage) {
     	return NittioLessonAddPageVoice.showAddVoiceDlg(oPage, _moduleConfig.restypes);

@@ -259,6 +259,8 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 						{id: 'medium', name:'Medium compression'},
 						{id: 'high', name:'High compression'}];
 
+	var _resourceLibrary = new ResourceLibrary();
+
 	this.show = function($scope, card, restypes, onlyOnce, markupHandler) {
 	    if (!markupHandler) markupHandler = new MarkupHandler(nl, nlDlg);
 		return nl.q(function(resolve, reject) {
@@ -268,7 +270,7 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
                 if (addModifyResourceDlg.resolvedCalled) return;
                 addModifyResourceDlg.resolvedCalled = true;
                 if (!beforeShow) addModifyResourceDlg.close();
-                resolve(markupHandler.processResults(addModifyResourceDlg, afterFirstOk));
+                resolve(afterFirstOk ? _processResults(addModifyResourceDlg, markupHandler) : null);
             }; 
             addModifyResourceDlg.resolveAfterOnce = function () {
                 if (!onlyOnce) return false;
@@ -280,17 +282,43 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
                 addModifyResourceDlg.resolve(false, true);
                 return false;
             }
+	        _resourceLibrary.initScope(addModifyResourceDlg.scope);
 			_showDlg(addModifyResourceDlg, card, $scope, restypes, markupHandler);
 		});
 	};
+
+    function _processResults(addModifyResourceDlg, markupHandler) {
+        if (!addModifyResourceDlg.scope.markupInfo.insertOrUpdateResource)
+        	return addModifyResourceDlg.resInfos;
+
+        var sd = addModifyResourceDlg.scope.data;
+        var tab = sd.selectedTab;
+
+        var ret = {};
+        if (tab == 'library') {
+        	ret = _resourceLibrary.getSelectedUrlInfo();
+        } else if (tab == 'upload' || tab == 'record') {
+	    	if (addModifyResourceDlg.resInfos.length != 1) return null;
+        	ret.url = addModifyResourceDlg.resInfos[0].url;
+        	ret.bgShade = sd.bgShade.id;
+        	
+        } else if (tab == 'url') {
+        	ret.url = sd.url;
+        	ret.bgShade = sd.bgShade.id;
+        }
+
+        ret.markupUrl = markupHandler.getMarkupUrl(addModifyResourceDlg.scope.data, ret.url);
+        return ret;
+    }
 
 	function _showDlg(addModifyResourceDlg, card, $scope, restypes, markupHandler) {
 		var buttonName = addModifyResourceDlg.scope.data.buttonname;
         var modifyButton = {text: buttonName, onTap: function(e) {
         	if(e) e.preventDefault();
-        	if (addModifyResourceDlg.scope.data.source.id != 'upload'
-        	   && addModifyResourceDlg.scope.data.source.id != 'record') {
-                if(!markupHandler.validate()) return;
+            if(!_validate(addModifyResourceDlg.scope)) return;
+            
+        	if (addModifyResourceDlg.scope.data.selectedTab != 'upload'
+        	   && addModifyResourceDlg.scope.data.selectedTab != 'record') {
                 addModifyResourceDlg.resolve(true);
                 return;
         	}
@@ -325,6 +353,15 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
         addModifyResourceDlg.scope.data.keywords = card.keywords;
 		addModifyResourceDlg.scope.data.restype.id = card.restype;	
 		addModifyResourceDlg.scope.data.pagetitle = nl.t('Modify resource');
+
+		addModifyResourceDlg.scope.changeTab = function(tabName) {
+            if(tabName == "adv_options") {
+            	addModifyResourceDlg.scope.data.advOptions = true;
+	        } else {
+	            addModifyResourceDlg.scope.data.selectedTab = tabName;
+	            addModifyResourceDlg.scope.data.advOptions = false;
+	        }
+        };
 	}
 
 	function _getRestypeList(restypes) {
@@ -336,24 +373,34 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 		return data;
 	}
 
-    this.validate = function() {
-        if (_scope.data.source.id == 'record' && !_scope.recorder.recordedBlob)
-            return _validateFail(_scope, 'source', 
-            'Before uploading, please click on the "record button" and record your voice/video');
+    function _validate(scope) {
+        if (scope.data.selectedTab == 'url' && !scope.data.url)
+            return _validateFail(scope, 'url', 'Please specify a valid URL');
+        if (scope.data.selectedTab == 'library' && !_resourceLibrary.getSelectedUrlInfo().url)
+            return _validateFail(scope, 'generalError', 'Please select an item from the library');
+        if (scope.data.selectedTab == 'upload' && scope.sd.resource.length == 0)
+            return _validateFail(scope, 'resource', 'Please select the resource to upload');
+        if (scope.data.selectedTab == 'record' && !scope.recorder.recordedBlob)
+            return _validateFail(scope, 'generalError', 'Before uploading, please click on the "record button" and record your voice/video');
         return true;
-    };
+    }
+
+    function _validateFail(scope, attr, errMsg) {
+        return nlDlg.setFieldError(scope, attr,
+            nl.t(errMsg));
+    }
 
 	function _onUploadOrModify(e, addModifyResourceDlg, card, $scope) {
 	    var sd = addModifyResourceDlg.scope.data;
 	    var recorder = addModifyResourceDlg.scope.recorder;
-		var resourceList = sd.source.id == 'record' ? recorder.getResourceList(sd) : sd.resource;
+		var resourceList = sd.selectedTab == 'record' ? recorder.getResourceList(sd) : sd.resource;
 		var compressionlevel = sd.compressionlevel.id;
 		var keyword = sd.keywords || '';
 		var resid =  (card !== null) ? sd.card.Id : null;
 	    if(resourceList.length == 0) {
 		    if (e) e.preventDefault();
-		    if (sd.source.id == 'record') {
-                addModifyResourceDlg.scope.error.source = 'Please record before uploading.';
+		    if (sd.selectedTab == 'record') {
+                addModifyResourceDlg.scope.error.selectedTab = 'Please record before uploading.';
 		    } else {
                 addModifyResourceDlg.scope.error.resource = 'Please select the resource to upload';
 		    }
@@ -387,7 +434,9 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
         uploadAgainDlg.show('view_controllers/resource/upload_done_dlg.html', [], cancelButton);
 	}
 
-    this.insertOrUpdateResource = function($scope, restypes, markupText, showMarkupOptions) {
+    this.insertOrUpdateResource = function($scope, restypes, markupText, showMarkupOptions, resourceList, resourceFilter) {
+    	// resoureFilter = 'bg' | 'icon' | undefined
+    	_resourceLibrary.init(resourceList, resourceFilter);
         var markupHandler = new MarkupHandler(nl, nlDlg, true, markupText, showMarkupOptions);
         return this.show($scope, null, restypes, true, markupHandler);
     };
@@ -402,11 +451,6 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
          
         _scope.help = _getHelp();
         _scope.data.buttonname = insertOrUpdateResource ? 'OK' : _scope.card ? 'Modify' : 'Upload';
-
-        _scope.options.source = [
-            {id: 'url', name: nl.t('Provide a URL')},
-            {id: 'upload', name: nl.t('Upload from your device')}];
-        _scope.data.source = insertOrUpdateResource ? _scope.options.source[0] : _scope.options.source[1];
         _scope.data.url = '';
 
         if (!insertOrUpdateResource) return true;
@@ -423,23 +467,16 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
         var params = nl.window.location.search;
         var isRaw = params.indexOf('rawedit') > 0 ? true : false;
         if (isRaw && _scope.recorder.canRecordMedia()) {
-            if (_scope.data.restype.id == 'Audio')
-                _scope.options.source.push({id: 'record', name: nl.t('Record your voice')});
-            else if (_scope.data.restype.id == 'Video')
-                _scope.options.source.push({id: 'record', name: nl.t('Record a video')});
+            if (_scope.data.restype.id == 'Audio') {
+            	_scope.data.enableAudioRecord = true;
+           	} else if (_scope.data.restype.id == 'Video') {
+            	_scope.data.enableVideoRecord = true;
+        	}
         }
-            
-        _scope.data.pagetitle = 'Insert ' + markupInfo.restypeInfo.title;
+        _scope.data.pagetitle = 'Select ' + markupInfo.restypeInfo.title;
         return _initMarkupParams(markupInfo.restypeInfo);
     };
     
-    this.validate = function() {
-        if (_scope.data.source.id == 'url' && !_scope.data.url)
-            return _validateFail(_scope, 'url', 
-            'Please specify a valid URL');
-        return true;
-    };
-
     function _getHelp() {
         return {
             source: {name: nl.t('Source'), help: nl.t('You can directly provide a URL or upload a file from your device to the server.')},
@@ -456,27 +493,10 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
             markupPage: {name: nl.t('Page number'), help: nl.t('Select the page number of the PDF to be displayed.')},           
             markupScale: {name: nl.t('Scale ratio'), help: nl.t('You could scale the PDF viewing area with respect to width of the section. Use scale 1.0 to scale the PDF to use 100% of width. Using a scale of 1.2 will use 120% of width of the container resulting in a horizontal scroll bar. If you want to avoid a vertical scroll bar, you could try using a smaller scale like 0.8.')},
             markupStart: {name: nl.t('Start from (seconds)'), help: nl.t('Play your video or audio starting from the given second.')},
-            markupEnd: {name: nl.t(' End at (seconds)'), help: nl.t('End playing your video or audio at the given second.')}
+            markupEnd: {name: nl.t(' End at (seconds)'), help: nl.t('End playing your video or audio at the given second.')},
+        	bgShade: {name: nl.t('Text color'), help: nl.t('Valid only if background image is set for the page. Depending on whether your image is dark or light, you can set the text color to one which is clearly visible in the background. With this, you can control the colors used for different types of text (normal, heading, link, ...)')}
         };  
     }
-
-    function _validateFail(scope, attr, errMsg) {
-        return nlDlg.setFieldError(scope, attr,
-            nl.t(errMsg));
-    }
-
-    this.processResults = function(addModifyResourceDlg, afterFirstOk) {
-        if (!insertOrUpdateResource) return addModifyResourceDlg.resInfos;
-        if (!afterFirstOk) return null;
-        var sd = _scope.data;
-        var resInfo = (sd.source.id == 'upload' || sd.source.id == 'record') 
-            && addModifyResourceDlg.resInfos.length == 1 ?
-            addModifyResourceDlg.resInfos[0] : null;
-        var url = sd.source.id == 'url' ? sd.url : resInfo ? resInfo.url : '';
-        if (!url) return null;
-        if (!showMarkupOptions) return url;
-        return _getMarkupUrl(sd, url);
-    };
 
     var _markupToInfo = {
         'img:': {type: 'Image', prefix: 'img:', title: 'image'},
@@ -546,10 +566,11 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
         return true;
     }
     
-    function _getMarkupUrl(sd, url) {
+    this.getMarkupUrl = function(sd, url) {
+        if (!showMarkupOptions) return url;
         var prefix = '';
         var params = [];
-        if (!(sd.restype.id in _restypeToMarkup)) return ret;
+        if (!(sd.restype.id in _restypeToMarkup)) return '';
         var markupInfo = _restypeToMarkup[sd.restype.id];
         if (sd.restype.id == 'Image') {
             prefix = 'img:';
@@ -577,7 +598,7 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
         url = prefix + url;
         if (params) url = nl.fmt2('{}[{}]', url, params);
         return url;
-    }
+    };
 
     function _addMarkupParam(params, param, dlgVal, defVal, convertDict) {
         if (!convertDict) convertDict = {};
@@ -797,6 +818,147 @@ function NlMediaRecorder(nl, nlDlg) {
         }
         return nl.t('Recording: {} seconds.', Math.round(diff/1000));
     }
+}
+
+//-------------------------------------------------------------------------------------------------
+function ResourceLibrary() {
+
+	var _resourceList = [];	
+	var _selectedResource = null;
+	var _resourceFilter = '';
+	this.init = function(resourceList, resourceFilter) {
+		_selectedResource = null;
+		_resourceFilter = resourceFilter;
+		if (!resourceList) resourceList = [];
+		if (resourceFilter == 'bg') {
+			_resourceList = [];
+			for(var i=0; i<resourceList.length; i++) {
+				var res = resourceList[i];
+				if ('bgShade' in res) _resourceList.push(res);
+			}
+		} else {
+			_resourceList = resourceList;
+		}
+	};
+
+	this.initScope = function(scope) {
+        scope.data.resourceFilter = _resourceFilter;
+		scope.options.bgShade = [{id: 'bglight', name: 'Dark text color for lighter background'},
+				                 {id: 'bgdark', name: 'Light text color for darker background'}];
+		scope.data.bgShade = scope.options.bgShade[0];
+		scope.options.librarySearchDropdown = _getSearchDropdownAndUpdateSelected(scope.markupInfo.restypeInfo.url);
+		scope.data.librarySearchDropdown = _getDefaultSearchDropdownItem(scope.options.librarySearchDropdown);
+		scope.data.librarySearchText = '';
+    	scope.data.resourceList = _getFilteredList(scope.data.librarySearchDropdown.id, scope.data.librarySearchText);
+		
+		scope.onLibraryResourceSelect = function(resource) {
+			scope.data.bgimage = resource.background;
+			_selectedResource = resource;
+		};
+		
+		scope.onFieldChange = function(fieldId) {
+			if(fieldId == 'librarySearchDropdown' || fieldId == 'librarySearchText') {
+				scope.data.resourceList = _getFilteredList(scope.data.librarySearchDropdown.id,
+					scope.data.librarySearchText);
+			}
+		};
+ 		_updateTabSelection(scope);            
+	};
+	
+	this.getSelectedUrlInfo = function() {
+		if (!_selectedResource) return {};
+    	return {url: _selectedResource.background, bgShade: _selectedResource.bgShade || 'bgdark'};
+	};
+
+	function _getSearchDropdownAndUpdateSelected(inputUrl) {
+		var animated = false;
+		var uniqueGroups = {};
+		var urlToResource = {};	
+		for(var i=0; i<_resourceList.length; i++) {
+			urlToResource[_resourceList[i].background] = _resourceList[i];	
+			uniqueGroups[_resourceList[i].group] = true;
+			if (_resourceList[i].animated) animated = true;
+		}
+		var ret = [];
+		for(var g in uniqueGroups) {
+			ret.push({id:g, name: g});
+		}
+		ret = ret.sort(function(a, b) {
+			if (a.id == b.id) return 0;
+			return (a.id > b.id) ? -1 : 1;
+		});
+		if (animated) ret.unshift({id: 'animated', name: 'Animated Images'});
+		ret.unshift({id: '', name: 'All categories'});
+		_selectedResource = urlToResource[inputUrl] || null;
+		return ret;
+	}
+	
+	function _getDefaultSearchDropdownItem(items) {
+		for(var i=0; i<items.length; i++) {
+			if (items[i].id == 'Backgrounds' && _resourceFilter == 'bg') return items[i];
+			if (items[i].id == 'Icons' && _resourceFilter == 'icon') return items[i];
+			if (items[i].id == 'Images' && _resourceFilter == '') return items[i];
+		}
+		return items[0];
+	}
+	
+	function _updateTabSelection(scope) {
+    	if(!scope.markupInfo.insertOrUpdateResource) {
+    		scope.data.selectedTab = 'upload';
+    		return;
+    	}
+		scope.data.url = scope.markupInfo.restypeInfo.url;
+    	if (scope.markupInfo.restypeInfo.type != 'Image' ||
+    		(scope.data.url && !_selectedResource)) {
+    		scope.data.selectedTab = 'url';
+    		return;
+    	}
+		scope.data.selectedTab = 'library';
+	}
+	
+	function _getFilteredList(filter, searchText) {
+		var ret = [];
+		var selectedUrl = _selectedResource ? _selectedResource.background : null;
+		for(var i=0; i<_resourceList.length; i++) {
+			var res = _resourceList[i];
+			if (filter && filter != 'animated' && filter != res.group) continue;
+			if (filter == 'animated' && !res.animated) continue;
+			var searchWeight = _getSearchWeight(res, searchText);
+			if (searchWeight == 0) continue;
+			if (selectedUrl && res.background == selectedUrl)
+				res.searchWeight = 10000; // make it to top of the list
+			else
+				res.searchWeight = searchWeight;
+			ret.push(res);
+		}
+		ret = ret.sort(function(a, b) {
+			if (a.searchWeight == b.searchWeight) return 0;
+			return (a.searchWeight > b.searchWeight) ? 1 : -1;
+		});
+		return ret.slice(0, 100);
+	}
+
+	function _getSearchWeight(res, searchText) {
+		if (!searchText) return 1;
+		var searchWeight = 0;
+		var words = searchText.split(' ');
+		for (var i=0; i<words.length; i++) {
+			var word = words[i].toLowerCase();
+			var tags = (res.tags || '') + (res.colors || '') + (res.types || '')
+				+ (res.animated ? 'animated' : '');
+
+			if (_isFound(word, res.name)) searchWeight += 10;
+			else if (_isFound(word, res.group)) searchWeight += 8;
+			else if (_isFound(word, tags)) searchWeight += 5;
+			else if (_isFound(word, res.background)) searchWeight += 1;
+			else return 0;
+		}
+		return searchWeight;
+	}
+	
+	function _isFound(word, within) {
+		return (within && within.toLowerCase().indexOf(word) >= 0);
+	}
 }
 
 //-------------------------------------------------------------------------------------------------

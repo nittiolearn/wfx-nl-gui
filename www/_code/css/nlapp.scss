@@ -950,11 +950,36 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 }
 
 /*-----------------------------------------------------------------------------------------*
+ * nl-dlg tab format styles
+ *-----------------------------------------------------------------------------------------*/
+.page_format_tab_selected {
+    background-color: #CCCCDD;
+    border-radius: 8px 8px 0 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.2);
+    border-left: 1px solid rgba(0, 0, 0, 0.2);
+    border-right: 1px solid rgba(0, 0, 0, 0.2);
+}
+.page_format_tab_not_selected {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+/*-----------------------------------------------------------------------------------------*
  * nl-date-time-select, nl-module-select, nl-tree-select styles
  *-----------------------------------------------------------------------------------------*/
 .nl-xxx-select {
   background-color: #EEEEFF;
   min-height: 34px;
+}
+
+.nl-input-on-select {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 30px;
+  width: auto;
+} 
+.nl-input-on-select input[type="text"] {
+  border-right: none;
 }
 
 /*-----------------------------------------------------------------------------------------*

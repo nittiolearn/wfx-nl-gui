@@ -10,14 +10,16 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NittioLessonPagePropsDlgSrv = ['nl', 'nlDlg',
-function(nl, nlDlg) {
+var NittioLessonPagePropsDlgSrv = ['nl', 'nlDlg', 'nlResourceAddModifySrv',
+function(nl, nlDlg, nlResourceAddModifySrv) {
 	var _pageProps = [];
 	var _moduleConfig = null;
 	var _pagePropsHelp = {};
 	var _oPage = null;
 	var _defMaxScore = null;
     var _isPopup = false;
+    var _parentScope = null;
+    var _resourceList = null;
 	this.init = function(moduleConfig) {
 		_moduleConfig = moduleConfig;
 		_pageProps = [{id:'pageId', name: nl.t('Page id'), type:'div'},
@@ -25,8 +27,7 @@ function(nl, nlDlg) {
 			{id:'minPageTime', name: nl.t('Minimum time'), type:'number', min: 0},
 			{id:'forumTopic', name: nl.t('Discussion topic'), type:'string', condition: 'notPopup'},
 			{id:'hint', name: nl.t('Page hint'), type:'textarea', condition: 'notPopup'},
-            {id:'bgimg', name: nl.t('Background image'), type:'string'},
-            {id:'bgshade', name: nl.t('Text Color'), type:'select', condition: 'isBgimg'},
+            {id:'bgimg', name: nl.t('Background image'), type:'image-select', canClear: true},
 			{id:'visibility', name: nl.t('Visibility'), type: 'select', condition: 'isBleedingEdge'}];
 			
 		_updatePageProps(_pageProps);
@@ -39,15 +40,12 @@ function(nl, nlDlg) {
             forumTopic : nl.t('Provide name of the discussion topic which should be displayed when the learner clicks on discussion forum icon from this page.'),
             hint : nl.t('Provide addtional hints to the learner which will be displayed to the learner in report mode'),
             bgimg : nl.t('Provide URL of the background image for this page. If not specified, the module background image will be taken'),
-            bgshade : nl.t('Valid only if background image is set for the page. Depending on whether your image is dark or light, you can set the text color to one which is clearly visible in the background. With this, you can control the colors used for different types of text (normal, heading, link, ...)'),
             visibility : nl.t('Should the page be visible in learning mode (assignments) or just as a note to editor (i.e. hidden page). By default a page is visible in all modes.')
 	};
 	
 	var visibilityOpt = [{id:'always', name:nl.t('Always')},
 						{id:'editor', name: nl.t("Editor's note")}];
 
-    var bgshades = [{id: 'bglight', name: 'Dark text color for lighter background'},
-                    {id: 'bgdark', name: 'Light text color for darker background'}];
 	function _updatePageProps(_pageProps) {
 		for (var i=0; i<_pageProps.length; i++) {
 			var prop = _pageProps[i];
@@ -55,13 +53,14 @@ function(nl, nlDlg) {
 		}
 	}
 	
-	this.showDlg = function(oPage, defMaxScore, isPopup) {
+	this.showDlg = function(oPage, defMaxScore, isPopup, resourceList) {
 		_oPage = oPage;
 		_defMaxScore = defMaxScore;
 		_isPopup = isPopup;
-		var parentScope = nl.rootScope;
+		_parentScope = nl.rootScope;
+		_resourceList = resourceList;
 		return nl.q(function(resolve, reject) {
-			var pagePropsDlg = nlDlg.create(parentScope);
+			var pagePropsDlg = nlDlg.create(_parentScope);
 				pagePropsDlg.setCssClass('nl-height-max nl-width-max');
 				_initPagePropsDlg(pagePropsDlg);
 			var okButton = {text: nl.t('Done'), onTap: function(e) {
@@ -86,13 +85,11 @@ function(nl, nlDlg) {
 		pagePropsDlg.scope.data.forumTopic = _oPage.forumTopic;
 		pagePropsDlg.scope.data.hint = _oPage.hint;
         pagePropsDlg.scope.data.bgimg = _oPage.bgimg || '';
-        pagePropsDlg.scope.data.bgshade = _oPage.bgshade == "bgdark" ? bgshades[1] : bgshades[0];
-		pagePropsDlg.scope.options = {visibility: visibilityOpt, bgshade: bgshades};
+		pagePropsDlg.scope.options = {visibility: visibilityOpt};
 		pagePropsDlg.scope.data.visibility = _oPage.visibility === 'editor' ? visibilityOpt[1] : visibilityOpt[0];
 		pagePropsDlg.scope.data.canShow = function(condition, item) {
 			if (condition == 'isBleedingEdge') return (_moduleConfig.grpProps.isBleedingEdge);
 			if (condition == 'isMaxScore') return (_defMaxScore > 0);
-            if (condition == 'isBgimg') return (pagePropsDlg.scope.data.bgimg != '');
             if (condition == 'notPopup') return (!_isPopup);
 			return true;
 		};
@@ -100,6 +97,17 @@ function(nl, nlDlg) {
 		pagePropsDlg.scope.data.getPlaceHolder = function (item) {
 			if(item.id == 'maxScore') return nl.t('Default: {}', _defMaxScore);
 			return item.placeholder || ""; 
+		};
+		pagePropsDlg.scope.onFieldClick = function(fieldmodel) {
+			if (fieldmodel != 'bgimg') return;
+			var markupText = 'img:'+(pagePropsDlg.scope.data.bgimg || '');
+			var promise = nlResourceAddModifySrv.insertOrUpdateResource(_parentScope, 
+				            _moduleConfig.restypes, markupText, false, _resourceList, 'bg');
+    		promise.then(function(result) {
+    			if (!result || !result.url || !result.bgShade) return;
+	            pagePropsDlg.scope.data.bgimg = result.url;
+	            pagePropsDlg.scope.data.bgshade = result.bgShade;
+    		});
 		};
 	};
 	
@@ -116,7 +124,7 @@ function(nl, nlDlg) {
 		_oPage.forumTopic = data.forumTopic;
 		_oPage.hint = data.hint;
         _oPage.bgimg = data.bgimg;
-        _oPage.bgshade = data.bgshade.id;
+        _oPage.bgshade = data.bgshade;
 		_oPage.visibility = data.visibility.id;
 	}
 }];
