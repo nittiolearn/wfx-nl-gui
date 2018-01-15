@@ -424,10 +424,6 @@ function NlUrl(nl) {
         		: serverResFolder('icon', iconName);
     };
 
-    this.bgImgUrl = function(iconName) {
-        return serverResFolder('template', iconName);
-    };
-
     function clientResFolder(folder, iconName) {
         return resFolder(folder, iconName, '/');
     }

@@ -212,7 +212,7 @@
             <div class='text-center padding-mid'>
                 <div class='fsh4 padding-mid nl-img-preview'
                 	ng-click='onLibraryResourceSelect(resource)'>
-                	<div class='nl-link-img {{(resource.background == data.bgimage || resource.bgImg == data.bgimage) ? "selected" : ""}}'
+                	<div class='nl-link-img {{resource.background == data.bgimage ? "selected" : ""}}'
                 		tabindex="0"
                 		ng-keypress='$event.keyCode == 13 ? onLibraryResourceSelect(resource) : ""'>
                 		<div class='padding-small'>{{resource.name}}</div>

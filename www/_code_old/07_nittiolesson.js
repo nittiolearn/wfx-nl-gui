@@ -296,7 +296,7 @@ nlesson = function() {
         }
         if (oldTemplateBgimgs != this.oLesson.templateBgimgs) {
             oldTemplateBgimgs = this.oLesson.templateBgimgs;
-            g_templateDict = {};
+            g_templateList = [];
         }
         if (oldTemplatePageTypes != this.oLesson.templatePageTypes) {
             oldTemplatePageTypes = this.oLesson.templatePageTypes;
@@ -2427,62 +2427,31 @@ var modulePopup = new ModulePopupHadler();
 		});
 	}
 
-	var g_templateDict = {};
     var g_templateList = [];
 	function loadTemplateInfos(onLoadComplete) {
-		if (Object.keys(g_templateDict).length > 0) {
+		if (g_templateList.length > 0) {
 			onLoadComplete(g_templateList);
 			return;
 		}
 
         var parentBgimgs = g_lesson.parentTemplateContents.templateBgimgs;
         var templateBgimgs = g_lesson.oLesson.templateBgimgs ? JSON.parse(g_lesson.oLesson.templateBgimgs) : [];
-        templateBgimgs = _mergeArrayAttrs(parentBgimgs, templateBgimgs);
-        templateBgimgs.sort(function(a, b) {
-            if (a.group != b.group) return a.group < b.group ? -1 : 1;
-            if (a.name == b.name) return 0;
-            return (a.name < b.name) ? -1 : 1;
-        });
-	    g_templateList = templateBgimgs;
-        _onTemplateInfos(true);
+        g_templateList = _mergeArrayAttrs(parentBgimgs, templateBgimgs);
         onLoadComplete(g_templateList);
         return;
 	}
 
-	function _onTemplateInfos(bCustomList) {
-        g_templateDict = {};
-	    for(var i=0; i<g_templateList.length; i++) {
-            var item = g_templateList[i];
-            item.cssClass = njs_helper.fmt2('{} look{}', item.bgShade, item.id);
-            if (item.id == 'Custom') {
-                item.bgImg = '';
-            } else if (bCustomList) {
-                item.bgImg = item.background;
-            } else {
-                item.bgImg = njs_helper.fmt2("{}/{}",
-                    nittio.getStaticTemplFolder(), item.background);
-            }
-            g_templateDict[item.id] = item;
-	    }
-	}
-
-	function getTemplateInfo(templateName) {
-	    if (templateName in g_templateDict) return g_templateDict[templateName];
-	    if (g_templateList.length > 1) return g_templateList[1];
-	    return g_templateList[0];
-	}
-
-	function updateTemplate(cssClass, bgImg) {
+	function updateTemplate(bgShade, bgImg) {
 		jQuery('.bgimg').each(function() {
 		    var elem = jQuery(this);
 		    if (!elem.hasClass('bgimgcustom')) {
 		        elem.attr('src', bgImg);
                 _removeAllTemplateStyles(elem.parent());
-		        elem.parent().addClass(cssClass);
+		        elem.parent().addClass(bgShade);
 		    }
 		});
 		g_lesson.bgimg = jQuery('#l_pageData .bgimg');
-        g_lesson.globals.templateCssClass = cssClass;
+        g_lesson.globals.templateCssClass = bgShade;
 	}
 	
 	function doModeToggle() {
@@ -2494,7 +2463,6 @@ var modulePopup = new ModulePopupHadler();
 	return {
 		init : init,
 		loadTemplateInfos: loadTemplateInfos,
-		getTemplateInfo : getTemplateInfo,
 		updateTemplate : updateTemplate,
 		theLesson : g_lesson,
 		showCommentIndicator : showCommentIndicator,

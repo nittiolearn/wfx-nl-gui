@@ -46,7 +46,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		   {id: 'animScheme', name: nl.t('Animation scheme'), type:'select', condition: 'isAnimationShown', group:'optional_attr'},
 		   {id: 'additional_attr', name: nl.t('Advanced properties'), type: 'group', condition: 'isBleedingEdge'},
 		   {id: 'templateStylesCss', name: nl.t('Styles'), type: 'textarea', group:'additional_attr', condition: 'isBleedingEdge'},
-		   {id: 'templateBgimgs', name: nl.t('Background images'), type: 'textarea', group:'additional_attr', condition: 'isBleedingEdge'},
+		   {id: 'templateBgimgs', name: nl.t('Resource library'), type: 'textarea', group:'additional_attr', condition: 'isBleedingEdge'},
 		   {id: 'templatePageTypes', name: nl.t('Page types'), type: 'textarea', group:'additional_attr', condition: 'isBleedingEdge'},
 		   {id: 'templateAnimations', name: nl.t('Animation schemes'), type: 'textarea', group:'additional_attr', condition: 'isBleedingEdge'}];
 		_updateModuleProps(_moduleProps);
@@ -86,7 +86,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		animScheme: nl.t('You could animate your content according to different available schemes.'),
 		additional_attr: nl.t('Advanced properties are typically set only in templates. Touch these attributes only if you know what you are doing.'),
 		templateStylesCss: nl.t('define custom CSS classes to be used in styling the module content.'),
-		templateBgimgs: nl.t('Provide a list of background images (to be displayed in change look dialog) as a JSON array of strings.'),
+		templateBgimgs: nl.t('Provide a list of images (to be displayed in resource library tab of Select Resouerce dialog) as a JSON array of strings.'),
 		templatePageTypes: nl.t('Provide page types and layout as a JSON object.'),
 		templateAnimations: nl.t('Provide animation schemes as a JSON object.'),
 		lessonState: lessonStatusDesc,
@@ -109,39 +109,17 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		_parentScope = nl.rootScope;
 		return nl.q(function(resolve, reject) {
 			var editDlg = nlDlg.create(_parentScope);
-				editDlg.setCssClass('nl-height-max nl-width-max');
-				_initEditDlg(editDlg);
+			editDlg.setCssClass('nl-height-max nl-width-max');
+			_initEditDlg(editDlg);
 			var okButton = {text: doneButtonText, onTap: function(e) {
 				if(!_validateInputs(editDlg.scope)) {
 					if (e) e.preventDefault();
 					return;
 				}
-				var selectedGrades = Object.keys(nlTreeSelect.getSelectedIds(_gradeInfo));
-				var selectedSubjects = Object.keys(nlTreeSelect.getSelectedIds(_subjectInfo));
-		        _oLesson.grade = selectedGrades.length == 0 ? _gradeInfo.data[0].id : selectedGrades[0];
-		        _oLesson.subject = selectedSubjects.length == 0 ? _subjectInfo.data[0].id : selectedSubjects[0];
-
-				_oLesson.pdfSinglePage = editDlg.scope.data.pdfSinglePage;
 				_lastStateOptional = editDlg.scope.data.showGroup.optional_attr;
 				_lastStateAdditional = editDlg.scope.data.showGroup.additional_attr;
-				if(editDlg.scope.data.selectedIcon) {
-					_oLesson.image = 'img:'+editDlg.scope.data.icon;					
-				}
-				var selected = editDlg.scope.data.selectedBackground;
-				if(selected) {
-					selected.background = selected.background || editDlg.scope.data.background;
-					selected.cssClass = nl.fmt2('{} lookCustom', editDlg.scope.data.bgShade);
-		        	_oLesson.template = nl.fmt2('img:{}[{}]', editDlg.scope.data.background, editDlg.scope.data.bgShade);
-		            if (!_oLesson.props) _oLesson.props = {};
-		            _oLesson.props.animationScheme = editDlg.scope.data.animScheme ? editDlg.scope.data.animScheme.id : '';
-				}
-				if(editDlg.scope.data.learningMode.id == 'self') {
-					_oLesson.selfLearningMode = true;
-				} else {
-					delete _oLesson.selfLearningMode;
-				}
 				_updateLessonObj(editDlg.scope.data);
-				resolve(selected);
+				resolve({background: editDlg.scope.data.background, bgShade: editDlg.scope.data.bgShade});
 			}};
 			var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
 				_lastStateOptional = editDlg.scope.data.showGroup.optional_attr;
@@ -164,6 +142,20 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 
 	function _updateLessonObj(data) {
 		_oLesson.name = data.name;
+        var selectedGrades = Object.keys(nlTreeSelect.getSelectedIds(_gradeInfo));
+        var selectedSubjects = Object.keys(nlTreeSelect.getSelectedIds(_subjectInfo));
+        _oLesson.grade = selectedGrades.length == 0 ? _gradeInfo.data[0].id : selectedGrades[0];
+        _oLesson.subject = selectedSubjects.length == 0 ? _subjectInfo.data[0].id : selectedSubjects[0];
+        _oLesson.image = 'img:' + data.icon;
+        _oLesson.template = nl.fmt2('img:{}[{}]', data.background, data.bgShade);
+        if (!_oLesson.props) _oLesson.props = {};
+        _oLesson.props.animationScheme = data.animScheme ? data.animScheme.id : '';
+        if(data.learningMode.id == 'self') {
+            _oLesson.selfLearningMode = true;
+        } else {
+            delete _oLesson.selfLearningMode;
+        }
+        
 		if(_isPdf) {
 			_oLesson.pdfSinglePage = data.pdfSinglePage;
 			_oLesson.pdfUrl = data.pdfUrl;
@@ -223,11 +215,11 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		editDlg.scope.data.keywords = _oLesson.keywords;
 		editDlg.scope.data.esttime = parseInt(_oLesson.esttime);
 		editDlg.scope.data.passScore = parseInt(_oLesson.passScore);
-		var selected = _getSelected();
 		var animInfo = _getAnimationInfo();
 		editDlg.scope.showAnimScheme =  animInfo.show;
         editDlg.scope.data.animScheme = animInfo.selected;
-		editDlg.scope.data.background = selected.bgImg || selected.background;
+        var selectedBg = _getSelectedBg();
+		editDlg.scope.data.background = selectedBg.background;
 
 		editDlg.scope.data.showSearch = {};
 		if(_oLesson.allowed_max_score) {
@@ -259,15 +251,13 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
         _subjectInfo.multiSelect = false;
 		_subjectInfo.fieldmodelid = 'subject';
 
-		var selectedImage = {};
-		var selectedImg = null;
 		editDlg.scope.options = {animScheme: animInfo.opts,
 								 grade: _gradeInfo, 
 								 subject: _subjectInfo,
 								 learningMode: learningMode};
 		editDlg.scope.data.grade = {id: _oLesson.grade, name: _oLesson.grade};
 		editDlg.scope.data.subject = {id: _oLesson.subject, name: _oLesson.subject};						 
-		editDlg.scope.data.icon = _getLessonIcon(_oLesson.image);
+		editDlg.scope.data.icon = nl.url.lessonIconUrl(_oLesson.image || 'NittioSun.png');
 		editDlg.scope.data.lessonState = lessonStates[_oLesson.state] || lessonStates[0];
 		editDlg.scope.data.learningMode = _oLesson.selfLearningMode ? learningMode[1] : learningMode[0]; 
 
@@ -291,33 +281,15 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
     		promise.then(function(selected) {
     			if (!selected || !selected.url) return;
     			if(resFilter == 'bg') {
-    				editDlg.scope.data.selectedBackground = selected;
 		            editDlg.scope.data.background = selected.url;
-		            if (selected.bgShade) editDlg.scope.data.bgShade = selected.bgShade;
+		            editDlg.scope.data.bgShade = selected.bgShade || 'bgdark';
     			} else if(resFilter == 'icon') {
-    				editDlg.scope.data.selectedIcon = selected;
 		            editDlg.scope.data.icon = selected.url;
     			}
     		});
 		};
 	}
 
-	function _getLessonIcon(image) {
-		var selected = image || '';
-		if(selected.indexOf('NittioSun') >= 0) return nl.url.lessonIconUrl(selected);
-		if (selected.indexOf('img:') == 0) {
-			var ret = _resourceList[0];
-			var index = selected.indexOf('[');
-			var lastIndex = selected.length;
-	        return selected.substring(4, lastIndex);
-		} else if(selected.indexOf('https') == 0){
-			return image;
-		} else {
-			return image;
-
-		}
-	}
-	
     function _getAnimationInfo() {
         var ret = {opts: [], selected: null, show: false};
         var lessonProps = _oLesson.props || {};
@@ -332,12 +304,12 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
         return ret;
     }
 
-	function _getSelected() {
+	function _getSelectedBg() {
 		var selected = _oLesson.template || '';
 		if (selected.indexOf('img:') == 0) {
 			var ret = _resourceList[0];
 			var index = selected.indexOf('[');
-	        ret.bgImg = selected.substring(4, index);
+	        ret.background = selected.substring(4, index);
 	        ret.bgShade = selected.substring(index+1, selected.length-1);
 	        return ret;			
 		}
