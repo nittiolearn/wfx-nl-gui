@@ -11,6 +11,7 @@
       max-height: 400px;
       max-width: 300px;
       overflow: hidden;
+      border: 1px solid rgba(200, 200, 255, 0.5);
 	}
     .nl-img-preview.bg img {
       height: 135px;
@@ -42,7 +43,7 @@
 </style>
 <div>
 	<div class='row margin0 padding0'>
-	    <div ng-show='data.error.generalError' class='nl-dlg-field-errormsg'>{{data.error.generalError}}</div>
+	    <div ng-show='error.generalError' class='nl-dlg-field-errormsg'>{{error.generalError}}</div>
 	</div>
 
 	<div class='row margin0 padding0 row-stretch text-center'

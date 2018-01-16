@@ -270,7 +270,7 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
                 if (addModifyResourceDlg.resolvedCalled) return;
                 addModifyResourceDlg.resolvedCalled = true;
                 if (!beforeShow) addModifyResourceDlg.close();
-                resolve(afterFirstOk ? _processResults(addModifyResourceDlg, markupHandler) : null);
+                resolve(_processResults(addModifyResourceDlg, markupHandler, afterFirstOk));
             }; 
             addModifyResourceDlg.resolveAfterOnce = function () {
                 if (!onlyOnce) return false;
@@ -287,9 +287,10 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 		});
 	};
 
-    function _processResults(addModifyResourceDlg, markupHandler) {
+    function _processResults(addModifyResourceDlg, markupHandler, afterFirstOk) {
         if (!addModifyResourceDlg.scope.markupInfo.insertOrUpdateResource)
         	return addModifyResourceDlg.resInfos;
+        if (!afterFirstOk) return null;
 
         var sd = addModifyResourceDlg.scope.data;
         var tab = sd.selectedTab;
@@ -377,10 +378,10 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
             return _validateFail(scope, 'url', 'Please specify a valid URL');
         if (scope.data.selectedTab == 'library' && !_resourceLibrary.getSelectedUrlInfo().url)
             return _validateFail(scope, 'generalError', 'Please select an item from the library');
-        if (scope.data.selectedTab == 'upload' && scope.sd.resource.length == 0)
+        if (scope.data.selectedTab == 'upload' && scope.data.resource.length == 0)
             return _validateFail(scope, 'resource', 'Please select the resource to upload');
         if (scope.data.selectedTab == 'record' && !scope.recorder.recordedBlob)
-            return _validateFail(scope, 'generalError', 'Before uploading, please click on the "record button" and record your voice/video');
+            return _validateFail(scope, 'recordingName', 'Before uploading, please click on the "record button" and record your voice/video');
         return true;
     }
 
@@ -915,7 +916,7 @@ function ResourceLibrary() {
     		});
     	if (_selectedResource && _selectedResource.searchWeight)
     	   ret.unshift(_selectedResource); // Add selected to top of list
-		return ret.slice(0, 1000);
+		return ret.slice(0, 100);
 	}
 
 	function _getSearchWeight(res, searchText) {
