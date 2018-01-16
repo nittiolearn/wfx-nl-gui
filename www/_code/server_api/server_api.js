@@ -529,6 +529,10 @@ function(nl, nlDlg, nlConfig, Upload) {
            isTemplate: isTemplate, name: name, section0: section0});
     };
 
+    this.lessonGetResourceLibrary = function(templateids) {
+       return server.post('_serverapi/lesson_get_resource_library.json', {templateids: templateids});
+    };
+
     //---------------------------------------------------------------------------------------------
     // Content metadata
     //---------------------------------------------------------------------------------------------

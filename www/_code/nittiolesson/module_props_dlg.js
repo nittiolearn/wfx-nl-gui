@@ -218,8 +218,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		var animInfo = _getAnimationInfo();
 		editDlg.scope.showAnimScheme =  animInfo.show;
         editDlg.scope.data.animScheme = animInfo.selected;
-        var selectedBg = _getSelectedBg();
-		editDlg.scope.data.background = selectedBg.background;
+		editDlg.scope.data.background = _getSelectedBg();
 
 		editDlg.scope.data.showSearch = {};
 		if(_oLesson.allowed_max_score) {
@@ -305,19 +304,22 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
     }
 
 	function _getSelectedBg() {
-		var selected = _oLesson.template || '';
-		if (selected.indexOf('img:') == 0) {
-			var ret = _resourceList[0];
-			var index = selected.indexOf('[');
-	        ret.background = selected.substring(4, index);
-	        ret.bgShade = selected.substring(index+1, selected.length-1);
-	        return ret;			
+		var template = _oLesson.template || '';
+		if (template.indexOf('img:') != 0) {
+            var selectedRes = null;
+            for(var i in _resourceList) {
+                var item = _resourceList[i];
+                if(item.id == template) {
+                    selectedRes = item;
+                    break;
+                }
+                if (!selectedRes && item.bgShade) selectedRes = item;
+            }
+            template = selectedRes.background;
 		}
-		for(var i in _resourceList) {
-			var item = _resourceList[i];
-			if(item.id == selected) return item;
-		}
-		return _resourceList[1];
+		
+		var index = template.indexOf('[');
+		return index > 4 ? template.substring(4, index) : template.substring(4);
 	}
 }]; 
 

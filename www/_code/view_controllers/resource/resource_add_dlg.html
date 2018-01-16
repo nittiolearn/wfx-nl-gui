@@ -8,15 +8,37 @@
 	.nl-img-preview {
 	  display: inline-block;
 	  text-align: center;
-	  position: relative;
-	  max-height: 400px;
-	  max-width: 300px;
-	  font-size: 100%;
-	  line-height: 170%;
+      max-height: 400px;
+      max-width: 300px;
+      overflow: hidden;
 	}
-	.nl-link-img.selected {
+    .nl-img-preview.bg img {
+      height: 135px;
+      width: 240px;
+	}
+    .nl-img-preview.icon img {
+      max-height: 100px;
+      max-width: 100px;
+    }
+	.nl-img-preview.selected {
 		background-color: rgba(128, 128, 255, 0.5);
 	}
+    .nl-img-preview-title {
+      white-space: nowrap;
+      text-overflow : ellipsis;
+      overflow : hidden;
+      max-width: 240px;
+    }
+    .nl-img-preview.bg .nl-img-preview-title {
+      max-width: 240px;
+    }
+    
+    .nl-img-preview.bg .nl-img-preview-title {
+      max-width: 240px;
+    }
+    .nl-img-preview.icon .nl-img-preview-title {
+      max-width: 100px;
+    }
 </style>
 <div>
 	<div class='row margin0 padding0'>
@@ -75,13 +97,50 @@
     		</div>
     	</div>
 	</div>
+
+    <div class='padding-small'
+        ng-show='data.selectedTab == "library" && !data.advOptions'>
+    </div>
+    <div class='row row-center padding0 margin0'
+        ng-show='data.selectedTab == "library" && !data.advOptions'>
+        <div class='col col-33 padding0 margin0'>
+            <nl-select fieldmodel='librarySearchDropdown'></nl-select> 
+        </div>
+        <div class='col padding0 margin0'>
+            <nl-input fieldmodel='librarySearchText' fieldtype='text' placeholder='Start typing to search'></nl-input>          
+        </div>
+        <span>
+            <i class='icon ion-ios-search nl-dlg-field-icon fsh4'></i>
+        </span>
+    </div>
+    <div class='row row-top row-wrap row-justify-evenly margin0 padding0'
+        ng-show='data.selectedTab == "library" && !data.advOptions'>
+        <div ng-repeat='resource in data.resourceList'>
+            <div class='text-center padding'>
+                <div class='nl-link-img padding-mid nl-img-preview {{data.resourceFilter}} {{resource.background == data.librarySelectedUrl ? "selected" : ""}}'
+                    ng-click='onLibraryResourceSelect(resource)'
+                    tabindex="0"
+                    title='{{resource.name}}'
+                    ng-keypress='$event.keyCode == 13 ? onLibraryResourceSelect(resource) : ""'>
+                        <div class='nl-img-preview-title padding-small'>{{resource.name}}</div>
+                        <img ng-src='{{resource.background}}'>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <nl-dlg-row attr='url' data='data' help='help'
                 ng-show='data.selectedTab == "url" && !data.advOptions'>
         <nl-input fieldmodel='url' fieldtype='text' fieldcls='w100'></nl-input>
     </nl-dlg-row> 
 
+    <nl-dlg-row attr='restype' data='data' help='help'
+                ng-show='!markupInfo.restypeInfo'>
+        <nl-select ng-if='data.card == null' fieldmodel='restype'></nl-select>
+        <input ng-if='data.card !== null' ng-model='data.restype.id' readonly class='nl-dlg-field-value'></input>
+    </nl-dlg-row> 
     <nl-dlg-row attr='resource' data='data' help='help'
-                ng-show='markupInfo.restypeInfo && data.selectedTab == "upload" && !data.advOptions'>
+                ng-show='data.selectedTab == "upload" && !data.advOptions'>
         <nl-resource-upload 
             ng-repeat='restype in options.restype'
             ng-if='restype.id == data.restype.id'
@@ -93,6 +152,16 @@
     <nl-dlg-row attr='bgShade' data='data' help='help'
                 ng-show='(data.selectedTab == "url" || data.selectedTab == "upload") && !data.advOptions && data.resourceFilter == "bg"'>
         <nl-select fieldmodel='bgShade'></nl-select>
+    </nl-dlg-row> 
+
+    <nl-dlg-row attr='keywords' data='data' help='help'
+                ng-show='data.selectedTab == "upload" && !data.advOptions'>
+        <nl-input fieldmodel='keywords' fieldtype='text' fieldcls='w100'></nl-input>
+    </nl-dlg-row> 
+
+    <nl-dlg-row attr='compressionlevel' data='data' help='help'
+                ng-show='data.selectedTab == "upload" && data.restype.id == "Image" && !data.advOptions'>
+        <nl-select fieldmodel='compressionlevel'></nl-select>
     </nl-dlg-row> 
 
     <nl-dlg-row attr='recordingName' data='data' help='help'
@@ -141,23 +210,13 @@
         </div>
     </nl-dlg-row> 
 
-    <nl-dlg-row attr='keywords' data='data' help='help'
-                ng-show='markupInfo.restypeInfo && data.selectedTab == "upload" && !data.advOptions'>
-        <nl-input fieldmodel='keywords' fieldtype='text' fieldcls='w100'></nl-input>
-    </nl-dlg-row> 
-
-    <nl-dlg-row attr='compressionlevel' data='data' help='help'
-                ng-show='markupInfo.restypeInfo && data.selectedTab == "upload" && data.restype.id == "Image" && !data.advOptions'>
-        <nl-select fieldmodel='compressionlevel'></nl-select>
-    </nl-dlg-row> 
-
     <nl-dlg-row attr='markupCover' data='data' help='help'
                 ng-show='markupInfo.showMarkupOptions && data.restype.id == "Image" && data.advOptions'>
         <nl-select fieldmodel='markupCover'></nl-select>
     </nl-dlg-row> 
 
     <nl-dlg-row attr='markupLink' data='data' help='help'
-                ng-show='markupInfo.showMarkupOptions && data.restype.id == "Image" && data.selectedTab !== "library" && data.advOptions'>
+                ng-show='markupInfo.showMarkupOptions && data.restype.id == "Image" && data.advOptions'>
         <nl-input fieldmodel='markupLink' fieldtype='text' fieldcls='w100'></nl-input>
     </nl-dlg-row> 
 		
@@ -194,57 +253,6 @@
                 ng-show='markupInfo.showMarkupOptions && (data.restype.id == "Video" || data.restype.id == "Audio") && data.advOptions'>
         <nl-input fieldmodel='markupEnd' fieldtype='number' fieldminvalue=0 fieldcls='w100'></nl-input>
     </nl-dlg-row>
-    <div class='row row-center padding0 margin0'
-        ng-show='data.selectedTab == "library" && !data.advOptions'>
-        <div class='col col-33 padding0 margin0'>
-        	<nl-select fieldmodel='librarySearchDropdown'></nl-select> 
-        </div>
-        <div class='col padding0 margin0'>
-			<nl-input fieldmodel='librarySearchText' fieldtype='text' placeholder='Start typing to search'></nl-input>        	
-        </div>
-		<span>
-		    <i class='icon ion-ios-search nl-dlg-field-icon fsh4'></i>
-		</span>
-    </div>
-	<div class='row row-top row-wrap margin0 padding0'
-		ng-show='data.selectedTab == "library" && !data.advOptions'>
-		<div ng-repeat='resource in data.resourceList' ng-class='respCol421'>
-            <div class='text-center padding-mid'>
-                <div class='fsh4 padding-mid nl-img-preview'
-                	ng-click='onLibraryResourceSelect(resource)'>
-                	<div class='nl-link-img {{resource.background == data.bgimage ? "selected" : ""}}'
-                		tabindex="0"
-                		ng-keypress='$event.keyCode == 13 ? onLibraryResourceSelect(resource) : ""'>
-                		<div class='padding-small'>{{resource.name}}</div>
-						<img ng-src='{{resource.background}}'>
-                	</div>
-				</div>
-            </div>
-		</div>
-	</div>
-	<div ng-show='!markupInfo.restypeInfo'>
-	    <nl-dlg-row attr='restype' data='data' help='help'
-	                ng-show='!markupInfo.restypeInfo'>
-	        <nl-select ng-if='data.card == null' fieldmodel='restype'></nl-select>
-	        <input ng-if='data.card !== null' ng-model='data.restype.id' readonly class='nl-dlg-field-value'></input>
-	    </nl-dlg-row> 
-	    <nl-dlg-row attr='resource' data='data' help='help'>
-	        <nl-resource-upload 
-	            ng-repeat='restype in options.restype'
-	            ng-if='restype.id == data.restype.id'
-	            fieldmodel='resource' 
-	            restype='{{restype.id}}'>
-	        </nl-resource-upload>
-	    </nl-dlg-row> 
-	    <nl-dlg-row attr='keywords' data='data' help='help'>
-	        <nl-input fieldmodel='keywords' fieldtype='text' fieldcls='w100'></nl-input>
-	    </nl-dlg-row> 
-	
-	    <nl-dlg-row attr='compressionlevel' data='data' help='help'
-	                ng-show='data.restype.id == "Image"'>
-	        <nl-select fieldmodel='compressionlevel'></nl-select>
-	    </nl-dlg-row> 
-	</div>
 </div>
 </nl-dlg-content>
 </nl-dlg>

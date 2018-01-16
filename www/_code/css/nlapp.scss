@@ -278,6 +278,12 @@ ul ul, ul ol, ol ol, ol ul {
   transform: none !important;
 }
 
+.row-justify-evenly {
+  -webkit-justify-content: space-around;
+  -moz-justify-content: space-around;
+  justify-content: space-around;
+}
+
 /*-----------------------------------------------------------------------------------------*
  * Safari issue with col-66 and col-67 (computation of 66.6666% results in 0.25 pixels more
  * and the col wrapping around when resp2Col67 was used)

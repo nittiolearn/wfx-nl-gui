@@ -347,12 +347,11 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 		if (!card) {
 			addModifyResourceDlg.scope.data.restype.id = addModifyResourceDlg.scope.options.restype[0].id;
 			addModifyResourceDlg.scope.data.pagetitle = nl.t('Upload resource');
-			return;
+		} else {
+            addModifyResourceDlg.scope.data.keywords = card.keywords;
+            addModifyResourceDlg.scope.data.restype.id = card.restype;  
+            addModifyResourceDlg.scope.data.pagetitle = nl.t('Modify resource');
 		}
-
-        addModifyResourceDlg.scope.data.keywords = card.keywords;
-		addModifyResourceDlg.scope.data.restype.id = card.restype;	
-		addModifyResourceDlg.scope.data.pagetitle = nl.t('Modify resource');
 
 		addModifyResourceDlg.scope.changeTab = function(tabName) {
             if(tabName == "adv_options") {
@@ -830,29 +829,32 @@ function ResourceLibrary() {
 		_selectedResource = null;
 		_resourceFilter = resourceFilter;
 		if (!resourceList) resourceList = [];
-		if (resourceFilter == 'bg') {
-			_resourceList = [];
-			for(var i=0; i<resourceList.length; i++) {
-				var res = resourceList[i];
-				if ('bgShade' in res) _resourceList.push(res);
-			}
-		} else {
-			_resourceList = resourceList;
+		if (resourceFilter != 'bg') {
+            _resourceList = resourceList;
+            return;
+		}
+		_resourceList = [];
+		for(var i=0; i<resourceList.length; i++) {
+			var res = resourceList[i];
+			if ('bgShade' in res) _resourceList.push(res);
 		}
 	};
 
 	this.initScope = function(scope) {
         scope.data.resourceFilter = _resourceFilter;
-		scope.options.bgShade = [{id: 'bglight', name: 'Dark text color for lighter background'},
-				                 {id: 'bgdark', name: 'Light text color for darker background'}];
+		scope.options.bgShade = [{id: 'bgdark', name: 'Light text color for darker background'},
+		                         {id: 'bglight', name: 'Dark text color for lighter background'}];
 		scope.data.bgShade = scope.options.bgShade[0];
-		scope.options.librarySearchDropdown = _getSearchDropdownAndUpdateSelected(scope.markupInfo.restypeInfo.url);
-		scope.data.librarySearchDropdown = _getDefaultSearchDropdownItem(scope.options.librarySearchDropdown);
+		scope.options.librarySearchDropdown = [{id: '', name: 'All images'},
+		                                       {id: 'animated', name: 'Animated images'}];
+		scope.data.librarySearchDropdown = scope.options.librarySearchDropdown[0];
 		scope.data.librarySearchText = '';
+
+        _updateSelected(scope);
     	scope.data.resourceList = _getFilteredList(scope.data.librarySearchDropdown.id, scope.data.librarySearchText);
 		
 		scope.onLibraryResourceSelect = function(resource) {
-			scope.data.bgimage = resource.background;
+			scope.data.librarySelectedUrl = resource.background;
 			_selectedResource = resource;
 		};
 		
@@ -870,36 +872,13 @@ function ResourceLibrary() {
     	return {url: _selectedResource.background, bgShade: _selectedResource.bgShade || 'bgdark'};
 	};
 
-	function _getSearchDropdownAndUpdateSelected(inputUrl) {
-		var animated = false;
-		var uniqueGroups = {};
+	function _updateSelected(scope) {
 		var urlToResource = {};	
-		for(var i=0; i<_resourceList.length; i++) {
+		for(var i=0; i<_resourceList.length; i++)
 			urlToResource[_resourceList[i].background] = _resourceList[i];	
-			uniqueGroups[_resourceList[i].group] = true;
-			if (_resourceList[i].animated) animated = true;
-		}
-		var ret = [];
-		for(var g in uniqueGroups) {
-			ret.push({id:g, name: g});
-		}
-		ret = ret.sort(function(a, b) {
-			if (a.id == b.id) return 0;
-			return (a.id > b.id) ? -1 : 1;
-		});
-		if (animated) ret.unshift({id: 'animated', name: 'Animated Images'});
-		ret.unshift({id: '', name: 'All categories'});
-		_selectedResource = urlToResource[inputUrl] || null;
-		return ret;
-	}
-	
-	function _getDefaultSearchDropdownItem(items) {
-		for(var i=0; i<items.length; i++) {
-			if (items[i].id == 'Backgrounds' && _resourceFilter == 'bg') return items[i];
-			if (items[i].id == 'Icons' && _resourceFilter == 'icon') return items[i];
-			if (items[i].id == 'Images' && _resourceFilter == '') return items[i];
-		}
-		return items[0];
+        var inputUrl = scope.markupInfo.restypeInfo ? scope.markupInfo.restypeInfo.url : '';
+        _selectedResource = urlToResource[inputUrl] || null;
+        if (_selectedResource) scope.data.librarySelectedUrl = _selectedResource.background;
 	}
 	
 	function _updateTabSelection(scope) {
@@ -921,21 +900,22 @@ function ResourceLibrary() {
 		var selectedUrl = _selectedResource ? _selectedResource.background : null;
 		for(var i=0; i<_resourceList.length; i++) {
 			var res = _resourceList[i];
-			if (filter && filter != 'animated' && filter != res.group) continue;
+			res.searchWeight = 0;
 			if (filter == 'animated' && !res.animated) continue;
 			var searchWeight = _getSearchWeight(res, searchText);
 			if (searchWeight == 0) continue;
-			if (selectedUrl && res.background == selectedUrl)
-				res.searchWeight = 10000; // make it to top of the list
-			else
-				res.searchWeight = searchWeight;
+            res.searchWeight = searchWeight;
+			if (selectedUrl && res.background == selectedUrl) continue; // Add to list top later
 			ret.push(res);
 		}
-		ret = ret.sort(function(a, b) {
-			if (a.searchWeight == b.searchWeight) return 0;
-			return (a.searchWeight > b.searchWeight) ? 1 : -1;
-		});
-		return ret.slice(0, 100);
+		if (searchText)
+    		ret = ret.sort(function(a, b) {
+    			if (a.searchWeight == b.searchWeight) return 0;
+    			return (a.searchWeight > b.searchWeight) ? -1 : 1;
+    		});
+    	if (_selectedResource && _selectedResource.searchWeight)
+    	   ret.unshift(_selectedResource); // Add selected to top of list
+		return ret.slice(0, 1000);
 	}
 
 	function _getSearchWeight(res, searchText) {

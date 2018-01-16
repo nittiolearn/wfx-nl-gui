@@ -334,17 +334,17 @@ nlesson = function() {
     function _mergeArrayAttrs(existingData, newData) {
         var consolidated = [];
         var uniqueItems = {};
-        for (i=newData.length-1; i>=0; i--) {
+        for (var i=newData.length-1; i>=0; i--) {
             var d = newData[i];
             uniqueItems[d['id']] = i;
         }
             
-        for (i=0; i<newData.length; i++) {
+        for (var i=0; i<newData.length; i++) {
             var d = newData[i];
             if (uniqueItems[d['id']] == i) consolidated.push(d);
         }
             
-        for (i=0; i<existingData.length; i++) {
+        for (var i=0; i<existingData.length; i++) {
             var d = existingData[i];
             if (!(d['id'] in uniqueItems)) consolidated.push(d);
         }
@@ -2433,12 +2433,16 @@ var modulePopup = new ModulePopupHadler();
 			onLoadComplete(g_templateList);
 			return;
 		}
-
-        var parentBgimgs = g_lesson.parentTemplateContents.templateBgimgs;
-        var templateBgimgs = g_lesson.oLesson.templateBgimgs ? JSON.parse(g_lesson.oLesson.templateBgimgs) : [];
-        g_templateList = _mergeArrayAttrs(parentBgimgs, templateBgimgs);
-        onLoadComplete(g_templateList);
-        return;
+		
+		var templateids = g_lesson.oLesson.parentTemplates || [];
+		var promise = window.nlapp.NittioLesson.getResourceLibrary(templateids);
+		promise.then(function(parentBgimgs) {
+            var templateBgimgs = g_lesson.oLesson.templateBgimgs ? JSON.parse(g_lesson.oLesson.templateBgimgs) : [];
+            g_templateList = _mergeArrayAttrs(parentBgimgs, templateBgimgs);
+            onLoadComplete(g_templateList);
+		}, function () {
+		    onLoadComplete([]);
+		});
 	}
 
 	function updateTemplate(bgShade, bgImg) {

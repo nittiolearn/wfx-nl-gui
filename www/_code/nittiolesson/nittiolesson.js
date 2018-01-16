@@ -12,9 +12,9 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NittioLessonSrv = ['nl', 'NittioLessonModulePropsDlg', 'NittioLessonPagePropsDlg',
+var NittioLessonSrv = ['nl', 'nlServerApi', 'NittioLessonModulePropsDlg', 'NittioLessonPagePropsDlg',
 'NittioLessonModuleReviewDlg', 'nlResourceAddModifySrv', 'NittioLessonAddPageDlg', 'NittioLessonAddPageVoice',
-function(nl, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg,  
+function(nl, nlServerApi, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg,  
     NittioLessonModuleReviewDlg, nlResourceAddModifySrv, NittioLessonAddPageDlg, NittioLessonAddPageVoice) {
     var _moduleConfig = null;
 	this.init = function(oLesson, moduleConfig, ptInfo) {
@@ -24,6 +24,10 @@ function(nl, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg,
 		NittioLessonAddPageDlg.init(ptInfo);
 		_moduleConfig = moduleConfig;
 	};
+
+    this.getResourceLibrary = function(templateids) {
+        return nlServerApi.lessonGetResourceLibrary(templateids);
+    };
 
 	this.showModulePropertiesDlg = function(isCreate, bFromPdf, resourceList, templateAnimations) {
 		return NittioLessonModulePropsDlg.showDlg(isCreate, bFromPdf, resourceList, templateAnimations);
