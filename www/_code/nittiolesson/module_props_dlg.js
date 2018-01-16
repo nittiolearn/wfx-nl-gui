@@ -218,7 +218,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		var animInfo = _getAnimationInfo();
 		editDlg.scope.showAnimScheme =  animInfo.show;
         editDlg.scope.data.animScheme = animInfo.selected;
-		editDlg.scope.data.background = _getSelectedBg();
+		_updateSelectedBg(editDlg.scope.data);
 
 		editDlg.scope.data.showSearch = {};
 		if(_oLesson.allowed_max_score) {
@@ -274,7 +274,8 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		editDlg.scope.onFieldClick = function(fieldId) {
 			var resFilter = fieldId == 'background' ? 'bg' : 'icon';
 			var selectedImgUrl = fieldId == 'background' ? (editDlg.scope.data.background || '') : (editDlg.scope.data.icon || '');
-			var markupText = 'img:'+selectedImgUrl; 
+			var bgShade = fieldId == 'background' ? (editDlg.scope.data.bgShade || 'bglight') : ''
+			var markupText = nl.fmt2('img:{}[{}]', selectedImgUrl, bgShade); 
 			var promise = nlResourceAddModifySrv.insertOrUpdateResource(_parentScope, 
 				            _moduleConfig.restypes, markupText, false, _resourceList, resFilter);
     		promise.then(function(selected) {
@@ -303,7 +304,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
         return ret;
     }
 
-	function _getSelectedBg() {
+	function _updateSelectedBg(sd) {
 		var template = _oLesson.template || '';
 		if (template.indexOf('img:') != 0) {
             var selectedRes = null;
@@ -315,11 +316,15 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
                 }
                 if (!selectedRes && item.bgShade) selectedRes = item;
             }
-            template = selectedRes.background;
+            sd.background = selectedRes.background;
+            sd.bgShade = selectedRes.bgShade;
+            return;
 		}
 		
 		var index = template.indexOf('[');
-		return index > 4 ? template.substring(4, index) : template.substring(4);
+        var index2 = template.indexOf(']');
+		sd.background = template.substring(4, index);
+		sd.bgShade = template.substring(index, index2)
 	}
 }]; 
 

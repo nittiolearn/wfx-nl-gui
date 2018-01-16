@@ -344,6 +344,9 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 		addModifyResourceDlg.scope.options.compressionlevel = COMPRESSIONLEVEL;	
 		addModifyResourceDlg.scope.data.compressionlevel = {id: 'high'};		
 		addModifyResourceDlg.scope.options.restype = _getRestypeList(restypes);
+        addModifyResourceDlg.scope.options.bgShade = [
+            {id: 'bgdark', name: 'Light text color for darker background'},
+            {id: 'bglight', name: 'Dark text color for lighter background'}];
 
 		if (!card) {
 			addModifyResourceDlg.scope.data.restype.id = addModifyResourceDlg.scope.options.restype[0].id;
@@ -548,6 +551,7 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
         if (!restypeInfo) restypeInfo = {params: {}};
         var sd = _scope.data;
         sd.url = restypeInfo.url || '';
+        sd.bgShade = {id: restypeInfo.params.bgdark ? 'bgdark' : 'bglight'};
 
         _scope.options.markupCover = [
             {id: 'retain_ar', name: nl.t('Show the complete image')},
@@ -843,9 +847,6 @@ function ResourceLibrary() {
 
 	this.initScope = function(scope) {
         scope.data.resourceFilter = _resourceFilter;
-		scope.options.bgShade = [{id: 'bgdark', name: 'Light text color for darker background'},
-		                         {id: 'bglight', name: 'Dark text color for lighter background'}];
-		scope.data.bgShade = scope.options.bgShade[0];
 		scope.options.librarySearchDropdown = [{id: '', name: 'All images'},
 		                                       {id: 'animated', name: 'Animated images'}];
 		scope.data.librarySearchDropdown = scope.options.librarySearchDropdown[0];
@@ -865,7 +866,7 @@ function ResourceLibrary() {
 					scope.data.librarySearchText);
 			}
 		};
- 		_updateTabSelection(scope);            
+ 		_updateTabSelection(scope);
 	};
 	
 	this.getSelectedUrlInfo = function() {

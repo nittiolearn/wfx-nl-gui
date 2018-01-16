@@ -85,6 +85,7 @@ function(nl, nlDlg, nlResourceAddModifySrv) {
 		pagePropsDlg.scope.data.forumTopic = _oPage.forumTopic;
 		pagePropsDlg.scope.data.hint = _oPage.hint;
         pagePropsDlg.scope.data.bgimg = _oPage.bgimg || '';
+        pagePropsDlg.scope.data.bgshade = _oPage.bgshade || 'bglight';
 		pagePropsDlg.scope.options = {visibility: visibilityOpt};
 		pagePropsDlg.scope.data.visibility = _oPage.visibility === 'editor' ? visibilityOpt[1] : visibilityOpt[0];
 		pagePropsDlg.scope.data.canShow = function(condition, item) {
@@ -100,7 +101,7 @@ function(nl, nlDlg, nlResourceAddModifySrv) {
 		};
 		pagePropsDlg.scope.onFieldClick = function(fieldmodel) {
 			if (fieldmodel != 'bgimg') return;
-			var markupText = 'img:'+(pagePropsDlg.scope.data.bgimg || '');
+			var markupText = nl.fmt2('img:{}[{}]', pagePropsDlg.scope.data.bgimg, pagePropsDlg.scope.data.bgshade);
 			var promise = nlResourceAddModifySrv.insertOrUpdateResource(_parentScope, 
 				            _moduleConfig.restypes, markupText, false, _resourceList, 'bg');
     		promise.then(function(result) {
