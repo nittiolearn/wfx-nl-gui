@@ -1,4 +1,4 @@
-<nl-dlg title='{{data.pagetitle}}' show-help='0'>
+<nl-dlg dlgtitle='{{data.pagetitle}}' show-help='0'>
 <nl-dlg-content>
 <style>
     .video_preview {
@@ -99,49 +99,48 @@
     	</div>
 	</div>
 
-    <div class='padding-small'
-        ng-show='data.selectedTab == "library" && !data.advOptions'>
-    </div>
-    <div class='row row-center padding0 margin0'
-        ng-show='data.selectedTab == "library" && !data.advOptions'>
-        <div class='col col-33 padding0 margin0'>
-            <nl-select fieldmodel='librarySearchDropdown'></nl-select> 
-        </div>
-        <div class='col padding0 margin0'>
-            <nl-input fieldmodel='librarySearchText' fieldtype='text' placeholder='Start typing to search'></nl-input>          
-        </div>
-        <span>
-            <i class='icon ion-ios-search nl-dlg-field-icon fsh4'></i>
-        </span>
-    </div>
-    <div class='row row-top row-wrap row-justify-evenly margin0 padding0'
-        ng-show='data.selectedTab == "library" && !data.advOptions'>
-        <div ng-repeat='resource in data.resourceList'>
-            <div class='text-center padding'>
-                <div class='nl-link-img padding-mid nl-img-preview {{data.resourceFilter}} {{resource.background == data.librarySelectedUrl ? "selected" : ""}}'
-                    ng-click='onLibraryResourceSelect(resource)'
-                    tabindex="0"
-                    title='{{resource.name}}'
-                    ng-keypress='$event.keyCode == 13 ? onLibraryResourceSelect(resource) : ""'>
-                        <div class='nl-img-preview-title padding-small'>{{resource.name}}</div>
-                        <img ng-src='{{resource.background}}'>
-                </div>
-            </div>
-        </div>
-    </div>
+	<div ng-if='data.selectedTab == "library" && !data.advOptions'>
+	    <div class='padding-small'>
+	    </div>
+	    <div class='row row-center padding0 margin0'>
+	        <div class='col col-33 padding0 margin0'>
+	            <nl-select fieldmodel='librarySearchDropdown'></nl-select> 
+	        </div>
+	        <div class='col padding0 margin0'>
+	            <nl-input fieldmodel='librarySearchText' fieldtype='text' placeholder='Start typing to search'></nl-input>          
+	        </div>
+	        <span>
+	            <i class='icon ion-ios-search nl-dlg-field-icon fsh4'></i>
+	        </span>
+	    </div>
+	    <div class='row row-top row-wrap row-justify-evenly margin0 padding0'>
+	        <div ng-repeat='resource in data.resourceList'>
+	            <div class='text-center padding'>
+	                <div class='nl-link-img padding-mid nl-img-preview {{data.resourceFilter}} {{resource.background == data.librarySelectedUrl ? "selected" : ""}}'
+	                    ng-click='onLibraryResourceSelect(resource)'
+	                    tabindex="0"
+	                    title='{{resource.name}}'
+	                    ng-keypress='$event.keyCode == 13 ? onLibraryResourceSelect(resource) : ""'>
+	                        <div class='nl-img-preview-title padding-small'>{{resource.name}}</div>
+	                        <img ng-src='{{resource.background}}'>
+	                </div>
+	            </div>
+	        </div>
+	    </div>
+	</div>
 
     <nl-dlg-row attr='url' data='data' help='help'
-                ng-show='data.selectedTab == "url" && !data.advOptions'>
-        <nl-input fieldmodel='url' fieldtype='text' fieldcls='w100'></nl-input>
+                ng-if='data.selectedTab == "url" && !data.advOptions'>
+        <nl-input fieldmodel='url' fieldtype='text' fieldcls='w100' fieldindex='0'></nl-input>
     </nl-dlg-row> 
 
     <nl-dlg-row attr='restype' data='data' help='help'
-                ng-show='!markupInfo.restypeInfo'>
+                ng-if='!markupInfo.restypeInfo'>
         <nl-select ng-if='data.card == null' fieldmodel='restype'></nl-select>
         <input ng-if='data.card !== null' ng-model='data.restype.id' readonly class='nl-dlg-field-value'></input>
     </nl-dlg-row> 
     <nl-dlg-row attr='resource' data='data' help='help'
-                ng-show='data.selectedTab == "upload" && !data.advOptions'>
+                ng-if='data.selectedTab == "upload" && !data.advOptions'>
         <nl-resource-upload 
             ng-repeat='restype in options.restype'
             ng-if='restype.id == data.restype.id'
@@ -151,26 +150,26 @@
     </nl-dlg-row> 
 
     <nl-dlg-row attr='bgShade' data='data' help='help'
-                ng-show='(data.selectedTab == "url" || data.selectedTab == "upload") && !data.advOptions && data.resourceFilter == "bg"'>
+                ng-if='(data.selectedTab == "url" || data.selectedTab == "upload") && !data.advOptions && data.resourceFilter == "bg"'>
         <nl-select fieldmodel='bgShade'></nl-select>
     </nl-dlg-row> 
 
     <nl-dlg-row attr='keywords' data='data' help='help'
-                ng-show='data.selectedTab == "upload" && !data.advOptions'>
+                ng-if='data.selectedTab == "upload" && !data.advOptions'>
         <nl-input fieldmodel='keywords' fieldtype='text' fieldcls='w100'></nl-input>
     </nl-dlg-row> 
 
     <nl-dlg-row attr='compressionlevel' data='data' help='help'
-                ng-show='data.selectedTab == "upload" && data.restype.id == "Image" && !data.advOptions'>
+                ng-if='data.selectedTab == "upload" && data.restype.id == "Image" && !data.advOptions'>
         <nl-select fieldmodel='compressionlevel'></nl-select>
     </nl-dlg-row> 
 
     <nl-dlg-row attr='recordingName' data='data' help='help'
-                ng-show='data.selectedTab == "record" && !data.advOptions'>
+                ng-if='data.selectedTab == "record" && !data.advOptions'>
         <nl-input fieldmodel='recordingName' fieldtype='text' fieldcls='w100'></nl-input>
     </nl-dlg-row> 
 
-    <nl-dlg-row ng-show='data.selectedTab == "record" && !data.advOptions' class='text-center'>
+    <nl-dlg-row ng-if='data.selectedTab == "record" && !data.advOptions' class='text-center'>
         <div class="button padding-small"
              ng-click='recorder.toggle(data)'>
 
@@ -231,7 +230,7 @@
         <nl-checkbox fieldmodel='markupPopup' 
                      fieldname='Open link a new window'
                      fieldcls= 'padding-mid'
-                     tabindex="0">
+                     fieldindex="0">
         </nl-checkbox>
     </nl-dlg-row> 
 

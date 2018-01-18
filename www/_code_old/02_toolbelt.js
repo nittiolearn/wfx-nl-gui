@@ -97,8 +97,14 @@ function Toolbelt() {
         var toolHtml = jQuery(njs_helper.fmt2('<div id="{}" class="toolbeltRow row row-center margin0 padding0 nl-link-text {}" title="{}"></div>', tool.id, toolCls, title));
         toolHtml.append(njs_helper.fmt2('<span class="nl-toolbar-icon"><i class="toolbeltIcon icon {}">{}</i></span>', iconCls, iconTxt));
         toolHtml.append(njs_helper.fmt2('<span class="col toolbeltTxt">{}</span>', tool.name));
+        var clicked = false;
         toolHtml.click(function() {
-            tool.onclick();
+        	if(clicked) return;
+    		clicked = true;
+			tool.onclick();
+    		setTimeout(function() {
+    			clicked = false;
+    		}, 500);
             njs_animate.animEffect(toolHtml, 'toolbeltToolHighlight');
         });
         return toolHtml;
