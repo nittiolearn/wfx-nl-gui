@@ -13,15 +13,16 @@
 }
 </style>
 
-<div class='row row-top margin0 nl-dlg-field-value'
-	 ng-keypress='onKeypress($event, fieldmodel)' tabindex="{{tabindex}}"
+<div class='row row-top margin0'
+	 ng-keypress='onKeypress($event, fieldmodel)'
 	 ng-click='onFieldClick($event, fieldmodel)'>
     <div class='padding-mid'>
     	<img ng-show='$parent.data[fieldmodel]'
     		 ng-src='{{$parent.data[fieldmodel]}}'
-    		 class='nl-100 nl-link-img'/>
+    		 class='nl-100 nl-link-img'>
 	</div>
-	<span class='image-round-button nl-link-img {{$parent.data[fieldmodel] ? "image-top-button" : ""}}'>
+	<span class='image-round-button nl-link-img {{$parent.data[fieldmodel] ? "image-top-button" : ""}}' 
+		tabindex='{{fieldindex}}'>
 	    <i class='icon ion-edit nl-dlg-field-icon fsh4'></i>
 	</span>
 	<span>&nbsp;</span>

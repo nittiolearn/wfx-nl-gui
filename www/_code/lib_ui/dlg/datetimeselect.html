@@ -2,7 +2,7 @@
     <div class='row row-center margin0 padding-small nl-link-text'
          ion-datetime-picker 
          autofocus=''
-         tabindex="{{tabindex || 0}}"
+         tabindex="{{fieldindex || 0}}"
          ng-model="$parent.data[fieldmodel]">
         <div class='col margin0 padding0'>{{$parent.data[fieldmodel] | nlDateTimeFormat}}</div>
         <i ng-show='$parent.data[fieldmodel]'

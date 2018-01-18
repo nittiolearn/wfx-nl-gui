@@ -128,6 +128,10 @@ function(nl, $ionicPopup, $ionicLoading) {
         if (dlgId in _dlgList) delete _dlgList[dlgId];
     };
     
+    this.isDlgOpen = function() {
+    	return (Object.keys(_dlgList).length > 0);
+    };
+    
     this.dlgFields = {};
     this.addField = function(fieldModel, field) {
     	this.dlgFields[fieldModel] = field;
@@ -215,7 +219,7 @@ function(nl, $window, nlKeyboardHandler) {
 	function postLink($scope, iElem, iAttrs) {
         $scope.canShowHelp = ($scope.showHelp !== '0'); // By default show help
         $scope.canShowClose = ($scope.showClose === '1'); // By default don't show help
-        $scope.$parent.title = $scope.title;
+        $scope.$parent.title = $scope.dlgtitle;
         $scope.helpHidden = true;
         $scope.imgBasePath = nl.rootScope.imgBasePath;
         $scope.onHelp = function() {
@@ -246,7 +250,7 @@ function(nl, $window, nlKeyboardHandler) {
         //priority: -1000, // should be post linked after ng-show which runs in priority level 0
         templateUrl: 'lib_ui/dlg/dlg.html',
         scope: {
-            title: '@',
+            dlgtitle: '@',
             showHelp: '@',
             showClose: '@'
         },
@@ -327,7 +331,7 @@ function(nl) {
         scope: {
             fieldmodel: '@',
             canclear: '@',
-            tabindex: '@'
+            fieldindex: '@'
         },
         link: function($scope, iElem, iAttrs) {
             $scope.onFieldClick = function(e, fieldmodel) {
@@ -366,7 +370,7 @@ function(nl, nlDlg, nlLessonSelect) {
             fieldmodel: '@',
             fieldtype: '@',
             fieldcls: '@',
-            tabindex: '@',
+            fieldindex: '@',
             placeholder: '@',
             userinfo: '='
         },
@@ -427,7 +431,7 @@ function _formFieldDirectiveImpl(nl, nlDlg, tagName, templateUrl, transclude) {
             fieldmodel2: '@',
             fieldtype: '@',
             fieldcls: '@',
-            tabindex: '@',
+            fieldindex: '@',
             placeholder: '@',
             fieldmaxvalue: '@',
             fieldminvalue: '@'

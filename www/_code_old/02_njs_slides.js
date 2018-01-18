@@ -55,6 +55,7 @@ njs_slides = function() {
 		// Setup keboard handlers
 		jQuery(document).keydown(function(e) {
 			if (activeSlideSet == null) return;
+			if (window.nlapp.nlDlg.isDlgOpen()) return;
 			
 			var ae = document.activeElement;
 			var ignore = ae && (ae.type || ae.href || ae.contentEditable !== 'inherit');

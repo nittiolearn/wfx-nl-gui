@@ -2,7 +2,7 @@
     <div class='row row-center margin0 padding-small nl-link-text {{fieldcls}}'
          ng-click='onSearchLesson()'
          autofocus=''
-         tabindex="{{tabindex || 0}}">
+         tabindex="{{fieldindex || 0}}">
         <div class='col'>{{$parent.data[fieldmodel].title}}</div>
         <i ng-show='$parent.data[fieldmodel]'
            class='icon ion-ios-close nl-dlg-field-icon forange2'
@@ -11,7 +11,7 @@
         <i class='icon ion-android-search nl-dlg-field-icon'
            title='Search modules'
            autofocus=''
-           tabindex="{{tabindex}}"></i>
+           tabindex="{{fieldindex}}"></i>
     </div>
 </div>
 <div ng-show='$parent.error[fieldmodel]' class='nl-dlg-field-errormsg'>{{$parent.error[fieldmodel]}}</div>

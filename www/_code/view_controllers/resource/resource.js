@@ -126,7 +126,7 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
             fieldmodel: '@',
             multiple: '@',
             restype: '@',
-            tabindex: '@'
+            fieldindex: '@'
         },
         link: _linkFunction
     };
