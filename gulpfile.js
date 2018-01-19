@@ -1,7 +1,7 @@
 //-------------------------------------------------------------------------------------------------
 //var SERVER_URL = 'http://192.168.0.3:8000/';
 var SERVER_URL = '/';
-var VERSIONS = {script:'v114_pre03', res:'v50', icon:'v41', template:'v35'};
+var VERSIONS = {script:'v114_pre04', res:'v50', icon:'v41', template:'v35'};
 //-------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
@@ -20,7 +20,6 @@ var uglify = require('gulp-uglify');
 var streamqueue = require('streamqueue');
 var print = require('gulp-print');
 var order = require('gulp-order');
-var karma = require('gulp-karma');
 var htmlreplace = require('gulp-html-replace');
 var runSequence = require('run-sequence');
 
@@ -36,8 +35,6 @@ inPaths.oldCode = './www/_code_old/';
     inPaths.oldJs = inPaths.oldCode + '*.js'; // We do not want the test folder (so not **/*.js)
     inPaths.oldCss = inPaths.oldCode + '**/*.css';
 inPaths.htmlTemplate = './www/_htmlTemplate/';
-inPaths.karma = ['www/js/ionic.bundle.min.js', 'www/js/ydn.db-isw-core-qry.js', 'www/js/nl.html_fragments.min.js',
-    'node_modules/angular-mocks/angular-mocks.js', 'www/_code/**/*.js', 'www/_test/**/*.js'];
 
 var outPaths = {};
 outPaths.base = '../nittio/applications/nittiolearn/';
@@ -284,26 +281,4 @@ gulp.task('nl_copy_icon', function(done) {
 
 gulp.task('nl_copy_template', function(done) {
     nittioCopyResouce(done, 'template');
-});
-
-//-------------------------------------------------------------------------------------------------
-// Testing with Karma
-//-------------------------------------------------------------------------------------------------
-gulp.task('karma', function(done) {
-    gulp.src(inPaths.karma)
-    .pipe(karma({
-        configFile: 'karma.conf.js',
-        action: 'run',
-        browsers: ['Chrome']
-    }))
-    .on('end', done);
-});
-
-gulp.task('karma_all', function(done) {
-    gulp.src(inPaths.karma)
-    .pipe(karma({
-        configFile: 'karma.conf.js',
-        action: 'run'
-    }))
-    .on('end', done);
 });
