@@ -42,10 +42,6 @@
     }
 </style>
 <div>
-	<div class='row margin0 padding0'>
-	    <div ng-show='error.generalError' class='nl-dlg-field-errormsg'>{{error.generalError}}</div>
-	</div>
-
 	<div class='row margin0 padding0 row-stretch text-center'
 		ng-show='markupInfo.insertOrUpdateResource'> 
 		<div class='padding0 {{(data.selectedTab == "library" && !data.advOptions) ? "page_format_tab_selected" : "page_format_tab_not_selected"}} nl-link-text'
@@ -113,6 +109,11 @@
 	            <i class='icon ion-ios-search nl-dlg-field-icon fsh4'></i>
 	        </span>
 	    </div>
+
+		<div class='row margin0 padding0'>
+		    <div ng-show='error.libError' class='nl-dlg-field-errormsg'>{{error.libError}}</div>
+		</div>
+
 	    <div class='row row-top row-wrap row-justify-evenly margin0 padding0'>
 	        <div ng-repeat='resource in data.resourceList'>
 	            <div class='text-center padding'>

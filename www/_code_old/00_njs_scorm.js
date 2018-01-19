@@ -375,7 +375,9 @@ function ScormLms(g_lesson, g_version) {
     
     function _updateDataModel(username, userdispname) {
         if (!g_lesson.oLesson.scormDataModel) {
-            _defaultDataModel['cmi.core.student_id'] = username;
+            var usernameparts = username.split('.');
+            _defaultDataModel['cmi.core.student_id'] = usernameparts.length > 0 
+                ? usernameparts[0] : 'none';
             _defaultDataModel['cmi.core.student_name'] = userdispname;
             self.scormDataModel = _defaultDataModel;
             return true;

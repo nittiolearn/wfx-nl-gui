@@ -377,10 +377,11 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 	}
 
     function _validate(scope) {
+    	scope.data.advOptions = false;
         if (scope.data.selectedTab == 'url' && !scope.data.url)
             return _validateFail(scope, 'url', 'Please specify a valid URL');
         if (scope.data.selectedTab == 'library' && !_resourceLibrary.getSelectedUrlInfo().url)
-            return _validateFail(scope, 'generalError', 'Please select an item from the library');
+            return _validateFail(scope, 'libError', 'Please select an item from the library');
         if (scope.data.selectedTab == 'upload' && scope.data.resource.length == 0)
             return _validateFail(scope, 'resource', 'Please select the resource to upload');
         if (scope.data.selectedTab == 'record' && !scope.recorder.recordedBlob)
@@ -592,7 +593,7 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
         } else if (sd.restype.id == 'Audio') {
             prefix = 'audio:';
             _addMarkupParam(params, 'start', sd.markupStart, 0);
-            _addMarkupParam(params, 'stop', sd.markupEnd, 0);
+            _addMarkupParam(params, 'end', sd.markupEnd, 0);
         } else if (sd.restype.id == 'Video') {
             prefix = 'video:';
             _addMarkupParam(params, 'start', sd.markupStart, 0);
