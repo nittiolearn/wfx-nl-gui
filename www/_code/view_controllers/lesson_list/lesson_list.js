@@ -164,8 +164,9 @@ function($scope, nlLessonSelect) {
 
 //-------------------------------------------------------------------------------------------------
 var LessonSelectSrv = ['nl', 'nlRouter', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 
-'nlApproveDlg', 'nlSendAssignmentSrv', 'nlMetaDlg',
-function(nl, nlRouter, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlSendAssignmentSrv, nlMetaDlg) {
+'nlApproveDlg', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlGroupInfo',
+function(nl, nlRouter, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlSendAssignmentSrv, 
+	nlMetaDlg, nlGroupInfo) {
 this.showSelectDlg = function($scope, initialUserInfo) {
 	var self = this;
 	return nl.q(function(resolve, reject) {
@@ -209,7 +210,9 @@ this.show = function($scope, initialUserInfo, params) {
             mode.metadataEnabled = (mode.mode == MODES.APPROVED) ||
                 (mode.mode == MODES.MANAGE) ||
                 (mode.mode == MODES.SENDASSIGNMENT);
-            _getDataFromServer(resolve);
+	        nlGroupInfo.init().then(function() {
+	            _getDataFromServer(resolve);
+			});
 		});
 	}
 
@@ -437,7 +440,7 @@ this.show = function($scope, initialUserInfo, params) {
         if (_isApproved(lesson)) {
             nl.fmt.addAvp(avps, 'Approved by', lesson.approvername);
             nl.fmt.addAvp(avps, 'Approved on', lesson.approvedon, 'date');
-            nl.fmt.addAvp(avps, 'Approved to', lesson.oulist, '-', 'all classes/user groups');
+            nl.fmt.addAvp(avps, 'Approved to', _getApprovedToString(lesson), '-');
         }
         if (mode.mode == MODES.REVIEW) {
             nl.fmt.addAvp(avps, 'Remarks', lesson.remarks);
@@ -481,8 +484,6 @@ this.show = function($scope, initialUserInfo, params) {
     function _isApproved(lesson) {
         if (mode.mode == MODES.NEW || mode.mode == MODES.SENDASSIGNMENT
             || mode.mode == MODES.APPROVED || mode.mode == MODES.MANAGE) return true;
-        if (lesson.state == STATUS.APPROVED || lesson.state == STATUS.APPROVEDREWORK 
-            || lesson.state == STATUS.APPROVEDREVIEW) return true;
         return false;
     }
 
@@ -527,6 +528,24 @@ this.show = function($scope, initialUserInfo, params) {
         var state = lesson.state || STATUS.PRIVATE;
         return nl.fmt2("<div><i class='icon fsh4 {}'></i><span class='padding-small-h'></span>{}</div>",
             STATUS_ICON[state], STATUS_STR[state]);
+    }
+    
+    function _getApprovedToString(lesson) {
+    	var metaDataValues = JSON.parse(lesson.usermetadata) || {};
+    	if((Object.keys(metaDataValues).length == 0) && (lesson.oulist == '')) return 'all organizations';
+
+    	var approvedString = '<div><ul>';
+		if(lesson.oulist != '') approvedString += nl.t('<li class="sep4"><b>Organistaions: </b>{}</li>', lesson.oulist);
+
+        if(metaDataValues) {
+	        var metaFields = nlGroupInfo.getUserMetadata(null);
+        	for(var i=0; i<metaFields.length; i++) {
+        		var meta = metaFields[i];
+        		if (!(meta.id in metaDataValues)) continue;
+				approvedString += nl.t('<li class="sep4"><b>{}: </b>{}</li>', meta.name, metaDataValues[meta.id].toString());
+        	}
+        }
+        return approvedString += '</ul></div>';
     }
     
     function _getRevstateStr(lesson) {

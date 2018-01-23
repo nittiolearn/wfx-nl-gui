@@ -243,6 +243,10 @@ input[type="file"] {
   background-repeat: no-repeat;
 }
 
+.aspect_wrt.bg_cover {
+  background-size: cover;
+}
+
 .aspect_wrt_with_imglink:hover {
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.55);
   border-radius: 8px;
