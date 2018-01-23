@@ -2239,15 +2239,8 @@ function ModulePopupHadler() {
         return true;
     };
     
-    this.canShowPopup = function(section) {
-        if (g_lesson.renderCtx.launchCtx() != 'do_assign') return true;
-        if (!section.page.pagetype.isInteractive(section)) return true;
-        if (g_lesson.oLesson.selfLearningMode) return true;
-        return false;
-    };
-    
     this.show = function(section) {
-        if (!this.canShowPopup(section)) return;
+        if (!_canShowPopup(section)) return;
         if (!section.page.pageAnimationDone) {
             njs_helper.Dialog.popupStatus('Please wait till the page is played completely.');
             return;
@@ -2345,6 +2338,14 @@ function ModulePopupHadler() {
             oPages.push(pages[i].oPage);
         }
         return oPages;
+    }
+
+    function _canShowPopup(section) {
+    	if (!section.oSection.popups) return false;
+        if (g_lesson.renderCtx.launchCtx() != 'do_assign') return true;
+        if (!section.page.pagetype.isInteractive(section)) return true;
+        if (g_lesson.oLesson.selfLearningMode) return true;
+        return false;
     }
 }
 var modulePopup = new ModulePopupHadler();
