@@ -23,6 +23,8 @@ var _headers = [
     {id: 'state', name: "State", optional: true},
     {id: 'org_unit', name: "OU", oldnames: ["Class / user group"]},
     {id: 'sec_ou_list', name: "Sec OUs", oldnames: ["Secondary user groups"], optional: true},
+    {id: 'supervisor', name: "Supervisor", optional: true},
+    {id: 'doj', name: "Joining date", optional: true},
     {id: 'created', name: "Created UTC Time", optional: true},
     {id: 'updated', name: "Updated UTC Time", optional: true}
 ];
@@ -68,6 +70,9 @@ function(nl, nlDlg, nlGroupInfo, nlExporter) {
         },
         updated: function(user) {
             return user.updated ? nl.fmt.date2UtcStr(user.updated) : '';
+        },
+        doj: function(user) {
+            return user.doj ? 'date:' + user.doj : '';
         }
     };
     
@@ -91,7 +96,7 @@ function(nl, nlDlg, nlGroupInfo, nlExporter) {
                 var attr = headers[i];
                 var toCsv = _toCsvFns[attr.id] || function(user) {
                     return attr.metadata ? md[attr.id].value : user[attr.id];
-                }
+                };
                 var val = toCsv(user, attr, groupInfo);
                 if (val === null || val === undefined) val = '';
                 row.push(val);
@@ -115,6 +120,12 @@ function(nl, nlDlg, nlGroupInfo, nlExporter) {
 var AdminUserImportSrv = ['nl', 'nlDlg', 'nlGroupInfo', 'nlImporter', 'nlProgressLog', 'nlRouter',
 'nlServerApi',
 function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerApi) {
+    var _fromCsvFns = {
+        doj: function(row) {
+        	if (!row.doj || row.doj.indexOf('date:') != 0) return '';
+            return row.doj.substring(5);
+        }
+    };
     var self = this;
     var _grpid = null;
     var _groupInfo = null;
@@ -303,7 +314,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         var levels = _progressLevels[currentAction];
         var p = levels[0] + (doneSubItems/maxSubItems)*(levels[1] - levels[0]);
         self.pl.progress(p);
-    }
+    };
 
     function _processCsvFile(table) {
         return nl.q(function(resolve, reject) {
@@ -398,12 +409,20 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             if (!headerInfo[i].optional && ret[i] === '')
                 _throwException(nl.fmt2('Mandatory field {} missing in row {}', headerInfo[i].name, i)); 
         }
+        _updateColumnValues(ret, headerInfo);
         _updateMetadataAttr(ret, headerInfo);
         _validateRow(ret, headerInfo);
         if (ret.ignore) return null;
         return ret;
     }
 
+    function _updateColumnValues(row, headerInfo) {
+        for(var i=0; i<headerInfo.length; i++) {
+            var h = headerInfo[i];
+            if (h.id in _fromCsvFns) row[h.id] = _fromCsvFns[h.id](row);
+        }
+    }
+    
     function _updateMetadataAttr(row, headerInfo) {
         var mdValues = {};
         for(var i=0; i<headerInfo.length; i++) {
@@ -576,7 +595,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     this.deleteUnwanted = function(row) {
         if ('created' in row) delete row.created;
         if ('udpated' in row) delete row.updated;
-    }
+    };
     
     this.validateRealChange = function(row) {
         if (row.ignore || row.op != 'u') return;
@@ -588,6 +607,8 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         if (user.usertype != row.usertype) return;
         if (user.org_unit != row.org_unit) return;
         if (user.sec_ou_list != row.sec_ou_list) return;
+        if (user.supervisor != row.supervisor) return;
+        if (user.doj != row.doj) return;
         if (user.first_name != row.first_name) return;
         if (user.last_name != row.last_name) return;
         if (user.metadata != row.metadata) return;
@@ -598,9 +619,20 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     };
 
     this.validateManagers = function(row) {
-        // Manager and Watchers to be validated here
+        if(!row.supervisor) row.supervisor = '';
+        if(row.supervisor) {
+	        var username = row.supervisor + '.' + row.gid;
+	        username = username.toLowerCase().trim();
+	        if (!(username in _groupInfo.derived.keyToUsers) && !(username in self.foundKeys))
+	            _throwException('Supervisor is not defined', row);
+        }
+        // Watchers to be validated here
     };
     
+    this.validateDoj = function(row) {
+        if(!row.doj) row.doj = '';
+    };
+
     this.updateServer = function(rows, createMissingOus) {
         self.reload = false;
         self.chunkStart = 0;

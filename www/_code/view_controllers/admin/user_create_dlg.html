@@ -62,6 +62,16 @@
                 <div ng-show='error.sec_ou_list' class='nl-dlg-field-errormsg'>{{error.sec_ou_list}}</div>
             </div>
 
+            <div ng-class='resp2Col33' class='nl-dlg-field-name'>Supervisor</div>
+            <div ng-class='resp2Col67' class='padding0'>
+                <nl-input fieldmodel='supervisor' fieldtype='text' fieldcls='w100'></nl-input>
+            </div>
+
+            <div ng-class='resp2Col33' class='nl-dlg-field-name'>Joining date</div>
+            <div ng-class='resp2Col67' class='padding0'>
+	            <nl-date-select fieldmodel='doj'></nl-date-select>
+            </div>
+
         </div>
         <br/>
     </nl-dlg-content>

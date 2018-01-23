@@ -9,7 +9,7 @@ ng-click='showCsvFormatHelp = !showCsvFormatHelp'>
 <div ng-show='showCsvFormatHelp' class='padding-mid'>
     <h3>Syntax of CSV file fields</h3>
     <p>
-        The input file for import is in the same CSV format as the one exported.
+        The input file for import is in the same CSV format as the one exported. The best way to understand the CSV format is to create few users and export the data.
     </p>
     <ul>
         <li>
@@ -40,7 +40,16 @@ ng-click='showCsvFormatHelp = !showCsvFormatHelp'>
             <b>State: </b> 0 => deactivated, 1 = active.
         </li>
         <li>
-            <b>Class / user group: </b> Mandatory for create and update; ignored otherwise.
+            <b>OU: </b> OU name as available in OU tree. Mandatory for create and update; ignored otherwise.
+        </li>
+        <li>
+            <b>Organization specific metadata: </b> Optional. One or more columns like "location" and "grade" may appear. This is set of custom user metadata configured for your group.
+        </li>
+        <li>
+            <b>Supervisor: </b> Optional. The "User id" of the supervisor. The supervisor account should be created already (or available before the row referencing the supervisor.
+        </li>
+        <li>
+            <b>Joining date: </b> Optional. The joining date of the user in format date:yyyy-mm-dd.
         </li>
         <li>
             <b>Created / Updated UTC Time: </b> Created / Updated timestamps in UTC - readonly information when exporting. These are ignored during import.

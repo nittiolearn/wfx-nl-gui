@@ -87,6 +87,8 @@ function(nl, nlServerApi) {
             usertype: uInfo[this.USERTYPE] || this.UT_STUDENT_ADVANCED,
             org_unit: uInfo[this.ORG_UNIT] || '',
             sec_ou_list: uInfo[this.SEC_OU_LIST] || '',
+            supervisor: uInfo[this.SUPERVISOR] || '',
+            doj: uInfo[this.DOJ] || '',
             updated: uInfo[this.UPDATED] || null,
             created: uInfo[this.CREATED] || null,
             first_name: uInfo[this.FIRST_NAME] || '',
@@ -173,6 +175,8 @@ function(nl, nlServerApi) {
         self.ISBLEEDINGEDGE = 10;
         self.PERM_OVERRIDE = 11;
         self.METADATA = 12;
+        self.SUPERVISOR = 13;
+        self.DOJ = 14;
 
         // Generic user types    
         self.UT_NITTIOADMIN=10;

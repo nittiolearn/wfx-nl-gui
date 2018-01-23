@@ -21,6 +21,7 @@ function module_init() {
     .directive('nlFormSelect', FormSelectDirective)
     .directive('nlFormTextarea', FormTextareaDirective)
     .directive('nlElastic', ElasticTextareaDirective)
+    .directive('nlDateSelect', DateSelectDirective)
     .directive('nlDateTimeSelect', DateTimeSelectDirective);
 }
 
@@ -411,6 +412,12 @@ var FormTextareaDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
     return _formFieldDirectiveImpl(nl, nlDlg, 'textarea',
         'lib_ui/dlg/formtextarea.html');
+}];
+
+var DateSelectDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return _formFieldDirectiveImpl(nl, nlDlg, 'input',
+        'lib_ui/dlg/dateselect.html');
 }];
 
 var DateTimeSelectDirective = ['nl', 'nlDlg',

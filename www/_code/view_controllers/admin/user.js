@@ -171,6 +171,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect) {
         nl.fmt.addAvp(avps, 'User type', user.getUtStr());
         nl.fmt.addAvp(avps, 'OU', user.org_unit);
         nl.fmt.addAvp(avps, 'Secondary OUs', user.sec_ou_list);
+        nl.fmt.addAvp(avps, 'Supervisor', user.supervisor);
+        nl.fmt.addAvp(avps, 'Date of joining', user.doj);
         var metadata = nlGroupInfo.getUserMetadata(user, _grpid);
         for(var i=0; i<metadata.length; i++) {
             nl.fmt.addAvp(avps, metadata[i].name, metadata[i].value);
@@ -211,6 +213,12 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect) {
             dlg.scope.data.state = {id: user.state, name: user.getStateStr()};
             dlg.scope.data.org_unit = _getOuTree(user.org_unit, false, false);
             dlg.scope.data.sec_ou_list = _getOuTree(user.sec_ou_list, false, true);
+            dlg.scope.data.supervisor = user.supervisor;
+            try {
+	            dlg.scope.data.doj = user.doj ? nl.fmt.json2Date(user.doj) : null;
+            } catch (e) {
+ 	            dlg.scope.data.doj = null;
+            }
         } else {
             dlg.scope.dlgTitle = nl.t('New user');
             dlg.scope.isModify = false;
@@ -271,6 +279,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect) {
             first_name: d.first_name, last_name: d.last_name, email: d.email, 
             org_unit: _getTreeSelection(d.org_unit), 
             sec_ou_list: _getTreeSelection(d.sec_ou_list),
+            supervisor: d.supervisor,
+            doj: d.doj ? nl.fmt.date2Str(d.doj, 'date') : '',
             metadata: _getMetadataJson(dlgScope)
         };
         dlgScope.error = {};
@@ -306,7 +316,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect) {
         if(!_validateField(nlAdminUserImport.validateMobile, row, dlgScope, '')) return false;
         if(!_validateField(nlAdminUserImport.validateOu, row, dlgScope, 'org_unit')) return false;
         if(!_validateField(nlAdminUserImport.validateSecOu, row, dlgScope, 'sec_ou_list')) return false;
-        if(!_validateField(nlAdminUserImport.validateManagers, row, dlgScope, '')) return false;
+        if(!_validateField(nlAdminUserImport.validateManagers, row, dlgScope, 'supervisor')) return false;
+        if(!_validateField(nlAdminUserImport.validateDoj, row, dlgScope, 'doj')) return false;
         if(!_validateField(nlAdminUserImport.deleteUnwanted, row, dlgScope, '')) return false;
         if(!_validateField(nlAdminUserImport.validateRealChange, row, dlgScope, '')) return false;
         return true;
