@@ -77,7 +77,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlResourceUploader, nlProgres
                 _revertCards($scope);
                 _deleteManifest(card.manifestid);
             });
-        })
+        });
     };
     
     function _getStaticCards() {
@@ -282,7 +282,7 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         }, function() {
             _onComplete(false);
         });
-	}
+	};
 	
 	function _onComplete(bSuccess, postDeleteFn) {
         _q(_storeManifest)().then(function() {
@@ -347,7 +347,7 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
             self.manifestXml = content;
             pl.debug('Read imsmanifest content', self.manifestXml);
             resolve(true);
-        })
+        });
     }
     
     function _parseManifestXml(resolve, reject) {

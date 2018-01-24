@@ -567,7 +567,6 @@ function SectionTemplate(templString, errAlert) {
 	this.getChoices = SectionTemplate_getChoices;
 
 	this.isSpecialText = SectionTemplate_isSpecialText;
-	this.isEditorButton = SectionTemplate_isEditorButton;
 	this.getOptionsType = SectionTemplate_getOptionsType;
 	this.getOptionsMin = SectionTemplate_getOptionsMin;
 	this.getOptionsMax = SectionTemplate_getOptionsMax;
@@ -584,7 +583,7 @@ SectionTemplate.getDefaultString = function() {
 };
 
 SectionTemplate.getFieldHelp = function() {
-	return 'mode:text(default) or readonly or select or multi-select\r\noptions:editor=1\r\nreportid:optional-string\r\nhelp:optional-multi-line-string\r\nmore-lines-of-help-if-needed\r\nvalue:optional-multi-line-string\r\nmore-lines-of-value-if-needed';
+	return 'mode:text(default) or readonly or select or multi-select\r\noptions:type=text or number or tel or email|min=x|max=y\r\nreportid:optional-string\r\nhelp:optional-multi-line-string\r\nmore-lines-of-help-if-needed\r\nvalue:optional-multi-line-string\r\nmore-lines-of-value-if-needed';
 };
 
 SectionTemplate.usage = function() {
@@ -595,14 +594,13 @@ SectionTemplate.usage = function() {
 	div1.append(jQuery('<p>help:multi-line text which appears as editor help</p>'));
 	div1.append(jQuery('<p>reportid:unique text which identifies this parameter in the reports</p>'));
 	div1.append(jQuery('<p>value:applicable for readonly/select/multi-select modes</p>'));
-	div1.append(jQuery('<p>options:editor=1|type=text or number or tel or email|min=x|max=y</p>'));
+	div1.append(jQuery('<p>options:type=text or number or tel or email|min=x|max=y</p>'));
 
 	div1.append('<br/><p><b>Example: creating a text field with editor button</b></p>');
 	div1.append(jQuery('<p>mode:text</p>'));
 	div1.append(jQuery('<p>help:Please enter a text</p>'));
 	div1.append(jQuery('<p>Second line of help text</p>'));
 	div1.append(jQuery('<p>reportid:text input 1</p>'));
-	div1.append(jQuery('<p>options:editor=1</p>'));
 
 	div1.append('<br/><p><b>Example: creating a numeric field</b></p></b></p>');
 	div1.append(jQuery('<p>mode:text</p>'));
@@ -811,11 +809,7 @@ function SectionTemplate_getReportId() {
 }
 
 function SectionTemplate_isSpecialText() {
-	return (this.isEditorButton() || this.getOptionsType() != null);
-}
-
-function SectionTemplate_isEditorButton() {
-	return ('editor' in this.optionsParsed) && (this.optionsParsed.editor === '1');
+	return (this.getOptionsType() != null);
 }
 
 function SectionTemplate_getOptionsType() {
@@ -855,11 +849,6 @@ function SectionTemplate_getViewHtml(section, defaultHelp) {
 	var pageMode = section.lesson.renderCtx.pageMode(section.page);
 
 	if (this.mode == 'text')  {
-		if (pageMode == 'edit' && this.isEditorButton()) {
-			var ret = EditBoxHelper.createTextBox(ans, true, section, 
-				_SectionTemplate_cls, defaultHelp);
-			return {html: ret, isMarkup: false};
-		}
 		var optionsType = this.getOptionsType();
 		if (pageMode == 'edit' && optionsType != null) {
 			var ret = EditBoxHelper.createInputBox(ans, this, section, _SectionTemplate_cls, defaultHelp);
@@ -894,7 +883,7 @@ function SectionTemplate_getEditorText(section) {
 //#############################################################################################
 function EditBoxHelper() {
 	// EditBoxHelper.createInputBox(initialVal, secTemplate, section, cls, defaultHelp)
-	// EditBoxHelper.createTextBox(initialVal, isEditorButton, section, cls, defaultHelp)
+	// EditBoxHelper.createTextBox(initialVal, section, cls, defaultHelp)
 	// EditBoxHelper.checkInputBox(inputBox, secTemplate)
 };
 
@@ -971,7 +960,7 @@ EditBoxHelper.createInputBox = function(initialVal, secTemplate, section, cls, d
     return jQuery('<div/>').append(ret);
 };
 
-EditBoxHelper.createTextBox = function(initialVal, isEditorButton, section, cls, defaultHelp) {
+EditBoxHelper.createTextBox = function(initialVal, section, cls, defaultHelp) {
 	var ret = jQuery('<div/>');
 	var ta = jQuery(njs_helper.fmt2('<TEXTAREA class="{}"/>', cls));
 	ta.val(initialVal);
@@ -980,44 +969,9 @@ EditBoxHelper.createTextBox = function(initialVal, isEditorButton, section, cls,
 	ta.attr('title', defaultHelp);
 	section.page.setNextTabIndex(ta);
 	ret.append(ta);
-	if (!isEditorButton) return ret;
-
-	var editButton = jQuery(njs_helper.fmt2('<img class="sectiontoolIcon" src="{}/toolbar-edit/edit.png" title="Edit"/>', nittio.getStaticResFolder()));
-	_EditBoxHelper_setClickHandler(editButton, function(e) {
-		_EditBoxHelper_onButtonClick(section, cls);
-	});
-	ret.append(jQuery('<span class="sectiontoolbarIcon"/>').append(editButton));
 	return ret;
 };
 
-//#############################################################################################
-// EditBoxHelper - private methods
-//#############################################################################################
-function _EditBoxHelper_setClickHandler(domObj, handlerFn) {
-	domObj.on('click', function(e) {
-        e.preventDefault();
-		handlerFn(e);
-	});
-	domObj.on('keypress', function(e) {
-		var code = (e.keyCode ? e.keyCode : e.which);
-		if (code != 13) return;
-		e.preventDefault();
-		handlerFn(e);
-	});
-}
-	
-function _EditBoxHelper_onButtonClick(section, cls) {
-	cls = '.' + cls;
-	var ta = section.pgSecView.find(cls);
-	var ans = (ta.length > 0) ? ta.val() : '';
-	if (ans === undefined || ans === null) ans = '';
-	njs_helper.TextEditorDlg.show(ans, function(content) {
-		section.pgSecView.find(cls).focus();
-		if (content === ans) return;
-		ta.val(content);
-	});
-}
-	
 //#############################################################################################
 // SelectHelper - Class getting the html for select: / multi-select: boxes
 //#############################################################################################

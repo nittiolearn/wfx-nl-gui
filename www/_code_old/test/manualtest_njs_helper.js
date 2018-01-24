@@ -3,44 +3,6 @@ var njs_test_dummy = function() {
 //-------------------------------------------------------------------------------------------
 // QUnit manual testcases 
 //-------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------
-QUnit.module( "njs_helper.AddResourceDlg");
-//-------------------------------------------------------------------------------------------
-
-QUnit.asyncTest('AddResourceDlg.upload', function(assert) {
-	var tc = new njs_test.ParallelTestCases(assert, 1);
-	tc.execute(_AddResourceDlg);
-});
-
-function _AddResourceDlg(na, qRestarter) {
-	na.setExpectedAssertions(1);
-	njs_helper.AddResourceDlg.uploadResource(null, function(resUrl) {
-		na.assert(true, 'Got resUrl: ' + resUrl);
-		na.checkExpectedAssertions();
-		qRestarter.chainDone();
-	});
-}
-
-//-------------------------------------------------------------------------------------------
-QUnit.module( "njs_helper.TextEditorDlg");
-//-------------------------------------------------------------------------------------------
-
-QUnit.asyncTest('TextEditorDlg.show', function(assert) {
-	var tc = new njs_test.ParallelTestCases(assert, 1);
-	tc.execute(_TextEditorDlg);
-});
-
-function _TextEditorDlg(na, qRestarter) {
-	na.setExpectedAssertions(1);
-	njs_helper.TextEditorDlg.show('initial content', function(newcontent) {
-		na.assert(true, 'Got new content: ' + newcontent);
-		na.checkExpectedAssertions();
-		qRestarter.chainDone();
-	});
-}
-
-//-------------------------------------------------------------------------------------------
 QUnit.module( "njs_helper.LoginDlg");
 //-------------------------------------------------------------------------------------------
 

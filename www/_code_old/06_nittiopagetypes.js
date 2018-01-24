@@ -1433,8 +1433,7 @@ npagetypes = function() {
 		var help = _BehQuestionnaire_getViewHelp(section);
 		if (answerData.type == '') return '<div/>';
 		if (answerData.type == 'text') {
-			var isEditor = ('_editor' in answerData) && (answerData._editor === '1');
-			return njs_lesson_helper.EditBoxHelper.createTextBox(ans, isEditor, section, 
+			return njs_lesson_helper.EditBoxHelper.createTextBox(ans, section, 
 				'questionnaire', help);
 		}
 		var answers = njs_lesson_helper.SelectHelper.getAnswersAsList(answerData.type, ans);
