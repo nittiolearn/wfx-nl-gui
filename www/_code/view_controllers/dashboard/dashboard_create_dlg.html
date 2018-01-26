@@ -55,12 +55,12 @@
             <tr><td>help.about </td><td>/#/welcome#home</td><td> </td><td>Accessible even if no user is logged in</td></tr>
             <tr><td>help.issue </td><td>/info/help_issue_new/</td><td> basic_access</td><td></td></tr>
             <tr><td>help.eula </td><td>/info/eula/</td><td> basic_access</td><td></td></tr>
-            <tr><td>help.debug </td><td>/#/debug</td><td> debug_client</td><td></td></tr>
+            <tr><td>help.debug </td><td>/#/debug</td><td> nittio_support</td><td></td></tr>
             <tr><td>mentor_desk.mentor </td><td>/#/forum?forumtype=1&refid=0</td><td> #is_mentor </td><td>Mentor view</td></tr>
             <tr><td>mentor_desk.mentee</td><td>/#/forum?forumtype=1&refid=1</td><td> #is_mentee </td><td>Mentee view - accessible from restricted terminals as well</td></tr>
             <tr><td>lesson.pagecategories</td><td>/ pagecategories /view/</td><td>lesson_create</td><td></td></tr>
             <tr><td>assign_desk</td><td>/#/assignment</td><td>basic_access</td><td>Assignment desk items</td></tr>
-            <tr><td>reports.view_rep_book</td><td>/reportbook/view_rep_book/</td><td>view_reportbook</td><td>Report card</td></tr>
+            <tr><td>reports.view_rep_book</td><td>/reportbook/view_rep_book/</td><td>nittio_support</td><td>Report card</td></tr>
             <tr><td>res.upload</td><td>/#/resource_list?type=upload</td><td>lesson_create</td><td>Resouce card</td></tr>
             <tr><td>res.my</td><td>/#/resource_list?type=my</td><td>lesson_create</td><td></td></tr>
             <tr><td>res.list</td><td>/#/resource_list?type=all{}</td><td>admin_user</td><td></td></tr>
@@ -70,7 +70,7 @@
             <tr><td>admin.audit</td><td>/#/audit</td><td>admin_user</td><td></td></tr>
             <tr><td>admin.impersonate</td><td>/#/impersonate</td><td>admin_impersonate_grp</td><td></td></tr>
             <tr><td>admin.recycle</td><td>/#/recycle</td><td>lesson_approve</td><td></td></tr>
-            <tr><td>admin.subgroupview</td><td>/admin_group/group_view/selfadmin</td><td>and:admin_group_selfadmin,#is_parent_group</td><td></td></tr>
+            <tr><td>admin.subgroupview</td><td>/admin_group/group_view/selfadmin</td><td>nittio_support</td><td></td></tr>
             <tr><td>admin.custom_dashboards</td><td>/#/dashboard?my=0</td><td>admin_user</td><td></td></tr>
             <tr><td>admin.custom_dashboards_my</td><td>/#/dashboard?my=1</td><td>admin_user</td><td></td></tr>
             <tr><td>searchlist.my</td><td>/#/searchlist?my=1</td><td>admin_user</td><td></td></tr>
@@ -88,7 +88,7 @@
             <tr><td>lesson.self_assign_list </td><td>/#/lesson_list?type=selfassign&?{}</td><td>lesson_view</td><td>View approved list</td></tr>
             <tr><td>lesson.create</td><td>/#/lesson_list?type=new&{}</td><td>lesson_create</td><td>urlParams="search=xyz&grade=Grade 1&custtype=101"</td></tr>
             <tr><td>lesson.create2</td><td>/lesson/create2/{}</td><td>lesson_create</td><td>Provide template id in urlParams to directly create module based on template</td></tr>
-            <tr><td>lesson.upload_pdf</td><td>/#/upload_pdf?{}</td><td>lesson_create_adv</td><td>Provide "template=12345678" in the urlParams to customize this.</td></tr>
+            <tr><td>lesson.upload_pdf</td><td>/#/upload_pdf?{}</td><td>lesson_create</td><td>Provide "template=12345678" in the urlParams to customize this.</td></tr>
             <tr><td>lesson.manage</td><td>/#/lesson_list?type=manage&{}</td><td>lesson_approve</td><td>urlParams="search=xyz&grade=Grade 1&custtype=101"</td></tr>
             <tr><td>lesson.my</td><td>/#/lesson_list?type=my&{}</td><td>lesson_create</td><td>urlParams="search=xyz&grade=Grade 1&custtype=101"</td></tr>
             <tr><td>lesson.review</td><td>/#/lesson_list?type=review&{}</td><td>lesson_create</td><td>urlParams="grade=Grade 1&custtype=101"</td></tr>
