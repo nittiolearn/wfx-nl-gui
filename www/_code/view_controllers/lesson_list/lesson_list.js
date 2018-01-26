@@ -244,17 +244,16 @@ this.show = function($scope, initialUserInfo, params) {
 				url : "/lesson/create2",
 				linkId : "admin_group",
 				children : []
-			}],
-			style : 'nl-bg-blue',
-			links: []
-		};
-        if (_userInfo.permissions.lesson_create_adv) {
-            card.children.push({
+			}, {
                 title : "Create based on pdf",
                 url : "/lesson/create2/0/0/pdf",
                 linkId : "admin_group",
                 children : []
-            });
+            }],
+			style : 'nl-bg-blue',
+			links: []
+		};
+        if (_userInfo.permissions.nittio_support) {
             card.children.push({
                 title : "create a new template",
                 url : "/lesson/create2/0/1",

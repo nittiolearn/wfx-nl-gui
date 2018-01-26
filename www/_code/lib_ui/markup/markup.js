@@ -283,7 +283,8 @@ var _v='03';
 function _convertUrl(link) {
     if (link.indexOf('/resource/resview/') < 0) return link;
     if (!_gid) return link;
-    return nl.fmt2('{}?_d={}&_v={}&_g={}', link, _d, _v, _gid);
+    var delim = (link.indexOf('&') < 0) ? '?' : '&';
+    return nl.fmt2('{}{}_d={}&_v={}&_g={}', link, delim, _d, _v, _gid);
 }
 
 }];
