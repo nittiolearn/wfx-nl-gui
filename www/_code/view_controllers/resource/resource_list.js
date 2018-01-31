@@ -918,7 +918,7 @@ function ResourceLibrary() {
     		});
     	if (_selectedResource && _selectedResource.searchWeight)
     	   ret.unshift(_selectedResource); // Add selected to top of list
-		return ret.slice(0, 100);
+		return ret.slice(0, 1000);
 	}
 
 	function _getSearchWeight(res, searchText) {
