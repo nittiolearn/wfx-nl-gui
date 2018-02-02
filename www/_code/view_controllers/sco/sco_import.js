@@ -70,12 +70,14 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlResourceUploader, nlProgres
     $scope.onDeleteManifest = function(card) {
         _revertCards($scope);
         nlDlg.popupConfirm({title: 'Please confirm',
-            template: 'Are you sure you want to delete all the resources (ASSETS) uploaded as part of this scorm import. You will not be able to revert this change.'})
+            template: 'Are you sure you want to delete all the resources (ASSETS) and modules (SCOS) uploaded as part of this scorm import. You will not be able to revert this change.'})
         .then(function(res) {
             if (!res) return;
-            importer.deleteResources(card.title, card.manifestid, function() {
+            importer.deleteScoPackage(card, function(status) {
+            	if (!status) return;
+            	nlDlg.popupStatus('SCORM package is deleted');
                 _revertCards($scope);
-                _deleteManifest(card.manifestid);
+	            _getDataFromServer();
             });
         });
     };
@@ -145,14 +147,6 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlResourceUploader, nlProgres
         nl.fmt.addAvp(avps, 'Updated on', manifest.updated, 'date');
         return avps;
     }
-
-    function _deleteManifest(manifestid) {
-        nlDlg.showLoadingScreen();
-        nlServerApi.scoDeleteManifest(manifestid).then(function(status) {
-            nlDlg.popupStatus('Manifest deleted');
-            _getDataFromServer();
-        });
-    }
 }];
 
 var _cards = null;
@@ -179,6 +173,7 @@ function ScormViewer(nl, nlDlg, $scope, nlServerApi) {
         $scope.viewer = {manifestid: manifestid, show: true, data: null, card: card};
         nlServerApi.scoGetManifestData($scope.viewer.manifestid).then(function(data) {
             $scope.viewer.data = data;
+            card.scos = data.scos;
             var active = {scos: 0, assets: 0};
             $scope.viewer.active = active;
             for(var i=0; i<data.scos.length; i++)
@@ -244,20 +239,6 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         _initScope(template, manifestid, manifestid ? 'modify' : 'create', nextFn);
     };
 
-    this.deleteResources = function(title, manifestid, postDeleteFn) {
-        _initScope(0, manifestid, 'delete');
-
-        _init(null, title);
-        _q(_createOrGetManifest)()
-        .then(_q(_initDone))
-        .then(_q(_deleteOldResources))
-        .then(function() {
-            _onComplete(true, postDeleteFn);
-        }, function() {
-            _onComplete(false, postDeleteFn);
-        });
-    };
-
 	$scope.onImport = function() {
 	    if (!$scope.data.scozip || $scope.data.scozip.length == 0) {
 	        $scope.error.scozip = 'Please select a zip file';
@@ -284,6 +265,23 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         });
 	};
 	
+    this.deleteScoPackage = function(card, postDeleteFn) {
+        _initScope(0, card.manifestid, 'delete');
+        _init(null, card.title);
+        self.scos = card.scos;
+        
+        _q(_createOrGetManifest)()
+        .then(_q(_initDone))
+        .then(_q(_deleteScoModules))
+        .then(_q(_deleteOldResources))
+        .then(_q(_deleteManifest))
+        .then(function() {
+        	_onComplete2(true, postDeleteFn);
+        }, function() {
+        	_onComplete2(false, postDeleteFn);
+        });
+    };
+
 	function _onComplete(bSuccess, postDeleteFn) {
         _q(_storeManifest)().then(function() {
             _onComplete2(bSuccess, postDeleteFn);
@@ -298,7 +296,7 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         if (bSuccess) pl.imp(self.operation == 'delete' ? 'Deleted resources' : 'Import completed');
         else pl.error('Import failed');
         $scope.running = false;
-        if (postDeleteFn) postDeleteFn();
+        if (postDeleteFn) postDeleteFn(bSuccess);
     }
     
     function _init(scofile, title) {
@@ -495,6 +493,43 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         }); 
     }
 
+	function _deleteScoModules(resolve, reject) {
+		_deleteScoModule(resolve, reject, 0);
+	}
+	
+	function _deleteScoModule(resolve, reject, pos) {
+		if(pos >= self.scos.length) {
+            pl.imp(nl.fmt2('Deleted {} SCORM Modules', self.scos.length));
+            resolve(true);
+            return;
+		}
+		var lessonid = self.scos[pos].lessonid;
+		pos++;
+        var aofb = nl.fmt2(' {} of {}', pos, self.scos.length);
+        pl.debug('Disapproving module' +  aofb, lessonid);
+        nlServerApi.lessonDisapprove(lessonid).then(function(status) {
+	        _setProgress('sco_delete', 2*pos-1, self.scos.length*2);
+	        pl.debug('Deleting module' +  aofb, lessonid);
+			nlServerApi.lessonDelete(lessonid).then(function(status) {
+		        pl.info('Deleted module' +  aofb, lessonid);
+		        _setProgress('sco_delete', 2*pos, self.scos.length*2);
+ 				_deleteScoModule(resolve, reject, pos);
+			}, function(msg) {
+	            return _err(reject, 'Failed to delete scorm module: ' + msg);
+			});
+		}, function(msg) {
+            return _err(reject, 'Failed to disapprove scorm module: ' + msg);
+		});
+	}    
+
+    function _deleteManifest(resolve, reject) {
+         nlServerApi.scoDeleteManifest(self.manifestid).then(function(status) {
+         	resolve(true);
+        }, function(msg) {
+            return _err(reject, 'Failed to delete scorm package: ' + msg);
+        });
+    }
+
     function _getReskey(filename) {
         return nl.fmt2('{}/{}', self.manifestid, filename);
     }
@@ -663,7 +698,10 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         start: [0, 0],
         init: [0, 4],
         action: [4, 99],
-        done: [99, 100]
+        done: [99, 100],
+        
+        // Delete specific progress statues
+        sco_delete: [4, 85]
     };
     
     function _setProgress(currentAction, doneSubItems, maxSubItems) {

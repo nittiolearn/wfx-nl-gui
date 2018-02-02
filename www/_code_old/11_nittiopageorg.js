@@ -33,7 +33,6 @@ njsPageOrg = function() {
 		_pageOrgDlg.close();
 		unbindHotkeys();
 		nlesson.theLesson.reinitSlides();
-		nlesson.theLesson.postRender();
 		g_onDoneFn();
 		g_onDoneFn = '';
 		return true;

@@ -72,6 +72,14 @@ njs_slides = function() {
 				activeSlideSet.gotoPage(activeSlideSet.pages.length-1);
 			}
 		});
+		// Setup swipe event handlers
+		window.nlapp.nl.rootScope.onSwipeLeft = function(event) {
+			activeSlideSet.next();
+		};
+		window.nlapp.nl.rootScope.onSwipeRight = function(event) {
+			activeSlideSet.prev();
+		};
+
 	}
 
 	function SlideSet_init(me, slideSetDom, pageNo, navLeft, navRight) {

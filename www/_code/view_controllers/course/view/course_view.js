@@ -46,6 +46,12 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         this.courseId = parseInt(params.id);
         return true;
     };
+    
+    this.getModeName = function() {
+    	for(var modeName in MODE_NAMES)
+    		if (MODE_NAMES[modeName] == this.mode) return modeName;
+    	return 'private';
+    };
 
     this.initTitle = function(course) {
         this.course = course;
@@ -1336,6 +1342,10 @@ function NlContainer(nl, $scope, modeHandler) {
     
     this.getCurrentModule = function() {
         return $scope.ext.item;
+    };
+    
+    this.getMode = function() {
+    	return modeHandler.getModeName();
     };
     
     this.save = function(reportId, lesson, bDone) {
