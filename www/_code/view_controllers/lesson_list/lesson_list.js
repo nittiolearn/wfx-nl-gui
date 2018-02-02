@@ -530,7 +530,7 @@ this.show = function($scope, initialUserInfo, params) {
     }
     
     function _getApprovedToString(lesson) {
-    	var metaDataValues = JSON.parse(lesson.usermetadata) || {};
+    	var metaDataValues = lesson.usermetadata ? JSON.parse(lesson.usermetadata) : {};
     	if((Object.keys(metaDataValues).length == 0) && (lesson.oulist == '')) return 'all organizations';
 
     	var approvedString = '<div><ul>';
