@@ -27,8 +27,8 @@ function($stateProvider, $urlRouterProvider) {
 var NlCourseCertCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlPrinter',
 function(nl, nlRouter, $scope, nlDlg, nlPrinter) {
     var nlContainer = null;
-    $scope.error = false;
     $scope.available = false;
+	$scope.sample = false;
 
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
@@ -46,8 +46,8 @@ function(nl, nlRouter, $scope, nlDlg, nlPrinter) {
     };
 
     function _onPageEnterImpl(userInfo) {
-        $scope.error = true;
-
+	    $scope.available = false;
+		$scope.sample = false;
         $scope.userName = userInfo.displayname;
 
         nlContainer = nlRouter.discoverNlContainer();
@@ -63,12 +63,17 @@ function(nl, nlRouter, $scope, nlDlg, nlPrinter) {
         if (cm.type != 'certificate') return;
         $scope.bgimg = cm.certificate_image || '';
         
-        var statusinfos = course.statusinfo || {};
-        var statusinfo = statusinfos[cm.id] || {};
-        if (statusinfo.status != 'done' || !statusinfo.date) return;
-        $scope.completionTime = nl.fmt.json2Date(statusinfo.date);
-
-        $scope.error = false;
+        if (nlContainer.getMode() == 'published') {
+        	$scope.sample = true;
+	        $scope.userName = '<Sample: Learner Name>';
+	        $scope.completionTime = new Date();
+	        
+        } else {
+	        var statusinfos = course.statusinfo || {};
+	        var statusinfo = statusinfos[cm.id] || {};
+	        if (statusinfo.status != 'done' || !statusinfo.date) return;
+	        $scope.completionTime = nl.fmt.json2Date(statusinfo.date);
+        }
         $scope.available = true;
     }
 }];
