@@ -51,6 +51,10 @@
             font-weight: 900;
             font-size: 130%;
         }
+        
+        .sample {
+        	color: red;
+        }
     
         .fmtdate {
         }
@@ -66,13 +70,13 @@
          <img ng-if='bgimg' class='minbgimg' ng-src='{{bgimg}}'>
          <div class='content'>
             <p class='fmttitle'>This is to certify that</p>
-            <p class='fmtuser'>{{userName}}</p>
+            <p class='fmtuser {{sample ? "sample": ""}}'>{{userName}}</p>
             <p class='fmttext'>
                 has successfully completed the online training module on
             </p>
             <p class='fmtcourse'>{{courseName}}</p>
             <p class='fmttext'>
-                on <span class='fmtdate'>{{completionTime | date : 'dd-MMMM-yyyy'}}</span>.
+                on <span class='fmtdate {{sample ? "sample": ""}}'>{{completionTime | date : 'dd-MMMM-yyyy'}}</span>.
             </p>
          </div>
     </div>
@@ -90,7 +94,7 @@
             <button class='nl-button w100' ng-click='onPrint()'>Print</button>
         </div>
     </div>
-    <div ng-if='error'
+    <div ng-if='!available'
          class='cert'>
         <h3>Error</h3>
         <p>Your certificate cannot be generated at the moment!</p>
