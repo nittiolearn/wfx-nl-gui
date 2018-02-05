@@ -274,7 +274,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		editDlg.scope.onFieldClick = function(fieldId) {
 			var resFilter = fieldId == 'background' ? 'bg' : 'icon';
 			var selectedImgUrl = fieldId == 'background' ? (editDlg.scope.data.background || '') : (editDlg.scope.data.icon || '');
-			var bgShade = fieldId == 'background' ? (editDlg.scope.data.bgShade || 'bglight') : ''
+			var bgShade = fieldId == 'background' ? (editDlg.scope.data.bgShade || 'bglight') : '';
 			var markupText = nl.fmt2('img:{}[{}]', selectedImgUrl, bgShade); 
 			var promise = nlResourceAddModifySrv.insertOrUpdateResource(_parentScope, 
 				            _moduleConfig.restypes, markupText, false, _resourceList, resFilter);
@@ -324,7 +324,10 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		var index = template.indexOf('[');
         var index2 = template.indexOf(']');
 		sd.background = template.substring(4, index);
-		sd.bgShade = template.substring(index, index2)
+		// To workaround a code bug (caused in v114) which left the template with too many "["
+		// Some modules might still have oLesson.template with values like img:url[[[[[bglight]
+		var indexStartShade = template.lastIndexOf('['); 
+		sd.bgShade = template.substring(indexStartShade+1, index2);
 	}
 }]; 
 
