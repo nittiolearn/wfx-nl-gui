@@ -88,17 +88,17 @@ function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
 function getController(ctrlType) {
 	return [
 		'nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'NlAssignReportStats',
-		'nlGroupInfo', 'nlRangeSelectionDlg', 'nlOuUserSelect',
+		'nlGroupInfo', 'nlRangeSelectionDlg',
 		function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats,
-			nlGroupInfo, nlRangeSelectionDlg, nlOuUserSelect) {
+			nlGroupInfo, nlRangeSelectionDlg) {
 	    _assignRepImpl(ctrlType, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, 
-	    	NlAssignReportStats, nlGroupInfo, nlRangeSelectionDlg, nlOuUserSelect);
+	    	NlAssignReportStats, nlGroupInfo, nlRangeSelectionDlg);
 	}];
 }
 
 //-------------------------------------------------------------------------------------------------
 function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, 
-	NlAssignReportStats, nlGroupInfo, nlRangeSelectionDlg, nlOuUserSelect) {
+	NlAssignReportStats, nlGroupInfo, nlRangeSelectionDlg) {
 	var _userInfo = null;
 	var my = 0;
 	var search = null;
@@ -168,8 +168,6 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	$scope.onCardLinkClicked = function(card, linkid) {
 		if(linkid == 'assignment_update'){
 			nl.window.location.href = nl.t('/lesson/update_report_assign/{}', card.id);
-		} else if(linkid == 'assignment_share') {
-			_assignmentShare($scope, card);
 		} else if(linkid == 'assignment_content'){
 			nl.window.location.href = nl.t('/lesson/view_assign/{}', mode.assignid);
         } else if(linkid == 'assignment_export') {
@@ -253,8 +251,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 
 		if(report.completed) {
 		    if (reptype == 'assignment')
-                card.links.push({id : 'assignment_update', text : nl.t('update')},
-                                {id : 'assignment_share', text : nl.t('share')});
+                card.links.push({id : 'assignment_update', text : nl.t('update')});
 			if (report._percStr)
 				card['help'] += nl.t('<div class="nl-textellipsis padding-small"><span class="fsh3">{}</span> ({} of {})</div>', report._percStr, report._score || 0, report._maxScore);
 		}
@@ -417,139 +414,6 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
         }
         NlAssignReportStats.export($scope, reportStats.getRecords(), _userInfo);
     }
-
-    var _ouUserSelector = null;
-    var _selectedUsers = {};
-    var _selectedUserIdsObj = {};
-     
-	function _assignmentShare($scope, card){
-		var data = {repid: card.id};
-		var sharedUsersList = [];
-		var assignmentShareDlg = nlDlg.create($scope);
-        var alreadySharedUsers = [];
-			assignmentShareDlg.scope.data = {};
-			assignmentShareDlg.scope.data.card = card;
-        nlGroupInfo.init().then(function() {
-            nlGroupInfo.update();
-            _ouUserSelector = nlOuUserSelect.getOuUserSelector($scope, 
-                nlGroupInfo.get(), {}, {});
-			nlServerApi.assignmentSharedUsers(data).then(function(status){
-				sharedUsersList = status;	
-				_initAssignmentShareDlg(assignmentShareDlg, sharedUsersList);
-	        	_showDlg(assignmentShareDlg, sharedUsersList, alreadySharedUsers);			
-			});
-        });
-	};
-
-	function _showDlg(assignmentShareDlg, sharedUserList, alreadySharedUsers){
-		var updateButton =  {text : nl.t('Update'), onTap: function(e){
-			if(e) e.preventDefault();
-			var data = {repid: assignmentShareDlg.scope.data.card.id,
-						sharedUsers: assignmentShareDlg.scope.data.selectedSharedUserListIds};
-			nlServerApi.assignmentUpdateSharedUsers(data).then(function(status){
-				assignmentShareDlg.close(false);
-			});
-		}};
-		
-		var cancelButton = {
-			text : nl.t('Cancel')
-		};
-			
-		assignmentShareDlg.scope.onSharedUserSelect = function(){
-			_showOuListDlg($scope, assignmentShareDlg, sharedUserList);
-		};
-		
-		assignmentShareDlg.show('view_controllers/assignment_report/assignment_share_dlg.html', [updateButton], cancelButton, false);
-	}
-
-	function _initAssignmentShareDlg(assignmentShareDlg, sharedUsersList){
-		assignmentShareDlg.setCssClass('nl-height-max nl-width-max');
-		assignmentShareDlg.scope.data.users = sharedUsersList;
-		assignmentShareDlg.scope.data.removeicon = nl.url.resUrl('close2.png');
-		assignmentShareDlg.scope.data.sharedWith = nl.t('Not shared with any user:');
-		assignmentShareDlg.scope.data.sharedUsersIds = _updateOuTree(sharedUsersList, assignmentShareDlg);
-		assignmentShareDlg.scope.data.sharedUsers = assignmentShareDlg.scope.data.sharedUsersIds[0];
-		assignmentShareDlg.scope.data.selectedSharedUserListIds = assignmentShareDlg.scope.data.sharedUsersIds[1];				
-		assignmentShareDlg.scope.data.ouUserTree =_ouUserSelector.getTreeSelect();
-		_selectedUsers = _getSelectedUsers(assignmentShareDlg.scope.data.ouUserTree);
-        _ouUserSelector.updateSelectedIds(_selectedUsers);
-	};
-
-	function _getSelectedUsers(userTree){
-		var selectedUsers = {};
-		for(var i=0; i< userTree.data.length; i++){
-			var user = userTree.data[i];
-			if(!user.userObj) continue;
-			if(user.userObj.id in _selectedUserIdsObj) selectedUsers[user.id] = user;
-		};
-		return selectedUsers;
-	};
-	
-	function _updateOuTree(userData, assignmentShareDlg) {
-		var alreadySharedUsers = [];
-		var alreadySharedUsersIds = [];
-		var sharedUsersAndIds = [];
-			_selectedUserIdsObj = {};
-		for (var i in userData) {
-			var node = userData[i];
-			for(var j in node.children){
-				var subnode = node.children[j];
-				if(subnode.shared == true){
-					alreadySharedUsers.push(subnode);
-					alreadySharedUsersIds.push(subnode.id);
-					_selectedUserIdsObj[subnode.id] = subnode;		
-				}
-			}
-		}
-		_updateVisibilityToUsers(alreadySharedUsers, assignmentShareDlg);
-		sharedUsersAndIds.push(alreadySharedUsers, alreadySharedUsersIds);
-		return sharedUsersAndIds;
-	}
-
-	function _updateVisibilityToUsers(alreadySharedUsers, assignmentShareDlg){
-		if(alreadySharedUsers.length == 0) assignmentShareDlg.scope.data.sharedWith = nl.t('Shared With no users:');
-		if(alreadySharedUsers.length == 1) assignmentShareDlg.scope.data.sharedWith = nl.t('Shared With {} user:', alreadySharedUsers.length);
-		if(alreadySharedUsers.length > 1) assignmentShareDlg.scope.data.sharedWith = nl.t('Shared With {} users:', alreadySharedUsers.length);
-	}
-	
-	function _showOuListDlg(parentScope, assignmentShareDlg, ouList){
-		var ouSelectionDlg = nlDlg.create(parentScope);
-		ouSelectionDlg.scope.data = {};
-        _ouUserSelector.updateSelectedIds(_selectedUsers);
-		_initouSelectionDlg(ouSelectionDlg, assignmentShareDlg);
-
-		var addButton = {text : nl.t('Add'), onTap: function(){
-			if(Object.keys(ouSelectionDlg.scope.data.org_unit.selectedIds).length == 0) return;			
-			assignmentShareDlg.scope.data.sharedUsersIds = _updateSelectedUsersAndIds(ouSelectionDlg.scope.data.org_unit.selectedIds);
-			assignmentShareDlg.scope.data.sharedUsers = assignmentShareDlg.scope.data.sharedUsersIds[0];
-			assignmentShareDlg.scope.data.selectedSharedUserListIds = assignmentShareDlg.scope.data.sharedUsersIds[1];
-			_selectedUsers = ouSelectionDlg.scope.data.org_unit.selectedIds;
-		}};
-		var cancelButton = {text : nl.t('Cancel')};
-		
-		function _updateSelectedUsersAndIds(selectedIds){
-			var alreadySharedUsers = [];
-			var alreadySharedUsersIds = [];
-			var sharedUsersAndIds = [];
-			for (var i in selectedIds) {
-				var node = selectedIds[i];
-					var userObject = {container:node.userObj.org_unit, id: node.userObj.id, text: node.name};
-					alreadySharedUsers.push(userObject);
-					alreadySharedUsersIds.push(node.userObj.id);		
-			}
-			_updateVisibilityToUsers(alreadySharedUsers, assignmentShareDlg);
-			sharedUsersAndIds.push(alreadySharedUsers, alreadySharedUsersIds);
-			return sharedUsersAndIds;
-		}
-
-		ouSelectionDlg.show('view_controllers/assignment_report/share_report_dlg.html',
-			[addButton], cancelButton, false);
-	}
-	
-	function _initouSelectionDlg(ouSelectionDlg, assignmentShareDlg) {
-		ouSelectionDlg.setCssClass('nl-height-max nl-width-max');
-        ouSelectionDlg.scope.data.org_unit = assignmentShareDlg.scope.data.ouUserTree;
-	}
 }
 
 //-------------------------------------------------------------------------------------------------

@@ -167,7 +167,6 @@ function PageTimer(lesson) {
 //                       |                   |                           |
 // 'report_assign_my'    | 'report'          |                           | 
 // 'report_assign_review'|-- same as above --|------ same as above ------|
-// 'report_assign_shared'|-- same as above --|------ same as above ------|
 //#############################################################################################
 function RenderingContext() {
 	this.init = RenderingContext_init;
@@ -203,8 +202,7 @@ function RenderingContext() {
 var LAUNCH_CONTEXTS_TO_MODE = {
 	'edit_templ':'edit', 'edit':'edit',
 	'do':'do', 'view':'do', 'do_assign':'do', 'do_update':'do', 'do_review':'do', 
-	'report_assign_my': 'report', 'report_assign_review': 'report', 
-	'report_assign_shared': 'report'};
+	'report_assign_my': 'report', 'report_assign_review': 'report'};
 	
 var RUNTIME_CONTEXTS_TO_MODE = {
 	'edit': 'edit', 'edit_gra': 'edit', 'edit_templ': 'edit', 'edit_pv': 'do',
@@ -352,8 +350,7 @@ function RenderingContext_studentNotesState() {
 
 function RenderingContext_teacherRemarksState() {
 	if (this.canEditScore()) return 'editable';
-	if (this.launchCtx() == 'report_assign_my' || 
-		this.launchCtx() == 'report_assign_shared') return 'readonly';
+	if (this.launchCtx() == 'report_assign_my') return 'readonly';
 	return 'hidden';
 }
 

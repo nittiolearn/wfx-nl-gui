@@ -332,8 +332,7 @@ function ScormLms(g_lesson, g_version) {
     var _launchCtx2LessonMode = {
         do_assign: 'normal',
         report_assign_my: 'review', 
-        report_assign_review: 'review',
-        report_assign_shared: 'review'
+        report_assign_review: 'review'
     };
 
     var _defaultDataModel = {

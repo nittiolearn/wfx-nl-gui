@@ -325,19 +325,18 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 	        return;
         }
         var afterAssignmentSentDlg = nlDlg.create(_parentScope);
-        afterAssignmentSentDlg.scope.data = {};
+        afterAssignmentSentDlg.scope.data = {sentUserCnt: ctx.sentUserCnt,
+        	pageTitle: nl.t('Assignment sent')};
         if(ctx.data.type == 'lesson') {
             afterAssignmentSentDlg.scope.data.url = nl.fmt2('/#/assignment_report?assignid={}', ctx.data.assignid);
-            afterAssignmentSentDlg.scope.data.pageTitle = nl.t('Assignment sent');
         } else if (ctx.data.type == 'course') {
             afterAssignmentSentDlg.scope.data.url = nl.fmt2('#/course_report_list?assignid={}', ctx.data.assignid);
-            afterAssignmentSentDlg.scope.data.pageTitle = nl.t('Course assigned');
         }
         var cancelButton = {text : nl.t('Close'), onTap: function(e) {
 				_dlg.close();
-	        }};
-            afterAssignmentSentDlg.show('view_controllers/assignment/after_assignment_sent_dlg.html',
-                [], cancelButton);
+        }};
+        afterAssignmentSentDlg.show('view_controllers/assignment/after_assignment_sent_dlg.html',
+            [], cancelButton);
     }
 }];
 //-------------------------------------------------------------------------------------------------

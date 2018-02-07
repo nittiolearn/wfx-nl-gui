@@ -28,16 +28,14 @@ function($stateProvider, $urlRouterProvider) {
 var TYPES = {
 	NEW : 0,
 	PAST : 1,
-	SHARED : 2,
-	MANAGE : 3,
-	SENT : 4
+	SENT : 2,
+	MANAGE : 3
 };
 var TYPENAMES = {
 	'new' : 0,
 	'past' : 1,
-	'shared' : 2,
-	'manage' : 3,
-	'sent' : 4
+	'sent' : 2,
+	'manage' : 3
 };
 
 function TypeHandler(nl, nlServerApi) {
@@ -57,8 +55,6 @@ function TypeHandler(nl, nlServerApi) {
 		if (this.type == TYPES.PAST) {
 			params.bPast = true;
 			return nlServerApi.assignmentGetMyList;
-		} else if (this.type == TYPES.SHARED) {
-			return nlServerApi.assignmentGetSharedList;
 		} else if (this.type == TYPES.MANAGE) {
 			params.mine = false;
 			return nlServerApi.assignmentGetSentList;
@@ -76,8 +72,6 @@ function TypeHandler(nl, nlServerApi) {
 			return nl.t('New Assignments');
 		if (this.type == TYPES.PAST)
 			return nl.t('Past Assignments');
-		if (this.type == TYPES.SHARED)
-			return nl.t('Reports shared with me');
 		if (this.type == TYPES.MANAGE)
 			return nl.t('Manage assignments');
 		if (this.type == TYPES.SENT)
@@ -176,9 +170,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 
 	function _createAssignmentCard(assignment, userInfo) {
 		var url = null;
-		if (mode.type == TYPES.SHARED) {
-			url = nl.fmt2('/lesson/view_shared_report_assign/{}/', assignment.id);
-		} else if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
+		if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
 			url = nl.fmt2('/#/assignment_report?assignid={}', assignment.id);
 		} else if(mode.type == TYPES.PAST){
 			url = nl.fmt2('/lesson/view_report_assign/{}/', assignment.id);
@@ -194,16 +186,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		};
 		var descFmt = "<div class='nl-textellipsis'>Sent to: <b>{}</b></div>" + 
 			"<div class='nl-textellipsis'>{}: {}</div>" +
-			"<div class='nl-textellipsis'>by: <b>{}</b></div>";
-		if (mode.type == TYPES.PAST || mode.type == TYPES.SHARED) {
-		    descFmt += "<i class='icon fsh4 ion-checkmark-circled fgreen'></i> completed";
-			card['help'] = nl.t(descFmt, assignment.assigned_to, _userInfo.groupinfo.subjectlabel, assignment.subject, 
-			    assignment.assigned_by);
-		} else {
-            descFmt += "<div>{}</div>";
-			card['help'] = nl.t(descFmt, assignment.assigned_to, _userInfo.groupinfo.subjectlabel, assignment.subject, 
-			    assignment.assigned_by, assignment.assign_remarks);
-		}
+			"<div class='nl-textellipsis'>by: <b>{}</b></div><div>{}</div>";
+		card['help'] = nl.t(descFmt, assignment.assigned_to, _userInfo.groupinfo.subjectlabel, assignment.subject, 
+		    assignment.assigned_by, assignment.assign_remarks);
 		card.details = {
 			help : assignment.descMore,
 			avps : _getAssignmentAvps(assignment)
@@ -255,8 +240,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		var d = new Date();
 		if (mode.type == TYPES.PAST) {
 			nl.fmt.addLinkToAvp(linkAvp, 'view report', nl.fmt2('/lesson/view_report_assign/{}', assignId));
-		} else if (mode.type == TYPES.SHARED) {
-			nl.fmt.addLinkToAvp(linkAvp, 'view report', nl.fmt2('/lesson/view_shared_report_assign/{}', assignId));
 		} else if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
 			nl.fmt.addLinkToAvp(linkAvp, 'reports', nl.fmt2('/#/assignment_report?assignid={}', assignId));
 			nl.fmt.addLinkToAvp(linkAvp, 'content', nl.fmt2('/lesson/view_assign/{}', assignId));

@@ -362,12 +362,6 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/assignment_get_my_list.json', data);
     };
 
-	this.assignmentGetSharedList = function(data) {
-        // data: custtype, search
-        // return: list of assignment reports
-        return server.post('_serverapi/assignment_get_shared_list.json', data);
-	};
-
 	this.assignmentGetSentList = function(data) {
         // data: mine, custtype, search
         // return: list of assignments
@@ -394,18 +388,6 @@ function(nl, nlDlg, nlConfig, Upload) {
 		//data = reptype, assignid|userid, completed=[true|false], [mquery parameters]
 		//assignment_reports
 		return server.post('_serverapi/assignment_get_reports.json', data);
-	};
-	
-	this.assignmentSharedUsers = function(data){
-		//data = repid
-		//assignment_shared_users
-		return server.post('_serverapi/assignment_shared_users.json', data);		
-	};
-
-	this.assignmentUpdateSharedUsers = function(data){
-		//data = repid, sharedUsers
-		//assignment_shared_users
-		return server.post('_serverapi/assignment_update_shared_users.json', data);		
 	};
 	
     this.assignmentCloseReports = function(repids) {
