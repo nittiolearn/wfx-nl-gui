@@ -71,8 +71,8 @@ function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
             data.userid = self.userid;
             data.completed = true;
 		} else if (reptype == 'group' && dateRange) {
-		    data.updatedfrom = dateRange.updatedFrom;
-		    data.updatedtill = dateRange.updatedTill;
+		    data.createdfrom = dateRange.updatedFrom;
+		    data.createdtill = dateRange.updatedTill;
 		}
 		return data;
 	};
@@ -154,7 +154,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	}
         
 	function _showRangeSelection(resolve) {
-	    nlRangeSelectionDlg.show($scope).then(function(data) {
+	    nlRangeSelectionDlg.show($scope, true).then(function(data) {
 	        if (!data) {
                 if (resolve) resolve(false);
                 return;
@@ -222,31 +222,44 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 			cardlist.push(card);
 		}
 		cardlist.sort(function(a, b) {
-		    return (b.updated - a.updated);
+			if (reptype != 'user') return (b.updated - a.updated);
+			if (a.statusOrder == b.statusOrder) return (a.created - b.created);
+			return a.statusOrder - b.statusOrder;
 		});
 	}
 	
 	function _createReportCard(report) {
-	    var urlPart = (reptype == 'user' && report.student == _userInfo.userid)
-	       ? 'view_report_assign' : 'review_report_assign';
-
         var status = reportStats.getStatusInfo()[report._statusStr];
+        var atypes = reportStats.getAtypes();
 		var card = {
 			id : report.id,
 			title : (reptype == 'assignment') ? report.studentname : report.name,
 			updated: report.updated,
-			icon2 : status.icon,
+			created: report.created,
+			statusOrder: status.order,
 			internalUrl: null, 
-			url : report.completed ? nl.fmt2('/lesson/{}/{}', urlPart, report.id) : null,
+			url : null,
 			children : []
 		};
+        var statusIcon = '';
+		if (reptype == 'user') {
+			statusIcon = nl.fmt2('<span class="fsh2 {}"></span>', status.icon);
+			card.icon = nl.url.lessonIconUrl(report.icon || report.image);
+			card.url = report.completed ? nl.fmt2('/lesson/view_report_assign/{}', report.id)
+				: (report.assigntype == atypes.ATYPE_COURSE) ? null
+				: nl.fmt2('/lesson/do_report_assign/{}', report.id);
+		} else {
+			card.url = report.completed ? nl.fmt2('/lesson/review_report_assign/{}', report.id) : null;
+			card.icon2 = status.icon;
+		}
+			
         card['help'] = '';
         if (reptype == 'group') {
             card['help'] = nl.fmt2('<div class="nl-textellipsis padding-small"><b>{}</b></div>', 
                 report.studentname);
         }
-        card['help'] += nl.fmt2('<div class="nl-textellipsis padding-small"><b>{}</b></div>', 
-            status.txt);
+        card['help'] += nl.fmt2('<div class="nl-textellipsis row row-center padding0 margin0">{}<b class="padding-small">{}</b></div>', 
+            statusIcon, status.txt);
         card.links = [];
 
 		if(report.completed) {

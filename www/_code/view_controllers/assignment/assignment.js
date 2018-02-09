@@ -165,6 +165,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 			var card = _createAssignmentCard(resultList[i], userInfo);
 			cards.push(card);
 		}
+		cards.sort(function(a, b) {
+			return b.updated - a.updated;
+		});
 		return cards;
 	}
 
@@ -180,6 +183,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		var card = {
 			id : assignment.id,
 			title : assignment.name,
+			updated: nl.fmt.json2Date(assignment.updated),
 			icon : nl.url.lessonIconUrl(assignment.icon || assignment.image),
 			url : url,
 			children : []

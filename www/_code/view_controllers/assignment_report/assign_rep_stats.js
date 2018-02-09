@@ -22,9 +22,9 @@ function SimpleDirective(template) {
 
 //-------------------------------------------------------------------------------------------------
 var _statusInfo = {
-    'pending' : {icon: 'ion-ios-circle-filled fgrey', txt: 'Pending'},
-    'failed' : {icon: 'ion-alert-circled fyellow', txt: 'Scored low'},
-    'completed' : {icon: 'ion-checkmark-circled fgreen', txt: 'Completed'}
+    'pending' : {icon: 'ion-ios-circle-filled fgrey', txt: 'Pending', order: 1},
+    'failed' : {icon: 'ion-alert-circled fyellow', txt: 'Scored low', order: 2},
+    'completed' : {icon: 'ion-checkmark-circled fgreen', txt: 'Completed', order: 3}
 };
 
 var NlRepStatus = ['nl', 
@@ -671,10 +671,17 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
         });
         return ret;
     }
-    
+
+	var _atypes = {
+		ATYPE_MODULE: 0,
+		ATYPE_SELF_MODULE: 1,
+		ATYPE_COURSE: 2,
+		ATYPE_SELF_COURSE: 3 // Not used for timebeing
+	};
     function _getAssignTypeStr(assigntype, content) {
-        if (assigntype == 1) return 'self assignment';
-        if (assigntype == 2) return 'course assignment';
+    	// TODO-REPORTING-CHANGE
+        if (assigntype == _atypes.ATYPE_SELF_MODULE) return 'self assignment';
+        if (assigntype == _atypes.ATYPE_COURSE) return 'course assignment';
         if (content.trainingId) return 'training';
         return 'module assignment';
     }
@@ -708,6 +715,10 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
     
     this.getStatusInfo = function() {
         return _statusInfo;
+    };
+
+    this.getAtypes = function() {
+        return _atypes;
     };
 
     this.getReportAvps = function(report) {

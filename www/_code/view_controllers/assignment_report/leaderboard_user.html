@@ -16,7 +16,7 @@
         <td>
             <nl-rep-status rep='rep'></nl-rep-status>
         </td>
-        <td ng-show='screenSize != "small"' style='text-align:right'>{{rep._percStr || '-'}}</td>
+        <td ng-show='stats.totalMaxScore > 0 && screenSize != "small"' style='text-align:right'>{{rep._percStr || '-'}}</td>
     </tr>
     <tr ng-repeat-end ng-show='rep.showDetails'>
         <td colspan='{{screenSize == "small" ? 2: 4}}'>
