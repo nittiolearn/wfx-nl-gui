@@ -165,13 +165,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 			var card = _createAssignmentCard(resultList[i], userInfo);
 			cards.push(card);
 		}
-		cards.sort(function(a, b) {
-			return b.updated - a.updated;
-		});
 		return cards;
 	}
 
 	function _createAssignmentCard(assignment, userInfo) {
+        var content = assignment.content ? angular.fromJson(assignment.content) : {};
+        assignment.subject = content.subject || '';
+
 		var url = null;
 		if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
 			url = nl.fmt2('/#/assignment_report?assignid={}', assignment.id);
@@ -183,7 +183,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		var card = {
 			id : assignment.id,
 			title : assignment.name,
-			updated: nl.fmt.json2Date(assignment.updated),
+			created: nl.fmt.json2Date(assignment.created),
 			icon : nl.url.lessonIconUrl(assignment.icon || assignment.image),
 			url : url,
 			children : []
@@ -214,7 +214,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		nl.fmt.addAvp(avps, 'Assigned by', assignment.assigned_by);
 		nl.fmt.addAvp(avps, 'Assigned on', assignment.assigned_on, 'date');
 		if (mode.type !== TYPES.MANAGE && mode.type !== TYPES.SENT) {
-			nl.fmt.addAvp(avps, 'Owner', assignment.studentname);
 			nl.fmt.addAvp(avps, 'Started on', assignment.started, 'date');
 			nl.fmt.addAvp(avps, 'Ended on', assignment.ended, 'date');
 		}

@@ -23,8 +23,8 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var TrainingListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlSendAssignmentSrv',
-function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentSrv) {
+var TrainingListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlSendAssignmentSrv', 'nlGroupInfo',
+function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentSrv, nlGroupInfo) {
 
 	var _userInfo = null;
 	var trainingListDict = {};
@@ -35,22 +35,25 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 		_userInfo = userInfo;
 		trainingListDict = {};
 		return nl.q(function(resolve, reject) {
-			nl.pginfo.pageTitle = nl.t('Trainings');
-			_scope = $scope;
-            var params = nl.location.search();
-            _canShowDelete = ('debug' in params) &&
-                nlRouter.isPermitted(userInfo, 'admin_user');
-			$scope.cards = {
-			    toolbar: _getToolbar(),
-                search: {placeholder: nl.t('Enter training name/description')},
-			    listConfig: {
-            		columns : _getTableColumns(),
-            		canShowDetils : true,
-            		smallColumns : 1
-            	}
-            };
-            nlCardsSrv.initCards($scope.cards);
-			_getDataFromServer(resolve);
+            nlGroupInfo.init().then(function() {
+                nlGroupInfo.update();
+				nl.pginfo.pageTitle = nl.t('Trainings');
+				_scope = $scope;
+	            var params = nl.location.search();
+	            _canShowDelete = ('debug' in params) &&
+	                nlRouter.isPermitted(userInfo, 'admin_user');
+				$scope.cards = {
+				    toolbar: _getToolbar(),
+	                search: {placeholder: nl.t('Enter training name/description')},
+				    listConfig: {
+	            		columns : _getTableColumns(),
+	            		canShowDetils : true,
+	            		smallColumns : 1
+	            	}
+	            };
+	            nlCardsSrv.initCards($scope.cards);
+				_getDataFromServer(resolve);
+			});
 		});
 	}
 
@@ -189,7 +192,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 
 	function _updateReportsDict(results, reports) {
 		for (var i = 0; i < results.length; i++) {
-			var rep = _getNominationInfo(results[i]);
+            var user = nlGroupInfo.getUserObj(''+results[i].student);
+            if (!user) continue;
+			var rep = _getNominationInfo(results[i], user);
 			var oldRep = reports[rep.student] || null;
 			if (!oldRep) {
 				reports[rep.student] = rep;
@@ -200,14 +205,14 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 		}
 	}	
 
-	function _getNominationInfo(report) {
+	function _getNominationInfo(report, user) {
 		return {
 			student : report.student,
 			repid : report.id,
-			name : report.studentname,
+			name : nlGroupInfo.formatUserNameFromObj(user),
 			completed : report.completed,
 			updated : nl.fmt.json2Date(report.updated),
-			orgunit : report.org_unit
+			orgunit : user.org_unit
 		};
 	}
 

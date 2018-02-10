@@ -584,24 +584,21 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
         var groupInfo = nlGroupInfo.get();
         for(var i=0; i<reports.length; i++) {
             var rep = reports[i];
+            var user = nlGroupInfo.getUserObj(''+rep.student);
+            if (!user) continue;
             _lst.push(rep);
             var content = angular.fromJson(rep.content);
             rep.updated = nl.fmt.json2Date(rep.updated);
             rep.created = nl.fmt.json2Date(rep.created);
             if (rep.started) rep.started = nl.fmt.json2Date(rep.started);
             if (rep.ended) rep.ended = nl.fmt.json2Date(rep.ended);
-            rep._user_id = '';
-            rep._email = '';
-            var user = nlGroupInfo.getUserObj(''+rep.student);
-            if (user) {
-                rep.studentname = user.name;
-                rep._user_id = user.user_id;
-                rep._email = user.email;
-                rep.org_unit = user.org_unit;
-                var metadata = nlGroupInfo.getUserMetadata(user);
-                for(var j=0; j<metadata.length; j++)
-                    rep[metadata[j].id] = metadata[j].value|| '';
-            }
+            rep.studentname = user.name;
+            rep._user_id = user.user_id;
+            rep._email = user.email;
+            rep.org_unit = user.org_unit;
+            var metadata = nlGroupInfo.getUserMetadata(user);
+            for(var j=0; j<metadata.length; j++)
+                rep[metadata[j].id] = metadata[j].value|| '';
             rep._treeId = nl.fmt2('{}.{}', rep.org_unit, rep.student);
             rep._assignid = content.trainingId ? content.trainingId : 
                 content.courseAssignId ? content.courseAssignId : rep.assignment;
@@ -610,6 +607,7 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
             rep._courseId = content.courseId || '';
             rep._courseReportId = content.courseReportId || '';
             rep._grade = content.grade || '';
+            rep.subject = content.subject || '';
             if (!rep.completed) {
                 rep._percStr = '';
                 rep._statusStr = 'pending';
@@ -726,7 +724,7 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
         nl.fmt.addAvp(avps, 'Learner', report.studentname);
         nl.fmt.addAvp(avps, 'Module', report.name);
         if (report.completed && report._maxScore > 0) {
-            nl.fmt.addAvp(avps, 'Score', nl.fmt2('{} ({} of {})', report._percStr, report.score || 0, report._maxScore));
+            nl.fmt.addAvp(avps, 'Score', nl.fmt2('{} ({} of {})', report._percStr, report._score || 0, report._maxScore || 0));
             nl.fmt.addAvp(avps, 'Pass Score', report._passScore ? nl.fmt2('{}%', report._passScore) : '-');
         }
         nl.fmt.addAvp(avps, 'Created on', report.created, 'date');

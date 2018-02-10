@@ -36,6 +36,10 @@ function(nl, nlServerApi) {
         return uInfo[this.FIRST_NAME] + ' ' + uInfo[this.LAST_NAME];
     };
 
+    this.formatUserNameFromObj = function(user) {
+        return user.first_name + ' ' + user.last_name;
+    };
+
     this.formatUserNameFromRecord = function(record, useridField, usernameField) {
         if (!useridField) useridField = 'student';
         if (!usernameField) usernameField = 'studentname';

@@ -45,7 +45,7 @@ function($stateProvider, $urlRouterProvider) {
 //-------------------------------------------------------------------------------------------------
 var DEFAULT_MAX_LIMIT=5000;
 
-function TypeHandler(reptype, nl, nlServerApi, nlDlg) {
+function TypeHandler(reptype, nl) {
     var self = this;
 	this.initFromUrl = function() {
 		var params = nl.location.search();
@@ -102,7 +102,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	var _userInfo = null;
 	var my = 0;
 	var search = null;
-	var mode = new TypeHandler(reptype, nl, nlServerApi, nlDlg);
+	var mode = new TypeHandler(reptype, nl);
 	var reportStats = null;
 	var nameAndScore = [];
 	var dateRange = null;
