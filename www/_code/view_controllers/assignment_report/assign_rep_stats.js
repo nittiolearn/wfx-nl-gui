@@ -7,6 +7,7 @@
 function module_init() {
     angular.module('nl.assign_rep_stats', [])
     .service('NlAssignReportStats', NlAssignReportStats)
+    .service('NlReportTypes', NlReportTypes)
     .directive('nlLeaderboardAssign', SimpleDirective('leaderboard_assign'))
     .directive('nlLeaderboardGroup', SimpleDirective('leaderboard_group'))
     .directive('nlLeaderboardUser', SimpleDirective('leaderboard_user'))
@@ -584,6 +585,7 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
         var groupInfo = nlGroupInfo.get();
         for(var i=0; i<reports.length; i++) {
             var rep = reports[i];
+            if (rep.ctype != _ctypes.CTYPE_MODULE) continue; // TODO-REPORTING-CHANGE
             var user = nlGroupInfo.getUserObj(''+rep.student);
             if (!user) continue;
             _lst.push(rep);
@@ -670,20 +672,6 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
         return ret;
     }
 
-	var _atypes = {
-		ATYPE_MODULE: 0,
-		ATYPE_SELF_MODULE: 1,
-		ATYPE_COURSE: 2,
-		ATYPE_SELF_COURSE: 3 // Not used for timebeing
-	};
-    function _getAssignTypeStr(assigntype, content) {
-    	// TODO-REPORTING-CHANGE
-        if (assigntype == _atypes.ATYPE_SELF_MODULE) return 'self assignment';
-        if (assigntype == _atypes.ATYPE_COURSE) return 'course assignment';
-        if (content.trainingId) return 'training';
-        return 'module assignment';
-    }
-
     function _dictToTreeList(d, selectedIds) {
         // Add missing parents!
         for(var key in d) _addParentIfMissing(d, key);
@@ -713,10 +701,6 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
     
     this.getStatusInfo = function() {
         return _statusInfo;
-    };
-
-    this.getAtypes = function() {
-        return _atypes;
     };
 
     this.getReportAvps = function(report) {
@@ -774,6 +758,32 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
         var cancelButton = {text: nl.t('Close')};
         dlg.show('view_controllers/assignment_report/leaderboard_record_dlg.html', [], cancelButton);
     }
+}
+
+//-------------------------------------------------------------------------------------------------
+var NlReportTypes = [function() {
+	this.getAtypes = function() { return _atypes;};
+	this.getCtypes = function() { return _ctypes;};
+}];
+
+var _atypes = {
+	ATYPE_MODULE: 0,
+	ATYPE_SELF_MODULE: 1,
+	ATYPE_COURSE: 2,
+	ATYPE_SELF_COURSE: 3, // Not used for timebeing
+	ATYPE_TRAINING: 4
+};
+var _ctypes = {
+	CTYPE_MODULE: 0,
+	CTYPE_COURSE: 2,
+	CTYPE_TRAINING: 4 // Not used for timebeing
+};
+function _getAssignTypeStr(assigntype, content) {
+	// TODO-REPORTING-CHANGE
+    if (assigntype == _atypes.ATYPE_SELF_MODULE) return 'self assignment';
+    if (assigntype == _atypes.ATYPE_COURSE) return 'course assignment';
+    if (content.trainingId) return 'training';
+    return 'module assignment';
 }
 
 //-------------------------------------------------------------------------------------------------

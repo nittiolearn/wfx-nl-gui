@@ -88,17 +88,17 @@ function TypeHandler(reptype, nl) {
 function getController(ctrlType) {
 	return [
 		'nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'NlAssignReportStats',
-		'nlGroupInfo', 'nlRangeSelectionDlg',
+		'NlReportTypes', 'nlGroupInfo', 'nlRangeSelectionDlg',
 		function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats,
-			nlGroupInfo, nlRangeSelectionDlg) {
+			NlReportTypes, nlGroupInfo, nlRangeSelectionDlg) {
 	    _assignRepImpl(ctrlType, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, 
-	    	NlAssignReportStats, nlGroupInfo, nlRangeSelectionDlg);
+	    	NlAssignReportStats, NlReportTypes, nlGroupInfo, nlRangeSelectionDlg);
 	}];
 }
 
 //-------------------------------------------------------------------------------------------------
 function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, 
-	NlAssignReportStats, nlGroupInfo, nlRangeSelectionDlg) {
+	NlAssignReportStats, NlReportTypes, nlGroupInfo, nlRangeSelectionDlg) {
 	var _userInfo = null;
 	var my = 0;
 	var search = null;
@@ -230,7 +230,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	
 	function _createReportCard(report) {
         var status = reportStats.getStatusInfo()[report._statusStr];
-        var atypes = reportStats.getAtypes();
+        var atypes = NlReportTypes.getAtypes();
 		var card = {
 			id : report.id,
 			title : (reptype == 'assignment') ? report.studentname : report.name,

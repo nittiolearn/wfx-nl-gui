@@ -219,7 +219,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
                     istraining: _dlg.scope.assignInfo.istraining || false, 
                     type : _dlg.scope.assignInfo.type,
                     orgunits:ouUserInfo.ous, 
-                    selectedusers: ouUserInfo.userids,
+                    selectedusers: _getMinimalUserObjects(ouUserInfo.userids),
                     not_before: starttime, 
                     not_after: endtime,
                     learnmode: learnmode,
@@ -273,6 +273,23 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         var cancelButton = {text : nl.t('Cancel')};
         confirmDlg.show('view_controllers/assignment/confirm_before_send_dlg.html',
             [okButton], cancelButton);
+    }
+    
+    function _getMinimalUserObjects(selecteduserids) {
+    	var selectedusers = [];
+    	for (var i=0; i<selecteduserids.length; i++) {
+            var user = nlGroupInfo.getUserObj(''+selecteduserids[i]);
+            if (!user.state) continue;
+            var userObj = {id: user.id, email: user.email, usertype: user.usertype, 
+    			org_unit: user.org_unit};
+    		if (user.supervisor) userObj.supervisor = user.supervisor;
+    		if (user.metadata) {
+		        var mdVals = angular.fromJson(user.metadata);
+		        if (mdVals.meta_location) userObj.meta_location = mdVals.meta_location;
+    		}
+    		selectedusers.push(userObj);
+    	}
+    	return selectedusers;
     }
     
     var MAX_PER_BATCH = 50;
