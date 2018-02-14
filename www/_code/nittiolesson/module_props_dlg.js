@@ -22,6 +22,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 	var _gradeInfo = {};
 	var _subjectInfo = {};
 	var _resourceList = [];
+	var _lessonId = null;
 	var _parentScope = null;
 	var _templateAnimations = null;
 	this.init = function(oLesson, moduleConfig) {
@@ -100,10 +101,11 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		}
 	}
 
-	this.showDlg = function(isCreate, bFromPdf, resourceList, templateAnimations) {
+	this.showDlg = function(isCreate, bFromPdf, resourceList, templateAnimations, lessonId) {
 		_isPdf = bFromPdf;
 		_bModify = isCreate ? false : true;
 		_resourceList = resourceList;
+		_lessonId = lessonId;
 		_templateAnimations = templateAnimations;
 		var doneButtonText = isCreate ? nl.t('Create') : nl.t('Done');
 		_parentScope = nl.rootScope;
@@ -277,7 +279,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 			var bgShade = fieldId == 'background' ? (editDlg.scope.data.bgShade || 'bglight') : ''
 			var markupText = nl.fmt2('img:{}[{}]', selectedImgUrl, bgShade); 
 			var promise = nlResourceAddModifySrv.insertOrUpdateResource(_parentScope, 
-				            _moduleConfig.restypes, markupText, false, _resourceList, resFilter);
+				            _moduleConfig.restypes, markupText, false, _resourceList, resFilter, _lessonId);
     		promise.then(function(selected) {
     			if (!selected || !selected.url) return;
     			if(resFilter == 'bg') {

@@ -25,16 +25,16 @@ function(nl, nlServerApi, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg,
 		_moduleConfig = moduleConfig;
 	};
 
-    this.getResourceLibrary = function(templateids) {
-        return nlServerApi.lessonGetResourceLibrary(templateids);
+    this.getResourceLibrary = function(templateids, lessonid) {
+        return nlServerApi.lessonGetResourceLibrary(templateids, lessonid);
     };
 
-	this.showModulePropertiesDlg = function(isCreate, bFromPdf, resourceList, templateAnimations) {
-		return NittioLessonModulePropsDlg.showDlg(isCreate, bFromPdf, resourceList, templateAnimations);
+	this.showModulePropertiesDlg = function(isCreate, bFromPdf, resourceList, templateAnimations, lessonId) {
+		return NittioLessonModulePropsDlg.showDlg(isCreate, bFromPdf, resourceList, templateAnimations, lessonId);
 	};
 	
-	this.showPagePropertiesDlg = function(oPage, defMaxScore, isPopup, resourceList) {
-		return NittioLessonPagePropsDlg.showDlg(oPage, defMaxScore, isPopup, resourceList);
+	this.showPagePropertiesDlg = function(oPage, defMaxScore, isPopup, resourceList, lessonId) {
+		return NittioLessonPagePropsDlg.showDlg(oPage, defMaxScore, isPopup, resourceList, lessonId);
 	};
     this.showAddPageDlg = function(cfg) {
         return NittioLessonAddPageDlg.showDlg(cfg);
@@ -42,10 +42,10 @@ function(nl, nlServerApi, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg,
 	this.sendForReview = function(lessonId) {
 		return NittioLessonModuleReviewDlg.sendForReview(lessonId);
 	};
-    this.insertOrUpdateResource = function(markupText, resourceList, resourceFilter) {
+    this.insertOrUpdateResource = function(markupText, resourceList, resourceFilter, lessonId) {
     	// resoureFilter = 'bg' | 'icon' | false
         return nlResourceAddModifySrv.insertOrUpdateResource(nl.rootScope, 
-            _moduleConfig.restypes, markupText, true, resourceList, resourceFilter);
+            _moduleConfig.restypes, markupText, true, resourceList, resourceFilter, lessonId);
     };
     this.showPageVoiceDlg = function(oPage) {
     	return NittioLessonAddPageVoice.showAddVoiceDlg(oPage, _moduleConfig.restypes);

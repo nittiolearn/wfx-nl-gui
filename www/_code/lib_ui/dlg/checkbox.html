@@ -1,5 +1,6 @@
 <div class='nl-dlg-field-value nl-link-text'
-     ng-click='$parent.data[fieldmodel] = !$parent.data[fieldmodel]'>
+     ng-click='$parent.data[fieldmodel] = !$parent.data[fieldmodel]; $parent.onFieldChange(fieldmodel);'
+     ng-keypress='$event.keyCode == 13 ? $parent.data[fieldmodel] = !$parent.data[fieldmodel] : "" ; $event.keyCode == 13 ? $parent.onFieldChange(fieldmodel) : ""'>
     <div class='{{fieldcls}}'
          tabindex="{{fieldindex}}">
         <span>

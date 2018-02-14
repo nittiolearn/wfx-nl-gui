@@ -351,15 +351,15 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
     };
 
 
-    this.uploadInSequence = function(resourceList, keyword, compressionlevel, resid) {
+    this.uploadInSequence = function(resourceList, keyword, compressionlevel, resid, resourceInfoDict) {
         var self = this;
         return nl.q(function(resolve, reject) {
             var resourceInfos = [];
-            _uploadNextReource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resolve, reject);
+            _uploadNextReource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resourceInfoDict, resolve, reject);
         });
     };
 
-    function _uploadNextReource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resolve, reject) {
+    function _uploadNextReource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resourceInfoDict, resolve, reject) {
         if (resourceList.length == 0) {
             resolve(resourceInfos);
             return;
@@ -387,12 +387,14 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
                 return;
             }
         	resid = resid ? resid : '';
-            
+            if(resourceInfoDict.animated) compInfo.animated = 1;
+            if(resourceInfoDict.bgShade) compInfo.bgShade = resourceInfoDict.bgShade;
             var data = {resource: _file, 
                         restype: fileInfo.restype,
                         keywords: keyword, 
                         info: angular.toJson(compInfo, 2),
-                        resid: resid
+                        resid: resid,
+                        shared: resourceInfoDict.shared
                         };
             if (fileInfo.reskey) data.reskey = fileInfo.reskey;
             if (fileInfo.insertfrom) data.insertfrom = fileInfo.insertfrom;
@@ -400,7 +402,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
             nlDlg.popupStatus(nl.t('uploading {}', fileInfo.resource.name), false);
             nlServerApi.resourceUpload(data).then(function success(resinfo) {
                 resourceInfos.push(resinfo);
-                _uploadNextReource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resolve, reject);
+                _uploadNextReource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resourceInfoDict, resolve, reject);
             }, function error(msg) {
                 reject(nl.t('Uploading {} failed:', fileInfo.resource.name, msg));
             });

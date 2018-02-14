@@ -2429,20 +2429,23 @@ var modulePopup = new ModulePopupHadler();
 	}
 
     var g_templateList = [];
+    var g_templateDict = {};
 	function loadTemplateInfos(onLoadComplete) {
 		if (g_templateList.length > 0) {
-			onLoadComplete(g_templateList);
+			onLoadComplete(g_templateDict);
 			return;
 		}
 		
 		var templateids = g_lesson.oLesson.parentTemplates || [];
-		var promise = window.nlapp.NittioLesson.getResourceLibrary(templateids);
-		promise.then(function(parentBgimgs) {
-            var templateBgimgs = g_lesson.oLesson.templateBgimgs ? JSON.parse(g_lesson.oLesson.templateBgimgs) : [];
-            g_templateList = _mergeArrayAttrs(parentBgimgs, templateBgimgs);
-            onLoadComplete(g_templateList);
+        var lessonId = jQuery('#l_lessonId').val();
+		var promise = window.nlapp.NittioLesson.getResourceLibrary(templateids, lessonId);
+		promise.then(function(resourceDict) {
+            var templateBgimgs = g_lesson.oLesson.templateBgimgs ? JSON.parse(g_lesson.oLesson.templateBgimgs) : [];			
+            g_templateList = _mergeArrayAttrs(resourceDict.resourcelist, templateBgimgs);
+            g_templateDict = {resourcelist: g_templateList};
+            onLoadComplete(g_templateDict);
 		}, function () {
-		    onLoadComplete([]);
+		    onLoadComplete({});
 		});
 	}
 

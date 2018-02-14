@@ -20,6 +20,7 @@ function(nl, nlDlg, nlResourceAddModifySrv) {
     var _isPopup = false;
     var _parentScope = null;
     var _resourceList = null;
+    var _lessonId = null;
 	this.init = function(moduleConfig) {
 		_moduleConfig = moduleConfig;
 		_pageProps = [{id:'pageId', name: nl.t('Page id'), type:'div'},
@@ -53,12 +54,13 @@ function(nl, nlDlg, nlResourceAddModifySrv) {
 		}
 	}
 	
-	this.showDlg = function(oPage, defMaxScore, isPopup, resourceList) {
+	this.showDlg = function(oPage, defMaxScore, isPopup, resourceList, lessonId) {
 		_oPage = oPage;
 		_defMaxScore = defMaxScore;
 		_isPopup = isPopup;
 		_parentScope = nl.rootScope;
 		_resourceList = resourceList;
+		_lessonId = lessonId;
 		return nl.q(function(resolve, reject) {
 			var pagePropsDlg = nlDlg.create(_parentScope);
 				pagePropsDlg.setCssClass('nl-height-max nl-width-max');
@@ -103,7 +105,7 @@ function(nl, nlDlg, nlResourceAddModifySrv) {
 			if (fieldmodel != 'bgimg') return;
 			var markupText = nl.fmt2('img:{}[{}]', pagePropsDlg.scope.data.bgimg, pagePropsDlg.scope.data.bgshade);
 			var promise = nlResourceAddModifySrv.insertOrUpdateResource(_parentScope, 
-				            _moduleConfig.restypes, markupText, false, _resourceList, 'bg');
+				            _moduleConfig.restypes, markupText, false, _resourceList, 'bg', _lessonId);
     		promise.then(function(result) {
     			if (!result || !result.url || !result.bgShade) return;
 	            pagePropsDlg.scope.data.bgimg = result.url;
