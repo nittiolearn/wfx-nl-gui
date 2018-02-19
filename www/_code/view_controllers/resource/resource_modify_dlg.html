@@ -1,0 +1,29 @@
+<nl-dlg dlgtitle='{{dlgTitle}}' show-help='0'>
+<nl-dlg-content>
+<div>
+    <nl-dlg-row attr='title' data='data' help='help'>
+        <nl-input fieldmodel='title' fieldtype='text' fieldcls='w100' fieldindex='0'></nl-input>
+    </nl-dlg-row> 
+    <nl-dlg-row attr='keywords' data='data' help='help'>
+        <nl-input fieldmodel='keywords' fieldtype='text' fieldcls='w100' fieldindex='0'></nl-input>
+    </nl-dlg-row> 
+    <nl-dlg-row attr='shared' data='data' help='help'>
+    	<nl-checkbox fieldmodel='shared' 
+                     fieldname='share with other users in the group'
+    				 fieldcls= 'padding-mid'
+    				 fieldindex="0">
+    	</nl-checkbox>
+    </nl-dlg-row>
+    <nl-dlg-row ng-show='data.restype == "Image"' attr='animated' data='data' help='help'>
+    	<nl-checkbox fieldmodel='animated' 
+                     fieldname='animated image'
+    				 fieldcls= 'padding-mid'
+    				 fieldindex="0">
+    	</nl-checkbox>
+    </nl-dlg-row> 
+    <nl-dlg-row ng-show='data.restype == "Image"' attr='bgShade' data='data' help='help'>
+        <nl-select fieldmodel='bgShade'></nl-select> 
+    </nl-dlg-row> 
+</div>
+</nl-dlg-content>
+</nl-dlg>

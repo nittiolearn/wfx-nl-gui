@@ -397,7 +397,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
                         shared: resourceInfoDict.shared
                         };
             if (fileInfo.reskey) data.reskey = fileInfo.reskey;
-            if (fileInfo.insertfrom) data.insertfrom = fileInfo.insertfrom;
+            data.insertfrom = resourceInfoDict.insertfrom || '/';
             data.progressFn = nlProgressFn.onProgress;
             nlDlg.popupStatus(nl.t('uploading {}', fileInfo.resource.name), false);
             nlServerApi.resourceUpload(data).then(function success(resinfo) {
@@ -418,7 +418,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         for (var i=0; i<allowedExtns.length; i++)
             if (extn == allowedExtns[i]) return extn;
         return null;
-    }
+    };
     
     function _validateBeforeShrinking(fileInfo, status, compressionLevel) {
         var _file = fileInfo.resource;

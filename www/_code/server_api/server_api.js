@@ -583,6 +583,10 @@ function(nl, nlDlg, nlConfig, Upload) {
     //---------------------------------------------------------------------------------------------
     // resource entities
     //---------------------------------------------------------------------------------------------
+    this.resourceModifyAttrs = function(data) {
+		return server.post('_serverapi/resource_modify_attrs.json', data);
+    };
+    
     this.resourceUpload = function(data, urltype) {
         // Upload a resource - could be basic upload or upload and do something more based
         // on url type

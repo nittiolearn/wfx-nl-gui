@@ -34,19 +34,40 @@
       max-width: 240px;
     }
     
-    .nl-img-preview.bg .nl-img-preview-title {
-      max-width: 240px;
-    }
     .nl-img-preview.icon .nl-img-preview-title {
       max-width: 100px;
     }
+
+	.image-top-button {
+	    position: absolute;
+	    top: 4px;
+	    right: 4px;
+	    padding: 2px;
+        width: 30px;
+    }
+
+	.image-top-button.bg {
+	    position: absolute;
+	    top: 4px;
+	    left: 90%;
+	    padding: 2px;
+        width: 30px;
+    }
+
+	.image-top-button.icon {
+	    position: absolute;
+	    top: 2px;
+	    left: 80%;
+	    padding: 2px;
+        width: 30px;
+    }
+
 </style>
 <div>
 	<div class='row margin0 padding0 row-stretch text-center'
 		ng-show='markupInfo.insertOrUpdateResource'> 
 		<div class='padding0 {{(data.selectedTab == "library" && !data.advOptions) ? "page_format_tab_selected" : "page_format_tab_not_selected"}} nl-link-text'
-			ng-click='changeTab("library")'
-			ng-hide='data.resourceList.length == 0'>
+			ng-click='changeTab("library")'>
 			<div class='row row-center margin0 padding0'>
 				<span class='padding-small'></span>
 				<i class="icon ion-images bold fsh3 padding-small"></i>
@@ -129,7 +150,7 @@
 		<div class='row row-top row-wrap row-justify-evenly margin0 padding0'
 	    	ng-show='data.restype.id == "Image"'>
 	        <div ng-repeat='resource in data.resourceList'>
-	            <div class='text-center padding'>
+	            <div class='padding' style="position:relative">
 	                <div class='nl-link-img padding-mid nl-img-preview {{data.resourceFilter}} {{resource.background == data.librarySelectedUrl ? "selected" : ""}}'
 	                    ng-click='onLibraryResourceSelect(resource)'
 	                    tabindex="0"
@@ -138,15 +159,21 @@
 	                        <div class='nl-img-preview-title padding-small'>{{resource.name}}</div>
 	                        <img ng-src='{{resource.background}}'>
 	                </div>
+					<span ng-if='resource.owner == "self"' 
+						class='image-round-button nl-link-img image-top-button {{data.resourceFilter}}'
+						ng-click='onResourceModify(resource)'>
+					    <i class='icon ion-edit nl-dlg-field-icon fsh4'></i>
+					</span>
 	            </div>
 	        </div>
 	    </div>
 		<div class='row row-top row-wrap row-justify-evenly margin0 padding0'
 			ng-show='data.restype.id != "Image"'>
 			<div ng-repeat='resource in data.resourceList'>
-				<div class='text-center padding'>
+				<div class='text-center padding' style="position: relative">
 					<div class='nl-thumbnail-container nl-img-preview {{resource.background == data.librarySelectedUrl ? "selected" : ""}}'
-						ng-click='onLibraryResourceSelect(resource)'>
+						ng-click='onLibraryResourceSelect(resource)'
+						title='{{resource.name}}'>
 						<div class='nl-thumbnail'>
 							<div class='nl-thumbnail-img'>
 								<img ng-src='{{resource.resimg}}'/>
@@ -154,6 +181,11 @@
 							<div class="nl-thumbnail-txt">{{resource.name}}</div>
 						</div>
 					</div>
+					<span ng-show='resource.owner == "self"' 
+						class='image-round-button nl-link-img image-top-button'
+						ng-click='onResourceModify(resource)'>
+					    <i class='icon ion-edit nl-dlg-field-icon fsh4'></i>
+					</span>
 				</div>
 			</div>
 		</div>
@@ -196,7 +228,7 @@
     <nl-dlg-row attr='animated' data='data' help='help'
                 ng-if='data.selectedTab == "upload" && data.restype.id == "Image" && !data.advOptions'>
         <nl-checkbox fieldmodel='animated' 
-                     fieldname='Check if image is of type animated'
+                     fieldname='animated image'
                      fieldcls= 'padding-mid'
                      fieldindex="0"
                      ng-keypress='$event.animated == 13 ? data.animated = !data.animated : ""'>
