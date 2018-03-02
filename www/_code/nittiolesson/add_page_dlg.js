@@ -19,29 +19,37 @@ function(nl, nlDlg) {
     };
     
     this.showDlg = function(cfg) {
-        return _dlg.show(cfg.page, cfg);
+    	cfg.mode = cfg.page ? 'changeformat' : 'addpage';
+        return _dlg.show(cfg);
     };
 }];
     
 //-------------------------------------------------------------------------------------------------
 function AddPageDlg(ptInfo, nl, nlDlg) {
     var _lastSelectedPageType = null;
-	this.show = function(page, cfg) {
+    var self = this;
+    var _cfg = null;
+	this.show = function(cfg) {
+		_cfg = cfg;
 		return nl.q(function(resolve, reject) {
             var parentScope = nl.rootScope;
             var dlg = nlDlg.create(parentScope);
             dlg.setCssClass('nl-height-max nl-width-max');
-            _initDlgScope(dlg.scope, page, cfg);
-			_showDlg(dlg, resolve, page);
+            _initDlgScope(dlg.scope, cfg);
+			_showDlg(dlg, resolve, cfg.page);
 		});
 	};
 	
-    function _initDlgScope(dlgScope, page, cfg) {
+    function _initDlgScope(dlgScope, cfg) {
+    	var page = cfg.page;
         dlgScope.showHelp = '0';
         dlgScope.showClose = '1';
-        dlgScope.dlgTitle = nl.fmt2(page ?  'Change {}Page Format' : 'Add {}Page', (cfg.isPopup ? 'Popup ': ''));
+        dlgScope.dlgTitle = nl.fmt2(cfg.mode == 'changeformat' ?  'Change {}Page Format' 
+        							: cfg.mode == 'changelayout' ? 'Change {}Page Layout'
+        							: 'Add {}Page', (cfg.isPopup ? 'Popup ': ''));
         var params = nl.window.location.search;
         dlgScope.isRaw = params.indexOf('rawedit') > 0 ? true : false;
+        dlgScope.mode = cfg.mode;
         dlgScope.data = {section: null};
     	dlgScope.data.toolTab = {attr: 'style'};
         dlgScope.options = {};
@@ -51,7 +59,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         if (page && page.oPage.bgimg) {
             dlgScope.data.bgImg = page.oPage.bgimg;
             dlgScope.data.bgshade = page.oPage.bgshade;
-        } else if (cfg.isPopup) {
+        } else if (cfg.isPopup || cfg.mode != 'changeformat') {
             dlgScope.data.bgImg = 'module_popup_img';
             dlgScope.data.bgshade = 'bglight';
         } else {
@@ -63,13 +71,18 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         var defSectionLayout = page ? page.pagetype.layout : null;
         dlgScope.options.pagetype = _pageTypes;
         dlgScope.data.pagetype = defPt ? {id: defPt.interaction} : dlgScope.options.pagetype[0];
-        _onPtChange(dlgScope, defPt, defSectionLayout);
+        if(cfg.mode != 'changeformat') {
+	        _onPtChange(dlgScope, defPt);
+        } else {
+        	dlgScope.data.layout = defPt;
+        	_onEditPageProps(dlgScope, defSectionLayout);
+        }
 
         dlgScope.onSectionSelect = function(e, section) {
             dlgScope.data.section = section;
             if (!section) return;
             if (e) e.stopImmediatePropagation();
-            _updatePreviewPositions(dlgScope)
+            _updatePreviewPositions(dlgScope);
             _initStyleOptions(dlgScope, cfg.templateDefaults);
             _updateStyles(dlgScope, section);
         };
@@ -79,11 +92,29 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
             _onLayoutEditDone(dlgScope);
         };
 
-        dlgScope.onFieldChange = function(fieldId) {
-            if (fieldId == 'pagetype') _onPtChange(dlgScope);
-            else if (fieldId == 'layout') _onLayoutChange(dlgScope);
-            else _onSectionPropChange(dlgScope);
+        dlgScope.onClick = function(fieldId, param) {
+            if (fieldId == 'pagetype') _onPtChange(dlgScope, param);
+            else if (fieldId == 'layout') _onLayoutSelect(dlgScope, param);
         };
+        
+        dlgScope.onFieldChange = function(fieldId) {
+        	if(fieldId == "pagetype") {
+        		_onPtChange(dlgScope, dlgScope.data.pagetype);
+        	} else {
+	        	_onSectionPropChange(dlgScope);
+        	}
+        };
+
+        dlgScope.onChangePageType = function() {
+        	_cfg.mode = 'changelayout';
+			self.show(_cfg).then(function(result) {
+				if(!result) return;
+				_cfg.page.pagetype.pt = result;
+				_cfg.page.pagetype.layout = result.layout;
+				_cfg.mode = 'changeformat';
+				_initDlgScope(dlgScope, _cfg);	        	
+			});
+		};        
         
         dlgScope.onSectionPropChange = function() {
         	_onSectionPropChange(dlgScope);
@@ -120,24 +151,36 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
     }
 
 	function _showDlg(dlg, resolve, page) {
-        var sd = dlg.scope.data;
         var okButton = {text: nl.t('OK'), onTap: function(e) {
             if (e) e.preventDefault();
-        	if(!page) {
+	        var sd = dlg.scope.data;
+	        if(!sd.layout) {
+	    		var msg = {title: 'Alert message', 
+	        			   template: 'Please select the page type.'};
+		        return nlDlg.popupAlert(msg).then(function(confirm) {
+	    		    if (!confirm) return;
+	    		});
+	        }
+        	if(dlg.scope.mode == 'addpage') {
                 _lastSelectedPageType = _layoutDict[sd.layout.id];
 	            resolve({pt:sd.layout.id, layout: _layoutsFromBeautyString(sd.sectionLayout)});
     		    dlg.close();
     		    return;
-        	}
-        	
-    		var msg = {title: 'Please confirm', 
-        			   template: 'Changing page type may result in loss of data. Do you want to proceed?'};
-	        nlDlg.popupConfirm(msg).then(function(confirm) {
-    		    if (!confirm) return;
+        	} else if(dlg.scope.mode == 'changelayout') {
+	    		var msg = {title: 'Please confirm', 
+	        			   template: 'Changing page type may result in loss of data. Do you want to proceed?'};
+		        nlDlg.popupConfirm(msg).then(function(confirm) {
+	    		    if (!confirm) return;
+	                _lastSelectedPageType = _layoutDict[sd.layout.id];
+		            resolve(sd.layout);
+	    		    dlg.close();
+	    		    return;
+				});
+        	} else {
     		    _lastSelectedPageType = _layoutDict[sd.layout.id];
     		    resolve({pt:sd.layout.id, layout: _layoutsFromBeautyString(sd.sectionLayout)});
     		    dlg.close();
-    		});
+        	}
         }};
 		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
 			resolve(false);
@@ -168,19 +211,33 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         }
     }
 
-    function _onPtChange(dlgScope, defPt, defSectionLayout) {
+    function _onPtChange(dlgScope, defPt) {
     	dlgScope.data.section = null;
-        dlgScope.options.layout = _layouts[dlgScope.data.pagetype.id];
-        dlgScope.data.layout = defPt ? {id: defPt.id} : dlgScope.options.layout[0];
-        _onLayoutChange(dlgScope, defPt, defSectionLayout);
+    	var selectedPageType = defPt || {id: 'TITLE'};
+        var layouts = _layouts[selectedPageType.interaction] || _layouts[selectedPageType.id];
+        for(var i=0; i<dlgScope.options.pagetype.length; i++) {
+        	var pagetype = dlgScope.options.pagetype[i];
+        	if(pagetype.id == selectedPageType.interaction || pagetype.id == selectedPageType.id){
+        		dlgScope.options.pagetype[i].selected = true;
+        		dlgScope.data.pagetype = dlgScope.options.pagetype[i];
+        	} else {
+        		dlgScope.options.pagetype[i].selected = false;
+        	}
+        }
+        dlgScope.options.layouts = [];
+        for(var i=0; i<layouts.length; i++) {
+        	var layout = layouts[i];
+	        var pt = ptInfo.ptMap[layout.id];
+	        var layoutObj = pt.layout;
+	        dlgScope.data.sectionLayout = _beautyStringifyLayouts(layoutObj);
+			pt.layout = _getLayoutSections(dlgScope, layoutObj);
+			dlgScope.options.layouts.push(pt);
+        }
     }
 
-    function _onLayoutChange(dlgScope, defPt, defSectionLayout) {
-    	dlgScope.data.section = null;
-        var pt = ptInfo.ptMap[dlgScope.data.layout.id];
-        var layoutObj = defSectionLayout ? defSectionLayout : pt.layout;
-        dlgScope.data.sectionLayout = _beautyStringifyLayouts(layoutObj);
-		_formSections(dlgScope, layoutObj); 
+	function _onEditPageProps(dlgScope, defSectionLayout) {
+        dlgScope.data.sectionLayout = _beautyStringifyLayouts(defSectionLayout);
+		_formSections(dlgScope, defSectionLayout); 
     }
     
     function _formSections(dlgScope, pagelayout) {
@@ -192,7 +249,26 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
             dlgScope.sections.push(section);
         }
     }
-    
+
+
+    function _getLayoutSections(dlgScope, pagelayout) {
+        var layout = [];
+        for(var i=0; i<pagelayout.length; i++) {
+            var section = angular.copy(pagelayout[i]);
+            section.pos = i+1;
+            _cleanupPositions(section);
+            layout.push(section);
+        }
+        return layout;
+    }
+
+    function _onLayoutSelect(dlgScope, pt) {
+    	dlgScope.data.section = null;
+    	dlgScope.data.layout = pt;
+        var layoutObj = pt.layout;
+        dlgScope.data.sectionLayout = _beautyStringifyLayouts(layoutObj);
+    }
+
     function _initStyleOptions(dlgScope, templateDefaults) {
         dlgScope.options.colors = _getBackgroundColors(templateDefaults);
         dlgScope.options.shapes = _getSectionShapes();

@@ -119,23 +119,32 @@
 	<div ng-if='data.selectedTab == "library" && !data.advOptions'>
 	    <div class='padding-small'>
 	    </div>
-	    <div class='row row-center padding0 margin0'>
-	        <div class='padding0 margin0'>
-	            <nl-select fieldmodel='resourceLibraryDropDown'></nl-select> 
-	        </div>
-	        <div ng-show='data.restype.id == "Image"'>
-	        	<nl-checkbox fieldmodel='animFilter' 
-	        				 fieldname='animated images'
-	        				 fieldcls= 'padding-mid'
-	        				 fieldindex="0">
-	        	</nl-checkbox>
-	        </div>
-			<div class='col padding0 margin0'>
-				<nl-input fieldmodel='librarySearchText' fieldtype='text' placeholder='Start typing to search'></nl-input>
+	    <div class='row row-wrap row-center padding0 margin0'>
+	    	<div ng-class='respCol221'>
+	    		<div class='row row-center padding0 margin0'>
+	    			<div class='col padding0'>
+			            <nl-select fieldmodel='resourceLibraryDropDown'></nl-select> 
+			        </div>
+			        <div class='padding-mid'>
+			        	<nl-checkbox ng-show='data.restype.id == "Image"'
+			        				 fieldmodel='animFilter' 
+			        				 fieldname='Only animated'
+			        				 fieldcls= 'padding-mid'
+			        				 fieldindex="0">
+			        	</nl-checkbox>
+	    			</div>
+	    		</div>
+	    	</div>
+			<div ng-class='respCol221'>
+				<div class='row row-center padding0 margin0'>
+					<div class='col padding0'>
+						<nl-input fieldmodel='librarySearchText' fieldtype='text' placeholder='Start typing to search' fieldCls='w100'></nl-input>						
+					</div>
+					<span>
+						<i class='icon ion-ios-search nl-dlg-field-icon fsh4'></i>
+					</span>
+				</div>
 			</div>
-			<span>
-				<i class='icon ion-ios-search nl-dlg-field-icon fsh4'></i>
-			</span>
 		</div>
 
 		<div class='row margin0 padding0'>
@@ -219,7 +228,7 @@
     <nl-dlg-row attr='shared' data='data' help='help'
                 ng-if='data.selectedTab == "upload" && !data.advOptions'>
         <nl-checkbox fieldmodel='shared' 
-                     fieldname='share with other users in the group'
+                     fieldname='Share with other users in the group'
                      fieldcls= 'padding-mid'
                      fieldindex="0">
         </nl-checkbox>
@@ -228,7 +237,7 @@
     <nl-dlg-row attr='animated' data='data' help='help'
                 ng-if='data.selectedTab == "upload" && data.restype.id == "Image" && !data.advOptions'>
         <nl-checkbox fieldmodel='animated' 
-                     fieldname='animated image'
+                     fieldname='Tag as animated (Animated gifs)'
                      fieldcls= 'padding-mid'
                      fieldindex="0"
                      ng-keypress='$event.animated == 13 ? data.animated = !data.animated : ""'>

@@ -253,18 +253,16 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 
 //-------------------------------------------------------------------------------------------------
 var _updatedResourceList = [];
-var ResourceAddModifySrv = ['nl', 'nlServerApi', 'nlDlg', 'Upload', 'nlProgressFn', 'nlResourceUploader',
-function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
+var ResourceAddModifySrv = ['nl', 'nlServerApi', 'nlDlg', 'Upload', 'nlProgressFn', 'nlResourceUploader', 'nlGroupInfo',
+function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader, nlGroupInfo){
 	var COMPRESSIONLEVEL = [{id: 'no', name: 'No compression'},
 						{id: 'low', name:'Low compression'},
 						{id: 'medium', name:'Medium compression'},
 						{id: 'high', name:'High compression'}];
-
-	var _resourceLibrary = new ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader);
+	var _resourceLibrary = new ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader, nlGroupInfo);
 	_updatedResourceList = [];
 	var params= nl.location.search();
 	var maxResults = ('max' in params) ? parseInt(params['max']) : 50;
-
 	this.show = function($scope, card, restypes, onlyOnce, markupHandler) {
 	    if (!markupHandler) markupHandler = new MarkupHandler(nl, nlDlg);
 		return nl.q(function(resolve, reject) {
@@ -845,7 +843,7 @@ function NlMediaRecorder(nl, nlDlg) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader) {
+function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader, nlGroupInfo) {
 
 	var _resourceList = [];	
 	var _selectedResource = null;
@@ -858,7 +856,10 @@ function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader) {
 	    Video: 'dashboard/video1.png',
 	    Attachment: 'dashboard/attach.png',
 	};
-
+	var _groupInfo = {};
+	nlGroupInfo.init().then(function() {
+		_groupInfo = nlGroupInfo.get();
+	});
 	var _isInitialised = false;
  
  	var _groupNextStartPos = null;
@@ -869,7 +870,8 @@ function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader) {
 	var _restype = null;
 	var _lessonId = null;
 	var _maxResults = 50;
-
+	var _selfFirstFetch = true;
+	var _groupFirstFetch = true;
 	this.init = function(resourceList, resourceFilter, restype, resourceDict, lessonId, maxResults) {
 		_maxResults = maxResults || 50;
 		_init(resourceList, resourceFilter, restype, resourceDict, lessonId);
@@ -924,11 +926,11 @@ function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader) {
         scope.data.resourceFilter = _resourceFilter;
 		scope.data.librarySearchText = '';
 
-		scope.options.resourceLibraryDropDown = [{id: '', name:'All libraries'}, {id: 'common', name: 'Common library'},
-												 {id: 'group', name:'Group library'}, {id:'self', name:'Module library'}];
-		scope.data.resourceLibraryDropDown = scope.options.resourceLibraryDropDown[0];
+		scope.options.resourceLibraryDropDown = [{id: '', name:'All libraries'}, {id: 'common', name: 'Nittio library'},
+												 {id: 'group', name:nl.t('{} library', _groupInfo.name||'Group')}, {id:'self', name:'Module library'}];
+		scope.data.resourceLibraryDropDown = scope.options.resourceLibraryDropDown[1];
         scope.data.animFilter = false;
-        scope.data.shared = false;
+        scope.data.shared = true;
         scope.data.lessonid = _lessonId;
         scope.data.animated = false;
         scope.data.search = {};
@@ -942,13 +944,22 @@ function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader) {
 		};
 		
 		scope.onFieldChange = function(fieldId) {
-			if(fieldId != 'resourceLibraryDropDown' 
-				&& fieldId != 'librarySearchText' 
-				&& fieldId != 'animFilter') return;
-			var libFilter = scope.data.resourceLibraryDropDown.id;
-			var libSearchtext = scope.data.librarySearchText;
-			var animFilter = scope.data.animFilter;
-			scope.data.resourceList = _getFilteredList(scope, libFilter, animFilter, libSearchtext);
+			if(fieldId == 'animated') scope.data.compressionlevel =  scope.data.animated ? {id: 'no'} : {id: 'high'};
+			if(fieldId == 'resourceLibraryDropDown' && scope.data.resourceLibraryDropDown.id == 'self' && _selfFirstFetch) {
+				_selfFirstFetch = false;
+				_onSelectingFetchMore(scope, true);
+			} else if(fieldId == 'resourceLibraryDropDown' && scope.data.resourceLibraryDropDown.id == 'group' && _groupFirstFetch) {
+				_groupFirstFetch = false;
+				_onSelectingFetchMore(scope, false);
+			} else {
+				if(fieldId != 'resourceLibraryDropDown' 
+					&& fieldId != 'librarySearchText' 
+					&& fieldId != 'animFilter') return;
+				var libFilter = scope.data.resourceLibraryDropDown.id;
+				var libSearchtext = scope.data.librarySearchText;
+				var animFilter = scope.data.animFilter;
+				scope.data.resourceList = _getFilteredList(scope, libFilter, animFilter, libSearchtext);
+			}
 		};
 			
 		scope.fetchMoreResources = function() {
@@ -956,15 +967,9 @@ function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader) {
             var dropdownId = scope.data.resourceLibraryDropDown.id;
 			var isSelf = _canFetchMoreSelf && (dropdownId == 'self' || dropdownId == '');
 			if (!isSelf && !_canFetchMoreGroup) return;
-
-			var msg = {title: '', template: scope.data.search.infotxt2, okText: 'Fetch more', cancelText: 'Close'};
-            nlDlg.popupConfirm(msg).then(function(res) {
-                if (!res) return;
-				var data = {lessonid: _lessonId, owner: isSelf ? 'self' : 'group', max: _maxResults};
-				if (isSelf && _selfNextStartPos) data.startpos = _selfNextStartPos;
-				if (!isSelf && _groupNextStartPos) data.startpos = _groupNextStartPos;
-				_fetchMoreResources(scope, data, isSelf);
-            });			
+			if (isSelf) _selfFirstFetch = false;
+			if (!isSelf) _groupFirstFetch = false;
+            _onSelectingFetchMore(scope, isSelf);
 		};
 		scope.onResourceModify = function(resource) {
 			_showResourceModify(scope, resource);
@@ -978,6 +983,13 @@ function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader) {
     	return {url: _selectedResource.background, bgShade: _selectedResource.bgShade || 'bgdark'};
 	};
 
+	function _onSelectingFetchMore(scope, isSelf) {
+		var data = {lessonid: _lessonId, owner: isSelf ? 'self' : 'group', max: _maxResults};
+		if (isSelf && _selfNextStartPos) data.startpos = _selfNextStartPos;
+		if (!isSelf && _groupNextStartPos) data.startpos = _groupNextStartPos;
+		_fetchMoreResources(scope, data, isSelf);		
+	};
+	
 	function _updateSelected(scope) {
 		var urlToResource = {};	
 		for(var i=0; i<_resourceList.length; i++)
@@ -1183,13 +1195,10 @@ function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader) {
             scope.data.search.infotxt2 = msg1;
             scope.data.search.cls = 'fgrey2 nl-link-text';
         }
-        var item = (total == 1) ? 'item' : 'items';
-        var match = (visible == 1) ? 'match' : 'matches';
-        var plus = matched > visible ? '+' : '';
-        msg1 = nl.t('Found <b>{}{}</b> {} from <b>{}</b> {} searched.', 
-            visible, plus, match, total, item);
+        var item = (visible == 1) ? 'item' : 'items';
+        msg1 = nl.t('Displaying <b>{}</b> {}.', visible, item);
         if (!canSearchMore) {
-            scope.data.search.infotxt = nl.t('{} Search complete.', msg1);
+            scope.data.search.infotxt = nl.t('{} Fetch complete.', msg1);
             scope.data.search.infotxt2 = msg1;
 	        if (oldInfotxt == scope.data.search.infotxt) return;
 	        scope.data.search.clsAnimate = 'anim-highlight-on';
@@ -1198,8 +1207,8 @@ function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader) {
 
         scope.data.search.cls = 'fgrey2 nl-link-text';
         scope.data.search.showDetails = true;
-        scope.data.search.infotxt = nl.t('{} <b>Search more <i class="icon ion-refresh"></i></b>.', msg1);
-        scope.data.search.infotxt2 = nl.t('{} Not found what you are looking for? Do you want to fetch more items from the server?', msg1);
+        scope.data.search.infotxt = nl.t('{} <b>Fetch more <i class="icon ion-refresh"></i></b>.', msg1);
+        scope.data.search.infotxt2 = nl.t('Not found what you are looking for? Do you want to fetch more items from the server?');
     }
 }
 
