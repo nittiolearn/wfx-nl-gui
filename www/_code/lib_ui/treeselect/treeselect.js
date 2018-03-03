@@ -30,9 +30,10 @@ function(nl) {
         return treeArray;
     };
 
-    this.updateSelectionTree = function(treeSelectInfo, selectedIds, openUptoLevel) {
+    this.updateSelectionTree = function(treeSelectInfo, selectedIds, openUptoLevel, canSelectFolder) {
     	if (!openUptoLevel || openUptoLevel < 1) openUptoLevel = 1;
         var itemDict = {};
+        var canSelectFolder = canSelectFolder || false;
         var treeList = treeSelectInfo.data;
         treeSelectInfo.rootItems = {};
         for(var i=0; i<treeList.length; i++) {
@@ -67,6 +68,7 @@ function(nl) {
         _fillDefaut(treeSelectInfo, 'treeIsShown', true);
         _fillDefaut(treeSelectInfo, 'showCounts', false);
         _fillDefaut(treeSelectInfo, 'multiSelect', true);
+        _fillDefaut(treeSelectInfo, 'canSelectFolder', canSelectFolder);
         _fillDefaut(treeSelectInfo, 'searchText', '');
         _fillDefaut(treeSelectInfo, 'removeEmptyFolders', false);
         _fillDefaut(treeSelectInfo, 'folderType', 'NOT_DEFINED');
@@ -81,7 +83,7 @@ function(nl) {
         if (treeSelectInfo.removeEmptyFolders && treeSelectInfo.folderType)
             _removeEmptyItemsOfType(treeSelectInfo);
 
-        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems);
+        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems, treeSelectInfo);
         _updateVisibleData(treeSelectInfo);
         _updateSelectionText(treeSelectInfo);
     };
@@ -94,7 +96,7 @@ function(nl) {
             item.selected = (key in selectedIds);
             if (item.selected) treeSelectInfo.selectedIds[key] = item;
         }
-        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems);
+        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems, treeSelectInfo);
         _updateSelectionText(treeSelectInfo);
     };
     
@@ -195,7 +197,7 @@ function(nl) {
 				if (treeSelectInfo.currentItemPos < 0) return _updateCurrentItem(treeSelectInfo, 0);
 				return false;
 			}
-	        if (!treeSelectInfo.multiSelect) {
+	        if (!treeSelectInfo.multiSelect && !treeSelectInfo.canSelectFolder) {
 				treeSelectInfo.treeIsShown = false;
 	        	return false;
 	        }
@@ -231,7 +233,7 @@ function(nl) {
 
     this.toggleSelection = function(curItem, treeSelectInfo) {
         if (!curItem.canSelect) return;
-        if (!treeSelectInfo.multiSelect && !curItem.selected) {
+        if (!treeSelectInfo.multiSelect && (!curItem.selected || curItem.selected == 'part')) {
             for(var key in treeSelectInfo.selectedIds) {
                 var item = treeSelectInfo.selectedIds[key];
                 _unselectItem(item, treeSelectInfo);
@@ -244,10 +246,14 @@ function(nl) {
     };
     
     this.toggleSelectionOfFolder = function(folder, treeSelectInfo) {
-        if (!treeSelectInfo.multiSelect) return;
-        _updateSubTreeStatus(!folder.selected, folder, treeSelectInfo);
-        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems);
-        _updateSelectionText(treeSelectInfo);
+        if (!treeSelectInfo.multiSelect && !treeSelectInfo.canSelectFolder) return;
+        if (treeSelectInfo.canSelectFolder) {
+			this.toggleSelection(folder, treeSelectInfo);
+        } else {
+	        _updateSubTreeStatus(!folder.selected, folder, treeSelectInfo);
+	        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems, treeSelectInfo);
+	        _updateSelectionText(treeSelectInfo);        	
+		}
     };
 
 	this.updateSearchVisible = function(treeSelectInfo) {
@@ -262,7 +268,7 @@ function(nl) {
 			if (bSelect) treeSelectInfo.selectedIds[item.id] = item;
 			else if (item.id in treeSelectInfo.selectedIds) delete treeSelectInfo.selectedIds[item.id];
 		}
-        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems);
+        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems, treeSelectInfo);
         _updateSelectionText(treeSelectInfo);
 	};
 
@@ -275,7 +281,7 @@ function(nl) {
         }
         if (treeSelectInfo.currentItemPos == undefined) treeSelectInfo.currentItemPos = -1;
         if (treeSelectInfo.currentItemPos >= treeSelectInfo.visibleData.length) treeSelectInfo.currentItemPos = -1;
-        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems);
+        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems, treeSelectInfo);
         _updateSelectionText(treeSelectInfo);
     }
     
@@ -329,14 +335,14 @@ function(nl) {
     function _selectItem(curItem, treeSelectInfo) {
         curItem.selected = true;
         treeSelectInfo.selectedIds[curItem.id] = curItem;
-        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems);
+        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems, treeSelectInfo);
         _updateSelectionText(treeSelectInfo);
     }
     
     function _unselectItem(curItem, treeSelectInfo) {
         curItem.selected = false;
         delete treeSelectInfo.selectedIds[curItem.id];
-        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems);
+        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems, treeSelectInfo);
         _updateSelectionText(treeSelectInfo);
     }
 
@@ -355,11 +361,11 @@ function(nl) {
             _updateSubTreeStatus(selected, item.children[key], treeSelectInfo);
     }
         
-    function _updateAllFoldersStatusAndCounts(items) {
+    function _updateAllFoldersStatusAndCounts(items, treeSelectInfo) {
         for (var key in items) {
             var item = items[key];
             if (!item.children) continue;
-            _updateAllFoldersStatusAndCounts(item.children);
+            _updateAllFoldersStatusAndCounts(item.children, treeSelectInfo);
             item.childCount = 0;
             item.selectedCount = 0;
             for (var key1 in item.children) {
@@ -367,8 +373,12 @@ function(nl) {
                 item.childCount += child.isFolder ? child.childCount : 1;
                 item.selectedCount += child.isFolder ? child.selectedCount : (child.selected ? 1 : 0);
             }
-            item.selected = item.selectedCount == 0 ? false 
-                : (item.selectedCount == item.childCount ? true : 'part');
+            if(treeSelectInfo.canSelectFolder && item.isFolder && (item.id in treeSelectInfo.selectedIds)) {
+            	continue;
+            } else {
+				item.selected = item.selectedCount == 0 ? false 
+				: (item.selectedCount == item.childCount ? true : 'part');
+            }
         }
     }
     
@@ -439,7 +449,7 @@ function(nl, nlDlg, nlTreeSelect) {
                     nlTreeSelect.toggleFolder(item, $scope.info);
                 } else {
                     nlTreeSelect.toggleSelection(item, $scope.info);
-                    if (item.selected && !$scope.info.multiSelect)
+                    if (item.selected && !$scope.info.multiSelect && !$scope.info.canSelectFolder)
 						$scope.info.treeIsShown = false;
                     if($scope.info.onSelectChange) $scope.info.onSelectChange();
                 }
@@ -472,7 +482,7 @@ function(nl, nlDlg, nlTreeSelect) {
             
             $scope.onCheckBoxSelect = function(item, e, pos) {
             	$scope.info.currentItemPos = pos;
-                if (!item.isFolder || !$scope.info.multiSelect) return;
+                if (!item.isFolder || (!$scope.info.multiSelect && !$scope.info.canSelectFolder)) return;
                 e.stopImmediatePropagation();
                 e.preventDefault();
                 nlTreeSelect.toggleSelectionOfFolder(item, $scope.info);
