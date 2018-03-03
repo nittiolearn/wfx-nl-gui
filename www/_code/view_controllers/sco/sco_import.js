@@ -670,7 +670,7 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
             return;
         }
         attempts++;
-        nlResourceUploader.uploadInSequence([resInfo], 'SCORM', null, null)
+        nlResourceUploader.uploadInSequence([resInfo], 'SCORM', null, null, {insertfrom: '/sco_import/'})
         .then(function(resInfos) {
             resolve(resInfos);
         }, function(msg) {

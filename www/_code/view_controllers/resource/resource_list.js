@@ -252,6 +252,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 }];
 
 //-------------------------------------------------------------------------------------------------
+var _updatedResourceList = [];
 var ResourceAddModifySrv = ['nl', 'nlServerApi', 'nlDlg', 'Upload', 'nlProgressFn', 'nlResourceUploader',
 function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 	var COMPRESSIONLEVEL = [{id: 'no', name: 'No compression'},
@@ -259,7 +260,8 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 						{id: 'medium', name:'Medium compression'},
 						{id: 'high', name:'High compression'}];
 
-	var _resourceLibrary = new ResourceLibrary();
+	var _resourceLibrary = new ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader);
+	_updatedResourceList = [];
 
 	this.show = function($scope, card, restypes, onlyOnce, markupHandler) {
 	    if (!markupHandler) markupHandler = new MarkupHandler(nl, nlDlg);
@@ -302,7 +304,14 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 	    	if (addModifyResourceDlg.resInfos.length != 1) return null;
         	ret.url = addModifyResourceDlg.resInfos[0].url;
         	ret.bgShade = sd.bgShade.id;
-        	
+	    	var resource = addModifyResourceDlg.resInfos[0];
+        	var newRes = {group: sd.resourceFilter == 'bg' ? 'Backgrounds' : 'Images', owner: 'self', 
+        				  name: resource.name, background: resource.url, restype:resource.restype, 
+        				  id: '_db_'+resource.resid, info: resource.info, shared: sd.shared, 
+        				  resid: resource.resid, tags: resource.keywords};
+			if(sd.resourceFilter == 'bg') newRes['bgShade'] = sd.bgShade.id;
+        	if(sd.animated) newRes['animated'] = 1;
+        	_updatedResourceList.unshift(newRes);
         } else if (tab == 'url') {
         	ret.url = sd.url;
         	ret.bgShade = sd.bgShade.id;
@@ -401,6 +410,10 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 		var compressionlevel = sd.compressionlevel.id;
 		var keyword = sd.keywords || '';
 		var resid =  (card !== null) ? sd.card.Id : null;
+		var resourceInfoDict = {shared: sd.shared};
+		if (sd.restype.id == 'Image') resourceInfoDict['animated'] = sd.animated;
+		if (sd.resourceFilter == 'bg') resourceInfoDict['bgShade'] = sd.bgShade.id;
+	    resourceInfoDict['insertfrom'] = sd.lessonid ? nl.t('/lesson/edit/{}/', sd.lessonid) : '/';
 	    if(resourceList.length == 0) {
 		    if (e) e.preventDefault();
 		    if (sd.selectedTab == 'record') {
@@ -411,7 +424,7 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 	    	return;
 		}
 		nlDlg.showLoadingScreen();
-		nlResourceUploader.uploadInSequence(resourceList, keyword, compressionlevel, resid)
+		nlResourceUploader.uploadInSequence(resourceList, keyword, compressionlevel, resid, resourceInfoDict)
 		.then(function(resInfos) {
 		    for (var i=0; i<resInfos.length; i++) {
 		        addModifyResourceDlg.resInfos.push(resInfos[i]);
@@ -438,9 +451,11 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
         uploadAgainDlg.show('view_controllers/resource/upload_done_dlg.html', [], cancelButton);
 	}
 
-    this.insertOrUpdateResource = function($scope, restypes, markupText, showMarkupOptions, resourceList, resourceFilter) {
+    this.insertOrUpdateResource = function($scope, restypes, markupText, showMarkupOptions, resourceDict, resourceFilter, lessonId) {
     	// resoureFilter = 'bg' | 'icon' | undefined
-    	_resourceLibrary.init(resourceList, resourceFilter);
+    	var restype = markupText.substring(0, markupText.indexOf(':'));
+    	if(_updatedResourceList.length == 0) _updatedResourceList = resourceDict.resourcelist;
+    	_resourceLibrary.init(_updatedResourceList, resourceFilter, restype, resourceDict, lessonId);
         var markupHandler = new MarkupHandler(nl, nlDlg, true, markupText, showMarkupOptions);
         return this.show($scope, null, restypes, true, markupHandler);
     };
@@ -488,7 +503,7 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
             url: {name: nl.t('URL'), help: nl.t('Copy and paste or type in the URL.')},
             resource: {name: nl.t('Choose file'), help: nl.t('Choose a file from your device to upload. On mobile devices, you will be able to use your camera or recorder to capture images, record videos and audios directly from here.')},
             recordingName: {name: nl.t('Name'), help: nl.t('Provide a name for your recording.')},
-            keywords: {name: nl.t('Remarks'), help: nl.t('Provide a title or some remarks while uploading. This will help you later to identify this file in the reource repository.')},
+            keywords: {name: nl.t('Remarks'), help: nl.t('Provide some remarks while uploading. This will help you later search this resource.')},
             compressionlevel: {name: nl.t('Compression'), help: nl.t('This is supported only for images. By default medium compression level is chosen which is good enough for high definition screen viewing. Do not compress animated GIFs. It is recommended to not alter this value otherwise.')},
             markupCover: {name: nl.t('Cover'), help: nl.t('If you show the complete area, you might see empty spaces in the top and bottom or on the sides depending on the image size. If you choose to cover the complete area, some portions of the image may not be visible depending on the available area dimension.')},
             markupLink: {name: nl.t('Link URL'), help: nl.t('You may optionally make your image a clickable link.')},
@@ -498,7 +513,9 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
             markupScale: {name: nl.t('Scale ratio'), help: nl.t('You could scale the PDF viewing area with respect to width of the section. Use scale 1.0 to scale the PDF to use 100% of width. Using a scale of 1.2 will use 120% of width of the container resulting in a horizontal scroll bar. If you want to avoid a vertical scroll bar, you could try using a smaller scale like 0.8.')},
             markupStart: {name: nl.t('Start from (seconds)'), help: nl.t('Play your video or audio starting from the given second.')},
             markupEnd: {name: nl.t(' End at (seconds)'), help: nl.t('End playing your video or audio at the given second.')},
-        	bgShade: {name: nl.t('Text color'), help: nl.t('Valid only if background image is set for the page. Depending on whether your image is dark or light, you can set the text color to one which is clearly visible in the background. With this, you can control the colors used for different types of text (normal, heading, link, ...)')}
+        	bgShade: {name: nl.t('Text color'), help: nl.t('Depending on whether your image is dark or light, you can set the text color to one which is clearly visible in the background. With this, you can control the colors used for different types of text (normal, heading, link, ...)')},
+        	shared: {name: nl.t('Shared resource'), help: nl.t('Selecting this will allow other users in your group to use this resource within the the modules they create.')},
+        	animated: {name: nl.t('Animated image'), help: nl.t('Select this only if you are uploading an animated image (animated GIF).')}
         };  
     }
 
@@ -826,35 +843,93 @@ function NlMediaRecorder(nl, nlDlg) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function ResourceLibrary() {
+function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader) {
 
 	var _resourceList = [];	
 	var _selectedResource = null;
 	var _resourceFilter = '';
-	this.init = function(resourceList, resourceFilter) {
-		_selectedResource = null;
+	var _resourceIds = {};
+	var _restypeToImage = {
+	    Image: 'dashboard/resource.png', 
+	    PDF: 'dashboard/pdf.png' , 
+	    Audio: 'dashboard/audio.png' , 
+	    Video: 'dashboard/video1.png',
+	    Attachment: 'dashboard/attach.png',
+	};
+
+	var _isInitialised = false;
+ 
+ 	var _groupNextStartPos = null;
+	var _selfNextStartPos = null;
+	var _canFetchMoreSelf = true;
+	var _canFetchMoreGroup = true;
+
+	var _restype = null;
+	var _lessonId = null;
+
+	this.init = function(resourceList, resourceFilter, restype, resourceDict, lessonId) {
+		_init(resourceList, resourceFilter, restype, resourceDict, lessonId);
+	};	
+	
+	function _init(resourceList, resourceFilter, restype, resourceDict, lessonId, scope) {
+		_selectedResource = _selectedResource || null;
 		_resourceFilter = resourceFilter;
-		if (!resourceList) resourceList = [];
-		if (resourceFilter != 'bg') {
-            _resourceList = resourceList;
-            return;
-		}
 		_resourceList = [];
-		for(var i=0; i<resourceList.length; i++) {
-			var res = resourceList[i];
-			if ('bgShade' in res) _resourceList.push(res);
+		_lessonId = lessonId;
+		_restype = restype;
+		_resourceIds = {};
+		if (restype == 'img') {
+			if (resourceFilter != 'bg') {
+				for(var i=0; i<resourceList.length; i++) {
+		            var res = resourceList[i];
+		            if (res.restype == 'Image' || !res.restype) {
+		            	if(res.id in _resourceIds) continue;
+		            	_resourceIds[res.id] = true;
+		            	_resourceList.push(resourceList[i]);		            	
+		            }
+				}
+			} else if(resourceFilter == 'bg') {
+				_resourceList = [];
+				for(var i=0; i<resourceList.length; i++) {
+					var res = resourceList[i];
+					if (res.restype == 'Image' || !res.restype) {
+		            	if(res.id in _resourceIds) continue;
+						if ('bgShade' in res) {
+			            	_resourceIds[res.id] = true;
+							_resourceList.push(res);							
+						}
+					}
+				}
+			}
+		} else if (restype == 'video' || restype == 'embed') {
+			_updateResourceList(resourceList, 'Video');
+		} else if (restype == 'link') {
+			_updateResourceList(resourceList, 'Attachment');
+		} else if (restype == 'audio') {
+			_updateResourceList(resourceList, 'Audio');			
+		} else if (restype == 'pdf') {
+			_updateResourceList(resourceList, 'PDF');
+		}
+		if(scope) {
+	    	scope.data.resourceList = _getFilteredList(scope, scope.data.resourceLibraryDropDown.id, scope.data.librarySearchText);
 		}
 	};
 
 	this.initScope = function(scope) {
         scope.data.resourceFilter = _resourceFilter;
-		scope.options.librarySearchDropdown = [{id: '', name: 'All images'},
-		                                       {id: 'animated', name: 'Animated images'}];
-		scope.data.librarySearchDropdown = scope.options.librarySearchDropdown[0];
 		scope.data.librarySearchText = '';
 
+		scope.options.resourceLibraryDropDown = [{id: '', name:'All libraries'}, {id: 'common', name: 'Common library'},
+												 {id: 'group', name:'Group library'}, {id:'self', name:'Module library'}];
+		scope.data.resourceLibraryDropDown = scope.options.resourceLibraryDropDown[0];
+        scope.data.imageFilter = false;
+        scope.data.shared = false;
+        scope.data.lessonid = _lessonId;
+        scope.data.animated = false;
+        scope.data.search = {};
+
         _updateSelected(scope);
-    	scope.data.resourceList = _getFilteredList(scope.data.librarySearchDropdown.id, scope.data.librarySearchText);
+    	scope.data.resourceList = _getFilteredList(scope, '', scope.data.librarySearchText);
 		
 		scope.onLibraryResourceSelect = function(resource) {
 			scope.data.librarySelectedUrl = resource.background;
@@ -862,12 +937,53 @@ function ResourceLibrary() {
 		};
 		
 		scope.onFieldChange = function(fieldId) {
-			if(fieldId == 'librarySearchDropdown' || fieldId == 'librarySearchText') {
-				scope.data.resourceList = _getFilteredList(scope.data.librarySearchDropdown.id,
-					scope.data.librarySearchText);
+			if(fieldId == 'resourceLibraryDropDown') {
+				if(scope.data.resourceLibraryDropDown.id == '')
+					scope.data.resourceList = _getFilteredList(scope, scope.data.resourceLibraryDropDown.id, scope.data.librarySearchText);
+				else if(scope.data.resourceLibraryDropDown.id == 'common')
+					scope.data.resourceList = _getFilteredList(scope, scope.data.resourceLibraryDropDown.id, scope.data.librarySearchText);
+				else if(scope.data.resourceLibraryDropDown.id == 'group')
+					scope.data.resourceList = _getFilteredList(scope, scope.data.resourceLibraryDropDown.id, scope.data.librarySearchText);
+				else if(scope.data.resourceLibraryDropDown.id == 'self')
+					scope.data.resourceList = _getFilteredList(scope, scope.data.resourceLibraryDropDown.id, scope.data.librarySearchText);
+			}
+			if(fieldId == 'librarySearchText') {
+				if(scope.data.resourceLibraryDropDown.id != '') 
+					scope.data.resourceList = _getFilteredList(scope, scope.data.resourceLibraryDropDown.id, scope.data.librarySearchText);
+				else if(scope.data.imageFilter)
+					scope.data.resourceList = _getFilteredList(scope, 'animated', scope.data.librarySearchText);
+				else 
+					scope.data.resourceList = _getFilteredList(scope, '', scope.data.librarySearchText);
+			}
+			
+			if(fieldId == 'imageFilter') {
+				if(!scope.data.imageFilter) 
+					scope.data.resourceList = _getFilteredList(scope, '', scope.data.librarySearchText);
+				else
+					scope.data.resourceList = _getFilteredList(scope, 'animated', scope.data.librarySearchText);
 			}
 		};
+			
+		scope.fetchMoreResources = function() {
+            if (!scope.data.search.showDetails) return;
+            var dropdownId = scope.data.resourceLibraryDropDown.id;
+			var isSelf = _canFetchMoreSelf && (dropdownId == 'self' || dropdownId == '');
+			if (!isSelf && !_canFetchMoreGroup) return;
+
+			var msg = {title: '', template: scope.data.search.infotxt2, okText: 'Fetch more', cancelText: 'Close'};
+            nlDlg.popupConfirm(msg).then(function(res) {
+                if (!res) return;
+				var data = {lessonid: _lessonId, owner: isSelf ? 'self' : 'group', max: 10};
+				if (isSelf && _selfNextStartPos) data.startpos = _selfNextStartPos;
+				if (!isSelf && _groupNextStartPos) data.startpos = _groupNextStartPos;
+				_fetchMoreResources(scope, data, isSelf);
+            });			
+		};
+		scope.onResourceModify = function(resource) {
+			_showResourceModify(scope, resource);
+		};
  		_updateTabSelection(scope);
+ 		_updateInfotext(scope, scope.data.resourceList.length, scope.data.resourceList.length, scope.data.resourceList.length, (_canFetchMoreSelf || _canFetchMoreGroup));
 	};
 	
 	this.getSelectedUrlInfo = function() {
@@ -884,31 +1000,160 @@ function ResourceLibrary() {
         if (_selectedResource) scope.data.librarySelectedUrl = _selectedResource.background;
 	}
 	
+	function _fetchMoreResources(scope, data, isSelf) {
+		nlDlg.showLoadingScreen();
+		nlServerApi.lessonUpdateResourceLibrary(data).then(function(resourceDict) {
+            nlDlg.hideLoadingScreen();
+            if(Object.keys(resourceDict).length == 0) return;
+            if(isSelf) {
+				_canFetchMoreSelf = resourceDict.more;
+				_selfNextStartPos = resourceDict.nextstartpos;            	
+            } else {
+				_canFetchMoreGroup = resourceDict.more;
+				_groupNextStartPos = resourceDict.nextstartpos;    	
+            }
+			_updatedResourceList = resourceDict.resourcelist.concat(_updatedResourceList);
+			_init(_updatedResourceList, _resourceFilter, _restype, {}, _lessonId, scope);
+		});
+	}
+	
+	function _showResourceModify(scope, resource) {
+		var _resourceModifyDlg = nlDlg.create(scope);
+			_resourceModifyDlg.setCssClass('nl-height-max nl-width-max');
+			
+			_resourceModifyDlg.scope.data = {};
+			_resourceModifyDlg.scope.options = {};
+			_resourceModifyDlg.scope.dlgTitle = nl.t('Modify resource');
+			_resourceModifyDlg.scope.data.restype = resource.restype;
+			_resourceModifyDlg.scope.data.title = resource.name;
+			_resourceModifyDlg.scope.data.shared = resource.shared;
+			_resourceModifyDlg.scope.data.keywords = resource.tags;
+			_resourceModifyDlg.scope.data.resid = resource.resid;
+			_resourceModifyDlg.scope.data.info = angular.fromJson(resource.info);
+			if(resource.restype == 'Image') {
+				_resourceModifyDlg.scope.data.animated = _resourceModifyDlg.scope.data.info.animated ? true : false;
+				_resourceModifyDlg.scope.options.bgShade = [
+						{id: 'none', name: 'Not an background image'},
+			            {id: 'bgdark', name: 'Light text color for darker background'},
+			            {id: 'bglight', name: 'Dark text color for lighter background'}];				
+				if(!_resourceModifyDlg.scope.data.info.bgShade) {
+					_resourceModifyDlg.scope.data.bgShade = _resourceModifyDlg.scope.options.bgShade[0];
+				} else {
+				    _resourceModifyDlg.scope.data.bgShade = resource.bgShade == 'bglight' ? _resourceModifyDlg.scope.options.bgShade[2] : 
+			    										_resourceModifyDlg.scope.options.bgShade[1];
+				}
+			}
+
+			_resourceModifyDlg.scope.help = _getResourceHelp();
+		var modifyButton = {text: nl.t('Modify'), onTap: function(e) {
+			_onModifyResource(scope, _resourceModifyDlg.scope.data);
+		}};
+		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
+            if (e) e.preventDefault();
+            _resourceModifyDlg.close(false);
+        }};
+		_resourceModifyDlg.show('view_controllers/resource/resource_modify_dlg.html', 
+                        [modifyButton], cancelButton, false);
+	}
+	
+	function _getResourceHelp() {
+		return {
+			title:{name: nl.t('Name'), help: nl.t('You can edit name of the selected resource.')},
+            keywords: {name: nl.t('Remarks'), help: nl.t('Provide some remarks while uploading. This will help you later search this resource.')},
+        	bgShade: {name: nl.t('Text color'), help: nl.t('Depending on whether your image is dark or light, you can set the text color to one which is clearly visible in the background. With this, you can control the colors used for different types of text (normal, heading, link, ...)')},
+        	shared: {name: nl.t('Shared resource'), help: nl.t('Selecting this will allow other users in your group to use this resource within the the modules they create.')},
+        	animated: {name: nl.t('Animated image'), help: nl.t('Select this only if you are uploading an animated image (animated GIF).')}
+		};
+	}
+
+	function _onModifyResource(scope, data) {
+		var resourceList = [];
+		if(data.restype == 'Image') {
+			if(data.animated) 
+				data.info['animated'] = 1;
+			else
+				delete data.info['animated'];
+			
+			if(data.bgShade.id != 'none') 
+				data.info['bgShade'] = data.bgShade.id;
+			else
+				delete data.info['bgShade'];			
+		}
+
+        var data = {name: data.title,
+					keywords: data.keywords, 
+					info: angular.toJson(data.info, 2),
+					resid: data.resid,
+					shared: data.shared
+                   };
+
+		nlDlg.showLoadingScreen();
+        nlServerApi.resourceModifyAttrs(data).then(function success(updatedRes) {
+			nlDlg.hideLoadingScreen();
+            for(var i=0; i<_updatedResourceList.length; i++) {
+            	if(updatedRes.id != _updatedResourceList[i].id) continue;
+            	_updatedResourceList.splice(i, 1);
+	        	_updatedResourceList.unshift(updatedRes);
+            	break;
+            }
+			_init(_updatedResourceList, _resourceFilter, _restype, {}, _lessonId, scope);
+		});
+	}
+	
+	function _updateResourceList(resourceList, restype) {
+		for(var i=0; i<resourceList.length; i++) {
+			var res = resourceList[i];
+	        res.resimg = nl.url.resUrl(_restypeToImage[restype]);
+			if (res.restype == restype) {
+				if(res.id in _resourceIds) continue;
+				_resourceIds[res.id] = true;
+				_resourceList.push(res);
+			}
+		}
+		return;
+	}
+	
 	function _updateTabSelection(scope) {
     	if(!scope.markupInfo.insertOrUpdateResource) {
     		scope.data.selectedTab = 'upload';
     		return;
     	}
 		scope.data.url = scope.markupInfo.restypeInfo.url;
-    	if (scope.markupInfo.restypeInfo.type != 'Image' ||
-    		(scope.data.url && !_selectedResource)) {
+    	if (scope.data.url && !_selectedResource) {
     		scope.data.selectedTab = 'url';
     		return;
     	}
 		scope.data.selectedTab = 'library';
 	}
 	
-	function _getFilteredList(filter, searchText) {
+	function _getFilteredList(scope, filter, searchText) {
 		var ret = [];
+		var commonResCount = 0; 
+		var animatedResCount = 0; 
+		var groupResCount = 0; 
+		var selfResCount = 0;
 		var selectedUrl = _selectedResource ? _selectedResource.background : null;
 		for(var i=0; i<_resourceList.length; i++) {
 			var res = _resourceList[i];
 			res.searchWeight = 0;
 			if (filter == 'animated' && !res.animated) continue;
+			if (filter == 'animated' && res.animated) animatedResCount += 1;
+			if(filter == 'group' || filter == 'self') {
+				if(res.owner == 'group') groupResCount += 1;
+				if(res.owner == 'self') selfResCount += 1;
+			}
+			if (filter == 'common' && (!(res.owner == 'self' || res.owner == 'group'))) {
+				commonResCount += 1;
+			}
 			var searchWeight = _getSearchWeight(res, searchText);
 			if (searchWeight == 0) continue;
             res.searchWeight = searchWeight;
 			if (selectedUrl && res.background == selectedUrl) continue; // Add to list top later
+			if(filter == 'group' || filter == 'self') {
+				if(res.owner == filter) ret.push(res);
+				continue;
+			}
+			if (filter == 'common' && (res.owner == 'self' || res.owner == 'group')) continue;
 			ret.push(res);
 		}
 		if (searchText)
@@ -916,8 +1161,31 @@ function ResourceLibrary() {
     			if (a.searchWeight == b.searchWeight) return 0;
     			return (a.searchWeight > b.searchWeight) ? -1 : 1;
     		});
-    	if (_selectedResource && _selectedResource.searchWeight)
-    	   ret.unshift(_selectedResource); // Add selected to top of list
+
+    	if (_selectedResource && _selectedResource.searchWeight) {
+    		if (filter == '') ret.unshift(_selectedResource);
+    		if (filter == 'common' && (_selectedResource.owner != 'self' || _selectedResource.owner != 'group')) {
+    			ret.unshift(_selectedResource);
+    		} else if (filter == _selectedResource.owner && filter == 'group') {
+	    		ret.unshift(_selectedResource); // Add selected to top of list
+    		} else if(filter == _selectedResource.owner && filter == 'self'){
+	    		ret.unshift(_selectedResource); // Add selected to top of list
+    		} else if(_selectedResource.animated && (filter == 'animated')) {
+	    		ret.unshift(_selectedResource); // Add selected to top of list
+    		}
+    	}
+		var canSearchMore = (_canFetchMoreSelf || _canFetchMoreGroup);     	
+    	if (filter == '') {
+			_updateInfotext(scope, _resourceList.length, ret.length, ret.length, canSearchMore);    		
+    	} else if (filter == 'common') {
+			_updateInfotext(scope, commonResCount, ret.length, ret.length, false);
+		} else if (filter == 'self') {
+			_updateInfotext(scope, selfResCount, ret.length, ret.length, _canFetchMoreSelf);			
+		} else if (filter == 'group') {
+			_updateInfotext(scope, groupResCount, ret.length, ret.length, _canFetchMoreGroup);			
+		} else if (filter == 'animated') {
+			_updateInfotext(scope, animatedResCount, ret.length, ret.length, canSearchMore);
+		}
 		return ret.slice(0, 1000);
 	}
 
@@ -942,6 +1210,36 @@ function ResourceLibrary() {
 	function _isFound(word, within) {
 		return (within && within.toLowerCase().indexOf(word) >= 0);
 	}
+
+	function _updateInfotext(scope, total, matched, visible, canSearchMore) {		
+        var oldInfotxt = scope.data.search.infotxt || '';
+        var msg1 = nl.t('There are no items to display.');
+        scope.data.search.cls = 'fgrey2';
+        scope.data.search.showDetails = false;
+        if (total == 0) {
+            scope.data.search.infotxt = nl.fmt2('<i class="padding-mid icon ion-alert-circled"></i>{}', 
+                msg1);
+            scope.data.search.infotxt2 = msg1;
+            scope.data.search.cls = 'fgrey2 nl-link-text';
+        }
+        var item = (total == 1) ? 'item' : 'items';
+        var match = (visible == 1) ? 'match' : 'matches';
+        var plus = matched > visible ? '+' : '';
+        msg1 = nl.t('Found <b>{}{}</b> {} from <b>{}</b> {} searched.', 
+            visible, plus, match, total, item);
+        if (!canSearchMore) {
+            scope.data.search.infotxt = nl.t('{} Search complete.', msg1);
+            scope.data.search.infotxt2 = msg1;
+	        if (oldInfotxt == scope.data.search.infotxt) return;
+	        scope.data.search.clsAnimate = 'anim-highlight-on';
+	        return;
+        }
+
+        scope.data.search.cls = 'fgrey2 nl-link-text';
+        scope.data.search.showDetails = true;
+        scope.data.search.infotxt = nl.t('{} <b>Search more <i class="icon ion-refresh"></i></b>.', msg1);
+        scope.data.search.infotxt2 = nl.t('{} Not found what you are looking for? Do you want to fetch more items from the server?', msg1);
+    }
 }
 
 //-------------------------------------------------------------------------------------------------

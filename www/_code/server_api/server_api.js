@@ -513,10 +513,13 @@ function(nl, nlDlg, nlConfig, Upload) {
            isTemplate: isTemplate, name: name, section0: section0});
     };
 
-    this.lessonGetResourceLibrary = function(templateids) {
-       return server.post('_serverapi/lesson_get_resource_library.json', {templateids: templateids});
+    this.lessonGetResourceLibrary = function(templateids, lessonid) {
+       return server.post('_serverapi/lesson_get_resource_library.json', {templateids: templateids, lessonid: lessonid});
     };
 
+    this.lessonUpdateResourceLibrary = function(data) {
+       return server.post('_serverapi/lesson_update_resource_library.json', data);
+    };
     //---------------------------------------------------------------------------------------------
     // Content metadata
     //---------------------------------------------------------------------------------------------
@@ -564,6 +567,10 @@ function(nl, nlDlg, nlConfig, Upload) {
     //---------------------------------------------------------------------------------------------
     // resource entities
     //---------------------------------------------------------------------------------------------
+    this.resourceModifyAttrs = function(data) {
+		return server.post('_serverapi/resource_modify_attrs.json', data);
+    };
+    
     this.resourceUpload = function(data, urltype) {
         // Upload a resource - could be basic upload or upload and do something more based
         // on url type
