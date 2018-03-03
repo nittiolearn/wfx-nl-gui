@@ -95,8 +95,8 @@ function TypeHandler(nl, nlServerApi) {
 }
 
 //-----------------------------------------------------------------------------------------------------
-var AssignmentDeskCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'NlReportTypes',
-function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlReportTypes) {
+var AssignmentDeskCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi',
+function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 
 	var mode = new TypeHandler(nl, nlServerApi);
 	var _userInfo = null;
@@ -161,10 +161,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlReportTypes) {
 	
 	function _getCards(userInfo, resultList) {
 		var cards = [];
-		var ctypes = NlReportTypes.getCtypes();
 		for (var i = 0; i < resultList.length; i++) {
 			if ((mode.type == TYPES.NEW || mode.type == TYPES.PAST) 
-				&& resultList[i].ctype != ctypes.CTYPE_MODULE) continue;
+				&& resultList[i].ctype != _nl.ctypes.CTYPE_MODULE) continue;
 			var card = _createAssignmentCard(resultList[i], userInfo);
 			cards.push(card);
 		}

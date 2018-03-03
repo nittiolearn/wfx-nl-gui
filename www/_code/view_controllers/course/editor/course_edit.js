@@ -580,7 +580,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         var ret = _validateInputsImpl(data, cm, errorLocation);
         if (!ret) {
             nlDlg.popupAlert({title: nl.t('Error: {}', errorLocation.title), template:errorLocation.template});
-            // TODO-MUNNI: process the error location
+            // TODO-LATER: process the error location
         }
         return ret;
     }

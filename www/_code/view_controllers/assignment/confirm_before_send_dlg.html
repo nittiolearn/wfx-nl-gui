@@ -1,11 +1,11 @@
 <nl-dlg dlgtitle='Please confirm' show-help='0'>
 	<nl-dlg-content>
-    	<div ng-show='assignInfo.training' class='padding-mid fsh6'>
+    	<div ng-show='assignInfo.assigntype == "training"' class='padding-mid fsh6'>
     	    You have chosen to nominate <b>{{count}} user(s).</b>
     	    Users once nominated cannot be removed. 
     	    Are you sure you want to nominate the selected users for this training?
     	</div>
-    	<div ng-show='!assignInfo.training' class='padding-mid fsh6'>
+    	<div ng-show='!assignInfo.assigntype == "training"' class='padding-mid fsh6'>
     	    You have chosen to send assignment to <b>{{count}} users.</b>
     	    Assignment once sent cannot be modified. 
     	    Are you sure you want to send the assignment?

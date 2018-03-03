@@ -613,7 +613,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     };
     
     var _CM_STATES = {
-        hidden:  {title: 'Hidden'}, // TODO-MUNNI - not handled yet!
+        hidden:  {title: 'Hidden'}, // TODO - not handled yet!
         none:    {icon: 'ion-information-circled fblue', title: ''},
         waiting: {icon: 'ion-locked fgrey', title: 'Locked'},
         delayed: {icon: 'ion-alert-circled forange', title: 'Delayed'},
@@ -784,9 +784,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     function _sendAssignment() {
         if (!$scope.canSendAssignment) return;
         var c = modeHandler.course;
-        var assignInfo = {type: 'course', id: c.id, icon: c.icon, 
-            title: c.name, authorName: c.authorName, subjGrade: '',
-            description: c.description, esttime: ''};
+        var assignInfo = {assigntype: 'course', id: c.id, icon: null, 
+            title: c.name, authorName: c.authorname, description: c.description};
         nlSendAssignmentSrv.show($scope, assignInfo);
     }
     

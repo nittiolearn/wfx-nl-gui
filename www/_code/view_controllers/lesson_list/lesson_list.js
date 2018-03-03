@@ -290,7 +290,7 @@ this.show = function($scope, initialUserInfo, params) {
 			_reopenLesson($scope, lessonId);
 		} else if (internalUrl === 'send_assignment') {
 			var assignInfo = {
-				type : 'lesson',
+				assigntype : 'lesson',
 				id : card.lessonId,
 				icon : card.icon,
 				title : card.title,

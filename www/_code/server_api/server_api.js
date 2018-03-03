@@ -379,8 +379,6 @@ function(nl, nlDlg, nlConfig, Upload) {
 	};
 
 	this.assignmentSend = function(data){
-        // data = lessonid, {{and other parameters - please expand}}		
-	//send assignment.
         return server.post('_serverapi/assignment_send.json', data);		
 	};
 
@@ -390,11 +388,15 @@ function(nl, nlDlg, nlConfig, Upload) {
 		return server.post('_serverapi/assignment_get_reports.json', data);
 	};
 	
-    this.assignmentCloseReports = function(repids) {
+    this.assignmentCloseReports = function(repinfos) {
         //data = repids
-        return server.post('_serverapi/assignment_close_reports.json', {repids: repids});
+        return server.post('_serverapi/assignment_close_reports.json', {repinfos: repinfos});
     };
 
+	this.learningReportsGetList = function(data) {
+		//data = mode, id, [filterParameters], [mquery parameters]
+		return server.post('_serverapi/learning_reports_get_list.json', data);
+	};
     //---------------------------------------------------------------------------------------------
 	// get group user entities
     //---------------------------------------------------------------------------------------------

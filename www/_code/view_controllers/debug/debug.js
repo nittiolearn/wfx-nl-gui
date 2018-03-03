@@ -167,8 +167,10 @@ function RestApi(nl, nlDlg, nlServerApi, nlExporter) {
     function _onExecute(e, scope) {
         var params = _validateInputs(scope);
         if (!params) return;
+
         if (scope.data.loop) {
             scope.result.json = '';
+            scope.result.fmt = _formatError();
             _onExecuteLoop(e, scope, params, 0);
             return;
         }
@@ -178,9 +180,8 @@ function RestApi(nl, nlDlg, nlServerApi, nlExporter) {
             scope.view = 'fmt_res';
             scope.result.json = angular.toJson(result, 2);
             scope.result.fmt = _formatResult(result);
-            if (scope.result.fmt === null) {
+            if (scope.result.fmt.error) {
                 scope.view = 'json_res';
-                scope.result.fmt = {error: _formatError};
             }
         });
     }
@@ -189,6 +190,7 @@ function RestApi(nl, nlDlg, nlServerApi, nlExporter) {
         var d = new Date();
         scope.result.json += nl.fmt2('{}: {}{}\n', nl.fmt.date2Str(d, 'milli'), msg, param);
     }
+
     function _onExecuteLoop(e, scope, params, chunk) {
         if (scope.data.paused) {
             nl.timeout(function() {
@@ -200,15 +202,16 @@ function RestApi(nl, nlDlg, nlServerApi, nlExporter) {
         _statusMsg(scope, 'Executing chunk: ', chunk);
         nlServerApi.executeRestApi(scope.data.url, params)
         .then(function(result) {
+            scope.result.fmt = _formatResult(result.resultset, scope.result.fmt.header, scope.result.fmt.rows);
             _statusMsg(scope, angular.toJson(result, 2), '\n');
-            if (!result.next_start_at) {
+            if (!result.more) {
                 _statusMsg(scope, 'All actions completed: ', chunk);
                 return;
             }
-            params.start_at = result.next_start_at;
+            params.startpos = result.nextstartpos;
             nl.timeout(function() {
                 _onExecuteLoop(e, scope, params, chunk);
-            }, 1000);
+            }, 100);
         });
     }
     
@@ -225,16 +228,19 @@ function RestApi(nl, nlDlg, nlServerApi, nlExporter) {
         }
     }
 
-    var _formatError = nl.t('Sorry, only array of objects can be formatted.');
-    function _formatResult(result) {
+    function _formatError() {
+    	return {error: 'Sorry, only array of objects can be formatted.'};
+    }
+    	
+    function _formatResult(result, oldHeaders, oldRows) {
         if (!angular.isArray(result)) {
-            if (!angular.isObject(result)) return null;
+            if (!angular.isObject(result)) return _formatError();
             result = result.resultset;
-            if (!result || !angular.isArray(result)) return null;
+            if (!result || !angular.isArray(result)) return _formatError();
         }
         if (result.length > 0 && angular.isArray(result[0]))
             return _formatTable(result);
-        return _formatArray(result);
+        return _formatArray(result, oldHeaders, oldRows);
     }
 
     function _formatTable(items) {
@@ -243,11 +249,11 @@ function RestApi(nl, nlDlg, nlServerApi, nlExporter) {
         return {header: header, rows: items};
     }
     
-    function _formatArray(items) {
-        var headers = _getColumnHeaders(items);
-        if (headers === null) return null;
+    function _formatArray(items, oldHeaders, oldRows) {
+        var headers = _getColumnHeaders(items, oldHeaders);
+        if (headers === null) return _formatError();
         
-        var rows = [];
+        var rows = oldRows || [];
         for (var i=0; i<items.length; i++) {
             var cols = _objToArray(items[i], headers);
             rows.push(cols);
@@ -255,9 +261,11 @@ function RestApi(nl, nlDlg, nlServerApi, nlExporter) {
         return {header: headers, rows: rows};
     }
 
-    function _getColumnHeaders(items) {
-        var headers = [];
+    function _getColumnHeaders(items, oldHeaders) {
+        var headers = oldHeaders || [];
         var headerDict = {};
+        for (var i=0; i<headers.length; i++) headerDict[headers[i]] = true;
+
         for (var i=0; i<items.length; i++) {
             var item = items[i];
             if (!angular.isObject(item) || angular.isArray(item)) return null;

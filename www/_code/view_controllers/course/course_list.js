@@ -108,9 +108,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
         } else if (linkid === 'fetch_more') {
             _fetchMore();
 		} else if (linkid === 'course_assign'){
-			var assignInfo = {type: 'course', id: card.courseId, icon: card.icon, 
-				title: card.title, authorName: card.authorName, subjGrade: '',
-				description: card.help, esttime: ''};
+			var assignInfo = {assigntype: 'course', id: card.courseId, icon: null, 
+				title: card.title, authorName: card.authorName, description: card.help};
 			nlSendAssignmentSrv.show($scope, assignInfo);
 		} else if (linkid === 'course_assign_delete'){
 			_deleteAssignment($scope, card.reportId);

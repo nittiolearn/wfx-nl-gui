@@ -37,7 +37,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 		return nl.q(function(resolve, reject) {
             nlGroupInfo.init().then(function() {
                 nlGroupInfo.update();
-				nl.pginfo.pageTitle = nl.t('Trainings');
+				nl.pginfo.pageTitle = nl.t('Offline training batches');
 				_scope = $scope;
 	            var params = nl.location.search();
 	            _canShowDelete = ('debug' in params) &&
@@ -251,7 +251,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 		_showTrainingEditDlg.setCssClass('nl-height-max nl-width-max');
 		_showTrainingEditDlg.scope.error = {};
 		_showTrainingEditDlg.scope.data = {};
-		_showTrainingEditDlg.scope.dlgTitle = card ? nl.t('Edit training module') : nl.t('Create new training');
+		_showTrainingEditDlg.scope.dlgTitle = card ? nl.t('Update batch details') : nl.t('Create a training batch');
 		_showTrainingEditDlg.scope.data = (card !== null) ? card : {
 			title : '',
 			description : '',
@@ -425,11 +425,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
         nlDlg.popupStatus(nl.fmt2('{} of {} item(s) marked as completed.', startPos, users.length), false);
         var endPos = startPos+BATCH_SIZE;
         if (endPos > users.length) endPos = users.length;
-        var repids = [];
+        var repinfos = [];
         for(var i=startPos; i<endPos; i++) {
-            repids.push(users[i].repid);
+        	var repinfo = {repid: users[i].repid, completed: true, trainingStatus: {attended: true, sessions_attended: {}}};
+            repinfos.push(repinfo);
         }
-        nlServerApi.assignmentCloseReports(repids).then(function(resp) {
+        nlServerApi.assignmentCloseReports(repinfos).then(function(resp) {
             if (resp.fail > 0) {
                 nlDlg.popdownStatus(0);
                 nlDlg.popupAlert({title: 'Error', template: 
@@ -447,33 +448,30 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 	}
 
 	function _assignTrainingModule(trainingModule, nominations) {
-		var trainingInfo = {
-			type : 'lesson',
-			id : trainingModule.training.moduleid,
-			trainingId : trainingModule.id,
-			trainingName : trainingModule.title,
-			remarks : _getRemarks(trainingModule.training),
-			returnBackAfterSend : true,
+		var trainingBatch = trainingModule.training;
+		var trainingData = angular.copy(trainingBatch);
+		trainingData.trainingStatus = {};
 
-			dlgTitle : nl.t('Nominate users for training: {}', trainingModule.title),
+		var assignInfo = {
+			// Stuff needed for functionality of client side
+			assigntype : 'training',
+			dontShowUsers : nominations,
 
-			esttime : '',
-			starttime : '',
-			endtime : '',
+			// Stuff needed for server side
+			assignid : trainingBatch.id,
+			id : trainingBatch.contentid || 0, //trainingModule.training.moduleid,
+			remarks : _getRemarks(trainingBatch),
+			trainingData : angular.toJson(trainingData),
 
-			title : trainingModule.title,
-			icon : trainingModule.training.moduleicon,
-			description : trainingModule.description,
+			// Stuff needed in GUI side
+			title : trainingBatch.name,
 			authorName : _userInfo.displayname,
-
-			hideTimes : true,
-			selectedUsers : nominations,
-			training : true
+			description : trainingBatch.desc,
+			dlgTitle : nl.t('Nominate users for training: {}', trainingBatch.name)			
 		};
-		nlSendAssignmentSrv.show(_scope, trainingInfo).then(function(e) {
-		});
+		nlSendAssignmentSrv.show(_scope, assignInfo);
 	};
-
+	
 	function _getUserDict(list) {
 		var userDict = {};
 		for (var i = 0; i < list.length; i++) {

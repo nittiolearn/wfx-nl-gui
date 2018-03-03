@@ -87,18 +87,18 @@ function TypeHandler(reptype, nl) {
 //-------------------------------------------------------------------------------------------------
 function getController(ctrlType) {
 	return [
-		'nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'NlAssignReportStats',
-		'NlReportTypes', 'nlGroupInfo', 'nlRangeSelectionDlg',
-		function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, NlAssignReportStats,
-			NlReportTypes, nlGroupInfo, nlRangeSelectionDlg) {
+		'nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlAssignReportStats',
+		'nlGroupInfo', 'nlRangeSelectionDlg',
+		function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlAssignReportStats,
+			nlGroupInfo, nlRangeSelectionDlg) {
 	    _assignRepImpl(ctrlType, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, 
-	    	NlAssignReportStats, NlReportTypes, nlGroupInfo, nlRangeSelectionDlg);
+	    	nlAssignReportStats, nlGroupInfo, nlRangeSelectionDlg);
 	}];
 }
 
 //-------------------------------------------------------------------------------------------------
 function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, 
-	NlAssignReportStats, NlReportTypes, nlGroupInfo, nlRangeSelectionDlg) {
+	nlAssignReportStats, nlGroupInfo, nlRangeSelectionDlg) {
 	var _userInfo = null;
 	var my = 0;
 	var search = null;
@@ -191,7 +191,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	function _getDataFromServer(resolve, fetchMore) {
 	    if (!fetchMore) {
             nlCardsSrv.updateCards($scope.cards, {cardlist: [], staticlist: []});
-            reportStats = NlAssignReportStats.createReportStats(reptype, $scope);
+            reportStats = nlAssignReportStats.createReportStats(reptype, $scope);
 	    }
 	    var params = mode.getAssignmentReportsParams(dateRange);
         _pageFetcher.fetchBatchOfPages(nlServerApi.assignmentReport, params, fetchMore, function(results, batchDone) {
@@ -200,7 +200,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
                 return;
             }
 
-            reportStats.updateReports(results);
+            results = reportStats.updateReports(results);
             _appendAssignmentReportCards(results, $scope.cards.cardlist);
             if ($scope.cards.staticlist.length == 0 && results.length > 0) {
                 _appendChartCard($scope.cards.staticlist);
@@ -230,7 +230,6 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 	
 	function _createReportCard(report) {
         var status = reportStats.getStatusInfo()[report._statusStr];
-        var atypes = NlReportTypes.getAtypes();
 		var card = {
 			id : report.id,
 			title : (reptype == 'assignment') ? report.studentname : report.name,
@@ -244,9 +243,12 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
         var statusIcon = '';
 		if (reptype == 'user') {
 			statusIcon = nl.fmt2('<span class="fsh2 {}"></span>', status.icon);
-			card.icon = nl.url.lessonIconUrl(report.icon || report.image);
+			if (report.icon || report.image)
+				card.icon = nl.url.lessonIconUrl(report.icon || report.image);
+			else
+				card.icon2 = status.icon;
 			card.url = report.completed ? nl.fmt2('/lesson/view_report_assign/{}', report.id)
-				: (report.assigntype == atypes.ATYPE_COURSE) ? null
+				: (report.assigntype == _nl.atypes.ATYPE_COURSE) ? null
 				: nl.fmt2('/lesson/do_report_assign/{}', report.id);
 		} else {
 			card.url = report.completed ? nl.fmt2('/lesson/review_report_assign/{}', report.id) : null;
@@ -425,7 +427,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
                 content: 'Still loading data from server. Please export after the complete data is loaded.'});
             return;
         }
-        NlAssignReportStats.export($scope, reportStats.getRecords(), _userInfo);
+        nlAssignReportStats.export($scope, reportStats.getRecords(), _userInfo);
     }
 }
 

@@ -1,26 +1,27 @@
 <nl-dlg dlgtitle='{{assignInfo.dlgTitle ? assignInfo.dlgTitle : "Send assignment"}}'>
 <nl-dlg-help>
 	<div class='njsHelp'>
-	<p ng-hide='assignInfo.training'><b>Users (mandatory):</b> Select the organizations (and if needed, the specific learners), put in a remark and click the Send Assignment button to send it to the selected class.</p>
-	<p ng-show='assignInfo.training'><b>Nomiate Users (mandatory):</b> Select the organizations (and if needed, the specific learners), put in a remark and click the Nominate User button to nominate the selected users.</p>
-	<p ng-hide='assignInfo.training' style='color:blue'><B><I>Rest of fields below are optional.</I></B></p>
-	<p ng-hide='assignInfo.training' style='color:blue'><B><I>You may set one or more of start time, end time and duration to control when and how long the assignment is active.</I></B></p>
-	<p ng-hide='assignInfo.training || assignInfo.type == "course"'><b>start time:</b> You may define the earliest date and time (upto minutes accuracy) from when the assignment is active. If not set, the assignment is active as soon as it is sent till the end time.</p>
-	<p ng-hide='assignInfo.training || assignInfo.type == "course"'><b>end time:</b> You may define the latest date and time (upto minutes accuracy) till when the assignment is active. If not set, the assignment is active after start time (or sent time if start is not defined).</p>
-	<p ng-hide='assignInfo.training || assignInfo.type == "course"'><b>duration (minutes):</b>  You may define the maximum duration in minutes to restrict the learner to complete the assignment within the specified time. If not set, the learner may take any amount of time subject to start and end time restrictions. </p>
-	<p ng-hide='assignInfo.training || assignInfo.type == "course"'><b>show answers:</b>
-		<ul ng-hide='assignInfo.training'>
-			<li>By default, answers are shown to the learner "after submitting" the assignment.</li>
-			<li>You could change this to "on every page" if you want to learners to self learn and the score is not important.</li>
-			<li>You can set this to "only when published" if you are dispatching a test and you do not want the learners to see the answers. You can explicitly publish the results later when appropriate from the assignment desk.</li>
-		</ul>
+	<p><b>Users (mandatory):</b> Select the organizations (and if needed, the specific learners), put in a remark and click the Send Assignment button to send it to the selected class.</p>
+	<p ng-show='assignInfo.assigntype != "training"' style='color:blue'><B><I>Rest of fields below are optional.</I></B></p>
+	<p ng-show='assignInfo.assigntype == "lesson"' style='color:blue'><B><I>You may set one or more of start time, end time and duration to control when and how long the assignment is active.</I></B></p>
+	<p ng-show='assignInfo.assigntype == "lesson"'><b>Start time:</b> You may define the earliest date and time (upto minutes accuracy) from when the assignment is active. If not set, the assignment is active as soon as it is sent till the end time.</p>
+	<p ng-show='assignInfo.assigntype == "lesson"'><b>End time:</b> You may define the latest date and time (upto minutes accuracy) till when the assignment is active. If not set, the assignment is active after start time (or sent time if start is not defined).</p>
+	<p ng-show='assignInfo.assigntype == "lesson"'><b>Duration (minutes):</b>  You may define the maximum duration in minutes to restrict the learner to complete the assignment within the specified time. If not set, the learner may take any amount of time subject to start and end time restrictions. </p>
+	<p ng-show='assignInfo.assigntype == "lesson"'><b>Show answers:</b>
 	</p>
-	<p><b>remarks:</b> Add remarks if any that you want to share to the learners - e.g. submit before Friday.</p>
+	<ul ng-show='assignInfo.assigntype == "lesson"'>
+		<li>By default, answers are shown to the learner "after submitting" the assignment.</li>
+		<li>You could change this to "on every page" if you want to learners to self learn and the score is not important.</li>
+		<li>You can set this to "only when published" if you are dispatching a test and you do not want the learners to see the answers. You can explicitly publish the results later when appropriate from the assignment desk.</li>
+	</ul>
+	<p ng-show='assignInfo.assigntype != "training"'><b>Forum:</b> You could choose to allow learners to discuss with you in a discussion forum. Only the learners belonging to this batch and learning administrators will be able to post and view messages in this forum.</p>
+	<p ng-show='enableEmailNotifications'><b>Email notifications:</b> You could choose to send email notifications to the learners.</p>
+	<p><b>Remarks:</b> Add remarks if any that you want to share to the learners - e.g. submit before Friday.</p>
 	</div>
 </nl-dlg-help>
 <nl-dlg-content>
     <div class='row row-center padding-mid margin0'
-         ng-hide='assignInfo.training'>
+         ng-hide='assignInfo.assigntype == "training"'>
         <div ng-class='resp2Col33' class='padding0' 
              ng-hide='screenSize == "small"'>
             <img class='nl-max-100' ng-src='{{assignInfo.icon}}'>
@@ -34,7 +35,7 @@
             </div>
             <div ng-hide='screenSize == "small"'>
                 <div class='padding-small'>by: <b>{{assignInfo.authorName}}</b></div>
-                <div class='padding-small'>{{assignInfo.subjGrade}}</div>
+                <div ng-show='assignInfo.subjGrade' class='padding-small'>{{assignInfo.subjGrade}}</div>
                 <div class='padding-small'>{{assignInfo.description}}</div>
             </div>
         </div>
@@ -49,7 +50,7 @@
     </div>    
 
     <div class='row row-wrap row-top padding-top margin0'
-         ng-hide='assignInfo.hideTimes || assignInfo.type == "course"'>
+         ng-show='assignInfo.assigntype == "lesson"'>
         <div ng-class='resp2Col33' class='nl-dlg-field-name'>Start time</div>
         <div ng-class='resp2Col67' class='nl-dlg-field-value'>
             <nl-date-time-select fieldmodel='starttime'></nl-date-time-select>
@@ -57,28 +58,31 @@
     </div>
 
     <div class='row row-wrap row-top padding-top margin0'
-         ng-hide='assignInfo.hideTimes || assignInfo.type == "course"'>
+         ng-show='assignInfo.assigntype == "lesson"'>
         <div ng-class='resp2Col33' class='nl-dlg-field-name'>End time</div>
         <div ng-class='resp2Col67' class='nl-dlg-field-value'>
             <nl-date-time-select fieldmodel='endtime'></nl-date-time-select>
         </div>
     </div>
 
-    <div class='row row-wrap row-top padding-top margin0' ng-hide='assignInfo.hideTimes || assignInfo.type == "course"'>
+    <div class='row row-wrap row-top padding-top margin0'
+         ng-show='assignInfo.assigntype == "lesson"'>
         <div ng-class='resp2Col33' class='nl-dlg-field-name'>Duration (minutes)</div>
         <div ng-class='resp2Col67' class='padding0'>
             <nl-input fieldmodel='maxduration' fieldtype='number' fieldcls='w100'></nl-input>
         </div>
     </div>
 
-    <div class='row row-wrap row-top padding-top margin0' ng-hide='assignInfo.hideTimes || assignInfo.type == "course"'>
+    <div class='row row-wrap row-top padding-top margin0'
+         ng-show='assignInfo.assigntype == "lesson"'>
         <div ng-class='resp2Col33' class='nl-dlg-field-name'>Show answers</div>
         <div ng-class='resp2Col67' class='padding0'>
 			<nl-select fieldmodel='showAnswers'></nl-select>
 		</div>
     </div>
 
-    <div class='row row-wrap row-top padding-top margin0' ng-hide='assignInfo.hideTimes'>
+    <div class='row row-wrap row-top padding-top margin0'
+         ng-show='assignInfo.assigntype != "training"'>
         <div ng-class='resp2Col33' class='nl-dlg-field-name'>Forum</div>
         <div ng-class='resp2Col67' class='nl-dlg-field-value'>
             <div class='nl-link-text row row-center padding0 margin0'

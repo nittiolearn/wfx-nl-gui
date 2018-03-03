@@ -11,7 +11,19 @@ var _nl = {
             if (scope !== undefined) ret.scope = scope;
             return ret;
         }];
-    }
+    },
+    atypes: {
+		ATYPE_MODULE: 0,
+		ATYPE_SELF_MODULE: 1,
+		ATYPE_COURSE: 2,
+		ATYPE_SELF_COURSE: 3, // future
+		ATYPE_TRAINING: 4
+	},
+	ctypes: {
+		CTYPE_MODULE: 0,
+		CTYPE_COURSE: 2,
+		CTYPE_TRAINING: 4 // future
+	}
 };
 
 //-------------------------------------------------------------------------------------------------

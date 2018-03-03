@@ -55,8 +55,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlSendAssignmentSrv) {
     }
 
     function _showAssignmentDlg(result) {
-        var assignInfo = {type: _type, id: _dbid, icon: null, 
-            title: '', authorName: '', subjGrade: '', description: '', esttime: ''};
+        var assignInfo = {assigntype: _type, id: _dbid};
         if (_type == 'lesson') {
             var lesson = result.lesson;
             assignInfo.icon = nl.url.lessonIconUrl(lesson.image);
@@ -117,8 +116,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         nlDlg.showLoadingScreen();
         nlGroupInfo.init().then(function() {
             nlGroupInfo.update();
-            var dontShowUsers = _assignInfo.selectedUsers || {};
-            if (_assignInfo.training) _selectedUsers = {};
+            var dontShowUsers = _assignInfo.dontShowUsers || {};
+            if (_assignInfo.assigntype == 'training') _selectedUsers = {};
             _ouUserSelector = nlOuUserSelect.getOuUserSelector(_parentScope, 
                 nlGroupInfo.get(), {}, dontShowUsers);
             _ouUserSelector.updateSelectedIds(_selectedUsers);
@@ -151,14 +150,14 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             ouUserTree: _ouUserSelector.getTreeSelect(),
             starttime: _assignInfo.starttime || '',
             endtime: _assignInfo.endtime || '',
-            maxduration: parseInt(_assignInfo.esttime),
+            maxduration: _assignInfo.esttime ? parseInt(_assignInfo.esttime) : '',
             showAnswers: learningModeStrings[1],
             remarks: _assignInfo.remarks || ''
         };
     }
 
     function _showDlg(resolve, reject) {
-    	var buttonName = _assignInfo.training ? nl.t('Nominate User') : nl.t('Send Assignment');
+    	var buttonName = _assignInfo.assigntype == 'training' ? nl.t('Nominate User') : nl.t('Send Assignment');
         var sendButton = {text : buttonName, onTap : function(e) {
             _selectedUsers = _ouUserSelector.getSelectedUsers(); 
             _onSendAssignment(e);
@@ -173,7 +172,9 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 
     function _assertUserCount() {
         if (Object.keys(_selectedUsers).length == 0) {
-        	var templateMsg = _assignInfo.training ? nl.t('Please select the users to nominate.') : nl.t('Please select the users to send the assignment to.');
+        	var templateMsg = _assignInfo.assigntype == 'training' 
+        		? nl.t('Please select the users to nominate.') 
+        		: nl.t('Please select the users to send the assignment to.');
             nlDlg.popupAlert({title:'Please select', template: templateMsg});
             return false;
         }
@@ -204,38 +205,44 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         if (!_assertUserCount()) return;
         
         var ouUserInfo = _getOusAndUser();
-        
-        var starttime = _dlg.scope.data.starttime || '';
-        var endtime = _dlg.scope.data.endtime || '';
-        var maxduration = _dlg.scope.data.maxduration;
-        maxduration = maxduration ? parseInt(maxduration) : 0;
-        if (!_asertStartEndDurations(starttime, endtime, maxduration)) return;
-
-        if(starttime) starttime = nl.fmt.date2UtcStr(starttime, 'second');
-        if(endtime) endtime = nl.fmt.date2UtcStr(endtime, 'second');
-    
-        var learnmode = _dlg.scope.data.showAnswers.id;
-        var data = {lessonid: _dlg.scope.assignInfo.id,
-                    istraining: _dlg.scope.assignInfo.istraining || false, 
-                    type : _dlg.scope.assignInfo.type,
-                    orgunits:ouUserInfo.ous, 
-                    selectedusers: _getMinimalUserObjects(ouUserInfo.userids),
-                    not_before: starttime, 
-                    not_after: endtime,
-                    learnmode: learnmode,
-                    forum: _dlg.scope.data.forum || false,
-                    email: _dlg.scope.data.email || false,
-                    max_duration: maxduration || '',
-                    remarks: _dlg.scope.data.remarks || ''};
-        if ('assigntype' in _dlg.scope.assignInfo)
-        	data.assigntype = _dlg.scope.assignInfo.assigntype;
-        if ('trainingId' in _dlg.scope.assignInfo)
-        	data.trainingId = _dlg.scope.assignInfo.trainingId;
-        if ('trainingName' in _dlg.scope.assignInfo)
-        	data.trainingName = _dlg.scope.assignInfo.trainingName;
+        var data = {
+        	assigntype: _dlg.scope.assignInfo.assigntype == 'lesson' ? _nl.atypes.ATYPE_MODULE
+        				: _dlg.scope.assignInfo.assigntype == 'course' ? _nl.atypes.ATYPE_COURSE
+        				: _nl.atypes.ATYPE_TRAINING,
+        	contentid: _dlg.scope.assignInfo.id,
+        	assignid: _dlg.scope.assignInfo.assignid || 0,
+            selectedusers: _getMinimalUserObjects(ouUserInfo.userids),
+            oustr: _getOrgUnitStr(ouUserInfo.ous),
+            remarks: _dlg.scope.data.remarks || '',
+            forum: _dlg.scope.data.forum || false,
+            sendemail: _dlg.scope.data.sendEmail || false};
+		
+        if (data.assigntype == _nl.atypes.ATYPE_MODULE) {
+	        var starttime = _dlg.scope.data.starttime || '';
+	        var endtime = _dlg.scope.data.endtime || '';
+	        var maxduration = _dlg.scope.data.maxduration;
+	        maxduration = maxduration ? parseInt(maxduration) : 0;
+	        if (!_asertStartEndDurations(starttime, endtime, maxduration)) return;
+	        if(starttime) starttime = nl.fmt.date2UtcStr(starttime, 'second');
+	        if(endtime) endtime = nl.fmt.date2UtcStr(endtime, 'second');
+            data.not_before = starttime;
+            data.not_after = endtime;
+            data.learnmode = _dlg.scope.data.showAnswers.id;
+            data.max_duration = maxduration || '';
+        } else if (data.assigntype == _nl.atypes.ATYPE_TRAINING) {
+	        if ('trainingData' in _dlg.scope.assignInfo)
+	        	data.trainingData = _dlg.scope.assignInfo.trainingData;
+        }
         _confirmAndSend(data, ouUserInfo);
     }
-        
+    
+    function _getOrgUnitStr(ous) {
+    	var sorted = ous.sort();
+        var ret = sorted.join(', ');
+        if (ret.length <= 100) return ret;
+        return ret.substring(0, 100) + '...';
+    }
+
     function _asertStartEndDurations(starttime, endtime, maxduration) {
         if (!endtime) return true;
         
@@ -281,7 +288,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             var user = nlGroupInfo.getUserObj(''+selecteduserids[i]);
             if (!user.state) continue;
             var userObj = {id: user.id, email: user.email, usertype: user.usertype, 
-    			org_unit: user.org_unit};
+    			org_unit: user.org_unit, name: user.name};
     		if (user.supervisor) userObj.supervisor = user.supervisor;
     		if (user.metadata) {
 		        var mdVals = angular.fromJson(user.metadata);
@@ -332,7 +339,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
     }
 
     function _showAfterAssignmentSentDlg(ctx) {
-        if (_assignInfo.returnBackAfterSend) {
+        if (_assignInfo.assigntype == 'training') {
         	var msg = nl.t('{} {} nominated for training.',  
         		ctx.sentUserCnt, 
         		ctx.sentUserCnt == 1 ? nl.t('user has been') : nl.t('users have been'));
@@ -344,9 +351,9 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         var afterAssignmentSentDlg = nlDlg.create(_parentScope);
         afterAssignmentSentDlg.scope.data = {sentUserCnt: ctx.sentUserCnt,
         	pageTitle: nl.t('Assignment sent')};
-        if(ctx.data.type == 'lesson') {
+        if(ctx.data.assigntype == _nl.atypes.ATYPE_MODULE) {
             afterAssignmentSentDlg.scope.data.url = nl.fmt2('/#/assignment_report?assignid={}', ctx.data.assignid);
-        } else if (ctx.data.type == 'course') {
+        } else if (ctx.data.assigntype == _nl.atypes.ATYPE_COURSE) {
             afterAssignmentSentDlg.scope.data.url = nl.fmt2('#/course_report_list?assignid={}', ctx.data.assignid);
         }
         var cancelButton = {text : nl.t('Close'), onTap: function(e) {

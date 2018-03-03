@@ -91,9 +91,12 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
                 {id: 'all', name: 'All items'},
                 {id: 'lesson', name: 'Only modules'},
                 {id: 'course', name: 'Only courses'},
+                {id: 'training_kind', name: 'Only offline trainings'},
+                {id: 'assignment', name: 'Only module assignments'},
                 {id: 'course_assignment', name: 'Only course assignments'},
-                {id: 'course_report', name: 'Only course reports'},
-                {id: 'training', name: 'Only trainings'}],
+                {id: 'training', name: 'Only training batches'},
+                {id: 'report', name: 'Only module reports'},
+                {id: 'course_report', name: 'Only course reports'}],
             actiontype: [
                 {id: 'all', name: 'All versions'},
                 {id: 'deleted', name: 'Deleted versions only'},
@@ -183,9 +186,12 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
 	var _typeInfos = {
 	    'lesson' : {name: 'Module', icon: 'ion-easel fblue'},
         'course' : {name: 'Course', icon: 'ion-ios-book fblue'},
+        'training_kind' : {name: 'Offline training', icon: 'ion-calendar fblue'},
+        'assignment' : {name: 'Module assignment', icon: 'ion-paper-airplane fblue'},
         'course_assignment' : {name: 'Course assignment', icon: 'ion-paper-airplane fblue'},
+        'training' : {name: 'Offline training batch', icon: 'ion-calendar fblue'},
+        'report' : {name: 'Module report', icon: 'ion-pie-graph fblue'},
         'course_report' : {name: 'Course report', icon: 'ion-pie-graph fblue'},
-        'training' : {name: 'Training', icon: 'ion-calendar fblue'}
 	};
 	
 	function _getTypeIcon(entitytype) {
@@ -229,6 +235,7 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
         nl.fmt.addAvp(avps, 'Restored', item.restored, 'boolean');
         nl.fmt.addAvp(avps, 'Updated on', item.updated, 'date');
         nl.fmt.addAvp(avps, 'Entity id', item.entityid);
+        nl.fmt.addAvp(avps, 'Details', item.info);
 		return avps;
 	}
 

@@ -137,7 +137,7 @@ function _sliceArguments(args, startPos) {
 
 function Formatter() {
     this.t = function(args) {
-        // TODO-MUNNI - actual translation needed
+        // TODO - actual translation needed
         var strFmt = args[0];
         var ret = _fmt2Impl(strFmt, _sliceArguments(args, 1));
         return ret;

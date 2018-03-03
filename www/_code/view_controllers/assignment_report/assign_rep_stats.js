@@ -6,8 +6,7 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.assign_rep_stats', [])
-    .service('NlAssignReportStats', NlAssignReportStats)
-    .service('NlReportTypes', NlReportTypes)
+    .service('nlAssignReportStats', NlAssignReportStats)
     .directive('nlLeaderboardAssign', SimpleDirective('leaderboard_assign'))
     .directive('nlLeaderboardGroup', SimpleDirective('leaderboard_group'))
     .directive('nlLeaderboardUser', SimpleDirective('leaderboard_user'))
@@ -583,24 +582,32 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
     
     this.updateReports = function(reports) {
         var groupInfo = nlGroupInfo.get();
+        var ret = [];
         for(var i=0; i<reports.length; i++) {
             var rep = reports[i];
-            if (rep.ctype != _ctypes.CTYPE_MODULE) continue; // TODO-REPORTING-CHANGE
-            var user = nlGroupInfo.getUserObj(''+rep.student);
-            if (!user) continue;
+            if (rep.ctype != _nl.ctypes.CTYPE_MODULE) continue; // TODO-REPORTING-CHANGE
+            ret.push(rep);
             _lst.push(rep);
+            var user = nlGroupInfo.getUserObj(''+rep.student);
+            if (user) {
+	            rep.studentname = user.name;
+	            rep._user_id = user.user_id;
+	            rep._email = user.email;
+	            rep.org_unit = user.org_unit;
+	            var metadata = nlGroupInfo.getUserMetadata(user);
+	            for(var j=0; j<metadata.length; j++)
+	                rep[metadata[j].id] = metadata[j].value|| '';
+            } else {
+	            rep.studentname = '';
+	            rep._user_id = '';
+	            rep._email = '';
+	            rep.org_unit = '';
+            }
             var content = angular.fromJson(rep.content);
             rep.updated = nl.fmt.json2Date(rep.updated);
             rep.created = nl.fmt.json2Date(rep.created);
             if (rep.started) rep.started = nl.fmt.json2Date(rep.started);
             if (rep.ended) rep.ended = nl.fmt.json2Date(rep.ended);
-            rep.studentname = user.name;
-            rep._user_id = user.user_id;
-            rep._email = user.email;
-            rep.org_unit = user.org_unit;
-            var metadata = nlGroupInfo.getUserMetadata(user);
-            for(var j=0; j<metadata.length; j++)
-                rep[metadata[j].id] = metadata[j].value|| '';
             rep._treeId = nl.fmt2('{}.{}', rep.org_unit, rep.student);
             rep._assignid = content.trainingId ? content.trainingId : 
                 content.courseAssignId ? content.courseAssignId : rep.assignment;
@@ -633,7 +640,8 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
         _lst.sort(function(a, b) {
             return (b.updated - a.updated);
         });
-        _updateStats(_stats, null, reports);
+        _updateStats(_stats, null, ret);
+        return ret;
     };
     
     function _addToLeaderBoard(rep, status) {
@@ -761,27 +769,10 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlReportTypes = [function() {
-	this.getAtypes = function() { return _atypes;};
-	this.getCtypes = function() { return _ctypes;};
-}];
-
-var _atypes = {
-	ATYPE_MODULE: 0,
-	ATYPE_SELF_MODULE: 1,
-	ATYPE_COURSE: 2,
-	ATYPE_SELF_COURSE: 3, // Not used for timebeing
-	ATYPE_TRAINING: 4
-};
-var _ctypes = {
-	CTYPE_MODULE: 0,
-	CTYPE_COURSE: 2,
-	CTYPE_TRAINING: 4 // Not used for timebeing
-};
 function _getAssignTypeStr(assigntype, content) {
 	// TODO-REPORTING-CHANGE
-    if (assigntype == _atypes.ATYPE_SELF_MODULE) return 'self assignment';
-    if (assigntype == _atypes.ATYPE_COURSE) return 'course assignment';
+    if (assigntype == _nl.atypes.ATYPE_SELF_MODULE) return 'self assignment';
+    if (assigntype == _nl.atypes.ATYPE_COURSE) return 'course assignment';
     if (content.trainingId) return 'training';
     return 'module assignment';
 }
