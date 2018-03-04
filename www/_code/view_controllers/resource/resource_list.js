@@ -253,39 +253,41 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 
 //-------------------------------------------------------------------------------------------------
 var _updatedResourceList = [];
-var ResourceAddModifySrv = ['nl', 'nlServerApi', 'nlDlg', 'Upload', 'nlProgressFn', 'nlResourceUploader', 'nlGroupInfo',
-function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader, nlGroupInfo){
+var ResourceAddModifySrv = ['nl', 'nlServerApi', 'nlDlg', 'Upload', 'nlProgressFn', 'nlResourceUploader',
+function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 	var COMPRESSIONLEVEL = [{id: 'no', name: 'No compression'},
 						{id: 'low', name:'Low compression'},
 						{id: 'medium', name:'Medium compression'},
 						{id: 'high', name:'High compression'}];
-	var _resourceLibrary = new ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader, nlGroupInfo);
+	var _resourceLibrary = new ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader);
 	_updatedResourceList = [];
 	var params= nl.location.search();
 	var maxResults = ('max' in params) ? parseInt(params['max']) : 50;
 	this.show = function($scope, card, restypes, onlyOnce, markupHandler) {
 	    if (!markupHandler) markupHandler = new MarkupHandler(nl, nlDlg);
 		return nl.q(function(resolve, reject) {
-			var addModifyResourceDlg = nlDlg.create($scope);
-            addModifyResourceDlg.resolve = function (afterFirstOk, beforeShow) {
-                // Avoid multiple callbacks which are comming due to "close" call
-                if (addModifyResourceDlg.resolvedCalled) return;
-                addModifyResourceDlg.resolvedCalled = true;
-                if (!beforeShow) addModifyResourceDlg.close();
-                resolve(_processResults(addModifyResourceDlg, markupHandler, afterFirstOk));
-            }; 
-            addModifyResourceDlg.resolveAfterOnce = function () {
-                if (!onlyOnce) return false;
-                addModifyResourceDlg.resolve(true);
-                return true;
-            }; 
-            _initResourceDlg(addModifyResourceDlg, card, restypes);
-            if(!markupHandler.initScope(addModifyResourceDlg.scope)) {
-                addModifyResourceDlg.resolve(false, true);
-                return false;
-            }
-	        _resourceLibrary.initScope(addModifyResourceDlg.scope);
-			_showDlg(addModifyResourceDlg, card, $scope, restypes, markupHandler);
+			nlServerApi.getUserInfoFromCacheOrServer().then(function(userInfo) {
+				var addModifyResourceDlg = nlDlg.create($scope);
+	            addModifyResourceDlg.resolve = function (afterFirstOk, beforeShow) {
+	                // Avoid multiple callbacks which are comming due to "close" call
+	                if (addModifyResourceDlg.resolvedCalled) return;
+	                addModifyResourceDlg.resolvedCalled = true;
+	                if (!beforeShow) addModifyResourceDlg.close();
+	                resolve(_processResults(addModifyResourceDlg, markupHandler, afterFirstOk));
+	            }; 
+	            addModifyResourceDlg.resolveAfterOnce = function () {
+	                if (!onlyOnce) return false;
+	                addModifyResourceDlg.resolve(true);
+	                return true;
+	            }; 
+	            _initResourceDlg(addModifyResourceDlg, card, restypes);
+	            if(!markupHandler.initScope(addModifyResourceDlg.scope)) {
+	                addModifyResourceDlg.resolve(false, true);
+	                return false;
+	            }
+		        _resourceLibrary.initScope(addModifyResourceDlg.scope, userInfo);
+				_showDlg(addModifyResourceDlg, card, $scope, restypes, markupHandler);
+			});
 		});
 	};
 
@@ -843,7 +845,7 @@ function NlMediaRecorder(nl, nlDlg) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader, nlGroupInfo) {
+function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader) {
 
 	var _resourceList = [];	
 	var _selectedResource = null;
@@ -856,10 +858,6 @@ function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader, nlGroupInfo
 	    Video: 'dashboard/video1.png',
 	    Attachment: 'dashboard/attach.png',
 	};
-	var _groupInfo = {};
-	nlGroupInfo.init().then(function() {
-		_groupInfo = nlGroupInfo.get();
-	});
 	var _isInitialised = false;
  
  	var _groupNextStartPos = null;
@@ -922,12 +920,13 @@ function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader, nlGroupInfo
 		}
 	};
 
-	this.initScope = function(scope) {
+	this.initScope = function(scope, userInfo) {
         scope.data.resourceFilter = _resourceFilter;
 		scope.data.librarySearchText = '';
 
+		var grpname = ((userInfo || {}).groupinfo || {}).name || 'Group';
 		scope.options.resourceLibraryDropDown = [{id: '', name:'All libraries'}, {id: 'common', name: 'Nittio library'},
-												 {id: 'group', name:nl.t('{} library', _groupInfo.name||'Group')}, {id:'self', name:'Module library'}];
+												 {id: 'group', name:nl.t('{} library', grpname)}, {id:'self', name:'Module library'}];
 		scope.data.resourceLibraryDropDown = scope.options.resourceLibraryDropDown[1];
         scope.data.animFilter = false;
         scope.data.shared = true;
