@@ -14,8 +14,12 @@ function module_init() {
 var NittioLessonAddPageVoiceDlg = ['nl', 'nlDlg', 'nlResourceAddModifySrv',
 function(nl, nlDlg, nlResourceAddModifySrv) {
 	var _restypes = null;
-	this.showAddVoiceDlg = function(oPage, restypes) {
+	var _lessonId = null;
+	var _resourceDict = {};
+	this.showAddVoiceDlg = function(oPage, restypes, resourceDict, lessonId) {
 		_restypes = restypes;
+		_lessonId = lessonId;
+		_resourceDict = resourceDict;
 		return nl.q(function(resolve, reject) {
 			 _showDlg(oPage, resolve);
 		});
@@ -35,7 +39,7 @@ function(nl, nlDlg, nlResourceAddModifySrv) {
 		
 		dlgScope.clickOnMoreOptions = function() {
 			nlResourceAddModifySrv.insertOrUpdateResource(parentScope, 
-            _restypes, 'audio:' + dlgScope.data.audioUrl, false).then(function(result) {
+            _restypes, 'audio:' + dlgScope.data.audioUrl, false, _resourceDict, false, _lessonId).then(function(result) {
             	if(result && result.url) dlgScope.data.audioUrl = result.url;
             });
 		};

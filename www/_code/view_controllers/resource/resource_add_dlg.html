@@ -125,9 +125,9 @@
 	    			<div class='col padding0'>
 			            <nl-select fieldmodel='resourceLibraryDropDown'></nl-select> 
 			        </div>
-			        <div class='padding-mid'>
-			        	<nl-checkbox ng-show='data.restype.id == "Image"'
-			        				 fieldmodel='animFilter' 
+			        <div class='padding-mid'
+			        	ng-if='data.restype.id == "Image"'>
+			        	<nl-checkbox fieldmodel='animFilter' 
 			        				 fieldname='Only animated'
 			        				 fieldcls= 'padding-mid'
 			        				 fieldindex="0">
