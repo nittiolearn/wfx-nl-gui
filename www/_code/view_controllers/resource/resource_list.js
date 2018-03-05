@@ -456,7 +456,7 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
     this.insertOrUpdateResource = function($scope, restypes, markupText, showMarkupOptions, resourceDict, resourceFilter, lessonId) {
     	// resoureFilter = 'bg' | 'icon' | undefined
     	var restype = markupText.substring(0, markupText.indexOf(':'));
-    	if(_updatedResourceList.length == 0) _updatedResourceList = resourceDict.resourcelist;
+    	if(_updatedResourceList.length == 0) _updatedResourceList = resourceDict.resourcelist  ? resourceDict.resourcelist : [];
     	_resourceLibrary.init(_updatedResourceList, resourceFilter, restype, resourceDict, lessonId, maxResults);
         var markupHandler = new MarkupHandler(nl, nlDlg, true, markupText, showMarkupOptions);
         return this.show($scope, null, restypes, true, markupHandler);
@@ -974,7 +974,6 @@ function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader) {
 			_showResourceModify(scope, resource);
 		};
  		_updateTabSelection(scope);
- 		_updateInfotext(scope, scope.data.resourceList.length, scope.data.resourceList.length, (_canFetchMoreSelf || _canFetchMoreGroup));
 	};
 	
 	this.getSelectedUrlInfo = function() {
@@ -1153,9 +1152,9 @@ function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader) {
 			ret.unshift(_selectedResource);
     	}
 		var canSearchMore = (_canFetchMoreSelf || _canFetchMoreGroup);
-		if (libFilter == 'common' && res.owner) canSearchMore =false;
-		if (libFilter == 'group' && res.owner != 'group') canSearchMore = _canFetchMoreGroup;
-		if (libFilter == 'self' && res.owner != 'self') canSearchMore = _canFetchMoreSelf;
+		if (libFilter == 'common') canSearchMore = false;
+		if (libFilter == 'group') canSearchMore = _canFetchMoreGroup;
+		if (libFilter == 'self') canSearchMore = _canFetchMoreSelf;
 		_updateInfotext(scope, totalResCount, ret.length, canSearchMore);    		
 		return ret.slice(0, MAX_VISIBLE);
 	}
@@ -1188,22 +1187,21 @@ function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader) {
         var msg1 = nl.t('There are no items to display.');
         scope.data.search.cls = 'fgrey2';
         scope.data.search.showDetails = false;
-        if (total == 0) {
+        scope.data.search.clsAnimate = 'anim-highlight-on';
+        if (visible == 0) {
             scope.data.search.infotxt = nl.fmt2('<i class="padding-mid icon ion-alert-circled"></i>{}', 
                 msg1);
             scope.data.search.infotxt2 = msg1;
-            scope.data.search.cls = 'fgrey2 nl-link-text';
-        }
+            scope.data.search.cls = 'fgrey2';
+            return;
+	    }
         var item = (visible == 1) ? 'item' : 'items';
         msg1 = nl.t('Displaying <b>{}</b> {}.', visible, item);
         if (!canSearchMore) {
             scope.data.search.infotxt = nl.t('{} Fetch complete.', msg1);
             scope.data.search.infotxt2 = msg1;
-	        if (oldInfotxt == scope.data.search.infotxt) return;
-	        scope.data.search.clsAnimate = 'anim-highlight-on';
 	        return;
         }
-
         scope.data.search.cls = 'fgrey2 nl-link-text';
         scope.data.search.showDetails = true;
         scope.data.search.infotxt = nl.t('{} <b>Fetch more <i class="icon ion-refresh"></i></b>.', msg1);

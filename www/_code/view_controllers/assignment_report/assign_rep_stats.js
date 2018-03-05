@@ -738,6 +738,7 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
         nl.fmt.addAvp(avps, 'Max duration', report.max_duration, 'minutes');
         nl.fmt.addAvp(avps, 'Show answers', _learnmodeString(report.learnmode));
         nl.fmt.addAvp(avps, 'Is published?', report.published, 'boolean');
+		nl.fmt.addAvp(avps, 'Schemaversion', report.schemaversion);
     };
     
     function _learnmodeString(learnmode) {

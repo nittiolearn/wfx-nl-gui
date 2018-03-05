@@ -238,6 +238,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		nl.fmt.addAvp(avps, 'Show answers', _learnmodeString(assignment.learnmode));
 		nl.fmt.addAvp(avps, 'Is published?', assignment.published, 'boolean');
 		nl.fmt.addAvp(avps, 'Discussion forum', assignment.forum, 'boolean');
+		nl.fmt.addAvp(avps, 'Schemaversion', assignment.schemaversion);
 		return avps;
 	}
 
