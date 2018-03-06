@@ -141,6 +141,11 @@ function RestApi(nl, nlDlg, nlServerApi, nlExporter) {
     };
     
     function _saveAsCsv(scope) {
+    	if (!scope.result.fmt || !scope.result.fmt.rows || scope.result.fmt.rows.length == 0) {
+    		nlDlg.popupStatus('Nothing to export');
+    		return;
+    	}
+    	
         nlDlg.showLoadingScreen();
         nl.timeout(function() {
             var csv = _writeCsvLine(nlExporter, scope.result.fmt.header, false);
@@ -163,6 +168,21 @@ function RestApi(nl, nlDlg, nlServerApi, nlExporter) {
         }
         return ret;
     }
+
+	function _saveAsCsvIfNeeded(scope) {
+		return nl.q(function(resolve, reject) {
+			var rows = scope.result.fmt.rows;
+			if (!rows || rows.length < 20000) {
+	            resolve(true);
+	            return;
+	        }
+        	_saveAsCsv(scope);
+        	nl.timeout(function() {
+	            scope.result.fmt = _formatError();
+        		resolve(true);
+        	});
+		});
+	}
 
     function _onExecute(e, scope) {
         var params = _validateInputs(scope);
@@ -202,16 +222,18 @@ function RestApi(nl, nlDlg, nlServerApi, nlExporter) {
         _statusMsg(scope, 'Executing chunk: ', chunk);
         nlServerApi.executeRestApi(scope.data.url, params)
         .then(function(result) {
-            scope.result.fmt = _formatResult(result.resultset, scope.result.fmt.header, scope.result.fmt.rows);
-            _statusMsg(scope, angular.toJson(result, 2), '\n');
-            if (!result.more) {
-                _statusMsg(scope, 'All actions completed: ', chunk);
-                return;
-            }
-            params.startpos = result.nextstartpos;
-            nl.timeout(function() {
-                _onExecuteLoop(e, scope, params, chunk);
-            }, 100);
+        	_saveAsCsvIfNeeded(scope).then(function() {
+	            scope.result.fmt = _formatResult(result.resultset, scope.result.fmt.header, scope.result.fmt.rows);
+	            _statusMsg(scope, angular.toJson(result, 2), '\n');
+	            if (!result.more) {
+	                _statusMsg(scope, 'All actions completed: ', chunk);
+	                return;
+	            }
+	            params.startpos = result.nextstartpos;
+	            nl.timeout(function() {
+	                _onExecuteLoop(e, scope, params, chunk);
+	            }, 100);
+        	});
         });
     }
     
