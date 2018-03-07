@@ -23,20 +23,22 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var TrainingListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlSendAssignmentSrv', 'nlGroupInfo',
-function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentSrv, nlGroupInfo) {
+var TrainingListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlSendAssignmentSrv', 'nlGroupInfo', 'nlTreeSelect',
+function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentSrv, nlGroupInfo, nlTreeSelect) {
 
 	var _userInfo = null;
 	var trainingListDict = {};
 	var _scope = null;
     var _canShowDelete = false;
-
+	var _groupInfo = null;
+	var _trainingkind = null; 	
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
 		trainingListDict = {};
 		return nl.q(function(resolve, reject) {
             nlGroupInfo.init().then(function() {
                 nlGroupInfo.update();
+                _groupInfo = nlGroupInfo.get();
 				nl.pginfo.pageTitle = nl.t('Offline training batches');
 				_scope = $scope;
 	            var params = nl.location.search();
@@ -62,9 +64,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 
 	function _getToolbar() {
 		return [{
-			title : 'Publish new training',
+			title : 'Create a new training batch',
 			icon : 'ion-android-add-circle',
-			onClick : _publishNewTraining
+			onClick : _createNewTraining
 		}];
 	}
 
@@ -138,6 +140,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
             canShowEdit: canShowEdit,
 			training : item,
 			title : item.name,
+			grade: item.grade,
+			subject: item.subject,
+			perParticipantCost: item.perParticipantCost,
 			module : {
 				lessonId : item.moduleid,
 				title : item.modulename,
@@ -146,6 +151,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 			start_date : item.start,
 			end_date : item.end,
 			description : item.desc,
+			sessions: item.sessions,
+			ctype: item.ctype,
+			training_kind: item.training_kind,
+			kindName: item.kindName,
+			kindDesc: item.kindDesc,
 			children : [],
 			details : {},
 			links : [],
@@ -156,8 +166,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 		return card;
 	}
 
-	function _publishNewTraining() {
-		_editTrainingModule(null, null);
+	function _createNewTraining() {
+		nlServerApi.getTrainingkindList().then(function(result) {
+			_trainingkind = result.resultset;
+			_createNewTrainingModule(null, 'create_batch');			
+		});
 	}
 
 
@@ -169,7 +182,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
         if (internalUrl == 'training_assign' || internalUrl =='training_report') {
             _trainingReportView(card, internalUrl);
         } else if (internalUrl == 'training_edit') {
-            _editTrainingModule(card, card.id);
+            _createNewTrainingModule(card, 'edit_batch');
         } else if (internalUrl == 'training_delete') {
             _deleteTrainingModule(card, card.id);
         } else if (internalUrl === 'fetch_more') {
@@ -246,52 +259,200 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
         });
     }
     
-	function _editTrainingModule(card, id) {
-		var _showTrainingEditDlg = nlDlg.create($scope);
-		_showTrainingEditDlg.setCssClass('nl-height-max nl-width-max');
-		_showTrainingEditDlg.scope.error = {};
-		_showTrainingEditDlg.scope.data = {};
-		_showTrainingEditDlg.scope.dlgTitle = card ? nl.t('Update batch details') : nl.t('Create a training batch');
-		_showTrainingEditDlg.scope.data = (card !== null) ? card : {
-			title : '',
-			description : '',
-			start_date : '',
-			end_date : ''
+    function _createNewTrainingModule(card, mode) {
+    	var _createOrEditBatchTraining = nlDlg.create($scope);
+		_createOrEditBatchTraining.setCssClass('nl-height-max nl-width-max');
+		_createOrEditBatchTraining.scope.dlgTitle = mode == 'create_batch' ? nl.t('Create a new training batch') : nl.t('Update training batch');
+		_initBatchTrainingDlg(_createOrEditBatchTraining.scope, card, mode);
+		_showBatchTrainingDlg(_createOrEditBatchTraining);		
+    };
+
+	function _initBatchTrainingDlg(scope, card, mode, showDropDown) {
+		var card = card;
+		scope.error = {};
+		scope.mode = mode;
+		scope.showDropDown = showDropDown;
+		scope.data = {};
+		scope.help = _getTraininghelp();
+		scope.options = {trainingkind: _getTrainingkind(_trainingkind)};
+
+		if(mode == 'edit_batch') {
+			_updateView();
+		}
+		
+		scope.clickOnCreateNewTraining = function() {
+			_createTrainingkindModule(scope);
 		};
-		_showTrainingEditDlg.scope.data.module = card ? card.module || '' : '';
-		_showTrainingEditDlg.scope.userinfo = _userInfo;
-		var button = {text : id ? nl.t('Update'): nl.t('Create'), onTap : function(e) {
-			_onModuleEdit(e, $scope, _showTrainingEditDlg.scope, id ? card : null, id || null);
+
+		scope.onFieldChange = function(fieldId) {
+			if(fieldId == 'trainingkind') {
+				card = scope.data.trainingkind;
+				_updateView();
+			}
+		};
+		
+		function _updateView() {
+			scope.trainigKindSelected = true;
+			scope.data = card;
+			scope.data.trainingkind = card;
+			scope.data.module = card.module || '';
+			scope.help = _getTraininghelp();			
+		}
+	}
+		
+	function _showBatchTrainingDlg(dlg){
+		var button = {text : dlg.scope.mode == 'create_batch' ? nl.t('Create'): nl.t('Update'), onTap : function(e) {
+			_onModuleEdit(e, $scope, dlg.scope, dlg.scope.data, dlg.scope.mode);
 		}};
 		var cancelButton = {text: nl.t('Cancel')};
-		_showTrainingEditDlg.show('view_controllers/training_list/training_edit_dlg.html', [button], cancelButton);
+		dlg.show('view_controllers/training_list/training_batch_dlg.html', [button], cancelButton);
+	}		
+	
+    function _getTrainingkind(training) {
+    	if(training.length == 0) return [];
+    	var ret = [];
+    	for(var i=0; i<training.length; i++) {
+			var item = training[i];
+			var card = {id: item.id, training_kind: item.id, name:item.kindName,  title: item.title, grade: item.grade, subject: item.subject,
+						module: {lessonId: item.moduleid, title: item.modulename, icon: item.moduleicon }, desc: item.desc,  
+						kindName: item.kindName, kindDesc: item.kindDesc, sessions: item.sessions, perParticipantCost: item.perParticipantCost};
+    		ret.push(card);
+    	}
+    	return ret;
+    }
+
+	function _createTrainingkindModule(scope) {
+		var _gradeInfo = {};
+		var _subjectInfo = {};
+		var _dlg = nlDlg.create($scope);
+		_dlg.setCssClass('nl-height-max nl-width-max');
+		_dlg.scope.error = {};
+		_dlg.scope.data = {};
+		_dlg.scope.help = _getTraininghelp();
+		_dlg.scope.dlgTitle = nl.t('Create a training');
+		_dlg.scope.data = {
+							kindName : '',
+							kindDesc : '',
+							perParticipantCost: ''
+						  };
+
+		_dlg.scope.data.gradelabel = _groupInfo.props.gradelabel;
+		_dlg.scope.data.subjectlabel = _groupInfo.props.subjectlabel;
+		_dlg.scope.data.sessions = [{name: 1, duration: 30}];
+
+        _gradeInfo = {data: nlTreeSelect.strArrayToTreeArray(_groupInfo.props.grades || [])};
+        nlTreeSelect.updateSelectionTree(_gradeInfo, {});
+        _gradeInfo.treeIsShown = false;
+        _gradeInfo.multiSelect = false;
+		_gradeInfo.fieldmodelid = 'grade';
+        
+        _subjectInfo = {data: nlTreeSelect.strArrayToTreeArray(_groupInfo.props.subjects || [])};
+        nlTreeSelect.updateSelectionTree(_subjectInfo, {});
+        _subjectInfo.treeIsShown = false;
+        _subjectInfo.multiSelect = false;
+		_subjectInfo.fieldmodelid = 'subject';
+
+		_dlg.scope.options = {grade: _gradeInfo, subject: _subjectInfo};
+
+		_dlg.scope.data.module = '';
+		_dlg.scope.userinfo = _userInfo;
+		_dlg.scope.onClickOnEdit = function(session) {
+			var sessions = _dlg.scope.data.sessions;
+			for(var i=0; i<sessions.length; i++) {
+				if(sessions[i].id == session.id) {
+					_dlg.scope.data.sessions.splice(i, 1);
+				}
+			}
+			_dlg.scope.data.session = session;
+		};
+
+		_dlg.scope.onClickOnAddSession = function() {
+			_dlg.scope.data.sessions.push({name: '', duration: ''});
+		};
+
+		_dlg.scope.onClickOnDeleteSession = function(session) {
+			var sessions = _dlg.scope.data.sessions;
+			for(var i=0; i<sessions.length; i++) {
+				if(sessions[i].name == session.name){
+					_dlg.scope.data.sessions.splice(i, 1);
+				}
+			}
+		};
+		var button = {text : nl.t('Create'), onTap : function(e) {
+			_onTrainingkindEdit(e, $scope, _dlg.scope, null, _gradeInfo, _subjectInfo, scope);
+		}};
+		
+		var cancelButton = {text: nl.t('Cancel')};
+		_dlg.show('view_controllers/training_list/trainingkind_create_dlg.html', [button], cancelButton);
 	}
 
-	function _onModuleEdit(e, $scope, dlgScope, card, id) {
-		if (!_validateInputs(dlgScope)) {
+	function _onTrainingkindEdit(e, $scope, dlgScope, card, _gradeInfo, _subjectInfo, scope) {
+		if (!_validateTrainingkindInputs(dlgScope, _gradeInfo, _subjectInfo)) {
 			if (e)
 				e.preventDefault();
 			return null;
 		}
 
-		var serverFunction = (id !== null) ? nlServerApi.trainingModify : nlServerApi.trainingCreate;
+		var info = {
+				kindName : dlgScope.data.kindName,
+				kindDesc : dlgScope.data.kindDesc,
+				ctype: 'CTYPE_MODULE',
+				moduleid : dlgScope.data.module.lessonId,
+				modulename : dlgScope.data.module.title,
+				moduleicon : dlgScope.data.module.icon,
+				grade: Object.keys(nlTreeSelect.getSelectedIds(_gradeInfo))[0],
+				subject: Object.keys(nlTreeSelect.getSelectedIds(_subjectInfo))[0],
+				sessions : dlgScope.data.sessions,
+				perParticipantCost: dlgScope.data.perParticipantCost,
+		};
+		var data = {info: angular.toJson(info)};
+		nlDlg.showLoadingScreen();
+		nlServerApi.createTrainingkind(data).then(function(result) {
+			nlDlg.hideLoadingScreen();
+			_trainingkind.push(result);
+			var ret = [];
+			ret.push(result);
+			var card = _getTrainingkind(ret);
+			_initBatchTrainingDlg(scope, card[0], 'edit_batch');
+		});		
+	}
+	
+	function _onModuleEdit(e, $scope, dlgScope, card, mode) {
+		if (!_validateInputs(dlgScope)) {
+			if (e)
+				e.preventDefault();
+			return null;
+		}
+		var serverFunction = (mode == 'edit_batch') ? nlServerApi.trainingModify : nlServerApi.trainingCreate;
+		var info = {
+				kindName : card.kindName,
+				kindDesc : card.kindDesc,
+				ctype: card.ctype || 'CTYPE_MODULE',
+				moduleid : card.module.lessonId,
+				modulename : card.module.title,
+				moduleicon : card.module.icon,
+				grade: card.grade,
+				subject: card.subject,
+				sessions : card.sessions,
+				perParticipantCost: card.perParticipantCost,
+				name : dlgScope.data.title,
+				desc : dlgScope.data.description || ''
+		};
 
 		var data = {
 			name : dlgScope.data.title,
-			desc : dlgScope.data.description,
-			nomination : "self",
-			type : "external",
-			id : (id !== null) ? dlgScope.data.id : 0,
-			moduleid : dlgScope.data.module.lessonId,
-			modulename : dlgScope.data.module.title,
-			moduleicon : dlgScope.data.module.icon,
+			desc : dlgScope.data.description || '',
 			start : nl.fmt.json2Date(new Date(dlgScope.data.start_date), 'second'),
-			end : nl.fmt.json2Date(new Date(dlgScope.data.end_date), 'second')	
+			end : nl.fmt.json2Date(new Date(dlgScope.data.end_date), 'second'),
+			info: angular.toJson(info),
+			moduleid: card.module.lessonId,
+			training_kind: card.training_kind,
+			id : (mode == 'edit_batch') ? card.id : 0
 		};
 		nlDlg.showLoadingScreen();
 		serverFunction(data).then(function(module) {
 			nlDlg.hideLoadingScreen();
-			_onModifyDone(module, $scope, id);
+			_onModifyDone(module, $scope, mode == 'create_batch' ? null : module.id);
 		});
 	}
 
@@ -315,8 +476,43 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 			if (card.id === trainigId)
 				return i;
 		}
-		nl.log.error('Cannot find modified card', courseId);
+		nl.log.error('Cannot find modified card', trainigId);
 		return 0;
+	}
+
+	function _getTraininghelp() {
+		return {
+			trainingkind: {name: nl.t('Training'), help: nl.t('Can select the training available from the dropdown'), isShown: true},			
+			title: {name: nl.t('Batch title'), help: nl.t('Mandatory - enter a title for your training.')},
+			start_date: {name: nl.t('From'), help: nl.t('Mandatory - select the start date for your training')},
+			end_date: {name: nl.t('Till'), help: nl.t('Mandatory - select the end date for your training.')},
+			module: {name: nl.t('Feedback form or module'), help: nl.t('Mandatory - Select the feedback form or the learning module for your training by clicking on the search icon.')},
+			description: {name: nl.t('Batch description'), help: nl.t('Provide a short description which will help others in the group to understand the purpose of this training.')},
+			grade: {name: _groupInfo.props.gradelabel, help: nl.t('Please select the {}', _groupInfo.props.gradelabel)},
+			subject: {name: _groupInfo.props.subjectlabel, help: nl.t('Please select the {}', _groupInfo.props.subjectlabel)},
+			icon: {name: nl.t('Icon'), help: nl.t('Please select the icon')},
+			sessions: {name: nl.t('Sessions'), help: nl.t('Configure the sessions and durations')},
+			kindName: {name: nl.t('Training name'), help: nl.t('This is the training name')},
+			kindDesc: {name: nl.t('Training description'), help:('Short description provided on training')},
+			perParticipantCost: {name: nl.t('Per participant cost'), help: nl.t('Configure the per participant cost')}
+		};
+	};
+
+	function _validateTrainingkindInputs(scope, _gradeInfo, _subjectInfo) {
+		scope.error = {};
+		if (!scope.data.kindName)
+			return _validateFail(scope, 'title', 'Name is mandatory');
+		if (Object.keys(nlTreeSelect.getSelectedIds(_gradeInfo)).length == 0)
+			return _validateFail(scope, 'grade', nl.t('Please choose a {}', _groupInfo.props.gradelabel));
+		if (Object.keys(nlTreeSelect.getSelectedIds(_subjectInfo)).length == 0)
+			return _validateFail(scope, 'subject', nl.t('Please choose a {}', _groupInfo.props.subjectlabel));
+		if (!scope.data.module)
+			return _validateFail(scope, 'module', 'Please choose a feedback form or a learning module');
+		if (!scope.data.perParticipantCost)
+			return _validateFail(scope, 'perParticipantCost', 'Mandatory - Please choose a per participant cost');	
+		if (scope.data.sessions.length == 0) 
+			return _validateFail(scope, 'sessions', 'Mandatory - Please add the sessions in the training');			
+		return true;
 	}
 
 	function _validateInputs(scope) {

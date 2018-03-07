@@ -563,7 +563,29 @@ function(nl, nlDlg, nlConfig, Upload) {
 		return server.post('_serverapi/training_get_report_list.json',
 				data);
 	};
+
+    //---------------------------------------------------------------------------------------------
+	//training kind entities
+    //---------------------------------------------------------------------------------------------
+	this.getTrainingkindList = function () {
+		return server.post('_serverapi/training_kind_get_list.json',
+				{});
+	};
+
+	this.createTrainingkind = function(data) {
+		return server.post('_serverapi/training_kind_create.json',
+				data);
+	};
 	
+	this.modifyTrainingkind = function() {
+		return server.post('_serverapi/training_kind_modify.json',
+				data);
+	};
+
+	this.deleteTrainingkind = function() {
+		return server.post('_serverapi/training_kind_delete.json',
+				data);
+	};
     //---------------------------------------------------------------------------------------------
     // resource entities
     //---------------------------------------------------------------------------------------------

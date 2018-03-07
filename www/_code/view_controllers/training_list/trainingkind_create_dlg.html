@@ -1,0 +1,61 @@
+<nl-dlg dlgtitle='{{dlgTitle}}' show-help='0'> 
+<nl-dlg-content>
+	<nl-dlg-row attr='kindName' help='help'>
+	    <nl-input fieldtype='text' fieldmodel='kindName'></nl-input>
+	</nl-dlg-row>
+
+	<nl-dlg-row attr='grade' help='help'>
+		<div style='padding: 0 2px 0 2px'>
+           	<nl-tree-select info='options.grade'></nl-tree-select>
+		</div>
+	</nl-dlg-row>
+
+	<nl-dlg-row attr='subject' help='help'>
+		<div style='padding: 0 2px 0 2px'>
+       		<nl-tree-select info='options.subject'></nl-tree-select>
+		</div>
+	</nl-dlg-row>
+
+	<nl-dlg-row attr='module' help='help'>
+    	<nl-module-select fieldmodel='module' userinfo='userinfo'></nl-module-select>
+	</nl-dlg-row>
+
+	<nl-dlg-row attr='kindDesc' help='help'>
+        <nl-textarea fieldmodel='kindDesc'></nl-textarea>
+    </nl-dlg-row>
+
+	<nl-dlg-row attr='perParticipantCost' help='help'>
+	    <nl-input fieldtype='number' fieldmodel='perParticipantCost' fieldminvalue='0'></nl-input>
+	</nl-dlg-row>
+
+	<nl-dlg-row attr='sessions' help='help'>
+    	<div class='row row-center padding0 margin0'>
+	    	<div class='col nl-dlg-field-name padding-left'>Session name</div>
+	    	<div class='col col-34 nl-dlg-field-name'>Duration(minutes)</div>
+    	</div>
+		<div class='row row-wrap row-center padding0 margin0'
+			ng-repeat='session in data.sessions'
+			style='border-top: 1px solid #CCCCDD;'>
+			<span class='nl-toolbar-icon' 
+				ng-click='onClickOnDeleteSession(session)'>
+				<i class='icon ion-ios-trash'></i>
+			</span>
+    		<div class='col'>
+	    		<input ng-model='session.name' type='text'>
+    		</div>
+    		<div class='col col-34'>
+				<input ng-model='session.duration' type='number' class='nl-input w100' min='0'/>
+    		</div>
+		</div>
+		<div class='row row-wrap row-center padding0 margin0'
+			style='border-top: 1px solid #CCCCDD;'>
+			<span class='nl-toolbar-icon'
+				ng-click='onClickOnAddSession()'>
+				<i class='icon ion-ios-plus'></i>
+			</span>
+		</div>
+	    <div ng-show='error.sessions' class='nl-dlg-field-errormsg'>{{error.sessions}}</div>
+	</nl-dlg-row>
+	
+</nl-dlg-content>
+</nl-dlg>
