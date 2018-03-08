@@ -229,9 +229,6 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             data.not_after = endtime;
             data.learnmode = _dlg.scope.data.showAnswers.id;
             data.max_duration = maxduration || '';
-        } else if (data.assigntype == _nl.atypes.ATYPE_TRAINING) {
-	        if ('trainingData' in _dlg.scope.assignInfo)
-	        	data.trainingData = _dlg.scope.assignInfo.trainingData;
         }
         _confirmAndSend(data, ouUserInfo);
     }
