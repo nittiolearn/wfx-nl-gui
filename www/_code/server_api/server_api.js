@@ -388,11 +388,6 @@ function(nl, nlDlg, nlConfig, Upload) {
 		return server.post('_serverapi/assignment_get_reports.json', data);
 	};
 	
-    this.assignmentCloseReports = function(repinfos) {
-        //data = repids
-        return server.post('_serverapi/assignment_close_reports.json', {repinfos: repinfos});
-    };
-
 	this.learningReportsGetList = function(data) {
 		//data = mode, id, [filterParameters], [mquery parameters]
 		return server.post('_serverapi/learning_reports_get_list.json', data);
@@ -561,6 +556,16 @@ function(nl, nlDlg, nlConfig, Upload) {
 
 	this.getTrainingReportList = function(data){
 		return server.post('_serverapi/training_get_report_list.json',
+				data);
+	};
+
+	this.trainingUpdateAttendance = function(data) {
+		return server.post('_serverapi/training_update_attendance.json',
+				data);
+	};
+
+	this.trainingCreateChildReport = function(data) {
+		return server.post('_serverapi/training_create_child_report.json',
 				data);
 	};
 
