@@ -24,14 +24,10 @@
         <nl-textarea fieldmodel='kindDesc'></nl-textarea>
     </nl-dlg-row>
 
-	<nl-dlg-row attr='perParticipantCost' help='help'>
-	    <nl-input fieldtype='number' fieldmodel='perParticipantCost' fieldminvalue='0'></nl-input>
-	</nl-dlg-row>
-
 	<nl-dlg-row attr='sessions' help='help'>
     	<div class='row row-center padding0 margin0'>
 	    	<div class='col nl-dlg-field-name padding-left'>Session name</div>
-	    	<div class='col col-34 nl-dlg-field-name'>Duration(minutes)</div>
+	    	<div class='col col-34 nl-dlg-field-name'>Duration</div>
     	</div>
 		<div class='row row-wrap row-center padding0 margin0'
 			ng-repeat='session in data.sessions'
@@ -43,8 +39,10 @@
     		<div class='col'>
 	    		<input ng-model='session.name' type='text'>
     		</div>
-    		<div class='col col-34'>
-				<input ng-model='session.duration' type='number' class='nl-input w100' min='0'/>
+    		<div class='nl-dlg-field-value col col-34'>
+			    <select ng-model='session.duration' 
+			            ng-options='elem as elem.name group by elem.group for elem in options.duration track by elem.id'>
+			    </select>
     		</div>
 		</div>
 		<div class='row row-wrap row-center padding0 margin0'

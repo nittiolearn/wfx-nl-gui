@@ -13,29 +13,6 @@
 </style>
 <div class='padding-mid'>
 	<div class='training_details padding-mid'>
-		<div class='padding-mid fsh5'>{{card.title}}</div>
-		<div class='row row-bottom row-wrap margin0 padding0 fsmall1'>
-			<div ng-class='$root.respCol221' class='padding-mid'>
-				<span class='training_attr'>From:</span><span>{{card.start_date | nlDateTimeFormat}}</span>
-			</div>
-			<div ng-class='$root.respCol221' class='padding-mid'>
-				<span class='training_attr'>Till:</span><span>{{card.end_date | nlDateTimeFormat}}</span>
-			</div>
-			<div ng-class='$root.respCol221' class='padding-mid'>
-				<span class='training_attr'>Created:</span><span>{{card.training.created | nlDateTimeFormat}}</span>
-			</div>
-			<div ng-class='$root.respCol221' class='padding-mid'>
-				<span class='training_attr'>Updated:</span><span>{{card.training.updated | nlDateTimeFormat}}</span>
-			</div>
-			<div ng-class='$root.respCol221' class='padding-mid'>
-				<span class='training_attr'>Created by:</span><span>{{card.training.createdby}}</span>
-			</div>
-		</div>
-		<div ng-show='card.training.desc'>
-			<hr/>
-			<div class='padding-mid training-desc' ng-bind-html='card.training.descMulti'></div>
-		</div>
-		<hr/>
 	    <div class='nl-mildtoolbar text-left'>
 		    <span title='Nominate users'
 		          class='nl-toolbar-icon'
@@ -60,5 +37,39 @@
                 <i class="icon ion-ios-trash" style='font-size: 22px'></i>
             </span>
 	    </div>
+		<div ng-show='card.kindDesc'>
+			<hr/>
+			<div class='padding-mid training-desc' ng-bind-html='card.descMultiKind'></div>
+		</div>
+		<div ng-show='card.desc'>
+			<hr/>
+			<div class='padding-mid training-desc' ng-bind-html='card.descMultiBatch'></div>
+		</div>
+	    <hr/>
+		<div class='row row-bottom row-wrap margin0 padding0 fsmall1'>
+			<div ng-class='$root.respCol221' class='padding-mid'>
+				<span class='training_attr'>From:</span><span>{{card.start_date | nlDateTimeFormat}}</span>
+			</div>
+			<div ng-class='$root.respCol221' class='padding-mid'>
+				<span class='training_attr'>Till:</span><span>{{card.end_date | nlDateTimeFormat}}</span>
+			</div>
+			<div ng-class='$root.respCol221' ng-show='card.grade' class='padding-mid'>
+				<span class='training_attr'>Grade:</span><span>{{card.grade}}</span>
+			</div>
+
+			<div ng-class='$root.respCol221' ng-show='card.grade' class='padding-mid'>
+				<span class='training_attr'>Subject:</span><span>{{card.subject}}</span>
+			</div>
+			
+			<div ng-class='$root.respCol221' class='padding-mid'>
+				<span class='training_attr'>Created:</span><span>{{card.created | nlDateTimeFormat}}</span>
+			</div>
+			<div ng-class='$root.respCol221' class='padding-mid'>
+				<span class='training_attr'>Updated:</span><span>{{card.updated | nlDateTimeFormat}}</span>
+			</div>
+			<div ng-class='$root.respCol221' class='padding-mid'>
+				<span class='training_attr'>Created by:</span><span>{{card.createdby}}</span>
+			</div>
+		</div>
 	</div>
 </div>
