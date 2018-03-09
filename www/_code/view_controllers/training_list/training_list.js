@@ -648,8 +648,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
         	var repinfo = {repid: users[i].repid, overallStatus: 'completed', sessions: {}};
             repinfos.push(repinfo);
         }
-        nlServerApi.trainingUpdateAttendance(repinfos).then(function(resp) {
-            _markAsDone(users, startPos + resp.processed);
+        nlServerApi.trainingUpdateAttendance({repinfos: repinfos}).then(function(resp) {
+            _markAsDone(users, startPos + BATCH_SIZE);
         }, function() {
             nlDlg.popdownStatus(0);
         });
