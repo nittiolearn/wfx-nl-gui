@@ -17,7 +17,7 @@ function($stateProvider, $urlRouterProvider) {
 		url : '^/training_attend',
 		views : {
 			'appContent' : {
-				templateUrl : 'lib_ui/cards/cardsview.html',
+				templateUrl : 'view_controllers/training_list/training_attend.html',
 				controller : 'nl.TrainingAttendCtrl'
 			}
 		}
@@ -34,43 +34,24 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 			nl.pginfo.pageTitle = nl.t('My offline training');
             var params = nl.location.search();
             if (params.id) _repid = parseInt(params.id);
-			$scope.cards = {
-                search: {placeholder: nl.t('Enter training name/description')},
-			    listConfig: {
-            		columns : _getTableColumns(),
-            		canShowDetils : true,
-            		smallColumns : 1
-            	}
-            };
-            nlCardsSrv.initCards($scope.cards);
+            else {
+				$scope.cards = {
+	                search: {placeholder: nl.t('Enter training name/description')},
+	            };
+	            nlCardsSrv.initCards($scope.cards);
+            }
 			_getDataFromServer(resolve);
 		});
 	}
 
-
 	nlRouter.initContoller($scope, '', _onPageEnter);
-
-	function _getTableColumns() {
-		return [{
-			attr : 'title',
-			name : 'Training',
-			type : 'text',
-			showInSmallScreen : true,
-			cls : ''
-		}, {
-			attr : 'start_date',
-			name : 'From',
-			type : 'date',
-			showInSmallScreen : false,
-			cls : 'fsmall1'
-		}, {
-			attr : 'end_date',
-			name : 'Till',
-			type : 'date',
-			showInSmallScreen : false,
-			cls : 'fsmall1'
-		}];
-	}
+	
+	$scope.onLaunchModule = function(item) {
+		console.log(item);
+		var ts = item.content.ts || {};
+		if (!ts.childReportId) console.log('TODO: create a child report');
+		console.log('TODO: launch the child report URL depeding on its status (see childStatus)');
+	};
 
     function _fetchMore() {
         _getDataFromServer(null, true);
@@ -78,18 +59,24 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 
     var _pageFetcher = nlServerApi.getPageFetcher();
 	function _getDataFromServer(resolve, fetchMore) {
-        if (!fetchMore) {
+        if (!fetchMore && !_repid) {
             nlCardsSrv.updateCards($scope.cards, {cardlist: []});
         }
-        var params = _repid ? {mode: 'single', id: _repid} : {mode: 'learner', filters: [{field: 'ctype', val: _nl.ctypes.CTYPE_TRAINING}]};
+        var params = _repid ? {mode: 'single', objid: _repid} : {mode: 'learner', filters: [{field: 'ctype', val: _nl.ctypes.CTYPE_TRAINING}]};
         _pageFetcher.fetchPage(nlServerApi.learningReportsGetList, params, fetchMore, function(results) {
             if (!results) {
                 if (resolve) resolve(false);
                 return;
             }
-			_updateTrainingCards(results);
-            nlCardsSrv.updateCards($scope.cards, 
-                {canFetchMore: _pageFetcher.canFetchMore()});
+            for (var i=0; i<results.length; i++)
+				results[i].content = angular.fromJson(results[i].content);
+            if (_repid && results.length == 1) {
+            	$scope.item = results[0];
+            } else {
+				_updateTrainingCards(results);
+	            nlCardsSrv.updateCards($scope.cards, 
+	                {canFetchMore: _pageFetcher.canFetchMore()});
+            }
             if (resolve) resolve(true);
 		});
 	}
@@ -111,34 +98,34 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	}
 
 	function _createCard(item) {
-		var content = angular.fromJson(item.content);
-		item.descMulti = _splitMultilineString(content.desc || '');
+		console.log('TODO-MUNNI-NOW', item);
 		var card = {
 			id : item.id,
-			canShowDelete: false, canShowEdit: false,
-			training : item,
+			item : item,
+			url: nl.fmt2('/#/training_attend?id={}', item.id),
 			title : content.name,
-			module : {
-				lessonId : item.moduleid,
-				title : item.modulename,
-				icon : item.moduleicon
-			},
+			icon : content.moduleicon,
 			start_date : content.start,
 			end_date : content.end,
-			description : item.desc,
-			sessions: item.sessions,
-			ctype: item.ctype,
-			training_kind: item.training_kind,
-			kindName: item.kindName,
-			kindDesc: item.kindDesc,
+			description : content.desc,
 			children : [],
-			details : {},
-			links : [],
-			listDetails : '<nl-training-details card="card"></nl-training-details>'
+			details : {help: content.desc, avps: _getAvps(item)},
+			links : []
 		};
-		card.training.created = item.created;
-		card.training.updated = item.updated;
+		card.links.push({id: 'details', text: nl.t('details')});
 		return card;
+	}
+	
+	function _getAvps(item) {
+		var content = item.content;
+		var avps = [];
+		nl.fmt.addAvp(avps, 'Batch Name', content.name);
+		nl.fmt.addAvp(avps, 'Batch Description', content.desc);
+		nl.fmt.addAvp(avps, 'Training Name', content.kindName);
+		nl.fmt.addAvp(avps, 'Training Description', content.kindDesc);
+		nl.fmt.addAvp(avps, 'TODO-MUNNI-NOW', 'Please fill needed items based on console log outout of item and content');
+		return avps;
+		
 	}
 
     $scope.onCardInternalUrlClicked = function(card, internalUrl) {

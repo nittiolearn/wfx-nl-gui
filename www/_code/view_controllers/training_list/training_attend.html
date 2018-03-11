@@ -1,0 +1,20 @@
+<div class='nl-thin-scroll'>
+    <nl-cards ng-if='cards' cards='cards'></nl-cards>
+    <div ng-if='!cards' class='padding'>
+    	<div class='row row-wrap row-top margin0 padding0'>
+    		<div class='padding-mid' ng-class='resp2Col33'><b>Batch name:</b></div>
+    		<div class='padding-mid' ng-class='resp2Col67'>{{item.content.name}}</div>
+
+    		<div class='padding-mid' ng-class='resp2Col33'><b>Batch Description:</b></div>
+    		<div class='padding-mid' ng-class='resp2Col67'>{{item.content.name}}</div>
+
+    		<div class='padding-mid' ng-class='resp2Col33'><b>Training Name:</b></div>
+    		<div class='padding-mid' ng-class='resp2Col67'>{{item.content.kindName}}</div>
+
+    		<div class='padding-mid' ng-class='resp2Col33'><b>Training Description:</b></div>
+    		<div class='padding-mid' ng-class='resp2Col67'>{{item.content.kindDesc}}</div>
+    	</div>
+    	<div class='padding nl-button'
+    		 ng-click='onLaunchModule(item)'>Launch module</div>
+    </div>
+</div>
