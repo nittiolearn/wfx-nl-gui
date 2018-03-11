@@ -1,23 +1,49 @@
 <style>
-	.nl-readonly-background {
-		background-color: #CCCCDD;	
+	.training_details {
+		background-color: #EEEEFF;
+	}
+	.training_attr {
+		text-align: right;
+		padding-right: 8px;
+		font-weight: bold;
+		font-size: 120%;
+	}
+	.training_values {
+		font-size: 120%;
+	}
+	.training-desc {
+		line-height: 120%;
 	}
 </style>
+
 <nl-dlg dlgtitle='{{dlgTitle}}' show-close='1' show-help='0'>
 <nl-dlg-content>
 <div>
 	<nl-dlg-row attr='trainingkind' help='help'
-		ng-show='mode == "create_batch" || "showDropDown"'>
+		ng-show='isCreate'>
 		<div class='row row-center padding0 margin0'>
 			<div class='col'>
 				<nl-select fieldmodel='trainingkind'></nl-select>
 			</div>
-			<span class='nl-toolbar-icon'
-				ng-click='clickOnCreateNewTraining()'>
+			<span ng-show='isAssignmentManage' 
+				class='nl-toolbar-icon'
+				ng-click='onCreateTrainingKind()'
+				title='Create new training'>
 				<i class='icon ion-android-add-circle'></i>
 			</span>
 		</div>
 	</nl-dlg-row>
+	<div ng-show='data.kindName && !isCreate' ng-class='respCol111'>
+		<div class='row row-wrap padding0 margin0'>
+			<div ng-class='respCol441'>
+				<span class='training_attr'>{{help.kindName.name}}:</span>
+			</div>
+			<div>
+				<span class='training_values'>{{data.kindName}}</span>
+			</div>
+		</div>
+		<hr/>
+	</div>
 	<div ng-show='trainigKindSelected'>
 		<div class='row row-center'>
 			<div class='w100 padding-mid nl-link-text padding-mid' 
@@ -31,62 +57,88 @@
 			    </div>
 			</div>
 		</div>
-		<div ng-show='data.showAdditionalAttrs'>
-			<nl-dlg-row attr='kindName' help='help'>
-		        <div class='padding-mid nl-readonly-background'>{{data.kindName}}</div>
-			</nl-dlg-row>
-
-			<nl-dlg-row attr='kindDesc' help='help'>
-		        <div class='padding-mid nl-readonly-background'>{{data.kindDesc}}</div>
-			</nl-dlg-row>
-
-			<nl-dlg-row attr='grade' help='help'>
-		        <div class='padding-mid nl-readonly-background'>{{data.grade}}</div>
-			</nl-dlg-row>
-		
-			<nl-dlg-row attr='subject' help='help'>
-		        <div class='padding-mid nl-readonly-background'>{{data.subject}}</div>
-			</nl-dlg-row>
-		
-			<nl-dlg-row attr='module' help='help'>
-		        <div class='padding-mid nl-readonly-background'>{{data.module.title}}</div>
-			</nl-dlg-row>
-			<nl-dlg-row attr='perParticipantCost' help='help'>
-		        <div class='padding-mid nl-readonly-background'>{{data.perParticipantCost}}</div>
-			</nl-dlg-row>
-			<nl-dlg-row attr='sessions' help='help'>
-				<div class='row row-center padding0 margin0 nl-readonly-background'>
-					<div class='col'><b>Session name</b></div>
-					<div class='col'><b>Duration(minutes)</b></div>
+		<div ng-show='data.showAdditionalAttrs' class='training_details'>
+			<div class='row row-wrap margin0 padding0'>
+				<div ng-show='data.kindDesc' ng-class='respCol111'>
+					<div class='row row-wrap padding0 margin0'>
+						<div ng-class='respCol441'>
+							<span class='training_attr'>{{help.kindDesc.name}}:</span>
+						</div>
+						<div>
+							<span class='training_values' ng-bind-html='data.kindDesc'></span>
+						</div>
+					</div>
+					<hr/>
 				</div>
-				<div class='row row-center margin0 padding0 nl-readonly-background' 
-					ng-repeat='session in data.sessions'>
-					<div class='col'>{{session.name}}</div>
-					<div class='col'>{{session.duration}}</div>
+				<div ng-show='data.grade' ng-class='respCol111'>
+					<div class='row row-wrap padding0 margin0'>
+						<div ng-class='respCol442'>
+							<span class='training_attr'>{{help.grade.name}}:</span>
+						</div>
+						<div ng-class='respCol442'>
+							<span class='training_values'>{{data.grade}}</span>
+						</div>
+						<div ng-class='respCol442'>
+							<span class='training_attr'>{{help.subject.name}}:</span>
+						</div>
+						<div ng-class='respCol442'>
+							<span class='training_values'>{{data.subject}}</span>
+						</div>
+					</div>
+					<hr/>
 				</div>
-			</nl-dlg-row>
+				<div ng-show='data.modulename' ng-class='respCol111'>
+					<div class='row row-wrap padding0 margin0'>
+						<div ng-class='respCol441'>
+							<span class='training_attr'>{{help.modulename.name}}:</span>
+						</div>
+						<div>	
+							<span class='training_values'>{{data.modulename}}</span>
+						</div>
+					</div>
+					<hr/>
+				</div>
+				<div ng-class='respCol111' class='padding-mid'
+					ng-show='data.sessions && (data.sessions.length != 0)'>
+					<div class='row row-wrap row-top padding0 margin0'>
+						<div ng-class='resp2Col33' style='font-size:120%'><b>{{help.sessions.name}}:</b></div>
+						<div ng-class='resp2Col67'>
+							<div class='row row-center padding0 margin0'>
+								<div class='col training_values'><b>Session name</b></div>
+								<div class='col training_values'><b>Duration</b></div>
+							</div>
+							<div class='row row-center margin0 padding0' 
+								ng-repeat='session in data.sessions'>
+								<div class='col training_values'>{{session.name}}</div>
+								<div class='col training_values'>{{data.defDurationName[session.duration].name || session.duration}}</div>
+							</div>
+						</div>
+					</div>
+					<hr/>
+				</div>
+			</div>
 		</div>
-
-		<nl-dlg-row attr='title' help='help'>
-		    <nl-input fieldtype='text' fieldmodel='title'></nl-input>
+		<nl-dlg-row attr='batchTitle' help='help'>
+		    <nl-input fieldtype='text' fieldmodel='batchTitle'></nl-input>
 		</nl-dlg-row>
-	
 		<nl-dlg-row attr='start_date' help='help'>
 			<div style='padding: 0 4px 0 4px'>
 		        <nl-date-time-select fieldmodel='start_date' fieldCls='nl-dlg-field-value'></nl-date-time-select>
 			</div>
 		</nl-dlg-row>
-	
 		<nl-dlg-row attr='end_date' help='help'>
 			<div style='padding: 0 4px 0 4px'>
 		        <nl-date-time-select fieldmodel='end_date' fieldCls='nl-dlg-field-value'></nl-date-time-select>
 			</div>
 		</nl-dlg-row>
-	
-		<nl-dlg-row attr='description' help='help'>
-	        <nl-textarea fieldmodel='description'></nl-textarea>
+
+		<nl-dlg-row attr='perParticipantCost' help='help'>
+		    <nl-input fieldtype='number' fieldmodel='perParticipantCost' fieldminvalue='0'></nl-input>
+		</nl-dlg-row>
+
+		<nl-dlg-row attr='desc' help='help'>
+	        <nl-textarea fieldmodel='desc'></nl-textarea>
 	    </nl-dlg-row>
-	
 	</div>
 </div>
 </nl-dlg-content>

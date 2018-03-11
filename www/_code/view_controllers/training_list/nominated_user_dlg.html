@@ -17,6 +17,15 @@
      <div ng-show='data.selectedCnt' class='padding-mid-v'>
          Pending items selected for marking as completed: {{data.selectedCnt}}</div>
 </div>
+<div ng-show='data.card.sessions && (data.card.sessions.length != 0)'
+	class='row row-center row-wrap padding0 margin0'>
+	<div ng-class='resp2Col33' class='nl-dlg-field-name'>
+		Select the session to manage nominations
+	</div>
+	<div ng-class='resp2Col67' class='nl-dlg-field-value'>
+		<nl-select fieldmodel='sessions'></nl-select>
+	</div>
+</div>
 <table class='nl-table nl-table-styled fsh6 padding-mid'>
 	<tr>
         <th>
