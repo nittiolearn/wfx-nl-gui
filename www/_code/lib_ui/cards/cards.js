@@ -11,6 +11,7 @@ function module_init() {
     .directive('nlCards', CardsDirective)
     .directive('nlListview', ListviewDirective)
     .directive('nlCard', CardDirective)
+    .directive('nlComputeImgInfo', ComputeImgInfoDirective)
     .directive('nlCardTitle', CardTitleDirective)
     .directive('nlCardImage', CardImageDirective)
     .directive('nlCardDesc', CardDescDirective);
@@ -234,8 +235,9 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
 }];
 
 var SCROLL_WIDTH = 8;
-var _defCardWidth = 360;
-var _defCardAr = 2/3;
+var _defCardWidth = 280;
+var _defCardAr = 1.4;
+var _minMarginX = 32; // px
 function _updateCardDimensions(nl, $scope, cardsContainer) {
     var w = _getCardWidth(cardsContainer);
     $scope.w = w;
@@ -245,7 +247,8 @@ function _updateCardDimensions(nl, $scope, cardsContainer) {
     // It seems indeterminstic when scroll bar width is computed.
     // So clientWidth is not a solution here. offsetWidth - scrollBarWidth is used here.
     var contWidth = cardsContainer[0].offsetWidth - SCROLL_WIDTH;
-    var cardsPerRow = Math.floor(contWidth / w);
+    var cardsPerRow = Math.floor(contWidth/(w+_minMarginX));
+    if (cardsPerRow == 0) cardsPerRow = 1;
     var margins = cardsPerRow+1;
     $scope.ml = (contWidth - w*cardsPerRow) / margins;
 }
@@ -257,11 +260,36 @@ function _getCardWidth(cardsContainer) {
     var contHeight = cardsContainer[0].offsetHeight;
 
     if (contWidth < w) w = contWidth;
-    if (contHeight < _defCardAr*w) w = contHeight/_defCardAr;
-    
     return w;
 }
 
+function _canCoverImg(url) {
+	var info = _imgInfo[url];
+	if (!info) return false;
+	if ('canCover' in info) return info.canCover;
+    var ar = info.w ? info.h/info.w : 0;
+    info.canCover = (ar > 0.51 && ar < 0.77);
+    return info.canCover;
+}
+
+//-------------------------------------------------------------------------------------------------
+var _imgInfo = {};
+
+var ComputeImgInfoDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return {
+        restrict: 'A',
+        link: function($scope, iElem, iAttrs) {
+        	iElem.bind('load', function(params) {
+			    var w = iElem[0].offsetWidth;
+			    var h = iElem[0].offsetHeight;
+			    _imgInfo[iAttrs.src] = {w:w, h:h,};
+        	});
+         }
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
 var CardDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
     return {
@@ -272,11 +300,25 @@ function(nl, nlDlg) {
             card: '='
         },
         link: function($scope, iElem, iAttrs) {
-            $scope.onCardInternalUrlClicked = function(card, internalUrl) {
+        	$scope.canCover = function(e) {
+        		if (!$scope.card || !$scope.card.icon) return false;
+        		return _canCoverImg($scope.card.icon);
+        	};
+        	
+            $scope.noPropogate = function(e) {
+				e.stopImmediatePropagation();
+            };
+            
+            $scope.onCardInternalUrlClicked = function(e, card, internalUrl) {
+            	e.preventDefault();
+				e.stopImmediatePropagation();
             	$scope.$parent.onCardInternalUrlClicked(card, internalUrl);
             };
 
-            $scope.onCardLinkClicked = function(card, linkid) {
+            $scope.onCardLinkClicked = function(e, card, linkid) {
+            	console.log('Card link clicked');
+            	e.preventDefault();
+				e.stopImmediatePropagation();
 				if (linkid !== 'details') {
 	            	$scope.$parent.onCardLinkClicked(card, linkid);
 					return;

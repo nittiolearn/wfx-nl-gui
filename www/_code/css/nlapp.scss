@@ -1079,6 +1079,7 @@ nl-cards {
   display: inline-block;
   text-align: center;
   position: relative;
+  font-family: Roboto, Verdana, Helvetica, Arial, sans-serif;
   
   /* Stuff changed in javascript*/
   height: 240px;
@@ -1089,47 +1090,56 @@ nl-cards {
 
 .nl-card-holder {
   position: absolute;
-  top: 8%;
-  left: 8%;
-  height: 84%;
-  width: 84%;
+  top: 4%;
+  left: 0;
+  height: 92%;
+  width: 100%;
   
-  border-radius: 4px;
-  box-shadow: inset 0 0 0 rgba(170,170,255,0.1), 0 0 20px rgba(128,128,255,0.8);
+  border-radius: 2px;
+  box-shadow: inset 0 0 2px rgba(0,0,100,0.2), 1px 1px 2px rgba(0,0,100,0.4);
   background-color: #FFFFFF;
+}
+
+.nl-card-url {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
 }
 
 .nl-card-header {
   position: absolute;
-  top: 2%;
-  left: 2%;
-  height: 14%;
-  width: 96%;
+  left: 0;
+  width: 100%;
+  top: 50%;
+  height: 12%;
+  text-align: left;
+  color: black;
   font-size: 130%;
-  padding: 4px;
-  color: #000077;
+  padding: 16px;
   white-space: nowrap;
   text-overflow : ellipsis;
   overflow : hidden;
 }
-.nl-card-description{
-  position: absolute;
-  height: 25%;
-  width: 100%;
-  white-space: nowrap;
-  text-overflow : ellipsis;
-  overflow : hidden;  
+
+.nl-card-header.nl-card-fullDesc-title {
+  top: 0;
 }
 
 .nl-card-img {
   position: absolute;
-  top: 27.5%;
-  left: 2%;
-  height: 45%;
-  width: 30%;
+  top: 0%;
+  left: 0%;
+  height: 50%;
+  width: 100%;
+  padding: 2px;
   text-align: center;
+  nl-card-image {
+    height: 100%;
+  }
   img {
-    max-height: 100%;
+    max-height: 164px; /* computed based on card size of width 280px and aspect ratio of 1.4 */
     max-width: 100%;
   }
   .icon-tl, .icon-tr, .icon-bl, .icon-br {
@@ -1141,35 +1151,67 @@ nl-cards {
   .icon-br {bottom: 5%; right: 5%;}
 }
 
+.nl-card-img.cover {
+  padding: 0;
+  img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+}
+
 .nl-card-desc {
   position: absolute;
-  top: 18%;
-  left: 36%;
-  height: 68%;
-  width: 62%;
+  left: 0;
+  width: 100%;
+  top: 62%;
+  height: 38%;
+  padding: 0 16px 16px 16px;
   font-size: 100%;
   text-align: left;
-  overflow: hidden;
+  color: rgba(170, 170, 170, 1);
+}
+
+.nl-card-desc .nl-link-text {
+  color: rgba(0, 0, 0, 1);
 }
 
 .nl-card-fullDesc {
   position: absolute;
-  top: 18%;
-  left: 2%;
-  height: 68%;
-  width: 96%;
+  top: 12%;
+  left: 0%;
+  height: 88%;
+  width: 100%;
   font-size: 100%;
+  padding: 4px;
 }
-
 
 .nl-card-links {
   position: absolute;
-  height: 10%;
-  bottom: 2%;
-  left: 2%;
-  right: 2%;
+  right: 0;
+  bottom: 0;
+  width: auto;
+  height: auto;
+  padding: 8px;
   font-size: 100%;
-  text-align: center;
+  text-align: right;
+  opacity: 0.8;
+  
+  .nl-card-more-links {
+    display: inline-block;
+    opacity: 0;
+  }
+  
+  .nl-card-more-icon {
+    color: black;
+    padding: 4px;
+    display: inline-block;
+    border-radius: 50%;
+  }
 
   span {
     cursor:pointer;
@@ -1180,8 +1222,14 @@ nl-cards {
       border-right: none;
     }
   }
-}
 
+  &:hover, &:focus, &:active {
+    opacity: 1;
+    .nl-card-more-links {
+      opacity: 1;
+    }
+  }
+}
 
 .nl-card-details-dlg-img {
   text-align: center;

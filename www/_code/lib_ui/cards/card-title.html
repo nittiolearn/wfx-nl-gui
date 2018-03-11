@@ -1,7 +1,1 @@
-<a ng-if='card.url' ng-href='{{card.url}}' nl-wait-on-click
-   class='nl-card-header nl-link-text'>{{card.title}}</a>
-<div ng-if='!card.url && card.internalUrl'
-     class='nl-card-header nl-link-text'
-     ng-click='onCardInternalUrlClicked(card, card.internalUrl)'>{{card.title}}</div>
-<div ng-if='!card.url && !card.internalUrl'
-     class='nl-card-header'>{{card.title}}</div>
+<div class='nl-card-header {{card.fullDesc ? "nl-card-fullDesc-title" : ""}}'>{{card.title}}</div>

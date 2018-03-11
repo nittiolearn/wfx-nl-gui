@@ -1,6 +1,8 @@
-<img ng-if='card.icon' ng-src='{{card.icon}}'></img>
-<div ng-if='card.icon2'><i class='fsh1 {{card.icon2}}'></i></div>
-<i ng-if='card.iconTl' class='icon-tl {{card.iconTl}}'></i>
-<i ng-if='card.iconTr' class='icon-tr {{card.iconTr}}'></i>
-<i ng-if='card.iconBl' class='icon-bl {{card.iconBl}}'></i>
-<i ng-if='card.iconBr' class='icon-br {{card.iconBr}}'></i>
+<div class='col padding0 margin0' style='overflow: hidden; max-height: 100%; max-width: 100%'>
+	<img ng-show='card.icon' ng-src='{{card.icon}}' nl-compute-img-info></img>
+	<div ng-if='card.icon2' class='fsh2'><i class='fsh1 {{card.icon2}}'></i></div>
+	<i ng-if='card.iconTl' class='icon-tl {{card.iconTl}}'></i>
+	<i ng-if='card.iconTr' class='icon-tr {{card.iconTr}}'></i>
+	<i ng-if='card.iconBl' class='icon-bl {{card.iconBl}}'></i>
+	<i ng-if='card.iconBr' class='icon-br {{card.iconBr}}'></i>
+</div>

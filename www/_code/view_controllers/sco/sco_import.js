@@ -123,7 +123,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlResourceUploader, nlProgres
         cardDict[manifest.id] = manifest;
         manifest.updated = nl.fmt.json2Date(manifest.updated || null);
         manifest.created = nl.fmt.json2Date(manifest.created || null);
-        var desc = nl.t("<span class='nl-card-description'>uploaded by <b>{}</b> on <b>{}<b></span>", 
+        var desc = nl.t("uploaded by <b>{}</b> on <b>{}</b>", 
             manifest.authorname, nl.fmt.date2Str(manifest.updated, 'minute'));
         var card = {manifestid: manifest.id,
                     updated: manifest.updated,

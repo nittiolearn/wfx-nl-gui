@@ -43,7 +43,18 @@
      class='nl-card nl-link-text-container anim fade' 
 	 ng-repeat="card in cards._internal.visibleCards" 
 	 ng-style="{height: h + 'px', width: w + 'px', 'font-size': fs + '%', 'margin-left': ml + 'px'}">
-	<nl-card card='card' class='nl-card-holder {{card.style}}'></nl-card>
+
+	<a ng-if='card.url' class='nl-card-url' ng-href='{{card.url}}'>	
+		<nl-card card='card'
+			class='nl-card-holder {{card.style}} {{card.url || card.internalUrl ? "nl-link-img" : ""}}'
+			ng-click='onCardInternalUrlClicked(card, card.internalUrl || null)'></nl-card>
+	</a>
+	<div ng-if='!card.url' class='nl-card-url'>
+		<nl-card card='card'
+			class='nl-card-holder {{card.style}} {{card.url || card.internalUrl ? "nl-link-img" : ""}}'
+			ng-click='onCardInternalUrlClicked(card, card.internalUrl || null)'></nl-card>
+	</div>
+
 </div>
 
 <div ng-if='cards.listConfig'

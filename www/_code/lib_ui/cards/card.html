@@ -1,21 +1,15 @@
+<nl-card-image ng-show='!card.fullDesc'
+	class='nl-card-img row row-center margin0 {{canCover() ? "cover" : ""}}'></nl-card-image>
 <nl-card-title></nl-card-title>
-
-<div>
-    <div ng-show='card.fullDesc' class='nl-card-fullDesc'
-         nl-compile='card.help'>
-    </div>
-    <a ng-if='card.url' ng-href='{{card.url}}' nl-wait-on-click
-       class='nl-card-img nl-link-img'>
-        <nl-card-image></nl-card-image>
-    </a>
-    <div ng-if='!card.url'
-         class='fsh4 nl-card-img {{card.internalUrl ? "nl-link-img" : ""}}'
-         ng-click='onCardInternalUrlClicked(card, card.internalUrl)'>
-        <nl-card-image></nl-card-image>
-    </div>
-	<nl-card-desc ng-show='!card.fullDesc'></nl-card-desc>
-	<div class='nl-card-links'>
-	    <span ng-repeat='link in card.links' ng-click='onCardLinkClicked(card, link.id)'
+<nl-card-desc ng-show='!card.fullDesc'></nl-card-desc>
+<div ng-show='card.fullDesc' class='nl-card-fullDesc' nl-compile='card.help'></div>
+<div class='nl-card-links'>
+	<div class='nl-card-more-links'>
+	    <span ng-repeat='link in card.links' ng-click='onCardLinkClicked($event, card, link.id)'
+	    	  ng-if='link.id != "details"'
 	          class='nl-link-text'>{{link.text}}</span>
-	</div>    
-</div>
+	</div>
+    <i ng-repeat='link in card.links' ng-click='onCardLinkClicked($event, card, link.id)'
+       ng-if='link.id == "details"'
+       class='nl-card-more-icon nl-link-img ion-more icon fsh2'></i>
+</div>    

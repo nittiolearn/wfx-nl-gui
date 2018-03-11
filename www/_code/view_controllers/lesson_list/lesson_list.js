@@ -393,7 +393,7 @@ this.show = function($scope, initialUserInfo, params) {
             var revstatus = nl.fmt2("{}{}", _getRevstateStr(lesson), gap);
             content = nl.fmt2('{}{}{}{}', gradeSubj, author, template, revstatus);
         }
-        card.help = nl.t("<span class='nl-card-description'>{}</span>", content);
+        card.help = content;
     }
 
     function _updateLinks(card, lesson, userInfo) {

@@ -1,4 +1,5 @@
 <div class='nl-card-desc'>
+	<div style='max-height: 100%; overflow: hidden;'>
     <ul ng-show='card.children.length>0' style='width: 100%'>
         <li ng-repeat='child in card.children'
             ng-if='$index < 4'>
@@ -7,7 +8,7 @@
             </div>
             <div ng-if='!child.url && child.internalUrl'>
                 <span class='nl-link-text'
-                      ng-click='onCardInternalUrlClicked(card, child.internalUrl)'>
+                      ng-click='onCardInternalUrlClicked($event, card, child.internalUrl)'>
                     {{child.title}}
                 </span>
             </div>
@@ -16,6 +17,6 @@
             </div>
         </li>
     </ul>
-    <div><b ng-if='card.children.length>4'>Click details for more</b></div>
     <div ng-show='card.children.length==0' ng-bind-html='card.help'></div>
+	</div>
 </div>

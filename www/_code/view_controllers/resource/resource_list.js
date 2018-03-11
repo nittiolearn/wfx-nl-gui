@@ -173,7 +173,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 		} else if(!_isMine(_type)){
 			card.links = [{id : 'details', text : nl.t('details')}];		
 		}
-		card['help'] = nl.t('<span class="nl-card-description"><b>By: {}</b></span><br><span>Keywords: {}</span>', resource.authorname, resource.keywords);
+		card['help'] = nl.t('<b>By: {}</b></span><br><span>Keywords: {}', resource.authorname, resource.keywords);
 		return card;
 	}
 	
