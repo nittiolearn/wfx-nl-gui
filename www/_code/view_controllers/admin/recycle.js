@@ -91,7 +91,7 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
                 {id: 'all', name: 'All items'},
                 {id: 'lesson', name: 'Only modules'},
                 {id: 'course', name: 'Only courses'},
-                {id: 'training_kind', name: 'Only offline trainings'},
+                {id: 'training_kind', name: 'Only trainings'},
                 {id: 'assignment', name: 'Only module assignments'},
                 {id: 'course_assignment', name: 'Only course assignments'},
                 {id: 'training', name: 'Only training batches'},
@@ -186,10 +186,10 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
 	var _typeInfos = {
 	    'lesson' : {name: 'Module', icon: 'ion-easel fblue'},
         'course' : {name: 'Course', icon: 'ion-ios-book fblue'},
-        'training_kind' : {name: 'Offline training', icon: 'ion-calendar fblue'},
+        'training_kind' : {name: 'Training', icon: 'ion-calendar fblue'},
         'assignment' : {name: 'Module assignment', icon: 'ion-paper-airplane fblue'},
         'course_assignment' : {name: 'Course assignment', icon: 'ion-paper-airplane fblue'},
-        'training' : {name: 'Offline training batch', icon: 'ion-calendar fblue'},
+        'training' : {name: 'Training batch', icon: 'ion-calendar fblue'},
         'report' : {name: 'Module report', icon: 'ion-pie-graph fblue'},
         'course_report' : {name: 'Course report', icon: 'ion-pie-graph fblue'},
 	};

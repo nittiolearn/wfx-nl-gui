@@ -585,7 +585,7 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
         var ret = [];
         for(var i=0; i<reports.length; i++) {
             var rep = reports[i];
-            if (rep.ctype != _nl.ctypes.CTYPE_MODULE) continue; // TODO-NOW
+            if (rep.ctype != _nl.ctypes.CTYPE_MODULE) continue;
             ret.push(rep);
             _lst.push(rep);
             var user = nlGroupInfo.getUserObj(''+rep.student);
@@ -770,8 +770,8 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
 
 //-------------------------------------------------------------------------------------------------
 function _getAssignTypeStr(assigntype, content) {
-	// TODO-NOW
-    if (assigntype == _nl.atypes.ATYPE_SELF_MODULE) return 'self assignment';
+    if (assigntype == _nl.atypes.ATYPE_SELF_MODULE) return 'module self assignment';
+    if (assigntype == _nl.atypes.ATYPE_SELF_COURSE) return 'course self assignment';
     if (assigntype == _nl.atypes.ATYPE_COURSE) return 'course assignment';
     if (content.trainingId) return 'training';
     return 'module assignment';

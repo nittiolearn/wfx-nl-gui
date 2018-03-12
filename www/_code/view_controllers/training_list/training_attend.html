@@ -1,19 +1,21 @@
 <div class='nl-thin-scroll'>
     <nl-cards ng-if='cards' cards='cards'></nl-cards>
     <div ng-if='!cards' class='padding'>
-    	<div class='row row-wrap row-top margin0 padding0'>
-    		<div class='padding-mid' ng-class='resp2Col33'><b>Batch name:</b></div>
-    		<div class='padding-mid' ng-class='resp2Col67'>{{item.content.name}}</div>
+		<nl-avpair avpname='Training name' avpval='{{content.kindName}}'></nl-avpair>
+		<nl-avpair avpname='Batch' avpval='{{content.name}}'></nl-avpair>
+		<nl-avpair avpname='From' avpval='{{start}}'></nl-avpair>
+		<nl-avpair avpname='Till' avpval='{{end}}'></nl-avpair>
+		<nl-avpair avpname='Status' avpval='{{overallStatus}}'></nl-avpair>
+		<nl-avpair avpname='Description' avpval='{{content.kindDesc}}'></nl-avpair>
+		<nl-avpair avpname='' avpval='{{content.desc}}'></nl-avpair>
+		
+		<div ng-if='sessions.length > 0'>
+			<div class='padding-mid fsh5'>There are {{sessions.length}} sessions in this training.</div>
+			
+			<nl-avpair ng-repeat='s in sessions'
+				avpname='{{s.attended}}' avpval='{{s.name}}'></nl-avpair>
+		</div>
 
-    		<div class='padding-mid' ng-class='resp2Col33'><b>Batch Description:</b></div>
-    		<div class='padding-mid' ng-class='resp2Col67'>{{item.content.name}}</div>
-
-    		<div class='padding-mid' ng-class='resp2Col33'><b>Training Name:</b></div>
-    		<div class='padding-mid' ng-class='resp2Col67'>{{item.content.kindName}}</div>
-
-    		<div class='padding-mid' ng-class='resp2Col33'><b>Training Description:</b></div>
-    		<div class='padding-mid' ng-class='resp2Col67'>{{item.content.kindDesc}}</div>
-    	</div>
     	<div class='padding nl-button'
     		 ng-click='onLaunchModule(item)'>Launch module</div>
     </div>
