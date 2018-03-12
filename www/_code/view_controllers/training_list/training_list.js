@@ -148,6 +148,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 
 	function _createCard(item) {
 		var card = item;
+
 		card.training = angular.copy(item);
 		card.descMultiBatch = _splitMultilineString(item.desc, 'Batch description');
 		if(item.kindDesc) {
@@ -681,8 +682,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 	            if (!user.completed && user.selected) users.push(user);
             } else {
 	        	var canAddElem = false;
-	        	for(var i=0; i<nominationDlgScope.options.sessions.length; i++) {
-	        		var sessionid = nominationDlgScope.options.sessions[i].id;
+	        	for(var j=0; j<nominationDlgScope.options.sessions.length; j++) {
+	        		var sessionid = nominationDlgScope.options.sessions[j].id;
 	        		if(user.sessions[sessionid] == 'completed') canAddElem = true;
 	        	}
 	        	if(canAddElem) users.push(user);
