@@ -269,8 +269,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 				moduleicon : dlgScope.data.module.icon,
 				grade: Object.keys(nlTreeSelect.getSelectedIds(_gradeInfo))[0],
 				subject: Object.keys(nlTreeSelect.getSelectedIds(_subjectInfo))[0],
-				sessions : trainingSessions,
-				perParticipantCost: '',
+				sessions : trainingSessions
 		};
 		var data = {info: angular.toJson(info)};
 		nlDlg.showLoadingScreen();
@@ -312,13 +311,17 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 	}	
 
 	function _getNominationInfo(report, user) {
+		var content = angular.fromJson(report.content);
+		var sessions = content.trainingStatus.sessions;
 		return {
 			student : report.student,
 			repid : report.id,
 			name : nlGroupInfo.formatUserNameFromObj(user),
 			completed : report.completed,
 			updated : nl.fmt.json2Date(report.updated),
-			orgunit : user.org_unit
+			orgunit : user.org_unit,
+			content : content,
+			sessions : sessions
 		};
 	}
 
@@ -450,7 +453,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 				grade: card.grade || '',
 				subject: card.subject || '',
 				sessions : card.sessions || [],
-				perParticipantCost: dlgScope.data.perParticipantCost || '',
+				costInfra: dlgScope.data.costInfra || '',
+				costTrainer: dlgScope.data.costTrainer || '',
+				costFood: dlgScope.data.costFood || '',
+				costTravel: dlgScope.data.costTravel || '',
+				costMisc: dlgScope.data.costMisc || '',
 				name : dlgScope.data.batchTitle,
 				desc : dlgScope.data.desc || ''
 		};
@@ -462,7 +469,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 			end : nl.fmt.json2Date(new Date(dlgScope.data.end_date), 'second'),
 			info: angular.toJson(info),
 			moduleid: card.moduleid,
-			perParticipantCost: dlgScope.data.perParticipantCost || '',
 			training_kind: card.training_kind || 0,
 			id : dlgScope.isCreate ? 0 : card.id
 		};
@@ -511,7 +517,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 			sessions: {name: nl.t('Sessions'), help: nl.t('Configure the session and durations to create multiple sessions training')},
 			kindName: {name: nl.t('Training name'), help: nl.t('Mandatory - this is the training name')},
 			kindDesc: {name: nl.t('Training description'), help:('Provide a short description which will help others in the group to understand about this training')},
-			perParticipantCost: {name: nl.t('Per participant cost'), help: nl.t('Configure the per participant cost')}
+			costInfra: {name: nl.t('Infrastructure cost'), help: nl.t('Configure the infrastructure cost')},
+			costTrainer: {name: nl.t('Trainer cost'), help: nl.t('Configure the trainer cost')},
+			costFood: {name: nl.t('Stationary and food cost'), help: nl.t('Configure the stationary and food cost')},
+			costTravel: {name: nl.t('Travel and Accomodation cost'), help: nl.t('Configure the travel and accomodation cost')},
+			costMisc: {name: nl.t('Miscellaneous cost'), help: nl.t('Configure the miscellaneous cost')}
 		};
 	};
 
@@ -548,53 +558,110 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
         _showNominatedUserDlg.setCssClass('nl-height-max nl-width-max');
         _showNominatedUserDlg.scope.data = {};
         _showNominatedUserDlg.scope.options = {};
+        _showNominatedUserDlg.scope.options.sessions = [];
+		_showNominatedUserDlg.scope.data.userDict = angular.copy(userDict);
+
         var sd = _showNominatedUserDlg.scope.data;
         sd.card = card;
+        
         if(card.sessions && card.sessions.length != 0) {
-        	_showNominatedUserDlg.scope.options.sessions = _getSessions(card.sessions);
+        	_showNominatedUserDlg.scope.options.sessions = _formSessionsDropDown(card.sessions);
+        	_showNominatedUserDlg.scope.data.sessions = _showNominatedUserDlg.scope.options.sessions[0];
         }
-        _getSortedList(userDict, sd);
+		_updateUserDict(_showNominatedUserDlg.scope);
+
+        _getSortedList(userDict, sd, _showNominatedUserDlg.scope);
         sd.headerCol =[{attr : 'name', name : nl.t('Username')},
             {attr : 'orgunit', name : nl.t('Organization')},
         	{attr : 'completed', name : nl.t('Status')}];
         sd.title = nl.t('Nominated users');
         sd.toggleSelectAll = function() {
             sd.selectAll = !sd.selectAll;
-            sd.selectedCnt = 0;
+            sd.selectedCnt = 0; 
+            var sessions = sd.sessions || null;
             for(var i=0; i<sd.userList.length; i++) {
                 sd.userList[i].selected = sd.selectAll;
-                if (sd.selectAll && !sd.userList[i].completed) sd.selectedCnt++;
+	            if(sessions) {
+	            	if(sd.userDict[sd.userList[i].id].sessions[sd.sessions.id] == 'completed') continue;
+	                sd.userList[i].sessions[sd.sessions.id] =  sd.selectAll ? 'completed' : 'pending';
+	                if(sd.selectAll) {
+	                	sd.selectedCnt++;
+	                }
+	            } else {
+	                if(sd.selectAll && !sd.userList[i].completed) sd.selectedCnt++;
+	            }
             }
         };
         sd.toggleSelect = function(pos) {
             var user = sd.userList[pos];
+            var sessions = _showNominatedUserDlg.scope.data.sessions || {};
             user.selected = !user.selected;
+            if(Object.keys(sessions).length != 0) {
+	    		user.sessions[sessions.id] = user.selected ? 'completed' : 'pending';
+            }
             if (user.selected) sd.selectedCnt++;
             else sd.selectedCnt--;
         };
         
+        _showNominatedUserDlg.scope.onFieldChange = function(fieldId) {
+	        _getSortedList(userDict, sd, _showNominatedUserDlg.scope);
+        };
+        
         var markAsDone = {text: nl.t('Mark as completed'), onTap: function(e) {
-            _confirmBeforeMarkAsDone(e, sd.userList);
+            _confirmBeforeMarkAsDone(e, sd.userList, _showNominatedUserDlg.scope);
         }};
         var cancelButton = {text : nl.t('Close')};
         _showNominatedUserDlg.show('view_controllers/training_list/nominated_user_dlg.html', 
             [markAsDone], cancelButton);
 	}
 
-	function _getSessions(sessions) {
+	function _updateUserDict(scope) {
+		var userDict = scope.data.userDict;
+		var completedCnts = {};
+		for(var i in scope.options.sessions) completedCnts[scope.options.sessions[i].id] = 0;
+		for(var key in userDict) {
+			var user = userDict[key];
+			for(var i=0; i<scope.options.sessions.length; i++) {
+				var session = scope.options.sessions[i];
+				var countValue = 1;
+				if (user.sessions[session.id] == 'completed') {
+					completedCnts[session.id] += 1;
+				} 
+			}
+		}
+		scope.data.userDict['completed'] = completedCnts;
+	}
+	
+	function _formSessionsDropDown(sessions) {
 		var ret = [];
 		for(var i=0; i<sessions.length; i++) {
 			ret.push({id: i, name: nl.t('{}', sessions[i].name), duration: sessions[i].duration});
 		};
 		return ret;
 	}
-	function _getSortedList(userDict, sd) {
+	
+	function _getSortedList(userDict, sd, scope) {
 		var ret = [];
         sd.selectedCnt = 0;
 		sd.completedCnt = 0;
 		for (var key in userDict) {
 		    var report = userDict[key];
-		    if (report.completed) sd.completedCnt++;
+		    report.id = key;
+		    if (report.completed && !(sd.card.sessions && sd.card.sessions.length != 0)) sd.completedCnt++;
+		    var trainingStats = report.content.trainingStatus;
+		    var sessions = report.sessions || {};
+		    report.sessions = sessions;
+		    sd.alreadySelected = {};
+		    if(sd.card.sessions && sd.card.sessions.length != 0) {
+			    for (var i=0; i<scope.options.sessions.length; i++) {
+			    	var id = scope.options.sessions[i].id;
+			    	if(Object.keys(sessions).length == 0) 
+			    		report.sessions[id] = 'pending';
+			    	else
+			    		report.sessions[id] = sessions[id] == 'completed' ? 'completed' : 'pending';
+			    }
+			    report.overallStatus = trainingStats.overallStatus;
+		    }
 		    report.selected = false;
 		    ret.push(report);
 		}
@@ -606,11 +673,20 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 		});
 	};
 	
-	function _confirmBeforeMarkAsDone(e, userList) {
+	function _confirmBeforeMarkAsDone(e, userList, nominationDlgScope) {
         var users = [];
         for(var i=0; i<userList.length; i++) {
             var user = userList[i];
-            if (!user.completed && user.selected) users.push(user);
+            if (nominationDlgScope.options.sessions.length == 0) {
+	            if (!user.completed && user.selected) users.push(user);
+            } else {
+	        	var canAddElem = false;
+	        	for(var i=0; i<nominationDlgScope.options.sessions.length; i++) {
+	        		var sessionid = nominationDlgScope.options.sessions[i].id;
+	        		if(user.sessions[sessionid] == 'completed') canAddElem = true;
+	        	}
+	        	if(canAddElem) users.push(user);
+	        }
         }
         if (users.length == 0) {
             nlDlg.popupAlert({title: 'Please select', template: 'Please select one or more items to mark as completed.'});
@@ -622,7 +698,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
         dlg.scope.users = users;
         var markAsDone = {text: nl.t('Mark as completed'), onTap: function(e) {
             nlDlg.showLoadingScreen();
-            _markAsDone(users, 0);
+            _markAsDone(users, 0, nominationDlgScope);
         }};
         var cancelButton = {text : nl.t('Cancel')};
         nl.timeout(function() {
@@ -634,7 +710,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 	}
 
     var BATCH_SIZE = 50;
-    function _markAsDone(users, startPos) {
+    function _markAsDone(users, startPos, nominationDlgScope) {
         if (startPos >= users.length) {
             nlDlg.hideLoadingScreen();
             nlDlg.popupStatus(nl.fmt2('{} item(s) marked as completed.', users.length));
@@ -645,14 +721,32 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
         if (endPos > users.length) endPos = users.length;
         var repinfos = [];
         for(var i=startPos; i<endPos; i++) {
-        	var repinfo = {repid: users[i].repid, overallStatus: 'completed', sessions: {}};
+        	var repinfo = {repid: users[i].repid, overallStatus: _getOverAllStatus(nominationDlgScope, users[i]), sessions: users[i].sessions || {}};
             repinfos.push(repinfo);
         }
         nlServerApi.trainingUpdateAttendance({repinfos: repinfos}).then(function(resp) {
-            _markAsDone(users, startPos + BATCH_SIZE);
+            _markAsDone(users, startPos + BATCH_SIZE, nominationDlgScope);
         }, function() {
             nlDlg.popdownStatus(0);
         });
+    }
+    
+    function _getOverAllStatus(nominationDlgScope, user) {
+    	var completedCnt = 0;
+    	var pendingCnt = 0;
+    	var trainingSessions = nominationDlgScope.options.sessions;
+    	if (!trainingSessions) {
+    		if(user.selected) return 'completed';
+    		return 'pending';
+    	}
+    	for(var i=0; i<trainingSessions.length; i++) {
+    		var id = trainingSessions[i].id;
+    		if(user.sessions[id] == 'completed') completedCnt++;
+    		if(user.sessions[id] == 'pending') pendingCnt++;
+    	}
+    	if(nominationDlgScope.options.sessions.length == completedCnt) return 'completed';
+    	if(nominationDlgScope.options.sessions.length > completedCnt) return 'partial';
+    	if(completedCnt == 0) return 'pending';
     }
     
 	function _getRemarks(training) {

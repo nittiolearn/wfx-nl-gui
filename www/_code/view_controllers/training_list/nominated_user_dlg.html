@@ -2,7 +2,7 @@
 <nl-dlg-content>
 <div class='margin0 fsh4 row row-wrap row-center margin0 padding0'>
     <span class='padding-mid col'>Nominated: {{data.userList.length}}</span>
-    <span class='padding-mid col text-right'>Completed: {{data.completedCnt}}</span>
+    <span class='padding-mid col text-right'>Completed: {{data.userDict.completed[data.sessions.id] || data.completedCnt}}</span>
 </div>
 <div class='padding-mid fsh6'>
      <div>
@@ -20,7 +20,7 @@
 <div ng-show='data.card.sessions && (data.card.sessions.length != 0)'
 	class='row row-center row-wrap padding0 margin0'>
 	<div ng-class='resp2Col33' class='nl-dlg-field-name'>
-		Select the session to manage nominations
+		Select session
 	</div>
 	<div ng-class='resp2Col67' class='nl-dlg-field-value'>
 		<nl-select fieldmodel='sessions'></nl-select>
@@ -29,14 +29,26 @@
 <table class='nl-table nl-table-styled fsh6 padding-mid'>
 	<tr>
         <th>
-            <i ng-show='data.selectAll'
-               title='Deselect all pending'
-               ng-click='data.toggleSelectAll()'
-               class="icon ion-android-checkbox-outline nl-dlg-field-icon"></i>
-            <i ng-show='!data.selectAll'
-               title='Select all pending'
-               ng-click='data.toggleSelectAll()'
-               class="icon ion-android-checkbox-outline-blank nl-dlg-field-icon"></i>
+            <div ng-show='options.sessions.length == 0 && (data.completedCnt != data.userList.length)'>
+	            <i ng-show='data.selectAll'
+	               title='Deselect all pending'
+	               ng-click='data.toggleSelectAll()'
+	               class="icon ion-android-checkbox-outline nl-dlg-field-icon"></i>
+	            <i ng-show='!data.selectAll'
+	               title='Select all pending'
+	               ng-click='data.toggleSelectAll()'
+	               class="icon ion-android-checkbox-outline-blank nl-dlg-field-icon"></i>
+	        </div>
+            <div ng-show='options.sessions.length != 0 && data.userDict.completed[data.sessions.id] != data.userList.length'>
+	            <i ng-show='data.selectAll'
+	               title='Deselect all pending'
+	               ng-click='data.toggleSelectAll()'
+	               class="icon ion-android-checkbox-outline nl-dlg-field-icon"></i>
+	            <i ng-show='!data.selectAll'
+	               title='Select all pending'
+	               ng-click='data.toggleSelectAll()'
+	               class="icon ion-android-checkbox-outline-blank nl-dlg-field-icon"></i>
+            </div>
         </th>
         <th ng-repeat='item in data.headerCol'>
         	<span>{{item.name}}</span>
@@ -44,11 +56,19 @@
 	</tr>
     <tr ng-repeat='user in data.userList'>
         <td>
-            <div ng-show='!user.completed'>
+            <div ng-show='options.sessions.length == 0 && !user.completed'>
                 <i ng-show='user.selected'
                    ng-click='data.toggleSelect($index)'
                    class="icon ion-android-checkbox-outline nl-dlg-field-icon"></i>
                 <i ng-show='!user.selected'
+                   ng-click='data.toggleSelect($index)'
+                   class="icon ion-android-checkbox-outline-blank nl-dlg-field-icon"></i>
+            </div>
+            <div ng-show='options.sessions.length != 0 && data.userDict[user.id].sessions[data.sessions.id] != "completed"'>
+                <i ng-show='user.sessions[data.sessions.id] == "completed"'
+                   ng-click='data.toggleSelect($index)'
+                   class="icon ion-android-checkbox-outline nl-dlg-field-icon"></i>
+                <i ng-show='user.sessions[data.sessions.id] != "completed"'
                    ng-click='data.toggleSelect($index)'
                    class="icon ion-android-checkbox-outline-blank nl-dlg-field-icon"></i>
             </div>
@@ -61,12 +81,12 @@
         </td>
         <td>
         	<span class='row row-wrap row-center margin0 padding0'
-        	      ng-show='user.completed'>
+        	      ng-show='user.sessions[data.sessions.id] == "completed" || user.selected || user.completed'>
         		<i class='icon nl-dlg-field-icon ion-checkmark-circled nl-green padding-mid'></i>
         		<span class='col padding-mid'>Completed</span>
         	</span>
         	<span class='row row-wrap row-center margin0 padding0'
-        	      ng-show='!user.completed'>
+        	      ng-show='(user.sessions[data.sessions.id] == "pending" || !user.sessions[data.sessions.id]) && (!user.selected && !user.completed)'>
         		<i class='icon nl-dlg-field-icon ion-record fgrey padding-mid'></i>
         		<span class='col padding-mid'>Pending</span>
         	</span>
