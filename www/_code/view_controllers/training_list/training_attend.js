@@ -49,8 +49,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	$scope.onLaunchModule = function(item) {
 		console.log(item);
 		var ts = item.content.ts || {};
-		if (!ts.childReportId) console.log('TODO: create a child report');
-		console.log('TODO: launch the child report URL depeding on its status (see childStatus)');
+		if (!ts.childReportId) console.log('TODO-NOW: create a child report');
+		console.log('TODO-NOW: launch the child report URL depeding on its status (see childStatus)');
 	};
 
     function _fetchMore() {
@@ -98,7 +98,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 	}
 
 	function _createCard(item) {
-		console.log('TODO-MUNNI-NOW', item);
+		console.log('TODO-NOW', item);
 		var card = {
 			id : item.id,
 			item : item,
@@ -123,7 +123,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		nl.fmt.addAvp(avps, 'Batch Description', content.desc);
 		nl.fmt.addAvp(avps, 'Training Name', content.kindName);
 		nl.fmt.addAvp(avps, 'Training Description', content.kindDesc);
-		nl.fmt.addAvp(avps, 'TODO-MUNNI-NOW', 'Please fill needed items based on console log outout of item and content');
+		nl.fmt.addAvp(avps, 'TODO-NOW', 'Please fill needed items based on console log outout of item and content');
 		return avps;
 		
 	}

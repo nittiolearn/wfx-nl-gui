@@ -222,7 +222,6 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
     }
 
     function _validateDashboardProperties(scope, module) {
-        // TODO
         return true;
     }
 
