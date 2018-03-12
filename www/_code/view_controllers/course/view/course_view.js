@@ -613,7 +613,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     };
     
     var _CM_STATES = {
-        hidden:  {title: 'Hidden'}, // TODO - not handled yet!
+        hidden:  {title: 'Hidden'}, // TODO-LATER - not handled yet!
         none:    {icon: 'ion-information-circled fblue', title: ''},
         waiting: {icon: 'ion-locked fgrey', title: 'Locked'},
         delayed: {icon: 'ion-alert-circled forange', title: 'Delayed'},
@@ -737,7 +737,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     }
 
     function _updatedStatusinfo(cm, status, remarks, dontHide) {
-        // TODO: Keep status as boolean; data as javascript Date object
+        // TODO-LATER: Keep status as boolean; data as javascript Date object
         if (!('statusinfo' in modeHandler.course)) modeHandler.course.statusinfo = {};
         modeHandler.course.statusinfo[cm.id] = {
             status: status ? 'done' : '',

@@ -663,8 +663,6 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
             for (var i=0; i<scope.data.currentAttachments.length; i++) {
                 var att = scope.data.currentAttachments[i];
                 if (att.isSelected) attachments.push(att.data);
-                // TODO - delete unwanted resources
-                // In general look at mechanism to scrub unused resources
             }
         }
         for(var i=0; i<resInfos.length; i++) {

@@ -85,7 +85,7 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state) {
         }
         if (addClsToEnd) newClasses.push(cls);
         nl.rootScope.bodyClass = newClasses.join(' ');
-    }
+    };
 
     this.sendGoogleAnalytics = function(userInfo, reqtype) {
         _sendGoogleAnalytics(userInfo, reqtype);
