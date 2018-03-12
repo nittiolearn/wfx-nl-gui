@@ -626,7 +626,7 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats,
                         }
                         resolve(true);
                         onDoneCallback(results);
-                    })
+                    });
                 });
             } else {
                 nl.timeout(function() {

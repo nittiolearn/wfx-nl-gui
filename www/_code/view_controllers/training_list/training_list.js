@@ -23,8 +23,8 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var TrainingListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlSendAssignmentSrv', 'nlGroupInfo', 'nlTreeSelect',
-function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentSrv, nlGroupInfo, nlTreeSelect) {
+var TrainingListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlSendAssignmentSrv', 'nlGroupInfo', 'nlTreeSelect', 'nlTrainingReport',
+function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentSrv, nlGroupInfo, nlTreeSelect, nlTrainingReport) {
 
 	var _userInfo = null;
 	var _scope = null;
@@ -65,7 +65,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 			title : 'Create a new training batch',
 			icon : 'ion-android-add-circle',
 			onClick : _createTrainingBatch
-		}];
+		}, {
+            title : 'Export report',
+            icon : 'ion-ios-cloud-download',
+            id: 'export',
+            onClick : _onExport
+        }];
 	}
 
 	function _getTableColumns() {
@@ -786,8 +791,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 		}
 		return userDict;
 	}
+	//--------------------------------------------------------------------------------------------------
+    function _onExport() {
+    	nlTrainingReport.exportToCsv($scope, _userInfo, _trainingkinds);
+    }
 }];
 
+//--------------------------------------------------------------------------------------------------
 var TrainingDetailsDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
 	return {
