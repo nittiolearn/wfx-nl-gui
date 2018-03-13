@@ -266,11 +266,11 @@ function Formatter() {
 	this.multiLineHtml = function(desc, cls) {
 		if (cls === undefined) cls = 'padding-mid-v';
 		desc = desc.split('\n');
-		var ret = '';
+		var ret = '<div>';
 		for (var i = 0; i < desc.length; i++) {
 			ret += this.fmt2(['<div class="{}">{}</div>', cls, desc[i]]);
 		}
-		return ret;
+		return ret + '</div>';
 	};
 
     function _fmt2Impl(strFmt, args) {

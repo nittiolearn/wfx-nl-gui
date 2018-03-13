@@ -45,12 +45,12 @@
 		<div class='padding-mid fgrey' ng-bind-html='desc'></div>
 
 		<div class='row row-center row-wrap padding0 margin0'
-			ng-hide='record.content.venue'>
+			ng-show='record.content.venue'>
 			<div ng-class='resp2Col20' class='padding-mid'>Venue</div>
 			<div ng-class='resp2Col80' class='padding-mid' ng-bind-html='record.content.venue'></div>
 		</div>
 		<div class='row row-center row-wrap padding0 margin0'
-			ng-hide='record.content.trainername'>
+			ng-show='record.content.trainername'>
 			<div ng-class='resp2Col20' class='padding-mid'>Trainer</div>
 			<div ng-class='resp2Col80' class='padding-mid' ng-bind-html='record.content.trainername'></div>
 		</div>

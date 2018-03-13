@@ -41,6 +41,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
             nlGroupInfo.init().then(function() {
                 nlGroupInfo.update();
                 _groupInfo = nlGroupInfo.get();
+                nlTrainingReport.init(_userInfo, nlGroupInfo);
 				nl.pginfo.pageTitle = nl.t('Offline training batches');
 				_scope = $scope;
 	            var params = nl.location.search();
@@ -143,23 +144,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 		}
 	}
 
-	function _splitMultilineString(desc, desctype) {
-		desc = desc.split('\n');
-		var descObj = '<div>';
-		for (var i = 0; i < desc.length; i++) {
-			descObj += nl.fmt2('<div class="padding1-mid-v"><span>{}</span></div>',  desc[i]);
-		}
-		descObj += '</div>';
-		return descObj;
-	}
-
 	function _createCard(item) {
 		var card = item;
 
 		card.training = angular.copy(item);
-		card.descMultiBatch = _splitMultilineString(item.desc, 'Batch description');
+		card.descMultiBatch = nl.fmt.multiLineHtml(item.desc);
 		if(item.kindDesc) {
-			card.descMultiKind = _splitMultilineString(item.kindDesc, 'Training description');
+			card.descMultiKind = nl.fmt.multiLineHtml(item.kindDesc);
 		}
 		var canShowEdit = _userInfo.userid == item.publisher;
 		card.canShowDelete =  _canShowDelete;
@@ -205,7 +196,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 	function _updateTrainingKindObject(item) {
 		item.training_kind = item.id;
 		item.name = item.kindName;
-		item.descMultiKind = _splitMultilineString(item.kindDesc);
+		item.descMultiKind = nl.fmt.multiLineHtml(item.kindDesc);
 		return item;
 	}
 	
@@ -852,7 +843,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 	}
 	//--------------------------------------------------------------------------------------------------
     function _onExport() {
-    	nlTrainingReport.exportToCsv($scope, _userInfo, _trainingkinds);
+    	nlTrainingReport.exportToCsv($scope, _trainingkinds);
     }
 }];
 
