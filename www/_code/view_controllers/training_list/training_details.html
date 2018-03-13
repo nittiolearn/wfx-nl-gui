@@ -13,62 +13,125 @@
 </style>
 <div class='padding-mid'>
 	<div class='training_details padding-mid'>
-	    <div class='nl-mildtoolbar text-left'>
-		    <span title='Nominate users'
-		          class='nl-toolbar-icon'
-		          ng-click='onCardInternalUrlClicked(card, "training_assign")'>
-		        <i class="icon ion-person-add" style='font-size: 22px'></i>
-		    </span>
-	        <span title='View nominated users'
-	              class='nl-toolbar-icon'
-	              ng-click='onCardInternalUrlClicked(card, "training_report")'>
-	            <i class="icon ion-person-stalker" style='font-size: 22px'></i>
-	        </span>
-	        <span title='Edit'
-	              class='nl-toolbar-icon'
+	    <div class='row row-center row-wrap padding0 margin0'>
+			<div class='col'></div>
+		    <div class='padding-mid nl-link-text'
+		          ng-click='onCardInternalUrlClicked(card, "training_assign")'
+		          title='Nominate users'>
+		        <i class="icon ion-person-add nl-dlg-field-icon"></i>
+				<span ng-show='$root.screenSize != "small"' class="padding-mid">Nominate</span>		        	
+		    </div>
+		    <div class='padding-mid nl-link-text'
+		          ng-click='onCardInternalUrlClicked(card, "training_report")'
+		          title='View nominated users'>
+            <i class="icon ion-person-stalker nl-dlg-field-icon"></i>
+				<span ng-show='$root.screenSize != "small"' class="padding-mid">View nominations</span>
+		    </div>
+		    <div class='padding-mid nl-link-text'
                   ng-show='card.canShowEdit'
-	              ng-click='onCardInternalUrlClicked(card, "training_edit")'>
-	            <i class="icon ion-edit" style='font-size: 22px'></i>
-	        </span>
-            <span title='Delete'
-                  class='nl-toolbar-icon'
+	              ng-click='onCardInternalUrlClicked(card, "training_edit")'
+		          title='Edit training batch'>
+	            <i class="icon ion-edit nl-dlg-field-icon"></i>
+				<span ng-show='$root.screenSize != "small"' class="padding-mid">Edit</span>		        	
+		    </div>
+		    <div class='padding-mid nl-link-text'
                   ng-show='card.canShowDelete'
-                  ng-click='onCardInternalUrlClicked(card, "training_delete")'>
-                <i class="icon ion-ios-trash" style='font-size: 22px'></i>
-            </span>
+                  ng-click='onCardInternalUrlClicked(card, "training_delete")'
+		          title='Delete training batch'>
+                <i class="icon ion-ios-trash nl-dlg-field-icon"></i>
+				<span ng-show='$root.screenSize != "small"' class="padding-mid">Delete</span>		        	
+		    </div>
 	    </div>
-		<div ng-show='card.kindDesc'>
-			<hr/>
-			<div class='padding-mid training-desc' ng-bind-html='card.descMultiKind'></div>
+	    <div ng-show='card.kindDesc || card.desc'>
+	    	<hr/>
+	    </div>
+		<div ng-show='card.kindDesc'
+			class='row row-center row-wrap padding0 margin0'>
+			<div ng-class='$root.respCol111'>
+				<div class='row row-wrap padding0 margin0'>
+					<div ng-class='$root.respCol441'>
+						<span class='training_attr'>Training description:</span>
+					</div>
+					<div class='col'>
+						<span class='training-desc' ng-bind-html='card.descMultiKind'></span>
+					</div>
+				</div>
+			</div>
 		</div>
-		<div ng-show='card.desc'>
-			<hr/>
-			<div class='padding-mid training-desc' ng-bind-html='card.descMultiBatch'></div>
+		<div ng-show='card.desc' class='row row-center row-wrap padding0 margin0'>
+			<div ng-class='$root.respCol111'>
+				<div class='row row-wrap padding0 margin0'>
+					<div ng-class='$root.respCol441'>
+						<span class='training_attr'>Batch description:</span>
+					</div>
+					<div class='col'>
+						<span class='training-desc' ng-bind-html='card.descMultiBatch'></span>
+					</div>
+				</div>
+			</div>
 		</div>
-	    <hr/>
 		<div class='row row-bottom row-wrap margin0 padding0 fsmall1'>
-			<div ng-class='$root.respCol221' class='padding-mid'>
-				<span class='training_attr'>From:</span><span>{{card.start_date | nlDateTimeFormat}}</span>
-			</div>
-			<div ng-class='$root.respCol221' class='padding-mid'>
-				<span class='training_attr'>Till:</span><span>{{card.end_date | nlDateTimeFormat}}</span>
-			</div>
-			<div ng-class='$root.respCol221' ng-show='card.grade' class='padding-mid'>
-				<span class='training_attr'>Grade:</span><span>{{card.grade}}</span>
+			<div ng-class='$root.respCol111'>
+				<hr/>
+				<div class='row row-wrap padding0 margin0'>
+					<div ng-class='$root.respCol441'>
+						<span class='training_attr'>From:</span>
+					</div>
+					<div ng-class='$root.respCol441'>{{card.start_date | nlDateTimeFormat}}
+					</div>
+					<div ng-class='$root.respCol441'>
+						<span class='training_attr'>Till:</span>
+					</div>
+					<div ng-class='$root.respCol441'>{{card.end_date | nlDateTimeFormat}}</div>
+				</div>
 			</div>
 
-			<div ng-class='$root.respCol221' ng-show='card.grade' class='padding-mid'>
-				<span class='training_attr'>Subject:</span><span>{{card.subject}}</span>
+			<div ng-class='$root.respCol111' ng-show='card.grade || card.subject'>
+				<div class='row row-wrap padding0 margin0'>
+					<div ng-class='$root.respCol441' ng-show='card.grade'>
+						<span class='training_attr'>{{card.gradelabel}}:</span>
+					</div>
+					<div ng-class='$root.respCol441'>{{card.grade}}</div>
+					<div ng-class='$root.respCol441' ng-show='card.subject'>
+						<span class='training_attr'>{{card.subjectlabel}}:</span>
+					</div>
+					<div ng-class='$root.respCol441'>{{card.subject}}</div>
+				</div>
 			</div>
 			
-			<div ng-class='$root.respCol221' class='padding-mid'>
-				<span class='training_attr'>Created:</span><span>{{card.created | nlDateTimeFormat}}</span>
+			<div ng-class='$root.respCol111'>
+				<div class='row row-wrap padding0 margin0'>
+					<div ng-class='$root.respCol441'>
+						<span class='training_attr'>Created:</span>
+					</div>
+					<div ng-class='$root.respCol441'>{{card.created | nlDateTimeFormat}}</div>
+					<div ng-class='$root.respCol441'>
+						<span class='training_attr'>Updated:</span>
+					</div>
+					<div ng-class='$root.respCol441'>{{card.updated | nlDateTimeFormat}}</div>
+				</div>
 			</div>
-			<div ng-class='$root.respCol221' class='padding-mid'>
-				<span class='training_attr'>Updated:</span><span>{{card.updated | nlDateTimeFormat}}</span>
+
+			<div ng-class='$root.respCol111' ng-show='card.trainername || card.venue'>
+				<div class='row row-wrap padding0 margin0'>
+					<div ng-class='$root.respCol441' ng-show='card.trainername'>
+						<span class='training_attr'>Trainer name:</span>
+					</div>
+					<div ng-class='$root.respCol441'>{{card.trainername}}</div>
+					<div ng-class='$root.respCol441' ng-show='card.venue'>
+						<span class='training_attr'>Venue:</span>
+					</div>
+					<div ng-class='$root.respCol441'>{{card.venue}}</div>
+				</div>
 			</div>
-			<div ng-class='$root.respCol221' class='padding-mid'>
-				<span class='training_attr'>Created by:</span><span>{{card.createdby}}</span>
+
+			<div ng-class='$root.respCol111'>
+				<div class='row row-wrap padding0 margin0'>
+					<div ng-class='$root.respCol441'>
+						<span class='training_attr'>Created by:</span>
+					</div>
+					<div ng-class='$root.respCol441'>{{card.createdby}}</div>
+				</div>
 			</div>
 		</div>
 	</div>

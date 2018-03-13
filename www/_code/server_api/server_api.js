@@ -582,7 +582,7 @@ function(nl, nlDlg, nlConfig, Upload) {
 				data);
 	};
 	
-	this.modifyTrainingkind = function() {
+	this.modifyTrainingkind = function(data) {
 		return server.post('_serverapi/training_kind_modify.json',
 				data);
 	};
