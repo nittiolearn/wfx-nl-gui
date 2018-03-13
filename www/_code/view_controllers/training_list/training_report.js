@@ -16,14 +16,32 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var nlTrainingReportSrv = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlRangeSelectionDlg', 'nlGroupInfo', 'nlExporter',
-function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlGroupInfo, nlExporter) {
+var nlTrainingReportSrv = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlRangeSelectionDlg', 'nlExporter',
+function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
 	
-	this.exportToCsv = function($scope, userInfo, kinds) {
-		nlDlg.showLoadingScreen();
+	this.init = function(userInfo, nlGroupInfoService) {
+		nlGroupInfo = nlGroupInfoService;
+		_userInfo = userInfo;
+    	_reportCsv = new ReportCsv(nl, nlGroupInfo, nlExporter);
+        var params = nl.location.search();
+    	_argv = {limit: ('limit' in params) ? parseInt(params.limit) : 5000, 
+    		exportids: nlRouter.isPermitted(_userInfo, 'nittio_support')};
+	};
+	
+    this.processRecord = function(record) {
+    	return _processRecord(record);
+    };
+    
+    this.getStatusInfo = function(inputStatus) {
+		return _getStatusInfo(inputStatus);
+	};
+		
+	this.exportToCsv = function($scope, kinds) {
         if (_pageFetcher.fetchInProgress()) return _errorMsg('Processing is already in progress');
         nlRangeSelectionDlg.show($scope, true).then(function(filters) {
-			_initFetchParams(userInfo, null, filters.updatedFrom, filters.updatedTill);
+        	if (!filters) return;
+			_initFetchParams(null, filters.updatedFrom, filters.updatedTill);
+			nlDlg.showLoadingScreen();
 			_fetchRecords(false, function() {
 				_exportToCsv(function() {
 					nlDlg.hideLoadingScreen();
@@ -35,17 +53,16 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlGroupInfo, nlE
 	};
 
 	//---------------------------------------------------------------------------------------------
+	var nlGroupInfo = null;
 	var _params = null; 
 	var _argv = null;
+	var _userInfo = null;
 	var _records = [];
     var _pageFetcher = nlServerApi.getPageFetcher({defMax: 50, itemType: 'training record'});
-    var _reportCsv = new ReportCsv(nl, nlGroupInfo, nlExporter);
+    var _reportCsv = null;
 
-    function _initFetchParams(userInfo, kindId, createdfrom, createdtill) {
-        var params = nl.location.search();
-    	_argv = {limit: ('limit' in params) ? parseInt(params.limit) : 5000, 
-    		exportids: nlRouter.isPermitted(userInfo, 'nittio_support')};
-		_params = {mode: nlRouter.isPermitted(userInfo, 'assignment_manage') ? 'all' :  'mine',
+    function _initFetchParams(kindId, createdfrom, createdtill) {
+		_params = {mode: nlRouter.isPermitted(_userInfo, 'assignment_manage') ? 'all' :  'mine',
 			filters: [{field: 'ctype', val: _nl.ctypes.CTYPE_TRAINING}]};
 		if (kindId) _params.filters.append({field: 'lesson_id', val: kindId});
 		if (createdfrom) _params.createdfrom = createdfrom;
@@ -73,34 +90,46 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlGroupInfo, nlE
     	record.content = angular.fromJson(record.content);
     	record.content.start = nl.fmt.json2Date(record.content.start);
     	record.content.end = nl.fmt.json2Date(record.content.end);
-        record.user = nlGroupInfo.getUserObj(''+record.student);
-        record.usermd = _getMetadataDict(record.user);
-        var ts = record.content.trainingStatus || {};
-        var usessions = ts.sessions || {};
+    	if (nlGroupInfo) {
+	        record.user = nlGroupInfo.getUserObj(''+record.student);
+	        record.usermd = _getMetadataDict(record.user);
+    	}
+		if (!('trainingStatus' in record.content))
+			record.content['trainingStatus'] = {overallStatus: 'pending', childReportId: null, childStatus: null, sessions: {}};
+        var ts = record.content.trainingStatus;
+        if (!ts.overallStatus) ts.overallStatus = 'pending';
+        if (!ts.sessions) ts.sessions = {};
+        ts.timeSpent = 0;
+        
+        _updateStatusAndTimes(record, ts);
+        record.statusInfo = _getStatusInfo(ts.overallStatus);
+    	return record;
+    }
+    
+    function _updateStatusAndTimes(record, ts) {
+        var usessions = ts.sessions;
         if (!record.content.sessions) record.content.sessions = [];
         var sessions = record.content.sessions;
-        record.stats = {timeSpent: 0, overallStatus: 'completed'};
-        if (sessions.length == 0) {
-        	record.stats.overallStatus = ts.overallStatus || 'pending';
-        	return record;
-        }
+        if (sessions.length == 0) return;
+
         var doneCnt = 0;
         for (var i=0; i<sessions.length; i++) {
         	var session = sessions[i];
         	session.status = usessions[''+i] || 'pending';
+        	session.statusInfo = _getStatusInfo(session.status);
         	if (session.status != 'pending') {
         		session.timeSpent = session.duration;
-        		record.stats.timeSpent += session.duration;
+        		ts.timeSpent += session.duration;
         		doneCnt++;
         	} else {
         		session.timeSpent = 0;
         	}
         }
-		record.stats.overallStatus = (doneCnt == 0) ? 'pending' : (doneCnt == sessions.length) ? 'completed' : 'partial';
-    	return record;
+		ts.overallStatus = (doneCnt == 0) ? 'pending' : (doneCnt == sessions.length) ? 'completed' : 'partial';
     }
 
     function _getMetadataDict(user) {
+    	if (!nlGroupInfo) return {};
         var metadata = nlGroupInfo.getUserMetadata(user);
         var ret = {};
         for(var i=0; i<metadata.length; i++)
@@ -131,6 +160,19 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlGroupInfo, nlE
         zip.file('training-report.csv', content);
     }
 
+    var _STATES = {
+        pending: {icon: 'ion-ios-circle-filled fgrey', title: 'Pending'},
+        partial: {icon: 'ion-checkmark-circled forange', title: 'Partially Done'},
+        completed: {icon: 'ion-checkmark-circled fgreen', title: 'Done'}
+    };
+
+	function _getStatusInfo(inputStatus) {
+		if (!(inputStatus in _STATES)) inputStatus = 'pending';
+		var status = _STATES[inputStatus];
+		var htmlFmt = '<div class="row row-center padding0 margin0"><i class="icon fsh4 padding-small {}"></i><span>{}</span></div>';
+		return {icon: status.icon, title: status.title, html: nl.fmt2(htmlFmt, status.icon, status.title)};
+	}
+
 	function _errorMsg(msg) {
 		nlDlg.PopupAlert({title: 'Error', template: msg});
 		return false;
@@ -146,6 +188,7 @@ function ReportCsv(nl, nlGroupInfo, nlExporter) {
 	var _idHeaders = ['Training Report Id', 'Training Batch Id', 'Training Id'];
 	
     this.getMetaHeaders = function(bOnlyMajor) {
+    	if (!nlGroupInfo) return [];
         var headers = [];
         var metadata = nlGroupInfo.getUserMetadata(null);
         for(var i=0; i<metadata.length; i++) {
@@ -202,8 +245,8 @@ function ReportCsv(nl, nlGroupInfo, nlExporter) {
         ret.push(session ? '' : record.content.start ? nl.fmt.date2Str(record.content.start) : '');
         ret.push(session ? '' : record.content.end ? nl.fmt.date2Str(record.content.end): '');
         ret.push(session ? session.name || '' : 'All sessions');
-        ret.push(session ?  session.status || 'pending' : record.stats.overallStatus || 'pending');
-        ret.push(session ? session.timeSpent : record.stats.timeSpent);
+        ret.push(session ?  session.status || 'pending' : record.content.trainingStatus.overallStatus || 'pending');
+        ret.push(session ? session.timeSpent : record.content.trainingStatus.timeSpent);
 	}
 
 	function _fillCostFields(ret, record) {

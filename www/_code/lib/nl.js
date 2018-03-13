@@ -263,6 +263,16 @@ function Formatter() {
 		avp.val.push(link);
 	};
 	
+	this.multiLineHtml = function(desc, cls) {
+		if (cls === undefined) cls = 'padding-mid-v';
+		desc = desc.split('\n');
+		var ret = '';
+		for (var i = 0; i < desc.length; i++) {
+			ret += this.fmt2(['<div class="{}">{}</div>', cls, desc[i]]);
+		}
+		return ret;
+	};
+
     function _fmt2Impl(strFmt, args) {
         var i = 0;
         return strFmt.replace(/{}/g, function() {

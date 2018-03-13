@@ -1,22 +1,64 @@
 <div class='nl-thin-scroll'>
     <nl-cards ng-if='cards' cards='cards'></nl-cards>
     <div ng-if='!cards' class='padding'>
-		<nl-avpair avpname='Training name' avpval='{{content.kindName}}'></nl-avpair>
-		<nl-avpair avpname='Batch' avpval='{{content.name}}'></nl-avpair>
-		<nl-avpair avpname='From' avpval='{{start}}'></nl-avpair>
-		<nl-avpair avpname='Till' avpval='{{end}}'></nl-avpair>
-		<nl-avpair avpname='Status' avpval='{{overallStatus}}'></nl-avpair>
-		<nl-avpair avpname='Description' avpval='{{content.kindDesc}}'></nl-avpair>
-		<nl-avpair avpname='' avpval='{{content.desc}}'></nl-avpair>
-		
-		<div ng-if='sessions.length > 0'>
-			<div class='padding-mid fsh5'>There are {{sessions.length}} sessions in this training.</div>
-			
-			<nl-avpair ng-repeat='s in sessions'
-				avpname='{{s.attended}}' avpval='{{s.name}}'></nl-avpair>
-		</div>
+    	<div class='row row-center row-wrap margin0 padding0'>
+    		<div ng-class='resp2Col67' class='padding0 margin0'>
+    			<div class='padding-mid fsh4'>
+	    			<span>{{record.content.kindName}}</span>
+	    			<span ng-if='record.content.kindName'>:</span>
+	    			<span>{{record.content.name}}</span>
+    			</div>
+    			<div class='row row-center row-wrap padding0 margin0 fsh6'>
+    				<div ng-class='resp2Col20' class='padding-mid'><b>Status</b></div>
+    				<div ng-class='resp2Col80' class='padding-mid' ng-bind-html='record.statusInfo.html'></div>
+    			</div>
+    			<div class='row row-center row-wrap padding0 margin0 fsh6'>
+    				<div ng-class='resp2Col20' class='padding-mid'><b>From</b></div>
+    				<div ng-class='resp2Col80' class='padding-mid'>{{start}}</div>
+    			</div>
+    			<div class='row row-center row-wrap padding0 margin0 fsh6'>
+    				<div ng-class='resp2Col20' class='padding-mid'><b>Till</b></div>
+    				<div ng-class='resp2Col80' class='padding-mid'>{{end}}</div>
+    			</div>
+    		</div>
+    		<div ng-class='resp2Col33'>
+	    		<img style='max-height: 100%; max-width: 100%'
+	    			 class='padding-mid'
+	    			 ng-if='record.content.moduleicon'
+	    			 ng-src='{{record.content.moduleicon}}'>
+    		</div>
+    	</div>
+    	<hr/>
+    	<div class='row row-center row-wrap margin0 padding0'>
+    		<div class='col margin0 padding0'></div>
+    		<div class='padding-mid nl-link-text'
+    			ng-click='onLaunchModule(record)'
+    			title='Navigate to the learning module associated with this training'>
+    			<div class='row row-center margin0 padding0'>
+	    			<i class='icon nl-dlg-field-icon ion-play'></i>
+	    			<span>Launch module</span>
+    			</div>
+    		</div>
+    	</div>
 
-    	<div class='padding nl-button'
-    		 ng-click='onLaunchModule(item)'>Launch module</div>
-    </div>
+		<div class='padding-mid fgrey' ng-bind-html='kindDesc'></div>
+		<div class='padding-mid fgrey' ng-bind-html='desc'></div>
+
+		<div class='row row-center row-wrap padding0 margin0'
+			ng-hide='record.content.venue'>
+			<div ng-class='resp2Col20' class='padding-mid'>Venue</div>
+			<div ng-class='resp2Col80' class='padding-mid' ng-bind-html='record.content.venue'></div>
+		</div>
+		<div class='row row-center row-wrap padding0 margin0'
+			ng-hide='record.content.trainername'>
+			<div ng-class='resp2Col20' class='padding-mid'>Trainer</div>
+			<div ng-class='resp2Col80' class='padding-mid' ng-bind-html='record.content.trainername'></div>
+		</div>
+    	<hr/>
+    	
+    	<div class='row row-wrap margin0 padding0'
+    		ng-repeat='s in record.content.sessions'>
+    		<div ng-class='resp2Col80' class='padding-mid'>{{s.name}}</div>
+    		<div ng-class='resp2Col20' class='padding-mid' ng-bind-html='s.statusInfo.html'></div>
+		</div>
 </div>
