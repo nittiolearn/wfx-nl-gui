@@ -5,7 +5,10 @@
 // training module
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-	angular.module('nl.training_list', []).config(configFn).directive('nlTrainingDetails', TrainingDetailsDirective).controller('nl.TrainingListCtrl', TrainingListCtrl);
+	angular.module('nl.training_list', [])
+	.config(configFn)
+	.directive('nlTrainingDetails', TrainingDetailsDirective)
+	.controller('nl.TrainingListCtrl', TrainingListCtrl);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -142,13 +145,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 
 	function _splitMultilineString(desc, desctype) {
 		desc = desc.split('\n');
-		var ret = nl.t('<div ng-class="resp2Col20"><b>{}: </b></div>', desctype);
-		var descObj = '<div ng-class="resp2Col80">';
+		var descObj = '<div>';
 		for (var i = 0; i < desc.length; i++) {
-			descObj += nl.fmt2('<div class="padding1-mid-v padding-left"><span>{}</span></div>',  desc[i]);
+			descObj += nl.fmt2('<div class="padding1-mid-v"><span>{}</span></div>',  desc[i]);
 		}
 		descObj += '</div>';
-		return nl.fmt2('<div class="row row-wrap row-top padding0 margin0">{}{}</div>', ret, descObj);
+		return descObj;
 	}
 
 	function _createCard(item) {
@@ -167,6 +169,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 		card.start_date = item.start;
 		card.end_date = item.end;
 		card.description = item.desc;
+		card.gradelabel = _groupInfo.props.gradelabel;
+		card.subjectlabel = _groupInfo.props.subjectlabel;
 		card.children = [];
 		card.details = {};
 		card.links = [];
@@ -201,35 +205,45 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 	function _updateTrainingKindObject(item) {
 		item.training_kind = item.id;
 		item.name = item.kindName;
+		item.descMultiKind = _splitMultilineString(item.kindDesc);
 		return item;
 	}
 	
-	function _createTrainingKind(batchDlgScope) {
+	function _createOrEditTrainingKind(batchDlgScope, card) {
 		var _dlg = nlDlg.create($scope);
 		_dlg.setCssClass('nl-height-max nl-width-max');
 		_dlg.scope.error = {};
 		_dlg.scope.help = batchDlgScope.help;
-		_dlg.scope.dlgTitle = nl.t('Create a training');
-		_dlg.scope.data = {kindName : '', kindDesc : '',
+		_dlg.scope.dlgTitle = card ? nl.t('Update training') : nl.t('Create a training');
+		var defaultData = {kindName : '', kindDesc : '',
 			gradelabel: _groupInfo.props.gradelabel,
 			subjectlabel: _groupInfo.props.subjectlabel,
 			sessions: [{name: 'Session 1', duration:{id: 60}}]};
-
+		_dlg.scope.data = card ? card : defaultData;
+		_dlg.scope.data.origCard = angular.copy(card);
+		_dlg.scope.data.module = '';
+		var selectedGrade = {};
+		var selectedSubject = {};
+		if(card) {
+			selectedGrade[card.grade] = true;
+			selectedSubject[card.subject] = true;
+			_dlg.scope.data.module = {lessonId: card.moduleid, title: card.modulename, icon: card.moduleicon};
+			_dlg.scope.data.sessions = _getUpdatedSessions(card.sessions);
+		}
         var _gradeInfo = {data: nlTreeSelect.strArrayToTreeArray(_groupInfo.props.grades || [])};
-        nlTreeSelect.updateSelectionTree(_gradeInfo, {});
+        nlTreeSelect.updateSelectionTree(_gradeInfo, selectedGrade);
         _gradeInfo.treeIsShown = false;
         _gradeInfo.multiSelect = false;
 		_gradeInfo.fieldmodelid = 'grade';
         
         var _subjectInfo = {data: nlTreeSelect.strArrayToTreeArray(_groupInfo.props.subjects || [])};
-        nlTreeSelect.updateSelectionTree(_subjectInfo, {});
+        nlTreeSelect.updateSelectionTree(_subjectInfo, selectedSubject);
         _subjectInfo.treeIsShown = false;
         _subjectInfo.multiSelect = false;
 		_subjectInfo.fieldmodelid = 'subject';
 
 		_dlg.scope.options = {grade: _gradeInfo, subject: _subjectInfo, duration: _getDurationStats(true)};
 		_dlg.scope.data.defDurationName = _getDurationStats(false);
-		_dlg.scope.data.module = '';
 		_dlg.scope.userinfo = _userInfo;
 
 		_dlg.scope.onClickOnAddSession = function() {
@@ -245,21 +259,33 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 				}
 			}
 		};
-		var button = {text : nl.t('Create'), onTap : function(e) {
-			_onTrainingKindCreate(e, $scope, _dlg.scope, null, _gradeInfo, _subjectInfo, batchDlgScope);
+
+		var button = {text : card ? nl.t('Update') : nl.t('Create'), onTap : function(e) {
+			_onTrainingKindCreateOrEdit(e, $scope, _dlg.scope, card ? card : null, _gradeInfo, _subjectInfo, batchDlgScope);
 		}};
 		
-		var cancelButton = {text: nl.t('Cancel')};
+		var cancelButton = {text: nl.t('Cancel'), onTap: function() {
+			_dlg.scope.data.sessions = _dlg.scope.data.origCard.sessions;
+			_dlg.scope.data.kindName = _dlg.scope.data.origCard.kindName;
+		}};
 		_dlg.show('view_controllers/training_list/trainingkind_create_dlg.html', [button], cancelButton);
 	}
 
-	function _onTrainingKindCreate(e, $scope, dlgScope, card, _gradeInfo, _subjectInfo, batchDlgScope) {
+	function _getUpdatedSessions(sessions) {
+		var ret = [];
+		for(var i=0; i<sessions.length; i++) {
+			ret.push({name: sessions[i].name, duration:{id: sessions[i].duration}});
+		}
+		return ret;
+	}
+	
+	function _onTrainingKindCreateOrEdit(e, $scope, dlgScope, card, _gradeInfo, _subjectInfo, batchDlgScope) {
 		if (!_validateTrainingkindInputs(dlgScope, _gradeInfo, _subjectInfo)) {
 			if (e)
 				e.preventDefault();
 			return null;
 		}
-
+		var serverFunction = card ? nlServerApi.modifyTrainingkind : nlServerApi.createTrainingkind;
 		var trainingSessions = [];
 		for(var i=0; i<dlgScope.data.sessions.length; i++) {
 			var item  = dlgScope.data.sessions[i];
@@ -270,23 +296,47 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 				kindName : dlgScope.data.kindName,
 				kindDesc : dlgScope.data.kindDesc,
 				ctype: _nl.ctypes.CTYPE_MODULE,
-				moduleid : dlgScope.data.module.lessonId,
+				moduleid : dlgScope.data.module.lessonId || card.moduleid,
 				modulename : dlgScope.data.module.title,
 				moduleicon : dlgScope.data.module.icon,
 				grade: Object.keys(nlTreeSelect.getSelectedIds(_gradeInfo))[0],
 				subject: Object.keys(nlTreeSelect.getSelectedIds(_subjectInfo))[0],
 				sessions : trainingSessions
 		};
-		var data = {info: angular.toJson(info)};
+		var data = {info: angular.toJson(info), id : card ? card.training_kind : 0};
 		nlDlg.showLoadingScreen();
-		nlServerApi.createTrainingkind(data).then(function(result) {
+		serverFunction(data).then(function(result) {
 			nlDlg.hideLoadingScreen();
-			_updateTrainingKindObject(result);
-			_updateTrainingKinds([result]);
-			_onTrainingKindChange(batchDlgScope, result);
-		});		
+			if(card) {
+				_onModifyTrainingKind(card, result, batchDlgScope);
+			} else {
+				_updateTrainingKindObject(result);
+				_updateTrainingKinds([result]);
+				_onTrainingKindChange(batchDlgScope, result);
+			}
+		});
 	}
+
+	function _onModifyTrainingKind(card, result, batchDlgScope) {
+		if(_trainingkinds !== null) {
+			for(var i=0; i<_trainingkinds.length; i++) {
+				if(result.id == _trainingkinds[i].id) {
+					_trainingkinds.splice(i, 1);
+					break;
+				}
+			}
+			_updateTrainingKinds([result]);
+		}
+		_updateTrainingKindObject(result);		
+		for(var key in result) {
+			card[key] = result[key];
+		}
+		_onCreateOrModifyTrainingkindDone(card, batchDlgScope);
+	};
 	
+	function _onCreateOrModifyTrainingkindDone(result, batchDlgScope){
+	}
+
 	//--------------------------------------------------------------------------------------------------
     var _reportFetcher = nlServerApi.getPageFetcher({defMax: 500, blockTillDone: true});
 	function _trainingReportView(card, linkid) {
@@ -387,19 +437,24 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 		if(batchCard) _onTrainingKindChange(scope, batchCard);
 
 		scope.onCreateTrainingKind = function() {
-			_createTrainingKind(scope);
+			_createOrEditTrainingKind(scope);
 		};
 
 		scope.onFieldChange = function(fieldId) {
 			if(fieldId != 'trainingkind') return;
-			_onTrainingKindChange(scope, scope.data.trainingkind);
+			_onTrainingKindChange(scope, scope.data.trainingkind, scope.data.showTrainingAttrs);
+		};
+		
+		scope.onClickOnEditTrainingKind = function(fieldId) {
+			_createOrEditTrainingKind(scope, scope.data.trainingkind);
 		};
 	}
 		
-	function _onTrainingKindChange(scope, batchOrKindItem) {
+	function _onTrainingKindChange(scope, batchOrKindItem, isShowDetails) {
 		scope.help.trainingkind.isShown = false;
 		scope.trainigKindSelected = true;
 		scope.data = batchOrKindItem;
+		scope.data.showTrainingAttrs = isShowDetails;
 		scope.data.trainingkind = batchOrKindItem;
 		scope.data.modulename = batchOrKindItem.modulename || '';
 		scope.data.defDurationName = _getDurationStats(false);
@@ -465,7 +520,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 				costTravel: dlgScope.data.costTravel || '',
 				costMisc: dlgScope.data.costMisc || '',
 				name : dlgScope.data.batchTitle,
-				desc : dlgScope.data.desc || ''
+				desc : dlgScope.data.desc || '',
+				trainername :  dlgScope.data.trainername || '',
+				venue: dlgScope.data.venue || ''
 		};
 
 		var data = {
@@ -527,7 +584,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 			costTrainer: {name: nl.t('Trainer cost'), help: nl.t('Configure the trainer cost')},
 			costFood: {name: nl.t('Stationary and food cost'), help: nl.t('Configure the stationary and food cost')},
 			costTravel: {name: nl.t('Travel and Accomodation cost'), help: nl.t('Configure the travel and accomodation cost')},
-			costMisc: {name: nl.t('Miscellaneous cost'), help: nl.t('Configure the miscellaneous cost')}
+			costMisc: {name: nl.t('Miscellaneous cost'), help: nl.t('Configure the miscellaneous cost')},
+			trainername: {name: nl.t('Trainer name'), help: nl.t('Provide trainer name to this training')},
+			venue: {name: nl.t('Venue'), help: nl.t('Configure venue of this training')}
 		};
 	};
 
