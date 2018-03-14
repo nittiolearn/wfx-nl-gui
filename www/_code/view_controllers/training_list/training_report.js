@@ -25,7 +25,7 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
     	_reportCsv = new ReportCsv(nl, nlGroupInfo, nlExporter);
         var params = nl.location.search();
     	_argv = {limit: ('limit' in params) ? parseInt(params.limit) : 5000, 
-    		all: ('all' in params ? true : false),
+    		all: (params.type == 'all'),
     		exportids: nlRouter.isPermitted(_userInfo, 'nittio_support')};
 	};
 	
