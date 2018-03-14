@@ -58,7 +58,8 @@
 		    <hr/>
 		    <div ng-show='data.training_kind' class='row row-center row-wrap padding0 margin0 text-center'>
 				<div class='col'></div>
-			    <div class='padding-small nl-link-text'
+			    <div ng-show='isAssignmentManage'
+			    	  class='padding-small nl-link-text'
 		              ng-click='onClickOnEditTrainingKind()'
 			          title='{{$root.screenSize == "small" ? "Edit training" : ""}}'>
 			        <div class='row row-center padding0 margin0'>
@@ -146,7 +147,7 @@
 			    <div class='fsh6'>
 			        <i ng-show='data.showAdditionalAttrs' class="icon ion-android-checkbox-outline"></i>
 			        <i ng-hide='data.showAdditionalAttrs' class="icon ion-android-checkbox-outline-blank"></i>
-			        Show additional attributes
+			        Configure batch details
 			    </div>
 			</div>
 		</div>
