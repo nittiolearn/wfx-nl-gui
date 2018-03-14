@@ -14,13 +14,13 @@
             and the learner will not be able to provide their feedback online.
         </span>
      </div>
-     <div ng-show='data.selectedCnt' class='padding-mid-v'>
-         Pending items selected for marking as completed: {{data.selectedCnt}}</div>
+     <div class='padding-mid-v'>
+         Pending items selected for marking as completed: {{data.selectedCnt || 0}}</div>
 </div>
-<div ng-show='data.card.sessions && (data.card.sessions.length != 0)'
+<div ng-show='data.card.sessions && data.card.sessions.length != 0'
 	class='row row-center row-wrap padding0 margin0'>
 	<div ng-class='resp2Col33' class='nl-dlg-field-name'>
-		Select session
+		Select session to mark attendance
 	</div>
 	<div ng-class='resp2Col67' class='nl-dlg-field-value'>
 		<nl-select fieldmodel='sessions'></nl-select>
@@ -28,18 +28,7 @@
 </div>
 <table class='nl-table nl-table-styled fsh6 padding-mid'>
 	<tr>
-        <th>
-            <div ng-show='options.sessions.length == 0 && (data.completedCnt != data.userList.length)'>
-	            <i ng-show='data.selectAll'
-	               title='Deselect all pending'
-	               ng-click='data.toggleSelectAll()'
-	               class="icon ion-android-checkbox-outline nl-dlg-field-icon"></i>
-	            <i ng-show='!data.selectAll'
-	               title='Select all pending'
-	               ng-click='data.toggleSelectAll()'
-	               class="icon ion-android-checkbox-outline-blank nl-dlg-field-icon"></i>
-	        </div>
-            <div ng-show='options.sessions.length != 0 && data.userDict.completed[data.sessions.id] != data.userList.length'>
+        <th ng-show='((data.completedCnt != data.userList.length) && (options.sessions.length ==0)) || (data.userDict.completed[data.sessions.id] != data.userList.length && options.sessions.length != 0)'>
 	            <i ng-show='data.selectAll'
 	               title='Deselect all pending'
 	               ng-click='data.toggleSelectAll()'
@@ -55,7 +44,7 @@
         </th>
 	</tr>
     <tr ng-repeat='user in data.userList'>
-        <td>
+        <td ng-show='((data.completedCnt != data.userList.length) && (options.sessions.length ==0)) || (data.userDict.completed[data.sessions.id] != data.userList.length && options.sessions.length != 0)'>
             <div ng-show='options.sessions.length == 0 && !user.completed'>
                 <i ng-show='user.selected'
                    ng-click='data.toggleSelect($index)'
@@ -81,12 +70,12 @@
         </td>
         <td>
         	<span class='row row-wrap row-center margin0 padding0'
-        	      ng-show='user.sessions[data.sessions.id] == "completed" || user.selected || user.completed'>
+        	      ng-show='data.userDict[user.id].sessions[data.sessions.id] == "completed" || user.completed'>
         		<i class='icon nl-dlg-field-icon ion-checkmark-circled nl-green padding-mid'></i>
         		<span class='col padding-mid'>Completed</span>
         	</span>
         	<span class='row row-wrap row-center margin0 padding0'
-        	      ng-show='(user.sessions[data.sessions.id] == "pending" || !user.sessions[data.sessions.id]) && (!user.selected && !user.completed)'>
+        	      ng-show='(data.userDict[user.id].sessions[data.sessions.id] != "completed" || !data.userDict[user.id].sessions[data.sessions.id]) && (!user.completed)'>
         		<i class='icon nl-dlg-field-icon ion-record fgrey padding-mid'></i>
         		<span class='col padding-mid'>Pending</span>
         	</span>

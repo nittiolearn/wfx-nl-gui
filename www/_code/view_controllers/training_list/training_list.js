@@ -32,8 +32,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 	var _userInfo = null;
 	var _scope = null;
     var _canShowDelete = false;
+    var _canManage = false;
 	var _groupInfo = null;
 	var _trainingkinds = null;
+	var _allrecords = false;
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
@@ -47,6 +49,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 	            var params = nl.location.search();
 	            _canShowDelete = ('debug' in params) &&
 	                nlRouter.isPermitted(userInfo, 'admin_user');
+                _canManage = nlRouter.isPermitted(userInfo, 'assignment_manage');
+	            _allrecords = params.type == 'all' ? true : false;
+	            if (_allrecords && !_canManage) {
+	            	nlDlg.popupStatus('Not permitted');
+	            	resolve(false);
+	            	return;
+	            }
 				$scope.cards = {
 				    toolbar: _getToolbar(),
 	                search: {placeholder: nl.t('Enter training name/description')},
@@ -124,7 +133,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
         if (!fetchMore) {
             nlCardsSrv.updateCards($scope.cards, {cardlist: []});
         }
-        var params = {};
+        var params = {allrecords: _allrecords};
         _pageFetcher.fetchPage(nlServerApi.getTrainingList, params, fetchMore, function(results) {
             if (!results) {
                 if (resolve) resolve(false);
@@ -412,7 +421,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
     function _createOrEditTrainingBatch(batchCard) {
     	var batchDlg = nlDlg.create($scope);
 		batchDlg.setCssClass('nl-height-max nl-width-max');
-		batchDlg.scope.isAssignmentManage = _userInfo.permissions['assignment_manage'];
+		batchDlg.scope.isAssignmentManage = _canManage;
 		batchDlg.scope.dlgTitle = batchCard ? nl.t('Update the training batch') : nl.t('Create a new training batch');
 		_initTrainingBatchDlg(batchDlg.scope, batchCard);
 		_showTrainingBatchDlg(batchDlg);		
@@ -698,6 +707,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 	
 	function _getSortedList(userDict, sd, scope) {
 		var ret = [];
+		sd.selectAll = false;
         sd.selectedCnt = 0;
 		sd.completedCnt = 0;
 		for (var key in userDict) {
@@ -739,6 +749,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 	        	var canAddElem = false;
 	        	for(var j=0; j<nominationDlgScope.options.sessions.length; j++) {
 	        		var sessionid = nominationDlgScope.options.sessions[j].id;
+	            	if(nominationDlgScope.data.userDict[user.id].sessions[sessionid] == 'completed') continue;
 	        		if(user.sessions[sessionid] == 'completed') canAddElem = true;
 	        	}
 	        	if(canAddElem) users.push(user);
