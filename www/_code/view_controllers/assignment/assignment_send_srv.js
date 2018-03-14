@@ -287,7 +287,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             var user = nlGroupInfo.getUserObj(''+selecteduserids[i]);
             if (!user.state) continue;
             var userObj = {id: user.id, email: user.email, usertype: user.usertype, 
-    			org_unit: user.org_unit, name: user.name};
+    			org_unit: user.org_unit, name: user.name, username: user.username,
+    			first_name: user.first_name, last_name: user.last_name};
     		if (user.supervisor) userObj.supervisor = user.supervisor;
     		if (user.metadata) {
 		        var mdVals = angular.fromJson(user.metadata);
