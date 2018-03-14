@@ -100,7 +100,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlTrainingReport)
 			id : item.id,
 			item : item,
 			url: nl.fmt2('/#/training_attend?id={}', item.id),
-			title : content.kindName || content.name,
+			title : content.kindName || content.name || '',
 			icon : content.moduleicon,
 			start_date : content.start,
 			end_date : content.end,
@@ -129,7 +129,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlTrainingReport)
 
 	function  _setupRecordInScope(record) {
     	var content = record.content;
-		nl.pginfo.pageTitle = 'Training: ' + content.kindName || content.name || '';
+		nl.pginfo.pageTitle = 'Training: ' + (content.kindName || content.name || '');
     	$scope.record = record;
     	$scope.start = content.start ? nl.fmt.date2Str(content.start, 'minutes') : '';
     	$scope.end = content.end ? nl.fmt.date2Str(content.end, 'minutes') : '';

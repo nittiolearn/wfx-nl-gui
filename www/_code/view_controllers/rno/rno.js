@@ -641,7 +641,7 @@ function ObservationManager(nl, _rnoServer, nlResourceUploader, nlDlg) {
 
     function _onObservationSave(rno, scope, observationId, cbFn) {
         nlDlg.showLoadingScreen();
-        nlResourceUploader.uploadInSequence(scope.data.newAttachments, '', 'high')
+        nlResourceUploader.uploadInSequence(scope.data.newAttachments, '', 'high', null, {insertfrom: '/rno_list/'})
         .then(function(resInfos) {
             _onResourcesUploaded(rno, scope, observationId, resInfos, cbFn);
         }, function(msg) {

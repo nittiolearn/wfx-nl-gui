@@ -25,6 +25,7 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
     	_reportCsv = new ReportCsv(nl, nlGroupInfo, nlExporter);
         var params = nl.location.search();
     	_argv = {limit: ('limit' in params) ? parseInt(params.limit) : 5000, 
+    		all: ('all' in params ? true : false),
     		exportids: nlRouter.isPermitted(_userInfo, 'nittio_support')};
 	};
 	
@@ -62,7 +63,7 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
     var _reportCsv = null;
 
     function _initFetchParams(kindId, createdfrom, createdtill) {
-		_params = {mode: nlRouter.isPermitted(_userInfo, 'assignment_manage') ? 'all' :  'mine',
+		_params = {mode: _argv.all ? 'all' :  'mine',
 			filters: [{field: 'ctype', val: _nl.ctypes.CTYPE_TRAINING}]};
 		if (kindId) _params.filters.append({field: 'lesson_id', val: kindId});
 		if (createdfrom) _params.createdfrom = createdfrom;
@@ -115,7 +116,7 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
         var doneCnt = 0;
         for (var i=0; i<sessions.length; i++) {
         	var session = sessions[i];
-        	session.status = usessions[''+i] || 'pending';
+        	session.status = usessions[i] || 'pending';
         	session.statusInfo = _getStatusInfo(session.status);
         	if (session.status != 'pending') {
         		session.timeSpent = session.duration;
