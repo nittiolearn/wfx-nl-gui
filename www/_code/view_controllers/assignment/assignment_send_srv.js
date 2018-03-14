@@ -152,7 +152,9 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             endtime: _assignInfo.endtime || '',
             maxduration: _assignInfo.esttime ? parseInt(_assignInfo.esttime) : '',
             showAnswers: learningModeStrings[1],
-            remarks: _assignInfo.remarks || ''
+            remarks: _assignInfo.remarks || '',
+            forum: false,
+            sendEmail: false,
         };
     }
 

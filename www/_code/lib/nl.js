@@ -264,6 +264,7 @@ function Formatter() {
 	};
 	
 	this.multiLineHtml = function(desc, cls) {
+		if (!desc) return '';
 		if (cls === undefined) cls = 'padding-mid-v';
 		desc = desc.split('\n');
 		var ret = '<div>';
