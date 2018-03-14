@@ -72,10 +72,12 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	var _userInfo = null;
     var _metadataEnabled = false;
     var _searchMetadata = null;
+    var _canManage = false;
     var _resultList = [];
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
+		_canManage = nlRouter.isPermitted(_userInfo, 'assignment_manage');
 		return nl.q(function(resolve, reject) {
 			_initParams();
 			nl.pginfo.pageTitle = _getPageTitle();
@@ -192,7 +194,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		    params.mine = my;
 			listingFn = nlServerApi.courseGetList;
 		} else if (type === 'assign') {
-            params.mine = false;
 			listingFn = nlServerApi.courseGetAssignmentList;
 		} else if (type === 'report' && assignId !== 0) {
             params.assignid = assignId;
@@ -258,7 +259,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 			card.links.push({id: 'course_delete', text: nl.t('delete')});
 			if (course.is_published)
 				card.links.push({id: 'course_unpublish', text: nl.t('unpublish')});
-		} else if(nlRouter.isPermitted(_userInfo, 'course_assign')) {
+		} else {
             card.links.push({id: 'course_assign', text: nl.t('assign')});
             card.links.push({id: 'course_report', text: nl.t('report')});
 		}
@@ -268,7 +269,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	}
 	
     function _addMetadataLink(card) {
-        if (!_metadataEnabled) return;
+        if (!_metadataEnabled || !_canManage) return;
         card.links.push({id : 'course_metadata', text : nl.t('metadata')});
     }
 
@@ -324,7 +325,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		card.links = [];
         if (!isReport)
             card.links.push({id:'course_report_list', text: nl.t('reports')});
-		if (!isReport && nlRouter.isPermitted(_userInfo, 'course_assign'))
+		if (!isReport && _canManage)
 			card.links.push({id:'course_assign_delete', text: nl.t('delete')});
 		card.links.push({id: 'details', text: nl.t('details')});
 		return card;

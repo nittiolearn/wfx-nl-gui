@@ -242,7 +242,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
             }
             $scope.mode = modeHandler.mode;
             $scope.canSendAssignment = $scope.mode == MODES.PUBLISHED &&
-                nlRouter.isPermitted(userInfo, 'course_assign');
+                nlRouter.isPermitted(userInfo, 'assignment_send');
             $scope.showStatusIcon = modeHandler.shallShowScore();
             var courseId = parseInt($scope.params.id);
             modeHandler.getCourse().then(function(course) {
