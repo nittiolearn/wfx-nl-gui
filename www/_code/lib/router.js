@@ -268,6 +268,7 @@ function Permission(nl) {
         '/recyclebin': {login: true, permission: 'lesson_approve', termRestriction: TR_CLOSED},
 
         // Operation permissions
+        'assignment_manage': {login: true, permission: 'assignment_manage', termRestriction: TR_RESTRICTED},
         'change_password': {login: true, permission: 'change_password', termRestriction: TR_RESTRICTED},
         'course_assign': {login: true, permission: 'course_assign', termRestriction: TR_CLOSED},
         'forum_start_topic': {login: true, permission: 'course_review', termRestriction: TR_CLOSED},
@@ -275,7 +276,8 @@ function Permission(nl) {
         'forum_view_details': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         'admin_user': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         'admin_user_bulk': {login: true, permission: 'admin_user_bulk', termRestriction: TR_CLOSED},
-        'admin_group': {login: true, permission: 'admin_group', termRestriction: TR_CLOSED}
+        'admin_group': {login: true, permission: 'admin_group', termRestriction: TR_CLOSED},
+        'nittio_support': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED}
     };
     
     var openPages = {'/login_now': 1, '/logout_now': 1, 

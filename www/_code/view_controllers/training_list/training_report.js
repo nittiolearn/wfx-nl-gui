@@ -157,7 +157,6 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
         for(var i=0; i<rows.length; i++)
 	    	csvRows.push(nlExporter.getCsvString(rows[i]));
         var content = csvRows.join(_CSV_DELIM);
-        console.log(content);
         zip.file('training-report.csv', content);
     }
 
@@ -184,7 +183,7 @@ function ReportCsv(nl, nlGroupInfo, nlExporter) {
 	var self = this;
 
 	var _userHeaders = 	['User Id', 'User Name', 'Email Id', 'Org'];
-	var _trainingHeaders = ['Type', 'Training Name', 'Batch Name', 'From', 'Till', 'Session', 'Status', 'Time Spent (minutes)'];
+	var _trainingHeaders = ['Type', 'Training Name', 'Batch Name', 'From', 'Till', 'Session', 'Status', 'Feedback Status', 'Time Spent (minutes)'];
 	var _costHeaders = ['Infra Cost', 'Trainer Cost', 'Food Cost', 'Travel Cost', 'Misc Cost'];
 	var _idHeaders = ['Training Report Id', 'Training Batch Id', 'Training Id'];
 	
@@ -206,7 +205,7 @@ function ReportCsv(nl, nlGroupInfo, nlExporter) {
         headers = headers.concat(_trainingHeaders);
         headers = headers.concat(_costHeaders);
         if (exportIdTypes)
-            headers = headers.concat(_idFields);
+            headers = headers.concat(_idHeaders);
         return headers;
     };
 
@@ -247,6 +246,7 @@ function ReportCsv(nl, nlGroupInfo, nlExporter) {
         ret.push(session ? '' : record.content.end ? nl.fmt.date2Str(record.content.end): '');
         ret.push(session ? session.name || '' : 'All sessions');
         ret.push(session ?  session.status || 'pending' : record.content.trainingStatus.overallStatus || 'pending');
+        ret.push(session ?  'NA' : record.content.trainingStatus.childStatus || 'pending');
         ret.push(session ? session.timeSpent : record.content.trainingStatus.timeSpent);
 	}
 

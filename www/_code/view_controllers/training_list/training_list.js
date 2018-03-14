@@ -832,7 +832,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 
 			// Stuff needed for server side
 			assignid : trainingBatch.id,
-			id : trainingBatch.contentid || 0, //trainingModule.training.moduleid,
+			id : trainingBatch.training_kind || 0,
 			remarks : _getRemarks(trainingBatch),
 
 			// Stuff needed in GUI side
