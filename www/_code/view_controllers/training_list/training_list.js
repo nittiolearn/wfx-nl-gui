@@ -66,6 +66,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 	            	}
 	            };
 	            nlCardsSrv.initCards($scope.cards);
+	            _initTrainingKinds();
 				_getDataFromServer(resolve);
 			});
 		});
@@ -198,7 +199,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
     	for(var i=0; i<newKinds.length; i++)
     		_trainingkinds.push(_updateTrainingKindObject(newKinds[i]));
 		_trainingkinds.sort(function(a, b) {
-			return a.kindName == b.kindName ? 0 : a.kindName > b.kindName;
+			return a.kindName.toLowerCase() == b.kindName.toLowerCase() ? 0 : a.kindName.toLowerCase() > b.kindName.toLowerCase() ? 1 : -1;
 		});
 	}
 
@@ -265,8 +266,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 		}};
 		
 		var cancelButton = {text: nl.t('Cancel'), onTap: function() {
-			_dlg.scope.data.sessions = _dlg.scope.data.origCard.sessions;
-			_dlg.scope.data.kindName = _dlg.scope.data.origCard.kindName;
 		}};
 		_dlg.show('view_controllers/training_list/trainingkind_create_dlg.html', [button], cancelButton);
 	}
@@ -326,17 +325,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 				}
 			}
 			_updateTrainingKinds([result]);
+			_updateTrainingKindObject(result);
 		}
-		_updateTrainingKindObject(result);		
-		for(var key in result) {
-			card[key] = result[key];
-		}
-		_onCreateOrModifyTrainingkindDone(card, batchDlgScope);
+		if(batchDlgScope.isCreate) 	_onTrainingKindChange(batchDlgScope, result);
+
 	};
 	
-	function _onCreateOrModifyTrainingkindDone(result, batchDlgScope){
-	}
-
 	//--------------------------------------------------------------------------------------------------
     var _reportFetcher = nlServerApi.getPageFetcher({defMax: 500, blockTillDone: true});
 	function _trainingReportView(card, linkid) {
@@ -446,7 +440,15 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 		};
 		
 		scope.onClickOnEditTrainingKind = function(fieldId) {
-			_createOrEditTrainingKind(scope, scope.data.trainingkind);
+			var trainingkindid = scope.data.trainingkind.training_kind;
+			var trainingkind = {};
+			for(var i=0; i<_trainingkinds.length; i++) {
+				if(_trainingkinds[i].training_kind == trainingkindid) {
+					trainingkind = _trainingkinds[i];
+					break;
+				}
+			}
+			_createOrEditTrainingKind(scope, trainingkind);
 		};
 	}
 		

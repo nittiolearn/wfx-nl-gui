@@ -70,12 +70,12 @@
         </td>
         <td>
         	<span class='row row-wrap row-center margin0 padding0'
-        	      ng-show='data.userDict[user.id].sessions[data.sessions.id] == "completed" || user.completed'>
+        	      ng-show='(data.userDict[user.id].sessions[data.sessions.id] == "completed") || (options.sessions.length == 0 && user.completed)'>
         		<i class='icon nl-dlg-field-icon ion-checkmark-circled nl-green padding-mid'></i>
         		<span class='col padding-mid'>Completed</span>
         	</span>
         	<span class='row row-wrap row-center margin0 padding0'
-        	      ng-show='(data.userDict[user.id].sessions[data.sessions.id] != "completed" || !data.userDict[user.id].sessions[data.sessions.id]) && (!user.completed)'>
+        	      ng-show='(data.userDict[user.id].sessions[data.sessions.id] != "completed" && options.sessions.length != 0) || (options.sessions.length == 0 && !user.completed)'>
         		<i class='icon nl-dlg-field-icon ion-record fgrey padding-mid'></i>
         		<span class='col padding-mid'>Pending</span>
         	</span>
