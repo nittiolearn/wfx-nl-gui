@@ -173,15 +173,16 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlGroupInfo, $templateCache,
             {id: 'org_unit', name:'Org'}];
             
     var _commonFields2 = [
-            {id: '_courseName', name:'Course Name'},
+            {id: '_courseName', name:'Course/Training Name'},
+            {id: '_batchName', name:'Training Batch Name'},
             {id: 'name', name:'Module Name'}];
 
     var _idFields = [
             {id: 'id', name:'Report Id', fmt: 'idstr'},
-            {id: '_assignid', name:'Assign Id', fmt: 'idstr'},
+            {id: 'assignment', name:'Assign Id', fmt: 'idstr'},
             {id: 'lesson_id', name:'Module Id', fmt: 'idstr'},
-            {id: '_courseId', name:'Course Id', fmt: 'idstr'},
-            {id: '_courseReportId', name:'Course Report Id', fmt: 'idstr'}
+            {id: '_courseId', name:'Course/Training Id', fmt: 'idstr'},
+            {id: 'containerid', name:'Course/Training Report Id', fmt: 'idstr'}
     ];
     
     var _h1Overview = [
@@ -235,9 +236,9 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlGroupInfo, $templateCache,
             page: null, title: '', score: 0, maxScore: 0, 
             org_unit: rep.org_unit, subject: rep.subject, _grade: rep._grade,
             id: rep.id, student: rep.student, lesson_id: rep.lesson_id, 
-            _email: rep._email, _courseName: rep._courseName,
+            _email: rep._email, _courseName: rep._courseName, _batchName: rep._batchName,
             _assignTypeStr: rep._assignTypeStr, assign_remarks: rep.assign_remarks,
-            _courseId: rep._courseId, _courseReportId: rep._courseReportId};
+            _courseId: rep._courseId, containerid: rep.containerid};
             
         for(var i=0; i<_metaFields.length; i++)
             currentPageRecord[_metaFields[i].id] = rep[_metaFields[i].id];
@@ -604,17 +605,17 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
 	            rep.org_unit = '';
             }
             var content = angular.fromJson(rep.content);
+            rep.name = content.name || '';
             rep.updated = nl.fmt.json2Date(rep.updated);
             rep.created = nl.fmt.json2Date(rep.created);
-            if (rep.started) rep.started = nl.fmt.json2Date(rep.started);
-            if (rep.ended) rep.ended = nl.fmt.json2Date(rep.ended);
+            if (content.started) rep.started = nl.fmt.json2Date(content.started);
+            if (content.ended) rep.ended = nl.fmt.json2Date(content.ended);
             rep._treeId = nl.fmt2('{}.{}', rep.org_unit, rep.student);
-            rep._assignid = content.trainingId ? content.trainingId : 
-                content.courseAssignId ? content.courseAssignId : rep.assignment;
             rep._assignTypeStr = _getAssignTypeStr(rep.assigntype, content);
-            rep._courseName = content.courseName || '';
-            rep._courseId = content.courseId || '';
-            rep._courseReportId = content.courseReportId || '';
+            rep._courseName = (rep.assigntype == _nl.atypes.ATYPE_TRAINING ? content.trainingKindName : content.courseName) || '';
+            rep._batchName = (rep.assigntype == _nl.atypes.ATYPE_TRAINING ? content.trainingName || content.name : '') || '';
+            rep._courseId = (rep.assigntype == _nl.atypes.ATYPE_TRAINING ? content.trainingKindId : content.courseId ) || '';
+            rep.containerid = rep.containerid || '';
             rep._grade = content.grade || '';
             rep.subject = content.subject || '';
             if (!rep.completed) {
@@ -773,7 +774,7 @@ function _getAssignTypeStr(assigntype, content) {
     if (assigntype == _nl.atypes.ATYPE_SELF_MODULE) return 'module self assignment';
     if (assigntype == _nl.atypes.ATYPE_SELF_COURSE) return 'course self assignment';
     if (assigntype == _nl.atypes.ATYPE_COURSE) return 'course assignment';
-    if (content.trainingId) return 'training';
+    if (assigntype == _nl.atypes.ATYPE_TRAINING) return 'training';
     return 'module assignment';
 }
 
