@@ -22,9 +22,9 @@ var _headers = [
     {id: 'email', name: "Email"},
     {id: 'state', name: "State", optional: true},
     {id: 'org_unit', name: "OU", oldnames: ["Class / user group"]},
-    {id: 'sec_ou_list', name: "Sec OUs", oldnames: ["Secondary user groups"], optional: true},
     {id: 'supervisor', name: "Supervisor", optional: true},
     {id: 'doj', name: "Joining date", optional: true},
+    {id: 'sec_ou_list', name: "Sec OUs", oldnames: ["Secondary user groups"], optional: true},
     {id: 'created', name: "Created UTC Time", optional: true},
     {id: 'updated', name: "Updated UTC Time", optional: true}
 ];
@@ -620,13 +620,14 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
 
     this.validateManagers = function(row) {
         if(!row.supervisor) row.supervisor = '';
+        /*
         if(row.supervisor) {
 	        var username = row.supervisor + '.' + row.gid;
 	        username = username.toLowerCase().trim();
 	        if (!(username in _groupInfo.derived.keyToUsers) && !(username in self.foundKeys))
 	            _throwException('Supervisor is not defined', row);
         }
-        // Watchers to be validated here
+        */
     };
     
     this.validateDoj = function(row) {

@@ -637,6 +637,20 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats,
     }
     
     //-----------------------------------------------------------------------------------
+    var _courseFetchErrors = [];
+    function _showFetchErrors() {
+    	if (_courseFetchErrors.length == 0) return nl.q(function(resolve, reject) {
+    		resolve(true);
+    	});
+    	var msg = '<div class="padding-mid">There were errors featching the following courses referanced in some learning reports. The learning reports associated with these courses are ignored: </div>';
+    	for(var i=0; i<_courseFetchErrors.length; i++) {
+    		var e = _courseFetchErrors[i];
+    		msg += nl.fmt2('<div class="padding-small">Course id {}: {}</div>', e.id, e.msg);
+    	}
+    	_courseFetchErrors = [];
+    	return nlDlg.popupAlert({title: 'Error', template: msg});
+    }
+    
     function _fetchCourses(onDoneCallback) {
         var cids = [];
         for (var cid in _data.pendingCourseIds) cids.push(parseInt(cid));
@@ -650,16 +664,22 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats,
         var maxLen = cids.length < startPos + MAX_PER_BATCH ? cids.length : startPos + MAX_PER_BATCH;
         for(var i=startPos; i<maxLen; i++) courseIds.push(cids[i]);
         if (courseIds.length == 0) {
-            onDoneCallback(true);
+        	_showFetchErrors().then(function() {
+	            onDoneCallback(true);
+        	});
             return;
         }
-        nlServerApi.courseGetMany(courseIds, true).then(function(result) {
-            for(var i=0; i<result.length; i++) {
-                var course = result[i];
-                _data.courseRecords[course.id] = courseProcessor.process(course);
-                delete _data.pendingCourseIds[course.id];
+        nlServerApi.courseGetMany(courseIds, true).then(function(results) {
+            for(var cid in results) {
+            	cid = parseInt(cid);
+                var course = results[cid];
+                if (course.error) {
+                	_courseFetchErrors.push({id: cid, msg: course.error});
+                }
+                _data.courseRecords[cid] = course.error ? null : courseProcessor.process(course);
+                delete _data.pendingCourseIds[cid];
             }
-            startPos += result.length;
+            startPos += results.length;
             _fetchCoursesInBatchs(cids, startPos, onDoneCallback);
         }, function(error) {
             onDoneCallback(false);
