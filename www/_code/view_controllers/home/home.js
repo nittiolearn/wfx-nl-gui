@@ -163,28 +163,8 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
             if (eulaInfo == null) {
                 userInfo = _defaultUserInfo();
             }
-            _eulaWarningImpl(eulaInfo);
         });
-    }
-    
-    function _eulaWarningImpl(eulaInfo) {
-        var warningType = eulaInfo.eulaWarning;
-        if (warningType == 'none') return;
-        var title = (warningType == 'new') ? nl.t('Welcome') : nl.t('Terms of services is updated');
-        
-        nl.log.debug('_eulaWarningImpl: asking for confirmation');
-        nlDlg.popupConfirm({title:title, templateUrl:'view_controllers/home/eula.html', 
-                            okText: nl.t('Acknowledge'), cancelText: nl.t('Read Later')})
-        .then(function(res) {
-            if (!res) return;
-            nlServerApi.authEulaAck().then(function () {
-                nl.log.debug('_eulaWarningImpl: confirmed');
-                nlDlg.popupStatus('Thanks for acknowledging');
-                eulaInfo.eulaWarning = 'none';
-                nlConfig.saveToDb('EULA_INFO', eulaInfo);
-            });
-        });
-    }
+    }    
 };
 
 //-------------------------------------------------------------------------------------------------

@@ -271,9 +271,6 @@ nlesson = function() {
 		self.postRenderingQueue.initZodi();
 		self.createHtmlDom();
         self.setupOnLeavePage();
-        if (self.renderCtx.launchMode() == 'report' && njs_scorm.nlPlayerType() != 'sco')
-            njs_lesson_helper.SubmitAndScoreDialog.showReportOverview(self);
-
         self.updateTemplateCustomizations();
 	}
 
@@ -1034,11 +1031,7 @@ nlesson = function() {
 	}
 	
 	function Lesson_submitAssignReport() {
-		var redirUrl = njs_helper.fmt2('/lesson/view_report_assign/{}#/', jQuery('#l_lessonId').val());
-		if ('learnmode' in this.oLesson && this.oLesson.learnmode == 3) {
-			// LEARNMODE_TEST - do not open the report; go to home page
-			redirUrl = '/';
-		}
+		var redirUrl = '/';
 		_Lesson_saveInternal(this, '/lesson/submit_report_assign.json/', function(data, isError) {
 			if (isError) return;
 			if (njs_scorm.getScormLmsLessonMode() !== null) return;
