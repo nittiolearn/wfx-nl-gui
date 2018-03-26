@@ -89,6 +89,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
     };
     
     this.handleLink = function(cm, newTab, scope) {
+    	cm.action = cm.action || 'none'; 
         var url = nlCourse.getActionUrl(cm.action, cm.urlParams);
         _updateLinkStatusIfNeeded(this, cm, scope);
         return _redirectTo('{}', url, newTab);
@@ -693,6 +694,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         else if ($scope.planning && cm.planned_date && cm.planned_date < today) status = 'delayed';
         else status = 'pending';
         if (!modeHandler.canStart(cm, $scope, treeList)) status = 'waiting';
+        else if (cm.type == 'certificate') status = 'success';
         _updateState(cm, status);
     }
     
@@ -895,7 +897,7 @@ function FolderStats($scope) {
 
 //-------------------------------------------------------------------------------------------------
 function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseCanvas, folderStats) {
-    
+    var self = this;
     this.item = null;
     this.stats = null;
     this.pastAttemptData = [];
@@ -910,6 +912,8 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
         this.updatePastAttemptData();
         nlContainer.onSave(function(lessonReportInfo) {
             modeHandler.course.lessonReports[cm.id] = lessonReportInfo;
+	        if (!('ended' in lessonReportInfo) && lessonReportInfo.completed) lessonReportInfo.ended = new Date();
+	        self.updatePastAttemptData();
         });
         nlCourseCanvas.update();
     };
@@ -974,9 +978,9 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
         this.pastAttemptData = [];
         if (!this.item || this.item.type != 'lesson') return;
         if (!modeHandler.course.lessonReports) return;
-        if (!modeHandler.course.pastLessonReports || 
-            !(this.item.id in modeHandler.course.pastLessonReports)) return;
-        var pastLessonReport = modeHandler.course.pastLessonReports[this.item.id];
+        if (!modeHandler.course.pastLessonReports && 
+        	!(this.item.id in modeHandler.course.lessonReports)) return;
+        var pastLessonReport = modeHandler.course.pastLessonReports ? modeHandler.course.pastLessonReports[this.item.id] || [] : [];
 
         for(var i in pastLessonReport) {
             var rep = pastLessonReport[i];
@@ -985,6 +989,12 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
             if (rep.ended) rep.ended = nl.fmt.json2Date(rep.ended);
             this.pastAttemptData.push(rep);
         }
+        var rep = modeHandler.course.lessonReports[this.item.id];
+        if(rep && rep.completed) {
+            if (rep.started) rep.started = nl.fmt.json2Date(rep.started);
+            if (rep.ended) rep.ended = nl.fmt.json2Date(rep.ended);
+	        this.pastAttemptData.push(rep);
+		}
     };
     
     this.showPastReport = function(rep) {

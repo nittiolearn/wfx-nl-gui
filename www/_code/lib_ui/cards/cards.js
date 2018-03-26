@@ -316,7 +316,6 @@ function(nl, nlDlg) {
             };
 
             $scope.onCardLinkClicked = function(e, card, linkid) {
-            	console.log('Card link clicked');
             	e.preventDefault();
 				e.stopImmediatePropagation();
 				if (linkid !== 'details') {

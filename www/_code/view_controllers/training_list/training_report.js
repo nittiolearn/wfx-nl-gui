@@ -26,7 +26,8 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
         var params = nl.location.search();
     	_argv = {limit: ('limit' in params) ? parseInt(params.limit) : 5000, 
     		all: (params.type == 'all'),
-    		exportids: nlRouter.isPermitted(_userInfo, 'nittio_support')};
+    		exportids: nlRouter.isPermitted(_userInfo, 'nittio_support'), 
+    		max: 500};
 	};
 	
     this.processRecord = function(record) {
@@ -63,7 +64,7 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
     var _reportCsv = null;
 
     function _initFetchParams(kindId, createdfrom, createdtill) {
-		_params = {mode: _argv.all ? 'all' :  'mine',
+		_params = {mode: _argv.all ? 'all' :  'mine', max: _argv.max,
 			filters: [{field: 'ctype', val: _nl.ctypes.CTYPE_TRAINING}]};
 		if (kindId) _params.filters.append({field: 'lesson_id', val: kindId});
 		if (createdfrom) _params.createdfrom = createdfrom;
@@ -104,6 +105,7 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
         
         _updateStatusAndTimes(record, ts);
         record.statusInfo = _getStatusInfo(ts.overallStatus);
+        record.feedbackhtml = _getFeedBackHtml(record.content.trainingStatus.childStatus);
     	return record;
     }
     
@@ -161,9 +163,9 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
     }
 
     var _STATES = {
-        pending: {icon: 'ion-ios-circle-filled fgrey', title: 'Pending'},
-        partial: {icon: 'ion-checkmark-circled forange', title: 'Partially Done'},
-        completed: {icon: 'ion-checkmark-circled fgreen', title: 'Done'}
+        pending: {icon: 'ion-ios-circle-filled fgrey', title: 'Not attended'},
+        partial: {icon: 'ion-checkmark-circled forange', title: 'Partially attended'},
+        completed: {icon: 'ion-checkmark-circled fgreen', title: 'Attended'}
     };
 
 	function _getStatusInfo(inputStatus) {
@@ -171,6 +173,15 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
 		var status = _STATES[inputStatus];
 		var htmlFmt = '<div class="row row-center padding0 margin0"><i class="icon fsh4 padding-small {}"></i><span>{}</span></div>';
 		return {icon: status.icon, title: status.title, html: nl.fmt2(htmlFmt, status.icon, status.title)};
+	}
+
+	function _getFeedBackHtml(feedback) {
+		var htmlFmt = '<div class="row row-center padding0 margin0"><i class="icon fsh4 padding-small {}"></i><span>{}</span></div>';
+		if(feedback == 'completed') {
+			return nl.fmt2(htmlFmt, _STATES['completed'].icon, 'Feedback provided'); 
+		} else {
+			return nl.fmt2(htmlFmt, _STATES['pending'].icon, 'Feedback not provided');
+		}		
 	}
 
 	function _errorMsg(msg) {
@@ -259,9 +270,9 @@ function ReportCsv(nl, nlGroupInfo, nlExporter) {
 	}
 
 	function _fillIdFields(ret, record) {
-        ret.push(record ? record.id : '');
-        ret.push(record ? record.assignment : '');
-        ret.push(record ? record.lesson_id : '');
+        ret.push(record ? nl.fmt2('id={}', record.id) : '');
+        ret.push(record ? nl.fmt2('id={}', record.assignment) : '');
+        ret.push(record ? nl.fmt2('id={}', record.lesson_id) : '');
 	}
 
 }

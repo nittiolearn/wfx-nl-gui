@@ -41,6 +41,50 @@ function(nl) {
         course.content.contentVersion = CURRENT_CONTENT_VERSION;
         return course;		
     };
+
+ 	this.isCourseReportCompleted = function(repObj) {
+        if (!repObj.content || !repObj.content.modules) return false;
+        var module_list = repObj.content.modules || [];
+        if (module_list.length == 0) return false;
+        var modules = {};
+        for (var i=0; i<module_list.length; i++) modules[module_list[i].id] = module_list[i];
+        var lastModule = module_list[module_list.length-1];
+        var statusInfo = repObj.statusinfo || {};
+        var lessonReports = repObj.lessonReports || {};
+        return _getStatusOfModule(lastModule, modules, statusInfo, lessonReports);
+    };
+
+	function _getStatusOfModule(module, modules, statusInfo, lessonReports, score) {
+		if (score === undefined) score = null;
+        if (module['type'] == 'certificate' || module['type'] == 'module' || 
+            (module['type'] == 'link' && 'urlParams' in module && module['urlParams'].indexOf('course_cert') >= 0))  {
+            var sa = 'start_after' in module ? module['start_after'] : [];
+            for (info in sa) {
+                var pred = info['module'] in modules ? modules[info['module']] : null;
+                if(!pred) continue;
+                if (!_getStatusOfModule(pred, modules, statusInfo, lessonReports, info)) return false;
+            }
+            return true;
+        } else if(module['type'] == 'lesson') {
+            var info = module['id'] in lessonReports ? lessonReports[module['id']] : null;
+            if (!info || !('completed' in info) || !(info['completed'])) return false;
+            if (('selfLearningMode' in info) && info['selfLearningMode']) return true;
+            var max_score = (score && ('max_score' in score)) ? score['max_score'] : 100;
+            var min_score = (score && ('min_score' in score)) ? score['min_score'] : null;
+            if (!min_score) min_score = info['passScore'] || 0;
+            var percScore = 0;
+            if (!('maxScore' in info) || !('score' in info) || (info['maxScore'] == 0)) 
+            	percScore = 0;
+            else
+                percScore = 100.0*info['score']/info['maxScore'];
+            if (percScore < min_score || percScore > max_score) return false;
+            return true;
+        }
+        // info or link
+        var info = module['id'] in statusInfo ? statusInfo[module['id']] : null;
+        if (!info || (info['status'] != 'done')) return false;
+        return true;
+	}
 }];
 
 // Dashboard actions as defined in server side

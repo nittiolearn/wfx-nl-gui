@@ -77,12 +77,13 @@
             <td>Maximum attempts</td><td>{{ext.item.maxAttempts ? ext.item.maxAttempts : "No limit"}}</td>
         </tr>
         <tr ng-if='ext.item.type == "lesson"'>
-            <td>Number of attempts</td><td>{{ext.item.attempt || 0}}
-                <button ng-if='ext.pastAttemptData.length > 0'
-                        class='nl-button'
-                        ng-click='ext.showPastAttempts = !ext.showPastAttempts'>
-                    {{ext.showPastAttempts ? "Hide" : "Show"}} past attempts
-                </button>
+            <td>Number of attempts</td>
+            <td>
+            	<span ng-show='ext.pastAttemptData.length > 0' class='nl-link-text' 
+	            	ng-click='ext.showPastAttempts = !ext.showPastAttempts'>
+            		{{ext.pastAttemptData.length}} completed</span>
+            	<span ng-show='ext.item.attempt > ext.pastAttemptData.length'>(1 ongoing)</span>
+            	<span ng-show='!ext.item.attempt'>0</span>
                 <button ng-if='ext.canReattempt()'
                         class='nl-button'
                         ng-click='onReattempt($event, ext.item)'>
@@ -91,9 +92,8 @@
             </td>
         </tr>
     </table>
-
     <div ng-if='ext.pastAttemptData.length > 0 && ext.showPastAttempts'>
-        <h4>Past attempts:</h4>
+        <h4>Completed attempts:</h4>
         <table class='nl-table nl-table-styled'>
             <tr>
                 <th>Started</th>

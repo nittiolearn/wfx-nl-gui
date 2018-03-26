@@ -9,8 +9,10 @@
 	    			<span>{{record.content.name}}</span>
     			</div>
     			<div class='row row-center row-wrap padding0 margin0 fsh6'>
-    				<div ng-class='resp2Col20' class='padding-mid'><b>Status</b></div>
-    				<div ng-class='resp2Col80' class='padding-mid' ng-bind-html='record.statusInfo.html'></div>
+    				<div class='padding0' ng-bind-html='record.statusInfo.html'></div>
+    			</div>
+    			<div class='row row-center row-wrap padding0 margin0 fsh6'>
+    				<div class='padding0' ng-bind-html='record.feedbackhtml'></div>
     			</div>
     			<div class='row row-center row-wrap padding0 margin0 fsh6'>
     				<div ng-class='resp2Col20' class='padding-mid'><b>From</b></div>
@@ -36,7 +38,8 @@
     			title='Navigate to the learning module associated with this training'>
     			<div class='row row-center margin0 padding0'>
 	    			<i class='icon nl-dlg-field-icon ion-play'></i>
-	    			<span>Launch module</span>
+	    			<span ng-show='record.content.trainingStatus.childStatus == "completed"'>View feedback</span>
+	    			<span ng-hide='record.content.trainingStatus.childStatus == "completed"'>Provide feedback</span>
     			</div>
     		</div>
     	</div>

@@ -87,14 +87,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlTrainingReport)
 	function _createCard(item) {
 		var content = item.content;
 		var help = nl.fmt2('<div>{}</div', item.statusInfo.html);
+		help += nl.fmt2('<div>{}</div', item.feedbackhtml);
 		help += nl.fmt2('<div><b>{} till {}</b></div>', nl.fmt.date2Str(content.start, 'date'),
 			nl.fmt.date2Str(content.end, 'date'));
 		if (item.content.kindName && item.content.name)
 			help += nl.fmt2('<div>{}</div>', item.content.name);
-		if (item.content.kindDesc)
-			help += nl.fmt2('<div>{}</div>', item.content.kindDesc);
-		if (item.content.desc)
-			help += nl.fmt2('<div>{}</div>', item.content.desc);
 		
 		var card = {
 			id : item.id,
