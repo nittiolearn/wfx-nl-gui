@@ -998,7 +998,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
     };
     
     this.showPastReport = function(rep) {
-        var func = (this.mode === MODES.REPORTS_SUMMARY_VIEW || this.mode === MODES.REPORT_VIEW) ? 'review_report_assign' : 'view_report_assign';
+        var func = (modeHandler.mode === MODES.REPORTS_SUMMARY_VIEW || modeHandler.mode === MODES.REPORT_VIEW) ? 'review_report_assign' : 'view_report_assign';
         var url = nl.fmt2('/lesson/{}/{}', func, rep.reportId);
         modeHandler.show(url);
     };
