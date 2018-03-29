@@ -1,8 +1,8 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// lesson_list.js:
-// lesson list module
+// lesson_translate.js:
+// lesson translate module
 //-------------------------------------------------------------------------------------------------
 function module_init() {
 	angular.module('nl.lessontranslate', []).config(configFn)
@@ -16,7 +16,7 @@ function($stateProvider, $urlRouterProvider) {
 		url : '^/lesson_translate',
 		views : {
 			'appContent' : {
-				templateUrl : 'view_controllers/lesson_list/lesson_translate_dlg.html',
+				templateUrl : 'view_controllers/lesson/lesson_translate_dlg.html',
 				controller : 'nl.LessonTranslateCtrl'
 			}
 		}
@@ -232,6 +232,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
                 $scope.isApproved = false;
                 var copyLessonDlg = nlDlg.create($scope);
                 copyLessonDlg.scope.error = {};
+                copyLessonDlg.scope.dlgTitle = nl.t('Module translated');
                 var closeButton = {text : nl.t('Close')};
                 copyLessonDlg.show('view_controllers/lesson_list/copy_lesson.html', [], closeButton);
                 nlDlg.hideLoadingScreen();

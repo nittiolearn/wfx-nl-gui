@@ -5,7 +5,7 @@
 // lesson list module
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-	angular.module('nl.lessonlist', ['nl.lessontranslate']).config(configFn)
+	angular.module('nl.lessonlist', []).config(configFn)
 	.controller('nl.LessonListCtrl', LessonListCtrl)
 	.service('nlModuleStatusInfo', ModuleStatusInfoSrv)
 	.service('nlExportLevel', ExportLevelSrv)
@@ -663,6 +663,7 @@ this.show = function($scope, initialUserInfo, params) {
 				$scope.isApproved = (mode.mode != MODES.MY);
 				var copyLessonDlg = nlDlg.create($scope);
 				copyLessonDlg.scope.error = {};
+				copyLessonDlg.scope.dlgTitle = nl.t('Module copied');
 				var closeButton = {text : nl.t('Close'), onTap : function(e) {
 					_getDataFromServer();
 				}};

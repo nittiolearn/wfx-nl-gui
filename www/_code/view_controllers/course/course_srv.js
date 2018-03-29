@@ -106,6 +106,8 @@ var _dashboardActions = {
     'lesson.my': {'url': '/#/lesson_list?type=my&{}', 'permission': 'lesson_create'},
     'lesson.review': {'url': '/#/lesson_list?type=review&{}', 'permission': 'lesson_create'},
     'lesson.manage': {'url': '/#/lesson_list?type=manage&{}', 'permission': 'lesson_approve'},
+    'lesson.translate': {'url': '/#/lesson_translate?{}', 'permission': 'lesson_create'},
+    'lesson.importcsv': {'url': '/#/lesson_import?{}', 'permission': 'lesson_create'},
     'searchlist.view': {'url': '/#/searchlist_view?id={}', 'permission': 'basic_access'},
     'assign_desk.create': {'url': '/#/lesson_list?type=sendassignment&{}', 'permission': 'assignment_send'},
     'assign_desk.new': {'url': '/#/assignment?type=new&{}', 'permission': 'assignment_do', 'termCheck': 'Restricted'},
