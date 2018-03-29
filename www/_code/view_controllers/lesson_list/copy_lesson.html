@@ -1,4 +1,4 @@
-<nl-dlg dlgtitle='Module copied' show-help='0'>
+<nl-dlg dlgtitle='{{dlgTitle}}' show-help='0'>
 	<ul>
 		<li class='nl-link-text padding-small'>
 		    <a href='lesson/edit/{{newLessonId}}'>Edit the new module</a>
@@ -8,5 +8,10 @@
 		    ng-click='gotoMyLessonsFromApproved()'>
 		    View the list of my modules
 		</li>
+		<li ng-show='isLessonImport'
+		    class='nl-link-text padding-small'
+		    ng-click='clickOnImportAgain()'>
+		    Import again
+		</li
 	</ul>
 </nl-dlg>

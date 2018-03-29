@@ -1,0 +1,16 @@
+<nl-dlg dlgtitle='Import lesson' show-help='0'>
+<nl-dlg-row attr='moduleName' data='data' help='help'>
+	<nl-input fieldmodel='moduleName' fieldtype='text' fieldCls='w100'></nl-input>
+</nl-dlg-row>
+
+<nl-dlg-row attr='selectedModule' data='data' help='help' ng-hide='isTemplateDefined'>
+	<div style='padding:4px'>
+		<nl-module-select fieldmodel='selectedModule' userinfo='userinfo'></nl-module-select>
+	</div>
+</nl-dlg-row>
+
+<nl-dlg-row attr='filelist' data='data' help='help'>
+    <nl-resource-upload fieldmodel='filelist' restype='Csv' fieldindex='0'>
+    </nl-resource-upload>
+</nl-dlg-row>
+</nl-dlg>
