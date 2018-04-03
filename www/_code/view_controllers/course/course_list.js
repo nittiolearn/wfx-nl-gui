@@ -9,6 +9,7 @@ function module_init() {
 	.config(configFn)
 	.controller('nl.CourseListCtrl', CourseListCtrl)
 	.controller('nl.CourseAssignListCtrl', CourseAssignListCtrl)
+	.controller('nl.CourseAssignMyListCtrl', CourseAssignMyListCtrl)
 	.controller('nl.CourseReportListCtrl', CourseReportListCtrl);
 }
 
@@ -31,6 +32,14 @@ function($stateProvider, $urlRouterProvider) {
 				controller: 'nl.CourseAssignListCtrl'
 			}
 		}});
+	$stateProvider.state('app.course_assign_my_list', {
+		url: '^/course_assign_my_list',
+		views: {
+			'appContent': {
+				templateUrl: 'lib_ui/cards/cardsview.html',
+				controller: 'nl.CourseAssignMyListCtrl'
+			}
+		}});
 	$stateProvider.state('app.course_report_list', {
 		url: '^/course_report_list',
 		views: {
@@ -51,6 +60,11 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentS
 	_listCtrlImpl('assign', nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse);
 }];
 
+var CourseAssignMyListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg) {
+	_listCtrlImpl('assign_my', nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg);
+}];
+
 var CourseReportListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse',
 function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse) {
 	_listCtrlImpl('report', nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse);
@@ -61,7 +75,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	 * URLs handled
 	 * 'View published' : /course_list?type=course&my=0
 	 * 'Edit my' : /course_list?type=course&my=1
-	 * 'Assigned courses' : /course_list?type=assign
+	 * 'Assigned courses (sent by all)' : /course_assign_list
+	 * 'Assigned courses (sent by me)' : /course_assign_my_list
 	 * 'Report of assignment' : /course_list?type=report&assignid=xx
 	 * 'Report of user' : /course_list?type=report
 	 */
@@ -137,7 +152,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		if (type === 'course') {
 			return 	(my == true) ? nl.t('Create and edit courses'): nl.t('Published courses');
 		}
-		if (type === 'assign') {
+		if (type === 'assign' || type === 'assign_my') {
 			return 	nl.t('Assigned courses');
 		}
 		if (type === 'report') {
@@ -194,6 +209,10 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		    params.mine = my;
 			listingFn = nlServerApi.courseGetList;
 		} else if (type === 'assign') {
+		    params.mine = false;
+			listingFn = nlServerApi.courseGetAssignmentList;
+		} else if (type === 'assign_my') {
+		    params.mine = true;
 			listingFn = nlServerApi.courseGetAssignmentList;
 		} else if (type === 'report' && assignId !== 0) {
             params.assignid = assignId;
@@ -228,7 +247,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	
 	function _createCard(cardInfo) {
 		if (type === 'course') return _createCourseCard(cardInfo);
-		if (type === 'assign') return _createReportCard(cardInfo, false);
+		if (type === 'assign' || type === 'assign_my') return _createReportCard(cardInfo, false);
 		return _createReportCard(cardInfo, true);
 	}
 	
