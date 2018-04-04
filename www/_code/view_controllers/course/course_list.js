@@ -60,9 +60,9 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentS
 	_listCtrlImpl('assign', nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse);
 }];
 
-var CourseAssignMyListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg) {
-	_listCtrlImpl('assign_my', nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg);
+var CourseAssignMyListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse) {
+	_listCtrlImpl('assign_my', nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse);
 }];
 
 var CourseReportListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse',
