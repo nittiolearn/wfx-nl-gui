@@ -16,7 +16,8 @@ var DEFAULT_CACHE_LIFE = 1000*3600; // In milliseconds
 var NlServerApi = ['nl', 'nlDlg', 'nlConfig', 'Upload',
 function(nl, nlDlg, nlConfig, Upload) {
     
-    var server = new NlServerInterface(nl, nlDlg, nlConfig, Upload);
+    var _brandingInfoHandler = new BrandingInfoHandler();
+    var server = new NlServerInterface(nl, nlDlg, nlConfig, Upload, _brandingInfoHandler);
 
     //---------------------------------------------------------------------------------------------
     // Common methods
@@ -47,6 +48,10 @@ function(nl, nlDlg, nlConfig, Upload) {
         // open API to execute any REST API (used from debug.js)
         // return: result of REST API
         return server.post(url, data);
+    };
+    
+    this.getBrandingInfo = function() {
+    	return _brandingInfoHandler.getInfo();
     };
     
     //---------------------------------------------------------------------------------------------
@@ -750,7 +755,8 @@ function(nl, nlDlg, nlConfig, Upload) {
     }
 }];
 
-function NlServerInterface(nl, nlDlg, nlConfig, Upload) {
+function NlServerInterface(nl, nlDlg, nlConfig, Upload, brandingInfoHandler) {
+	var _brandingInfoHandler = brandingInfoHandler;
 
     this.currentUserInfo = _defaultUserInfo();
     this.resolveWaiters = [];
@@ -887,6 +893,7 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload) {
         function _processErrorOrResponse() {
             var status = ('_status' in data) ? data._status : ET_USAGEERROR;
             if (status > ET_USAGEERROR) status = ET_USAGEERROR;
+            if ('brandingInfoJson' in data) _brandingInfoHandler.update(data['brandingInfoJson']);
             
             if ('_serverVersion' in data) {
                 _handleVersionMismatch(data._serverVersion, reject);
@@ -1009,6 +1016,17 @@ function PageFetcher(nl, nlDlg, attrs) {
     }
 }
     
+//----------------------------------------------------------------------------------------------
+function BrandingInfoHandler() {
+	this._brandingInfo = angular.fromJson(NL_BRANDING_INFO);
+	this.getInfo = function() {
+		return this._brandingInfo;
+	};
+	this.update = function(bInfoJson) {
+		this._brandingInfo = angular.fromJson(bInfoJson);
+	};
+}
+
 //----------------------------------------------------------------------------------------------
 module_init();
 })();

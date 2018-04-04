@@ -429,6 +429,11 @@ function NlUrl(nl) {
         return clientResFolder('res', iconName);
     };
 
+    this.resUrl2 = function(url) {
+    	if (url.indexOf('resurl:') != 0) return url;
+        return clientResFolder('res', url.substring(7));
+    };
+
     this.lessonIconUrl = function(iconName) {
         return (iconName.indexOf('img:') == 0) 
         		? iconName.substring(4) 
