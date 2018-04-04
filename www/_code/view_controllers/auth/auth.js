@@ -71,9 +71,12 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
     $scope.isLogin  = isLogin;
     $scope.logo = nl.url.resUrl('website/nittiologowhite.png');
     $scope.bgImg = nl.url.resUrl('website/signin-bg1.jpg');
+    $scope.bgShade = 'bgdark';
+    //$scope.bgImg2 = 'https://d2v9y0dukr6mq2.cloudfront.net/video/thumbnail/itCjTBE/grey-moving-flowing-waves-abstract-background-video-animation-1920x1080_vjx3xtmwg__F0000.png';
     $scope.showHome = true;
     $scope.showLogo = true;
-    
+	$scope.imageContent = 'https://wallpapertag.com/wallpaper/full/2/c/e/893443-best-high-quality-background-images-1920x1200-samsung.jpg';     
+	$scope.logo2 = 'http://www.worldchangers.org.za/images/ilearn.png';
     $scope.goHome = function() {
         if (!$scope.showHome) return;
         nl.location.url('/#/home');
