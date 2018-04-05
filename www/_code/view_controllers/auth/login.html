@@ -6,10 +6,10 @@
 }
 
 .nl-logo1-img {
-    min-height: 35px;
+    min-height: 40px;
     max-height: 70px;
-    min-width: 140px;
-    max-width: 280px;
+    min-width: 180px;
+    padding: 4px;
 }
 .nl-center-logo {
 	position: relative;
@@ -34,40 +34,51 @@
 	padding-left: 50px	
 }
 
-.nl-dark-text {
+.nl-login-lightbg {
 	color: black;
 }
 
-.nl-light-text {
+.nl-login-darkbg {
 	color: white;
 }
 input.nl-border-radius {
 	border-radius: 5px;
 }
+.nl-link-hover{
+  cursor: pointer;	
+}
 </style>
 <div class='nl-thin-scroll nl-full nl-website'>
 <div class='bg-img {{screenSize == "small" ? "nl-bgimg-repeat" : ""}}'></div>
-<div class='row row-top margin0 padding0' style='padding:16px 0 0 16px'>
+<div class='row row-top margin0 padding-mid'>
 	<div ng-class='resp2Col20'>
 		<div class='{{screenSize == "small" ? "nl-center-logo" : ""}}'>
-			<img class='nl-logo1-img' ng-src='{{logo}}'>
+			<img class='nl-logo1-img {{logo1url ? "nl-link-hover" : ""}} padding-small' 
+				style='max-width:240px'
+				ng-src='{{logo1}}' 
+				ng-click='onLinkClicked(logo1url)'
+				title='{{logo1text}}'>
 		</div>
 	</div>
 </div>
 <div class='padding'></div>
 <div class='row row-center padding0 margin0'>
-	<div ng-show='screenSize != "small"'>
-		<div class='row row-center margin0' style='padding:20px 40px 20px 40px'>
+	<div class='col col-70' ng-show='screenSize != "small"'>
+		<div class='row row-center margin0' style='padding:0px 40px 0px 40px'>
 			<img src='{{imageContent}}' class='nl-image-content' style="max-height: 70vh;">
 		</div>
 	</div>
 	<div ng-class='resp2Col20' class='padding-mid' style='min-width:300px'>
-		<div class='{{screenSize == "small" ? "nl-center-logo" : "nl-logo2-img"}}'>
-			<img ng-src='{{logo2}}' class='nl-logo1-img' style='padding:10px 0 0 20px'>			
+		<div ng-show='logo2' class='{{screenSize == "small" ? "nl-center-logo" : "nl-logo2-img"}}'>
+			<img ng-src='{{logo2}}' 
+				class='{{logo2url ? "nl-link-hover" : ""}} nl-logo1-img' 
+				style='max-width: 220px'
+				ng-click='onLinkClicked(logo2url)'
+				title='{{logo2text}}'>			
 		</div>
 
 	    <div class='row row-wrap row-top padding0 margin0'>
-	        <div ng-class='resp2Col33' class='padding-mid {{bgShade == "bglight" ? "nl-dark-text" : "nl-light-text"}}'>
+	        <div ng-class='resp2Col33' class='padding-mid {{bgShade}}'>
 	            <div class='padding-mid-v'>User ID</div></div>
 	        <div ng-class='resp2Col67' class='padding-mid'>
 	            <nl-input fieldmodel='username' fieldtype='text' fieldcls='w100 nl-border-radius'
@@ -77,7 +88,7 @@ input.nl-border-radius {
 
 	    <div class='row row-wrap row-top padding0 margin0'
 	         ng-show='isLogin'>
-	        <div ng-class='resp2Col33' class='padding-mid {{bgShade == "bglight" ? "nl-dark-text" : "nl-light-text"}}'>
+	        <div ng-class='resp2Col33' class='padding-mid {{bgShade}}'>
 	            <div class='padding-mid-v'>Password</div></div>
 	        <div ng-class='resp2Col67' class='padding-mid'>
 	            <nl-input fieldmodel='password' fieldtype='password' fieldcls='w100 nl-border-radius'
@@ -85,11 +96,11 @@ input.nl-border-radius {
 	        </div>
 	    </div>
 	    <div class='padding-mid'></div>
-	    <div ng-show='isLogin' class='nl-link-text {{bgShade == "bglight" ? "nl-dark-text" : "nl-light-text"}} padding-mid'
+	    <div ng-show='isLogin' class='nl-link-text {{bgShade}} padding-mid'
 	         ng-click='lostPassword()'>Lost Password?
 	    </div>
 	    <div style='padding:8px'>
-		    <div class='nl-signin-button nl-link-text {{bgShade == "bglight" ? "nl-dark-text" : "nl-light-text"}}' ng-click='loginWithSignInOrEnter()'>Sign in</div>
+		    <div class='nl-signin-button nl-link-text {{bgShade}}' ng-click='loginWithSignInOrEnter()'>Sign in</div>
 	    </div>
 	</div>
 </div>

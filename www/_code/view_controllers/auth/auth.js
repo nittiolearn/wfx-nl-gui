@@ -67,16 +67,21 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig) {
 }];
 
 function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig) {
+	var groupinfo = nlServerApi.getBrandingInfo();
+	console.log(groupinfo);
     nl.pginfo.hidemenu = true;
     $scope.isLogin  = isLogin;
-    $scope.logo = nl.url.resUrl('website/nittiologowhite.png');
-    $scope.bgImg = nl.url.resUrl('website/signin-bg1.jpg');
-    $scope.bgShade = 'bgdark';
-    //$scope.bgImg2 = 'https://d2v9y0dukr6mq2.cloudfront.net/video/thumbnail/itCjTBE/grey-moving-flowing-waves-abstract-background-video-animation-1920x1080_vjx3xtmwg__F0000.png';
+    $scope.bgImg = groupinfo.bgimg ? nl.url.resUrl2(groupinfo.bgimg) : ''; //? nl.url.resUrl(groupinfo['bgimg'].substring(7)) : 'https://d2v9y0dukr6mq2.cloudfront.net/video/thumbnail/itCjTBE/grey-moving-flowing-waves-abstract-background-video-animation-1920x1080_vjx3xtmwg__F0000.png';
+    $scope.logo1 = groupinfo.logo1 ? nl.url.resUrl2(groupinfo.logo1) : ''; //? nl.url.resUrl(groupinfo['logo1'].substring(7)) : '';
+    $scope.logo1text = groupinfo.logo1text;
+    $scope.logo1url = groupinfo.logo1url;
+	$scope.logo2 = groupinfo.logo2 ? nl.url.resUrl2(groupinfo.logo2) : ''; //? nl.url.resUrl(groupinfo['logo2'].substring(7)) : '';
+	$scope.logo2text = groupinfo.logo2text;
+	$scope.logo2url = groupinfo.logo2url;
+	$scope.imageContent = groupinfo.img ? nl.url.resUrl2(groupinfo.img) : ''; //? nl.url.resUrl(groupinfo['img'].substring(7)) : '';
+    $scope.bgShade = groupinfo.loginBoxClass;
     $scope.showHome = true;
     $scope.showLogo = true;
-	$scope.imageContent = 'https://wallpapertag.com/wallpaper/full/2/c/e/893443-best-high-quality-background-images-1920x1200-samsung.jpg';     
-	$scope.logo2 = 'http://www.worldchangers.org.za/images/ilearn.png';
     $scope.goHome = function() {
         if (!$scope.showHome) return;
         nl.location.url('/#/home');
@@ -85,6 +90,11 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
     $scope.lostPassword = function() {
         nl.window.location.href = '/auth/pwlost';
     };
+
+	$scope.onLinkClicked = function(url) {
+		if(!url) return;
+        nl.window.location.href = url;
+	};
 
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
