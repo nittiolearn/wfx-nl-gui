@@ -51,7 +51,7 @@ input.nl-border-radius {
 <div class='nl-thin-scroll nl-full nl-website'>
 <div class='bg-img {{screenSize == "small" ? "nl-bgimg-repeat" : ""}}'></div>
 <div class='row row-top margin0 padding-mid'>
-	<div ng-class='resp2Col20'>
+	<div ng-class='resp2Col20' ng-if='logo1'>
 		<div class='{{screenSize == "small" ? "nl-center-logo" : ""}}'>
 			<img class='nl-logo1-img {{logo1url ? "nl-link-hover" : ""}} padding-small' 
 				style='max-width:240px'

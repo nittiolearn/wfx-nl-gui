@@ -430,6 +430,7 @@ function NlUrl(nl) {
     };
 
     this.resUrl2 = function(url) {
+    	if (!url) return url;
     	if (url.indexOf('resurl:') != 0) return url;
         return clientResFolder('res', url.substring(7));
     };

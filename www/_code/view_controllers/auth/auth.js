@@ -67,25 +67,18 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig) {
 }];
 
 function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig) {
-	var groupinfo = nlServerApi.getBrandingInfo();
-	console.log(groupinfo);
+	var brandingInfo = nlServerApi.getBrandingInfo();
     nl.pginfo.hidemenu = true;
     $scope.isLogin  = isLogin;
-    $scope.bgImg = groupinfo.bgimg ? nl.url.resUrl2(groupinfo.bgimg) : ''; //? nl.url.resUrl(groupinfo['bgimg'].substring(7)) : 'https://d2v9y0dukr6mq2.cloudfront.net/video/thumbnail/itCjTBE/grey-moving-flowing-waves-abstract-background-video-animation-1920x1080_vjx3xtmwg__F0000.png';
-    $scope.logo1 = groupinfo.logo1 ? nl.url.resUrl2(groupinfo.logo1) : ''; //? nl.url.resUrl(groupinfo['logo1'].substring(7)) : '';
-    $scope.logo1text = groupinfo.logo1text;
-    $scope.logo1url = groupinfo.logo1url;
-	$scope.logo2 = groupinfo.logo2 ? nl.url.resUrl2(groupinfo.logo2) : ''; //? nl.url.resUrl(groupinfo['logo2'].substring(7)) : '';
-	$scope.logo2text = groupinfo.logo2text;
-	$scope.logo2url = groupinfo.logo2url;
-	$scope.imageContent = groupinfo.img ? nl.url.resUrl2(groupinfo.img) : ''; //? nl.url.resUrl(groupinfo['img'].substring(7)) : '';
-    $scope.bgShade = groupinfo.loginBoxClass;
-    $scope.showHome = true;
-    $scope.showLogo = true;
-    $scope.goHome = function() {
-        if (!$scope.showHome) return;
-        nl.location.url('/#/home');
-    };
+    $scope.bgImg = nl.url.resUrl2(brandingInfo.bgimg) || '';
+    $scope.logo1 = nl.url.resUrl2(brandingInfo.logo1) || '';
+    $scope.logo1text = brandingInfo.logo1text;
+    $scope.logo1url = brandingInfo.logo1url;
+	$scope.logo2 = nl.url.resUrl2(brandingInfo.logo2) || '';
+	$scope.logo2text = brandingInfo.logo2text;
+	$scope.logo2url = brandingInfo.logo2url;
+	$scope.imageContent = nl.url.resUrl2(brandingInfo.img) || ''; 
+    $scope.bgShade = brandingInfo.loginBoxClass;
 
     $scope.lostPassword = function() {
         nl.window.location.href = '/auth/pwlost';
@@ -101,8 +94,6 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
             nl.log.debug('_loginControllerImpl:onPageEnter - enter');
             nl.pginfo.hidemenu = true;
             var params = nl.location.search();
-            if ('nohome' in params) $scope.showHome = false;
-            if ('nologo' in params) $scope.showLogo = false;
 
             nlServerApi.clearCache();
             var username = userInfo.username;
