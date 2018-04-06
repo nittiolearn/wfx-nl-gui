@@ -141,7 +141,7 @@ function _markupToHtmlAudio(str, bInline) {
         var pos = ('start' in avpairs) || ('end' in avpairs) ? '#t=' : '';
         pos += 'start' in avpairs ? nl.fmt2('{}', avpairs['start']) : '';
         pos += 'end' in avpairs ? nl.fmt2(',{}', avpairs['end']) : '';          
-        return nl.fmt2('{}<audio preload controls class="njs_audio" src="{}{}" />',title,link,pos); 
+        return nl.fmt2('{}<audio preload controls controlsList="nodownload" class="njs_audio" src="{}{}" />',title,link,pos); 
     });
 }
 
@@ -168,8 +168,8 @@ function _markupToHtmlVideo(str, bInline) {
         }
         var pos = ('start' in avpairs) || ('end' in avpairs) ? '#t=' : '';
         pos += 'start' in avpairs ? nl.fmt2('{}', avpairs['start']) : '';
-        pos += 'end' in avpairs ? nl.fmt2(',{}', avpairs['end']) : '';          
-        return nl.fmt2('<video{} preload controls class="njs_video reset_height"><source src="{}{}"/></video>', adjustHeightDir, link, pos);
+        pos += 'end' in avpairs ? nl.fmt2(',{}', avpairs['end']) : '';
+        return nl.fmt2('<video{} preload controls controlsList="nodownload" class="njs_video reset_height"><source src="{}{}"/></video>', adjustHeightDir, link, pos);
     });
 }
 
