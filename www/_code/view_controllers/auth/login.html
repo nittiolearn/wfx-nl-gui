@@ -1,37 +1,30 @@
 <style>
-.nl-website .bg-img {
+.nl-signin-bg {
     background-image: url({{bgImg}});
-    background-position: 70% 0%;
-    position: fixed;
+    background-position: 50% 50%;
+    background-size: cover;
+    background-repeat: no-repeat;
 }
 
-.nl-logo1-img {
-    min-height: 40px;
-    max-height: 70px;
-    min-width: 180px;
-    padding: 4px;
+.nl-signin-logo {
+    max-width: 240px;
+    max-height: 80px;
 }
-.nl-center-logo {
-	position: relative;
-	text-align: center;
+
+.nl-signin-img {
+    max-width: 100%;
+    max-height: 75vh;
 }
-.nl-image-content {
-	width: 100%;
-	text-align: center;
-}
-.nl-signin-button{
+
+.nl-signin-button {
     border: 2px solid cornflowerblue;
     text-align: center;
-    height: 34px;
+    height: 44px;
     font-weight: bold;
     vertical-align: middle;
     border-radius: 5px;
-    padding: 5px;
+    padding: 10px;
     font-size: 110%;
-}
-
-.nl-logo2-img {
-	padding-left: 50px	
 }
 
 .nl-login-lightbg {
@@ -41,73 +34,66 @@
 .nl-login-darkbg {
 	color: white;
 }
+
 input.nl-border-radius {
 	border-radius: 5px;
 }
-.nl-link-hover{
-  cursor: pointer;	
-}
 </style>
-<div class='nl-thin-scroll nl-full nl-website'>
-<div class='bg-img {{screenSize == "small" ? "nl-bgimg-repeat" : ""}}'></div>
-<div class='row row-top margin0 padding-mid'>
-	<div ng-class='resp2Col20' ng-if='logo1'>
-		<div class='{{screenSize == "small" ? "nl-center-logo" : ""}}'>
-			<img class='nl-logo1-img {{logo1url ? "nl-link-hover" : ""}} padding-small' 
-				style='max-width:240px'
-				ng-src='{{logo1}}' 
-				ng-click='onLinkClicked(logo1url)'
-				title='{{logo1text}}'>
-		</div>
+<div class='nl-thin-scroll nl-full nl-signin-bg {{bgShade}}'>
+<div ng-if='logo1' class='padding {{screenSize != "large" ? "text-center" : ""}}'>
+	<div class='padding-mid {{logo1url ? "nl-link-img" : ""}}'
+		 ng-click='onLinkClicked(logo1url)'
+		 title='{{logo1text}}'
+		 style='display: inline-block'>
+		<img ng-src='{{logo1}}' class='nl-signin-logo'>
 	</div>
 </div>
-<div class='padding'></div>
-<div class='row row-center padding0 margin0'>
-	<div class='col col-70' ng-show='screenSize != "small"'>
-		<div class='row row-center margin0' style='padding:0px 40px 0px 40px'>
-			<img src='{{imageContent}}' class='nl-image-content' style="max-height: 70vh;">
-		</div>
+
+<div class='row row-center padding0 margin0 text-center'>
+	<div ng-show='screenSize == "large"' class='col padding'>
+		<img src='{{imageContent}}' class='nl-signin-img'>
 	</div>
-	<div ng-class='resp2Col20' class='padding-mid' style='min-width:300px'>
-		<div ng-show='logo2' class='{{screenSize == "small" ? "nl-center-logo" : "nl-logo2-img"}}'>
-			<img ng-src='{{logo2}}' 
-				class='{{logo2url ? "nl-link-hover" : ""}} nl-logo1-img' 
-				style='max-width: 220px'
-				ng-click='onLinkClicked(logo2url)'
-				title='{{logo2text}}'>			
+	<div class='padding-mid {{screenSize != "large"? "col" : ""}}' style='min-width:300px'>
+		<div ng-if='logo2' class='padding'>
+			<div class='padding-mid {{logo2url ? "nl-link-img" : ""}}'
+				 ng-click='onLinkClicked(logo2url)'
+				 title='{{logo2text}}'
+				 style='display: inline-block'>
+				<img ng-src='{{logo2}}' class='nl-signin-logo'>
+			</div>
 		</div>
 
-	    <div class='row row-wrap row-top padding0 margin0'>
-	        <div ng-class='resp2Col33' class='padding-mid {{bgShade}}'>
+	    <div class='row row-wrap row-top padding0 margin0 text-left'>
+	        <div ng-class='resp2Col33' class='padding-mid'>
 	            <div class='padding-mid-v'>User ID</div></div>
-	        <div ng-class='resp2Col67' class='padding-mid'>
+	        <div ng-class='resp2Col67' class='padding-mid-v'>
 	            <nl-input fieldmodel='username' fieldtype='text' fieldcls='w100 nl-border-radius'
 	                      ng-keypress="onUsernameEnter($event)"></nl-input>
 	        </div>
 	    </div>
 
-	    <div class='row row-wrap row-top padding0 margin0'
+	    <div class='row row-wrap row-top padding0 margin0 text-left'
 	         ng-show='isLogin'>
-	        <div ng-class='resp2Col33' class='padding-mid {{bgShade}}'>
+	        <div ng-class='resp2Col33' class='padding-mid'>
 	            <div class='padding-mid-v'>Password</div></div>
-	        <div ng-class='resp2Col67' class='padding-mid'>
+	        <div ng-class='resp2Col67' class='padding-mid-v'>
 	            <nl-input fieldmodel='password' fieldtype='password' fieldcls='w100 nl-border-radius'
 	                      ng-keypress="onPasswordEnter($event)"></nl-input>
 	        </div>
 	    </div>
 	    <div class='padding-mid'></div>
-	    <div ng-show='isLogin' class='nl-link-text {{bgShade}} padding-mid'
-	         ng-click='lostPassword()'>Lost Password?
+	    <div ng-show='isLogin' class='nl-link-text2 padding-mid text-left'
+	         ng-click='lostPassword()'>
+	         <div class='padding-mid-v'>Lost Password?</div>
 	    </div>
-	    <div style='padding:8px'>
-		    <div class='nl-signin-button nl-link-text {{bgShade}}' ng-click='loginWithSignInOrEnter()'>Sign in</div>
+	    <div class='padding-mid'>
+		    <div class='nl-signin-button nl-link-text2'
+		    	 ng-click='loginWithSignInOrEnter()'>Sign in</div>
 	    </div>
 	</div>
 </div>
-<div class='row row-center padding0 margin0'
-	ng-show='screenSize == "small"'>
-	<div class='row row-center margin0 padding0'>
-		<img src='{{imageContent}}' class='nl-image-content' style="min-height: 50vh;padding:8px;">
-	</div>
+<div class='padding text-center'
+	ng-show='screenSize != "large"'>
+	<img src='{{imageContent}}' class='nl-signin-img'>
 </div>
 </div>
