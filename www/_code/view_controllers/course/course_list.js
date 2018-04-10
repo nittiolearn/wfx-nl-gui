@@ -152,12 +152,21 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		if (type === 'course') {
 			return 	(my == true) ? nl.t('Create and edit courses'): nl.t('Published courses');
 		}
-		if (type === 'assign' || type === 'assign_my') {
+		if (type === 'assign') {
 			return 	nl.t('Assigned courses');
 		}
-		if (type === 'report') {
-			return 	(assignId == 0) ? nl.t('My courses'): nl.t('Course reports');
+		if (type === 'assign_my') {
+			return 	nl.t('Courses assigned by me');
 		}
+		if (type === 'report') {
+			return 	(assignId == 0) ? nl.t('My courses'): nl.t('Course assignment reports');
+		}
+	}
+
+	function _getPageSubTitle(reports) {
+		if (type !== 'report' || assignId == 0) return nl.t('({})', nl.pginfo.username);
+		if (reports.length == 0) return '';
+		return nl.t('({})', reports[0].name);
 	}
 
 	function _onSearch(filter, searchCategory, onSearchParamChange) {
@@ -242,6 +251,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 			var card = _createCard(resultList[i]);
 			cards.push(card);
 		}
+		nl.pginfo.pageSubTitle = _getPageSubTitle(resultList);
 		return cards;
 	}
 	
