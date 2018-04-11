@@ -59,7 +59,8 @@ function(nl) {
         if (module['type'] == 'certificate' || module['type'] == 'module' || 
             (module['type'] == 'link' && 'urlParams' in module && module['urlParams'].indexOf('course_cert') >= 0))  {
             var sa = 'start_after' in module ? module['start_after'] : [];
-            for (info in sa) {
+            for (var i=0; i<sa.length; i++) {
+            	var info = sa[i];
                 var pred = info['module'] in modules ? modules[info['module']] : null;
                 if(!pred) continue;
                 if (!_getStatusOfModule(pred, modules, statusInfo, lessonReports, info)) return false;

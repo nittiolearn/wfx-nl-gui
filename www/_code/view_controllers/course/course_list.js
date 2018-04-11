@@ -204,11 +204,13 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
                 nl.location.replace();
 				return;
 			}
-			nlCardsSrv.updateCards($scope.cards, {
-			    cardlist: _getCards(_resultList, nlCardsSrv),
-			    canFetchMore: _pageFetcher.canFetchMore()
+			_fetchAdditionalCourses(results).then(function() {
+				nlCardsSrv.updateCards($scope.cards, {
+				    cardlist: _getCards(_resultList, nlCardsSrv),
+				    canFetchMore: _pageFetcher.canFetchMore()
+				});
+				if (resolve) resolve(true);
 			});
-			if (resolve) resolve(true);
 		});
 	}
 	
@@ -232,6 +234,50 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		return listingFn;
 	}
 	
+	function _fetchAdditionalCourses(results) {
+		return nl.q(function(resolve, reject) {
+			if (type !== 'report') {
+				resolve(true);
+				return;
+			}
+			for (var i=0; i<results.length; i++) {
+				var report = results[i];
+				if (report.courseid in courseDict) continue;
+				courseDict[report.courseid] = null;
+			}
+			_fetchAdditionalCoursesImpl(resolve);
+		});
+	}
+
+    var MAX_PER_BATCH = 50;
+	function _fetchAdditionalCoursesImpl(resolve) {
+        var courseIds = [];
+        var bMore = false;
+		for (var courseid in courseDict) {
+			courseid = parseInt(courseid);
+			if (courseDict[courseid] !== null) continue;
+			if (courseIds.length >= MAX_PER_BATCH) {
+				bMore = true;
+				break;
+			}
+			courseIds.push(courseid);
+		}
+		if (courseIds.length == 0) {
+			resolve(true);
+			return;
+		}
+		nlServerApi.courseGetMany(courseIds, true).then(function(results) {
+            for(var courseid in results) {
+				courseid = parseInt(courseid);
+                courseDict[courseid] = results[courseid]; // could also be an error object
+            }
+            if (bMore) _fetchAdditionalCoursesImpl(resolve);
+            else resolve(true);
+		}, function() {
+			resolve(false);
+		});
+	}
+
 	function _getStaticCards() {
 		var ret = [];
 		if (type !== 'course' || !my) return ret;
@@ -330,21 +376,25 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	}
 
 	function _createReportCard(report, isReport) {
-		var bComplete = nlCourse.isCourseReportCompleted(report);
 		var url = nl.fmt2('#/course_view?mode=reports_summary_view&id={}', report.id);
 		var title = report.name;
+		var help = '';
 		if (isReport) {
+			var course = courseDict[report.courseid];
+			if (course && !course.error) {
+				report.content = course.content;
+			}
 			title = (assignId === 0) ? report.name : report.studentname;
 			var mode = (assignId === 0) ? 'do' : 'report_view';
 			var url = nl.fmt2('#/course_view?id={}&mode={}', 
 						report.id, mode);
+			help = '<div class="row row-center padding0 margin0"><i class="icon fsh4 padding-small {}"></i><span>{}</span></div>';
+			if(nlCourse.isCourseReportCompleted(report)) {
+				help = nl.fmt2(help, 'ion-checkmark-circled fgreen', 'Completed'); 
+			} else {
+				help = nl.fmt2(help, 'ion-ios-circle-filled fgrey', 'Pending');
+			}		
 		}
-		var help = '<div class="row row-center padding0 margin0"><i class="icon fsh4 padding-small {}"></i><span>{}</span></div>';
-		if(bComplete) {
-			help = nl.fmt2(help, 'ion-checkmark-circled fgreen', 'Completed'); 
-		} else {
-			help = nl.fmt2(help, 'ion-ios-circle-filled fgrey', 'Pending');
-		}		
 
 		help = nl.fmt2('<div>{}<div>{}</div></div>', help, report.remarks);
 	    var card = {reportId: report.id,
@@ -384,7 +434,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
         nl.fmt.addAvp(avps, 'Discussion forum', report.forum, 'boolean');
 		return avps;
 	}
-
+	
     function _metadataCourse($scope, courseId, card) {
         nlMetaDlg.showMetadata($scope, _userInfo, 'course', courseId, card)
         .then(function() {
