@@ -271,7 +271,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 				card['help'] += nl.t('<div class="nl-textellipsis padding-small"><span class="fsh3">{}</span> ({} of {})</div>', report._percStr, report._score || 0, report._maxScore);
 		}
 		
-        card.details = {help: card['help'], avps: reportStats.getReportAvps(report)};
+        card.details = {help: card['help'], avps: reportStats.getReportAvps(report, reptype)};
         card.links.push({id: 'details', text: nl.t('details')});
 		return card;
 	}
@@ -345,7 +345,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
         nl.fmt.addAvp(avps, 'Most recent update', lst[0].updated, 'datedelta');
         nl.fmt.addAvp(avps, 'Earliest update', lst[lst.length-1].updated, 'datedelta');
         if (reptype != 'assignment') return avps;
-        reportStats.populateCommonAvps(report, avps);
+        reportStats.populateCommonAvps(report, avps, 'user');
 		return avps;
 	}
 

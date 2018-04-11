@@ -25,15 +25,18 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var CourseExportCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlProgressLog', 'nlExporter',
-function(nl, nlRouter, $scope, nlServerApi, nlProgressLog, nlExporter) {
+var CourseExportCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlProgressLog', 'nlExporter', 'nlGroupInfo',
+function(nl, nlRouter, $scope, nlServerApi, nlProgressLog, nlExporter, nlGroupInfo) {
     var pl = nlProgressLog.create($scope);
     pl.showLogDetails(true);
-    var exporter = new Exporter(nl, nlServerApi, nlExporter, pl, $scope);
+    var exporter = new Exporter(nl, nlServerApi, nlExporter, pl, $scope, nlGroupInfo);
 
 	function _onPageEnter(userInfo) {
 		return nl.q(function(resolve, reject) {
-            resolve(true);
+            nlGroupInfo.init().then(function() {
+				nlGroupInfo.update();
+	            resolve(true);
+	        });
 		});
 	}
 	nlRouter.initContoller($scope, '', _onPageEnter);
@@ -49,8 +52,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlProgressLog, nlExporter) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-function Exporter(nl, nlServerApi, nlExporter, pl, $scope) {
-    
+function Exporter(nl, nlServerApi, nlExporter, pl, $scope, nlGroupInfo) {
+
     var self = this;
     self.courseAssignIds = {};
     self.courseIds = {};
@@ -194,11 +197,12 @@ function Exporter(nl, nlServerApi, nlExporter, pl, $scope) {
     	var startedon = lessonReport.started || '';
     	var completedon = lessonReport.ended  || statusinfo.date || '';
     	var score = lessonReport.score || '';
+        var user = nlGroupInfo.getUserObj(''+report.userid);
     	var maxScore = lessonReport.maxScore || '';
     	var timeSpentSeconds = lessonReport.timeSpentSeconds || '';
     	var remarks = statusinfo.remarks || '';
     	return ['id=' + report.assignid, 'id=' + report.courseid, report.assignmentremark, 
-    	   'id=' + report.userid, report.username, courseForReport.name, courseItem.name, courseItem.id, 
+    	   'id=' + report.userid, user.username, courseForReport.name, courseItem.name, courseItem.id, 
     	   courseItem.type, courseItem.planned_date || '', status, startedon, completedon,
     	   score, maxScore, timeSpentSeconds, remarks];
     }

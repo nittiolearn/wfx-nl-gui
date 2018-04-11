@@ -446,6 +446,7 @@ this.show = function($scope, initialUserInfo, params) {
             nl.fmt.addAvp(avps, 'Review status', _getRevstateStr(lesson));
         }
         nl.fmt.addAvp(avps, 'Description', lesson.description);
+        nl.fmt.addAvp(avps, 'Internal identifier', lesson.id);
         return avps;
     }
 

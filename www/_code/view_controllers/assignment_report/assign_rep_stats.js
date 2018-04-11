@@ -712,7 +712,7 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
         return _statusInfo;
     };
 
-    this.getReportAvps = function(report) {
+    this.getReportAvps = function(report, reptype) {
         var avps = [];
         nl.fmt.addAvp(avps, 'Learner', report.studentname);
         nl.fmt.addAvp(avps, 'Module', report.name);
@@ -723,11 +723,11 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
         nl.fmt.addAvp(avps, 'Created on', report.created, 'date');
         nl.fmt.addAvp(avps, 'Last updated on', report.updated, 'date');
         if (report._timeMins) nl.fmt.addAvp(avps, 'Time spent', nl.fmt2('{} minutes', report._timeMins));
-        this.populateCommonAvps(report, avps);
+        this.populateCommonAvps(report, avps, reptype);
         return avps;
     };
 
-    this.populateCommonAvps = function(report, avps) {
+    this.populateCommonAvps = function(report, avps, reptype) {
         nl.fmt.addAvp(avps, 'Remarks', report.assign_remarks);
         nl.fmt.addAvp(avps, 'Assigned By', report.assigned_by);
         nl.fmt.addAvp(avps, 'Assigned To', report.assigned_to);
@@ -740,6 +740,7 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
         nl.fmt.addAvp(avps, 'Max duration', report.max_duration, 'minutes');
         nl.fmt.addAvp(avps, 'Show answers', _learnmodeString(report.learnmode));
         nl.fmt.addAvp(avps, 'Is published?', report.published, 'boolean');
+        if(reptype != 'user') nl.fmt.addAvp(avps, 'Internal identifier', report.id);
     };
     
     function _learnmodeString(learnmode) {

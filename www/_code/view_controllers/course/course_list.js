@@ -312,6 +312,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		nl.fmt.addAvp(avps, 'Published on', course.published, 'date');
 		nl.fmt.addAvp(avps, 'Is published?', course.is_published, 'boolean');
 		nl.fmt.addAvp(avps, 'Description', course.description);
+		nl.fmt.addAvp(avps, 'Internal identifier', course.id);
 		return avps;
 	}
 
@@ -372,6 +373,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		nl.fmt.addAvp(avps, 'Updated on', report.updated, 'date');
 		nl.fmt.addAvp(avps, 'Remarks', report.remarks);
         nl.fmt.addAvp(avps, 'Discussion forum', report.forum, 'boolean');
+        if(type != 'report' || assignId != 0) nl.fmt.addAvp(avps, 'Internal identifier', report.id);
 		return avps;
 	}
 

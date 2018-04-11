@@ -752,7 +752,7 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
 
         var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
             timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
-            nCerts: course.certificates.length};
+            internalIdentifier:report.assignid, nCerts: course.certificates.length};
             
         var statusinfo = report.statusinfo || {};
         var items = course.nonLessons;
