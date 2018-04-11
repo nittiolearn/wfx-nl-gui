@@ -246,6 +246,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
             valueNames: {'module': 'Folder', 'lesson': 'Module', 'link': 'Link', 'info': 'Information', 'certificate': 'Certificate'},
             updateDropdown: _updateTypeDropdown},
         {name: 'refid', fields: ['lesson'], type: 'lessonlink', contentType: 'integer', text: 'Module-id'},
+		{name: 'maxDuration', fields: ['lesson'], type: 'string', contentType: 'integer', text: 'Time limit (minutes)'},
         {name: 'action', fields: ['link'], type: 'lessonlink', text: 'Action'},
         {name: 'urlParams', fields: ['link'], type: 'string', text: 'Url-Params'},
         {name: 'certificate_image', fields: ['certificate'], type: 'string', text: 'Certificate image'},
@@ -274,6 +275,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     	name: 'Name of the item to be displayed in the course tree.',
     	type: 'Each item could be a Folder (containing other items), Module (a learning module/quiz), Certificate or Information (example a declaration).',
     	refid: 'The id of the learning module/quiz to be launched. You could search for all approved modules by clicking on the search icon. Click on the link icon to preview the module.',
+    	maxDuration: 'You may restrict the learner to complete the module within the specified time limit. This values is pre-filled with the estimated time of module if configured in the module. You could clear this field (or set it to 0) if you do not want any time limit set for the module.',
     	action: 'The action whose URL is used for the link. Click on the icon to view the link',
     	urlParams: 'The urlParams to append to the URL (see Dashboard create/modify dialog for more information).',
     	certificate_image: 'Provide a background image for your certificates.',
@@ -564,6 +566,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     	nlLessonSelect.showSelectDlg($scope, _userInfo).then(function(selectionList) {
     		if (selectionList.length != 1) return;
     		cm.refid = selectionList[0].lessonId;
+    		cm.maxDuration = selectionList[0].esttime;
     		cm.name = selectionList[0].title;
     	});
     };
