@@ -43,7 +43,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
             nlGroupInfo.init().then(function() {
                 nlGroupInfo.update();
                 _groupInfo = nlGroupInfo.get();
-                nlTrainingReport.init(_userInfo, nlGroupInfo);
+                nlTrainingReport.init(_userInfo, nlGroupInfo, _groupInfo);
 				nl.pginfo.pageTitle = nl.t('Offline training batches');
 				_scope = $scope;
 	            var params = nl.location.search();

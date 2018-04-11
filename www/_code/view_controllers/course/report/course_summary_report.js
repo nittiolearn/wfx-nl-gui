@@ -39,6 +39,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
 
 	function _onPageEnter(userInfo) {
         nlRangeSelectionDlg.init();
+        _reportProcessor.init(userInfo);
 		return nl.q(function(resolve, reject) {
             nlGroupInfo.init().then(function() {
                 _data.urlParams.isAdmin = nlRouter.isPermitted(userInfo, 'admin_user');
@@ -696,7 +697,9 @@ function CourseProcessor(nlCourse) {
 		course = nlCourse.migrateCourse(course);
         _idToFullName = {};
         var ret = {id: course.id, name: course.name || '', created: course.created || null, 
-            updated: course.updated || null, certificates: [], lessons: [], nonLessons: []};
+            updated: course.updated || null, certificates: [], lessons: [], nonLessons: [],
+            contentmetadata: course.content};
+        ret.contentmetadata = course.content && course.content.contentmetadata ? course.content.contentmetadata : {};
         var modules = (course.content || {}).modules || [];
         for (var i=0; i<modules.length; i++) {
             var m = modules[i];
@@ -744,6 +747,13 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
         {id: this.STATUS_FAILED, txt: 'failed', icon: 'icon ion-close-circled forange'},
         {id: this.STATUS_CERTIFIED, txt: 'certified', icon: 'icon ion-android-star fgreen'}];
         
+    var _gradelabel = '';
+    var _subjectlabel = '';
+    this.init = function(userInfo) {
+    	_gradelabel = userInfo.groupinfo.gradelabel;
+    	_subjectlabel = userInfo.groupinfo.subjectlabel;
+    };
+    
     this.process = function(report) {
         var user = nlGroupInfo.getUserObj(''+report.student);
         if (!user) return null;
@@ -849,11 +859,12 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
     var _idFields = ['Report Id', 'Assign Id', 'Course Id'];
     this.getCsvHeader = function() {
         var mh = this.getMetaHeaders(false);
-        var headers = ['User Id', 'User Name', 'Email Id', 'Org'];
-        for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
-        headers = headers.concat(['Course Name', 'Assigned On', 'Last Updated On', 
+        var headers = ['User Id', 'User Name'];
+        headers = headers.concat(['Course Name', _gradelabel, _subjectlabel, 'Assigned On', 'Last Updated On', 
             'Status', 'Progress', 'Progress Details', 'Quiz Attempts',
             'Achieved %', 'Maximum Score', 'Achieved Score', 'Time Spent (minutes)']);
+        headers = headers.concat(['Email Id', 'Org']);
+        for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
         if (_data.urlParams.exportTypes.ids)
             headers = headers.concat(_idFields);
         return headers;
@@ -861,13 +872,16 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
     
     this.getCsvRow = function(report) {
         var mh = this.getMetaHeaders(false);
-        var ret = [report.user.user_id, report.user.name, report.user.email, report.user.org_unit];
-        for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id]);
-        ret = ret.concat([report.course.name, report.created, report.updated,
+        var ret = [report.user.user_id, report.user.name];
+        ret = ret.concat([report.course.name, report.course.contentmetadata.grade || '',
+        	report.course.contentmetadata.subject || '', report.created, report.updated,
             report.stats.status.txt, '' + report.stats.percComplete + '%',
             report.stats.percCompleteDesc, report.stats.avgAttempts,
             report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore,
             Math.ceil(report.stats.timeSpentSeconds/60)]);
+        ret.push(report.user.email);
+        ret.push(report.user.org_unit);
+        for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id]);
         if (_data.urlParams.exportTypes.ids)
             ret = ret.concat(['id=' + report.raw_record.id, 'id=' + report.raw_record.assignid, 
                 'id=' + report.raw_record.courseid]);
@@ -876,11 +890,12 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
     
     this.getCsvModuleHeader = function() {
         var mh = this.getMetaHeaders(false);
-        var headers = ['User Id', 'User Name', 'Email Id', 'Org'];
-        for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
-        headers = headers.concat(['Course Name', 'Module Name', 'Started', 'Ended', 
+        var headers = ['User Id', 'User Name'];
+        headers = headers.concat(['Course Name', _gradelabel, _subjectlabel, 'Module Name', 'Started', 'Ended', 
             'Status', 'Attempts', 'Achieved %', 'Maximum Score', 'Achieved Score', 'Pass %', 
             'Time Spent (minutes)']);
+        headers = headers.concat(['Email Id', 'Org']);
+        for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
         if (_data.urlParams.exportTypes.ids)
             headers = headers.concat(_idFields);
         return headers;
@@ -922,12 +937,15 @@ function ReportProcessor(nl, nlGroupInfo, nlExporter, _data) {
                     passed ? 'passed' : 'failed';
             }
             
-            var ret = [report.user.user_id, report.user.name, report.user.email, report.user.org_unit];
-            for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id]);
+            var ret = [report.user.user_id, report.user.name];
             if (started) started = nl.fmt.date2Str(nl.fmt.json2Date(started));
             if (ended) ended = nl.fmt.date2Str(nl.fmt.json2Date(ended));
-            ret = ret.concat([report.course.name, module.name, started, ended, status, attempts, perc, 
-                maxScore, score, passScore ? passScore + '%' : '', timeSpent]);
+            ret = ret.concat([report.course.name, report.course.contentmetadata.grade || '',
+	        	report.course.contentmetadata.subject || '', module.name, started, ended, status,
+	        	attempts, perc, maxScore, score, passScore ? passScore + '%' : '', timeSpent]);
+	        ret.push(report.user.email);
+	        ret.push(report.user.org_unit);
+            for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id]);
             if (_data.urlParams.exportTypes.ids)
                 ret = ret.concat(['id=' + report.raw_record.id, 
                     'id=' + report.raw_record.assignid, 'id=' + report.raw_record.courseid]);

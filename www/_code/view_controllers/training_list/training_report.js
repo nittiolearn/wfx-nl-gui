@@ -19,10 +19,11 @@ function($stateProvider, $urlRouterProvider) {
 var nlTrainingReportSrv = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlRangeSelectionDlg', 'nlExporter',
 function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
 	
-	this.init = function(userInfo, nlGroupInfoService) {
+	this.init = function(userInfo, nlGroupInfoService, groupInfo) {
 		nlGroupInfo = nlGroupInfoService;
+		_groupInfo = groupInfo;
 		_userInfo = userInfo;
-    	_reportCsv = new ReportCsv(nl, nlGroupInfo, nlExporter);
+    	_reportCsv = new ReportCsv(nl, nlGroupInfo, nlExporter, _groupInfo);
         var params = nl.location.search();
     	_argv = {limit: ('limit' in params) ? parseInt(params.limit) : 5000, 
     		all: (params.type == 'all'),
@@ -56,6 +57,7 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
 
 	//---------------------------------------------------------------------------------------------
 	var nlGroupInfo = null;
+	var _groupInfo = null;
 	var _params = null; 
 	var _argv = null;
 	var _userInfo = null;
@@ -190,12 +192,16 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
 	}
 }];
 
-function ReportCsv(nl, nlGroupInfo, nlExporter) {
+function ReportCsv(nl, nlGroupInfo, nlExporter, _groupInfo) {
 	var self = this;
+	var _gradelabel = _groupInfo ? _groupInfo.props.gradelabel : '';
+	var _subjectlabel = _groupInfo ? _groupInfo.props.subjectlabel : '';
 
-	var _userHeaders = 	['User Id', 'User Name', 'Email Id', 'Org'];
-	var _trainingHeaders = ['Type', 'Training Name', 'Batch Name', 'From', 'Till', 'Session', 'Status', 'Feedback Status', 'Time Spent (minutes)'];
+	var _userHeaders = 	['User Id', 'User Name'];
+	var _trainingHeaders = ['Type', 'Training Name', _gradelabel, _subjectlabel, 'Batch Name', 'From', 'Till', 
+		'Session', 'Status', 'Feedback Status', 'Time Spent (minutes)', 'Venue', 'Trainer Name'];
 	var _costHeaders = ['Infra Cost', 'Trainer Cost', 'Food Cost', 'Travel Cost', 'Misc Cost'];
+	var _userHeaders2 = 	['Email Id', 'Org'];
 	var _idHeaders = ['Training Report Id', 'Training Batch Id', 'Training Id'];
 	
     this.getMetaHeaders = function(bOnlyMajor) {
@@ -211,10 +217,11 @@ function ReportCsv(nl, nlGroupInfo, nlExporter) {
 
     this.getCsvHeader = function(exportIdTypes) {
         var headers = angular.copy(_userHeaders);
-        var mh = this.getMetaHeaders(false);
-        for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
         headers = headers.concat(_trainingHeaders);
         headers = headers.concat(_costHeaders);
+        headers = headers.concat(_userHeaders2);
+        var mh = this.getMetaHeaders(false);
+        for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
         if (exportIdTypes)
             headers = headers.concat(_idHeaders);
         return headers;
@@ -227,6 +234,7 @@ function ReportCsv(nl, nlGroupInfo, nlExporter) {
     	_fillUserFields(csvRow, record);
     	_fillTrainingFields(csvRow, record);
     	_fillCostFields(csvRow, record);
+    	_fillUserFields2(csvRow, record);
     	_fillIdFields(csvRow, exportIdTypes ? record : null);
     	for (var i=0; i<record.content.sessions.length; i++) {
     		var session = record.content.sessions[i];
@@ -235,6 +243,7 @@ function ReportCsv(nl, nlGroupInfo, nlExporter) {
 	    	_fillUserFields(childRow, record);
 	    	_fillTrainingFields(childRow, record, session);
 	    	_fillCostFields(childRow, null);
+	    	_fillUserFields2(childRow, record);
 	    	_fillIdFields(childRow, exportIdTypes ? record : null);
     	}
     	return csvRows;
@@ -243,6 +252,9 @@ function ReportCsv(nl, nlGroupInfo, nlExporter) {
 	function _fillUserFields(ret, record) {
         ret.push(record.user.user_id);
         ret.push(record.user.name);
+	}
+
+	function _fillUserFields2(ret, record) {
         ret.push(record.user.email);
         ret.push(record.user.org_unit);
         var mh = self.getMetaHeaders(false);
@@ -252,6 +264,8 @@ function ReportCsv(nl, nlGroupInfo, nlExporter) {
 	function _fillTrainingFields(ret, record, session) {
         ret.push(session ? 'training session': 'training');
         ret.push(record.content.kindName || '');
+        ret.push(record.content.grade || '');
+        ret.push(record.content.subject || '');
         ret.push(record.content.name || '');
         ret.push(session ? '' : record.content.start ? nl.fmt.date2Str(record.content.start) : '');
         ret.push(session ? '' : record.content.end ? nl.fmt.date2Str(record.content.end): '');
@@ -259,6 +273,8 @@ function ReportCsv(nl, nlGroupInfo, nlExporter) {
         ret.push(session ?  session.status || 'pending' : record.content.trainingStatus.overallStatus || 'pending');
         ret.push(session ?  'NA' : record.content.trainingStatus.childStatus || 'pending');
         ret.push(session ? session.timeSpent : record.content.trainingStatus.timeSpent);
+        ret.push(record.content.venue || '');
+        ret.push(record.content.trainername || '');
 	}
 
 	function _fillCostFields(ret, record) {

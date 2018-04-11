@@ -166,13 +166,15 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlGroupInfo, $templateCache,
     var _hOverview = [];
     var _hPageScores = [];
     var _hFeedback = [];
-    var _commonFields1 = [
+    var _userFields1 = [
             {id: '_user_id', name:'User Id'},
-            {id: 'studentname', name:'User Name'},
+            {id: 'studentname', name:'User Name'}];
+            
+    var _userFields2 = [
             {id: '_email', name:'Email Id'},
             {id: 'org_unit', name:'Org'}];
-            
-    var _commonFields2 = [
+
+    var _commonFields = [
             {id: '_courseName', name:'Course/Training Name'},
             {id: '_batchName', name:'Training Batch Name'},
             {id: 'name', name:'Module Name'}];
@@ -209,17 +211,18 @@ function(nl, nlDlg, nlExporter, nlProgressLog, nlGroupInfo, $templateCache,
             {id: 'response', name:'Response'}];
             
     function _initExportHeaders(_userInfo, exportIds) {
-        var _commonFields3 = [
+        var _commonFieldsPre = [
                 {id: 'subject', name:_userInfo.groupinfo.subjectlabel},
-                {id: '_grade', name:_userInfo.groupinfo.gradelabel},
+                {id: '_grade', name:_userInfo.groupinfo.gradelabel}];
+        var _commonFieldsPost = [
                 {id: '_assignTypeStr', name:'Assign Type'},
                 {id: 'assign_remarks', name:'Remarks'}];
 
-        _hOverview = _commonFields1.concat(_metaFields, _commonFields2, _h1Overview, _commonFields3,
+        _hOverview = _userFields1.concat(_commonFields, _commonFieldsPre, _h1Overview, _commonFieldsPost, _userFields2, _metaFields,
                 exportIds ? _idFields :  []);
-        _hPageScores = _commonFields1.concat(_metaFields, _commonFields2, _h1PageScores, _commonFields3,
+        _hPageScores = _userFields1.concat(_commonFields, _commonFieldsPre, _h1PageScores, _commonFieldsPost, _userFields2, _metaFields,
                 exportIds ? _idFields :  []);
-        _hFeedback = _commonFields1.concat(_metaFields, _commonFields2, _h1Feedback, _commonFields3,
+        _hFeedback = _userFields1.concat(_commonFields, _commonFieldsPre, _h1Feedback, _commonFieldsPost, _userFields2, _metaFields,
                 exportIds ? _idFields :  []);
     
     }
