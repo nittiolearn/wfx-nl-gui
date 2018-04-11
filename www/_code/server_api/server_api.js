@@ -179,10 +179,10 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/course_report_update_status.json', {repid: repid, statusinfo: statusinfo});
     };
 
-    this.courseCreateLessonReport = function(repid, refid, moduleid, attempt) {
+    this.courseCreateLessonReport = function(repid, refid, moduleid, attempt, maxDuration) {
         // returns the updated course report object
         return server.post('_serverapi/course_create_lesson_report.json', 
-            {repid: repid, refid: refid, moduleid: moduleid, attempt: attempt});
+            {repid: repid, refid: refid, moduleid: moduleid, attempt: attempt, maxDuration: maxDuration});
     };
     
     //---------------------------------------------------------------------------------------------

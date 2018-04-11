@@ -6,7 +6,7 @@
 	<p ng-show='assignInfo.assigntype == "lesson"' style='color:blue'><B><I>You may set one or more of start time, end time and duration to control when and how long the assignment is active.</I></B></p>
 	<p ng-show='assignInfo.assigntype == "lesson"'><b>Start time:</b> You may define the earliest date and time (upto minutes accuracy) from when the assignment is active. If not set, the assignment is active as soon as it is sent till the end time.</p>
 	<p ng-show='assignInfo.assigntype == "lesson"'><b>End time:</b> You may define the latest date and time (upto minutes accuracy) till when the assignment is active. If not set, the assignment is active after start time (or sent time if start is not defined).</p>
-	<p ng-show='assignInfo.assigntype == "lesson"'><b>Duration (minutes):</b>  You may define the maximum duration in minutes to restrict the learner to complete the assignment within the specified time. If not set, the learner may take any amount of time subject to start and end time restrictions. </p>
+	<p ng-show='assignInfo.assigntype == "lesson"'><b>Time limit (minutes):</b> You may restrict the learner to complete the assignment within the specified time limit. If not set, the learner may take any amount of time subject to start and end time restrictions. </p>
 	<p ng-show='assignInfo.assigntype == "lesson"'><b>Show answers:</b>
 	</p>
 	<ul ng-show='assignInfo.assigntype == "lesson"'>
@@ -67,7 +67,7 @@
 
     <div class='row row-wrap row-top padding-top margin0'
          ng-show='assignInfo.assigntype == "lesson"'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Duration (minutes)</div>
+        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Time limit (minutes)</div>
         <div ng-class='resp2Col67' class='padding0'>
             <nl-input fieldmodel='maxduration' fieldtype='number' fieldcls='w100'></nl-input>
         </div>

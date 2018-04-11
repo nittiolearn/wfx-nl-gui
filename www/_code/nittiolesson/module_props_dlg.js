@@ -80,7 +80,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		pdfUrl: nl.t('<b>Mandatory:</b> Enter the url uploaded pdf.'),
 		pdfSinglePage: nl.t('When selected, all PDF pages are displyaed one below another in a single page module. Otherwise, one module page is created per PDF page.'),
 		description: nl.t('Write a description which will help others in the group to understand the purpose of this module.'),
-		esttime: nl.t('Estimated time in minutes (between 1 and 600) to complete this learning module. When this learning module is sent as an assignment, the assignment duration is per-filled with the estimated time if available.'),
+		esttime: nl.t('Estimated time in minutes (between 1 and 600) to complete this learning module. When this learning module is sent as an assignment, the assignment duration is pre-filled with the estimated time if available.'),
 		learningMode: nl.t('Self learining modules are not scored and hints are shown to the learner while learning. Assesment modules are scored and correct answers are shown only on completion of the module.'),
 		forumTopic: nl.t('provide name of the discussion topic which should be displayed when the learner clicks on discussion forum icon from this module. This could be further change at page level. This field is the default at module level.'),
 		passScore: nl.t(' Minimum pass score in percentage (between 0 and 100 - both inclusive) for passing this module. Set this to zero to consider any score as passed. Clean the value to go back to the default value.'),

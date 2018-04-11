@@ -116,7 +116,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         
         cm.attempt++;
         nlDlg.showLoadingScreen();
-        nlServerApi.courseCreateLessonReport(self.course.id, refid, cm.id, cm.attempt).then(function(updatedCourseReport) {
+        nlServerApi.courseCreateLessonReport(self.course.id, refid, cm.id, cm.attempt, cm.maxDuration||0).then(function(updatedCourseReport) {
             nlDlg.hideLoadingScreen();
             self.course = updatedCourseReport;
             scope.updateAllItemData();
@@ -1322,7 +1322,7 @@ function Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlServerApi, _upd
 
         var cm = reopenLessons[pos];
         cm.attempt++;
-        nlServerApi.courseCreateLessonReport(modeHandler.course.id, cm.refid, cm.id, cm.attempt)
+        nlServerApi.courseCreateLessonReport(modeHandler.course.id, cm.refid, cm.id, cm.attempt, cm.maxDuration||0)
         .then(function(updatedCourseReport) {
             modeHandler.course = updatedCourseReport;
             _createLessonReport(reopenLessons, pos+1, resolve);
