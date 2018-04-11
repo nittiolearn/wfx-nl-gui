@@ -70,15 +70,33 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
 	var brandingInfo = nlServerApi.getBrandingInfo();
     nl.pginfo.hidemenu = true;
     $scope.isLogin  = isLogin;
-    $scope.bgImg = nl.url.resUrl2(brandingInfo.bgimg) || '';
+    
+    $scope.bgimg = nl.url.resUrl2(brandingInfo.bgimg) || '';
+
     $scope.logo1 = nl.url.resUrl2(brandingInfo.logo1) || '';
-    $scope.logo1text = brandingInfo.logo1text;
-    $scope.logo1url = brandingInfo.logo1url;
+    $scope.logo1text = brandingInfo.logo1text || '';
+    $scope.logo1url = brandingInfo.logo1url || '';
+    $scope.logo1w = brandingInfo.logo1w || 240;
+    $scope.logo1h = brandingInfo.logo1h || 80;
+    $scope.logo1wm = brandingInfo.logo1wm || 240;
+    $scope.logo1hm = brandingInfo.logo1hm || 80;
+	$scope.showLogo1InMobile = brandingInfo.showLogo1InMobile === undefined ? true : brandingInfo.showLogo1InMobile; 
+
 	$scope.logo2 = nl.url.resUrl2(brandingInfo.logo2) || '';
-	$scope.logo2text = brandingInfo.logo2text;
-	$scope.logo2url = brandingInfo.logo2url;
-	$scope.imageContent = nl.url.resUrl2(brandingInfo.img) || ''; 
-    $scope.bgShade = brandingInfo.loginBoxClass;
+	$scope.logo2text = brandingInfo.logo2text || '';
+	$scope.logo2url = brandingInfo.logo2url || '';
+    $scope.logo2w = brandingInfo.logo2w || 240;
+    $scope.logo2h = brandingInfo.logo2h || 80;
+    $scope.logo2wm = brandingInfo.logo2wm || 240;
+    $scope.logo2hm = brandingInfo.logo2hm || 80;
+	$scope.showLogo2InMobile = brandingInfo.showLogo2InMobile === undefined ? true : brandingInfo.showLogo2InMobile; 
+
+    $scope.loginVAlign = brandingInfo.loginVAlign || 'row-center';
+    $scope.loginGap = brandingInfo.loginGap || 80;
+    $scope.loginBoxClass = brandingInfo.loginBoxClass;
+
+	$scope.mainImg = nl.url.resUrl2(brandingInfo.img) || ''; 
+	$scope.showImgInMobile = brandingInfo.showImgInMobile === undefined ? true : brandingInfo.showImgInMobile; 
 
     $scope.lostPassword = function() {
         nl.window.location.href = '/auth/pwlost';

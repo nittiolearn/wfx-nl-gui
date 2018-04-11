@@ -154,7 +154,12 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
             var p = prereqs[i];
             var cmid = p.module;
             var item = treeList.getItem(cmid);
-            if (item && item.state.status == 'waiting') return false;
+            if (!item) continue; // ignore
+            if (item.state.status == 'waiting') return false;
+            if (item.type == 'certificate') {
+            	if (item.state.status != 'success') return false;
+            	continue;
+            }
             var prereqScore = null;
             if (cmid in lessonReports && lessonReports[cmid].completed) {
                 var lessonReport = lessonReports[cmid];
