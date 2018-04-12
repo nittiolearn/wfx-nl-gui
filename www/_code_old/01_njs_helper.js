@@ -645,14 +645,20 @@ function ClientSideTemplate(templateName, chain) {
 function BlankScreen() {
 }
 
-BlankScreen.ZINDEX_HIDE = -100;
-BlankScreen.ZINDEX_SHOW = 20;
 BlankScreen.ANIM_TIME = 300;
-
 BlankScreen._isShown = false;
 
 BlankScreen.isVisible = function() {
 	return BlankScreen._isShown;
+};
+
+BlankScreen.showAndExec = function(fn) {
+    var nl = window.nlapp.nl;
+    var nlDlg = window.nlapp.nlDlg;
+    nl.rootScope.$apply(function() {
+        nlDlg.showLoadingScreen();
+    });
+    nl.timeout(fn);
 };
 
 BlankScreen.show = function() {
