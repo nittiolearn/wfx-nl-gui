@@ -211,25 +211,26 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 	}
 	
 	function _createOrEditTrainingKind(batchDlgScope, card) {
+		var _card = card ? angular.copy(card) : null;
 		var _dlg = nlDlg.create($scope);
 		_dlg.setCssClass('nl-height-max nl-width-max');
 		_dlg.scope.error = {};
 		_dlg.scope.help = batchDlgScope.help;
-		_dlg.scope.dlgTitle = card ? nl.t('Update training') : nl.t('Create a training');
+		_dlg.scope.dlgTitle = _card ? nl.t('Update training') : nl.t('Create a training');
 		var defaultData = {kindName : '', kindDesc : '',
 			gradelabel: _groupInfo.props.gradelabel,
 			subjectlabel: _groupInfo.props.subjectlabel,
 			sessions: [{name: 'Session 1', duration:{id: 60}}]};
-		_dlg.scope.data = card ? card : defaultData;
-		_dlg.scope.data.origCard = angular.copy(card);
+		_dlg.scope.data = _card ? _card : defaultData;
+		_dlg.scope.data.origCard = angular.copy(_card);
 		_dlg.scope.data.module = '';
 		var selectedGrade = {};
 		var selectedSubject = {};
-		if(card) {
-			selectedGrade[card.grade] = true;
-			selectedSubject[card.subject] = true;
-			_dlg.scope.data.module = {lessonId: card.moduleid, title: card.modulename, icon: card.moduleicon};
-			_dlg.scope.data.sessions = _getUpdatedSessions(card.sessions);
+		if(_card) {
+			selectedGrade[_card.grade] = true;
+			selectedSubject[_card.subject] = true;
+			_dlg.scope.data.module = {lessonId: _card.moduleid, title: _card.modulename, icon: _card.moduleicon};
+			_dlg.scope.data.sessions = _getUpdatedSessions(_card.sessions);
 		}
         var _gradeInfo = {data: nlTreeSelect.strArrayToTreeArray(_groupInfo.props.grades || [])};
         nlTreeSelect.updateSelectionTree(_gradeInfo, selectedGrade);
@@ -261,8 +262,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 			}
 		};
 
-		var button = {text : card ? nl.t('Update') : nl.t('Create'), onTap : function(e) {
-			_onTrainingKindCreateOrEdit(e, $scope, _dlg.scope, card ? card : null, _gradeInfo, _subjectInfo, batchDlgScope);
+		var button = {text : _card ? nl.t('Update') : nl.t('Create'), onTap : function(e) {
+			_onTrainingKindCreateOrEdit(e, $scope, _dlg.scope, _card ? _card : null, _gradeInfo, _subjectInfo, batchDlgScope);
 		}};
 		
 		var cancelButton = {text: nl.t('Cancel'), onTap: function() {

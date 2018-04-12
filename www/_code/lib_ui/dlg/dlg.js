@@ -276,6 +276,11 @@ function(nl, nlDlg) {
                 if (!('onFieldChange' in $scope.$parent)) return;
                 $scope.$parent.onFieldChange(fieldModel);
             };
+
+            $scope.onClickHandler = function(clickHandler) {
+                if (!('onClickHandler' in $scope.$parent)) return;
+                $scope.$parent.onClickHandler(clickHandler);
+            };
         }
     };
 }];

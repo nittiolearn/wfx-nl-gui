@@ -24,8 +24,8 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var LessonImportCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlCardsSrv', 'nlLessonSelect', 'nlServerApi', 'nlImporter',
-function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlServerApi, nlImporter) {
+var LessonImportCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlCardsSrv', 'nlLessonSelect', 'nlServerApi', 'nlImporter', 'nlExporter', '$templateCache',
+function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlServerApi, nlImporter, nlExporter, $templateCache) {
 	var _userInfo = null;
 	var _scope = null;
 	var _templateId = null;
@@ -56,6 +56,11 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlServerApi, n
         	dlg.scope.isTemplateDefined = true;
         	dlg.scope.data.selectedModule = {lessonId: _templateId, title: _templateId};
         }
+        dlg.scope.onClickHandler = function(handlerName) {
+	        var csvString = $templateCache.get('view_controllers/lesson/csv_import_sample.csv.html');
+	        nlExporter.exportCsvFile('ImportTemplate.csv', csvString);
+        };
+        
         var importButton = {text: nl.t('Import'), onTap: function(e) {
         	if(!_validateInputs(dlg.scope)) {
 	    		e.preventDefault();
@@ -71,10 +76,25 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlServerApi, n
 	
 	function _getHelp() {
 		return {
-			moduleName: {name: nl.t('Module name'), help: nl.t('Name of the module create by importing csv.') },
-			selectedModule: {name: nl.t('Select module'), help: nl.t('Select the default template on which the imported module is created.')},
-			filelist: {name: nl.t('Choose CSV file'), help: nl.t('Select the csv to import and create module.')}
+			moduleName: {name: nl.t('Module name'), help: nl.t('Name of the module create by importing the csv file.') },
+			selectedModule: {name: nl.t('Select module'), help: nl.t('Select the default template based on which the imported module is created.')},
+			filelist: {name: nl.t('Choose CSV file'), help: _getCsvHelp(), isShown: true}
 		};
+	}
+	
+	function _getCsvHelp() {
+		var clickHandler = "onClickHandler('downloadCsv')";
+		var help = '<div>';
+		help += nl.fmt2('<span class="padding-small">Download <span class="nl-link-text" ng-click="{}">sample csv file</span> to better understand the CSV file format to be imported. You could just edit the file and get going.</span>', clickHandler);
+		help += '<div class="padding-left"><ul><li class="padding-small">First row (header row) of CSV file is mandatory. This is just provided as a help to the user. Please do not change the values in this column.</li>';
+		help += '<li class="padding-small">Each row starting from second row of the CSV file is converted into one page in the module.</li>';
+		help += '<li class="padding-small">The first column specifies the "page type" of the page created. Page type defines the question type (MCQ, Matching, ...), number of options and the layout for the page. The sample csv file provided above has some sample page types that could be used.</li>';
+		help += '<li class="padding-small">The second column specifies maximum score for the question. Leave this empty or specify the value 0 if you want to use the default maximum score for the page.</li>';
+		help += '<li class="padding-small">Third column onwards specify content in different sections of the page. For example</li>';
+		help += '<div class="padding-left"><ul><li class="padding-small">for 4 option MCQ question, the third column is where you provide the question, fourth column with the correct answer, fifth, sixth and seventh columns have the wrong answer and the eighth column could have a hint or some instruction.</li>';
+		help += '<li class="padding-small">for 2 option MCQ question, the third column is where you provide the question, fourth column with the correct answer, fifth column has the wrong answer and the sixth column could have a hint or some instruction.</li></ul></div>';
+		help += '</ul></div></div>';
+		return help;
 	}
 	function _validateInputs(dlgScope) {
 		if (!dlgScope.data.moduleName) return _validateFail(dlgScope, 'moduleName', 'Please enter the name for the imported module');
@@ -117,9 +137,10 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlServerApi, n
     }
 
     function _getRowObj(row) {
-    	if(!row[0]) return null;	
+    	if(!row[0]) return null;
         var ret = {pagetype: row[0], sections: []};
-        for(var i=1; i<row.length; i++) ret.sections.push(row[i]);
+        if(row[1]) ret['maxScore'] = parseInt(row[1]);
+        for(var i=2; i<row.length; i++) ret.sections.push(row[i]);
         return ret;
 	}
 	
@@ -129,6 +150,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlServerApi, n
 		for(var i=0; i<rows.length; i++) {
 			var row = rows[i];
 			var page = {type:row.pagetype, sections:[], pageId: lesson.newPageId++};
+			if(row.maxScore) page['pageMaxScore'] = row.maxScore;  
 			for(var j=0; j<row.sections.length; j++) {
 				page.sections.push({text: row.sections[j], type: "txt"});
 			}
