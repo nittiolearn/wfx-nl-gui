@@ -222,7 +222,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 			subjectlabel: _groupInfo.props.subjectlabel,
 			sessions: [{name: 'Session 1', duration:{id: 60}}]};
 		_dlg.scope.data = _card ? _card : defaultData;
-		_dlg.scope.data.origCard = angular.copy(_card);
 		_dlg.scope.data.module = '';
 		var selectedGrade = {};
 		var selectedSubject = {};
@@ -456,7 +455,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 	function _onTrainingKindChange(scope, batchOrKindItem, isShowDetails) {
 		scope.help.trainingkind.isShown = false;
 		scope.trainigKindSelected = true;
-		scope.data = batchOrKindItem;
+		scope.data = angular.copy(batchOrKindItem);
 		scope.data.showTrainingAttrs = isShowDetails;
 		scope.data.trainingkind = batchOrKindItem;
 		scope.data.modulename = batchOrKindItem.modulename || '';
