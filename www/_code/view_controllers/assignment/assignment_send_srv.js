@@ -134,10 +134,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			isMailEnabled = true;
 			break;
 		}
-		if(!isMailEnabled) return false;
-		for(var i=0; i<props.tasks.length; i++)
-			if(props.tasks[i] == 3) return true;
-		return false;
+		return isMailEnabled;
     }
     
     function _initDlgScope() {
