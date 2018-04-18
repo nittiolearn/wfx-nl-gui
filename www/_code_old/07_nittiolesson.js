@@ -595,6 +595,13 @@ nlesson = function() {
 		} else {
 			jQuery('#do_toggle_icon').hide();		
 		}
+		var curPageNo = this.getCurrentPageNo();
+		var pages = this.pages;
+		if((pages.length - curPageNo) <=2 ) {
+		    jQuery('#lesson_submit_icon').show();			
+		} else {
+		    jQuery('#lesson_submit_icon').hide();
+		}
 	}
 	
 	function Lesson_showPageReport(bFeedback) {

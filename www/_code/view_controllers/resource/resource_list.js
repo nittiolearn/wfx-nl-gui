@@ -513,8 +513,8 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
             markupPopup: {name: nl.t(''), help: nl.t('External links are best suited to be opened in a new window.')},
             markupPage: {name: nl.t('Page number'), help: nl.t('Select the page number of the PDF to be displayed.')},           
             markupScale: {name: nl.t('Scale ratio'), help: nl.t('You could scale the PDF viewing area with respect to width of the section. Use scale 1.0 to scale the PDF to use 100% of width. Using a scale of 1.2 will use 120% of width of the container resulting in a horizontal scroll bar. If you want to avoid a vertical scroll bar, you could try using a smaller scale like 0.8.')},
-            markupStart: {name: nl.t('Start from (seconds)'), help: nl.t('Play your video or audio starting from the given second.')},
-            markupEnd: {name: nl.t(' End at (seconds)'), help: nl.t('End playing your video or audio at the given second.')},
+            markupStart: {name: nl.t('Start from'), help: nl.t('Play your video or audio starting from the given time (in minutes and seconds).')},
+            markupEnd: {name: nl.t(' End at'), help: nl.t('End playing your video or audio at the given time (in minutes and seconds).')},
         	bgShade: {name: nl.t('Text color'), help: nl.t('Depending on whether your image is dark or light, you can set the text color to one which is clearly visible in the background. With this, you can control the colors used for different types of text (normal, heading, link, ...)')},
         	shared: {name: nl.t('Shared resource'), help: nl.t('Selecting this will allow other users in your group to use this resource within the the modules they create.')},
         	animated: {name: nl.t('Animated image'), help: nl.t('Select this only if you are uploading an animated image (animated GIF).')}
@@ -584,9 +584,18 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
 
         sd.markupPage = ('page' in restypeInfo.params) ? parseInt(restypeInfo.params.page) : 1;
         sd.markupScale = restypeInfo.params.scale || '1.0';
-
-        sd.markupStart = ('start' in restypeInfo.params) ? parseInt(restypeInfo.params.start) : 0;
-        sd.markupEnd = ('end' in restypeInfo.params) ? parseInt(restypeInfo.params.end) : 0;
+		sd.markupStart = parseInt(restypeInfo.params.start) || 0;
+		sd.markupEnd = parseInt(restypeInfo.params.end) || 0;
+        if('start' in restypeInfo.params) {
+        	var start = parseInt(restypeInfo.params.start);
+			sd.markupStartMins = Math.floor(start/60);
+			sd.markupStartSecs = start % 60;
+        }
+        if('end' in restypeInfo.params) {
+        	var end = parseInt(restypeInfo.params.end);
+			sd.markupEndMins = Math.floor(end/60);
+			sd.markupEndSecs = end % 60;
+        }
         return true;
     }
     
@@ -611,12 +620,16 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
             _addMarkupParam(params, 'scale', sd.markupScale, '1.0');
         } else if (sd.restype.id == 'Audio') {
             prefix = 'audio:';
-            _addMarkupParam(params, 'start', sd.markupStart, 0);
-            _addMarkupParam(params, 'end', sd.markupEnd, 0);
+            var start = (sd.markupStartMins || 0)*60 + (sd.markupStartSecs || 0);
+            var end = (sd.markupEndMins || 0)*60 + (sd.markupEndSecs || 0);
+            _addMarkupParam(params, 'start', start, 0);
+            _addMarkupParam(params, 'end', end, 0);
         } else if (sd.restype.id == 'Video') {
             prefix = 'video:';
-            _addMarkupParam(params, 'start', sd.markupStart, 0);
-            _addMarkupParam(params, 'end', sd.markupEnd, 0);
+            var start = (sd.markupStartMins || 0)*60 + (sd.markupStartSecs || 0);
+            var end = (sd.markupEndMins || 0)*60 + (sd.markupEndSecs || 0);
+            _addMarkupParam(params, 'start', start, 0);
+            _addMarkupParam(params, 'end', end, 0);
         }
         params = params.join('|');
         url = prefix + url;

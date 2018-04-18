@@ -335,13 +335,31 @@
     </nl-dlg-row> 
 
     <nl-dlg-row attr='markupStart' data='data' help='help'
-         ng-show='markupInfo.showMarkupOptions && (data.restype.id == "Video" || data.restype.id == "Audio") && data.advOptions'>
-        <nl-input fieldmodel='markupStart' fieldtype='number' fieldminvalue=0 fieldcls='w100'></nl-input>
+        ng-show='markupInfo.showMarkupOptions && (data.restype.id == "Video" || data.restype.id == "Audio") && data.advOptions'>
+        <div class='row row-center row-wrap padding0 margin0'>
+         	<div class='padding-mid'>Minutes</div>
+         	<div class='col'>
+		        <nl-input fieldmodel='markupStartMins' fieldtype='number' fieldminvalue=0 fieldcls='w100'></nl-input>
+         	</div>
+         	<div class='padding-mid'>Seconds</div>
+         	<div class='col'>
+		        <nl-input fieldmodel='markupStartSecs' fieldtype='number' fieldminvalue=0 fieldmaxvalue=59 fieldcls='w100'></nl-input>
+         	</div>
+        </div>
     </nl-dlg-row> 
 
     <nl-dlg-row attr='markupEnd' data='data' help='help'
                 ng-show='markupInfo.showMarkupOptions && (data.restype.id == "Video" || data.restype.id == "Audio") && data.advOptions'>
-        <nl-input fieldmodel='markupEnd' fieldtype='number' fieldminvalue=0 fieldcls='w100'></nl-input>
+        <div class='row row-center row-wrap padding0 margin0'>
+         	<div class='padding-mid'>Minutes</div>
+         	<div class='col'>
+		        <nl-input fieldmodel='markupEndMins' fieldtype='number' fieldminvalue=0 fieldcls='w100'></nl-input>
+         	</div>
+         	<div class='padding-mid'>Seconds</div>
+         	<div class='col'>
+		        <nl-input fieldmodel='markupEndSecs' fieldtype='number' fieldminvalue=0 fieldmaxvalue=59 fieldcls='w100'></nl-input>
+         	</div>
+        </div>
     </nl-dlg-row>
 </div>
 </nl-dlg-content>

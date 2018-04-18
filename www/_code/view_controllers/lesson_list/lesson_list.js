@@ -164,9 +164,9 @@ function($scope, nlLessonSelect) {
 
 //-------------------------------------------------------------------------------------------------
 var LessonSelectSrv = ['nl', 'nlRouter', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 
-'nlApproveDlg', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlGroupInfo',
+'nlApproveDlg', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlGroupInfo', 'nlChangeOwner',
 function(nl, nlRouter, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlSendAssignmentSrv, 
-	nlMetaDlg, nlGroupInfo) {
+	nlMetaDlg, nlGroupInfo, nlChangeOwner) {
 this.showSelectDlg = function($scope, initialUserInfo) {
 	var self = this;
 	return nl.q(function(resolve, reject) {
@@ -300,7 +300,9 @@ this.show = function($scope, initialUserInfo, params) {
 				esttime : card.esttime ? card.esttime : ''
 			};
 			nlSendAssignmentSrv.show($scope, assignInfo);
-		}
+		} else if (internalUrl == 'change_owner') {
+			nlChangeOwner.show($scope, lessonId, 'lesson', _userInfo);
+		};
 	};
 
 	$scope.onCardLinkClicked = function(card, linkId) {
@@ -466,6 +468,9 @@ this.show = function($scope, initialUserInfo, params) {
             nl.fmt.addLinkToAvp(linkAvp, 'send assignment', null, 'send_assignment');
             _addApproveLinkToDetails(lesson, linkAvp);
             _addMetadataLinkToDetails(linkAvp);
+           	if(_userInfo.permissions.lesson_approve)
+           		nl.fmt.addLinkToAvp(linkAvp, 'change owner', null, 'change_owner');;
+
         } else if (mode.mode == MODES.SENDASSIGNMENT) {
             nl.fmt.addLinkToAvp(linkAvp, 'view', nl.fmt2('/lesson/view/{}', lessonId));
             nl.fmt.addLinkToAvp(linkAvp, 'select', null, 'send_assignment');

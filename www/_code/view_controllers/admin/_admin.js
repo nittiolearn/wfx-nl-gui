@@ -4,7 +4,7 @@
 // _course.js: Controllers for course related functions
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-    angular.module('nl.admin', ['nl.group', 'nl.user', 'nl.user_bulk', 'nl.recycle']);
+    angular.module('nl.admin', ['nl.group', 'nl.user', 'nl.user_bulk', 'nl.recycle', 'nl.changeowner']);
 }
 
 //-------------------------------------------------------------------------------------------------

@@ -520,6 +520,10 @@ function(nl, nlDlg, nlConfig, Upload) {
     this.lessonUpdateResourceLibrary = function(data) {
        return server.post('_serverapi/lesson_update_resource_library.json', data);
     };
+    
+    this.changeOwner = function(data) {
+    	return server.post('_serverapi/change_owner.json', data);
+    };
     //---------------------------------------------------------------------------------------------
     // Content metadata
     //---------------------------------------------------------------------------------------------
