@@ -539,7 +539,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlExporter, nlRangeSelectionD
     
     function _createSummaryCsv(summaryStats, zip, fileName, start, end) {
         var header = ['Org'];
-        var metas = _reportProcessor.getMetaHeaders(false);
+        var metas = _reportProcessor.getMetaHeaders(true);
         for(var i=0; i<metas.length; i++) header.push(metas[i].name);
         header = header.concat(['Completion', 'Assigned', 'Done', 'Failed', 'Started', 'Pending']);
         var rows = [nlExporter.getCsvString(header)];
@@ -961,7 +961,7 @@ function SummaryStats(nl, nlGroupInfo, _data, _reportProcessor, $scope) {
     var _orgDict = {};
     
     this.init = function() {
-        _metas = _reportProcessor.getMetaHeaders(false);
+        _metas = _reportProcessor.getMetaHeaders(true);
     };
     
     this.reset = function() {
