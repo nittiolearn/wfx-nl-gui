@@ -163,7 +163,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 	        }
         	if(dlg.scope.mode == 'addpage') {
                 _lastSelectedPageType = _layoutDict[sd.layout.id];
-	            resolve({pt:sd.layout.id, layout: _layoutsFromBeautyString(sd.sectionLayout)});
+	            resolve({pt:sd.layout.id, layout: _getLayouts(sd)});
     		    dlg.close();
     		    return;
         	} else if(dlg.scope.mode == 'changelayout') {
@@ -178,7 +178,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 				});
         	} else {
     		    _lastSelectedPageType = _layoutDict[sd.layout.id];
-    		    resolve({pt:sd.layout.id, layout: _layoutsFromBeautyString(sd.sectionLayout)});
+    		    resolve({pt:sd.layout.id, layout: _getLayouts(sd)});
     		    dlg.close();
         	}
         }};
@@ -187,7 +187,16 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 		}};
 		dlg.show('nittiolesson/add_page_dlg.html', [okButton], cancelButton);
 	}
-	
+
+	function _getLayouts(sd) {
+        var layout = _layoutsFromBeautyString(sd.sectionLayout);
+        for(var i=0; i<layout.length; i++) {
+        	if(!sd.layout.layout[i].content) continue;
+        	layout[i].content = sd.layout.layout[i].content || {};
+        }
+		return layout;
+	}	
+
     function _getHelp() {
         return {
             pagetype: {name: nl.t('Page Type'), help: nl.t('specifies the purpose of the page - some of the page types are for presenting information(text, images and videos) while others are for providing various interactions with the learner.')},
@@ -452,8 +461,8 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 
 	var LAYOUT_ORDER = ['pos', 't', 'h', 'l', 'w'];
 	var LAYOUT_COLLEN = {'pos': 2, 't': 5, 'h': 5, 'l': 5, 'w': 5};
-	var LAYOUT_ORDER_OTHER = ['t1', 'h1', 'l1', 'w1', 'aligntype', 'style', 'fmtgroup', 'ans', 'correct', 'mode'];
-    var LAYOUT_ATTR_TYPE = {'t1': 'int', 'h1': 'int', 'l1': 'int', 'w1': 'int'};
+	var LAYOUT_ORDER_OTHER = ['t1', 'h1', 'l1', 'w1', 'aligntype', 'style', 'fmtgroup', 'ans', 'correct', 'mode', 'content'];
+    var LAYOUT_ATTR_TYPE = {'t1': 'int', 'h1': 'int', 'l1': 'int', 'w1': 'int', 'content': 'object'};
 	function _beautyStringifyLayout(secLayout, i) {
 		secLayout.pos = i+1;
 		var ret = '{';
@@ -469,6 +478,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 		for (var i in LAYOUT_ORDER_OTHER) {
 			var attr = LAYOUT_ORDER_OTHER[i];
 			if (!(attr in secLayout)) continue;
+			if (attr in LAYOUT_ATTR_TYPE && LAYOUT_ATTR_TYPE[attr] == 'object') continue;
 			var quote = (attr in LAYOUT_ATTR_TYPE && LAYOUT_ATTR_TYPE[attr] == 'int') ? '' : '"';
 			ret += ', "' + attr + '":' + quote + secLayout[attr] + quote;
 		}

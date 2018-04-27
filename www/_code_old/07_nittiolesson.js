@@ -1188,7 +1188,7 @@ nlesson = function() {
 		curPage.updateContent();
 		curPage.oPage.type = pageType;
 		__setCustomLayout(curPage.oPage, customLayout);
-		var hNewPage = curPage.initDom(curPage.oPage, curPage.bgimg);
+		var hNewPage = curPage.initDom(curPage.oPage, curPage.bgimg, true);
 		
 		hNewPage.insertAfter(hCurPage);
 		hCurPage.remove();
@@ -1467,8 +1467,8 @@ nlesson = function() {
 	//---------------------------------------------------------------------------------------------
 	// Initialize and render
 	//---------------------------------------------------------------------------------------------
-	function Page_initDom(oPage, bgimg) {
-		this.init(oPage, bgimg);
+	function Page_initDom(oPage, bgimg, isChangePage) {
+		this.init(oPage, bgimg, isChangePage);
 		var ret = this.createHtmlDom();
 		return ret;
 	}
@@ -1503,7 +1503,7 @@ nlesson = function() {
 	//---------------------------------------------------------------------------------------------
 	// Initialize and render - internal methods
 	//---------------------------------------------------------------------------------------------
-	function Page_init(oPage, bgimg) {
+	function Page_init(oPage, bgimg, isChangePage) {
 		this.oPage = oPage;
 		this.bgimg = bgimg;
 		this.sections = [];		
@@ -1512,21 +1512,21 @@ nlesson = function() {
 		this.markFroRedraw();
 
 		this.oPage.maxScore = this.getMaxScore();
+		
+		var layout = this.oPage.sectionLayout || this.pagetype.getLayout();
 		var len = this.oPage.sections.length;
-		var neededLen = this.pagetype.getSectionCount();
-
-		// add sections if needed
+		var neededLen = layout.length;
+		
+		if (isChangePage) {
+			for (var i = 0; i < len; i++) {
+				if (i >= neededLen) break;
+				this.oPage.sections[i] = this.createOSection(layout[i], this.oPage.sections[i]);
+			}
+		}
 		for (var i = len; i < neededLen; i++) {
-			this.oPage.sections.push(this.createOSection());
+			this.oPage.sections.push(this.createOSection(layout[i], null));
 		}
-
-		/*
-        // remove extra sections if present - commented
-		if (len > neededLen) {
-			this.oPage.sections.splice(neededLen, len - neededLen);
-		}
-		*/
-
+		
 		this.sectionCreateOrder = njs_helper.randSet(neededLen, this.pagetype.getRandomizableElems());
 		for (var i = 0; i < neededLen; i++) {
 			var so = new Section(this, this.lesson);
@@ -1792,10 +1792,13 @@ nlesson = function() {
 		return oPage;
 	}
 	
-	function Page_createOSection() {
+	function Page_createOSection(section, oldSection) {
 		ret = new Object();
+		var content = section.content || {};
 		ret.type = 'txt';
-		ret.text = '';
+		ret.text = content.text ? content.text : oldSection ?  oldSection.text : '';
+		if(content.template) ret.template = content.template;
+		if(content.popups) ret.popups = content.popups;
 		return ret;
 	}
 
