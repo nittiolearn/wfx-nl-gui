@@ -95,7 +95,6 @@ function(nl, nlRouter, nlDlg, $scope, nlServerApi, nlExporter, nlCardsSrv) {
         var avps = [];
         nl.fmt.addAvp(avps, 'Description', item.description);
         nl.fmt.addAvp(avps, 'Primary Admin Email', item.padminemail);
-        nl.fmt.addAvp(avps, 'Parent Group', item.parentGrp);
         nl.fmt.addAvp(avps, 'Org Tree', item.org_tree);
         nl.fmt.addAvp(avps, 'Properties', item.props);
         nl.fmt.addAvp(avps, 'Created', item.created, 'date');
@@ -120,9 +119,9 @@ function(nl, nlRouter, nlDlg, $scope, nlServerApi, nlExporter, nlCardsSrv) {
     }
     
     var _headers = ['Operation', 'Key', 'Group Id', 'Group Name', 
-        'Primary Admin Email', 'Parent Group', 'Status', 
+        'Primary Admin Email', 'Status', 
         'Description', 'Icon', 'Org Tree', 
-        'Properties', 'Created UTC Time', 'Updated UTC Time']
+        'Properties', 'Created UTC Time', 'Updated UTC Time'];
 
     var DELIM = '\n';
     function _export(resolve, reject) {
@@ -131,7 +130,7 @@ function(nl, nlRouter, nlDlg, $scope, nlServerApi, nlExporter, nlCardsSrv) {
             for(var i=0; i<_records.length; i++) {
                 var record = _records[i];
                 var row = ['i', record.grpid, record.grpid, record.name,
-                    record.padminemail || '', record.parentGrp || '', record.disabled ? 0 : 1, 
+                    record.padminemail || '', record.disabled ? 0 : 1, 
                     record.description || '', record.icon || '', record.org_tree || '',
                     record.props || '', record.created || '', record.updated || ''];
                 csv += DELIM + nlExporter.getCsvString(row);
