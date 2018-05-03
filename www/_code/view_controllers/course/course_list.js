@@ -357,10 +357,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 
 	function  _getCourseAvps(course) {
 		var avps = [];
-		if (nlRouter.isPermitted(_userInfo, 'admin_user')) {
-			var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
-			_populateLinks(linkAvp, course.id, course);
-		}
+		_populateLinks(avps);
 		nl.fmt.addAvp(avps, 'Name', course.name);
 		nl.fmt.addAvp(avps, 'Author', course.authorname);
 		nl.fmt.addAvp(avps, 'Group', course.grpname);
@@ -374,9 +371,13 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		return avps;
 	}
 
-	function _populateLinks(linkAvp, courseId, course) {
-		nl.fmt.addLinkToAvp(linkAvp, 'course modify', null, 'course_modify');
-		if(_userInfo.permissions.lesson_approve && !my) nl.fmt.addLinkToAvp(linkAvp, 'change owner', null, 'change_owner');
+	function _populateLinks(avps) {
+		var isAdmin = nlRouter.isPermitted(_userInfo, 'admin_user');
+		var isApproverInPublished = _userInfo.permissions.lesson_approve && !my;
+		if (!isAdmin && !isApproverInPublished) return;
+		var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
+		if (isAdmin) nl.fmt.addLinkToAvp(linkAvp, 'course modify', null, 'course_modify');
+		if(isApproverInPublished) nl.fmt.addLinkToAvp(linkAvp, 'change owner', null, 'change_owner');
 	}
 
 	function _createReportCard(report, isReport) {
