@@ -144,14 +144,18 @@ function(nl) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var AppCtrl = ['nl', '$scope', 'nlKeyboardHandler', 'nlServerApi', 'nlRouter', 'nlLogViewer', 'nlOldCodeBridge',
-function(nl, $scope, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer, nlOldCodeBridge) {
+var AppCtrl = ['nl', '$scope', '$anchorScroll', 'nlKeyboardHandler', 'nlServerApi', 'nlRouter', 'nlLogViewer', 'nlOldCodeBridge',
+function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer, nlOldCodeBridge) {
     nl.log.info('UserAgent: ', navigator.userAgent);
     if (NL_SERVER_INFO.oldCode) nlOldCodeBridge.expose();
 
     nl.rootScope.imgBasePath = nl.url.resUrl();
     nl.rootScope.pgInfo = nl.pginfo;
     nl.rootScope.pgBgimg = null;
+    nl.rootScope.gotoAnchor = function(anchor) {
+        if (anchor) nl.location.hash(anchor);
+        $anchorScroll();
+    };
 
     _initScreenSize(nl);
     nlLogViewer.showOnStartupIfRequired($scope);
