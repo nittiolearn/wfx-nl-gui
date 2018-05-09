@@ -1312,6 +1312,10 @@ nl-cards {
   body {
     display: none !important;
   }
+  
+  .nl-print-scroll {
+    overflow: visible !important;
+  }
 
   body.nl-print {
     display: block !important;
