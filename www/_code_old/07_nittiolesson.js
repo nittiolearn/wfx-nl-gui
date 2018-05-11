@@ -80,9 +80,7 @@ nlesson = function() {
 		this.changePageType = Lesson_changePageType;
 		this.swapPage = Lesson_swapPage;
 		this.cutPage = Lesson_cutPage;
-		this.copyPage = Lesson_copyPage;
 		this.pastePage = Lesson_pastePage;
-		this.isPastable = Lesson_isPastable;
 		this.reinitSlides = Lesson_reinitSlides;
 
 		this.updateScore = Lesson_updateScore;
@@ -1231,28 +1229,24 @@ nlesson = function() {
 		lst[b] = temp;
 	}
 	
-	var clipBoard = '';
 	function Lesson_cutPage(pageNo) {
-		clipBoard = this.pages[pageNo].getContent();
 		this.pages[pageNo].hPage.remove();
         if (!modulePopup.isPopupOpen())
     		this.oLesson.pages.splice(pageNo, 1);
 		this.pages.splice(pageNo, 1);
-
 		this.reinitSlides(1);
 		return true;
 	}
 	
-	function Lesson_copyPage(pageNo) {
-		clipBoard = this.pages[pageNo].copyContent();
-		return true;
-	}
-
-	function Lesson_pastePage(pageNo) {
-		if (clipBoard === '') {
-			return false;
-		}
-		var oNewPage = jQuery.parseJSON(clipBoard);
+	function Lesson_pastePage(pageNo, clip) {
+		if(!clip) return false;
+		var oNewPage = null;
+	    try {
+  			oNewPage = jQuery.parseJSON(clip);
+  		} catch(e) {
+  			return false;
+  		}
+  		if (!oNewPage.sections || oNewPage.sections.length < 1) return false;
 		var newPage = new Page(this);
 		var hNewPage = newPage.initDom(oNewPage, this.bgimg);
 
@@ -1262,10 +1256,6 @@ nlesson = function() {
         if (!modulePopup.isPopupOpen())
     		this.oLesson.pages.splice(pageNo + 1, 0, newPage.oPage);
 		return true;
-	}
-
-	function Lesson_isPastable() {
-		return clipBoard !== '';
 	}
 
 	function Lesson_getPageStudentNotes() {

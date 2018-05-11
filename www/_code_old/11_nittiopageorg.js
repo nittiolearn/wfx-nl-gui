@@ -2,6 +2,7 @@ njsPageOrg = function() {
 
 	var g_onDoneFn = '';
 	var _pageOrgDlg = new njs_helper.Dialog();
+	var _pageOrgCopyPasteField = null;
 
 	// All index are 0-based. Index -1 refers to header row
 	function showOrganizer(isPopup, onDoneFn) {
@@ -15,6 +16,7 @@ njsPageOrg = function() {
 		var pageDlgTemplate = jQuery('#njsPageOrganizer').val();
 		var dlgStr = njs_helper.fmt1(pageDlgTemplate, lessonDict).trim();
 		var dlg = njs_helper.jobj(dlgStr);
+		_pageOrgCopyPasteField = dlg.find('#page_org_copy_paste_field');
 
 		_pageOrgDlg.remove();
 		var cancelButton = {id: 'cancel', text: 'Close', fn: function() {
@@ -25,10 +27,55 @@ njsPageOrg = function() {
         var title = jQuery('#page_org_title');
         title.html(njs_helper.fmt2('Organize {}Pages', isPopup ? 'Popup ' : ''));
 		_pageOrgDlg.show();
-
+		_setCopyPasteFieldListeners(dlg);
+		_ensureFocusOfCopyPasteField();
 		bindHotkeys();
 	}
+	
+	// Focus till it is done!
+	var _focuserHandle = null;
+	var _retriesDone = 0;
+	function _ensureFocusOfCopyPasteField() {
+		if (_focuserHandle) clearInterval(_focuserHandle);
+		_retriesDone = 0;
+		_pageOrgCopyPasteField.focus();
+		var MAX_RETRIES = 6;
+		_focuserHandle = setInterval(function() {
+			_pageOrgCopyPasteField.focus();
+			_retriesDone++;
+			if (_retriesDone < MAX_RETRIES) return;
+			clearInterval(_focuserHandle);
+			_focuserHandle = null;
+		}, 500);
+	}
 
+	function _setCopyPasteFieldListeners() {
+		_pageOrgCopyPasteField.on('focus', function() {
+			_pageOrgCopyPasteField.select();
+		});
+	
+		_pageOrgCopyPasteField.on('copy',function(e) {
+			_pageOrgCopyPasteField.val(_getSelectedContent());
+			_ensureFocusOfCopyPasteField();
+		});
+
+		_pageOrgCopyPasteField.on('cut',function(e) {
+			_pageOrgCopyPasteField.val(_getSelectedContent());
+			onCut();
+			_ensureFocusOfCopyPasteField();
+		});
+
+		_pageOrgCopyPasteField.on('paste',function(e) {
+            var clipboard = e.clipboardData || window.clipboardData || e.originalEvent.clipboardData;
+            var clip = clipboard && clipboard.getData('text/plain') || null;
+			onPaste(clip);
+		});
+	}
+
+	function _getSelectedContent() {
+		return nlesson.theLesson.pages[g_pageOverviewPageNo].copyContent();
+	}
+	
 	function _closeOrganizer() {
 		_pageOrgDlg.close();
 		unbindHotkeys();
@@ -89,9 +136,6 @@ njsPageOrg = function() {
 		nittio.bindHotkey('body', 'pageOrg', 'end', onKeyEnd);
 		nittio.bindHotkey('body', 'pageOrg', 'Ctrl+up', onKeyCtrlUp);
 		nittio.bindHotkey('body', 'pageOrg', 'Ctrl+down', onKeyCtrlDown);
-		nittio.bindHotkey('body', 'pageOrg', 'Ctrl+x', onCut);
-		nittio.bindHotkey('body', 'pageOrg', 'Ctrl+c', onCopy);
-		nittio.bindHotkey('body', 'pageOrg', 'Ctrl+v', onPaste);
 		nittio.bindHotkey('body', 'pageOrg', 'return', onNavigateToPage);
 	}
 
@@ -156,6 +200,7 @@ njsPageOrg = function() {
 		g_pageOverviewPageNo = pageNo;
 		_getPageRow(pageNo).addClass('selected');
 		jQuery('#page_org_row_sel_' + g_pageOverviewPageNo).prop('checked', true);
+		_ensureFocusOfCopyPasteField();
 		_enableButtonsPerState(g_pageOverviewPageNo);
 	}
 
@@ -198,9 +243,6 @@ njsPageOrg = function() {
 		var buttonStates = {
 			page_org_icon_up : false,
 			page_org_icon_down : false,
-			page_org_icon_cut : false,
-			page_org_icon_copy : false,
-			page_org_icon_paste : false
 		};
 
 		if (pageNo < 0) {
@@ -213,11 +255,6 @@ njsPageOrg = function() {
 		}
 		if (pageNo < lesson.pages.length - 1) {
 			buttonStates['page_org_icon_down'] = true;
-		}
-		buttonStates['page_org_icon_cut'] = true;
-		buttonStates['page_org_icon_copy'] = true;
-		if (lesson.isPastable()) {
-			buttonStates['page_org_icon_paste'] = true;
 		}
 		return _enableButtons(buttonStates);
 	}
@@ -263,10 +300,6 @@ njsPageOrg = function() {
 	}
 
 	function onCut() {
-		var butId = 'page_org_icon_cut';
-		if (!nittio.isButtonEnabled(butId)) {
-			return false;
-		}
 		var lesson = nlesson.theLesson;
 		var curPos = g_pageOverviewPageNo;
 		cutPage(lesson, curPos);
@@ -293,24 +326,10 @@ njsPageOrg = function() {
 		lesson.updateContent();
 	}
 
-	function onCopy() {
-		var butId = 'page_org_icon_copy';
-		if (!nittio.isButtonEnabled(butId)) {
-			return false;
-		}
+	function onPaste(clip) {
 		var lesson = nlesson.theLesson;
-		lesson.copyPage(g_pageOverviewPageNo);
-		_reinitRows(lesson, 0, -1, g_pageOverviewPageNo);
-	}
-
-	function onPaste() {
-		var butId = 'page_org_icon_paste';
-		if (!nittio.isButtonEnabled(butId)) {
-			return false;
-		}
-		var lesson = nlesson.theLesson;
-		if (!lesson.pastePage(g_pageOverviewPageNo)) {
-			alert('Please cut or copy before pasting');
+		if (!lesson.pastePage(g_pageOverviewPageNo, clip)) {
+			alert('Please cut or copy a page before pasting it.');
 			return false;
 		}
 		var selectedPage = g_pageOverviewPageNo + 1;
@@ -343,8 +362,5 @@ njsPageOrg = function() {
 		onPageClick : onPageClick,
 		onSwap : onSwap,
 		cutPage : cutPage,
-		onCut : onCut,
-		onCopy : onCopy,
-		onPaste : onPaste
 	};
 }();
