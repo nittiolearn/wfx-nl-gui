@@ -191,9 +191,10 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 
 	function _getLayouts(sd) {
         var layout = _layoutsFromBeautyString(sd.sectionLayout);
+        var oldLen = sd.layout.layout.length;
         for(var i=0; i<layout.length; i++) {
-        	if(!sd.layout.layout[i].content) continue;
-        	layout[i].content = sd.layout.layout[i].content || {};
+        	if(i >= oldLen || !sd.layout.layout[i].content) continue;
+        	layout[i].content = sd.layout.layout[i].content;
         }
 		return layout;
 	}	
