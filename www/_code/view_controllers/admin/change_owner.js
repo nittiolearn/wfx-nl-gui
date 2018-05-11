@@ -133,7 +133,10 @@ function(nl, nlDlg, nlServerApi) {
 	    					nl.window.location.href = '#/home';
 	    			});
     			} else {
-	    			return nlDlg.popupAlert(msg);
+	    			return nlDlg.popupAlert(msg).then(function() {
+	    				nlDlg.showLoadingScreen();
+	    				nl.window.location.reload();
+	    			});
     			}
     		}
     	}, function(e) {

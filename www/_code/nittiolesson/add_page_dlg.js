@@ -71,6 +71,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         var defSectionLayout = page ? page.pagetype.layout : null;
         dlgScope.options.pagetype = _pageTypes;
         dlgScope.data.pagetype = defPt ? {id: defPt.interaction} : dlgScope.options.pagetype[0];
+        dlgScope.page = page;
         if(cfg.mode != 'changeformat') {
 	        _onPtChange(dlgScope, defPt);
         } else {
@@ -190,9 +191,10 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 
 	function _getLayouts(sd) {
         var layout = _layoutsFromBeautyString(sd.sectionLayout);
+        var oldLen = sd.layout.layout.length;
         for(var i=0; i<layout.length; i++) {
-        	if(!sd.layout.layout[i].content) continue;
-        	layout[i].content = sd.layout.layout[i].content || {};
+        	if(i >= oldLen || !sd.layout.layout[i].content) continue;
+        	layout[i].content = sd.layout.layout[i].content;
         }
 		return layout;
 	}	
@@ -254,6 +256,9 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         for(var i=0; i<pagelayout.length; i++) {
             var section = angular.copy(pagelayout[i]);
             section.pos = i+1;
+            if (!section.aligntype) section.aligntype = 
+            	dlgScope.page && dlgScope.page.pagetype.isSectionValignMiddle(i) 
+            	? 'title' : 'content';
             _cleanupPositions(section);
             dlgScope.sections.push(section);
         }
