@@ -109,13 +109,12 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect) {
 		var card = {title: nl.t('User Administration'), 
 					icon: nl.url.resUrl('dashboard/cruser.png'), 
 					internalUrl: 'adminuser_create',
-					help: nl.t('You add a new user by clicking on this card'), 
+					help: nl.t('Add a new user by clicking on this card'), 
 					children: [], link: [], style: 'nl-bg-blue'};
         ret.push(card);
 
         card.children.push({title: nl.t('Create user'), internalUrl: 'adminuser_create',
             children: [], link: [], style: 'nl-bg-blue'});
-        if (!nlRouter.isPermitted(_userInfo, 'admin_user_bulk')) return ret;
 
         card.children.push({title: nl.t('Export'), internalUrl: 'adminuser_export',
             children: [], link: [], style: 'nl-bg-blue'});

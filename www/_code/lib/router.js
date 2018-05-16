@@ -278,7 +278,6 @@ function Permission(nl) {
         'forum_delete_msg': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         'forum_view_details': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         'admin_user': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
-        'admin_user_bulk': {login: true, permission: 'admin_user_bulk', termRestriction: TR_CLOSED},
         'admin_group': {login: true, permission: 'admin_group', termRestriction: TR_CLOSED},
         'nittio_support': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED}
     };
