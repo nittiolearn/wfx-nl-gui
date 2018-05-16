@@ -352,6 +352,18 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 		addModifyResourceDlg.scope.options = {};
 		addModifyResourceDlg.scope.data.card = card;
         addModifyResourceDlg.scope.data.restype = {};
+        if(card && card.isPasteAndUpload) {
+        	addModifyResourceDlg.scope.data.isPasteAndUpload = true;
+            addModifyResourceDlg.scope.data.restype.id = 'Image';
+        	card.resource = card.resource[0];
+        	var extn = nlResourceUploader.getValidExtension(card.resource, 'Image');
+            var restype = nlResourceUploader.getRestypeFromExt(extn);            
+            var fileInfo = {resource: card.resource, restype: restype, extn: extn, name: ''};
+	        Upload.dataUrl(card.resource).then(function(url) {
+	            fileInfo.resimg = url;
+	        });
+		    addModifyResourceDlg.scope.data.resource = [fileInfo];
+        }
 		addModifyResourceDlg.scope.options.compressionlevel = COMPRESSIONLEVEL;	
 		addModifyResourceDlg.scope.data.compressionlevel = {id: 'high'};		
 		addModifyResourceDlg.scope.options.restype = _getRestypeList(restypes);
@@ -359,7 +371,7 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
             {id: 'bgdark', name: 'Light text color for darker background'},
             {id: 'bglight', name: 'Dark text color for lighter background'}];
 
-		if (!card) {
+		if (!card || card.resource) {
 			addModifyResourceDlg.scope.data.restype.id = addModifyResourceDlg.scope.options.restype[0].id;
 			addModifyResourceDlg.scope.data.pagetitle = nl.t('Upload resource');
 		} else {
@@ -416,6 +428,11 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 		if (sd.restype.id == 'Image') resourceInfoDict['animated'] = sd.animated;
 		if (sd.resourceFilter == 'bg') resourceInfoDict['bgShade'] = sd.bgShade.id;
 	    resourceInfoDict['insertfrom'] = sd.lessonid ? nl.t('/lesson/edit/{}/', sd.lessonid) : '/';
+	    
+	    if(sd.isPasteAndUpload) {
+	    	resourceInfoDict['name'] = sd.filename;
+	    	resourceInfoDict['filename'] = nl.t('{}{}', sd.filename, resourceList[0].extn) || resourceList[0].resource.name;
+	    }
 	    if(resourceList.length == 0) {
 		    if (e) e.preventDefault();
 		    if (sd.selectedTab == 'record') {
@@ -453,13 +470,14 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
         uploadAgainDlg.show('view_controllers/resource/upload_done_dlg.html', [], cancelButton);
 	}
 
-    this.insertOrUpdateResource = function($scope, restypes, markupText, showMarkupOptions, resourceDict, resourceFilter, lessonId) {
+    this.insertOrUpdateResource = function($scope, restypes, markupText, showMarkupOptions, resourceDict, resourceFilter, lessonId, card) {
     	// resoureFilter = 'bg' | 'icon' | undefined
+    	nlDlg.hideLoadingScreen();
     	var restype = markupText.substring(0, markupText.indexOf(':'));
     	if(_updatedResourceList.length == 0) _updatedResourceList = resourceDict.resourcelist  ? resourceDict.resourcelist : [];
     	_resourceLibrary.init(_updatedResourceList, resourceFilter, restype, resourceDict, lessonId, maxResults);
         var markupHandler = new MarkupHandler(nl, nlDlg, true, markupText, showMarkupOptions);
-        return this.show($scope, null, restypes, true, markupHandler);
+        return this.show($scope, card || null, restypes, true, markupHandler);
     };
 
 }];
@@ -471,7 +489,7 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
         _scope.markupInfo = {};
          
         _scope.help = _getHelp();
-        _scope.data.buttonname = insertOrUpdateResource ? 'OK' : _scope.card ? 'Modify' : 'Upload';
+        _scope.data.buttonname = insertOrUpdateResource ? 'OK' : _scope.data.card ? 'Modify' : 'Upload';
         _scope.data.url = '';
 
         if (!insertOrUpdateResource) return true;
@@ -494,7 +512,7 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
             	_scope.data.enableVideoRecord = true;
         	}
         }
-        _scope.data.pagetitle = 'Select ' + markupInfo.restypeInfo.title;
+        _scope.data.pagetitle = 'Insert ' + markupInfo.restypeInfo.title;
         return _initMarkupParams(markupInfo.restypeInfo);
     };
     
@@ -517,6 +535,8 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
             markupEnd: {name: nl.t(' End at'), help: nl.t('End playing your video or audio at the given time (in minutes and seconds).')},
         	bgShade: {name: nl.t('Text color'), help: nl.t('Depending on whether your image is dark or light, you can set the text color to one which is clearly visible in the background. With this, you can control the colors used for different types of text (normal, heading, link, ...)')},
         	shared: {name: nl.t('Shared resource'), help: nl.t('Selecting this will allow other users in your group to use this resource within the the modules they create.')},
+        	selectedImage: {name: nl.t('Selected image to upload'), help:nl.t('This is the image copied and uploaded to server')},
+        	filename: {name: nl.t('Provide name for resource'), help: nl.t('Name of the resource while stored to server')},
         	animated: {name: nl.t('Animated image'), help: nl.t('Select this only if you are uploading an animated image (animated GIF).')}
         };  
     }
@@ -1008,6 +1028,12 @@ function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader) {
         var inputUrl = scope.markupInfo.restypeInfo ? scope.markupInfo.restypeInfo.url : '';
         _selectedResource = urlToResource[inputUrl] || null;
         if (_selectedResource) scope.data.librarySelectedUrl = _selectedResource.background;
+        if (!_selectedResource) return;
+        for(var i=0; i<scope.options.resourceLibraryDropDown.length; i++) {
+        	if(scope.options.resourceLibraryDropDown[i].id == _selectedResource.owner) {
+        		scope.data.resourceLibraryDropDown = scope.options.resourceLibraryDropDown[i];
+        	}
+        }
 	}
 	
 	function _fetchMoreResources(scope, data, isSelf) {
@@ -1124,10 +1150,11 @@ function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader) {
 	}
 	
 	function _updateTabSelection(scope) {
-    	if(!scope.markupInfo.insertOrUpdateResource) {
+    	if(!scope.markupInfo.insertOrUpdateResource || (scope.data.card && scope.data.card.isPasteAndUpload)) {
     		scope.data.selectedTab = 'upload';
     		return;
     	}
+    	if(scope.data.card && card.resource)
 		scope.data.url = scope.markupInfo.restypeInfo.url;
     	if (scope.data.url && !_selectedResource) {
     		scope.data.selectedTab = 'url';

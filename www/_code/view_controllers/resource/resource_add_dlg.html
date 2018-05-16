@@ -206,18 +206,29 @@
     </nl-dlg-row> 
 
     <nl-dlg-row attr='restype' data='data' help='help'
-                ng-if='!markupInfo.restypeInfo'>
+                ng-if='!markupInfo.restypeInfo && !data.isPasteAndUpload'>
         <nl-select ng-if='data.card == null' fieldmodel='restype'></nl-select>
         <input ng-if='data.card !== null' ng-model='data.restype.id' readonly class='nl-dlg-field-value'></input>
     </nl-dlg-row> 
+
+    <nl-dlg-row attr='filename' data='data' help='help'
+                ng-if='data.selectedTab == "upload" && data.isPasteAndUpload && !data.advOptions'>
+        <nl-input fieldmodel='filename' fieldtype='text' fieldcls='w100' fieldindex='0'></nl-input>
+    </nl-dlg-row> 
+    
     <nl-dlg-row attr='resource' data='data' help='help'
-                ng-if='data.selectedTab == "upload" && !data.advOptions'>
+                ng-if='data.selectedTab == "upload" && !data.advOptions && !data.isPasteAndUpload'>
         <nl-resource-upload 
             ng-repeat='restype in options.restype'
             ng-if='restype.id == data.restype.id'
             fieldmodel='resource' 
             restype='{{restype.id}}'>
         </nl-resource-upload>
+    </nl-dlg-row> 
+
+    <nl-dlg-row attr='selectedImage' data='data' help='help'
+                ng-if='data.selectedTab == "upload" && data.isPasteAndUpload && !data.advOptions'>
+         <img ng-src='{{data.resource[0].resimg}}' style='height:280px;'>
     </nl-dlg-row> 
 
     <nl-dlg-row attr='bgShade' data='data' help='help'

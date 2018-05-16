@@ -42,10 +42,10 @@ function(nl, nlServerApi, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg,
 	this.sendForReview = function(lessonId) {
 		return NittioLessonModuleReviewDlg.sendForReview(lessonId);
 	};
-    this.insertOrUpdateResource = function(markupText, resourceList, resourceFilter, lessonId) {
+    this.insertOrUpdateResource = function(markupText, resourceList, resourceFilter, lessonId, card) {
     	// resoureFilter = 'bg' | 'icon' | false
         return nlResourceAddModifySrv.insertOrUpdateResource(nl.rootScope, 
-            _moduleConfig.restypes, markupText, true, resourceList, resourceFilter, lessonId);
+            _moduleConfig.restypes, markupText, true, resourceList, resourceFilter, lessonId, card);
     };
     this.showPageVoiceDlg = function(oPage, templateDict, lessonId) {
     	return NittioLessonAddPageVoice.showAddVoiceDlg(oPage, _moduleConfig.restypes, templateDict, lessonId);

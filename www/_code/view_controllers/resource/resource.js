@@ -390,8 +390,10 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
             if(resourceInfoDict.animated) compInfo.animated = 1;
             if(resourceInfoDict.bgShade) compInfo.bgShade = resourceInfoDict.bgShade;
             var data = {resource: _file, 
-                        restype: fileInfo.restype,
-                        keywords: keyword, 
+                        restype: fileInfo.restype || 'Image',
+                        filename: resourceInfoDict.filename || fileInfo.name,
+                        name: resourceInfoDict.name || fileInfo.name,
+                        keywords: keyword || "", 
                         info: angular.toJson(compInfo, 2),
                         resid: resid,
                         shared: resourceInfoDict.shared
@@ -422,7 +424,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
     
     function _validateBeforeShrinking(fileInfo, status, compressionLevel) {
         var _file = fileInfo.resource;
-        var restype = fileInfo.restype;
+        var restype = fileInfo.restype || 'Image';
         if (!(restype in _restypeToExtensions)) {
             status.error = nl.t('Please choose the resource Type, followed by file');
             return false;

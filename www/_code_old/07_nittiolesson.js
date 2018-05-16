@@ -1919,6 +1919,7 @@ nlesson = function() {
 		
 		// Create the pgSecText DOM object (used in edit mode)
 		this.pgSecText = njs_helper.jobj('<TEXTAREA class="pgSecText"/>');
+		_bindPasteToTextrea(this.pgSecText);
 		this.pgSecText.val(this.oSection.text);
 		this.pgSecText.attr('placeholder', help);
 		this.pgSecText.attr('title', help);		
@@ -1930,6 +1931,27 @@ nlesson = function() {
 		var onCreateFn = this.page.pagetype.getSectionOnCreateFn(this.secNo);
 		onCreateFn(this);
 		return pgSec;
+	}
+
+	function _bindPasteToTextrea(pageTextarea) {
+		jQuery(pageTextarea).on('paste', function(e) {
+			if(!e.originalEvent || 
+			   !e.originalEvent.clipboardData ||
+			   !e.originalEvent.clipboardData.files ||
+			   e.originalEvent.clipboardData.files.length == 0) return;
+			e.preventDefault();
+			e.stopImmediatePropagation();
+	        var selector = nlesson.theLesson.globals.selectionHandler;
+			var data = {isPasteAndUpload: true, resource: e.originalEvent.clipboardData.files};
+			njs_helper.BlankScreen.show();
+			nlesson.loadTemplateInfos(function(templateDict) {
+		        var promise = window.nlapp.NittioLesson.insertOrUpdateResource('img:', templateDict, 'Images', jQuery('#l_lessonId').val(), data);
+		        promise.then(function(result) {
+		            if (result === null) return;
+		            selector.updateSelectedText(result.markupUrl);
+		        });
+			});
+		});
 	}
 
 	function Section_getViewHtml() {
