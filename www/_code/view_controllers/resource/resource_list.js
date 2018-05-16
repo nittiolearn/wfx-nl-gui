@@ -535,7 +535,7 @@ function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkup
             markupEnd: {name: nl.t(' End at'), help: nl.t('End playing your video or audio at the given time (in minutes and seconds).')},
         	bgShade: {name: nl.t('Text color'), help: nl.t('Depending on whether your image is dark or light, you can set the text color to one which is clearly visible in the background. With this, you can control the colors used for different types of text (normal, heading, link, ...)')},
         	shared: {name: nl.t('Shared resource'), help: nl.t('Selecting this will allow other users in your group to use this resource within the the modules they create.')},
-        	selectedImage: {name: nl.t('Selected image to upload'), help:nl.t('This is the image copied and uploaded to server')},
+        	selectedImage: {name: nl.t('Image to upload'), help:nl.t('This image will be uploaded to the server.')},
         	filename: {name: nl.t('Provide name for resource'), help: nl.t('Name of the resource while stored to server')},
         	animated: {name: nl.t('Animated image'), help: nl.t('Select this only if you are uploading an animated image (animated GIF).')}
         };  

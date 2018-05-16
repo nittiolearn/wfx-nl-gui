@@ -228,7 +228,7 @@
 
     <nl-dlg-row attr='selectedImage' data='data' help='help'
                 ng-if='data.selectedTab == "upload" && data.isPasteAndUpload && !data.advOptions'>
-         <img ng-src='{{data.resource[0].resimg}}' style='height:280px;'>
+         <img ng-src='{{data.resource[0].resimg}}' style='max-height:280px;' class='nl-dlg-field-value'>
     </nl-dlg-row> 
 
     <nl-dlg-row attr='bgShade' data='data' help='help'
