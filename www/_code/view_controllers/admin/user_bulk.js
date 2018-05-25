@@ -701,9 +701,9 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             for(var i=0; i<statuslist.length; i++) {
                 var statusitem = statuslist[i];
                 var row = rows[self.chunkStart+i];
-                if (statusitem.Status == 'error') {
+                if (statusitem.status == 'error') {
                     if (self.pl) self.pl.warn(nl.fmt2('Updating row {} failed at server: {}', 
-                        row.pos, statusitem.Message));
+                        row.pos, statusitem.message));
                     self.statusCnts.error++;
                 } else {
                     if (self.pl) self.pl.debug(nl.fmt2('Updated row {} at the server successfully',
