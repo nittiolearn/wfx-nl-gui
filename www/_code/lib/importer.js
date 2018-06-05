@@ -15,6 +15,7 @@ function(nl, nlDlg) {
     var self = this;
 
     this.readCsv = function(file, config) {
+    	if (config === undefined) config = {};
         return nl.q(function(resolve, reject) {
             _readCsv(file, config, resolve, reject);
         });
@@ -35,7 +36,7 @@ function(nl, nlDlg) {
                 var cells = _splitIntoCells(rows[i]);
                 if (!cells) continue;
                 if (cols === null) cols = cells.length;
-                if (cols !== cells.length) error = 'Not all rows have same number of columns';
+                if (cols !== cells.length && !config.ignore_column_count) error = 'Not all rows have same number of columns';
                 table.push(cells);
             }
             resolve({table:table, error:error, cols: cols});
