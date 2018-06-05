@@ -135,6 +135,8 @@ function(nl, nlDlg) {
 
     this.exportCsvFile = function(fileName, data) {
         var uri = 'data:text/csv;charset=utf-8';
+        var universalBOM = "\uFEFF";
+        data = universalBOM + data;
         this.exportTextFile(fileName, data, uri);
     };
 

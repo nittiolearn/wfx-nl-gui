@@ -764,9 +764,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     }
 
     function _updatedStatusinfoAtServer(bBlockUI) {
-        if (bBlockUI) nlDlg.showLoadingScreen();
         _saveAttemptNumber++;
-        var currentSaveNumber = _saveAttemptNumber;
+        _updatedStatusinfoAtServerImpl(bBlockUI, _saveAttemptNumber);
+    }
+
+    function _updatedStatusinfoAtServerImpl(bBlockUI, currentSaveNumber) {
+        if (bBlockUI) nlDlg.showLoadingScreen();
         var repid = parseInt($scope.params.id);
         nlServerApi.courseReportUpdateStatus(repid, JSON.stringify(modeHandler.course.statusinfo))
         .then(function(courseReport) {

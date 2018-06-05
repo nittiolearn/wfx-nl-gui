@@ -339,11 +339,18 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
             return _err(reject, 'imsmanifest.xml is missing in the zip file');
         pl.debug('Opened imsmanifest.xml file');
         manifestFile.async('string').then(function(content) {
+        	// Remove non-ascii characters in line 1
+        	var pos = content.indexOf('\n');
+        	var line1 = content.substring(0, pos);
+        	var rest = content.substring(pos);
+        	content = line1.replace(/[^\x00-\x7F]/g, '') + rest;
+        	
+        	// Lower the scormType
             content = content.replace(/adlcp:scormType/ig, function(x) {
                 return x.toLowerCase();
             });
             self.manifestXml = content;
-            pl.debug('Read imsmanifest content', self.manifestXml);
+            pl.debug('Read imsmanifest.xml content', self.manifestXml);
             resolve(true);
         });
     }
@@ -356,7 +363,6 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
            "manifest.organizations.organization",
            "manifest.organizations.organization.item"
         ]});
-        pl.debug('Read xml content', self.manifestXml);
         self.manifestJson = x2js.xml_str2json(self.manifestXml);
         if(!self.manifestJson)
             return _err(reject, 'Improper manifest xml');
@@ -367,6 +373,8 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
             return _err(reject, '<manifest> element missing in manifestXml', self.manifestJson);
 
         var metadata = manifest.metadata;
+        if (metadata && metadata.schemaversion && _isScorm2004(metadata.schemaversion))
+            return _err(reject, 'schemaversion not supported. Please import SCORM 1.2 module', metadata.schemaversion);
         if(metadata && metadata.lom && metadata.lom.general) {
             var title = metadata.lom.general.title;
             if (title && title.langstring) title = title.langstring.__text;
@@ -393,6 +401,13 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         pl.debug('Got the list of sco and assets', {scos: self.scos, assets: self.assets});
 
         resolve(true);
+    }
+    
+    function _isScorm2004(schemaversion) {
+    	schemaversion = schemaversion.toLowerCase();
+    	if (schemaversion.indexOf('2004') >= 0 ||
+    		schemaversion.indexOf('cam 1.3') >= 0) return true;
+    	return false;
     }
 
     function _getResourcesFromXml(resources) {
