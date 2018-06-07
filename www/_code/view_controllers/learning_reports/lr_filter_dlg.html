@@ -1,0 +1,25 @@
+<nl-dlg dlgtitle='{{dlgTitle}}' show-help='1'>
+<nl-dlg-help>
+    <p><b>Define the range of created timestamp of the records to be fetched:</b></p>
+    <ul>
+        <li><b>From:</b> Mandatory - select the start time.</li>
+        <li><b>Till:</b> Mandatory - select the end time.</li>
+    </ul>
+</nl-dlg-help>
+<nl-dlg-content>
+    <div class='row row-wrap row-center padding-top margin0'>
+        <div ng-class='resp2Col33' class='nl-dlg-field-name'>From</div>
+        <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+            <nl-date-time-select fieldmodel='createdfrom' fieldCls='nl-dlg-field-value'></nl-date-time-select>
+		</div>
+    </div>
+
+    <div class='row row-wrap row-center padding-top margin0'>
+        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Till</div>
+        <div ng-class='resp2Col67' class='nl-dlg-field-value'>
+            <nl-date-time-select fieldmodel='createdtill' fieldCls='nl-dlg-field-value'></nl-date-time-select>
+		</div>
+    </div>
+    
+</nl-dlg-content>
+</nl-dlg>

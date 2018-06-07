@@ -56,7 +56,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlTrainingReport)
         if (!fetchMore) {
             if (!_repid) nlCardsSrv.updateCards($scope.cards, {cardlist: []});
         }
-        var params = _repid ? {mode: 'single', objid: _repid} : {mode: 'learner', filters: [{field: 'ctype', val: _nl.ctypes.CTYPE_TRAINING}]};
+        var params = {type: _repid ? 'single': 'training_kind', objid: _repid || 0, 
+					  learner: 'me', assignor: 'all', parentonly: true, filters: []};
         _pageFetcher.fetchPage(nlServerApi.learningReportsGetList, params, fetchMore, function(results) {
             if (!results) {
                 if (resolve) resolve(false);

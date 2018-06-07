@@ -394,7 +394,7 @@ function(nl, nlDlg, nlConfig, Upload) {
 	};
 	
 	this.learningReportsGetList = function(data) {
-		//data = mode, id, [filterParameters], [mquery parameters]
+		//data = type, objid, assignor, parentonly, [filterParameters], [mquery parameters]
 		return server.post('_serverapi/learning_reports_get_list.json', data);
 	};
     //---------------------------------------------------------------------------------------------
@@ -973,7 +973,7 @@ function PageFetcher(nl, nlDlg, attrs) {
         return _fetchPageImpl(listingFn, params, fetchMore, callback);
     };
 
-    this.fetchBatchOfPages = function(listingFn, params, fetchMore, callback, fetchLimit) {
+    this.fetchBatchOfPages = function(listingFn, params, fetchMore, callback, fetchLimit, dontHideLoading) {
         _fetchLimit = fetchLimit;
         _fetchedCount = 0;
         nlDlg.showLoadingScreen();
@@ -982,24 +982,24 @@ function PageFetcher(nl, nlDlg, attrs) {
             callback(results, batchDone, promiseHolder);
             if (!results || batchDone) return;
             if (!promiseHolder.promise)
-                _fetchPageImpl(listingFn, params, true, _batchCallback);
+                _fetchPageImpl(listingFn, params, true, _batchCallback, dontHideLoading);
             else {
                 promiseHolder.promise.then(function(result) {
                     if (!result) return;
-                    _fetchPageImpl(listingFn, params, true, _batchCallback);
+                    _fetchPageImpl(listingFn, params, true, _batchCallback, dontHideLoading);
                 });
             }
         }
-        return _fetchPageImpl(listingFn, params, fetchMore, _batchCallback);
+        return _fetchPageImpl(listingFn, params, fetchMore, _batchCallback, dontHideLoading);
     };
 
-    function _fetchPageImpl(listingFn, params, fetchMore, callback) {
+    function _fetchPageImpl(listingFn, params, fetchMore, callback, dontHideLoading) {
         _fetchInProgress = true;
         if (!fetchMore) _nextStartPos = null;
         if (!params.max) params.max = _max;
         params.startpos = _nextStartPos;
         listingFn(params).then(function(resp) {
-            if (!_blockTillDone || !resp.more) nlDlg.hideLoadingScreen();
+            if (!dontHideLoading && (!_blockTillDone || !resp.more)) nlDlg.hideLoadingScreen();
             _nextStartPos = resp.nextstartpos;
             _canFetchMore = resp.more;
             _fetchedCount += resp.resultset.length;

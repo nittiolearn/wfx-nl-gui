@@ -1,0 +1,39 @@
+<nl-dlg dlgtitle='Export reports' show-help='0'>
+    <nl-dlg-content>
+        <div class='padding-mid fsh4'>Export data in a zip file containing one or more of the following (please select atleast one): </div>
+        <div class='padding-mid fsh6 forange2'
+             ng-show='warn'>{{warn}}</div>
+        <div class='padding-mid nl-link-text' 
+             ng-click='export.summary = !export.summary'>
+            <i ng-show='export.summary' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='export.summary' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>export organizational summary</span>
+        </div>
+        <div class='padding-mid nl-link-text' 
+             ng-click='export.user = !export.user'>
+            <i ng-show='export.user' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='export.user' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>export course learning reports of individual users</span>
+        </div>
+        <div class='padding-mid nl-link-text' 
+             ng-click='export.module = !export.module'>
+            <i ng-show='export.module' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='export.module' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>export detailed module level learning reports of individual users</span>
+        </div>
+        <div class='padding-mid nl-link-text'
+             ng-show='export.canShowIds'
+             ng-click='export.ids = !export.ids'>
+            <i ng-show='export.ids' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='export.ids' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>export internal identifiers</span>
+        </div>
+
+        <div class='row row-top row-wrap margin0 padding-mid'>
+        	<span class='fsh4'>Filter data and export subset of records</span>
+        </div>
+        
+        <nl-org-metadata-more-filters data='filtersData'>
+        </nl-org-metadata-more-filters>
+    </nl-dlg-content>
+</nl-dlg>

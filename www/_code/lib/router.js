@@ -243,6 +243,7 @@ function Permission(nl) {
         '/course_cert': {login: true, permission: 'course_do', termRestriction: TR_RESTRICTED},
         '/course_charts': {login: true, permission: 'assignment_manage', termRestriction: TR_CLOSED},
         '/course_summary_report': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},
+        '/learning_reports': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},
         '/dashboard': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED},
         '/dashboard_view': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED},
         '/searchlist': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED},
