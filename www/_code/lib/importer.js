@@ -57,9 +57,9 @@ function(nl, nlDlg) {
         for (var i=0; i<cells.length; i++) {
             var cell = cells[i];
             cell = cell.replace(/^"(.*)"$/, '$1');
-            var quoteStart = new RegExp('^"[^"]');
+            var quoteStart = new RegExp('^"([^"]|"")');
             quoteStart = (quoteStart.test(cell) || cell == '"') ? true : false;
-            var quoteEnd = new RegExp('[^"]"$');
+            var quoteEnd = new RegExp('([^"]|"")"$');
             quoteEnd = (quoteEnd.test(cell) || cell == '"') ? true : false;
             cell = cell.replace(/""/g, '"');
             if (quoteStart) cell = cell.replace(/^"/g, '');
