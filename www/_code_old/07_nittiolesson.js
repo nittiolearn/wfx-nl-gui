@@ -1338,7 +1338,7 @@ nlesson = function() {
         if (self.renderCtx.launchCtx() != 'do_assign') return;
         var oLesson = self.oLesson;
         var pages = oLesson.pages;
-        var allowedMaxScore = parseInt(oLesson.allowed_max_score);
+        var allowedMaxScore = 'allowed_max_score' in oLesson ? parseInt(oLesson.allowed_max_score) : null;
         var pageInfos = [];
         var randPosArray = [];
         
@@ -1348,7 +1348,7 @@ nlesson = function() {
                 pageInfos.push({pos: i, maxScore: 0, newPos: -1});
                 continue;
             }
-            if (!allowedMaxScore) {
+            if (allowedMaxScore === null) {
                 pageInfos.push({pos: i, maxScore: 0, newPos: i});
                 continue;
             }
@@ -1377,7 +1377,7 @@ nlesson = function() {
         for(var i in pageInfos) {
             if (pageInfos[i].newPos < 0) continue;
             var newMaxScore = maxScore + pageInfos[i].maxScore;
-            if (pageInfos[i].shallFilter && newMaxScore > allowedMaxScore) {
+            if (pageInfos[i].shallFilter && (allowedMaxScore !== 0) && newMaxScore > allowedMaxScore) {
                 continue;
             }
             maxScore += pageInfos[i].maxScore;

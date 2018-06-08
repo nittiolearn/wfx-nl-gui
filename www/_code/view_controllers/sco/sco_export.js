@@ -106,7 +106,7 @@ function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog, nlExp
         $scope.ongoing = true;
         scoExporter.export(lessonIds, $scope.data.version.id, $scope.data.title, 
             $scope.data.mathjax, $scope, lessonNames);
-    }
+    };
 
 }];
 

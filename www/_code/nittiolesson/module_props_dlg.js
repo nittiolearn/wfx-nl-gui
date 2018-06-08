@@ -42,7 +42,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		   {id: 'esttime', name: nl.t('Estimated time'), type: 'number', group:'optional_attr', min: 1, max: 600},
 		   {id: 'learningMode', name: nl.t('Module type'), type: 'select', group:'optional_attr', condition: 'isNotQuestionBank'},
 		   {id: 'passScore', name: nl.t('Pass score %'), type: 'number', group:'optional_attr', condition:'isAssesment', min: 0, max: 100},
-		   {id: 'allowed_max_score', name: nl.t('Score limit'), type: 'number', condition: 'isQuestionBank', group:'optional_attr', min: 1},
+		   {id: 'allowed_max_score', name: nl.t('Score limit'), type: 'number', condition: 'isQuestionBank', group:'optional_attr', min: 0},
 		   {id: 'forumTopic', name: nl.t('Discussion topic'), type: 'string', group:'optional_attr'},
 		   {id: 'animScheme', name: nl.t('Animation scheme'), type:'select', condition: 'isAnimationShown', group:'optional_attr'},
 		   {id: 'additional_attr', name: nl.t('Advanced properties'), type: 'group', condition: 'isBleedingEdge'},
@@ -91,7 +91,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		templatePageTypes: nl.t('Provide page types and layout as a JSON object.'),
 		templateAnimations: nl.t('Provide animation schemes as a JSON object.'),
 		lessonState: lessonStatusDesc,
-		allowed_max_score: nl.t('This parameter is specific to question bank. When the question bank is distributed, a random subset of questions will be chosen from the bank. The total score of the chosen questions will be kept equal to the score limit. If the maximum scores are different for different pages, it is possible that the maximum score of chosen pages is slightly less than the score limit.')
+		allowed_max_score: nl.t('This parameter is specific to question bank. When the question bank is distributed, each learner will get random subset of questions and in randomoized order. If "Score limit" is greater than 0, the total score of the chosen questions will be kept equal to the score limit. If "Score limit" is 0, all questions in the bank will be chosen but presented in random order. If the maximum scores are different for different pages, it is possible that the maximum score of chosen pages is slightly less than the score limit.')
 	};
 	
 	function _updateModuleProps(_moduleProps) {
@@ -167,8 +167,8 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		_oLesson.keywords = data.keywords; 
 		_oLesson.esttime = data.esttime;
 		_oLesson.passScore = data.passScore;
-		if(data.allowed_max_score) {
-			_oLesson.allowed_max_score;
+		if('allowed_max_score' in data) {
+			_oLesson.allowed_max_score = data.allowed_max_score;
 		}
 		_oLesson.templateStylesCss = data.templateStylesCss;
 		_oLesson.templateBgimgs = data.templateBgimgs;
@@ -223,7 +223,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		_updateSelectedBg(editDlg.scope.data);
 
 		editDlg.scope.data.showSearch = {};
-		if(_oLesson.allowed_max_score) {
+		if('allowed_max_score' in _oLesson) {
 			editDlg.scope.data.allowed_max_score = parseInt(_oLesson.allowed_max_score);
 		}
 		editDlg.scope.data.templateStylesCss = _oLesson.templateStylesCss || '';

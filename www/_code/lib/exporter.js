@@ -133,8 +133,12 @@ function(nl, nlDlg) {
         _saveFile(fileName, data, uri);
     };
 
-    this.exportCsvFile = function(fileName, data) {
+    this.exportCsvFile = function(fileName, data, addUtfBom) {
         var uri = 'data:text/csv;charset=utf-8';
+        if (addUtfBom) {
+	        var universalBOM = "\uFEFF";
+	        data = universalBOM + data;
+        }
         this.exportTextFile(fileName, data, uri);
     };
 

@@ -7,3 +7,4 @@ coverage/.*
 platforms/.*
 node_modules/.*
 www/_test_dependencies/.*
+.DS_Store
