@@ -114,7 +114,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
             columns: _getUserColumns(),
             styleTable: 'nl-table-styled2 compact',
             onRowClick: 'expand',
-            detailsTemplate: 'view_controllers/course/learning_reports/learning_report_details.html',
+            detailsTemplate: 'view_controllers/learning_reports/learning_report_details.html',
             clickHandler: _userRowClickHandler,
             metas: nlLrHelper.getMetaHeaders(false)
         };

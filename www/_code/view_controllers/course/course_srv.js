@@ -123,7 +123,7 @@ var _dashboardActions = {
     'course.view_published': {'url': '/#/course_list?{}', 'permission': 'assignment_send'},
     'course.view_assigned': {'url': '/#/course_assign_list?{}', 'permission': 'assignment_manage'},
     'course.view_assigned_my': {'url': '/#/course_assign_my_list?{}', 'permission': 'assignment_send'},
-    'course.summary_report': {'url': '/#/course_summary_report?{}', 'permission': 'assignment_send'},
+    'course.summary_report': {'url': '/#/learning_reports?type=course&{}', 'permission': 'assignment_send'},
     'course.do': {'url': '/#/course_report_list?my=1&{}', 'permission': 'course_do', 'termCheck': 'Restricted'},
     'rno.list': {'url': '/#/rno_list?{}', 'permission': 'basic_access', 'termCheck': 'Restricted'},
     'rno.view': {'url': '/#/rno_view?{}', 'permission': '', 'termCheck': 'Open'},

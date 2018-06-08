@@ -3,6 +3,7 @@
 //-------------------------------------------------------------------------------------------------
 // training_report.js:
 // training module: reports for offline training
+// TODO-LATER-123: Move this to /#/learning_reports
 //-------------------------------------------------------------------------------------------------
 function module_init() {
 	angular.module('nl.training_report', [])

@@ -31,6 +31,7 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 var MODES = {PRIVATE: 0, PUBLISHED: 1, REPORT_VIEW: 2, DO: 3, EDIT: 4, REPORTS_SUMMARY_VIEW: 5};
+// TODO-LATER-123: reports_summary_view is moved already to /#/learning_reports. Remove in next release.
 var MODE_NAMES = {'private': 0, 'published': 1, 'report_view': 2, 'do': 3, 'edit': 4, 'reports_summary_view': 5};
 
 function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
