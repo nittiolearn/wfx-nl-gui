@@ -19,6 +19,11 @@
         <script>
         	var NL_BRANDING_INFO = '{{=XML(brandingInfoJson)}}';
         </script>
+		<style>
+			.nl-spinner {
+			  background-image: url({{=mutils.resUrl('loading-screen1.gif')}});
+			}
+		</style>
 
         <link rel="stylesheet" href="/static/_external/angular-chart.js-0.9.0/dist/angular-chart.min.css">
         <link rel="stylesheet" href="/static/_external/ion-datetime-picker-0.1.2/release/ion-datetime-picker.min.css" />

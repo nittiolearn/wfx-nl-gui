@@ -93,16 +93,9 @@ function(nl, $ionicPopup, $ionicLoading) {
         return $ionicPopup.prompt(data);        
     };
 
-    // Spinners supported by ionic - for referance
-    // var spinners = ["ios", "ios-small", "lines", "ripple", "spiral", "bubbles", "circles", "crescent", "dots"];
-    this.getSpinnerIcon = function() {
-        return "ios";
-    };
-    
     this.showLoadingScreen = function(delay) {
         nl.log.debug('nlDlg.showLoadingScreen: ', delay);
-        var spinner = this.getSpinnerIcon();
-        spinner = nl.fmt2('<ion-spinner icon="{}"></ion-spinner>', spinner);
+        var spinner = '<div class="nl-spinner"></div>';
         var loadingInfo = {template: spinner, hideOnStateChange: false};
         if (delay !== undefined) loadingInfo.delay = delay;
         $ionicLoading.show(loadingInfo);

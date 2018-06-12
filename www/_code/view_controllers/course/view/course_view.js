@@ -234,7 +234,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     $scope.MODES = MODES;
     var folderStats = new FolderStats($scope);
     $scope.ext = new ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseCanvas, folderStats);
-
+	$scope.rootStat = folderStats.get(treeList.getRootItem().id);
     function _onPageEnter(userInfo) {
         _userInfo = userInfo;
         return nl.q(function(resolve, reject) {
@@ -378,11 +378,23 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     $scope.canvasShown = false;  // true if content area contains canvas.
     $scope.popupView = false;    // true if content area is popped out.
     $scope.expandedView = false; // true if tree + content area is shown
+	$scope.toggleSummaryBox = (nl.rootScope.screenSize != 'small') ? true : false;
+	$scope.toggleText = (nl.rootScope.screenSize != 'small') ? 'Hide details' : 'Show details';
+	
+	$scope.onToggleSummaryBox = function() {
+		if($scope.toggleSummaryBox) {
+			$scope.toggleSummaryBox = false;
+			$scope.toggleText = 'Show details';
+		} else {
+			$scope.toggleSummaryBox = true;
+			$scope.toggleText = 'Hide details';
+		}
+	};
 
     $scope.updateVisiblePanes = function() {
         var oldExpandedView = $scope.expandedView;
         $scope.expandedView = (nl.rootScope.screenSize != 'small');
-        if (oldExpandedView && !$scope.expandedView && $scope.iframeUrl) {
+        if (!$scope.expandedView && $scope.iframeUrl) {
             $scope.popupView = true;
         }
 
@@ -479,12 +491,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
             return;
         }
         // If iframe has swf object in wmode=window, it will appear on top of rest of element. It has to be hidden.
-        $scope.vp.iframehide = true;
         nlDlg.popupConfirm({title: nl.t('Please confirm'), 
             template: nl.t('Do you want to navigate away from current module?')})
             .then(function(res) {
                 $scope.vp.iframehide = false;
                 if (!res) return;
+                $scope.vp.iframehide = true;
                 $scope.iframeUrl = null;
                 $scope.iframeModule = null;
                 $scope.updateVisiblePanes();
@@ -589,9 +601,48 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         _confirmIframeClose(null, _impl);
     };
 
+	$scope.isDetailsShown = false;
+	$scope.pastSelectedItem = null;
+	$scope.onRowClick = function(e, cm) {
+		if(cm.type == "module") {
+			$scope.pastSelectedItem = cm;
+			$scope.onClick(e, cm);
+		} else {
+			if($scope.pastSelectedItem && $scope.pastSelectedItem.id == cm.id) {
+				$scope.isDetailsShown = !$scope.isDetailsShown;
+				$scope.pastSelectedItem = cm;
+			} else if ($scope.vp.i) {
+				$scope.pastSelectedItem = cm;
+				$scope.onClick(e, cm);				
+			} else {
+				$scope.pastSelectedItem = cm;
+				$scope.isDetailsShown = true;
+	            $scope.ext.setCurrentItem(cm);
+			}
+		}
+	};
+
+	$scope.getFormatedDesc = function(descType) {
+		if (descType == 'average') {
+			return nl.t('{} modules', $scope.rootStat.scoreCount);
+		}
+	};
+	
+	$scope.getCompletionStatus = function() {
+		var rootStat = $scope.rootStat;
+		if (rootStat.completedItems == 0) return 0;
+        var nLessonsDone = rootStat.scoreCount;
+        var weightedProgressMax = rootStat.totalLessons*10 + (rootStat.total-rootStat.totalLessons);
+        var weightedProgress = rootStat.scoreCount*10 + (rootStat.completedItems-rootStat.scoreCount);
+        var perc = weightedProgressMax ? Math.round(weightedProgress/weightedProgressMax*100) : 100;
+		return perc;
+	};
+	
+
     $scope.onLaunch = function(e, cm) {
         e.stopImmediatePropagation();
         e.preventDefault();
+        $scope.ext.setCurrentItem(cm);
         _confirmIframeClose(cm, function() {
             _onLaunchImpl(cm);
         });
@@ -653,6 +704,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
             nlServerApi, _updatedStatusinfoAtServer);
         reopener.reopenIfNeeded().then(function() {
             _updateItemData(treeList.getRootItem(), today);
+			$scope.rootStat = folderStats.get(treeList.getRootItem().id);
         });
     }
 
@@ -686,6 +738,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         else status = 'pending';
         _updateState(cm, status);
         cm.totalItems = folderStat.total;
+        cm.completedItems = folderStat.completedItems;
     }
     
     function _updateLinkData(cm, today) {
@@ -841,7 +894,8 @@ function FolderStats($scope) {
         var folderStat = {success: 0, failed: 0, 
             started: 0, pending: 0, delayed: 0, waiting: 0,
             scoreCount: 0, score: 0, maxScore: 0, perc: 0,
-            timeCount: 0, time: 0};
+            timeCount: 0, time: 0, totalLessons: 0,
+            completedItems: 0};
         _folderStats[cmid] = folderStat;
         return folderStat;
     };
@@ -855,6 +909,7 @@ function FolderStats($scope) {
         folderStat.delayed += childStat.delayed;
         folderStat.waiting += childStat.waiting;
         folderStat.scoreCount += childStat.scoreCount;
+        folderStat.totalLessons += childStat.totalLessons;
         folderStat.score += childStat.score;
         folderStat.maxScore += childStat.maxScore;
         folderStat.timeCount += childStat.timeCount;
@@ -869,6 +924,9 @@ function FolderStats($scope) {
         else if (cm.state.status == 'failed') folderStat.failed += 1;
         else if (cm.state.status == 'success') folderStat.success += 1;
 
+		if (cm.type == 'lesson') {
+			folderStat.totalLessons += 1; 
+		}
         if (cm.score !== null) {
             folderStat.scoreCount += 1;
             folderStat.score += cm.score;
@@ -886,6 +944,7 @@ function FolderStats($scope) {
             + folderStat.pending + folderStat.delayed + folderStat.waiting;
         folderStat.perc = folderStat.maxScore > 0 ? Math.round((folderStat.score/folderStat.maxScore)*100) : 0;
         folderStat.avgTime = folderStat.timeCount > 0 ? Math.round(folderStat.time/60) : 0;
+        folderStat.completedItems = folderStat.success+ folderStat.failed;
         _updateChartInfo(folderStat);
     };
 
@@ -971,13 +1030,26 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
         return (this.item.state.status == 'success' || this.item.state.status == 'failed');
     };
 
-    this.getLaunchString = function() {
-        if (!this.item) return '';
-        if (this.isStaticMode()|| this.item.type =='link' || this.item.type =='certificate') return 'Open';
-        if (this.item.state.status == 'success' || this.item.state.status == 'failed') return 'View report';
-        return 'Open';
+    this.getLaunchString = function(cm) {
+        if (!cm) return '';
+        if (this.isStaticMode()|| cm.type =='link' || cm.type =='certificate') return 'Start';
+        if (modeHandler.mode == MODES.DO && cm.state.status == 'started') return 'Continue';
+        if (cm.state.status == 'success' || cm.state.status == 'failed') return 'Review';
+        return 'Start';
     };
 
+	this.canShowLaunch = function(cm) {
+        if (!cm || (cm.type != 'lesson' && cm.type != 'link' && cm.type != 'certificate')) return false;
+        if (this.isStaticMode()) return true;
+        if (modeHandler.mode == MODES.DO) return (cm.state.status != 'waiting');
+        return (cm.state.status == 'success' || cm.state.status == 'failed');
+	};
+
+	this.getRoundedPercentage = function(completed, total) {
+		if(completed == 0 ) return 0;
+		return Math.round(completed/total*100);
+	};
+	
     this.updatePastAttemptData = function() {
         this.showPastAttempts = false;
         this.pastAttemptData = [];

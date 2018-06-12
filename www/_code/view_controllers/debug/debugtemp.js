@@ -49,8 +49,7 @@ function(nl, nlRouter, $scope, $ionicLoading) {
     }
     nlRouter.initContoller($scope, '', _onPageEnter);
     $scope.showLoading = function() {
-        var spinner = $scope.data.spinner.id;
-        var template = nl.fmt2('<ion-spinner icon="{}"></ion-spinner>', spinner);
+        var template = '<div class="nl-spinner"></div>';
         $ionicLoading.show({template: template, hideOnStateChange: false});
         nl.timeout(function() {
             $ionicLoading.hide();
