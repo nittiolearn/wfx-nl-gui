@@ -336,10 +336,10 @@ function PageRenderer_prepare() {
 	// Create the elements inside the pdf_holder
 	var self = this;
 	self._holder.empty();
-    var spinner = '<div class="njs_pdf_progress_bar"><div class="nl-spinner"></div></div>';
+    var spinner = '<div class="njs_pdf_progress_bar row row-center"><div class="col"></div><div class="nl-spinner"></div><div class="col"></div></div>';
 	var waiting = jQuery('<div class="njs_pdf_waiting"></div>');
-	waiting.append(jQuery('<div class="njs_pdf_waiting_msg"></div>'));
 	waiting.append(spinner);
+	waiting.append(jQuery('<div class="njs_pdf_waiting_msg"></div>'));
 	waiting.hide(); 
 	self._holder.append(waiting);
 	self._state = PageRenderer.STATE_PREPARED;

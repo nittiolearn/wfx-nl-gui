@@ -4,7 +4,7 @@
 }
 
 </style>
-<div class='nl-full nl-thin-scroll bg-content'>
+<div class='nl-full nl-thin-scroll bgcontent'>
 	<div class='row row-center padding-mid margin0'>
 		<div class='col padding-mid'></div>
 		<div style='padding-right: 10px'>
@@ -67,7 +67,7 @@
 		<div style='border:1px solid #FFFFFF; box-shadow: 4px -4px 10px #ADA4A4'>
 			<div ng-repeat='cm in modules' class='anim fade'
 				style='background-color: #FFFFFF; border-bottom: 1px solid #EFEFF5'>
-		        <div class='row row-center row-wrap margin0 padding-mid nl-link-text {{ext.item.id == cm.id ? "item-selected" : ""}} f-active'
+		        <div class='row row-center row-wrap margin0 padding-mid nl-link-text factive {{ext.item.id == cm.id ? "item-selected" : ""}} factive'
 		             ng-click='onRowClick($event, cm)'>
 		            <div class='row row-center margin0 padding-mid'>
 						<div class='col margin0 padding0' style='padding-left: {{cm.indentationLevel*16 + 8}}px'>
@@ -97,16 +97,15 @@
 							    <div ng-show='cm.type != "module" && ext.canShowLaunch(cm)' 
 							    	class='nl-link-text padding-mid nl-button-rounded'
 					                ng-click='onLaunch($event, cm)'
-					                style='text-align: center'>
-					                 <span title='{{ext.getLaunchString(cm)}}'>
-								        <span style='vertical-align: super;'>{{ext.getLaunchString(cm)}}</span>
-					                 </span>
+					                style='text-align: center'
+					                title='{{ext.getLaunchString(cm)}}'>
+							        <span style='vertical-align: super;'>{{ext.getLaunchString(cm)}}</span>
 							    </div>
 							</div>
 						</div>
 					</div>
 				</div>
-				<div ng-show='cm.type != "module" && cm.id == ext.item.id && isDetailsShown && !vp.i' class='padding-mid f-active anim fade'>
+				<div ng-show='cm.type != "module" && cm.id == ext.item.id && isDetailsShown && !vp.i' class='padding-mid factive anim fade'>
 					<div style='padding-left: {{cm.indentationLevel*16 + 8}}px'>
 						<div class='row row-center row-justify-evenly padding0 margin0'>
 							<div class='col'><b>Status</b></div>
@@ -241,7 +240,7 @@
 		<div style='border:1px solid #FFFFFF; box-shadow: 4px -4px 10px #ADA4A4'>
 			<div ng-repeat='cm in modules' class='anim fade'
 				style='background-color: #FFFFFF; border-bottom: 1px solid #EFEFF5'>
-		        <div class='row row-center row-wrap margin0 padding0 nl-link-text {{ext.item.id == cm.id ? "item-selected" : ""}} f-active'
+		        <div class='row row-center row-wrap margin0 padding0 nl-link-text factive {{ext.item.id == cm.id ? "item-selected" : ""}} factive'
 		             ng-click='onRowClick($event, cm)'>
 					<div ng-class='resp2Col67' class='margin0 padding-mid' style='padding-left: {{cm.indentationLevel*16 + 8}}px'>
 						<div class='row row-center margin0 padding-mid'>
@@ -281,16 +280,16 @@
 						    <div ng-show='cm.type != "module" && ext.canShowLaunch(cm)' 
 						    	class='nl-link-text padding-mid nl-button-rounded'
 				                ng-click='onLaunch($event, cm)'
-				                style='text-align: center'>
-				                 <span title='{{ext.getLaunchString(cm)}}'>
+				                style='text-align: center'
+				                title='{{ext.getLaunchString(cm)}}'>
 							        <span style='vertical-align: super;'>{{ext.getLaunchString(cm)}}</span>
-				                 </span>
 						    </div>
 						    <span class='sep4'></span>
 						</div>
 					</div>
 				</div>
-				<div ng-show='cm.type != "module" && cm.id == ext.item.id && isDetailsShown' class='f-active padding-mid anim fade'>
+				<div ng-show='cm.type != "module" && cm.id == ext.item.id && isDetailsShown' class='factive padding-mid anim fade'>
+					<div style='border: 1px #CCCCCC solid'>
 					<div style='padding-left: {{cm.indentationLevel*16 + 8}}px'>
 						<div class='row row-wrap row-center row-justify-evenly padding0 margin0'>
 							<div ng-class='respCol442'><b>Status</b></div>
@@ -343,31 +342,28 @@
 							</div>
 						</div>
 	
-				        <hr/>
-					    <div ng-show='ext.pastAttemptData.length > 0' style='padding-left:2px'>
-					        <b>Completed attempts:</b>
-					        <hr/>
-				        	<div class='row row-center text-center padding0 margin0'>
+					    <div ng-show='ext.pastAttemptData.length > 0' class='padding-small finactive'>
+					        <div><b>Completed attempts:</b></div>
+					        <div class='padding-small'></div>
+				        	<div class='row row-center padding-small margin0'>
 					        	<div ng-class='respCol111'>
-					        		<div class='row row-center padding0 margin0' style='background-color: #999999; color: #FFFFFF'>
+					        		<div class='row row-center padding0 margin0 finactive'>
 										<div class='col'><b>Started</b></div>
 										<div ng-show='screenSize != "small"' class='col'><b>Ended</b></div>
 										<div class='col'><b>Score</b></div>
 					        		</div>
 					        	</div>
 				        	</div>
-				        	<hr/>
-					        <div class='row row-center text-center padding0 margin0' 
+					        <div class='row row-center padding-small margin0' 
 					        	ng-repeat='attempt in ext.pastAttemptData' >
 					        	<div ng-class='respCol111'>
-					        		<div class='row row-center padding0 margin0 nl-link-text' 
+					        		<div class='row row-center padding0 margin0 nl-link-text finactive' 
 					        			ng-click='ext.showPastReport(attempt)'>
 										<div class='col'>{{attempt.started | date : 'dd-MMM-yy HH:mm:ss'}}</div>
 										<div ng-show='screenSize != "small"' class='col'>{{attempt.ended | date : 'dd-MMM-yy HH:mm:ss'}}</div>
 										<div class='col'>{{ext.getRoundedPercentage(attempt.score, attempt.maxScore)}}%</div>
 								        <a ng-href='{{attempt.url}}'>{{attempt.text}}</a>
 					        		</div>
-					        		<hr/>
 					        	</div>
 					        </div>
 				        </div>
@@ -407,6 +403,7 @@
 					             </button>
 					        </div>
 					    </div>
+					</div>
 					</div>
 				</div>
 			</div>

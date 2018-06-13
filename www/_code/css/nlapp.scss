@@ -41,30 +41,30 @@ $yellow: #FFCC00 !default; // rgb(255, 204, 00)
 // The standard color format
 
 // Backgrounds
-$nlHighlight:     #11375E !default;
-$nlBgBurger:      #255FCA !default;
-$bgTopBar:        #FFFFFF !default;
-$bgMenu:          #C2E3FC !default;
-$bgContent:       #F1F1F1 !default;
-$bgActive:        #FFFFFF !default;
-$bgTabs:          #F2F8FB !default;
-$bgProgress:      #F1F1F1 !default;
+$nlPrimary:                         #00A3CC !default; // Blue used in top bar, Buttons
+$nlDark:                            #0083AC !default; // Darker blue used in button hover
+$nlDarkest:                         #004455 !default; // Darkest blue used in button click
 
-//fontcolors:
+$nlBackground:                      #F1F1F1 !default; // Background color for active area
+$nlBgDark:                          #CCCCDD !default; // Darker background
 
-$fTitle:          #7D7D7D !default;
-$fHeading1:       #707172 !default;
-$fActive:         #575B5E !default;
-$fTabs:           #255FCA !default;
-$fInactive:       #ABAEB0 !default;
+$nlHeading1:                        #707172 !default; // Heading color (Gopi)
+$nlHeading2:                        #7D7D7D !default; // Title color (Gopi)
+$nlActive:                          #575B5E !default; // Active content color (Gopi)
+$nlInactive:                        #ABAEB0 !default; // Inactive content color (Gopi)
 
+// Other Gopi colors
+$nlHighlight:     #11375E !default; // Equivalent in nlPrimary?
+$nlBgBurger:      #255FCA !default; // Equivalent to nlDark
+$bgActive:        #FFFFFF !default; // Check
+$bgTabs:          #F2F8FB !default; // Check
+$bgBlue2:         #C2E3FC !default; // Light blue?
 
 // The path for our ionicons font files, relative to the built CSS in www/css
 $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
 
 // Include all of Ionic
 @import "www/_extern/ionic/scss/ionic";
-
 
 //-------------------------------------------------------------------------------------------
 // All fonts imported from google fonts
@@ -354,21 +354,29 @@ $animation-duration: 200ms !default;
   background-color: rgba(0, 0, 0, 0);
 }
 
+.nl-spinner-centered {
+  background-color: $nlBgDark;
+  height: 100%;
+  z-index: -10;
+}
+  
 .nl-spinner {
-  background: 50% 50% no-repeat;
-  background-size: 56px 56px;
-  min-width: 56px;
-  min-height: 56px;
+  border: 10px solid $nlBackground !important;
+  border-top: 10px solid $nlPrimary !important;
+  border-radius: 50%;
+  width: 75px;
+  height: 75px;
+  animation: spin 1.5s linear infinite;
+} 
+
+@keyframes spin {
+  0% { transform: rotate(0deg);}
+  100% { transform: rotate(360deg);}
 }
 
 .nl-screen-small .nl-spinner {
-  background-size: 42px 42px;
-  min-width: 42px;
-  min-height: 42px;
-}
-
-.nl-spinner-bg {
-  background-color: rgba(0, 0, 0,0.4);  
+  width: 60px;
+  height: 60px;
 }
 
 .loading-container {
@@ -541,7 +549,7 @@ tr.summary {
   &, a, &:visited {
     text-decoration: none;
   }
-  &:hover, &:focus, &:active {
+  &:focus, &:active {
     background-color: rgba(128, 128, 255, 0.2);
   }
 }
@@ -1287,7 +1295,7 @@ nl-cards {
   width: 100%;
   height: 10px;
   border-width: 1px;
-  background-color: $bgProgress;
+  background-color: $nlBackground;
   border-radius: 50px;
 }
 
@@ -1297,16 +1305,16 @@ nl-cards {
   color: #fff;
   font-weight: normal;
   border-radius: 50px;
-  background-image: -webkit-linear-gradient(-5deg, $fTabs 0%, rgba(194, 227, 252, 1) 100%);
-  background-image: -moz-linear-gradient(-5deg, $fTabs 0%, rgba(194, 227, 252, 1) 100%);
-  background-image: -o-linear-gradient(-5deg, $fTabs 0%, rgba(194, 227, 252, 1) 100%);
-  background-image: linear-gradient(-5deg, $fTabs 0%, rgba(194, 227, 252, 1) 100%);
+  background-image: -webkit-linear-gradient(-5deg, $nlPrimary 0%, rgba(194, 227, 252, 1) 100%);
+  background-image: -moz-linear-gradient(-5deg, $nlPrimary 0%, rgba(194, 227, 252, 1) 100%);
+  background-image: -o-linear-gradient(-5deg, $nlPrimary 0%, rgba(194, 227, 252, 1) 100%);
+  background-image: linear-gradient(-5deg, $nlPrimary 0%, rgba(194, 227, 252, 1) 100%);
 }
 
 .nl-summary-box{
   padding: 10px;
   background-color: #fff;
-  width: 215px;
+  width: 250px;
   height: 90px;
   box-shadow: 2px 4px 5px 0px rgba(0, 0, 0, 0.06);
 }
@@ -1317,8 +1325,8 @@ nl-cards {
   min-width: 100px;
   padding-top: 2px;
   border-radius: 20px;
-  color: $fTabs;
-  border: 1px solid $fTabs;
+  color: $nlPrimary;
+  border: 1px solid $nlPrimary;
   box-shadow: 2px 4px 5px 0px rgba(0, 0, 0, 0.06);
   background-color: white;
 }
@@ -1916,53 +1924,13 @@ img.nl-full-width {
   background-color: $nlBlue1;
 }
 
+.bgclear {
+  background-color: none !important;
+}
+
 .round {
   border-radius: 50%;
 }
-//---------------------------------------------------------------------------
-// Font colors and sizes
-//---------------------------------------------------------------------------
-
-.f-title{
-  color: $fTitle;
-}
-.f-heading1{
-  color: $fHeading1
-}
-.f-active{
-  color: $fActive;
-}
-.f-tabs{
-  color: $fTabs;
-}
-.f-inactive{
-  color: $fInactive;
-}
-.nl-high-light{
-  color: $nlHighlight;  
-}
-.nl-bg-burger{
-  background-color: $nlBgBurger;
-}
-.nl-top-bar{
-  background-color: $bgTopBar;
-}
-.bg-menu{
-  background-color: $bgMenu;
-}
-.bg-content{
-  background-color: $bgContent;
-}
-.bg-active{
-  background-color: $bgActive;
-}
-.bg-tabs{
-  background-color: $bgTabs;
-}
-.bg-progress{
-  background-color: $bgProgress;
-}
-
 //---------------------------------------------------------------------------
 // Font sizes
 //---------------------------------------------------------------------------
@@ -2317,6 +2285,19 @@ img.nl-full-width {
   width: 100%;
   padding: 0 4px;
 }
+
+//---------------------------------------------------------------------------
+// Font colors and sizes
+//---------------------------------------------------------------------------
+
+.fheading1 {color: $nlHeading1;}
+.fheading2 {color: $nlHeading2;}
+.factive {color: $nlActive;}
+.finactive {color: $nlInactive;}
+.fprimary {color: $nlPrimary;}
+
+.bgprimary {background-color: $nlPrimary;}
+.bgcontent {background-color: $nlBackground;}
 
 /**
  * Default styles for modules (moved from parent template)

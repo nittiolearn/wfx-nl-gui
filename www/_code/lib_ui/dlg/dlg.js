@@ -10,6 +10,7 @@ function module_init() {
     .directive('nlDlg', DlgDirective)
     .directive('nlDlgRow', DlgRowDirective)
     .directive('nlDlgField', DlgFieldDirective)
+    .directive('nlSpinnerCentered', SpinnerCenteredDirective)
     .directive('nlInput', InputDirective)
     .directive('nlTextarea', TextareaDirective)
     .directive('nlSelect', SelectDirective)
@@ -300,6 +301,15 @@ function(nl, nlDlg) {
             	$scope.$parent.onFieldClick(fieldModel);
             };
         }
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
+var SpinnerCenteredDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return {
+        restrict: 'E',
+        template: "<div class='row row-center nl-spinner-centered'><div class='col'></div><div class='nl-spinner'></div><div class='col'></div></div>"
     };
 }];
 

@@ -69,10 +69,10 @@ function () {
 						"<div class='padding'>"+
 							"<div class='nl-leader-box {{fieldcls}}' style='padding-top:12px'>"+
 								"<div class='row row-center text-center row-justify-evenly padding0 margin0'>"+
-									"<span class='f-tabs' style='font-size:300%; font-weight: 600;min-width:95px'>{{number}}</span>"+
+									"<span class='fprimary' style='font-size:300%; font-weight: 600;min-width:95px'>{{number}}</span>"+
 								"</div>"+
 								"<div class='row row-center text-center row-justify-evenly padding0 margin0'>"+
-									"<span class='f-title' style='font-size: 12px;'>{{desc}}</span>"+
+									"<span class='fheading2' style='font-size: 12px;'>{{desc}}</span>"+
 								"</div>"+
 							"</div>"+
 						"</div>"+
@@ -104,10 +104,10 @@ function () {
 								"</div>"+
 								"<span style='padding-top:2px;'><span/>"+
 								"<div class='row row-center text-center row-justify-evenly padding0 margin0'>"+
-									"<span class='f-title' style='font-size:16px;font-weight:bold;'>{{title}}</span>"+
+									"<span class='fheading2' style='font-size:16px;font-weight:bold;'>{{title}}</span>"+
 								"</div>"+
 								"<div class='row row-center text-center row-justify-evenly padding0 margin0'>"+
-									"<span class='f-title' style='font-size: 12px;'>{{desc}}</span>"+
+									"<span class='fheading2' style='font-size: 12px;'>{{desc}}</span>"+
 								"</div>"+
 							"</div>"+
 						"</div>"+

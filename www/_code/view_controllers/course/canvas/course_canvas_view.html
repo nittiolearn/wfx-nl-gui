@@ -56,15 +56,7 @@
         </div>
         </div>
     </div>
-    <div class='holder1 row row-center margin0 padding0'
-         ng-show='canvas.status == "loading"'>
-        <div class='col margin0 padding0'></div>
-        <div>
-            <div class='padding-mid'>Loading background image</div>
-            <div class='text-center'><div class='nl-spinner nl-spinner-bg'></div></div>
-        </div>
-        <div class='col margin0 padding0'></div>
-    </div>
+    <nl-spinner-centered ng-show='canvas.status == "loading"'></nl-spinner-centered>
     <div class='holder1 row row-center margin0 padding0 forange fsh6'
          ng-show='canvas.status == "error"'>
         <div class='col margin0 padding0'></div>

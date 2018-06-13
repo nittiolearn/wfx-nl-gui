@@ -1,3 +1,5 @@
-<iframe class="nl-spinner nl-spinner-bg" ng-src='{{iframeUrl}}'
-	style='position: absolute; top: 0; left: 0; height: 100%; width: 100%;'>
+<nl-spinner-centered></nl-spinner-centered>
+<iframe ng-src='{{iframeUrl}}' class='{{iframebgclass}}'
+	style='position: absolute; top: 0; left: 0; height: 100%; width: 100%;'
+	onload='window.iFrameLoaded("course_view_frame")'>
 </iframe>

@@ -77,6 +77,16 @@ function(nlLog, $http, $q, $timeout, $location, $window, $rootScope) {
     this.resizeHandler = new ResizeHalder();
 
     this.idleMonitor = new IdleMonitor(this);
+    
+    var iFrameLoadedHandlers = {};
+    this.registerIFrameLoaded = function(key, fn) {
+    	iFrameLoadedHandlers[key] = fn;
+    };
+    window.iFrameLoaded = function(key) {
+    	if (!(key in iFrameLoadedHandlers)) return;
+    	iFrameLoadedHandlers[key](key);
+    };
+    
 }];
 
 //-------------------------------------------------------------------------------------------------

@@ -200,24 +200,7 @@ function () {
     		desc: '=',
     		showperc: '='
     	},
-    	template:"<div class='padding'>"+
-	    			 "<div class='nl-summary-box' style='padding-top:20px'>"+
-		    			  "<div class='row row-center text-center row-justify-evenly padding0 margin0'>" +
-							  "<span class='f-tabs' style='font-size:300%; font-weight: 600;min-width:95px'>" +
-								  "{{number}}<i ng-show='showperc' style='font-size:20px'>%</i>"+
-							  "</span>"+ 
-							  "<div class='col text-center padding0 margin0'>"+
-								  "<div class='row row-center text-center row-justify-evenly padding0 margin0'>" +
-									  "<span class='f-title' style='font-size:20px;'>{{title}}</span>"+
-								  "</div>"+
-								  "<div class='row row-center text-center row-justify-evenly padding0 margin0'>"+
-									  "<span class='f-title' style='font-size: 12px;'>{{desc}}</span>"+
-								  "</div>"+
-							  "</div>"+
-						  "</div>"+
-					  "</div>"+
-				 "</div>"
-					  
+    	templateUrl: 'lib_ui/utils/summary_box.html'
    };
 }];
 

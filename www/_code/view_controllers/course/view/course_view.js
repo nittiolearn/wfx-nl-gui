@@ -207,6 +207,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
                 url += url.indexOf('?') >= 0 ? '&' : '?';
                 url += 'embedded=true';
                 $scope.iframeUrl = url;
+                $scope.iframebgclass = 'bgclear';
                 $scope.iframeModule = $scope.ext.item.id;
                 $scope.updateVisiblePanes();
             });
@@ -236,6 +237,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     var folderStats = new FolderStats($scope);
     $scope.ext = new ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseCanvas, folderStats);
 	$scope.rootStat = folderStats.get(treeList.getRootItem().id);
+	nl.registerIFrameLoaded('course_view_frame', function() {
+		$scope.iframebgclass = 'bgwhite';
+	});
     function _onPageEnter(userInfo) {
         _userInfo = userInfo;
         return nl.q(function(resolve, reject) {
@@ -397,7 +401,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
 	};
 	
     $scope.updateVisiblePanes = function() {
-        var oldExpandedView = $scope.expandedView;
         $scope.expandedView = (nl.rootScope.screenSize != 'small');
         if (!$scope.expandedView && $scope.iframeUrl) {
             $scope.popupView = true;
@@ -488,7 +491,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         _confirmIframeClose(null, _impl);
     };
     
-    function _confirmIframeClose(newItem, nextFn) {
+    function _confirmIframeClose(newItem, nextFn, dontUpdate) {
         if (!$scope.iframeUrl || newItem && ($scope.iframeModule == newItem.id)) {
             nextFn();
             return;
@@ -509,7 +512,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
                 $scope.vp.iframehide = true;
                 $scope.iframeUrl = null;
                 $scope.iframeModule = null;
-                $scope.updateVisiblePanes();
+                if(!dontUpdate) $scope.updateVisiblePanes();
                 nextFn();
             });
     }
@@ -655,7 +658,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         $scope.ext.setCurrentItem(cm);
         _confirmIframeClose(cm, function() {
             _onLaunchImpl(cm);
-        });
+        }, true);
     };
     
     function _onLaunchImpl(cm) {
