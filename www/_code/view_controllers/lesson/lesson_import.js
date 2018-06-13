@@ -58,7 +58,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlServerApi, n
         }
         dlg.scope.onClickHandler = function(handlerName) {
 	        var csvString = $templateCache.get('view_controllers/lesson/csv_import_sample.csv.html');
-	        nlExporter.exportCsvFile('ImportTemplate.csv', csvString);
+	        nlExporter.exportCsvFile('ImportTemplate.csv', csvString, false);
         };
         
         var importButton = {text: nl.t('Import'), onTap: function(e) {
@@ -111,10 +111,10 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlServerApi, n
     	nlDlg.showLoadingScreen();
         if (e) e.preventDefault();
         var csvFile = dlgScope.data.filelist[0].resource;
-        nlImporter.readCsv(csvFile).then(function(result) {
+        nlImporter.readCsv(csvFile, {ignore_column_count: true}).then(function(result) {
             if (result.error) {
             	nlDlg.hideLoadingScreen();
-                nlDlg.popupAlert({title:'Error message', template:'Error parsing CSV file. Header row missing'});
+                nlDlg.popupAlert({title:'Error message', template:nl.t('Error parsing CSV file: {}', result.error)});
                 return;
             }
             var rows = _processCsvFile(result.table);

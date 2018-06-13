@@ -31,6 +31,7 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 var MODES = {PRIVATE: 0, PUBLISHED: 1, REPORT_VIEW: 2, DO: 3, EDIT: 4, REPORTS_SUMMARY_VIEW: 5};
+// TODO-LATER-123: reports_summary_view is moved already to /#/learning_reports. Remove in next release.
 var MODE_NAMES = {'private': 0, 'published': 1, 'report_view': 2, 'do': 3, 'edit': 4, 'reports_summary_view': 5};
 
 function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
@@ -826,9 +827,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     }
 
     function _updatedStatusinfoAtServer(bBlockUI) {
-        if (bBlockUI) nlDlg.showLoadingScreen();
         _saveAttemptNumber++;
-        var currentSaveNumber = _saveAttemptNumber;
+        _updatedStatusinfoAtServerImpl(bBlockUI, _saveAttemptNumber);
+    }
+
+    function _updatedStatusinfoAtServerImpl(bBlockUI, currentSaveNumber) {
+        if (bBlockUI) nlDlg.showLoadingScreen();
         var repid = parseInt($scope.params.id);
         nlServerApi.courseReportUpdateStatus(repid, JSON.stringify(modeHandler.course.statusinfo))
         .then(function(courseReport) {

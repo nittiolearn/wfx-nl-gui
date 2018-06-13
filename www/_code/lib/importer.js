@@ -15,6 +15,7 @@ function(nl, nlDlg) {
     var self = this;
 
     this.readCsv = function(file, config) {
+    	if (config === undefined) config = {};
         return nl.q(function(resolve, reject) {
             _readCsv(file, config, resolve, reject);
         });
@@ -35,7 +36,7 @@ function(nl, nlDlg) {
                 var cells = _splitIntoCells(rows[i]);
                 if (!cells) continue;
                 if (cols === null) cols = cells.length;
-                if (cols !== cells.length) error = 'Not all rows have same number of columns';
+                if (cols !== cells.length && !config.ignore_column_count) error = 'Not all rows have same number of columns';
                 table.push(cells);
             }
             resolve({table:table, error:error, cols: cols});
@@ -56,9 +57,9 @@ function(nl, nlDlg) {
         for (var i=0; i<cells.length; i++) {
             var cell = cells[i];
             cell = cell.replace(/^"(.*)"$/, '$1');
-            var quoteStart = new RegExp('^"[^"]');
+            var quoteStart = new RegExp('^"([^"]|"")');
             quoteStart = (quoteStart.test(cell) || cell == '"') ? true : false;
-            var quoteEnd = new RegExp('[^"]"$');
+            var quoteEnd = new RegExp('([^"]|"")"$');
             quoteEnd = (quoteEnd.test(cell) || cell == '"') ? true : false;
             cell = cell.replace(/""/g, '"');
             if (quoteStart) cell = cell.replace(/^"/g, '');

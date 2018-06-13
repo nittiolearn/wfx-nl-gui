@@ -3,6 +3,7 @@
 //-------------------------------------------------------------------------------------------------
 // training_report.js:
 // training module: reports for offline training
+// TODO-LATER-123: Move this to /#/learning_reports
 //-------------------------------------------------------------------------------------------------
 function module_init() {
 	angular.module('nl.training_report', [])
@@ -66,11 +67,11 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
     var _reportCsv = null;
 
     function _initFetchParams(kindId, createdfrom, createdtill) {
-		_params = {mode: _argv.all ? 'all' :  'mine', max: _argv.max,
-			filters: [{field: 'ctype', val: _nl.ctypes.CTYPE_TRAINING}]};
-		if (kindId) _params.filters.append({field: 'lesson_id', val: kindId});
+        _params = {type: 'training_kind', objid: kindId || 0, learner: 'all',
+        		   assignor: _argv.all ? 'all' : 'me', parentonly: true, filters: [],
+        		   max: _argv.max};
 		if (createdfrom) _params.createdfrom = createdfrom;
-		if (createdtill) _params.createdtill= createdtill;
+		if (createdtill) _params.createdtill = createdtill;
     }
     
     function _fetchRecords(fetchMore, resolve) {

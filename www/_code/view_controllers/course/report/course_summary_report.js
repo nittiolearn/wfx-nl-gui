@@ -2,6 +2,7 @@
 
 //-------------------------------------------------------------------------------------------------
 // course_summary_report.js: Display and export course reports
+// TODO-LATER-123: Moved already /#/learning_reports. Remove in next release.
 //-------------------------------------------------------------------------------------------------
 function module_init() {
 	angular.module('nl.course_summary_report', [])

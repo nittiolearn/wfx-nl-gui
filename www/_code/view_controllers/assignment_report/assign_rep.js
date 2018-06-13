@@ -2,6 +2,7 @@
 
 //-------------------------------------------------------------------------------------------------
 // assign_rep.js:
+// TODO-LATER-123: Move this to /#/learning_reports
 // Assignment reports controller to list assignment reports of a given lesson assignment
 //-------------------------------------------------------------------------------------------------
 function module_init() {
@@ -432,6 +433,7 @@ function _assignRepImpl(reptype, nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServ
 }
 
 //-------------------------------------------------------------------------------------------------
+// TODO-LATER-123: Remove nlRangeSelectionDlg after every user is moved to /#/learning_reports
 var NlRangeSelectionDlg = ['nl', 'nlDlg', function(nl, nlDlg) {
     var updatedTillDate = null;
     var updatedFromDate = null;
