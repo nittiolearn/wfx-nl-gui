@@ -336,9 +336,7 @@ function PageRenderer_prepare() {
 	// Create the elements inside the pdf_holder
 	var self = this;
 	self._holder.empty();
-    var spinner = '<div class="njs_pdf_progress_bar"><ion-spinner icon="{}"></ion-spinner></div>';
-    spinner = jQuery(njs_helper.fmt2(spinner, window.nlapp.nlDlg.getSpinnerIcon()));
-    spinner = window.nlapp.compile(spinner);
+    var spinner = '<div class="njs_pdf_progress_bar"><div class="nl-spinner"></div></div>';
 	var waiting = jQuery('<div class="njs_pdf_waiting"></div>');
 	waiting.append(jQuery('<div class="njs_pdf_waiting_msg"></div>'));
 	waiting.append(spinner);

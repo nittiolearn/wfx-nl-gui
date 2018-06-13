@@ -38,6 +38,27 @@ $orange2: #E06000 !default; // rgb(224, 96, 0)
 
 $yellow: #FFCC00 !default; // rgb(255, 204, 00)
 
+// The standard color format
+
+// Backgrounds
+$nlHighlight:     #11375E !default;
+$nlBgBurger:      #255FCA !default;
+$bgTopBar:        #FFFFFF !default;
+$bgMenu:          #C2E3FC !default;
+$bgContent:       #F1F1F1 !default;
+$bgActive:        #FFFFFF !default;
+$bgTabs:          #F2F8FB !default;
+$bgProgress:      #F1F1F1 !default;
+
+//fontcolors:
+
+$fTitle:          #7D7D7D !default;
+$fHeading1:       #707172 !default;
+$fActive:         #575B5E !default;
+$fTabs:           #255FCA !default;
+$fInactive:       #ABAEB0 !default;
+
+
 // The path for our ionicons font files, relative to the built CSS in www/css
 $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
 
@@ -333,30 +354,25 @@ $animation-duration: 200ms !default;
   background-color: rgba(0, 0, 0, 0);
 }
 
-ion-spinner.spinner svg {
-  width: 56px;
-  height: 56px;
-  stroke: #FFFFFF;
-  fill: #EEFFEE;
+.nl-spinner {
+  background: 50% 50% no-repeat;
+  background-size: 56px 56px;
+  min-width: 56px;
+  min-height: 56px;
 }
 
-ion-spinner.spinner.dark svg {
-  stroke: #000000;
-  fill: #110011;
+.nl-screen-small .nl-spinner {
+  background-size: 42px 42px;
+  min-width: 42px;
+  min-height: 42px;
 }
 
-.nl-screen-medium ion-spinner.spinner svg {
-  width: 42px;
-  height: 42px;
-}
-
-.nl-screen-small ion-spinner.spinner svg {
-  width: 28px;
-  height: 28px;
+.nl-spinner-bg {
+  background-color: rgba(0, 0, 0,0.4);  
 }
 
 .loading-container {
-    pointer-events: none;
+  pointer-events: none;
 }
 
 .loading-active .popup {
@@ -1266,6 +1282,47 @@ nl-cards {
   background-color: rgba(255, 255, 255, 0.3);
 }
 
+// nl-progress-bar
+.nl-progress-bar {
+  width: 100%;
+  height: 10px;
+  border-width: 1px;
+  background-color: $bgProgress;
+  border-radius: 50px;
+}
+
+.progress-bar-bar {
+  width: 0px;
+  height: 100%;
+  color: #fff;
+  font-weight: normal;
+  border-radius: 50px;
+  background-image: -webkit-linear-gradient(-5deg, $fTabs 0%, rgba(194, 227, 252, 1) 100%);
+  background-image: -moz-linear-gradient(-5deg, $fTabs 0%, rgba(194, 227, 252, 1) 100%);
+  background-image: -o-linear-gradient(-5deg, $fTabs 0%, rgba(194, 227, 252, 1) 100%);
+  background-image: linear-gradient(-5deg, $fTabs 0%, rgba(194, 227, 252, 1) 100%);
+}
+
+.nl-summary-box{
+  padding: 10px;
+  background-color: #fff;
+  width: 215px;
+  height: 90px;
+  box-shadow: 2px 4px 5px 0px rgba(0, 0, 0, 0.06);
+}
+
+// rounded button
+.nl-button-rounded {
+  height: 32px;
+  min-width: 100px;
+  padding-top: 2px;
+  border-radius: 20px;
+  color: $fTabs;
+  border: 1px solid $fTabs;
+  box-shadow: 2px 4px 5px 0px rgba(0, 0, 0, 0.06);
+  background-color: white;
+}
+
 //-----------------------------------------------------------------------------------------
 // search-box css code
 //------------------------------------------------------------------------------------------   
@@ -1862,6 +1919,49 @@ img.nl-full-width {
 .round {
   border-radius: 50%;
 }
+//---------------------------------------------------------------------------
+// Font colors and sizes
+//---------------------------------------------------------------------------
+
+.f-title{
+  color: $fTitle;
+}
+.f-heading1{
+  color: $fHeading1
+}
+.f-active{
+  color: $fActive;
+}
+.f-tabs{
+  color: $fTabs;
+}
+.f-inactive{
+  color: $fInactive;
+}
+.nl-high-light{
+  color: $nlHighlight;  
+}
+.nl-bg-burger{
+  background-color: $nlBgBurger;
+}
+.nl-top-bar{
+  background-color: $bgTopBar;
+}
+.bg-menu{
+  background-color: $bgMenu;
+}
+.bg-content{
+  background-color: $bgContent;
+}
+.bg-active{
+  background-color: $bgActive;
+}
+.bg-tabs{
+  background-color: $bgTabs;
+}
+.bg-progress{
+  background-color: $bgProgress;
+}
 
 //---------------------------------------------------------------------------
 // Font sizes
@@ -2106,6 +2206,16 @@ img.nl-full-width {
 
 .fade.ng-leave, .fade.ng-move.ng-move-active, .fade.ng-enter.ng-enter-active {
   opacity:1;
+}
+
+.ftoggle.ng-hide, .ftoggle.ng-leave.ng-leave-active, .ftoggle.ng-move, .ftoggle.ng-enter {
+  opacity: 0;
+  height: 0;
+}
+
+.ftoggle.ng-leave, .ftoggle.ng-move.ng-move-active, .ftoggle.ng-enter.ng-enter-active {
+  opacity:1;
+  height: auto;
 }
 
 .flyfrom-t.ng-hide,

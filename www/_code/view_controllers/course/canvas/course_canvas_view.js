@@ -57,7 +57,7 @@ function(nl, nlDlg, nlCourseCanvas) {
     var ret = {restrict: 'E', templateUrl: templateUrl, scope: true,
     link: function($scope, iElem, iAttrs) {
         var holder1 = iElem[0].querySelector('.holder1');
-        var pScope = $scope.$parent;
+        var pScope = $scope.$parent.$parent;
         _positionBgImage(pScope, holder1);
         pScope.onCanvasChange = function() {
             _positionBgImage(pScope, holder1);
@@ -89,6 +89,7 @@ function(nl, nlDlg) {
             return;
         }
         if (!$scope.ext.isEditorMode()) $scope.canvasShown = true;
+        if ($scope.onCanvasChange) $scope.onCanvasChange();
     };
     
     function _setupFunctions() {
@@ -201,7 +202,7 @@ function(nl, nlDlg) {
         if (!('posX' in cm) || !('posY' in cm)) return;
         pin.quadCls = '';
         _updateXPos(pin, cm);
-        _updateYPos(pin, cm)
+        _updateYPos(pin, cm);
         _addPercSign(pin);
         _updateSlotUsed(cm, slotUsed);
         pin.ok = true;
@@ -274,7 +275,7 @@ function(nl, nlDlg) {
             onLoadDone(imgSize);
         };
         img.src = imgUrl;
-    }
+    };
 }];
 
 //-------------------------------------------------------------------------------------------------

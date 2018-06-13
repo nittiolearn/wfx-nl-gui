@@ -17,6 +17,8 @@ function module_init() {
     .directive('nlFocusMe', FocusMeDirective)
     .directive('nlProgressLog', ProgressLogDirective)
     .directive('nlInlineHelp', InlineHelpDirective)
+    .directive('nlProgressBar', ProgressBarDirective)
+    .directive('nlSummaryBox', SummaryBoxDirective)
     .filter('nlTrustUrl', TrustUrlFilter)
     .service('nlProgressLog', ProgressLogSrv);
 }
@@ -170,6 +172,53 @@ function(nl) {
         transclude: true,
         templateUrl: 'lib_ui/utils/inline_help.html'
     };
+}];
+
+//-------------------------------------------------------------------------------------------------
+var ProgressBarDirective =  [
+function () {
+	return {
+    	restrict: 'E',
+    	scope: {
+    		curval: '=',
+    		maxval: '='
+    	},
+    	template: "<div class='nl-progress-bar'><div class='progress-bar-bar' " +
+                  "style='width: {{maxval ? curval/maxval*100 : 0}}%'></div></div>"
+   };
+}];
+
+//-------------------------------------------------------------------------------------------------
+var SummaryBoxDirective =  [
+function () {
+	return {
+    	restrict: 'E',
+    	transclude: true,
+    	scope: {
+    		number: '=',
+    		title: '=',
+    		desc: '=',
+    		showperc: '='
+    	},
+    	template:"<div class='padding'>"+
+	    			 "<div class='nl-summary-box' style='padding-top:20px'>"+
+		    			  "<div class='row row-center text-center row-justify-evenly padding0 margin0'>" +
+							  "<span class='f-tabs' style='font-size:300%; font-weight: 600;min-width:95px'>" +
+								  "{{number}}<i ng-show='showperc' style='font-size:20px'>%</i>"+
+							  "</span>"+ 
+							  "<div class='col text-center padding0 margin0'>"+
+								  "<div class='row row-center text-center row-justify-evenly padding0 margin0'>" +
+									  "<span class='f-title' style='font-size:20px;'>{{title}}</span>"+
+								  "</div>"+
+								  "<div class='row row-center text-center row-justify-evenly padding0 margin0'>"+
+									  "<span class='f-title' style='font-size: 12px;'>{{desc}}</span>"+
+								  "</div>"+
+							  "</div>"+
+						  "</div>"+
+					  "</div>"+
+				 "</div>"
+					  
+   };
 }];
 
 //-------------------------------------------------------------------------------------------------

@@ -1,158 +1,415 @@
-<div ng-if='ext.item.type == "module"'
-     class='row row-center margin0'>
-    <div class='col'>
-        <table class='nl-table nl-table-styled'>
-            <tr>
-                <th>Overall status</th><th>
-                    <i ng-if='ext.item.state.icon'
-                       class="icon fsh3 {{ext.item.state.icon}}"></i>
-                    <span>{{ext.item.state.title}}</span>
-                </th>
-            </tr>
-            <tr>
-                <th>Total items</th><th>{{ext.stats.total}}</th>
-            </tr>
-            <tr ng-if='ext.stats.success'>
-                <td>&nbsp; Done</td><td>{{ext.stats.success}}</td>
-            </tr>
-            <tr ng-if='ext.stats.failed'>
-                <td>&nbsp; Failed</td><td>{{ext.stats.failed}}</td>
-            </tr>
-            <tr ng-if='ext.stats.pending'>
-                <td>&nbsp; Pending</td><td>{{ext.stats.started + ext.stats.pending + ext.stats.waiting}}</td>
-            </tr>
-            <tr ng-if='ext.stats.delayed'>
-                <td>&nbsp; Delayed</td><td>{{ext.stats.delayed}}</td>
-            </tr>
-            <tr ng-if='ext.stats.timeCount > 0'>
-                <th>Time spent</th><th>{{ext.stats.avgTime}} minutes</th>
-            </tr>
-            <tr ng-if='ext.stats.maxScore > 0'>
-                <th>Avg. score</th><th>{{ext.stats.perc}}%</th>
-            </tr>
-        </table>
-    </div>
-    <div style='width: 200px; height: 200px'>
-        <canvas class='chart chart-doughnut'
-                chart-data='ext.stats.chartInfo.data'
-                chart-labels='ext.stats.chartInfo.labels'
-                chart-colours='ext.stats.chartInfo.colours'>
-        </canvas> 
-    </div>
-</div>
-<div ng-if='ext.item.type == "module" && ext.item.textHtml' class='padding-top'>
-    <div nl-compile='ext.item.textHtml' class='nl-content-holder'></div>
-</div>
-<div ng-if='ext.item.type != "module"'>
-    <table class='nl-table nl-table-styled'>
-        <tr>
-            <td>Status</td><td>
-                <i ng-if='ext.item.state.icon'
-                   class="icon fsh3 {{ext.item.state.icon}}"></i>
-                <span>{{ext.item.state.title}}</span>
-            </td>
-        </tr>
-        <tr ng-if='ext.item.planned_date'>
-            <td>Planned date</td><td>{{ext.item.planned_date | date : 'dd-MMM-yy'}}</td>
-        </tr>
-        <tr ng-if='ext.item.start_date'>
-            <td>Earliest start date</td><td>{{ext.item.start_date | date : 'dd-MMM-yy'}}</td>
-        </tr>
-        <tr ng-if='ext.item.started'>
-            <td>Started</td><td>{{ext.item.started | date : 'dd-MMM-yy HH:mm:ss'}}</td>
-        </tr>
-        <tr ng-if='ext.item.ended'>
-            <td>Ended</td><td>{{ext.item.ended | date : 'dd-MMM-yy HH:mm:ss'}}</td>
-        </tr>
-        <tr ng-if='ext.item.timeMins'>
-            <td>Time spent</td><td>{{ext.item.timeMins}} minutes</td>
-        </tr>
-        <tr ng-if='ext.item.perc'>
-            <td>Score</td><td>{{ext.item.perc}}% ({{ext.item.score}} / {{ext.item.maxScore}})</td>
-        </tr>
-        <tr ng-if='ext.item.passScore'>
-            <td>Pass score</td><td>{{ext.item.passScore}}%</td>
-        </tr>
-        <tr ng-if='ext.item.type == "lesson"'>
-            <td>Maximum attempts</td><td>{{ext.item.maxAttempts ? ext.item.maxAttempts : "No limit"}}</td>
-        </tr>
-        <tr ng-if='ext.item.type == "lesson"'>
-            <td>Number of attempts</td>
-            <td>
-            	<span ng-show='ext.pastAttemptData.length > 0' class='nl-link-text' 
-	            	ng-click='ext.showPastAttempts = !ext.showPastAttempts'>
-            		{{ext.pastAttemptData.length}} completed</span>
-            	<span ng-show='ext.item.attempt > ext.pastAttemptData.length'>(1 ongoing)</span>
-            	<span ng-show='!ext.item.attempt'>0</span>
-                <button ng-if='ext.canReattempt()'
-                        class='nl-button'
-                        ng-click='onReattempt($event, ext.item)'>
-                    Try again
-                </button>
-            </td>
-        </tr>
-    </table>
-    <div ng-if='ext.pastAttemptData.length > 0 && ext.showPastAttempts'>
-        <h4>Completed attempts:</h4>
-        <table class='nl-table nl-table-styled'>
-            <tr>
-                <th>Started</th>
-                <th>Ended</th>
-                <th>Score</th>
-                <th>Max score</th>
-            </tr>
-            <tr ng-repeat='attempt in ext.pastAttemptData'
-                class='nl-link-text'
-                ng-click='ext.showPastReport(attempt)'>
-                <td>{{attempt.started | date : 'dd-MMM-yy HH:mm:ss'}}</td>
-                <td>{{attempt.ended | date : 'dd-MMM-yy HH:mm:ss'}}</td>
-                <td>{{attempt.score}}</td>
-                <td>{{attempt.maxScore}}</td>
-            </tr>
-        </table>
-        <a ng-href='{{attempt.url}}'>{{attempt.text}}</a>
-    </div>
+<style>
+.item-selected{
+  background-color:#EFEFF5;	
+}
 
-    <div ng-if='ext.item.textHtml' class='padding-top'>
-	    <div nl-compile='ext.item.textHtml' class='nl-content-holder'></div>
-    </div>
-    <div ng-if='ext.canShowRemarks()' class='padding-top'>
-        <div class='padding-small'></div>
-        <div ng-show='!ext.canUpdateStatus() && ext.data.remarks'>
-            <div><b>Remarks:</b></div>
-            <div ng-bind-html='ext.data.remarks'></div>
-        </div>
-        <div ng-show='ext.canUpdateStatus()'>
-            <div><b>Remarks:</b></div>
-            <div class='nl-dlg-field-value'>
-                <textarea ng-model='ext.data.remarks'
-                          class='w100'
-                          tabindex='1'
-                          autofocus=''>
-                </textarea>
-            </div>
-        </div>
-    </div>
-    <div ng-if='ext.canUpdateStatus()'>
-        <div ng-show='ext.item.state.status == "success"'
-             class='forange2 padding-top'>
-            This item is currently marked as completed. You could reopen this by clicking the 'Reopen' button.
-        </div>
-    </div>
-    <div class='row row-top row-wrap margin0 padding-top'>
-        <div ng-if='ext.canUpdateStatus()'
-             class='col padding-small min-200'>
-             <button class='nl-button w100'
-                     ng-click='ext.updateStatus(ext.item.state.status != "success")'>
-                     {{ext.item.state.status == 'success' ? 'Reopen' : 'Done'}}
-             </button>
-        </div>
-        <div ng-if='ext.canLaunch()'
-             class='col padding-small min-200'>
-             <button class='nl-button w100'
-                     ng-click='onLaunch($event, ext.item)'>
-                     {{ext.getLaunchString()}}
-             </button>
-        </div>
-    </div>
+</style>
+<div class='nl-full nl-thin-scroll bg-content'>
+	<div class='row row-center padding-mid margin0'>
+		<div class='col padding-mid'></div>
+		<div style='padding-right: 10px'>
+	        <div class='nl-link-text text-center padding-mid nl-button-rounded'
+	        	ng-click='onToggleSummaryBox()'>
+	        	<span>{{toggleText}}</span>
+	        </div>
+		</div>
+	</div>
+	<div class='row row-center row-wrap text-center row-justify-evenly padding0 margin0' ng-show='toggleSummaryBox'>
+		<div class='col'>
+			<div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
+				<div class='col padding0 margin0'>
+					<div class='row row-center text-center row-wrap padding0 margin0'>
+			 			<nl-summary-box number='getCompletionStatus()' 
+			 				title='"Completed"' 
+			 				desc=''
+			 				showperc=1 
+			 				style='width: {{screenSize != "large" || vp.i ? 100 : ""}}%; text-align: -webkit-center'>
+						</nl-summary-box>
+			 			<nl-summary-box number='rootStat.started' 
+			 				title='"Ongoing"' 
+			 				desc=''
+			 				showperc=0 
+			 				style='width: {{screenSize != "large" || vp.i ? 100 : ""}}%; text-align: -webkit-center'>
+						</nl-summary-box>
+					</div>
+				</div>
+				<div class='col padding0 margin0'>
+					<div class='row row-center text-center row-wrap padding0 margin0'>
+			 			<nl-summary-box number='rootStat.perc || 0' 
+			 				title='"Avg score"' 
+			 				desc='getFormatedDesc("average")'
+			 				showperc=1
+			 				style='width: {{screenSize != "large" || vp.i ? 100 : ""}}%; text-align: -webkit-center'>
+						</nl-summary-box>
+			 			<nl-summary-box number='rootStat.delayed || 0' 
+			 				title='"Delayed"' 
+			 				desc=''
+			 				showperc=0
+			 				style='width: {{screenSize != "large" || vp.i ? 100 : ""}}%; text-align: -webkit-center'>
+						</nl-summary-box>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class='padding'>
+			<div class='row row-center row-wrap padding0 margin0'>
+			    <div style='width: 200px; height: 200px'>
+			        <canvas class='chart chart-doughnut'
+			                chart-data='rootStat.chartInfo.data'
+			                chart-labels='rootStat.chartInfo.labels'
+			                chart-colours='rootStat.chartInfo.colours'>
+			        </canvas> 
+			    </div>
+			</div>
+		</div>
+	</div>
+	<div ng-show='screenSize == "small" || vp.i == true' class='padding-mid'>
+		<div style='border:1px solid #FFFFFF; box-shadow: 4px -4px 10px #ADA4A4'>
+			<div ng-repeat='cm in modules' class='anim fade'
+				style='background-color: #FFFFFF; border-bottom: 1px solid #EFEFF5'>
+		        <div class='row row-center row-wrap margin0 padding-mid nl-link-text {{ext.item.id == cm.id ? "item-selected" : ""}} f-active'
+		             ng-click='onRowClick($event, cm)'>
+		            <div class='row row-center margin0 padding-mid'>
+						<div class='col margin0 padding0' style='padding-left: {{cm.indentationLevel*16 + 8}}px'>
+							<div class='row row-center margin0 padding0'>
+								<div class='col padding0' style="font-size:16px">{{cm.name}}</div>
+								<span  style='text-align:right'>
+									<i ng-if='!ext.isStaticMode() && cm.state.icon' class="icon fsh3 {{cm.state.icon}}"></i>
+								</span>
+							</div>
+						</div>
+		            </div>
+		            <div class='row row-center margin0 padding-mid'>
+						<div class='col margin0 padding0' 
+							style='padding-left: {{(screenSize == "small" || vp.i) ? cm.indentationLevel*16 + 8 : 8}}px'>
+							<div class='row row-center padding0 margin0'>
+								<div class='col padding0' ng-show='cm.type == "module"'>
+									<div class='row row-center margin0 padding0'>
+										<div class='col padding0'>
+											<nl-progress-bar curval='cm.completedItems' 
+												maxval='cm.totalItems'>
+											</nl-progress-bar>
+										</div>
+										<span style='width: 40px; text-align: right;'>{{cm.completedItems ? ext.getRoundedPercentage(cm.completedItems, cm.totalItems) : 0}}%</span>
+									</div>
+								</div>
+								<div ng-show='cm.type != "module"' class='col'></div>
+							    <div ng-show='cm.type != "module" && ext.canShowLaunch(cm)' 
+							    	class='nl-link-text padding-mid nl-button-rounded'
+					                ng-click='onLaunch($event, cm)'
+					                style='text-align: center'>
+					                 <span title='{{ext.getLaunchString(cm)}}'>
+								        <span style='vertical-align: super;'>{{ext.getLaunchString(cm)}}</span>
+					                 </span>
+							    </div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div ng-show='cm.type != "module" && cm.id == ext.item.id && isDetailsShown && !vp.i' class='padding-mid f-active anim fade'>
+					<div style='padding-left: {{cm.indentationLevel*16 + 8}}px'>
+						<div class='row row-center row-justify-evenly padding0 margin0'>
+							<div class='col'><b>Status</b></div>
+							<div class='col'>
+								<i ng-show='ext.item.state.icon'
+					               class="icon fsh3 {{ext.item.state.icon}}"></i>
+					             <span>{{ext.item.state.title}}</span>
+							</div>
+						</div>
+						<div class='row row-center row-justify-evenly padding0 margin0'>
+							<div class='col'><b>Time spent</b></div>
+							<div class='col'>{{ext.item.timeMins}} minutes</div>
+						</div>
+						<div ng-show='ext.item.planned_date' class='row row-center row-justify-evenly padding0 margin0'>
+							<div class='col'><b>Planned Date</b></div>
+							<div class='col'>{{ext.item.planned_date | date : 'dd-MMM-yy' || "--"}}</div>
+						</div>
+						<div ng-show='ext.item.start_date' class='row row-center row-justify-evenly padding0 margin0'>
+							<div class='col'><b>Earliest start date</b></div>
+							<div class='col'>{{ext.item.start_date | date : 'dd-MMM-yy' || "--"}}</div>
+						</div>
+						<div ng-show='ext.item.started' class='row row-center row-justify-evenly padding0 margin0'>
+							<div class='col'><b>Started</b></div>
+							<div class='col'>{{ext.item.started | date : 'dd-MMM-yy' || "--"}}</div>
+						</div>
+						<div ng-show='ext.item.ended' class='row row-center row-justify-evenly padding0 margin0'>
+							<div class='col'><b>Ended</b></div>
+							<div class='col'>{{ext.item.ended | date : 'dd-MMM-yy' || "--"}}</div>
+						</div>
+						<div ng-show='ext.item.maxScore' class='row row-center row-justify-evenly padding0 margin0'>
+							<div class='col'><b>Score</b></div>
+							<div class='col'>{{ext.item.perc}}% ({{ext.item.score}} / {{ext.item.maxScore}})</div>
+						</div>
+						<div ng-show='ext.item.maxScore' class='row row-center row-justify-evenly padding0 margin0'>
+							<div class='col'><b>Pass score</b></div>
+							<div class='col'>{{ext.item.passScore}}%</div>
+						</div>
+						<div ng-show='ext.item.type == "lesson"' class='row row-center row-justify-evenly margin0 padding0'>
+							<div class='col'><b>Maximum attempts</b></div>
+							<div class='col'>{{ext.item.maxAttempts ? ext.item.maxAttempts : "No limit"}}</div>
+						</div>
+						<div ng-show='ext.item.type == "lesson"' class='row row-center row-justify-evenly margin0 padding0'>
+							<div class='col'><b>Number of attempts</b></div>
+							<div class='col'>
+								<div class='row row-center row-wrap padding0 margin0'>
+									<div class='col padding0 margin0' ng-show='ext.pastAttemptData.length > 0'>
+						            	<span ng-show='ext.pastAttemptData.length > 0'>
+						            		{{ext.pastAttemptData.length}} completed</span>
+						            	<span ng-show='ext.item.attempt > ext.pastAttemptData.length'>(1 ongoing)</span>
+						            	<span ng-show='!ext.item.attempt'>0</span>
+									</div>
+								    <span ng-show='ext.canReattempt()'
+								    	class='nl-link-text padding-mid nl-button-rounded'
+						                ng-click='onReattempt($event, ext.item)'
+						                style='max-width:108px; min-width: 100px;text-align: center'>
+								        <span style='vertical-align: super;'>Try again</span>
+								    </span>
+								</div>
+							</div>
+						</div>
+	
+				        <hr/>
+					    <div ng-show='ext.pastAttemptData.length > 0' style='padding-left:2px'>
+					        <b>Completed attempts:</b>
+					        <hr/>
+				        	<div class='row row-center text-center padding0 margin0'>
+					        	<div ng-class='respCol111'>
+					        		<div class='row row-center padding0 margin0' style='background-color: #999999; color: #FFFFFF'>
+										<div class='col'><b>Started</b></div>
+										<div ng-hide='screenSize == "small" || vp.i == true' class='col'><b>Ended</b></div>
+										<div class='col'><b>Score</b></div>
+					        		</div>
+					        	</div>
+				        	</div>
+				        	<hr/>
+					        <div class='row row-center text-center padding0 margin0' 
+					        	ng-repeat='attempt in ext.pastAttemptData' >
+					        	<div ng-class='respCol111'>
+					        		<div class='row row-center padding0 margin0 nl-link-text' 
+					        			ng-click='ext.showPastReport(attempt)'>
+										<div class='col'>{{attempt.started | date : 'dd-MMM-yy HH:mm:ss'}}</div>
+										<div ng-hide='screenSize == "small" || vp.i == true' class='col'>{{attempt.ended | date : 'dd-MMM-yy HH:mm:ss'}}</div>
+										<div class='col'>{{ext.getRoundedPercentage(attempt.score, attempt.maxScore)}}%</div>
+								        <a ng-href='{{attempt.url}}'>{{attempt.text}}</a>
+					        		</div>
+					        		<hr/>
+					        	</div>
+					        </div>
+				        </div>
+						
+					    <div ng-show='ext.item.textHtml' class='padding-top'>
+						    <div nl-compile='ext.item.textHtml' class='nl-content-holder'></div>
+					    </div>
+					    <div ng-show='ext.canShowRemarks()' class='padding-top'>
+					        <div class='padding-small'></div>
+					        <div ng-show='!ext.canUpdateStatus() && ext.data.remarks'>
+					            <div><b>Remarks:</b></div>
+					            <div ng-bind-html='ext.data.remarks'></div>
+					        </div>
+					        <div ng-show='ext.canUpdateStatus()'>
+					            <div><b>Remarks:</b></div>
+					            <div class='nl-dlg-field-value'>
+					                <textarea ng-model='ext.data.remarks'
+					                          class='w100'
+					                          tabindex='1'
+					                          autofocus=''>
+					                </textarea>
+					            </div>
+					        </div>
+					    </div>
+					    <div ng-show='ext.canUpdateStatus()'>
+					        <div ng-show='ext.item.state.status == "success"'
+					             class='forange2 padding-top'>
+					            This item is currently marked as completed. You could reopen this by clicking the 'Reopen' button.
+					        </div>
+					    </div>
+					    <div class='row row-top row-wrap margin0 padding-top'>
+					        <div ng-show='ext.canUpdateStatus()'
+					             class='col padding-small min-200'>
+					             <button class='nl-button w100'
+					                     ng-click='ext.updateStatus(ext.item.state.status != "success")'>
+					                     {{ext.item.state.status == 'success' ? 'Reopen' : 'Done'}}
+					             </button>
+					        </div>
+					    </div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div ng-show='screenSize != "small" && vp.i != true' class='padding-mid'>
+		<div style='border:1px solid #FFFFFF; box-shadow: 4px -4px 10px #ADA4A4'>
+			<div ng-repeat='cm in modules' class='anim fade'
+				style='background-color: #FFFFFF; border-bottom: 1px solid #EFEFF5'>
+		        <div class='row row-center row-wrap margin0 padding0 nl-link-text {{ext.item.id == cm.id ? "item-selected" : ""}} f-active'
+		             ng-click='onRowClick($event, cm)'>
+					<div ng-class='resp2Col67' class='margin0 padding-mid' style='padding-left: {{cm.indentationLevel*16 + 8}}px'>
+						<div class='row row-center margin0 padding-mid'>
+							<div class='col padding-mid' style='font-size: 16px;'>{{cm.name}}</div>
+							<div class=''>
+								<span class='padding' style='text-align:right'>
+									<i ng-if='!ext.isStaticMode() && cm.state.icon' class="icon fsh3 {{cm.state.icon}}"></i>
+								</span>
+							</div>
+						</div>
+					</div>
+					<div ng-class='resp2Col33' 
+						class='margin0 padding-mid' 
+						style='padding-left: {{screenSize == "small" ? cm.indentationLevel*16 + 8 : 0}}px'>
+						<div class='row row-center text-center row-justify-evenly padding-mid margin0'>
+							<div style='min-width:100px;' class='padding-mid text-center'>
+								<div ng-show='(cm.type != "module" && cm.maxScore > 0) || (cm.type == "module" && (cm.completedItems == cm.totalItems) && (cm.stats.maxScore > 0))'
+									class='row row-center text-center padding0 mmargin0'>
+									<span style='width:100%;font-size:12px;' class='text-center '>Score</span>
+								</div>
+								<div class='row row-center text-center padding0 margin0'>
+									<span ng-if='cm.type != "module" && cm.maxScore > 0' style='width:100%; font-weight: 600;'>{{cm.perc || "0"}}%</span>
+									<span ng-if='cm.type == "module" && (cm.completedItems == cm.totalItems) && (cm.stats.maxScore > 0)' style='width:100%; font-weight: 600;'>{{cm.stats.perc}}%</span>
+								</div>
+							</div>
+							<div class='col padding0' ng-show='cm.type == "module"'>
+								<div class='row row-center margin0 padding0'>
+									<div class='col padding0'>
+										<nl-progress-bar curval='cm.completedItems' 
+											maxval='cm.totalItems'>
+									</nl-progress-bar>
+									</div>
+									<span style='min-width: 50px; text-align: right'>{{cm.completedItems ? ext.getRoundedPercentage(cm.completedItems, cm.totalItems) : 0}}%</span>
+								</div>
+							</div>
+							<div ng-if='cm.type != "module"' class='col'></div>
+						    <div ng-show='cm.type != "module" && ext.canShowLaunch(cm)' 
+						    	class='nl-link-text padding-mid nl-button-rounded'
+				                ng-click='onLaunch($event, cm)'
+				                style='text-align: center'>
+				                 <span title='{{ext.getLaunchString(cm)}}'>
+							        <span style='vertical-align: super;'>{{ext.getLaunchString(cm)}}</span>
+				                 </span>
+						    </div>
+						    <span class='sep4'></span>
+						</div>
+					</div>
+				</div>
+				<div ng-show='cm.type != "module" && cm.id == ext.item.id && isDetailsShown' class='f-active padding-mid anim fade'>
+					<div style='padding-left: {{cm.indentationLevel*16 + 8}}px'>
+						<div class='row row-wrap row-center row-justify-evenly padding0 margin0'>
+							<div ng-class='respCol442'><b>Status</b></div>
+							<div ng-class='respCol442'>
+								<i ng-show='ext.item.state.icon'
+					               class="icon fsh3 {{ext.item.state.icon}}"></i>
+					             <span>{{ext.item.state.title}}</span>
+							</div>
+							<div ng-class='respCol442'><b>Time spent</b></div>
+							<div ng-class='respCol442'>{{ext.item.timeMins}} minutes</div>
+						</div>
+						<div ng-show='ext.item.planned_date || ext.item.start_date' class='row row-wrap row-center row-justify-evenly padding0 margin0'>
+							<div ng-class='respCol442'><b>Planned Date</b></div>
+							<div ng-class='respCol442'>{{ext.item.planned_date | date : 'dd-MMM-yy' || "--"}}</div>
+							<div ng-class='respCol442'><b>Earliest start date</b></div>
+							<div ng-class='respCol442'>{{ext.item.start_date | date : 'dd-MMM-yy' || "--"}}</div>
+						</div>
+						<div ng-show='ext.item.started || ext.item.ended' class='row row-wrap row-center row-justify-evenly padding0 margin0'>
+							<div ng-class='respCol442'><b>Started</b></div>
+							<div ng-class='respCol442'>{{ext.item.started | date : 'dd-MMM-yy' || "--"}}</div>
+							<div ng-class='respCol442'><b>Ended</b></div>
+							<div ng-class='respCol442'>{{ext.item.ended | date : 'dd-MMM-yy' || "--"}}</div>
+						</div>
+						<div ng-show='ext.item.maxScore' class='row row-wrap row-center row-justify-evenly padding0 margin0'>
+							<div ng-class='respCol442'><b>Score</b></div>
+							<div ng-class='respCol442'>{{ext.item.perc}}% ({{ext.item.score}} / {{ext.item.maxScore}})</div>
+							<div ng-class='respCol442'><b>Pass score</b></div>
+							<div ng-class='respCol442'>{{ext.item.passScore}}%</div>
+						</div>
+						<div ng-show='ext.item.type == "lesson"' class='row row-center row-wrap row-justify-evenly margin0 padding0'>
+							<div ng-class='respCol442'><b>Maximum attempts</b></div>
+							<div ng-class='respCol442'>{{ext.item.maxAttempts ? ext.item.maxAttempts : "No limit"}}</div>
+							<div ng-class='respCol442'><b>Number of attempts</b></div>
+							<div ng-class='respCol442'>
+								<div class='row row-center row-wrap padding0 margin0'>
+									<div class='col padding0 margin0' ng-show='ext.pastAttemptData.length > 0'>
+						            	<span ng-show='ext.pastAttemptData.length > 0'>
+						            		{{ext.pastAttemptData.length}} completed</span>
+						            	<span ng-show='ext.item.attempt > ext.pastAttemptData.length'>(1 ongoing)</span>
+						            	<span ng-show='!ext.item.attempt'>0</span>
+									</div>
+								    <span ng-show='ext.canReattempt()'
+								    	class='nl-link-text padding-mid nl-button-rounded'
+						                ng-click='onReattempt($event, ext.item)'
+						                style='max-width:108px; min-width: 100px;text-align: center'>
+								        <span style='vertical-align: super;'>Try again</span>
+								    </span>
+								    <span class='sep4'></span>
+								</div>
+							</div>
+						</div>
+	
+				        <hr/>
+					    <div ng-show='ext.pastAttemptData.length > 0' style='padding-left:2px'>
+					        <b>Completed attempts:</b>
+					        <hr/>
+				        	<div class='row row-center text-center padding0 margin0'>
+					        	<div ng-class='respCol111'>
+					        		<div class='row row-center padding0 margin0' style='background-color: #999999; color: #FFFFFF'>
+										<div class='col'><b>Started</b></div>
+										<div ng-show='screenSize != "small"' class='col'><b>Ended</b></div>
+										<div class='col'><b>Score</b></div>
+					        		</div>
+					        	</div>
+				        	</div>
+				        	<hr/>
+					        <div class='row row-center text-center padding0 margin0' 
+					        	ng-repeat='attempt in ext.pastAttemptData' >
+					        	<div ng-class='respCol111'>
+					        		<div class='row row-center padding0 margin0 nl-link-text' 
+					        			ng-click='ext.showPastReport(attempt)'>
+										<div class='col'>{{attempt.started | date : 'dd-MMM-yy HH:mm:ss'}}</div>
+										<div ng-show='screenSize != "small"' class='col'>{{attempt.ended | date : 'dd-MMM-yy HH:mm:ss'}}</div>
+										<div class='col'>{{ext.getRoundedPercentage(attempt.score, attempt.maxScore)}}%</div>
+								        <a ng-href='{{attempt.url}}'>{{attempt.text}}</a>
+					        		</div>
+					        		<hr/>
+					        	</div>
+					        </div>
+				        </div>
+						
+					    <div ng-show='ext.item.textHtml' class='padding-top'>
+						    <div nl-compile='ext.item.textHtml' class='nl-content-holder'></div>
+					    </div>
+					    <div ng-show='ext.canShowRemarks()' class='padding-top'>
+					        <div class='padding-small'></div>
+					        <div ng-show='!ext.canUpdateStatus() && ext.data.remarks'>
+					            <div><b>Remarks:</b></div>
+					            <div ng-bind-html='ext.data.remarks'></div>
+					        </div>
+					        <div ng-show='ext.canUpdateStatus()'>
+					            <div><b>Remarks:</b></div>
+					            <div class='nl-dlg-field-value'>
+					                <textarea ng-model='ext.data.remarks'
+					                          class='w100'
+					                          tabindex='1'
+					                          autofocus=''>
+					                </textarea>
+					            </div>
+					        </div>
+					    </div>
+					    <div ng-show='ext.canUpdateStatus()'>
+					        <div ng-show='ext.item.state.status == "success"'
+					             class='forange2 padding-top'>
+					            This item is currently marked as completed. You could reopen this by clicking the 'Reopen' button.
+					        </div>
+					    </div>
+					    <div class='row row-top row-wrap margin0 padding-top'>
+					        <div ng-show='ext.canUpdateStatus()'
+					             class='col padding-small min-200'>
+					             <button class='nl-button w100'
+					                     ng-click='ext.updateStatus(ext.item.state.status != "success")'>
+					                     {{ext.item.state.status == 'success' ? 'Reopen' : 'Done'}}
+					             </button>
+					        </div>
+					    </div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
