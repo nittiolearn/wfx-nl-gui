@@ -378,19 +378,23 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     $scope.canvasShown = false;  // true if content area contains canvas.
     $scope.popupView = false;    // true if content area is popped out.
     $scope.expandedView = false; // true if tree + content area is shown
-	$scope.toggleSummaryBox = (nl.rootScope.screenSize != 'small') ? true : false;
-	$scope.toggleText = (nl.rootScope.screenSize != 'small') ? 'Hide details' : 'Show details';
+	$scope.toggleSummaryBox = false;
+	$scope.toggleText = 'Show summary';
 	
-	$scope.onToggleSummaryBox = function() {
-		if($scope.toggleSummaryBox) {
-			$scope.toggleSummaryBox = false;
-			$scope.toggleText = 'Show details';
-		} else {
-			$scope.toggleSummaryBox = true;
-			$scope.toggleText = 'Hide details';
-		}
-	};
+	function _closeSummaryBox() {
+		$scope.toggleSummaryBox = false;
+		$scope.toggleText = 'Show summary';
+	}
+	function _openSummaryBox() {
+		$scope.toggleSummaryBox = true;
+		$scope.toggleText = 'Hide summary';
+	}
 
+	$scope.onToggleSummaryBox = function() {
+		if($scope.toggleSummaryBox) _closeSummaryBox();
+		else _openSummaryBox();
+	};
+	
     $scope.updateVisiblePanes = function() {
         var oldExpandedView = $scope.expandedView;
         $scope.expandedView = (nl.rootScope.screenSize != 'small');
@@ -413,6 +417,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
                 if ($scope.canvasShown) vp.c = true;
                 else vp.d = true;
             }
+        }
+        
+        if (!$scope.ext.isStaticMode()) {
+			if (vp.d) _openSummaryBox();
+			else if (vp.t) _closeSummaryBox();
         }
         nlRouter.updateBodyClass('iframeActive', vp.i);
     };

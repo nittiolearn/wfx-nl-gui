@@ -2208,6 +2208,16 @@ img.nl-full-width {
   opacity:1;
 }
 
+.ftoggle.ng-hide, .ftoggle.ng-leave.ng-leave-active, .ftoggle.ng-move, .ftoggle.ng-enter {
+  opacity: 0;
+  height: 0;
+}
+
+.ftoggle.ng-leave, .ftoggle.ng-move.ng-move-active, .ftoggle.ng-enter.ng-enter-active {
+  opacity:1;
+  height: auto;
+}
+
 .flyfrom-t.ng-hide,
 .flyfrom-t.ng-leave.ng-leave-active,
 .flyfrom-t.ng-move,
