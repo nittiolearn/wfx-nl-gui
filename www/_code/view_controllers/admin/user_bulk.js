@@ -266,10 +266,11 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         if (validateOnly) msg = 'Validation done - no upload done: total:{}';
         msg = nl.fmt2(msg, self.statusCnts.total, self.statusCnts.process,
             self.statusCnts.success, self.statusCnts.error);
-        if (self.statusCnts.error > 0)
+        if (self.statusCnts.error > 0) {
             if(self.pl) self.pl.error(msg, angular.toJson(self.statusCnts, 2));
-        else
+        } else {
             if(self.pl) self.pl.imp(msg, angular.toJson(self.statusCnts, 2));
+		}
         if(self.dlg) self.dlg.scope.running = false;
     }
     

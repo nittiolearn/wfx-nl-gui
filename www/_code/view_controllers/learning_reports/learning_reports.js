@@ -25,13 +25,15 @@
 //       nlSummaryStats, nlLrCourseRecords
 //         nlLrFilter
 //           nlLrHelper
+//
+// n.lLrImportCtrl: the controller implemeting /#/lr_import (independant controller)
 
 //-------------------------------------------------------------------------------------------------
 function module_init() {
 	angular.module('nl.learning_reports', ['nl.learning_reports.lr_helper', 'nl.learning_reports.lr_filter', 
 		'nl.learning_reports.lr_fetcher', 'nl.learning_reports.lr_exporter', 
 		'nl.learning_reports.lr_report_records', 'nl.learning_reports.lr_course_records',
-		'nl.learning_reports.lr_summary_stats'])
+		'nl.learning_reports.lr_summary_stats', 'nl.learning_reports.lr_import'])
 	.config(configFn)
 	.controller('nl.LearningReportsCtrl', LearningReportsCtrl)
 	.service('nlLearningReports', NlLearningReports);
