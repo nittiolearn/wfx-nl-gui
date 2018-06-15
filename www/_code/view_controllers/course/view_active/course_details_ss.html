@@ -1,0 +1,56 @@
+<div style='padding-left: {{cm.indentationLevel*16 + 8}}px'>
+	<div class='row row-center row-justify-evenly padding0 margin0'>
+		<div class='col'><b>Status</b></div>
+		<div class='col'>
+			<i ng-show='ext.item.state.icon'
+               class="icon fsh3 {{ext.item.state.icon}}"></i>
+             <span>{{ext.item.state.title}}</span>
+		</div>
+	</div>
+	<div class='row row-center row-justify-evenly padding0 margin0'>
+		<div class='col'><b>Time spent</b></div>
+		<div class='col'>
+			<span ng-show='ext.item.timeMins > 0'>{{ext.item.timeMins}} minutes</span>
+			<span ng-show='ext.item.timeMins == 0'>-</span>								
+		</div>
+	</div>
+	<div ng-show='ext.item.planned_date' class='row row-center row-justify-evenly padding0 margin0'>
+		<div class='col'><b>Planned Date</b></div>
+		<div class='col'>{{ext.item.planned_date | date : 'dd-MMM-yy' || "--"}}</div>
+	</div>
+	<div ng-show='ext.item.start_date' class='row row-center row-justify-evenly padding0 margin0'>
+		<div class='col'><b>Earliest start date</b></div>
+		<div class='col'>{{ext.item.start_date | date : 'dd-MMM-yy' || "--"}}</div>
+	</div>
+	<div ng-show='ext.item.started' class='row row-center row-justify-evenly padding0 margin0'>
+		<div class='col'><b>Started</b></div>
+		<div class='col'>{{ext.item.started | date : 'dd-MMM-yy' || "--"}}</div>
+	</div>
+	<div ng-show='ext.item.ended' class='row row-center row-justify-evenly padding0 margin0'>
+		<div class='col'><b>Ended</b></div>
+		<div class='col'>{{ext.item.ended | date : 'dd-MMM-yy' || "--"}}</div>
+	</div>
+	<div ng-show='ext.item.maxScore' class='row row-center row-justify-evenly padding0 margin0'>
+		<div class='col'><b>Score</b></div>
+		<div class='col'>{{ext.item.perc}}% ({{ext.item.score}} / {{ext.item.maxScore}})</div>
+	</div>
+	<div ng-show='ext.item.maxScore' class='row row-center row-justify-evenly padding0 margin0'>
+		<div class='col'><b>Pass score</b></div>
+		<div class='col'>{{ext.item.passScore}}%</div>
+	</div>
+	<div ng-show='ext.item.type == "lesson"' class='row row-center row-justify-evenly margin0 padding0'>
+		<div class='col'><b>Maximum attempts</b></div>
+		<div class='col'>{{ext.item.maxAttempts ? ext.item.maxAttempts : "No limit"}}</div>
+	</div>
+	<div ng-show='ext.item.type == "lesson"' class='row row-center row-justify-evenly margin0 padding0'>
+		<div class='col'><b>Number of attempts</b></div>
+		<div class='col'>
+			<nl-course-number-of-attempts></nl-course-number-of-attempts>
+		</div>
+	</div>
+	<nl-course-past-attempt-data ng-show='ext.pastAttemptData.length > 0'></nl-course-past-attempt-data>
+    <div ng-show='ext.item.textHtml' class='padding-top'>
+	    <div nl-compile='ext.item.textHtml' class='nl-content-holder'></div>
+    </div>
+    <nl-course-review-remarks></nl-course-review-remarks>
+</div>

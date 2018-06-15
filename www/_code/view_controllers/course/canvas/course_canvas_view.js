@@ -113,6 +113,7 @@ function(nl, nlDlg) {
             e.stopImmediatePropagation();
             e.preventDefault();
             $scope.canvasShown = false;
+			$scope.isDetailsShown = true;
             $scope.updateVisiblePanes();
         };
 
@@ -127,7 +128,7 @@ function(nl, nlDlg) {
                     $scope.showVisible(children[0]);
                 }
             } else if ($scope.ext.canLaunch()) {
-                $scope.canvasShown = false;
+            	$scope.canvasShown = true;
                 $scope.onLaunch(e, $scope.ext.item);
             }
         };

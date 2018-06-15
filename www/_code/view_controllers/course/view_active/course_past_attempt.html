@@ -1,0 +1,15 @@
+<div class='row row-center row-wrap padding0 margin0'>
+	<div class='col padding0 margin0' ng-show='ext.pastAttemptData.length > 0'>
+    	<span ng-show='ext.pastAttemptData.length > 0'>
+    		{{ext.pastAttemptData.length}} completed</span>
+    	<span ng-show='ext.item.attempt > ext.pastAttemptData.length'>(1 ongoing)</span>
+    	<span ng-show='!ext.item.attempt'>0</span>
+	</div>
+    <span ng-show='ext.canReattempt()'
+    	class='nl-link-text padding-mid nl-button-lowlight'
+        ng-click='onReattempt($event, ext.item)'
+        style='max-width:108px; min-width: 100px;text-align: center'>
+        <span style='vertical-align: super;'>Try again</span>
+    </span>
+    <span class='sep4'></span>
+</div>
