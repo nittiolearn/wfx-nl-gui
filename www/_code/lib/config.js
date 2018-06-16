@@ -128,8 +128,12 @@ function(nl, nlServerApi) {
         return _getStateOptions(grpid);
     };
     
+    this.getUserMetadataDict = function(userObj) {
+        return userObj && userObj.metadata ? angular.fromJson(userObj.metadata) : {};
+    };
+
     this.getUserMetadata = function(userObj, grpid) {
-        var metadataValues = userObj && userObj.metadata ? angular.fromJson(userObj.metadata) : {};
+        var metadataValues = this.getUserMetadataDict(userObj);
         var props = self.get(grpid).props || {};
         var metadataFields = props.usermetadatafields ? angular.copy(props.usermetadatafields) : [];
         for (var i=0; i< metadataFields.length; i++) {

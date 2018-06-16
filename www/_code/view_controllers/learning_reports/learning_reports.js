@@ -325,7 +325,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
         
     function _updateTimeChartData() {
         var c = $scope.charts[1];
-        var ranges = nlLrFilter.getTimeRanges(10);
+        var ranges = nlLrReportRecords.getTimeRanges();
         
         var reportRecords = nlLrReportRecords.getRecords();
         for(var key in reportRecords) {
@@ -333,7 +333,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
             var orgEntry = _summaryStats.getOrgEntry(rec);
             if (!orgEntry || !orgEntry.passesFilter) continue;
             for(var i=0; i<ranges.length; i++) {
-                if (nl.fmt.json2Date(rec.raw_record.updated) >= ranges[i].end) continue;
+                if (rec.raw_record.updated >= ranges[i].end) continue;
                 ranges[i].count++;
                 break;
             }

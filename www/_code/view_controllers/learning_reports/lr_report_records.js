@@ -20,8 +20,10 @@ function(nl, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
     
     var _records = {};
     var _summaryStats = null;
+    var _dates = {};
     this.init = function(summaryStats) {
     	_records = {};
+    	_dates = {minUpdated: null, maxUpdated: null};
     	_summaryStats = summaryStats;
     };
     
@@ -33,6 +35,8 @@ function(nl, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
             _summaryStats.removeFromStats(_records[rid]);
         _records[rid] = report;
         _summaryStats.addToStats(report);
+        if (!_dates.minUpdated || _dates.minUpdated > report.raw_record.updated) _dates.minUpdated = report.raw_record.updated;
+        if (!_dates.maxUpdated || _dates.maxUpdated < report.raw_record.updated) _dates.maxUpdated = report.raw_record.updated;
         return report;
 	};
       
@@ -59,6 +63,35 @@ function(nl, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
         return ret;
     };
     
+    this.getTimeRanges = function(maxBuckets) {
+    	if (!maxBuckets) maxBuckets = 8;
+        if (!_dates.minUpdated || !_dates.maxUpdated) return [];
+
+        var day = 24*60*60*1000; // 1 day in ms
+        var now = new Date();
+        var offset = now.getTimezoneOffset()*60*1000; // in ms
+        var start = Math.floor((_dates.minUpdated.getTime()-offset)/day)*day + offset; // Today 00:00 Hrs in local time
+        var end = Math.ceil((_dates.maxUpdated.getTime()-offset)/day)*day + offset; // Tomorrow 00:00 Hrs in local time
+        
+        var rangeSize = Math.ceil((end - start)/day/maxBuckets);
+        var multiDays = (rangeSize > 1);
+        rangeSize *= day;
+        var nRanges = Math.ceil((end-start)/rangeSize) + 2;
+        
+        var ranges = [];
+        var nextStartTime = new Date(start - rangeSize);
+        for(var i=0; i<nRanges; i++) {
+            var range = {start: nextStartTime, end: new Date(nextStartTime.getTime() + rangeSize),
+                count: 0};
+            var s = nl.fmt.fmtDateDelta(range.start, null, 'date-mini');
+            var e = nl.fmt.fmtDateDelta(range.end, null, 'date-mini');
+            range.label = multiDays ? nl.fmt2('{} - {}', s, e) : s;
+            nextStartTime = range.end;
+            ranges.push(range);
+        }
+        return ranges;
+    };
+
     function _process(report) {
         var user = nlGroupInfo.getUserObj(''+report.student);
         if (!user) return null; // TODO-LATER-123: should not do this
@@ -71,6 +104,7 @@ function(nl, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
             timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
             internalIdentifier:report.id, nCerts: course.certificates.length};
             
+        var started = false;
         var statusinfo = repcontent.statusinfo || {};
         var items = course.nonLessons;
         stats.nOthers = items.length;
@@ -78,7 +112,10 @@ function(nl, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
         for (var i=0; i<items.length; i++) {
             var cid = items[i];
             var sinfo = statusinfo[cid];
-            if (sinfo && sinfo.status == 'done') stats.nOthersDone++;
+            if (sinfo && sinfo.status == 'done') {
+            	stats.nOthersDone++;
+            	started = true;
+            }
         }
 
         var lessons = course.lessons;
@@ -88,6 +125,7 @@ function(nl, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
             var lid = lessons[i].id;
             var rep = lessonReps[lid];
             if (!rep) continue;
+            started = true;
             if (!rep.selfLearningMode && rep.attempt) {
                 stats.nAttempts += rep.attempt;
                 stats.nLessonsAttempted++;
@@ -128,7 +166,9 @@ function(nl, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
         stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
             : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
 
-        stats.status = nlLrHelper.statusInfos[_getStatusId(stats)];
+		report.updated = nl.fmt.json2Date(report.updated);
+		report.created = nl.fmt.json2Date(report.created);
+        stats.status = nlLrHelper.statusInfos[_getStatusId(stats, started)];
         var ret = {raw_record: report, repcontent: repcontent, course: course, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'date'), 
@@ -136,8 +176,8 @@ function(nl, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
         return ret;
     }
     
-    function _getStatusId(stats) {
-        if (stats.percComplete == 0) return nlLrHelper.STATUS_PENDING;
+    function _getStatusId(stats, started) {
+        if (stats.percComplete == 0 && !started) return nlLrHelper.STATUS_PENDING;
         if (stats.percComplete < 100) return nlLrHelper.STATUS_STARTED;
         if (stats.nLessonsFailed > 0) return nlLrHelper.STATUS_FAILED;
         if (stats.nCerts > 0) return nlLrHelper.STATUS_CERTIFIED;

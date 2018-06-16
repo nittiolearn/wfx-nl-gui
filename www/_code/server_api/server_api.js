@@ -397,6 +397,10 @@ function(nl, nlDlg, nlConfig, Upload) {
 		//data = type, objid, assignor, parentonly, [filterParameters], [mquery parameters]
 		return server.post('_serverapi/learning_reports_get_list.json', data);
 	};
+	
+	this.learningReportsImport = function(data) {
+		return server.post('_serverapi/learning_reports_import.json', data);
+	};
     //---------------------------------------------------------------------------------------------
 	// get group user entities
     //---------------------------------------------------------------------------------------------

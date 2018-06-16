@@ -21,14 +21,14 @@ function($stateProvider, $urlRouterProvider) {
 		}});
 }];
 
-var _SERVER_CHUNK_SIZE = 100;
-var DEBUG_LOG = true;
-
-var LrImportCtrl = ['nl', 'nlRouter', 'nlDlg', '$scope', 'nlGroupInfo', 'nlImporter', 'nlProgressLog',
-function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog) {
+var LrImportCtrl = ['nl', 'nlRouter', 'nlDlg', '$scope', 'nlGroupInfo', 'nlImporter', 'nlProgressLog', 'nlServerApi',
+function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nlServerApi) {
 	
 	var _data = {};
 	var _userInfo = null;
+	var _groupInfo = null;
+    var _SERVER_CHUNK_SIZE = 200;
+    var _ENABLE_DEBUG = true; 
 	
 	function _init() {
 	    $scope.error = {};
@@ -42,7 +42,11 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog) {
 	
 	    _data.pl= nlProgressLog.create($scope);
 	    _data.pl.showLogDetails(true);
-	    if (!DEBUG_LOG) _data.pl.hideDebugAndInfoLogs();
+	    if (!_ENABLE_DEBUG) _data.pl.hideDebugAndInfoLogs();
+	    
+	    var params =  nl.location.search();
+	    if (params.max) _SERVER_CHUNK_SIZE=parseInt(params.max);
+	    if (params.debug) _ENABLE_DEBUG=true;
 	    _initImportOperation();
 	}
 	_init();
@@ -52,6 +56,7 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog) {
 	    _data.pl.clear();
         _data.statusCnts = {total: 0, ignore: 0, process: 0, success: 0, error: 0};
         _data.records = [];
+        _data.results = [];
         _initHeaders();
     }
     
@@ -60,6 +65,7 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog) {
 		return nl.q(function(resolve, reject) {
             nlGroupInfo.init().then(function() {
 		        nlGroupInfo.update();
+		        _groupInfo = nlGroupInfo.get();
             	resolve(true);
             }, function(err) {
                 resolve(false);
@@ -142,7 +148,6 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog) {
 		};
 		_headerNameToInfo[_userInfo.groupinfo.gradelabel] = {id: 'grade', mandatory: true, vals: _userInfo.groupinfo.grades};
 		_headerNameToInfo[_userInfo.groupinfo.subjectlabel] = {id: 'subject', mandatory: true, vals: _userInfo.groupinfo.subjects};
-		
 	}
 	
 	function _getHeaders(row) {
@@ -216,24 +221,140 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog) {
 	
 	function _appendDbRecord(current) {
     	if (!current.key || current.records.length == 0) return true;
-        if(_data.pl) _data.pl.debug('forming db record', angular.toJson(current, 2)); 
-    	current.dbRec = {children: []};
+        if(_data.pl) _data.pl.debug('forming db record', angular.toJson(current, 2));
+
+        var keyParts = current.key.split(':');
+        if (keyParts.length != 2 || keyParts[0] != 'id')
+			return _error(nl.fmt2('row: {}, key: {}: unexpected key format', current.records[0].pos, current.key));
+		current.importid = parseInt(keyParts[1]);
+		if (isNaN(current.importid)) return _error(nl.fmt2('row: {}, key: {}: id part of key must be a number', current.records[0].pos, current.key));
+        
+    	var reportRecordInfo = {};
+    	var modules = [];
     	var uniqueModuleNames = {};
     	for (var i=0; i<current.records.length; i++) {
 			var rec = current.records[i];
-    		if (!_updateAttrs(rec, current.dbRec, 
+    		if (!_updateAttrs(rec, reportRecordInfo, 
     			['user_id', 'type', 'name', 'batchName', 'instructor', 'from', 'till', 'grade', 'subject', 
     			 'status', 'doneDate'])) return false;
     		if (rec.moduleName in uniqueModuleNames)
     			return _error(nl.fmt2('Record {}: module name is not unique within same training', rec.pos));
-    		current.dbRec.children.push({name: rec.moduleName, status: rec.moduleStatus, 
+    		modules.push({name: rec.moduleName, status: rec.moduleStatus, 
     			doneDate: rec.moduleDoneDate, attempts: rec.attempts, score: rec.score, passScore: rec.passScore,
     			timeInSecs: rec.timeInSecs});
     	}
+
+    	_getDbRecord(current, reportRecordInfo, modules);
+    	if (!current.dbRec) return false;
 		_data.records.push(current);
 		return true;
 	}
 
+	var REPORT_SCHEMA_VERSION = 116;
+	function _getDbRecord(current, reportRecordInfo, moduleInfos) {
+		var username = reportRecordInfo.user_id + '.' + _groupInfo.grpid;
+        var user = _groupInfo.derived.keyToUsers[username];
+        // TODO-NOW: handle past users
+        if (!user) return _error(nl.fmt2('user_id {} not found', reportRecordInfo.user_id));
+
+		current.dbRec = {student: user ? user.id : 0, 
+			created: reportRecordInfo.from, updated: reportRecordInfo.till, 
+			completed: reportRecordInfo.status == 'completed', deleted: false, 
+			assigntype: reportRecordInfo.type == 'WBT' ? _nl.atypes.ATYPE_COURSE : _nl.atypes.ATYPE_TRAINING,
+			ctype: reportRecordInfo.type == 'WBT' ? _nl.ctypes.CTYPE_COURSE : _nl.ctypes.CTYPE_TRAINING,
+			lesson_id: 0, assignment: 0, containerid: 0, assignor: 0, importid: current.importid, 
+			schemaversion: REPORT_SCHEMA_VERSION};
+		if(!_updateUserQueryFeildsInRecord(current.dbRec, user)) return false;
+		
+		if (reportRecordInfo.type == 'WBT') return _updateContentForCourse(current, reportRecordInfo, moduleInfos);
+		return _updateContentForTraining(current, reportRecordInfo, moduleInfos);
+	}
+	
+	function _updateContentForTraining(current, reportRecordInfo, moduleInfos) {
+		current.dbRec.content = {sessions: [], trainingStatus: {},
+			trainername: reportRecordInfo.instructor, studentname: reportRecordInfo.userid, 
+			kindName: reportRecordInfo.name, name: reportRecordInfo.batchName,
+			start: reportRecordInfo.from, end: reportRecordInfo.till, desc: '', kindDesc: '',
+			grade: reportRecordInfo.grade, subject: reportRecordInfo.subject, venue: '',
+			costInfra: '', costTrainer: '', costFood: '', costTravel: '', costMisc: '',
+			ctype: _nl.ctypes.CTYPE_MODULE, moduleid: 0, modulename: '', moduleicon: '',
+			training_kind: 0};
+		
+		var ts = current.dbRec.content.trainingStatus;
+		if (reportRecordInfo.status == 'pending') ts.overallStatus = 'pending';
+		else if (reportRecordInfo.status == 'started') ts.overallStatus = 'partial';
+		else ts.overallStatus = 'completed';
+		ts.childReportId = null;
+		ts.childStatus = null;
+		ts.sessions = {}; // Not used in this case!
+		ts.lessonReports = {};
+		var sessions = current.dbRec.content.sessions;
+		for(var i=0; i<moduleInfos.length; i++) {
+			var moduleInfo = moduleInfos[i];
+			sessions.push({type: 'lesson', name: moduleInfo.name, maxAttempts: 0});
+			if (moduleInfo.status == 'pending') continue;
+			var lessonReport = {attempt: moduleInfo.attempts, score: moduleInfo.score, maxScore: 100,
+				passScore: moduleInfo.passScore, selfLearningMode: moduleInfo.passScore ? false : true,
+				completed: moduleInfo.status != 'started', started: reportRecordInfo.from, ended: moduleInfo.doneDate, 
+				timeSpentSeconds: moduleInfo.timeInSecs};
+			ts.lessonReports[i] = lessonReport;
+		}
+		current.dbRec.content = angular.toJson(current.dbRec.content);
+		return true;
+	}
+	
+	function _updateContentForCourse(current, reportRecordInfo, moduleInfos) {
+		current.dbRec.content = {lessonReports: {}, name: reportRecordInfo.name, remarks: reportRecordInfo.batchName,
+			icon: 'icon:', from: reportRecordInfo.from, till: reportRecordInfo.till,
+			sendername: reportRecordInfo.instructor, studentname: reportRecordInfo.userid, 
+			content: {modules: [], contentmetadata: {grade: reportRecordInfo.grade, subject: reportRecordInfo.subject}}};
+
+		var modules = current.dbRec.content.content.modules;
+		var lessonReports = current.dbRec.content.lessonReports;
+		if (moduleInfos.length > 1 || moduleInfos[0].name) {
+			for(var i=0; i<moduleInfos.length; i++) {
+				var moduleInfo = moduleInfos[i];
+				var moduleId = '_id' + i;
+				modules.push({id: moduleId, type: 'lesson', parentId: '_root', name: moduleInfo.name,
+					maxAttempts: 0});
+				if (moduleInfo.status == 'pending') continue;
+				var lessonReport = {attempt: moduleInfo.attempts, score: moduleInfo.score, maxScore: 100,
+					passScore: moduleInfo.passScore, selfLearningMode: moduleInfo.passScore ? false : true,
+					completed: moduleInfo.status != 'started', started: reportRecordInfo.from, ended: moduleInfo.doneDate, 
+					timeSpentSeconds: moduleInfo.timeInSecs};
+				lessonReports[moduleId] = lessonReport;
+			}
+		}
+		var moduleId = '_id' + moduleInfos.length;
+		modules.push({id: moduleId, type: 'lesson', parentId: '_root', name: 'Overall completion'});
+		if (reportRecordInfo.status != 'pending') {
+			var lessonReport = {attempt: 1, score: 0, maxScore: 100, passScore: 0, selfLearningMode: true,
+				completed: reportRecordInfo.status != 'started', started: reportRecordInfo.from, 
+				ended: reportRecordInfo.doneDate, timeSpentSeconds: moduleInfos[0].timeInSecs};
+			lessonReports[moduleId] = lessonReport;
+		}
+		current.dbRec.content = angular.toJson(current.dbRec.content);
+		return true;
+	}
+	
+	function _updateUserQueryFeildsInRecord(record, user) {
+	    var ou = user.org_unit || '';
+	    _splitOnDotsAndStore(ou, record, 'ou');
+	    var metadata = nlGroupInfo.getUserMetadata(user);
+	    var location = metadata.meta_location || '';
+	    _splitOnDotsAndStore(location, record, 'loc');
+	    if (user.supervisor) record.supervisor = user.supervisor;
+	    return true;
+	}
+
+	function _splitOnDotsAndStore(inputStr, outputObj, outputAttr) {
+	    var splitArray = inputStr.split('.');
+	    var maxLen = splitArray.length;
+	    if (maxLen > 3) maxLen = 3;
+	    for (var i=0; i<maxLen; i++)
+	        outputObj[outputAttr + i] = splitArray[i];
+	}
+	
 	function _updateAttrs(src, dst, attrs) {
 		for(var i=0; i<attrs.length; i++) {
 			var attr = attrs[i];
@@ -252,11 +373,41 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog) {
 		return a== b;
 	}
 
-    function _updateServer(rows) {
-        // TODO-NOW
-        if(_data.pl) _data.pl.imp('TODO-NOW: updateServer: implementation pending', 
+    function _updateServer() {
+        if(_data.pl) _data.pl.imp('Updating at server', 
         	angular.toJson(_data.records, 2));
-        _done();
+        _updateChunkToServer(0);
+    }
+
+    function _updateChunkToServer(start) {
+    	if (start >= _data.records.length) {
+            if(_data.pl) _data.pl.imp(nl.fmt2('{} updates processed at server', _data.results.length), 
+            	angular.toJson(_data.results, 2));
+    		return _done();
+    	}
+    	var recordsToServer = [];
+    	var chunkSize = _SERVER_CHUNK_SIZE;
+    	if (start + chunkSize > _data.records.length) chunkSize = _data.records.length - start;
+    	for(var i=start; i<start+chunkSize; i++) {
+    		var r = _data.records[i];
+    		recordsToServer.push({data: r.dbRec, pos: r.records[0].pos});    		
+    	}
+        if(_data.pl) _data.pl.debug(nl.fmt2('sending chunk {} to {} to server', start+1, start+chunkSize), 
+        	angular.toJson(recordsToServer, 2));
+        _data.statusCnts.process += chunkSize;
+        nlServerApi.learningReportsImport({updates: recordsToServer})
+        .then(function(result) {
+	        for(var i=0; i<result.length; i++) {
+	        	_data.results.push(result[i]);
+	        	if (result[i].ok) _data.statusCnts.success++;
+	        	else _data.statusCnts.error++;
+	        }
+	        _updateChunkToServer(start+chunkSize);
+        }, function(e) {
+	        _data.statusCnts.error += chunkSize;
+	        for(var i=0; i<chunkSize; i++) _data.results.push({ok: false, msg: e});
+        	_error(nl.fmt2('Error processing at server: {}', e));
+        });
     }
     
     function _error(msg, e) {

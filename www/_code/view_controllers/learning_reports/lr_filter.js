@@ -116,39 +116,10 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 	};
 
     this.getFilterStr = function() {
-    	if (!_data.createdfrom || !_data.createdtill)  return '';
+		if (!_data.showfilters) return '';
         return nl.t('From {} till {}', 
             nl.fmt.fmtDateDelta(_data.createdfrom), 
             nl.fmt.fmtDateDelta(_data.createdtill));
-    };
-
-    this.getTimeRanges = function(maxBuckets) {
-    	if (!maxBuckets) maxBuckets = 10;
-        if (!_data.createdfrom || !_data.createdtill) return [];
-
-        var day = 24*60*60*1000; // 1 day in ms
-        var now = new Date();
-
-        var offset = now.getTimezoneOffset()*60*1000; // in ms
-        var start = Math.floor((_data.createdfrom.getTime()-offset)/day)*day + offset; // Today 00:00 Hrs in local time
-        
-        var rangeSize = Math.ceil((_data.createdtill.getTime() - start)/day/maxBuckets);
-        var multiDays = (rangeSize > 1);
-        rangeSize *= day;
-        
-        var ranges = [];
-        var lastTime = new Date(start);
-        while (true) {
-            if (lastTime >= _data.createdtill) break;
-            var range = {start: lastTime, end: new Date(lastTime.getTime() + rangeSize),
-                count: 0};
-            var s = nl.fmt.fmtDateDelta(range.start, null, 'date-mini');
-            var e = nl.fmt.fmtDateDelta(range.end, null, 'date-mini');
-            range.label = multiDays ? nl.fmt2('{} - {}', s, e) : s;
-            lastTime = range.end;
-            ranges.push(range);
-        }
-        return ranges;
     };
 
    function _initDates(){
