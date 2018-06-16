@@ -176,7 +176,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 
 		var url = null;
 		if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
-			url = nl.fmt2('/#/assignment_report?assignid={}', assignment.id);
+			url = nl.fmt2('/#/assignment_report?assignid={}&max=500', assignment.id);
 		} else if(mode.type == TYPES.PAST){
 			url = nl.fmt2('/lesson/view_report_assign/{}/', assignment.id);
 		} else {

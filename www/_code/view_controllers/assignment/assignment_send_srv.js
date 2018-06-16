@@ -349,9 +349,9 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         afterAssignmentSentDlg.scope.data = {sentUserCnt: ctx.sentUserCnt,
         	pageTitle: nl.t('Assignment sent')};
         if(ctx.data.assigntype == _nl.atypes.ATYPE_MODULE) {
-            afterAssignmentSentDlg.scope.data.url = nl.fmt2('/#/assignment_report?assignid={}', ctx.data.assignid);
+            afterAssignmentSentDlg.scope.data.url = nl.fmt2('/#/assignment_report?assignid={}&max=500', ctx.data.assignid);
         } else if (ctx.data.assigntype == _nl.atypes.ATYPE_COURSE) {
-            afterAssignmentSentDlg.scope.data.url = nl.fmt2('#/learning_reports?type=course_assign&objid={}', ctx.data.assignid);
+            afterAssignmentSentDlg.scope.data.url = nl.fmt2('#/learning_reports?type=course_assign&objid={}&max=500', ctx.data.assignid);
         }
         var cancelButton = {text : nl.t('Close'), onTap: function(e) {
 				_dlg.close();

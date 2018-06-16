@@ -291,12 +291,16 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
 		var sessions = current.dbRec.content.sessions;
 		for(var i=0; i<moduleInfos.length; i++) {
 			var moduleInfo = moduleInfos[i];
-			sessions.push({type: 'lesson', name: moduleInfo.name, maxAttempts: 0});
-			if (moduleInfo.status == 'pending') continue;
-			var lessonReport = {attempt: moduleInfo.attempts, score: moduleInfo.score, maxScore: 100,
-				passScore: moduleInfo.passScore, selfLearningMode: moduleInfo.passScore ? false : true,
-				completed: moduleInfo.status != 'started', started: reportRecordInfo.from, ended: moduleInfo.doneDate, 
-				timeSpentSeconds: moduleInfo.timeInSecs};
+			sessions.push({type: 'lesson', name: moduleInfo.name || '', maxAttempts: 0});
+			var lessonReport = {completed: moduleInfo.status && moduleInfo.status != 'pending' && moduleInfo.status != 'started',
+				started: reportRecordInfo.from, ended: moduleInfo.doneDate, timeSpentSeconds: moduleInfo.timeInSecs,
+				selfLearningMode: moduleInfo.passScore ? false : true};
+			if (moduleInfo.attempts) lessonReport.attempt = moduleInfo.attempts;
+			if (!lessonReport.selfLearningMode) {
+				lessonReport.passScore = moduleInfo.passScore;
+				lessonReport.maxScore = 100;
+				lessonReport.score = moduleInfo.score;
+			}
 			ts.lessonReports[i] = lessonReport;
 		}
 		current.dbRec.content = angular.toJson(current.dbRec.content);

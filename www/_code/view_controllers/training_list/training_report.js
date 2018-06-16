@@ -104,6 +104,7 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
         var ts = record.content.trainingStatus;
         if (!ts.overallStatus) ts.overallStatus = 'pending';
         if (!ts.sessions) ts.sessions = {};
+        if (!ts.lessonReports) ts.lessonReports = {};
         ts.timeSpent = 0;
         
         _updateStatusAndTimes(record, ts);
@@ -121,17 +122,28 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
         var doneCnt = 0;
         for (var i=0; i<sessions.length; i++) {
         	var session = sessions[i];
-        	session.status = usessions[i] || 'pending';
+        	var lessonReport = ts.lessonReports[i];
+        	session.status =  (lessonReport && lessonReport.completed && usessions[i] != 'pending')
+        		|| (!lessonReport && usessions[i] == 'completed')
+        		? 'completed' : 'pending';
         	session.statusInfo = _getStatusInfo(session.status);
-        	if (session.status != 'pending') {
-        		session.timeSpent = session.duration;
-        		ts.timeSpent += session.duration;
+    		session.timeSpent = lessonReport ? lessonReport.timeSpentSeconds : 0;
+        	if (usessions[i] != 'pending') {
+        		session.timeSpent += (session.duration || 0);
         		doneCnt++;
-        	} else {
-        		session.timeSpent = 0;
         	}
+    		ts.timeSpent += session.timeSpent;
+    		if (!lessonReport) continue;
+    		if (lessonReport.attempt) session.attempts = lessonReport.attempt;
+    		if (lessonReport.passScore) {
+	    		session.passScore = lessonReport.passScore;
+	    		session.maxScore = lessonReport.maxScore;
+	    		if (lessonReport.completed) session.score = lessonReport.score;
+	    		if (lessonReport.completed && session.maxScore) session.perc = Math.round(session.score / session.maxScore);
+	    	}
         }
-		ts.overallStatus = (doneCnt == 0) ? 'pending' : (doneCnt == sessions.length) ? 'completed' : 'partial';
+        if (!lessonReport)
+			ts.overallStatus = (doneCnt == 0) ? 'pending' : (doneCnt == sessions.length) ? 'completed' : 'partial';
     }
 
     function _getMetadataDict(user) {
@@ -200,7 +212,7 @@ function ReportCsv(nl, nlGroupInfo, nlExporter, _groupInfo) {
 
 	var _userHeaders = 	['User Id', 'User Name'];
 	var _trainingHeaders = ['Type', 'Training Name', _gradelabel, _subjectlabel, 'Batch Name', 'From', 'Till', 
-		'Session', 'Status', 'Feedback Status', 'Time Spent (minutes)', 'Venue', 'Trainer Name'];
+		'Session', 'Status', 'Feedback Status', 'Quiz Attempts', 'Achieved %', 'Pass %', 'Maximum Score', 'Acheived Score', 'Time Spent (minutes)', 'Venue', 'Trainer Name'];
 	var _costHeaders = ['Infra Cost', 'Trainer Cost', 'Food Cost', 'Travel Cost', 'Misc Cost'];
 	var _userHeaders2 = 	['Email Id', 'Org'];
 	var _idHeaders = ['Training Report Id', 'Training Batch Id', 'Training Id'];
@@ -273,6 +285,13 @@ function ReportCsv(nl, nlGroupInfo, nlExporter, _groupInfo) {
         ret.push(session ? session.name || '' : 'All sessions');
         ret.push(session ?  session.status || 'pending' : record.content.trainingStatus.overallStatus || 'pending');
         ret.push(session ?  'NA' : record.content.trainingStatus.childStatus || 'pending');
+
+        ret.push(session && session.attempts ? session.attempts : '');
+        ret.push(session && session.passScore && session.status == 'completed' ? session.perc : '');
+        ret.push(session && session.passScore ? session.passScore : '');
+        ret.push(session && session.passScore && session.maxScore ? session.maxScore : '');
+        ret.push(session && session.passScore && session.status == 'completed' ? session.score : '');
+        
         ret.push(session ? session.timeSpent : record.content.trainingStatus.timeSpent);
         ret.push(record.content.venue || '');
         ret.push(record.content.trainername || '');
