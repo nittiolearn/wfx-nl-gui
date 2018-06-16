@@ -1,0 +1,38 @@
+<div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
+	<div class='col padding0 margin0'>
+		<div class='row row-center text-center row-wrap padding0 margin0'>
+ 			<nl-summary-box number='getCompletionStatus()' 
+ 				title='"Done"' 
+ 				class='col padding0'
+ 				desc=''
+ 				showperc=1 
+ 				style='width: {{screenSize != "large" || vp.i ? 100 : ""}}%; text-align: -webkit-center'>
+			</nl-summary-box>
+ 			<nl-summary-box number='rootStat.started' 
+ 				title='"Ongoing"' 
+ 				class='col padding0'
+ 				desc=''
+ 				showperc=0 
+ 				style='width: {{screenSize != "large" || vp.i ? 100 : ""}}%; text-align: -webkit-center'>
+			</nl-summary-box>
+		</div>
+	</div>
+	<div class='col padding0 margin0'>
+		<div class='row row-center text-center row-wrap padding0 margin0'>
+ 			<nl-summary-box number='rootStat.perc || 0' 
+ 				title='"Score"' 
+ 				class='col padding0'
+ 				desc='getFormatedDesc("average")'
+ 				showperc=1
+ 				style='width: {{screenSize != "large" || vp.i ? 100 : ""}}%; text-align: -webkit-center'>
+			</nl-summary-box>
+ 			<nl-summary-box number='rootStat.delayed || 0' 
+ 				title='"Delayed"' 
+ 				class='col padding0'
+ 				desc=''
+ 				showperc=0
+ 				style='width: {{screenSize != "large" || vp.i ? 100 : ""}}%; text-align: -webkit-center'>
+			</nl-summary-box>
+		</div>
+	</div>
+</div>

@@ -10,6 +10,14 @@ function module_init() {
     .directive('nlCourseViewList', CourseViewDirective('course_view_list'))
     .directive('nlCourseViewContentActive', CourseViewDirective('course_view_content_active'))
     .directive('nlCourseViewContentStatic', CourseViewDirective('course_view_content_static'))
+    .directive('nlCourseViewLargeScreen', CourseDoReviewDirective('course_active_ls'))
+    .directive('nlCourseViewSmallScreen', CourseDoReviewDirective('course_active_ss'))
+    .directive('nlCourseViewSummary', CourseDoReviewDirective('course_active_summary'))
+    .directive('nlCourseLargeScreenDetails', CourseDoReviewDirective('course_details_ls'))
+    .directive('nlCourseSmallScreenDetails', CourseDoReviewDirective('course_details_ss'))
+    .directive('nlCoursePastAttemptData', CourseDoReviewDirective('course_past_attempt_table'))
+    .directive('nlCourseNumberOfAttempts', CourseDoReviewDirective('course_past_attempt'))
+    .directive('nlCourseReviewRemarks', CourseDoReviewDirective('course_review_remarks'))
     .directive('nlCourseViewFrame', CourseViewDirective('course_view_frame'))
     .directive('nlCourseViewIcon', CourseViewDirective('course_view_icon', 
         {cm: '=', ext: '=', cls: '@'}))
@@ -385,7 +393,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     $scope.expandedView = false; // true if tree + content area is shown
 	$scope.toggleSummaryBox = false;
 	$scope.toggleText = 'Show summary';
-	
+	$scope.currentTreeState = false;
+	$scope.currentStateText = 'Expand all';
+
 	function _closeSummaryBox() {
 		$scope.toggleSummaryBox = false;
 		$scope.toggleText = 'Show summary';
@@ -398,6 +408,19 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
 	$scope.onToggleSummaryBox = function() {
 		if($scope.toggleSummaryBox) _closeSummaryBox();
 		else _openSummaryBox();
+	};
+
+	$scope.onExpandOrCollapseAll = function() {
+		if($scope.currentTreeState) {
+			treeList.collapseAll();
+            _showVisible();
+			$scope.currentTreeState = false;
+			$scope.currentStateText = 'Expand all';
+		} else {
+			_expandAll();			
+			$scope.currentTreeState = true;
+			$scope.currentStateText = 'Collapse all';
+		}
 	};
 	
     $scope.updateVisiblePanes = function() {
@@ -466,6 +489,20 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         $scope.updateVisiblePanes();
     }
 
+    function _expandAll() {
+        $scope.modules = [];
+	    var allModules = nlCourseEditor.getAllModules();
+        for(var i=0; i<allModules.length; i++) {
+            var cm=allModules[i];
+            if (cm.type == 'module') {
+            	cm.isOpen = true;
+            	cm.visible = true;
+            }
+            $scope.modules.push(cm);
+        }
+        $scope.updateVisiblePanes();
+    }
+
     $scope.download = function() {
         _download();
     };
@@ -507,9 +544,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         nlDlg.popupConfirm({title: nl.t('Please confirm'), 
             template: nl.t('Do you want to navigate away from current module?')})
             .then(function(res) {
-                $scope.vp.iframehide = false;
                 if (!res) return;
-                $scope.vp.iframehide = true;
                 $scope.iframeUrl = null;
                 $scope.iframeModule = null;
                 if(!dontUpdate) $scope.updateVisiblePanes();
@@ -617,16 +652,17 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
 	$scope.isDetailsShown = false;
 	$scope.pastSelectedItem = null;
 	$scope.onRowClick = function(e, cm) {
+		if(cm.type == "certificate") return;
 		if(cm.type == "module") {
 			$scope.pastSelectedItem = cm;
 			$scope.onClick(e, cm);
 		} else {
-			if($scope.pastSelectedItem && $scope.pastSelectedItem.id == cm.id) {
+			 if ($scope.vp.i) {
+				$scope.pastSelectedItem = cm;
+				$scope.onIconClick(e, cm);				
+			} else if($scope.pastSelectedItem && $scope.pastSelectedItem.id == cm.id) {
 				$scope.isDetailsShown = !$scope.isDetailsShown;
 				$scope.pastSelectedItem = cm;
-			} else if ($scope.vp.i) {
-				$scope.pastSelectedItem = cm;
-				$scope.onClick(e, cm);				
 			} else {
 				$scope.pastSelectedItem = cm;
 				$scope.isDetailsShown = true;
@@ -637,7 +673,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
 
 	$scope.getFormatedDesc = function(descType) {
 		if (descType == 'average') {
-			return nl.t('{} modules', $scope.rootStat.scoreCount);
+			return nl.t('(from {} {})', $scope.rootStat.nQuiz, $scope.rootStat.nQuiz == 1 ? 'quiz' : 'quizzes');
 		}
 	};
 	
@@ -651,14 +687,24 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
 		return perc;
 	};
 	
+	$scope.getLaunchButtonState = function(cm) {
+        if (!cm) return '';
+        if ($scope.ext.isStaticMode()) return 'dark';
+        if (cm.type =='certificate') return 'dark';
+        if (cm.type =='link' && cm.state.status == 'pending') return 'dark';
+        if (modeHandler.mode == MODES.DO && cm.state.status == 'started') return 'dark';
+        if (cm.state.status == 'success' || cm.state.status == 'failed') return 'light';
+        return 'dark';
+	};
 
     $scope.onLaunch = function(e, cm) {
         e.stopImmediatePropagation();
         e.preventDefault();
         $scope.ext.setCurrentItem(cm);
+        var dontUpdate = true;
         _confirmIframeClose(cm, function() {
             _onLaunchImpl(cm);
-        }, true);
+        }, dontUpdate);
     };
     
     function _onLaunchImpl(cm) {
@@ -911,7 +957,7 @@ function FolderStats($scope) {
             started: 0, pending: 0, delayed: 0, waiting: 0,
             scoreCount: 0, score: 0, maxScore: 0, perc: 0,
             timeCount: 0, time: 0, totalLessons: 0,
-            completedItems: 0};
+            completedItems: 0, nQuiz:0, folderCount: 0};
         _folderStats[cmid] = folderStat;
         return folderStat;
     };
@@ -930,6 +976,8 @@ function FolderStats($scope) {
         folderStat.maxScore += childStat.maxScore;
         folderStat.timeCount += childStat.timeCount;
         folderStat.time += childStat.time;
+        folderStat.nQuiz += childStat.nQuiz;
+        folderStat.folderCount += cm.type == "module" ? 1 : 0;
     };
 
     this.updateForLeaf = function(folderStat, cm) {
@@ -942,6 +990,9 @@ function FolderStats($scope) {
 
 		if (cm.type == 'lesson') {
 			folderStat.totalLessons += 1; 
+		}
+		if (cm.maxScore) {
+			folderStat.nQuiz += 1;
 		}
         if (cm.score !== null) {
             folderStat.scoreCount += 1;
@@ -1048,7 +1099,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
 
     this.getLaunchString = function(cm) {
         if (!cm) return '';
-        if (this.isStaticMode()|| cm.type =='link' || cm.type =='certificate') return 'Start';
+        if (this.isStaticMode()|| cm.type =='link' || cm.type =='certificate') return 'View';
         if (modeHandler.mode == MODES.DO && cm.state.status == 'started') return 'Continue';
         if (cm.state.status == 'success' || cm.state.status == 'failed') return 'Review';
         return 'Start';
@@ -1475,6 +1526,12 @@ function NlContainer(nl, $scope, modeHandler) {
 function CourseViewDirective(template, scope) {
     if (scope === undefined) scope = true;
     return _nl.elemDirective('view_controllers/course/view/' + template 
+        + '.html', scope);
+}
+//-------------------------------------------------------------------------------------------------
+function CourseDoReviewDirective(template, scope) {
+    if (scope === undefined) scope = true;
+    return _nl.elemDirective('view_controllers/course/view_active/' + template 
         + '.html', scope);
 }
 

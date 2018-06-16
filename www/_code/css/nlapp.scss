@@ -1314,21 +1314,29 @@ nl-cards {
 .nl-summary-box{
   padding: 10px;
   background-color: #fff;
-  width: 250px;
+  width: 215px;
   height: 90px;
   box-shadow: 2px 4px 5px 0px rgba(0, 0, 0, 0.06);
 }
 
 // rounded button
-.nl-button-rounded {
+.nl-button-highlight, .nl-button-lowlight {
   height: 32px;
   min-width: 100px;
   padding-top: 2px;
   border-radius: 20px;
-  color: $nlPrimary;
-  border: 1px solid $nlPrimary;
   box-shadow: 2px 4px 5px 0px rgba(0, 0, 0, 0.06);
   background-color: white;
+}
+
+.nl-button-highlight {
+  color: $nlPrimary;
+  border: 2px solid $nlPrimary;
+}
+
+.nl-button-lowlight {
+  color: $nlInactive;
+  border: 1px solid $nlInactive;
 }
 
 //-----------------------------------------------------------------------------------------

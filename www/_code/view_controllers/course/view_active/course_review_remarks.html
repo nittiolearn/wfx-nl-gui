@@ -1,0 +1,34 @@
+<div ng-show='ext.canShowRemarks()' class='padding-top'>
+    <div class='padding-small'></div>
+    <div ng-show='!ext.canUpdateStatus() && ext.data.remarks'>
+        <div><b>Remarks:</b></div>
+        <div ng-bind-html='ext.data.remarks'></div>
+    </div>
+    <div ng-show='ext.canUpdateStatus()'>
+        <div><b>Remarks:</b></div>
+        <div class='nl-dlg-field-value'>
+            <textarea ng-model='ext.data.remarks'
+                      class='w100'
+                      tabindex='1'
+                      autofocus=''>
+            </textarea>
+        </div>
+    </div>
+</div>
+<div class='row row-top row-wrap margin0'
+	style='padding: 16px 16px 16px 0px'
+	ng-show='ext.canUpdateStatus()'>
+        <div class='col'>
+		    <div ng-show='ext.item.state.status == "success"'
+		         class='forange2'>
+		        This item is currently marked as completed. You could reopen this by clicking the 'Reopen' button.
+		    </div>
+        </div>
+	    <div class='nl-link-text padding-mid {{ext.item.state.status == "success" ? "nl-button-lowlight" : "nl-button-highlight"}}'
+            ng-click='ext.updateStatus(ext.item.state.status != "success")'
+            style='text-align: center'>
+	        <span style='vertical-align: super;'>{{ext.item.state.status == 'success' ? 'Reopen' : 'Done'}}</span>
+	    </div>
+	    
+    </div>
+</div>
