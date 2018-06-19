@@ -30,6 +30,7 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
     		all: (params.type == 'all'),
     		exportids: nlRouter.isPermitted(_userInfo, 'nittio_support'), 
     		max: 500};
+    	if (!nlGroupInfo || !nlGroupInfo.isPastUserXlsConfigured()) _pastUserData = {};
 	};
 	
     this.processRecord = function(record) {
@@ -47,10 +48,12 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
 			_initFetchParams(null, filters.updatedFrom, filters.updatedTill);
 			nlDlg.showLoadingScreen();
 			_fetchRecords(false, function() {
-				_exportToCsv(function() {
-					nlDlg.hideLoadingScreen();
-				}, function() {
-					nlDlg.hideLoadingScreen();
+				_postProcessRecordsIfNeeded().then(function() {
+					_exportToCsv(function() {
+						nlDlg.hideLoadingScreen();
+					}, function() {
+						nlDlg.hideLoadingScreen();
+					});
 				});
 			});
 		});
@@ -65,6 +68,9 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
 	var _records = [];
     var _pageFetcher = nlServerApi.getPageFetcher({defMax: 50, itemType: 'training record'});
     var _reportCsv = null;
+    var _pastUserData = null;
+    var _pastUserDataFetchInitiated = false;
+    var _postProcessRecords = [];
 
     function _initFetchParams(kindId, createdfrom, createdtill) {
         _params = {type: 'training_kind', objid: kindId || 0, learner: 'all',
@@ -78,6 +84,7 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
     	if (!fetchMore) {
     		_records = [];
     	}
+    	var dontHideLoading = true;
         _pageFetcher.fetchBatchOfPages(nlServerApi.learningReportsGetList, _params, fetchMore, 
         function(results, batchDone, promiseHolder) {
             if (!results) {
@@ -85,10 +92,11 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
                 return;
             }
             for(var i=0; i<results.length; i++) {
-            	_records.push(_processRecord(results[i]));
+            	var record = _processRecord(results[i]);
+            	if (record) _records.push(record);
             }
             if (batchDone) resolve(true);
-        }, _argv.limit);
+        }, _argv.limit, dontHideLoading);
     }
     
     function _processRecord(record) {
@@ -97,7 +105,13 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
     	record.content.end = nl.fmt.json2Date(record.content.end);
     	if (nlGroupInfo) {
 	        record.user = nlGroupInfo.getUserObj(''+record.student);
-	        record.usermd = _getMetadataDict(record.user);
+	        if (!record.user && !_pastUserData) {
+	        	_postProcessRecords.push(record);
+	        	return null;
+	        }
+	        if (!record.user) record.user = _pastUserData[record.content.studentname];
+	        if (!record.user) record.user = nlGroupInfo.getDefaultUser(record.content.studentname || '');
+	        record.usermd = nlGroupInfo.getUserMetadataDict(record.user);
     	}
 		if (!('trainingStatus' in record.content))
 			record.content['trainingStatus'] = {overallStatus: 'pending', childReportId: null, childStatus: null, sessions: {}};
@@ -146,14 +160,26 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
 			ts.overallStatus = (doneCnt == 0) ? 'pending' : (doneCnt == sessions.length) ? 'completed' : 'partial';
     }
 
-    function _getMetadataDict(user) {
-    	if (!nlGroupInfo) return {};
-        var metadata = nlGroupInfo.getUserMetadata(user);
-        var ret = {};
-        for(var i=0; i<metadata.length; i++)
-            ret[metadata[i].id] = metadata[i].value|| '';
-        return ret;
-    }
+    function _postProcessRecordsIfNeeded() {
+    	return nl.q(function(resolve, reject) {
+	    	if (_pastUserData || _postProcessRecords.length == 0 || _pastUserDataFetchInitiated) {
+	    		resolve(true);
+	    		return;
+	    	}
+	    	_pastUserDataFetchInitiated = true;
+	    	nlDlg.popupStatus('Fetching additional user information ...', false);
+	    	nlDlg.showLoadingScreen();
+	    	nlGroupInfo.fetchPastUserXls().then(function(result) {
+		    	nlDlg.hideLoadingScreen();
+	        	_pastUserData = result || {};
+	        	for (var i=0; i<_postProcessRecords.length; i++)
+	            	_records.push(_processRecord(_postProcessRecords[i]));
+	        	_postProcessRecords = [];
+	            nlDlg.popdownStatus(0);
+	        	resolve(true);
+	    	});
+    	});
+    };
 
     function _exportToCsv(resolve, reject) {
         var zip = new JSZip();
@@ -271,7 +297,7 @@ function ReportCsv(nl, nlGroupInfo, nlExporter, _groupInfo) {
         ret.push(record.user.email);
         ret.push(record.user.org_unit);
         var mh = self.getMetaHeaders(false);
-        for(var i=0; i<mh.length; i++) ret.push(record.usermd[mh[i].id]);
+        for(var i=0; i<mh.length; i++) ret.push(record.usermd[mh[i].id] || '');
 	}
 
 	function _fillTrainingFields(ret, record, session) {

@@ -49,7 +49,9 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecord
                 return;
             }
             for (var i=0; i<results.length; i++) nlLrReportRecords.addRecord(results[i]);
-            onDoneCallback(results);
+            nlLrReportRecords.postProcessRecordsIfNeeded().then(function() {
+	            onDoneCallback(results);
+            });
         });
     };
     

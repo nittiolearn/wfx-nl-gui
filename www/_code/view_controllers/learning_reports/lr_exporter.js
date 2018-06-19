@@ -221,7 +221,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             Math.ceil(report.stats.timeSpentSeconds/60)]);
         ret.push(report.user.email);
         ret.push(report.user.org_unit);
-        for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id]);
+        for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id] || '');
         if (filter.exportTypes.ids)
             ret = ret.concat(['id=' + report.raw_record.id, 'id=' + report.raw_record.assignment, 
                 'id=' + report.raw_record.lesson_id]);
@@ -286,7 +286,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 	        	attempts, perc, maxScore, score, passScore ? passScore + '%' : '', timeSpent]);
 	        ret.push(report.user.email);
 	        ret.push(report.user.org_unit);
-            for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id]);
+            for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id] || '');
             if (filter.exportTypes.ids)
                 ret = ret.concat(['id=' + report.raw_record.id, 
                     'id=' + report.raw_record.assignment, 'id=' + report.raw_record.lesson_id]);

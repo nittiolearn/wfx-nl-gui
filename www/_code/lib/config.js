@@ -11,8 +11,8 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlGroupInfo = ['nl', 'nlServerApi',
-function(nl, nlServerApi) {
+var NlGroupInfo = ['nl', 'nlServerApi', 'nlImporter',
+function(nl, nlServerApi, nlImporter) {
     var self = this;
     
     this.get = function(grpid) {
@@ -129,6 +129,7 @@ function(nl, nlServerApi) {
     };
     
     this.getUserMetadataDict = function(userObj) {
+    	if (userObj && userObj.metadataObj) return userObj.metadataObj;
         return userObj && userObj.metadata ? angular.fromJson(userObj.metadata) : {};
     };
 
@@ -143,6 +144,117 @@ function(nl, nlServerApi) {
         return metadataFields;
     };
     
+    this.getDefaultUser = function(userid, groupInfo) {
+    	if (!groupInfo) groupInfo = self.get();
+    	var user = {user_id: userid, name: userid, first_name: userid, 
+	    	gid: groupInfo.grpid, username: nl.fmt2('{}.{}', userid, groupInfo.grpid), 
+	    	email: 'NA', state: 0, usertype: '', last_name: '', org_unit: '', id:0,
+	    	supervisor: '', doj: '', sec_ou_list: '', metaObj: {}, metadata:''};
+	    return user;
+    };
+    
+    this.getUserTableAttrs = function() {
+    	return _userTableAttrs;
+    };
+    
+    this.isPastUserXlsConfigured = function(groupInfo) {
+    	if (!groupInfo) groupInfo = self.get();
+    	return groupInfo && groupInfo.props && groupInfo.props.augmentedUserInfoXls;
+    };
+    
+    this.fetchPastUserXls = function(groupInfo) {
+    	if (!groupInfo) groupInfo = self.get();
+        return nl.q(function(resolve, reject) {
+        	if (!self.isPastUserXlsConfigured(groupInfo)) {
+        		resolve(false);
+        		return;
+        	}
+        	nl.http.get(groupInfo.props.augmentedUserInfoXls, {responseType: "arraybuffer"})
+        	.then(function(result) {
+        		var xlscfg = {singleSheet: true, toJsonConfig: {header:1}};
+        		nlImporter.readXlsFromArrayBuffer(result.data, xlscfg).then(function(result2) {
+        			result2 = _xlsArrayToDict(groupInfo, result2);
+        			resolve(result2);
+        		}, function(e) {
+		        	var msg = nl.t('Error reading past users xls: {}', e||'');
+		        	nlDlg.popupAlert({title: 'Error', template: msg});
+        			resolve(false);
+        		});
+        	}, function(e) {
+	        	var msg = nl.t('Error fetching past users file: {}', e.data||'');
+	        	nlDlg.popupAlert({title: 'Error', template: msg});
+	        	resolve(false);
+        	});
+        });
+    };
+
+	var _userTableAttrs = [
+	    {id: 'op', name: "Operation"},
+	    {id: 'username', name: "Key", optional: true},
+	    {id: 'user_id', name: "User Id"},
+	    {id: 'gid', name: "Group Id", optional: true},
+	    {id: 'usertype', name: "User Type"},
+	    {id: 'first_name', name: "First name"},
+	    {id: 'last_name', name: "Last name", optional: true},
+	    {id: 'email', name: "Email"},
+	    {id: 'state', name: "State", optional: true},
+	    {id: 'org_unit', name: "OU", oldnames: ["Class / user group"]},
+	    {id: 'supervisor', name: "Supervisor", optional: true},
+	    {id: 'doj', name: "Joining date", optional: true},
+	    {id: 'sec_ou_list', name: "Sec OUs", oldnames: ["Secondary user groups"], optional: true},
+	    {id: 'created', name: "Created UTC Time", optional: true},
+	    {id: 'updated', name: "Updated UTC Time", optional: true}
+	];
+	
+    function _xlsArrayToDict(groupInfo, xlsArray) {
+    	var userDict = {};
+    	if (xlsArray.length < 1) return userDict;
+	    var userHeaders = _arrayToDictNameToId(_userTableAttrs);
+	    var metaHeaders = _arrayToDictNameToId((groupInfo.props || {}).usermetadatafields || []);
+    	var headerRow = xlsArray[0];
+    	var headerInfo = [];
+    	for(var i=0; i<headerRow.length; i++) {
+    		if (headerRow[i] in userHeaders) headerInfo.push({type: 'user', id: userHeaders[headerRow[i]]});
+    		else if (headerRow[i] in metaHeaders) headerInfo.push({type: 'meta', id: metaHeaders[headerRow[i]]});
+    		else headerInfo.push({type: 'other', id: headerRow[i]});
+    	}
+
+    	for (var i=1; i<xlsArray.length; i++) {
+    		var row = xlsArray[i];
+    		var user = {id: 0, metadataObj: {}, others: {}};
+    		for (var j=0; j<row.length; j++) {
+    			var info = headerInfo[j];
+    			if (info.type == 'user') user[info.id] = row[j];
+    			else if (info.type == 'meta') user.metadataObj[info.id] = row[j];
+    			else user.others[info.id] = row[j];
+    		}
+    		if (!user.user_id) continue;
+	        user.id = 0;
+	        user.gid = groupInfo.grpid;
+	        user.username = nl.fmt2('{}.{}', user.user_id, groupInfo.grpid);
+	        if (!user.last_name) user.last_name = '';
+	        if (!user.first_name) user.first_name = user.user_id;
+	        user.name = self.formatUserNameFromObj(user);
+	        if (!user.email) user.email = 'NA';
+	        if (!user.state) user.state = 0;
+	        if (!user.usertype) user.usertype = '';
+	        if (!user.org_unit) user.org_unit = '';
+	        if (!user.supervisor) user.supervisor = '';
+	        if (!user.doj) user.doj = '';
+	        if (!user.sec_ou_list) user.sec_ou_list = '';
+    		userDict[user.user_id] = user;
+    	}
+    	
+    	return userDict;
+    }
+    
+    function _arrayToDictNameToId(arrayInput) {
+    	var ret = {};
+    	for(var i=0; i<arrayInput.length; i++) ret[arrayInput[i].name] = arrayInput[i].id;
+    	return ret;
+    }
+    
+    //##################################################################################################
     function _getUtIcon(ut) {
         if (!(ut in self.utIcons)) ut = self.UT_STUDENT_ADVANCED;
         return nl.url.resUrl(self.utIcons[ut]);

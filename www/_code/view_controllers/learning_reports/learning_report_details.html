@@ -1,6 +1,6 @@
 <div class='row row-center row-wrap margin0 padding0'>
     <div class='fsh4 padding-mid col'>
-        {{rec._raw.user.name}} ({{rec._raw.user.username}})
+        <span>{{rec._raw.user.name}}</span><span ng-show='rec._raw.user.username'> ({{rec._raw.user.username}})</span>
     </div>
     <div class='padding-mid'>
         <a ng-href='/#/course_view?id={{rec._raw.raw_record.id}}&mode=report_view'
@@ -52,7 +52,7 @@
 
     <div ng-repeat-start='meta in info.metas'
          class='padding-mid' ng-class='$root.respCol422'><b>{{meta.name}}:</b></div>
-    <div ng-repeat-end class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.usermd[meta.id]}}</div>
+    <div ng-repeat-end class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.usermd[meta.id] || ''}}</div>
 
     <div class='padding-mid' ng-class='$root.respCol422'><b>Internal identifier:</b></div>
     <div class='padding-mid' ng-class='$root.respCol422'>

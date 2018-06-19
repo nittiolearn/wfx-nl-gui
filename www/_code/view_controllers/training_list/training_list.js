@@ -180,15 +180,15 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 	}
 
 	//--------------------------------------------------------------------------------------------------
-	function _initTrainingKinds() {
+	function _initTrainingKinds(loadingScreen) {
 		if (_trainingkinds !== null) {
 			return nl.q(function(resolve, reject) {
 				resolve(true);
 			});
 		}
-        nlDlg.showLoadingScreen();
+        if (loadingScreen) nlDlg.showLoadingScreen();
 		return nlServerApi.getTrainingkindList().then(function(result) {
-            nlDlg.hideLoadingScreen();
+            if (loadingScreen) nlDlg.hideLoadingScreen();
 			_updateTrainingKinds(result.resultset);
 			return true;
 		});
@@ -407,7 +407,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
     
 	//--------------------------------------------------------------------------------------------------
 	function _createTrainingBatch() {
-		_initTrainingKinds().then(function(result) {
+		_initTrainingKinds(true).then(function(result) {
 			_createOrEditTrainingBatch(null);			
 		});
 	}

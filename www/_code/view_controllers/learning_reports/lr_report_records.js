@@ -14,17 +14,21 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlLrReportRecords = ['nl', 'nlGroupInfo', 'nlLrHelper', 'nlLrCourseRecords',
-function(nl, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
+var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrCourseRecords',
+function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
     var self = this;
     
     var _records = {};
     var _summaryStats = null;
     var _dates = {};
+    var _pastUserData = null;
+    var _pastUserDataFetchInitiated = false;
+    var _postProcessRecords = [];
     this.init = function(summaryStats) {
     	_records = {};
     	_dates = {minUpdated: null, maxUpdated: null};
     	_summaryStats = summaryStats;
+    	if (!nlGroupInfo.isPastUserXlsConfigured()) _pastUserData = {};
     };
     
     this.addRecord = function(report) {
@@ -91,12 +95,37 @@ function(nl, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
         }
         return ranges;
     };
+    
+    this.postProcessRecordsIfNeeded = function() {
+    	return nl.q(function(resolve, reject) {
+	    	if (_pastUserData || _postProcessRecords.length == 0 || _pastUserDataFetchInitiated) {
+	    		resolve(true);
+	    		return;
+	    	}
+	    	_pastUserDataFetchInitiated = true;
+	    	nlDlg.popupStatus('Fetching additional user information ...', false);
+	    	nlDlg.showLoadingScreen();
+	    	nlGroupInfo.fetchPastUserXls().then(function(result) {
+	        	_pastUserData = result || {};
+	        	for (var i=0; i<_postProcessRecords.length; i++)
+	        		self.addRecord(_postProcessRecords[i]);
+	        	_postProcessRecords = [];
+	            nlDlg.popdownStatus(0);
+	        	resolve(true);
+	    	});
+    	});
+    };
 
     function _process(report) {
         var user = nlGroupInfo.getUserObj(''+report.student);
-        if (!user) return null; // TODO-LATER-123: should not do this
-
+        if (!user && !_pastUserData) {
+        	_postProcessRecords.push(report);
+        	return null;
+        }
         var repcontent = angular.fromJson(report.content); 
+        if (!user) user = _pastUserData[repcontent.studentname];
+        if (!user) user = nlGroupInfo.getDefaultUser(repcontent.studentname || '');
+
         var course = nlLrCourseRecords.getRecord(report.lesson_id);
         if (!course) course = nlLrCourseRecords.getCourseInfoFromReport(report, repcontent);
 

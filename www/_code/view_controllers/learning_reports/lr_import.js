@@ -40,6 +40,7 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
 	        _onImport();
 	    };
 	
+		_data.pastUserInfo = null;
 	    _data.pl= nlProgressLog.create($scope);
 	    _data.pl.showLogDetails(true);
 	    if (!_ENABLE_DEBUG) _data.pl.hideDebugAndInfoLogs();
@@ -66,7 +67,20 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
             nlGroupInfo.init().then(function() {
 		        nlGroupInfo.update();
 		        _groupInfo = nlGroupInfo.get();
-            	resolve(true);
+		        if (!nlGroupInfo.isPastUserXlsConfigured(_groupInfo)) {
+		        	resolve(true);
+		        	return;
+		        }
+	        	nlDlg.popupStatus('Geting past user info ...', false);
+	        	nlGroupInfo.fetchPastUserXls(_groupInfo).then(function(result) {
+		        	nlDlg.popdownStatus(0);
+		        	if (!result) {
+		        		resolve(false);
+		        		return;
+		        	}
+		        	_data.pastUserInfo = result;
+		        	resolve(true);
+	        	});
             }, function(err) {
                 resolve(false);
             });
@@ -90,37 +104,51 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
             	return _error(nl.fmt2('Error parsing CSV file. {}', result.error));
             _data.pl.imp('Read successful', angular.toJson(result, 2));
             _setProgress('fileRead');
-            if (!_processCsvRows(result.table)) return;
-            if ($scope.data.validateOnly || _data.statusCnts.error > 0)
-                return _done(true);
-            _data.pl.imp(nl.fmt2('Processing CSV file successful - {} rows in CSV, {} unique learning records to be sent to server', 
-                _data.statusCnts.total, _data.records.length), angular.toJson(_data.records, 2));
-            _updateServer();
+            _processCsvRows(result.table, function(result) {
+            	if (!result) return _error('Processing failed');
+	            _data.pl.imp(nl.fmt2('Processing CSV file successful - {} rows in CSV, {} unique learning records to be sent to server', 
+	                _data.statusCnts.total, _data.records.length), angular.toJson(_data.records, 2));
+	            if ($scope.data.validateOnly || _data.statusCnts.error > 0)
+	                return _done(true);
+	            _updateServer();
+	            return true;
+            });
         }, function(e) {
             _error('Error reading CSV file', e);
         });
 	}
 	
-	function _processCsvRows(rows) {
+	function _processCsvRows(rows, onDone) {
         var headers = _getHeaders(rows[0]);
         if (!headers) return false;
         
         var current = {key: null, records: []};
-        for(var i=1; i<rows.length; i++) {
+        _processCsvRowChunk(rows, headers, current, 1, onDone);
+   }
+
+	function _processCsvRowChunk(rows, headers, current, start, onDone) {
+		if (start >= rows.length) return onDone(true);
+        for(var i=start; i<rows.length; i++) {
+	        if (i - start == 100) {
+	        	nl.timeout(function() {
+	        		_processCsvRowChunk(rows, headers, current, i, onDone);
+	        	});
+	        	return true;
+	        }
             _setProgress('processCsv', i, rows.length);
         	var row = _getRow(rows, i, headers);
-        	if (!row) return false;
+        	if (!row) return onDone(false);
         	if (row.key == current.key) {
         		current.records.push(row);
 		        if(_data.pl) _data.pl.debug(nl.fmt2('got row {}', i+1), angular.toJson(row, 2)); 
         		continue;
         	}
-        	if (!_appendDbRecord(current)) return false;
+        	if (!_appendDbRecord(current)) return onDone(false);
         	current = {key: row.key, records: [row]};
-	        if(_data.pl) _data.pl.debug(nl.fmt2('got row {}', i+1), angular.toJson(row, 2)); 
+	        if(_data.pl) _data.pl.debug(nl.fmt2('got row {}', i+1), angular.toJson(row, 2));
         }
-    	if (!_appendDbRecord(current)) return false;
-    	return true;
+    	if (!_appendDbRecord(current)) return onDone(false);
+    	return onDone(true);
     }
 
 	var _headerNameToInfo = {};
@@ -176,7 +204,7 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
 		pos++;
         _data.statusCnts.total++;
         if (row.length != headers.length)
-        	return _error(nl.fmt2('row {} has {} columns. {} expected.', pos, row.length, headers.length));
+        	return _error2(nl.fmt2('row {} has {} columns. {} expected.', pos, row.length, headers.length));
 
         var rowObj = {pos: pos};
 		for(var i=0; i<row.length; i++) {
@@ -193,7 +221,7 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
 		var val = cell || null;
 		if (val == null) {
 			if (!info.mandatory) return {val: null};
-			return _error(nl.fmt2('row {}, mandatory attr {} missing', pos, info.name));
+			return _error2(nl.fmt2('row {}, mandatory attr {} missing', pos, info.name));
 		}
 		if (info.vals) {
 			var bFound = false;
@@ -203,14 +231,14 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
 				break;
 			}
 			if (!bFound)
-				return _error(nl.fmt2('row {}, attr {} has a value that is not allowed: {}', pos, info.name, cell));
+				return _error2(nl.fmt2('row {}, attr {} has a value that is not allowed: {}', pos, info.name, cell));
 		}
 		if (info.type == 'int' || info.type == 'perc') {
 			val = parseInt(val);
 			if (isNaN(val)) {
-				return _error(nl.fmt2('row {}, attr {} integer value expected: {}', pos, info.name, cell));
+				return _error2(nl.fmt2('row {}, attr {} integer value expected: {}', pos, info.name, cell));
 			} else if (info.type == 'perc' && (val < 0 || val > 100)) {
-				return _error(nl.fmt2('row {}, attr {} integer value expected: {}', pos, info.name, cell));
+				return _error2(nl.fmt2('row {}, attr {} integer value expected: {}', pos, info.name, cell));
 			}
 		} else if (info.type == 'date') {
 			if (val.indexOf('date:') == 0) val = val.substring(5);
@@ -225,9 +253,9 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
 
         var keyParts = current.key.split(':');
         if (keyParts.length != 2 || keyParts[0] != 'id')
-			return _error(nl.fmt2('row: {}, key: {}: unexpected key format', current.records[0].pos, current.key));
+			return _error2(nl.fmt2('row: {}, key: {}: unexpected key format', current.records[0].pos, current.key));
 		current.importid = parseInt(keyParts[1]);
-		if (isNaN(current.importid)) return _error(nl.fmt2('row: {}, key: {}: id part of key must be a number', current.records[0].pos, current.key));
+		if (isNaN(current.importid)) return _error2(nl.fmt2('row: {}, key: {}: id part of key must be a number', current.records[0].pos, current.key));
         
     	var reportRecordInfo = {};
     	var modules = [];
@@ -238,7 +266,7 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
     			['user_id', 'type', 'name', 'batchName', 'instructor', 'from', 'till', 'grade', 'subject', 
     			 'status', 'doneDate'])) return false;
     		if (rec.moduleName in uniqueModuleNames)
-    			return _error(nl.fmt2('Record {}: module name is not unique within same training', rec.pos));
+    			return _error2(nl.fmt2('Record {}: module name is not unique within same training', rec.pos));
     		modules.push({name: rec.moduleName, status: rec.moduleStatus, 
     			doneDate: rec.moduleDoneDate, attempts: rec.attempts, score: rec.score, passScore: rec.passScore,
     			timeInSecs: rec.timeInSecs});
@@ -254,9 +282,8 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
 	function _getDbRecord(current, reportRecordInfo, moduleInfos) {
 		var username = reportRecordInfo.user_id + '.' + _groupInfo.grpid;
         var user = _groupInfo.derived.keyToUsers[username];
-        // TODO-NOW: handle past users
-        if (!user) return _error(nl.fmt2('user_id {} not found', reportRecordInfo.user_id));
-
+        if (!user) user = _data.pastUserInfo[reportRecordInfo.user_id];
+        if (!user && _data.pl) _data.pl.warn(nl.fmt2('User {} not found.', reportRecordInfo.user_id));
 		current.dbRec = {student: user ? user.id : 0, 
 			created: reportRecordInfo.from, updated: reportRecordInfo.till, 
 			completed: reportRecordInfo.status == 'completed', deleted: false, 
@@ -272,7 +299,7 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
 	
 	function _updateContentForTraining(current, reportRecordInfo, moduleInfos) {
 		current.dbRec.content = {sessions: [], trainingStatus: {},
-			trainername: reportRecordInfo.instructor, studentname: reportRecordInfo.userid, 
+			trainername: reportRecordInfo.instructor, studentname: reportRecordInfo.user_id, 
 			kindName: reportRecordInfo.name, name: reportRecordInfo.batchName,
 			start: reportRecordInfo.from, end: reportRecordInfo.till, desc: '', kindDesc: '',
 			grade: reportRecordInfo.grade, subject: reportRecordInfo.subject, venue: '',
@@ -310,7 +337,7 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
 	function _updateContentForCourse(current, reportRecordInfo, moduleInfos) {
 		current.dbRec.content = {lessonReports: {}, name: reportRecordInfo.name, remarks: reportRecordInfo.batchName,
 			icon: 'icon:', from: reportRecordInfo.from, till: reportRecordInfo.till,
-			sendername: reportRecordInfo.instructor, studentname: reportRecordInfo.userid, 
+			sendername: reportRecordInfo.instructor, studentname: reportRecordInfo.user_id, 
 			content: {modules: [], contentmetadata: {grade: reportRecordInfo.grade, subject: reportRecordInfo.subject}}};
 
 		var modules = current.dbRec.content.content.modules;
@@ -342,9 +369,10 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
 	}
 	
 	function _updateUserQueryFeildsInRecord(record, user) {
+		if (!user) return true;
 	    var ou = user.org_unit || '';
 	    _splitOnDotsAndStore(ou, record, 'ou');
-	    var metadata = nlGroupInfo.getUserMetadata(user);
+	    var metadata = nlGroupInfo.getUserMetadataDict(user);
 	    var location = metadata.meta_location || '';
 	    _splitOnDotsAndStore(location, record, 'loc');
 	    if (user.supervisor) record.supervisor = user.supervisor;
@@ -367,7 +395,7 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
 				continue;
 			}
 			if (_isEqual(src[attr], dst[attr])) continue;
-			return _error(nl.fmt2('row {}, attr {}: value not same as above row', src.pos, attr));
+			return _error2(nl.fmt2('row {}, attr {}: value not same as above row', src.pos, attr));
 		}
 		return true;
 	}
@@ -389,6 +417,7 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
             	angular.toJson(_data.results, 2));
     		return _done();
     	}
+		_setProgress('uploadToServer', start, _data.records.length);
     	var recordsToServer = [];
     	var chunkSize = _SERVER_CHUNK_SIZE;
     	if (start + chunkSize > _data.records.length) chunkSize = _data.records.length - start;
@@ -414,6 +443,12 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
         });
     }
     
+    function _error2(msg, data) {
+        _data.statusCnts.error++;
+        if(_data.pl) _data.pl.error(msg, angular.toJson(data, 2));
+    	return null;
+    }
+
     function _error(msg, e) {
         _data.statusCnts.error++;
         _setProgress('done');

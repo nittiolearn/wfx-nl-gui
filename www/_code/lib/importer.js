@@ -21,6 +21,20 @@ function(nl, nlDlg) {
         });
     };
     
+    this.readXls = function(file, config) {
+    	if (config === undefined) config = {};
+        return nl.q(function(resolve, reject) {
+            _readXls(file, config, resolve, reject);
+        });
+    };
+    
+    this.readXlsFromArrayBuffer = function(content, config) {
+    	if (config === undefined) config = {};
+        return nl.q(function(resolve, reject) {
+            _readXlsFromArrayBuffer(content, config, resolve, reject);
+        });
+    };
+
     function _readCsv(file, config, resolve, reject) {
         var reader = new FileReader();
         reader.onerror = function (e) {
@@ -92,6 +106,34 @@ function(nl, nlDlg) {
         return ret;
     }
 
+	//---------------------------------------------------------------------------------------------
+    function _readXls(file, config, resolve, reject) {
+        var reader = new FileReader();
+        reader.onerror = function (e) {
+            reject(e);
+        };
+        reader.onload = function (loadEvent) {
+            var content = loadEvent.target.result;
+			_readXlsFromArrayBuffer(content, config, resolve, reject);
+        };
+        reader.readAsArrayBuffer(file);
+    }
+    
+	function _readXlsFromArrayBuffer(content, config, resolve, reject) {
+    	if (!config.readParams) config.readParams = {type: 'array'};
+		content = new Uint8Array(content);
+		var wb = XLSX.read(content, config.readParams);
+		var ret = {sheetNames: wb.SheetNames, sheets: {}};
+		for (var i=0; i<wb.SheetNames.length; i++) {
+			var sheetName = wb.SheetNames[i];
+			var header = config.toJsonConfig || {header: 1};
+			ret.sheets[sheetName] = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], header);
+			if (!config.singleSheet) continue;
+			ret = ret.sheets[sheetName];
+			break;
+		}
+        resolve(ret);
+	}
 }];
 
 //-------------------------------------------------------------------------------------------------

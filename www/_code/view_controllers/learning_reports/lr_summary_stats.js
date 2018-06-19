@@ -67,7 +67,7 @@ function SummaryStats(nl, nlLrHelper) {
         var ret  = [{n: 'org', 'v': report.user.org_unit}];
         var usermeta = report.usermd;
         for(var i=0; i<_metas.length; i++)
-            ret.push({n: [_metas[i].id], v:usermeta[_metas[i].id]});
+            ret.push({n: [_metas[i].id], v:usermeta[_metas[i].id]||''});
         return ret;
     }
     

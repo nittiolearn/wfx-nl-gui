@@ -11,28 +11,10 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var _headers = [
-    {id: 'op', name: "Operation"},
-    {id: 'username', name: "Key", optional: true},
-    {id: 'user_id', name: "User Id"},
-    {id: 'gid', name: "Group Id", optional: true},
-    {id: 'usertype', name: "User Type"},
-    {id: 'first_name', name: "First name"},
-    {id: 'last_name', name: "Last name", optional: true},
-    {id: 'email', name: "Email"},
-    {id: 'state', name: "State", optional: true},
-    {id: 'org_unit', name: "OU", oldnames: ["Class / user group"]},
-    {id: 'supervisor', name: "Supervisor", optional: true},
-    {id: 'doj', name: "Joining date", optional: true},
-    {id: 'sec_ou_list', name: "Sec OUs", oldnames: ["Secondary user groups"], optional: true},
-    {id: 'created', name: "Created UTC Time", optional: true},
-    {id: 'updated', name: "Updated UTC Time", optional: true}
-];
-
 var _insertMetadataAt = 10;
 
 function _getHeadersWithMetadata(nlGroupInfo, grpid) {
-    var headers = angular.copy(_headers);
+    var headers = angular.copy(nlGroupInfo.getUserTableAttrs());
     var metadata = nlGroupInfo.getUserMetadata(null, grpid);
     for(var i=0; i<metadata.length; i++)
         headers.splice(_insertMetadataAt+i, 0, {id: metadata[i].id, 

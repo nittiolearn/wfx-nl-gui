@@ -65,11 +65,7 @@ var NlLrHelper = ['nlGroupInfo', function NlLrHelper(nlGroupInfo) {
     };
 
     function _getMetadataDict(user) {
-        var metadata = nlGroupInfo.getUserMetadata(user);
-        var ret = {};
-        for(var i=0; i<metadata.length; i++)
-            ret[metadata[i].id] = metadata[i].value|| '';
-        return ret;
+    	return nlGroupInfo.getUserMetadataDict(user);
     }
 }];
 
