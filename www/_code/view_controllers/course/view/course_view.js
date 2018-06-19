@@ -496,8 +496,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
             var cm=allModules[i];
             if (cm.type == 'module') {
             	cm.isOpen = true;
-            	cm.visible = true;
             }
+        	cm.visible = true;
             $scope.modules.push(cm);
         }
         $scope.updateVisiblePanes();
@@ -681,8 +681,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
 		var rootStat = $scope.rootStat;
 		if (rootStat.completedItems == 0) return 0;
         var nLessonsDone = rootStat.scoreCount;
-        var weightedProgressMax = rootStat.totalLessons*10 + (rootStat.total-rootStat.totalLessons);
-        var weightedProgress = rootStat.scoreCount*10 + (rootStat.completedItems-rootStat.scoreCount);
+        var weightedProgressMax = rootStat.totalLessons*10 + ((rootStat.total-rootStat.nCert)-rootStat.totalLessons);
+        var weightedProgress = rootStat.scoreCount*10 + ((rootStat.completedItems-rootStat.completedCert)-rootStat.scoreCount);
         var perc = weightedProgressMax ? Math.round(weightedProgress/weightedProgressMax*100) : 100;
 		return perc;
 	};
@@ -957,7 +957,7 @@ function FolderStats($scope) {
             started: 0, pending: 0, delayed: 0, waiting: 0,
             scoreCount: 0, score: 0, maxScore: 0, perc: 0,
             timeCount: 0, time: 0, totalLessons: 0,
-            completedItems: 0, nQuiz:0, folderCount: 0};
+            completedItems: 0, nQuiz:0, folderCount: 0, nCert: 0, completedCert: 0};
         _folderStats[cmid] = folderStat;
         return folderStat;
     };
@@ -977,6 +977,8 @@ function FolderStats($scope) {
         folderStat.timeCount += childStat.timeCount;
         folderStat.time += childStat.time;
         folderStat.nQuiz += childStat.nQuiz;
+        folderStat.nCert += childStat.nCert;
+        folderStat.completedCert += childStat.completedCert;
         folderStat.folderCount += cm.type == "module" ? 1 : 0;
     };
 
@@ -991,8 +993,14 @@ function FolderStats($scope) {
 		if (cm.type == 'lesson') {
 			folderStat.totalLessons += 1; 
 		}
-		if (cm.maxScore) {
+		if (cm.maxScore && (cm.state.status == 'success' || cm.state.status == 'failed')) {
 			folderStat.nQuiz += 1;
+		}
+		if (cm.type == 'certificate') {
+			folderStat.nCert += 1;
+			if(cm.state.status == 'success') {
+				folderStat.completedCert += 1;			
+			}
 		}
         if (cm.score !== null) {
             folderStat.scoreCount += 1;
@@ -1098,7 +1106,10 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
     };
 
     this.getLaunchString = function(cm) {
-        if (!cm) return '';
+        if (!cm) {
+	        if (!this.item) return '';
+	        return 'Open';
+        }
         if (this.isStaticMode()|| cm.type =='link' || cm.type =='certificate') return 'View';
         if (modeHandler.mode == MODES.DO && cm.state.status == 'started') return 'Continue';
         if (cm.state.status == 'success' || cm.state.status == 'failed') return 'Review';
