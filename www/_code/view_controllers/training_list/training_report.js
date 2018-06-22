@@ -142,10 +142,8 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
         		? 'completed' : 'pending';
         	session.statusInfo = _getStatusInfo(session.status);
     		session.timeSpent = lessonReport ? lessonReport.timeSpentSeconds : 0;
-        	if (usessions[i] != 'pending') {
-        		session.timeSpent += (session.duration || 0);
-        		doneCnt++;
-        	}
+        	if (usessions[i] && usessions[i] != 'pending') session.timeSpent += (session.duration || 0);
+        	if (session.status == 'completed') doneCnt++;
     		ts.timeSpent += session.timeSpent;
     		if (!lessonReport) continue;
     		if (lessonReport.attempt) session.attempts = lessonReport.attempt;
@@ -156,8 +154,8 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlRangeSelectionDlg, nlExporter) {
 	    		if (lessonReport.completed && session.maxScore) session.perc = Math.round(session.score / session.maxScore);
 	    	}
         }
-        if (!lessonReport)
-			ts.overallStatus = (doneCnt == 0) ? 'pending' : (doneCnt == sessions.length) ? 'completed' : 'partial';
+        if (ts.overallStatus1) ts.overallStatus = ts.overallStatus1;
+        else ts.overallStatus = (doneCnt == 0) ? 'pending' : (doneCnt == sessions.length) ? 'completed' : 'partial';
     }
 
     function _postProcessRecordsIfNeeded() {

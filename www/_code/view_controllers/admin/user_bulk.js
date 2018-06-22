@@ -206,8 +206,8 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
                 self.setProgress('processCsv');
                 var missingCnt = Object.keys(self.missingOus).length;
                 if (missingCnt == 0) {
-                    self.pl.imp(nl.fmt2('Processing CSV file successful - {} of {} records to be sent to server', 
-                        self.statusCnts.process, self.statusCnts.total), angular.toJson(rows, 2));
+                    self.pl.imp(nl.fmt2('Processing CSV file successful - {} changes found',
+                    	self.statusCnts.process), angular.toJson(rows, 2));
                 } else if (dlgScope.data.createMissingOus) {
                     self.pl.imp(nl.fmt2('{} ou(s) are not present in tree - these will be added to the tree before updating user information.', missingCnt), self.missingOus);
                 } else {
@@ -243,11 +243,16 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     function _doneImpl(validateOnly) {
         self.setProgress('done');
         self.reload = false;
-        var msg = self.statusCnts.error > 0 ? 'Import done with errors: ' : 'Import successful: ';
-        msg += ' total:{}, records sent to server: {}, success: {}, error: {}';
-        if (validateOnly) msg = 'Validation done - no upload done: total:{}';
-        msg = nl.fmt2(msg, self.statusCnts.total, self.statusCnts.process,
-            self.statusCnts.success, self.statusCnts.error);
+        var msg = '';
+        if (validateOnly) {
+        	msg = nl.fmt2('Validation done - {} of {} records to be sent to server', 
+                        self.statusCnts.process, self.statusCnts.total);
+		} else {
+	        msg = self.statusCnts.error > 0 ? 'Import done with errors: ' : 'Import successful: ';
+	        msg = nl.fmt2('{}total:{}, records sent to server: {}, success: {}, error: {}', msg,
+	        	self.statusCnts.total, self.statusCnts.process,  self.statusCnts.success, 
+	        	self.statusCnts.error);
+		}
         if (self.statusCnts.error > 0) {
             if(self.pl) self.pl.error(msg, angular.toJson(self.statusCnts, 2));
         } else {

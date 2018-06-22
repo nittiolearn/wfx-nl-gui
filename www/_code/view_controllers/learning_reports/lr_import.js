@@ -308,9 +308,9 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
 			training_kind: 0};
 		
 		var ts = current.dbRec.content.trainingStatus;
-		if (reportRecordInfo.status == 'pending') ts.overallStatus = 'pending';
-		else if (reportRecordInfo.status == 'started') ts.overallStatus = 'partial';
-		else ts.overallStatus = 'completed';
+		if (reportRecordInfo.status == 'pending') ts.overallStatus1 = 'pending';
+		else if (reportRecordInfo.status == 'started') ts.overallStatus1 = 'partial';
+		else ts.overallStatus1 = 'completed';
 		ts.childReportId = null;
 		ts.childStatus = null;
 		ts.sessions = {}; // Not used in this case!
