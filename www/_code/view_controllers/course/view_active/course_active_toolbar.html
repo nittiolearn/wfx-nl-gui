@@ -1,0 +1,49 @@
+<div class='row row-center margin0 padding0'
+	 ng-show='vp.tb'
+	 style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
+    <div class='col text-center fsh3 padding0'>
+    </div>
+
+    <span title='Discussion forum'
+         ng-show='!iframeUrl && forumInfo.refid'
+         class='nl-toolbar-icon'
+         ng-click='launchForum()'>
+        <i class="icon ion-ios-people"></i>
+    </span>
+    <span title='Download as CSV'
+          ng-show='!iframeUrl && mode == MODES.REPORTS_SUMMARY_VIEW'
+          class='nl-toolbar-icon'
+          ng-click='download()'>
+        <i class="icon ion-ios-cloud-download"></i>
+    </span>
+    <span title='View as list'
+         ng-show='vp.c'
+         class='nl-toolbar-icon'
+         ng-click='collapseAll(false)'>
+        <i class="icon material-icons">view_list</i>
+    </span>
+    <span title='View as canvas'
+         ng-show='canvasMode && vp.d'
+         class='nl-toolbar-icon'
+         ng-click='collapseAll(true)'>
+        <i class="icon material-icons">image</i>
+    </span>
+    <span title='Full screen'
+          ng-show='vp.i && vp.t'
+          class='nl-toolbar-icon'
+          ng-click='showPopup($event, ext.item)'>
+        <i class="icon material-icons">fullscreen</i>
+    </span>
+    <span title='Exit full screen'
+          ng-show='vp.i && !vp.t && screenSize != "small" && !canvasMode'
+          class='nl-toolbar-icon'
+          ng-click='hidePopup(!expandedView)'>
+        <i class="icon material-icons">fullscreen_exit</i>
+    </span>
+    <span title='Close'
+          ng-show='vp.i'
+          class='nl-toolbar-icon'
+          ng-click='collapseAll(true)'>
+        <i class="icon ion-ios-close-outline"></i>
+    </span>
+</div>

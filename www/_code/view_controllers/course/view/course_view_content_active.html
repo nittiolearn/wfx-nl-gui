@@ -2,10 +2,9 @@
 .item-selected{
   background-color:#EFEFF5;	
 }
-
 </style>
 <div class='nl-full nl-thin-scroll bgcontent'>
-	<div class='row row-center padding-mid margin0'>
+	<div class='row row-center padding-mid margin0' ng-show='!vp.i'>
 		<div class='col padding-mid'></div>
 		<div style='padding-right: 10px'>
 	        <div class='nl-link-text text-center padding-mid'
@@ -14,7 +13,8 @@
 	        </div>
 		</div>
 	</div>
-	<div class='row row-center row-wrap text-center row-justify-evenly padding0 margin0' ng-show='toggleSummaryBox'>
+	<div class='padding-small'></div>
+	<div class='row row-center row-wrap text-center row-justify-evenly padding0 margin0' ng-show='!vp.i && toggleSummaryBox'>
 		<div class='col'>
 			<nl-course-view-summary></nl-course-view-summary>
 		</div>

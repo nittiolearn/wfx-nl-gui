@@ -24,12 +24,16 @@
         width: auto;
         height: auto;
     }
+    .no-tb.frame0, .no-tb.frame1 {
+    	top: 0;
+    }
 </style>
-<nl-course-view-toolbar></nl-course-view-toolbar>
 <div ng-if='!ext.isStaticMode()'>
+	<nl-course-view-active-toolbar></nl-course-view-active-toolbar>
 	<div class='padding-small'>
 		<div class='padding-mid'>
-		    <nl-course-view-content-active ng-show='vp.d || vp.t' class='{{vp.i ? "frame1" : "frame0"}} anim'>
+		    <nl-course-view-content-active ng-show='vp.d || vp.t' 
+		    	class='{{vp.tb ? "": "no-tb"}} {{vp.i ? "frame1" : "frame0"}} anim'>
 		    </nl-course-view-content-active>
 		
 			<div ng-if='iframeUrl' class='padding-small {{vp.t ? "frame2" : "frame0"}}'>
@@ -48,6 +52,7 @@
 	</div>
 </div>
 <div ng-if='ext.isStaticMode()'>
+	<nl-course-view-toolbar></nl-course-view-toolbar>
 	<div ng-show='vp.t' class='{{vp.i || vp.c || vp.d ? "frame1" : "frame0"}}'
 		 style='border-right: 1px solid rgba(0, 0, 0, 0.1)'>
 	    <nl-course-view-list></nl-course-view-list>

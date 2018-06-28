@@ -1,5 +1,5 @@
 <div class='padding-mid'>
-	<div style='border:1px solid #FFFFFF; box-shadow: 4px -4px 10px #ADA4A4'>
+	<div style='border:1px solid #FFFFFF; box-shadow: 4px -2px 5px 0px rgba(0, 0, 0, 0.06)'>
 		<div class='row row-center padding-mid margin0' style='background-color: #FFFFFF;border-bottom: 1px solid #EFEFF5;'
 			ng-show='rootStat.folderCount > 0'>
 			<div class='col padding-mid'></div>
@@ -20,7 +20,7 @@
 			                <i ng-show="!cm.isOpen" class="icon ion-arrow-right-b bold fsh3"></i>
 			                <i ng-show="cm.isOpen" class="icon ion-arrow-down-b bold fsh3 ng-hide"></i>
 			            </div>
-						<div class='col padding0' style='font-size: 16px;'>{{cm.name}}</div>
+						<div class='col padding0' style='font-size: 16px; padding-right: 8px'>{{cm.name}}</div>
 						<div class=''>
 							<span class='padding' style='text-align:right'>
 								<i ng-if='!ext.isStaticMode() && cm.state.icon' class="icon fsh3 {{cm.state.icon}}"></i>
@@ -54,11 +54,10 @@
 						</div>
 						<div ng-if='cm.type != "module"' class='col'></div>
 					    <div ng-show='cm.type != "module" && ext.canShowLaunch(cm)' 
-					    	class='nl-link-text padding-mid {{getLaunchButtonState(cm) == "dark" ? "nl-button-highlight" : "nl-button-lowlight"}}'
+					    	class='nl-link-text {{getLaunchButtonState(cm) == "dark" ? "nl-button-highlight" : "nl-button-lowlight"}}'
 			                ng-click='onLaunch($event, cm)'
-			                style='text-align: center'
 			                title='{{ext.getLaunchString(cm)}}'>
-						        <span style='vertical-align: super;'>{{ext.getLaunchString(cm)}}</span>
+						        <span>{{ext.getLaunchString(cm)}}</span>
 					    </div>
 					    <span class='sep4'></span>
 					</div>
