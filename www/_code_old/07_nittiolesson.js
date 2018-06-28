@@ -1322,6 +1322,8 @@ nlesson = function() {
     function _Lesson_filterPages(self) {
         if (self.oLesson.pagesFiltered) {
             var pages = self.oLesson.pages;
+    		// Null ids Can happen with very old (pre 2015) modules
+        	if (self.oLesson.pagesFiltered.length > 0 && !self.oLesson.pagesFiltered[0]) return;
             var pageIdDict = {};
             for(var i=0; i<pages.length; i++) {
                 pageIdDict[pages[i].pageId] = pages[i];
