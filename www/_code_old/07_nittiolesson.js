@@ -1937,14 +1937,21 @@ nlesson = function() {
 		return pgSec;
 	}
 
+	function _isPastedContentImage(e) {
+		if(!e.originalEvent || 
+			!e.originalEvent.clipboardData ||
+			!e.originalEvent.clipboardData.files ||
+			e.originalEvent.clipboardData.files.length == 0 ||
+			!e.originalEvent.clipboardData.types) return false;
+		if ((e.originalEvent.clipboardData.files[0].type || '').indexOf('image') != 0) return false;
+		for(var i=0; i<e.originalEvent.clipboardData.types.length; i++)
+			if (e.originalEvent.clipboardData.types[i].indexOf('text/rtf') == 0) return false;
+		return true;
+	}
+	
 	function _bindPasteToTextrea(pageTextarea) {
 		jQuery(pageTextarea).on('paste', function(e) {
-			if(!e.originalEvent || 
-			   !e.originalEvent.clipboardData ||
-			   !e.originalEvent.clipboardData.files ||
-			   e.originalEvent.clipboardData.files.length == 0 ||
-			   e.originalEvent.clipboardData.types.length != 1 ||
-			   e.originalEvent.clipboardData.types[0] != 'Files') return;
+			if (!_isPastedContentImage(e)) return;
 			e.preventDefault();
 			e.stopImmediatePropagation();
 	        var selector = nlesson.theLesson.globals.selectionHandler;
