@@ -1940,7 +1940,9 @@ nlesson = function() {
 			if(!e.originalEvent || 
 			   !e.originalEvent.clipboardData ||
 			   !e.originalEvent.clipboardData.files ||
-			   e.originalEvent.clipboardData.files.length == 0) return;
+			   e.originalEvent.clipboardData.files.length == 0 ||
+			   e.originalEvent.clipboardData.types.length != 1 ||
+			   e.originalEvent.clipboardData.types[0] != 'Files') return;
 			e.preventDefault();
 			e.stopImmediatePropagation();
 	        var selector = nlesson.theLesson.globals.selectionHandler;
