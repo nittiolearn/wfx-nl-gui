@@ -97,6 +97,8 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
         fileInfos.splice(pos,1);
     }
     
+    // Check if _RT_DICT is in Sync when changing this. Already Zip, Csv
+    // and Xls are not present there
     var _restypeToImage = {
         Image: 'dashboard/resource.png', 
         PDF: 'dashboard/pdf.png' , 
@@ -104,7 +106,8 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
         Video: 'dashboard/video1.png',
         Attachment: 'dashboard/attach.png',
         Zip: 'dashboard/attach.png', // Used in SCORM import
-        Csv: 'dashboard/attach.png' // Used in Admin import
+        Xls: 'dashboard/attach.png', // Used in Lesson import
+        Csv: 'dashboard/attach.png'  // Used in Admin import
     };
     function _getImage(restype) {
         return nl.url.resUrl(_restypeToImage[restype]);
@@ -295,6 +298,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         Video: 'video/*',
         Attachment: '',
         Zip: '.zip',
+        Xls: '.csv, .xlsx, .ods, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel',
         Csv: '.csv'
     }; 
     var _restypeToMaxFileSize = {
@@ -304,6 +308,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         Video: 300*1024*1024,
         Attachment: 100*1024*1024,
         Zip: 300*1024*1024,
+        Xls: 300*1024*1024,
         Csv: 10*1024*1024
     }; 
 
@@ -315,6 +320,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         '.mp4': ['Video', 'Audio'], 
         '.webm': ['Video', 'Audio'], 
         '.zip': ['Zip'],
+        '.xls': ['Xls'], '.xlsx': ['Xls'], '.xlsm': ['Xls'], '.xlsmb': ['Xls'], '.ods': ['Xls'],
         '.csv': ['Csv']};
 
     var _restypeToExtensions = {
@@ -324,6 +330,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         Video: [],
         Attachment: [],
         Zip: [],
+        Xls: ['.csv'], // .csv is present here as well as in Csv.
         Csv: []
     }; 
 

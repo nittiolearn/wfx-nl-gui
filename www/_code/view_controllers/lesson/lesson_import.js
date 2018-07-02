@@ -56,11 +56,6 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlServerApi, n
         	dlg.scope.isTemplateDefined = true;
         	dlg.scope.data.selectedModule = {lessonId: _templateId, title: _templateId};
         }
-        dlg.scope.onClickHandler = function(handlerName) {
-	        var csvString = $templateCache.get('view_controllers/lesson/csv_import_sample.csv.html');
-	        nlExporter.exportCsvFile('ImportTemplate.csv', csvString, false);
-        };
-        
         var importButton = {text: nl.t('Import'), onTap: function(e) {
         	if(!_validateInputs(dlg.scope)) {
 	    		e.preventDefault();
@@ -76,19 +71,19 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlServerApi, n
 	
 	function _getHelp() {
 		return {
-			moduleName: {name: nl.t('Module name'), help: nl.t('Name of the module create by importing the csv file.') },
+			moduleName: {name: nl.t('Module name'), help: nl.t('Name of the module create by importing the spreadsheet.') },
 			selectedModule: {name: nl.t('Select module'), help: nl.t('Select the default template based on which the imported module is created.')},
-			filelist: {name: nl.t('Choose CSV file'), help: _getCsvHelp(), isShown: true}
+			filelist: {name: nl.t('Choose spreadsheet'), help: _getCsvHelp(), isShown: true}
 		};
 	}
 	
 	function _getCsvHelp() {
-		var clickHandler = "onClickHandler('downloadCsv')";
+		var xlsxUrl = nl.url.resUrl('ImportTemplate.xlsx');
 		var help = '<div>';
-		help += nl.fmt2('<span class="padding-small">Download <span class="nl-link-text" ng-click="{}">sample csv file</span> to better understand the CSV file format to be imported. You could just edit the file and get going.</span>', clickHandler);
-		help += '<div class="padding-left"><ul><li class="padding-small">First row (header row) of CSV file is mandatory. This is just provided as a help to the user. Please do not change the values in this column.</li>';
-		help += '<li class="padding-small">Each row starting from second row of the CSV file is converted into one page in the module.</li>';
-		help += '<li class="padding-small">The first column specifies the "page type" of the page created. Page type defines the question type (MCQ, Matching, ...), number of options and the layout for the page. The sample csv file provided above has some sample page types that could be used.</li>';
+		help += nl.fmt2('<span class="padding-small">Download <a href="{}" download>sample spreadsheet</a> for better understand the supported spreadsheet format to be imported. The imported spreadsheet can be of ".xlsx", ".csv", ".xlsm", ".ods" and ".xlsmb" format.</span>', xlsxUrl);
+		help += '<div class="padding-left"><ul><li class="padding-small">First row (header row) of spreadsheet is mandatory. This is just provided as a help to the user. Please do not change the values in this column.</li>';
+		help += '<li class="padding-small">Each row starting from second row of the spreadsheet is converted into one page in the module.</li>';
+		help += '<li class="padding-small">The first column specifies the "page type" of the page created. Page type defines the question type (MCQ, Matching, ...), number of options and the layout for the page. The sample spreadsheet provided above has some sample page types that could be used.</li>';
 		help += '<li class="padding-small">The second column specifies maximum score for the question. Leave this empty or specify the value 0 if you want to use the default maximum score for the page.</li>';
 		help += '<li class="padding-small">Third column onwards specify content in different sections of the page. For example</li>';
 		help += '<div class="padding-left"><ul><li class="padding-small">for 4 option MCQ question, the third column is where you provide the question, fourth column with the correct answer, fifth, sixth and seventh columns have the wrong answer and the eighth column could have a hint or some instruction.</li>';
@@ -98,8 +93,8 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlServerApi, n
 	}
 	function _validateInputs(dlgScope) {
 		if (!dlgScope.data.moduleName) return _validateFail(dlgScope, 'moduleName', 'Please enter the name for the imported module');
-        if (!dlgScope.data.selectedModule) return _validateFail(dlgScope, 'selectedModule', 'Please select the default template for importing csv based on it.');
-        if (dlgScope.data.filelist.length == 0) return _validateFail(dlgScope, 'filelist', 'Please select the csv file to import.');
+        if (!dlgScope.data.selectedModule) return _validateFail(dlgScope, 'selectedModule', 'Please select the default template for importing spreadsheet based on it.');
+        if (dlgScope.data.filelist.length == 0) return _validateFail(dlgScope, 'filelist', 'Please select the spreadsheet to import.');
         return true;
     }
                     
@@ -111,13 +106,16 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlServerApi, n
     	nlDlg.showLoadingScreen();
         if (e) e.preventDefault();
         var csvFile = dlgScope.data.filelist[0].resource;
-        nlImporter.readCsv(csvFile, {ignore_column_count: true}).then(function(result) {
+        var extn = dlgScope.data.filelist[0].extn;
+        var importMethod = extn == '.csv' ? nlImporter.readCsv : nlImporter.readXls;
+        importMethod(csvFile, {ignore_column_count: true}).then(function(result) {
             if (result.error) {
             	nlDlg.hideLoadingScreen();
                 nlDlg.popupAlert({title:'Error message', template:nl.t('Error parsing CSV file: {}', result.error)});
                 return;
             }
-            var rows = _processCsvFile(result.table);
+            var dataTable = extn == '.csv' ? result.table : result.sheets.Sheet1;
+            var rows = _processCsvFile(dataTable);
             var lessonid = dlgScope.data.selectedModule.lessonId;
             nlServerApi.lessonGetContent(lessonid).then(function(result) {
             	_createLessonFromCsvRows(rows, result.lesson, dlgScope.data.moduleName);
