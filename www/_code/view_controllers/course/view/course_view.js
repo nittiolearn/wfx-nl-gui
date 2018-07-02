@@ -12,6 +12,7 @@ function module_init() {
     .directive('nlCourseViewContentStatic', CourseViewDirective('course_view_content_static'))
     .directive('nlCourseViewLargeScreen', CourseDoReviewDirective('course_active_ls'))
     .directive('nlCourseViewSmallScreen', CourseDoReviewDirective('course_active_ss'))
+    .directive('nlCourseViewActiveToolbar', CourseDoReviewDirective('course_active_toolbar'))
     .directive('nlCourseViewSummary', CourseDoReviewDirective('course_active_summary'))
     .directive('nlCourseLargeScreenDetails', CourseDoReviewDirective('course_details_ls'))
     .directive('nlCourseSmallScreenDetails', CourseDoReviewDirective('course_details_ss'))
@@ -393,6 +394,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     $scope.expandedView = false; // true if tree + content area is shown
 	$scope.toggleSummaryBox = false;
 	$scope.toggleText = 'Show summary';
+	if (nl.rootScope.screenSize != 'small') _openSummaryBox();
+	else _closeSummaryBox();
 	$scope.currentTreeState = false;
 	$scope.currentStateText = 'Expand all';
 
@@ -445,11 +448,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
                 else vp.d = true;
             }
         }
-        
-        if (!$scope.ext.isStaticMode()) {
-			if (vp.d) _openSummaryBox();
-			else if (vp.t) _closeSummaryBox();
-        }
+        vp.tb = (vp.i || $scope.canvasMode || $scope.forumInfo.refid || $scope.mode == MODES.REPORTS_SUMMARY_VIEW);
         nlRouter.updateBodyClass('iframeActive', vp.i);
     };
     

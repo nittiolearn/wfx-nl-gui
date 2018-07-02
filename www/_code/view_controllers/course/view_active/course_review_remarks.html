@@ -24,10 +24,9 @@
 		        This item is currently marked as completed. You could reopen this by clicking the 'Reopen' button.
 		    </div>
         </div>
-	    <div class='nl-link-text padding-mid {{ext.item.state.status == "success" ? "nl-button-lowlight" : "nl-button-highlight"}}'
-            ng-click='ext.updateStatus(ext.item.state.status != "success")'
-            style='text-align: center'>
-	        <span style='vertical-align: super;'>{{ext.item.state.status == 'success' ? 'Reopen' : 'Done'}}</span>
+	    <div class='nl-link-text {{ext.item.state.status == "success" ? "nl-button-lowlight" : "nl-button-highlight"}}'
+            ng-click='ext.updateStatus(ext.item.state.status != "success")'>
+	        <span>{{ext.item.state.status == 'success' ? 'Reopen' : 'Done'}}</span>
 	    </div>
 	    
     </div>

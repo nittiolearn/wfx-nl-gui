@@ -1323,10 +1323,14 @@ nl-cards {
 .nl-button-highlight, .nl-button-lowlight {
   height: 32px;
   min-width: 100px;
-  padding-top: 2px;
+  padding-top: 4px;
   border-radius: 20px;
   box-shadow: 2px 4px 5px 0px rgba(0, 0, 0, 0.06);
   background-color: white;
+  text-align: center;
+  span {
+    display: inline-block;
+  }
 }
 
 .nl-button-highlight {

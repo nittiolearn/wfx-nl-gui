@@ -316,7 +316,7 @@ function ReportCsv(nl, nlGroupInfo, nlExporter, _groupInfo) {
         ret.push(session && session.passScore && session.maxScore ? session.maxScore : '');
         ret.push(session && session.passScore && session.status == 'completed' ? session.score : '');
         
-        ret.push(session ? session.timeSpent : record.content.trainingStatus.timeSpent);
+        ret.push((session ? session.timeSpent : record.content.trainingStatus.timeSpent) || '');
         ret.push(record.content.venue || '');
         ret.push(record.content.trainername || '');
 	}

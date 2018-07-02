@@ -1,5 +1,5 @@
 <div class='padding-mid'>
-	<div style='border:1px solid #FFFFFF; box-shadow: 4px -4px 10px #ADA4A4'>
+	<div style='border:1px solid #FFFFFF; box-shadow: 4px -2px 5px 0px rgba(0, 0, 0, 0.06)'>
 		<div class='row row-center padding-mid margin0' style='background-color: #FFFFFF;border-bottom: 1px solid #EFEFF5;'
 			ng-show='rootStat.folderCount > 0'>
 			<div class='col padding-mid'></div>
@@ -13,45 +13,33 @@
 		<div ng-repeat='cm in modules' class='anim fade'
 			style='background-color: #FFFFFF; border-bottom: 1px solid #EFEFF5'>
 	        <div ng-click='onRowClick($event, cm)'
-	        	class='row row-center row-wrap margin0 padding-mid factive {{ext.item.id == cm.id ? "item-selected" : ""}} factive {{cm.type != "certificate" ? "nl-link-text" : ""}}'>
+	        	 class='padding-mid factive {{ext.item.id == cm.id ? "item-selected" : ""}} {{cm.type != "certificate" ? "nl-link-text" : ""}}'>
 	            <div class='row row-center margin0 padding-mid'>
-					<div class='col margin0 padding0' style='padding-left: {{cm.indentationLevel*16 + 8}}px'>
-						<div class='row row-center margin0 padding0'>
-							<div ng-if="cm.type == 'module'" style="width: 20px;">
-				                <i ng-show="!cm.isOpen" class="icon ion-arrow-right-b bold fsh3"></i>
-				                <i ng-show="cm.isOpen" class="icon ion-arrow-down-b bold fsh3 ng-hide"></i>
-				            </div>
-							<div class='col padding0' style="font-size:16px">{{cm.name}}</div>
-							<span  style='text-align:right'>
-								<i ng-if='!ext.isStaticMode() && cm.state.icon' class="icon fsh3 {{cm.state.icon}}"></i>
-							</span>
-						</div>
-					</div>
+	            	<div style='width: {{cm.indentationLevel*16 + 8}}px'></div>
+					<div ng-if="cm.type == 'module'" style="width: 24px;">
+		                <i ng-show="!cm.isOpen" class="icon ion-arrow-right-b bold fsh3"></i>
+		                <i ng-show="cm.isOpen" class="icon ion-arrow-down-b bold fsh3 ng-hide"></i>
+		            </div>
+					<div style="max-height: 2.38em; overflow: hidden; font-size:16px;"
+						 class='col padding0'>{{cm.name}}</div>
+					<span class='text-right' style='width: 24px'>
+						<i ng-if='!ext.isStaticMode() && cm.state.icon' class="icon fsh3 {{cm.state.icon}}"></i>
+					</span>
 	            </div>
-	            <div class='row row-center margin0 padding-mid'>
-					<div class='col margin0 padding0' 
-						style='padding-left: {{(screenSize == "small" || vp.i) ? cm.indentationLevel*16 + 8 : 8}}px'>
-						<div class='row row-center padding0 margin0'>
-							<div class='col padding0' ng-show='cm.type == "module"'>
-								<div class='row row-center margin0 padding0'>
-									<div class='col padding0'>
-										<nl-progress-bar curval='cm.completedItems' 
-											maxval='cm.totalItems'>
-										</nl-progress-bar>
-									</div>
-									<span style='width: 40px; text-align: right;'>{{cm.completedItems ? ext.getRoundedPercentage(cm.completedItems, cm.totalItems) : 0}}%</span>
-								</div>
-							</div>
-							<div ng-show='cm.type != "module"' class='col'></div>
-						    <div ng-show='cm.type != "module" && ext.canShowLaunch(cm)' 
-						    	class='nl-link-text padding-mid {{getLaunchButtonState(cm) == "dark" ? "nl-button-highlight" : "nl-button-lowlight"}}'
-				                ng-click='onLaunch($event, cm)'
-				                style='text-align: center'
-				                title='{{ext.getLaunchString(cm)}}'>
-						        <span style='vertical-align: super;'>{{ext.getLaunchString(cm)}}</span>
-						    </div>
-						</div>
-					</div>
+	            <div class='row row-center margin0 padding-mid' ng-if='!vp.i'>
+	            	<div style='width: {{cm.indentationLevel*16 + 8}}px'></div>
+
+					<nl-progress-bar ng-show='cm.type == "module"' class='col padding0' curval='cm.completedItems' maxval='cm.totalItems'></nl-progress-bar>
+					<span style='width: 50px; text-align: right;'
+						  ng-show='cm.type == "module"'>{{cm.completedItems ? ext.getRoundedPercentage(cm.completedItems, cm.totalItems) : 0}}%</span>
+
+					<div ng-show='cm.type != "module"' class='col padding0'></div>
+				    <div ng-show='cm.type != "module" && ext.canShowLaunch(cm)' 
+				    	class='nl-link-text {{getLaunchButtonState(cm) == "dark" ? "nl-button-highlight" : "nl-button-lowlight"}}'
+		                ng-click='onLaunch($event, cm)'
+		                title='{{ext.getLaunchString(cm)}}'>
+				        <span>{{ext.getLaunchString(cm)}}</span>
+				    </div>
 				</div>
 			</div>
 			<div ng-show='cm.type != "certificate" && cm.type != "module" && cm.id == ext.item.id && isDetailsShown && !vp.i' class='factive padding-mid anim fade'>
