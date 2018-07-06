@@ -52,7 +52,7 @@
 
     <div class='row row-wrap row-top padding-top margin0'
          ng-show='assignInfo.showDateField'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Start time</div>
+        <div ng-class='resp2Col33' class='nl-dlg-field-name'>From </div>
         <div ng-class='resp2Col67' class='nl-dlg-field-value'>
             <nl-date-time-select fieldmodel='starttime'></nl-date-time-select>
         </div>
@@ -60,7 +60,7 @@
 
     <div class='row row-wrap row-top padding-top margin0'
          ng-show='assignInfo.showDateField'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>End time</div>
+        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Till</div>
         <div ng-class='resp2Col67' class='nl-dlg-field-value'>
             <nl-date-time-select fieldmodel='endtime'></nl-date-time-select>
         </div>
@@ -98,7 +98,7 @@
     </div>
 
     <div class='row row-wrap row-top padding-top margin0'
-         ng-show='assignInfo.enableSubmissionAfterEndtime'>
+         ng-show='assignInfo.enableSubmissionAfterEndtime && data.endtime'>
         <div ng-class='resp2Col33' class='nl-dlg-field-name'>Submission after end time</div>
         <div ng-class='resp2Col67' class='nl-dlg-field-value'>
             <div class='nl-link-text row row-center padding0 margin0'

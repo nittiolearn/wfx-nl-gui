@@ -739,8 +739,8 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
         nl.fmt.addAvp(avps, 'Subject', report.subject);
         nl.fmt.addAvp(avps, 'Author', report.authorname);
         nl.fmt.addAvp(avps, 'Module description', report.descMore);
-        nl.fmt.addAvp(avps, 'Earliest start time', content.not_before, 'date');
-        nl.fmt.addAvp(avps, 'Latest end time', content.not_after, 'date');
+        nl.fmt.addAvp(avps, 'From', content.not_before, 'date');
+        nl.fmt.addAvp(avps, 'Till', content.not_after, 'date');
         nl.fmt.addAvp(avps, 'Max duration', report.max_duration, 'minutes');
         nl.fmt.addAvp(avps, 'Show answers', _learnmodeString(report.learnmode));
         nl.fmt.addAvp(avps, 'Is published?', report.published, 'boolean');
