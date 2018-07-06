@@ -651,6 +651,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
 	$scope.isDetailsShown = false;
 	$scope.pastSelectedItem = null;
 	$scope.onRowClick = function(e, cm) {
+		_checkDateTimeRange();
 		if(cm.type == "certificate") return;
 		if(cm.type == "module") {
 			$scope.pastSelectedItem = cm;
@@ -699,6 +700,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     $scope.onLaunch = function(e, cm) {
         e.stopImmediatePropagation();
         e.preventDefault();
+        _checkDateTimeRange();
         $scope.ext.setCurrentItem(cm);
         var dontUpdate = true;
         _confirmIframeClose(cm, function() {
@@ -712,6 +714,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     }
 
     $scope.onReattempt = function(e, cm) {
+    	_checkDateTimeRange();
         var template = 'Current learning history for this module will be lost if you attempt this module once more. Do you want to continue?';
         nlDlg.popupConfirm({title: 'Confirm', template: template})
         .then(function(res) {
@@ -727,6 +730,18 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         });
     };
     
+    function _checkDateTimeRange() {
+    	var course = modeHandler.course;
+		var currentDate = new Date();
+	    var starttime = course['not_before'] && course['not_before'] != '' ? nl.fmt.json2Date(course.not_before) : '';
+	    var endtime = course['not_after'] && course['not_after'] != '' ? nl.fmt.json2Date(course.not_after) : '';
+	    if (endtime && (currentDate > endtime) && !course.submissionAfterEndtime){
+	        nlDlg.popupAlert({title: 'Alert text', template: 'Current time is greater than end time and mentioned for this course.'}).then(function(res) {
+				if(res) nl.window.location.href = '#/course_report_list';
+			});
+	    }
+    }
+
     var _CM_STATES = {
         hidden:  {title: 'Hidden'}, // TODO-LATER - not handled yet!
         none:    {icon: 'ion-information-circled fblue', title: ''},
@@ -906,7 +921,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         if (!$scope.canSendAssignment) return;
         var c = modeHandler.course;
         var assignInfo = {assigntype: 'course', id: c.id, icon: null, 
-            title: c.name, authorName: c.authorname, description: c.description};
+            title: c.name, authorName: c.authorname, description: c.description, 
+            showDateField: true, enableSubmissionAfterEndtime: true};
         nlSendAssignmentSrv.show($scope, assignInfo);
     }
     

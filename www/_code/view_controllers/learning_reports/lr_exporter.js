@@ -201,7 +201,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var mh = nlLrHelper.getMetaHeaders(false);
         var headers = ['User Id', 'User Name'];
         headers = headers.concat(['Course Name', _gradelabel, _subjectlabel, 'Assigned On', 'Last Updated On', 
-            'Status', 'Progress', 'Progress Details', 'Quiz Attempts',
+            'From', 'Till', 'Status', 'Progress', 'Progress Details', 'Quiz Attempts',
             'Achieved %', 'Maximum Score', 'Achieved Score', 'Time Spent (minutes)']);
         headers = headers.concat(['Email Id', 'Org']);
         for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
@@ -215,6 +215,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var ret = [report.user.user_id, report.user.name];
         ret = ret.concat([report.course.name, report.course.contentmetadata.grade || '',
         	report.course.contentmetadata.subject || '', report.created, report.updated,
+        	report.not_before, report.not_after, 
             report.stats.status.txt, '' + report.stats.percComplete + '%',
             report.stats.percCompleteDesc, report.stats.avgAttempts,
             report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore,

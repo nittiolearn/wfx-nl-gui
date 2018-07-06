@@ -836,7 +836,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 			assignid : trainingBatch.id,
 			id : trainingBatch.training_kind || 0,
 			remarks : _getRemarks(trainingBatch),
-
+			showDateField: false,
+			enableSubmissionAfterEndtime: false, 	
 			// Stuff needed in GUI side
 			title : trainingBatch.name,
 			authorName : _userInfo.displayname,

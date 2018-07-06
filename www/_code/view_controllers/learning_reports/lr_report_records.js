@@ -197,11 +197,16 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
 
 		report.updated = nl.fmt.json2Date(report.updated);
 		report.created = nl.fmt.json2Date(report.created);
+		report.not_before = repcontent.not_before ? nl.fmt.json2Date(repcontent.not_before) : '';
+		report.not_after = repcontent.not_after ? nl.fmt.json2Date(repcontent.not_after) : '';
         stats.status = nlLrHelper.statusInfos[_getStatusId(stats, started)];
         var ret = {raw_record: report, repcontent: repcontent, course: course, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'date'), 
-            updated: nl.fmt.fmtDateDelta(report.updated, null, 'date')};
+            updated: nl.fmt.fmtDateDelta(report.updated, null, 'date'),
+            not_before: report.not_before ? nl.fmt.fmtDateDelta(report.not_before, null, 'minute') : '',
+            not_after: report.not_after ? nl.fmt.fmtDateDelta(report.not_after, null, 'minute') : ''
+            };
         return ret;
     }
     

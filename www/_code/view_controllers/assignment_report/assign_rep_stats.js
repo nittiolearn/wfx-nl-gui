@@ -731,6 +731,7 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
     };
 
     this.populateCommonAvps = function(report, avps, reptype) {
+    	var content = angular.fromJson(report.content);
         nl.fmt.addAvp(avps, 'Remarks', report.assign_remarks);
         nl.fmt.addAvp(avps, 'Assigned By', report.assigned_by);
         nl.fmt.addAvp(avps, 'Assigned To', report.assigned_to);
@@ -738,8 +739,8 @@ function ReportStats(reptype, nl, nlDlg, nlGroupInfo,
         nl.fmt.addAvp(avps, 'Subject', report.subject);
         nl.fmt.addAvp(avps, 'Author', report.authorname);
         nl.fmt.addAvp(avps, 'Module description', report.descMore);
-        nl.fmt.addAvp(avps, 'Earliest start time', report.not_before, 'date');
-        nl.fmt.addAvp(avps, 'Latest end time', report.not_after, 'date');
+        nl.fmt.addAvp(avps, 'Earliest start time', content.not_before, 'date');
+        nl.fmt.addAvp(avps, 'Latest end time', content.not_after, 'date');
         nl.fmt.addAvp(avps, 'Max duration', report.max_duration, 'minutes');
         nl.fmt.addAvp(avps, 'Show answers', _learnmodeString(report.learnmode));
         nl.fmt.addAvp(avps, 'Is published?', report.published, 'boolean');

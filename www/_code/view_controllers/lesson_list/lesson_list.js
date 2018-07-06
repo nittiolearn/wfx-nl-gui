@@ -294,6 +294,8 @@ this.show = function($scope, initialUserInfo, params) {
 				id : card.lessonId,
 				icon : card.icon,
 				title : card.title,
+				showDateField: true,
+				enableSubmissionAfterEndtime: true,
 				authorName : card.authorName,
 				subjGrade : nl.fmt2('{}, {}', card.subject, card.grade),
 				description : card.description,

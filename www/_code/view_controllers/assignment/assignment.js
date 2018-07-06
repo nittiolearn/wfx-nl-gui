@@ -228,6 +228,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		nl.fmt.addAvp(avps, 'Show answers', _learnmodeString(assignment.learnmode));
 		nl.fmt.addAvp(avps, 'Is published?', assignment.published, 'boolean');
 		nl.fmt.addAvp(avps, 'Discussion forum', assignment.forum, 'boolean');
+		nl.fmt.addAvp(avps, 'Submission after end time', assignment.submissionAfterEndtime, 'boolean');
 		if(!(mode.type == TYPES.NEW || mode.type == TYPES.PAST))
 			nl.fmt.addAvp(avps, 'Internal identifier', assignment.id);
 		return avps;

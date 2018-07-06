@@ -126,7 +126,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
             _fetchMore();
 		} else if (linkid === 'course_assign'){
 			var assignInfo = {assigntype: 'course', id: card.courseId, icon: null, 
-				title: card.title, authorName: card.authorName, description: card.help};
+				title: card.title, authorName: card.authorName, description: card.help,
+				showDateField: true, enableSubmissionAfterEndtime: true};
 			nlSendAssignmentSrv.show($scope, assignInfo);
 		} else if (linkid === 'course_assign_delete'){
 			_deleteAssignment($scope, card.reportId);
@@ -183,6 +184,18 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
         });
     }
 
+	function _checkDateOutOfRange(card) {
+		var currentDate = new Date();
+	    var starttime = card['not_before'] && card['not_before'] != '' ? nl.fmt.json2Date(card.not_before) : '';
+	    var endtime = card['not_after'] && card['not_after'] != '' ? nl.fmt.json2Date(card.not_after) : '';
+	    if (starttime && currentDate < starttime)
+	        return true;
+	    if (endtime && (currentDate > endtime) && !card.submissionAfterEndtime){
+	        return true;
+	    }
+	    return false;	
+	}
+	
     function _fetchMore() {
         _getDataFromServer(null, true);
     }
@@ -294,6 +307,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	function _getCards(resultList, nlCardsSrv) {
 		var cards = [];
 		for (var i = 0; i < resultList.length; i++) {
+			if(type === 'report' && _checkDateOutOfRange(resultList[i])) continue;
 			var card = _createCard(resultList[i]);
 			cards.push(card);
 		}
@@ -431,6 +445,9 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		nl.fmt.addAvp(avps, 'Group', report.grpname);
 		nl.fmt.addAvp(avps, 'Created on', report.created, 'date');
 		nl.fmt.addAvp(avps, 'Updated on', report.updated, 'date');
+		nl.fmt.addAvp(avps, 'From', report.not_before || '', 'date');
+		nl.fmt.addAvp(avps, 'Till', report.not_after || '', 'date');
+		nl.fmt.addAvp(avps, 'Submit after end time', report.submissionAfterEndtime || false, 'boolean');		
 		nl.fmt.addAvp(avps, 'Remarks', report.remarks);
         nl.fmt.addAvp(avps, 'Discussion forum', report.forum, 'boolean');
         if(type != 'report' || assignId != 0) nl.fmt.addAvp(avps, 'Internal identifier', report.id);

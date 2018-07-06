@@ -28,6 +28,11 @@
     <div class='padding-mid' ng-class='$root.respCol422'><b>Last updated on:</b></div>
     <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.updated}}</div>
 
+	<div class='padding-mid' ng-class='$root.respCol422'><b>From :</b></div>
+    <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.not_before || '-'}}</div>
+    <div class='padding-mid' ng-class='$root.respCol422'><b>Till :</b></div>
+    <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.not_after || '-'}}</div>
+
     <div class='padding-mid' ng-class='$root.respCol422'><b>Progress:</b></div>
     <div class='padding-mid' ng-class='$root.respCol422'>
         <span>{{rec._raw.stats.percCompleteStr}}</span>

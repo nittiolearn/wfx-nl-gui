@@ -64,6 +64,8 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlSendAssignmentSrv) {
             assignInfo.subjGrade = nl.fmt2('{}, {}', lesson.subject, lesson.grade);
             assignInfo.description = lesson.description;
             assignInfo.esttime = lesson.esttime ? lesson.esttime : '';
+            assignInfo.showDateField = true;
+            assignInfo.enableSubmissionAfterEndtime = true;
         } else {
             assignInfo.icon = result.icon;
             assignInfo.title = result.name;
@@ -145,12 +147,13 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         dlgScope.options = {showAnswers: learningModeStrings};
         dlgScope.data = {
             ouUserTree: _ouUserSelector.getTreeSelect(),
-            starttime: _assignInfo.starttime || '',
+            starttime: _assignInfo.starttime || new Date(),
             endtime: _assignInfo.endtime || '',
             maxduration: _assignInfo.esttime ? parseInt(_assignInfo.esttime) : '',
             showAnswers: learningModeStrings[1],
             remarks: _assignInfo.remarks || '',
             forum: false,
+            submissionAfterEndtime: false,
             sendEmail: false,
         };
     }
@@ -169,7 +172,11 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             [sendButton], cancelButton);
     }
 
-    function _assertUserCount() {
+    function _validateBeforeAssign() {
+    	if (_dlg.scope.assignInfo.showDateField && !_dlg.scope.data.starttime) {
+            nlDlg.popupAlert({title:'Please select', template: 'Start date is mandatory and it can not be empty. Please select the start date'});
+            return false;
+    	}
         if (Object.keys(_selectedUsers).length == 0) {
         	var templateMsg = _assignInfo.assigntype == 'training' 
         		? nl.t('Please select the users to nominate.') 
@@ -201,7 +208,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
     //---------------------------------------------------------------------------------------------
     function _onSendAssignment(e) {
         if(e) e.preventDefault(e);
-        if (!_assertUserCount()) return;
+        if (!_validateBeforeAssign(_dlg.scope.data)) return;
         
         var ouUserInfo = _getOusAndUser();
         var data = {
@@ -216,7 +223,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             forum: _dlg.scope.data.forum || false,
             sendemail: _dlg.scope.data.sendEmail || false};
 		
-        if (data.assigntype == _nl.atypes.ATYPE_MODULE) {
+        if (data.assigntype == _nl.atypes.ATYPE_MODULE  || data.assigntype == _nl.atypes.ATYPE_COURSE) {
 	        var starttime = _dlg.scope.data.starttime || '';
 	        var endtime = _dlg.scope.data.endtime || '';
 	        var maxduration = _dlg.scope.data.maxduration;
@@ -226,8 +233,11 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 	        if(endtime) endtime = nl.fmt.date2UtcStr(endtime, 'second');
             data.not_before = starttime;
             data.not_after = endtime;
-            data.learnmode = _dlg.scope.data.showAnswers.id;
-            data.max_duration = maxduration || '';
+            data.submissionAfterEndtime = _dlg.scope.data.submissionAfterEndtime || false;
+            if (data.assigntype == _nl.atypes.ATYPE_MODULE){
+ 				data.learnmode = _dlg.scope.data.showAnswers.id;
+				data.max_duration = maxduration || '';
+			}
         }
         _confirmAndSend(data, ouUserInfo);
     }
