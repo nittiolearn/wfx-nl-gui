@@ -404,6 +404,10 @@ function(nl, nlDlg, nlConfig, Upload) {
     //---------------------------------------------------------------------------------------------
 	// get group user entities
     //---------------------------------------------------------------------------------------------
+	this.groupGetInfo3 = function(data) {
+        return server.post('_serverapi/group_get_info3.json', data);     
+	};
+
 	this.groupGetInfo = function(reload, grpid, clean, max) {
 	    var cacheKey = 'group_get_info';
 	    if (grpid) cacheKey += '.' + grpid;

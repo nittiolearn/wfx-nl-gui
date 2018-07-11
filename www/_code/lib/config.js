@@ -11,8 +11,8 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlGroupInfo = ['nl', 'nlServerApi', 'nlImporter',
-function(nl, nlServerApi, nlImporter) {
+var NlGroupInfo = ['nl', 'nlServerApi', 'nlImporter', 'nlGroupCache',
+function(nl, nlServerApi, nlImporter, nlGroupCache) {
     var self = this;
     
     this.get = function(grpid) {
@@ -21,6 +21,17 @@ function(nl, nlServerApi, nlImporter) {
     
     var _groupInfos = {};
     this.init = function(reload, grpid, clean, max) {
+	    var urlParams = nl.location.search();
+    	if (urlParams.oldgrpinfo) return _initOld(reload, grpid, clean, max);
+    	return nlGroupCache.get(reload, grpid, max).then(function(result) {
+            _groupInfos[grpid || ''] = result;
+        }, function(e) {
+            return e;
+        });
+    };
+
+	// TODO-LATER-124: remove this code
+    function _initOld(reload, grpid, clean, max) {
         return nlServerApi.groupGetInfo(reload, grpid, clean, max).then(function(result) {
             _groupInfos[grpid || ''] = result;
         }, function(e) {
