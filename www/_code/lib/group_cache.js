@@ -19,7 +19,9 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
     	return nl.q(function(resolve, reject) {
 			nlConfig.loadFromDb(context.dbkey, function(data) {
 				context.grpCache = data || _defGrpCache();
-				if (!reload && _isUptodate(context.grpCache)) return resolve(context.grpCache);
+				if (!reload && _isUptodate(context.grpCache)) {
+					return resolve(_getConsolidatedData(context.grpCache));
+				}
 	    		_fetchFromServer(context, function(grpCache) {
 		    		grpCache = _getConsolidatedData(grpCache);
 	    			progressTracker.done();
