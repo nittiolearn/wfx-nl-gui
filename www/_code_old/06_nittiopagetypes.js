@@ -1231,6 +1231,216 @@ npagetypes = function() {
 	};
 
 	//----------------------------------------------------------------------------------------
+	// BehSimulation
+	//----------------------------------------------------------------------------------------
+	var BehSimulation = {
+		'viewHelp' : function(layout, secNo) {
+			if (_isAnswer(layout, secNo))
+				return njs_helper.fmt2('TODO');
+			return '';
+		},
+		'reportHelp' : function(layout, secNo) {
+			if (_isAnswer(layout, secNo))
+				return 'TODO';
+			return '';
+		},
+		'editHelp' : function(layout, secNo) {
+			if (!_isCorrect(layout, secNo)) return '';
+			var ret = 	'Step 1: Enter an image (img:...). ' + 
+						'Step 2: View the image by pressing the section preview button at top left of this box (not whole page preview). ' +
+						'Step 3: TODO: To draw a marker line, click on one of the answer boxes first and then click on a point in the image. ';
+			
+			return ret;
+		},
+		'cssClass': function(layout, secNo) {
+			return _cssClass(layout, secNo);
+		},
+		'onRender' : function(section) {
+			_getBehaviourFnFromBaseClass(BehSimulation, 'onRender')(section);
+			var layout = _getLayoutOfSec(section);
+			var secNo = section.secNo;
+			if (!_isInteractive(layout, secNo)) return;
+
+			if(!section.oSection.simuBox) section.oSection.simuBox = {t: 45, l: 45, w: 10, h: 10};
+			var pageMode = _getPageMode(section.page);
+			if (pageMode == 'do') {
+				_showPgSecView(section);
+				return;
+			}
+			
+			if (pageMode == 'report') {
+				_showPgSecView(section);
+				return;
+			}
+			
+			var pgCtx = _getPageCtx(section.page);
+			if (pgCtx == 'edit_gra') {
+				// pageMode == 'edit', pageCtx = 'edit_gra'
+				_showPgSecView(section);
+				_BehFibParts_createToggleSectionButton(section, pgCtx);
+				return;
+			} 
+			// pageMode == 'edit', pageCtx = 'edit'
+			_showPgSecText(section);
+			_BehFibParts_createToggleSectionButton(section, pgCtx);
+		},
+		'adjustHtml' : function(section) {
+			_getBehaviourFnFromBaseClass(BehSimulation, 'adjustHtml')(section);
+			var layout = _getLayoutOfSec(section);
+			if (!_isInteractive(layout, section.secNo)) return;
+			var pageMode = _getPageMode(section.page);
+			var pgCtx = _getPageCtx(section.page);
+			if (pageMode == 'edit' && pgCtx != 'edit_gra') return;
+			_Simulation_createSimuBox(section, pageMode);
+		},
+		'onScore' : function(page) {
+			var answered = ANSWERED_NO;
+			var score = 0;
+			for (var i = 0; i < page.sections.length; i++) {
+				var section = page.sections[i];
+				var layout = _getLayoutOfSec(section);
+				if (!_isInteractive(layout, section.secNo)) continue;
+				var pgSecView = section.pgSecView;
+				if (pgSecView.answerStatus === undefined) continue;
+				answered = ANSWERED_YES;
+				section.oSection.answer = pgSecView.answerStatus ? 'correct' : 'wrong';
+				if (pgSecView.answerStatus) score = page.getMaxScore();
+			}
+			return [answered, score];
+		},
+	};
+
+	//----------------------------------------------------------------------------------------
+	// Simulation
+	//----------------------------------------------------------------------------------------
+	function _Simulation_createSimuBox(section, pageMode) {
+		var pgSecView = section.pgSecView;
+		pgSecView.find(".simuBox").remove();
+		var imgElem = pgSecView.find('.njs_img');
+		pgSecView.simuBoxCreated = false;
+		imgElem.on("load", function() {
+			if (pgSecView.simuBoxCreated) return;
+			pgSecView.simuBoxCreated = true;
+			_onImageLoaded(imgElem, pgSecView, section, pageMode);
+		});
+		imgElem.load();
+	}
+	
+	function _onImageLoaded(imgElem, pgSecView, section, pageMode) {
+		var rects = _Simulation_getRects(pgSecView, imgElem);
+		var boxCssPos = _Simulation_jsonPosToCssPos(rects, section.oSection.simuBox);
+		var simuBox = jQuery('<div class="simuBox">');
+		_Simulation_setBoxCssPos(simuBox, boxCssPos);
+		pgSecView.append(simuBox);
+		
+		if (pageMode == 'edit') {
+			simuBox.draggable({containment : [rects.psv.l + rects.img.l, rects.psv.t + rects.img.t, 
+				rects.psv.l + rects.img.r - boxCssPos.w, rects.psv.t + rects.img.b - boxCssPos.h], 
+				start: _onDragStart, stop: _onDragDone});
+			simuBox.resizable({stop: _onResize});
+		} else if (pageMode == 'do') {
+			simuBox.bind('click', function(e) {
+				_onClickDoMode(e, section, true);
+			});
+			pgSecView.bind('click', function(e) {
+				_onClickDoMode(e, section, false);
+			});
+		} else if (pageMode == 'report') {
+			pgSecView.bind('click', function(e) { _onClickReportMode(e, section);});
+			if (section.oSection.answer == 'correct') simuBox.addClass('answer_right');
+			else if (section.oSection.answer == 'wrong') simuBox.addClass('answer_wrong');
+		}
+		
+		function _onClickReportMode(e, section) {
+			e.preventDefault();
+			e.stopImmediatePropagation();
+			if (section.oSection.answer == 'correct') njs_helper.Dialog.popupStatus('The correct location was clicked (green shaded area)');
+			else if (section.oSection.answer == 'wrong') njs_helper.Dialog.popupStatus('The correct location was not clicked (red shaded area is the correct location)');
+			else njs_helper.Dialog.popupStatus('No answer was clicked (shaded area is the correct location)');
+		}
+		
+		function _onClickDoMode(e, section, correct) {
+			e.preventDefault();
+			e.stopImmediatePropagation();
+			section.pgSecView.answerStatus = correct;
+			var slm = section.lesson.oLesson.selfLearningMode;
+			var moveNext = correct || !slm;
+			if (slm && correct) {
+				njs_helper.Dialog.popupStatus('Right answer');
+			} else if (slm && !correct){
+				njs_helper.Dialog.popupStatus('Wrong answer');
+			} else {
+				njs_helper.Dialog.popupStatus('Your answer is noted');
+			}
+			if (moveNext) section.lesson.globals.slides.next();
+		}
+
+		var _dragOffset = {x:0, y:0};
+		function _onDragStart(e, ui) {
+			_dragOffset = {x:e.offsetX, y:e.offsetY};
+		}
+
+		var simuBoxBorderWidth = 2;
+		var minSize = 20;
+		function _onDragDone(e, ui) {
+			boxCssPos.l = e.pageX - _dragOffset.x - rects.psv.l - simuBoxBorderWidth;
+			boxCssPos.t = e.pageY - _dragOffset.y - rects.psv.t - simuBoxBorderWidth;
+			if (boxCssPos.l + boxCssPos.w > rects.img.r) boxCssPos.l = rects.img.r - boxCssPos.w;
+			if (boxCssPos.t + boxCssPos.h > rects.img.b) boxCssPos.t = rects.img.b - boxCssPos.h;
+			if (boxCssPos.l < rects.img.l) boxCssPos.l = rects.img.l;
+			if (boxCssPos.t < rects.img.t) boxCssPos.t = rects.img.t;
+			_Simulation_setBoxCssPos(simuBox, boxCssPos);
+			section.oSection.simuBox = _Simulation_cssPosToJsonPos(rects, boxCssPos);
+		}
+
+		function _onResize(event) {
+			boxCssPos.w = simuBox.width() + 2*simuBoxBorderWidth;
+			boxCssPos.h = simuBox.height() + 2*simuBoxBorderWidth;
+			if (boxCssPos.l + boxCssPos.w > rects.img.r) boxCssPos.w = rects.img.r - boxCssPos.l;
+			if (boxCssPos.t + boxCssPos.h > rects.img.b) boxCssPos.h = rects.img.b - boxCssPos.t;
+			if (boxCssPos.w < minSize) boxCssPos.w = minSize;
+			if (boxCssPos.h < minSize) boxCssPos.h = minSize;
+
+			_Simulation_setBoxCssPos(simuBox, boxCssPos);
+			section.oSection.simuBox = _Simulation_cssPosToJsonPos(rects, boxCssPos);
+			return;
+		}
+	}
+	
+	function _Simulation_getRects(pgSecView, imgElem) {
+		var offset = pgSecView.offset();
+		var ret = {psv: {l: offset.left, t: offset.top, w: pgSecView.width(), h: pgSecView.height()},
+				   img: {w: parseInt(imgElem.css('width')), h: parseInt(imgElem.css('height'))}};
+		if (ret.img.w > ret.psv.w) ret.img.w = ret.psv.w;
+		if (ret.img.h > ret.psv.h) ret.img.h = ret.psv.h;
+		ret.img.l = (ret.psv.w-ret.img.w)/2;
+		ret.img.t = (ret.psv.h-ret.img.h)/2;
+		if (ret.img.l < 0) ret.img.l = 0;
+		if (ret.img.t < 0) ret.img.t = 0;
+		ret.img.r = ret.img.l+ret.img.w;
+		ret.img.b = ret.img.t+ret.img.h;
+		return ret;
+	}
+	
+	function _Simulation_jsonPosToCssPos(rects, jsonPos) {
+		return {l: (jsonPos.l/100*rects.img.w + rects.img.l),
+				t: (jsonPos.t/100*rects.img.h + rects.img.t),
+				w: jsonPos.w/100*rects.img.w,
+				h: jsonPos.h/100*rects.img.h};
+	}
+	
+	function _Simulation_cssPosToJsonPos(rects, cssPos) {
+		return {l: (cssPos.l - rects.img.l)/rects.img.w*100,
+				t: (cssPos.t - rects.img.t)/rects.img.h*100,
+				w: cssPos.w/rects.img.w*100,
+				h: cssPos.h/rects.img.h*100};
+	}
+
+	function _Simulation_setBoxCssPos(simuBox, cssPos) {
+		simuBox.css({left: cssPos.l, top: cssPos.t, width: cssPos.w, height: cssPos.h});
+	}
+
+	//----------------------------------------------------------------------------------------
 	// BehFibParts
 	//----------------------------------------------------------------------------------------
 	function _BehFibParts_onClickFrom(section) {
@@ -1797,6 +2007,7 @@ npagetypes = function() {
 		{'id' : 'FILL', 'desc' : 'Question - Fill in the blanks', 'default_aligntype' : 'option', 'beh' : BehFib},
 		{'id' : 'DESC', 'desc' : 'Question - Descriptive', 'default_aligntype' : 'option', 'beh' : BehDesc},
 		{'id' : 'PARTFILL', 'desc' : 'Question - Mark the parts of image', 'default_aligntype' : 'option', 'beh' : BehFibParts},
+		{'id' : 'SIMULATE', 'desc' : 'Simulation pagetypes', 'default_aligntype' : 'option', 'beh' : BehSimulation},
         {'id' : 'MANYQUESTIONS', 'bleedingEdge' : false, 'desc' : 'Question - Many questions', 'default_aligntype' : 'content', 'beh' : BehManyQuestions},
 		{'id' : 'QUESTIONNAIRE', 'desc' : 'Feedback', 'default_aligntype' : 'content', 'beh' : BehQuestionnaire}
 	];
@@ -2204,6 +2415,10 @@ npagetypes = function() {
 					{'t':  49, 'l':  72, 'h':  24, 'w':  28, 'ans': true, 'fmtgroup' : 1},
 					{'t':  76, 'l':  72, 'h':  24, 'w':  28, 'ans': true, 'fmtgroup' : 1}]},
 					
+		{'id' : 'SIMULATE1', 'interaction': 'SIMULATE', 'layoutName': 'Title and simulation section', 'score' : 1,
+		 'layout': [{'t':   0, 'l':   0, 'h':  18, 'w': 100, 'aligntype' : 'title'},
+					{'t':  21, 'l':   0, 'h':  79, 'w': 100, 'correct': true, 'fmtgroup' : 2}]},
+
 		{'id': 'QUEST1', 'interaction': 'QUESTIONNAIRE', 'layoutName': 'Title and 1 question', 
 		 'layout': [{'t':   0, 'l':   0, 'h':  18, 'w': 100, 'aligntype' : 'title'},
 					{'t':  21, 'l':   0, 'h':  79, 'w': 100, 'fmtgroup' : 1, 'ans': true}]},
