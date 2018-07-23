@@ -119,7 +119,7 @@ function(nl, nlRouter, nlDlg, $scope, nlServerApi, nlExporter, nlCardsSrv) {
     }
     
     var _headers = ['Operation', 'Key', 'Group Id', 'Group Name', 
-        'Primary Admin Email', 'Status', 
+        'Primary Admin Email', 'Status', 'Deleted',
         'Description', 'Icon', 'Org Tree', 
         'Properties', 'Created UTC Time', 'Updated UTC Time'];
 
@@ -130,7 +130,7 @@ function(nl, nlRouter, nlDlg, $scope, nlServerApi, nlExporter, nlCardsSrv) {
             for(var i=0; i<_records.length; i++) {
                 var record = _records[i];
                 var row = ['i', record.grpid, record.grpid, record.name,
-                    record.padminemail || '', record.disabled ? 0 : 1, 
+                    record.padminemail || '', record.disabled ? 0 : 1, record.deleted || '',
                     record.description || '', record.icon || '', record.org_tree || '',
                     record.props || '', record.created || '', record.updated || ''];
                 csv += DELIM + nlExporter.getCsvString(row);
