@@ -1234,21 +1234,18 @@ npagetypes = function() {
 	// BehSimulation
 	//----------------------------------------------------------------------------------------
 	var BehSimulation = {
+		// help on pgSecView (viewHelp/reportHelp) is set in adjustHtml
 		'viewHelp' : function(layout, secNo) {
-			if (_isAnswer(layout, secNo))
-				return njs_helper.fmt2('TODO');
 			return '';
 		},
 		'reportHelp' : function(layout, secNo) {
-			if (_isAnswer(layout, secNo))
-				return 'TODO';
 			return '';
 		},
 		'editHelp' : function(layout, secNo) {
 			if (!_isCorrect(layout, secNo)) return '';
-			var ret = 	'Step 1: Enter an image (img:...). ' + 
-						'Step 2: View the image by pressing the section preview button at top left of this box (not whole page preview). ' +
-						'Step 3: TODO: To draw a marker line, click on one of the answer boxes first and then click on a point in the image. ';
+			var ret = 	'Step 1: Enter the image URL (img:...) or copy and paste image.' + 
+						' Step 2: View the image by pressing the section preview button at top left of this box (not whole page preview). ' +
+						' Step 3: Move and resize the translucent black box to the needed position and size.';
 			
 			return ret;
 		},
@@ -1277,12 +1274,12 @@ npagetypes = function() {
 			if (pgCtx == 'edit_gra') {
 				// pageMode == 'edit', pageCtx = 'edit_gra'
 				_showPgSecView(section);
-				_BehFibParts_createToggleSectionButton(section, pgCtx);
+				_BehFibParts_createToggleSectionButton(section, pgCtx, true);
 				return;
 			} 
 			// pageMode == 'edit', pageCtx = 'edit'
 			_showPgSecText(section);
-			_BehFibParts_createToggleSectionButton(section, pgCtx);
+			_BehFibParts_createToggleSectionButton(section, pgCtx, true);
 		},
 		'adjustHtml' : function(section) {
 			_getBehaviourFnFromBaseClass(BehSimulation, 'adjustHtml')(section);
@@ -1317,6 +1314,7 @@ npagetypes = function() {
 		var pgSecView = section.pgSecView;
 		pgSecView.find(".simuBox").remove();
 		var imgElem = pgSecView.find('.njs_img');
+		_Simulation_updatePsvAttrs(pgSecView, pageMode);
 		pgSecView.simuBoxCreated = false;
 		imgElem.on("load", function() {
 			if (pgSecView.simuBoxCreated) return;
@@ -1326,8 +1324,31 @@ npagetypes = function() {
 		imgElem.load();
 	}
 	
+	function _Simulation_updatePsvAttrs(pgSecView, pageMode) {
+		var title = '';
+		var interactive = true;
+		if (pageMode == 'edit') {
+			title = 'Move and resize the translucent black box to the needed position and size.';
+			interactive = false;
+		} else if (pageMode == 'do') {
+			title = 'Please click in the correct location within the provided image.';
+		} else {
+			title = 'The translucent box shows the correct location that needs to be clicked. The box color indicates if the learner clicked in the correct location or not.';
+		}
+		var secTbIcon = pgSecView.find('.sectiontoolbarIcon');
+
+		pgSecView.attr('title', title);
+		if (interactive) {
+			pgSecView.addClass('beh_interactive');
+			secTbIcon.addClass('hide');
+		} else {
+			pgSecView.removeClass('beh_interactive');
+			secTbIcon.removeClass('hide');
+		}
+	}
+	
 	function _onImageLoaded(imgElem, pgSecView, section, pageMode) {
-		var rects = _Simulation_getRects(pgSecView, imgElem);
+		var rects = _Simulation_getRects(pgSecView, imgElem, section.page.hPage);
 		var boxCssPos = _Simulation_jsonPosToCssPos(rects, section.oSection.simuBox);
 		var simuBox = jQuery('<div class="simuBox">');
 		_Simulation_setBoxCssPos(simuBox, boxCssPos);
@@ -1406,11 +1427,38 @@ npagetypes = function() {
 			return;
 		}
 	}
+
+	var DEFAULT_LEFT_OF_PAGE = 2;
+	jQuery(function() {
+		DEFAULT_LEFT_OF_PAGE = _cssAsFloat(jQuery('.body'), 'left');
+	});
 	
-	function _Simulation_getRects(pgSecView, imgElem) {
-		var offset = pgSecView.offset();
-		var ret = {psv: {l: offset.left, t: offset.top, w: pgSecView.width(), h: pgSecView.height()},
-				   img: {w: parseInt(imgElem.css('width')), h: parseInt(imgElem.css('height'))}};
+	function _cssAsFloat(obj, attr) {
+		var cssVal = obj.css(attr);
+		return parseFloat(cssVal);
+	}
+	
+	function _Simulation_getRects(pgSecView, imgElem, hPage) {
+		// If this page is not visible page, the left of the section might will be
+		// in-correct as the section is transform-translated to left or right.
+		var pageOffset = hPage.offset();
+		var leftDelta = pageOffset.left - DEFAULT_LEFT_OF_PAGE; 
+
+		var secOffset = pgSecView.offset();
+		var ret = {psv: {l: secOffset.left - leftDelta, t: secOffset.top,
+						 w: pgSecView.width(), h: pgSecView.height()},
+				   img: {w: _cssAsFloat(imgElem, 'width'), h: _cssAsFloat(imgElem, 'height')}};
+		if (ret.psv.h && ret.img.h) {
+			var psvAr = ret.psv.w / ret.psv.h;
+			var imgAr = ret.img.w / ret.img.h;
+			if (psvAr > imgAr) {
+				ret.img.h = ret.psv.h;
+				ret.img.w = ret.img.h*imgAr;
+			} else {
+				ret.img.w = ret.psv.w;
+				ret.img.h = ret.img.w/imgAr;
+			}
+		}
 		if (ret.img.w > ret.psv.w) ret.img.w = ret.psv.w;
 		if (ret.img.h > ret.psv.h) ret.img.h = ret.psv.h;
 		ret.img.l = (ret.psv.w-ret.img.w)/2;
@@ -1502,15 +1550,18 @@ npagetypes = function() {
 		return [x, y, xb1, yb];
 	}
 
-	function _BehFibParts_createToggleSectionButton(section, mode) {
+	function _BehFibParts_createToggleSectionButton(section, mode, isSimulationType) {
 		var img = njs_helper.jobj(njs_helper.fmt2('<img src="{}" title="{}"/>', 
 			_BehFibParts_getToggleSectionIcon(mode), 
-			_BehFibParts_getToggleSectionTitle(mode)));
-		img.click(function() {
+			_BehFibParts_getToggleSectionTitle(mode, isSimulationType)));
+		img.click(function(e) {
+			e.preventDefault();
+			e.stopImmediatePropagation();
 			_BehFibParts_onImgSectionToggle(section);
 		});
 		var button = njs_helper.jobj('<span class="sectiontoolbarIcon visible toggleSection"></span>');
 		button.append(img);
+        section.pgSecView.find('.toggleSection').remove();
 		section.pgSecView.append(button);
 	}
 	
@@ -1520,9 +1571,10 @@ npagetypes = function() {
 		return njs_helper.fmt2(fmt, '');
 	}
 	
-	function _BehFibParts_getToggleSectionTitle(mode) {
-		if (mode != 'edit') return 'Change to edit mode';
-		return 'Change to preview mode';
+	function _BehFibParts_getToggleSectionTitle(mode, isSimulationType) {
+		if (mode != 'edit') return 'Edit image URL';
+		if (isSimulationType) return 'Preview image and view/edit hotspot';
+		return 'Preview image and update marker lines';
 	}
 
 	function _BehFibParts_onImgSectionToggle(section) {
@@ -1552,7 +1604,7 @@ npagetypes = function() {
 				return _enterTheAnswer;
 			}
 			var ret = 	'Step 1: Enter an image (img:...). ' + 
-						'Step 2: View the image by pressing the section preview button at top left of this box (not whole page preview). ' +
+						'Step 2: View the image by pressing the section preview button at top right of this box (not whole page preview). ' +
 						'Step 3: To draw a marker line, click on one of the answer boxes first and then click on a point in the image. ';
 			
 			return ret;
