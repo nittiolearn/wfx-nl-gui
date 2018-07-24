@@ -1313,10 +1313,26 @@ npagetypes = function() {
 		var pgSecView = section.pgSecView;
 		pgSecView.find(".simuBox").remove();
 		_Simulation_updatePsvAttrs(section.pgSec, pgSecView, pageMode);
+		_showPageSpinner(section.page);
 		var imgUrl = pgSecView.find('.njs_img').attr('src');
 		jQuery('<img/>').on('load', function() {
+			_hidePageSpinner(section.page);
 			_onImageLoaded({w: this.width, h: this.height}, pgSecView, section, pageMode);
 		}).attr('src', imgUrl);
+	}
+	
+	function _showPageSpinner(page) {
+		var pgSpinner = page.hPage.find('.pgSpinner');
+		if (pgSpinner.length == 0) {
+			pgSpinner = jQuery('<div class="pgSpinner row row-center"><div class="col"></div><div class="nl-spinner"></div><div class="col"></div></div>');
+			page.hPage.append(pgSpinner);
+		}
+		pgSpinner.show();
+	}
+
+	function _hidePageSpinner(page) {
+		var pgSpinner = page.hPage.find('.pgSpinner');
+		if (pgSpinner) pgSpinner.hide();
 	}
 	
 	function _Simulation_updatePsvAttrs(pgSec, pgSecView, pageMode) {
@@ -1427,21 +1443,12 @@ npagetypes = function() {
 		}
 	}
 
-	var DEFAULT_LEFT_OF_PAGE = 2;
-	jQuery(function() {
-		DEFAULT_LEFT_OF_PAGE = _cssAsFloat(jQuery('.body'), 'left');
-	});
-	
-	function _cssAsFloat(obj, attr) {
-		var cssVal = obj.css(attr);
-		return parseFloat(cssVal);
-	}
-	
 	function _Simulation_getRects(pgSecView, imgSize, hPage) {
 		// If this page is not visible page, the left of the section might will be
 		// in-correct as the section is transform-translated to left or right.
 		var pageOffset = hPage.offset();
-		var leftDelta = pageOffset.left - DEFAULT_LEFT_OF_PAGE; 
+		var bodyOffset = jQuery('.inner_body').offset();
+		var leftDelta = pageOffset.left - bodyOffset.left; 
 		
 
 		var secOffset = pgSecView.offset();
