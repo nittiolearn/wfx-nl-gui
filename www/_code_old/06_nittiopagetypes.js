@@ -1270,8 +1270,8 @@ npagetypes = function() {
 				return;
 			}
 			
-			_BehFibParts_createToggleSectionButton(section, pgCtx, true);
 			var pgCtx = _getPageCtx(section.page);
+			_BehFibParts_createToggleSectionButton(section, pgCtx, true);
 			if (pgCtx == 'edit_gra') {
 				// pageMode == 'edit', pageCtx = 'edit_gra'
 				_showPgSecView(section);
