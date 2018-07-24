@@ -2070,7 +2070,7 @@ npagetypes = function() {
 		{'id' : 'FILL', 'desc' : 'Question - Fill in the blanks', 'default_aligntype' : 'option', 'beh' : BehFib},
 		{'id' : 'DESC', 'desc' : 'Question - Descriptive', 'default_aligntype' : 'option', 'beh' : BehDesc},
 		{'id' : 'PARTFILL', 'desc' : 'Question - Mark the parts of image', 'default_aligntype' : 'option', 'beh' : BehFibParts},
-		{'id' : 'SIMULATE', 'desc' : 'Simulation pagetypes', 'default_aligntype' : 'option', 'beh' : BehSimulation},
+		{'id' : 'SIMULATE', 'desc' : 'Simulations', 'default_aligntype' : 'option', 'beh' : BehSimulation},
         {'id' : 'MANYQUESTIONS', 'bleedingEdge' : false, 'desc' : 'Question - Many questions', 'default_aligntype' : 'content', 'beh' : BehManyQuestions},
 		{'id' : 'QUESTIONNAIRE', 'desc' : 'Feedback', 'default_aligntype' : 'content', 'beh' : BehQuestionnaire}
 	];
@@ -2478,7 +2478,7 @@ npagetypes = function() {
 					{'t':  49, 'l':  72, 'h':  24, 'w':  28, 'ans': true, 'fmtgroup' : 1},
 					{'t':  76, 'l':  72, 'h':  24, 'w':  28, 'ans': true, 'fmtgroup' : 1}]},
 					
-		{'id' : 'SIMULATE1', 'interaction': 'SIMULATE', 'layoutName': 'Title and simulation section', 'score' : 1,
+		{'id' : 'SIMULATE1', 'interaction': 'SIMULATE', 'layoutName': 'With title', 'score' : 1,
 		 'layout': [{'t':   0, 'l':   0, 'h':  18, 'w': 100, 'aligntype' : 'title'},
 					{'t':  21, 'l':   0, 'h':  79, 'w': 100, 'correct': true, 'fmtgroup' : 2}]},
 
