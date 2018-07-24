@@ -1270,16 +1270,15 @@ npagetypes = function() {
 				return;
 			}
 			
+			_BehFibParts_createToggleSectionButton(section, pgCtx, true);
 			var pgCtx = _getPageCtx(section.page);
 			if (pgCtx == 'edit_gra') {
 				// pageMode == 'edit', pageCtx = 'edit_gra'
 				_showPgSecView(section);
-				_BehFibParts_createToggleSectionButton(section, pgCtx, true);
 				return;
 			} 
 			// pageMode == 'edit', pageCtx = 'edit'
 			_showPgSecText(section);
-			_BehFibParts_createToggleSectionButton(section, pgCtx, true);
 		},
 		'adjustHtml' : function(section) {
 			_getBehaviourFnFromBaseClass(BehSimulation, 'adjustHtml')(section);
@@ -1313,18 +1312,14 @@ npagetypes = function() {
 	function _Simulation_createSimuBox(section, pageMode) {
 		var pgSecView = section.pgSecView;
 		pgSecView.find(".simuBox").remove();
-		var imgElem = pgSecView.find('.njs_img');
-		_Simulation_updatePsvAttrs(pgSecView, pageMode);
-		pgSecView.simuBoxCreated = false;
-		imgElem.on("load", function() {
-			if (pgSecView.simuBoxCreated) return;
-			pgSecView.simuBoxCreated = true;
-			_onImageLoaded(imgElem, pgSecView, section, pageMode);
-		});
-		imgElem.load();
+		_Simulation_updatePsvAttrs(section.pgSec, pgSecView, pageMode);
+		var imgUrl = pgSecView.find('.njs_img').attr('src');
+		jQuery('<img/>').on('load', function() {
+			_onImageLoaded({w: this.width, h: this.height}, pgSecView, section, pageMode);
+		}).attr('src', imgUrl);
 	}
 	
-	function _Simulation_updatePsvAttrs(pgSecView, pageMode) {
+	function _Simulation_updatePsvAttrs(pgSec, pgSecView, pageMode) {
 		var title = '';
 		var interactive = true;
 		if (pageMode == 'edit') {
@@ -1335,7 +1330,7 @@ npagetypes = function() {
 		} else {
 			title = 'The translucent box shows the correct location that needs to be clicked. The box color indicates if the learner clicked in the correct location or not.';
 		}
-		var secTbIcon = pgSecView.find('.sectiontoolbarIcon');
+		var secTbIcon = pgSec.find('.sectiontoolbarIcon');
 
 		pgSecView.attr('title', title);
 		if (interactive) {
@@ -1347,26 +1342,30 @@ npagetypes = function() {
 		}
 	}
 	
-	function _onImageLoaded(imgElem, pgSecView, section, pageMode) {
-		var rects = _Simulation_getRects(pgSecView, imgElem, section.page.hPage);
+	function _onImageLoaded(imgSize, pgSecView, section, pageMode) {
+		var rects = _Simulation_getRects(pgSecView, imgSize, section.page.hPage);
 		var boxCssPos = _Simulation_jsonPosToCssPos(rects, section.oSection.simuBox);
 		var simuBox = jQuery('<div class="simuBox">');
 		_Simulation_setBoxCssPos(simuBox, boxCssPos);
 		pgSecView.append(simuBox);
 		
 		if (pageMode == 'edit') {
+			simuBox.addClass('edit_gra');
 			simuBox.draggable({containment : [rects.psv.l + rects.img.l, rects.psv.t + rects.img.t, 
 				rects.psv.l + rects.img.r - boxCssPos.w, rects.psv.t + rects.img.b - boxCssPos.h], 
 				start: _onDragStart, stop: _onDragDone});
 			simuBox.resizable({stop: _onResize});
+			pgSecView.unbind('click');
 		} else if (pageMode == 'do') {
 			simuBox.bind('click', function(e) {
 				_onClickDoMode(e, section, true);
 			});
+			pgSecView.unbind('click');
 			pgSecView.bind('click', function(e) {
 				_onClickDoMode(e, section, false);
 			});
 		} else if (pageMode == 'report') {
+			pgSecView.unbind('click');
 			pgSecView.bind('click', function(e) { _onClickReportMode(e, section);});
 			if (section.oSection.answer == 'correct') simuBox.addClass('answer_right');
 			else if (section.oSection.answer == 'wrong') simuBox.addClass('answer_wrong');
@@ -1438,16 +1437,17 @@ npagetypes = function() {
 		return parseFloat(cssVal);
 	}
 	
-	function _Simulation_getRects(pgSecView, imgElem, hPage) {
+	function _Simulation_getRects(pgSecView, imgSize, hPage) {
 		// If this page is not visible page, the left of the section might will be
 		// in-correct as the section is transform-translated to left or right.
 		var pageOffset = hPage.offset();
 		var leftDelta = pageOffset.left - DEFAULT_LEFT_OF_PAGE; 
+		
 
 		var secOffset = pgSecView.offset();
 		var ret = {psv: {l: secOffset.left - leftDelta, t: secOffset.top,
 						 w: pgSecView.width(), h: pgSecView.height()},
-				   img: {w: _cssAsFloat(imgElem, 'width'), h: _cssAsFloat(imgElem, 'height')}};
+				   img: {w: imgSize.w, h: imgSize.h}};
 		if (ret.psv.h && ret.img.h) {
 			var psvAr = ret.psv.w / ret.psv.h;
 			var imgAr = ret.img.w / ret.img.h;
@@ -1561,8 +1561,12 @@ npagetypes = function() {
 		});
 		var button = njs_helper.jobj('<span class="sectiontoolbarIcon visible toggleSection"></span>');
 		button.append(img);
-        section.pgSecView.find('.toggleSection').remove();
-		section.pgSecView.append(button);
+		var layout = _getLayoutOfSec(section);
+		var psvTop = layout[section.secNo].t;
+		var psvRight = 100 - layout[section.secNo].l - layout[section.secNo].w;
+		button.css({top: psvTop + '%', right: psvRight + '%'});
+        section.pgSec.find('.toggleSection').remove();
+		section.pgSec.append(button);
 	}
 	
 	function _BehFibParts_getToggleSectionIcon(mode) {

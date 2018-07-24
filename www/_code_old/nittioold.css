@@ -550,9 +550,9 @@ a.enabled {
 .sectiontoolbarIcon {
   z-index: 11;
   position: absolute;
-  top: -6px;
-  right: -6px;
   line-height: 0 !important;
+  width: auto;
+  height: auto;
 }
 
 .sectiontoolbarIcon.hide {
@@ -567,7 +567,6 @@ a.enabled {
 .toolBar .toolbarIcon > img, .sectiontoolbarIcon > img {
   width: 24px;
   height: 24px;
-  margin: 6px;
   cursor:pointer;
 }
 
@@ -1351,8 +1350,17 @@ div.secViewContent {
   position: absolute;
 }
 
+.pgSecView .simuBox.edit_gra {
+  cursor: pointer;
+}
+
+@keyframes border_blink { 
+  50% { border-color: #FFFFFF; } 
+}
+
 .mode_edit .pgSecView .simuBox, .mode_report .pgSecView .simuBox {
-  border: 2px solid white;
+  border: 2px solid black;
+  animation: border_blink .5s step-end infinite alternate;
   background-color: rgba(0, 0, 0, 0.6);
   opacity: 0.5;
 }
