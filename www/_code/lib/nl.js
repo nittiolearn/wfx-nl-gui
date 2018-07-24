@@ -564,7 +564,13 @@ function NlPageInfo(nl) {
     this.isPageShown = false;
     this.isPrintable = false;
     
+    this.statusPopupCls = '';
+    this.statusPopupShowClose = false;
     this.statusPopup = false;
+    this.onStatusPopupClick = function() {
+    	// Will be changed by dlg.js
+    	this.statusPopup = false;
+    };
     this.isMobileOrTab = _isMobileOrTab(nl);
     this.groupCustomCss = '';
     

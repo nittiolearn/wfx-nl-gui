@@ -1357,7 +1357,7 @@ div.secViewContent {
 }
 
 .pgSecView .simuBox.edit_gra {
-  cursor: pointer;
+  cursor: move;
 }
 
 @keyframes border_blink { 

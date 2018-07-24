@@ -1056,10 +1056,14 @@ Dialog.popdown = function(onCloseDone) {
 };
 
 Dialog.popupStatus = function(msg, popdownTime) {
+	Dialog.popupStatus2({msg: msg, popdownTime: popdownTime});
+};
+
+Dialog.popupStatus2 = function(params) {
     var nl = window.nlapp.nl;
     var nlDlg = window.nlapp.nlDlg;
     nl.timeout(function() {
-        nlDlg.popupStatus(msg, popdownTime);
+        nlDlg.popupStatus2(params);
     });
 };
 

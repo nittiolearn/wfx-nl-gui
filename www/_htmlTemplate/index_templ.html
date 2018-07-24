@@ -66,8 +66,11 @@
         <script src="/static/_external/x2js-1.2.0/xml2json.min.js"></script>
         <script src="/static/_external/sheetjs-0.13.0/xlsx.full.min.js"></script>
 
-        <div id='statusBox' ng-show='pgInfo.statusPopup' ng-click='pgInfo.statusPopup=false'> 
-            <div>{{=mush('pgInfo.statusPopup')}}</div>
+        <div id='statusBox' ng-show='pgInfo.statusPopup'
+        	ng-click='pgInfo.onStatusPopupClick(false)'
+        	class='{{=mush("pgInfo.statusPopupCls")}}'>
+        	<div class='close_button icon ion-close' ng-click='pgInfo.onStatusPopupClick(true)'></div> 
+            <div ng-bind-html='pgInfo.statusPopup'></div>
         </div>
 	</body>	
 </html>
