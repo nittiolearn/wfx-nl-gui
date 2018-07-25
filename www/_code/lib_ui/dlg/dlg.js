@@ -40,16 +40,26 @@ function(nl, $ionicPopup, $ionicLoading) {
         return new Dialog(nl, $ionicPopup, parentScope, this);
     };
     
+    nl.pginfo.onStatusPopupClick = function(forceClose) {
+    	if (forceClose || !nl.pginfo.statusPopupShowClose) _popdownStatus();
+    };
+
+    this.popupStatus2 = function(params) {
+    	this.popupStatus(params.msg, params.popdownTime, params.cls, params.showClose);
+    };
+    
     var statusTimeoutPromise = null;
-    this.popupStatus = function(msg, popdownTime) {
+    this.popupStatus = function(msg, popdownTime, cls, showClose) {
         nl.log.debug('nlDlg.popupStatus: ', msg);
         nl.pginfo.statusPopup = msg;
+        nl.pginfo.statusPopupCls = cls || '';
+        nl.pginfo.statusPopupShowClose = showClose || false;
+        if (showClose) nl.pginfo.statusPopupCls += ' show_close';
         if (popdownTime === undefined) popdownTime = 2000;
         if (popdownTime === false) popdownTime = 1000*3600*24;
         if (statusTimeoutPromise) nl.timeout.cancel(statusTimeoutPromise);
         statusTimeoutPromise = nl.timeout(function() {
-            statusTimeoutPromise = null;
-            nl.pginfo.statusPopup = false;
+        	_popdownStatus();
         }, popdownTime);
     };
 
@@ -57,10 +67,17 @@ function(nl, $ionicPopup, $ionicLoading) {
         if (!statusTimeoutPromise) return;
         if (popdownTime === undefined) popdownTime = 2000;
         statusTimeoutPromise = nl.timeout(function() {
-            statusTimeoutPromise = null;
-            nl.pginfo.statusPopup = false;
+        	_popdownStatus();
         }, popdownTime);
     };
+    
+    function _popdownStatus() {
+    	nl.pginfo.statusPopup = false;
+        nl.pginfo.statusPopupCls = '';
+        nl.pginfo.statusPopupShowClose = false;
+        if (statusTimeoutPromise) nl.timeout.cancel(statusTimeoutPromise);
+        statusTimeoutPromise = null;
+    }
     
     this.popupAlert = function(data) {
         nl.log.debug('Dialog.popupAlert: ', data.title);

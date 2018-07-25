@@ -18,6 +18,8 @@ $dark:                            #444 !default;
 $nlBlue1:                         #00A3CC !default; // Blue used in top bar, Buttons
 $nlBlue2:                         #0083AC !default; // Darker blue used in button hover
 $nlBlue3:                         #004455 !default; // Dark blue used in button click
+$nlRed:                           #770000 !default;
+$nlGreen:                         #007700 !default;
 
 $nlgrey:                          #EEEEFF !default; // Mild border
 $nlgreen1:                        #BBFFBB !default; // Light green
@@ -1070,6 +1072,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
  *-----------------------------------------------------------------------------------------*/
 #statusBox {
   z-index: 1000;
+  cursor: pointer;
   box-shadow: inset 0 0 2px $nlBlue3, 0 0 5px $nlBlue3;
   position: absolute;
   bottom: 1%;
@@ -1080,11 +1083,64 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   background: $nlBlue3;
   color: #ffffff;
   padding: 8px;
-  cursor: pointer;
   div {
     height: auto;
     max-height: 50px;
     overflow: hidden;
+  }
+  .close_button {
+    display: none;
+    position: absolute;
+    right: -16px;
+    top: -16px;
+    background-color: white;
+    border-radius: 50%;
+    border: 2px solid $nlBlue3;
+    box-shadow: inset 0 0 2px $nlBlue3, 0 0 5px $nlBlue3;
+    color: $nlBlue3;
+    padding: 4px 8px;
+  }
+}
+
+#statusBox.show_close {
+  cursor: auto;
+  .close_button {
+    display: block;
+    cursor: pointer;
+  }
+}
+
+#statusBox.highlight {
+  padding: 16px;
+  bottom: auto;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  div {
+    max-height: 60vh;
+    overflow: auto;
+  }
+}
+
+#statusBox.red {
+  background: $nlRed;
+  box-shadow: inset 0 0 2px #FF0000, 0 0 5px $nlRed;
+  
+  .close_button {
+    border: 2px solid $nlRed;
+    box-shadow: inset 0 0 2px $nlRed, 0 0 5px $nlRed;
+    color: $nlRed;
+  }
+}
+
+#statusBox.green {
+  background: $nlGreen;
+  box-shadow: inset 0 0 2px #FF0000, 0 0 5px $nlGreen;
+  
+  .close_button {
+    border: 2px solid $nlGreen;
+    box-shadow: inset 0 0 2px $nlGreen, 0 0 5px $nlGreen;
+    color: $nlGreen;
   }
 }
 

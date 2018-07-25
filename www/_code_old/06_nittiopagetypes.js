@@ -1234,21 +1234,18 @@ npagetypes = function() {
 	// BehSimulation
 	//----------------------------------------------------------------------------------------
 	var BehSimulation = {
+		// help on pgSecView (viewHelp/reportHelp) is set in adjustHtml
 		'viewHelp' : function(layout, secNo) {
-			if (_isAnswer(layout, secNo))
-				return njs_helper.fmt2('TODO');
 			return '';
 		},
 		'reportHelp' : function(layout, secNo) {
-			if (_isAnswer(layout, secNo))
-				return 'TODO';
 			return '';
 		},
 		'editHelp' : function(layout, secNo) {
 			if (!_isCorrect(layout, secNo)) return '';
-			var ret = 	'Step 1: Enter an image (img:...). ' + 
-						'Step 2: View the image by pressing the section preview button at top left of this box (not whole page preview). ' +
-						'Step 3: TODO: To draw a marker line, click on one of the answer boxes first and then click on a point in the image. ';
+			var ret = 	'Step 1: Insert or copy/paste an image.' + 
+						' Step 2: View the image by pressing the section preview button at top left of this box (not whole page preview).' +
+						' Step 3: Move and resize the translucent black box to the needed position and size.';
 			
 			return ret;
 		},
@@ -1274,15 +1271,14 @@ npagetypes = function() {
 			}
 			
 			var pgCtx = _getPageCtx(section.page);
+			_BehFibParts_createToggleSectionButton(section, pgCtx, true);
 			if (pgCtx == 'edit_gra') {
 				// pageMode == 'edit', pageCtx = 'edit_gra'
 				_showPgSecView(section);
-				_BehFibParts_createToggleSectionButton(section, pgCtx);
 				return;
 			} 
 			// pageMode == 'edit', pageCtx = 'edit'
 			_showPgSecText(section);
-			_BehFibParts_createToggleSectionButton(section, pgCtx);
 		},
 		'adjustHtml' : function(section) {
 			_getBehaviourFnFromBaseClass(BehSimulation, 'adjustHtml')(section);
@@ -1316,36 +1312,92 @@ npagetypes = function() {
 	function _Simulation_createSimuBox(section, pageMode) {
 		var pgSecView = section.pgSecView;
 		pgSecView.find(".simuBox").remove();
+		_Simulation_updatePsvAttrs(section.pgSec, pgSecView, pageMode);
 		var imgElem = pgSecView.find('.njs_img');
-		pgSecView.simuBoxCreated = false;
-		imgElem.on("load", function() {
-			if (pgSecView.simuBoxCreated) return;
-			pgSecView.simuBoxCreated = true;
-			_onImageLoaded(imgElem, pgSecView, section, pageMode);
-		});
-		imgElem.load();
+		if (imgElem.length == 0) return _Simulation_error();
+		var imgUrl = imgElem.attr('src');
+		if (!imgUrl) return _Simulation_error();
+		_showPageSpinner(section.page);
+		jQuery('<img/>').on('load', function() {
+			_hidePageSpinner(section.page);
+			_onImageLoaded({w: this.width, h: this.height}, pgSecView, section, pageMode);
+		}).on('error', function() {
+			_hidePageSpinner(section.page);
+			if (_isPageVisible(section.page)) _Simulation_error(true);
+		}).attr('src', imgUrl);
 	}
 	
-	function _onImageLoaded(imgElem, pgSecView, section, pageMode) {
-		var rects = _Simulation_getRects(pgSecView, imgElem);
+	function _isPageVisible(page) {
+		return page.lesson.getCurrentPageId() == page.getPageId();
+	}
+
+	function _Simulation_error(urlDefined) {
+		var msg = urlDefined ? 'Error loading simulation image.'
+			: 'Insert an image in the simulation section.';
+		njs_helper.Dialog.popupStatus2({msg: msg, cls: 'highlight red', popdownTime: 5000, showClose: true});
+	}
+	
+	function _showPageSpinner(page) {
+		var pgSpinner = page.hPage.find('.pgSpinner');
+		if (pgSpinner.length == 0) {
+			pgSpinner = jQuery('<div class="pgSpinner row row-center"><div class="col"></div><div class="nl-spinner"></div><div class="col"></div></div>');
+			page.hPage.append(pgSpinner);
+		}
+		pgSpinner.show();
+	}
+
+	function _hidePageSpinner(page) {
+		var pgSpinner = page.hPage.find('.pgSpinner');
+		if (pgSpinner) pgSpinner.hide();
+	}
+	
+	function _Simulation_updatePsvAttrs(pgSec, pgSecView, pageMode) {
+		var title = '';
+		var interactive = true;
+		if (pageMode == 'edit') {
+			title = 'Move and resize the translucent black box to the needed position and size.';
+			interactive = false;
+		} else if (pageMode == 'do') {
+			title = 'Please click in the correct location within the provided image.';
+		} else {
+			title = 'The translucent box shows the correct location that needs to be clicked. The box color indicates if the learner clicked in the correct location or not.';
+		}
+		var secTbIcon = pgSec.find('.sectiontoolbarIcon');
+
+		pgSecView.attr('title', title);
+		if (interactive) {
+			pgSecView.addClass('beh_interactive');
+			secTbIcon.addClass('hide');
+		} else {
+			pgSecView.removeClass('beh_interactive');
+			secTbIcon.removeClass('hide');
+		}
+	}
+	
+	function _onImageLoaded(imgSize, pgSecView, section, pageMode) {
+		var rects = _Simulation_getRects(pgSecView, imgSize, section.page.hPage);
 		var boxCssPos = _Simulation_jsonPosToCssPos(rects, section.oSection.simuBox);
 		var simuBox = jQuery('<div class="simuBox">');
 		_Simulation_setBoxCssPos(simuBox, boxCssPos);
 		pgSecView.append(simuBox);
 		
 		if (pageMode == 'edit') {
+			simuBox.addClass('edit_gra');
 			simuBox.draggable({containment : [rects.psv.l + rects.img.l, rects.psv.t + rects.img.t, 
 				rects.psv.l + rects.img.r - boxCssPos.w, rects.psv.t + rects.img.b - boxCssPos.h], 
 				start: _onDragStart, stop: _onDragDone});
 			simuBox.resizable({stop: _onResize});
+			pgSecView.unbind('click');
 		} else if (pageMode == 'do') {
 			simuBox.bind('click', function(e) {
 				_onClickDoMode(e, section, true);
 			});
+			pgSecView.unbind('click');
 			pgSecView.bind('click', function(e) {
 				_onClickDoMode(e, section, false);
 			});
 		} else if (pageMode == 'report') {
+			pgSecView.unbind('click');
 			pgSecView.bind('click', function(e) { _onClickReportMode(e, section);});
 			if (section.oSection.answer == 'correct') simuBox.addClass('answer_right');
 			else if (section.oSection.answer == 'wrong') simuBox.addClass('answer_wrong');
@@ -1354,9 +1406,16 @@ npagetypes = function() {
 		function _onClickReportMode(e, section) {
 			e.preventDefault();
 			e.stopImmediatePropagation();
-			if (section.oSection.answer == 'correct') njs_helper.Dialog.popupStatus('The correct location was clicked (green shaded area)');
-			else if (section.oSection.answer == 'wrong') njs_helper.Dialog.popupStatus('The correct location was not clicked (red shaded area is the correct location)');
-			else njs_helper.Dialog.popupStatus('No answer was clicked (shaded area is the correct location)');
+			var params = {msg: 'No answer was clicked (shaded area is the correct location).', icon: 'ion-alert', cls: 'red'};
+			if (section.oSection.answer == 'correct') {
+				params.msg = 'Learner clicked on the correct location (green shaded area).';
+				params.icon = 'ion-checkmark-circled';
+				params.cls = 'green';
+			} else if (section.oSection.answer == 'wrong') {
+				params.msg = 'Learner clicked outside the correct location (red shaded area is the correct location).';
+				params.icon = 'ion-close-circled';
+			}
+			_popupStatus(params);
 		}
 		
 		function _onClickDoMode(e, section, correct) {
@@ -1365,16 +1424,30 @@ npagetypes = function() {
 			section.pgSecView.answerStatus = correct;
 			var slm = section.lesson.oLesson.selfLearningMode;
 			var moveNext = correct || !slm;
+			var params = {msg: 'The location you clicked is registered.', icon: 'ion-chatbubble', cls: 'hightlight'};
+			
 			if (slm && correct) {
-				njs_helper.Dialog.popupStatus('Right answer');
+				params.msg = 'You clicked on the correct location.';
+				params.icon = 'ion-checkmark-circled';
+				params.cls = 'highlight green';
 			} else if (slm && !correct){
-				njs_helper.Dialog.popupStatus('Wrong answer');
-			} else {
-				njs_helper.Dialog.popupStatus('Your answer is noted');
+				params.msg = 'You clicked outside the correct location. Please try again.';
+				params.icon = 'ion-close-circled';
+				params.showClose = true;
+				params.cls = 'highlight red';
 			}
+			_popupStatus(params);
 			if (moveNext) section.lesson.globals.slides.next();
 		}
 
+		function _popupStatus(params) {
+			if (!params.showClose) params.showClose = false;
+			params.popdownTime = params.showClose ? false : 2000;
+			params.msg = njs_helper.fmt2('<div class="row row-top padding0 margin0"><div class="fsh3 padding-small"><i class="icon {}"></i>' +
+				'</div><div class="col padding-mid">{}</div></div>', params.icon, params.msg);
+			njs_helper.Dialog.popupStatus2(params);
+		}
+		
 		var _dragOffset = {x:0, y:0};
 		function _onDragStart(e, ui) {
 			_dragOffset = {x:e.offsetX, y:e.offsetY};
@@ -1406,11 +1479,30 @@ npagetypes = function() {
 			return;
 		}
 	}
-	
-	function _Simulation_getRects(pgSecView, imgElem) {
-		var offset = pgSecView.offset();
-		var ret = {psv: {l: offset.left, t: offset.top, w: pgSecView.width(), h: pgSecView.height()},
-				   img: {w: parseInt(imgElem.css('width')), h: parseInt(imgElem.css('height'))}};
+
+	function _Simulation_getRects(pgSecView, imgSize, hPage) {
+		// If this page is not visible page, the left of the section might will be
+		// in-correct as the section is transform-translated to left or right.
+		var pageOffset = hPage.offset();
+		var bodyOffset = jQuery('.inner_body').offset();
+		var leftDelta = pageOffset.left - bodyOffset.left; 
+		
+
+		var secOffset = pgSecView.offset();
+		var ret = {psv: {l: secOffset.left - leftDelta, t: secOffset.top,
+						 w: pgSecView.width(), h: pgSecView.height()},
+				   img: {w: imgSize.w, h: imgSize.h}};
+		if (ret.psv.h && ret.img.h) {
+			var psvAr = ret.psv.w / ret.psv.h;
+			var imgAr = ret.img.w / ret.img.h;
+			if (psvAr > imgAr) {
+				ret.img.h = ret.psv.h;
+				ret.img.w = ret.img.h*imgAr;
+			} else {
+				ret.img.w = ret.psv.w;
+				ret.img.h = ret.img.w/imgAr;
+			}
+		}
 		if (ret.img.w > ret.psv.w) ret.img.w = ret.psv.w;
 		if (ret.img.h > ret.psv.h) ret.img.h = ret.psv.h;
 		ret.img.l = (ret.psv.w-ret.img.w)/2;
@@ -1502,16 +1594,23 @@ npagetypes = function() {
 		return [x, y, xb1, yb];
 	}
 
-	function _BehFibParts_createToggleSectionButton(section, mode) {
+	function _BehFibParts_createToggleSectionButton(section, mode, isSimulationType) {
 		var img = njs_helper.jobj(njs_helper.fmt2('<img src="{}" title="{}"/>', 
 			_BehFibParts_getToggleSectionIcon(mode), 
-			_BehFibParts_getToggleSectionTitle(mode)));
-		img.click(function() {
+			_BehFibParts_getToggleSectionTitle(mode, isSimulationType)));
+		img.click(function(e) {
+			e.preventDefault();
+			e.stopImmediatePropagation();
 			_BehFibParts_onImgSectionToggle(section);
 		});
 		var button = njs_helper.jobj('<span class="sectiontoolbarIcon visible toggleSection"></span>');
 		button.append(img);
-		section.pgSecView.append(button);
+		var layout = _getLayoutOfSec(section);
+		var psvTop = layout[section.secNo].t;
+		var psvRight = 100 - layout[section.secNo].l - layout[section.secNo].w;
+		button.css({top: psvTop + '%', right: psvRight + '%'});
+        section.pgSec.find('.toggleSection').remove();
+		section.pgSec.append(button);
 	}
 	
 	function _BehFibParts_getToggleSectionIcon(mode) {
@@ -1520,9 +1619,10 @@ npagetypes = function() {
 		return njs_helper.fmt2(fmt, '');
 	}
 	
-	function _BehFibParts_getToggleSectionTitle(mode) {
-		if (mode != 'edit') return 'Change to edit mode';
-		return 'Change to preview mode';
+	function _BehFibParts_getToggleSectionTitle(mode, isSimulationType) {
+		if (mode != 'edit') return 'Edit image URL';
+		if (isSimulationType) return 'Preview image and view/edit hotspot';
+		return 'Preview image and update marker lines';
 	}
 
 	function _BehFibParts_onImgSectionToggle(section) {
@@ -1552,7 +1652,7 @@ npagetypes = function() {
 				return _enterTheAnswer;
 			}
 			var ret = 	'Step 1: Enter an image (img:...). ' + 
-						'Step 2: View the image by pressing the section preview button at top left of this box (not whole page preview). ' +
+						'Step 2: View the image by pressing the section preview button at top right of this box (not whole page preview). ' +
 						'Step 3: To draw a marker line, click on one of the answer boxes first and then click on a point in the image. ';
 			
 			return ret;
@@ -2007,7 +2107,7 @@ npagetypes = function() {
 		{'id' : 'FILL', 'desc' : 'Question - Fill in the blanks', 'default_aligntype' : 'option', 'beh' : BehFib},
 		{'id' : 'DESC', 'desc' : 'Question - Descriptive', 'default_aligntype' : 'option', 'beh' : BehDesc},
 		{'id' : 'PARTFILL', 'desc' : 'Question - Mark the parts of image', 'default_aligntype' : 'option', 'beh' : BehFibParts},
-		{'id' : 'SIMULATE', 'desc' : 'Simulation pagetypes', 'default_aligntype' : 'option', 'beh' : BehSimulation},
+		{'id' : 'SIMULATE', 'desc' : 'Simulations', 'default_aligntype' : 'option', 'beh' : BehSimulation},
         {'id' : 'MANYQUESTIONS', 'bleedingEdge' : false, 'desc' : 'Question - Many questions', 'default_aligntype' : 'content', 'beh' : BehManyQuestions},
 		{'id' : 'QUESTIONNAIRE', 'desc' : 'Feedback', 'default_aligntype' : 'content', 'beh' : BehQuestionnaire}
 	];
@@ -2415,7 +2515,7 @@ npagetypes = function() {
 					{'t':  49, 'l':  72, 'h':  24, 'w':  28, 'ans': true, 'fmtgroup' : 1},
 					{'t':  76, 'l':  72, 'h':  24, 'w':  28, 'ans': true, 'fmtgroup' : 1}]},
 					
-		{'id' : 'SIMULATE1', 'interaction': 'SIMULATE', 'layoutName': 'Title and simulation section', 'score' : 1,
+		{'id' : 'SIMULATE1', 'interaction': 'SIMULATE', 'layoutName': 'With title', 'score' : 1,
 		 'layout': [{'t':   0, 'l':   0, 'h':  18, 'w': 100, 'aligntype' : 'title'},
 					{'t':  21, 'l':   0, 'h':  79, 'w': 100, 'correct': true, 'fmtgroup' : 2}]},
 
