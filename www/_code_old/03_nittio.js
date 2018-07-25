@@ -413,22 +413,11 @@ nittio = function() {
 	function __closePopupsAndDlgsImpl(event) {
 		if (hidePopups())
 			return 1;
-		if (hideBox('#statusBox', event))
-			return 2;
 		if (njs_helper.Dialog.cancelActive(event))
 			return 3;
 		if (callOnEscapeHandlers(event))
 			return 4;
 		return 0;
-	}
-
-	function hideBox(boxname, event) {
-		var box = jQuery(boxname);
-		if (!box.is(':visible')) {
-			return false;
-		}
-		box.hide();
-		return true;
 	}
 
 	//-----------------------------------------------------------------------------
@@ -939,9 +928,6 @@ nittio = function() {
 	window.nlapp = null;
 	window.setupNlAppInGlobal = function(nlapp) {
 		window.nlapp = nlapp;
-		jQuery(function() {
-			jQuery('#statusBox').show();
-		});
 	};
 
 	return {

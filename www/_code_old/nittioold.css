@@ -1354,6 +1354,7 @@ div.secViewContent {
 
 .pgSecView .simuBox {
   position: absolute;
+  opacity: 0.5;
 }
 
 .pgSecView .simuBox.edit_gra {
@@ -1368,17 +1369,19 @@ div.secViewContent {
   border: 2px solid black;
   animation: border_blink .5s step-end infinite alternate;
   background-color: rgba(0, 0, 0, 0.6);
-  opacity: 0.5;
 }
 
-.mode_report .pgSecView .simuBox.answer_right {
+.pgSecView .simuBox.answer_right {
+  border: 2px solid rgba(0, 64, 0, 1);
+  animation: border_blink .5s step-end infinite alternate;
   background-color: rgba(0, 128, 0, 0.6);
 }
 
-.mode_report .pgSecView .simuBox.answer_wrong {
+.pgSecView .simuBox.answer_wrong {
+  border: 2px solid rgba(64, 0, 0, 1);
+  animation: border_blink .5s step-end infinite alternate;
   background-color: rgba(128, 0, 0, 0.6);
 }
-
 
 .pgSecView.beh_interactive {
   cursor: pointer;

@@ -1297,10 +1297,11 @@ npagetypes = function() {
 				var layout = _getLayoutOfSec(section);
 				if (!_isInteractive(layout, section.secNo)) continue;
 				var pgSecView = section.pgSecView;
-				if (pgSecView.answerStatus === undefined) continue;
+				if (pgSecView.answerStatus !== undefined) 
+					section.oSection.answer = pgSecView.answerStatus ? 'correct' : 'wrong';
+				if (section.oSection.answer === undefined) continue;
 				answered = ANSWERED_YES;
-				section.oSection.answer = pgSecView.answerStatus ? 'correct' : 'wrong';
-				if (pgSecView.answerStatus) score = page.getMaxScore();
+				if (section.oSection.answer == 'correct') score = page.getMaxScore();
 			}
 			return [answered, score];
 		},
@@ -1433,7 +1434,6 @@ npagetypes = function() {
 			} else if (slm && !correct){
 				params.msg = 'You clicked outside the correct location. Please try again.';
 				params.icon = 'ion-close-circled';
-				params.showClose = true;
 				params.cls = 'highlight red';
 			}
 			_popupStatus(params);
