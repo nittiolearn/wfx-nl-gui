@@ -111,7 +111,7 @@ nlesson = function() {
         this.globals.autoVoice = njs_autovoice.getAutoVoice();
         this.globals.audioManager = njs_autovoice.getAudioManager();
 		this.globals.animationManager = njs_animate.getAnimationManager();
-        this.globals.pageTimer = new njs_lesson_helper.PageTimer(this);
+        this.globals.slideChangeChecker = new njs_lesson_helper.SlideChangeChecker(this);
         this.globals.selectionHandler = new SectionSelectionHandler(this);
 	}
 
@@ -263,6 +263,7 @@ nlesson = function() {
 	        	
         self.pendingTimer = new njs_lesson_helper.PendingTimer();
         self.pendingTimer.updateIfNeeded(self);
+        self.globals.slideChangeChecker.init();
         _Lesson_setupAutoSave(self);
 		
 		// Clearup Zodi flag and remember to reRenderAsReport the ones cleared in do mode
@@ -595,8 +596,8 @@ nlesson = function() {
 		}
 		var curPageNo = this.getCurrentPageNo();
 		var pages = this.pages;
-		if((pages.length - curPageNo) <=2 ) {
-		    jQuery('#lesson_submit_icon').show();			
+		if((pages.length - curPageNo) <=2 && !modulePopup.isPopupOpen()) {
+		    jQuery('#lesson_submit_icon').show();
 		} else {
 		    jQuery('#lesson_submit_icon').hide();
 		}
@@ -1130,7 +1131,7 @@ nlesson = function() {
     
     function _Lesson_saveUpdateTime(lesson) {
         var pgNo = lesson.getCurrentPageNo();
-        lesson.globals.pageTimer.canChangeSlides(pgNo);
+        lesson.globals.slideChangeChecker.updatePageTimeInLearningData(lesson.pages[pgNo]);
         if (!('sessionStartTime' in lesson)) return;
         var now = new Date();
         var timeSpentSeconds = parseInt((now.valueOf() - lesson.sessionStartTime.valueOf())/1000);
@@ -1792,7 +1793,10 @@ nlesson = function() {
 		ret.type = 'txt';
 		ret.text = content.text ? content.text : oldSection ?  oldSection.text : '';
 		if(content.template) ret.template = content.template;
-		if(content.popups) ret.popups = content.popups;
+		if (!oldSection) oldSection = {};
+		if(oldSection.popups || content.popups)
+			ret.popups = oldSection.popups ? oldSection.popups : content.popups;
+		if(oldSection.simuBox) ret.simuBox = oldSection.simuBox;
 		return ret;
 	}
 
@@ -2307,6 +2311,7 @@ function ModulePopupHadler() {
         var navRight = holder.find('#module_popup_navigate_right');
         var slides = new njs_slides.SlideSet(context.hPages, pgNo, navLeft, navRight);
         slides.onSlideBeforeChange(function(curPgNo, newPgNo) {
+		    if (!g_lesson.globals.slideChangeChecker.canChangeSlides(curPgNo, newPgNo)) return false;
             g_lesson.preRender(newPgNo);
             return true;
         });
@@ -2416,7 +2421,7 @@ var modulePopup = new ModulePopupHadler();
 		nittio.afterInit(function(){
 			g_lesson.globals.slides = nittio.getSlidesObj();
 			g_lesson.globals.slides.onSlideBeforeChange(function(curPgNo, newPgNo) {
-			    if (!g_lesson.globals.pageTimer.canChangeSlides(curPgNo, newPgNo)) return false;
+			    if (!g_lesson.globals.slideChangeChecker.canChangeSlides(curPgNo, newPgNo)) return false;
 				g_lesson.preRender(newPgNo);
 				return true;
 			});

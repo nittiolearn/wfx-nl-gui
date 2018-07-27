@@ -94,7 +94,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		templateAnimations: nl.t('Provide animation schemes as a JSON object.'),
 		lessonState: lessonStatusDesc,
 		allowed_max_score: nl.t('This parameter is specific to question bank. When the question bank is distributed, each learner will get random subset of questions and in randomoized order. If "Score limit" is greater than 0, the total score of the chosen questions will be kept equal to the score limit. If "Score limit" is 0, all questions in the bank will be chosen but presented in random order. If the maximum scores are different for different pages, it is possible that the maximum score of chosen pages is slightly less than the score limit.'),
-		check_all_question_answered: nl.t('If this parameter is checked, learner is forced to complete a page before progressing to the next page. In assement modules, the learner is allowed to navigate to next page only after answering all questions in the current page and in all popups of the current page. In self learning modules, additionally the progress is blocked till the answer provided is correct and all pages in the popup are visited atleast once.')
+		check_all_question_answered: nl.t('If this parameter is checked, learner is forced to complete a page before progressing to the next page. In assement modules, the learner is allowed to navigate to next page only after answering all questions in the current page and in all popups of the current page. In self learning modules, additionally the progress is blocked till the answer provided is correct.')
 	};
 	
 	function _updateModuleProps(_moduleProps) {

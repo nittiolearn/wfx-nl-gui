@@ -50,70 +50,95 @@ function PendingTimer() {
 }
 
 //#############################################################################################
-// PageTimer - Monitors page level time taken
+// SlideChangeChecker: check if we can change slides based on 'oLesson.check_all_question_answered'
+// and page specific timer
 //#############################################################################################
-function PageTimer(lesson) {
-    this.canChangeSlides = function(curPgNo, newPgNo) {
-        if (!_isTimerNeeded()) return true;
-        var info = _getPendingInfo(curPgNo, newPgNo);
-        if (info.pending == 0) return true;
-        var msg = njs_helper.fmt2('You can move forward in {} seconds', (info.pending));
-        if (info.page != curPgNo)
-            msg = njs_helper.fmt2('You cannot move ahead of page {}', (info.page+1));
-        njs_helper.Dialog.popupStatus(msg);
-        return false;
-    };
-    
-    function _isTimerNeeded() {
-        if (lesson.renderCtx.launchCtx() != 'do_assign') return false;
-        return true;
-    }
-        
-    function _getPendingInfo(curPgNo, newPgNo) {
-        var curPage = _getPageInfo(curPgNo);
-        _updatePageTimeInLearningData(curPage.pld);
-
-        // Save usecase. No pending time to be reported here
-        if (newPgNo === undefined) return {pending: 0};
-
-        // Same page. No pending time to be reported here
-        if (newPgNo <= curPgNo) return {pending: 0};
-        
-        // Check if enough time is spent in all page between curPgNo and newPgNo
-        for (var i=curPgNo; i<newPgNo; i++) {
-            var page = _getPageInfo(i);
-            var minPageTime = page.minPageTime || 0;
-            if (!minPageTime || page.pld.timeSpent >= page.minPageTime) continue;
-            // Not enough time spent in page i
-            return {page: i, pending: Math.ceil((minPageTime - page.pld.timeSpent)/1000)};
-        }
-        return {pending: 0};
-    }
-    
-    function _getPageInfo(pgNo) {
-        var ret = {};
-
-        var oPage = lesson.pages[pgNo].oPage;
-        ret.minPageTime = (oPage.minPageTime || 0)*1000;
+function SlideChangeChecker(lesson) {
+	var _ensureCompletion = false;
+	var _isTimerNeeded = false;
+	var _slm = false;
+    var _lastTime = new Date();
+    var _ldPages = {};
+	
+	this.init = function() {
+		_slm = lesson.oLesson.selfLearningMode;
+		_ensureCompletion = lesson.oLesson.check_all_question_answered || false;
+        _isTimerNeeded = lesson.renderCtx.launchMode() == 'do';
+		if (!_isTimerNeeded) return;
 
         if (!lesson.oLesson.learningData) lesson.oLesson.learningData = {};
         var ld = lesson.oLesson.learningData;
         if (!ld.pages) ld.pages = {};
-        if (!ld.pages[oPage.pageId]) ld.pages[oPage.pageId] = {};
-        ret.pld = ld.pages[oPage.pageId];
-        if (!ret.pld.timeSpent) ret.pld.timeSpent = 0;
+        _ldPages = ld.pages;
+	}
 
-        return ret;
-    }
-    
-    function _updatePageTimeInLearningData(pld) {
+    this.updatePageTimeInLearningData = function(page) {
+    	if (!_isTimerNeeded) return;
+        var pld = _getPld(page);
+        if (!pld.timeSpent) pld.timeSpent = 0;
         var currentTime = new Date();
         var delta = currentTime.getTime() - _lastTime.getTime();
         _lastTime = currentTime;
         pld.timeSpent += delta;
+    };
+    
+    this.canChangeSlides = function(curPgNo, newPgNo) {
+        if (!_isTimerNeeded) return true;
+    	var pages = lesson.pages;
+        var curPage = pages[curPgNo];
+        this.updatePageTimeInLearningData(curPage);
+        if (newPgNo <= curPgNo) return true;
+        
+        lesson.updateScore();
+    	for (var p=curPgNo; p<newPgNo; p++) {
+	        var curPage = pages[p];
+	    	var pgNo  = p == curPgNo ? null : p+1;
+	        if (_ensureCompletion && !_isPageCompleted(curPage, pgNo)) return false;
+	        if (!_enoughTimeSpent(curPage, pgNo)) return false;
+    	}
+        return true;
+    };
+
+    function _isPageCompleted(page, pgNo) {
+    	var msgPrefix = pgNo ? njs_helper.fmt2('Page {} is not completed. ', pgNo) : '';
+    	var oPage = page.oPage;
+    	if (_slm && oPage.score != oPage.maxScore) {
+    		var msg = 'Please provide correct answers before moving ahead.';
+    		return _error(njs_helper.fmt2('{}{}', msgPrefix, msg));
+    	} else if (_slm && oPage.popupScore != oPage.popupMaxScore) {
+    		var msg = 'Please provide correct answers to every popup question before moving ahead.';
+    		return _error(njs_helper.fmt2('{}{}', msgPrefix, msg));
+    	} else if(oPage.answerStatus != 2 && oPage.answerStatus != -1) {
+    		var msg = 'Please complete this page before moving ahead.';
+    		return _error(njs_helper.fmt2('{}{}', msgPrefix, msg));
+		}
+		return true;
     }
     
-    var _lastTime = new Date();
+    function _enoughTimeSpent(page, pageNo) {
+    	var msgPgNo = pageNo ? njs_helper.fmt2('page {}', pageNo) : 'this page';
+    	var minPageTime = (page.oPage.minPageTime || 0)*1000;
+    	var timeSpent = _getPld(page).timeSpent || 0;
+    	var pending = minPageTime - timeSpent;
+    	pending = Math.ceil(pending/1000);
+    	if (pending > 0) {
+    		var msg = 'Please go through {} carefully before moving ahead. {} seconds left.';
+    		return _error(njs_helper.fmt2(msg, msgPgNo, pending));
+    	}
+    	return true;
+    }
+
+    function _error(msg) {
+		njs_helper.Dialog.popupStatus2({msg: msg, cls: 'highlight red', popdownTime: 2000});
+		return false;
+    }
+    
+    function _getPld(page) {
+    	var pageId = page.oPage.pageId;
+        if (!(pageId in _ldPages)) _ldPages[pageId] = {};
+        return _ldPages[pageId];
+    }
+
 }
 
 //#############################################################################################
@@ -1095,7 +1120,7 @@ function formatTitle(title) {
 //#############################################################################################
 return { 
 	PendingTimer: PendingTimer,
-	PageTimer: PageTimer,
+	SlideChangeChecker: SlideChangeChecker,
 	RenderingContext: RenderingContext,
 	SubmitAndScoreDialog: SubmitAndScoreDialog,
 	LessonDlgs: LessonDlgs,
