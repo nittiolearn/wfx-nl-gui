@@ -78,7 +78,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlServerApi, n
 	}
 	
 	function _getCsvHelp() {
-		var xlsxUrl = nl.url.resUrl('ImportTemplate.xlsx');
+		var xlsxUrl = nl.url.resUrl('import_template_125.xlsx');
 		var help = '<div>';
 		help += nl.fmt2('<span class="padding-small">Download <a href="{}" download>sample spreadsheet</a> for better understand the supported spreadsheet format to be imported. The imported spreadsheet can be of ".xlsx", ".csv", ".xlsm", ".ods" and ".xlsmb" format.</span>', xlsxUrl);
 		help += '<div class="padding-left"><ul><li class="padding-small">First row (header row) of spreadsheet is mandatory. This is just provided as a help to the user. Please do not change the values in this column.</li>';
