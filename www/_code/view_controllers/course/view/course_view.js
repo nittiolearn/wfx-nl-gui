@@ -182,7 +182,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
             var limitMin = p.min_score || null;
             var limitMax = p.max_score || null;
             if (limitMin && prereqScore < limitMin) return false;
-            if (limitMax && prereqScore >= limitMax) return false;
+            if (limitMax && prereqScore > limitMax) return false;
         }
         return true;
     }
