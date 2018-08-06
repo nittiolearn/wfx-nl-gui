@@ -1437,7 +1437,12 @@ npagetypes = function() {
 				params.cls = 'highlight red';
 			}
 			_popupStatus(params);
-			if (moveNext) section.lesson.globals.slides.next();
+			if (!moveNext) return;
+			var lesson = section.page.lesson;
+			var pageNo = lesson.getCurrentPageNo();
+			if (pageNo >= lesson.pages.length-1) return;
+			var userOptions = {preventTransitionAnimation: lesson.pages[pageNo + 1].pagetype.interaction.id == 'SIMULATE'};
+			section.lesson.globals.slides.next(userOptions);
 		}
 
 		function _popupStatus(params) {

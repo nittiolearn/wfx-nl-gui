@@ -163,7 +163,7 @@ njs_slides = function() {
 	function SlideSet_activate(urlHash, bDontGoToPage) {
 		activeSlideSet = this;
 		var p = SlideSet_getPageNumberFromUrl(this, urlHash, this.curPage);
-		if (!bDontGoToPage) this.gotoPage(p, undefined, true);
+		if (!bDontGoToPage) this.gotoPage(p, {noPagePreCheck:true});
 		else this.showHideNavBar();
 	}
 
@@ -181,17 +181,20 @@ njs_slides = function() {
 		activeSlideSet = null;
 	}
 
-	function SlideSet_prev() {
-		this.gotoPage(this.curPage-1);
+	function SlideSet_prev(userOptions) {
+		this.gotoPage(this.curPage-1, userOptions);
 	}
 
-	function SlideSet_next() {
-		this.gotoPage(this.curPage+1);
+	function SlideSet_next(userOptions) {
+		this.gotoPage(this.curPage+1, userOptions);
 	}
 
 	// samePageAnimation: -1: page comes from left; 0: pages fades in; 1: page comes form right
-	// 					  default is 0
-	function SlideSet_gotoPage(p, samePageAnimation, noPagePreCheck) {
+	function SlideSet_gotoPage(p, userOptions) {
+		if (!userOptions) userOptions = {};
+		if (userOptions.samePageAnimation ===undefined) userOptions.samePageAnimation = 0;
+		if (userOptions.noPagePreCheck ===undefined) userOptions.noPagePreCheck = false;
+		if (userOptions.preventTransitionAnimation === undefined) userOptions.preventTransitionAnimation = false;
 		if (p < 0 || p >= this.pages.length) return;
 
 		if (this.curPage >= this.pages.length) this.curPage = this.pages.length-1;
@@ -200,18 +203,17 @@ njs_slides = function() {
 		var newPage = this.pages[p];
 
 		var me = this;
-	    if (!noPagePreCheck && !me.gotoPagePre(this.curPage, p)) return;
+	    if (!userOptions.noPagePreCheck && !me.gotoPagePre(this.curPage, p)) return;
 		var postAnimationFn = function() {
 		    me.gotoPagePost();
 		};
 		
 		if (p == this.curPage) {
-			if (samePageAnimation !== 1 && samePageAnimation !== -1) samePageAnimation = 0;
-			this.pageTransition.showPage(newPage, samePageAnimation, postAnimationFn);
+			this.pageTransition.showPage(newPage, postAnimationFn, userOptions);
 		} else if (this.curPage < p) {
-			this.pageTransition.moveNext(oldPage, newPage, postAnimationFn);
+			this.pageTransition.moveNext(oldPage, newPage, postAnimationFn, userOptions);
 		} else {
-			this.pageTransition.movePrev(oldPage, newPage, postAnimationFn);
+			this.pageTransition.movePrev(oldPage, newPage, postAnimationFn, userOptions);
 		}
 		this.curPage = p;
 	}
@@ -284,31 +286,31 @@ njs_slides = function() {
 		this.effect = (effect in _effects) ? effect : 'default';
 	}
 
-	function PageTransition_showPage(newPage, samePageAnimation, postAnimationFn) {
+	function PageTransition_showPage(newPage, postAnimationFn, userOptions) {
 		var props = _effects[this.effect](this);
 
 		var velProps = {translateX: [0, 0], opacity: [1, 0], 'z-index': ZINDEX_SHOW};
-		if (samePageAnimation == -1) {
+		if (userOptions.samePageAnimation == -1) {
 			velProps = props.new_prev;
-		} else if (samePageAnimation == 1) {
+		} else if (userOptions.samePageAnimation == 1) {
 			velProps = props.new_next;
 		}
 
-		this.transitionPages(null, newPage, null, velProps, postAnimationFn);
+		this.transitionPages(null, newPage, null, velProps, postAnimationFn, userOptions);
 	}
 
-	function PageTransition_moveNext(oldPage, newPage, postAnimationFn) {
+	function PageTransition_moveNext(oldPage, newPage, postAnimationFn, userOptions) {
 		var props = _effects[this.effect](this);
-		this.transitionPages(oldPage, newPage, props.old_next, props.new_next, postAnimationFn);
+		this.transitionPages(oldPage, newPage, props.old_next, props.new_next, postAnimationFn, userOptions);
 	}
 
-	function PageTransition_movePrev(oldPage, newPage, postAnimationFn) {
+	function PageTransition_movePrev(oldPage, newPage, postAnimationFn, userOptions) {
 		var props = _effects[this.effect](this);
-		this.transitionPages(oldPage, newPage, props.old_prev, props.new_prev, postAnimationFn);
+		this.transitionPages(oldPage, newPage, props.old_prev, props.new_prev, postAnimationFn, userOptions);
 	}
 
     var g_transitionId=0;
-	function PageTransition_transitionPages(oldPage, newPage, oldProps, newProps, postAnimationFn) {
+	function PageTransition_transitionPages(oldPage, newPage, oldProps, newProps, postAnimationFn, userOptions) {
 	    g_transitionId++;
 	    var myTransitionId = g_transitionId;
 	    function postAnim() {
@@ -316,8 +318,14 @@ njs_slides = function() {
             newPage.css({transform: 'none'});
 	        postAnimationFn();
 	    }
-	    
-		if (oldPage != null) {
+	    if (userOptions.preventTransitionAnimation) {
+			var props = _effects['fade'](this);
+            var opts = {duration: 0, easing: 'linear'};
+			oldPage.velocity('finish').velocity(props.old_prev, opts);
+	        var opts2 = {duration: 0, easing: 'linear', complete: postAnim};
+			newPage.velocity('finish').velocity(props.new_prev, opts2);
+			return;
+	    } else if (oldPage != null) {
             var opts = {duration: ANIM_DURATION, easing: 'easeOutQuad'};
 			oldPage.velocity('finish').velocity(oldProps, opts);
 		}

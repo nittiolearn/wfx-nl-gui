@@ -1209,7 +1209,7 @@ nlesson = function() {
 		}
 		if (pageNo < 0) pageNo = 0;
 
-		this.globals.slides.gotoPage(pageNo, samePageAnimation);
+		this.globals.slides.gotoPage(pageNo, {samePageAnimation: samePageAnimation});
 	}
 
 	function Lesson_swapPage(swapStart) {
@@ -1313,7 +1313,7 @@ nlesson = function() {
 			var pageJson = JSON.stringify(this.pages[p].oPage);
 			if (pageJson.indexOf(searchStr) == -1) continue;
 			if (this.getCurrentPageNo() == p) return true;
-			this.globals.slides.gotoPage(p, 0, true);
+			this.globals.slides.gotoPage(p, {noPagePreCheck: true});
 			njs_helper.Dialog.popupStatus(njs_helper.fmt2('"{}" found in page {}', searchStr, p+1));
 			return true;
 		}
