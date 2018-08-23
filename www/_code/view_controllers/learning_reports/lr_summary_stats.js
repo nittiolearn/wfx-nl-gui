@@ -79,13 +79,26 @@ function SummaryStats(nl, nlLrHelper) {
     
     function _updateStatsObj(report, statsObj, delta) {
         statsObj.assigned += delta;
+        if (report.raw_record.ctype == _nl.ctypes.CTYPE_COURSE) _updateStatsForCourseObj(report, statsObj, delta);
+        else if (report.raw_record.ctype == _nl.ctypes.CTYPE_MODULE) _updateStatsForModuleObj(report, statsObj, delta);
+        statsObj.perc = statsObj.assigned > 0 ? Math.round(statsObj.done/statsObj.assigned*100) : 0;
+        statsObj.percStr = statsObj.assigned > 0 ? statsObj.perc + ' %' : '';    	
+       }
+
+    function _updateStatsForCourseObj(report, statsObj, delta) {
         var stats = report.stats;
         if (stats.status.id == nlLrHelper.STATUS_PENDING) statsObj.pending += delta;
         else if (stats.status.id == nlLrHelper.STATUS_STARTED) statsObj.started += delta;
         else if (stats.status.id == nlLrHelper.STATUS_FAILED) statsObj.failed += delta;
         else statsObj.done += delta;
-        statsObj.perc = statsObj.assigned > 0 ? Math.round(statsObj.done/statsObj.assigned*100) : 0;
-        statsObj.percStr = statsObj.assigned > 0 ? statsObj.perc + ' %' : '';
+    }
+    
+    function _updateStatsForModuleObj(report, statsObj, delta) {
+        var stats = report.repcontent;
+        if (!stats.started) statsObj.pending += delta;
+        else if (stats.started && !stats.ended) statsObj.started += delta;
+        else if (stats.status.id == nlLrHelper.STATUS_FAILED) statsObj.failed += delta;
+        else statsObj.done += delta;
     }
 }
 

@@ -38,6 +38,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
         	[settings, urlParams, _dataDefaults]);
         if (_oneOf(_data.type, ['module_assign', 'course_assign', 'training_batch']))
         	_data.showfilters = false;
+        if(_data.type == 'module') _data.parentonly = false;
         _toBool(_data, 'parentonly');
         _toInt(_data, 'objid');
         _toBool(_data, 'showfilters');

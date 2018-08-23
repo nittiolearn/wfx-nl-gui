@@ -139,7 +139,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
             columns.push({id: 'usermd.' + mh[i].id, name: mh[i].name});
         }
         if (!nlLrFilter.getObjectId()) {
-            columns.push({id: 'course.name', name: 'Course', mediumScreen: false});
+            columns.push({id: 'course.name', name: 'Course / module', mediumScreen: false});
         }
         columns.push({id: 'stats.status.txt', name: 'Status', smallScreen: true, 
             icon: 'stats.status.icon'});
@@ -169,7 +169,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
             if (!res) return;
             var repid = report._raw.raw_record.id;
             nlDlg.showLoadingScreen();
-            nlServerApi.courseReportDelete(repid).then(function(statusInfo) {
+            nlServerApi.learningReportDelete({repid: repid}).then(function(statusInfo) {
                 nlDlg.hideLoadingScreen();
                 nlLrReportRecords.removeRecord(repid);
                 _updateScope();

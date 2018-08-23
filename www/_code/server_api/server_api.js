@@ -136,6 +136,7 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/course_assignment_delete.json', {assignid: assignId});
     };
     
+    // TODO-LATER: Remove when course_summary_report.js is removed.
     this.courseReportDelete = function(repid) {
         // return: status info array
         return server.post('_serverapi/course_report_delete.json', {repid: repid});
@@ -401,6 +402,12 @@ function(nl, nlDlg, nlConfig, Upload) {
 	this.learningReportsImport = function(data) {
 		return server.post('_serverapi/learning_reports_import.json', data);
 	};
+
+    this.learningReportDelete = function(data) {
+        // return: status info array
+        return server.post('_serverapi/learning_report_delete.json', data);
+    };
+
     //---------------------------------------------------------------------------------------------
 	// get group user entities
     //---------------------------------------------------------------------------------------------

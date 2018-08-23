@@ -23,7 +23,7 @@ function(nl, nlDlg) {
         link: function($scope, iElem, iAttrs) {
             $scope.onItemClick = function(rec, action) {
                 $scope.info.onItemClick($scope, rec, action);
-            }
+            };
         }
     };
 }];

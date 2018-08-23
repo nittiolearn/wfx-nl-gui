@@ -7,19 +7,32 @@
              ng-click='export.summary = !export.summary'>
             <i ng-show='export.summary' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.summary' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>export organizational summary</span>
+            <span>export summary statistics</span>
         </div>
-        <div class='padding-mid nl-link-text' 
+        <div ng-show='reptype == "course"' class='padding-mid nl-link-text' 
              ng-click='export.user = !export.user'>
             <i ng-show='export.user' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.user' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>export course learning reports of individual users</span>
+            <span>export course reports</span>
         </div>
         <div class='padding-mid nl-link-text' 
              ng-click='export.module = !export.module'>
             <i ng-show='export.module' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.module' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>export detailed module level learning reports of individual users</span>
+            <span>export module reports</span>
+        </div>
+        <div ng-show='reptype == "module"' class='padding-mid nl-link-text' 
+             ng-click='export.pageScore = !export.pageScore'>
+            <i ng-show='export.pageScore' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='export.pageScore' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>export page level scores</span>
+        </div>
+        <div class='padding-mid nl-link-text' 
+             ng-click='export.feedback = !export.feedback'
+             ng-show='reptype == "module"'>
+            <i ng-show='export.feedback' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='export.feedback' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>export feedback</span>
         </div>
         <div class='padding-mid nl-link-text'
              ng-show='export.canShowIds'

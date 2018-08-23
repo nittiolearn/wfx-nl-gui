@@ -2,8 +2,8 @@
     <div class='fsh4 padding-mid col'>
         <span>{{rec._raw.user.name}}</span><span ng-show='rec._raw.user.username'> ({{rec._raw.user.username}})</span>
     </div>
-    <div class='padding-mid'>
-        <a ng-href='/#/course_view?id={{rec._raw.raw_record.id}}&mode=report_view'
+    <div class='padding-mid' ng-show='rec._raw.raw_record.url'>
+        <a ng-href='{{rec._raw.raw_record.url}}'
            target='_blank'
            class='row row-center padding0 margin0 nl-link-text'>
            <i class='ion-ios-eye icon nl-dlg-field-icon'></i>
@@ -36,7 +36,7 @@
     <div class='padding-mid' ng-class='$root.respCol422'><b>Progress:</b></div>
     <div class='padding-mid' ng-class='$root.respCol422'>
         <span>{{rec._raw.stats.percCompleteStr}}</span>
-        <span> ({{rec._raw.stats.percCompleteDesc}})</span>
+        <span ng-show='rec._raw.raw_record.ctype != _nl.ctypes.CTYPE_MODULE'> ({{rec._raw.stats.percCompleteDesc}})</span>
     </div>
 
     <div class='padding-mid' ng-class='$root.respCol422'><b>Time spent:</b></div>
@@ -46,8 +46,8 @@
 
     <div class='padding-mid' ng-class='$root.respCol422'><b>Score:</b></div>
     <div class='padding-mid' ng-class='$root.respCol422'>
-        <span>{{rec._raw.stats.percScoreStr}}</span>
-        <span> (scored {{rec._raw.stats.nScore}} of {{rec._raw.stats.nMaxScore}} in {{rec._raw.stats.nQuiz}} quiz{{rec._raw.stats.nQuiz > 1 ? 'zes' : ''}})</span>
+        <span>{{rec._raw.stats.percScoreStr || '-'}}</span>
+        <span ng-show='rec._raw.raw_record.ctype != _nl.ctypes.CTYPE_MODULE'> (scored {{rec._raw.stats.nScore}} of {{rec._raw.stats.nMaxScore}} in {{rec._raw.stats.nQuiz}} quiz{{rec._raw.stats.nQuiz > 1 ? 'zes' : ''}})</span>
     </div>
 
     <div class='padding-mid' ng-class='$root.respCol422'><b>Quiz attempts:</b></div>
@@ -64,4 +64,20 @@
         <span>{{rec._raw.stats.internalIdentifier}}</span>
     </div>
 
+    <div class='padding-mid' ng-class='$root.respCol422'><b>Subject:</b></div>
+    <div class='padding-mid' ng-class='$root.respCol422'>
+        <span ng-show='rec._raw.raw_record.ctype == _nl.ctypes.CTYPE_MODULE'>{{rec._raw.repcontent.subject}}</span>
+    </div>
+
+    <div class='padding-mid' ng-class='$root.respCol422'><b>Remarks:</b></div>
+    <div class='padding-mid' ng-class='$root.respCol422'>
+        <span ng-show='rec._raw.raw_record.ctype == _nl.ctypes.CTYPE_MODULE && rec._raw.repcontent.assign_remarks'>{{rec._raw.repcontent.assign_remarks}}</span>
+    </div>
+    </div>
+
+    <div class='padding-mid' ng-class='$root.respCol422'><b>Description:</b></div>
+    <div class='padding-mid' ng-class='$root.respCol422'>
+        <span ng-show='rec._raw.raw_record.ctype == _nl.ctypes.CTYPE_MODULE && rec._raw.repcontent.description'>{{rec._raw.repcontent.description}}</span>
+    </div>
+    </div>
 </div>
