@@ -10,7 +10,7 @@
            <span ng-show='$root.screenSize != "small"' class='padding-mid'>View report</span>
         </a>
     </div>
-    <div class='padding-mid'>
+    <div class='padding-mid' ng-hide='rec._raw.raw_record.containerid'>
         <div class='row row-center padding0 margin0 nl-link-text' ng-click='onItemClick(rec, "delete")'>
            <i class='ion-ios-trash icon nl-dlg-field-icon'></i>
            <span ng-show='$root.screenSize != "small"' class='padding-mid'>Delete</span>
@@ -49,7 +49,6 @@
         <span>{{rec._raw.stats.percScoreStr || '-'}}</span>
         <span ng-show='rec._raw.raw_record.ctypestr != "module"'> (scored {{rec._raw.stats.nScore}} of {{rec._raw.stats.nMaxScore}} in {{rec._raw.stats.nQuiz}} quiz{{rec._raw.stats.nQuiz > 1 ? 'zes' : ''}})</span>
     </div>
-
     <div class='padding-mid' ng-class='$root.respCol422'><b>Quiz attempts:</b></div>
     <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.stats.avgAttempts || '-'}}
         <span ng-show='rec._raw.stats.nLessonsAttempted > 1'>(average from {{rec._raw.stats.nLessonsAttempted}} quizzes)</span>
