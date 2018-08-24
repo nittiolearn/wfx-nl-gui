@@ -215,6 +215,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     var courseAttrs = [
         {name: 'grp_additionalAttrs', type: 'group', text: 'Advanced properties'},
     	{name: 'planning', text:'Schedule planning', desc: 'Enable schedule planning for this course', group: 'grp_additionalAttrs', type: 'boolean'},
+    	{name: 'hide_answers', text:'Hide answers', desc: 'Disallow learners to view completed modules', group: 'grp_additionalAttrs', type: 'boolean'},
     	{name: 'certificate', text: 'Certificate configuration', type: 'hidden', group: 'grp_additionalAttrs'},
     	{name: 'custtype', text: 'Custom type', type: 'number', group: 'grp_additionalAttrs'},
         {name: 'exportLevel', text: 'Visibility', type: 'list', values: [], valueNames: {}, group: 'grp_additionalAttrs'},
@@ -230,6 +231,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     
     var _courseAttrHelp = {
     	planning: 'Start and end dates are considered only if schedule planning is enabled.',
+    	hide_answers: 'Enable this attribute if this course is for assessment purpose and you would like to disallow the learners to see the correct answers.',
     	custtype: 'You can define a custom type to help in searchability.',
         exportLevel: 'This property is visible only if the group has option to export content to other groups.',
         contentmetadata: 'Metadata attributes.',

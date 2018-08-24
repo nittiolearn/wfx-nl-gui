@@ -13,7 +13,7 @@
     <div class='row row-center padding-small margin0' 
     	ng-repeat='attempt in ext.pastAttemptData' >
     	<div ng-class='respCol111'>
-    		<div class='row row-center padding0 margin0 nl-link-text finactive' 
+    		<div class='row row-center padding0 margin0 finactive {{ext.hideReviewButton() ? "" : "nl-link-text"}}' 
     			ng-click='ext.showPastReport(attempt)'>
 				<div class='col'>{{attempt.started | date : 'dd-MMM-yy HH:mm:ss'}}</div>
 				<div ng-hide='screenSize == "small" || vp.i == true' class='col'>{{attempt.ended | date : 'dd-MMM-yy HH:mm:ss'}}</div>

@@ -1134,8 +1134,15 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
 	this.canShowLaunch = function(cm) {
         if (!cm || (cm.type != 'lesson' && cm.type != 'link' && cm.type != 'certificate')) return false;
         if (this.isStaticMode()) return true;
+        if (this.hideReviewButton(cm)) return false;
         if (modeHandler.mode == MODES.DO) return (cm.state.status != 'waiting');
         return (cm.state.status == 'success' || cm.state.status == 'failed');
+	};
+	
+	this.hideReviewButton = function(cm) {
+        if (!modeHandler.course.content.hide_answers || modeHandler.mode != MODES.DO) return false;
+        if (!cm) return true;
+        return (cm.type == 'lesson' && (cm.state.status == 'success' || cm.state.status == 'failed'));
 	};
 
 	this.getRoundedPercentage = function(completed, total) {
@@ -1168,6 +1175,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
     };
     
     this.showPastReport = function(rep) {
+        if (this.hideReviewButton()) return;
         var func = (modeHandler.mode === MODES.REPORTS_SUMMARY_VIEW || modeHandler.mode === MODES.REPORT_VIEW) ? 'review_report_assign' : 'view_report_assign';
         var url = nl.fmt2('/lesson/{}/{}', func, rep.reportId);
         modeHandler.show(url);
