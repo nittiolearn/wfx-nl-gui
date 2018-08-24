@@ -101,7 +101,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
         nlLrFilter.init(settings, userInfo);
         nlLrCourseRecords.init();
 	    _summaryStats = nlLrSummaryStats.getSummaryStats();
-        nlLrReportRecords.init(_summaryStats);
+        nlLrReportRecords.init(_summaryStats, userInfo);
         nlLrFetcher.init();
         nlLrExporter.init(userInfo);
         nl.pginfo.pageTitle = nlLrFilter.getTitle();

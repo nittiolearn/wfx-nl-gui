@@ -24,7 +24,9 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
     var _pastUserData = null;
     var _pastUserDataFetchInitiated = false;
     var _postProcessRecords = [];
-    this.init = function(summaryStats) {
+    var _userInfo = null;
+    this.init = function(summaryStats, userinfo) {
+    	_userInfo = userinfo;
     	_records = {};
     	_dates = {minUpdated: null, maxUpdated: null};
     	_summaryStats = summaryStats;
@@ -121,21 +123,22 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
     	});
     };
 
-    function _getStudentFromReport(report) {
+    function _getStudentFromReport(report, repcontent) {
         var user = nlGroupInfo.getUserObj(''+report.student);
         if (!user && !_pastUserData) {
         	_postProcessRecords.push(report);
         	return null;
         }
 
-        var repcontent = angular.fromJson(report.content);
         if (!user) user = _pastUserData[repcontent.studentname];
         if (!user) user = nlGroupInfo.getDefaultUser(repcontent.studentname || '');
         return user;
     }
     
     function _processCourseReport(report) {
-		var user = _getStudentFromReport(report);
+		report.ctypestr = 'course';
+        var repcontent = angular.fromJson(report.content);
+		var user = _getStudentFromReport(report, repcontent);
         var course = nlLrCourseRecords.getRecord(report.lesson_id);
         if (!course) course = nlLrCourseRecords.getCourseInfoFromReport(report, repcontent);
 
@@ -222,7 +225,11 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
     }
 
 	function _processModuleReport(report) {
-		var user = _getStudentFromReport(report);
+		report.ctypestr = 'module';
+		var repcontent = angular.fromJson(report.content);
+		var user = _getStudentFromReport(report, repcontent);
+		report.gradeLabel = _userInfo.groupinfo.gradelabel;
+		report.subjectLabel = _userInfo.groupinfo.subjectlabel;
         if (user) {
             report.studentname = user.name;
             report._user_id = user.user_id;
@@ -242,7 +249,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
 
         var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
             timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
-            internalIdentifier:report.id, nCerts: 0};
+            internalIdentifier:report.id, nCerts: 0, nLessonsDone: 0};
             
         var statusinfo = repcontent.statusinfo || {};
 
@@ -251,26 +258,26 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
         stats.nLessons++;
         var lid = lessons[0].id;
         var rep = lessonReps;
-        if (!rep.selfLearningMode) {
-            stats.nLessonsAttempted++;
+		stats.percCompleteStr = 'Pending';
+        if(repcontent.started) {
+	        stats.timeSpentSeconds = repcontent.timeSpentSeconds || 0;
+	    	stats.percCompleteStr = 'Started';
+	        stats.percCompleteDesc = repcontent.started ? 'Module started' :  'Module pending';
+			stats.nAttempts = 1;
+			stats.nLessonsAttempted = 1;
+			stats.nQuiz = 1;
+			stats.avgAttempts = 1;
+	        stats.timeSpentStr = Math.ceil(stats.timeSpentSeconds/60);
+	        stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
+	            : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
         }
-        stats.timeSpentSeconds = rep.timeSpentSeconds || 0;
-    	stats.percCompleteStr = rep.started ? 'Started' : 'Pending';
-        stats.percCompleteDesc = rep.started ? 'Module started' :  'Module pending';
-        stats.percScore = stats.nMaxScore ? Math.round(stats.nScore/stats.nMaxScore*100) : 0;
-        stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
-
-        stats.timeSpentStr = Math.ceil(stats.timeSpentSeconds/60);
-        stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
-            : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
-
-		report.updated = nl.fmt.json2Date(repcontent.updated);
-		report.created = nl.fmt.json2Date(repcontent.created);
+		report.updated = nl.fmt.json2Date(report.updated);
+		report.created = nl.fmt.json2Date(report.created);
 		report.started = nl.fmt.json2Date(repcontent.started);
 		report.ended = nl.fmt.json2Date(repcontent.ended);
 		report.not_before = repcontent.not_before ? nl.fmt.json2Date(repcontent.not_before) : '';
 		report.not_after = repcontent.not_after ? nl.fmt.json2Date(repcontent.not_after) : '';
-        stats.status = nlLrHelper.statusInfos[_getModuleStatus(stats, rep, report)];
+        stats.status = nlLrHelper.statusInfos[_getModuleStatus(stats, repcontent, report)];
 
         report.name = repcontent.name || '';
         report._treeId = nl.fmt2('{}.{}', report.org_unit, report.student);
@@ -282,9 +289,10 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
         report.containerid = report.containerid || '';
         report._grade = repcontent.grade || '';
         report.subject = repcontent.subject || '';
+		report.assign_remarks = repcontent.assign_remarks || '';
         if (!report.completed) {
-            rep._percStr = '';
-            rep._statusStr = 'pending';
+            report._percStr = '';
+            report._statusStr = report.started ? 'started' : 'pending';
         } else {
 	        var maxScore = repcontent.selfLearningMode ? 0 : parseInt(repcontent.maxScore || 0);
 	        var score = repcontent.selfLearningMode ? 0 : parseInt(repcontent.score || 0);
@@ -294,34 +302,37 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
 	        report._score = score > 0 ? score : '';
 	        report._maxScore = maxScore > 0 ? maxScore : '';
 	        report._passScore = passScore > 0 ? passScore : '';
-	        report._passScoreStr = rep._passScore ? '' + rep._passScore + '%' : '';
+	        report._passScoreStr = report._passScore ? '' + report._passScore + '%' : '';
 	        report._perc = perc;
 	        report._percStr = maxScore > 0 ? '' + perc + '%' : '';
-	        report._timeMins = repcontent.timeSpentSeconds ? Math.round(repcontent.timeSpentSeconds/60) : '';
+	        report._timeMins = repcontent.timeSpentSeconds ? Math.ceil(repcontent.timeSpentSeconds/60) : '';
 	        report._statusStr = (passScore == 0 || perc >= passScore) ? 'completed' : 'failed';
+	        stats.nScore = score;
+	        stats.nMaxScore = maxScore;
+	        stats.percScore = stats.nMaxScore ? Math.round(stats.nScore/stats.nMaxScore*100) : 0;
+	        stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
         }
 
 
-        if (rep.ended) {
-		    if (rep.selfLearningMode) {
-		        rep.maxScore = 0;
-		        rep.score = 0;
+        if (repcontent.ended) {
+		    if (repcontent.selfLearningMode) {
+		        repcontent.maxScore = 0;
+		        repcontent.score = 0;
 		    }
-	        if (rep.maxScore) {
+	        if (repcontent.maxScore) {
 	            stats.nScore = rep.score;
 	            stats.nMaxScore = rep.maxScore;
 	            stats.nQuiz++;
 	        }
-	        var perc = rep.maxScore ? Math.round(rep.score / rep.maxScore * 100) : 100;
-	        if (!rep.passScore || perc >= rep.passScore) stats.nLessonsPassed++;
+	        var perc = repcontent.maxScore ? Math.round(repcontent.score / repcontent.maxScore * 100) : 100;
+	        if (!repcontent.passScore || perc >= repcontent.passScore) stats.nLessonsPassed++;
 	        else stats.nLessonsFailed++;
-	        stats.nLessonsDone = 1;
         	stats.percCompleteStr = 'Completed';
         	stats.percCompleteDesc = 'Module completed';
 			report.url = nl.fmt2('/lesson/review_report_assign/{}', report.id);
     	}
 
-
+        stats.nLessonsDone = stats.nLessonsPassed + stats.nLessonsFailed;
         var ret = {raw_record: report, repcontent: repcontent, course: module, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'), 
@@ -341,9 +352,12 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
 	}
 
 	function _getModuleStatus(stats, rep, report) {
+		var scorePerc = (rep.score/rep.maxScore)*100;
 		if (!rep.started) return nlLrHelper.STATUS_PENDING;
 		if (rep.started && !report.completed) return nlLrHelper.STATUS_STARTED;
+		if (rep.passScore && scorePerc < rep.passScore) return nlLrHelper.STATUS_FAILED;
 		if (report.completed) return nlLrHelper.STATUS_DONE;
+		return nlLrHelper.STATUS_PASSED;
 	}
 
     function _getStatusId(stats, started) {
