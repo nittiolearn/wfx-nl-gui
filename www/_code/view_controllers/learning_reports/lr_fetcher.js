@@ -66,6 +66,7 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecord
                 return;
             }
             for(var i=0; i<results.length; i++) {
+            	if (results[i].ctype != _nl.ctypes.CTYPE_COURSE) continue;
                 var courseid = results[i].lesson_id;
                 if (!courseid || nlLrCourseRecords.wasFetched(courseid)) continue;
                 _pendingCourseIds[courseid] = true;

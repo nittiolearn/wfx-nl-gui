@@ -139,6 +139,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
 		report.ctypestr = 'course';
         var repcontent = angular.fromJson(report.content);
 		var user = _getStudentFromReport(report, repcontent);
+		if (!user) return null;
         var course = nlLrCourseRecords.getRecord(report.lesson_id);
         if (!course) course = nlLrCourseRecords.getCourseInfoFromReport(report, repcontent);
 
@@ -228,22 +229,16 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
 		report.ctypestr = 'module';
 		var repcontent = angular.fromJson(report.content);
 		var user = _getStudentFromReport(report, repcontent);
+		if (!user) return null;
 		report.gradeLabel = _userInfo.groupinfo.gradelabel;
 		report.subjectLabel = _userInfo.groupinfo.subjectlabel;
-        if (user) {
-            report.studentname = user.name;
-            report._user_id = user.user_id;
-            report._email = user.email;
-            report.org_unit = user.org_unit;
-            var metadata = nlGroupInfo.getUserMetadata(user);
-            for(var j=0; j<metadata.length; j++)
-                report[metadata[j].id] = metadata[j].value|| '';
-        } else {
-            report.studentname = '';
-            report._user_id = '';
-            report._email = '';
-            report.org_unit = '';
-        }
+        report.studentname = user.name;
+        report._user_id = user.user_id;
+        report._email = user.email;
+        report.org_unit = user.org_unit;
+        var metadata = nlGroupInfo.getUserMetadata(user);
+        for(var j=0; j<metadata.length; j++)
+            report[metadata[j].id] = metadata[j].value|| '';
 
         var module = {type: 'module', id: report.id, nonLessons: [], lessons:[repcontent], name: repcontent.name, contentmetadata: repcontent.contentmetadata || {}};
 
