@@ -14,8 +14,8 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrCourseRecords',
-function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
+var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrCourseRecords', 'nlLrFilter',
+function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
     var self = this;
     
     var _records = {};
@@ -210,6 +210,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
             : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
 
 		report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
+		report.urlTitle = nl.t('View report');
 		report.updated = nl.fmt.json2Date(report.updated);
 		report.created = nl.fmt.json2Date(report.created);
 		report.not_before = repcontent.not_before ? nl.fmt.json2Date(repcontent.not_before) : '';
@@ -226,7 +227,8 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
     }
 
 	function _processModuleReport(report) {
-		report.ctypestr = 'module';
+		report.showModuleProps = true;
+		report.ctypestr = nlLrFilter.getType();
 		var repcontent = angular.fromJson(report.content);
 		var user = _getStudentFromReport(report, repcontent);
 		if (!user) return null;
@@ -324,8 +326,13 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords) {
 	        else stats.nLessonsFailed++;
         	stats.percCompleteStr = 'Completed';
         	stats.percCompleteDesc = 'Module completed';
-			report.url = nl.fmt2('/lesson/review_report_assign/{}', report.id);
-    	}
+        	if(report.ctypestr == 'module') 
+				report.urlTitle = nl.t('View report');
+				report.url = nl.fmt2('/lesson/review_report_assign/{}', report.id);
+        	if(report.ctypestr == 'module_assign')
+				report.urlTitle = nl.t('Update');
+				report.url = nl.fmt2('/lesson/update_report_assign/{}', report.id);
+			}
 
         stats.nLessonsDone = stats.nLessonsPassed + stats.nLessonsFailed;
         var ret = {raw_record: report, repcontent: repcontent, course: module, user: user,

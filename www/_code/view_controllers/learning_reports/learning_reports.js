@@ -233,6 +233,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
             id: 'tbfilter',
             onClick : _showRangeSelection
         }, {
+            title : 'View content',
+            icon : 'ion-ios-eye',
+            id: 'content',
+            onClick : _onViewContent
+        }, {
             title : 'Export report',
             icon : 'ion-ios-cloud-download',
             id: 'export',
@@ -244,6 +249,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
         if (nlLrFetcher.fetchInProgress(true)) return false;
         if (tbid == 'tbfetchmore') return nlLrFetcher.canFetchMore();
         if (tbid == 'tbfilter') return nlLrFilter.isFilterShown();
+        if (tbid == 'content') return (nlLrFilter.getType() == 'module_assign');
         return true;
     };
     
@@ -352,6 +358,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
         if (nlLrFetcher.fetchInProgress()) return;
 		var reportRecords = nlLrReportRecords.asList();
         nlLrExporter.export($scope, reportRecords, _isAdmin);
+    }
+    
+    function _onViewContent() {
+    	var objId = nlLrFilter.getObjectId();
+    	nl.window.location.href = nl.fmt2('/lesson/view_assign/{}', objId);
     }
 };
 

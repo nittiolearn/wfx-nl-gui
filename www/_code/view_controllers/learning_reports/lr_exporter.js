@@ -412,7 +412,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             id: rep.id, student: rep.student, lesson_id: rep.lesson_id, 
             _email: rep._email, _assignTypeStr: rep._assignTypeStr, 
             _courseName: rep._courseName, _batchName: rep._batchName,
-            assign_remarks: rep.assign_remarks,
+            assign_remarks: rep.assign_remarks, assignment: rep.assignment,
             _courseId: rep._courseId, containerid: rep.containerid, _attempts : rep._attempts};
             
         for(var i=0; i<mh.length; i++)
