@@ -308,6 +308,12 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
 	        stats.nMaxScore = maxScore;
 	        stats.percScore = stats.nMaxScore ? Math.round(stats.nScore/stats.nMaxScore*100) : 0;
 	        stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
+	        if (passScore == 0 || perc >= passScore) 
+	        	stats.nLessonsPassed++;
+	        else 
+	        	stats.nLessonsFailed++;
+        	stats.percCompleteStr = 'Completed';
+        	stats.percCompleteDesc = 'Module completed';
         }
 
 
@@ -321,11 +327,6 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
 	            stats.nMaxScore = rep.maxScore;
 	            stats.nQuiz++;
 	        }
-	        var perc = repcontent.maxScore ? Math.round(repcontent.score / repcontent.maxScore * 100) : 100;
-	        if (!repcontent.passScore || perc >= repcontent.passScore) stats.nLessonsPassed++;
-	        else stats.nLessonsFailed++;
-        	stats.percCompleteStr = 'Completed';
-        	stats.percCompleteDesc = 'Module completed';
         	if(report.ctypestr == 'module') 
 				report.urlTitle = nl.t('View report');
 				report.url = nl.fmt2('/lesson/review_report_assign/{}', report.id);
