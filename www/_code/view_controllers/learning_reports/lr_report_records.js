@@ -215,6 +215,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
 		report.created = nl.fmt.json2Date(report.created);
 		report.not_before = repcontent.not_before ? nl.fmt.json2Date(repcontent.not_before) : '';
 		report.not_after = repcontent.not_after ? nl.fmt.json2Date(repcontent.not_after) : '';
+		report._batchName = repcontent.batchname || '';
         stats.status = nlLrHelper.statusInfos[_getStatusId(stats, started)];
         var ret = {raw_record: report, repcontent: repcontent, course: course, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
@@ -280,7 +281,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
         report._treeId = nl.fmt2('{}.{}', report.org_unit, report.student);
         report._assignTypeStr = _getAssignTypeStr(report.assigntype, repcontent);
         report._courseName = (report.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingKindName : repcontent.courseName) || '';
-        report._batchName = (report.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingName || repcontent.name : '') || '';
+        report._batchName = (report.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingName : repcontent.batchname) || '';
         report._courseId = (report.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingKindId : repcontent.courseId ) || '';
         report._attempts = repcontent.started ? 1 : 0;
         report.containerid = report.containerid || '';

@@ -42,95 +42,68 @@
         </div>
     </div>
 
-    <div class='row row-wrap row-top padding-top margin0'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Users</div>
-        <div ng-class='resp2Col67' class='nl-dlg-field-value'>
-            <nl-tree-select info='data.ouUserTree' tabindex='0' autofocus=''>
-            </nl-tree-select>
+	<nl-dlg-row ng-show='assignInfo.assigntype != "training"' attr='batchname' data='data' help='help'>
+		<nl-input fieldmodel='batchname' fieldtype='text' fieldCls='w100'></nl-input>
+	</nl-dlg-row>
+
+	<nl-dlg-row attr='ouUserTree' data='data' help='help'>
+        <nl-tree-select info='data.ouUserTree' tabindex='0' autofocus=''>
+        </nl-tree-select>
+	</nl-dlg-row>
+
+	<nl-dlg-row ng-show='assignInfo.showDateField' attr='starttime' data='data' help='help'>
+        <nl-date-time-select fieldmodel='starttime'></nl-date-time-select>
+	</nl-dlg-row>
+
+	<nl-dlg-row ng-show='assignInfo.showDateField' attr='endtime' data='data' help='help'>
+        <nl-date-time-select fieldmodel='endtime'></nl-date-time-select>
+	</nl-dlg-row>
+
+	<nl-dlg-row ng-show='assignInfo.assigntype == "lesson"' attr='maxduration' data='data' help='help'>
+        <nl-input fieldmodel='maxduration' fieldtype='number' fieldcls='w100'></nl-input>
+	</nl-dlg-row>
+
+	<nl-dlg-row ng-show='assignInfo.assigntype == "lesson"' attr='showAnswers' data='data' help='help'>
+		<nl-select fieldmodel='showAnswers'></nl-select>
+	</nl-dlg-row>
+
+	<nl-dlg-row ng-show='assignInfo.assigntype != "training"' attr='forum' data='data' help='help'>
+        <div class='nl-link-text row row-center padding0 margin0'
+             ng-click='data.forum = !data.forum'
+             autofocus=''
+             tabindex="{{tabindex || 0}}">
+            <i ng-show='data.forum' class="icon ion-android-checkbox-outline nl-dlg-field-icon"></i>
+            <i ng-show='!data.forum' class="icon ion-android-checkbox-outline-blank nl-dlg-field-icon"></i>
+            <span class='col padding0 padding-mid-v'>allow users to discuss in the forum</span>
         </div>
-    </div>    
+	</nl-dlg-row>
 
-    <div class='row row-wrap row-top padding-top margin0'
-         ng-show='assignInfo.showDateField'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>From </div>
-        <div ng-class='resp2Col67' class='nl-dlg-field-value'>
-            <nl-date-time-select fieldmodel='starttime'></nl-date-time-select>
-        </div>
-    </div>
-
-    <div class='row row-wrap row-top padding-top margin0'
-         ng-show='assignInfo.showDateField'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Till</div>
-        <div ng-class='resp2Col67' class='nl-dlg-field-value'>
-            <nl-date-time-select fieldmodel='endtime'></nl-date-time-select>
-        </div>
-    </div>
-
-    <div class='row row-wrap row-top padding-top margin0'
-         ng-show='assignInfo.assigntype == "lesson"'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Time limit (minutes)</div>
-        <div ng-class='resp2Col67' class='padding0'>
-            <nl-input fieldmodel='maxduration' fieldtype='number' fieldcls='w100'></nl-input>
-        </div>
-    </div>
-
-    <div class='row row-wrap row-top padding-top margin0'
-         ng-show='assignInfo.assigntype == "lesson"'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Show answers</div>
-        <div ng-class='resp2Col67' class='padding0'>
-			<nl-select fieldmodel='showAnswers'></nl-select>
-		</div>
-    </div>
-
-    <div class='row row-wrap row-top padding-top margin0'
-         ng-show='assignInfo.assigntype != "training"'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Forum</div>
-        <div ng-class='resp2Col67' class='nl-dlg-field-value'>
-            <div class='nl-link-text row row-center padding0 margin0'
-                 ng-click='data.forum = !data.forum'
-                 autofocus=''
-                 tabindex="{{tabindex || 0}}">
-                <i ng-show='data.forum' class="icon ion-android-checkbox-outline nl-dlg-field-icon"></i>
-                <i ng-show='!data.forum' class="icon ion-android-checkbox-outline-blank nl-dlg-field-icon"></i>
-                <span class='col padding0 padding-mid-v'>allow users to discuss in the forum</span>
-            </div>
-        </div>
-    </div>
-
-    <div class='row row-wrap row-top padding-top margin0'
+	<nl-dlg-row attr='submissionAfterEndtime' data='data' help='help'
          ng-show='assignInfo.enableSubmissionAfterEndtime && data.endtime'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Submission after end time</div>
-        <div ng-class='resp2Col67' class='nl-dlg-field-value'>
-            <div class='nl-link-text row row-center padding0 margin0'
-                 ng-click='data.submissionAfterEndtime = !data.submissionAfterEndtime'
-                 autofocus=''
-                 tabindex="{{tabindex || 0}}">
-                <i ng-show='data.submissionAfterEndtime' class="icon ion-android-checkbox-outline nl-dlg-field-icon"></i>
-                <i ng-show='!data.submissionAfterEndtime' class="icon ion-android-checkbox-outline-blank nl-dlg-field-icon"></i>
-                <span class='col padding0 padding-mid-v'>allow users to submit assignment after endtime</span>
-            </div>
+        <div class='nl-link-text row row-center padding0 margin0'
+             ng-click='data.submissionAfterEndtime = !data.submissionAfterEndtime'
+             autofocus=''
+             tabindex="{{tabindex || 0}}">
+            <i ng-show='data.submissionAfterEndtime' class="icon ion-android-checkbox-outline nl-dlg-field-icon"></i>
+            <i ng-show='!data.submissionAfterEndtime' class="icon ion-android-checkbox-outline-blank nl-dlg-field-icon"></i>
+            <span class='col padding0 padding-mid-v'>allow users to submit assignment after endtime</span>
         </div>
-    </div>
+    </nl-dlg-row>
 
-    <div class='row row-wrap row-top padding-top margin0' ng-show='enableEmailNotifications'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Email notifications</div>
-        <div ng-class='resp2Col67' class='nl-dlg-field-value'>
-            <div class='nl-link-text row row-center padding0 margin0'
-                 ng-click='data.sendEmail = !data.sendEmail'
-                 autofocus=''
-                 tabindex="{{tabindex || 0}}">
-                <i ng-show='data.sendEmail' class="icon ion-android-checkbox-outline nl-dlg-field-icon"></i>
-                <i ng-show='!data.sendEmail' class="icon ion-android-checkbox-outline-blank nl-dlg-field-icon"></i>
-                <span class='col padding0 padding-mid-v'>notify learners by email</span>
-            </div>
+	<nl-dlg-row ng-show='enableEmailNotifications' attr='submissionAfterEndtime' data='data' help='help'>
+        <div class='nl-link-text row row-center padding0 margin0'
+             ng-click='data.sendEmail = !data.sendEmail'
+             autofocus=''
+             tabindex="{{tabindex || 0}}">
+            <i ng-show='data.sendEmail' class="icon ion-android-checkbox-outline nl-dlg-field-icon"></i>
+            <i ng-show='!data.sendEmail' class="icon ion-android-checkbox-outline-blank nl-dlg-field-icon"></i>
+            <span class='col padding0 padding-mid-v'>notify learners by email</span>
         </div>
-    </div>
+	</nl-dlg-row>
 
-    <div class='row row-wrap row-top padding-top margin0'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Remarks</div>
-        <div ng-class='resp2Col67' class='padding0'>
-            <nl-textarea fieldmodel='remarks' fieldcls='w100'></nl-textarea>
-        </div>
-    </div>
+	<nl-dlg-row attr='remarks' data='data' help='help'>
+        <nl-textarea fieldmodel='remarks' fieldcls='w100'></nl-textarea>
+	</nl-dlg-row>
+
 </nl-dlg-content>
 </nl-dlg>

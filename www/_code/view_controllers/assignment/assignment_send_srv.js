@@ -155,8 +155,28 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             forum: false,
             submissionAfterEndtime: false,
             sendEmail: false,
+            batchname: _assignInfo.batchname
         };
+        dlgScope.help = _getHelp();
     }
+
+	function _getHelp() {
+		var showAnsStr = '<ul><li>By default, answers are shown to the learner "after submitting" the assignment.</li>';
+			showAnsStr += '<li>You could change this to "on every page" if you want to learners to self learn and the score is not important.</li>';
+			showAnsStr += '<li>You can set this to "only when published" if you are dispatching a test and you do not want the learners to see the answers. You can explicitly publish the results later when appropriate from the assignment desk.</li></ul>';
+		return {
+			ouUserTree: {name: 'Users', help: nl.t('Select the organizations (and if needed, the specific learners), put in a remark and click the Send Assignment button to send it to the selected class.')},
+			starttime: {name: 'From', help: nl.t('You may define the earliest date and time (upto minutes accuracy) from when the assignment is active. If not set, the assignment is active as soon as it is sent till the end time.')},
+			endtime: {name: 'Till', help: nl.t('You may define the latest date and time (upto minutes accuracy) till when the assignment is active. If not set, the assignment is active after start time (or sent time if start is not defined).')},
+			maxduration: {name: 'Time limit (minutes)', help: nl.t('You may restrict the learner to complete the assignment within the specified time limit. If not set, the learner may take any amount of time subject to start and end time restrictions.')},
+			showAnswers: {name: 'Show answers', help: showAnsStr},
+			remarks: {name: 'Remarks', help: nl.t('Add remarks if any that you want to share to the learners - e.g. submit before Friday.')},
+			forum: {name: 'Forum', help: nl.t('You could choose to allow learners to discuss with you in a discussion forum. Only the learners belonging to this batch and learning administrators will be able to post and view messages in this forum.')},
+			submissionAfterEndtime: {name: 'Submission after end time', help: nl.t('You can allow learners to submit assignment after the mentioned endtime.')},
+			sendEmail: {name: 'Email notifications', help: nl.t('You could choose to send email notifications to the learners.')},
+			batchname: {name: 'Batch name', help: nl.t('This is an batch name mentioned while sending an assignemnt')}
+		};
+	}
 
     function _showDlg(resolve, reject) {
     	var buttonName = _assignInfo.assigntype == 'training' ? nl.t('Nominate User') : nl.t('Send Assignment');
@@ -221,7 +241,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             oustr: _getOrgUnitStr(ouUserInfo.ous),
             remarks: _dlg.scope.data.remarks || '',
             forum: _dlg.scope.data.forum || false,
-            sendemail: _dlg.scope.data.sendEmail || false};
+            sendemail: _dlg.scope.data.sendEmail || false,
+            batchname: _dlg.scope.data.batchname || ''};
 		
         if (data.assigntype == _nl.atypes.ATYPE_MODULE  || data.assigntype == _nl.atypes.ATYPE_COURSE) {
 	        var starttime = _dlg.scope.data.starttime || '';
@@ -359,7 +380,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         afterAssignmentSentDlg.scope.data = {sentUserCnt: ctx.sentUserCnt,
         	pageTitle: nl.t('Assignment sent')};
         if(ctx.data.assigntype == _nl.atypes.ATYPE_MODULE) {
-            afterAssignmentSentDlg.scope.data.url = nl.fmt2('/#/assignment_report?assignid={}&max=500', ctx.data.assignid);
+            afterAssignmentSentDlg.scope.data.url = nl.fmt2('/#/learning_reports?type=module_assign&objid={}&max=500', ctx.data.assignid);
         } else if (ctx.data.assigntype == _nl.atypes.ATYPE_COURSE) {
             afterAssignmentSentDlg.scope.data.url = nl.fmt2('#/learning_reports?type=course_assign&objid={}&max=500', ctx.data.assignid);
         }

@@ -46,7 +46,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         ctx = {};
 		dlg.scope.reptype = nlLrFilter.getType();
         dlg.setCssClass('nl-height-max nl-width-max');
-        dlg.scope.export = {summary: true, user: true, module: dlg.scope.reptype == 'module' ? true : false, ids: false,
+        dlg.scope.export = {summary: true, user: true, module: (dlg.scope.reptype == 'module' || dlg.scope.reptype == 'module_assign') ? true : false, ids: false,
             canShowIds: isAdmin, pageScore: false, feedback: false};
         dlg.scope.data = {};
 		_setExportFilters(dlg, reportRecords);
@@ -227,7 +227,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             }
         }
         
-        if (filter.exportTypes.user && filter.reptype == 'course') {
+        if (filter.exportTypes.user && (filter.reptype == 'course' || filter.reptype == 'course_assign')) {
             var content = rows.join(_CSV_DELIM);
             zip.file(fileName, content);
         }
@@ -254,7 +254,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     function _getCsvHeader(filter) {
         var mh = nlLrHelper.getMetaHeaders(false);
         var headers = ['User Id', 'User Name'];
-        headers = headers.concat(['Course Name', _gradelabel, _subjectlabel, 'Assigned On', 'Last Updated On', 
+        headers = headers.concat(['Course Name', 'Batch name', _gradelabel, _subjectlabel, 'Assigned On', 'Last Updated On', 
             'From', 'Till', 'Status', 'Progress', 'Progress Details', 'Quiz Attempts',
             'Achieved %', 'Maximum Score', 'Achieved Score', 'Time Spent (minutes)']);
         headers = headers.concat(['Email Id', 'Org']);
@@ -267,7 +267,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     function _getCsvRow(filter, report) {
         var mh = nlLrHelper.getMetaHeaders(false);
         var ret = [report.user.user_id, report.user.name];
-        ret = ret.concat([report.course.name, report.course.contentmetadata.grade || '',
+        ret = ret.concat([report.course.name, report.raw_record._batchName || '', report.course.contentmetadata.grade || '',
         	report.course.contentmetadata.subject || '', report.created, report.updated,
         	report.not_before || '', report.not_after || '', 
             report.stats.status.txt, '' + report.stats.percComplete + '%',
@@ -286,7 +286,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     function  _getModuleCsvRow(filter, report) {
         var mh = nlLrHelper.getMetaHeaders(false);
         var ret = [report.user.user_id, report.user.name];
-        ret = ret.concat([report.course.name, report.raw_record.grade || '',
+        ret = ret.concat([report.course.name, report.raw_record._batchName, report.raw_record.grade || '',
         	report.raw_record.subject || '', report.created, report.updated,
         	report.raw_record.started || '-', report.raw_record.ended || '-',
         	report.not_before, report.not_after, 
@@ -306,7 +306,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     function _getCsvModuleHeader(filter) {
         var mh = nlLrHelper.getMetaHeaders(false);
         var headers = ['User Id', 'User Name'];
-        headers = headers.concat(['Course Name', _gradelabel, _subjectlabel, 'Module Name', 'Started', 'Ended', 
+        headers = headers.concat(['Course Name', 'Batch name', _gradelabel, _subjectlabel, 'Module Name', 'Started', 'Ended', 
             'Status', 'Attempts', 'Achieved %', 'Maximum Score', 'Achieved Score', 'Pass %', 
             'Time Spent (minutes)']);
         headers = headers.concat(['Email Id', 'Org']);
@@ -345,7 +345,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     var _commonFields = [
             {id: '_assignTypeStr', name:'Record Type'},
             {id: '_courseName', name:'Course/Training Name'},
-            {id: '_batchName', name:'Training Batch Name'},
+            {id: '_batchName', name:'Batch Name'},
             {id: 'name', name:'Module Name'}];
 
     var _idFields1 = [
@@ -539,7 +539,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             var ret = [report.user.user_id, report.user.name];
             if (started) started = nl.fmt.date2Str(nl.fmt.json2Date(started));
             if (ended) ended = nl.fmt.date2Str(nl.fmt.json2Date(ended));
-            ret = ret.concat(['Module inside course', report.course.name, '', module.name, report.course.contentmetadata.grade || '',
+            ret = ret.concat(['Module inside course', report.course.name, report.raw_record._batchName, module.name, report.course.contentmetadata.grade || '',
 	        	report.course.contentmetadata.subject || '', report.created, started, ended, report.updated, status,
 	        	attempts, perc, maxScore, score, passScore ? passScore + '%' : '', timeSpent, report.repcontent.remarks]);
 	        ret.push(report.user.email);

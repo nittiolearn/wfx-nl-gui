@@ -222,6 +222,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
 		nl.fmt.addAvp(avps, 'Assigned to', assignment.assigned_to);
 		nl.fmt.addAvp(avps, _userInfo.groupinfo.subjectlabel, assignment.subject);
 		nl.fmt.addAvp(avps, 'Author', assignment.authorname);
+		nl.fmt.addAvp(avps, 'Batch name', assignment.batchname || '');
 		nl.fmt.addAvp(avps, 'From', assignment.not_before, 'date');
 		nl.fmt.addAvp(avps, 'Till', assignment.not_after, 'date');
 		nl.fmt.addAvp(avps, 'Max duration', assignment.max_duration, 'minutes');

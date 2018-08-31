@@ -9,7 +9,7 @@
             <i ng-hide='export.summary' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
             <span>export summary statistics</span>
         </div>
-        <div ng-show='reptype == "course"' class='padding-mid nl-link-text' 
+        <div ng-show='reptype == "course" || reptype == "course_assign"' class='padding-mid nl-link-text' 
              ng-click='export.user = !export.user'>
             <i ng-show='export.user' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.user' class="fsh4 icon ion-android-checkbox-outline-blank"></i>

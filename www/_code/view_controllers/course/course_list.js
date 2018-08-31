@@ -443,6 +443,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		nl.fmt.addAvp(avps, 'Assigned to', assignedTo);
 		if (isReport) nl.fmt.addAvp(avps, 'Report of', report.studentname);
 		nl.fmt.addAvp(avps, 'Group', report.grpname);
+		nl.fmt.addAvp(avps, 'Batch name', report.batchname);
 		nl.fmt.addAvp(avps, 'Created on', report.created, 'date');
 		nl.fmt.addAvp(avps, 'Updated on', report.updated, 'date');
 		nl.fmt.addAvp(avps, 'From', report.not_before || '', 'date');
