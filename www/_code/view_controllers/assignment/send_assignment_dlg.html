@@ -1,37 +1,18 @@
 <nl-dlg dlgtitle='{{assignInfo.dlgTitle ? assignInfo.dlgTitle : "Send assignment"}}'>
-<nl-dlg-help>
-	<div class='njsHelp'>
-	<p><b>Users (mandatory):</b> Select the organizations (and if needed, the specific learners), put in a remark and click the Send Assignment button to send it to the selected class.</p>
-	<p ng-show='assignInfo.assigntype != "training"' style='color:blue'><B><I>Rest of fields below are optional.</I></B></p>
-	<p ng-show='assignInfo.assigntype == "lesson"' style='color:blue'><B><I>You may set one or more of start time, end time and duration to control when and how long the assignment is active.</I></B></p>
-	<p ng-show='assignInfo.showDateField'><b>Start time:</b> You may define the earliest date and time (upto minutes accuracy) from when the assignment is active. If not set, the assignment is active as soon as it is sent till the end time.</p>
-	<p ng-show='assignInfo.showDateField'><b>End time:</b> You may define the latest date and time (upto minutes accuracy) till when the assignment is active. If not set, the assignment is active after start time (or sent time if start is not defined).</p>
-	<p ng-show='assignInfo.assigntype == "lesson"'><b>Time limit (minutes):</b> You may restrict the learner to complete the assignment within the specified time limit. If not set, the learner may take any amount of time subject to start and end time restrictions. </p>
-	<p ng-show='assignInfo.assigntype == "lesson"'><b>Show answers:</b>
-	</p>
-	<ul ng-show='assignInfo.assigntype == "lesson"'>
-		<li>By default, answers are shown to the learner "after submitting" the assignment.</li>
-		<li>You could change this to "on every page" if you want to learners to self learn and the score is not important.</li>
-		<li>You can set this to "only when published" if you are dispatching a test and you do not want the learners to see the answers. You can explicitly publish the results later when appropriate from the assignment desk.</li>
-	</ul>
-	<p ng-show='assignInfo.assigntype != "training"'><b>Forum:</b> You could choose to allow learners to discuss with you in a discussion forum. Only the learners belonging to this batch and learning administrators will be able to post and view messages in this forum.</p>
-	<p ng-show='assignInfo.enableSubmissionAfterEndtime'><b>Submission after end time:</b> You can allow learners to submit assignment after the mentioned endtime.</p>
-	<p ng-show='enableEmailNotifications'><b>Email notifications:</b> You could choose to send email notifications to the learners.</p>
-	<p><b>Remarks:</b> Add remarks if any that you want to share to the learners - e.g. submit before Friday.</p>
-	</div>
-</nl-dlg-help>
 <nl-dlg-content>
     <div class='row row-center padding-mid margin0'
          ng-hide='assignInfo.assigntype == "training"'>
         <div ng-class='resp2Col33' class='padding0' 
              ng-hide='screenSize == "small"'>
-            <img class='nl-max-100' ng-src='{{assignInfo.icon}}'>
+            <img ng-show='assignInfo.icon != "icon:"' class='nl-max-100' ng-src='{{assignInfo.icon}}'>
+            <div ng-if='assignInfo.icon == "icon:"' class='fsh4'><i class='fsh1 ion-ios-bookmarks fblue'></i></div>
         </div>
         <div ng-class='resp2Col67' class='padding0'>
             <div class='row row-center padding0 margin0'>
                 <img class='nl-max-50 padding-small'
-                     ng-show='screenSize == "small"'
+                     ng-show='screenSize == "small" && assignInfo.icon && assignInfo.icon != "icon:"'
                      ng-src='{{assignInfo.icon}}'>
+                <div ng-if='assignInfo.icon == "icon:" && screenSize == "small"' class='fsh4'><i class='fsh1 ion-ios-bookmarks fblue'></i></div>
                 <span class='col fsh4 padding-small'>{{assignInfo.title}}</span>
             </div>
             <div ng-hide='screenSize == "small"'>
@@ -47,16 +28,22 @@
 	</nl-dlg-row>
 
 	<nl-dlg-row attr='ouUserTree' data='data' help='help'>
-        <nl-tree-select info='data.ouUserTree' tabindex='0' autofocus=''>
-        </nl-tree-select>
+		<div style='padding:4px'>
+	        <nl-tree-select info='data.ouUserTree' tabindex='0' autofocus=''>
+	        </nl-tree-select>
+		</div>
 	</nl-dlg-row>
 
 	<nl-dlg-row ng-show='assignInfo.showDateField' attr='starttime' data='data' help='help'>
-        <nl-date-time-select fieldmodel='starttime'></nl-date-time-select>
+		<div style='padding:4px'>
+	        <nl-date-time-select fieldmodel='starttime'></nl-date-time-select>
+		</div>
 	</nl-dlg-row>
 
 	<nl-dlg-row ng-show='assignInfo.showDateField' attr='endtime' data='data' help='help'>
-        <nl-date-time-select fieldmodel='endtime'></nl-date-time-select>
+		<div style='padding:4px'>
+	        <nl-date-time-select fieldmodel='endtime'></nl-date-time-select>
+		</div>
 	</nl-dlg-row>
 
 	<nl-dlg-row ng-show='assignInfo.assigntype == "lesson"' attr='maxduration' data='data' help='help'>
@@ -68,37 +55,28 @@
 	</nl-dlg-row>
 
 	<nl-dlg-row ng-show='assignInfo.assigntype != "training"' attr='forum' data='data' help='help'>
-        <div class='nl-link-text row row-center padding0 margin0'
-             ng-click='data.forum = !data.forum'
-             autofocus=''
-             tabindex="{{tabindex || 0}}">
-            <i ng-show='data.forum' class="icon ion-android-checkbox-outline nl-dlg-field-icon"></i>
-            <i ng-show='!data.forum' class="icon ion-android-checkbox-outline-blank nl-dlg-field-icon"></i>
-            <span class='col padding0 padding-mid-v'>allow users to discuss in the forum</span>
-        </div>
+        <nl-checkbox fieldmodel='forum' 
+                     fieldname='allow users to discuss in the forum'
+                     fieldcls= 'padding-mid'
+                     fieldindex="0">
+        </nl-checkbox>
 	</nl-dlg-row>
 
 	<nl-dlg-row attr='submissionAfterEndtime' data='data' help='help'
          ng-show='assignInfo.enableSubmissionAfterEndtime && data.endtime'>
-        <div class='nl-link-text row row-center padding0 margin0'
-             ng-click='data.submissionAfterEndtime = !data.submissionAfterEndtime'
-             autofocus=''
-             tabindex="{{tabindex || 0}}">
-            <i ng-show='data.submissionAfterEndtime' class="icon ion-android-checkbox-outline nl-dlg-field-icon"></i>
-            <i ng-show='!data.submissionAfterEndtime' class="icon ion-android-checkbox-outline-blank nl-dlg-field-icon"></i>
-            <span class='col padding0 padding-mid-v'>allow users to submit assignment after endtime</span>
-        </div>
+        <nl-checkbox fieldmodel='submissionAfterEndtime' 
+                     fieldname='allow users to submit assignment after endtime'
+                     fieldcls= 'padding-mid'
+                     fieldindex="0">
+        </nl-checkbox>
     </nl-dlg-row>
 
-	<nl-dlg-row ng-show='enableEmailNotifications' attr='submissionAfterEndtime' data='data' help='help'>
-        <div class='nl-link-text row row-center padding0 margin0'
-             ng-click='data.sendEmail = !data.sendEmail'
-             autofocus=''
-             tabindex="{{tabindex || 0}}">
-            <i ng-show='data.sendEmail' class="icon ion-android-checkbox-outline nl-dlg-field-icon"></i>
-            <i ng-show='!data.sendEmail' class="icon ion-android-checkbox-outline-blank nl-dlg-field-icon"></i>
-            <span class='col padding0 padding-mid-v'>notify learners by email</span>
-        </div>
+	<nl-dlg-row ng-show='enableEmailNotifications' attr='sendEmail' data='data' help='help'>
+        <nl-checkbox fieldmodel='sendEmail'
+                     fieldname='notify learners by email'
+                     fieldcls= 'padding-mid'
+                     fieldindex="0">
+        </nl-checkbox>
 	</nl-dlg-row>
 
 	<nl-dlg-row attr='remarks' data='data' help='help'>

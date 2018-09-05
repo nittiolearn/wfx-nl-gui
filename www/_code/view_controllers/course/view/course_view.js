@@ -920,7 +920,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     function _sendAssignment() {
         if (!$scope.canSendAssignment) return;
         var c = modeHandler.course;
-        var assignInfo = {assigntype: 'course', id: c.id, icon: null, 
+        var assignInfo = {assigntype: 'course', id: c.id, icon: c.icon, 
             title: c.name, authorName: c.authorname, description: c.description, 
             showDateField: true, enableSubmissionAfterEndtime: true};
         nlSendAssignmentSrv.show($scope, assignInfo);

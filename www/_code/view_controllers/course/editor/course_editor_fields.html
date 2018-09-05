@@ -12,7 +12,7 @@
 </style>
 <div class='row row-top row-wrap margin0 padding0'
      ng-repeat='attr in attrs'
-     ng-if='(!attr.fields || attr.fields.indexOf(values.type) >= 0) && (!attr.debug || editor.debug) && (!attr.group || editor.showGroup[attr.group])'>
+     ng-if='(!attr.fields || attr.fields.indexOf(values[attr.stored_at].type) >= 0) && (!attr.debug || editor.debug) && (!attr.group || editor.showGroup[attr.group])'>
     <div class='w100 nl-link-text padding-mid' 
          ng-if='attr.type === "group"'
          ng-click='editor.showGroup[attr.name] = !editor.showGroup[attr.name]'
@@ -24,7 +24,6 @@
             {{attr.text||attr.name}}
         </span>
     </div>
-    
 	<div ng-if='attr.type !== "group" && attr.type !== "hidden"' ng-class='$root.resp2Col33'
 	     class='padding-mid' ng-click='attr.showHelp = !attr.showHelp'>
 	     <div class='row row-center row-wrap margin0 padding0'>
@@ -35,34 +34,34 @@
     <div ng-class='$root.resp2Col67'
          ng-if='attr.type === "string" || attr.type === "number" || attr.type === "icon"'
          class='nl-dlg-field-value padding-mid'>
-        <input ng-model='values[attr.name]' class='w100'
+        <input ng-model='values[attr.stored_at][attr.name]' class='w100'
         	   type='{{attr.type == "number" ? "number" : "text"}}'
         	   min='0'
-               ng-change='editor.onAttrChange($event, attr, values)'
+               ng-change='editor.onAttrChange($event, attr, values[attr.stored_at])'
         	   ng-focus="attr.focus=true" ng-blur="attr.focus=false">
         <div ng-if='attr.icon'>
             <div class='padding-small'></div>
-        	<img ng-if='values[attr.name] !== "icon:"' ng-src='{{values[attr.name]}}' class='nl-100'/>
-		    <div ng-if='values[attr.name] == "icon:"' class='fsh4'><i class='fsh1 ion-ios-bookmarks fblue'></i></div>
+        	<img ng-if='values[attr.stored_at][attr.name] !== "icon:"' ng-src='{{values[attr.stored_at][attr.name]}}' class='nl-100'/>
+		    <div ng-if='values[attr.stored_at][attr.name] == "icon:"' class='fsh4'><i class='fsh1 ion-ios-bookmarks fblue'></i></div>
         </div>
     </div>
     <div ng-class='$root.resp2Col67'
          ng-if='attr.type === "readonly"'
          class='nl-dlg-field-value padding-mid'>
-        <input ng-model='values[attr.name]' class='w100' readonly type='text'
+        <input ng-model='values[attr.stored_at][attr.name]' class='w100' readonly type='text'
          ng-focus="attr.focus=true" ng-blur="attr.focus=false">
     </div>
     <div ng-class='$root.resp2Col67'
          ng-if='attr.type === "readonlyobj"'
          class='nl-dlg-field-value padding-mid'>
-        <pre class='w100' ng-focus="attr.focus=true" ng-blur="attr.focus=false">{{values[attr.name]}}</pre>
+        <pre class='w100' ng-focus="attr.focus=true" ng-blur="attr.focus=false">{{values[attr.stored_at][attr.name]}}</pre>
     </div>
 	<div ng-class='$root.resp2Col67'
          ng-if='attr.type === "list"'
          class='nl-dlg-field-value padding-mid'>
-        <select ng-model='values[attr.name]' 
+        <select ng-model='values[attr.stored_at][attr.name]' 
                 class='w100'
-                ng-change='editor.onAttrChange($event, attr, values)'
+                ng-change='editor.onAttrChange($event, attr, values[attr.stored_at])'
                 ng-options='opt as (opt | nlConvert:attr.valueNames) for opt in attr.values'
                 ng-focus="attr.focus=true" ng-blur="attr.focus=false">
         </select>               
@@ -71,14 +70,14 @@
     <div ng-class='$root.resp2Col67'
          ng-if='attr.type === "boolean"'
          class='padding-mid'
-         ng-click='editor.onBooleanClick($event, attr, values)'
+         ng-click='editor.onBooleanClick($event, attr, values[attr.stored_at])'
          ng-focus="attr.focus=true" ng-blur="attr.focus=false"
          tabindex="0"
-         ng-keypress='$event.keyCode == 32 ? values[attr.name] = !values[attr.name] : ""'>
+         ng-keypress='$event.keyCode == 32 ? values[attr.stored_at][attr.name] = !values[attr.stored_at][attr.name] : ""'>
         <div class='padding-mid nl-link-text'>
             <span>
-                <i ng-show='values[attr.name]' class="icon ion-android-checkbox-outline black"></i>
-                <i ng-hide='values[attr.name]' class="icon ion-android-checkbox-outline-blank black"></i>
+                <i ng-show='values[attr.stored_at][attr.name]' class="icon ion-android-checkbox-outline black"></i>
+                <i ng-hide='values[attr.stored_at][attr.name]' class="icon ion-android-checkbox-outline-blank black"></i>
                 <span>{{attr.desc||attr.text||attr.name}}</span>
             </span>
         </div>
@@ -89,14 +88,14 @@
     	 ng-if='attr.type === "date"'
     	 class='nl-dlg-field-value padding-mid'>
     	 <div class='nl-link-text ce-input-div' 
-    	 	  ion-datetime-picker date ng-model="values[attr.name]" 
+    	 	  ion-datetime-picker date ng-model="values[attr.stored_at][attr.name]" 
     	 	  ng-focus="attr.focus=true" ng-blur="attr.focus=false"
     	 	  tabindex="0">
             <div class='row row-center margin0 padding0'>
-                <div class='col'>{{values[attr.name] | nlDateTimeFormat:"date"}}</div>
-                <i ng-show='values[attr.name]'
+                <div class='col'>{{values[attr.stored_at][attr.name] | nlDateTimeFormat:"date"}}</div>
+                <i ng-show='values[attr.stored_at][attr.name]'
                    class='icon ion-ios-close fsh4 padding-small forange'
-                   ng-click='values[attr.name]=null; $event.stopImmediatePropagation()'>
+                   ng-click='values[attr.stored_at][attr.name]=null; $event.stopImmediatePropagation()'>
                 </i>                
                 <i class='icon ion-ios-calendar fsh4 padding-small'></i>
             </div>
@@ -110,7 +109,7 @@
         <div class='row row-center margin0 padding0'>
         	<div class='col'></div>
             <div class='nl-link-text padding-mid fsh6' 
-            	 ng-click='editor.showWikiMarkupPreview($event, values, attr)'>
+            	 ng-click='editor.showWikiMarkupPreview($event, values[attr.stored_at], attr)'>
             	<span ng-show='!attr.showPreview'>
             		<i class="icon ion-ios-eye padding-mid"></i><span>preview</span>
             	</span>
@@ -120,12 +119,12 @@
             </div>
         </div>
         <div class='padding-small'></div>
-        <div ng-show='attr.showPreview' nl-compile='values[attr.valueName]' class='nl-content-holder'></div>
+        <div ng-show='attr.showPreview' nl-compile='values[attr.stored_at][attr.valueName]' class='nl-content-holder'></div>
         </div>
-        <textarea rows="5" ng-model='values[attr.name]'
+        <textarea rows="5" ng-model='values[attr.stored_at][attr.name]'
                   class='w100'
                   ng-hide='attr.showPreview'
-                  ng-change='editor.validateTextField(values[attr.name], attr)'
+                  ng-change='editor.validateTextField(values[attr.stored_at][attr.name], attr)'
                   ng-focus="attr.focus=true" ng-blur="attr.focus=false">
         </textarea>
     </div>
@@ -141,9 +140,9 @@
          ng-if='attr.type === "object_with_gui"'
          class='nl-dlg-field-value padding-mid'>
         <div class='row row-center padding0 nl-xxx-select nl-link-img'
-        	 ng-click='editor.editAttribute($event, values, attr)'
+        	 ng-click='editor.editAttribute($event, values[attr.stored_at], attr)'
              title='Edit'>
-            <span class='col nl-textellipsis' ng-bind-html='editor.getDisplayValue(values, attr)'></span>
+            <span class='col nl-textellipsis' ng-bind-html='editor.getDisplayValue(values[attr.stored_at], attr)'></span>
             <i class='icon ion-edit icon nl-dlg-field-icon'></i>
         </div>
     </div>
@@ -152,16 +151,26 @@
     	 class='nl-dlg-field-value padding-mid'>
         <div class='row row-center padding0'>
             <input class='col' 
-             ng-model='values[attr.name]' type='text'
+             ng-model='values[attr.stored_at][attr.name]' type='text'
              ng-focus="attr.focus=true" ng-blur="attr.focus=false">
             <i class='icon ion-android-open fsh4 padding-small nl-link-img'
-               ng-click='editor.onLaunch($event, values)'
+               ng-click='editor.onLaunch($event, values[attr.stored_at])'
                title='Preview'></i>
             <i class='icon ion-android-search fsh4 padding-small nl-link-img'
-               ng-click='editor.searchLesson($event, values)'
+               ng-click='editor.searchLesson($event, values[attr.stored_at])'
                title='Search modules'></i>
         </div>
 	</div>
+
+	<div ng-class='$root.resp2Col67' 
+		ng-if='attr.type == "tree-select"'>
+		<div class='row row-center margin0 padding0'>
+			<div class='col col-100'>
+	           	<nl-tree-select info='editor.treeOptions[attr.name]'></nl-tree-select>     	 	
+			</div>
+		</div>
+	</div>
+
 	<div class='w100 inline-help-padding' ng-show='attr.showHelp && attr.help && attr.type !== "hidden"'>
 	    <nl-inline-help>
 	        <div>

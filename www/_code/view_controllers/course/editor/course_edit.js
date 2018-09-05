@@ -31,8 +31,8 @@ function EditorFieldsDirective() {
 
 //-------------------------------------------------------------------------------------------------
 var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlLessonSelect', 
-'nlExportLevel', 'nlRouter', 'nlCourseCanvas', 'nlMarkup',
-function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCourseCanvas, nlMarkup) {
+'nlExportLevel', 'nlRouter', 'nlCourseCanvas', 'nlMarkup', 'nlTreeSelect',
+function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCourseCanvas, nlMarkup, nlTreeSelect) {
 
     var modeHandler = null;
     var $scope = null;
@@ -49,8 +49,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         _updateCourseAndModuleAttrOptions(userInfo);
         $scope.editor = {
         	jsonTempStore: {},
-        	course_params: _courseParams,
-            course_attributes: _getCourseAttributes(modeHandler.course),
+        	course_params: _getCourseParams(),
+        	course_paramStore: {course: modeHandler.course, content: modeHandler.course.content, metadata: modeHandler.course.content.contentmetadata || {}},
             module_attributes: moduleAttrs,
             course: modeHandler.course,
             debug: _debug,
@@ -66,7 +66,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
             validateTextField: _validateTextField,
 			editAttribute: _editAttribute,
 			showWikiMarkupPreview: _showWikiMarkupPreview,
-			getDisplayValue: _getDisplayValue
+			getDisplayValue: _getDisplayValue,
+			treeOptions: _getTreeOptions()
         };
     };
 
@@ -186,50 +187,74 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		return '';
 	}
 	
-    function _getCourseAttributes(course) {
-        var ret = angular.copy(courseAttrs);
-        var knownAttributes = {};
-        for (var i=0; i<ret.length; i++) {
-        	knownAttributes[ret[i].name] = true;
-        }
+	function _getCourseParams() {
+		var courseAttributes = {};
+		for(var k in _courseParams) courseAttributes[_courseParams[k].name] = true;
+		if (!('grade' in courseAttributes)) _courseParams.splice(1, 0, {name: 'grade', stored_at: 'metadata', text: _userInfo.groupinfo.gradelabel, type: 'tree-select', help:nl.t('Add {} to course', _userInfo.groupinfo.gradelabel)});
+		if (!('subject' in courseAttributes)) _courseParams.splice(2, 0, {name: 'subject', stored_at: 'metadata', text: _userInfo.groupinfo.subjectlabel, type: 'tree-select', help:nl.t('Add {} to course', _userInfo.groupinfo.subjectlabel)});
+		return _courseParams;
+	}
+	
+	function _getTreeOptions() {
+		var selectedGrade = {};
+		var selectedSubject = {};
+		if(!('contentmetadata' in modeHandler.course.content)) modeHandler.course.content.contentmetadata = {};
+		if(modeHandler.course.content.contentmetadata.grade) {
+			selectedGrade[modeHandler.course.content.contentmetadata.grade] = true;
+		} else {
+			selectedGrade[_userInfo.groupinfo.grades[0]] = true;
+			modeHandler.course.content.contentmetadata.grade = _userInfo.groupinfo.grades[0];
+		}
+		if(modeHandler.course.content.contentmetadata.subject) {
+			selectedSubject[modeHandler.course.content.contentmetadata.subject] = true;
+		} else {
+			selectedSubject[_userInfo.groupinfo.subjects[0]] = true;
+			modeHandler.course.content.contentmetadata.subject = _userInfo.groupinfo.subjects[0];
+		}
+       	var _gradeInfo = {data: nlTreeSelect.strArrayToTreeArray(_userInfo.groupinfo.grades || [])};
+        nlTreeSelect.updateSelectionTree(_gradeInfo, selectedGrade);
+        _gradeInfo.treeIsShown = false;
+        _gradeInfo.multiSelect = false;
+		_gradeInfo.fieldmodelid = 'grade';
+		_gradeInfo.onSelectChange = function() {
+			modeHandler.course.content.contentmetadata.grade = Object.keys(nlTreeSelect.getSelectedIds(_gradeInfo))[0];
+		};
         
-        for (var k in course.content) {
-            if (k in knownAttributes) continue;
-            ret.push({name: k, text: 'custom: ' + k, type: 'readonlyobj', debug: true, group: 'grp_additionalAttrs'});
-        }
-        return ret;
-    }
+       	var _subjectInfo = {data: nlTreeSelect.strArrayToTreeArray(_userInfo.groupinfo.subjects || [])};
+        nlTreeSelect.updateSelectionTree(_subjectInfo, selectedSubject);
+        _subjectInfo.treeIsShown = false;
+        _subjectInfo.multiSelect = false;
+		_subjectInfo.fieldmodelid = 'subject';
+		_subjectInfo.onSelectChange = function() {
+			modeHandler.course.content.contentmetadata.subject = Object.keys(nlTreeSelect.getSelectedIds(_subjectInfo))[0];
+		};
+		return {grade: _gradeInfo, subject: _subjectInfo};
+	}
 
     var _courseParams = [
-        {name: 'name', text: 'Name', type: 'string', isTitle: true},
-        {name: 'icon', text: 'Image', type: 'icon', icon: true},
-        {name: 'description', text: 'Course description', type: 'text', maxlen: 100}
+        {name: 'name', stored_at: 'course', text: 'Name', type: 'string', isTitle: true},
+        {name: 'icon', stored_at: 'course', text: 'Image', type: 'icon', icon: true},
+        {name: 'description', stored_at: 'course', text: 'Course description', type: 'text', maxlen: 100},
+        {name: 'grp_additionalAttrs', stored_at: 'content', type: 'group', text: 'Advanced properties'},
+    	{name: 'planning', stored_at: 'content', text:'Schedule planning', desc: 'Enable schedule planning for this course', group: 'grp_additionalAttrs', type: 'boolean'},
+     	{name: 'hide_answers', stored_at: 'content', text:'Hide answers', desc: 'Disallow learners to view completed modules', group: 'grp_additionalAttrs', type: 'boolean'},
+ 	  	{name: 'certificate', stored_at: 'content', text: 'Certificate configuration', type: 'hidden', group: 'grp_additionalAttrs'},
+    	{name: 'custtype', stored_at: 'content', text: 'Custom type', type: 'number', group: 'grp_additionalAttrs'},
+        {name: 'exportLevel', stored_at: 'content', text: 'Visibility', type: 'list', values: [], valueNames: {}, group: 'grp_additionalAttrs'},
+        {name: 'contentmetadata', stored_at: 'metadata', text: 'Metadata', type: 'object', group: 'grp_additionalAttrs', debug: true},
+    	{name: 'lastId', stored_at: 'content', text: 'Last Id', type: 'readonly', group: 'grp_additionalAttrs', debug: true},
+        {name: 'modules', stored_at: 'content', text: 'Modules', type: 'hidden', group: 'grp_additionalAttrs', debug: true},
+        {name: 'contentVersion', stored_at: 'content', text: 'Content Version', type: 'hidden', group: 'grp_additionalAttrs', debug: true},
+        {name: 'grp_canvasAttrs', stored_at: 'content', type: 'group', text: 'Canvas properties'},
+        {name: 'canvasview', stored_at: 'content', type: 'boolean', text: 'Canvas mode', desc: 'View the course in a visual canvas mode', group: 'grp_canvasAttrs'},
+        {name: 'bgimg', stored_at: 'content', type: 'string', text: 'Background image', group: 'grp_canvasAttrs'},
+        {name: 'bgcolor', stored_at: 'content', type: 'string', text: 'Background color', group: 'grp_canvasAttrs'}
     ];
     
     var _courseParamsHelp = {
-            name: 'Mandatory - enter a name for your course. It is recommended to keep the course name under 30 characters.',
-            icon: 'Mandatory - enter a URL for the course icon that will be displayed when this course is searched. The default value is "icon:" which displays a default course icon.',
-            description: 'Provide a short description which will help others in the group to understand the purpose of this course. It is recommended to keep the course description under 100 characters.'
-    };
-    
-    var courseAttrs = [
-        {name: 'grp_additionalAttrs', type: 'group', text: 'Advanced properties'},
-    	{name: 'planning', text:'Schedule planning', desc: 'Enable schedule planning for this course', group: 'grp_additionalAttrs', type: 'boolean'},
-    	{name: 'hide_answers', text:'Hide answers', desc: 'Disallow learners to view completed modules', group: 'grp_additionalAttrs', type: 'boolean'},
-    	{name: 'certificate', text: 'Certificate configuration', type: 'hidden', group: 'grp_additionalAttrs'},
-    	{name: 'custtype', text: 'Custom type', type: 'number', group: 'grp_additionalAttrs'},
-        {name: 'exportLevel', text: 'Visibility', type: 'list', values: [], valueNames: {}, group: 'grp_additionalAttrs'},
-        {name: 'contentmetadata', text: 'Metadata', type: 'object', group: 'grp_additionalAttrs', debug: true},
-    	{name: 'lastId', text: 'Last Id', type: 'readonly', group: 'grp_additionalAttrs', debug: true},
-        {name: 'modules', text: 'Modules', type: 'hidden', group: 'grp_additionalAttrs', debug: true},
-        {name: 'contentVersion', text: 'Content Version', type: 'hidden', group: 'grp_additionalAttrs', debug: true},
-        {name: 'grp_canvasAttrs', type: 'group', text: 'Canvas properties'},
-        {name: 'canvasview', type: 'boolean', text: 'Canvas mode', desc: 'View the course in a visual canvas mode', group: 'grp_canvasAttrs'},
-        {name: 'bgimg', type: 'string', text: 'Background image', group: 'grp_canvasAttrs'},
-        {name: 'bgcolor', type: 'string', text: 'Background color', group: 'grp_canvasAttrs'}
-    ];
-    
-    var _courseAttrHelp = {
+        name: 'Mandatory - enter a name for your course. It is recommended to keep the course name under 30 characters.',
+        icon: 'Mandatory - enter a URL for the course icon that will be displayed when this course is searched. The default value is "icon:" which displays a default course icon.',
+        description: 'Provide a short description which will help others in the group to understand the purpose of this course. It is recommended to keep the course description under 100 characters.',
     	planning: 'Start and end dates are considered only if schedule planning is enabled.',
     	hide_answers: 'Enable this attribute if this course is for assessment purpose and you would like to disallow the learners to see the correct answers.',
     	custtype: 'You can define a custom type to help in searchability.',
@@ -243,34 +268,34 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     };
     
     var moduleAttrs = [
-        {name: 'name', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'string', text: 'Name'}, 
-        {name: 'type', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'list', text: 'Element type', values: ['module', 'lesson', 'certificate', 'info', 'link'],
+        {name: 'name', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'string', text: 'Name'}, 
+        {name: 'type', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'list', text: 'Element type', values: ['module', 'lesson', 'certificate', 'info', 'link'],
             valueNames: {'module': 'Folder', 'lesson': 'Module', 'link': 'Link', 'info': 'Information', 'certificate': 'Certificate'},
             updateDropdown: _updateTypeDropdown},
-        {name: 'refid', fields: ['lesson'], type: 'lessonlink', contentType: 'integer', text: 'Module-id'},
-		{name: 'maxDuration', fields: ['lesson'], type: 'string', contentType: 'integer', text: 'Time limit (minutes)'},
-        {name: 'action', fields: ['link'], type: 'lessonlink', text: 'Action'},
-        {name: 'urlParams', fields: ['link'], type: 'string', text: 'Url-Params'},
-        {name: 'certificate_image', fields: ['certificate'], type: 'string', text: 'Certificate image'},
-        {name: 'start_after', fields: ['lesson', 'link', 'info', 'certificate'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
-        {name: 'grp_depAttrs', fields: ['lesson', 'link', 'info'], type: 'group', text: 'Planning'},
-        {name: 'start_date', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Start date', group: 'grp_depAttrs'},
-        {name: 'planned_date', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Planned date', group: 'grp_depAttrs'},
-        {name: 'grp_additionalAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'group', text: 'Advanced properties'},
-        {name: 'reopen_on_fail', fields: ['lesson'], type: 'object', text: 'Reopen on fail', contentType: 'object',group: 'grp_additionalAttrs'},
-        {name: 'icon', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
-        {name: 'text', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'wikitext', valueName: 'textHtml', text: 'Description', group: 'grp_additionalAttrs'},
-        {name: 'maxAttempts', fields: ['lesson'], type: 'number', text: 'Maximum attempts', group: 'grp_additionalAttrs'},
-        {name: 'hide_remarks', fields: ['info', 'link'], type: 'boolean', text: 'Disable remarks', group: 'grp_additionalAttrs'},
-        {name: 'autocomplete', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
-        {name: 'parentId', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'readonly', debug: true, text: 'Parent ID', group: 'grp_additionalAttrs', readonly: true}, 
-        {name: 'id', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'readonly', text: 'Unique ID', group: 'grp_additionalAttrs', readonly: true}, 
-    	{name: 'totalItems', fields : ['module'], type: 'readonly', text: 'Total items', group: 'grp_additionalAttrs'},
-        {name: 'grp_canvasAttrs', type: 'group', text: 'Canvas properties', fields: ['module', 'lesson', 'link', 'info', 'certificate']},
-        {name: 'posX', type: 'number', text: 'X Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate']},
-        {name: 'posY', type: 'number', text: 'Y Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate']},
-        {name: 'bgimg', type: 'string', text: 'Background image', group: 'grp_canvasAttrs', fields: ['module']},
-        {name: 'bgcolor', type: 'string', text: 'Background color', group: 'grp_canvasAttrs', fields: ['module']}
+        {name: 'refid', stored_at: 'module', fields: ['lesson'], type: 'lessonlink', contentType: 'integer', text: 'Module-id'},
+		{name: 'maxDuration', stored_at: 'module', fields: ['lesson'], type: 'string', contentType: 'integer', text: 'Time limit (minutes)'},
+        {name: 'action', stored_at: 'module', fields: ['link'], type: 'lessonlink', text: 'Action'},
+        {name: 'urlParams', stored_at: 'module', fields: ['link'], type: 'string', text: 'Url-Params'},
+        {name: 'certificate_image', stored_at: 'module', fields: ['certificate'], type: 'string', text: 'Certificate image'},
+        {name: 'start_after', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
+        {name: 'grp_depAttrs', stored_at: 'module', fields: ['lesson', 'link', 'info'], type: 'group', text: 'Planning'},
+        {name: 'start_date', stored_at: 'module', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Start date', group: 'grp_depAttrs'},
+        {name: 'planned_date', stored_at: 'module', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Planned date', group: 'grp_depAttrs'},
+        {name: 'grp_additionalAttrs', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'group', text: 'Advanced properties'},
+        {name: 'reopen_on_fail', stored_at: 'module', fields: ['lesson'], type: 'object', text: 'Reopen on fail', contentType: 'object',group: 'grp_additionalAttrs'},
+        {name: 'icon', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
+        {name: 'text', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'wikitext', valueName: 'textHtml', text: 'Description', group: 'grp_additionalAttrs'},
+        {name: 'maxAttempts', stored_at: 'module', fields: ['lesson'], type: 'number', text: 'Maximum attempts', group: 'grp_additionalAttrs'},
+        {name: 'hide_remarks', stored_at: 'module', fields: ['info', 'link'], type: 'boolean', text: 'Disable remarks', group: 'grp_additionalAttrs'},
+        {name: 'autocomplete', stored_at: 'module', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
+        {name: 'parentId', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'readonly', debug: true, text: 'Parent ID', group: 'grp_additionalAttrs', readonly: true}, 
+        {name: 'id', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'readonly', text: 'Unique ID', group: 'grp_additionalAttrs', readonly: true}, 
+    	{name: 'totalItems', stored_at: 'module', fields : ['module'], type: 'readonly', text: 'Total items', group: 'grp_additionalAttrs'},
+        {name: 'grp_canvasAttrs', stored_at: 'module', type: 'group', text: 'Canvas properties', fields: ['module', 'lesson', 'link', 'info', 'certificate']},
+        {name: 'posX', stored_at: 'module', type: 'number', text: 'X Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate']},
+        {name: 'posY', stored_at: 'module', type: 'number', text: 'Y Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate']},
+        {name: 'bgimg', stored_at: 'module', type: 'string', text: 'Background image', group: 'grp_canvasAttrs', fields: ['module']},
+        {name: 'bgcolor', stored_at: 'module', type: 'string', text: 'Background color', group: 'grp_canvasAttrs', fields: ['module']}
     ];
     
     var _moduleAttrHelp = {
@@ -319,7 +344,6 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         }
     }
     _updateHelps(_courseParams, _courseParamsHelp, 'course');
-    _updateHelps(courseAttrs, _courseAttrHelp, 'content');
     _updateHelps(moduleAttrs, _moduleAttrHelp, 'modules');
     
     var allowedModuleAttrs = (function () {
@@ -339,8 +363,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     
     var allowedCourseAttrs = (function() {
         var ret = {};
-        for(var i=0; i<courseAttrs.length; i++) {
-            var attr = courseAttrs[i];
+        for(var i=0; i<_courseParams.length; i++) {
+            var attr = _courseParams[i];
             if (attr.type == 'hidden') continue;
             ret[attr.name] = attr;
         }
@@ -612,6 +636,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
             if (!((key in content) || (key in $scope.editor.jsonTempStore))) continue;
             var attr =  allowedCourseAttrs[key];
             if (attr.type != 'object') continue;
+			if (attr.name == 'contentmetadata') continue;
 
             var status = {};
             content[key] = _jsonToObj($scope.editor.jsonTempStore[key], status);

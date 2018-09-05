@@ -125,7 +125,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
         } else if (linkid === 'fetch_more') {
             _fetchMore();
 		} else if (linkid === 'course_assign'){
-			var assignInfo = {assigntype: 'course', id: card.courseId, icon: null, 
+			var assignInfo = {assigntype: 'course', id: card.courseId, icon : card.icon2 ? 'icon:' : card.icon, 
 				title: card.title, authorName: card.authorName, description: card.help,
 				showDateField: true, enableSubmissionAfterEndtime: true};
 			nlSendAssignmentSrv.show($scope, assignInfo);

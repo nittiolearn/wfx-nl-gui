@@ -142,7 +142,12 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
 		if (!user) return null;
         var course = nlLrCourseRecords.getRecord(report.lesson_id);
         if (!course) course = nlLrCourseRecords.getCourseInfoFromReport(report, repcontent);
-
+		report.gradeLabel = _userInfo.groupinfo.gradelabel;
+		report.subjectLabel = _userInfo.groupinfo.subjectlabel;
+		var contentmetadata = 'contentmetadata' in course ? course.contentmetadata : {};
+		report._grade = contentmetadata.grade || '';
+		report.subject = contentmetadata.subject || ''; 
+		
         var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
             timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
             internalIdentifier:report.id, nCerts: course.certificates.length};
@@ -275,7 +280,6 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
 		report.ended = nl.fmt.json2Date(repcontent.ended);
 		report.not_before = repcontent.not_before ? nl.fmt.json2Date(repcontent.not_before) : '';
 		report.not_after = repcontent.not_after ? nl.fmt.json2Date(repcontent.not_after) : '';
-        stats.status = nlLrHelper.statusInfos[_getModuleStatus(stats, repcontent, report)];
 
         report.name = repcontent.name || '';
         report._treeId = nl.fmt2('{}.{}', report.org_unit, report.student);
@@ -291,6 +295,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
         if (!report.completed) {
             report._percStr = '';
             report._statusStr = report.started ? 'started' : 'pending';
+	        stats.status = nlLrHelper.statusInfos[_getModuleStatus(stats, repcontent, report)];
         } else {
 	        var maxScore = repcontent.selfLearningMode ? 0 : parseInt(repcontent.maxScore || 0);
 	        var score = repcontent.selfLearningMode ? 0 : parseInt(repcontent.score || 0);
@@ -308,11 +313,12 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
 	        stats.nScore = score;
 	        stats.nMaxScore = maxScore;
 	        stats.percScore = stats.nMaxScore ? Math.round(stats.nScore/stats.nMaxScore*100) : 0;
-	        stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
+	        stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '0%';
 	        if (passScore == 0 || perc >= passScore) 
 	        	stats.nLessonsPassed++;
 	        else 
 	        	stats.nLessonsFailed++;
+			stats.status = repcontent.selfLearningMode ? nlLrHelper.statusInfos[nlLrHelper.STATUS_DONE] : nlLrHelper.statusInfos[_getModuleStatus(stats, repcontent, report)];
         	stats.percCompleteStr = 'Completed';
         	stats.percCompleteDesc = 'Module completed';
         }
@@ -328,14 +334,16 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
 	            stats.nMaxScore = rep.maxScore;
 	            stats.nQuiz++;
 	        }
-        	if(report.ctypestr == 'module') 
+        	if(report.ctypestr == 'module') {
 				report.urlTitle = nl.t('View report');
 				report.url = nl.fmt2('/lesson/review_report_assign/{}', report.id);
-        	if(report.ctypestr == 'module_assign')
-				report.urlTitle = nl.t('Update');
-				report.url = nl.fmt2('/lesson/update_report_assign/{}', report.id);
+        	} else if(report.ctypestr == 'module_assign') {
+				report.urlTitle = nl.t('View report');
+				report.url = nl.fmt2('/lesson/review_report_assign/{}', report.id);
+				report.urlTitle1 = nl.t('Update');
+				report.url1 = nl.fmt2('/lesson/update_report_assign/{}', report.id);
 			}
-
+		}
         stats.nLessonsDone = stats.nLessonsPassed + stats.nLessonsFailed;
         var ret = {raw_record: report, repcontent: repcontent, course: module, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
