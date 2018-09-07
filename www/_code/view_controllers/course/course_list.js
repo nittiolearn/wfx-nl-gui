@@ -373,6 +373,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		nl.fmt.addAvp(avps, 'Name', course.name);
 		nl.fmt.addAvp(avps, 'Author', course.authorname);
 		nl.fmt.addAvp(avps, 'Group', course.grpname);
+		nl.fmt.addAvp(avps, _userInfo.groupinfo.gradelabel, course.grade);
+		nl.fmt.addAvp(avps, _userInfo.groupinfo.subjectlabel, course.subject);
 		nl.fmt.addAvp(avps, 'Updated by', course.updated_by_name);
 		nl.fmt.addAvp(avps, 'Created on', course.created, 'date');
 		nl.fmt.addAvp(avps, 'Updated on', course.updated, 'date');
@@ -437,12 +439,15 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	function  _getReportAvps(report, isReport) {
 		var assignedTo = report.assigned_to;
 		var avps = [];
+		var contentmetadata = report.content.contentmetadata;
 		nl.fmt.addAvp(avps, 'Name', report.name);
 		nl.fmt.addAvp(avps, 'Course Author', report.courseauthor);
 		nl.fmt.addAvp(avps, 'Assigned by', report.sendername);
 		nl.fmt.addAvp(avps, 'Assigned to', assignedTo);
 		if (isReport) nl.fmt.addAvp(avps, 'Report of', report.studentname);
 		nl.fmt.addAvp(avps, 'Group', report.grpname);
+		nl.fmt.addAvp(avps, _userInfo.groupinfo.gradelabel, contentmetadata.grade || '-');
+		nl.fmt.addAvp(avps, _userInfo.groupinfo.subjectlabel, contentmetadata.subject || '-');
 		nl.fmt.addAvp(avps, 'Batch name', report.batchname);
 		nl.fmt.addAvp(avps, 'Created on', report.created, 'date');
 		nl.fmt.addAvp(avps, 'Updated on', report.updated, 'date');

@@ -142,8 +142,6 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
 		if (!user) return null;
         var course = nlLrCourseRecords.getRecord(report.lesson_id);
         if (!course) course = nlLrCourseRecords.getCourseInfoFromReport(report, repcontent);
-		report.gradeLabel = _userInfo.groupinfo.gradelabel;
-		report.subjectLabel = _userInfo.groupinfo.subjectlabel;
 		var contentmetadata = 'contentmetadata' in course ? course.contentmetadata : {};
 		report._grade = contentmetadata.grade || '';
 		report.subject = contentmetadata.subject || ''; 
@@ -216,11 +214,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
 
 		report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
 		report.urlTitle = nl.t('View report');
-		report.updated = nl.fmt.json2Date(report.updated);
-		report.created = nl.fmt.json2Date(report.created);
-		report.not_before = repcontent.not_before ? nl.fmt.json2Date(repcontent.not_before) : '';
-		report.not_after = repcontent.not_after ? nl.fmt.json2Date(repcontent.not_after) : '';
-		report._batchName = repcontent.batchname || '';
+        _updateCommonParams(report, repcontent);
         stats.status = nlLrHelper.statusInfos[_getStatusId(stats, started)];
         var ret = {raw_record: report, repcontent: repcontent, course: course, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
@@ -238,8 +232,6 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
 		var repcontent = angular.fromJson(report.content);
 		var user = _getStudentFromReport(report, repcontent);
 		if (!user) return null;
-		report.gradeLabel = _userInfo.groupinfo.gradelabel;
-		report.subjectLabel = _userInfo.groupinfo.subjectlabel;
         report.studentname = user.name;
         report._user_id = user.user_id;
         report._email = user.email;
@@ -274,30 +266,27 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
 	        stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
 	            : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
         }
-		report.updated = nl.fmt.json2Date(report.updated);
-		report.created = nl.fmt.json2Date(report.created);
+        _updateCommonParams(report, repcontent);
 		report.started = nl.fmt.json2Date(repcontent.started);
 		report.ended = nl.fmt.json2Date(repcontent.ended);
-		report.not_before = repcontent.not_before ? nl.fmt.json2Date(repcontent.not_before) : '';
-		report.not_after = repcontent.not_after ? nl.fmt.json2Date(repcontent.not_after) : '';
 
         report.name = repcontent.name || '';
         report._treeId = nl.fmt2('{}.{}', report.org_unit, report.student);
         report._assignTypeStr = _getAssignTypeStr(report.assigntype, repcontent);
         report._courseName = (report.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingKindName : repcontent.courseName) || '';
-        report._batchName = (report.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingName : repcontent.batchname) || '';
         report._courseId = (report.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingKindId : repcontent.courseId ) || '';
         report._attempts = repcontent.started ? 1 : 0;
         report.containerid = report.containerid || '';
         report._grade = repcontent.grade || '';
         report.subject = repcontent.subject || '';
 		report.assign_remarks = repcontent.assign_remarks || '';
+        var maxScore = repcontent.selfLearningMode ? 0 : parseInt(repcontent.maxScore || 0);
+        stats.nQuiz = maxScore ? 1 : 0;
         if (!report.completed) {
             report._percStr = '';
             report._statusStr = report.started ? 'started' : 'pending';
 	        stats.status = nlLrHelper.statusInfos[_getModuleStatus(stats, repcontent, report)];
         } else {
-	        var maxScore = repcontent.selfLearningMode ? 0 : parseInt(repcontent.maxScore || 0);
 	        var score = repcontent.selfLearningMode ? 0 : parseInt(repcontent.score || 0);
 	        if (score > maxScore) score = maxScore; // Some 3 year old bug where this happened - just for sake of old record!
 	        var passScore = maxScore ? parseInt(repcontent.passScore || 0) : 0;
@@ -321,19 +310,8 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
 			stats.status = repcontent.selfLearningMode ? nlLrHelper.statusInfos[nlLrHelper.STATUS_DONE] : nlLrHelper.statusInfos[_getModuleStatus(stats, repcontent, report)];
         	stats.percCompleteStr = 'Completed';
         	stats.percCompleteDesc = 'Module completed';
-        }
-
-
-        if (repcontent.ended) {
-		    if (repcontent.selfLearningMode) {
-		        repcontent.maxScore = 0;
-		        repcontent.score = 0;
-		    }
-	        if (repcontent.maxScore) {
-	            stats.nScore = rep.score;
-	            stats.nMaxScore = rep.maxScore;
-	            stats.nQuiz++;
-	        }
+	        repcontent.maxScore = maxScore;
+	        repcontent.score = score;
         	if(report.ctypestr == 'module') {
 				report.urlTitle = nl.t('View report');
 				report.url = nl.fmt2('/lesson/review_report_assign/{}', report.id);
@@ -343,7 +321,8 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
 				report.urlTitle1 = nl.t('Update');
 				report.url1 = nl.fmt2('/lesson/update_report_assign/{}', report.id);
 			}
-		}
+        }
+
         stats.nLessonsDone = stats.nLessonsPassed + stats.nLessonsFailed;
         var ret = {raw_record: report, repcontent: repcontent, course: module, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
@@ -355,6 +334,16 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
         return ret;
 	}
 
+	function _updateCommonParams(report, repcontent) {
+		report.gradeLabel = _userInfo.groupinfo.gradelabel;
+		report.subjectLabel = _userInfo.groupinfo.subjectlabel;
+		report.updated = nl.fmt.json2Date(report.updated);
+		report.created = nl.fmt.json2Date(report.created);
+		report.not_before = repcontent.not_before ? nl.fmt.json2Date(repcontent.not_before) : '';
+		report.not_after = repcontent.not_after ? nl.fmt.json2Date(repcontent.not_after) : '';		
+        report._batchName = (report.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingName : repcontent.batchname) || '';
+	}
+	
 	function _getAssignTypeStr(assigntype, content) {
 	    if (assigntype == _nl.atypes.ATYPE_SELF_MODULE) return 'module self assignment';
 	    if (assigntype == _nl.atypes.ATYPE_SELF_COURSE) return 'course self assignment';
