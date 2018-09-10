@@ -439,7 +439,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	function  _getReportAvps(report, isReport) {
 		var assignedTo = report.assigned_to;
 		var avps = [];
-		var contentmetadata = report.content.contentmetadata;
+		var contentmetadata = report.content.contentmetadata || {};
 		nl.fmt.addAvp(avps, 'Name', report.name);
 		nl.fmt.addAvp(avps, 'Course Author', report.courseauthor);
 		nl.fmt.addAvp(avps, 'Assigned by', report.sendername);
