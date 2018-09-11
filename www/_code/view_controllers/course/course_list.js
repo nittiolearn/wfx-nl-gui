@@ -217,7 +217,9 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
                 nl.location.replace();
 				return;
 			}
+			nlDlg.showLoadingScreen();
 			_fetchAdditionalCourses(results).then(function() {
+				nlDlg.hideLoadingScreen();
 				nlCardsSrv.updateCards($scope.cards, {
 				    cardlist: _getCards(_resultList, nlCardsSrv),
 				    canFetchMore: _pageFetcher.canFetchMore()
@@ -439,7 +441,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	function  _getReportAvps(report, isReport) {
 		var assignedTo = report.assigned_to;
 		var avps = [];
-		var contentmetadata = report.content.contentmetadata || {};
+		var contentmetadata = report.content && report.content.contentmetadata ? report.content.contentmetadata : {};
 		nl.fmt.addAvp(avps, 'Name', report.name);
 		nl.fmt.addAvp(avps, 'Course Author', report.courseauthor);
 		nl.fmt.addAvp(avps, 'Assigned by', report.sendername);
