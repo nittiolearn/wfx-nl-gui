@@ -98,6 +98,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		attr.values = ['module', 'lesson', 'info', 'certificate'];
     	if (cm.type == 'link' || nlRouter.isPermitted(_userInfo, 'admin_user'))
     	   attr.values.push('link');
+    	if(_debug) attr.values.push('iltsession');
 		return;
 	}
 
@@ -268,9 +269,9 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     };
     
     var moduleAttrs = [
-        {name: 'name', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'string', text: 'Name'}, 
-        {name: 'type', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'list', text: 'Element type', values: ['module', 'lesson', 'certificate', 'info', 'link'],
-            valueNames: {'module': 'Folder', 'lesson': 'Module', 'link': 'Link', 'info': 'Information', 'certificate': 'Certificate'},
+        {name: 'name', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession'], type: 'string', text: 'Name'}, 
+        {name: 'type', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession'], type: 'list', text: 'Element type', values: ['module', 'lesson', 'certificate', 'info', 'link', 'iltsession'],
+            valueNames: {'module': 'Folder', 'lesson': 'Module', 'link': 'Link', 'info': 'Information', 'certificate': 'Certificate', 'iltsession': 'ILT session'},
             updateDropdown: _updateTypeDropdown},
         {name: 'refid', stored_at: 'module', fields: ['lesson'], type: 'lessonlink', contentType: 'integer', text: 'Module-id'},
 		{name: 'maxDuration', stored_at: 'module', fields: ['lesson'], type: 'string', contentType: 'integer', text: 'Time limit (minutes)'},
@@ -278,22 +279,26 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'urlParams', stored_at: 'module', fields: ['link'], type: 'string', text: 'Url-Params'},
         {name: 'certificate_image', stored_at: 'module', fields: ['certificate'], type: 'string', text: 'Certificate image'},
         {name: 'start_after', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
+        {name: 'canMarkAttendance', stored_at: 'module', text: 'Learner can mark attendance', type:'boolean', fields: ['iltsession']},
+        {name: 'iltduration', stored_at: 'module', fields: ['iltsession'], text: 'Session duration', type:'list', values: [30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360, 390, 420, 450, 480, 510, 540, 570, 600],
+        valueNames: {30: '30 minutes', 60: '1 hour', 90: '1 hour 30 minutes', 120: '2 hours', 150: '2 hour 30 minutes', 180: '3 hours', 210: '3 hour 30 minutes', 240: '4 hours', 270: '4 hour 30 minutes', 300: '5 hours',
+        			330: '5 hour 30 minutes', 360: '6 hours', 390: '6 hour 30 minutes', 420: '7 hours', 450: '7 hour 30 minutes', 480: '8 hours', 510: '8 hour 30 minutes', 540: '9 hours', 570: '9 hour 30 minutes', 600: '10 hours'}},
         {name: 'grp_depAttrs', stored_at: 'module', fields: ['lesson', 'link', 'info'], type: 'group', text: 'Planning'},
         {name: 'start_date', stored_at: 'module', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Start date', group: 'grp_depAttrs'},
         {name: 'planned_date', stored_at: 'module', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Planned date', group: 'grp_depAttrs'},
-        {name: 'grp_additionalAttrs', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'group', text: 'Advanced properties'},
+        {name: 'grp_additionalAttrs', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession'], type: 'group', text: 'Advanced properties'},
         {name: 'reopen_on_fail', stored_at: 'module', fields: ['lesson'], type: 'object', text: 'Reopen on fail', contentType: 'object',group: 'grp_additionalAttrs'},
-        {name: 'icon', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
-        {name: 'text', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'wikitext', valueName: 'textHtml', text: 'Description', group: 'grp_additionalAttrs'},
+        {name: 'icon', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
+        {name: 'text', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession'], type: 'wikitext', valueName: 'textHtml', text: 'Description', group: 'grp_additionalAttrs'},
         {name: 'maxAttempts', stored_at: 'module', fields: ['lesson'], type: 'number', text: 'Maximum attempts', group: 'grp_additionalAttrs'},
         {name: 'hide_remarks', stored_at: 'module', fields: ['info', 'link'], type: 'boolean', text: 'Disable remarks', group: 'grp_additionalAttrs'},
         {name: 'autocomplete', stored_at: 'module', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
-        {name: 'parentId', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'readonly', debug: true, text: 'Parent ID', group: 'grp_additionalAttrs', readonly: true}, 
-        {name: 'id', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate'], type: 'readonly', text: 'Unique ID', group: 'grp_additionalAttrs', readonly: true}, 
+        {name: 'parentId', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession'], type: 'readonly', debug: true, text: 'Parent ID', group: 'grp_additionalAttrs', readonly: true}, 
+        {name: 'id', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession'], type: 'readonly', text: 'Unique ID', group: 'grp_additionalAttrs', readonly: true}, 
     	{name: 'totalItems', stored_at: 'module', fields : ['module'], type: 'readonly', text: 'Total items', group: 'grp_additionalAttrs'},
-        {name: 'grp_canvasAttrs', stored_at: 'module', type: 'group', text: 'Canvas properties', fields: ['module', 'lesson', 'link', 'info', 'certificate']},
-        {name: 'posX', stored_at: 'module', type: 'number', text: 'X Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate']},
-        {name: 'posY', stored_at: 'module', type: 'number', text: 'Y Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate']},
+        {name: 'grp_canvasAttrs', stored_at: 'module', type: 'group', text: 'Canvas properties', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession']},
+        {name: 'posX', stored_at: 'module', type: 'number', text: 'X Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession']},
+        {name: 'posY', stored_at: 'module', type: 'number', text: 'Y Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession']},
         {name: 'bgimg', stored_at: 'module', type: 'string', text: 'Background image', group: 'grp_canvasAttrs', fields: ['module']},
         {name: 'bgcolor', stored_at: 'module', type: 'string', text: 'Background color', group: 'grp_canvasAttrs', fields: ['module']}
     ];
@@ -324,7 +329,9 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         posX: 'Define the horizontal position of this item in the canvas as a percentage number. Left end of the screen is 0 and the right end is 100.',
         posY: 'Define the vertical position of this item in the canvas as a percentage number. Top end of the screen is 0 and the bottom end is 100.',
         bgimg: 'Select the background image to be displayed in the canvas when the folder is opened.',
-        bgcolor: 'The background image is resized to retain aspect ratio. This could result in horizontal or vertical bands. You can choose the color of the bands to align with the edge of the image.'
+        bgcolor: 'The background image is resized to retain aspect ratio. This could result in horizontal or vertical bands. You can choose the color of the bands to align with the edge of the image.',
+        iltduration: 'Set this to restrict the learner to complete the module within specific time',
+        canMarkAttendance: 'Set this to allow learner to mark attendance'
     };
     
     function _getDescriptionHelp() {
@@ -479,9 +486,11 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 
     function _saveAfterValidateCourse(e, bPublish) {
         modeHandler.course.content.modules = [];
+        modeHandler.course.content.blended = false;
     	for(var i=0; i<_allModules.length; i++){
     	    var newModule = _getSavableModuleAttrs(_allModules[i]);
-		        modeHandler.course.content.modules.push(newModule);	    	
+    	    if (newModule.type == 'iltsession' && !modeHandler.course.content.blended) modeHandler.course.content.blended = true;
+		    modeHandler.course.content.modules.push(newModule);
 		}
         var modifiedData = {
                         name: modeHandler.course.name, 
@@ -672,6 +681,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         if (!_validateLessonModule(errorLocation, module)) return false;
         if (!_validateLinkModule(errorLocation, module)) return false;
         if (!_validateInfoModule(errorLocation, module)) return false;
+        if (!_validateILTSessionModule(errorLocation, module)) return false;
         return true;
     }
     
@@ -705,6 +715,11 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     function _validateInfoModule(errorLocation, module) {
     	if(module.type != 'info') return true;
         return true;
+    }
+    
+    function _validateILTSessionModule(errorLocation, module) {
+    	// TODO: check if needed
+    	return true;
     }
     
     function _getParentId(idStr) {
