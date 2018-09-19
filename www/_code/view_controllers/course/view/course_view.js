@@ -740,6 +740,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     };
     
     function _checkDateTimeRange() {
+    	if (modeHandler.mode != MODES.DO) return;
     	var course = modeHandler.course;
 		var currentDate = new Date();
 	    var starttime = course['not_before'] && course['not_before'] != '' ? nl.fmt.json2Date(course.not_before) : '';
