@@ -67,11 +67,13 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 				filter.selectedOus = nlOrgMdMoreFilters.getSelectedOus(filterData);
 				filter.selectedMds = nlOrgMdMoreFilters.getSelectedMds(filterData);
 				filter.selectedCourses = nlOrgMdMoreFilters.getSelectedMores(filterData);
-
-                nlDlg.showLoadingScreen();
                 var promise = nl.q(function(resolve, reject) {
-        	        _initCtx(reportRecords, _userInfo, filter);
-                    _export(resolve, reject, filter, reportRecords);
+	                nlDlg.showLoadingScreen();
+			        nlDlg.popupStatus('Initiating export. This may take a while ...', false);
+                    nl.timeout(function() {
+	        	        _initCtx(reportRecords, _userInfo, filter);
+	                    _export(resolve, reject, filter, reportRecords);
+                    }); // Seems needed for loadingScreen to appear properly.
                 });
                 promise.then(function() {
                     nl.timeout(function() {
@@ -87,13 +89,13 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     
 	function _setExportFilters(dlg, reportRecords) {
     	var type = nlLrFilter.getType();
-    	var tree = [];
     	if(type == 'module' || type == 'module_assign') {
-			tree = {data: _getModuleTree(reportRecords) || []};
+			var tree = {data: _getModuleTree(reportRecords) || []};
+			dlg.scope.filtersData = nlOrgMdMoreFilters.getData(tree, 'Module');
     	} else {
-			tree = {data: _getCourseModuleTree(reportRecords) || []};
+			var tree = {data: _getCourseModuleTree(reportRecords) || []};
+			dlg.scope.filtersData = nlOrgMdMoreFilters.getData(tree, 'Course and module');
     	}
-		dlg.scope.filtersData = nlOrgMdMoreFilters.getData(tree, 'Course and module');
 	}
 
 	function _getModuleTree(reportRecords) {

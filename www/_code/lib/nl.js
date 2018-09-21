@@ -150,6 +150,7 @@ function PerfLog(nl) {
     	var diff1 = (now - _start)/1000;
     	var diff2 = (now - _last)/1000;
     	_last = now;
+    	console.log(diff1, diff2, msg);
     };
     
     var _idleTime = 0;

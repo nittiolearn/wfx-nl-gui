@@ -85,13 +85,13 @@ function(nl, nlDlg) {
     }
     
     this.saveZip = function(zip, fileName, pl, resolve, reject) {
-        _msgOut(pl, nl.t('Creating zip file for download'), false);
+        _msgOut(pl, nl.t('Creating zip file for download. This may take a while ...'), false);
         nl.timeout(function() {
             zip.generateAsync({type:'blob', compression: 'DEFLATE', 
                 compressionOptions:{level:9}})
             .then(function (zipContent) {
                 var size = Math.ceil(zipContent.size/1024);
-                _msgOut(pl, nl.t('Download of {} ({} KB) initiated', fileName, size));
+                _msgOut(pl, nl.t('Download of {} ({} KB) initiated. This may take a while ...', fileName, size));
                 saveAs(zipContent, fileName);
                 if (resolve) resolve(size);
             }, function(e) {
