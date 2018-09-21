@@ -78,6 +78,8 @@ function(nlLog, $http, $q, $timeout, $location, $window, $rootScope) {
 
     this.idleMonitor = new IdleMonitor(this);
     
+    this.perflog = new PerfLog(this);
+    
     var iFrameLoadedHandlers = {};
     this.registerIFrameLoaded = function(key, fn) {
     	iFrameLoadedHandlers[key] = fn;
@@ -136,6 +138,25 @@ function IdleMonitor(nl) {
             _mm++;
         });
     }
+}
+
+//-------------------------------------------------------------------------------------------------
+function PerfLog(nl) {
+	var _start = (new Date()).getTime();
+	var _last = _start;
+	
+    this.log = function(msg) {
+    	var now = (new Date()).getTime();
+    	var diff1 = (now - _start)/1000;
+    	var diff2 = (now - _last)/1000;
+    	_last = now;
+    };
+    
+    var _idleTime = 0;
+    var _kp = 0;
+    var _mm = 0;
+    var _interval = null;
+    
 }
 
 //-------------------------------------------------------------------------------------------------

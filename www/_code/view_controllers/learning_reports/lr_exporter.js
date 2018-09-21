@@ -86,8 +86,28 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     };
     
 	function _setExportFilters(dlg, reportRecords) {
-		var courseTree = {data: _getCourseModuleTree(reportRecords) || []};
-		dlg.scope.filtersData = nlOrgMdMoreFilters.getData(courseTree, 'Course and module');
+    	var type = nlLrFilter.getType();
+    	var tree = [];
+    	if(type == 'module' || type == 'module_assign') {
+			tree = {data: _getModuleTree(reportRecords) || []};
+    	} else {
+			tree = {data: _getCourseModuleTree(reportRecords) || []};
+    	}
+		dlg.scope.filtersData = nlOrgMdMoreFilters.getData(tree, 'Course and module');
+	}
+
+	function _getModuleTree(reportRecords) {
+        var insertedKeys = {};
+        var treeArray = [];
+        for(var i=0; i<reportRecords.length; i++) {
+        	var lesson = reportRecords[i];
+			var lessonKey = 'A'+lesson.raw_record.lesson_id || 'A'+lesson.course.lessons[0].lesson_id;
+		    if (!insertedKeys[lessonKey]) {
+		    	insertedKeys[lessonKey] = true;
+		    	treeArray.push({id: lessonKey, name: lesson.raw_record.name, origId: lesson.raw_record.lesson_id});
+		    }
+        }
+        return treeArray;
 	}
 
 	function _getCourseModuleTree(reportRecords) {
@@ -197,6 +217,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     function _createUserCsv(filter, records, zip, fileName, start, end, expSummaryStats) {
         var header = _getCsvHeader(filter);
         var rows = [nlExporter.getCsvString(header)];
+        var type = nlLrFilter.getType();
         for (var i=start; i<end; i++) {
             var row = null;
             if(records[i].raw_record.ctype == _nl.ctypes.CTYPE_MODULE) {
@@ -205,7 +226,13 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 	            row = _getCsvRow(filter, records[i]);
             }
 
-			var selectedCourseId = _checkFilter(filter.selectedCourses, records[i].course.id);
+			var selectedCourseId = false;
+			if (type == 'module' || type == 'module_assign') {
+	            var moduleKey = 'A'+records[i].raw_record.lesson_id;
+				selectedCourseId = _checkFilter(filter.selectedCourses, moduleKey);
+			} else {
+				selectedCourseId = _checkFilter(filter.selectedCourses, records[i].course.id);
+			}
 			var selectedOus = _checkFilter(filter.selectedOus, records[i].user.org_unit);
  			
 			var selectedMetaFields = true;
