@@ -1,0 +1,53 @@
+<style>
+	.nl-pagetype-selected {
+	    background-color: #CCCCDD;
+		border-radius: 8px 0px 0px 8px;
+		border-top: 1px solid rgba(0, 0, 0, 0.1);
+		border-left: 1px solid rgba(0, 0, 0, 0.1);
+		border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+		z-index: 10;
+	}	
+</style>
+<nl-dlg dlgTitle='Mark attendance'>
+<nl-dlg-content>
+<div class='row row-top padding0 margin0'>
+	<div ng-class='resp2Col33'
+		style='padding-right:0px'>
+		<div class='padding-mid fsh4'>Sessions</div>
+		<div ng-repeat='session in content'
+			class='nl-link-text {{session.id == selectedItem.id ? "nl-pagetype-selected" : ""}}'>
+			<div class='padding-mid' 
+				ng-click='onClick(session)'
+				style='position:relative'>
+				{{session.name}}
+			</div>
+		</div>
+	</div>
+	<div ng-class='resp2Col67'>
+		<div class='row row-center padding0 margin0'>
+			<div class='col padding-mid fsh4'>Assigned users</div>
+			<div ng-show='selectall' ng-click='markAllUsers(true)' class='nl-link-text'>
+				<span>Select all</span>
+			</div>
+			<div ng-show='!selectall' ng-click='markAllUsers(false)'  class='nl-link-text'>
+				<span>Deselect all</span>
+			</div>
+		</div>
+		<div class='row row-center padding0 margin0' ng-repeat='user in userList'
+			style='border-bottom: 1px solid black'>
+			<div class='col padding-mid'>
+				{{user.name}}
+			</div>
+			<div class='col padding-mid'>
+				{{user[selectedItem.id]}}
+			</div>
+			<div ng-click='updateAttendance(user)' class='nl-link-text'>
+				<span>
+					<i class='fsh4 icon ion-code-working'></i>
+				</span>
+			</div>
+		</div>
+	</div>
+</div>
+</nl-dlg-content>
+</nl-dlg>

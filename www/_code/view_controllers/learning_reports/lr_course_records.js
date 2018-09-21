@@ -18,6 +18,7 @@ function(nl, nlCourse, nlLrFilter) {
 
     var _idToFullName = {};
     var _records = {};
+    var _content = {};
     
 	this.init = function() {
 		_records = {};
@@ -35,6 +36,10 @@ function(nl, nlCourse, nlLrFilter) {
     	return _records[cid];
     };
     
+    this.getContent = function() {
+    	if(_content) return _content;
+    };
+    
     this.getCourseInfoFromReport = function(report, repcontent) {
     	var course = {id: report.lesson_id, name: repcontent.name, content: repcontent.content};
     	return _process(course);
@@ -43,10 +48,11 @@ function(nl, nlCourse, nlLrFilter) {
     function _process(course) {
 		course = nlCourse.migrateCourse(course);
 		if (course.name) nlLrFilter.setObjectName(course.name);
+		_content = course.content || {};
         _idToFullName = {};
         var ret = {id: course.id, name: course.name || '', created: course.created || null, 
             updated: course.updated || null, certificates: [], lessons: [], nonLessons: [],
-            contentmetadata: course.content};
+            content: course.content};
         ret.contentmetadata = course.content && course.content.contentmetadata ? course.content.contentmetadata : {};
         var modules = (course.content || {}).modules || [];
         for (var i=0; i<modules.length; i++) {
