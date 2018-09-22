@@ -48,8 +48,10 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
     this.mode = MODES.PRIVATE;
     this.courseId = null;
     this.course = null;
+    this.debug = false;
     this.initMode = function() {
         var params = nl.location.search();
+        if ('debug' in params) this.debug = true;
         if (!('mode' in params) || !(params.mode in MODE_NAMES)) return false;
         this.mode = MODE_NAMES[params.mode];
         if (!('id' in params)) return false;
@@ -708,6 +710,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         }, dontUpdate);
     };
     
+    $scope.onClickOnAttended = function(cm) {
+    	if(!(cm.id in modeHandler.course.statusinfo))
+    		modeHandler.course.statusinfo[cm.id] = {};
+    	modeHandler.course.statusinfo[cm.id]['isAttendanceMarked'] = true;
+    	_updatedStatusinfoAtServer(true);
+    };
+    
     function _onLaunchImpl(cm) {
         if (cm.type === 'lesson') modeHandler.handleLessonLink(cm, false, $scope);
         else if(cm.type === 'link' || cm.type === 'certificate') modeHandler.handleLink(cm, false, $scope);
@@ -1126,7 +1135,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
 	        if (!this.item) return '';
 	        return 'Open';
         }
-        if (this.isStaticMode()|| cm.type =='link' || cm.type =='certificate') return 'View';
+        if (this.isStaticMode() || cm.type =='link' || cm.type =='certificate') return 'View';
         if (modeHandler.mode == MODES.DO && cm.state.status == 'started') return 'Continue';
         if (cm.state.status == 'success' || cm.state.status == 'failed') return 'Review';
         return 'Start';

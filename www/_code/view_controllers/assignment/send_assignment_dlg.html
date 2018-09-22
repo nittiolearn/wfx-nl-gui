@@ -79,6 +79,34 @@
         </nl-checkbox>
 	</nl-dlg-row>
 
+	<nl-dlg-row ng-show='assignInfo.blended' attr='trainerName' data='data' help='help'>
+        <nl-input fieldmodel='trainerName' fieldtype='text' fieldcls='w100'></nl-input>
+	</nl-dlg-row>
+
+	<nl-dlg-row ng-show='assignInfo.blended' attr='venue' data='data' help='help'>
+        <nl-input fieldmodel='venue' fieldtype='text' fieldcls='w100'></nl-input>
+	</nl-dlg-row>
+
+	<nl-dlg-row ng-show='assignInfo.blended' attr='infrastructureCost' data='data' help='help'>
+        <nl-input fieldmodel='infrastructureCost' fieldtype='number' fieldcls='w100'></nl-input>
+	</nl-dlg-row>
+
+	<nl-dlg-row ng-show='assignInfo.blended' attr='trainerCost' data='data' help='help'>
+        <nl-input fieldmodel='trainerCost' fieldtype='number' fieldcls='w100'></nl-input>
+	</nl-dlg-row>
+
+	<nl-dlg-row ng-show='assignInfo.blended' attr='stsAndFoodCost' data='data' help='help'>
+        <nl-input fieldmodel='stsAndFoodCost' fieldtype='number' fieldcls='w100'></nl-input>
+	</nl-dlg-row>
+
+	<nl-dlg-row ng-show='assignInfo.blended' attr='travelAndAccomodationCost' data='data' help='help'>
+        <nl-input fieldmodel='travelAndAccomodationCost' fieldtype='number' fieldcls='w100'></nl-input>
+	</nl-dlg-row>
+
+	<nl-dlg-row ng-show='assignInfo.blended' attr='miscellaneousCost' data='data' help='help'>
+        <nl-input fieldmodel='miscellaneousCost' fieldtype='number' fieldcls='w100'></nl-input>
+	</nl-dlg-row>
+
 	<nl-dlg-row attr='remarks' data='data' help='help'>
         <nl-textarea fieldmodel='remarks' fieldcls='w100'></nl-textarea>
 	</nl-dlg-row>

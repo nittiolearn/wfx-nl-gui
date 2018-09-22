@@ -174,6 +174,13 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			forum: {name: 'Forum', help: nl.t('You could choose to allow learners to discuss with you in a discussion forum. Only the learners belonging to this batch and learning administrators will be able to post and view messages in this forum.')},
 			submissionAfterEndtime: {name: 'Submission after end time', help: nl.t('You can allow learners to submit assignment after the mentioned endtime.')},
 			sendEmail: {name: 'Email notifications', help: nl.t('You could choose to send email notifications to the learners.')},
+			trainerName: {name: 'Trainer name', help: nl.t('Provide trainer name to this training.')},
+			venue: {name: 'Venue', help: nl.t('Configure venue of this training.')},
+			infrastructureCost: {name: 'Infrastructure cost', help: nl.t(' Configure the infrastructure cost.')},
+			trainerCost: {name: 'Trainer cost', help: nl.t(' Configure the trainer cost.')},
+			stsAndFoodCost: {name: 'Stationary and Food cost', help: nl.t(' Configure the stationary and food cost.')},
+			travelAndAccomodationCost: {name: 'Travel and Accomodation cost', help: nl.t(' Configure the travel and accomodation cost.')},
+			miscellaneousCost: {name: 'Miscellaneous cost', help: nl.t(' Configure the miscellaneous cost.')},
 			batchname: {name: 'Batch name', help: nl.t('This is an batch name mentioned while sending an assignemnt')}
 		};
 	}
@@ -258,6 +265,16 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             if (data.assigntype == _nl.atypes.ATYPE_MODULE){
  				data.learnmode = _dlg.scope.data.showAnswers.id;
 				data.max_duration = maxduration || '';
+			}
+			if (_dlg.scope.assignInfo.blended && data.assigntype == _nl.atypes.ATYPE_COURSE) {
+				data.blended = true;
+				data.trainerName = _dlg.scope.data.trainerName || '';
+				data.venue = _dlg.scope.data.venue || '';
+				data.infrastructureCost = _dlg.scope.data.infrastructureCost || '';
+				data.trainerCost = _dlg.scope.data.trainerCost || '';
+				data.stsAndFoodCost = _dlg.scope.data.stsAndFoodCost || '';
+				data.travelAndAccomodationCost = _dlg.scope.data.travelAndAccomodationCost || '';
+				data.miscellaneousCost = _dlg.scope.data.miscellaneousCost || '';
 			}
         }
         _confirmAndSend(data, ouUserInfo);

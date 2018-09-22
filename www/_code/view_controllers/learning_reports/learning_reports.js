@@ -238,6 +238,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
             id: 'content',
             onClick : _onViewContent
         }, {
+            title : 'Mark attendance',
+            icon : 'ion-ios-checkmark',
+            id: 'attendance',
+            onClick : _onClickOnMarkAttendance
+        }, {
             title : 'Export report',
             icon : 'ion-ios-cloud-download',
             id: 'export',
@@ -250,6 +255,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
         if (tbid == 'tbfetchmore') return nlLrFetcher.canFetchMore();
         if (tbid == 'tbfilter') return nlLrFilter.isFilterShown();
         if (tbid == 'content') return (nlLrFilter.getType() == 'module_assign');
+        if (tbid == 'attendance') {
+        	if(nlLrFilter.getType() != 'course_assign') return false;
+        	var content = nlLrCourseRecords.getContent();
+        	if(content && content.blended) return true;
+        }
+ 
         return true;
     };
     
@@ -363,6 +374,73 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
     function _onViewContent() {
     	var objId = nlLrFilter.getObjectId();
     	nl.window.location.href = nl.fmt2('/lesson/view_assign/{}', objId);
+    }
+    
+    function _onClickOnMarkAttendance() {
+    	var markAttendanceDlg = nlDlg.create($scope);
+    	markAttendanceDlg.setCssClass('nl-height-max nl-width-max');
+    	var content = nlLrCourseRecords.getContent();
+    	markAttendanceDlg.scope.content = _getIltContent(content);
+    	markAttendanceDlg.scope.userList = _getUserList(markAttendanceDlg.scope.content);
+		markAttendanceDlg.scope.selectedItem = markAttendanceDlg.scope.content[0];
+		markAttendanceDlg.scope.selectall = true;
+    	markAttendanceDlg.scope.onClick = function(session) {
+    		markAttendanceDlg.scope.selectedItem = session;
+    	};
+    	markAttendanceDlg.scope.markAllUsers = function(state) {
+			markAttendanceDlg.scope.selectall = !markAttendanceDlg.scope.selectall;
+    		var sessionid = markAttendanceDlg.scope.selectedItem.id;
+	    	for(var user in markAttendanceDlg.scope.userList) {
+	    			console.log(markAttendanceDlg.scope.userList[user][sessionid]);
+	    		if(state)
+	    			markAttendanceDlg.scope.userList[user][sessionid] = 'attended';
+	    		else
+	    			markAttendanceDlg.scope.userList[user][sessionid] = 'not attended';
+	    	}
+    	};
+
+    	markAttendanceDlg.scope.updateAttendance = function(user) {
+    		var selectedItem = markAttendanceDlg.scope.selectedItem;
+    		if(user[selectedItem.id] == 'not marked') {
+    			user[selectedItem.id] = 'attended';
+    		} else if (user[selectedItem.id] == 'attended') {
+    			user[selectedItem.id] = 'not attended';
+    		} else {
+    			user[selectedItem.id] = 'not marked';
+    		}
+    		markAttendanceDlg.scope.userList[user.id] = user;
+    	};
+    	var okButton = {text: nl.t('Mark attendance'), onTap: function(e) {
+    		//TODO:
+    	}};
+    	var cancelButton = {text: nl.t('Close')};
+        markAttendanceDlg.show('view_controllers/learning_reports/mark_attendance_dlg.html',
+			[okButton], cancelButton);
+    }
+
+	function _getIltContent(content) {
+		var ret = [];
+		for(var i=0; i<content.modules.length; i++) {
+			if(content.modules[i].type != 'iltsession') continue;
+			ret.push(content.modules[i]);
+		}
+		return ret;
+	}
+	 
+    function _getUserList(content) {
+    	var ret = {};
+    	var records = nlLrReportRecords.getRecords();
+    	for(var key in records){
+    		ret[key] = {id: parseInt(key), name: records[key].user.name};
+    		for(var i=0; i< content.length; i++) {
+    			var id = content[i].id;
+    			ret[key][content[i].id] = 'not marked';
+    		}
+    	}
+    	return ret;
+    }
+    
+    function _marksAllUsersAsAttended(state, userList, sessionid) {
     }
 };
 
