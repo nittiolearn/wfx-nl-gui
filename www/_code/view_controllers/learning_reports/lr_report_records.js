@@ -246,8 +246,6 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
             timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
             internalIdentifier:report.id, nCerts: 0, nLessonsDone: 0};
             
-        var statusinfo = repcontent.statusinfo || {};
-
         var lessons = module.lessons;
         var lessonReps = repcontent || {};
         stats.nLessons++;

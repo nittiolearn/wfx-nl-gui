@@ -791,6 +791,7 @@ npagetypes = function() {
 		},
 		'onScore' : function(page) {
 			var nOptions = _getAnswerCount(page);
+			var nEmptyOptions = 0;
 			var score = 0;
 			var answered = 0;
 	
@@ -799,6 +800,10 @@ npagetypes = function() {
 				var section = page.sections[i];
 				var secNo = section.secNo;
 				if (!_isCorrect(layout, secNo)) continue;
+				if (section.oSection.text == "") {
+					nEmptyOptions++;
+					continue;
+				}
 				
 				var answer = section.pgSecView.attr('answer');
 				if (typeof answer === 'undefined' || answer === false || answer === '0') {
@@ -811,7 +816,7 @@ npagetypes = function() {
 				
 				if (_BehMatch_IsMatching(i, answer, nOptions)) score += 1;				
 			}
-	
+			nOptions = nOptions - nEmptyOptions;
 			if (answered == nOptions) {
 				answered = ANSWERED_YES;
 			} else if (answered > 0) {
@@ -831,6 +836,11 @@ npagetypes = function() {
 			if (!_isCorrect(_getLayoutOfSec(section), section.secNo)) return;
 
 			var answer;
+			if (section.oSection.text == "") {
+				section.pgSecView.css({visibility: 'hidden'});
+				return;
+			}
+			
 			if (_getPageMode(section.page) == 'report') {
 				answer = parseInt(section.oSection.answer);			
 			} else {
