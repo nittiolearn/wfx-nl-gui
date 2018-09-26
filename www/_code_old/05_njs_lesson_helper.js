@@ -1018,19 +1018,56 @@ SelectHelper.getAnswersAsList = function(mode, ans) {
 	return answers;
 };
 
-SelectHelper.createSelectBox = function(mode, choices, correct, answers, page, cls, defaultHelp) {
+SelectHelper.createSelectBox = function(mode, choices, correct, answers, page, cls, defaultHelp, section) {
 	var multi = (mode == 'multi-select') ? 'multiple' : '';
-	var select = jQuery(njs_helper.fmt2('<select class="{} {}" {}/>', cls, multi, multi));
+	var select = null;
+	if(mode == 'select')
+		select = jQuery(njs_helper.fmt2('<select class="{} {}" {} style="overflow-y: scroll"/>', cls, multi, multi));
+	else
+		select = jQuery(njs_helper.fmt2('<div class="{} {}" {} style="overflow-y: scroll"/>', cls, multi, multi));
 	page.setNextTabIndex(select);
 	if (mode == 'select') select.append('<option value="-1"></option>');
 	var randomPos = _SelectHelper_getRandomPos(choices, correct, page);
 	for (var pos=0; pos<choices.length; pos++) {
 		var i = randomPos[pos];
 		var selected = (answers != null && answers.indexOf(i) >= 0) ? 'selected' : '';
-		select.append(njs_helper.fmt2('<option value="{}" {}>{}</option>', i, selected, choices[i]));
+		var isChecked = selected ? 'checked' : '';
+		if(mode == 'select') {
+			select.append(njs_helper.fmt2('<option value="{}" {}>{}</option>', i, selected, choices[i]));
+		} else {
+			_SelectHelper_createMultiSelectOption(section, i, isChecked, choices, select);
+		}
 	}
 	select.attr('title', defaultHelp);
 	return select;
+};
+
+function _SelectHelper_createMultiSelectOption(section, i, isChecked, choices, select) {
+	var multiSelectDiv = jQuery(njs_helper.fmt2('<div class="nl-link-img" style="padding:4px">'));
+	multiSelectDiv.click(function(e) {
+		_SelectHelper_onCheckBoxSelect(e, checkbox, section, i, 'div');
+		e.stopImmediatePropagation();
+	});
+	var checkbox = jQuery(njs_helper.fmt2('<input type="checkbox" value="{}" {} style="width:30px; height:20px;"/>', i, isChecked));
+	checkbox.bind('click', (function(e) {
+		_SelectHelper_onCheckBoxSelect(e, checkbox, section, i);
+		e.stopImmediatePropagation();
+	}));
+	multiSelectDiv.append(checkbox);
+	multiSelectDiv.append(njs_helper.fmt2('<span style="padding-left:8px">{}</span>', choices[i]));
+	select.append(multiSelectDiv);
+}
+
+function _SelectHelper_onCheckBoxSelect(e, checkbox, section, i, tag) {
+	var state = checkbox[0].checked;
+	if(tag == 'div') state = !state;
+	if(state){
+		checkbox[0].checked = true;
+	} else {
+		checkbox[0].checked = false;
+	}
+	if (!section.multiselectAnswers) section.multiselectAnswers = {};
+	section.multiselectAnswers[i] = state;
 };
 
 SelectHelper.getSelectionAsText = function(choices, answers) {

@@ -816,7 +816,9 @@ npagetypes = function() {
 				
 				if (_BehMatch_IsMatching(i, answer, nOptions)) score += 1;				
 			}
-			nOptions = nOptions - nEmptyOptions;
+			if(nOptions != nEmptyOptions) {
+				nOptions = nOptions - nEmptyOptions;
+			}
 			if (answered == nOptions) {
 				answered = ANSWERED_YES;
 			} else if (answered > 0) {
@@ -1764,7 +1766,7 @@ npagetypes = function() {
 		var answers = njs_lesson_helper.SelectHelper.getAnswersAsList(answerData.type, ans);
 		return njs_lesson_helper.SelectHelper.createSelectBox(answerData.type, 
 			answerData.choices, answerData.correct, answers, section.page, 
-			'questionnaire', help);
+			'questionnaire', help, section);
 	}
 
 	function _BehQuestionnaire_getReportHtml(section, answerData) {
@@ -1813,6 +1815,14 @@ npagetypes = function() {
 			if (elem.length == 0 || elem.hasClass('report')) continue;
 
             var elemVal = elem.val();
+            if(answerData.type == 'multi-select') {
+            	if(section.multiselectAnswers) {
+	            	elemVal = [];
+	            	for(var key in section.multiselectAnswers) {
+	            		if(section.multiselectAnswers[key]) elemVal.push(key);
+	            	}
+            	}
+            }
             var answerText = _BehQuestionnaire_getAnswerText(elemVal, answerData);
             
             var question = secNo > 0 ? page.sections[secNo-1].oSection.text : '';
