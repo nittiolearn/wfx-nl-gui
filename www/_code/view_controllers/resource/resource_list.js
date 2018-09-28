@@ -41,7 +41,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 	var _allCardsForReview = [];
 	var _type = 'my';
 	var _bFirstLoadInitiated = false;
-	
+	var _rawedit = false;
 	function _isMine(_type) {
 		return (_type == 'my' || _type == 'upload');
 	}
@@ -51,6 +51,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 		return nl.q(function(resolve, reject) {
 			var params = nl.location.search();
 			_type = params.type || 'my'; // can be my, all or upload
+			_rawedit = params.rawedit ? true : false;
 			nl.pginfo.pageTitle = _updatePageTitle(); 
 			$scope.cards = {
 			    staticlist: _getStaticCard(),
@@ -163,15 +164,16 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 			help : resource.description,
 			avps : _getResourceListAvps(resource)
 		};
+		card.links = [];
 		if (_isMine(_type) && _userInfo.permissions.admin_user) {
-			card.links = [{id : 'resource_modify', text : nl.t('modify')},
-						  {id : 'resource_delete', text : nl.t('delete')},
-					  	  {id : 'details', text : nl.t('details')}];
+			card.links.push({id : 'resource_modify', text : nl.t('modify')});
+			if(_rawedit) card.links.push({id : 'resource_delete', text : nl.t('delete')});		
+			card.links.push({id : 'details', text : nl.t('details')});
 		} else if(_isMine(_type)){
-			card.links = [{id : 'resource_delete', text : nl.t('delete')},
-					  	  {id : 'details', text : nl.t('details')}];
+			if(_rawedit) card.links.push({id : 'resource_delete', text : nl.t('delete')});		
+			card.links.push({id : 'details', text : nl.t('details')});
 		} else if(!_isMine(_type)){
-			card.links = [{id : 'details', text : nl.t('details')}];		
+			card.links.push({id : 'details', text : nl.t('details')});
 		}
 		card['help'] = nl.t('<b>By: {}</b></span><br><span>Keywords: {}', resource.authorname, resource.keywords);
 		return card;
