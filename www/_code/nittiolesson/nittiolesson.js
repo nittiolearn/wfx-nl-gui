@@ -19,7 +19,7 @@ function(nl, nlServerApi, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg,
     var _moduleConfig = null;
 	this.init = function(oLesson, moduleConfig, ptInfo) {
 		NittioLessonModulePropsDlg.init(oLesson, moduleConfig);
-		NittioLessonPagePropsDlg.init(moduleConfig);
+		NittioLessonPagePropsDlg.init(oLesson, moduleConfig);
 		NittioLessonModuleReviewDlg.init(oLesson);
 		NittioLessonAddPageDlg.init(ptInfo);
 		_moduleConfig = moduleConfig;
@@ -33,8 +33,8 @@ function(nl, nlServerApi, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg,
 		return NittioLessonModulePropsDlg.showDlg(isCreate, bFromPdf, resourceList, templateAnimations, lessonId);
 	};
 	
-	this.showPagePropertiesDlg = function(oPage, defMaxScore, isPopup, resourceList, lessonId) {
-		return NittioLessonPagePropsDlg.showDlg(oPage, defMaxScore, isPopup, resourceList, lessonId);
+	this.showPagePropertiesDlg = function(oPage, defMaxScore, isPopup, resourceList, lessonId, templateAnimations) {
+		return NittioLessonPagePropsDlg.showDlg(oPage, defMaxScore, isPopup, resourceList, lessonId, templateAnimations);
 	};
     this.showAddPageDlg = function(cfg) {
         return NittioLessonAddPageDlg.showDlg(cfg);

@@ -12,6 +12,7 @@ function module_init() {
 //-------------------------------------------------------------------------------------------------
 var NittioLessonPagePropsDlgSrv = ['nl', 'nlDlg', 'nlResourceAddModifySrv',
 function(nl, nlDlg, nlResourceAddModifySrv) {
+	var _oLesson = null;
 	var _pageProps = [];
 	var _moduleConfig = null;
 	var _pagePropsHelp = {};
@@ -21,7 +22,9 @@ function(nl, nlDlg, nlResourceAddModifySrv) {
     var _parentScope = null;
     var _resourceDict = {};
     var _lessonId = null;
-	this.init = function(moduleConfig) {
+	var _templateAnimations = null;
+	this.init = function(oLesson, moduleConfig) {
+		_oLesson = oLesson;
 		_moduleConfig = moduleConfig;
 		_pageProps = [{id:'pageId', name: nl.t('Page id'), type:'div'},
 			{id:'maxScore', name: nl.t('Maximum score'), type:'number', condition: 'isMaxScore'},
@@ -29,7 +32,8 @@ function(nl, nlDlg, nlResourceAddModifySrv) {
 			{id:'forumTopic', name: nl.t('Discussion topic'), type:'string', condition: 'notPopup'},
 			{id:'hint', name: nl.t('Page hint'), type:'textarea', condition: 'notPopup'},
             {id:'bgimg', name: nl.t('Background image'), type:'image-select', canClear: true},
-			{id:'visibility', name: nl.t('Visibility'), type: 'select', condition: 'isBleedingEdge'}];
+			{id:'visibility', name: nl.t('Visibility'), type: 'select', condition: 'isBleedingEdge'},
+		   	{id: 'pageAnimation', name: nl.t('Page animation'), type:'select', condition: 'isAnimationShown'}];
 			
 		_updatePageProps(_pageProps);
 	};
@@ -41,7 +45,8 @@ function(nl, nlDlg, nlResourceAddModifySrv) {
             forumTopic : nl.t('Provide name of the discussion topic which should be displayed when the learner clicks on discussion forum icon from this page.'),
             hint : nl.t('Provide addtional hints to the learner which will be displayed to the learner in report mode'),
             bgimg : nl.t('Provide URL of the background image for this page. If not specified, the module background image will be taken'),
-            visibility : nl.t('Should the page be visible in learning mode (assignments) or just as a note to editor (i.e. hidden page). By default a page is visible in all modes.')
+            visibility : nl.t('Should the page be visible in learning mode (assignments) or just as a note to editor (i.e. hidden page). By default a page is visible in all modes.'),
+            pageAnimation: nl.t('Select this to animate or not animate this page')
 	};
 	
 	var visibilityOpt = [{id:'always', name:nl.t('Always')},
@@ -54,13 +59,14 @@ function(nl, nlDlg, nlResourceAddModifySrv) {
 		}
 	}
 	
-	this.showDlg = function(oPage, defMaxScore, isPopup, resourceDict, lessonId) {
+	this.showDlg = function(oPage, defMaxScore, isPopup, resourceDict, lessonId, templateAnimations) {
 		_oPage = oPage;
 		_defMaxScore = defMaxScore;
 		_isPopup = isPopup;
 		_parentScope = nl.rootScope;
 		_resourceDict = resourceDict;
 		_lessonId = lessonId;
+		_templateAnimations = templateAnimations;
 		return nl.q(function(resolve, reject) {
 			var pagePropsDlg = nlDlg.create(_parentScope);
 				pagePropsDlg.setCssClass('nl-height-max nl-width-max');
@@ -88,12 +94,18 @@ function(nl, nlDlg, nlResourceAddModifySrv) {
 		pagePropsDlg.scope.data.hint = _oPage.hint;
         pagePropsDlg.scope.data.bgimg = _oPage.bgimg || '';
         pagePropsDlg.scope.data.bgshade = _oPage.bgshade || 'bglight';
-		pagePropsDlg.scope.options = {visibility: visibilityOpt};
+
+		var animInfo = _getAnimationInfo(_oPage);
+		pagePropsDlg.scope.showAnimScheme =  animInfo.show;
+        pagePropsDlg.scope.data.pageAnimation = animInfo.selected;
+
+		pagePropsDlg.scope.options = {visibility: visibilityOpt, pageAnimation: animInfo.opts};
 		pagePropsDlg.scope.data.visibility = _oPage.visibility === 'editor' ? visibilityOpt[1] : visibilityOpt[0];
 		pagePropsDlg.scope.data.canShow = function(condition, item) {
 			if (condition == 'isBleedingEdge') return (_moduleConfig.grpProps.isBleedingEdge);
 			if (condition == 'isMaxScore') return (_defMaxScore > 0);
             if (condition == 'notPopup') return (!_isPopup);
+            if (condition == 'isAnimationShown') return pagePropsDlg.scope.showAnimScheme;
 			return true;
 		};
 		
@@ -129,7 +141,26 @@ function(nl, nlDlg, nlResourceAddModifySrv) {
         _oPage.bgimg = data.bgimg;
         _oPage.bgshade = data.bgshade;
 		_oPage.visibility = data.visibility.id;
+		if(!data.pageAnimation || _oLesson.props.animationScheme == data.pageAnimation.id) {
+			_oPage.pageAnimation = '';
+		} else {
+	        _oPage.pageAnimation = data.pageAnimation.id || '';
+		}
 	}
+
+    function _getAnimationInfo() {
+        var ret = {opts: [], selected: null, show: false};
+        var selectedId = _oPage.pageAnimation || null;
+        for (var s in _templateAnimations) {
+            if (s == 'customEffects') continue;
+            ret.show = true;
+            var opt = {id: s, name: _templateAnimations[s].name || s};
+            ret.opts.push(opt);
+            if (s == selectedId) ret.selected = opt;
+        }
+        return ret;
+    }
+
 }];
 
 //-------------------------------------------------------------------------------------------------

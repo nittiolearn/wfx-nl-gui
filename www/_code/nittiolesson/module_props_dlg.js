@@ -47,6 +47,8 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		   		title: nl.t('Learner must complete the page to progress to next page.')},
 		   {id: 'forumTopic', name: nl.t('Discussion topic'), type: 'string', group:'optional_attr'},
 		   {id: 'animScheme', name: nl.t('Animation scheme'), type:'select', condition: 'isAnimationShown', group:'optional_attr'},
+		   {id: 'resetAnimation', name: nl.t('Reset page animations'), type: 'check', condition: 'isAnimationShown', group:'optional_attr', 
+		   	title: nl.t('Selecting this checkbox will reset page level animations to currently selected animation scheme')},
 		   {id: 'additional_attr', name: nl.t('Advanced properties'), type: 'group', condition: 'isBleedingEdge'},
 		   {id: 'templateStylesCss', name: nl.t('Styles'), type: 'textarea', group:'additional_attr', condition: 'isBleedingEdge'},
 		   {id: 'templateBgimgs', name: nl.t('Resource library'), type: 'textarea', group:'additional_attr', condition: 'isBleedingEdge'},
@@ -86,7 +88,8 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		learningMode: nl.t('Self learining modules are not scored and hints are shown to the learner while learning. Assesment modules are scored and correct answers are shown only on completion of the module.'),
 		forumTopic: nl.t('provide name of the discussion topic which should be displayed when the learner clicks on discussion forum icon from this module. This could be further change at page level. This field is the default at module level.'),
 		passScore: nl.t(' Minimum pass score in percentage (between 0 and 100 - both inclusive) for passing this module. Set this to zero to consider any score as passed. Clean the value to go back to the default value.'),
-		animScheme: nl.t('You could animate your content according to different available schemes.'),
+		animScheme: nl.t('You could animate your content according to different available schemes. You can also change the animation scheme at page level too by setting the Page animation parameter in page properties dialog.'),
+		resetAnimation: nl.t('You check this to reset animation set at page level to currently selected animation scheme.'),
 		additional_attr: nl.t('Advanced properties are typically set only in templates. Touch these attributes only if you know what you are doing.'),
 		templateStylesCss: nl.t('define custom CSS classes to be used in styling the module content.'),
 		templateBgimgs: nl.t('Provide a list of images (to be displayed in resource library tab of Select Resouerce dialog) as a JSON array of strings.'),
@@ -117,6 +120,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 			editDlg.setCssClass('nl-height-max nl-width-max');
 			_initEditDlg(editDlg);
 			var okButton = {text: doneButtonText, onTap: function(e) {
+				nlDlg.showLoadingScreen();
 				if(!_validateInputs(editDlg.scope)) {
 					if (e) e.preventDefault();
 					return;
@@ -124,6 +128,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 				_lastStateOptional = editDlg.scope.data.showGroup.optional_attr;
 				_lastStateAdditional = editDlg.scope.data.showGroup.additional_attr;
 				_updateLessonObj(editDlg.scope.data);
+				nlDlg.hideLoadingScreen();
 				resolve({background: editDlg.scope.data.background, bgShade: editDlg.scope.data.bgShade});
 			}};
 			var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
@@ -178,6 +183,28 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		_oLesson.templateBgimgs = data.templateBgimgs;
 		_oLesson.templatePageTypes = data.templatePageTypes;
 		_oLesson.templateAnimations = data.templateAnimations;
+		if(data.resetAnimation) {
+			_updatePageLevelAnimation();
+		}
+	}
+
+	function _updatePageLevelAnimation() {
+		for(var i=0; i<_oLesson.pages.length; i++) {
+			_oLesson.pages[i].pageAnimation = "";
+			_updatePageAnimation(_oLesson.pages[i]);
+		}
+	}
+
+	function _updatePageAnimation(oPage) {
+        for (var i=0; i<oPage.sections.length; i++) {
+            var oSection = oPage.sections[i];
+            if (!oSection.popups || !oSection.popups.onclick) continue;
+            var oSubPages = oSection.popups.onclick;
+            for (var j=0; j<oSubPages.length; j++) {
+				oSubPages[j].pageAnimation = "";
+                _updatePageAnimation(oSubPages[j]);
+            }
+        }
 	}
 
     function _validateInputs(scope) {
@@ -224,6 +251,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		var animInfo = _getAnimationInfo();
 		editDlg.scope.showAnimScheme =  animInfo.show;
         editDlg.scope.data.animScheme = animInfo.selected;
+        editDlg.scope.data.resetAnimation = false;
 		_updateSelectedBg(editDlg.scope.data);
 
 		editDlg.scope.data.showSearch = {};

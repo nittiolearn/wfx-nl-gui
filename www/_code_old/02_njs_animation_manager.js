@@ -189,6 +189,10 @@ function AnimationManager() {
 	this.getAnimationScheme = function(lesson) {
 		var lessonProps = lesson.oLesson.props || {};
 		var tempAnimation = self.getTemplateAnimations(lesson);
+		var currentPage = lesson.getCurrentPage();
+		if (currentPage.oPage.pageAnimation) {
+			return tempAnimation[currentPage.oPage.pageAnimation] || null;
+		}
 		return tempAnimation[lessonProps.animationScheme] || null;
 	};
 };
