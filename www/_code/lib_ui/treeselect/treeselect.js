@@ -86,6 +86,34 @@ function(nl) {
         _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems, treeSelectInfo);
         _updateVisibleData(treeSelectInfo);
         _updateSelectionText(treeSelectInfo);
+		var sortedTreeList = [];
+		var childElemList = [];
+		var lastindentation = null;
+		var parentid = '';
+		for(var i=0; i<treeSelectInfo.data.length+1; i++) {
+			var elem = treeSelectInfo.data[i] || {isFolder: true};
+			if(!elem.isFolder && elem.id.indexOf(parentid) >= 0) {
+				childElemList.push(elem);
+			} else {
+				if(childElemList.length > 0) {
+					childElemList.sort(function(a, b) {
+						if(b.name.toLowerCase() < a.name.toLowerCase()) return 1;
+						if(b.name.toLowerCase() > a.name.toLowerCase()) return -1;
+						if(b.name.toLowerCase() == a.name.toLowerCase()) return 0;
+					});
+				}
+				sortedTreeList = sortedTreeList.concat(childElemList);
+				childElemList = [];					
+				if(!elem.isFolder) {
+					childElemList.push(elem);
+				}
+				if(i<treeSelectInfo.data.length && elem.isFolder) {
+					parentid = elem.id;
+					sortedTreeList.push(elem);
+				}
+			}
+		}
+		treeSelectInfo.data = sortedTreeList;
     };
 
     this.updateSelectedIds = function(treeSelectInfo, selectedIds) {
