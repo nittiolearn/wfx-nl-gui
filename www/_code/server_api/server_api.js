@@ -104,9 +104,9 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/course_get.json', {courseid: courseId, published: published});
     };
     
-    this.courseGetMany = function(courseIds, published) {
-        // return: course objects
-        return server.post('_serverapi/course_get_many.json', {courseids: courseIds, published: published});
+    this.courseOrCourseAssignGetMany = function(recordinfos) {
+        // return: course and course_assignment objects
+        return server.post('_serverapi/course_or_assign_get_many.json', {recordinfos: recordinfos});
     };
     
     this.courseCreate = function(data) {
@@ -186,6 +186,10 @@ function(nl, nlDlg, nlConfig, Upload) {
             {repid: repid, refid: refid, moduleid: moduleid, attempt: attempt, maxDuration: maxDuration});
     };
     
+    this.courseUpdateAttendance = function(data){
+        // returns updated attendance object
+        return server.post('_serverapi/course_update_attendance.json', data);
+	};
     //---------------------------------------------------------------------------------------------
     // Forum methods
     //---------------------------------------------------------------------------------------------

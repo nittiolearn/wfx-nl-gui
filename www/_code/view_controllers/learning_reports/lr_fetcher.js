@@ -13,12 +13,12 @@ var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
 }];
 
-var NlLrFetcher = ['nl', 'nlDlg', 'nlServerApi', 'nlLrFilter', 'nlLrReportRecords', 'nlLrCourseRecords',
-function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecords) {
+var NlLrFetcher = ['nl', 'nlDlg', 'nlServerApi', 'nlLrFilter', 'nlLrReportRecords', 'nlLrCourseRecords', 'nlLrCourseAssignmentRecords',
+function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecords, nlLrCourseAssignmentRecords) {
 	
     var self = this;
     var _pageFetcher = null;
-    var _pendingCourseIds = {};
+    var _subFetcher = new SubFetcher(nlServerApi, nlLrCourseRecords, nlLrCourseAssignmentRecords);
 	var _limit = null;
 
 	this.init = function() {
@@ -66,15 +66,12 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecord
                 return;
             }
             for(var i=0; i<results.length; i++) {
-            	if (results[i].ctype != _nl.ctypes.CTYPE_COURSE) continue;
-                var courseid = results[i].lesson_id;
-                if (!courseid || nlLrCourseRecords.wasFetched(courseid)) continue;
-                _pendingCourseIds[courseid] = true;
+            	_subFetcher.markForFetching(results[i]);
             }
 
-            if (Object.keys(_pendingCourseIds).length > 0) {
+            if (_subFetcher.fetchPending()) {
                 promiseHolder.promise = nl.q(function(resolve, reject) {
-                    _fetchCourses(function(result2) {
+                    _subFetcher.fetch(function(result2) {
                         if (!result2) {
                             resolve(false);
                             onDoneCallback(false);
@@ -93,36 +90,60 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecord
     }
     
     //-----------------------------------------------------------------------------------
-    function _fetchCourses(onDoneCallback) {
-        var cids = [];
-        for (var cid in _pendingCourseIds) cids.push(parseInt(cid));
-        _fetchCoursesInBatchs(cids, 0, onDoneCallback);
-    }
+}];
+
+function SubFetcher(nlServerApi, nlLrCourseRecords, nlLrCourseAssignmentRecords) {
+	var _pendingCourseIds = {};
+	var _pendingCourseAssignIds = {};
+	
+	this.markForFetching = function(reportRecord) {
+    	if (reportRecord.ctype != _nl.ctypes.CTYPE_COURSE) return;
+        var courseid = reportRecord.lesson_id;
+        if (courseid && !nlLrCourseRecords.wasFetched(courseid)) _pendingCourseIds[courseid] = true;
+        var courseAssignId = reportRecord.assignment;
+        if (courseAssignId && !nlLrCourseAssignmentRecords.wasFetched(courseAssignId)) _pendingCourseAssignIds[courseAssignId] = true;
+	};
+	
+	this.fetchPending = function() {
+        return (Object.keys(_pendingCourseIds).length > 0 || Object.keys(_pendingCourseAssignIds).length > 0);
+	};
+	
+	this.fetch = function(onDoneCallback) {
+        var recordinfos = [];
+        for (var cid in _pendingCourseIds) recordinfos.push({id: parseInt(cid),table: 'course'});
+        for (var cid in _pendingCourseAssignIds) recordinfos.push({id: parseInt(cid), table: 'course_assignment'});
+        _fetchInBatchs(recordinfos, 0, onDoneCallback);
+   };
 
     var MAX_PER_BATCH = 50;
-    function _fetchCoursesInBatchs(cids, startPos, onDoneCallback) {
-        var courseIds = [];
-        var maxLen = cids.length < startPos + MAX_PER_BATCH ? cids.length : startPos + MAX_PER_BATCH;
-        for(var i=startPos; i<maxLen; i++) courseIds.push(cids[i]);
-        if (courseIds.length == 0) {
+    function _fetchInBatchs(recordinfos, startPos, onDoneCallback) {
+        var newRecordInfo = [];
+        var maxLen = recordinfos.length < startPos + MAX_PER_BATCH ? recordinfos.length : startPos + MAX_PER_BATCH;
+        for(var i=startPos; i<maxLen; i++) newRecordInfo.push(recordinfos[i]);
+        if (newRecordInfo.length == 0) {
             onDoneCallback(true);
             return;
         }
-        nlServerApi.courseGetMany(courseIds, true).then(function(results) {
+        nlServerApi.courseOrCourseAssignGetMany(newRecordInfo).then(function(results) {
             for(var cid in results) {
             	cid = parseInt(cid);
                 var course = results[cid];
                 if (course.error) nl.log.warn('Error fetching course id', cid);
-                nlLrCourseRecords.addRecord(course, cid);
-                delete _pendingCourseIds[cid];
+                if(course.type == 'course_assignment') {
+                	nlLrCourseAssignmentRecords.addRecord(course, cid);
+	                delete _pendingCourseAssignIds[cid];
+                } else {
+	                nlLrCourseRecords.addRecord(course, cid);
+	                delete _pendingCourseIds[cid];
+                }
             }
             startPos += results.length;
-            _fetchCoursesInBatchs(cids, startPos, onDoneCallback);
+            _fetchInBatchs(recordinfos, startPos, onDoneCallback);
         }, function(error) {
             onDoneCallback(false);
         });
-    }
-}];
+	}
+}
 
 //-------------------------------------------------------------------------------------------------
 module_init();

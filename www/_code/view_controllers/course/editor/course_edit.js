@@ -279,10 +279,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'urlParams', stored_at: 'module', fields: ['link'], type: 'string', text: 'Url-Params'},
         {name: 'certificate_image', stored_at: 'module', fields: ['certificate'], type: 'string', text: 'Certificate image'},
         {name: 'start_after', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
-        {name: 'canMarkAttendance', stored_at: 'module', text: 'Learner can mark attendance', type:'boolean', fields: ['iltsession']},
-        {name: 'iltduration', stored_at: 'module', fields: ['iltsession'], text: 'Session duration', type:'list', values: [30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360, 390, 420, 450, 480, 510, 540, 570, 600],
-        valueNames: {30: '30 minutes', 60: '1 hour', 90: '1 hour 30 minutes', 120: '2 hours', 150: '2 hour 30 minutes', 180: '3 hours', 210: '3 hour 30 minutes', 240: '4 hours', 270: '4 hour 30 minutes', 300: '5 hours',
-        			330: '5 hour 30 minutes', 360: '6 hours', 390: '6 hour 30 minutes', 420: '7 hours', 450: '7 hour 30 minutes', 480: '8 hours', 510: '8 hour 30 minutes', 540: '9 hours', 570: '9 hour 30 minutes', 600: '10 hours'}},
+        {name: 'canMarkAttendance', stored_at: 'module', text: 'Learner can mark attendance', type:'hidden', fields: ['iltsession']},
+        {name: 'iltduration', stored_at: 'module', fields: ['iltsession'], text: 'Session duration (minutes)',type: 'number'},
         {name: 'grp_depAttrs', stored_at: 'module', fields: ['lesson', 'link', 'info'], type: 'group', text: 'Planning'},
         {name: 'start_date', stored_at: 'module', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Start date', group: 'grp_depAttrs'},
         {name: 'planned_date', stored_at: 'module', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Planned date', group: 'grp_depAttrs'},
@@ -330,7 +328,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         posY: 'Define the vertical position of this item in the canvas as a percentage number. Top end of the screen is 0 and the bottom end is 100.',
         bgimg: 'Select the background image to be displayed in the canvas when the folder is opened.',
         bgcolor: 'The background image is resized to retain aspect ratio. This could result in horizontal or vertical bands. You can choose the color of the bands to align with the edge of the image.',
-        iltduration: 'Set this to restrict the learner to complete the module within specific time',
+        iltduration: 'The planned duration of the instructor led session in minutes.',
         canMarkAttendance: 'Set this to allow learner to mark attendance'
     };
     
@@ -718,7 +716,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     }
     
     function _validateILTSessionModule(errorLocation, module) {
-    	// TODO: check if needed
+    	if(module.type != 'iltsession') return true;
+        if(!module.iltduration) return _validateFail(errorLocation, 'Session duration', 'Session duration is mandatory', module);
     	return true;
     }
     

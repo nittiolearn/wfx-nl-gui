@@ -213,7 +213,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 		nl.fmt.addLinkToAvp(linkAvp, 'copy_link', null, 'resource_copy');
 		if (_isMine(_type)) {
 			nl.fmt.addLinkToAvp(linkAvp, 'modify', null, 'resource_modify');
-			nl.fmt.addLinkToAvp(linkAvp, 'delete', null, 'resource_delete');
+			if(_rawedit) nl.fmt.addLinkToAvp(linkAvp, 'delete', null, 'resource_delete');
 		}
 	}
 	

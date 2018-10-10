@@ -662,16 +662,16 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats,
     var MAX_PER_BATCH = 50;
     var courseProcessor = new CourseProcessor(nlCourse);
     function _fetchCoursesInBatchs(cids, startPos, onDoneCallback) {
-        var courseIds = [];
+        var recordinfos = [];
         var maxLen = cids.length < startPos + MAX_PER_BATCH ? cids.length : startPos + MAX_PER_BATCH;
-        for(var i=startPos; i<maxLen; i++) courseIds.push(cids[i]);
-        if (courseIds.length == 0) {
+        for(var i=startPos; i<maxLen; i++) recordinfos.push({id: cids[i], table: 'course'});
+        if (recordinfos.length == 0) {
         	_showFetchErrors().then(function() {
 	            onDoneCallback(true);
         	});
             return;
         }
-        nlServerApi.courseGetMany(courseIds, true).then(function(results) {
+        nlServerApi.courseOrCourseAssignGetMany(recordinfos).then(function(results) {
             for(var cid in results) {
             	cid = parseInt(cid);
                 var course = results[cid];

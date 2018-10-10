@@ -245,7 +245,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     var courseReportSummarizer = new CourseReportSummarizer(nlGroupInfo, $scope);
     var _userInfo = null;
     $scope.MODES = MODES;
-    var folderStats = new FolderStats($scope);
+    var folderStats = new FolderStats($scope, modeHandler);
     $scope.ext = new ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseCanvas, folderStats);
 	$scope.rootStat = folderStats.get(treeList.getRootItem().id);
 	nl.registerIFrameLoaded('course_view_frame', function() {
@@ -796,6 +796,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
             _updateModuleData(cm, today);
         } else if (cm.type === 'info' || cm.type === 'link' || cm.type === 'certificate') {
             _updateLinkData(cm, today);
+        } else if (cm.type === 'iltsession'){
+			_updateILTData(cm, today);
         } else {
             _updateLessonData(cm, today);
         }
@@ -836,6 +838,21 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         else status = 'pending';
         if (!modeHandler.canStart(cm, $scope, treeList)) status = 'waiting';
         else if (cm.type == 'certificate') status = 'success';
+        _updateState(cm, status);
+    }
+    
+    function _updateILTData(cm, today) {
+        cm.timeMins = cm.iltduration;
+        var status = 'pending';
+		if(cm.type == 'iltsession') {
+			var attendance = 'attendance' in modeHandler.course.content ? modeHandler.course.content.attendance[modeHandler.courseId] : [];
+			for(var i=0; i<attendance.length; i++) {
+				if(cm.id == attendance[i])
+					status = 'success';
+				else
+					status = 'waiting';
+			}
+		}
         _updateState(cm, status);
     }
     
@@ -932,7 +949,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         var c = modeHandler.course;
         var assignInfo = {assigntype: 'course', id: c.id, icon: c.icon, 
             title: c.name, authorName: c.authorname, description: c.description, 
-            showDateField: true, enableSubmissionAfterEndtime: true};
+            showDateField: true, enableSubmissionAfterEndtime: true, blended: c.content.blended};
         nlSendAssignmentSrv.show($scope, assignInfo);
     }
     
@@ -969,7 +986,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
 }];
 
 //-------------------------------------------------------------------------------------------------
-function FolderStats($scope) {
+function FolderStats($scope, modeHandler) {
 
     var _folderStats = {};
     this.clear = function() {
@@ -1027,7 +1044,7 @@ function FolderStats($scope) {
 				folderStat.completedCert += 1;			
 			}
 		}
-        if (cm.score !== null) {
+        if (cm.score !== null && cm.type != 'iltsession') {
             folderStat.scoreCount += 1;
             folderStat.score += cm.score;
             folderStat.maxScore += (cm.maxScore || 0);

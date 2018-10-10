@@ -16,9 +16,7 @@ function($stateProvider, $urlRouterProvider) {
 var NlLrCourseRecords = ['nl', 'nlCourse', 'nlLrFilter',
 function(nl, nlCourse, nlLrFilter) {
 
-    var _idToFullName = {};
     var _records = {};
-    var _content = {};
     
 	this.init = function() {
 		_records = {};
@@ -32,12 +30,14 @@ function(nl, nlCourse, nlLrFilter) {
     	_records[cid] = _process(course);
     };
     
-    this.getRecord = function(cid) {
-    	return _records[cid];
+    this.getContentOfCourseAssignment = function() {
+    	if(nlLrFilter.getType() != 'course_assign') return null;
+    	for (var cid in _records) return _records[cid].content;
+    	return null;
     };
     
-    this.getContent = function() {
-    	if(_content) return _content;
+    this.getRecord = function(cid) {
+    	return _records[cid];
     };
     
     this.getCourseInfoFromReport = function(report, repcontent) {
@@ -48,8 +48,7 @@ function(nl, nlCourse, nlLrFilter) {
     function _process(course) {
 		course = nlCourse.migrateCourse(course);
 		if (course.name) nlLrFilter.setObjectName(course.name);
-		_content = course.content || {};
-        _idToFullName = {};
+        var idToFullName = {};
         var ret = {id: course.id, name: course.name || '', created: course.created || null, 
             updated: course.updated || null, certificates: [], lessons: [], nonLessons: [],
             content: course.content};
@@ -58,8 +57,8 @@ function(nl, nlCourse, nlLrFilter) {
         for (var i=0; i<modules.length; i++) {
             var m = modules[i];
             if (!m.id) continue;
-            _updateIdToFullName(m);
-            if (m.type == 'lesson') ret.lessons.push({id: m.id, name:_idToFullName[m.id]});
+            _updateIdToFullName(m, idToFullName);
+            if (m.type == 'lesson') ret.lessons.push({id: m.id, name:idToFullName[m.id]});
             else if (m.type == 'certificate') ret.certificates.push(m.id);
             else if (m.type != 'module') ret.nonLessons.push(m.id);
         }
@@ -72,11 +71,11 @@ function(nl, nlCourse, nlLrFilter) {
     }
     
     var _DELIM = '.';
-    function _updateIdToFullName(m) {
+    function _updateIdToFullName(m, idToFullName) {
         var pid = _getParentId(m);
-        var prefix = pid && _idToFullName[pid] ? _idToFullName[pid] + _DELIM : '';
+        var prefix = pid && idToFullName[pid] ? idToFullName[pid] + _DELIM : '';
         var myName = prefix + (m.name || '');
-        _idToFullName[m.id] = myName;
+        idToFullName[m.id] = myName;
     }
 
     function _getParentId(m) {
