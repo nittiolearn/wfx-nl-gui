@@ -46,6 +46,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		   {id: 'check_all_question_answered', name: nl.t('Ensure completion'), type: 'check', group:'optional_attr',
 		   		title: nl.t('Learner must complete the page to progress to next page.')},
 		   {id: 'forumTopic', name: nl.t('Discussion topic'), type: 'string', group:'optional_attr'},
+		   {id: 'blink_after', name: nl.t('Blink after'), type: 'number', group:'optional_attr', condition: 'isSelfLearningMode', min: 0},
 		   {id: 'animScheme', name: nl.t('Animation scheme'), type:'select', condition: 'isAnimationShown', group:'optional_attr'},
 		   {id: 'resetAnimation', name: nl.t('Reset page animations'), type: 'check', condition: 'isAnimationShown', group:'optional_attr', 
 		   	title: nl.t('Selecting this checkbox will reset page level animations to currently selected animation scheme')},
@@ -87,6 +88,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		esttime: nl.t('Estimated time in minutes (between 1 and 600) to complete this learning module. When this learning module is sent as an assignment, the assignment duration is pre-filled with the estimated time if available.'),
 		learningMode: nl.t('Self learining modules are not scored and hints are shown to the learner while learning. Assesment modules are scored and correct answers are shown only on completion of the module.'),
 		forumTopic: nl.t('provide name of the discussion topic which should be displayed when the learner clicks on discussion forum icon from this module. This could be further change at page level. This field is the default at module level.'),
+		blink_after: nl.t('Set this parameter to get the blinker after n attempts in the leaner mode'),
 		passScore: nl.t(' Minimum pass score in percentage (between 0 and 100 - both inclusive) for passing this module. Set this to zero to consider any score as passed. Clean the value to go back to the default value.'),
 		animScheme: nl.t('You could animate your content according to different available schemes. You can also change the animation scheme at page level too by setting the Page animation parameter in page properties dialog.'),
 		resetAnimation: nl.t('You check this to reset animation set at page level to currently selected animation scheme.'),
@@ -158,6 +160,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
         _oLesson.subject = selectedSubjects.length == 0 ? _subjectInfo.data[0].id : selectedSubjects[0];
         _oLesson.image = 'img:' + data.icon;
         _oLesson.template = nl.fmt2('img:{}[{}]', data.background, data.bgShade);
+		_oLesson.blink_after = data.blink_after;
         if (!_oLesson.props) _oLesson.props = {};
         _oLesson.props.animationScheme = data.animScheme ? data.animScheme.id : '';
         if(data.learningMode.id == 'self') {
@@ -244,6 +247,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 		editDlg.scope.data.fixedHelp = 'Name is the only mandatory property. You may leave the rest of the properties to default. Properties could be changed anytime later.';
 		editDlg.scope.data.name = _oLesson.name;
 		editDlg.scope.data.forumTopic = _oLesson.forumTopic;
+		editDlg.scope.data.blink_after = _oLesson.blink_after;
 		editDlg.scope.data.description = _oLesson.description;
 		editDlg.scope.data.keywords = _oLesson.keywords;
 		editDlg.scope.data.esttime = parseInt(_oLesson.esttime);
@@ -303,6 +307,7 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 			if (condition == 'isAssesment') return (editDlg.scope.data.learningMode.id == 'assesment');
 			if (condition == 'isBleedingEdge') return (_moduleConfig.grpProps.isBleedingEdge);
 			if (condition == 'isAnimationShown') return editDlg.scope.showAnimScheme;
+			if (condition == 'isSelfLearningMode') return (editDlg.scope.data.learningMode.id == 'self');
 			return true;
 		};
 		

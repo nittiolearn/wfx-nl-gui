@@ -1393,7 +1393,7 @@ npagetypes = function() {
 		var simuBox = jQuery('<div class="simuBox">');
 		_Simulation_setBoxCssPos(simuBox, boxCssPos);
 		pgSecView.append(simuBox);
-		
+		var nclicks = 0;
 		if (pageMode == 'edit') {
 			simuBox.addClass('edit_gra');
 			simuBox.draggable({containment : [rects.psv.l + rects.img.l, rects.psv.t + rects.img.t, 
@@ -1402,12 +1402,15 @@ npagetypes = function() {
 			simuBox.resizable({stop: _onResize});
 			pgSecView.unbind('click');
 		} else if (pageMode == 'do') {
+			if(section.lesson.oLesson.selfLearningMode && (section.lesson.oLesson.blink_after == 0)) simuBox.addClass('answer_shown');
 			simuBox.bind('click', function(e) {
 				_onClickDoMode(e, section, true);
 			});
 			pgSecView.unbind('click');
 			pgSecView.bind('click', function(e) {
-				_onClickDoMode(e, section, false);
+				nclicks += 1;
+				if(section.lesson.oLesson.selfLearningMode && section.lesson.oLesson.blink_after > 0 && nclicks >= section.lesson.oLesson.blink_after) simuBox.addClass('answer_shown');
+				_onClickDoMode(e, section, false, nclicks);
 			});
 		} else if (pageMode == 'report') {
 			pgSecView.unbind('click');
@@ -1431,7 +1434,7 @@ npagetypes = function() {
 			_popupStatus(params);
 		}
 		
-		function _onClickDoMode(e, section, correct) {
+		function _onClickDoMode(e, section, correct, nclicks) {
 			e.preventDefault();
 			e.stopImmediatePropagation();
 			section.pgSecView.answerStatus = correct;
@@ -1449,7 +1452,7 @@ npagetypes = function() {
 				params.cls = 'highlight red';
 			}
 			_popupStatus(params);
-			if (!moveNext) return;
+			if (!moveNext || (nclicks <= section.lesson.oLesson.blink_after && section.lesson.oLesson.selfLearningMode)) return;
 			var lesson = section.page.lesson;
 			var pageNo = lesson.getCurrentPageNo();
 			if (pageNo >= lesson.pages.length-1) return;

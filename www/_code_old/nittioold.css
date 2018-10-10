@@ -1365,7 +1365,7 @@ div.secViewContent {
   50% { border-color: #FFFFFF; } 
 }
 
-.mode_edit .pgSecView .simuBox, .mode_report .pgSecView .simuBox {
+.mode_edit .pgSecView .simuBox, .mode_report .pgSecView .simuBox, .pgSecView .simuBox.answer_shown {
   border: 2px solid black;
   animation: border_blink .5s step-end infinite alternate;
   background-color: rgba(0, 0, 0, 0.6);
