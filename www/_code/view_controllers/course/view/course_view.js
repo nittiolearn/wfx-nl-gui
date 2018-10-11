@@ -842,15 +842,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     }
     
     function _updateILTData(cm, today) {
-        cm.timeMins = cm.iltduration;
         var status = 'pending';
 		if(cm.type == 'iltsession') {
 			var attendance = 'attendance' in modeHandler.course.content ? modeHandler.course.content.attendance[modeHandler.courseId] : [];
 			for(var i=0; i<attendance.length; i++) {
-				if(cm.id == attendance[i])
-					status = 'success';
-				else
-					status = 'waiting';
+				if(cm.id != attendance[i]) continue;
+				status = 'success';
+		        cm.timeMins = cm.iltduration;
 			}
 		}
         _updateState(cm, status);

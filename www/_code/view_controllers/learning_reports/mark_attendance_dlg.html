@@ -8,14 +8,14 @@
 		z-index: 10;
 	}	
 </style>
-<nl-dlg dlgTitle='Mark attendance'>
+<nl-dlg dlgTitle='Mark attendance' show-help='0'>
 <nl-dlg-content>
 <div class='row row-top padding0 margin0'>
 	<div ng-class='resp2Col33'
 		style='padding-right:0px'>
 		<div class='padding-mid fsh4'>Sessions</div>
-		<div ng-repeat='session in content'
-			class='nl-link-text {{session.id == selectedItem.id ? "nl-pagetype-selected" : ""}}'>
+		<div ng-repeat='session in sessions'
+			class='nl-link-text {{session.id == selectedSession.id ? "nl-pagetype-selected" : ""}} padding-small'>
 			<div class='padding-mid' 
 				ng-click='onClick(session)'
 				style='position:relative'>
@@ -25,25 +25,36 @@
 	</div>
 	<div ng-class='resp2Col67'>
 		<div class='row row-center padding0 margin0'>
-			<div class='col padding-mid fsh4'>Assigned users</div>
-			<div ng-show='selectall' ng-click='markAllUsers(true)' class='nl-link-text'>
+			<div class='col padding-mid fsh4'>Attendance is not marked for</div>
+			<div ng-show='selectedSession.selectall' ng-click='markAllUsers(true)' class='nl-link-text'>
 				<span>Select all</span>
 			</div>
-			<div ng-show='!selectall' ng-click='markAllUsers(false)'  class='nl-link-text'>
+			<div ng-show='!selectedSession.selectall' ng-click='markAllUsers(false)'  class='nl-link-text'>
 				<span>Deselect all</span>
 			</div>
 		</div>
-		<div class='row row-center padding0 margin0' ng-repeat='user in userList'
-			style='border-bottom: 1px solid black'>
-			<div class='col padding-mid'>
-				{{user.name}}
+		<div class='row row-center padding0 margin0' ng-repeat='user in selectedSession["pending"]'>
+			<div class='row row-center padding0 margin0'
+				style='border-bottom: 1px solid black'>
+				<div class='col padding-mid'>
+					{{user.name}}
+				</div>
+				<span class='nl-link-text padding-mid' ng-click='updateAttendance(user)'>
+					<i ng-show='!user.status' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+					<i ng-show='user.status' class='fsh4 icon ion-android-checkbox-outline'></i>
+				</span>
 			</div>
-			<div class='col padding-mid'>
-				{{user[selectedItem.id]}}
-			</div>
-			<div ng-click='updateAttendance(user)' class='nl-link-text'>
+		</div>
+		<div class='padding-mid'></div>
+		<div class='fsh4 padding-mid'>Attendance is already marked for</div>
+		<div class='row row-center padding0 margin0' ng-repeat='user in selectedSession.attended'>
+			<div class='row row-center padding0 margin0'
+				style='border-bottom: 1px solid black'>
+				<div class='col padding-mid'>
+					{{user.name}}
+				</div>
 				<span>
-					<i class='fsh4 icon ion-code-working'></i>
+					<i class='icon nl-dlg-field-icon ion-checkmark-circled nl-green padding-mid'></i>
 				</span>
 			</div>
 		</div>

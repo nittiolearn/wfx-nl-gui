@@ -95,10 +95,9 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     }
     
 	function _updateTypeDropdown(cm, attr) {
-		attr.values = ['module', 'lesson', 'info', 'certificate'];
+		attr.values = ['module', 'lesson', 'info', 'certificate', 'iltsession'];
     	if (cm.type == 'link' || nlRouter.isPermitted(_userInfo, 'admin_user'))
     	   attr.values.push('link');
-    	if(_debug) attr.values.push('iltsession');
 		return;
 	}
 

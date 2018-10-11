@@ -127,7 +127,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		} else if (linkid === 'course_assign'){
 			var assignInfo = {assigntype: 'course', id: card.courseId, icon : card.icon2 ? 'icon:' : card.icon, 
 				title: card.title, authorName: card.authorName, description: card.help,
-				showDateField: true, enableSubmissionAfterEndtime: true};
+				showDateField: true, enableSubmissionAfterEndtime: true, blended: card.blended};
 			nlSendAssignmentSrv.show($scope, assignInfo);
 		} else if (linkid === 'course_assign_delete'){
 			_deleteAssignment($scope, card.reportId);
@@ -275,13 +275,13 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 				bMore = true;
 				break;
 			}
-			courseIds.push(courseid);
+			courseIds.push({id:courseid, table: 'course'});
 		}
 		if (courseIds.length == 0) {
 			resolve(true);
 			return;
 		}
-		nlServerApi.courseGetMany(courseIds, true).then(function(results) {
+		nlServerApi.courseOrCourseAssignGetMany(courseIds).then(function(results) {
             for(var courseid in results) {
 				courseid = parseInt(courseid);
                 courseDict[courseid] = results[courseid]; // could also be an error object
@@ -331,6 +331,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	    			title: course.name, 
 					url: url,
 					authorName: course.authorname,
+					blended: course.blended || false,
 					help: course.description,
 					json: angular.toJson(course, 0),
 					grp: course.grp,

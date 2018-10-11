@@ -14,11 +14,12 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrCourseRecords', 'nlLrFilter',
-function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
+var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrCourseRecords', 'nlLrFilter', 'nlLrCourseAssignmentRecords',
+function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLrCourseAssignmentRecords) {
     var self = this;
     
     var _records = {};
+    var _resultList = [];
     var _summaryStats = null;
     var _dates = {};
     var _pastUserData = null;
@@ -33,7 +34,9 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
     	if (!nlGroupInfo.isPastUserXlsConfigured()) _pastUserData = {};
     };
     
-    this.addRecord = function(report) {
+    this.addRecord = function(report, isUpdate) {
+    	var update = isUpdate || false;
+    	if(!isUpdate) _resultList.push(report);
     	if (report.ctype == _nl.ctypes.CTYPE_COURSE)
     		report = _processCourseReport(report);
 		else if (report.ctype == _nl.ctypes.CTYPE_MODULE)
@@ -50,7 +53,13 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
         if (!_dates.maxUpdated || _dates.maxUpdated < report.raw_record.updated) _dates.maxUpdated = report.raw_record.updated;
         return report;
 	};
-      
+    
+    this.updateReportRecords = function() {
+    	for(var i=0; i<_resultList.length; i++) {
+    		self.addRecord(_resultList[i], true);
+    	}
+    };
+
     this.removeRecord = function(repid) {
         if (repid in _records)
             _summaryStats.removeFromStats(_records[repid]);
@@ -141,6 +150,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
 		var user = _getStudentFromReport(report, repcontent);
 		if (!user) return null;
         var course = nlLrCourseRecords.getRecord(report.lesson_id);
+        var courseAssignment = nlLrCourseAssignmentRecords.getRecord(report.assignment);        
         if (!course) course = nlLrCourseRecords.getCourseInfoFromReport(report, repcontent);
 		var contentmetadata = 'contentmetadata' in course ? course.contentmetadata : {};
 		report._grade = contentmetadata.grade || '';
@@ -152,6 +162,20 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter) {
             
         var started = false;
         var statusinfo = repcontent.statusinfo || {};
+        if(course.content.blended) {
+	        var attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
+	        for(var i=0; i<course.content.modules.length; i++) {
+	        	var elem = course.content.modules[i];
+	        	if(elem.type != 'iltsession' || !attendance[report.id]) continue;
+	        	var userAttendance = attendance[report.id];
+		    	for(var j=0; j<userAttendance.length; j++) {
+		    		if(userAttendance[j] == elem.id) {
+		    			if(!statusinfo[elem.id]) statusinfo[elem.id] = {};
+		    			statusinfo[elem.id].status = 'done';
+		    		}
+		    	}
+	        }
+        }
         var items = course.nonLessons;
         stats.nOthers = items.length;
         stats.nOthersDone = 0;

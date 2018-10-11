@@ -1,0 +1,39 @@
+<nl-dlg dlgTitle='Confirmation dialog' show-help='0'>
+<nl-dlg-content>
+<div class='padding-mid fsh6'>
+     <div class='padding-mid-v fyellow row row-center margin0 padding0'>
+        <i class="fsh2 icon ion-alert-circled"></i> 
+        <div class='col padding margin0'>
+            You have chosen to mark the following users as attended. <span class='fsh6 forange2'>Once marked, it cannot be reverted</span>. Do you want to continue?
+        </div>
+     </div>
+</div>
+<div class='row row-top padding0 margin0'
+	ng-repeat='session in markedSessions'>
+	<div class='col' ng-show='session.selectedUsers.length > 0'>
+		<div class='fsh6'><span class='fsh6'>{{session.name}}:</span> {{session.selectedUsers.length}} user{{session.selectedUsers.length > 1 ? 's' : ''}} selected</div>
+		<div class='padding-small'></div>
+		<div class='row row-center padding0 margin0'>
+			<table class='nl-table nl-table-styled fsh6 padding-mid'>
+			    <tr>
+			        <th>
+			            <span>Username</span>
+			        </th>
+			        <th>
+			            <span>Status</span>
+			        </th>
+			    </tr>
+			    <tr ng-repeat='user in session.selectedUsers'>
+			        <td>
+			            <span>{{user}}</span>
+			        </td>
+			        <td>
+			            <span>Attended</span>
+			        </td>
+			    </tr>
+			</table>
+		</div>
+	</div>
+</div>
+</nl-dlg-content>
+</nl
