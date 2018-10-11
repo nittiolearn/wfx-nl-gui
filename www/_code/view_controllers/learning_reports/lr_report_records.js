@@ -158,10 +158,9 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
 		
         var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
             timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
-            internalIdentifier:report.id, nCerts: course.certificates.length};
+            internalIdentifier:report.id, nCerts: course.certificates.length, iltTimeSpent: 0};
             
         var started = false;
-        var statusinfo = repcontent.statusinfo || {};
         if(course.content.blended) {
 	        var attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
 	        for(var i=0; i<course.content.modules.length; i++) {
@@ -170,12 +169,16 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
 	        	var userAttendance = attendance[report.id];
 		    	for(var j=0; j<userAttendance.length; j++) {
 		    		if(userAttendance[j] == elem.id) {
-		    			if(!statusinfo[elem.id]) statusinfo[elem.id] = {};
-		    			statusinfo[elem.id].status = 'done';
+		    			if(!repcontent.statusinfo) repcontent.statusinfo = {};
+		    			if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
+		    			repcontent.statusinfo[elem.id].status = 'done';
+		    			repcontent.statusinfo[elem.id].time = elem.iltduration;
+		    			stats.iltTimeSpent += elem.iltduration*60;
 		    		}
 		    	}
 	        }
         }
+        var statusinfo = repcontent.statusinfo || {};
         var items = course.nonLessons;
         stats.nOthers = items.length;
         stats.nOthersDone = 0;
@@ -232,7 +235,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         stats.percScore = stats.nMaxScore ? Math.round(stats.nScore/stats.nMaxScore*100) : 0;
         stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
 
-        stats.timeSpentStr = Math.ceil(stats.timeSpentSeconds/60);
+        stats.timeSpentStr = Math.ceil((stats.timeSpentSeconds+stats.iltTimeSpent)/60);
         stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
             : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
 

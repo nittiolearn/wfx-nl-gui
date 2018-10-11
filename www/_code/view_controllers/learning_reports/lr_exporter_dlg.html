@@ -15,6 +15,12 @@
             <i ng-hide='export.user' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
             <span>export course reports</span>
         </div>
+        <div ng-show='reptype == "course" || reptype == "course_assign"' class='padding-mid nl-link-text' 
+             ng-click='export.session = !export.session'>
+            <i ng-show='export.session' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='export.session' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>export session reports</span>
+        </div>
         <div class='padding-mid nl-link-text' 
              ng-click='export.module = !export.module || reptype == "module_assign"'>
             <i ng-show='export.module' class="fsh4 icon ion-android-checkbox-outline"></i>

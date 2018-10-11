@@ -47,7 +47,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 		dlg.scope.reptype = nlLrFilter.getType();
         dlg.setCssClass('nl-height-max nl-width-max');
         dlg.scope.export = {summary: true, user: true, module: (dlg.scope.reptype == 'module' || dlg.scope.reptype == 'module_assign') ? true : false, ids: false,
-            canShowIds: isAdmin, pageScore: false, feedback: false};
+            canShowIds: isAdmin, pageScore: false, feedback: false, session: false};
         dlg.scope.data = {};
 		_setExportFilters(dlg, reportRecords);
 		var filterData = dlg.scope.filtersData;
@@ -183,6 +183,16 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                     start += pending;
                 }
             }
+			
+			if (filter.exportTypes.session) {
+                for(var start=0, i=1; start < ctx.sessionRows.length; i++) {
+                    var pending = ctx.sessionRows.length - start;
+                    pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
+                    var fileName = nl.fmt2('ilt-session-reports-{}.csv', i);
+                    _createCsv(filter, ctx.sessionRows, zip, fileName, start, start+pending);
+                    start += pending;
+                }
+			} 
 
             if (filter.exportTypes.feedback && ctx.feedbackRows.length > 1) {
                 for(var start=0, i=1; start < ctx.feedbackRows.length; i++) {
@@ -250,6 +260,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 	            if (records[i].raw_record.ctype == _nl.ctypes.CTYPE_MODULE) {
 	            	_exportIndividualPageScore(filter, records[i]);
 	            } else if(records[i].raw_record.ctype == _nl.ctypes.CTYPE_COURSE){
+	            	if(filter.exportTypes.session) _updateCsvSessionRows(filter, records[i]);
 	            	_updateCsvModuleRows(filter, records[i]);
 	            }
                 expSummaryStats.addToStats(records[i]);
@@ -285,7 +296,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var headers = ['User Id', 'User Name'];
         headers = headers.concat(['Course Name', 'Batch name', _gradelabel, _subjectlabel, 'Assigned On', 'Last Updated On', 
             'From', 'Till', 'Status', 'Progress', 'Progress Details', 'Quiz Attempts',
-            'Achieved %', 'Maximum Score', 'Achieved Score', 'Time Spent (minutes)']);
+            'Achieved %', 'Maximum Score', 'Achieved Score', 'Time Spent (minutes)', 'ILT time spent(minutes)', 'Venue', 'Trainer name',]);
+    	headers = headers.concat([ 'Infra Cost', 'Trainer Cost', 'Food Cost', 'Travel Cost', 'Misc Cost']);
         headers = headers.concat(['Email Id', 'Org']);
         for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
         if (filter.exportTypes.ids)
@@ -302,7 +314,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             report.stats.status.txt, '' + report.stats.percComplete + '%',
             report.stats.percCompleteDesc, report.stats.avgAttempts,
             report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore,
-            Math.ceil(report.stats.timeSpentSeconds/60)]);
+            Math.ceil(report.stats.timeSpentSeconds/60), Math.ceil(report.stats.iltTimeSpent/60)]);
+        ret = ret.concat([report.repcontent.venue || '', report.repcontent.trainerName || '', report.repcontent.infrastructureCost || '', report.repcontent.trainerCost || '',
+        			report.repcontent.stsAndFoodCost || '', report.repcontent.travelCost || '', report.repcontent.miscellaneousCost || '']);
         ret.push(report.user.email);
         ret.push(report.user.org_unit);
         for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id] || '');
@@ -350,6 +364,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         ctx.moduleRows = [nlExporter.getCsvHeader(_hModuleRow)];
         ctx.pScoreRows = [nlExporter.getCsvHeader(_hPageScores)];
         ctx.feedbackRows = [nlExporter.getCsvHeader(_hFeedback)];
+        ctx.sessionRows = [nlExporter.getCsvHeader(_hSessionRow)];
         ctx.reports = reports;
         ctx.zip = new JSZip();
         ctx.pageCnt = 0;
@@ -363,6 +378,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     var _hModuleRow = [];
     var _hPageScores = [];
     var _hFeedback = [];
+    var _hSessionRow = [];
     var _userFields1 = [
             {id: '_user_id', name:'User Id'},
             {id: 'studentname', name:'User Name'}];
@@ -409,7 +425,30 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             {id: 'title', name:'Page Title'},
             {id: 'question', name:'Question'},
             {id: 'response', name:'Response'}];
+
+	var _h1sessionElems1 = [
+            {id: '_assignTypeStr', name:'Record Type'},
+            {id: '_courseName', name:'course Name'},
+            {id: '_batchName', name:'Batch Name'},
+            {id: 'session', name:'Session name'}];
             
+    var _h1sessionElems2 = [        
+			{id: 'not_before', name: 'From', fmt: 'minute'},
+			{id: 'not_after', name: 'Till', fmt: 'minute'},
+			{id: 'status', name: 'Status'},
+            {id: '_timeMins', name:'ILT Time Spent(minutes)'},
+            {id: 'venue', name: 'Venue'},
+            {id: 'trainerName', name: 'Trainer name'},
+            {id: 'infrastructureCost', name: 'Infra cost'},
+            {id: 'trainerCost', name: 'Trainer cost'},
+            {id: 'stsAndFoodCost', name: 'Food cost'},
+            {id: 'travelCost', name: 'travel cost'},
+            {id: 'miscellaneousCost', name: 'Misc cost'}];
+      var idSessionIdFields = [
+			{id: 'repid', name: 'Report Id'},
+			{id: 'assignid', name: 'Assign Id'}, 
+			{id: 'courseid', name: 'Course Id'}      
+			];
     function _initExportHeaders(_userInfo, exportIds) {
         var _commonFieldsPre = [
                 {id: 'subject', name:_userInfo.groupinfo.subjectlabel},
@@ -423,8 +462,42 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                 exportIds ? _idFields1 :  []);
         _hFeedback = _userFields1.concat(_commonFields, _commonFieldsPre, _h1Feedback, _commonFieldsPost, _userFields2, _metaFields,
                 exportIds ? _idFields1 :  []);
-    
+    	_hSessionRow = _userFields1.concat(_h1sessionElems1, _commonFieldsPre, _h1sessionElems2, _userFields2, _metaFields, 
+    			exportIds ? idSessionIdFields :  []);
     }
+
+	function _updateCsvSessionRows(filter, rep) {
+        if(!rep.course.content.blended) return;
+        var mh = nlLrHelper.getMetaHeaders(false);
+        var record = {_user_id: rep.user.user_id, studentname: rep.repcontent.studentname, 
+        				_assignTypeStr: 'Course', _courseName: rep.repcontent.name, _batchName: rep.repcontent.batchname,
+        				session: '', subject: rep.course.contentmetadata.subject,  _grade: rep.course.contentmetadata.grade, 
+        				not_before: rep.repcontent.not_before, not_after: rep.repcontent.not_after, status: '-', _timeMins: (rep.stats.iltTimeSpent+rep.stats.timeSpentSeconds)/60,
+        				venue: rep.repcontent.venue, trainerName: rep.repcontent.trainerName, infrastructureCost : rep.repcontent.infrastructureCost,
+        				trainerCost: rep.repcontent.trainerCost, stsAndFoodCost: rep.repcontent.stsAndFoodCost, travelCost: rep.repcontent.travelCost,
+        				miscellaneousCost: rep.repcontent.miscellaneousCost, _email: rep.user.email, org_unit: rep.user.org_unit};
+        for(var i=0; i<mh.length; i++) record[mh[i].id] = rep.usermd[mh[i].id];
+        if (filter.exportTypes.ids) {
+            record['repid'] =  rep.raw_record.id;
+            record['assignid'] = rep.raw_record.assignment;
+            record['courseid'] = rep.repcontent.courseid; 
+        }
+        for(var i=0; i<rep.course.content.modules.length; i++) {
+        	var session = rep.course.content.modules[i];
+        	if(session.type != 'iltsession' || session.type == 'module') continue;
+        	record['session'] = session.name;
+        	record['_assignTypeStr'] = session.type;
+        	if(rep.repcontent.statusinfo && rep.repcontent.statusinfo[session.id]) {
+	        	record['status'] = rep.repcontent.statusinfo[session.id].status == 'done' ? 'Completed' : 'pending';
+	        	record['_timeMins'] = rep.repcontent.statusinfo[session.id].time;
+        	} else {
+        		record['status'] = 'Pending';
+        		record['_timeMins'] = '';
+        	}
+	        ctx.sessionRows.push(nlExporter.getCsvRow(_hSessionRow, record));
+        }
+	}
+
 
     function _exportIndividualPageScore(filter, report) {
         var rep = report.raw_record;
