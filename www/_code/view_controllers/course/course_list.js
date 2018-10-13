@@ -282,9 +282,10 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 			return;
 		}
 		nlServerApi.courseOrCourseAssignGetMany(courseIds).then(function(results) {
-            for(var courseid in results) {
-				courseid = parseInt(courseid);
-                courseDict[courseid] = results[courseid]; // could also be an error object
+            for(var i=0; i<results.length; i++) {
+                var course = results[i];
+				var courseid = parseInt(course.id);
+                courseDict[courseid] = course; // could also be an error object
             }
             if (bMore) _fetchAdditionalCoursesImpl(resolve);
             else resolve(true);

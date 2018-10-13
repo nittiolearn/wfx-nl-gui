@@ -622,8 +622,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		startFrom += batchLength;
 		nlDlg.popupStatus(nl.fmt2('Sending {} of {} reminder notifications ...', startFrom, reminderDict.users.length), false);
 		nlServerApi.sendReminderNotification(params).then(function(result) {
-			// TODO_REMOVE_NOW
-			nlDlg.popupAlert({template: angular.toJson(result, 2)});
 			_sendReminderInBatches(reminderDict, remarks, startFrom);
 		}, function(error) {
 			nlDlg.popdownStatus(0);

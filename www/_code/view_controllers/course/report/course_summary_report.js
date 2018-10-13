@@ -672,9 +672,9 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats,
             return;
         }
         nlServerApi.courseOrCourseAssignGetMany(recordinfos).then(function(results) {
-            for(var cid in results) {
-            	cid = parseInt(cid);
-                var course = results[cid];
+            for(var i=0; i<results.length; i++) {
+                var course = results[i];
+            	var cid = parseInt(course.id);
                 if (course.error) {
                 	_courseFetchErrors.push({id: cid, msg: course.error});
                 }
@@ -685,7 +685,7 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats,
             _fetchCoursesInBatchs(cids, startPos, onDoneCallback);
         }, function(error) {
             onDoneCallback(false);
-        });
+	        });
     }
 }
 

@@ -125,9 +125,9 @@ function SubFetcher(nlServerApi, nlLrCourseRecords, nlLrCourseAssignmentRecords)
             return;
         }
         nlServerApi.courseOrCourseAssignGetMany(newRecordInfo).then(function(results) {
-            for(var cid in results) {
-            	cid = parseInt(cid);
-                var course = results[cid];
+            for(var i=0; i<results.length; i++) {
+                var course = results[i];
+            	var cid = parseInt(course.id);
                 if (course.error) nl.log.warn('Error fetching course id', cid);
                 if(course.type == 'course_assignment') {
                 	nlLrCourseAssignmentRecords.addRecord(course, cid);
