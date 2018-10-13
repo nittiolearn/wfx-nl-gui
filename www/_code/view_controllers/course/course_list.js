@@ -681,7 +681,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
     }
 
     function _validateModuleType(scope, module) {
-    	var moduleTypes = {'module': true, 'lesson': true, 'link': true, 'info':true, 'certificate': true};
+    	var moduleTypes = {'module': true, 'lesson': true, 'link': true, 'info':true, 'certificate': true, 'iltsession': true};
     	if(module.type in moduleTypes) return true;
     	var msg = '"type" has to be one of [' + Object.keys(moduleTypes).toString() + ']';
         return _validateModuleFail(scope, module, msg);

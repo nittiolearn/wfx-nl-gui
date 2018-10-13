@@ -168,7 +168,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
             var item = treeList.getItem(cmid);
             if (!item) continue; // ignore
             if (item.state.status == 'waiting') return false;
-            if (item.type == 'certificate') {
+            if (item.type == 'certificate' || item.type == 'iltsession') {
             	if (item.state.status != 'success') return false;
             	continue;
             }
@@ -844,7 +844,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     function _updateILTData(cm, today) {
         var status = 'pending';
 		if(cm.type == 'iltsession') {
-			var attendance = 'attendance' in modeHandler.course.content ? modeHandler.course.content.attendance[modeHandler.courseId] : [];
+			var attendance = 'attendance' in modeHandler.course.content ? modeHandler.course.content.attendance[modeHandler.courseId] || [] : [];
 			for(var i=0; i<attendance.length; i++) {
 				if(cm.id != attendance[i]) continue;
 				status = 'success';

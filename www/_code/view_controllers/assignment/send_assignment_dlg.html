@@ -46,6 +46,15 @@
 		</div>
 	</nl-dlg-row>
 
+	<nl-dlg-row attr='submissionAfterEndtime' data='data' help='help'
+         ng-show='assignInfo.enableSubmissionAfterEndtime && data.endtime'>
+        <nl-checkbox fieldmodel='submissionAfterEndtime' 
+                     fieldname='allow users to submit assignment after end time'
+                     fieldcls= 'padding-mid'
+                     fieldindex="0">
+        </nl-checkbox>
+    </nl-dlg-row>
+
 	<nl-dlg-row ng-show='assignInfo.assigntype == "lesson"' attr='maxduration' data='data' help='help'>
         <nl-input fieldmodel='maxduration' fieldtype='number' fieldcls='w100'></nl-input>
 	</nl-dlg-row>
@@ -61,15 +70,6 @@
                      fieldindex="0">
         </nl-checkbox>
 	</nl-dlg-row>
-
-	<nl-dlg-row attr='submissionAfterEndtime' data='data' help='help'
-         ng-show='assignInfo.enableSubmissionAfterEndtime && data.endtime'>
-        <nl-checkbox fieldmodel='submissionAfterEndtime' 
-                     fieldname='allow users to submit assignment after endtime'
-                     fieldcls= 'padding-mid'
-                     fieldindex="0">
-        </nl-checkbox>
-    </nl-dlg-row>
 
 	<nl-dlg-row ng-show='enableEmailNotifications' attr='sendEmail' data='data' help='help'>
         <nl-checkbox fieldmodel='sendEmail'
