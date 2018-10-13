@@ -309,7 +309,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 	function _getCards(resultList, nlCardsSrv) {
 		var cards = [];
 		for (var i = 0; i < resultList.length; i++) {
-			if(type === 'report' && _checkDateOutOfRange(resultList[i])) continue;
+			//Display the card irrecpective of From and till attributes
+			//if(type === 'report' && _checkDateOutOfRange(resultList[i])) continue;
 			var card = _createCard(resultList[i]);
 			cards.push(card);
 		}
