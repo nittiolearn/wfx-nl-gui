@@ -244,6 +244,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
             id: 'attendance',
             onClick : _onClickOnMarkAttendance
         }, {
+            title : 'Send reminder to users who have not completed',
+            icon : 'ion-ios-bell',
+            id: 'reminderNotify',
+            onClick : _onClickOnReminderNotification,
+        }, {
             title : 'Export report',
             icon : 'ion-ios-cloud-download',
             id: 'export',
@@ -260,10 +265,27 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
         	var content = nlLrCourseRecords.getContentOfCourseAssignment();
         	return content && content.blended ? true : false;
         }
+        if(tbid == 'reminderNotify') {
+        	var type = nlLrFilter.getType();
+        	var reminderDict = nlLrReportRecords.getReminderDict();
+        	var isReminderEnabled = _isReminderNotificationEnabled();
+        	return ((type == 'course_assign' || type == 'module_assign') && isReminderEnabled &&  (reminderDict.users && reminderDict.users.length != 0));
+        }
  
         return true;
     };
     
+    function _isReminderNotificationEnabled() {
+		var props = nlGroupInfo.get().props;
+		var isMailEnabled = false;
+		for(var i=0; i<props.taskNotifications.length; i++) {
+			if(props.taskNotifications[i] != 3) continue;
+			isMailEnabled = true;
+			break;
+		}
+		return isMailEnabled;
+    }
+
     function _showRangeSelection() {
         if (nlLrFetcher.fetchInProgress()) return;
         nlLrFilter.show($scope).then(function(status) {
@@ -558,6 +580,55 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
     	}
     	return ret;
     }
+	
+	function _onClickOnReminderNotification() {
+		var reminderNotifyDlg = nlDlg.create($scope);
+		var reminderDict = nlLrReportRecords.getReminderDict();
+			reminderNotifyDlg.setCssClass('nl-height-max nl-width-max');
+			reminderNotifyDlg.scope.reminderDict = reminderDict;
+			reminderNotifyDlg.scope.help = {remarks: {name: 'Note', help: 'This note will be included in the reminder email.'}};
+			reminderNotifyDlg.scope.data = {remarks: 'Kindly complete this assignment.'};
+			
+		var okButton = {text: nl.t('Remind users'), onTap: function(e) {
+			var reminderDict = reminderNotifyDlg.scope.reminderDict;
+			var remarks = reminderNotifyDlg.scope.data.remarks;
+			nl.timeout(function() {
+				_sendReminderInBatches(reminderDict, remarks, 0);
+			});
+		}};
+		var cancelButton = {text: nl.t('cancel')};
+		reminderNotifyDlg.show('view_controllers/learning_reports/reminder_notification_dlg.html',
+			[okButton], cancelButton);
+	};
+	
+	function _sendReminderInBatches(reminderDict, remarks, startFrom) {
+		if (startFrom == 0) {
+			nlDlg.showLoadingScreen();
+		}
+		if (startFrom >= reminderDict.users.length) {
+			nlDlg.popupStatus('Reminder notifications sent.');
+			nlDlg.hideLoadingScreen();
+			return;
+		}
+
+		var maxPerBatch = 500;
+		var batchLength = reminderDict.users.length - startFrom;
+		if (batchLength > maxPerBatch) batchLength = maxPerBatch; 
+		var params = {name: reminderDict.name, assigned_by: reminderDict.assigned_by, 
+			ctype: reminderDict.ctype, remarks: remarks, users: []};
+		for (var i=startFrom; i<batchLength; i++){
+			params.users.push(reminderDict.users[i]);
+		}
+		startFrom += batchLength;
+		nlDlg.popupStatus(nl.fmt2('Sending {} of {} reminder notifications ...', startFrom, reminderDict.users.length), false);
+		nlServerApi.sendReminderNotification(params).then(function(result) {
+			// TODO_REMOVE_NOW
+			nlDlg.popupAlert({template: angular.toJson(result, 2)});
+			_sendReminderInBatches(reminderDict, remarks, startFrom);
+		}, function(error) {
+			nlDlg.popdownStatus(0);
+		});
+	}
 };
 
 //-------------------------------------------------------------------------------------------------

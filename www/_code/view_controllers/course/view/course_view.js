@@ -851,6 +851,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
 		        cm.timeMins = cm.iltduration;
 			}
 		}
+        if (status != 'success' && !modeHandler.canStart(cm, $scope, treeList)) status = 'waiting';
         _updateState(cm, status);
     }
     
@@ -1222,6 +1223,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
     
     var _icons = {
         'module': 'ion-ios-folder fblue',
+        'iltsession': 'ion-ios-folder fblue',
         'lesson': 'ion-document-text fblue',
         'quiz': 'ion-ios-help fblue',
         'info': 'ion-information-circled fblue',

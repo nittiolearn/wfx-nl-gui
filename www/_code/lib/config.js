@@ -92,6 +92,19 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
     // Admin specific stuff
     _initContants();
     
+    this.getMinimalUserObj = function(user) {
+        if (!user || !user.state) return null;
+        var userObj = {id: user.id, email: user.email, usertype: user.usertype, 
+			org_unit: user.org_unit, name: user.name, username: user.username,
+			first_name: user.first_name, last_name: user.last_name};
+		if (user.supervisor) userObj.supervisor = user.supervisor;
+		if (user.metadata) {
+	        var mdVals = angular.fromJson(user.metadata);
+	        if (mdVals.meta_location) userObj.meta_location = mdVals.meta_location;
+		}
+		return userObj;
+    };
+    
     this.getUserObj = function(uid, grpid) {
         if (!(uid in self.get(grpid).users)) return null;
         var uInfo = self.get(grpid).users[uid];

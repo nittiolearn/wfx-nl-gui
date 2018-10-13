@@ -277,7 +277,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'action', stored_at: 'module', fields: ['link'], type: 'lessonlink', text: 'Action'},
         {name: 'urlParams', stored_at: 'module', fields: ['link'], type: 'string', text: 'Url-Params'},
         {name: 'certificate_image', stored_at: 'module', fields: ['certificate'], type: 'string', text: 'Certificate image'},
-        {name: 'start_after', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
+        {name: 'start_after', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
         {name: 'canMarkAttendance', stored_at: 'module', text: 'Learner can mark attendance', type:'hidden', fields: ['iltsession']},
         {name: 'iltduration', stored_at: 'module', fields: ['iltsession'], text: 'Session duration (minutes)',type: 'number'},
         {name: 'grp_depAttrs', stored_at: 'module', fields: ['lesson', 'link', 'info'], type: 'group', text: 'Planning'},

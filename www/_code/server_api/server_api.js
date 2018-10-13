@@ -392,6 +392,10 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/assignment_send.json', data);		
 	};
 
+	this.sendReminderNotification = function(data){
+        return server.post('_serverapi/send_reminder_nofication.json', data);
+	};
+
 	this.assignmentReport = function(data){
 		//data = reptype, assignid|userid, completed=[true|false], [mquery parameters]
 		//assignment_reports

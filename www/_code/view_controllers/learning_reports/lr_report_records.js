@@ -20,6 +20,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
     
     var _records = {};
     var _resultList = [];
+    var _reminderDict = {};
     var _summaryStats = null;
     var _dates = {};
     var _pastUserData = null;
@@ -29,9 +30,14 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
     this.init = function(summaryStats, userinfo) {
     	_userInfo = userinfo;
     	_records = {};
+    	_reminderDict = {};
     	_dates = {minUpdated: null, maxUpdated: null};
     	_summaryStats = summaryStats;
     	if (!nlGroupInfo.isPastUserXlsConfigured()) _pastUserData = {};
+    };
+    
+    this.getReminderDict = function() {
+    	return _reminderDict;
     };
     
     this.addRecord = function(report, isUpdate) {
@@ -68,6 +74,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
 
     this.reset = function() {
     	_records = {};
+    	_reminderDict = {};
     	_summaryStats.reset();
     };
     
@@ -219,8 +226,27 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
             else stats.nLessonsFailed++;
         }
         stats.nLessonsDone = stats.nLessonsPassed + stats.nLessonsFailed;
-        var weightedProgressMax = stats.nLessons*10 + stats.nOthers;
-        var weightedProgress = stats.nLessonsDone*10 + stats.nOthersDone;
+        var RELATIVE_LESSON_WEIGHT=1;
+        var weightedProgressMax = stats.nLessons*RELATIVE_LESSON_WEIGHT + stats.nOthers;
+        var weightedProgress = stats.nLessonsDone*RELATIVE_LESSON_WEIGHT + stats.nOthersDone;
+		var totalItems = stats.nLessons + stats.nOthers;
+		var completedItems = stats.nLessonsDone + stats.nOthersDone;
+		if((totalItems != completedItems) && (nlLrFilter.getType() == 'course_assign')) {
+			if(Object.keys(_reminderDict).length == 0) {
+				_reminderDict['name'] = repcontent.name;
+				_reminderDict['assigned_by'] = repcontent.sendername;
+				_reminderDict['ctype'] = report.ctype;
+				_reminderDict['users'] = [];
+			}
+			var currentDate = new Date();
+			var endtime = repcontent.not_after && !repcontent.submissionAfterEndtime ? nl.fmt.json2Date(repcontent.not_after) : '';
+			if(!endtime || currentDate <= endtime) {
+				var minimalUser = nlGroupInfo.getMinimalUserObj(user);
+				minimalUser.repid = report.id;
+				_reminderDict.users.push(minimalUser);
+			}
+		}
+		
         stats.percComplete = weightedProgressMax ? Math.round(weightedProgress/weightedProgressMax*100) : 100;
         stats.percCompleteStr = '' + stats.percComplete + ' %';
         
@@ -272,6 +298,23 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
             timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
             internalIdentifier:report.id, nCerts: 0, nLessonsDone: 0};
+
+		if(!report.completed && (nlLrFilter.getType() == 'module_assign')) {
+			if(Object.keys(_reminderDict).length == 0) {
+				_reminderDict['name'] = repcontent.name;
+				_reminderDict['assigned_by'] = repcontent.assigned_by;
+				_reminderDict['ctype'] = report.ctype;
+				_reminderDict['users'] = [];
+			}
+			var currentDate = new Date();
+			var endtime = repcontent.not_after && !repcontent.submissionAfterEndtime ? nl.fmt.json2Date(repcontent.not_after) : '';
+			if(!endtime || currentDate <= endtime) {
+				var minimalUser = nlGroupInfo.getMinimalUserObj(user);
+				minimalUser.repid = report.id;
+				_reminderDict.users.push(minimalUser);
+			}
+		}
+		
             
         var lessons = module.lessons;
         var lessonReps = repcontent || {};

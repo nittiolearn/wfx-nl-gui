@@ -329,16 +329,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
     function _getMinimalUserObjects(selecteduserids) {
     	var selectedusers = [];
     	for (var i=0; i<selecteduserids.length; i++) {
-            var user = nlGroupInfo.getUserObj(''+selecteduserids[i]);
-            if (!user.state) continue;
-            var userObj = {id: user.id, email: user.email, usertype: user.usertype, 
-    			org_unit: user.org_unit, name: user.name, username: user.username,
-    			first_name: user.first_name, last_name: user.last_name};
-    		if (user.supervisor) userObj.supervisor = user.supervisor;
-    		if (user.metadata) {
-		        var mdVals = angular.fromJson(user.metadata);
-		        if (mdVals.meta_location) userObj.meta_location = mdVals.meta_location;
-    		}
+            var userObj = nlGroupInfo.getMinimalUserObj(nlGroupInfo.getUserObj(''+selecteduserids[i]));
+            if (!userObj) continue;
     		selectedusers.push(userObj);
     	}
     	return selectedusers;
