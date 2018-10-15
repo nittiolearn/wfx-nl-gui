@@ -315,8 +315,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             report.stats.percCompleteDesc, report.stats.avgAttempts,
             report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore,
             Math.ceil(report.stats.timeSpentSeconds/60), Math.ceil(report.stats.iltTimeSpent/60)]);
-        ret = ret.concat([report.repcontent.venue || '', report.repcontent.trainerName || '', report.repcontent.infrastructureCost || '', report.repcontent.trainerCost || '',
-        			report.repcontent.stsAndFoodCost || '', report.repcontent.travelCost || '', report.repcontent.miscellaneousCost || '']);
+        ret = ret.concat([report.repcontent.iltVenue || '', report.repcontent.iltTrainerName || '', report.repcontent.iltCostInfra || '', report.repcontent.iltCostTrainer || '',
+        			report.repcontent.iltCostFoodSta || '', report.repcontent.travelCost || '', report.repcontent.iltCostMisc || '']);
         ret.push(report.user.email);
         ret.push(report.user.org_unit);
         for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id] || '');
@@ -437,13 +437,13 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 			{id: 'not_after', name: 'Till', fmt: 'minute'},
 			{id: 'status', name: 'Status'},
             {id: '_timeMins', name:'ILT Time Spent(minutes)'},
-            {id: 'venue', name: 'Venue'},
-            {id: 'trainerName', name: 'Trainer name'},
-            {id: 'infrastructureCost', name: 'Infra cost'},
-            {id: 'trainerCost', name: 'Trainer cost'},
-            {id: 'stsAndFoodCost', name: 'Food cost'},
+            {id: 'iltVenue', name: 'Venue'},
+            {id: 'iltTrainerName', name: 'Trainer name'},
+            {id: 'iltCostInfra', name: 'Infra cost'},
+            {id: 'iltCostTrainer', name: 'Trainer cost'},
+            {id: 'iltCostFoodSta', name: 'Food cost'},
             {id: 'travelCost', name: 'travel cost'},
-            {id: 'miscellaneousCost', name: 'Misc cost'}];
+            {id: 'iltCostMisc', name: 'Misc cost'}];
       var idSessionIdFields = [
 			{id: 'repid', name: 'Report Id'},
 			{id: 'assignid', name: 'Assign Id'}, 
@@ -473,9 +473,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         				_assignTypeStr: 'Course', _courseName: rep.repcontent.name, _batchName: rep.repcontent.batchname,
         				session: '', subject: rep.course.contentmetadata.subject,  _grade: rep.course.contentmetadata.grade, 
         				not_before: rep.repcontent.not_before, not_after: rep.repcontent.not_after, status: '-', _timeMins: (rep.stats.iltTimeSpent+rep.stats.timeSpentSeconds)/60,
-        				venue: rep.repcontent.venue, trainerName: rep.repcontent.trainerName, infrastructureCost : rep.repcontent.infrastructureCost,
-        				trainerCost: rep.repcontent.trainerCost, stsAndFoodCost: rep.repcontent.stsAndFoodCost, travelCost: rep.repcontent.travelCost,
-        				miscellaneousCost: rep.repcontent.miscellaneousCost, _email: rep.user.email, org_unit: rep.user.org_unit};
+        				iltVenue: rep.repcontent.iltVenue, iltTrainerName: rep.repcontent.iltTrainerName, iltCostInfra : rep.repcontent.iltCostInfra,
+        				iltCostTrainer: rep.repcontent.iltCostTrainer, iltCostFoodSta: rep.repcontent.iltCostFoodSta, travelCost: rep.repcontent.travelCost,
+        				iltCostMisc: rep.repcontent.iltCostMisc, _email: rep.user.email, org_unit: rep.user.org_unit};
         for(var i=0; i<mh.length; i++) record[mh[i].id] = rep.usermd[mh[i].id];
         if (filter.exportTypes.ids) {
             record['repid'] =  rep.raw_record.id;

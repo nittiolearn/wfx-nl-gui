@@ -158,6 +158,13 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             submissionAfterEndtime: 'submissionAfterEndtime' in _assignInfo ? _assignInfo.submissionAfterEndtime : false,
             sendEmail: false,
             batchname: _assignInfo.batchname || '',
+			iltTrainerName: _assignInfo.iltTrainerName,
+			iltVenue: _assignInfo.iltVenue,
+			iltCostInfra: _assignInfo.iltCostInfra,
+			iltCostTrainer: _assignInfo.iltCostTrainer,
+			iltCostFoodSta: _assignInfo.iltCostFoodSta,
+			iltCostTravelAco: _assignInfo.iltCostTravelAco,
+			iltCostMisc: _assignInfo.iltCostMisc,
             update_content: false
         };
         dlgScope.help = _getHelp();
@@ -177,13 +184,13 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			forum: {name: 'Forum', help: nl.t('You could choose to allow learners to discuss with you in a discussion forum. Only the learners belonging to this batch and learning administrators will be able to post and view messages in this forum.')},
 			submissionAfterEndtime: {name: 'Submission after end time', help: nl.t('You can allow learners to submit assignment after the mentioned end time.')},
 			sendEmail: {name: 'Email notifications', help: nl.t('You could choose to send email notifications to the learners.')},
-			trainerName: {name: 'Trainer name', help: nl.t('Provide trainer name to this training.')},
-			venue: {name: 'Venue', help: nl.t('Configure venue of this training.')},
-			infrastructureCost: {name: 'Infrastructure cost', help: nl.t(' Configure the infrastructure cost.')},
-			trainerCost: {name: 'Trainer cost', help: nl.t(' Configure the trainer cost.')},
-			stsAndFoodCost: {name: 'Stationary and Food cost', help: nl.t(' Configure the stationary and food cost.')},
-			travelAndAccomodationCost: {name: 'Travel and Accomodation cost', help: nl.t(' Configure the travel and accomodation cost.')},
-			miscellaneousCost: {name: 'Miscellaneous cost', help: nl.t(' Configure the miscellaneous cost.')},
+			iltTrainerName: {name: 'Trainer name', help: nl.t('Provide trainer name to this training.')},
+			iltVenue: {name: 'Venue', help: nl.t('Configure venue of this training.')},
+			iltCostInfra: {name: 'Infrastructure cost', help: nl.t(' Configure the infrastructure cost.')},
+			iltCostTrainer: {name: 'Trainer cost', help: nl.t(' Configure the trainer cost.')},
+			iltCostFoodSta: {name: 'Stationary and Food cost', help: nl.t(' Configure the stationary and food cost.')},
+			iltCostTravelAco: {name: 'Travel and Accomodation cost', help: nl.t(' Configure the travel and accomodation cost.')},
+			iltCostMisc: {name: 'Miscellaneous cost', help: nl.t(' Configure the miscellaneous cost.')},
 			batchname: {name: 'Batch name', help: nl.t('This is an batch name mentioned while sending an assignemnt')}
 		};
 	}
@@ -243,12 +250,23 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         var assignInfo = _dlg.scope.assignInfo;
         var data = _dlg.scope.data;
 		var params={atype: assignInfo.assigntype == 'course' ? _nl.atypes.ATYPE_COURSE : _nl.atypes.ATYPE_MODULE,
-			assignid: assignInfo.assignid, batchname: data.batchname, assign_remarks: data.remarks,
-			not_before: data.starttime, not_after: data.not_after, submissionAfterEndtime: data.submissionAfterEndtime,
+			assignid: assignInfo.assignid, batchname: data.batchname, remarks: data.remarks,
+			not_before: data.starttime, not_after: data.endtime, submissionAfterEndtime: data.submissionAfterEndtime,
 			max_duration: data.maxduration, learnmode: data.showAnswers.id,
 			update_content: data.update_content};
+		// TODO-NOW: update_content is not done for modify
+		
+		if (assignInfo.blended) {
+			params.blended = true;
+			params.iltTrainerName = data.iltTrainerName;
+			params.iltVenue = data.iltVenue;
+			params.iltCostInfra = data.iltCostInfra;
+			params.iltCostTrainer = data.iltCostTrainer;
+			params.iltCostFoodSta = data.iltCostFoodSta;
+			params.iltCostTravelAco = data.iltCostTravelAco;
+			params.iltCostMisc = data.iltCostMisc;
+		}
 		if (!_validateBeforeModify(params, assignInfo)) return;
-		console.log('TODO-NOW', params);
         nlDlg.showLoadingScreen();
         nlServerApi.assignmentModify(params).then(function(assignId) {
             nlDlg.hideLoadingScreen();
@@ -302,13 +320,13 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			}
 			if (_dlg.scope.assignInfo.blended && data.assigntype == _nl.atypes.ATYPE_COURSE) {
 				data.blended = true;
-				data.trainerName = _dlg.scope.data.trainerName || '';
-				data.venue = _dlg.scope.data.venue || '';
-				data.infrastructureCost = _dlg.scope.data.infrastructureCost || '';
-				data.trainerCost = _dlg.scope.data.trainerCost || '';
-				data.stsAndFoodCost = _dlg.scope.data.stsAndFoodCost || '';
-				data.travelAndAccomodationCost = _dlg.scope.data.travelAndAccomodationCost || '';
-				data.miscellaneousCost = _dlg.scope.data.miscellaneousCost || '';
+				data.iltTrainerName = _dlg.scope.data.iltTrainerName || '';
+				data.iltVenue = _dlg.scope.data.iltVenue || '';
+				data.iltCostInfra = _dlg.scope.data.iltCostInfra || '';
+				data.iltCostTrainer = _dlg.scope.data.iltCostTrainer || '';
+				data.iltCostFoodSta = _dlg.scope.data.iltCostFoodSta || '';
+				data.iltCostTravelAco = _dlg.scope.data.iltCostTravelAco || '';
+				data.iltCostMisc = _dlg.scope.data.iltCostMisc || '';
 			}
         }
         _confirmAndSend(data, ouUserInfo);

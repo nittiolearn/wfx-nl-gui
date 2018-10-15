@@ -277,7 +277,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
         	return ((type == 'course_assign' || type == 'module_assign') && isReminderEnabled &&  (reminderDict.users && reminderDict.users.length != 0));
         }
         if (tbid == 'modifyAssignment') {
-        	return false; // TODO-NOW: remove
         	var type = nlLrFilter.getType();
         	return (type == 'course_assign' || type == 'module_assign');
         }
@@ -609,7 +608,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
         	return;
         }
     	if (launchType == 'course_assign') assignContent = angular.fromJson(assignContent.info);
-        console.log('TODO-NOW: content', assignContent);
         var assignInfo = {isModify: true, dlgTitle: 'Modify assignment properties',
             assigntype: (launchType == 'course_assign') ? 'course' : 'lesson',
             assignid: nlLrFilter.getObjectId(),
@@ -630,20 +628,17 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
         	assignInfo.esttime = assignContent.max_duration;
         	assignInfo.learnmode = assignContent.learnmode;
     	} else {
-    		// TODO-NOW: Restructure all costs
 			assignInfo.blended = assignContent.blended || false;
-			assignInfo.trainerName = assignContent.trainerName || '';
-			assignInfo.venue = assignContent.venue || '';
-			assignInfo.infrastructureCost = assignContent.infrastructureCost || '';
-			assignInfo.trainerCost = assignContent.trainerCost || '';
-			assignInfo.stsAndFoodCost = assignContent.stsAndFoodCost || '';
-			assignInfo.travelAndAccomodationCost = assignContent.travelAndAccomodationCost || '';
-			assignInfo.miscellaneousCost = assignContent.miscellaneousCost || '';
+			assignInfo.iltTrainerName = assignContent.iltTrainerName || '';
+			assignInfo.iltVenue = assignContent.iltVenue || '';
+			assignInfo.iltCostInfra = assignContent.iltCostInfra || '';
+			assignInfo.iltCostTrainer = assignContent.iltCostTrainer || '';
+			assignInfo.iltCostFoodSta = assignContent.iltCostFoodSta || '';
+			assignInfo.iltCostTravelAco = assignContent.iltCostTravelAco || '';
+			assignInfo.iltCostMisc = assignContent.iltCostMisc || '';
     	}
-
-        console.log('TODO-NOW: assignInfo', assignInfo);
     	nlSendAssignmentSrv.show($scope, assignInfo).then(function(e) {
-	        console.log('TODO-NOW: reinit all records');
+	        //TODO-NOW: reinit all records
     	});
     }
 
