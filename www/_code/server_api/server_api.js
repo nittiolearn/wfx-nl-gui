@@ -104,8 +104,8 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/course_get.json', {courseid: courseId, published: published});
     };
     
-    this.courseOrCourseAssignGetMany = function(recordinfos) {
-        // return: course and course_assignment objects
+    this.courseOrAssignGetMany = function(recordinfos) {
+        // return: course, course_assignment and module assignment objects
         return server.post('_serverapi/course_or_assign_get_many.json', {recordinfos: recordinfos});
     };
     
@@ -390,6 +390,10 @@ function(nl, nlDlg, nlConfig, Upload) {
 
 	this.assignmentSend = function(data){
         return server.post('_serverapi/assignment_send.json', data);		
+	};
+
+	this.assignmentModify = function(data){
+        return server.post('_serverapi/assignment_modify.json', data);		
 	};
 
 	this.sendReminderNotification = function(data){

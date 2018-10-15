@@ -16,9 +16,9 @@
                 <span class='col fsh4 padding-small'>{{assignInfo.title}}</span>
             </div>
             <div ng-hide='screenSize == "small"'>
-                <div class='padding-small'>by: <b>{{assignInfo.authorName}}</b></div>
+                <div ng-show='assignInfo.authorName' class='padding-small'>by: <b>{{assignInfo.authorName}}</b></div>
                 <div ng-show='assignInfo.subjGrade' class='padding-small'>{{assignInfo.subjGrade}}</div>
-                <div class='padding-small'>{{assignInfo.description}}</div>
+                <div ng-show='assignInfo.description' class='padding-small'>{{assignInfo.description}}</div>
             </div>
         </div>
     </div>
@@ -27,7 +27,7 @@
 		<nl-input fieldmodel='batchname' fieldtype='text' fieldCls='w100'></nl-input>
 	</nl-dlg-row>
 
-	<nl-dlg-row attr='ouUserTree' data='data' help='help'>
+	<nl-dlg-row ng-if='!assignInfo.isModify' attr='ouUserTree' data='data' help='help'>
 		<div style='padding:4px'>
 	        <nl-tree-select info='data.ouUserTree' tabindex='0' autofocus=''>
 	        </nl-tree-select>
@@ -63,7 +63,7 @@
 		<nl-select fieldmodel='showAnswers'></nl-select>
 	</nl-dlg-row>
 
-	<nl-dlg-row ng-show='assignInfo.assigntype != "training"' attr='forum' data='data' help='help'>
+	<nl-dlg-row ng-show='assignInfo.assigntype != "training" && !assignInfo.isModify' attr='forum' data='data' help='help'>
         <nl-checkbox fieldmodel='forum' 
                      fieldname='allow users to discuss in the forum'
                      fieldcls= 'padding-mid'

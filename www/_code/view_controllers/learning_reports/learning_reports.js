@@ -57,20 +57,20 @@ function($scope, nlLearningReports) {
 	reportView.show();
 }];
     
-var NlLearningReports = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlGroupInfo', 'nlTable',
+var NlLearningReports = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlGroupInfo', 'nlTable', 'nlSendAssignmentSrv',
 'nlLrHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlLrReportRecords', 'nlLrCourseRecords', 'nlLrSummaryStats', 'nlLrCourseAssignmentRecords',
-function(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable,
+function(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 	nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats, nlLrCourseAssignmentRecords) {
     this.create = function($scope, settings) {
     	if (!settings) settings = {};
-    	return new NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable,
+    	return new NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
 			$scope, settings, nlLrCourseAssignmentRecords);
     };
 }];
     
 //-------------------------------------------------------------------------------------------------
-function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable,
+function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
 			$scope, settings, nlLrCourseAssignmentRecords) {
 
@@ -249,6 +249,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
             id: 'reminderNotify',
             onClick : _onClickOnReminderNotification,
         }, {
+            title : 'Modify assignment properties',
+            icon : 'ion-edit',
+            id: 'modifyAssignment',
+            onClick : _onClickModifyAssignment,
+        }, {
             title : 'Export report',
             icon : 'ion-ios-cloud-download',
             id: 'export',
@@ -270,6 +275,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
         	var reminderDict = nlLrReportRecords.getReminderDict();
         	var isReminderEnabled = _isReminderNotificationEnabled();
         	return ((type == 'course_assign' || type == 'module_assign') && isReminderEnabled &&  (reminderDict.users && reminderDict.users.length != 0));
+        }
+        if (tbid == 'modifyAssignment') {
+        	return false; // TODO-NOW: remove
+        	var type = nlLrFilter.getType();
+        	return (type == 'course_assign' || type == 'module_assign');
         }
  
         return true;
@@ -401,7 +411,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	var attendance = null;
 	function _onClickOnMarkAttendance() {
 		var data = {assignid: nlLrFilter.getObjectId()};
-		var courseAssignment = nlLrCourseAssignmentRecords.getRecord(nlLrFilter.getObjectId());
+		var courseAssignment = nlLrCourseAssignmentRecords.getRecord('course_assignment:' + nlLrFilter.getObjectId());
 		attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
 		_showAttendanceMarker();
 	}
@@ -554,7 +564,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				nlDlg.hideLoadingScreen();
 				if(result) attendance = result;
 				var jsonAttendanceStr = angular.toJson(result);
-				nlLrCourseAssignmentRecords.updateAttendanceInRecord(nlLrFilter.getObjectId(), jsonAttendanceStr);
+				nlLrCourseAssignmentRecords.updateAttendanceInRecord(
+					'course_assignment:' + nlLrFilter.getObjectId(), jsonAttendanceStr);
 				nlLrReportRecords.reset();
 				nlLrReportRecords.updateReportRecords();
                 _updateScope();
@@ -580,7 +591,62 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
     	}
     	return ret;
     }
-	
+    
+    function _onClickModifyAssignment() {
+    	var launchType = nlLrFilter.getType(); 
+    	var key = '';
+    	var enableSubmissionAfterEndtime = false;
+    	if (launchType == 'module_assign') {
+    		key = 'assignment:{}';
+    		enableSubmissionAfterEndtime = true;
+    	} else if (launchType == 'course_assign') {
+    		key = 'course_assignment:{}';
+    	}
+    	key = nl.fmt2(key, nlLrFilter.getObjectId());
+        var assignContent = nlLrCourseAssignmentRecords.getRecord(key);
+        if (!assignContent) {
+        	nlDlg.popupAlert({title: 'Error', template: 'Cannot get the assignment information.'});
+        	return;
+        }
+    	if (launchType == 'course_assign') assignContent = angular.fromJson(assignContent.info);
+        console.log('TODO-NOW: content', assignContent);
+        var assignInfo = {isModify: true, dlgTitle: 'Modify assignment properties',
+            assigntype: (launchType == 'course_assign') ? 'course' : 'lesson',
+            assignid: nlLrFilter.getObjectId(),
+        
+            title: assignContent.name,
+            icon: launchType == 'module_assign' ? nl.url.lessonIconUrl(assignContent.image) : assignContent.icon,
+            showDateField: true,
+            hideEmailNotifications: true,
+            enableSubmissionAfterEndtime: enableSubmissionAfterEndtime,
+            
+        	batchname: assignContent.batchname,
+        	remarks: launchType == 'module_assign' ? assignContent.assign_remarks : assignContent.remarks,
+        	starttime: assignContent.not_before ? nl.fmt.json2Date(assignContent.not_before) : '', 
+        	endtime: assignContent.not_after ? nl.fmt.json2Date(assignContent.not_after) : '', 
+        	submissionAfterEndtime: assignContent.submissionAfterEndtime};
+        	
+        if (launchType == 'module_assign') {
+        	assignInfo.esttime = assignContent.max_duration;
+        	assignInfo.learnmode = assignContent.learnmode;
+    	} else {
+    		// TODO-NOW: Restructure all costs
+			assignInfo.blended = assignContent.blended || false;
+			assignInfo.trainerName = assignContent.trainerName || '';
+			assignInfo.venue = assignContent.venue || '';
+			assignInfo.infrastructureCost = assignContent.infrastructureCost || '';
+			assignInfo.trainerCost = assignContent.trainerCost || '';
+			assignInfo.stsAndFoodCost = assignContent.stsAndFoodCost || '';
+			assignInfo.travelAndAccomodationCost = assignContent.travelAndAccomodationCost || '';
+			assignInfo.miscellaneousCost = assignContent.miscellaneousCost || '';
+    	}
+
+        console.log('TODO-NOW: assignInfo', assignInfo);
+    	nlSendAssignmentSrv.show($scope, assignInfo).then(function(e) {
+	        console.log('TODO-NOW: reinit all records');
+    	});
+    }
+
 	function _onClickOnReminderNotification() {
 		var reminderNotifyDlg = nlDlg.create($scope);
 		var reminderDict = nlLrReportRecords.getReminderDict();

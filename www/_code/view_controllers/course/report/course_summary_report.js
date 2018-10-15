@@ -671,7 +671,7 @@ function Fetcher(nl, nlDlg, nlServerApi, _data, _reportProcessor, _summaryStats,
         	});
             return;
         }
-        nlServerApi.courseOrCourseAssignGetMany(recordinfos).then(function(results) {
+        nlServerApi.courseOrAssignGetMany(recordinfos).then(function(results) {
             for(var i=0; i<results.length; i++) {
                 var course = results[i];
             	var cid = parseInt(course.id);

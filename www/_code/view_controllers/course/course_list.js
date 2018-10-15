@@ -281,7 +281,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 			resolve(true);
 			return;
 		}
-		nlServerApi.courseOrCourseAssignGetMany(courseIds).then(function(results) {
+		nlServerApi.courseOrAssignGetMany(courseIds).then(function(results) {
             for(var i=0; i<results.length; i++) {
                 var course = results[i];
 				var courseid = parseInt(course.id);

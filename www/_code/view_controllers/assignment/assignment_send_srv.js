@@ -120,9 +120,11 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             nlGroupInfo.update();
             var dontShowUsers = _assignInfo.dontShowUsers || {};
             if (_assignInfo.assigntype == 'training') _selectedUsers = {};
-            _ouUserSelector = nlOuUserSelect.getOuUserSelector(_parentScope, 
-                nlGroupInfo.get(), {}, dontShowUsers);
-            _ouUserSelector.updateSelectedIds(_selectedUsers);
+            if (!_assignInfo.isModify) {
+	            _ouUserSelector = nlOuUserSelect.getOuUserSelector(_parentScope, 
+	                nlGroupInfo.get(), {}, dontShowUsers);
+	            _ouUserSelector.updateSelectedIds(_selectedUsers);
+            }
             _initDlgScope();
             _showDlg(resolve, reject);
         });
@@ -143,19 +145,20 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         _dlg.setCssClass('nl-height-max nl-width-max');
         var dlgScope = _dlg.scope;
         dlgScope.assignInfo = _assignInfo;
-        dlgScope.enableEmailNotifications = _isAssignmentEnabled();
+        dlgScope.enableEmailNotifications = _assignInfo.hideEmailNotifications ? false : _isAssignmentEnabled();
         dlgScope.options = {showAnswers: learningModeStrings};
         dlgScope.data = {
-            ouUserTree: _ouUserSelector.getTreeSelect(),
+            ouUserTree: _ouUserSelector ? _ouUserSelector.getTreeSelect() : null,
             starttime: _assignInfo.starttime || new Date(),
             endtime: _assignInfo.endtime || '',
             maxduration: _assignInfo.esttime ? parseInt(_assignInfo.esttime) : '',
-            showAnswers: learningModeStrings[1],
+            showAnswers: 'learnmode' in _assignInfo ? _assignInfo.learnmode-1 : learningModeStrings[1],
             remarks: _assignInfo.remarks || '',
             forum: false,
-            submissionAfterEndtime: false,
+            submissionAfterEndtime: 'submissionAfterEndtime' in _assignInfo ? _assignInfo.submissionAfterEndtime : false,
             sendEmail: false,
-            batchname: _assignInfo.batchname
+            batchname: _assignInfo.batchname || '',
+            update_content: false
         };
         dlgScope.help = _getHelp();
     }
@@ -187,12 +190,14 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 
     function _showDlg(resolve, reject) {
     	var buttonName = _assignInfo.assigntype == 'training' ? nl.t('Nominate User') : nl.t('Send Assignment');
+    	if (_assignInfo.isModify) buttonName = nl.t('Modify');
         var sendButton = {text : buttonName, onTap : function(e) {
-            _selectedUsers = _ouUserSelector.getSelectedUsers(); 
+        	if (_assignInfo.isModify) return _modifyAssignment(e);
+            if (_ouUserSelector) _selectedUsers = _ouUserSelector.getSelectedUsers(); 
             _onSendAssignment(e);
         }};
         var cancelButton = {text : nl.t('Cancel'), onTap: function(e) {
-            _selectedUsers = _ouUserSelector.getSelectedUsers(); 
+            if (_ouUserSelector) _selectedUsers = _ouUserSelector.getSelectedUsers(); 
             resolve(e);
         }};
         _dlg.show('view_controllers/assignment/send_assignment_dlg.html',
@@ -204,7 +209,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             nlDlg.popupAlert({title:'Please select', template: 'Start date is mandatory and it can not be empty. Please select the start date'});
             return false;
     	}
-        if (Object.keys(_selectedUsers).length == 0) {
+        if (!_dlg.scope.assignInfo.isModify && Object.keys(_selectedUsers).length == 0) {
         	var templateMsg = _assignInfo.assigntype == 'training' 
         		? nl.t('Please select the users to nominate.') 
         		: nl.t('Please select the users to send the assignment to.');
@@ -231,13 +236,42 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
     }
 
     //---------------------------------------------------------------------------------------------
+    // On modify and afterwards code
+    //---------------------------------------------------------------------------------------------
+	function _modifyAssignment(e) {
+        if(e) e.preventDefault(e);
+        var assignInfo = _dlg.scope.assignInfo;
+        var data = _dlg.scope.data;
+		var params={atype: assignInfo.assigntype == 'course' ? _nl.atypes.ATYPE_COURSE : _nl.atypes.ATYPE_MODULE,
+			assignid: assignInfo.assignid, batchname: data.batchname, assign_remarks: data.remarks,
+			not_before: data.starttime, not_after: data.not_after, submissionAfterEndtime: data.submissionAfterEndtime,
+			max_duration: data.maxduration, learnmode: data.showAnswers.id,
+			update_content: data.update_content};
+		if (!_validateBeforeModify(params, assignInfo)) return;
+		console.log('TODO-NOW', params);
+        nlDlg.showLoadingScreen();
+        nlServerApi.assignmentModify(params).then(function(assignId) {
+            nlDlg.hideLoadingScreen();
+			_dlg.close();
+        });
+	}
+
+    function _validateBeforeModify(params, assignInfo) {
+    	if (assignInfo.showDateField && !params.not_before) {
+            nlDlg.popupAlert({title:'Please select', template: 'Start date is mandatory and it can not be empty. Please select the start date'});
+            return false;
+    	}
+    	return _asertStartEndDurations(params.not_before, params.not_after, params.max_duration, true);
+    }
+    
+    //---------------------------------------------------------------------------------------------
     // On Send and afterwards code
     //---------------------------------------------------------------------------------------------
     function _onSendAssignment(e) {
         if(e) e.preventDefault(e);
         if (!_validateBeforeAssign(_dlg.scope.data)) return;
         
-        var ouUserInfo = _getOusAndUser();
+        var ouUserInfo = !_dlg.scope.assignInfo.isModify ? _getOusAndUser() : null;
         var data = {
         	assigntype: _dlg.scope.assignInfo.assigntype == 'lesson' ? _nl.atypes.ATYPE_MODULE
         				: _dlg.scope.assignInfo.assigntype == 'course' ? _nl.atypes.ATYPE_COURSE
@@ -287,11 +321,11 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         return ret.substring(0, 100) + '...';
     }
 
-    function _asertStartEndDurations(starttime, endtime, maxduration) {
+    function _asertStartEndDurations(starttime, endtime, maxduration, isModify) {
         if (!endtime) return true;
         
         var now = new Date();
-        if (!starttime || starttime < now) starttime = now;
+        if (!starttime || (!isModify && starttime < now)) starttime = now;
 
         var minutes = Math.floor((endtime - starttime)/60000);
         if (minutes >= maxduration) return true;

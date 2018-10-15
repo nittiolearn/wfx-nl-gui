@@ -21,20 +21,20 @@ function(nl, nlCourse, nlLrFilter) {
 		_records = {};
 	};
 
-    this.wasFetched = function(dbid) {
-    	return (dbid in _records) ? true : false;
+    this.wasFetched = function(key) {
+    	return (key in _records) ? true : false;
     };
     
-    this.addRecord = function(courseAssign, dbid) {
-    	_records[dbid] = courseAssign;
+    this.addRecord = function(courseAssign, key) {
+    	_records[key] = courseAssign;
     };
     
-    this.getRecord = function(dbid) {
-    	return _records[dbid];
+    this.getRecord = function(key) {
+    	return _records[key];
     };
     
-    this.updateAttendanceInRecord = function(dbid, attendance) {
-    	_records[dbid].attendance = attendance;
+    this.updateAttendanceInRecord = function(key, attendance) {
+    	_records[key].attendance = attendance;
     };
 }];
 

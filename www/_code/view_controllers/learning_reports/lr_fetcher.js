@@ -18,7 +18,7 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecord
 	
     var self = this;
     var _pageFetcher = null;
-    var _subFetcher = new SubFetcher(nlServerApi, nlLrCourseRecords, nlLrCourseAssignmentRecords);
+    var _subFetcher = new SubFetcher(nl, nlServerApi, nlLrCourseRecords, nlLrCourseAssignmentRecords);
 	var _limit = null;
 
 	this.init = function() {
@@ -92,26 +92,32 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecord
     //-----------------------------------------------------------------------------------
 }];
 
-function SubFetcher(nlServerApi, nlLrCourseRecords, nlLrCourseAssignmentRecords) {
-	var _pendingCourseIds = {};
-	var _pendingCourseAssignIds = {};
+function SubFetcher(nl, nlServerApi, nlLrCourseRecords, nlLrCourseAssignmentRecords) {
+	var _pendingIds = {};
 	
 	this.markForFetching = function(reportRecord) {
+		// TODO-NOW: change from courseAssign naming to assign naming (module or course assign)
+		// Also nlLrCourseAssignmentRecords cannot be used for "both course and module in one report"
+		// due to id clash
+        var key = (reportRecord.ctype == _nl.ctypes.CTYPE_COURSE) ? 'course_assignment:{}' : 'assignment:{}';
+        key = nl.fmt2(key, reportRecord.assignment);
+        if (key && !nlLrCourseAssignmentRecords.wasFetched(key)) _pendingIds[key] = true;
     	if (reportRecord.ctype != _nl.ctypes.CTYPE_COURSE) return;
-        var courseid = reportRecord.lesson_id;
-        if (courseid && !nlLrCourseRecords.wasFetched(courseid)) _pendingCourseIds[courseid] = true;
-        var courseAssignId = reportRecord.assignment;
-        if (courseAssignId && !nlLrCourseAssignmentRecords.wasFetched(courseAssignId)) _pendingCourseAssignIds[courseAssignId] = true;
+    	var courseId = reportRecord.lesson_id;
+        key = nl.fmt2('course:{}', courseId);
+        if (courseId && !nlLrCourseRecords.wasFetched(courseId)) _pendingIds[key] = true;
 	};
 	
 	this.fetchPending = function() {
-        return (Object.keys(_pendingCourseIds).length > 0 || Object.keys(_pendingCourseAssignIds).length > 0);
+        return (Object.keys(_pendingIds).length > 0);
 	};
 	
 	this.fetch = function(onDoneCallback) {
         var recordinfos = [];
-        for (var cid in _pendingCourseIds) recordinfos.push({id: parseInt(cid),table: 'course'});
-        for (var cid in _pendingCourseAssignIds) recordinfos.push({id: parseInt(cid), table: 'course_assignment'});
+        for (var key in _pendingIds) {
+        	var parts = key.split(':');
+        	recordinfos.push({table: parts[0], id: parseInt(parts[1])});
+        }
         _fetchInBatchs(recordinfos, 0, onDoneCallback);
    };
 
@@ -124,18 +130,21 @@ function SubFetcher(nlServerApi, nlLrCourseRecords, nlLrCourseAssignmentRecords)
             onDoneCallback(true);
             return;
         }
-        nlServerApi.courseOrCourseAssignGetMany(newRecordInfo).then(function(results) {
+        nlServerApi.courseOrAssignGetMany(newRecordInfo).then(function(results) {
             for(var i=0; i<results.length; i++) {
-                var course = results[i];
-            	var cid = parseInt(course.id);
-                if (course.error) nl.log.warn('Error fetching course id', cid);
-                if(course.type == 'course_assignment') {
-                	nlLrCourseAssignmentRecords.addRecord(course, cid);
-	                delete _pendingCourseAssignIds[cid];
-                } else {
-	                nlLrCourseRecords.addRecord(course, cid);
-	                delete _pendingCourseIds[cid];
+                var resultObj = results[i];
+                if (resultObj.error) {
+                	nl.log.warn('Error fetching courseOrAssignGetMany object', resultObj);
+                	continue;
                 }
+            	var objId = parseInt(resultObj.id);
+                var key = nl.fmt2('{}:{}', resultObj.table, objId);
+                if(resultObj.table == 'course') {
+	                nlLrCourseRecords.addRecord(resultObj, objId);
+                } else {
+                	nlLrCourseAssignmentRecords.addRecord(resultObj, key);
+                }
+                delete _pendingIds[key];
             }
             startPos += results.length;
             _fetchInBatchs(recordinfos, startPos, onDoneCallback);
