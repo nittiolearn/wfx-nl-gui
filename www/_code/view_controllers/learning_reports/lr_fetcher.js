@@ -13,16 +13,16 @@ var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
 }];
 
-var NlLrFetcher = ['nl', 'nlDlg', 'nlServerApi', 'nlLrFilter', 'nlLrReportRecords', 'nlLrCourseRecords', 'nlLrCourseAssignmentRecords',
-function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecords, nlLrCourseAssignmentRecords) {
+var NlLrFetcher = ['nl', 'nlDlg', 'nlServerApi', 'nlLrFilter', 'nlLrReportRecords', 'nlLrCourseRecords', 'nlLrAssignmentRecords',
+function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecords, nlLrAssignmentRecords) {
 	
     var self = this;
     var _pageFetcher = null;
-    var _subFetcher = new SubFetcher(nl, nlServerApi, nlLrCourseRecords, nlLrCourseAssignmentRecords);
+    var _subFetcher = new SubFetcher(nl, nlServerApi, nlLrCourseRecords, nlLrAssignmentRecords);
 	var _limit = null;
 
 	this.init = function() {
-	    _pageFetcher = nlServerApi.getPageFetcher({defMax: 50, itemType: 'course learning record'});
+	    _pageFetcher = nlServerApi.getPageFetcher({defMax: 50, itemType: 'learning record'});
 	    var params = nl.location.search();
 		_limit = ('limit' in params) ? parseInt(params.limit) : 5000;
 	};
@@ -92,16 +92,13 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecord
     //-----------------------------------------------------------------------------------
 }];
 
-function SubFetcher(nl, nlServerApi, nlLrCourseRecords, nlLrCourseAssignmentRecords) {
+function SubFetcher(nl, nlServerApi, nlLrCourseRecords, nlLrAssignmentRecords) {
 	var _pendingIds = {};
 	
 	this.markForFetching = function(reportRecord) {
-		// TODO-NOW: change from courseAssign naming to assign naming (module or course assign)
-		// Also nlLrCourseAssignmentRecords cannot be used for "both course and module in one report"
-		// due to id clash
         var key = (reportRecord.ctype == _nl.ctypes.CTYPE_COURSE) ? 'course_assignment:{}' : 'assignment:{}';
         key = nl.fmt2(key, reportRecord.assignment);
-        if (key && !nlLrCourseAssignmentRecords.wasFetched(key)) _pendingIds[key] = true;
+        if (key && !nlLrAssignmentRecords.wasFetched(key)) _pendingIds[key] = true;
     	if (reportRecord.ctype != _nl.ctypes.CTYPE_COURSE) return;
     	var courseId = reportRecord.lesson_id;
         key = nl.fmt2('course:{}', courseId);
@@ -142,7 +139,7 @@ function SubFetcher(nl, nlServerApi, nlLrCourseRecords, nlLrCourseAssignmentReco
                 if(resultObj.table == 'course') {
 	                nlLrCourseRecords.addRecord(resultObj, objId);
                 } else {
-                	nlLrCourseAssignmentRecords.addRecord(resultObj, key);
+                	nlLrAssignmentRecords.addRecord(resultObj, key);
                 }
                 delete _pendingIds[key];
             }

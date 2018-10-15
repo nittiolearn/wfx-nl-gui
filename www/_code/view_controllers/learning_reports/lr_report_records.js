@@ -14,8 +14,8 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrCourseRecords', 'nlLrFilter', 'nlLrCourseAssignmentRecords',
-function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLrCourseAssignmentRecords) {
+var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrCourseRecords', 'nlLrFilter', 'nlLrAssignmentRecords',
+function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLrAssignmentRecords) {
     var self = this;
     
     var _records = {};
@@ -157,7 +157,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
 		var user = _getStudentFromReport(report, repcontent);
 		if (!user) return null;
         var course = nlLrCourseRecords.getRecord(report.lesson_id);
-        var courseAssignment = nlLrCourseAssignmentRecords.getRecord('course_assignment:'+report.assignment);        
+        var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:'+report.assignment);        
         if (!course) course = nlLrCourseRecords.getCourseInfoFromReport(report, repcontent);
 		var contentmetadata = 'contentmetadata' in course ? course.contentmetadata : {};
 		report._grade = contentmetadata.grade || '';
@@ -411,7 +411,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
 	}
 	
 	function _overrideAssignmentParams(report, repcontent) {
-        var assignInfo = nlLrCourseAssignmentRecords.getRecord('assignment:'+report.assignment);
+        var assignInfo = nlLrAssignmentRecords.getRecord('assignment:'+report.assignment);
         if (!assignInfo) return;
         _copyAttrsIf(assignInfo, repcontent, ['batchname', 'assign_remarks', 'not_before', 'not_after', 'submissionAfterEndtime', 'max_duration', 'learnmode']);
 	}

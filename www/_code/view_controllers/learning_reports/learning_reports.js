@@ -14,6 +14,7 @@
 // nlLrFetcher:	Fetch db.report (and db.couse, db.training_kind, ... when needed) from the server (single instance)
 // nlReportRecords: Stores a list of db.report records fetched from server after processing (single instance)
 // nlCourseRecords: Stores a list of db.course records fetched from server after processing (single instance)
+// nlAssignmentRecords: Stores a list of db.course_assignment and db.assignment records fetched from server after processing (single instance)
 // nlSummaryStats: Used to create a summary stats (multiple instances supported)
 // nlLrExporter: Export learning report (single instance)
 // nlLrHelper: Assorted helpers used across modules in this folder
@@ -33,7 +34,7 @@ function module_init() {
 	angular.module('nl.learning_reports', ['nl.learning_reports.lr_helper', 'nl.learning_reports.lr_filter', 
 		'nl.learning_reports.lr_fetcher', 'nl.learning_reports.lr_exporter', 
 		'nl.learning_reports.lr_report_records', 'nl.learning_reports.lr_course_records',
-		'nl.learning_reports.lr_summary_stats', 'nl.learning_reports.lr_import', 'nl.learning_reports.lr_course_assignments'])
+		'nl.learning_reports.lr_summary_stats', 'nl.learning_reports.lr_import', 'nl.learning_reports.lr_assignments'])
 	.config(configFn)
 	.controller('nl.LearningReportsCtrl', LearningReportsCtrl)
 	.service('nlLearningReports', NlLearningReports);
@@ -58,21 +59,21 @@ function($scope, nlLearningReports) {
 }];
     
 var NlLearningReports = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlGroupInfo', 'nlTable', 'nlSendAssignmentSrv',
-'nlLrHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlLrReportRecords', 'nlLrCourseRecords', 'nlLrSummaryStats', 'nlLrCourseAssignmentRecords',
+'nlLrHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlLrReportRecords', 'nlLrCourseRecords', 'nlLrSummaryStats', 'nlLrAssignmentRecords',
 function(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
-	nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats, nlLrCourseAssignmentRecords) {
+	nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats, nlLrAssignmentRecords) {
     this.create = function($scope, settings) {
     	if (!settings) settings = {};
     	return new NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
-			$scope, settings, nlLrCourseAssignmentRecords);
+			$scope, settings, nlLrAssignmentRecords);
     };
 }];
     
 //-------------------------------------------------------------------------------------------------
 function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
-			$scope, settings, nlLrCourseAssignmentRecords) {
+			$scope, settings, nlLrAssignmentRecords) {
 
     this.show = function() {
 		nlRouter.initContoller($scope, '', _onPageEnter);
@@ -100,7 +101,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	    // Order is important
         nlLrFilter.init(settings, userInfo);
         nlLrCourseRecords.init();
-        nlLrCourseAssignmentRecords.init();        
+        nlLrAssignmentRecords.init();        
 	    _summaryStats = nlLrSummaryStats.getSummaryStats();
         nlLrReportRecords.init(_summaryStats, userInfo);
         nlLrFetcher.init();
@@ -410,7 +411,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	var attendance = null;
 	function _onClickOnMarkAttendance() {
 		var data = {assignid: nlLrFilter.getObjectId()};
-		var courseAssignment = nlLrCourseAssignmentRecords.getRecord('course_assignment:' + nlLrFilter.getObjectId());
+		var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:' + nlLrFilter.getObjectId());
 		attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
 		_showAttendanceMarker();
 	}
@@ -563,7 +564,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				nlDlg.hideLoadingScreen();
 				if(result) attendance = result;
 				var jsonAttendanceStr = angular.toJson(result);
-				nlLrCourseAssignmentRecords.updateAttendanceInRecord(
+				nlLrAssignmentRecords.updateAttendanceInRecord(
 					'course_assignment:' + nlLrFilter.getObjectId(), jsonAttendanceStr);
 				nlLrReportRecords.reset();
 				nlLrReportRecords.updateReportRecords();
@@ -602,7 +603,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
     		key = 'course_assignment:{}';
     	}
     	key = nl.fmt2(key, nlLrFilter.getObjectId());
-        var assignContent = nlLrCourseAssignmentRecords.getRecord(key);
+        var assignContent = nlLrAssignmentRecords.getRecord(key);
         if (!assignContent) {
         	nlDlg.popupAlert({title: 'Error', template: 'Cannot get the assignment information.'});
         	return;

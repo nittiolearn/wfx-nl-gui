@@ -152,7 +152,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             starttime: _assignInfo.starttime || new Date(),
             endtime: _assignInfo.endtime || '',
             maxduration: _assignInfo.esttime ? parseInt(_assignInfo.esttime) : '',
-            showAnswers: 'learnmode' in _assignInfo ? _assignInfo.learnmode-1 : learningModeStrings[1],
+            showAnswers: 'learnmode' in _assignInfo ? {id:_assignInfo.learnmode-1} : learningModeStrings[1],
             remarks: _assignInfo.remarks || '',
             forum: false,
             submissionAfterEndtime: 'submissionAfterEndtime' in _assignInfo ? _assignInfo.submissionAfterEndtime : false,
@@ -167,6 +167,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			iltCostMisc: _assignInfo.iltCostMisc,
             update_content: false
         };
+        console.log('TODO-NOW', dlgScope.data, _assignInfo);
         dlgScope.help = _getHelp();
     }
 
