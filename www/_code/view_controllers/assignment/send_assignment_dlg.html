@@ -4,13 +4,13 @@
          ng-hide='assignInfo.assigntype == "training"'>
         <div ng-class='resp2Col33' class='padding0' 
              ng-hide='screenSize == "small"'>
-            <img ng-show='assignInfo.icon != "icon:"' class='nl-max-100' ng-src='{{assignInfo.icon}}'>
+            <img ng-if='assignInfo.icon != "icon:"' class='nl-max-100' ng-src='{{assignInfo.icon}}'>
             <div ng-if='assignInfo.icon == "icon:"' class='fsh4'><i class='fsh1 ion-ios-bookmarks fblue'></i></div>
         </div>
         <div ng-class='resp2Col67' class='padding0'>
             <div class='row row-center padding0 margin0'>
                 <img class='nl-max-50 padding-small'
-                     ng-show='screenSize == "small" && assignInfo.icon && assignInfo.icon != "icon:"'
+                     ng-if='screenSize == "small" && assignInfo.icon && assignInfo.icon != "icon:"'
                      ng-src='{{assignInfo.icon}}'>
                 <div ng-if='assignInfo.icon == "icon:" && screenSize == "small"' class='fsh4'><i class='fsh1 ion-ios-bookmarks fblue'></i></div>
                 <span class='col fsh4 padding-small'>{{assignInfo.title}}</span>
@@ -22,6 +22,14 @@
             </div>
         </div>
     </div>
+
+	<nl-dlg-row ng-show='assignInfo.isModify && assignInfo.assigntype == "lesson"' attr='update_content' data='data' help='help'>
+        <nl-checkbox fieldmodel='update_content'
+                     fieldname='refresh the content of assignment with latest approved module content'
+                     fieldcls= 'padding-mid'
+                     fieldindex="0">
+        </nl-checkbox>
+	</nl-dlg-row>
 
 	<nl-dlg-row ng-show='assignInfo.assigntype != "training"' attr='batchname' data='data' help='help'>
 		<nl-input fieldmodel='batchname' fieldtype='text' fieldCls='w100'></nl-input>

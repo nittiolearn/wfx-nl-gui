@@ -72,8 +72,8 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlSendAssignmentSrv) {
             assignInfo.authorName = result.authorname;
             assignInfo.description = result.description;
         }
-        nlSendAssignmentSrv.show($scope, assignInfo).then(function(e) {
-            nl.location.url('/home'); 
+        nlSendAssignmentSrv.show($scope, assignInfo).then(function(result) {
+        	if (!result) nl.location.url('/home'); 
         });
     }
     
@@ -152,7 +152,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             starttime: _assignInfo.starttime || new Date(),
             endtime: _assignInfo.endtime || '',
             maxduration: _assignInfo.esttime ? parseInt(_assignInfo.esttime) : '',
-            showAnswers: 'learnmode' in _assignInfo ? {id:_assignInfo.learnmode-1} : learningModeStrings[1],
+            showAnswers: 'learnmode' in _assignInfo ? {id:_assignInfo.learnmode} : learningModeStrings[1],
             remarks: _assignInfo.remarks || '',
             forum: false,
             submissionAfterEndtime: 'submissionAfterEndtime' in _assignInfo ? _assignInfo.submissionAfterEndtime : false,
@@ -167,7 +167,6 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			iltCostMisc: _assignInfo.iltCostMisc,
             update_content: false
         };
-        console.log('TODO-NOW', dlgScope.data, _assignInfo);
         dlgScope.help = _getHelp();
     }
 
@@ -192,7 +191,9 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			iltCostFoodSta: {name: 'Stationary and Food cost', help: nl.t(' Configure the stationary and food cost.')},
 			iltCostTravelAco: {name: 'Travel and Accomodation cost', help: nl.t(' Configure the travel and accomodation cost.')},
 			iltCostMisc: {name: 'Miscellaneous cost', help: nl.t(' Configure the miscellaneous cost.')},
-			batchname: {name: 'Batch name', help: nl.t('This is an batch name mentioned while sending an assignemnt')}
+			batchname: {name: 'Batch name', help: nl.t('This is an batch name mentioned while sending an assignemnt.'),
+			update_content: {name: 'Update content', help: nl.t('Please be careful when updating content. You could do this only to change some answers if they are wrong and exaluate the report based on updated content. If there are structural changes in the update (example: new page added or existing page removed or moved) and some learners have already completed the assignment, the update could result in errors. The assignment content will be updated with the latest approved module content. Assignment scoring will be done based on updated content. Learner who have already completed the module will not be able to redo based on updated content. Learners who have not done the assignment will see the updated content.')}
+			}
 		};
 	}
 
@@ -206,7 +207,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         }};
         var cancelButton = {text : nl.t('Cancel'), onTap: function(e) {
             if (_ouUserSelector) _selectedUsers = _ouUserSelector.getSelectedUsers(); 
-            resolve(e);
+            resolve(_dlg._dlgResult || false);
         }};
         _dlg.show('view_controllers/assignment/send_assignment_dlg.html',
             [sendButton], cancelButton);
@@ -271,6 +272,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         nlDlg.showLoadingScreen();
         nlServerApi.assignmentModify(params).then(function(assignId) {
             nlDlg.hideLoadingScreen();
+			_dlg._dlgResult = params;
 			_dlg.close();
         });
 	}
@@ -402,12 +404,12 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             nlServerApi.assignmentSend(ctx.data).then(function(assignId) {
                 ctx.sentUserCnt += ctx.data.selectedusers.length;
                 ctx.data.assignid = assignId;
-                _sendNextBatch(ctx, resolve);
+                _sendNextBatch(ctx);
             });
         });
     }
 
-    function _sendNextBatch(ctx, resolve) {
+    function _sendNextBatch(ctx) {
         var msg = nl.t('Sent assignment to {} of {}', ctx.sentUserCnt, ctx.totalUsersCnt);
         if (ctx.pendingUsers.length == 0) {
             nlDlg.popupStatus(msg);
@@ -424,7 +426,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         }
         nlServerApi.assignmentSend(ctx.data).then(function(status) {
             ctx.sentUserCnt += ctx.data.selectedusers.length;
-            _sendNextBatch(ctx, resolve);
+            _sendNextBatch(ctx);
         });
     }
 
@@ -434,6 +436,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         		ctx.sentUserCnt, 
         		ctx.sentUserCnt == 1 ? nl.t('user has been') : nl.t('users have been'));
         	nlDlg.popupAlert({title: nl.t('Training nominated'), template:msg}).then(function(){
+				_dlg._dlgResult = true;
 				_dlg.close();
 			});    
 	        return;
@@ -447,6 +450,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             afterAssignmentSentDlg.scope.data.url = nl.fmt2('#/learning_reports?type=course_assign&objid={}&max=500', ctx.data.assignid);
         }
         var cancelButton = {text : nl.t('Close'), onTap: function(e) {
+				_dlg._dlgResult = true;
 				_dlg.close();
         }};
         afterAssignmentSentDlg.show('view_controllers/assignment/after_assignment_sent_dlg.html',

@@ -316,7 +316,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore,
             Math.ceil(report.stats.timeSpentSeconds/60), Math.ceil(report.stats.iltTimeSpent/60)]);
         ret = ret.concat([report.repcontent.iltVenue || '', report.repcontent.iltTrainerName || '', report.repcontent.iltCostInfra || '', report.repcontent.iltCostTrainer || '',
-        			report.repcontent.iltCostFoodSta || '', report.repcontent.travelCost || '', report.repcontent.iltCostMisc || '']);
+        			report.repcontent.iltCostFoodSta || '', report.repcontent.iltCostTravelAco || '', report.repcontent.iltCostMisc || '']);
         ret.push(report.user.email);
         ret.push(report.user.org_unit);
         for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id] || '');
@@ -442,7 +442,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             {id: 'iltCostInfra', name: 'Infra cost'},
             {id: 'iltCostTrainer', name: 'Trainer cost'},
             {id: 'iltCostFoodSta', name: 'Food cost'},
-            {id: 'travelCost', name: 'travel cost'},
+            {id: 'iltCostTravelAco', name: 'travel cost'},
             {id: 'iltCostMisc', name: 'Misc cost'}];
       var idSessionIdFields = [
 			{id: 'repid', name: 'Report Id'},
@@ -474,7 +474,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         				session: '', subject: rep.course.contentmetadata.subject,  _grade: rep.course.contentmetadata.grade, 
         				not_before: rep.repcontent.not_before, not_after: rep.repcontent.not_after, status: '-', _timeMins: (rep.stats.iltTimeSpent+rep.stats.timeSpentSeconds)/60,
         				iltVenue: rep.repcontent.iltVenue, iltTrainerName: rep.repcontent.iltTrainerName, iltCostInfra : rep.repcontent.iltCostInfra,
-        				iltCostTrainer: rep.repcontent.iltCostTrainer, iltCostFoodSta: rep.repcontent.iltCostFoodSta, travelCost: rep.repcontent.travelCost,
+        				iltCostTrainer: rep.repcontent.iltCostTrainer, iltCostFoodSta: rep.repcontent.iltCostFoodSta, iltCostTravelAco: rep.repcontent.iltCostTravelAco,
         				iltCostMisc: rep.repcontent.iltCostMisc, _email: rep.user.email, org_unit: rep.user.org_unit};
         for(var i=0; i<mh.length; i++) record[mh[i].id] = rep.usermd[mh[i].id];
         if (filter.exportTypes.ids) {

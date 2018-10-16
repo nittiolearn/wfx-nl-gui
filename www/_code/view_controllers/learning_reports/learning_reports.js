@@ -323,6 +323,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
         });
     }
     
+    function _updateReportRecords() {
+		nlLrReportRecords.updateReportRecords();
+		_updateScope();
+    }
+    
     function _updateScope() {
         nl.pginfo.pageTitle = nlLrFilter.getTitle();
         nl.pginfo.pageSubTitle = nlLrFilter.getSubTitle();
@@ -566,9 +571,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var jsonAttendanceStr = angular.toJson(result);
 				nlLrAssignmentRecords.updateAttendanceInRecord(
 					'course_assignment:' + nlLrFilter.getObjectId(), jsonAttendanceStr);
-				nlLrReportRecords.reset();
-				nlLrReportRecords.updateReportRecords();
-                _updateScope();
+                _updateReportRecords();
 			});
     	}};
     	var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
@@ -603,12 +606,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
     		key = 'course_assignment:{}';
     	}
     	key = nl.fmt2(key, nlLrFilter.getObjectId());
-        var assignContent = nlLrAssignmentRecords.getRecord(key);
-        if (!assignContent) {
+        var assignRec = nlLrAssignmentRecords.getRecord(key);
+        if (!assignRec) {
         	nlDlg.popupAlert({title: 'Error', template: 'Cannot get the assignment information.'});
         	return;
         }
-    	if (launchType == 'course_assign') assignContent = angular.fromJson(assignContent.info);
+    	var assignContent = launchType == 'course_assign' ? assignRec.info : assignRec;
         var assignInfo = {isModify: true, dlgTitle: 'Modify assignment properties',
             assigntype: (launchType == 'course_assign') ? 'course' : 'lesson',
             assignid: nlLrFilter.getObjectId(),
@@ -621,8 +624,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
             
         	batchname: assignContent.batchname,
         	remarks: launchType == 'module_assign' ? assignContent.assign_remarks : assignContent.remarks,
-        	starttime: assignContent.not_before ? nl.fmt.json2Date(assignContent.not_before) : '', 
-        	endtime: assignContent.not_after ? nl.fmt.json2Date(assignContent.not_after) : '', 
+        	starttime: assignContent.not_before || '', 
+        	endtime: assignContent.not_after || '', 
         	submissionAfterEndtime: assignContent.submissionAfterEndtime};
         	
         if (launchType == 'module_assign') {
@@ -638,8 +641,31 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			assignInfo.iltCostTravelAco = assignContent.iltCostTravelAco || '';
 			assignInfo.iltCostMisc = assignContent.iltCostMisc || '';
     	}
-    	nlSendAssignmentSrv.show($scope, assignInfo).then(function(e) {
-	        //TODO-NOW: reinit all records
+    	nlSendAssignmentSrv.show($scope, assignInfo).then(function(result) {
+    		if (!result) return;
+    		
+        	assignContent.batchname = result.batchname;
+        	assignContent.not_before = result.not_before || '';
+        	assignContent.not_after = result.not_after || '', 
+        	assignContent.submissionAfterEndtime = result.submissionAfterEndtime;
+	        if (launchType == 'module_assign') {
+	        	assignContent.assign_remarks = result.remarks;
+	        	assignContent.max_duration = result.max_duration;
+	        	assignContent.learnmode = result.learnmode;
+	    	} else {
+	        	assignContent.remarks = result.remarks;
+				if (assignContent.blended) {
+					assignContent.iltTrainerName = result.iltTrainerName || '';
+					assignContent.iltVenue = result.iltVenue || '';
+					assignContent.iltCostInfra = result.iltCostInfra || '';
+					assignContent.iltCostTrainer = result.iltCostTrainer || '';
+					assignContent.iltCostFoodSta = result.iltCostFoodSta || '';
+					assignContent.iltCostTravelAco = result.iltCostTravelAco || '';
+					assignContent.iltCostMisc = result.iltCostMisc || '';
+				}
+	    	}
+	        nlLrAssignmentRecords.addRecord(assignRec, key);
+    		_updateReportRecords();
     	});
     }
 

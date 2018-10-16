@@ -25,17 +25,51 @@ function(nl, nlCourse, nlLrFilter) {
     	return (key in _records) ? true : false;
     };
     
-    this.addRecord = function(courseAssign, key) {
-    	_records[key] = courseAssign;
+    this.addRecord = function(assign, key) {
+    	_records[key] = assign;
     };
     
     this.getRecord = function(key) {
     	return _records[key];
     };
     
+    this.overrideAssignmentParameterInReport = function(report, repcontent) {
+		var table = report.ctype == _nl.ctypes.CTYPE_COURSE ? 'course_assignment:' : 'assignment:';
+        var assignInfo = this.getRecord(table+report.assignment);
+        if (!assignInfo) return;
+		if (report.ctype == _nl.ctypes.CTYPE_COURSE) assignInfo = assignInfo.info;
+        if (!assignInfo) return;
+
+        repcontent.batchname = (report.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingName : 
+        	assignInfo ? assignInfo.batchname : repcontent.batchname) || '';
+        repcontent.not_before = assignInfo.not_before ? assignInfo.not_before
+	        : repcontent.not_before ? nl.fmt.json2Date(repcontent.not_before) : '';
+        repcontent.not_after = assignInfo.not_after ? assignInfo.not_after
+        	: repcontent.not_after ? nl.fmt.json2Date(repcontent.not_after) : '';
+        if ('submissionAfterEndtime' in assignInfo) repcontent.submissionAfterEndtime = assignInfo.submissionAfterEndtime;
+        	
+		if (report.ctype == _nl.ctypes.CTYPE_COURSE) {
+			_copyAttrsIf(assignInfo, repcontent, ['remarks'], ['']);
+	        if (assignInfo.blended) _copyAttrsIf(assignInfo, repcontent, ['iltTrainerName', 'iltVenue', 'iltCostInfra', 'iltCostTrainer',
+	        	'iltCostFoodSta', 'iltCostTravelAco', 'iltCostMisc'], ['', '', '', '', '', '', '']);
+		} else {
+	        _copyAttrsIf(assignInfo, repcontent, ['assign_remarks', 'max_duration', 'learnmode'], ['', undefined, undefined]);
+		}
+        return repcontent;
+    };
+    
     this.updateAttendanceInRecord = function(key, attendance) {
     	_records[key].attendance = attendance;
     };
+
+	function _copyAttrsIf(src, dest, attrs, defVals) {
+		for (var i=0; i<attrs.length; i++) {
+			var attr = attrs[i];
+			if (attr in src) dest[attr] = src[attr];
+			else if (defVals[i] !== undefined) dest[attr] = defVals[i];
+		}
+	}
+	
 }];
 
 //-------------------------------------------------------------------------------------------------

@@ -27,6 +27,12 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecord
 		_limit = ('limit' in params) ? parseInt(params.limit) : 5000;
 	};
 	
+	this.getSubFetcher = function() {
+		// Used in learner list views to patchup assignment content on to report content
+		// assignment.js (/#/assignment?type=new|past) and course_list.js (/#/course_report_list) for fetching needed assignment records
+		return _subFetcher;
+	};
+	
     this.canFetchMore = function() {
         return _pageFetcher.canFetchMore();
     };
@@ -116,7 +122,26 @@ function SubFetcher(nl, nlServerApi, nlLrCourseRecords, nlLrAssignmentRecords) {
         	recordinfos.push({table: parts[0], id: parseInt(parts[1])});
         }
         _fetchInBatchs(recordinfos, 0, onDoneCallback);
-   };
+    };
+    
+    this.overrideAssignmentParameterInReports = function(results, onDoneFunction) {
+    	// Called from learner list views
+		for(var i=0; i<results.length; i++) this.markForFetching(results[i]);
+        if (!this.fetchPending()) return onDoneFunction(results);
+        this.fetch(function() {
+        	for(var i=0; i<results.length; i++) {
+        		nlLrAssignmentRecords.overrideAssignmentParameterInReport(results[i], results[i]);
+        	}
+        	onDoneFunction(results);
+        });
+    };
+    
+    this.getAssignmentContent = function(assignId, ctype) {
+    	// used in learner list views only
+        var key = (ctype == _nl.ctypes.CTYPE_COURSE) ? 'course_assignment:{}' : 'assignment:{}';
+        key = nl.fmt2(key, reportRecord.assignment);
+        return nlLrAssignmentRecords.getRecord(key);
+    };
 
     var MAX_PER_BATCH = 50;
     function _fetchInBatchs(recordinfos, startPos, onDoneCallback) {
@@ -136,9 +161,16 @@ function SubFetcher(nl, nlServerApi, nlLrCourseRecords, nlLrAssignmentRecords) {
                 }
             	var objId = parseInt(resultObj.id);
                 var key = nl.fmt2('{}:{}', resultObj.table, objId);
-                if(resultObj.table == 'course') {
+                if (resultObj.table == 'course') {
 	                nlLrCourseRecords.addRecord(resultObj, objId);
+                } else if (resultObj.table == 'course_assignment') {
+                	resultObj.info = angular.fromJson(resultObj.info);
+                	if (resultObj.info.not_before) resultObj.info.not_before = nl.fmt.json2Date(resultObj.info.not_before); 
+                	if (resultObj.info.not_after) resultObj.info.not_after = nl.fmt.json2Date(resultObj.info.not_after); 
+                	nlLrAssignmentRecords.addRecord(resultObj, key);
                 } else {
+                	if (resultObj.not_before) resultObj.not_before = nl.fmt.json2Date(resultObj.not_before); 
+                	if (resultObj.not_after) resultObj.not_after = nl.fmt.json2Date(resultObj.not_after); 
                 	nlLrAssignmentRecords.addRecord(resultObj, key);
                 }
                 delete _pendingIds[key];

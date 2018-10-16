@@ -19,7 +19,6 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
     var self = this;
     
     var _records = {};
-    var _resultList = [];
     var _reminderDict = {};
     var _summaryStats = null;
     var _dates = {};
@@ -40,15 +39,11 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
     	return _reminderDict;
     };
     
-    this.addRecord = function(report, isUpdate) {
-    	var update = isUpdate || false;
-    	if(!isUpdate) _resultList.push(report);
+    this.addRecord = function(report) {
     	if (report.ctype == _nl.ctypes.CTYPE_COURSE)
     		report = _processCourseReport(report);
 		else if (report.ctype == _nl.ctypes.CTYPE_MODULE)
 			report = _processModuleReport(report);
-		else
-			report = null; // TODO-LATER
         if (!report) return null;
         var rid = report.raw_record.id;
         if (rid in _records)
@@ -61,14 +56,17 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
 	};
     
     this.updateReportRecords = function() {
-    	for(var i=0; i<_resultList.length; i++) {
-    		self.addRecord(_resultList[i], true);
+    	var records = _records;
+    	this.reset();
+    	for(var cid in records) {
+    		var report = records[cid].raw_record;
+    		self.addRecord(report);
     	}
     };
 
     this.removeRecord = function(repid) {
-        if (repid in _records)
-            _summaryStats.removeFromStats(_records[repid]);
+        if (!(repid in _records)) return;
+        _summaryStats.removeFromStats(_records[repid]);
         delete _records[repid];
 	};
 
@@ -152,8 +150,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
     }
     
     function _processCourseReport(report) {
-		report.ctypestr = 'course';
-        var repcontent = angular.fromJson(report.content);
+        var repcontent = _updateCommonParams(report, 'course');
 		var user = _getStudentFromReport(report, repcontent);
 		if (!user) return null;
         var course = nlLrCourseRecords.getRecord(report.lesson_id);
@@ -267,7 +264,6 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
 
 		report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
 		report.urlTitle = nl.t('View report');
-        _updateCommonParams(report, repcontent);
         stats.status = nlLrHelper.statusInfos[_getStatusId(stats, started)];
         var ret = {raw_record: report, repcontent: repcontent, course: course, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
@@ -280,12 +276,10 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
     }
 
 	function _processModuleReport(report) {
-		report.showModuleProps = true;
-		report.ctypestr = nlLrFilter.getType();
-		var repcontent = angular.fromJson(report.content);
-		_overrideAssignmentParams(report, repcontent);
+        var repcontent = _updateCommonParams(report, 'module');
 		var user = _getStudentFromReport(report, repcontent);
 		if (!user) return null;
+		report.showModuleProps = true;
         report.studentname = user.name;
         report._user_id = user.user_id;
         report._email = user.email;
@@ -335,7 +329,6 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
 	        stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
 	            : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
         }
-        _updateCommonParams(report, repcontent);
 		report.started = nl.fmt.json2Date(repcontent.started);
 		report.ended = nl.fmt.json2Date(repcontent.ended);
 
@@ -381,12 +374,9 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         	stats.percCompleteDesc = 'Module completed';
 	        repcontent.maxScore = maxScore;
 	        repcontent.score = score;
-        	if(report.ctypestr == 'module') {
-				report.urlTitle = nl.t('View report');
-				report.url = nl.fmt2('/lesson/review_report_assign/{}', report.id);
-        	} else if(report.ctypestr == 'module_assign') {
-				report.urlTitle = nl.t('View report');
-				report.url = nl.fmt2('/lesson/review_report_assign/{}', report.id);
+			report.urlTitle = nl.t('View report');
+			report.url = nl.fmt2('/lesson/review_report_assign/{}', report.id);
+        	if(nlLrFilter.getType() == 'module_assign') {
 				report.urlTitle1 = nl.t('Update');
 				report.url1 = nl.fmt2('/lesson/update_report_assign/{}', report.id);
 			}
@@ -403,27 +393,16 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         return ret;
 	}
 
-	function _copyAttrsIf(src, dest, attrs) {
-		for (var i=0; i<attrs.length; i++) {
-			var attr = attrs[i];
-			if (attr in src) dest[attr] = src[attr];
-		}
-	}
-	
-	function _overrideAssignmentParams(report, repcontent) {
-        var assignInfo = nlLrAssignmentRecords.getRecord('assignment:'+report.assignment);
-        if (!assignInfo) return;
-        _copyAttrsIf(assignInfo, repcontent, ['batchname', 'assign_remarks', 'not_before', 'not_after', 'submissionAfterEndtime', 'max_duration', 'learnmode']);
-	}
-	
-	function _updateCommonParams(report, repcontent) {
+	function _updateCommonParams(report, ctypestr) {
+        var repcontent = angular.fromJson(report.content);
+		nlLrAssignmentRecords.overrideAssignmentParameterInReport(report, repcontent);
 		report.gradeLabel = _userInfo.groupinfo.gradelabel;
 		report.subjectLabel = _userInfo.groupinfo.subjectlabel;
 		report.updated = nl.fmt.json2Date(report.updated);
 		report.created = nl.fmt.json2Date(report.created);
-		report.not_before = repcontent.not_before ? nl.fmt.json2Date(repcontent.not_before) : '';
-		report.not_after = repcontent.not_after ? nl.fmt.json2Date(repcontent.not_after) : '';		
-        report._batchName = (report.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingName : repcontent.batchname) || '';
+        report._batchName = repcontent.batchname || '';
+		report.assign_remarks = (report.ctype == _nl.ctypes.CTYPE_COURSE ? repcontent.remarks : repcontent.assign_remarks) || '';
+        return repcontent;
 	}
 	
 	function _getAssignTypeStr(assigntype, content) {

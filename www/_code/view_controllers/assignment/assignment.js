@@ -95,11 +95,12 @@ function TypeHandler(nl, nlServerApi) {
 }
 
 //-----------------------------------------------------------------------------------------------------
-var AssignmentDeskCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi',
-function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
+var AssignmentDeskCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlLrFetcher',
+function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlLrFetcher) {
 
 	var mode = new TypeHandler(nl, nlServerApi);
 	var _userInfo = null;
+	var _subFetcher = nlLrFetcher.getSubFetcher();
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
@@ -150,12 +151,20 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi) {
                 if (resolve) resolve(false);
                 return;
             }
-            _resultList = _resultList.concat(results);
-            nlCardsSrv.updateCards($scope.cards, {
-                cardlist: _getCards(_userInfo, _resultList),
-                canFetchMore: _pageFetcher.canFetchMore()
-            });
-            if (resolve) resolve(true);
+            function _afterSubFetching(updatedResults) {
+	            _resultList = _resultList.concat(updatedResults);
+	            nlCardsSrv.updateCards($scope.cards, {
+	                cardlist: _getCards(_userInfo, _resultList),
+	                canFetchMore: _pageFetcher.canFetchMore()
+	            });
+	            if (resolve) resolve(true);
+            }
+
+			if (mode.type != TYPES.NEW && mode.type != TYPES.PAST) {
+				_afterSubFetching(results);
+			} else {
+				_subFetcher.overrideAssignmentParameterInReports(results, _afterSubFetching);
+			}
         });
 	}
 	
