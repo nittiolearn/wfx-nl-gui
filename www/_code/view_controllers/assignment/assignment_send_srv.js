@@ -175,10 +175,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			showAnsStr += '<li>You could change this to "on every page" if you want to learners to self learn and the score is not important.</li>';
 			showAnsStr += '<li>You can set this to "only when published" if you are dispatching a test and you do not want the learners to see the answers. You can explicitly publish the results later when appropriate from the assignment desk.</li></ul>';
 		var updateContentStr = '<p>The assignment content will be updated with the latest approved module content.</p>';
-			updateContentStr += '<p class="fsh6 forange">Ensure there are no structural changes like addition of a new page or removal of a page or changing page order. ';
+			updateContentStr += '<p class="fsh6 forange">Please do not add new pages or change page order. ';
 			updateContentStr += 'If some learners have already completed the assignment, structural changes could result in errors.</p>';
-			updateContentStr += '<p>You may update content to correct minor errors in the module content - example wrong answers in ';
-			updateContentStr += 'some question pages or minor textual changes. Evaluation of the reports will be based on updated content.</p>'; 
+			updateContentStr += '<p>You may update content to correct minor errors in the module content - example minor textual changes.</p>'; 
+			updateContentStr += '<p>If you need to remove some wrong questions, you may delete the page. Correcting the answer will not reevaluate users who have already completed.</p>'; 
 			updateContentStr += '<p>Learner who have already completed the module will not be able to redo based on updated content. ';
 			updateContentStr += 'Learners who have not done the assignment will see the updated content.</p>';
 		return {
