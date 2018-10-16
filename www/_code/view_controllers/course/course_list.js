@@ -50,27 +50,27 @@ function($stateProvider, $urlRouterProvider) {
 		}});
 }];
 
-var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlChangeOwner',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlChangeOwner) {
-	_listCtrlImpl('course', nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlChangeOwner);
+var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlLrFetcher', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlChangeOwner',
+function(nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlChangeOwner) {
+	_listCtrlImpl('course', nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlChangeOwner);
 }];
 
-var CourseAssignListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse) {
-	_listCtrlImpl('assign', nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse);
+var CourseAssignListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlLrFetcher', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse',
+function(nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse) {
+	_listCtrlImpl('assign', nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse);
 }];
 
-var CourseAssignMyListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse) {
-	_listCtrlImpl('assign_my', nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse);
+var CourseAssignMyListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlLrFetcher', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse',
+function(nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse) {
+	_listCtrlImpl('assign_my', nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse);
 }];
 
-var CourseReportListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse) {
-	_listCtrlImpl('report', nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse);
+var CourseReportListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlLrFetcher', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse',
+function(nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse) {
+	_listCtrlImpl('report', nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse);
 }];
 
-function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlChangeOwner) {
+function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlChangeOwner) {
 	/* 
 	 * URLs handled
 	 * 'View published' : /course_list?type=course&my=0
@@ -89,6 +89,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
     var _searchMetadata = null;
     var _canManage = false;
     var _resultList = [];
+	var _subFetcher = nlLrFetcher.getSubFetcher();
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
@@ -210,22 +211,27 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
                 if (resolve) resolve(false);
                 return;
             }
-            _resultList = _resultList.concat(results);
-			if (_resultList.length === 1 && type === 'report' && assignId === 0) {
-				var url = nl.fmt2('/course_view?id={}&mode=do', _resultList[0].id);
-				nl.location.url(url);
-                nl.location.replace();
-				return;
-			}
-			nlDlg.showLoadingScreen();
-			_fetchAdditionalCourses(results).then(function() {
-				nlDlg.hideLoadingScreen();
+            
+            function _afterSubFetching(updatedResults) {
+	            _resultList = _resultList.concat(updatedResults);
+				if (_resultList.length === 1 && type === 'report' && assignId === 0) {
+					var url = nl.fmt2('/course_view?id={}&mode=do', _resultList[0].id);
+					nl.location.url(url);
+	                nl.location.replace();
+					return;
+				}
 				nlCardsSrv.updateCards($scope.cards, {
 				    cardlist: _getCards(_resultList, nlCardsSrv),
 				    canFetchMore: _pageFetcher.canFetchMore()
 				});
 				if (resolve) resolve(true);
-			});
+            }
+            
+			if (type !== 'report') {
+				_afterSubFetching(results);
+			} else {
+				_subFetcher.subfetchAndOverride(results, _afterSubFetching);
+			}
 		});
 	}
 	
@@ -249,51 +255,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		return listingFn;
 	}
 	
-	function _fetchAdditionalCourses(results) {
-		return nl.q(function(resolve, reject) {
-			if (type !== 'report') {
-				resolve(true);
-				return;
-			}
-			for (var i=0; i<results.length; i++) {
-				var report = results[i];
-				if (report.courseid in courseDict) continue;
-				courseDict[report.courseid] = null;
-			}
-			_fetchAdditionalCoursesImpl(resolve);
-		});
-	}
-
-    var MAX_PER_BATCH = 50;
-	function _fetchAdditionalCoursesImpl(resolve) {
-        var courseIds = [];
-        var bMore = false;
-		for (var courseid in courseDict) {
-			courseid = parseInt(courseid);
-			if (courseDict[courseid] !== null) continue;
-			if (courseIds.length >= MAX_PER_BATCH) {
-				bMore = true;
-				break;
-			}
-			courseIds.push({id:courseid, table: 'course'});
-		}
-		if (courseIds.length == 0) {
-			resolve(true);
-			return;
-		}
-		nlServerApi.courseOrAssignGetMany(courseIds).then(function(results) {
-            for(var i=0; i<results.length; i++) {
-                var course = results[i];
-				var courseid = parseInt(course.id);
-                courseDict[courseid] = course; // could also be an error object
-            }
-            if (bMore) _fetchAdditionalCoursesImpl(resolve);
-            else resolve(true);
-		}, function() {
-			resolve(false);
-		});
-	}
-
 	function _getStaticCards() {
 		var ret = [];
 		if (type !== 'course' || !my) return ret;
@@ -404,7 +365,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSr
 		var title = report.name;
 		var help = '';
 		if (isReport) {
-			var course = courseDict[report.courseid];
+			var course = _subFetcher.getSubFetchedCourseRecord(report.courseid);
 			if (course && !course.error) {
 				report.content = course.content;
 			}

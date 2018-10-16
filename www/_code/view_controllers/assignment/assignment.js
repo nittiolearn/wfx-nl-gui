@@ -163,7 +163,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlLrFetcher) {
 			if (mode.type != TYPES.NEW && mode.type != TYPES.PAST) {
 				_afterSubFetching(results);
 			} else {
-				_subFetcher.overrideAssignmentParameterInReports(results, _afterSubFetching);
+				_subFetcher.subfetchAndOverride(results, _afterSubFetching);
 			}
         });
 	}

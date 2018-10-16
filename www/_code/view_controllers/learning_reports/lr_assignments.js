@@ -42,11 +42,9 @@ function(nl, nlCourse, nlLrFilter) {
 
         repcontent.batchname = (report.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingName : 
         	assignInfo ? assignInfo.batchname : repcontent.batchname) || '';
-        repcontent.not_before = assignInfo.not_before ? assignInfo.not_before
-	        : repcontent.not_before ? nl.fmt.json2Date(repcontent.not_before) : '';
-        repcontent.not_after = assignInfo.not_after ? assignInfo.not_after
-        	: repcontent.not_after ? nl.fmt.json2Date(repcontent.not_after) : '';
-        if ('submissionAfterEndtime' in assignInfo) repcontent.submissionAfterEndtime = assignInfo.submissionAfterEndtime;
+        repcontent.not_before = assignInfo.not_before;
+        repcontent.not_after = assignInfo.not_after || '';
+        repcontent.submissionAfterEndtime = assignInfo.submissionAfterEndtime;
         	
 		if (report.ctype == _nl.ctypes.CTYPE_COURSE) {
 			_copyAttrsIf(assignInfo, repcontent, ['remarks'], ['']);

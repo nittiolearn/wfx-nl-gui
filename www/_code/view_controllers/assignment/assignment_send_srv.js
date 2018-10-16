@@ -174,6 +174,13 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 		var showAnsStr = '<ul><li>By default, answers are shown to the learner "after submitting" the assignment.</li>';
 			showAnsStr += '<li>You could change this to "on every page" if you want to learners to self learn and the score is not important.</li>';
 			showAnsStr += '<li>You can set this to "only when published" if you are dispatching a test and you do not want the learners to see the answers. You can explicitly publish the results later when appropriate from the assignment desk.</li></ul>';
+		var updateContentStr = '<p>The assignment content will be updated with the latest approved module content.</p>';
+			updateContentStr += '<p class="fsh6 forange">Ensure there are no structural changes like addition of a new page or removal of a page or changing page order. ';
+			updateContentStr += 'If some learners have already completed the assignment, structural changes could result in errors.</p>';
+			updateContentStr += '<p>You may update content to correct minor errors in the module content - example wrong answers in ';
+			updateContentStr += 'some question pages or minor textual changes. Evaluation of the reports will be based on updated content.</p>'; 
+			updateContentStr += '<p>Learner who have already completed the module will not be able to redo based on updated content. ';
+			updateContentStr += 'Learners who have not done the assignment will see the updated content.</p>';
 		return {
 			ouUserTree: {name: 'Users', help: nl.t('Select the organizations (and if needed, the specific learners), put in a remark and click the Send Assignment button to send it to the selected class.')},
 			starttime: {name: 'From', help: nl.t('You may define the earliest date and time (upto minutes accuracy) from when the assignment is active. If not set, the assignment is active as soon as it is sent till the end time.')},
@@ -191,9 +198,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			iltCostFoodSta: {name: 'Stationary and Food cost', help: nl.t(' Configure the stationary and food cost.')},
 			iltCostTravelAco: {name: 'Travel and Accomodation cost', help: nl.t(' Configure the travel and accomodation cost.')},
 			iltCostMisc: {name: 'Miscellaneous cost', help: nl.t(' Configure the miscellaneous cost.')},
-			batchname: {name: 'Batch name', help: nl.t('This is an batch name mentioned while sending an assignemnt.'),
-			update_content: {name: 'Update content', help: nl.t('Please be careful when updating content. You could do this only to change some answers if they are wrong and exaluate the report based on updated content. If there are structural changes in the update (example: new page added or existing page removed or moved) and some learners have already completed the assignment, the update could result in errors. The assignment content will be updated with the latest approved module content. Assignment scoring will be done based on updated content. Learner who have already completed the module will not be able to redo based on updated content. Learners who have not done the assignment will see the updated content.')}
-			}
+			batchname: {name: 'Batch name', help: nl.t('This is an batch name mentioned while sending an assignemnt.')},
+			update_content: {name: 'Update content', help: updateContentStr}
 		};
 	}
 
@@ -253,10 +259,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         var data = _dlg.scope.data;
 		var params={atype: assignInfo.assigntype == 'course' ? _nl.atypes.ATYPE_COURSE : _nl.atypes.ATYPE_MODULE,
 			assignid: assignInfo.assignid, batchname: data.batchname, remarks: data.remarks,
-			not_before: data.starttime, not_after: data.endtime, submissionAfterEndtime: data.submissionAfterEndtime,
+			not_before: data.starttime, not_after: data.endtime, 
+			submissionAfterEndtime: data.submissionAfterEndtime,
 			max_duration: data.maxduration, learnmode: data.showAnswers.id,
 			update_content: data.update_content};
-		// TODO-NOW: update_content is not done for modify
 		
 		if (assignInfo.blended) {
 			params.blended = true;
@@ -268,21 +274,36 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			params.iltCostTravelAco = data.iltCostTravelAco;
 			params.iltCostMisc = data.iltCostMisc;
 		}
-		if (!_validateBeforeModify(params, assignInfo)) return;
-        nlDlg.showLoadingScreen();
-        nlServerApi.assignmentModify(params).then(function(assignId) {
-            nlDlg.hideLoadingScreen();
-			_dlg._dlgResult = params;
-			_dlg.close();
-        });
+		_validateBeforeModify(params, assignInfo, function() {
+			if (params.not_before) params.not_before = nl.fmt.date2UtcStr(params.not_before, 'second');
+			if (params.not_after) params.not_after = nl.fmt.date2UtcStr(params.not_after, 'second');
+	        nlDlg.showLoadingScreen();
+	        nlServerApi.assignmentModify(params).then(function() {
+	            nlDlg.hideLoadingScreen();
+				if (params.not_before) params.not_before = nl.fmt.json2Date(params.not_before);
+				if (params.not_after) params.not_after = nl.fmt.json2Date(params.not_after);
+				_dlg._dlgResult = params;
+				_dlg.close();
+	        });
+		});
 	}
 
-    function _validateBeforeModify(params, assignInfo) {
+    function _validateBeforeModify(params, assignInfo, onModifyFn) {
     	if (assignInfo.showDateField && !params.not_before) {
             nlDlg.popupAlert({title:'Please select', template: 'Start date is mandatory and it can not be empty. Please select the start date'});
             return false;
     	}
-    	return _asertStartEndDurations(params.not_before, params.not_after, params.max_duration, true);
+    	if (!_asertStartEndDurations(params.not_before, params.not_after, params.max_duration, true)) return false;
+    	if (params.atype == _nl.atypes.ATYPE_MODULE && params.update_content) {
+	    	var confirm = _getHelp().update_content.help;
+	    	confirm = nl.t('<div class="padding-mid fsh5">Updating the content could have undesired consequences. Are you sure you want to continue?</div><div class="padding-mid">{}</div>', confirm);
+	    	nlDlg.popupConfirm({title: nl.t('Please confirm'), template: confirm}).then(function(result) {
+	    		if (!result) return;
+		    	onModifyFn();
+	    	});
+    	} else {
+	    	onModifyFn();
+    	}
     }
     
     //---------------------------------------------------------------------------------------------
@@ -404,12 +425,12 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             nlServerApi.assignmentSend(ctx.data).then(function(assignId) {
                 ctx.sentUserCnt += ctx.data.selectedusers.length;
                 ctx.data.assignid = assignId;
-                _sendNextBatch(ctx);
+                _sendNextBatch(ctx, resolve);
             });
         });
     }
 
-    function _sendNextBatch(ctx) {
+    function _sendNextBatch(ctx, resolve) {
         var msg = nl.t('Sent assignment to {} of {}', ctx.sentUserCnt, ctx.totalUsersCnt);
         if (ctx.pendingUsers.length == 0) {
             nlDlg.popupStatus(msg);
@@ -426,7 +447,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         }
         nlServerApi.assignmentSend(ctx.data).then(function(status) {
             ctx.sentUserCnt += ctx.data.selectedusers.length;
-            _sendNextBatch(ctx);
+            _sendNextBatch(ctx, resolve);
         });
     }
 

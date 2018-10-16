@@ -18,7 +18,7 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecord
 	
     var self = this;
     var _pageFetcher = null;
-    var _subFetcher = new SubFetcher(nl, nlServerApi, nlLrCourseRecords, nlLrAssignmentRecords);
+    var _subFetcher = new SubFetcher(nl, nlDlg, nlServerApi, nlLrCourseRecords, nlLrAssignmentRecords);
 	var _limit = null;
 
 	this.init = function() {
@@ -98,13 +98,17 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecord
     //-----------------------------------------------------------------------------------
 }];
 
-function SubFetcher(nl, nlServerApi, nlLrCourseRecords, nlLrAssignmentRecords) {
+function SubFetcher(nl, nlDlg, nlServerApi, nlLrCourseRecords, nlLrAssignmentRecords) {
 	var _pendingIds = {};
+	var self=this;
 	
 	this.markForFetching = function(reportRecord) {
-        var key = (reportRecord.ctype == _nl.ctypes.CTYPE_COURSE) ? 'course_assignment:{}' : 'assignment:{}';
-        key = nl.fmt2(key, reportRecord.assignment);
-        if (key && !nlLrAssignmentRecords.wasFetched(key)) _pendingIds[key] = true;
+		if (reportRecord.assignment) {
+			// Not a self learning record
+	        var key = (reportRecord.ctype == _nl.ctypes.CTYPE_COURSE) ? 'course_assignment:{}' : 'assignment:{}';
+	        key = nl.fmt2(key, reportRecord.assignment);
+	        if (key && !nlLrAssignmentRecords.wasFetched(key)) _pendingIds[key] = true;
+		}
     	if (reportRecord.ctype != _nl.ctypes.CTYPE_COURSE) return;
     	var courseId = reportRecord.lesson_id;
         key = nl.fmt2('course:{}', courseId);
@@ -124,25 +128,36 @@ function SubFetcher(nl, nlServerApi, nlLrCourseRecords, nlLrAssignmentRecords) {
         _fetchInBatchs(recordinfos, 0, onDoneCallback);
     };
     
-    this.overrideAssignmentParameterInReports = function(results, onDoneFunction) {
+    this.subfetchAndOverride = function(results, onDoneFunction) {
     	// Called from learner list views
-		for(var i=0; i<results.length; i++) this.markForFetching(results[i]);
+		for(var i=0; i<results.length; i++) this.markForFetching(_getReportRecord(results[i]));
         if (!this.fetchPending()) return onDoneFunction(results);
-        this.fetch(function() {
-        	for(var i=0; i<results.length; i++) {
-        		nlLrAssignmentRecords.overrideAssignmentParameterInReport(results[i], results[i]);
-        	}
-        	onDoneFunction(results);
+        
+        nl.timeout(function() {
+        	nlDlg.showLoadingScreen();
+	        self.fetch(function() {
+	        	nlDlg.hideLoadingScreen();
+	        	for(var i=0; i<results.length; i++) {
+	        		nlLrAssignmentRecords.overrideAssignmentParameterInReport(_getReportRecord(results[i]), results[i]);
+	        	}
+	        	onDoneFunction(results);
+	        });
         });
     };
     
-    this.getAssignmentContent = function(assignId, ctype) {
-    	// used in learner list views only
-        var key = (ctype == _nl.ctypes.CTYPE_COURSE) ? 'course_assignment:{}' : 'assignment:{}';
-        key = nl.fmt2(key, reportRecord.assignment);
-        return nlLrAssignmentRecords.getRecord(key);
+    this.getSubFetchedCourseRecord = function(cid) {
+    	// Called from learner list views
+    	return nlLrCourseRecords.getRecord(cid);
     };
-
+    
+    function _getReportRecord(repObj) {
+    	var isCourseObj = 'courseid' in repObj; 
+    	return {ctype: isCourseObj ? _nl.ctypes.CTYPE_COURSE : repObj.ctype,
+			assigntype: isCourseObj ? _nl.atypes.ATYPE_COURSE : repObj.assigntype,
+			assignment: isCourseObj ? repObj.assignid : repObj.assignment,
+			lesson_id: isCourseObj ? repObj.courseid : repObj.lesson_id};
+    }
+    
     var MAX_PER_BATCH = 50;
     function _fetchInBatchs(recordinfos, startPos, onDoneCallback) {
         var newRecordInfo = [];

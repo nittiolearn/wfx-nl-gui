@@ -47,7 +47,6 @@ function(nl, nlCourse, nlLrFilter) {
 
     function _process(course) {
 		course = nlCourse.migrateCourse(course);
-		if (course.name) nlLrFilter.setObjectName(course.name);
         var idToFullName = {};
         var ret = {id: course.id, name: course.name || '', created: course.created || null, 
             updated: course.updated || null, certificates: [], lessons: [], nonLessons: [],

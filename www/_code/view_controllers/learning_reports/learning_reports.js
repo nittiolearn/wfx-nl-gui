@@ -328,14 +328,23 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_updateScope();
     }
     
+    function _setSubTitle(recs) {
+        nl.pginfo.pageSubTitle = '';
+        var objid = nlLrFilter.getObjectId();
+        if (!objid) return;
+        if (recs.length <= 0) return;
+        if (!recs[0].repcontent) return;
+        nl.pginfo.pageSubTitle = recs[0].repcontent.name || '';
+    }
+    
     function _updateScope() {
         nl.pginfo.pageTitle = nlLrFilter.getTitle();
-        nl.pginfo.pageSubTitle = nlLrFilter.getSubTitle();
         
         $scope.fetchInProgress = nlLrFetcher.fetchInProgress(true);
         $scope.canFetchMore = nlLrFetcher.canFetchMore();
         
         var reportAsList = nlLrReportRecords.asList();
+        _setSubTitle(reportAsList);
         $scope.noDataFound = (reportAsList.length == 0);
         nlTable.updateTableObject($scope.utable, reportAsList);
         nlTable.updateTableObject($scope.otable, _summaryStats.asList());
@@ -646,7 +655,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
     		
         	assignContent.batchname = result.batchname;
         	assignContent.not_before = result.not_before || '';
-        	assignContent.not_after = result.not_after || '', 
+        	assignContent.not_after = result.not_after || '';
         	assignContent.submissionAfterEndtime = result.submissionAfterEndtime;
 	        if (launchType == 'module_assign') {
 	        	assignContent.assign_remarks = result.remarks;

@@ -23,7 +23,6 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 		parentonly: true,	// fetch only parent records or also records part containing course/training
 		objid: null, 		// depending on type, will be interpretted as moduleid, courseid, ...
 		title: null,		// Title for the page
-		objname: null,		// Used for subtitle if objid was passed as input
 		showfilters: true
 	};
 	var _data = null;
@@ -34,7 +33,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
         _fillAttrs(_data, ['type'], [settings, urlParams, _dataDefaults]);
         if (!_oneOf(_data.type, ['all', 'module', 'course', 'training_kind', 'module_assign', 'course_assign', 'training_batch']))
         	_data.type = 'course'; // TODO-LATER-123: should be 'all'
-        _fillAttrs(_data, ['assignor', 'parentonly', 'objid', 'title', 'objname', 'showfilters'], 
+        _fillAttrs(_data, ['assignor', 'parentonly', 'objid', 'title', 'showfilters'], 
         	[settings, urlParams, _dataDefaults]);
         if (_oneOf(_data.type, ['module_assign', 'course_assign', 'training_batch']))
         	_data.showfilters = false;
@@ -44,12 +43,6 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
         _toBool(_data, 'showfilters');
         if (!nlRouter.isPermitted(userInfo, 'assignment_manage')) _data.assignor = 'me';
     	_initDates();
-    };
-    
-    // Set the course/course assignment/module/... name if objid is defined.
-    this.setObjectName = function(objname) {
-    	if (!_data.objid) return;
-    	_data.objname = objname;
     };
     
 	this.getTitle = function() {
@@ -63,10 +56,6 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 		else return 'Learning report';
 	};
 	
-    this.getSubTitle = function(objname) {
-    	return _data.objname || '';
-    };
-    
     this.getType = function() {
     	return _data.type;
     };
