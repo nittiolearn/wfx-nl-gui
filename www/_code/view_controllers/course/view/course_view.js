@@ -741,6 +741,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     
     function _checkDateTimeRange() {
     	if (modeHandler.mode != MODES.DO) return;
+    	return; // TODO - might need to reconsider such a check later
     	var course = modeHandler.course;
 		var currentDate = new Date();
 	    var starttime = course['not_before'] && course['not_before'] != '' ? nl.fmt.json2Date(course.not_before) : '';
@@ -948,7 +949,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         var c = modeHandler.course;
         var assignInfo = {assigntype: 'course', id: c.id, icon: c.icon, 
             title: c.name, authorName: c.authorname, description: c.description, 
-            showDateField: true, enableSubmissionAfterEndtime: true, blended: c.content.blended};
+            showDateField: true, enableSubmissionAfterEndtime: false, blended: c.content.blended};
         nlSendAssignmentSrv.show($scope, assignInfo);
     }
     

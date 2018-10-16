@@ -33,6 +33,7 @@ function(nl, nlCourse, nlLrFilter) {
     	return _records[key];
     };
     
+    // Same is available in server side too (needs to be updated in the same way) - see ncourse.overrideAssignmentParameterInReport
     this.overrideAssignmentParameterInReport = function(report, repcontent) {
 		var table = report.ctype == _nl.ctypes.CTYPE_COURSE ? 'course_assignment:' : 'assignment:';
         var assignInfo = this.getRecord(table+report.assignment);
