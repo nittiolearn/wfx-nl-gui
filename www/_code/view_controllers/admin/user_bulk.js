@@ -113,11 +113,14 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     var _groupInfo = null;
     var _userInfo = null;
     var _SERVER_CHUNK_SIZE = 100;
+    var _canUpdateLoginId = false;
     
     this.init = function(groupInfo, userInfo, grpid) {
         _groupInfo = groupInfo;
         _userInfo = userInfo;
         _grpid = grpid;
+        var params = nl.location.search();
+        _canUpdateLoginId = 'debug' in params && nlRouter.isPermitted(_userInfo, 'nittio_support');
     };
 
     this.importUsers = function($scope, chunkSize, debugLog) {
@@ -485,6 +488,8 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         var user = _groupInfo.derived.keyToUsers[row.username];
         if (user && user.usertype <= nlGroupInfo.UT_PADMIN && row.user_id != user.user_id) 
             _throwException('Cannot change loginid of this user', row);
+        if (!_canUpdateLoginId && row.user_id != user.user_id)
+            _throwException('Cannot change loginid of a user', row);
     };
 
     this.validateUserType = function(row) {
