@@ -488,7 +488,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         var user = _groupInfo.derived.keyToUsers[row.username];
         if (user && user.usertype <= nlGroupInfo.UT_PADMIN && row.user_id != user.user_id) 
             _throwException('Cannot change loginid of this user', row);
-        if (!_canUpdateLoginId && row.user_id != user.user_id)
+        if (!_canUpdateLoginId && user && row.user_id != user.user_id)
             _throwException('Cannot change loginid of a user', row);
     };
 

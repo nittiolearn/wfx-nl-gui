@@ -239,8 +239,10 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
 			var endtime = repcontent.not_after && !repcontent.submissionAfterEndtime ? nl.fmt.json2Date(repcontent.not_after) : '';
 			if(!endtime || currentDate <= endtime) {
 				var minimalUser = nlGroupInfo.getMinimalUserObj(user);
-				minimalUser.repid = report.id;
-				_reminderDict.users.push(minimalUser);
+				if (minimalUser) {
+					minimalUser.repid = report.id;
+					_reminderDict.users.push(minimalUser);
+				}
 			}
 		}
 		
@@ -305,8 +307,10 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
 			var endtime = repcontent.not_after && !repcontent.submissionAfterEndtime ? nl.fmt.json2Date(repcontent.not_after) : '';
 			if(!endtime || currentDate <= endtime) {
 				var minimalUser = nlGroupInfo.getMinimalUserObj(user);
-				minimalUser.repid = report.id;
-				_reminderDict.users.push(minimalUser);
+				if (minimalUser) {
+					minimalUser.repid = report.id;
+					_reminderDict.users.push(minimalUser);
+				}
 			}
 		}
 		

@@ -67,7 +67,7 @@
         <nl-input fieldmodel='maxduration' fieldtype='number' fieldcls='w100'></nl-input>
 	</nl-dlg-row>
 
-	<nl-dlg-row ng-show='assignInfo.assigntype == "lesson"' attr='showAnswers' data='data' help='help'>
+	<nl-dlg-row ng-show='assignInfo.assigntype == "lesson" && !assignInfo.isModify' attr='showAnswers' data='data' help='help'>
 		<nl-select fieldmodel='showAnswers'></nl-select>
 	</nl-dlg-row>
 

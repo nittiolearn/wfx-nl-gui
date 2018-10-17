@@ -639,7 +639,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
         	
         if (launchType == 'module_assign') {
         	assignInfo.esttime = assignContent.max_duration;
-        	assignInfo.learnmode = assignContent.learnmode;
+        	assignInfo.learnmode = assignContent.learnmode; // TODO: This is not shown in GUI due to error.
     	} else {
 			assignInfo.blended = assignContent.blended || false;
 			assignInfo.iltTrainerName = assignContent.iltTrainerName || '';
