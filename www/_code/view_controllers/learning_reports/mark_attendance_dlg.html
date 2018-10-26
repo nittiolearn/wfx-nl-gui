@@ -26,11 +26,8 @@
 	<div ng-class='resp2Col67'>
 		<div class='row row-center padding0 margin0'>
 			<div class='col padding-mid fsh4'>Attendance is not marked for</div>
-			<div ng-show='selectedSession.selectall' ng-click='markAllUsers(true)' class='nl-link-text'>
-				<span>Select all</span>
-			</div>
-			<div ng-show='!selectedSession.selectall' ng-click='markAllUsers(false)'  class='nl-link-text'>
-				<span>Deselect all</span>
+			<div ng-show='selectedSession.button' ng-click='markAllUsers(selectedSession.button.state)' class='nl-link-text'>
+				<span>{{selectedSession.button.name}}</span>
 			</div>
 		</div>
 		<div class='row row-center padding0 margin0' ng-repeat='user in selectedSession["pending"]'>
@@ -40,8 +37,9 @@
 					{{user.name}}
 				</div>
 				<span class='nl-link-text padding-mid' ng-click='updateAttendance(user)'>
-					<i ng-show='!user.status' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-					<i ng-show='user.status' class='fsh4 icon ion-android-checkbox-outline'></i>
+					<i ng-show='user.status == 0' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+					<i ng-show='user.status == 1' class='fsh4 icon ion-android-checkbox-outline'></i>
+					<i ng-show='user.status == 2' class='fsh4 icon ion-close-circled'></i>
 				</span>
 			</div>
 		</div>
@@ -54,7 +52,8 @@
 					{{user.name}}
 				</div>
 				<span>
-					<i class='icon nl-dlg-field-icon ion-checkmark-circled nl-green padding-mid'></i>
+					<i ng-show='user.status == 1' class='icon nl-dlg-field-icon ion-checkmark-circled nl-green padding-mid'></i>
+					<i ng-show='user.status == 2' class='icon nl-dlg-field-icon ion-close-circled padding-mid' style='color:#770000'></i>
 				</span>
 			</div>
 		</div>

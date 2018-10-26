@@ -67,7 +67,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			editAttribute: _editAttribute,
 			showWikiMarkupPreview: _showWikiMarkupPreview,
 			getDisplayValue: _getDisplayValue,
-			treeOptions: _getTreeOptions()
+			treeOptions: _getTreeOptions(),
+			getUrl: _getLaunchUrl
         };
     };
 
@@ -168,6 +169,10 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			var dlg = new StartAfterDlg(nl, nlDlg, $scope, _allModules, cm);
 			dlg.show();
 		}
+		if (attr.name == 'trainer_notes') {
+			var dlg = new TrainerNotesDlg(nl, nlDlg, $scope, _allModules, cm, nlLessonSelect, _userInfo);
+			dlg.show();
+		}
 	}
 	
 	function _showWikiMarkupPreview(e, cm, attr) {
@@ -178,11 +183,14 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	}
 	
 	function _getDisplayValue(cm, attr) {
-		if (attr.name == 'start_after') {
-			if (!cm.start_after) return '';
+		if (cm.start_after && attr.name == 'start_after') {
 			var cnt  = cm.start_after.length;
 			var plural = cnt > 1 ? 'dependencies' : 'dependency';
 			return nl.fmt2('{} {} specified', cnt, plural);
+		} else if(cm.trainer_notes && attr.name == 'trainer_notes'){
+			var cnt  = cm.trainer_notes.length;
+			var plural = cnt > 1 ? 'trainer notes' : 'trainer note';
+			return nl.fmt2('{} {} added', cnt, plural);
 		}
 		return '';
 	}
@@ -277,6 +285,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'action', stored_at: 'module', fields: ['link'], type: 'lessonlink', text: 'Action'},
         {name: 'urlParams', stored_at: 'module', fields: ['link'], type: 'string', text: 'Url-Params'},
         {name: 'certificate_image', stored_at: 'module', fields: ['certificate'], type: 'string', text: 'Certificate image'},
+        {name: 'trainer_notes', stored_at: 'module', fields: ['iltsession'], type: 'object_with_gui', contentType: 'object', text: 'Trainer notes'},
         {name: 'start_after', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
         {name: 'canMarkAttendance', stored_at: 'module', text: 'Learner can mark attendance', type:'hidden', fields: ['iltsession']},
         {name: 'iltduration', stored_at: 'module', fields: ['iltsession'], text: 'Session duration (minutes)',type: 'number'},
@@ -312,6 +321,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     	start_date: 'Earliest planned start date. Is applicable only if "planning" is set to true for the course.',
     	planned_date: 'Expected planned completion date. Is applicable only if "planning" is set to true for the course.',
     	grp_additionalAttrs: 'Enabling this would display additional properties depeneding on the selected "Element type" of the module.',
+    	trainer_notes: 'You could attach a set of approved modules as trainer notes for current item. These trainer notes are visible only for the trainer not for learners.',
     	start_after: 'You could specify a set of prerequisite conditions that have to be met for current item. Only after all the specified conditions are met, the curent item is made available to the learner. If the prerequisites are not met, this current item is shown in a locked state to the learner.',
     	reopen_on_fail: 'You could reopen a set of learning modules if the learner failed in the quiz. To do this, you need to configure this property on the quiz module. You can list the items (refered by their unique id) which have to be reopened if the learner failed to acheive minimum pass score in the current module. This property is a JSON string representing an array of strings: each string is unque id of the item that should be re-opened.<br> Example:<br></div><pre>["_id1", "_id2"]</pre></div>',
 		icon: 'Icon to be displayed for this item in the course tree. If not provided, this is derived from the type. "quiz" is a predefined icon.',
@@ -735,6 +745,10 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     	return false;
     }
 
+	function _getLaunchUrl(id) {
+    	return nl.fmt2('/lesson/view/{}', id);
+	}
+	
     function _onLaunch($event, cm){
     	if(!_validateInputs(modeHandler.course, cm)) {
     		return;
@@ -772,6 +786,80 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         });
     }
 }];
+
+//-------------------------------------------------------------------------------------------------
+function TrainerNotesDlg(nl, nlDlg, $scope, _allModules, cm, nlLessonSelect, _userInfo) {
+	var dlg = nlDlg.create($scope);
+
+	this.show = function() {
+		dlg.setCssClass('nl-height-max nl-width-max');
+		dlg.scope.dlgTitle = nl.t('Configure trainer notes');
+		dlg.scope.trainerNotesList = _getTrainerNotesListFromCm();
+	    dlg.scope.searchLesson = function(e, $index){
+	    	nlLessonSelect.showSelectDlg($scope, _userInfo).then(function(selectionList) {
+	    		if (selectionList.length != 1) return;
+	    		var ret = {id: selectionList[0].lessonId, name: selectionList[0].title};
+	    		dlg.scope.trainerNotesList.splice($index, 1, ret);
+	    	});
+	    };
+		var okButton = {text: nl.t('Ok'), onTap: function(e) {
+			_onOk(e);
+		}};
+		var closeButton = {text: nl.t('Cancel')};
+		dlg.show('view_controllers/course/editor/course_trainer_notes_configure.html', [okButton], closeButton);
+
+	};
+
+	function _getTrainerNotesListFromCm() {
+		var ret = [];
+		var items = cm.trainer_notes || [];
+		for(var i=0; i<items.length; i++) {
+			var item = items[i];
+			ret.push({id: item.id, name:item.name, error: ''});
+		}
+		if(ret.length == 0) ret.push({});
+		return ret;
+	}
+
+	function _onOk(e) {
+		var modulesFromGui = dlg.scope.trainerNotesList;
+		var modulesToStore = [];
+		var foundModuleIds = {};
+		_errorFound = false;
+		for(var i=0; i<modulesFromGui.length; i++) {
+			var item = modulesFromGui[i];
+			if(item.id === undefined) continue;
+			if(item.id in foundModuleIds) {
+				_validateFail(item, 'This trainer note is already added.');
+				continue;
+			}
+			foundModuleIds[item.id] = true;
+			var moduleToStore = {id: item.id, name: item.name};
+			_validateSuccess(item);
+			modulesToStore.push(moduleToStore);
+		}
+		
+		if (_errorFound) {
+	        if(e) e.preventDefault();
+	        return;
+		}
+		
+		cm.trainer_notes = modulesToStore;
+		if (modulesToStore.length == 0) delete cm.trainer_notes;
+		$scope.editorCb.showVisible(cm);
+	}
+
+	function _validateSuccess(item) {
+		item.error = null;
+		return true;
+	}
+
+	var _errorFound = false;
+	function _validateFail(item, msg) {
+		item.error = msg;
+		_errorFound = true;
+	}
+}
 
 //-------------------------------------------------------------------------------------------------
 function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm) {

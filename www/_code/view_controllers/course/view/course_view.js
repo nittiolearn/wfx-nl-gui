@@ -6,6 +6,7 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.course_view', [])
+    .service('nlTreeListSrv', TreeListSrv)
     .directive('nlCourseViewToolbar', CourseViewDirective('course_view_toolbar'))
     .directive('nlCourseViewList', CourseViewDirective('course_view_list'))
     .directive('nlCourseViewContentActive', CourseViewDirective('course_view_content_active'))
@@ -143,8 +144,8 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         return (this.mode === MODES.REPORTS_SUMMARY_VIEW || this.mode === MODES.REPORT_VIEW || this.mode === MODES.DO);
     };
 
-    this.canStart = function(cm, scope, treeList) {
-        return _startDateOk(cm, scope) && _prereqsOk(this, cm, treeList);
+    this.canStart = function(cm, scope, nlTreeListSrv) {
+        return _startDateOk(cm, scope) && _prereqsOk(this, cm, nlTreeListSrv);
     };
 
     this.show = function(url, newTab) {
@@ -158,18 +159,18 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         return true;
     }
             
-    function _prereqsOk(self, cm, treeList) {
+    function _prereqsOk(self, cm, nlTreeListSrv) {
         var prereqs = cm.start_after || [];
         var lessonReports = self.course.lessonReports || {};
         var statusinfo = self.course.statusinfo || {};
         for(var i=0; i<prereqs.length; i++){
             var p = prereqs[i];
             var cmid = p.module;
-            var item = treeList.getItem(cmid);
+            var item = nlTreeListSrv.getItem(cmid);
             if (!item) continue; // ignore
             if (item.state.status == 'waiting') return false;
             if (item.type == 'certificate' || item.type == 'iltsession') {
-            	if (item.state.status != 'success') return false;
+            	if (!(item.state.status == 'success' || item.state.status == 'failed')) return false;
             	continue;
             }
             var prereqScore = null;
@@ -235,19 +236,18 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
 
 //-------------------------------------------------------------------------------------------------
 var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg', 'nlExporter',
-'nlCourseEditor', 'nlCourseCanvas', 'nlServerApi', 'nlGroupInfo', 'nlSendAssignmentSrv', 'nlMarkup',
+'nlCourseEditor', 'nlCourseCanvas', 'nlServerApi', 'nlGroupInfo', 'nlSendAssignmentSrv', 'nlMarkup', 'nlTreeListSrv',
 function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
-    nlCourseEditor, nlCourseCanvas, nlServerApi, nlGroupInfo, nlSendAssignmentSrv, nlMarkup) {
+    nlCourseEditor, nlCourseCanvas, nlServerApi, nlGroupInfo, nlSendAssignmentSrv, nlMarkup, nlTreeListSrv) {
     var modeHandler = new ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope);
     var nlContainer = new NlContainer(nl, $scope, modeHandler);
     nlContainer.setContainerInWindow();
-    var treeList = new TreeList(nl);
     var courseReportSummarizer = new CourseReportSummarizer(nlGroupInfo, $scope);
     var _userInfo = null;
     $scope.MODES = MODES;
     var folderStats = new FolderStats($scope, modeHandler);
     $scope.ext = new ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseCanvas, folderStats);
-	$scope.rootStat = folderStats.get(treeList.getRootItem().id);
+	$scope.rootStat = folderStats.get(nlTreeListSrv.getRootItem().id);
 	nl.registerIFrameLoaded('course_view_frame', function() {
 		$scope.iframebgclass = 'bgwhite';
 	});
@@ -255,7 +255,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         _userInfo = userInfo;
         return nl.q(function(resolve, reject) {
             $scope.ext.setUpdateStatusFn(_updatedStatusinfo);
-            treeList.clear();
+			nlTreeListSrv.init(nl);
+            nlTreeListSrv.clear();
             $scope.params = nl.location.search();
             if (!('id' in $scope.params) || !modeHandler.initMode()) {
                 nlDlg.popupStatus(nl.t('Invalid url'));
@@ -290,7 +291,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     function _onCourseRead(course) {
 		course = nlCourse.migrateCourse(course);
         modeHandler.initTitle(course);
-        nlCourseCanvas.init($scope, modeHandler, treeList, _userInfo);
+        nlCourseCanvas.init($scope, modeHandler, nlTreeListSrv, _userInfo);
         _initAttributesDicts(course);
         courseReportSummarizer.updateUserReports(course);
         $scope.courseContent = course.content;
@@ -314,7 +315,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         }
         nl.timeout(function() {
             _updateAllItemData();
-            $scope.ext.setCurrentItem(treeList.getRootItem());
+            $scope.ext.setCurrentItem(nlTreeListSrv.getRootItem());
             _showVisible();
         });
     }
@@ -337,19 +338,19 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
 		allModules.splice(indices.to, 0, item);
     	indices.from++;
     	indices.to++;
-	    var children = treeList.getChildren(item);
+	    var children = nlTreeListSrv.getChildren(item);
 	    for(var i=0; i<children.length; i++) {
 	    	_moveItemAndChildrenPos(children[i], indices, allModules);
 	    }
 	}
 	
 	function _updateItemAndChildrenAttrs(item, allModules) {
-		var parent = treeList.getParent(item);
+		var parent = nlTreeListSrv.getParent(item);
         item.indentationLevel = parent ? parent.indentationLevel+1 : -1;
         item.indentationStyle = {'paddingLeft': item.indentationLevel + 'em'};
         item.location = (parent && parent.location) ? parent.location + '.' + parent.name :
             parent ? parent.name : '';
-	    var children = treeList.getChildren(item);
+	    var children = nlTreeListSrv.getChildren(item);
 	    for(var i=0; i<children.length; i++) {
 	    	_updateItemAndChildrenAttrs(children[i], allModules);
 	    }
@@ -362,7 +363,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
                 _initModule(cm);
         	},
         	getParent: function(cm) {
-        		return treeList.getParent(cm);
+        		return nlTreeListSrv.getParent(cm);
         	},
         	showVisible: function(cm) {
         	    $scope.showVisible(cm);
@@ -371,7 +372,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         		return _moveItem(movedItem, fromIndex, toIndex, allModules);
         	},
         	updateChildrenLinks: function(allModules) {
-        		return treeList.updateChildrenLinks(allModules);
+        		return nlTreeListSrv.updateChildrenLinks(allModules);
         	},
         	launchModule: function(e, cm){
         	        e.stopImmediatePropagation();
@@ -417,7 +418,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
 
 	$scope.onExpandOrCollapseAll = function() {
 		if($scope.currentTreeState) {
-			treeList.collapseAll();
+			nlTreeListSrv.collapseAll();
             _showVisible();
 			$scope.currentTreeState = false;
 			$scope.currentStateText = 'Expand all';
@@ -475,7 +476,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
 
     $scope.showVisible = function(cm) {
         if (cm) $scope.ext.setCurrentItem(cm);
-        else $scope.ext.setCurrentItem(treeList.getRootItem());
+        else $scope.ext.setCurrentItem(nlTreeListSrv.getRootItem());
         _showVisible();
     };
     
@@ -521,9 +522,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
                 $scope.canvasShown = bShowCanvas;
                 if ($scope.canvasShown) nlCourseCanvas.update();
             }
-            treeList.collapseAll();
+            nlTreeListSrv.collapseAll();
             _showVisible();
-            $scope.ext.setCurrentItem(treeList.getRootItem());
+            $scope.ext.setCurrentItem(nlTreeListSrv.getRootItem());
             if(!$scope.expandedView) _popout(true);
         }
         _confirmIframeClose(null, _impl);
@@ -636,7 +637,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         function _impl() {
             $scope.ext.setCurrentItem(cm);
             if(cm.type === 'module') {
-                treeList.toggleItem(cm);
+                nlTreeListSrv.toggleItem(cm);
                 _showVisible();
                 return;
             }
@@ -772,7 +773,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     }
     
     function _initModule(cm) {
-        treeList.addItem(cm);
+        nlTreeListSrv.addItem(cm);
         _updateState(cm, 'none');
         var retData = {lessPara: true};
     	cm.textHtml = cm.text ? nlMarkup.getHtml(cm.text, retData): '';
@@ -784,11 +785,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     function _updateAllItemData() {
         var today = new Date();
         folderStats.clear();
-        var reopener = new Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, 
+        var reopener = new Reopener(modeHandler, nlTreeListSrv, _userInfo, nl, nlDlg, 
             nlServerApi, _updatedStatusinfoAtServer);
         reopener.reopenIfNeeded().then(function() {
-            _updateItemData(treeList.getRootItem(), today);
-			$scope.rootStat = folderStats.get(treeList.getRootItem().id);
+            _updateItemData(nlTreeListSrv.getRootItem(), today);
+			$scope.rootStat = folderStats.get(nlTreeListSrv.getRootItem().id);
         });
     }
 
@@ -806,7 +807,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
 
     function _updateModuleData(cm, today) {
         var folderStat = folderStats.get(cm.id);
-        var children = treeList.getChildren(cm);
+        var children = nlTreeListSrv.getChildren(cm);
         for (var i=0; i<children.length; i++) {
             var child = children[i];
             _updateItemData(child, today);
@@ -837,7 +838,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         if (statusinfo.status == 'done') status = 'success';
         else if ($scope.planning && cm.planned_date && cm.planned_date < today) status = 'delayed';
         else status = 'pending';
-        if (!modeHandler.canStart(cm, $scope, treeList)) status = 'waiting';
+        if (!modeHandler.canStart(cm, $scope, nlTreeListSrv)) status = 'waiting';
         else if (cm.type == 'certificate') status = 'success';
         _updateState(cm, status);
     }
@@ -845,14 +846,21 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     function _updateILTData(cm, today) {
         var status = 'pending';
 		if(cm.type == 'iltsession') {
-			var attendance = 'attendance' in modeHandler.course.content ? modeHandler.course.content.attendance[modeHandler.courseId] || [] : [];
-			for(var i=0; i<attendance.length; i++) {
-				if(cm.id != attendance[i]) continue;
+			var attendance = 'attendance' in modeHandler.course.content ? modeHandler.course.content.attendance || {} : {}; 
+			var attended = attendance[modeHandler.courseId] || [];
+			var notAttended = 'not_attended' in attendance ? attendance.not_attended[modeHandler.courseId] || [] : [];
+			for(var i=0; i<attended.length; i++) {
+				if(cm.id != attended[i]) continue;
 				status = 'success';
 		        cm.timeMins = cm.iltduration;
 			}
+			for(var i=0; i<notAttended.length; i++) {
+				if(cm.id != notAttended[i]) continue;
+				status = 'failed';
+		        cm.timeMins = 0;
+			}
 		}
-        if (status != 'success' && !modeHandler.canStart(cm, $scope, treeList)) status = 'waiting';
+        if (!(status == 'success' || status == 'failed') && !modeHandler.canStart(cm, $scope, nlTreeListSrv)) status = 'waiting';
         _updateState(cm, status);
     }
     
@@ -892,7 +900,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         else if ($scope.planning && cm.planned_date && cm.planned_date < today) status = 'delayed';
         else if (cm.started) status = 'started';
         else status = 'pending';
-        if (!modeHandler.canStart(cm, $scope, treeList)) status = 'waiting';
+        if (!modeHandler.canStart(cm, $scope, nlTreeListSrv)) status = 'waiting';
         _updateState(cm, status);
     }
 
@@ -961,7 +969,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         for(var i=0; i<allModules.length; i++) {
             var cm = allModules[i];
             if (cm.type == 'module') continue;
-            var parent = treeList.getItem(cm.parentId);
+            var parent = nlTreeListSrv.getItem(cm.parentId);
             if (!parent) continue; // This is a must in REPORTS_SUMMARY_VIEW
             var loginid = '';
             if (_groupInfo && _groupInfo.users[''+cm.userid]) {
@@ -1235,12 +1243,19 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
 }
 
 //-------------------------------------------------------------------------------------------------
-function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
-    if (ID_ATTR === undefined) ID_ATTR = 'id';
-    if (DELIM === undefined) DELIM = '.';
-    if (VISIBLE_ON_OPEN === undefined) VISIBLE_ON_OPEN = 1; // Only top level visible by default
-    
+// TreeList class changed to treeList Service
+//-------------------------------------------------------------------------------------------------
+var TreeListSrv = ['nl', function(nl) {
+	var ID_ATTR = 'id';
+	var DELIM = '.';
+	var VISIBLE_ON_OPEN = 1;
     var rootItem = {type: 'module', name: 'Summary', id: '_root'};
+
+	this.init = function(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
+	    if (ID_ATTR === undefined) ID_ATTR = 'id';
+	    if (DELIM === undefined) DELIM = '.';
+	    if (VISIBLE_ON_OPEN === undefined) VISIBLE_ON_OPEN = 1; // Only top level visible by default
+	};
 
     this.clear = function() {
         this.items = {};
@@ -1351,9 +1366,8 @@ function TreeList(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
             this._closeChildren(child);
         }
     };
-    
     this.clear();
-}
+}];
 
 //-------------------------------------------------------------------------------------------------
 function CourseReportSummarizer(nlGroupInfo, $scope) {
@@ -1416,7 +1430,7 @@ function CourseReportSummarizer(nlGroupInfo, $scope) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlServerApi, _updatedStatusinfoAtServer) {
+function Reopener(modeHandler, nlTreeListSrv, _userInfo, nl, nlDlg, nlServerApi, _updatedStatusinfoAtServer) {
 
     this.reopenIfNeeded = function() {
         return nl.q(function(resolve, reject) {
@@ -1427,7 +1441,7 @@ function Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlServerApi, _upd
 
             var changeInfo = {updated: false, reopenList:[], failList:[], reopenDict:{}};
             _init();
-            _reopenItem(treeList.getRootItem(), changeInfo);
+            _reopenItem(nlTreeListSrv.getRootItem(), changeInfo);
             if (changeInfo.statusUpdated) _updatedStatusinfoAtServer(false);
             if (changeInfo.failList.length == 0) {
                 resolve(true);
@@ -1461,7 +1475,7 @@ function Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlServerApi, _upd
 
     function _reopenItem(cm, changeInfo) {
         if (cm.type == 'module') {
-            var children = treeList.getChildren(cm);
+            var children = nlTreeListSrv.getChildren(cm);
             for (var i=0; i<children.length; i++) {
                 var child = children[i];
                 _reopenItem(child, changeInfo);
@@ -1480,7 +1494,7 @@ function Reopener(modeHandler, treeList, _userInfo, nl, nlDlg, nlServerApi, _upd
         cm.attempt = lessonReport.attempt || 0;
         
         for (var i in cm.reopen_on_fail) {
-            var depModule = treeList.getItem(cm.reopen_on_fail[i]);
+            var depModule = nlTreeListSrv.getItem(cm.reopen_on_fail[i]);
             if (!depModule) continue;
             if (depModule.type == 'info' || depModule.type == 'link' || depModule.type == 'certificate') {
                 if (!(depModule.id in statusinfos)) continue;

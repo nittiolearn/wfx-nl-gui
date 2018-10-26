@@ -25,10 +25,10 @@
 			    </tr>
 			    <tr ng-repeat='user in session.selectedUsers'>
 			        <td>
-			            <span>{{user}}</span>
+			            <span>{{user.name}}</span>
 			        </td>
 			        <td>
-			            <span>Attended</span>
+			            <span>{{user.status}}</span>
 			        </td>
 			    </tr>
 			</table>

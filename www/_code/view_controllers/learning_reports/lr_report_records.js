@@ -167,17 +167,28 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         var started = false;
         if(course.content.blended) {
 	        var attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
+	        var notAttended = attendance.not_attended || {};
 	        for(var i=0; i<course.content.modules.length; i++) {
 	        	var elem = course.content.modules[i];
-	        	if(elem.type != 'iltsession' || !attendance[report.id]) continue;
-	        	var userAttendance = attendance[report.id];
+	        	if(elem.type != 'iltsession' || !(attendance[report.id] || notAttended[report.id])) continue;
+	        	var userAttendance = attendance[report.id] || [];
+	        	var userNotAttended = attendance.not_attended[report.id] || [];
 		    	for(var j=0; j<userAttendance.length; j++) {
 		    		if(userAttendance[j] == elem.id) {
 		    			if(!repcontent.statusinfo) repcontent.statusinfo = {};
 		    			if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
 		    			repcontent.statusinfo[elem.id].status = 'done';
+		    			repcontent.statusinfo[elem.id].state = 'attended';
 		    			repcontent.statusinfo[elem.id].time = elem.iltduration;
 		    			stats.iltTimeSpent += elem.iltduration*60;
+		    		}
+		    	}
+		    	for(var j=0; j<userNotAttended.length; j++) {
+		    		if(userNotAttended[j] == elem.id) {
+		    			if(!repcontent.statusinfo) repcontent.statusinfo = {};
+		    			if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
+		    			repcontent.statusinfo[elem.id].status = 'done';
+		    			repcontent.statusinfo[elem.id].state = 'not_attended';
 		    		}
 		    	}
 	        }

@@ -488,7 +488,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         	record['session'] = session.name;
         	record['_assignTypeStr'] = session.type;
         	if(rep.repcontent.statusinfo && rep.repcontent.statusinfo[session.id]) {
-	        	record['status'] = rep.repcontent.statusinfo[session.id].status == 'done' ? 'Completed' : 'pending';
+	        	record['status'] = rep.repcontent.statusinfo[session.id].status == 'done' ? (rep.repcontent.statusinfo[session.id].state == 'attended' ? 'Attended' : 'Not attended') : 'pending';
 	        	record['_timeMins'] = rep.repcontent.statusinfo[session.id].time;
         	} else {
         		record['status'] = 'Pending';

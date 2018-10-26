@@ -1,0 +1,140 @@
+<style>
+	.nl-pagetype-selected {
+	    background-color: #CCCCDD;
+		border-radius: 8px;
+		border-top: 1px solid rgba(0, 0, 0, 0.1);
+		border-left: 1px solid rgba(0, 0, 0, 0.1);
+		border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+		z-index: 10;
+	}	
+    .minbgimg {
+    	min-height: 90vh;
+        width: 100%;
+    }
+    .content {
+        position: absolute;
+        top: 45%;
+        left: 10%;
+        width: 80%;
+        height: 35%;
+        overflow: hidden;
+        font-family: Times New Roman, Verdana, Helvetica, Arial, sans-serif;
+        text-align: center;
+    }
+
+    .nl-screen-small .content {
+        font-size: 90%;
+    }
+
+    .nl-screen-medium .content {
+        font-size: 120%;
+    }
+    .fmtuser {
+        font-style: italic;
+        font-weight: 900;
+        font-size: 130%;
+    }
+    
+    .sample {
+    	color: red;
+    }
+</style>
+<nl-dlg dlgTitle='{{dlgTitle}}' show-close='1' show-help='0'>
+<nl-dlg-content>
+<div class='row row-top row-wrap padding0 margin0'>
+	<div style='width:{{screenSize == "small" ? "100": "25"}}%; border-right: 1px solid rgba(0, 0, 0, 0.1)'>
+		<div class='nl-thin-scroll'>
+		    <div ng-repeat='cm in modules' class='row row-center margin0' ng-show='cm.visible' style='padding: 8px'>
+		        <div style='width: {{cm.indentationLevel*16}}px'></div>
+		        <div class='row row-center margin0 padding-mid nl-cv-item nl-link-text {{selectedSession.id == cm.id ? "selected" : ""}}'
+		             ng-click='onClick($event, cm)'>
+		            <div ng-show='cm.type == "module"' style='width: 20px'>
+		                <i ng-show='!cm.isOpen' class="icon ion-arrow-right-b bold fsh3"></i>
+		                <i ng-show='cm.isOpen' class="icon ion-arrow-down-b bold fsh3"></i>
+		            </div>
+		            <div class='col'>{{cm.name}}</div>
+		         </div>
+		    </div>
+		</div>
+	</div>
+	<div class='col' style='overflow-x: hidden'>
+		<div class='row row-top row-wrap padding0 margin0'>
+			<div ng-class='{{(selectedSession.type == "module" || selectedSession.type == "certificate") ? "resp2Col80" : "resp2Col67"}}' 
+				style='min-width:{{screenSize != "large" ? "100": (selectedSession.type == "module" || selectedSession.type == "certificate") ? "100": ""}}%'>
+				<div class="row row-center padding-mid">
+					<div class='col padding0 margin0 fsh3'>{{selectedSession.name}}</div>
+					<div ng-show='selectedSession.type == "lesson"' class="nl-link-text nl-button-highlight" style='padding-top: 0px'>
+				        <a ng-href='{{getUrl(selectedSession.refid)}}'
+				           target='_blank'
+				           class='row row-center margin0 padding0'>
+				        	<span class="col text-center" style='font-size:16px'>View</span>
+				        </a>
+			    	</div>
+				</div>
+				<div class="padding-mid fsh6 ng-binding" ng-show='selectedSession.type == "iltsession"'>
+					<span>Session duration: {{selectedSession.iltduration}} (minutes)</span>
+				</div>
+				<div ng-show='selectedSession.text' class='row row-center padding-mid'>		
+					<div class='padding-mid'>
+						<div nl-compile='selectedSession.textHtml' class='nl-content-holder'></div>
+					</div>
+				</div>		
+				<div ng-show='selectedSession.trainer_notes.length > 0'>
+					<div class="padding-mid fsh4 ng-binding">Trainer notes:</div>
+					<div ng-repeat='notes in selectedSession.trainer_notes' class='row row-center padding-mid margin0'>
+						<div class='col fsh6'>
+							{{notes.name}}
+						</div>
+						<div class="nl-link-text nl-button-highlight" style='padding-top: 0px'>
+					        <a ng-href='{{getUrl(notes.id)}}'
+					           target='_blank'
+					           class='row row-center margin0 padding0'>
+					        	<span class="col text-center" style='font-size:16px'>View</span>
+					        </a>
+				    	</div>
+				   </div>
+				</div>
+			    <div ng-if='selectedSession.type == "certificate"'
+		         	style='position: relative;'>
+					<div ng-if='!selectedSession.certificate_image' class='minbgimg'></div>
+					<img ng-if='selectedSession.certificate_image' class='minbgimg' ng-src='{{selectedSession.certificate_image}}'>
+					<div class='content'>
+						<p class='fmttitle'>This is to certify that</p>
+						<p class='fmtuser {{sample ? "sample": ""}}'>user name</p>
+						<p class='fmttext'>
+						has successfully completed the online training module on
+						</p>
+						<p style='font-weight: 900'>{{dlgTitle}}</p>
+						<p>
+						on <span class='fmtdate {{sample ? "sample": ""}}'>{{ss | date : 'dd-MMMM-yyyy'}}</span>.
+						</p>
+					</div>
+				</div>
+			</div>
+			<div ng-if='!(selectedSession.type == "module" || selectedSession.type == "certificate")' ng-class='resp2Col33' style='min-width:{{screenSize != "large" ? "100": ""}}%'>
+				<div class='row row-center row-wrap padding0 margin0'>
+					<div class='col padding' style='text-align: -webkit-center;'>
+					    <div style='width: 200px; height: 200px'>
+					        <canvas class='chart chart-doughnut'
+					                chart-data='chartInfo.data'
+					                chart-labels='chartInfo.labels'
+					                chart-colours='chartInfo.colours'>
+					        </canvas> 
+					    </div>
+					</div>
+				</div>
+				<div class='padding-mid' ng-hide='selectedSession.type == "module" ||  selectedSession.type == "certificate"'>
+				    <table class='nl-table'>
+				        <tr ng-repeat='item in allowedAttrs' ng-if='selectedSession[item.attr]'>
+				            <td>{{item.title}}</td>
+				            <td colspan='1' ng-show='item.type == "string"' style='text-align: right'>{{selectedSession[item.attr].length || '-'}}</td>
+				            <td colspan='1' ng-show='item.type == "total"' style='text-align: right'>{{selectedSession[item.attr] || '-'}}</td>
+				    	</tr>
+				    </table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</nl-dlg-content>
+</nl-dlg>

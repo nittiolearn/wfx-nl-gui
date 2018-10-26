@@ -1,0 +1,62 @@
+<nl-dlg dlgtitle='{{dlgTitle}}' show-close='1'>
+	<nl-dlg-help>
+		<div>
+			<h2>Configure trainer notes for this session</h2>
+			<p>
+				You could specify a set of trainer notes for current item. Only trainer can see these attached notes for current item. 
+			</p>
+			<p>
+				If you need to add multiple notes, please press on the plus icon.
+			</p>
+		</div>
+	</nl-dlg-help>
+	<nl-dlg-content>
+		<table class='nl-table-styled2 nl-table-padded fsh6'>
+		    <tr>
+		    	<th></th>
+		        <th style='width:70%'>Trainer notes</th>
+		    </tr>
+		    <tr ng-repeat-start='item in trainerNotesList track by $index'
+		        class='{{item.error ? "nl-bg-red" : ""}}'>
+		    	<td class="nl-link-text"
+		    	    title='Remove this dependency'
+		    	    ng-click='trainerNotesList.splice($index, 1)'>
+		    	    <i class='icon ion-ios-trash fsh4 fblue2'></i>
+		    	</td>
+				<td>
+					<div class='nl-dlg-field-value'> 
+				        <div class='row row-center padding0'>
+				            <input class='col'
+				             ng-model='item.name' type='text'
+				             ng-focus="attr.focus=true" ng-blur="attr.focus=false">
+				             <a ng-href='{{editor.getUrl(item.id)}}'
+					            target='_blank'>
+					            <i class='icon ion-android-open fsh4 padding-small nl-link-img'
+					               title='Preview'></i>
+					         </a>
+				            <i class='icon ion-android-search fsh4 padding-small nl-link-img'
+				               ng-click='searchLesson($event, $index)'
+				               title='Search modules'></i>
+				        </div>
+				    </div>
+				</td>
+		    </tr>
+		    <tr ng-repeat-end ng-show='item.error'>
+		    	<td style='padding: 0'>
+		    	</td>
+				<td style='padding-top: 4px' colspan='3'>
+					<div class='forange padding-small'>{{item.error}}</div>
+				</td>
+		    </tr>
+		    <tr>
+                <td class='nl-link-text'
+                    title='Add a new trainer note'
+                    ng-click='trainerNotesList.push({})'>
+                    <i class='icon ion-plus-circled fsh4 fblue2'></i>
+                </td>
+		    	<td colspan="3">
+		    	</td>
+		    </tr>
+		</table>
+	</nl-dlg-content>
+</nl-dlg>

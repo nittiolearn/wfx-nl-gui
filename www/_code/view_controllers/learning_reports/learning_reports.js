@@ -59,21 +59,22 @@ function($scope, nlLearningReports) {
 }];
     
 var NlLearningReports = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlGroupInfo', 'nlTable', 'nlSendAssignmentSrv',
-'nlLrHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlLrReportRecords', 'nlLrCourseRecords', 'nlLrSummaryStats', 'nlLrAssignmentRecords',
+'nlLrHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlLrReportRecords', 'nlLrCourseRecords', 'nlLrSummaryStats', 'nlLrAssignmentRecords', 
+'nlTreeListSrv', 'nlMarkup',
 function(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
-	nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats, nlLrAssignmentRecords) {
+	nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup) {
     this.create = function($scope, settings) {
     	if (!settings) settings = {};
     	return new NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
-			$scope, settings, nlLrAssignmentRecords);
+			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup);
     };
 }];
     
 //-------------------------------------------------------------------------------------------------
 function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
-			$scope, settings, nlLrAssignmentRecords) {
+			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup) {
 
     this.show = function() {
 		nlRouter.initContoller($scope, '', _onPageEnter);
@@ -99,6 +100,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
     function _init(userInfo) {
 	    _isAdmin = nlRouter.isPermitted(userInfo, 'admin_user');
 	    // Order is important
+        nlTreeListSrv.init(nl);
         nlLrFilter.init(settings, userInfo);
         nlLrCourseRecords.init();
         nlLrAssignmentRecords.init();        
@@ -266,7 +268,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
         if (nlLrFetcher.fetchInProgress(true)) return false;
         if (tbid == 'tbfetchmore') return nlLrFetcher.canFetchMore();
         if (tbid == 'tbfilter') return nlLrFilter.isFilterShown();
-        if (tbid == 'content') return (nlLrFilter.getType() == 'module_assign');
+        if (tbid == 'content') return (nlLrFilter.getType() == 'module_assign' || nlLrFilter.getType() == 'course_assign');
         if (tbid == 'attendance') {
         	var content = nlLrCourseRecords.getContentOfCourseAssignment();
         	return content && content.blended ? true : false;
@@ -419,18 +421,178 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
     
     function _onViewContent() {
     	var objId = nlLrFilter.getObjectId();
-    	nl.window.location.href = nl.fmt2('/lesson/view_assign/{}', objId);
+    	var type = nlLrFilter.getType();
+    	if(type == 'module_assign') {
+	    	nl.window.location.href = nl.fmt2('/lesson/view_assign/{}', objId);
+    	} else {
+    		_onCourseAssignView();
+    	}
+    }
+    
+	var attendance = null;
+	var allModules = [];
+	function _onCourseAssignView() {
+		var data = {assignid: nlLrFilter.getObjectId()};
+		var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:' + nlLrFilter.getObjectId());
+    	var learningRecords = nlLrReportRecords.getRecords();
+    	var content = nlLrCourseRecords.getContentOfCourseAssignment();
+			attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
+			attendance.not_attended = attendance.not_attended || {};
+
+		allModules = [];
+		for(var i=0; i<content.modules.length; i++) {
+            var module = angular.copy(content.modules[i]);
+            _initModule(module);
+            allModules.push(module);
+		}
+		content.modules = allModules;
+		
+    	var assignStatsViewerDlg = nlDlg.create($scope);
+    	assignStatsViewerDlg.setCssClass('nl-height-max nl-width-max');
+    	assignStatsViewerDlg.scope.dlgTitle = courseAssignment.info.name;
+    	assignStatsViewerDlg.scope.modules = _getSessionsAndModules(learningRecords);
+    	assignStatsViewerDlg.scope.selectedSession = assignStatsViewerDlg.scope.modules[0];
+    	assignStatsViewerDlg.scope.allowedAttrs = _getAllowedAttrs();
+    	if(assignStatsViewerDlg.scope.selectedSession.type != 'module') {
+	 		_updateChartInfo(assignStatsViewerDlg.scope);
+    	}
+		assignStatsViewerDlg.scope.onClick = function(e, cm) {
+			assignStatsViewerDlg.scope.selectedSession = cm;
+            if(cm.type === 'module') {
+                nlTreeListSrv.toggleItem(cm);
+                _showVisible(assignStatsViewerDlg);
+                return;
+            }
+			assignStatsViewerDlg.scope.selectedSession = cm;
+			_updateChartInfo(assignStatsViewerDlg.scope);
+		};
+		assignStatsViewerDlg.scope.getUrl = function(lessonId) {
+	    	return nl.fmt2('/lesson/view/{}', lessonId);
+		};
+		var cancelButton = {text: nl.t('Close')};
+        assignStatsViewerDlg.show('view_controllers/learning_reports/assignment_stats_viewer_dlg.html',
+			[], cancelButton);
+	}
+
+	function _getAllowedAttrs() {
+		return [{attr:'attended', title: 'Attended', type:'string'}, {attr:'completed', title: 'Completed', type:'string'}, {attr: 'not_attended', title: 'Not attended', type:'string'},
+    			{attr:'failed', title: 'Failed', type:'string'}, {attr:'started', title: 'Started', type: 'string'}, {attr:'pending', title: 'Pending', type: 'string'},
+    			{attr:'total', title: 'Total', type:'total'}];
+	}
+	
+    function _initModule(cm) {
+        nlTreeListSrv.addItem(cm);
+        var retData = {lessPara: true};
+    	cm.textHtml = cm.text ? nlMarkup.getHtml(cm.text, retData): '';
+        cm.planned_date = cm.planned_date ? nl.fmt.json2Date(cm.planned_date) : null;
+        cm.start_date = cm.start_date ? nl.fmt.json2Date(cm.start_date) : null;
+        if (!('maxAttempts' in cm) && cm.type == 'lesson') cm.maxAttempts = 1;
     }
 
-	var attendance = null;
+	function _showVisible(assignStatsViewerDlg) {
+		assignStatsViewerDlg.scope.modules = [];
+        for(var i=0; i<allModules.length; i++) {
+            var cm=allModules[i];
+            if (!cm.visible) continue;
+            assignStatsViewerDlg.scope.modules.push(cm);
+        }
+	};
+
+    var _chartLabels = ['Attended', 'Not Attended', 'Pending'];
+    var _chartColours = ['#007700', '#F54B22', '#A0A0C0'];
+    var _lessonLabels = ['Completed', 'Failed', 'started', 'Pending'];
+    var _LessonColours = ['#007700', '#F54B22', '#FFCC00', '#A0A0C0'];
+    function _updateChartInfo(dlgScope) {
+        if(dlgScope.selectedSession.type == 'lesson') {
+	        var ret = {labels: _lessonLabels, colours: _LessonColours};
+	        ret.data = [dlgScope.selectedSession.completed.length, dlgScope.selectedSession.failed.length,
+	            		dlgScope.selectedSession.started.length, dlgScope.selectedSession.pending.length];
+	        dlgScope.chartInfo = ret;
+        } else {
+	        var ret = {labels: _chartLabels, colours: _chartColours};
+	        ret.data = [dlgScope.selectedSession.attended.length, dlgScope.selectedSession.not_attended.length,
+	            		dlgScope.selectedSession.pending.length];
+	        dlgScope.chartInfo = ret;        	
+        }
+    }
+
+
+	function _getSessionsAndModules(learningRecords) {
+		var ret = [];
+		var indentationLevel = 0;
+		for(var i=0; i<allModules.length; i++) {
+			var item = allModules[i];
+			if(item.type == 'module') {
+				ret.push(item);
+			} else if(item.type == 'lesson') {
+				item['completed'] = [];
+				item['pending'] = [];
+				item['failed'] = [];
+				item['started'] = [];
+				item.total = Object.keys(learningRecords).length;
+				ret.push(item);
+			} else {
+				item['attended'] = [];
+				item['not_attended'] = [];
+				item['pending'] = [];
+				item.total = Object.keys(learningRecords).length;
+				ret.push(item);
+			}
+		}
+		for(var key in learningRecords) {
+			var repcontent = learningRecords[key].repcontent;
+    		for(var j=0; j<ret.length; j++) {
+    			if(ret[j].type == 'module') continue;
+    			if(ret[j].type == 'lesson') {
+    				var report = repcontent.lessonReports[ret[j].id];
+    				if(report && report.completed) {
+    					if(report.selfLearningMode) {
+	    					ret[j].completed.push({id: parseInt(key), name: learningRecords[key].user.name});
+    					} else {
+	    					var passScore = report.passScore || 0;
+	    					var score = report.score || 0;
+    						var percScore = (report.score/report.maxScore)*100;
+    						if(percScore >= passScore)
+		    					ret[j].completed.push({id: parseInt(key), name: learningRecords[key].user.name});
+		    				else{
+		    					ret[j].failed.push({id: parseInt(key), name: learningRecords[key].user.name});
+		    				}
+    					}
+    				} else if(report && report.started){
+    					ret[j].started.push({id: parseInt(key), name: learningRecords[key].user.name});
+    				} else {
+    					ret[j].pending.push({id: parseInt(key), name: learningRecords[key].user.name});
+    				}
+    			} else if(ret[j].type == 'iltsession'){
+    				var report = 'statusinfo' in repcontent ? repcontent.statusinfo[ret[j].id] : {};
+    				if(report && report.state && report.state == 'attended') {
+	    				ret[j].attended.push({id: parseInt(key), name: learningRecords[key].user.name});
+    				} else if(report && report.state && report.state == 'not_attended') {
+	    				ret[j].not_attended.push({id: parseInt(key), name: learningRecords[key].user.name});
+    				} else {
+    					ret[j].pending.push({id: parseInt(key), name: learningRecords[key].user.name});
+    				}
+    			} else {
+    				var report = 'statusinfo' in repcontent ? repcontent.statusinfo[ret[j].id] : {};
+    				if(report && report.status == 'done') {
+    					ret[j].attended.push({id: parseInt(key), name: learningRecords[key].user.name});
+    				} else {
+    					ret[j].pending.push({id: parseInt(key), name: learningRecords[key].user.name});    					
+    				}
+    			}
+    		}
+		}
+		return ret;
+	}
+
 	function _onClickOnMarkAttendance() {
 		var data = {assignid: nlLrFilter.getObjectId()};
 		var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:' + nlLrFilter.getObjectId());
 		attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
+		attendance.not_attended = attendance.not_attended || {};
 		_showAttendanceMarker();
 	}
 
-	var pastState = true;	
     function _showAttendanceMarker() {
     	var markAttendanceDlg = nlDlg.create($scope);
     	markAttendanceDlg.setCssClass('nl-height-max nl-width-max');
@@ -439,26 +601,41 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
     	markAttendanceDlg.scope.sessions = _getIltSessions(content, learningRecords);
 		markAttendanceDlg.scope.selectedSession = markAttendanceDlg.scope.sessions[0];
-		markAttendanceDlg.scope.selectedSession.selectall = pastState;
+		markAttendanceDlg.scope.selectedSession.button = {state: 'selectall', name:'Select all'};
     	markAttendanceDlg.scope.onClick = function(session) {
     		markAttendanceDlg.scope.selectedSession = session;
-    		markAttendanceDlg.scope.selectedSession.selectall = 'selectall' in markAttendanceDlg.scope.selectedSession ? markAttendanceDlg.scope.selectedSession.selectall : true;
+    		markAttendanceDlg.scope.selectedSession.button = markAttendanceDlg.scope.selectedSession.button || {state: 'selectall', name:'Select all'};
     	};
     	markAttendanceDlg.scope.markAllUsers = function(state) {
-			markAttendanceDlg.scope.selectedSession.selectall = !markAttendanceDlg.scope.selectedSession.selectall;
+    		if(state == 'selectall') {
+				markAttendanceDlg.scope.selectedSession.button = {state: 'deselectall', name:'Deselect all'};
+    		} else if(state == 'deselectall') {
+				markAttendanceDlg.scope.selectedSession.button = {state: 'clear', name:'Clear all'};
+    		} else {
+				markAttendanceDlg.scope.selectedSession.button = {state: 'selectall', name:'Select all'};
+    		}
     		var sessionid = markAttendanceDlg.scope.selectedSession;
 	    	for(var i=0; i<markAttendanceDlg.scope.selectedSession.pending.length; i++) {
-	    		if(state)
-	    			markAttendanceDlg.scope.selectedSession.pending[i].status = true;
-	    		else
-	    			markAttendanceDlg.scope.selectedSession.pending[i].status = false;
+	    		if(markAttendanceDlg.scope.selectedSession.pending[i].status == 0) {
+	    			markAttendanceDlg.scope.selectedSession.pending[i].status = 1;
+	    		} else if (markAttendanceDlg.scope.selectedSession.pending[i].status == 1) {
+	    			markAttendanceDlg.scope.selectedSession.pending[i].status = 2;
+	    		} else {
+	    			markAttendanceDlg.scope.selectedSession.pending[i].status = 0;
+	    		}
 	    	}
     	};
 
     	markAttendanceDlg.scope.updateAttendance = function(user) {
     		for(var i=0; i<markAttendanceDlg.scope.selectedSession.pending.length; i++) {
     			if(user.id == markAttendanceDlg.scope.selectedSession.pending[i].id) {
-    				markAttendanceDlg.scope.selectedSession.pending[i].status = !markAttendanceDlg.scope.selectedSession.pending[i].status;
+    				if(markAttendanceDlg.scope.selectedSession.pending[i].status == 0) {
+    					markAttendanceDlg.scope.selectedSession.pending[i].status = 1;
+    				} else if(markAttendanceDlg.scope.selectedSession.pending[i].status == 1) {
+    					markAttendanceDlg.scope.selectedSession.pending[i].status = 2;
+    				} else {
+    					markAttendanceDlg.scope.selectedSession.pending[i].status = 0;
+    				}
     				break;
     			}
     		}
@@ -472,11 +649,17 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
     			updatedSessionsList.push({id: session.id, name:session.name, selectedUsers: []});
     			for(var j=0; j<session.pending.length; j++) {
     				var user = session.pending[j];
-    				if(user.status) {
+					if (user.status == 1) {
     					userSelected = true;
-    					updatedSessionsList[i].selectedUsers.push(user.name);
+    					updatedSessionsList[i].selectedUsers.push({name: user.name, status: 'Attended'});
     					if(!(user.id in attendance)) attendance[user.id] = [];
     					attendance[user.id].push(session.id);
+					}
+					if (user.status == 2) {
+    					userSelected = true;
+    					updatedSessionsList[i].selectedUsers.push({name: user.name, status: 'Not attended'});
+    					if(!(user.id in attendance.not_attended)) attendance.not_attended[user.id] = [];
+    					attendance.not_attended[user.id].push(session.id);
     				}
     			}
     		}
@@ -487,9 +670,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
     		for(var i=0; i<updatedSessionsList.length; i++) {
     			var selectedUsers = updatedSessionsList[i].selectedUsers || [];
     			selectedUsers.sort(function(a, b) {
-					if(b.toLowerCase() < a.toLowerCase()) return 1;
-					if(b.toLowerCase() > a.toLowerCase()) return -1;
-					if(b.toLowerCase() == a.toLowerCase()) return 0;				
+					if(b.name.toLowerCase() < a.name.toLowerCase()) return 1;
+					if(b.name.toLowerCase() > a.name.toLowerCase()) return -1;
+					if(b.name.toLowerCase() == a.name.toLowerCase()) return 0;				
     			});
     			updatedSessionsList[i].selectedUsers = selectedUsers;
     		}
@@ -498,13 +681,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
     		});
     	}};
     	var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
-    		pastState = markAttendanceDlg.scope.selectall;
     	}};
         markAttendanceDlg.show('view_controllers/learning_reports/mark_attendance_dlg.html',
 			[okButton], cancelButton);
     }
 
-	function _getIltSessions(content, learningRecords) {
+	function _getIltSessions(content, learningRecords, type) {
 		var ret = [];
 		for(var i=0; i<content.modules.length; i++) {
 			if(content.modules[i].type != 'iltsession') continue; 
@@ -513,16 +695,24 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		for(var key in learningRecords) {
     		var userAttendance = attendance[parseInt(key)] || [];
+    		var userNotAttended = attendance.not_attended[parseInt(key)] || [];
     		for(var j=0; j<ret.length; j++) {
-    			var isAttended = false;
+    			var isAttended = 0;
     			for(var k=0; k<userAttendance.length; k++) {
 	    			if (ret[j].id == userAttendance[k]) {
-	    				isAttended = true;
-	    				ret[j].attended.push({id: parseInt(key), name: learningRecords[key].user.name});
+	    				isAttended = 1;
+	    				ret[j].attended.push({id: parseInt(key), name: learningRecords[key].user.name, status: 1});
 	    				break;
 	    			}
     			}
-				if(!isAttended) ret[j].pending.push({id: parseInt(key), name: learningRecords[key].user.name, status: false});
+    			for(var k=0; k<userNotAttended.length; k++) {
+	    			if (ret[j].id == userNotAttended[k]) {
+	    				isAttended = 2;
+	    				ret[j].attended.push({id: parseInt(key), name: learningRecords[key].user.name, status: 2});
+	    				break;
+	    			}
+    			}
+				if(isAttended == 0) ret[j].pending.push({id: parseInt(key), name: learningRecords[key].user.name, status: 0});
     		}
 		}
 		for(var i=0; i<ret.length; i++) {
@@ -533,6 +723,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				if(b.name.toLowerCase() > a.name.toLowerCase()) return -1;
 				if(b.name.toLowerCase() == a.name.toLowerCase()) return 0;				
 			});
+
+			attended.sort(function(a, b) {
+				if(b.status < a.status) return 1;
+				if(b.status > a.status) return -1;
+				if(b.status == a.status) return 0;				
+			});
+			
 			pending.sort(function(a, b) {
 				if(b.name.toLowerCase() < a.name.toLowerCase()) return 1;
 				if(b.name.toLowerCase() > a.name.toLowerCase()) return -1;
@@ -544,29 +741,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return ret;
 	}
 	 
-    function _getUserList(sessions) {
-    	var ret = {};
-    	var records = nlLrReportRecords.getRecords();
-    	for(var key in records){
-    		ret[key] = {id: parseInt(key), name: records[key].user.name, sessions: {}, allreadyMarked: {}, allreadyMarkedArray: []};
-    		var userAttendance = attendance[parseInt(key)] || [];
-    		for(var i=0; i< sessions.length; i++) {
-    			var id = content[i].id;
-    			var userAttendanceDict = {};
-    			for(var session in userAttendance){
-    				if(id == userAttendance[session] && !(userAttendance[session] in userAttendanceDict)) {
-    					userAttendanceDict[userAttendance[session]] = true;
-			    		ret[key].allreadyMarked[id] = true;
-			    		ret[key].allreadyMarkedArray.push(id);
-			    		ret[key].sessions[id] = 'attended';
-    				}
-    			}
-    			if(!ret[key].allreadyMarked[id]) ret[key].sessions[id] = 'not attended';
-    		}
-    	}
-    	return ret;
-    }
-    
+
     function _attendanceConfirmationDlg(dlgScope, markedSessions) {
     	var confirmationDlg = nlDlg.create($scope);
     	confirmationDlg.setCssClass('nl-height-max nl-width-max');
