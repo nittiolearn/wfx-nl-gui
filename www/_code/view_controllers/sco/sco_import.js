@@ -415,7 +415,7 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
             var res = resources[i];
             if (res['_adlcp:scormtype'] == 'sco' && res._href)
                 self.scos.push({href: res._href, id: res._identifier});
-            var files=res.file;
+            var files=res.file || [];
             for(var j=0; j<files.length; j++) {
                 self.assets.push({href: files[j]._href});
             }
