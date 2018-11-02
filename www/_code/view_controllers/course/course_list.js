@@ -385,8 +385,23 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
 	    var card = {reportId: report.id,
 	    			title: title, 
 	    			url: url,
-	    			help: help,
 	    			children: []};
+
+		var descFmt = '';
+		if(report.batchname)
+			descFmt += nl.t("<div><b>{}</b></div>", report.batchname);
+		if(report.not_before)
+			descFmt += nl.t("<div>From {}", nl.fmt.date2Str(nl.fmt.json2Date(report.not_before), 'date'));
+
+		if(report.not_after) 
+			descFmt += nl.t(" till {}</div>", nl.fmt.date2Str(nl.fmt.json2Date(report.not_after), 'date'));
+		else
+			descFmt += '</div>';
+		if(report.remarks) 
+			descFmt +=  nl.t("<div>{}</div>", report.remarks);
+		
+		card['help'] = descFmt;
+
 	    if (report.icon && report.icon.indexOf('icon:') == 0) {
 			var icon2 = report.icon.substring(5);
 			if (!icon2) icon2='ion-ios-bookmarks fblue';

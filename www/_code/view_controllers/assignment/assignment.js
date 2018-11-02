@@ -199,11 +199,20 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlLrFetcher) {
 			url : url,
 			children : []
 		};
-		var descFmt = "<div class='nl-textellipsis'>Sent to: <b>{}</b></div>" + 
-			"<div class='nl-textellipsis'>{}: {}</div>" +
-			"<div class='nl-textellipsis'>by: <b>{}</b></div><div>{}</div>";
-		card['help'] = nl.t(descFmt, assignment.assigned_to, _userInfo.groupinfo.subjectlabel, assignment.subject, 
-		    assignment.assigned_by, assignment.assign_remarks);
+		var descFmt = '';
+		if(assignment.batchname)
+			descFmt += nl.t("<div><b>{}</b></div>", assignment.batchname);
+		if(assignment.not_before)			
+			descFmt += nl.t("<div>From {}", nl.fmt.date2Str(nl.fmt.json2Date(assignment.not_before), 'date'));
+
+		if(assignment.not_after) 
+			descFmt += nl.t(" till {}</div>", nl.fmt.date2Str(nl.fmt.json2Date(assignment.not_after), 'date'));
+		else
+			descFmt += '</div>';
+		if(assignment.assign_remarks) 
+			descFmt +=  nl.t("<div>{}</div>", assignment.assign_remarks);
+		
+		card['help'] = descFmt;
 		card.details = {
 			help : assignment.descMore,
 			avps : _getAssignmentAvps(assignment)
