@@ -498,20 +498,26 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
         }
 	};
 
-    var _chartLabels = ['Attended', 'Not Attended', 'Pending'];
-    var _chartColours = ['#007700', '#F54B22', '#A0A0C0'];
-    var _lessonLabels = ['Completed', 'Failed', 'started', 'Pending'];
+    var _iltLabels = ['Attended', 'Not Attended', 'Pending'];
+    var _iltColours = ['#007700', '#F54B22', '#A0A0C0'];
+    var _lessonLabels = ['Completed', 'Failed', 'Started', 'Pending'];
     var _LessonColours = ['#007700', '#F54B22', '#FFCC00', '#A0A0C0'];
+    var _infoLabels = ['Completed', 'Pending'];
+    var _infoColours = ['#007700', '#A0A0C0'];
     function _updateChartInfo(dlgScope) {
         if(dlgScope.selectedSession.type == 'lesson') {
 	        var ret = {labels: _lessonLabels, colours: _LessonColours};
 	        ret.data = [dlgScope.selectedSession.completed.length, dlgScope.selectedSession.failed.length,
 	            		dlgScope.selectedSession.started.length, dlgScope.selectedSession.pending.length];
 	        dlgScope.chartInfo = ret;
-        } else {
-	        var ret = {labels: _chartLabels, colours: _chartColours};
+        } else if(dlgScope.selectedSession.type == 'iltsession') {
+	        var ret = {labels: _iltLabels, colours: _iltColours};
 	        ret.data = [dlgScope.selectedSession.attended.length, dlgScope.selectedSession.not_attended.length,
 	            		dlgScope.selectedSession.pending.length];
+	        dlgScope.chartInfo = ret;        	
+        } else {
+	        var ret = {labels: _infoLabels, colours: _infoColours};
+	        ret.data = [dlgScope.selectedSession.completed.length, dlgScope.selectedSession.pending.length];
 	        dlgScope.chartInfo = ret;        	
         }
     }
@@ -531,9 +537,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				item['started'] = [];
 				item.total = Object.keys(learningRecords).length;
 				ret.push(item);
-			} else {
+			} else if(item.type == 'iltsession') {
 				item['attended'] = [];
 				item['not_attended'] = [];
+				item['pending'] = [];
+				item.total = Object.keys(learningRecords).length;
+				ret.push(item);
+			} else {
+				item['completed'] = [];
 				item['pending'] = [];
 				item.total = Object.keys(learningRecords).length;
 				ret.push(item);
@@ -575,7 +586,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
     			} else {
     				var report = 'statusinfo' in repcontent ? repcontent.statusinfo[ret[j].id] : {};
     				if(report && report.status == 'done') {
-    					ret[j].attended.push({id: parseInt(key), name: learningRecords[key].user.name});
+    					ret[j].completed.push({id: parseInt(key), name: learningRecords[key].user.name});
     				} else {
     					ret[j].pending.push({id: parseInt(key), name: learningRecords[key].user.name});    					
     				}
@@ -601,29 +612,27 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
     	markAttendanceDlg.scope.sessions = _getIltSessions(content, learningRecords);
 		markAttendanceDlg.scope.selectedSession = markAttendanceDlg.scope.sessions[0];
-		markAttendanceDlg.scope.selectedSession.button = {state: 'selectall', name:'Select all'};
+		markAttendanceDlg.scope.selectedSession.button = {state: 'selectall', name:'All attended'};
     	markAttendanceDlg.scope.onClick = function(session) {
     		markAttendanceDlg.scope.selectedSession = session;
-    		markAttendanceDlg.scope.selectedSession.button = markAttendanceDlg.scope.selectedSession.button || {state: 'selectall', name:'Select all'};
+    		markAttendanceDlg.scope.selectedSession.button = markAttendanceDlg.scope.selectedSession.button || {state: 'selectall', name:'All attended'};
     	};
     	markAttendanceDlg.scope.markAllUsers = function(state) {
+    		var selectedSession = markAttendanceDlg.scope.selectedSession;
+    		var newState = 0;
     		if(state == 'selectall') {
-				markAttendanceDlg.scope.selectedSession.button = {state: 'deselectall', name:'Deselect all'};
+				selectedSession.button = {state: 'deselectall', name:'All absent'};
+				newState = 1;
     		} else if(state == 'deselectall') {
-				markAttendanceDlg.scope.selectedSession.button = {state: 'clear', name:'Clear all'};
+				selectedSession.button = {state: 'clear', name:'Clear all'};
+				newState = 2;
     		} else {
-				markAttendanceDlg.scope.selectedSession.button = {state: 'selectall', name:'Select all'};
+				selectedSession.button = {state: 'selectall', name:'All attended'};
+				newState = 0;
     		}
-    		var sessionid = markAttendanceDlg.scope.selectedSession;
-	    	for(var i=0; i<markAttendanceDlg.scope.selectedSession.pending.length; i++) {
-	    		if(markAttendanceDlg.scope.selectedSession.pending[i].status == 0) {
-	    			markAttendanceDlg.scope.selectedSession.pending[i].status = 1;
-	    		} else if (markAttendanceDlg.scope.selectedSession.pending[i].status == 1) {
-	    			markAttendanceDlg.scope.selectedSession.pending[i].status = 2;
-	    		} else {
-	    			markAttendanceDlg.scope.selectedSession.pending[i].status = 0;
-	    		}
-	    	}
+    		
+    		var pending = selectedSession.pending;
+	    	for(var i=0; i<pending.length; i++) pending[i].status = newState;
     	};
 
     	markAttendanceDlg.scope.updateAttendance = function(user) {
