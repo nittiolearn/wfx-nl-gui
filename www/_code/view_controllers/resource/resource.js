@@ -305,9 +305,9 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         Image: 10*1024*1024, 
         PDF: 100*1024*1024, 
         Audio: 100*1024*1024, 
-        Video: 300*1024*1024,
+        Video: 1024*1024*1024, // 1 GB
         Attachment: 100*1024*1024,
-        Zip: 300*1024*1024,
+        Zip: 300*1024*1024, // 1 GB
         Xls: 300*1024*1024,
         Csv: 10*1024*1024
     }; 
