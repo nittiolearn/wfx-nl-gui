@@ -167,6 +167,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			iltCostMisc: _assignInfo.iltCostMisc,
             update_content: false
         };
+        if(!_assignInfo.batchname) {
+		    var	d = nl.fmt.date2Str(new Date(), 'date');
+		    dlgScope.data.batchname = nl.t('{} - Batch', d);
+        }
         dlgScope.help = _getHelp();
     }
 
