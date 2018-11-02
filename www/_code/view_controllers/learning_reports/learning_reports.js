@@ -385,7 +385,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
     function _updateProgressChartData(summaryRecord) {
         var c = $scope.charts[0];
         c.data = [summaryRecord.done.txt, summaryRecord.failed.txt, summaryRecord.started.txt, summaryRecord.pending.txt];
-        c.title = nl.t('Progress: {} of {} done', summaryRecord.done.txt, summaryRecord.assigned.txt);
+        c.title = nl.t('Progress: {} of {} done', (summaryRecord.done.txt + summaryRecord.failed.txt), summaryRecord.assigned.txt);
     }
         
     function _updateTimeChartData() {
