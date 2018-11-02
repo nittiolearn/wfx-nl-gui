@@ -172,7 +172,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
 	        	var elem = course.content.modules[i];
 	        	if(elem.type != 'iltsession' || !(attendance[report.id] || notAttended[report.id])) continue;
 	        	var userAttendance = attendance[report.id] || [];
-	        	var userNotAttended = attendance.not_attended[report.id] || [];
+	        	var userNotAttended = notAttended[report.id] || [];
 		    	for(var j=0; j<userAttendance.length; j++) {
 		    		if(userAttendance[j] == elem.id) {
 		    			if(!repcontent.statusinfo) repcontent.statusinfo = {};
@@ -296,6 +296,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         report.studentname = user.name;
         report._user_id = user.user_id;
         report._email = user.email;
+        report._stateStr = user.state ? 'active': 'inactive';
         report.org_unit = user.org_unit;
         var metadata = nlGroupInfo.getUserMetadata(user);
         for(var j=0; j<metadata.length; j++)
@@ -305,7 +306,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
 
         var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
             timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
-            internalIdentifier:report.id, nCerts: 0, nLessonsDone: 0};
+            internalIdentifier:report.id, nCerts: 0, nLessonsDone: 0, done: 0};
 
 		if(!report.completed && (nlLrFilter.getType() == 'module_assign')) {
 			if(Object.keys(_reminderDict).length == 0) {

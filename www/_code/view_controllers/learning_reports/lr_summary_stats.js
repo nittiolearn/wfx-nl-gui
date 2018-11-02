@@ -80,12 +80,12 @@ function SummaryStats(nl, nlLrHelper) {
     function _updateStatsObj(report, statsObj, delta) {
         statsObj.assigned += delta;
         var stats = report.stats;
-        statsObj.perc = statsObj.assigned > 0 ? Math.round(statsObj.done/statsObj.assigned*100) : 0;
-        statsObj.percStr = statsObj.assigned > 0 ? statsObj.perc + ' %' : '';    	
         if (stats.status.id == nlLrHelper.STATUS_PENDING) statsObj.pending += delta;
         else if (stats.status.id == nlLrHelper.STATUS_STARTED) statsObj.started += delta;
         else if (stats.status.id == nlLrHelper.STATUS_FAILED) statsObj.failed += delta;
         else statsObj.done += delta;
+        statsObj.perc = statsObj.assigned > 0 ? Math.round(statsObj.done/statsObj.assigned*100) : 0;
+        statsObj.percStr = statsObj.assigned > 0 ? statsObj.perc + ' %' : '';    	
    }
 }
 
