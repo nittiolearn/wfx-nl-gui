@@ -744,7 +744,8 @@ nlesson = function() {
         {name: 'answered', noMinify: true}, 
         {name: 'partAnswered', noMinify: true}, 
         {name: 'notAnswered', noMinify: true}, 
-        {name: 'pagesFiltered'}];
+        {name: 'pagesFiltered'},
+        {name: 'feedbackScore'}];
 
     var _ldPageAttrList = [
         {name: 'pageNo', noCopyBack: true, noCopyFrom: true, noMinify: true}, 
@@ -960,11 +961,13 @@ nlesson = function() {
 		oLesson.answered = [];
 		oLesson.notAnswered = [];
         oLesson.partAnswered = [];
+        oLesson.feedbackScore = [];
 		for (var i = 0; i < pages.length; i++) {
             pages[i].computeScore();
             var oPage =  pages[i].oPage;
 			oLesson.maxScore += (oPage.maxScore + oPage.popupMaxScore);
             oLesson.score += (oPage.score + oPage.popupScore);
+            if(oPage.feedbackScore) oLesson.feedbackScore = oLesson.feedbackScore.concat(oPage.feedbackScore);
 
             if (oPage.answerStatus == npagetypes.ANSWERED_YES) {
                 oLesson.answered.push(i);

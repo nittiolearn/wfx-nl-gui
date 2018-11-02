@@ -296,7 +296,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var headers = ['User Id', 'User Name'];
         headers = headers.concat(['Course Name', 'Batch name', _gradelabel, _subjectlabel, 'Assigned On', 'Last Updated On', 
             'From', 'Till', 'Status', 'Progress', 'Progress Details', 'Quiz Attempts',
-            'Achieved %', 'Maximum Score', 'Achieved Score', 'Time Spent (minutes)', 'ILT time spent(minutes)', 'Venue', 'Trainer name',]);
+            'Achieved %', 'Maximum Score', 'Achieved Score', 'Feedback score %', 'Time Spent (minutes)', 'ILT time spent(minutes)', 'Venue', 'Trainer name',]);
     	headers = headers.concat([ 'Infra Cost', 'Trainer Cost', 'Food Cost', 'Travel Cost', 'Misc Cost']);
         headers = headers.concat(['Email Id', 'Org']);
         for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
@@ -306,6 +306,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     };
     
     function _getCsvRow(filter, report) {
+    	var feedbackScore = _getFeedbackForCourses(report.repcontent.lessonReports);
         var mh = nlLrHelper.getMetaHeaders(false);
         var ret = [report.user.user_id, report.user.name];
         ret = ret.concat([report.course.name, report.raw_record._batchName || '', report.course.contentmetadata.grade || '',
@@ -313,7 +314,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         	report.not_before || '', report.not_after || '', 
             report.stats.status.txt, '' + report.stats.percComplete + '%',
             report.stats.percCompleteDesc, report.stats.avgAttempts,
-            report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore,
+            report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore, feedbackScore || '',
             Math.ceil(report.stats.timeSpentSeconds/60), Math.ceil(report.stats.iltTimeSpent/60)]);
         ret = ret.concat([report.repcontent.iltVenue || '', report.repcontent.iltTrainerName || '', report.repcontent.iltCostInfra || '', report.repcontent.iltCostTrainer || '',
         			report.repcontent.iltCostFoodSta || '', report.repcontent.iltCostTravelAco || '', report.repcontent.iltCostMisc || '']);
@@ -325,6 +326,19 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                 'id=' + report.raw_record.lesson_id]);
         return ret;
     }
+    
+    function _getFeedbackForCourses(reports) {
+    	var feedbackScore = 0;
+    	var nfeedbacks = 0;
+    	for(var id in reports) {
+    		var feedbackArray = reports[id].feedbackScore || [];
+    		if(feedbackArray.length == 0) continue;
+    		var feedback = _getFeedbackScores(feedbackArray);
+    		feedbackScore += feedback;
+    		nfeedbacks += 1;
+    	}
+    	return (feedbackScore/nfeedbacks);
+    };
     
     function  _getModuleCsvRow(filter, report) {
         var mh = nlLrHelper.getMetaHeaders(false);
@@ -414,6 +428,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             {id: '_maxScore', name:'Maximum Score'},
             {id: '_score', name:'Achieved Score'},
             {id: '_passScoreStr', name:'Pass %'},
+            {id: 'feedbackScore', name:'Feedback score %'},
             {id: '_timeMins', name:'Time Spent (minutes)'}];
     var _h1PageScores = [
             {id: 'page', name:'Page No'},
@@ -501,10 +516,12 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 
     function _exportIndividualPageScore(filter, report) {
         var rep = report.raw_record;
-        ctx.moduleRows.push(nlExporter.getCsvRow(_hModuleRow, rep));
         var mh = nlLrHelper.getMetaHeaders(false);
-        if (!filter.exportTypes.pageScore && !filter.exportTypes.feedback) return;
         var content = angular.fromJson(report.raw_record.content);
+        var feedbackScore = _getFeedbackScores(content.feedbackScore || []);
+        rep.feedbackScore = feedbackScore;
+        ctx.moduleRows.push(nlExporter.getCsvRow(_hModuleRow, rep));
+        if (!filter.exportTypes.pageScore && !filter.exportTypes.feedback) return;
         if (!content.learningData && !content.pages) return;
         var user = report.user;
         var currentPageRecord = {pos: 0, _user_id: rep._user_id, 
@@ -527,7 +544,16 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         }    	
 	}
 	
-    function _processReportRecordPageData(currentPageRecord, content, filter) {
+    function _getFeedbackScores(feedback) {
+    	if(feedback.length == 0) return '';
+    	var score = 0;
+    	for(var i=0; i<feedback.length; i++) {
+    		score += feedback[i];
+    	}
+    	return (score/feedback.length);
+    }
+
+    function _processReportRecordPageData(currentPageRecord, content, filter, rep) {
         var pagesDict = content.learningData.pages || {};
         var pages = [];
         for (var i in pagesDict) {
@@ -619,6 +645,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             var ended = '';
             var timeSpent='';
             var attempts = '';
+            var feedbackScore = '';
             if (module.id in lessonReports) {
                 var lrep = lessonReports[module.id];
                 maxScore = lrep.selfLearningMode ? 0 : lrep.maxScore || 0;
@@ -636,6 +663,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                 status = !lrep.completed ? 'started' :
                     !maxScore ? 'done' :
                     passed ? 'passed' : 'failed';
+		        feedbackScore = _getFeedbackScores(lrep.feedbackScore || []);
             }
             
             var ret = [report.user.user_id, report.user.name];
@@ -643,7 +671,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             if (ended) ended = nl.fmt.date2Str(nl.fmt.json2Date(ended));
             ret = ret.concat(['Module inside course', report.course.name, report.raw_record._batchName, module.name, report.course.contentmetadata.grade || '',
 	        	report.course.contentmetadata.subject || '', report.created, started, ended, report.updated, status,
-	        	attempts, perc, maxScore, score, passScore ? passScore + '%' : '', timeSpent, report.repcontent.remarks]);
+	        	attempts, perc, maxScore, score, passScore ? passScore + '%' : '', feedbackScore || '', timeSpent, report.repcontent.remarks]);
 	        ret.push(report.user.email);
 	        ret.push(report.user.org_unit);
             for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id] || '');

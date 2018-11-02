@@ -1742,9 +1742,19 @@ npagetypes = function() {
 	function _BehQuestionnaire_privateParseText(section) {
 		var str = section.pgSecText.val().toString();
 		var parsed = njs_lesson_markup.breakWikiMarkup(str);
+		parsed.isScorable = false;
+		parsed.feedbackMaxScore = 0;
 		parsed.correct = [];
 		if (parsed.type == 'text') parsed.choices = [];
 		if (parsed.type != 'text' && parsed.type != 'select' && parsed.type != 'multi-select') parsed.type = '';
+		if (parsed.type != 'select') return parsed;
+
+		for(var i=0; i<parsed.choices.length; i++) {
+			var score = parseInt(parsed.choices[i]);
+			if(!Number.isInteger(score))  return parsed;
+			if (score > parsed.feedbackMaxScore) parsed.feedbackMaxScore = score;
+		}
+		if (parsed.feedbackMaxScore > 0) parsed.isScorable = true;
 		return parsed;
 	}
 
@@ -1800,6 +1810,8 @@ npagetypes = function() {
 
 	function _BehQuestionnaire_updateAnswers(page) {
 	    page.oPage.feedback = [];
+		page.oPage.feedbackScore = [];
+	    
 	    var isQuestionnaire = (page.pagetype.interaction.id == 'QUESTIONNAIRE');
 		for (var i = 0; i < page.sections.length; i++) {
 			var section = page.sections[i];
@@ -1832,6 +1844,12 @@ npagetypes = function() {
             question = njs_lesson_helper.formatTitle(question);
             if (answerData.type == 'text' || isQuestionnaire) {
                 page.oPage.feedback.push({question: question, response: answerText});
+            }
+            if(answerData.isScorable && isQuestionnaire) {
+				var score = parseInt(answerText);
+				if(Number.isInteger(score)) {
+					page.oPage.feedbackScore.push(score / answerData.feedbackMaxScore * 100);
+				}
             }
             
 			if (!_BehQuestionnaire_isValidAnswer(elemVal, answerData)) {
