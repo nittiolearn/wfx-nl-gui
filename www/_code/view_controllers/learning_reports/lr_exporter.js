@@ -117,9 +117,17 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var treeArray = [];
         for(var i=0; i<reportRecords.length; i++) {
             var courseObj = reportRecords[i].course;
-            for(var j=0; j<courseObj.lessons.length; j++) {
-            	var lessonObj = courseObj.lessons[j];
-	            _getIconNodeWithParents(courseObj, lessonObj, treeArray, insertedKeys);
+            if(courseObj.lessons.length == 0) {
+		    	var courseKey = 'A'+courseObj.id;
+		        if (!insertedKeys[courseKey]) {
+		        	insertedKeys[courseKey] = true;
+		        	treeArray.push({id: courseKey, name: courseObj.name});
+		        }
+            } else {
+	            for(var j=0; j<courseObj.lessons.length; j++) {
+	            	var lessonObj = courseObj.lessons[j];
+		            _getIconNodeWithParents(courseObj, lessonObj, treeArray, insertedKeys);
+	            }
             }
         }
         return treeArray;
@@ -132,7 +140,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         	insertedKeys[courseKey] = true;
         	treeArray.push({id: courseKey, name: courseObj.name});
         }
-    	var moduleKey = courseKey.indexOf('.') > 0 ? courseKey + '.' + lessonObj.id.split('.').join('_') : courseKey;
+        var moduleKey = courseKey + '.' + lessonObj.id.split('.').join('_');
+    		moduleKey = moduleKey.indexOf('.') > 0 ? moduleKey : courseKey;
         if (insertedKeys[moduleKey]) return;
     	insertedKeys[moduleKey] = true;
         treeArray.push({id: moduleKey, name: lessonObj.name, origId: lessonObj.id});
@@ -243,7 +252,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 	            var moduleKey = 'A'+records[i].raw_record.lesson_id;
 				selectedCourseId = _checkFilter(filter.selectedCourses, moduleKey);
 			} else {
-	            var courseKey = 'A'+records[i].course.id;
+	            var courseKey = records[i].course.id;
 				selectedCourseId = _checkFilter(filter.selectedCourses, courseKey);
 			}
 			var selectedOus = _checkFilter(filter.selectedOus, records[i].user.org_unit);
@@ -337,10 +346,15 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     		var feedbackArray = reports[id].feedbackScore || [];
     		if(feedbackArray.length == 0) continue;
     		var feedback = _getFeedbackScores(feedbackArray);
-    		feedbackScore += feedback;
-    		nfeedbacks += 1;
+    		if(feedback) {
+    			feedbackScore += feedback;
+    			nfeedbacks += 1;
+    		}
     	}
-    	return (feedbackScore/nfeedbacks);
+    	if(feedbackScore) 
+    		return (feedbackScore/nfeedbacks);
+    	else 
+    		return '';
     };
     
     function  _getModuleCsvRow(filter, report) {
