@@ -226,14 +226,6 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var content = rows.join(_CSV_DELIM);
         zip.file(fileName, content);
     }
-
-    function _createUserModuleCsv(filter, records, zip, fileName, start, end) {
-        var header = _getCsvModuleHeader(filter);
-        var rows = [nlExporter.getCsvString(header)];
-        for (var i=start; i<end; i++) rows.push(records[i]);
-        var content = rows.join(_CSV_DELIM);
-        zip.file(fileName, content);
-    }
     
     function _createUserCsv(filter, records, zip, fileName, start, end, expSummaryStats) {
         var header = _getCsvHeader(filter);
@@ -308,7 +300,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             'From', 'Till', 'Status', 'Progress', 'Progress Details', 'Quiz Attempts',
             'Achieved %', 'Maximum Score', 'Achieved Score', 'Feedback score', 'Time Spent (minutes)', 'ILT time spent(minutes)', 'Venue', 'Trainer name',]);
     	headers = headers.concat([ 'Infra Cost', 'Trainer Cost', 'Food Cost', 'Travel Cost', 'Misc Cost']);
-        headers = headers.concat(['Email Id', 'Org', 'User state']);
+        headers = headers.concat(['User state', 'Email Id', 'Org']);
         for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
         if (filter.exportTypes.ids)
             headers = headers.concat(_idFields);
@@ -329,9 +321,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             Math.ceil(report.stats.timeSpentSeconds/60), Math.ceil(report.stats.iltTimeSpent/60)]);
         ret = ret.concat([report.repcontent.iltVenue || '', report.repcontent.iltTrainerName || '', report.repcontent.iltCostInfra || '', report.repcontent.iltCostTrainer || '',
         			report.repcontent.iltCostFoodSta || '', report.repcontent.iltCostTravelAco || '', report.repcontent.iltCostMisc || '']);
+        ret.push(report.user.state ? 'active' : 'inactive');        
         ret.push(report.user.email);
         ret.push(report.user.org_unit);
-        ret.push(report.user.state ? 'active' : 'inactive');        
         for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id] || '');
         if (filter.exportTypes.ids)
             ret = ret.concat(['id=' + report.raw_record.id, 'id=' + report.raw_record.assignment, 
@@ -368,9 +360,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             report.stats.percCompleteDesc, report.raw_record.completed ? 1 : 0,
             report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore,
             Math.ceil(report.stats.timeSpentSeconds/60)]);
+        ret.push(report.user.state ? 'active' : 'inactive');
         ret.push(report.user.email);
         ret.push(report.user.org_unit);
-        ret.push(report.user.state ? 'active' : 'inactive');
         for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id] || '');
         if (filter.exportTypes.ids)
             ret = ret.concat(['id=' + report.raw_record.id, 'id=' + report.raw_record.assignment, 
@@ -378,19 +370,6 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         return ret;
     }
     
-    function _getCsvModuleHeader(filter) {
-        var mh = nlLrHelper.getMetaHeaders(false);
-        var headers = ['User Id', 'User Name'];
-        headers = headers.concat(['Course Name', 'Batch name', _gradelabel, _subjectlabel, 'Module Name', 'Started', 'Ended', 
-            'Status', 'Attempts', 'Achieved %', 'Maximum Score', 'Achieved Score', 'Pass %', 
-            'Time Spent (minutes)']);
-        headers = headers.concat(['Email Id', 'Org']);
-        for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
-        if (filter.exportTypes.ids)
-            headers = headers.concat(_idFields);
-        return headers;
-    }
-
     function _initCtx(reports, _userInfo, filter) {
         _initExportHeaders(_userInfo, filter.exportTypes.ids);
         ctx.moduleRows = [nlExporter.getCsvHeader(_hModuleRow)];
@@ -416,9 +395,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             {id: 'studentname', name:'User Name'}];
             
     var _userFields2 = [
+            {id: '_stateStr', name:'User state'},
             {id: '_email', name:'Email Id'},
-            {id: 'org_unit', name:'Org'},
-            {id: '_stateStr', name:'User state'}];
+            {id: 'org_unit', name:'Org'}];
 
     var _commonFields = [
             {id: '_assignTypeStr', name:'Record Type'},
@@ -511,8 +490,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         				not_before: rep.repcontent.not_before, not_after: rep.repcontent.not_after, status: '-', _timeMins: (rep.stats.iltTimeSpent+rep.stats.timeSpentSeconds)/60,
         				iltVenue: rep.repcontent.iltVenue, iltTrainerName: rep.repcontent.iltTrainerName, iltCostInfra : rep.repcontent.iltCostInfra,
         				iltCostTrainer: rep.repcontent.iltCostTrainer, iltCostFoodSta: rep.repcontent.iltCostFoodSta, iltCostTravelAco: rep.repcontent.iltCostTravelAco,
-        				iltCostMisc: rep.repcontent.iltCostMisc, _email: rep.user.email, org_unit: rep.user.org_unit, 
-        				_stateStr: rep.user.state ? 'active' : 'inactive'};
+        				iltCostMisc: rep.repcontent.iltCostMisc, _stateStr: rep.user.state ? 'active' : 'inactive', _email: rep.user.email, org_unit: rep.user.org_unit};
         for(var i=0; i<mh.length; i++) record[mh[i].id] = rep.usermd[mh[i].id];
         if (filter.exportTypes.ids) {
             record['repid'] =  rep.raw_record.id;
@@ -701,9 +679,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             ret = ret.concat(['Module inside course', report.course.name, report.raw_record._batchName, module.name, report.course.contentmetadata.grade || '',
 	        	report.course.contentmetadata.subject || '', report.created, started, ended, report.updated, not_before, not_after, status,
 	        	attempts, perc, maxScore, score, passScore ? passScore + '%' : '', feedbackScore, timeSpent, report.repcontent.remarks]);
+			ret.push(report.user.state ? 'active': 'inactive');
 	        ret.push(report.user.email);
 	        ret.push(report.user.org_unit);
-			ret.push(report.user.state ? 'active': 'inactive');
             for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id] || '');
             if (filter.exportTypes.ids)
                 ret = ret.concat(['id=' + report.raw_record.id, 
