@@ -29,7 +29,7 @@
 				            <input class='col'
 				             ng-model='item.name' type='text'
 				             ng-focus="attr.focus=true" ng-blur="attr.focus=false">
-				             <a ng-href='{{editor.getUrl(item.id)}}'
+				             <a ng-show='item.id' ng-href='{{editor.getUrl(item.id)}}'
 					            target='_blank'>
 					            <i class='icon ion-android-open fsh4 padding-small nl-link-img'
 					               title='Preview'></i>
