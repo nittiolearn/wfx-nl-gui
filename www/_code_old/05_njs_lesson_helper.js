@@ -4,6 +4,7 @@ njs_lesson_helper = function() {
 //#############################################################################################
 
 function PendingTimer() {
+	var self = this;
 	this.timerId = null;
 
 	this.updateIfNeeded = function(lesson) {
@@ -16,12 +17,27 @@ function PendingTimer() {
 		jQuery('#countdown_timer').removeClass('hide_counter');
 
 		lesson.end_time = new Date(lesson.sessionStartTime.valueOf() + timeLimitSeconds*1000);
+		var now = new Date();
+		var pending = parseInt((lesson.end_time.valueOf() - now.valueOf())/1000);
 		
-		this.checkEndTime(lesson);
-		var me = this;
-		this.timerId = setInterval(function() {
-			me.checkEndTime(lesson);
-		}, 500);
+		if(lesson.oLesson.max_duration && (pending < (lesson.oLesson.max_duration * 60))) {
+			jQuery('#countdown_timer').html(njs_helper.fmt2("The specified duration for this assignment is {}, but you have only {} left as you are starting it late.", nittio.secondsToHmsString(lesson.oLesson.max_duration*60), nittio.secondsToHmsString(pending)));
+			jQuery('#countdown_timer').addClass('countdown_timer_warning');
+			setTimeout(function() {
+				_startTimer();
+			}, 5000);
+		} else {
+			_startTimer();
+		}
+		
+		function _startTimer() {
+			self.checkEndTime(lesson);
+			var me = self;
+			jQuery('#countdown_timer').removeClass('countdown_timer_warning');
+			self.timerId = setInterval(function() {
+				me.checkEndTime(lesson);
+			}, 500);
+		}
 	};
 
 	this.hideCounters = function() {
