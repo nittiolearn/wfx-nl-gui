@@ -120,11 +120,9 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             nlGroupInfo.update();
             var dontShowUsers = _assignInfo.dontShowUsers || {};
             if (_assignInfo.assigntype == 'training') _selectedUsers = {};
-            if (!_assignInfo.isModify) {
-	            _ouUserSelector = nlOuUserSelect.getOuUserSelector(_parentScope, 
-	                nlGroupInfo.get(), {}, dontShowUsers);
-	            _ouUserSelector.updateSelectedIds(_selectedUsers);
-            }
+            _ouUserSelector = nlOuUserSelect.getOuUserSelector(_parentScope, 
+                nlGroupInfo.get(), {}, dontShowUsers);
+            _ouUserSelector.updateSelectedIds(_selectedUsers);
             _initDlgScope();
             _showDlg(resolve, reject);
         });
@@ -211,8 +209,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
     	var buttonName = _assignInfo.assigntype == 'training' ? nl.t('Nominate User') : nl.t('Send Assignment');
     	if (_assignInfo.isModify) buttonName = nl.t('Modify');
         var sendButton = {text : buttonName, onTap : function(e) {
-        	if (_assignInfo.isModify) return _modifyAssignment(e);
             if (_ouUserSelector) _selectedUsers = _ouUserSelector.getSelectedUsers(); 
+        	if (_assignInfo.isModify) return _modifyAssignment(e);
             _onSendAssignment(e);
         }};
         var cancelButton = {text : nl.t('Cancel'), onTap: function(e) {
@@ -259,6 +257,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
     //---------------------------------------------------------------------------------------------
 	function _modifyAssignment(e) {
         if(e) e.preventDefault(e);
+        var ouUserInfo = _getOusAndUser();
+        
         var assignInfo = _dlg.scope.assignInfo;
         var data = _dlg.scope.data;
 		var params={atype: assignInfo.assigntype == 'course' ? _nl.atypes.ATYPE_COURSE : _nl.atypes.ATYPE_MODULE,
@@ -267,7 +267,11 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			submissionAfterEndtime: data.submissionAfterEndtime,
 			max_duration: data.maxduration, learnmode: data.showAnswers.id,
 			update_content: data.update_content};
-		
+		if(ouUserInfo.userids.length > 0) {
+            params['selectedusers'] = _getMinimalUserObjects(ouUserInfo.userids),
+            params['oustr'] = _getOrgUnitStr(ouUserInfo.ous);
+        }
+
 		if (assignInfo.blended) {
 			params.blended = true;
 			params.iltTrainerName = data.iltTrainerName;
