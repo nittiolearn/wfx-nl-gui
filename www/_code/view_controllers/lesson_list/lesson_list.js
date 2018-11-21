@@ -274,6 +274,8 @@ this.show = function($scope, initialUserInfo, params) {
 			_approveLesson($scope, lessonId);
 		} else if (internalUrl === 'lesson_copy') {
 			_copyLesson($scope, lessonId);
+		} else if (internalUrl === 'lesson_report') {
+			_showLessonReport(lessonId);
 		} else if (internalUrl === 'lesson_closereview') {
 			_closereviewLesson($scope, lessonId);
         } else if (internalUrl === 'lesson_metadata') {
@@ -408,6 +410,7 @@ this.show = function($scope, initialUserInfo, params) {
             if (!_showInDlg && lesson.grp == _userInfo.groupinfo.id && userInfo.permissions.lesson_create
                 && mode.modeStr == 'approved')
                 card.links.push({id : 'lesson_copy', text : nl.t('copy')});
+            card.links.push({id : 'lesson_report', text : nl.t('report')});
             _addMetadataLink(card);
         } else if (mode.mode == MODES.SENDASSIGNMENT) {
             card.links.push({id : 'lesson_view', text : nl.t('view')});
@@ -655,6 +658,11 @@ this.show = function($scope, initialUserInfo, params) {
 	function _approveLesson($scope, lessonId) {
 		nlApproveDlg.show($scope, _userInfo.groupinfo.exportLevel, lessonId);
 	}
+
+    function _showLessonReport(lessonId) {
+        var url = nl.fmt2('/learning_reports?type=module&objid={}', lessonId);
+        nl.location.url(url);
+    }
 
 	function _copyLesson($scope, lessonId) {
 		var msg = {

@@ -521,8 +521,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var feedbackScore = _getFeedbackScores(content.feedbackScore || []);
 		if(feedbackScore) feedbackScore = nl.fmt2('{}%', Math.round(feedbackScore*10)/10);
         rep.feedbackScore = feedbackScore;
-        rep.not_before = content.not_before ? nl.fmt.json2Date(content.not_before) : '';
-        rep.not_after = content.not_after ? nl.fmt.json2Date(content.not_after) : '';
+        rep.not_before = report.repcontent.not_before ? nl.fmt.json2Date(report.repcontent.not_before) : '';
+        rep.not_after = report.repcontent.not_after ? nl.fmt.json2Date(report.repcontent.not_after) : '';
         ctx.moduleRows.push(nlExporter.getCsvRow(_hModuleRow, rep));
         if (!filter.exportTypes.pageScore && !filter.exportTypes.feedback) return;
         if (!content.learningData && !content.pages) return;

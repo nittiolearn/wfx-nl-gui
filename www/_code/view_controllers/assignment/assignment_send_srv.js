@@ -145,6 +145,9 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         dlgScope.assignInfo = _assignInfo;
         dlgScope.enableEmailNotifications = _assignInfo.hideEmailNotifications ? false : _isAssignmentEnabled();
         dlgScope.options = {showAnswers: learningModeStrings};
+        if(_assignInfo.isModify && _assignInfo.dontShowUsers) {
+	        dlgScope.addedUserStr = nl.t('Already {} users are assigned for this assignment.', Object.keys(_assignInfo.dontShowUsers).length);
+        }
         dlgScope.data = {
             ouUserTree: _ouUserSelector ? _ouUserSelector.getTreeSelect() : null,
             starttime: _assignInfo.starttime || new Date(),
@@ -184,7 +187,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			updateContentStr += '<p>Learner who have already completed the module will not be able to redo based on updated content. ';
 			updateContentStr += 'Learners who have not done the assignment will see the updated content.</p>';
 		return {
-			ouUserTree: {name: 'Users', help: nl.t('Select the organizations (and if needed, the specific learners), put in a remark and click the Send Assignment button to send it to the selected class.')},
+			ouUserTree: {name: 'Add users', help: nl.t('Select the organizations and if needed, the specific learners.')},
 			starttime: {name: 'From', help: nl.t('You may define the earliest date and time (upto minutes accuracy) from when the assignment is active. If not set, the assignment is active as soon as it is sent till the end time.')},
 			endtime: {name: 'Till', help: nl.t('You may define the latest date and time (upto minutes accuracy) till when the assignment is active. If not set, the assignment is active after start time (or sent time if start is not defined).')},
 			maxduration: {name: 'Time limit (minutes)', help: nl.t('You may restrict the learner to complete the assignment within the specified time limit. If not set, the learner may take any amount of time subject to start and end time restrictions.')},

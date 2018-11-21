@@ -125,7 +125,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         }
         
         // do mode
-        if (_redirectToLessonReport(reportInfo, newTab, cm)) return true;
+        if (_redirectToLessonReport(reportInfo, newTab)) return true;
         
         cm.attempt++;
         nlDlg.showLoadingScreen();
@@ -134,7 +134,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
             self.course = updatedCourseReport;
             scope.updateAllItemData();
             reportInfo = self.course.lessonReports[cm.id];
-            _redirectToLessonReport(reportInfo, newTab, cm);
+            _redirectToLessonReport(reportInfo, newTab);
         });
         
         return true;
@@ -227,8 +227,8 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         return true;
     }
 
-    function _redirectToLessonReport(reportInfo, newTab, cm) {
-        if (!reportInfo) return false; //TODO: Naveen update from and till parameters on the course modified.
+    function _redirectToLessonReport(reportInfo, newTab) {
+        if (!reportInfo) return false;
         var urlFmt = reportInfo.completed ?  '/lesson/view_report_assign/{}' : '/lesson/do_report_assign/{}';
         return _redirectTo(urlFmt, reportInfo.reportId, newTab);
     }

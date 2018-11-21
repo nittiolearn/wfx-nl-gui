@@ -41,7 +41,6 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	var _userInfo = null;
 	var _resourceDict = {};
     this.init = function(_scope, _modeHandler, userInfo) {
-    	console.log(userInfo);
         $scope = _scope;
         modeHandler = _modeHandler;
         _userInfo = userInfo;

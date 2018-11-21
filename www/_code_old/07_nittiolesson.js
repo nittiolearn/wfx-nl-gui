@@ -1896,10 +1896,18 @@ nlesson = function() {
 		this.pgSecSticker = njs_helper.jobj('<div class="pgSecSticker"></div>');
 		this.pgSecSticker.hide();
 		this.pgSecView.append(this.pgSecSticker);
+		this.pgSecPopupSticker = njs_helper.jobj('<div class="pgSecPopupSticker"></div>');
+		this.pgSecPopupSticker.hide();
+		this.pgSecView.append(this.pgSecPopupSticker);
 		this.secViewContent = njs_helper.jobj('<div class="secViewContent"/>');
         this.pgSecView.append(this.secViewContent);
 		
 		var help;
+		if (this.oSection.popups) {
+			this.pgSecPopupSticker.show();
+			var html = njs_helper.fmt2('<i title="{}" class="icon {}"></i>', 'Click on section to view', 'ion-ios-information fsh3');
+			this.pgSecPopupSticker.html(html);
+		}
 		if (this.lesson.renderCtx.launchMode() == 'report') {
 			help = pagetype.getSectionHelpReport(this.secNo);
 		} else {
