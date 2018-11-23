@@ -14,8 +14,6 @@ function PendingTimer() {
 		var timeLimitSeconds = lesson.oLesson['timeLimitSeconds'];
 		if (timeLimitSeconds == null) return this.hideCounters();
 
-		jQuery('#countdown_timer').removeClass('hide_counter');
-
 		lesson.end_time = new Date(lesson.sessionStartTime.valueOf() + timeLimitSeconds*1000);
 		lesson.mentioned_endtime = new Date(lesson.oLesson['not_after'].valueOf() || '');
 		var now = new Date();
@@ -38,6 +36,7 @@ function PendingTimer() {
 		}
 
 		function _startTimer() {
+			jQuery('#countdown_timer').removeClass('hide_counter');
 			self.checkEndTime(lesson);
 			var me = self;
 			self.timerId = setInterval(function() {

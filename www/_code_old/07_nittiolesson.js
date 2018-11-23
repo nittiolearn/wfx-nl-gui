@@ -1903,7 +1903,7 @@ nlesson = function() {
         this.pgSecView.append(this.secViewContent);
 		
 		var help;
-		if (this.oSection.popups) {
+		if (this.oSection.popups && !this.page.pagetype.isInteractive(this)) {
 			this.pgSecPopupSticker.show();
 			var html = njs_helper.fmt2('<i title="{}" class="icon {}"></i>', 'Click on section to view', 'ion-ios-information fsh3');
 			this.pgSecPopupSticker.html(html);
@@ -2262,6 +2262,7 @@ function ModulePopupHadler() {
         var cancelButton = {id: 'cancel', text: 'Cancel'};
         var okButton = {id: 'ok', text: 'Delete Popup', fn: function() {
             njs_helper.Dialog.popdown();
+            _hidePopupSticker(section);
             if (section.oSection.popups) delete section.oSection.popups;
             g_lesson.globals.selectionHandler.unselectSection();
         }};
@@ -2270,6 +2271,7 @@ function ModulePopupHadler() {
     
     this.createPopup = function(section) {
         if (!section.oSection.popups) section.oSection.popups = {};
+        _showPopupSticker(section);
         if (section.oSection.popups.onclick) return true;
         section.oSection.popups.onclick = [];
         var pages = section.oSection.popups.onclick;
@@ -2375,6 +2377,16 @@ function ModulePopupHadler() {
         }
     };
     
+    function _showPopupSticker(section) {
+		section.pgSecPopupSticker.show();
+		var html = njs_helper.fmt2('<i title="{}" class="icon {}"></i>', 'Click on section to view', 'ion-ios-information fsh3');
+		section.pgSecPopupSticker.html(html);
+    }			
+
+	function _hidePopupSticker(section) {
+		section.pgSecPopupSticker.hide();		
+	}
+	
     function _updateContent(pages) {
         var oPages = [];
         for(var i=0; i<pages.length; i++) {
