@@ -247,6 +247,7 @@ nlesson = function() {
         self.pages = [];
         for (var i = 0; i < self.oLesson.pages.length; i++) {
             var po = new Page(self);
+            if(self.oLesson.pages[i] == undefined) continue;
             po.init(self.oLesson.pages[i], self.bgimg);
             self.pages.push(po);
         }
@@ -849,6 +850,7 @@ nlesson = function() {
     function _Lesson_updateLearningDataFromOPages(ldPages, oPages) {
         for(var i=0; i<oPages.length; i++) {
             var oPage = oPages[i];
+            if(oPages[i] == undefined) continue;
             var title = oPage.sections && oPage.sections[0] ? oPage.sections[0].text : '';
             title = njs_lesson_helper.formatTitle(title);
             if (!ldPages[oPage.pageId]) ldPages[oPage.pageId] = {};
@@ -2271,7 +2273,7 @@ function ModulePopupHadler() {
     
     this.createPopup = function(section) {
         if (!section.oSection.popups) section.oSection.popups = {};
-        _showPopupSticker(section);
+        if(!section.page.pagetype.isInteractive(section)) _showPopupSticker(section);
         if (section.oSection.popups.onclick) return true;
         section.oSection.popups.onclick = [];
         var pages = section.oSection.popups.onclick;
