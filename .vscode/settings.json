@@ -1,0 +1,32 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/node_modules/**": true,
+        "**/.DS_Store": true,
+        "**/*.pyc": true,
+        "**/static/**": true,
+        "**/_test_dependencies/**": true,
+    },
+    "files.watcherExclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/node_modules/**": true,
+        "**/.DS_Store": true,
+        "**/*.pyc": true,
+        "**/static/**": true,
+        "**/_test_dependencies/**": true,
+    },
+    "search.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/node_modules/**": true,
+        "**/.DS_Store": true,
+        "**/*.pyc": true,
+        "**/static/**": true,
+        "**/_test_dependencies/**": true,
+    },
+}
