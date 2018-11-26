@@ -790,6 +790,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
     
     function _onClickModifyAssignment() {
     	var launchType = nlLrFilter.getType(); 
+    	var nominatedUsers = nlLrReportRecords.getNominatedUserDict();
     	var key = '';
     	var enableSubmissionAfterEndtime = false;
     	if (launchType == 'module_assign') {
@@ -819,7 +820,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
         	remarks: launchType == 'module_assign' ? assignContent.assign_remarks : assignContent.remarks,
         	starttime: assignContent.not_before || '', 
         	endtime: assignContent.not_after || '', 
-        	submissionAfterEndtime: assignContent.submissionAfterEndtime};
+        	submissionAfterEndtime: assignContent.submissionAfterEndtime,
+        	dontShowUsers: nominatedUsers};
         	
         if (launchType == 'module_assign') {
         	assignInfo.esttime = assignContent.max_duration;
@@ -857,8 +859,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					assignContent.iltCostMisc = result.iltCostMisc || '';
 				}
 	    	}
-	        nlLrAssignmentRecords.addRecord(assignRec, key);
-    		_updateReportRecords();
+	    	if(result.selectedusers) {
+				nl.window.location.reload();
+	    	} else {
+		        nlLrAssignmentRecords.addRecord(assignRec, key);
+	    		_updateReportRecords();
+	    	}
     	});
     }
 

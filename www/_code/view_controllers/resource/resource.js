@@ -314,7 +314,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
 
     // Frist in the list is the default restype for the extension
     var _extToRestypes = {
-        '.jpg': ['Image'], '.png': ['Image'], '.gif': ['Image'], '.svg': ['Image'], '.bmp': ['Image'],
+        '.jpg': ['Image'], '.png': ['Image'], '.jpeg': ['Image'], '.gif': ['Image'], '.svg': ['Image'], '.bmp': ['Image'],
         '.pdf': ['PDF'],
         '.mp3': ['Audio'], '.m4a': ['Audio'],
         '.mp4': ['Video', 'Audio'], 

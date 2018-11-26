@@ -247,6 +247,7 @@ nlesson = function() {
         self.pages = [];
         for (var i = 0; i < self.oLesson.pages.length; i++) {
             var po = new Page(self);
+            if(self.oLesson.pages[i] == undefined) continue;
             po.init(self.oLesson.pages[i], self.bgimg);
             self.pages.push(po);
         }
@@ -849,6 +850,7 @@ nlesson = function() {
     function _Lesson_updateLearningDataFromOPages(ldPages, oPages) {
         for(var i=0; i<oPages.length; i++) {
             var oPage = oPages[i];
+            if(oPages[i] == undefined) continue;
             var title = oPage.sections && oPage.sections[0] ? oPage.sections[0].text : '';
             title = njs_lesson_helper.formatTitle(title);
             if (!ldPages[oPage.pageId]) ldPages[oPage.pageId] = {};
@@ -1896,10 +1898,18 @@ nlesson = function() {
 		this.pgSecSticker = njs_helper.jobj('<div class="pgSecSticker"></div>');
 		this.pgSecSticker.hide();
 		this.pgSecView.append(this.pgSecSticker);
+		this.pgSecPopupSticker = njs_helper.jobj('<div class="pgSecPopupSticker"></div>');
+		this.pgSecPopupSticker.hide();
+		this.pgSecView.append(this.pgSecPopupSticker);
 		this.secViewContent = njs_helper.jobj('<div class="secViewContent"/>');
         this.pgSecView.append(this.secViewContent);
 		
 		var help;
+		if (this.oSection.popups && !this.page.pagetype.isInteractive(this)) {
+			this.pgSecPopupSticker.show();
+			var html = njs_helper.fmt2('<i title="{}" class="icon {}"></i>', 'Click on section to view', 'ion-ios-information fsh3');
+			this.pgSecPopupSticker.html(html);
+		}
 		if (this.lesson.renderCtx.launchMode() == 'report') {
 			help = pagetype.getSectionHelpReport(this.secNo);
 		} else {
@@ -2254,6 +2264,7 @@ function ModulePopupHadler() {
         var cancelButton = {id: 'cancel', text: 'Cancel'};
         var okButton = {id: 'ok', text: 'Delete Popup', fn: function() {
             njs_helper.Dialog.popdown();
+            _hidePopupSticker(section);
             if (section.oSection.popups) delete section.oSection.popups;
             g_lesson.globals.selectionHandler.unselectSection();
         }};
@@ -2262,6 +2273,7 @@ function ModulePopupHadler() {
     
     this.createPopup = function(section) {
         if (!section.oSection.popups) section.oSection.popups = {};
+        if(!section.page.pagetype.isInteractive(section)) _showPopupSticker(section);
         if (section.oSection.popups.onclick) return true;
         section.oSection.popups.onclick = [];
         var pages = section.oSection.popups.onclick;
@@ -2367,6 +2379,16 @@ function ModulePopupHadler() {
         }
     };
     
+    function _showPopupSticker(section) {
+		section.pgSecPopupSticker.show();
+		var html = njs_helper.fmt2('<i title="{}" class="icon {}"></i>', 'Click on section to view', 'ion-ios-information fsh3');
+		section.pgSecPopupSticker.html(html);
+    }			
+
+	function _hidePopupSticker(section) {
+		section.pgSecPopupSticker.hide();		
+	}
+	
     function _updateContent(pages) {
         var oPages = [];
         for(var i=0; i<pages.length; i++) {

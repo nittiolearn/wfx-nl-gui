@@ -26,10 +26,12 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
     var _pastUserDataFetchInitiated = false;
     var _postProcessRecords = [];
     var _userInfo = null;
+    var _nominatedUsers = null;
     this.init = function(summaryStats, userinfo) {
     	_userInfo = userinfo;
     	_records = {};
     	_reminderDict = {};
+    	_nominatedUsers = {};
     	_dates = {minUpdated: null, maxUpdated: null};
     	_summaryStats = summaryStats;
     	if (!nlGroupInfo.isPastUserXlsConfigured()) _pastUserData = {};
@@ -39,6 +41,10 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
     	return _reminderDict;
     };
     
+	this.getNominatedUserDict = function() {
+		return _nominatedUsers;
+	};
+	
     this.addRecord = function(report) {
     	if (report.ctype == _nl.ctypes.CTYPE_COURSE)
     		report = _processCourseReport(report);
@@ -73,6 +79,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
     this.reset = function() {
     	_records = {};
     	_reminderDict = {};
+    	_nominatedUsers = {};
     	_summaryStats.reset();
     };
     
@@ -153,6 +160,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         var repcontent = _updateCommonParams(report, 'course');
 		var user = _getStudentFromReport(report, repcontent);
 		if (!user) return null;
+		_nominatedUsers[user.id] = true;
         var course = nlLrCourseRecords.getRecord(report.lesson_id);
         var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:'+report.assignment);        
         if (!course) course = nlLrCourseRecords.getCourseInfoFromReport(report, repcontent);
@@ -292,6 +300,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         var repcontent = _updateCommonParams(report, 'module');
 		var user = _getStudentFromReport(report, repcontent);
 		if (!user) return null;
+		_nominatedUsers[user.id] = true;
 		report.showModuleProps = true;
         report.studentname = user.name;
         report._user_id = user.user_id;

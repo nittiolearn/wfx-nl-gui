@@ -31,15 +31,15 @@ function EditorFieldsDirective() {
 
 //-------------------------------------------------------------------------------------------------
 var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlLessonSelect', 
-'nlExportLevel', 'nlRouter', 'nlCourseCanvas', 'nlMarkup', 'nlTreeSelect',
-function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCourseCanvas, nlMarkup, nlTreeSelect) {
+'nlExportLevel', 'nlRouter', 'nlCourseCanvas', 'nlMarkup', 'nlTreeSelect', 'nlResourceAddModifySrv', 'NittioLesson',
+function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCourseCanvas, nlMarkup, nlTreeSelect, nlResourceAddModifySrv, NittioLesson) {
 
     var modeHandler = null;
     var $scope = null;
     var _allModules = [];
     var _debug = null;
 	var _userInfo = null;
-	
+	var _resourceDict = {};
     this.init = function(_scope, _modeHandler, userInfo) {
         $scope = _scope;
         modeHandler = _modeHandler;
@@ -68,7 +68,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			showWikiMarkupPreview: _showWikiMarkupPreview,
 			getDisplayValue: _getDisplayValue,
 			treeOptions: _getTreeOptions(),
-			getUrl: _getLaunchUrl
+			getUrl: _getLaunchUrl,
+			onFieldClick: _onFieldClick,
         };
     };
 
@@ -85,6 +86,24 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	this.validateInputs = function(cm) {
 		return _validateInputs(modeHandler.course, cm);		
 	};
+
+	function _onFieldClick() {
+		var resFilter = 'icon';
+		var selectedImgUrl = modeHandler.course.icon != "icon:" ? '' : modeHandler.course.icon;
+		var bgShade = '';
+		var markupText = nl.fmt2('img:{}[{}]', selectedImgUrl, bgShade); 
+		NittioLesson.getResourceLibrary().then(function(resourceDict) {
+			_resourceDict = resourceDict;
+			var promise = nlResourceAddModifySrv.insertOrUpdateResource($scope, 
+				            _userInfo.groupinfo.restypes, markupText, false, _resourceDict, resFilter, modeHandler.course.id);
+			promise.then(function(selected) {
+				if (!selected || !selected.url) return;
+				if(resFilter == 'icon') {
+		            modeHandler.course.icon = selected.url;
+				}
+			});
+		});
+	}
 	
     function _updateDropdowns(cm) {
     	var attrs = $scope.editor.module_attributes;

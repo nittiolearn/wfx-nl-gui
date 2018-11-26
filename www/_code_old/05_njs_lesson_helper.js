@@ -4,6 +4,7 @@ njs_lesson_helper = function() {
 //#############################################################################################
 
 function PendingTimer() {
+	var self = this;
 	this.timerId = null;
 
 	this.updateIfNeeded = function(lesson) {
@@ -13,15 +14,35 @@ function PendingTimer() {
 		var timeLimitSeconds = lesson.oLesson['timeLimitSeconds'];
 		if (timeLimitSeconds == null) return this.hideCounters();
 
-		jQuery('#countdown_timer').removeClass('hide_counter');
-
 		lesson.end_time = new Date(lesson.sessionStartTime.valueOf() + timeLimitSeconds*1000);
+		lesson.mentioned_endtime = new Date(lesson.oLesson['not_after'].valueOf() || '');
+		var now = new Date();
+		var pending = parseInt((lesson.end_time.valueOf() - now.valueOf())/1000);
+		var actual_pending = parseInt((lesson.mentioned_endtime.valueOf() - now.valueOf())/1000);
 		
-		this.checkEndTime(lesson);
-		var me = this;
-		this.timerId = setInterval(function() {
-			me.checkEndTime(lesson);
-		}, 500);
+		if(lesson.oLesson.max_duration && lesson.oLesson['not_after'] && !lesson.oLesson['submissionAfterEndTime'] && (actual_pending < pending)) {
+			var msg = njs_helper.fmt2("The specified duration for this assignment is {}, but you have only {} left as you are starting it late.", nittio.secondsToHmsString(lesson.oLesson.max_duration*60), nittio.secondsToHmsString(pending));
+			_showAlertDialog('Alert message', msg);
+		} else if(lesson.oLesson.max_duration){
+			_startTimer();
+		}
+		
+		function _showAlertDialog(title, msg) {
+			var cancelButton = {id: 'ok', text: 'Ok', fn: function() {
+				njs_helper.Dialog.popdown();
+				_startTimer();
+			}};
+			njs_helper.Dialog.popup(title, njs_helper.fmt2('<div>{}</div>', msg), [], cancelButton);
+		}
+
+		function _startTimer() {
+			jQuery('#countdown_timer').removeClass('hide_counter');
+			self.checkEndTime(lesson);
+			var me = self;
+			self.timerId = setInterval(function() {
+				me.checkEndTime(lesson);
+			}, 500);
+		}
 	};
 
 	this.hideCounters = function() {

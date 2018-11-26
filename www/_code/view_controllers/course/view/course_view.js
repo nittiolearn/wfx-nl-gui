@@ -129,7 +129,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         
         cm.attempt++;
         nlDlg.showLoadingScreen();
-        nlServerApi.courseCreateLessonReport(self.course.id, refid, cm.id, cm.attempt, cm.maxDuration||0).then(function(updatedCourseReport) {
+        nlServerApi.courseCreateLessonReport(self.course.id, refid, cm.id, cm.attempt, cm.maxDuration||0, self.course.not_before||'', self.course.not_after||'').then(function(updatedCourseReport) {
             nlDlg.hideLoadingScreen();
             self.course = updatedCourseReport;
             scope.updateAllItemData();
@@ -1537,7 +1537,7 @@ function Reopener(modeHandler, nlTreeListSrv, _userInfo, nl, nlDlg, nlServerApi,
 
         var cm = reopenLessons[pos];
         cm.attempt++;
-        nlServerApi.courseCreateLessonReport(modeHandler.course.id, cm.refid, cm.id, cm.attempt, cm.maxDuration||0)
+        nlServerApi.courseCreateLessonReport(modeHandler.course.id, cm.refid, cm.id, cm.attempt, cm.maxDuration||0, self.course.not_before||'', self.course.not_after||'')
         .then(function(updatedCourseReport) {
             modeHandler.course = updatedCourseReport;
             _createLessonReport(reopenLessons, pos+1, resolve);

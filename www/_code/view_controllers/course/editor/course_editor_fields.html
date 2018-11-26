@@ -34,15 +34,27 @@
     <div ng-class='$root.resp2Col67'
          ng-if='attr.type === "string" || attr.type === "number" || attr.type === "icon"'
          class='nl-dlg-field-value padding-mid'>
-        <input ng-model='values[attr.stored_at][attr.name]' class='w100'
+        <input ng-show='attr.type != "icon"' ng-model='values[attr.stored_at][attr.name]' class='w100'
         	   type='{{attr.type == "number" ? "number" : "text"}}'
         	   min='0'
                ng-change='editor.onAttrChange($event, attr, values[attr.stored_at])'
         	   ng-focus="attr.focus=true" ng-blur="attr.focus=false">
         <div ng-if='attr.icon'>
-            <div class='padding-small'></div>
-        	<img ng-if='values[attr.stored_at][attr.name] !== "icon:"' ng-src='{{values[attr.stored_at][attr.name]}}' class='nl-100'/>
-		    <div ng-if='values[attr.stored_at][attr.name] == "icon:"' class='fsh4'><i class='fsh1 ion-ios-bookmarks fblue'></i></div>
+			<div class='row row-top margin0'
+				 ng-keypress='onKeypress($event, "icon")'
+				 ng-click='editor.onFieldClick($event, "fieldmodel")'>
+			    <div class='padding-mid'>
+			    	<img ng-show='values[attr.stored_at][attr.name] != "icon:"'
+			    		 ng-src='{{values[attr.stored_at][attr.name]}}'
+			    		 class='nl-100 nl-link-img'>
+				</div>
+				<span class='image-round-button nl-link-img {{values[attr.stored_at][attr.name] ? "image-top-button" : ""}}' 
+					tabindex='{{fieldindex}}'>
+				    <i class='icon ion-edit nl-dlg-field-icon fsh4'></i>
+				</span>
+				<span>&nbsp;</span>
+			</div>
+        	<div ng-if='values[attr.stored_at][attr.name] == "icon:"' class='fsh4'><i class='fsh1 ion-ios-bookmarks fblue'></i></div>
         </div>
     </div>
     <div ng-class='$root.resp2Col67'
