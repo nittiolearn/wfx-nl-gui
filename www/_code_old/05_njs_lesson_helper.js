@@ -23,7 +23,7 @@ function PendingTimer() {
 		if(lesson.oLesson.max_duration && lesson.oLesson['not_after'] && !lesson.oLesson['submissionAfterEndTime'] && (actual_pending < pending)) {
 			var msg = njs_helper.fmt2("The specified duration for this assignment is {}, but you have only {} left as you are starting it late.", nittio.secondsToHmsString(lesson.oLesson.max_duration*60), nittio.secondsToHmsString(pending));
 			_showAlertDialog('Alert message', msg);
-		} else if(lesson.oLesson.max_duration){
+		} else if(lesson.oLesson.max_duration || lesson.oLesson['not_after']){
 			_startTimer();
 		}
 		

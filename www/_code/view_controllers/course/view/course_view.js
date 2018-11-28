@@ -125,7 +125,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         }
         
         // do mode
-        if (_redirectToLessonReport(reportInfo, newTab)) return true;
+        if (_redirectToLessonReport(reportInfo, newTab, cm)) return true;
         
         cm.attempt++;
         nlDlg.showLoadingScreen();
@@ -134,7 +134,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
             self.course = updatedCourseReport;
             scope.updateAllItemData();
             reportInfo = self.course.lessonReports[cm.id];
-            _redirectToLessonReport(reportInfo, newTab);
+            _redirectToLessonReport(reportInfo, newTab, cm);
         });
         
         return true;
@@ -227,11 +227,25 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         return true;
     }
 
-    function _redirectToLessonReport(reportInfo, newTab) {
+    function _redirectToLessonReport(reportInfo, newTab, cm) {
         if (!reportInfo) return false;
-        var urlFmt = reportInfo.completed ?  '/lesson/view_report_assign/{}' : '/lesson/do_report_assign/{}';
-        return _redirectTo(urlFmt, reportInfo.reportId, newTab);
-    }
+        return nl.q(function(resolve, reject) {
+	    	if(reportInfo && ((reportInfo.not_after != self.course.not_after) || (reportInfo.not_before != self.course.not_before))) {
+		        reportInfo.not_before = self.course.not_before || '';
+		        reportInfo.not_after = self.course.not_after || '';
+		        reportInfo.maxDuration = cm.maxDuration||0;
+		    	nlDlg.showLoadingScreen();
+				nlServerApi.courseUpdateLessonReport(self.course.id, cm.id, reportInfo).then(function(updatedCourseReport) {
+			    	nlDlg.hideLoadingScreen();
+			        var urlFmt = reportInfo.completed ?  '/lesson/view_report_assign/{}' : '/lesson/do_report_assign/{}';
+			        return _redirectTo(urlFmt, reportInfo.reportId, newTab);
+		        });
+	    	} else {
+		        var urlFmt = reportInfo.completed ?  '/lesson/view_report_assign/{}' : '/lesson/do_report_assign/{}';
+		        return _redirectTo(urlFmt, reportInfo.reportId, newTab);
+	    	}
+        });
+    }    
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -1537,7 +1551,7 @@ function Reopener(modeHandler, nlTreeListSrv, _userInfo, nl, nlDlg, nlServerApi,
 
         var cm = reopenLessons[pos];
         cm.attempt++;
-        nlServerApi.courseCreateLessonReport(modeHandler.course.id, cm.refid, cm.id, cm.attempt, cm.maxDuration||0, self.course.not_before||'', self.course.not_after||'')
+        nlServerApi.courseCreateLessonReport(modeHandler.course.id, cm.refid, cm.id, cm.attempt, cm.maxDuration||0, modeHandler.course.not_before||'', modeHandler.course.not_after||'')
         .then(function(updatedCourseReport) {
             modeHandler.course = updatedCourseReport;
             _createLessonReport(reopenLessons, pos+1, resolve);
@@ -1586,6 +1600,8 @@ function NlContainer(nl, $scope, modeHandler) {
         lessonReportInfo.attempt = lesson.attempt || 1;
         if (lesson.started)  lessonReportInfo.started = lesson.started;
         if (lesson.ended) lessonReportInfo.ended = lesson.ended;
+        if (lesson.not_after)  lessonReportInfo.not_after = lesson.not_after || '';
+        if (lesson.not_before) lessonReportInfo.not_before = lesson.not_before || '';
         if (lesson.timeSpentSeconds) lessonReportInfo.timeSpentSeconds = lesson.timeSpentSeconds;
         if (lesson.passScore)  lessonReportInfo.passScore = lesson.passScore;
         if (lesson.selfLearningMode)  lessonReportInfo.selfLearningMode = lesson.selfLearningMode;
