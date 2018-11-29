@@ -16,9 +16,10 @@ function PendingTimer() {
 		lesson.end_time = new Date(lesson.sessionStartTime.valueOf() + timeLimitSeconds*1000);
 
         var maxDuration = (lesson.oLesson.max_duration || 0)*60;
+        var timeLimitSeconds = Math.round(timeLimitSeconds);
 		if (timeLimitSeconds < maxDuration && lesson.oLesson['not_after'] && 
 			!lesson.oLesson['submissionAfterEndTime'] &&
-			!lessonDict['timeSpentSeconds']) {
+			!lesson.oLesson['timeSpentSeconds']) {
 			var msg = "The specified duration for this assignment is {}, but you have only {} left as you are starting it late.";
 			msg = njs_helper.fmt2(msg, nittio.secondsToHmsString(maxDuration), nittio.secondsToHmsString(timeLimitSeconds));
 			_showAlertDialog('Alert message', msg);

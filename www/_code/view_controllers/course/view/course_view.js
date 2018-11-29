@@ -231,8 +231,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         if (!reportInfo) return false;
         return nl.q(function(resolve, reject) {
 	        var urlFmt = reportInfo.completed ?  '/lesson/view_report_assign/{}' : '/lesson/do_report_assign/{}';
-        	if (!bUpdate || (reportInfo.not_after == self.course.not_after) 
-        		|| (reportInfo.not_before == self.course.not_before)) {
+        	if (!bUpdate || (reportInfo.not_after == self.course.not_after) && (reportInfo.not_before == self.course.not_before)) {
 		        return _redirectTo(urlFmt, reportInfo.reportId, newTab);
         	}
 	        reportInfo.not_before = self.course.not_before || '';
