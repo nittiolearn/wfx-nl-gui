@@ -1906,9 +1906,7 @@ nlesson = function() {
 		
 		var help;
 		if (this.oSection.popups && !this.page.pagetype.isInteractive(this)) {
-			this.pgSecPopupSticker.show();
-			var html = njs_helper.fmt2('<i title="{}" class="icon {}"></i>', 'Click on section to view', 'ion-ios-information fsh3');
-			this.pgSecPopupSticker.html(html);
+			modulePopup.showPopupSticker(this);
 		}
 		if (this.lesson.renderCtx.launchMode() == 'report') {
 			help = pagetype.getSectionHelpReport(this.secNo);
@@ -2243,6 +2241,7 @@ function ModulePopupHadler() {
     var _stack = [];
     var _mainPages = null;
     var _mainPageNo = 0;
+    var self = this;
 
     this.isPopupOpen = function() {
         return (_stack.length > 0);
@@ -2264,7 +2263,7 @@ function ModulePopupHadler() {
         var cancelButton = {id: 'cancel', text: 'Cancel'};
         var okButton = {id: 'ok', text: 'Delete Popup', fn: function() {
             njs_helper.Dialog.popdown();
-            _hidePopupSticker(section);
+            self.hidePopupSticker(section);
             if (section.oSection.popups) delete section.oSection.popups;
             g_lesson.globals.selectionHandler.unselectSection();
         }};
@@ -2273,7 +2272,7 @@ function ModulePopupHadler() {
     
     this.createPopup = function(section) {
         if (!section.oSection.popups) section.oSection.popups = {};
-        if(!section.page.pagetype.isInteractive(section)) _showPopupSticker(section);
+        if(!section.page.pagetype.isInteractive(section)) this.showPopupSticker(section);
         if (section.oSection.popups.onclick) return true;
         section.oSection.popups.onclick = [];
         var pages = section.oSection.popups.onclick;
@@ -2379,15 +2378,15 @@ function ModulePopupHadler() {
         }
     };
     
-    function _showPopupSticker(section) {
+    this.showPopupSticker = function(section) {
 		section.pgSecPopupSticker.show();
 		var html = njs_helper.fmt2('<i title="{}" class="icon {}"></i>', 'Click on section to view', 'ion-ios-information fsh3');
 		section.pgSecPopupSticker.html(html);
-    }			
+    };
 
-	function _hidePopupSticker(section) {
+	this.hidePopupSticker =  function(section) {
 		section.pgSecPopupSticker.hide();		
-	}
+	};
 	
     function _updateContent(pages) {
         var oPages = [];

@@ -12,21 +12,20 @@ function PendingTimer() {
         lesson.sessionStartTime = new Date();
 
 		var timeLimitSeconds = lesson.oLesson['timeLimitSeconds'];
-		if (timeLimitSeconds == null) return this.hideCounters();
-
+		if (timeLimitSeconds == null || timeLimitSeconds > 24*60*60) return this.hideCounters();
 		lesson.end_time = new Date(lesson.sessionStartTime.valueOf() + timeLimitSeconds*1000);
-		lesson.mentioned_endtime = new Date(lesson.oLesson['not_after'].valueOf() || '');
-		var now = new Date();
-		var pending = parseInt((lesson.end_time.valueOf() - now.valueOf())/1000);
-		var actual_pending = parseInt((lesson.mentioned_endtime.valueOf() - now.valueOf())/1000);
-		
-		if(lesson.oLesson.max_duration && lesson.oLesson['not_after'] && !lesson.oLesson['submissionAfterEndTime'] && (actual_pending < pending)) {
-			var msg = njs_helper.fmt2("The specified duration for this assignment is {}, but you have only {} left as you are starting it late.", nittio.secondsToHmsString(lesson.oLesson.max_duration*60), nittio.secondsToHmsString(pending));
+
+        var maxDuration = (lesson.oLesson.max_duration || 0)*60;
+		if (timeLimitSeconds < maxDuration && lesson.oLesson['not_after'] && 
+			!lesson.oLesson['submissionAfterEndTime'] &&
+			!lessonDict['timeSpentSeconds']) {
+			var msg = "The specified duration for this assignment is {}, but you have only {} left as you are starting it late.";
+			msg = njs_helper.fmt2(msg, nittio.secondsToHmsString(maxDuration), nittio.secondsToHmsString(timeLimitSeconds));
 			_showAlertDialog('Alert message', msg);
-		} else if(lesson.oLesson.max_duration || lesson.oLesson['not_after']){
+		} else {
 			_startTimer();
 		}
-		
+
 		function _showAlertDialog(title, msg) {
 			var cancelButton = {id: 'ok', text: 'Ok', fn: function() {
 				njs_helper.Dialog.popdown();
@@ -38,13 +37,12 @@ function PendingTimer() {
 		function _startTimer() {
 			jQuery('#countdown_timer').removeClass('hide_counter');
 			self.checkEndTime(lesson);
-			var me = self;
 			self.timerId = setInterval(function() {
-				me.checkEndTime(lesson);
+				self.checkEndTime(lesson);
 			}, 500);
 		}
 	};
-
+		
 	this.hideCounters = function() {
 		jQuery('#toggle_timer_icon').hide();
 		return false;

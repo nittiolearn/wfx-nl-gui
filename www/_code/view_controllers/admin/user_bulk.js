@@ -470,6 +470,9 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             if (!(row.username in _groupInfo.derived.keyToUsers))
                 _throwException('User id not found', row);
         } else if (row.op == 'c' || row.op == 'C') {
+	        var newUserName = row.user_id + '.' + row.gid;
+	        if (newUserName != row.username)
+	            _throwException('User id and username mis match. Please have same username and user id', row);
             if (row.username in _groupInfo.derived.keyToUsers)
                 _throwException('User id already exists', row);
         }
