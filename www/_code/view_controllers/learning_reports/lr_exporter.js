@@ -236,7 +236,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             if(records[i].raw_record.ctype == _nl.ctypes.CTYPE_MODULE) {
 	            row = _getModuleCsvRow(filter, records[i]);
             } else {
-	            row = _getCsvRow(filter, records[i]);
+                row = _getCsvRow(filter, records[i]);
             }
 
 			var selectedCourseId = false;
@@ -298,7 +298,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var headers = ['User Id', 'User Name'];
         headers = headers.concat(['Course Name', 'Batch name', _gradelabel, _subjectlabel, 'Assigned On', 'Last Updated On', 
             'From', 'Till', 'Status', 'Progress', 'Progress Details', 'Quiz Attempts',
-            'Achieved %', 'Maximum Score', 'Achieved Score', 'Feedback score', 'Time Spent (minutes)', 'ILT time spent(minutes)', 'Venue', 'Trainer name',]);
+            'Achieved %', 'Maximum Score', 'Achieved Score', 'Feedback score', 'Time Spent (minutes)', 'ILT time spent(minutes)', 'ILT total time(minutes)', 'Venue', 'Trainer name',]);
     	headers = headers.concat([ 'Infra Cost', 'Trainer Cost', 'Food Cost', 'Travel Cost', 'Misc Cost']);
         headers = headers.concat(['User state', 'Email Id', 'Org']);
         for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
@@ -318,7 +318,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             report.stats.status.txt, '' + report.stats.percComplete + '%',
             report.stats.percCompleteDesc, report.stats.avgAttempts,
             report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore, feedbackScore,
-            Math.ceil(report.stats.timeSpentSeconds/60), Math.ceil(report.stats.iltTimeSpent/60)]);
+            Math.ceil(report.stats.timeSpentSeconds/60), Math.ceil(report.stats.iltTimeSpent/60), Math.ceil(report.stats.iltTotalTime)]);
         ret = ret.concat([report.repcontent.iltVenue || '', report.repcontent.iltTrainerName || '', report.repcontent.iltCostInfra || '', report.repcontent.iltCostTrainer || '',
         			report.repcontent.iltCostFoodSta || '', report.repcontent.iltCostTravelAco || '', report.repcontent.iltCostMisc || '']);
         ret.push(report.user.state ? 'active' : 'inactive');        
@@ -452,6 +452,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 			{id: 'not_after', name: 'Till', fmt: 'minute'},
 			{id: 'status', name: 'Status'},
             {id: '_timeMins', name:'ILT Time Spent(minutes)'},
+            {id: '_timeTotalMins', name:'ILT Total Time(minutes)'},
             {id: 'iltVenue', name: 'Venue'},
             {id: 'iltTrainerName', name: 'Trainer name'},
             {id: 'iltCostInfra', name: 'Infra cost'},
@@ -487,7 +488,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var record = {_user_id: rep.user.user_id, studentname: rep.repcontent.studentname, 
         				_assignTypeStr: 'Course', _courseName: rep.repcontent.name, _batchName: rep.repcontent.batchname,
         				session: '', subject: rep.course.contentmetadata.subject,  _grade: rep.course.contentmetadata.grade, 
-        				not_before: rep.repcontent.not_before, not_after: rep.repcontent.not_after, status: '-', _timeMins: (rep.stats.iltTimeSpent+rep.stats.timeSpentSeconds)/60,
+                        not_before: rep.repcontent.not_before, not_after: rep.repcontent.not_after, status: '-', 
+                        _timeMins: (rep.stats.iltTimeSpent+rep.stats.timeSpentSeconds)/60, 
         				iltVenue: rep.repcontent.iltVenue, iltTrainerName: rep.repcontent.iltTrainerName, iltCostInfra : rep.repcontent.iltCostInfra,
         				iltCostTrainer: rep.repcontent.iltCostTrainer, iltCostFoodSta: rep.repcontent.iltCostFoodSta, iltCostTravelAco: rep.repcontent.iltCostTravelAco,
         				iltCostMisc: rep.repcontent.iltCostMisc, _stateStr: rep.user.state ? 'active' : 'inactive', _email: rep.user.email, org_unit: rep.user.org_unit};
@@ -505,10 +507,12 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         	if(rep.repcontent.statusinfo && rep.repcontent.statusinfo[session.id]) {
 	        	record['status'] = rep.repcontent.statusinfo[session.id].status == 'done' ? (rep.repcontent.statusinfo[session.id].state == 'attended' ? 'Attended' : 'Not attended') : 'pending';
 	        	record['_timeMins'] = rep.repcontent.statusinfo[session.id].time;
+                record['_timeTotalMins'] = rep.repcontent.statusinfo[session.id].state == 'attended' ? rep.repcontent.statusinfo[session.id].time : rep.repcontent.statusinfo[session.id].ilttime;
         	} else {
         		record['status'] = 'Pending';
-        		record['_timeMins'] = '';
-        	}
+                record['_timeMins'] = '';
+                record['_timeTotalMins'] = '';
+            }
 	        ctx.sessionRows.push(nlExporter.getCsvRow(_hSessionRow, record));
         }
 	}

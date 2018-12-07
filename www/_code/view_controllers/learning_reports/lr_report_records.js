@@ -170,7 +170,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
 		
         var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
             timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
-            internalIdentifier:report.id, nCerts: course.certificates.length, iltTimeSpent: 0};
+            internalIdentifier:report.id, nCerts: course.certificates.length, iltTimeSpent: 0, iltTotalTime: 0};
             
         var started = false;
         if(course.content.blended) {
@@ -180,9 +180,12 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
 	        	var elem = course.content.modules[i];
 	        	if(elem.type != 'iltsession' || !(attendance[report.id] || notAttended[report.id])) continue;
 	        	var userAttendance = attendance[report.id] || [];
-	        	var userNotAttended = notAttended[report.id] || [];
+                var userNotAttended = notAttended[report.id] || [];
+                stats.iltTotalTime += elem.iltduration;
+                var userAttendanceFound = false;
 		    	for(var j=0; j<userAttendance.length; j++) {
 		    		if(userAttendance[j] == elem.id) {
+                        userAttendanceFound = true;
 		    			if(!repcontent.statusinfo) repcontent.statusinfo = {};
 		    			if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
 		    			repcontent.statusinfo[elem.id].status = 'done';
@@ -190,15 +193,25 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
 		    			repcontent.statusinfo[elem.id].time = elem.iltduration;
 		    			stats.iltTimeSpent += elem.iltduration*60;
 		    		}
-		    	}
-		    	for(var j=0; j<userNotAttended.length; j++) {
-		    		if(userNotAttended[j] == elem.id) {
-		    			if(!repcontent.statusinfo) repcontent.statusinfo = {};
-		    			if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
-		    			repcontent.statusinfo[elem.id].status = 'done';
-		    			repcontent.statusinfo[elem.id].state = 'not_attended';
-		    		}
-		    	}
+                }
+                if(!userAttendanceFound) {
+                    for(var j=0; j<userNotAttended.length; j++) {
+                        if(userNotAttended[j] == elem.id) {
+                            userAttendanceFound = true;
+                            if(!repcontent.statusinfo) repcontent.statusinfo = {};
+                            if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
+                            repcontent.statusinfo[elem.id].status = 'done';
+                            repcontent.statusinfo[elem.id].state = 'not_attended';
+                            repcontent.statusinfo[elem.id].ilttime = elem.iltduration;
+                        }
+                    }    
+                }
+                if(!userAttendanceFound) {
+                    if(!repcontent.statusinfo) repcontent.statusinfo = {};
+                    if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
+                    repcontent.statusinfo[elem.id].state = 'pending';
+                    repcontent.statusinfo[elem.id].ilttime = elem.iltduration;
+                }
 	        }
         }
         var statusinfo = repcontent.statusinfo || {};
