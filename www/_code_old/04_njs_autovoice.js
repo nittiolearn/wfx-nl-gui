@@ -116,7 +116,7 @@ function AutoVoice() {
     }
     
     function _onButtonClick(button, audioTextItems) {
-        if (button.state == 'none' || button.state == 'paused') {
+        if (button.state == 'none') {
             _startAutoVoice(button, audioTextItems);
             _canAutoPlay = true;
             button.state = 'playing';
