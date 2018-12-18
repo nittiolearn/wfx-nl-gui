@@ -1,4 +1,14 @@
-<div class='nl-thin-scroll padding-small'>
+<style>
+	.nl-pagetype-selected {
+	    background-color: #CCCCDD;
+		border-radius: 8px 0px 0px 8px;
+		border-top: 1px solid rgba(0, 0, 0, 0.1);
+		border-left: 1px solid rgba(0, 0, 0, 0.1);
+		border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+		z-index: 10;
+	}
+</style>
+<div class='nl-thin-scroll padding-small' style='position:absolute; width: 100%; height: 100%'>
 <div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
     <div class='row row-center margin0 padding0'
          style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
@@ -15,7 +25,7 @@
     </div>
     <div class='padding-small'></div>
     <div ng-show='filterStr && screenSize == "small"' class='fsh6 padding-mid anim fade'>
-        {{filterStr}}
+        {{filterStr}} 
     </div>    
     <div ng-show='fetchInProgress' class='forange fsh6 row row-center margin0 padding-mid anim fade'>
         <i class="icon ion-alert-circled padding-mid"></i>
@@ -29,80 +39,128 @@
         <i class="icon ion-alert-circled padding-mid"></i>
         <span class='col padding-mid'>Not all records are fetched from the server. Click on 'Fetch more' toolbar icon to fetch more records.</span>
     </div>    
-    
-    <div class='padding-small'></div>
-    <div ng-click='ui.showOrgs = !ui.showOrgs' class='fsh5 nl-link-text2 row row-center margin0 padding0'>
-        <i ng-show='!ui.showOrgs' class="icon ion-arrow-right-b padding-mid"></i>
-        <i ng-show='ui.showOrgs' class="icon ion-arrow-down-b padding-mid"></i>
-        <span class='col padding-mid'>Organizational summary</span>
+    <div>
+        <div class='row row-center padding0 margin0'>
+            <input class='col padding-mid' ng-model='selectedTable.search.filter'
+                placeholder='{{selectedTable.search.placeholder}}'
+                ng-keydown='selectedTable._internal.searcher.onKeyDown($event)'>
+            <div class='padding-small'></div>
+            <i class='nl-link-text icon fsh4 fblue padding-mid ion-ios-search'
+                ng-click='selectedTable._internal.searcher.onClick(0)'>
+            </i>
+        </div>
+        <div class='padding-small'></div>
+        <div class='fgrey2'>{{selectedTable._internal.searcher.infotxt}}</div>
+        <div class='padding-small'></div>    
     </div>
-    <div class='sandbox'>
-    <div ng-show='ui.showOrgs' class='padding-mid anim fade flyfrom-t'>
-        <nl-table info='otable'>
-            <div class='row padding0 margin0'>
-                <div class='col'></div>
-                <div class='padding-mid nl-link-text2'
-                     ng-show='otable._internal.visibleRecs.length > 0'
-                     ng-click='ui.showOrgCharts = !ui.showOrgCharts'>
-                    <span ng-show='!ui.showOrgCharts'>Show charts
-                        <i class='padding-small'></i>
-                        <i class="icon ion-plus-circled fsh5"></i>
+    <div class='padding-small'></div>
+    <div class='row row-top padding0 margin0' style='border-top:1px solid rgba(0, 0, 0, 0.8)'>
+        <div style='padding-right:0px''>
+            <div ng-repeat='tb in filterElements'
+                class='nl-link-text {{(tb.id == selectedFilter.id) ? "nl-pagetype-selected" : ""}}'
+                style='border-right: {{(tb.id == selectedFilter.id) ? "1px solid #fff" : ""}}'>
+                <div class='padding-mid' 
+                    ng-click='tb.onClick(tb)'
+                    style='position:relative'>
+                    <span title='{{tb.title}}'
+                        class='nl-toolbar-icon'>
+                        <i class="icon {{tb.icon}}"></i>
                     </span>
-                    <span ng-show='ui.showOrgCharts'>Hide charts
-                        <i class='padding-small'></i>
-                        <i class="icon ion-minus-circled fsh5"></i>
-                    </span>
+                    <span ng-show='screenSize == "large"'>{{tb.name}}</span>
+                </div>
+            </div>
+        </div>
+        <div class='col' style='border-left: 1px solid rgba(0, 0, 0, 0.8); min-height: 72vh'>
+            <div  ng-show='selectedFilter.id == "overview"'>
+                <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
+                    <div class='col padding0 margin0'>
+                        <div class='row row-center text-center row-wrap padding0 margin0'>
+                            <nl-summary-box number='overviewArray[0].perc' 
+                                    title='overviewArray[0].title' 
+                                    class='col padding0'
+                                    desc='overviewArray[0].desc'
+                                    showperc='overviewArray[0].showperc'
+                                    background='"#f1f1f1"'
+                                    style='width1: {{screenSize != "large" ? 100 : ""}}%; text-align: -webkit-center'>
+                            </nl-summary-box>
+                            <nl-summary-box number='overviewArray[1].perc' 
+                                    title='overviewArray[1].title' 
+                                    class='col padding0'
+                                    desc='overviewArray[1].desc'
+                                    showperc='overviewArray[1].showperc'
+                                    background='"#f1f1f1"'
+                                    style='width1: {{screenSize != "large" ? 100 : ""}}%; text-align: -webkit-center'>
+                            </nl-summary-box>
+                        </div>
+                    </div>
+                    <div class='col padding0 margin0'>
+                        <div class='row row-center text-center row-wrap padding0 margin0'>
+                                <nl-summary-box number='overviewArray[2].perc' 
+                                    title='overviewArray[2].title' 
+                                    class='col padding0'
+                                    desc='overviewArray[2].desc'
+                                    showperc='overviewArray[2].showperc'
+                                    background='"#f1f1f1"'
+                                    style='width1: {{screenSize != "large" ? 100 : ""}}%; text-align: -webkit-center'>
+                            </nl-summary-box>
+                                <nl-summary-box number='overviewArray[3].perc' 
+                                    title='overviewArray[3].title' 
+                                    class='col padding0'
+                                    desc='overviewArray[3].desc'
+                                    showperc='overviewArray[3].showperc'
+                                    background='"#f1f1f1"'
+                                    style='width1: {{screenSize != "large" ? 100 : ""}}%; text-align: -webkit-center'>
+                            </nl-summary-box>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div ng-if='ui.showOrgs && ui.showOrgCharts && otable._internal.visibleRecs.length > 0'
+                        class='anim fade flyfrom-t row row-top row-wrap margin0 padding0'>
+                        <div ng-class='respCol221' class='text-center padding-mid'>
+                            <div class='padding-small'></div>
+                            <div class='fsh4 padding-mid'>{{charts[0].title}}</div>
+                            <div>
+                                <canvas class='chart chart-doughnut'
+                                        height='300'
+                                        width='300'
+                                        chart-data='charts[0].data'
+                                        chart-labels='charts[0].labels'
+                                        chart-colours='charts[0].colors'
+                                        chart-series='charts[0].series'
+                                        chart-options='charts[0].options'>
+                                </canvas>
+                            </div>
+                        </div>
+                        <div ng-class='respCol221' class='text-center padding-mid'>
+                            <div class='padding-small'></div>
+                            <div class='fsh4 padding-mid'>{{charts[1].title}}</div>
+                            <div>
+                                <canvas class='chart chart-bar'
+                                        height='300'
+                                        width='500'
+                                        chart-data='charts[1].data'
+                                        chart-labels='charts[1].labels'
+                                        chart-colours='charts[1].colors'
+                                        chart-series='charts[1].series'
+                                        chart-options='charts[1].options'>
+                                </canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-show='selectedFilter.id == "organisations"' class='sandbox'>
+                <div ng-show='ui.showOrgs' class='padding-mid anim fade flyfrom-t'>
+                    <nl-table info='otable'></nl-table>
                 </div>
             </div>
             <div class='sandbox'>
-                <div ng-if='ui.showOrgs && ui.showOrgCharts && otable._internal.visibleRecs.length > 0'
-                     class='anim fade flyfrom-t row row-top row-wrap margin0 padding0'>
-                    <div ng-class='respCol221' class='text-center padding-mid'>
-                        <div class='padding-small'></div>
-                        <div class='fsh4 padding-mid'>{{charts[0].title}}</div>
-                        <div>
-                            <canvas class='chart chart-doughnut'
-                                    height='300'
-                                    width='300'
-                                    chart-data='charts[0].data'
-                                    chart-labels='charts[0].labels'
-                                    chart-colours='charts[0].colors'
-                                    chart-series='charts[0].series'
-                                    chart-options='charts[0].options'>
-                            </canvas>
-                        </div>
-                    </div>
-                    <div ng-class='respCol221' class='text-center padding-mid'>
-                        <div class='padding-small'></div>
-                        <div class='fsh4 padding-mid'>{{charts[1].title}}</div>
-                        <div>
-                            <canvas class='chart chart-line'
-                                    height='300'
-                                    width='500'
-                                    chart-data='charts[1].data'
-                                    chart-labels='charts[1].labels'
-                                    chart-colours='charts[1].colors'
-                                    chart-series='charts[1].series'
-                                    chart-options='charts[1].options'>
-                            </canvas>
-                        </div>
-                    </div>
+                <div ng-show='selectedFilter.id == "learningrecords"' class='padding-mid anim fade flyfrom-t'>
+                    <nl-table info='utable'></table>
                 </div>
             </div>
-        </nl-table>
-    </div>
-    </div>
-
-    <div class='padding-small'></div>
-    <div ng-click='ui.showUsers = !ui.showUsers' class='fsh5 nl-link-text2 row row-center margin0 padding0'>
-        <i ng-show='!ui.showUsers' class="icon ion-arrow-right-b padding-mid"></i>
-        <i ng-show='ui.showUsers' class="icon ion-arrow-down-b padding-mid"></i>
-        <span class='col padding-mid'>User reports</span>
-    </div>
-    <div class='sandbox'>
-    <div ng-show='ui.showUsers' class='padding-mid anim fade flyfrom-t'>
-        <nl-table info='utable'></table>
-    </div>
+        </div>
     </div>
 </div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
 </div>

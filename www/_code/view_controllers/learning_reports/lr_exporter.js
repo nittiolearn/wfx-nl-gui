@@ -318,7 +318,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             report.stats.status.txt, '' + report.stats.percComplete + '%',
             report.stats.percCompleteDesc, report.stats.avgAttempts,
             report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore, feedbackScore,
-            Math.ceil(report.stats.timeSpentSeconds/60), Math.ceil(report.stats.iltTimeSpent/60), Math.ceil(report.stats.iltTotalTime)]);
+            Math.ceil(report.stats.timeSpentSeconds/60), Math.ceil(report.stats.iltTimeSpent/60), report.stats.iltTotalTime]);
         ret = ret.concat([report.repcontent.iltVenue || '', report.repcontent.iltTrainerName || '', report.repcontent.iltCostInfra || '', report.repcontent.iltCostTrainer || '',
         			report.repcontent.iltCostFoodSta || '', report.repcontent.iltCostTravelAco || '', report.repcontent.iltCostMisc || '']);
         ret.push(report.user.state ? 'active' : 'inactive');        
@@ -506,8 +506,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         	record['_assignTypeStr'] = session.type;
         	if(rep.repcontent.statusinfo && rep.repcontent.statusinfo[session.id]) {
 	        	record['status'] = rep.repcontent.statusinfo[session.id].status == 'done' ? (rep.repcontent.statusinfo[session.id].state == 'attended' ? 'Attended' : 'Not attended') : 'pending';
-	        	record['_timeMins'] = rep.repcontent.statusinfo[session.id].time;
-                record['_timeTotalMins'] = rep.repcontent.statusinfo[session.id].state == 'attended' ? rep.repcontent.statusinfo[session.id].time : rep.repcontent.statusinfo[session.id].ilttime;
+	        	record['_timeMins'] = rep.repcontent.statusinfo[session.id].state == 'attended' ? rep.repcontent.statusinfo[session.id].iltTotalTime : '';
+                record['_timeTotalMins'] = rep.repcontent.statusinfo[session.id].iltTotalTime;
         	} else {
         		record['status'] = 'Pending';
                 record['_timeMins'] = '';
