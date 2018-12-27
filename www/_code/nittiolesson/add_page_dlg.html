@@ -70,21 +70,6 @@
       overflow : hidden;
       max-width: 240px;
     }
-	
-	.nl-pagetype-selected {
-	    background-color: #CCCCDD;
-		border-radius: 8px 0px 0px 8px;
-		border-top: 1px solid rgba(0, 0, 0, 0.1);
-		border-left: 1px solid rgba(0, 0, 0, 0.1);
-		border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-		z-index: 10;
-	}
-
-	.nl-border-tab{
-		border-left: 1px solid rgba(0, 0, 0, 0.1);
-		padding-left: 0px;
-		min-height: 82vh;
-	}
 </style>
 
 <nl-dlg dlgtitle='{{dlgTitle}}'
@@ -98,7 +83,7 @@ show-close='{{showClose}}'>
 				ng-hide='screenSize == "small"'>
 				<div class='padding-mid fsh4'>Page Types</div>
 				<div ng-repeat='page in options.pagetype track by page.id'
-					class='nl-link-text {{page.selected ? "nl-pagetype-selected" : ""}}'>
+					class='nl-link-text {{page.selected ? "nl-left-tab-selected" : "nl-left-tab"}}'>
 					<div class='padding-mid' 
 						ng-click='onClick("pagetype", page)'
 						style='position:relative'>
@@ -106,7 +91,7 @@ show-close='{{showClose}}'>
 					</div>
 				</div>
 			</div>
-			<div class='col {{screenSize != "small" ? "nl-border-tab" : ""}}'>
+			<div class='col {{screenSize != "small" ? "nl-left-tabbed-content" : ""}}'>
 				<div ng-show='screenSize == "small"'>
 					<nl-dlg-row attr='pagetype' data='data' help='help'>
 						<nl-select fieldmodel='pagetype'></nl-select>

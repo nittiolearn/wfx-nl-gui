@@ -54,7 +54,7 @@
 						</div>
 						<div ng-if='cm.type != "module"' class='col'></div>
 					    <div ng-show='cm.type != "module" && ext.canShowLaunch(cm)' 
-					    	class='nl-link-text {{getLaunchButtonState(cm) == "dark" ? "nl-button-highlight" : "nl-button-lowlight"}}'
+					    	class='nl-link-text {{getLaunchButtonState(cm) == "dark" ? "nl-button-highlight" : "nl-button-lowlight"}} {{ext.isAssesmentModule(cm) ? "nl-button-review" : ""}}'
 			                ng-click='onLaunch($event, cm)'
 			                title='{{ext.getLaunchString(cm)}}'>
 						        <span>{{ext.getLaunchString(cm)}}</span>

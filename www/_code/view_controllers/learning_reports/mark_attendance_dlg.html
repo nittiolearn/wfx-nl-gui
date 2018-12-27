@@ -1,13 +1,3 @@
-<style>
-	.nl-pagetype-selected {
-	    background-color: #CCCCDD;
-		border-radius: 8px 0px 0px 8px;
-		border-top: 1px solid rgba(0, 0, 0, 0.1);
-		border-left: 1px solid rgba(0, 0, 0, 0.1);
-		border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-		z-index: 10;
-	}	
-</style>
 <nl-dlg dlgTitle='Mark attendance' show-help='0'>
 <nl-dlg-content>
 <div class='row row-top padding0 margin0'>
@@ -15,7 +5,7 @@
 		style='padding-right:0px'>
 		<div class='padding-mid fsh4'>Sessions</div>
 		<div ng-repeat='session in sessions'
-			class='nl-link-text {{session.id == selectedSession.id ? "nl-pagetype-selected" : ""}} padding-small'>
+			class='nl-link-text {{session.id == selectedSession.id ? "nl-left-tab-selected" : "nl-left-tab"}} padding-small'>
 			<div class='padding-mid' 
 				ng-click='onClick(session)'
 				style='position:relative'>
@@ -23,7 +13,7 @@
 			</div>
 		</div>
 	</div>
-	<div ng-class='resp2Col67'>
+	<div ng-class='resp2Col67' class='nl-left-tabbed-content'>
 		<div class='col padding-mid fsh4'>Attendance is not marked for</div>
 		<div class='row row-center padding0 margin0'>
 			<div class='col padding-mid fsmall fgrey'>(click on the checkbox to mark a learner as attended, click again to mark as absent and click once more to clear)</div>

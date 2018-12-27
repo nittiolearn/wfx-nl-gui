@@ -1399,6 +1399,12 @@ nl-cards {
   border: 1px solid $nlInactive;
 }
 
+.nl-button-review {
+  border: 2px solid $nlPrimary;
+  background-color: $nlPrimary;
+  color: #ffffff;
+  box-shadow: 2px 4px 5px 0px rgba(0, 0, 0, 0.5);
+}
 //-----------------------------------------------------------------------------------------
 // search-box css code
 //------------------------------------------------------------------------------------------   
@@ -1413,6 +1419,26 @@ nl-cards {
   &:focus {
     box-shadow: 0 0 5px rgba(81, 203, 238, 1);
   }
+}
+
+.nl-left-tabbed-content {
+  border-left: 1px solid #CCCCDD;
+  padding-left: 0;
+}
+
+.nl-left-tab {
+  border-radius: 8px 0px 0px 8px;
+  border-top: 1px dotted rgba(0, 0, 0, 0.05);
+  border-left: 1px dotted rgba(0, 0, 0, 0.05);
+  border-bottom: 1px dotted rgba(0, 0, 0, 0.05);
+}
+
+.nl-left-tab-selected {
+  background-color: #CCCCDD;
+  border-radius: 8px 0px 0px 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 //-----------------------------------------------------------------------------------------

@@ -290,6 +290,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     }
 
     function _onPageLeave() {
+        // if(modeHandler.mode == MODES.EDIT) {
+        //     var msg = nl.t('Warning: There are some unsaved changes in this page. Press ok to try saving the changes. Press cancel to discard the changes and leave the page.');
+        //     var ret = confirm(msg);
+        //     if (!ret) return true;
+        //     _updatedStatusinfoAtServer(true);
+        //     return false;
+        // }
         if (!_isDirty()) return true;        	
         var msg = nl.t('Warning: There are some unsaved changes in this page. Press ok to try saving the changes. Press cancel to discard the changes and leave the page.');
         var ret = confirm(msg);
@@ -1166,6 +1173,14 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
         if (modeHandler.mode == MODES.DO) return (this.item.state.status != 'waiting');
         return (this.item.state.status == 'success' || this.item.state.status == 'failed');
     };
+
+    this.isAssesmentModule = function(cm) {
+        if(cm.type == 'lesson' && (cm.state.status == 'success' || cm.state.status == 'failed') && cm.maxScore) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     this.getLaunchString = function(cm) {
         if (!cm) {

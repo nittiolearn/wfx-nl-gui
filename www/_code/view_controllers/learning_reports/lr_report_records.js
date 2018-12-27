@@ -95,6 +95,11 @@
             return ret;
         };
         
+        this.getMonthRanges = function() {
+            if (!_dates.minUpdated || !_dates.maxUpdated) return [];
+
+        }
+
         this.getTimeRanges = function(maxBuckets) {
             if (!maxBuckets) maxBuckets = 8;
             if (!_dates.minUpdated || !_dates.maxUpdated) return [];
@@ -382,6 +387,7 @@
             report.assign_remarks = repcontent.assign_remarks || '';
             var maxScore = repcontent.selfLearningMode ? 0 : parseInt(repcontent.maxScore || 0);
             stats.nQuiz = maxScore ? 1 : 0;
+
             if (!report.completed) {
                 report._percStr = '';
                 report._statusStr = report.started ? 'started' : 'pending';
