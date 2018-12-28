@@ -96,6 +96,13 @@
         };
         
         function _getRangeStart(rangeEnd, rangeType, rangeSize) {
+            if (rangeType == 'months') {
+                // TODO: find the first day of the month of rangeEnd's month and return it
+            } else if (rangeType == 'weeks') {
+                // TODO: find the monday closest to rangeEnd and return it
+            } else if (rangeType == 'days') {
+                // TODO: find the yesterday of rangeEnd and return it
+            }
             return new Date(rangeEnd.getTime() - rangeSize);
         }
 
