@@ -199,7 +199,7 @@
                 title: '=',
                 desc: '=',
                 showperc: '=',
-                background: '=',
+                boxclass: '=',
                 custom: '='
             },
             templateUrl: 'lib_ui/utils/summary_box.html'

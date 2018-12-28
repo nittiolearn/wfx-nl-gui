@@ -42,24 +42,7 @@
                 ng-click='selectedTable._internal.searcher.onClick(0)'>
             </i>
         </div>
-        <div class='padding-small'></div>
-        <div class='fgrey2'>{{selectedTable._internal.searcher.infotxt}}</div>
-        <div class='padding-small'></div>    
     </div>
-    <!-- <div>
-        <div class='row row-center padding0 margin0'>
-            <input class='col padding-mid' ng-model='searchDict.searchStr'
-                placeholder='{{searchDict.placeholder}}'
-                ng-keydown=''>
-            <div class='padding-small'></div>
-            <i class='nl-link-text icon fsh4 fblue padding-mid ion-ios-search'
-                ng-click='selectedTable._internal.searcher.onClick(0)'>
-            </i>
-        </div>
-        <div class='padding-small'></div>
-        <div class='fgrey2'>{{searchDict.infoText}}</div>
-        <div class='padding-small'></div>    
-    </div> -->
     <div class='padding-small'></div>
     <div class='row row-top row-stretch padding0 margin0 ' style='border-top: 1px solid #CCCCDD'>
         <div style='padding-right:0px''>
@@ -69,7 +52,7 @@
                     ng-click='tb.onClick(tb)'
                     style='position:relative'>
                     <span title='{{tb.title}}'
-                        class='nl-toolbar-icon'>
+                        class='nl-toolbar-icon no-hover'>
                         <i class="icon {{tb.icon}}"></i>
                     </span>
                     <span ng-show='screenSize == "large"'>{{tb.name}}</span>
@@ -80,85 +63,66 @@
             <div  ng-if='selectedTab.id == "overview" && ui.showOrgs && ui.showOrgCharts && otable._internal.visibleRecs.length > 0'
                 class='anim flyfrom-t fade'>
                 <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0' >
-                    <div ng-class='$root.respCol211' class='padding0 margin0'>
-                        <div class='row row-center text-center row-wrap padding0 margin0'>
-                            <div ng-class='$root.respCol331' style='width: 100%'>
-                                <nl-summary-box number='overviewArray[0].perc' 
-                                    title='overviewArray[0].title' 
-                                    class='col padding0'
-                                    desc='overviewArray[0].desc'
-                                    showperc='overviewArray[0].showperc'
-                                    background='"#f1f1f1"'
-                                    custom='overviewArray[0].styles'
-                                    style='width1: {{screenSize != "large" ? 100 : ""}}%; text-align: -webkit-center'>
-                                </nl-summary-box>
-                            </div>
-                            <div ng-class='$root.respCol331' style='width: 100%'>
-                                <nl-summary-box number='overviewArray[1].perc' 
-                                    title='overviewArray[1].title' 
-                                    class='col padding0'
-                                    desc='overviewArray[1].desc'
-                                    showperc='overviewArray[1].showperc'
-                                    background='"#f1f1f1"'
-                                    custom='overviewArray[1].styles'
-                                    style='width1: {{screenSize != "large" ? 100 : ""}}%; text-align: -webkit-center'>
-                                </nl-summary-box>
-                            </div>
-                            <div ng-class='$root.respCol331' style='width: 100%'>
-                                <nl-summary-box number='overviewArray[2].perc' 
-                                    title='overviewArray[2].title' 
-                                    class='col padding0'
-                                    desc='overviewArray[2].desc'
-                                    showperc='overviewArray[2].showperc'
-                                    background='"#f1f1f1"'
-                                    custom='overviewArray[2].styles'
-                                    style='width1: {{screenSize != "large" ? 100 : ""}}%; text-align: -webkit-center'>
-                                </nl-summary-box>
-                            </div>
-                        </div>
+                    <div ng-class='$root.respCol331' style='width: 100%'>
+                        <nl-summary-box number='overviewArray[0].perc' 
+                            title='overviewArray[0].title' 
+                            class='col padding0 small-summary-box'
+                            desc='overviewArray[0].desc'
+                            showperc='overviewArray[0].showperc'
+                            boxclass='"bgdefault"'>
+                        </nl-summary-box>
                     </div>
-                    <div ng-class='$root.respCol211' class='padding0 margin0'>
-                        <div class='row row-center text-center row-wrap padding0 margin0'>
-                            <div ng-class='$root.respCol331' style='width: 100%'>
-                                <nl-summary-box number='overviewArray[3].perc' 
-                                    title='overviewArray[3].title' 
-                                    class='col padding0'
-                                    desc='overviewArray[3].desc'
-                                    showperc='overviewArray[3].showperc'
-                                    background='"#f1f1f1"'
-                                    custom='overviewArray[3].styles'
-                                    style='width1: {{screenSize != "large" ? 100 : ""}}%; text-align: -webkit-center'>
-                                </nl-summary-box>
-                            </div>
-                            <div ng-class='$root.respCol331' style='width: 100%'>
-                                <nl-summary-box number='overviewArray[4].perc' 
-                                    title='overviewArray[4].title' 
-                                    class='col padding0'
-                                    desc='overviewArray[4].desc'
-                                    showperc='overviewArray[4].showperc'
-                                    background='"#f1f1f1"'
-                                    custom='overviewArray[4].styles'
-                                    style='width1: {{screenSize != "large" ? 100 : ""}}%; text-align: -webkit-center'>
-                                </nl-summary-box>
-                            </div>
-                            <div ng-class='$root.respCol331' style='width: 100%'>
-                                <nl-summary-box number='overviewArray[5].perc' 
-                                    title='overviewArray[5].title' 
-                                    class='col padding0'
-                                    desc='overviewArray[5].desc'
-                                    showperc='overviewArray[5].showperc'
-                                    background='"#f1f1f1"'
-                                    custom='overviewArray[5].styles'
-                                    style='width1: {{screenSize != "large" ? 100 : ""}}%; text-align: -webkit-center'>
-                                </nl-summary-box>
-                            </div>
-                        </div>
+                    <div ng-class='$root.respCol331' style='width: 100%'>
+                        <nl-summary-box number='overviewArray[1].perc' 
+                            title='overviewArray[1].title' 
+                            class='col padding0 small-summary-box'
+                            desc='overviewArray[1].desc'
+                            showperc='overviewArray[1].showperc'
+                            boxclass='"bgdefault"'>
+                        </nl-summary-box>
+                    </div>
+                    <div ng-class='$root.respCol331' style='width: 100%'>
+                        <nl-summary-box number='overviewArray[2].perc' 
+                            title='overviewArray[2].title' 
+                            class='col padding0 small-summary-box'
+                            desc='overviewArray[2].desc'
+                            showperc='overviewArray[2].showperc'
+                            boxclass='"bgdefault"'>
+                        </nl-summary-box>
+                    </div>
+                    <div ng-class='$root.respCol331' style='width: 100%'>
+                        <nl-summary-box number='overviewArray[3].perc' 
+                            title='overviewArray[3].title' 
+                            class='col padding0 small-summary-box'
+                            desc='overviewArray[3].desc'
+                            showperc='overviewArray[3].showperc'
+                            boxclass='"bgdefault"'>
+                        </nl-summary-box>
+                    </div>
+                    <div ng-class='$root.respCol331' style='width: 100%'>
+                        <nl-summary-box number='overviewArray[4].perc' 
+                            title='overviewArray[4].title' 
+                            class='col padding0 small-summary-box'
+                            desc='overviewArray[4].desc'
+                            showperc='overviewArray[4].showperc'
+                            boxclass='"bgdefault"'>
+                        </nl-summary-box>
+                    </div>
+                    <div ng-class='$root.respCol331' style='width: 100%'>
+                        <nl-summary-box number='overviewArray[5].perc' 
+                            title='overviewArray[5].title' 
+                            class='col padding0 small-summary-box'
+                            desc='overviewArray[5].desc'
+                            showperc='overviewArray[5].showperc'
+                            boxclass='"bgdefault"'>
+                        </nl-summary-box>
                     </div>
                 </div>
                 <div class='row row-top row-wrap margin0 padding0'>
                     <div ng-class='$root.respCol221' class='text-center padding-mid'>
                         <div class='padding-small'></div>
-                        <div class='fsh4 padding-mid'>{{charts[0].title}}</div>
+                        <div class='fsh5 padding-mid'>{{charts[0].title}}</div>
+                        <div class='padding-small'></div>
                         <div>
                             <canvas class='chart chart-doughnut'
                                     height='250'
@@ -173,7 +137,8 @@
                     </div>
                     <div ng-class='$root.respCol221' class='text-center padding-mid'>
                         <div class='padding-small'></div>
-                        <div class='fsh4 padding-mid'>{{charts[1].title}}</div>
+                        <div class='fsh5 padding-mid'>{{charts[1].title}}</div>
+                        <div class='padding-small'></div>
                         <div>
                             <canvas class='chart chart-bar'
                                     height='300'
@@ -189,53 +154,20 @@
                 </div>
             </div>
             <div  ng-show='selectedTab.id == "timesummary"'>
-                <div class='row row-top row-wrap margin0 padding0'>
-                    <div ng-class='respCol221' class='text-center padding-mid'>
-                        <div class='padding-small'></div>
-                        <div class='fsh4 padding-mid'>{{timeSummaryCharts[0].title}}</div>
-                        <div>
-                            <canvas class='chart chart-bar'
-                                    height='300'
-                                    width='500'
-                                    chart-data='timeSummaryCharts[0].data'
-                                    chart-labels='timeSummaryCharts[0].labels'
-                                    chart-colours='timeSummaryCharts[0].colors'
-                                    chart-series='timeSummaryCharts[0].series'
-                                    chart-options='timeSummaryCharts[0].options'>
-                            </canvas>
-                        </div>
-                    </div>
-                    <div ng-class='respCol221' class='text-center padding-mid'>
-                        <div class='padding-small'></div>
-                        <div class='fsh4 padding-mid'>{{timeSummaryCharts[1].title}}</div>
-                        <div>
-                            <canvas class='chart chart-bar'
-                                    height='300'
-                                    width='500'
-                                    chart-data='timeSummaryCharts[1].data'
-                                    chart-labels='timeSummaryCharts[1].labels'
-                                    chart-colours='timeSummaryCharts[1].colors'
-                                    chart-series='timeSummaryCharts[1].series'
-                                    chart-options='timeSummaryCharts[1].options'>
-                            </canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class='row row-top row-wrap margin0 padding0'>
-                    <div ng-class='respCol111' class='text-center padding-mid'>
-                        <div class='padding-small'></div>
-                        <div class='fsh4 padding-mid'>{{timeSummaryCharts[2].title}}</div>
-                        <div>
-                            <canvas class='chart chart-bar'
-                                    height='300'
-                                    width='500'
-                                    chart-data='timeSummaryCharts[2].data'
-                                    chart-labels='timeSummaryCharts[2].labels'
-                                    chart-colours='timeSummaryCharts[2].colors'
-                                    chart-series='timeSummaryCharts[2].series'
-                                    chart-options='timeSummaryCharts[2].options'>
-                            </canvas>
-                        </div>
+                <div ng-repeat='timeSummaryChart in timeSummaryCharts'>
+                    <div class='padding-small'></div>
+                    <div class='fsh5 padding-mid'>{{timeSummaryChart.title}}</div>
+                    <div class='padding-small'></div>
+                    <div>
+                        <canvas class='chart chart-bar'
+                                height='300'
+                                width='500'
+                                chart-data='timeSummaryChart.data'
+                                chart-labels='timeSummaryChart.labels'
+                                chart-colours='timeSummaryChart.colors'
+                                chart-series='timeSummaryChart.series'
+                                chart-options='timeSummaryChart.options'>
+                        </canvas>
                     </div>
                 </div>
             </div>

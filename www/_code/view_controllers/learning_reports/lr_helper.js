@@ -30,6 +30,10 @@ var NlLrHelper = ['nlGroupInfo', function NlLrHelper(nlGroupInfo) {
         {id: this.STATUS_FAILED, txt: 'failed', icon: 'icon ion-close-circled forange'},
         {id: this.STATUS_CERTIFIED, txt: 'certified', icon: 'icon ion-android-star fgreen'}];
         
+    this.isDone = function(statusInfo) {
+        return statusInfo.id != this.STATUS_PENDING && statusInfo.id != this.STATUS_STARTED;
+    };
+
     this.dictToList = function(d) {
         var ret = [];
         for(var k in d) ret.push(d[k]);

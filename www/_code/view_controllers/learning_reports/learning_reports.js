@@ -310,17 +310,17 @@
 				id: 'overview',
 				onClick : _clickOnOverview
 			}, {
-				title : 'Click here to view organisational reports',
-				name: 'Organisations',
-				icon : 'ion-ios-people',
-				id: 'organisations',
-				onClick : _clickOnOrganisations
-			}, {
 				title : 'Click here to view learning records',
 				name: 'Learning records',
 				icon : 'ion-ios-compose',
 				id: 'learningrecords',
 				onClick : _clickOnLearningRecords
+			}, {
+				title : 'Click here to view organisational reports',
+				name: 'Organisations',
+				icon : 'ion-ios-people',
+				id: 'organisations',
+				onClick : _clickOnOrganisations
 			},{
 				title : 'Click here to view time summary',
 				name: 'Time summary',
@@ -418,6 +418,8 @@
 			var labels =  ['done', 'failed', 'started', 'pending'];
 			var colors = ['#007700', '#770000', '#FFCC00', '#A0A0C0'];
 	
+			var type = nlLrFilter.getType();
+			var typeStr = type == 'module' || type == 'module_assign' ? 'Modules' : 'Courses';
 			$scope.charts = [{
 				type: 'doughnut',
 				title: 'Progress',
@@ -427,7 +429,7 @@
 			},
 			{
 				type: 'bar',
-				title: 'Assigned vs Completed over time',
+				title: nl.fmt2('{} assigned vs completed over time', typeStr),
 				data: [[]],
 				labels: [],
 				series: ['Assigned', 'Completed'],
@@ -435,7 +437,7 @@
 			}];
 			$scope.timeSummaryCharts = [{
 					type: 'bar',
-					title: 'Modules completed over months',
+					title: 'Modules completed over days',
 					data: [[]],
 					labels: [],
 					series: ['S1'],
@@ -451,7 +453,7 @@
 				},
 				{
 					type: 'bar',
-					title: 'Modules completed over days',
+					title: 'Modules completed over months',
 					data: [[]],
 					labels: [],
 					series: ['S1'],
@@ -473,13 +475,13 @@
 		function _updateProgressChartData(summaryRecord) {
 			var c = $scope.charts[0];
 			var type = nlLrFilter.getType();
+			var typeStr = type == 'module' || type == 'module_assign' ? 'Module' : 'Course';
 			_updateGrapicalInfoCards(summaryRecord);
 			c.data = [summaryRecord.done.txt, summaryRecord.failed.txt, summaryRecord.started.txt, summaryRecord.pending.txt];
-			c.title = nl.t('Progress: {} of {} done', (summaryRecord.done.txt + summaryRecord.failed.txt), summaryRecord.assigned.txt);
+			c.title = nl.t('{} progress: {} of {} done', typeStr, (summaryRecord.done.txt + summaryRecord.failed.txt), summaryRecord.assigned.txt);
 		}
 		
 		function _updateGrapicalInfoCards(summaryRecord) {
-			var styles = {sumboxwidth: 175, sumboxheight: 70, titlewidth: 80, titlesize: 200, descsize: 95};
 			var _completedDict = {};
 			var _pendingDict = {}; 
 			var _startedDict = {};
@@ -529,46 +531,31 @@
 						_completedDict[rec.user.user_id] = true;	
 				}
 			}
-			var completed = Object.keys(_completedDict).length || 0;
-			var started = Object.keys(_startedDict).length || 0;
-			var pending = Object.keys(_pendingDict).length || 0;
-
-
-			if(type == 'module' || type == 'module_assign') {
-				$scope.overviewArray = [{title:'Modules completed', desc:'', perc: Math.round((summaryRecord.done.txt/summaryRecord.assigned.txt)*100), showperc:1, styles: styles},
-									   {title:'Modules started', desc:'', perc: Math.round((summaryRecord.started.txt/summaryRecord.assigned.txt)*100), showperc:1, styles: styles},
-									   {title:'Modules pending', desc:'', perc: Math.round((summaryRecord.pending.txt/summaryRecord.assigned.txt)*100), showperc:1, styles: styles},
-									   {title:nl.t('{} completed', (completed > 1) ? 'Learners' : 'Learner'), desc:'', perc: completed, showperc:0, styles: styles}, //TODO: Naveen
-									   {title:nl.t('{} started', (started > 1) ? 'Learners' : 'Learner'), desc:'', perc: started, showperc:0, styles: styles}, //TODO: Naveen
-									   {title:nl.t('{} yet to start', (pending > 1) ? 'Learners' : 'Learner'), desc:'', perc: pending, showperc:0, styles: styles}];//TODO: Naveen
-			} else {
-				$scope.overviewArray = [{title:'Courses completed', desc:'', perc: Math.round((summaryRecord.done.txt/summaryRecord.assigned.txt)*100), showperc:1, styles: styles},
-									   {title:'Courses started', desc:'', perc: Math.round((summaryRecord.started.txt/summaryRecord.assigned.txt)*100), showperc:1, styles: styles},
-									   {title:'Courses pending', desc:'', perc: Math.round((summaryRecord.pending.txt/summaryRecord.assigned.txt)*100), showperc:1, styles: styles},
-									   {title:nl.t('{} completed', (completed > 1) ? 'Learners' : 'Learner'), desc:'', perc: completed, showperc:0, styles: styles},//TODO: Naveen
-									   {title:nl.t('{} started', (started > 1) ? 'Learners' : 'Learner'), desc:'', perc: started, showperc:0, styles: styles}, //TODO: Naveen
-									   {title:nl.t('{} yet to start', (pending > 1) ? 'Learners' : 'Learner'), desc:'', perc: pending, showperc:0, styles: styles}]//TODO: Naveen
-			}
+			var typeStr = type == 'module' || type == 'module_assign' ? 'Modules' : 'Courses';
+			$scope.overviewArray = [
+				{title: nl.fmt2('{} completed', typeStr), desc:'', perc: Math.round((summaryRecord.done.txt/summaryRecord.assigned.txt)*100), showperc:1},
+				{title: nl.fmt2('{} started', typeStr), desc:'', perc: Math.round((summaryRecord.started.txt/summaryRecord.assigned.txt)*100), showperc:1},
+				{title: nl.fmt2('{} yet to start', typeStr), desc:'', perc: Math.round((summaryRecord.pending.txt/summaryRecord.assigned.txt)*100), showperc:1},
+				{title: nl.fmt2('{} completed', 'Learners'), desc:'', perc: Object.keys(_completedDict).length || 0, showperc:0},
+				{title: nl.fmt2('{} started', 'Learners'), desc:'', perc: Object.keys(_startedDict).length || 0, showperc:0},
+				{title: nl.fmt2('{} yet to start', 'Learners'), desc:'', perc: Object.keys(_pendingDict).length || 0, showperc:0}];
 		}
 
 		function _updateTimeChartData() {
 			var c = $scope.charts[1];
 			var ranges = nlLrReportRecords.getTimeRanges();
-			
 			var reportRecords = nlLrReportRecords.getRecords();
-
+			var type = nlLrFilter.getType();
+			var isModuleRep = type == 'module' || type == 'module_assign';
 			for(var key in reportRecords) {
 				var rec = reportRecords[key];
 				var orgEntry = _summaryStats.getOrgEntry(rec);
 				if (!orgEntry || !orgEntry.passesFilter) continue;
+				var ended = isModuleRep ? _getModuleEndedTime(rec) : _getCourseEndedTime(rec);
 				for(var i=0; i<ranges.length; i++) {
-					if (rec.raw_record.created >= ranges[i].end) continue;
-					ranges[i].count++;
-					break;
-				}
-				for(var i=0; i<ranges.length; i++) {
-					if (!rec.raw_record.completed) continue;
-					if (rec.raw_record.updated >= ranges[i].end) continue;
+					if (_isTsInRange(rec.raw_record.created, ranges[i])) ranges[i].count++;
+					if (!ended) break;
+					if (!_isTsInRange(ended, ranges[i])) continue;
 					ranges[i].completed++;
 					break;
 				}
@@ -584,53 +571,46 @@
 			}
 		}
 		
+		function _isTsInRange(ts, range) {
+			return (ts >= range.start && ts < range.end);
+		}
+
+		function _getModuleEndedTime(rep) {
+			if (!rep.completed) return null;
+			return (rep.ended ? nl.fmt.json2Date(rep.ended) : rep.updated) || null;
+		}
+
+		function _getCourseEndedTime(rep) {
+			if (!nlLrHelper.isDone(rep.stats.status)) return null;
+			return rep.raw_record.updated;
+		}
+
 		function _updateTimeSummaryTab() {
 			var reportRecords = nlLrReportRecords.getRecords();
 			var type = nlLrFilter.getType();
 			for(var j=0; j<$scope.timeSummaryCharts.length; j++) {
-				var c = {};
-				var ranges = [];
-				if(j == 0) {
-					ranges = nlLrReportRecords.getTimeRanges(1);
-					c = $scope.timeSummaryCharts[0];
-				} else if(j == 1) {
-					ranges = nlLrReportRecords.getTimeRanges(6);
-					c = $scope.timeSummaryCharts[1];
-				} else if(j == 2) {
-					ranges = nlLrReportRecords.getTimeRanges(32);
-					c = $scope.timeSummaryCharts[2];
-				}
-				if(type == 'module' || type == 'module_assign') {
-					for(var key in reportRecords) {
-						var rec = reportRecords[key];
-						var orgEntry = _summaryStats.getOrgEntry(rec);
-						if (!orgEntry || !orgEntry.passesFilter) continue;
+				var c = $scope.timeSummaryCharts[j];
+				var rangeType = j == 0 ? 'days' : j == 1 ? 'weeks' : 'months';
+				var ranges = nlLrReportRecords.getTimeRanges(rangeType);
+				var isModuleRep = type == 'module' || type == 'module_assign';
+				for(var key in reportRecords) {
+					var rec = reportRecords[key];
+					var orgEntry = _summaryStats.getOrgEntry(rec);
+					if (!orgEntry || !orgEntry.passesFilter) continue;
+					var recId = rec.raw_record.id;
+					var lessonReports = isModuleRep ? {recId: rec.raw_record} : rec.repcontent.lessonReports;
+
+					for(var report in lessonReports) {
+						var rep = lessonReports[report];
+						var ended = _getModuleEndedTime(rep);
+						if (!ended) continue;
 						for(var i=0; i<ranges.length; i++) {
-							if (!rec.raw_record.completed) continue;
-							if (rec.raw_record.updated >= ranges[i].end) continue;
+							if (!_isTsInRange(ended, ended)) continue;
 							ranges[i].count++;
 							break;
 						}
 					}
-				} else if (type == 'course' || type == 'course_assign') {
-					for(var key in reportRecords) {
-						var rec = reportRecords[key];
-						var orgEntry = _summaryStats.getOrgEntry(rec);
-						if (!orgEntry || !orgEntry.passesFilter) continue;
-						var lessonReports = rec.repcontent.lessonReports
-						for(var report in lessonReports) {
-							var rep = lessonReports[report];
-							rep.ended = rep.completed ? new Date(rep.ended) : '';
-							for(var i=0; i<ranges.length; i++) {
-								if (!rep.completed) continue;
-								if (rep.ended >= ranges[i].end) continue;
-								ranges[i].count++;
-								break;
-							}
-						}
-					}
 				}
-				
 				c.labels = [];
 				c.data = [[]];
 				for (var i=0; i<ranges.length; i++) {

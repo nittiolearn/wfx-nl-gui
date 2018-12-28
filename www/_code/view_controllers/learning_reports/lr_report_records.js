@@ -95,14 +95,13 @@
             return ret;
         };
         
-        this.getMonthRanges = function() {
-            if (!_dates.minUpdated || !_dates.maxUpdated) return [];
-
+        function _getRangeStart(rangeEnd, rangeType, rangeSize) {
+            return new Date(rangeEnd.getTime() - rangeSize);
         }
 
-        this.getTimeRanges = function(maxBuckets) {
-            if (!maxBuckets) maxBuckets = 8;
+        this.getTimeRanges = function(rangeType) {
             if (!_dates.minUpdated || !_dates.maxUpdated) return [];
+            var maxBuckets = rangeType ? 32 : 8;
     
             var day = 24*60*60*1000; // 1 day in ms
             var now = new Date();
@@ -113,18 +112,17 @@
             var rangeSize = Math.ceil((end - start)/day/maxBuckets);
             var multiDays = (rangeSize > 1);
             rangeSize *= day;
-            var nRanges = Math.ceil((end-start)/rangeSize) + 2;
-            
             var ranges = [];
-            var nextStartTime = new Date(start - rangeSize);
-            for(var i=0; i<nRanges; i++) {
-                var range = {start: nextStartTime, end: new Date(nextStartTime.getTime() + rangeSize),
-                    count: 0, completed: 0};
+            var rangeEnd = new Date(end);
+            for (var i=0; i<maxBuckets; i++) {
+                if (rangeEnd.getTime() < start) break;
+                var rangeStart = _getRangeStart(rangeEnd, rangeType, rangeSize);
+                var range = {start: rangeStart, end: rangeEnd, count: 0, completed: 0};
                 var s = nl.fmt.fmtDateDelta(range.start, null, 'date-mini');
                 var e = nl.fmt.fmtDateDelta(range.end, null, 'date-mini');
                 range.label = multiDays ? nl.fmt2('{} - {}', s, e) : s;
-                nextStartTime = range.end;
-                ranges.push(range);
+                ranges.unshift(range);
+                rangeEnd = rangeStart;
             }
             return ranges;
         };

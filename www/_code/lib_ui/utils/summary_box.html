@@ -1,14 +1,13 @@
-
-<div class='padding'>
-	<div class='nl-summary-box row row-center text-center padding-mid margin0'
-		style='background-color: {{background ? background : "#fff"}}; width: {{custom.sumboxwidth ? custom.sumboxwidth : "215" }}px; height: {{custom.sumboxheight ? custom.sumboxheight: "90"}}px' title='{{title}}'>
-			<div class='fprimary' style='min-width:{{custom.titlewidth ? custom.titlewidth : "100"}}px; white-space: nowrap'>
-				<span style='display: inline-block; font-size:{{custom.titlesize ? custom.titlesize : "250"}}%; font-weight: 800'>{{number}}</span>
-				<span style='display: inline-block; min-width:20px'><i ng-show='showperc' class='fsh6'>%</i></span>
+<div class='sb-padding'>
+	<div class='nl-summary-box row row-center text-center padding-mid margin0 {{boxclass}}'
+		title='{{title}}'>
+			<div class='infographic'>
+				<span class='number'>{{number}}</span>
+				<span class='perc'><i ng-show='showperc' class='fsh6'>%</i></span>
 			</div>
 			<div class='col text-center padding-mid margin0'>
-				<div class='fheading1 fsh5' style='font-size: {{custom.descsize ?  custom.descsize : "120"}}%'>{{title}}</div>
-				<div class='fheading2'>{{desc}}</div>
+				<div class='title'>{{title}}</div>
+				<div class='desc'>{{desc}}</div>
 			</div>
 	</div>
 </div>

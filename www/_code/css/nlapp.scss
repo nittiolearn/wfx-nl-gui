@@ -630,6 +630,19 @@ a.black {
   }
 }
 
+.nl-toolbar-icon.no-hover {
+  i.icon:hover {
+    color: $nlBlue3;
+    background-color: rgba(0,0,0,0);
+    box-shadow: none;
+  }
+  i.icon:focus, i.icon:active, &.activated > i.icon, i.icon.activated {
+    color: $nlBlue3;
+    background-color: rgba(0,0,0,0);
+    box-shadow: none;
+  }
+}
+
 .nl-screen-small .nl-toolbar-icon {
   i.icon {
     padding: 2px 4px;
@@ -1367,12 +1380,52 @@ nl-cards {
   background-image: linear-gradient(-5deg, $nlPrimary 0%, rgba(194, 227, 252, 1) 100%);
 }
 
+nl-summary-box {
+  text-align: -webkit-center;
+  .sb-padding {
+    padding: 20px;
+  }
+}
+
 .nl-summary-box{
   padding: 10px;
   background-color: #fff;
-  width: 215px;
+  min-width: 200px;
+  max-width: 300px;
   height: 90px;
   box-shadow: 2px 4px 5px 0px rgba(0, 0, 0, 0.06);
+  .infographic {
+    min-width: 80px; 
+    white-space: nowrap;
+    color: $nlPrimary;
+    .number {
+      display: inline-block;
+      font-weight: 800;
+      font-size: 200%; 
+    }
+    .perc {
+      display: inline-block;
+      min-width: 20px;
+      font-size: 120%;
+    }
+  }
+  .title {
+    color: $nlHeading1;
+    font-size: 100%;
+    font-weight: bold;
+  }
+  .desc {
+    color: $nlHeading2;
+  }
+}
+
+nl-summary-box.small-summary-box {
+  .sb-padding {
+    padding: 10px;
+  }
+  .nl-summary-box {
+    height: 70px;
+  }
 }
 
 // rounded button
@@ -2004,6 +2057,10 @@ img.nl-full-width {
 
 .fgrey2 {
   color: rgba(0, 0, 0, 0.5);
+}
+
+.bgdefault {
+  background-color: $nlBackground;
 }
 
 .bggrey {
