@@ -533,9 +533,9 @@
 			}
 			var typeStr = type == 'module' || type == 'module_assign' ? 'Modules' : 'Courses';
 			$scope.overviewArray = [
-				{title: nl.fmt2('{} completed', typeStr), desc:'', perc: Math.round((summaryRecord.done.txt/summaryRecord.assigned.txt)*100), showperc:1},
-				{title: nl.fmt2('{} started', typeStr), desc:'', perc: Math.round((summaryRecord.started.txt/summaryRecord.assigned.txt)*100), showperc:1},
-				{title: nl.fmt2('{} yet to start', typeStr), desc:'', perc: Math.round((summaryRecord.pending.txt/summaryRecord.assigned.txt)*100), showperc:1},
+				{title: nl.fmt2('{} completed', typeStr), desc:'', perc: Math.round((summaryRecord.done.txt/summaryRecord.assigned.txt)*100 || 0), showperc:1},
+				{title: nl.fmt2('{} started', typeStr), desc:'', perc: Math.round((summaryRecord.started.txt/summaryRecord.assigned.txt)*100 || 0), showperc:1},
+				{title: nl.fmt2('{} yet to start', typeStr), desc:'', perc: Math.round((summaryRecord.pending.txt/summaryRecord.assigned.txt)*100 || 0), showperc:1},
 				{title: nl.fmt2('{} completed', 'Learners'), desc:'', perc: Object.keys(_completedDict).length || 0, showperc:0},
 				{title: nl.fmt2('{} started', 'Learners'), desc:'', perc: Object.keys(_startedDict).length || 0, showperc:0},
 				{title: nl.fmt2('{} yet to start', 'Learners'), desc:'', perc: Object.keys(_pendingDict).length || 0, showperc:0}];
