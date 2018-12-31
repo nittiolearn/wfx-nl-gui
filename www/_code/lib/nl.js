@@ -250,6 +250,8 @@ function Formatter() {
 			options = {day: '2-digit', month:'short', year:'numeric'};
         } else if (accuracy == 'date-mini'){
             options = {day: '2-digit', month:'short'};
+        } else if (accuracy == 'month-mini') {
+            options = {month:'short', year:'numeric'};
     	} else {
 			options = {hour12: true, day: '2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'};
     	}

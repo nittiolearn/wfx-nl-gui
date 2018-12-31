@@ -119,7 +119,7 @@
 			$scope.searchDict = {placeholder: nl.t('Start typing to search'), searchStr: '', infoText: nl.t('Found {} matches from {} items searched', Object.keys($scope.learningRecords).length, Object.keys($scope.learningRecords).length)};
 			$scope.selectedTab = $scope.tabElements[0]
 			$scope.metaHeaders = nlLrHelper.getMetaHeaders(true);
-			$scope.ui = {showOrgCharts: true, showOrgs: true, showUsers: false};
+			$scope.ui = {showOrgCharts: true, showOrgs: true, showUsers: false, showTimeSummaryTab: false};
 			$scope.utable = {
 				search: {disabled : true},
 				columns: _getUserColumns(),
@@ -291,6 +291,10 @@
 			return true;
 		};
 		
+		$scope.chartsOnLoad = function() {
+			nl.window.resize();
+		}
+		
 		function _isReminderNotificationEnabled() {
 			var props = nlGroupInfo.get().props;
 			var isMailEnabled = false;
@@ -354,6 +358,7 @@
 
 		function _clickOnTimeSummary(tab) {
 			$scope.selectedTab = tab;
+			$scope.ui['showTimeSummaryTab'] = false;
 			var filter = $scope.selectedTable.search.filter;
 			$scope.selectedTable = $scope.otable;
 			$scope.selectedTable.search.filter = filter
@@ -492,7 +497,7 @@
 				for(var rep in reportRecords) {
 					var rec = reportRecords[rep];
 					var orgEntry = _summaryStats.getOrgEntry(rec);
-					if (!orgEntry || !orgEntry.passesFilter) continue;
+					if (!orgEntry || !(orgEntry.passesFilter || _isFound())) continue;
 					if (!rec.raw_record.started) {
 						if(rec.user.user_id in _completedDict)
 							delete _completedDict[rec.user.user_id]
@@ -512,7 +517,7 @@
 				for(var rep in reportRecords) {
 					var rec = reportRecords[rep];
 					var orgEntry = _summaryStats.getOrgEntry(rec);
-					if (!orgEntry || !orgEntry.passesFilter) continue;
+					if (!orgEntry || !(orgEntry.passesFilter || _isFound(rec))) continue;
 					var totalItems = rec.stats.nLessons + rec.stats.nOthers;
 					var completedItems = rec.stats.nLessonsDone + rec.stats.nOthersDone;
 					if (completedItems == 0 && (rec.stats.status.txt != 'started')) {
@@ -550,7 +555,7 @@
 			for(var key in reportRecords) {
 				var rec = reportRecords[key];
 				var orgEntry = _summaryStats.getOrgEntry(rec);
-				if (!orgEntry || !orgEntry.passesFilter) continue;
+				if (!orgEntry || !(orgEntry.passesFilter || _isFound(rec))) continue;
 				var ended = isModuleRep ? _getModuleEndedTime(rec) : _getCourseEndedTime(rec);
 				for(var i=0; i<ranges.length; i++) {
 					if (_isTsInRange(rec.raw_record.created, ranges[i])) ranges[i].count++;
@@ -586,39 +591,65 @@
 		}
 
 		function _updateTimeSummaryTab() {
-			var reportRecords = nlLrReportRecords.getRecords();
-			var type = nlLrFilter.getType();
-			for(var j=0; j<$scope.timeSummaryCharts.length; j++) {
-				var c = $scope.timeSummaryCharts[j];
-				var rangeType = j == 0 ? 'days' : j == 1 ? 'weeks' : 'months';
-				var ranges = nlLrReportRecords.getTimeRanges(rangeType);
-				var isModuleRep = type == 'module' || type == 'module_assign';
-				for(var key in reportRecords) {
-					var rec = reportRecords[key];
-					var orgEntry = _summaryStats.getOrgEntry(rec);
-					if (!orgEntry || !orgEntry.passesFilter) continue;
-					var recId = rec.raw_record.id;
-					var lessonReports = isModuleRep ? {recId: rec.raw_record} : rec.repcontent.lessonReports;
-
-					for(var report in lessonReports) {
-						var rep = lessonReports[report];
-						var ended = _getModuleEndedTime(rep);
-						if (!ended) continue;
-						for(var i=0; i<ranges.length; i++) {
-							if (!_isTsInRange(ended, ended)) continue;
-							ranges[i].count++;
-							break;
+			$scope.ui['showTimeSummaryTab'] = false;
+			nlDlg.showLoadingScreen();
+			nl.timeout(function() {
+				var reportRecords = nlLrReportRecords.getRecords();
+				var type = nlLrFilter.getType();
+				var loadcomplete = false;
+				for(var j=0; j<$scope.timeSummaryCharts.length; j++) {
+					var c = $scope.timeSummaryCharts[j];
+					var rangeType = j == 0 ? 'days' : j == 1 ? 'weeks' : 'months';
+					var ranges = nlLrReportRecords.getTimeRanges(rangeType);
+					var isModuleRep = type == 'module' || type == 'module_assign';
+					for(var key in reportRecords) {
+						var rec = reportRecords[key];
+						var orgEntry = _summaryStats.getOrgEntry(rec);
+						if (!orgEntry || !(orgEntry.passesFilter || _isFound(rec))) continue;
+						var recId = rec.raw_record.id;
+						var lessonReports = isModuleRep ? {recId: rec.raw_record} : rec.repcontent.lessonReports;
+	
+						for(var report in lessonReports) {
+							var rep = lessonReports[report];
+							var ended = _getModuleEndedTime(rep);
+							if (!ended) continue;
+							for(var i=0; i<ranges.length; i++) {
+								if (!_isTsInRange(ended, ranges[i])) continue;
+								ranges[i].count++;
+								break;
+							}
 						}
 					}
+					c.labels = [];
+					c.data = [[]];
+					for (var i=0; i<ranges.length; i++) {
+						var r = ranges[i];
+						c.labels.push(r.label);
+						c.data[0].push(r.count);
+					}
+					if(j==2) {
+						loadcomplete = true;
+					}
 				}
-				c.labels = [];
-				c.data = [[]];
-				for (var i=0; i<ranges.length; i++) {
-					var r = ranges[i];
-					c.labels.push(r.label);
-					c.data[0].push(r.count);
+				if(loadcomplete) {
+					$scope.ui['showTimeSummaryTab'] = true;
+					nlDlg.hideLoadingScreen();
 				}
+			}, 500);
+		}
+
+		function _isFound(rec) {
+			var filter = $scope.selectedTable.search.filter.toLowerCase();
+			var recname = rec.repcontent.name.toLowerCase();
+			var username = rec.user.username.toLowerCase();
+			var email = rec.user.email;
+			var name = rec.user.name.toLowerCase();
+			var org_unit = rec.user.org_unit.toLowerCase();
+			if(recname.indexOf(filter) >= 0 || username.indexOf(filter) >= 0 || email.indexOf(filter) >= 0 || 
+				name.indexOf(filter) >= 0 || org_unit.indexOf(filter) >= 0) {
+					return true;
 			}
+			return false; 
 		}
 
 		function _onExport() {

@@ -97,11 +97,22 @@
         
         function _getRangeStart(rangeEnd, rangeType, rangeSize) {
             if (rangeType == 'months') {
-                // TODO: find the first day of the month of rangeEnd's month and return it
+                var endTime = angular.copy(rangeEnd);
+                return new Date(endTime.getFullYear(), endTime.getMonth(), 1); 
             } else if (rangeType == 'weeks') {
-                // TODO: find the monday closest to rangeEnd and return it
+                var endTime = angular.copy(rangeEnd);
+                var day = angular.copy(endTime.getDay());
+                var diff = null;
+                if (day == 1) {
+                    diff = endTime.getDate() - 7;
+                } else {
+                    diff = endTime.getDate() - day + (day == 0 ? -6 : 1);
+                }
+                return new Date(endTime.setDate(diff));
             } else if (rangeType == 'days') {
-                // TODO: find the yesterday of rangeEnd and return it
+                var date = angular.copy(rangeEnd);
+                date.setDate(date.getDate()-1);
+                return new Date(date);
             }
             return new Date(rangeEnd.getTime() - rangeSize);
         }
@@ -127,9 +138,18 @@
                 var range = {start: rangeStart, end: rangeEnd, count: 0, completed: 0};
                 var s = nl.fmt.fmtDateDelta(range.start, null, 'date-mini');
                 var e = nl.fmt.fmtDateDelta(range.end, null, 'date-mini');
-                range.label = multiDays ? nl.fmt2('{} - {}', s, e) : s;
+                range.label = (multiDays || rangeType == 'weeks') ? nl.fmt2('{} - {}', s, e) : s;
+                if(rangeType == 'months') {
+                    var s = nl.fmt.fmtDateDelta(range.start, null, 'month-mini');
+                    range.label = nl.fmt2('{}', s);
+                }
                 ranges.unshift(range);
-                rangeEnd = rangeStart;
+                if(rangeType == 'months') {
+                    rangeEnd = rangeStart.setDate(rangeStart.getDate()-1);
+                    rangeEnd = new Date(rangeEnd);
+                } else {
+                    rangeEnd = rangeStart;
+                }
             }
             return ranges;
         };

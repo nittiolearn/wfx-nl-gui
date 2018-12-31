@@ -139,7 +139,7 @@
                         <div class='padding-small'></div>
                         <div class='fsh5 padding-mid'>{{charts[1].title}}</div>
                         <div class='padding-small'></div>
-                        <div>
+                        <div on-load="chartsOnLoad()">
                             <canvas class='chart chart-bar'
                                     height='300'
                                     width='450'
@@ -153,15 +153,14 @@
                     </div>
                 </div>
             </div>
-            <div  ng-show='selectedTab.id == "timesummary"'>
+            <div  ng-if='(selectedTab.id == "timesummary") && ui.showTimeSummaryTab'>
                 <div ng-repeat='timeSummaryChart in timeSummaryCharts'>
                     <div class='padding-small'></div>
                     <div class='fsh5 padding-mid'>{{timeSummaryChart.title}}</div>
                     <div class='padding-small'></div>
-                    <div>
+                    <div style='overflow-x: scroll'>
                         <canvas class='chart chart-bar'
                                 height='300'
-                                width='500'
                                 chart-data='timeSummaryChart.data'
                                 chart-labels='timeSummaryChart.labels'
                                 chart-colours='timeSummaryChart.colors'
