@@ -346,6 +346,7 @@
 			var filter = $scope.selectedTable.search.filter;
 			$scope.selectedTable = $scope.otable;
 			$scope.selectedTable.search.filter = filter
+			_updateScope();
 		}
 	
 		function _clickOnLearningRecords(tab) {
@@ -442,6 +443,7 @@
 			}];
 			$scope.timeSummaryCharts = [{
 					type: 'bar',
+					id: 'days',
 					title: 'Modules completed over days',
 					data: [[]],
 					labels: [],
@@ -497,7 +499,7 @@
 				for(var rep in reportRecords) {
 					var rec = reportRecords[rep];
 					var orgEntry = _summaryStats.getOrgEntry(rec);
-					if (!orgEntry || !(orgEntry.passesFilter || _isFound())) continue;
+					if (!orgEntry || !(orgEntry.passesFilter || _isFound(rec))) continue;
 					if (!rec.raw_record.started) {
 						if(rec.user.user_id in _completedDict)
 							delete _completedDict[rec.user.user_id]
@@ -537,10 +539,30 @@
 				}
 			}
 			var typeStr = type == 'module' || type == 'module_assign' ? 'Modules' : 'Courses';
+			var completedPerc = ((summaryRecord.done.txt+summaryRecord.failed.txt)/summaryRecord.assigned.txt)*100 || 0;
+			var startedPerc = (summaryRecord.started.txt/summaryRecord.assigned.txt)*100 || 0;
+			var pendingPerc = (summaryRecord.pending.txt/summaryRecord.assigned.txt)*100 || 0;
+			var completedFrac = (completedPerc % 1);
+			var startedFrac = (startedPerc % 1);
+			var pendingFrac = (pendingPerc % 1);
+			var totalFrac = completedFrac + startedFrac + pendingFrac;
+			completedPerc = Math.round(completedPerc);
+			startedPerc = Math.round(startedPerc);
+			pendingPerc = Math.round(pendingPerc)
+			var totalPerc = completedPerc + startedPerc + pendingPerc;
+			if(totalPerc < 100) {
+				if((completedFrac >= startedFrac) && (completedFrac >= pendingFrac)) {
+					completedPerc += Math.round(totalFrac);
+				} else if((startedFrac >= completedFrac) && (startedFrac >= pendingFrac)) {
+					startedPerc += Math.round(totalFrac);
+				} else {
+					pendingPerc += Math.round(totalFrac);
+				}
+			}
 			$scope.overviewArray = [
-				{title: nl.fmt2('{} completed', typeStr), desc:'', perc: Math.round((summaryRecord.done.txt/summaryRecord.assigned.txt)*100 || 0), showperc:1},
-				{title: nl.fmt2('{} started', typeStr), desc:'', perc: Math.round((summaryRecord.started.txt/summaryRecord.assigned.txt)*100 || 0), showperc:1},
-				{title: nl.fmt2('{} yet to start', typeStr), desc:'', perc: Math.round((summaryRecord.pending.txt/summaryRecord.assigned.txt)*100 || 0), showperc:1},
+				{title: nl.fmt2('{} completed', typeStr), desc:'', perc: completedPerc, showperc:1},
+				{title: nl.fmt2('{} started', typeStr), desc:'', perc: startedPerc, showperc:1},
+				{title: nl.fmt2('{} yet to start', typeStr), desc:'', perc: pendingPerc, showperc:1},
 				{title: nl.fmt2('{} completed', 'Learners'), desc:'', perc: Object.keys(_completedDict).length || 0, showperc:0},
 				{title: nl.fmt2('{} started', 'Learners'), desc:'', perc: Object.keys(_startedDict).length || 0, showperc:0},
 				{title: nl.fmt2('{} yet to start', 'Learners'), desc:'', perc: Object.keys(_pendingDict).length || 0, showperc:0}];
@@ -556,13 +578,21 @@
 				var rec = reportRecords[key];
 				var orgEntry = _summaryStats.getOrgEntry(rec);
 				if (!orgEntry || !(orgEntry.passesFilter || _isFound(rec))) continue;
-				var ended = isModuleRep ? _getModuleEndedTime(rec) : _getCourseEndedTime(rec);
+				var ended = isModuleRep ? _getModuleEndedTime(rec.raw_record) : _getCourseEndedTime(rec);
+				var isAssignedCountFound = false;
+				var isCompletedCountFound = false;
 				for(var i=0; i<ranges.length; i++) {
-					if (_isTsInRange(rec.raw_record.created, ranges[i])) ranges[i].count++;
-					if (!ended) break;
+					if (_isTsInRange(rec.raw_record.created, ranges[i])) {
+						ranges[i].count++;
+						isAssignedCountFound = true;
+						if (!ended) break;
+					}
 					if (!_isTsInRange(ended, ranges[i])) continue;
-					ranges[i].completed++;
-					break;
+					if(!isCompletedCountFound) {
+						ranges[i].completed++;
+						isCompletedCountFound = true;
+					}
+					if(isAssignedCountFound) break;
 				}
 			}
 			

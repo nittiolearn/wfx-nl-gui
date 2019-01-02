@@ -119,13 +119,14 @@
 
         this.getTimeRanges = function(rangeType) {
             if (!_dates.minUpdated || !_dates.maxUpdated) return [];
-            var maxBuckets = rangeType ? 32 : 8;
     
             var day = 24*60*60*1000; // 1 day in ms
             var now = new Date();
             var offset = now.getTimezoneOffset()*60*1000; // in ms
             var start = Math.floor((_dates.minUpdated.getTime()-offset)/day)*day + offset; // Today 00:00 Hrs in local time
             var end = Math.ceil((_dates.maxUpdated.getTime()-offset)/day)*day + offset; // Tomorrow 00:00 Hrs in local time
+            var graphSize = Math.ceil((end - start)/day);
+            var maxBuckets = (rangeType == 'weeks') ? (graphSize/7) : (rangeType == 'days') ? graphSize : rangeType ? 32 : 8;
             
             var rangeSize = Math.ceil((end - start)/day/maxBuckets);
             var multiDays = (rangeSize > 1);
@@ -138,7 +139,14 @@
                 var range = {start: rangeStart, end: rangeEnd, count: 0, completed: 0};
                 var s = nl.fmt.fmtDateDelta(range.start, null, 'date-mini');
                 var e = nl.fmt.fmtDateDelta(range.end, null, 'date-mini');
-                range.label = (multiDays || rangeType == 'weeks') ? nl.fmt2('{} - {}', s, e) : s;
+                range.label = multiDays ? nl.fmt2('{} - {}', s, e) : s;
+                if(rangeType == 'weeks') {
+                    var end = angular.copy(rangeEnd);
+                    var diff = end.getDate() - 1;
+                        end = new Date(end.setDate(diff));
+                        var e = nl.fmt.fmtDateDelta(end, null, 'date-mini');
+                    range.label = nl.fmt2('{} - {}', s, e);
+                }
                 if(rangeType == 'months') {
                     var s = nl.fmt.fmtDateDelta(range.start, null, 'month-mini');
                     range.label = nl.fmt2('{}', s);

@@ -158,15 +158,18 @@
                     <div class='padding-small'></div>
                     <div class='fsh5 padding-mid'>{{timeSummaryChart.title}}</div>
                     <div class='padding-small'></div>
-                    <div style='overflow-x: scroll'>
-                        <canvas class='chart chart-bar'
-                                height='300'
-                                chart-data='timeSummaryChart.data'
-                                chart-labels='timeSummaryChart.labels'
-                                chart-colours='timeSummaryChart.colors'
-                                chart-series='timeSummaryChart.series'
-                                chart-options='timeSummaryChart.options'>
-                        </canvas>
+                    <div style='overflow-x: {{timeSummaryChart.data[0].length > 50 ? "scroll" : "none"}};'>
+                        <div style='width: {{(timeSummaryChart.data[0].length > 50) ? "200": (timeSummaryChart.data[0].length > 120) ? "300" : ""}}%'>
+                            <canvas class='chart chart-bar'
+                                    height='300'
+                                    width='100%'
+                                    chart-data='timeSummaryChart.data'
+                                    chart-labels='timeSummaryChart.labels'
+                                    chart-colours='timeSummaryChart.colors'
+                                    chart-series='timeSummaryChart.series'
+                                    chart-options='timeSummaryChart.options'>
+                            </canvas>
+                        </div>
                     </div>
                 </div>
             </div>
