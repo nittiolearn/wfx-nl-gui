@@ -44,7 +44,6 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecord
         return true;
     };
 
-    var newRepId = 10000; // TODO: remove (for testing)
     this.fetchReports = function(fetchMore, onDoneCallback) {
         if (this.fetchInProgress()) {
             onDoneCallback(false);
@@ -55,16 +54,6 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecord
                 onDoneCallback(false);
                 return;
             }
-            // TODO: remove (for testing)
-            var JMAX=0;
-            for (var j=0; j<JMAX;j++) {
-                for (var i=0; i<results.length; i++) {
-                    var rep = angular.copy(results[i]);
-                    rep.id = newRepId++;
-                    nlLrReportRecords.addRecord(rep);
-                }
-            }
-            // TODO remove end
             for (var i=0; i<results.length; i++) nlLrReportRecords.addRecord(results[i]);
             nlLrReportRecords.postProcessRecordsIfNeeded().then(function() {
 	            onDoneCallback(results);

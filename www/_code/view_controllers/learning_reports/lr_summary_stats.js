@@ -31,17 +31,11 @@ function SummaryStats(nl, nlLrHelper) {
     };
     
     this.removeFromStats = function(report) {
-        var keys = _keys(report);
-        var key = angular.toJson(keys);
-        if (!(key in _orgDict)) _orgDict[key] = _initStatObj(keys);
-        _updateStatsObj(report, _orgDict[key], -1);
+        _updateStatsObj(report, -1);
     };
 
     this.addToStats = function(report) {
-        var keys = _keys(report);
-        var key = angular.toJson(keys);
-        if (!(key in _orgDict)) _orgDict[key] = _initStatObj(keys);
-        _updateStatsObj(report, _orgDict[key], +1);
+        _updateStatsObj(report, +1);
     };
     
     this.getOrgEntry = function(report) {
@@ -77,7 +71,12 @@ function SummaryStats(nl, nlLrHelper) {
         return ret;
     }
     
-    function _updateStatsObj(report, statsObj, delta) {
+    function _updateStatsObj(report, delta) {
+        var keys = _keys(report);
+        var key = angular.toJson(keys);
+        if (!(key in _orgDict)) _orgDict[key] = _initStatObj(keys);
+        var statsObj = _orgDict[key];
+
         statsObj.assigned += delta;
         var stats = report.stats;
         if (stats.status.id == nlLrHelper.STATUS_PENDING) statsObj.pending += delta;

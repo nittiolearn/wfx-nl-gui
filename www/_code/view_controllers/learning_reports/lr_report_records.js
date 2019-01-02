@@ -20,20 +20,18 @@
         
         var _records = {};
         var _reminderDict = {};
-        var _summaryStats = null;
         var _dates = {};
         var _pastUserData = null;
         var _pastUserDataFetchInitiated = false;
         var _postProcessRecords = [];
         var _userInfo = null;
         var _nominatedUsers = null;
-        this.init = function(summaryStats, userinfo) {
+        this.init = function(userinfo) {
             _userInfo = userinfo;
             _records = {};
             _reminderDict = {};
             _nominatedUsers = {};
             _dates = {minUpdated: null, maxUpdated: null};
-            _summaryStats = summaryStats;
             if (!nlGroupInfo.isPastUserXlsConfigured()) _pastUserData = {};
         };
         
@@ -52,10 +50,7 @@
                 report = _processModuleReport(report);
             if (!report) return null;
             var rid = report.raw_record.id;
-            if (rid in _records)
-                _summaryStats.removeFromStats(_records[rid]);
             _records[rid] = report;
-            _summaryStats.addToStats(report);
             if (!_dates.minUpdated || _dates.minUpdated > report.raw_record.updated) _dates.minUpdated = report.raw_record.updated;
             if (!_dates.maxUpdated || _dates.maxUpdated < report.raw_record.updated) _dates.maxUpdated = report.raw_record.updated;
             return report;
@@ -72,7 +67,6 @@
     
         this.removeRecord = function(repid) {
             if (!(repid in _records)) return;
-            _summaryStats.removeFromStats(_records[repid]);
             delete _records[repid];
         };
     
@@ -80,13 +74,17 @@
             _records = {};
             _reminderDict = {};
             _nominatedUsers = {};
-            _summaryStats.reset();
         };
         
         this.getRecords = function() {
             return _records;
         };
     
+        this.getAnyRecord = function() {
+            for (var recid in _records) return _records[recid];
+            return null;
+        };
+
         this.asList = function() {
             var ret = nlLrHelper.dictToList(_records);
             ret.sort(function(a, b) {
@@ -97,39 +95,41 @@
         
         function _getRangeStart(rangeEnd, rangeType, rangeSize) {
             if (rangeType == 'months') {
-                var endTime = angular.copy(rangeEnd);
-                return new Date(endTime.getFullYear(), endTime.getMonth(), 1); 
-            } else if (rangeType == 'weeks') {
-                var endTime = angular.copy(rangeEnd);
-                var day = angular.copy(endTime.getDay());
-                var diff = null;
-                if (day == 1) {
-                    diff = endTime.getDate() - 7;
-                } else {
-                    diff = endTime.getDate() - day + (day == 0 ? -6 : 1);
+                var month = rangeEnd.getMonth();
+                if (rangeEnd.getDate() == 1) month = month -1;
+                var year = rangeEnd.getFullYear();
+                if (month < 0) {
+                    year = year -1;
+                    month = 11;
                 }
-                return new Date(endTime.setDate(diff));
+                return new Date(year, month, 1, 0, 0, 0, 0); 
+            } else if (rangeType == 'weeks') {
+                var diff = (rangeEnd.getDay() + 5) % 7 + 1; // Sunday = 0=>6, Monday = 1=>7, Tue = 2=>1, ... Sat = 6=>5
+                return new Date(rangeEnd.getTime() - diff*24*3600*1000);
             } else if (rangeType == 'days') {
-                var date = angular.copy(rangeEnd);
-                date.setDate(date.getDate()-1);
-                return new Date(date);
+                return new Date(rangeEnd.getTime() - 24*3600*1000);
             }
             return new Date(rangeEnd.getTime() - rangeSize);
         }
 
-        this.getTimeRanges = function(rangeType) {
+        function _getRangeLabel(range, rangeType) {
+            if (rangeType == 'months') return nl.fmt.fmtDateDelta(range.start, null, 'month-mini');
+            var s = nl.fmt.fmtDateDelta(range.start, null, 'date-mini');
+            if (range.end.getTime() - range.start.getTime() <= 24*3600*1000) return s;
+            var e = nl.fmt.fmtDateDelta(new Date(range.end.getTime() - 24*3600*1000), null, 'date-mini');
+            return nl.fmt2('{} - {}', s, e);
+        }
+
+        this.getTimeRanges = function(rangeType, maxBuckets) {
             if (!_dates.minUpdated || !_dates.maxUpdated) return [];
+            if (!maxBuckets) maxBuckets = (rangeType == 'days') ? 31 : (rangeType == 'weeks') ? 15 : (rangeType == 'months') ? 15 : 8;
     
             var day = 24*60*60*1000; // 1 day in ms
             var now = new Date();
             var offset = now.getTimezoneOffset()*60*1000; // in ms
             var start = Math.floor((_dates.minUpdated.getTime()-offset)/day)*day + offset; // Today 00:00 Hrs in local time
             var end = Math.ceil((_dates.maxUpdated.getTime()-offset)/day)*day + offset; // Tomorrow 00:00 Hrs in local time
-            var graphSize = Math.ceil((end - start)/day);
-            var maxBuckets = (rangeType == 'weeks') ? (graphSize/7) : (rangeType == 'days') ? graphSize : rangeType ? 32 : 8;
-            
             var rangeSize = Math.ceil((end - start)/day/maxBuckets);
-            var multiDays = (rangeSize > 1);
             rangeSize *= day;
             var ranges = [];
             var rangeEnd = new Date(end);
@@ -137,27 +137,9 @@
                 if (rangeEnd.getTime() < start) break;
                 var rangeStart = _getRangeStart(rangeEnd, rangeType, rangeSize);
                 var range = {start: rangeStart, end: rangeEnd, count: 0, completed: 0};
-                var s = nl.fmt.fmtDateDelta(range.start, null, 'date-mini');
-                var e = nl.fmt.fmtDateDelta(range.end, null, 'date-mini');
-                range.label = multiDays ? nl.fmt2('{} - {}', s, e) : s;
-                if(rangeType == 'weeks') {
-                    var end = angular.copy(rangeEnd);
-                    var diff = end.getDate() - 1;
-                        end = new Date(end.setDate(diff));
-                        var e = nl.fmt.fmtDateDelta(end, null, 'date-mini');
-                    range.label = nl.fmt2('{} - {}', s, e);
-                }
-                if(rangeType == 'months') {
-                    var s = nl.fmt.fmtDateDelta(range.start, null, 'month-mini');
-                    range.label = nl.fmt2('{}', s);
-                }
+                range.label = _getRangeLabel(range, rangeType);
                 ranges.unshift(range);
-                if(rangeType == 'months') {
-                    rangeEnd = rangeStart.setDate(rangeStart.getDate()-1);
-                    rangeEnd = new Date(rangeEnd);
-                } else {
-                    rangeEnd = rangeStart;
-                }
+                rangeEnd = rangeStart;
             }
             return ranges;
         };

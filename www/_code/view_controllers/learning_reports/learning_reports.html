@@ -1,5 +1,9 @@
 <div class='nl-thin-scroll padding-small' style='position:absolute; width: 100%; height: 100%'>
 <div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
+ 
+    <!-- **************************************************************
+         Tool bar and title
+    ******************************************************************* -->
     <div class='row row-center margin0 padding0'
          style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
         <div class='col text-center fsh6 padding-mid' style='height: 36px; overflow: hidden'>
@@ -32,24 +36,32 @@
     <div ng-show='filterStr && screenSize == "small"' class='fsh6 padding-mid anim fade'>
         {{filterStr}} 
     </div>    
+
+    <!-- **************************************************************
+         Search box
+    ******************************************************************* -->
     <div>
         <div class='row row-center padding0 margin0'>
-            <input class='col padding-mid' ng-model='selectedTable.search.filter'
-                placeholder='{{selectedTable.search.placeholder}}'
-                ng-keydown='selectedTable._internal.searcher.onKeyDown($event)'>
+            <input class='col padding-mid' ng-model='tabData.search'
+                placeholder='{{tabData.searchPlaceholder}}'
+                ng-keydown='tabData.onSearch($event)'>
             <div class='padding-small'></div>
             <i class='nl-link-text icon fsh4 fblue padding-mid ion-ios-search'
-                ng-click='selectedTable._internal.searcher.onClick(0)'>
+                ng-click='tabData.onSearch(null)'>
             </i>
         </div>
     </div>
     <div class='padding-small'></div>
+
     <div class='row row-top row-stretch padding0 margin0 ' style='border-top: 1px solid #CCCCDD'>
+        <!-- **************************************************************
+            Left tabs
+        ******************************************************************* -->
         <div style='padding-right:0px''>
-            <div ng-repeat='tb in tabElements'
-                class='nl-link-text {{(tb.id == selectedTab.id) ? "nl-left-tab-selected" : "nl-left-tab"}}'>
+            <div ng-repeat='tb in tabData.tabs'
+                class='nl-link-text {{(tb.id == tabData.selectedTab.id) ? "nl-left-tab-selected" : "nl-left-tab"}}'>
                 <div class='padding-mid' 
-                    ng-click='tb.onClick(tb)'
+                    ng-click='tabData.onTabSelect(tb)'
                     style='position:relative'>
                     <span title='{{tb.title}}'
                         class='nl-toolbar-icon no-hover'>
@@ -59,9 +71,22 @@
                 </div>
             </div>
         </div>
-        <div class='col nl-left-tabbed-content sandbox'>
-            <div  ng-if='selectedTab.id == "overview" && ui.showOrgs && ui.showOrgCharts && overviewArray.length > 0'
-                class='anim flyfrom-t fade'>
+        <!-- **************************************************************
+            Content area
+        ******************************************************************* -->
+        <div class='col nl-left-tabbed-content sandbox padding0'>
+            <!-- **************************************************************
+                Overview tab
+            ******************************************************************* -->
+            <div  ng-if='tabData.nothingToDisplay'
+                  class='anim-enter fade fsh5 padding'>
+                  No data is available to display.
+            </div>
+            <!-- **************************************************************
+                Overview tab
+            ******************************************************************* -->
+            <div  ng-if='tabData.selectedTab.id == "overview" && !tabData.processingOnging'
+                class='anim-enter1 flyfrom-l'>
                 <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0' >
                     <div ng-class='$root.respCol331' style='width: 100%'>
                         <nl-summary-box number='overviewArray[0].perc' 
@@ -153,10 +178,32 @@
                     </div>
                 </div>
             </div>
-            <div  ng-if='(selectedTab.id == "timesummary") && ui.showTimeSummaryTab'>
+
+            <!-- **************************************************************
+                Learning records tab
+            ******************************************************************* -->
+            <div ng-if='tabData.selectedTab.id == "learningrecords" && !tabData.processingOnging'
+                 class='anim-enter1 flyfrom-l padding-mid'>
+                <nl-table info='utable'></table>
+            </div>
+
+            <!-- **************************************************************
+                Org tab
+            ******************************************************************* -->
+            <div ng-if='tabData.selectedTab.id == "organisations" && !tabData.processingOnging'
+                 class='anim-enter1 flyfrom-l padding-mid'>
+                <nl-table info='otable'></nl-table>
+            </div>
+
+            <!-- **************************************************************
+                Time Summary tab
+            ******************************************************************* -->
+            <div ng-if='tabData.selectedTab.id == "timesummary"  && !tabData.processingOnging'
+                 class='anim-enter1 flyfrom-l padding-mid'>
                 <div ng-repeat='timeSummaryChart in timeSummaryCharts'>
                     <div class='padding-small'></div>
                     <div class='fsh5 padding-mid'>{{timeSummaryChart.title}}</div>
+                    <div ng-if='timeSummaryChart.subtitle' class='fgrey padding-mid'><i>({{timeSummaryChart.subtitle}})</i></div>
                     <div class='padding-small'></div>
                     <div style='overflow-x: {{timeSummaryChart.data[0].length > 50 ? "scroll" : "none"}};'>
                         <div style='width: {{(timeSummaryChart.data[0].length > 50) ? "200": (timeSummaryChart.data[0].length > 120) ? "300" : ""}}%'>
@@ -171,16 +218,6 @@
                             </canvas>
                         </div>
                     </div>
-                </div>
-            </div>
-            <div class='sandbox'>
-                <div ng-show='ui.showOrgs && selectedTab.id == "organisations"' class='padding-mid anim flyfrom-t fade'>
-                    <nl-table info='otable'></nl-table>
-                </div>
-            </div>
-            <div class='sandbox'>
-                <div ng-show='selectedTab.id == "learningrecords"' class='padding-mid anim flyfrom-t fade'>
-                    <nl-table info='utable'></table>
                 </div>
             </div>
         </div>

@@ -95,7 +95,6 @@
 	
 		// Private members
 		var _isAdmin = false;
-		var _summaryStats = null;
 		
 		function _init(userInfo) {
 			_isAdmin = nlRouter.isPermitted(userInfo, 'admin_user');
@@ -103,9 +102,8 @@
 			nlTreeListSrv.init(nl);
 			nlLrFilter.init(settings, userInfo);
 			nlLrCourseRecords.init();
-			nlLrAssignmentRecords.init();        
-			_summaryStats = nlLrSummaryStats.getSummaryStats();
-			nlLrReportRecords.init(_summaryStats, userInfo);
+			nlLrAssignmentRecords.init();
+			nlLrReportRecords.init(userInfo);
 			nlLrFetcher.init();
 			nlLrExporter.init(userInfo);
 			nl.pginfo.pageTitle = nlLrFilter.getTitle();
@@ -114,12 +112,8 @@
 	
 		function _initScope() {
 			$scope.toolbar = _getToolbar();
-			$scope.tabElements = _getTabElements();
 			$scope.learningRecords = nlLrReportRecords.getRecords();
-			$scope.searchDict = {placeholder: nl.t('Start typing to search'), searchStr: '', infoText: nl.t('Found {} matches from {} items searched', Object.keys($scope.learningRecords).length, Object.keys($scope.learningRecords).length)};
-			$scope.selectedTab = $scope.tabElements[0]
 			$scope.metaHeaders = nlLrHelper.getMetaHeaders(true);
-			$scope.ui = {showOrgCharts: true, showOrgs: true, showUsers: false, showTimeSummaryTab: false};
 			$scope.utable = {
 				search: {disabled : true},
 				columns: _getUserColumns(),
@@ -137,6 +131,7 @@
 				getSummaryRow: _getOrgSummaryRow
 			};
 			nlTable.initTableObject($scope.otable);
+			$scope.tabData = _initTabData($scope.utable, $scope.otable);
 			$scope.selectedTable = $scope.otable;
 			_initChartData();
 		}
@@ -197,38 +192,16 @@
 			}
 			columns.push({id: 'assigned', name: 'Total', searchable: false, styleTd: 'text-right'});
 			columns.push({id: 'done', name: 'Completed', searchable: false, styleTd: 'text-right'});
+			columns.push({id: 'failed', name: 'Failed', searchable: false, styleTd: 'text-right'});
 			columns.push({id: 'started', name: 'Started', searchable: false, styleTd: 'text-right'});
 			columns.push({id: 'pending', name: 'Pending', searchable: false, styleTd: 'text-right'});
 			return columns;
 		}
 	
 		function _getOrgSummaryRow(records) {
-			var summaryRecord = {'org': {txt: 'Overall'}};
-			var assigned = 0;
-			var done = 0;
-			var failed = 0;
-			var started = 0;
-			var pending = 0;
-			for (var i=0; i<records.length; i++) {
-				var rec = records[i];
-				if (!rec.passesFilter) continue;
-				assigned += rec.assigned;
-				done += rec.done;
-				failed += rec.failed;
-				started += rec.started;
-				pending += rec.pending;
-			}
-	
-			summaryRecord['assigned'] = {txt: assigned};
-			summaryRecord['done'] = {txt: done, style:'background-color:red'};
-			summaryRecord['failed'] = {txt: failed};
-			summaryRecord['started'] = {txt: started};
-			summaryRecord['pending'] = {txt: pending, style:'nl-bg-red'};
-	
-			_updateChartData(summaryRecord);
-			return summaryRecord;
+			return $scope.tabData.summaryStatSummaryRow;
 		}
-	
+
 		function _getToolbar() {
 			return [{
 				title : 'Fetch more records in the currently selected date time range',
@@ -306,66 +279,191 @@
 			return isMailEnabled;
 		}
 	
-		function _getTabElements() {
-			return [{
+		function _initTabData(utable, otable) {
+			var ret =  {tabs: [{
 				title : 'Click here to see reports overview',
 				name: 'Overview',
 				icon : 'ion-stats-bars',
 				id: 'overview',
-				onClick : _clickOnOverview
+				updated: false,
+				tables: []
 			}, {
 				title : 'Click here to view learning records',
 				name: 'Learning records',
 				icon : 'ion-ios-compose',
 				id: 'learningrecords',
-				onClick : _clickOnLearningRecords
+				updated: false,
+				tables: [utable]
 			}, {
 				title : 'Click here to view organisational reports',
 				name: 'Organisations',
 				icon : 'ion-ios-people',
 				id: 'organisations',
-				onClick : _clickOnOrganisations
+				updated: false,
+				tables: [otable]
 			},{
 				title : 'Click here to view time summary',
 				name: 'Time summary',
 				icon : 'ion-clock',
 				id: 'timesummary',
-				onClick : _clickOnTimeSummary
-			}];
-		}
-	
-		function _clickOnOverview(tab) {
-			$scope.selectedTab = tab;
-			var filter = $scope.selectedTable.search.filter;
-			$scope.selectedTable = $scope.otable;
-			$scope.selectedTable.search.filter = filter
-		}
-	
-		function _clickOnOrganisations(tab) {
-			$scope.selectedTab = tab;
-			var filter = $scope.selectedTable.search.filter;
-			$scope.selectedTable = $scope.otable;
-			$scope.selectedTable.search.filter = filter
-			_updateScope();
-		}
-	
-		function _clickOnLearningRecords(tab) {
-			$scope.selectedTab = tab;
-			var filter = $scope.selectedTable.search.filter;
-			$scope.selectedTable = $scope.utable;
-			$scope.selectedTable.search.filter = filter
-			_updateScope();
+				updated: false,
+				tables: []
+			}]};
+			ret.search = '';
+			ret.lastSeached = '';
+			ret.searchPlaceholder = 'Type the search words and press enter';
+			ret.records = null; 
+			ret.summaryStats = null;
+			ret.summaryStatSummaryRow = null;
+			ret.selectedTab = ret.tabs[0];
+			ret.processingOnging = true;
+			ret.nothingToDisplay = false;
+			ret.onSearch = _onSearch;
+			ret.onTabSelect = _onTabSelect;
+			return ret;
 		}
 
-		function _clickOnTimeSummary(tab) {
-			$scope.selectedTab = tab;
-			$scope.ui['showTimeSummaryTab'] = false;
-			var filter = $scope.selectedTable.search.filter;
-			$scope.selectedTable = $scope.otable;
-			$scope.selectedTable.search.filter = filter
-			_updateScope();
+		function _someTabDataChanged() {
+			var tabs = $scope.tabData.tabs;
+			for (var i=0; i<tabs.length; i++) {
+				tabs[i].updated = false;
+			}
+			$scope.tabData.records = null;
 		}
 	
+		function _onTabSelect(tab) {
+			$scope.tabData.selectedTab = tab;
+			_updateCurrentTab();
+		}
+
+		function _updateCurrentTab() {
+			var tabData = $scope.tabData;
+			var tab = tabData.selectedTab;
+			if (tab.updated) return;
+			tabData.processingOnging = true;
+			tabData.nothingToDisplay = false;
+			nlDlg.showLoadingScreen();
+			nl.timeout(function() {
+				_actualUpdateCurrentTab(tabData, tab);
+				tab.updated = true;
+				if (tabData.records.length > 0) tabData.processingOnging = false;
+				else tabData.nothingToDisplay = true;
+				nlDlg.hideLoadingScreen();
+			}, 100);
+		}
+
+		function _actualUpdateCurrentTab(tabData, tab) {
+			if (!tabData.records) {
+				var summaryStats = nlLrSummaryStats.getSummaryStats();
+				tabData.records = _getFilteredRecords(summaryStats);
+				tabData.summaryStats = summaryStats.asList();
+
+				tabData.summaryStatSummaryRow = _getSummaryStatSummaryRow(tabData.summaryStats);
+			}
+			
+			if (tab.id == 'overview') {
+				_updateOverviewTab(tabData.summaryStatSummaryRow);
+			} else if (tab.id == 'learningrecords') {
+				nlTable.updateTableObject($scope.utable, tabData.records);
+			} else if (tab.id == 'organisations') {
+				nlTable.updateTableObject($scope.otable, tabData.summaryStats);
+			} else if (tab.id == 'timesummary') {
+				_updateTimeSummaryTab();
+			}
+		}
+
+		function _onSearch(event) {
+			if (event && event.which !== 13) return;
+			var tabData = $scope.tabData;
+			if (tabData.lastSeached == tabData.search) return;
+			tabData.lastSeached = tabData.search;
+			_someTabDataChanged();
+			_updateCurrentTab();
+		}
+
+		function _getFilteredRecords(summaryStats) {
+			var records = nlLrReportRecords.getRecords();
+			var tabData = $scope.tabData;
+			var searchInfo = _getSearchInfo(tabData);
+			var filteredRecords  = [];
+			for (var recid in records) {
+				var record = records[recid];
+				if (!_doesPassFilter(record, searchInfo)) continue;
+				filteredRecords.push(record);
+				summaryStats.addToStats(record);
+			}
+            filteredRecords.sort(function(a, b) {
+                return (b.stats.status.id - a.stats.status.id);
+            });
+			return filteredRecords;
+		}
+
+		function _getSearchInfo(tabData) {
+			var search = tabData.search;
+			var searchArray = search.split(' AND ');
+			var ret = [];
+			for (var i=0; i<searchArray.length; i++) {
+				var e=searchArray[i].trim().toLowerCase();
+				if (e) ret.push(e);
+			}
+			return ret;
+		}
+
+		function _doesPassFilter(record, searchInfo) {
+			if (searchInfo.length == 0) return true;
+			var repcontent = record.repcontent || {};
+			var raw_record = record.raw_record || {};
+			var user = record.user || {};
+			var usermeta = record.usermd || {};
+			var mdKeys = [];
+			for (var md in usermeta) mdKeys.push(md);
+			for (var i=0; i<searchInfo.length; i++) {
+				var searchElem = searchInfo[i];
+				if (_isFoundInAnyOfAttrs(searchElem, repcontent, ['name', 'batchname'])) continue;
+				if (_isFoundInAnyOfAttrs(searchElem, raw_record, ['subject', '_grade'])) continue;
+				if (_isFoundInAnyOfAttrs(searchElem, user, ['username', 'name', 'email', 'org_unit'])) continue;
+				if (_isFoundInAnyOfAttrs(searchElem, usermeta, mdKeys)) continue;
+				return false;
+			}
+			return true;
+		}
+
+		function _isFoundInAnyOfAttrs(str, obj, attrs) {
+			for (var i=0; i<attrs.length; i++)
+				if (_isFoundInAttr(str, obj, attrs[i])) return true;
+			return false;
+		}
+
+		function _isFoundInAttr(str, obj, attr) {
+			var inStr = obj ? obj[attr] : null;
+			if (!inStr) return false;
+			return (inStr.toLowerCase().indexOf(str) >= 0);
+		}
+
+		function _getSummaryStatSummaryRow(summaryStats) {
+			var summaryRecord = {'org': {txt: 'Overall'}};
+			var assigned = 0;
+			var done = 0;
+			var failed = 0;
+			var started = 0;
+			var pending = 0;
+			for (var i=0; i<summaryStats.length; i++) {
+				var rec = summaryStats[i];
+				assigned += rec.assigned;
+				done += rec.done;
+				failed += rec.failed;
+				started += rec.started;
+				pending += rec.pending;
+			}
+
+			summaryRecord['assigned'] = {txt: assigned};
+			summaryRecord['done'] = {txt: done};
+			summaryRecord['failed'] = {txt: failed};
+			summaryRecord['started'] = {txt: started};
+			summaryRecord['pending'] = {txt: pending};
+			return summaryRecord;
+		}
+
 		function _showRangeSelection() {
 			if (nlLrFetcher.fetchInProgress()) return;
 			nlLrFilter.show($scope).then(function(status) {
@@ -398,13 +496,11 @@
 			_updateScope();
 		}
 		
-		function _setSubTitle(recs) {
+		function _setSubTitle(anyRecord) {
 			nl.pginfo.pageSubTitle = '';
 			var objid = nlLrFilter.getObjectId();
-			if (!objid) return;
-			if (recs.length <= 0) return;
-			if (!recs[0].repcontent) return;
-			nl.pginfo.pageSubTitle = recs[0].repcontent.name || '';
+			if (!objid || !anyRecord || !anyRecord.repcontent) return;
+			nl.pginfo.pageSubTitle = anyRecord.repcontent.name || '';
 		}
 		
 		function _updateScope() {
@@ -412,15 +508,16 @@
 			
 			$scope.fetchInProgress = nlLrFetcher.fetchInProgress(true);
 			$scope.canFetchMore = nlLrFetcher.canFetchMore();
-			
-			var reportAsList = nlLrReportRecords.asList();
-			_setSubTitle(reportAsList);
-			$scope.noDataFound = (reportAsList.length == 0);
-			nlTable.updateTableObject($scope.utable, reportAsList);
-			nlTable.updateTableObject($scope.otable, _summaryStats.asList());
+
+			var anyRecord = nlLrReportRecords.getAnyRecord();
+			_setSubTitle(anyRecord);
+			$scope.noDataFound = (anyRecord == null);
+			_someTabDataChanged();
+			_updateCurrentTab();
 		}
 	
 		function _initChartData() {
+			$scope.overviewArray = [];
 			var labels =  ['done', 'failed', 'started', 'pending'];
 			var colors = ['#007700', '#770000', '#FFCC00', '#A0A0C0'];
 	
@@ -441,10 +538,12 @@
 				series: ['Assigned', 'Completed'],
 				colors: ['#3366ff', '#ff6600']
 			}];
+			var brackets = typeStr == 'Courses' ? '(within courses) ': '';
 			$scope.timeSummaryCharts = [{
 					type: 'bar',
 					id: 'days',
-					title: 'Modules completed over days',
+					title: nl.fmt2('Modules {}completed over days', brackets),
+					subtitle: 'Most recent data upto a maximum of 31 days are shown',
 					data: [[]],
 					labels: [],
 					series: ['S1'],
@@ -452,7 +551,8 @@
 				},
 				{
 					type: 'bar',
-					title: 'Modules completed over weeks',
+					title: nl.fmt2('Modules {}completed over weeks', brackets),
+					subtitle: 'Most recent data upto a maximum of 15 weeks are shown',
 					data: [[]],
 					labels: [],
 					series: ['S1'],
@@ -460,7 +560,8 @@
 				},
 				{
 					type: 'bar',
-					title: 'Modules completed over months',
+					title: nl.fmt2('Modules {}completed over months', brackets),
+					subtitle: 'Most recent data upto a maximum of 15 months are shown',
 					data: [[]],
 					labels: [],
 					series: ['S1'],
@@ -468,116 +569,78 @@
 				}]
 		}
 		
-		function _updateChartData(summaryRecord) {
-			_updateProgressChartData(summaryRecord);
-			_updateTimeChartData();
-			_updateTimeSummaryTab();
-			nl.timeout(function() {
-				_updateProgressChartData(summaryRecord);
-				_updateTimeChartData();
-				_updateTimeSummaryTab();
-			});
+		function _updateOverviewTab(summaryRecord) {
+			_updateOverviewDoughnut(summaryRecord);
+			_updateOverviewInfoGraphicsCards(summaryRecord);
+			_updateOverviewTimeChart();
 		}
-		
-		function _updateProgressChartData(summaryRecord) {
+
+		function _updateOverviewDoughnut(summaryRecord) {
 			var c = $scope.charts[0];
 			var type = nlLrFilter.getType();
 			var typeStr = type == 'module' || type == 'module_assign' ? 'Module' : 'Course';
-			_updateGrapicalInfoCards(summaryRecord);
 			c.data = [summaryRecord.done.txt, summaryRecord.failed.txt, summaryRecord.started.txt, summaryRecord.pending.txt];
 			c.title = nl.t('{} progress: {} of {} done', typeStr, (summaryRecord.done.txt + summaryRecord.failed.txt), summaryRecord.assigned.txt);
 		}
 		
-		function _updateGrapicalInfoCards(summaryRecord) {
-			var _completedDict = {};
-			var _pendingDict = {}; 
-			var _startedDict = {};
-
-			var reportRecords = nlLrReportRecords.getRecords();
-			var type = nlLrFilter.getType();
-			if(type == 'module' || type == 'module_assign') {
-				for(var rep in reportRecords) {
-					var rec = reportRecords[rep];
-					var orgEntry = _summaryStats.getOrgEntry(rec);
-					if (!orgEntry || !(orgEntry.passesFilter || _isFound(rec))) continue;
-					if (!rec.raw_record.started) {
-						if(rec.user.user_id in _completedDict)
-							delete _completedDict[rec.user.user_id]
-						if(rec.user.user_id in _startedDict)
-							delete _startedDict[rec.user.user_id]
-						_pendingDict[rec.user.user_id] = true;
-					}
-					if (rec.raw_record.started && !rec.raw_record.completed && !(rec.user.user_id in _pendingDict)) {
-						if(rec.user.user_id in _completedDict)
-							delete _completedDict[rec.user.user_id]
-						_startedDict[rec.user.user_id] = true;
-					}
-					if (rec.raw_record.completed && !(_pendingDict[rec.user.user_id] || _startedDict[rec.user.user_id])) 
-						_completedDict[rec.user.user_id] = true;
+		function _updateOverviewInfoGraphicsCards(summaryRecord) {
+			var userStatusDict = {};
+			var records = $scope.tabData.records;
+			for (var i=0; i<records.length; i++) {
+				var rec = records[i];
+				if (!rec) continue;
+				var uid = (rec.user || {}).user_id;
+				if (!uid) continue;
+				var status = rec.stats.status;
+				status = nlLrHelper.isDone(status) ? 'done' : status.id == nlLrHelper.STATUS_STARTED ? 'started' : 'pending';
+				if (!(uid in userStatusDict)) {
+					userStatusDict[uid] = status;
+					continue;
 				}
-			} else if (type == 'course' || type == 'course_assign') {
-				for(var rep in reportRecords) {
-					var rec = reportRecords[rep];
-					var orgEntry = _summaryStats.getOrgEntry(rec);
-					if (!orgEntry || !(orgEntry.passesFilter || _isFound(rec))) continue;
-					var totalItems = rec.stats.nLessons + rec.stats.nOthers;
-					var completedItems = rec.stats.nLessonsDone + rec.stats.nOthersDone;
-					if (completedItems == 0 && (rec.stats.status.txt != 'started')) {
-						if(rec.user.user_id in _completedDict)
-							delete _completedDict[rec.user.user_id]
-						if(rec.user.user_id in _startedDict)
-							delete _startedDict[rec.user.user_id]
-						_pendingDict[rec.user.user_id] = true;
-					}
-					if ((rec.stats.status.txt == 'started') && (totalItems != completedItems) && !(rec.user.user_id in _pendingDict)) {
-						if(rec.user.user_id in _completedDict)
-							delete _completedDict[rec.user.user_id]
-						_startedDict[rec.user.user_id] = true;
-					}
-					if (totalItems == completedItems && !(_pendingDict[rec.user.user_id] || _startedDict[rec.user.user_id])) 
-						_completedDict[rec.user.user_id] = true;	
+				var oldStatus =  userStatusDict[uid];
+				if (status == 'pending' && oldStatus == 'pending') {
+					status = 'pending';
+				} else if (status == 'done' &&  oldStatus == 'done') {
+					status = 'done';
+				} else {
+					status = 'started';	
 				}
+				userStatusDict[uid] = status;
 			}
+			var uDone = 0;
+			var uStarted = 0;
+			var uPending = 0;
+			for(var uid in userStatusDict) {
+				var status = userStatusDict[uid];
+				if (status == 'done') uDone++;
+				else if (status == 'started') uStarted++;
+				else uPending++;
+			}
+			var type = nlLrFilter.getType();
 			var typeStr = type == 'module' || type == 'module_assign' ? 'Modules' : 'Courses';
 			var completedPerc = ((summaryRecord.done.txt+summaryRecord.failed.txt)/summaryRecord.assigned.txt)*100 || 0;
 			var startedPerc = (summaryRecord.started.txt/summaryRecord.assigned.txt)*100 || 0;
 			var pendingPerc = (summaryRecord.pending.txt/summaryRecord.assigned.txt)*100 || 0;
-			var completedFrac = (completedPerc % 1);
-			var startedFrac = (startedPerc % 1);
-			var pendingFrac = (pendingPerc % 1);
-			var totalFrac = completedFrac + startedFrac + pendingFrac;
 			completedPerc = Math.round(completedPerc);
 			startedPerc = Math.round(startedPerc);
 			pendingPerc = Math.round(pendingPerc)
-			var totalPerc = completedPerc + startedPerc + pendingPerc;
-			if(totalPerc < 100) {
-				if((completedFrac >= startedFrac) && (completedFrac >= pendingFrac)) {
-					completedPerc += Math.round(totalFrac);
-				} else if((startedFrac >= completedFrac) && (startedFrac >= pendingFrac)) {
-					startedPerc += Math.round(totalFrac);
-				} else {
-					pendingPerc += Math.round(totalFrac);
-				}
-			}
 			$scope.overviewArray = [
 				{title: nl.fmt2('{} completed', typeStr), desc:'', perc: completedPerc, showperc:1},
 				{title: nl.fmt2('{} started', typeStr), desc:'', perc: startedPerc, showperc:1},
 				{title: nl.fmt2('{} yet to start', typeStr), desc:'', perc: pendingPerc, showperc:1},
-				{title: nl.fmt2('{} completed', 'Learners'), desc:'', perc: Object.keys(_completedDict).length || 0, showperc:0},
-				{title: nl.fmt2('{} started', 'Learners'), desc:'', perc: Object.keys(_startedDict).length || 0, showperc:0},
-				{title: nl.fmt2('{} yet to start', 'Learners'), desc:'', perc: Object.keys(_pendingDict).length || 0, showperc:0}];
+				{title: nl.fmt2('{} completed', 'Learners'), desc:'', perc: uDone, showperc:0},
+				{title: nl.fmt2('{} started', 'Learners'), desc:'', perc: uStarted, showperc:0},
+				{title: nl.fmt2('{} yet to start', 'Learners'), desc:'', perc: uPending, showperc:0}];
 		}
 
-		function _updateTimeChartData() {
+		function _updateOverviewTimeChart() {
 			var c = $scope.charts[1];
 			var ranges = nlLrReportRecords.getTimeRanges();
-			var reportRecords = nlLrReportRecords.getRecords();
+			var records = $scope.tabData.records;
 			var type = nlLrFilter.getType();
 			var isModuleRep = type == 'module' || type == 'module_assign';
-			for(var key in reportRecords) {
-				var rec = reportRecords[key];
-				var orgEntry = _summaryStats.getOrgEntry(rec);
-				if (!orgEntry || !(orgEntry.passesFilter || _isFound(rec))) continue;
+			for (var j=0; j<records.length; j++) {
+				var rec = records[j];
 				var ended = isModuleRep ? _getModuleEndedTime(rec.raw_record) : _getCourseEndedTime(rec);
 				var isAssignedCountFound = false;
 				var isCompletedCountFound = false;
@@ -621,51 +684,39 @@
 		}
 
 		function _updateTimeSummaryTab() {
-			$scope.ui['showTimeSummaryTab'] = false;
-			nlDlg.showLoadingScreen();
-			nl.timeout(function() {
-				var reportRecords = nlLrReportRecords.getRecords();
-				var type = nlLrFilter.getType();
-				var loadcomplete = false;
-				for(var j=0; j<$scope.timeSummaryCharts.length; j++) {
-					var c = $scope.timeSummaryCharts[j];
-					var rangeType = j == 0 ? 'days' : j == 1 ? 'weeks' : 'months';
-					var ranges = nlLrReportRecords.getTimeRanges(rangeType);
-					var isModuleRep = type == 'module' || type == 'module_assign';
-					for(var key in reportRecords) {
-						var rec = reportRecords[key];
-						var orgEntry = _summaryStats.getOrgEntry(rec);
-						if (!orgEntry || !(orgEntry.passesFilter || _isFound(rec))) continue;
-						var recId = rec.raw_record.id;
-						var lessonReports = isModuleRep ? {recId: rec.raw_record} : rec.repcontent.lessonReports;
-	
-						for(var report in lessonReports) {
-							var rep = lessonReports[report];
-							var ended = _getModuleEndedTime(rep);
-							if (!ended) continue;
-							for(var i=0; i<ranges.length; i++) {
-								if (!_isTsInRange(ended, ranges[i])) continue;
-								ranges[i].count++;
-								break;
-							}
+			var records = $scope.tabData.records;
+			var type = nlLrFilter.getType();
+			var loadcomplete = false;
+			for(var chartindex=0; chartindex<$scope.timeSummaryCharts.length; chartindex++) {
+				var c = $scope.timeSummaryCharts[chartindex];
+				var rangeType = chartindex == 0 ? 'days' : chartindex == 1 ? 'weeks' : 'months';
+				var maxBuckets = (rangeType == 'days') ? 31 : 15;
+				var ranges = nlLrReportRecords.getTimeRanges(rangeType, maxBuckets);
+				var isModuleRep = type == 'module' || type == 'module_assign';
+				for (var i=0; i<records.length; i++) {
+					var rec = records[i];
+					var recId = rec.raw_record.id;
+					var lessonReports = isModuleRep ? {recId: rec.raw_record} : rec.repcontent.lessonReports;
+
+					for(var report in lessonReports) {
+						var rep = lessonReports[report];
+						var ended = _getModuleEndedTime(rep);
+						if (!ended) continue;
+						for(var rangeindex=0; rangeindex<ranges.length; rangeindex++) {
+							if (!_isTsInRange(ended, ranges[rangeindex])) continue;
+							ranges[rangeindex].count++;
+							break;
 						}
 					}
-					c.labels = [];
-					c.data = [[]];
-					for (var i=0; i<ranges.length; i++) {
-						var r = ranges[i];
-						c.labels.push(r.label);
-						c.data[0].push(r.count);
-					}
-					if(j==2) {
-						loadcomplete = true;
-					}
 				}
-				if(loadcomplete) {
-					$scope.ui['showTimeSummaryTab'] = true;
-					nlDlg.hideLoadingScreen();
+				c.labels = [];
+				c.data = [[]];
+				for (var i=0; i<ranges.length; i++) {
+					var r = ranges[i];
+					c.labels.push(r.label);
+					c.data[0].push(r.count);
 				}
-			}, 500);
+			}
 		}
 
 		function _isFound(rec) {

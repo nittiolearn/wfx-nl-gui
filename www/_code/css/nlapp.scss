@@ -2350,6 +2350,19 @@ img.nl-full-width {
   transform:translateY(0);
 }
 
+.flyfrom-l.ng-hide,
+.flyfrom-l.ng-leave.ng-leave-active,
+.flyfrom-l.ng-move,
+.flyfrom-l.ng-enter {
+  transform:translateX(-60vh);
+}
+
+.flyfrom-l.ng-leave,
+.flyfrom-l.ng-move.ng-move-active,
+.flyfrom-l.ng-enter.ng-enter-active {
+  transform:translateX(0);
+}
+
 .highlight.ng-move,
 .highlight.ng-enter {
   background-color: rgba(0, 128, 0, 0.1);
