@@ -2431,7 +2431,8 @@ var modulePopup = new ModulePopupHadler();
         });
 		
 		jQuery(function() {
-			g_lesson.initDom();
+            g_lesson.initDom();
+            _initFloaterTrnsparency();
 		});
 		
         var g_lessonId = null;
@@ -2524,9 +2525,31 @@ var modulePopup = new ModulePopupHadler();
 	
 	function doModeToggle() {
 		g_lesson.doModeToggle();
-	}
+    }
 
-	//--------------------------------------------------------------------------------------------------	
+    function onPageNumberClick() {
+        _toggleFloaterTransparancy();
+    }
+
+    var _transparentFloaters = false;
+    function _toggleFloaterTransparancy() {
+        _setFloaterTransparency(!_transparentFloaters);
+    }
+
+    function _setFloaterTransparency(newState) {
+        _transparentFloaters = newState;
+        var clsName = 'nl-transparent-floaters';
+        var elem = jQuery('body');
+        if (_transparentFloaters) elem.addClass(clsName);
+        else elem.removeClass(clsName);
+    }
+
+    function _initFloaterTrnsparency() {
+        var elem = jQuery('body');
+        var trans = elem.hasClass('nl-screen-small');
+        _setFloaterTransparency(trans);
+    }
+    //--------------------------------------------------------------------------------------------------	
 
 	return {
 		init : init,
@@ -2535,6 +2558,7 @@ var modulePopup = new ModulePopupHadler();
 		theLesson : g_lesson,
 		showCommentIndicator : showCommentIndicator,
 		doModeToggle : doModeToggle,
-		modulePopup: modulePopup
+        modulePopup: modulePopup,
+        onPageNumberClick: onPageNumberClick
 	};
 }(); 

@@ -407,11 +407,12 @@ i.toolbeltIcon.icon:hover {
 
 #module_popup {
   position: absolute;
-  top: 55px;
-  left: 10%;
-  bottom: 45px;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
   height: auto;
-  width: 80%;
+  width: auto;
   background-color: rgba(230, 230, 255, 0.9);
   box-shadow: 5px 5px 10px rgba(128,128,128,0.8);
   transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
@@ -451,7 +452,7 @@ a.enabled {
 .toolBar {
   position: absolute;
   top: 42px;
-  right: 2px;
+  right: 32px;
   max-height: 42px;
   max-width: 99%;
   text-align: right;
@@ -2256,4 +2257,12 @@ i.italic {
   display: block;
   width: 100%;
   padding: 0 4px;
+}
+
+.nl-screen-small .not-in-small {
+  display: none;
+}
+
+.nl-transparent-floaters .transparable {
+  opacity: 0.3 !important;
 }

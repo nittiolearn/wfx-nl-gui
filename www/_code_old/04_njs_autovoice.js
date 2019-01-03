@@ -3,7 +3,7 @@ njs_autovoice = function() {
 var _canAutoPlay = true; // Common across auto voice and audio manager
 
 function _getVoiceButtonDom(holder, img) {
-    return jQuery('<span class="voiceButton navigator"></span>');
+    return jQuery('<span class="voiceButton navigator transparable"></span>');
 }
 
 var iconToCls = {
