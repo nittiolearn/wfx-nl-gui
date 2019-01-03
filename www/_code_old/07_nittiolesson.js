@@ -260,8 +260,8 @@ nlesson = function() {
 			var po = new Page(self);
 			po.init(oPage, self.bgimg);
 	        self.pages.push(po);
-	     }
-	        	
+	    }
+        
         self.pendingTimer = new njs_lesson_helper.PendingTimer();
         self.pendingTimer.updateIfNeeded(self);
         self.globals.slideChangeChecker.init();
@@ -272,6 +272,9 @@ nlesson = function() {
 		self.createHtmlDom();
         self.setupOnLeavePage();
         self.updateTemplateCustomizations();
+        if(self.renderCtx.launchCtx() == 'report_assign_my' || self.renderCtx.launchCtx() == 'report_assign_review') {
+            njs_lesson_helper.SubmitAndScoreDialog.showReportOverview(self);
+        }
 	}
 
     var oldXXXDefault = 'SOME JUNK VALUE';
@@ -450,7 +453,7 @@ nlesson = function() {
 		this.showOrHideZodiIcon();
 		this.showOrHideDoToggleIcon();
 		showCommentIndicator();
-		_showOrHideToolbar();
+        _showOrHideToolbar();
 	}
 
     function _showOrHideToolbar() {
