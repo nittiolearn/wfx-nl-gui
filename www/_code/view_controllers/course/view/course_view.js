@@ -544,7 +544,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
             nlTreeListSrv.collapseAll();
             _showVisible();
             $scope.ext.setCurrentItem(nlTreeListSrv.getRootItem());
-            if(!$scope.expandedView) _popout(true);
+            if(!$scope.expandedView) _popout(false);
         }
         _confirmIframeClose(null, _impl);
     };
@@ -611,6 +611,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     
     $scope.closeIFrame = function() {
         nl.timeout(function() {
+            $scope.ext.updateLastSubmittedItem($scope.ext.item);
             $scope.iframeUrl = null;
             $scope.iframeModule = null;
             $scope.updateVisiblePanes();
@@ -726,6 +727,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         $scope.ext.setCurrentItem(cm);
         var dontUpdate = true;
         _confirmIframeClose(cm, function() {
+            if(nl.rootScope.screenSize == 'small') _popout(true);
             _onLaunchImpl(cm);
         }, dontUpdate);
     };
@@ -1110,7 +1112,11 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
     this.stats = null;
     this.pastAttemptData = [];
     this.data = {remarks: ''}; 
-	
+    this.lastSubmittedRecord = {};
+    this.updateLastSubmittedItem = function(cm) {
+        this.lastSubmittedRecord = cm;
+    };
+
     this.setCurrentItem = function(cm) {
         this.item = cm;
 		if (this.isEditorMode()) nlCourseEditor.initSelectedItem(this.item);
@@ -1174,12 +1180,11 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
         return (this.item.state.status == 'success' || this.item.state.status == 'failed');
     };
 
-    this.isAssesmentModule = function(cm) {
-        if(cm.type == 'lesson' && (cm.state.status == 'success' || cm.state.status == 'failed') && cm.maxScore) {
+    this.canHighlightReviewButton = function(cm) {
+        if(cm.type != 'lesson' || (cm.id != this.lastSubmittedRecord.id)) return false;
+        if((cm.state.status == 'success' || cm.state.status == 'failed') && cm.maxScore)
             return true;
-        } else {
-            return false;
-        }
+        return false;
     }
 
     this.getLaunchString = function(cm) {
