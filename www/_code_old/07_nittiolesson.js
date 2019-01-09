@@ -1592,6 +1592,21 @@ nlesson = function() {
         } else {
             this.propAudio.html('');
         }
+        if('autoVoicePolly' in this.oPage && this.oPage.autoVoicePolly.length > 0) {
+            for(var i=0; i<this.oPage.autoVoicePolly.length; i++) {
+                var fragment = this.oPage.autoVoicePolly[i]
+                if(!'mp3' in fragment) continue;
+                var audioUrl = fragment.mp3;
+                audioUrl = audioUrl.replace(/audio\:/, '');
+                audioUrl = audioUrl.replace(/\[.*\]/, '');
+                var audioHtml = '';
+                var validUrl = audioUrl.indexOf('/');
+                if( validUrl != -1) {
+                    audioHtml = this.lesson.globals.audioManager.getButton(audioUrl, this.getPageId());
+                }
+                this.propAudio.html(audioHtml);        
+            }
+        }
     }
     
     function Page_pauseAudio() {

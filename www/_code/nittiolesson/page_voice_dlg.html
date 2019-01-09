@@ -1,6 +1,70 @@
 <nl-dlg dlgtitle='{{data.dlgTitle}}' show-help='0'>
 <nl-dlg-content>
-	<div>
+	<div ng-show='autoVoiceProvider'>
+		<table class='nl-table-styled2 nl-table-padded fsh6'>
+			<tr>
+				<th></th>
+				<th style='width: 20%'>Voice</th>
+				<th>Delay</th>
+				<th style='width:60%'>Voice text/ audio url</th>
+				<th style='width:10%'>Audio type</th>
+			</tr>
+			<tr ng-repeat-start='script in data.autoVoicePolly track by $index'
+				class='{{item.error ? "nl-bg-red" : ""}}'>
+				<td class="nl-link-text"
+					title='Remove this voice text'
+					ng-click='data.autoVoicePolly.splice($index, 1)'>
+					<i class='icon ion-ios-trash fsh4 fblue2'></i>
+				</td>
+				<td colspan="1">
+					<div class='row row-top margin0 padding0'>
+						<div class='col'><nl-tree-select info='script.voiceLanguageInfo'></nl-tree-select></div>
+					</div>
+				</td>
+				<td>
+					<div style='padding-top: 5px'>
+						<input style='height: 40px' ng-model='script.delay' type="number"></input>
+					</div>
+				</td>
+				<td style='width:60%'>
+					<div ng-show='script.type.id == "autovoice"' class='row row-top margin0 padding0'>
+						<div class='col'><textarea ng-model='script.text' type="text"></textarea></div>
+					</div>
+					<div ng-show='script.type.id == "audio" && script.mp3' class='fsh6'>Audio url: {{script.mp3}}</div>
+				</td>
+				<td style='width: 10%'>
+					<div class='row row-top margin0 padding0'>
+						<div class='col'>
+							<select ng-model='script.type' 
+								ng-change='selectAudioUrl($index)'
+								ng-options='elem as elem.name group by elem.group for elem in script.options track by elem.id'
+								style='height: 40px'
+								autofocus=''
+								tabindex="{{fieldindex}}">
+							</select>
+						</div>
+					</div>
+				</td>
+			</tr>
+			<tr ng-repeat-end ng-show='script.error'>
+				<td style='padding: 0'>
+				</td>
+				<td style='padding-top: 4px' colspan='3'>
+					<div class='forange padding-small'>{{scripts.error}}</div>
+				</td>
+			</tr>
+			<tr>
+				<td class='nl-link-text'
+					title='Add a new voice text'
+					ng-click='data.addPollyVoiceField()'>
+					<i class='icon ion-plus-circled fsh4 fblue2'></i>
+				</td>
+				<td colspan="4">
+				</td>
+			</tr>
+		</table>
+	</div>
+	<div ng-show='!autoVoiceProvider'>
 		<nl-dlg-row attr='audioUrl' data='data' help='help'>
 			<div class='row row-center row-wrap margin0 padding0'>
 				<div class='col padding0'>
