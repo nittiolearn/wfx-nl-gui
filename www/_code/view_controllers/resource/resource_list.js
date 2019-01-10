@@ -179,9 +179,18 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 		return card;
 	}
 	
+	function IsJsonString(str) {
+		try {
+			JSON.parse(str);
+		} catch (e) {
+			return false;
+		}
+		return true;
+	}
+
 	function _getResourceListAvps(resource){
 		var avps = [];
-		var data = angular.fromJson(resource.info||'{}');
+		var data = IsJsonString(resource.info) ? angular.fromJson(resource.info||'{}') : {};
 		var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
 		_populateLinks(linkAvp, resource.id, resource);
 		nl.fmt.addAvp(avps, 'Name', resource.name);
