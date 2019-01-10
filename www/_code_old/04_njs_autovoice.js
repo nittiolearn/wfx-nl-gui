@@ -380,42 +380,44 @@ function Voices() {
 function AudioManager() {
     var self = this;
     
-    this.getButton = function(audioUrl, pageId) {
+    this.getButton = function(audioUrlInfos, pageId) {
+        audioUrlInfos = _getValidUrlInfos(audioUrlInfos);
+        if (!audioUrlInfos) return null;
         _init();
         var button = _getVoiceButtonDom();
-        var info = _addPageAudio(audioUrl, pageId, button);
+        var info = _addPageAudio(audioUrlInfos, pageId, button);
         button.on('click', function () {
-            _onButtonClick(info, audioUrl, pageId, button);
+            _onButtonClick(info, audioUrlInfos, pageId, button);
         });
         return button;
     };
-    
+
     var _currentInfo = null;
     this.play = function(pageId) {
         this.pauseAll();
         var info = _audioHolder ? _audioHolder[pageId] : null;
         if (!info) return;
         _currentInfo = info;
-        if (!_currentInfo.canplay) {
+        if (!_canPlay(info)) {
             info.playing = false;
-            info.audio.load();
+            _loadFragment(info);
             return;
         }
         if (!_canAutoPlay) return;
-        _currentInfo.audio.play();
+        _playFragment(info);
     };
 
     this.pause = function(pageId) {
         var info = _audioHolder ? _audioHolder[pageId] : null;
         if (!info) return;
         if (!info.playing) return;
-        info.audio.pause();
+        _pauseFragment(info);
         _updateIcon(info);
     };
 
     this.pauseAll = function() {
         if (!_currentInfo || !_currentInfo.playing) return;
-        _currentInfo.audio.pause();
+        _pauseFragment(_currentInfo);
         _currentInfo = null;
     };
     
@@ -427,38 +429,95 @@ function AudioManager() {
         holder.html('');
     }
     
-    function _addPageAudio(audioUrl, pageId, button) {
+    function _addPageAudio(audioUrlInfos, pageId, button) {
         var holder = jQuery('#audioHolder');
-        var info = null;
-        if (pageId in _audioHolder) {
-            info = _audioHolder[pageId];
-            info.button = button;
-            info.url = audioUrl;
-            info.canplay = false;
-            info.playing = false;
-            info.audio.src = audioUrl;
-            info.audio.load();
-        } else {
-            var audio = jQuery(njs_helper.fmt2('<audio src="{}"/>', audioUrl));
-            info = {audio: audio[0], url: audioUrl, button: button, pageId: pageId,
-                canplay: false, playing: false};
-            _audioHolder[pageId] = info;
-            _registerAudioEvents(info);
-            holder.append(audio);
-        }
+        var info = _audioHolder[pageId];
+        if (info) _removeAudioFragments(info);
+        info = {audioUrlInfos: audioUrlInfos, button: button, pageId: pageId,
+            canplay: false, playing: false, curFragment: 0};
+        _audioHolder[pageId] = info;
+        _addAudioFragments(info, holder);
         _updateIcon(info);
         return info;
     }
+
+    var runningFragmentId = 0;
+    function _addAudioFragments(info, holder) {
+        for (var i=0; i<info.audioUrlInfos.length; i++) {
+            var audioUrlInfo = info.audioUrlInfos[i];
+            runningFragmentId++;
+            audioUrlInfo.fragmentpos = i;
+            audioUrlInfo.fragmentid = runningFragmentId;
+            audioUrlInfo.canplay = false;
+            var audio = jQuery(njs_helper.fmt2('<audio id="audfrg_{}" src="{}"/>', audioUrlInfo.fragmentid, audioUrlInfo.mp3));
+            audioUrlInfo.audio = audio[0];
+            _registerAudioEvents(info, audioUrlInfo);
+            holder.append(audio);
+        }
+    }
     
-    function _registerAudioEvents(info) {
-        var audio = info.audio;
+    function _removeAudioFragments(info) {
+        for (var i=0; i<info.audioUrlInfos.length; i++) {
+            var audioUrlInfo = info.audioUrlInfos[i];
+            var objid = njs_helper.fmt2('#audfrg_{}', audioUrlInfo.fragmentid);
+            jQuery(objid).remove();
+        }
+    }
+    
+    function _getValidUrlInfos(audioUrlInfos) {
+        var ret = [];
+        for(var i=0; i<audioUrlInfos.length; i++) {
+            var info = audioUrlInfos[i];
+            var mp3 =  _getValidAudioUrl(info.mp3);
+            if (!mp3) return null;
+            ret.push({mp3: mp3, delay: info.delay||0});
+        }
+        return ret;
+    }
+
+    function _getValidAudioUrl(audioUrl) {
+        audioUrl = audioUrl.replace(/audio\:/, '');
+        audioUrl = audioUrl.replace(/\[.*\]/, '');
+        if (audioUrl.indexOf('/') != -1) return audioUrl;
+        return null;
+    }
+    
+    function _loadFragment(info) {
+        var audioUrlInfo = info.audioUrlInfos[info.curFragment];
+        audioUrlInfo.audio.load();
+    }
+
+    function _playFragment(info) {
+        var audioUrlInfo = info.audioUrlInfos[info.curFragment];
+        audioUrlInfo.audio.play();
+    }
+
+    function _pauseFragment(info) {
+        var audioUrlInfo = info.audioUrlInfos[info.curFragment];
+        audioUrlInfo.audio.pause();
+    }
+
+    function _canPlay(info) {
+        var audioUrlInfo = info.audioUrlInfos[info.curFragment];
+        return audioUrlInfo.canplay;
+    }
+
+    function _isCurrentInfo(info, audioUrlInfo) {
+        if (!_currentInfo || _currentInfo.pageId != info.pageId) return false;
+        if (!audioUrlInfo) return true;
+        return info.curFragment == audioUrlInfo.fragmentpos;
+    }
+
+    function _registerAudioEvents(info, audioUrlInfo) {
+        var audio = audioUrlInfo.audio;
         var pageId = info.pageId;
         audio.addEventListener('canplay', function() {
             _debug(pageId, 'Audio is loaded');
-            info.canplay = true;
-            if (_currentInfo && _currentInfo.pageId == pageId && _canAutoPlay)
-                self.play(pageId);
-            _updateIcon(info);
+            audioUrlInfo.canplay = true;
+            if (_isCurrentInfo(info, audioUrlInfo)) {
+                _playFragment(info);
+                _updateIcon(info);
+            }
         }, true);
         audio.addEventListener('pause', function() {
             _debug(pageId, 'Audio is paused');
@@ -472,8 +531,21 @@ function AudioManager() {
         }, true);
         audio.addEventListener('ended', function() {
             _debug(pageId, 'Audio play done');
-            info.playing = false;
-            _updateIcon(info);
+            info.curFragment++;
+            if (info.curFragment >= info.audioUrlInfos.length) {
+                info.curFragment = 0;
+                info.playing = false;
+                _updateIcon(info);
+                return;
+            } else if (_isCurrentInfo(info)) {
+                var audioUrlInfo = info.audioUrlInfos[info.curFragment];
+                if (audioUrlInfo.canplay) {
+                    _playFragment(info);
+                } else {
+                    _loadFragment(info);
+                    _updateIcon(info);
+                }
+            }
         }, true);
     }
     
@@ -484,7 +556,7 @@ function AudioManager() {
 
     function _updateIcon(info) {
         var prefix = nittio.getStaticResFolder();
-        if (!info.canplay) {
+        if (!_canPlay(info)) {
             _setVoiceButtonIcon(info.button, 'buffering.icon');
         } else if (!info.playing) {
             _setVoiceButtonIcon(info.button, 'play.icon');
@@ -493,19 +565,19 @@ function AudioManager() {
         }
     }
     
-    function _onButtonClick(info, audioUrl, pageId, button) {
+    function _onButtonClick(info, audioUrlInfos, pageId, button) {
         _currentInfo = info;
-        if (!info.canplay) {
+        if (!_canPlay(info)) {
             njs_helper.Dialog.popupStatus('Audio is loading. Please wait ...');
-            _addPageAudio(audioUrl, pageId, button); // Needed for mobile
+            _addPageAudio(audioUrlInfos, pageId, button); // Needed for mobile
         } else if (info.playing) {
             _debug(info.pageId, 'Pause called');
             _canAutoPlay = false;
-            info.audio.pause();
+            _pauseFragment(info);
         } else {
             _debug(info.pageId, 'Play called');
             _canAutoPlay = true;
-            info.audio.play();
+            _playFragment(info);
         }
         _updateIcon(info);
     }
