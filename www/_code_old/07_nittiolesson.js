@@ -113,6 +113,7 @@ nlesson = function() {
 		this.globals.animationManager = njs_animate.getAnimationManager();
         this.globals.slideChangeChecker = new njs_lesson_helper.SlideChangeChecker(this);
         this.globals.selectionHandler = new SectionSelectionHandler(this);
+        this.globals.autoVoiceProvider = '';
 	}
 
 	//--------------------------------------------------------------------------------------------
@@ -213,6 +214,7 @@ nlesson = function() {
         window.nlapp.nlMarkup.setGid((g_nlPlayerType == 'sco') ? 0 : nittio.getGid());
         var moduleConfig = jQuery('#module_config').val();
         moduleConfig = jQuery.parseJSON(moduleConfig);
+        self.globals.autoVoiceProvider = moduleConfig.grpProps.autoVoiceProvider;
         window.nlapp.NittioLesson.init(self.oLesson, moduleConfig,
             npagetypes.getInteractionsAndLayouts());
     }
@@ -242,8 +244,9 @@ nlesson = function() {
         nittio.setOnLeaveCheck(self.renderCtx.launchCtx() != 'view' &&
           njs_scorm.nlPlayerType() != 'embedded' && scormMode === null);
 
-        _Lesson_updateOLessonFromLearningData(self);
-        _Lesson_filterPages(self);
+          _Lesson_migrateToAutoVoiceProvider(self.oLesson.pages, self.globals.autoVoiceProvider);
+          _Lesson_updateOLessonFromLearningData(self);
+          _Lesson_filterPages(self);
         self.pages = [];
         for (var i = 0; i < self.oLesson.pages.length; i++) {
             var po = new Page(self);
@@ -884,6 +887,25 @@ nlesson = function() {
                 pld.sections.push(sld);
             }
         }
+    }
+
+    function _Lesson_migrateToAutoVoiceProvider(pages, autoVoiceProvider) {
+        if (autoVoiceProvider != 'polly') return; // Only forward migration from "" ==> "polly"
+ 
+        for(var i=0; i<pages.length; i++) {
+            _Page_migrateToAutoVoiceProvider(pages[i], autoVoiceProvider);
+            for (var j=0; j<pages[i].sections.length; j++) {
+                var popupPages = (pages[i].sections[j].popups || {}).onclick || [];
+                _Lesson_migrateToAutoVoiceProvider(popupPages, autoVoiceProvider);
+            }
+        }
+    }
+
+    function _Page_migrateToAutoVoiceProvider(oPage, autoVoiceProvider) {
+        if (oPage.autoVoicePolly && oPage.autoVoicePolly.length > 0) return; // already migrated
+        if (!oPage.autoVoice && !oPage.audioUrl) return; // nothing to migrate
+        oPage.autoVoicePolly = [{mp3: oPage.audioUrl || '', delay: 0, lang: 'en-IN', voice: 'Aditi',
+                        text: oPage.autoVoice, type: oPage.audioUrl ? 'audio' : 'browservoice' }];
     }
 
     function _Lesson_updateOLessonFromLearningData(lesson) {
@@ -1576,11 +1598,10 @@ nlesson = function() {
         }
 
         this.autoVoiceButton = null;
-        var polly = this.oPage.autoVoicePolly;
-        if (!polly) polly = this.oPage.audioUrl ? [{mp3: this.oPage.audioUrl, delay: 0}] : [];
+        var mp3List = this.oPage.audioUrl ? [{mp3: this.oPage.audioUrl, delay: 0}] : this.oPage.autoVoicePolly;
         var audioHtml = '';
-        if(polly.length > 0) {
-            audioHtml = this.lesson.globals.audioManager.getButton(polly, this.getPageId());
+        if(mp3List) {
+            audioHtml = this.lesson.globals.audioManager.getButton(mp3List, this.getPageId());
         } else if (this.oPage.autoVoice) {
             this.autoVoiceButton = this.lesson.globals.autoVoice.getVoiceButton(this.oPage.autoVoice);
             if (this.autoVoiceButton) audioHtml = this.autoVoiceButton.html;

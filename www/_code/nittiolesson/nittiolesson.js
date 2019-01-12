@@ -22,7 +22,7 @@ function(nl, nlServerApi, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg,
 		NittioLessonPagePropsDlg.init(oLesson, moduleConfig);
 		NittioLessonModuleReviewDlg.init(oLesson);
 		NittioLessonAddPageDlg.init(ptInfo);
-		NittioLessonAddPageVoice.init(oLesson);
+		NittioLessonAddPageVoice.init(oLesson, moduleConfig);
 		_moduleConfig = moduleConfig;
 	};
 

@@ -71,6 +71,7 @@ function(nl) {
         _fillDefaut(treeSelectInfo, 'canSelectFolder', canSelectFolder);
         _fillDefaut(treeSelectInfo, 'searchText', '');
         _fillDefaut(treeSelectInfo, 'removeEmptyFolders', false);
+        _fillDefaut(treeSelectInfo, 'sortLeafNodes', true);
         _fillDefaut(treeSelectInfo, 'folderType', 'NOT_DEFINED');
 
         treeSelectInfo.selectedIds = {};
@@ -95,7 +96,7 @@ function(nl) {
 			if(!elem.isFolder && elem.id.indexOf(parentid) >= 0) {
 				childElemList.push(elem);
 			} else {
-				if(childElemList.length > 0) {
+				if(childElemList.length > 0 && treeSelectInfo.sortLeafNodes) {
 					childElemList.sort(function(a, b) {
 						if(b.name.toLowerCase() < a.name.toLowerCase()) return 1;
 						if(b.name.toLowerCase() > a.name.toLowerCase()) return -1;

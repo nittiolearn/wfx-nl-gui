@@ -179,18 +179,17 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 		return card;
 	}
 	
-	function IsJsonString(str) {
+	function fromJson(str) {
 		try {
-			JSON.parse(str);
+			return angular.fromJson(resource.info||'{}');
 		} catch (e) {
-			return false;
+			return {};
 		}
-		return true;
 	}
 
 	function _getResourceListAvps(resource){
 		var avps = [];
-		var data = IsJsonString(resource.info) ? angular.fromJson(resource.info||'{}') : {};
+		var data = fromJson(resource.info);
 		var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
 		_populateLinks(linkAvp, resource.id, resource);
 		nl.fmt.addAvp(avps, 'Name', resource.name);
