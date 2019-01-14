@@ -172,9 +172,6 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 	}
 	
 	function _getAudioUrlFromServer(fragments, currentPos, oPage, resolve) {
-		// TODO-NOW: Uncode error with some chars (in getMd5Hash - nautovoice.py:38)
-		// TODO-NOW: Enter in the message is not working
-		// TODO-NOW: If Speach API call fails, show a proper message
 		// TODO-NOW: Rate and pitch are missing
 		//
 		// TODO-NOW: API Key is to be generated from hello@nittio.com acnt
@@ -255,7 +252,6 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 					nlDlg.popupAlert({title: 'Validation error', template: nl.t('The voice script too long in fragment {}. Text length is {} and maximum allowed is 2800. Split longer text into multiple fragments.', i+1, fragment.text.length)});
 					return false;
 				}
-				fragment.text = fragment.text.replace(/\"/g, "'");
 				var selectedVoices = Object.keys(nlTreeSelect.getSelectedIds(fragment.voiceLanguageInfo));
 				if (selectedVoices.length == 1) selectedVoice = selectedVoices[0];
 				if(!selectedVoice) {
