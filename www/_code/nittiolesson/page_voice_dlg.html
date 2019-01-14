@@ -31,9 +31,6 @@
 					</select>
 				</div>
 			</nl-dlg-row>
-			<nl-dlg-row attr='pollyDelay' data='data' help='help'>
-				<input ng-model='script.delay' type="number"></input>
-			</nl-dlg-row>
 			<nl-dlg-row ng-show='script.type.id == "audio"' attr='pollyAudioUrl' data='data' help='help'>
 				<div class='row row-center padding0 margin0 nl-link-text'
 					 ng-keypress='$event.keyCode == 13 ? funcs.selectAudioUrl($index) : "" '
@@ -49,6 +46,15 @@
 			</nl-dlg-row>
 			<nl-dlg-row ng-show='script.type.id == "autovoice"' attr='pollyVoiceText' data='data' help='help'>
 				<textarea ng-model='script.text' type="text" rows='4'></textarea>
+			</nl-dlg-row>
+			<nl-dlg-row ng-show='script.type.id == "autovoice"' attr='pollyRate' data='data' help='help'>
+				<input ng-model='script.rate' type="number" min="20" max="200"></input>
+			</nl-dlg-row>
+			<nl-dlg-row ng-show='script.type.id == "autovoice"' attr='pollyPitch' data='data' help='help'>
+				<input ng-model='script.pitch' type="number" min="67" max="150"></input>
+			</nl-dlg-row>
+			<nl-dlg-row attr='pollyDelay' data='data' help='help'>
+				<input ng-model='script.delay' type="number" min=0 max=60></input>
 			</nl-dlg-row>
 			<div class='padding-mid'></div>
 		</div>

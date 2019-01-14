@@ -172,8 +172,6 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 	}
 	
 	function _getAudioUrlFromServer(fragments, currentPos, oPage, resolve) {
-		// TODO-NOW: Rate and pitch are missing
-		//
 		// TODO-NOW: API Key is to be generated from hello@nittio.com acnt
 		if(currentPos >= fragments.length) {
 			var msg = nl.fmt2('Processed {} audio fragments', fragments.length);
@@ -188,19 +186,26 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 		var msg = nl.fmt2('Processing audio fragment {} of {}', currentPos, fragments.length);
 		nlDlg.popupStatus(msg, false);
 		if(fragment.type == 'audio') {
-			oPage.autoVoicePolly.push(fragment);
+			_copyFragment(oPage, fragment);
 			_getAudioUrlFromServer(fragments, currentPos, oPage, resolve);
 			return;
 		}
-		var data = {text: fragment.text, voice_lang: fragment.lang, voice_id: fragment.voice};
+		var data = {text: fragment.text, voice_lang: fragment.lang, voice_id: fragment.voice,
+			rate: fragment.rate, pitch: fragment.pitch};
 		nlServerApi.getAudioUrl(data).then(function(result) {
 			fragment['mp3'] = result.url;
-			oPage.autoVoicePolly.push(fragment);
+			_copyFragment(oPage, fragment);
 			_getAudioUrlFromServer(fragments, currentPos, oPage, resolve);
 			return;
 		}, function(err) {
 			nlDlg.popdownStatus(0);
 		});
+	}
+
+	function _copyFragment(oPage, fragment) {
+		if (fragment.rate == 100) delete fragment.rate;
+		if (fragment.pitch == 100) delete fragment.pitch;
+		oPage.autoVoicePolly.push(fragment);
 	}
 
 	function _updateAutoVoicePolly(oPage, dlgScope) {
@@ -230,6 +235,8 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 			type: {id: fragment.type}, text: fragment.text || '', 
 			lang: fragment.lang || '', voice: fragment.voice || '',
 			mp3: fragment.mp3 || '', 
+			rate: fragment.rate || 100,
+			pitch: fragment.pitch || 100,
 			options: [{id: 'audio', name:'Audio url'}, {id: 'autovoice', name: 'Automatic voice generation'}]});
 }
 
@@ -244,10 +251,17 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 					return false;
 				}
 			} else {
+				_updateIntInRange(fragment, 'rate', 100, 20, 200);
+				_updateIntInRange(fragment, 'pitch', 100, 67, 150);
 				if(!fragment.text) {
 					nlDlg.popupAlert({title: 'Validation error', template: nl.t('The voice script is missing in fragment {}', i+1)});
 					return false;
 				}
+				if (fragment.text.length > 2800) {
+					nlDlg.popupAlert({title: 'Validation error', template: nl.t('The voice script too long in fragment {}. Text length is {} and maximum allowed is 2800. Split longer text into multiple fragments.', i+1, fragment.text.length)});
+					return false;
+				}
+
 				if (fragment.text.length > 2800) {
 					nlDlg.popupAlert({title: 'Validation error', template: nl.t('The voice script too long in fragment {}. Text length is {} and maximum allowed is 2800. Split longer text into multiple fragments.', i+1, fragment.text.length)});
 					return false;
@@ -261,9 +275,16 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 			}
 			var langVoice = selectedVoice ? selectedVoice.split('_') : ['', ''];
 			ret.push({type: fragment.type.id, text: fragment.text || '', lang: langVoice[0], voice: langVoice[1],
-				mp3: fragment.mp3 || '', delay: fragment.delay || 0});
+				mp3: fragment.mp3 || '', delay: fragment.delay || 0, rate: fragment.rate, pitch: fragment.pitch});
 		}
 		return ret;
+	}
+
+	function _updateIntInRange(inputDict, attr, defval, minval, maxval) {
+		var ret = inputDict[attr] ? parseInt(inputDict[attr]): defval;
+		if (ret < minval) ret = minval;
+		if (ret > maxval) ret = maxval;
+		inputDict[attr] = ret;
 	}
 
 	function _getPollyVoiceTree() {
@@ -282,6 +303,8 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 			pollyAudioUrl: {name: nl.t('Page Audio URL'), help: nl.t('Select the audio file to play.')},
 			pollyLangTree: {name: nl.t('Language and voice'), help: nl.t('Please select the language and voice to automatically generate speach fragment.')},
 			pollyVoiceText: {name: nl.t('Voice script'), help: nl.t('Provide the text and we will convert it to voice.')},
+			pollyRate: {name: nl.t('Rate %'), help: nl.t('Raise or lower the rate (speed) of voice delivery. 100% is default rate. 20% is slowest and 200% is fastest.')},
+			pollyPitch: {name: nl.t('Pitch %'), help: nl.t('Raise or lower the pitch (tone) of voice delivery. 100% is default pitch. 67% is lowest pitch and 150% is highest pitch.')},
 
 			audioUrl: {name: nl.t('Page Audio URL'), help: nl.t('Select the audio file to play.')},
             autoVoice: {name: nl.t('Page Voice Script'), 
