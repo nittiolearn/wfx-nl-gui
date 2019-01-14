@@ -399,6 +399,7 @@ function AudioManager() {
 
     var _currentInfo = null;
     this.play = function(pageId) {
+        _delayStartsNow();
         this.pauseAll();
         var info = _audioHolder ? _audioHolder[pageId] : null;
         if (!info) return;
@@ -494,9 +495,18 @@ function AudioManager() {
         audioUrlInfo.audio.load();
     }
 
-    function _playFragment(info, bFromStart) {
+    function _playFragment(info) {
         var audioUrlInfo = info.audioUrlInfos[info.curFragment];
-        audioUrlInfo.audio.play();
+        if (audioUrlInfo.delay) {
+            // Update the icon - playing can start after the delay.
+            info.playing = true;
+            _updateIcon(info);
+        }
+        _executeAfterDelay(audioUrlInfo.delay, function() {
+            if (!_isCurrentInfo(info) || info.curFragment != audioUrlInfo.fragmentpos) return;
+            if (!_canAutoPlay) return;
+            audioUrlInfo.audio.play();
+        });
     }
 
     function _pauseFragment(info) {
@@ -542,7 +552,8 @@ function AudioManager() {
         }, true);
         audio.addEventListener('ended', function(e) {
             _debug(pageId, 'Audio play done');
-            info.curFragment++;
+            _delayStartsNow();
+                    info.curFragment++;
             if (info.curFragment >= info.audioUrlInfos.length) {
                 info.curFragment = 0;
                 info.playing = false;
@@ -575,6 +586,21 @@ function AudioManager() {
             _setVoiceButtonIcon(info.button, 'pause.icon');
         }
     }
+
+    var _delayStartTime = (new Date()).getTime();
+    function _delayStartsNow() {
+        _delayStartTime = (new Date()).getTime();
+    }
+
+    function _executeAfterDelay(delay, fn) {
+        if (!delay) delay = 0;
+        delay = delay*1000;
+        var now = (new Date()).getTime();
+        var delayPassed = now - _delayStartTime;
+        if (delayPassed > 0) delay = delay - delayPassed;
+        if (delay > 0) setTimeout(fn, delay);
+        else fn();
+    }
     
     function _onButtonClick(info, audioUrlInfos, pageId, button) {
         _currentInfo = info;
@@ -587,6 +613,7 @@ function AudioManager() {
             _pauseFragment(info);
         } else {
             _debug(info.pageId, 'Play called');
+            _delayStartsNow();
             _canAutoPlay = true;
             _playFragment(info, true);
         }

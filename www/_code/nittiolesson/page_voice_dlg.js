@@ -16,7 +16,7 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 	var _restypes = null;
 	var _lessonId = null;
 	var _resourceDict = {};
-	var _autoVoiceProvider = '';
+	var _isPollyEnabled = false;
 	var _defaultPollyVoice = 'en-IN_Aditi';
 	var _amazonPollyVoices = [
 		{id:'hi-IN_Aditi', name:'Hindi Female voice with bilingual Indian English: Aditi'},
@@ -80,7 +80,7 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 	]
 
 	this.init = function(oLesson, moduleConfig) {
-		_autoVoiceProvider = moduleConfig.grpProps.autoVoiceProvider;
+        _isPollyEnabled = (oLesson.autoVoiceProvider == 'polly');
 	}
 
 	this.showAddVoiceDlg = function(oPage, restypes, resourceDict, lessonId) {
@@ -106,9 +106,8 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 		dlgScope.data.autoVoicePolly = [];
 		dlgScope.options['pollyAudioType'] = [{id: 'audio', name:'Audio url'}, {id: 'autovoice', name: 'Automatic voice generation'}];
 
-		if(_autoVoiceProvider == 'polly') {
+		if(_isPollyEnabled) {
 			dlgScope.autoVoiceProvider = true;
-			if (!oPage.autoVoicePolly) oPage.autoVoicePolly = [];
 			_updateAutoVoicePolly(oPage, dlgScope);
 		} else {
 			dlgScope.data.audioUrl = oPage.audioUrl ? oPage.audioUrl : '';
@@ -150,6 +149,12 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 			if(dlgScope.autoVoiceProvider) {
 				var fragments = _getValidatedInputs(dlgScope.data);
 				if(!fragments) return;
+				if (fragments.length == 0) {
+					if ('autoVoicePolly' in oPage) delete oPage.autoVoicePolly;
+					resolve(oPage);
+					nlDlg.closeAll();
+					return;
+				}
 				oPage.autoVoicePolly = [];
 				nlDlg.showLoadingScreen();
 				var currentPos = 0;
@@ -167,13 +172,12 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 	}
 	
 	function _getAudioUrlFromServer(fragments, currentPos, oPage, resolve) {
-		// TODO-NOW: Delay is not taken care of correctly.
-		// TODO-NOW: first page does not autoplay
-		// TODO-NOW: test with same mp3 file in multiple portions of fragment
+		// TODO-NOW: Uncode error with some chars (in getMd5Hash - nautovoice.py:38)
 		// TODO-NOW: Enter in the message is not working
-		// TODO-NOW: Add <speak> to the fragment
 		// TODO-NOW: If Speach API call fails, show a proper message
-		// TODO-NOW: Rate is missing
+		// TODO-NOW: Rate and pitch are missing
+		//
+		// TODO-NOW: API Key is to be generated from hello@nittio.com acnt
 		if(currentPos >= fragments.length) {
 			var msg = nl.fmt2('Processed {} audio fragments', fragments.length);
 			nlDlg.popupStatus(msg);
@@ -203,7 +207,7 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 	}
 
 	function _updateAutoVoicePolly(oPage, dlgScope) {
-		if (oPage.autoVoicePolly.length == 0) {
+		if (!oPage.autoVoicePolly || oPage.autoVoicePolly.length == 0) {
 			_addFragment(dlgScope);
 			return;
 		}
@@ -247,6 +251,11 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 					nlDlg.popupAlert({title: 'Validation error', template: nl.t('The voice script is missing in fragment {}', i+1)});
 					return false;
 				}
+				if (fragment.text.length > 2800) {
+					nlDlg.popupAlert({title: 'Validation error', template: nl.t('The voice script too long in fragment {}. Text length is {} and maximum allowed is 2800. Split longer text into multiple fragments.', i+1, fragment.text.length)});
+					return false;
+				}
+				fragment.text = fragment.text.replace(/\"/g, "'");
 				var selectedVoices = Object.keys(nlTreeSelect.getSelectedIds(fragment.voiceLanguageInfo));
 				if (selectedVoices.length == 1) selectedVoice = selectedVoices[0];
 				if(!selectedVoice) {
