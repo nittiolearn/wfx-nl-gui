@@ -336,18 +336,25 @@
 			_updateCurrentTab();
 		}
 
-		function _updateCurrentTab() {
+		function _updateCurrentTab(avoidFlicker) {
 			var tabData = $scope.tabData;
 			var tab = tabData.selectedTab;
 			if (tab.updated) return;
-			tabData.processingOnging = true;
-			tabData.nothingToDisplay = false;
-			nlDlg.showLoadingScreen();
+			if (!avoidFlicker) {
+				tabData.nothingToDisplay = false;
+				tabData.processingOnging = true;
+				nlDlg.showLoadingScreen();
+			}
 			nl.timeout(function() {
 				_actualUpdateCurrentTab(tabData, tab);
 				tab.updated = true;
-				if (tabData.records.length > 0) tabData.processingOnging = false;
-				else tabData.nothingToDisplay = true;
+				if (tabData.records.length > 0) {
+					tabData.processingOnging = false;
+					tabData.nothingToDisplay = false;
+				} else {
+					tabData.processingOnging = true;
+					tabData.nothingToDisplay = true;
+				}
 				nlDlg.hideLoadingScreen();
 			}, 100);
 		}
@@ -487,7 +494,7 @@
 			nlDlg.showLoadingScreen();
 			nlLrFetcher.fetchReports(fetchMore, function(result) {
 				nlDlg.hideLoadingScreen();
-				_updateScope();
+				_updateScope(true);
 			});
 		}
 		
@@ -503,7 +510,7 @@
 			nl.pginfo.pageSubTitle = anyRecord.repcontent.name || '';
 		}
 		
-		function _updateScope() {
+		function _updateScope(avoidFlicker) {
 			nl.pginfo.pageTitle = nlLrFilter.getTitle();
 			
 			$scope.fetchInProgress = nlLrFetcher.fetchInProgress(true);
@@ -513,7 +520,7 @@
 			_setSubTitle(anyRecord);
 			$scope.noDataFound = (anyRecord == null);
 			_someTabDataChanged();
-			_updateCurrentTab();
+			_updateCurrentTab(avoidFlicker);
 		}
 	
 		function _initChartData() {
