@@ -41,16 +41,19 @@
 					<i  class='padding-mid icon ion-more fsh2 fblue2'></i>
 				</div>
 			</nl-dlg-row>
-			<nl-dlg-row ng-show='script.type.id == "autovoice"' attr='pollyLangTree' data='data' help='help'>
+			<div ng-show='script.type.id == "ignore"' class='padding-mid forange'>
+				<i class='icon ion-alert-circled padding-mid fsh4'></i> This fragment is currently ignored and will be skipped while playing.
+			</div>
+			<nl-dlg-row ng-hide='script.type.id == "audio"' attr='pollyLangTree' data='data' help='help'>
 				<nl-tree-select info='script.voiceLanguageInfo'></nl-tree-select>
 			</nl-dlg-row>
-			<nl-dlg-row ng-show='script.type.id == "autovoice"' attr='pollyVoiceText' data='data' help='help'>
+			<nl-dlg-row ng-hide='script.type.id == "audio"' attr='pollyVoiceText' data='data' help='help'>
 				<textarea ng-model='script.text' type="text" rows='4'></textarea>
 			</nl-dlg-row>
-			<nl-dlg-row ng-show='script.type.id == "autovoice"' attr='pollyRate' data='data' help='help'>
+			<nl-dlg-row ng-hide='script.type.id == "audio"' attr='pollyRate' data='data' help='help'>
 				<input ng-model='script.rate' type="number" min="20" max="200"></input>
 			</nl-dlg-row>
-			<nl-dlg-row ng-show='script.type.id == "autovoice"' attr='pollyPitch' data='data' help='help'>
+			<nl-dlg-row ng-hide='script.type.id == "audio"' attr='pollyPitch' data='data' help='help'>
 				<input ng-model='script.pitch' type="number" min="67" max="150"></input>
 			</nl-dlg-row>
 			<nl-dlg-row attr='pollyDelay' data='data' help='help'>

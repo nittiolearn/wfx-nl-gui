@@ -104,8 +104,9 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 		dlgScope.autoVoiceProvider = false;
 		dlgScope.data.dlgTitle = nl.t('Page voice');
 		dlgScope.data.autoVoicePolly = [];
-		dlgScope.options['pollyAudioType'] = [{id: 'audio', name:'Audio url'}, {id: 'autovoice', name: 'Automatic voice generation'}];
-
+		dlgScope.options['pollyAudioType'] = [{id: 'audio', name:'Audio url'},
+			{id: 'autovoice', name: 'Automatic voice generation'},
+			{id: 'ignore', name: 'Ignore this fragment'}];
 		if(_isPollyEnabled) {
 			dlgScope.autoVoiceProvider = true;
 			_updateAutoVoicePolly(oPage, dlgScope);
@@ -137,9 +138,11 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 
 		dlgScope.funcs.selectAudioUrl = function(index) {
 			var selectedItem = dlgScope.data.autoVoicePolly[index];
-			if(selectedItem.type.id == 'autovoice') return;
+			if(selectedItem.type.id != 'audio') return;
+			var resurl = selectedItem['mp3'] || '';
+			resurl = 'audio:' + resurl;
 			nlResourceAddModifySrv.insertOrUpdateResource(parentScope, 
-				_restypes, 'audio:', false, _resourceDict, false, _lessonId).then(function(result) {
+				_restypes, resurl, false, _resourceDict, false, _lessonId).then(function(result) {
 				if(!result || !result.url) return;
 				selectedItem['mp3'] = result.url;
 			});
@@ -185,7 +188,7 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 		currentPos = currentPos+1;
 		var msg = nl.fmt2('Processing audio fragment {} of {}', currentPos, fragments.length);
 		nlDlg.popupStatus(msg, false);
-		if(fragment.type == 'audio') {
+		if(fragment.type != 'autovoice') {
 			_copyFragment(oPage, fragment);
 			_getAudioUrlFromServer(fragments, currentPos, oPage, resolve);
 			return;
@@ -223,7 +226,7 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 		if (!fragment) fragment = {type: 'autovoice'};
 		var pollyVoiceTreeInfo = {data: _getPollyVoiceTree()};
 		var selectedIds = {};
-		if(fragment.type == 'autovoice') {
+		if(fragment.type != 'audio') {
 			var selectedId = (fragment.lang && fragment.voice) ? fragment.lang+'_'+fragment.voice : _defaultPollyVoice;
 			selectedIds[selectedId] = true;
 		}
@@ -236,9 +239,8 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 			lang: fragment.lang || '', voice: fragment.voice || '',
 			mp3: fragment.mp3 || '', 
 			rate: fragment.rate || 100,
-			pitch: fragment.pitch || 100,
-			options: [{id: 'audio', name:'Audio url'}, {id: 'autovoice', name: 'Automatic voice generation'}]});
-}
+			pitch: fragment.pitch || 100});
+	}
 
 	function _getValidatedInputs(data) {
 		var ret = [];
@@ -250,7 +252,7 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 					nlDlg.popupAlert({title: 'Validation error', template: nl.t('The mp3 is missing in fragment {}', i+1)});
 					return false;
 				}
-			} else {
+			} else if(fragment.type.id == 'autovoice'){
 				_updateIntInRange(fragment, 'rate', 100, 20, 200);
 				_updateIntInRange(fragment, 'pitch', 100, 67, 150);
 				if(!fragment.text) {
@@ -298,7 +300,7 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 
     function _getHelp() {
         return {
-			pollyAudioType: {name: nl.t('Play audio from'), help: nl.t('You may either automatically convert text to voice or choose to play a recorded audio.')},
+			pollyAudioType: {name: nl.t('Play audio from'), help: nl.t('You may either automatically convert text to voice or choose to play a recorded audio. To provide the text for voice artists, you could just use ignore and fill up the text. If you choose to ignore, the text for this fragment will not be played.')},
 			pollyDelay: {name: nl.t('Delay before start (seconds)'), help: nl.t('You may pause for a few seconds before playing this fragment.')},
 			pollyAudioUrl: {name: nl.t('Page Audio URL'), help: nl.t('Select the audio file to play.')},
 			pollyLangTree: {name: nl.t('Language and voice'), help: nl.t('Please select the language and voice to automatically generate speach fragment.')},

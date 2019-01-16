@@ -331,6 +331,19 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
             _addTxtToArrayAndDict(page.forumTopic, 'page.forumTopic', {obj: page});
         if(page.autoVoice)
             _addMarkupsToArrayAndDict(page.autoVoice, 'page.autoVoice', {obj: page});
+        if(page.autoVoicePolly) {
+            var fragments = page.autoVoicePolly;
+            for(var i=0; i<fragments.length; i++) {
+                var fragment = fragments[i];
+                if(fragment.text == "") continue;
+                if(fragment.type != 'audio') {
+                    fragment.type = 'ignore';
+                    fragment.lang = 'en-IN';
+                    fragment.voice = 'Aditi';
+                }
+                _addMarkupsToArrayAndDict(fragment.text, 'page.pollyAutoVoice', {obj: fragment});
+            }
+        }
 		if(page.hint)
 			_addMarkupsToArrayAndDict(page.hint, 'page.hint', {obj: page});
 		for(var i=0; i<page.sections.length; i++) {
@@ -360,6 +373,9 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
                 break;
             case 'page.forumTopic':
                 targetObj.forumTopic = translated;
+                break;
+            case 'page.pollyAutoVoice':
+                targetObj.text = translated;
                 break;
 			case 'page.autoVoice':
 			    var markup = _getTranslatedMarkup(translated, elem);

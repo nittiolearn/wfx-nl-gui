@@ -443,6 +443,7 @@ function AudioManager() {
         var ret = [];
         for(var i=0; i<audioUrlInfos.length; i++) {
             var info = audioUrlInfos[i];
+            if (info.type == 'ignore') continue;
             var mp3 =  _getValidAudioUrl(info.mp3);
             if (!mp3) return null;
             ret.push({mp3: mp3, delay: info.delay||0});
