@@ -80,12 +80,23 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         }
 
         dlgScope.onSectionSelect = function(e, section) {
-            dlgScope.data.section = section;
-            if (!section) return;
+            if (!section) {
+                dlgScope.data.section = {}
+                return;
+            }
             if (e) e.stopImmediatePropagation();
+            if(e.ctrlKey) {
+                if(!dlgScope.data.section) dlgScope.data.section = {};
+                dlgScope.data.section[section.pos] = section;
+            } else {
+                dlgScope.data.section = {}
+                dlgScope.data.section[section.pos] = section;
+            }
             _updatePreviewPositions(dlgScope);
             _initStyleOptions(dlgScope, cfg.templateDefaults);
-            _updateStyles(dlgScope, section);
+            for(var key in dlgScope.data.section) {
+                _updateStyles(dlgScope, dlgScope.data.section[key]);
+            }
         };
         
         dlgScope.editLayoutDone = function() {
@@ -141,14 +152,16 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         }
         dlgScope.previewPositions = {height: Math.round(h) + 'px', width: Math.round(w) + 'px'};
         
-        var sec = dlgScope.data.section;
-        if (!sec) return;
-        var isMobile = dlgScope.data.toolTab.attr == "mobPosition";
-        var t = (isMobile ? sec.t1 : sec.t);
-        if (t < 0) t=0;
-        var r = (isMobile ? sec.l1+sec.w1 : sec.l+sec.w);
-        if (r > 100) r=100;
-        dlgScope.markerPositions = {top: (t-5) + '%', left: (r) + '%'};
+        for(var key in dlgScope.data.section) {
+            var sec = dlgScope.data.section[key];
+            if (!sec) return;
+            var isMobile = dlgScope.data.toolTab.attr == "mobPosition";
+            var t = (isMobile ? sec.t1 : sec.t);
+            if (t < 0) t=0;
+            var r = (isMobile ? sec.l1+sec.w1 : sec.l+sec.w);
+            if (r > 100) r=100;
+            dlgScope.markerPositions = {top: (t-5) + '%', left: (r) + '%'};
+        }
     }
 
 	function _showDlg(dlg, resolve, page) {
@@ -223,7 +236,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
     }
 
     function _onPtChange(dlgScope, defPt) {
-    	dlgScope.data.section = null;
+    	dlgScope.data.section = {};
     	var selectedPageType = defPt || {id: 'TITLE'};
         var layouts = _layouts[selectedPageType.interaction] || _layouts[selectedPageType.id];
         for(var i=0; i<dlgScope.options.pagetype.length; i++) {
@@ -277,7 +290,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
     }
 
     function _onLayoutSelect(dlgScope, pt) {
-    	dlgScope.data.section = null;
+    	dlgScope.data.section = {};
     	dlgScope.data.layout = pt;
         var layoutObj = pt.layout;
         dlgScope.data.sectionLayout = _beautyStringifyLayouts(layoutObj);
@@ -398,33 +411,35 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
     }
     
     function _onSectionPropChange(dlgScope) {
-        var section = angular.copy(dlgScope.data.section);
-        _cleanupPositions(section);
-
-        var vAlignTop = dlgScope.data.styles.vAlignTop;
-        var hAlign = dlgScope.data.styles.hAlign;
-
-        if (vAlignTop) section.aligntype = 'content';
-        else if (section.aligntype == 'content') section.aligntype = 'title';
-        if (vAlignTop && hAlign == 'align-left') hAlign = '';
-        if (!vAlignTop && hAlign == 'align-center') hAlign = '';
-        
-        section.style = '';
-        _appendToStyle(section, dlgScope.data.colors.id);
-        _appendToStyle(section, dlgScope.data.shapes.id);
-        _appendToStyle(section, dlgScope.data.shadow.id);
-        _appendToStyle(section, dlgScope.data.fontsize.id);
-        _appendToStyle(section, hAlign);
-        if(dlgScope.data.styles.bold) _appendToStyle(section, 'font-bold');
-        if(dlgScope.data.styles.italic) _appendToStyle(section, 'font-italic');
-        if(dlgScope.data.styles.underline) _appendToStyle(section, 'font-underline');
-
-        var sectionLayout = _layoutsFromBeautyString(dlgScope.data.sectionLayout);
-        for(var i=0; i<sectionLayout.length; i++) {
-            if(section.pos === i+1) sectionLayout.splice(i, 1, section);
+        for(var key in dlgScope.data.section) {
+            var section = angular.copy(dlgScope.data.section[key]);
+            _cleanupPositions(section);
+    
+            var vAlignTop = dlgScope.data.styles.vAlignTop;
+            var hAlign = dlgScope.data.styles.hAlign;
+    
+            if (vAlignTop) section.aligntype = 'content';
+            else if (section.aligntype == 'content') section.aligntype = 'title';
+            if (vAlignTop && hAlign == 'align-left') hAlign = '';
+            if (!vAlignTop && hAlign == 'align-center') hAlign = '';
+            
+            section.style = '';
+            _appendToStyle(section, dlgScope.data.colors.id);
+            _appendToStyle(section, dlgScope.data.shapes.id);
+            _appendToStyle(section, dlgScope.data.shadow.id);
+            _appendToStyle(section, dlgScope.data.fontsize.id);
+            _appendToStyle(section, hAlign);
+            if(dlgScope.data.styles.bold) _appendToStyle(section, 'font-bold');
+            if(dlgScope.data.styles.italic) _appendToStyle(section, 'font-italic');
+            if(dlgScope.data.styles.underline) _appendToStyle(section, 'font-underline');
+    
+            var sectionLayout = _layoutsFromBeautyString(dlgScope.data.sectionLayout);
+            for(var i=0; i<sectionLayout.length; i++) {
+                if(section.pos === i+1) sectionLayout.splice(i, 1, section);
+            }
+            dlgScope.data.sectionLayout = _beautyStringifyLayouts(sectionLayout);
+            _onLayoutEditDone(dlgScope);
         }
-        dlgScope.data.sectionLayout = _beautyStringifyLayouts(sectionLayout);
-        _onLayoutEditDone(dlgScope);
     }
 
     function _appendToStyle(section, style) {

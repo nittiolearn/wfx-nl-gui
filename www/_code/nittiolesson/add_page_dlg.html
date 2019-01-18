@@ -171,10 +171,10 @@ show-close='{{showClose}}'>
                                 <div class='njsSlides'>
                                     <div class='{{data.bgshade}}'>
                                         <div ng-repeat='sec in sections track by sec.pos'
-                                        ng-click='onSectionSelect($event, sec)'
+										ng-mousedown='onSectionSelect($event, sec)'
                                         style='top: {{data.toolTab.attr == "mobPosition" ? sec.t1: sec.t}}%; left: {{data.toolTab.attr == "mobPosition" ? sec.l1 : sec.l}}%; height: {{data.toolTab.attr == "mobPosition" ? sec.h1 : sec.h}}%; width: {{data.toolTab.attr == "mobPosition" ? sec.w1 : sec.w}}%;'
-                                        class='{{sec.style}} pgSec {{data.bgshade == "bglight" ? "page_format_preview_sec_dark" : "page_format_preview_sec_light"}} nl-link-text {{data.section.pos === sec.pos ? "page_format_preview_selected" : ""}}'>
-                                            <div class='secViewContent' style='height: 100%;'>
+                                        class='{{sec.style}} pgSec {{data.bgshade == "bglight" ? "page_format_preview_sec_dark" : "page_format_preview_sec_light"}} nl-link-text {{data.section[sec.pos] ? "page_format_preview_selected" : ""}}'>
+											<div class='secViewContent' style='height: 100%;'>
                                                 <div class='row {{sec.aligntype == "content" ? "row-top" : "row-center"}} margin0 padding0'
                                                      style='height:100%'>
                                                     <div class='col padding0'>
@@ -185,8 +185,8 @@ show-close='{{showClose}}'>
                                         </div>
                                     </div>
                                 </div>
-                                <div ng-show='data.section' class='page_format_marker pgNoStyle'
-                                     ng-style='markerPositions'>{{data.section.pos}}</div>
+                                <div ng-show='data.section[sec.pos]' class='page_format_marker pgNoStyle'
+                                     ng-style='markerPositions'>{{sec.pos}}</div>
                             </div>
                         </div>
                         <div class='col padding0'></div>
