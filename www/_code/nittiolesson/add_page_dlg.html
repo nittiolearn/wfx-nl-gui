@@ -11,26 +11,27 @@
         height: 86%;
         left: 4%;
         width: 92%;
-    }
+	}
+	
+	.page_format_preview2 .njsSlides {
+		font-size: 15px;
+	}
 
-    .page_format_preview_sec_dark {
+    .njsSlides .page_format_preview_sec_dark {
         position: absolute;
-        box-shadow: inset 0 0 2px rgba(255, 255,255, 1), 0 0 2px rgba(0, 0, 0, 1);
+        border: 1px dotted black;
     }
 
-    .page_format_preview_sec_light {
+    .njsSlides .page_format_preview_sec_light {
         position: absolute;
-        box-shadow: inset 0 0 2px rgba(0, 0, 0, 1), 0 0 2px rgba(255, 255, 255, 1);
+        border: 1px dotted white;
     }
 
-    .njsSlides .page_format_preview_sec_dark.page_format_preview_selected {
-        border: 1px solid blue;
+    .njsSlides .page_format_preview_sec_dark.page_format_preview_selected,
+	.njsSlides .page_format_preview_sec_light.page_format_preview_selected {
+        border: 2px dotted blue;
     }
 
-    .njsSlides .page_format_preview_sec_light.page_format_preview_selected {
-        border: 1px solid blue;
-    }
-    
     .page_format_marker {
         position: absolute;
         z-index: 1;
@@ -75,7 +76,7 @@
 <nl-dlg dlgtitle='{{dlgTitle}}'
 show-help='{{showHelp}}'
 show-close='{{showClose}}'>
-	<nl-dlg-content>
+	<nl-dlg-content style='user-select: none;'>
 		<div class='row row-top padding0 margin0 row-stretch'
 			ng-show='mode == "addpage" || mode == "changelayout"'>
 			<div class='col col-25'
@@ -112,7 +113,7 @@ show-close='{{showClose}}'>
 			                                    <div class='{{data.bgshade}}'>
 			                                        <div ng-repeat='sec in layout.layout track by sec.pos'
 			                                        style='top: {{sec.t}}%; left: {{sec.l}}%; height: {{sec.h}}%; width: {{sec.w}}%;'
-			                                        class='{{sec.style}} pgSec {{data.bgshade == "bglight" ? "page_format_preview_sec_dark" : "page_format_preview_sec_light"}} '>
+			                                        class='{{sec.style}} pgSec {{data.bgshade == "bglight" ? "page_format_preview_sec_dark" : "page_format_preview_sec_light"}}'>
 			                                            <div class='secViewContent' style='height: 100%;'>
 			                                                <div class='row {{sec.aligntype == "content" ? "row-top" : "row-center"}} margin0 padding0'
 			                                                     style='height:100%'>
@@ -178,7 +179,7 @@ show-close='{{showClose}}'>
                                                 <div class='row {{sec.aligntype == "content" ? "row-top" : "row-center"}} margin0 padding0'
                                                      style='height:100%'>
                                                     <div class='col padding0'>
-                                                        <p style='font-size:100%'>Sample</p>
+                                                        <p>Sample</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -198,11 +199,11 @@ show-close='{{showClose}}'>
 					</div>
 					<div ng-show='data.section' 
 						class='row row-wrap row-stretch margin0 padding0 text-center'>
-						<div class='col col-33 padding-small {{(data.toolTab.attr == "style") ? "page_format_tab_selected" : "page_format_tab_not_selected"}} nl-link-text'
+						<div class='col {{data.isMultiSectionSelected ? "col-100" : "col-33"}} padding-small {{(data.toolTab.attr == "style") ? "page_format_tab_selected" : "page_format_tab_not_selected"}} nl-link-text'
 							ng-click='changeTab("style")'>Styles</div>
-						<div class='col col-33 padding-small {{(data.toolTab.attr == "position") ? "page_format_tab_selected" : "page_format_tab_not_selected"}} nl-link-text'
+						<div ng-show='!data.isMultiSectionSelected' class='col col-33 padding-small {{(data.toolTab.attr == "position") ? "page_format_tab_selected" : "page_format_tab_not_selected"}} nl-link-text'
 							ng-click='changeTab("position")'>Landscape</div>
-						<div class='col col-33 padding-small {{(data.toolTab.attr == "mobPosition") ? "page_format_tab_selected" : "page_format_tab_not_selected"}} nl-link-text'
+						<div ng-show='!data.isMultiSectionSelected' class='col col-33 padding-small {{(data.toolTab.attr == "mobPosition") ? "page_format_tab_selected" : "page_format_tab_not_selected"}} nl-link-text'
 							ng-click='changeTab("mobPosition")'>Portrait</div>
 					</div>
 					<div class='padding-small'></div>
@@ -211,17 +212,17 @@ show-close='{{showClose}}'>
 							<div class='row row-center padding0 margin0 nl-toolbar text-left page_format_tb'>
 								<span class='nl-toolbar-icon padding-small'
 									title='bold'
-									ng-click='data.styles.bold = !data.styles.bold; onSectionPropChange()'>
+									ng-click='data.styles.bold = !data.styles.bold; onSectionPropChange("font-bold")'>
 									<i class=' icon material-icons {{data.styles.bold ? "page_format_tb_icon_selected" : ""}}'>format_bold</i>
 								</span>
 								<span class='nl-toolbar-icon padding-small'
 									title='italic'
-									ng-click='data.styles.italic = !data.styles.italic; onSectionPropChange()'>
+									ng-click='data.styles.italic = !data.styles.italic; onSectionPropChange("font-italic")'>
 									<i class='icon material-icons {{data.styles.italic ? "page_format_tb_icon_selected" : ""}}'>format_italic</i>
 								</span>
 								<span class='nl-toolbar-icon padding-small'
 									title='underline'
-									ng-click='data.styles.underline = !data.styles.underline; onSectionPropChange()'>
+									ng-click='data.styles.underline = !data.styles.underline; onSectionPropChange("font-underline")'>
 									<i class='icon material-icons {{data.styles.underline ? "page_format_tb_icon_selected" : ""}}'>format_underline</i>
 								</span>
 								<span class='padding-small page_format_tb_sep'></span>
@@ -271,6 +272,12 @@ show-close='{{showClose}}'>
 							<nl-dlg-row attr='Shadow' data='data'>
 								<nl-select fieldmodel='shadow'></nl-select>
 							</nl-dlg-row>
+							<nl-dlg-row attr='Title style' data='data'>
+								<nl-select fieldmodel='titlesize'></nl-select>
+							</nl-dlg-row>
+							<nl-dlg-row attr='Font style' data='data'>
+								<nl-select fieldmodel='fontstyle'></nl-select>
+							</nl-dlg-row>
 							<nl-dlg-row attr='Font size' data='data'>
 								<nl-select fieldmodel='fontsize'></nl-select>
 							</nl-dlg-row>
@@ -281,13 +288,13 @@ show-close='{{showClose}}'>
 									<b>Top</b>
 								</div>
 								<div ng-class='respCol442' >
-									<input class='nl-input' type='number' min='-10' max='110' ng-change='onSectionPropChange()' ng-model='data.section.t'>
+									<input class='nl-input' type='number' min='-10' max='110' ng-change='onSectionPropChange()' ng-model='data.defaultSection.t'>
 								</div>
 								<div ng-class='respCol442' class='padding-mid'>
 									<b>Height</b>
 								</div>
 								<div ng-class='respCol442'>
-									<input class='nl-input' type='number' min='0' max='120' ng-change='onSectionPropChange()' ng-model='data.section.h'>
+									<input class='nl-input' type='number' min='0' max='120' ng-change='onSectionPropChange()' ng-model='data.defaultSection.h'>
 								</div>
 							</div>
 							<div class='row row-wrap row-center margin0'>
@@ -295,13 +302,13 @@ show-close='{{showClose}}'>
 									<b>Left</b>
 								</div>
 								<div ng-class='respCol442'>
-									<input class='nl-input' type='number' min='-10' max='110' ng-change='onSectionPropChange()' ng-model='data.section.l'>
+									<input class='nl-input' type='number' min='-10' max='110' ng-change='onSectionPropChange()' ng-model='data.defaultSection.l'>
 								</div>
 								<div ng-class='respCol442' class='padding-mid'>
 									<b>Width</b>
 								</div>
 								<div ng-class='respCol442'>
-									<input class='nl-input' type='number' min='0' max='120' ng-change='onSectionPropChange()' ng-model='data.section.w'>
+									<input class='nl-input' type='number' min='0' max='120' ng-change='onSectionPropChange()' ng-model='data.defaultSection.w'>
 								</div>
 							</div>
 						</div>
@@ -311,13 +318,13 @@ show-close='{{showClose}}'>
 									<b>Top</b>
 								</div>
 								<div ng-class='respCol442' >
-									<input class='nl-input' type='number' min='-10' max='110' ng-change='onSectionPropChange()' ng-model='data.section.t1'>
+									<input class='nl-input' type='number' min='-10' max='110' ng-change='onSectionPropChange()' ng-model='data.defaultSection.t1'>
 								</div>
 								<div ng-class='respCol442' class='padding-mid'>
 									<b>Height</b>
 								</div>
 								<div ng-class='respCol442'>
-									<input class='nl-input' type='number' min='0' max='120' ng-change='onSectionPropChange()' ng-model='data.section.h1'>
+									<input class='nl-input' type='number' min='0' max='120' ng-change='onSectionPropChange()' ng-model='data.defaultSection.h1'>
 								</div>
 							</div>
 							<div class='row row-wrap row-center margin0'>
@@ -325,13 +332,13 @@ show-close='{{showClose}}'>
 									<b>Left</b>
 								</div>
 								<div ng-class='respCol442'>
-									<input class='nl-input' type='number' min='-10' max='110' ng-change='onSectionPropChange()' ng-model='data.section.l1'>
+									<input class='nl-input' type='number' min='-10' max='110' ng-change='onSectionPropChange()' ng-model='data.defaultSection.l1'>
 								</div>
 								<div ng-class='respCol442' class='padding-mid'>
 									<b>Width</b>
 								</div>
 								<div ng-class='respCol442'>
-									<input class='nl-input' type='number' min='0' max='120' ng-change='onSectionPropChange()' ng-model='data.section.w1'>
+									<input class='nl-input' type='number' min='0' max='120' ng-change='onSectionPropChange()' ng-model='data.defaultSection.w1'>
 								</div>
 							</div>
 						</div>

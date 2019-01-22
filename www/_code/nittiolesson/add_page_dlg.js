@@ -81,21 +81,41 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 
         dlgScope.onSectionSelect = function(e, section) {
             if (!section) {
-                dlgScope.data.section = {}
+                dlgScope.data.section = null;
                 return;
             }
             if (e) e.stopImmediatePropagation();
-            if(e.ctrlKey) {
+            if(e.shiftKey) {
                 if(!dlgScope.data.section) dlgScope.data.section = {};
-                dlgScope.data.section[section.pos] = section;
+                if(section.pos in dlgScope.data.section) {
+                    delete dlgScope.data.section[section.pos];
+                    if(Object.keys(dlgScope.data.section).length == 0) 
+                        dlgScope.data.section = null;
+                    return;
+                } else {
+                    dlgScope.data.section[section.pos] = section;
+                }
             } else {
                 dlgScope.data.section = {}
                 dlgScope.data.section[section.pos] = section;
             }
+            dlgScope.data.isMultiSectionSelected = Object.keys(dlgScope.data.section).length > 1;
+            if(dlgScope.data.isMultiSectionSelected && dlgScope.data.toolTab.attr != "style") {
+                dlgScope.data.toolTab.attr = "style";
+                _updatePreviewPositions(dlgScope);    
+            }
             _updatePreviewPositions(dlgScope);
             _initStyleOptions(dlgScope, cfg.templateDefaults);
+
+            if(!dlgScope.data.isMultiSectionSelected) {
+                dlgScope.data.defaultSection = {};
+                _updateDefaultSection(dlgScope, section);
+            } else {
+                dlgScope.data.defaultSection = {};
+            }
+            var commonSectionDict = {};
             for(var key in dlgScope.data.section) {
-                _updateStyles(dlgScope, dlgScope.data.section[key]);
+                _updateStyles(dlgScope, dlgScope.data.section[key], commonSectionDict);
             }
         };
         
@@ -113,7 +133,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         	if(fieldId == "pagetype") {
         		_onPtChange(dlgScope, dlgScope.data.pagetype);
         	} else {
-	        	_onSectionPropChange(dlgScope);
+	        	_onSectionPropChange(dlgScope, fieldId);
         	}
         };
 
@@ -128,8 +148,8 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 			});
 		};        
         
-        dlgScope.onSectionPropChange = function() {
-        	_onSectionPropChange(dlgScope);
+        dlgScope.onSectionPropChange = function(fieldId) {
+        	_onSectionPropChange(dlgScope, fieldId);
         };
         
         dlgScope.changeTab = function(tabName) {
@@ -300,7 +320,9 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         dlgScope.options.colors = _getBackgroundColors(templateDefaults);
         dlgScope.options.shapes = _getSectionShapes();
         dlgScope.options.shadow = _getSectionShadow();
-        dlgScope.options.fontsize = _getSectionSize();
+        dlgScope.options.titlesize = _getSectionSize();
+        dlgScope.options.fontstyle = _getFontStyles(templateDefaults);
+        dlgScope.options.fontsize = _getFontSizes();
     }
 
     function _getBackgroundColors(templateDefaults) {
@@ -353,8 +375,44 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
                 {id: 'size-title3', name: nl.t('Title 3')},
                 {id: 'size-title4', name: nl.t('Title 4')}];
     }
-            
-    function _updateStyles(dlgScope, section) {
+    
+    function _getFontStyles(templateDefaults) {
+        if (templateDefaults && templateDefaults.styles && templateDefaults.styles.customFontStyleNames)
+            return templateDefaults.styles.customFontStyleNames;
+        return [{id: '', name: nl.t('Normal')},
+                {id: 'fontstyle-1', name: nl.t('San seriff')},
+                {id: 'fontstyle-2', name: nl.t('Serif')},
+                {id: 'fontstyle-3', name: nl.t('Fixed width')},
+                {id: 'fontstyle-4', name: nl.t('Wide')},
+                {id: 'fontstyle-5', name: nl.t('Cosmic sans ms')},
+                {id: 'fontstyle-6', name: nl.t('Garamond')},
+                {id: 'fontstyle-7', name: nl.t('Tahoma')},
+                {id: 'fontstyle-8', name: nl.t('Trebuchet ms')},
+                {id: 'fontstyle-9', name: nl.t('Verdana')}];
+    }
+    
+    function _getFontSizes() {
+        return [{id: '', name: nl.t('Normal')},
+                {id: 'fontsize-50', name: nl.t('Small (50%)')},
+                {id: 'fontsize-75', name: nl.t('Small (75%)')},
+                {id: 'fontsize-90', name: nl.t('Small (90%)')},
+                {id: 'fontsize-110', name: nl.t('Large (110%)')},
+                {id: 'fontsize-125', name: nl.t('Large (125%)')},
+                {id: 'fontsize-150', name: nl.t('Large (150%)')},
+                {id: 'fontsize-200', name: nl.t('Huge (200%)')},
+                {id: 'fontsize-250', name: nl.t('Huge (250%)')},
+                {id: 'fontsize-300', name: nl.t('Huge (300%)')}];
+    }
+
+    function _updateDefaultSection(dlgScope, section) {
+        if(Object.keys(dlgScope.data.defaultSection).length == 0) {
+            dlgScope.data.defaultSection = section;
+            return;
+        }
+    }
+
+    var styleAttrs = ['colors', 'shadow', 'shapes', 'titlesize', 'fontstyle', 'fontsize'];
+    function _updateStyles(dlgScope, section, commonSectionDict) {
         dlgScope.data.styles = {vAlignTop: (section.aligntype == 'content'), 
             hAlign: '',
             bold: false, underline: false, italic: false};
@@ -362,25 +420,52 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         dlgScope.data.colors = dlgScope.options.colors[0];
         dlgScope.data.shapes = dlgScope.options.shapes[0];
         dlgScope.data.shadow = dlgScope.options.shadow[0];
+        dlgScope.data.titlesize = dlgScope.options.titlesize[0];
+        dlgScope.data.fontstyle = dlgScope.options.fontstyle[0];
         dlgScope.data.fontsize = dlgScope.options.fontsize[0];
 
         var styles = section.style ? section.style.split(' ') : "";
+        var sectionDict = {}
         for(var i=0; i<styles.length; i++) {
             var style = styles[i].trim();
             if (!style) continue;
-            if (style.indexOf('bg-') == 0) _updateStyleOption(dlgScope, style, 'colors');
-            if (style.indexOf('shape-') == 0) _updateStyleOption(dlgScope, style, 'shapes');
-            if (style.indexOf('size-') == 0) _updateStyleOption(dlgScope, style, 'fontsize');
-            if (style.indexOf('shadow-') == 0) _updateStyleOption(dlgScope, style, 'shadow');
+            if (style.indexOf('bg-') == 0) _checkAndUpdateStyleOptions(dlgScope, style, 'colors', commonSectionDict, sectionDict);
+            if (style.indexOf('shape-') == 0) _checkAndUpdateStyleOptions(dlgScope, style, 'shapes', commonSectionDict, sectionDict);
+            if (style.indexOf('size-') == 0) _checkAndUpdateStyleOptions(dlgScope, style, 'titlesize', commonSectionDict, sectionDict);
+            if (style.indexOf('shadow-') == 0) _checkAndUpdateStyleOptions(dlgScope, style, 'shadow', commonSectionDict, sectionDict);
+            if (style.indexOf('fontstyle-') == 0) _checkAndUpdateStyleOptions(dlgScope, style, 'fontstyle', commonSectionDict, sectionDict);
+            if (style.indexOf('fontsize-') == 0) _checkAndUpdateStyleOptions(dlgScope, style, 'fontsize', commonSectionDict, sectionDict);
 
             if (style.indexOf('align-') == 0) dlgScope.data.styles.hAlign = style;
             if (style.indexOf('font-bold') == 0) dlgScope.data.styles.bold = true;
             if (style.indexOf('font-underline') == 0) dlgScope.data.styles.underline = true;
             if (style.indexOf('font-italic') == 0) dlgScope.data.styles.italic = true;
         }
+        if(Object.keys(sectionDict).length < 6) {
+            for(i=0; i<styleAttrs.length; i++) {
+                if(styleAttrs[i] in sectionDict) continue;
+                _checkAndUpdateStyleOptions(dlgScope, '', styleAttrs[i], commonSectionDict, sectionDict);
+            } 
+        }
+        
         dlgScope.data.styles.hAlign = _updateHAlign(dlgScope.data.styles);
     }
-    
+
+    function _checkAndUpdateStyleOptions(dlgScope, style, attr, commonSectionDict, sectionDict) {
+        if(dlgScope.options[attr][0].id == 'multi') return;
+        sectionDict[attr] = style;
+        if(attr in commonSectionDict && commonSectionDict[attr] != style) {
+            var newItem = {id:'multi', name: nl.t('<Multiple selected>')};
+            var option = dlgScope.options[attr];
+                option.splice(0, 0, newItem);
+            dlgScope.options[attr] = option;
+            dlgScope.data[attr] = option[0];
+        } else {
+            commonSectionDict[attr] = style;
+            _updateStyleOption(dlgScope, style, attr);                        
+        }
+    }
+
     function _updateStyleOption(dlgScope, style, attr) {
         var opts = dlgScope.options[attr];
         for(var i=0; i<opts.length; i++) {
@@ -410,7 +495,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         if(section.w1 === undefined) section.w1 = section.w;
     }
     
-    function _onSectionPropChange(dlgScope) {
+    function _onSectionPropChange(dlgScope, attr) {
         for(var key in dlgScope.data.section) {
             var section = angular.copy(dlgScope.data.section[key]);
             _cleanupPositions(section);
@@ -422,22 +507,66 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
             else if (section.aligntype == 'content') section.aligntype = 'title';
             if (vAlignTop && hAlign == 'align-left') hAlign = '';
             if (!vAlignTop && hAlign == 'align-center') hAlign = '';
-            
-            section.style = '';
-            _appendToStyle(section, dlgScope.data.colors.id);
-            _appendToStyle(section, dlgScope.data.shapes.id);
-            _appendToStyle(section, dlgScope.data.shadow.id);
-            _appendToStyle(section, dlgScope.data.fontsize.id);
-            _appendToStyle(section, hAlign);
-            if(dlgScope.data.styles.bold) _appendToStyle(section, 'font-bold');
-            if(dlgScope.data.styles.italic) _appendToStyle(section, 'font-italic');
-            if(dlgScope.data.styles.underline) _appendToStyle(section, 'font-underline');
+            var styles = angular.copy(dlgScope.data.section[key].style);
+                styles = styles ? styles.split(' ') : [];
+                section.style = '';
+            var dict = {};
+            var initial = styles.length == 0 ? -1 : 0
+            for(var i=initial; i<styles.length; i++) {
+                var style = styles[i] ? styles[i].trim() : '';
+                if(style && style in dict) continue;
+                dict[style] = true;
+                if((style && section.style.indexOf(style) >= 0) || (section.style && section.style.indexOf(dlgScope.data[attr].id) >= 0)) continue;
+                if(dlgScope.options[attr] && (dlgScope.options[attr][0].id == 'multi')) dlgScope.options[attr].splice(0, 1);
+                if(attr == "colors"){
+                    _appendToStyle(section, dlgScope.data.colors.id);
+                } else if((style.indexOf('bg-') == 0) && (attr != "colors")) { 
+                    _appendToStyle(section, style);
+                }                    
+                if(attr == "shapes") {
+                    _appendToStyle(section, dlgScope.data.shapes.id);                        
+                } else if((style.indexOf('shape-') == 0) && (attr != "shapes")) {
+                    _appendToStyle(section, style);
+                }
+
+                if(attr == "shadow") {
+                    _appendToStyle(section, dlgScope.data.shadow.id);
+                } else if((style.indexOf('shadow-') == 0) && (attr != 'shadow')) {
+                    _appendToStyle(section, style);
+                }
+
+                if(attr == "titlesize") {
+                    _appendToStyle(section, dlgScope.data.titlesize.id);
+                } else if((style.indexOf('size-') == 0) && (attr != 'titlesize')) {
+                    _appendToStyle(section, style);
+                }
+
+                if(attr == "fontstyle") {
+                    _appendToStyle(section, dlgScope.data.fontstyle.id);
+                } else if((style.indexOf('fontstyle-') == 0) && (attr != 'fontstyle')) {
+                    _appendToStyle(section, style);
+                }
+                if(attr == "fontsize") {
+                    _appendToStyle(section, dlgScope.data.fontsize.id);
+                } else if((style.indexOf('fontsize-') == 0) && (attr != 'fontsize')) {
+                    _appendToStyle(section, style);
+                }
+                if(dlgScope.data.styles.bold && (attr == 'font-bold' || style == 'font-bold')) _appendToStyle(section, 'font-bold');
+                if(dlgScope.data.styles.italic && (attr == 'font-italic' || style == 'font-italic')) _appendToStyle(section, 'font-italic');
+                if(dlgScope.data.styles.underline && (attr == 'font-underline' || style == 'font-underline')) _appendToStyle(section, 'font-underline');    
     
+            }
+            _appendToStyle(section, hAlign);
             var sectionLayout = _layoutsFromBeautyString(dlgScope.data.sectionLayout);
             for(var i=0; i<sectionLayout.length; i++) {
-                if(section.pos === i+1) sectionLayout.splice(i, 1, section);
+                if(parseInt(key) === i+1) sectionLayout.splice(i, 1, section);
             }
             dlgScope.data.sectionLayout = _beautyStringifyLayouts(sectionLayout);
+            if(dlgScope.data.isMultiSectionSelected) {
+                dlgScope.data.section[key] = section;
+            } else {
+                dlgScope.data.section[key] = dlgScope.data.defaultSection;
+            }
             _onLayoutEditDone(dlgScope);
         }
     }
