@@ -510,52 +510,17 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
             var styles = angular.copy(dlgScope.data.section[key].style);
                 styles = styles ? styles.split(' ') : [];
                 section.style = '';
-            var dict = {};
-            var initial = styles.length == 0 ? -1 : 0
-            for(var i=initial; i<styles.length; i++) {
-                var style = styles[i] ? styles[i].trim() : '';
-                if(style && style in dict) continue;
-                dict[style] = true;
-                if((style && section.style.indexOf(style) >= 0) || (section.style && section.style.indexOf(dlgScope.data[attr].id) >= 0)) continue;
-                if(dlgScope.options[attr] && (dlgScope.options[attr][0].id == 'multi')) dlgScope.options[attr].splice(0, 1);
-                if(attr == "colors"){
-                    _appendToStyle(section, dlgScope.data.colors.id);
-                } else if((style.indexOf('bg-') == 0) && (attr != "colors")) { 
-                    _appendToStyle(section, style);
-                }                    
-                if(attr == "shapes") {
-                    _appendToStyle(section, dlgScope.data.shapes.id);                        
-                } else if((style.indexOf('shape-') == 0) && (attr != "shapes")) {
-                    _appendToStyle(section, style);
-                }
-
-                if(attr == "shadow") {
-                    _appendToStyle(section, dlgScope.data.shadow.id);
-                } else if((style.indexOf('shadow-') == 0) && (attr != 'shadow')) {
-                    _appendToStyle(section, style);
-                }
-
-                if(attr == "titlesize") {
-                    _appendToStyle(section, dlgScope.data.titlesize.id);
-                } else if((style.indexOf('size-') == 0) && (attr != 'titlesize')) {
-                    _appendToStyle(section, style);
-                }
-
-                if(attr == "fontstyle") {
-                    _appendToStyle(section, dlgScope.data.fontstyle.id);
-                } else if((style.indexOf('fontstyle-') == 0) && (attr != 'fontstyle')) {
-                    _appendToStyle(section, style);
-                }
-                if(attr == "fontsize") {
-                    _appendToStyle(section, dlgScope.data.fontsize.id);
-                } else if((style.indexOf('fontsize-') == 0) && (attr != 'fontsize')) {
-                    _appendToStyle(section, style);
-                }
-                if(dlgScope.data.styles.bold && (attr == 'font-bold' || style == 'font-bold')) _appendToStyle(section, 'font-bold');
-                if(dlgScope.data.styles.italic && (attr == 'font-italic' || style == 'font-italic')) _appendToStyle(section, 'font-italic');
-                if(dlgScope.data.styles.underline && (attr == 'font-underline' || style == 'font-underline')) _appendToStyle(section, 'font-underline');    
-    
-            }
+            if(dlgScope.options[attr] && (dlgScope.options[attr][0].id == 'multi')) dlgScope.options[attr].splice(0, 1);
+            if(attr == "colors") _appendToStyle(section, dlgScope.data.colors.id);
+            if(attr == "shapes") _appendToStyle(section, dlgScope.data.shapes.id);                        
+            if(attr == "shadow") _appendToStyle(section, dlgScope.data.shadow.id);
+            if(attr == "titlesize") _appendToStyle(section, dlgScope.data.titlesize.id);
+            if(attr == "fontstyle") _appendToStyle(section, dlgScope.data.fontstyle.id);
+            if(attr == "fontsize") _appendToStyle(section, dlgScope.data.fontsize.id);
+            if(dlgScope.data.styles.bold && attr == 'font-bold') _appendToStyle(section, 'font-bold');
+            if(dlgScope.data.styles.italic && attr=='font-italic') _appendToStyle(section, 'font-italic');
+            if(dlgScope.data.styles.underline && attr == 'font-underline') _appendToStyle(section, 'font-underline');    
+            if(styles.length != 0) _appendPreselectedStyles(attr, section, styles);
             _appendToStyle(section, hAlign);
             var sectionLayout = _layoutsFromBeautyString(dlgScope.data.sectionLayout);
             for(var i=0; i<sectionLayout.length; i++) {
@@ -565,6 +530,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
             if(dlgScope.data.isMultiSectionSelected) {
                 dlgScope.data.section[key] = section;
             } else {
+                dlgScope.data.defaultSection['style'] = section.style;
                 dlgScope.data.section[key] = dlgScope.data.defaultSection;
             }
             _onLayoutEditDone(dlgScope);
@@ -575,6 +541,25 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
     	if (!style) return;
     	if (section.style) section.style += ' ';
     	section.style += style;
+    }
+
+    function _appendPreselectedStyles(attr, section, styles) {
+        var dict = {};
+        for(var i=0; i<styles.length; i++) {
+            var style = styles[i] ? styles[i].trim() : '';
+            if(style && style in dict) continue;
+            dict[style] = true;
+            if(style && section.style.indexOf(style) >= 0) continue;
+            if((style.indexOf('bg-') == 0) && (attr != "colors")) _appendToStyle(section, style);
+            if((style.indexOf('shape-') == 0) && (attr != "shapes")) _appendToStyle(section, style);
+            if((style.indexOf('shadow-') == 0) && (attr != 'shadow')) _appendToStyle(section, style);
+            if((style.indexOf('size-') == 0) && (attr != 'titlesize')) _appendToStyle(section, style);
+            if((style.indexOf('fontstyle-') == 0) && (attr != 'fontstyle')) _appendToStyle(section, style);
+            if((style.indexOf('fontsize-') == 0) && (attr != 'fontsize')) _appendToStyle(section, style);
+            if((style.indexOf('font-bold') == 0) && (attr != 'font-bold')) _appendToStyle(section, 'font-bold');
+            if((style.indexOf('font-italic') == 0) && (attr != 'font-italic')) _appendToStyle(section, 'font-italic');
+            if((style.indexOf('font-underline') == 0) && (attr != 'font-underline')) _appendToStyle(section, 'font-underline');    
+        }
     }
 
     function _onLayoutEditDone(dlgScope) {
