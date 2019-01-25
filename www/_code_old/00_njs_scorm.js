@@ -143,10 +143,32 @@ function saveLesson(url, params) {
     console.log('Save called: ', url);
     if (bDone) return true;
     if (url.indexOf('submit_report_') > 0) bDone = true;
+    _updateScormPassScore(g_lesson.oLesson);
 
     if (g_nlPlayerType == 'normal') return false;
     if (g_nlPlayerType == 'embedded') return _saveLessonEmbedded(bDone);
     if (g_nlPlayerType == 'sco') return _saveLessonSco(bDone);
+}
+
+function _updateScormPassScore(lessonDict) {
+    if (!lessonDict.scormlms) return false;
+    if (!lessonDict.scormDataModel) return false;
+    var dm = lessonDict.scormDataModel;
+    var c = dm['cmi.core.lesson_status'];
+    if (c != 'completed' && c != 'passed' && c != 'failed') return false;
+    var maxScore =  lessonDict.maxScore || 0;
+    var passScore =  lessonDict.passScore || 0;
+    if (!maxScore || !passScore) return false;
+    var score =  lessonDict.score || 0;
+    var perc = (score/maxScore)*100;
+    if (c == 'completed' || c == 'passed') {
+        if (perc >= passScore) return false;
+        lessonDict.selfLearningMode = true;
+    } else if (c == 'failed') {
+        if (perc < passScore) return false;
+        lessonDict.passScore = 100;
+    }
+    return true;
 }
 
 function _saveLessonEmbedded(bDone) {
