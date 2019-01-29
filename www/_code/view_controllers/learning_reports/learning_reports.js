@@ -1140,7 +1140,7 @@
 				title: assignContent.name,
 				icon: launchType == 'module_assign' ? nl.url.lessonIconUrl(assignContent.image) : assignContent.icon,
 				showDateField: true,
-				hideEmailNotifications: true,
+				hideEmailNotifications: false,
 				enableSubmissionAfterEndtime: enableSubmissionAfterEndtime,
 				
 				batchname: assignContent.batchname,

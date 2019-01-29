@@ -82,7 +82,7 @@
         </nl-checkbox>
 	</nl-dlg-row>
 
-	<nl-dlg-row ng-show='enableEmailNotifications' attr='sendEmail' data='data' help='help'>
+	<nl-dlg-row ng-show='enableEmailNotifications && data.isEmailNotificationEnable()' attr='sendEmail' data='data' help='help'>
         <nl-checkbox fieldmodel='sendEmail'
                      fieldname='notify learners by email'
                      fieldcls= 'padding-mid'

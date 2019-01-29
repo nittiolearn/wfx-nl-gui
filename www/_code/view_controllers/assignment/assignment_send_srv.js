@@ -172,6 +172,13 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 		    var	d = nl.fmt.date2Str(new Date(), 'date');
 		    dlgScope.data.batchname = nl.t('{} - Batch', d);
         }
+        dlgScope.data.isEmailNotificationEnable = function() {
+            if(!_assignInfo.isModify) return true;
+            var selectedUsers = _ouUserSelector.getSelectedUsers() || {};
+            if(Object.keys(selectedUsers).length != 0) return true;
+            return false;
+        }
+
         dlgScope.help = _getHelp();
     }
 
@@ -269,7 +276,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			not_before: data.starttime, not_after: data.endtime, 
 			submissionAfterEndtime: data.submissionAfterEndtime,
 			max_duration: data.maxduration, learnmode: data.showAnswers.id,
-			update_content: data.update_content};
+            update_content: data.update_content,
+            sendemail: data.sendEmail || false};
 		if(ouUserInfo.userids.length > 0) {
             params['selectedusers'] = _getMinimalUserObjects(ouUserInfo.userids),
             params['oustr'] = _getOrgUnitStr(ouUserInfo.ous);

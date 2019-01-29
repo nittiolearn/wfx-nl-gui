@@ -151,6 +151,17 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
     this.show = function(url, newTab) {
         _redirectTo('{}', url, newTab);
     };
+
+    this.getMaxScoredLessonReport = function(lessonReport, pastLessonReport) {
+        var maxScoredReport = angular.copy(lessonReport);
+        for(var i=0; i<pastLessonReport.length; i++) {
+            var pastRep = pastLessonReport[i];
+            if(pastRep.score < maxScoredReport.score) continue;
+            maxScoredReport = pastRep
+        }
+        maxScoredReport['attempt'] = lessonReport.attempt;
+        return maxScoredReport;
+    }
     
     // Private functions
     function _startDateOk(cm, scope) {
@@ -176,6 +187,10 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
             var prereqScore = null;
             if (cmid in lessonReports && lessonReports[cmid].completed) {
                 var lessonReport = lessonReports[cmid];
+                var pastLessonReport = self.course['pastLessonReports'] ? self.course.pastLessonReports[cmid] : null;
+                if(lessonReport && lessonReport.completed && pastLessonReport) {
+                    lessonReport = self.getMaxScoredLessonReport(lessonReport, pastLessonReport);
+                }
                 var scores = _getScores(lessonReport, true);
                 prereqScore = scores.maxScore > 0 ? Math.round((scores.score/scores.maxScore)*100) : 100;
             } else if (cmid in statusinfo && statusinfo[cmid].status == 'done') {
@@ -896,7 +911,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         
         var lessonReports = modeHandler.course.lessonReports || {};
         var lessonReport = lessonReports[cm.id] || {};
-        
+        var pastLessonReport = modeHandler.course['pastLessonReports'] ? modeHandler.course.pastLessonReports[cm.id] : null;
+        if(lessonReport && lessonReport.completed && pastLessonReport) {
+            lessonReport = modeHandler.getMaxScoredLessonReport(lessonReport, pastLessonReport);
+        }
         cm.attempt = lessonReport.attempt || 0;
         if ('started' in lessonReport) {
             cm.started = nl.fmt.json2Date(lessonReport.started);
@@ -924,7 +942,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         if (!modeHandler.canStart(cm, $scope, nlTreeListSrv)) status = 'waiting';
         _updateState(cm, status);
     }
-
+    
     function _updatedStatusinfo(cm, status, remarks, dontHide) {
         // TODO-LATER: Keep status as boolean; data as javascript Date object
         if (!('statusinfo' in modeHandler.course)) modeHandler.course.statusinfo = {};
@@ -1166,6 +1184,12 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
     this.updateStatus = function(isDone, dontHide) {
         if (_updateStatusFn) _updateStatusFn(this.item, isDone, this.data.remarks, dontHide);
     };
+
+	this.canShowTryAgain = function(cm) {
+        if (!cm || cm.type != 'lesson' || modeHandler.mode != MODES.DO) return false;
+        if (cm.state.status  == 'success') return false;
+        return ((cm.state.status  == 'failed') && (cm.maxAttempts == 0 || cm.attempt < cm.maxAttempts));
+    }
 
     this.canReattempt = function() {
         if (!this.item || this.item.type != 'lesson' || modeHandler.mode != MODES.DO) return false;

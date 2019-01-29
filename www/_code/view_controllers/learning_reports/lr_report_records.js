@@ -253,6 +253,12 @@
                 stats.nLessons++;
                 var lid = lessons[i].id;
                 var rep = lessonReps[lid];
+                var pastLessonReport = (repcontent['pastLessonReports']) ? repcontent['pastLessonReports'][lid] : null;
+                if(rep && pastLessonReport) {
+                    rep = _getMaxScoredReport(rep, pastLessonReport);
+                    repcontent.lessonReports[lid] = rep; 
+                }
+
                 if (!rep) continue;
                 started = true;
                 if (!rep.selfLearningMode && rep.attempt) {
@@ -329,6 +335,17 @@
             return ret;
         }
     
+        function _getMaxScoredReport(rep, pastLessonReport) {
+            //rep is an object, pastLessonReport is an array
+            var maxScoredReport = angular.copy(rep);
+            for(var i=0; i<pastLessonReport.length; i++) {
+                var pastRep = pastLessonReport[i];
+                if(pastRep.score < maxScoredReport.score) continue;
+                maxScoredReport = pastRep;
+            }
+            return maxScoredReport;
+        }
+
         function _processModuleReport(report) {
             var repcontent = _updateCommonParams(report, 'module');
             var user = _getStudentFromReport(report, repcontent);
