@@ -16,7 +16,7 @@ function($stateProvider, $urlRouterProvider) {
 //-------------------------------------------------------------------------------------------------
 var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, nlRouter, nlGroupInfo) {
 	var self = this;
-	// TODO-LATER-123: 'type' default should be 'all'
+	// TODO-LATER: 'type' default should be 'all'
 	var _dataDefaults = {
 		type: 'course',		// all|module|course|trainig_kind|module_assign|course_assign|training_batch
 		assignor: 'all',	// all|me, will auomatically change to 'me' if assignment_manage permission is not there
@@ -32,7 +32,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
         var urlParams = nl.location.search();
         _fillAttrs(_data, ['type'], [settings, urlParams, _dataDefaults]);
         if (!_oneOf(_data.type, ['all', 'module', 'course', 'training_kind', 'module_assign', 'course_assign', 'training_batch']))
-        	_data.type = 'course'; // TODO-LATER-123: should be 'all'
+        	_data.type = 'course'; // TODO-LATER: should be 'all'
         _fillAttrs(_data, ['assignor', 'parentonly', 'objid', 'title', 'showfilters'], 
         	[settings, urlParams, _dataDefaults]);
         if (_oneOf(_data.type, ['module_assign', 'course_assign', 'training_batch']))

@@ -136,12 +136,6 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/course_assignment_delete.json', {assignid: assignId});
     };
     
-    // TODO-LATER: Remove when course_summary_report.js is removed.
-    this.courseReportDelete = function(repid) {
-        // return: status info array
-        return server.post('_serverapi/course_report_delete.json', {repid: repid});
-    };
-    
     this.courseGetAssignmentList = function(data) {
         // data: mine, search
         // returns list of courseAssignment objects
@@ -152,12 +146,6 @@ function(nl, nlDlg, nlConfig, Upload) {
         // data: assignid, compact=true|false (false is default)
         // returns list of courseReport objects
         return server.post('_serverapi/course_get_assignment_report_list.json', data);
-    };
-
-    this.courseGetAssignmentReportSummary = function(data) {
-        // data: assignid, search
-        // returns object with course content and list of courseReport objects
-        return server.post('_serverapi/course_get_assignment_report_summary.json', data);
     };
 
     this.courseGetMyReportList = function(data) {
