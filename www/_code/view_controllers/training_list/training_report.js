@@ -8,12 +8,65 @@
 function module_init() {
 	angular.module('nl.training_report', [])
 	.config(configFn)
+    .service('nlRangeSelectionDlg', NlRangeSelectionDlg)
 	.service('nlTrainingReport', nlTrainingReportSrv);
 }
 
 //-------------------------------------------------------------------------------------------------
 var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
+}];
+
+//-------------------------------------------------------------------------------------------------
+// TODO-LATER-123: Remove nlRangeSelectionDlg after every user is moved to /#/learning_reports
+var NlRangeSelectionDlg = ['nl', 'nlDlg', function(nl, nlDlg) {
+    var updatedTillDate = null;
+    var updatedFromDate = null;
+
+    this.init = function() {
+        var day = 24*60*60*1000; // 1 in ms
+        var now = new Date();
+        var offset = now.getTimezoneOffset()*60*1000; // in ms
+        now = Math.floor(now.getTime()/day)*day + offset; // Today 00:00 Hrs in local time
+        updatedTillDate = new Date(now + day);
+        updatedFromDate = new Date(now - (6 * day));
+    };
+    
+    this.show = function($scope, isCreate) {
+        if (!updatedTillDate || !updatedFromDate) this.init();
+        var rangeSelectionDlg = nlDlg.create($scope);
+        rangeSelectionDlg.setCssClass('nl-height-max nl-width-max');
+        rangeSelectionDlg.scope.isCreate = isCreate;
+        rangeSelectionDlg.scope.data = {updatedFrom: updatedFromDate, updatedTill: updatedTillDate};
+        rangeSelectionDlg.scope.error = {};
+        rangeSelectionDlg.scope.dlgTitle = nl.t('{} time range', isCreate ? 'Assignment sent' : 'Report updated');
+        var button = {text: nl.t('Fetch'), onTap: function(e){
+            if (!_validateInputs(rangeSelectionDlg.scope)) {
+                if (e) e.preventDefault();
+                return;
+            }
+            var sd = rangeSelectionDlg.scope.data;
+            updatedTillDate = sd.updatedTill;
+            updatedFromDate = sd.updatedFrom;
+            return rangeSelectionDlg.scope.data;
+        }};
+        var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
+            return false;
+        }};
+        return rangeSelectionDlg.show('view_controllers/training_list/range_selection_dlg.html', [button], cancelButton, false);
+    };
+
+    function _validateInputs(scope){
+        scope.error = {};
+        if (!scope.data.updatedFrom) return _validateFail(scope, 'updatedFrom', 'From date is mandatory');
+        if (!scope.data.updatedTill) return _validateFail(scope, 'updatedTill', 'Till date is mandatory');
+        if (scope.data.updatedFrom >= scope.data.updatedTill) return _validateFail(scope, 'updatedTill', 'Till date should be later than from date');
+        return true;
+    }
+                    
+    function _validateFail(scope, attr, errMsg) {
+        return nlDlg.setFieldError(scope, attr, nl.t(errMsg));
+    }
 }];
 
 //-------------------------------------------------------------------------------------------------

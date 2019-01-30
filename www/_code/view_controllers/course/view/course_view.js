@@ -40,9 +40,8 @@ function($stateProvider, $urlRouterProvider) {
     });
 }];
 
-var MODES = {PRIVATE: 0, PUBLISHED: 1, REPORT_VIEW: 2, DO: 3, EDIT: 4, REPORTS_SUMMARY_VIEW: 5};
-// TODO-LATER-123: reports_summary_view is moved already to /#/learning_reports. Remove in next release.
-var MODE_NAMES = {'private': 0, 'published': 1, 'report_view': 2, 'do': 3, 'edit': 4, 'reports_summary_view': 5};
+var MODES = {PRIVATE: 0, PUBLISHED: 1, REPORT_VIEW: 2, DO: 3, EDIT: 4};
+var MODE_NAMES = {'private': 0, 'published': 1, 'report_view': 2, 'do': 3, 'edit': 4};
 
 function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
     var self=this;
@@ -75,8 +74,6 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
             nl.pginfo.pageSubTitle = nl.t('(editor)');
         } else if (this.mode === MODES.PUBLISHED) {
             nl.pginfo.pageSubTitle = nl.t('(published)');
-        } else if (this.mode === MODES.REPORTS_SUMMARY_VIEW) {
-            nl.pginfo.pageSubTitle = nl.t('(assignment reports)');
         } else if (this.mode === MODES.REPORT_VIEW) {
             nl.pginfo.pageSubTitle = nl.t('({})', nlGroupInfo.formatUserNameFromRecord(course));
         } else if (this.mode === MODES.DO) {
@@ -87,11 +84,6 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
     this.getCourse = function() {
         if (this.mode === MODES.PRIVATE || this.mode === MODES.EDIT || this.mode === MODES.PUBLISHED) {
             return nlServerApi.courseGet(this.courseId, this.mode === MODES.PUBLISHED);
-        }
-        if (this.mode === MODES.REPORTS_SUMMARY_VIEW) {
-            return nlGroupInfo.init().then(function() {
-                return nlServerApi.courseGetAssignmentReportSummary({assignid: self.courseId});
-            });
         }
         if (this.mode === MODES.REPORT_VIEW) {
             return nlGroupInfo.init().then(function() {
@@ -118,7 +110,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         }
 
         var reportInfo = (cm.id in self.course.lessonReports) ? self.course.lessonReports[cm.id] : null;
-        if (this.mode === MODES.REPORTS_SUMMARY_VIEW || this.mode === MODES.REPORT_VIEW) {
+        if (this.mode === MODES.REPORT_VIEW) {
             if (!reportInfo || !reportInfo.completed) return _popupAlert('Not completed', 
                 'This learning module is not yet completed. You may view the report once it is completed.');
             return _redirectTo('/lesson/review_report_assign/{}', reportInfo.reportId, newTab);
@@ -141,7 +133,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
     };
     
     this.shallShowScore = function() {
-        return (this.mode === MODES.REPORTS_SUMMARY_VIEW || this.mode === MODES.REPORT_VIEW || this.mode === MODES.DO);
+        return (this.mode === MODES.REPORT_VIEW || this.mode === MODES.DO);
     };
 
     this.canStart = function(cm, scope, nlTreeListSrv) {
@@ -262,14 +254,13 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg', 'nlExporter',
+var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg',
 'nlCourseEditor', 'nlCourseCanvas', 'nlServerApi', 'nlGroupInfo', 'nlSendAssignmentSrv', 'nlMarkup', 'nlTreeListSrv',
-function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
+function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg,
     nlCourseEditor, nlCourseCanvas, nlServerApi, nlGroupInfo, nlSendAssignmentSrv, nlMarkup, nlTreeListSrv) {
     var modeHandler = new ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope);
     var nlContainer = new NlContainer(nl, $scope, modeHandler);
     nlContainer.setContainerInWindow();
-    var courseReportSummarizer = new CourseReportSummarizer(nlGroupInfo, $scope);
     var _userInfo = null;
     $scope.MODES = MODES;
     var folderStats = new FolderStats($scope, modeHandler);
@@ -327,7 +318,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         modeHandler.initTitle(course);
         nlCourseCanvas.init($scope, modeHandler, nlTreeListSrv, _userInfo);
         _initAttributesDicts(course);
-        courseReportSummarizer.updateUserReports(course);
         $scope.courseContent = course.content;
         $scope.planning = course.content.planning;
         if ('forumRefid' in course) {
@@ -339,7 +329,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
 	    var allModules = nlCourseEditor.getAllModules(true);
         for(var i=0; i<modules.length; i++) {
             var module = angular.copy(modules[i]);
-            var userRecords = courseReportSummarizer.getUserRecords(course, module);
+            var userRecords = [];
             _initModule(module);
             allModules.push(module);
             for(var j=0; j<userRecords.length; j++) {
@@ -485,7 +475,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
                 else vp.d = true;
             }
         }
-        vp.tb = (vp.i || $scope.canvasMode || $scope.forumInfo.refid || $scope.mode == MODES.REPORTS_SUMMARY_VIEW);
+        vp.tb = (vp.i || $scope.canvasMode || $scope.forumInfo.refid);
         nlRouter.updateBodyClass('iframeActive', vp.i);
     };
     
@@ -538,10 +528,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         }
         $scope.updateVisiblePanes();
     }
-
-    $scope.download = function() {
-        _download();
-    };
 
     $scope.sendAssignment = function() {
         _sendAssignment();
@@ -944,7 +930,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
     }
     
     function _updatedStatusinfo(cm, status, remarks, dontHide) {
-        // TODO-LATER: Keep status as boolean; data as javascript Date object
         if (!('statusinfo' in modeHandler.course)) modeHandler.course.statusinfo = {};
         modeHandler.course.statusinfo[cm.id] = {
             status: status ? 'done' : '',
@@ -979,18 +964,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
         });
     }
     
-    function _download() {
-        if ($scope.mode != MODES.REPORTS_SUMMARY_VIEW) return;
-
-        nlDlg.showLoadingScreen();
-        return nlGroupInfo.init().then(function() {
-            nlDlg.hideLoadingScreen();
-            _downloadImpl(nlGroupInfo.get());
-        }, function(e) {
-            return e;
-        });
-    }
-        
     function _sendAssignment() {
         if (!$scope.canSendAssignment) return;
         var c = modeHandler.course;
@@ -998,37 +971,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlExporter,
             title: c.name, authorName: c.authorname, description: c.description, 
             showDateField: true, enableSubmissionAfterEndtime: false, blended: c.content.blended};
         nlSendAssignmentSrv.show($scope, assignInfo);
-    }
-    
-    function _downloadImpl(_groupInfo) {
-        var data = [];
-        data.push(['User name', 'Module', 'Type', 'Status', 'Time spent', 'Score', 'Max score', 'Percentage', 'Location', 'User id', 'User loginid', 'Started', 'Ended', 'Attempt']);
-	    var allModules = nlCourseEditor.getAllModules();
-        var pos=0;
-        for(var i=0; i<allModules.length; i++) {
-            var cm = allModules[i];
-            if (cm.type == 'module') continue;
-            var parent = nlTreeListSrv.getItem(cm.parentId);
-            if (!parent) continue; // This is a must in REPORTS_SUMMARY_VIEW
-            var loginid = '';
-            if (_groupInfo && _groupInfo.users[''+cm.userid]) {
-                var userInfo = _groupInfo.users[''+cm.userid];
-                loginid = userInfo[nlGroupInfo.USERNAME];
-            }
-
-            var row = [cm.name, parent.name, cm.type, cm.state.status, 
-                cm.timeMins !== undefined ? cm.timeMins : '',
-                cm.score || '',  cm.maxScore || '', 
-                cm.perc ? cm.perc + '%' : '', parent.location,
-                'id='+cm.userid, loginid, 
-                cm.started ? nl.fmt.date2Str(nl.fmt.json2Date(cm.started), 'minute') : '', 
-                cm.ended ? nl.fmt.date2Str(nl.fmt.json2Date(cm.ended), 'minute') : '', 
-                cm.attempt || ''];
-            data.push(row);
-        }
-        
-        var fileName = nl.fmt2('CourseAssignmentReport-{}', nl.fmt.date2Str(new Date(), 'date'));
-        nlExporter.exportArrayTableToCsv(fileName, data);
     }
 }];
 
@@ -1267,7 +1209,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
     
     this.showPastReport = function(rep) {
         if (this.hideReviewButton()) return;
-        var func = (modeHandler.mode === MODES.REPORTS_SUMMARY_VIEW || modeHandler.mode === MODES.REPORT_VIEW) ? 'review_report_assign' : 'view_report_assign';
+        var func = (modeHandler.mode === MODES.REPORT_VIEW) ? 'review_report_assign' : 'view_report_assign';
         var url = nl.fmt2('/lesson/{}/{}', func, rep.reportId);
         modeHandler.show(url);
     };
@@ -1424,66 +1366,6 @@ var TreeListSrv = ['nl', function(nl) {
     };
     this.clear();
 }];
-
-//-------------------------------------------------------------------------------------------------
-function CourseReportSummarizer(nlGroupInfo, $scope) {
-
-    var folderAttrs = {'id': true, 'name': true, 'type': true, 'icon': true, 'parentId': true};
-    this.getUserRecords = function(course, cm) {
-        if ($scope.mode != MODES.REPORTS_SUMMARY_VIEW || cm.type == 'module') {
-            return [];
-        }
-        var ret = [];
-        var userReports = course.userReports;
-        for (var i=0; i<userReports.length; i++) {
-            var userReport = userReports[i];
-            var module = angular.copy(cm);
-            module.id = _getModuleId(cm.id, userReport.id);
-            module.parentId = cm.id;
-            module.name = nlGroupInfo.formatUserNameFromRecord(userReport);
-            module.userid = userReport.student;
-            module.icon = 'user';
-            if ('posX' in module) delete module.posX;
-            if ('posY' in module) delete module.posY;
-            
-            var start_after = module.start_after || [];
-            for(var j in start_after) {
-                var sa = start_after[j];
-                sa.module = _getModuleId(sa.module, userReport.id);
-            }
-            ret.push(module);
-        }
-
-        // Now change the cm as folder and remove unwanted attributes
-        if (!('icon' in cm)) cm.icon = cm.type;
-        cm.type = 'module';
-        for (var key in cm) {
-            if (key in folderAttrs) continue;
-            delete cm[key];
-        }
-        return ret;
-    };
-    
-    this.updateUserReports = function(course) {
-        if ($scope.mode != MODES.REPORTS_SUMMARY_VIEW) return;
-        var userReports = course.userReports;
-        course.userReports = [];
-        for (var u in userReports) {
-            course.userReports.push(userReports[u]);
-        }
-        course.userReports = course.userReports.sort(function(a, b) {
-            if (nlGroupInfo.formatUserNameFromRecord(a) < 
-                nlGroupInfo.formatUserNameFromRecord(b)) return -1;
-            // They being equal is very unlikely in our case!
-            return 1;
-        });
-    };
-
-    function _getModuleId(parentId, reportId) {
-        return parentId + '.' + reportId;
-    }
-    
-}
 
 //-------------------------------------------------------------------------------------------------
 function Reopener(modeHandler, nlTreeListSrv, _userInfo, nl, nlDlg, nlServerApi, _updatedStatusinfoAtServer) {
