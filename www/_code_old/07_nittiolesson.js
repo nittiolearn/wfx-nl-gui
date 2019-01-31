@@ -278,7 +278,7 @@ nlesson = function() {
 		self.createHtmlDom();
         self.setupOnLeavePage();
         self.updateTemplateCustomizations();
-        if(self.renderCtx.launchCtx() == 'report_assign_my' || self.renderCtx.launchCtx() == 'report_assign_review') {
+        if(g_nlPlayerType != "sco" && (self.renderCtx.launchCtx() == 'report_assign_my' || self.renderCtx.launchCtx() == 'report_assign_review')) {
             njs_lesson_helper.SubmitAndScoreDialog.showReportOverview(self);
         }
 	}
