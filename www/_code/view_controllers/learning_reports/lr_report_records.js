@@ -248,18 +248,19 @@
             }
     
             var lessons = course.lessons;
-            var lessonReps = repcontent.lessonReports || {};
+            if (!repcontent.lessonReports) repcontent.lessonReports = {};
+            repcontent.latestLessonReports = angular.copy(repcontent.lessonReports);
+            var lessonReps = repcontent.lessonReports;
             for (var i=0; i<lessons.length; i++) {
                 stats.nLessons++;
                 var lid = lessons[i].id;
                 var rep = lessonReps[lid];
-                var pastLessonReport = (repcontent['pastLessonReports']) ? repcontent['pastLessonReports'][lid] : null;
-                if(rep && pastLessonReport) {
-                    rep = _getMaxScoredReport(rep, pastLessonReport);
-                    repcontent.lessonReports[lid] = rep; 
-                }
-
                 if (!rep) continue;
+                var pastLessonReport = (repcontent['pastLessonReports']) ? repcontent['pastLessonReports'][lid] : null;
+                if(pastLessonReport) {
+                    rep = _getMaxScoredReport(rep, pastLessonReport);
+                    lessonReps[lid] = rep; 
+                }
                 started = true;
                 if (!rep.selfLearningMode && rep.attempt) {
                     stats.nAttempts += rep.attempt;
@@ -336,13 +337,15 @@
         }
     
         function _getMaxScoredReport(rep, pastLessonReport) {
-            //rep is an object, pastLessonReport is an array
-            var maxScoredReport = angular.copy(rep);
+            var maxScoredReport = rep;
+            var totalTimeSpent = rep['timeSpentSeconds'];
             for(var i=0; i<pastLessonReport.length; i++) {
                 var pastRep = pastLessonReport[i];
+                totalTimeSpent += pastRep['timeSpentSeconds'];
                 if(pastRep.score < maxScoredReport.score) continue;
                 maxScoredReport = pastRep;
             }
+            maxScoredReport['timeSpentSeconds'] = totalTimeSpent;
             return maxScoredReport;
         }
 

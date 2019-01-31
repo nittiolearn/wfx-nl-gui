@@ -110,6 +110,11 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         }
 
         var reportInfo = (cm.id in self.course.lessonReports) ? self.course.lessonReports[cm.id] : null;
+        var pastLessonReport = self.course['pastLessonReports'] ? self.course.pastLessonReports[cm.id] : null;
+        if(reportInfo && pastLessonReport) {
+            reportInfo = self.getMaxScoredLessonReport(reportInfo, pastLessonReport);
+        }
+
         if (this.mode === MODES.REPORT_VIEW) {
             if (!reportInfo || !reportInfo.completed) return _popupAlert('Not completed', 
                 'This learning module is not yet completed. You may view the report once it is completed.');
@@ -119,10 +124,10 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         // do mode
         if (_redirectToLessonReport(reportInfo, newTab, cm, true)) return true;
         
-        cm.attempt++;
         nlDlg.showLoadingScreen();
-        nlServerApi.courseCreateLessonReport(self.course.id, refid, cm.id, cm.attempt, cm.maxDuration||0, self.course.not_before||'', self.course.not_after||'').then(function(updatedCourseReport) {
+        nlServerApi.courseCreateLessonReport(self.course.id, refid, cm.id, cm.attempt+1, cm.maxDuration||0, self.course.not_before||'', self.course.not_after||'').then(function(updatedCourseReport) {
             nlDlg.hideLoadingScreen();
+            cm.attempt++;
             self.course = updatedCourseReport;
             scope.updateAllItemData();
             reportInfo = self.course.lessonReports[cm.id];
@@ -145,13 +150,15 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
     };
 
     this.getMaxScoredLessonReport = function(lessonReport, pastLessonReport) {
-        var maxScoredReport = angular.copy(lessonReport);
+        var maxScoredReport = lessonReport;
+        var totalTimeSpent = lessonReport['timeSpentSeconds'];
         for(var i=0; i<pastLessonReport.length; i++) {
             var pastRep = pastLessonReport[i];
+            totalTimeSpent += pastRep['timeSpentSeconds'];
             if(pastRep.score < maxScoredReport.score) continue;
-            maxScoredReport = pastRep
+            maxScoredReport = pastRep;
         }
-        maxScoredReport['attempt'] = lessonReport.attempt;
+        maxScoredReport['timeSpentSeconds'] = totalTimeSpent;
         return maxScoredReport;
     }
     
@@ -897,11 +904,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg,
         
         var lessonReports = modeHandler.course.lessonReports || {};
         var lessonReport = lessonReports[cm.id] || {};
+        cm.attempt = lessonReport.attempt || 0;
         var pastLessonReport = modeHandler.course['pastLessonReports'] ? modeHandler.course.pastLessonReports[cm.id] : null;
         if(lessonReport && lessonReport.completed && pastLessonReport) {
             lessonReport = modeHandler.getMaxScoredLessonReport(lessonReport, pastLessonReport);
         }
-        cm.attempt = lessonReport.attempt || 0;
         if ('started' in lessonReport) {
             cm.started = nl.fmt.json2Date(lessonReport.started);
             if (cm.attempt == 0) cm.attempt = 1;
@@ -1071,6 +1078,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
     this.item = null;
     this.stats = null;
     this.pastAttemptData = [];
+    this.currentAttemptStatus = 'pending';
     this.data = {remarks: ''}; 
     this.lastSubmittedRecord = {};
     this.updateLastSubmittedItem = function(cm) {
@@ -1127,12 +1135,6 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
         if (_updateStatusFn) _updateStatusFn(this.item, isDone, this.data.remarks, dontHide);
     };
 
-	this.canShowTryAgain = function(cm) {
-        if (!cm || cm.type != 'lesson' || modeHandler.mode != MODES.DO) return false;
-        if (cm.state.status  == 'success') return false;
-        return ((cm.state.status  == 'failed') && (cm.maxAttempts == 0 || cm.attempt < cm.maxAttempts));
-    }
-
     this.canReattempt = function() {
         if (!this.item || this.item.type != 'lesson' || modeHandler.mode != MODES.DO) return false;
         if (this.item.state.status != 'failed' && this.item.state.status != 'success') return false;
@@ -1173,10 +1175,17 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
 	};
 	
 	this.hideReviewButton = function(cm) {
-        if (!modeHandler.course.content.hide_answers || modeHandler.mode != MODES.DO) return false;
         if (!cm) return true;
+        if (this.canShowTryAgain(cm)) return true;
+        if (!modeHandler.course.content.hide_answers || modeHandler.mode != MODES.DO) return false;
         return (cm.type == 'lesson' && (cm.state.status == 'success' || cm.state.status == 'failed'));
 	};
+
+	this.canShowTryAgain = function(cm) {
+        if (!cm || cm.type != 'lesson' || modeHandler.mode != MODES.DO) return false;
+        if (cm.state.status  == 'success') return false;
+        return ((cm.state.status  == 'failed') && (cm.maxAttempts == 0 || cm.attempt < cm.maxAttempts));
+    }
 
 	this.getRoundedPercentage = function(completed, total) {
 		if(completed == 0 ) return 0;
@@ -1186,6 +1195,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
     this.updatePastAttemptData = function() {
         this.showPastAttempts = false;
         this.pastAttemptData = [];
+        this.currentAttemptStatus = 'pending';
         if (!this.item || this.item.type != 'lesson') return;
         if (!modeHandler.course.lessonReports) return;
         if (!modeHandler.course.pastLessonReports && 
@@ -1200,15 +1210,19 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
             this.pastAttemptData.push(rep);
         }
         var rep = modeHandler.course.lessonReports[this.item.id];
-        if(rep && rep.completed) {
+        if (!rep) return;
+        if(rep.completed) {
+            this.currentAttemptStatus = 'completed';
             if (rep.started) rep.started = nl.fmt.json2Date(rep.started);
             if (rep.ended) rep.ended = nl.fmt.json2Date(rep.ended);
 	        this.pastAttemptData.push(rep);
-		}
+		} else {
+            this.currentAttemptStatus = 'started';
+        } 
     };
     
     this.showPastReport = function(rep) {
-        if (this.hideReviewButton()) return;
+        if (this.hideReviewButton(this.item)) return;
         var func = (modeHandler.mode === MODES.REPORT_VIEW) ? 'review_report_assign' : 'view_report_assign';
         var url = nl.fmt2('/lesson/{}/{}', func, rep.reportId);
         modeHandler.show(url);
@@ -1474,9 +1488,9 @@ function Reopener(modeHandler, nlTreeListSrv, _userInfo, nl, nlDlg, nlServerApi,
         }
 
         var cm = reopenLessons[pos];
-        cm.attempt++;
-        nlServerApi.courseCreateLessonReport(modeHandler.course.id, cm.refid, cm.id, cm.attempt, cm.maxDuration||0, modeHandler.course.not_before||'', modeHandler.course.not_after||'')
+        nlServerApi.courseCreateLessonReport(modeHandler.course.id, cm.refid, cm.id, cm.attempt+1, cm.maxDuration||0, modeHandler.course.not_before||'', modeHandler.course.not_after||'')
         .then(function(updatedCourseReport) {
+            cm.attempt++;
             modeHandler.course = updatedCourseReport;
             _createLessonReport(reopenLessons, pos+1, resolve);
         }, function(err) {

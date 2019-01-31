@@ -13,8 +13,8 @@
     <div class='row row-center padding-small margin0' 
     	ng-repeat='attempt in ext.pastAttemptData' >
     	<div ng-class='respCol111'>
-    		<div class='row row-center padding0 margin0 finactive {{(ext.hideReviewButton() || ext.canShowTryAgain(ext.item)) ? "" : "nl-link-text"}}' 
-    			ng-click='(ext.hideReviewButton() || ext.canShowTryAgain(ext.item)) ? "" : ext.showPastReport(attempt)'>
+    		<div class='row row-center padding0 margin0 finactive {{ext.hideReviewButton(ext.item) ? "" : "nl-link-text"}}' 
+    			ng-click='ext.showPastReport(attempt)'>
 				<div class='col'>{{attempt.started | date : 'dd-MMM-yy HH:mm:ss'}}</div>
 				<div ng-hide='screenSize == "small" || vp.i == true' class='col'>{{attempt.ended | date : 'dd-MMM-yy HH:mm:ss'}}</div>
 				<div class='col'>{{ext.getRoundedPercentage(attempt.score, attempt.maxScore)}}%</div>

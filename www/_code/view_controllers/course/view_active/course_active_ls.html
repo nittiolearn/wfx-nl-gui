@@ -53,12 +53,12 @@
 							</div>
 						</div>
 						<div ng-if='cm.type != "module"' class='col'></div>
-						<div ng-show='cm.type != "module" && ext.canShowTryAgain(cm)'
+						<div ng-show='ext.canShowTryAgain(cm)'
 							class='nl-link-text nl-button-highlight'
 							ng-click='onReattempt($event, cm)'>
 							<span>Try again</span>
 						</div>
-					    <div ng-show='cm.type != "module" && ext.canShowLaunch(cm) && !ext.canShowTryAgain(cm)' 
+					    <div ng-show='ext.canShowLaunch(cm)' 
 					    	class='nl-link-text {{getLaunchButtonState(cm) == "dark" ? "nl-button-highlight" : "nl-button-lowlight"}} {{ext.canHighlightReviewButton(cm) ? "nl-button-review" : ""}}'
 			                ng-click='onLaunch($event, cm)'
 			                title='{{ext.getLaunchString(cm)}}'>

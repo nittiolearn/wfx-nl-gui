@@ -26,7 +26,7 @@
 	</div>
 	<div ng-show='ext.item.maxScore' class='row row-wrap row-center row-justify-evenly padding0 margin0'>
 		<div ng-class='respCol442'><b>Score</b></div>
-		<div ng-class='respCol442'>{{ext.item.perc}}% ({{ext.item.score}} / {{ext.item.maxScore}})</div>
+		<div ng-class='respCol442'>{{ext.item.perc}}% ({{ext.item.score || 0}} / {{ext.item.maxScore}})</div>
 		<div ng-class='respCol442'><b>Pass score</b></div>
 		<div ng-class='respCol442'>{{ext.item.passScore}}%</div>
 	</div>
