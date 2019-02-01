@@ -31,7 +31,7 @@
 
 					<nl-progress-bar ng-show='cm.type == "module"' class='col padding0' curval='cm.completedItems' maxval='cm.totalItems'></nl-progress-bar>
 					<span style='width: 50px; text-align: right;'
-						  ng-show='cm.type == "module"'>{{cm.completedItems ? ext.getRoundedPercentage(cm.completedItems, cm.totalItems) : 0}}%</span>
+						  ng-show='cm.type == "module"'>{{cm.completedItems ? ext.getRoundedPercentage(cm.completedItems, cm.totalItems) : 0}}</span>
 
 					<div ng-show='cm.type != "module"' class='col padding0'></div>
 					<div ng-show='ext.canShowTryAgain(cm)'

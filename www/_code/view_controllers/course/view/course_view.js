@@ -110,20 +110,32 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         }
 
         var reportInfo = (cm.id in self.course.lessonReports) ? self.course.lessonReports[cm.id] : null;
-        var pastLessonReport = self.course['pastLessonReports'] ? self.course.pastLessonReports[cm.id] : null;
-        if(reportInfo && pastLessonReport) {
-            reportInfo = self.getMaxScoredLessonReport(reportInfo, pastLessonReport);
-        }
 
-        if (this.mode === MODES.REPORT_VIEW) {
-            if (!reportInfo || !reportInfo.completed) return _popupAlert('Not completed', 
-                'This learning module is not yet completed. You may view the report once it is completed.');
-            return _redirectTo('/lesson/review_report_assign/{}', reportInfo.reportId, newTab);
+        if(reportInfo) {
+            return nl.q(function(resolve, reject) {
+                if($scope.ext.pastAttemptData.length > 1) {
+                    var pastAttemptLaunchDlg = nlDlg.create($scope);
+                    pastAttemptLaunchDlg.scope.ext = {};
+                    pastAttemptLaunchDlg.scope.ext.pastAttemptData = $scope.ext.pastAttemptData;
+                    pastAttemptLaunchDlg.scope.ext.hideReviewButton = function() {
+                        return $scope.ext.hideReviewButton($scope.ext.item);
+                    }
+                    pastAttemptLaunchDlg.scope.ext.getRoundedPercentage = function(score, maxScore, attempt) {
+                        return $scope.ext.getRoundedPercentage(score, maxScore, attempt);
+                    }
+                    pastAttemptLaunchDlg.scope.ext.showPastReport = function(rep) {
+                        nlDlg.closeAll();
+                        _lessonReview(rep, cm, newTab);
+                    }
+                    var cancelButton = {text : nl.t('Cancel')};
+                    pastAttemptLaunchDlg.show('view_controllers/course/view_active/course_past_attempt_table.html', [], cancelButton);
+                } else {
+                    _lessonReview(reportInfo, cm, newTab);
+                }
+            });
         }
         
         // do mode
-        if (_redirectToLessonReport(reportInfo, newTab, cm, true)) return true;
-        
         nlDlg.showLoadingScreen();
         nlServerApi.courseCreateLessonReport(self.course.id, refid, cm.id, cm.attempt+1, cm.maxDuration||0, self.course.not_before||'', self.course.not_after||'').then(function(updatedCourseReport) {
             nlDlg.hideLoadingScreen();
@@ -163,6 +175,15 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
     }
     
     // Private functions
+    function _lessonReview(rep, cm, newTab) {
+        if (self.mode === MODES.REPORT_VIEW) {
+            if (!rep || !rep.completed) return _popupAlert('Not completed', 
+                'This learning module is not yet completed. You may view the report once it is completed.');
+            return _redirectTo('/lesson/review_report_assign/{}', rep.reportId, newTab);
+        }
+        if (_redirectToLessonReport(rep, newTab, cm, true)) return true;
+    }
+
     function _startDateOk(cm, scope) {
         var today = new Date();
         if (scope.planning && cm.start_date && cm.start_date > today) return false;
@@ -1187,9 +1208,10 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
         return ((cm.state.status  == 'failed') && (cm.maxAttempts == 0 || cm.attempt < cm.maxAttempts));
     }
 
-	this.getRoundedPercentage = function(completed, total) {
+    this.getRoundedPercentage = function(completed, total, rep) {
+        if(rep && rep.selfLearningMode) return '-';
 		if(completed == 0 ) return 0;
-		return Math.round(completed/total*100);
+		return Math.round(completed/total*100)+'%';
 	};
 	
     this.updatePastAttemptData = function() {
@@ -1207,6 +1229,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
             if (!rep.completed || !rep.reportId) continue;
             if (rep.started) rep.started = nl.fmt.json2Date(rep.started);
             if (rep.ended) rep.ended = nl.fmt.json2Date(rep.ended);
+
             this.pastAttemptData.push(rep);
         }
         var rep = modeHandler.course.lessonReports[this.item.id];

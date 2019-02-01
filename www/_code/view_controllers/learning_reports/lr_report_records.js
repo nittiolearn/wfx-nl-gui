@@ -346,6 +346,7 @@
                 maxScoredReport = pastRep;
             }
             maxScoredReport['timeSpentSeconds'] = totalTimeSpent;
+            maxScoredReport['attempt'] = rep['attempt'];
             return maxScoredReport;
         }
 
