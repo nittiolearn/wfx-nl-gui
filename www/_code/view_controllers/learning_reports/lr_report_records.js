@@ -256,7 +256,7 @@
                 var lid = lessons[i].id;
                 var rep = lessonReps[lid];
                 if (!rep) continue;
-                var pastLessonReport = (repcontent['pastLessonReports']) ? repcontent['pastLessonReports'][lid] : null;
+                var pastLessonReport = (repcontent['pastLessonReports']) ? angular.copy(repcontent['pastLessonReports'][lid]) : null;
                 if(pastLessonReport) {
                     rep = _getMaxScoredReport(rep, pastLessonReport);
                     lessonReps[lid] = rep; 
@@ -338,7 +338,7 @@
     
         function _getMaxScoredReport(rep, pastLessonReport) {
             var maxScoredReport = rep;
-            var totalTimeSpent = rep['timeSpentSeconds'];
+            var totalTimeSpent = 'timeSpentSeconds' in  rep ? rep['timeSpentSeconds'] : 0;
             for(var i=0; i<pastLessonReport.length; i++) {
                 var pastRep = pastLessonReport[i];
                 totalTimeSpent += pastRep['timeSpentSeconds'];

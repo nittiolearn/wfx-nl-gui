@@ -126,27 +126,27 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
                     }
                     dlg.scope.ext.showPastReport = function(rep) {
                         nlDlg.closeAll();
-                        _lessonReview(rep, cm, newTab, false);
+                        _lessonReview(rep, cm, newTab, false, scope);
                     }
                     var cancelButton = {text : nl.t('Cancel')};
                     dlg.show('view_controllers/course/view_active/course_past_attempt_table_dlg.html', [], cancelButton);
                 });
             } else {
-                _lessonReview(reportInfo, cm, newTab, reportInfo.completed ? false : true);
+                _lessonReview(reportInfo, cm, newTab, reportInfo.completed ? false : true, scope);
             }
             return true;
         }
         
         // do mode
         nlDlg.showLoadingScreen();
-        nlServerApi.courseCreateLessonReport(self.course.id, refid, cm.id, cm.attempt+1, cm.maxDuration||0, self.course.not_before||'', self.course.not_after||'')
+        nlServerApi.courseCreateLessonReport(self.course.id, refid, cm.id, cm.attempt+1, cm.maxDuration||0, self.course.not_before||'', self.course.not_after||'', true)
         .then(function(updatedCourseReport) {
             nlDlg.hideLoadingScreen();
             cm.attempt++;
             self.course = updatedCourseReport;
             scope.updateAllItemData();
             reportInfo = self.course.lessonReports[cm.id];
-            _redirectToLessonReport(reportInfo, newTab, cm, false);
+            _redirectToLessonReport(reportInfo, newTab, cm, false, scope);
         });
         return true;
     };
@@ -177,13 +177,13 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
     }
     
     // Private functions
-    function _lessonReview(rep, cm, newTab, bUpdate) {
+    function _lessonReview(rep, cm, newTab, bUpdate, scope) {
         if (self.mode === MODES.REPORT_VIEW) {
             if (!rep || !rep.completed) return _popupAlert('Not completed', 
                 'This learning module is not yet completed. You may view the report once it is completed.');
             return _redirectTo('/lesson/review_report_assign/{}', rep.reportId, newTab);
         }
-        if (_redirectToLessonReport(rep, newTab, cm, bUpdate)) return true;
+        if (_redirectToLessonReport(rep, newTab, cm, bUpdate, scope)) return true;
     }
 
     function _startDateOk(cm, scope) {
@@ -209,7 +209,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
             var prereqScore = null;
             if (cmid in lessonReports && lessonReports[cmid].completed) {
                 var lessonReport = lessonReports[cmid];
-                var pastLessonReport = self.course['pastLessonReports'] ? self.course.pastLessonReports[cmid] : null;
+                var pastLessonReport = self.course['pastLessonReports'] ? angular.copy(self.course.pastLessonReports[cmid]) : null;
                 if(lessonReport && lessonReport.completed && pastLessonReport) {
                     lessonReport = self.getMaxScoredLessonReport(lessonReport, pastLessonReport);
                 }
@@ -264,7 +264,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         return true;
     }
 
-    function _redirectToLessonReport(reportInfo, newTab, cm, bUpdate) {
+    function _redirectToLessonReport(reportInfo, newTab, cm, bUpdate, scope) {
         if (!reportInfo) return false;
         return nl.q(function(resolve, reject) {
 	        var urlFmt = reportInfo.completed ?  '/lesson/view_report_assign/{}' : '/lesson/do_report_assign/{}';
@@ -273,11 +273,13 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         	}
 	        reportInfo.not_before = self.course.not_before || '';
 	        reportInfo.not_after = self.course.not_after || '';
-	        reportInfo.maxDuration = cm.maxDuration||0;
+            reportInfo.maxDuration = cm.maxDuration||0;
 	    	nlDlg.showLoadingScreen();
-			nlServerApi.courseUpdateLessonReportTimes(self.course.id, cm.id, reportInfo).then(function(updatedCourseReport) {
+			nlServerApi.courseUpdateLessonReportTimes(self.course.id, cm.id, reportInfo).then(function(lessonReportInfo) {
 		    	nlDlg.hideLoadingScreen();
-		        return _redirectTo(urlFmt, reportInfo.reportId, newTab);
+                self.course.lessonReports[cm.id] = lessonReportInfo
+                scope.updateAllItemData();
+                return _redirectTo(urlFmt, reportInfo.reportId, newTab);
 	        });
         });
     }    
@@ -564,6 +566,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg,
     };
 
     $scope.collapseAll = function(bShowCanvas) {
+        $scope.isDetailsShown = false;
         function _impl() {
 	        if($scope.ext.isEditorMode()){
 		        if(!nlCourseEditor.validateInputs($scope.ext.item)) return;    	
@@ -717,6 +720,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg,
 			} else if($scope.pastSelectedItem && $scope.pastSelectedItem.id == cm.id) {
 				$scope.isDetailsShown = !$scope.isDetailsShown;
 				$scope.pastSelectedItem = cm;
+	            $scope.ext.setCurrentItem(cm);
 			} else {
 				$scope.pastSelectedItem = cm;
 				$scope.isDetailsShown = true;
@@ -928,7 +932,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg,
         var lessonReports = modeHandler.course.lessonReports || {};
         var lessonReport = lessonReports[cm.id] || {};
         cm.attempt = lessonReport.attempt || 0;
-        var pastLessonReport = modeHandler.course['pastLessonReports'] ? modeHandler.course.pastLessonReports[cm.id] : null;
+        var pastLessonReport = modeHandler.course['pastLessonReports'] ? angular.copy(modeHandler.course.pastLessonReports[cm.id]) : null;
         if(lessonReport && lessonReport.completed && pastLessonReport) {
             lessonReport = modeHandler.getMaxScoredLessonReport(lessonReport, pastLessonReport);
         }
@@ -1246,9 +1250,11 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
             if (rep.started) rep.started = nl.fmt.json2Date(rep.started);
             if (rep.ended) rep.ended = nl.fmt.json2Date(rep.ended);
 	        this.pastAttemptData.push(rep);
-		} else {
+		} else if(rep.started){
             this.currentAttemptStatus = 'started';
-        } 
+        } else {
+            this.currentAttemptStatus = 'completed';
+        }
     };
     
     this.showPastReport = function(rep) {
@@ -1518,7 +1524,7 @@ function Reopener(modeHandler, nlTreeListSrv, _userInfo, nl, nlDlg, nlServerApi,
         }
 
         var cm = reopenLessons[pos];
-        nlServerApi.courseCreateLessonReport(modeHandler.course.id, cm.refid, cm.id, cm.attempt+1, cm.maxDuration||0, modeHandler.course.not_before||'', modeHandler.course.not_after||'')
+        nlServerApi.courseCreateLessonReport(modeHandler.course.id, cm.refid, cm.id, cm.attempt+1, cm.maxDuration||0, modeHandler.course.not_before||'', modeHandler.course.not_after||'', false)
         .then(function(updatedCourseReport) {
             cm.attempt++;
             modeHandler.course = updatedCourseReport;
