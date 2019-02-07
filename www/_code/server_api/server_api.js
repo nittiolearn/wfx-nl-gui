@@ -394,12 +394,6 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/send_reminder_nofication.json', data);
 	};
 
-	this.assignmentReport = function(data){
-		//data = reptype, assignid|userid, completed=[true|false], [mquery parameters]
-		//assignment_reports
-		return server.post('_serverapi/assignment_get_reports.json', data);
-	};
-	
 	this.learningReportsGetList = function(data) {
 		//data = type, objid, assignor, parentonly, [filterParameters], [mquery parameters]
 		return server.post('_serverapi/learning_reports_get_list.json', data);
