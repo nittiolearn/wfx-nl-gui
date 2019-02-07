@@ -146,7 +146,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         dlgScope.enableEmailNotifications = _assignInfo.hideEmailNotifications ? false : _isAssignmentEnabled();
         dlgScope.options = {showAnswers: learningModeStrings};
         if(_assignInfo.isModify && _assignInfo.dontShowUsers) {
-	        dlgScope.addedUserStr = nl.t('Already {} users are assigned for this assignment.', Object.keys(_assignInfo.dontShowUsers).length);
+	        dlgScope.addedUserStr = nl.t('Already {} users are added to this assignment.', Object.keys(_assignInfo.dontShowUsers).length);
         }
         dlgScope.data = {
             ouUserTree: _ouUserSelector ? _ouUserSelector.getTreeSelect() : null,
