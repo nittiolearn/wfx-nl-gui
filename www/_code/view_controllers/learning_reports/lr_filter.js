@@ -19,6 +19,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 	// TODO-LATER: 'type' default should be 'all'
 	var _dataDefaults = {
 		type: 'course',		// all|module|course|trainig_kind|module_assign|course_assign|training_batch
+		timestamptype: 'created', // created|updated
 		assignor: 'all',	// all|me, will auomatically change to 'me' if assignment_manage permission is not there
 		parentonly: true,	// fetch only parent records or also records part containing course/training
 		objid: null, 		// depending on type, will be interpretted as moduleid, courseid, ...
@@ -30,10 +31,10 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
     this.init = function(settings, userInfo) {
 		_data = {};
         var urlParams = nl.location.search();
-        _fillAttrs(_data, ['type'], [settings, urlParams, _dataDefaults]);
+		_fillAttrs(_data, ['type'], [settings, urlParams, _dataDefaults]);
         if (!_oneOf(_data.type, ['all', 'module', 'course', 'training_kind', 'module_assign', 'course_assign', 'training_batch']))
         	_data.type = 'course'; // TODO-LATER: should be 'all'
-        _fillAttrs(_data, ['assignor', 'parentonly', 'objid', 'title', 'showfilters'], 
+        _fillAttrs(_data, ['timestamptype', 'assignor', 'parentonly', 'objid', 'title', 'showfilters'], 
         	[settings, urlParams, _dataDefaults]);
         if (_oneOf(_data.type, ['module_assign', 'course_assign', 'training_batch']))
         	_data.showfilters = false;
@@ -76,15 +77,29 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
     	}
         var dlg = nlDlg.create($scope);
         dlg.setCssClass('nl-height-max nl-width-max');
-        dlg.scope.data = {createdfrom: _data.createdfrom, createdtill: _data.createdtill};
+		dlg.scope.options = {
+			timestamptype: [
+				{id: 'created', name: 'Creation timestamp of the learning record'},
+				{id: 'updated', name: 'Last updated timestamp of the learning record'}
+			]
+		};
+		dlg.scope.help = {
+			timestamptype: {name: 'Fetch based on', help: '<div class="padding-mid">If you are unsure, stick to the defaults.</div>'
+				+ '<ul><li class="padding-small">You may fetch based on <b>creation timestamp</b> if would like to see what happened to assignments sent during a timeframe. This will include lerning records that were assigned within the timerange and got updated during or after the given timerange.</li>'
+				+ '<li class="padding-small">You may fetch based on <b>last updated timestamp</b> if would like to view the learning activities during a timeframe. This include learning records that were assigned before or within the timerange but were updated within the timerange. </li></ul>'},
+			createdfrom: {name: 'From', help: 'Select the start of the timerange to featch reports.'},
+			createdtill: {name: 'Till', help: 'Select the end of the timerange to featch reports.'}
+		};
+        dlg.scope.data = {timestamptype: {id: _data.timestamptype}, createdfrom: _data.createdfrom, createdtill: _data.createdtill};
         dlg.scope.error = {};
-        dlg.scope.dlgTitle = nl.t('Assignment sent time range');
+        dlg.scope.dlgTitle = nl.t('Specify the range');
         var button = {text: nl.t('Fetch'), onTap: function(e){
             if (!_validateInputs(dlg.scope)) {
                 if (e) e.preventDefault();
                 return;
             }
             var sd = dlg.scope.data;
+            _data.timestamptype = sd.timestamptype.id;
             _data.createdtill = sd.createdtill;
             _data.createdfrom = sd.createdfrom;
             return true;
@@ -99,15 +114,22 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 		var ret = {type: _data.type, assignor: _data.assignor, parentonly: _data.parentonly};
 		if (_data.type != 'all' && _data.objid) ret.objid = _data.objid; 
 		if (_data.showfilters) {
-			ret.createdtill = _data.createdtill;
-			ret.createdfrom = _data.createdfrom;
+			if (_data.timestamptype == 'created') {
+				ret.createdtill = _data.createdtill;
+				ret.createdfrom = _data.createdfrom;
+			} else {
+				ret.updatedtill = _data.createdtill;
+				ret.updatedfrom = _data.createdfrom;
+			}
 		}
 		return ret;
 	};
 
     this.getFilterStr = function() {
 		if (!_data.showfilters) return '';
-        return nl.t('From {} till {}', 
+		var tsStr = (_data.timestamptype == 'created') ? 'Created' : 'Updated';
+		return nl.t('{} from {} till {}', 
+			tsStr,
             nl.fmt.fmtDateDelta(_data.createdfrom), 
             nl.fmt.fmtDateDelta(_data.createdtill));
     };
