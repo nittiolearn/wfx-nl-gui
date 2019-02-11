@@ -129,7 +129,12 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
 			var assignInfo = {assigntype: 'course', id: card.courseId, icon : card.icon2 ? 'icon:' : card.icon, 
 				title: card.title, authorName: card.authorName, description: card.help,
 				showDateField: true, enableSubmissionAfterEndtime: false, blended: card.blended};
-			nlSendAssignmentSrv.show($scope, assignInfo);
+				nlDlg.showLoadingScreen();
+				nlServerApi.courseGet(card.courseId, true).then(function(course) {
+					nlDlg.hideLoadingScreen();
+					assignInfo['course'] = course;
+					nlSendAssignmentSrv.show($scope, assignInfo);					
+				});
 		} else if (linkid === 'course_assign_delete'){
 			_deleteAssignment($scope, card.reportId);
         } else if (linkid === 'course_report') {

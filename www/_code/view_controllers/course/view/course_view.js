@@ -561,7 +561,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg,
         $scope.updateVisiblePanes();
     }
 
-    $scope.sendAssignment = function() {
+    $scope.sendAssignment = function(e) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
         _sendAssignment();
     };
 
@@ -904,11 +906,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg,
 		if(cm.type == 'iltsession') {
 			var attendance = 'attendance' in modeHandler.course.content ? modeHandler.course.content.attendance || {} : {}; 
 			var attended = attendance[modeHandler.courseId] || [];
-			var notAttended = 'not_attended' in attendance ? attendance.not_attended[modeHandler.courseId] || [] : [];
+            var notAttended = 'not_attended' in attendance ? attendance.not_attended[modeHandler.courseId] || [] : [];
+            var modifiedILT = 'modifiedILT' in modeHandler.course ? modeHandler.course.modifiedILT : {};
 			for(var i=0; i<attended.length; i++) {
 				if(cm.id != attended[i]) continue;
-				status = 'success';
-		        cm.timeMins = cm.iltduration;
+                status = 'success';
+		        cm.timeMins = cm.id in modifiedILT ? modifiedILT[cm.id] : cm.iltduration;
 			}
 			for(var i=0; i<notAttended.length; i++) {
 				if(cm.id != notAttended[i]) continue;
@@ -1003,7 +1006,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg,
         var c = modeHandler.course;
         var assignInfo = {assigntype: 'course', id: c.id, icon: c.icon, 
             title: c.name, authorName: c.authorname, description: c.description, 
-            showDateField: true, enableSubmissionAfterEndtime: false, blended: c.content.blended};
+            showDateField: true, enableSubmissionAfterEndtime: false, blended: c.content.blended, course: c};
         nlSendAssignmentSrv.show($scope, assignInfo);
     }
 }];

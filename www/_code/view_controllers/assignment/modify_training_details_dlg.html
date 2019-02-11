@@ -1,0 +1,46 @@
+<nl-dlg dlgtitle='{{dlgTitle}}' show-help='0' show-close='1'
+<nl-dlg-content>
+    <div class='row row-center padding0 margin0'>
+        <div class='fsh5 padding-mid' style='color: #0083AC'>ILT sessions</div>
+    </div>
+    <div class='padding-mid'>
+    <nl-inline-help>
+	You may edit the ILT sessions duration here. 
+	</nl-inline-help>
+    </div>
+    <div class='row row-center padding0 margin0'
+        ng-repeat='item in data.modifiedILT'>
+        <div ng-class='resp2Col33' class='padding-mid'>
+            <b>{{item.name}}</b>
+        </div>
+        <div ng-class='resp2Col67' class='padding-mid'>
+            <input type='number' ng-model='item.duration' tabindex='$index'/>
+        </div>
+    </div>
+    <hr/>
+    <nl-dlg-row ng-show='assignInfo.blended' attr='iltTrainerName' data='data' help='help'>
+        <nl-input fieldmodel='iltTrainerName' fieldtype='text' fieldcls='w100'></nl-input>
+    </nl-dlg-row>
+    
+    <nl-dlg-row ng-show='assignInfo.blended' attr='iltVenue' data='data' help='help'>
+        <nl-input fieldmodel='iltVenue' fieldtype='text' fieldcls='w100'></nl-input>
+    </nl-dlg-row>
+    
+    <nl-dlg-row ng-show='assignInfo.blended' attr='iltCostInfra' data='data' help='help'>
+        <nl-input fieldmodel='iltCostInfra' fieldtype='number' fieldcls='w100'></nl-input>
+    </nl-dlg-row>
+    
+    <nl-dlg-row ng-show='assignInfo.blended' attr='iltCostTrainer' data='data' help='help'>
+        <nl-input fieldmodel='iltCostTrainer' fieldtype='number' fieldcls='w100'></nl-input>
+    </nl-dlg-row>
+    <nl-dlg-row ng-show='assignInfo.blended' attr='iltCostFoodSta' data='data' help='help'>
+        <nl-input fieldmodel='iltCostFoodSta' fieldtype='number' fieldcls='w100'></nl-input>
+    </nl-dlg-row>
+    <nl-dlg-row ng-show='assignInfo.blended' attr='iltCostTravelAco' data='data' help='help'>
+        <nl-input fieldmodel='iltCostTravelAco' fieldtype='number' fieldcls='w100'></nl-input>
+    </nl-dlg-row>
+    <nl-dlg-row ng-show='assignInfo.blended' attr='iltCostMisc' data='data' help='help'>
+        <nl-input fieldmodel='iltCostMisc' fieldtype='number' fieldcls='w100'></nl-input>
+    </nl-dlg-row>
+</nl-dlg-content>
+</nl-dlg>

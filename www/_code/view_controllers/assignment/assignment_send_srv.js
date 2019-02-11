@@ -165,8 +165,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			iltCostTrainer: _assignInfo.iltCostTrainer,
 			iltCostFoodSta: _assignInfo.iltCostFoodSta,
 			iltCostTravelAco: _assignInfo.iltCostTravelAco,
-			iltCostMisc: _assignInfo.iltCostMisc,
-            update_content: false
+            iltCostMisc: _assignInfo.iltCostMisc,
+            courseContent: (_assignInfo.course && _assignInfo.course.content) ? _assignInfo.course.content : null,
+            update_content: false,
+            modifiedILT: _assignInfo.modifiedILT || {},
         };
         if(!_assignInfo.batchname) {
 		    var	d = nl.fmt.date2Str(new Date(), 'date');
@@ -180,6 +182,21 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         }
 
         dlgScope.help = _getHelp();
+
+        dlgScope.data.onModifyDetails = function() {
+            var modifyDlg = nlDlg.create(_parentScope);
+            modifyDlg.setCssClass('nl-height-max nl-width-max');
+            modifyDlg.scope.dlgTitle = nl.t('Modify training details');
+            modifyDlg.scope.assignInfo = _assignInfo;
+            modifyDlg.scope.data = dlgScope.data;
+            modifyDlg.scope.help = dlgScope.help;
+            if(Object.keys(modifyDlg.scope.data.modifiedILT).length == 0) {
+                modifyDlg.scope.data.modifiedILT = _getModifiedILT(_assignInfo);
+            }
+            var cancelButton = {text : nl.t('Modify')};
+            modifyDlg.show('view_controllers/assignment/modify_training_details_dlg.html',
+                [], cancelButton);
+        }
     }
 
 	function _getHelp() {
@@ -203,6 +220,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			forum: {name: 'Forum', help: nl.t('You could choose to allow learners to discuss with you in a discussion forum. Only the learners belonging to this batch and learning administrators will be able to post and view messages in this forum.')},
 			submissionAfterEndtime: {name: 'Submission after end time', help: nl.t('You can allow learners to submit assignment after the mentioned end time.')},
 			sendEmail: {name: 'Email notifications', help: nl.t('You could choose to send email notifications to the learners.')},
+			batchParams: {name: 'Edit ILT duration', help: nl.t('Clicking here you can configure the training batch details for this assignment.')},
 			iltTrainerName: {name: 'Trainer name', help: nl.t('Provide trainer name to this training.')},
 			iltVenue: {name: 'Venue', help: nl.t('Configure venue of this training.')},
 			iltCostInfra: {name: 'Infrastructure cost', help: nl.t(' Configure the infrastructure cost.')},
@@ -234,6 +252,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
     function _validateBeforeAssign() {
     	if (_dlg.scope.assignInfo.showDateField && !_dlg.scope.data.starttime) {
             nlDlg.popupAlert({title:'Please select', template: 'Start date is mandatory and it can not be empty. Please select the start date'});
+            return false;
+    	}
+    	if (_dlg.scope.assignInfo.showDateField && _dlg.scope.assignInfo.blended && !_dlg.scope.data.endtime) {
+            nlDlg.popupAlert({title:'Please select', template: 'End date is mandatory for ILT courses and it can not be empty. Please select the end date'});
             return false;
     	}
         if (!_dlg.scope.assignInfo.isModify && Object.keys(_selectedUsers).length == 0) {
@@ -284,7 +306,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         }
 
 		if (assignInfo.blended) {
-			params.blended = true;
+            params.blended = true;
+            params.modifiedILT = _getMinimizedILT(data.modifiedILT);
 			params.iltTrainerName = data.iltTrainerName;
 			params.iltVenue = data.iltVenue;
 			params.iltCostInfra = data.iltCostInfra;
@@ -312,6 +335,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             nlDlg.popupAlert({title:'Please select', template: 'Start date is mandatory and it can not be empty. Please select the start date'});
             return false;
     	}
+    	if (assignInfo.showDateField && assignInfo.blended && !params.not_after) {
+            nlDlg.popupAlert({title:'Please select', template: 'End date is mandatory for ILT courses and it can not be empty. Please select the end date'});
+            return false;
+    	}
     	if (!_asertStartEndDurations(params.not_before, params.not_after, params.max_duration, true)) return false;
     	if (params.atype == _nl.atypes.ATYPE_MODULE && params.update_content) {
 	    	var confirm = _getHelp().update_content.help;
@@ -325,6 +352,24 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
     	}
     }
     
+    function _getModifiedILT(assignInfo) {
+        var ret = {};
+        var modules = assignInfo.course.content.modules;
+        for(var i=0; i<modules.length; i++) {
+            var item = modules[i];
+            if(item.type != 'iltsession') continue;
+            ret[item.id] = {name: item.name, duration: item.iltduration};
+        }
+        return ret;
+    }
+
+    function _getMinimizedILT(modifiedILT) {
+        var ret = {};
+        for(var key in modifiedILT) {
+            ret[key] = modifiedILT[key].duration;
+        }
+        return ret;
+    }
     //---------------------------------------------------------------------------------------------
     // On Send and afterwards code
     //---------------------------------------------------------------------------------------------
@@ -333,12 +378,13 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         if (!_validateBeforeAssign(_dlg.scope.data)) return;
         
         var ouUserInfo = !_dlg.scope.assignInfo.isModify ? _getOusAndUser() : null;
+        var assignInfo = _dlg.scope.assignInfo;
         var data = {
-        	assigntype: _dlg.scope.assignInfo.assigntype == 'lesson' ? _nl.atypes.ATYPE_MODULE
-        				: _dlg.scope.assignInfo.assigntype == 'course' ? _nl.atypes.ATYPE_COURSE
+        	assigntype: assignInfo.assigntype == 'lesson' ? _nl.atypes.ATYPE_MODULE
+        				: assignInfo.assigntype == 'course' ? _nl.atypes.ATYPE_COURSE
         				: _nl.atypes.ATYPE_TRAINING,
-        	contentid: _dlg.scope.assignInfo.id,
-        	assignid: _dlg.scope.assignInfo.assignid || 0,
+        	contentid: assignInfo.id,
+        	assignid: assignInfo.assignid || 0,
             selectedusers: _getMinimalUserObjects(ouUserInfo.userids),
             oustr: _getOrgUnitStr(ouUserInfo.ous),
             remarks: _dlg.scope.data.remarks || '',
@@ -361,8 +407,13 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
  				data.learnmode = _dlg.scope.data.showAnswers.id;
 				data.max_duration = maxduration || '';
 			}
-			if (_dlg.scope.assignInfo.blended && data.assigntype == _nl.atypes.ATYPE_COURSE) {
-				data.blended = true;
+			if (assignInfo.blended && data.assigntype == _nl.atypes.ATYPE_COURSE) {
+                data.blended = true;
+                if(Object.keys(_dlg.scope.data.modifiedILT).length > 0) {
+                    data.modifiedILT = _getMinimizedILT(_dlg.scope.data.modifiedILT);
+                } else {
+                    data.modifiedILT = {};
+                }
 				data.iltTrainerName = _dlg.scope.data.iltTrainerName || '';
 				data.iltVenue = _dlg.scope.data.iltVenue || '';
 				data.iltCostInfra = _dlg.scope.data.iltCostInfra || '';

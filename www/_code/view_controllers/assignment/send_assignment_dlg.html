@@ -1,6 +1,6 @@
 <nl-dlg show-help='0' dlgtitle='{{assignInfo.dlgTitle ? assignInfo.dlgTitle : "Send assignment"}}'>
 <nl-dlg-content>
-    <div class='row row-center padding-mid margin0'
+     <div class='row row-center padding-mid margin0'
          ng-hide='assignInfo.assigntype == "training"'>
         <div ng-class='resp2Col33' class='padding0' 
              ng-hide='screenSize == "small"'>
@@ -64,7 +64,7 @@
                      fieldcls= 'padding-mid'
                      fieldindex="0">
         </nl-checkbox>
-    </nl-dlg-row>
+        </nl-dlg-row>
 
 	<nl-dlg-row ng-show='assignInfo.assigntype == "lesson"' attr='maxduration' data='data' help='help'>
         <nl-input fieldmodel='maxduration' fieldtype='number' fieldcls='w100'></nl-input>
@@ -90,32 +90,12 @@
         </nl-checkbox>
 	</nl-dlg-row>
 
-	<nl-dlg-row ng-show='assignInfo.blended' attr='iltTrainerName' data='data' help='help'>
-        <nl-input fieldmodel='iltTrainerName' fieldtype='text' fieldcls='w100'></nl-input>
-	</nl-dlg-row>
-
-	<nl-dlg-row ng-show='assignInfo.blended' attr='iltVenue' data='data' help='help'>
-        <nl-input fieldmodel='iltVenue' fieldtype='text' fieldcls='w100'></nl-input>
-	</nl-dlg-row>
-
-	<nl-dlg-row ng-show='assignInfo.blended' attr='iltCostInfra' data='data' help='help'>
-        <nl-input fieldmodel='iltCostInfra' fieldtype='number' fieldcls='w100'></nl-input>
-	</nl-dlg-row>
-
-	<nl-dlg-row ng-show='assignInfo.blended' attr='iltCostTrainer' data='data' help='help'>
-        <nl-input fieldmodel='iltCostTrainer' fieldtype='number' fieldcls='w100'></nl-input>
-	</nl-dlg-row>
-
-	<nl-dlg-row ng-show='assignInfo.blended' attr='iltCostFoodSta' data='data' help='help'>
-        <nl-input fieldmodel='iltCostFoodSta' fieldtype='number' fieldcls='w100'></nl-input>
-	</nl-dlg-row>
-
-	<nl-dlg-row ng-show='assignInfo.blended' attr='iltCostTravelAco' data='data' help='help'>
-        <nl-input fieldmodel='iltCostTravelAco' fieldtype='number' fieldcls='w100'></nl-input>
-	</nl-dlg-row>
-
-	<nl-dlg-row ng-show='assignInfo.blended' attr='iltCostMisc' data='data' help='help'>
-        <nl-input fieldmodel='iltCostMisc' fieldtype='number' fieldcls='w100'></nl-input>
+	<nl-dlg-row ng-show='assignInfo.blended' attr='batchParams' data='data' help='help'>
+        <div class='padding-mid'>
+        <button type="button" ng-click='data.onModifyDetails()'>
+                Modify training batch details
+        </button> 
+        </div>
 	</nl-dlg-row>
 
 	<nl-dlg-row attr='remarks' data='data' help='help'>

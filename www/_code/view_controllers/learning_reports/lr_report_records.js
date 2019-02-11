@@ -198,6 +198,7 @@
                 var notAttended = attendance.not_attended || {};
                 for(var i=0; i<course.content.modules.length; i++) {
                     var elem = course.content.modules[i];
+                    if(courseAssignment.info.modifiedILT && courseAssignment.info.modifiedILT[elem.id]) elem.iltduration = courseAssignment.info.modifiedILT[elem.id];
                     if(elem.type != 'iltsession') continue;
                     stats.iltTotalTime += elem.iltduration;
                     var userAttendance = attendance[report.id] || [];

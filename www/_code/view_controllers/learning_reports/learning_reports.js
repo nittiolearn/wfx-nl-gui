@@ -1118,6 +1118,7 @@
 		function _onClickModifyAssignment() {
 			var launchType = nlLrFilter.getType(); 
 			var nominatedUsers = nlLrReportRecords.getNominatedUserDict();
+			var record = nlLrReportRecords.getAnyRecord();
 			var key = '';
 			var enableSubmissionAfterEndtime = false;
 			if (launchType == 'module_assign') {
@@ -1155,6 +1156,7 @@
 				assignInfo.learnmode = assignContent.learnmode; // TODO: This is not shown in GUI due to error.
 			} else {
 				assignInfo.blended = assignContent.blended || false;
+				assignInfo.modifiedILT = _getModifiedILT(assignContent.modifiedILT, record.course.content);
 				assignInfo.iltTrainerName = assignContent.iltTrainerName || '';
 				assignInfo.iltVenue = assignContent.iltVenue || '';
 				assignInfo.iltCostInfra = assignContent.iltCostInfra || '';
@@ -1177,6 +1179,7 @@
 				} else {
 					assignContent.remarks = result.remarks;
 					if (assignContent.blended) {
+						assignContent.modifiedILT = result.modifiedILT || {};
 						assignContent.iltTrainerName = result.iltTrainerName || '';
 						assignContent.iltVenue = result.iltVenue || '';
 						assignContent.iltCostInfra = result.iltCostInfra || '';
@@ -1195,6 +1198,16 @@
 			});
 		}
 	
+		function _getModifiedILT(modifiedILT, content) {
+			var ret = {};
+			for(var i=0; i<content.modules.length; i++) {
+				var item = content.modules[i];
+				if(item.type != 'iltsession') continue;
+				ret[item.id] = {name: item.name, duration: item.id in modifiedILT ? modifiedILT[item.id] : item.iltduration};
+			}
+			return ret;
+		}
+
 		function _onClickOnReminderNotification() {
 			var reminderNotifyDlg = nlDlg.create($scope);
 			var reminderDict = nlLrReportRecords.getReminderDict();
