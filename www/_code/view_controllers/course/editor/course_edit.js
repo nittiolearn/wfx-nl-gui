@@ -31,8 +31,8 @@ function EditorFieldsDirective() {
 
 //-------------------------------------------------------------------------------------------------
 var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlLessonSelect', 
-'nlExportLevel', 'nlRouter', 'nlCourseCanvas', 'nlMarkup', 'nlTreeSelect', 'nlResourceAddModifySrv', 'NittioLesson',
-function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCourseCanvas, nlMarkup, nlTreeSelect, nlResourceAddModifySrv, NittioLesson) {
+'nlExportLevel', 'nlRouter', 'nlCourseCanvas', 'nlMarkup', 'nlTreeSelect', 'nlResourceAddModifySrv', 'NittioLesson', 'nlGroupInfo',
+function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCourseCanvas, nlMarkup, nlTreeSelect, nlResourceAddModifySrv, NittioLesson, nlGroupInfo) {
 
     var modeHandler = null;
     var $scope = null;
@@ -40,7 +40,11 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     var _debug = null;
 	var _userInfo = null;
 	var _resourceDict = {};
+	var _groupInfo = null;
     this.init = function(_scope, _modeHandler, userInfo) {
+		nlGroupInfo.init().then(function() {
+			_groupInfo = nlGroupInfo.get();
+		});
         $scope = _scope;
         modeHandler = _modeHandler;
         _userInfo = userInfo;
@@ -115,9 +119,11 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     }
     
 	function _updateTypeDropdown(cm, attr) {
-		attr.values = ['module', 'lesson', 'info', 'certificate', 'iltsession'];
+		attr.values = ['module', 'lesson', 'info', 'certificate'];
     	if (cm.type == 'link' || nlRouter.isPermitted(_userInfo, 'admin_user'))
-    	   attr.values.push('link');
+		   attr.values.push('link');
+		if (cm.type == 'iltsession' || (_groupInfo && _groupInfo.props.features['training'])) 
+			attr.values.push('iltsession');
 		return;
 	}
 
