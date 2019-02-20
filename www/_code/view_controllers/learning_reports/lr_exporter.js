@@ -313,8 +313,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var mh = nlLrHelper.getMetaHeaders(false);
         var ret = [report.user.user_id, report.user.name];
         ret = ret.concat([report.course.name, report.raw_record._batchName || '', report.course.contentmetadata.grade || '',
-        	report.course.contentmetadata.subject || '', report.created, report.updated,
-        	report.not_before || '', report.not_after || '', 
+        	report.course.contentmetadata.subject || '', nl.fmt.date2Str(report.raw_record.created), nl.fmt.date2Str(report.raw_record.updated),
+        	nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_before)) || '', nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_after)) || '', 
             report.stats.status.txt, '' + report.stats.percComplete + '%',
             report.stats.percCompleteDesc, report.stats.avgAttempts,
             report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore, feedbackScore,
@@ -353,7 +353,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var mh = nlLrHelper.getMetaHeaders(false);
         var ret = [report.user.user_id, report.user.name];
         ret = ret.concat([report.course.name, report.raw_record._batchName, report.raw_record.grade || '',
-        	report.raw_record.subject || '', report.created, report.updated,
+        	report.raw_record.subject || '', nl.fmt.date2Str(report.raw_record.created), nl.fmt.date2Str(report.raw_record.updated),
         	report.raw_record.started || '-', report.raw_record.ended || '-',
         	nl.fmt.json2Date(report.raw_record.not_before) || '', nl.fmt.json2Date(report.raw_record.not_after) || '', 
             report.stats.status.txt, report.raw_record.completed ? '' + 100 + '%' : 0+'%',
@@ -681,7 +681,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             if (started) started = nl.fmt.date2Str(nl.fmt.json2Date(started));
             if (ended) ended = nl.fmt.date2Str(nl.fmt.json2Date(ended));
             ret = ret.concat(['Module inside course', report.course.name, report.raw_record._batchName, module.name, report.course.contentmetadata.grade || '',
-	        	report.course.contentmetadata.subject || '', report.created, started, ended, report.updated, not_before, not_after, status,
+	        	report.course.contentmetadata.subject || '', nl.fmt.date2Str(report.raw_record.created), started, ended, nl.fmt.date2Str(report.raw_record.updated), not_before, not_after, status,
 	        	attempts, perc, maxScore, score, passScore ? passScore + '%' : '', feedbackScore, timeSpent, report.repcontent.remarks]);
 			ret.push(report.user.state ? 'active': 'inactive');
 	        ret.push(report.user.email);

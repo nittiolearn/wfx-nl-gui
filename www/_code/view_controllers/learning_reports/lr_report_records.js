@@ -235,6 +235,7 @@
                     }
                 }
             }
+
             var statusinfo = repcontent.statusinfo || {};
             var items = course.nonLessons;
             stats.nOthers = items.length;
@@ -329,8 +330,8 @@
             stats.status = nlLrHelper.statusInfos[_getStatusId(stats, started)];
             var ret = {raw_record: report, repcontent: repcontent, course: course, user: user,
                 usermd: nlLrHelper.getMetadataDict(user), stats: stats,
-                created: nl.fmt.fmtDateDelta(report.created, null, 'date'), 
-                updated: nl.fmt.fmtDateDelta(report.updated, null, 'date'),
+                created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
+                updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
                 not_before: report.not_before ? nl.fmt.fmtDateDelta(report.not_before, null, 'minute') : '',
                 not_after: report.not_after ? nl.fmt.fmtDateDelta(report.not_after, null, 'minute') : ''
                 };
