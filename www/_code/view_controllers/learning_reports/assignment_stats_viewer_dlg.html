@@ -51,9 +51,9 @@
 	</div>
 	<div class='col' style='overflow-x: hidden'>
 		<div class='row row-top row-wrap padding0 margin0'>
-			<div ng-class='{{(selectedSession.type == "module" || selectedSession.type == "certificate") ? "resp2Col80" : "resp2Col67"}}' 
-				style='min-width:{{screenSize != "large" ? "100": (selectedSession.type == "module" || selectedSession.type == "certificate") ? "100": ""}}%'>
-				<div class="row row-center padding-mid">
+			<div ng-class='{{(selectedSession.type == "module" || selectedSession.type == "certificate" || selectedSession.type == "milestone") ? "resp2Col80" : "resp2Col67"}}' 
+				style='min-width:{{screenSize != "large" ? "100": (selectedSession.type == "module" || selectedSession.type == "certificate" || selectedSession.type == "milestone") ? "100": ""}}%'>
+				<div class="row row-top padding-mid">
 					<div class='col padding0 margin0 fsh3'>{{selectedSession.name}}</div>
 					<div ng-show='selectedSession.type == "lesson"' class="nl-link-text nl-button-highlight" style='padding-top: 0px'>
 				        <a ng-href='{{getUrl(selectedSession.refid)}}'
@@ -62,6 +62,26 @@
 				        	<span class="col text-center" style='font-size:16px'>View</span>
 				        </a>
 			    	</div>
+					<div class='col' ng-show='selectedSession.type == "milestone"'>
+						<div class='row row-center padding0 margin0' ng-show='!selectedSession.milestoneReached'>
+							<textarea placeholder='Provide comment for this milestone' ng-model='selectedSession.milestoneComment' rows='3'></textarea>
+						</div>
+						<div class='row row-center padding0 margin0' ng-show='selectedSession.milestoneReached'>
+							<div class='fsh5 padding-mid'>Comment: </div>
+							<span class='fsh6'>{{selectedSession.milestoneComment}}</span>
+						</div>
+						<div class='row row-center margin0' style='padding-top: 8px'>
+							<div class='col'></div>
+							<div ng-show='selectedSession.type == "milestone" && !selectedSession.milestoneReached' class="nl-link-text nl-button-highlight" style='padding-top: 0px'
+								ng-click='onClickOnMilestoneReached()'>
+								<span ng-show='!selectedSession.milestoneReached' 
+									class="col text-center" 
+									style='font-size:16px'
+									title='Click here to mark milestone reached'>Milestone reached
+								</span>
+							</div>					
+						</div>
+					</div>
 				</div>
 				<div class="padding-mid fsh6 ng-binding" ng-show='selectedSession.type == "iltsession"'>
 					<span>Session duration: {{selectedSession.iltduration}} (minutes)</span>

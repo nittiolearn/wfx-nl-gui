@@ -184,6 +184,12 @@ function(nl, nlDlg, nlConfig, Upload) {
         // returns updated attendance object
         return server.post('_serverapi/course_update_attendance.json', data);
 	};
+
+    this.courseUpdateMilestone = function(data) {
+        // returns updated milestone object
+        return server.post('_serverapi/course_update_milestone.json', data);
+    }
+
     //---------------------------------------------------------------------------------------------
     // Forum methods
     //---------------------------------------------------------------------------------------------

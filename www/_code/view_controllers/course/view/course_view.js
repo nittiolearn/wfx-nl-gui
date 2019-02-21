@@ -856,8 +856,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg,
             _updateModuleData(cm, today);
         } else if (cm.type === 'info' || cm.type === 'link' || cm.type === 'certificate') {
             _updateLinkData(cm, today);
-        } else if (cm.type === 'iltsession'){
+        } else if (cm.type === 'iltsession') {
 			_updateILTData(cm, today);
+        } else if (cm.type === 'milestone') {
+			_updateMilestoneData(cm, today);
         } else {
             _updateLessonData(cm, today);
         }
@@ -923,6 +925,16 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg,
         _updateState(cm, status);
     }
     
+    function _updateMilestoneData(cm, today) {
+        var status = 'pending';
+        var milestone = 'milestone' in modeHandler.course.content ? modeHandler.course.content.milestone || {} : {}; 
+        if((cm.id in milestone) && milestone[cm.id].status == 'done') {
+            status = 'success';
+        }
+        if ((status == 'success') && !modeHandler.canStart(cm, $scope, nlTreeListSrv)) status = 'waiting';
+        _updateState(cm, status);
+    }
+
     function _updateLessonData(cm, today) {
         cm.score = null;
         cm.maxScore = null;

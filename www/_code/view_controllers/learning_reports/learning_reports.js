@@ -757,6 +757,7 @@
 		}
 		
 		var attendance = null;
+		var milestone = null;
 		var allModules = [];
 		function _onCourseAssignView() {
 			var data = {assignid: nlLrFilter.getObjectId()};
@@ -765,7 +766,7 @@
 			var content = nlLrCourseRecords.getContentOfCourseAssignment();
 				attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
 				attendance.not_attended = attendance.not_attended || {};
-	
+				milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
 			allModules = [];
 			for(var i=0; i<content.modules.length; i++) {
 				var module = angular.copy(content.modules[i]);
@@ -773,7 +774,6 @@
 				allModules.push(module);
 			}
 			content.modules = allModules;
-			
 			var assignStatsViewerDlg = nlDlg.create($scope);
 			assignStatsViewerDlg.setCssClass('nl-height-max nl-width-max');
 			assignStatsViewerDlg.scope.dlgTitle = courseAssignment.info.name;
@@ -781,7 +781,7 @@
 			assignStatsViewerDlg.scope.selectedSession = assignStatsViewerDlg.scope.modules[0];
 			assignStatsViewerDlg.scope.allowedAttrs = _getAllowedAttrs();
 			if(assignStatsViewerDlg.scope.selectedSession.type != 'module') {
-				 _updateChartInfo(assignStatsViewerDlg.scope);
+				 _updateChartInfo(assignStatsViewerDlg.scope, learningRecords);
 			}
 			assignStatsViewerDlg.scope.onClick = function(e, cm) {
 				assignStatsViewerDlg.scope.selectedSession = cm;
@@ -790,12 +790,41 @@
 					_showVisible(assignStatsViewerDlg);
 					return;
 				}
+				if(cm.type == 'milestone' && milestone[cm.id] && milestone[cm.id].status == "done") {
+					assignStatsViewerDlg.scope.selectedSession.milestoneReached = true;
+					assignStatsViewerDlg.scope.selectedSession.milestoneComment = milestone[cm.id].comment;
+				} 
 				assignStatsViewerDlg.scope.selectedSession = cm;
-				_updateChartInfo(assignStatsViewerDlg.scope);
+				_updateChartInfo(assignStatsViewerDlg.scope, learningRecords);
 			};
+
 			assignStatsViewerDlg.scope.getUrl = function(lessonId) {
 				return nl.fmt2('/lesson/view/{}', lessonId);
 			};
+
+			assignStatsViewerDlg.scope.onClickOnMilestoneReached = function() {
+				var item = assignStatsViewerDlg.scope.selectedSession;
+				milestone[item.id] = {status: 'done', comment: assignStatsViewerDlg.scope.selectedSession.milestoneComment};
+				var template = nl.t('Once the milestone is marked as reached, It cannot be reverted(unmarked).');
+				nlDlg.popupConfirm({title: 'Please confirm', template: template}).then(function(result) {
+					if(result) {
+						var data = {milestone: milestone, assignid: nlLrFilter.getObjectId()};
+						nlDlg.showLoadingScreen();
+						nlServerApi.courseUpdateMilestone(data).then(function(milestone) {
+							if(milestone) attendance = milestone;
+							var jsonMilestoneStr = angular.toJson(milestone);
+							nlLrAssignmentRecords.updateMilestoneInRecord(
+								'course_assignment:' + nlLrFilter.getObjectId(), jsonMilestoneStr);
+								_updateReportRecords();
+								learningRecords = nlLrReportRecords.getRecords();
+								assignStatsViewerDlg.scope.modules = _getSessionsAndModules(learningRecords);
+								assignStatsViewerDlg.scope.selectedSession.milestoneReached = true;
+								_updateChartInfo(assignStatsViewerDlg.scope, nlLrReportRecords.getRecords());
+								nlDlg.hideLoadingScreen();
+						});
+					}
+				});
+			}
 			var cancelButton = {text: nl.t('Close')};
 			assignStatsViewerDlg.show('view_controllers/learning_reports/assignment_stats_viewer_dlg.html',
 				[], cancelButton);
@@ -831,7 +860,9 @@
 		var _LessonColours = ['#007700', '#F54B22', '#FFCC00', '#A0A0C0'];
 		var _infoLabels = ['Completed', 'Pending'];
 		var _infoColours = ['#007700', '#A0A0C0'];
-		function _updateChartInfo(dlgScope) {
+		var _milestoneLabels = ['Completed', 'Pending'];
+		var _milestoneColors = ['#007700', '#A0A0C0']
+		function _updateChartInfo(dlgScope, learningRecords) {
 			if(dlgScope.selectedSession.type == 'lesson') {
 				var ret = {labels: _lessonLabels, colours: _LessonColours};
 				ret.data = [dlgScope.selectedSession.completed.length, dlgScope.selectedSession.failed.length,
@@ -842,6 +873,15 @@
 				ret.data = [dlgScope.selectedSession.attended.length, dlgScope.selectedSession.not_attended.length,
 							dlgScope.selectedSession.pending.length];
 				dlgScope.chartInfo = ret;        	
+			} else if(dlgScope.selectedSession.type == 'milestone') {
+				var ret = {labels: _milestoneLabels, colours: _milestoneColors};
+				if(milestone[dlgScope.selectedSession.id] && milestone[dlgScope.selectedSession.id].status == 'done') {
+					ret.data = [Object.keys(learningRecords).length, 0];
+					dlgScope.chartInfo = ret;
+				} else {
+					ret.data = [0, Object.keys(learningRecords).length];
+					dlgScope.chartInfo = ret;
+				}
 			} else {
 				var ret = {labels: _infoLabels, colours: _infoColours};
 				ret.data = [dlgScope.selectedSession.completed.length, dlgScope.selectedSession.pending.length];
@@ -877,6 +917,7 @@
 					ret.push(item);
 				}
 			}
+		
 			for(var key in learningRecords) {
 				var repcontent = learningRecords[key].repcontent;
 				for(var j=0; j<ret.length; j++) {

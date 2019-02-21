@@ -236,6 +236,16 @@
                 }
             }
 
+            var milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
+            if(Object.keys(milestone).length > 0) {
+                for(var key in milestone) {
+                    if (!(milestone[key] && milestone[key].status == 'done')) continue;
+                    if(!repcontent.statusinfo) repcontent.statusinfo = {};
+                    if(!repcontent.statusinfo[key]) repcontent.statusinfo[key] = {};
+                    repcontent.statusinfo[key].status = 'done';      
+                }    
+            }
+
             var statusinfo = repcontent.statusinfo || {};
             var items = course.nonLessons;
             stats.nOthers = items.length;

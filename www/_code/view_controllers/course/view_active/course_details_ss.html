@@ -7,11 +7,17 @@
              <span>{{ext.item.state.title}}</span>
 		</div>
 	</div>
-	<div class='row row-center row-justify-evenly padding0 margin0'>
+	<div ng-show='ext.item.type != "milestone"' class='row row-center row-justify-evenly padding0 margin0'>
 		<div class='col'><b>Time spent</b></div>
 		<div class='col'>
 			<span ng-show='ext.item.timeMins > 0'>{{ext.item.timeMins}} minutes</span>
 			<span ng-show='ext.item.timeMins == 0'>-</span>								
+		</div>
+	</div>
+	<div ng-show='ext.item.type == "milestone"' class='row row-center row-justify-evenly padding0 margin0'>
+		<div class='col'><b>Completion percentage</b></div>
+		<div class='col'>
+			<span>{{ext.item.completionPerc}} %</span>
 		</div>
 	</div>
 	<div ng-show='ext.item.planned_date' class='row row-center row-justify-evenly padding0 margin0'>
