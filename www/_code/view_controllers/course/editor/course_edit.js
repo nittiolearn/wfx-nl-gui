@@ -307,7 +307,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'type', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone'], type: 'list', text: 'Element type', values: ['module', 'lesson', 'certificate', 'info', 'link', 'iltsession', 'milestone'],
             valueNames: {'module': 'Folder', 'lesson': 'Module', 'link': 'Link', 'info': 'Information', 'certificate': 'Certificate', 'iltsession': 'ILT session', 'milestone': 'Milestone'},
             updateDropdown: _updateTypeDropdown},
-        {name: 'completionPerc', stored_at: 'module', fields: ['milestone'], text: 'Completion percentage',type: 'number', min:0, max:100},
+        {name: 'completionPerc', stored_at: 'module', fields: ['milestone'], text: 'Completion percentage',type: 'number', max:100},
         {name: 'refid', stored_at: 'module', fields: ['lesson'], type: 'lessonlink', contentType: 'integer', text: 'Module-id'},
 		{name: 'maxDuration', stored_at: 'module', fields: ['lesson'], type: 'string', contentType: 'integer', text: 'Time limit (minutes)'},
         {name: 'action', stored_at: 'module', fields: ['link'], type: 'lessonlink', text: 'Action'},
@@ -366,7 +366,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         bgimg: 'Select the background image to be displayed in the canvas when the folder is opened.',
         bgcolor: 'The background image is resized to retain aspect ratio. This could result in horizontal or vertical bands. You can choose the color of the bands to align with the edge of the image.',
         iltduration: 'The planned duration of the instructor led session in minutes.',
-        completionPerc: 'Please mention the completion percentage for this item.',
+        completionPerc: 'You could let the trainer assess the progress of the course by setting completion percentage for milestone items. If milestone items are present, the completion for a course report is based on the latest milestone reached.',
         canMarkAttendance: 'Set this to allow learner to mark attendance'
     };
     
