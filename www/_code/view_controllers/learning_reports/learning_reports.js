@@ -808,9 +808,9 @@
 				var template = nl.t('Once the milestone is marked as reached, It cannot be reverted(unmarked).');
 				nlDlg.popupConfirm({title: 'Please confirm', template: template}).then(function(result) {
 					if(result) {
-						var data = {milestone: milestone, assignid: nlLrFilter.getObjectId()};
+						var data = {param:'milestone', paramObject: milestone, assignid: nlLrFilter.getObjectId()};
 						nlDlg.showLoadingScreen();
-						nlServerApi.courseUpdateMilestone(data).then(function(milestone) {
+						nlServerApi.courseUpdateParams(data).then(function(milestone) {
 							if(milestone) attendance = milestone;
 							var jsonMilestoneStr = angular.toJson(milestone);
 							nlLrAssignmentRecords.updateMilestoneInRecord(
@@ -1124,9 +1124,9 @@
 			confirmationDlg.setCssClass('nl-height-max nl-width-max');
 			confirmationDlg.scope.markedSessions = markedSessions;
 			var okButton = {text: nl.t('Confirm attendance'), onTap: function(e) {
-			var data = {attendance: attendance, assignid: nlLrFilter.getObjectId()};
+			var data = {param: 'attendance', paramObject: attendance, assignid: nlLrFilter.getObjectId()};
 				nlDlg.showLoadingScreen();
-				nlServerApi.courseUpdateAttendance(data).then(function(result) {
+				nlServerApi.courseUpdateParams(data).then(function(result) {
 					nlDlg.hideLoadingScreen();
 					if(result) attendance = result;
 					var jsonAttendanceStr = angular.toJson(result);

@@ -193,6 +193,21 @@
                 internalIdentifier:report.id, nCerts: course.certificates.length, iltTimeSpent: 0, iltTotalTime: 0};
                 
             var started = false;
+            var isTrainerControlled = false;
+            var latestMilestone = null;
+            var milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
+            for(var i=0; i<course.content.modules.length; i++) {
+                var elem = course.content.modules[i];
+                if(elem.type != 'milestone') continue;
+                isTrainerControlled = true;
+                if(elem.id in milestone) {
+                    started = true;
+                    latestMilestone = milestone[elem.id];
+                    latestMilestone['perc'] = elem.completionPerc;
+                    latestMilestone['name'] = elem.name;
+                }
+            }
+
             if(course.content.blended) {
                 var attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
                 var notAttended = attendance.not_attended || {};
@@ -317,15 +332,28 @@
                 }
             }
             
-            stats.percComplete = weightedProgressMax ? Math.round(weightedProgress/weightedProgressMax*100) : 100;
-            stats.percCompleteStr = '' + stats.percComplete + ' %';
-            
-            var plural = stats.nLessons > 1 ? 'modules' : 'module';
-            var modulesCompleted = stats.nLessons ? nl.fmt2('{} of {} {}', stats.nLessonsDone, stats.nLessons, plural) : '';
-            plural = stats.nOthers > 1 ? 'other items' : 'other item';
-            var othersCompleted = stats.nOthers ? nl.fmt2('{} of {} {}', stats.nOthersDone, stats.nOthers, plural) : '';
-            var delim = modulesCompleted && othersCompleted ? ' and ' : '';
-            stats.percCompleteDesc = nl.fmt2('{}{}{} completed', modulesCompleted, delim, othersCompleted);
+
+            if(isTrainerControlled) {
+                if(latestMilestone) {
+                    stats.percComplete = latestMilestone['perc'];
+                    stats.percCompleteStr = '' + stats.percComplete + ' %';
+                    stats.percCompleteDesc = nl.fmt2('{} reached', latestMilestone['name']);
+                } else {
+                    stats.percComplete = '';
+                    stats.percCompleteStr = '';
+                    stats.percCompleteDesc = nl.fmt2('Milestone is not achieved');
+                }
+            } else {
+                stats.percComplete = weightedProgressMax ? Math.round(weightedProgress/weightedProgressMax*100) : 100;
+                stats.percCompleteStr = '' + stats.percComplete + ' %';
+                
+                var plural = stats.nLessons > 1 ? 'modules' : 'module';
+                var modulesCompleted = stats.nLessons ? nl.fmt2('{} of {} {}', stats.nLessonsDone, stats.nLessons, plural) : '';
+                plural = stats.nOthers > 1 ? 'other items' : 'other item';
+                var othersCompleted = stats.nOthers ? nl.fmt2('{} of {} {}', stats.nOthersDone, stats.nOthers, plural) : '';
+                var delim = modulesCompleted && othersCompleted ? ' and ' : '';
+                stats.percCompleteDesc = nl.fmt2('{}{}{} completed', modulesCompleted, delim, othersCompleted);    
+            }
             
             stats.avgAttempts = stats.nLessonsAttempted ? Math.round(stats.nAttempts/stats.nLessonsAttempted*10)/10 : '';
             stats.percScore = stats.nMaxScore ? Math.round(stats.nScore/stats.nMaxScore*100) : 0;
@@ -334,7 +362,7 @@
             stats.timeSpentStr = Math.ceil((stats.timeSpentSeconds+stats.iltTimeSpent)/60);
             stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
                 : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
-    
+
             report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
             report.urlTitle = nl.t('View report');
             stats.status = nlLrHelper.statusInfos[_getStatusId(stats, started)];

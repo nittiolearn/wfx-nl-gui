@@ -180,15 +180,10 @@ function(nl, nlDlg, nlConfig, Upload) {
             {repid: repid, moduleid: moduleid, lessonreportinfo: lessonreportinfo, mine: true});
     };
     
-    this.courseUpdateAttendance = function(data){
-        // returns updated attendance object
-        return server.post('_serverapi/course_update_attendance.json', data);
+    this.courseUpdateParams = function(data){
+        // returns updated attendance/milestone object
+        return server.post('_serverapi/course_update_params.json', data);
 	};
-
-    this.courseUpdateMilestone = function(data) {
-        // returns updated milestone object
-        return server.post('_serverapi/course_update_milestone.json', data);
-    }
 
     //---------------------------------------------------------------------------------------------
     // Forum methods

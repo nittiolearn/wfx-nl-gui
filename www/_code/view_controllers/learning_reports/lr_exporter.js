@@ -314,7 +314,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var ret = [report.user.user_id, report.user.name];
         ret = ret.concat([report.course.name, report.raw_record._batchName || '', report.course.contentmetadata.grade || '',
         	report.course.contentmetadata.subject || '', nl.fmt.date2Str(report.raw_record.created), nl.fmt.date2Str(report.raw_record.updated),
-        	nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_before)) || '', nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_after)) || '', 
+        	nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_before)) || '', report.raw_record.not_after ? nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_after)) : '', 
             report.stats.status.txt, '' + report.stats.percComplete + '%',
             report.stats.percCompleteDesc, report.stats.avgAttempts,
             report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore, feedbackScore,

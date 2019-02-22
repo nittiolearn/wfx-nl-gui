@@ -696,7 +696,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     }
     
     function _validateContent(data, errorLocation) {
-    	var modules = data.content.modules;
+    	var modules = _allModules; //data.content.modules was used, but it is not updated on deleting the item causes error in milestone computation
         if (modules.length < 1) return _validateFail(errorLocation, 'Error', 
             'Atleast one course module object is expected in the content');
         for(var i=0; i<modules.length; i++){
@@ -762,10 +762,21 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     
     function _validateMilestoneModule(errorLocation, module) {
     	if(module.type != 'milestone') return true;
-        if(!module.completionPerc) return _validateFail(errorLocation, 'Completion percentage', 'Completion percentage is mandatory.', module);
+		if(!module.completionPerc) return _validateFail(errorLocation, 'Completion percentage', 'Completion percentage is mandatory.', module);
+		if(!_checkMilestonePercentage(module)) return _validateFail(errorLocation, 'Completion percentage', 'Completion percentage for this milestone should be greater than completion percentage of earlier milestone item.', module);
     	return true;
     }
-    
+	
+	function _checkMilestonePercentage(module) {
+		for(var i=0; i<_allModules.length; i++) {
+			var item = _allModules[i];
+			if(item.type != 'milestone') continue;
+			if(module.id == item.id) break;
+			if(item.completionPerc >= module.completionPerc) return false;
+		}
+		return true;
+	}
+
     function _getParentId(idStr) {
         var parents = idStr.split('.');
         parents.pop(); // Remove the last entry
