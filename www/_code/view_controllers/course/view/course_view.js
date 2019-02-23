@@ -931,7 +931,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg,
         if((cm.id in milestone) && milestone[cm.id].status == 'done') {
             status = 'success';
         }
-        if ((status == 'success') && !modeHandler.canStart(cm, $scope, nlTreeListSrv)) status = 'waiting';
+        if (!(status == 'success') && !modeHandler.canStart(cm, $scope, nlTreeListSrv)) status = 'waiting';
         _updateState(cm, status);
     }
 
@@ -1082,7 +1082,7 @@ function FolderStats($scope, modeHandler) {
 				folderStat.completedCert += 1;			
 			}
 		}
-        if (cm.score !== null && cm.type != 'iltsession') {
+        if (cm.score !== null && cm.type != 'iltsession' && cm.type != 'milestone') {
             folderStat.scoreCount += 1;
             folderStat.score += cm.score;
             folderStat.maxScore += (cm.maxScore || 0);
@@ -1296,6 +1296,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
     var _icons = {
         'module': 'ion-ios-folder fblue',
         'iltsession': 'ion-map fblue',
+        'milestone': 'ion-arrow-graph-up-right fblue',
         'lesson': 'ion-document-text fblue',
         'quiz': 'ion-help-circled fblue',
         'info': 'ion-information-circled fblue',
