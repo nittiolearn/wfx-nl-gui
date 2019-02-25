@@ -202,7 +202,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
             var item = nlTreeListSrv.getItem(cmid);
             if (!item) continue; // ignore
             if (item.state.status == 'waiting') return false;
-            if (item.type == 'certificate' || item.type == 'iltsession') {
+            if (item.type == 'certificate' || item.type == 'iltsession' || item.type == 'milestone') {
             	if (!(item.state.status == 'success' || item.state.status == 'failed')) return false;
             	continue;
             }

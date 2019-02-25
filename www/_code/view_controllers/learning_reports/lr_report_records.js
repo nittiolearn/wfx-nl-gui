@@ -337,11 +337,11 @@
                 if(latestMilestone) {
                     stats.percComplete = latestMilestone['perc'];
                     stats.percCompleteStr = '' + stats.percComplete + ' %';
-                    stats.percCompleteDesc = nl.fmt2('{} reached', latestMilestone['name']);
+                    stats.percCompleteDesc = nl.fmt2('{}', latestMilestone['name']);
                 } else {
                     stats.percComplete = '';
                     stats.percCompleteStr = '';
-                    stats.percCompleteDesc = nl.fmt2('Milestone is not achieved');
+                    stats.percCompleteDesc = nl.fmt2('Milestone is not marked');
                 }
             } else {
                 stats.percComplete = weightedProgressMax ? Math.round(weightedProgress/weightedProgressMax*100) : 100;
