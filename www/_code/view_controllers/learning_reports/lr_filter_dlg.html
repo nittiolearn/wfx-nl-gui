@@ -12,5 +12,9 @@
         <nl-date-time-select fieldmodel='createdtill' fieldCls='nl-dlg-field-value'></nl-date-time-select>
     </nl-dlg-row>
     
+    <nl-dlg-row ng-if='showfilterjson' attr='filterjson' data='data' help='help'>
+        <nl-textarea fieldmodel='filterjson' fieldCls='nl-dlg-field-value'></nl-textarea>
+    </nl-dlg-row>
+
 </nl-dlg-content>
 </nl-dlg>

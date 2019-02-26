@@ -24,7 +24,8 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 		parentonly: true,	// fetch only parent records or also records part containing course/training
 		objid: null, 		// depending on type, will be interpretted as moduleid, courseid, ...
 		title: null,		// Title for the page
-		showfilters: true
+		showfilters: true,	// Should the initial fetch filter dialog be shown
+		showfilterjson: false, // Should json for additional filters be shown
 	};
 	var _data = null;
 	
@@ -34,7 +35,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 		_fillAttrs(_data, ['type'], [settings, urlParams, _dataDefaults]);
         if (!_oneOf(_data.type, ['all', 'module', 'course', 'training_kind', 'module_assign', 'course_assign', 'training_batch']))
         	_data.type = 'course'; // TODO-LATER: should be 'all'
-        _fillAttrs(_data, ['timestamptype', 'assignor', 'parentonly', 'objid', 'title', 'showfilters'], 
+        _fillAttrs(_data, ['timestamptype', 'assignor', 'parentonly', 'objid', 'title', 'showfilters', 'showfilterjson'], 
         	[settings, urlParams, _dataDefaults]);
         if (_oneOf(_data.type, ['module_assign', 'course_assign', 'training_batch']))
         	_data.showfilters = false;
@@ -83,14 +84,19 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 				{id: 'updated', name: 'Last updated timestamp of the learning record'}
 			]
 		};
+		var defaultFilterjson = '[{"field": "completed", "val": true}]';
 		dlg.scope.help = {
 			timestamptype: {name: 'Fetch based on', help: '<div class="padding-mid">If you are unsure, stick to the defaults.</div>'
 				+ '<ul><li class="padding-small">You may fetch based on <b>creation timestamp</b> if would like to see what happened to assignments sent during a timeframe. This will include lerning records that were assigned within the timerange and got updated during or after the given timerange.</li>'
 				+ '<li class="padding-small">You may fetch based on <b>last updated timestamp</b> if would like to view the learning activities during a timeframe. This include learning records that were assigned before or within the timerange but were updated within the timerange. </li></ul>'},
 			createdfrom: {name: 'From', help: 'Select the start of the timerange to featch reports.'},
-			createdtill: {name: 'Till', help: 'Select the end of the timerange to featch reports.'}
+			createdtill: {name: 'Till', help: 'Select the end of the timerange to featch reports.'},
+			filterjson: {name: 'Additional filters', help: '<div>Provide additional filters as a json string. For example:</div>'
+					+ '<pre>' +  defaultFilterjson + '</pre>'}
 		};
-        dlg.scope.data = {timestamptype: {id: _data.timestamptype}, createdfrom: _data.createdfrom, createdtill: _data.createdtill};
+		if (_data.showfilterjson && _data.filterjson === undefined) _data.filterjson = defaultFilterjson;
+		dlg.scope.showfilterjson = _data.showfilterjson;
+        dlg.scope.data = {timestamptype: {id: _data.timestamptype}, createdfrom: _data.createdfrom, createdtill: _data.createdtill, filterjson: _data.filterjson};
         dlg.scope.error = {};
         dlg.scope.dlgTitle = nl.t('Specify the range');
         var button = {text: nl.t('Fetch'), onTap: function(e){
@@ -101,7 +107,8 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
             var sd = dlg.scope.data;
             _data.timestamptype = sd.timestamptype.id;
             _data.createdtill = sd.createdtill;
-            _data.createdfrom = sd.createdfrom;
+			_data.createdfrom = sd.createdfrom;
+			_data.filterjson = sd.filterjson;
             return true;
         }};
         var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
@@ -122,6 +129,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 				ret.updatedfrom = _data.createdfrom;
 			}
 		}
+		if (_data.filterobj) ret.filters = _data.filterobj;
 		return ret;
 	};
 
@@ -144,10 +152,19 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
     }
 
     function _validateInputs(scope){
+		_data.filterobj = null;
         scope.error = {};
         if (!scope.data.createdfrom) return _validateFail(scope, 'createdfrom', 'From date is mandatory');
         if (!scope.data.createdtill) return _validateFail(scope, 'createdtill', 'Till date is mandatory');
-        if (scope.data.createdfrom >= scope.data.createdtill) return _validateFail(scope, 'createdtill', 'Till date should be later than from date');
+		if (scope.data.createdfrom >= scope.data.createdtill) return _validateFail(scope, 'createdtill', 'Till date should be later than from date');
+		if (_data.showfilterjson && scope.data.filterjson) {
+			try {
+				_data.filterobj = angular.fromJson(scope.data.filterjson)
+			}
+			catch (e) {
+				return _validateFail(scope, 'filterjson', 'JSON parse failed');
+			}
+		}
         return true;
     }
                     
