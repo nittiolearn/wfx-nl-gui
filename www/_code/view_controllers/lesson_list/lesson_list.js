@@ -618,7 +618,7 @@ this.show = function($scope, initialUserInfo, params) {
     }
 
     function _disapproveLesson($scope, lessonId) {
-        _confirmAndCall($scope, lessonId, nlServerApi.lessonDisapprove, true, {
+        _confirmAndCall($scope, lessonId, nlServerApi.lessonDisapprove, mode.mode == MODES.MY, {
             template : nl.t('Are you sure you want to disapprove this module and send it for review?'),
             okText : nl.t('Disapprove')
         });
@@ -632,20 +632,24 @@ this.show = function($scope, initialUserInfo, params) {
             method(lessonId).then(function(status) {
                 nlDlg.hideLoadingScreen();
                 nlDlg.closeAll();
-                if (reload) _getDataFromServer();
-                else _updateCardlist($scope, lessonId);
+                _updateCardlist($scope, lessonId, reload);
             });
         });
     }
     
-    function _updateCardlist($scope, lessonId) {
+    function _updateCardlist($scope, lessonId, reload) {
         for (var i in $scope.cards.cardlist) {
             var card = $scope.cards.cardlist[i];
             if (card.lessonId !== lessonId)
                 continue;
             $scope.cards.cardlist.splice(i, 1);
+            if(reload) {
+                _updateCardOnApproveOrDisapprove($scope, lessonId, 'disapprove');
+            } else {
+                nlCardsSrv.updateCards($scope.cards);
+            }
+            break;
         }
-        nlCardsSrv.updateCards($scope.cards);
     }
 
 	function _metadataLesson($scope, lessonId, card) {
@@ -656,8 +660,34 @@ this.show = function($scope, initialUserInfo, params) {
 	}
 
 	function _approveLesson($scope, lessonId) {
-		nlApproveDlg.show($scope, _userInfo.groupinfo.exportLevel, lessonId);
+		nlApproveDlg.show($scope, _userInfo.groupinfo.exportLevel, lessonId).then(function(result) {
+            if(result) {
+                for (var i in $scope.cards.cardlist) {
+                    var card = $scope.cards.cardlist[i];
+                    if (card.lessonId !== lessonId)
+                        continue;
+                    $scope.cards.cardlist.splice(i, 1);
+                    _updateCardOnApproveOrDisapprove($scope, lessonId, 'approve');
+                    break;
+                }
+            }
+        });
 	}
+
+    function _updateCardOnApproveOrDisapprove($scope, lessonId, type) {
+        var lesson = null;
+        for(var j=0; j<mode.resultList.length; j++) {
+            if(lessonId == mode.resultList[j].id) {
+                lesson = mode.resultList[j];
+                break;
+            }
+        }
+        lesson.state = type == 'approve' ? 3 : 2;
+        lesson.updated = new Date();
+        var updatedCard = _createLessonCard(lesson, _userInfo)
+        $scope.cards.cardlist.splice(0, 0, updatedCard);
+        nlCardsSrv.updateCards($scope.cards);
+    }
 
     function _showLessonReport(lessonId) {
         var url = nl.fmt2('/learning_reports?type=module&objid={}', lessonId);
@@ -746,18 +776,20 @@ function(nl, nlDlg, nlServerApi, nlExportLevel, nlGroupInfo, nlTreeSelect, nlOuU
     var _filterTrees = null;
     var _nextPage = null;
 	this.show = function(parentScope, groupExportLevel, lessonId, nextPage) {
-	    _nextPage = nextPage || null;
-		var approveDlg = nlDlg.create(parentScope);
-		_initDlg(approveDlg, groupExportLevel, lessonId);
-		nlDlg.showLoadingScreen();
-
-        nlGroupInfo.init().then(function() {
-            nlGroupInfo.update();
-			nlServerApi.lessonPreApproveCheck(lessonId).then(function(data) {
-				nlDlg.hideLoadingScreen();
-				_onPreApproveDone(data, approveDlg, groupExportLevel);
-				_showDlg(approveDlg);
-			});
+        return nl.q(function(resolve, reject) {
+            _nextPage = nextPage || null;
+            var approveDlg = nlDlg.create(parentScope);
+            _initDlg(approveDlg, groupExportLevel, lessonId);
+            nlDlg.showLoadingScreen();
+    
+            nlGroupInfo.init().then(function() {
+                nlGroupInfo.update();
+                nlServerApi.lessonPreApproveCheck(lessonId).then(function(data) {
+                    nlDlg.hideLoadingScreen();
+                    _onPreApproveDone(data, approveDlg, groupExportLevel);
+                    _showDlg(approveDlg, resolve, reject);
+                });
+            });
         });
 	};
 
@@ -818,7 +850,7 @@ function(nl, nlDlg, nlServerApi, nlExportLevel, nlGroupInfo, nlTreeSelect, nlOuU
 		};
 	}
 
-	function _onApproveClick(e, approveDlg) {
+	function _onApproveClick(e, approveDlg, resolve, reject) {
 		if (e) e.preventDefault();
         var filterValues = _filterDictToArray(_filterTrees.getSelectedFilters());
 		var data = {
@@ -833,15 +865,18 @@ function(nl, nlDlg, nlServerApi, nlExportLevel, nlGroupInfo, nlTreeSelect, nlOuU
             approveDlg.close(false);
             approveDlg.destroy();
             if (_nextPage) nl.window.location.href = _nextPage;
-            else nl.window.location.reload();
+            resolve(status);
+            nlDlg.closeAll();
 		});
 	}
 
-	function _showDlg(approveDlg) {
+	function _showDlg(approveDlg, resolve, reject) {
 		var approveButton = {text : nl.t('Approve'), onTap : function(e) {
-			_onApproveClick(e, approveDlg);
+			_onApproveClick(e, approveDlg, resolve, reject);
 		}};
-		var cancelButton = {text : nl.t('Cancel')};
+		var cancelButton = {text : nl.t('Cancel'), onTap: function(e) {
+            resolve(false);
+        }};
 		approveDlg.show('view_controllers/lesson_list/lesson_approve_dlg.html', [approveButton], cancelButton, false);
 	}
 
