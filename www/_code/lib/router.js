@@ -258,6 +258,7 @@ function Permission(nl) {
         '/lesson_list': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},        
         '/lesson_translate': {login: true, permission: 'lesson_create', termRestriction: TR_CLOSED},        
         '/lesson_import': {login: true, permission: 'lesson_create', termRestriction: TR_CLOSED},        
+        '/course_modules': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED},        
         '/leader_board': {login: true, permission: 'basic_access', termRestriction: TR_OPEN},
         '/change_owner': {login: true, permission: 'lesson_approve', termRestriction: TR_CLOSED},        
         '/upload_pdf': {login: true, permission: 'lesson_create', termRestriction: TR_CLOSED},        

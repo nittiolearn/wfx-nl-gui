@@ -1,0 +1,15 @@
+<nl-dlg dlgTitle='{{dlgtitle}}' show-help='0'>
+<nl-inline-help>
+    You can fetch all the modules inside the course of given ids in spreadsheet.
+</nl-inline-help>
+<nl-dlg-row attr='filelist' data='data' help='help'>
+    <nl-resource-upload fieldmodel='filelist' restype='Xls' fieldindex='0'>
+    </nl-resource-upload>
+</nl-dlg-row>
+
+<nl-dlg-row ng-show='data.moduleList.length > 0' attr='moduleids' data='data' help='help'>
+    <div class='padding-mid'>
+        <pre>{{data.moduleList}}</pre>
+    </div>
+</nl-dlg-row>
+</nl-dlg>
