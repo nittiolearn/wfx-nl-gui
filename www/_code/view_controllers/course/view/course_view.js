@@ -948,11 +948,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg,
         var lessonReport = lessonReports[cm.id] || {};
         cm.attempt = lessonReport.attempt || 0;
         var pastLessonReport = modeHandler.course['pastLessonReports'] ? angular.copy(modeHandler.course.pastLessonReports[cm.id]) : null;
-        var timeUpdateLessonReport = null;
-        if(lessonReport && lessonReport.completed && pastLessonReport) {
-            lessonReport = modeHandler.getMaxScoredLessonReport(lessonReport, pastLessonReport);
-        } else if(lessonReport && pastLessonReport) {
-            timeUpdateLessonReport = modeHandler.getMaxScoredLessonReport(lessonReport, pastLessonReport);
+        var maxScoredLessonReport = lessonReport;
+        if (lessonReport && pastLessonReport) {
+            maxScoredLessonReport = modeHandler.getMaxScoredLessonReport(lessonReport, pastLessonReport);
+        }
+        if (lessonReport.completed) {
+            lessonReport = maxScoredLessonReport;
         }
         if ('started' in lessonReport) {
             cm.started = nl.fmt.json2Date(lessonReport.started);
@@ -960,14 +961,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg,
         }
         
         if ('ended' in lessonReport) cm.ended = nl.fmt.json2Date(lessonReport.ended);
-        if (('timeSpentSeconds' in lessonReport) || (timeUpdateLessonReport && ('timeSpentSeconds' in timeUpdateLessonReport))) {
-            if(timeUpdateLessonReport){
-                cm.time = parseInt(timeUpdateLessonReport.timeSpentSeconds);
-                cm.timeMins = Math.round(cm.time/60);
-            } else {
-                cm.time = parseInt(lessonReport.timeSpentSeconds);
-                cm.timeMins = Math.round(cm.time/60);    
-            }
+        if (maxScoredLessonReport && ('timeSpentSeconds' in timeUpdateLessonReport)) {
+            cm.time = parseInt(maxScoredLessonReport.timeSpentSeconds);
+            cm.timeMins = Math.round(cm.time/60);
         }
 
         var scores = _getScores(lessonReport);

@@ -618,13 +618,14 @@ this.show = function($scope, initialUserInfo, params) {
     }
 
     function _disapproveLesson($scope, lessonId) {
-        _confirmAndCall($scope, lessonId, nlServerApi.lessonDisapprove, mode.mode == MODES.MY, {
+        var addAction = mode.mode == MODES.MY ? 'disapprove' : false;
+        _confirmAndCall($scope, lessonId, nlServerApi.lessonDisapprove, addAction, {
             template : nl.t('Are you sure you want to disapprove this module and send it for review?'),
             okText : nl.t('Disapprove')
         });
     }
 
-    function _confirmAndCall($scope, lessonId, method, reload, confirmMsg) {
+    function _confirmAndCall($scope, lessonId, method, addAction, confirmMsg) {
         confirmMsg.title = 'Please confirm';
         nlDlg.popupConfirm(confirmMsg).then(function(result) {
             if (!result) return;
@@ -632,24 +633,32 @@ this.show = function($scope, initialUserInfo, params) {
             method(lessonId).then(function(status) {
                 nlDlg.hideLoadingScreen();
                 nlDlg.closeAll();
-                _updateCardlist($scope, lessonId, reload);
+                _updateCardlist($scope, lessonId, addAction);
             });
         });
     }
     
-    function _updateCardlist($scope, lessonId, reload) {
-        for (var i in $scope.cards.cardlist) {
-            var card = $scope.cards.cardlist[i];
-            if (card.lessonId !== lessonId)
-                continue;
-            $scope.cards.cardlist.splice(i, 1);
-            if(reload) {
-                _updateCardOnApproveOrDisapprove($scope, lessonId, 'disapprove');
-            } else {
-                nlCardsSrv.updateCards($scope.cards);
+    function _updateCardlist($scope, lessonId, addAction) {
+        var pos = -1;
+        var cardlist = $scope.cards.cardlist;
+        for (var i=0; i<cardlist.length; i++) {
+            if (cardlist[i].lessonId == lessonId) {
+                pos = i;
+                break;
             }
-            break;
         }
+        if (pos < 0) return;
+        var lesson = mode.resultList[pos];
+        mode.resultList.splice(pos, 1);
+        $scope.cards.cardlist.splice(pos, 1);
+        if (addAction) {
+            lesson.state = addAction == 'approve' ? STATUS.APPROVED : STATUS.UNDERREVISION;
+            lesson.updated = new Date();
+            var updatedCard = _createLessonCard(lesson, _userInfo);
+            mode.resultList.splice(0, 0, lesson);
+            $scope.cards.cardlist.splice(0, 0, updatedCard);
+        }
+        nlCardsSrv.updateCards($scope.cards);
     }
 
 	function _metadataLesson($scope, lessonId, card) {
@@ -661,33 +670,10 @@ this.show = function($scope, initialUserInfo, params) {
 
 	function _approveLesson($scope, lessonId) {
 		nlApproveDlg.show($scope, _userInfo.groupinfo.exportLevel, lessonId).then(function(result) {
-            if(result) {
-                for (var i in $scope.cards.cardlist) {
-                    var card = $scope.cards.cardlist[i];
-                    if (card.lessonId !== lessonId)
-                        continue;
-                    $scope.cards.cardlist.splice(i, 1);
-                    _updateCardOnApproveOrDisapprove($scope, lessonId, 'approve');
-                    break;
-                }
-            }
+            if(result) _updateCardlist($scope, lessonId, 'approve');
+            return true;
         });
 	}
-
-    function _updateCardOnApproveOrDisapprove($scope, lessonId, type) {
-        var lesson = null;
-        for(var j=0; j<mode.resultList.length; j++) {
-            if(lessonId == mode.resultList[j].id) {
-                lesson = mode.resultList[j];
-                break;
-            }
-        }
-        lesson.state = type == 'approve' ? 3 : 2;
-        lesson.updated = new Date();
-        var updatedCard = _createLessonCard(lesson, _userInfo)
-        $scope.cards.cardlist.splice(0, 0, updatedCard);
-        nlCardsSrv.updateCards($scope.cards);
-    }
 
     function _showLessonReport(lessonId) {
         var url = nl.fmt2('/learning_reports?type=module&objid={}', lessonId);
@@ -787,7 +773,7 @@ function(nl, nlDlg, nlServerApi, nlExportLevel, nlGroupInfo, nlTreeSelect, nlOuU
                 nlServerApi.lessonPreApproveCheck(lessonId).then(function(data) {
                     nlDlg.hideLoadingScreen();
                     _onPreApproveDone(data, approveDlg, groupExportLevel);
-                    _showDlg(approveDlg, resolve, reject);
+                    _showDlg(approveDlg, resolve);
                 });
             });
         });
@@ -850,7 +836,7 @@ function(nl, nlDlg, nlServerApi, nlExportLevel, nlGroupInfo, nlTreeSelect, nlOuU
 		};
 	}
 
-	function _onApproveClick(e, approveDlg, resolve, reject) {
+	function _onApproveClick(e, approveDlg, resolve) {
 		if (e) e.preventDefault();
         var filterValues = _filterDictToArray(_filterTrees.getSelectedFilters());
 		var data = {
@@ -865,14 +851,14 @@ function(nl, nlDlg, nlServerApi, nlExportLevel, nlGroupInfo, nlTreeSelect, nlOuU
             approveDlg.close(false);
             approveDlg.destroy();
             if (_nextPage) nl.window.location.href = _nextPage;
-            resolve(status);
+            else if (!resolve(status)) nl.window.location.reload();
             nlDlg.closeAll();
 		});
 	}
 
-	function _showDlg(approveDlg, resolve, reject) {
+	function _showDlg(approveDlg, resolve) {
 		var approveButton = {text : nl.t('Approve'), onTap : function(e) {
-			_onApproveClick(e, approveDlg, resolve, reject);
+			_onApproveClick(e, approveDlg, resolve);
 		}};
 		var cancelButton = {text : nl.t('Cancel'), onTap: function(e) {
             resolve(false);
