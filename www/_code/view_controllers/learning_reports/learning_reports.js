@@ -1230,7 +1230,7 @@
 						assignContent.iltCostMisc = result.iltCostMisc || '';
 					}
 				}
-				if(result.selectedusers) {
+				if(result.selectedusers.length > 0) {
 					nl.window.location.reload();
 				} else {
 					nlLrAssignmentRecords.addRecord(assignRec, key);

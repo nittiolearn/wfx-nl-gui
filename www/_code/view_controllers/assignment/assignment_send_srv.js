@@ -299,7 +299,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			submissionAfterEndtime: data.submissionAfterEndtime,
 			max_duration: data.maxduration, learnmode: data.showAnswers.id,
             update_content: data.update_content,
-            sendemail: data.sendEmail || false};
+            sendemail: data.sendEmail || false, selectedusers: []};
 		if(ouUserInfo.userids.length > 0) {
             params['selectedusers'] = _getMinimalUserObjects(ouUserInfo.userids),
             params['oustr'] = _getOrgUnitStr(ouUserInfo.ous);
@@ -319,16 +319,11 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 		_validateBeforeModify(params, assignInfo, function() {
 			if (params.not_before) params.not_before = nl.fmt.date2UtcStr(params.not_before, 'second');
 			if (params.not_after) params.not_after = nl.fmt.date2UtcStr(params.not_after, 'second');
-	        nlDlg.showLoadingScreen();
-	        nlServerApi.assignmentModify(params).then(function() {
-	            nlDlg.hideLoadingScreen();
-				if (params.not_before) params.not_before = nl.fmt.json2Date(params.not_before);
-				if (params.not_after) params.not_after = nl.fmt.json2Date(params.not_after);
-				_dlg._dlgResult = params;
-				_dlg.close();
-	        });
+            nlDlg.showLoadingScreen();
+            _sendOrModifyInBatches(params, _dlg);
 		});
 	}
+
 
     function _validateBeforeModify(params, assignInfo, onModifyFn) {
     	if (assignInfo.showDateField && !params.not_before) {
@@ -460,7 +455,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         confirmDlg.scope.assignInfo = _assignInfo;
         var okButton = {text : nl.t('Send'), onTap : function(e) {
             nlDlg.showLoadingScreen();
-            _sendInBatches(data).then(function(ctx) {
+            _sendOrModifyInBatches(data).then(function(ctx) {
                 nlDlg.hideLoadingScreen();
                 _showAfterAssignmentSentDlg(ctx);
             }, function() {
@@ -483,29 +478,45 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
     }
     
     var MAX_PER_BATCH = 50;
-    function _sendInBatches(data) {
+    function _sendOrModifyInBatches(data, _dlg) {
         var ctx = {data: data, sentUserCnt: 0, pendingUsers: [],
             totalUsersCnt: data.selectedusers.length};
         if (data.selectedusers.length > MAX_PER_BATCH) {
             ctx.pendingUsers = data.selectedusers.slice(MAX_PER_BATCH);
             ctx.data.selectedusers = data.selectedusers.slice(0, MAX_PER_BATCH);
         }
-
+        var serverFn = nlServerApi.assignmentSend;
+        if(_dlg) {
+            ctx.data.justAddUsers = false;
+            serverFn = nlServerApi.assignmentModify;
+        }
         return nl.q(function(resolve, reject) {
-            nlServerApi.assignmentSend(ctx.data).then(function(assignId) {
+            serverFn(ctx.data).then(function(assignId) {
                 ctx.sentUserCnt += ctx.data.selectedusers.length;
-                ctx.data.assignid = assignId;
-                _sendNextBatch(ctx, resolve);
+                if(!_dlg) ctx.data.assignid = assignId;
+                _sendOrModifyNextBatch(ctx, resolve, serverFn, _dlg);
             });
         });
     }
 
-    function _sendNextBatch(ctx, resolve) {
+    function _sendOrModifyNextBatch(ctx, resolve, serverFn, _dlg) {
         var msg = nl.t('Sent assignment to {} of {}', ctx.sentUserCnt, ctx.totalUsersCnt);
+        if(_dlg) msg = nl.t('Assignment modified, {}', ctx.totalUsersCnt > 0 ? nl.t('{} of {} users added to existing assignment', ctx.sentUserCnt, ctx.totalUsersCnt) : '' );
+
         if (ctx.pendingUsers.length == 0) {
             nlDlg.popupStatus(msg);
-            resolve(ctx);
-            return;
+            if(_dlg) {
+                nlDlg.hideLoadingScreen();
+                if (ctx.data.not_before) ctx.data.not_before = nl.fmt.json2Date(ctx.data.not_before);
+                if (ctx.data.not_after) ctx.data.not_after = nl.fmt.json2Date(ctx.data.not_after);
+                _dlg._dlgResult = ctx.data;
+                _dlg.close();
+                resolve();
+                return;    
+            } else {
+                resolve(ctx);
+                return;    
+            }
         }
         nlDlg.popupStatus(msg, false);
         if (ctx.pendingUsers.length > MAX_PER_BATCH) {
@@ -515,9 +526,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             ctx.data.selectedusers = ctx.pendingUsers;
             ctx.pendingUsers = [];
         }
-        nlServerApi.assignmentSend(ctx.data).then(function(status) {
+        ctx.data.justAddUsers = true;
+        serverFn(ctx.data).then(function(status) {
             ctx.sentUserCnt += ctx.data.selectedusers.length;
-            _sendNextBatch(ctx, resolve);
+            _sendOrModifyNextBatch(ctx, resolve, serverFn, _dlg);
         });
     }
 
