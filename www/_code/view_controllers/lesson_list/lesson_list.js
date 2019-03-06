@@ -669,7 +669,7 @@ this.show = function($scope, initialUserInfo, params) {
 	}
 
 	function _approveLesson($scope, lessonId) {
-		nlApproveDlg.show($scope, _userInfo.groupinfo.exportLevel, lessonId).then(function(result) {
+		nlApproveDlg.show($scope, _userInfo.groupinfo.exportLevel, lessonId, null, false).then(function(result) {
             if(result) _updateCardlist($scope, lessonId, 'approve');
             return true;
         });
@@ -761,9 +761,11 @@ var ApproveDlgSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlExportLevel',
 function(nl, nlDlg, nlServerApi, nlExportLevel, nlGroupInfo, nlTreeSelect, nlOuUserSelect) {
     var _filterTrees = null;
     var _nextPage = null;
-	this.show = function(parentScope, groupExportLevel, lessonId, nextPage) {
+    var _reload = null;
+	this.show = function(parentScope, groupExportLevel, lessonId, nextPage, reload) {
         return nl.q(function(resolve, reject) {
             _nextPage = nextPage || null;
+            _reload = reload;
             var approveDlg = nlDlg.create(parentScope);
             _initDlg(approveDlg, groupExportLevel, lessonId);
             nlDlg.showLoadingScreen();
@@ -850,8 +852,12 @@ function(nl, nlDlg, nlServerApi, nlExportLevel, nlGroupInfo, nlTreeSelect, nlOuU
 			nlDlg.hideLoadingScreen();
             approveDlg.close(false);
             approveDlg.destroy();
-            if (_nextPage) nl.window.location.href = _nextPage;
-            else if (!resolve(status)) nl.window.location.reload();
+            if (_nextPage) 
+                nl.window.location.href = _nextPage;
+            else if (_reload)
+                nl.window.location.reload();
+            else
+                resolve(status);
             nlDlg.closeAll();
 		});
 	}

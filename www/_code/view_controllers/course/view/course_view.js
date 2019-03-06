@@ -961,7 +961,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg,
         }
         
         if ('ended' in lessonReport) cm.ended = nl.fmt.json2Date(lessonReport.ended);
-        if (maxScoredLessonReport && ('timeSpentSeconds' in timeUpdateLessonReport)) {
+        if (maxScoredLessonReport && ('timeSpentSeconds' in maxScoredLessonReport)) {
             cm.time = parseInt(maxScoredLessonReport.timeSpentSeconds);
             cm.timeMins = Math.round(cm.time/60);
         }
