@@ -164,8 +164,8 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
     };
 
     this.getMaxScoredLessonReport = function(lessonReport, pastLessonReport) {
-        var maxScoredReport = lessonReport;
-        var totalTimeSpent = lessonReport['timeSpentSeconds'];
+        var maxScoredReport = angular.copy(lessonReport);
+        var totalTimeSpent = lessonReport['timeSpentSeconds'] || 0;
         for(var i=0; i<pastLessonReport.length; i++) {
             var pastRep = pastLessonReport[i];
             totalTimeSpent += pastRep['timeSpentSeconds'];
@@ -948,8 +948,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg,
         var lessonReport = lessonReports[cm.id] || {};
         cm.attempt = lessonReport.attempt || 0;
         var pastLessonReport = modeHandler.course['pastLessonReports'] ? angular.copy(modeHandler.course.pastLessonReports[cm.id]) : null;
+        var timeUpdateLessonReport = null;
         if(lessonReport && lessonReport.completed && pastLessonReport) {
             lessonReport = modeHandler.getMaxScoredLessonReport(lessonReport, pastLessonReport);
+        } else if(lessonReport && pastLessonReport) {
+            timeUpdateLessonReport = modeHandler.getMaxScoredLessonReport(lessonReport, pastLessonReport);
         }
         if ('started' in lessonReport) {
             cm.started = nl.fmt.json2Date(lessonReport.started);
@@ -957,9 +960,14 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg,
         }
         
         if ('ended' in lessonReport) cm.ended = nl.fmt.json2Date(lessonReport.ended);
-        if ('timeSpentSeconds' in lessonReport) {
-            cm.time = parseInt(lessonReport.timeSpentSeconds);
-            cm.timeMins = Math.round(cm.time/60);
+        if (('timeSpentSeconds' in lessonReport) || (timeUpdateLessonReport && ('timeSpentSeconds' in timeUpdateLessonReport))) {
+            if(timeUpdateLessonReport){
+                cm.time = parseInt(timeUpdateLessonReport.timeSpentSeconds);
+                cm.timeMins = Math.round(cm.time/60);
+            } else {
+                cm.time = parseInt(lessonReport.timeSpentSeconds);
+                cm.timeMins = Math.round(cm.time/60);    
+            }
         }
 
         var scores = _getScores(lessonReport);
@@ -1234,7 +1242,12 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
 		if(completed == 0 ) return 0;
 		return Math.round(completed/total*100)+'%';
 	};
-	
+    
+    this.isLessonInProgress = function(cm) {
+        if(cm.state.status == 'started' && modeHandler.mode == MODES.DO) return true;
+        return false;
+    };
+
     this.updatePastAttemptData = function() {
         this.showPastAttempts = false;
         this.pastAttemptData = [];
@@ -1273,7 +1286,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
     };
     
     this.showPastReport = function(rep) {
-        if (this.hideReviewButton(this.item)) return;
+        if (this.hideReviewButton(this.item) || this.isLessonInProgress(this.item)) return;
         var func = (modeHandler.mode === MODES.REPORT_VIEW) ? 'review_report_assign' : 'view_report_assign';
         var url = nl.fmt2('/lesson/{}/{}', func, rep.reportId);
         modeHandler.show(url);
