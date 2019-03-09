@@ -210,7 +210,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 		return item;
 	}
 	
+	function _trainingIsDepricated() {
+		nlDlg.popupAlert({title: 'Not supported', template: 'This feature is depricated. Please use blended courses for managing class room training.'});
+	}
+
 	function _createOrEditTrainingKind(batchDlgScope, card) {
+		return _trainingIsDepricated();
 		var _card = card ? angular.copy(card) : null;
 		var _dlg = nlDlg.create($scope);
 		_dlg.setCssClass('nl-height-max nl-width-max');
@@ -407,6 +412,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
     
 	//--------------------------------------------------------------------------------------------------
 	function _createTrainingBatch() {
+		return _trainingIsDepricated();
 		_initTrainingKinds(true).then(function(result) {
 			_createOrEditTrainingBatch(null);			
 		});
@@ -825,6 +831,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlSendAssignmentS
 	}
 
 	function _assignTrainingModule(trainingModule, nominations) {
+		return _trainingIsDepricated();
 		var trainingBatch = trainingModule.training;
 
 		var assignInfo = {
