@@ -134,8 +134,13 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state) {
                 if (status) return _done(null);
                 _done('/home');
             });
-        }, function() {
-            return _done('/home');
+        }, function(errorData) {
+            if (errorData && errorData.extendedStatusCode && 
+                errorData.extendedStatusCode.indexOf('LOGIN') == 0) {
+                return _done('/login_now?msg=logout');
+            } else {
+                return _done('/error?msg=network');
+            }
         });
     }
 
@@ -223,6 +228,7 @@ function Permission(nl) {
     var permissions = {
         // Page permissions
         '/home': {login: true, permission: 'basic_access', termRestriction: TR_OPEN}, 
+        '/error': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/home_refresh': {login: false, permission: '', termRestriction: TR_OPEN},
         '/welcome': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/school': {login: false, permission: '', termRestriction: TR_OPEN}, 

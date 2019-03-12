@@ -33,6 +33,19 @@
 input.nl-border-radius {
 	border-radius: 5px;
 }
+
+.nl-signin-msg {
+	opacity: 0.5;
+	font-size: 150%;
+}
+
+.hintmsg {
+	opacity: 0.4;
+	font-size: 90%;
+	border: 1px dotted rgba(255, 255, 255, 0.5);
+	border-radius: 5px;
+}
+
 </style>
 <div class='nl-thin-scroll nl-full nl-signin-bg {{loginBoxClass}}'>
 <div class='row row-center margin0 padding0' style='min-height:100%'>
@@ -62,18 +75,25 @@ input.nl-border-radius {
 					<img ng-src='{{logo2}}' style='max-width: {{screenSize == "large" ? logo2w : logo2wm}}px; max-height: {{screenSize == "large" ? logo2h : logo2hm}}px;'>
 				</div>
 				<div ng-if='logo2' class='padding-mid'></div>
-		
+				<div class='text-left' ng-show='msg'>
+					<div class='padding-mid {{msgClass}}'>{{msg}}</div>
+					<div class='padding-small'></div>
+			    </div>
+				<div class='text-left' ng-show='hintmsg'>
+					<div class='hintmsg padding-mid' ng-bind-html='hintmsg'></div>
+					<div class='padding-small'></div>
+				</div>
 			    <div class='row row-wrap row-top padding0 margin0 text-left'>
 			        <div ng-class='resp2Col33' class='padding-mid'>
 			            <div class='padding-mid-v'>User ID</div></div>
 			        <div ng-class='resp2Col67' class='padding-mid-v'>
-			            <nl-input fieldmodel='username' fieldtype='text' fieldcls='w100 nl-border-radius'
-			                      ng-keypress="onUsernameEnter($event)"></nl-input>
+						<nl-input fieldmodel='username' fieldtype='text' fieldcls='w100 nl-border-radius'
+								  ng-keypress="onUsernameEnter($event)"></nl-input>
 			        </div>
 			    </div>
 		
 			    <div class='row row-wrap row-top padding0 margin0 text-left'
-			         ng-show='isLogin'>
+			         ng-show='msgType != "impersonate"'>
 			        <div ng-class='resp2Col33' class='padding-mid'>
 			            <div class='padding-mid-v'>Password</div></div>
 			        <div ng-class='resp2Col67' class='padding-mid-v'>
@@ -81,7 +101,25 @@ input.nl-border-radius {
 			                      ng-keypress="onPasswordEnter($event)"></nl-input>
 			        </div>
 			    </div>
-			    <div ng-show='isLogin' class='nl-link-text2 padding-mid text-left'
+			    <div class='row row-wrap row-top padding0 margin0 text-left'
+			         ng-show='msgType == "pw_change"'>
+			        <div ng-class='resp2Col33' class='padding-mid'>
+			            <div class='padding-mid-v'>New password</div></div>
+			        <div ng-class='resp2Col67' class='padding-mid-v'>
+			            <nl-input fieldmodel='new_password1' fieldtype='password' fieldcls='w100 nl-border-radius'
+			                      ng-keypress="onNewPasswordEnter($event)"></nl-input>
+			        </div>
+			    </div>
+			    <div class='row row-wrap row-top padding0 margin0 text-left'
+			         ng-show='msgType == "pw_change"'>
+			        <div ng-class='resp2Col33' class='padding-mid'>
+			            <div class='padding-mid-v'>Verify new password</div></div>
+			        <div ng-class='resp2Col67' class='padding-mid-v'>
+			            <nl-input fieldmodel='new_password2' fieldtype='password' fieldcls='w100 nl-border-radius'
+			                      ng-keypress="onVerifyNewPasswordEnter($event)"></nl-input>
+			        </div>
+			    </div>
+			    <div ng-show='msgType != "impersonate" && msgType != "pw_change"' class='nl-link-text2 padding-mid text-left'
 			         ng-click='lostPassword()'>
 			         <div class='padding-mid-v'>Forgot Password?</div>
 			    </div>

@@ -720,7 +720,7 @@ function(nl, nlDlg, nlConfig, Upload) {
     }
 
     function _ping() {
-        return _postAndSaveEula('_serverapi/auth_ping.json', {}, false);
+        return _postAndSaveEula('_serverapi/auth_ping.json', {showExtendedStatusCode: true}, true);
     }
 
     function _postAndSaveEula(url, data, noPopup) {
@@ -930,16 +930,19 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload, brandingInfoHandler) {
     }
 
     function _displayErrorMessage(status, data, reject, noPopup) {
-        var errorMsg = ('_errorMsg' in data) ? data._errorMsg : data;
-        if (errorMsg == '') errorMsg = ET_ERROR_MESSAGES[status];
+        var errorMsg = data._errorMsg || ET_ERROR_MESSAGES[status];
+        var extendedStatusCode = data._extendedStatusCode;
+        var rejectData = errorMsg;
+        if (data._extendedStatusCode) rejectData = {msg: errorMsg, extendedStatusCode: extendedStatusCode}
+
         nl.log.warn('_displayErrorMessage:', errorMsg, status);
         if (noPopup) {
-            reject(errorMsg);
+            reject(rejectData);
             return;
         }
-        nlDlg.popupAlert({title: nl.t('Error'), template: nl.t(errorMsg)})
+        nlDlg.popupAlert({title: 'Error', template: errorMsg})
         .then(function(res) {
-            reject(errorMsg);
+            reject(rejectData);
         });
     }
 

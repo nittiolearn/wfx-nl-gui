@@ -395,7 +395,11 @@ function Ajax(cb, retryAfterLogin, showErrorMsg) {
 		    if (typeof data === 'string' || data instanceof String) data = jQuery.parseJSON(data);
 			if ('NOT_LOGGED_IN' in data) {
 				if (retryAfterLogin) {
-					self.retryLogin(url, params, contentType, processData, onProgress);
+					var url = '/#/login_now';
+					var msg='<b>You are not logged in. </b> ';
+					msg += njs_helper.fmt2('<a href="{}" target="_blank"><b>Click here</b></a>', url);
+					msg += ' to login in a new tab. Once logged in from another tab, you could come back to this tab to continue operations.';
+					cbInternal(null, Ajax.ERROR_LOGIN, msg);
 				} else {
 					cbInternal(null, Ajax.ERROR_LOGIN, data.error);
 				}
@@ -411,24 +415,6 @@ function Ajax(cb, retryAfterLogin, showErrorMsg) {
 		jQuery.ajax(ajaxParams);
 	};
 
-	this.retryLogin = function(url, params, contentType, processData, onProgress) {
-		var self = this;
-		var chain = new njs_helper.AsyncFunctionChain(function(errorMessage2) {
-			cbInternal(null, Ajax.ERROR_LOGIN, 'Sigin in failed. Please sign in to perform this operation.');
-		});
-		var dlg = new njs_helper.LoginDlg(chain);
-		chain.add(function() {
-			dlg.show();
-		});
-		chain.add(function() {
-			dlg.loginAjax();
-		});
-		chain.add(function() {
-			self.send(url, params, contentType, processData, onProgress);
-			chain.done();
-		});
-	};
-	
 	this.addFormData = function(fieldName, field) {
 		_formData.append(fieldName, field);
 	};
@@ -1139,14 +1125,6 @@ function LoginDlg(inputChain, titleMsg) {
 	this.show = function() {
 		_dlg.show();
 		// _chain.done(); not needed here. Will be done when the dialog box closes
-	};
-
-	// loginAjax has to be called inside a chain
-	this.loginAjax = function() {
-		var ajax = new njs_helper.AjaxInChain(_chain, false);
-		var params = _chain.getLastResult();
-		ajax.send('/auth/login_ajax.json/', params);
-		// _chain.done(); not needed here. Will be done when the send completes
 	};
 
 	//---------------------------------------------------------------------------------------

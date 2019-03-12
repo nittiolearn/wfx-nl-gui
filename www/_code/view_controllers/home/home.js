@@ -7,6 +7,7 @@ function module_init() {
     angular.module('nl.home', [])
     .config(configFn)
     .controller('nl.HomeCtrl', HomeCtrl)
+    .controller('nl.ErrorCtrl', ErrorCtrl)
     .controller('nl.AppHomeCtrl', AppHomeCtrl)
     .controller('nl.HomeRefreshCtrl', HomeRefreshCtrl)
     .controller('nl.DashboardViewCtrl', DashboardViewCtrl);
@@ -22,6 +23,16 @@ function($stateProvider) {
             'appContent' : {
                 templateUrl : 'lib_ui/cards/cardsview.html',
                 controller : 'nl.HomeCtrl'
+            }
+        }
+    });
+    $stateProvider.state('app.error', {
+        cache: true,
+        url : '^/error',
+        views : {
+            'appContent' : {
+                templateUrl : 'view_controllers/home/error.html',
+                controller : 'nl.ErrorCtrl'
             }
         }
     });
@@ -167,6 +178,16 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
     }    
 };
 
+//-------------------------------------------------------------------------------------------------
+var ErrorCtrl = ['nl', 'nlRouter', '$scope',
+function(nl, nlRouter, $scope) {
+    nl.pginfo.isWelcomePage = false;
+    nl.pginfo.isPageShown = true;
+    nl.rootScope.bodyClass = 'showbody';
+    var params = nl.location.search();
+    $scope.msgType = params.msg || '';
+}];
+    
 //-------------------------------------------------------------------------------------------------
 var AppHomeCtrl = ['nl', 'nlRouter', '$scope',
 function(nl, nlRouter, $scope) {
