@@ -76,6 +76,10 @@ function(nl, nlDlg, nlConfig, Upload) {
     this.authImpersonateEnd = function() {
         return server.post('_serverapi/auth_impersonate_end.json', {}, true);
     };
+
+    this.authValidateResetKey = function(data) {
+        return server.post('_serverapi/auth_validate_reset_key.json', data);
+    }
     
     this.authGetAuditData = function(updatedTill, limitBy) {
         var data = {};

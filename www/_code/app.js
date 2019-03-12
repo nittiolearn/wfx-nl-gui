@@ -180,17 +180,10 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlServerApi, nlRouter, nl
             $scope.homeUrl = homeUrl;
             if (nlRouter.isPermitted(userInfo, 'change_password')) {
                 $scope.userMenuItems.push({title: nl.t(' Change Password'), 
-                    url: '/auth/changepw'});
+                    url: '#/pw_change'});
             }
             $scope.userMenuItems.push({title: nl.t(' Sign Out'),
                 url: '#/logout_now'});
-        } else {
-            $scope.logedIn = false;
-            $scope.homeUrl = welcomeUrl;
-            $scope.userMenuItems.push({title: nl.t(' Sign In'), 
-                url: '#/login_now'});
-            $scope.userMenuItems.push({title: nl.t(' Forgot Password'),
-                url: '/auth/pwlost'});
         }
         nl.log.debug('app:onPageEnter - done');
     };

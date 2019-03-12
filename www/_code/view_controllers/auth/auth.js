@@ -9,6 +9,8 @@ function module_init() {
     .controller('nl.auth.LoginCtrl', LoginCtrl)
     .controller('nl.auth.LogoutCtrl', LogoutCtrl)
     .controller('nl.auth.ImpersonateCtrl', ImpersonateCtrl)
+    .controller('nl.auth.PwChangeCtrl', PwChangeCtrl)
+    .controller('nl.auth.PwResetCtrl', PwResetCtrl)
     .controller('nl.auth.AuditCtrl', AuditCtrl);
 }
 
@@ -42,6 +44,24 @@ function($stateProvider) {
             }
         }
     });
+    $stateProvider.state('app.pw_change', {
+        url : '^/pw_change',
+        views : {
+            'appContent' : {
+                templateUrl : 'view_controllers/auth/login.html',
+                controller : 'nl.auth.PwChangeCtrl'
+            }
+        }
+    });
+    $stateProvider.state('app.pw_reset', {
+        url : '^/pw_reset',
+        views : {
+            'appContent' : {
+                templateUrl : 'view_controllers/auth/login.html',
+                controller : 'nl.auth.PwResetCtrl'
+            }
+        }
+    });
     $stateProvider.state('app.audit', {
         url : '^/audit',
         views : {
@@ -57,18 +77,34 @@ function($stateProvider) {
 var LoginCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlConfig',
 function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig) {
     nl.log.debug('LoginCtrl - enter');
-    _loginControllerImpl(true, nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig);
+    _loginControllerImpl('login', nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig);
 }];
     
 var ImpersonateCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlConfig',
 function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig) {
     nl.log.debug('ImpersonateCtrl - enter');
-    _loginControllerImpl(false, nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig);
+    _loginControllerImpl('impersonate', nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig);
 }];
 
-function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig) {
+var PwChangeCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlConfig',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig) {
+    nl.log.debug('ImpersonateCtrl - enter');
+    _loginControllerImpl('pw_change', nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig);
+}];
+
+var PwResetCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlConfig',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig) {
+    nl.log.debug('ImpersonateCtrl - enter');
+    _loginControllerImpl('pw_reset', nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig);
+}];
+
+function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig) {
     var params = nl.location.search();
-    _updateMsg(isLogin ? params.msg || '' : 'impersonate');
+    _updateMsg(ctrlType == 'login' ? params.msg || '' : ctrlType);
+
+    $scope.reset_key = params.reset_key || '';
+    $scope.user_id = params.user_id || '';
+    $scope.initDone = false;
     
     var brandingInfo = nlServerApi.getBrandingInfo();
     nl.pginfo.hidemenu = true;    
@@ -112,16 +148,16 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
         return nl.q(function(resolve, reject) {
             nl.log.debug('_loginControllerImpl:onPageEnter - enter');
             nl.pginfo.hidemenu = true;
-            nlServerApi.clearCache();
-            var username = $scope.msgType != 'impersonate' ? userInfo.username : '';
+            var username = userInfo.username || '';
             $scope.data = {username: username, password: '', remember: true, new_password1: '', new_password2: ''};
             $scope.error = {};
-
-            nl.log.debug('_loginControllerImpl:onPageEnter - done');
-            resolve(true);
-            nl.timeout(function() {
-                nlDlg.getField('username').focus();
-            });
+            if ($scope.msgType == 'pw_reset') {
+                if ($scope.reset_key && $scope.user_id) return _validateResetKey(resolve);
+                nlDlg.popupStatus('Incorrect URL');
+                resolve(false);
+                return;
+            }
+            _pageEnerDone(resolve);
         });
     }
     nlRouter.initContoller($scope, '', _onPageEnter);
@@ -129,6 +165,27 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
     //---------------------------------------------------------------------------------------------
     // Controller private functions
     //---------------------------------------------------------------------------------------------
+    function _validateResetKey(resolve) {
+        nlServerApi.authValidateResetKey({reset_key: $scope.reset_key, user_id: $scope.user_id})
+        .then(function(data) {
+            $scope.data.username = data.username;
+            _pageEnerDone(resolve);
+        }, function() {
+            resolve(false);
+        })
+    }
+
+    function _pageEnerDone(resolve) {
+        $scope.initDone = true;
+        nl.timeout(function() {
+            var fieldName = 'username';
+            if ($scope.msgType == 'pw_change') fieldName = 'password';
+            else if ($scope.msgType == 'pw_reset') fieldName = 'new_password1';
+            nlDlg.getField(fieldName).focus();
+            resolve(true);
+        });
+    }
+
     $scope.onUsernameEnter = function(keyEvent) {
 	  	if (keyEvent.which !== 13) return;
 	  	if(!_validateInputs($scope, 'username')) return;
@@ -162,10 +219,15 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
 	$scope.loginWithSignInOrEnter = function() {
         if (!_validateInputs($scope)) return;
         nlDlg.showLoadingScreen();
+        nlServerApi.clearCache();
         if ($scope.msgType != 'impersonate') {
             var dataToServer = {username: $scope.data.username, password: $scope.data.password, 
                 remember: $scope.data.remember, showExtendedStatusCode: true};
-            if ($scope.msgType == 'pw_change') dataToServer.new_password = $scope.data.new_password1;
+            if ($scope.msgType == 'pw_change' || $scope.msgType == 'pw_reset') dataToServer.new_password = $scope.data.new_password1;
+            if ($scope.msgType == 'pw_reset') {
+                dataToServer.reset_key = $scope.reset_key;
+                dataToServer.user_id = $scope.user_id;
+            }
             nlServerApi.authLogin(dataToServer).then(_onLoginSuccess, _onLoginFailed);
         } else {
             nlServerApi.authImpersonate($scope.data.username).then(_onLoginSuccess, _onLoginFailed);
@@ -186,6 +248,9 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
         } else if (msgType == 'pw_change') {
             $scope.msg = 'Please change your password.';
             nl.pginfo.pageTitle = nl.t('Change password');
+        } else if (msgType == 'pw_reset') {
+            $scope.msg = 'Please reset your password.';
+            nl.pginfo.pageTitle = nl.t('Reset password');
         } else if (msgType == 'impersonate') {
             $scope.msg = 'Be care full. Ensure you logout as soon as the work is done';
             nl.pginfo.pageTitle = nl.t('Impersonate as user');
@@ -222,11 +287,12 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
         }
         if (fieldType == 'username' || $scope.msgType == 'impersonate') return true;
 
-        if (scope.data.password == '') {
+        if (scope.data.password == '' && $scope.msgType != 'pw_reset') {
         	return nlDlg.setFieldError(scope, 'password',
         		nl.t('Password is required'));
         }
-        if (fieldType == 'password' || $scope.msgType != 'pw_change') return true;
+        if (fieldType == 'password' || ($scope.msgType != 'pw_change' && $scope.msgType != 'pw_reset'))
+            return true;
 
         if (scope.data.new_password1 == '') {
             return nlDlg.setFieldError(scope, 'new_password1',
@@ -262,14 +328,13 @@ function _loginControllerImpl(isLogin, nl, nlRouter, $scope, nlServerApi, nlDlg,
     }
 
     function _onLoginFailed(data) {
-        nl.log.warn('_onLoginFailed');
-        var pwChange = data.extendedStatusCode == 'LOGIN_PW_EXPIRED' ||
-            data.extendedStatusCode == 'PW_CHANGE_ERROR';
-        if (!pwChange) return;
-        $scope.hintmsg = data.extendedStatusCode == 'PW_CHANGE_ERROR' ? data.msg : '';
         nl.timeout(function() {
-            _updateMsg('pw_change');
-            nlDlg.getField('new_password1').focus();
+            var isChange = $scope.msgType == 'pw_change' || $scope.msgType == 'pw_reset';
+            var changeError = data.extendedStatusCode == 'PW_CHANGE_ERROR';
+            var expired = data.extendedStatusCode == 'LOGIN_PW_EXPIRED';
+            if (expired) _updateMsg('pw_change');
+            $scope.hintmsg = changeError ? data.msg : '';
+            if (isChange || expired) nlDlg.getField('new_password1').focus();
         });
     }
 }
@@ -283,7 +348,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
             nl.pginfo.pageTitle = nl.t('Signing out - please wait ...');
             var bImp = ('impersonatedBy' in userInfo);
             var fn = (bImp) ? nlServerApi.authImpersonateEnd : nlServerApi.authLogout;
-            fn($scope.data).then(function(data) {
+            nlServerApi.clearCache();
+            fn().then(function(data) {
                 nlServerApi.getUserInfoFromCache().then(function(userInfo) {
                     nlDlg.popupStatus(nl.t('You have been signed out from the system'));
                     nl.log.debug('LogoutCtrl:onPageEnter - done');

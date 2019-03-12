@@ -68,6 +68,7 @@ input.nl-border-radius {
 			</div>
 
 			<div class='padding {{screenSize != "small" ? "" : "col"}}' style='min-width:300px'>
+				<div ng-if='initDone'>
 				<div ng-if='logo2 && (screenSize != "small" || showLogo2InMobile)'
 					 class='padding-mid {{logo2url ? "nl-link-img" : ""}}'
 					 ng-click='onLinkClicked(logo2url)'
@@ -86,23 +87,30 @@ input.nl-border-radius {
 			    <div class='row row-wrap row-top padding0 margin0 text-left'>
 			        <div ng-class='resp2Col33' class='padding-mid'>
 			            <div class='padding-mid-v'>User ID</div></div>
-			        <div ng-class='resp2Col67' class='padding-mid-v'>
+					<div ng-if='msgType != "pw_change" && msgType != "pw_reset"'
+						 ng-class='resp2Col67' class='padding-mid-v'>
 						<nl-input fieldmodel='username' fieldtype='text' fieldcls='w100 nl-border-radius'
 								  ng-keypress="onUsernameEnter($event)"></nl-input>
 			        </div>
-			    </div>
+					<div ng-if='msgType == "pw_change" || msgType == "pw_reset"'
+						 ng-class='resp2Col67' class='padding-mid-v'>
+						<div class='padding-mid'><b>{{data.username}}</b></div>
+					</div>
+				</div>
 		
 			    <div class='row row-wrap row-top padding0 margin0 text-left'
-			         ng-show='msgType != "impersonate"'>
+			         ng-if='msgType != "impersonate" &&  msgType != "pw_reset"'>
 			        <div ng-class='resp2Col33' class='padding-mid'>
-			            <div class='padding-mid-v'>Password</div></div>
+			            <div class='padding-mid-v'>
+							<span ng-show='msgType == "pw_change"'>Current </span>Password
+						</div></div>
 			        <div ng-class='resp2Col67' class='padding-mid-v'>
 			            <nl-input fieldmodel='password' fieldtype='password' fieldcls='w100 nl-border-radius'
 			                      ng-keypress="onPasswordEnter($event)"></nl-input>
 			        </div>
 			    </div>
 			    <div class='row row-wrap row-top padding0 margin0 text-left'
-			         ng-show='msgType == "pw_change"'>
+			         ng-if='msgType == "pw_change" || msgType == "pw_reset"'>
 			        <div ng-class='resp2Col33' class='padding-mid'>
 			            <div class='padding-mid-v'>New password</div></div>
 			        <div ng-class='resp2Col67' class='padding-mid-v'>
@@ -111,7 +119,7 @@ input.nl-border-radius {
 			        </div>
 			    </div>
 			    <div class='row row-wrap row-top padding0 margin0 text-left'
-			         ng-show='msgType == "pw_change"'>
+			         ng-if='msgType == "pw_change" || msgType == "pw_reset"'>
 			        <div ng-class='resp2Col33' class='padding-mid'>
 			            <div class='padding-mid-v'>Verify new password</div></div>
 			        <div ng-class='resp2Col67' class='padding-mid-v'>
@@ -119,7 +127,8 @@ input.nl-border-radius {
 			                      ng-keypress="onVerifyNewPasswordEnter($event)"></nl-input>
 			        </div>
 			    </div>
-			    <div ng-show='msgType != "impersonate" && msgType != "pw_change"' class='nl-link-text2 padding-mid text-left'
+				<div ng-if='msgType != "impersonate" && msgType != "pw_change" && msgType != "pw_reset"'
+					 class='nl-link-text2 padding-mid text-left'
 			         ng-click='lostPassword()'>
 			         <div class='padding-mid-v'>Forgot Password?</div>
 			    </div>
@@ -127,6 +136,7 @@ input.nl-border-radius {
 				    <div class='nl-signin-button nl-link-text2'
 				    	 ng-click='loginWithSignInOrEnter()'>Sign in</div>
 			    </div>
+				</div>
 			</div>
 		</div>
 		<div class='padding text-center'

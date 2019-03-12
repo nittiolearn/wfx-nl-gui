@@ -237,6 +237,8 @@ function Permission(nl) {
         '/login_now': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/logout_now': {login: false, permission: '', termRestriction: TR_OPEN},
         '/audit': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
+        '/pw_change': {login: true, permission: 'change_password', termRestriction: TR_OPEN},
+        '/pw_reset': {login: false, permission: '', termRestriction: TR_OPEN},
         '/impersonate': {login: true, permission: 'admin_impersonate_grp', termRestriction: TR_CLOSED},
         '/debug': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED},
         '/debugtemp': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED},
@@ -288,7 +290,7 @@ function Permission(nl) {
         'nittio_support': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED}
     };
     
-    var openPages = {'/login_now': 1, '/logout_now': 1, 
+    var openPages = {'/login_now': 1, '/logout_now': 1,  '/pw_reset': 1,
                      '/welcome': 1};
     this.isOpenPage = function(pageUrl) {
         var page = (pageUrl == '') ? nl.location.path() : pageUrl;
