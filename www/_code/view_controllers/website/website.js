@@ -46,6 +46,10 @@ function(nl, $anchorScroll) {
 //-------------------------------------------------------------------------------------------------
 var WelcomeCtrl = ['nl', 'nlDlg', 'nlServerApi', 'nlRouter', '$scope', 'nlAnchorScroll',
 function(nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll) {
+    nl.window.location.href = '/';
+    /* 
+    // TODO-LATER: Remove all server code related to about-, wesite* and client code around website*
+    // Relook at apphome
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
             _updateWebsiteScope(nl, nlDlg, nlServerApi, nlRouter, nlAnchorScroll, userInfo);
@@ -53,6 +57,7 @@ function(nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll) {
         });
     };
     nlRouter.initContoller($scope, '', _onPageEnter);
+     */
 }];
 
 //-------------------------------------------------------------------------------------------------
