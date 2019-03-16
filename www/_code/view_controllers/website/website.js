@@ -46,7 +46,8 @@ function(nl, $anchorScroll) {
 //-------------------------------------------------------------------------------------------------
 var WelcomeCtrl = ['nl', 'nlDlg', 'nlServerApi', 'nlRouter', '$scope', 'nlAnchorScroll',
 function(nl, nlDlg, nlServerApi, nlRouter, $scope, nlAnchorScroll) {
-    nl.window.location.href = '/';
+    nl.window.location.href = '/home_redirect';
+    window.location.reload(true);
     /* 
     // TODO-LATER: Remove all server code related to about-, wesite* and client code around website*
     // Relook at apphome

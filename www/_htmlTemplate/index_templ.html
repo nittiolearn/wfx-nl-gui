@@ -1,3 +1,4 @@
+{{import mversion}}
 <!DOCTYPE html>
 <html ng-app='nl.app' ng-controller='nl.AppCtrl'>
     <head>
@@ -5,8 +6,8 @@
         <meta name='viewport' content='initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width'>
         <meta name="description" nl-bind-content='pgInfo.windowDescription'
               content="{{=metaDesc}}">
-        <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon">
-        <link rel="apple-touch-icon" href="/static/favicon.png">
+        <link rel="shortcut icon" href="/static/favicon.ico?v={{=mversion.versions['script']}}" type="image/x-icon">
+        <link rel="apple-touch-icon" href="/static/favicon.png?v={{=mversion.versions['script']}}">
         <title ng-bind='pgInfo.windowTitle'>Nittio Learn - {{=title}}</title>
 		
         <!-- build:nl_server_info -->
