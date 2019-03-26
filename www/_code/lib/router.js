@@ -93,7 +93,6 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state) {
     
     function _onPageEnter($scope, pageUrl, pageEnterFn, e) {
         windowDescription = '';
-        nl.pginfo.isWelcomePage = false;
         nl.pginfo.isPageShown = false;
         nl.pginfo.isPrintable = false;
         nl.pginfo.hidemenu = false;
@@ -118,7 +117,11 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state) {
                 return _done('/home');
             }
             if (!permission.checkLogin(userInfo, pagePerm)) {
-                if (nl.location.url() == '/home') return _done('/welcome#home');
+                if (nl.location.url() == '/home')  {
+                    nl.window.location.reload();
+                    // TODO-NOW nl.window.location.href = '/home_redirect'; // Server side URL
+                    return true;
+                }
                 nlDlg.popupStatus(nl.t('Please login to access this page'));
                 var nextUrl = nl.window.encodeURIComponent('/#' + nl.location.url());
                 return _done(nl.fmt2('/login_now?msg=auth_error&next={}', nextUrl));
@@ -181,7 +184,6 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state) {
         }
         
         var newUrl = rerouteToUrl || nl.location.url();
-        nl.pginfo.isWelcomePage = (newUrl.indexOf('/welcome') == 0);
         nl.pginfo.isPageShown = true;
         nl.pginfo.windowTitle = _getWindowTitle();
         nl.pginfo.windowDescription = windowDescription ? windowDescription : nl.pginfo.windowTitle;
@@ -230,7 +232,6 @@ function Permission(nl) {
         '/home': {login: true, permission: 'basic_access', termRestriction: TR_OPEN}, 
         '/error': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/home_refresh': {login: false, permission: '', termRestriction: TR_OPEN},
-        '/welcome': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/school': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/team': {login: false, permission: '', termRestriction: TR_OPEN}, 
         '/apphome': {login: false, permission: '', termRestriction: TR_OPEN}, 
