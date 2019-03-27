@@ -311,6 +311,7 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         self.deleteAssets = null;
         self.title = title;
         self.assets = [];
+        self.assetsDict = {};
         self.scos = [];
         self.actionsDone = 0;
         self.actionsMax = 0;
@@ -388,7 +389,8 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         var resource = resources.resource;
         if(!resource)
             return _err(reject, '<resource> element missing in <resources>');
-        _getResourcesFromXml(resource);
+        var files = resources.file || [];
+        _getResourcesFromXml(resource, files);
 
         var organizations = manifest.organizations;
         if(!organizations)
@@ -410,15 +412,22 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
     	return false;
     }
 
-    function _getResourcesFromXml(resources) {
+    function _addAsset(href) {
+        if (href in self.assetsDict) return;
+        self.assetsDict[href] = true;
+        self.assets.push({href: href});
+    }
+
+    function _getResourcesFromXml(resources, files) {
+        for(var j=0; j<files.length; j++) _addAsset(files[j]._href); // For not scorm 1.2 compliant content
         for(var i=0; i<resources.length; i++) {
             var res = resources[i];
-            if (res['_adlcp:scormtype'] == 'sco' && res._href)
+            if (res['_adlcp:scormtype'] == 'sco' && res._href) {
                 self.scos.push({href: res._href, id: res._identifier});
-            var files=res.file || [];
-            for(var j=0; j<files.length; j++) {
-                self.assets.push({href: files[j]._href});
+                if (self.zip.file(res._href)) _addAsset(res._href); // For not scorm 1.2 compliant content
             }
+            var files=res.file || [];
+            for(var j=0; j<files.length; j++) _addAsset(files[j]._href);
         }
     }
     
