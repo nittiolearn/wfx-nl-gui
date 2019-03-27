@@ -181,7 +181,6 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
 //-------------------------------------------------------------------------------------------------
 var ErrorCtrl = ['nl', 'nlRouter', '$scope',
 function(nl, nlRouter, $scope) {
-    nl.pginfo.isWelcomePage = false;
     nl.pginfo.isPageShown = true;
     nl.rootScope.bodyClass = 'showbody';
     var params = nl.location.search();
