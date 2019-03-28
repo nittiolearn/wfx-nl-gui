@@ -360,6 +360,7 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
         pl.debug('Parsing Xml file');
         var x2js = new X2JS({arrayAccessFormPaths : [
            "manifest.resources.resource",
+           "manifest.resources.file",
            "manifest.resources.resource.file",
            "manifest.organizations.organization",
            "manifest.organizations.organization.item"
