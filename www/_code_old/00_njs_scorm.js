@@ -160,7 +160,7 @@ function _updateScormPassScore(lessonDict) {
     var passScore =  lessonDict.passScore || 0;
     if (!maxScore || !passScore) return false;
     var score =  lessonDict.score || 0;
-    var perc = (score/maxScore)*100;
+    var perc = 100.0*score/maxScore;
     if (c == 'completed' || c == 'passed') {
         if (perc >= passScore) return false;
         lessonDict.selfLearningMode = true;
