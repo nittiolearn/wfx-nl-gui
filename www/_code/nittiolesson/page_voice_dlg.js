@@ -18,6 +18,7 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 	var _resourceDict = {};
 	var _isPollyEnabled = false;
 	var _defaultPollyVoice = 'en-IN_Aditi';
+	var _defaultFragment = 	null;
 	var _amazonPollyVoices = [
 		{id:'hi-IN_Aditi', name:'Hindi Female voice with bilingual Indian English: Aditi'},
 		{id:'en-IN_Aditi', name:'English (Indian accent) Female voice with bilingual with Hindi: Aditi'},
@@ -83,10 +84,11 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
         _isPollyEnabled = (oLesson.autoVoiceProvider == 'polly');
 	}
 
-	this.showAddVoiceDlg = function(oPage, restypes, resourceDict, lessonId) {
+	this.showAddVoiceDlg = function(oPage, restypes, resourceDict, templateDefaults, lessonId) {
 		_restypes = restypes;
 		_lessonId = lessonId;
 		_resourceDict = resourceDict;
+		_defaultFragment =  templateDefaults.pageVoice || {type: 'autovoice'};
 		return nl.q(function(resolve, reject) {
 			_showDlg(oPage, resolve);
 		});
@@ -223,7 +225,7 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 	}
 
 	function _addFragment(dlgScope, fragment) {
-		if (!fragment) fragment = {type: 'autovoice'};
+		if (!fragment) fragment = angular.copy(_defaultFragment);
 		var pollyVoiceTreeInfo = {data: _getPollyVoiceTree()};
 		var selectedIds = {};
 		if(fragment.type != 'audio') {
