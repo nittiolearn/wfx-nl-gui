@@ -754,7 +754,6 @@
 
 		function _updateCourselevelOrgSummary() {
 			var records = $scope.tabData.records;
-			console.log(records);
 			$scope.orgLevelSummaryArray = [];
 			for(var i=0; i<records.length; i++) {
 				var record = records[i];
