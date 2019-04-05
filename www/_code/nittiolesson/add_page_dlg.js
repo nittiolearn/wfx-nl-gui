@@ -81,11 +81,14 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 
         dlgScope.onSectionSelect = function(e, section) {
             if (!section) {
+                var t = e ? e.target.classList : null;
+                if (t && !t.contains('page_format_preview') && !t.contains('njsSlides')) return;
                 dlgScope.data.section = null;
                 return;
             }
-            if (e) e.stopImmediatePropagation();
-            if(e.shiftKey) {
+            var isRightClick = e && e.which === 3;
+            var isMulti = e && e.shiftKey && !isRightClick;
+            if(isMulti) {
                 if(!dlgScope.data.section) dlgScope.data.section = {};
                 if(section.pos in dlgScope.data.section) {
                     delete dlgScope.data.section[section.pos];
@@ -160,6 +163,83 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         nl.resizeHandler.onResize(function() {
             _updatePreviewPositions(dlgScope);
         });
+        _initContextMenus(dlgScope, cfg);
+    }
+
+    function _initContextMenus(dlgScope, cfg) {
+        if (!cfg.templateDefaults.canEditSections) return;
+        dlgScope.layoutSectionMenuOptions = [
+            {
+                html: _getMenuHtml('content_copy', 'Make a copy'),
+                enabled: true,
+                click: function ($itemScope, $event, modelValue, text, $li) {
+                    _duplicateSection(dlgScope);
+                }
+            },
+            // null, // Dividier
+            {
+                html: _getMenuHtml('remove_circle', 'Delete'),
+                enabled: true,
+                click: function ($itemScope, $event, modelValue, text, $li) {
+                    _deleteSection(dlgScope);
+                }
+            }
+        ];
+    }
+
+    function _getMenuHtml(icon, name) {
+        var fmtstr = '<a role="button" class="dropdown-item" style="display: flex; align-items: center; padding: 10px; cursor: pointer"><i class="icon material-icons">{}</i><span style="padding: 3px"></span><span>{}</span></a>';
+        return nl.fmt2(fmtstr, icon, name);
+    }
+    
+    function _duplicateSection(dlgScope) {
+        var pos = _getSelectedSectionPos(dlgScope);
+        if (pos < 0) return;
+        var newSec = angular.copy(dlgScope.sections[pos]);
+        _newPos(newSec, 't');
+        _newPos(newSec, 't1');
+        _newPos(newSec, 'l');
+        _newPos(newSec, 'l1');
+        _spliceSectionLayout(dlgScope, pos+1, 0, newSec);
+    }
+
+    function _deleteSection(dlgScope) {
+        var pos = _getSelectedSectionPos(dlgScope);
+        if (pos < 0) return;
+        _spliceSectionLayout(dlgScope, pos, 1);
+    }
+
+    function _getSelectedSectionPos(dlgScope) {
+        if (_isInteractivePage(dlgScope.sections)) {
+            nlDlg.popupAlert({title: 'Not allowed', template: 'You cannot add or delete sections in interactive pages'});
+            return -1;
+        }
+        var selectedSectionIds = dlgScope.data.section ? Object.keys(dlgScope.data.section) : [];
+        if (selectedSectionIds.length != 1) return -1;
+        return dlgScope.data.section[selectedSectionIds[0]].pos -1;
+    }
+        
+    var DELTA=5;
+    function _newPos(sec, startAttr, lenAttr) {
+        sec[startAttr] += (sec[startAttr] >=50 ? -1*DELTA : DELTA);
+    }
+
+    function _spliceSectionLayout(dlgScope, pos, deleteCount, insertItem) {
+        var sectionLayout = _layoutsFromBeautyString(dlgScope.data.sectionLayout);
+        if (deleteCount) sectionLayout.splice(pos, deleteCount);
+        else sectionLayout.splice(pos, deleteCount, insertItem);
+		_formSections(dlgScope, sectionLayout);
+        dlgScope.data.sectionLayout = _beautyStringifyLayouts(sectionLayout);
+        if (insertItem) insertItem = dlgScope.sections[pos];
+        dlgScope.onSectionSelect(null, insertItem);
+    }
+
+    function _isInteractivePage(sections) {
+        for(var i=0; i<sections.length; i++){
+            var section = sections[i];
+            if ('ans' in section || 'correct' in section) return true;
+        }
+        return false;
     }
 
     function _updatePreviewPositions(dlgScope) {
