@@ -1521,6 +1521,10 @@ nl-summary-box.small-summary-box {
   }
 }
 
+.nl-force-hide {
+  display: none !important;
+}
+
 .only-for-print {
   display: none;
 }
