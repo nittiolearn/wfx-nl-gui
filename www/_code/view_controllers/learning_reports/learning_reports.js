@@ -309,7 +309,7 @@
 				updated: false,
 				tables: []
 			},{
-				title : 'Click here to view courses progress',
+				title : 'Click here to view course-wise progress',
 				name: 'Courses',
 				icon : 'ion-ios-bookmarks',
 				id: 'orglevelsummary',
@@ -735,22 +735,6 @@
 				}
 			}
 		}
-
-		//TODO: Naveen Function is not called check it can be taken out
-		function _isFound(rec) {
-			var filter = $scope.selectedTable.search.filter.toLowerCase();
-			var recname = rec.repcontent.name.toLowerCase();
-			var username = rec.user.username.toLowerCase();
-			var email = rec.user.email;
-			var name = rec.user.name.toLowerCase();
-			var org_unit = rec.user.org_unit.toLowerCase();
-			if(recname.indexOf(filter) >= 0 || username.indexOf(filter) >= 0 || email.indexOf(filter) >= 0 || 
-				name.indexOf(filter) >= 0 || org_unit.indexOf(filter) >= 0) {
-					return true;
-			}
-			return false; 
-		}
-		//check till here
 
 		function _updateCourselevelOrgSummary() {
 			var records = $scope.tabData.records;
