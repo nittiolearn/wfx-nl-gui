@@ -48,8 +48,8 @@ function(nl, nlServerApi, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg,
         return nlResourceAddModifySrv.insertOrUpdateResource(nl.rootScope, 
             _moduleConfig.restypes, markupText, true, resourceList, resourceFilter, lessonId, card);
     };
-    this.showPageVoiceDlg = function(oPage, templateDict, lessonId) {
-    	return NittioLessonAddPageVoice.showAddVoiceDlg(oPage, _moduleConfig.restypes, templateDict, lessonId);
+    this.showPageVoiceDlg = function(oPage, templateDict, templateDefaults, lessonId) {
+    	return NittioLessonAddPageVoice.showAddVoiceDlg(oPage, _moduleConfig.restypes, templateDict, templateDefaults, lessonId);
     };
 }]; 
 

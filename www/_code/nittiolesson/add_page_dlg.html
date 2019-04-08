@@ -173,6 +173,7 @@ show-close='{{showClose}}'>
                                     <div class='{{data.bgshade}}'>
                                         <div ng-repeat='sec in sections track by sec.pos'
 										ng-mousedown='onSectionSelect($event, sec)'
+										context-menu="layoutSectionMenuOptions" model='' context-menu-class='popup {{layoutSectionMenuOptions ? "" : "nl-force-hide"}}'
                                         style='top: {{data.toolTab.attr == "mobPosition" ? sec.t1: sec.t}}%; left: {{data.toolTab.attr == "mobPosition" ? sec.l1 : sec.l}}%; height: {{data.toolTab.attr == "mobPosition" ? sec.h1 : sec.h}}%; width: {{data.toolTab.attr == "mobPosition" ? sec.w1 : sec.w}}%;'
                                         class='{{sec.style}} pgSec {{data.bgshade == "bglight" ? "page_format_preview_sec_dark" : "page_format_preview_sec_light"}} nl-link-text {{data.section[sec.pos] ? "page_format_preview_selected" : ""}}'>
 											<div class='secViewContent' style='height: 100%;'>

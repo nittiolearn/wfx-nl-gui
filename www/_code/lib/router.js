@@ -119,7 +119,6 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state) {
             if (!permission.checkLogin(userInfo, pagePerm)) {
                 if (nl.location.url() == '/home')  {
                     nl.window.location.reload();
-                    // TODO-NOW nl.window.location.href = '/home_redirect'; // Server side URL
                     return true;
                 }
                 nlDlg.popupStatus(nl.t('Please login to access this page'));

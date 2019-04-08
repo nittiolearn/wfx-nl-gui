@@ -32,7 +32,7 @@ var _nl = {
 function module_init() {
     _patchToIonicRightClickIssue();
     
-    var deps = ['ionic', 'nl.html_fragments', 'nl.lib', 'nl.lib_ui', 'nl.server_api', 
+    var deps = ['ionic', 'nl.html_fragments', 'nl.external_lib', 'nl.lib', 'nl.lib_ui', 'nl.server_api', 
     	'nl.view_controllers', 'nl.nittiolesson'];
     angular.module('nl.app', deps)
     .config(configFn)
