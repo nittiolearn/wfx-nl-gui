@@ -22,6 +22,10 @@ function(nl, nlDlg) {
     	cfg.mode = cfg.page ? 'changeformat' : 'addpage';
         return _dlg.show(cfg);
     };
+
+    this.getBgInfo = function(page, isPopup, modulebgimg, modulebgshade, pagetype) {
+        return _dlg.getBgInfo(page, isPopup, modulebgimg, modulebgshade, pagetype)
+    };
 }];
     
 //-------------------------------------------------------------------------------------------------
@@ -36,9 +40,13 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
             var dlg = nlDlg.create(parentScope);
             dlg.setCssClass('nl-height-max nl-width-max');
             _initDlgScope(dlg.scope, cfg);
-			_showDlg(dlg, resolve, cfg.page);
+			_showDlg(dlg, resolve);
 		});
-	};
+    };
+    
+    this.getBgInfo = function(page, isPopup, modulebgimg, modulebgshade, pagetype) {
+        return _getBgInfo(page, isPopup, modulebgimg, modulebgshade, pagetype);
+    };
 	
     function _initDlgScope(dlgScope, cfg) {
     	var page = cfg.page;
@@ -55,17 +63,8 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         dlgScope.options = {};
         dlgScope.help = _getHelp();
         _updatePreviewPositions(dlgScope);
-
-        if (page && page.oPage.bgimg) {
-            dlgScope.data.bgImg = page.oPage.bgimg;
-            dlgScope.data.bgshade = page.oPage.bgshade;
-        } else if (cfg.isPopup || cfg.mode != 'changeformat') {
-            dlgScope.data.bgImg = 'module_popup_img';
-            dlgScope.data.bgshade = 'bglight';
-        } else {
-        	dlgScope.data.bgImg = cfg.modulebgimg;
-            dlgScope.data.bgshade = cfg.modulebgshade;
-        }
+        dlgScope.bginfo = _getBgInfo(cfg.page, cfg.isPopup, cfg.modulebgimg, cfg.modulebgshade);
+        dlgScope.bginfos = _getLayoutToBgInfoDict(cfg.page, cfg.isPopup, cfg.modulebgimg, cfg.modulebgshade);
 
         var defPt = page ? page.pagetype.pt : _lastSelectedPageType;
         var defSectionLayout = page ? page.pagetype.layout : null;
@@ -83,26 +82,26 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
             if (!section) {
                 var t = e ? e.target.classList : null;
                 if (t && !t.contains('page_format_preview') && !t.contains('njsSlides')) return;
-                dlgScope.data.section = null;
+                dlgScope.data.selectedSections = null;
                 return;
             }
             var isRightClick = e && e.which === 3;
             var isMulti = e && e.shiftKey && !isRightClick;
             if(isMulti) {
-                if(!dlgScope.data.section) dlgScope.data.section = {};
-                if(section.pos in dlgScope.data.section) {
-                    delete dlgScope.data.section[section.pos];
-                    if(Object.keys(dlgScope.data.section).length == 0) 
-                        dlgScope.data.section = null;
+                if(!dlgScope.data.selectedSections) dlgScope.data.selectedSections = {};
+                if(section.pos in dlgScope.data.selectedSections) {
+                    delete dlgScope.data.selectedSections[section.pos];
+                    if(Object.keys(dlgScope.data.selectedSections).length == 0) 
+                        dlgScope.data.selectedSections = null;
                     return;
                 } else {
-                    dlgScope.data.section[section.pos] = section;
+                    dlgScope.data.selectedSections[section.pos] = section;
                 }
             } else {
-                dlgScope.data.section = {}
-                dlgScope.data.section[section.pos] = section;
+                dlgScope.data.selectedSections = {}
+                dlgScope.data.selectedSections[section.pos] = section;
             }
-            dlgScope.data.isMultiSectionSelected = Object.keys(dlgScope.data.section).length > 1;
+            dlgScope.data.isMultiSectionSelected = Object.keys(dlgScope.data.selectedSections).length > 1;
             if(dlgScope.data.isMultiSectionSelected && dlgScope.data.toolTab.attr != "style") {
                 dlgScope.data.toolTab.attr = "style";
                 _updatePreviewPositions(dlgScope);    
@@ -117,8 +116,8 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
                 dlgScope.data.defaultSection = {};
             }
             var commonSectionDict = {};
-            for(var key in dlgScope.data.section) {
-                _updateStyles(dlgScope, dlgScope.data.section[key], commonSectionDict);
+            for(var key in dlgScope.data.selectedSections) {
+                _updateStyles(dlgScope, dlgScope.data.selectedSections[key], commonSectionDict);
             }
         };
         
@@ -141,12 +140,14 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         };
 
         dlgScope.onChangePageType = function() {
-        	_cfg.mode = 'changelayout';
+            _cfg.mode = 'changelayout';
+            var myDlgInfo = _dlgInfo;
 			self.show(_cfg).then(function(result) {
+				_cfg.mode = 'changeformat';
+                _dlgInfo   = myDlgInfo;
 				if(!result) return;
 				_cfg.page.pagetype.pt = result;
 				_cfg.page.pagetype.layout = result.layout;
-				_cfg.mode = 'changeformat';
 				_initDlgScope(dlgScope, _cfg);	        	
 			});
 		};        
@@ -187,6 +188,39 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         ];
     }
 
+    function _getBgInfo(page, isPopup, modulebgimg, modulebgshade, pagetype) {
+        var bginfo = {imgtype: true};
+        var oPage = page ? page.oPage: null;
+        if (!pagetype) pagetype = page ? page.pagetype.getPt(): null;
+        if (oPage && oPage.bgimg) {
+            bginfo.bgimg = page.oPage.bgimg;
+            bginfo.bgshade = page.oPage.bgshade;
+            bginfo.imgtype = 'page_bg';
+        } else if (pagetype && pagetype.bgimg) {
+            bginfo.bgimg = pagetype.bgimg;
+            bginfo.bgshade = pagetype.bgshade;
+            bginfo.imgtype = 'page_template_bg';
+        } else if (isPopup) {
+            bginfo.bgimg = 'module_popup_img';
+            bginfo.bgshade = 'bglight';
+            bginfo.imgtype = 'default_popup_bg';
+        } else {
+        	bginfo.bgimg = modulebgimg;
+            bginfo.bgshade = modulebgshade;
+            bginfo.imgtype = 'default_module_bg';
+        }
+        return bginfo;
+    }
+
+    function _getLayoutToBgInfoDict(page, isPopup, modulebgimg, modulebgshade) {
+        var ret = {};
+        for(var ptid in ptInfo.ptMap) {
+            var pagetype = ptInfo.ptMap[ptid];
+            ret[ptid] = _getBgInfo(page, isPopup, modulebgimg, modulebgshade, pagetype);
+        }
+        return ret;
+    }
+
     function _getMenuHtml(icon, name) {
         var fmtstr = '<a role="button" class="dropdown-item" style="display: flex; align-items: center; padding: 10px; cursor: pointer"><i class="icon material-icons">{}</i><span style="padding: 3px"></span><span>{}</span></a>';
         return nl.fmt2(fmtstr, icon, name);
@@ -214,9 +248,9 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
             nlDlg.popupAlert({title: 'Not allowed', template: 'You cannot add or delete sections in interactive pages'});
             return -1;
         }
-        var selectedSectionIds = dlgScope.data.section ? Object.keys(dlgScope.data.section) : [];
+        var selectedSectionIds = dlgScope.data.selectedSections ? Object.keys(dlgScope.data.selectedSections) : [];
         if (selectedSectionIds.length != 1) return -1;
-        return dlgScope.data.section[selectedSectionIds[0]].pos -1;
+        return dlgScope.data.selectedSections[selectedSectionIds[0]].pos -1;
     }
         
     var DELTA=5;
@@ -252,49 +286,23 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         }
         dlgScope.previewPositions = {height: Math.round(h) + 'px', width: Math.round(w) + 'px'};
         
-        for(var key in dlgScope.data.section) {
-            var sec = dlgScope.data.section[key];
+        for(var key in dlgScope.data.selectedSections) {
+            var sec = dlgScope.data.selectedSections[key];
             if (!sec) return;
             var isMobile = dlgScope.data.toolTab.attr == "mobPosition";
             var t = (isMobile ? sec.t1 : sec.t);
             if (t < 0) t=0;
             var r = (isMobile ? sec.l1+sec.w1 : sec.l+sec.w);
             if (r > 100) r=100;
-            dlgScope.markerPositions = {top: (t-5) + '%', left: (r) + '%'};
         }
     }
 
-	function _showDlg(dlg, resolve, page) {
+    var _dlgInfo = null;
+	function _showDlg(dlg, resolve) {
+        _dlgInfo = {dlg: dlg, resolve: resolve};
         var okButton = {text: nl.t('OK'), onTap: function(e) {
             if (e) e.preventDefault();
-	        var sd = dlg.scope.data;
-	        if(!sd.layout) {
-	    		var msg = {title: 'Alert message', 
-	        			   template: 'Please select the page type.'};
-		        return nlDlg.popupAlert(msg).then(function(confirm) {
-	    		    if (!confirm) return;
-	    		});
-	        }
-        	if(dlg.scope.mode == 'addpage') {
-                _lastSelectedPageType = _layoutDict[sd.layout.id];
-	            resolve({pt:sd.layout.id, layout: _getLayouts(sd)});
-    		    dlg.close();
-    		    return;
-        	} else if(dlg.scope.mode == 'changelayout') {
-	    		var msg = {title: 'Please confirm', 
-	        			   template: 'Changing page type may result in loss of data. Do you want to proceed?'};
-		        nlDlg.popupConfirm(msg).then(function(confirm) {
-	    		    if (!confirm) return;
-	                _lastSelectedPageType = _layoutDict[sd.layout.id];
-		            resolve(sd.layout);
-	    		    dlg.close();
-	    		    return;
-				});
-        	} else {
-    		    _lastSelectedPageType = _layoutDict[sd.layout.id];
-    		    resolve({pt:sd.layout.id, layout: _getLayouts(sd)});
-    		    dlg.close();
-        	}
+            _onDlgOk();
         }};
 		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
 			resolve(false);
@@ -306,8 +314,8 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         var layout = _layoutsFromBeautyString(sd.sectionLayout);
         var oldLen = sd.layout.layout.length;
         for(var i=0; i<layout.length; i++) {
-        	if(i >= oldLen || !sd.layout.layout[i].content) continue;
-        	layout[i].content = sd.layout.layout[i].content;
+            if(i >= oldLen) continue;
+            _copyObjAttrsOfLayoutSection(sd.layout.layout[i], layout[i]);
         }
 		return layout;
 	}	
@@ -336,7 +344,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
     }
 
     function _onPtChange(dlgScope, defPt) {
-    	dlgScope.data.section = {};
+    	dlgScope.data.selectedSections = {};
     	var selectedPageType = defPt || {id: 'TITLE'};
         var layouts = _layouts[selectedPageType.interaction] || _layouts[selectedPageType.id];
         for(var i=0; i<dlgScope.options.pagetype.length; i++) {
@@ -377,7 +385,6 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         }
     }
 
-
     function _getLayoutSections(dlgScope, pagelayout) {
         var layout = [];
         for(var i=0; i<pagelayout.length; i++) {
@@ -389,11 +396,19 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
         return layout;
     }
 
+    var _layoutSelectedTime = (new Date()).getTime();
     function _onLayoutSelect(dlgScope, pt) {
-    	dlgScope.data.section = {};
+        var lastPt = dlgScope.data.layout;
+        var lastTime = _layoutSelectedTime;
+        _layoutSelectedTime = (new Date()).getTime();
+
+        dlgScope.data.selectedSections = {};
     	dlgScope.data.layout = pt;
         var layoutObj = pt.layout;
         dlgScope.data.sectionLayout = _beautyStringifyLayouts(layoutObj);
+        if (pt == lastPt && (_layoutSelectedTime - lastTime < 500)) {
+            _onDlgOk();
+        }
     }
 
     function _initStyleOptions(dlgScope, templateDefaults) {
@@ -576,8 +591,8 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
     }
     
     function _onSectionPropChange(dlgScope, attr) {
-        for(var key in dlgScope.data.section) {
-            var section = angular.copy(dlgScope.data.section[key]);
+        for(var key in dlgScope.data.selectedSections) {
+            var section = angular.copy(dlgScope.data.selectedSections[key]);
             _cleanupPositions(section);
     
             var vAlignTop = dlgScope.data.styles.vAlignTop;
@@ -587,7 +602,7 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
             else if (section.aligntype == 'content') section.aligntype = 'title';
             if (vAlignTop && hAlign == 'align-left') hAlign = '';
             if (!vAlignTop && hAlign == 'align-center') hAlign = '';
-            var styles = angular.copy(dlgScope.data.section[key].style);
+            var styles = angular.copy(dlgScope.data.selectedSections[key].style);
                 styles = styles ? styles.split(' ') : [];
                 section.style = '';
             if(dlgScope.options[attr] && (dlgScope.options[attr][0].id == 'multi')) dlgScope.options[attr].splice(0, 1);
@@ -608,10 +623,10 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
             }
             dlgScope.data.sectionLayout = _beautyStringifyLayouts(sectionLayout);
             if(dlgScope.data.isMultiSectionSelected) {
-                dlgScope.data.section[key] = section;
+                dlgScope.data.selectedSections[key] = section;
             } else {
                 dlgScope.data.defaultSection['style'] = section.style;
-                dlgScope.data.section[key] = dlgScope.data.defaultSection;
+                dlgScope.data.selectedSections[key] = dlgScope.data.defaultSection;
             }
             _onLayoutEditDone(dlgScope);
         }
@@ -639,6 +654,39 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
             if((style.indexOf('font-bold') == 0) && (attr != 'font-bold')) _appendToStyle(section, 'font-bold');
             if((style.indexOf('font-italic') == 0) && (attr != 'font-italic')) _appendToStyle(section, 'font-italic');
             if((style.indexOf('font-underline') == 0) && (attr != 'font-underline')) _appendToStyle(section, 'font-underline');    
+        }
+    }
+
+	function _onDlgOk() {
+        var dlg = _dlgInfo.dlg;
+        var resolve = _dlgInfo.resolve;
+        var sd = dlg.scope.data;
+        if(!sd.layout) {
+            var msg = {title: 'Alert message', 
+                        template: 'Please select the page type.'};
+            return nlDlg.popupAlert(msg).then(function(confirm) {
+                if (!confirm) return;
+            });
+        }
+        if(dlg.scope.mode == 'addpage') {
+            _lastSelectedPageType = _layoutDict[sd.layout.id];
+            resolve({pt:sd.layout.id, layout: _getLayouts(sd)});
+            dlg.close();
+            return;
+        } else if(dlg.scope.mode == 'changelayout') {
+            var msg = {title: 'Please confirm', 
+                        template: 'Changing page type may result in loss of data. Do you want to proceed?'};
+            nlDlg.popupConfirm(msg).then(function(confirm) {
+                if (!confirm) return;
+                _lastSelectedPageType = _layoutDict[sd.layout.id];
+                resolve(sd.layout);
+                dlg.close();
+                return;
+            });
+        } else {
+            _lastSelectedPageType = _layoutDict[sd.layout.id];
+            resolve({pt:sd.layout.id, layout: _getLayouts(sd)});
+            dlg.close();
         }
     }
 
@@ -675,8 +723,9 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 
 	var LAYOUT_ORDER = ['pos', 't', 'h', 'l', 'w'];
 	var LAYOUT_COLLEN = {'pos': 2, 't': 5, 'h': 5, 'l': 5, 'w': 5};
-	var LAYOUT_ORDER_OTHER = ['t1', 'h1', 'l1', 'w1', 'aligntype', 'style', 'fmtgroup', 'ans', 'correct', 'mode', 'content'];
-    var LAYOUT_ATTR_TYPE = {'t1': 'int', 'h1': 'int', 'l1': 'int', 'w1': 'int', 'content': 'object'};
+	var LAYOUT_ORDER_OTHER = ['t1', 'h1', 'l1', 'w1', 'aligntype', 'style', 'fmtgroup', 'ans', 'correct', 'mode', 'content', 'pginfo'];
+    var LAYOUT_ATTR_INT = {'t1': true, 'h1': true, 'l1': true, 'w1': true};
+    var LAYOUT_ATTR_OBJ = {'content': true, 'pginfo': true};
 	function _beautyStringifyLayout(secLayout, i) {
 		secLayout.pos = i+1;
 		var ret = '{';
@@ -692,8 +741,8 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 		for (var i in LAYOUT_ORDER_OTHER) {
 			var attr = LAYOUT_ORDER_OTHER[i];
 			if (!(attr in secLayout)) continue;
-			if (attr in LAYOUT_ATTR_TYPE && LAYOUT_ATTR_TYPE[attr] == 'object') continue;
-			var quote = (attr in LAYOUT_ATTR_TYPE && LAYOUT_ATTR_TYPE[attr] == 'int') ? '' : '"';
+			if (attr in LAYOUT_ATTR_OBJ) continue;
+			var quote = (attr in LAYOUT_ATTR_INT) ? '' : '"';
 			ret += ', "' + attr + '":' + quote + secLayout[attr] + quote;
 		}
 		for (var i in secLayout) {
@@ -704,6 +753,12 @@ function AddPageDlg(ptInfo, nl, nlDlg) {
 		delete secLayout.pos;
 		return ret + '}';
 	}
+
+    function _copyObjAttrsOfLayoutSection(src, dest) {
+        for(var attr in LAYOUT_ATTR_OBJ) {
+            if (attr in src) dest[attr] = src[attr];
+        }
+    }
 
 	function _fillLeadingBlanks(str, requiredLen) {
 		if (str.length >= requiredLen) return str;

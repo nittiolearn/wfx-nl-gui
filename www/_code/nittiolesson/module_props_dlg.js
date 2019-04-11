@@ -122,7 +122,6 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 			editDlg.setCssClass('nl-height-max nl-width-max');
 			_initEditDlg(editDlg);
 			var okButton = {text: doneButtonText, onTap: function(e) {
-				nlDlg.showLoadingScreen();
 				if(!_validateInputs(editDlg.scope)) {
 					if (e) e.preventDefault();
 					return;
@@ -130,7 +129,6 @@ function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResource
 				_lastStateOptional = editDlg.scope.data.showGroup.optional_attr;
 				_lastStateAdditional = editDlg.scope.data.showGroup.additional_attr;
 				_updateLessonObj(editDlg.scope.data);
-				nlDlg.hideLoadingScreen();
 				resolve({background: editDlg.scope.data.background, bgShade: editDlg.scope.data.bgShade});
 			}};
 			var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {

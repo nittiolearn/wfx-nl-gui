@@ -32,11 +32,6 @@
         border: 2px dotted blue;
     }
 
-    .page_format_marker {
-        position: absolute;
-        z-index: 1;
-    }
-
     .page_format_tb {
         width: 100%;
         overflow: auto;
@@ -106,14 +101,15 @@ show-close='{{showClose}}'>
 		                        <div class='nl-pagetype-preview-title text-center padding-mid fsh6'>{{layout.layoutName}}</div>
 							    <div class='row margin0 padding0'>
 							        <div class='col padding0'></div>
-			                        <div class='nl-pagetype-preview {{data.bgImg == "module_popup_img" ? "module_popup_img" : ""}}'
+			                        <div class='nl-pagetype-preview page_format_preview {{bginfos[layout.id].imgtype == "default_popup_bg" ? "module_popup_img" : ""}}'
 			                        	ng-click='onClick("layout", layout)'>
+										<img ng-if='bginfos[layout.id].imgtype != "default_popup_bg"' ng-src='{{bginfos[layout.id].bgimg}}' class='bgimg'>
 			                            <div class='page_format_preview2'>
 			                                <div class='njsSlides'>
-			                                    <div class='{{data.bgshade}}'>
+			                                    <div class='{{bginfos[layout.id].bgshade}}'>
 			                                        <div ng-repeat='sec in layout.layout track by sec.pos'
 			                                        style='top: {{sec.t}}%; left: {{sec.l}}%; height: {{sec.h}}%; width: {{sec.w}}%;'
-			                                        class='{{sec.style}} pgSec {{data.bgshade == "bglight" ? "page_format_preview_sec_dark" : "page_format_preview_sec_light"}}'>
+			                                        class='{{sec.style}} pgSec {{bginfos[layout.id].bgshade == "bglight" ? "page_format_preview_sec_dark" : "page_format_preview_sec_light"}}'>
 			                                            <div class='secViewContent' style='height: 100%;'>
 			                                                <div class='row {{sec.aligntype == "content" ? "row-top" : "row-center"}} margin0 padding0'
 			                                                     style='height:100%'>
@@ -122,8 +118,6 @@ show-close='{{showClose}}'>
 			                                        </div>
 			                                    </div>
 			                                </div>
-			                                <div ng-show='data.section' class='page_format_marker pgNoStyle'
-			                                     ng-style='markerPositions'>{{data.section.pos}}</div>
 			                            </div>
 			                        </div>
 			                        <div class='col padding0'></div>
@@ -163,19 +157,19 @@ show-close='{{showClose}}'>
 				<div ng-class='respCol221' class='padding-mid'>
 				    <div class='row margin0 padding0'>
 				        <div class='col padding0'></div>
-                        <div class='page_format_preview {{data.bgImg == "module_popup_img" ? "module_popup_img" : ""}}'
+                        <div class='page_format_preview {{bginfo.imgtype == "default_popup_bg" ? "module_popup_img" : ""}}'
                              ng-style='previewPositions'
                              ng-click='onSectionSelect($event, null)'>
-                            <img ng-show='data.bgImg != "module_popup_img"' ng-src='{{data.bgImg}}' class='bgimg'
+                            <img ng-if='bginfo.imgtype != "default_popup_bg"' ng-src='{{bginfo.bgimg}}' class='bgimg'
                                  style='{{(data.toolTab.attr == "mobPosition") ? "height:100%" : ""}}'>
                             <div class='page_format_preview2'>
                                 <div class='njsSlides'>
-                                    <div class='{{data.bgshade}}'>
+                                    <div class='{{bginfo.bgshade}}'>
                                         <div ng-repeat='sec in sections track by sec.pos'
 										ng-mousedown='onSectionSelect($event, sec)'
 										context-menu="layoutSectionMenuOptions" model='' context-menu-class='popup {{layoutSectionMenuOptions ? "" : "nl-force-hide"}}'
                                         style='top: {{data.toolTab.attr == "mobPosition" ? sec.t1: sec.t}}%; left: {{data.toolTab.attr == "mobPosition" ? sec.l1 : sec.l}}%; height: {{data.toolTab.attr == "mobPosition" ? sec.h1 : sec.h}}%; width: {{data.toolTab.attr == "mobPosition" ? sec.w1 : sec.w}}%;'
-                                        class='{{sec.style}} pgSec {{data.bgshade == "bglight" ? "page_format_preview_sec_dark" : "page_format_preview_sec_light"}} nl-link-text {{data.section[sec.pos] ? "page_format_preview_selected" : ""}}'>
+                                        class='{{sec.style}} pgSec {{bginfo.bgshade == "bglight" ? "page_format_preview_sec_dark" : "page_format_preview_sec_light"}} nl-link-text {{data.selectedSections[sec.pos] ? "page_format_preview_selected" : ""}}'>
 											<div class='secViewContent' style='height: 100%;'>
                                                 <div class='row {{sec.aligntype == "content" ? "row-top" : "row-center"}} margin0 padding0'
                                                      style='height:100%'>
@@ -183,22 +177,20 @@ show-close='{{showClose}}'>
                                                         <p>Sample</p>
                                                     </div>
                                                 </div>
-                                            </div>
+											</div>
                                         </div>
                                     </div>
                                 </div>
-                                <div ng-show='data.section[sec.pos]' class='page_format_marker pgNoStyle'
-                                     ng-style='markerPositions'>{{sec.pos}}</div>
                             </div>
                         </div>
                         <div class='col padding0'></div>
 				    </div>
 				</div>
 				<div ng-class='respCol221'>
-					<div ng-hide='data.section' class='padding fsh4'>
+					<div ng-hide='data.selectedSections' class='padding fsh4'>
 						Please click on a section to edit the properties of that section.
 					</div>
-					<div ng-show='data.section' 
+					<div ng-show='data.selectedSections' 
 						class='row row-wrap row-stretch margin0 padding0 text-center'>
 						<div class='col {{data.isMultiSectionSelected ? "col-100" : "col-33"}} padding-small {{(data.toolTab.attr == "style") ? "page_format_tab_selected" : "page_format_tab_not_selected"}} nl-link-text'
 							ng-click='changeTab("style")'>Styles</div>
@@ -208,7 +200,7 @@ show-close='{{showClose}}'>
 							ng-click='changeTab("mobPosition")'>Portrait</div>
 					</div>
 					<div class='padding-small'></div>
-					<div ng-show='data.section' class='padding0'>
+					<div ng-show='data.selectedSections' class='padding0'>
 						<div ng-show='data.toolTab.attr == "style"'>
 							<div class='row row-center padding0 margin0 nl-toolbar text-left page_format_tb'>
 								<span class='nl-toolbar-icon padding-small'

@@ -39,7 +39,10 @@ function(nl, nlServerApi, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg,
 	};
     this.showAddPageDlg = function(cfg) {
         return NittioLessonAddPageDlg.showDlg(cfg);
-    };
+	};
+    this.getBgInfo = function(page, isPopup, modulebgimg, modulebgshade, pagetype) {
+        return NittioLessonAddPageDlg.getBgInfo(page, isPopup, modulebgimg, modulebgshade, pagetype);
+	};
 	this.sendForReview = function(lessonId) {
 		return NittioLessonModuleReviewDlg.sendForReview(lessonId);
 	};
