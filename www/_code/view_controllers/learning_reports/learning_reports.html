@@ -57,7 +57,7 @@
         <!-- **************************************************************
             Left tabs
         ******************************************************************* -->
-        <div style='padding-right:0px''>
+        <div style='padding-right:0px'>
             <div ng-repeat='tb in tabData.tabs'
                 class='nl-link-text {{(tb.id == tabData.selectedTab.id) ? "nl-left-tab-selected" : "nl-left-tab"}}'>
                 <div class='padding-mid' 
@@ -197,7 +197,7 @@
 
             <!-- **************************************************************
                 Time Summary tab
-            ******************************************************************* -->
+            *******************************************************************-->
             <div ng-if='tabData.selectedTab.id == "timesummary"  && !tabData.processingOnging'
                  class='anim-enter1 flyfrom-l padding-mid'>
                 <div ng-repeat='timeSummaryChart in timeSummaryCharts'>
@@ -220,6 +220,39 @@
                     </div>
                 </div>
             </div>
+            <!-- **************************************************************
+                Courses tab
+            ******************************************************************* -->
+            <div ng-if='tabData.selectedTab.id == "orglevelsummary"  && !tabData.processingOnging'
+                class='anim-enter1 flyfrom-l padding-mid'>
+                <div class='margin0 padding0' ng-repeat='course in orgLevelSummaryArray'>
+                    <div class='row row-center margin0 padding0 fsh5 nl-bg-blue'>
+                        <div ng-class='resp2Col33'>{{course.name}}</div>
+                        <div ng-class='resp2Col67'>
+                            <div class='row row-center text-center margin0 padding0'>
+                                <div class='col'>{{course.assigned}}</div>
+                                <div class='col'>{{course.inactive}}</div>
+                                <div class='col'>{{course.active}}</div>
+                                <div class='col'>{{course.completed}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{course.completedPerc}}%)</span></div>
+                                <div class='col'>{{course.pending}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{course.pendingPerc}}%)</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row row-center margin0 padding0' ng-repeat='org in course.orgItems'>
+                        <div style='width:5px'></div>
+                        <div ng-class='resp2Col33'>{{org.orgunit}}</div>
+                        <div ng-class='resp2Col67'>
+                            <div class='row row-center text-center margin0 padding0'>
+                                <div class='col'>{{org.assigned}}</div>
+                                <div class='col'>{{org.inactive}}</div>
+                                <div class='col'>{{org.active}}</div>
+                                <div class='col'>{{org.completed}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{org.completedPerc}}%)</span></div>
+                                <div class='col'>{{org.pending}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{org.pendingPerc}}%)</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+             </div>
         </div>
     </div>
 </div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->

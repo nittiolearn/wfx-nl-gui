@@ -308,6 +308,13 @@
 				id: 'timesummary',
 				updated: false,
 				tables: []
+			},{
+				title : 'Click here to view course-wise progress',
+				name: 'Courses',
+				icon : 'ion-ios-bookmarks',
+				id: 'orglevelsummary',
+				updated: false,
+				tables: []
 			}]};
 			ret.search = '';
 			ret.lastSeached = '';
@@ -376,6 +383,8 @@
 				nlTable.updateTableObject($scope.otable, tabData.summaryStats);
 			} else if (tab.id == 'timesummary') {
 				_updateTimeSummaryTab();
+			} else if(tab.id == 'orglevelsummary') {
+				_updateCourselevelOrgSummary();
 			}
 		}
 
@@ -573,7 +582,8 @@
 					labels: [],
 					series: ['S1'],
 					colors: ['#3366ff']
-				}]
+				}],
+			$scope.orgLevelSummaryArray = [];
 		}
 		
 		function _updateOverviewTab(summaryRecord) {
@@ -726,19 +736,86 @@
 			}
 		}
 
-		function _isFound(rec) {
-			var filter = $scope.selectedTable.search.filter.toLowerCase();
-			var recname = rec.repcontent.name.toLowerCase();
-			var username = rec.user.username.toLowerCase();
-			var email = rec.user.email;
-			var name = rec.user.name.toLowerCase();
-			var org_unit = rec.user.org_unit.toLowerCase();
-			if(recname.indexOf(filter) >= 0 || username.indexOf(filter) >= 0 || email.indexOf(filter) >= 0 || 
-				name.indexOf(filter) >= 0 || org_unit.indexOf(filter) >= 0) {
-					return true;
+		function _updateCourselevelOrgSummary() {
+			var records = $scope.tabData.records;
+			$scope.orgLevelSummaryArray = [];
+			for(var i=0; i<records.length; i++) {
+				var record = records[i];
+				var assignFound = false;
+				for(var j=0; j<$scope.orgLevelSummaryArray.length; j++) {
+					var assignRec = $scope.orgLevelSummaryArray[j];
+					if(assignRec.courseid != record.repcontent.courseid) continue;
+					assignFound = true;
+					assignRec['assigned'] += 1;
+					if(record.user.state == 0) {
+						assignRec['inactive'] += 1;
+					} else {
+						assignRec['active'] += 1;
+						assignRec['completed'] += record.raw_record.completed ? 1 : 0;
+						assignRec['pending'] += record.raw_record.completed ? 0 : 1
+						assignRec['completedPerc'] = Math.round(assignRec['completed']*100/assignRec['active']);
+						assignRec['pendingPerc'] = Math.round(assignRec['pending']*100/assignRec['active']);
+					}
+					break;
+				}
+				if(!assignFound) {
+					var item = {name: record.repcontent.name, assigned: 1, courseid: record.repcontent.courseid, completed: 0, pending: 0, inactive: 0, active: 0, orgItems: [], completedPerc: 0};
+					if(record.user.state == 0) {
+						item['inactive'] = 1;
+					} else {
+						item['active'] = 1;
+						item['completed'] = record.raw_record.completed ? 1 : 0;
+						item['pending'] = record.raw_record.completed ? 0 : 1;
+						item['completedPerc'] = Math.round(item['completed']*100/item['active']);
+						item['pendingPerc'] = Math.round(item['pending']*100/item['active']);
+					}
+					$scope.orgLevelSummaryArray.push(item);
+					_updateCourseOrgLevel(record);
+				} else {
+					_updateCourseOrgLevel(record);
+				}
 			}
-			return false; 
 		}
+
+		function _updateCourseOrgLevel(record) {
+			for(var i=0; i<$scope.orgLevelSummaryArray.length; i++) {
+				var orgRec = $scope.orgLevelSummaryArray[i]
+				if (orgRec.courseid == record.repcontent.courseid) {
+					var orgFound = false;
+					for(var j=0; j<orgRec.orgItems.length; j++) {
+						var orgItem = orgRec.orgItems[j];
+						if(orgItem.orgunit == record.user.org_unit) {
+							orgFound = true;
+							orgItem['assigned'] += 1;
+							if(record.user.state == 0) {
+								orgItem['inactive'] += 1;
+							} else {
+								orgItem['active'] += 1;
+								orgItem['completed'] += record.raw_record.completed ? 1 : 0;
+								orgItem['pending'] += record.raw_record.completed ? 0 : 1;
+								orgItem['completedPerc'] = Math.round(orgItem['completed']*100/orgItem['active']);
+								orgItem['pendingPerc'] = Math.round(orgItem['pending']*100/orgItem['active']);
+							}
+							break;
+						}
+					}
+					if(!orgFound) {
+						var item = {orgunit: record.user.org_unit, assigned: 1, completed: 0, pending: 0, inactive: 0, active: 0, completedPerc: 0};
+
+						if(record.user.state == 0) {
+							item['inactive'] = 1;
+						} else {
+							item['active'] = 1;
+							item['completed'] = record.raw_record.completed ? 1 : 0;
+							item['pending'] = record.raw_record.completed ? 0 : 1;
+							item['completedPerc'] = Math.round(item['completed']*100/item['active'])
+							item['pendingPerc'] = Math.round(item['pending']*100/item['active']);
+						}
+						orgRec.orgItems.push(item);
+					}
+				}
+			}
+		};
 
 		function _onExport() {
 			if (nlLrFetcher.fetchInProgress()) return;
