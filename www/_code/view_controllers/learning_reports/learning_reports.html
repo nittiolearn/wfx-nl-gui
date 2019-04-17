@@ -1,58 +1,69 @@
-<div class='nl-thin-scroll padding-small' style='position:absolute; width: 100%; height: 100%'>
+<style>
+.minw-number{
+    width: 120px;
+    min-width: 120px;
+}
+
+.minw-name{
+    min-width: 300px;
+}
+</style>
+<div class='nl-learning-report-body padding-small nl-thin-scroll' style='position:absolute; width: 100%; height: 100%'>
 <div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
  
     <!-- **************************************************************
          Tool bar and title
     ******************************************************************* -->
-    <div class='row row-center margin0 padding0'
-         style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
-        <div class='col text-center fsh6 padding-mid' style='height: 36px; overflow: hidden'>
-            <span ng-show='filterStr && screenSize != "small"'>{{filterStr}}</span>
-            <span ng-show='fetchInProgress' class='forange fsh6 anim fade'
-                title='Fetching the data from server. Please wait ...'>
-                <i class="icon ion-alert-circled padding-mid"></i>
-                <span class='padding-mid'>Fetching</span>
-            </span>
-            <span ng-show='!fetchInProgress && noDataFound' class='forange fsh6 padding-mid anim fade'
-                title='Please select the time range to fetch the reports'>
-                <i class="icon ion-alert-circled padding-mid"></i>
-                <span class='padding-mid'>Select the time range.</span>
-            </span>    
-            <span ng-show='!fetchInProgress && canFetchMore' class='forange fsh6 margin0 padding-mid anim fade'
-                title="Not all records are fetched from the server. Click on 'Fetch more' toolbar icon to fetch more records.">
-                <i class="icon ion-alert-circled padding-mid"></i>
-                <span class='padding-mid'>More available.</span>
+    <div class='nl-topsection'>
+        <div class='row row-center margin0 padding0'
+            style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
+            <div class='col text-center fsh6 padding-mid' style='height: 36px; overflow: hidden'>
+                <span ng-show='filterStr && screenSize != "small"'>{{filterStr}}</span>
+                <span ng-show='fetchInProgress' class='forange fsh6 anim fade'
+                    title='Fetching the data from server. Please wait ...'>
+                    <i class="icon ion-alert-circled padding-mid"></i>
+                    <span class='padding-mid'>Fetching</span>
+                </span>
+                <span ng-show='!fetchInProgress && noDataFound' class='forange fsh6 padding-mid anim fade'
+                    title='Please select the time range to fetch the reports'>
+                    <i class="icon ion-alert-circled padding-mid"></i>
+                    <span class='padding-mid'>Select the time range.</span>
+                </span>    
+                <span ng-show='!fetchInProgress && canFetchMore' class='forange fsh6 margin0 padding-mid anim fade'
+                    title="Not all records are fetched from the server. Click on 'Fetch more' toolbar icon to fetch more records.">
+                    <i class="icon ion-alert-circled padding-mid"></i>
+                    <span class='padding-mid'>More available.</span>
+                </span>
+            </div>
+            <span ng-repeat='tb in toolbar'
+                title='{{tb.title}}'
+                class='nl-toolbar-icon'
+                ng-show='canShowToolbarIcon(tb.id)'
+                ng-click='tb.onClick()'>
+                <i class="icon {{tb.icon}}"></i>
             </span>
         </div>
-        <span ng-repeat='tb in toolbar'
-              title='{{tb.title}}'
-              class='nl-toolbar-icon'
-              ng-show='canShowToolbarIcon(tb.id)'
-              ng-click='tb.onClick()'>
-            <i class="icon {{tb.icon}}"></i>
-        </span>
-    </div>
-    <div class='padding-small'></div>
-    <div ng-show='filterStr && screenSize == "small"' class='fsh6 padding-mid anim fade'>
-        {{filterStr}} 
-    </div>    
+        <div class='padding-small'></div>
+        <div ng-show='filterStr && screenSize == "small"' class='fsh6 padding-mid anim fade'>
+            {{filterStr}} 
+        </div>    
 
-    <!-- **************************************************************
-         Search box
-    ******************************************************************* -->
-    <div>
-        <div class='row row-center padding0 margin0'>
-            <input class='col padding-mid' ng-model='tabData.search'
-                placeholder='{{tabData.searchPlaceholder}}'
-                ng-keydown='tabData.onSearch($event)'>
-            <div class='padding-small'></div>
-            <i class='nl-link-text icon fsh4 fblue padding-mid ion-ios-search'
-                ng-click='tabData.onSearch(null)'>
-            </i>
+        <!-- **************************************************************
+            Search box
+        ******************************************************************* -->
+        <div>
+            <div class='row row-center padding0 margin0'>
+                <input class='col padding-mid' ng-model='tabData.search'
+                    placeholder='{{tabData.searchPlaceholder}}'
+                    ng-keydown='tabData.onSearch($event)'>
+                <div class='padding-small'></div>
+                <i class='nl-link-text icon fsh4 fblue padding-mid ion-ios-search'
+                    ng-click='tabData.onSearch(null)'>
+                </i>
+            </div>
         </div>
     </div>
     <div class='padding-small'></div>
-
     <div class='row row-top row-stretch padding0 margin0 ' style='border-top: 1px solid #CCCCDD'>
         <!-- **************************************************************
             Left tabs
@@ -74,13 +85,13 @@
         <!-- **************************************************************
             Content area
         ******************************************************************* -->
-        <div class='col nl-left-tabbed-content sandbox padding0'>
+        <div class='col nl-left-tabbed-content sandbox padding0' style='overflow: auto; height: {{getContTabHeight($event)}}px'>
             <!-- **************************************************************
                 Overview tab
             ******************************************************************* -->
             <div  ng-if='tabData.nothingToDisplay'
-                  class='anim-enter fade fsh5 padding'>
-                  No data is available to display.
+                class='anim-enter fade fsh5 padding'>
+                No data is available to display.
             </div>
             <!-- **************************************************************
                 Overview tab
@@ -183,7 +194,7 @@
                 Learning records tab
             ******************************************************************* -->
             <div ng-if='tabData.selectedTab.id == "learningrecords" && !tabData.processingOnging'
-                 class='anim-enter1 flyfrom-l padding-mid'>
+                class='anim-enter1 flyfrom-l padding-mid'>
                 <nl-table info='utable'></table>
             </div>
 
@@ -191,7 +202,7 @@
                 Org tab
             ******************************************************************* -->
             <div ng-if='tabData.selectedTab.id == "organisations" && !tabData.processingOnging'
-                 class='anim-enter1 flyfrom-l padding-mid'>
+                class='anim-enter1 flyfrom-l padding-mid'>
                 <nl-table info='otable'></nl-table>
             </div>
 
@@ -199,7 +210,7 @@
                 Time Summary tab
             *******************************************************************-->
             <div ng-if='tabData.selectedTab.id == "timesummary"  && !tabData.processingOnging'
-                 class='anim-enter1 flyfrom-l padding-mid'>
+                class='anim-enter1 flyfrom-l padding-mid'>
                 <div ng-repeat='timeSummaryChart in timeSummaryCharts'>
                     <div class='padding-small'></div>
                     <div class='fsh5 padding-mid'>{{timeSummaryChart.title}}</div>
@@ -223,36 +234,88 @@
             <!-- **************************************************************
                 Courses tab
             ******************************************************************* -->
-            <div ng-if='tabData.selectedTab.id == "orglevelsummary"  && !tabData.processingOnging'
-                class='anim-enter1 flyfrom-l padding-mid'>
-                <div class='margin0 padding0' ng-repeat='course in orgLevelSummaryArray'>
-                    <div class='row row-center margin0 padding0 fsh5 nl-bg-blue'>
-                        <div ng-class='resp2Col33'>{{course.name}}</div>
-                        <div ng-class='resp2Col67'>
-                            <div class='row row-center text-center margin0 padding0'>
-                                <div class='col'>{{course.assigned}}</div>
-                                <div class='col'>{{course.inactive}}</div>
-                                <div class='col'>{{course.active}}</div>
-                                <div class='col'>{{course.completed}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{course.completedPerc}}%)</span></div>
-                                <div class='col'>{{course.pending}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{course.pendingPerc}}%)</span></div>
+            <div ng-if='debug && tabData.selectedTab.id == "orglevelsummary"  && !tabData.processingOnging'
+                class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
+                <div class='margin0 padding0' style='padding-bottom: 3px; width'>
+                    <div class='row row-center margin0 padding-small' style='background-color: #0083AC; color: #ffffff'>
+                        <div class='col minw-name'><b>Course or org name</b></div>
+                        <div class='minw-number text-center'><b>Active Assignments</b></div>
+                        <div ng-show='screenSize != "small"' class='minw-number text-center'><b>Certified</b></div>
+                        <div ng-show='screenSize != "small"' class='minw-number text-center'><b>Failed</b></div>
+                        <div class='minw-number text-center'><b>Pending</b></div>
+                        <div ng-show='screenSize != "small"' class='minw-number text-center'><b>Average Score</b></div>
+                        <div ng-show='screenSize != "small"' class='minw-number text-center'><b>Total Time Spent (mins)</b></div>
+                    </div>
+                </div>
+                <div class='margin0 padding0 anim-enter1 flyfrom-l' ng-repeat='course in orgLevelSummaryArray' style='padding-bottom: 3px'>
+                    <div class='row row-center nl-bg-blue nl-link-text padding-small'
+                        ng-click='course.showChildren = !course.showChildren'>
+                        <div class='col minw-name'>
+                            <div class='row row-center magin0 padding0'>
+                                <span class='padding-small'>
+                                    <i ng-hide='course.showChildren' class="icon ion-arrow-right-b bold fsh5"></i>
+                                    <i ng-show='course.showChildren' class="icon ion-arrow-down-b bold fsh5"></i>
+                                </span>
+                                <div class='col'>{{course.name}}</div>
+                                <span ng-click='onDetailsClick($event, course); $event.stopImmediatePropagation()' class='nl-link-img'>
+                                    <i class="padding-mid icon ion-more fsh3"></i>
+                                </span> 
                             </div>
                         </div>
+                        <div class='minw-number text-center'>{{course.active}}</div>
+                        <div ng-show='screenSize != "small"' class='minw-number text-center'>{{course.certified}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{course.certifiedPerc}}%)</span></div>
+                        <div ng-show='screenSize != "small"' class='minw-number text-center'>{{course.failed}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{course.failedPerc}}%)</span></div>
+                        <div class='minw-number text-center'>{{course.pending}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{course.pendingPerc}}%)</span></div>
+                        <div ng-show='screenSize != "small"' class='minw-number text-center'>{{getAvgScore(course)}}%</div>
+                        <div ng-show='screenSize != "small"' class='minw-number text-center'>{{getTimeSpentInMins(course)}}</div>
                     </div>
-                    <div class='row row-center margin0 padding0' ng-repeat='org in course.orgItems'>
-                        <div style='width:5px'></div>
-                        <div ng-class='resp2Col33'>{{org.orgunit}}</div>
-                        <div ng-class='resp2Col67'>
-                            <div class='row row-center text-center margin0 padding0'>
-                                <div class='col'>{{org.assigned}}</div>
-                                <div class='col'>{{org.inactive}}</div>
-                                <div class='col'>{{org.active}}</div>
-                                <div class='col'>{{org.completed}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{org.completedPerc}}%)</span></div>
-                                <div class='col'>{{org.pending}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{org.pendingPerc}}%)</span></div>
+                    <div class='padding0 margin0 anim-enter1 flyfrom-l' ng-repeat='org in course.orgItems' ng-show='course.showChildren'>
+                        <div class='row row-center {{org.ouItems ? "nl-link-text" : ""}} padding-small' ng-click='org.ouOpen = !org.ouOpen'>
+                            <div class='col minw-name '>
+                                <div class='row row-center magin0 padding0'>
+                                    <div style='padding:8px; width: 12px'></div>
+                                    <span ng-show='org.ouItems' class='padding-small'>
+                                        <i ng-hide='org.ouOpen' class="icon ion-arrow-right-b bold fsh5"></i>
+                                        <i ng-show='org.ouOpen' class="icon ion-arrow-down-b bold fsh5"></i>
+                                    </span>
+                                    <div class='col'>{{org.name}}</div>
+                                    <span ng-click='onDetailsClick($event, org); $event.stopImmediatePropagation()' class='nl-link-img'>
+                                        <i class="padding-mid icon ion-more fsh3"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class='minw-number text-center'>{{org.active}}</div>
+                            <div ng-show='screenSize != "small"' class='minw-number text-center'>{{org.certified}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{org.certifiedPerc}}%)</span></div>
+                            <div ng-show='screenSize != "small"' class='minw-number text-center'>{{org.failed}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{org.failedPerc}}%)</span></div>
+                            <div class='minw-number text-center'>{{org.pending}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{org.pendingPerc}}%)</span></div>
+                            <div ng-show='screenSize != "small"' class='minw-number text-center'>{{getAvgScore(org)}}%</div>
+                            <div ng-show='screenSize != "small"' class='minw-number text-center'>{{getTimeSpentInMins(org)}}</div>
+                        </div>
+                        <div class='padding0 margin0' ng-show='org.ouItems && org.ouOpen' ng-repeat='ou in org.ouItems'>
+                            <div class='row row-center padding-small' style='color:#000077'>
+                                <div class='col minw-name '>
+                                    <div class='row row-center magin0 padding0'>
+                                        <div style='padding:8px; width: 32px'></div>
+                                        <span class='padding-small'>
+                                            <i class="icon ion-person-stalker bold fsh5"></i>
+                                        </span>
+                                        <div class='col'>{{ou.name}}</div>
+                                        <span ng-click='onDetailsClick($event, ou); $event.stopImmediatePropagation()' class='nl-link-img'>
+                                            <i class="padding-mid icon ion-more fsh3"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class='minw-number text-center'>{{ou.active}}</div>
+                                <div ng-show='screenSize != "small"' class='minw-number text-center'>{{ou.certified}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{ou.certifiedPerc}}%)</span></div>
+                                <div ng-show='screenSize != "small"' class='minw-number text-center'>{{ou.failed}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{ou.failedPerc}}%)</span></div>
+                                <div class='minw-number text-center'>{{ou.pending}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{ou.pendingPerc}}%)</span></div>
+                                <div ng-show='screenSize != "small"' class='minw-number text-center'>{{getAvgScore(ou)}}%</div>
+                                <div ng-show='screenSize != "small"' class='minw-number text-center'>{{getTimeSpentInMins(ou)}}</div>
                             </div>
                         </div>
                     </div>
                 </div>
-             </div>
+            </div>
         </div>
     </div>
 </div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
