@@ -20,6 +20,8 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
     };
     
     var _groupInfos = {};
+    var _suborgTree = {};
+    var _isSuborgEnabled = false;
     this.init = function(reload, grpid, clean, max) {
 	    var urlParams = nl.location.search();
     	return nlGroupCache.get(reload, grpid, max).then(function(result) {
@@ -127,6 +129,61 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
         ret.getUtStr = function() { return _getUtStr(ret.usertype, grpid);};
         return ret;
     };
+
+
+    this.getSuborgStructure = function() {
+        if(Object.keys(_suborgTree).length > 0) return _suborgTree;        
+        _suborgTree = {'Others': {}};
+        _isSuborgEnabled = false;
+        var groupinfo = _groupInfos['']; 
+        for(var i=0; i<groupinfo.outree.length; i++) {
+            var ou = groupinfo.outree[i];
+            if(!(('suborg' in ou) || ('children' in ou))) {
+                _suborgTree.Others[ou.id] = true;
+                continue;
+            } else if ('suborg' in ou) {
+                _isSuborgEnabled = true;
+                if(ou['suborg'] == 1) {
+                    _suborgTree[ou.id]  = true;
+                } else if(ou['suborg'] == 2) {
+                    _addSuborgUnderParent(ou);
+                }
+            } else if ('children' in ou) {
+                _findSuborgInChildren(ou);
+            }
+        }
+        return _suborgTree;
+    }
+
+    function _findSuborgInChildren(child) {
+        for(var i=0; i<child.children.length; i++) {
+            var ou = child.children[i];
+            if(!(('suborg' in ou) || ('children' in ou))) {
+                _suborgTree.Others[ou.id] = true;
+                continue;
+            } else if('suborg' in ou) {
+                _isSuborgEnabled = true;
+                if(ou['suborg'] == 1) {
+                    _suborgTree[ou.id]  = true;
+                } else if(ou['suborg'] == 2) {
+                    _addSuborgUnderParent(ou);
+                }
+            } else if ('children' in ou) {
+                _findSuborgInChildren(ou);
+            }
+        }
+    }
+
+    function _addSuborgUnderParent(child) {
+        for(var i=0; i<child.children.length; i++) {
+            var ou = child.children[i]
+            _suborgTree[ou.id] = true;
+        }
+    }
+    
+    this.isSuborgEnabled = function() {
+        return _isSuborgEnabled;
+    }
 
     this.getUtStrToInt = function(utStr, grpid) {
         var tn = self.get(grpid).derived.typeNameToUt;
