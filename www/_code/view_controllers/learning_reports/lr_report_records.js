@@ -365,7 +365,13 @@
 
             report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
             report.urlTitle = nl.t('View report');
-            stats.status = nlLrHelper.statusInfos[_getStatusId(stats, started)];
+            var moduleLen = course.content.modules.length;
+            var lastItem = course.content.modules[moduleLen - 1];
+            if(lastItem.type == 'certificate' && _isConditionMet(lastItem, repcontent)) {
+                stats.status = nlLrHelper.statusInfos[nlLrHelper.STATUS_CERTIFIED];
+            } else {
+                stats.status = nlLrHelper.statusInfos[_getStatusId(stats, started)];                
+            }
             var ret = {raw_record: report, repcontent: repcontent, course: course, user: user,
                 usermd: nlLrHelper.getMetadataDict(user), stats: stats,
                 created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
@@ -376,6 +382,39 @@
             return ret;
         }
     
+        function _isConditionMet(lastItem, repcontent) {
+            var prereqs = lastItem.start_after || [];
+            var lessonReports = repcontent.lessonReports || {};
+            var statusinfo = repcontent.statusinfo || {};
+            if(prereqs.length == 0) return true;
+            for(var i=0; i<prereqs.length; i++) {
+                var p = prereqs[i];
+                var cmid = p.module;
+                var prereqScore = null;
+                if (cmid in lessonReports && lessonReports[cmid].completed) {
+                    var lessonReport = lessonReports[cmid];
+                    var scores = _getScores(lessonReport, true);
+                    prereqScore = scores.maxScore > 0 ? Math.round((scores.score/scores.maxScore)*100) : 100;
+                } else if (cmid in statusinfo && statusinfo[cmid].status == 'done') {
+                    prereqScore = 100;
+                }
+                if (prereqScore === null) return false;
+                var limitMin = p.min_score || null;
+                var limitMax = p.max_score || null;
+                if (limitMin && prereqScore < limitMin) return false;
+                if (limitMax && prereqScore > limitMax) return false;
+            }
+            return true;
+        }
+
+        function _getScores(lessonReport, defaultZero) {
+            var ret = {};
+            var sl = lessonReport.selfLearningMode;
+            if (defaultZero || 'maxScore' in lessonReport) ret.maxScore = parseInt(sl ? 0 : lessonReport.maxScore||0);
+            if (defaultZero || 'score' in lessonReport) ret.score = parseInt(sl ? 0 : lessonReport.score||0);
+            return ret;
+        }
+        
         function _getMaxScoredReport(rep, pastLessonReport) {
             var maxScoredReport = rep;
             var totalTimeSpent = 'timeSpentSeconds' in  rep ? rep['timeSpentSeconds'] : 0;
