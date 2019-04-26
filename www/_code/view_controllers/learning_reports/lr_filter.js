@@ -26,6 +26,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 		title: null,		// Title for the page
 		showfilters: true,	// Should the initial fetch filter dialog be shown
 		showfilterjson: false, // Should json for additional filters be shown
+		debug: false //only for testing in debug mode
 	};
 	var _data = null;
 	
@@ -35,7 +36,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 		_fillAttrs(_data, ['type'], [settings, urlParams, _dataDefaults]);
         if (!_oneOf(_data.type, ['all', 'module', 'course', 'training_kind', 'module_assign', 'course_assign', 'training_batch']))
         	_data.type = 'course'; // TODO-LATER: should be 'all'
-        _fillAttrs(_data, ['timestamptype', 'assignor', 'parentonly', 'objid', 'title', 'showfilters', 'showfilterjson'], 
+        _fillAttrs(_data, ['timestamptype', 'assignor', 'parentonly', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug'], 
         	[settings, urlParams, _dataDefaults]);
         if (_oneOf(_data.type, ['module_assign', 'course_assign', 'training_batch']))
         	_data.showfilters = false;
@@ -43,6 +44,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
         _toBool(_data, 'parentonly');
         _toInt(_data, 'objid');
         _toBool(_data, 'showfilters');
+        _toBool(_data, 'debug');
         if (!nlRouter.isPermitted(userInfo, 'assignment_manage')) _data.assignor = 'me';
     	_initDates();
     };
@@ -60,7 +62,11 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 	
     this.getType = function() {
     	return _data.type;
-    };
+	};
+	
+	this.isDebugMode = function() {
+    	return _data.debug;
+	}
     
     this.getObjectId = function() {
     	return _data.objid;

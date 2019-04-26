@@ -111,6 +111,7 @@
 		}
 	
 		function _initScope() {
+			$scope.debug = nlLrFilter.isDebugMode();
 			$scope.toolbar = _getToolbar();
 			$scope.learningRecords = nlLrReportRecords.getRecords();
 			$scope.metaHeaders = nlLrHelper.getMetaHeaders(true);
@@ -268,6 +269,40 @@
 			nl.window.resize();
 		}
 		
+		$scope.getAvgScore = function(item) {
+			if(!item.completed || !item.scorePerc) return 0;
+			return Math.round(item.scorePerc/(item.completed));
+		};
+
+		$scope.getTimeSpentInMins = function(item) {
+			return Math.round(item.timeSpent/60);
+		};
+
+		$scope.checkOverflow = function() {
+			var document = nl.window.document;
+			var element = document.getElementsByClassName("nl-left-tabbed-content");
+			var isOverflowing = element[0].clientWidth < element[0].scrollWidth;
+			return isOverflowing;
+		}
+		$scope.getContTabHeight = function() {
+			var document = nl.window.document;
+			var bodyElement = document.getElementsByClassName("nl-learning-report-body")
+			var topElem = document.getElementsByClassName("nl-topsection");
+			return (bodyElement[0].clientHeight - topElem[0].clientHeight-18);
+		}
+
+		$scope.onDetailsClick = function(event, item) {		
+			var detailsDlg = nlDlg.create($scope);
+			detailsDlg.setCssClass('nl-heigth-max nl-width-max');
+			detailsDlg.scope.item = item;
+			detailsDlg.scope.getRoundedPerc = function(divider, dividend) {
+				return Math.round((divider*100)/dividend);
+			}
+			var cancelButton = {text: nl.t('Close')};
+			detailsDlg.show('view_controllers/learning_reports/lr_courses_tab_details.html',
+				[], cancelButton);
+
+		}
 		function _isReminderNotificationEnabled() {
 			var props = nlGroupInfo.get().props;
 			var isMailEnabled = false;
@@ -308,14 +343,19 @@
 				id: 'timesummary',
 				updated: false,
 				tables: []
-			},{
-				title : 'Click here to view course-wise progress',
-				name: 'Courses',
-				icon : 'ion-ios-bookmarks',
-				id: 'orglevelsummary',
-				updated: false,
-				tables: []
-			}]};
+			},]};
+			var type = nlLrFilter.getType();
+ 			if($scope.debug && (type == 'course' || type == 'course_assign')) {
+				var coursesTab = {
+					title : 'Click here to view course-wise progress',
+					name: 'Courses',
+					icon : 'ion-ios-bookmarks',
+					id: 'orglevelsummary',
+					updated: false,
+					tables: []
+				}
+				ret.tabs.push(coursesTab);
+			}
 			ret.search = '';
 			ret.lastSeached = '';
 			ret.searchPlaceholder = 'Type the search words and press enter';
@@ -384,7 +424,7 @@
 			} else if (tab.id == 'timesummary') {
 				_updateTimeSummaryTab();
 			} else if(tab.id == 'orglevelsummary') {
-				_updateCourselevelOrgSummary();
+				_updateCoursesSummary();
 			}
 		}
 
@@ -735,8 +775,11 @@
 				}
 			}
 		}
-
-		function _updateCourselevelOrgSummary() {
+	var suborgDict = null;
+	var _isSuborgEnabled = false;
+		function _updateCoursesSummary() {
+			suborgDict = nlGroupInfo.getSuborgStructure();
+			_isSuborgEnabled = nlGroupInfo.isSuborgEnabled();
 			var records = $scope.tabData.records;
 			$scope.orgLevelSummaryArray = [];
 			for(var i=0; i<records.length; i++) {
@@ -746,76 +789,208 @@
 					var assignRec = $scope.orgLevelSummaryArray[j];
 					if(assignRec.courseid != record.repcontent.courseid) continue;
 					assignFound = true;
-					assignRec['assigned'] += 1;
-					if(record.user.state == 0) {
-						assignRec['inactive'] += 1;
-					} else {
-						assignRec['active'] += 1;
-						assignRec['completed'] += record.raw_record.completed ? 1 : 0;
-						assignRec['pending'] += record.raw_record.completed ? 0 : 1
-						assignRec['completedPerc'] = Math.round(assignRec['completed']*100/assignRec['active']);
-						assignRec['pendingPerc'] = Math.round(assignRec['pending']*100/assignRec['active']);
-					}
+					_updateCoursesTable(assignRec, record, false);
 					break;
 				}
 				if(!assignFound) {
-					var item = {name: record.repcontent.name, assigned: 1, courseid: record.repcontent.courseid, completed: 0, pending: 0, inactive: 0, active: 0, orgItems: [], completedPerc: 0};
-					if(record.user.state == 0) {
-						item['inactive'] = 1;
-					} else {
-						item['active'] = 1;
-						item['completed'] = record.raw_record.completed ? 1 : 0;
-						item['pending'] = record.raw_record.completed ? 0 : 1;
-						item['completedPerc'] = Math.round(item['completed']*100/item['active']);
-						item['pendingPerc'] = Math.round(item['pending']*100/item['active']);
-					}
-					$scope.orgLevelSummaryArray.push(item);
-					_updateCourseOrgLevel(record);
-				} else {
-					_updateCourseOrgLevel(record);
+					var defaultDict = angular.copy(defaultItemDict);
+					defaultDict['name'] = record.repcontent.name;
+					defaultDict['courseid'] = record.repcontent.courseid;
+					defaultDict['orgItems'] = {};
+					defaultDict['showChildren'] = true;
+					_addItemToCoursesTable(defaultDict, '', $scope.orgLevelSummaryArray, record, false);
 				}
+				if(_isSuborgEnabled) 
+					_updateSuborgRecords(record);
+				else 
+					_updateNonSuborgRecords(record);
 			}
 		}
 
-		function _updateCourseOrgLevel(record) {
+
+		var defaultItemDict = {assigned: 1, completed: 0, certified: 0, pending: 0, inactive: 0, failed: 0, active: 0, scorePerc: 0, 
+								timeSpent: 0, completedInactive: 0, pendingInactive: 0, certifiedInFirstAttempt: 0, certifiedInSecondAttempt: 0,
+								certifiedInMoreAttempt: 0};
+		
+		function _updateSuborgRecords(record) {
 			for(var i=0; i<$scope.orgLevelSummaryArray.length; i++) {
 				var orgRec = $scope.orgLevelSummaryArray[i]
 				if (orgRec.courseid == record.repcontent.courseid) {
 					var orgFound = false;
-					for(var j=0; j<orgRec.orgItems.length; j++) {
-						var orgItem = orgRec.orgItems[j];
-						if(orgItem.orgunit == record.user.org_unit) {
+					for(var suborg in orgRec.orgItems) {
+						var suborgItem = orgRec.orgItems[suborg];
+						if(record.user.org_unit.indexOf(suborg) >= 0) {
 							orgFound = true;
-							orgItem['assigned'] += 1;
-							if(record.user.state == 0) {
-								orgItem['inactive'] += 1;
-							} else {
-								orgItem['active'] += 1;
-								orgItem['completed'] += record.raw_record.completed ? 1 : 0;
-								orgItem['pending'] += record.raw_record.completed ? 0 : 1;
-								orgItem['completedPerc'] = Math.round(orgItem['completed']*100/orgItem['active']);
-								orgItem['pendingPerc'] = Math.round(orgItem['pending']*100/orgItem['active']);
+							var recOuunit = record.user.org_unit;
+							if(!suborgItem.ouItems[recOuunit]) {
+								var defaultDict = angular.copy(defaultItemDict);
+								defaultDict['name'] = record.user.org_unit;
+								defaultDict['assigned'] = 0;
+								suborgItem.ouItems[recOuunit] = defaultDict;
 							}
+							_updateCoursesTable(suborgItem, record, true);
 							break;
 						}
 					}
 					if(!orgFound) {
-						var item = {orgunit: record.user.org_unit, assigned: 1, completed: 0, pending: 0, inactive: 0, active: 0, completedPerc: 0};
-
-						if(record.user.state == 0) {
-							item['inactive'] = 1;
-						} else {
-							item['active'] = 1;
-							item['completed'] = record.raw_record.completed ? 1 : 0;
-							item['pending'] = record.raw_record.completed ? 0 : 1;
-							item['completedPerc'] = Math.round(item['completed']*100/item['active'])
-							item['pendingPerc'] = Math.round(item['pending']*100/item['active']);
+						var suborgFound = false;
+						var recOuunit = record.user.org_unit;
+						for(var suborg in suborgDict) {
+							if(record.user.org_unit.indexOf(suborg) >=0) {
+								suborgFound = true;
+								var orgDict = angular.copy(defaultItemDict);
+									orgDict['name'] = suborg;
+									orgDict['ouItems'] = {};
+									var defaultDict = angular.copy(defaultItemDict);
+									defaultDict['name'] = record.user.org_unit;
+									orgDict.ouItems[recOuunit] = defaultDict;
+									_addItemToCoursesTable(orgDict, suborg, orgRec, record, true);
+								break;
+							}
 						}
-						orgRec.orgItems.push(item);
+						if(!suborgFound) {
+							if(!orgRec.orgItems['Others']) {
+								var orgDict = angular.copy(defaultItemDict);
+								orgDict['name'] = 'Others';
+								orgDict['ouItems'] = {};
+								var defaultDict = angular.copy(defaultItemDict);
+								defaultDict['name'] = record.user.org_unit;
+								orgDict.ouItems[recOuunit] = defaultDict;
+								_addItemToCoursesTable(orgDict, 'Others', orgRec, record, true);
+							} else {
+								if(!orgRec.orgItems.Others.ouItems[recOuunit]) {
+									var defaultDict = angular.copy(defaultItemDict);
+									defaultDict['name'] = record.user.org_unit;
+									defaultDict['assigned'] = 0;
+									orgRec.orgItems.Others.ouItems[recOuunit] = defaultDict;
+								}
+								_updateCoursesTable(orgRec.orgItems.Others, record, true);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		function _updateNonSuborgRecords(record) {
+			for(var i=0; i<$scope.orgLevelSummaryArray.length; i++) {
+				var orgRec = $scope.orgLevelSummaryArray[i]
+				if (orgRec.courseid == record.repcontent.courseid) {
+					var orgFound = false;
+					for(var orgunit in orgRec.orgItems) {
+						var orgItem = orgRec.orgItems[orgunit];
+						if(orgunit == record.user.org_unit) {
+							orgFound = true;
+							_updateCoursesTable(orgItem, record, false)							
+							break;
+						}
+					}
+					if(!orgFound) {
+						var defaultDict = angular.copy(defaultItemDict);
+						defaultDict['name'] = record.user.org_unit;
+						_addItemToCoursesTable(defaultDict, record.user.org_unit, orgRec, record, false)
 					}
 				}
 			}
 		};
+
+		function _addItemToCoursesTable(item, suborg, orgRec, record, addOu) {
+			var ouItemDict = addOu ? item.ouItems[record.user.org_unit] : '';
+			var status = record.stats.status;
+			if(record.user.state == 0) {
+				_updateInactiveUserData(item, ouItemDict, status, addOu);
+			} else {
+				_updateActiveUserData(item, ouItemDict, record, status, addOu)				
+			}
+			if(suborg) 
+				orgRec.orgItems[suborg] = item;
+			else 
+				orgRec.push(item);
+		}
+
+		function _updateCoursesTable(suborgItem, record, addOu) {
+			var ouItemDict = addOu ? suborgItem.ouItems[record.user.org_unit] : '';
+			var status = record.stats.status;
+			suborgItem.assigned += 1;
+			if(addOu) ouItemDict.assigned += 1;
+			if(record.user.state == 0) {
+				_updateInactiveUserData(suborgItem, ouItemDict, status, addOu);
+			} else {
+				_updateActiveUserData(suborgItem, ouItemDict, record, status, addOu);
+			}
+		}
+
+		function _updateInactiveUserData(item, ouItemDict, status, addOu) {
+			item.inactive += 1;
+			if(addOu) ouItemDict.inactive += 1;
+			if(status.id == nlLrHelper.STATUS_DONE || status.id == nlLrHelper.STATUS_PASSED ||
+				status.id == nlLrHelper.STATUS_CERTIFIED || status.id == nlLrHelper.STATUS_FAILED) {
+				item['completedInactive'] += 1;
+				if(addOu) ouItemDict['completedInactive'] += 1;
+			} else {
+				item['pendingInactive'] += 1;
+				if(addOu) ouItemDict['pendingInactive'] += 1;
+			}
+		}
+
+		function _updateActiveUserData(tableRow, ouItemDict, record, status, addOu) {
+			tableRow.active += 1;
+			if(addOu) ouItemDict.active += 1;
+			if(status.id == nlLrHelper.STATUS_DONE || status.id == nlLrHelper.STATUS_PASSED || 
+				status.id == nlLrHelper.STATUS_CERTIFIED) {
+				_updateCompletedUserDate(tableRow, ouItemDict, record, addOu);
+			} else if(status.id == nlLrHelper.STATUS_FAILED) {
+				tableRow.failed += 1;
+				tableRow.completed += 1;
+				if(addOu) ouItemDict.failed += 1;
+			} else {
+				tableRow.pending += 1;
+				if(addOu) ouItemDict.pending += 1;
+			}
+			_updateOrgAndOuPercentages(tableRow, ouItemDict, record, addOu);
+		}
+
+		function _updateCompletedUserDate(tableItem, ouItemDict, record, addOu) {
+			tableItem.completed += 1;
+			tableItem.certified += 1;
+	
+			if(record.stats.avgAttempts == 1) {
+				tableItem['certifiedInFirstAttempt'] += 1;
+			} else if(record.stats.avgAttempts > 1 && record.stats.avgAttempts <= 2) {
+				tableItem['certifiedInSecondAttempt'] += 1;
+			} else {
+				tableItem['certifiedInMoreAttempt'] += 1;
+			}	
+
+			if(addOu) {
+				ouItemDict.completed += 1;
+				ouItemDict.certified += 1;
+				if(record.stats.avgAttempts == 1) {
+					ouItemDict['certifiedInFirstAttempt'] += 1;
+				} else if(record.stats.avgAttempts > 1 && record.stats.avgAttempts <= 2) {
+					ouItemDict['certifiedInSecondAttempt'] += 1;
+				} else {
+					ouItemDict['certifiedInMoreAttempt'] += 1;
+				}
+			}
+		}
+
+		function _updateOrgAndOuPercentages(tableItem, ouItemDict, record, addOu) {
+			tableItem.scorePerc += record.stats.percScore;
+			tableItem.timeSpent += record.stats.timeSpentSeconds;
+
+			tableItem['certifiedPerc'] = Math.round(tableItem.certified*100/tableItem.active);
+			tableItem['failedPerc'] = Math.round(tableItem.failed*100/tableItem.active);
+			tableItem['pendingPerc'] = Math.round(tableItem.pending*100/tableItem.active);
+			
+			if(addOu) {
+				ouItemDict['scorePerc'] += record.stats.percScore;
+				ouItemDict['timeSpent'] += record.stats.timeSpentSeconds;
+				ouItemDict['certifiedPerc'] = Math.round(ouItemDict.certified*100/ouItemDict.active);
+				ouItemDict['failedPerc'] = Math.round(ouItemDict.failed*100/ouItemDict.active);
+				ouItemDict['pendingPerc'] = Math.round(ouItemDict.pending*100/ouItemDict.active);
+			}
+		}
 
 		function _onExport() {
 			if (nlLrFetcher.fetchInProgress()) return;
