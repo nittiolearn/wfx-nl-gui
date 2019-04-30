@@ -182,7 +182,8 @@
             if (!user) return null;
             _nominatedUsers[user.id] = true;
             var course = nlLrCourseRecords.getRecord(report.lesson_id);
-            var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:'+report.assignment);        
+            var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:'+report.assignment) || {};
+            if (!courseAssignment.info) courseAssignment.info = {};
             if (!course) course = nlLrCourseRecords.getCourseInfoFromReport(report, repcontent);
             var contentmetadata = 'contentmetadata' in course ? course.contentmetadata : {};
             report._grade = contentmetadata.grade || '';

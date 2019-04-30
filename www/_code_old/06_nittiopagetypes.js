@@ -1501,8 +1501,6 @@ npagetypes = function() {
 		function _popupStatus(params) {
 			if (!params.showClose) params.showClose = false;
 			params.popdownTime = params.showClose ? false : 2000;
-			params.msg = njs_helper.fmt2('<div class="row row-top padding0 margin0"><div class="fsh3 padding-small"><i class="icon {}"></i>' +
-				'</div><div class="col padding-mid">{}</div></div>', params.icon, params.msg);
 			njs_helper.Dialog.popupStatus2(params);
 		}
 		

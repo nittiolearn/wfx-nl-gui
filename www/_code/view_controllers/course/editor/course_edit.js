@@ -829,7 +829,10 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     function _modifyAndUpdateToServer(modifiedData){
         nlDlg.showLoadingScreen();
         nlServerApi.courseModify(modifiedData).then(function(course) {
-            nlDlg.hideLoadingScreen();
+			nlDlg.hideLoadingScreen();
+			nlDlg.popupStatus2({popdownTime: 2000, showClose: false, icon: 'ion-checkmark-circled',
+			msg: 'Published'});
+
         });
     }
 }];

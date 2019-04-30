@@ -670,7 +670,7 @@ this.show = function($scope, initialUserInfo, params) {
 
 	function _approveLesson($scope, lessonId) {
 		nlApproveDlg.show($scope, _userInfo.groupinfo.exportLevel, lessonId, null, false).then(function(result) {
-            if(result) _updateCardlist($scope, lessonId, 'approve');
+            if(result) _updateCardlist($scope, lessonId, mode.mode == MODES.MY ? 'approve' : false);
             return true;
         });
 	}
@@ -849,16 +849,20 @@ function(nl, nlDlg, nlServerApi, nlExportLevel, nlGroupInfo, nlTreeSelect, nlOuU
 		};
         nlDlg.showLoadingScreen();
 		nlServerApi.lessonApprove(data).then(function(status) {
-			nlDlg.hideLoadingScreen();
-            approveDlg.close(false);
-            approveDlg.destroy();
-            if (_nextPage) 
-                nl.window.location.href = _nextPage;
-            else if (_reload)
-                nl.window.location.reload();
-            else
-                resolve(status);
-            nlDlg.closeAll();
+            nlDlg.popupStatus2({popdownTime: 2000, showClose: false, icon: 'ion-checkmark-circled',
+                msg: 'Approved'});
+            nl.timeout(function() {
+                nlDlg.hideLoadingScreen();
+                approveDlg.close(false);
+                approveDlg.destroy();
+                if (_nextPage) 
+                    nl.window.location.href = _nextPage;
+                else if (_reload)
+                    nl.window.location.reload();
+                else
+                    resolve(status);
+                nlDlg.closeAll();
+            }, 0);
 		});
 	}
 
