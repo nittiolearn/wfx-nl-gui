@@ -247,6 +247,24 @@
                         <div ng-show='screenSize != "small"' class='minw-number text-center'><b>Total Time Spent (mins)</b></div>
                     </div>
                 </div>
+                <div class='margin0 padding0' style='padding-bottom: 3px; width' ng-show='orgLevelSummaryArray.length > 1'>
+                    <div class='row row-center margin0 padding-small nl-bg-blue' style='background-color:#CCCCDD; color: #000077; font-weight: bold'>
+                        <div class='col minw-name'>
+                            <div class='row row-center magin0 padding0'>
+                                <div class='col'>All Courses</div>
+                                <span ng-click='onDetailsClick($event, orgLevelAllCoursesDict); $event.stopImmediatePropagation()' class='nl-link-img'>
+                                    <i class="padding-mid icon ion-more fsh3"></i>
+                                </span> 
+                            </div>
+                        </div>
+                        <div class='minw-number text-center'>{{orgLevelAllCoursesDict.active}}</div>
+                        <div ng-show='screenSize != "small"' class='minw-number text-center'>{{orgLevelAllCoursesDict.certified}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{orgLevelAllCoursesDict.certifiedPerc}}%)</span></div>
+                        <div ng-show='screenSize != "small"' class='minw-number text-center'>{{orgLevelAllCoursesDict.failed}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{orgLevelAllCoursesDict.failedPerc}}%)</span></div>
+                        <div class='minw-number text-center'>{{orgLevelAllCoursesDict.pending}}<span style='font-size: 85%; color:rgba(0, 0, 0, 0.5)'>({{orgLevelAllCoursesDict.pendingPerc}}%)</span></div>
+                        <div ng-show='screenSize != "small"' class='minw-number text-center'>{{getAvgScore(orgLevelAllCoursesDict)}}%</div>
+                        <div ng-show='screenSize != "small"' class='minw-number text-center'>{{getTimeSpentInMins(orgLevelAllCoursesDict)}}</div>
+                    </div>
+                </div>
                 <div class='margin0 padding0 anim-enter1 flyfrom-l' ng-repeat='course in orgLevelSummaryArray' style='padding-bottom: 3px'>
                     <div class='row row-center nl-bg-blue nl-link-text padding-small'
                         ng-click='course.showChildren = !course.showChildren'>
