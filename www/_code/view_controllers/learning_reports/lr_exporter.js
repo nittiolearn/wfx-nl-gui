@@ -46,18 +46,18 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         ctx = {};
 		dlg.scope.reptype = nlLrFilter.getType();
         dlg.setCssClass('nl-height-max nl-width-max');
-        dlg.scope.export = {summary: true, user: true, module: (dlg.scope.reptype == 'module' || dlg.scope.reptype == 'module_assign') ? true : false, ids: false,
-            canShowIds: isAdmin, pageScore: false, feedback: false, session: false};
+        dlg.scope.export = {summary: true, user: true, module: (dlg.scope.reptype == 'module' || dlg.scope.reptype == 'module_assign') ? true : false, ids: true,
+            pageScore: false, feedback: false, session: false};
         dlg.scope.data = {};
 		_setExportFilters(dlg, reportRecords);
 		var filterData = dlg.scope.filtersData;
         var exportButton = {
-            text : nl.t('Export'),
+            text : nl.t('Download'),
             onTap : function(e) {
                 var exp = dlg.scope.export;
                 var selected = exp.summary || exp.user || exp.module;
                 if(!selected) {
-                    dlg.scope.warn = 'Please select atleast one type of report to export';
+                    dlg.scope.warn = 'Please select atleast one type of report to download';
                     if(e) e.preventDefault();
                     return null;
                 }
@@ -69,7 +69,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 				filter.selectedCourses = nlOrgMdMoreFilters.getSelectedMores(filterData);
                 var promise = nl.q(function(resolve, reject) {
 	                nlDlg.showLoadingScreen();
-			        nlDlg.popupStatus('Initiating export. This may take a while ...', false);
+			        nlDlg.popupStatus('Initiating download. This may take a while ...', false);
                     nl.timeout(function() {
 	        	        _initCtx(reportRecords, _userInfo, filter);
 	                    _export(resolve, reject, filter, reportRecords);
@@ -214,8 +214,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             }
             nlExporter.saveZip(zip, 'report.zip', null, resolve, reject);
         } catch(e) {
-            console.error('Error while exporting', e);
-            nlDlg.popupAlert({title: 'Error while exporting', template: e});
+            console.error('Error while downloading report', e);
+            nlDlg.popupAlert({title: 'Error while downloading report', template: e});
             reject(e);
         }
     }
@@ -696,7 +696,116 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 
 	function _checkFilter(filterItems, userField) {
 		return Object.keys(filterItems).length == 0 || (userField in filterItems);
-	}
+    }
+    
+    this.exportCustomReport = function($scope, reportRecords, isAdmin) {
+        ctx = {};
+        var dlg = nlDlg.create($scope);
+        dlg.setCssClass('nl-width-max');
+        dlg.scope.data = {xlsx: null};
+        dlg.scope.error = {};
+        var exportButton = {
+            text : nl.t('Download Report'),
+            onTap : function(e) {
+                _exportCustomReport(e, dlg, reportRecords);
+            }
+        };
+        var cancelButton = {text : nl.t('Cancel')};
+        dlg.show('view_controllers/learning_reports/lr_exporter_custom_dlg.html',
+            [exportButton], cancelButton);
+    };
+
+    function _exportCustomReport(e, dlg, reportRecords) {
+        var xlsx = dlg.scope.data.xlsx;
+        var shallAppend = dlg.scope.shallAppend;
+        if (!xlsx || xlsx.length == 0 || !xlsx[0].resource) return _wrongXlsFile(e, dlg);
+        var xlsx = xlsx[0].resource;
+        var nameparts = xlsx.name.split('.');
+        if (nameparts.length < 2) return _wrongXlsFile(e, dlg);
+        var ext = nameparts[nameparts.length-1].toLowerCase();
+        if (ext != 'xlsx' && ext != 'xlsm') return _wrongXlsFile(e, dlg);
+
+        var filter = {reptype: nlLrFilter.getType(),
+            exportTypes: {summary: false, user: true, module: false, ids: true, pageScore: false, feedback: false, session: false},
+            selectedOus: {},
+            selectedMds: {},
+            selectedCourses: {}
+        };
+
+        var promise = nl.q(function(resolve, reject) {
+            nlDlg.showLoadingScreen();
+            nlDlg.popupStatus('Initiating export. This may take a while ...', false);
+            nl.timeout(function() {
+                _exportCustomReportImpl(resolve, reject, xlsx, shallAppend, filter, reportRecords);
+            }); // Seems needed for loadingScreen to appear properly.
+        });
+        promise.then(function() {
+            nl.timeout(function() {
+                nlDlg.hideLoadingScreen();
+            }, 2000);
+        });
+    }
+    
+    function _wrongXlsFile(e, dlg) {
+        dlg.scope.error.xlsx = 'Please select a xlsx file';
+        if(e) e.preventDefault();
+        return null;
+    }
+
+    function _errorResolve(resolve, msg) {
+        if (msg) nlDlg.popupAlert({title: 'Error', template: msg});
+        resolve(false);
+        return false;
+    }
+
+    function _exportCustomReportImpl(resolve, reject, xlsx, shallAppend, filter, reportRecords) {
+        try {
+            var xlsxUpdater = nlExporter.getXlsxUpdater();
+            xlsxUpdater.loadXlsAsZip(xlsx).then(function(inputAsZip) {
+                if (!inputAsZip) return _errorResolve(resolve);
+                xlsxUpdater.loadXlsAsObj(xlsx).then(function(workbook) {
+                    var rawsheet = _getRawDataFromInputXlsx(workbook, resolve);
+                    if (!rawsheet) return;
+
+                    var newContentOfSheet = _generateRawDataSheetContent(rawsheet, shallAppend, filter, reportRecords);
+                    var positionOfSheetToUpdate = rawsheet.sheetpos;
+                    var downloadFileName = 'custom_report.xlsx';
+                    xlsxUpdater.updateXlsxSheetAndDownload(inputAsZip, downloadFileName, 
+                        positionOfSheetToUpdate, newContentOfSheet).then(function(status) {
+                        return resolve(status);
+                    });
+                });
+            });
+        } catch(e) {
+            return _errorResolve(resolve, e);
+        }
+    }
+
+    var RAW_DATA_SHEET_NAME = 'raw_data';
+    function _getRawDataFromInputXlsx(workbook, resolve) {
+        if (!(RAW_DATA_SHEET_NAME in workbook.sheets)) return _errorResolve(resolve, 'Sheet "raw_data" missing in input XLSX file');
+        var ret = {content: XLSX.utils.sheet_to_json(workbook.sheets[RAW_DATA_SHEET_NAME], {header: 1, raw: true, defval: null})};
+        for(var i=0; i<workbook.sheetNames.length; i++) {
+            if (workbook.sheetNames[i] != RAW_DATA_SHEET_NAME) continue;
+            ret.sheetpos = i+1;
+        }
+        if (!ret.sheetpos) return _errorResolve(resolve, 'Sheet "raw_data" missing in input XLSX file');
+        return ret;
+    }
+
+    function _generateRawDataSheetContent(rawsheet, shallAppend, filter, reportRecords) {
+        // TODO-NOW: Replace dummy with the actual data. If shallAppend, rawsheet.content has to be updated with latest data.
+        var dummy = [["Dummy1", "100"],["region12", "101"],["region13", "102"],["region13", "103"],["region14", "104"],["region15", "105"]];
+        for (var i=0; i<dummy.length; i++) {
+            rawsheet.content.push(dummy[i]);
+        }
+        console.log('TODO-NOW: rawsheet.content=', rawsheet.content);
+        return rawsheet.content;
+
+        _initCtx(reportRecords, _userInfo, filter);
+        var expSummaryStats = nlLrSummaryStats.getSummaryStats();
+        _createUserCsv(filter, reportRecords, zip, fileName, start, start+pending, expSummaryStats);
+    }
 }];
 
 //-------------------------------------------------------------------------------------------------

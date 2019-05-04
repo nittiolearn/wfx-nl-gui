@@ -235,14 +235,21 @@
 				id: 'modifyAssignment',
 				onClick : _onClickModifyAssignment,
 			}, {
-				title : 'Export report',
+				title : 'Download report',
 				icon : 'ion-ios-cloud-download',
 				id: 'export',
 				onClick : _onExport
+			}, {
+				title : 'Download custom MIS report',
+				icon : 'material-icons',
+				icon_content : 'assignment_returned',
+				id: 'exportCustomReport',
+				onClick : _onExportCustomReport
 			}];
 		}
 		
 		$scope.canShowToolbarIcon = function(tbid) {
+			var type = nlLrFilter.getType();
 			if (nlLrFetcher.fetchInProgress(true)) return false;
 			if (tbid == 'tbfetchmore') return nlLrFetcher.canFetchMore();
 			if (tbid == 'tbfilter') return nlLrFilter.isFilterShown();
@@ -252,15 +259,16 @@
 				return content && content.blended ? true : false;
 			}
 			if(tbid == 'reminderNotify') {
-				var type = nlLrFilter.getType();
 				var reminderDict = nlLrReportRecords.getReminderDict();
 				var isReminderEnabled = _isReminderNotificationEnabled();
 				return ((type == 'course_assign' || type == 'module_assign') && isReminderEnabled &&  (reminderDict.users && reminderDict.users.length != 0));
 			}
 			if (tbid == 'modifyAssignment') {
-				var type = nlLrFilter.getType();
 				return (type == 'course_assign' || type == 'module_assign');
 			}
+
+			// TODO-NOW: Also check 'customReportTemplate' group attr (see issue #977)
+			if (tbid == 'exportCustomReport') return $scope.debug && (type == 'course' || type == 'course_assign');
 	 
 			return true;
 		};
@@ -345,6 +353,8 @@
 				tables: []
 			},]};
 			var type = nlLrFilter.getType();
+			// TODO-NOW: Remove debug flag check (also in html) once issue #964
+			// is implemented and tested 
  			if($scope.debug && (type == 'course' || type == 'course_assign')) {
 				var coursesTab = {
 					title : 'Click here to view course-wise progress',
@@ -1029,6 +1039,12 @@
 			if (nlLrFetcher.fetchInProgress()) return;
 			var reportRecords = nlLrReportRecords.asList();
 			nlLrExporter.export($scope, reportRecords, _isAdmin);
+		}
+		
+		function _onExportCustomReport() {
+			if (nlLrFetcher.fetchInProgress()) return;
+			var reportRecords = nlLrReportRecords.asList();
+			nlLrExporter.exportCustomReport($scope, reportRecords, _isAdmin);
 		}
 		
 		function _onViewContent() {

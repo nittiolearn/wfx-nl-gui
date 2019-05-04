@@ -1,55 +1,47 @@
-<nl-dlg dlgtitle='Export reports' show-help='0'>
+<nl-dlg dlgtitle='Download reports' show-help='0'>
     <nl-dlg-content>
-        <div class='padding-mid fsh4'>Export data in a zip file containing one or more of the following (please select atleast one): </div>
+        <div class='padding-mid fsh4'>Download data in a zip file containing one or more of the following (please select atleast one): </div>
         <div class='padding-mid fsh6 forange2'
              ng-show='warn'>{{warn}}</div>
         <div class='padding-mid nl-link-text' 
              ng-click='export.summary = !export.summary'>
             <i ng-show='export.summary' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.summary' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>export summary statistics</span>
+            <span>download summary statistics</span>
         </div>
         <div ng-show='reptype == "course" || reptype == "course_assign"' class='padding-mid nl-link-text' 
              ng-click='export.user = !export.user'>
             <i ng-show='export.user' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.user' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>export course reports</span>
+            <span>download course reports</span>
         </div>
         <div ng-show='reptype == "course" || reptype == "course_assign"' class='padding-mid nl-link-text' 
              ng-click='export.session = !export.session'>
             <i ng-show='export.session' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.session' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>export session reports</span>
+            <span>download session reports</span>
         </div>
         <div class='padding-mid nl-link-text' 
              ng-click='export.module = !export.module || reptype == "module_assign"'>
             <i ng-show='export.module' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.module' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>export module reports</span>
+            <span>download module reports</span>
         </div>
         <div ng-show='reptype == "module" || reptype == "module_assign"' class='padding-mid nl-link-text' 
              ng-click='export.pageScore = !export.pageScore'>
             <i ng-show='export.pageScore' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.pageScore' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>export page level scores</span>
+            <span>download page level scores</span>
         </div>
         <div class='padding-mid nl-link-text' 
              ng-click='export.feedback = !export.feedback'
              ng-show='reptype == "module" || reptype == "module_assign"'>
             <i ng-show='export.feedback' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.feedback' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>export feedback</span>
+            <span>download feedback</span>
         </div>
-        <div class='padding-mid nl-link-text'
-             ng-show='export.canShowIds'
-             ng-click='export.ids = !export.ids'>
-            <i ng-show='export.ids' class="fsh4 icon ion-android-checkbox-outline"></i>
-            <i ng-hide='export.ids' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>export internal identifiers</span>
-        </div>
-
         <div class='row row-top row-wrap margin0 padding-mid'>
-        	<span class='fsh4'>Filter data and export subset of records</span>
+        	<span class='fsh4'>Filter data and download subset of records</span>
         </div>
         
         <nl-org-metadata-more-filters data='filtersData'>

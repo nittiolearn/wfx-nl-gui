@@ -1,0 +1,14 @@
+<nl-dlg dlgtitle='Export custom report' show-help='0'>
+    <nl-dlg-content>
+        <div>Select xlsx file</div>
+        <div class='row row-wrap row-center margin0 padding0'>
+            <nl-resource-upload fieldmodel='xlsx' restype='Xls' class='col'>
+            </nl-resource-upload>
+        </div>
+        <div ng-click='shallAppend = !shallAppend'>
+            <i ng-show='shallAppend' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='shallAppend' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>append rows to raw_data sheet in the input xlsx file</span>
+        </div>
+    </nl-dlg-content>
+</nl-dlg>
