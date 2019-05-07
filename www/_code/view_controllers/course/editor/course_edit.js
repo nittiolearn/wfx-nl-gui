@@ -824,11 +824,10 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		$scope.editorCb.moveItem(movedItem, fromIndex, toIndex, _allModules);
 		$scope.editorCb.showVisible(null);
 	};
-
     
     function _modifyAndUpdateToServer(modifiedData){
         nlDlg.showLoadingScreen();
-		var popupMsg = modifiedData.publish ? 'Published' : 'Course saved';
+		var popupMsg = modifiedData.publish ? 'Published' : 'Saved';
 		var icon = modifiedData.publish ? 'ion-checkmark-circled' : '';
         nlServerApi.courseModify(modifiedData).then(function(course) {
 			nlDlg.hideLoadingScreen();

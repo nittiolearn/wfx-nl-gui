@@ -859,6 +859,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 
             var repidsFoundInInputXls = {};
             for(var i=1; i<inputRows.length; i++) {
+                if (!inputRows[i][0]) continue;
                 var repid = _getRepidFromInputXlsRow(inputRows[i]);
                 if (!repid) {
                     var msg = nl.fmt2('data in row {} of raw-data sheet of input xlsx does not seem to be correct', i+1);
