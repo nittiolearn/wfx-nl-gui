@@ -301,7 +301,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             'Achieved %', 'Maximum Score', 'Achieved Score', 'Feedback score', 'Time Spent (minutes)', 'ILT time spent(minutes)', 'ILT total time(minutes)', 'Venue', 'Trainer name',]);
     	headers = headers.concat([ 'Infra Cost', 'Trainer Cost', 'Food Cost', 'Travel Cost', 'Misc Cost']);
         headers = headers.concat(['User state', 'Email Id', 'Org']);
-        for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
+        if (!filter.hideMetadata) for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
         if (filter.exportTypes.ids)
             headers = headers.concat(_idFields);
         return headers;
@@ -324,7 +324,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         ret.push(report.user.state ? 'active' : 'inactive');        
         ret.push(report.user.email);
         ret.push(report.user.org_unit);
-        for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id] || '');
+        if (!filter.hideMetadata) for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id] || '');
         if (filter.exportTypes.ids)
             ret = ret.concat(['id=' + report.raw_record.id, 'id=' + report.raw_record.assignment, 
                 'id=' + report.raw_record.lesson_id]);
@@ -698,16 +698,34 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 		return Object.keys(filterItems).length == 0 || (userField in filterItems);
     }
     
-    this.exportCustomReport = function($scope, reportRecords, isAdmin) {
+    this.exportCustomReport = function($scope, reportRecordsDict, customReportTemplate) {
+        if (nlLrFilter.getType() != 'course' || nlLrFilter.getTimestampType() != 'updated') {
+            nlDlg.popupAlert({title: 'Error', template: 'Please fetch course reports based on updated timestamp to generate custom report.'});
+            return;
+        }
+        if (Object.keys(reportRecordsDict).length == 0) {
+            nlDlg.popupAlert({title: 'Error', template: 'There is no data available for downloading.'});
+            return;
+        }
         ctx = {};
         var dlg = nlDlg.create($scope);
         dlg.setCssClass('nl-width-max');
-        dlg.scope.data = {xlsx: null};
+        dlg.scope.data = {xlsx: null, writeMode: {id: 'overwrite'}};
+        dlg.scope.help = {
+            xlsx: {name: nl.t('Select xlsx file'), help: _getXlsxHelp(customReportTemplate), isShown: true},
+            writeMode: {name: nl.t('Overwrite or append'), help: _getAppendHelp(), isShown: true}
+        };
+        dlg.scope.options = {
+            writeMode: [
+                {id: 'overwrite', name: 'Overwrite the raw-data sheet with the new data'}, 
+                {id: 'append', name: 'Append new data to existing data in the raw-data sheet'}]
+        };
+    
         dlg.scope.error = {};
         var exportButton = {
             text : nl.t('Download Report'),
             onTap : function(e) {
-                _exportCustomReport(e, dlg, reportRecords);
+                _exportCustomReport(e, dlg, reportRecordsDict);
             }
         };
         var cancelButton = {text : nl.t('Cancel')};
@@ -715,9 +733,39 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             [exportButton], cancelButton);
     };
 
-    function _exportCustomReport(e, dlg, reportRecords) {
+    function _getXlsxHelp(customReportTemplate) {
+        var help = '<p></p><p>You can generate a custom report in XLSX format. To do this, you need to ' +
+            'provide an input XLSX file which must contain a sheet called "raw-data" which will be ' +
+            'the only sheet which will be updated in the downloaded report.</p>' +
+
+            '<p>The XLSX file may contain other sheets which may use formulas, lookups, pivoits, charts ' +
+            'and any other element supported in the XLSX format. With this you could create a custom ' +
+            'report that fits exactly to your organizational needs.</p>' +
+
+            '<p>The input file could also be a XLSM file contain macros which automatically updates ' +
+            'the other sheets in the workbook when opened next time.</p>' +
+
+            '<p><b><a href="{}">Click here</a> to download a sample file which you could use as the input file.</b></p>';
+        return nl.fmt2(help, customReportTemplate);
+    }
+
+    function _getAppendHelp() {
+        var help = '<p></p><p>The first time, please use the "overwrite" option. </p>' +
+
+            '<p>If you are periodically generating a custom report, you could only fetch the delta ' +
+            'changes from the server from the last time you generated the report and use the "append" option. ' +
+            'You have to ensure that the start time of fetching the report from server is earlier than the end ' +
+            'time of the last time you generated the report. This overlap will ensure all records are fetched. ' +
+            'If a record is already present in your input XLSX and also present in the data downloaded from the ' +
+            'server, the latest data will be preserved.</p>' +
+
+            '<p><b>Please fetch the data based on "updated" timestamp when generating periodic report.<b></p>';
+        return help;
+    }
+
+    function _exportCustomReport(e, dlg, reportRecordsDict) {
         var xlsx = dlg.scope.data.xlsx;
-        var shallAppend = dlg.scope.shallAppend;
+        var shallAppend = dlg.scope.data.writeMode.id == 'append';
         if (!xlsx || xlsx.length == 0 || !xlsx[0].resource) return _wrongXlsFile(e, dlg);
         var xlsx = xlsx[0].resource;
         var nameparts = xlsx.name.split('.');
@@ -729,19 +777,21 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             exportTypes: {summary: false, user: true, module: false, ids: true, pageScore: false, feedback: false, session: false},
             selectedOus: {},
             selectedMds: {},
-            selectedCourses: {}
+            selectedCourses: {},
+            hideMetadata: true
         };
 
         var promise = nl.q(function(resolve, reject) {
             nlDlg.showLoadingScreen();
             nlDlg.popupStatus('Initiating export. This may take a while ...', false);
             nl.timeout(function() {
-                _exportCustomReportImpl(resolve, reject, xlsx, shallAppend, filter, reportRecords);
+                _exportCustomReportImpl(resolve, xlsx, shallAppend, filter, reportRecordsDict, ext);
             }); // Seems needed for loadingScreen to appear properly.
         });
-        promise.then(function() {
+        promise.then(function(status) {
             nl.timeout(function() {
-                nlDlg.hideLoadingScreen();
+                if (status) nlDlg.hideLoadingScreen();
+                nlDlg.popdownStatus(0);
             }, 2000);
         });
     }
@@ -758,7 +808,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         return false;
     }
 
-    function _exportCustomReportImpl(resolve, reject, xlsx, shallAppend, filter, reportRecords) {
+    function _exportCustomReportImpl(resolve, xlsx, shallAppend, filter, reportRecordsDict, ext) {
         try {
             var xlsxUpdater = nlExporter.getXlsxUpdater();
             xlsxUpdater.loadXlsAsZip(xlsx).then(function(inputAsZip) {
@@ -767,9 +817,10 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                     var rawsheet = _getRawDataFromInputXlsx(workbook, resolve);
                     if (!rawsheet) return;
 
-                    var newContentOfSheet = _generateRawDataSheetContent(rawsheet, shallAppend, filter, reportRecords);
+                    var newContentOfSheet = _generateRawDataSheetContent(rawsheet, shallAppend, filter, reportRecordsDict, resolve);
+                    if (!newContentOfSheet) return;
                     var positionOfSheetToUpdate = rawsheet.sheetpos;
-                    var downloadFileName = 'custom_report.xlsx';
+                    var downloadFileName = 'custom_report.' + ext;
                     xlsxUpdater.updateXlsxSheetAndDownload(inputAsZip, downloadFileName, 
                         positionOfSheetToUpdate, newContentOfSheet).then(function(status) {
                         return resolve(status);
@@ -781,30 +832,67 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         }
     }
 
-    var RAW_DATA_SHEET_NAME = 'raw_data';
+    var RAW_DATA_SHEET_NAME = 'raw-data';
     function _getRawDataFromInputXlsx(workbook, resolve) {
-        if (!(RAW_DATA_SHEET_NAME in workbook.sheets)) return _errorResolve(resolve, 'Sheet "raw_data" missing in input XLSX file');
+        if (!(RAW_DATA_SHEET_NAME in workbook.sheets)) return _errorResolve(resolve, 'Sheet "raw-data" missing in input XLSX file');
         var ret = {content: XLSX.utils.sheet_to_json(workbook.sheets[RAW_DATA_SHEET_NAME], {header: 1, raw: true, defval: null})};
         for(var i=0; i<workbook.sheetNames.length; i++) {
             if (workbook.sheetNames[i] != RAW_DATA_SHEET_NAME) continue;
             ret.sheetpos = i+1;
         }
-        if (!ret.sheetpos) return _errorResolve(resolve, 'Sheet "raw_data" missing in input XLSX file');
+        if (!ret.sheetpos) return _errorResolve(resolve, 'Sheet "raw-data" missing in input XLSX file');
         return ret;
     }
 
-    function _generateRawDataSheetContent(rawsheet, shallAppend, filter, reportRecords) {
-        // TODO-NOW: Replace dummy with the actual data. If shallAppend, rawsheet.content has to be updated with latest data.
-        var dummy = [["Dummy1", "100"],["region12", "101"],["region13", "102"],["region13", "103"],["region14", "104"],["region15", "105"]];
-        for (var i=0; i<dummy.length; i++) {
-            rawsheet.content.push(dummy[i]);
-        }
-        console.log('TODO-NOW: rawsheet.content=', rawsheet.content);
-        return rawsheet.content;
+    function _generateRawDataSheetContent(rawsheet, shallAppend, filter, reportRecordsDict, resolve) {
+        var header = _getCsvHeader(filter);
+        var rows = [header];
 
-        _initCtx(reportRecords, _userInfo, filter);
-        var expSummaryStats = nlLrSummaryStats.getSummaryStats();
-        _createUserCsv(filter, reportRecords, zip, fileName, start, start+pending, expSummaryStats);
+        if (shallAppend) {
+            var msgFmt = '<p>Cannot append to raw-data sheet.</p>' + 
+                '<p>Reason: {}.</p>' +
+                '<p>Please generate complete report without appending.</p>';
+            var errHeader = 'headers in raw-data sheet xlsx is not matching';
+
+            var inputRows = rawsheet.content;
+            if (!_areHeadersSame(header, inputRows[0])) return _errorResolve(resolve, nl.fmt2(msgFmt, errHeader));
+
+            var repidsFoundInInputXls = {};
+            for(var i=1; i<inputRows.length; i++) {
+                var repid = _getRepidFromInputXlsRow(inputRows[i]);
+                if (!repid) {
+                    var msg = nl.fmt2('data in row {} of raw-data sheet of input xlsx does not seem to be correct', i+1);
+                    return _errorResolve(resolve, nl.fmt2(msgFmt, msg));
+                } else if (repid in repidsFoundInInputXls) {
+                    var msg = nl.fmt2('multiple rows of raw-data sheet of input xlsx have same report id. See row {}', i+1);
+                    return _errorResolve(resolve, nl.fmt2(msgFmt, msg));
+                }
+                repidsFoundInInputXls[repid] = true;
+                if (repid in reportRecordsDict) continue;
+                rows.push(inputRows[i]);
+            }
+        }
+
+        for (var repid in reportRecordsDict) {
+            var row = _getCsvRow(filter, reportRecordsDict[repid]);
+            rows.push(row);
+        }
+        return rows;
+    }
+
+    function _areHeadersSame(newHeader, oldHeader) {
+        if (newHeader.length != oldHeader.length) return false;
+        for(var i=0; i<newHeader.length; i++)
+            if (newHeader[i].toLowerCase() != oldHeader[i].toLowerCase()) return false;
+        return true;
+    }
+
+    var REPORTID_POS = 31;
+    function _getRepidFromInputXlsRow(inputXlsRow) {
+        if (inputXlsRow.length <= REPORTID_POS) return null;
+        var parts = inputXlsRow[REPORTID_POS].split('=');
+        if (parts.length != 2 || parts[0] != 'id') return null;
+        return parseInt(parts[1]);
     }
 }];
 

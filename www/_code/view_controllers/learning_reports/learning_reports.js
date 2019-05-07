@@ -95,9 +95,12 @@
 	
 		// Private members
 		var _isAdmin = false;
+		var _customReportTemplate = '';
 		
 		function _init(userInfo) {
 			_isAdmin = nlRouter.isPermitted(userInfo, 'admin_user');
+			_customReportTemplate = nlGroupInfo.getCustomReportTemplate();
+
 			// Order is important
 			nlTreeListSrv.init(nl);
 			nlLrFilter.init(settings, userInfo);
@@ -267,9 +270,7 @@
 				return (type == 'course_assign' || type == 'module_assign');
 			}
 
-			// TODO-NOW: Also check 'customReportTemplate' group attr (see issue #977)
-			if (tbid == 'exportCustomReport') return $scope.debug && (type == 'course' || type == 'course_assign');
-	 
+			if (tbid == 'exportCustomReport') return (type == 'course') && ($scope.debug || _customReportTemplate);
 			return true;
 		};
 		
@@ -1043,8 +1044,9 @@
 		
 		function _onExportCustomReport() {
 			if (nlLrFetcher.fetchInProgress()) return;
-			var reportRecords = nlLrReportRecords.asList();
-			nlLrExporter.exportCustomReport($scope, reportRecords, _isAdmin);
+			var reportRecordsDict = nlLrReportRecords.getRecords();
+			var customReportTemplate = _customReportTemplate || nlGroupInfo.getDefaultCustomReportTemplate();
+			nlLrExporter.exportCustomReport($scope, reportRecordsDict, customReportTemplate);
 		}
 		
 		function _onViewContent() {

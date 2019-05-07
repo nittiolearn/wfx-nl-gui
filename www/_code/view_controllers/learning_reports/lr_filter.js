@@ -63,6 +63,10 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
     this.getType = function() {
     	return _data.type;
 	};
+
+	this.getTimestampType = function() {
+		return _data.timestamptype;
+	}
 	
 	this.isDebugMode = function() {
     	return _data.debug;
