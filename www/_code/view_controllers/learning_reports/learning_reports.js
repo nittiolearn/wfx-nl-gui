@@ -816,6 +816,9 @@
 					defaultDict['showChildren'] = true;
 					_addItemToCoursesTable(defaultDict, '', $scope.orgLevelSummaryArray, record, false);
 				}
+				if(!record.user.org_unit || record.user.org_unit == "") {
+					record.user.org_unit = 'Others';
+				}
 				if(_isSuborgEnabled) 
 					_updateSuborgRecords(record);
 				else 
@@ -835,6 +838,7 @@
 				$scope.orgLevelAllCoursesDict.pending += org.pending;
 				$scope.orgLevelAllCoursesDict.inactive += org.inactive;
 				$scope.orgLevelAllCoursesDict.active += org.active;
+				$scope.orgLevelAllCoursesDict.failed += org.failed;
 				$scope.orgLevelAllCoursesDict.scorePerc += org.scorePerc;
 				$scope.orgLevelAllCoursesDict.timeSpent += org.timeSpent;
 				$scope.orgLevelAllCoursesDict.completedInactive += org.completedInactive;

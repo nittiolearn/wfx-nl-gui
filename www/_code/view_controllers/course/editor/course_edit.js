@@ -828,10 +828,12 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     
     function _modifyAndUpdateToServer(modifiedData){
         nlDlg.showLoadingScreen();
+		var popupMsg = modifiedData.publish ? 'Published' : 'Course saved';
+		var icon = modifiedData.publish ? 'ion-checkmark-circled' : '';
         nlServerApi.courseModify(modifiedData).then(function(course) {
 			nlDlg.hideLoadingScreen();
-			nlDlg.popupStatus2({popdownTime: 2000, showClose: false, icon: 'ion-checkmark-circled',
-			msg: 'Published'});
+			nlDlg.popupStatus2({popdownTime: 2000, showClose: false, icon: icon,
+			msg: popupMsg});
 
         });
     }
