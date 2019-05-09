@@ -18,7 +18,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 	var self = this;
 	// TODO-LATER: 'type' default should be 'all'
 	var _dataDefaults = {
-		type: 'course',		// all|module|course|trainig_kind|module_assign|course_assign|training_batch
+		type: 'course',		// all|module|course|trainig_kind|module_assign|course_assign|module_self_assign|training_batch
 		timestamptype: 'created', // created|updated
 		assignor: 'all',	// all|me, will auomatically change to 'me' if assignment_manage permission is not there
 		parentonly: true,	// fetch only parent records or also records part containing course/training
@@ -34,7 +34,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 		_data = {};
         var urlParams = nl.location.search();
 		_fillAttrs(_data, ['type'], [settings, urlParams, _dataDefaults]);
-        if (!_oneOf(_data.type, ['all', 'module', 'course', 'training_kind', 'module_assign', 'course_assign', 'training_batch']))
+        if (!_oneOf(_data.type, ['all', 'module', 'course', 'training_kind', 'module_assign', 'course_assign', 'module_self_assign', 'training_batch']))
         	_data.type = 'course'; // TODO-LATER: should be 'all'
         _fillAttrs(_data, ['timestamptype', 'assignor', 'parentonly', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug'], 
         	[settings, urlParams, _dataDefaults]);
@@ -56,6 +56,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 		else if (_data.type == 'training_kind') return 'Training report';
 		else if (_data.type == 'module_assign') return 'Module assignment report';
 		else if (_data.type == 'course_assign') return 'Course assignment report';
+		else if (_data.type == 'module_self_assign') return 'Exploratory learning report';
 		else if (_data.type == 'training_batch') return 'Traning batch report';
 		else return 'Learning report';
 	};

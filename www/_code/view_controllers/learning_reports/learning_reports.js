@@ -591,7 +591,7 @@
 			var colors = ['#007700', '#770000', '#FFCC00', '#A0A0C0'];
 	
 			var type = nlLrFilter.getType();
-			var typeStr = type == 'module' || type == 'module_assign' ? 'Modules' : 'Courses';
+			var typeStr = type == 'module' || type == 'module_assign' || type == 'module_self_assign' ? 'Modules' : 'Courses';
 			$scope.charts = [{
 				type: 'doughnut',
 				title: 'Progress',
@@ -649,7 +649,7 @@
 		function _updateOverviewDoughnut(summaryRecord) {
 			var c = $scope.charts[0];
 			var type = nlLrFilter.getType();
-			var typeStr = type == 'module' || type == 'module_assign' ? 'Module' : 'Course';
+			var typeStr = type == 'module' || type == 'module_assign' || type == 'module_self_assign' ? 'Module' : 'Course';
 			c.data = [summaryRecord.done.txt, summaryRecord.failed.txt, summaryRecord.started.txt, summaryRecord.pending.txt];
 			c.title = nl.t('{} progress: {} of {} done', typeStr, (summaryRecord.done.txt + summaryRecord.failed.txt), summaryRecord.assigned.txt);
 		}
@@ -688,7 +688,7 @@
 				else uPending++;
 			}
 			var type = nlLrFilter.getType();
-			var typeStr = type == 'module' || type == 'module_assign' ? 'Modules' : 'Courses';
+			var typeStr = type == 'module' || type == 'module_assign' || type == 'module_self_assign' ? 'Modules' : 'Courses';
 			var completedPerc = ((summaryRecord.done.txt+summaryRecord.failed.txt)/summaryRecord.assigned.txt)*100 || 0;
 			var startedPerc = (summaryRecord.started.txt/summaryRecord.assigned.txt)*100 || 0;
 			var pendingPerc = (summaryRecord.pending.txt/summaryRecord.assigned.txt)*100 || 0;
@@ -709,7 +709,7 @@
 			var ranges = nlLrReportRecords.getTimeRanges();
 			var records = $scope.tabData.records;
 			var type = nlLrFilter.getType();
-			var isModuleRep = type == 'module' || type == 'module_assign';
+			var isModuleRep = type == 'module' || type == 'module_assign' || type == 'module_self_assign';
 			for (var j=0; j<records.length; j++) {
 				var rec = records[j];
 				var ended = isModuleRep ? _getModuleEndedTime(rec.raw_record) : _getCourseEndedTime(rec);
@@ -763,7 +763,7 @@
 				var rangeType = chartindex == 0 ? 'days' : chartindex == 1 ? 'weeks' : 'months';
 				var maxBuckets = (rangeType == 'days') ? 31 : 15;
 				var ranges = nlLrReportRecords.getTimeRanges(rangeType, maxBuckets);
-				var isModuleRep = type == 'module' || type == 'module_assign';
+				var isModuleRep = type == 'module' || type == 'module_assign' || type == 'module_self_assign';
 				for (var i=0; i<records.length; i++) {
 					var rec = records[i];
 					var recId = rec.raw_record.id;

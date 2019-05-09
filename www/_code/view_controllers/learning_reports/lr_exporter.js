@@ -46,7 +46,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         ctx = {};
 		dlg.scope.reptype = nlLrFilter.getType();
         dlg.setCssClass('nl-height-max nl-width-max');
-        dlg.scope.export = {summary: true, user: true, module: (dlg.scope.reptype == 'module' || dlg.scope.reptype == 'module_assign') ? true : false, ids: true,
+        dlg.scope.export = {summary: true, user: true, module: (dlg.scope.reptype == 'module' || dlg.scope.reptype == 'module_assign' || dlg.scope.reptype  == 'module_self_assign') ? true : false, ids: true,
             pageScore: false, feedback: false, session: false};
         dlg.scope.data = {};
 		_setExportFilters(dlg, reportRecords);
@@ -89,7 +89,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     
 	function _setExportFilters(dlg, reportRecords) {
     	var type = nlLrFilter.getType();
-    	if(type == 'module' || type == 'module_assign') {
+    	if(type == 'module' || type == 'module_assign' || type == 'module_self_assign') {
 			var tree = {data: _getModuleTree(reportRecords) || []};
 			dlg.scope.filtersData = nlOrgMdMoreFilters.getData(tree, 'Module');
     	} else {
@@ -240,7 +240,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             }
 
 			var selectedCourseId = false;
-			if (type == 'module' || type == 'module_assign') {
+			if (type == 'module' || type == 'module_assign' || type == 'module_self_assign') {
 	            var moduleKey = 'A'+records[i].raw_record.lesson_id;
 				selectedCourseId = _checkFilter(filter.selectedCourses, moduleKey);
 			} else {
@@ -710,7 +710,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         ctx = {};
         var dlg = nlDlg.create($scope);
         dlg.setCssClass('nl-width-max');
-        dlg.scope.data = {xlsx: null, writeMode: {id: 'overwrite'}};
+        dlg.scope.data = {xlsx: null, writeMode: {id: 'append'}};
         dlg.scope.help = {
             xlsx: {name: nl.t('Select xlsx file'), help: _getXlsxHelp(customReportTemplate), isShown: true},
             writeMode: {name: nl.t('Overwrite or append'), help: _getAppendHelp(), isShown: true}
