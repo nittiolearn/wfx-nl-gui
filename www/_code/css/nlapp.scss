@@ -1748,6 +1748,27 @@ img.nl-icon {
 }
 
 /*-----------------------------------------------------------------------------------------*
+ * Learner view section styles
+ *-----------------------------------------------------------------------------------------*/
+.nl-learner-view-section{
+  width: 100%;
+  max-width: 800px;
+}
+
+.nl-card-img-size-lg {
+  width: 180px;
+  height: 150px;
+  margin-bottom: -3px;
+  border-radius: 10px 0px 0px 10px;
+}
+.nl-card-img-size-sm {
+  width: 90px;
+  height: 80px;
+  margin-bottom: -3px;
+  border-radius: 10px 0px 0px 10px;
+}
+
+/*-----------------------------------------------------------------------------------------*
  * course_view elements
  *-----------------------------------------------------------------------------------------*/
 .nl-cv-item {

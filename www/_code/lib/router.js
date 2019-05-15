@@ -277,6 +277,7 @@ function Permission(nl) {
         '/training_list': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},
         '/training_attend': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
         '/recyclebin': {login: true, permission: 'lesson_approve', termRestriction: TR_CLOSED},
+		'/learner_view': {login:true, permission: 'basic_access', termRestriction: TR_RESTRICTED},
 
         // Operation permissions
         'assignment_manage': {login: true, permission: 'assignment_manage', termRestriction: TR_RESTRICTED},

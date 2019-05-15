@@ -599,6 +599,7 @@ function NlPageInfo(nl) {
     this.groupCustomCss = '';
     
     this.isOldCode = false;
+    this.topBarItems = [];
 }
 
 function _isMobileOrTab(nl) {

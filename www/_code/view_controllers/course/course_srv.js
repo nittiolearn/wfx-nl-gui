@@ -124,6 +124,7 @@ var _dashboardActions = {
     'course.view_assigned_my': {'url': '/#/course_assign_my_list?{}', 'permission': 'assignment_send'},
     'course.summary_report': {'url': '/#/learning_reports?type=course&{}', 'permission': 'assignment_send'},
     'course.do': {'url': '/#/course_report_list?my=1&{}', 'permission': 'course_do', 'termCheck': 'Restricted'},
+    'learner.do': {'url': '/#/learner_view', 'permission': 'basic_access', 'termCheck': 'Restricted'},
     'rno.list': {'url': '/#/rno_list?{}', 'permission': 'basic_access', 'termCheck': 'Restricted'},
     'rno.view': {'url': '/#/rno_view?{}', 'permission': '', 'termCheck': 'Open'},
     'sco.export': {'url': '/#/sco_export?{}', 'permission': 'sco_export'},

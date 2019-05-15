@@ -172,6 +172,7 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlServerApi, nlRouter, nl
     $scope.onPageEnter = function(userInfo) {
         nl.log.debug('app:onPageEnter - enter');
         nl.rootScope.bodyClass = 'showbody';
+        nl.rootScope.pgInfo.topBarItems = [];
         $scope.logo = userInfo.groupicon == '' ? nl.url.resUrl('general/top-logo2.png') : userInfo.groupicon;
         var bLoggedIn = (userInfo.username != '');
         $scope.userMenuItems = [];
