@@ -50,6 +50,10 @@ function(nl, nlDlg) {
         return _quote(str);
     };
 
+    this.getXlsxUpdater = function() {
+        return new XlsxUpdater(nl, nlDlg, this);
+    };
+
     this.MAX_RECORDS_PER_CSV = 50000;
     
     // Data should be array of array of strings
@@ -185,6 +189,89 @@ function(nl, nlDlg) {
     
 }];
 
+//-------------------------------------------------------------------------------------------------
+function XlsxUpdater(nl, nlDlg, nlExporter) {
+
+    this.getContenFromUrl = function(inputXlsUrl) {
+        return nl.q(function(resolve, reject) {
+            JSZipUtils.getBinaryContent(srcTemplateUrl, function(e, binContent) {
+                if (!e) return resolve(binContent);
+                return _errorResolve(resolve, nl.fmt2('Error fetching xlsx template {}: {}', srcTemplateUrl, e));
+            });
+        });
+    };
+
+    this.loadXlsAsZip = function(fileObj) {
+        return nl.q(function(resolve, reject) {
+            JSZip.loadAsync(fileObj).then(function(zip) {
+                return resolve(zip);
+            }, function(e) {
+                return _errorResolve(resolve, nl.fmt2('Error opening xlsx template: {}', e));
+            });
+        });
+    };
+
+    this.loadXlsAsObj = function(file) {
+        return nl.q(function(resolve, reject) {
+            var reader = new FileReader();
+            reader.onload = function (loadEvent) {
+                var binContent = loadEvent.target.result;
+                var wb = XLSX.read(ab2s(binContent), {type: 'binary', cellDates:true});
+                resolve({sheets: wb.Sheets, sheetNames: wb.SheetNames});
+            };
+            reader.onerror = function (e) {
+                return _errorResolve(resolve, nl.fmt2('Error loading xls file: {}', e));
+            };
+            reader.readAsArrayBuffer(file);
+        });
+    };
+
+    this.updateXlsxSheetAndDownload = function(zip, downloadFileName, positionOfSheetToUpdate, newContentOfSheet) {
+        return nl.q(function(resolve, reject) {
+            var sheet = XLSX.utils.aoa_to_sheet(newContentOfSheet);
+            var workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, sheet, 'sheet1');
+            var wbout = XLSX.write(workbook, {bookType:'xlsx', type: 'binary', cellStyles: true});
+            JSZip.loadAsync(wbout).then(function(zip2) {
+                var f = zip2.file('xl/worksheets/sheet1.xml');
+                f.async('arraybuffer').then(function(content) {
+                    zip.file(nl.fmt2('xl/worksheets/sheet{}.xml', positionOfSheetToUpdate), content);
+                    nlExporter.saveZip(zip, downloadFileName, null, function(sizeKb) {
+                        return resolve(true);
+                    }, function(e) {
+                        return _errorResolve(resolve, nl.fmt2('Error saving xlsx: {}', e));
+                    });
+                }, function(e) {
+                    return _errorResolve(resolve, nl.fmt2('Error getting content of new sheet: {}', e));
+                });
+            }, function(e) {
+                return _errorResolve(resolve, nl.fmt2('Error loading new sheet xlsx: {}', e));
+            });
+        });
+    };
+
+    function ab2s(ab) {
+            var bytes = new Uint8Array(ab);
+            var bytelen = bytes.byteLength;
+            var s = '';
+            for (var i = 0; i < bytelen; ++i) s += String.fromCharCode(bytes[i]);
+            return s;
+    }
+
+    function s2ab(s) {
+        var buf = new ArrayBuffer(s.length);
+        var view = new Uint8Array(buf);
+        for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+        return buf;
+    }
+
+    function _errorResolve(resolve, msg) {
+        if (msg) nlDlg.popupAlert({title: 'Error', template: msg});
+        resolve(false);
+        return false;
+    }
+
+}
 //-------------------------------------------------------------------------------------------------
 module_init();
 })();

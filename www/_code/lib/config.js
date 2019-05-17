@@ -232,6 +232,17 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
     	if (!groupInfo) groupInfo = self.get();
     	return groupInfo && groupInfo.props && groupInfo.props.augmentedUserInfoXls;
     };
+
+    var DEFAULT_TEMPLATE = '/static/others/custom_report.xlsm?v={}';
+    this.getDefaultCustomReportTemplate = function() {
+        return nl.fmt2(DEFAULT_TEMPLATE, NL_SERVER_INFO.versions.script);
+    };
+    
+    this.getCustomReportTemplate = function(groupInfo) {
+    	if (!groupInfo) groupInfo = self.get();
+        if (!groupInfo || !groupInfo.props) return '';
+        return groupInfo.props.customReportTemplate || '';
+    };
     
     this.fetchPastUserXls = function(groupInfo) {
     	if (!groupInfo) groupInfo = self.get();

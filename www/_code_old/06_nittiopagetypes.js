@@ -90,21 +90,54 @@ npagetypes = function() {
 		else nlesson.theLesson.changePageType(ptInfo.pt, ptInfo.layout);
 	}
 
+	var ATTRINFO = {
+		// When comparing if the layout is same as in template or customized,
+		// every attributed is by default compared for equality. This works
+		// for int and string attributs. Sets and objects have to be specially
+		// handled and this object defines which ones are set or object.
+
+		// content style attribute is comma seperated unordered set of strings 
+		style: 'set',
+
+		// content attribute is an object and all the sub-attributes under it are int or string
+		content: {},
+		
+		// pginfo attribute if present means the objects are different
+		pginfo: 'not_equal'
+	};
+
 	function _isEqualLayouts(layout1, layout2) {
 		if (layout1.length != layout2.length) return false;
-		for (var i in layout1) {
+		for (var i=0; i<layout1.length; i++) {
 			var lhs = layout1[i];
 			var rhs = layout2[i];
-			if (lhs.length != rhs.length) return false;
-			for (var a in lhs) {
-				if (a == 'style') {
-					if(!_isSameSet(lhs.style, rhs.style || '')) return false;
-				} else if (lhs[a] != rhs[a]) return false;
-			}
+			if (!_isObjEqual(lhs, rhs, ATTRINFO)) return false;
 		}
 		return true;
 	}
 	
+	function _isObjEqual(lhs, rhs, attrInfo) {
+		var checkedAttrs = {};
+		for (var a in lhs) {
+			checkedAttrs[a] = true;
+			if (!(a in attrInfo)) {
+				if (lhs[a] != rhs[a]) return false;
+				continue;
+			}
+			if (attrInfo[a] == 'not_equal') {
+				return false;
+			} else if (attrInfo[a] == 'set') {
+				if (!_isSameSet(lhs[a] || '', rhs[a] || '')) return false;
+			} else {
+				if (!_isObjEqual(lhs[a] || {}, rhs[a] || {}, attrInfo[a])) return false;
+			}
+		}
+		for (var a in rhs) {
+			if (!(a in checkedAttrs)) return false;
+		}
+		return true;
+	}
+
 	function _isSameSet(lhs, rhs) {
 		var lhsStyleArray = lhs.split(' ');
 		var lhsStyleDict = {};
@@ -137,6 +170,7 @@ npagetypes = function() {
         this.getSectionPos = PageType_getSectionPos;
         this.getSectionStyle = PageType_getSectionStyle;
 		this.getLayout = PageType_getLayout;
+		this.getPt = PageType_getPt;
 
 		this.getSectionHalign = PageType_getSectionHalign;
 		this.isSectionValignMiddle = PageType_isSectionValignMiddle;
@@ -211,6 +245,10 @@ npagetypes = function() {
     
 	function PageType_getLayout() {
 		return this.layout;
+	}
+    
+	function PageType_getPt() {
+		return this.pt;
 	}
 
     function _getParam(isLong, secInfo, param) {
@@ -1463,8 +1501,6 @@ npagetypes = function() {
 		function _popupStatus(params) {
 			if (!params.showClose) params.showClose = false;
 			params.popdownTime = params.showClose ? false : 2000;
-			params.msg = njs_helper.fmt2('<div class="row row-top padding0 margin0"><div class="fsh3 padding-small"><i class="icon {}"></i>' +
-				'</div><div class="col padding-mid">{}</div></div>', params.icon, params.msg);
 			njs_helper.Dialog.popupStatus2(params);
 		}
 		

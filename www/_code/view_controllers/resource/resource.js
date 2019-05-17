@@ -298,7 +298,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         Video: 'video/*',
         Attachment: '',
         Zip: '.zip',
-        Xls: '.csv, .xlsx, .ods, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel',
+        Xls: '.csv, .xlsx, .xlsm, .ods, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel',
         Csv: '.csv'
     }; 
     var _restypeToMaxFileSize = {

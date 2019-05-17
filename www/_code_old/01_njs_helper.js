@@ -521,9 +521,16 @@ function _SyncManager_init(self) {
 function _SyncManager_doNext(self) {
 	if (self.syncInProgress) return;
 	if (self.pendingRequests.length == 0) {
-		var msg = self.error ? 'Failure during save' : 'Saved';
+		var params = {popdownTime: 2000, showClose: false};
+		if (self.error) {
+			params.msg = 'Failure during save';
+			params.cls = 'red';
+			params.icon = 'ion-close-circled';
+		} else {
+			params.msg = 'Saved';
+		}
 		self.error = false;
-		njs_helper.Dialog.popupStatus(msg);
+		njs_helper.Dialog.popupStatus2(params);
 		return;
 	}
 

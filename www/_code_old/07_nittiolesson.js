@@ -153,16 +153,14 @@ nlesson = function() {
 	}
 	
     function Lesson_cloneBgImgForPage(page) {
-        var ret = {};
-        if (page && page.oPage.bgimg) {
-            ret.bgimg = jQuery(njs_helper.fmt2('<img class="bgimg bgimgcustom" src="{}">', page.oPage.bgimg));
-            ret.bgshade = page.oPage.bgshade;
-        } else if (modulePopup.isPopupOpen()) {
+        var ret = window.nlapp.NittioLesson.getBgInfo(page, modulePopup.isPopupOpen(), 
+            this.bgimg.attr('src'), this.globals.templateCssClass, page.pagetype.getPt());
+        if (ret.imgtype == 'default_popup_bg') {
             ret.bgimg = jQuery('<div class="bgimg module_popup_img"></div>');
-            ret.bgshade = 'bglight';
-        } else {
+        } else if (ret.imgtype == 'default_module_bg') {
             ret.bgimg = this.bgimg.clone();
-            ret.bgshade = this.globals.templateCssClass;
+        } else {
+            ret.bgimg = jQuery(njs_helper.fmt2('<img class="bgimg bgimgcustom" src="{}">', ret.bgimg));
         }
         return ret;
     }
@@ -2528,7 +2526,7 @@ var modulePopup = new ModulePopupHadler();
 	}
 
 	function updateTemplate(bgShade, bgImg) {
-		jQuery('.bgimg').each(function() {
+		jQuery('img.bgimg').each(function() {
 		    var elem = jQuery(this);
 		    if (!elem.hasClass('bgimgcustom')) {
 		        elem.attr('src', bgImg);

@@ -116,6 +116,7 @@ var _dashboardActions = {
     'assign_desk.view': {'url': '/#/assignment?type=sent&{}', 'permission': 'assignment_send'},
     'assign_desk.manage': {'url': '/#/assignment?type=manage&{}', 'permission': 'assignment_manage'},
     'assign_desk.summary_report': {'url': '/#/learning_reports?type=module&{}', 'permission': 'assignment_send'},
+    'assign_desk.self_assign_report': {'url': '/#/learning_reports?type=module_self_assign&{}', 'permission': 'assignment_manage'},
     'assign_desk.shared': {'url': '/#/home', 'permission': 'admin_group'}, // Removed.
     'course.view': {'url': '/#/course_view?mode=published&{}', 'permission': 'basic_access'},
     'course.view_my': {'url': '/#/course_list?my=1&{}', 'permission': 'course_create'},

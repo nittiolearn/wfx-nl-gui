@@ -1364,6 +1364,10 @@ nl-cards {
   background-color: rgba(255, 255, 255, 0.3);
 }
 
+.page_format_preview > .bgimg {
+  z-index: auto;
+}
+
 // nl-progress-bar
 .nl-progress-bar {
   width: 100%;
