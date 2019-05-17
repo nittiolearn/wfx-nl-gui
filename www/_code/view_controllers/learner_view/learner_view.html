@@ -1,0 +1,140 @@
+<style>
+.learner-view-bg{
+    background-color: #f5f5f5;
+}
+
+.section-header{
+    color: #999999;
+    font-weight: bold;
+}
+
+.overview-card-holder{
+    margin: auto;
+    border-radius: 10px;
+    box-shadow: 0px 10px 15px 0 rgba(54, 54, 54, 0.05);
+}
+
+.bg-white{
+    background-color: #ffffff;
+}
+
+.w70 {
+    width: 70%;
+}
+
+.learner-card-subtitle {
+    font-size: 85%;
+    color: #838383;
+}
+
+.nl-learner-card-header {
+    font-weight: bold;
+    color: #245dd1;
+    font-size: 100%;
+}
+.learner-perc-area {
+    background-color: blue;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    color: #fff;
+}
+.margin-auto {
+    margin: auto;
+}
+</style>
+<div class='nl-learning-report-body padding-small nl-thin-scroll learner-view-bg' style='position:absolute; width: 100%; height: 100%'>
+<div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
+    <div class='nl-topsection'>
+        <div class='padding'>
+            <div class='padding-small'></div>
+            <div class='row row-center margin0 padding0 nl-learner-view-section' style='margin: auto'>
+                <div class='col section-header'><span ng-show='$root.screenSize !="small"'>{{tabData.selectedTab.tabSecTitle}}</span></div>
+                <span style='min-width: 250px'>
+                    <input class='padding-small w100'
+                        ng-model='tabData.search'
+                        ng-attr-placeholder='{{tabData.searchPlaceholder}}'
+                        ng-keydown='tabData.onSearch($event)'
+                        style='border: none; border-radius: 5px; height: 35px'>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div ng-show='tabData.selectedTab.id == "assigned"'>
+        <div class='padding'>
+            <div class='row row-top padding0 margin-auto nl-learner-view-section'>
+                <div class='col section-header'>ACTIVE</div>
+            </div>
+        </div>
+        <div class='anim fade' 
+            ng-repeat="record in tabData.records">
+            <div class='padding' ng-show='record.recStateObj.type == "active"'>
+                <nl-learner-section record='record' attr='"active"'></nl-learner-section>
+            </div>
+        </div>
+        <div class='padding'>
+            <div class='row row-top padding0 margin-auto nl-learner-view-section'>
+                <div class='col section-header'>UPCOMING</div>
+            </div>
+        </div>
+        <div class='anim fade' 
+            ng-repeat="record in tabData.records">
+            <div class='padding' ng-show='record.recStateObj.type == "upcoming"'>
+                <nl-learner-section record='record' attr='"upcoming"'></nl-learner-section>
+            </div>
+        </div>
+        <div class='padding'>
+            <div class='row row-top padding0 margin-auto nl-learner-view-section'>
+                <div class='col section-header'>PAST</div>
+            </div>
+        </div>
+        <div class='anim fade' ng-repeat="record in tabData.records">
+            <div class='padding' ng-show='record.recStateObj.type == "past"'>
+                <nl-learner-section record='record' attr='"past"'></nl-learner-section>
+            </div>
+        </div>
+    </div>
+    <div ng-show='tabData.selectedTab.id == "summary"'>
+        <div class='padding'>
+            <div class='row row-top row-wrap margin-auto padding0 nl-learner-view-section'>
+                <div ng-class='respCol221' class='text-center padding-mid'>
+                    <div class='padding-small'></div>
+                    <div class='fsh5 padding-mid'>{{charts[0].title}}</div>
+                    <div class='padding-small'></div>
+                    <div>
+                        <canvas class='chart chart-doughnut'
+                                height='200'
+                                width='200'
+                                chart-data='charts[0].data'
+                                chart-labels='charts[0].labels'
+                                chart-colours='charts[0].colors'
+                                chart-series='charts[0].series'
+                                chart-options='charts[0].options'>
+                        </canvas>
+                    </div>
+                </div>
+                <div ng-class='$root.respCol221' class='text-center padding-mid'>
+                    <div class='padding-small'></div>
+                    <div class='fsh5 padding-mid'>{{charts[1].title}}</div>
+                    <div class='padding-small'></div>
+                    <div on-load="chartsOnLoad()">
+                        <canvas class='chart chart-bar'
+                                height='250'
+                                width='350'
+                                chart-data='charts[1].data'
+                                chart-labels='charts[1].labels'
+                                chart-colours='charts[1].colors'
+                                chart-series='charts[1].series'
+                                chart-options='charts[1].options'>
+                        </canvas>
+                    </div>
+                </div>
+            </div>
+            <div class='padding'></div>
+            <div class='margin-auto padding0 nl-learner-view-section bg-white'>
+                <nl-learning-status-counts item='tabData.selectedTab.tabDetailsDict' attr='"learner"'></nl-learning-status-counts>
+            </div>
+        </div>
+    </div>
+</div>
+</div>

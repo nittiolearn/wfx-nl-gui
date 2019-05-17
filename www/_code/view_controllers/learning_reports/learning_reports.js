@@ -37,8 +37,7 @@ function module_init() {
 		'nl.learning_reports.lr_summary_stats', 'nl.learning_reports.lr_import', 'nl.learning_reports.lr_assignments'])
 	.config(configFn)
 	.controller('nl.LearningReportsCtrl', LearningReportsCtrl)
-	.service('nlLearningReports', NlLearningReports)
-	.directive('nlTabDetails', NlTabDetailsDirective);
+	.service('nlLearningReports', NlLearningReports);
 }
 
 var configFn = ['$stateProvider', '$urlRouterProvider',
@@ -51,24 +50,6 @@ function($stateProvider, $urlRouterProvider) {
 				controller: 'nl.LearningReportsCtrl'
 			}
 		}});
-}];
-
-var NlTabDetailsDirective = ['nl', 
-function(nl) {
-    return {
-        restrict: 'E',
-        transclude: true,
-        templateUrl: 'view_controllers/learning_reports/details_tab.html',
-        scope: {
-			item: '=',
-			attr: '='
-		},
-        link: function($scope, iElem, iAttrs) {
-            $scope.getRoundedPerc = function(divider, dividend) {
-				return Math.round((divider*100)/dividend);
-            };
-		}
-	}
 }];
 
 var LearningReportsCtrl = ['$scope', 'nlLearningReports',

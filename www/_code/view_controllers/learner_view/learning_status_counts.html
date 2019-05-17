@@ -29,7 +29,7 @@
             <div class='{{$root.screenSize == "small" ? "padding-right" : "col"}} minw-details-number'>{{item.pendingInactive}}</div>
         </div>
     </div>
-    <div class='row row-center padding-mid margin0  nl-bg-blue'>
+    <div ng-hide='attr == "learner"' class='row row-center padding-mid margin0  nl-bg-blue'>
         <div class='col'><b>Active Assignments:</b></div>
         <div class='{{$root.screenSize == "small" ? "padding-right" : "col"}} minw-details-number'><b>{{item.active}}</b></div>
     </div>
