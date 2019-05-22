@@ -1,0 +1,27 @@
+<nl-dlg dlgtitle='{{dlgtitle}}'>
+<nl-dlg-content>
+    <nl-dlg-row attr='title' data='data' help='help'>
+        <nl-input fieldmodel='title' fieldtype='text' fieldCls='w100'></nl-input>
+    </nl-dlg-row>
+    <nl-dlg-row attr='desc' data='data' help='help'>
+        <nl-textarea fieldmodel='desc' fieldcls='w100'></nl-textarea>
+    </nl-dlg-row>
+	<nl-dlg-row attr='resource' data='data' help='help'>
+        <div class='row row-center margin0' ng-repeat='res in data.resources'>
+            <select ng-model='res.type'
+                    class='padding-mid'
+                    style = 'height: 36px;'
+                    ng-change='onFieldChange(res)'
+                    ng-options='opt as opt.name for opt in res.restype track by opt.id'>
+            </select>
+            <div ng-show='res.url' cclass='col padding0'>{{res.url}}</div>
+            <div ng-hide='res.url' class='col fblue2 fsh6'>
+                Please choose the resource
+            </div>
+            <span class='nl-link-img' ng-click='selectResource($index)'>
+                <i  class='padding-mid icon ion-more fsh2 fblue2'></i>
+            </span>
+        </div>
+	</nl-dlg-row>
+</nl-dlg-content>
+</nl-dlg>

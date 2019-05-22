@@ -21,6 +21,9 @@
 .nl-topBarItems .selected {
     background-color: #004455;
 }
+.nl-showAnnouncement {
+    width: 70%;
+}
 </style>
 
 <link ng-if='pgInfo.groupCustomCss' rel="stylesheet" 
@@ -66,7 +69,10 @@
 		</nav>
     </nav>
     <div id='nl-body' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
+        <div style='position:absolute; top: 0%; left: 0%; width: {{(showAnnouncement && screenSize != "small") ? "70" : "100"}}%; height: 100%'>
             <ion-nav-view name='appContent'>
             </ion-nav-view>
+        </div>
+        <nl-announcement ng-show='showAnnouncement' pane='true' data='announcementData'></nl-announcement>
     </div>
 </div>

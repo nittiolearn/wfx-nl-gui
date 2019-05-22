@@ -59,7 +59,7 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state) {
             }
         });
     };
-    
+
     this.isPermitted = function(userInfo, taskName) {
         var perm = permission.getPermObj(taskName);
         if (perm == null) return false;
@@ -278,6 +278,7 @@ function Permission(nl) {
         '/training_attend': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
         '/recyclebin': {login: true, permission: 'lesson_approve', termRestriction: TR_CLOSED},
 		'/learner_view': {login:true, permission: 'basic_access', termRestriction: TR_RESTRICTED},
+        '/announcement': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},        
 
         // Operation permissions
         'assignment_manage': {login: true, permission: 'assignment_manage', termRestriction: TR_RESTRICTED},

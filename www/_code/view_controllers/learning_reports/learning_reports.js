@@ -238,16 +238,16 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			id: 'modifyAssignment',
 			onClick : _onClickModifyAssignment,
 		}, {
-				title : 'Download report',
+			title : 'Download report',
 			icon : 'ion-ios-cloud-download',
 			id: 'export',
 			onClick : _onExport
 			}, {
-				title : 'Download custom MIS report',
-				icon : 'material-icons',
-				icon_content : 'assignment_returned',
-				id: 'exportCustomReport',
-				onClick : _onExportCustomReport
+			title : 'Download custom MIS report',
+			icon : 'material-icons',
+			icon_content : 'assignment_returned',
+			id: 'exportCustomReport',
+			onClick : _onExportCustomReport
 		}];
 	}
 	
@@ -382,8 +382,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _someTabDataChanged() {
-			$scope.orgLevelSummaryArray = [];
-			$scope.orgLevelAllCoursesDict = {};
+		$scope.orgLevelSummaryArray = [];
+		$scope.orgLevelAllCoursesDict = {};
 		var tabs = $scope.tabData.tabs;
 		for (var i=0; i<tabs.length; i++) {
 			tabs[i].updated = false;
@@ -649,7 +649,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _updateOverviewDoughnut(summaryRecord) {
 		var c = $scope.charts[0];
 		var type = nlLrFilter.getType();
-			var typeStr = type == 'module' || type == 'module_assign' || type == 'module_self_assign' ? 'Module' : 'Course';
+		var typeStr = type == 'module' || type == 'module_assign' || type == 'module_self_assign' ? 'Module' : 'Course';
 		c.data = [summaryRecord.done.txt, summaryRecord.failed.txt, summaryRecord.started.txt, summaryRecord.pending.txt];
 		c.title = nl.t('{} progress: {} of {} done', typeStr, (summaryRecord.done.txt + summaryRecord.failed.txt), summaryRecord.assigned.txt);
 	}
@@ -790,8 +790,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	}
 
-		var suborgDict = null;
-		var _isSuborgEnabled = false;
+	var suborgDict = null;
+	var _isSuborgEnabled = false;
 	function _updateCoursesSummary() {
 		suborgDict = nlGroupInfo.getSuborgStructure();
 		_isSuborgEnabled = nlGroupInfo.isSuborgEnabled();
@@ -827,29 +827,29 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			_updateAllCoursesDict();
 	}
 
-		function _updateAllCoursesDict() {
-			$scope.orgLevelAllCoursesDict = angular.copy(defaultItemDict);
-			$scope.orgLevelAllCoursesDict['assigned'] = 0;
-			for(var i=0; i<$scope.orgLevelSummaryArray.length; i++) {
-				var org = $scope.orgLevelSummaryArray[i];
-				$scope.orgLevelAllCoursesDict.assigned += org.assigned;
-				$scope.orgLevelAllCoursesDict.completed += org.completed;
-				$scope.orgLevelAllCoursesDict.certified += org.certified;
-				$scope.orgLevelAllCoursesDict.pending += org.pending;
-				$scope.orgLevelAllCoursesDict.inactive += org.inactive;
-				$scope.orgLevelAllCoursesDict.active += org.active;
-				$scope.orgLevelAllCoursesDict.failed += org.failed;
-				$scope.orgLevelAllCoursesDict.scorePerc += org.scorePerc;
-				$scope.orgLevelAllCoursesDict.timeSpent += org.timeSpent;
-				$scope.orgLevelAllCoursesDict.completedInactive += org.completedInactive;
-				$scope.orgLevelAllCoursesDict.pendingInactive += org.pendingInactive;
-				$scope.orgLevelAllCoursesDict.certifiedInFirstAttempt += org.certifiedInSecondAttempt;
-				$scope.orgLevelAllCoursesDict.certifiedInMoreAttempt += org.certifiedInMoreAttempt;
-				$scope.orgLevelAllCoursesDict['certifiedPerc'] = Math.round($scope.orgLevelAllCoursesDict.certified*100/$scope.orgLevelAllCoursesDict.active);
-				$scope.orgLevelAllCoursesDict['failedPerc'] = Math.round($scope.orgLevelAllCoursesDict.failed*100/$scope.orgLevelAllCoursesDict.active);
-				$scope.orgLevelAllCoursesDict['pendingPerc'] = Math.round($scope.orgLevelAllCoursesDict.pending*100/$scope.orgLevelAllCoursesDict.active);	
-			}
+	function _updateAllCoursesDict() {
+		$scope.orgLevelAllCoursesDict = angular.copy(defaultItemDict);
+		$scope.orgLevelAllCoursesDict['assigned'] = 0;
+		for(var i=0; i<$scope.orgLevelSummaryArray.length; i++) {
+			var org = $scope.orgLevelSummaryArray[i];
+			$scope.orgLevelAllCoursesDict.assigned += org.assigned;
+			$scope.orgLevelAllCoursesDict.completed += org.completed;
+			$scope.orgLevelAllCoursesDict.certified += org.certified;
+			$scope.orgLevelAllCoursesDict.pending += org.pending;
+			$scope.orgLevelAllCoursesDict.inactive += org.inactive;
+			$scope.orgLevelAllCoursesDict.active += org.active;
+			$scope.orgLevelAllCoursesDict.failed += org.failed;
+			$scope.orgLevelAllCoursesDict.scorePerc += org.scorePerc;
+			$scope.orgLevelAllCoursesDict.timeSpent += org.timeSpent;
+			$scope.orgLevelAllCoursesDict.completedInactive += org.completedInactive;
+			$scope.orgLevelAllCoursesDict.pendingInactive += org.pendingInactive;
+			$scope.orgLevelAllCoursesDict.certifiedInFirstAttempt += org.certifiedInSecondAttempt;
+			$scope.orgLevelAllCoursesDict.certifiedInMoreAttempt += org.certifiedInMoreAttempt;
+			$scope.orgLevelAllCoursesDict['certifiedPerc'] = Math.round($scope.orgLevelAllCoursesDict.certified*100/$scope.orgLevelAllCoursesDict.active);
+			$scope.orgLevelAllCoursesDict['failedPerc'] = Math.round($scope.orgLevelAllCoursesDict.failed*100/$scope.orgLevelAllCoursesDict.active);
+			$scope.orgLevelAllCoursesDict['pendingPerc'] = Math.round($scope.orgLevelAllCoursesDict.pending*100/$scope.orgLevelAllCoursesDict.active);	
 		}
+	}
 
 	var defaultItemDict = {assigned: 1, completed: 0, certified: 0, pending: 0, inactive: 0, failed: 0, active: 0, scorePerc: 0, 
 							timeSpent: 0, completedInactive: 0, pendingInactive: 0, certifiedInFirstAttempt: 0, certifiedInSecondAttempt: 0,
@@ -985,12 +985,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		} else if(status.id == nlLrHelper.STATUS_FAILED) {
 			tableRow.failed += 1;
 			tableRow.completed += 1;
-				tableRow.scorePerc += record.stats.percScore;
-				if(addOu) {
-					ouItemDict.failed += 1;
-					ouItemDict.completed += 1;
-					ouItemDict['scorePerc'] += record.stats.percScore;
-				}
+			tableRow.scorePerc += record.stats.percScore;
+			if(addOu) {
+				ouItemDict.failed += 1;
+				ouItemDict.completed += 1;
+				ouItemDict['scorePerc'] += record.stats.percScore;
+			}
 		} else {
 			tableRow.pending += 1;
 			if(addOu) ouItemDict.pending += 1;
@@ -1001,7 +1001,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _updateCompletedUserDate(tableItem, ouItemDict, record, addOu) {
 		tableItem.completed += 1;
 		tableItem.certified += 1;
-			tableItem.scorePerc += record.stats.percScore;
+		tableItem.scorePerc += record.stats.percScore;
 
 		if(record.stats.avgAttempts == 1) {
 			tableItem['certifiedInFirstAttempt'] += 1;
