@@ -144,8 +144,8 @@ function(nl) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var AppCtrl = ['nl', '$scope', '$anchorScroll', 'nlKeyboardHandler', 'nlServerApi', 'nlRouter', 'nlLogViewer', 'nlOldCodeBridge',
-function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer, nlOldCodeBridge) {
+var AppCtrl = ['nl', '$scope', '$anchorScroll', 'nlKeyboardHandler', 'nlAnnouncementSrv', 'nlRouter', 'nlLogViewer', 'nlOldCodeBridge',
+function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRouter, nlLogViewer, nlOldCodeBridge) {
     nl.log.info('UserAgent: ', navigator.userAgent);
     if (NL_SERVER_INFO.oldCode) nlOldCodeBridge.expose();
 
@@ -163,7 +163,7 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlServerApi, nlRouter, nl
     var homeUrl = '/#/home';
     var welcomeUrl = '/#/welcome#home';
 
-    $scope.userMenuItems = [];
+    $scope.topMenuItems = [];
     $scope.homeMenuTitle = nl.t('Home');
     $scope.logedIn = false;
     $scope.homeUrl = homeUrl;
@@ -173,18 +173,27 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlServerApi, nlRouter, nl
         nl.log.debug('app:onPageEnter - enter');
         nl.rootScope.bodyClass = 'showbody';
         nl.rootScope.pgInfo.topBarItems = [];
+        nlAnnouncementSrv.initAnnouncements(userInfo, $scope);
         $scope.logo = userInfo.groupicon == '' ? nl.url.resUrl('general/top-logo2.png') : userInfo.groupicon;
         var bLoggedIn = (userInfo.username != '');
-        $scope.userMenuItems = [];
+        $scope.topMenuItems = [];
         if (bLoggedIn) {
             $scope.logedIn = true;
             $scope.homeUrl = homeUrl;
+            $scope.topMenuItems.push({title: nl.t(' Show Announcements'),
+                onclick: function() { nlAnnouncementSrv.onOpen(); },
+                canShow: function() { return nlAnnouncementSrv.canShowOpen(); }
+            });
             if (nlRouter.isPermitted(userInfo, 'change_password')) {
-                $scope.userMenuItems.push({title: nl.t(' Change Password'), 
-                    url: '#/pw_change'});
+                $scope.topMenuItems.push({title: nl.t(' Change Password'), 
+                    url: '#/pw_change',
+                    canShow: function() {return true;}
+                });
             }
-            $scope.userMenuItems.push({title: nl.t(' Sign Out'),
-                url: '#/logout_now'});
+            $scope.topMenuItems.push({title: nl.t(' Sign Out'),
+                url: '#/logout_now',
+                canShow: function() {return true;}
+            });
         }
         nl.log.debug('app:onPageEnter - done');
     };

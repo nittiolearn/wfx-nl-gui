@@ -1667,20 +1667,28 @@ img.nl-icon {
   -webkit-transition:0.3s linear all;
   transition:0.3s linear all;
 }
-
-.borderpage {
-  -webkit-transition:0.3s linear all;
-  transition:0.3s linear all;
-}
 */
 
-#nl-body.fullpage {
+#rightpane {
+  position: absolute;
+  top: 40px;
+  left: 70%;
+  right: 0;
+  height: 100%;
+}
+
+#nl-body.fullpage, #rightpane.fullpage {
   top: 0px;
 }
 
 #nl-topbar.fullpage {
   height: 0;
   opacity: 0;
+}
+
+#nl-body.rightpane {
+  width: auto;
+  right: 30%;
 }
 
 //-----------------------------------------------------------------------------------------

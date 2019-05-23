@@ -32,123 +32,164 @@ function(nl, nlDlg, nlAnnouncementSrv) {
     return {
         restrict: 'E',
         transclude: true,
-        templateUrl: 'view_controllers/announcement/announcement_pane.html',
+        templateUrl: 'view_controllers/announcement/announcement_dir.html',
         scope: {
-            pane: '=',
-            data: '=',
         },
         link: function($scope, iElem, iAttrs) {
-            $scope.onClickOnUpdate = function(announcement) {
-                nlAnnouncementSrv.onClickOnUpdate(announcement);
-            }
-            $scope.onClickOnDelete = function(announcement) {
-                nlAnnouncementSrv.onClickOnDelete(announcement);
-            }
-            $scope.clickOnCloseAnnouncement = function() {
-                nlAnnouncementSrv.showAnnouncementPane(false);
-            }
+            $scope.canShowButtons = function() {
+                return nlAnnouncementSrv.isAdmin();
+            };
+            $scope.updateAnnouncement = function(announcement) {
+                nlAnnouncementSrv.updateAnnouncement(announcement);
+            };
+            $scope.deleteAnnouncement = function(announcement) {
+                nlAnnouncementSrv.deleteAnnouncement(announcement);
+            };
         }
     }
 }];
 
 //-------------------------------------------------------------------------------------------------
-var AnnouncementCtrl = ['$scope', 'nlAnnouncementSrv',
-function($scope, nlAnnouncementSrv) {
-    $scope.pane = false;
-    nlAnnouncementSrv.show($scope);
+var AnnouncementCtrl = ['$scope', 'nlAnnouncementSrv', 'nlRouter',
+function($scope, nlAnnouncementSrv, nlRouter) {
+	function _onPageEnter(userInfo) {
+        return nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'full');
+	}
+	nlRouter.initContoller($scope, '', _onPageEnter);
 }];
+
 //-------------------------------------------------------------------------------------------------
-var _announcementList = [];
 var AnnouncementSrv = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlResourceAddModifySrv',
-function(nl, nlDlg, nlRouter, nlServerApi, nlResourceAddModifySrv) {    
+function(nl, nlDlg, nlRouter, nlServerApi, nlResourceAddModifySrv) {
+    var _data = {mode: 'none', isAdmin: false, toolBar:[], items:null, canFetchMore:false};
+    var _scope = null;
     var _userInfo = null;
-    var _canFetchMore = true;
-    var $scope = null;
+    var self = this;
 
-
-
-    
-    nl.rootScope.hideAnnounement = true;
-
-
-    this.show = function(scope) {
-        $scope = scope;
-        if($scope.pane) {
-            return nl.q(function(resolve, reject) {
-                nlRouter.getUserInfo('').then(function(userInfo) {
-                resolve(_onPageEnter(userInfo));
-            })
-        })
-        } else {
-            nlRouter.initContoller($scope, '', _onPageEnter);
-        }
+    this.initAnnouncements = function(userInfo, scope) {
+        _initAnnouncements(userInfo, scope, 'none');
     };
 
-    this.getList = function() {
-        if(_announcementList.length != 0) {
-            return {announcementList: _announcementList};
-        } else {
-            return false;
-        }
+    this.onPageEnter = function(userInfo, scope, mode) {
+        return nl.q(function(resolve, reject) {
+            _initAnnouncements(userInfo, scope, mode);
+            if (_data.mode == 'none') return resolve(true);
+            if (_data.items) return resolve(true);
+            _data.items = [];
+            _getDataFromServer(resolve, false);
+        });
     };
 
-    this.onClickOnDelete = function(announcement) {
+    this.updateAnnouncement = function(announcement) {
+        return _onUpdate(announcement);
+    };
+
+    this.deleteAnnouncement = function(announcement) {
+        return _onDelete(announcement);
+    };
+
+    this.isAdmin = function() {
+        return _data.mode == 'full' && _data.isAdmin;
+    };
+
+    this.canShowOpen = function() {
+        return _data.mode == 'none';
+    };
+
+    this.onOpen = function() {
+        _onOpen();
+    };
+
+    function _initAnnouncements(userInfo, scope, mode) {
+        _scope = scope;
+        _userInfo = userInfo;
+        nl.rootScope.announcement = _data;
+        _data.mode = mode;  // none|pane|full
+        if (nl.rootScope.screenSize == 'small' && _data.mode == 'pane') _data.mode = 'none';
+        if (_data.mode == 'none') return;
+        _data.isAdmin = userInfo.permissions.lesson_approve;
+        _initToolBar();
+    }
+
+    function _initToolBar() {
+        _data.toolBar = [];
+        if (_data.mode == 'full' && _data.isAdmin) {
+            _data.toolBar.push({
+                title : 'Create a new announcement',
+                icon : 'ion-android-add-circle',
+                onClick : _onCreate,
+                canShow: function() {
+                    return true;
+                }
+            });
+        }
+        if (_data.mode == 'full') {
+            _data.toolBar.push({
+                title : 'Fetch more items',
+                icon : 'ion-refresh',
+                onClick : _onFetchMore,
+                canShow: function() {
+                    return _data.canFetchMore;
+                }
+            });
+        }
+        if (_data.mode == 'pane') {
+            _data.toolBar.push({
+                title : 'Open announcement in new tab',
+                icon : 'ion-paper-airplane',
+                onClick : _onNewTab,
+                canShow: function() {
+                    return true;
+                }
+            });
+            _data.toolBar.push({
+                title : 'Close',
+                icon : 'ion-close-circled',
+                onClick : _onClose,
+                canShow: function() {
+                    return true;
+                }
+            });
+        }
+    }
+
+	function _onFetchMore() {
+        nlDlg.showLoadingScreen();
+        _getDataFromServer(function() {
+            nlDlg.hideLoadingScreen();
+        }, true);
+    }
+
+    var _pageFetcher = nlServerApi.getPageFetcher();
+	function _getDataFromServer(resolve, fetchMore) {
+        _pageFetcher.fetchPage(nlServerApi.getAnnouncementList, {}, fetchMore, function(results) {
+            if (!results) {
+                if (resolve) resolve(false);
+                return;
+            }
+            _data.canFetchMore = _pageFetcher.canFetchMore();
+            for (var i = 0; i < results.length; i++) {
+                _data.items.push(results[i]);
+            }
+            if (resolve) resolve(true);
+		});
+	}
+
+    function _onCreate() {
+        _onUpdate(null);
+    }
+
+    function _onDelete(announcement) {
         var data = {id: announcement.id};
         nlDlg.showLoadingScreen();
         nlServerApi.deleteAnnouncement(data).then(function(status) {
             nlDlg.hideLoadingScreen();
-            if(status) {
-                _updateAnnouncementList(announcement, false);
-            }
+            if(status) _removeAnnoucementItem(announcement.id);
         })
     }
-
-    this.onClickOnUpdate = function(announcement) {
-        _showCreateOrUpdateAnnouncementDlg(announcement);
-    }
-
-    function _onPageEnter(userInfo) {
-        _userInfo = userInfo;
-        return nl.q(function (resolve, reject) {
-            nl.pginfo.pageTitle = nl.t('Announcements');
-            $scope.announcementData = {announcementList: []};
-            if(!$scope.pane) {
-                $scope.announcementData.toolbar = _getToolbar();
-                $scope.announcementData.canshowToolbar = _userInfo.permissions['lesson_approve'] || false;    
-            }
-            _getDataFromServer(resolve, false);
-        });
-    }
-
-    function _updateAnnouncementList(announcement, bmodify) {
-        for(var i=0; i<$scope.announcementData.announcementList.length; i++) {
-            if(announcement.id == $scope.data.announcementList[i].id) {
-                $scope.announcementData.announcementList.splice(i, 1);
-                _announcementList = angular.copy($scope.announcementData.announcementList);
-                break;
-            }
-        }
-        if(bmodify) {
-            $scope.announcementData.announcementList.splice(0, 0, announcement);
-            _announcementList = angular.copy($scope.announcementData.announcementList);
-        }
-    }
-
-	function _getToolbar() {
-		return [{
-			title : 'Create a new announcement',
-			icon : 'ion-android-add-circle',
-			onClick : _createNewAnnouncement
-        }]
-    }
-    
-    function _createNewAnnouncement() {
-        _showCreateOrUpdateAnnouncementDlg();
-    }
-
     var _restypes = ["Image", "Video"]
-    function _showCreateOrUpdateAnnouncementDlg(announcement) {
-        var dlg = nlDlg.create($scope);
+    function _onUpdate(announcement) {
+        var dlg = nlDlg.create(_scope);
         var update = announcement ? true : false;
         dlg.setCssClass('nl-width-max nl-height-max');
         var dropdown = [{id:'img', name: 'Image'}, {id:'video', name: 'Video'}]
@@ -176,8 +217,7 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlResourceAddModifySrv) {
                 resurl = 'img:' + resurl;
             else
                 resurl = 'video:' + resurl;
-
-            nlResourceAddModifySrv.insertOrUpdateResource($scope, 
+            nlResourceAddModifySrv.insertOrUpdateResource(dlg.scope, 
 				_restypes, resurl, false, {}, false).then(function(result) {
 				if(!result || !result.url) return;
                 selectedItem['url'] = result.url;			
@@ -191,7 +231,7 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlResourceAddModifySrv) {
             _createOrUpdateAnnouncement(dlg.scope.data, update);
         }};
         var cancelButton = {text: nl.t('Cancel')}
-        dlg.show('view_controllers/announcement/create_or_update_announcement.html', [crOrUpBtn], cancelButton)
+        dlg.show('view_controllers/announcement/announcement_create_dlg.html', [crOrUpBtn], cancelButton)
     }
 
     function _createOrUpdateAnnouncement(data, isUpdate) {
@@ -202,10 +242,8 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlResourceAddModifySrv) {
         serverFn(params).then(function(record) {
             nlDlg.hideLoadingScreen();
             nlDlg.closeAll();
-            if(isUpdate) 
-                _updateAnnouncementList(record, true);
-            else
-                $scope.announcementData.announcementList.splice(0, 0, record);
+            if(isUpdate) _removeAnnoucementItem(record.id);
+            _addAnnoucementItem(record);
         })
     }
 
@@ -241,26 +279,34 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlResourceAddModifySrv) {
         return true;
     }
 
-	function _getDataFromServer(resolve, fetchMore) {
-        var _pageFetcher = nlServerApi.getPageFetcher();
-        _pageFetcher.fetchPage(nlServerApi.getAnnouncementList, {}, fetchMore, function(results) {
-            if (!results) {
-                if (resolve) resolve(false);
-                return;
-            }
-            _createAnnouncement(results);
-            _canFetchMore = _pageFetcher.canFetchMore()
-            if (resolve) resolve(true);
-		});
-	}
+    function _addAnnoucementItem(announcement) {
+        _data.items.splice(0, 0, announcement);
+    }
 
-	function _createAnnouncement(resultList) {
-		for (var i = 0; i < resultList.length; i++) {
-            var item = resultList[i];
-            _announcementList.push(item);
+    function _removeAnnoucementItem(announcementId) {
+        for(var i=0; i<_data.items.length; i++) {
+            if (announcementId != _data.items[i].id) continue;
+            _data.items.splice(i, 1);
+            break;
         }
-        $scope.announcementData.announcementList = _announcementList;
-	}
+    }
+
+    function _onNewTab() {
+        nl.window.open('/#/announcement','_blank');
+    }
+
+    function _onClose() {
+        _data.mode = 'none';
+    }
+
+    function _onOpen() {
+        if (nl.rootScope.screenSize == 'small') return _onNewTab();
+        nlDlg.showLoadingScreen();
+        self.onPageEnter(_userInfo, _scope, 'pane').then(function(result) {
+            nlDlg.hideLoadingScreen();
+        });
+    }
+
 }];
 //-------------------------------------------------------------------------------------------------
 module_init();

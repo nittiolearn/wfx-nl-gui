@@ -33,7 +33,7 @@
     ng-class='{"nl-hide":!pgInfo.isPageShown}'>
     <div ng-show='pgBgimg' class='nl-pagecanvas-bg' ng-class='{"nl-pagecanvas-bgimg" : pgBgimg}'></div>
 
-    <nav id='nl-topbar' ng-show='pgInfo.isMenuShown' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
+    <nav id='nl-topbar' ng-show='pgInfo.isMenuShown' ng-class='{fullpage:!pgInfo.isMenuShown}'>
         <a id='nl-logo' ng-href='{{homeUrl}}'>
             <img class='nl-link-img no-hover' ng-src='{{logo}}' ng-show='logo' title='{{homeMenuTitle}}'/>
         </a>
@@ -58,21 +58,24 @@
         </nav>
         <nav id='nl-user-menu' ng-show='showUserMenu'>
 	        <ul class="list fblack fsh6">
-		    	<li ng-repeat='item in userMenuItems'
-		    	    class="item item-divider padding0">
-                    <a ng-href='{{item.url}}'
+		    	<li ng-repeat='item in topMenuItems'
+                    class="item item-divider padding0"
+                    ng-show='item.canShow()'>
+                    <a ng-if='item.url' ng-href='{{item.url}}'
                        class='nl-link-text' rel='nofollow'>
 						<i class='w100 nl-block nl-link-text padding-mid'>{{item.title}}</i>
                     </a>
+                    <span ng-if='item.onclick' ng-click='item.onclick()'
+                       class='nl-link-text'>
+						<i class='w100 nl-block nl-link-text padding-mid'>{{item.title}}</i>
+                    </span>
 			    </li>
 		    </ul>
 		</nav>
     </nav>
-    <div id='nl-body' ng-class='{fullpage:!pgInfo.isMenuShown, borderpage:pgInfo.isMenuShown}'>
-        <div style='position:absolute; top: 0%; left: 0%; width: {{(showAnnouncement && screenSize != "small") ? "70" : "100"}}%; height: 100%'>
-            <ion-nav-view name='appContent'>
-            </ion-nav-view>
-        </div>
-        <nl-announcement ng-show='showAnnouncement' pane='true' data='announcementData'></nl-announcement>
+    <div id='nl-body' ng-class='{fullpage:!pgInfo.isMenuShown, rightpane:announcement.mode == "pane"}'>
+        <ion-nav-view name='appContent'>
+        </ion-nav-view>
     </div>
+    <nl-announcement id='rightpane' ng-if='announcement.mode == "pane"' ng-class='{fullpage:!pgInfo.isMenuShown}'></nl-announcement>
 </div>

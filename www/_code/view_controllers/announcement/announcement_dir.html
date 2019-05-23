@@ -1,62 +1,63 @@
 <style>
-.announcement-pane {
+.announcement-dir {
     position: absolute;
     left: 0%;
     top: 0%;
     width: 100%;
     height: 100%;
 }
-.nl-img-video-full {
+
+.announcement-full .announcement-pad {
+    padding: 20px;
+}
+
+.announcement-full .announcement-pad-sm {
+    padding: 8px;
+}
+
+.announcement-pane .announcement-pad-sm {
+    padding: 4px;
+}
+
+.announcement-full .announcement-res {
     max-width: 400px;
     max-height: 300px; 
 }
 
-.nl-img-video-pane {
+.announcement-pane .announcement-res {
     max-width: 200px;
     max-height: 150px; 
 }
 
 </style>
-<div class='nl-thin-scroll announcement-pane'>
+<div class='nl-thin-scroll announcement-dir announcement-{{$root.screenSize == "small" ? "pane" : $root.announcement.mode}}'>
     <div class='row row-center margin0 padding0'
         style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
         <div class='col text-center fsh3 padding0'>
         </div>
-        <span ng-repeat='tb in data.toolbar' ng-show='data.canshowToolbar'
+        <span ng-repeat='tb in $root.announcement.toolBar' ng-show='tb.canShow()'
             title='{{tb.title}}'
             class='nl-toolbar-icon'
             ng-click='tb.onClick()'>
             <i class="icon {{tb.icon}}"></i>    
         </span>
-        <span ng-show='pane' title='Open announcement in new tab'>
-            <a ng-href='#/announcement'
-            target='_blank'
-            class='nl-link-text'>
-                <i class='icon ion-paper-airplane nl-dlg-field-icon'></i>
-            </a>
-        </span>
-        <span ng-show='pane' title='Close announcements'
-                ng-click='clickOnCloseAnnouncement()'
-                class='nl-link-text'>
-            <i class='icon ion-close-circled nl-dlg-field-icon'></i>
-        </span>
     </div>
     <div>
-        <div class='{{ pane ? "padding0" : "padding"}}' ng-repeat='announcement in data.announcementList'>
-            <div class='row row-center {{ pane ? "padding0" : "padding"}} margin0' 
+        <div class='announcement-pad' ng-repeat='announcement in $root.announcement.items'>
+            <div class='announcement-pad row row-center margin0' 
                 style='box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.3);'>
                 <div class='col' class='bgblue'>
-                    <div class='row row-center {{ pane ? "padding-small" : "padding-mid"}} margin0'>
+                    <div class='annoucement-pad-sm row row-center}} margin0'>
                         <div class='col fsh5'>
                             {{announcement.title}}
                         </div>
-                        <div ng-show='data.canshowToolbar' class='nl-link-img padding-small' ng-click='onClickOnUpdate(announcement)'>
+                        <div ng-show='canShowButtons()' class='nl-link-img padding-small' ng-click='updateAnnouncement(announcement)'>
                             <i class='icon ion-ios-photos nl-dlg-field-icon'></i>
-                            <span ng-hide='($root.screenSize == "small" || pane)' class='padding-mid'>Update</span>
+                            <span ng-hide='$root.screenSize == "small"' class='padding-mid'>Update</span>
                         </div>
-                        <div ng-show='data.canshowToolbar' class='nl-link-img padding-small' ng-click='onClickOnDelete(announcement)'>
+                        <div ng-show='canShowButtons()' class='nl-link-img padding-small' ng-click='deleteAnnouncement(announcement)'>
                             <i class='ion-ios-trash icon nl-dlg-field-icon'></i>
-                            <span ng-hide='($root.screenSize == "small" || pane)' class='padding-mid'>Delete</span>
+                            <span ng-hide='$root.screenSize == "small"' class='padding-mid'>Delete</span>
                         </div>
                     </div>
                     <div class='row row-center padding-mid margin0'>
@@ -66,8 +67,8 @@
                     </div>
                     <div class='row row-center padding-mid margin0 row-wrap'>
                         <div class='col'  ng-repeat='res in announcement.resources'>
-                            <img class='{{pane ? "nl-img-video-pane" : "nl-img-video-full"}}' ng-if='res.type == "img"' src='{{res.url}}'/>
-                            <video class='{{pane ? "nl-img-video-pane" : "nl-img-video-full"}}' ng-if='res.type == "video"' controls>
+                            <img class='announcement-res' ng-if='res.type == "img"' src='{{res.url}}'/>
+                            <video class='announcement-res' ng-if='res.type == "video"' controls>
                                 <source src="{{res.url}}" type="video/mp4">
                                     Your browser does not support the video tag.
                             </video> 
