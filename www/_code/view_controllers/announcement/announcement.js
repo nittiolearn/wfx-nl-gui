@@ -59,8 +59,8 @@ function($scope, nlAnnouncementSrv, nlRouter) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var AnnouncementSrv = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlResourceAddModifySrv',
-function(nl, nlDlg, nlRouter, nlServerApi, nlResourceAddModifySrv) {
+var AnnouncementSrv = ['nl', 'nlDlg', 'nlConfig', 'nlServerApi', 'nlResourceAddModifySrv', 'nlSettings',
+function(nl, nlDlg, nlConfig, nlServerApi, nlResourceAddModifySrv, nlSettings) {
     var _data = {mode: 'none', isAdmin: false, toolBar:[], items:null, canFetchMore:false};
     var _scope = null;
     var _userInfo = null;
@@ -113,6 +113,15 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlResourceAddModifySrv) {
         _userInfo = userInfo;
         nl.rootScope.announcement = _data;
         _data.mode = mode;  // none|pane|full
+        var settings = nlSettings.userSettings.get();
+        if(settings && settings['userClosedPane']) _data.mode = 'none';
+        if(_userInfo.groupinfo && ('features' in _userInfo.groupinfo) &&
+             (_userInfo.groupinfo.features['announcement'])) {
+            nl.rootScope.announcement.featureEnabled = true;
+        } else {
+            _data.mode = 'none';
+            nl.rootScope.announcement.featureEnabled = false
+        }
         if (nl.rootScope.screenSize == 'small' && _data.mode == 'pane') _data.mode = 'none';
         if (_data.mode == 'none') return;
         _data.isAdmin = userInfo.permissions.lesson_approve;
@@ -144,7 +153,7 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlResourceAddModifySrv) {
         if (_data.mode == 'pane') {
             _data.toolBar.push({
                 title : 'Open announcement in new tab',
-                icon : 'ion-paper-airplane',
+                icon : 'ion-android-open',
                 onClick : _onNewTab,
                 canShow: function() {
                     return true;
@@ -173,10 +182,13 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlResourceAddModifySrv) {
         _pageFetcher.fetchPage(nlServerApi.getAnnouncementList, {}, fetchMore, function(results) {
             if (!results) {
                 if (resolve) resolve(false);
+                _data.mode = 'none';
+                nl.rootScope.announcement.featureEnabled = false
                 return;
             }
             _data.canFetchMore = _pageFetcher.canFetchMore();
             for (var i = 0; i < results.length; i++) {
+                results[i]['created'] = nl.fmt.fmtDateDelta(results[i].created, null, 'date')
                 _data.items.push(results[i]);
             }
             if (resolve) resolve(true);
@@ -188,50 +200,51 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlResourceAddModifySrv) {
     }
 
     function _onDelete(announcement) {
-        var data = {id: announcement.id};
-        nlDlg.showLoadingScreen();
-        nlServerApi.deleteAnnouncement(data).then(function(status) {
-            nlDlg.hideLoadingScreen();
-            if(status) _removeAnnoucementItem(announcement.id);
-        })
+		var msg = {title: 'Please confirm', 
+				   template: 'Are you sure you want to delete this announcement?',
+				   okText: nl.t('Delete')};
+		nlDlg.popupConfirm(msg).then(function(result) {
+			if (!result) return;
+            var data = {id: announcement.id};
+            nlDlg.showLoadingScreen();
+            nlServerApi.deleteAnnouncement(data).then(function(status) {
+                nlDlg.hideLoadingScreen();
+                if(status) _removeAnnoucementItem(announcement.id);
+            });
+        });
     }
     var _restypes = ["Image", "Video"]
     function _onUpdate(announcement) {
         var dlg = nlDlg.create(_scope);
         var update = announcement ? true : false;
         dlg.setCssClass('nl-width-max nl-height-max');
-        var dropdown = [{id:'img', name: 'Image'}, {id:'video', name: 'Video'}]
         dlg.scope.help = _getHelp();
-        dlg.scope.options = {type: dropdown}
         dlg.scope.dlgtitle = update ? nl.t('Update  announcement') : nl.t('Create announcement');
-        dlg.scope.data = {title: '', desc: '', resources: [{type: dropdown[0], url: '', restype: dropdown}]}
+        dlg.scope.data = {title: '', desc: '', resources: []}
         if(update) {
-            dlg.scope.data = {title: announcement.title, desc: announcement.desc, id: announcement.id, resources: []};
-            for(var i=0; i<announcement.resources.length; i++) {
-                var res = announcement.resources[i]
-                var ret = {url: res.url, restype: dropdown}
-                ret['type'] = (res.type == 'img') ? dropdown[0] : dropdown[1];
-                dlg.scope.data.resources.push(ret)
-            }
-            if(dlg.scope.data.resources.length == 0) {
-                dlg.scope.data.resources = [{type: dropdown[0], url: '', restype: dropdown}];
-            }
+            dlg.scope.data = {title: announcement.title, desc: announcement.desc, id: announcement.id, resources: announcement.resources};
         }
 
-        dlg.scope.selectResource = function(index) {
-			var selectedItem = dlg.scope.data.resources[index];
-            var resurl = selectedItem['url'] || '';
-            if(selectedItem.type.id == 'img')
-                resurl = 'img:' + resurl;
+        dlg.scope.addNewResource = function(type) {
+            var resurl = null;
+            if(type == 'img')
+                resurl = 'img:';
             else
-                resurl = 'video:' + resurl;
+                resurl = 'video:';
             nlResourceAddModifySrv.insertOrUpdateResource(dlg.scope, 
 				_restypes, resurl, false, {}, false).then(function(result) {
 				if(!result || !result.url) return;
-                selectedItem['url'] = result.url;			
+                dlg.scope.data.resources.push({type: type, url: result.url});
             });
-
         }
+
+        dlg.scope.onRemoveResource = function(pos) {
+            dlg.scope.data.resources.splice(pos, 1);            
+        }
+
+        dlg.scope.getResurl = function() {
+            return nl.url.resUrl('dashboard/video1.png');
+        };
 
         var crOrUpBtn = {text: update ? 'Update' : 'Create', onTap: function(e){
             e.preventDefault();
@@ -244,7 +257,7 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlResourceAddModifySrv) {
 
     function _createOrUpdateAnnouncement(data, isUpdate) {
         var serverFn = isUpdate ? nlServerApi.updateAnnouncement : nlServerApi.createAnnouncement;
-        var params = {title: data.title, desc: data.desc, resources: _getMinimalResourceArray(data)}
+        var params = {title: data.title, desc: data.desc, resources: data.resources}
         if(isUpdate) params['id'] = data.id;
         nlDlg.showLoadingScreen();
         serverFn(params).then(function(record) {
@@ -255,20 +268,11 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlResourceAddModifySrv) {
         })
     }
 
-    function _getMinimalResourceArray(data) {
-        var ret = [];
-        for(var i=0; i<data.resources.length; i++) {
-            var res = data.resources[i];
-            ret.push({type: res.type.id, url: res.url})
-        }
-        return ret;
-    }
-
     function _getHelp() {
         return {
-            title: {name: 'Title', help:nl.t('Is an header for announcement to help viewer to understand better baout this announcement')},
-            desc: {name: 'Description', help: nl.t('Is an some description about this annoucement')},
-            resource: {name: 'Resources', help: nl.t('Provide image url or video url')}
+            title: {name: 'Title', help:nl.t('Provide an proper title for the announcement to capture viewer attention.')},
+            desc: {name: 'Description', help: nl.t('Provide the description about the annoucement')},
+            resource: {name: 'Resources', help: nl.t('You can add image or video on clicking on the section provided. Click on image section to add image, click on video section to add video. Clicking on close provided will remove resource')}
         }
     }
 
@@ -277,17 +281,12 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlResourceAddModifySrv) {
         if(!data.title) {
             nlDlg.popupAlert({title: 'Title mandatory', template: nl.t('Please enter the title for announcement. Since title is mandatory')})
             return false;
-        } else if (!data.desc) {
-            nlDlg.popupAlert({title: 'Description mandatory', template: nl.t('Please enter the description for announcement. Since description is mandatory')})
-            return false
-        } else if(!data.resources) {
-            nlDlg.popupAlert({title: 'Resource mandatory', template: nl.t('Please enter the title for announcement. Since title is mandatory')})
-            return false;
         }
         return true;
     }
 
     function _addAnnoucementItem(announcement) {
+        announcement['created'] = nl.fmt.fmtDateDelta(announcement.created, null, 'date')
         _data.items.splice(0, 0, announcement);
     }
 
@@ -305,9 +304,14 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlResourceAddModifySrv) {
 
     function _onClose() {
         _data.mode = 'none';
+        nlSettings.userSettings.put('userClosedPane', true)
+        nl.resizeHandler.onResize(function() {
+            return;
+        });
     }
 
     function _onOpen() {
+        nlSettings.userSettings.put('userClosedPane', false);
         if (nl.rootScope.screenSize == 'small') return _onNewTab();
         nlDlg.showLoadingScreen();
         self.onPageEnter(_userInfo, _scope, 'pane').then(function(result) {

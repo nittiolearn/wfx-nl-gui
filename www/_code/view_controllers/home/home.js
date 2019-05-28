@@ -81,7 +81,7 @@ function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCar
 
 //-------------------------------------------------------------------------------------------------
 function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv) {
-
+    var oldScreenState = angular.copy(nl.rootScope.screenSize);
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
             var params = nl.location.search();
@@ -110,6 +110,15 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
         _initBgimg(dashboardCards);
         nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'pane').then(function() {
             resolve(true);
+        });
+
+        nl.resizeHandler.onResize(function() {
+            if(oldScreenState != nl.rootScope.screenSize && (oldScreenState = 'small' || nl.rootScope.screenSize == 'small')) {
+                nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'pane').then(function() {
+                    oldScreenState = nl.rootScope.screenSize;
+                    resolve(true);
+                });    
+            }
         });
     }
 

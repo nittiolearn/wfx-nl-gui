@@ -181,6 +181,8 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
             $scope.logedIn = true;
             $scope.homeUrl = homeUrl;
             topbarMenus = _updateTopbarMenus(userInfo);
+            }
+
         }
         nlTopbarSrv.setCommonMenus(topbarMenus);
         nl.log.debug('app:onPageEnter - done');
