@@ -45,7 +45,11 @@
 </style>
 <div class='nl-learning-report-body padding-small nl-thin-scroll learner-view-bg' style='position:absolute; width: 100%; height: 100%'>
 <div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
-    <div ng-show='tabData.selectedTab.id == "assigned"'
+    <div ng-show='!tabData.dataLoaded'
+         class='nl-limitwidth padding'>
+         Learning records are being loaded from the server. Please wait ...
+    </div>
+    <div ng-show='tabData.selectedTab.id == "assigned" && tabData.dataLoaded'
          class='nl-limitwidth padding'>
 
         <!-- Search box -->
@@ -62,14 +66,17 @@
             
         <!-- Active, Upcomming, Past Sections -->
         <div ng-repeat='section in tabData.assignedSections'>
-            <div class='col section-header'>{{section.title}}</div>
+            <div class='section-header'>{{section.title}}</div>
+            <div ng-show='section.count == 0' class='padding'>
+                Nothing to display.
+            </div>
             <div class='anim fade' ng-repeat="record in tabData.records"
                 ng-show='record.recStateObj.type == section.type'>
                 <nl-learner-section record='record' attr='section.type'></nl-learner-section>
             </div>
         </div>
     </div>
-    <div ng-show='tabData.selectedTab.id == "summary"'
+    <div ng-show='tabData.selectedTab.id == "summary" && tabData.dataLoaded'
          class='nl-limitwidth padding'>
         <div class='row row-top row-wrap margin-auto padding0'>
             <div ng-class='respCol221' class='text-center padding-mid'>
@@ -107,7 +114,7 @@
             </div>
             <div class='padding'></div>
             <div class='margin-auto padding0 bg-white'>
-                <nl-learning-status-counts item='tabData.selectedTab.tabDetailsDict' attr='"learner"'></nl-learning-status-counts>
+                <nl-learning-status-counts item='tabData.learningCounts' attr='"learner"'></nl-learning-status-counts>
             </div>
     </div>
 </div>

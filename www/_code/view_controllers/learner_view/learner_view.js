@@ -101,8 +101,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 	function _onPageEnter(userInfo) {
 		return nl.q(function(resolve, reject) {
 			_init(userInfo);
-			_getLearningRecordsFromServer(false);
-			resolve(true);
+			_getLearningRecordsFromServer(resolve, false);
 		});
 	}
 
@@ -147,16 +146,21 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 		}];
 	}
     var _pageFetcher = nlServerApi.getPageFetcher({defMax: _fetchChunk, itemType: 'learning record'});
-	function _getLearningRecordsFromServer(fetchMore) {
+	function _getLearningRecordsFromServer(resolve, fetchMore) {
 		var params = {containerid: 0, type: 'all', assignor: 'all', learner: 'me'};
 		var dontHideLoading = true;
 		nlLearnerViewRecords.reset();
+		var myResolve = resolve || null;
         _pageFetcher.fetchBatchOfPages(nlServerApi.learningReportsGetList, params, fetchMore, 
 			function(results, batchDone, promiseHolder) {
-				var msg = nl.t('{} records fetched', results.length)
-				nlDlg.popupStatus(msg, 2000, '');
+				var msg = nl.t('{} records fetched', results.length);
+				nlDlg.popupStatus(msg);
 				for (var i=0; i<results.length; i++) nlLearnerViewRecords.addRecord(results[i]);
 				_updateScope(true);
+				if (myResolve) {
+					myResolve(true);
+					myResolve = null;
+				}
 		}, _fetchLimit, dontHideLoading);
 	}
 
@@ -168,8 +172,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 			name: 'My learning items',
 
 			updated: false,
-			tabDetailsDict: {},
-			tables: [],
 			onClick: _onTabSelect
 		},{
 			id: 'summary',
@@ -178,10 +180,10 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 			name: 'My learning summary',
 
 			updated: false,
-			tables: [],
-			tabDetailsDict: {},
 			onClick: _onTabSelect
 		}]};
+		ret.dataLoaded = false;
+		ret.learningCounts = {};
 		ret.search = '';
 		ret.lastSeached = '';
 		ret.searchPlaceholder = 'Type the search words and press enter';
@@ -189,16 +191,15 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 		ret.summaryStats = null;
 		ret.summaryStatSummaryRow = null;
 		ret.selectedTab = ret.tabs[0];
-		ret.processingOnging = true;
-		ret.nothingToDisplay = false;
 		ret.onSearch = _onSearch;
 		ret.assignedSections = [
-			{type: 'active', title: 'ACTIVE'},
-			{type: 'upcomming', title: 'UPCOMING'},
-			{type: 'past', title: 'PAST'}
+			{type: 'active', title: 'ACTIVE', count: 0},
+			{type: 'upcomming', title: 'UPCOMING', count: 0},
+			{type: 'past', title: 'PAST', count: 0}
 		];
 		return ret;
 	}
+	var SEC_POS = {'active': 0, 'upcoming': 1, 'past': 2};
 
 	function _onSearch(event) {
 		if (event && event.which !== 13) return;
@@ -215,7 +216,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 			tabs[i].updated = false;
 		}
 		$scope.tabData.records = null;
-		$scope.tabData.selectedTab.updated = false;	
 	}
 
 	function _onTabSelect(tab) {
@@ -228,20 +228,11 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 		var tab = tabData.selectedTab;
 		if (tab.updated) return;
 		if (!avoidFlicker) {
-			tabData.nothingToDisplay = false;
-			tabData.processingOnging = true;
 			nlDlg.showLoadingScreen();
 		}
 		nl.timeout(function() {
 			_actualUpdateCurrentTab(tabData, tab);
 			tab.updated = true;
-			if (tabData.records.length > 0) {
-				tabData.processingOnging = false;
-				tabData.nothingToDisplay = false;
-			} else {
-				tabData.processingOnging = true;
-				tabData.nothingToDisplay = true;
-			}
 			nlDlg.hideLoadingScreen();
 		}, 100);
 	}
@@ -258,6 +249,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 	}
 
 	function _getFilteredRecords() {
+		for (var type in SEC_POS)
+			$scope.tabData.assignedSections[SEC_POS[type]].count = 0;
 		var records = nlLearnerViewRecords.getRecords();
 		var tabData = $scope.tabData;
 		var searchInfo = _getSearchInfo(tabData);
@@ -266,6 +259,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 			var record = records[recid];
 			if (!_doesPassFilter(record, searchInfo)) continue;
 			filteredRecords.push(record);
+			var type = record.recStateObj.type;
+			$scope.tabData.assignedSections[SEC_POS[type]].count++;
 		}
 		filteredRecords.sort(function(a, b) {
 			return (b.stats.status.id - a.stats.status.id);
@@ -316,8 +311,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 	}
 
 	function _updateScope(avoidFlicker) {
-		var anyRecord = nlLearnerViewRecords.getAnyRecord();
-		$scope.noDataFound = (anyRecord == null);
+		$scope.tabData.dataLoaded = true;
 		_someTabDataChanged();
 		_updateCurrentTab(avoidFlicker);
 	}
@@ -340,10 +334,10 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 		var c = $scope.charts[1];
 		var ranges = nlLearnerViewRecords.getTimeRanges();
 		var records = $scope.tabData.records;
-		$scope.tabData.selectedTab.tabDetailsDict = angular.copy(defaultItemDict);
+		$scope.tabData.learningCounts = angular.copy(defaultItemDict);
 		for (var j=0; j<records.length; j++) {
 			var rec = records[j];
-			_updateCoursesDetailsDict(rec, $scope.tabData.selectedTab.tabDetailsDict);
+			_updateCoursesDetailsDict(rec, $scope.tabData.learningCounts);
 			var isModuleRep = rec.type == 'module';
 			var ended = isModuleRep ? _getModuleEndedTime(rec.raw_record) : _getCourseEndedTime(rec);
 			var isAssignedCountFound = false;
