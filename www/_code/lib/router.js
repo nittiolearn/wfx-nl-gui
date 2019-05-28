@@ -23,8 +23,8 @@ function UrlString(location) {
     this.init();
 }
 
-var NlRouter = ['nl', 'nlDlg', 'nlServerApi', 'nlMarkup', '$state',
-function(nl, nlDlg, nlServerApi, nlMarkup, $state) {
+var NlRouter = ['nl', 'nlDlg', 'nlServerApi', 'nlMarkup', '$state', 'nlTopbarSrv',
+function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv) {
     var permission = new Permission(nl);
     var defaultFn = function() {return function(resolve, reject) {resolve(true);};};
 
@@ -175,7 +175,7 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state) {
     
     function _done(rerouteToUrl) {
         var params = nl.location.search();
-        nl.pginfo.isMenuShown = (!('embedded' in params || 'hidemenu' in params || nl.pginfo.hidemenu));
+        nlTopbarSrv.showTopbar(!('embedded' in params || 'hidemenu' in params || nl.pginfo.hidemenu));
         nlDlg.hideLoadingScreen();
 
         if (rerouteToUrl != null) {

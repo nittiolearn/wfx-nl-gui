@@ -1572,65 +1572,49 @@ nl-summary-box.small-summary-box {
   }
 }
 
-#nl-topbar {
+.nl-topbar {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 40px;
   background-color: $nlBlue1;
-  color: #ffffff; 
-}
+  color: #ffffff;
 
-#nl-logo {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 40px;
-  width: 120px;
-}
+  .nltb-logo img {
+    max-width: 120px; 
+    max-height: 40px;
+  }
+  
+  .nltb-title {
+    font-size: 120%;
+    text-align: center;
+  }
+  
+  .nltb-title small {
+    font-size: 70%;
+  }
+  
+  .nltb-title small a {
+    color: #FFFF80;
+  }
+  
+  .nltb-title small a:hover {
+    color: #FF8080;
+  }
+  
+  .nltb-tab {
+    font-size: 90%;
+  }
 
-#nl-logo img {
-  max-width: 120px; 
-  max-height: 40px;
-}
-
-#nl-top-menu {
-  position: absolute;
-  top: 0;
-  right: 2px;
-  height: 40px;
-  width: 120px;
-  padding: 8px 2px;
-  text-align: right;
+  .nltb-tab.selected {
+      background-color: #004455;
+  }
 }
 
 img.nl-icon {
   width: 24px;
   height: 24px;
-}
-
-#nl-header {
-  position: absolute;
-  padding: 8px 4px;
-  left: 124px;
-  right: 124px;
-  height: 40px;
-  width: auto;
-  font-size: 120%;
-  text-align: center;
-}
-
-#nl-header small {
-  font-size: 70%;
-}
-
-#nl-header small a {
-  color: #FFFF80;
-}
-
-#nl-header small a:hover {
-  color: #FF8080;
 }
 
 .nl-textellipsis {
@@ -1681,7 +1665,7 @@ img.nl-icon {
   top: 0px;
 }
 
-#nl-topbar.fullpage {
+.nl-topbar.fullpage {
   height: 0;
   opacity: 0;
 }
@@ -1762,11 +1746,6 @@ img.nl-icon {
 /*-----------------------------------------------------------------------------------------*
  * Learner view section styles
  *-----------------------------------------------------------------------------------------*/
-.nl-learner-view-section{
-  width: 100%;
-  max-width: 800px;
-}
-
 .nl-card-img-size-lg {
   max-width: 160px;
   max-height: 90px;
@@ -2220,6 +2199,12 @@ img.nl-full-width {
   max-width: 12.5%;
 }
 
+.nl-limitwidth {
+  max-width: 956px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 //-------------------------------------------------------------------------------------------
 // Large screen specific
 //-------------------------------------------------------------------------------------------
@@ -2294,6 +2279,10 @@ img.nl-full-width {
   .padding-mid-v {
       padding-top: 4px;
       padding-bottom: 4px;
+  }
+
+  .hide-in-small {
+    display: none;
   }
 }
 

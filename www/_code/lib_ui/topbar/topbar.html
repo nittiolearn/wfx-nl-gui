@@ -1,0 +1,60 @@
+<nav class='nl-topbar' ng-show='topbar.isShown' ng-class='{fullpage:!topbar.isShown}'>
+    <div class='row row-center margin0 padding0' style='height: 40px'>
+
+        <!-- Left Home icon and logo -->
+        <a ng-href='{{homeUrl}}' title='{{homeMenuTitle}}' class='nltb-logo'>
+            <div class='row row-center margin0 padding0'>
+                <i class="padding-small fsh3 ion-home fwhite"></i>
+                <img ng-show='logo && screenSize!="small"' class='nl-link-img no-hover' ng-src='{{logo}}'/>
+            </div>
+        </a>
+
+        <!-- Title and sub-title (if no tabs in this page) -->
+        <span ng-show='(!topbar.tabs || topbar.tabs.length == 0)'
+              class='nltb-title col nl-textellipsis'>
+              <span>
+                {{pgInfo.pageTitle}} <small>{{pgInfo.pageSubTitle}}</small>
+              </span>
+        </span>
+
+        <!-- If tabs are specified in the page -->
+        <div ng-repeat='tab in topbar.tabs'
+             ng-show='topbar.tabs.length > 0 && canShow(tab)'
+             class='padding-small margin0 nltb-tab {{isTabSelected(tab) ? "selected" : ""}}'
+             ng-click='onTabOrMenuClick(tab)'>
+             <div class='row row-center margin0 padding0'>
+                    <i class="padding-small icon {{tab.iconCls}}" style='font-size: 200%'>{{tab.iconContent || ""}}</i>
+                    <span class='nl-textellipsis' ng-hide='screenSize=="small"'>
+                        {{tab.name}}
+                    </span>
+             </div>
+        </div>
+        <div ng-show='topbar.tabs.length > 0' class='col'></div>
+
+        <!-- User menu item -->
+        <i title='{{pgInfo.username}}' alt='User'
+           class="padding-small fsh3 ion-android-person" 
+           ng-click='onUserMenu($event)'/>
+        </i>
+
+        <!-- User menu that pops down when user menu icon in top bar is clicked -->
+        <nav id='nl-user-menu' ng-show='topbar.showUserMenu'>
+            <ul class="list fblack fsh6">
+                <li ng-repeat='item in topbar.menus'
+                    class="item item-divider padding0"
+                    ng-show='canShow(item)'>
+                    <a ng-if='item.url' ng-href='{{item.url}}'
+                        class='nl-link-text' rel='nofollow'>
+                        <i class='w100 nl-block nl-link-text padding-mid'>{{item.name}}</i>
+                    </a>
+                    <span ng-if='item.onClick' ng-click='onTabOrMenuClick(item)'
+                        class='nl-link-text'>
+                        <i class='w100 nl-block nl-link-text padding-mid'>{{item.name}}</i>
+                    </span>
+                </li>
+            </ul>
+        </nav>
+    
+
+    </div>
+</nav>

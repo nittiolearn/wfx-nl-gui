@@ -216,24 +216,12 @@ input[type="file"] {
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
- * Main divisions inside pageCanvas: topBar, body, left and right navigators, toolBar
+ * Main divisions inside pageCanvas: nl-topbar (see nlapp.sccs), body, left and right navigators, toolBar
  * --------------------------------------------------------------------------------------------------------------------*/
-.topBar {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 40px;
-  right: 0;
-  z-index: 11;
-}
-
-.topBar, .topBarBg .aspect_wrt {
+.topBarBg .aspect_wrt {
   background-color: #00A3CC;
   font-size: 100%;
   color: #ffffff; 
-}
-
-.topBarBg .aspect_wrt {
   border-radius: 8px;
 }
 
@@ -482,57 +470,6 @@ a.enabled {
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
- * Elements inside topBar
- * --------------------------------------------------------------------------------------------------------------------*/
-.topBar #logo {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  height: 40px;
-  width: 120px;
-  text-align: center;
-}
-
-.topBar > #menuArea {
-  position: absolute;
-  top: 0px;
-  right: 0px;
-  width: 120px;
-  text-align: right;
-  padding: 8px 2px;
-}
-
-.topBar > #menuArea img {
-  margin-top: 4px;
-  width: 24px;
-  height: 24px;
-}
-
-.topBar > #header {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 124px;
-  right: 124px;
-  padding: 8px 4px;
-  font-size: 120%;
-  text-align: center;
-}
-
-#header small {
-  font-size: 70%;
-}
-
-#header small a {
-  color: #FFFF80;
-}
-
-#header small a:hover {
-  color: #FF8080;
-}
-
-/*----------------------------------------------------------------------------------------------------------------------
  * Elements inside toolBar
  * --------------------------------------------------------------------------------------------------------------------*/
 .toolBar .toolbarIcon {
@@ -703,9 +640,6 @@ a.enabled {
   display: none;
 
   right: 5px; 
-}
-.menuSrc {
-  cursor: pointer;
 }
 
 .menuList {
@@ -1532,12 +1466,6 @@ div.pgSecView.answer_wrong {
 /*----------------------------------------------------------------------------------------------------------------------
  * Text overflow handling
  * --------------------------------------------------------------------------------------------------------------------*/
-.textellipsis {
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
-
 .textclip {
   text-overflow: clip;
   overflow: hidden;

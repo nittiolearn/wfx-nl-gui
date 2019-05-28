@@ -52,44 +52,47 @@ function(nl) {
 }];
 
 
-var NlLearnerView = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlLearverViewHelper', 'nlLearnerViewRecords',
-function(nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper, nlLearnerViewRecords) {
+var NlLearnerView = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlLearverViewHelper',
+'nlLearnerViewRecords', 'nlTopbarSrv',
+function(nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper, nlLearnerViewRecords, nlTopbarSrv) {
 	this.create = function($scope) {
-		return new NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper, nlLearnerViewRecords);
+		return new NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper,
+			nlLearnerViewRecords, nlTopbarSrv);
 	};
 }];
 
-var NlLearnerViewHelperSrv = [
-	function() {
+var NlLearnerViewHelperSrv = [function() {
+	this.STATUS_PENDING = 0;
+	this.STATUS_STARTED = 1;
+	this.STATUS_DONE = 2;
+	this.STATUS_PASSED = 3;
+	this.STATUS_FAILED = 4;
+	this.STATUS_CERTIFIED = 5;
 
-		this.STATUS_PENDING = 0;
-		this.STATUS_STARTED = 1;
-		this.STATUS_DONE = 2;
-		this.STATUS_PASSED = 3;
-		this.STATUS_FAILED = 4;
-		this.STATUS_CERTIFIED = 5;
-	
-		this.statusInfos = [
-			{id: this.STATUS_PENDING, txt: 'pending', icon: 'ion-ios-circle-filled fgrey'},
-			{id: this.STATUS_STARTED, txt: 'started', icon: 'ion-ios-circle-filled fgreen'},
-			{id: this.STATUS_DONE, txt: 'done', icon: 'ion-checkmark-circled fgreen'},
-			{id: this.STATUS_PASSED, txt: 'passed', icon: 'ion-checkmark-circled fgreen'},
-			{id: this.STATUS_FAILED, txt: 'failed', icon: 'icon ion-close-circled forange'},
-			{id: this.STATUS_CERTIFIED, txt: 'certified', icon: 'icon ion-android-star fgreen'}];
-			
-		this.isDone = function(statusInfo) {
-			return statusInfo.id != this.STATUS_PENDING && statusInfo.id != this.STATUS_STARTED;
-		};
-	
-		this.dictToList = function(d) {
-			var ret = [];
-			for(var k in d) ret.push(d[k]);
-			return ret;
-		};
-	}
-];
+	this.statusInfos = [
+		{id: this.STATUS_PENDING, txt: 'pending', icon: 'ion-ios-circle-filled fgrey'},
+		{id: this.STATUS_STARTED, txt: 'started', icon: 'ion-ios-circle-filled fgreen'},
+		{id: this.STATUS_DONE, txt: 'done', icon: 'ion-checkmark-circled fgreen'},
+		{id: this.STATUS_PASSED, txt: 'passed', icon: 'ion-checkmark-circled fgreen'},
+		{id: this.STATUS_FAILED, txt: 'failed', icon: 'icon ion-close-circled forange'},
+		{id: this.STATUS_CERTIFIED, txt: 'certified', icon: 'icon ion-android-star fgreen'}];
+		
+	this.isDone = function(statusInfo) {
+		return statusInfo.id != this.STATUS_PENDING && statusInfo.id != this.STATUS_STARTED;
+	};
 
-function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper, nlLearnerViewRecords) {
+	this.dictToList = function(d) {
+		var ret = [];
+		for(var k in d) ret.push(d[k]);
+		return ret;
+	};
+}];
+
+function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper,
+	nlLearnerViewRecords, nlTopbarSrv) {
+
+	var _fetchChunk = 100;
+	var _fetchLimit = _fetchChunk;
 
 	this.show = function() {
 		nlRouter.initContoller($scope, '', _onPageEnter);
@@ -111,15 +114,15 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 	function _init(userInfo) {
 		nlLearnerViewRecords.init(userInfo);
 		nl.pginfo.pageTitle = 'Assignment Reports';
-		nl.pginfo.topBarItems = _initTabData()
-		_initScope();
+		$scope.tabData = _initTabData();
+		nlTopbarSrv.setPageMenus($scope.tabData.tabs, $scope.tabData.selectedTab.id);
+		_initChartData();
 	}
 
-	function _initScope() {
-		$scope.toolbar = _getToolbar();
-		$scope.tabData = _initTabData();
-		nl.pginfo.topBarItems = $scope.tabData;
-		_initChartData();
+	function _initCmdLine() {
+		var params = nl.location.search();
+		// params.max is handled inside getPageFetcher
+		if (params.limit) _fetchLimit = parseInt(params.limit);
 	}
 
 	function _initChartData() {
@@ -143,8 +146,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 			colors: ['#3366ff', '#ff6600']
 		}];
 	}
-    var _pageFetcher = nlServerApi.getPageFetcher({defMax: 200, itemType: 'learning record'});
-
+    var _pageFetcher = nlServerApi.getPageFetcher({defMax: _fetchChunk, itemType: 'learning record'});
 	function _getLearningRecordsFromServer(fetchMore) {
 		var params = {containerid: 0, type: 'all', assignor: 'all', learner: 'me'};
 		var dontHideLoading = true;
@@ -155,26 +157,26 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 				nlDlg.popupStatus(msg, 2000, '');
 				for (var i=0; i<results.length; i++) nlLearnerViewRecords.addRecord(results[i]);
 				_updateScope(true);
-		}, 5000, dontHideLoading);
+		}, _fetchLimit, dontHideLoading);
 	}
 
 	function _initTabData() {
 		var ret =  {tabs: [{
-			tabSecTitle: 'ALL ASSIGNMENTS',
-			title : 'Click here to view assigned records',
-			name: 'ASSIGNED COURSES',
-			icon : 'ion-compose',
 			id: 'assigned',
+            type: 'tab',
+			iconCls : 'ion-compose',
+			name: 'My learning items',
+
 			updated: false,
 			tabDetailsDict: {},
 			tables: [],
 			onClick: _onTabSelect
 		},{
-			tabSecTitle: 'YOUR ASSIGNMENTS SUMMARY',
-			title : 'Click here to view summary reports',
-			name: 'MY SUMMARY',
-			icon : 'ion-connection-bars',
 			id: 'summary',
+            type: 'tab',
+			iconCls : 'ion-connection-bars',
+			name: 'My learning summary',
+
 			updated: false,
 			tables: [],
 			tabDetailsDict: {},
@@ -190,6 +192,11 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 		ret.processingOnging = true;
 		ret.nothingToDisplay = false;
 		ret.onSearch = _onSearch;
+		ret.assignedSections = [
+			{type: 'active', title: 'ACTIVE'},
+			{type: 'upcomming', title: 'UPCOMING'},
+			{type: 'past', title: 'PAST'}
+		];
 		return ret;
 	}
 
@@ -213,7 +220,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 
 	function _onTabSelect(tab) {
 		$scope.tabData.selectedTab = tab;
-		nl.pginfo.topBarItems.selectedTab = tab;
 		_updateCurrentTab();
 	}
 
@@ -310,25 +316,10 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 	}
 
 	function _updateScope(avoidFlicker) {
-		nl.pginfo.pageTitle = 'Assignment Reports';
-		
-
 		var anyRecord = nlLearnerViewRecords.getAnyRecord();
 		$scope.noDataFound = (anyRecord == null);
 		_someTabDataChanged();
 		_updateCurrentTab(avoidFlicker);
-	}
-
-	function _getToolbar() {
-		return [{
-			title : 'Fetch more records in the currently selected date time range',
-			icon : 'ion-refresh',
-			id: 'tbfetchmore',
-			onClick : _fetchMore
-		}]
-	}
-	function _fetchMore() {
-		_getLearningRecordsFromServer(true);
 	}
 
 	function _updateAssignedTab() {

@@ -100,6 +100,14 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlResourceAddModifySrv) {
         _onOpen();
     };
 
+    this.canShowClose = function() {
+        return _data.mode == 'pane';
+    };
+
+    this.onClose = function() {
+        _onClose();
+    };
+
     function _initAnnouncements(userInfo, scope, mode) {
         _scope = scope;
         _userInfo = userInfo;

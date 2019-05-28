@@ -287,9 +287,10 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
 
 //-------------------------------------------------------------------------------------------------
 var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg',
-'nlCourseEditor', 'nlCourseCanvas', 'nlServerApi', 'nlGroupInfo', 'nlSendAssignmentSrv', 'nlMarkup', 'nlTreeListSrv',
-function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg,
-    nlCourseEditor, nlCourseCanvas, nlServerApi, nlGroupInfo, nlSendAssignmentSrv, nlMarkup, nlTreeListSrv) {
+'nlCourseEditor', 'nlCourseCanvas', 'nlServerApi', 'nlGroupInfo', 'nlSendAssignmentSrv',
+'nlMarkup', 'nlTreeListSrv', 'nlTopbarSrv',
+function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlCourseCanvas, 
+    nlServerApi, nlGroupInfo, nlSendAssignmentSrv, nlMarkup, nlTreeListSrv, nlTopbarSrv) {
     var modeHandler = new ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope);
     var nlContainer = new NlContainer(nl, $scope, modeHandler);
     nlContainer.setContainerInWindow();
@@ -516,7 +517,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg,
     });
 
     function _popout(bPopout) {
-        nl.pginfo.isMenuShown = !bPopout;
+        nlTopbarSrv.showTopbar(!bPopout);
         $scope.popupView = bPopout;
         $scope.updateVisiblePanes();
     }

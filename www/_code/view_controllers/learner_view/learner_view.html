@@ -45,59 +45,34 @@
 </style>
 <div class='nl-learning-report-body padding-small nl-thin-scroll learner-view-bg' style='position:absolute; width: 100%; height: 100%'>
 <div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
-    <div class='nl-topsection'>
-        <div class='padding'>
-            <div class='padding-small'></div>
-            <div class='row row-center margin0 padding0 nl-learner-view-section' style='margin: auto'>
-                <div class='col section-header'><span ng-show='$root.screenSize !="small"'>{{tabData.selectedTab.tabSecTitle}}</span></div>
-                <span style='min-width: 250px'>
-                    <input class='padding-small w100'
-                        ng-model='tabData.search'
-                        ng-attr-placeholder='{{tabData.searchPlaceholder}}'
-                        ng-keydown='tabData.onSearch($event)'
-                        style='border: none; border-radius: 5px; height: 35px'>
-                </span>
+    <div ng-show='tabData.selectedTab.id == "assigned"'
+         class='nl-limitwidth padding'>
+
+        <!-- Search box -->
+        <div class='row row-center margin0 padding0'>
+            <div class='col'></div>
+            <span style='width: 100%; max-width: 250px'>
+                <input class='padding-small w100'
+                    ng-model='tabData.search'
+                    ng-attr-placeholder='{{tabData.searchPlaceholder}}'
+                    ng-keydown='tabData.onSearch($event)'
+                    style='border: none; border-radius: 5px; height: 35px'>
+            </span>
+        </div>
+            
+        <!-- Active, Upcomming, Past Sections -->
+        <div ng-repeat='section in tabData.assignedSections'>
+            <div class='col section-header'>{{section.title}}</div>
+            <div class='anim fade' ng-repeat="record in tabData.records"
+                ng-show='record.recStateObj.type == section.type'>
+                <nl-learner-section record='record' attr='section.type'></nl-learner-section>
             </div>
         </div>
     </div>
-    <div ng-show='tabData.selectedTab.id == "assigned"'>
-        <div class='padding'>
-            <div class='row row-top padding0 margin-auto nl-learner-view-section'>
-                <div class='col section-header'>ACTIVE</div>
-            </div>
-        </div>
-        <div class='anim fade' 
-            ng-repeat="record in tabData.records">
-            <div class='padding' ng-show='record.recStateObj.type == "active"'>
-                <nl-learner-section record='record' attr='"active"'></nl-learner-section>
-            </div>
-        </div>
-        <div class='padding'>
-            <div class='row row-top padding0 margin-auto nl-learner-view-section'>
-                <div class='col section-header'>UPCOMING</div>
-            </div>
-        </div>
-        <div class='anim fade' 
-            ng-repeat="record in tabData.records">
-            <div class='padding' ng-show='record.recStateObj.type == "upcoming"'>
-                <nl-learner-section record='record' attr='"upcoming"'></nl-learner-section>
-            </div>
-        </div>
-        <div class='padding'>
-            <div class='row row-top padding0 margin-auto nl-learner-view-section'>
-                <div class='col section-header'>PAST</div>
-            </div>
-        </div>
-        <div class='anim fade' ng-repeat="record in tabData.records">
-            <div class='padding' ng-show='record.recStateObj.type == "past"'>
-                <nl-learner-section record='record' attr='"past"'></nl-learner-section>
-            </div>
-        </div>
-    </div>
-    <div ng-show='tabData.selectedTab.id == "summary"'>
-        <div class='padding'>
-            <div class='row row-top row-wrap margin-auto padding0 nl-learner-view-section'>
-                <div ng-class='respCol221' class='text-center padding-mid'>
+    <div ng-show='tabData.selectedTab.id == "summary"'
+         class='nl-limitwidth padding'>
+        <div class='row row-top row-wrap margin-auto padding0'>
+            <div ng-class='respCol221' class='text-center padding-mid'>
                     <div class='padding-small'></div>
                     <div class='fsh5 padding-mid'>{{charts[0].title}}</div>
                     <div class='padding-small'></div>
@@ -131,10 +106,9 @@
                 </div>
             </div>
             <div class='padding'></div>
-            <div class='margin-auto padding0 nl-learner-view-section bg-white'>
+            <div class='margin-auto padding0 bg-white'>
                 <nl-learning-status-counts item='tabData.selectedTab.tabDetailsDict' attr='"learner"'></nl-learning-status-counts>
             </div>
-        </div>
     </div>
 </div>
 </div>
