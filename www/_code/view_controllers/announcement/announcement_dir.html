@@ -20,8 +20,9 @@
 }
 
 .announcement-full .announcement-res {
-    max-width: 400px;
-    max-height: 300px; 
+    width: 400px;
+    height: 200px; 
+    padding: 20px
 }
 
 .announcement-pane .announcement-res {
@@ -29,17 +30,21 @@
     max-height: 150px; 
 }
 
+.nl-text-desc{
+    color: #838383;
+}
 </style>
 <div class='nl-thin-scroll announcement-dir announcement-{{$root.screenSize == "small" ? "pane" : $root.announcement.mode}}'>
     <div class='row row-center margin0 padding0'
         style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
-        <div class='col text-center fsh3 padding0'>
+        <div class='col padding-mid nl-blue nl-font-bold' >
+            <span ng-hide='$root.screenSize != "large" && $root.announcement.mode == "pane"'>ANNOUNCEMENTS</span>
         </div>
         <span ng-repeat='tb in $root.announcement.toolBar' ng-show='tb.canShow()'
             title='{{tb.title}}'
             class='nl-toolbar-icon'
             ng-click='tb.onClick()'>
-            <i class="icon {{tb.icon}}"></i>    
+            <i class="icon {{tb.icon}}"></i>
         </span>
     </div>
     <div>
@@ -48,20 +53,21 @@
                 style='box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.3);'>
                 <div class='col' class='bgblue'>
                     <div class='annoucement-pad-sm row row-center}} margin0'>
-                        <div class='col fsh5'>
-                            {{announcement.title}}
+                        <div class='col'>
+                            <div class='nl-blue nl-font-bold fsh5'>{{announcement.title}}</div>
+                            <div class='fsmall1 nl-text-desc'>{{announcement.created}}</div>
                         </div>
                         <div ng-show='canShowButtons()' class='nl-link-img padding-small' ng-click='updateAnnouncement(announcement)'>
-                            <i class='icon ion-ios-photos nl-dlg-field-icon'></i>
+                            <i class='icon ion-ios-photos nl-dlg-field-icon' title='Update'></i>
                             <span ng-hide='$root.screenSize == "small"' class='padding-mid'>Update</span>
                         </div>
                         <div ng-show='canShowButtons()' class='nl-link-img padding-small' ng-click='deleteAnnouncement(announcement)'>
-                            <i class='ion-ios-trash icon nl-dlg-field-icon'></i>
+                            <i class='ion-ios-trash icon nl-dlg-field-icon' title='Delete'></i>
                             <span ng-hide='$root.screenSize == "small"' class='padding-mid'>Delete</span>
                         </div>
                     </div>
                     <div class='row row-center padding-mid margin0'>
-                        <div class='col'>
+                        <div class='col fsmall1 nl-text-desc'>
                             {{announcement.desc}}
                         </div>
                     </div>
@@ -76,6 +82,9 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div ng-show='$root.announcement.items.length == 0' class='row row-center padding-mid margin0'>
+            <div style='color: #838383'> There are no announcements to display. </div>
         </div>
     </div>
 </div>

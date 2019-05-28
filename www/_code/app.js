@@ -180,10 +180,13 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
         if (bLoggedIn) {
             $scope.logedIn = true;
             $scope.homeUrl = homeUrl;
-            $scope.topMenuItems.push({title: nl.t(' Show Announcements'),
-                onclick: function() { nlAnnouncementSrv.onOpen(); },
-                canShow: function() { return nlAnnouncementSrv.canShowOpen(); }
-            });
+            if(nl.rootScope.announcement.featureEnabled) {
+                $scope.topMenuItems.push({title: nl.t(' Show Announcements'),
+                    onclick: function() { nlAnnouncementSrv.onOpen(); },
+                    canShow: function() { return nlAnnouncementSrv.canShowOpen(); }
+                });
+            }
+
             if (nlRouter.isPermitted(userInfo, 'change_password')) {
                 $scope.topMenuItems.push({title: nl.t(' Change Password'), 
                     url: '#/pw_change',
