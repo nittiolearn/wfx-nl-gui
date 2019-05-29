@@ -1,0 +1,44 @@
+<div class='padding'>
+    <div class='row row-center padding0 overview-card-holder bgwhite'>
+        <div class='padding0 margin0' style='width: {{$root.screenSize == "small" ? "80" : "160"}}px; text-align: center'>
+            <img ng-if='record.repcontent.icon != "icon:"' class='{{$root.screenSize == "small" ? "nl-card-img-size-sm" : "nl-card-img-size-lg"}}' ng-src='{{record.repcontent.icon}}' nl-compute-img-info></img>
+            <div ng-if='record.repcontent.icon == "icon:"' class=' text-center {{$root.screenSize == "small" ? "fsh6 nl-card-img-size-sm" : "fsh2 nl-card-img-size-lg"}}'><i class='ion-ios-bookmarks-outline fblue' style='font-size: 300%'></i></div>
+        </div>
+        <div class='col' >
+            <div class='row row-top margin0 padding0'>
+                <div class='col padding-horizontal'>
+                    <div class='nl-learner-card-header'>
+                        {{record.repcontent.name}}
+                    </div>
+                    <div class='row row-center row-wrap padding0 margin0'>
+                        <div ng-class='$root.respCol311' class='learner-card-subtitle padding-mid' style='min-height:30px; padding-top:10px'>
+                            Start Date: {{record.not_before}}
+                        </div>
+                        <div ng-class='$root.respCol311' ng-show='record.not_after' class='learner-card-subtitle padding-mid'  style='min-height:30px; padding-top:10px'>
+                            End Date: {{record.not_after}}
+                        </div>
+                        <div ng-class='$root.respCol311' class='learner-card-subtitle padding-mid'>
+                            Status: <i class='{{record.stats.status.icon}}' style='font-size:150%; padding: 0px 4px;'></i>{{record.stats.status.txt}}
+                        </div>
+                    </div>
+                </div>
+                <span ng-click='onDetailsLinkClicked($event, record, "details")' class='nl-link-img'>
+                    <i class="padding-mid icon ion-more fsh3"></i>
+                </span>
+            </div>
+            <div class='row row-top margin0 padding-mid'>
+                <div class='col padding-horizontal learner-card-subtitle'>
+                    <span ng-show='$root.screenSize != "small"'>{{record.repcontent.remarks || record.repcontent.assign_remarks}}</span>
+                </div>
+                <span>
+                    <a ng-href='{{record.recStateObj.url}}'
+                        target=''
+                        class='row row-center padding0 margin0 nl-link-text'>
+                        <span ng-show='record.recStateObj.button == "REVIEW" || record.recStateObj.button == "REWORK"' class='nl-button-lowlight'>{{record.recStateObj.button}}</span>
+                        <span ng-show='record.recStateObj.type == "active"' class='nl-button-highlight'>{{record.recStateObj.button}}</span>
+                    </a>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>

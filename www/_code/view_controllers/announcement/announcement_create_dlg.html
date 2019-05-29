@@ -1,0 +1,49 @@
+<nl-dlg dlgtitle='{{dlgtitle}}'>
+<nl-dlg-content>
+    <nl-dlg-row attr='title' data='data' help='help'>
+        <nl-input fieldmodel='title' fieldtype='text' fieldCls='w100'></nl-input>
+    </nl-dlg-row>
+    <nl-dlg-row attr='desc' data='data' help='help'>
+        <nl-textarea fieldmodel='desc' fieldcls='w100'></nl-textarea>
+    </nl-dlg-row>
+	<nl-dlg-row attr='resource' data='data' help='help'>
+        <div class='row row-top row-wrap margin0 padding0'>
+            <div ng-repeat='res in data.resources'>
+                <div class='row padding-mid' ng-show='res'>
+                    <img ng-show='res.type == "img"'
+                        ng-src='{{res.url}}'
+                        class='nl-100 nl-link-img'>
+                    <img ng-show='res.type == "video"'
+                        ng-src='{{getResurl()}}'
+                        class='nl-100 nl-link-img'>
+                    <span class='image-round-button image-top-button nl-link-img' style='margin-left: -15px;margin-top: -7px; height: 30px'>
+                        <i ng-show='res'
+                            class='icon ion-ios-close nl-dlg-field-icon forange2'
+                            ng-click='onRemoveResource($index)'>
+                        </i>
+                    </span>
+                </div>
+            </div>		
+            <div class='padding-mid'>
+                <div class='nl-100 padding-mid text-center nl-link-text ' style='border: 1px solid #DDDDFF; border-radius: 5px;' 
+                        title='Click to add image'
+                        ng-click='addNewResource("img")'>
+                    <span class='padding-mid'>
+                        <i class='icon ion-image fsh1 fblue2'></i>
+                    </span>
+                </div>
+            </div>
+            <div class='padding-mid'>
+                <div class='nl-100 padding-mid text-center nl-link-text ' class='nl-100 padding-mid' style='border: 1px solid #DDDDFF; border-radius: 5px;'>
+                    <span class='nl-link-text padding-mid'
+                        title='Click to add video'
+                        ng-click='addNewResource("video")'>
+                        <i class='icon ion-videocamera fsh1 fblue2'></i>
+                    </span>
+                </div>
+            </div>
+
+        </div>
+	</nl-dlg-row>
+</nl-dlg-content>
+</nl-dlg>

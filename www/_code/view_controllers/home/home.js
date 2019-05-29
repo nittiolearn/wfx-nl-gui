@@ -69,41 +69,49 @@ function($stateProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var HomeCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlConfig', 'nlDlg', 'nlCardsSrv',
-function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv) {
-    HomeCtrlImpl(true, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv);
+var HomeCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlConfig', 'nlDlg', 'nlCardsSrv', 'nlAnnouncementSrv',
+function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv) {
+    HomeCtrlImpl(true, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv);
 }];
 
-var DashboardViewCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlConfig', 'nlDlg', 'nlCardsSrv',
-function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv) {
-    HomeCtrlImpl(false, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv);
+var DashboardViewCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlConfig', 'nlDlg', 'nlCardsSrv', 'nlAnnouncementSrv',
+function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv) {
+    HomeCtrlImpl(false, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv);
 }];
 
 //-------------------------------------------------------------------------------------------------
-function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv) {
-
+function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv) {
+    var oldScreenState = angular.copy(nl.rootScope.screenSize);
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
             var params = nl.location.search();
             var parent = ('parent' in params) ? params.parent : null;
             var dbid = ('dbid' in params) ? params.dbid : null;
-            var published = (params.published == true);
+            var published = (params.published == true);                
+            nl.rootScope.showAnnouncement = !nl.rootScope.hideAnnouncement;
+            $scope.pane = true;
             if (!isHome && dbid) {
                 nlServerApi.dashboardGetCards(dbid, published).then(function(dashboardCards) {
                     nl.pginfo.pageTitle = nl.t('Custom Dashboard: {}', dashboardCards.description);
-                    _initDashboardCards(userInfo, parent, dashboardCards.dashboard, resolve);
-                    _initBgimg(dashboardCards);
+                    _init(userInfo, parent, dashboardCards, resolve);
                 });
             } else {
                 nl.pginfo.pageTitle = nl.t('Home Dashboard');
                 nl.pginfo.pageSubTitle = nl.fmt2('({})', userInfo.displayname);
-                _initDashboardCards(userInfo, parent, userInfo.dashboard, resolve);
-                _initBgimg(userInfo);
+                _init(userInfo, parent, userInfo, resolve);
             }
         });
     }
 
     nlRouter.initContoller($scope, '', _onPageEnter);
+
+    function _init(userInfo, parent, dashboardCards, resolve) {
+        _initDashboardCards(userInfo, parent, dashboardCards.dashboard);
+        _initBgimg(dashboardCards);
+        nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'pane').then(function() {
+            resolve(true);
+        });
+    }
 
     function _initBgimg(data) {
         var bgimgs = (data.dashboard_props || {}).bgimgs;
@@ -114,14 +122,13 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
         nl.rootScope.pgBgimg = bgimgs[pos];
     }
     
-    function _initDashboardCards(userInfo, parent, cardListFromServer, resolve) {
+    function _initDashboardCards(userInfo, parent, cardListFromServer) {
         $scope.cards = {
             staticlist: parent ? [] : _getUnauthorizedCards(userInfo),
             cardlist: _getDashboardCards(userInfo, parent, cardListFromServer)
         };
         nlCardsSrv.initCards($scope.cards);
         _eulaWarning();
-        resolve(true);
     }
 
     function _getUnauthorizedCards(userInfo) {

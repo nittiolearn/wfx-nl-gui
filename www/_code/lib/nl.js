@@ -584,7 +584,6 @@ function NlPageInfo(nl) {
     this.pageSubTitle ='';
     this.windowTitle ='Nittio Learn';
     this.windowDescription = 'Nittio Learn';
-    this.isMenuShown = true;
     this.isPageShown = false;
     this.isPrintable = false;
     

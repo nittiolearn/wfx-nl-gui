@@ -433,6 +433,31 @@ function(nl, nlDlg, nlConfig, Upload) {
     this.groupGetList = function(data) {
         return server.post('_serverapi/group_get_list.json', data);     
     };
+    //---------------------------------------------------------------------------------------------
+	// get announcement entities
+    //---------------------------------------------------------------------------------------------
+	this.getAnnouncementList = function(data) {
+        // return: list of announcement 
+        return server.post('_serverapi/announcement_get_list.json', data);				
+	};
+
+	this.createAnnouncement = function(data) {
+        // return: create new announcement data = {title: 'xx', desc: 'xx', resource = {img: '', video: ''}}
+        // return announcement record created newly
+        return server.post('_serverapi/announcement_create.json', data);				
+	};
+
+	this.updateAnnouncement = function(data) {
+        // return: create new announcement data={id: "xx", title: 'xx', desc: 'xx', resource = {img: '', video: ''}}
+        // return updated announcement record,
+        return server.post('_serverapi/announcement_modify.json', data);				
+	};
+
+	this.deleteAnnouncement = function(data) {
+        // return: create new announcement data = {id: 'xx'}
+        // return updated announcement record,
+        return server.post('_serverapi/announcement_delete.json', data);				
+	};
 
     //---------------------------------------------------------------------------------------------
 	// lesson entities

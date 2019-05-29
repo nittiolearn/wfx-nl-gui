@@ -23,8 +23,8 @@ function UrlString(location) {
     this.init();
 }
 
-var NlRouter = ['nl', 'nlDlg', 'nlServerApi', 'nlMarkup', '$state',
-function(nl, nlDlg, nlServerApi, nlMarkup, $state) {
+var NlRouter = ['nl', 'nlDlg', 'nlServerApi', 'nlMarkup', '$state', 'nlTopbarSrv',
+function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv) {
     var permission = new Permission(nl);
     var defaultFn = function() {return function(resolve, reject) {resolve(true);};};
 
@@ -59,7 +59,7 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state) {
             }
         });
     };
-    
+
     this.isPermitted = function(userInfo, taskName) {
         var perm = permission.getPermObj(taskName);
         if (perm == null) return false;
@@ -175,7 +175,7 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state) {
     
     function _done(rerouteToUrl) {
         var params = nl.location.search();
-        nl.pginfo.isMenuShown = (!('embedded' in params || 'hidemenu' in params || nl.pginfo.hidemenu));
+        nlTopbarSrv.showTopbar(!('embedded' in params || 'hidemenu' in params || nl.pginfo.hidemenu));
         nlDlg.hideLoadingScreen();
 
         if (rerouteToUrl != null) {
@@ -277,6 +277,8 @@ function Permission(nl) {
         '/training_list': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},
         '/training_attend': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},
         '/recyclebin': {login: true, permission: 'lesson_approve', termRestriction: TR_CLOSED},
+		'/learner_view': {login:true, permission: 'basic_access', termRestriction: TR_RESTRICTED},
+        '/announcement': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},        
 
         // Operation permissions
         'assignment_manage': {login: true, permission: 'assignment_manage', termRestriction: TR_RESTRICTED},

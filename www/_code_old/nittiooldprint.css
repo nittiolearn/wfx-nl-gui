@@ -80,7 +80,7 @@ html {
 /* SECTION 2: Remove any elements not needed in print.
    This would include navigation, ads, sidebars, etc. */
 #pageNoArea,
-.topBar,
+.nl-topbar,
 .toolBar,
 #statusBox,
 #module_popup_holder,

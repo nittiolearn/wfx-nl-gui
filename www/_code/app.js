@@ -144,8 +144,10 @@ function(nl) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var AppCtrl = ['nl', '$scope', '$anchorScroll', 'nlKeyboardHandler', 'nlServerApi', 'nlRouter', 'nlLogViewer', 'nlOldCodeBridge',
-function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlServerApi, nlRouter, nlLogViewer, nlOldCodeBridge) {
+var AppCtrl = ['nl', '$scope', '$anchorScroll', 'nlKeyboardHandler', 'nlAnnouncementSrv', 'nlRouter',
+'nlLogViewer', 'nlOldCodeBridge', 'nlTopbarSrv',
+function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRouter, nlLogViewer,
+    nlOldCodeBridge, nlTopbarSrv) {
     nl.log.info('UserAgent: ', navigator.userAgent);
     if (NL_SERVER_INFO.oldCode) nlOldCodeBridge.expose();
 
@@ -163,7 +165,6 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlServerApi, nlRouter, nl
     var homeUrl = '/#/home';
     var welcomeUrl = '/#/welcome#home';
 
-    $scope.userMenuItems = [];
     $scope.homeMenuTitle = nl.t('Home');
     $scope.logedIn = false;
     $scope.homeUrl = homeUrl;
@@ -172,38 +173,62 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlServerApi, nlRouter, nl
     $scope.onPageEnter = function(userInfo) {
         nl.log.debug('app:onPageEnter - enter');
         nl.rootScope.bodyClass = 'showbody';
+        nlAnnouncementSrv.initAnnouncements(userInfo, $scope);
         $scope.logo = userInfo.groupicon == '' ? nl.url.resUrl('general/top-logo2.png') : userInfo.groupicon;
         var bLoggedIn = (userInfo.username != '');
-        $scope.userMenuItems = [];
+        var topbarMenus = [];
         if (bLoggedIn) {
             $scope.logedIn = true;
             $scope.homeUrl = homeUrl;
-            if (nlRouter.isPermitted(userInfo, 'change_password')) {
-                $scope.userMenuItems.push({title: nl.t(' Change Password'), 
-                    url: '#/pw_change'});
-            }
-            $scope.userMenuItems.push({title: nl.t(' Sign Out'),
-                url: '#/logout_now'});
+            topbarMenus = _updateTopbarMenus(userInfo);
         }
+        nlTopbarSrv.setCommonMenus(topbarMenus);
         nl.log.debug('app:onPageEnter - done');
     };
     
-    $scope.showUserMenu = false;
-    $scope.onUserMenu = function(e) {
-        $scope.showUserMenu = !$scope.showUserMenu;
-        if (e) e.stopImmediatePropagation();
-        return false;
-    };
-    
     $scope.onCanvasClick = function(e) {
-        $scope.showUserMenu = false;
+        nl.resizeHandler.broadcast('ESC');
     };
 
     $scope.onKeyDown = function(e) {
         if (!nlKeyboardHandler.ESC(e)) return;
-        $scope.showUserMenu = false;
+        nl.resizeHandler.broadcast('ESC');
     };
     
+    function _updateTopbarMenus(userInfo) {
+        var topbarMenus = [];
+        if (nlAnnouncementSrv.isFeatureEnabled()) {
+            topbarMenus.push({
+                id: 'show_announcements',
+                type: 'menu',
+                name: nl.t(' Show Announcements'),
+                onClick: function() { nlAnnouncementSrv.onOpen(); },
+                canShow: function() { return nlAnnouncementSrv.canShowOpen(); }
+            });
+            topbarMenus.push({
+                id: 'hide_announcements',
+                type: 'menu',
+                name: nl.t(' Hide Announcements'),
+                onClick: function() { nlAnnouncementSrv.onClose(); },
+                canShow: function() { return nlAnnouncementSrv.canShowClose(); }
+            });
+        }
+        if (nlRouter.isPermitted(userInfo, 'change_password')) {
+            topbarMenus.push({
+                id: 'pw_change',
+                type: 'menu',
+                name: nl.t(' Change Password'), 
+                url: '#/pw_change'
+            });
+        }
+        topbarMenus.push({
+            id: 'logout',
+            type: 'menu',
+            name: nl.t(' Sign Out'),
+            url: '#/logout_now'
+        });
+        return topbarMenus;
+    }
 }];
 
 function _initScreenSize(nl) {
