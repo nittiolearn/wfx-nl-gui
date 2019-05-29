@@ -165,15 +165,25 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
 
     this.getMaxScoredLessonReport = function(lessonReport, pastLessonReport) {
         var maxScoredReport = angular.copy(lessonReport);
+        var maxPerc = _getPerc(maxScoredReport);
         var totalTimeSpent = lessonReport['timeSpentSeconds'] || 0;
-        for(var i=0; i<pastLessonReport.length; i++) {
+        for(var i=pastLessonReport.length-1; i>=0; i--) {
             var pastRep = pastLessonReport[i];
+            if (!pastRep.completed || !pastRep.reportId) continue; // For data created by old bug (see #956)
             totalTimeSpent += pastRep['timeSpentSeconds'];
-            if(pastRep.score < maxScoredReport.score) continue;
+            var pastPerc = _getPerc(pastRep);
+            if(pastPerc <= maxPerc) continue;
             maxScoredReport = pastRep;
+            maxPerc = pastPerc;
         }
         maxScoredReport['timeSpentSeconds'] = totalTimeSpent;
         return maxScoredReport;
+    }
+
+    function _getPerc(report) {
+        if (report.selfLearningMode) return 0.0;
+        if (!report.score || !report.maxScore) return 0.0;
+        return 100.0*report.score/report.maxScore;
     }
     
     // Private functions
