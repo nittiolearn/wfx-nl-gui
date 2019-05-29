@@ -87,10 +87,7 @@
                 <div class='row row-center padding0 margin0 row-wrap'>
                     <div class='announcement-res-holder padding' ng-repeat='res in announcement.resources'>
                         <img class='announcement-res' ng-if='res.type == "img"' src='{{res.url}}'/>
-                        <video class='announcement-res' ng-if='res.type == "video"' controls>
-                            <source src="{{res.url}}" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video> 
+                        <div ng-if='res.type == "video"' nl-compile='res.markUpurl' class='nl-content-holder'></div>
                     </div>
                 </div>
             </div>

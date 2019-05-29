@@ -60,8 +60,8 @@ function($scope, nl, nlAnnouncementSrv, nlRouter) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var AnnouncementSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlResourceAddModifySrv', 'nlUserSettings',
-function(nl, nlDlg, nlServerApi, nlResourceAddModifySrv, nlUserSettings) {
+var AnnouncementSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlResourceAddModifySrv', 'nlUserSettings', 'nlMarkup',
+function(nl, nlDlg, nlServerApi, nlResourceAddModifySrv, nlUserSettings, nlMarkup) {
     var _data = {mode: 'none', isAdmin: false, toolBar:[], items:null, 
         canFetchMore: false, featureEnabled: false, pageAllowsPaneMode: false};
     var _scope = null;
@@ -258,11 +258,7 @@ function(nl, nlDlg, nlServerApi, nlResourceAddModifySrv, nlUserSettings) {
                 resurl = 'img:';
             else
                 resurl = 'video:';
-            nlResourceAddModifySrv.insertOrUpdateResource(dlg.scope, 
-				_restypes, resurl, false, {}, false).then(function(result) {
-				if(!result || !result.url) return;
-                dlg.scope.data.resources.push({type: type, url: result.url});
-            });
+            _showResourceAddModifyDlg(dlg, resurl, type);
         }
 
         dlg.scope.onRemoveResource = function(pos) {
@@ -282,9 +278,32 @@ function(nl, nlDlg, nlServerApi, nlResourceAddModifySrv, nlUserSettings) {
         dlg.show('view_controllers/announcement/announcement_create_dlg.html', [crOrUpBtn], cancelButton)
     }
 
+    function _showResourceAddModifyDlg(dlg, resurl, type) {
+        nlResourceAddModifySrv.insertOrUpdateResource(dlg.scope, 
+            _userInfo.groupinfo.restypes, resurl, false, null, false).then(function(result) {
+            if(!result || !result.url) return;
+            dlg.scope.data.resources.push({type: type, url: result.url});
+        });
+    }
+
     function _createOrUpdateAnnouncement(data, isUpdate) {
         var serverFn = isUpdate ? nlServerApi.updateAnnouncement : nlServerApi.createAnnouncement;
-        var params = {title: data.title, desc: data.desc, resources: data.resources}
+        var params = {title: data.title, desc: data.desc, resources:[]}
+        for(var i=0; i<data.resources.length; i++) {
+            var res = data.resources[i];
+            if(res.type == "img") {
+                params.resources.push(res);
+            } else {
+                if(res.markUpurl) {
+                    params.resources.push(res);
+                } else {
+                    var markupStr = 'video:'+res.url;
+                    var retData = {lessPara: true};
+                    var markUpurl = nlMarkup.getHtml(markupStr, retData);
+                    params.resources.push({type: res.type, url: res.url, markUpurl: markUpurl});    
+                }
+            }
+        }
         if(isUpdate) params['id'] = data.id;
         nlDlg.showLoadingScreen();
         serverFn(params).then(function(record) {

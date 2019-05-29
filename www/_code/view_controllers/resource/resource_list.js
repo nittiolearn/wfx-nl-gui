@@ -273,6 +273,7 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 	_updatedResourceList = [];
 	var params= nl.location.search();
 	var maxResults = ('max' in params) ? parseInt(params['max']) : 50;
+	var self = this;
 	this.show = function($scope, card, restypes, onlyOnce, markupHandler) {
 	    if (!markupHandler) markupHandler = new MarkupHandler(nl, nlDlg);
 		return nl.q(function(resolve, reject) {
@@ -482,14 +483,31 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 
     this.insertOrUpdateResource = function($scope, restypes, markupText, showMarkupOptions, resourceDict, resourceFilter, lessonId, card) {
     	// resoureFilter = 'bg' | 'icon' | undefined
-    	nlDlg.hideLoadingScreen();
+		nlDlg.hideLoadingScreen();
+		if(!resourceDict && _updatedResourceList.length == 0) {
+			return nl.q(function(resolve, reject) {
+				nlDlg.showLoadingScreen();
+				nlServerApi.lessonGetResourceLibrary().then(function(_resourceDict) {
+					nlDlg.hideLoadingScreen();
+					resourceDict = _resourceDict;
+					var promise = initResources($scope, restypes, markupText, showMarkupOptions, resourceDict, resourceFilter, lessonId, card);
+					promise.then(function(selected) {
+						resolve(selected);
+					});
+				});
+			})
+		} else {
+			return initResources($scope, restypes, markupText, showMarkupOptions, resourceDict, resourceFilter, lessonId, card);
+		}
+	};
+	
+	function initResources($scope, restypes, markupText, showMarkupOptions, resourceDict, resourceFilter, lessonId, card) {
     	var restype = markupText.substring(0, markupText.indexOf(':'));
     	if(_updatedResourceList.length == 0) _updatedResourceList = resourceDict.resourcelist  ? resourceDict.resourcelist : [];
     	_resourceLibrary.init(_updatedResourceList, resourceFilter, restype, resourceDict, lessonId, maxResults);
         var markupHandler = new MarkupHandler(nl, nlDlg, true, markupText, showMarkupOptions);
-        return this.show($scope, card || null, restypes, true, markupHandler);
-    };
-
+        return self.show($scope, card || null, restypes, true, markupHandler);
+	}
 }];
 
 function MarkupHandler(nl, nlDlg, insertOrUpdateResource, markupText, showMarkupOptions) {

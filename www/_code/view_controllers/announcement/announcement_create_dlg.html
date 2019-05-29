@@ -8,38 +8,36 @@
     </nl-dlg-row>
 	<nl-dlg-row attr='resource' data='data' help='help'>
         <div class='row row-top row-wrap margin0 padding0'>
-            <div ng-repeat='res in data.resources'>
-                <div class='row padding-mid' ng-show='res'>
-                    <img ng-show='res.type == "img"'
-                        ng-src='{{res.url}}'
-                        class='nl-100 nl-link-img'>
-                    <img ng-show='res.type == "video"'
-                        ng-src='{{getResurl()}}'
-                        class='nl-100 nl-link-img'>
-                    <span class='image-round-button image-top-button nl-link-img' style='margin-left: -15px;margin-top: -7px; height: 30px'>
-                        <i ng-show='res'
-                            class='icon ion-ios-close nl-dlg-field-icon forange2'
-                            ng-click='onRemoveResource($index)'>
-                        </i>
-                    </span>
+            <div ng-repeat="res in data.resources"
+                class="nl-thumbnail-container">
+                <div class="nl-thumbnail">
+                    <div class='nl-thumbnail-img'>
+                        <img ng-if='res.type == "img"' ng-src='{{res.url}}'/>
+                        <img ng-if='res.type == "video"' ng-src='{{getResurl()}}'>
+                    </div>
+                    <div class='nl-thumbnail-close' ng-click='onRemoveResource($index)'>
+                        <i class="ion-ios-close-outline"></i>
+                    </div>
                 </div>
-            </div>		
+            </div>
             <div class='padding-mid'>
                 <div class='nl-100 padding-mid text-center nl-link-text ' style='border: 1px solid #DDDDFF; border-radius: 5px;' 
                         title='Click to add image'
                         ng-click='addNewResource("img")'>
-                    <span class='padding-mid'>
+                    <div class='padding-mid'>
                         <i class='icon ion-image fsh1 fblue2'></i>
-                    </span>
+                        <i class='icon ion-android-add-circle fsh2 fblue2' style='margin-left: -5px; position: absolute'></i>
+                    </div>
                 </div>
             </div>
             <div class='padding-mid'>
-                <div class='nl-100 padding-mid text-center nl-link-text ' class='nl-100 padding-mid' style='border: 1px solid #DDDDFF; border-radius: 5px;'>
-                    <span class='nl-link-text padding-mid'
+                <div class='nl-100 padding-mid text-center nl-link-text ' style='border: 1px solid #DDDDFF; border-radius: 5px;'
                         title='Click to add video'
                         ng-click='addNewResource("video")'>
+                    <div class='padding-mid'>
                         <i class='icon ion-videocamera fsh1 fblue2'></i>
-                    </span>
+                        <i class='icon ion-android-add-circle fsh2 fblue2' style='margin-left: -5px; position: absolute'></i>
+                    </div>
                 </div>
             </div>
 

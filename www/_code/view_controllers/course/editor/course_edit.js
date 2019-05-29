@@ -31,8 +31,8 @@ function EditorFieldsDirective() {
 
 //-------------------------------------------------------------------------------------------------
 var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlLessonSelect', 
-'nlExportLevel', 'nlRouter', 'nlCourseCanvas', 'nlMarkup', 'nlTreeSelect', 'nlResourceAddModifySrv', 'NittioLesson', 'nlGroupInfo',
-function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCourseCanvas, nlMarkup, nlTreeSelect, nlResourceAddModifySrv, NittioLesson, nlGroupInfo) {
+'nlExportLevel', 'nlRouter', 'nlCourseCanvas', 'nlMarkup', 'nlTreeSelect', 'nlResourceAddModifySrv', 'nlGroupInfo',
+function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCourseCanvas, nlMarkup, nlTreeSelect, nlResourceAddModifySrv, nlGroupInfo) {
 
     var modeHandler = null;
     var $scope = null;
@@ -93,19 +93,16 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 
 	function _onFieldClick() {
 		var resFilter = 'icon';
-		var selectedImgUrl = modeHandler.course.icon != "icon:" ? '' : modeHandler.course.icon;
+		var selectedImgUrl = modeHandler.course.icon != "icon:" ? modeHandler.course.icon : "icon:";
 		var bgShade = '';
 		var markupText = nl.fmt2('img:{}[{}]', selectedImgUrl, bgShade); 
-		NittioLesson.getResourceLibrary().then(function(resourceDict) {
-			_resourceDict = resourceDict;
-			var promise = nlResourceAddModifySrv.insertOrUpdateResource($scope, 
-				            _userInfo.groupinfo.restypes, markupText, false, _resourceDict, resFilter, modeHandler.course.id);
-			promise.then(function(selected) {
-				if (!selected || !selected.url) return;
-				if(resFilter == 'icon') {
-		            modeHandler.course.icon = selected.url;
-				}
-			});
+		var promise = nlResourceAddModifySrv.insertOrUpdateResource($scope, 
+						_userInfo.groupinfo.restypes, markupText, false, null, resFilter, modeHandler.course.id);
+		promise.then(function(selected) {
+			if (!selected || !selected.url) return;
+			if(resFilter == 'icon') {
+				modeHandler.course.icon = selected.url;
+			}
 		});
 	}
 	
