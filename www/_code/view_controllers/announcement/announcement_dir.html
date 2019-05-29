@@ -5,29 +5,32 @@
     top: 0%;
     width: 100%;
     height: 100%;
+    line-height: 160%;
 }
 
-.announcement-full .announcement-pad {
-    padding: 20px;
+.announcement-pane .padding {
+    padding: 10px;
 }
 
-.announcement-full .announcement-pad-sm {
-    padding: 8px;
+.announcement-pane .padding-horizontal {
+    padding: 0 10px;
 }
 
-.announcement-pane .announcement-pad-sm {
+.announcement-pane .padding-mid {
     padding: 4px;
 }
 
-.announcement-full .announcement-res {
-    width: 400px;
-    height: 200px; 
-    padding: 20px
+.announcement-pane .announcement-res-holder {
+    width: 100%;
 }
 
-.announcement-pane .announcement-res {
-    max-width: 200px;
-    max-height: 150px; 
+.announcement-full .announcement-res-holder {
+    max-width: 400px;
+}
+
+.announcement-res {
+    max-width: 100%;
+    max-height: 200px; 
 }
 
 .nl-text-desc{
@@ -35,10 +38,12 @@
 }
 </style>
 <div class='nl-thin-scroll announcement-dir announcement-{{$root.screenSize == "small" ? "pane" : $root.announcement.mode}}'>
-    <div class='row row-center margin0 padding0'
-        style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
-        <div class='col padding-mid nl-blue nl-font-bold' >
-            <span ng-hide='$root.screenSize != "large" && $root.announcement.mode == "pane"'>ANNOUNCEMENTS</span>
+    
+    <!-- Title tool bar -->
+    <div class='row row-center row-wrap margin0 padding0 bgwhite'
+        style='border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
+        <div class='col padding nl-blue fsh5'>
+            <span ng-show='$root.screenSize != "small" && $root.announcement.mode == "pane"'>Announcements</span>
         </div>
         <span ng-repeat='tb in $root.announcement.toolBar' ng-show='tb.canShow()'
             title='{{tb.title}}'
@@ -47,44 +52,56 @@
             <i class="icon {{tb.icon}}"></i>
         </span>
     </div>
-    <div>
-        <div class='announcement-pad' ng-repeat='announcement in $root.announcement.items'>
-            <div class='announcement-pad row row-center margin0' 
-                style='box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.3);'>
-                <div class='col' class='bgblue'>
-                    <div class='annoucement-pad-sm row row-center}} margin0'>
-                        <div class='col'>
-                            <div class='nl-blue nl-font-bold fsh5'>{{announcement.title}}</div>
-                            <div class='fsmall1 nl-text-desc'>{{announcement.created}}</div>
-                        </div>
-                        <div ng-show='canShowButtons()' class='nl-link-img padding-small' ng-click='updateAnnouncement(announcement)'>
-                            <i class='icon ion-ios-photos nl-dlg-field-icon' title='Update'></i>
-                            <span ng-hide='$root.screenSize == "small"' class='padding-mid'>Update</span>
-                        </div>
-                        <div ng-show='canShowButtons()' class='nl-link-img padding-small' ng-click='deleteAnnouncement(announcement)'>
-                            <i class='ion-ios-trash icon nl-dlg-field-icon' title='Delete'></i>
-                            <span ng-hide='$root.screenSize == "small"' class='padding-mid'>Delete</span>
-                        </div>
-                    </div>
-                    <div class='row row-center padding-mid margin0'>
-                        <div class='col fsmall1 nl-text-desc'>
-                            {{announcement.desc}}
-                        </div>
-                    </div>
-                    <div class='row row-center padding-mid margin0 row-wrap'>
-                        <div class='col'  ng-repeat='res in announcement.resources'>
-                            <img class='announcement-res' ng-if='res.type == "img"' src='{{res.url}}'/>
-                            <video class='announcement-res' ng-if='res.type == "video"' controls>
-                                <source src="{{res.url}}" type="video/mp4">
-                                    Your browser does not support the video tag.
-                            </video> 
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+
+    <div class='nl-limitwidth'>
+        <!-- When list is empty -->
         <div ng-show='$root.announcement.items.length == 0' class='row row-center padding-mid margin0'>
             <div style='color: #838383'> There are no announcements to display. </div>
         </div>
+    
+        <!-- Each announcement item -->
+        <div class='announcement-item' ng-repeat='announcement in $root.announcement.items'>
+            <div class='bgwhite'>
+                <!-- Title and update/delete tools -->
+                <div class='row row-top padding margin0'>
+                    <div class='col padding0'>
+                        <div class='nl-blue fsh6'>{{announcement.title}}</div>
+                        <div class='fsmall1 nl-text-desc padding-small-v'>{{announcement.updated}}</div>
+                    </div>
+                    <div ng-show='canShowButtons()' class='nl-link-img padding-small' ng-click='updateAnnouncement(announcement)'>
+                        <i class='icon ion-ios-photos nl-dlg-field-icon' title='Update'></i>
+                        <span ng-hide='$root.screenSize == "small"' class='padding-mid'>Update</span>
+                    </div>
+                    <div ng-show='canShowButtons()' class='nl-link-img padding-small' ng-click='deleteAnnouncement(announcement)'>
+                        <i class='ion-ios-trash icon nl-dlg-field-icon' title='Delete'></i>
+                        <span ng-hide='$root.screenSize == "small"' class='padding-mid'>Delete</span>
+                    </div>
+                </div>
+        
+                <!-- Description -->
+                <div class='fsmall1 nl-text-desc padding-horizontal'>
+                    {{announcement.desc}}
+                </div>
+        
+                <!-- Images -->
+                <div class='row row-center padding0 margin0 row-wrap'>
+                    <div class='announcement-res-holder padding' ng-repeat='res in announcement.resources'>
+                        <img class='announcement-res' ng-if='res.type == "img"' src='{{res.url}}'/>
+                        <video class='announcement-res' ng-if='res.type == "video"' controls>
+                            <source src="{{res.url}}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video> 
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Bottom line-->
+            <div class='padding'>
+                <div style='border-bottom: 1px solid rgba(0, 0, 0, 0.1);'></div>
+            </div>
+        </div>
+    
+        <!-- Empty line-->
+        <div class='padding'></div>
     </div>
 </div>

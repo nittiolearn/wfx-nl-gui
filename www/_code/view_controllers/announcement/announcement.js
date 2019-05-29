@@ -50,34 +50,44 @@ function(nl, nlDlg, nlAnnouncementSrv) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var AnnouncementCtrl = ['$scope', 'nlAnnouncementSrv', 'nlRouter',
-function($scope, nlAnnouncementSrv, nlRouter) {
+var AnnouncementCtrl = ['$scope', 'nl', 'nlAnnouncementSrv', 'nlRouter',
+function($scope, nl, nlAnnouncementSrv, nlRouter) {
 	function _onPageEnter(userInfo) {
+        nl.pginfo.pageTitle = 'Announcements';
         return nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'full');
 	}
 	nlRouter.initContoller($scope, '', _onPageEnter);
 }];
 
 //-------------------------------------------------------------------------------------------------
-var AnnouncementSrv = ['nl', 'nlDlg', 'nlConfig', 'nlServerApi', 'nlResourceAddModifySrv', 'nlSettings',
-function(nl, nlDlg, nlConfig, nlServerApi, nlResourceAddModifySrv, nlSettings) {
-    var _data = {mode: 'none', isAdmin: false, toolBar:[], items:null, canFetchMore:false};
+var AnnouncementSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlResourceAddModifySrv', 'nlUserSettings',
+function(nl, nlDlg, nlServerApi, nlResourceAddModifySrv, nlUserSettings) {
+    var _data = {mode: 'none', isAdmin: false, toolBar:[], items:null, 
+        canFetchMore: false, featureEnabled: false, pageAllowsPaneMode: false};
     var _scope = null;
     var _userInfo = null;
     var self = this;
 
     this.initAnnouncements = function(userInfo, scope) {
+        _data.pageAllowsPaneMode = false;
         _initAnnouncements(userInfo, scope, 'none');
     };
 
     this.onPageEnter = function(userInfo, scope, mode) {
+        if (mode == 'pane') _data.pageAllowsPaneMode = true;
         return nl.q(function(resolve, reject) {
-            _initAnnouncements(userInfo, scope, mode);
-            if (_data.mode == 'none') return resolve(true);
-            if (_data.items) return resolve(true);
-            _data.items = [];
-            _getDataFromServer(resolve, false);
+            nlUserSettings.init(function() {
+                _initAnnouncements(userInfo, scope, mode);
+                if (_data.mode == 'none') return resolve(true);
+                if (_data.items) return resolve(true);
+                _data.items = [];
+                _getDataFromServer(resolve, false);
+            });
         });
+    };
+
+    this.isFeatureEnabled = function() {
+        return _data.featureEnabled;
     };
 
     this.updateAnnouncement = function(announcement) {
@@ -93,7 +103,7 @@ function(nl, nlDlg, nlConfig, nlServerApi, nlResourceAddModifySrv, nlSettings) {
     };
 
     this.canShowOpen = function() {
-        return _data.mode == 'none';
+        return _data.pageAllowsPaneMode && _data.mode == 'none';
     };
 
     this.onOpen = function() {
@@ -101,28 +111,46 @@ function(nl, nlDlg, nlConfig, nlServerApi, nlResourceAddModifySrv, nlSettings) {
     };
 
     this.canShowClose = function() {
-        return _data.mode == 'pane';
+        return _data.pageAllowsPaneMode && _data.mode == 'pane';
     };
 
     this.onClose = function() {
         _onClose();
     };
 
+    var _oldScreenState = null;
+    function _resizeHandler() {
+        if (!_data.pageAllowsPaneMode || !_data.featureEnabled) return;
+        if (_oldScreenState == nl.rootScope.screenSize) return;
+        if (_oldScreenState != 'small' && nl.rootScope.screenSize != 'small') return;
+        self.onPageEnter(_userInfo, _scope, 'pane').then(function() {
+        });    
+    }
+
+    nl.resizeHandler.onResize(function() {
+        _resizeHandler();
+    });
+    
+    function _setFeatureEnabled(forceDisable) {
+        if(!forceDisable && _userInfo.groupinfo && ('features' in _userInfo.groupinfo) &&
+            _userInfo.groupinfo.features['announcement']) {
+            _data.featureEnabled = true;
+        } else {
+            _data.mode = 'none';
+            _data.featureEnabled = false;
+        }
+    }
+
     function _initAnnouncements(userInfo, scope, mode) {
         _scope = scope;
         _userInfo = userInfo;
         nl.rootScope.announcement = _data;
         _data.mode = mode;  // none|pane|full
-        var settings = nlSettings.userSettings.get();
-        if(settings && settings['userClosedPane']) _data.mode = 'none';
-        if(_userInfo.groupinfo && ('features' in _userInfo.groupinfo) &&
-             (_userInfo.groupinfo.features['announcement'])) {
-            nl.rootScope.announcement.featureEnabled = true;
-        } else {
-            _data.mode = 'none';
-            nl.rootScope.announcement.featureEnabled = false
-        }
+        var userClosedPane = nlUserSettings.get('announcement_pane_closed', false);
+        if(userClosedPane) _data.mode = 'none';
+        _setFeatureEnabled();
         if (nl.rootScope.screenSize == 'small' && _data.mode == 'pane') _data.mode = 'none';
+        _oldScreenState = nl.rootScope.screenSize;
         if (_data.mode == 'none') return;
         _data.isAdmin = userInfo.permissions.lesson_approve;
         _initToolBar();
@@ -182,13 +210,12 @@ function(nl, nlDlg, nlConfig, nlServerApi, nlResourceAddModifySrv, nlSettings) {
         _pageFetcher.fetchPage(nlServerApi.getAnnouncementList, {}, fetchMore, function(results) {
             if (!results) {
                 if (resolve) resolve(false);
-                _data.mode = 'none';
-                nl.rootScope.announcement.featureEnabled = false
+                _setFeatureEnabled(true);
                 return;
             }
             _data.canFetchMore = _pageFetcher.canFetchMore();
             for (var i = 0; i < results.length; i++) {
-                results[i]['created'] = nl.fmt.fmtDateDelta(results[i].created, null, 'date')
+                results[i]['updated'] = nl.fmt.fmtDateDelta(results[i].updated, null, 'date')
                 _data.items.push(results[i]);
             }
             if (resolve) resolve(true);
@@ -286,7 +313,7 @@ function(nl, nlDlg, nlConfig, nlServerApi, nlResourceAddModifySrv, nlSettings) {
     }
 
     function _addAnnoucementItem(announcement) {
-        announcement['created'] = nl.fmt.fmtDateDelta(announcement.created, null, 'date')
+        announcement['updated'] = nl.fmt.fmtDateDelta(announcement.updated, null, 'date')
         _data.items.splice(0, 0, announcement);
     }
 
@@ -304,14 +331,12 @@ function(nl, nlDlg, nlConfig, nlServerApi, nlResourceAddModifySrv, nlSettings) {
 
     function _onClose() {
         _data.mode = 'none';
-        nlSettings.userSettings.put('userClosedPane', true)
-        nl.resizeHandler.onResize(function() {
-            return;
-        });
+        nlUserSettings.put('announcement_pane_closed', true);
+        // TODO-NOW: check if resize handler broadcast is needed here
     }
 
     function _onOpen() {
-        nlSettings.userSettings.put('userClosedPane', false);
+        nlUserSettings.put('announcement_pane_closed', false);
         if (nl.rootScope.screenSize == 'small') return _onNewTab();
         nlDlg.showLoadingScreen();
         self.onPageEnter(_userInfo, _scope, 'pane').then(function(result) {

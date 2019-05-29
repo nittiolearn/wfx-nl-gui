@@ -1,8 +1,4 @@
 <style>
-.learner-view-bg{
-    background-color: #f5f5f5;
-}
-
 .section-header{
     color: #999999;
     font-weight: bold;
@@ -12,10 +8,6 @@
     margin: auto;
     border-radius: 10px;
     box-shadow: 0px 10px 15px 0 rgba(54, 54, 54, 0.05);
-}
-
-.bg-white{
-    background-color: #ffffff;
 }
 
 .w70 {
@@ -43,7 +35,7 @@
     margin: auto;
 }
 </style>
-<div class='nl-learning-report-body padding-small nl-thin-scroll learner-view-bg' style='position:absolute; width: 100%; height: 100%'>
+<div class='padding-small nl-thin-scroll bggrey2' style='position:absolute; width: 100%; height: 100%'>
 <div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
     <div ng-show='!tabData.dataLoaded'
          class='nl-limitwidth padding'>
@@ -52,26 +44,28 @@
     <div ng-show='tabData.selectedTab.id == "assigned" && tabData.dataLoaded'
          class='nl-limitwidth padding'>
 
-        <!-- Search box -->
-        <div class='row row-center margin0 padding0'>
-            <div class='col'></div>
-            <span style='width: 100%; max-width: 250px'>
-                <input class='padding-small w100'
-                    ng-model='tabData.search'
-                    ng-attr-placeholder='{{tabData.searchPlaceholder}}'
-                    ng-keydown='tabData.onSearch($event)'
-                    style='border: none; border-radius: 5px; height: 35px'>
-            </span>
-        </div>
-            
         <!-- Active, Upcomming, Past Sections -->
         <div ng-repeat='section in tabData.assignedSections'>
-            <div class='section-header'>{{section.title}}</div>
-            <div ng-show='section.count == 0' class='padding'>
+            <div class='section-header'>
+                <div class='row row-center margin0 padding'>
+                    <div class='col padding0 fsh5'>
+                            {{section.title}}
+                    </div>
+                    <!-- Search box -->
+                    <span style='width: 100%; max-width: 250px' ng-if='section.type == "active"'>
+                        <input class='padding-small w100'
+                            ng-model='tabData.search'
+                            ng-attr-placeholder='{{tabData.searchPlaceholder}}'
+                            ng-keydown='tabData.onSearch($event)'
+                            style='border: none; border-radius: 5px; height: 35px'>
+                    </span>
+                </div>
+            </div>
+            <div ng-show='section.count == 0' class='padding-horizontal'>
                 Nothing to display.
             </div>
             <div class='anim fade' ng-repeat="record in tabData.records"
-                ng-show='record.recStateObj.type == section.type'>
+                ng-if='record.recStateObj.type == section.type'>
                 <nl-learner-section record='record' attr='section.type'></nl-learner-section>
             </div>
         </div>
@@ -113,7 +107,7 @@
                 </div>
             </div>
             <div class='padding'></div>
-            <div class='margin-auto padding0 bg-white'>
+            <div class='margin-auto padding0 bgwhite'>
                 <nl-learning-status-counts item='tabData.learningCounts' attr='"learner"'></nl-learning-status-counts>
             </div>
     </div>

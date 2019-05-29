@@ -1,5 +1,5 @@
 <div class='padding'>
-    <div class='row row-center padding0 overview-card-holder bg-white'>
+    <div class='row row-center padding0 overview-card-holder bgwhite'>
         <div class='padding0 margin0' style='width: {{$root.screenSize == "small" ? "80" : "160"}}px; text-align: center'>
             <img ng-if='record.repcontent.icon != "icon:"' class='{{$root.screenSize == "small" ? "nl-card-img-size-sm" : "nl-card-img-size-lg"}}' ng-src='{{record.repcontent.icon}}' nl-compute-img-info></img>
             <div ng-if='record.repcontent.icon == "icon:"' class=' text-center {{$root.screenSize == "small" ? "fsh6 nl-card-img-size-sm" : "fsh2 nl-card-img-size-lg"}}'><i class='ion-ios-bookmarks-outline fblue' style='font-size: 300%'></i></div>

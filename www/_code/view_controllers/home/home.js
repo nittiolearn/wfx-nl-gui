@@ -111,15 +111,6 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
         nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'pane').then(function() {
             resolve(true);
         });
-
-        nl.resizeHandler.onResize(function() {
-            if(oldScreenState != nl.rootScope.screenSize && (oldScreenState = 'small' || nl.rootScope.screenSize == 'small')) {
-                nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'pane').then(function() {
-                    oldScreenState = nl.rootScope.screenSize;
-                    resolve(true);
-                });    
-            }
-        });
     }
 
     function _initBgimg(data) {

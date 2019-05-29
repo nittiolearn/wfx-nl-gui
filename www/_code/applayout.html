@@ -30,5 +30,7 @@
         <ion-nav-view name='appContent'>
         </ion-nav-view>
     </div>
-    <nl-announcement id='rightpane' ng-if='announcement.mode == "pane"' ng-class='{fullpage:!topbar.isShown}'></nl-announcement>
+    <nl-announcement id='rightpane' ng-if='announcement.mode == "pane"' 
+        style='border-left: 1px solid rgba(0, 0, 0, 0.1);'
+        ng-class='{fullpage:!topbar.isShown}'></nl-announcement>
 </div>

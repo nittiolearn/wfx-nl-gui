@@ -25,8 +25,8 @@
         <div ng-repeat='avp in record.detailsavps' class='nl-border-bottom row row-top margin0 padding0'>
             <a ng-if='avp.url' ng-href='{{avp.url}}'
                class='col col-34 padding-mid nl-link-text'>{{avp.attr}}</a>
-            <span ng-if='!avp.url'
-                  class='col col-34 padding-mid nl-font-bold'>{{avp.attr}}</span>
+            <b ng-if='!avp.url'
+                  class='col col-34 padding-mid'>{{avp.attr}}</b>
             <span ng-if='avp.type != "links"'
                   class='col padding-mid nl-dlg-val-class' ng-bind-html='avp.val'></span>
             <span ng-if='avp.type == "links"'

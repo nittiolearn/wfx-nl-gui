@@ -92,7 +92,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 	nlLearnerViewRecords, nlTopbarSrv) {
 
 	var _fetchChunk = 100;
-	var _fetchLimit = _fetchChunk;
 
 	this.show = function() {
 		nlRouter.initContoller($scope, '', _onPageEnter);
@@ -116,12 +115,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 		$scope.tabData = _initTabData();
 		nlTopbarSrv.setPageMenus($scope.tabData.tabs, $scope.tabData.selectedTab.id);
 		_initChartData();
-	}
-
-	function _initCmdLine() {
-		var params = nl.location.search();
-		// params.max is handled inside getPageFetcher
-		if (params.limit) _fetchLimit = parseInt(params.limit);
 	}
 
 	function _initChartData() {
@@ -161,7 +154,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 					myResolve(true);
 					myResolve = null;
 				}
-		}, _fetchLimit, dontHideLoading);
+		});
 	}
 
 	function _initTabData() {

@@ -33,6 +33,7 @@ $nlpad_x_small:                   10px !default;
 $nlpad_y_small:                   10px !default; 
 
 $grey: #A0A0C0 !default; // rgb(160, 160, 192)
+$grey2: #f5f5f5 !default;
 
 $orange: #F54B22 !default; // rgb(245, 75, 34)
 $orange1:  #FFA500 !default; // rgb(255, 165, 0)
@@ -1658,7 +1659,8 @@ img.nl-icon {
   top: 40px;
   left: 75%;
   right: 0;
-  height: 100%;
+  bottom: 0;
+  height: auto;
 }
 
 #nl-body.fullpage, #rightpane.fullpage {
@@ -2086,6 +2088,10 @@ img.nl-full-width {
   background-color: $grey;
 }
 
+.bggrey2 {
+  background-color: $grey2;
+}
+
 .bgwhite {
   background-color: #FFFFFF;
 }
@@ -2149,10 +2155,6 @@ img.nl-full-width {
 
 .fsmall5 {
   font-size: 50%;
-}
-
-.nl-font-bold{
-  font-weight: bold;
 }
 
 //---------------------------------------------------------------------------
