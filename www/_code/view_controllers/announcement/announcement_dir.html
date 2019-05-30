@@ -35,6 +35,12 @@
 .nl-text-desc{
     color: #838383;
 }
+
+.nl-overflow-desc-hidden {
+    height: 46px;
+    text-overflow : ellipsis;
+    overflow: hidden;
+}
 </style>
 <div class='nl-thin-scroll announcement-dir announcement-{{$root.screenSize == "small" ? "pane" : $root.announcement.mode}}'>
     
@@ -64,7 +70,7 @@
                 <!-- Title and update/delete tools -->
                 <div class='row row-top padding margin0'>
                     <div class='col padding0'>
-                        <div class='nl-blue fsh6'>{{announcement.title}}</div>
+                        <div class='nl-blue fsh6 nl-link-text' ng-click='showAnnouncementPopup(announcement)'>{{announcement.title}}</div>
                         <div class='fsmall1 nl-text-desc padding-small-v'>{{announcement.updated}}</div>
                     </div>
                     <div ng-show='canShowButtons()' class='nl-link-img padding-small' ng-click='updateAnnouncement(announcement)'>
@@ -78,16 +84,32 @@
                 </div>
         
                 <!-- Description -->
-                <div class='fsmall1 nl-text-desc padding-horizontal'>
+                <div ng-show='announcement.desc' class='fsmall1 nl-text-desc padding-horizontal {{(announcement.showMore && $root.announcement.mode == "pane") ? "" : "nl-overflow-desc-hidden"}}' style='width: {{checkOverflow($event) ? "" : ""}}'>
                     {{announcement.desc}}
+                </div>
+                <div class='row row-center margin0 padding0' ng-if='checkOverflow(announcement.desc)'>
+                    <div class='col'></div>
+                    <div class='padding-horizontal'>
+                        <span class='nl-link-text' ng-click='clickOnShowMore(announcement)' style='text-decoration: underline'>
+                            {{announcement.showMore ? "See less" : "See more"}}
+                        </span>
+                    </div>
                 </div>
         
                 <!-- Images -->
                 <div class='row row-center padding0 margin0 row-wrap'>
-                    <div class='announcement-res-holder padding' ng-repeat='res in announcement.resources'>
+                    <div class='announcement-res-holder padding' ng-repeat='res in announcement.resources'  ng-if='($root.announcement.mode == "pane" && $index == 0) || ($root.announcement.mode == "full")'>
                         <img class='announcement-res' ng-if='res.type == "img"' src='{{res.url}}'/>
                         <div ng-if='res.type == "video"' nl-compile='res.markUpurl' class='nl-content-holder'></div>
                     </div>
+                </div>
+                <div class='row row-center padding0 margin0' ng-show='($root.announcement.mode == "pane" && announcement.resources.length > 1)'> 
+                    <div class='col'></div>
+                    <span class='nl-link-text' 
+                        ng-click='showAnnouncementPopup(announcement)'
+                        style='border-radius: 25px'>
+                        <i class='icon padding'>{{announcement.resources.length-1}} more</i>
+                    </span>
                 </div>
             </div>
     

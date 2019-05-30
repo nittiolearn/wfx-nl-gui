@@ -45,6 +45,19 @@ function(nl, nlDlg, nlAnnouncementSrv) {
             $scope.deleteAnnouncement = function(announcement) {
                 nlAnnouncementSrv.deleteAnnouncement(announcement);
             };
+
+            $scope.checkOverflow = function(textstr) {
+                if(!textstr || nl.rootScope.announcement.mode != "pane") return false;
+                return (textstr.length > 60)
+            }
+
+            $scope.clickOnShowMore = function(announcement) {
+                announcement.showMore = !announcement.showMore;
+            }
+
+            $scope.showAnnouncementPopup = function(announcement) {
+                nlAnnouncementSrv.showAnnouncementPopup(announcement)
+            }
         }
     }
 }];
@@ -118,6 +131,15 @@ function(nl, nlDlg, nlServerApi, nlResourceAddModifySrv, nlUserSettings, nlMarku
         _onClose();
     };
 
+    this.showAnnouncementPopup = function(announcement) {
+        var popupDlg = nlDlg.create(_scope);
+        popupDlg.setCssClass('nl-height-max nl-width-max');
+        popupDlg.scope.dlgTitle = nl.t('{}', announcement.title);
+        popupDlg.scope.announcement = announcement;
+        
+        var cancelButton = {text: nl.t('Close')};
+        popupDlg.show('view_controllers/announcement/show_announcement_popup.html', [], cancelButton, false);
+    }
     var _oldScreenState = null;
     function _resizeHandler() {
         if (!_data.pageAllowsPaneMode || !_data.featureEnabled) return;
