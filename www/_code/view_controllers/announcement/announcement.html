@@ -1,1 +1,4 @@
-<nl-announcement></nl-announcement>
+<nl-announcement ng-show='$root.announcement.mode != "none"'></nl-announcement>
+<h2 class='padding' ng-show='$root.announcement.mode == "none"'>
+        You do not have permission to view this page.
+</h2>

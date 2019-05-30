@@ -134,11 +134,12 @@ function(nl, nlDlg, nlServerApi, nlResourceAddModifySrv, nlUserSettings, nlMarku
     function _setFeatureEnabled(forceDisable) {
         if(!forceDisable && _userInfo.groupinfo && ('features' in _userInfo.groupinfo) &&
             _userInfo.groupinfo.features['announcement']) {
-            _data.featureEnabled = true;
+            _data.featureEnabled = _userInfo.groupinfo.features['announcement'] == "admin_only" 
+                ? _data.isAdmin : true;
         } else {
-            _data.mode = 'none';
             _data.featureEnabled = false;
         }
+        if(!_data.featureEnabled) _data.mode = 'none';
     }
 
     function _initAnnouncements(userInfo, scope, mode) {
