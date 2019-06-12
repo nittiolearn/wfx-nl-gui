@@ -319,9 +319,10 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 		_updateOverviewTimeChart();
 	}
 
-	var defaultItemDict = {assigned: 0, completed: 0, certified: 0, pending: 0, failed: 0, active: 0, scorePerc: 0, 
-		timeSpent: 0, certifiedInFirstAttempt: 0, certifiedInSecondAttempt: 0,
-		certifiedInMoreAttempt: 0};
+	var defaultItemDict = {cntTotal: 0, cntActive: 0, completed: 0, certified: 0, pending: 0, failed: 0, scorePerc: 0, 
+		percCompleted: 0, percCerfied: 0, percFailed: 0, percPending: 0, avgScore: 0, 
+		timeSpent: 0, certInFirstAttempt: 0, certInSecondAttempt: 0, certInMoreAttempt: 0,
+		percCertInFirstAttempt: 0, percCertInSecondAttempt: 0, percCertInMoreAttempt: 0};
 
 	function _updateOverviewTimeChart() {
 		var c = $scope.charts[1];
@@ -362,8 +363,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 
 	function _updateCoursesDetailsDict(record, detailsTabDict) {
 		var status = record.stats.status;
-		detailsTabDict.assigned += 1;
-		detailsTabDict.active += 1;
+		detailsTabDict.cntTotal += 1;
+		detailsTabDict.cntActive += 1;
 		if(status.id == nlLearverViewHelper.STATUS_DONE || status.id == nlLearverViewHelper.STATUS_PASSED || 
 			status.id == nlLearverViewHelper.STATUS_CERTIFIED) {
 			_updateCompletedUserDate(detailsTabDict, record);
@@ -381,11 +382,11 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 		tableItem.certified += 1;
 
 		if(record.stats.avgAttempts == 1) {
-			tableItem['certifiedInFirstAttempt'] += 1;
+			tableItem['certInFirstAttempt'] += 1;
 		} else if(record.stats.avgAttempts > 1 && record.stats.avgAttempts <= 2) {
-			tableItem['certifiedInSecondAttempt'] += 1;
+			tableItem['certInSecondAttempt'] += 1;
 		} else {
-			tableItem['certifiedInMoreAttempt'] += 1;
+			tableItem['certInMoreAttempt'] += 1;
 		}	
 	}
 
@@ -393,9 +394,14 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 		tableItem.scorePerc += record.stats.percScore;
 		tableItem.timeSpent += record.stats.timeSpentSeconds;
 
-		tableItem['certifiedPerc'] = Math.round(tableItem.certified*100/tableItem.active);
-		tableItem['failedPerc'] = Math.round(tableItem.failed*100/tableItem.active);
-		tableItem['pendingPerc'] = Math.round(tableItem.pending*100/tableItem.active);
+		tableItem['percCompleted'] = Math.round(tableItem.completed*100/tableItem.cntActive);
+		tableItem['percCertified'] = Math.round(tableItem.certified*100/tableItem.cntActive);
+		tableItem['percFailed'] = Math.round(tableItem.failed*100/tableItem.cntActive);
+		tableItem['percPending'] = Math.round(tableItem.pending*100/tableItem.cntActive);
+		tableItem['avgScore'] = Math.round(tableItem.scorePerc/tableItem.completed);
+		tableItem['percCertInFirstAttempt'] = Math.round(tableItem.certInFirstAttempt/tableItem.cntActive);
+		tableItem['percCertInSecondAttempt'] = Math.round(tableItem.certInSecondAttempt/tableItem.cntActive);
+		tableItem['percCertInMoreAttempt'] = Math.round(tableItem.certInMoreAttempt/tableItem.cntActive);
 	}
 
 	function _isTsInRange(ts, range) {

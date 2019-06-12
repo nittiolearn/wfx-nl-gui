@@ -20,8 +20,6 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
     };
     
     var _groupInfos = {};
-    var _suborgTree = {};
-    var _isSuborgEnabled = false;
     this.init = function(reload, grpid, clean, max) {
 	    var urlParams = nl.location.search();
     	return nlGroupCache.get(reload, grpid, max).then(function(result) {
@@ -130,59 +128,15 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
         return ret;
     };
 
+    this.getOrgToSubOrgDict = function(grpid) {
+        var orgToSubOrgMapping = _getOrgToSubOrgMapping(grpid);
+        return orgToSubOrgMapping;
+    };
 
-    this.getSuborgStructure = function() {
-        if(Object.keys(_suborgTree).length > 0) return _suborgTree;        
-        _suborgTree = {'Others': {}};
-        _isSuborgEnabled = false;
-        var groupinfo = _groupInfos['']; 
-        for(var i=0; i<groupinfo.outree.length; i++) {
-            var ou = groupinfo.outree[i];
-            if(!(('suborg' in ou) || ('children' in ou))) {
-                _suborgTree.Others[ou.id] = true;
-                continue;
-            } else if ('suborg' in ou) {
-                _isSuborgEnabled = true;
-                if(ou['suborg'] == 1) {
-                    _suborgTree[ou.id]  = true;
-                } else if(ou['suborg'] == 2) {
-                    _addSuborgUnderParent(ou);
-                }
-            } else if ('children' in ou) {
-                _findSuborgInChildren(ou);
-            }
-        }
-        return _suborgTree;
-    }
-
-    function _findSuborgInChildren(child) {
-        for(var i=0; i<child.children.length; i++) {
-            var ou = child.children[i];
-            if(!(('suborg' in ou) || ('children' in ou))) {
-                _suborgTree.Others[ou.id] = true;
-                continue;
-            } else if('suborg' in ou) {
-                _isSuborgEnabled = true;
-                if(ou['suborg'] == 1) {
-                    _suborgTree[ou.id]  = true;
-                } else if(ou['suborg'] == 2) {
-                    _addSuborgUnderParent(ou);
-                }
-            } else if ('children' in ou) {
-                _findSuborgInChildren(ou);
-            }
-        }
-    }
-
-    function _addSuborgUnderParent(child) {
-        for(var i=0; i<child.children.length; i++) {
-            var ou = child.children[i]
-            _suborgTree[ou.id] = true;
-        }
-    }
-    
-    this.isSuborgEnabled = function() {
-        return _isSuborgEnabled;
+    this.isSubOrgEnabled = function(grpid) {
+        if(!grpid) grpid = '';
+        var groupinfo = _groupInfos[grpid]; 
+        return groupinfo.isSubOrgEnabled || false;
     }
 
     this.getUtStrToInt = function(utStr, grpid) {
@@ -434,6 +388,51 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
             ouDict[item.id] = item;
             if (!item.children || item.children.length == 0) continue;
             _getOusAsDict(item.children, ouDict);
+        }
+    }
+
+    //##################################################################################################
+    // org to suborg mapping
+    //##################################################################################################
+
+    function _getOrgToSubOrgMapping(grpid) {
+        if (!grpid) grpid = '';
+        var groupinfo = _groupInfos[grpid]; 
+        if (groupinfo.orgToSubOrgMapping) return groupinfo.orgToSubOrgMapping;
+        var orgToSubOrgMapping = {};
+        groupinfo.orgToSubOrgMapping = orgToSubOrgMapping;
+        for(var i=0; i<groupinfo.outree.length; i++) {
+            var ou = groupinfo.outree[i];
+            _addSubOrgTree(ou, orgToSubOrgMapping, groupinfo);
+        }
+        return groupinfo.orgToSubOrgMapping;
+    }
+
+    function _addSubOrgTree(ou, orgToSubOrgMapping, groupinfo) {
+        var suborg = ou.suborg || 0;
+        if (suborg == 1) {
+            groupinfo.isSubOrgEnabled = true;
+            _addSubTreeToSubOrg(ou, orgToSubOrgMapping);
+        } else if (suborg == 2 && ou.children) {
+            orgToSubOrgMapping[ou.id] = ou.id;
+            groupinfo.isSubOrgEnabled = true;
+            for(var i=0; i<ou.children.length; i++)
+                _addSubTreeToSubOrg(ou.children[i], orgToSubOrgMapping);
+        } else if(ou.children) {
+            for(var i=0; i<ou.children.length; i++)
+                _addSubOrgTree(ou.children[i], orgToSubOrgMapping, groupinfo);
+        } else {
+            orgToSubOrgMapping[ou.id] = 'Others';
+        }
+    }
+
+    function _addSubTreeToSubOrg(ou, orgToSubOrgMapping) {
+        var suborgId = ou.id;
+        orgToSubOrgMapping[ou.id] = suborgId;
+        for(var i=0; i<ou.children.length; i++) {
+            var child = ou.children[i]
+            orgToSubOrgMapping[child.id] = suborgId;
+            if(child.children) _addSubTreeToSubOrg(ou.children[i], orgToSubOrgMapping);
         }
     }
 }];
