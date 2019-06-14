@@ -171,6 +171,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _userRowClickHandler(rec, action) {
 		if (action == 'delete') {
 			return _deleteReport(rec);
+		} else if(action == 'view_report') {
+			if(rec._raw.raw_record.canReview) {
+				nl.window.open(rec._raw.raw_record.url,'_blank')
+			} else {
+				nlDlg.popupAlert({title: 'Unable to view', template: 'Currently course is unpublished. You can view only after the course is published'})
+			}
 		}
 	}
 	
@@ -815,14 +821,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	};
 
 
-	function _addSuborgOrOusToArray(subOrgDict, sortkey, isSingleReport, firstTimeGenerated) {
+	function _addSuborgOrOusToArray(subOrgDict, sortkey) {
 		for(var key in subOrgDict) {
 			var org = subOrgDict[key]
 				org.cnt['sortkey'] = sortkey+org.cnt.name;
 			$scope.drillDownArray.push(org.cnt);
-			if(firstTimeGenerated && isSingleReport) org.cnt.isOpen = true;
 			if(org.cnt.isOpen && org.children) {
-				_addSuborgOrOusToArray(org.children, org.cnt.sortkey, isSingleReport, firstTimeGenerated)
+				_addSuborgOrOusToArray(org.children, org.cnt.sortkey)
 			}
 		}
 	}
