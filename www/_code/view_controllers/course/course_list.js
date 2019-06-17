@@ -85,6 +85,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
 	var my = false;
 	var assignId = 0;
 	var _userInfo = null;
+	var _maxDelete = 50;
     var _metadataEnabled = false;
     var _searchMetadata = null;
     var _canManage = false;
@@ -152,7 +153,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
         my = ('my' in params) ? parseInt(params.my) == 1: false;
         assignId = ('assignid' in params) ? parseInt(params.assignid) : 0;
         _metadataEnabled = (type == 'course') && !my;
-        _searchMetadata = nlMetaDlg.getMetadataFromUrl();
+		_searchMetadata = nlMetaDlg.getMetadataFromUrl();
+		_maxDelete = params.max_delete || 50;
 	}
 
 	function _getPageTitle() {
@@ -479,13 +481,10 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
 				   okText: nl.t('Delete')};
 		nlDlg.popupConfirm(msg).then(function(result) {
 			if (!result) return;
+			nlDlg.popupStatus('Deletion in progress ...', false);
 			nlDlg.showLoadingScreen();
-			nlServerApi.courseAssignmentDelete(assignId).then(function(status) {
+			_deleteAssignmentInLoop(assignId, 0, function() {
 				nlDlg.hideLoadingScreen();
-				if (!status) {
-				    nlDlg.popupAlert({title: 'Partially done', template: 'Not all reports could be deleted due to timeout. Please try again.'});
-				    return;
-				}
 				for (var i in $scope.cards.cardlist) {
 					var card = $scope.cards.cardlist[i];
 					if (card.reportId !== assignId) continue;
@@ -493,6 +492,22 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
 				}
                 nlCardsSrv.updateCards($scope.cards);
 			});	
+		});
+	}
+
+	function _deleteAssignmentInLoop(assignId, deletedCount, callBack) {
+		nlServerApi.courseAssignmentDelete(assignId, _maxDelete).then(function(status) {
+			deletedCount += status.deleted_count;
+			var msg = nl.fmt2('Deleted {} reports.', deletedCount);
+			if (status.more) msg += ' Deletion in progress ...';
+			nlDlg.popupStatus(msg, status.more ? false : 2000);
+			if (status.more) {
+				_deleteAssignmentInLoop(assignId, deletedCount, callBack);
+			} else {
+				callBack();
+			}
+		}, function() {
+			nlDlg.popdownStatus();
 		});
 	}
 
