@@ -171,6 +171,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _userRowClickHandler(rec, action) {
 		if (action == 'delete') {
 			return _deleteReport(rec);
+		} else if(action == 'view_report') {
+			if(rec._raw.raw_record.canReview) {
+				nl.window.open(rec._raw.raw_record.url,'_blank')
+			} else {
+				nlDlg.popupAlert({title: 'Unable to view', template: 'Currently course is unpublished. You can view only after the course is published'})
+			}
 		}
 	}
 	
@@ -311,7 +317,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	$scope.generateDrillDownArray = function(item) {
 		if(!item.isFolder) return;
 		item.isOpen = !item.isOpen;
-		_generateDrillDownArray();
+		_generateDrillDownArray(false);
 	};
 
 	function _isReminderNotificationEnabled() {
@@ -785,23 +791,26 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			nlLrDrilldown.addCount(records[i])
 		}
 		_statsCountDict = nlLrDrilldown.getStatsCountDict();
-		_generateDrillDownArray();
+		_generateDrillDownArray(true);
 	}
 
-	function _generateDrillDownArray() {
+	function _generateDrillDownArray(firstTimeGenerated) {
 		$scope.drillDownArray = [];
+		var isSingleReport = Object.keys(_statsCountDict).length <= 2 ? true : false;
 		for(var key in _statsCountDict) {
 			var root = _statsCountDict[key];
 			if(key == 0) {
 				root.cnt.style = 'nl-bg-dark-blue';
 				root.cnt['sortkey'] = 0+root.cnt.name;
+				if(isSingleReport) continue
 			} else {
 				root.cnt.style = 'nl-bg-blue';
 				root.cnt['sortkey'] = 1+root.cnt.name;
 			}
 			$scope.drillDownArray.push(root.cnt);
+			if(firstTimeGenerated && isSingleReport) root.cnt.isOpen = true;
 			if(root.cnt.isOpen) {
-				_addSuborgOrOusToArray(root.children, root.cnt.sortkey);
+				_addSuborgOrOusToArray(root.children, root.cnt.sortkey, isSingleReport, firstTimeGenerated);
 			}
 		}
 		$scope.drillDownArray.sort(function(a, b) {
