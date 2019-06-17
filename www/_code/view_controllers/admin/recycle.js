@@ -25,7 +25,7 @@ function($stateProvider, $urlRouterProvider) {
 var RecycleBinCtrl = ['nl', 'nlRouter', 'nlDlg', '$scope', 'nlCardsSrv', 
 'nlServerApi', 'nlGroupInfo',
 function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
-	var _params = {mine: true, restored: false};
+	var _params = {mine: true, restored: false, max_record: 50};
     var _groupInfo = null;
     var _isAdmin = false;
 
@@ -36,7 +36,9 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
             _copyBoolIf(params, _params, 'mine');
             _copyIf(params, _params, 'entitytype');
             _copyIf(params, _params, 'actiontype');
+            _copyIntIf(params, _params, 'max_record');
             _copyBoolIf(params, _params, 'restored');
+            
             if (!_isAdmin) _params.mine = true;
 
             $scope.cards = {search: {onSearch: _onSearch}};
@@ -244,14 +246,31 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
             template: 'Are you sure you want restore this version?'})
         .then(function(confirm) {
             if (!confirm) return;
-            nlDlg.showLoadingScreen();
-            nlServerApi.recyclebinRestore(card.id).then(function(item) {
+			nlDlg.popupStatus('Restoring records progress ...', false);
+			nlDlg.showLoadingScreen();
+			_restoreRecordsInLoop(card.id, 0, function() {
                 _getDataFromServer();
                 nlDlg.hideLoadingScreen();
                 nlDlg.popupAlert({title: 'Done', template: 'Restored the version'});
             });
         });
     }
+
+	function _restoreRecordsInLoop(id, deletedCount, callBack) {
+		nlServerApi.recyclebinRestore(id, _params.max_record).then(function(status) {
+			deletedCount += status.deleted_count;
+			var msg = nl.fmt2('Restoring {} records.', !deletedCount ? 'all' : deletedCount );
+			if (status.more) msg += ' restoring in progress ...';
+			nlDlg.popupStatus(msg, status.more ? false : 2000);
+			if (status.more) {
+				_restoreRecordsInLoop(id, deletedCount, callBack);
+			} else {
+				callBack();
+			}
+		}, function() {
+			nlDlg.popdownStatus();
+		});
+	}
 
     function _copyIf(src, dest, attr) {
         if (!(attr in src)) return;

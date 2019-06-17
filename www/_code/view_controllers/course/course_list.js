@@ -498,7 +498,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
 	function _deleteAssignmentInLoop(assignId, deletedCount, callBack) {
 		nlServerApi.courseAssignmentDelete(assignId, _maxDelete).then(function(status) {
 			deletedCount += status.deleted_count;
-			var msg = nl.fmt2('Deleted {} reports.', deletedCount);
+			var msg = nl.fmt2('Deleted {} reports.', !deletedCount ? 'all' : deletedCount);
 			if (status.more) msg += ' Deletion in progress ...';
 			nlDlg.popupStatus(msg, status.more ? false : 2000);
 			if (status.more) {
