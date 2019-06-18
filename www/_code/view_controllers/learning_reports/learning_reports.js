@@ -145,6 +145,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _getUserColumns() {
 		var columns = [];
 		columns.push({id: 'user.user_id', name: 'User Id', smallScreen: true});
+		columns.push({id: 'user.name', name: 'User Name'});
 		columns.push({id: 'user.org_unit', name: 'Org'});
 		var mh = nlLrHelper.getMetaHeaders(true);
 		for(var i=0; i<mh.length; i++) {
@@ -159,8 +160,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			styleTd: 'text-right'});
 
 		// Only search and details relevant columns
-		columns.push({id: 'user.name', name: 'User Name', searchKey: 'username', 
-			smallScreen: false, mediumScreen: false, largeScreen: false});
 		columns.push({id: 'user.email', name: 'Email Id', searchKey: 'email', 
 			smallScreen: false, mediumScreen: false, largeScreen: false});
 		columns.push({id: 'user.username', name: 'Login Id', searchKey: 'login', 

@@ -258,7 +258,7 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
 
 	function _restoreRecordsInLoop(id, deletedCount, callBack) {
 		nlServerApi.recyclebinRestore(id, _params.max_record).then(function(status) {
-			deletedCount += status.deleted_count;
+			deletedCount += status.restored_count;
 			var msg = nl.fmt2('Restoring {} records.', !deletedCount ? 'all' : deletedCount );
 			if (status.more) msg += ' restoring in progress ...';
 			nlDlg.popupStatus(msg, status.more ? false : 2000);
