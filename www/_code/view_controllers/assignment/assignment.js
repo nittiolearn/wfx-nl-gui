@@ -42,12 +42,14 @@ function TypeHandler(nl, nlServerApi) {
 	this.type = TYPES.NEW;
 	this.custtype = null;
 	this.title = null;
+	this.max_delete = 50;
 
 	this.initFromUrl = function(userInfo) {
 		var params = nl.location.search();
 		this.type = _convertType(params.type, userInfo);
 		this.custtype = ('custtype' in params) ? parseInt(params.custtype) : null;
 		this.title = params.title || null;
+		this.max_delete = params.max_delete || 50;
 	};
 
     this.getListFnAndUpdateParams = function(params) {
@@ -283,8 +285,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlLrFetcher) {
 				   okText: nl.t('Delete')};
 		nlDlg.popupConfirm(msg).then(function(result) {
 			if (!result) return;
+			nlDlg.popupStatus('Deletion in progress ...', false);
 			nlDlg.showLoadingScreen();
-			nlServerApi.assignmentDelete(assignId).then(function(status) {
+			_deleteAssignmentInLoop(assignId, 0, function() {
 				nlDlg.hideLoadingScreen();
 				var cardlist = $scope.cards.cardlist;
 				for (var i in cardlist) {
@@ -294,8 +297,24 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlLrFetcher) {
 				}
                 nlCardsSrv.updateCards($scope.cards, {cardlist: cardlist});
 				nlDlg.closeAll();
-				_reloadFromServer();
-			});	
+				//_reloadFromServer(); TODO- CHECK later commented when delete assignment in batches is introduced. Uncomment if really required
+			});
+		});
+	}
+	
+	function _deleteAssignmentInLoop(assignId, deletedCount, callBack) {
+		nlServerApi.assignmentDelete(assignId, mode.max_delete).then(function(status) {
+			deletedCount += status.deleted_count;
+			var msg = nl.fmt2('Deleted {} reports.', !deletedCount ? 'all' : deletedCount );
+			if (status.more) msg += ' Deletion in progress ...';
+			nlDlg.popupStatus(msg, status.more ? false : 2000);
+			if (status.more) {
+				_deleteAssignmentInLoop(assignId, deletedCount, callBack);
+			} else {
+				callBack();
+			}
+		}, function() {
+			nlDlg.popdownStatus();
 		});
 	}
 

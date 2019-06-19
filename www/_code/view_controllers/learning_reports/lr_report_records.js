@@ -163,7 +163,7 @@
                 });
             });
         };
-    
+        
         function _getStudentFromReport(report, repcontent) {
             var user = nlGroupInfo.getUserObj(''+report.student);
             if (!user && !_pastUserData) {
@@ -182,6 +182,8 @@
             if (!user) return null;
             _nominatedUsers[user.id] = true;
             var course = nlLrCourseRecords.getRecord(report.lesson_id);
+            report.canReview = true;
+            if(!(course && course.is_published)) report.canReview = false;
             var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:'+report.assignment) || {};
             if (!courseAssignment.info) courseAssignment.info = {};
             if (!course) course = nlLrCourseRecords.getCourseInfoFromReport(report, repcontent);
@@ -367,7 +369,7 @@
             report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
             report.urlTitle = nl.t('View report');
             var moduleLen = course.content.modules.length;
-            var lastItem = course.content.modules[moduleLen - 1];
+            var lastItem = course.content.modules[moduleLen - 1] || {};
             if(lastItem.type == 'certificate' && _isConditionMet(lastItem, repcontent)) {
                 stats.status = nlLrHelper.statusInfos[nlLrHelper.STATUS_CERTIFIED];
             } else {
@@ -441,6 +443,7 @@
             report._email = user.email;
             report._stateStr = user.state ? 'active': 'inactive';
             report.org_unit = user.org_unit;
+            report.canReview = true;
             var metadata = nlGroupInfo.getUserMetadata(user);
             for(var j=0; j<metadata.length; j++)
                 report[metadata[j].id] = metadata[j].value|| '';

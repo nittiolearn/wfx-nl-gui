@@ -34,7 +34,8 @@ function module_init() {
 	angular.module('nl.learning_reports', ['nl.learning_reports.lr_helper', 'nl.learning_reports.lr_filter', 
 		'nl.learning_reports.lr_fetcher', 'nl.learning_reports.lr_exporter', 
 		'nl.learning_reports.lr_report_records', 'nl.learning_reports.lr_course_records',
-		'nl.learning_reports.lr_summary_stats', 'nl.learning_reports.lr_import', 'nl.learning_reports.lr_assignments'])
+		'nl.learning_reports.lr_summary_stats', 'nl.learning_reports.lr_import', 'nl.learning_reports.lr_assignments',
+		'nl.learning_reports.lr_drilldown'])
 	.config(configFn)
 	.controller('nl.LearningReportsCtrl', LearningReportsCtrl)
 	.service('nlLearningReports', NlLearningReports);
@@ -60,21 +61,21 @@ function($scope, nlLearningReports) {
 	
 var NlLearningReports = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlGroupInfo', 'nlTable', 'nlSendAssignmentSrv',
 'nlLrHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlLrReportRecords', 'nlLrCourseRecords', 'nlLrSummaryStats', 'nlLrAssignmentRecords', 
-'nlTreeListSrv', 'nlMarkup',
+'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 
 function(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
-	nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup) {
+	nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown) {
 	this.create = function($scope, settings) {
 		if (!settings) settings = {};
 		return new NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
-			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup);
+			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown);
 	};
 }];
 	
 //-------------------------------------------------------------------------------------------------
 function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
-			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup) {
+			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown) {
 
 	this.show = function() {
 		nlRouter.initContoller($scope, '', _onPageEnter);
@@ -99,7 +100,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	
 	function _init(userInfo) {
 		_isAdmin = nlRouter.isPermitted(userInfo, 'admin_user');
-			_customReportTemplate = nlGroupInfo.getCustomReportTemplate();
+		_customReportTemplate = nlGroupInfo.getCustomReportTemplate();
 
 		// Order is important
 		nlTreeListSrv.init(nl);
@@ -109,6 +110,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nlLrReportRecords.init(userInfo);
 		nlLrFetcher.init();
 		nlLrExporter.init(userInfo);
+		nlLrDrilldown.init(nlGroupInfo);
 		nl.pginfo.pageTitle = nlLrFilter.getTitle();
 		_initScope();
 	}
@@ -143,6 +145,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _getUserColumns() {
 		var columns = [];
 		columns.push({id: 'user.user_id', name: 'User Id', smallScreen: true});
+		columns.push({id: 'user.name', name: 'User Name'});
 		columns.push({id: 'user.org_unit', name: 'Org'});
 		var mh = nlLrHelper.getMetaHeaders(true);
 		for(var i=0; i<mh.length; i++) {
@@ -157,8 +160,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			styleTd: 'text-right'});
 
 		// Only search and details relevant columns
-		columns.push({id: 'user.name', name: 'User Name', searchKey: 'username', 
-			smallScreen: false, mediumScreen: false, largeScreen: false});
 		columns.push({id: 'user.email', name: 'Email Id', searchKey: 'email', 
 			smallScreen: false, mediumScreen: false, largeScreen: false});
 		columns.push({id: 'user.username', name: 'Login Id', searchKey: 'login', 
@@ -169,6 +170,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _userRowClickHandler(rec, action) {
 		if (action == 'delete') {
 			return _deleteReport(rec);
+		} else if(action == 'view_report') {
+			if(rec._raw.raw_record.canReview) {
+				nl.window.open(rec._raw.raw_record.url,'_blank')
+			} else {
+				nlDlg.popupAlert({title: 'Unable to view', template: 'Currently course is unpublished. You can view only after the course is published'})
+			}
 		}
 	}
 	
@@ -278,29 +285,23 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nl.window.resize();
 	}
 	
-	$scope.getAvgScore = function(item) {
-		if(!item.completed || !item.scorePerc) return 0;
-			return Math.round(item.scorePerc/item.completed);
-	};
-
-	$scope.getTimeSpentInMins = function(item) {
-		return Math.round(item.timeSpent/60);
-	};
-
 	$scope.checkOverflow = function() {
 		var document = nl.window.document;
 		var element = document.getElementsByClassName("nl-left-tabbed-content");
 		var isOverflowing = element[0].clientWidth < element[0].scrollWidth;
 		return isOverflowing;
-	}
+	};
+
 	$scope.getContTabHeight = function() {
 		var document = nl.window.document;
 		var bodyElement = document.getElementsByClassName("nl-learning-report-body")
 		var topElem = document.getElementsByClassName("nl-topsection");
 		return (bodyElement[0].clientHeight - topElem[0].clientHeight-18);
-	}
+	};
 
-	$scope.onDetailsClick = function(event, item) {		
+	$scope.onDetailsClick = function(e, item) {		
+		e.stopImmediatePropagation();
+		e.preventDefault();
 		var detailsDlg = nlDlg.create($scope);
 		detailsDlg.setCssClass('nl-heigth-max nl-width-max');
 		detailsDlg.scope.item = item;
@@ -310,8 +311,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var cancelButton = {text: nl.t('Close')};
 		detailsDlg.show('view_controllers/learning_reports/lr_courses_tab_details.html',
 			[], cancelButton);
+	};
 
-	}
+	$scope.generateDrillDownArray = function(item) {
+		if(!item.isFolder) return;
+		item.isOpen = !item.isOpen;
+		_generateDrillDownArray(false);
+	};
+
 	function _isReminderNotificationEnabled() {
 		var props = nlGroupInfo.get().props;
 		var isMailEnabled = false;
@@ -332,19 +339,19 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			updated: false,
 			tables: []
 		}, {
+			title : 'Click here to view course-wise progress',
+			name: 'Drill down',
+			icon : 'ion-ios-bookmarks',
+			id: 'drilldown',
+			updated: false,
+			tables: []
+		}, {
 			title : 'Click here to view learning records',
 			name: 'Learning records',
 			icon : 'ion-ios-compose',
 			id: 'learningrecords',
 			updated: false,
 			tables: [utable]
-		}, {
-			title : 'Click here to view organisational reports',
-			name: 'Organisations',
-			icon : 'ion-ios-people',
-			id: 'organisations',
-			updated: false,
-			tables: [otable]
 		},{
 			title : 'Click here to view time summary',
 			name: 'Time summary',
@@ -352,21 +359,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			id: 'timesummary',
 			updated: false,
 			tables: []
-		},]};
+		}]};
 		var type = nlLrFilter.getType();
-			// TODO-NOW: Remove debug flag check (also in html) once issue #964
-			// is implemented and tested 
-		if($scope.debug && (type == 'course' || type == 'course_assign')) {
-			var coursesTab = {
-				title : 'Click here to view course-wise progress',
-				name: 'Courses',
-				icon : 'ion-ios-bookmarks',
-				id: 'orglevelsummary',
-				updated: false,
-				tables: []
-			}
-				ret.tabs.splice(2, 0, coursesTab);
-		}
 		ret.search = '';
 		ret.lastSeached = '';
 		ret.searchPlaceholder = 'Type the search words and press enter';
@@ -382,8 +376,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _someTabDataChanged() {
-		$scope.orgLevelSummaryArray = [];
-		$scope.orgLevelAllCoursesDict = {};
+		$scope.drillDownArray = [];
 		var tabs = $scope.tabData.tabs;
 		for (var i=0; i<tabs.length; i++) {
 			tabs[i].updated = false;
@@ -436,8 +429,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			nlTable.updateTableObject($scope.otable, tabData.summaryStats);
 		} else if (tab.id == 'timesummary') {
 			_updateTimeSummaryTab();
-		} else if(tab.id == 'orglevelsummary') {
-			_updateCoursesSummary();
+		} else if(tab.id == 'drilldown') {
+			_updateDrillDownTab();
 		}
 	}
 
@@ -636,8 +629,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				series: ['S1'],
 				colors: ['#3366ff']
 			}],
-		$scope.orgLevelSummaryArray = [];
-			$scope.orgLevelAllCoursesDict = {};
+			$scope.drillDownArray = [];
 	}
 	
 	function _updateOverviewTab(summaryRecord) {
@@ -790,253 +782,52 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	}
 
-	var suborgDict = null;
-	var _isSuborgEnabled = false;
-	function _updateCoursesSummary() {
-		suborgDict = nlGroupInfo.getSuborgStructure();
-		_isSuborgEnabled = nlGroupInfo.isSuborgEnabled();
+	var _statsCountDict = {};
+	function _updateDrillDownTab() {
+		nlLrDrilldown.clearStatusCountTree();
 		var records = $scope.tabData.records;
-		$scope.orgLevelSummaryArray = [];
-			$scope.orgLevelAllCoursesDict = {};
 		for(var i=0; i<records.length; i++) {
-			var record = records[i];
-			var assignFound = false;
-			for(var j=0; j<$scope.orgLevelSummaryArray.length; j++) {
-				var assignRec = $scope.orgLevelSummaryArray[j];
-				if(assignRec.courseid != record.repcontent.courseid) continue;
-				assignFound = true;
-				_updateCoursesTable(assignRec, record, false);
-				break;
-			}
-			if(!assignFound) {
-				var defaultDict = angular.copy(defaultItemDict);
-				defaultDict['name'] = record.repcontent.name;
-				defaultDict['courseid'] = record.repcontent.courseid;
-				defaultDict['orgItems'] = {};
-				defaultDict['showChildren'] = true;
-				_addItemToCoursesTable(defaultDict, '', $scope.orgLevelSummaryArray, record, false);
-			}
-				if(!record.user.org_unit || record.user.org_unit == "") {
-					record.user.org_unit = 'Others';
-				}
-			if(_isSuborgEnabled) 
-				_updateSuborgRecords(record);
-			else 
-				_updateNonSuborgRecords(record);
+			nlLrDrilldown.addCount(records[i])
 		}
-			_updateAllCoursesDict();
+		_statsCountDict = nlLrDrilldown.getStatsCountDict();
+		_generateDrillDownArray(true);
 	}
 
-	function _updateAllCoursesDict() {
-		$scope.orgLevelAllCoursesDict = angular.copy(defaultItemDict);
-		$scope.orgLevelAllCoursesDict['assigned'] = 0;
-		for(var i=0; i<$scope.orgLevelSummaryArray.length; i++) {
-			var org = $scope.orgLevelSummaryArray[i];
-			$scope.orgLevelAllCoursesDict.assigned += org.assigned;
-			$scope.orgLevelAllCoursesDict.completed += org.completed;
-			$scope.orgLevelAllCoursesDict.certified += org.certified;
-			$scope.orgLevelAllCoursesDict.pending += org.pending;
-			$scope.orgLevelAllCoursesDict.inactive += org.inactive;
-			$scope.orgLevelAllCoursesDict.active += org.active;
-			$scope.orgLevelAllCoursesDict.failed += org.failed;
-			$scope.orgLevelAllCoursesDict.scorePerc += org.scorePerc;
-			$scope.orgLevelAllCoursesDict.timeSpent += org.timeSpent;
-			$scope.orgLevelAllCoursesDict.completedInactive += org.completedInactive;
-			$scope.orgLevelAllCoursesDict.pendingInactive += org.pendingInactive;
-			$scope.orgLevelAllCoursesDict.certifiedInFirstAttempt += org.certifiedInSecondAttempt;
-			$scope.orgLevelAllCoursesDict.certifiedInMoreAttempt += org.certifiedInMoreAttempt;
-			$scope.orgLevelAllCoursesDict['certifiedPerc'] = Math.round($scope.orgLevelAllCoursesDict.certified*100/$scope.orgLevelAllCoursesDict.active);
-			$scope.orgLevelAllCoursesDict['failedPerc'] = Math.round($scope.orgLevelAllCoursesDict.failed*100/$scope.orgLevelAllCoursesDict.active);
-			$scope.orgLevelAllCoursesDict['pendingPerc'] = Math.round($scope.orgLevelAllCoursesDict.pending*100/$scope.orgLevelAllCoursesDict.active);	
-		}
-	}
-
-	var defaultItemDict = {assigned: 1, completed: 0, certified: 0, pending: 0, inactive: 0, failed: 0, active: 0, scorePerc: 0, 
-							timeSpent: 0, completedInactive: 0, pendingInactive: 0, certifiedInFirstAttempt: 0, certifiedInSecondAttempt: 0,
-							certifiedInMoreAttempt: 0};
-	
-	function _updateSuborgRecords(record) {
-		for(var i=0; i<$scope.orgLevelSummaryArray.length; i++) {
-			var orgRec = $scope.orgLevelSummaryArray[i]
-			if (orgRec.courseid == record.repcontent.courseid) {
-				var orgFound = false;
-				for(var suborg in orgRec.orgItems) {
-					var suborgItem = orgRec.orgItems[suborg];
-					if(record.user.org_unit.indexOf(suborg) >= 0) {
-						orgFound = true;
-						var recOuunit = record.user.org_unit;
-						if(!suborgItem.ouItems[recOuunit]) {
-							var defaultDict = angular.copy(defaultItemDict);
-							defaultDict['name'] = record.user.org_unit;
-							defaultDict['assigned'] = 0;
-							suborgItem.ouItems[recOuunit] = defaultDict;
-						}
-						_updateCoursesTable(suborgItem, record, true);
-						break;
-					}
-				}
-				if(!orgFound) {
-					var suborgFound = false;
-					var recOuunit = record.user.org_unit;
-					for(var suborg in suborgDict) {
-						if(record.user.org_unit.indexOf(suborg) >=0) {
-							suborgFound = true;
-							var orgDict = angular.copy(defaultItemDict);
-								orgDict['name'] = suborg;
-								orgDict['ouItems'] = {};
-								var defaultDict = angular.copy(defaultItemDict);
-								defaultDict['name'] = record.user.org_unit;
-								orgDict.ouItems[recOuunit] = defaultDict;
-								_addItemToCoursesTable(orgDict, suborg, orgRec, record, true);
-							break;
-						}
-					}
-					if(!suborgFound) {
-						if(!orgRec.orgItems['Others']) {
-							var orgDict = angular.copy(defaultItemDict);
-							orgDict['name'] = 'Others';
-							orgDict['ouItems'] = {};
-							var defaultDict = angular.copy(defaultItemDict);
-							defaultDict['name'] = record.user.org_unit;
-							orgDict.ouItems[recOuunit] = defaultDict;
-							_addItemToCoursesTable(orgDict, 'Others', orgRec, record, true);
-						} else {
-							if(!orgRec.orgItems.Others.ouItems[recOuunit]) {
-								var defaultDict = angular.copy(defaultItemDict);
-								defaultDict['name'] = record.user.org_unit;
-								defaultDict['assigned'] = 0;
-								orgRec.orgItems.Others.ouItems[recOuunit] = defaultDict;
-							}
-							_updateCoursesTable(orgRec.orgItems.Others, record, true);
-						}
-					}
-				}
+	function _generateDrillDownArray(firstTimeGenerated) {
+		$scope.drillDownArray = [];
+		var isSingleReport = Object.keys(_statsCountDict).length <= 2 ? true : false;
+		for(var key in _statsCountDict) {
+			var root = _statsCountDict[key];
+			if(key == 0) {
+				root.cnt.style = 'nl-bg-dark-blue';
+				root.cnt['sortkey'] = 0+root.cnt.name;
+				if(isSingleReport) continue
+			} else {
+				root.cnt.style = 'nl-bg-blue';
+				root.cnt['sortkey'] = 1+root.cnt.name;
+			}
+			$scope.drillDownArray.push(root.cnt);
+			if(firstTimeGenerated && isSingleReport) root.cnt.isOpen = true;
+			if(root.cnt.isOpen) {
+				_addSuborgOrOusToArray(root.children, root.cnt.sortkey, isSingleReport, firstTimeGenerated);
 			}
 		}
-	}
-
-	function _updateNonSuborgRecords(record) {
-		for(var i=0; i<$scope.orgLevelSummaryArray.length; i++) {
-			var orgRec = $scope.orgLevelSummaryArray[i]
-			if (orgRec.courseid == record.repcontent.courseid) {
-				var orgFound = false;
-				for(var orgunit in orgRec.orgItems) {
-					var orgItem = orgRec.orgItems[orgunit];
-					if(orgunit == record.user.org_unit) {
-						orgFound = true;
-						_updateCoursesTable(orgItem, record, false)							
-						break;
-					}
-				}
-				if(!orgFound) {
-					var defaultDict = angular.copy(defaultItemDict);
-					defaultDict['name'] = record.user.org_unit;
-					_addItemToCoursesTable(defaultDict, record.user.org_unit, orgRec, record, false)
-				}
-			}
-		}
+		$scope.drillDownArray.sort(function(a, b) {
+			if(b.sortkey.toLowerCase() < a.sortkey.toLowerCase()) return 1;
+			if(b.sortkey.toLowerCase() > a.sortkey.toLowerCase()) return -1;
+			if(b.sortkey.toLowerCase() == a.sortkey.toLowerCase()) return 0;				
+		})
 	};
 
-	function _addItemToCoursesTable(item, suborg, orgRec, record, addOu) {
-		var ouItemDict = addOu ? item.ouItems[record.user.org_unit] : '';
-		var status = record.stats.status;
-		if(record.user.state == 0) {
-			_updateInactiveUserData(item, ouItemDict, status, addOu);
-		} else {
-			_updateActiveUserData(item, ouItemDict, record, status, addOu)				
-		}
-		if(suborg) 
-			orgRec.orgItems[suborg] = item;
-		else 
-			orgRec.push(item);
-	}
 
-	function _updateCoursesTable(suborgItem, record, addOu) {
-		var ouItemDict = addOu ? suborgItem.ouItems[record.user.org_unit] : '';
-		var status = record.stats.status;
-		suborgItem.assigned += 1;
-		if(addOu) ouItemDict.assigned += 1;
-		if(record.user.state == 0) {
-			_updateInactiveUserData(suborgItem, ouItemDict, status, addOu);
-		} else {
-			_updateActiveUserData(suborgItem, ouItemDict, record, status, addOu);
-		}
-	}
-
-	function _updateInactiveUserData(item, ouItemDict, status, addOu) {
-		item.inactive += 1;
-		if(addOu) ouItemDict.inactive += 1;
-		if(status.id == nlLrHelper.STATUS_DONE || status.id == nlLrHelper.STATUS_PASSED ||
-			status.id == nlLrHelper.STATUS_CERTIFIED || status.id == nlLrHelper.STATUS_FAILED) {
-			item['completedInactive'] += 1;
-			if(addOu) ouItemDict['completedInactive'] += 1;
-		} else {
-			item['pendingInactive'] += 1;
-			if(addOu) ouItemDict['pendingInactive'] += 1;
-		}
-	}
-
-	function _updateActiveUserData(tableRow, ouItemDict, record, status, addOu) {
-		tableRow.active += 1;
-		if(addOu) ouItemDict.active += 1;
-		if(status.id == nlLrHelper.STATUS_DONE || status.id == nlLrHelper.STATUS_PASSED || 
-			status.id == nlLrHelper.STATUS_CERTIFIED) {
-			_updateCompletedUserDate(tableRow, ouItemDict, record, addOu);
-		} else if(status.id == nlLrHelper.STATUS_FAILED) {
-			tableRow.failed += 1;
-			tableRow.completed += 1;
-			tableRow.scorePerc += record.stats.percScore;
-			if(addOu) {
-				ouItemDict.failed += 1;
-				ouItemDict.completed += 1;
-				ouItemDict['scorePerc'] += record.stats.percScore;
+	function _addSuborgOrOusToArray(subOrgDict, sortkey) {
+		for(var key in subOrgDict) {
+			var org = subOrgDict[key]
+				org.cnt['sortkey'] = sortkey+org.cnt.name;
+			$scope.drillDownArray.push(org.cnt);
+			if(org.cnt.isOpen && org.children) {
+				_addSuborgOrOusToArray(org.children, org.cnt.sortkey)
 			}
-		} else {
-			tableRow.pending += 1;
-			if(addOu) ouItemDict.pending += 1;
-		}
-		_updateOrgAndOuPercentages(tableRow, ouItemDict, record, addOu);
-	}
-
-	function _updateCompletedUserDate(tableItem, ouItemDict, record, addOu) {
-		tableItem.completed += 1;
-		tableItem.certified += 1;
-		tableItem.scorePerc += record.stats.percScore;
-
-		if(record.stats.avgAttempts == 1) {
-			tableItem['certifiedInFirstAttempt'] += 1;
-		} else if(record.stats.avgAttempts > 1 && record.stats.avgAttempts <= 2) {
-			tableItem['certifiedInSecondAttempt'] += 1;
-		} else {
-			tableItem['certifiedInMoreAttempt'] += 1;
-		}	
-
-		if(addOu) {
-			ouItemDict.completed += 1;
-			ouItemDict.certified += 1;
-				ouItemDict['scorePerc'] += record.stats.percScore;
-			if(record.stats.avgAttempts == 1) {
-				ouItemDict['certifiedInFirstAttempt'] += 1;
-			} else if(record.stats.avgAttempts > 1 && record.stats.avgAttempts <= 2) {
-				ouItemDict['certifiedInSecondAttempt'] += 1;
-			} else {
-				ouItemDict['certifiedInMoreAttempt'] += 1;
-			}
-		}
-	}
-
-	function _updateOrgAndOuPercentages(tableItem, ouItemDict, record, addOu) {
-		tableItem.timeSpent += record.stats.timeSpentSeconds;
-
-		tableItem['certifiedPerc'] = Math.round(tableItem.certified*100/tableItem.active);
-		tableItem['failedPerc'] = Math.round(tableItem.failed*100/tableItem.active);
-		tableItem['pendingPerc'] = Math.round(tableItem.pending*100/tableItem.active);
-		
-		if(addOu) {
-			ouItemDict['timeSpent'] += record.stats.timeSpentSeconds;
-			ouItemDict['certifiedPerc'] = Math.round(ouItemDict.certified*100/ouItemDict.active);
-			ouItemDict['failedPerc'] = Math.round(ouItemDict.failed*100/ouItemDict.active);
-			ouItemDict['pendingPerc'] = Math.round(ouItemDict.pending*100/ouItemDict.active);
 		}
 	}
 

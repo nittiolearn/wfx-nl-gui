@@ -50,7 +50,7 @@ function(nl, nlCourse, nlLrFilter) {
         var idToFullName = {};
         var ret = {id: course.id, name: course.name || '', created: course.created || null, 
             updated: course.updated || null, certificates: [], lessons: [], nonLessons: [],
-            content: course.content};
+            content: course.content, is_published: course.is_published || false};
         ret.contentmetadata = course.content && course.content.contentmetadata ? course.content.contentmetadata : {};
         var modules = (course.content || {}).modules || [];
         for (var i=0; i<modules.length; i++) {

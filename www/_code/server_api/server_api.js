@@ -135,9 +135,9 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/course_unpublish.json', {courseid: courseId});
     };
 
-    this.courseAssignmentDelete = function(assignId) {
+    this.courseAssignmentDelete = function(assignId, max_delete) {
         // return: true/false
-        return server.post('_serverapi/course_assignment_delete.json', {assignid: assignId});
+        return server.post('_serverapi/course_assignment_delete.json', {assignid: assignId, max_delete: max_delete});
     };
     
     this.courseGetAssignmentList = function(data) {
@@ -376,9 +376,9 @@ function(nl, nlDlg, nlConfig, Upload) {
         // return: list of assignments
         return server.post('_serverapi/assignment_get_sent_list.json', data);
 	};
-	this.assignmentDelete = function(assignId){
+	this.assignmentDelete = function(assignId, max_delete){
 		//Delete the specific assignment.
-        return server.post('_serverapi/assignment_delete.json', {assignid: assignId});		
+        return server.post('_serverapi/assignment_delete.json', {assignid: assignId, max_delete: max_delete});		
 	};
 
 	this.assignmentPublish = function(assignId){
@@ -695,8 +695,8 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/recycle_get_list.json', params);
     };
 
-    this.recyclebinRestore = function(recycleid) {
-        return server.post('_serverapi/recycle_restore.json', {recycleid: recycleid});
+    this.recyclebinRestore = function(recycleid, max_record) {
+        return server.post('_serverapi/recycle_restore.json', {recycleid: recycleid, max_record: max_record});
     };
     //---------------------------------------------------------------------------------------------
     // translate text entities
