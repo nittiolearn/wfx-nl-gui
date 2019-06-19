@@ -169,13 +169,13 @@ function(nl, nlDlg, nlServerApi, nlResourceAddModifySrv, nlUserSettings, nlMarku
         _userInfo = userInfo;
         nl.rootScope.announcement = _data;
         _data.mode = mode;  // none|pane|full
+        _data.isAdmin = userInfo.permissions && userInfo.permissions.lesson_approve;
         var userClosedPane = nlUserSettings.get('announcement_pane_closed', false);
         if(userClosedPane) _data.mode = 'none';
         _setFeatureEnabled();
         if (nl.rootScope.screenSize == 'small' && _data.mode == 'pane') _data.mode = 'none';
         _oldScreenState = nl.rootScope.screenSize;
         if (_data.mode == 'none') return;
-        _data.isAdmin = userInfo.permissions.lesson_approve;
         _initToolBar();
     }
 
