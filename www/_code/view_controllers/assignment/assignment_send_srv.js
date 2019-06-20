@@ -157,7 +157,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             remarks: _assignInfo.remarks || '',
             forum: false,
             submissionAfterEndtime: 'submissionAfterEndtime' in _assignInfo ? _assignInfo.submissionAfterEndtime : false,
-            sendEmail: false,
+            sendEmail: dlgScope.enableEmailNotifications,
             batchname: _assignInfo.batchname || '',
 			iltTrainerName: _assignInfo.iltTrainerName,
 			iltVenue: _assignInfo.iltVenue,
