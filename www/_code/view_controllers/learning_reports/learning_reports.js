@@ -787,7 +787,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nlLrDrilldown.clearStatusCountTree();
 		var records = $scope.tabData.records;
 		for(var i=0; i<records.length; i++) {
-			nlLrDrilldown.addCount(records[i])
+			nlLrDrilldown.addCount(records[i]);
 		}
 		_statsCountDict = nlLrDrilldown.getStatsCountDict();
 		_generateDrillDownArray(true);

@@ -32,8 +32,10 @@ function(nlLrHelper) {
     this.addCount = function(record) {
         var contentid = record.raw_record.lesson_id;
         var ou = record.user.org_unit;
-        if(!ou) return; 
         var subOrg = _isSubOrgEnabled ? _orgToSubOrgDict[ou] : record.user.org_unit;
+        if(!ou && _isSubOrgEnabled) {
+            subOrg = "Others";
+        }
         var statusCntObj = _getStatusCountObj(record);
         _addCount(contentid, subOrg, _isSubOrgEnabled ? ou : '', statusCntObj, record.repcontent.name);
     }
@@ -131,7 +133,7 @@ function StatsCounts(nl) {
     var statsCountItem = {cntTotal: 0, cntActive: 0, cntInactive: 0, doneInactive: 0, percActive: 0, percInactive: 0, pendingInactive: 0, 
                           completed: 0, certified: 0, pending: 0, failed: 0, percCompleted: 0, percCertified: 0, percPending: 0, percFailed: 0, 
                           certInFirstAttempt: 0, certInSecondAttempt: 0, certInMoreAttempt:0, 
-                          percCertInFirstAttempt: 0, percCertInSecondAttempt: 0, percCertInMoreAttempts: 0,
+                          percCertInFirstAttempt: 0, percCertInSecondAttempt: 0, percCertInMoreAttempt: 0,
                           percScore: 0, avgScore: 0, timeSpent: 0, isOpen: false};
     
     this.clear = function() {
@@ -200,15 +202,17 @@ function StatsCounts(nl) {
     }
 
     function _updateStatsPercs(updatedStats) {
-        updatedStats.percCompleted = Math.round(updatedStats.completed*100/updatedStats.cntActive);
-        updatedStats.percCertified = Math.round(updatedStats.certified*100/updatedStats.cntActive);
-        updatedStats.percFailed = Math.round(updatedStats.failed*100/updatedStats.cntActive);
-        updatedStats.percPending = Math.round(updatedStats.pending*100/updatedStats.cntActive);
-        updatedStats.avgScore = (updatedStats.percScore != 0 && updatedStats.completed != 0) ? Math.round(updatedStats.percScore/updatedStats.completed) : 0;
-        updatedStats.percCertInFirstAttempt = Math.round(updatedStats.certInFirstAttempt/updatedStats.cntActive);
-        updatedStats.percCertInSecondAttempt = Math.round(updatedStats.certInSecondAttempt/updatedStats.cntActive);
-        updatedStats.percCertInMoreAttempt = Math.round(updatedStats.certInMoreAttempt/updatedStats.cntActive);
-        updatedStats.timeSpentInMins = Math.round(updatedStats.timeSpent/60);
+        if(updatedStats.cntActive > 0) {
+            updatedStats.percCompleted = Math.round(updatedStats.completed*100/updatedStats.cntActive);
+            updatedStats.percCertified = Math.round(updatedStats.certified*100/updatedStats.cntActive);
+            updatedStats.percFailed = Math.round(updatedStats.failed*100/updatedStats.cntActive);
+            updatedStats.percPending = Math.round(updatedStats.pending*100/updatedStats.cntActive);
+            updatedStats.avgScore = (updatedStats.percScore != 0 && updatedStats.completed != 0) ? Math.round(updatedStats.percScore/updatedStats.completed) : 0;
+            updatedStats.percCertInFirstAttempt = Math.round(updatedStats.certInFirstAttempt/updatedStats.cntActive);
+            updatedStats.percCertInSecondAttempt = Math.round(updatedStats.certInSecondAttempt/updatedStats.cntActive);
+            updatedStats.percCertInMoreAttempt = Math.round(updatedStats.certInMoreAttempt/updatedStats.cntActive);
+            updatedStats.timeSpentInMins = Math.round(updatedStats.timeSpent/60);
+        }
     }
 }
 

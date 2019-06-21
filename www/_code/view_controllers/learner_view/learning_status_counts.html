@@ -54,7 +54,7 @@
         <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
             <div class='row row-center padding0 margin0 text-right minw-details-number'>
                 <div class='col'><b>{{item.cntActive}}</b></div>
-                <div class='col nl-perc-class text-left'>100%</div>
+                <div class='col nl-perc-class text-left'>{{item.cntActive > 0 ? "100%" : "0%"}}</div>
             </div>
         </div>
     </div>
