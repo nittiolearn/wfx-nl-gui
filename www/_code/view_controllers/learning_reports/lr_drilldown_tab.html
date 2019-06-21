@@ -2,11 +2,11 @@
     <div class='row row-center margin0 padding-small' style='background-color: #0083AC; color: #ffffff'>
         <div class='col minw-name'><b></b></div>
         <div class='minw-number text-center'><b>Active Assignments</b></div>
-        <div ng-show='$root.screenSize != "small"' class='minw-number text-center'><b>Certified</b></div>
+        <div ng-show='$root.screenSize != "small"' class='minw-number text-center'><b>Done</b></div>
         <div ng-show='$root.screenSize != "small"' class='minw-number text-center'><b>Failed</b></div>
         <div class='minw-number text-center'><b>Pending</b></div>
         <div ng-show='$root.screenSize != "small"' class='minw-number text-center'><b>Average Score</b></div>
-        <div ng-show='$root.screenSize != "small"' class='minw-number text-center'><b>Total Time Spent (mins)</b></div>
+        <!--<div ng-show='$root.screenSize != "small"' class='minw-number text-center'><b>Total Time Spent (mins)</b></div>-->
     </div>
 </div>
 <div class='margin0 padding0 anim-enter1 flyfrom-l' ng-repeat='item in drilldown' style='padding-bottom: 3px'>
@@ -45,6 +45,6 @@
             </div>
         </div>
         <div ng-show='$root.screenSize != "small"' class='minw-number text-center'>{{item.avgScore ? item.avgScore+'%' : '-'}}</div>
-        <div ng-show='$root.screenSize != "small"' class='minw-number text-center'>{{item.timeSpentInMins}}</div>
+        <!--<div ng-show='$root.screenSize != "small"' class='minw-number text-center'>{{item.timeSpentInMins}}</div>-->
     </div>
 </div>

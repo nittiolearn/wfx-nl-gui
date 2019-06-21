@@ -32,6 +32,7 @@ function(nlLrHelper) {
     this.addCount = function(record) {
         var contentid = record.raw_record.lesson_id;
         var ou = record.user.org_unit;
+        if(!ou) return; 
         var subOrg = _isSubOrgEnabled ? _orgToSubOrgDict[ou] : record.user.org_unit;
         var statusCntObj = _getStatusCountObj(record);
         _addCount(contentid, subOrg, _isSubOrgEnabled ? ou : '', statusCntObj, record.repcontent.name);
