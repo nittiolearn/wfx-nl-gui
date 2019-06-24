@@ -205,6 +205,7 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
                 onClick: function() { nlAnnouncementSrv.onOpen(); },
                 canShow: function() { return nlAnnouncementSrv.canShowOpen(); }
             });
+            /*
             topbarMenus.push({
                 id: 'hide_announcements',
                 type: 'menu',
@@ -212,6 +213,7 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
                 onClick: function() { nlAnnouncementSrv.onClose(); },
                 canShow: function() { return nlAnnouncementSrv.canShowClose(); }
             });
+            */
         }
         if (nlRouter.isPermitted(userInfo, 'change_password')) {
             topbarMenus.push({
