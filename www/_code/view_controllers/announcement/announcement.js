@@ -91,7 +91,7 @@ function(nl, nlDlg, nlServerApi, nlResourceAddModifySrv, nlUserSettings, nlMarku
         return nl.q(function(resolve, reject) {
             nlUserSettings.init(function() {
                 _initAnnouncements(userInfo, scope, mode);
-                if (_data.mode == 'none') return resolve(true);
+                if (!_data.userClosedPaneTime && _data.mode == 'none') return resolve(true);
                 if (_data.items) return resolve(true);
                 _data.items = [];
                 _getDataFromServer(resolve, false);
@@ -168,15 +168,19 @@ function(nl, nlDlg, nlServerApi, nlResourceAddModifySrv, nlUserSettings, nlMarku
         _scope = scope;
         _userInfo = userInfo;
         nl.rootScope.announcement = _data;
+        _data.userClosedPaneTime = false;
         _data.mode = mode;  // none|pane|full
         _data.isAdmin = userInfo.permissions && userInfo.permissions.lesson_approve;
-        var userClosedPane = nlUserSettings.get('announcement_pane_closed', false);
-        if(userClosedPane) _data.mode = 'none';
         _setFeatureEnabled();
         if (nl.rootScope.screenSize == 'small' && _data.mode == 'pane') _data.mode = 'none';
         _oldScreenState = nl.rootScope.screenSize;
         if (_data.mode == 'none') return;
         _initToolBar();
+        var userClosedPane = nlUserSettings.get('announcement_pane_closed', false);
+        if (!userClosedPane || _data.mode != 'pane') return;
+        _data.mode = 'none';
+        var past = new Date('2010-01-01T00:00:00');
+        _data.userClosedPaneTime = nlUserSettings.get('announcement_pane_closed_time', past);
     }
 
     function _initToolBar() {
@@ -210,6 +214,7 @@ function(nl, nlDlg, nlServerApi, nlResourceAddModifySrv, nlUserSettings, nlMarku
                     return true;
                 }
             });
+            /*
             _data.toolBar.push({
                 title : 'Close',
                 icon : 'ion-close-circled',
@@ -218,6 +223,7 @@ function(nl, nlDlg, nlServerApi, nlResourceAddModifySrv, nlUserSettings, nlMarku
                     return true;
                 }
             });
+            */
         }
     }
 
@@ -238,8 +244,17 @@ function(nl, nlDlg, nlServerApi, nlResourceAddModifySrv, nlUserSettings, nlMarku
             }
             _data.canFetchMore = _pageFetcher.canFetchMore();
             for (var i = 0; i < results.length; i++) {
-                results[i]['updated'] = nl.fmt.fmtDateDelta(results[i].updated, null, 'date')
+                results[i].updated_ts = nl.fmt.json2Date(results[i].updated);
+                results[i].updated = nl.fmt.fmtDateDelta(results[i].updated, null, 'date');
                 _data.items.push(results[i]);
+            }
+
+            if (_data.userClosedPaneTime && _data.items.length > 0) {
+                var item = _data.items[0];
+                if (item.updated_ts > _data.userClosedPaneTime) {
+                    nlUserSettings.put('announcement_pane_closed', false);
+                    _data.mode = 'pane';
+                }
             }
             if (resolve) resolve(true);
 		});
@@ -374,7 +389,7 @@ function(nl, nlDlg, nlServerApi, nlResourceAddModifySrv, nlUserSettings, nlMarku
     function _onClose() {
         _data.mode = 'none';
         nlUserSettings.put('announcement_pane_closed', true);
-        // TODO-NOW: check if resize handler broadcast is needed here
+        nlUserSettings.put('announcement_pane_closed_time', new Date());
     }
 
     function _onOpen() {
