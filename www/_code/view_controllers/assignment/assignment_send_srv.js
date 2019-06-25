@@ -175,7 +175,6 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 		    dlgScope.data.batchname = nl.t('{} - Batch', d);
         }
         dlgScope.data.isEmailNotificationEnable = function() {
-            if(!_assignInfo.isModify) return true;
             var selectedUsers = _ouUserSelector.getSelectedUsers() || {};
             if(Object.keys(selectedUsers).length != 0) return true;
             return false;

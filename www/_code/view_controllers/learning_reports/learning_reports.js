@@ -1338,6 +1338,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _getModifiedILT(modifiedILT, content) {
+		if(!modifiedILT) return {};
 		var ret = {};
 		for(var i=0; i<content.modules.length; i++) {
 			var item = content.modules[i];
