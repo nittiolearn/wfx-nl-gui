@@ -913,18 +913,24 @@ function TrainerNotesDlg(nl, nlDlg, $scope, _allModules, cm, nlLessonSelect, _us
 function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm) {
 
 	var dlg = nlDlg.create($scope);
-
+	var idsToTypeMapping = {};
 	this.show = function() {
 		dlg.setCssClass('nl-height-max nl-width-max');
 		dlg.scope.dlgTitle = nl.t('Configure dependencies');
 		dlg.scope.showMaxScore = true;
 		dlg.scope.moduleOptions = _getAvailableModules();
+		dlg.scope.iltConditionOptions = _getIltConditions();
 		if(dlg.scope.moduleOptions.length == 0) {
 			var msg = {title: nl.t('Error'), template: nl.t('It is not possible to configure start after for the first item.')};
 			nlDlg.popupAlert(msg);
 			return;
 		}
 		dlg.scope.moduleList = _getModuleListFromCm();
+
+		dlg.scope.onModuleSelect = function(item) {
+			if(item.module.type != 'iltsession') return;
+			item.iltCondition = dlg.scope.iltConditionOptions[0];
+		};
 		var okButton = {text: nl.t('Ok'), onTap: function(e) {
 			_onOk(e);
 		}};
@@ -937,7 +943,14 @@ function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm) {
 		var items = cm.start_after || [];
 		for(var i=0; i<items.length; i++) {
 			var item = items[i];
-			ret.push({module: {id: item.module}, min_score: item.min_score || '', max_score: item.max_score || '', error: ''});
+			var dict = {module: {id: item.module, type: idsToTypeMapping[item.module]}, min_score: item.min_score || '', 
+						max_score: item.max_score || '', error: ''};
+			if(item.iltCondition) {
+				dict['iltCondition'] = {id: item.iltCondition};
+			} else if(idsToTypeMapping[item.module] == 'iltsession'){
+				dict['iltCondition'] = {id: 'marked'};
+			}
+			ret.push(dict);
 		}
 		if(ret.length == 0) ret.push({});
 		return ret;
@@ -971,6 +984,7 @@ function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm) {
 				_validateFail(item, 'Maximum score cannot be smaller than minimmum score');
 				continue;
 			}
+			if(item.module.type == 'iltsession') moduleToStore['iltCondition'] = item.iltCondition.id;
 			_validateSuccess(item);
 			modulesToStore.push(moduleToStore);
 		}
@@ -996,14 +1010,22 @@ function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm) {
 	
 	function _getAvailableModules() {
 		var availableIdsArray = [];
+			idsToTypeMapping = {};
 		for(var i=0; i<_allModules.length; i++) {
 			var item = _allModules[i];
 			if(item.id == cm.id) break;
 			if(item.type == 'module') continue;
-			var dict = {id: item.id, name:item.name};
+			idsToTypeMapping[item.id] = item.type;
+			var dict = {id: item.id, name:item.name, type: item.type};
 			availableIdsArray.push(dict);
 		}
 		return availableIdsArray;
+	}
+
+	function _getIltConditions() {
+		return [{id: 'attended', name: nl.t('Learner attended the session')},
+				{id: 'not_attended', name: nl.t('Learner did not attend the session')},
+				{id: 'marked', name: nl.t('Learner attended the session or not')}]
 	}
 }
 	

@@ -206,14 +206,20 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         var prereqs = cm.start_after || [];
         var lessonReports = self.course.lessonReports || {};
         var statusinfo = self.course.statusinfo || {};
+        _setDependencyArray(cm, prereqs, nlTreeListSrv);
         for(var i=0; i<prereqs.length; i++){
             var p = prereqs[i];
             var cmid = p.module;
             var item = nlTreeListSrv.getItem(cmid);
             if (!item) continue; // ignore
             if (item.state.status == 'waiting') return false;
-            if (item.type == 'certificate' || item.type == 'iltsession' || item.type == 'milestone') {
+            if (item.type == 'certificate' || item.type == 'milestone') {
             	if (!(item.state.status == 'success' || item.state.status == 'failed')) return false;
+            	continue;
+            }
+            if(item.type == 'iltsession') {
+                if(!p.iltCondition) p['iltCondition'] = 'marked';  //iltCondition is new dependency introduced. This line to handle already present conditions
+                if(!_iltConditionSatisfied(p.iltCondition, item)) return false;
             	continue;
             }
             var prereqScore = null;
@@ -237,6 +243,46 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         return true;
     }
     
+    function _iltConditionSatisfied(condition, item) {
+        if(condition == "marked" && !(item.state.status == 'success' || item.state.status == 'failed')) return false 
+        if(condition == "attended" && item.state.status != 'success') return false 
+        if(condition == "not_attended" && item.state.status != 'failed') return false 
+        return true;
+    }
+
+    function _setDependencyArray(cm, prereqs, nlTreeListSrv) {
+        if(cm.dependencyArray) return; //Set only on course view is loaded
+
+        cm['dependencyArray'] = [];
+        for(var i=0; i<prereqs.length; i++){
+            var p = prereqs[i];
+            var cmid = p.module;
+            var item = nlTreeListSrv.getItem(cmid);
+            if(!item) continue;
+            var str = '';
+            if(item.type == "lesson") {
+                if(p.min_score && !p.max_score) 
+                    str = nl.t('Complete "{}" with a score of {}% or above.', item.name, p.min_score)
+                else if(!p.min_score && p.max_score) 
+                    str = nl.t('Complete "{}" with a score {}% or below.', item.name, p.max_score)
+                else if(p.min_score && p.max_score) 
+                    str = nl.t('Complete "{}" with a score between {}% and {}%.', item.name, p.min_score, p.max_score)
+                else 
+                    str = nl.t('Complete "{}".', item.name);
+                cm.dependencyArray.push(str);
+            } else if(item.type == 'iltsession') {
+                if(!p.iltCondition) p['iltCondition'] = 'marked';
+                if(p.iltCondition == 'marked') str = nl.t('Trainer completed the session and marked attandance for "{}".', item.name);
+                if(p.iltCondition == 'attended') str = nl.t('Trainer marked you "attended" for "{}".', item.name);
+                if(p.iltCondition == 'not_attended') str = nl.t('Trainer marked you "not attended" for "{}".', item.name);
+                cm.dependencyArray.push(str);
+            } else {
+                str = nl.t('Complete "{}" element.', item.name);
+                cm.dependencyArray.push(str);
+            }
+        }
+    }
+
     function _updateLinkStatusIfNeeded(self, cm, scope) {
         if (self.mode != MODES.DO || !cm.autocomplete) return;
         var statusinfos = self.course.statusinfo || {};
@@ -761,6 +807,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
 	$scope.getLaunchButtonState = function(cm) {
         if (!cm) return '';
         if ($scope.ext.isStaticMode()) return 'dark';
+        if (cm.state.status == 'waiting') return 'light';
         if (cm.type =='certificate') return 'dark';
         if (cm.type =='link' && cm.state.status == 'pending') return 'dark';
         if (modeHandler.mode == MODES.DO && cm.state.status == 'started') return 'dark';
@@ -773,6 +820,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         e.preventDefault();
         _checkDateTimeRange();
         $scope.ext.setCurrentItem(cm);
+        if(cm.state.status == 'waiting') {
+            var str = '<div class="padding-mid" style="font-size:120%; font-weight:bold">This element is currently locked. It will be unlocked after following condition(s) are met</div>';
+                str += '<div class="padding-mid"><ul>';
+            for(var i=0; i<cm.dependencyArray.length; i++) str += nl.t('<li style="line-height:24px">{}</li>', cm.dependencyArray[i]);
+            str += '</ul></div>'
+            return nlDlg.popupAlert({title: cm.name, template: str});
+        }
         var dontUpdate = true;
         _confirmIframeClose(cm, function() {
             if(nl.rootScope.screenSize == 'small') _popout(true);
@@ -1201,7 +1255,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
     this.canLaunch = function() {
         if (!this.item || (this.item.type != 'lesson' && this.item.type != 'link' && this.item.type != 'certificate')) return false;
         if (this.isStaticMode()) return true;        
-        if (modeHandler.mode == MODES.DO) return (this.item.state.status != 'waiting');
+        if (modeHandler.mode == MODES.DO) return true; //return (this.item.state.status != 'waiting');
         return (this.item.state.status == 'success' || this.item.state.status == 'failed');
     };
 
@@ -1217,6 +1271,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
 	        if (!this.item) return '';
 	        return 'Open';
         }
+        if (cm.state.status == 'waiting') return 'Show more'
         if (this.isStaticMode() || cm.type =='link' || cm.type =='certificate') return 'View';
         if (modeHandler.mode == MODES.DO && cm.state.status == 'started') return 'Continue';
         if (cm.state.status == 'success' || cm.state.status == 'failed') return 'Review';
@@ -1224,10 +1279,11 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
     };
 
 	this.canShowLaunch = function(cm) {
+        if (cm && cm.state.status == "waiting") return true;
         if (!cm || (cm.type != 'lesson' && cm.type != 'link' && cm.type != 'certificate')) return false;
         if (this.isStaticMode()) return true;
         if (this.hideReviewButton(cm)) return false;
-        if (modeHandler.mode == MODES.DO) return (cm.state.status != 'waiting');
+        if (modeHandler.mode == MODES.DO) return true;
         return (cm.state.status == 'success' || cm.state.status == 'failed');
 	};
 	

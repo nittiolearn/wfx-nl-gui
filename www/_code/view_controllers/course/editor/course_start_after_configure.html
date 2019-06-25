@@ -23,35 +23,55 @@
 	<nl-dlg-content>
 		<table class='nl-table-styled2 nl-table-padded fsh6'>
 		    <tr>
-		    	<th></th>
-		        <th style='width:70%'>Start after</th>
-		        <th>Minimum score %</th>
-				<th ng-if='showMaxScore'>Maximum score %</th>
+		    	<th style='width:5%'></th>
+		        <th>Start after</th>
 		    </tr>
 		    <tr ng-repeat-start='item in moduleList track by $index'
 		        class='{{item.error ? "nl-bg-red" : ""}}'>
 		    	<td class="nl-link-text"
 		    	    title='Remove this dependency'
-		    	    ng-click='moduleList.splice($index, 1)'>
+		    	    ng-click='moduleList.splice($index, 1)'
+					style='vertical-align: middle'>
 		    	    <i class='icon ion-ios-trash fsh4 fblue2'></i>
 		    	</td>
-				<td>
-					<div class='nl-dlg-field-value'> 
-					    <select ng-model='item.module' 
-					            ng-options='opt as opt.name for opt in moduleOptions track by opt.id'
-					            class='{{fieldcls}}'
-					            autofocus=''
-					            tabindex="{{tabindex}}">
-					    </select>
+				<td style='vertical-align: middle; padding: 4px 20px 20px 20px'>
+					<div class='row row-center row-wrap margin0 padding0 nl-dlg-field-value'> 
+						<div ng-class='respCol221' style='padding-top:30px'>
+							<select ng-model='item.module' 
+									ng-options='opt as opt.name for opt in moduleOptions track by opt.id'
+									class='{{fieldcls}}'
+									autofocus=''
+									tabindex="{{tabindex}}"
+									ng-change='onModuleSelect(item)'>
+							</select>
+						</div>
+						<div ng-class='respCol221'>
+							<div class='row row-center margin0 padding0 nl-dlg-field-value'>
+								<div class='col padding0' ng-if='item.module.type == "lesson"'>
+									<div class='row row-center margin0 padding0' style='padding: 4px 0px;font-size: 80%'>Min score(%)</div>
+									<div class='row row-center margin0 padding0'  style='padding-right: 10px'><input ng-model='item.min_score' type="number" min='0' max='100'></input></div>
+								</div>
+								<div class='col padding0' ng-if='item.module.type == "lesson" && showMaxScore'>
+									<div class='row row-center margin0 padding0' style='padding: 4px 0px;font-size: 80%'>Max score(%)</div>
+									<div class='row row-center margin0 padding0'><input ng-model='item.max_score' type="number" min='0' max='100'></input></div>
+								</div>
+								<div class='col padding0' ng-if='item.module.type == "iltsession"' style='padding-top:25px'>
+									<select ng-model='item.iltCondition' 
+											ng-options='opt as opt.name for opt in iltConditionOptions track by opt.id'
+											class='{{fieldcls}}'
+											autofocus=''
+											tabindex="{{tabindex}}">
+									</select>
+								</div>
+							</div>
+						</div>
 				    </div>
 				</td>
-				<td><input ng-model='item.min_score' type="number" min='0' max='100'></input></td>
-				<td ng-if='showMaxScore'><input ng-model='item.max_score' type="number" min='0' max='100'></input></td>
 		    </tr>
 		    <tr ng-repeat-end ng-show='item.error'>
 		    	<td style='padding: 0'>
 		    	</td>
-				<td style='padding-top: 4px' colspan='3'>
+				<td style='padding-top: 4px'>
 					<div class='forange padding-small'>{{item.error}}</div>
 				</td>
 		    </tr>
@@ -61,8 +81,7 @@
                     ng-click='moduleList.push({})'>
                     <i class='icon ion-plus-circled fsh4 fblue2'></i>
                 </td>
-		    	<td colspan="3">
-		    	</td>
+		    	<td></td>
 		    </tr>
 		</table>
 	</nl-dlg-content>
