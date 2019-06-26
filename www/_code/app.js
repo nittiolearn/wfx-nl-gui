@@ -145,9 +145,9 @@ function(nl) {
 
 //-------------------------------------------------------------------------------------------------
 var AppCtrl = ['nl', '$scope', '$anchorScroll', 'nlKeyboardHandler', 'nlAnnouncementSrv', 'nlRouter',
-'nlLogViewer', 'nlOldCodeBridge', 'nlTopbarSrv',
+'nlLogViewer', 'nlOldCodeBridge', 'nlTopbarSrv', 'nlServerSideUserSettings',
 function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRouter, nlLogViewer,
-    nlOldCodeBridge, nlTopbarSrv) {
+    nlOldCodeBridge, nlTopbarSrv, nlServerSideUserSettings) {
     nl.log.info('UserAgent: ', navigator.userAgent);
     if (NL_SERVER_INFO.oldCode) nlOldCodeBridge.expose();
 
@@ -221,6 +221,14 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
                 type: 'menu',
                 name: nl.t(' Change Password'), 
                 url: '#/pw_change'
+            });
+        }
+        if (nlServerSideUserSettings.canUpdateSettings(userInfo)) {
+            topbarMenus.push({
+                id: 'user_settings',
+                type: 'menu',
+                name: nl.t(' User Settings'),
+                onClick: function() { nlServerSideUserSettings.updateSettings($scope, userInfo); }
             });
         }
         topbarMenus.push({

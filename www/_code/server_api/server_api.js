@@ -65,6 +65,10 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/auth_logout.json', {}, true, true);
     };
 
+    this.authUpdateSettings = function(settings) {
+        return server.post('_serverapi/auth_update_settings.json', {settings: settings});
+    };
+
     this.authEulaAck = function() {
         return server.post('_serverapi/auth_eula_ack.json', {});
     };
