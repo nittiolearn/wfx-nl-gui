@@ -4,7 +4,7 @@
 // auth.js: Controllers for authentication related functions
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-    angular.module('nl.auth', [])
+    angular.module('nl.auth', ['nl.auth.serverside_user_settings'])
     .config(configFn)
     .controller('nl.auth.LoginCtrl', LoginCtrl)
     .controller('nl.auth.LogoutCtrl', LogoutCtrl)
@@ -74,31 +74,31 @@ function($stateProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var LoginCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlConfig',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig) {
+var LoginCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlServerSideUserSettings',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings) {
     nl.log.debug('LoginCtrl - enter');
-    _loginControllerImpl('login', nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig);
+    _loginControllerImpl('login', nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings);
 }];
     
-var ImpersonateCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlConfig',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig) {
+var ImpersonateCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlServerSideUserSettings',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings) {
     nl.log.debug('ImpersonateCtrl - enter');
-    _loginControllerImpl('impersonate', nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig);
+    _loginControllerImpl('impersonate', nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings);
 }];
 
-var PwChangeCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlConfig',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig) {
+var PwChangeCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlServerSideUserSettings',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings) {
     nl.log.debug('ImpersonateCtrl - enter');
-    _loginControllerImpl('pw_change', nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig);
+    _loginControllerImpl('pw_change', nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings);
 }];
 
-var PwResetCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlConfig',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig) {
+var PwResetCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlServerSideUserSettings',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings) {
     nl.log.debug('ImpersonateCtrl - enter');
-    _loginControllerImpl('pw_reset', nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig);
+    _loginControllerImpl('pw_reset', nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings);
 }];
 
-function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg, nlConfig) {
+function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings) {
     var params = nl.location.search();
     _updateMsg(ctrlType == 'login' ? params.msg || '' : ctrlType);
 
@@ -310,20 +310,22 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
     function _onLoginSuccess(data) {
         nlServerApi.getUserInfoFromCache().then(function(userInfo) {
             nlDlg.hideLoadingScreen();
-            var nextUrl = _getNextUrl(nl.location.search());
-            if (!nextUrl.samePage) {
-                nl.window.location.href = nextUrl.url;
-                return;
-            }
-            if ($scope.msgType != 'impersonate') {
-                var msg = nl.t('Welcome {}', userInfo.displayname);
-                nlDlg.popupStatus(msg);
-                nl.location.url(nextUrl.url);
-            } else {
-                var msg = nl.t('Impersonated as {}. Remember to logout as soon you are done!', userInfo.username);
-                nlDlg.popupStatus(msg);
-                nl.location.url(nextUrl.url);
-            }
+            _updateUserSettingsIfNeeded(userInfo, function() {
+                var nextUrl = _getNextUrl(nl.location.search());
+                if (!nextUrl.samePage) {
+                    nl.window.location.href = nextUrl.url;
+                    return;
+                }
+                if ($scope.msgType != 'impersonate') {
+                    var msg = nl.t('Welcome {}', userInfo.displayname);
+                    nlDlg.popupStatus(msg);
+                    nl.location.url(nextUrl.url);
+                } else {
+                    var msg = nl.t('Impersonated as {}. Remember to logout as soon you are done!', userInfo.username);
+                    nlDlg.popupStatus(msg);
+                    nl.location.url(nextUrl.url);
+                }
+            });
         });
     }
 
@@ -335,6 +337,13 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
             if (expired) _updateMsg('pw_change');
             $scope.hintmsg = changeError ? data.msg : '';
             if (isChange || expired) nlDlg.getField('new_password1').focus();
+        });
+    }
+
+    function _updateUserSettingsIfNeeded(userInfo, onDoneFn) {
+        if ($scope.msgType == 'impersonate') return onDoneFn();
+        nlServerSideUserSettings.updateSecurityQuestionsIfNeeded($scope, userInfo).then(function(result) {
+            onDoneFn();
         });
     }
 }
