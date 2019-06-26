@@ -1082,6 +1082,7 @@ nlesson = function() {
 	}
 
     var AUTOSAVE_TIMEOUT = 60; // Auto save every one minute	
+    var AUTOSAVE_TIMEOUT2 = 300; // Save if there is mouse event in last 5 minutes
     function _Lesson_setupAutoSave(lesson) {
         // Autosave only when doing assignments
         if (lesson.renderCtx.launchCtx() != 'do_assign') return;
@@ -1090,9 +1091,10 @@ nlesson = function() {
         var onCompleteFn = null;
         window.setInterval(function() {
             var idleMonitor = window.nlapp.nl.idleMonitor;
-            if (idleMonitor.getIdleSeconds() > AUTOSAVE_TIMEOUT + 5) {
-                // No activity for more that one autosave period
-                lesson.sessionStartTime = new Date(); // For timeSpentCalculations
+            var screenIdleTimeInSeconds = idleMonitor.getIdleSeconds();
+            if (screenIdleTimeInSeconds > AUTOSAVE_TIMEOUT + 5) {
+                if(screenIdleTimeInSeconds > AUTOSAVE_TIMEOUT2 + 5) 
+                    lesson.sessionStartTime = new Date(); // For timeSpentCalculations reset it only if the screen is idle for greater than five minutes
                 return;
             }
             lesson.saveAssignReport(true);

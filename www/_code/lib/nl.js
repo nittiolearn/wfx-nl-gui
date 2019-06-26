@@ -118,10 +118,8 @@ function IdleMonitor(nl) {
         if (!_interval) _init();
         return _idleTime;
     };
-    
+
     var _idleTime = 0;
-    var _kp = 0;
-    var _mm = 0;
     var _interval = null;
     
     function _init() {
@@ -131,11 +129,9 @@ function IdleMonitor(nl) {
         }, freqInSeconds*1000);
         angular.element(nl.window.document).bind('keypress', function() {
             _idleTime = -1*freqInSeconds;
-            _kp++;
         });
         angular.element(nl.window.document).bind('mousemove', function() {
             _idleTime = -1*freqInSeconds;
-            _mm++;
         });
     }
 }
