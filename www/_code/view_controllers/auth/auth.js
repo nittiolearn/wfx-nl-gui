@@ -11,7 +11,8 @@ function module_init() {
     .controller('nl.auth.ImpersonateCtrl', ImpersonateCtrl)
     .controller('nl.auth.PwChangeCtrl', PwChangeCtrl)
     .controller('nl.auth.PwResetCtrl', PwResetCtrl)
-    .controller('nl.auth.AuditCtrl', AuditCtrl);
+    .controller('nl.auth.AuditCtrl', AuditCtrl)
+    .service('nlPwLostHandler', nlPwLostHandler);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -74,31 +75,31 @@ function($stateProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var LoginCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlServerSideUserSettings',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings) {
+var LoginCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlServerSideUserSettings', 'nlPwLostHandler',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings, nlPwLostHandler) {
     nl.log.debug('LoginCtrl - enter');
-    _loginControllerImpl('login', nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings);
+    _loginControllerImpl('login', nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings, nlPwLostHandler);
 }];
     
-var ImpersonateCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlServerSideUserSettings',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings) {
+var ImpersonateCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlServerSideUserSettings', 'nlPwLostHandler',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings, nlPwLostHandler) {
     nl.log.debug('ImpersonateCtrl - enter');
-    _loginControllerImpl('impersonate', nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings);
+    _loginControllerImpl('impersonate', nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings, nlPwLostHandler);
 }];
 
-var PwChangeCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlServerSideUserSettings',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings) {
+var PwChangeCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlServerSideUserSettings', 'nlPwLostHandler',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings, nlPwLostHandler) {
     nl.log.debug('ImpersonateCtrl - enter');
-    _loginControllerImpl('pw_change', nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings);
+    _loginControllerImpl('pw_change', nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings, nlPwLostHandler);
 }];
 
-var PwResetCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlServerSideUserSettings',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings) {
+var PwResetCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlServerSideUserSettings', 'nlPwLostHandler',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings, nlPwLostHandler) {
     nl.log.debug('ImpersonateCtrl - enter');
-    _loginControllerImpl('pw_reset', nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings);
+    _loginControllerImpl('pw_reset', nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings, nlPwLostHandler);
 }];
 
-function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings) {
+function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg, nlServerSideUserSettings, nlPwLostHandler) {
     var params = nl.location.search();
     _updateMsg(ctrlType == 'login' ? params.msg || '' : ctrlType);
 
@@ -136,7 +137,7 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
 	$scope.showImgInMobile = brandingInfo.showImgInMobile === undefined ? true : brandingInfo.showImgInMobile; 
 
     $scope.lostPassword = function() {
-        nl.window.location.href = '/auth/pwlost';
+        nlPwLostHandler.pwlost($scope, $scope.data.username);
     };
 
 	$scope.onLinkClicked = function(url) {
@@ -246,7 +247,7 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
         } else if (msgType == 'login_error') {
             $scope.msg = 'Username or password is incorrect. Try again?';
         } else if (msgType == 'pw_change') {
-            $scope.msg = 'Please change your password.';
+            $scope.msg = 'Please set a new password for your account.';
             nl.pginfo.pageTitle = nl.t('Change password');
         } else if (msgType == 'pw_reset') {
             $scope.msg = 'Please reset your password.';
@@ -427,6 +428,99 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
         });
     }
     
+}];
+
+//-------------------------------------------------------------------------------------------------
+var nlPwLostHandler = ['nl', 'nlDlg', 'nlServerApi', 'nlServerSideUserSettings',
+function(nl, nlDlg, nlServerApi, nlServerSideUserSettings) {
+
+    this.pwlost = function($scope, username) {
+        _showDlg($scope, username);
+    };
+
+    function _showDlg($scope, username) {
+        var dlg = nlDlg.create($scope);
+        dlg.scope.data = {username: username || ''};
+
+        var resetButton = {text : 'Reset Password', onTap : function(e) {
+            var username = _getValidatedUserName(dlg.scope.data.username);
+            if (!username) {
+                e.preventDefault();
+                return;
+            }
+            nlDlg.showLoadingScreen();
+            nlServerApi.authPwLost(username).then(function(result) {
+                nlDlg.hideLoadingScreen();
+                nl.timeout(function() {
+                    if (result.reset_type == 'self') return _pwSelfReset($scope, result.sec_questions, username);
+                    nlDlg.popupAlert({title: 'Reset email sent', template: 'Password reset email has been sent to your registered email id. Follow the link in the email to reset your password.'});
+                });
+            });
+        }};
+
+        var cancelButton = {text : nl.t('Cancel')};
+        dlg.show('view_controllers/auth/pwlost.html', [resetButton], cancelButton);
+    }
+
+    function _getValidatedUserName(username) {
+        username = username.replace(/[^a-z0-9_-]/g, function(x) {
+            if (x == '.') return x;
+            return '';
+        });
+        var parts = username.split('.');
+        if (parts.length != 2) {
+            nlDlg.popupAlert({title: 'Error', template: 'Username needs to be of format "userid.groupid"'});
+            return null;
+        }
+        return username;
+    }
+
+    function _pwSelfReset($scope, sec_questions, username) {
+        var dlg = nlDlg.create($scope);
+        dlg.scope.data = {new_password: '',  new_password2:  '', sec_questions: []};
+        
+        for(var i=0; i<sec_questions.length; i++) {
+            var q = sec_questions[i];
+            var qName = nlServerSideUserSettings.getQuestionString(q);
+            if (!q) return _pwQuestionError();
+            dlg.scope.data.sec_questions.push({q: q, qName: qName, a: ''});
+        }
+
+        var resetButton = {text : 'Reset Password', onTap : function(e) {
+            if (!_validatePwSelfResetDlg(dlg.scope.data)) {
+                e.preventDefault();
+                return;
+            }
+            var data = {username: username, new_password: dlg.scope.data.new_password, sec_answers: {}};
+            for(var i=0; i<dlg.scope.data.sec_questions.length; i++) {
+                var item = dlg.scope.data.sec_questions[i];
+                data.sec_answers[item.q] = item.a;
+            }
+    
+            nlDlg.showLoadingScreen();
+            nlServerApi.authPwSelfReset(data).then(function(result) {
+                nlDlg.hideLoadingScreen();
+                nlDlg.popupAlert({title: 'Reset done', template: 'Password reset is done. Please login with your newly set password.'});
+            });
+        }};
+
+        var cancelButton = {text : nl.t('Cancel')};
+        dlg.show('view_controllers/auth/pw_self_reset.html', [resetButton], cancelButton);
+    }
+
+    function _validatePwSelfResetDlg(data) {
+        if (data.new_password != data.new_password2) return _vfail('New password is not matching');
+        for(var i=0; i<data.sec_questions.length; i++) {
+            var item = data.sec_questions[i];
+            if (!item.a) return _vfail('Please answer all the questions');
+        }
+        return true;
+    }
+
+    function _vfail(msg) {
+        nlDlg.popupAlert({title: 'Error', template: msg});
+        return false;
+    }
 }];
 
 //-------------------------------------------------------------------------------------------------

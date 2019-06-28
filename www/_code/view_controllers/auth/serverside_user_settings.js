@@ -19,19 +19,23 @@ var nlServerSideUserSettings = ['nl', 'nlDlg', 'nlServerApi',
 function(nl, nlDlg, nlServerApi) {
     var self = this;
 
+    this.getQuestionString = function(q) {
+        return _getSecurityQuestionString(q);
+    };
+
     this.updateSecurityQuestionsIfNeeded = function($scope, userInfo) {
         return nl.q(function(resolve, reject) {
             if (!userInfo) return resolve(false);
             var notNeeded = userInfo.settings && userInfo.settings.securityQuestions;
             notNeeded = notNeeded && _validateObjDate(userInfo.settings.securityQuestions);
             if (notNeeded) return resolve(true);
-            _updateSetings($scope, userInfo, 'sec_questions', resolve);
+            _updateSettings($scope, userInfo, 'sec_questions', resolve);
         });
     };
 
     this.updateSettings = function($scope, userInfo) {
         return nl.q(function(resolve, reject) {
-            _updateSetings($scope, userInfo, 'all', resolve);
+            _updateSettings($scope, userInfo, 'all', resolve);
         });
     };
 
@@ -39,7 +43,7 @@ function(nl, nlDlg, nlServerApi) {
         return userInfo && userInfo.groupinfo && userInfo.groupinfo.passwordSelfRecover;
     };
 
-    function _updateSetings($scope, userInfo, launchMode, resolve) {
+    function _updateSettings($scope, userInfo, launchMode, resolve) {
         if (!self.canUpdateSettings(userInfo)) return resolve(false);
         var seqQuestionsInScope = _getSecurityQuestionsFromSettings(userInfo.settings);
         var dlg = _createSetttingsDlg($scope, launchMode, seqQuestionsInScope);
@@ -184,6 +188,14 @@ function(nl, nlDlg, nlServerApi) {
         {id: 'food', name: 'What is your favorite food?'},
         {id: 'drink', name: 'What is your favorite drink?'}
     ];
+
+    function _getSecurityQuestionString(q) {
+        for (var i=0; i<_questions.length; i++) {
+            var item = _questions[i];
+            if (item.id == q) return item.name;
+        }
+        return null;
+    }
 
     function _getSecurityQuestions(notList) {
         if (!notList) notList = [];
