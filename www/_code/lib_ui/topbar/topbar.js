@@ -96,7 +96,7 @@ function(nl, nlDlg) {
         _updateTopbarUI();
     });
 
-    var MAX_TAB_ITEMS = 3;
+    var MAX_TAB_ITEMS = 4;
     function _updateTopbarUI() {
         var scopeData = {menus: [], tabs: [], isSmallScreen: nl.rootScope.screenSize == 'small',
             isShown: _isShown, showUserMenu: false};

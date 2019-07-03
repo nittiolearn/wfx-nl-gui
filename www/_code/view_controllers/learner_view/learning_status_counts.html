@@ -1,6 +1,6 @@
 <style>
 .minw-details-number{
-    width: 90px;
+    width: 105px;
 }
 </style>
 <div class='row row-center padding0 margin0'>
@@ -10,7 +10,9 @@
         <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
             <div class='row row-center padding0 margin0 text-right  minw-details-number'>
                 <div class='col'><b>{{item.cntTotal}}</b></div>
-                <div class='col nl-perc-class text-left'></div>
+                <div class='col nl-perc-class text-left'>
+                <span  ng-show='attr == "learner"'>{{item.cntTotal > 0 ? "100%" : "0%"}}</span>
+                </div>
             </div>
         </div>
     </div>

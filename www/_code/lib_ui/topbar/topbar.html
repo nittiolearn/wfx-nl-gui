@@ -20,11 +20,12 @@
         <!-- If tabs are specified in the page -->
         <div ng-repeat='tab in topbar.tabs'
              ng-show='topbar.tabs.length > 0 && canShow(tab)'
-             class='padding-small margin0 nltb-tab {{isTabSelected(tab) ? "selected" : ""}}'
-             ng-click='onTabOrMenuClick(tab)'>
-             <div class='row row-center margin0 padding0'>
+             class='margin0 nltb-tab {{isTabSelected(tab) ? "selected" : ""}}'
+             ng-click='onTabOrMenuClick(tab)'
+             style='padding: 0px 6px; height: 40px'>
+             <div class='row row-center margin0 padding0 nl-link-text' style='color: #FFFFFF' title='{{tab.text}}'>
                     <i class="padding-small icon {{tab.iconCls}}" style='font-size: 200%'>{{tab.iconContent || ""}}</i>
-                    <span class='nl-textellipsis' ng-hide='screenSize=="small"'>
+                    <span class='nl-textellipsis' ng-hide='screenSize == "small"'>
                         {{tab.name}}
                     </span>
              </div>

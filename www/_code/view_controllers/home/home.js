@@ -10,7 +10,7 @@ function module_init() {
     .controller('nl.ErrorCtrl', ErrorCtrl)
     .controller('nl.AppHomeCtrl', AppHomeCtrl)
     .controller('nl.HomeRefreshCtrl', HomeRefreshCtrl)
-    .controller('nl.DashboardViewCtrl', DashboardViewCtrl);
+    .controller('nl.DashboardViewCtrl', DashboardViewCtrl)
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ function($stateProvider) {
         url : '^/home',
         views : {
             'appContent' : {
-                templateUrl : 'lib_ui/cards/cardsview.html',
+                templateUrl : 'view_controllers/home/home.html',
                 controller : 'nl.HomeCtrl'
             }
         }
@@ -67,21 +67,21 @@ function($stateProvider) {
         }
     });
 }];
-
 //-------------------------------------------------------------------------------------------------
-var HomeCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlConfig', 'nlDlg', 'nlCardsSrv', 'nlAnnouncementSrv',
-function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv) {
-    HomeCtrlImpl(true, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv);
+var HomeCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlConfig', 'nlDlg', 'nlCardsSrv', 'nlAnnouncementSrv', 'nlLearnerView',
+function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv, nlLearnerView) {
+    HomeCtrlImpl(true, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv, nlLearnerView);
 }];
 
-var DashboardViewCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlConfig', 'nlDlg', 'nlCardsSrv', 'nlAnnouncementSrv',
-function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv) {
-    HomeCtrlImpl(false, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv);
+var DashboardViewCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlConfig', 'nlDlg', 'nlCardsSrv', 'nlAnnouncementSrv', 'nlLearnerView',
+function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv, nlLearnerView) {
+    HomeCtrlImpl(false, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv, nlLearnerView);
 }];
 
 //-------------------------------------------------------------------------------------------------
-function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv) {
+function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv, nlLearnerView) {
     var oldScreenState = angular.copy(nl.rootScope.screenSize);
+
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
             var params = nl.location.search();
@@ -90,15 +90,28 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
             var published = (params.published == true);                
             nl.rootScope.showAnnouncement = !nl.rootScope.hideAnnouncement;
             $scope.pane = true;
-            if (!isHome && dbid) {
-                nlServerApi.dashboardGetCards(dbid, published).then(function(dashboardCards) {
-                    nl.pginfo.pageTitle = nl.t('Custom Dashboard: {}', dashboardCards.description);
-                    _init(userInfo, parent, dashboardCards, resolve);
+
+            if(userInfo.dashboard_props['dashboardType'] == "learner_view" && isHome) {
+                var LearnerView = nlLearnerView.create($scope);
+                $scope.isTabs = true;
+                _initBgimg(userInfo);
+                LearnerView.afterPageEnter(userInfo, parent).then(function(result) {
+                    nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'pane').then(function() {
+                        resolve(true);
+                    });
                 });
             } else {
-                nl.pginfo.pageTitle = nl.t('Home Dashboard');
-                nl.pginfo.pageSubTitle = nl.fmt2('({})', userInfo.displayname);
-                _init(userInfo, parent, userInfo, resolve);
+                $scope.isCards = true;
+                if (!isHome && dbid) {
+                    nlServerApi.dashboardGetCards(dbid, published).then(function(dashboardCards) {
+                        nl.pginfo.pageTitle = nl.t('Custom Dashboard: {}', dashboardCards.description);
+                        _init(userInfo, parent, dashboardCards, resolve);
+                    });
+                } else {
+                    nl.pginfo.pageTitle = nl.t('Home Dashboard');
+                    nl.pginfo.pageSubTitle = nl.fmt2('({})', userInfo.displayname);
+                    _init(userInfo, parent, userInfo, resolve);
+                }
             }
         });
     }

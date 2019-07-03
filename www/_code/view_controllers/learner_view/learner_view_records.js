@@ -135,6 +135,7 @@
         
         function _processCourseReport(report) {
             var repcontent = _updateCommonParams(report, 'course');
+            if(!repcontent.content) return null;
             var user = _userInfo;
             if (!user) return null;
             var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
@@ -346,9 +347,10 @@
             var curDate = new Date();
             var not_before = repcontent.not_before ? new Date(repcontent.not_before) : null;
             var not_after = repcontent.not_after ? new Date(repcontent.not_after) : null;
+            var submissionAfterEndtime = repcontent['submissionAfterEndtime'] || false;
             if(not_before && not_before > curDate) {
                 return {type: "upcoming"};
-            } else if(not_after && not_after < curDate){
+            } else if(not_after && not_after < curDate && !submissionAfterEndtime){
                 if(type == 'module') {
                     return {type: "past", button: "REVIEW", url: nl.fmt2('/lesson/review_report_assign/{}', repcontent.id)}
                 } else {

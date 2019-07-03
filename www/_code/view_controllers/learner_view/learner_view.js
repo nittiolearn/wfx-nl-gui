@@ -8,9 +8,10 @@
 function module_init() {
 	angular.module('nl.learner_view', ['nl.learner_view_records'])
 	.config(configFn)
-	.controller('nl.LearnerViewCtrl', LearnerViewCtrl)
+	.directive('nlLearnerViewDir', nlLearnerViewDirDirective)
 	.directive('nlLearnerSection', LearnerSectionDirective)
 	.directive('nlLearningStatusCounts', LearningStatusCountsDirective)
+	.controller('nl.LearnerViewCtrl', LearnerViewCtrl)
 	.service('nlLearnerView', NlLearnerView)
 	.service('nlLearverViewHelper', NlLearnerViewHelperSrv);
 }
@@ -27,11 +28,48 @@ function($stateProvider, $urlRouterProvider) {
 		}});
 }];
 
-var LearnerViewCtrl = ['$scope', 'nlLearnerView',
-function($scope, nlLearnerView) {
-	var reportView = nlLearnerView.create($scope);
-	reportView.show();
+//-------------------------------------------------------------------------------------------------
+
+var  nlLearnerViewDirDirective = ['nl',
+function(nl) {
+    return {
+        restrict: 'E',
+        templateUrl: 'view_controllers/learner_view/learner_view_dir.html',
+        link: function($scope, iElem, iAttrs) {
+        }
+	}
 }];
+
+//-------------------------------------------------------------------------------------------------
+var LearnerSectionDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return {
+        restrict: 'E',
+        transclude: true,
+        templateUrl: 'view_controllers/learner_view/learner_section.html',
+        scope: {
+			record: '=',
+			attr: '=',
+			title: '=',
+			desc: '=',
+			icon: '=',
+			url: '=',
+			isreport: '=',
+			buttontype:'=',
+			buttontext: '='
+		},
+        link: function($scope, iElem, iAttrs) {
+			$scope.onDetailsLinkClicked = function($event, record, clickAttr) {
+                var detailsDlg = nlDlg.create($scope);
+				detailsDlg.setCssClass('');
+                detailsDlg.scope.record = record;
+                detailsDlg.show('view_controllers/learner_view/learner_view_details.html');
+			}
+		}
+	}
+}];
+
+//-------------------------------------------------------------------------------------------------
 
 var LearningStatusCountsDirective = ['nl', 
 function(nl) {
@@ -51,13 +89,21 @@ function(nl) {
 	}
 }];
 
+//-------------------------------------------------------------------------------------------------
+var LearnerViewCtrl = ['$scope', 'nlLearnerView',
+function($scope, nlLearnerView) {
+	var reportView = nlLearnerView.create($scope);
+	reportView.show();
+}];
+
+//-------------------------------------------------------------------------------------------------
 
 var NlLearnerView = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlLearverViewHelper',
-'nlLearnerViewRecords', 'nlTopbarSrv',
-function(nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper, nlLearnerViewRecords, nlTopbarSrv) {
+'nlLearnerViewRecords', 'nlTopbarSrv', 'nlCardsSrv',
+function(nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper, nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv) {
 	this.create = function($scope) {
 		return new NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper,
-			nlLearnerViewRecords, nlTopbarSrv);
+			nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv);
 	};
 }];
 
@@ -88,16 +134,32 @@ var NlLearnerViewHelperSrv = [function() {
 	};
 }];
 
-function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper,
-	nlLearnerViewRecords, nlTopbarSrv) {
-
+function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper, 
+	nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv) {
 	var _fetchChunk = 100;
-
+	var _userInfo = null;
+	var _parent = false;
+	var _isHome = false;
 	this.show = function() {
 		nlRouter.initContoller($scope, '', _onPageEnter);
 	};
 
+	this.afterPageEnter = function(userInfo, parent) {
+		_userInfo = userInfo;
+		_parent = parent;
+		_isHome = true;
+		return nl.q(function(resolve, reject) {
+			_onPageEnter(userInfo);
+			resolve(true);
+		})
+	};
+
+	this.getTabData = function() {
+		return $scope.tabData;
+	};
+
 	function _onPageEnter(userInfo) {
+		_userInfo = userInfo;
 		return nl.q(function(resolve, reject) {
 			_init(userInfo);
 			_getLearningRecordsFromServer(resolve, false);
@@ -111,7 +173,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 // Private members
 	function _init(userInfo) {
 		nlLearnerViewRecords.init(userInfo);
-		nl.pginfo.pageTitle = 'Assignment Reports';
+		nl.pginfo.pageTitle = _isHome ? 'Learner view' : 'Assignment Reports';
 		$scope.tabData = _initTabData();
 		nlTopbarSrv.setPageMenus($scope.tabData.tabs, $scope.tabData.selectedTab.id);
 		_initChartData();
@@ -162,7 +224,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 			id: 'assigned',
             type: 'tab',
 			iconCls : 'ion-compose',
-			name: 'My learning items',
+			name: 'Learn',
+			text: 'My learning items',
 
 			updated: false,
 			onClick: _onTabSelect
@@ -170,11 +233,18 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 			id: 'summary',
             type: 'tab',
 			iconCls : 'ion-connection-bars',
-			name: 'My learning summary',
+			name: 'Summary',
+			text: 'My learning summary',
 
 			updated: false,
 			onClick: _onTabSelect
 		}]};
+		if(_userInfo.dashboard_props && ('explore' in _userInfo.dashboard_props) 
+			&& _userInfo.dashboard_props.explore.length > 0)
+			ret.tabs.push({id: 'explore', type: 'tab', iconCls : 'ion-ios-navigate', name: 'Explore', text:'Click to view explore links', updated: false, onClick: _onTabSelect});
+		if(_isHome && _userInfo.dashboard && _userInfo.dashboard.length > 0)
+			ret.tabs.push({id: 'admin', type: 'tab', iconCls : 'ion-ios-gear', name: 'Admin', text:'Click here for admin view', updated: false, onClick: _onTabSelect});
+
 		ret.dataLoaded = false;
 		ret.learningCounts = {};
 		ret.search = '';
@@ -187,7 +257,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 		ret.onSearch = _onSearch;
 		ret.assignedSections = [
 			{type: 'active', title: 'ACTIVE', count: 0},
-			{type: 'upcomming', title: 'UPCOMING', count: 0},
+			{type: 'upcoming', title: 'UPCOMING', count: 0},
 			{type: 'past', title: 'PAST', count: 0}
 		];
 		return ret;
@@ -238,9 +308,78 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 			_updateAssignedTab();
 		} else if (tab.id == 'summary') {
 			_updateSummaryTab();
+		} else if (tab.id == 'explore') {
+			_updateExploreTab();
+		} else if (tab.id == 'admin') {
+			_updateAdminTab();
 		}
 	}
 
+	function _updateExploreTab() {
+        $scope.exploreCards = _userInfo.dashboard_props.explore || []
+	};
+
+	function _updateAdminTab() {
+        $scope.adminCards = {
+            staticlist: parent ? [] : _getUnauthorizedCards(_userInfo),
+            cardlist: _getAdminCards(_userInfo, _parent, _userInfo.dashboard)
+        };
+        nlCardsSrv.initCards($scope.adminCards);
+	};
+
+    function _getUnauthorizedCards(userInfo) {
+        var unauthorizedCards = [];
+        if (userInfo.termAccess == 'none') {
+            unauthorizedCards.push(
+                {title: nl.t('Access not allowed'), icon: nl.url.resUrl('dashboard/warning.png'), url: '', 
+                    help: nl.t('<p>Access is not allowed from this device or IP address.</p>'), 
+                    style: 'nl-bg-red', children: []});
+        } else if (userInfo.termAccess == 'restricted') {
+            unauthorizedCards.push(
+                {title: nl.t('Restricted access'), icon: nl.url.resUrl('dashboard/warning.png'), url: '', 
+                    help: nl.t('<p>You have only restricted access from this device or IP address.</p>'), 
+                    style: 'nl-bg-red', children: []});
+        }
+        return unauthorizedCards;
+	}
+
+    function _getAdminCards(userInfo, parent, cardListFromServer) {
+        var cards = _getChildCards(cardListFromServer, parent);
+        _updateDetails(cards);
+        return cards;
+    }
+
+    function _getChildCards(dashboard, parent) {
+        if (!parent) return dashboard;
+        for (var i=0; i < dashboard.length; i++) {
+            var card = dashboard[i];
+            if (card.linkId == parent) return card.children;
+        }
+        return [];
+    }
+
+    function _updateDetails(cards) {
+        for(var i=0; i<cards.length; i++) {
+            var card = cards[i];
+            var avps = [];
+            for (var j=0; j<card.children.length; j++) {
+            	var child = card.children[j];
+            	var avp = {attr:child.title, val:child.help, url:child.url};
+            	avps.push(avp);
+            }
+            card.details = {help: card.help, avps: avps};
+            card.links = [{id: 'details', text: nl.t('details')}];
+        }
+    }
+
+    function _eulaWarning() {
+        nlConfig.loadFromDb('EULA_INFO', function(eulaInfo) {
+            if (eulaInfo == null) {
+                userInfo = _defaultUserInfo();
+            }
+        });
+    }    
+	
 	function _getFilteredRecords() {
 		for (var type in SEC_POS)
 			$scope.tabData.assignedSections[SEC_POS[type]].count = 0;
@@ -393,15 +532,16 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 	function _updateOrgAndOuPercentages(tableItem, record) {
 		tableItem.scorePerc += record.stats.percScore;
 		tableItem.timeSpent += record.stats.timeSpentSeconds;
-
-		tableItem['percCompleted'] = Math.round(tableItem.completed*100/tableItem.cntActive);
-		tableItem['percCertified'] = Math.round(tableItem.certified*100/tableItem.cntActive);
-		tableItem['percFailed'] = Math.round(tableItem.failed*100/tableItem.cntActive);
-		tableItem['percPending'] = Math.round(tableItem.pending*100/tableItem.cntActive);
-		tableItem['avgScore'] = Math.round(tableItem.scorePerc/tableItem.completed);
-		tableItem['percCertInFirstAttempt'] = Math.round(tableItem.certInFirstAttempt/tableItem.cntActive);
-		tableItem['percCertInSecondAttempt'] = Math.round(tableItem.certInSecondAttempt/tableItem.cntActive);
-		tableItem['percCertInMoreAttempt'] = Math.round(tableItem.certInMoreAttempt/tableItem.cntActive);
+		if(tableItem.cntActive > 0) {
+			tableItem['percCompleted'] = Math.round(tableItem.completed*100/tableItem.cntActive);
+			tableItem['percCertified'] = Math.round(tableItem.certified*100/tableItem.cntActive);
+			tableItem['percFailed'] = Math.round(tableItem.failed*100/tableItem.cntActive);
+			tableItem['percPending'] = Math.round(tableItem.pending*100/tableItem.cntActive);
+			tableItem['avgScore'] = Math.round(tableItem.scorePerc/tableItem.completed);
+			tableItem['percCertInFirstAttempt'] = Math.round(tableItem.certInFirstAttempt/tableItem.cntActive);
+			tableItem['percCertInSecondAttempt'] = Math.round(tableItem.certInSecondAttempt/tableItem.cntActive);
+			tableItem['percCertInMoreAttempt'] = Math.round(tableItem.certInMoreAttempt/tableItem.cntActive);
+		}
 	}
 
 	function _isTsInRange(ts, range) {
@@ -462,27 +602,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 			{title: nl.t('OVERDUE'), desc:'', count: statusDict.overdue}];
 	}
 }
-
-var LearnerSectionDirective = ['nl', 'nlDlg',
-function(nl, nlDlg) {
-    return {
-        restrict: 'E',
-        transclude: true,
-        templateUrl: 'view_controllers/learner_view/learner_section.html',
-        scope: {
-			record: '=',
-			attr: '='
-		},
-        link: function($scope, iElem, iAttrs) {
-			$scope.onDetailsLinkClicked = function($event, record, clickAttr) {
-                var detailsDlg = nlDlg.create($scope);
-				detailsDlg.setCssClass('');
-                detailsDlg.scope.record = record;
-                detailsDlg.show('view_controllers/learner_view/learner_view_details.html');
-			}
-		}
-	}
-}];
 
 module_init();
 })();
