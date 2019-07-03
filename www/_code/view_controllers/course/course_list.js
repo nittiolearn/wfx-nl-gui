@@ -134,7 +134,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
 				nlServerApi.courseGet(card.courseId, true).then(function(course) {
 					nlDlg.hideLoadingScreen();
 					assignInfo['course'] = course;
-					nlSendAssignmentSrv.show($scope, assignInfo);					
+					nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);					
 				});
 		} else if (linkid === 'course_assign_delete'){
 			_deleteAssignment($scope, card.reportId);

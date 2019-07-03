@@ -1094,7 +1094,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         var assignInfo = {assigntype: 'course', id: c.id, icon: c.icon, 
             title: c.name, authorName: c.authorname, description: c.description, 
             showDateField: true, enableSubmissionAfterEndtime: false, blended: c.content.blended, course: c};
-        nlSendAssignmentSrv.show($scope, assignInfo);
+        nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);
     }
 }];
 

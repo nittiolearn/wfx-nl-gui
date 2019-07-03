@@ -28,8 +28,9 @@ var SendAssignmentCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlServerApi', 'n
 function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlSendAssignmentSrv) {
     var _dbid = null;
     var _type = 'lesson';
-
+    var _userInfo = null;
     function _onPageEnter(userInfo) {
+        _userInfo = userInfo;
         return nl.q(function(resolve, reject) {
             var params = nl.location.search();
             _type = (params.type == 'course') ? 'course' : 'lesson';
@@ -72,7 +73,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlSendAssignmentSrv) {
             assignInfo.authorName = result.authorname;
             assignInfo.description = result.description;
         }
-        nlSendAssignmentSrv.show($scope, assignInfo).then(function(result) {
+        nlSendAssignmentSrv.show($scope, assignInfo, _userInfo).then(function(result) {
         	if (!result) nl.location.url('/home'); 
         });
     }
@@ -85,9 +86,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
     //---------------------------------------------------------------------------------------------
     // Main Assignment Dialog
     //---------------------------------------------------------------------------------------------
-    this.show = function(parentScope, assignInfo) {
+    this.show = function(parentScope, assignInfo, userInfo) {
         _parentScope = parentScope;
         _assignInfo = assignInfo;
+        _userInfo = userInfo;
         return nl.q(function(resolve, reject) {
             _impl(resolve, reject);
         });
@@ -98,6 +100,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
     //---------------------------------------------------------------------------------------------
     var _parentScope = null;
     var _assignInfo = null;
+    var _userInfo = null;
 
     var _dlg = null;
     var _ouUserSelector = null;
@@ -117,7 +120,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         _dlg = nlDlg.create(_parentScope);
         nlDlg.showLoadingScreen();
         nlGroupInfo.init().then(function() {
-            nlGroupInfo.update();
+            nlGroupInfo.update2(_userInfo);
             var dontShowUsers = _assignInfo.dontShowUsers || {};
             if (_assignInfo.assigntype == 'training') _selectedUsers = {};
             _ouUserSelector = nlOuUserSelect.getOuUserSelector(_parentScope, 

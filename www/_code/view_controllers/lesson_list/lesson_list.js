@@ -303,7 +303,7 @@ this.show = function($scope, initialUserInfo, params) {
 				description : card.description,
 				esttime : card.esttime ? card.esttime : ''
 			};
-			nlSendAssignmentSrv.show($scope, assignInfo);
+			nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);
 		} else if (internalUrl == 'change_owner') {
 			nlChangeOwner.show($scope, lessonId, 'lesson', _userInfo);
 		};

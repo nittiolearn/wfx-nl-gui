@@ -76,16 +76,17 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmen
 function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
 			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown) {
-
+	var _userInfo = null;
 	this.show = function() {
 		nlRouter.initContoller($scope, '', _onPageEnter);
 	};
 
 	function _onPageEnter(userInfo) {
+		_userInfo = userInfo;
 		return nl.q(function(resolve, reject) {
 			nlGroupInfo.init().then(function() {
 				nlGroupInfo.update();
-				_init(userInfo);
+				_init();
 				resolve(true); // Has to be before next line for loading screen
 				_showRangeSelection();
 			}, function(err) {
@@ -98,18 +99,18 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	var _isAdmin = false;
 		var _customReportTemplate = '';
 	
-	function _init(userInfo) {
-		_isAdmin = nlRouter.isPermitted(userInfo, 'admin_user');
+	function _init() {
+		_isAdmin = nlRouter.isPermitted(_userInfo, 'admin_user');
 		_customReportTemplate = nlGroupInfo.getCustomReportTemplate();
 
 		// Order is important
 		nlTreeListSrv.init(nl);
-		nlLrFilter.init(settings, userInfo);
+		nlLrFilter.init(settings, _userInfo);
 		nlLrCourseRecords.init();
 		nlLrAssignmentRecords.init();
-		nlLrReportRecords.init(userInfo);
+		nlLrReportRecords.init(_userInfo);
 		nlLrFetcher.init();
-		nlLrExporter.init(userInfo);
+		nlLrExporter.init(_userInfo);
 		nlLrDrilldown.init(nlGroupInfo);
 		nl.pginfo.pageTitle = nlLrFilter.getTitle();
 		_initScope();
@@ -1304,7 +1305,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			assignInfo.iltCostTravelAco = assignContent.iltCostTravelAco || '';
 			assignInfo.iltCostMisc = assignContent.iltCostMisc || '';
 		}
-		nlSendAssignmentSrv.show($scope, assignInfo).then(function(result) {
+		nlSendAssignmentSrv.show($scope, assignInfo, _userInfo).then(function(result) {
 			if (!result) return;
 			
 			assignContent.batchname = result.batchname;

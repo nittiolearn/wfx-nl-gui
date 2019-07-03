@@ -33,6 +33,10 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
         _updateGroupInfo(grpid);
     };
 
+    this.update2 = function(_userInfo) {
+        _updateBasedonPermAndGroupfeature(_userInfo); //This is to update tree only for permitted users
+    };
+
     this.formatUserName = function(uInfo) {
         return uInfo[this.FIRST_NAME] + ' ' + uInfo[this.LAST_NAME];
     };
@@ -356,6 +360,36 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
         self.utIcons[self.UT_TERMADMIN] = 'dashboard/defadmin.png';
         self.utIcons[self.UT_PADMIN] = 'dashboard/defadmin.png'; 
         self.utIcons[self.UT_NITTIOADMIN] = 'dashboard/defadmin.png';
+    }
+
+    function _updateBasedonPermAndGroupfeature(_userInfo, grpid) {
+        var groupInfo = self.get(grpid);
+        groupInfo.derived = {};
+        // Update type names
+        var userObj = self.getMinimalUserObj(self.getUserObj(''+_userInfo.userid)); //get userObj odf logged in user
+        var canFilter = (_userInfo.groupinfo.features.restrict_ous && !_userInfo.permissions['assignment_manage']); //filter users in ou if restrict_ous flag is enabled in group properties and to users without assignment manage perm
+        var props = groupInfo.props || {};
+        var typenames = props.usertypenames || {};
+        groupInfo.derived.typeNameToUt = {};
+        for (var ut in typenames) {
+            groupInfo.derived.typeNameToUt[typenames[ut]] = parseInt(ut);
+        }
+        // Update login id to user dict
+        var udict = {};
+        for(var uid in groupInfo.users) {
+            var user = self.getUserObj(uid, grpid);
+            if(canFilter) {
+                if(user.org_unit.indexOf(userObj.org_unit) == 0) udict[user.username] = user;
+            } else {
+                udict[user.username] = user;
+            }
+        }
+        groupInfo.derived.keyToUsers = udict;
+        
+        // Update ou ids to ous dict
+        var ouDict = {};
+        _getOusAsDict(groupInfo.outree, ouDict);
+        groupInfo.derived.ouDict = ouDict;
     }
 
     function _updateGroupInfo(grpid) {
