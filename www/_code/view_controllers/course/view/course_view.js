@@ -156,7 +156,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
     };
 
     this.canStart = function(cm, scope, nlTreeListSrv) {
-        return _startDateOk(cm, scope) && _prereqsOk(this, cm, nlTreeListSrv);
+        return _startDateOk(cm, scope, nlTreeListSrv) && _prereqsOk(this, cm, nlTreeListSrv);
     };
 
     this.show = function(url, newTab) {
@@ -196,9 +196,12 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         if (_redirectToLessonReport(rep, newTab, cm, bUpdate, scope)) return true;
     }
 
-    function _startDateOk(cm, scope) {
+    function _startDateOk(cm, scope, nlTreeListSrv) {
         var today = new Date();
-        if (scope.planning && cm.start_date && cm.start_date > today) return false;
+        if (scope.planning && cm.start_date && cm.start_date > today) {
+            _setDependencyArray(cm, cm.start_after || [], nlTreeListSrv, cm.start_date);
+            return false;
+        }
         return true;
     }
             
@@ -206,7 +209,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         var prereqs = cm.start_after || [];
         var lessonReports = self.course.lessonReports || {};
         var statusinfo = self.course.statusinfo || {};
-        _setDependencyArray(cm, prereqs, nlTreeListSrv);
+        _setDependencyArray(cm, prereqs, nlTreeListSrv, null);
         for(var i=0; i<prereqs.length; i++){
             var p = prereqs[i];
             var cmid = p.module;
@@ -250,10 +253,12 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         return true;
     }
 
-    function _setDependencyArray(cm, prereqs, nlTreeListSrv) {
-        if(cm.dependencyArray) return; //Set only on course view is loaded
-
+    function _setDependencyArray(cm, prereqs, nlTreeListSrv, startDate) {
         cm['dependencyArray'] = [];
+        if (startDate) {
+            var str = nl.t('"{}" allowed to access only after {}', cm.name, nl.fmt.fmtDateDelta(startDate, new Date(), 'date'));
+            cm['dependencyArray'].push(str);
+        }
         for(var i=0; i<prereqs.length; i++){
             var p = prereqs[i];
             var cmid = p.module;
@@ -821,6 +826,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         _checkDateTimeRange();
         $scope.ext.setCurrentItem(cm);
         if(cm.state.status == 'waiting') {
+            var dependencyArray = cm.dependencyArray || [];
             var str = '<div class="padding-mid" style="font-size:120%; font-weight:bold">This element is currently locked. It will be unlocked after following condition(s) are met</div>';
                 str += '<div class="padding-mid"><ul>';
             for(var i=0; i<cm.dependencyArray.length; i++) str += nl.t('<li style="line-height:24px">{}</li>', cm.dependencyArray[i]);
@@ -1271,7 +1277,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
 	        if (!this.item) return '';
 	        return 'Open';
         }
-        if (cm.state.status == 'waiting') return 'Show more'
+        if (cm.state.status == 'waiting') return 'Know more';
         if (this.isStaticMode() || cm.type =='link' || cm.type =='certificate') return 'View';
         if (modeHandler.mode == MODES.DO && cm.state.status == 'started') return 'Continue';
         if (cm.state.status == 'success' || cm.state.status == 'failed') return 'Review';

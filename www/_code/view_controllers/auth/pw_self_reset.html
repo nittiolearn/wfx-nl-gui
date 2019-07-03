@@ -1,0 +1,34 @@
+<nl-dlg show-help='0' dlgtitle='Forgot password?'>
+    <nl-dlg-content>
+        <div class='padding-mid fsh6'>
+            Answer the below security questions and set your new password.
+        </div>
+
+        <div ng-repeat='seqQuestion in data.sec_questions track by $index'>
+            <div class='nl-dlg-field-name padding-mid'>
+                {{seqQuestion.qName}}
+            </div>
+            <div class='nl-dlg-field-value padding-mid'> 
+                <input type='text' ng-model='seqQuestion.a' autofocus='' tabindex='0'>
+            </div>
+        </div>
+
+        <div class='row row-wrap row-center margin0 padding0'>
+            <div class='nl-dlg-field-name padding-mid' ng-class='resp2Col33'>
+                New password
+            </div>
+            <div class='nl-dlg-field-value padding-mid' ng-class='resp2Col67'> 
+                <input type='password' ng-model='data.new_password' autofocus='' tabindex='0'>
+            </div>
+        </div>
+        <div class='row row-wrap row-center margin0 padding0'>
+            <div class='nl-dlg-field-name padding-mid' ng-class='resp2Col33'>
+                Verify new password
+            </div>
+            <div class='nl-dlg-field-value padding-mid' ng-class='resp2Col67'> 
+                <input type='password' ng-model='data.new_password2' autofocus='' tabindex='0'>
+            </div>
+        </div>
+    </nl-dlg-content>
+</nl-dlg>
+    

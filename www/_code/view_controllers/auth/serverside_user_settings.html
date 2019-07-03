@@ -1,0 +1,37 @@
+<nl-dlg show-help='0' dlgtitle='{{dlgTitle}}'>
+    <nl-dlg-content>
+        <div class='padding-mid fsh6'>
+            Choose 3 security questions and provide your answers to them. If you forget your login password,
+            you will be able to reset the password by answering the security question.
+        </div>
+        <div ng-show='launchMode == "sec_questions"' class='padding-mid fgrey'>
+            If you wish to change the security questions in the future, head to the "User Settings" menu
+            option on the top right user icon.
+        </div>
+
+        <div ng-repeat='seqQuestion in seqQuestionsInScope track by $index'>
+            <div class='padding-mid'></div>
+            <div class='row row-wrap row-center margin0 padding0'>
+                <div class='padding-mid nl-dlg-field-name' ng-class='resp2Col33'>
+                    Question {{$index+1}} of {{seqQuestionsInScope.length}}
+                </div>
+                <div class='padding-mid nl-dlg-field-value' ng-class='resp2Col67'> 
+                    <select ng-model='seqQuestion.q' autofocus='' tabindex='0'
+                            ng-change='onSecurityQuestionChange($index)'
+                            ng-options='opt.name for opt in seqQuestion.qOptions track by opt.id'>
+                        </select>
+                </div>
+            </div>
+            <div class='padding-small'></div>
+            <div class='row row-wrap row-center margin0 padding0'>
+                <div class='padding-mid nl-dlg-field-name' ng-class='resp2Col33'>
+                    Answer
+                </div>
+                <div class='padding-mid nl-dlg-field-value' ng-class='resp2Col67'> 
+                    <input type='text' ng-model='seqQuestion.a' autofocus='' tabindex='0'>
+                </div>
+            </div>
+        </div>
+    </nl-dlg-content>
+</nl-dlg>
+    

@@ -65,6 +65,18 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/auth_logout.json', {}, true, true);
     };
 
+    this.authUpdateSettings = function(settings) {
+        return server.post('_serverapi/auth_update_settings.json', {settings: settings});
+    };
+
+    this.authPwLost = function(username) {
+        return server.post('_serverapi/auth_pwlost.json', {username: username});
+    };
+
+    this.authPwSelfReset = function(data) {
+        return server.post('_serverapi/auth_pw_self_reset.json', data);
+    };
+
     this.authEulaAck = function() {
         return server.post('_serverapi/auth_eula_ack.json', {});
     };
