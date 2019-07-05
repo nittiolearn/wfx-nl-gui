@@ -451,6 +451,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 			{id: 'not_before', name: 'From', fmt: 'minute'},
 			{id: 'not_after', name: 'Till', fmt: 'minute'},
 			{id: 'status', name: 'Status'},
+            {id: 'remarks', name: 'Remarks'},
             {id: '_timeMins', name:'ILT Time Spent(minutes)'},
             {id: '_timeTotalMins', name:'ILT Total Time(minutes)'},
             {id: 'iltVenue', name: 'Venue'},
@@ -505,9 +506,10 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         	record['session'] = session.name;
         	record['_assignTypeStr'] = session.type;
         	if(rep.repcontent.statusinfo && rep.repcontent.statusinfo[session.id]) {
-	        	record['status'] = rep.repcontent.statusinfo[session.id].status == 'done' ? (rep.repcontent.statusinfo[session.id].state == 'attended' ? 'Attended' : 'Not attended') : 'pending';
-	        	record['_timeMins'] = rep.repcontent.statusinfo[session.id].state == 'attended' ? rep.repcontent.statusinfo[session.id].iltTotalTime : '';
-                record['_timeTotalMins'] = rep.repcontent.statusinfo[session.id].iltTotalTime;
+                record['status'] = rep.repcontent.statusinfo[session.id].state;
+                record['remarks'] = rep.repcontent.statusinfo[session.id].remarks || '';
+                record['_timeMins'] = rep.repcontent.statusinfo[session.id].iltTimeSpent || 0;
+               record['_timeTotalMins'] = rep.repcontent.statusinfo[session.id].iltTotalTime;
         	} else {
         		record['status'] = 'Pending';
                 record['_timeMins'] = '';

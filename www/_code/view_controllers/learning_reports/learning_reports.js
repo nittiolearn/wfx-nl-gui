@@ -1076,7 +1076,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		markAttendanceDlg.setCssClass('nl-height-max nl-width-max');
 		var content = nlLrCourseRecords.getContentOfCourseAssignment();
 		var learningRecords = nlLrReportRecords.getRecords();
-
+		markAttendanceDlg.scope.attendanceOptions = _userInfo.groupinfo.attendance;
 		markAttendanceDlg.scope.sessions = _getIltSessions(content, learningRecords);
 		markAttendanceDlg.scope.selectedSession = markAttendanceDlg.scope.sessions[0];
 		markAttendanceDlg.scope.selectedSession.button = {state: 'selectall', name:'All attended'};
@@ -1084,62 +1084,33 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			markAttendanceDlg.scope.selectedSession = session;
 			markAttendanceDlg.scope.selectedSession.button = markAttendanceDlg.scope.selectedSession.button || {state: 'selectall', name:'All attended'};
 		};
-		markAttendanceDlg.scope.markAllUsers = function(state) {
-			var selectedSession = markAttendanceDlg.scope.selectedSession;
-			var newState = 0;
-			if(state == 'selectall') {
-				selectedSession.button = {state: 'deselectall', name:'All absent'};
-				newState = 1;
-			} else if(state == 'deselectall') {
-				selectedSession.button = {state: 'clear', name:'Clear all'};
-				newState = 2;
-			} else {
-				selectedSession.button = {state: 'selectall', name:'All attended'};
-				newState = 0;
-			}
-			
-			var pending = selectedSession.pending;
-			for(var i=0; i<pending.length; i++) pending[i].status = newState;
-		};
-
-		markAttendanceDlg.scope.updateAttendance = function(user) {
-			for(var i=0; i<markAttendanceDlg.scope.selectedSession.pending.length; i++) {
-				if(user.id == markAttendanceDlg.scope.selectedSession.pending[i].id) {
-					if(markAttendanceDlg.scope.selectedSession.pending[i].status == 0) {
-						markAttendanceDlg.scope.selectedSession.pending[i].status = 1;
-					} else if(markAttendanceDlg.scope.selectedSession.pending[i].status == 1) {
-						markAttendanceDlg.scope.selectedSession.pending[i].status = 2;
-					} else {
-						markAttendanceDlg.scope.selectedSession.pending[i].status = 0;
-					}
-					break;
-				}
-			}
-		};
 		
+		markAttendanceDlg.scope.bulkAttendanceMarker = function(e) {
+			if(markAttendanceDlg.scope.isBulkUpdateDlgOpened) {
+				e.preventDefault();
+				return;
+			}
+			markAttendanceDlg.scope.isBulkUpdateDlgOpened = true;
+			_showbulkAttendanceMarkerDlg(markAttendanceDlg.scope);
+		}
+
 		var okButton = {text: nl.t('Mark attendance'), onTap: function(e) {
 			var updatedSessionsList = [];
-			var userSelected = false;
+			attendance = {};
+			var attendanceUpdated = false;
 			for(var i=0; i<markAttendanceDlg.scope.sessions.length; i++) {
 				var session = markAttendanceDlg.scope.sessions[i];
 				updatedSessionsList.push({id: session.id, name:session.name, selectedUsers: []});
-				for(var j=0; j<session.pending.length; j++) {
-					var user = session.pending[j];
-					if (user.status == 1) {
-						userSelected = true;
-						updatedSessionsList[i].selectedUsers.push({name: user.name, status: 'Attended'});
-						if(!(user.id in attendance)) attendance[user.id] = [];
-						attendance[user.id].push(session.id);
-					}
-					if (user.status == 2) {
-						userSelected = true;
-						updatedSessionsList[i].selectedUsers.push({name: user.name, status: 'Not attended'});
-						if(!(user.id in attendance.not_attended)) attendance.not_attended[user.id] = [];
-						attendance.not_attended[user.id].push(session.id);
-					}
+				for(var j=0; j<session.newAttendance.length; j++) {
+					var report = session.newAttendance[j];
+					updatedSessionsList[i].selectedUsers.push({name: report.name, status: report.attendance.name, remark: user.remarks || ""});
+					if(report.attendance.id == '') continue;
+					attendanceUpdated = true;
+					if(!(report.id in attendance)) attendance[report.id] = [];
+					attendance[report.id].push({id: session.id, attId: report.attendance.id, remarks: report.remarks});
 				}
 			}
-			if(!userSelected) {
+			if(!attendanceUpdated) {
 				e.preventDefault();
 				return nlDlg.popupAlert({title: 'Alert message', template: 'Please select the user to mark attendance'});
 			}
@@ -1162,57 +1133,81 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			[okButton], cancelButton);
 	}
 
+	function _showbulkAttendanceMarkerDlg(dlgScope) {
+		var bulkMarkerDlg = nlDlg.create(dlgScope);
+		bulkMarkerDlg.scope.selectedSession = dlgScope.selectedSession;
+		bulkMarkerDlg.scope.markingOptions = angular.copy(_userInfo.groupinfo.attendance);
+		bulkMarkerDlg.scope.selectedMarkingType = null;
+		bulkMarkerDlg.scope.selectForBulkMarking = function(opt) {
+			bulkMarkerDlg.scope.selectedMarkingType = opt;
+			for(var i=0; i<bulkMarkerDlg.scope.markingOptions.length; i++) {
+				var item = bulkMarkerDlg.scope.markingOptions[i];
+				if(item.id == opt.id) 
+					item.selected = !item.selected;
+				else 
+					item.selected = false;
+			}
+		};
+		var okButton = {text: nl.t('Confirm to mark'), onTap: function(e){
+			for(var i=0; i<bulkMarkerDlg.scope.markingOptions.length; i++) {
+				if(bulkMarkerDlg.scope.markingOptions[i].selected) bulkMarkerDlg.scope.selectedMarkingType = bulkMarkerDlg.scope.markingOptions[i];
+			}
+			if(!bulkMarkerDlg.scope.selectedMarkingType){
+				e.preventDefault();
+				return nlDlg.popupAlert({title: 'Please select', template: 'Please select the attendance type to mark all'});
+			}
+			for(var i=0; i<dlgScope.selectedSession.newAttendance.length; i++) dlgScope.selectedSession.newAttendance[i].attendance = bulkMarkerDlg.scope.selectedMarkingType;
+			dlgScope.isBulkUpdateDlgOpened = false;
+			bulkMarkerDlg.scope.onCloseDlg();
+		}};
+		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
+			dlgScope.isBulkUpdateDlgOpened = false;
+		}};
+		bulkMarkerDlg.show('view_controllers/learning_reports/bulk_attendance_marker_dlg.html',
+			[okButton], cancelButton);
+	}
+
 	function _getIltSessions(content, learningRecords, type) {
 		var ret = [];
 		for(var i=0; i<content.modules.length; i++) {
 			if(content.modules[i].type != 'iltsession') continue; 
 			var item = content.modules[i];
-			ret.push({id: item.id, name:item.name, attended:[], pending: []});
+			ret.push({id: item.id, name:item.name, newAttendance: []});
 		}
+
 		for(var key in learningRecords) {
 			var userAttendance = attendance[parseInt(key)] || [];
-			var userNotAttended = attendance.not_attended[parseInt(key)] || [];
+			var userNotAttended = ('not_attended' in attendance) ? attendance.not_attended[parseInt(key)] || [] : [];
+			var user = learningRecords[key].user;
 			for(var j=0; j<ret.length; j++) {
-				var isAttended = 0;
+				var notMarked = true;
 				for(var k=0; k<userAttendance.length; k++) {
-					if (ret[j].id == userAttendance[k]) {
-						isAttended = 1;
-						ret[j].attended.push({id: parseInt(key), name: learningRecords[key].user.name, status: 1});
+					if(typeof userAttendance[k] === 'string') userAttendance[k] = {id: userAttendance[k], attId: 'attended'};
+					if (ret[j].id == userAttendance[k].id) {
+						notMarked = false;
+						ret[j].newAttendance.push({id: parseInt(key), name: user.name, status: 1, attendance: {id: userAttendance[k].attId}, remarks: userAttendance[k].remarks || '', userid: user.user_id});
 						break;
 					}
 				}
 				for(var k=0; k<userNotAttended.length; k++) {
-					if (ret[j].id == userNotAttended[k]) {
-						isAttended = 2;
-						ret[j].attended.push({id: parseInt(key), name: learningRecords[key].user.name, status: 2});
+					if (ret[j].id == userNotAttended[k].id) {
+						notMarked = false;
+						ret[j].newAttendance.push({id: parseInt(key), name: user.name, status: 2, attendance: {id: 'not_attended'}, remarks: '', userid: user.user_id});
 						break;
 					}
 				}
-				if(isAttended == 0) ret[j].pending.push({id: parseInt(key), name: learningRecords[key].user.name, status: 0});
+				if(notMarked) ret[j].newAttendance.push({id: parseInt(key), name: user.name, status: 0, attendance: {id: ''}, userid: user.user_id});
 			}
 		}
 		for(var i=0; i<ret.length; i++) {
-			var attended = ret[i].attended;
-			var pending = ret[i].pending;
-			attended.sort(function(a, b) {
+			var newAttendance = ret[i].newAttendance;
+			newAttendance.sort(function(a, b) {
 				if(b.name.toLowerCase() < a.name.toLowerCase()) return 1;
 				if(b.name.toLowerCase() > a.name.toLowerCase()) return -1;
 				if(b.name.toLowerCase() == a.name.toLowerCase()) return 0;				
 			});
 
-			attended.sort(function(a, b) {
-				if(b.status < a.status) return 1;
-				if(b.status > a.status) return -1;
-				if(b.status == a.status) return 0;				
-			});
-			
-			pending.sort(function(a, b) {
-				if(b.name.toLowerCase() < a.name.toLowerCase()) return 1;
-				if(b.name.toLowerCase() > a.name.toLowerCase()) return -1;
-				if(b.name.toLowerCase() == a.name.toLowerCase()) return 0;
-			});
-			ret[i].attended = attended;
-			ret[i].pending = pending;
+			ret[i].newAttendance = newAttendance;
 		}
 		return ret;
 	}
@@ -1400,4 +1395,4 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 //-------------------------------------------------------------------------------------------------
 module_init();
 })();
-	
+		

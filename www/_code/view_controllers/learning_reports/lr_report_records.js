@@ -26,12 +26,14 @@
         var _postProcessRecords = [];
         var _userInfo = null;
         var _nominatedUsers = null;
+        var _attendanceObj = {};
         this.init = function(userinfo) {
             _userInfo = userinfo;
             _records = {};
             _reminderDict = {};
             _nominatedUsers = {};
             _dates = {minUpdated: null, maxUpdated: null};
+            _convertAttendanceArrayToObj(userinfo.groupinfo.attendance);
             if (!nlGroupInfo.isPastUserXlsConfigured()) _pastUserData = {};
         };
         
@@ -93,6 +95,13 @@
             return ret;
         };
         
+        function _convertAttendanceArrayToObj(attendanceArray) {
+            for(var i=0; i<attendanceArray.length; i++) {
+                var att = attendanceArray[i];
+                _attendanceObj[att.id] = att;
+            }
+        }
+
         function _getRangeStart(rangeEnd, rangeType, rangeSize) {
             if (rangeType == 'months') {
                 var month = rangeEnd.getMonth();
@@ -212,46 +221,7 @@
             }
 
             if(course.content.blended) {
-                var attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
-                var notAttended = attendance.not_attended || {};
-                for(var i=0; i<course.content.modules.length; i++) {
-                    var elem = course.content.modules[i];
-                    if(courseAssignment.info.modifiedILT && courseAssignment.info.modifiedILT[elem.id]) elem.iltduration = courseAssignment.info.modifiedILT[elem.id];
-                    if(elem.type != 'iltsession') continue;
-                    stats.iltTotalTime += elem.iltduration;
-                    var userAttendance = attendance[report.id] || [];
-                    var userNotAttended = notAttended[report.id] || [];
-                    var userAttendanceFound = false;
-                    for(var j=0; j<userAttendance.length; j++) {
-                        if(userAttendance[j] == elem.id) {
-                            userAttendanceFound = true;
-                            if(!repcontent.statusinfo) repcontent.statusinfo = {};
-                            if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
-                            repcontent.statusinfo[elem.id].status = 'done';
-                            repcontent.statusinfo[elem.id].state = 'attended';
-                            repcontent.statusinfo[elem.id].iltTotalTime = elem.iltduration;
-                            stats.iltTimeSpent += elem.iltduration*60;
-                        }
-                    }
-                    if(!userAttendanceFound) {
-                        for(var j=0; j<userNotAttended.length; j++) {
-                            if(userNotAttended[j] == elem.id) {
-                                userAttendanceFound = true;
-                                if(!repcontent.statusinfo) repcontent.statusinfo = {};
-                                if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
-                                repcontent.statusinfo[elem.id].status = 'done';
-                                repcontent.statusinfo[elem.id].state = 'not_attended';
-                                repcontent.statusinfo[elem.id].iltTotalTime = elem.iltduration;
-                            }
-                        }    
-                    }
-                    if(!userAttendanceFound) {
-                        if(!repcontent.statusinfo) repcontent.statusinfo = {};
-                        if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
-                        repcontent.statusinfo[elem.id].state = 'pending';
-                        repcontent.statusinfo[elem.id].iltTotalTime = elem.iltduration;
-                    }
-                }
+                _updateIltParameters(report, course, courseAssignment, repcontent, stats);
             }
 
             var milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
@@ -385,6 +355,54 @@
             return ret;
         }
     
+        function _updateIltParameters(report, course, courseAssignment, repcontent, stats) {
+            var attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
+            var notAttended = attendance.not_attended || {};
+            for(var i=0; i<course.content.modules.length; i++) {
+                var elem = course.content.modules[i];
+                if(courseAssignment.info.modifiedILT && courseAssignment.info.modifiedILT[elem.id]) elem.iltduration = courseAssignment.info.modifiedILT[elem.id];
+                if(elem.type != 'iltsession') continue;
+                stats.iltTotalTime += elem.iltduration;
+                var userAttendance = attendance[report.id] || [];
+                var userNotAttended = notAttended[report.id] || [];
+                var userAttendanceFound = false;
+                for(var j=0; j<userAttendance.length; j++) {
+                    if(typeof userAttendance[j] === 'string') userAttendance[j] = {id: userAttendance[j], attId: 'attended', timePerc: 100};
+                    var attObj = _attendanceObj[userAttendance[j].attId] || {id: 'attended', name: 'Attended', remarks: ''}
+                    if(userAttendance[j].id == elem.id) {
+                        userAttendanceFound = true;
+                        if(!repcontent.statusinfo) repcontent.statusinfo = {};
+                        if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
+                        repcontent.statusinfo[elem.id].status = 'done';
+                        repcontent.statusinfo[elem.id].state = attObj.name;
+                        repcontent.statusinfo[elem.id].remarks = userAttendance[j].remarks || '';
+                        repcontent.statusinfo[elem.id].iltTotalTime = elem.iltduration;
+                        repcontent.statusinfo[elem.id].iltTimeSpent = (attObj.timePerc/100)*elem.iltduration;
+                        stats.iltTimeSpent += (attObj.timePerc/100)*(elem.iltduration*60);
+                    }
+                }
+                if(!userAttendanceFound) {
+                    for(var j=0; j<userNotAttended.length; j++) {
+                        if(userNotAttended[j].id == elem.id) {
+                            userAttendanceFound = true;
+                            if(!repcontent.statusinfo) repcontent.statusinfo = {};
+                            if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
+                            repcontent.statusinfo[elem.id].status = 'done';
+                            repcontent.statusinfo[elem.id].state = 'Absent';
+                            repcontent.statusinfo[elem.id].iltTotalTime = elem.iltduration;
+                            repcontent.statusinfo[elem.id].iltTimeSpent = 0;
+                        }
+                    }    
+                }
+                if(!userAttendanceFound) {
+                    if(!repcontent.statusinfo) repcontent.statusinfo = {};
+                    if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
+                    repcontent.statusinfo[elem.id].state = 'pending';
+                    repcontent.statusinfo[elem.id].iltTotalTime = elem.iltduration;
+                }
+            }
+        }
+
         function _isConditionMet(lastItem, repcontent) {
             var prereqs = lastItem.start_after || [];
             var lessonReports = repcontent.lessonReports || {};

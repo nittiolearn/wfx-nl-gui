@@ -356,6 +356,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
     var nlContainer = new NlContainer(nl, $scope, modeHandler);
     nlContainer.setContainerInWindow();
     var _userInfo = null;
+    var _attendanceObj = {};
     $scope.MODES = MODES;
     var folderStats = new FolderStats($scope, modeHandler);
     $scope.ext = new ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseCanvas, folderStats);
@@ -365,6 +366,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
 	});
     function _onPageEnter(userInfo) {
         _userInfo = userInfo;
+        _convertAttendanceArrayToObj(_userInfo.groupinfo.attendance);
         return nl.q(function(resolve, reject) {
             $scope.ext.setUpdateStatusFn(_updatedStatusinfo);
 			nlTreeListSrv.init(nl);
@@ -387,6 +389,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
                 resolve(false);
             });
         });
+    }
+
+    function _convertAttendanceArrayToObj(attendanceArray) {
+        for(var i=0; i<attendanceArray.length; i++) {
+            var att = attendanceArray[i];
+            _attendanceObj[att.id] = att;
+        }
     }
 
     function _onPageLeave() {
@@ -978,15 +987,26 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         var status = 'pending';
 		if(cm.type == 'iltsession') {
 			var attendance = 'attendance' in modeHandler.course.content ? modeHandler.course.content.attendance || {} : {}; 
-			var attended = attendance[modeHandler.courseId] || [];
+            var attended = attendance[modeHandler.courseId] || [];
             var notAttended = 'not_attended' in attendance ? attendance.not_attended[modeHandler.courseId] || [] : [];
             var modifiedILT = 'modifiedILT' in modeHandler.course ? modeHandler.course.modifiedILT : {};
 			for(var i=0; i<attended.length; i++) {
-				if(cm.id != attended[i]) continue;
-                status = 'success';
-		        cm.timeMins = cm.id in modifiedILT ? modifiedILT[cm.id] : cm.iltduration;
+                var attend = angular.copy(attended[i]);
+                if(typeof attend === 'string') attend = {id: attend, attId: 'attended', remarks: ''};
+                if(cm.id != attend.id) continue;
+                cm.remarks = attend.remarks;
+                var attend = _attendanceObj[attend.attId];
+                if(attend.timePerc == 100) 
+                    status = 'success';
+                else if(attend.timePerc < 100 && attend.timePerc > 0 ) 
+                    status = 'partial_success';
+                else 
+                    status = 'failed';
+                var time = cm.id in modifiedILT ? modifiedILT[cm.id] : cm.iltduration;
+		        cm.timeMins = (attend.timePerc/100)*time;
 			}
-			for(var i=0; i<notAttended.length; i++) {
+            //Remove notAttended related code after the migration on ILT attendance is done.
+            for(var i=0; i<notAttended.length; i++) {
 				if(cm.id != notAttended[i]) continue;
 				status = 'failed';
 		        cm.timeMins = 0;
@@ -1207,7 +1227,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
 		if (this.isEditorMode()) nlCourseEditor.initSelectedItem(this.item);
         this.stats = (cm.type == 'module') ? folderStats.get(cm.id) : null;
         var statusinfo = modeHandler.course.statusinfo;
-        this.data.remarks = (statusinfo && cm.id in statusinfo) ? statusinfo[cm.id].remarks || '' : '';
+        this.data.remarks = (statusinfo && cm.id in statusinfo) ? statusinfo[cm.id].remarks || '' : cm.remarks || '';
         this.updatePastAttemptData();
         nlContainer.onSave(function(lessonReportInfo) {
             modeHandler.course.lessonReports[cm.id] = lessonReportInfo;
@@ -1235,7 +1255,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
         if (!this.item) return false;
         if (this.isStaticMode()) return false;
         if (this.item.hide_remarks) return false;
-        return (this.item.type == 'link' || this.item.type == 'info' || this.item.type == 'certificate');
+        return (this.item.type == 'link' || this.item.type == 'info' || this.item.type == 'certificate' || this.item.type == 'iltsession');
     };
     
     this.canUpdateStatus = function() {

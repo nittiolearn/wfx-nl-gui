@@ -1,0 +1,18 @@
+<nl-dlg dlgTitle='{{selectedSession.name}}' show-help='0'>
+<nl-dlg-content>
+<div class='padding'>
+    <div class='fsh4 padding-mid'>Mark all learners attendance as</div>
+    <div ng-repeat='opt in markingOptions'>
+        <div class='row row-center padding0 margin0 nl-link-text' ng-click='selectForBulkMarking(opt)' ng-hide='opt.id == ""'>
+            <span class='padding-mid'>
+                <i ng-hide='opt.selected' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+                <i ng-show='opt.selected' class='fsh4 icon ion-android-checkbox-outline'></i>
+            </span>
+            <div class='col padding-mid fsh6'>
+                {{opt.name}}
+            </div>
+        </div>
+    </div>
+</div>
+</nl-dlg-content>    
+</nl-dlg>
