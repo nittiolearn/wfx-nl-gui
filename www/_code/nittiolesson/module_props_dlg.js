@@ -10,8 +10,8 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NittioLessonModulePropsDlgSrv = ['nl', 'nlDlg', 'nlTreeSelect', 'nlOuUserSelect', 'nlModuleStatusInfo', 'nlResourceAddModifySrv',
-function(nl, nlDlg, nlTreeSelect, nlOuUserSelect, nlModuleStatusInfo, nlResourceAddModifySrv) {
+var NittioLessonModulePropsDlgSrv = ['nl', 'nlDlg', 'nlTreeSelect', 'nlModuleStatusInfo', 'nlResourceAddModifySrv',
+function(nl, nlDlg, nlTreeSelect, nlModuleStatusInfo, nlResourceAddModifySrv) {
 	var _oLesson = null;
 	var _moduleConfig = null;
 	var _isPdf = false;

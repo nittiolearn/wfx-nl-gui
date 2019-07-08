@@ -116,6 +116,12 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     }
     
 	function _updateTypeDropdown(cm, attr) {
+		if (!_groupInfo) return;
+		if (attr.valueNamesUpdated) return;
+		attr.valueNamesUpdated = true;
+		attr.valueNames = {'module': 'Folder', 'lesson': 'Module',
+			'link': 'Link', 'info': 'Information', 'certificate': 'Certificate',
+			'iltsession': 'ILT session', 'milestone': 'Milestone', 'rating': 'Rating'};
 		attr.values = ['module', 'lesson', 'info', 'certificate'];
     	if (cm.type == 'link' || nlRouter.isPermitted(_userInfo, 'admin_user'))
 		   attr.values.push('link');
@@ -123,6 +129,23 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			attr.values.push('iltsession');
 		if (cm.type == 'milestone' || (_groupInfo && _groupInfo.props.features['etm'])) 
 			attr.values.push('milestone');
+		if (cm.type == 'rating' || (_groupInfo && _groupInfo.props.features['etm'] && _groupInfo.props.ratings)) 
+			attr.values.push('rating');
+		return;
+	}
+
+	var _ratings = [];
+	function _updateRatingDropdown(cm, attr) {
+		if (!_groupInfo || !_groupInfo.props.features['etm']) return;
+		if (attr.valueNamesUpdated) return;
+		_ratings = _groupInfo.props.ratings || [];
+		attr.valueNames = {};
+		attr.values = [];
+		for (var i=0; i<_ratings.length; i++) {
+			var r = _ratings[i];
+			attr.values.push(r.id);
+			attr.valueNames[r.id] = r.name;
+		}
 		return;
 	}
 
@@ -300,10 +323,15 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     };
     
     var moduleAttrs = [
-        {name: 'name', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone'], type: 'string', text: 'Name'}, 
-        {name: 'type', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone'], type: 'list', text: 'Element type', values: ['module', 'lesson', 'certificate', 'info', 'link', 'iltsession', 'milestone'],
-            valueNames: {'module': 'Folder', 'lesson': 'Module', 'link': 'Link', 'info': 'Information', 'certificate': 'Certificate', 'iltsession': 'ILT session', 'milestone': 'Milestone'},
+        {name: 'name', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'string', text: 'Name'}, 
+		{name: 'type', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'list', text: 'Element type',
+			// possible values will be updated in _updateTypeDropdown
+			valueNamesUpdated: false, valueNames: {}, values: [], 
             updateDropdown: _updateTypeDropdown},
+		{name: 'rating_type', stored_at: 'module', fields: ['rating'], type: 'list', text: 'Rating type',
+			// possible values will be updated in _updateRatingDropdown
+			valueNamesUpdated: false, valueNames: {}, values: [], 
+            updateDropdown: _updateRatingDropdown},
         {name: 'completionPerc', stored_at: 'module', fields: ['milestone'], text: 'Completion percentage',type: 'number', max:100},
         {name: 'refid', stored_at: 'module', fields: ['lesson'], type: 'lessonlink', contentType: 'integer', text: 'Module-id'},
 		{name: 'maxDuration', stored_at: 'module', fields: ['lesson'], type: 'string', contentType: 'integer', text: 'Time limit (minutes)'},
@@ -311,25 +339,25 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'urlParams', stored_at: 'module', fields: ['link'], type: 'string', text: 'Url-Params'},
         {name: 'certificate_image', stored_at: 'module', fields: ['certificate'], type: 'string', text: 'Certificate image'},
         {name: 'trainer_notes', stored_at: 'module', fields: ['iltsession'], type: 'object_with_gui', contentType: 'object', text: 'Trainer notes'},
-        {name: 'start_after', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
+        {name: 'start_after', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
         {name: 'canMarkAttendance', stored_at: 'module', text: 'Learner can mark attendance', type:'hidden', fields: ['iltsession']},
         {name: 'iltduration', stored_at: 'module', fields: ['iltsession'], text: 'Session duration (minutes)',type: 'number'},
         {name: 'grp_depAttrs', stored_at: 'module', fields: ['lesson', 'link', 'info'], type: 'group', text: 'Planning'},
         {name: 'start_date', stored_at: 'module', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Start date', group: 'grp_depAttrs'},
         {name: 'planned_date', stored_at: 'module', fields: ['lesson', 'link', 'info'], type: 'date', text: 'Planned date', group: 'grp_depAttrs'},
-        {name: 'grp_additionalAttrs', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone'], type: 'group', text: 'Advanced properties'},
+        {name: 'grp_additionalAttrs', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'group', text: 'Advanced properties'},
         {name: 'reopen_on_fail', stored_at: 'module', fields: ['lesson'], type: 'object', text: 'Reopen on fail', contentType: 'object',group: 'grp_additionalAttrs'},
-        {name: 'icon', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
-        {name: 'text', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession'], type: 'wikitext', valueName: 'textHtml', text: 'Description', group: 'grp_additionalAttrs'},
+        {name: 'icon', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
+        {name: 'text', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'wikitext', valueName: 'textHtml', text: 'Description', group: 'grp_additionalAttrs'},
         {name: 'maxAttempts', stored_at: 'module', fields: ['lesson'], type: 'number', text: 'Maximum attempts', group: 'grp_additionalAttrs'},
         {name: 'hide_remarks', stored_at: 'module', fields: ['info', 'link'], type: 'boolean', text: 'Disable remarks', group: 'grp_additionalAttrs'},
         {name: 'autocomplete', stored_at: 'module', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
-        {name: 'parentId', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession'], type: 'readonly', debug: true, text: 'Parent ID', group: 'grp_additionalAttrs', readonly: true}, 
-        {name: 'id', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone'], type: 'readonly', text: 'Unique ID', group: 'grp_additionalAttrs', readonly: true}, 
+        {name: 'parentId', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'readonly', debug: true, text: 'Parent ID', group: 'grp_additionalAttrs', readonly: true}, 
+        {name: 'id', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'readonly', text: 'Unique ID', group: 'grp_additionalAttrs', readonly: true}, 
     	{name: 'totalItems', stored_at: 'module', fields : ['module'], type: 'readonly', text: 'Total items', group: 'grp_additionalAttrs'},
-        {name: 'grp_canvasAttrs', stored_at: 'module', type: 'group', text: 'Canvas properties', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession']},
-        {name: 'posX', stored_at: 'module', type: 'number', text: 'X Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession']},
-        {name: 'posY', stored_at: 'module', type: 'number', text: 'Y Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession']},
+        {name: 'grp_canvasAttrs', stored_at: 'module', type: 'group', text: 'Canvas properties', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating']},
+        {name: 'posX', stored_at: 'module', type: 'number', text: 'X Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating']},
+        {name: 'posY', stored_at: 'module', type: 'number', text: 'Y Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating']},
         {name: 'bgimg', stored_at: 'module', type: 'string', text: 'Background image', group: 'grp_canvasAttrs', fields: ['module']},
         {name: 'bgcolor', stored_at: 'module', type: 'string', text: 'Background color', group: 'grp_canvasAttrs', fields: ['module']}
     ];
@@ -716,6 +744,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         if (!_validateInfoModule(errorLocation, module)) return false;
 		if (!_validateILTSessionModule(errorLocation, module)) return false;
 		if (!_validateMilestoneModule(errorLocation, module)) return false;
+		if (!_validateRatingModule(errorLocation, module)) return false;
         return true;
     }
     
@@ -774,12 +803,12 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		return true;
 	}
 
-    function _getParentId(idStr) {
-        var parents = idStr.split('.');
-        parents.pop(); // Remove the last entry
-        return parents.join('.');
-    }
-    
+    function _validateRatingModule(errorLocation, module) {
+    	if(module.type != 'rating') return true;
+		if(!module.rating_type) return _validateFail(errorLocation, 'Rating type', 'Rating type is mandatory.', module);
+    	return true;
+	}
+
     function _validateFail(errorLocation, attr, errMsg, cm) {
         errorLocation.title = attr;
         errorLocation.template = nl.fmt2('<p><b>Error:</b> {}</p>', errMsg);
