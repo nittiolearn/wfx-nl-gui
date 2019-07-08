@@ -61,28 +61,30 @@ function($scope, nlLearningReports) {
 	
 var NlLearningReports = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlGroupInfo', 'nlTable', 'nlSendAssignmentSrv',
 'nlLrHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlLrReportRecords', 'nlLrCourseRecords', 'nlLrSummaryStats', 'nlLrAssignmentRecords', 
-'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 
+'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlCourse',
 function(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
-	nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown) {
+	nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse) {
 	this.create = function($scope, settings) {
 		if (!settings) settings = {};
 		return new NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
-			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown);
+			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse);
 	};
 }];
 	
 //-------------------------------------------------------------------------------------------------
 function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
-			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown) {
+			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse) {
 	var _userInfo = null;
+	var _attendanceObj = {};
 	this.show = function() {
 		nlRouter.initContoller($scope, '', _onPageEnter);
 	};
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
+		_convertAttendanceArrayToObj(_userInfo.groupinfo.attendance);
 		return nl.q(function(resolve, reject) {
 			nlGroupInfo.init().then(function() {
 				nlGroupInfo.update();
@@ -97,8 +99,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	// Private members
 	var _isAdmin = false;
-		var _customReportTemplate = '';
-	
+	var _customReportTemplate = '';
+
+	function _convertAttendanceArrayToObj(attendanceArray) {
+		for(var i=0; i<attendanceArray.length; i++) {
+			_attendanceObj[attendanceArray[i].id] = attendanceArray[i];
+		}
+	}
+
 	function _init() {
 		_isAdmin = nlRouter.isPermitted(_userInfo, 'admin_user');
 		_customReportTemplate = nlGroupInfo.getCustomReportTemplate();
@@ -1067,10 +1075,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var data = {assignid: nlLrFilter.getObjectId()};
 		var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:' + nlLrFilter.getObjectId());
 		attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
-		attendance.not_attended = attendance.not_attended || {};
+		attendance = nlCourse.migrateCourseAttendance(attendance);
 		_showAttendanceMarker();
 	}
 
+	var oldAttendance = {};
 	function _showAttendanceMarker() {
 		var markAttendanceDlg = nlDlg.create($scope);
 		markAttendanceDlg.setCssClass('nl-height-max nl-width-max');
@@ -1080,6 +1089,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		markAttendanceDlg.scope.sessions = _getIltSessions(content, learningRecords);
 		markAttendanceDlg.scope.selectedSession = markAttendanceDlg.scope.sessions[0];
 		markAttendanceDlg.scope.selectedSession.button = {state: 'selectall', name:'All attended'};
+		oldAttendance = {};
+		oldAttendance = angular.copy(attendance);
 		markAttendanceDlg.scope.onClick = function(session) {
 			markAttendanceDlg.scope.selectedSession = session;
 			markAttendanceDlg.scope.selectedSession.button = markAttendanceDlg.scope.selectedSession.button || {state: 'selectall', name:'All attended'};
@@ -1096,23 +1107,22 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		var okButton = {text: nl.t('Mark attendance'), onTap: function(e) {
 			var updatedSessionsList = [];
-			attendance = {};
-			var attendanceUpdated = false;
+				attendance = {};
+				attendanceUpdated = false;
+				e.preventDefault();
 			for(var i=0; i<markAttendanceDlg.scope.sessions.length; i++) {
 				var session = markAttendanceDlg.scope.sessions[i];
-				updatedSessionsList.push({id: session.id, name:session.name, selectedUsers: []});
+				updatedSessionsList.push({id: session.id, name:session.name, isUpdated: false, selectedUsers: []});
 				for(var j=0; j<session.newAttendance.length; j++) {
-					var report = session.newAttendance[j];
-					updatedSessionsList[i].selectedUsers.push({name: report.name, status: report.attendance.name, remark: user.remarks || ""});
-					if(report.attendance.id == '') continue;
-					attendanceUpdated = true;
-					if(!(report.id in attendance)) attendance[report.id] = [];
-					attendance[report.id].push({id: session.id, attId: report.attendance.id, remarks: report.remarks});
+					var userSessionAttendance = session.newAttendance[j];
+					if(userSessionAttendance.attendance.id == '' && userSessionAttendance.remarks == '') continue;
+					_updateAttendanceDelta(updatedSessionsList[i], userSessionAttendance);
+					if(!(userSessionAttendance.id in attendance)) attendance[userSessionAttendance.id] = [];
+					attendance[userSessionAttendance.id].push({id: session.id, attId: userSessionAttendance.attendance.id, remarks: userSessionAttendance.remarks});
 				}
 			}
 			if(!attendanceUpdated) {
-				e.preventDefault();
-				return nlDlg.popupAlert({title: 'Alert message', template: 'Please select the user to mark attendance'});
+				return nlDlg.popupAlert({title: 'Alert message', template: 'You have not made any changes. Please update attendance markings or press cancel in the attendance dialog if you do not wish to make any change.'});
 			}
 			for(var i=0; i<updatedSessionsList.length; i++) {
 				var selectedUsers = updatedSessionsList[i].selectedUsers || [];
@@ -1131,6 +1141,30 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}};
 		markAttendanceDlg.show('view_controllers/learning_reports/mark_attendance_dlg.html',
 			[okButton], cancelButton);
+	}
+
+	var attendanceUpdated = false; //This flag is to check whether the trainer had done changes to mark or not
+
+	function _updateAttendanceDelta(updateSessionList, newAttendancePerSession) {
+		var repid = newAttendancePerSession.id;
+		var sessionid = updateSessionList.id;
+		var oldAttendancePerSession = {};  //This is {id: sessionid1, remarks: '', attId: 'attended/not-attended/medical_leave'}
+		var oldAttendancePerReport = oldAttendance[repid] || []; //repid: [{id: sessionid1, attId: 'attended', remarks: '' },{id: sessionid2, attId: 'not_attended', remarks: '' }.....]
+		for(var i=0; i<oldAttendancePerReport.length; i++) {
+			var sessionAttendance = oldAttendancePerReport[i];
+			if(sessionAttendance.id != sessionid) continue;
+			oldAttendancePerSession = sessionAttendance;
+			break;
+		}
+		if(!oldAttendancePerSession.attId) oldAttendancePerSession['attId'] = '';
+		if(!oldAttendancePerSession.remarks) oldAttendancePerSession['remarks'] = '';
+		var dict = {name: newAttendancePerSession.name};
+		if(oldAttendancePerSession.attId != newAttendancePerSession.attendance.id || oldAttendancePerSession.remarks != newAttendancePerSession.remarks) {
+			updateSessionList.selectedUsers.push({name: newAttendancePerSession.name, 
+				status: (newAttendancePerSession.attendance.id in _attendanceObj) ? _attendanceObj[newAttendancePerSession.attendance.id].name : '', 
+				remarks: newAttendancePerSession.remarks || ""});
+			attendanceUpdated = true;	
+		}
 	}
 
 	function _showbulkAttendanceMarkerDlg(dlgScope) {
@@ -1174,29 +1208,20 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var item = content.modules[i];
 			ret.push({id: item.id, name:item.name, newAttendance: []});
 		}
-
+		
 		for(var key in learningRecords) {
 			var userAttendance = attendance[parseInt(key)] || [];
-			var userNotAttended = ('not_attended' in attendance) ? attendance.not_attended[parseInt(key)] || [] : [];
 			var user = learningRecords[key].user;
 			for(var j=0; j<ret.length; j++) {
 				var notMarked = true;
 				for(var k=0; k<userAttendance.length; k++) {
-					if(typeof userAttendance[k] === 'string') userAttendance[k] = {id: userAttendance[k], attId: 'attended'};
 					if (ret[j].id == userAttendance[k].id) {
 						notMarked = false;
-						ret[j].newAttendance.push({id: parseInt(key), name: user.name, status: 1, attendance: {id: userAttendance[k].attId}, remarks: userAttendance[k].remarks || '', userid: user.user_id});
+						ret[j].newAttendance.push({id: parseInt(key), name: user.name, attendance: {id: userAttendance[k].attId}, remarks: userAttendance[k].remarks || '', userid: user.user_id});
 						break;
 					}
 				}
-				for(var k=0; k<userNotAttended.length; k++) {
-					if (ret[j].id == userNotAttended[k].id) {
-						notMarked = false;
-						ret[j].newAttendance.push({id: parseInt(key), name: user.name, status: 2, attendance: {id: 'not_attended'}, remarks: '', userid: user.user_id});
-						break;
-					}
-				}
-				if(notMarked) ret[j].newAttendance.push({id: parseInt(key), name: user.name, status: 0, attendance: {id: ''}, userid: user.user_id});
+				if(notMarked) ret[j].newAttendance.push({id: parseInt(key), name: user.name, attendance: {id: ''}, userid: user.user_id, remarks: ''});
 			}
 		}
 		for(var i=0; i<ret.length; i++) {
@@ -1217,11 +1242,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var confirmationDlg = nlDlg.create($scope);
 		confirmationDlg.setCssClass('nl-height-max nl-width-max');
 		confirmationDlg.scope.markedSessions = markedSessions;
+		if(!('attendance_version' in attendance)) 
+			attendance['attendance_version'] = nlCourse.getAttendanceVersion();
 		var okButton = {text: nl.t('Confirm attendance'), onTap: function(e) {
 		var data = {param: 'attendance', paramObject: attendance, assignid: nlLrFilter.getObjectId()};
 			nlDlg.showLoadingScreen();
 			nlServerApi.courseUpdateParams(data).then(function(result) {
 				nlDlg.hideLoadingScreen();
+				nlDlg.closeAll();
 				if(result) attendance = result;
 				var jsonAttendanceStr = angular.toJson(result);
 				nlLrAssignmentRecords.updateAttendanceInRecord(
@@ -1230,7 +1258,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			});
 		}};
 		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
-			confirmationDlg.scope.onCloseDlg(e, null);
+			//confirmationDlg.scope.onCloseDlg(e, null);
 		}};
 		confirmationDlg.show('view_controllers/learning_reports/mark_attendance_confirmation_dlg.html',
 			[okButton], cancelButton);

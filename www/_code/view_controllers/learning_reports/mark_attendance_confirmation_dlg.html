@@ -4,7 +4,7 @@
      <div class='padding-mid-v fyellow row row-center margin0 padding0'>
         <i class="fsh2 icon ion-alert-circled"></i> 
         <div class='col padding margin0'>
-            You have chosen to mark the following users attendance.
+            You have done following changes. If you are sure of these changes, please click on "confirm attendance" button to save changes.
         </div>
      </div>
 </div>
@@ -16,19 +16,25 @@
 		<div class='row row-center padding0 margin0'>
 			<table class='nl-table nl-table-styled fsh6 padding-mid'>
 			    <tr>
-			        <th>
+			        <th colspan=1>
 			            <span>Username</span>
 			        </th>
-			        <th>
+			        <th colspan=1>
 			            <span>Status</span>
+			        </th>
+			        <th colspan=22>
+			            <span>Remarks</span>
 			        </th>
 			    </tr>
 			    <tr ng-repeat='user in session.selectedUsers'>
-			        <td>
+			        <td colspan=1>
 			            <span>{{user.name}}</span>
 			        </td>
-			        <td>
+			        <td colspan=1>
 			            <span>{{user.status}}</span>
+			        </td>
+			        <td colspan=2>
+			            <span>{{user.remarks}}</span>
 			        </td>
 			    </tr>
 			</table>

@@ -18,11 +18,10 @@
 			<div class='nl-link-text nl-button-highlight' ng-click='bulkAttendanceMarker($event)'>Mark all</div>
 		</div>
 		<div class='row row-center padding0 margin0' ng-repeat='user in selectedSession["newAttendance"]'>
-			<div class='row row-center padding0 margin0 row-wrap'
-				style='border-bottom: 0.1rem dotted #A0A0C0'>
+			<div class='row row-center padding0 margin0 row-wrap'>
 				<div ng-class='respCol211'class='padding-mid'>
 					<div class='row row-center padding0 margin0'>
-						<div class='col' >{{user.name}} ({{user.userid}})</div>
+						<div class='col' >{{user.name}} <span style='color:#838383'>({{user.userid}})</span></div>
 						<div class='col padding0'>
 							<select ng-model='user.attendance' 
 									ng-options='opt as opt.name for opt in attendanceOptions track by opt.id'
@@ -36,7 +35,7 @@
 					</div>
 				</div>
 				<div ng-class='respCol211' class='padding-mid fsh4'>
-					<input type='text' ng-model='user.remarks'></input>
+					<input type='text' ng-model='user.remarks' placeholder='Mention remarks for learner'></input>
 				</div>
 			</div>
 		</div>

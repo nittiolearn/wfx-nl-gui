@@ -42,7 +42,42 @@ function(nl) {
         return course;		
     };
 
- 	this.isCourseReportCompleted = function(repObj) {
+    var CURRENT_ATTENDANCE_VERSION = 1; //For course attendance version attendance register is 1 for now;
+    this.getAttendanceVersion = function() {
+        return CURRENT_ATTENDANCE_VERSION
+    };
+
+    this.migrateCourseAttendance = function(attendance) { 
+        //old code attendance was attendance = {repid1: [sessionid1, sessionid2], repid2: [sessionid3, sessionid4], not_attended: {repid1:  [sessionid3, sessionid4]}}
+        //new migration should be attendance = {version_register: 1, repid1: [{id: sessionid1, attId: attended, remarks: "some remarks"}, {id: sessionid2, attId: medical_leave, remarks: "some remarks"}]}
+        if("attendance_version" in attendance) return attendance;
+        var newAttendance = {};
+        var attended = angular.copy(attendance);
+        var not_attended = ('not_attended' in attendance) ? angular.copy(attendance.not_attended) : {}
+        delete attended['not_attended'];
+        for(var key in attended) {
+            var repid = parseInt(key);
+			var attendedSessionsList = attendance[repid] || [];
+           for(var k=0; k<attendedSessionsList.length; k++) {
+                if(!(repid in newAttendance)) newAttendance[repid] = [];
+                newAttendance[repid].push({id: attendedSessionsList[k], attId: 'attended', remarks: ''});
+            }
+        }
+
+        for(var key in not_attended) {
+            var repid = parseInt(key);
+			var notAttendedSessionsList = not_attended[repid] || [];
+            for(var k=0; k<notAttendedSessionsList.length; k++) {
+                if(!(repid in newAttendance)) newAttendance[repid] = [];
+                newAttendance[repid].push({id: notAttendedSessionsList[k], attId: 'not_attended', remarks: ''});
+            }
+           
+        }
+        return newAttendance;
+    };
+
+
+    this.isCourseReportCompleted = function(repObj) {
         if (!repObj.content || !repObj.content.modules) return false;
         var module_list = repObj.content.modules || [];
         if (module_list.length == 0) return false;

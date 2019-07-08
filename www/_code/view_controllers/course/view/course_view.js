@@ -987,29 +987,24 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         var status = 'pending';
 		if(cm.type == 'iltsession') {
 			var attendance = 'attendance' in modeHandler.course.content ? modeHandler.course.content.attendance || {} : {}; 
+                attendance = nlCourse.migrateCourseAttendance(attendance);
             var attended = attendance[modeHandler.courseId] || [];
-            var notAttended = 'not_attended' in attendance ? attendance.not_attended[modeHandler.courseId] || [] : [];
             var modifiedILT = 'modifiedILT' in modeHandler.course ? modeHandler.course.modifiedILT : {};
 			for(var i=0; i<attended.length; i++) {
                 var attend = angular.copy(attended[i]);
-                if(typeof attend === 'string') attend = {id: attend, attId: 'attended', remarks: ''};
                 if(cm.id != attend.id) continue;
                 cm.remarks = attend.remarks;
-                var attend = _attendanceObj[attend.attId];
-                if(attend.timePerc == 100) 
-                    status = 'success';
-                else if(attend.timePerc < 100 && attend.timePerc > 0 ) 
-                    status = 'partial_success';
-                else 
-                    status = 'failed';
-                var time = cm.id in modifiedILT ? modifiedILT[cm.id] : cm.iltduration;
-		        cm.timeMins = (attend.timePerc/100)*time;
-			}
-            //Remove notAttended related code after the migration on ILT attendance is done.
-            for(var i=0; i<notAttended.length; i++) {
-				if(cm.id != notAttended[i]) continue;
-				status = 'failed';
-		        cm.timeMins = 0;
+                var attend = (attend.attId in _attendanceObj) ? _attendanceObj[attend.attId] : {};
+                if(attend.id) {
+                    if(attend.timePerc == 100) 
+                        status = 'success';
+                    else if(attend.timePerc < 100 && attend.timePerc > 0 ) 
+                        status = 'partial_success';
+                    else 
+                        status = 'failed';
+                    var time = cm.id in modifiedILT ? modifiedILT[cm.id] : cm.iltduration;
+                    cm.timeMins = attend.timePerc ? (attend.timePerc/100)*time : '-';
+                }
 			}
 		}
         if (!(status == 'success' || status == 'failed') && !modeHandler.canStart(cm, $scope, nlTreeListSrv)) status = 'waiting';
