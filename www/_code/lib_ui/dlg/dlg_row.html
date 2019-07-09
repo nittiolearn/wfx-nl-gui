@@ -10,7 +10,7 @@
          ng-click='help[attr].isShown = !help[attr].isShown'>
          <div class='row row-center row-wrap margin0 padding0'>
             <span class='col padding0'><b>{{help && help[attr] ? help[attr].name : attr}}</b></span>
-            <i class='padding-mid nl-link-text icon fsh4 fgrey2 ion-ios-help'
+            <i class='padding-mid nl-link-text icon fsh4 fgrey ion-ios-help'
                ng-show='help && help[attr]'></i>
         </div>
     </div>
@@ -20,7 +20,7 @@
     <div class='w100 dlgrow-help-padding' ng-show='help && help[attr] && help[attr].isShown'>
         <nl-inline-help>
             <div>
-                <span class='fblue2' ng-show='help[attr].name'><b>{{help[attr].name}}:</b></span>
+                <span ng-show='help[attr].name'><b>{{help[attr].name}}:</b></span>
                 <span nl-compile='help[attr].help'></span>
             </div>
         </nl-inline-help>

@@ -32,10 +32,6 @@
     width: 100%;
 }
 
-.nl-text-desc{
-    color: #838383;
-}
-
 .nl-overflow-desc-hidden {
     height: 46px;
     text-overflow : ellipsis;
@@ -47,7 +43,7 @@
     <!-- Title tool bar -->
     <div class='row row-center row-wrap margin0 padding0'
         style='border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
-        <div class='col padding nl-blue fsh5'>
+        <div class='col padding fblue2 fsh5'>
             <span ng-show='$root.screenSize != "small" && $root.announcement.mode == "pane"'>Announcements</span>
         </div>
         <span ng-repeat='tb in $root.announcement.toolBar' ng-show='tb.canShow()'
@@ -61,7 +57,7 @@
     <div class='nl-limitwidth'>
         <!-- When list is empty -->
         <div ng-show='$root.announcement.items.length == 0' class='row row-center padding-mid margin0'>
-            <div style='color: #838383'> There are no announcements to display. </div>
+            <div class='fdarkgrey2'> There are no announcements to display. </div>
         </div>
     
         <!-- Each announcement item -->
@@ -70,21 +66,21 @@
                 <!-- Title and update/delete tools -->
                 <div class='row row-top padding margin0'>
                     <div class='col padding0'>
-                        <div class='nl-blue fsh6 nl-link-text' ng-click='showAnnouncementPopup(announcement)'>{{announcement.title}}</div>
-                        <div class='fsmall1 nl-text-desc padding-small-v'>{{announcement.updated}}</div>
+                        <div class='fblue2 fsh6 nl-link-text' ng-click='showAnnouncementPopup(announcement)'>{{announcement.title}}</div>
+                        <div class='fsmall1 fdarkgrey2 padding-small-v'>{{announcement.updated}}</div>
                     </div>
-                    <div ng-show='canShowButtons()' class='nl-link-img padding-small' ng-click='updateAnnouncement(announcement)'>
+                    <div ng-show='canShowButtons()' class='nl-link-img fblue padding-small' ng-click='updateAnnouncement(announcement)'>
                         <i class='icon ion-ios-photos nl-dlg-field-icon' title='Update'></i>
                         <span ng-hide='$root.screenSize == "small"' class='padding-mid'>Update</span>
                     </div>
-                    <div ng-show='canShowButtons()' class='nl-link-img padding-small' ng-click='deleteAnnouncement(announcement)'>
+                    <div ng-show='canShowButtons()' class='nl-link-img fblue padding-small' ng-click='deleteAnnouncement(announcement)'>
                         <i class='ion-ios-trash icon nl-dlg-field-icon' title='Delete'></i>
                         <span ng-hide='$root.screenSize == "small"' class='padding-mid'>Delete</span>
                     </div>
                 </div>
         
                 <!-- Description -->
-                <div ng-show='announcement.desc' class='fsmall1 nl-text-desc padding-horizontal {{(announcement.showMore && $root.announcement.mode == "pane") ? "" : "nl-overflow-desc-hidden"}}' style='width: {{checkOverflow($event) ? "" : ""}}'>
+                <div ng-show='announcement.desc' class='fsmall1 fdarkgrey2 padding-horizontal {{(announcement.showMore && $root.announcement.mode == "pane") ? "" : "nl-overflow-desc-hidden"}}' style='width: {{checkOverflow($event) ? "" : ""}}'>
                     {{announcement.desc}}
                 </div>
                 <div class='row row-center margin0 padding0' ng-if='checkOverflow(announcement.desc)'>

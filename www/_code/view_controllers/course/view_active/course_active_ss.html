@@ -6,14 +6,14 @@
 			<div style='padding-right: 10px'>
 		        <div class='nl-link-text text-center padding-mid'
 		        	ng-click='onExpandOrCollapseAll()'>
-		        	<span class='fheading1' style='font-size:16px'>{{currentStateText}}</span>
+		        	<span class='fdarkgrey2' style='font-size:16px'>{{currentStateText}}</span>
 		        </div>
 			</div>
 		</div>
 		<div ng-repeat='cm in modules' class='anim fade'
 			style='background-color: #FFFFFF; border-bottom: 1px solid #EFEFF5'>
 	        <div ng-click='onRowClick($event, cm)'
-	        	 class='padding-mid factive {{ext.item.id == cm.id ? "item-selected" : ""}} {{cm.type != "certificate" ? "nl-link-text" : ""}}'>
+	        	 class='padding-mid fdarkgrey1 {{ext.item.id == cm.id ? "item-selected" : ""}} {{cm.type != "certificate" ? "nl-link-text" : ""}}'>
 	            <div class='row row-center margin0 padding-mid'>
 	            	<div style='width: {{cm.indentationLevel*16 + 8}}px'></div>
 					<div ng-if="cm.type == 'module'" style="width: 24px;">
@@ -47,7 +47,7 @@
 				    </div>
 				</div>
 			</div>
-			<div ng-show='cm.type != "certificate" && cm.type != "module" && cm.id == ext.item.id && isDetailsShown && !vp.i' class='factive padding-mid anim fade'>
+			<div ng-show='cm.type != "certificate" && cm.type != "module" && cm.id == ext.item.id && isDetailsShown && !vp.i' class='fdarkgrey1 padding-mid anim fade'>
 				<div style='border: 1px #CCCCCC solid'>
 					<nl-course-small-screen-details></nl-course-small-screen-details>
 				</div>

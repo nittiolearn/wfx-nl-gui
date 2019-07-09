@@ -1253,14 +1253,14 @@ function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader) {
 		var visible = matched > MAX_VISIBLE ? MAX_VISIBLE : matched;
         var oldInfotxt = scope.data.search.infotxt || '';
         var msg1 = nl.t('There are no items to display.');
-        scope.data.search.cls = 'fgrey2';
+        scope.data.search.cls = 'fgrey';
         scope.data.search.showDetails = false;
         scope.data.search.clsAnimate = 'anim-highlight-on';
         if (visible == 0) {
             scope.data.search.infotxt = nl.fmt2('<i class="padding-mid icon ion-alert-circled"></i>{}', 
                 msg1);
             scope.data.search.infotxt2 = msg1;
-            scope.data.search.cls = 'fgrey2';
+            scope.data.search.cls = 'fgrey';
             return;
 	    }
         var item = (visible == 1) ? 'item' : 'items';
@@ -1270,7 +1270,7 @@ function ResourceLibrary(nl, nlDlg, nlServerApi, nlResourceUploader) {
             scope.data.search.infotxt2 = msg1;
 	        return;
         }
-        scope.data.search.cls = 'fgrey2 nl-link-text';
+        scope.data.search.cls = 'fgrey nl-link-text';
         scope.data.search.showDetails = true;
         scope.data.search.infotxt = nl.t('{} <b>Fetch more <i class="icon ion-refresh"></i></b>.', msg1);
         scope.data.search.infotxt2 = nl.t('Not found what you are looking for? Do you want to fetch more items from the server?');

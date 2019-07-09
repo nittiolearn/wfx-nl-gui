@@ -24,7 +24,7 @@
      class='padding-mid' ng-click='item.showHelp = !item.showHelp'>
      <div class='row row-center row-wrap margin0 padding0'>
          <span class='col padding0'>{{item.name}}</span>
-         <i class='padding-mid nl-link-text icon fsh4 fgrey2 ion-ios-help'></i>
+         <i class='padding-mid nl-link-text icon fsh4 fgrey ion-ios-help'></i>
      </div>
 </div>
 <div ng-class='$root.resp2Col67'
@@ -83,7 +83,7 @@
 <div class='w100 padding-mid' ng-if='item.showHelp && item.help && item.type !== "hidden"'>
     <nl-inline-help>
         <div>
-	        <span class='fsh6 fblue2'>{{item.name}}:</span>
+	        <span class='fsh6'>{{item.name}}:</span>
 	        <span ng-bind-html='item.help'></span>
         </div>
     </nl-inline-help>

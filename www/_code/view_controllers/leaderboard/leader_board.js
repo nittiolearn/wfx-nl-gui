@@ -3,6 +3,8 @@
 //-------------------------------------------------------------------------------------------------
 // leader_board.js:
 // leader board module
+// TODO: This is just a demo module. Remove the complte stuff and take inspiration for the 
+// GUI for learner_view
 //-------------------------------------------------------------------------------------------------
 function module_init() {
 	angular.module('nl.leaderboard', []).config(configFn)
@@ -69,10 +71,10 @@ function () {
 						"<div class='padding'>"+
 							"<div class='nl-leader-box {{fieldcls}}' style='padding-top:12px'>"+
 								"<div class='row row-center text-center row-justify-evenly padding0 margin0'>"+
-									"<span class='fprimary' style='font-size:300%; font-weight: 600;min-width:95px'>{{number}}</span>"+
+									"<span class='fblue2' style='font-size:300%; font-weight: 600;min-width:95px'>{{number}}</span>"+
 								"</div>"+
 								"<div class='row row-center text-center row-justify-evenly padding0 margin0'>"+
-									"<span class='fheading2' style='font-size: 12px;'>{{desc}}</span>"+
+									"<span class='fdarkgrey2' style='font-size: 12px;'>{{desc}}</span>"+
 								"</div>"+
 							"</div>"+
 						"</div>"+
@@ -104,10 +106,10 @@ function () {
 								"</div>"+
 								"<span style='padding-top:2px;'><span/>"+
 								"<div class='row row-center text-center row-justify-evenly padding0 margin0'>"+
-									"<span class='fheading2' style='font-size:16px;font-weight:bold;'>{{title}}</span>"+
+									"<span class='fdarkgrey2' style='font-size:16px;font-weight:bold;'>{{title}}</span>"+
 								"</div>"+
 								"<div class='row row-center text-center row-justify-evenly padding0 margin0'>"+
-									"<span class='fheading2' style='font-size: 12px;'>{{desc}}</span>"+
+									"<span class='fdarkgrey2' style='font-size: 12px;'>{{desc}}</span>"+
 								"</div>"+
 							"</div>"+
 						"</div>"+
