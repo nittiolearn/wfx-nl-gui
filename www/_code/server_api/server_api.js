@@ -197,7 +197,7 @@ function(nl, nlDlg, nlConfig, Upload) {
     };
     
     this.courseUpdateParams = function(data){
-        // returns updated attendance/milestone object
+        // returns updated attendance/milestone/rating object
         return server.post('_serverapi/course_update_params.json', data);
 	};
 

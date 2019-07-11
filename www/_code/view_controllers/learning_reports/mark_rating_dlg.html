@@ -1,0 +1,48 @@
+<nl-dlg dlgTitle='Provide ratings' show-help='0'>
+<nl-dlg-content>
+<div class='row row-top padding0 margin0'>
+	<div class='col' style='padding-right:0px; max-width: 250px'>
+		<div class='padding-mid fsh4'>Ratings</div>
+		<div ng-repeat='rating in ratings'
+			class='nl-link-text {{rating.id == selectedRating.id ? "nl-left-tab-selected" : "nl-left-tab"}} padding-small'>
+			<div class='padding-mid' 
+				ng-click='onClick(rating)'
+				style='position:relative'>
+				{{rating.name}}
+			</div>
+		</div>
+	</div>
+	<div class='col nl-left-tabbed-content'>
+		<div class='row row-center padding-0 margin0'>
+			<div class='col padding-mid fsh4'>Mark  the learner ratings for {{selectedRating.name}}</div>
+			<div class='nl-link-text nl-button-highlight' ng-click='bulkRatingMarker($event)'>Mark all</div>
+		</div>
+		<div class='row row-center padding0 margin0' ng-repeat='user in selectedRating["rating"]'>
+			<div class='row row-center padding0 margin0 row-wrap'>
+                <div ng-class='respCol211'class='padding-mid'>
+                    <div class='row row-center padding0 margin0'>
+                        <div class='col' >{{user.name}} <span style='color:#838383'>({{user.userid}})</span></div>
+                        <div ng-if='selectedRating.ratingType === "select"' class='col padding0'>
+                            <select ng-model='user.rating'
+                                    ng-options='opt as opt.name for opt in selectedRating.ratingOptions track by opt.id'
+                                    class='w100 {{fieldcls}}'
+                                    autofocus=''
+                                    tabindex="{{tabindex}}"
+                                    style='min-height: 34px'
+                                    placeholder='"Write remarks"'>
+                            </select>
+                        </div>
+                        <div ng-if='selectedRating.ratingType === "input"' class='col padding0'>
+                            <input type='number' ng-model='user.rating'></input>
+                        </div>
+                    </div>
+                </div>
+                <div ng-class='respCol211'class='padding-mid'>
+					<input type='text' ng-model='user.remarks' placeholder='Mention remarks for learner'></input>
+                </div>
+			</div>
+		</div>
+	</div>
+</div>
+</nl-dlg-content>
+</nl-dlg>

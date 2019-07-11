@@ -213,7 +213,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 
 	function _editAttribute(e, cm, attr) {
 		if (attr.name == 'start_after') {
-			var dlg = new StartAfterDlg(nl, nlDlg, $scope, _allModules, cm);
+			var dlg = new StartAfterDlg(nl, nlDlg, $scope, _allModules, cm, _groupInfo);
 			dlg.show();
 		}
 		if (attr.name == 'trainer_notes') {
@@ -939,26 +939,38 @@ function TrainerNotesDlg(nl, nlDlg, $scope, _allModules, cm, nlLessonSelect, _us
 }
 
 //-------------------------------------------------------------------------------------------------
-function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm) {
+function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm, _groupInfo) {
 
 	var dlg = nlDlg.create($scope);
 	var idsToTypeMapping = {};
+	var _groupInfo = _groupInfo;
 	this.show = function() {
 		dlg.setCssClass('nl-height-max nl-width-max');
 		dlg.scope.dlgTitle = nl.t('Configure dependencies');
 		dlg.scope.showMaxScore = true;
 		dlg.scope.moduleOptions = _getAvailableModules();
-		dlg.scope.iltConditionOptions = _getIltConditions();
 		if(dlg.scope.moduleOptions.length == 0) {
 			var msg = {title: nl.t('Error'), template: nl.t('It is not possible to configure start after for the first item.')};
 			nlDlg.popupAlert(msg);
 			return;
 		}
+
 		dlg.scope.moduleList = _getModuleListFromCm();
 
 		dlg.scope.onModuleSelect = function(item) {
-			if(item.module.type != 'iltsession') return;
-			item.iltCondition = dlg.scope.iltConditionOptions[0];
+			item.canShowSelectBox	= false;
+			item.canShowMinScore = false;
+			item.canShowMaxScore = false;
+			if(!(item && item.module)) return;
+			if(item.module.type == "lesson" || item.module.type == "rating") {
+				item.canShowMinScore = true;
+				item.canShowMaxScore = true;
+			}
+			if(item.module.type == "iltsession") {
+				item.canShowSelectBox	= true;
+				item.options = _getIltConditions();
+				item.selectedOption = item.options[0];
+			}
 		};
 		var okButton = {text: nl.t('Ok'), onTap: function(e) {
 			_onOk(e);
@@ -972,11 +984,19 @@ function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm) {
 		var items = cm.start_after || [];
 		for(var i=0; i<items.length; i++) {
 			var item = items[i];
-			var dict = {module: {id: item.module, type: idsToTypeMapping[item.module]}, min_score: item.min_score || '', 
+			var dict = {module: {id: item.module, type: idsToTypeMapping[item.module].type, rating_type: idsToTypeMapping[item.module].rating_type}, min_score: item.min_score || '', 
 						max_score: item.max_score || '', error: ''};
+			if(idsToTypeMapping[item.module].type == 'lesson' || idsToTypeMapping[item.module].type == 'rating'){
+				dict.canShowMaxScore = true;
+				dict.canShowMinScore = true;
+			}
 			if(item.iltCondition) {
-				dict['iltCondition'] = {id: item.iltCondition};
-			} else if(idsToTypeMapping[item.module] == 'iltsession'){
+				dict.canShowSelectBox = true;
+				dict.options = _getIltConditions();
+				dict['selectedOption'] = {id: item.iltCondition};
+			} else if(idsToTypeMapping[item.module].type == 'iltsession'){
+				dict.canShowSelectBox = true;
+				dict.options = _getIltConditions();
 				dict['iltCondition'] = {id: 'marked'};
 			}
 			ret.push(dict);
@@ -1013,7 +1033,7 @@ function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm) {
 				_validateFail(item, 'Maximum score cannot be smaller than minimmum score');
 				continue;
 			}
-			if(item.module.type == 'iltsession') moduleToStore['iltCondition'] = item.iltCondition.id;
+			if(item.module.type == 'iltsession') moduleToStore['iltCondition'] = item.selectedOption.id;
 			_validateSuccess(item);
 			modulesToStore.push(moduleToStore);
 		}
@@ -1044,8 +1064,8 @@ function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm) {
 			var item = _allModules[i];
 			if(item.id == cm.id) break;
 			if(item.type == 'module') continue;
-			idsToTypeMapping[item.id] = item.type;
-			var dict = {id: item.id, name:item.name, type: item.type};
+			idsToTypeMapping[item.id] = {type: item.type, rating_type: item.rating_type || null};
+			var dict = {id: item.id, name:item.name, type: item.type, rating_type: item.rating_type};
 			availableIdsArray.push(dict);
 		}
 		return availableIdsArray;

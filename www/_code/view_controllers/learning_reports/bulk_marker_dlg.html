@@ -1,9 +1,9 @@
-<nl-dlg dlgTitle='{{selectedSession.name}}' show-help='0'>
+<nl-dlg dlgTitle='{{selectedItem.name}}' show-help='0'>
 <nl-dlg-content>
 <div class='padding'>
-    <div class='fsh4 padding-mid'>Mark all learners attendance as</div>
-    <div ng-repeat='opt in markingOptions'>
-        <div class='row row-center padding0 margin0 nl-link-text' ng-click='selectForBulkMarking(opt)' ng-hide='opt.id == ""'>
+    <div class='fsh4 padding-mid'>{{data.bulkMarkStr}}</div>
+    <div ng-repeat='opt in markingOptions' ng-if='rating_type == "select"'>
+        <div class='row row-center padding0 margin0 nl-link-text' ng-click='selectForBulkMarking(opt)'>
             <span class='padding-mid'>
                 <i ng-hide='opt.selected' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
                 <i ng-show='opt.selected' class='fsh4 icon ion-android-checkbox-outline'></i>
@@ -12,6 +12,9 @@
                 {{opt.name}}
             </div>
         </div>
+    </div>
+    <div ng-if='rating_type == "input"'>
+        <input ng-model='data.ratingNumber' type='number'></div>
     </div>
 </div>
 </nl-dlg-content>    
