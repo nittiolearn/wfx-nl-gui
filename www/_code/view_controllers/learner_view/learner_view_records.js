@@ -461,6 +461,7 @@
             report.assign_remarks = (report.ctype == _nl.ctypes.CTYPE_COURSE ? repcontent.remarks : repcontent.assign_remarks) || '';
             report.not_before = repcontent.not_before || '';
             report.not_after = repcontent.not_after || '';
+            report.not_before = nl.fmt.json2Date(report.not_before);
             return repcontent;
         }
         

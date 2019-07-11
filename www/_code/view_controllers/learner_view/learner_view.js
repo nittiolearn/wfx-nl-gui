@@ -92,8 +92,8 @@ function(nl) {
 //-------------------------------------------------------------------------------------------------
 var LearnerViewCtrl = ['$scope', 'nlLearnerView',
 function($scope, nlLearnerView) {
-	var reportView = nlLearnerView.create($scope);
-	reportView.show();
+	var learnerView = nlLearnerView.create($scope);
+	learnerView.show();
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -102,9 +102,19 @@ var NlLearnerView = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlLearverViewHel
 'nlLearnerViewRecords', 'nlTopbarSrv', 'nlCardsSrv',
 function(nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper, nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv) {
 	this.create = function($scope) {
-		return new NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper,
+		return new NlLearnerViewImpl($scope, nl, nlDlg, this, nlRouter, nlServerApi, nlLearverViewHelper,
 			nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv);
 	};
+
+	this.initPageBgImg = function(data) {
+        var bgimgs = (data.dashboard_props || {}).bgimgs;
+        if (!bgimgs && data.groupinfo && data.groupinfo.bgimg)
+            bgimgs = [data.groupinfo.bgimg];
+        if (!bgimgs) return;
+        var pos = Math.floor((Math.random() * bgimgs.length));
+        nl.rootScope.pgBgimg = bgimgs[pos];
+	};
+
 }];
 
 var NlLearnerViewHelperSrv = [function() {
@@ -134,12 +144,14 @@ var NlLearnerViewHelperSrv = [function() {
 	};
 }];
 
-function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper, 
+function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerApi, nlLearverViewHelper, 
 	nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv) {
+	var self = this;
 	var _fetchChunk = 100;
 	var _userInfo = null;
 	var _parent = false;
 	var _isHome = false;
+
 	this.show = function() {
 		nlRouter.initContoller($scope, '', _onPageEnter);
 	};
@@ -160,6 +172,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
+		if (!_isHome) nlLearnerView.initPageBgImg(_userInfo);
 		return nl.q(function(resolve, reject) {
 			_init(userInfo);
 			_getLearningRecordsFromServer(resolve, false);
@@ -173,14 +186,12 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 // Private members
 	function _init(userInfo) {
 		nlLearnerViewRecords.init(userInfo);
-		nl.pginfo.pageTitle = _isHome ? 'Learner view' : 'Assignment Reports';
 		$scope.tabData = _initTabData();
 		nlTopbarSrv.setPageMenus($scope.tabData.tabs, $scope.tabData.selectedTab.id);
 		_initChartData();
 	}
 
 	function _initChartData() {
-		$scope.mySummary = [];
 		var label =  ['Completed', 'Pending'];
 		var colors = [_nl.colorsCodes.done, _nl.colorsCodes.pending];
 
@@ -193,11 +204,11 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 		},
 		{
 			type: 'bar',
-			title: nl.fmt2('Assignments assigned vs completed over time'),
+			title: nl.fmt2('Assigned vs completed over time'),
 			data: [[]],
 			labels: [],
 			series: ['Assigned', 'Completed'],
-			colors: ['#3366ff', '#ff6600']
+			colors: [_nl.colorsCodes.blue2, _nl.colorsCodes.done]
 		}];
 	}
     var _pageFetcher = nlServerApi.getPageFetcher({defMax: _fetchChunk, itemType: 'learning record'});
@@ -220,45 +231,49 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 	}
 
 	function _initTabData() {
-		var ret =  {tabs: [{
-			id: 'assigned',
-            type: 'tab',
-			iconCls : 'ion-compose',
-			name: 'Learn',
-			text: 'My learning items',
+		var assignedTab = {id: 'assigned', type: 'tab', iconCls : 'ion-play',
+			name: 'Learn', text: 'My learning items', updated: false,
+			onClick: _onTabSelect};
+		var summaryTab = {id: 'summary', type: 'tab', iconCls : 'ion-stats-bars',
+			name: 'Summary', text: 'My learning summary', updated: false,
+			onClick: _onTabSelect};
+		var exploreTab = {id: 'explore', type: 'tab', iconCls : 'ion-ios-navigate',
+			name: 'Explore', text:'Click to view explore links', updated: false,
+			onClick: _onTabSelect};
+		var adminTab = {id: 'admin', type: 'tab', iconCls : 'ion-ios-gear', 
+			name: 'Admin', text:'Click here for admin view', updated: false, 
+			onClick: _onTabSelect};
 
-			updated: false,
-			onClick: _onTabSelect
-		},{
-			id: 'summary',
-            type: 'tab',
-			iconCls : 'ion-connection-bars',
-			name: 'Summary',
-			text: 'My learning summary',
-
-			updated: false,
-			onClick: _onTabSelect
-		}]};
-		if(_userInfo.dashboard_props && ('explore' in _userInfo.dashboard_props) 
-			&& _userInfo.dashboard_props.explore.length > 0)
-			ret.tabs.push({id: 'explore', type: 'tab', iconCls : 'ion-ios-navigate', name: 'Explore', text:'Click to view explore links', updated: false, onClick: _onTabSelect});
-		if(_isHome && _userInfo.dashboard && _userInfo.dashboard.length > 0)
-			ret.tabs.push({id: 'admin', type: 'tab', iconCls : 'ion-ios-gear', name: 'Admin', text:'Click here for admin view', updated: false, onClick: _onTabSelect});
+		var ret =  {tabs: []};
+		var isAdminTabAvailable = _userInfo.dashboard && _userInfo.dashboard.length > 0;
+		var isAdminFirst = _userInfo.dashboard_props && _userInfo.dashboard_props.adminFirst;
+		var isExploreTabAvailable = _userInfo.dashboard_props && 
+			_userInfo.dashboard_props.explore && 
+			(_userInfo.dashboard_props.explore.length > 0);
+		
+		if (isAdminTabAvailable && isAdminFirst) ret.tabs.push(adminTab);
+		ret.tabs.push(assignedTab);
+		ret.tabs.push(summaryTab);
+		if (isExploreTabAvailable) ret.tabs.push(exploreTab);
+		if (isAdminTabAvailable && !isAdminFirst) ret.tabs.push(adminTab);
 
 		ret.dataLoaded = false;
 		ret.learningCounts = {};
 		ret.search = '';
 		ret.lastSeached = '';
-		ret.searchPlaceholder = 'Type the search words and press enter';
+		ret.filter = 'all';
+		ret.searchPlaceholder = 'Search';
 		ret.records = null; 
+		ret.recordsLen = 0;
 		ret.summaryStats = null;
 		ret.summaryStatSummaryRow = null;
 		ret.selectedTab = ret.tabs[0];
 		ret.onSearch = _onSearch;
+		ret.onFilter = _onFilter;
 		ret.assignedSections = [
-			{type: 'active', title: 'ACTIVE', count: 0},
-			{type: 'upcoming', title: 'UPCOMING', count: 0},
-			{type: 'past', title: 'PAST', count: 0}
+			{type: 'active', title: 'ACTIVE', items: []},
+			{type: 'upcoming', title: 'UPCOMING', items: []},
+			{type: 'past', title: 'PAST', items: []}
 		];
 		return ret;
 	}
@@ -269,8 +284,14 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 		var tabData = $scope.tabData;
 		if (tabData.lastSeached == tabData.search) return;
 		tabData.lastSeached = tabData.search;
-		_someTabDataChanged();
-		_updateCurrentTab();
+		_updateAssignedTab();
+	}
+
+	function _onFilter(event, filter) {
+		var tabData = $scope.tabData;
+		if (tabData.filter == filter) return;
+		tabData.filter = filter;
+		_updateAssignedTab();
 	}
 
 	function _someTabDataChanged() {
@@ -302,7 +323,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 
 	function _actualUpdateCurrentTab(tabData, tab) {
 		if (!tabData.records) {
-			tabData.records = _getFilteredRecords();
+			tabData.records = _getRecords();
+			tabData.recordsLen = Object.keys(tabData.records).length;
 		}
 		if (tab.id == 'assigned') {
 			_updateAssignedTab();
@@ -372,32 +394,56 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
         }
     }
 
-    function _eulaWarning() {
-        nlConfig.loadFromDb('EULA_INFO', function(eulaInfo) {
-            if (eulaInfo == null) {
-                userInfo = _defaultUserInfo();
-            }
-        });
+    function _getRecords() {
+		return nlLearnerViewRecords.getRecords();
     }    
 	
 	function _getFilteredRecords() {
-		for (var type in SEC_POS)
-			$scope.tabData.assignedSections[SEC_POS[type]].count = 0;
-		var records = nlLearnerViewRecords.getRecords();
+		var records = $scope.tabData.records;
+		var assignedSections = $scope.tabData.assignedSections;
+		for (var type in SEC_POS) {
+			assignedSections[SEC_POS[type]].items = [];
+		}
+
+		$scope.tabData.assignedCounts = {all: 0, active: 0, started: 0};
+		var assignedCounts = $scope.tabData.assignedCounts;
+
 		var tabData = $scope.tabData;
 		var searchInfo = _getSearchInfo(tabData);
-		var filteredRecords  = [];
+		var filter = tabData.filter;
 		for (var recid in records) {
 			var record = records[recid];
-			if (!_doesPassFilter(record, searchInfo)) continue;
-			filteredRecords.push(record);
+			if (!_doesPassSearch(record, searchInfo)) continue;
+
 			var type = record.recStateObj.type;
-			$scope.tabData.assignedSections[SEC_POS[type]].count++;
+			var statusid = record.stats.status.id;
+			var isActive = type == 'active';
+			var isStarted = isActive && statusid == nlLearverViewHelper.STATUS_STARTED;
+			var doesPassFilter = (filter == 'all') ||
+				(filter == 'active' && isActive) ||
+				(filter == 'started' && isStarted);
+
+			assignedCounts.all++;
+			if (isActive) assignedCounts.active++;
+			if (isStarted) assignedCounts.started++;
+
+			if (!doesPassFilter) continue;
+			assignedSections[SEC_POS[type]].items.push(record);
 		}
-		filteredRecords.sort(function(a, b) {
-			return (b.stats.status.id - a.stats.status.id);
+
+		assignedSections[SEC_POS['active']].items.sort(function(a, b) {
+			// ASCENDING
+			return (a.raw_record.not_before - b.raw_record.not_before);
 		});
-		return filteredRecords;
+		assignedSections[SEC_POS['upcoming']].items.sort(function(a, b) {
+			// ASCENDING
+			return (a.raw_record.not_before - b.raw_record.not_before);
+		});
+		assignedSections[SEC_POS['past']].items.sort(function(a, b) {
+			// DESCENDING
+			return (b.raw_record.updated - a.raw_record.updated);
+		});
+		return assignedSections;
 	}
 
 	function _getSearchInfo(tabData) {
@@ -411,7 +457,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 		return ret;
 	}
 
-	function _doesPassFilter(record, searchInfo) {
+	function _doesPassSearch(record, searchInfo) {
 		if (searchInfo.length == 0) return true;
 		var repcontent = record.repcontent || {};
 		var raw_record = record.raw_record || {};
@@ -449,54 +495,59 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 	}
 
 	function _updateAssignedTab() {
-		return;
+		$scope.tabData.assignedSections = _getFilteredRecords();
 	}
 
 	function _updateSummaryTab() {
-		_updateOverviewDoughnut();
-		_updateOverviewInfoGraphicsCards();
-		_updateOverviewTimeChart();
-	}
+		var learningCounts = {cntTotal: 0, cntActive: 0, completed: 0, certified: 0, pending: 0, failed: 0, scorePerc: 0, 
+			percCompleted: 0, percCerfied: 0, percFailed: 0, percPending: 0, avgScore: 0, 
+			timeSpent: 0, certInFirstAttempt: 0, certInSecondAttempt: 0, certInMoreAttempt: 0,
+			percCertInFirstAttempt: 0, percCertInSecondAttempt: 0, percCertInMoreAttempt: 0};
+		$scope.tabData.learningCounts = learningCounts;
+	
+		var doughnutChart = $scope.charts[0];
+		doughnutChart.data = [0, 0];
 
-	var defaultItemDict = {cntTotal: 0, cntActive: 0, completed: 0, certified: 0, pending: 0, failed: 0, scorePerc: 0, 
-		percCompleted: 0, percCerfied: 0, percFailed: 0, percPending: 0, avgScore: 0, 
-		timeSpent: 0, certInFirstAttempt: 0, certInSecondAttempt: 0, certInMoreAttempt: 0,
-		percCertInFirstAttempt: 0, percCertInSecondAttempt: 0, percCertInMoreAttempt: 0};
-
-	function _updateOverviewTimeChart() {
-		var c = $scope.charts[1];
+		var timeChart = $scope.charts[1];
 		var ranges = nlLearnerViewRecords.getTimeRanges();
 		var records = $scope.tabData.records;
-		$scope.tabData.learningCounts = angular.copy(defaultItemDict);
-		for (var j=0; j<records.length; j++) {
-			var rec = records[j];
-			_updateCoursesDetailsDict(rec, $scope.tabData.learningCounts);
+		for (var recid in records) {
+			var rec = records[recid];
+			if(!rec) continue;
+			var status = rec.stats.status;
+			status = nlLearverViewHelper.isDone(status) ? 'done' : status.id == nlLearverViewHelper.STATUS_STARTED ? 'started' : (status.id == nlLearverViewHelper.STATUS_DELAYED) ? 'delayed' : 'pending';
+			if (status == 'done') {
+				doughnutChart.data[0] += 1;
+			} else {
+				doughnutChart.data[1] += 1;
+			}
+			_updateCoursesDetailsDict(rec, learningCounts);
 			var isModuleRep = rec.type == 'module';
 			var ended = isModuleRep ? _getModuleEndedTime(rec.raw_record) : _getCourseEndedTime(rec);
 			var isAssignedCountFound = false;
 			var isCompletedCountFound = false;
 			for(var i=0; i<ranges.length; i++) {
-				if (_isTsInRange(rec.raw_record.created, ranges[i])) {
+				if (!isAssignedCountFound && _isTsInRange(rec.raw_record.created, ranges[i])) {
 					ranges[i].count++;
 					isAssignedCountFound = true;
-					if (!ended) break;
 				}
-				if (!_isTsInRange(ended, ranges[i])) continue;
-				if(!isCompletedCountFound) {
+				if (ended && !isCompletedCountFound && _isTsInRange(ended, ranges[i])) {
 					ranges[i].completed++;
 					isCompletedCountFound = true;
 				}
-				if(isAssignedCountFound) break;
+				if(isAssignedCountFound && isCompletedCountFound) break;
 			}
 		}
 		
-		c.labels = [];
-		c.data = [[], []];
+		doughnutChart.title = nl.t('Progress: {} of {} completed', learningCounts.completed, learningCounts.cntTotal);
+
+		timeChart.labels = [];
+		timeChart.data = [[], []];
 		for (var i=0; i<ranges.length; i++) {
 			var r = ranges[i];
-			c.labels.push(r.label);
-			c.data[0].push(r.count);
-			c.data[1].push(r.completed)
+			timeChart.labels.push(r.label);
+			timeChart.data[0].push(r.count);
+			timeChart.data[1].push(r.completed)
 		}
 	}
 
@@ -556,50 +607,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 	function _getCourseEndedTime(rep) {
 		if (!nlLearverViewHelper.isDone(rep.stats.status)) return null;
 		return rep.raw_record.updated;
-	}
-
-	function _updateOverviewDoughnut() {
-		var c = $scope.charts[0];
-		c.data = [0, 0];
-		var records = $scope.tabData.records;
-		for (var i=0; i<records.length; i++) {
-			var rec = records[i]
-			if(!rec) continue;
-			var status = rec.stats.status;
-			status = nlLearverViewHelper.isDone(status) ? 'done' : status.id == nlLearverViewHelper.STATUS_STARTED ? 'started' : (status.id == nlLearverViewHelper.STATUS_DELAYED) ? 'delayed' : 'pending';
-			if (status == 'done') {
-				c.data[0] += 1;
-			} else {
-				c.data[1] += 1;
-			}
-		}
-		c.title = nl.t('Assignments progress: {} of {} done', c.data[0], records.length);
-	}
-	
-	function _updateOverviewInfoGraphicsCards() {
-		var statusDict = {assigned: 0, completed: 0, ongoing: 0, overdue: 0, pending: 0};
-		var records = $scope.tabData.records;
-		for (var i=0; i<records.length; i++) {
-			var rec = records[i];
-			if (!rec) continue;
-			var status = rec.stats.status;
-			statusDict.assigned +=1;
-			status = nlLearverViewHelper.isDone(status) ? 'done' : status.id == nlLearverViewHelper.STATUS_STARTED ? 'started' : status.id == nlLearverViewHelper.STATUS_DELAYED ? 'delayed' : 'pending';			
-			if (status == 'pending') {
-				statusDict.pending +=1;
-			} else if (status == 'done') {
-				statusDict.completed += 1;
-			} else if (status == 'started'){
-				statusDict.ongoing += 1;
-			} else if (status == 'delayed') {
-				statusDict.overdue += 1;
-			}
-		}
-		$scope.mySummary = [
-			{title: nl.t('ASSIGNMENTS'), desc:'', count: statusDict.assigned},
-			{title: nl.t('COMPLETIONS'), desc:'', count: statusDict.completed},
-			{title: nl.t('ONGOING'), desc:'', count: statusDict.ongoing},
-			{title: nl.t('OVERDUE'), desc:'', count: statusDict.overdue}];
 	}
 }
 

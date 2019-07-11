@@ -1,121 +1,149 @@
-<style>
-.lv-section-header {
-    color: #999999;
-    font-weight: bold;
-}
-
-.advanced-search-box {
-    border: 1px solid #CCC; 
-    border-radius: 4px; 
-    background-color: #FFFFFF;
-}
-</style>
 <div class='nl-thin-scroll' style='position:absolute; width: 100%; height: 100%'>
-<div class='nl-limitwidth padding'> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
-    <div class='lv-container bgdefault padding'>
-        <div ng-if='!tabData.dataLoaded'>
-            Learning records are being loaded from the server. Please wait ...
-        </div>
-        <div ng-if='tabData.selectedTab.id == "assigned" && tabData.dataLoaded'>
-            <!-- Active, Upcomming, Past Sections -->
-            <div ng-repeat='section in tabData.assignedSections'>
-                <div class='lv-section-header padding0 row row-center margin0'>
-                    <div class='col padding0 fsh5'>
-                            {{section.title}}
+<div class='lv-container padding'> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
+    <div ng-if='!tabData.dataLoaded && (tabData.selectedTab.id == "assigned" || tabData.selectedTab.id == "summary")'
+            class='nl-limitwidth bgdefault shape-rounded-small fgrey padding'>
+        Learning records are being loaded from the server. Please wait ...
+    </div>
+    <div ng-if='tabData.selectedTab.id == "assigned" && tabData.dataLoaded'
+            class='nl-limitwidth bgdefault shape-rounded-small padding'>
+        <!-- Search box -->
+        <div class='row row-top row-wrap margin0 padding0'>
+            <div class='padding0 nl-searchbox' style='padding-bottom: 8px'>
+                <div class='row row-center margin0 padding0 nl-searchbox2'>
+                    <span style='padding: 0px 6px'><i class='icon ion-ios-search-strong fsh5'></i></span>
+                    <div class='col padding0'>
+                        <input class='padding-small w100'
+                            ng-model='tabData.search'
+                            ng-attr-placeholder='{{tabData.searchPlaceholder}}'
+                            ng-keydown='tabData.onSearch($event)'
+                            style='border: none; height: 32px; background-color:inherit'>
                     </div>
-                    <!-- Search box -->
-                    <div ng-if='section.type == "active"' 
-                        style='width: 100%; max-width: 280px'>
-                        <div class='row row-center margin0 padding0 advanced-search-box'>
-                            <span style='padding: 0px 6px'><i class='icon ion-ios-search-strong fsh5'></i></span>
-                            <div class='col padding0'>
-                                <input class='padding-small w100'
-                                    ng-model='tabData.search'
-                                    ng-attr-placeholder='{{tabData.searchPlaceholder}}'
-                                    ng-keydown='tabData.onSearch($event)'
-                                    style='border: none; height: 32px; background-color:inherit'>
-                            </div>
+                </div>
+            </div>
+            <div class='col padding0'>
+                <div class='row row-center row-stretch margin0 padding0 text-center'>
+                    <div ng-show='screenSize != "small"' class='padding'></div>
+                    <div ng-show='screenSize == "large"' class='col'></div>
+                    <div class='col padding0'>
+                        <div class='padding-small fdarkgrey2 bgwhite nl-link-text2 lnblue2 {{tabData.filter == "all"? "borderbottom2": ""}}'
+                             ng-click='tabData.onFilter($event, "all")'>
+                            <div class='fsh5'>{{tabData.assignedCounts.all}}</div>
+                            <div class='fsmall2'> total</div>
+                        </div>
+                    </div>
+                    <div class='col padding0' style='padding-left: 8px'>
+                        <div class='padding-small fblue2 bgwhite nl-link-text2 lnblue2 {{tabData.filter == "active"? "borderbottom2": ""}}'
+                             ng-click='tabData.onFilter($event, "active")'>
+                            <div class='fsh5'>{{tabData.assignedCounts.active}}</div>
+                            <div class='fsmall2'> active</div>
+                        </div>
+                    </div>
+                    <div class='col padding0' style='padding-left: 8px'>
+                        <div class='padding-small fgreen bgwhite nl-link-text2 lnblue2 {{tabData.filter == "started"? "borderbottom2": ""}}'
+                             ng-click='tabData.onFilter($event, "started")'>
+                            <div class='fsh5'>{{tabData.assignedCounts.started}}</div>
+                            <div class='fsmall2'> started</div>
                         </div>
                     </div>
                 </div>
-                <div class='padding-mid'></div>
-                <div class='lv-section-data'>
-                    <div ng-show='section.count == 0'>
-                        Nothing to display.
-                    </div>
-                    <div class='anim fade' ng-repeat="record in tabData.records"
-                        ng-if='record.recStateObj.type == section.type'>
-                        <nl-learner-section record='record' 
-                            attr='section.type'
-                            title='record.repcontent.name'
-                            desc='record.repcontent.remarks || record.repcontent.assign_remarks'
-                            icon='record.repcontent.icon'
-                            url='record.recStateObj.url'
-                            isreport='true'
-                            buttontype='(record.recStateObj.button == "REVIEW" || record.recStateObj.button == "REWORK") ? "lowlight" : "highlight"'
-                            buttontext='record.recStateObj.button'>
-                        </nl-learner-section>
-                    </div>
-                </div>
-                <div class='padding'></div>
+                <!-- Toolbar icons can come here -->
             </div>
         </div>
-        <div ng-show='tabData.selectedTab.id == "summary" && tabData.dataLoaded'>
-            <div class='row row-top row-wrap margin-auto padding0'>
-                <div ng-class='respCol221' class='text-center padding-mid'>
-                        <div class='padding-small'></div>
-                        <div class='fsh5 padding-mid'>{{charts[0].title}}</div>
-                        <div class='padding-small'></div>
-                        <div>
-                            <canvas class='chart chart-doughnut'
-                                    height='200'
-                                    width='200'
-                                    chart-data='charts[0].data'
-                                    chart-labels='charts[0].labels'
-                                    chart-colours='charts[0].colors'
-                                    chart-series='charts[0].series'
-                                    chart-options='charts[0].options'>
-                            </canvas>
-                        </div>
-                    </div>
-                    <div ng-class='$root.respCol221' class='text-center padding-mid'>
-                        <div class='padding-small'></div>
-                        <div class='fsh5 padding-mid'>{{charts[1].title}}</div>
-                        <div class='padding-small'></div>
-                        <div on-load="chartsOnLoad()">
-                            <canvas class='chart chart-bar'
-                                    height='250'
-                                    width='350'
-                                    chart-data='charts[1].data'
-                                    chart-labels='charts[1].labels'
-                                    chart-colours='charts[1].colors'
-                                    chart-series='charts[1].series'
-                                    chart-options='charts[1].options'>
-                            </canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class='padding'></div>
-                <div class='margin-auto padding0 bgwhite'>
-                    <nl-learning-status-counts item='tabData.learningCounts' attr='"learner"'></nl-learning-status-counts>
-                </div>
+        <div class='padding-small'></div>
+
+        <div ng-show='tabData.assignedCounts.all == 0' class='fgrey'>
+            Nothing to display.
         </div>
-        <div ng-if='tabData.selectedTab.id == "explore" && tabData.dataLoaded'>
-            <div class='anim fade' ng-repeat="link in exploreCards">
-                <nl-learner-section record='link' 
-                    title='link.title'
-                    desc='link.help'
-                    icon='link.icon'
-                    url='link.url'
-                    isreport='false'
-                    buttontype='"highlight"'
-                    buttontext='"EXPLORE"'>
-                </nl-learner-section>
+        <!-- Active, Upcomming, Past Sections -->
+        <div class='padding0' ng-repeat='section in tabData.assignedSections'
+             ng-hide='section.items.length == 0'>
+            <div class='lv-section-header fdarkgrey2 padding0 row row-center margin0'>
+                <b class='col padding0 fsh5'>
+                        {{section.title}}
+                </b>
+            </div>
+            <div class='padding-small'></div>
+            <div class='lv-section-data'>
+                <div class='anim fade' ng-repeat="record in section.items"
+                    ng-show='record.recStateObj.type == section.type'>
+                    <nl-learner-section record='record' 
+                        attr='section.type'
+                        title='record.repcontent.name'
+                        desc='record.repcontent.remarks || record.repcontent.assign_remarks'
+                        icon='record.repcontent.icon'
+                        url='record.recStateObj.url'
+                        isreport='true'
+                        buttontype='(record.recStateObj.button == "REVIEW" || record.recStateObj.button == "REWORK") ? "lowlight" : "highlight"'
+                        buttontext='record.recStateObj.button'>
+                    </nl-learner-section>
+                </div>
+            </div>
+            <div class='padding-small'></div>
+        </div>
+    </div>
+    <div ng-show='tabData.selectedTab.id == "summary" && tabData.dataLoaded'
+            class='nl-limitwidth padding'>
+        <div ng-show='tabData.recordsLen == 0' class='bgdefault fgrey padding shape-rounded-small'>
+            Nothing to display.
+        </div>
+        <div ng-show='tabData.recordsLen != 0'>
+            <div class='row row-top row-wrap padding0 bgdefault shape-rounded-small'>
+                <div ng-class='$root.respCol221' class='text-center padding-mid'>
+                    <div class='padding-small'></div>
+                    <div class='fsh5 padding-mid'>{{charts[0].title}}</div>
+                    <div class='padding-small'></div>
+                    <div>
+                        <canvas class='chart chart-doughnut'
+                                height='200'
+                                width='200'
+                                chart-data='charts[0].data'
+                                chart-labels='charts[0].labels'
+                                chart-colours='charts[0].colors'
+                                chart-series='charts[0].series'
+                                chart-options='charts[0].options'>
+                        </canvas>
+                    </div>
+                </div>
+                <div ng-class='$root.respCol221' class='text-center padding-mid'>
+                    <div class='padding-small'></div>
+                    <div class='fsh5 padding-mid'>{{charts[1].title}}</div>
+                    <div class='padding-small'></div>
+                    <div on-load="chartsOnLoad()">
+                        <canvas class='chart chart-bar'
+                                height='250'
+                                width='350'
+                                chart-data='charts[1].data'
+                                chart-labels='charts[1].labels'
+                                chart-colours='charts[1].colors'
+                                chart-series='charts[1].series'
+                                chart-options='charts[1].options'>
+                        </canvas>
+                    </div>
+                </div>
+            </div>
+            <div class='padding'></div>
+            <div class='padding0 bgwhite bgdefault shape-rounded-small'>
+                <nl-learning-status-counts item='tabData.learningCounts' attr='"learner"'></nl-learning-status-counts>
             </div>
         </div>
-        <div ng-if='tabData.selectedTab.id == "admin" && tabData.dataLoaded'>
-            <nl-cards cards='adminCards' class='nl-thin-scroll'></nl-cards>
+    </div>
+    <div ng-if='tabData.selectedTab.id == "explore" && tabData.dataLoaded'
+            class='nl-limitwidth padding'>
+        <div class='anim fade' ng-repeat="link in exploreCards">
+            <nl-learner-section record='link' 
+                title='link.title'
+                desc='link.help'
+                icon='link.icon'
+                url='link.url'
+                isreport='false'
+                buttontype='"highlight"'
+                buttontext='"EXPLORE"'>
+            </nl-learner-section>
         </div>
+    </div>
+    <div ng-if='tabData.selectedTab.id == "admin" && tabData.dataLoaded'
+            class='padding'>
+        <nl-cards cards='adminCards' class='nl-thin-scroll'></nl-cards>
     </div>
 </div>
 </div>

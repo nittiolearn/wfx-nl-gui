@@ -6,7 +6,7 @@
 <div class='row row-center padding0 margin0'>
     <div class='col'>
     <div class='row row-center padding-mid margin0' style='background-color: rgba(0, 0, 0, 0.2)'>
-        <div class='col'><b>Total assignments sent:</b></div>
+        <div class='col'><b>Total learning records:</b></div>
         <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
             <div class='row row-center padding0 margin0 text-right  minw-details-number'>
                 <div class='col'><b>{{item.cntTotal}}</b></div>
@@ -18,7 +18,7 @@
     </div>
     <div ng-hide='attr == "learner"'>
         <div class='row row-center padding-mid margin0 nl-bg-blue'>
-            <div class='col'><b>Inactive Assignments: </b></div>
+            <div class='col'><b>Inactive learning records: </b></div>
             <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
                 <div class='row row-center padding0 margin0 text-right  minw-details-number'>
                     <div class='col'><b>{{item.cntInactive}}</b></div>
@@ -29,7 +29,7 @@
         <div class='row row-center padding-mid margin0'>
             <div class='col'>
                 <div style='width: 12px'></div>
-                <div style='padding-left: 12px'>Completed assignments of inactive users: </div>
+                <div style='padding-left: 12px'>Completed items of inactive users: </div>
             </div>
             <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
                 <div class='row row-center padding0 margin0 text-right  minw-details-number'>
@@ -41,7 +41,7 @@
         <div class='row row-center padding-mid margin0'>
             <div class='col'>
                 <div style='width: 12px'></div>
-                <div style='padding-left: 12px'>Pending assignments of inactive users: </div>
+                <div style='padding-left: 12px'>Pending items of inactive users: </div>
             </div>
             <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
                 <div class='row row-center padding0 margin0 text-right  minw-details-number'>
@@ -52,7 +52,7 @@
         </div>
     </div>
     <div ng-hide='attr == "learner"' class='row row-center padding-mid margin0  nl-bg-blue'>
-        <div class='col'><b>Active Assignments:</b></div>
+        <div class='col'><b>Active learning records:</b></div>
         <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
             <div class='row row-center padding0 margin0 text-right minw-details-number'>
                 <div class='col'><b>{{item.cntActive}}</b></div>
@@ -63,7 +63,7 @@
     <div class='row row-center padding-mid margin0'>
         <div class='col'>
             <div style='width: 12px'></div>
-            <div style='padding-left: 12px'>Completed assignments: </div>
+            <div style='padding-left: 12px'>Completed + failed learning records: </div>
         </div>
         <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
             <div class='row row-center padding0 margin0 text-right minw-details-number'>
@@ -75,7 +75,7 @@
     <div class='row row-center padding-mid margin0'>
         <div class='col'>
             <div style='width: 24px'></div>
-            <div style='padding-left: 24px'>Assignments done: </div>
+            <div style='padding-left: 24px'>Completed lerning records: </div>
         </div>
         <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
             <div class='row row-center padding0 margin0 text-right minw-details-number'>
@@ -123,7 +123,7 @@
     <div class='row row-center padding-mid margin0'>
         <div class='col'>
             <div style='width: 24px'></div>
-            <div style='padding-left: 24px'>Failed assignments: </div>
+            <div style='padding-left: 24px'>Failed learning records: </div>
         </div>
         <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
             <div class='row row-center padding0 margin0 text-right minw-details-number'>
@@ -135,7 +135,7 @@
     <div class='row row-center padding-mid margin0'>
         <div class='col'>
             <div style='width: 12px'></div>
-            <div style='padding-left: 12px'>Pending assignments: </div>
+            <div style='padding-left: 12px'>Pending learning records: </div>
         </div>
         <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
             <div class='row row-center padding0 margin0 text-right minw-details-number'>

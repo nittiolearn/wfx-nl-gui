@@ -68,18 +68,18 @@ function($stateProvider) {
     });
 }];
 //-------------------------------------------------------------------------------------------------
-var HomeCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlConfig', 'nlDlg', 'nlCardsSrv', 'nlAnnouncementSrv', 'nlLearnerView',
-function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv, nlLearnerView) {
-    HomeCtrlImpl(true, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv, nlLearnerView);
+var HomeCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlConfig', 'nlCardsSrv', 'nlAnnouncementSrv', 'nlLearnerView',
+function(nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView) {
+    HomeCtrlImpl(true, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView);
 }];
 
-var DashboardViewCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlConfig', 'nlDlg', 'nlCardsSrv', 'nlAnnouncementSrv', 'nlLearnerView',
-function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv, nlLearnerView) {
-    HomeCtrlImpl(false, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv, nlLearnerView);
+var DashboardViewCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlConfig', 'nlCardsSrv', 'nlAnnouncementSrv', 'nlLearnerView',
+function(nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView) {
+    HomeCtrlImpl(false, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView);
 }];
 
 //-------------------------------------------------------------------------------------------------
-function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg, nlCardsSrv, nlAnnouncementSrv, nlLearnerView) {
+function HomeCtrlImpl(isHome, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView) {
     var oldScreenState = angular.copy(nl.rootScope.screenSize);
 
     function _onPageEnter(userInfo) {
@@ -92,10 +92,10 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
             $scope.pane = true;
 
             if(userInfo.dashboard_props['dashboardType'] == "learner_view" && isHome) {
-                var LearnerView = nlLearnerView.create($scope);
+                var learnerView = nlLearnerView.create($scope);
                 $scope.isTabs = true;
-                _initBgimg(userInfo);
-                LearnerView.afterPageEnter(userInfo, parent).then(function(result) {
+                nlLearnerView.initPageBgImg(userInfo);
+                learnerView.afterPageEnter(userInfo, parent).then(function(result) {
                     nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'pane').then(function() {
                         resolve(true);
                     });
@@ -120,21 +120,12 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, $stateParams, nlServerApi, n
 
     function _init(userInfo, parent, dashboardCards, resolve) {
         _initDashboardCards(userInfo, parent, dashboardCards.dashboard);
-        _initBgimg(dashboardCards);
+        nlLearnerView.initPageBgImg(dashboardCards);
         nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'pane').then(function() {
             resolve(true);
         });
     }
 
-    function _initBgimg(data) {
-        var bgimgs = (data.dashboard_props || {}).bgimgs;
-        if (!bgimgs && data.groupinfo && data.groupinfo.bgimg)
-            bgimgs = [data.groupinfo.bgimg];
-        if (!bgimgs) return;
-        var pos = Math.floor((Math.random() * bgimgs.length));
-        nl.rootScope.pgBgimg = bgimgs[pos];
-    }
-    
     function _initDashboardCards(userInfo, parent, cardListFromServer) {
         $scope.cards = {
             staticlist: parent ? [] : _getUnauthorizedCards(userInfo),
@@ -222,8 +213,8 @@ function(nl, nlRouter, $scope) {
 }];
     
 //-------------------------------------------------------------------------------------------------
-var HomeRefreshCtrl = ['nl', 'nlRouter', '$scope', '$stateParams', 'nlServerApi', 'nlConfig', 'nlDlg',
-function(nl, nlRouter, $scope, $stateParams, nlServerApi, nlConfig, nlDlg) {
+var HomeRefreshCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
             nlServerApi.clearCache().then(function(res) {
