@@ -95,7 +95,7 @@ function(nl, $filter) {
     function _updateInfotext(total, matched, visible, cards) {
         var oldInfotxt = cards._internal.search.infotxt;
         var msg1 = nl.t('There are no items to display.');
-        cards._internal.search.cls = 'fgrey2';
+        cards._internal.search.cls = 'fgrey';
         cards._internal.search.showDetails = false;
         if (total == 0) {
             cards._internal.search.infotxt = nl.fmt2('<i class="padding-mid icon ion-alert-circled"></i>{}', 
@@ -116,7 +116,7 @@ function(nl, $filter) {
             cards._internal.search.infotxt2 = msg1;
             return _animateInfotext(cards, oldInfotxt);
         }
-        cards._internal.search.cls = 'fgrey2 nl-link-text';
+        cards._internal.search.cls = 'fgrey nl-link-text';
         cards._internal.search.showDetails = true;
         cards._internal.search.infotxt = nl.t('{} <b>Search more <i class="icon ion-refresh"></i></b>.', msg1);
         cards._internal.search.infotxt2 = nl.t('{} Not found what you are looking for? Do you want to fetch more items from the server?', msg1);

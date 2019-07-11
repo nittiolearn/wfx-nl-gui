@@ -6,14 +6,14 @@
 			<div style='padding-right: 10px'>
 		        <div class='nl-link-text text-center padding-mid'
 		        	ng-click='onExpandOrCollapseAll()'>
-		        	<span class='fheading1' style='font-size:16px'>{{currentStateText}}</span>
+		        	<span class='fdarkgrey2' style='font-size:16px'>{{currentStateText}}</span>
 		        </div>
 			</div>
 		</div>
 		<div ng-repeat='cm in modules' class='anim fade'
 			style='background-color: #FFFFFF; border-bottom: 1px solid #EFEFF5'>
 	        <div ng-click='onRowClick($event, cm)'
-	        	class='row row-center row-wrap margin0 padding0 factive {{ext.item.id == cm.id ? "item-selected" : ""}} factive {{cm.type != "certificate" ? "nl-link-text" : ""}}'>
+	        	class='row row-center row-wrap margin0 padding0 fdarkgrey1 {{ext.item.id == cm.id ? "item-selected" : ""}} {{cm.type != "certificate" ? "nl-link-text" : ""}}'>
 				<div ng-class='resp2Col67' class='margin0 padding-mid' style='padding-left: {{cm.indentationLevel*16 + 8}}px'>
 					<div class='row row-center margin0 padding-mid'>
 						<div ng-if="cm.type == 'module'" style="width: 20px;">
@@ -68,7 +68,7 @@
 					</div>
 				</div>
 			</div>
-			<div ng-show='cm.type != "certificate" && cm.type != "module" && cm.id == ext.item.id && isDetailsShown' class='factive padding-mid anim fade'>
+			<div ng-show='cm.type != "certificate" && cm.type != "module" && cm.id == ext.item.id && isDetailsShown' class='fdarkgrey1 padding-mid anim fade'>
 				<div style='border: 1px #CCCCCC solid'>
 					<nl-course-large-screen-details></nl-course-large-screen-details>
 				</div>

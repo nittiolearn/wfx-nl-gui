@@ -1247,7 +1247,7 @@ function FolderStats($scope, modeHandler) {
     };
 
     var _chartLabels = ['Done', 'Failed', 'Pending', 'Delayed'];
-    var _chartColours = ['#007700', '#F54B22', '#FFCC00', '#770000'];
+    var _chartColours = [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.pending, _nl.colorsCodes.delayed];
     function _updateChartInfo(folderStat) {
         var ret = {labels: _chartLabels, colours: _chartColours};
         ret.data = [folderStat.success, folderStat.failed, 

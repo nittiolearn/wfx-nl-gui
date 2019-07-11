@@ -605,7 +605,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _initChartData() {
 		$scope.overviewArray = [];
 		var labels =  ['done', 'failed', 'started', 'pending'];
-		var colors = ['#007700', '#770000', '#FFCC00', '#A0A0C0'];
+		var colors = [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.started, _nl.colorsCodes.pending];
 
 		var type = nlLrFilter.getType();
 			var typeStr = type == 'module' || type == 'module_assign' || type == 'module_self_assign' ? 'Modules' : 'Courses';
@@ -622,7 +622,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			data: [[]],
 			labels: [],
 			series: ['Assigned', 'Completed'],
-			colors: ['#3366ff', '#ff6600']
+			colors: [_nl.colorsCodes.blue2, _nl.colorsCodes.done]
 		}];
 		var brackets = typeStr == 'Courses' ? '(within courses) ': '';
 		$scope.timeSummaryCharts = [{
@@ -633,7 +633,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				data: [[]],
 				labels: [],
 				series: ['S1'],
-				colors: ['#3366ff']
+				colors: [_nl.colorsCodes.blue2]
 			},
 			{
 				type: 'bar',
@@ -642,7 +642,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				data: [[]],
 				labels: [],
 				series: ['S1'],
-				colors: ['#3366ff']
+				colors: [_nl.colorsCodes.blue2]
 			},
 			{
 				type: 'bar',
@@ -651,7 +651,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				data: [[]],
 				labels: [],
 				series: ['S1'],
-				colors: ['#3366ff']
+				colors: [_nl.colorsCodes.blue2]
 			}],
 			$scope.drillDownArray = [];
 	}
@@ -979,13 +979,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	};
 
 	var _iltLabels = ['Attended', 'Not Attended', 'Pending'];
-	var _iltColours = ['#007700', '#F54B22', '#A0A0C0'];
+	var _iltColours = [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.pending];
 	var _lessonLabels = ['Completed', 'Failed', 'Started', 'Pending'];
-	var _LessonColours = ['#007700', '#F54B22', '#FFCC00', '#A0A0C0'];
+	var _LessonColours = [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.started, _nl.colorsCodes.pending];
 	var _infoLabels = ['Completed', 'Pending'];
-	var _infoColours = ['#007700', '#A0A0C0'];
+	var _infoColours = [_nl.colorsCodes.done, _nl.colorsCodes.pending];
 	var _milestoneLabels = ['Completed', 'Pending'];
-	var _milestoneColors = ['#007700', '#A0A0C0']
+	var _milestoneColors = [_nl.colorsCodes.done, _nl.colorsCodes.pending]
 	function _updateChartInfo(dlgScope, learningRecords) {
 		if(dlgScope.selectedSession.type == 'lesson') {
 			var ret = {labels: _lessonLabels, colours: _LessonColours};

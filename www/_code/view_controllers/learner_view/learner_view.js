@@ -182,7 +182,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlRouter, nlServerApi, nlLearverVi
 	function _initChartData() {
 		$scope.mySummary = [];
 		var label =  ['Completed', 'Pending'];
-		var colors = ['#007700', '#A0A0C0'];
+		var colors = [_nl.colorsCodes.done, _nl.colorsCodes.pending];
 
 		$scope.charts = [{
 			type: 'doughnut',

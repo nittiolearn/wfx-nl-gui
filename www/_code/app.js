@@ -23,7 +23,16 @@ var _nl = {
 		CTYPE_MODULE: 0,
 		CTYPE_COURSE: 2,
 		CTYPE_TRAINING: 4 // future
-	}
+    },
+    colorsCodes: {
+        done: '#007700',          // $nlGreen1
+        failed: '#770000',        // $nlRed
+        started: '#eab01f',       // $nlOrange3
+        pending: '#A0A0C0',       // $nlGrey1
+        delayed: '#e84c3d',       // $nlOrange1
+        blue1: '#153673',          // $nlBlue1
+        blue2: '#2461cc'          // $nlBlue2
+    }
 };
 
 //-------------------------------------------------------------------------------------------------

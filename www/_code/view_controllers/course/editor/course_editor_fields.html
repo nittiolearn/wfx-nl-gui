@@ -28,7 +28,7 @@
 	     class='padding-mid' ng-click='attr.showHelp = !attr.showHelp'>
 	     <div class='row row-center row-wrap margin0 padding0'>
              <span class='col padding0'>{{attr.text||attr.name}}</span>
-             <i class='padding-mid nl-link-text icon fsh4 fgrey2 ion-ios-help'></i>
+             <i class='padding-mid nl-link-text icon fsh4 fgrey ion-ios-help'></i>
 	     </div>
 	</div>
     <div ng-class='$root.resp2Col67'
@@ -187,7 +187,7 @@
 	<div class='w100 inline-help-padding' ng-show='attr.showHelp && attr.help && attr.type !== "hidden"'>
 	    <nl-inline-help>
 	        <div>
-		        <span class='fblue2'><b>{{attr.text}}:</b></span>
+		        <span><b>{{attr.text}}:</b></span>
 		        <span ng-bind-html='attr.help'></span>
 	        </div>
 	    </nl-inline-help>
