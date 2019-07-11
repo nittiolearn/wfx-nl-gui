@@ -77,6 +77,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
 			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse) {
 	var _userInfo = null;
+	var _groupInfo = null;
 	var _attendanceObj = {};
 	this.show = function() {
 		nlRouter.initContoller($scope, '', _onPageEnter);
@@ -87,6 +88,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_convertAttendanceArrayToObj(_userInfo.groupinfo.attendance);
 		return nl.q(function(resolve, reject) {
 			nlGroupInfo.init().then(function() {
+				_groupInfo = nlGroupInfo.get();
 				nlGroupInfo.update();
 				_init();
 				resolve(true); // Has to be before next line for loading screen
@@ -244,6 +246,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			id: 'attendance',
 			onClick : _onClickOnMarkAttendance
 		}, {
+			title : 'Provide ratings',
+			icon : 'ion-speedometer',
+			id: 'rating',
+			onClick : _onClickOnMarkRatings
+		}, {
 			title : 'Send reminder to users who have not completed',
 			icon : 'ion-ios-bell',
 			id: 'reminderNotify',
@@ -276,6 +283,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (tbid == 'attendance') {
 			var content = nlLrCourseRecords.getContentOfCourseAssignment();
 			return content && content.blended ? true : false;
+		}
+		if (tbid == 'rating') {
+			var content = nlLrCourseRecords.getContentOfCourseAssignment();
+			if(!content) return false;
+			for(var i=0; i<content.modules.length; i++) {
+				if(content.modules[i].type == 'rating') return true;
+			}
+			return false;
 		}
 		if(tbid == 'reminderNotify') {
 			var reminderDict = nlLrReportRecords.getReminderDict();
@@ -865,7 +880,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	
 	var attendance = null;
 	var milestone = null;
+	var rating = null;
 	var allModules = [];
+
 	function _onCourseAssignView() {
 		var data = {assignid: nlLrFilter.getObjectId()};
 		var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:' + nlLrFilter.getObjectId());
@@ -1071,6 +1088,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return ret;
 	}
 
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	//Mark attendance related code
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _onClickOnMarkAttendance() {
 		var data = {assignid: nlLrFilter.getObjectId()};
 		var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:' + nlLrFilter.getObjectId());
@@ -1088,12 +1108,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		markAttendanceDlg.scope.attendanceOptions = _userInfo.groupinfo.attendance;
 		markAttendanceDlg.scope.sessions = _getIltSessions(content, learningRecords);
 		markAttendanceDlg.scope.selectedSession = markAttendanceDlg.scope.sessions[0];
-		markAttendanceDlg.scope.selectedSession.button = {state: 'selectall', name:'All attended'};
 		oldAttendance = {};
 		oldAttendance = angular.copy(attendance);
 		markAttendanceDlg.scope.onClick = function(session) {
 			markAttendanceDlg.scope.selectedSession = session;
-			markAttendanceDlg.scope.selectedSession.button = markAttendanceDlg.scope.selectedSession.button || {state: 'selectall', name:'All attended'};
 		};
 		
 		markAttendanceDlg.scope.bulkAttendanceMarker = function(e) {
@@ -1102,7 +1120,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				return;
 			}
 			markAttendanceDlg.scope.isBulkUpdateDlgOpened = true;
-			_showbulkAttendanceMarkerDlg(markAttendanceDlg.scope);
+			_showbulkMarkerDlg(markAttendanceDlg.scope, 'attendance');
 		}
 
 		var okButton = {text: nl.t('Mark attendance'), onTap: function(e) {
@@ -1134,7 +1152,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				updatedSessionsList[i].selectedUsers = selectedUsers;
 			}
 			nl.timeout(function() {
-				_attendanceConfirmationDlg(markAttendanceDlg.scope, updatedSessionsList);
+				_markingConfirmationDlg(markAttendanceDlg.scope, updatedSessionsList, 'attendance', attendance);
 			});
 		}};
 		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
@@ -1165,40 +1183,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				remarks: newAttendancePerSession.remarks || ""});
 			attendanceUpdated = true;	
 		}
-	}
-
-	function _showbulkAttendanceMarkerDlg(dlgScope) {
-		var bulkMarkerDlg = nlDlg.create(dlgScope);
-		bulkMarkerDlg.scope.selectedSession = dlgScope.selectedSession;
-		bulkMarkerDlg.scope.markingOptions = angular.copy(_userInfo.groupinfo.attendance);
-		bulkMarkerDlg.scope.selectedMarkingType = null;
-		bulkMarkerDlg.scope.selectForBulkMarking = function(opt) {
-			bulkMarkerDlg.scope.selectedMarkingType = opt;
-			for(var i=0; i<bulkMarkerDlg.scope.markingOptions.length; i++) {
-				var item = bulkMarkerDlg.scope.markingOptions[i];
-				if(item.id == opt.id) 
-					item.selected = !item.selected;
-				else 
-					item.selected = false;
-			}
-		};
-		var okButton = {text: nl.t('Confirm to mark'), onTap: function(e){
-			for(var i=0; i<bulkMarkerDlg.scope.markingOptions.length; i++) {
-				if(bulkMarkerDlg.scope.markingOptions[i].selected) bulkMarkerDlg.scope.selectedMarkingType = bulkMarkerDlg.scope.markingOptions[i];
-			}
-			if(!bulkMarkerDlg.scope.selectedMarkingType){
-				e.preventDefault();
-				return nlDlg.popupAlert({title: 'Please select', template: 'Please select the attendance type to mark all'});
-			}
-			for(var i=0; i<dlgScope.selectedSession.newAttendance.length; i++) dlgScope.selectedSession.newAttendance[i].attendance = bulkMarkerDlg.scope.selectedMarkingType;
-			dlgScope.isBulkUpdateDlgOpened = false;
-			bulkMarkerDlg.scope.onCloseDlg();
-		}};
-		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
-			dlgScope.isBulkUpdateDlgOpened = false;
-		}};
-		bulkMarkerDlg.show('view_controllers/learning_reports/bulk_attendance_marker_dlg.html',
-			[okButton], cancelButton);
 	}
 
 	function _getIltSessions(content, learningRecords, type) {
@@ -1237,47 +1221,298 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return ret;
 	}
 		
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	//Mark ratings related code
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	var oldRating = {};
+	var ratingUpdated = false;
+	function _onClickOnMarkRatings() {
+		var data = {assignid: nlLrFilter.getObjectId()};
+		var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:' + nlLrFilter.getObjectId());
+		rating = courseAssignment.rating ? angular.fromJson(courseAssignment.rating) : {};
+		_showRatingMarker();
+	}
 
-	function _attendanceConfirmationDlg(dlgScope, markedSessions) {
+	function _showRatingMarker() {
+		var ratingDlg = nlDlg.create($scope);
+		ratingDlg.setCssClass('nl-height-max nl-width-max');
+		var content = nlLrCourseRecords.getContentOfCourseAssignment();
+		var learningRecords = nlLrReportRecords.getRecords();
+		ratingDlg.scope.ratings = _getRatings(content, learningRecords);
+		ratingDlg.scope.selectedRating = ratingDlg.scope.ratings[0];
+		ratingDlg.scope.selectedRating.button = {state: 'selectall', name:'All attended'};
+		oldRating = {};
+		oldRating = angular.copy(rating);
+		ratingDlg.scope.onClick = function(item) {
+			ratingDlg.scope.selectedRating = item;
+		};
+		
+		ratingDlg.scope.bulkRatingMarker = function(e) {
+			if(ratingDlg.scope.isBulkUpdateDlgOpened) {
+				e.preventDefault();
+				return;
+			}
+			ratingDlg.scope.isBulkUpdateDlgOpened = true;
+			_showbulkMarkerDlg(ratingDlg.scope, 'rating');
+		}
+
+		var okButton = {text: nl.t('Provide rating'), onTap: function(e) {
+			var updatedSessionsList = [];
+				rating = {};
+				ratingUpdated = false;
+				e.preventDefault();
+			for(var i=0; i<ratingDlg.scope.ratings.length; i++) {
+				var ratingItem = ratingDlg.scope.ratings[i];
+				updatedSessionsList.push({id: ratingItem.id, name:ratingItem.name, rating_type: ratingItem.ratingType, selectedUsers: []});
+				for(var j=0; j<ratingItem.rating.length; j++) {
+					var userRating = ratingItem.rating[j];
+					_updateRatingDelta(updatedSessionsList[i], userRating);
+					if(ratingItem.ratingType == "input") {
+						if(!userRating.rating) continue;
+						if(!(userRating.id in rating)) rating[userRating.id] = [];
+						rating[userRating.id].push({id: ratingItem.id, attId: userRating.rating, remarks: userRating.remarks});
+					}
+					if(ratingItem.ratingType == "select") {
+						if(userRating.rating.id === '') continue;
+						if(!(userRating.id in rating)) rating[userRating.id] = [];
+						rating[userRating.id].push({id: ratingItem.id, attId: userRating.rating.id, remarks: userRating.remarks});
+					}
+				}
+			}
+			if(!ratingUpdated) {
+				return nlDlg.popupAlert({title: 'Alert message', template: 'You have not made any changes. Please provide ratings or press cancel in the rating dialog if you do not wish to make any change.'});
+			}
+			for(var i=0; i<updatedSessionsList.length; i++) {
+				var selectedUsers = updatedSessionsList[i].selectedUsers || [];
+				selectedUsers.sort(function(a, b) {
+					if(b.name.toLowerCase() < a.name.toLowerCase()) return 1;
+					if(b.name.toLowerCase() > a.name.toLowerCase()) return -1;
+					if(b.name.toLowerCase() == a.name.toLowerCase()) return 0;				
+				});
+				updatedSessionsList[i].selectedUsers = selectedUsers;
+			}
+			nl.timeout(function() {
+				_markingConfirmationDlg(ratingDlg.scope, updatedSessionsList, 'rating', rating);
+			});
+		}};
+		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
+		}};
+		ratingDlg.show('view_controllers/learning_reports/mark_rating_dlg.html',
+			[okButton], cancelButton);
+	}
+
+	function _updateRatingDelta(updateSessionList, newRatingPerItem) {
+		var repid = newRatingPerItem.id;
+		var sessionid = updateSessionList.id;
+		var oldRatingPerItem = {};  //This is {id: itemid1, remarks: '', attId: '0-100'}
+		var oldRatingPerUserReport = oldRating[repid] || []; //repid: [{id: sessionid1, attId: 'attended', remarks: '' },{id: sessionid2, attId: 'not_attended', remarks: '' }.....]
+		for(var i=0; i<oldRatingPerUserReport.length; i++) {
+			var itemRating = oldRatingPerUserReport[i];
+			if(itemRating.id != sessionid) continue;
+			oldRatingPerItem = itemRating;
+			break;
+		}
+		if(!('attId' in oldRatingPerItem)) oldRatingPerItem['attId'] = '';
+		if(!oldRatingPerItem.remarks) oldRatingPerItem['remarks'] = '';
+		var dict = {name: newRatingPerItem.name};
+		if(updateSessionList.rating_type == 'input') {
+			if(oldRatingPerItem.attId != newRatingPerItem.rating || oldRatingPerItem.remarks != newRatingPerItem.remarks) {
+				updateSessionList.selectedUsers.push({name: newRatingPerItem.name, 
+					status: newRatingPerItem.rating || '', 
+					remarks: newRatingPerItem.remarks || ""});
+				ratingUpdated = true;	
+			}
+		} else if(updateSessionList.rating_type == 'select') {
+			if(oldRatingPerItem.attId !== newRatingPerItem.rating.id || oldRatingPerItem.remarks != newRatingPerItem.remarks) {
+				updateSessionList.selectedUsers.push({name: newRatingPerItem.name, 
+					status: newRatingPerItem.rating.name || '', 
+					remarks: newRatingPerItem.remarks || ""});
+				ratingUpdated = true;	
+			}
+		}
+	}
+
+	function _getRatings(content, learningRecords, type) {
+		var ret = [];
+		for(var i=0; i<content.modules.length; i++) {
+			if(content.modules[i].type != 'rating') continue; 
+			var item = content.modules[i];
+			var dict = {id: item.id, name:item.name, rating_type: item.rating_type, rating: [], ratingOptions: []};
+			_checkAndUpdateRatingParams(dict);
+			ret.push(dict);
+		}
+		
+		for(var key in learningRecords) {
+			var userRating = rating[parseInt(key)] || [];
+			var user = learningRecords[key].user;
+			for(var j=0; j<ret.length; j++) {
+				var notMarked = true;
+				for(var k=0; k<userRating.length; k++) {
+					if (ret[j].id == userRating[k].id) {
+						notMarked = false;
+						if(ret[j].ratingType == 'input') {
+							ret[j].rating.push({id: parseInt(key), name: user.name, rating: userRating[k].attId, userid: user.user_id, remarks: userRating[k].remarks});
+						} else if(ret[j].ratingType == 'select') {
+							ret[j].rating.push({id: parseInt(key), name: user.name, rating: {id: userRating[k].attId}, userid: user.user_id, remarks: userRating[k].remarks});
+						}
+					}
+				}
+				if(notMarked) {
+					if(ret[j].ratingType == 'input') {
+						ret[j].rating.push({id: parseInt(key), name: user.name, rating: null, userid: user.user_id, remarks: ''});
+					} else if(ret[j].ratingType == 'select') {
+						ret[j].rating.push({id: parseInt(key), name: user.name, rating: {id: ''}, userid: user.user_id, remarks: ''});
+					}
+				}
+			}
+		}
+		for(var i=0; i<ret.length; i++) {
+			var newRating = ret[i].rating;
+			newRating.sort(function(a, b) {
+				if(b.name.toLowerCase() < a.name.toLowerCase()) return 1;
+				if(b.name.toLowerCase() > a.name.toLowerCase()) return -1;
+				if(b.name.toLowerCase() == a.name.toLowerCase()) return 0;				
+			});
+
+			ret[i].rating = newRating;
+		}
+		return ret;
+	}
+
+	function _checkAndUpdateRatingParams(item) {
+		for(var i=0; i<_groupInfo.props.ratings.length; i++) {
+			var rating = _groupInfo.props.ratings[i];
+			if(item.rating_type == rating.id) {
+				if(rating.type == 'number') {
+					item.ratingType = 'input';
+					break;
+				}
+				if(rating.type == 'status') {
+					item.ratingOptions = [];
+					item.ratingType = 'select';
+					for(var k=0; k<rating.values.length; k++) {
+						item.ratingOptions.push({id: rating.values[k]['p'], name: rating.values[k]['v']});
+					}
+				}
+				if(rating.type == 'select') {
+					item.ratingOptions = [];
+					item.ratingType = 'select';
+					for(var k=0; k<rating.values.length; k++) {
+						item.ratingOptions.push({id: rating.values[k]['p'], name: rating.values[k]['v']});
+					}
+				}
+			}
+		}
+	}
+
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	//common code accorss making attendance and rating
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------	
+	function _showbulkMarkerDlg(dlgScope, markType) {
+		var bulkMarkerDlg = nlDlg.create(dlgScope);
+		if(markType == 'rating') {
+			bulkMarkerDlg.scope.selectedItem = dlgScope.selectedRating;
+			bulkMarkerDlg.scope.markingOptions = dlgScope.selectedRating.ratingOptions;
+			bulkMarkerDlg.scope.rating_type = dlgScope.selectedRating.ratingType;
+			bulkMarkerDlg.scope.selectedMarkingType = null;
+			bulkMarkerDlg.scope.data = {ratingNumber: '', bulkMarkStr: 'Mark all learners rating as'};	
+		}
+
+		if(markType == 'attendance') {
+			bulkMarkerDlg.scope.selectedItem = dlgScope.selectedSession;
+			bulkMarkerDlg.scope.markingOptions = angular.copy(_userInfo.groupinfo.attendance);
+			bulkMarkerDlg.scope.selectedMarkingType = null;	
+			bulkMarkerDlg.scope.rating_type = 'select';
+			bulkMarkerDlg.scope.data = {ratingNumber: '', bulkMarkStr: 'Mark all learners attendance as'};	
+		}
+
+		bulkMarkerDlg.scope.selectForBulkMarking = function(opt) {
+			bulkMarkerDlg.scope.selectedMarkingType = opt;
+			for(var i=0; i<bulkMarkerDlg.scope.markingOptions.length; i++) {
+				var item = bulkMarkerDlg.scope.markingOptions[i];
+				if(item.id == opt.id) 
+					item.selected = !item.selected;
+				else 
+					item.selected = false;
+			}
+		};
+
+		var okButton = {text: nl.t('Confirm to mark'), onTap: function(e){
+			for(var i=0; i<bulkMarkerDlg.scope.markingOptions.length; i++) {
+				if(bulkMarkerDlg.scope.markingOptions[i].selected) bulkMarkerDlg.scope.selectedMarkingType = bulkMarkerDlg.scope.markingOptions[i];
+			}
+
+			if(markType == 'attendance') {
+				if(!bulkMarkerDlg.scope.selectedMarkingType){
+					e.preventDefault();
+					return nlDlg.popupAlert({title: 'Please select', template: 'Please select the attendance type to mark all'});
+				}
+				for(var i=0; i<dlgScope.selectedSession.newAttendance.length; i++) dlgScope.selectedSession.newAttendance[i].attendance = bulkMarkerDlg.scope.selectedMarkingType;
+			}
+
+			if(markType == 'rating') {
+				if(!(bulkMarkerDlg.scope.selectedMarkingType || bulkMarkerDlg.scope.data.ratingNumber)){
+					e.preventDefault();
+					return nlDlg.popupAlert({title: 'Please select', template: 'Please provide ratings to mark all'});
+				}
+				for(var i=0; i<dlgScope.selectedRating.rating.length; i++) {
+					if(dlgScope.selectedRating.ratingType == 'select'){
+						dlgScope.selectedRating.rating[i].rating = bulkMarkerDlg.scope.selectedMarkingType;
+					} else {
+						dlgScope.selectedRating.rating[i].rating = bulkMarkerDlg.scope.data.ratingNumber;
+					}
+				}
+			}
+			dlgScope.isBulkUpdateDlgOpened = false;
+			bulkMarkerDlg.scope.onCloseDlg();
+		}};
+		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
+			dlgScope.isBulkUpdateDlgOpened = false;
+		}};
+		bulkMarkerDlg.show('view_controllers/learning_reports/bulk_marker_dlg.html',
+			[okButton], cancelButton);
+	}
+
+	function _markingConfirmationDlg(dlgScope, markedSessions, paramStr, paramObj) {
 		var confirmationDlg = nlDlg.create($scope);
 		confirmationDlg.setCssClass('nl-height-max nl-width-max');
 		confirmationDlg.scope.markedSessions = markedSessions;
-		if(!('attendance_version' in attendance)) 
+		if(paramStr == 'attendance') {
+			if(!('attendance_version' in attendance)) 
 			attendance['attendance_version'] = nlCourse.getAttendanceVersion();
-		var okButton = {text: nl.t('Confirm attendance'), onTap: function(e) {
-		var data = {param: 'attendance', paramObject: attendance, assignid: nlLrFilter.getObjectId()};
+		}
+		var buttonText = nl.t('Confirm {}', paramStr);
+		var okButton = {text: buttonText, onTap: function(e) {
+			var data = {param: paramStr, paramObject: paramObj, assignid: nlLrFilter.getObjectId()};
 			nlDlg.showLoadingScreen();
 			nlServerApi.courseUpdateParams(data).then(function(result) {
 				nlDlg.hideLoadingScreen();
 				nlDlg.closeAll();
-				if(result) attendance = result;
-				var jsonAttendanceStr = angular.toJson(result);
-				nlLrAssignmentRecords.updateAttendanceInRecord(
-					'course_assignment:' + nlLrFilter.getObjectId(), jsonAttendanceStr);
+				var srvUpdateFn = null;
+				if(result && (paramStr == 'attendance')) {
+					attendance = result;
+					srvUpdateFn = nlLrAssignmentRecords.updateAttendanceInRecord;
+				}
+				if(result && (paramStr == 'rating')) {
+					rating = result;
+					srvUpdateFn = nlLrAssignmentRecords.updateRatingInRecord;
+				}
+				var jsonStr = angular.toJson(result);
+				srvUpdateFn('course_assignment:' + nlLrFilter.getObjectId(), jsonStr);
 				_updateReportRecords();
 			});
 		}};
 		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
 			//confirmationDlg.scope.onCloseDlg(e, null);
 		}};
-		confirmationDlg.show('view_controllers/learning_reports/mark_attendance_confirmation_dlg.html',
+		confirmationDlg.show('view_controllers/learning_reports/marking_confirmation_dlg.html',
 			[okButton], cancelButton);
 	}
-	
-	function _getSelectedNameAndSessions(content, selectedItem) {
-		var ret = {};
-		for(var i=0; i<content.length; i++) {
-			var selectedUserList = selectedItem[content[i].id] || [];
-			selectedUserList.sort(function(a, b) {
-				if(b.toLowerCase() < a.toLowerCase()) return 1;
-				if(b.toLowerCase() > a.toLowerCase()) return -1;
-				if(b.toLowerCase() == a.toLowerCase()) return 0;
-			});
-			ret[content[i].id] = {name: content[i].name, selectedUsers: selectedUserList || []};
-		}
-		return ret;
-	}
-	
+
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	//Code for modifying assignment
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------	
+
 	function _onClickModifyAssignment() {
 		var launchType = nlLrFilter.getType(); 
 		var nominatedUsers = nlLrReportRecords.getNominatedUserDict();

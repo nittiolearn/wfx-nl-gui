@@ -47,10 +47,18 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 		dlg.scope.reptype = nlLrFilter.getType();
         dlg.setCssClass('nl-height-max nl-width-max');
         dlg.scope.export = {summary: true, user: true, module: (dlg.scope.reptype == 'module' || dlg.scope.reptype == 'module_assign' || dlg.scope.reptype  == 'module_self_assign') ? true : false, ids: true,
-            pageScore: false, feedback: false, session: false};
+            pageScore: false, feedback: false, session: false, ratings: false};
         dlg.scope.data = {};
 		_setExportFilters(dlg, reportRecords);
-		var filterData = dlg.scope.filtersData;
+        var filterData = dlg.scope.filtersData;
+        dlg.scope.canExportSessions = function() {
+            if((reptype == "course" || reptype == "course_assign") && _userInfo.groupinfo.features['training']) return true;
+            return false;
+        };
+        dlg.scope.canExportRatings = function() {
+            if((reptype == "course" || reptype == "course_assign") && _userInfo.groupinfo.features['etm'] && _userInfo.groupinfo.ratings) return true;
+            return  false
+        };
         var exportButton = {
             text : nl.t('Download'),
             onTap : function(e) {
@@ -203,6 +211,16 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                 }
 			} 
 
+			if (filter.exportTypes.ratings) {
+                for(var start=0, i=1; start < ctx.sessionRows.length; i++) {
+                    var pending = ctx.ratingRows.length - start;
+                    pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
+                    var fileName = nl.fmt2('rating-reports-{}.csv', i);
+                    _createCsv(filter, ctx.ratingRows, zip, fileName, start, start+pending);
+                    start += pending;
+                }
+			} 
+
             if (filter.exportTypes.feedback && ctx.feedbackRows.length > 1) {
                 for(var start=0, i=1; start < ctx.feedbackRows.length; i++) {
                     var pending = ctx.feedbackRows.length - start;
@@ -262,7 +280,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 	            if (records[i].raw_record.ctype == _nl.ctypes.CTYPE_MODULE) {
 	            	_exportIndividualPageScore(filter, records[i]);
 	            } else if(records[i].raw_record.ctype == _nl.ctypes.CTYPE_COURSE){
-	            	if(filter.exportTypes.session) _updateCsvSessionRows(filter, records[i]);
+                    if(filter.exportTypes.session) _updateCsvSessionRows(filter, records[i]);
+                    if(filter.exportTypes.ratings) _updateCsvRatingRows(filter, records[i])
 	            	_updateCsvModuleRows(filter, records[i]);
 	            }
                 expSummaryStats.addToStats(records[i]);
@@ -376,6 +395,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         ctx.pScoreRows = [nlExporter.getCsvHeader(_hPageScores)];
         ctx.feedbackRows = [nlExporter.getCsvHeader(_hFeedback)];
         ctx.sessionRows = [nlExporter.getCsvHeader(_hSessionRow)];
+        ctx.ratingRows = [nlExporter.getCsvHeader(_hRatingRow)];
         ctx.reports = reports;
         ctx.zip = new JSZip();
         ctx.pageCnt = 0;
@@ -390,6 +410,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     var _hPageScores = [];
     var _hFeedback = [];
     var _hSessionRow = [];
+    var _hRatingRow = [];
     var _userFields1 = [
             {id: '_user_id', name:'User Id'},
             {id: 'studentname', name:'User Name'}];
@@ -461,11 +482,24 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             {id: 'iltCostFoodSta', name: 'Food cost'},
             {id: 'iltCostTravelAco', name: 'travel cost'},
             {id: 'iltCostMisc', name: 'Misc cost'}];
-      var idSessionIdFields = [
+    var idSessionIdFields = [
 			{id: 'repid', name: 'Report Id'},
 			{id: 'assignid', name: 'Assign Id'}, 
-			{id: 'courseid', name: 'Course Id'}      
-			];
+			{id: 'courseid', name: 'Course Id'}];
+    var _h1RatingElems1 = [
+        {id: '_assignTypeStr', name:'Record Type'},
+        {id: '_courseName', name:'course Name'},
+        {id: '_batchName', name:'Batch Name'},
+        {id: 'session', name:'Rating name'}];
+                
+    var _h1RatingElems2 = [
+            {id: 'not_before', name: 'From', fmt: 'minute'},
+            {id: 'not_after', name: 'Till', fmt: 'minute'},
+            {id: 'status', name: 'Status'},
+            {id: 'state', name: 'Completion state'},
+            {id: 'rating_score', name: 'Rating score'},
+            {id: 'remarks', name: 'Remarks'}];
+                
     function _initExportHeaders(_userInfo, exportIds) {
         var _commonFieldsPre = [
                 {id: 'subject', name:_userInfo.groupinfo.subjectlabel},
@@ -480,7 +514,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         _hFeedback = _userFields1.concat(_commonFields, _commonFieldsPre, _h1Feedback, _commonFieldsPost, _userFields2, _metaFields,
                 exportIds ? _idFields1 :  []);
     	_hSessionRow = _userFields1.concat(_h1sessionElems1, _commonFieldsPre, _h1sessionElems2, _userFields2, _metaFields, 
-    			exportIds ? idSessionIdFields :  []);
+                exportIds ? idSessionIdFields :  []);
+        _hRatingRow = _userFields1.concat(_h1RatingElems1, _commonFieldsPre, _h1RatingElems2, _userFields2, _metaFields, 
+            exportIds ? idSessionIdFields :  []);
     }
 
 	function _updateCsvSessionRows(filter, rep) {
@@ -519,6 +555,37 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         }
 	}
 
+	function _updateCsvRatingRows(filter, rep) {
+        if(!rep.course.content.blended) return;
+        var mh = nlLrHelper.getMetaHeaders(false);
+        var record = {_user_id: rep.user.user_id, studentname: rep.repcontent.studentname, 
+        				_assignTypeStr: 'Course', _courseName: rep.repcontent.name, _batchName: rep.repcontent.batchname,
+        				session: '', subject: rep.course.contentmetadata.subject,  _grade: rep.course.contentmetadata.grade, 
+                        not_before: rep.repcontent.not_before, not_after: rep.repcontent.not_after, status: '-', 
+                        _stateStr: rep.user.state ? 'active' : 'inactive', _email: rep.user.email, org_unit: rep.user.org_unit};
+        for(var i=0; i<mh.length; i++) record[mh[i].id] = rep.usermd[mh[i].id];
+        if (filter.exportTypes.ids) {
+            record['repid'] =  rep.raw_record.id;
+            record['assignid'] = rep.raw_record.assignment;
+            record['courseid'] = rep.repcontent.courseid; 
+        }
+        for(var i=0; i<rep.course.content.modules.length; i++) {
+        	var session = rep.course.content.modules[i];
+        	if(session.type != 'rating' || session.type == 'module') continue;
+        	record['session'] = session.name;
+        	record['_assignTypeStr'] = session.type;
+        	if(rep.repcontent.statusinfo && rep.repcontent.statusinfo[session.id]) {
+                record['status'] = rep.repcontent.statusinfo[session.id].status;
+                record['state'] = rep.repcontent.statusinfo[session.id].state;
+                record['rating_score'] = rep.repcontent.statusinfo[session.id].ratingScore;
+                record['remarks'] = rep.repcontent.statusinfo[session.id].remarks || '';
+            } else {
+        		record['status'] = 'Pending';
+                record['state'] = 'Not rated';
+            }
+	        ctx.ratingRows.push(nlExporter.getCsvRow(_hRatingRow, record));
+        }
+	}
 
     function _exportIndividualPageScore(filter, report) {
         var rep = report.raw_record;

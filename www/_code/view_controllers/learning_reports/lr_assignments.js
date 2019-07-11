@@ -65,6 +65,10 @@ function(nl, nlCourse, nlLrFilter) {
     	_records[key].milestone = milestone;
 	};
 	
+	this.updateRatingInRecord = function(key, rating) {
+    	_records[key].rating = rating;
+	};
+
 	function _copyAttrsIf(src, dest, attrs, defVals) {
 		for (var i=0; i<attrs.length; i++) {
 			var attr = attrs[i];

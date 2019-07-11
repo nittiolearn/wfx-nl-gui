@@ -225,6 +225,10 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
                 if(!_iltConditionSatisfied(p.iltCondition, item)) return false;
             	continue;
             }
+            if(item.type == 'rating') {
+                if(!_ratingSatisfied(p, item, cm)) return false;
+                continue;
+            }
             var prereqScore = null;
             if (cmid in lessonReports && lessonReports[cmid].completed) {
                 var lessonReport = lessonReports[cmid];
@@ -253,6 +257,16 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         return true;
     }
 
+    function _ratingSatisfied(p, item, cm) {
+        var min_score = p.min_score || null;
+        var max_score = p.max_score || null;
+        var prereqScore = item.ratingScore || null;
+        if(!prereqScore) return false;
+        if(min_score && item.ratingScore < min_score) return false;
+        if(max_score && item.ratingScore > max_score) return false;
+        return true;
+    }
+
     function _setDependencyArray(cm, prereqs, nlTreeListSrv, startDate) {
         cm['dependencyArray'] = [];
         if (startDate) {
@@ -265,7 +279,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
             var item = nlTreeListSrv.getItem(cmid);
             if(!item) continue;
             var str = '';
-            if(item.type == "lesson") {
+            if(item.type == "lesson" || item.type == 'rating') {
                 if(p.min_score && !p.max_score) 
                     str = nl.t('Complete "{}" with a score of {}% or above.', item.name, p.min_score)
                 else if(!p.min_score && p.max_score) 
@@ -901,7 +915,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         started: {icon: 'ion-ios-circle-filled fgreen', title: 'Started'},
         failed:  {icon: 'icon ion-close-circled forange', title: 'Failed'},
         success: {icon: 'ion-checkmark-circled fgreen', title: 'Done'},
-        partial_success: {icon: 'ion-checkmark-circled forange', title: 'Partially Done'} // Only folder status
+        partial_success: {icon: 'ion-checkmark-circled fyellow', title: 'Partially Done'} // Only folder status
     };
 
     function _updateState(cm, state) {
@@ -940,6 +954,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
 			_updateILTData(cm, today);
         } else if (cm.type === 'milestone') {
 			_updateMilestoneData(cm, today);
+        } else if (cm.type === 'rating') {
+			_updateRatingData(cm, today);
         } else {
             _updateLessonData(cm, today);
         }
@@ -1010,7 +1026,44 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         if (!(status == 'success' || status == 'failed') && !modeHandler.canStart(cm, $scope, nlTreeListSrv)) status = 'waiting';
         _updateState(cm, status);
     }
-    
+ 
+    function _updateRatingData(cm, today) {
+        var status = 'pending';
+        var rating = 'rating' in modeHandler.course.content ? modeHandler.course.content.rating || {} : {}; 
+        var ratedReport = rating[modeHandler.courseId] || [];
+        var israted = false;
+        for(var i=0; i<ratedReport.length; i++) {
+            var rated = angular.copy(ratedReport[i]);
+            if(cm.id != rated.id) continue;
+            israted = true;
+            cm.ratingScore = rated.attId;
+            cm.remarks = rated.remarks || '';
+        }
+        if (!modeHandler.canStart(cm, $scope, nlTreeListSrv)) {
+            status = 'waiting';
+        } else if(israted) {
+            status = _setStatusOfRatingItem(status, cm);
+        }
+        _updateState(cm, status);
+    }
+
+    function _setStatusOfRatingItem(status, cm) {
+        var ratings = _userInfo.groupinfo.ratings || [];
+        var selectedRating = null;
+        for(var i=0; i<ratings.length; i++) {
+            if(ratings[i].id == cm.rating_type) {
+                selectedRating = ratings[i];
+                break;
+            }
+        }
+        if(cm.ratingScore <= selectedRating.lowPassScore)
+            return 'failed';
+        else if(selectedRating.lowPassScore < cm.ratingScore && cm.ratingScore < selectedRating.passScore)
+            return 'partial_success';
+        else 
+            return'success';
+    }
+
     function _updateMilestoneData(cm, today) {
         var status = 'pending';
         var milestone = 'milestone' in modeHandler.course.content ? modeHandler.course.content.milestone || {} : {}; 
@@ -1172,7 +1225,7 @@ function FolderStats($scope, modeHandler) {
 				folderStat.completedCert += 1;			
 			}
 		}
-        if (cm.score !== null && cm.type != 'iltsession' && cm.type != 'milestone') {
+        if (cm.score !== null && cm.type != 'iltsession' && cm.type != 'milestone' && cm.type != 'rating') {
             folderStat.scoreCount += 1;
             folderStat.score += cm.score;
             folderStat.maxScore += (cm.maxScore || 0);
@@ -1250,7 +1303,8 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
         if (!this.item) return false;
         if (this.isStaticMode()) return false;
         if (this.item.hide_remarks) return false;
-        return (this.item.type == 'link' || this.item.type == 'info' || this.item.type == 'certificate' || this.item.type == 'iltsession');
+        return (this.item.type == 'link' || this.item.type == 'info' || this.item.type == 'certificate' 
+                || this.item.type == 'iltsession' || this.item.type == 'rating');
     };
     
     this.canUpdateStatus = function() {

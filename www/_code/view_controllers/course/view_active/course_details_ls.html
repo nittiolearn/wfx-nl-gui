@@ -6,14 +6,18 @@
                class="icon fsh3 {{ext.item.state.icon}}"></i>
              <span>{{ext.item.state.title}}</span>
 		</div>
-		<div ng-class='respCol442' ng-show='ext.item.type != "milestone"'><b>Time spent</b></div>
-		<div ng-class='respCol442'  ng-show='ext.item.type != "milestone"'>
+		<div ng-class='respCol442' ng-show='ext.item.type != "milestone" && ext.item.type != "rating"'><b>Time spent</b></div>
+		<div ng-class='respCol442'  ng-show='ext.item.type != "milestone" && ext.item.type != "rating"'>
 			<span ng-show='ext.item.timeMins > 0'>{{ext.item.timeMins}} minutes</span>
 			<span ng-show='ext.item.timeMins == 0'>-</span>								
 		</div>
 		<div ng-class='respCol442' ng-show='ext.item.type == "milestone"'><b>Completion percentage</b></div>
 		<div ng-class='respCol442'  ng-show='ext.item.type == "milestone"'>
 			<span>{{ext.item.completionPerc}} %</span>
+		</div>
+		<div ng-class='respCol442' ng-show='ext.item.type == "rating"'><b>Rating</b></div>
+		<div ng-class='respCol442'  ng-show='ext.item.type == "rating"'>
+			<span ng-show='ext.item.ratingScore'>{{ext.item.ratingScore}} %</span>
 		</div>
 	</div>
 	<div ng-show='ext.item.planned_date || ext.item.start_date' class='row row-wrap row-center row-justify-evenly padding0 margin0'>

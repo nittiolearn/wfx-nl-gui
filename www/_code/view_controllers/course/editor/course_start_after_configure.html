@@ -47,17 +47,17 @@
 						</div>
 						<div ng-class='respCol221'>
 							<div class='row row-center margin0 padding0 nl-dlg-field-value'>
-								<div class='col padding0' ng-if='item.module.type == "lesson"'>
+								<div class='col padding0' ng-if='item.canShowMinScore'>
 									<div class='row row-center margin0 padding0' style='padding: 4px 0px;font-size: 80%'>Min score(%)</div>
 									<div class='row row-center margin0 padding0'  style='padding-right: 10px'><input ng-model='item.min_score' type="number" min='0' max='100'></input></div>
 								</div>
-								<div class='col padding0' ng-if='item.module.type == "lesson" && showMaxScore'>
+								<div class='col padding0' ng-if='item.canShowMaxScore && showMaxScore'>
 									<div class='row row-center margin0 padding0' style='padding: 4px 0px;font-size: 80%'>Max score(%)</div>
 									<div class='row row-center margin0 padding0'><input ng-model='item.max_score' type="number" min='0' max='100'></input></div>
 								</div>
-								<div class='col padding0' ng-if='item.module.type == "iltsession"' style='padding-top:25px'>
-									<select ng-model='item.iltCondition' 
-											ng-options='opt as opt.name for opt in iltConditionOptions track by opt.id'
+								<div class='col padding0' ng-if='item.canShowSelectBox' style='padding-top:25px'>
+									<select ng-model='item.selectedOption' 
+											ng-options='opt as opt.name for opt in item.options track by opt.id'
 											class='{{fieldcls}}'
 											autofocus=''
 											tabindex="{{tabindex}}">

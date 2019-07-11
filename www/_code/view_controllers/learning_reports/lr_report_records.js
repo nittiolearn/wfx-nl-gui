@@ -223,7 +223,7 @@
             if(course.content.blended) {
                 _updateIltParameters(report, course, courseAssignment, repcontent, stats);
             }
-
+            _updateRatingItems(report, course, courseAssignment, repcontent, stats);
             var milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
             if(Object.keys(milestone).length > 0) {
                 for(var key in milestone) {
@@ -355,6 +355,53 @@
             return ret;
         }
     
+        function _updateRatingItems(report, course, courseAssignment, repcontent, stats) {
+            var rating = courseAssignment.rating ? angular.fromJson(courseAssignment.rating) : {};
+            for(var i=0; i<course.content.modules.length; i++) {
+                var elem = course.content.modules[i];
+                if(elem.type != 'rating') continue;
+                var userRating = rating[report.id] || [];
+                var ratingFound = false;
+                for(var j=0; j<userRating.length; j++) {
+                    if(userRating[j].id == elem.id && userRating[j].attId != '') {
+                        ratingFound = true;
+                        if(!repcontent.statusinfo) repcontent.statusinfo = {};
+                        if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
+                        repcontent.statusinfo[elem.id].status = 'done';
+                        repcontent.statusinfo[elem.id].state = _computeStatusOnScore(elem, userRating[j].attId);
+                        repcontent.statusinfo[elem.id].ratingScore = userRating[j].attId;
+                        repcontent.statusinfo[elem.id].remarks = userRating[j].remarks || '';
+                    }
+                }                
+                if(!ratingFound) {
+                    if(!repcontent.statusinfo) repcontent.statusinfo = {};
+                    if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
+                    repcontent.statusinfo[elem.id].state = 'pending';
+                    repcontent.statusinfo[elem.id].iltTotalTime = elem.iltduration;
+                }
+            }
+        }
+
+        function _computeStatusOnScore(item, score) {
+            var getRatingObj = _getRatingObj(item.rating_type)
+            if(score <= getRatingObj.lowPassScore)
+                return 'Poor';
+            else if(getRatingObj.lowPassScore < score && score < getRatingObj.passScore)
+                return 'Good';
+            else 
+                return 'Excellent';
+
+        }
+
+        function _getRatingObj(ratingtype) {
+            var ratings = _userInfo.groupinfo.ratings || []
+            for(var i=0; i<ratings.length; i++) {
+                var item = ratings[i];
+                if(ratingtype == item.id) return item;
+            }
+            return {};
+        }
+
         function _updateIltParameters(report, course, courseAssignment, repcontent, stats) {
             var attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
                 attendance = nlCourse.migrateCourseAttendance(attendance);
