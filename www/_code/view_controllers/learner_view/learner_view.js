@@ -175,7 +175,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		if (!_isHome) nlLearnerView.initPageBgImg(_userInfo);
 		return nl.q(function(resolve, reject) {
 			_init(userInfo);
-			_getLearningRecordsFromServer(resolve, false);
+			_fetchDataIfNeededAndUpdateScope(resolve);
 		});
 	}
 
@@ -183,7 +183,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		nl.window.resize();
 	}	
 
-// Private members
+	// Private members
 	function _init(userInfo) {
 		nlLearnerViewRecords.init(userInfo);
 		$scope.tabData = _initTabData();
@@ -213,8 +213,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 	}
 
 	var _pageFetcher = nlServerApi.getPageFetcher({defMax: _fetchChunk, itemType: 'learning record'});
-	var uniqueId = 500;
-	var maxChunk = 100;
 	function _getLearningRecordsFromServer(resolve, fetchMore) {
 		_fetchReports(fetchMore, function(results) {
 			if (!results) {
@@ -222,11 +220,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 				return;
 			}
 			for (var i=0; i<results.length; i++) {
-				for(var j=0; j<maxChunk; j++) {
-					results[i].id = uniqueId;
-					nlLearnerViewRecords.addRecord(results[i]);
-					uniqueId++;
-				}
+				nlLearnerViewRecords.addRecord(results[i]);
 			}
 			_updateScope(true);
 			resolve(true);
@@ -315,7 +309,11 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		];
 		return ret;
 	}
-	var SEC_POS = {'active': 0, 'upcoming': 1, 'past': 2};
+
+	function _onTabSelect(tab) {
+		$scope.tabData.selectedTab = tab;
+		_fetchDataIfNeededAndUpdateScope();
+	}
 
 	function _onSearch(event) {
 		if (event && event.which !== 13) return;
@@ -332,51 +330,57 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		_updateAssignedTab();
 	}
 
-	function _someTabDataChanged() {
-		var tabs = $scope.tabData.tabs;
-		for (var i=0; i<tabs.length; i++) {
-			tabs[i].updated = false;
+	function _fetchDataIfNeededAndUpdateScope(resolve) {
+		var tabid = $scope.tabData.selectedTab.id;
+		if (!_lrFetchInitiated && (tabid == 'assigned' || tabid == 'summary')) {
+			_getLearningRecordsFromServer(false, function() {
+				_updateCurrentTab(tabid);
+				if (resolve) resolve(true);
+			});
+		} else {
+			_updateCurrentTab(tabid);
+			if (resolve) resolve(true);
 		}
-		$scope.tabData.records = null;
 	}
 
-	function _onTabSelect(tab) {
-		$scope.tabData.selectedTab = tab;
-		_updateCurrentTab();
+	var _lrFetchInitiated = false;
+    var _pageFetcher = nlServerApi.getPageFetcher({defMax: _fetchChunk, itemType: 'learning record'});
+	function _getLearningRecordsFromServer(fetchMore, resolve) {
+		_lrFetchInitiated = true;
+		var params = {containerid: 0, type: 'all', assignor: 'all', learner: 'me'};
+		nlLearnerViewRecords.reset();
+		var myResolve = resolve || null;
+		nlDlg.showLoadingScreen();
+        _pageFetcher.fetchBatchOfPages(nlServerApi.learningReportsGetList, params, fetchMore, 
+			function(results, batchDone, promiseHolder) {
+				nlDlg.hideLoadingScreen();
+				$scope.tabData.dataLoaded = true;
+				var msg = nl.t('{} records fetched', results.length);
+				nlDlg.popupStatus(msg);
+				for (var i=0; i<results.length; i++) nlLearnerViewRecords.addRecord(results[i]);
+				$scope.tabData.records = nlLearnerViewRecords.getRecords();
+				$scope.tabData.recordsLen = Object.keys($scope.tabData.records).length;
+				if (myResolve) {
+					myResolve(true);
+					myResolve = null;
+				}
+		});
 	}
 
-	function _updateCurrentTab(avoidFlicker) {
-		var tabData = $scope.tabData;
-		var tab = tabData.selectedTab;
-		if (tab.updated) return;
-		if (!avoidFlicker) {
-			nlDlg.showLoadingScreen();
-		}
-		nl.timeout(function() {
-			_actualUpdateCurrentTab(tabData, tab);
-			tab.updated = true;
-			nlDlg.hideLoadingScreen();
-		}, 100);
-	}
-
-	function _actualUpdateCurrentTab(tabData, tab) {
-		if (!tabData.records) {
-			tabData.records = _getRecords();
-			tabData.recordsLen = Object.keys(tabData.records).length;
-		}
-		if (tab.id == 'assigned') {
+	function _updateCurrentTab(tabid) {
+		if (tabid == 'assigned') {
 			_updateAssignedTab();
-		} else if (tab.id == 'summary') {
+		} else if (tabid == 'summary') {
 			_updateSummaryTab();
-		} else if (tab.id == 'explore') {
+		} else if (tabid == 'explore') {
 			_updateExploreTab();
-		} else if (tab.id == 'admin') {
+		} else if (tabid == 'admin') {
 			_updateAdminTab();
 		}
 	}
 
 	function _updateExploreTab() {
-        $scope.exploreCards = _userInfo.dashboard_props.explore || []
+        $scope.exploreCards = _userInfo.dashboard_props.explore || [];
 	};
 
 	function _updateAdminTab() {
@@ -432,10 +436,11 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
         }
     }
 
-    function _getRecords() {
-		return nlLearnerViewRecords.getRecords();
-    }    
-	
+	function _updateAssignedTab() {
+		$scope.tabData.assignedSections = _getFilteredRecords();
+	}
+
+	var SEC_POS = {'active': 0, 'upcoming': 1, 'past': 2};
 	function _getFilteredRecords() {
 		var records = $scope.tabData.records;
 		var assignedSections = $scope.tabData.assignedSections;
@@ -524,16 +529,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		var inStr = obj ? obj[attr] : null;
 		if (!inStr) return false;
 		return (inStr.toLowerCase().indexOf(str) >= 0);
-	}
-
-	function _updateScope(avoidFlicker) {
-		$scope.tabData.dataLoaded = true;
-		_someTabDataChanged();
-		_updateCurrentTab(avoidFlicker);
-	}
-
-	function _updateAssignedTab() {
-		$scope.tabData.assignedSections = _getFilteredRecords();
 	}
 
 	function _updateSummaryTab() {

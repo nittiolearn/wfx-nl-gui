@@ -25,21 +25,21 @@
                     <div ng-show='screenSize != "small"' class='padding'></div>
                     <div ng-show='screenSize == "large"' class='col'></div>
                     <div class='col padding0'>
-                        <div class='padding-small fdarkgrey2 bgwhite nl-link-text2 lnblue2 {{tabData.filter == "all"? "borderbottom2": ""}}'
+                        <div class='padding-small fdarkgrey2 bgwhite lnblue2 {{tabData.filter == "all"? "borderbottom2": ""}}'
                              ng-click='tabData.onFilter($event, "all")'>
                             <div class='fsh5'>{{tabData.assignedCounts.all}}</div>
                             <div class='fsmall2'> total</div>
                         </div>
                     </div>
                     <div class='col padding0' style='padding-left: 8px'>
-                        <div class='padding-small fblue2 bgwhite nl-link-text2 lnblue2 {{tabData.filter == "active"? "borderbottom2": ""}}'
+                        <div class='padding-small fblue2 bgwhite lnblue2 {{tabData.filter == "active"? "borderbottom2": ""}}'
                              ng-click='tabData.onFilter($event, "active")'>
                             <div class='fsh5'>{{tabData.assignedCounts.active}}</div>
                             <div class='fsmall2'> active</div>
                         </div>
                     </div>
                     <div class='col padding0' style='padding-left: 8px'>
-                        <div class='padding-small fgreen bgwhite nl-link-text2 lnblue2 {{tabData.filter == "started"? "borderbottom2": ""}}'
+                        <div class='padding-small fgreen bgwhite lnblue2 {{tabData.filter == "started"? "borderbottom2": ""}}'
                              ng-click='tabData.onFilter($event, "started")'>
                             <div class='fsh5'>{{tabData.assignedCounts.started}}</div>
                             <div class='fsmall2'> started</div>
@@ -127,7 +127,7 @@
             </div>
         </div>
     </div>
-    <div ng-if='tabData.selectedTab.id == "explore" && tabData.dataLoaded'
+    <div ng-if='tabData.selectedTab.id == "explore"'
             class='nl-limitwidth padding'>
         <div class='anim fade' ng-repeat="link in exploreCards">
             <nl-learner-section record='link' 
@@ -141,7 +141,7 @@
             </nl-learner-section>
         </div>
     </div>
-    <div ng-if='tabData.selectedTab.id == "admin" && tabData.dataLoaded'
+    <div ng-if='tabData.selectedTab.id == "admin"'
             class='padding'>
         <nl-cards cards='adminCards' class='nl-thin-scroll'></nl-cards>
     </div>

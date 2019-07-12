@@ -157,7 +157,7 @@
             var course = nlLearnerCourseRecords.getRecord(report.lesson_id);
             report.canReview = true;
             if(!(course && course.is_published)) report.canReview = false;
-            var courseAssignment = nlLearnerAssignment.getRecord('course_assignment:'+report.assignment) || null;
+            var courseAssignment = nlLearnerAssignment.getRecord('course_assignment:'+report.assignment) || {};
             if (!courseAssignment.info) courseAssignment.info = {};
             if (!course) course = nlLearnerCourseRecords.getCourseInfoFromReport(report, repcontent);
             var contentmetadata = 'contentmetadata' in course ? course.contentmetadata : {};

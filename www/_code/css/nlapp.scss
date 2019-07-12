@@ -1740,6 +1740,69 @@ img.nl-icon {
 /*-----------------------------------------------------------------------------------------*
  * Learner view section styles
  *-----------------------------------------------------------------------------------------*/
+ .nl-hcard {
+  position: relative;
+  border-radius: 8px;
+  background-color: white;
+  height: 100px;
+  overflow: hidden;
+  .nl-hcard-img-holder {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    height: 90px;
+    width: 150px;
+    text-align: center;
+    .nl-hcard-img {
+      max-height: 100%;
+      max-width: 100%;
+    }
+  }
+  .nl-hcard-desc {
+    position: absolute;
+    top: 5px;
+    left: 160px;
+    height: 53px;
+    width: auto;
+    right: 5px;
+    overflow: hidden;
+  }
+  .nl-hcard-buttons {
+    position: absolute;
+    bottom: 5px;
+    left: 160px;
+    height: 32px;
+    width: auto;
+    right: 5px;
+  }
+}
+
+.nl-screen-small .nl-hcard {
+  height: 120px;
+  .nl-hcard-img-holder {
+    height: 73px;
+    width: 100px; 
+  }
+  .nl-hcard-desc {
+    height: 73px;
+    left: 110px;
+  }
+  .nl-hcard-buttons {
+    left: 5px;
+  }
+}
+
+.learner-card-subtitle {
+  font-size: 85%;
+  color: #838383;
+}
+
+.nl-learner-card-header {
+  font-weight: bold;
+  color: #245dd1;
+  font-size: 100%;
+}
+
 .nl-card-img-size-lg {
   max-width: 160px;
   max-height: 90px;
@@ -3054,11 +3117,11 @@ a.enabled {
 /*----------------------------------------------------------------------------------------------------*/
 /* Shapes */
 .shape-rounded-small, .njsSlides .shape-rounded-small {border-radius: 8px;}
-.njsSlides .shape-rounded-h {border-radius: 20% / 50%;}
-.njsSlides .shape-rounded-v {border-radius: 50% / 20%;}
-.njsSlides .shape-oval {border-radius: 50%;}
-.njsSlides .shape-leaf1 {border-radius: 0 35%;}
-.njsSlides .shape-leaf2 {border-radius: 35% 0;}
+.shape-rounded-h, .njsSlides .shape-rounded-h {border-radius: 20% / 50%;}
+.shape-rounded-v, .njsSlides .shape-rounded-v {border-radius: 50% / 20%;}
+.shape-oval, .njsSlides .shape-oval {border-radius: 50%;}
+.shape-leaf1, .njsSlides .shape-leaf1 {border-radius: 0 35%;}
+.shape-leaf2, .njsSlides .shape-leaf2 {border-radius: 35% 0;}
 
 /*----------------------------------------------------------------------------------------------------*/
 /* Font sizes */
