@@ -6,7 +6,7 @@
 	// 						   delegates to nlLearnerView service.
 
 function module_init() {
-	angular.module('nl.learner_view', ['nl.learner_view_records'])
+	angular.module('nl.learner_view', ['nl.learner_view_records', 'nl.learner_view_assignments'])
 	.config(configFn)
 	.directive('nlLearnerViewDir', nlLearnerViewDirDirective)
 	.directive('nlLearnerSection', LearnerSectionDirective)
@@ -99,11 +99,11 @@ function($scope, nlLearnerView) {
 //-------------------------------------------------------------------------------------------------
 
 var NlLearnerView = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlLearverViewHelper',
-'nlLearnerViewRecords', 'nlTopbarSrv', 'nlCardsSrv',
-function(nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper, nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv) {
+'nlLearnerViewRecords', 'nlTopbarSrv', 'nlCardsSrv', 'nlLearnerAssignment', 'nlLearnerCourseRecords',
+function(nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper, nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv, nlLearnerAssignment, nlLearnerCourseRecords) {
 	this.create = function($scope) {
 		return new NlLearnerViewImpl($scope, nl, nlDlg, this, nlRouter, nlServerApi, nlLearverViewHelper,
-			nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv);
+			nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv, nlLearnerAssignment, nlLearnerCourseRecords);
 	};
 
 	this.initPageBgImg = function(data) {
@@ -145,13 +145,13 @@ var NlLearnerViewHelperSrv = [function() {
 }];
 
 function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerApi, nlLearverViewHelper, 
-	nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv) {
+	nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv, nlLearnerAssignment, nlLearnerCourseRecords) {
 	var self = this;
 	var _fetchChunk = 100;
 	var _userInfo = null;
 	var _parent = false;
 	var _isHome = false;
-
+	var _subFetcher = new subFetcher(nl, nlDlg, nlServerApi, nlLearnerAssignment, nlLearnerCourseRecords)
 	this.show = function() {
 		nlRouter.initContoller($scope, '', _onPageEnter);
 	};
@@ -211,25 +211,63 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			colors: [_nl.colorsCodes.blue2, _nl.colorsCodes.done]
 		}];
 	}
-    var _pageFetcher = nlServerApi.getPageFetcher({defMax: _fetchChunk, itemType: 'learning record'});
+
+	var _pageFetcher = nlServerApi.getPageFetcher({defMax: _fetchChunk, itemType: 'learning record'});
+	var uniqueId = 500;
+	var maxChunk = 100;
 	function _getLearningRecordsFromServer(resolve, fetchMore) {
-		var params = {containerid: 0, type: 'all', assignor: 'all', learner: 'me'};
-		var dontHideLoading = true;
-		nlLearnerViewRecords.reset();
-		var myResolve = resolve || null;
-        _pageFetcher.fetchBatchOfPages(nlServerApi.learningReportsGetList, params, fetchMore, 
-			function(results, batchDone, promiseHolder) {
-				var msg = nl.t('{} records fetched', results.length);
-				nlDlg.popupStatus(msg);
-				for (var i=0; i<results.length; i++) nlLearnerViewRecords.addRecord(results[i]);
-				_updateScope(true);
-				if (myResolve) {
-					myResolve(true);
-					myResolve = null;
+		_fetchReports(fetchMore, function(results) {
+			if (!results) {
+				resolve();
+				return;
+			}
+			for (var i=0; i<results.length; i++) {
+				for(var j=0; j<maxChunk; j++) {
+					results[i].id = uniqueId;
+					nlLearnerViewRecords.addRecord(results[i]);
+					uniqueId++;
 				}
+			}
+			_updateScope(true);
+			resolve(true);
 		});
 	}
 
+	function _fetchReports(fetchMore, onDoneCallback) {
+		var params = {containerid: 0, type: 'all', assignor: 'all', learner: 'me'};
+		var dontHideLoading = true;
+		nlLearnerViewRecords.reset();
+        _pageFetcher.fetchBatchOfPages(nlServerApi.learningReportsGetList, params, fetchMore, function(results, batchDone, promiseHolder) {
+			var msg = nl.t('{} records fetched', results.length);
+			nlDlg.popupStatus(msg);
+			if (!results) {
+				onDoneCallback(false);
+				return;
+			}
+			for(var i=0; i<results.length; i++) {
+				_subFetcher.markForFetching(results[i]);
+			}
+		
+			if (_subFetcher.fetchPending()) {
+				promiseHolder.promise = nl.q(function(resolve, reject) {
+					_subFetcher.fetch(function(result2) {
+						if (!result2) {
+							resolve(false);
+							onDoneCallback(false);
+							return;
+						}
+						resolve(true);
+						onDoneCallback(results);
+					});
+				});
+			} else {
+				nl.timeout(function() {
+					onDoneCallback(results);
+				});
+			}
+		}, 500, dontHideLoading);
+	}
+		
 	function _initTabData() {
 		var assignedTab = {id: 'assigned', type: 'tab', iconCls : 'ion-play',
 			name: 'Learn', text: 'My learning items', updated: false,
@@ -607,6 +645,106 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 	function _getCourseEndedTime(rep) {
 		if (!nlLearverViewHelper.isDone(rep.stats.status)) return null;
 		return rep.raw_record.updated;
+	}
+}
+
+var subFetcher = function(nl, nlDlg, nlServerApi, nlLearnerAssignment, nlLearnerCourseRecords) {
+	var _pendingIds = {};
+	var self=this;
+	
+	this.markForFetching = function(reportRecord) {
+		if (reportRecord.assignment) {
+			// Not a self learning record
+	        var key = (reportRecord.ctype == _nl.ctypes.CTYPE_COURSE) ? 'course_assignment:{}' : 'assignment:{}';
+	        key = nl.fmt2(key, reportRecord.assignment);
+	        if (key && !nlLearnerAssignment.wasFetched(key)) _pendingIds[key] = true;
+		}
+    	if (reportRecord.ctype != _nl.ctypes.CTYPE_COURSE) return;
+    	var courseId = reportRecord.lesson_id;
+        key = nl.fmt2('course:{}', courseId);
+        if (courseId && !nlLearnerCourseRecords.wasFetched(courseId)) _pendingIds[key] = true;
+	};
+	
+	this.fetchPending = function() {
+        return (Object.keys(_pendingIds).length > 0);
+	};
+	
+	this.fetch = function(onDoneCallback) {
+        var recordinfos = [];
+        for (var key in _pendingIds) {
+        	var parts = key.split(':');
+        	recordinfos.push({table: parts[0], id: parseInt(parts[1])});
+        }
+        _fetchInBatchs(recordinfos, 0, onDoneCallback);
+    };
+    
+    this.subfetchAndOverride = function(results, onDoneFunction) {
+    	// Called from learner list views
+		for(var i=0; i<results.length; i++) this.markForFetching(_getReportRecord(results[i]));
+        if (!this.fetchPending()) return onDoneFunction(results);
+        
+        nl.timeout(function() {
+        	nlDlg.showLoadingScreen();
+	        self.fetch(function() {
+	        	nlDlg.hideLoadingScreen();
+	        	for(var i=0; i<results.length; i++) {
+	        		nlLearnerAssignment.overrideAssignmentParameterInReport(_getReportRecord(results[i]), results[i]);
+	        	}
+	        	onDoneFunction(results);
+	        });
+        });
+    };
+    
+    this.getSubFetchedCourseRecord = function(cid) {
+    	// Called from learner list views
+    	return nlLearnerCourseRecords.getRecord(cid);
+    };
+    
+    function _getReportRecord(repObj) {
+    	var isCourseObj = 'courseid' in repObj; 
+    	return {ctype: isCourseObj ? _nl.ctypes.CTYPE_COURSE : repObj.ctype,
+			assigntype: isCourseObj ? _nl.atypes.ATYPE_COURSE : repObj.assigntype,
+			assignment: isCourseObj ? repObj.assignid : repObj.assignment,
+			lesson_id: isCourseObj ? repObj.courseid : repObj.lesson_id};
+    }
+    
+    var MAX_PER_BATCH = 50;
+    function _fetchInBatchs(recordinfos, startPos, onDoneCallback) {
+        var newRecordInfo = [];
+        var maxLen = recordinfos.length < startPos + MAX_PER_BATCH ? recordinfos.length : startPos + MAX_PER_BATCH;
+        for(var i=startPos; i<maxLen; i++) newRecordInfo.push(recordinfos[i]);
+        if (newRecordInfo.length == 0) {
+            onDoneCallback(true);
+            return;
+        }
+        nlServerApi.courseOrAssignGetMany(newRecordInfo).then(function(results) {
+            for(var i=0; i<results.length; i++) {
+                var resultObj = results[i];
+                if (resultObj.error) {
+                	nl.log.warn('Error fetching courseOrAssignGetMany object', resultObj);
+                	continue;
+                }
+            	var objId = parseInt(resultObj.id);
+                var key = nl.fmt2('{}:{}', resultObj.table, objId);
+                if (resultObj.table == 'course') {
+	                nlLearnerCourseRecords.addRecord(resultObj, objId);
+                } else if (resultObj.table == 'course_assignment') {
+                	resultObj.info = angular.fromJson(resultObj.info);
+                	if (resultObj.info.not_before) resultObj.info.not_before = nl.fmt.json2Date(resultObj.info.not_before); 
+                	if (resultObj.info.not_after) resultObj.info.not_after = nl.fmt.json2Date(resultObj.info.not_after); 
+                	nlLearnerAssignment.addRecord(resultObj, key);
+                } else {
+                	if (resultObj.not_before) resultObj.not_before = nl.fmt.json2Date(resultObj.not_before); 
+                	if (resultObj.not_after) resultObj.not_after = nl.fmt.json2Date(resultObj.not_after); 
+                	nlLearnerAssignment.addRecord(resultObj, key);
+                }
+                delete _pendingIds[key];
+            }
+            startPos += results.length;
+            _fetchInBatchs(recordinfos, startPos, onDoneCallback);
+        }, function(error) {
+            onDoneCallback(false);
+        });
 	}
 }
 

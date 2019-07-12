@@ -14,8 +14,8 @@
     }];
     
     //-------------------------------------------------------------------------------------------------
-    var NlLearnerViewRecords = ['nl', 'nlLearverViewHelper',
-    function(nl, nlLearverViewHelper) {
+    var NlLearnerViewRecords = ['nl', 'nlLearverViewHelper', 'nlLearnerAssignment', 'nlLearnerCourseRecords',
+    function(nl, nlLearverViewHelper, nlLearnerAssignment, nlLearnerCourseRecords) {
         var self = this;
         
         var _records = {};
@@ -154,7 +154,36 @@
 
             stats.nOthers = 0;
             stats.nOthersDone = 0;
-            if(!repcontent.content.modules) repcontent.content.modules = [];
+            var course = nlLearnerCourseRecords.getRecord(report.lesson_id);
+            report.canReview = true;
+            if(!(course && course.is_published)) report.canReview = false;
+            var courseAssignment = nlLearnerAssignment.getRecord('course_assignment:'+report.assignment) || null;
+            if (!courseAssignment.info) courseAssignment.info = {};
+            if (!course) course = nlLearnerCourseRecords.getCourseInfoFromReport(report, repcontent);
+            var contentmetadata = 'contentmetadata' in course ? course.contentmetadata : {};
+            report._grade = contentmetadata.grade || '';
+            report.subject = contentmetadata.subject || ''; 
+            if(courseAssignment) {
+                report.not_after = courseAssignment.info['not_after'];
+                report.not_before = courseAssignment.info['not_before'];
+                report.assign_remarks = courseAssignment.info['remarks'];
+                report.assigned_to = courseAssignment.info['assigned_to'];
+                report.authorname = courseAssignment.info['courseauthor']
+            }
+            var milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
+            repcontent.content.modules = course.content.modules;
+            for(var i=0; i<course.content.modules.length; i++) {
+                var elem = course.content.modules[i];
+                if(elem.type != 'milestone') continue;
+                isTrainerControlled = true;
+                if(elem.id in milestone) {
+                    started = true;
+                    latestMilestone = milestone[elem.id];
+                    latestMilestone['perc'] = elem.completionPerc;
+                    latestMilestone['name'] = elem.name;
+                }
+            }
+
             for (var i=0; i<repcontent.content.modules.length; i++) {
                 var type = repcontent.content.modules[i].type;
                 if(type == 'certificate' || type == 'module') continue;
@@ -260,7 +289,6 @@
             repcontent['icon'] = repcontent.image.substring(4);
             repcontent['id'] = report.id;
             var user = _userInfo;
-            if (!user) return null;
             report.showModuleProps = true;
             report.studentname = user.displayname;
             report._user_id = user.username;
@@ -269,7 +297,16 @@
             var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
                 timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
                 internalIdentifier:report.id, nCerts: 0, nLessonsDone: 0, done: 0};            
-                
+
+            var moduleAssignment = nlLearnerAssignment.getRecord('assignment:'+report.assignment) || null;
+            if(moduleAssignment) {
+                report.not_after = moduleAssignment['not_after'];
+                report.not_before = moduleAssignment['not_before'];
+                report.assign_remarks = moduleAssignment['assign_remarks'];
+                report.submissionAfterEndtime = moduleAssignment['submissionAfterEndtime'];
+                report.assigned_to = moduleAssignment['assigned_to'];
+                report.authorname = moduleAssignment['authorname'];
+            }
             stats.nLessons++;
             stats.percCompleteStr = 'Pending';
             if(repcontent.started) {
@@ -466,15 +503,13 @@
         }
         
         function _getRecordAvps(repcontent, report, type) {
-            var assignedTo = repcontent.assigned_to;
+            var assignedTo = report.assigned_to;
             var avps = [];
             var contentmetadata = repcontent.content && repcontent.content.contentmetadata ? repcontent.content.contentmetadata : {};
             nl.fmt.addAvp(avps, 'NAME', repcontent.name);
-            nl.fmt.addAvp(avps, 'AUTHOR', repcontent.courseauthor);
+            nl.fmt.addAvp(avps, 'AUTHOR', report.authorname);
             nl.fmt.addAvp(avps, 'ASSIGNED BY', type == 'module' ? repcontent.assigned_by : repcontent.sendername);
             nl.fmt.addAvp(avps, 'ASSIGNED TO', assignedTo);
-            nl.fmt.addAvp(avps, 'REPORT OF', _userInfo.displayname);
-            nl.fmt.addAvp(avps, 'GROUP', type == 'module' ? _userInfo.groupinfo.name : repcontent.grpname);
             if(type == 'course') {
                 nl.fmt.addAvp(avps, _userInfo.groupinfo.gradelabel.toUpperCase() , contentmetadata.grade || '-');
                 nl.fmt.addAvp(avps, _userInfo.groupinfo.subjectlabel.toUpperCase() , contentmetadata.subject || '-');    
@@ -491,12 +526,10 @@
                 nl.fmt.addAvp(avps, 'ENDED ON', report.ended, 'date');    
             }
 
-            nl.fmt.addAvp(avps, 'FROM', repcontent.not_before || '', 'date');
-            nl.fmt.addAvp(avps, 'TILL', repcontent.not_after || '', 'date');
-            nl.fmt.addAvp(avps, 'REMARKS', type == 'module' ? repcontent.assign_remarks : repcontent.remarks);
-            nl.fmt.addAvp(avps, 'DISCUSSION FORUM', repcontent.forum, 'boolean');
-            if(type == 'module')
-                nl.fmt.addAvp(avps, 'SUBMISSION AFTER ENDTIME', repcontent.submissionAfterEndtime, 'boolean');
+            nl.fmt.addAvp(avps, 'FROM', report.not_before || '', 'date');
+            nl.fmt.addAvp(avps, 'TILL', report.not_after || '', 'date');
+            nl.fmt.addAvp(avps, 'REMARKS', report.assign_remarks);
+            if(type == 'module') nl.fmt.addAvp(avps, 'SUBMISSION AFTER ENDTIME', report.submissionAfterEndtime, 'boolean');
             nl.fmt.addAvp(avps, 'INTERNAL IDENTIFIER', repcontent.id);
             return avps;
         }
