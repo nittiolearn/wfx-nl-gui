@@ -52,12 +52,14 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 		_setExportFilters(dlg, reportRecords);
         var filterData = dlg.scope.filtersData;
         dlg.scope.canExportSessions = function() {
+            var reptype = dlg.scope.reptype;
             if((reptype == "course" || reptype == "course_assign") && _userInfo.groupinfo.features['training']) return true;
             return false;
         };
         dlg.scope.canExportRatings = function() {
+            var reptype = dlg.scope.reptype;
             if((reptype == "course" || reptype == "course_assign") && _userInfo.groupinfo.features['etm'] && _userInfo.groupinfo.ratings) return true;
-            return  false
+            return  false;
         };
         var exportButton = {
             text : nl.t('Download'),

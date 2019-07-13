@@ -62,6 +62,21 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecord
     };
     
     //-----------------------------------------------------------------------------------
+    var _TEST_COPY_COUNT = 0; // TODO: Make sure this is always set to 0 before checking
+    var _TEST_UNIQUE_REPROT_ID = 50000;
+    function _testCopyResults(results) {
+        if (_TEST_COPY_COUNT == 0) return;
+        var resultsOrigLen = results.length;
+        for(var i=0; i<resultsOrigLen; i++) {
+            for (var j=0; j<_TEST_COPY_COUNT; j++) {
+                var result = angular.copy(results[i]);
+                result.id = _TEST_UNIQUE_REPROT_ID++;
+                results.push(result);
+            }
+        }
+    }
+
+    //-----------------------------------------------------------------------------------
     function _fetchReports(fetchMore, onDoneCallback) {
     	var params = nlLrFilter.getServerParams();
     	var dontHideLoading = true;
@@ -71,6 +86,7 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecord
                 onDoneCallback(false);
                 return;
             }
+            _testCopyResults(results);
             for(var i=0; i<results.length; i++) {
             	_subFetcher.markForFetching(results[i]);
             }
