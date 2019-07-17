@@ -162,6 +162,10 @@ function(nl, $ionicPopup, $ionicLoading) {
         if (field) field.focus();
     	return false;
     };
+
+    this.preventMultiCalls = function(bShowLoadingScreen, innerFn) {
+        _preventMultiCalls(nl, this, bShowLoadingScreen, innerFn);
+    };
 }];
 
 var _uniqueId = 0;
@@ -505,6 +509,28 @@ function(nl) {
         }
     };
 }];
+
+var _preventMultiCallsInProgress = false;
+function _preventMultiCalls(nl, nlDlg, bShowLoadingScreen, innerFn) {
+    if (_preventMultiCallsInProgress) return;
+    _preventMultiCallsInProgress = true;
+    if (!bShowLoadingScreen) {
+        _preventMultiCallImpl(nl, nlDlg, bShowLoadingScreen, innerFn);
+        return;
+    }
+    nlDlg.showLoadingScreen();
+    nl.timeout(function() {
+        _preventMultiCallImpl(nl, nlDlg, bShowLoadingScreen, innerFn);
+    }, 100);
+}
+
+function _preventMultiCallImpl(nl, nlDlg, bShowLoadingScreen, innerFn) {
+    innerFn();
+    if (bShowLoadingScreen) nlDlg.hideLoadingScreen();
+    nl.timeout(function() {
+        _preventMultiCallsInProgress = false;
+    }, 200);
+}
 
 //-------------------------------------------------------------------------------------------------
 module_init();

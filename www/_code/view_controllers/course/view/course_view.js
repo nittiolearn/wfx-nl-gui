@@ -850,6 +850,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         $scope.ext.setCurrentItem(cm);
         if(cm.state.status == 'waiting') {
             var dependencyArray = cm.dependencyArray || [];
+            if(cm.type == 'module') cm.dependencyArray = ['All items inside the folder are locked.'];
             var str = '<div class="padding-mid" style="font-size:120%; font-weight:bold">This element is currently locked. It will be unlocked after following condition(s) are met</div>';
                 str += '<div class="padding-mid"><ul>';
             for(var i=0; i<cm.dependencyArray.length; i++) str += nl.t('<li style="line-height:24px">{}</li>', cm.dependencyArray[i]);
@@ -1056,6 +1057,15 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
                 break;
             }
         }
+
+        if(selectedRating.type == 'number') {
+            cm.ratingStr = cm.ratingScore+'%';
+        } else {
+            for(var i=0; i<selectedRating.values.length; i++) {
+                var item = selectedRating.values[i];
+                if(cm.ratingScore === item.p) cm.ratingStr = item.v            }
+        }
+
         if(cm.ratingScore <= selectedRating.lowPassScore)
             return 'failed';
         else if(selectedRating.lowPassScore < cm.ratingScore && cm.ratingScore < selectedRating.passScore)

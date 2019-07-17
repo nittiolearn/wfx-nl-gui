@@ -180,11 +180,9 @@
         return {
             restrict: 'E',
             scope: {
-                curval: '=',
-                maxval: '='
+                percval: '@'
             },
-            template: "<div class='nl-progress-bar'><div class='progress-bar-bar' " +
-                      "style='width: {{maxval ? curval/maxval*100 : 0}}%'></div></div>"
+            templateUrl: 'lib_ui/utils/progress_bar.html' 
        };
     }];
     

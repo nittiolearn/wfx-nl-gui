@@ -91,7 +91,7 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCar
             nl.rootScope.showAnnouncement = !nl.rootScope.hideAnnouncement;
             $scope.pane = true;
 
-            if(userInfo.dashboard_props['dashboardType'] == "learner_view" && isHome) {
+            if(userInfo.dashboard_props['dashboardType'] == "learner_view") {
                 var learnerView = nlLearnerView.create($scope);
                 $scope.isTabs = true;
                 nlLearnerView.initPageBgImg(userInfo);

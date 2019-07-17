@@ -1,5 +1,6 @@
 <nl-dlg dlgTitle='Provide ratings' show-help='0'>
 <nl-dlg-content>
+
 <div class='row row-top padding0 margin0'>
 	<div class='col' style='padding-right:0px; max-width: 250px'>
 		<div class='padding-mid fsh4'>Ratings</div>
@@ -33,7 +34,7 @@
                             </select>
                         </div>
                         <div ng-if='selectedRating.ratingType === "input"' class='col padding0'>
-                            <input type='number' ng-model='user.rating'></input>
+                            <input type='number' ng-model='user.rating' min='0' max='100'></input>
                         </div>
                     </div>
                 </div>

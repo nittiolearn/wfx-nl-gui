@@ -161,7 +161,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     function _export(resolve, reject, filter, reportRecords) {
         try {
             var zip = new JSZip();
-
+            var type = nlLrFilter.getType();
 		    var expSummaryStats = nlLrSummaryStats.getSummaryStats();
             for(var start=0, i=1; start < reportRecords.length; i++) {
                 var pending = reportRecords.length - start;
@@ -183,7 +183,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                 }
             }
 
-            if (filter.exportTypes.module) {
+            if (filter.exportTypes.module && (type == 'module' || type == 'module_assign')) {
                 for(var start=0, i=1; start < ctx.moduleRows.length; i++) {
                     var pending = ctx.moduleRows.length - start;
                     pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
@@ -203,22 +203,12 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                 }
             }
 			
-			if (filter.exportTypes.session) {
-                for(var start=0, i=1; start < ctx.sessionRows.length; i++) {
-                    var pending = ctx.sessionRows.length - start;
+			if ((filter.exportTypes.session || filter.exportTypes.module || filter.exportTypes.ratings) && ctx.courseDetailsRow.length > 1) {
+                for(var start=0, i=1; start < ctx.courseDetailsRow.length; i++) {
+                    var pending = ctx.courseDetailsRow.length - start;
                     pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
-                    var fileName = nl.fmt2('ilt-session-reports-{}.csv', i);
-                    _createCsv(filter, ctx.sessionRows, zip, fileName, start, start+pending);
-                    start += pending;
-                }
-			} 
-
-			if (filter.exportTypes.ratings) {
-                for(var start=0, i=1; start < ctx.sessionRows.length; i++) {
-                    var pending = ctx.ratingRows.length - start;
-                    pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
-                    var fileName = nl.fmt2('rating-reports-{}.csv', i);
-                    _createCsv(filter, ctx.ratingRows, zip, fileName, start, start+pending);
+                    var fileName = nl.fmt2('course-details-{}.csv', i);
+                    _createCsv(filter, ctx.courseDetailsRow, zip, fileName, start, start+pending);
                     start += pending;
                 }
 			} 
@@ -282,9 +272,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 	            if (records[i].raw_record.ctype == _nl.ctypes.CTYPE_MODULE) {
 	            	_exportIndividualPageScore(filter, records[i]);
 	            } else if(records[i].raw_record.ctype == _nl.ctypes.CTYPE_COURSE){
-                    if(filter.exportTypes.session) _updateCsvSessionRows(filter, records[i]);
-                    if(filter.exportTypes.ratings) _updateCsvRatingRows(filter, records[i])
-	            	_updateCsvModuleRows(filter, records[i]);
+                    if(filter.exportTypes.module || filter.exportTypes.session || filter.exportTypes.ratings) 
+                        _updateCsvCourseDetailsRows(filter, records[i]);
 	            }
                 expSummaryStats.addToStats(records[i]);
             }
@@ -396,8 +385,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         ctx.moduleRows = [nlExporter.getCsvHeader(_hModuleRow)];
         ctx.pScoreRows = [nlExporter.getCsvHeader(_hPageScores)];
         ctx.feedbackRows = [nlExporter.getCsvHeader(_hFeedback)];
-        ctx.sessionRows = [nlExporter.getCsvHeader(_hSessionRow)];
-        ctx.ratingRows = [nlExporter.getCsvHeader(_hRatingRow)];
+        ctx.courseDetailsRow = [nlExporter.getCsvHeader(_hCourseDetailsRow)];
         ctx.reports = reports;
         ctx.zip = new JSZip();
         ctx.pageCnt = 0;
@@ -411,8 +399,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     var _hModuleRow = [];
     var _hPageScores = [];
     var _hFeedback = [];
-    var _hSessionRow = [];
-    var _hRatingRow = [];
+    var _hCourseDetailsRow = [];
     var _userFields1 = [
             {id: '_user_id', name:'User Id'},
             {id: 'studentname', name:'User Name'}];
@@ -464,44 +451,40 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             {id: 'question', name:'Question'},
             {id: 'response', name:'Response'}];
 
-	var _h1sessionElems1 = [
+    var _hCourseDetailsElem1 = [
             {id: '_assignTypeStr', name:'Record Type'},
-            {id: '_courseName', name:'course Name'},
+            {id: '_courseName', name:'Course Name'},
             {id: '_batchName', name:'Batch Name'},
-            {id: 'session', name:'Session name'}];
-            
-    var _h1sessionElems2 = [        
-			{id: 'not_before', name: 'From', fmt: 'minute'},
-			{id: 'not_after', name: 'Till', fmt: 'minute'},
-			{id: 'status', name: 'Status'},
-            {id: 'remarks', name: 'Remarks'},
-            {id: '_timeMins', name:'ILT Time Spent(minutes)'},
-            {id: '_timeTotalMins', name:'ILT Total Time(minutes)'},
-            {id: 'iltVenue', name: 'Venue'},
-            {id: 'iltTrainerName', name: 'Trainer name'},
-            {id: 'iltCostInfra', name: 'Infra cost'},
-            {id: 'iltCostTrainer', name: 'Trainer cost'},
-            {id: 'iltCostFoodSta', name: 'Food cost'},
-            {id: 'iltCostTravelAco', name: 'travel cost'},
-            {id: 'iltCostMisc', name: 'Misc cost'}];
-    var idSessionIdFields = [
-			{id: 'repid', name: 'Report Id'},
-			{id: 'assignid', name: 'Assign Id'}, 
-			{id: 'courseid', name: 'Course Id'}];
-    var _h1RatingElems1 = [
-        {id: '_assignTypeStr', name:'Record Type'},
-        {id: '_courseName', name:'course Name'},
-        {id: '_batchName', name:'Batch Name'},
-        {id: 'session', name:'Rating name'}];
-                
-    var _h1RatingElems2 = [
+            {id: '_itemname', name:'Item name'}];
+    
+    var _hCourseDetailsElem2 = [
+            {id: 'created', name:'Assigned On', fmt: 'minute'},
+            {id: 'started', name:'Started On', fmt: 'minute'},
+            {id: 'ended', name:'Ended On', fmt: 'minute'},
+            {id: 'updated', name:'Last Updated On', fmt: 'minute'},
             {id: 'not_before', name: 'From', fmt: 'minute'},
             {id: 'not_after', name: 'Till', fmt: 'minute'},
-            {id: 'status', name: 'Status'},
-            {id: 'state', name: 'Completion state'},
-            {id: 'rating_score', name: 'Rating score'},
-            {id: 'remarks', name: 'Remarks'}];
-                
+            {id: '_status', name:'Status / Rating'},
+            {id: 'remarks', name: 'Remarks'},
+            {id: '_attempts', name:'Attempts'},
+            
+            {id: '_percStr', name:'Achieved %'},
+            {id: '_maxScore', name:'Maximum Score'},
+            {id: '_score', name:'Achieved Score'},
+            {id: '_passScoreStr', name:'Pass %'},
+            {id: 'feedbackScore', name:'Feedback score'},
+            {id: '_timeMins', name:'Time Spent (minutes)'},
+            {id: '_timeTotalMins', name:'Total Time(minutes)'}
+        ];
+    
+    var _hCourseDetailsElem3 = [
+        {id: '_reportId', name: 'Course report Id' },
+        {id: '_assignId', name: 'Assign Id' },
+        {id: '_courseId', name: 'Course' },
+        {id: '_moduleId', name: 'Module Id' },
+        {id: '_moduleRepId', name: 'Module report Id' },
+    ]
+
     function _initExportHeaders(_userInfo, exportIds) {
         var _commonFieldsPre = [
                 {id: 'subject', name:_userInfo.groupinfo.subjectlabel},
@@ -515,79 +498,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                 exportIds ? _idFields1 :  []);
         _hFeedback = _userFields1.concat(_commonFields, _commonFieldsPre, _h1Feedback, _commonFieldsPost, _userFields2, _metaFields,
                 exportIds ? _idFields1 :  []);
-    	_hSessionRow = _userFields1.concat(_h1sessionElems1, _commonFieldsPre, _h1sessionElems2, _userFields2, _metaFields, 
-                exportIds ? idSessionIdFields :  []);
-        _hRatingRow = _userFields1.concat(_h1RatingElems1, _commonFieldsPre, _h1RatingElems2, _userFields2, _metaFields, 
-            exportIds ? idSessionIdFields :  []);
+        _hCourseDetailsRow = _userFields1.concat(_hCourseDetailsElem1, _commonFieldsPre, _hCourseDetailsElem2, _userFields2, _hCourseDetailsElem3);
     }
 
-	function _updateCsvSessionRows(filter, rep) {
-        if(!rep.course.content.blended) return;
-        var mh = nlLrHelper.getMetaHeaders(false);
-        var record = {_user_id: rep.user.user_id, studentname: rep.repcontent.studentname, 
-        				_assignTypeStr: 'Course', _courseName: rep.repcontent.name, _batchName: rep.repcontent.batchname,
-        				session: '', subject: rep.course.contentmetadata.subject,  _grade: rep.course.contentmetadata.grade, 
-                        not_before: rep.repcontent.not_before, not_after: rep.repcontent.not_after, status: '-', 
-                        _timeMins: (rep.stats.iltTimeSpent+rep.stats.timeSpentSeconds)/60, 
-        				iltVenue: rep.repcontent.iltVenue, iltTrainerName: rep.repcontent.iltTrainerName, iltCostInfra : rep.repcontent.iltCostInfra,
-        				iltCostTrainer: rep.repcontent.iltCostTrainer, iltCostFoodSta: rep.repcontent.iltCostFoodSta, iltCostTravelAco: rep.repcontent.iltCostTravelAco,
-        				iltCostMisc: rep.repcontent.iltCostMisc, _stateStr: rep.user.state ? 'active' : 'inactive', _email: rep.user.email, org_unit: rep.user.org_unit};
-        for(var i=0; i<mh.length; i++) record[mh[i].id] = rep.usermd[mh[i].id];
-        if (filter.exportTypes.ids) {
-            record['repid'] =  rep.raw_record.id;
-            record['assignid'] = rep.raw_record.assignment;
-            record['courseid'] = rep.repcontent.courseid; 
-        }
-        for(var i=0; i<rep.course.content.modules.length; i++) {
-        	var session = rep.course.content.modules[i];
-        	if(session.type != 'iltsession' || session.type == 'module') continue;
-        	record['session'] = session.name;
-        	record['_assignTypeStr'] = session.type;
-        	if(rep.repcontent.statusinfo && rep.repcontent.statusinfo[session.id]) {
-                record['status'] = rep.repcontent.statusinfo[session.id].state;
-                record['remarks'] = rep.repcontent.statusinfo[session.id].remarks || '';
-                record['_timeMins'] = rep.repcontent.statusinfo[session.id].iltTimeSpent || 0;
-               record['_timeTotalMins'] = rep.repcontent.statusinfo[session.id].iltTotalTime;
-        	} else {
-        		record['status'] = 'Pending';
-                record['_timeMins'] = '';
-                record['_timeTotalMins'] = '';
-            }
-	        ctx.sessionRows.push(nlExporter.getCsvRow(_hSessionRow, record));
-        }
-	}
-
-	function _updateCsvRatingRows(filter, rep) {
-        if(!rep.course.content.blended) return;
-        var mh = nlLrHelper.getMetaHeaders(false);
-        var record = {_user_id: rep.user.user_id, studentname: rep.repcontent.studentname, 
-        				_assignTypeStr: 'Course', _courseName: rep.repcontent.name, _batchName: rep.repcontent.batchname,
-        				session: '', subject: rep.course.contentmetadata.subject,  _grade: rep.course.contentmetadata.grade, 
-                        not_before: rep.repcontent.not_before, not_after: rep.repcontent.not_after, status: '-', 
-                        _stateStr: rep.user.state ? 'active' : 'inactive', _email: rep.user.email, org_unit: rep.user.org_unit};
-        for(var i=0; i<mh.length; i++) record[mh[i].id] = rep.usermd[mh[i].id];
-        if (filter.exportTypes.ids) {
-            record['repid'] =  rep.raw_record.id;
-            record['assignid'] = rep.raw_record.assignment;
-            record['courseid'] = rep.repcontent.courseid; 
-        }
-        for(var i=0; i<rep.course.content.modules.length; i++) {
-        	var session = rep.course.content.modules[i];
-        	if(session.type != 'rating' || session.type == 'module') continue;
-        	record['session'] = session.name;
-        	record['_assignTypeStr'] = session.type;
-        	if(rep.repcontent.statusinfo && rep.repcontent.statusinfo[session.id]) {
-                record['status'] = rep.repcontent.statusinfo[session.id].status;
-                record['state'] = rep.repcontent.statusinfo[session.id].state;
-                record['rating_score'] = rep.repcontent.statusinfo[session.id].ratingScore;
-                record['remarks'] = rep.repcontent.statusinfo[session.id].remarks || '';
-            } else {
-        		record['status'] = 'Pending';
-                record['state'] = 'Not rated';
-            }
-	        ctx.ratingRows.push(nlExporter.getCsvRow(_hRatingRow, record));
-        }
-	}
 
     function _exportIndividualPageScore(filter, report) {
         var rep = report.raw_record;
@@ -707,63 +620,87 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         }
     }
 
-    function _updateCsvModuleRows(filter, report) {
-        var modules = report.course.lessons;
-        var lessonReports = report.repcontent.lessonReports || {};
-        var mh = nlLrHelper.getMetaHeaders(false);
-        var not_before = report.raw_record.not_before ? nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_before)) : '';
-        var not_after = report.raw_record.not_after ? nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_after)) : '';
-        for(var m=0; m<modules.length; m++) {
-            var module=modules[m];
-            var moduleKey = 'A'+report.course.id + '.' + module.id.split('.').join('_');
-        	if (!_checkFilter(filter.selectedCourses, moduleKey)) continue;
-            var status = 'pending';
-            var perc='';
-            var score='';
-            var maxScore='';
-            var passScore = '';
-            var started = '';
-            var ended = '';
-            var timeSpent='';
-            var attempts = '';
-            var feedbackScore = '';
-            if (module.id in lessonReports) {
-                var lrep = lessonReports[module.id];
-                maxScore = lrep.selfLearningMode ? 0 : lrep.maxScore || 0;
-                passScore = lrep.passScore || '';
-                score = lrep.selfLearningMode ? 0 : lrep.score || 0;
-                var percentage = maxScore > 0 ? Math.round(score*100/maxScore) : 100;
-                var passed = (!lrep.passScore || percentage >= lrep.passScore);
-                perc =  maxScore > 0 ? percentage + '%' : '';
-                maxScore = maxScore || '';
-                score = score || '';
-                started = lrep.started || '';
-                ended = lrep.ended || '';
-                timeSpent = Math.ceil((lrep.timeSpentSeconds||0)/60);
-                attempts = lrep.attempt || '';
-                status = !lrep.completed ? 'started' :
-                    !maxScore ? 'done' :
-                    passed ? 'passed' : 'failed';
-		        feedbackScore = _getFeedbackScores(lrep.feedbackScore || []);
-            }
-            
-			if(feedbackScore) feedbackScore = nl.fmt2('{}%', Math.round(feedbackScore*10)/10);
-            var ret = [report.user.user_id, report.user.name];
-            if (started) started = nl.fmt.date2Str(nl.fmt.json2Date(started));
-            if (ended) ended = nl.fmt.date2Str(nl.fmt.json2Date(ended));
-            ret = ret.concat(['Module inside course', report.course.name, report.raw_record._batchName, module.name, report.course.contentmetadata.grade || '',
-	        	report.course.contentmetadata.subject || '', nl.fmt.date2Str(report.raw_record.created), started, ended, nl.fmt.date2Str(report.raw_record.updated), not_before, not_after, status,
-	        	attempts, perc, maxScore, score, passScore ? passScore + '%' : '', feedbackScore, timeSpent, report.repcontent.remarks]);
-			ret.push(report.user.state ? 'active': 'inactive');
-	        ret.push(report.user.email);
-	        ret.push(report.user.org_unit);
-            for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id] || '');
-            if (filter.exportTypes.ids)
-                ret = ret.concat(['id=' + report.raw_record.id, 
-                    'id=' + report.raw_record.assignment, 'id=' + report.raw_record.lesson_id, 'id=' + report.course.id, 'id=' + report.raw_record.containerid]);
-            ctx.moduleRows.push(nlExporter.getCsvString(ret));
+    function _updateCsvCourseDetailsRows(filter, report) {
+        var defaultRowObj = {_user_id: report.user.user_id, studentname: report.repcontent.studentname, 
+            _assignTypeStr: '', _courseName: report.repcontent.name, _batchName: report.repcontent.batchname, _itemname: '',
+            subject: report.course.contentmetadata.subject,  _grade: report.course.contentmetadata.grade, 
+            created: report.raw_record.created, started: '', ended: '', updated: report.raw_record.updated, 
+            not_before: report.repcontent.not_before, not_after: report.repcontent.not_after, 
+            _status: 'pending', remarks: '', _attempts: '', _percStr: '', _maxScore: '', _score: '', _passScoreStr: '', feedbackScore: '', 
+            _timeMins: '', _timeTotalMins: '',
+            _stateStr: report.user.state ? 'active' : 'inactive', _email: report.user.email, org_unit: report.user.org_unit,
+            _reportId: report.raw_record.id, _assignId: report.raw_record.assignment, _courseId: report.raw_record.lesson_id, _moduleId: '', _moduleRepId : ''};
+        var modules = report.course.content.modules;
+        for(var i=0; i<modules.length; i++) {
+            var item = modules[i]
+            if(item.type != 'lesson' && item.type != 'rating' && item.type != 'iltsession') continue;
+            var defObj = angular.copy(defaultRowObj);
+            if(item.type == 'lesson' && filter.exportTypes.module) _updateCsvModuleRows1(filter, report, item, defObj)
+            if(item.type == 'iltsession' && filter.exportTypes.session) _updateCsvSessionRows1(report, item, defObj)
+            if(item.type == 'rating' && filter.exportTypes.ratings) _updateCsvRatingRows1(report, item, defObj)
         }
     }
+    
+    function _updateCsvModuleRows1(filter, report, module, defaultRowObj){
+        defaultRowObj._assignTypeStr = 'Module inside course';
+        var lessonReports = report.repcontent.lessonReports || {};
+        var mh = nlLrHelper.getMetaHeaders(false);
+        var moduleKey = 'A'+report.course.id + '.' + module.id.split('.').join('_');
+        if (!_checkFilter(filter.selectedCourses, moduleKey)) return;
+        defaultRowObj._itemname = module.name;
+        defaultRowObj._moduleId = module.refid;
+        if (module.id in lessonReports) {
+            var lrep = lessonReports[module.id];
+            defaultRowObj._moduleRepId = lrep.reportId;
+            var score = lrep.selfLearningMode ? 0 : lrep.score || 0;
+            var maxScore = lrep.selfLearningMode ? 0 : lrep.maxScore || 0;
+            var percentage = maxScore > 0 ? Math.round(score*100/maxScore) : 100;
+            var passed = (!lrep.passScore || percentage >= lrep.passScore);
+            var perc =  maxScore > 0 ? percentage + '%' : '';
+            var status = !lrep.completed ? 'started' :
+                !maxScore ? 'done' :
+                passed ? 'passed' : 'failed';
+            var feedbackScore = _getFeedbackScores(lrep.feedbackScore || []);
+            defaultRowObj.started = lrep.started ? nl.fmt.json2Date(lrep.started) : '';
+            defaultRowObj.ended = lrep.ended ? nl.fmt.json2Date(lrep.ended) : '';
+            defaultRowObj._status = status || 'pending';
+            defaultRowObj.remarks =  report.repcontent.remarks;
+            defaultRowObj._attempts =  lrep.attempt || '';
+            defaultRowObj._percStr =  perc;
+            defaultRowObj._maxScore = maxScore || '';
+            defaultRowObj._score =  score || '';
+            defaultRowObj._passScoreStr =  lrep.passScore || '';
+            defaultRowObj.feedbackScore = feedbackScore ? nl.fmt2('{}%', Math.round(feedbackScore*10)/10) : '';
+            defaultRowObj._timeMins = Math.ceil((lrep.timeSpentSeconds||0)/60);
+        }
+        ctx.courseDetailsRow.push(nlExporter.getCsvRow(_hCourseDetailsRow, defaultRowObj));
+    };
+
+	function _updateCsvSessionRows1(report, session, defaultRowObj) {
+        defaultRowObj._assignTypeStr = 'ILT session inside course';
+        defaultRowObj._itemname = session.name;
+        var statsinfo = report.repcontent.statusinfo ? report.repcontent.statusinfo[session.id] : null;
+        if(statsinfo) {
+            defaultRowObj._status = statsinfo.state;
+            defaultRowObj.remarks = statsinfo.remarks || '';
+            defaultRowObj._timeMins = statsinfo.iltTimeSpent || 0;
+            defaultRowObj._timeTotalMins = statsinfo.iltTotalTime;
+        }
+        ctx.courseDetailsRow.push(nlExporter.getCsvRow(_hCourseDetailsRow, defaultRowObj));
+	}
+
+	function _updateCsvRatingRows1(report, rating, defaultRowObj) {
+        defaultRowObj._assignTypeStr = 'Rating inside course';
+        defaultRowObj._itemname = rating.name;
+        var statsinfo = report.repcontent.statusinfo ? report.repcontent.statusinfo[rating.id] : null;
+        if(statsinfo) {
+            defaultRowObj._status = statsinfo.rating === 0 ? "0" : statsinfo.rating;
+            defaultRowObj._score = statsinfo.ratingScore === 0 ? "0" : statsinfo.ratingScore;
+            defaultRowObj._passScoreStr = statsinfo.passScore || '';
+            defaultRowObj.remarks = statsinfo.remarks || '';
+        }
+        ctx.courseDetailsRow.push(nlExporter.getCsvRow(_hCourseDetailsRow, defaultRowObj));
+	}
 
 	function _checkFilter(filterItems, userField) {
 		return Object.keys(filterItems).length == 0 || (userField in filterItems);

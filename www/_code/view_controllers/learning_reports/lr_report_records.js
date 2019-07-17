@@ -363,34 +363,28 @@
                 var userRating = rating[report.id] || [];
                 var ratingFound = false;
                 for(var j=0; j<userRating.length; j++) {
-                    if(userRating[j].id == elem.id && userRating[j].attId != '') {
+                    if(userRating[j].id == elem.id && userRating[j].attId !== '') {
                         ratingFound = true;
+                        var ratingObj = _getRatingObj(elem.rating_type);
                         if(!repcontent.statusinfo) repcontent.statusinfo = {};
                         if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
-                        repcontent.statusinfo[elem.id].status = 'done';
-                        repcontent.statusinfo[elem.id].state = _computeStatusOnScore(elem, userRating[j].attId);
+                        var status = _setStatusOfRatingItem(ratingObj, userRating[j].attId);
+                        repcontent.statusinfo[elem.id].status =  'done';
+                        repcontent.statusinfo[elem.id].rating = _computeStringOnScore(ratingObj, userRating[j].attId);
                         repcontent.statusinfo[elem.id].ratingScore = userRating[j].attId;
+                        repcontent.statusinfo[elem.id].passScore = ratingObj.passScore || '';
                         repcontent.statusinfo[elem.id].remarks = userRating[j].remarks || '';
+                        repcontent.statusinfo[elem.id].stateStr = status;
                     }
                 }                
                 if(!ratingFound) {
                     if(!repcontent.statusinfo) repcontent.statusinfo = {};
                     if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
                     repcontent.statusinfo[elem.id].state = 'pending';
+                    repcontent.statusinfo[elem.id].stateStr = 'pending';
                     repcontent.statusinfo[elem.id].iltTotalTime = elem.iltduration;
                 }
             }
-        }
-
-        function _computeStatusOnScore(item, score) {
-            var getRatingObj = _getRatingObj(item.rating_type)
-            if(score <= getRatingObj.lowPassScore)
-                return 'Poor';
-            else if(getRatingObj.lowPassScore < score && score < getRatingObj.passScore)
-                return 'Good';
-            else 
-                return 'Excellent';
-
         }
 
         function _getRatingObj(ratingtype) {
@@ -402,6 +396,26 @@
             return {};
         }
 
+        function _computeStringOnScore(ratingObj, score) {
+            if(Object.keys(ratingObj).length == 0) return score;
+            if(ratingObj.type == 'number') return score;
+            if(ratingObj.type == 'status' || ratingObj.type == 'select') {
+                for(var i=0; i<ratingObj.values.length; i++) {
+                    var val = ratingObj.values[i];
+                    if(val.p == score) return val.v;
+                }
+            }
+        }
+
+        function _setStatusOfRatingItem(selectedRating, ratingScore) {
+            if(ratingScore <= selectedRating.lowPassScore)
+                return 'failed';
+            else if(selectedRating.lowPassScore < ratingScore && ratingScore < selectedRating.passScore)
+                return 'partial_success';
+            else 
+                return 'completed';
+        }
+            
         function _updateIltParameters(report, course, courseAssignment, repcontent, stats) {
             var attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
                 attendance = nlCourse.migrateCourseAttendance(attendance);
@@ -421,6 +435,7 @@
                         if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
                         repcontent.statusinfo[elem.id].status = 'done';
                         repcontent.statusinfo[elem.id].state = attObj.name;
+                        repcontent.statusinfo[elem.id].stateStr = attObj.id;
                         repcontent.statusinfo[elem.id].remarks = userAttendance[j].remarks || '';
                         repcontent.statusinfo[elem.id].iltTotalTime = elem.iltduration;
                         repcontent.statusinfo[elem.id].iltTimeSpent = (attObj.timePerc/100)*elem.iltduration;
@@ -431,6 +446,7 @@
                     if(!repcontent.statusinfo) repcontent.statusinfo = {};
                     if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
                     repcontent.statusinfo[elem.id].state = 'pending';
+                    repcontent.statusinfo[elem.id].stateStr = 'pending';
                     repcontent.statusinfo[elem.id].iltTotalTime = elem.iltduration;
                 }
             }
