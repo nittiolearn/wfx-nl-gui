@@ -213,19 +213,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 	}
 
 	var _pageFetcher = nlServerApi.getPageFetcher({defMax: _fetchChunk, itemType: 'learning record'});
-	function _getLearningRecordsFromServer(resolve, fetchMore) {
-		_fetchReports(fetchMore, function(results) {
-			if (!results) {
-				resolve();
-				return;
-			}
-			for (var i=0; i<results.length; i++) {
-				nlLearnerViewRecords.addRecord(results[i]);
-			}
-			_updateScope(true);
-			resolve(true);
-		});
-	}
 
 	function _fetchReports(fetchMore, onDoneCallback) {
 		var params = {containerid: 0, type: 'all', assignor: 'all', learner: 'me'};
@@ -347,23 +334,26 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
     var _pageFetcher = nlServerApi.getPageFetcher({defMax: _fetchChunk, itemType: 'learning record'});
 	function _getLearningRecordsFromServer(fetchMore, resolve) {
 		_lrFetchInitiated = true;
-		var params = {containerid: 0, type: 'all', assignor: 'all', learner: 'me'};
-		nlLearnerViewRecords.reset();
 		var myResolve = resolve || null;
 		nlDlg.showLoadingScreen();
-        _pageFetcher.fetchBatchOfPages(nlServerApi.learningReportsGetList, params, fetchMore, 
-			function(results, batchDone, promiseHolder) {
-				nlDlg.hideLoadingScreen();
-				$scope.tabData.dataLoaded = true;
-				var msg = nl.t('{} records fetched', results.length);
-				nlDlg.popupStatus(msg);
-				for (var i=0; i<results.length; i++) nlLearnerViewRecords.addRecord(results[i]);
-				$scope.tabData.records = nlLearnerViewRecords.getRecords();
-				$scope.tabData.recordsLen = Object.keys($scope.tabData.records).length;
+		_fetchReports(fetchMore, function(results) {
+			nlDlg.hideLoadingScreen();
+			if (!results) {
 				if (myResolve) {
-					myResolve(true);
+					myResolve(false);
 					myResolve = null;
 				}
+				return;
+			}
+			for (var i=0; i<results.length; i++) nlLearnerViewRecords.addRecord(results[i]);
+			$scope.tabData.dataLoaded = true;
+			$scope.tabData.records = nlLearnerViewRecords.getRecords();
+			$scope.tabData.recordsLen = Object.keys($scope.tabData.records).length;
+	
+			if (myResolve) {
+				myResolve(true);
+				myResolve = null;
+			}
 		});
 	}
 
@@ -671,23 +661,6 @@ var subFetcher = function(nl, nlDlg, nlServerApi, nlLearnerAssignment, nlLearner
         	recordinfos.push({table: parts[0], id: parseInt(parts[1])});
         }
         _fetchInBatchs(recordinfos, 0, onDoneCallback);
-    };
-    
-    this.subfetchAndOverride = function(results, onDoneFunction) {
-    	// Called from learner list views
-		for(var i=0; i<results.length; i++) this.markForFetching(_getReportRecord(results[i]));
-        if (!this.fetchPending()) return onDoneFunction(results);
-        
-        nl.timeout(function() {
-        	nlDlg.showLoadingScreen();
-	        self.fetch(function() {
-	        	nlDlg.hideLoadingScreen();
-	        	for(var i=0; i<results.length; i++) {
-	        		nlLearnerAssignment.overrideAssignmentParameterInReport(_getReportRecord(results[i]), results[i]);
-	        	}
-	        	onDoneFunction(results);
-	        });
-        });
     };
     
     this.getSubFetchedCourseRecord = function(cid) {
