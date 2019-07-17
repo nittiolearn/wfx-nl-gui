@@ -90,20 +90,22 @@ function(nl) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var LearnerViewCtrl = ['$scope', 'nlLearnerView',
-function($scope, nlLearnerView) {
+var LearnerViewCtrl = ['nl', '$scope', 'nlLearnerView',
+function(nl, $scope, nlLearnerView) {
+	nl.rootScope.showAnnouncement = !nl.rootScope.hideAnnouncement;
+	$scope.pane = true;
 	var learnerView = nlLearnerView.create($scope);
-	learnerView.show();
+	learnerView.show(true);
 }];
 
 //-------------------------------------------------------------------------------------------------
 
 var NlLearnerView = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlLearverViewHelper',
-'nlLearnerViewRecords', 'nlTopbarSrv', 'nlCardsSrv', 'nlLearnerAssignment', 'nlLearnerCourseRecords',
-function(nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper, nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv, nlLearnerAssignment, nlLearnerCourseRecords) {
+'nlLearnerViewRecords', 'nlTopbarSrv', 'nlCardsSrv', 'nlLearnerAssignment', 'nlLearnerCourseRecords', 'nlAnnouncementSrv',
+function(nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper, nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv, nlLearnerAssignment, nlLearnerCourseRecords, nlAnnouncementSrv) {
 	this.create = function($scope) {
 		return new NlLearnerViewImpl($scope, nl, nlDlg, this, nlRouter, nlServerApi, nlLearverViewHelper,
-			nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv, nlLearnerAssignment, nlLearnerCourseRecords);
+			nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv, nlLearnerAssignment, nlLearnerCourseRecords, nlAnnouncementSrv);
 	};
 
 	this.initPageBgImg = function(data) {
@@ -145,14 +147,16 @@ var NlLearnerViewHelperSrv = [function() {
 }];
 
 function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerApi, nlLearverViewHelper, 
-	nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv, nlLearnerAssignment, nlLearnerCourseRecords) {
+	nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv, nlLearnerAssignment, nlLearnerCourseRecords, nlAnnouncementSrv) {
 	var self = this;
 	var _fetchChunk = 100;
 	var _userInfo = null;
 	var _parent = false;
 	var _isHome = false;
+	var _enableAnnouncements = false; 
 	var _subFetcher = new subFetcher(nl, nlDlg, nlServerApi, nlLearnerAssignment, nlLearnerCourseRecords)
-	this.show = function() {
+	this.show = function(enableAnnouncements) {
+		_enableAnnouncements = enableAnnouncements;
 		nlRouter.initContoller($scope, '', _onPageEnter);
 	};
 
@@ -176,6 +180,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		return nl.q(function(resolve, reject) {
 			_init(userInfo);
 			_fetchDataIfNeededAndUpdateScope(resolve);
+			if(_enableAnnouncements) _loadAndShowAnnouncements(resolve);
 		});
 	}
 
@@ -183,6 +188,11 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		nl.window.resize();
 	}	
 
+	function _loadAndShowAnnouncements(resolve) {
+		nlAnnouncementSrv.onPageEnter(_userInfo, $scope, 'pane').then(function() {
+			resolve(true);
+		});
+	}
 	// Private members
 	function _init(userInfo) {
 		nlLearnerViewRecords.init(userInfo);
@@ -261,7 +271,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			}
 		}, 500, dontHideLoading);
 	}
-		
+
 	function _initTabData() {
 		var assignedTab = {id: 'assigned', type: 'tab', iconCls : 'ion-play',
 			name: 'Learn', text: 'My learning items', updated: false,
