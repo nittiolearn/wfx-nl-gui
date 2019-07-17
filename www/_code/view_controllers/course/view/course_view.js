@@ -1386,8 +1386,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
     }
 
     this.getRoundedPercentage = function(completed, total, rep) {
-        if(rep && rep.selfLearningMode) return '-';
-		if(completed == 0 ) return 0;
+        if(total == 0 || rep && rep.selfLearningMode) return '-';
 		return Math.round(completed/total*100)+'%';
 	};
     

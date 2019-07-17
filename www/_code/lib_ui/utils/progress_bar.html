@@ -1,8 +1,9 @@
-<div class='row row-center margin0 padding0'>
-    <div class='nl-progress-bar col margin0'>
+<div class='row row-center margin0 padding0'
+     ng-hide='percval=="-"'>
+    <div class='nl-progress-bar col padding0 margin0'>
         <div class='progress-bar-bar'
-             style='width: {{percval || "0%"}}'>
+             style='width: {{percval}}'>
         </div>
     </div>
-    <span style='padding: 0 8px; text-align: right'>{{percval ? percval : 0}}%</span>
+    <span style='padding: 0 8px; text-align: right; min-width: 60px'>{{percval}}</span>
 </div>
