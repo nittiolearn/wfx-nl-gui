@@ -1,8 +1,8 @@
 <nav class='nl-topbar' ng-show='topbar.isShown' ng-class='{fullpage:!topbar.isShown}'>
-    <div class='row row-center margin0 padding0' style='height: 40px'>
+    <div class='row row-center margin0 padding0 text-center' style='height: 40px'>
 
         <!-- Left Home icon and logo -->
-        <a ng-href='{{homeUrl}}' title='{{homeMenuTitle}}' class='nltb-logo'>
+        <a ng-href='{{homeUrl}}' title='{{homeMenuTitle}}' class='nltb-logo lnblue3'>
             <div class='row row-center margin0 padding0'>
                 <i class="padding-small fsh3 ion-home fwhite"></i>
                 <img ng-show='logo && screenSize!="small"' class='nl-link-img no-hover' ng-src='{{logo}}'/>
@@ -18,12 +18,14 @@
         </span>
 
         <!-- If tabs are specified in the page -->
+        <div ng-show='topbar.tabs.length > 0' class='padding-small'>
+        </div>
         <div ng-repeat='tab in topbar.tabs'
              ng-show='topbar.tabs.length > 0 && canShow(tab)'
-             class='margin0 nltb-tab {{isTabSelected(tab) ? "selected" : ""}}'
+             class='margin0 nltb-tab lnblue3 {{isTabSelected(tab) ? "selected" : ""}}'
              ng-click='onTabOrMenuClick(tab)'
              style='padding: 0px 6px; height: 40px'>
-             <div class='row row-center margin0 padding0 nl-link-text' style='color: #FFFFFF' title='{{tab.text}}'>
+             <div class='row row-center margin0 padding0' style='color: #FFFFFF' title='{{tab.text}}'>
                     <i class="padding-small icon {{tab.iconCls}}" style='font-size: 200%'>{{tab.iconContent || ""}}</i>
                     <span class='nl-textellipsis' ng-hide='screenSize == "small"'>
                         {{tab.name}}
@@ -32,9 +34,18 @@
         </div>
         <div ng-show='topbar.tabs.length > 0' class='col'></div>
 
+        <!-- Annoucement icon if needed -->
+        <i title='{{pgInfo.username}}' alt='User'
+           class="padding-small fsh3 ion-ios-bell lnblue3"
+           style='min-width: 30px' 
+           ng-show='canShowAnnouncement()' 
+           ng-click='onAnnoucementIconClick($event)'/>
+        </i>
+
         <!-- User menu item -->
         <i title='{{pgInfo.username}}' alt='User'
-           class="padding-small fsh3 ion-android-person" 
+           class="padding-small fsh3 ion-android-person lnblue3"
+           style='min-width: 30px' 
            ng-click='onUserMenu($event)'/>
         </i>
 

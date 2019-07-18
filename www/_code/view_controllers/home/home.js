@@ -91,6 +91,8 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCar
             nl.rootScope.showAnnouncement = !nl.rootScope.hideAnnouncement;
             $scope.pane = true;
 
+            nl.pginfo.pageTitle = nl.t('Home Dashboard');
+            nl.pginfo.pageSubTitle = nl.fmt2('({})', (userInfo || {}).displayname || '');
             if(userInfo.dashboard_props['dashboardType'] == "learner_view" && isHome) { 
                 var learnerView = nlLearnerView.create($scope);
                 $scope.isTabs = true;               
@@ -103,17 +105,16 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCar
             } else {
                 if (!isHome && dbid) {
                     nlServerApi.dashboardGetCards(dbid, published).then(function(dashboardCards) {
+                        nl.pginfo.pageTitle = nl.t('Custom Dashboard: {}', dashboardCards.description);
+                        nl.pginfo.pageSubTitle = '';
                         if(dashboardCards.dashboard_props['dashboardType'] == 'learner_view') {
                             $scope.isTabs = true;
                             _loadLearnerViewForDashBoardPreview(dashboardCards, userInfo, parent, resolve);
                         } else {
-                            nl.pginfo.pageTitle = nl.t('Custom Dashboard: {}', dashboardCards.description);
                             _init(userInfo, parent, dashboardCards, resolve);
                         }
                     });
                 } else {
-                    nl.pginfo.pageTitle = nl.t('Home Dashboard');
-                    nl.pginfo.pageSubTitle = nl.fmt2('({})', userInfo.displayname);
                     _init(userInfo, parent, userInfo, resolve);
                 }
             }

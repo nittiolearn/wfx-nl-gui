@@ -1745,9 +1745,12 @@ nlesson = function() {
         oPage.maxScore = ('pageMaxScore' in oPage) ? oPage.pageMaxScore
             : page ? page.pagetype.getMaxScore(page) : oPage.maxScore;
         if (!oPage.maxScore) oPage.maxScore = 0;
-
         oPage.popupMaxScore = 0;
-        for (var i=0; i<oPage.sections.length; i++) {
+
+        var maxSections = oPage.sections.length;
+        var layout = oPage.sectionLayout || (page ? page.pagetype.getLayout() : null);
+        if (layout && layout.length < maxSections) maxSections = layout.length;
+        for (var i=0; i<maxSections; i++) {
             var oSection = oPage.sections[i];
             if (!oSection.popups || !oSection.popups.onclick) continue;
 

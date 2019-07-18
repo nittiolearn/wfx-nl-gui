@@ -206,24 +206,6 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
     
     function _updateTopbarMenus(userInfo) {
         var topbarMenus = [];
-        if (nlAnnouncementSrv.isFeatureEnabled()) {
-            topbarMenus.push({
-                id: 'show_announcements',
-                type: 'menu',
-                name: nl.t(' Show Announcements'),
-                onClick: function() { nlAnnouncementSrv.onOpen(); },
-                canShow: function() { return nlAnnouncementSrv.canShowOpen(); }
-            });
-            /*
-            topbarMenus.push({
-                id: 'hide_announcements',
-                type: 'menu',
-                name: nl.t(' Hide Announcements'),
-                onClick: function() { nlAnnouncementSrv.onClose(); },
-                canShow: function() { return nlAnnouncementSrv.canShowClose(); }
-            });
-            */
-        }
         if (nlRouter.isPermitted(userInfo, 'change_password')) {
             topbarMenus.push({
                 id: 'pw_change',

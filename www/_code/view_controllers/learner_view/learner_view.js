@@ -176,6 +176,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
+		nl.pginfo.pageTitle = nl.t('Home Dashboard');
+		nl.pginfo.pageSubTitle = nl.fmt2('({})', (userInfo || {}).displayname || '');
 		if (!_isHome) nlLearnerView.initPageBgImg(_userInfo);
 		return nl.q(function(resolve, reject) {
 			_init(userInfo);
@@ -475,8 +477,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		}
 
 		assignedSections[SEC_POS['active']].items.sort(function(a, b) {
-			// ASCENDING
-			return (a.raw_record.not_before - b.raw_record.not_before);
+			// DESCENDING
+			return (b.raw_record.not_before - a.raw_record.not_before);
 		});
 		assignedSections[SEC_POS['upcoming']].items.sort(function(a, b) {
 			// ASCENDING

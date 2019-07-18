@@ -18,8 +18,8 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var TopbarDirective = ['nl', 'nlDlg', 'nlTopbarSrv',
-function(nl, nlDlg, nlTopbarSrv) {
+var TopbarDirective = ['nl', 'nlDlg', 'nlTopbarSrv', 'nlAnnouncementSrv',
+function(nl, nlDlg, nlTopbarSrv, nlAnnouncementSrv) {
     return {
         restrict: 'E', 
         transclude: true,
@@ -41,6 +41,12 @@ function(nl, nlDlg, nlTopbarSrv) {
                 if (e) e.stopImmediatePropagation();
                 return false;
             };
+            $scope.canShowAnnouncement = function(e) {
+                return nlAnnouncementSrv.canShowAnnouncement();
+            };
+            $scope.onAnnoucementIconClick = function(e) {
+                return nlAnnouncementSrv.onAnnoucementIconClick();
+            }
         }
     };
 }];
@@ -98,8 +104,7 @@ function(nl, nlDlg) {
 
     var MAX_TAB_ITEMS = 4;
     function _updateTopbarUI() {
-        var scopeData = {menus: [], tabs: [], isSmallScreen: nl.rootScope.screenSize == 'small',
-            isShown: _isShown, showUserMenu: false};
+        var scopeData = {menus: [], tabs: [], isShown: _isShown, showUserMenu: false};
         for (var i=0; i<_pageMenus.length; i++) {
             var item = _pageMenus[i];
             if (item.type == 'tab' && scopeData.tabs.length < MAX_TAB_ITEMS) scopeData.tabs.push(item);

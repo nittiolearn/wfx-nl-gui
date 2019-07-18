@@ -115,20 +115,14 @@ function(nl, nlDlg, nlServerApi, nlResourceAddModifySrv, nlUserSettings, nlMarku
         return _data.mode == 'full' && _data.isAdmin;
     };
 
-    this.canShowOpen = function() {
-        return _data.pageAllowsPaneMode && _data.mode == 'none';
+    this.canShowAnnouncement = function() {
+        return _data.pageAllowsPaneMode && _data.featureEnabled;
     };
 
-    this.onOpen = function() {
-        _onOpen();
-    };
-
-    this.canShowClose = function() {
-        return _data.pageAllowsPaneMode && _data.mode == 'pane';
-    };
-
-    this.onClose = function() {
-        _onClose();
+    this.onAnnoucementIconClick = function() {
+        if (!this.canShowAnnouncement()) return;
+        if (_data.mode == 'pane') _onClose();
+        else _onOpen();
     };
 
     this.showAnnouncementPopup = function(announcement) {
@@ -214,7 +208,6 @@ function(nl, nlDlg, nlServerApi, nlResourceAddModifySrv, nlUserSettings, nlMarku
                     return true;
                 }
             });
-            /*
             _data.toolBar.push({
                 title : 'Close',
                 icon : 'ion-close-circled',
@@ -223,7 +216,6 @@ function(nl, nlDlg, nlServerApi, nlResourceAddModifySrv, nlUserSettings, nlMarku
                     return true;
                 }
             });
-            */
         }
     }
 
