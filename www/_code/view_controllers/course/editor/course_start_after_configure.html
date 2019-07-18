@@ -21,11 +21,21 @@
 		</div>
 	</nl-dlg-help>
 	<nl-dlg-content>
+		<div class='row row-center padding0 margin0'>
+			<div class='col nl-dlg-field-value'>
+				<select ng-model='data.dependency' 
+						ng-options='opt as opt.name for opt in dependencyOptions track by opt.id'
+						class='{{fieldcls}}'
+						autofocus=''
+						tabindex="{{tabindex}}">
+				</select>
+			</div>
+		</div>
 		<table class='nl-table-styled2 nl-table-padded fsh6'>
-		    <tr>
-		    	<th style='width:5%'></th>
-		        <th>Start after</th>
-		    </tr>
+			<tr>
+				<th style='width: 5%'>
+				<th></th>
+			</tr>
 		    <tr ng-repeat-start='item in moduleList track by $index'
 		        class='{{item.error ? "nl-bg-red" : ""}}'>
 		    	<td class="nl-link-text"

@@ -209,6 +209,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         var prereqs = cm.start_after || [];
         var lessonReports = self.course.lessonReports || {};
         var statusinfo = self.course.statusinfo || {};
+        var dependencyType = cm.dependencyType || 'all';
         _setDependencyArray(cm, prereqs, nlTreeListSrv, null);
         for(var i=0; i<prereqs.length; i++){
             var p = prereqs[i];
@@ -218,15 +219,18 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
             if (item.state.status == 'waiting') return false;
             if (item.type == 'certificate' || item.type == 'milestone') {
             	if (!(item.state.status == 'success' || item.state.status == 'failed')) return false;
+                if(dependencyType == 'atleastone') break;
             	continue;
             }
             if(item.type == 'iltsession') {
                 if(!p.iltCondition) p['iltCondition'] = 'marked';  //iltCondition is new dependency introduced. This line to handle already present conditions
                 if(!_iltConditionSatisfied(p.iltCondition, item)) return false;
+                if(dependencyType == 'atleastone') break;
             	continue;
             }
             if(item.type == 'rating') {
                 if(!_ratingSatisfied(p, item, cm)) return false;
+                if(dependencyType == 'atleastone') break;
                 continue;
             }
             var prereqScore = null;
@@ -246,6 +250,8 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
             var limitMax = p.max_score || null;
             if (limitMin && prereqScore < limitMin) return false;
             if (limitMax && prereqScore > limitMax) return false;
+
+            if(dependencyType == 'atleastone') break;
         }
         return true;
     }

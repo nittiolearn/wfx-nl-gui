@@ -354,6 +354,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'autocomplete', stored_at: 'module', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
         {name: 'parentId', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'readonly', debug: true, text: 'Parent ID', group: 'grp_additionalAttrs', readonly: true}, 
         {name: 'id', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'readonly', text: 'Unique ID', group: 'grp_additionalAttrs', readonly: true}, 
+        {name: 'dependencyType', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'readonly', text: 'Dependency type', group: 'grp_additionalAttrs', readonly: true}, 
     	{name: 'totalItems', stored_at: 'module', fields : ['module'], type: 'readonly', text: 'Total items', group: 'grp_additionalAttrs'},
         {name: 'grp_canvasAttrs', stored_at: 'module', type: 'group', text: 'Canvas properties', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating']},
         {name: 'posX', stored_at: 'module', type: 'number', text: 'X Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating']},
@@ -384,6 +385,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		autocomplete: 'If this flag is checked, the link is automatically marked completed when the learner views for the first time.',
 		parentId: 'Defines the unique id of the folder item under which the current module is located.',
 		id: 'Defines the unique id of the current item. This is automatically generated.',
+		dependencyType: 'Defines the type of dependency selected. Either to unlock if atleast one or all items mentioned in dependencies to be completed.',
 		totalItems: 'Displays the number of total modules the folders currently has.',
         grp_canvasAttrs: 'Canvas mode is a visual represenation of course where laarning items are placed in the backdrop of an image. Learners will be able to navigate into the specific section in a more visual way.',
         posX: 'Define the horizontal position of this item in the canvas as a percentage number. Left end of the screen is 0 and the right end is 100.',
@@ -948,7 +950,10 @@ function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm, _groupInfo) {
 		dlg.setCssClass('nl-height-max nl-width-max');
 		dlg.scope.dlgTitle = nl.t('Configure dependencies');
 		dlg.scope.showMaxScore = true;
+		dlg.scope.data = {};
 		dlg.scope.moduleOptions = _getAvailableModules();
+		dlg.scope.dependencyOptions = [{id: 'all', name: nl.t('Start after all the below conditions are satisfied')}, {id: 'atleastone', name: 'Start after at least one of the below conditions are satisfied'}];
+		dlg.scope.data['dependency'] = cm.dependencyType == 'atleastone' ? dlg.scope.dependencyOptions[1] : dlg.scope.dependencyOptions[0];
 		if(dlg.scope.moduleOptions.length == 0) {
 			var msg = {title: nl.t('Error'), template: nl.t('It is not possible to configure start after for the first item.')};
 			nlDlg.popupAlert(msg);
@@ -958,7 +963,7 @@ function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm, _groupInfo) {
 		dlg.scope.moduleList = _getModuleListFromCm();
 
 		dlg.scope.onModuleSelect = function(item) {
-			item.canShowSelectBox	= false;
+			item.canShowSelectBox = false;
 			item.canShowMinScore = false;
 			item.canShowMaxScore = false;
 			if(!(item && item.module)) return;
@@ -967,7 +972,7 @@ function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm, _groupInfo) {
 				item.canShowMaxScore = true;
 			}
 			if(item.module.type == "iltsession") {
-				item.canShowSelectBox	= true;
+				item.canShowSelectBox = true;
 				item.options = _getIltConditions();
 				item.selectedOption = item.options[0];
 			}
@@ -1042,6 +1047,7 @@ function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm, _groupInfo) {
 	        return;
 		}
 		cm.start_after = modulesToStore;
+		cm.dependencyType = dlg.scope.data.dependency['id'];
 		if (modulesToStore.length == 0) delete cm.start_after;
 		$scope.editorCb.showVisible(cm);
 	}
