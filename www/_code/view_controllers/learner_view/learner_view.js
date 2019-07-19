@@ -50,7 +50,7 @@ function(nl, nlDlg) {
         scope: {
 			record: '=',
 			attr: '=',
-			title: '=',
+			nltitle: '=',
 			desc: '=',
 			icon: '=',
 			url: '=',
@@ -186,10 +186,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		});
 	}
 
-	$scope.chartsOnLoad = function() {
-		nl.window.resize();
-	}	
-
 	function _loadAndShowAnnouncements(resolve) {
 		nlAnnouncementSrv.onPageEnter(_userInfo, $scope, 'pane').then(function() {
 			resolve(true);
@@ -204,17 +200,16 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 	}
 
 	function _initChartData() {
-		var label =  ['Completed', 'Pending'];
-		var colors = [_nl.colorsCodes.done, _nl.colorsCodes.pending];
-
 		$scope.charts = [{
+			show: false,
 			type: 'doughnut',
 			title: 'Progress',
-			data: [0, 0],
-			labels: label,
-			colors: colors
+			data: [0, 0, 0],
+			labels: ['done', 'failed', 'pending'],
+			colors: [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.pending]
 		},
 		{
+			show: false,
 			type: 'bar',
 			title: nl.fmt2('Assigned vs completed over time'),
 			data: [[]],
@@ -534,6 +529,14 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 	}
 
 	function _updateSummaryTab() {
+		for(var i=0; i<$scope.charts.length; i++) $scope.charts[i].show = false;
+		nl.timeout(function() {
+			_updateSummaryTabImpl();
+			for(var i=0; i<$scope.charts.length; i++) $scope.charts[i].show = true;
+		}, 100);
+	}
+
+	function _updateSummaryTabImpl() {
 		var learningCounts = {cntTotal: 0, cntActive: 0, completed: 0, certified: 0, pending: 0, failed: 0, scorePerc: 0, 
 			percCompleted: 0, percCerfied: 0, percFailed: 0, percPending: 0, avgScore: 0, 
 			timeSpent: 0, certInFirstAttempt: 0, certInSecondAttempt: 0, certInMoreAttempt: 0,
@@ -541,7 +544,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		$scope.tabData.learningCounts = learningCounts;
 	
 		var doughnutChart = $scope.charts[0];
-		doughnutChart.data = [0, 0];
+		doughnutChart.data = [0, 0, 0];
 
 		var timeChart = $scope.charts[1];
 		var ranges = nlLearnerViewRecords.getTimeRanges();
@@ -549,12 +552,13 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		for (var recid in records) {
 			var rec = records[recid];
 			if(!rec) continue;
-			var status = rec.stats.status;
-			status = nlLearverViewHelper.isDone(status) ? 'done' : status.id == nlLearverViewHelper.STATUS_STARTED ? 'started' : (status.id == nlLearverViewHelper.STATUS_DELAYED) ? 'delayed' : 'pending';
-			if (status == 'done') {
-				doughnutChart.data[0] += 1;
-			} else {
+			var statusid = rec.stats.status.id;
+			if (statusid == nlLearverViewHelper.STATUS_PENDING || statusid == nlLearverViewHelper.STATUS_STARTED) {
+				doughnutChart.data[2] += 1;
+			} else if (statusid == nlLearverViewHelper.STATUS_FAILED) {
 				doughnutChart.data[1] += 1;
+			} else  {
+				doughnutChart.data[0] += 1;
 			}
 			_updateCoursesDetailsDict(rec, learningCounts);
 			var isModuleRep = rec.type == 'module';

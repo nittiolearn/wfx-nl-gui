@@ -68,7 +68,7 @@
                     ng-show='record.recStateObj.type == section.type'>
                     <nl-learner-section record='record' 
                         attr='section.type'
-                        title='record.repcontent.name'
+                        nltitle='record.repcontent.name'
                         desc='record.repcontent.remarks || record.repcontent.assign_remarks'
                         icon='record.repcontent.icon'
                         url='record.recStateObj.url'
@@ -87,36 +87,35 @@
             Nothing to display.
         </div>
         <div ng-show='tabData.recordsLen != 0'>
-            <div class='row row-top row-wrap padding0 bgdefault shape-rounded-small'>
+            <div class='row row-top row-wrap padding0 bgdefault shape-rounded-small'
+                 style='min-height: 200px'>
                 <div ng-class='$root.respCol221' class='text-center padding-mid'>
                     <div class='padding-small'></div>
                     <div class='fsh5 padding-mid'>{{charts[0].title}}</div>
                     <div class='padding-small'></div>
-                    <div>
+                    <div ng-if='charts[0].show'>
                         <canvas class='chart chart-doughnut'
-                                height='200'
-                                width='200'
+                                height='250'
                                 chart-data='charts[0].data'
                                 chart-labels='charts[0].labels'
                                 chart-colours='charts[0].colors'
                                 chart-series='charts[0].series'
                                 chart-options='charts[0].options'>
-                        </canvas>
+                    </canvas>
                     </div>
                 </div>
                 <div ng-class='$root.respCol221' class='text-center padding-mid'>
                     <div class='padding-small'></div>
                     <div class='fsh5 padding-mid'>{{charts[1].title}}</div>
                     <div class='padding-small'></div>
-                    <div on-load="chartsOnLoad()">
+                    <div ng-if='charts[0].show'>
                         <canvas class='chart chart-bar'
                                 height='250'
-                                width='350'
                                 chart-data='charts[1].data'
                                 chart-labels='charts[1].labels'
                                 chart-colours='charts[1].colors'
                                 chart-series='charts[1].series'
-                                chart-options='charts[1].options'>
+                                chart-options='charts[0].options'>
                         </canvas>
                     </div>
                 </div>
@@ -131,7 +130,7 @@
             class='nl-limitwidth padding'>
         <div class='anim fade' ng-repeat="link in exploreCards">
             <nl-learner-section record='link' 
-                title='link.title'
+                nltitle='link.title'
                 desc='link.help'
                 icon='link.icon'
                 url='link.url'

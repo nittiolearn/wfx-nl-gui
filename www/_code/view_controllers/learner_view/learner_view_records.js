@@ -262,7 +262,7 @@
             stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
                 : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
             if(report.completed) {
-                report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
+                report.url = nl.fmt2('#/course_view?id={}&mode=report_view_my', report.id);
             } else {
                 report.url = nl.fmt2('#/course_view?id={}&mode=do', report.id);
             }
@@ -387,29 +387,29 @@
             var submissionAfterEndtime = repcontent['submissionAfterEndtime'] || false;
             if(not_before && not_before > curDate) {
                 return {type: "upcoming"};
-            } else if(not_after && not_after < curDate && !submissionAfterEndtime){
-                if(type == 'module') {
-                    return {type: "past", button: "REVIEW", url: nl.fmt2('/lesson/review_report_assign/{}', repcontent.id)}
-                } else {
-                    return {type: "past", button: "REVIEW", url: nl.fmt2('#/course_view?id={}&mode=report_view', repcontent.id)}
-                }
             } else if(stats.status.txt == "certified" || stats.status.txt == "completed" || stats.status.txt == "failed" 
                     || stats.status.txt == "done" || stats.status.txt == "passed") {
                 if(type == 'module') {
-                    return {type: "past", button: "REVIEW", url: nl.fmt2('/lesson/review_report_assign/{}', repcontent.id)}
+                    return {type: "past", button: "REVIEW", url: nl.fmt2('/lesson/view_report_assign/{}', repcontent.id)};
                 } else {
                     var canRetry = _getCanRedoCourse(repcontent, stats);
                     if(canRetry) {
-                        return {type: "past", button: "REWORK", url: nl.fmt2('#/course_view?id={}&mode=do', repcontent.id)}
+                        return {type: "past", button: "REWORK", url: nl.fmt2('#/course_view?id={}&mode=do', repcontent.id)};
                     } else {
-                        return {type: "past", button: "REVIEW", url: nl.fmt2('#/course_view?id={}&mode=report_view', repcontent.id)}
+                        return {type: "past", button: "REVIEW", url: nl.fmt2('#/course_view?id={}&mode=report_view_my', repcontent.id)};
                     }    
+                }
+            } else if(not_after && not_after < curDate && !submissionAfterEndtime){
+                if(type == 'module') {
+                    return {type: "past"};
+                } else {
+                    return {type: "past", button: "REVIEW", url: nl.fmt2('#/course_view?id={}&mode=report_view_my', repcontent.id)};
                 }
             }else{
                 if(type == 'module') {
-                    return {type: "active", button: stats.status.txt == "started" ? "CONTINUE" : "START", url: nl.fmt2('/lesson/do_report_assign/{}', repcontent.id)}
+                    return {type: "active", button: stats.status.txt == "started" ? "CONTINUE" : "START", url: nl.fmt2('/lesson/do_report_assign/{}', repcontent.id)};
                 } else {
-                    return {type: "active", button: stats.status.txt == "started" ? "CONTINUE" : "START", url: nl.fmt2('#/course_view?id={}&mode=do', repcontent.id)}
+                    return {type: "active", button: stats.status.txt == "started" ? "CONTINUE" : "START", url: nl.fmt2('#/course_view?id={}&mode=do', repcontent.id)};
                 }
             }
         }

@@ -4,18 +4,21 @@
         <img ng-if='icon != "icon:"' class='nl-hcard-img' ng-src='{{icon}}' nl-compute-img-info></img>
         <div ng-if='icon == "icon:"' class='nl-hcard-img text-center'><i class='ion-ios-bookmarks-outline fblue' style='font-size: 500%'></i></div>
     </div>
-    <div class='nl-hcard-desc row row-center margin0 padding0'>
+    <div class='nl-hcard-desc row row-top margin0 padding0'>
         <div class='col margin0 padding0'>
-            <div>
-                <b class='fblue2'>{{title}}</b>
-                <span ng-show='record.not_before && isreport' class='fsmall1 fgrey'>
-                    <span>From <b>{{record.not_before}}</b></span>
-                    <span ng-if='record.not_after'>, till {{record.not_after}}</span>
+            <div class='{{$root.screenSize != "small" ? "nl-textellipsis" : ""}}'>
+                <span class='fblue2'>{{nltitle}}</span>
+            </div>
+            <div class='fsmall2 fdarkgrey2 {{$root.screenSize != "small" ? "nl-textellipsis" : ""}}'
+                 style='padding-top: 8px'>
+                <span ng-show='record.not_before && isreport'>
+                    <span ng-hide='record.not_after'>From <b>{{record.not_before}}</b>.</span>
+                    <span ng-show='record.not_after'>From <b>{{record.not_before}}</b>, till <b>{{record.not_after}}</b></span>
                 </span>
-                </div>
-                <div class='fdarkgrey2' style='padding-top: 4px'>
-                    {{record.raw_record.assign_remarks}}
-                </div>
+                <span ng-show='desc'>
+                    {{desc}}
+                </span>
+            </div>
         </div>
     </div>
     <div class='nl-hcard-buttons'>

@@ -46,14 +46,18 @@ var MODE_NAMES = {'private': 0, 'published': 1, 'report_view': 2, 'do': 3, 'edit
 function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
     var self=this;
     this.mode = MODES.PRIVATE;
+    this.urlModeStr = '';
     this.courseId = null;
     this.course = null;
     this.debug = false;
     this.initMode = function() {
         var params = nl.location.search();
         if ('debug' in params) this.debug = true;
-        if (!('mode' in params) || !(params.mode in MODE_NAMES)) return false;
-        this.mode = MODE_NAMES[params.mode];
+        this.urlModeStr = params.mode;
+        var modeStr = this.urlModeStr;
+        if (modeStr == 'report_view_my') modeStr = 'report_view';
+        if (!modeStr || !(modeStr in MODE_NAMES)) return false;
+        this.mode = MODE_NAMES[modeStr];
         if (!('id' in params)) return false;
         this.courseId = parseInt(params.id);
         return true;
@@ -85,7 +89,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         if (this.mode === MODES.PRIVATE || this.mode === MODES.EDIT || this.mode === MODES.PUBLISHED) {
             return nlServerApi.courseGet(this.courseId, this.mode === MODES.PUBLISHED);
         }
-        if (this.mode === MODES.REPORT_VIEW) {
+        if (this.mode === MODES.REPORT_VIEW && this.urlModeStr != 'report_view_my') {
             return nlGroupInfo.init().then(function() {
                 return nlServerApi.courseGetReport(self.courseId, false);
             });
@@ -598,7 +602,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
                 else vp.d = true;
             }
         }
-        vp.tb = (vp.i || $scope.canvasMode || $scope.forumInfo.refid);
+        vp.tb = (vp.i || $scope.canvasMode || ($scope.forumInfo||{}).refid);
         nlRouter.updateBodyClass('iframeActive', vp.i);
     };
     
@@ -1440,7 +1444,8 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
     
     this.showPastReport = function(rep) {
         if (this.hideReviewButton(this.item) || this.isLessonInProgress(this.item)) return;
-        var func = (modeHandler.mode === MODES.REPORT_VIEW) ? 'review_report_assign' : 'view_report_assign';
+        var func = (modeHandler.mode === MODES.REPORT_VIEW && modeHandler.urlModeStr != 'report_view_my') 
+        ? 'review_report_assign' : 'view_report_assign';
         var url = nl.fmt2('/lesson/{}/{}', func, rep.reportId);
         modeHandler.show(url);
     };
