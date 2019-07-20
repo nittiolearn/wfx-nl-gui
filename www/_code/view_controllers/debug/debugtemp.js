@@ -25,8 +25,10 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var DebugTempCtrl = ['nl', 'nlRouter', '$scope', '$ionicLoading', 
-function(nl, nlRouter, $scope, $ionicLoading) {
+var DebugTempCtrl = ['nl', 'nlRouter', '$scope', '$ionicLoading', 'nlExpressionProcessor',
+function(nl, nlRouter, $scope, $ionicLoading, nlExpressionProcessor) {
+    $scope.exp_test_attrs = nlExpressionProcessor.getTestAttrs();
+    $scope.exp_test_data = nlExpressionProcessor.test();
     var spinners = ["ios", "ios-small", "lines", "ripple", "spiral", "bubbles", "circles", "crescent", "dots"];
     
     function _updateSpinnerSelect() {

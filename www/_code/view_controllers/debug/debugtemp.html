@@ -1,4 +1,17 @@
 <div class='nl-thin-scroll nl-full padding'>
+    <h1>Testing expression_processor.js</h1>
+    <h2>{{exp_test_data.succ}} of {{exp_test_data.payloads.length}} testcases successful.</h2>
+
+    <div ng-repeat='payload in exp_test_data.payloads' class='padding'>
+        <h4>Test case #{{$index+1}}:</h4>
+        <table class='nl-table nl-table-styled'>
+            <tr ng-repeat='attr in exp_test_attrs'>
+                <th>{{attr}}</th>
+                <td>{{payload[attr]}}</td>
+            </tr>
+        </table>
+    </div>
+
     <div class='padding fsh5 text-center'>
         <div ng-show='screenSize == "small"'>Small Screen Size</div>
         <div ng-show='screenSize == "medium"'>Medium Screen Size</div>
