@@ -860,11 +860,19 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         $scope.ext.setCurrentItem(cm);
         if(cm.state.status == 'waiting') {
             var dependencyArray = cm.dependencyArray || [];
-            if(cm.type == 'module') cm.dependencyArray = ['All items inside the folder are locked.'];
-            var str = '<div class="padding-mid" style="font-size:120%; font-weight:bold">This element is currently locked. It will be unlocked after following condition(s) are met</div>';
+            var str = '';
+            if(cm.dependencyType && cm.dependencyType == 'atleastone') {
+                str = '<div class="padding-mid" style="font-size:120%; font-weight:bold">This element is currently locked. It will be unlocked after atleast one of the following condition(s) are met</div>';
+            } else {
+                str = '<div class="padding-mid" style="font-size:120%; font-weight:bold">This element is currently locked. It will be unlocked after all the following condition(s) are met</div>';
+            }
+            if(cm.type == 'module') {
+                str = '<div class="padding-mid" style="font-size:120%; font-weight:bold">All items inside the folder are locked.</div>';
+            } else {
                 str += '<div class="padding-mid"><ul>';
-            for(var i=0; i<cm.dependencyArray.length; i++) str += nl.t('<li style="line-height:24px">{}</li>', cm.dependencyArray[i]);
-            str += '</ul></div>'
+                for(var i=0; i<dependencyArray.length; i++) str += nl.t('<li style="line-height:24px">{}</li>', dependencyArray[i]);
+                str += '</ul></div>'
+            }
             return nlDlg.popupAlert({title: cm.name, template: str});
         }
         var dontUpdate = true;
@@ -931,6 +939,18 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
 
     function _updateState(cm, state) {
         // statusIcon, statusText, statusShortText
+        var today = new Date();
+        var course = modeHandler.course;
+        var assignedOn = course['not_before'] || null;
+        var assignedOnStr = new Date(assignedOn);
+        if (state == 'pending' && (cm.complete_before && cm.complete_before != '')) {
+            var tomorrow = new Date();
+            var complete_before = parseInt(cm.complete_before);
+            tomorrow.setDate(assignedOnStr.getDate() + complete_before);
+            if(tomorrow < today) {
+                state = 'delayed';
+            }
+        }
         cm.state = angular.copy(_CM_STATES[state] || _CM_STATES.hidden);
         cm.state.status = state;
     }
