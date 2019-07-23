@@ -76,6 +76,27 @@ function(nl) {
         return newAttendance;
     };
 
+    this.getAvpsForGate = function(cm, courseOrRepObj) {
+        var ret = {};
+        var modules = courseOrRepObj.content.modules || [];
+        for(var i=0; i<modules.length; i++) {
+            var item = modules[i];
+            if(!item.state || item.state.status != 'failed' && item.state.status != 'success' && item.state.status != 'partial_success') {
+                ret[item.id] = null;
+            } else {
+                if(item.type == 'lesson') {
+                    ret[item.id] = item.maxScore ? item.perc : (item.state.status == 'success' ? 100 : null);
+                }
+                if(item.type == 'iltsession') ret[item.id] = item.iltPerc;
+                if(item.type == 'rating') ret[item.id] = item.ratingScore;
+                if(item.type == 'gate') ret[item.id] = item.gateScore;
+                if(item.type == 'link' || item.id == 'info' || 
+                    item.id == 'milestone' || item.id == 'certificate') ret[item.id] = 100;
+            }
+            if(item.id == cm.id) break;
+        }
+        return ret;
+    };
 
     this.isCourseReportCompleted = function(repObj) {
         if (!repObj.content || !repObj.content.modules) return false;

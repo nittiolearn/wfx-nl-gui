@@ -31,8 +31,8 @@ function EditorFieldsDirective() {
 
 //-------------------------------------------------------------------------------------------------
 var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlLessonSelect', 
-'nlExportLevel', 'nlRouter', 'nlCourseCanvas', 'nlMarkup', 'nlTreeSelect', 'nlResourceAddModifySrv', 'nlGroupInfo',
-function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCourseCanvas, nlMarkup, nlTreeSelect, nlResourceAddModifySrv, nlGroupInfo) {
+'nlExportLevel', 'nlRouter', 'nlCourseCanvas', 'nlMarkup', 'nlTreeSelect', 'nlResourceAddModifySrv', 'nlGroupInfo', 'nlExpressionProcessor', 'nlCourse',
+function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCourseCanvas, nlMarkup, nlTreeSelect, nlResourceAddModifySrv, nlGroupInfo, nlExpressionProcessor, nlCourse) {
 
     var modeHandler = null;
     var $scope = null;
@@ -121,7 +121,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		attr.valueNamesUpdated = true;
 		attr.valueNames = {'module': 'Folder', 'lesson': 'Module',
 			'link': 'Link', 'info': 'Information', 'certificate': 'Certificate',
-			'iltsession': 'ILT session', 'milestone': 'Milestone', 'rating': 'Rating'};
+			'iltsession': 'ILT session', 'milestone': 'Milestone', 'rating': 'Rating', 'gate': 'Gate'};
 		attr.values = ['module', 'lesson', 'info', 'certificate'];
     	if (cm.type == 'link' || nlRouter.isPermitted(_userInfo, 'admin_user'))
 		   attr.values.push('link');
@@ -131,6 +131,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			attr.values.push('milestone');
 		if (cm.type == 'rating' || (_groupInfo && _groupInfo.props.features['etm'] && _groupInfo.props.ratings)) 
 			attr.values.push('rating');
+		if (cm.type == 'gate' || (_groupInfo && _groupInfo.props.features['etm'] && _groupInfo.props.ratings)) 
+			attr.values.push('gate');
 		return;
 	}
 
@@ -323,8 +325,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     };
     
     var moduleAttrs = [
-        {name: 'name', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'string', text: 'Name'}, 
-		{name: 'type', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'list', text: 'Element type',
+        {name: 'name', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'string', text: 'Name'}, 
+		{name: 'type', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'list', text: 'Element type',
 			// possible values will be updated in _updateTypeDropdown
 			valueNamesUpdated: false, valueNames: {}, values: [], 
             updateDropdown: _updateTypeDropdown},
@@ -339,27 +341,29 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'urlParams', stored_at: 'module', fields: ['link'], type: 'string', text: 'Url-Params'},
         {name: 'certificate_image', stored_at: 'module', fields: ['certificate'], type: 'string', text: 'Certificate image'},
         {name: 'trainer_notes', stored_at: 'module', fields: ['iltsession'], type: 'object_with_gui', contentType: 'object', text: 'Trainer notes'},
-        {name: 'start_after', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
+        {name: 'gateFormula', stored_at: 'module', fields: ['gate'], text: 'Condition',type: 'text'},
+        {name: 'gatePassscore', stored_at: 'module', fields: ['gate'], text: 'Gate pass score',type: 'number', min:0, max:100},
+        {name: 'start_after', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
         {name: 'canMarkAttendance', stored_at: 'module', text: 'Learner can mark attendance', type:'hidden', fields: ['iltsession']},
         {name: 'iltduration', stored_at: 'module', fields: ['iltsession'], text: 'Session duration (minutes)',type: 'number'},
-        {name: 'grp_depAttrs', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'group', text: 'Planning', debug: true},
-        {name: 'start_date', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'date', text: 'Start date', group: 'grp_depAttrs', debug: true},
-        {name: 'planned_date', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'date', text: 'Planned date', group: 'grp_depAttrs', debug: true},
-        {name: 'grp_additionalAttrs', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'group', text: 'Advanced properties'},
+        {name: 'grp_depAttrs', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'group', text: 'Planning', debug: true},
+        {name: 'start_date', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'date', text: 'Start date', group: 'grp_depAttrs', debug: true},
+        {name: 'planned_date', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'date', text: 'Planned date', group: 'grp_depAttrs', debug: true},
+        {name: 'grp_additionalAttrs', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'group', text: 'Advanced properties'},
         {name: 'reopen_on_fail', stored_at: 'module', fields: ['lesson'], type: 'object', text: 'Reopen on fail', contentType: 'object',group: 'grp_additionalAttrs'},
-        {name: 'icon', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
-        {name: 'text', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'wikitext', valueName: 'textHtml', text: 'Description', group: 'grp_additionalAttrs'},
-        {name: 'complete_before', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'number', text: 'Complete before', group: 'grp_additionalAttrs', min:0},
+        {name: 'icon', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
+        {name: 'text', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'wikitext', valueName: 'textHtml', text: 'Description', group: 'grp_additionalAttrs'},
+        {name: 'complete_before', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'number', text: 'Complete before', group: 'grp_additionalAttrs', min:0},
         {name: 'maxAttempts', stored_at: 'module', fields: ['lesson'], type: 'number', text: 'Maximum attempts', group: 'grp_additionalAttrs'},
         {name: 'hide_remarks', stored_at: 'module', fields: ['info', 'link'], type: 'boolean', text: 'Disable remarks', group: 'grp_additionalAttrs'},
         {name: 'autocomplete', stored_at: 'module', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
-        {name: 'parentId', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'readonly', debug: true, text: 'Parent ID', group: 'grp_additionalAttrs', readonly: true}, 
-        {name: 'id', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'readonly', text: 'Unique ID', group: 'grp_additionalAttrs', readonly: true}, 
-        {name: 'dependencyType', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating'], type: 'readonly', text: 'Dependency type', group: 'grp_additionalAttrs', readonly: true}, 
+        {name: 'parentId', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'readonly', debug: true, text: 'Parent ID', group: 'grp_additionalAttrs', readonly: true}, 
+        {name: 'id', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'readonly', text: 'Unique ID', group: 'grp_additionalAttrs', readonly: true}, 
+        {name: 'dependencyType', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'readonly', text: 'Dependency type', group: 'grp_additionalAttrs', readonly: true}, 
     	{name: 'totalItems', stored_at: 'module', fields : ['module'], type: 'readonly', text: 'Total items', group: 'grp_additionalAttrs'},
-        {name: 'grp_canvasAttrs', stored_at: 'module', type: 'group', text: 'Canvas properties', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating']},
-        {name: 'posX', stored_at: 'module', type: 'number', text: 'X Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating']},
-        {name: 'posY', stored_at: 'module', type: 'number', text: 'Y Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating']},
+        {name: 'grp_canvasAttrs', stored_at: 'module', type: 'group', text: 'Canvas properties', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate']},
+        {name: 'posX', stored_at: 'module', type: 'number', text: 'X Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate']},
+        {name: 'posY', stored_at: 'module', type: 'number', text: 'Y Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate']},
         {name: 'bgimg', stored_at: 'module', type: 'string', text: 'Background image', group: 'grp_canvasAttrs', fields: ['module']},
         {name: 'bgcolor', stored_at: 'module', type: 'string', text: 'Background color', group: 'grp_canvasAttrs', fields: ['module']}
     ];
@@ -396,7 +400,9 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         bgcolor: 'The background image is resized to retain aspect ratio. This could result in horizontal or vertical bands. You can choose the color of the bands to align with the edge of the image.',
         iltduration: 'The planned duration of the instructor led session in minutes.',
         completionPerc: 'You could let the trainer assess the progress of the course by setting completion percentage for milestone items. If milestone items are present, the completion for a course report is based on the latest milestone reached.',
-        canMarkAttendance: 'Set this to allow learner to mark attendance'
+		canMarkAttendance: 'Set this to allow learner to mark attendance.',
+		gateFormula: 'Provide formula to compute the status of this gate item.',
+		gatePassscore: 'Provide the pass score to mark status of item for learner.'
     };
     
     function _getDescriptionHelp() {
@@ -749,6 +755,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		if (!_validateILTSessionModule(errorLocation, module)) return false;
 		if (!_validateMilestoneModule(errorLocation, module)) return false;
 		if (!_validateRatingModule(errorLocation, module)) return false;
+		if (!_validateGateModule(errorLocation, module)) return false;
         return true;
     }
     
@@ -813,6 +820,25 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     	return true;
 	}
 
+	function _validateGateModule(errorLocation, module) {
+		if(module.type != 'gate') return true;
+		if(!module.gateFormula) return _validateFail(errorLocation, 'Condition', 'Gate condition is mandatory.', module);
+		var payload = {strExpression: module.gateFormula, dictAvps: nlCourse.getAvpsForGate(module, modeHandler.course)};
+		nlExpressionProcessor.process(payload)
+		//payload.result will the value;
+		if(payload.error) return _validateFail(errorLocation, 'Condition', payload.error, module);
+		if(!module.gatePassscore) return _validateFail(errorLocation, 'Condition', 'Gate pass score is mandatory.', module);
+    	return true;
+	}
+
+	function _IsJsonString(str) {
+		try {
+			JSON.parse(str);
+		} catch (e) {
+			return false;
+		}
+		return true;
+	}
     function _validateFail(errorLocation, attr, errMsg, cm) {
         errorLocation.title = attr;
         errorLocation.template = nl.fmt2('<p><b>Error:</b> {}</p>', errMsg);
