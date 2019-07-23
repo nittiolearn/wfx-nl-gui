@@ -274,6 +274,7 @@ function _updateScreenSize(nl) {
 // Below variables may be used in ng-class for responsive adaptation of
 // number of cols per row
 var _respColNgClasses = {
+    respCol632 : {large: 6, medium: 3, small: 2},
     respCol442 : {large: 4, medium: 4, small: 2},
     respCol441 : {large: 4, medium: 4, small: 1},
     respCol431 : {large: 4, medium: 3, small: 1},
@@ -301,6 +302,7 @@ var _respColClasses = {
     2: 'col col-50',
     3: 'col col-33',
     4: 'col col-25',
+    6: 'col col-16-6',
     // For percentage based systems
     20: 'col col-20',
     33: 'col col-33',

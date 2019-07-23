@@ -35,7 +35,7 @@ function module_init() {
 		'nl.learning_reports.lr_fetcher', 'nl.learning_reports.lr_exporter', 
 		'nl.learning_reports.lr_report_records', 'nl.learning_reports.lr_course_records',
 		'nl.learning_reports.lr_summary_stats', 'nl.learning_reports.lr_import', 'nl.learning_reports.lr_assignments',
-		'nl.learning_reports.lr_drilldown'])
+		'nl.learning_reports.lr_drilldown', 'nl.learning_reports.lr_batch'])
 	.config(configFn)
 	.controller('nl.LearningReportsCtrl', LearningReportsCtrl)
 	.service('nlLearningReports', NlLearningReports);
@@ -61,21 +61,22 @@ function($scope, nlLearningReports) {
 	
 var NlLearningReports = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlGroupInfo', 'nlTable', 'nlSendAssignmentSrv',
 'nlLrHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlLrReportRecords', 'nlLrCourseRecords', 'nlLrSummaryStats', 'nlLrAssignmentRecords', 
-'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlCourse',
+'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlLrBatch', 'nlCourse',
 function(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
-	nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse) {
+	nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
+	nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlLrBatch, nlCourse) {
 	this.create = function($scope, settings) {
 		if (!settings) settings = {};
 		return new NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
-			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse);
+			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlLrBatch, nlCourse);
 	};
 }];
 	
 //-------------------------------------------------------------------------------------------------
 function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
-			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse) {
+			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlLrBatch, nlCourse) {
 	var _userInfo = null;
 	var _groupInfo = null;
 	var _attendanceObj = {};
@@ -122,6 +123,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nlLrFetcher.init();
 		nlLrExporter.init(_userInfo);
 		nlLrDrilldown.init(nlGroupInfo);
+		nlLrBatch.init();
 		nl.pginfo.pageTitle = nlLrFilter.getTitle();
 		_initScope();
 	}
@@ -365,7 +367,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}, {
 			title : 'Click here to view course-wise progress',
 			name: 'Drill down',
-			icon : 'ion-ios-bookmarks',
+			icon : 'ion-social-buffer',
 			id: 'drilldown',
 			updated: false,
 			tables: []
@@ -384,6 +386,17 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			updated: false,
 			tables: []
 		}]};
+
+		if (_groupInfo.props.features['etm']) {
+			ret.tabs.splice(1, 0, {
+				title : 'Click here to view batch progress',
+				name: 'Batch',
+				icon : 'ion-pricetags',
+				id: 'batch',
+				updated: false,
+				tables: []
+			});
+		}
 		var type = nlLrFilter.getType();
 		ret.search = '';
 		ret.lastSeached = '';
@@ -455,6 +468,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			_updateTimeSummaryTab();
 		} else if(tab.id == 'drilldown') {
 			_updateDrillDownTab();
+		} else if(tab.id == 'batch') {
+			$scope.batchinfo = nlLrBatch.getBatchInfo(_groupInfo, $scope.tabData.records);
 		}
 	}
 
@@ -654,6 +669,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				colors: [_nl.colorsCodes.blue2]
 			}],
 			$scope.drillDownArray = [];
+			$scope.batchinfo = {};
 	}
 	
 	function _updateOverviewTab(summaryRecord) {

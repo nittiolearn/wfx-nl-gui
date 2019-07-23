@@ -252,6 +252,13 @@
                 class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
                 <nl-lr-drilldown-tab drilldown='drillDownArray'></nl-lr-drilldown-tab>
             </div>
+            <!-- **************************************************************
+                Batch down tab
+            ******************************************************************* -->
+            <div ng-if='tabData.selectedTab.id == "batch"  && !tabData.processingOnging'
+                class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
+                <nl-lr-batch-tab batchinfo='batchinfo'></nl-lr-batch-tab>
+            </div>
         </div>
     </div>
 </div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->

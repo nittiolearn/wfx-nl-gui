@@ -62,7 +62,7 @@ input.nl-border-radius {
 		</div>
 		<div class='row {{loginVAlign}} padding0 margin0 text-center'>
 			<div ng-show='screenSize != "small"' class='col padding'>
-				<img src='{{mainImg}}' class='nl-signin-img padding-mid'>
+				<img ng-src='{{mainImg}}' class='nl-signin-img padding-mid'>
 			</div>
 			<div ng-show='screenSize != "small"' style='width: {{loginGap}}px'>
 			</div>
@@ -141,7 +141,7 @@ input.nl-border-radius {
 		</div>
 		<div class='padding text-center'
 			ng-show='screenSize == "small" && showImgInMobile'>
-			<img src='{{mainImg}}' class='nl-signin-img'>
+			<img ng-src='{{mainImg}}' class='nl-signin-img'>
 		</div>
 	</div>
 	<div class='col padding0'></div>

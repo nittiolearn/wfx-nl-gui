@@ -1,0 +1,24 @@
+<div class='padding-mid fsh5'>Batch Counts</div>
+<div class='row row-center row-wrap margin0 padding-mid text-center'>
+    <div class='padding-mid'
+        ng-repeat='item in batchinfo.batchCounts'
+        ng-class='$root.respCol632'>
+        <div class='padding-small {{item.cls}} bgwhite lnblue2 {{tabData.filter == "all"? "borderbottom2": ""}}'
+                ng-click='tabData.onFilter($event, "all")'>
+            <div><span class='fsh5'>{{item.count}}</span><span class='fsmall2'> {{item.perc}}%</span></div>
+            <div class='fsmall2'>{{item.name}}</div>
+        </div>
+    </div>
+</div>
+<div class='padding-mid fsh5'>Learner Counts</div>
+<div class='row row-center row-wrap margin0 padding-mid text-center'>
+    <div class='padding-mid'
+        ng-repeat='item in batchinfo.learnerCounts'
+        ng-class='$root.respCol632'>
+        <div class='padding-small {{item.cls}} bgwhite lnblue2 {{tabData.filter == "all"? "borderbottom2": ""}}'
+                ng-click='tabData.onFilter($event, "all")'>
+            <div><span class='fsh5'>{{item.count}}</span><span class='fsmall2'> {{item.perc}}%</span></div>
+            <div class='fsmall1'>{{item.name}}</div>
+        </div>
+    </div>
+</div>
