@@ -1,365 +1,366 @@
 (function() {
 
-    //-------------------------------------------------------------------------------------------------
-    // lr_report_records.js: Process and store a list of db.report records
-    //-------------------------------------------------------------------------------------------------
-    function module_init() {
-        angular.module('nl.learning_reports.lr_report_records', [])
-        .config(configFn)
-        .service('nlLrReportRecords', NlLrReportRecords);
+//-------------------------------------------------------------------------------------------------
+// lr_report_records.js: Process and store a list of db.report records
+//-------------------------------------------------------------------------------------------------
+function module_init() {
+    angular.module('nl.learning_reports.lr_report_records', [])
+    .config(configFn)
+    .service('nlLrReportRecords', NlLrReportRecords);
+}
+
+var configFn = ['$stateProvider', '$urlRouterProvider',
+function($stateProvider, $urlRouterProvider) {
+}];
+
+//-------------------------------------------------------------------------------------------------
+var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrCourseRecords', 'nlLrFilter', 'nlLrAssignmentRecords', 'nlCourse', 'nlExpressionProcessor',
+function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLrAssignmentRecords, nlCourse, nlExpressionProcessor) {
+    var self = this;
+    
+    var _records = {};
+    var _reminderDict = {};
+    var _dates = {};
+    var _pastUserData = null;
+    var _pastUserDataFetchInitiated = false;
+    var _postProcessRecords = [];
+    var _userInfo = null;
+    var _nominatedUsers = null;
+    var _attendanceObj = {};
+    this.init = function(userinfo) {
+        _userInfo = userinfo;
+        _records = {};
+        _reminderDict = {};
+        _nominatedUsers = {};
+        _dates = {minUpdated: null, maxUpdated: null};
+        _convertAttendanceArrayToObj(userinfo.groupinfo.attendance);
+        if (!nlGroupInfo.isPastUserXlsConfigured()) _pastUserData = {};
+    };
+    
+    this.getReminderDict = function() {
+        return _reminderDict;
+    };
+    
+    this.getNominatedUserDict = function() {
+        return _nominatedUsers;
+    };
+    
+    this.addRecord = function(report) {
+        if (report.ctype == _nl.ctypes.CTYPE_COURSE)
+            report = _processCourseReport(report);
+        else if (report.ctype == _nl.ctypes.CTYPE_MODULE)
+            report = _processModuleReport(report);
+        if (!report) return null;
+        var rid = report.raw_record.id;
+        _records[rid] = report;
+        if (!_dates.minUpdated || _dates.minUpdated > report.raw_record.updated) _dates.minUpdated = report.raw_record.updated;
+        if (!_dates.maxUpdated || _dates.maxUpdated < report.raw_record.updated) _dates.maxUpdated = report.raw_record.updated;
+        return report;
+    };
+    
+    this.updateReportRecords = function() {
+        var records = _records;
+        this.reset();
+        for(var cid in records) {
+            var report = records[cid].raw_record;
+            self.addRecord(report);
+        }
+    };
+
+    this.removeRecord = function(repid) {
+        if (!(repid in _records)) return;
+        delete _records[repid];
+    };
+
+    this.reset = function() {
+        _records = {};
+        _reminderDict = {};
+        _nominatedUsers = {};
+    };
+    
+    this.getRecords = function() {
+        return _records;
+    };
+
+    this.getAnyRecord = function() {
+        for (var recid in _records) return _records[recid];
+        return null;
+    };
+
+    this.asList = function() {
+        var ret = nlLrHelper.dictToList(_records);
+        ret.sort(function(a, b) {
+            return (b.stats.status.id - a.stats.status.id);
+        });
+        return ret;
+    };
+    
+    function _convertAttendanceArrayToObj(attendanceArray) {
+        for(var i=0; i<attendanceArray.length; i++) {
+            var att = attendanceArray[i];
+            _attendanceObj[att.id] = att;
+        }
+    }
+
+    function _getRangeStart(rangeEnd, rangeType, rangeSize) {
+        if (rangeType == 'months') {
+            var month = rangeEnd.getMonth();
+            if (rangeEnd.getDate() == 1) month = month -1;
+            var year = rangeEnd.getFullYear();
+            if (month < 0) {
+                year = year -1;
+                month = 11;
+            }
+            return new Date(year, month, 1, 0, 0, 0, 0); 
+        } else if (rangeType == 'weeks') {
+            var diff = (rangeEnd.getDay() + 5) % 7 + 1; // Sunday = 0=>6, Monday = 1=>7, Tue = 2=>1, ... Sat = 6=>5
+            return new Date(rangeEnd.getTime() - diff*24*3600*1000);
+        } else if (rangeType == 'days') {
+            return new Date(rangeEnd.getTime() - 24*3600*1000);
+        }
+        return new Date(rangeEnd.getTime() - rangeSize);
+    }
+
+    function _getRangeLabel(range, rangeType) {
+        if (rangeType == 'months') return nl.fmt.fmtDateDelta(range.start, null, 'month-mini');
+        var s = nl.fmt.fmtDateDelta(range.start, null, 'date-mini');
+        if (range.end.getTime() - range.start.getTime() <= 24*3600*1000) return s;
+        var e = nl.fmt.fmtDateDelta(new Date(range.end.getTime() - 24*3600*1000), null, 'date-mini');
+        return nl.fmt2('{} - {}', s, e);
+    }
+
+    this.getTimeRanges = function(rangeType, maxBuckets) {
+        if (!_dates.minUpdated || !_dates.maxUpdated) return [];
+        if (!maxBuckets) maxBuckets = (rangeType == 'days') ? 31 : (rangeType == 'weeks') ? 15 : (rangeType == 'months') ? 15 : 8;
+
+        var day = 24*60*60*1000; // 1 day in ms
+        var now = new Date();
+        var offset = now.getTimezoneOffset()*60*1000; // in ms
+        var start = Math.floor((_dates.minUpdated.getTime()-offset)/day)*day + offset; // Today 00:00 Hrs in local time
+        var end = Math.ceil((_dates.maxUpdated.getTime()-offset)/day)*day + offset; // Tomorrow 00:00 Hrs in local time
+        var rangeSize = Math.ceil((end - start)/day/maxBuckets);
+        rangeSize *= day;
+        var ranges = [];
+        var rangeEnd = new Date(end);
+        for (var i=0; i<maxBuckets; i++) {
+            if (rangeEnd.getTime() < start) break;
+            var rangeStart = _getRangeStart(rangeEnd, rangeType, rangeSize);
+            var range = {start: rangeStart, end: rangeEnd, count: 0, completed: 0};
+            range.label = _getRangeLabel(range, rangeType);
+            ranges.unshift(range);
+            rangeEnd = rangeStart;
+        }
+        return ranges;
+    };
+    
+    this.postProcessRecordsIfNeeded = function() {
+        return nl.q(function(resolve, reject) {
+            if (_pastUserData || _postProcessRecords.length == 0 || _pastUserDataFetchInitiated) {
+                resolve(true);
+                return;
+            }
+            _pastUserDataFetchInitiated = true;
+            nlDlg.popupStatus('Fetching additional user information ...', false);
+            nlDlg.showLoadingScreen();
+            nlGroupInfo.fetchPastUserXls().then(function(result) {
+                _pastUserData = result || {};
+                for (var i=0; i<_postProcessRecords.length; i++)
+                    self.addRecord(_postProcessRecords[i]);
+                _postProcessRecords = [];
+                nlDlg.popdownStatus(0);
+                resolve(true);
+            });
+        });
+    };
+    
+    function _getStudentFromReport(report, repcontent) {
+        var user = nlGroupInfo.getUserObj(''+report.student);
+        if (!user && !_pastUserData) {
+            _postProcessRecords.push(report);
+            return null;
+        }
+
+        if (!user) user = _pastUserData[repcontent.studentname];
+        if (!user) user = nlGroupInfo.getDefaultUser(repcontent.studentname || '');
+        return user;
     }
     
-    var configFn = ['$stateProvider', '$urlRouterProvider',
-    function($stateProvider, $urlRouterProvider) {
-    }];
-    
-    //-------------------------------------------------------------------------------------------------
-    var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrCourseRecords', 'nlLrFilter', 'nlLrAssignmentRecords', 'nlCourse',
-    function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLrAssignmentRecords, nlCourse) {
-        var self = this;
+    function _processCourseReport(report) {
+        var repcontent = _updateCommonParams(report, 'course');
+        var user = _getStudentFromReport(report, repcontent);
+        if (!user) return null;
+        _nominatedUsers[user.id] = true;
+        var course = nlLrCourseRecords.getRecord(report.lesson_id);
+        report.canReview = true;
+        if(!(course && course.is_published)) report.canReview = false;
+        var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:'+report.assignment) || {};
+        if (!courseAssignment.info) courseAssignment.info = {};
+        if (!course) course = nlLrCourseRecords.getCourseInfoFromReport(report, repcontent);
+        var contentmetadata = 'contentmetadata' in course ? course.contentmetadata : {};
+        report._grade = contentmetadata.grade || '';
+        report.subject = contentmetadata.subject || ''; 
         
-        var _records = {};
-        var _reminderDict = {};
-        var _dates = {};
-        var _pastUserData = null;
-        var _pastUserDataFetchInitiated = false;
-        var _postProcessRecords = [];
-        var _userInfo = null;
-        var _nominatedUsers = null;
-        var _attendanceObj = {};
-        this.init = function(userinfo) {
-            _userInfo = userinfo;
-            _records = {};
-            _reminderDict = {};
-            _nominatedUsers = {};
-            _dates = {minUpdated: null, maxUpdated: null};
-            _convertAttendanceArrayToObj(userinfo.groupinfo.attendance);
-            if (!nlGroupInfo.isPastUserXlsConfigured()) _pastUserData = {};
-        };
-        
-        this.getReminderDict = function() {
-            return _reminderDict;
-        };
-        
-        this.getNominatedUserDict = function() {
-            return _nominatedUsers;
-        };
-        
-        this.addRecord = function(report) {
-            if (report.ctype == _nl.ctypes.CTYPE_COURSE)
-                report = _processCourseReport(report);
-            else if (report.ctype == _nl.ctypes.CTYPE_MODULE)
-                report = _processModuleReport(report);
-            if (!report) return null;
-            var rid = report.raw_record.id;
-            _records[rid] = report;
-            if (!_dates.minUpdated || _dates.minUpdated > report.raw_record.updated) _dates.minUpdated = report.raw_record.updated;
-            if (!_dates.maxUpdated || _dates.maxUpdated < report.raw_record.updated) _dates.maxUpdated = report.raw_record.updated;
-            return report;
-        };
-        
-        this.updateReportRecords = function() {
-            var records = _records;
-            this.reset();
-            for(var cid in records) {
-                var report = records[cid].raw_record;
-                self.addRecord(report);
-            }
-        };
-    
-        this.removeRecord = function(repid) {
-            if (!(repid in _records)) return;
-            delete _records[repid];
-        };
-    
-        this.reset = function() {
-            _records = {};
-            _reminderDict = {};
-            _nominatedUsers = {};
-        };
-        
-        this.getRecords = function() {
-            return _records;
-        };
-    
-        this.getAnyRecord = function() {
-            for (var recid in _records) return _records[recid];
-            return null;
-        };
-
-        this.asList = function() {
-            var ret = nlLrHelper.dictToList(_records);
-            ret.sort(function(a, b) {
-                return (b.stats.status.id - a.stats.status.id);
-            });
-            return ret;
-        };
-        
-        function _convertAttendanceArrayToObj(attendanceArray) {
-            for(var i=0; i<attendanceArray.length; i++) {
-                var att = attendanceArray[i];
-                _attendanceObj[att.id] = att;
-            }
-        }
-
-        function _getRangeStart(rangeEnd, rangeType, rangeSize) {
-            if (rangeType == 'months') {
-                var month = rangeEnd.getMonth();
-                if (rangeEnd.getDate() == 1) month = month -1;
-                var year = rangeEnd.getFullYear();
-                if (month < 0) {
-                    year = year -1;
-                    month = 11;
-                }
-                return new Date(year, month, 1, 0, 0, 0, 0); 
-            } else if (rangeType == 'weeks') {
-                var diff = (rangeEnd.getDay() + 5) % 7 + 1; // Sunday = 0=>6, Monday = 1=>7, Tue = 2=>1, ... Sat = 6=>5
-                return new Date(rangeEnd.getTime() - diff*24*3600*1000);
-            } else if (rangeType == 'days') {
-                return new Date(rangeEnd.getTime() - 24*3600*1000);
-            }
-            return new Date(rangeEnd.getTime() - rangeSize);
-        }
-
-        function _getRangeLabel(range, rangeType) {
-            if (rangeType == 'months') return nl.fmt.fmtDateDelta(range.start, null, 'month-mini');
-            var s = nl.fmt.fmtDateDelta(range.start, null, 'date-mini');
-            if (range.end.getTime() - range.start.getTime() <= 24*3600*1000) return s;
-            var e = nl.fmt.fmtDateDelta(new Date(range.end.getTime() - 24*3600*1000), null, 'date-mini');
-            return nl.fmt2('{} - {}', s, e);
-        }
-
-        this.getTimeRanges = function(rangeType, maxBuckets) {
-            if (!_dates.minUpdated || !_dates.maxUpdated) return [];
-            if (!maxBuckets) maxBuckets = (rangeType == 'days') ? 31 : (rangeType == 'weeks') ? 15 : (rangeType == 'months') ? 15 : 8;
-    
-            var day = 24*60*60*1000; // 1 day in ms
-            var now = new Date();
-            var offset = now.getTimezoneOffset()*60*1000; // in ms
-            var start = Math.floor((_dates.minUpdated.getTime()-offset)/day)*day + offset; // Today 00:00 Hrs in local time
-            var end = Math.ceil((_dates.maxUpdated.getTime()-offset)/day)*day + offset; // Tomorrow 00:00 Hrs in local time
-            var rangeSize = Math.ceil((end - start)/day/maxBuckets);
-            rangeSize *= day;
-            var ranges = [];
-            var rangeEnd = new Date(end);
-            for (var i=0; i<maxBuckets; i++) {
-                if (rangeEnd.getTime() < start) break;
-                var rangeStart = _getRangeStart(rangeEnd, rangeType, rangeSize);
-                var range = {start: rangeStart, end: rangeEnd, count: 0, completed: 0};
-                range.label = _getRangeLabel(range, rangeType);
-                ranges.unshift(range);
-                rangeEnd = rangeStart;
-            }
-            return ranges;
-        };
-        
-        this.postProcessRecordsIfNeeded = function() {
-            return nl.q(function(resolve, reject) {
-                if (_pastUserData || _postProcessRecords.length == 0 || _pastUserDataFetchInitiated) {
-                    resolve(true);
-                    return;
-                }
-                _pastUserDataFetchInitiated = true;
-                nlDlg.popupStatus('Fetching additional user information ...', false);
-                nlDlg.showLoadingScreen();
-                nlGroupInfo.fetchPastUserXls().then(function(result) {
-                    _pastUserData = result || {};
-                    for (var i=0; i<_postProcessRecords.length; i++)
-                        self.addRecord(_postProcessRecords[i]);
-                    _postProcessRecords = [];
-                    nlDlg.popdownStatus(0);
-                    resolve(true);
-                });
-            });
-        };
-        
-        function _getStudentFromReport(report, repcontent) {
-            var user = nlGroupInfo.getUserObj(''+report.student);
-            if (!user && !_pastUserData) {
-                _postProcessRecords.push(report);
-                return null;
-            }
-    
-            if (!user) user = _pastUserData[repcontent.studentname];
-            if (!user) user = nlGroupInfo.getDefaultUser(repcontent.studentname || '');
-            return user;
-        }
-        
-        function _processCourseReport(report) {
-            var repcontent = _updateCommonParams(report, 'course');
-            var user = _getStudentFromReport(report, repcontent);
-            if (!user) return null;
-            _nominatedUsers[user.id] = true;
-            var course = nlLrCourseRecords.getRecord(report.lesson_id);
-            report.canReview = true;
-            if(!(course && course.is_published)) report.canReview = false;
-            var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:'+report.assignment) || {};
-            if (!courseAssignment.info) courseAssignment.info = {};
-            if (!course) course = nlLrCourseRecords.getCourseInfoFromReport(report, repcontent);
-            var contentmetadata = 'contentmetadata' in course ? course.contentmetadata : {};
-            report._grade = contentmetadata.grade || '';
-            report.subject = contentmetadata.subject || ''; 
+        var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
+            timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
+            internalIdentifier:report.id, nCerts: course.certificates.length, iltTimeSpent: 0, iltTotalTime: 0};
             
-            var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
-                timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
-                internalIdentifier:report.id, nCerts: course.certificates.length, iltTimeSpent: 0, iltTotalTime: 0};
-                
-            var started = false;
-            var isTrainerControlled = false;
-            var latestMilestone = null;
-            var milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
-            for(var i=0; i<course.content.modules.length; i++) {
-                var elem = course.content.modules[i];
-                if(elem.type != 'milestone') continue;
-                isTrainerControlled = true;
-                if(elem.id in milestone) {
-                    started = true;
-                    latestMilestone = milestone[elem.id];
-                    latestMilestone['perc'] = elem.completionPerc;
-                    latestMilestone['name'] = elem.name;
-                }
-            }
-
-            if(course.content.blended) {
-                _updateIltParameters(report, course, courseAssignment, repcontent, stats);
-            }
-            _updateRatingItems(report, course, courseAssignment, repcontent, stats);
-            var milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
-            if(Object.keys(milestone).length > 0) {
-                for(var key in milestone) {
-                    if (!(milestone[key] && milestone[key].status == 'done')) continue;
-                    if(!repcontent.statusinfo) repcontent.statusinfo = {};
-                    if(!repcontent.statusinfo[key]) repcontent.statusinfo[key] = {};
-                    repcontent.statusinfo[key].status = 'done';      
-                }    
-            }
-
-            var statusinfo = repcontent.statusinfo || {};
-            var items = course.nonLessons;
-            stats.nOthers = items.length;
-            stats.nOthersDone = 0;
-            for (var i=0; i<items.length; i++) {
-                var cid = items[i];
-                var sinfo = statusinfo[cid];
-                if (sinfo && sinfo.status == 'done') {
-                    stats.nOthersDone++;
-                    started = true;
-                }
-            }
-    
-            var lessons = course.lessons;
-            if (!repcontent.lessonReports) repcontent.lessonReports = {};
-            repcontent.latestLessonReports = angular.copy(repcontent.lessonReports);
-            var lessonReps = repcontent.lessonReports;
-            for (var i=0; i<lessons.length; i++) {
-                stats.nLessons++;
-                var lid = lessons[i].id;
-                var rep = lessonReps[lid];
-                if (!rep) continue;
-                var pastLessonReport = (repcontent['pastLessonReports']) ? angular.copy(repcontent['pastLessonReports'][lid]) : null;
-                if(pastLessonReport) {
-                    rep = _getMaxScoredReport(rep, pastLessonReport);
-                    lessonReps[lid] = rep; 
-                }
+        var started = false;
+        var isTrainerControlled = false;
+        var latestMilestone = null;
+        var milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
+        for(var i=0; i<course.content.modules.length; i++) {
+            var elem = course.content.modules[i];
+            if(elem.type != 'milestone') continue;
+            isTrainerControlled = true;
+            if(elem.id in milestone && milestone[elem.id].status == 'done') {
                 started = true;
-                if (!rep.selfLearningMode && rep.attempt) {
-                    stats.nAttempts += rep.attempt;
-                    stats.nLessonsAttempted++;
-                }
-                stats.timeSpentSeconds += rep.timeSpentSeconds || 0;
-                if (!rep.completed) continue;
-                if (rep.selfLearningMode) {
-                    rep.maxScore = 0;
-                    rep.score = 0;
-                }
-                if (rep.maxScore) {
-                    stats.nScore += rep.score;
-                    stats.nMaxScore += rep.maxScore;
-                    stats.nQuiz++;
-                }
-                var perc = rep.maxScore ? Math.round(rep.score / rep.maxScore * 100) : 100;
-                if (!rep.passScore || perc >= rep.passScore) stats.nLessonsPassed++;
-                else stats.nLessonsFailed++;
+                latestMilestone = milestone[elem.id];
+                latestMilestone['perc'] = elem.completionPerc;
+                latestMilestone['name'] = elem.name;
             }
-            stats.nLessonsDone = stats.nLessonsPassed + stats.nLessonsFailed;
-            var RELATIVE_LESSON_WEIGHT=1;
-            var weightedProgressMax = stats.nLessons*RELATIVE_LESSON_WEIGHT + stats.nOthers;
-            var weightedProgress = stats.nLessonsDone*RELATIVE_LESSON_WEIGHT + stats.nOthersDone;
-            var totalItems = stats.nLessons + stats.nOthers;
-            var completedItems = stats.nLessonsDone + stats.nOthersDone;
-            if((totalItems != completedItems) && (nlLrFilter.getType() == 'course_assign')) {
-                if(Object.keys(_reminderDict).length == 0) {
-                    _reminderDict['name'] = repcontent.name;
-                    _reminderDict['assigned_by'] = repcontent.sendername;
-                    _reminderDict['ctype'] = report.ctype;
-                    _reminderDict['users'] = [];
-                }
-                var currentDate = new Date();
-                var endtime = repcontent.not_after && !repcontent.submissionAfterEndtime ? nl.fmt.json2Date(repcontent.not_after) : '';
-                if(!endtime || currentDate <= endtime) {
-                    var minimalUser = nlGroupInfo.getMinimalUserObj(user);
-                    if (minimalUser) {
-                        minimalUser.repid = report.id;
-                        _reminderDict.users.push(minimalUser);
-                    }
-                }
-            }
-            
-
-            if(isTrainerControlled) {
-                if(latestMilestone) {
-                    stats.percComplete = latestMilestone['perc'];
-                    stats.percCompleteStr = '' + stats.percComplete + ' %';
-                    stats.percCompleteDesc = nl.fmt2('{}', latestMilestone['name']);
-                } else {
-                    stats.percComplete = '';
-                    stats.percCompleteStr = '';
-                    stats.percCompleteDesc = nl.fmt2('Milestone is not marked');
-                }
-            } else {
-                stats.percComplete = weightedProgressMax ? Math.round(weightedProgress/weightedProgressMax*100) : 100;
-                stats.percCompleteStr = '' + stats.percComplete + ' %';
-                
-                var plural = stats.nLessons > 1 ? 'modules' : 'module';
-                var modulesCompleted = stats.nLessons ? nl.fmt2('{} of {} {}', stats.nLessonsDone, stats.nLessons, plural) : '';
-                plural = stats.nOthers > 1 ? 'other items' : 'other item';
-                var othersCompleted = stats.nOthers ? nl.fmt2('{} of {} {}', stats.nOthersDone, stats.nOthers, plural) : '';
-                var delim = modulesCompleted && othersCompleted ? ' and ' : '';
-                stats.percCompleteDesc = nl.fmt2('{}{}{} completed', modulesCompleted, delim, othersCompleted);    
-            }
-            
-            stats.avgAttempts = stats.nLessonsAttempted ? Math.round(stats.nAttempts/stats.nLessonsAttempted*10)/10 : '';
-            stats.percScore = stats.nMaxScore ? Math.round(stats.nScore/stats.nMaxScore*100) : 0;
-            stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
-    
-            stats.timeSpentStr = Math.ceil((stats.timeSpentSeconds+stats.iltTimeSpent)/60);
-            stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
-                : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
-
-            report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
-            report.urlTitle = nl.t('View report');
-            var moduleLen = course.content.modules.length;
-            var lastItem = course.content.modules[moduleLen - 1] || {};
-            if(lastItem.type == 'certificate' && _isConditionMet(lastItem, repcontent)) {
-                stats.status = nlLrHelper.statusInfos[nlLrHelper.STATUS_CERTIFIED];
-            } else {
-                stats.status = nlLrHelper.statusInfos[_getStatusId(stats, started)];                
-            }
-            var ret = {raw_record: report, repcontent: repcontent, course: course, user: user,
-                usermd: nlLrHelper.getMetadataDict(user), stats: stats,
-                created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
-                updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
-                not_before: report.not_before ? nl.fmt.fmtDateDelta(report.not_before, null, 'minute') : '',
-                not_after: report.not_after ? nl.fmt.fmtDateDelta(report.not_after, null, 'minute') : ''
-                };
-            return ret;
         }
-    
-        function _updateRatingItems(report, course, courseAssignment, repcontent, stats) {
-            var rating = courseAssignment.rating ? angular.fromJson(courseAssignment.rating) : {};
-            for(var i=0; i<course.content.modules.length; i++) {
-                var elem = course.content.modules[i];
-                if(elem.type != 'rating') continue;
+
+        if(course.content.blended) {
+            _updateIltParameters(report, course, courseAssignment, repcontent, stats);
+        }
+        var milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
+        if(Object.keys(milestone).length > 0) {
+            for(var key in milestone) {
+                if (!(milestone[key] && milestone[key].status == 'done')) continue;
+                if(!repcontent.statusinfo) repcontent.statusinfo = {};
+                if(!repcontent.statusinfo[key]) repcontent.statusinfo[key] = {};
+                repcontent.statusinfo[key].status = 'done';      
+            }    
+        }
+
+        _updateRatingItems(report, course, courseAssignment, repcontent, stats);
+        var statusinfo = repcontent.statusinfo || {};
+        var items = course.nonLessons;
+        stats.nOthers = items.length;
+        stats.nOthersDone = 0;
+        for (var i=0; i<items.length; i++) {
+            var cid = items[i];
+            var sinfo = statusinfo[cid];
+            if (sinfo && sinfo.status == 'done') {
+                stats.nOthersDone++;
+                started = true;
+            }
+        }
+
+        var lessons = course.lessons;
+        if (!repcontent.lessonReports) repcontent.lessonReports = {};
+        repcontent.latestLessonReports = angular.copy(repcontent.lessonReports);
+        var lessonReps = repcontent.lessonReports;
+        for (var i=0; i<lessons.length; i++) {
+            stats.nLessons++;
+            var lid = lessons[i].id;
+            var rep = lessonReps[lid];
+            if (!rep) continue;
+            var pastLessonReport = (repcontent['pastLessonReports']) ? angular.copy(repcontent['pastLessonReports'][lid]) : null;
+            if(pastLessonReport) {
+                rep = _getMaxScoredReport(rep, pastLessonReport);
+                lessonReps[lid] = rep; 
+            }
+            started = true;
+            if (!rep.selfLearningMode && rep.attempt) {
+                stats.nAttempts += rep.attempt;
+                stats.nLessonsAttempted++;
+            }
+            stats.timeSpentSeconds += rep.timeSpentSeconds || 0;
+            if (!rep.completed) continue;
+            if (rep.selfLearningMode) {
+                rep.maxScore = 0;
+                rep.score = 0;
+            }
+            if (rep.maxScore) {
+                stats.nScore += rep.score;
+                stats.nMaxScore += rep.maxScore;
+                stats.nQuiz++;
+            }
+            var perc = rep.maxScore ? Math.round(rep.score / rep.maxScore * 100) : 100;
+            if (!rep.passScore || perc >= rep.passScore) stats.nLessonsPassed++;
+            else stats.nLessonsFailed++;
+        }
+        stats.nLessonsDone = stats.nLessonsPassed + stats.nLessonsFailed;
+        var RELATIVE_LESSON_WEIGHT=1;
+        var weightedProgressMax = stats.nLessons*RELATIVE_LESSON_WEIGHT + stats.nOthers;
+        var weightedProgress = stats.nLessonsDone*RELATIVE_LESSON_WEIGHT + stats.nOthersDone;
+        var totalItems = stats.nLessons + stats.nOthers;
+        var completedItems = stats.nLessonsDone + stats.nOthersDone;
+        if((totalItems != completedItems) && (nlLrFilter.getType() == 'course_assign')) {
+            if(Object.keys(_reminderDict).length == 0) {
+                _reminderDict['name'] = repcontent.name;
+                _reminderDict['assigned_by'] = repcontent.sendername;
+                _reminderDict['ctype'] = report.ctype;
+                _reminderDict['users'] = [];
+            }
+            var currentDate = new Date();
+            var endtime = repcontent.not_after && !repcontent.submissionAfterEndtime ? nl.fmt.json2Date(repcontent.not_after) : '';
+            if(!endtime || currentDate <= endtime) {
+                var minimalUser = nlGroupInfo.getMinimalUserObj(user);
+                if (minimalUser) {
+                    minimalUser.repid = report.id;
+                    _reminderDict.users.push(minimalUser);
+                }
+            }
+        }
+        
+
+        if(isTrainerControlled) {
+            if(latestMilestone) {
+                stats.percComplete = latestMilestone['perc'];
+                stats.percCompleteStr = '' + stats.percComplete + ' %';
+                stats.percCompleteDesc = nl.fmt2('{}', latestMilestone['name']);
+            } else {
+                stats.percComplete = '';
+                stats.percCompleteStr = '';
+                stats.percCompleteDesc = nl.fmt2('Milestone is not marked');
+            }
+        } else {
+            stats.percComplete = weightedProgressMax ? Math.round(weightedProgress/weightedProgressMax*100) : 100;
+            stats.percCompleteStr = '' + stats.percComplete + ' %';
+            
+            var plural = stats.nLessons > 1 ? 'modules' : 'module';
+            var modulesCompleted = stats.nLessons ? nl.fmt2('{} of {} {}', stats.nLessonsDone, stats.nLessons, plural) : '';
+            plural = stats.nOthers > 1 ? 'other items' : 'other item';
+            var othersCompleted = stats.nOthers ? nl.fmt2('{} of {} {}', stats.nOthersDone, stats.nOthers, plural) : '';
+            var delim = modulesCompleted && othersCompleted ? ' and ' : '';
+            stats.percCompleteDesc = nl.fmt2('{}{}{} completed', modulesCompleted, delim, othersCompleted);    
+        }
+        
+        stats.avgAttempts = stats.nLessonsAttempted ? Math.round(stats.nAttempts/stats.nLessonsAttempted*10)/10 : '';
+        stats.percScore = stats.nMaxScore ? Math.round(stats.nScore/stats.nMaxScore*100) : 0;
+        stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
+
+        stats.timeSpentStr = Math.ceil((stats.timeSpentSeconds+stats.iltTimeSpent)/60);
+        stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
+            : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
+
+        report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
+        report.urlTitle = nl.t('View report');
+        var moduleLen = course.content.modules.length;
+        var lastItem = course.content.modules[moduleLen - 1] || {};
+        if(lastItem.type == 'certificate' && _isConditionMet(lastItem, repcontent)) {
+            stats.status = nlLrHelper.statusInfos[nlLrHelper.STATUS_CERTIFIED];
+        } else {
+            stats.status = nlLrHelper.statusInfos[_getStatusId(stats, started)];                
+        }
+        var ret = {raw_record: report, repcontent: repcontent, course: course, user: user,
+            usermd: nlLrHelper.getMetadataDict(user), stats: stats,
+            created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
+            updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
+            not_before: report.not_before ? nl.fmt.fmtDateDelta(report.not_before, null, 'minute') : '',
+            not_after: report.not_after ? nl.fmt.fmtDateDelta(report.not_after, null, 'minute') : ''
+            };
+        return ret;
+    }
+
+    function _updateRatingItems(report, course, courseAssignment, repcontent, stats) {
+        var rating = courseAssignment.rating ? angular.fromJson(courseAssignment.rating) : {};
+        for(var i=0; i<course.content.modules.length; i++) {
+            var elem = course.content.modules[i];
+            if(elem.type != 'rating' && elem.type != 'gate') continue;
+            if(elem.type == 'rating') {
                 var userRating = rating[report.id] || [];
                 var ratingFound = false;
                 for(var j=0; j<userRating.length; j++) {
@@ -380,304 +381,339 @@
                 if(!ratingFound) {
                     if(!repcontent.statusinfo) repcontent.statusinfo = {};
                     if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
-                    repcontent.statusinfo[elem.id].state = 'pending';
+                    repcontent.statusinfo[elem.id].status = 'pending';
                     repcontent.statusinfo[elem.id].stateStr = 'pending';
                     repcontent.statusinfo[elem.id].iltTotalTime = elem.iltduration;
                 }
             }
-        }
-
-        function _getRatingObj(ratingtype) {
-            var ratings = _userInfo.groupinfo.ratings || []
-            for(var i=0; i<ratings.length; i++) {
-                var item = ratings[i];
-                if(ratingtype == item.id) return item;
-            }
-            return {};
-        }
-
-        function _computeStringOnScore(ratingObj, score) {
-            if(Object.keys(ratingObj).length == 0) return score;
-            if(ratingObj.type == 'number') return score;
-            if(ratingObj.type == 'status' || ratingObj.type == 'select') {
-                for(var i=0; i<ratingObj.values.length; i++) {
-                    var val = ratingObj.values[i];
-                    if(val.p == score) return val.v;
+            if(elem.type == 'gate') {
+                if(!repcontent.statusinfo) repcontent.statusinfo = {};
+                if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
+                repcontent.statusinfo[elem.id].status = 'pending';
+                var payload = {strExpression: elem.gateFormula, dictAvps: _getAvpsForGate(elem, course.content.modules, repcontent)};
+                nlExpressionProcessor.process(payload)
+                if(payload.result !== 0) {
+                    repcontent.statusinfo[elem.id].status = 'done';
+                    repcontent.statusinfo[elem.id].passScore = elem.gatePassscore;
+                    repcontent.statusinfo[elem.id].score = payload.result;
                 }
             }
         }
+    }
 
-        function _setStatusOfRatingItem(selectedRating, ratingScore) {
-            if(ratingScore <= selectedRating.lowPassScore)
-                return 'failed';
-            else if(selectedRating.lowPassScore < ratingScore && ratingScore < selectedRating.passScore)
-                return 'partial_success';
-            else 
-                return 'completed';
+    function _getAvpsForGate(elem, modules, repcontent) {
+        var lessonReports = repcontent.lessonReports || {};
+        var statusinfo = repcontent.statusinfo || {};
+        var ret = {};
+        for(var j=0; j<modules.length; j++) {
+            var cm = modules[j];
+            if(cm.type == 'lesson') {
+                var rep = lessonReports[cm.id] || {};
+                ret[cm.id] = null;
+                if(rep.completed) ret[cm.id] = (rep.score/rep.maxScore)*100;
+                if(rep.selfLearningMode && rep.completed) ret[cm.id] = 100;
+            } else {
+                var rep = statusinfo[cm.id] || {};
+                ret[cm.id] = null;
+                if(rep.status == 'done') ret[cm.id] = 100;
+            }
+            if(elem.id == cm.id) break;
         }
-            
-        function _updateIltParameters(report, course, courseAssignment, repcontent, stats) {
-            var attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
-                attendance = nlCourse.migrateCourseAttendance(attendance);
-            var notAttended = attendance.not_attended || {};
-            for(var i=0; i<course.content.modules.length; i++) {
-                var elem = course.content.modules[i];
-                if(courseAssignment.info.modifiedILT && courseAssignment.info.modifiedILT[elem.id]) elem.iltduration = courseAssignment.info.modifiedILT[elem.id];
-                if(elem.type != 'iltsession') continue;
-                stats.iltTotalTime += elem.iltduration;
-                var userAttendance = attendance[report.id] || [];
-                var userAttendanceFound = false;
-                for(var j=0; j<userAttendance.length; j++) {
-                    var attObj = _attendanceObj[userAttendance[j].attId] || {id: userAttendance[j].attId, name: userAttendance[j].attId, remarks: userAttendance[j].remarks, timePerc: 0};
-                    if(userAttendance[j].id == elem.id && userAttendance[j].attId != '') {
-                        userAttendanceFound = true;
-                        if(!repcontent.statusinfo) repcontent.statusinfo = {};
-                        if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
-                        repcontent.statusinfo[elem.id].status = 'done';
-                        repcontent.statusinfo[elem.id].state = attObj.name;
-                        repcontent.statusinfo[elem.id].stateStr = attObj.id;
-                        repcontent.statusinfo[elem.id].remarks = userAttendance[j].remarks || '';
-                        repcontent.statusinfo[elem.id].iltTotalTime = elem.iltduration;
-                        repcontent.statusinfo[elem.id].iltTimeSpent = (attObj.timePerc/100)*elem.iltduration;
-                        stats.iltTimeSpent += (attObj.timePerc/100)*(elem.iltduration*60);
-                    }
-                }
-                if(!userAttendanceFound) {
+        return ret;
+    }
+
+    function _getRatingObj(ratingtype) {
+        var ratings = _userInfo.groupinfo.ratings || []
+        for(var i=0; i<ratings.length; i++) {
+            var item = ratings[i];
+            if(ratingtype == item.id) return item;
+        }
+        return {};
+    }
+
+    function _computeStringOnScore(ratingObj, score) {
+        if(Object.keys(ratingObj).length == 0) return score;
+        if(ratingObj.type == 'number') return score;
+        if(ratingObj.type == 'status' || ratingObj.type == 'select') {
+            for(var i=0; i<ratingObj.values.length; i++) {
+                var val = ratingObj.values[i];
+                if(val.p == score) return val.v;
+            }
+        }
+    }
+
+    function _setStatusOfRatingItem(selectedRating, ratingScore) {
+        if(ratingScore <= selectedRating.lowPassScore)
+            return 'failed';
+        else if(selectedRating.lowPassScore < ratingScore && ratingScore < selectedRating.passScore)
+            return 'partial_success';
+        else 
+            return 'completed';
+    }
+        
+    function _updateIltParameters(report, course, courseAssignment, repcontent, stats) {
+        var attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
+            attendance = nlCourse.migrateCourseAttendance(attendance);
+        var notAttended = attendance.not_attended || {};
+        for(var i=0; i<course.content.modules.length; i++) {
+            var elem = course.content.modules[i];
+            if(courseAssignment.info.modifiedILT && courseAssignment.info.modifiedILT[elem.id]) elem.iltduration = courseAssignment.info.modifiedILT[elem.id];
+            if(elem.type != 'iltsession') continue;
+            stats.iltTotalTime += elem.iltduration;
+            var userAttendance = attendance[report.id] || [];
+            var userAttendanceFound = false;
+            for(var j=0; j<userAttendance.length; j++) {
+                var attObj = _attendanceObj[userAttendance[j].attId] || {id: userAttendance[j].attId, name: userAttendance[j].attId, remarks: userAttendance[j].remarks, timePerc: 0};
+                if(userAttendance[j].id == elem.id && userAttendance[j].attId != '') {
+                    userAttendanceFound = true;
                     if(!repcontent.statusinfo) repcontent.statusinfo = {};
                     if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
-                    repcontent.statusinfo[elem.id].state = 'pending';
-                    repcontent.statusinfo[elem.id].stateStr = 'pending';
+                    repcontent.statusinfo[elem.id].status = 'done';
+                    repcontent.statusinfo[elem.id].state = attObj.name;
+                    repcontent.statusinfo[elem.id].stateStr = attObj.id;
+                    repcontent.statusinfo[elem.id].remarks = userAttendance[j].remarks || '';
                     repcontent.statusinfo[elem.id].iltTotalTime = elem.iltduration;
+                    repcontent.statusinfo[elem.id].iltTimeSpent = (attObj.timePerc/100)*elem.iltduration;
+                    stats.iltTimeSpent += (attObj.timePerc/100)*(elem.iltduration*60);
                 }
             }
-        }
-
-        function _isConditionMet(lastItem, repcontent) {
-            var prereqs = lastItem.start_after || [];
-            var lessonReports = repcontent.lessonReports || {};
-            var statusinfo = repcontent.statusinfo || {};
-            if(prereqs.length == 0) return true;
-            for(var i=0; i<prereqs.length; i++) {
-                var p = prereqs[i];
-                var cmid = p.module;
-                var prereqScore = null;
-                if (cmid in lessonReports && lessonReports[cmid].completed) {
-                    var lessonReport = lessonReports[cmid];
-                    var scores = _getScores(lessonReport, true);
-                    prereqScore = scores.maxScore > 0 ? Math.round((scores.score/scores.maxScore)*100) : 100;
-                } else if (cmid in statusinfo && statusinfo[cmid].status == 'done') {
-                    prereqScore = 100;
-                }
-                if (prereqScore === null) return false;
-                var limitMin = p.min_score || null;
-                var limitMax = p.max_score || null;
-                if (limitMin && prereqScore < limitMin) return false;
-                if (limitMax && prereqScore > limitMax) return false;
+            if(!userAttendanceFound) {
+                if(!repcontent.statusinfo) repcontent.statusinfo = {};
+                if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
+                repcontent.statusinfo[elem.id].status = 'pending';
+                repcontent.statusinfo[elem.id].state = 'Not marked';
+                repcontent.statusinfo[elem.id].stateStr = 'pending';
+                repcontent.statusinfo[elem.id].iltTotalTime = elem.iltduration;
             }
-            return true;
         }
+    }
 
-        function _getScores(lessonReport, defaultZero) {
-            var ret = {};
-            var sl = lessonReport.selfLearningMode;
-            if (defaultZero || 'maxScore' in lessonReport) ret.maxScore = parseInt(sl ? 0 : lessonReport.maxScore||0);
-            if (defaultZero || 'score' in lessonReport) ret.score = parseInt(sl ? 0 : lessonReport.score||0);
-            return ret;
+    function _isConditionMet(lastItem, repcontent) {
+        var prereqs = lastItem.start_after || [];
+        var lessonReports = repcontent.lessonReports || {};
+        var statusinfo = repcontent.statusinfo || {};
+        if(prereqs.length == 0) return true;
+        for(var i=0; i<prereqs.length; i++) {
+            var p = prereqs[i];
+            var cmid = p.module;
+            var prereqScore = null;
+            if (cmid in lessonReports && lessonReports[cmid].completed) {
+                var lessonReport = lessonReports[cmid];
+                var scores = _getScores(lessonReport, true);
+                prereqScore = scores.maxScore > 0 ? Math.round((scores.score/scores.maxScore)*100) : 100;
+            } else if (cmid in statusinfo && statusinfo[cmid].status == 'done') {
+                prereqScore = 100;
+            }
+            if (prereqScore === null) return false;
+            var limitMin = p.min_score || null;
+            var limitMax = p.max_score || null;
+            if (limitMin && prereqScore < limitMin) return false;
+            if (limitMax && prereqScore > limitMax) return false;
+        }
+        return true;
+    }
+
+    function _getScores(lessonReport, defaultZero) {
+        var ret = {};
+        var sl = lessonReport.selfLearningMode;
+        if (defaultZero || 'maxScore' in lessonReport) ret.maxScore = parseInt(sl ? 0 : lessonReport.maxScore||0);
+        if (defaultZero || 'score' in lessonReport) ret.score = parseInt(sl ? 0 : lessonReport.score||0);
+        return ret;
+    }
+    
+    function _getMaxScoredReport(rep, pastLessonReport) {
+        var maxScoredReport = angular.copy(rep);
+        var maxPerc = _getPerc(maxScoredReport);
+        var totalTimeSpent = 'timeSpentSeconds' in  rep ? rep['timeSpentSeconds'] : 0;
+        for(var i=pastLessonReport.length-1; i>=0; i--) {
+            var pastRep = pastLessonReport[i];
+            if (!pastRep.completed || !pastRep.reportId) {
+                rep['attempt'] = rep['attempt'] - 1;
+                continue; // For data created by old bug (see #956)
+            }
+            totalTimeSpent += pastRep['timeSpentSeconds'];
+            var pastPerc = _getPerc(pastRep);
+            if(pastPerc <= maxPerc) continue;
+            maxScoredReport = pastRep;
+            maxPerc = pastPerc;
+        }
+        maxScoredReport['timeSpentSeconds'] = totalTimeSpent;
+        maxScoredReport['attempt'] = rep['attempt'];
+        return maxScoredReport;    
+    }
+
+    function _getPerc(report) {
+        if (report.selfLearningMode) return 0.0;
+        if (!report.score || !report.maxScore) return 0.0;
+        return 100.0*report.score/report.maxScore;
+    }
+
+    function _processModuleReport(report) {
+        var repcontent = _updateCommonParams(report, 'module');
+        var user = _getStudentFromReport(report, repcontent);
+        if (!user) return null;
+        _nominatedUsers[user.id] = true;
+        report.showModuleProps = true;
+        report.studentname = user.name;
+        report._user_id = user.user_id;
+        report._email = user.email;
+        report._stateStr = user.state ? 'active': 'inactive';
+        report.org_unit = user.org_unit;
+        report.canReview = true;
+        var metadata = nlGroupInfo.getUserMetadata(user);
+        for(var j=0; j<metadata.length; j++)
+            report[metadata[j].id] = metadata[j].value|| '';
+
+        var module = {type: 'module', id: report.id, nonLessons: [], lessons:[repcontent], name: repcontent.name, contentmetadata: repcontent.contentmetadata || {}};
+
+        var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
+            timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
+            internalIdentifier:report.id, nCerts: 0, nLessonsDone: 0, done: 0};
+
+        if(!report.completed && (nlLrFilter.getType() == 'module_assign')) {
+            if(Object.keys(_reminderDict).length == 0) {
+                _reminderDict['name'] = repcontent.name;
+                _reminderDict['assigned_by'] = repcontent.assigned_by;
+                _reminderDict['ctype'] = report.ctype;
+                _reminderDict['users'] = [];
+            }
+            var currentDate = new Date();
+            var endtime = repcontent.not_after && !repcontent.submissionAfterEndtime ? nl.fmt.json2Date(repcontent.not_after) : '';
+            if(!endtime || currentDate <= endtime) {
+                var minimalUser = nlGroupInfo.getMinimalUserObj(user);
+                if (minimalUser) {
+                    minimalUser.repid = report.id;
+                    _reminderDict.users.push(minimalUser);
+                }
+            }
         }
         
-        function _getMaxScoredReport(rep, pastLessonReport) {
-            var maxScoredReport = angular.copy(rep);
-            var maxPerc = _getPerc(maxScoredReport);
-            var totalTimeSpent = 'timeSpentSeconds' in  rep ? rep['timeSpentSeconds'] : 0;
-            for(var i=pastLessonReport.length-1; i>=0; i--) {
-                var pastRep = pastLessonReport[i];
-                if (!pastRep.completed || !pastRep.reportId) {
-                    rep['attempt'] = rep['attempt'] - 1;
-                    continue; // For data created by old bug (see #956)
-                }
-                totalTimeSpent += pastRep['timeSpentSeconds'];
-                var pastPerc = _getPerc(pastRep);
-                if(pastPerc <= maxPerc) continue;
-                maxScoredReport = pastRep;
-                maxPerc = pastPerc;
-            }
-            maxScoredReport['timeSpentSeconds'] = totalTimeSpent;
-            maxScoredReport['attempt'] = rep['attempt'];
-            return maxScoredReport;    
-        }
-
-        function _getPerc(report) {
-            if (report.selfLearningMode) return 0.0;
-            if (!report.score || !report.maxScore) return 0.0;
-            return 100.0*report.score/report.maxScore;
-        }
-    
-        function _processModuleReport(report) {
-            var repcontent = _updateCommonParams(report, 'module');
-            var user = _getStudentFromReport(report, repcontent);
-            if (!user) return null;
-            _nominatedUsers[user.id] = true;
-            report.showModuleProps = true;
-            report.studentname = user.name;
-            report._user_id = user.user_id;
-            report._email = user.email;
-            report._stateStr = user.state ? 'active': 'inactive';
-            report.org_unit = user.org_unit;
-            report.canReview = true;
-            var metadata = nlGroupInfo.getUserMetadata(user);
-            for(var j=0; j<metadata.length; j++)
-                report[metadata[j].id] = metadata[j].value|| '';
-    
-            var module = {type: 'module', id: report.id, nonLessons: [], lessons:[repcontent], name: repcontent.name, contentmetadata: repcontent.contentmetadata || {}};
-    
-            var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
-                timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
-                internalIdentifier:report.id, nCerts: 0, nLessonsDone: 0, done: 0};
-    
-            if(!report.completed && (nlLrFilter.getType() == 'module_assign')) {
-                if(Object.keys(_reminderDict).length == 0) {
-                    _reminderDict['name'] = repcontent.name;
-                    _reminderDict['assigned_by'] = repcontent.assigned_by;
-                    _reminderDict['ctype'] = report.ctype;
-                    _reminderDict['users'] = [];
-                }
-                var currentDate = new Date();
-                var endtime = repcontent.not_after && !repcontent.submissionAfterEndtime ? nl.fmt.json2Date(repcontent.not_after) : '';
-                if(!endtime || currentDate <= endtime) {
-                    var minimalUser = nlGroupInfo.getMinimalUserObj(user);
-                    if (minimalUser) {
-                        minimalUser.repid = report.id;
-                        _reminderDict.users.push(minimalUser);
-                    }
-                }
-            }
             
-                
-            var lessons = module.lessons;
-            var lessonReps = repcontent || {};
-            stats.nLessons++;
-            var lid = lessons[0].id;
-            var rep = lessonReps;
-            stats.percCompleteStr = 'Pending';
-            if(repcontent.started) {
-                stats.timeSpentSeconds = repcontent.timeSpentSeconds || 0;
-                stats.percCompleteStr = 'Started';
-                stats.percCompleteDesc = repcontent.started ? 'Module started' :  'Module pending';
-                stats.nAttempts = 1;
-                stats.nLessonsAttempted = 1;
-                stats.nQuiz = 1;
-                stats.avgAttempts = 1;
-                stats.timeSpentStr = Math.ceil(stats.timeSpentSeconds/60);
-                stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
-                    : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
-            }
-            report.started = nl.fmt.json2Date(repcontent.started);
-            report.ended = nl.fmt.json2Date(repcontent.ended);
-    
-            report.name = repcontent.name || '';
-            report._treeId = nl.fmt2('{}.{}', report.org_unit, report.student);
-            report._assignTypeStr = _getAssignTypeStr(report.assigntype, repcontent);
-            report._courseName = (report.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingKindName : repcontent.courseName) || '';
-            report._courseId = (report.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingKindId : repcontent.courseId ) || '';
-            report._attempts = repcontent.started ? 1 : 0;
-            report.containerid = report.containerid || '';
-            report._grade = repcontent.grade || '';
-            report.subject = repcontent.subject || '';
-            report.assign_remarks = repcontent.assign_remarks || '';
-            var maxScore = repcontent.selfLearningMode ? 0 : parseInt(repcontent.maxScore || 0);
-            stats.nQuiz = maxScore ? 1 : 0;
+        var lessons = module.lessons;
+        var lessonReps = repcontent || {};
+        stats.nLessons++;
+        var lid = lessons[0].id;
+        var rep = lessonReps;
+        stats.percCompleteStr = 'Pending';
+        if(repcontent.started) {
+            stats.timeSpentSeconds = repcontent.timeSpentSeconds || 0;
+            stats.percCompleteStr = 'Started';
+            stats.percCompleteDesc = repcontent.started ? 'Module started' :  'Module pending';
+            stats.nAttempts = 1;
+            stats.nLessonsAttempted = 1;
+            stats.nQuiz = 1;
+            stats.avgAttempts = 1;
+            stats.timeSpentStr = Math.ceil(stats.timeSpentSeconds/60);
+            stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
+                : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
+        }
+        report.started = nl.fmt.json2Date(repcontent.started);
+        report.ended = nl.fmt.json2Date(repcontent.ended);
 
-            if (!report.completed) {
-                report._percStr = '';
-                report._statusStr = report.started ? 'started' : 'pending';
-                stats.status = nlLrHelper.statusInfos[_getModuleStatus(stats, repcontent, report)];
-            } else {
-                var score = repcontent.selfLearningMode ? 0 : parseInt(repcontent.score || 0);
-                if (score > maxScore) score = maxScore; // Some 3 year old bug where this happened - just for sake of old record!
-                var passScore = maxScore ? parseInt(repcontent.passScore || 0) : 0;
-                var perc = maxScore > 0 ? Math.round((score/maxScore)*100) : 100;
-                report._score = score > 0 ? score : '';
-                report._maxScore = maxScore > 0 ? maxScore : '';
-                report._passScore = passScore > 0 ? passScore : '';
-                report._passScoreStr = report._passScore ? '' + report._passScore + '%' : '';
-                report._perc = perc;
-                report._percStr = maxScore > 0 ? '' + perc + '%' : '';
-                report._timeMins = repcontent.timeSpentSeconds ? Math.ceil(repcontent.timeSpentSeconds/60) : '';
-                report._statusStr = (passScore == 0 || perc >= passScore) ? 'completed' : 'failed';
-                stats.nScore = score;
-                stats.nMaxScore = maxScore;
-                stats.percScore = stats.nMaxScore ? Math.round(stats.nScore/stats.nMaxScore*100) : 0;
-                stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '0%';
-                if (passScore == 0 || perc >= passScore) 
-                    stats.nLessonsPassed++;
-                else 
-                    stats.nLessonsFailed++;
-                stats.status = repcontent.selfLearningMode ? nlLrHelper.statusInfos[nlLrHelper.STATUS_DONE] : nlLrHelper.statusInfos[_getModuleStatus(stats, repcontent, report)];
-                stats.percCompleteStr = 'Completed';
-                stats.percCompleteDesc = 'Module completed';
-                repcontent.maxScore = maxScore;
-                repcontent.score = score;
-                report.urlTitle = nl.t('View report');
-                report.url = nl.fmt2('/lesson/review_report_assign/{}', report.id);
-                if(nlLrFilter.getType() == 'module_assign') {
-                    report.urlTitle1 = nl.t('Update');
-                    report.url1 = nl.fmt2('/lesson/update_report_assign/{}', report.id);
-                }
+        report.name = repcontent.name || '';
+        report._treeId = nl.fmt2('{}.{}', report.org_unit, report.student);
+        report._assignTypeStr = _getAssignTypeStr(report.assigntype, repcontent);
+        report._courseName = (report.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingKindName : repcontent.courseName) || '';
+        report._courseId = (report.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingKindId : repcontent.courseId ) || '';
+        report._attempts = repcontent.started ? 1 : 0;
+        report.containerid = report.containerid || '';
+        report._grade = repcontent.grade || '';
+        report.subject = repcontent.subject || '';
+        report.assign_remarks = repcontent.assign_remarks || '';
+        var maxScore = repcontent.selfLearningMode ? 0 : parseInt(repcontent.maxScore || 0);
+        stats.nQuiz = maxScore ? 1 : 0;
+
+        if (!report.completed) {
+            report._percStr = '';
+            report._statusStr = report.started ? 'started' : 'pending';
+            stats.status = nlLrHelper.statusInfos[_getModuleStatus(stats, repcontent, report)];
+        } else {
+            var score = repcontent.selfLearningMode ? 0 : parseInt(repcontent.score || 0);
+            if (score > maxScore) score = maxScore; // Some 3 year old bug where this happened - just for sake of old record!
+            var passScore = maxScore ? parseInt(repcontent.passScore || 0) : 0;
+            var perc = maxScore > 0 ? Math.round((score/maxScore)*100) : 100;
+            report._score = score > 0 ? score : '';
+            report._maxScore = maxScore > 0 ? maxScore : '';
+            report._passScore = passScore > 0 ? passScore : '';
+            report._passScoreStr = report._passScore ? '' + report._passScore + '%' : '';
+            report._perc = perc;
+            report._percStr = maxScore > 0 ? '' + perc + '%' : '';
+            report._timeMins = repcontent.timeSpentSeconds ? Math.ceil(repcontent.timeSpentSeconds/60) : '';
+            report._statusStr = (passScore == 0 || perc >= passScore) ? 'completed' : 'failed';
+            stats.nScore = score;
+            stats.nMaxScore = maxScore;
+            stats.percScore = stats.nMaxScore ? Math.round(stats.nScore/stats.nMaxScore*100) : 0;
+            stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '0%';
+            if (passScore == 0 || perc >= passScore) 
+                stats.nLessonsPassed++;
+            else 
+                stats.nLessonsFailed++;
+            stats.status = repcontent.selfLearningMode ? nlLrHelper.statusInfos[nlLrHelper.STATUS_DONE] : nlLrHelper.statusInfos[_getModuleStatus(stats, repcontent, report)];
+            stats.percCompleteStr = 'Completed';
+            stats.percCompleteDesc = 'Module completed';
+            repcontent.maxScore = maxScore;
+            repcontent.score = score;
+            report.urlTitle = nl.t('View report');
+            report.url = nl.fmt2('/lesson/review_report_assign/{}', report.id);
+            if(nlLrFilter.getType() == 'module_assign') {
+                report.urlTitle1 = nl.t('Update');
+                report.url1 = nl.fmt2('/lesson/update_report_assign/{}', report.id);
             }
-    
-            stats.nLessonsDone = stats.nLessonsPassed + stats.nLessonsFailed;
-            var ret = {raw_record: report, repcontent: repcontent, course: module, user: user,
-                usermd: nlLrHelper.getMetadataDict(user), stats: stats,
-                created: nl.fmt.fmtDateDelta(report.created, null, 'minute'), 
-                updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
-                not_before: report.not_before ? nl.fmt.fmtDateDelta(report.not_before, null, 'minute') : '',
-                not_after: report.not_after ? nl.fmt.fmtDateDelta(report.not_after, null, 'minute') : ''
-                };
-            return ret;
         }
+
+        stats.nLessonsDone = stats.nLessonsPassed + stats.nLessonsFailed;
+        var ret = {raw_record: report, repcontent: repcontent, course: module, user: user,
+            usermd: nlLrHelper.getMetadataDict(user), stats: stats,
+            created: nl.fmt.fmtDateDelta(report.created, null, 'minute'), 
+            updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
+            not_before: report.not_before ? nl.fmt.fmtDateDelta(report.not_before, null, 'minute') : '',
+            not_after: report.not_after ? nl.fmt.fmtDateDelta(report.not_after, null, 'minute') : ''
+            };
+        return ret;
+    }
+
+    function _updateCommonParams(report, ctypestr) {
+        var repcontent = angular.fromJson(report.content);
+        nlLrAssignmentRecords.overrideAssignmentParameterInReport(report, repcontent);
+        report.gradeLabel = _userInfo.groupinfo.gradelabel;
+        report.subjectLabel = _userInfo.groupinfo.subjectlabel;
+        report.updated = nl.fmt.json2Date(report.updated);
+        report.created = nl.fmt.json2Date(report.created);
+        report._batchName = repcontent.batchname || '';
+        report.assign_remarks = (report.ctype == _nl.ctypes.CTYPE_COURSE ? repcontent.remarks : repcontent.assign_remarks) || '';
+        report.not_before = repcontent.not_before || '';
+        report.not_after = repcontent.not_after || '';
+        return repcontent;
+    }
     
-        function _updateCommonParams(report, ctypestr) {
-            var repcontent = angular.fromJson(report.content);
-            nlLrAssignmentRecords.overrideAssignmentParameterInReport(report, repcontent);
-            report.gradeLabel = _userInfo.groupinfo.gradelabel;
-            report.subjectLabel = _userInfo.groupinfo.subjectlabel;
-            report.updated = nl.fmt.json2Date(report.updated);
-            report.created = nl.fmt.json2Date(report.created);
-            report._batchName = repcontent.batchname || '';
-            report.assign_remarks = (report.ctype == _nl.ctypes.CTYPE_COURSE ? repcontent.remarks : repcontent.assign_remarks) || '';
-            report.not_before = repcontent.not_before || '';
-            report.not_after = repcontent.not_after || '';
-            return repcontent;
-        }
-        
-        function _getAssignTypeStr(assigntype, content) {
-            if (assigntype == _nl.atypes.ATYPE_SELF_MODULE) return 'module self assignment';
-            if (assigntype == _nl.atypes.ATYPE_SELF_COURSE) return 'course self assignment';
-            if (assigntype == _nl.atypes.ATYPE_COURSE) return 'course assignment';
-            if (assigntype == _nl.atypes.ATYPE_TRAINING) return 'training';
-            return 'module assignment';
-        }
-    
-        function _getModuleStatus(stats, rep, report) {
-            var scorePerc = (rep.score/rep.maxScore)*100;
-            if (!rep.started) return nlLrHelper.STATUS_PENDING;
-            if (rep.started && !report.completed) return nlLrHelper.STATUS_STARTED;
-            if (rep.passScore && scorePerc < rep.passScore) return nlLrHelper.STATUS_FAILED;
-            if (report.completed) return nlLrHelper.STATUS_DONE;
-            return nlLrHelper.STATUS_PASSED;
-        }
-    
-        function _getStatusId(stats, started) {
-            if (stats.percComplete == 0 && !started) return nlLrHelper.STATUS_PENDING;
-            if (stats.percComplete < 100) return nlLrHelper.STATUS_STARTED;
-            if (stats.nLessonsFailed > 0) return nlLrHelper.STATUS_FAILED;
-            if (stats.nCerts > 0) return nlLrHelper.STATUS_CERTIFIED;
-            if (stats.nMaxScore == 0) return nlLrHelper.STATUS_DONE;
-            return nlLrHelper.STATUS_PASSED;
-        }
-    }];
-    
-    //-------------------------------------------------------------------------------------------------
-    module_init();
-    })();
+    function _getAssignTypeStr(assigntype, content) {
+        if (assigntype == _nl.atypes.ATYPE_SELF_MODULE) return 'module self assignment';
+        if (assigntype == _nl.atypes.ATYPE_SELF_COURSE) return 'course self assignment';
+        if (assigntype == _nl.atypes.ATYPE_COURSE) return 'course assignment';
+        if (assigntype == _nl.atypes.ATYPE_TRAINING) return 'training';
+        return 'module assignment';
+    }
+
+    function _getModuleStatus(stats, rep, report) {
+        var scorePerc = (rep.score/rep.maxScore)*100;
+        if (!rep.started) return nlLrHelper.STATUS_PENDING;
+        if (rep.started && !report.completed) return nlLrHelper.STATUS_STARTED;
+        if (rep.passScore && scorePerc < rep.passScore) return nlLrHelper.STATUS_FAILED;
+        if (report.completed) return nlLrHelper.STATUS_DONE;
+        return nlLrHelper.STATUS_PASSED;
+    }
+
+    function _getStatusId(stats, started) {
+        if (stats.percComplete == 0 && !started) return nlLrHelper.STATUS_PENDING;
+        if (stats.percComplete < 100) return nlLrHelper.STATUS_STARTED;
+        if (stats.nLessonsFailed > 0) return nlLrHelper.STATUS_FAILED;
+        if (stats.nCerts > 0) return nlLrHelper.STATUS_CERTIFIED;
+        if (stats.nMaxScore == 0) return nlLrHelper.STATUS_DONE;
+        return nlLrHelper.STATUS_PASSED;
+    }
+}];
+
+//-------------------------------------------------------------------------------------------------
+module_init();
+})();
     

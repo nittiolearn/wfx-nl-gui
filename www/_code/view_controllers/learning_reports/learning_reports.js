@@ -916,7 +916,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if(cm.type == 'milestone' && milestone[cm.id] && milestone[cm.id].status == "done") {
 				assignStatsViewerDlg.scope.selectedSession.milestoneReached = true;
 				assignStatsViewerDlg.scope.selectedSession.milestoneComment = milestone[cm.id].comment;
-			} 
+			} else {
+				assignStatsViewerDlg.scope.selectedSession.milestoneReached = false;
+				assignStatsViewerDlg.scope.selectedSession.milestoneComment = milestone[cm.id] ? milestone[cm.id].comment : '';
+			}
 			assignStatsViewerDlg.scope.selectedSession = cm;
 			_updateChartInfo(assignStatsViewerDlg.scope, learningRecords);
 		};
@@ -927,8 +930,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		assignStatsViewerDlg.scope.onClickOnMilestoneReached = function() {
 			var item = assignStatsViewerDlg.scope.selectedSession;
-			milestone[item.id] = {status: 'done', comment: assignStatsViewerDlg.scope.selectedSession.milestoneComment};
-			var template = nl.t('Once the milestone is marked as reached, It cannot be reverted(unmarked).');
+			milestone[item.id] = {status: assignStatsViewerDlg.scope.selectedSession.milestoneReached ? 'done' : 'pending', comment: assignStatsViewerDlg.scope.selectedSession.milestoneComment};
+			var template = nl.t('Are you sure you want to make the changes.');
 			nlDlg.popupConfirm({title: 'Please confirm', template: template}).then(function(result) {
 				if(result) {
 					var data = {param:'milestone', paramObject: milestone, assignid: nlLrFilter.getObjectId()};
