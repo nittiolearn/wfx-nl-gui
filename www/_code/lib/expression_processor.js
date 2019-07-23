@@ -33,7 +33,7 @@ function(nl) {
     // Test code
     this.test = function() {
         var dictAvps = {};
-        for(var i=0; i<100; i++) dictAvps[nl.fmt2('id{}', i)] = i;
+        for(var i=0; i<100; i++) dictAvps[nl.fmt2('id{}', i)] = i > 50 ? null : i;
         var testcases = [
             // Error Test Cases
             [null, '$val1[1]'],
@@ -42,6 +42,7 @@ function(nl) {
 
             // Success Testcases
             [6, '$val[{id6}]'],
+            [2, '$cnt[{id6}, {id12}]'],
             [false, 'not $val[{id6}]'],
             [17, '$max[{id3}, {id4}, {id5}, {id17}, {id3}]'],
             [3, '$min[{id3}, {id4}, {id5}, {id17}, {id3}]'],
@@ -50,6 +51,9 @@ function(nl) {
             [4.5, '$avg_top[2, {id3}, {id4}, {id5}]'],
             [10.5, '$avg_top[2, {id3}, {id4}, {id5}] + $val[{id6}]'],
             [false, '($max[{id1},{id2}] <= $avg_top[2, {id3}, {id4}, {id5}] or $val[{id6}]) and ($min[{id7}, {id8}] + $max[{id9}, {id10}] < $avg[{id11}, {id12}, {id13}, {id14}])'],
+
+            [false, '$max[{id51},{id52}] < $avg_top[2, {id53}, {id54}, {id55}] or $val[{id56}] or ($cnt[{id56}, {id57}] + $sum[{id56}, {id57}] < 0)'],
+            [9.5, '$max[{id51},{id2},{id53},{id4}] + $avg_top[3, {id53}, {id54}, {id55}, {id5}, {id6}]'],
         ];
     
         var ret = {succ: 0, payloads: []};
@@ -133,42 +137,54 @@ function(nl) {
         '$min(': '_ExpressionProcessor_min(',
         '$max(': '_ExpressionProcessor_max(',
         '$sum(': '_ExpressionProcessor_sum(',
+        '$cnt(': '_ExpressionProcessor_cnt(',
         '$avg(': '_ExpressionProcessor_avg(',
         '$avg_top(': '_ExpressionProcessor_avg_top(',
     };
 
     function _ExpressionProcessor_val(inputArgs) {
         if (inputArgs.length != 1) throw(nl.fmt2('$val function takes 1 argument, {} given.', inputArgs.length));
-        return inputArgs[0];
+        return inputArgs[0] !== null ? inputArgs[0] : 0;
     }
 
     function _ExpressionProcessor_min(inputArgs) {
         _ExpressionProcessor_check(inputArgs, 'min');
-        var ret = inputArgs[0];
+        var ret = inputArgs[0] || 0;
         for (var i=0; i<inputArgs.length; i++)
-            if (inputArgs[i] < ret) ret = inputArgs[i];
+            if (inputArgs[i] !== null && inputArgs[i] < ret) ret = inputArgs[i];
         return ret;
     }
 
     function _ExpressionProcessor_max(inputArgs) {
         _ExpressionProcessor_check(inputArgs, 'max');
-        var ret = inputArgs[0];
+        var ret = inputArgs[0] || 0;
         for (var i=0; i<inputArgs.length; i++)
-            if (inputArgs[i] > ret) ret = inputArgs[i];
+            if (inputArgs[i] !== null && inputArgs[i] > ret) ret = inputArgs[i];
         return ret;
     }
 
-    function _ExpressionProcessor_sum(inputArgs) {
-        _ExpressionProcessor_check(inputArgs, 'sum');
+    function _ExpressionProcessor_sum(inputArgs, dontCheck) {
+        if (!dontCheck) _ExpressionProcessor_check(inputArgs, 'sum');
         var ret = 0;
         for (var i=0; i<inputArgs.length; i++)
-            ret += inputArgs[i];
+            if (inputArgs[i] !== null) ret += inputArgs[i];
         return ret;
     }
 
-    function _ExpressionProcessor_avg(inputArgs) {
-        var ret =  _ExpressionProcessor_sum(inputArgs);
-        ret = (1.0 * ret) / inputArgs.length;
+    function _ExpressionProcessor_cnt(inputArgs, dontCheck) {
+        if (!dontCheck) _ExpressionProcessor_check(inputArgs, 'cnt');
+        var ret = 0;
+        for (var i=0; i<inputArgs.length; i++)
+            if (inputArgs[i] !== null) ret += 1;
+        return ret;
+    }
+
+    function _ExpressionProcessor_avg(inputArgs, dontCheck) {
+        if (!dontCheck) _ExpressionProcessor_check(inputArgs, 'avg');
+        var cnt =  _ExpressionProcessor_cnt(inputArgs, true);
+        if (cnt == 0) return 0;
+        var sum =  _ExpressionProcessor_sum(inputArgs, true);
+        var ret = (1.0 * sum) / cnt;
         return ret;
     }
 
@@ -180,13 +196,13 @@ function(nl) {
 
         inputArgs.splice(0, 1);
         inputArgs.sort(function(a, b) {
-            return b - a;
+            return (b === null ? -1 : b) - (a == null ? -1 : a);
         });
         var newArray = [];
         for(var i=0; i<nElems; i++) {
             newArray.push(inputArgs[i]);
         }
-        return _ExpressionProcessor_avg(newArray);
+        return _ExpressionProcessor_avg(newArray, true);
     }
 
     function _ExpressionProcessor_check(inputArgs, fn) {

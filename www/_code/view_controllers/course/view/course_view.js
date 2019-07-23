@@ -221,7 +221,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
             var item = nlTreeListSrv.getItem(cmid);
             if (!item) continue; // ignore
             if (item.state.status == 'waiting') return false;
-            if (item.type == 'certificate' || item.type == 'milestone') {
+            if (item.type == 'certificate' || item.type == 'milestone' || item.type == 'gate') {
             	if (!(item.state.status == 'success' || item.state.status == 'failed')) return false;
                 if(dependencyType == 'atleastone') break;
             	continue;
@@ -373,9 +373,9 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
 //-------------------------------------------------------------------------------------------------
 var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg',
 'nlCourseEditor', 'nlCourseCanvas', 'nlServerApi', 'nlGroupInfo', 'nlSendAssignmentSrv',
-'nlMarkup', 'nlTreeListSrv', 'nlTopbarSrv',
+'nlMarkup', 'nlTreeListSrv', 'nlTopbarSrv', 'nlExpressionProcessor',
 function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlCourseCanvas, 
-    nlServerApi, nlGroupInfo, nlSendAssignmentSrv, nlMarkup, nlTreeListSrv, nlTopbarSrv) {
+    nlServerApi, nlGroupInfo, nlSendAssignmentSrv, nlMarkup, nlTreeListSrv, nlTopbarSrv, nlExpressionProcessor) {
     var modeHandler = new ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope);
     var nlContainer = new NlContainer(nl, $scope, modeHandler);
     nlContainer.setContainerInWindow();
@@ -986,7 +986,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         } else if (cm.type === 'milestone') {
 			_updateMilestoneData(cm, today);
         } else if (cm.type === 'rating') {
-			_updateRatingData(cm, today);
+            _updateRatingData(cm, today);
+        } else if (cm.type === 'gate') {
+            _updateGateData(cm, today);        
         } else {
             _updateLessonData(cm, today);
         }
@@ -1042,6 +1044,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
                 if(cm.id != attend.id) continue;
                 cm.remarks = attend.remarks;
                 var attend = (attend.attId in _attendanceObj) ? _attendanceObj[attend.attId] : {};
+                cm.iltPerc = attend.timePerc;
                 if(attend.id) {
                     if(attend.timePerc == 100) 
                         status = 'success';
@@ -1058,6 +1061,18 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         _updateState(cm, status);
     }
  
+    function _updateGateData(cm, today) {
+        var status = 'pending';
+        var _course = {content: {modules: $scope.modules}};
+		var payload = {strExpression: cm.gateFormula, dictAvps: nlCourse.getAvpsForGate(cm, _course)};
+        nlExpressionProcessor.process(payload)
+        if((payload.result !== 0) && payload.result > cm.gatePassscore) status = 'success';
+        if((payload.result !== 0) && payload.result < cm.gatePassscore) status = 'failed';
+        cm.gateScore = payload.result;
+        if (!modeHandler.canStart(cm, $scope, nlTreeListSrv)) status = 'waiting';
+        _updateState(cm, status);
+    }
+
     function _updateRatingData(cm, today) {
         var status = 'pending';
         var rating = 'rating' in modeHandler.course.content ? modeHandler.course.content.rating || {} : {}; 
@@ -1110,6 +1125,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         if((cm.id in milestone) && milestone[cm.id].status == 'done') {
             status = 'success';
         }
+        cm.remarks = (cm.id in milestone) ? milestone[cm.id].comment : '';
         if (!(status == 'success') && !modeHandler.canStart(cm, $scope, nlTreeListSrv)) status = 'waiting';
         _updateState(cm, status);
     }
@@ -1265,7 +1281,7 @@ function FolderStats($scope, modeHandler) {
 				folderStat.completedCert += 1;			
 			}
 		}
-        if (cm.score !== null && cm.type != 'iltsession' && cm.type != 'milestone' && cm.type != 'rating') {
+        if (cm.score !== null && cm.type != 'iltsession' && cm.type != 'milestone' && cm.type != 'rating' && cm.type != 'gate') {
             folderStat.scoreCount += 1;
             folderStat.score += cm.score;
             folderStat.maxScore += (cm.maxScore || 0);
@@ -1344,7 +1360,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
         if (this.isStaticMode()) return false;
         if (this.item.hide_remarks) return false;
         return (this.item.type == 'link' || this.item.type == 'info' || this.item.type == 'certificate' 
-                || this.item.type == 'iltsession' || this.item.type == 'rating');
+                || this.item.type == 'iltsession' || this.item.type == 'rating' || this.item.type == 'milestone');
     };
     
     this.canUpdateStatus = function() {

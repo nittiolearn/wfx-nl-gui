@@ -702,6 +702,19 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         ctx.courseDetailsRow.push(nlExporter.getCsvRow(_hCourseDetailsRow, defaultRowObj));
 	}
 
+	function _updateCsvGateRows1(report, gate, defaultRowObj) {
+        defaultRowObj._assignTypeStr = 'Rating inside course';
+        defaultRowObj._itemname = rating.name;
+        var statsinfo = report.repcontent.statusinfo ? report.repcontent.statusinfo[rating.id] : null;
+        if(statsinfo) {
+            defaultRowObj._status = statsinfo.rating === 0 ? "0" : statsinfo.rating;
+            defaultRowObj._score = statsinfo.ratingScore === 0 ? "0" : statsinfo.ratingScore;
+            defaultRowObj._passScoreStr = statsinfo.passScore || '';
+            defaultRowObj.remarks = statsinfo.remarks || '';
+        }
+        ctx.courseDetailsRow.push(nlExporter.getCsvRow(_hCourseDetailsRow, defaultRowObj));
+	}
+
 	function _checkFilter(filterItems, userField) {
 		return Object.keys(filterItems).length == 0 || (userField in filterItems);
     }
