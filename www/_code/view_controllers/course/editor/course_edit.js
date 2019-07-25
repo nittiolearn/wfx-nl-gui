@@ -131,7 +131,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			attr.values.push('milestone');
 		if (cm.type == 'rating' || (_groupInfo && _groupInfo.props.features['etm'] && _groupInfo.props.ratings)) 
 			attr.values.push('rating');
-		if (cm.type == 'gate' || (_groupInfo && _groupInfo.props.features['etm'] && _groupInfo.props.ratings)) 
+		if (cm.type == 'gate' || (_groupInfo && _groupInfo.props.features['etm'])) 
 			attr.values.push('gate');
 		return;
 	}
@@ -341,7 +341,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'urlParams', stored_at: 'module', fields: ['link'], type: 'string', text: 'Url-Params'},
         {name: 'certificate_image', stored_at: 'module', fields: ['certificate'], type: 'string', text: 'Certificate image'},
         {name: 'trainer_notes', stored_at: 'module', fields: ['iltsession'], type: 'object_with_gui', contentType: 'object', text: 'Trainer notes'},
-        {name: 'gateFormula', stored_at: 'module', fields: ['gate'], text: 'Condition',type: 'text'},
+        {name: 'gateFormula', stored_at: 'module', fields: ['gate'], text: 'Formula',type: 'text'},
         {name: 'gatePassscore', stored_at: 'module', fields: ['gate'], text: 'Gate pass score',type: 'number', min:0, max:100},
         {name: 'start_after', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
         {name: 'canMarkAttendance', stored_at: 'module', text: 'Learner can mark attendance', type:'hidden', fields: ['iltsession']},
@@ -416,17 +416,19 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	}
 	
 	function _getGateFormulaHelp() {
-		return('<p>Insert formula to compute the gate status. Syntax for writing formulae is given below:</p>' +
-				'<ul><li><b>$val[{_id2}]</b> In this case gate score is considered as score obtained by item with Unique id "_id1".</li>' + 
-				'<li><b>$cnt[{_id1}, {_id2}]</b>In this case the gate value is number of items completed out of given Unique ids. </li>' +
-				'<li><b>$max[{_id1}, {_id2}, {_id3}]</b>In this case gate score is considered as max score obtained among the item with Unique id "_id1", "_id2" and "_id3". </li>' +
-				'<li><b>$min[{_id1}, {_id2}, {_id3}]</b>In this case gate score is considered as min score obtained among the item with Unique id "_id1", "_id2" and "_id3". </li>' +
-				'<li><b>$sum[{_id1}, {_id2}, {_id3}]</b>In this case gate score is considered as sum of score obtained by item with Unique id "_id1", "_id2" and "_id3". </li>' +
-				'<li><b>$avg[{_id1}, {_id2}, {_id3}]</b>In this case gate score is considered as average of score obtained by item with Unique id "_id1", "_id2" and "_id3". </li>' +
-				'<li><b>$avg_top[2, {_id1}, {_id2}, {_id3}]</b>In this case gate score is considered as average of highest top two score obtained by item with Unique id "_id1", "_id2" and "_id3". </li>' +
-				'<li><b>$avg_top[2, {_id1}, {_id2}, {_id3}] + $val[{id6}]</b>In this case gate score is considered as sum of average of highest top two score obtained by item with Unique id "_id1", "_id2" and "_id3" and score of item with Unique id "_id6".</li></ul>' +
-				'<p>The formulae can also be a condition check which will return the boolean. Syntax for writing the condition is as follow:</p>'+
-				'<ul><li><b>not $val[{_id2}]</b></li>In this case if the score for item with Unique id "_id2" is null, boolean is</ul>');
+		return('<p>Insert formula to compute the gate value. The formula could be resulting in number (e.g. average rating) or a ' +
+				'true/false condition (e.g. average rating greater than 75). Syntax for writing formula is given below:</p>' +
+				'<ul>' + 
+				'<li><b>$cnt{_id1, _id2}</b>In this case the gate value is number of items completed out of given Unique ids. </li>' +
+				'<li><b>$max{_id1, _id2, _id3}</b>In this case gate score is considered as max score obtained among the item with given Unique ids. </li>' +
+				'<li><b>$min{_id1, _id2, _id3}</b>In this case gate score is considered as min score obtained among the item with given Unique ids. </li>' +
+				'<li><b>$sum{_id1, _id2, _id3}</b>In this case gate score is considered as sum of score obtained by item with given Unique ids. </li>' +
+				'<li><b>$avg{_id1, _id2, _id3}</b>In this case gate score is considered as average of score obtained by item with given Unique ids. </li>' +
+				'<li><b>$avg_top{2, _id1, _id2, _id3}</b>In this case gate score is considered as average of highest top two score obtained by item with given Unique ids. </li>' +
+				'<li><b>$avg_top{2, _id1, _id2, _id3} + _id6 </b>In this case gate score is considered as sum of average of highest top two score obtained by item with Unique id "_id1", "_id2", "_id3" and score of item with Unique id "_id6".</li></ul>' +
+				'<div class="padding-mid"></div>'+
+				'<p>The formula can also be a condition check which will return the boolean value. Syntax for writing the condition is as follow:</p>'+
+				'<ul><li><b>not ($max{_id1,_id2} <= $avg_top{2, _id3, _id4, _id5} or _id6) and ($min{_id7, _id8} + $max{_id9, _id10} < $avg{_id11, _id12, _id13, _id14})</b></li>In this case it is a complicated formula.</ul>');
 	}
 
 	function _updateHelps(attrs, attrHelp, level) {
@@ -837,12 +839,12 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 
 	function _validateGateModule(errorLocation, module) {
 		if(module.type != 'gate') return true;
-		if(!module.gateFormula) return _validateFail(errorLocation, 'Condition', 'Gate condition is mandatory.', module);
+		if(!module.gateFormula) return _validateFail(errorLocation, 'Formula', 'Gate condition is mandatory.', module);
 		var payload = {strExpression: module.gateFormula, dictAvps: nlCourse.getAvpsForGate(module, modeHandler.course)};
 		nlExpressionProcessor.process(payload)
 		//payload.result will the value;
-		if(payload.error) return _validateFail(errorLocation, 'Condition', payload.error, module);
-		if(!module.gatePassscore) return _validateFail(errorLocation, 'Condition', 'Gate pass score is mandatory.', module);
+		if(payload.error) return _validateFail(errorLocation, 'Formula', payload.error, module);
+		if(!module.gatePassscore) return _validateFail(errorLocation, 'Formula', 'Gate pass score is mandatory.', module);
     	return true;
 	}
 

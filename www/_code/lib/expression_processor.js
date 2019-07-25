@@ -33,29 +33,30 @@ function(nl) {
     // Test code
     this.test = function() {
         var dictAvps = {};
-        for(var i=0; i<100; i++) dictAvps[nl.fmt2('id{}', i)] = i > 50 ? null : i;
+        for(var i=0; i<100; i++) dictAvps[nl.fmt2('_id{}', i)] = i > 50 ? null : i;
         var testcases = [
             // Error Test Cases
-            [null, '$val1[1]'],
-            [null, '$val1[{xyz}]'],
+            [null, '$max1{1}'],
+            [null, '$max{_id400}'],
             [null, 'Munni+34'],
 
             // Success Testcases
-            [6, '$val[{id6}]'],
-            [2, '$cnt[{id6}, {id12}]'],
-            [false, 'not $val[{id6}]'],
-            [17, '$max[{id3}, {id4}, {id5}, {id17}, {id3}]'],
-            [3, '$min[{id3}, {id4}, {id5}, {id17}, {id3}]'],
-            [32, '$sum[{id3}, {id4}, {id5}, {id17}, {id3}]'],
-            [6.4, '$avg[{id3}, {id4}, {id5}, {id17}, {id3}]'],
-            [4.5, '$avg_top[2, {id3}, {id4}, {id5}]'],
-            [10.5, '$avg_top[2, {id3}, {id4}, {id5}] + $val[{id6}]'],
-            [false, '($max[{id1},{id2}] <= $avg_top[2, {id3}, {id4}, {id5}] or $val[{id6}]) and ($min[{id7}, {id8}] + $max[{id9}, {id10}] < $avg[{id11}, {id12}, {id13}, {id14}])'],
+            [6, '_id6'],
+            [19, '_id6+_id6+_id7'],
+            [2, '$cnt{_id6, _id12}'],
+            [false, 'not $max{_id6, _id7}'],
+            [17, '$max{_id3, _id4, _id5,_id17,_id3}'],
+            [3, '$min{_id3, _id4, _id5,_id17,_id3}'],
+            [32, '$sum{_id3, _id4, _id5,_id17,_id3}'],
+            [6.4, '$avg{_id3, _id4, _id5,_id17,_id3}'],
+            [11.5, '$avg_top{2, _id3, _id4, _id6,_id17,_id3}'],
+            [10.5, '$avg_top{2,_id3, _id4, _id5} + _id6'],
+            [false, '($max{_id1,_id2} <= $avg_top{2, _id3, _id4, _id5} or _id6) and ($min{_id7, _id8} + $max{_id9, _id10} < $avg{_id11, _id12, _id13, _id14})'],
 
-            [false, '$max[{id51},{id52}] < $avg_top[2, {id53}, {id54}, {id55}] or $val[{id56}] or ($cnt[{id56}, {id57}] + $sum[{id56}, {id57}] < 0)'],
-            [9.5, '$max[{id51},{id2},{id53},{id4}] + $avg_top[3, {id53}, {id54}, {id55}, {id5}, {id6}]'],
+            [false, '$max{_id51,_id52} < $avg_top{2, _id53, _id54, _id55} or _id56 or ($cnt{_id56, _id57} + $sum{_id56, _id57} < 0)'],
+            [9.5, '$max{_id51,_id2,_id53,_id4} + $avg_top{3, _id53, _id54, _id55, _id5, _id6}'],
         ];
-    
+
         var ret = {succ: 0, payloads: []};
         for(var i=0; i<testcases.length; i++) {
             var tc = testcases[i];
@@ -89,15 +90,10 @@ function(nl) {
         payload['error'] = '';
         payload['result'] = null;
         
-        payload['bracesReplaced1'] = _replaceAll(payload['strExpression'], '[', '([');
-        payload['bracesReplaced2'] = _replaceAll(payload['bracesReplaced1'], ']', '])');
-        payload['varsReplaced'] = nl.fmt.fmt1(payload['bracesReplaced2'], payload['dictAvps']);
-        var pos = payload['varsReplaced'].indexOf('{');
-        if (pos >= 0) {
-            var endPos = payload['varsReplaced'].indexOf('}', pos);
-            payload['error'] = nl.fmt2('Unknown item id used: {}', payload['varsReplaced'].substring(pos+1, endPos));
-            return false;
-        }
+        payload['bracesReplaced1'] = _replaceAll(payload['strExpression'], '{', '([');
+        payload['bracesReplaced2'] = _replaceAll(payload['bracesReplaced1'], '}', '])');
+        payload['varsReplaced'] = _replaceVars(payload['bracesReplaced2'], payload);
+        if (payload['error'] != '') return false;
 
         payload['funcsReplaced'] = payload['varsReplaced'];
         for (var f in self._functions) {
@@ -119,6 +115,14 @@ function(nl) {
         return true;
     }
 
+    function _replaceVars(inputStr, payload) {
+        return inputStr.replace(/_id[0-9]+/g, function(varName) {
+            if (varName in payload['dictAvps']) return payload['dictAvps'][varName];
+            if (payload['error'] == '') payload['error'] = nl.fmt2('{} is not found. Please use unique ids of items above the current item.', varName);
+            return varName;
+        });
+    }
+
     function _replaceAll(inputStr, searchFor, replaceWith) {
         var arr = inputStr.split(searchFor);
         return arr.join(replaceWith);
@@ -133,7 +137,6 @@ function(nl) {
     }
 
     self._functions = { 
-        '$val(': '_ExpressionProcessor_val(',
         '$min(': '_ExpressionProcessor_min(',
         '$max(': '_ExpressionProcessor_max(',
         '$sum(': '_ExpressionProcessor_sum(',
@@ -141,11 +144,6 @@ function(nl) {
         '$avg(': '_ExpressionProcessor_avg(',
         '$avg_top(': '_ExpressionProcessor_avg_top(',
     };
-
-    function _ExpressionProcessor_val(inputArgs) {
-        if (inputArgs.length != 1) throw(nl.fmt2('$val function takes 1 argument, {} given.', inputArgs.length));
-        return inputArgs[0] !== null ? inputArgs[0] : 0;
-    }
 
     function _ExpressionProcessor_min(inputArgs) {
         _ExpressionProcessor_check(inputArgs, 'min');
