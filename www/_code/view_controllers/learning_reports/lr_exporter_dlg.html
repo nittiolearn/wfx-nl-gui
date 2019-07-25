@@ -15,20 +15,15 @@
             <i ng-hide='export.user' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
             <span>download course reports</span>
         </div>
-        <div ng-show='canExportSessions()' class='padding-mid nl-link-text' 
-             ng-click='export.session = !export.session'>
-            <i ng-show='export.session' class="fsh4 icon ion-android-checkbox-outline"></i>
-            <i ng-hide='export.session' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>download session reports</span>
-        </div>
-        <div ng-show='canExportRatings()' class='padding-mid nl-link-text' 
-             ng-click='export.ratings = !export.ratings'>
-            <i ng-show='export.ratings' class="fsh4 icon ion-android-checkbox-outline"></i>
-            <i ng-hide='export.ratings' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>download rating reports</span>
+        <div ng-show='reptype == "course_assign" || reptype == "course"' 
+             ng-click='export.courseDetails = !export.courseDetails'  class='padding-mid nl-link-text'>
+            <i ng-show='export.courseDetails' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='export.courseDetails' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>download course details</span>
         </div>
         <div class='padding-mid nl-link-text' 
-             ng-click='export.module = !export.module || reptype == "module_assign"'>
+             ng-show='reptype == "module_assign" || reptype == "module"'
+             ng-click='export.module = !export.module'>
             <i ng-show='export.module' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.module' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
             <span>download module reports</span>

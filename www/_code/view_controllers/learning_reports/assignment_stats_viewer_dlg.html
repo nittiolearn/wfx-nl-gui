@@ -51,10 +51,10 @@
 	</div>
 	<div class='col' style='overflow-x: hidden'>
 		<div class='row row-top row-wrap padding0 margin0'>
-			<div ng-class='{{(selectedSession.type == "module" || selectedSession.type == "certificate" || selectedSession.type == "milestone") ? "resp2Col80" : "resp2Col67"}}' 
-				style='min-width:{{screenSize != "large" ? "100": (selectedSession.type == "module" || selectedSession.type == "certificate" || selectedSession.type == "milestone") ? "100": ""}}%'>
+			<div ng-class='{{(selectedSession.type == "module" || selectedSession.type == "certificate") ? "resp2Col80" : "resp2Col67"}}' 
+				style='min-width:{{screenSize != "large" ? "100": (selectedSession.type == "module" || selectedSession.type == "certificate") ? "100": ""}}%'>
 				<div class="row row-top row-wrap padding-mid">
-					<div ng-class='{{selectedSession.type == "milestone" ? "respCol211" : ""}}' class='col padding-mid margin0'>
+					<div class='col padding-mid margin0'>
 						<div class='row row-center padding0 margin0'>
 							<div class='col  fsh3'>{{selectedSession.name}}</div>
 							<div ng-if='selectedSession.type == "lesson"' class="nl-link-text nl-button-highlight" style='padding-top: 0px'>
@@ -64,36 +64,6 @@
 									<span class="col text-center" style='font-size:16px'>View</span>
 								</a>
 							</div>
-						</div>
-					</div>
-					<div  ng-show='selectedSession.type == "milestone"'
-						ng-class='{{selectedSession.type == "milestone" ? "respCol211" : ""}}' class='padding-mid'>
-						<div class='row row-top padding-mid margin0'>
-							<div class='col fsh6'>Remarks</div>
-							<div ng-class='resp2Col80'>
-								<textarea placeholder='Provide comment for this milestone' ng-model='selectedSession.milestoneComment' rows='3'></textarea>
-							</div>
-						</div>
-						<div class='row row-center padding-mid margin0'>
-							<div class='col fsh6'> Milestone </div>
-							<div ng-class='resp2Col80'>
-								<span ng-click='selectedSession.milestoneReached = !selectedSession.milestoneReached' class='nl-link-text'>
-									<i ng-show='selectedSession.milestoneReached' class="icon ion-android-checkbox-outline black"></i>
-									<i ng-hide='selectedSession.milestoneReached' class="icon ion-android-checkbox-outline-blank black"></i>
-									<span ng-show='selectedSession.milestoneReached'>Unmark milestone</span>
-									<span ng-hide='selectedSession.milestoneReached'>Mark milestone</span>
-								</span>
-							</div>
-						</div>
-						<div class='row row-center margin0' style='padding-top: 8px'>
-							<div class='col'></div>
-							<div class="nl-link-text nl-button-highlight" style='padding-top: 0px'
-								ng-click='onClickOnMilestoneReached()'>
-								<span class="col text-center" 
-									style='font-size:16px'
-									title='Click here to update milestone'>Update milestone
-								</span>
-							</div>					
 						</div>
 					</div>
 				</div>

@@ -1,0 +1,37 @@
+<nl-dlg dlgTitle='Mark milestone' show-help='0'>
+<nl-dlg-content>
+
+<div class='row row-top padding0 margin0'>
+	<div class='col' style='padding-right:0px; max-width: 250px'>
+		<div class='padding-mid fsh4'>Milestone</div>
+		<div ng-repeat='milestone in milestones'
+			class='nl-link-text {{milestone.id == selectedItem.id ? "nl-left-tab-selected" : "nl-left-tab"}} padding-small'>
+			<div class='padding-mid' 
+				ng-click='onClick(milestone)'
+				style='position:relative'>
+				{{milestone.name}}
+			</div>
+		</div>
+	</div>
+	<div class='col nl-left-tabbed-content'>
+		<div class='row row-center padding-0 margin0'>
+			<div class='col padding-mid fsh4'>Update status for {{selectedItem.name}}</div>
+		</div>
+		<div class='row row-top padding-mid margin0 row-wrap'>
+            <div class='col'>
+                <textarea placeholder='Provide your remarks for this milestone' ng-model='selectedItem.milestoneObj.comment' rows='3'></textarea>
+            </div>
+        </div>
+		<div class='row row-top padding-mid margin0 row-wrap'>
+            <div class='col'>
+                <span ng-click='selectedItem.milestoneObj.status = !selectedItem.milestoneObj.status' class='nl-link-text'>
+                    <i ng-show='selectedItem.milestoneObj.status' class="icon ion-android-checkbox-outline black"></i>
+                    <i ng-hide='selectedItem.milestoneObj.status' class="icon ion-android-checkbox-outline-blank black"></i>
+                    <span>Check this to mark milestone as completed</span>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+</nl-dlg-content>
+</nl-dlg>

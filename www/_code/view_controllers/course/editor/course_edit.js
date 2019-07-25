@@ -401,7 +401,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         iltduration: 'The planned duration of the instructor led session in minutes.',
         completionPerc: 'You could let the trainer assess the progress of the course by setting completion percentage for milestone items. If milestone items are present, the completion for a course report is based on the latest milestone reached.',
 		canMarkAttendance: 'Set this to allow learner to mark attendance.',
-		gateFormula: 'Provide formula to compute the status of this gate item.',
+		gateFormula: _getGateFormulaHelp(),
 		gatePassscore: 'Provide the pass score to mark status of item for learner.'
     };
     
@@ -413,8 +413,23 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     		   '<li>Use <b>audio:</b> to add an audio. (example: audio:audioUrl)</li>' +
     		   '<li>Use <b>H1, H2, H3, H4, H5, H6</b> attributes to mark a header line. (example: H1 Hello world!)</li>' +
     		   '<li>Use <b>- and #</b> to have bulleted list or numbered list respectively (example: - Hello world!)</li></ul>');
-    }
-    function _updateHelps(attrs, attrHelp, level) {
+	}
+	
+	function _getGateFormulaHelp() {
+		return('<p>Insert formula to compute the gate status. Syntax for writing formulae is given below:</p>' +
+				'<ul><li><b>$val[{_id2}]</b> In this case gate score is considered as score obtained by item with Unique id "_id1".</li>' + 
+				'<li><b>$cnt[{_id1}, {_id2}]</b>In this case the gate value is number of items completed out of given Unique ids. </li>' +
+				'<li><b>$max[{_id1}, {_id2}, {_id3}]</b>In this case gate score is considered as max score obtained among the item with Unique id "_id1", "_id2" and "_id3". </li>' +
+				'<li><b>$min[{_id1}, {_id2}, {_id3}]</b>In this case gate score is considered as min score obtained among the item with Unique id "_id1", "_id2" and "_id3". </li>' +
+				'<li><b>$sum[{_id1}, {_id2}, {_id3}]</b>In this case gate score is considered as sum of score obtained by item with Unique id "_id1", "_id2" and "_id3". </li>' +
+				'<li><b>$avg[{_id1}, {_id2}, {_id3}]</b>In this case gate score is considered as average of score obtained by item with Unique id "_id1", "_id2" and "_id3". </li>' +
+				'<li><b>$avg_top[2, {_id1}, {_id2}, {_id3}]</b>In this case gate score is considered as average of highest top two score obtained by item with Unique id "_id1", "_id2" and "_id3". </li>' +
+				'<li><b>$avg_top[2, {_id1}, {_id2}, {_id3}] + $val[{id6}]</b>In this case gate score is considered as sum of average of highest top two score obtained by item with Unique id "_id1", "_id2" and "_id3" and score of item with Unique id "_id6".</li></ul>' +
+				'<p>The formulae can also be a condition check which will return the boolean. Syntax for writing the condition is as follow:</p>'+
+				'<ul><li><b>not $val[{_id2}]</b></li>In this case if the score for item with Unique id "_id2" is null, boolean is</ul>');
+	}
+
+	function _updateHelps(attrs, attrHelp, level) {
         for(var i=0; i<attrs.length; i++) {
             var attr = attrs[i];
             attr.level = level;
