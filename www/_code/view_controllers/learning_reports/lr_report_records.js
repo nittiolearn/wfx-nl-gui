@@ -217,6 +217,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
                 latestMilestone = milestone[elem.id];
                 latestMilestone['perc'] = elem.completionPerc;
                 latestMilestone['name'] = elem.name;
+
             }
         }
 
@@ -226,11 +227,14 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         var milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
         if(Object.keys(milestone).length > 0) {
             for(var key in milestone) {
-                if (!(milestone[key] && milestone[key].status == 'done')) continue;
+                if (!milestone[key]) continue;
                 if(!repcontent.statusinfo) repcontent.statusinfo = {};
                 if(!repcontent.statusinfo[key]) repcontent.statusinfo[key] = {};
-                repcontent.statusinfo[key].status = 'done';      
-            }    
+                repcontent.statusinfo[key].status = milestone[key].status;
+                repcontent.statusinfo[key].remarks = milestone[key].comment;
+                repcontent.statusinfo[key].reached = milestone[key].reached ? nl.fmt.json2Date(milestone[key].reached) : '';
+                repcontent.statusinfo[key].updated = milestone[key].updated ? nl.fmt.json2Date(milestone[key].updated) : '';
+            }
         }
 
         _updateRatingItems(report, course, courseAssignment, repcontent, stats);
@@ -376,6 +380,8 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
                         repcontent.statusinfo[elem.id].passScore = ratingObj.passScore || '';
                         repcontent.statusinfo[elem.id].remarks = userRating[j].remarks || '';
                         repcontent.statusinfo[elem.id].stateStr = status;
+                        repcontent.statusinfo[elem.id].started = nl.fmt.json2Date(userRating[j].update || '');
+                        repcontent.statusinfo[elem.id].updated = nl.fmt.json2Date(userRating[j].updated || '');
                     }
                 }                
                 if(!ratingFound) {
@@ -383,7 +389,8 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
                     if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
                     repcontent.statusinfo[elem.id].status = 'pending';
                     repcontent.statusinfo[elem.id].stateStr = 'pending';
-                    repcontent.statusinfo[elem.id].iltTotalTime = elem.iltduration;
+                    repcontent.statusinfo[elem.id].started = '';
+                    repcontent.statusinfo[elem.id].updated = '';
                 }
             }
             if(elem.type == 'gate') {
@@ -474,6 +481,8 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
                     repcontent.statusinfo[elem.id].remarks = userAttendance[j].remarks || '';
                     repcontent.statusinfo[elem.id].iltTotalTime = elem.iltduration;
                     repcontent.statusinfo[elem.id].iltTimeSpent = (attObj.timePerc/100)*elem.iltduration;
+                    repcontent.statusinfo[elem.id].started = nl.fmt.json2Date(userAttendance[j].update || '');
+                    repcontent.statusinfo[elem.id].updated = nl.fmt.json2Date(userAttendance[j].updated || '');
                     stats.iltTimeSpent += (attObj.timePerc/100)*(elem.iltduration*60);
                 }
             }
@@ -484,7 +493,9 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
                 repcontent.statusinfo[elem.id].state = 'Not marked';
                 repcontent.statusinfo[elem.id].stateStr = 'pending';
                 repcontent.statusinfo[elem.id].iltTotalTime = elem.iltduration;
-            }
+                repcontent.statusinfo[elem.id].started = '';
+                repcontent.statusinfo[elem.id].updated = '';
+        }
         }
     }
 
