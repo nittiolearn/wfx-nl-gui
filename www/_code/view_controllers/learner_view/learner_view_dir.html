@@ -1,5 +1,5 @@
 <div class='nl-thin-scroll' style='position:absolute; width: 100%; height: 100%'>
-<div class='lv-container padding'> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
+<div class='{{tabData.cls}} padding'> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
     <div ng-if='!tabData.dataLoaded && (tabData.selectedTab.id == "assigned" || tabData.selectedTab.id == "summary")'
             class='nl-limitwidth bgdefault shape-rounded-small fgrey padding'>
         Learning records are being loaded from the server. Please wait ...
@@ -21,7 +21,7 @@
                 </div>
             </div>
             <div class='col padding0'>
-                <div class='row row-center row-stretch margin0 padding0 text-center'>
+                <div class='row row-center margin0 padding0 text-center'>
                     <div ng-show='screenSize != "small"' class='padding'></div>
                     <div ng-show='screenSize == "large"' class='col'></div>
                     <div class='col padding0'>
@@ -35,7 +35,7 @@
                         <div class='padding-small fblue2 bgwhite lnblue2 {{tabData.filter == "active"? "borderbottom2": ""}}'
                              ng-click='tabData.onFilter($event, "active")'>
                             <div class='fsh5'>{{tabData.assignedCounts.active}}</div>
-                            <div class='fsmall2'> active</div>
+                            <div class='fsmall2'> pending</div>
                         </div>
                     </div>
                     <div class='col padding0' style='padding-left: 8px'>
@@ -43,6 +43,14 @@
                              ng-click='tabData.onFilter($event, "started")'>
                             <div class='fsh5'>{{tabData.assignedCounts.started}}</div>
                             <div class='fsmall2'> started</div>
+                        </div>
+                    </div>
+                    <div style='padding-left: 10px;'
+                         title='{{tabData.cls == "nl-hcard2" ? "Switch to card view" : "Switch to list view"}}'>
+                        <div class='lnblue2 fsh5 padding-mid'
+                            ng-click='tabData.cls = tabData.cls == "nl-hcard2" ? "nl-vcard2" : "nl-hcard2";'>
+                            <i ng-show='tabData.cls == "nl-hcard2"' class='icon ion-ios-keypad'></i>
+                            <i ng-show='tabData.cls == "nl-vcard2"' class='icon ion-navicon-round'></i>
                         </div>
                     </div>
                 </div>
@@ -57,15 +65,16 @@
         <!-- Active, Upcomming, Past Sections -->
         <div class='padding0' ng-repeat='section in tabData.assignedSections'
              ng-hide='section.items.length == 0'>
-            <div class='lv-section-header fdarkgrey2 padding0 row row-center margin0'>
+            <div class='fdarkgrey2 padding0 row row-center margin0'>
                 <b class='col padding0 fsh5'>
                         {{section.title}}
                 </b>
             </div>
             <div class='padding-small'></div>
-            <div class='lv-section-data'>
-                <div class='anim fade' ng-repeat="record in section.items"
-                    ng-show='record.recStateObj.type == section.type'>
+            <div class='row row-top row-wrap margin0 padding0'>
+                <div class='card2-holder anim fade'
+                        ng-repeat="record in section.items"
+                        ng-show='record.recStateObj.type == section.type'>
                     <nl-learner-section record='record' 
                         attr='section.type'
                         nltitle='record.repcontent.name'
@@ -127,9 +136,11 @@
         </div>
     </div>
     <div ng-if='tabData.selectedTab.id == "explore"'
-            class='nl-limitwidth padding'>
-        <div class='anim fade' ng-repeat="link in exploreCards">
-            <nl-learner-section record='link' 
+         class='nl-limitwidth padding bgdefault shape-rounded-small'>
+        <div class='row row-top row-wrap margin0 padding0'>
+            <nl-learner-section class='card2-holder anim fade'
+                ng-repeat="link in exploreCards"
+                record='link' 
                 nltitle='link.title'
                 desc='link.help'
                 icon='link.icon'

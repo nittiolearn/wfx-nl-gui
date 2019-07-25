@@ -197,6 +197,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		$scope.tabData = _initTabData();
 		nlTopbarSrv.setPageMenus($scope.tabData.tabs, $scope.tabData.selectedTab.id);
 		_initChartData();
+		_onResize();
 	}
 
 	function _initChartData() {
@@ -217,43 +218,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			series: ['Assigned', 'Completed'],
 			colors: [_nl.colorsCodes.blue2, _nl.colorsCodes.done]
 		}];
-	}
-
-	var _pageFetcher = nlServerApi.getPageFetcher({defMax: _fetchChunk, itemType: 'learning record'});
-
-	function _fetchReports(fetchMore, onDoneCallback) {
-		var params = {containerid: 0, type: 'all', assignor: 'all', learner: 'me'};
-		var dontHideLoading = true;
-		nlLearnerViewRecords.reset();
-        _pageFetcher.fetchBatchOfPages(nlServerApi.learningReportsGetList, params, fetchMore, function(results, batchDone, promiseHolder) {
-			var msg = nl.t('{} records fetched', results.length);
-			nlDlg.popupStatus(msg);
-			if (!results) {
-				onDoneCallback(false);
-				return;
-			}
-			for(var i=0; i<results.length; i++) {
-				_subFetcher.markForFetching(results[i]);
-			}
-		
-			if (_subFetcher.fetchPending()) {
-				promiseHolder.promise = nl.q(function(resolve, reject) {
-					_subFetcher.fetch(function(result2) {
-						if (!result2) {
-							resolve(false);
-							onDoneCallback(false);
-							return;
-						}
-						resolve(true);
-						onDoneCallback(results);
-					});
-				});
-			} else {
-				nl.timeout(function() {
-					onDoneCallback(results);
-				});
-			}
-		}, 500, dontHideLoading);
 	}
 
 	function _initTabData() {
@@ -297,12 +261,22 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		ret.onSearch = _onSearch;
 		ret.onFilter = _onFilter;
 		ret.assignedSections = [
-			{type: 'active', title: 'ACTIVE', items: []},
+			{type: 'active', title: 'PENDING', items: []},
 			{type: 'upcoming', title: 'UPCOMING', items: []},
 			{type: 'past', title: 'PAST', items: []}
 		];
 		return ret;
 	}
+
+	var _lastScreenSize = '';
+	function _onResize() {
+		var screenSize = (nl.rootScope.screenSize == 'small') ? 'small' : 'large';
+		if (_lastScreenSize == screenSize) return;
+		$scope.tabData.cls = (screenSize == 'small') ? 'nl-hcard2' : 'nl-vcard2';
+		_lastScreenSize = screenSize;
+	}
+
+    nl.resizeHandler.onResize(_onResize);
 
 	function _onTabSelect(tab) {
 		$scope.tabData.selectedTab = tab;
@@ -327,8 +301,12 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 	function _fetchDataIfNeededAndUpdateScope(resolve) {
 		var tabid = $scope.tabData.selectedTab.id;
 		if (!_lrFetchInitiated && (tabid == 'assigned' || tabid == 'summary')) {
-			_getLearningRecordsFromServer(false, function() {
-				_updateCurrentTab(tabid);
+			nlDlg.showLoadingScreen();
+			nlDlg.popupStatus('Fetching learning records from server ...', false);
+			_getLearningRecordsFromServer(false, function(result) {
+				nlDlg.hideLoadingScreen();
+				nlDlg.popdownStatus(0);
+				if (result) _updateCurrentTab(tabid);
 				if (resolve) resolve(true);
 			});
 		} else {
@@ -341,27 +319,34 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
     var _pageFetcher = nlServerApi.getPageFetcher({defMax: _fetchChunk, itemType: 'learning record'});
 	function _getLearningRecordsFromServer(fetchMore, resolve) {
 		_lrFetchInitiated = true;
-		var myResolve = resolve || null;
-		nlDlg.showLoadingScreen();
-		_fetchReports(fetchMore, function(results) {
-			nlDlg.hideLoadingScreen();
-			if (!results) {
-				if (myResolve) {
-					myResolve(false);
-					myResolve = null;
-				}
-				return;
-			}
+		var params = {containerid: 0, type: 'all', assignor: 'all', learner: 'me'};
+		nlLearnerViewRecords.reset();
+
+		function _onFetchComplete(results) {
 			for (var i=0; i<results.length; i++) nlLearnerViewRecords.addRecord(results[i]);
 			$scope.tabData.dataLoaded = true;
 			$scope.tabData.records = nlLearnerViewRecords.getRecords();
 			$scope.tabData.recordsLen = Object.keys($scope.tabData.records).length;
-	
-			if (myResolve) {
-				myResolve(true);
-				myResolve = null;
+			resolve(true);
+		}
+
+		var dontHideLoading = true;
+        _pageFetcher.fetchPage(nlServerApi.learningReportsGetList, params, fetchMore, function(results) {
+			if (!results) {
+				resolve(false);
+				return;
 			}
-		});
+			var msg = nl.t('{} learning records fetched. Fetching assignment and course information from server ...', results.length);
+			nlDlg.popupStatus(msg, false);
+			for(var i=0; i<results.length; i++) _subFetcher.markForFetching(results[i]);
+			if (_subFetcher.fetchPending()) {
+				_subFetcher.fetch(function(result2) {
+					_onFetchComplete(results);
+				});
+			} else {
+				_onFetchComplete(results);
+			}
+		}, dontHideLoading);
 	}
 
 	function _updateCurrentTab(tabid) {
@@ -638,9 +623,9 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		return (ts >= range.start && ts < range.end);
 	}
 
-	function _getModuleEndedTime(rep) {
-		if (!rep.completed) return null;
-		return (rep.ended ? nl.fmt.json2Date(rep.ended) : rep.updated) || null;
+	function _getModuleEndedTime(raw_record) {
+		if (!raw_record.completed) return null;
+		return (raw_record.ended ? nl.fmt.json2Date(raw_record.ended) : raw_record.updated) || null;
 	}
 
 	function _getCourseEndedTime(rep) {
@@ -714,12 +699,8 @@ var subFetcher = function(nl, nlDlg, nlServerApi, nlLearnerAssignment, nlLearner
 	                nlLearnerCourseRecords.addRecord(resultObj, objId);
                 } else if (resultObj.table == 'course_assignment') {
                 	resultObj.info = angular.fromJson(resultObj.info);
-                	if (resultObj.info.not_before) resultObj.info.not_before = nl.fmt.json2Date(resultObj.info.not_before); 
-                	if (resultObj.info.not_after) resultObj.info.not_after = nl.fmt.json2Date(resultObj.info.not_after); 
                 	nlLearnerAssignment.addRecord(resultObj, key);
                 } else {
-                	if (resultObj.not_before) resultObj.not_before = nl.fmt.json2Date(resultObj.not_before); 
-                	if (resultObj.not_after) resultObj.not_after = nl.fmt.json2Date(resultObj.not_after); 
                 	nlLearnerAssignment.addRecord(resultObj, key);
                 }
                 delete _pendingIds[key];

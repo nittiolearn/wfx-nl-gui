@@ -1024,11 +1024,11 @@ function PageFetcher(nl, nlDlg, attrs) {
 
     var _fetchLimit = undefined;
     var _fetchedCount = 0;
-    this.fetchPage = function(listingFn, params, fetchMore, callback) {
+    this.fetchPage = function(listingFn, params, fetchMore, callback, dontHideLoading) {
         _fetchLimit = undefined;
         _fetchedCount = 0;
         nlDlg.showLoadingScreen();
-        return _fetchPageImpl(listingFn, params, fetchMore, callback);
+        return _fetchPageImpl(listingFn, params, fetchMore, callback, dontHideLoading);
     };
 
     this.fetchBatchOfPages = function(listingFn, params, fetchMore, callback, fetchLimit, dontHideLoading) {

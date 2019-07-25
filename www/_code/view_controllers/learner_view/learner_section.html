@@ -1,43 +1,47 @@
-<div class='padding-mid'></div>
-<div class='row row-center nl-hcard'>
-    <div class='nl-hcard-img-holder text-center'>
-        <img ng-if='icon != "icon:"' class='nl-hcard-img' ng-src='{{icon}}' nl-compute-img-info></img>
-        <div ng-if='icon == "icon:"' class='nl-hcard-img text-center'><i class='ion-ios-bookmarks-outline fblue' style='font-size: 500%'></i></div>
-    </div>
-    <div class='nl-hcard-desc row row-top margin0 padding0'>
-        <div class='col margin0 padding0'>
-            <div class='{{$root.screenSize != "small" ? "nl-textellipsis" : ""}}'>
+<div class='row row-top padding0 margin0'>
+    <div class='col padding0'></div>
+    <div class='card2'>
+        <div class='card2-img-holder text-center'>
+            <div class='row row-center padding0 margin0' style='height: 100%'>
+                <div class='col padding0'></div>
+                <img ng-if='icon != "icon:"' class='card2-img' ng-src='{{icon}}' nl-compute-img-info></img>
+                <div ng-if='icon == "icon:"' class='card2-img text-center'><i class='ion-ios-bookmarks-outline fblue' style='font-size: 500%'></i></div>
+                <div class='col padding0'></div>
+            </div>
+        </div>
+        <div class='card2-desc row row-top margin0 padding0'>
+            <div class='col margin0 padding0'>
                 <span class='fblue2'>{{nltitle}}</span>
+                <div class='fsmall2 fdarkgrey2' style='padding-top: 8px'>
+                    <span ng-show='record.raw_record.not_before && isreport'>
+                        <span ng-hide='record.raw_record.not_after'>From <b>{{record.raw_record.not_before | nlDateTimeFormat:'date'}}</b>.</span>
+                        <span ng-show='record.raw_record.not_after'>From <b>{{record.raw_record.not_before | nlDateTimeFormat:'date'}}</b>, till <b>{{record.raw_record.not_after | nlDateTimeFormat:'date'}}</b></span>
+                    </span>
+                    <span ng-show='desc'>
+                        {{desc}}
+                    </span>
+                </div>
             </div>
-            <div class='fsmall2 fdarkgrey2 {{$root.screenSize != "small" ? "nl-textellipsis" : ""}}'
-                 style='padding-top: 8px'>
-                <span ng-show='record.not_before && isreport'>
-                    <span ng-hide='record.not_after'>From <b>{{record.not_before}}</b>.</span>
-                    <span ng-show='record.not_after'>From <b>{{record.not_before}}</b>, till <b>{{record.not_after}}</b></span>
+        </div>
+        <div class='card2-buttons'>
+            <div class='row row-center margin0 padding0'>
+                <i class='{{record.stats.status.icon}}' style='font-size:180%'></i>
+                <span style='padding: 0 4px'>{{record.stats.status.txt}}</span>
+                <span class='col padding0 margin0 text-center'></span>
+                <span ng-if='isreport'
+                    class='fblue2 fsh5 lnblue2 padding-small shape-oval'
+                    ng-click='onDetailsLinkClicked($event, record, "details")'>
+                    <i class='icon ion-more'></i>
                 </span>
-                <span ng-show='desc'>
-                    {{desc}}
+                <span ng-show='url' class='padding-small'></span>
+                <span ng-show='url'>
+                    <a ng-href='{{url}}' target='' class='row row-center padding0 margin0 nl-link-text'>
+                        <span ng-show='buttontype == "lowlight"' class='nl-button-lowlight lnblue2'>{{buttontext}}</span>
+                        <span ng-show='buttontype == "highlight"' class='nl-button-highlight lnblue2'>{{buttontext}}</span>
+                    </a>
                 </span>
             </div>
         </div>
     </div>
-    <div class='nl-hcard-buttons'>
-        <div class='row row-center margin0 padding0'>
-            <i class='{{record.stats.status.icon}}' style='font-size:180%'></i>
-            <span style='padding: 0 4px'>{{record.stats.status.txt}}</span>
-            <span class='col padding0 margin0 text-center'></span>
-            <span ng-if='isreport'
-                  class='fgrey lnblue2 padding-mid shape-rounded-h'
-                  ng-click='onDetailsLinkClicked($event, record, "details")'>
-                  details ...
-            </span>
-            <span ng-show='url' class='padding-small'></span>
-            <span ng-show='url'>
-                <a ng-href='{{url}}' target='' class='row row-center padding0 margin0 nl-link-text'>
-                    <span ng-show='buttontype == "lowlight"' class='nl-button-lowlight lnblue2'>{{buttontext}}</span>
-                    <span ng-show='buttontype == "highlight"' class='nl-button-highlight lnblue2'>{{buttontext}}</span>
-                </a>
-            </span>
-        </div>
-    </div>
+    <div class='col padding0'></div>
 </div>

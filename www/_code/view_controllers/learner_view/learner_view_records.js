@@ -27,11 +27,12 @@
             _dates = {minUpdated: null, maxUpdated: null};
         };
         
-        this.addRecord = function(report) {
-            if (report.ctype == _nl.ctypes.CTYPE_COURSE)
-                report = _processCourseReport(report);
-            else if (report.ctype == _nl.ctypes.CTYPE_MODULE)
-                report = _processModuleReport(report);
+        this.addRecord = function(raw_record) {
+            var report = null;
+            if (raw_record.ctype == _nl.ctypes.CTYPE_COURSE)
+                report = _processCourseReport(raw_record);
+            else if (raw_record.ctype == _nl.ctypes.CTYPE_MODULE)
+                report = _processModuleReport(raw_record);
             else 
                 return null;
             if (!report) return null;
@@ -133,19 +134,18 @@
         };
 
         
-        function _processCourseReport(report) {
-            var repcontent = _updateCommonParams(report, 'course');
+        function _processCourseReport(raw_record) {
+            var repcontent = _updateCommonParams(raw_record, 'course');
             if(!repcontent.content) return null;
             var user = _userInfo;
-            if (!user) return null;
             var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
                 timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
-                internalIdentifier:report.id, nCerts: 0, iltTimeSpent: 0, iltTotalTime: 0, isAttemptsAvailable: 0};
+                internalIdentifier:raw_record.id, nCerts: 0, iltTimeSpent: 0, iltTotalTime: 0, isAttemptsAvailable: 0};
                 
             var started = false;
             var isTrainerControlled = false;
             var latestMilestone = null;
-            repcontent['id'] = report.id;
+            repcontent['id'] = raw_record.id;
 
             var statusinfo = repcontent.statusinfo || {};
             if (!repcontent.lessonReports) repcontent.lessonReports = {};
@@ -154,21 +154,22 @@
 
             stats.nOthers = 0;
             stats.nOthersDone = 0;
-            var course = nlLearnerCourseRecords.getRecord(report.lesson_id);
-            report.canReview = true;
-            if(!(course && course.is_published)) report.canReview = false;
-            var courseAssignment = nlLearnerAssignment.getRecord('course_assignment:'+report.assignment) || {};
+            var course = nlLearnerCourseRecords.getRecord(raw_record.lesson_id);
+            raw_record.canReview = true;
+            if(!course || !course.is_published) raw_record.canReview = false;
+            var courseAssignment = nlLearnerAssignment.getRecord('course_assignment:'+raw_record.assignment) || {};
             if (!courseAssignment.info) courseAssignment.info = {};
-            if (!course) course = nlLearnerCourseRecords.getCourseInfoFromReport(report, repcontent);
+            if (!course) course = nlLearnerCourseRecords.getCourseInfoFromReport(raw_record, repcontent);
             var contentmetadata = 'contentmetadata' in course ? course.contentmetadata : {};
-            report._grade = contentmetadata.grade || '';
-            report.subject = contentmetadata.subject || ''; 
+            raw_record._grade = contentmetadata.grade || '';
+            raw_record.subject = contentmetadata.subject || ''; 
             if(courseAssignment) {
-                report.not_after = courseAssignment.info['not_after'];
-                report.not_before = courseAssignment.info['not_before'];
-                report.assign_remarks = courseAssignment.info['remarks'];
-                report.assigned_to = courseAssignment.info['assigned_to'];
-                report.authorname = courseAssignment.info['courseauthor']
+                raw_record.not_after = courseAssignment.info['not_after'];
+                raw_record.not_before = courseAssignment.info['not_before'];
+                raw_record.submissionAfterEndtime = courseAssignment.info['submissionAfterEndtime'] || false;
+                raw_record.assign_remarks = courseAssignment.info['remarks'];
+                raw_record.assigned_to = courseAssignment.info['assigned_to'];
+                raw_record.authorname = courseAssignment.info['courseauthor'];
             }
             var milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
             repcontent.content.modules = course.content.modules;
@@ -261,10 +262,10 @@
             stats.timeSpentStr = Math.ceil((stats.timeSpentSeconds+stats.iltTimeSpent)/60);
             stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
                 : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
-            if(report.completed) {
-                report.url = nl.fmt2('#/course_view?id={}&mode=report_view_my', report.id);
+            if(raw_record.completed) {
+                raw_record.url = nl.fmt2('#/course_view?id={}&mode=report_view_my', raw_record.id);
             } else {
-                report.url = nl.fmt2('#/course_view?id={}&mode=do', report.id);
+                raw_record.url = nl.fmt2('#/course_view?id={}&mode=do', raw_record.id);
             }
             var moduleLen = repcontent.content.modules.length;
             var lastItem = repcontent.content.modules[moduleLen - 1];
@@ -273,39 +274,33 @@
             } else {
                 stats.status = nlLearverViewHelper.statusInfos[_getStatusId(stats, started)];                
             }
-            var ret = {raw_record: report, repcontent: repcontent, user: user, stats: stats,
-                recStateObj: _getRecordState(repcontent, stats, 'course'),
-                created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
-                updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
-                not_before: report.not_before ? nl.fmt.fmtDateDelta(report.not_before, null, 'date') : '',
-                not_after: report.not_after ? nl.fmt.fmtDateDelta(report.not_after, null, 'date') : '',
-                detailsavps : _getRecordAvps(repcontent, report, 'course'), type: 'course'
+
+            _updateDateFormats(raw_record);
+            var ret = {raw_record: raw_record, repcontent: repcontent, user: user, stats: stats,
+                recStateObj: _getRecordState(repcontent, raw_record, stats, 'course'),
+                detailsavps : _getRecordAvps(repcontent, raw_record, 'course'), type: 'course'
                 };
             return ret;
         }
 
-        function _processModuleReport(report) {
-            var repcontent = _updateCommonParams(report, 'module');
-            repcontent['icon'] = repcontent.image.substring(4);
-            repcontent['id'] = report.id;
+        function _processModuleReport(raw_record) {
+            var repcontent = _updateCommonParams(raw_record, 'module');
+            repcontent.icon = nl.url.lessonIconUrl(repcontent.image);
+            repcontent.id = raw_record.id;
             var user = _userInfo;
-            report.showModuleProps = true;
-            report.studentname = user.displayname;
-            report._user_id = user.username;
-            var module = {type: 'module', id: report.id, nonLessons: [], lessons:[repcontent], name: repcontent.name, contentmetadata: repcontent.contentmetadata || {}};
     
             var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
                 timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
-                internalIdentifier:report.id, nCerts: 0, nLessonsDone: 0, done: 0};            
+                internalIdentifier:raw_record.id, nCerts: 0, nLessonsDone: 0, done: 0};            
 
-            var moduleAssignment = nlLearnerAssignment.getRecord('assignment:'+report.assignment) || null;
+            var moduleAssignment = nlLearnerAssignment.getRecord('assignment:'+raw_record.assignment) || null;
             if(moduleAssignment) {
-                report.not_after = moduleAssignment['not_after'];
-                report.not_before = moduleAssignment['not_before'];
-                report.assign_remarks = moduleAssignment['assign_remarks'];
-                report.submissionAfterEndtime = moduleAssignment['submissionAfterEndtime'];
-                report.assigned_to = moduleAssignment['assigned_to'];
-                report.authorname = moduleAssignment['authorname'];
+                raw_record.not_after = moduleAssignment['not_after'];
+                raw_record.not_before = moduleAssignment['not_before'];
+                raw_record.assign_remarks = moduleAssignment['assign_remarks'];
+                raw_record.submissionAfterEndtime = moduleAssignment['submissionAfterEndtime'] || false;
+                raw_record.assigned_to = moduleAssignment['assigned_to'];
+                raw_record.authorname = moduleAssignment['authorname'];
             }
             stats.nLessons++;
             stats.percCompleteStr = 'Pending';
@@ -321,38 +316,38 @@
                 stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
                     : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
             }
-            report.started = nl.fmt.json2Date(repcontent.started);
-            report.ended = nl.fmt.json2Date(repcontent.ended);
+            raw_record.started = nl.fmt.json2Date(repcontent.started);
+            raw_record.ended = nl.fmt.json2Date(repcontent.ended);
     
-            report.name = repcontent.name || '';
-            report._treeId = nl.fmt2('{}.{}', report.org_unit, report.student);
-            report._courseName = (report.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingKindName : repcontent.courseName) || '';
-            report._courseId = (report.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingKindId : repcontent.courseId ) || '';
-            report._attempts = repcontent.started ? 1 : 0;
-            report.containerid = report.containerid || '';
-            report._grade = repcontent.grade || '';
-            report.subject = repcontent.subject || '';
-            report.assign_remarks = repcontent.assign_remarks || '';
+            raw_record.name = repcontent.name || '';
+            raw_record._treeId = nl.fmt2('{}.{}', raw_record.org_unit, raw_record.student);
+            raw_record._courseName = (raw_record.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingKindName : repcontent.courseName) || '';
+            raw_record._courseId = (raw_record.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingKindId : repcontent.courseId ) || '';
+            raw_record._attempts = repcontent.started ? 1 : 0;
+            raw_record.containerid = raw_record.containerid || '';
+            raw_record._grade = repcontent.grade || '';
+            raw_record.subject = repcontent.subject || '';
+            raw_record.assign_remarks = repcontent.assign_remarks || '';
             var maxScore = repcontent.selfLearningMode ? 0 : parseInt(repcontent.maxScore || 0);
             stats.nQuiz = maxScore ? 1 : 0;
 
-            if (!report.completed) {
-                report._percStr = '';
-                report._statusStr = report.started ? 'started' : 'pending';
-                stats.status = nlLearverViewHelper.statusInfos[_getModuleStatus(stats, repcontent, report)];
+            if (!raw_record.completed) {
+                raw_record._percStr = '';
+                raw_record._statusStr = raw_record.started ? 'started' : 'pending';
+                stats.status = nlLearverViewHelper.statusInfos[_getModuleStatus(stats, repcontent, raw_record)];
             } else {
                 var score = repcontent.selfLearningMode ? 0 : parseInt(repcontent.score || 0);
                 if (score > maxScore) score = maxScore; // Some 3 year old bug where this happened - just for sake of old record!
                 var passScore = maxScore ? parseInt(repcontent.passScore || 0) : 0;
                 var perc = maxScore > 0 ? Math.round((score/maxScore)*100) : 100;
-                report._score = score > 0 ? score : '';
-                report._maxScore = maxScore > 0 ? maxScore : '';
-                report._passScore = passScore > 0 ? passScore : '';
-                report._passScoreStr = report._passScore ? '' + report._passScore + '%' : '';
-                report._perc = perc;
-                report._percStr = maxScore > 0 ? '' + perc + '%' : '';
-                report._timeMins = repcontent.timeSpentSeconds ? Math.ceil(repcontent.timeSpentSeconds/60) : '';
-                report._statusStr = (passScore == 0 || perc >= passScore) ? 'completed' : 'failed';
+                raw_record._score = score > 0 ? score : '';
+                raw_record._maxScore = maxScore > 0 ? maxScore : '';
+                raw_record._passScore = passScore > 0 ? passScore : '';
+                raw_record._passScoreStr = raw_record._passScore ? '' + raw_record._passScore + '%' : '';
+                raw_record._perc = perc;
+                raw_record._percStr = maxScore > 0 ? '' + perc + '%' : '';
+                raw_record._timeMins = repcontent.timeSpentSeconds ? Math.ceil(repcontent.timeSpentSeconds/60) : '';
+                raw_record._statusStr = (passScore == 0 || perc >= passScore) ? 'completed' : 'failed';
                 stats.nScore = score;
                 stats.nMaxScore = maxScore;
                 stats.percScore = stats.nMaxScore ? Math.round(stats.nScore/stats.nMaxScore*100) : 0;
@@ -361,30 +356,27 @@
                     stats.nLessonsPassed++;
                 else 
                     stats.nLessonsFailed++;
-                stats.status = repcontent.selfLearningMode ? nlLearverViewHelper.statusInfos[nlLearverViewHelper.STATUS_DONE] : nlLearverViewHelper.statusInfos[_getModuleStatus(stats, repcontent, report)];
+                stats.status = repcontent.selfLearningMode ? nlLearverViewHelper.statusInfos[nlLearverViewHelper.STATUS_DONE] : nlLearverViewHelper.statusInfos[_getModuleStatus(stats, repcontent, raw_record)];
                 stats.percCompleteStr = 'Completed';
                 stats.percCompleteDesc = 'Module completed';
                 repcontent.maxScore = maxScore;
                 repcontent.score = score;
-                report.urlTitle = nl.t('View report');
+                raw_record.urlTitle = nl.t('View report');
             }
     
+            _updateDateFormats(raw_record);
             stats.nLessonsDone = stats.nLessonsPassed + stats.nLessonsFailed;
-            var ret = {raw_record: report, repcontent: repcontent, user: user, stats: stats,
-                recStateObj: _getRecordState(repcontent, stats, 'module'),
-                created: nl.fmt.fmtDateDelta(report.created, null, 'minute'), 
-                updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
-                not_before: report.not_before ? nl.fmt.fmtDateDelta(report.not_before, null, 'minute') : '',
-                not_after: report.not_after ? nl.fmt.fmtDateDelta(report.not_after, null, 'minute') : '',
-                detailsavps : _getRecordAvps(repcontent, report, 'module'), type: 'module'};
+            var ret = {raw_record: raw_record, repcontent: repcontent, user: user, stats: stats,
+                recStateObj: _getRecordState(repcontent, raw_record, stats, 'module'),
+                detailsavps : _getRecordAvps(repcontent, raw_record, 'module'), type: 'module'};
             return ret;
         }
 
-        function _getRecordState(repcontent, stats, type) {
+        function _getRecordState(repcontent, raw_record, stats, type) {
             var curDate = new Date();
-            var not_before = repcontent.not_before ? new Date(repcontent.not_before) : null;
-            var not_after = repcontent.not_after ? new Date(repcontent.not_after) : null;
-            var submissionAfterEndtime = repcontent['submissionAfterEndtime'] || false;
+            var not_before = raw_record.not_before;
+            var not_after = raw_record.not_after;
+            var submissionAfterEndtime = raw_record.submissionAfterEndtime;
             if(not_before && not_before > curDate) {
                 return {type: "upcoming"};
             } else if(stats.status.txt == "certified" || stats.status.txt == "completed" || stats.status.txt == "failed" 
@@ -488,26 +480,30 @@
             return maxScoredReport;
         }
     
-        function _updateCommonParams(report, ctypestr) {
-            var repcontent = angular.fromJson(report.content);
-            report.gradeLabel = _userInfo.groupinfo.gradelabel;
-            report.subjectLabel = _userInfo.groupinfo.subjectlabel;
-            report.updated = nl.fmt.json2Date(report.updated);
-            report.created = nl.fmt.json2Date(report.created);
-            report._batchName = repcontent.batchname || '';
-            report.assign_remarks = (report.ctype == _nl.ctypes.CTYPE_COURSE ? repcontent.remarks : repcontent.assign_remarks) || '';
-            report.not_before = repcontent.not_before || '';
-            report.not_after = repcontent.not_after || '';
-            report.not_before = nl.fmt.json2Date(report.not_before);
+        function _updateCommonParams(raw_record, ctypestr) {
+            var repcontent = angular.fromJson(raw_record.content);
+            raw_record.gradeLabel = _userInfo.groupinfo.gradelabel;
+            raw_record.subjectLabel = _userInfo.groupinfo.subjectlabel;
+            raw_record._batchName = repcontent.batchname || '';
+            raw_record.assign_remarks = (raw_record.ctype == _nl.ctypes.CTYPE_COURSE ? repcontent.remarks : repcontent.assign_remarks) || '';
+            raw_record.not_before = repcontent.not_before || '';
+            raw_record.not_after = repcontent.not_after || '';
+            raw_record.submissionAfterEndtime = repcontent.submissionAfterEndtime || false;
             return repcontent;
         }
-        
-        function _getRecordAvps(repcontent, report, type) {
-            var assignedTo = report.assigned_to;
+
+        function _updateDateFormats(raw_record) {
+            raw_record.updated = nl.fmt.json2Date(raw_record.updated) || null;
+            raw_record.created = nl.fmt.json2Date(raw_record.created) || raw_record.updated;
+            raw_record.not_before = nl.fmt.json2Date(raw_record.not_before) || raw_record.created;
+            raw_record.not_after = nl.fmt.json2Date(raw_record.not_after) || null;
+        }
+
+        function _getRecordAvps(repcontent, raw_record, type) {
+            var assignedTo = raw_record.assigned_to;
             var avps = [];
             var contentmetadata = repcontent.content && repcontent.content.contentmetadata ? repcontent.content.contentmetadata : {};
-            nl.fmt.addAvp(avps, 'NAME', repcontent.name);
-            nl.fmt.addAvp(avps, 'AUTHOR', report.authorname);
+            nl.fmt.addAvp(avps, 'AUTHOR', raw_record.authorname);
             nl.fmt.addAvp(avps, 'ASSIGNED BY', type == 'module' ? repcontent.assigned_by : repcontent.sendername);
             nl.fmt.addAvp(avps, 'ASSIGNED TO', assignedTo);
             if(type == 'course') {
@@ -518,18 +514,17 @@
                 nl.fmt.addAvp(avps, _userInfo.groupinfo.subjectlabel.toUpperCase() , repcontent.subject || '-');
             }
             nl.fmt.addAvp(avps, 'BATCH NAME', repcontent.batchname);
-            if(type == 'course') {
-                nl.fmt.addAvp(avps, 'CREATED ON', report.created, 'date');
-                nl.fmt.addAvp(avps, 'UPDATED ON', report.updated, 'date');    
-            } else {
-                nl.fmt.addAvp(avps, 'STARTED ON', report.started, 'date');
-                nl.fmt.addAvp(avps, 'ENDED ON', report.ended, 'date');    
+            nl.fmt.addAvp(avps, 'ASSIGNED ON', raw_record.created, 'date');
+            nl.fmt.addAvp(avps, 'UPDATED ON', raw_record.updated, 'date');    
+            if(type == 'module') {
+                nl.fmt.addAvp(avps, 'STARTED ON', raw_record.started, 'date');
+                nl.fmt.addAvp(avps, 'ENDED ON', raw_record.ended, 'date');    
             }
 
-            nl.fmt.addAvp(avps, 'FROM', report.not_before || '', 'date');
-            nl.fmt.addAvp(avps, 'TILL', report.not_after || '', 'date');
-            nl.fmt.addAvp(avps, 'REMARKS', report.assign_remarks);
-            if(type == 'module') nl.fmt.addAvp(avps, 'SUBMISSION AFTER ENDTIME', report.submissionAfterEndtime, 'boolean');
+            nl.fmt.addAvp(avps, 'FROM', raw_record.not_before || '', 'date');
+            nl.fmt.addAvp(avps, 'TILL', raw_record.not_after || '', 'date');
+            nl.fmt.addAvp(avps, 'SUBMISSION AFTER ENDTIME', raw_record.submissionAfterEndtime, 'boolean');
+            nl.fmt.addAvp(avps, 'REMARKS', raw_record.assign_remarks);
             nl.fmt.addAvp(avps, 'INTERNAL IDENTIFIER', repcontent.id);
             return avps;
         }

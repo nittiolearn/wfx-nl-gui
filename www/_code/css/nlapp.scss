@@ -1746,80 +1746,116 @@ img.nl-icon {
 }
 
 /*-----------------------------------------------------------------------------------------*
- * Learner view section styles
+ * Learner view section styles (card2)
  *-----------------------------------------------------------------------------------------*/
- .nl-hcard {
+.nl-vcard2 .card2-holder {
+  flex: 0 0 33%;
+  max-width: 33%;
+  padding: 10px;
+}
+
+.nl-screen-medium .nl-vcard2 .card2-holder {
+  flex: 0 0 50%;
+  max-width: 50%;
+}
+
+.nl-screen-small .nl-vcard2 .card2-holder, .nl-hcard2 .card2-holder {
+  flex: 0 0 100%;
+  max-width: 100%;
+  padding: 8px 0;
+}
+
+.nl-hcard2 .card2 {
   position: relative;
   border-radius: 8px;
   background-color: white;
-  height: 100px;
+  height: 120px;
+  width: 100%;
   overflow: hidden;
-  .nl-hcard-img-holder {
+  .card2-img-holder {
     position: absolute;
-    top: 5px;
-    left: 5px;
-    height: 90px;
+    top: 0;
+    bottom: 0;
+    height: auto;
+    left: 0;
     width: 150px;
     text-align: center;
-    .nl-hcard-img {
+    .card2-img {
       max-height: 100%;
       max-width: 100%;
     }
   }
-  .nl-hcard-desc {
+  .card2-desc {
     position: absolute;
     top: 5px;
-    left: 160px;
-    height: 51px;
-    width: auto;
+    bottom: 44px;
+    height: auto;
+    left: 155px;
     right: 5px;
+    width: auto;
     overflow: hidden;
   }
-  .nl-hcard-buttons {
+  .card2-buttons {
     position: absolute;
     bottom: 5px;
-    left: 160px;
     height: 34px;
-    width: auto;
+    left: 155px;
     right: 5px;
+    width: auto;
   }
 }
 
-.nl-screen-small .nl-hcard {
-  height: 120px;
-  .nl-hcard-img-holder {
-    height: 71px;
+.nl-screen-small .nl-hcard2 .card2 {
+  .card2-img-holder {
+    bottom: 44px;
     width: 100px; 
   }
-  .nl-hcard-desc {
-    height: 71px;
-    left: 110px;
+  .card2-desc {
+    left: 105px;
   }
-  .nl-hcard-buttons {
+  .card2-buttons {
     left: 5px;
   }
 }
 
-.learner-card-subtitle {
-  font-size: 85%;
-  color: #838383;
-}
-
-.nl-learner-card-header {
-  font-weight: bold;
-  color: #245dd1;
-  font-size: 100%;
-}
-
-.nl-card-img-size-lg {
-  max-width: 160px;
-  max-height: 90px;
-  margin-bottom: -3px;
-}
-.nl-card-img-size-sm {
-  max-width: 75px;
-  max-height: 75px;
-  margin-bottom: -3px;
+.nl-vcard2 .card2 {
+  position: relative;
+  border-radius: 8px;
+  background-color: white;
+  height: 300px;
+  width: 100%;
+  max-width: 250px;
+  overflow: hidden;
+  .card2-img-holder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 150px;
+    width: 100%;
+    text-align: center;
+    .card2-img {
+      max-height: 100%;
+      max-width: 100%;
+    }
+  }
+  .card2-desc {
+    position: absolute;
+    top: 155px;
+    left: 5px;
+    height: auto;
+    width: auto;
+    bottom: 44px;
+    right: 5px;
+    overflow: hidden;
+  }
+  .card2-buttons {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    height: 34px;
+    width: auto;
+    right: 5px;
+  }
 }
 
 /*-----------------------------------------------------------------------------------------*

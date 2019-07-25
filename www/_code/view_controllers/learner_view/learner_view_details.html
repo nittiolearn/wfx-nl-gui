@@ -5,16 +5,8 @@
                 <img ng-if='record.repcontent.icon != "icon:"' ng-src='{{record.repcontent.icon}}' nl-compute-img-info></img>
                 <div ng-if='record.repcontent.icon == "icon:"' class='fsh2'><i class='fsh1 ion-ios-bookmarks-outline fblue'></i></div>
             </div>
-            <div class='col padding-mid fdarkgrey2 fsmall2'>
-                <div class='row row-center row-wrap margin0 padding-mid'>
-                    <div ng-class='respCol221' class='padding-mid'>Start Date: {{record.not_before}} </div>
-                    <div ng-class='respCol221' ng-show='record.not_after' class='padding-mid'>End Date: {{record.not_after}} </div>
-                </div>
-                <div class='row row-center row-wrap margin0 padding-mid'>
-                    <div class='padding-mid'>
-                      {{record.repcontent.remarks}}
-                    </div>
-                </div>
+            <div class='col padding-mid fblue2'>
+                {{record.repcontent.name}}
             </div>
         </div>
         <div ng-repeat='avp in record.detailsavps' class='nl-border-bottom row row-top margin0 padding0'>
