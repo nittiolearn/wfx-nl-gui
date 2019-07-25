@@ -7,7 +7,8 @@
 function module_init() {
 	angular.module('nl.sco_export', [])
 	.config(configFn)
-	.controller('nl.ScoExportCtrl', ScoExportCtrl);
+	.controller('nl.ScoExportCtrl', ScoExportCtrl)
+	.controller('nl.ScoOfflineExportCtrl', ScoOfflineExportCtrl);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -20,16 +21,38 @@ function($stateProvider, $urlRouterProvider) {
 				templateUrl: 'view_controllers/sco/sco_export.html',
 				controller: 'nl.ScoExportCtrl'
 			}
-		}});
+    }});
+	$stateProvider.state('app.offline_export', {
+		url: '^/offline_export',
+		views: {
+			'appContent': {
+				templateUrl: 'view_controllers/sco/sco_export.html',
+				controller: 'nl.ScoOfflineExportCtrl'
+			}
+    }});
 }];
 
 //-------------------------------------------------------------------------------------------------
 var ScoExportCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 
                      '$templateCache', 'nlProgressLog', 'nlExporter', 'nlDlg',
 function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog, nlExporter, nlDlg) {
+    ScoExportCtrlImpl('sco', nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog,
+        nlExporter, nlDlg);
+}];
+
+var ScoOfflineExportCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 
+                     '$templateCache', 'nlProgressLog', 'nlExporter', 'nlDlg',
+function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog, nlExporter, nlDlg) {
+    ScoExportCtrlImpl('offline', nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog,
+        nlExporter, nlDlg);
+}];
+
+function ScoExportCtrlImpl(scoType, nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog,
+    nlExporter, nlDlg) {
+    $scope.scoType = scoType;
     var pl = nlProgressLog.create($scope);
     pl.showLogDetails(true);
-    var scoExporter = new ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter);
+    var scoExporter = new ScoExporter(scoType, nl, nlServerApi, $templateCache, pl, nlExporter);
 
 	function _onPageEnter(userInfo) {
 		return nl.q(function(resolve, reject) {
@@ -107,13 +130,12 @@ function(nl, nlRouter, $scope, nlServerApi, $templateCache, nlProgressLog, nlExp
         scoExporter.export(lessonIds, $scope.data.version.id, $scope.data.title, 
             $scope.data.mathjax, $scope, lessonNames);
     };
-
-}];
+}
 
 var CONTENT_FOLDER = 'nlcontent';
 
 //-------------------------------------------------------------------------------------------------
-function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
+function ScoExporter(scoType, nl, nlServerApi, $templateCache, pl, nlExporter) {
     
     var self = this;
     self.lessons = {};
@@ -163,17 +185,18 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
     
     function _downloadPackageZip(resolve, reject) {
         self.setProgress('start');
-        pl.debug('Downloading SCO package template zip from server');
+        var templateZip = scoType == 'sco' ? 'scorm-templ.zip' : 'offline-templ.zip';
+        pl.debug(nl.fmt2('Downloading {} from server', templateZip));
         var v =  NL_SERVER_INFO.versions.script;
-        var templateZip = nl.fmt2('/static/others/scorm-templ.zip?version={}', v);
+        templateZip = nl.fmt2('/static/others/{}?version={}', templateZip, v);
         JSZipUtils.getBinaryContent(templateZip, function(e, zipBinary) {
             if (e) {
-                pl.error(nl.fmt2('Downloading SCO package template {} failed', 
+                pl.error(nl.fmt2('Downloading template {} failed', 
                     templateZip), e);
-                reject('Downloading SCO package template failed');
+                reject('Downloading template failed');
                 return;
             }
-            pl.imp('Downloaded SCO package template zip from server');
+            pl.imp('Downloaded template zip from server');
             self.setProgress('downloadPkgZip');
             resolve(zipBinary);
         });
@@ -181,7 +204,7 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
 
     function _openPackageZip(resolve, reject, zipBinary) {
         try {
-            pl.debug('Opening SCO package template zip file');
+            pl.debug('Opening template zip file');
             JSZip.loadAsync(zipBinary)
             .then(function(zip) {
                 self.zip = zip;
@@ -202,17 +225,17 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
                     packagedCnt++;
                     self.resources[file.name.substring(plen)] = {packaged: true, usageCnt:0};
                 }
-                var fmt = 'Opened SCO package template zip file: Folders={}, Files={}, Prepackaged files={}';
+                var fmt = 'Opened template zip file: Folders={}, Files={}, Prepackaged files={}';
                 pl.info(nl.fmt2(fmt, folderCnt, fileCnt, packagedCnt), angular.toJson(self.resources, 2));
                 self.setProgress('openPkgZip');
                 resolve(true);
             }, function(e) {
-                var msg = 'Opening the SCO package template zip file failed';
+                var msg = 'Opening the template zip file failed';
                 pl.error(msg, e);
                 reject(msg);
             });
         } catch(e) {
-            var msg = 'Exception while opening the SCO package template zip file';
+            var msg = 'Exception while opening the template zip file';
             pl.error(msg, e);
             reject(msg);
         }
@@ -324,8 +347,12 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
         
         var template = $templateCache.get('view_controllers/sco/' + _metadataXmlTemplate[self.version]);
         var content = nl.fmt.fmt1(template, scope);
-        self.zip.file('imsmanifest.xml', content);
-        pl.imp('Generated metadata xml', content);
+        if (scoType == 'scorm') {
+            self.zip.file('imsmanifest.xml', content);
+            pl.imp('Generated metadata xml', content);
+        } else {
+            pl.debug('Skipped metadata xml');
+        }
         self.setProgress('generateMetadata');
         resolve(true);
     }
@@ -374,7 +401,8 @@ function ScoExporter(nl, nlServerApi, $templateCache, pl, nlExporter) {
     
     var link = null;
     function _savePackageZip(resolve, reject) {
-        nlExporter.saveZip(self.zip, 'scorm_pkg.zip', pl, function(sizeKb) {
+        var outFileName = scoType == 'sco' ? 'scorm_pkg.zip' : 'offline_pkg.zip';
+        nlExporter.saveZip(self.zip, outFileName, pl, function(sizeKb) {
             self.savedSize = sizeKb || 0;
             resolve(true);
         }, function(e) {
@@ -448,16 +476,16 @@ function ParallelDownloadManager(nl, nlServerApi, pl, scoExporter, type, urls, r
     }
 
     function _downloadLesson(pos, lessonid, onDone) {
-        pl.debug('Downloading SCO content from server', 'id: '+ lessonid);
+        pl.debug('Downloading module content from server', 'id: '+ lessonid);
         if (lessonid in scoExporter.lessons) {
-            pl.info('SCO content already downloaded', lessonid);
+            pl.info('Module content already downloaded', lessonid);
             self.ignoreCnt++;
             onDone();
             return;
         }
         return nlServerApi.scoExport({lessonid: lessonid, mathjax: scoExporter.mathjax})
         .then(function(result) {
-            pl.info('Downloaded SCO content from server', result.html);
+            pl.info('Downloaded module content from server', result.html);
             var image = result.lesson.image;
             if (image) {
                 image = nl.url.lessonIconUrl(image);
@@ -467,7 +495,7 @@ function ParallelDownloadManager(nl, nlServerApi, pl, scoExporter, type, urls, r
                 }
                 result.lesson.image = image;
             }
-            pl.info(nl.fmt2('SCO uses {} resources (assets)', Object.keys(result.resurls).length),
+            pl.info(nl.fmt2('Module uses {} resources (assets)', Object.keys(result.resurls).length),
                 angular.toJson(result.resurls, 2));
             scoExporter.lessons[lessonid] = {lesson: result.lesson, packaged: false};
             var filename = nl.fmt2('{}/{}.html', CONTENT_FOLDER, lessonid);

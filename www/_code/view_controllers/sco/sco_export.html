@@ -1,11 +1,13 @@
 <div class='nl-thin-scroll padding-small'>
-    <div class='nl-dlg-field-name'>Package Title</div>
-    <div class='nl-dlg-field-value nl-forum'>
-        <nl-input fieldmodel='title' fieldtype='text'></nl-input>
-    </div>
-    <div class='nl-dlg-field-name'>SCORM version</div>
-    <div class='nl-dlg-field-value nl-forum'>
-        <nl-select fieldmodel='version'></nl-select>
+    <div ng-hide='scoType == "offline"'>
+        <div class='nl-dlg-field-name'>Package Title</div>
+        <div class='nl-dlg-field-value nl-forum'>
+            <nl-input fieldmodel='title' fieldtype='text'></nl-input>
+        </div>
+        <div class='nl-dlg-field-name'>SCORM version</div>
+        <div class='nl-dlg-field-value nl-forum'>
+            <nl-select fieldmodel='version'></nl-select>
+        </div>
     </div>
     <div ng-hide='data.courseid'>
         <div class='nl-dlg-field-name'>Enter comma separated list of module ids to export</div>
