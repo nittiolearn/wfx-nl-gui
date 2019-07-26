@@ -373,9 +373,10 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
 //-------------------------------------------------------------------------------------------------
 var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg',
 'nlCourseEditor', 'nlCourseCanvas', 'nlServerApi', 'nlGroupInfo', 'nlSendAssignmentSrv',
-'nlMarkup', 'nlTreeListSrv', 'nlTopbarSrv', 'nlExpressionProcessor',
+'nlMarkup', 'nlTreeListSrv', 'nlTopbarSrv', 'nlExpressionProcessor', 'nlReportHelper',
 function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlCourseCanvas, 
-    nlServerApi, nlGroupInfo, nlSendAssignmentSrv, nlMarkup, nlTreeListSrv, nlTopbarSrv, nlExpressionProcessor) {
+    nlServerApi, nlGroupInfo, nlSendAssignmentSrv, nlMarkup, nlTreeListSrv, nlTopbarSrv,
+    nlExpressionProcessor, nlReportHelper) {
     var modeHandler = new ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope);
     var nlContainer = new NlContainer(nl, $scope, modeHandler);
     nlContainer.setContainerInWindow();
@@ -802,9 +803,17 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         _confirmIframeClose(null, _impl);
     };
 
+    // TODO-NOW: remove this code and put in right place
+    // First use in learning_reports
+    function _testReportHelper() {
+        var repHelper = nlReportHelper.getCourseStatusHelper(modeHandler.course, _userInfo.groupinfo);
+        var statusInfo = repHelper.getCourseStatus();
+    }
+
 	$scope.isDetailsShown = false;
 	$scope.pastSelectedItem = null;
 	$scope.onRowClick = function(e, cm) {
+        _testReportHelper();
 		_checkDateTimeRange();
 		if(cm.type == "certificate") return;
 		if(cm.type == "module") {
@@ -1043,7 +1052,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
                 var attend = angular.copy(attended[i]);
                 if(cm.id != attend.id) continue;
                 cm.remarks = attend.remarks;
-                var attend = (attend.attId in _attendanceObj) ? _attendanceObj[attend.attId] : {};
+                attend = (attend.attId in _attendanceObj) ? _attendanceObj[attend.attId] : {};
                 cm.iltPerc = attend.timePerc;
                 if(attend.id) {
                     if(attend.timePerc == 100) 

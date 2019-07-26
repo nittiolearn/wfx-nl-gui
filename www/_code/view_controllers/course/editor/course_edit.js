@@ -334,7 +334,6 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			// possible values will be updated in _updateRatingDropdown
 			valueNamesUpdated: false, valueNames: {}, values: [], 
             updateDropdown: _updateRatingDropdown},
-        {name: 'completionPerc', stored_at: 'module', fields: ['milestone'], text: 'Completion percentage',type: 'number', max:100},
         {name: 'refid', stored_at: 'module', fields: ['lesson'], type: 'lessonlink', contentType: 'integer', text: 'Module-id'},
 		{name: 'maxDuration', stored_at: 'module', fields: ['lesson'], type: 'string', contentType: 'integer', text: 'Time limit (minutes)'},
         {name: 'action', stored_at: 'module', fields: ['link'], type: 'lessonlink', text: 'Action'},
@@ -354,12 +353,14 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'icon', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
         {name: 'text', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'wikitext', valueName: 'textHtml', text: 'Description', group: 'grp_additionalAttrs'},
         {name: 'complete_before', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'number', text: 'Complete before', group: 'grp_additionalAttrs', min:0},
+        {name: 'completionPerc', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Completion percentage',type: 'number', group: 'grp_additionalAttrs'},
+        {name: 'customStatus', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'New status',type: 'string', group: 'grp_additionalAttrs'},
         {name: 'maxAttempts', stored_at: 'module', fields: ['lesson'], type: 'number', text: 'Maximum attempts', group: 'grp_additionalAttrs'},
         {name: 'hide_remarks', stored_at: 'module', fields: ['info', 'link'], type: 'boolean', text: 'Disable remarks', group: 'grp_additionalAttrs'},
         {name: 'autocomplete', stored_at: 'module', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
         {name: 'parentId', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'readonly', debug: true, text: 'Parent ID', group: 'grp_additionalAttrs', readonly: true}, 
         {name: 'id', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'readonly', text: 'Unique ID', group: 'grp_additionalAttrs', readonly: true}, 
-        {name: 'dependencyType', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'readonly', text: 'Dependency type', group: 'grp_additionalAttrs', readonly: true}, 
+        {name: 'dependencyType', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'readonly', text: 'Dependency type', group: 'grp_additionalAttrs', debug: true, readonly: true}, 
     	{name: 'totalItems', stored_at: 'module', fields : ['module'], type: 'readonly', text: 'Total items', group: 'grp_additionalAttrs'},
         {name: 'grp_canvasAttrs', stored_at: 'module', type: 'group', text: 'Canvas properties', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate']},
         {name: 'posX', stored_at: 'module', type: 'number', text: 'X Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate']},
@@ -399,7 +400,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         bgimg: 'Select the background image to be displayed in the canvas when the folder is opened.',
         bgcolor: 'The background image is resized to retain aspect ratio. This could result in horizontal or vertical bands. You can choose the color of the bands to align with the edge of the image.',
         iltduration: 'The planned duration of the instructor led session in minutes.',
-        completionPerc: 'You could let the trainer assess the progress of the course by setting completion percentage for milestone items. If milestone items are present, the completion for a course report is based on the latest milestone reached.',
+        completionPerc: 'The progress percentage for a course is computed based on this attribute. The completion percentage of any item should be greater than or equal to earlier item. If omitted, the system computes this based on number of items.',
+        customStatus: 'A custom progress status for the course may be secified with this attribute. The course report will accordingly show this as the status if the learner reached till this item.',
 		canMarkAttendance: 'Set this to allow learner to mark attendance.',
 		gateFormula: _getGateFormulaHelp(),
 		gatePassscore: 'Provide the pass score to mark status of item for learner.'
@@ -773,7 +775,9 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		if (!_validateMilestoneModule(errorLocation, module)) return false;
 		if (!_validateRatingModule(errorLocation, module)) return false;
 		if (!_validateGateModule(errorLocation, module)) return false;
-        return true;
+
+		if(!_validateCompletionPercentage(errorLocation, module)) return false;
+		return true;
     }
     
     function _validateModuleType(errorLocation, module) {
@@ -816,17 +820,20 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     
     function _validateMilestoneModule(errorLocation, module) {
     	if(module.type != 'milestone') return true;
-		if(!module.completionPerc) return _validateFail(errorLocation, 'Completion percentage', 'Completion percentage is mandatory.', module);
-		if(!_checkMilestonePercentage(module)) return _validateFail(errorLocation, 'Completion percentage', 'Completion percentage for this milestone should be greater than completion percentage of earlier milestone item.', module);
     	return true;
     }
 	
-	function _checkMilestonePercentage(module) {
+	function _validateCompletionPercentage(errorLocation, module) {
+		if(!module.completionPerc) return true;
+		if(module.completionPerc < 0 || module.completionPerc > 100) 
+			return _validateFail(errorLocation, 'Completion percentage', 'Completion percentage should be in range of 0 - 100.', module);
+
 		for(var i=0; i<_allModules.length; i++) {
 			var item = _allModules[i];
-			if(item.type != 'milestone') continue;
+			if(!item.completionPerc) continue;
 			if(module.id == item.id) break;
-			if(item.completionPerc >= module.completionPerc) return false;
+			if(item.completionPerc < module.completionPerc) continue;
+			return _validateFail(errorLocation, 'Completion percentage', 'Completion percentage for this item should be greater than completion percentage of earlier items.', module);
 		}
 		return true;
 	}

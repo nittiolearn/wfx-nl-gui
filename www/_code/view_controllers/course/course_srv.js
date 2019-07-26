@@ -53,8 +53,11 @@ function(nl) {
         if("attendance_version" in attendance) return attendance;
         var newAttendance = {};
         var attended = angular.copy(attendance);
-        var not_attended = ('not_attended' in attendance) ? angular.copy(attendance.not_attended) : {}
-        delete attended['not_attended'];
+        var not_attended = {};
+        if ('not_attended' in attendance) {
+            not_attended = angular.copy(attendance.not_attended);
+            delete attended['not_attended'];
+        }
         for(var key in attended) {
             var repid = parseInt(key);
 			var attendedSessionsList = attendance[repid] || [];
