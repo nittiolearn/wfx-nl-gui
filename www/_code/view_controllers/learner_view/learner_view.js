@@ -181,7 +181,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		if (!_isHome) nlLearnerView.initPageBgImg(_userInfo);
 		return nl.q(function(resolve, reject) {
 			_init(userInfo);
-			_fetchDataIfNeededAndUpdateScope(resolve);
+			nlLearnerViewRecords.reset();
+			_fetchDataIfNeededAndUpdateScope(false, resolve);
 			if(_enableAnnouncements) _loadAndShowAnnouncements(resolve);
 		});
 	}
@@ -260,6 +261,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		ret.selectedTab = ret.tabs[0];
 		ret.onSearch = _onSearch;
 		ret.onFilter = _onFilter;
+		ret.fetchMore = _fetchMore;
 		ret.assignedSections = [
 			{type: 'active', title: 'PENDING', items: []},
 			{type: 'upcoming', title: 'UPCOMING', items: []},
@@ -280,7 +282,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 
 	function _onTabSelect(tab) {
 		$scope.tabData.selectedTab = tab;
-		_fetchDataIfNeededAndUpdateScope();
+		_fetchDataIfNeededAndUpdateScope(false, null);
 	}
 
 	function _onSearch(event) {
@@ -298,14 +300,15 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		_updateAssignedTab();
 	}
 
-	function _fetchDataIfNeededAndUpdateScope(resolve) {
+	function _fetchMore(event) {
+		if (!$scope.tabData.canFetchMore) return;
+		_fetchDataIfNeededAndUpdateScope(true, null);
+	}
+
+	function _fetchDataIfNeededAndUpdateScope(fetchMore, resolve) {
 		var tabid = $scope.tabData.selectedTab.id;
-		if (!_lrFetchInitiated && (tabid == 'assigned' || tabid == 'summary')) {
-			nlDlg.showLoadingScreen();
-			nlDlg.popupStatus('Fetching learning records from server ...', false);
-			_getLearningRecordsFromServer(false, function(result) {
-				nlDlg.hideLoadingScreen();
-				nlDlg.popdownStatus(0);
+		if ((!_lrFetchInitiated || fetchMore) && (tabid == 'assigned' || tabid == 'summary')) {
+			_getLearningRecordsFromServer(fetchMore, function(result) {
 				if (result) _updateCurrentTab(tabid);
 				if (resolve) resolve(true);
 			});
@@ -320,23 +323,33 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 	function _getLearningRecordsFromServer(fetchMore, resolve) {
 		_lrFetchInitiated = true;
 		var params = {containerid: 0, type: 'all', assignor: 'all', learner: 'me'};
-		nlLearnerViewRecords.reset();
 
+		var dontHideLoading = true;
+		nlDlg.popupStatus('Fetching learning records from server ...', false);
+		nlDlg.showLoadingScreen();
 		function _onFetchComplete(results) {
-			for (var i=0; i<results.length; i++) nlLearnerViewRecords.addRecord(results[i]);
+			nlDlg.hideLoadingScreen();
+			if (results) {
+				for (var i=0; i<results.length; i++) nlLearnerViewRecords.addRecord(results[i]);
+			}
 			$scope.tabData.dataLoaded = true;
 			$scope.tabData.records = nlLearnerViewRecords.getRecords();
 			$scope.tabData.recordsLen = Object.keys($scope.tabData.records).length;
+			$scope.tabData.canFetchMore = _pageFetcher.canFetchMore();
+			var msg = 'Learning records fetched.';
+			if ($scope.tabData.canFetchMore) {
+				msg += ' Press on the fetch more icon to fetch more from server.';
+			}
+			nlDlg.popupStatus(msg);
 			resolve(true);
 		}
 
-		var dontHideLoading = true;
         _pageFetcher.fetchPage(nlServerApi.learningReportsGetList, params, fetchMore, function(results) {
 			if (!results) {
-				resolve(false);
+				_onFetchComplete(false);
 				return;
 			}
-			var msg = nl.t('{} learning records fetched. Fetching assignment and course information from server ...', results.length);
+			var msg = nl.t('Fetching assignment and course information from server ...', results.length);
 			nlDlg.popupStatus(msg, false);
 			for(var i=0; i<results.length; i++) _subFetcher.markForFetching(results[i]);
 			if (_subFetcher.fetchPending()) {

@@ -735,8 +735,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 	function _updateCsvInfoOrLinkRows1(report, item, defaultRowObj) {
         defaultRowObj._assignTypeStr = item.type == 'info' ? 'Info inside course' : 'Link inside course';
         defaultRowObj._itemname = item.name;
-        var statsinfo = report.repcontent.statusinfo ? report.repcontent.statusinfo[item.id] : null;
-        if(statsinfo) {
+        var statusinfo = report.repcontent.statusinfo ? report.repcontent.statusinfo[item.id] : null;
+        if(statusinfo) {
             defaultRowObj._status = 'done';
             defaultRowObj.updated = report.raw_record.updated;
             defaultRowObj.remarks = statusinfo.remarks;

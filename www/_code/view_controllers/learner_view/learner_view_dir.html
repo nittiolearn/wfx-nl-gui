@@ -53,6 +53,12 @@
                             <i ng-show='tabData.cls == "nl-vcard2"' class='icon ion-navicon-round'></i>
                         </div>
                     </div>
+                    <div class='lnblue2 fsh5 padding-mid'
+                        ng-show='tabData.canFetchMore'
+                        title='Fetch more learning records from the server'
+                        ng-click='tabData.fetchMore($event)'>
+                        <i class='icon ion-refresh'></i>
+                    </div>
                 </div>
                 <!-- Toolbar icons can come here -->
             </div>

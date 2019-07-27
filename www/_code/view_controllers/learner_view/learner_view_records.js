@@ -172,7 +172,7 @@
                 raw_record.authorname = courseAssignment.info['courseauthor'];
             }
             var milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
-            repcontent.content.modules = course.content.modules;
+            repcontent.content.modules = course.content.modules || [];
             for(var i=0; i<course.content.modules.length; i++) {
                 var elem = course.content.modules[i];
                 if(elem.type != 'milestone') continue;
