@@ -136,7 +136,7 @@
         
         function _processCourseReport(raw_record) {
             var repcontent = _updateCommonParams(raw_record, 'course');
-            if(!repcontent.content) return null;
+            if(!repcontent.content) repcontent.content = {};
             var user = _userInfo;
             var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
                 timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
