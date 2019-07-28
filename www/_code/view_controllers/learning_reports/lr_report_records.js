@@ -14,8 +14,8 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrCourseRecords', 'nlLrFilter', 'nlLrAssignmentRecords', 'nlCourse', 'nlExpressionProcessor',
-function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLrAssignmentRecords, nlCourse, nlExpressionProcessor) {
+var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrCourseRecords', 'nlLrFilter', 'nlLrAssignmentRecords', 'nlCourse', 'nlExpressionProcessor', 'nlReportHelper',
+function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLrAssignmentRecords, nlCourse, nlExpressionProcessor, nlReportHelper) {
     var self = this;
     
     var _records = {};
@@ -50,7 +50,6 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
             report = _processCourseReport(report);
         else if (report.ctype == _nl.ctypes.CTYPE_MODULE)
             report = _processModuleReport(report);
-        else return null;
         if (!report) return null;
         var rid = report.raw_record.id;
         _records[rid] = report;
@@ -197,6 +196,10 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:'+report.assignment) || {};
         if (!courseAssignment.info) courseAssignment.info = {};
         if (!course) course = nlLrCourseRecords.getCourseInfoFromReport(report, repcontent);
+        
+        var repHelper = nlReportHelper.getCourseStatusHelper(report, _userInfo.groupinfo, courseAssignment, course);
+        var _statusinfo = repHelper.getCourseStatus();
+
         var contentmetadata = 'contentmetadata' in course ? course.contentmetadata : {};
         report._grade = contentmetadata.grade || '';
         report.subject = contentmetadata.subject || ''; 
@@ -204,95 +207,60 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
             timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
             internalIdentifier:report.id, nCerts: course.certificates.length, iltTimeSpent: 0, iltTotalTime: 0};
-            
-        var started = false;
+
+        
         var isTrainerControlled = false;
         var latestMilestone = null;
-        var milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
-        for(var i=0; i<course.content.modules.length; i++) {
-            var elem = course.content.modules[i];
-            if(elem.type != 'milestone') continue;
-            isTrainerControlled = true;
-            if(elem.id in milestone && milestone[elem.id].status == 'done') {
-                started = true;
-                latestMilestone = milestone[elem.id];
-                latestMilestone['perc'] = elem.completionPerc;
-                latestMilestone['name'] = elem.name;
 
-            }
-        }
+        stats.nOthers = course.nonLessons.length;
+        stats.nLessons = course.lessons.length;
 
-        if(course.content.blended) {
-            _updateIltParameters(report, course, courseAssignment, repcontent, stats);
-        }
-        var milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
-        if(Object.keys(milestone).length > 0) {
-            for(var key in milestone) {
-                if (!milestone[key]) continue;
-                if(!repcontent.statusinfo) repcontent.statusinfo = {};
-                if(!repcontent.statusinfo[key]) repcontent.statusinfo[key] = {};
-                repcontent.statusinfo[key].status = milestone[key].status;
-                repcontent.statusinfo[key].remarks = milestone[key].comment;
-                repcontent.statusinfo[key].reached = milestone[key].reached ? nl.fmt.json2Date(milestone[key].reached) : '';
-                repcontent.statusinfo[key].updated = milestone[key].updated ? nl.fmt.json2Date(milestone[key].updated) : '';
-            }
-        }
-
-        _updateRatingItems(report, course, courseAssignment, repcontent, stats);
-        var statusinfo = repcontent.statusinfo || {};
-        var items = course.nonLessons;
-        stats.nOthers = items.length;
         stats.nOthersDone = 0;
-        for (var i=0; i<items.length; i++) {
-            var cid = items[i];
-            var sinfo = statusinfo[cid];
-            if (sinfo && sinfo.status == 'done') {
-                stats.nOthersDone++;
-                started = true;
+        stats.nLessonsDone = 0
+
+
+        var itemsStats = _statusinfo.itemIdToInfo;
+        repcontent.statusinfo = _statusinfo.itemIdToInfo;
+ 
+        for(var i=0; i<course.content.modules.length; i++) {
+            var item = course.content.modules[i];
+            if(item.type == 'module') continue;
+            if(item.type == 'lesson') {
+                if(itemsStats[item.id].status == 'pending') continue;
+                if(itemsStats[item.id].status == 'started') {
+                    if(itemsStats[item.id].timeSpentSeconds) stats.timeSpentSeconds += itemsStats[item.id].timeSpentSeconds;
+                    if(!itemsStats[item.id].selfLearningMode && itemsStats[item.id].nAttempts) {
+                        stats.nAttempts += itemsStats[item.id].nAttempts;
+                        stats.nLessonsAttempted++;
+                    }
+                    stats.timeSpentSeconds += itemsStats[item.id].timeSpentSeconds || 0;
+                    continue;
+                }
+                if(_isEndState(itemsStats[item.id].status)) {
+                    if(itemsStats[item.id].status == 'success' || itemsStats[item.id].status == 'partial_success') 
+                        stats.nLessonsPassed++;
+                    else
+                        stats.nLessonsFailed++;
+                    if(!itemsStats[item.id].selfLearningMode) {
+                        stats.nQuiz++;
+                        stats.nScore += itemsStats[item.id].score;
+                    }
+                }
+            } else if(item.type == 'milestone'){
+                isTrainerControlled = true;
+                if(_isEndState(itemsStats[item.id].status)) {
+                    latestMilestone = itemsStats[item.id];
+                    stats.nOthersDone++;
+                }
+            } else {
+                if(_isEndState(itemsStats[item.id].status)) {
+                    stats.nOthersDone++;
+                    if(item.type == 'iltsession') stats.iltTimeSpent = itemsStats[item.id].iltTimeSpent * 60;
+                }
             }
         }
 
-        var lessons = course.lessons;
-        if (!repcontent.lessonReports) repcontent.lessonReports = {};
-        repcontent.latestLessonReports = angular.copy(repcontent.lessonReports);
-        var lessonReps = repcontent.lessonReports;
-        for (var i=0; i<lessons.length; i++) {
-            stats.nLessons++;
-            var lid = lessons[i].id;
-            var rep = lessonReps[lid];
-            if (!rep) continue;
-            var pastLessonReport = (repcontent['pastLessonReports']) ? angular.copy(repcontent['pastLessonReports'][lid]) : null;
-            if(pastLessonReport) {
-                rep = _getMaxScoredReport(rep, pastLessonReport);
-                lessonReps[lid] = rep; 
-            }
-            started = true;
-            if (!rep.selfLearningMode && rep.attempt) {
-                stats.nAttempts += rep.attempt;
-                stats.nLessonsAttempted++;
-            }
-            stats.timeSpentSeconds += rep.timeSpentSeconds || 0;
-            if (!rep.completed) continue;
-            if (rep.selfLearningMode) {
-                rep.maxScore = 0;
-                rep.score = 0;
-            }
-            if (rep.maxScore) {
-                stats.nScore += rep.score;
-                stats.nMaxScore += rep.maxScore;
-                stats.nQuiz++;
-            }
-            var perc = rep.maxScore ? Math.round(rep.score / rep.maxScore * 100) : 100;
-            if (!rep.passScore || perc >= rep.passScore) stats.nLessonsPassed++;
-            else stats.nLessonsFailed++;
-        }
-        stats.nLessonsDone = stats.nLessonsPassed + stats.nLessonsFailed;
-        var RELATIVE_LESSON_WEIGHT=1;
-        var weightedProgressMax = stats.nLessons*RELATIVE_LESSON_WEIGHT + stats.nOthers;
-        var weightedProgress = stats.nLessonsDone*RELATIVE_LESSON_WEIGHT + stats.nOthersDone;
-        var totalItems = stats.nLessons + stats.nOthers;
-        var completedItems = stats.nLessonsDone + stats.nOthersDone;
-        if((totalItems != completedItems) && (nlLrFilter.getType() == 'course_assign')) {
+        if((!_isEndState(_statusinfo.status)) && (nlLrFilter.getType() == 'course_assign')) {
             if(Object.keys(_reminderDict).length == 0) {
                 _reminderDict['name'] = repcontent.name;
                 _reminderDict['assigned_by'] = repcontent.sendername;
@@ -311,6 +279,11 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         }
         
 
+        stats.nLessonsDone = stats.nLessonsPassed + stats.nLessonsFailed;
+        var RELATIVE_LESSON_WEIGHT=1;
+        var weightedProgressMax = stats.nLessons*RELATIVE_LESSON_WEIGHT + stats.nOthers;
+        var weightedProgress = stats.nLessonsDone*RELATIVE_LESSON_WEIGHT + stats.nOthersDone;
+        var started = (_statusinfo.status == 'pending') ? false : true; 
         if(isTrainerControlled) {
             if(latestMilestone) {
                 stats.percComplete = latestMilestone['perc'];
@@ -360,95 +333,12 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         return ret;
     }
 
-    function _updateRatingItems(report, course, courseAssignment, repcontent, stats) {
-        var rating = courseAssignment.rating ? angular.fromJson(courseAssignment.rating) : {};
-        for(var i=0; i<course.content.modules.length; i++) {
-            var elem = course.content.modules[i];
-            if(elem.type != 'rating' && elem.type != 'gate') continue;
-            if(elem.type == 'rating') {
-                var userRating = rating[report.id] || [];
-                var ratingFound = false;
-                for(var j=0; j<userRating.length; j++) {
-                    if(userRating[j].id == elem.id && userRating[j].attId !== '') {
-                        ratingFound = true;
-                        var ratingObj = _getRatingObj(elem.rating_type);
-                        if(!repcontent.statusinfo) repcontent.statusinfo = {};
-                        if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
-                        var status = _setStatusOfRatingItem(ratingObj, userRating[j].attId);
-                        repcontent.statusinfo[elem.id].status =  'done';
-                        repcontent.statusinfo[elem.id].rating = _computeStringOnScore(ratingObj, userRating[j].attId);
-                        repcontent.statusinfo[elem.id].ratingScore = userRating[j].attId;
-                        repcontent.statusinfo[elem.id].passScore = ratingObj.passScore || '';
-                        repcontent.statusinfo[elem.id].remarks = userRating[j].remarks || '';
-                        repcontent.statusinfo[elem.id].stateStr = status;
-                        repcontent.statusinfo[elem.id].started = nl.fmt.json2Date(userRating[j].update || '');
-                        repcontent.statusinfo[elem.id].updated = nl.fmt.json2Date(userRating[j].updated || '');
-                    }
-                }                
-                if(!ratingFound) {
-                    if(!repcontent.statusinfo) repcontent.statusinfo = {};
-                    if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
-                    repcontent.statusinfo[elem.id].status = 'pending';
-                    repcontent.statusinfo[elem.id].stateStr = 'pending';
-                    repcontent.statusinfo[elem.id].started = '';
-                    repcontent.statusinfo[elem.id].updated = '';
-                }
-            }
-            if(elem.type == 'gate') {
-                if(!repcontent.statusinfo) repcontent.statusinfo = {};
-                if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
-                repcontent.statusinfo[elem.id].status = 'pending';
-                var payload = {strExpression: elem.gateFormula, dictAvps: _getAvpsForGate(elem, course.content.modules, repcontent)};
-                nlExpressionProcessor.process(payload)
-                if(payload.result !== 0) {
-                    repcontent.statusinfo[elem.id].status = 'done';
-                    repcontent.statusinfo[elem.id].passScore = elem.gatePassscore;
-                    repcontent.statusinfo[elem.id].score = payload.result;
-                }
-            }
-        }
+    function _isEndState(status) {
+        return status == 'failed' || status == 'success' || status == 'partial_success';
     }
 
-    function _getAvpsForGate(elem, modules, repcontent) {
-        var lessonReports = repcontent.lessonReports || {};
-        var statusinfo = repcontent.statusinfo || {};
-        var ret = {};
-        for(var j=0; j<modules.length; j++) {
-            var cm = modules[j];
-            if(cm.type == 'lesson') {
-                var rep = lessonReports[cm.id] || {};
-                ret[cm.id] = null;
-                if(rep.completed) ret[cm.id] = (rep.score/rep.maxScore)*100;
-                if(rep.selfLearningMode && rep.completed) ret[cm.id] = 100;
-            } else {
-                var rep = statusinfo[cm.id] || {};
-                ret[cm.id] = null;
-                if(rep.status == 'done') ret[cm.id] = 100;
-            }
-            if(elem.id == cm.id) break;
-        }
-        return ret;
-    }
 
-    function _getRatingObj(ratingtype) {
-        var ratings = _userInfo.groupinfo.ratings || []
-        for(var i=0; i<ratings.length; i++) {
-            var item = ratings[i];
-            if(ratingtype == item.id) return item;
-        }
-        return {};
-    }
-
-    function _computeStringOnScore(ratingObj, score) {
-        if(Object.keys(ratingObj).length == 0) return score;
-        if(ratingObj.type == 'number') return score;
-        if(ratingObj.type == 'status' || ratingObj.type == 'select') {
-            for(var i=0; i<ratingObj.values.length; i++) {
-                var val = ratingObj.values[i];
-                if(val.p == score) return val.v;
-            }
-        }
-    }
+    
 
     function _setStatusOfRatingItem(selectedRating, ratingScore) {
         if(ratingScore <= selectedRating.lowPassScore)
@@ -459,46 +349,6 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
             return 'completed';
     }
         
-    function _updateIltParameters(report, course, courseAssignment, repcontent, stats) {
-        var attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
-            attendance = nlCourse.migrateCourseAttendance(attendance);
-        var notAttended = attendance.not_attended || {};
-        for(var i=0; i<course.content.modules.length; i++) {
-            var elem = course.content.modules[i];
-            if(courseAssignment.info.modifiedILT && courseAssignment.info.modifiedILT[elem.id]) elem.iltduration = courseAssignment.info.modifiedILT[elem.id];
-            if(elem.type != 'iltsession') continue;
-            stats.iltTotalTime += elem.iltduration;
-            var userAttendance = attendance[report.id] || [];
-            var userAttendanceFound = false;
-            for(var j=0; j<userAttendance.length; j++) {
-                var attObj = _attendanceObj[userAttendance[j].attId] || {id: userAttendance[j].attId, name: userAttendance[j].attId, remarks: userAttendance[j].remarks, timePerc: 0};
-                if(userAttendance[j].id == elem.id && userAttendance[j].attId != '') {
-                    userAttendanceFound = true;
-                    if(!repcontent.statusinfo) repcontent.statusinfo = {};
-                    if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
-                    repcontent.statusinfo[elem.id].status = 'done';
-                    repcontent.statusinfo[elem.id].state = attObj.name;
-                    repcontent.statusinfo[elem.id].stateStr = attObj.id;
-                    repcontent.statusinfo[elem.id].remarks = userAttendance[j].remarks || '';
-                    repcontent.statusinfo[elem.id].iltTotalTime = elem.iltduration;
-                    repcontent.statusinfo[elem.id].iltTimeSpent = (attObj.timePerc/100)*elem.iltduration;
-                    repcontent.statusinfo[elem.id].started = nl.fmt.json2Date(userAttendance[j].update || '');
-                    repcontent.statusinfo[elem.id].updated = nl.fmt.json2Date(userAttendance[j].updated || '');
-                    stats.iltTimeSpent += (attObj.timePerc/100)*(elem.iltduration*60);
-                }
-            }
-            if(!userAttendanceFound) {
-                if(!repcontent.statusinfo) repcontent.statusinfo = {};
-                if(!repcontent.statusinfo[elem.id]) repcontent.statusinfo[elem.id] = {};
-                repcontent.statusinfo[elem.id].status = 'pending';
-                repcontent.statusinfo[elem.id].state = 'Not marked';
-                repcontent.statusinfo[elem.id].stateStr = 'pending';
-                repcontent.statusinfo[elem.id].iltTotalTime = elem.iltduration;
-                repcontent.statusinfo[elem.id].started = '';
-                repcontent.statusinfo[elem.id].updated = '';
-        }
-        }
-    }
 
     function _isConditionMet(lastItem, repcontent) {
         var prereqs = lastItem.start_after || [];

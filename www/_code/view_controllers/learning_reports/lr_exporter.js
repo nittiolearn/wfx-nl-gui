@@ -690,7 +690,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var statsinfo = report.repcontent.statusinfo ? report.repcontent.statusinfo[rating.id] : null;
         if(statsinfo) {
             defaultRowObj._status = statsinfo.rating === 0 ? "0" : statsinfo.rating;
-            defaultRowObj._score = statsinfo.ratingScore === 0 ? "0" : statsinfo.ratingScore;
+            defaultRowObj._score = statsinfo.ratingScore === 0 ? "0" : statsinfo.score;
             defaultRowObj._passScoreStr = statsinfo.passScore || '';
             defaultRowObj.remarks = statsinfo.remarks || '';
             defaultRowObj.started = statsinfo.started;
@@ -715,19 +715,13 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 	function _updateCsvMilestoneRows1(report, milestone, defaultRowObj) {
         defaultRowObj._assignTypeStr = 'Milestone inside course';
         defaultRowObj._itemname = milestone.name;
-        var statsinfo = report.repcontent.statusinfo ? report.repcontent.statusinfo[milestone.id] : null;
-        if(statsinfo && statsinfo.status == 'done') {
-            defaultRowObj._status = 'done';
+        var statusinfo = report.repcontent.statusinfo ? report.repcontent.statusinfo[milestone.id] : null;
+        if(statusinfo) {
+            defaultRowObj._status = statusinfo.status;
             defaultRowObj._passScoreStr = milestone.completionPerc;
-            defaultRowObj.remarks = statsinfo.remarks;
-            defaultRowObj.ended = statsinfo.reached;
-            defaultRowObj.updated = statsinfo.updated;
-        } else {
-            if(!statusinfo) statusinfo = {};
-            defaultRowObj._status = 'pending';
-            defaultRowObj.remarks = statsinfo.remarks || '';
-            defaultRowObj.ended = statsinfo.reached ? statsinfo.reached : '';
-            defaultRowObj.updated = statsinfo.updated ? statsinfo.updated : '';
+            defaultRowObj.remarks = statusinfo.remarks || '';
+            defaultRowObj.ended = statusinfo.reached ? statusinfo.reached : '';
+            defaultRowObj.updated = statusinfo.updated ? statusinfo.updated : '';
         }
         ctx.courseDetailsRow.push(nlExporter.getCsvRow(_hCourseDetailsRow, defaultRowObj));
 	}

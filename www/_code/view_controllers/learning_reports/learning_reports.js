@@ -1020,6 +1020,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			dlgScope.chartInfo = ret;
 		} else if(dlgScope.selectedSession.type == 'milestone') {
 			var ret = {labels: _milestoneLabels, colours: _milestoneColors};
+
 			if(milestone[dlgScope.selectedSession.id] && milestone[dlgScope.selectedSession.id].status == 'done') {
 				ret.data = [Object.keys(learningRecords).length, 0];
 				dlgScope.chartInfo = ret;
@@ -1075,39 +1076,41 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			for(var j=0; j<ret.length; j++) {
 				if(ret[j].type == 'module') continue;
 				if(ret[j].type == 'lesson') {
-					var report = repcontent.lessonReports[ret[j].id];
-					if(report && report.completed) {
+					var report = repcontent.statusinfo[ret[j].id];
+					if(_isEndState(report.status)) {
 						if(report.selfLearningMode) {
 							ret[j].completed.push({id: parseInt(key), name: learningRecords[key].user.name});
 						} else {
-							var passScore = report.passScore || 0;
-							var score = report.score || 0;
-							var percScore = (report.score/report.maxScore)*100;
-							if(percScore >= passScore)
-								ret[j].completed.push({id: parseInt(key), name: learningRecords[key].user.name});
-							else{
+							if(report.status == 'failed') 
 								ret[j].failed.push({id: parseInt(key), name: learningRecords[key].user.name});
-							}
+							else 
+								ret[j].completed.push({id: parseInt(key), name: learningRecords[key].user.name});
 						}
-					} else if(report && report.started){
+					} else if(report.status == 'started'){
 						ret[j].started.push({id: parseInt(key), name: learningRecords[key].user.name});
 					} else {
 						ret[j].pending.push({id: parseInt(key), name: learningRecords[key].user.name});
 					}
 				} else if(ret[j].type == 'iltsession'){
 					var report = 'statusinfo' in repcontent ? repcontent.statusinfo[ret[j].id] : {};
-					if(report && report.stateStr && report.stateStr == 'pending') {
+					if(!report.status || report.status == 'pending') {
 						ret[j].pending.push({id: parseInt(key), name: learningRecords[key].user.name});
 					} else {
 						ret[j][report.stateStr].push({id: parseInt(key), name: learningRecords[key].user.name});
 					}
 				} else if(ret[j].type == 'rating'){
 					var report = 'statusinfo' in repcontent ? repcontent.statusinfo[ret[j].id] : {};
-					if(report && report.stateStr)
-						ret[j][report.stateStr].push({id: parseInt(key), name: learningRecords[key].user.name});
+					if(report && report.status != 'pending') {
+						if(report.status == 'success')
+							ret[j].completed.push({id: parseInt(key), name: learningRecords[key].user.name});
+						else
+							ret[j][report.status].push({id: parseInt(key), name: learningRecords[key].user.name});
+					} else {
+						ret[j].pending.push({id: parseInt(key), name: learningRecords[key].user.name});    					
+					}
 				} else {
 					var report = 'statusinfo' in repcontent ? repcontent.statusinfo[ret[j].id] : {};
-					if(report && report.status == 'done') {
+					if(_isEndState(report.status)) {
 						ret[j].completed.push({id: parseInt(key), name: learningRecords[key].user.name});
 					} else {
 						ret[j].pending.push({id: parseInt(key), name: learningRecords[key].user.name});    					
@@ -1118,6 +1121,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return ret;
 	}
 
+    function _isEndState(status) {
+        return status == 'failed' || status == 'success' || status == 'partial_success';
+    }
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	//Mark milestone for items inside the course
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------

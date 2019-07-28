@@ -33,10 +33,13 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, report, groupin
 
     //--------------------------------------------------------------------------------
     // Implementation
-    var _statusinfo = report.statusinfo || {};
-    var _lessonReports = report.lessonReports || {};
-    var _pastLessonReports = report.pastLessonReports || {};
-    var _modules = ((course || courseAssign || report || {}).content || {}).modules || []; 
+    var repcontent = angular.fromJson(report.content);
+    var _statusinfo = repcontent.statusinfo || {};
+    var _lessonReports = repcontent.lessonReports || {};
+    var _pastLessonReports = repcontent.pastLessonReports || {};
+    var _modifiedILT = courseAssign.info.modifiedILT || {}
+ 
+    var _modules = ((course || courseAssign || repcontent || {}).content || {}).modules || []; 
     var _fromDate = (courseAssign || {}).not_before ||  report.not_before || report.created;
     if (_fromDate) _fromDate = nl.fmt.json2Date(_fromDate);
     var _userAttendanceDict = {};
@@ -145,26 +148,34 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, report, groupin
 
     function _getRawStatusOfLesson(cm, itemInfo) {
         var linfo = _lessonReports[cm.id] || null;
+        itemInfo.selfLearningMode = false;
         if (linfo === null) {
             itemInfo.rawStatus = 'pending';
             itemInfo.score = null;
             return;
         }
+        itemInfo.nAttempts = linfo.attempt || null;
         if (!linfo.completed) {
             itemInfo.rawStatus = 'started';
             itemInfo.score = null;
+            itemInfo.timeSpentSeconds = linfo.timeSpentSeconds || 0;
+            itemInfo.selfLearningMode = linfo.selfLearningMode || false;
             return;
         }
         if (linfo.selfLearningMode) {
             itemInfo.rawStatus = 'success';
             itemInfo.score = 100;
+            itemInfo.timeSpentSeconds = linfo.timeSpentSeconds || 0;
+            itemInfo.selfLearningMode = true;
             return;
         }
         var pastInfo = _pastLessonReports[cm.id] || {};
         var maxPerc = _getPerc(linfo);
+        var totalTimeSpent = linfo.timeSpentSeconds;
         for(var i=pastInfo.length-1; i>=0; i--) {
             var pastRep = pastInfo[i];
             if (!pastRep.completed || !pastRep.reportId) continue; // For data created by old bug (see #956)
+            totalTimeSpent += pastRep.timeSpentSeconds;
             var pastPerc = _getPerc(pastRep);
             if(pastPerc <= maxPerc) continue;
             maxPerc = pastPerc;
@@ -172,6 +183,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, report, groupin
         itemInfo.score = maxPerc;
         itemInfo.passScore = parseInt(linfo.passScore || 0);
         itemInfo.rawStatus = (itemInfo.score >= itemInfo.passScore) ? 'success' : 'failed';
+        itemInfo.timeSpentSeconds = totalTimeSpent;
     }
 
     function _getPerc(linfoItem) {
@@ -183,34 +195,73 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, report, groupin
     function _getRawStatusOfIltSession(cm, itemInfo) {
         var userCmAttendance = _userAttendanceDict[cm.id] || {};
         var grpAttendanceObj = _grpAttendanceDict[userCmAttendance.attId];
+        cm.iltduration = (cm.id in _modifiedILT) ? _modifiedILT[cm.id] : cm.iltduration;
         if (!userCmAttendance || !grpAttendanceObj) {
             itemInfo.score = null;
             itemInfo.rawStatus = 'pending';
+            itemInfo.iltTotalTime = cm.iltduration;
             return;
         }
         itemInfo.score = grpAttendanceObj.timePerc;
         itemInfo.rawStatus = itemInfo.score == 100 ? 'success' : itemInfo.score == 0 ? 'failed' : 'partial_success';
+        itemInfo.iltTotalTime = cm.iltduration;
+        itemInfo.iltTimeSpent = ((grpAttendanceObj.timePerc/100)*cm.iltduration);
+        itemInfo.state = grpAttendanceObj.name;
+        itemInfo.stateStr = grpAttendanceObj.id;
+        itemInfo.remarks = userCmAttendance.remarks || '';
+        itemInfo.started = nl.fmt.json2Date(userCmAttendance.update || '');
+        itemInfo.updated = nl.fmt.json2Date(userCmAttendance.updated || '');
         if (grpAttendanceObj.isAttrition) itemInfo.isAttrition = true;
     }
 
     function _getRawStatusOfRating(cm, itemInfo) {
         var userCmRating = _userRatingDict[cm.id] || {};
         var grpRatingObj = _grpRatingDict[cm.rating_type];
-        if (!userCmRating || !grpRatingObj) {
+        if (!grpRatingObj || !userCmRating || (!userCmRating.attId && userCmRating.attId != 0)) {
             itemInfo.score = null;
             itemInfo.rawStatus = 'pending';
             return;
         }
-        itemInfo.score = userCmRating.attId;
+        itemInfo.score = userCmRating.attId || 0;
         itemInfo.rawStatus = (itemInfo.score <= grpRatingObj.lowPassScore) ? 'failed' :
             (itemInfo.score >= grpRatingObj.passScore) ? 'success' : 'partial_success';
         itemInfo.passScore = grpRatingObj.passScore;
+        itemInfo.remarks = userCmRating.remarks || '';
+        itemInfo.started = nl.fmt.json2Date(userCmRating.update || '');
+        itemInfo.updated = nl.fmt.json2Date(userCmRating.updated || '');
+        itemInfo.stateStr = _setStatusOfRatingItem(grpRatingObj, userCmRating.attId)
+        itemInfo.rating = _computeRatingStringOnScore(grpRatingObj, itemInfo.score);
+    }
+
+    function _computeRatingStringOnScore(ratingObj, score) {
+        if(Object.keys(ratingObj).length == 0) return score;
+        if(ratingObj.type == 'number') return score;
+        if(ratingObj.type == 'status' || ratingObj.type == 'select') {
+            for(var i=0; i<ratingObj.values.length; i++) {
+                var val = ratingObj.values[i];
+                if(val.p == score) return val.v;
+            }
         }
+    }
+
+    function _setStatusOfRatingItem(selectedRating, ratingScore) {
+        if(ratingScore <= selectedRating.lowPassScore)
+            return 'failed';
+        else if(selectedRating.lowPassScore < ratingScore && ratingScore < selectedRating.passScore)
+            return 'partial_success';
+        else 
+            return 'completed';
+    }
 
     function _getRawStatusOfMilestone(cm, itemInfo) {
         itemInfo.rawStatus = (cm.id in _milestone) && _milestone[cm.id].status == 'done' ?
             'success' : 'pending';
         itemInfo.score = itemInfo.rawStatus == 'pending' ? null : 100;
+        itemInfo.completionPerc = cm.completionPerc;
+        itemInfo.remarks = (cm.id in _milestone) ? _milestone[cm.id].comment : "";
+        itemInfo.reached = (_milestone[cm.id] && _milestone[cm.id].reached) ? nl.fmt.json2Date(_milestone[cm.id].reached) : "";
+        itemInfo.updated = (_milestone[cm.id] && _milestone[cm.id].updated) ? nl.fmt.json2Date(_milestone[cm.id].updated) : "";
+
     }
 
     function _getRawStatusOfGate(cm, itemInfo, itemIdToInfo) {
