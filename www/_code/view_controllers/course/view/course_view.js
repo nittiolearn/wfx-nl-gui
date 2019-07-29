@@ -912,6 +912,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
 
     function _updateRatingData(cm, itemInfo) {
         cm.ratingScore = itemInfo.score;
+        cm.ratingStr = itemInfo.rating;
         cm.remarks = itemInfo.remarks || '';
     }
 
@@ -926,6 +927,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         cm.started = itemInfo.started || null;
         cm.ended = itemInfo.ended || null;
         cm.time = itemInfo.timeSpentSeconds || null;
+        cm.passScore = itemInfo.passScore || null;
+        cm.attempt = itemInfo.attempt || null;
     }
     
     function _updateModuleData(cm, itemIdToInfo) {

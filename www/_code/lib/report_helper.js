@@ -154,6 +154,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (linfo === null) {
             itemInfo.rawStatus = 'pending';
             itemInfo.score = null;
+            itemInfo.attempt = null;
             return;
         }
         itemInfo.nAttempts = linfo.attempt || null;
@@ -169,8 +170,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             itemInfo.score = 100;
             itemInfo.timeSpentSeconds = linfo.timeSpentSeconds || 0;
             itemInfo.selfLearningMode = true;
-            itemInfo.started = linfo.started || null;
-            itemInfo.ended = linfo.ended || null;
+            itemInfo.started = nl.fmt.json2Date(linfo.started || '');
+            itemInfo.ended = nl.fmt.json2Date(linfo.ended || '');
             return;
         }
         var pastInfo = _pastLessonReports[cm.id] || {};
@@ -239,12 +240,13 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     function _getRawStatusOfRating(cm, itemInfo) {
         var userCmRating = _userRatingDict[cm.id] || {};
         var grpRatingObj = _grpRatingDict[cm.rating_type];
-        if (!grpRatingObj || !userCmRating || (!userCmRating.attId && userCmRating.attId != 0)) {
+        if (!grpRatingObj || !userCmRating || (!('attId' in userCmRating)) || userCmRating.attId === "") {
             itemInfo.score = null;
             itemInfo.rawStatus = 'pending';
+            itemInfo.remarks = userCmRating.remarks || '';
             return;
         }
-        itemInfo.score = userCmRating.attId || 0;
+        itemInfo.score = userCmRating.attId;
         itemInfo.rawStatus = (itemInfo.score <= grpRatingObj.lowPassScore) ? 'failed' :
             (itemInfo.score >= grpRatingObj.passScore) ? 'success' : 'partial_success';
         itemInfo.passScore = grpRatingObj.passScore;

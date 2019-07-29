@@ -401,7 +401,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			tables: []
 		}]};
 
-		if (_groupInfo.props.features['etm']) {
+		var showBatch = false;
+		if (showBatch) {
 			ret.tabs.splice(1, 0, {
 				title : 'Click here to view batch progress',
 				name: 'Batch',
@@ -1460,17 +1461,17 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			for(var j=0; j<ret.length; j++) {
 				var statusinfo = learningRecords[key].repcontent.statusinfo[ret[j].id]
 				var ratingid = ret[j].rating_type;
-				if(statusinfo.state == 'pending') {
+				if(statusinfo.status == 'pending') {
 					if(ret[j].ratingType == 'input') {
-						ret[j].rating.push({id: parseInt(key), name: user.name, rating: null, userid: user.user_id, remarks: ''});
+						ret[j].rating.push({id: parseInt(key), name: user.name, rating: null, userid: user.user_id, remarks: statusinfo.remarks || ''});
 					} else if(ret[j].ratingType == 'select') {
-						ret[j].rating.push({id: parseInt(key), name: user.name, rating: {id: ''}, userid: user.user_id, remarks: ''});
+						ret[j].rating.push({id: parseInt(key), name: user.name, rating: {id: ''}, userid: user.user_id, remarks: statusinfo.remarks || ''});
 					}
 				} else {
 					if(ret[j].ratingType == 'input') {
-						ret[j].rating.push({id: parseInt(key), name: user.name, rating: statusinfo.ratingScore, userid: user.user_id, remarks: statusinfo.remarks});
+						ret[j].rating.push({id: parseInt(key), name: user.name, rating: statusinfo.score, userid: user.user_id, remarks: statusinfo.remarks});
 					} else if(ret[j].ratingType == 'select') {
-						ret[j].rating.push({id: parseInt(key), name: user.name, rating: {id: statusinfo.ratingScore, name: _getRatingStatsName(ratingid, statusinfo.ratingScore)}, userid: user.user_id, remarks: statusinfo.remarks});
+						ret[j].rating.push({id: parseInt(key), name: user.name, rating: {id: statusinfo.score, name: statusinfo.rating}, userid: user.user_id, remarks: statusinfo.remarks});
 					}
 				}
 			}
@@ -1487,17 +1488,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			ret[i].rating = newRating;
 		}
 		return ret;
-	}
-
-	function _getRatingStatsName(type, score) {
-		for(var i=0; i<_groupInfo.props.ratings.length; i++) {
-			var rating = _groupInfo.props.ratings[i];
-			if(type == rating.id) {
-				for(var k=0; k<rating.values.length; k++) {
-					if(score === rating.values[k]['p']) return rating.values[k]['v'];
-				}
-			}
-		}
 	}
 
 	function _checkAndUpdateRatingParams(item) {

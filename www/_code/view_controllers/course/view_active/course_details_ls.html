@@ -17,7 +17,7 @@
 		</div>
 		<div ng-class='respCol442' ng-show='ext.item.type == "rating"'><b>Rating</b></div>
 		<div ng-class='respCol442'  ng-show='ext.item.type == "rating"'>
-			<span ng-show='ext.item.ratingStr'>{{ext.item.ratingStr}}</span>
+			<span>{{(ext.item.ratingStr === 0 ? 0 : ext.item.ratingStr)}}</span>
 		</div>
 		<div ng-class='respCol442' ng-show='ext.item.type == "gate"'><b>Gate score</b></div>
 		<div ng-class='respCol442'  ng-show='ext.item.type == "gate"'>
