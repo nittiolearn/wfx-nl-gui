@@ -55,7 +55,7 @@
     <div class='padding-mid' ng-class='$root.respCol422'><b>Progress:</b></div>
     <div class='padding-mid' ng-class='$root.respCol422'>
         <span>{{rec._raw.stats.percCompleteStr}}</span>
-        <span ng-show='!rec._raw.raw_record.showModuleProps'> ({{rec._raw.stats.percCompleteDesc}})</span>
+        <span ng-show='rec._raw.stats.percCompleteDesc'> ({{rec._raw.stats.percCompleteDesc}})</span>
     </div>
 
     <div class='padding-mid' ng-class='$root.respCol422'><b>Time spent:</b></div>
@@ -66,7 +66,6 @@
     <div class='padding-mid' ng-class='$root.respCol422'><b>Score:</b></div>
     <div class='padding-mid' ng-class='$root.respCol422'>
         <span>{{rec._raw.stats.percScoreStr || '-'}}</span>
-        <span ng-show='!rec._raw.raw_record.showModuleProps'> (scored {{rec._raw.stats.nScore}} of {{rec._raw.stats.nMaxScore}} in {{rec._raw.stats.nQuiz}} quiz{{rec._raw.stats.nQuiz > 1 ? 'zes' : ''}})</span>
     </div>
     <div class='padding-mid' ng-class='$root.respCol422'><b>Quiz attempts:</b></div>
     <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.stats.avgAttempts || '-'}}

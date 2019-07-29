@@ -191,73 +191,36 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         if (!user) return null;
         _nominatedUsers[user.id] = true;
         var course = nlLrCourseRecords.getRecord(report.lesson_id);
+        if (!course) course = {};
         report.canReview = true;
-        if(!(course && course.is_published)) report.canReview = false;
+        if(!course.is_published) report.canReview = false;
         var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:'+report.assignment) || {};
         if (!courseAssignment.info) courseAssignment.info = {};
-        if (!course) course = nlLrCourseRecords.getCourseInfoFromReport(report, repcontent);
-        
         var repHelper = nlReportHelper.getCourseStatusHelper(report, _userInfo.groupinfo, courseAssignment, course);
-        var _statusinfo = repHelper.getCourseStatus();
+        var stainf = repHelper.getCourseStatus();
 
         var contentmetadata = 'contentmetadata' in course ? course.contentmetadata : {};
         report._grade = contentmetadata.grade || '';
         report.subject = contentmetadata.subject || ''; 
         
-        var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
-            timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
-            internalIdentifier:report.id, nCerts: course.certificates.length, iltTimeSpent: 0, iltTotalTime: 0};
-
+        var stats = {nLessonsAttempted: stainf.nPassedQuizes+stainf.nFailedQuizes,
+            internalIdentifier:report.id,
+            timeSpentSeconds: stainf.onlineTimeSpentSeconds, 
+            iltTimeSpent: stainf.iltTimeSpent, 
+            iltTotalTime: stainf.iltTotalTime,
+            percCompleteStr: '' + stainf.progPerc + ' %',
+            percCompleteDesc: stainf.progDesc,
+            nScore: stainf.nTotalQuizScore, nMaxScore: stainf.nTotalQuizMaxScore,
+        };
+        stats.avgAttempts = stats.nLessonsAttempted ? Math.round(stainf.nQuizAttempts/stats.nLessonsAttempted*10)/10 : 0;
+        stats.timeSpentStr = nl.fmt2('{} minutes online learning and {} minutes instructor led', 
+            Math.ceil(stats.timeSpentSeconds/60), stats.iltTimeSpent);
         
-        var isTrainerControlled = false;
-        var latestMilestone = null;
-        stats.nOthers = course.nonLessons.length;
-        stats.nLessons = course.lessons.length;
-        stats.nOthersDone = 0;
-        stats.nLessonsDone = 0
-        var itemsStats = _statusinfo.itemIdToInfo;
-        repcontent.statusinfo = _statusinfo.itemIdToInfo;
+        stats.percScore = stats.nMaxScore ? Math.round(stats.nScore / stats.nMaxScore) : 0;
+        stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
+        repcontent.statusinfo = stainf.itemIdToInfo;
  
-        for(var i=0; i<course.content.modules.length; i++) {
-            var item = course.content.modules[i];
-            if(item.type == 'module') continue;
-            if(item.type == 'lesson') {
-                if(itemsStats[item.id].status == 'pending') continue;
-                if(itemsStats[item.id].status == 'started') {
-                    if(itemsStats[item.id].timeSpentSeconds) stats.timeSpentSeconds += itemsStats[item.id].timeSpentSeconds;
-                    if(!itemsStats[item.id].selfLearningMode && itemsStats[item.id].nAttempts) {
-                        stats.nAttempts += itemsStats[item.id].nAttempts;
-                        stats.nLessonsAttempted++;
-                    }
-                    stats.timeSpentSeconds += itemsStats[item.id].timeSpentSeconds || 0;
-                    continue;
-                }
-                if(_isEndState(itemsStats[item.id].status)) {
-                    if(itemsStats[item.id].status == 'success' || itemsStats[item.id].status == 'partial_success') 
-                        stats.nLessonsPassed++;
-                    else
-                        stats.nLessonsFailed++;
-                    if(!itemsStats[item.id].selfLearningMode) {
-                        stats.nQuiz++;
-                        stats.nScore += itemsStats[item.id].score;
-                    }
-                }
-            } else if(item.type == 'milestone'){
-                isTrainerControlled = true;
-                if(_isEndState(itemsStats[item.id].status)) {
-                    latestMilestone = itemsStats[item.id];
-                    latestMilestone['name'] = item.name;
-                    stats.nOthersDone++;
-                }
-            } else {
-                if(_isEndState(itemsStats[item.id].status)) {
-                    stats.nOthersDone++;
-                    if(item.type == 'iltsession') stats.iltTimeSpent += itemsStats[item.id].iltTimeSpent * 60;
-                }
-            }
-        }
-
-        if(!_isCourseFinished(_statusinfo.status) && (nlLrFilter.getType() == 'course_assign')) {
+        if(!nlReportHelper.isCourseEndState(stainf.status) && (nlLrFilter.getType() == 'course_assign')) {
             if(Object.keys(_reminderDict).length == 0) {
                 _reminderDict['name'] = repcontent.name;
                 _reminderDict['assigned_by'] = repcontent.sendername;
@@ -275,59 +238,17 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
             }
         }
         
-
-        stats.nLessonsDone = stats.nLessonsPassed + stats.nLessonsFailed;
-
-        if(isTrainerControlled) {
-            if(latestMilestone) {
-                stats.percComplete = latestMilestone['completionPerc'];
-                stats.percCompleteStr = '' + stats.percComplete + ' %';
-                stats.percCompleteDesc = nl.fmt2('{}', latestMilestone['name']);
-            } else {
-                stats.percComplete = '';
-                stats.percCompleteStr = '';
-                stats.percCompleteDesc = nl.fmt2('Milestone is not marked');
-            }
-        } else {
-            stats.percComplete = _statusinfo.percProgress;
-            stats.percCompleteStr = '' + stats.percComplete + ' %';
-            
-            var plural = stats.nLessons > 1 ? 'modules' : 'module';
-            var modulesCompleted = stats.nLessons ? nl.fmt2('{} of {} {}', stats.nLessonsDone, stats.nLessons, plural) : '';
-            plural = stats.nOthers > 1 ? 'other items' : 'other item';
-            var othersCompleted = stats.nOthers ? nl.fmt2('{} of {} {}', stats.nOthersDone, stats.nOthers, plural) : '';
-            var delim = modulesCompleted && othersCompleted ? ' and ' : '';
-            stats.percCompleteDesc = nl.fmt2('{}{}{} completed', modulesCompleted, delim, othersCompleted);    
-        }
-        
-        stats.avgAttempts = stats.nLessonsAttempted ? Math.round(stats.nAttempts/stats.nLessonsAttempted*10)/10 : '';
-        stats.percScore = stats.nQuiz > 0 ? Math.round(stats.nScore/stats.nQuiz) : 0;
-        stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
-
-        stats.timeSpentStr = Math.ceil((stats.timeSpentSeconds+stats.iltTimeSpent)/60);
-        stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
-            : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
-
         report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
         report.urlTitle = nl.t('View report');
-        stats.status = nlLrHelper.statusInfos[_getStatusIdFormStatus(_statusinfo.status)];
+        stats.status = nlLrHelper.statusInfos[_getStatusIdFormStatus(stainf.status)];
         var ret = {raw_record: report, repcontent: repcontent, course: course, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
             updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
             not_before: report.not_before ? nl.fmt.fmtDateDelta(report.not_before, null, 'minute') : '',
             not_after: report.not_after ? nl.fmt.fmtDateDelta(report.not_after, null, 'minute') : ''
-            };
+        };
         return ret;
-    }
-
-    function _isEndState(status) {
-        return status == 'failed' || status == 'success' || status == 'partial_success';
-    }
-
-    function _isCourseFinished(status) {
-        if(status == 'pending' || status == 'delayed' || status == 'started') return false;
-        return true;
     }
 
     function _processModuleReport(report) {
@@ -346,12 +267,10 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         for(var j=0; j<metadata.length; j++)
             report[metadata[j].id] = metadata[j].value|| '';
 
-        var module = {type: 'module', id: report.id, nonLessons: [], lessons:[repcontent], name: repcontent.name, contentmetadata: repcontent.contentmetadata || {}};
-
-        var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
-            timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
-            internalIdentifier:report.id, nCerts: 0, nLessonsDone: 0, done: 0};
-
+        var stats = { nQuiz: 0,
+            timeSpentSeconds: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
+            internalIdentifier:report.id, done: 0, nQuiz: 0, avgAttempts: 0};
+    
         if(!report.completed && (nlLrFilter.getType() == 'module_assign')) {
             if(Object.keys(_reminderDict).length == 0) {
                 _reminderDict['name'] = repcontent.name;
@@ -370,24 +289,12 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
             }
         }
         
-            
-        var lessons = module.lessons;
-        var lessonReps = repcontent || {};
-        stats.nLessons++;
-        var lid = lessons[0].id;
-        var rep = lessonReps;
-        stats.percCompleteStr = 'Pending';
         if(repcontent.started) {
             stats.timeSpentSeconds = repcontent.timeSpentSeconds || 0;
-            stats.percCompleteStr = 'Started';
-            stats.percCompleteDesc = repcontent.started ? 'Module started' :  'Module pending';
-            stats.nAttempts = 1;
             stats.nLessonsAttempted = 1;
             stats.nQuiz = 1;
             stats.avgAttempts = 1;
-            stats.timeSpentStr = Math.ceil(stats.timeSpentSeconds/60);
-            stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
-                : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
+            stats.timeSpentStr = Math.ceil(stats.timeSpentSeconds/60) + 'minutes';
         }
         report.started = nl.fmt.json2Date(repcontent.started);
         report.ended = nl.fmt.json2Date(repcontent.ended);
@@ -426,13 +333,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
             stats.nMaxScore = maxScore;
             stats.percScore = stats.nMaxScore ? Math.round(stats.nScore/stats.nMaxScore*100) : 0;
             stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '0%';
-            if (passScore == 0 || perc >= passScore) 
-                stats.nLessonsPassed++;
-            else 
-                stats.nLessonsFailed++;
             stats.status = repcontent.selfLearningMode ? nlLrHelper.statusInfos[nlLrHelper.STATUS_DONE] : nlLrHelper.statusInfos[_getModuleStatus(stats, repcontent, report)];
-            stats.percCompleteStr = 'Completed';
-            stats.percCompleteDesc = 'Module completed';
             repcontent.maxScore = maxScore;
             repcontent.score = score;
             report.urlTitle = nl.t('View report');
@@ -443,14 +344,16 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
             }
         }
 
-        stats.nLessonsDone = stats.nLessonsPassed + stats.nLessonsFailed;
-        var ret = {raw_record: report, repcontent: repcontent, course: module, user: user,
+        stats.percCompleteStr = stats.status.id == nlLrHelper.STATUS_PENDING ? '0%'
+            : stats.status.id == nlLrHelper.STATUS_STARTED ? 'Started' : '100%';
+        stats.percCompleteDesc = '';
+        var ret = {raw_record: report, repcontent: repcontent, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'), 
             updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
             not_before: report.not_before ? nl.fmt.fmtDateDelta(report.not_before, null, 'minute') : '',
             not_after: report.not_after ? nl.fmt.fmtDateDelta(report.not_after, null, 'minute') : ''
-            };
+        };
         return ret;
     }
 
@@ -482,15 +385,6 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         if (rep.started && !report.completed) return nlLrHelper.STATUS_STARTED;
         if (rep.passScore && scorePerc < rep.passScore) return nlLrHelper.STATUS_FAILED;
         if (report.completed) return nlLrHelper.STATUS_DONE;
-        return nlLrHelper.STATUS_PASSED;
-    }
-
-    function _getStatusId(stats, started) {
-        if (stats.percComplete == 0 && !started) return nlLrHelper.STATUS_PENDING;
-        if (stats.percComplete < 100) return nlLrHelper.STATUS_STARTED;
-        if (stats.nLessonsFailed > 0) return nlLrHelper.STATUS_FAILED;
-        if (stats.nCerts > 0) return nlLrHelper.STATUS_CERTIFIED;
-        if (stats.nMaxScore == 0) return nlLrHelper.STATUS_DONE;
         return nlLrHelper.STATUS_PASSED;
     }
 

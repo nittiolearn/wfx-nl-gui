@@ -22,10 +22,15 @@ function(nl, nlCourse, nlExpressionProcessor) {
     this.getCourseStatusHelperForCourseView = function(report, groupinfo) {
         return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, true, report, groupinfo, null, null);
     };
+
+    this.isCourseEndState = function(status) {
+        return _isEndCourseState(status);
+    };
 }];
 
 function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, report, groupinfo, courseAssign, course) {
     if (!report) report = {};
+    course = _processCourseRecord(course);
 
     //--------------------------------------------------------------------------------
     // Public interfaces
@@ -40,7 +45,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     var _statusinfo = repcontent.statusinfo || {};
     var _lessonReports = repcontent.lessonReports || {};
     var _pastLessonReports = repcontent.pastLessonReports || {};
-    var _modifiedILT = ((isCourseView ? repcontent : (courseAssign || {}).info) || {}).modifiedILT || {};
+    var _modifiedILT = ((courseAssign ? courseAssign.info : repcontent) || {}).modifiedILT || {};
  
     var _modules = ((course || courseAssign || repcontent || {}).content || {}).modules || []; 
     var _fromDate = (courseAssign || {}).not_before ||  report.not_before || report.created;
@@ -80,8 +85,20 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         return ret;
     }
 
+    function _processCourseRecord(course) {
+        if (!course) return course;
+        course = nlCourse.migrateCourse(course);
+        course.contentmetadata = (course.content || {}).contentmetadata || course.contentmetadata ||{};
+    }
+
     function _getCourseStatus() {
-        var ret = {status: 'pending', percProgress: 0, itemIdToInfo: {}, delayDays: 0};
+        var ret = {status: 'pending', progPerc: 0, progDesc: '', itemIdToInfo: {}, delayDays: 0,
+            nItems: 0, nCompletedItems: 0,
+            nQuizes: 0, nQuizAttempts: 0, nPassedQuizes: 0, nFailedQuizes: 0, 
+            nTotalQuizScore: 0, nTotalQuizMaxScore: 0,
+            onlineTimeSpentSeconds: 0, iltTimeSpent: 0, iltTotalTime: 0,
+            feedbackScore: '',
+        };
         var itemIdToInfo = ret.itemIdToInfo; // id: {status: , score: , rawStatus: }
         var startedCount = 0;
         if (_modules.length <= 0) {
@@ -91,7 +108,6 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         var latestCustomStatus = '';
         var defaultCourseStatus = 'pending';
         var isAttrition = false;
-        var percProgress = 0;
         for(var i=0; i<_modules.length; i++) {
             var cm = _modules[i];
             var itemInfo = {};
@@ -104,24 +120,31 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             }
             _updateStatusToWaitingIfNeeded(cm, itemInfo, itemIdToInfo);
             _updateStatusToDelayedIfNeeded(cm, itemInfo, itemIdToInfo, ret);
+            _updateStatistics(itemInfo, ret);
             latestCustomStatus =  _updateCustomStatus(itemInfo, latestCustomStatus);
             if (itemInfo.isAttrition) {
                 isAttrition = true;
                 itemInfo.status = 'Attrition';
                 var suffix = itemInfo.customStatus ? '-' +  itemInfo.customStatus : '';
                 defaultCourseStatus = 'Attrition' + suffix;
-            } else  if (_isStartedState(itemInfo.status)) {
+            } else  if (_isStartedItemState(itemInfo.status)) {
                 defaultCourseStatus = itemInfo.customStatus || 'started';
             }
             console.log(nl.fmt2('TODO-NOW: name={}, status={}, cust-status={}, score={}, dcs={}', cm.name, itemInfo.status, itemInfo.customStatus, itemInfo.score, defaultCourseStatus));
         }
 
         _updateCourseLevelStatus(ret, isAttrition, defaultCourseStatus);
-        console.log(nl.fmt2('TODO-NOW: course-status={}, percProgress={}', ret.status, ret.percProgress));
+        _updateCourseProgress(ret);
+        ret.feedbackScore = _getFeedbackScoreForCourse(_lessonReports);
+        ret.feedbackScore = ret.feedbackScore ? '' + Math.round(ret.feedbackScore*10)/10 + '%' : '';
+        if (ret.delayDays > 0) ret.delayDays = Math.floor(ret.delayDays);
+        console.log(nl.fmt2('TODO-NOW: course-status={}, progPerc={}', ret.status, ret.progPerc));
         return ret;
     }
 
     function _getRawStatusOfItem(cm, itemInfo, itemIdToInfo) {
+        itemInfo.type = cm.type;
+        itemInfo.name = cm.name;
         itemInfo.customStatus = cm.customStatus || null;
         itemInfo.completionPerc = cm.completionPerc || null;
         if (_isCertificate(cm)) {
@@ -132,7 +155,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             itemInfo.rawStatus = sinfo.status == 'done' ? 'success' : 'pending';
             itemInfo.score = itemInfo.rawStatus == 'success' ? 100 : null;
         } else if (cm.type == 'lesson') {
-            _getRawStatusOfLesson(cm, itemInfo);
+            _getRawStatusOfLesson(cm, itemInfo, ret);
         } else if (cm.type == 'iltsession') {
             _getRawStatusOfIltSession(cm, itemInfo);
         } else if (cm.type == 'rating') {
@@ -154,7 +177,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (linfo === null) {
             itemInfo.rawStatus = 'pending';
             itemInfo.score = null;
-            itemInfo.attempt = null;
+            itemInfo.nAttempts = null;
             return;
         }
         itemInfo.nAttempts = linfo.attempt || null;
@@ -172,6 +195,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             itemInfo.selfLearningMode = true;
             itemInfo.started = nl.fmt.json2Date(linfo.started || '');
             itemInfo.ended = nl.fmt.json2Date(linfo.ended || '');
+            itemInfo.updated = nl.fmt.json2Date(linfo.updated || '');
+            itemInfo.moduleRepId = linfo.reportId || null;
             return;
         }
         var pastInfo = _pastLessonReports[cm.id] || {};
@@ -192,9 +217,13 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.maxScore = _getMaxScore(maxLinfo);
         itemInfo.rawScore = _getRawScore(maxLinfo);
         itemInfo.passScore = parseInt(linfo.passScore || 0);
-        itemInfo.started = maxLinfo.started || null;
-        itemInfo.ended = maxLinfo.ended || null;
+        itemInfo.started = nl.fmt.json2Date(maxLinfo.started || '');
+        itemInfo.ended = nl.fmt.json2Date(maxLinfo.ended || '');
+        itemInfo.updated = nl.fmt.json2Date(maxLinfo.updated || '');
+        itemInfo.moduleRepId = maxLinfo.reportId || null;
         itemInfo.rawStatus = (itemInfo.score >= itemInfo.passScore) ? 'success' : 'failed';
+        itemInfo.feedbackScore = _getFeedbackScoreForModule(linfo.feedbackScore);
+        itemInfo.feedbackScore = itemInfo.feedbackScore ? '' + Math.round(itemInfo.feedbackScore*10)/10 + '%' : '';
     }
 
     function _getMaxScore(linfoItem) {
@@ -281,7 +310,6 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.rawStatus = (cm.id in _milestone) && _milestone[cm.id].status == 'done' ?
             'success' : 'pending';
         itemInfo.score = itemInfo.rawStatus == 'pending' ? null : 100;
-        itemInfo.completionPerc = cm.completionPerc;
         itemInfo.remarks = (cm.id in _milestone) ? _milestone[cm.id].comment : "";
         itemInfo.reached = (_milestone[cm.id] && _milestone[cm.id].reached) ? nl.fmt.json2Date(_milestone[cm.id].reached) : "";
         itemInfo.updated = (_milestone[cm.id] && _milestone[cm.id].updated) ? nl.fmt.json2Date(_milestone[cm.id].updated) : "";
@@ -320,14 +348,14 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             var preItem = itemIdToInfo[p.module] || null;
             if (!preItem) continue;
             condCnt++;
-            if (!_isEndState(preItem.status)) {
+            if (!_isEndItemState(preItem.status)) {
                 pendCnt++;
                 continue;
             }
 
             var isConditionFailed = false;
             if (p.iltCondition == 'marked') {
-                if (!_isEndState(p.status)) isConditionFailed = true;
+                if (!_isEndItemState(p.status)) isConditionFailed = true;
             } else if (p.iltCondition == 'attended') {
                 if (p.status == 'failed') isConditionFailed = true;
             } else if (p.iltCondition == 'not_attended') {
@@ -350,7 +378,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     }
 
     function _updateStatusToDelayedIfNeeded(cm, itemInfo, itemIdToInfo, ret) {
-        if (_isEndState(itemInfo.status)) return;
+        if (_isEndItemState(itemInfo.status)) return;
         var dueDate = new Date();
         var now = new Date();
         if (cm.complete_before && _fromDate) {
@@ -364,6 +392,35 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (ret.delayDays < itemInfo.delayDays) ret.delayDays = itemInfo.delayDays;
         if (itemInfo.status == 'pending') itemInfo.status = 'delayed';
     }
+
+    function _updateStatistics(itemInfo, ret) {
+        var isEnded = _isEndItemState(itemInfo.status);
+        if (isEnded && itemInfo.completionPerc) ret.progPerc = itemInfo.completionPerc;
+        ret.nItems++;
+        if (isEnded) ret.nCompletedItems++;
+        _updateStatisticsOfQuiz(itemInfo, ret);
+        _updateStatisticsOfTimeSpent(itemInfo, ret);
+    }
+
+    function _updateStatisticsOfQuiz(itemInfo, ret) {
+        if (itemInfo.type != 'lesson' || itemInfo.selfLearningMode || !itemInfo.maxScore) return;
+        ret.nQuizes++;
+        if (itemInfo.nAttempts) ret.nQuizAttempts += itemInfo.nAttempts;
+        if (!isEnded) return;
+        if (itemInfo.status == 'failed') ret.nFailedQuizes++;
+        else ret.nPassedQuizes++;
+        ret.nTotalQuizScore += ret.rawScore;
+        ret.nTotalQuizMaxScore += ret.maxScore;
+    }
+
+    function _updateStatisticsOfTimeSpent(itemInfo, ret) {
+        if (itemInfo.type == 'lesson') ret.onlineTimeSpentSeconds += (itemInfo.timeSpentSeconds || 0);
+        if (itemInfo.type == 'iltsession') {
+            ret.iltTimeSpent += (itemInfo.iltTimeSpent || 0);
+            ret.iltTotalTime += (itemInfo.iltTotalTime || 0);
+        }
+    }
+
 
     function _updateCustomStatus(itemInfo, latestCustomStatus) {
         itemInfo.customStatus = itemInfo.customStatus || latestCustomStatus;
@@ -386,19 +443,62 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         }
    }
  
-    function _isCertificate(cm) {
-        return (cm.type == 'certificate' ||
-            (cm.type == 'link' && (cm.urlParams|| '').indexOf('course_cert') >= 0));
-    }
-
-    function _isEndState(status) {
-        return status == 'failed' || status == 'success' || status == 'partial_success' || status.indexOf('Attrition') == 0;
-    }
-
-    function _isStartedState(status) {
-        return status == 'started' || _isEndState(status);
+    function _updateCourseProgress(ret) {
+        if (_isEndCourseState(ret.status)) {
+            ret.progPerc = 100;
+        } else if (ret.status == 'pending') {
+            ret.progPerc = 0;
+        } else if (!ret.progPerc && ret.nItems) {
+            ret.progPerc = Math.round(100.0*ret.nCompletedItems/ret.nItems, 0);
+        }
+        ret.progDesc = nl.fmt2('{} of {} items done', ret.nCompletedItems, ret.nItems);
     }
 }
+
+//-------------------------------------------------------------------------------------------------
+function _isCertificate(cm) {
+    return (cm.type == 'certificate' ||
+        (cm.type == 'link' && (cm.urlParams|| '').indexOf('course_cert') >= 0));
+}
+
+function _isEndItemState(status) {
+    return status == 'failed' || status == 'success' || status == 'partial_success' || status.indexOf('Attrition') == 0;
+}
+
+function _isStartedItemState(status) {
+    return status == 'started' || _isEndItemState(status);
+}
+
+function _isEndCourseState(status) {
+    return status == 'failed' || status == 'certified' || status == 'passed' || status == 'done';
+}
+
+function _getFeedbackScoreForModule(feedback) {
+    if(feedback.length == 0) return '';
+    var score = 0;
+    for(var i=0; i<feedback.length; i++) {
+        score += feedback[i];
+    }
+    return (score/feedback.length);
+}
+
+function _getFeedbackScoreForCourse(reports) {
+    var feedbackScore = 0;
+    var nfeedbacks = 0;
+    for(var id in reports) {
+        var feedbackArray = reports[id].feedbackScore || [];
+        if(feedbackArray.length == 0) continue;
+        var feedback = _getFeedbackScoreForModule(feedbackArray);
+        if(feedback) {
+            feedbackScore += feedback;
+            nfeedbacks += 1;
+        }
+    }
+    if(nfeedbacks && feedbackScore) 
+        return (feedbackScore/nfeedbacks);
+    else 
+        return '';
+};
 
 //-------------------------------------------------------------------------------------------------
 module_init();

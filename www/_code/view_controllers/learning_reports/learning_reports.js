@@ -1036,8 +1036,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	}
 
-
-
 	function _getSessionsAndModules(learningRecords) {
 		var ret = [];
 		var indentationLevel = 0;
@@ -1713,6 +1711,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _getModifiedILT(modifiedILT, content) {
 		if(!modifiedILT) return {};
 		var ret = {};
+		if (!content || !content.modules) return ret;
 		for(var i=0; i<content.modules.length; i++) {
 			var item = content.modules[i];
 			if(item.type != 'iltsession') continue;

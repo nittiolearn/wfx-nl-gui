@@ -1280,12 +1280,14 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
     var _icons = {
         'module': 'ion-ios-folder fblue',
         'iltsession': 'ion-map fblue',
-        'milestone': 'ion-arrow-graph-up-right fblue',
+        'milestone': 'ion-flag fblue',
         'lesson': 'ion-document-text fblue',
         'quiz': 'ion-help-circled fblue',
         'info': 'ion-information-circled fblue',
         'certificate': 'ion-android-star fblue',
         'link': 'ion-document fblue',
+        'rating': 'ion-speedometer fblue',
+        'gate': 'ion-calculator fblue',
         'user': 'ion-person forange2'
     };
 }
