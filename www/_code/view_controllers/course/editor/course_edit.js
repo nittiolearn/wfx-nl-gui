@@ -31,8 +31,8 @@ function EditorFieldsDirective() {
 
 //-------------------------------------------------------------------------------------------------
 var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlLessonSelect', 
-'nlExportLevel', 'nlRouter', 'nlCourseCanvas', 'nlMarkup', 'nlTreeSelect', 'nlResourceAddModifySrv', 'nlGroupInfo', 'nlExpressionProcessor', 'nlCourse',
-function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCourseCanvas, nlMarkup, nlTreeSelect, nlResourceAddModifySrv, nlGroupInfo, nlExpressionProcessor, nlCourse) {
+'nlExportLevel', 'nlRouter', 'nlCourseCanvas', 'nlMarkup', 'nlTreeSelect', 'nlResourceAddModifySrv', 'nlGroupInfo', 'nlExpressionProcessor',
+function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCourseCanvas, nlMarkup, nlTreeSelect, nlResourceAddModifySrv, nlGroupInfo, nlExpressionProcessor) {
 
     var modeHandler = null;
     var $scope = null;
@@ -847,22 +847,25 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	function _validateGateModule(errorLocation, module) {
 		if(module.type != 'gate') return true;
 		if(!module.gateFormula) return _validateFail(errorLocation, 'Formula', 'Gate condition is mandatory.', module);
-		var payload = {strExpression: module.gateFormula, dictAvps: nlCourse.getAvpsForGate(module, modeHandler.course)};
-		nlExpressionProcessor.process(payload)
+		var payload = {strExpression: module.gateFormula, dictAvps: _getAvpsForGate(module)};
+		nlExpressionProcessor.process(payload);
 		//payload.result will the value;
 		if(payload.error) return _validateFail(errorLocation, 'Formula', payload.error, module);
 		if(!module.gatePassscore) return _validateFail(errorLocation, 'Formula', 'Gate pass score is mandatory.', module);
     	return true;
 	}
 
-	function _IsJsonString(str) {
-		try {
-			JSON.parse(str);
-		} catch (e) {
-			return false;
+	function _getAvpsForGate(cm) {
+        var ret = {};
+        var modules = _allModules || [];
+        for(var i=0; i<modules.length; i++) {
+			var item = modules[i];
+            if(item.id == cm.id) break;
+			ret[item.id] = null;
 		}
-		return true;
+        return ret;
 	}
+
     function _validateFail(errorLocation, attr, errMsg, cm) {
         errorLocation.title = attr;
         errorLocation.template = nl.fmt2('<p><b>Error:</b> {}</p>', errMsg);

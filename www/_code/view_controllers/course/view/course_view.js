@@ -159,125 +159,11 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         return (this.mode === MODES.REPORT_VIEW || this.mode === MODES.DO);
     };
 
-    this.canStart = function(cm, scope, nlTreeListSrv) {
-        return _startDateOk(cm, scope, nlTreeListSrv) && _prereqsOk(this, cm, nlTreeListSrv);
-    };
-
     this.show = function(url, newTab) {
         _redirectTo('{}', url, newTab);
     };
 
-    this.getMaxScoredLessonReport = function(lessonReport, pastLessonReport) {
-        var maxScoredReport = angular.copy(lessonReport);
-        var maxPerc = _getPerc(maxScoredReport);
-        var totalTimeSpent = lessonReport['timeSpentSeconds'] || 0;
-        for(var i=pastLessonReport.length-1; i>=0; i--) {
-            var pastRep = pastLessonReport[i];
-            if (!pastRep.completed || !pastRep.reportId) continue; // For data created by old bug (see #956)
-            totalTimeSpent += pastRep['timeSpentSeconds'];
-            var pastPerc = _getPerc(pastRep);
-            if(pastPerc <= maxPerc) continue;
-            maxScoredReport = pastRep;
-            maxPerc = pastPerc;
-        }
-        maxScoredReport['timeSpentSeconds'] = totalTimeSpent;
-        return maxScoredReport;
-    }
-
-    function _getPerc(report) {
-        if (report.selfLearningMode) return 0.0;
-        if (!report.score || !report.maxScore) return 0.0;
-        return 100.0*report.score/report.maxScore;
-    }
-    
-    // Private functions
-    function _lessonReview(rep, cm, newTab, bUpdate, scope) {
-        if (self.mode === MODES.REPORT_VIEW) {
-            if (!rep || !rep.completed) return _popupAlert('Not completed', 
-                'This learning module is not yet completed. You may view the report once it is completed.');
-            return _redirectTo('/lesson/review_report_assign/{}', rep.reportId, newTab);
-        }
-        if (_redirectToLessonReport(rep, newTab, cm, bUpdate, scope)) return true;
-    }
-
-    function _startDateOk(cm, scope, nlTreeListSrv) {
-        var today = new Date();
-        if (scope.planning && cm.start_date && cm.start_date > today) {
-            _setDependencyArray(cm, cm.start_after || [], nlTreeListSrv, cm.start_date);
-            return false;
-        }
-        return true;
-    }
-            
-    function _prereqsOk(self, cm, nlTreeListSrv) {
-        var prereqs = cm.start_after || [];
-        var lessonReports = self.course.lessonReports || {};
-        var statusinfo = self.course.statusinfo || {};
-        var dependencyType = cm.dependencyType || 'all';
-        _setDependencyArray(cm, prereqs, nlTreeListSrv, null);
-        for(var i=0; i<prereqs.length; i++){
-            var p = prereqs[i];
-            var cmid = p.module;
-            var item = nlTreeListSrv.getItem(cmid);
-            if (!item) continue; // ignore
-            if (item.state.status == 'waiting') return false;
-            if (item.type == 'certificate' || item.type == 'milestone' || item.type == 'gate') {
-            	if (!(item.state.status == 'success' || item.state.status == 'failed')) return false;
-                if(dependencyType == 'atleastone') break;
-            	continue;
-            }
-            if(item.type == 'iltsession') {
-                if(!p.iltCondition) p['iltCondition'] = 'marked';  //iltCondition is new dependency introduced. This line to handle already present conditions
-                if(!_iltConditionSatisfied(p.iltCondition, item)) return false;
-                if(dependencyType == 'atleastone') break;
-            	continue;
-            }
-            if(item.type == 'rating') {
-                if(!_ratingSatisfied(p, item, cm)) return false;
-                if(dependencyType == 'atleastone') break;
-                continue;
-            }
-            var prereqScore = null;
-            if (cmid in lessonReports && lessonReports[cmid].completed) {
-                var lessonReport = lessonReports[cmid];
-                var pastLessonReport = self.course['pastLessonReports'] ? angular.copy(self.course.pastLessonReports[cmid]) : null;
-                if(lessonReport && lessonReport.completed && pastLessonReport) {
-                    lessonReport = self.getMaxScoredLessonReport(lessonReport, pastLessonReport);
-                }
-                var scores = _getScores(lessonReport, true);
-                prereqScore = scores.maxScore > 0 ? Math.round((scores.score/scores.maxScore)*100) : 100;
-            } else if (cmid in statusinfo && statusinfo[cmid].status == 'done') {
-                prereqScore = 100;
-            }
-            if (prereqScore === null) return false;
-            var limitMin = p.min_score || null;
-            var limitMax = p.max_score || null;
-            if (limitMin && prereqScore < limitMin) return false;
-            if (limitMax && prereqScore > limitMax) return false;
-
-            if(dependencyType == 'atleastone') break;
-        }
-        return true;
-    }
-    
-    function _iltConditionSatisfied(condition, item) {
-        if(condition == "marked" && !(item.state.status == 'success' || item.state.status == 'failed')) return false 
-        if(condition == "attended" && item.state.status != 'success') return false 
-        if(condition == "not_attended" && item.state.status != 'failed') return false 
-        return true;
-    }
-
-    function _ratingSatisfied(p, item, cm) {
-        var min_score = p.min_score || null;
-        var max_score = p.max_score || null;
-        var prereqScore = item.ratingScore || null;
-        if(!prereqScore) return false;
-        if(min_score && item.ratingScore < min_score) return false;
-        if(max_score && item.ratingScore > max_score) return false;
-        return true;
-    }
-
-    function _setDependencyArray(cm, prereqs, nlTreeListSrv, startDate) {
+    this.setDependencyArray = function(cm, prereqs, nlTreeListSrv, startDate) {
         cm['dependencyArray'] = [];
         if (startDate) {
             var str = nl.t('"{}" allowed to access only after {}', cm.name, nl.fmt.fmtDateDelta(startDate, new Date(), 'date'));
@@ -310,6 +196,16 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
                 cm.dependencyArray.push(str);
             }
         }
+    };
+
+    // Private functions
+    function _lessonReview(rep, cm, newTab, bUpdate, scope) {
+        if (self.mode === MODES.REPORT_VIEW) {
+            if (!rep || !rep.completed) return _popupAlert('Not completed', 
+                'This learning module is not yet completed. You may view the report once it is completed.');
+            return _redirectTo('/lesson/review_report_assign/{}', rep.reportId, newTab);
+        }
+        if (_redirectToLessonReport(rep, newTab, cm, bUpdate, scope)) return true;
     }
 
     function _updateLinkStatusIfNeeded(self, cm, scope) {
@@ -803,17 +699,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         _confirmIframeClose(null, _impl);
     };
 
-    // TODO-NOW: remove this code and put in right place
-    // First use in learning_reports
-    function _testReportHelper() {
-        var repHelper = nlReportHelper.getCourseStatusHelper(modeHandler.course, _userInfo.groupinfo);
-        var statusInfo = repHelper.getCourseStatus();
-    }
-
 	$scope.isDetailsShown = false;
 	$scope.pastSelectedItem = null;
 	$scope.onRowClick = function(e, cm) {
-        _testReportHelper();
 		_checkDateTimeRange();
 		if(cm.type == "certificate") return;
 		if(cm.type == "module") {
@@ -948,20 +836,18 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
 
     function _updateState(cm, state) {
         // statusIcon, statusText, statusShortText
-        var today = new Date();
-        var course = modeHandler.course;
-        var assignedOn = course['not_before'] || null;
-        var assignedOnStr = new Date(assignedOn);
-        if (state == 'pending' && (cm.complete_before && cm.complete_before != '')) {
-            var tomorrow = new Date();
-            var complete_before = parseInt(cm.complete_before);
-            tomorrow.setDate(assignedOnStr.getDate() + complete_before);
-            if(tomorrow < today) {
-                state = 'delayed';
-            }
+        if (state in _CM_STATES) {
+            cm.state = angular.copy(_CM_STATES[state] || _CM_STATES.hidden);
+        } else if (state.toLowerCase().indexOf('attrition') == 0) {
+            cm.state = angular.copy(_CM_STATES.failed);
+            cm.state.title = state;
+        } else {
+            cm.state = angular.copy(_CM_STATES.started);
+            cm.state.title = state;
         }
-        cm.state = angular.copy(_CM_STATES[state] || _CM_STATES.hidden);
         cm.state.status = state;
+        if (state != 'waiting') return;
+        modeHandler.setDependencyArray(cm, cm.start_after || [], nlTreeListSrv, cm.start_date);
     }
     
     function _initModule(cm) {
@@ -975,40 +861,79 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
     }
 
     function _updateAllItemData() {
-        var today = new Date();
         folderStats.clear();
         var reopener = new Reopener(modeHandler, nlTreeListSrv, _userInfo, nl, nlDlg, 
             nlServerApi, _updatedStatusinfoAtServer);
         reopener.reopenIfNeeded().then(function() {
-            _updateItemData(nlTreeListSrv.getRootItem(), today);
+            var repHelper = nlReportHelper.getCourseStatusHelperForCourseView(modeHandler.course, _userInfo.groupinfo);
+            var statusInfo = repHelper.getCourseStatus();
+            _updateItemData(nlTreeListSrv.getRootItem(), statusInfo.itemIdToInfo);
 			$scope.rootStat = folderStats.get(nlTreeListSrv.getRootItem().id);
         });
     }
 
-    function _updateItemData(cm, today) {
+    function _updateItemData(cm, itemIdToInfo) {
         if (cm.type === 'module') {
-            _updateModuleData(cm, today);
-        } else if (cm.type === 'info' || cm.type === 'link' || cm.type === 'certificate') {
-            _updateLinkData(cm, today);
-        } else if (cm.type === 'iltsession') {
-			_updateILTData(cm, today);
-        } else if (cm.type === 'milestone') {
-			_updateMilestoneData(cm, today);
-        } else if (cm.type === 'rating') {
-            _updateRatingData(cm, today);
-        } else if (cm.type === 'gate') {
-            _updateGateData(cm, today);        
-        } else {
-            _updateLessonData(cm, today);
+            _updateModuleData(cm, itemIdToInfo);
+            return;
         }
+        var itemInfo = itemIdToInfo[cm.id] || {};
+        if (cm.type === 'info' || cm.type === 'link' || cm.type === 'certificate') {
+            _updateLinkData(cm, itemInfo);
+        } else if (cm.type === 'iltsession') {
+			_updateILTData(cm, itemInfo);
+        } else if (cm.type === 'milestone') {
+			_updateMilestoneData(cm, itemInfo);
+        } else if (cm.type === 'rating') {
+            _updateRatingData(cm, itemInfo);
+        } else if (cm.type === 'gate') {
+            _updateGateData(cm, itemInfo);        
+        } else {
+            _updateLessonData(cm, itemInfo);
+        }
+
+        var status = itemInfo.status || 'pending';
+        _updateState(cm, status);
     }
 
-    function _updateModuleData(cm, today) {
+    function _updateLinkData(cm, itemInfo) {
+        cm.score = null;
+        cm.time = null;
+    }
+    
+    function _updateILTData(cm, itemInfo) {
+        cm.remarks = itemInfo.remarks || '';
+        cm.timeMins = itemInfo.iltTimeSpent || '-';
+    }
+ 
+    function _updateGateData(cm, itemInfo) {
+        cm.gateScore = itemInfo.score;
+    }
+
+    function _updateRatingData(cm, itemInfo) {
+        cm.ratingScore = itemInfo.score;
+        cm.remarks = itemInfo.remarks || '';
+    }
+
+    function _updateMilestoneData(cm, itemInfo) {
+        cm.remarks = itemInfo.remarks;
+    }
+
+    function _updateLessonData(cm, itemInfo) {
+        cm.score = itemInfo.rawScore || null;
+        cm.maxScore = itemInfo.maxScore || null;
+        cm.perc = itemInfo.score || null;
+        cm.started = itemInfo.started || null;
+        cm.ended = itemInfo.ended || null;
+        cm.time = itemInfo.timeSpentSeconds || null;
+    }
+    
+    function _updateModuleData(cm, itemIdToInfo) {
         var folderStat = folderStats.get(cm.id);
         var children = nlTreeListSrv.getChildren(cm);
         for (var i=0; i<children.length; i++) {
             var child = children[i];
-            _updateItemData(child, today);
+            _updateItemData(child, itemIdToInfo);
             if (child.type == 'module') folderStats.updateForModule(folderStat, child);
             else folderStats.updateForLeaf(folderStat, child);
         }
@@ -1024,166 +949,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         _updateState(cm, status);
         cm.totalItems = folderStat.total;
         cm.completedItems = folderStat.completedItems;
-    }
-    
-    function _updateLinkData(cm, today) {
-        cm.score = null;
-        cm.time = null;
-        var status = 'none';
-        
-        var statusinfos = modeHandler.course.statusinfo || {};
-        var statusinfo = statusinfos[cm.id] || {};
-        if (statusinfo.status == 'done') status = 'success';
-        else if ($scope.planning && cm.planned_date && cm.planned_date < today) status = 'delayed';
-        else status = 'pending';
-        if (!modeHandler.canStart(cm, $scope, nlTreeListSrv)) status = 'waiting';
-        else if (cm.type == 'certificate') status = 'success';
-        _updateState(cm, status);
-    }
-    
-    function _updateILTData(cm, today) {
-        var status = 'pending';
-		if(cm.type == 'iltsession') {
-			var attendance = 'attendance' in modeHandler.course.content ? modeHandler.course.content.attendance || {} : {}; 
-                attendance = nlCourse.migrateCourseAttendance(attendance);
-            var attended = attendance[modeHandler.courseId] || [];
-            var modifiedILT = 'modifiedILT' in modeHandler.course ? modeHandler.course.modifiedILT : {};
-			for(var i=0; i<attended.length; i++) {
-                var attend = angular.copy(attended[i]);
-                if(cm.id != attend.id) continue;
-                cm.remarks = attend.remarks;
-                attend = (attend.attId in _attendanceObj) ? _attendanceObj[attend.attId] : {};
-                cm.iltPerc = attend.timePerc;
-                if(attend.id) {
-                    if(attend.timePerc == 100) 
-                        status = 'success';
-                    else if(attend.timePerc < 100 && attend.timePerc > 0 ) 
-                        status = 'partial_success';
-                    else 
-                        status = 'failed';
-                    var time = cm.id in modifiedILT ? modifiedILT[cm.id] : cm.iltduration;
-                    cm.timeMins = attend.timePerc ? (attend.timePerc/100)*time : '-';
-                }
-			}
-		}
-        if (!(status == 'success' || status == 'failed') && !modeHandler.canStart(cm, $scope, nlTreeListSrv)) status = 'waiting';
-        _updateState(cm, status);
-    }
- 
-    function _updateGateData(cm, today) {
-        var status = 'pending';
-        var _course = {content: {modules: $scope.modules}};
-		var payload = {strExpression: cm.gateFormula, dictAvps: nlCourse.getAvpsForGate(cm, _course)};
-        nlExpressionProcessor.process(payload)
-        if((payload.result !== 0) && payload.result > cm.gatePassscore) status = 'success';
-        if((payload.result !== 0) && payload.result < cm.gatePassscore) status = 'failed';
-        cm.gateScore = payload.result;
-        if (!modeHandler.canStart(cm, $scope, nlTreeListSrv)) status = 'waiting';
-        _updateState(cm, status);
-    }
-
-    function _updateRatingData(cm, today) {
-        var status = 'pending';
-        var rating = 'rating' in modeHandler.course.content ? modeHandler.course.content.rating || {} : {}; 
-        var ratedReport = rating[modeHandler.courseId] || [];
-        var israted = false;
-        for(var i=0; i<ratedReport.length; i++) {
-            var rated = angular.copy(ratedReport[i]);
-            if(cm.id != rated.id) continue;
-            israted = true;
-            cm.ratingScore = rated.attId;
-            cm.remarks = rated.remarks || '';
-        }
-        if (!modeHandler.canStart(cm, $scope, nlTreeListSrv)) {
-            status = 'waiting';
-        } else if(israted) {
-            status = _setStatusOfRatingItem(status, cm);
-        }
-        _updateState(cm, status);
-    }
-
-    function _setStatusOfRatingItem(status, cm) {
-        var ratings = _userInfo.groupinfo.ratings || [];
-        var selectedRating = null;
-        for(var i=0; i<ratings.length; i++) {
-            if(ratings[i].id == cm.rating_type) {
-                selectedRating = ratings[i];
-                break;
-            }
-        }
-
-        if(selectedRating.type == 'number') {
-            cm.ratingStr = cm.ratingScore+'%';
-        } else {
-            for(var i=0; i<selectedRating.values.length; i++) {
-                var item = selectedRating.values[i];
-                if(cm.ratingScore === item.p) cm.ratingStr = item.v            }
-        }
-
-        if(cm.ratingScore <= selectedRating.lowPassScore)
-            return 'failed';
-        else if(selectedRating.lowPassScore < cm.ratingScore && cm.ratingScore < selectedRating.passScore)
-            return 'partial_success';
-        else 
-            return'success';
-    }
-
-    function _updateMilestoneData(cm, today) {
-        var status = 'pending';
-        var milestone = 'milestone' in modeHandler.course.content ? modeHandler.course.content.milestone || {} : {}; 
-        if((cm.id in milestone) && milestone[cm.id].status == 'done') {
-            status = 'success';
-        }
-        cm.remarks = (cm.id in milestone) ? milestone[cm.id].comment : '';
-        if (!(status == 'success') && !modeHandler.canStart(cm, $scope, nlTreeListSrv)) status = 'waiting';
-        _updateState(cm, status);
-    }
-
-    function _updateLessonData(cm, today) {
-        cm.score = null;
-        cm.maxScore = null;
-        cm.perc = null;
-        cm.started = null;
-        cm.ended = null;
-        cm.time = null;
-        var status = 'none';
-        
-        var lessonReports = modeHandler.course.lessonReports || {};
-        var lessonReport = lessonReports[cm.id] || {};
-        cm.attempt = lessonReport.attempt || 0;
-        var pastLessonReport = modeHandler.course['pastLessonReports'] ? angular.copy(modeHandler.course.pastLessonReports[cm.id]) : null;
-        var maxScoredLessonReport = lessonReport;
-        if (lessonReport && pastLessonReport) {
-            maxScoredLessonReport = modeHandler.getMaxScoredLessonReport(lessonReport, pastLessonReport);
-        }
-        if (lessonReport.completed) {
-            lessonReport = maxScoredLessonReport;
-        }
-        if ('started' in lessonReport) {
-            cm.started = nl.fmt.json2Date(lessonReport.started);
-            if (cm.attempt == 0) cm.attempt = 1;
-        }
-        
-        if ('ended' in lessonReport) cm.ended = nl.fmt.json2Date(lessonReport.ended);
-        if (maxScoredLessonReport && ('timeSpentSeconds' in maxScoredLessonReport)) {
-            cm.time = parseInt(maxScoredLessonReport.timeSpentSeconds);
-            cm.timeMins = Math.round(cm.time/60);
-        }
-
-        var scores = _getScores(lessonReport);
-        if ('maxScore' in scores) cm.maxScore = scores.maxScore;
-        cm.passScore = cm.maxScore ? parseInt(lessonReport.passScore || 0) : 0;
-
-        if (lessonReport.completed && 'score' in scores) {
-            cm.score = scores.score;
-            cm.perc = cm.maxScore ? Math.round((cm.score/cm.maxScore)*100) : 0;
-            status = cm.perc >= cm.passScore ? 'success' : 'failed';
-        }
-        else if ($scope.planning && cm.planned_date && cm.planned_date < today) status = 'delayed';
-        else if (cm.started) status = 'started';
-        else status = 'pending';
-        if (!modeHandler.canStart(cm, $scope, nlTreeListSrv)) status = 'waiting';
-        _updateState(cm, status);
     }
     
     function _updatedStatusinfo(cm, status, remarks, dontHide) {

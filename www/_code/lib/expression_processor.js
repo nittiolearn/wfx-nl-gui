@@ -54,7 +54,7 @@ function(nl) {
             [false, '($max{_id1,_id2} <= $avg_top{2, _id3, _id4, _id5} or _id6) and ($min{_id7, _id8} + $max{_id9, _id10} < $avg{_id11, _id12, _id13, _id14})'],
 
             [false, '$max{_id51,_id52} < $avg_top{2, _id53, _id54, _id55} or _id56 or ($cnt{_id56, _id57} + $sum{_id56, _id57} < 0)'],
-            [9.5, '$max{_id51,_id2,_id53,_id4} + $avg_top{3, _id53, _id54, _id55, _id5, _id6}'],
+            [7, '$max{_id51,_id2,_id53,_id4} + $avg_top{3, _id53, _id54, _id55, _id3, _id6}'],
         ];
 
         var ret = {succ: 0, payloads: []};
@@ -149,7 +149,7 @@ function(nl) {
         _ExpressionProcessor_check(inputArgs, 'min');
         var ret = inputArgs[0] || 0;
         for (var i=0; i<inputArgs.length; i++)
-            if (inputArgs[i] !== null && inputArgs[i] < ret) ret = inputArgs[i];
+            if ((inputArgs[i] || 0) < ret) ret = inputArgs[i];
         return ret;
     }
 
@@ -157,7 +157,7 @@ function(nl) {
         _ExpressionProcessor_check(inputArgs, 'max');
         var ret = inputArgs[0] || 0;
         for (var i=0; i<inputArgs.length; i++)
-            if (inputArgs[i] !== null && inputArgs[i] > ret) ret = inputArgs[i];
+            if ((inputArgs[i] || 0) > ret) ret = inputArgs[i];
         return ret;
     }
 
@@ -165,7 +165,7 @@ function(nl) {
         if (!dontCheck) _ExpressionProcessor_check(inputArgs, 'sum');
         var ret = 0;
         for (var i=0; i<inputArgs.length; i++)
-            if (inputArgs[i] !== null) ret += inputArgs[i];
+            ret += (inputArgs[i] || 0);
         return ret;
     }
 
@@ -173,7 +173,7 @@ function(nl) {
         if (!dontCheck) _ExpressionProcessor_check(inputArgs, 'cnt');
         var ret = 0;
         for (var i=0; i<inputArgs.length; i++)
-            if (inputArgs[i] !== null) ret += 1;
+            ret += 1;
         return ret;
     }
 
@@ -190,11 +190,11 @@ function(nl) {
         _ExpressionProcessor_check(inputArgs, 'avg_top');
         var nElems = inputArgs[0];
         if (nElems < 2) throw(nl.fmt2('$avg_top first argument should be at least 2, {} given.', nElems));
-        if (inputArgs.length < nElems+1) throw(nl.fmt2('$avg_top({}, ...) function takes atleast {} argument, {} given.', nElems, nElems+1, len(inputArgs)));
+        if (inputArgs.length < nElems+1) throw(nl.fmt2('$avg_top({}, ...) function takes atleast {} argument, {} given.', nElems, nElems+1, inputArgs.length));
 
         inputArgs.splice(0, 1);
         inputArgs.sort(function(a, b) {
-            return (b === null ? -1 : b) - (a == null ? -1 : a);
+            return (b || 0) - (a || 0);
         });
         var newArray = [];
         for(var i=0; i<nElems; i++) {
@@ -204,7 +204,7 @@ function(nl) {
     }
 
     function _ExpressionProcessor_check(inputArgs, fn) {
-        if (inputArgs.length < 2) throw(nl.fmt2('{} function takes atleast 2 argument, {} given.', fn, len(inputArgs)));
+        if (inputArgs.length < 2) throw(nl.fmt2('{} function takes atleast 2 argument, {} given.', fn, inputArgs.length));
     }
 }];
 

@@ -17,11 +17,14 @@ function module_init() {
 var NlReportHelper = ['nl', 'nlCourse', 'nlExpressionProcessor',
 function(nl, nlCourse, nlExpressionProcessor) {
     this.getCourseStatusHelper = function(report, groupinfo, courseAssign, course) {
-        return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, report, groupinfo, courseAssign, course);
+        return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, false, report, groupinfo, courseAssign, course);
+    };
+    this.getCourseStatusHelperForCourseView = function(report, groupinfo) {
+        return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, true, report, groupinfo, null, null);
     };
 }];
 
-function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, report, groupinfo, courseAssign, course) {
+function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, report, groupinfo, courseAssign, course) {
     if (!report) report = {};
 
     //--------------------------------------------------------------------------------
@@ -33,11 +36,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, report, groupin
 
     //--------------------------------------------------------------------------------
     // Implementation
-    var repcontent = angular.fromJson(report.content);
+    var repcontent = isCourseView ? report : angular.fromJson(report.content);
     var _statusinfo = repcontent.statusinfo || {};
     var _lessonReports = repcontent.lessonReports || {};
     var _pastLessonReports = repcontent.pastLessonReports || {};
-    var _modifiedILT = courseAssign.info.modifiedILT || {}
+    var _modifiedILT = ((isCourseView ? repcontent : (courseAssign || {}).info) || {}).modifiedILT || {};
  
     var _modules = ((course || courseAssign || repcontent || {}).content || {}).modules || []; 
     var _fromDate = (courseAssign || {}).not_before ||  report.not_before || report.created;
@@ -55,10 +58,10 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, report, groupin
             if (courseAssign.attendance) attendance = angular.fromJson(courseAssign.attendance);
             if (courseAssign.rating) rating = angular.fromJson(courseAssign.rating);
             if (courseAssign.milestone) _milestone = angular.fromJson(courseAssign.milestone);
-        } else if (report && report.content) {
-            attendance = report.content.attendance || {};
-            rating = report.content.rating || {};
-            _milestone = report.content.milestone || {};
+        } else if (repcontent) {
+            attendance = (repcontent.content || {}).attendance || {};
+            rating = (repcontent.content || {}).rating || {};
+            _milestone = (repcontent.content || {}).milestone || {};
         }
         attendance = nlCourse.migrateCourseAttendance(attendance);
         _userAttendanceDict = _arrayToDict(attendance[report.id]);
@@ -78,7 +81,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, report, groupin
     }
 
     function _getCourseStatus() {
-        var ret = {status: 'pending', percProgress: 0, itemIdToInfo: {}};
+        var ret = {status: 'pending', percProgress: 0, itemIdToInfo: {}, delayDays: 0};
         var itemIdToInfo = ret.itemIdToInfo; // id: {status: , score: , rawStatus: }
         var startedCount = 0;
         if (_modules.length <= 0) {
@@ -100,20 +103,19 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, report, groupin
                 continue;
             }
             _updateStatusToWaitingIfNeeded(cm, itemInfo, itemIdToInfo);
-            _updateStatusToDelayedIfNeeded(cm, itemInfo, itemIdToInfo);
+            _updateStatusToDelayedIfNeeded(cm, itemInfo, itemIdToInfo, ret);
             latestCustomStatus =  _updateCustomStatus(itemInfo, latestCustomStatus);
             if (itemInfo.isAttrition) {
                 isAttrition = true;
-                itemInfo.status = 'attrition';
+                itemInfo.status = 'Attrition';
                 var suffix = itemInfo.customStatus ? '-' +  itemInfo.customStatus : '';
-                defaultCourseStatus = 'attrition' + suffix;
+                defaultCourseStatus = 'Attrition' + suffix;
             } else  if (_isStartedState(itemInfo.status)) {
                 defaultCourseStatus = itemInfo.customStatus || 'started';
             }
-            console.log(nl.fmt2('TODO-NOW: name={}, status={}, cust-status={}, dcs={}', cm.name, itemInfo.status, itemInfo.customStatus, defaultCourseStatus));
+            console.log(nl.fmt2('TODO-NOW: name={}, status={}, cust-status={}, score={}, dcs={}', cm.name, itemInfo.status, itemInfo.customStatus, itemInfo.score, defaultCourseStatus));
         }
 
-        _updateStatusOfFolders(itemIdToInfo);
         _updateCourseLevelStatus(ret, isAttrition, defaultCourseStatus);
         console.log(nl.fmt2('TODO-NOW: course-status={}, percProgress={}', ret.status, ret.percProgress));
         return ret;
@@ -167,10 +169,13 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, report, groupin
             itemInfo.score = 100;
             itemInfo.timeSpentSeconds = linfo.timeSpentSeconds || 0;
             itemInfo.selfLearningMode = true;
+            itemInfo.started = linfo.started || null;
+            itemInfo.ended = linfo.ended || null;
             return;
         }
         var pastInfo = _pastLessonReports[cm.id] || {};
         var maxPerc = _getPerc(linfo);
+        var maxLinfo = linfo;
         var totalTimeSpent = linfo.timeSpentSeconds;
         for(var i=pastInfo.length-1; i>=0; i--) {
             var pastRep = pastInfo[i];
@@ -179,11 +184,28 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, report, groupin
             var pastPerc = _getPerc(pastRep);
             if(pastPerc <= maxPerc) continue;
             maxPerc = pastPerc;
+            maxLinfo = pastRep;
         }
         itemInfo.score = maxPerc;
-        itemInfo.passScore = parseInt(linfo.passScore || 0);
-        itemInfo.rawStatus = (itemInfo.score >= itemInfo.passScore) ? 'success' : 'failed';
         itemInfo.timeSpentSeconds = totalTimeSpent;
+        itemInfo.maxScore = _getMaxScore(maxLinfo);
+        itemInfo.rawScore = _getRawScore(maxLinfo);
+        itemInfo.passScore = parseInt(linfo.passScore || 0);
+        itemInfo.started = maxLinfo.started || null;
+        itemInfo.ended = maxLinfo.ended || null;
+        itemInfo.rawStatus = (itemInfo.score >= itemInfo.passScore) ? 'success' : 'failed';
+    }
+
+    function _getMaxScore(linfoItem) {
+        if (linfoItem.selfLearningMode) return null;
+        if (!linfoItem.maxScore) return null;
+        return linfoItem.maxScore;
+    }
+
+    function _getRawScore(linfoItem) {
+        if (linfoItem.selfLearningMode) return null;
+        if (!linfoItem.score || !linfoItem.maxScore) return null;
+        return linfoItem.score;
     }
 
     function _getPerc(linfoItem) {
@@ -269,15 +291,19 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, report, groupin
         for(var key in itemIdToInfo) dictAvps[key] = itemIdToInfo[key].score; 
 		var payload = {strExpression: cm.gateFormula, dictAvps: dictAvps};
         nlExpressionProcessor.process(payload);
-        itemInfo.score = payload.error ? 0 : payload.result;
+        itemInfo.score = payload.error ? null : payload.result;
+        if (!itemInfo.score && itemInfo.score !== null) itemInfo.score = 0;
+        if (itemInfo.score === true) itemInfo.score = 100;
         itemInfo.rawStatus = itemInfo.score >= cm.gatePassscore ? 'success' : 'failed';
         itemInfo.passScore = cm.gatePassscore;
     }
 
     function _updateStatusToWaitingIfNeeded(cm, itemInfo, itemIdToInfo) {
+        itemInfo.origScore = itemInfo.score;
         var today = new Date();
-        if (report.content.planning && cm.start_date && cm.start_date > today) {
+        if (repcontent.planning && cm.start_date && cm.start_date > today) {
             itemInfo.status = 'waiting';
+            itemInfo.score = null;
             return;
         }
  
@@ -318,35 +344,28 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, report, groupin
         if ((isAndCondition && errCnt == 0) || (!isAndCondition && errCnt < condCnt)) return;
         if (pendCnt > 0) itemInfo.prereqPending = true;
         itemInfo.status = 'waiting';
+        itemInfo.score = null;
     }
 
-    function _updateStatusToDelayedIfNeeded(cm, itemInfo, itemIdToInfo) {
-        if (itemInfo.status != 'pending') return;
+    function _updateStatusToDelayedIfNeeded(cm, itemInfo, itemIdToInfo, ret) {
+        if (_isEndState(itemInfo.status)) return;
+        var dueDate = new Date();
+        var now = new Date();
         if (cm.complete_before && _fromDate) {
             var complete_before = parseInt(cm.complete_before);
-            var dueDate = new Date();
             dueDate.setDate(_fromDate.getDate() + complete_before);
-            if(dueDate < new Date()) {
-                itemInfo.status = 'delayed';
-                return;
-            }
+        } else if (repcontent.planning && cm.planned_date) {
+            dueDate = cm.planned_date;
         }
-
-        if (report.content.planning && cm.planned_date) {
-            if (cm.planned_date < new Date()) {
-                itemInfo.status = 'delayed';
-                return;
-            }
-        }
+        if(dueDate >= now) return;
+        itemInfo.delayDays = 1.0*(now - dueDate)/1000.0/3600.0/24;
+        if (ret.delayDays < itemInfo.delayDays) ret.delayDays = itemInfo.delayDays;
+        if (itemInfo.status == 'pending') itemInfo.status = 'delayed';
     }
 
     function _updateCustomStatus(itemInfo, latestCustomStatus) {
         itemInfo.customStatus = itemInfo.customStatus || latestCustomStatus;
         return itemInfo.customStatus;
-    }
-
-    function _updateStatusOfFolders(itemIdToInfo) {
-        // TODO-NOW
     }
 
     function _updateCourseLevelStatus(ret, isAttrition, defaultCourseStatus) {
@@ -371,7 +390,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, report, groupin
     }
 
     function _isEndState(status) {
-        return status == 'failed' || status == 'success' || status == 'partial_success';
+        return status == 'failed' || status == 'success' || status == 'partial_success' || status.indexOf('Attrition') == 0;
     }
 
     function _isStartedState(status) {
