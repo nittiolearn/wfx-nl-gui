@@ -24,8 +24,9 @@ $nlOrange2:                       #ed7000 !default;
 $nlOrange3:                       #eab01f !default; 
 
 $nlRed:                           #770000 !default;
-$nlGreen1:                         #007700 !default;
-$nlGreen2:                        #BBFFBB !default; // Light green
+$nlGreen1:                        #007700 !default;
+$nlGreen2:                        #44BB44 !default; // Light green
+$nlGreen3:                        #BBFFBB !default; // Light green
 
 // Padding definition
 $nlpad_x:                         20px !default; 
@@ -1727,7 +1728,7 @@ img.nl-icon {
 
 .nl-forum-msg.me {
   border-radius: 8px 0 8px 8px;
-  background-color: $nlGreen2;
+  background-color: $nlGreen3;
   margin-left: 5%;
 }
 
@@ -1974,7 +1975,7 @@ nl-course-canvas-view .holder1 {
 }
 
 .nl-rno-list-item.select {
-  background-color: $nlGreen2;
+  background-color: $nlGreen3;
 }
 
 .nl-hover {
@@ -2150,7 +2151,8 @@ img.nl-full-width {
 
 .fyellow {color: $nlOrange3;}
 
-.fgreen {color: #007700;}
+.fgreen {color: $nlGreen1;}
+.fgreen2 {color: $nlGreen2;}
 
 .fdarkgrey1 {color: $nlDaryGrey1;}
 .fdarkgrey2 {color: $nlDaryGrey2;}

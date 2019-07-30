@@ -7,6 +7,10 @@
 // records.
 // To begin with the status computation of course reports are available here.
 //
+// Allowed item states: pending, started, failed, success, partial_success, waiting, delayed
+// Allowed course states: pending, started, failed, certified, passed, done, waiting, Attrition*, CustomStates
+// Attrition* are equivalent to failed
+// CustomStates are equivalent to started
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.report_helper', [])
@@ -23,14 +27,18 @@ function(nl, nlCourse, nlExpressionProcessor) {
         return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, true, report, groupinfo, null, null);
     };
 
-    this.isCourseEndState = function(status) {
+    this.isEndItemState = function(status) {
+        return _isEndItemState(status);
+    };
+
+    this.isEndCourseState = function(status) {
         return _isEndCourseState(status);
     };
 }];
 
 function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, report, groupinfo, courseAssign, course) {
     if (!report) report = {};
-    course = _processCourseRecord(course);
+    _processCourseRecord(course);
 
     //--------------------------------------------------------------------------------
     // Public interfaces
@@ -47,7 +55,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     var _pastLessonReports = repcontent.pastLessonReports || {};
     var _modifiedILT = ((courseAssign ? courseAssign.info : repcontent) || {}).modifiedILT || {};
  
-    var _modules = ((course || repcontent || courseAssign || {}).content || {}).modules || []; 
+    var _modules = ((course || repcontent || {}).content || {}).modules || []; 
     var _fromDate = (courseAssign || {}).not_before ||  report.not_before || report.created;
     if (_fromDate) _fromDate = nl.fmt.json2Date(_fromDate);
     var _userAttendanceDict = {};
@@ -331,7 +339,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     function _updateStatusToWaitingIfNeeded(cm, itemInfo, itemIdToInfo) {
         itemInfo.origScore = itemInfo.score;
         var today = new Date();
-        if (repcontent.planning && cm.start_date && cm.start_date > today) {
+        if ((repcontent.content || {}).planning && cm.start_date && cm.start_date > today) {
             itemInfo.status = 'waiting';
             itemInfo.score = null;
             return;
@@ -355,11 +363,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
             var isConditionFailed = false;
             if (p.iltCondition == 'marked') {
-                if (!_isEndItemState(p.status)) isConditionFailed = true;
+                if (!_isEndItemState(preItem.status)) isConditionFailed = true;
             } else if (p.iltCondition == 'attended') {
-                if (p.status == 'failed') isConditionFailed = true;
+                if (preItem.status == 'failed') isConditionFailed = true;
             } else if (p.iltCondition == 'not_attended') {
-                if (p.status != 'failed') isConditionFailed = true;
+                if (preItem.status != 'failed') isConditionFailed = true;
             } else if (p.min_score && preItem.score < p.min_score) {
                 isConditionFailed = true;
             } else if (p.max_score && preItem.score > p.max_score) {
@@ -384,7 +392,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (cm.complete_before && _fromDate) {
             var complete_before = parseInt(cm.complete_before);
             dueDate.setDate(_fromDate.getDate() + complete_before);
-        } else if (repcontent.planning && cm.planned_date) {
+        } else if ((repcontent.content || {}).planning && cm.planned_date) {
             dueDate = cm.planned_date;
         }
         if(dueDate >= now) return;
@@ -396,8 +404,9 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     function _updateStatistics(itemInfo, ret) {
         var isEnded = _isEndItemState(itemInfo.status);
         if (isEnded && itemInfo.completionPerc) ret.progPerc = itemInfo.completionPerc;
-        ret.nItems++;
-        if (isEnded) ret.nCompletedItems++;
+        var autoCompletingType = _isAutoCompletingType(itemInfo.type);
+        if (!autoCompletingType) ret.nItems++;
+        if (!autoCompletingType && isEnded) ret.nCompletedItems++;
         _updateStatisticsOfQuiz(itemInfo, ret, isEnded);
         _updateStatisticsOfTimeSpent(itemInfo, ret);
     }
@@ -431,10 +440,10 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (isAttrition) return defaultCourseStatus;
         var cm = _modules[_modules.length -1];
         var itemInfo = ret.itemIdToInfo[cm.id];
-        if (itemInfo.status == 'success') {
+        if (itemInfo.status == 'success' || itemInfo.status == 'partial_success') {
             ret.status = cm.type == 'certificate' ? 'certified' : 
                 'passScore' in itemInfo ? 'passed' : 'done';
-        } else if (itemInfo.status == 'failed' || itemInfo.status == 'partial_success') {
+        } else if (itemInfo.status == 'failed') {
             ret.status = 'failed';
         } else if (itemInfo.status == 'waiting' && !itemInfo.prereqPending) {
             ret.status = 'failed';
@@ -449,7 +458,9 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         } else if (ret.status == 'pending') {
             ret.progPerc = 0;
         } else if (!ret.progPerc && ret.nItems) {
-            ret.progPerc = Math.round(100.0*ret.nCompletedItems/ret.nItems, 0);
+            ret.progPerc = Math.round(100.0*ret.nCompletedItems/ret.nItems);
+        } else {
+            ret.progPerc = Math.round(ret.progPerc);
         }
         ret.progDesc = nl.fmt2('{} of {} items done', ret.nCompletedItems, ret.nItems);
     }
@@ -473,8 +484,12 @@ function _isEndCourseState(status) {
     return status == 'failed' || status == 'certified' || status == 'passed' || status == 'done';
 }
 
+function _isAutoCompletingType(itemType) {
+    return (itemType == 'certificate' || itemType == 'gate' || itemType == 'module');
+}
+
 function _getFeedbackScoreForModule(feedback) {
-    if(feedback.length == 0) return '';
+    if(!feedback || feedback.length == 0) return '';
     var score = 0;
     for(var i=0; i<feedback.length; i++) {
         score += feedback[i];

@@ -27,10 +27,11 @@ var _nl = {
     colorsCodes: {
         done: '#007700',          // $nlGreen1
         failed: '#770000',        // $nlRed
-        started: '#eab01f',       // $nlOrange3
-        pending: '#A0A0C0',       // $nlGrey1
+        started: '#44BB44',       // nlGreen2
+        pending: '#eab01f',       // $nlOrange3
+        waiting: '#A0A0C0',       // $nlGrey1
         delayed: '#e84c3d',       // $nlOrange1
-        blue1: '#153673',          // $nlBlue1
+        blue1: '#153673',         // $nlBlue1
         blue2: '#2461cc'          // $nlBlue2
     }
 };

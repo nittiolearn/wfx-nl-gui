@@ -220,7 +220,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
         repcontent.statusinfo = stainf.itemIdToInfo;
  
-        if(!nlReportHelper.isCourseEndState(stainf.status) && (nlLrFilter.getType() == 'course_assign')) {
+        if(!nlReportHelper.isEndCourseState(stainf.status) && (nlLrFilter.getType() == 'course_assign')) {
             if(Object.keys(_reminderDict).length == 0) {
                 _reminderDict['name'] = repcontent.name;
                 _reminderDict['assigned_by'] = repcontent.sendername;

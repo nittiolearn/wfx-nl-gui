@@ -890,13 +890,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (nlLrFetcher.fetchInProgress()) return;
 		var reportRecords = nlLrReportRecords.asList();
 		nlLrExporter.export($scope, reportRecords, _isAdmin);
-		}
-		
-		function _onExportCustomReport() {
-			if (nlLrFetcher.fetchInProgress()) return;
-			var reportRecordsDict = nlLrReportRecords.getRecords();
-			var customReportTemplate = _customReportTemplate || nlGroupInfo.getDefaultCustomReportTemplate();
-			nlLrExporter.exportCustomReport($scope, reportRecordsDict, customReportTemplate);
+	}
+	
+	function _onExportCustomReport() {
+		if (nlLrFetcher.fetchInProgress()) return;
+		var reportRecordsDict = nlLrReportRecords.getRecords();
+		var customReportTemplate = _customReportTemplate || nlGroupInfo.getDefaultCustomReportTemplate();
+		nlLrExporter.exportCustomReport($scope, reportRecordsDict, customReportTemplate);
 	}
 	
 	function _onViewContent() {

@@ -269,10 +269,9 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
 //-------------------------------------------------------------------------------------------------
 var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg',
 'nlCourseEditor', 'nlCourseCanvas', 'nlServerApi', 'nlGroupInfo', 'nlSendAssignmentSrv',
-'nlMarkup', 'nlTreeListSrv', 'nlTopbarSrv', 'nlExpressionProcessor', 'nlReportHelper',
+'nlMarkup', 'nlTreeListSrv', 'nlTopbarSrv', 'nlReportHelper',
 function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlCourseCanvas, 
-    nlServerApi, nlGroupInfo, nlSendAssignmentSrv, nlMarkup, nlTreeListSrv, nlTopbarSrv,
-    nlExpressionProcessor, nlReportHelper) {
+    nlServerApi, nlGroupInfo, nlSendAssignmentSrv, nlMarkup, nlTreeListSrv, nlTopbarSrv, nlReportHelper) {
     var modeHandler = new ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope);
     var nlContainer = new NlContainer(nl, $scope, modeHandler);
     nlContainer.setContainerInWindow();
@@ -725,18 +724,14 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
 
 	$scope.getFormatedDesc = function(descType) {
 		if (descType == 'average') {
-			return nl.t('(from {} {})', $scope.rootStat.nQuiz, $scope.rootStat.nQuiz == 1 ? 'quiz' : 'quizzes');
+            var nQuizzes = _statusInfo ? _statusInfo.nPassedQuizes + _statusInfo.nFailedQuizes : 0;
+			return nl.t('(from {} {})', nQuizzes, nQuizzes == 1 ? 'quiz' : 'quizzes');
 		}
 	};
 	
 	$scope.getCompletionStatus = function() {
-		var rootStat = $scope.rootStat;
-		if (rootStat.completedItems == 0) return 0;
-        var nLessonsDone = rootStat.scoreCount;
-        var weightedProgressMax = rootStat.totalLessons*10 + ((rootStat.total-rootStat.nCert)-rootStat.totalLessons);
-        var weightedProgress = rootStat.scoreCount*10 + ((rootStat.completedItems-rootStat.completedCert)-rootStat.scoreCount);
-        var perc = weightedProgressMax ? Math.round(weightedProgress/weightedProgressMax*100) : 100;
-		return perc;
+        if (!_statusInfo) return 0;
+        return _statusInfo.progPerc;
 	};
 	
 	$scope.getLaunchButtonState = function(cm) {
@@ -828,7 +823,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         waiting: {icon: 'ion-locked fgrey', title: 'Locked'},
         delayed: {icon: 'ion-alert-circled forange', title: 'Delayed'},
         pending: {icon: 'ion-ios-circle-filled fyellow', title: 'Pending'},
-        started: {icon: 'ion-ios-circle-filled fgreen', title: 'Started'},
+        started: {icon: 'ion-ios-circle-filled fgreen2', title: 'Started'},
         failed:  {icon: 'icon ion-close-circled forange', title: 'Failed'},
         success: {icon: 'ion-checkmark-circled fgreen', title: 'Done'},
         partial_success: {icon: 'ion-checkmark-circled fyellow', title: 'Partially Done'} // Only folder status
@@ -860,14 +855,15 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         if (!('maxAttempts' in cm) && cm.type == 'lesson') cm.maxAttempts = 1;
     }
 
+    var _statusInfo = null;
     function _updateAllItemData() {
         folderStats.clear();
         var reopener = new Reopener(modeHandler, nlTreeListSrv, _userInfo, nl, nlDlg, 
             nlServerApi, _updatedStatusinfoAtServer);
         reopener.reopenIfNeeded().then(function() {
             var repHelper = nlReportHelper.getCourseStatusHelperForCourseView(modeHandler.course, _userInfo.groupinfo);
-            var statusInfo = repHelper.getCourseStatus();
-            _updateItemData(nlTreeListSrv.getRootItem(), statusInfo.itemIdToInfo);
+            _statusInfo = repHelper.getCourseStatus();
+            _updateItemData(nlTreeListSrv.getRootItem(), _statusInfo.itemIdToInfo);
 			$scope.rootStat = folderStats.get(nlTreeListSrv.getRootItem().id);
         });
     }
@@ -921,14 +917,15 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
     }
 
     function _updateLessonData(cm, itemInfo) {
-        cm.score = itemInfo.rawScore || null;
-        cm.maxScore = itemInfo.maxScore || null;
-        cm.perc = itemInfo.score || null;
-        cm.started = itemInfo.started || null;
-        cm.ended = itemInfo.ended || null;
         cm.time = itemInfo.timeSpentSeconds || null;
         cm.passScore = itemInfo.passScore || null;
-        cm.attempt = itemInfo.attempt || null;
+        cm.attempt = itemInfo.nAttempts || null;
+        cm.started = itemInfo.started || null;
+        var isEnded = nlReportHelper.isEndItemState(itemInfo.status);
+        cm.ended = isEnded ? itemInfo.ended || null : null;
+        cm.score = isEnded ? itemInfo.rawScore || null : null;
+        cm.maxScore = isEnded ? itemInfo.maxScore || null : null;
+        cm.perc = isEnded ? itemInfo.score || null : null;
     }
     
     function _updateModuleData(cm, itemIdToInfo) {
@@ -1012,8 +1009,9 @@ function FolderStats($scope, modeHandler) {
         var folderStat = {success: 0, failed: 0, 
             started: 0, pending: 0, delayed: 0, waiting: 0,
             scoreCount: 0, score: 0, maxScore: 0, perc: 0,
-            timeCount: 0, time: 0, totalLessons: 0,
-            completedItems: 0, nQuiz:0, folderCount: 0, nCert: 0, completedCert: 0};
+
+            time: 0,
+            completedItems: 0, folderCount: 0};
         _folderStats[cmid] = folderStat;
         return folderStat;
     };
@@ -1027,14 +1025,9 @@ function FolderStats($scope, modeHandler) {
         folderStat.delayed += childStat.delayed;
         folderStat.waiting += childStat.waiting;
         folderStat.scoreCount += childStat.scoreCount;
-        folderStat.totalLessons += childStat.totalLessons;
         folderStat.score += childStat.score;
         folderStat.maxScore += childStat.maxScore;
-        folderStat.timeCount += childStat.timeCount;
         folderStat.time += childStat.time;
-        folderStat.nQuiz += childStat.nQuiz;
-        folderStat.nCert += childStat.nCert;
-        folderStat.completedCert += childStat.completedCert;
         folderStat.folderCount += cm.type == "module" ? 1 : 0;
     };
 
@@ -1045,27 +1038,14 @@ function FolderStats($scope, modeHandler) {
         else if (cm.state.status == 'started') folderStat.started += 1;
         else if (cm.state.status == 'failed') folderStat.failed += 1;
         else if (cm.state.status == 'success') folderStat.success += 1;
+        else if (cm.state.status == 'partial_success') folderStat.success += 1;
 
-		if (cm.type == 'lesson') {
-			folderStat.totalLessons += 1; 
-		}
-		if (cm.maxScore && (cm.state.status == 'success' || cm.state.status == 'failed')) {
-			folderStat.nQuiz += 1;
-		}
-		if (cm.type == 'certificate') {
-			folderStat.nCert += 1;
-			if(cm.state.status == 'success') {
-				folderStat.completedCert += 1;			
-			}
-		}
-        if (cm.score !== null && cm.type != 'iltsession' && cm.type != 'milestone' && cm.type != 'rating' && cm.type != 'gate') {
+        if (cm.type == 'lesson' && cm.maxScore && cm.score !== null) {
             folderStat.scoreCount += 1;
             folderStat.score += cm.score;
             folderStat.maxScore += (cm.maxScore || 0);
         }
-
         if (cm.time !== null) {
-            folderStat.timeCount += 1;
             folderStat.time += cm.time;
         }
     };
@@ -1074,18 +1054,17 @@ function FolderStats($scope, modeHandler) {
         folderStat.total = folderStat.success + folderStat.failed + folderStat.started 
             + folderStat.pending + folderStat.delayed + folderStat.waiting;
         folderStat.perc = folderStat.maxScore > 0 ? Math.round((folderStat.score/folderStat.maxScore)*100) : 0;
-        folderStat.avgTime = folderStat.timeCount > 0 ? Math.round(folderStat.time/60) : 0;
-        folderStat.completedItems = folderStat.success+ folderStat.failed;
+        folderStat.completedItems = folderStat.success + folderStat.failed;
         _updateChartInfo(folderStat);
     };
 
-    var _chartLabels = ['Done', 'Failed', 'Pending', 'Delayed'];
-    var _chartColours = [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.pending, _nl.colorsCodes.delayed];
+    var _chartLabels = ['Done', 'Failed', 'Started', 'Delayed', 'Pending', 'Locked'];
+    var _chartColours = [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.started, _nl.colorsCodes.delayed, _nl.colorsCodes.pending, _nl.colorsCodes.waiting];
     function _updateChartInfo(folderStat) {
         var ret = {labels: _chartLabels, colours: _chartColours};
         ret.data = [folderStat.success, folderStat.failed, 
-            folderStat.started + folderStat.pending + folderStat.waiting,
-            folderStat.delayed];
+            folderStat.started, folderStat.delayed, folderStat.pending, folderStat.waiting
+        ];
         folderStat.chartInfo = ret;
     }
 }
