@@ -421,7 +421,6 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		return('<p>Insert formula to compute the gate value. The formula could be resulting in number (e.g. average rating) or a ' +
 				'true/false condition (e.g. average rating greater than 75). Syntax for writing formula is given below:</p>' +
 				'<ul>' + 
-				'<li><b>$cnt{_id1, _id2}</b>In this case the gate value is number of items completed out of given Unique ids. </li>' +
 				'<li><b>$max{_id1, _id2, _id3}</b>In this case gate score is considered as max score obtained among the item with given Unique ids. </li>' +
 				'<li><b>$min{_id1, _id2, _id3}</b>In this case gate score is considered as min score obtained among the item with given Unique ids. </li>' +
 				'<li><b>$sum{_id1, _id2, _id3}</b>In this case gate score is considered as sum of score obtained by item with given Unique ids. </li>' +

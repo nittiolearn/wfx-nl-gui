@@ -138,7 +138,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 var bStarted = false;
                 if (cm.type == 'iltsession') {
                     bStarted = itemInfo.status != 'failed';
-                } else if (cm.type == 'milestone') {
+                } else if (cm.type == 'milestone' || cm.type == 'module') {
                     bStarted = false;
                 } else {
                     bStarted = true;

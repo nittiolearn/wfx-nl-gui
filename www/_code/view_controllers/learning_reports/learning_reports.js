@@ -1490,19 +1490,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					item.ratingType = 'input';
 					break;
 				}
-				if(rating.type == 'status') {
-					item.ratingOptions = [];
-					item.ratingType = 'select';
-					for(var k=0; k<rating.values.length; k++) {
-						item.ratingOptions.push({id: rating.values[k]['p'], name: rating.values[k]['v']});
-					}
-				}
-				if(rating.type == 'select') {
-					item.ratingOptions = [];
-					item.ratingType = 'select';
-					for(var k=0; k<rating.values.length; k++) {
-						item.ratingOptions.push({id: rating.values[k]['p'], name: rating.values[k]['v']});
-					}
+				if(rating.type != 'status' && rating.type != 'select') break;
+				item.ratingOptions = [];
+				item.ratingType = 'select';
+				for(var k=0; k<rating.values.length; k++) {
+					item.ratingOptions.push({id: rating.values[k]['p'], name: rating.values[k]['v']});
 				}
 			}
 		}

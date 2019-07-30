@@ -22,7 +22,9 @@
 		<div ng-class='respCol442'  ng-show='ext.item.type == "gate"'>
 			<span ng-show='ext.item.gateScore'>{{ext.item.gateScore}} %</span>
 		</div>
-
+		<div ng-show='ext.item.type == "gate"' ng-class='respCol442'><b>Gate pass score</b></div>
+		<div ng-show='ext.item.type == "gate"' ng-class='respCol442'>{{ext.item.passScore}}%</div>
+		
 		<div ng-show='ext.item.planned_date' ng-class='respCol442'><b>Planned Date</b></div>
 		<div ng-show='ext.item.planned_date' ng-class='respCol442'>{{ext.item.planned_date | date : 'dd-MMM-yy' || "--"}}</div>
 		<div ng-show='ext.item.start_date' ng-class='respCol442'><b>Earliest start date</b></div>
