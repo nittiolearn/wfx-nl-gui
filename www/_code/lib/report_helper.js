@@ -47,7 +47,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     var _pastLessonReports = repcontent.pastLessonReports || {};
     var _modifiedILT = ((courseAssign ? courseAssign.info : repcontent) || {}).modifiedILT || {};
  
-    var _modules = ((course || courseAssign || repcontent || {}).content || {}).modules || []; 
+    var _modules = ((course || repcontent || courseAssign || {}).content || {}).modules || []; 
     var _fromDate = (courseAssign || {}).not_before ||  report.not_before || report.created;
     if (_fromDate) _fromDate = nl.fmt.json2Date(_fromDate);
     var _userAttendanceDict = {};
@@ -155,7 +155,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             itemInfo.rawStatus = sinfo.status == 'done' ? 'success' : 'pending';
             itemInfo.score = itemInfo.rawStatus == 'success' ? 100 : null;
         } else if (cm.type == 'lesson') {
-            _getRawStatusOfLesson(cm, itemInfo, ret);
+            _getRawStatusOfLesson(cm, itemInfo);
         } else if (cm.type == 'iltsession') {
             _getRawStatusOfIltSession(cm, itemInfo);
         } else if (cm.type == 'rating') {
@@ -398,11 +398,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (isEnded && itemInfo.completionPerc) ret.progPerc = itemInfo.completionPerc;
         ret.nItems++;
         if (isEnded) ret.nCompletedItems++;
-        _updateStatisticsOfQuiz(itemInfo, ret);
+        _updateStatisticsOfQuiz(itemInfo, ret, isEnded);
         _updateStatisticsOfTimeSpent(itemInfo, ret);
     }
 
-    function _updateStatisticsOfQuiz(itemInfo, ret) {
+    function _updateStatisticsOfQuiz(itemInfo, ret, isEnded) {
         if (itemInfo.type != 'lesson' || itemInfo.selfLearningMode || !itemInfo.maxScore) return;
         ret.nQuizes++;
         if (itemInfo.nAttempts) ret.nQuizAttempts += itemInfo.nAttempts;

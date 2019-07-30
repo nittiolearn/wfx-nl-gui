@@ -1021,14 +1021,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			dlgScope.chartInfo = ret;
 		} else if(dlgScope.selectedSession.type == 'milestone') {
 			var ret = {labels: _milestoneLabels, colours: _milestoneColors};
-
-			if(milestone[dlgScope.selectedSession.id] && milestone[dlgScope.selectedSession.id].status == 'done') {
-				ret.data = [Object.keys(learningRecords).length, 0];
+				ret.data = [dlgScope.selectedSession.completed.length, dlgScope.selectedSession.pending.length];
 				dlgScope.chartInfo = ret;
-			} else {
-				ret.data = [0, Object.keys(learningRecords).length];
-				dlgScope.chartInfo = ret;
-			}
 		} else {
 			var ret = {labels: _infoLabels, colours: _infoColours};
 			ret.data = [dlgScope.selectedSession.completed.length, dlgScope.selectedSession.pending.length];
@@ -1075,8 +1069,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			for(var j=0; j<ret.length; j++) {
 				if(ret[j].type == 'module') continue;
 				if(ret[j].type == 'lesson') {
-					var report = repcontent.statusinfo[ret[j].id];
-					if(_isEndState(report.status)) {
+					var report = ('statusinfo' in repcontent && repcontent.statusinfo[ret[j].id]) ? repcontent.statusinfo[ret[j].id] : {};
+					if(report.status && _isEndState(report.status)) {
 						if(report.selfLearningMode) {
 							ret[j].completed.push({id: parseInt(key), name: learningRecords[key].user.name});
 						} else {
@@ -1085,21 +1079,21 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 							else 
 								ret[j].completed.push({id: parseInt(key), name: learningRecords[key].user.name});
 						}
-					} else if(report.status == 'started'){
+					} else if(report.status && report.status == 'started'){
 						ret[j].started.push({id: parseInt(key), name: learningRecords[key].user.name});
 					} else {
 						ret[j].pending.push({id: parseInt(key), name: learningRecords[key].user.name});
 					}
 				} else if(ret[j].type == 'iltsession'){
-					var report = 'statusinfo' in repcontent ? repcontent.statusinfo[ret[j].id] : {};
+					var report = ('statusinfo' in repcontent && repcontent.statusinfo[ret[j].id]) ? repcontent.statusinfo[ret[j].id] : {};
 					if(!report.status || report.status == 'pending') {
 						ret[j].pending.push({id: parseInt(key), name: learningRecords[key].user.name});
 					} else {
 						ret[j][report.stateStr].push({id: parseInt(key), name: learningRecords[key].user.name});
 					}
 				} else if(ret[j].type == 'rating'){
-					var report = 'statusinfo' in repcontent ? repcontent.statusinfo[ret[j].id] : {};
-					if(report && report.status != 'pending') {
+					var report = ('statusinfo' in repcontent && repcontent.statusinfo[ret[j].id]) ? repcontent.statusinfo[ret[j].id] : {};
+					if(report.status && report.status != 'pending') {
 						if(report.status == 'success')
 							ret[j].completed.push({id: parseInt(key), name: learningRecords[key].user.name});
 						else
@@ -1108,7 +1102,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 						ret[j].pending.push({id: parseInt(key), name: learningRecords[key].user.name});    					
 					}
 				} else {
-					var report = 'statusinfo' in repcontent ? repcontent.statusinfo[ret[j].id] : {};
+					var report = ('statusinfo' in repcontent && repcontent.statusinfo[ret[j].id]) ? repcontent.statusinfo[ret[j].id] : {};
 					if(_isEndState(report.status)) {
 						ret[j].completed.push({id: parseInt(key), name: learningRecords[key].user.name});
 					} else {
