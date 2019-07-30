@@ -820,13 +820,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
     var _CM_STATES = {
         hidden:  {title: 'Hidden'}, // TODO-LATER - not handled yet!
         none:    {icon: 'ion-information-circled fblue', title: ''},
-        waiting: {icon: 'ion-locked fgrey', title: 'Locked'},
-        delayed: {icon: 'ion-alert-circled forange', title: 'Delayed'},
-        pending: {icon: 'ion-ios-circle-filled fyellow', title: 'Pending'},
-        started: {icon: 'ion-ios-circle-filled fgreen2', title: 'Started'},
-        failed:  {icon: 'icon ion-close-circled forange', title: 'Failed'},
-        success: {icon: 'ion-checkmark-circled fgreen', title: 'Done'},
-        partial_success: {icon: 'ion-checkmark-circled fyellow', title: 'Partially Done'} // Only folder status
+        waiting: {icon: 'ion-locked fgrey', title: 'waiting'},
+        delayed: {icon: 'ion-alert-circled forange', title: 'delayed'},
+        pending: {icon: 'ion-ios-circle-filled fyellow', title: 'pending'},
+        started: {icon: 'ion-ios-circle-filled fgreen2', title: 'started'},
+        failed:  {icon: 'icon ion-close-circled forange', title: 'failed'},
+        success: {icon: 'ion-checkmark-circled fgreen', title: 'done'},
+        partial_success: {icon: 'ion-checkmark-circled fyellow', title: 'partially done'} // Only folder status
     };
 
     function _updateState(cm, state) {
@@ -900,6 +900,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
     function _updateILTData(cm, itemInfo) {
         cm.remarks = itemInfo.remarks || '';
         cm.timeMins = itemInfo.iltTimeSpent || '-';
+        cm.marked = itemInfo.marked || '-';
     }
  
     function _updateGateData(cm, itemInfo) {
@@ -911,6 +912,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         cm.ratingScore = itemInfo.score;
         cm.ratingStr = itemInfo.rating;
         cm.remarks = itemInfo.remarks || '';
+        cm.marked = itemInfo.marked || '-';
     }
 
     function _updateMilestoneData(cm, itemInfo) {
@@ -1059,7 +1061,7 @@ function FolderStats($scope, modeHandler) {
         _updateChartInfo(folderStat);
     };
 
-    var _chartLabels = ['Done', 'Failed', 'Started', 'Delayed', 'Pending', 'Locked'];
+    var _chartLabels = ['done', 'failed', 'started', 'delayed', 'pending', 'waiting'];
     var _chartColours = [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.started, _nl.colorsCodes.delayed, _nl.colorsCodes.pending, _nl.colorsCodes.waiting];
     function _updateChartInfo(folderStat) {
         var ret = {labels: _chartLabels, colours: _chartColours};

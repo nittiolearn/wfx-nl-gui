@@ -240,7 +240,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         
         report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
         report.urlTitle = nl.t('View report');
-        stats.status = nlLrHelper.statusInfos[_getStatusIdFormStatus(stainf.status)];
+        stats.status = nlLrHelper.getStatusInfoFromStr(stainf.status);
         var ret = {raw_record: report, repcontent: repcontent, course: course, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
@@ -386,14 +386,6 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         if (rep.passScore && scorePerc < rep.passScore) return nlLrHelper.STATUS_FAILED;
         if (report.completed) return nlLrHelper.STATUS_DONE;
         return nlLrHelper.STATUS_PASSED;
-    }
-
-    function _getStatusIdFormStatus(status) {
-        if(status == 'pending') return nlLrHelper.STATUS_PENDING;
-        if(status == 'started') return nlLrHelper.STATUS_STARTED;
-        if(status == 'failed') return nlLrHelper.STATUS_FAILED;
-        if(status == 'success') return nlLrHelper.STATUS_PASSED;
-        return nlLrHelper.STATUS_DONE;
     }
 }];
 

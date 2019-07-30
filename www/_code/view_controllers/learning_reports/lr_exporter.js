@@ -15,8 +15,6 @@ function($stateProvider, $urlRouterProvider) {
 
 var NlLrExporter = ['nl', 'nlDlg', 'nlRouter', 'nlExporter', 'nlOrgMdMoreFilters', 'nlLrHelper', 'nlLrSummaryStats', 'nlGroupInfo', 'nlLrFilter',
 function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSummaryStats, nlGroupInfo, nlLrFilter) {
-	var self = this;
-	
     var _gradelabel = '';
     var _subjectlabel = '';
 
@@ -252,7 +250,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var headers = ['User Id', 'User Name'];
         headers = headers.concat(['Course Name', 'Batch name', _gradelabel, _subjectlabel, 'Assigned On', 'Last Updated On', 
             'From', 'Till', 'Status', 'Progress', 'Progress Details', 'Quiz Attempts',
-            'Achieved %', 'Maximum Score', 'Achieved Score', 'Feedback score', 'Time Spent (minutes)', 'ILT time spent(minutes)', 'ILT total time(minutes)', 'Venue', 'Trainer name',]);
+            'Achieved %', 'Maximum Score', 'Achieved Score', 'Feedback score', 'Online Time Spent (minutes)', 'ILT time spent(minutes)', 'ILT total time(minutes)', 'Venue', 'Trainer name',]);
     	headers = headers.concat([ 'Infra Cost', 'Trainer Cost', 'Food Cost', 'Travel Cost', 'Misc Cost']);
         headers = headers.concat(['User state', 'Email Id', 'Org']);
         if (!filter.hideMetadata) for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
@@ -271,7 +269,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             report.stats.status.txt, report.stats.percCompleteStr,
             report.stats.percCompleteDesc, report.stats.avgAttempts || '',
             report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore, feedbackScore,
-            Math.ceil(report.stats.timeSpentSeconds/60), Math.ceil(report.stats.iltTimeSpent/60), report.stats.iltTotalTime]);
+            Math.ceil(report.stats.timeSpentSeconds/60), Math.ceil(report.stats.iltTimeSpent), report.stats.iltTotalTime]);
         ret = ret.concat([report.repcontent.iltVenue || '', report.repcontent.iltTrainerName || '', report.repcontent.iltCostInfra || '', report.repcontent.iltCostTrainer || '',
         			report.repcontent.iltCostFoodSta || '', report.repcontent.iltCostTravelAco || '', report.repcontent.iltCostMisc || '']);
         ret.push(report.user.state ? 'active' : 'inactive');        
@@ -364,7 +362,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             {id: '_score', name:'Achieved Score'},
             {id: '_passScoreStr', name:'Pass %'},
             {id: 'feedbackScore', name:'Feedback score'},
-            {id: '_timeMins', name:'Time Spent (minutes)'}];
+            {id: '_timeMins', name:'Online Time Spent (minutes)'}];
     var _h1PageScores = [
             {id: 'page', name:'Page No'},
             {id: 'title', name:'Page Title'},
@@ -380,16 +378,16 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             {id: '_assignTypeStr', name:'Record Type'},
             {id: '_courseName', name:'Course Name'},
             {id: '_batchName', name:'Batch Name'},
-            {id: '_itemname', name:'Item name'}];
+            {id: '_itemname', name:'Module/Item Name'}];
     
     var _hCourseDetailsElem2 = [
             {id: 'created', name:'Assigned On', fmt: 'minute'},
             {id: 'started', name:'Started On', fmt: 'minute'},
-            {id: 'ended', name:'Ended On', fmt: 'minute'},
+            {id: 'ended', name:'Ended/Marked On', fmt: 'minute'},
             {id: 'updated', name:'Last Updated On', fmt: 'minute'},
             {id: 'not_before', name: 'From', fmt: 'minute'},
             {id: 'not_after', name: 'Till', fmt: 'minute'},
-            {id: '_status', name:'Status / Rating'},
+            {id: '_status', name:'Status/Rating'},
             {id: 'remarks', name: 'Remarks'},
             {id: '_attempts', name:'Attempts'},
             
@@ -398,8 +396,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             {id: '_score', name:'Achieved Score'},
             {id: '_passScoreStr', name:'Pass %'},
             {id: 'feedbackScore', name:'Feedback score'},
-            {id: '_timeMins', name:'Time Spent (minutes)'},
-            {id: '_timeTotalMins', name:'Total Time(minutes)'}
+            {id: '_timeMins', name:'Online Time Spent (minutes)'},
+            {id: '_timeIltMins', name:'ILT Time Spent (minutes)'},
+            {id: '_timeIltTotalMins', name:'ILT Total Time(minutes)'}
         ];
     
     var _hCourseDetailsElem3 = [
@@ -412,8 +411,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 
     function _initExportHeaders(_userInfo, exportIds) {
         var _commonFieldsPre = [
-                {id: 'subject', name:_userInfo.groupinfo.subjectlabel},
-                {id: '_grade', name:_userInfo.groupinfo.gradelabel}];
+            {id: '_grade', name:_gradelabel},
+            {id: 'subject', name:_subjectlabel}];
         var _commonFieldsPost = [
                 {id: 'assign_remarks', name:'Remarks'}];
 
@@ -551,7 +550,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             created: report.raw_record.created, started: '', ended: '', updated: '', 
             not_before: report.repcontent.not_before, not_after: report.repcontent.not_after, 
             _status: 'pending', remarks: '', _attempts: '', _percStr: '', _maxScore: '', _score: '', _passScoreStr: '', feedbackScore: '', 
-            _timeMins: '', _timeTotalMins: '',
+            _timeMins: '', _timeIltMins: '', _timeIltTotalMins: '',
             _stateStr: report.user.state ? 'active' : 'inactive', _email: report.user.email, org_unit: report.user.org_unit,
             _reportId: report.raw_record.id, _assignId: report.raw_record.assignment, _courseId: report.raw_record.lesson_id, _moduleId: '', _moduleRepId : ''};
         var modules = report.course.content.modules;
@@ -564,16 +563,16 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             if(item.type == 'lesson') _updateCsvModuleRows1(report, item, statusinfo, defObj);
             else if(item.type == 'iltsession') _updateCsvSessionRows1(statusinfo, defObj);
             else if(item.type == 'rating') _updateCsvRatingRows1(statusinfo, defObj);
-            else if(item.type == 'gate') _updateCsvGateRows1(report, statusinfo, defObj);
+            else if(item.type == 'gate') _updateCsvGateRows1(statusinfo, defObj);
             else if(item.type == 'milestone') _updateCsvMilestoneRows1(item, statusinfo, defObj);
-            else if(item.type == 'info' || item.type == 'link') _updateCsvInfoOrLinkRows1(report, item, statusinfo, defObj);
+            else if(item.type == 'info' || item.type == 'link') _updateCsvInfoOrLinkRows1(item, statusinfo, defObj);
+            else if(item.type == 'certificate') _updateCsvCertRows1(statusinfo, defObj);
             ctx.courseDetailsRow.push(nlExporter.getCsvRow(_hCourseDetailsRow, defObj));
         }
     }
     
     function _updateCsvModuleRows1(report, item, statusinfo, defaultRowObj){
         defaultRowObj._assignTypeStr = 'Module inside course';
-        defaultRowObj.remarks =  report.repcontent.remarks;
         defaultRowObj._moduleId = item.refid;
         if (!statusinfo) return;
         defaultRowObj._moduleRepId = statusinfo.moduleRepId;
@@ -595,9 +594,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         if (!statusinfo) return;
         defaultRowObj._status = statusinfo.state;
         defaultRowObj.remarks = statusinfo.remarks || '';
-        defaultRowObj._timeMins = statusinfo.iltTimeSpent || 0;
-        defaultRowObj._timeTotalMins = statusinfo.iltTotalTime;
-        defaultRowObj.started = statusinfo.started;
+        defaultRowObj._timeIltMins = statusinfo.iltTimeSpent || 0;
+        defaultRowObj._timeIltTotalMins = statusinfo.iltTotalTime;
+        defaultRowObj.ended = statusinfo.marked;
         defaultRowObj.updated = statusinfo.updated;
 	}
 
@@ -608,17 +607,17 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         defaultRowObj._score = statusinfo.ratingScore === 0 ? "0" : statusinfo.score;
         defaultRowObj._passScoreStr = statusinfo.passScore || '';
         defaultRowObj.remarks = statusinfo.remarks || '';
-        defaultRowObj.started = statusinfo.started;
+        defaultRowObj.ended = statusinfo.marked;
         defaultRowObj.updated = statusinfo.updated;
 	}
 
-	function _updateCsvGateRows1(report, statusinfo, defaultRowObj) {
+	function _updateCsvGateRows1(statusinfo, defaultRowObj) {
         defaultRowObj._assignTypeStr = 'Gate inside course';
         if (!statusinfo) return;
-        defaultRowObj._status = (statusinfo.score >= statusinfo.passScore) ? 'done' : 'Failed';
+        defaultRowObj._status = statusinfo.status || 'pending';
         defaultRowObj._score = statusinfo.score === 0 ? "0" : statusinfo.score;
+        defaultRowObj._percStr =  defaultRowObj._score;
         defaultRowObj._passScoreStr = statusinfo.passScore;
-        defaultRowObj.updated = report.raw_record.updated;
 	}
 
 	function _updateCsvMilestoneRows1(item, statusinfo, defaultRowObj) {
@@ -631,12 +630,17 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         defaultRowObj.updated = statusinfo.updated ? statusinfo.updated : '';
 	}
 
-	function _updateCsvInfoOrLinkRows1(report, item, statusinfo, defaultRowObj) {
+	function _updateCsvInfoOrLinkRows1(item, statusinfo, defaultRowObj) {
         defaultRowObj._assignTypeStr = item.type == 'info' ? 'Info inside course' : 'Link inside course';
         if (!statusinfo) return;
         defaultRowObj._status = statusinfo.status;
-        defaultRowObj.updated = report.raw_record.updated;
+        defaultRowObj.updated = statusinfo.updated;
         defaultRowObj.remarks = statusinfo.remarks;
+    }
+
+	function _updateCsvCertRows1(statusinfo, defaultRowObj) {
+        defaultRowObj._assignTypeStr = 'Certificate inside course';
+        defaultRowObj._status = statusinfo.status;
     }
 
     function _checkFilter(filterItems, userField) {

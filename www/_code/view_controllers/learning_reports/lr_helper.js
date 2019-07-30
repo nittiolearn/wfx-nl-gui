@@ -29,6 +29,18 @@ var NlLrHelper = ['nlGroupInfo', function NlLrHelper(nlGroupInfo) {
         {id: this.STATUS_PASSED, txt: 'passed', icon: 'ion-checkmark-circled fgreen'},
         {id: this.STATUS_FAILED, txt: 'failed', icon: 'icon ion-close-circled forange'},
         {id: this.STATUS_CERTIFIED, txt: 'certified', icon: 'icon ion-android-star fgreen'}];
+
+    this.getStatusInfoFromStr = function(statusStr) {
+        if (!statusStr) return this.statusInfos[this.STATUS_PENDING];
+        for (var i=0; i<this.statusInfos.length; i++) {
+            var item = this.statusInfos[i];
+            if (item.txt == statusStr) return item;
+        }
+        var statusId = statusStr.indexOf('attrition') == 0 ? this.STATUS_FAILED : this.STATUS_STARTED;
+        var ret = angular.copy(this.statusInfos[statusId]);
+        ret.txt = statusStr;
+        return ret;
+    }
         
     this.isDone = function(statusInfo) {
         return statusInfo.id != this.STATUS_PENDING && statusInfo.id != this.STATUS_STARTED;

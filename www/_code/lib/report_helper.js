@@ -131,9 +131,9 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             latestCustomStatus =  _updateCustomStatus(itemInfo, latestCustomStatus);
             if (itemInfo.isAttrition) {
                 isAttrition = true;
-                itemInfo.status = 'Attrition';
+                itemInfo.status = 'attrition';
                 var suffix = itemInfo.customStatus ? '-' +  itemInfo.customStatus : '';
-                defaultCourseStatus = 'Attrition' + suffix;
+                defaultCourseStatus = 'attrition' + suffix;
             } else  if (_isStartedItemState(itemInfo.status)) {
                 var bStarted = false;
                 if (cm.type == 'iltsession') {
@@ -166,10 +166,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             itemInfo.rawStatus = 'success';
             itemInfo.score = 100;
         } else if (cm.type == 'info' || cm.type == 'link') {
-            var sinfo = _statusinfo[cm.id] || {};
-            itemInfo.rawStatus = sinfo.status == 'done' ? 'success' : 'pending';
-            itemInfo.score = itemInfo.rawStatus == 'success' ? 100 : null;
-            itemInfo.remarks = sinfo.remarks || '';
+            _getRawStatusOfInfo(cm, itemInfo);
         } else if (cm.type == 'lesson') {
             _getRawStatusOfLesson(cm, itemInfo);
         } else if (cm.type == 'iltsession') {
@@ -187,6 +184,14 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         }
     }
 
+    function _getRawStatusOfInfo(cm, itemInfo) {
+        var sinfo = _statusinfo[cm.id] || {};
+        itemInfo.rawStatus = sinfo.status == 'done' ? 'success' : 'pending';
+        itemInfo.score = itemInfo.rawStatus == 'success' ? 100 : null;
+        itemInfo.remarks = sinfo.remarks || '';
+        itemInfo.updated = nl.fmt.json2Date(sinfo.date || '');
+    }
+    
     function _getRawStatusOfLesson(cm, itemInfo) {
         var linfo = _lessonReports[cm.id] || null;
         itemInfo.selfLearningMode = false;
@@ -277,7 +282,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.state = grpAttendanceObj.name;
         itemInfo.stateStr = grpAttendanceObj.id;
         itemInfo.remarks = userCmAttendance.remarks || '';
-        itemInfo.started = nl.fmt.json2Date(userCmAttendance.update || '');
+        itemInfo.marked = nl.fmt.json2Date(userCmAttendance.marked || '');
         itemInfo.updated = nl.fmt.json2Date(userCmAttendance.updated || '');
         if (grpAttendanceObj.isAttrition) itemInfo.isAttrition = true;
     }
@@ -296,7 +301,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             (itemInfo.score >= grpRatingObj.passScore) ? 'success' : 'partial_success';
         itemInfo.passScore = grpRatingObj.passScore;
         itemInfo.remarks = userCmRating.remarks || '';
-        itemInfo.started = nl.fmt.json2Date(userCmRating.update || '');
+        itemInfo.marked = nl.fmt.json2Date(userCmRating.marked || '');
         itemInfo.updated = nl.fmt.json2Date(userCmRating.updated || '');
         itemInfo.rating = _computeRatingStringOnScore(grpRatingObj, itemInfo.score);
     }
@@ -471,7 +476,7 @@ function _isCertificate(cm) {
 }
 
 function _isEndItemState(status) {
-    return status == 'failed' || status == 'success' || status == 'partial_success' || status.indexOf('Attrition') == 0;
+    return status == 'failed' || status == 'success' || status == 'partial_success' || status.indexOf('attrition') == 0;
 }
 
 function _isStartedItemState(status) {

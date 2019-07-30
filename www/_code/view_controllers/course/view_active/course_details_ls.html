@@ -34,6 +34,8 @@
 		<div ng-show='ext.item.started' ng-class='respCol442'>{{ext.item.started | date : 'dd-MMM-yy' || "--"}}</div>
 		<div ng-show='ext.item.ended' ng-class='respCol442'><b>Ended</b></div>
 		<div ng-show='ext.item.ended' ng-class='respCol442'>{{ext.item.ended | date : 'dd-MMM-yy' || "--"}}</div>
+		<div ng-show='ext.item.marked' ng-class='respCol442'><b>Marked</b></div>
+		<div ng-show='ext.item.marked' ng-class='respCol442'>{{ext.item.marked | date : 'dd-MMM-yy' || "--"}}</div>
 
 		<div ng-show='ext.item.maxScore'  ng-class='respCol442'><b>Score</b></div>
 		<div ng-show='ext.item.maxScore' ng-class='respCol442'>{{ext.item.perc}}% ({{ext.item.score || 0}} / {{ext.item.maxScore}})</div>

@@ -1267,7 +1267,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _updateAttendanceDelta(updateSessionList, newAttendancePerSession) {
 		var repid = newAttendancePerSession.id;
 		var sessionid = updateSessionList.id;
-		var oldAttendancePerSession = {};  //This is {id: sessionid1, remarks: '', attId: 'attended/not-attended/medical_leave', update: 1222, updated: 213252}
+		var oldAttendancePerSession = {};  //This is {id: sessionid1, remarks: '', attId: 'attended/not-attended/medical_leave', marked: 1222, updated: 213252}
 		var oldAttendancePerReport = oldAttendance[repid] || []; //repid: [{id: sessionid1, attId: 'attended', remarks: '' },{id: sessionid2, attId: 'not_attended', remarks: '' }.....]
 		for(var i=0; i<oldAttendancePerReport.length; i++) {
 			var sessionAttendance = oldAttendancePerReport[i];
@@ -1277,18 +1277,18 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		if(!oldAttendancePerSession.attId) oldAttendancePerSession['attId'] = '';
 		if(!oldAttendancePerSession.remarks) oldAttendancePerSession['remarks'] = '';
-		var update = oldAttendancePerSession.update || null;
+		var marked = oldAttendancePerSession.marked || null;
 		var updated = oldAttendancePerSession.updated || null;
 		if(oldAttendancePerSession.attId != newAttendancePerSession.attendance.id || oldAttendancePerSession.remarks !== newAttendancePerSession.remarks) {
 			updateSessionList.selectedUsers.push({name: newAttendancePerSession.name, 
 				status: (newAttendancePerSession.attendance.id in _attendanceObj) ? _attendanceObj[newAttendancePerSession.attendance.id].name : '', 
 				remarks: newAttendancePerSession.remarks || ""});
 			attendanceUpdated = true;
-			update = oldAttendancePerSession.update || new Date();
 			updated = new Date();
+			if (oldAttendancePerSession.attId != newAttendancePerSession.attendance.id) marked = updated;
 		}
 		if(!(repid in attendance)) attendance[repid] = [];
-		attendance[repid].push({id: sessionid, attId: newAttendancePerSession.attendance.id, remarks: newAttendancePerSession.remarks, updated: updated, update: update});
+		attendance[repid].push({id: sessionid, attId: newAttendancePerSession.attendance.id, remarks: newAttendancePerSession.remarks, updated: updated, marked: marked});
 	}
 
 	function _getIltSessions(content, learningRecords, type) {
@@ -1408,7 +1408,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if(!('attId' in oldRatingPerItem)) oldRatingPerItem['attId'] = '';
 		if(!oldRatingPerItem.remarks) oldRatingPerItem['remarks'] = '';
 		var dict = {name: newRatingPerItem.name};
-		var update = oldRatingPerItem.update || null;
+		var marked = oldRatingPerItem.marked || null;
 		var updated = oldRatingPerItem.updated || null;
 		if(updateSessionList.rating_type == 'input') {
 			if(newRatingPerItem.rating !== null && (oldRatingPerItem.attId !== newRatingPerItem.rating || oldRatingPerItem.remarks !== newRatingPerItem.remarks)) {
@@ -1416,8 +1416,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					status: (newRatingPerItem.rating === 0) ? 0 : newRatingPerItem.rating, 
 					remarks: newRatingPerItem.remarks || ""});
 				ratingUpdated = true;	
-				update = oldRatingPerItem.update || new Date();
 				updated = new Date();
+				if (oldRatingPerItem.attId !== newRatingPerItem.rating) marked = updated;
 			}
 		} else if(updateSessionList.rating_type == 'select') {
 			if(oldRatingPerItem.attId !== newRatingPerItem.rating.id || oldRatingPerItem.remarks != newRatingPerItem.remarks) {
@@ -1425,17 +1425,17 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					status: newRatingPerItem.rating.name || '', 
 					remarks: newRatingPerItem.remarks || ""});
 				ratingUpdated = true;	
-				update = oldRatingPerItem.update || new Date();
 				updated = new Date();
+				if (oldRatingPerItem.attId !== newRatingPerItem.rating) marked = updated;
 			}
 		}
 
 		if(!(repid in rating)) rating[repid] = [];
 		if(updateSessionList.rating_type == 'input') 
-			rating[repid].push({id: sessionid, attId: (newRatingPerItem.rating === 0) ? 0 : newRatingPerItem.rating, remarks: newRatingPerItem.remarks || '', update: update, updated: updated});
+			rating[repid].push({id: sessionid, attId: (newRatingPerItem.rating === 0) ? 0 : newRatingPerItem.rating, remarks: newRatingPerItem.remarks || '', marked: marked, updated: updated});
 
 		if(updateSessionList.rating_type == 'select')
-			rating[repid].push({id: sessionid, attId: newRatingPerItem.rating.id, remarks: newRatingPerItem.remarks || '', update: update, updated: updated});
+			rating[repid].push({id: sessionid, attId: newRatingPerItem.rating.id, remarks: newRatingPerItem.remarks || '', marked: marked, updated: updated});
 	}
 
 	function _getRatings(content, learningRecords, isFirstTime) {
