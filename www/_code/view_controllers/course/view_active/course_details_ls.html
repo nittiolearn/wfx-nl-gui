@@ -1,58 +1,57 @@
 <div style='padding-left: {{cm.indentationLevel*16 + 8}}px'>
-	<div class='row row-wrap row-center row-justify-evenly padding0 margin0'>
+	<div class='row row-wrap padding0 margin0'>
 		<div ng-class='respCol442'><b>Status</b></div>
 		<div ng-class='respCol442'>
 			<i ng-show='ext.item.state.icon'
                class="icon fsh3 {{ext.item.state.icon}}"></i>
              <span>{{ext.item.state.title}}</span>
 		</div>
-		<div ng-class='respCol442' ng-show='ext.item.type != "milestone" && ext.item.type != "rating" && ext.item.type != "gate"'><b>Time spent</b></div>
-		<div ng-class='respCol442'  ng-show='ext.item.type != "milestone" && ext.item.type != "rating" && ext.item.type != "gate"'>
-			<span ng-show='ext.item.timeMins > 0'>{{ext.item.timeMins}} minutes</span>
-			<span ng-show='ext.item.timeMins == 0'>-</span>								
+		<div ng-class='respCol442' ng-show='ext.item.timeMins > 0'><b>Time spent</b></div>
+		<div ng-class='respCol442' ng-show='ext.item.timeMins > 0'>
+			<span>{{ext.item.timeMins}} minutes</span>
 		</div>
-		<div ng-class='respCol442' ng-show='ext.item.type == "milestone"'><b>Completion percentage</b></div>
-		<div ng-class='respCol442'  ng-show='ext.item.type == "milestone"'>
+		<div ng-class='respCol442' ng-show='ext.item.completionPerc > 0'><b>Completion percentage</b></div>
+		<div ng-class='respCol442' ng-show='ext.item.completionPerc > 0'>
 			<span>{{ext.item.completionPerc}} %</span>
 		</div>
 		<div ng-class='respCol442' ng-show='ext.item.type == "rating"'><b>Rating</b></div>
-		<div ng-class='respCol442'  ng-show='ext.item.type == "rating"'>
+		<div ng-class='respCol442' ng-show='ext.item.type == "rating"'>
 			<span>{{(ext.item.ratingStr === 0 ? 0 : ext.item.ratingStr)}}</span>
 		</div>
 		<div ng-class='respCol442' ng-show='ext.item.type == "gate"'><b>Gate score</b></div>
 		<div ng-class='respCol442'  ng-show='ext.item.type == "gate"'>
 			<span ng-show='ext.item.gateScore'>{{ext.item.gateScore}} %</span>
 		</div>
-	</div>
-	<div ng-show='ext.item.planned_date || ext.item.start_date' class='row row-wrap row-center row-justify-evenly padding0 margin0'>
-		<div ng-class='respCol442'><b>Planned Date</b></div>
-		<div ng-class='respCol442'>{{ext.item.planned_date | date : 'dd-MMM-yy' || "--"}}</div>
-		<div ng-class='respCol442'><b>Earliest start date</b></div>
-		<div ng-class='respCol442'>{{ext.item.start_date | date : 'dd-MMM-yy' || "--"}}</div>
-	</div>
-	<div ng-show='ext.item.started || ext.item.ended' class='row row-wrap row-center row-justify-evenly padding0 margin0'>
-		<div ng-class='respCol442'><b>Started</b></div>
-		<div ng-class='respCol442'>{{ext.item.started | date : 'dd-MMM-yy' || "--"}}</div>
-		<div ng-class='respCol442'><b>Ended</b></div>
-		<div ng-class='respCol442'>{{ext.item.ended | date : 'dd-MMM-yy' || "--"}}</div>
-	</div>
-	<div ng-show='ext.item.maxScore' class='row row-wrap row-center row-justify-evenly padding0 margin0'>
-		<div ng-class='respCol442'><b>Score</b></div>
-		<div ng-class='respCol442'>{{ext.item.perc}}% ({{ext.item.score || 0}} / {{ext.item.maxScore}})</div>
-		<div ng-class='respCol442'><b>Pass score</b></div>
-		<div ng-class='respCol442'>{{ext.item.passScore}}%</div>
-	</div>
-	<div ng-show='ext.item.type == "lesson"' class='row row-center row-wrap row-justify-evenly margin0 padding0'>
-		<div ng-class='respCol442'><b>Maximum attempts</b></div>
-		<div ng-class='respCol442'>{{ext.item.maxAttempts ? ext.item.maxAttempts : "No limit"}}</div>
-		<div ng-class='respCol442'><b>Number of attempts</b></div>
-		<div ng-class='respCol442'>
+
+		<div ng-show='ext.item.planned_date' ng-class='respCol442'><b>Planned Date</b></div>
+		<div ng-show='ext.item.planned_date' ng-class='respCol442'>{{ext.item.planned_date | date : 'dd-MMM-yy' || "--"}}</div>
+		<div ng-show='ext.item.start_date' ng-class='respCol442'><b>Earliest start date</b></div>
+		<div ng-show='ext.item.end_date' ng-class='respCol442'>{{ext.item.start_date | date : 'dd-MMM-yy' || "--"}}</div>
+
+		<div ng-show='ext.item.started' ng-class='respCol442'><b>Started</b></div>
+		<div ng-show='ext.item.started' ng-class='respCol442'>{{ext.item.started | date : 'dd-MMM-yy' || "--"}}</div>
+		<div ng-show='ext.item.ended' ng-class='respCol442'><b>Ended</b></div>
+		<div ng-show='ext.item.ended' ng-class='respCol442'>{{ext.item.ended | date : 'dd-MMM-yy' || "--"}}</div>
+
+		<div ng-show='ext.item.maxScore'  ng-class='respCol442'><b>Score</b></div>
+		<div ng-show='ext.item.maxScore' ng-class='respCol442'>{{ext.item.perc}}% ({{ext.item.score || 0}} / {{ext.item.maxScore}})</div>
+		<div ng-show='ext.item.maxScore' ng-class='respCol442'><b>Pass score</b></div>
+		<div ng-show='ext.item.maxScore' ng-class='respCol442'>{{ext.item.passScore}}%</div>
+
+		<div ng-show='ext.item.type == "lesson"' ng-class='respCol442'><b>Maximum attempts</b></div>
+		<div ng-show='ext.item.type == "lesson"' ng-class='respCol442'>{{ext.item.maxAttempts ? ext.item.maxAttempts : "No limit"}}</div>
+		<div ng-show='ext.item.type == "lesson"' ng-class='respCol442'><b>Number of attempts</b></div>
+		<div ng-show='ext.item.type == "lesson"' ng-class='respCol442'>
 			<nl-course-number-of-attempts></nl-course-number-of-attempts>
 		</div>
 	</div>
-	<nl-course-past-attempt-data ng-show='ext.pastAttemptData.length > 0'></nl-course-past-attempt-data>
-    <div ng-show='ext.item.textHtml' class='padding-top'>
-	    <div nl-compile='ext.item.textHtml' class='nl-content-holder'></div>
-    </div>
-    <nl-course-review-remarks></nl-course-review-remarks>
+	<div ng-show='ext.pastAttemptData.length > 0' class='row padding0 margin0'>
+		<nl-course-past-attempt-data class='col'></nl-course-past-attempt-data>
+	</div>
+	<div ng-show='ext.item.textHtml' class='row padding-top margin0'>
+	    <div nl-compile='ext.item.textHtml' class='nl-content-holder col'></div>
+	</div>
+	<div class='row padding0 margin0'>
+	    <nl-course-review-remarks class='col'></nl-course-review-remarks>
+	</div>
 </div>

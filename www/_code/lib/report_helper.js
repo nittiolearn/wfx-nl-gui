@@ -108,7 +108,6 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             feedbackScore: '',
         };
         var itemIdToInfo = ret.itemIdToInfo; // id: {status: , score: , rawStatus: }
-        var startedCount = 0;
         if (_modules.length <= 0) {
             return ret;
         }
@@ -136,7 +135,15 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 var suffix = itemInfo.customStatus ? '-' +  itemInfo.customStatus : '';
                 defaultCourseStatus = 'Attrition' + suffix;
             } else  if (_isStartedItemState(itemInfo.status)) {
-                defaultCourseStatus = itemInfo.customStatus || 'started';
+                var bStarted = false;
+                if (cm.type == 'iltsession') {
+                    bStarted = itemInfo.status != 'failed';
+                } else if (cm.type == 'milestone') {
+                    bStarted = false;
+                } else {
+                    bStarted = true;
+                }
+                if (bStarted) defaultCourseStatus = itemInfo.customStatus || 'started';
             }
             console.log(nl.fmt2('TODO-NOW: name={}, status={}, cust-status={}, score={}, dcs={}', cm.name, itemInfo.status, itemInfo.customStatus, itemInfo.score, defaultCourseStatus));
         }
@@ -290,7 +297,6 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.remarks = userCmRating.remarks || '';
         itemInfo.started = nl.fmt.json2Date(userCmRating.update || '');
         itemInfo.updated = nl.fmt.json2Date(userCmRating.updated || '');
-        itemInfo.stateStr = _setStatusOfRatingItem(grpRatingObj, userCmRating.attId)
         itemInfo.rating = _computeRatingStringOnScore(grpRatingObj, itemInfo.score);
     }
 
@@ -303,15 +309,6 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 if(val.p == score) return val.v;
             }
         }
-    }
-
-    function _setStatusOfRatingItem(selectedRating, ratingScore) {
-        if(ratingScore <= selectedRating.lowPassScore)
-            return 'failed';
-        else if(selectedRating.lowPassScore < ratingScore && ratingScore < selectedRating.passScore)
-            return 'partial_success';
-        else 
-            return 'completed';
     }
 
     function _getRawStatusOfMilestone(cm, itemInfo) {
@@ -333,6 +330,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (!itemInfo.score && itemInfo.score !== null) itemInfo.score = 0;
         if (itemInfo.score === true) itemInfo.score = 100;
         itemInfo.rawStatus = itemInfo.score >= cm.gatePassscore ? 'success' : 'failed';
+        if (itemInfo.rawStatus == 'failed' && payload.inputNotDefined) itemInfo.rawStatus = 'pending';
         itemInfo.passScore = cm.gatePassscore;
     }
 
@@ -429,7 +427,6 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             ret.iltTotalTime += (itemInfo.iltTotalTime || 0);
         }
     }
-
 
     function _updateCustomStatus(itemInfo, latestCustomStatus) {
         itemInfo.customStatus = itemInfo.customStatus || latestCustomStatus;

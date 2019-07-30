@@ -89,6 +89,7 @@ function(nl) {
     function _process(payload) {
         payload['error'] = '';
         payload['result'] = null;
+        payload['inputNotDefined'] = false;
         
         payload['bracesReplaced1'] = _replaceAll(payload['strExpression'], '{', '([');
         payload['bracesReplaced2'] = _replaceAll(payload['bracesReplaced1'], '}', '])');
@@ -117,7 +118,11 @@ function(nl) {
 
     function _replaceVars(inputStr, payload) {
         return inputStr.replace(/_id[0-9]+/g, function(varName) {
-            if (varName in payload['dictAvps']) return payload['dictAvps'][varName];
+            if (varName in payload['dictAvps']) {
+                var varVal = payload['dictAvps'][varName];
+                if (varVal === null) payload['inputNotDefined'] = true;
+                return varVal;
+            }
             if (payload['error'] == '') payload['error'] = nl.fmt2('{} is not found. Please use unique ids of items above the current item.', varName);
             return varName;
         });

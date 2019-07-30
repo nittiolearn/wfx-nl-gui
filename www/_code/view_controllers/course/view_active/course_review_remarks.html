@@ -1,8 +1,8 @@
-<div ng-show='ext.canShowRemarks()' class='padding-top'>
+<div ng-show='ext.canShowRemarks()'>
     <div class='padding-small'></div>
     <div ng-show='!ext.canUpdateStatus() && ext.data.remarks'>
         <div><b>Remarks:</b></div>
-        <div ng-bind-html='ext.data.remarks'></div>
+        <div ng-bind-html='ext.data.remarks'class='padding-small-v'></div>
     </div>
     <div ng-show='ext.canUpdateStatus()'>
         <div><b>Remarks:</b></div>
