@@ -904,6 +904,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
  
     function _updateGateData(cm, itemInfo) {
         cm.gateScore = itemInfo.score;
+        cm.passScore = itemInfo.passScore;
     }
 
     function _updateRatingData(cm, itemInfo) {

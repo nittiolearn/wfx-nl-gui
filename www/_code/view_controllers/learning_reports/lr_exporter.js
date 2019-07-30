@@ -262,7 +262,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     };
     
     function _getCsvRow(filter, report) {
-    	var feedbackScore = report.repcontent.statusinfo.feedbackScore;
+        var feedbackScore = report.repcontent.statusinfo.feedbackScore || '';
         var mh = nlLrHelper.getMetaHeaders(false);
         var ret = [report.user.user_id, report.user.name];
         ret = ret.concat([report.repcontent.name, report.raw_record._batchName || '', report.raw_record._grade || '',
@@ -574,6 +574,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     function _updateCsvModuleRows1(report, item, statusinfo, defaultRowObj){
         defaultRowObj._assignTypeStr = 'Module inside course';
         defaultRowObj.remarks =  report.repcontent.remarks;
+        defaultRowObj._moduleId = item.refid;
         if (!statusinfo) return;
         defaultRowObj._moduleRepId = statusinfo.moduleRepId;
         defaultRowObj.started = statusinfo.started || '';
@@ -581,11 +582,11 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         defaultRowObj.updated = statusinfo.ended || '';
         defaultRowObj._status = statusinfo.status || 'pending';
         defaultRowObj._attempts =  statusinfo.nAttempts || '';
-        defaultRowObj._percStr =  statusinfo.percScore ? '' + statusinfo.percScore + '%' : '';
+        defaultRowObj._percStr =  statusinfo.score ? statusinfo.score : '';
         defaultRowObj._maxScore = statusinfo.maxScore || '';
         defaultRowObj._score =  statusinfo.rawScore || '';
-        defaultRowObj._passScoreStr =  statusinfo.passScore ? '' + statusinfo.passScore + '%' : '';
-        defaultRowObj._timeMins = Math.ceil((statusinfo.timeSpentSeconds||0)/60);
+        defaultRowObj._passScoreStr =  statusinfo.passScore ? statusinfo.passScore: '';
+        defaultRowObj._timeMins = Math.ceil((statusinfo.timeSpentSeconds || 0)/60);
         defaultRowObj.feedbackScore = statusinfo.feedbackScore || '';
     };
 
@@ -633,7 +634,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 	function _updateCsvInfoOrLinkRows1(report, item, statusinfo, defaultRowObj) {
         defaultRowObj._assignTypeStr = item.type == 'info' ? 'Info inside course' : 'Link inside course';
         if (!statusinfo) return;
-        defaultRowObj._status = 'done';
+        defaultRowObj._status = statusinfo.status;
         defaultRowObj.updated = report.raw_record.updated;
         defaultRowObj.remarks = statusinfo.remarks;
     }
