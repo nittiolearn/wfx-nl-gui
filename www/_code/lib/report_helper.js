@@ -162,6 +162,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             var sinfo = _statusinfo[cm.id] || {};
             itemInfo.rawStatus = sinfo.status == 'done' ? 'success' : 'pending';
             itemInfo.score = itemInfo.rawStatus == 'success' ? 100 : null;
+            itemInfo.remarks = sinfo.remarks || '';
         } else if (cm.type == 'lesson') {
             _getRawStatusOfLesson(cm, itemInfo);
         } else if (cm.type == 'iltsession') {
@@ -249,7 +250,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     function _getPerc(linfoItem) {
         if (linfoItem.selfLearningMode) return 0.0;
         if (!linfoItem.score || !linfoItem.maxScore) return 0.0;
-        return 100.0*linfoItem.score/linfoItem.maxScore;
+        return Math.round(100.0*linfoItem.score/linfoItem.maxScore);
     }
 
     function _getRawStatusOfIltSession(cm, itemInfo) {
@@ -418,8 +419,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (!isEnded) return;
         if (itemInfo.status == 'failed') ret.nFailedQuizes++;
         else ret.nPassedQuizes++;
-        ret.nTotalQuizScore += ret.rawScore;
-        ret.nTotalQuizMaxScore += ret.maxScore;
+        ret.nTotalQuizScore += itemInfo.rawScore;
+        ret.nTotalQuizMaxScore += itemInfo.maxScore;
     }
 
     function _updateStatisticsOfTimeSpent(itemInfo, ret) {
