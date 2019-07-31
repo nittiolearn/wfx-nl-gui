@@ -440,7 +440,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     }
 
     function _updateCourseLevelStatus(ret, isAttrition, defaultCourseStatus) {
-        if (isAttrition) return defaultCourseStatus;
+        if (isAttrition || (defaultCourseStatus == 'pending')) return defaultCourseStatus;
         var cm = _modules[_modules.length -1];
         var itemInfo = ret.itemIdToInfo[cm.id];
         if (itemInfo.status == 'success' || itemInfo.status == 'partial_success') {

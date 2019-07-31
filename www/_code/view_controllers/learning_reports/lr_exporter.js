@@ -260,7 +260,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     };
     
     function _getCsvRow(filter, report) {
-        var feedbackScore = report.repcontent.statusinfo.feedbackScore || '';
+        var feedbackScore = report.stats.feedbackScore || '';
         var mh = nlLrHelper.getMetaHeaders(false);
         var ret = [report.user.user_id, report.user.name];
         ret = ret.concat([report.repcontent.name, report.raw_record._batchName || '', report.raw_record._grade || '',

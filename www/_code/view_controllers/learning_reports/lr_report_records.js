@@ -211,12 +211,13 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
             percCompleteStr: '' + stainf.progPerc + ' %',
             percCompleteDesc: stainf.progDesc,
             nScore: stainf.nTotalQuizScore, nMaxScore: stainf.nTotalQuizMaxScore,
+            feedbackScore: stainf.feedbackScore
         };
         stats.avgAttempts = stats.nLessonsAttempted ? Math.round(stainf.nQuizAttempts/stats.nLessonsAttempted*10)/10 : 0;
         stats.timeSpentStr = nl.fmt2('{} minutes online learning and {} minutes instructor led', 
             Math.ceil(stats.timeSpentSeconds/60), stats.iltTimeSpent);
         
-        stats.percScore = stats.nMaxScore ? Math.round(100.0*stats.nScore / stats.nMaxScore) : 0;
+        stats.percScore = stats.nMaxScore ? Math.round(100.0*stats.nScore/stats.nMaxScore) : 0;
         stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
         repcontent.statusinfo = stainf.itemIdToInfo;
  
