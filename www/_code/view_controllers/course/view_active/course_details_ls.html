@@ -1,5 +1,5 @@
 <div style='padding-left: {{cm.indentationLevel*16 + 8}}px'>
-	<div class='row row-wrap padding0 margin0'>
+	<div class='row row-center row-wrap padding-small margin0'>
 		<div ng-class='respCol442'><b>Status</b></div>
 		<div ng-class='respCol442'>
 			<i ng-show='ext.item.state.icon'
@@ -49,13 +49,13 @@
 			<nl-course-number-of-attempts></nl-course-number-of-attempts>
 		</div>
 	</div>
-	<div ng-show='ext.pastAttemptData.length > 0' class='row padding0 margin0'>
+	<div ng-show='ext.pastAttemptData.length > 0' class='row padding-small margin0'>
 		<nl-course-past-attempt-data class='col'></nl-course-past-attempt-data>
 	</div>
-	<div ng-show='ext.item.textHtml' class='row padding-top margin0'>
+	<div ng-show='ext.item.textHtml' class='row padding-small margin0'>
 	    <div nl-compile='ext.item.textHtml' class='nl-content-holder col'></div>
 	</div>
-	<div class='row padding0 margin0'>
+	<div class='row padding-small margin0'>
 	    <nl-course-review-remarks class='col'></nl-course-review-remarks>
 	</div>
 </div>
