@@ -123,6 +123,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             itemInfo.status = itemInfo.rawStatus;
             if (isAttrition) {
                 itemInfo.status = 'waiting';
+                itemInfo.isAttrition = true;
                 continue;
             }
             _updateStatusToWaitingIfNeeded(cm, itemInfo, itemIdToInfo);
@@ -202,22 +203,22 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             return;
         }
         itemInfo.nAttempts = linfo.attempt || null;
+        itemInfo.timeSpentSeconds = linfo.timeSpentSeconds || 0;
+        itemInfo.selfLearningMode = linfo.selfLearningMode || false;
         if (!linfo.completed) {
             itemInfo.rawStatus = 'started';
             itemInfo.score = null;
-            itemInfo.timeSpentSeconds = linfo.timeSpentSeconds || 0;
-            itemInfo.selfLearningMode = linfo.selfLearningMode || false;
             return;
         }
         if (linfo.selfLearningMode) {
             itemInfo.rawStatus = 'success';
             itemInfo.score = 100;
-            itemInfo.timeSpentSeconds = linfo.timeSpentSeconds || 0;
-            itemInfo.selfLearningMode = true;
             itemInfo.started = nl.fmt.json2Date(linfo.started || '');
             itemInfo.ended = nl.fmt.json2Date(linfo.ended || '');
             itemInfo.updated = nl.fmt.json2Date(linfo.updated || '');
             itemInfo.moduleRepId = linfo.reportId || null;
+            itemInfo.feedbackScore = _getFeedbackScoreForModule(linfo.feedbackScore);
+            itemInfo.feedbackScore = itemInfo.feedbackScore ? '' + Math.round(itemInfo.feedbackScore*10)/10 + '%' : '';
             return;
         }
         var pastInfo = _pastLessonReports[cm.id] || {};
@@ -237,13 +238,13 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.timeSpentSeconds = totalTimeSpent;
         itemInfo.maxScore = _getMaxScore(maxLinfo);
         itemInfo.rawScore = _getRawScore(maxLinfo);
-        itemInfo.passScore = parseInt(linfo.passScore || 0);
+        itemInfo.passScore = parseInt(maxLinfo.passScore || linfo.passScore || 0);
         itemInfo.started = nl.fmt.json2Date(maxLinfo.started || '');
         itemInfo.ended = nl.fmt.json2Date(maxLinfo.ended || '');
         itemInfo.updated = nl.fmt.json2Date(maxLinfo.updated || '');
         itemInfo.moduleRepId = maxLinfo.reportId || null;
         itemInfo.rawStatus = (itemInfo.score >= itemInfo.passScore) ? 'success' : 'failed';
-        itemInfo.feedbackScore = _getFeedbackScoreForModule(linfo.feedbackScore);
+        itemInfo.feedbackScore = _getFeedbackScoreForModule(maxLinfo.feedbackScore);
         itemInfo.feedbackScore = itemInfo.feedbackScore ? '' + Math.round(itemInfo.feedbackScore*10)/10 + '%' : '';
     }
 

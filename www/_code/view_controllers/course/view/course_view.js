@@ -163,12 +163,8 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         _redirectTo('{}', url, newTab);
     };
 
-    this.setDependencyArray = function(cm, prereqs, nlTreeListSrv, startDate) {
+    this.setDependencyArray = function(cm, prereqs, nlTreeListSrv) {
         cm['dependencyArray'] = [];
-        if (startDate) {
-            var str = nl.t('"{}" allowed to access only after {}', cm.name, nl.fmt.fmtDateDelta(startDate, new Date(), 'date'));
-            cm['dependencyArray'].push(str);
-        }
         for(var i=0; i<prereqs.length; i++){
             var p = prereqs[i];
             var cmid = p.module;
@@ -753,14 +749,18 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         if(cm.state.status == 'waiting') {
             var dependencyArray = cm.dependencyArray || [];
             var str = '';
-            if(cm.dependencyType && cm.dependencyType == 'atleastone') {
-                str = '<div class="padding-mid" style="font-size:120%; font-weight:bold">This element is currently locked. It will be unlocked after atleast one of the following condition(s) are met</div>';
-            } else {
-                str = '<div class="padding-mid" style="font-size:120%; font-weight:bold">This element is currently locked. It will be unlocked after all the following condition(s) are met</div>';
-            }
+            var today = new Date();
             if(cm.type == 'module') {
                 str = '<div class="padding-mid" style="font-size:120%; font-weight:bold">All items inside the folder are locked.</div>';
+            } else if (cm.isAttrition) { 
+                str = '<div class="padding-mid" style="font-size:120%; font-weight:bold">Learner has been marked as attrited. Further items cannot be accessed.</div>';
+            } else if (cm.start_date && cm.start_date > today) {
+                str = nl.t('<div class="padding-mid" style="font-size:120%; font-weight:bold">"{}" can be accessed only after {}</div>', 
+                    cm.name, nl.fmt.fmtDateDelta(cm.start_date, today, 'date'));
             } else {
+                str = cm.dependencyType == 'atleastone'
+                    ? '<div class="padding-mid" style="font-size:120%; font-weight:bold">This element is currently locked. It will be unlocked after atleast one of the following condition(s) are met</div>'
+                    : '<div class="padding-mid" style="font-size:120%; font-weight:bold">This element is currently locked. It will be unlocked after all the following condition(s) are met</div>';
                 str += '<div class="padding-mid"><ul>';
                 for(var i=0; i<dependencyArray.length; i++) str += nl.t('<li style="line-height:24px">{}</li>', dependencyArray[i]);
                 str += '</ul></div>'
@@ -888,6 +888,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
             _updateLessonData(cm, itemInfo);
         }
 
+        cm.isAttrition = itemInfo.isAttrition || false;
         var status = itemInfo.status || 'pending';
         _updateState(cm, status);
     }

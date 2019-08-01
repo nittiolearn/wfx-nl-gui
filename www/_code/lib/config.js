@@ -173,11 +173,15 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
         return metadataFields;
     };
     
-    this.getDefaultUser = function(userid, groupInfo) {
-    	if (!groupInfo) groupInfo = self.get();
-    	var user = {user_id: userid, name: userid, first_name: userid, 
+    this.getDefaultUser = function(first_name, groupInfo) {
+        if (!groupInfo) groupInfo = self.get();
+        first_name = (first_name || '').trim();
+        var userid = first_name.toLowerCase();
+        userid = userid == '' ? 'deleted' : 'deleted_' + userid;
+        first_name = first_name + (first_name == '' ? '(deleted) ' : ' (deleted)');
+    	var user = {user_id: userid, name: first_name, first_name: first_name, 
 	    	gid: groupInfo.grpid, username: nl.fmt2('{}.{}', userid, groupInfo.grpid), 
-	    	email: 'NA', state: 0, usertype: '', last_name: '', org_unit: '', id:0,
+	    	email: 'NA', state: 0, usertype: '(unknown)', last_name: '', org_unit: 'Others', id:0,
 	    	supervisor: '', doj: '', sec_ou_list: '', metaObj: {}, metadata:''};
 	    return user;
     };

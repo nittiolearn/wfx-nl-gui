@@ -401,7 +401,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			tables: []
 		}]};
 
-		var showBatch = false;
+		var showBatch = $scope.debug; // TODO-NOW:remove after proper implementation.
 		if (showBatch) {
 			ret.tabs.splice(1, 0, {
 				title : 'Click here to view batch progress',
