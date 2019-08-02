@@ -831,6 +831,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     }
 
     function _areHeadersSame(newHeader, oldHeader) {
+        if (!newHeader || !oldHeader) return false;
         if (newHeader.length != oldHeader.length) return false;
         for(var i=0; i<newHeader.length; i++)
             if (newHeader[i].toLowerCase() != oldHeader[i].toLowerCase()) return false;
