@@ -199,7 +199,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                 row = _getCsvRow(filter, records[i]);
             }
 
-			var selectedCourseId = _checkFilter(filter.selectedCourses, 'key:'+records[i].lesson_id);
+			var selectedCourseId = _checkFilter(filter.selectedCourses, 'key:'+records[i].raw_record['lesson_id']);
 			var selectedOus = _checkFilter(filter.selectedOus, records[i].user.org_unit);
  			
 			var selectedMetaFields = true;

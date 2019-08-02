@@ -50,6 +50,8 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
             report = _processCourseReport(report);
         else if (report.ctype == _nl.ctypes.CTYPE_MODULE)
             report = _processModuleReport(report);
+        else 
+            return null;
         if (!report) return null;
         var rid = report.raw_record.id;
         _records[rid] = report;
