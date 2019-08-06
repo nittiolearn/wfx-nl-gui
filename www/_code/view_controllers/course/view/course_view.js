@@ -171,7 +171,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
             var item = nlTreeListSrv.getItem(cmid);
             if(!item) continue;
             var str = '';
-            if(item.type == "lesson" || item.type == 'rating') {
+            if(item.type == "lesson" || item.type == 'rating' || item.type == 'gate') {
                 if(p.min_score && !p.max_score) 
                     str = nl.t('Complete "{}" with a score of {}% or above.', item.name, p.min_score)
                 else if(!p.min_score && p.max_score) 
