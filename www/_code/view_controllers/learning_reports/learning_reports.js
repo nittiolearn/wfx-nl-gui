@@ -1050,6 +1050,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	var _milestoneColors = [_nl.colorsCodes.done, _nl.colorsCodes.pending]
 	var _RatingLabels = ['Completed', 'Partial', 'Failed', 'Pending'];
 	var _RatingColors = [_nl.colorsCodes.done, _nl.colorsCodes.started, _nl.colorsCodes.failed, _nl.colorsCodes.pending]
+	var _GateLabels = ['Completed', 'Failed', 'Pending'];
+	var _GateColors = [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.pending];
 	function _updateChartInfo(dlgScope, learningRecords) {
 		if(dlgScope.selectedSession.type == 'lesson') {
 			var ret = {labels: _lessonLabels, colours: _LessonColours};
@@ -1081,6 +1083,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var ret = {labels: _milestoneLabels, colours: _milestoneColors};
 				ret.data = [dlgScope.selectedSession.completed.length, dlgScope.selectedSession.pending.length];
 				dlgScope.chartInfo = ret;
+		} else if(dlgScope.selectedSession.type == 'gate') {
+			var ret = {labels: _GateLabels, colours: _GateColors};
+				ret.data = [dlgScope.selectedSession.completed.length, dlgScope.selectedSession.failed.length, dlgScope.selectedSession.pending.length];
+				dlgScope.chartInfo = ret;		
 		} else {
 			var ret = {labels: _infoLabels, colours: _infoColours};
 			ret.data = [dlgScope.selectedSession.completed.length, dlgScope.selectedSession.pending.length];
@@ -1110,6 +1116,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			} else if(item.type == 'rating'){
 				item['completed'] = [];
 				item['partial_success'] = [];
+				item['failed'] = [];
+				item['pending'] = [];
+				item.total = Object.keys(learningRecords).length;
+				ret.push(item);
+			} else if(item.type == 'gate'){
+				item['completed'] = [];
 				item['failed'] = [];
 				item['pending'] = [];
 				item.total = Object.keys(learningRecords).length;
@@ -1144,14 +1156,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					}
 				} else if(ret[j].type == 'iltsession'){
 					var report = ('statusinfo' in repcontent && repcontent.statusinfo[ret[j].id]) ? repcontent.statusinfo[ret[j].id] : {};
-					if(!report.status || report.status == 'pending') {
+					if(!report.status || report.status == 'pending' || report.status == 'waiting') {
 						ret[j].pending.push({id: parseInt(key), name: learningRecords[key].user.name});
 					} else {
 						ret[j][report.stateStr].push({id: parseInt(key), name: learningRecords[key].user.name});
 					}
 				} else if(ret[j].type == 'rating'){
 					var report = ('statusinfo' in repcontent && repcontent.statusinfo[ret[j].id]) ? repcontent.statusinfo[ret[j].id] : {};
-					if(report.status && report.status != 'pending') {
+					if(report.status && report.status != 'pending' && report.status != 'waiting') {
 						if(report.status == 'success')
 							ret[j].completed.push({id: parseInt(key), name: learningRecords[key].user.name});
 						else
@@ -1159,6 +1171,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					} else {
 						ret[j].pending.push({id: parseInt(key), name: learningRecords[key].user.name});    					
 					}
+				} else if(ret[j].type == 'gate'){
+					var report = ('statusinfo' in repcontent && repcontent.statusinfo[ret[j].id]) ? repcontent.statusinfo[ret[j].id] : {};
+					if(!report.status || report.status == 'pending' || report.status == 'waiting')
+						ret[j].pending.push({id: parseInt(key), name: learningRecords[key].user.name});
+					else if (report.status == 'failed')
+						ret[j].failed.push({id: parseInt(key), name: learningRecords[key].user.name});
+					else
+						ret[j].completed.push({id: parseInt(key), name: learningRecords[key].user.name});
 				} else {
 					var report = ('statusinfo' in repcontent && repcontent.statusinfo[ret[j].id]) ? repcontent.statusinfo[ret[j].id] : {};
 					if(_isEndState(report.status)) {
@@ -1519,9 +1539,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					}
 				} else {
 					if(ret[j].ratingType == 'input') {
-						ret[j].rating.push({id: parseInt(key), name: user.name, rating: statusinfo.score, userid: user.user_id, remarks: statusinfo.remarks});
+						ret[j].rating.push({id: parseInt(key), name: user.name, rating: statusinfo.origScore, userid: user.user_id, remarks: statusinfo.remarks});
 					} else if(ret[j].ratingType == 'select') {
-						ret[j].rating.push({id: parseInt(key), name: user.name, rating: {id: statusinfo.score, name: statusinfo.rating}, userid: user.user_id, remarks: statusinfo.remarks});
+						ret[j].rating.push({id: parseInt(key), name: user.name, rating: {id: statusinfo.origScore, name: statusinfo.rating}, userid: user.user_id, remarks: statusinfo.remarks});
 					}
 				}
 			}
