@@ -123,7 +123,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nlLrFetcher.init();
 		nlLrExporter.init(_userInfo);
 		nlLrDrilldown.init(nlGroupInfo);
-		nlLrBatch.init();
+		nlLrBatch.init(nlGroupInfo);
 		nl.pginfo.pageTitle = nlLrFilter.getTitle();
 		_initScope();
 	}
@@ -359,6 +359,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_generateDrillDownArray(false);
 	};
 
+	$scope.generateBatchDataArray = function(item) {
+		if(!item.isFolder) return;
+		item.isOpen = !item.isOpen;
+		_generateBatchDataArray(false);
+	};
+
 	function _isReminderNotificationEnabled() {
 		var props = nlGroupInfo.get().props;
 		var isMailEnabled = false;
@@ -429,6 +435,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _someTabDataChanged() {
 		$scope.drillDownArray = [];
+		$scope.batchProgressArray = [];
 		var tabs = $scope.tabData.tabs;
 		for (var i=0; i<tabs.length; i++) {
 			tabs[i].updated = false;
@@ -484,7 +491,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		} else if(tab.id == 'drilldown') {
 			_updateDrillDownTab();
 		} else if(tab.id == 'batch') {
-			$scope.batchinfo = nlLrBatch.getBatchInfo(_groupInfo, $scope.tabData.records);
+			_updateBatchTab();
+			//$scope.batchinfo = nlLrBatch.getBatchInfo(_groupInfo, $scope.tabData.records);
 		}
 	}
 
@@ -684,6 +692,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				colors: [_nl.colorsCodes.blue2]
 			}],
 			$scope.drillDownArray = [];
+			$scope.batchProgressArray = [];
 			$scope.batchinfo = {};
 	}
 	
@@ -882,6 +891,55 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			$scope.drillDownArray.push(org.cnt);
 			if(org.cnt.isOpen && org.children) {
 				_addSuborgOrOusToArray(org.children, org.cnt.sortkey)
+			}
+		}
+	}
+
+	var _batchCountDict = {};
+	function _updateBatchTab() {
+		nlLrBatch.clearBatchCountObj();
+		var records = $scope.tabData.records;
+		for(var i=0; i<records.length; i++) {
+			nlLrBatch.addCount(records[i]);
+		}
+		_batchCountDict = nlLrBatch.getBatchDataDict();
+		_generateBatchDataArray(true);
+	}
+
+	function _generateBatchDataArray(firstTimeGenerated) {
+		$scope.batchProgressArray = [];
+		var isSingleReport = Object.keys(_batchCountDict).length <= 2 ? true : false;
+		for(var key in _batchCountDict) {
+			var root = _batchCountDict[key];
+			if(key == 0) {
+				root.cnt.style = 'nl-bg-dark-blue';
+				root.cnt['sortkey'] = 0+root.cnt.name;
+				if(isSingleReport) continue
+			} else {
+				root.cnt.style = 'nl-bg-blue';
+				root.cnt['sortkey'] = 1+root.cnt.name;
+			}
+			$scope.batchProgressArray.push(root.cnt);
+			if(firstTimeGenerated && isSingleReport) root.cnt.isOpen = true;
+			if(root.cnt.isOpen) {
+				_addSuborgOrOusToBatchArray(root.children, root.cnt.sortkey, false);
+			}
+		}
+		$scope.batchProgressArray.sort(function(a, b) {
+			if(b.sortkey.toLowerCase() <= a.sortkey.toLowerCase()) return 1;
+			if(b.sortkey.toLowerCase() >= a.sortkey.toLowerCase()) return -1;
+			if(b.sortkey.toLowerCase() == a.sortkey.toLowerCase()) return 0;				
+		})
+	};
+
+	function _addSuborgOrOusToBatchArray(subOrgDict, sortkey, thirdLevel) {
+		for(var key in subOrgDict) {
+			var org = subOrgDict[key]
+			org.cnt['sortkey'] = sortkey+org.cnt.name;
+			if(thirdLevel) org.cnt['sortkey'] = sortkey+'.'+'aaaaaaa'+org.cnt.name;
+			$scope.batchProgressArray.push(org.cnt);
+			if(org.cnt.isOpen && org.children) {
+				_addSuborgOrOusToBatchArray(org.children, org.cnt.sortkey, true)
 			}
 		}
 	}

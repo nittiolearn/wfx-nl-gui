@@ -1,4 +1,42 @@
-<div class='padding-mid fsh5'>Batch Counts</div>
+<div class='margin0 padding0' style='padding-bottom: 3px;'>
+    <div class='row row-center margin0 padding-small bgblue fwhite'>
+        <div class='col minw-name'><b></b></div>
+        <div class='minw-number text-center'><b>Pending</b></div>
+        <div ng-show='$root.screenSize != "small"' class='minw-number text-center'><b>Started</b></div>
+        <div ng-show='$root.screenSize != "small"' class='minw-number text-center'><b>Done</b></div>
+        <div class='minw-number text-center'><b>Passed</b></div>
+        <div ng-show='$root.screenSize != "small"' class='minw-number text-center'><b>Certified</b></div>
+        <div ng-show='$root.screenSize != "small"' class='minw-number text-center'><b>Failed</b></div>
+        <!--<div ng-show='$root.screenSize != "small"' class='minw-number text-center'><b>Total Time Spent (mins)</b></div>-->
+    </div>
+</div>
+<div class='margin0 padding0 anim-enter1 flyfrom-l' ng-repeat='item in batchinfo' style='padding-bottom: 3px'>
+    <div class='row row-center {{item.isFolder ? "nl-link-text" : ""}} padding-small {{item.style}}'
+        ng-click='generateBatchDataArray(item)'
+        style='padding-left: {{item.indentation}}px'>
+        <div class='col minw-name'>
+            <div class='row row-center magin0 padding0'>
+                <span class='padding-small' ng-show='item.isFolder'>
+                    <i ng-hide='item.isOpen' class="icon ion-arrow-right-b bold fsh5"></i>
+                    <i ng-show='item.isOpen' class="icon ion-arrow-down-b bold fsh5"></i>
+                </span>
+                <div class='col'>{{item.name}}</div>
+                <span ng-click='onDetailsClick($event, item)' class='nl-link-img'>
+                    <i class="padding-mid icon ion-information-circled fsh4 nl-info-icon"></i>
+                </span> 
+            </div>
+        </div>
+        <div class='minw-number text-center'>{{item.pending}}</div>
+        <div ng-show='$root.screenSize != "small"' class='minw-number text-center'> {{item.started}}</div>
+        <div ng-show='$root.screenSize != "small"' class='minw-number text-center'> {{item.done}}</div>
+        <div class='minw-number text-center'> {{item.passed}}</div>
+        <div ng-show='$root.screenSize != "small"' class='minw-number text-center'> {{item.certified}}</div>
+        <div ng-show='$root.screenSize != "small"' class='minw-number text-center'>{{item.failed}}</div>
+        <!--<div ng-show='$root.screenSize != "small"' class='minw-number text-center'>{{item.timeSpentInMins}}</div>-->
+    </div>
+</div>
+
+<!--<div class='padding-mid fsh5'>Batch Counts</div>
 <div class='row row-center row-wrap margin0 padding-mid text-center'>
     <div class='padding-mid'
         ng-repeat='item in batchinfo.batchCounts'
@@ -22,3 +60,4 @@
         </div>
     </div>
 </div>
+-->

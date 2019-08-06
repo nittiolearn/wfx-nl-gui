@@ -36,6 +36,7 @@ function(nlLrHelper) {
         if(!ou && _isSubOrgEnabled) {
             subOrg = "Others";
         }
+        if(!subOrg) subOrg = "Others";
         var statusCntObj = _getStatusCountObj(record);
         _addCount(contentid, subOrg, _isSubOrgEnabled ? ou : '', statusCntObj, record.repcontent.name);
     }
