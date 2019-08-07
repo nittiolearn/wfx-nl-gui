@@ -243,7 +243,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.ended = nl.fmt.json2Date(maxLinfo.ended || '');
         itemInfo.updated = nl.fmt.json2Date(maxLinfo.updated || '');
         itemInfo.moduleRepId = maxLinfo.reportId || null;
-        itemInfo.rawStatus = (itemInfo.score >= itemInfo.passScore) ? 'success' : 'failed';
+        itemInfo.rawStatus = (!itemInfo.maxScore) ? 'success' : (itemInfo.maxScore && (itemInfo.score >= itemInfo.passScore)) ? 'success' : 'failed';
         itemInfo.feedbackScore = _getFeedbackScoreForModule(maxLinfo.feedbackScore);
         itemInfo.feedbackScore = itemInfo.feedbackScore ? '' + Math.round(itemInfo.feedbackScore*10)/10 + '%' : '';
     }
