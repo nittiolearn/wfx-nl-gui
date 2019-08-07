@@ -64,32 +64,6 @@ function(nl, nlLrHelper) {
         return batchItemCnt;
     }
 
-    this.getBatchInfo = function(_groupInfo, records) {
-        var ret = {batchCounts: [
-            {name: 'Total', count: 728, cls: 'fblue2'},
-            {name: 'Completed', count: 321, cls: 'fgreen'},
-            {name: 'OJT Done', count: 12, cls: 'fblue2'},
-            {name: 'Process Training Done', count: 15, cls: 'fblue2'},
-            {name: 'Preprocess Training Done', count: 18, cls: 'fblue2'},
-            {name: 'Started', count: 13, cls: 'fblue2'},
-            {name: 'Planned', count: 0, cls: 'fdarkgrey2'}
-        ], learnerCounts: [
-            {name: 'Total', count: 5234, cls: 'fblue2'},
-            {name: 'Certified', count: 3002, cls: 'fgreen'},
-            {name: 'Failed', count: 103, cls: 'forange'},
-            {name: 'No show', count: 102, cls: 'fdarkgrey2'},
-            {name: 'Dropped', count: 221, cls: 'fdarkgrey2'},
-            {name: 'Red', count: 51, cls: 'forange'},
-            {name: 'Amber', count: 221, cls: 'forange2'},
-            {name: 'Green', count: 182, cls: 'fgreen'},
-            {name: 'Pending', count: 0, cls: 'fdarkgrey2'}
-        ]};
-
-        _updateDummyData(ret.batchCounts);
-        _updateDummyData(ret.learnerCounts);
-        return ret;
-    };
-
     function _updateDummyData(lst) {
         var total = lst[0].count;
         var sum = 0;

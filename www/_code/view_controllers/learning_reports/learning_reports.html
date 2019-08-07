@@ -253,12 +253,8 @@
                 <nl-lr-drilldown-tab drilldown='drillDownArray'></nl-lr-drilldown-tab>
             </div>
             <!-- **************************************************************
-                Batch down tab
+                Batch tab
             ******************************************************************* -->
-            <div ng-if='tabData.selectedTab.id == "batch1"  && !tabData.processingOnging'
-                class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
-                <nl-lr-batch-tab batchinfo='batchinfo'></nl-lr-batch-tab>
-            </div>
             <div ng-if='tabData.selectedTab.id == "batch"  && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
                 <nl-lr-batch-tab batchinfo='batchProgressArray'></nl-lr-batch-tab>

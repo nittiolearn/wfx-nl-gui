@@ -492,7 +492,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			_updateDrillDownTab();
 		} else if(tab.id == 'batch') {
 			_updateBatchTab();
-			//$scope.batchinfo = nlLrBatch.getBatchInfo(_groupInfo, $scope.tabData.records);
 		}
 	}
 
