@@ -18,6 +18,7 @@ function(nl, nlLrHelper) {
     this.init = function(nlGroupInfo) {
 		_orgToSubOrgDict = nlGroupInfo.getOrgToSubOrgDict();
         _isSubOrgEnabled = nlGroupInfo.isSubOrgEnabled();
+        BatchCount.setSubOrgEnabled(_isSubOrgEnabled);
     };
 
     this.clearBatchCountObj = function() {
@@ -32,9 +33,6 @@ function(nl, nlLrHelper) {
         var contentid = record.raw_record.assignment;
         var ou = record.user.org_unit;
         var subOrg = _isSubOrgEnabled ? _orgToSubOrgDict[ou] : record.user.org_unit;
-        if(!ou && _isSubOrgEnabled) {
-            subOrg = "Others";
-        }
         if(!subOrg) subOrg = "Others";
 
         var statusCntObj = _getBatchCountObj(record);
@@ -42,13 +40,10 @@ function(nl, nlLrHelper) {
     }
 
     function _addCount(assignment, subOrg, ou, statusObj, name) {
-        //BatchCount.updateSuborgCount(0, statusObj); 
         BatchCount.updateSuborgCount(subOrg, statusObj);
         if(_isSubOrgEnabled) {
-            //StatsCount.updateOuCount(0, ou, statusObj, _isSubOrgEnabled);
             BatchCount.updateOuCount(subOrg, ou, statusObj, _isSubOrgEnabled);
         }
-        //StatsCount.updateAssignObjCount(0, ou, statusObj);
         BatchCount.updateAssignObjCount(subOrg, ou, assignment, statusObj, name);
     }
 
@@ -88,6 +83,11 @@ function BatchCountCls(nl) {
 
     var statsCountItem = {pending:0, started: 0, failed:0, certified:0, passed:0, done:0, attrition: 0};
     
+    var _isSubOrgEnabled = false;
+    this.setSubOrgEnabled = function(isSubOrgEnabled) {
+        _isSubOrgEnabled = isSubOrgEnabled;
+    };
+
     this.clear = function() {
         _statusCountTree = {};
     };
@@ -98,9 +98,9 @@ function BatchCountCls(nl) {
 
     this.getSuborgRoot = function(subOrgId) {
         if (subOrgId in _statusCountTree) return _statusCountTree[subOrgId].cnt;
-        var stats = angular.copy(statsCountItem)
-            stats['isFolder'] = true;
-            stats['name'] = subOrgId == 0 ? 'All' : subOrgId;
+        var stats = angular.copy(statsCountItem);
+        stats['isFolder'] = true;
+        stats['name'] = subOrgId == 0 ? 'All' : subOrgId;
         _statusCountTree[subOrgId] = {cnt: stats, children: {}};
         return _statusCountTree[subOrgId].cnt;
     };
@@ -118,7 +118,8 @@ function BatchCountCls(nl) {
     }
 
     this.getAssignObj = function(subOrgId, ouid, assignid, name) {
-        var  assignments = _statusCountTree[subOrgId].children[ouid].children;
+        var assignments = _statusCountTree[subOrgId].children;
+        if (_isSubOrgEnabled) assignments = assignments[ouid].children;
         if (assignid in assignments) return assignments[assignid].cnt;
         var stats = angular.copy(statsCountItem)
         stats['indentation'] = 44;

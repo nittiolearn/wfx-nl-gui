@@ -407,7 +407,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			tables: []
 		}]};
 
-		var showBatch = $scope.debug; // TODO-NOW:remove after proper implementation.
+		var showBatch = _groupInfo.props.features['etm'];
+		if (!$scope.debug)  showBatch = false; // TODO-NOW:remove after proper implementation.
 		if (showBatch) {
 			ret.tabs.splice(1, 0, {
 				title : 'Click here to view batch progress',
@@ -418,7 +419,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				tables: []
 			});
 		}
-		var type = nlLrFilter.getType();
 		ret.search = '';
 		ret.lastSeached = '';
 		ret.searchPlaceholder = 'Type the search words and press enter';

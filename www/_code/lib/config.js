@@ -450,28 +450,31 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
         var suborg = ou.suborg || 0;
         if (suborg == 1) {
             groupinfo.isSubOrgEnabled = true;
-            _addSubTreeToSubOrg(ou, orgToSubOrgMapping);
-        } else if (suborg == 2 && ou.children) {
-            orgToSubOrgMapping[ou.id] = ou.id;
-            groupinfo.isSubOrgEnabled = true;
-            for(var i=0; i<ou.children.length; i++)
-                _addSubTreeToSubOrg(ou.children[i], orgToSubOrgMapping);
-        } else if(ou.children) {
+            var suborgId = ou.id;
+            _addSubTreeToSubOrg(ou, suborgId, orgToSubOrgMapping);
+            return;
+        }
+        orgToSubOrgMapping[ou.id] = 'Others';
+        if (!ou.children) return;
+        if (suborg != 2) {
             for(var i=0; i<ou.children.length; i++)
                 _addSubOrgTree(ou.children[i], orgToSubOrgMapping, groupinfo);
-        } else {
-            orgToSubOrgMapping[ou.id] = 'Others';
+            return;
+        }
+
+        groupinfo.isSubOrgEnabled = true;
+        for(var i=0; i<ou.children.length; i++) {
+            var child = ou.children[i];
+            var suborgId = child.id;
+            _addSubTreeToSubOrg(child, suborgId, orgToSubOrgMapping);
         }
     }
 
-    function _addSubTreeToSubOrg(ou, orgToSubOrgMapping) {
-        var suborgId = ou.id;
+    function _addSubTreeToSubOrg(ou, suborgId, orgToSubOrgMapping) {
         orgToSubOrgMapping[ou.id] = suborgId;
-        for(var i=0; i<ou.children.length; i++) {
-            var child = ou.children[i]
-            orgToSubOrgMapping[child.id] = suborgId;
-            if(child.children) _addSubTreeToSubOrg(ou.children[i], orgToSubOrgMapping);
-        }
+        if (!ou.children) return;
+        for(var i=0; i<ou.children.length; i++)
+            _addSubTreeToSubOrg(ou.children[i], suborgId, orgToSubOrgMapping);
     }
 }];
 
