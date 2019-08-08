@@ -35,7 +35,7 @@ function module_init() {
 		'nl.learning_reports.lr_fetcher', 'nl.learning_reports.lr_exporter', 
 		'nl.learning_reports.lr_report_records', 'nl.learning_reports.lr_course_records',
 		'nl.learning_reports.lr_summary_stats', 'nl.learning_reports.lr_import', 'nl.learning_reports.lr_assignments',
-		'nl.learning_reports.lr_drilldown', 'nl.learning_reports.lr_batch'])
+		'nl.learning_reports.lr_drilldown'])
 	.config(configFn)
 	.controller('nl.LearningReportsCtrl', LearningReportsCtrl)
 	.service('nlLearningReports', NlLearningReports);
@@ -61,22 +61,22 @@ function($scope, nlLearningReports) {
 	
 var NlLearningReports = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlGroupInfo', 'nlTable', 'nlSendAssignmentSrv',
 'nlLrHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlLrReportRecords', 'nlLrCourseRecords', 'nlLrSummaryStats', 'nlLrAssignmentRecords', 
-'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlLrBatch', 'nlCourse',
+'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlCourse',
 function(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 	nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
-	nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlLrBatch, nlCourse) {
+	nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse) {
 	this.create = function($scope, settings) {
 		if (!settings) settings = {};
 		return new NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
-			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlLrBatch, nlCourse);
+			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse);
 	};
 }];
 	
 //-------------------------------------------------------------------------------------------------
 function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
-			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlLrBatch, nlCourse) {
+			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse) {
 	var _userInfo = null;
 	var _groupInfo = null;
 	var _attendanceObj = {};
@@ -123,7 +123,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nlLrFetcher.init();
 		nlLrExporter.init(_userInfo);
 		nlLrDrilldown.init(nlGroupInfo);
-		nlLrBatch.init(nlGroupInfo);
 		nl.pginfo.pageTitle = nlLrFilter.getTitle();
 		_initScope();
 	}
@@ -407,18 +406,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			tables: []
 		}]};
 
-		var showBatch = _groupInfo.props.features['etm'];
-		if (!$scope.debug)  showBatch = false; // TODO-NOW:remove after proper implementation.
-		if (showBatch) {
-			ret.tabs.splice(1, 0, {
-				title : 'Click here to view batch progress',
-				name: 'Batch',
-				icon : 'ion-pricetags',
-				id: 'batch',
-				updated: false,
-				tables: []
-			});
-		}
 		ret.search = '';
 		ret.lastSeached = '';
 		ret.searchPlaceholder = 'Type the search words and press enter';
@@ -435,7 +422,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _someTabDataChanged() {
 		$scope.drillDownArray = [];
-		$scope.batchProgressArray = [];
 		var tabs = $scope.tabData.tabs;
 		for (var i=0; i<tabs.length; i++) {
 			tabs[i].updated = false;
@@ -490,8 +476,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			_updateTimeSummaryTab();
 		} else if(tab.id == 'drilldown') {
 			_updateDrillDownTab();
-		} else if(tab.id == 'batch') {
-			_updateBatchTab();
 		}
 	}
 
@@ -691,7 +675,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				colors: [_nl.colorsCodes.blue2]
 			}],
 			$scope.drillDownArray = [];
-			$scope.batchProgressArray = [];
 			$scope.batchinfo = {};
 	}
 	
@@ -882,7 +865,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		})
 	};
 
-
 	function _addSuborgOrOusToArray(subOrgDict, sortkey) {
 		for(var key in subOrgDict) {
 			var org = subOrgDict[key]
@@ -890,55 +872,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			$scope.drillDownArray.push(org.cnt);
 			if(org.cnt.isOpen && org.children) {
 				_addSuborgOrOusToArray(org.children, org.cnt.sortkey)
-			}
-		}
-	}
-
-	var _batchCountDict = {};
-	function _updateBatchTab() {
-		nlLrBatch.clearBatchCountObj();
-		var records = $scope.tabData.records;
-		for(var i=0; i<records.length; i++) {
-			nlLrBatch.addCount(records[i]);
-		}
-		_batchCountDict = nlLrBatch.getBatchDataDict();
-		_generateBatchDataArray(true);
-	}
-
-	function _generateBatchDataArray(firstTimeGenerated) {
-		$scope.batchProgressArray = [];
-		var isSingleReport = Object.keys(_batchCountDict).length <= 2 ? true : false;
-		for(var key in _batchCountDict) {
-			var root = _batchCountDict[key];
-			if(key == 0) {
-				root.cnt.style = 'nl-bg-dark-blue';
-				root.cnt['sortkey'] = 0+root.cnt.name;
-				if(isSingleReport) continue
-			} else {
-				root.cnt.style = 'nl-bg-blue';
-				root.cnt['sortkey'] = 1+root.cnt.name;
-			}
-			$scope.batchProgressArray.push(root.cnt);
-			if(firstTimeGenerated && isSingleReport) root.cnt.isOpen = true;
-			if(root.cnt.isOpen) {
-				_addSuborgOrOusToBatchArray(root.children, root.cnt.sortkey, false);
-			}
-		}
-		$scope.batchProgressArray.sort(function(a, b) {
-			if(b.sortkey.toLowerCase() <= a.sortkey.toLowerCase()) return 1;
-			if(b.sortkey.toLowerCase() >= a.sortkey.toLowerCase()) return -1;
-			if(b.sortkey.toLowerCase() == a.sortkey.toLowerCase()) return 0;				
-		})
-	};
-
-	function _addSuborgOrOusToBatchArray(subOrgDict, sortkey, thirdLevel) {
-		for(var key in subOrgDict) {
-			var org = subOrgDict[key]
-			org.cnt['sortkey'] = sortkey+org.cnt.name;
-			if(thirdLevel) org.cnt['sortkey'] = sortkey+'.'+'aaaaaaa'+org.cnt.name;
-			$scope.batchProgressArray.push(org.cnt);
-			if(org.cnt.isOpen && org.children) {
-				_addSuborgOrOusToBatchArray(org.children, org.cnt.sortkey, true)
 			}
 		}
 	}
