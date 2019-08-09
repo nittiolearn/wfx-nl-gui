@@ -8,7 +8,7 @@
 // To begin with the status computation of course reports are available here.
 //
 // Allowed item states: pending, started, failed, success, partial_success, waiting, delayed
-// Allowed course states: pending, started, failed, certified, passed, done, waiting, Attrition*, CustomStates
+// Allowed course states: pending, started, failed, certified, passed, done, attrition*, custom-states
 // Attrition* are equivalent to failed
 // CustomStates are equivalent to started
 //-------------------------------------------------------------------------------------------------
