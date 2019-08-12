@@ -421,7 +421,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _someTabDataChanged() {
-		$scope.drillDownArray = [];
+		$scope.drillDownInfo = {};
 		var tabs = $scope.tabData.tabs;
 		for (var i=0; i<tabs.length; i++) {
 			tabs[i].updated = false;
@@ -674,7 +674,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				series: ['S1'],
 				colors: [_nl.colorsCodes.blue2]
 			}],
-			$scope.drillDownArray = [];
+			$scope.drillDownInfo = {};
 			$scope.batchinfo = {};
 	}
 	
@@ -839,37 +839,50 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_generateDrillDownArray(true);
 	}
 
+	var drillDownArray = [];
 	function _generateDrillDownArray(firstTimeGenerated) {
-		$scope.drillDownArray = [];
+		$scope.drillDownInfo = {};
+		drillDownArray = [];
 		var isSingleReport = Object.keys(_statsCountDict).length <= 2 ? true : false;
 		for(var key in _statsCountDict) {
 			var root = _statsCountDict[key];
 			if(key == 0) {
 				root.cnt.style = 'nl-bg-dark-blue';
 				root.cnt['sortkey'] = 0+root.cnt.name;
-				if(isSingleReport) continue
+				if(isSingleReport) continue;
 			} else {
 				root.cnt.style = 'nl-bg-blue';
 				root.cnt['sortkey'] = 1+root.cnt.name;
 			}
-			$scope.drillDownArray.push(root.cnt);
+			drillDownArray.push(root.cnt);
 			if(firstTimeGenerated && isSingleReport) root.cnt.isOpen = true;
 			if(root.cnt.isOpen) {
 				_addSuborgOrOusToArray(root.children, root.cnt.sortkey, isSingleReport, firstTimeGenerated);
 			}
 		}
-		$scope.drillDownArray.sort(function(a, b) {
+		drillDownArray.sort(function(a, b) {
 			if(b.sortkey.toLowerCase() < a.sortkey.toLowerCase()) return 1;
 			if(b.sortkey.toLowerCase() > a.sortkey.toLowerCase()) return -1;
 			if(b.sortkey.toLowerCase() == a.sortkey.toLowerCase()) return 0;				
 		})
+		$scope.drillDownInfo = {columns: _getDrillDownColumns(), rows: drillDownArray};
 	};
+
+	function _getDrillDownColumns() {
+		var columns = [];
+		columns.push({id: 'cntTotal', name: 'Active', type: 'number', smallScreen: true, descPerc: false});
+		columns.push({id: 'completed', name: 'Done', type: 'number', descPerc: true, descid: 'completedPerc'});
+		columns.push({id: 'failed', name: 'Failed', type: 'number', descPerc: true, descid: 'failedPerc'});
+		columns.push({id: 'pending', name: 'Pending', type: 'number', descPerc: true, descid: 'pendingPerc'});
+		columns.push({id: 'avgScore', name: 'Average score', type:'perc', descPerc: false});
+		return columns;
+	}
 
 	function _addSuborgOrOusToArray(subOrgDict, sortkey) {
 		for(var key in subOrgDict) {
 			var org = subOrgDict[key]
 				org.cnt['sortkey'] = sortkey+org.cnt.name;
-			$scope.drillDownArray.push(org.cnt);
+			drillDownArray.push(org.cnt);
 			if(org.cnt.isOpen && org.children) {
 				_addSuborgOrOusToArray(org.children, org.cnt.sortkey)
 			}

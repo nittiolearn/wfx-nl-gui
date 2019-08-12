@@ -1,50 +1,40 @@
 <div class='margin0 padding0' style='padding-bottom: 3px;'>
     <div class='row row-center margin0 padding-small bgblue fwhite'>
-        <div class='col minw-name'><b></b></div>
-        <div class='minw-number text-center'><b>Active Assignments</b></div>
-        <div ng-show='$root.screenSize != "small"' class='minw-number text-center'><b>Done</b></div>
-        <div ng-show='$root.screenSize != "small"' class='minw-number text-center'><b>Failed</b></div>
-        <div class='minw-number text-center'><b>Pending</b></div>
-        <div ng-show='$root.screenSize != "small"' class='minw-number text-center'><b>Average Score</b></div>
-        <!--<div ng-show='$root.screenSize != "small"' class='minw-number text-center'><b>Total Time Spent (mins)</b></div>-->
-    </div>
-</div>
-<div class='margin0 padding0 anim-enter1 flyfrom-l' ng-repeat='item in drilldown' style='padding-bottom: 3px'>
-    <div class='row row-center {{item.isFolder ? "nl-link-text" : ""}} padding-small {{item.style}}'
-        ng-click='generateDrillDownArray(item)'
-        style='padding-left: {{item.indentation}}px'>
         <div class='col minw-name'>
             <div class='row row-center magin0 padding0'>
                 <span class='padding-small' ng-show='item.isFolder'>
                     <i ng-hide='item.isOpen' class="icon ion-arrow-right-b bold fsh5"></i>
                     <i ng-show='item.isOpen' class="icon ion-arrow-down-b bold fsh5"></i>
                 </span>
-                <div class='col'>{{item.name}}</div>
-                <span ng-click='onDetailsClick($event, item)' class='nl-link-img'>
+                <div class='col'></div>
+                <span class='nl-link-img'>
+                </span> 
+            </div>
+        </div>
+        <div ng-repeat='col in drilldown.columns track by $index'
+            class='minw-number text-center'>
+            <div class='{{col.styleTd}}'>{{col.name}}</div>
+        </div>
+    </div>
+    <div class='row row-center margin0 padding-small'
+        ng-repeat='rec in drilldown.rows track by $index'
+        class='{{rec.onRowClick ? "nl-link-text2" : ""}} anim fade highlight'
+        ng-click='generateDrillDownArray(rec)'>
+        <div class='col minw-name'>
+            <div class='row row-center magin0 padding0'style='padding-left:{{rec.indentation}}px' >
+                <span class='padding-small' ng-show='rec.isFolder'>
+                    <i ng-hide='rec.isOpen' class="icon ion-arrow-right-b bold fsh5"></i>
+                    <i ng-show='rec.isOpen' class="icon ion-arrow-down-b bold fsh5"></i>
+                </span>
+                <div class='col'>{{rec.name}}</div>
+                <span ng-click='onDetailsClick($event, rec)' class='nl-link-img'>
                     <i class="padding-mid icon ion-information-circled fsh4 nl-info-icon"></i>
                 </span> 
             </div>
         </div>
-        <div class='minw-number text-center'>{{item.cntActive}}</div>
-        <div ng-show='$root.screenSize != "small"' class='minw-number text-center'>
-            <div class='row row-center text-right'>
-                <div class='col'>{{item.certified == 0 ? '-' : item.certified}}</div>
-                <div class='col nl-perc-class text-left'>{{item.percCertified == 0 ? '' : item.percCertified+'%'}}</div>
-            </div>
+        <div ng-repeat='col in drilldown.columns track by $index'
+            class='minw-number text-center'>
+                <span>{{rec[col.id] || ''}}</span>
         </div>
-        <div ng-show='$root.screenSize != "small"' class='minw-number text-center'>
-            <div class='row row-center text-right'>
-                <div class='col'>{{item.failed == 0 ? '-' : item.failed}}</div>
-                <div class='col nl-perc-class text-left'>{{item.percFailed == 0 ? '' : item.percFailed+'%'}}</div>
-            </div>
-        </div>
-        <div class='minw-number text-center'>
-            <div class='row row-center text-right'>
-                <div class='col'>{{item.pending == 0 ? '-' : item.pending}}</div>
-                <div class='col nl-perc-class text-left'>{{item.percPending == 0 ? '' : item.percPending+'%'}}</div>
-            </div>
-        </div>
-        <div ng-show='$root.screenSize != "small"' class='minw-number text-center'>{{item.avgScore ? item.avgScore+'%' : '-'}}</div>
-        <!--<div ng-show='$root.screenSize != "small"' class='minw-number text-center'>{{item.timeSpentInMins}}</div>-->
     </div>
 </div>
