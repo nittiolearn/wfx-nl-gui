@@ -12,7 +12,7 @@
             </div>
         </div>
         <div ng-repeat='col in drilldown.columns track by $index'
-            class='minw-number text-center'>
+            class='minw-number text-center' ng-hide='col.details || ($root.screenSize == "small" && !col.showInSmallScreen)'>
             <div class='{{col.styleTd}}'>{{col.name}}</div>
         </div>
     </div>
@@ -27,14 +27,17 @@
                     <i ng-show='rec.isOpen' class="icon ion-arrow-down-b bold fsh5"></i>
                 </span>
                 <div class='col'>{{rec.name}}</div>
-                <span ng-click='onDetailsClick($event, rec)' class='nl-link-img'>
+                <span ng-click='onDetailsClick($event, rec, drilldown.columns)' class='nl-link-img'>
                     <i class="padding-mid icon ion-information-circled fsh4 nl-info-icon"></i>
                 </span> 
             </div>
         </div>
         <div ng-repeat='col in drilldown.columns track by $index'
-            class='minw-number text-center'>
-                <span>{{rec[col.id] || ''}}</span>
+            class='minw-number text-center'  ng-hide='col.details || ($root.screenSize == "small" && !col.showInSmallScreen)'>
+            <div class='row row-center text-right'>
+                <div class='col'>{{rec[col.id] || '-'}}</div>
+                <div class='col nl-perc-class text-left'>{{(col.percid && rec[col.percid]) ? rec[col.percid]+'%' : ''}}</div>
+            </div>
         </div>
     </div>
 </div>

@@ -79,7 +79,8 @@ function(nl) {
         templateUrl: 'view_controllers/learner_view/learning_status_counts.html',
         scope: {
 			item: '=',
-			attr: '='
+			attr: '=',
+			columns: '='
 		},
         link: function($scope, iElem, iAttrs) {
             $scope.getRoundedPerc = function(divider, dividend) {
@@ -206,9 +207,9 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			show: false,
 			type: 'doughnut',
 			title: 'Progress',
-			data: [0, 0, 0],
-			labels: ['done', 'failed', 'pending'],
-			colors: [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.pending]
+			data: [0, 0, 0, 0],
+			labels: ['done', 'failed', 'started', 'pending'],
+			colors: [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.started, _nl.colorsCodes.pending]
 		},
 		{
 			show: false,
@@ -534,15 +535,18 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		}, 100);
 	}
 
+	var customStates = {};
+
 	function _updateSummaryTabImpl() {
-		var learningCounts = {cntTotal: 0, cntActive: 0, completed: 0, certified: 0, pending: 0, failed: 0, scorePerc: 0, 
-			percCompleted: 0, percCerfied: 0, percFailed: 0, percPending: 0, avgScore: 0, 
-			timeSpent: 0, certInFirstAttempt: 0, certInSecondAttempt: 0, certInMoreAttempt: 0,
-			percCertInFirstAttempt: 0, percCertInSecondAttempt: 0, percCertInMoreAttempt: 0};
+		var learningCounts = {cntTotal: 0, completed: 0, certified: 0, pending: 0, failed: 0, started: 0, scorePerc: 0, 
+								percCompleted: 0, percCerfied: 0, percFailed: 0, percPending: 0, avgScore: 0, 
+								timeSpent: 0, certInFirstAttempt: 0, certInSecondAttempt: 0, certInMoreAttempt: 0,
+								percCertInFirstAttempt: 0, percCertInSecondAttempt: 0, percCertInMoreAttempt: 0};
+			customStates = {};
 		$scope.tabData.learningCounts = learningCounts;
 	
 		var doughnutChart = $scope.charts[0];
-		doughnutChart.data = [0, 0, 0];
+		doughnutChart.data = [0, 0, 0, 0];
 
 		var timeChart = $scope.charts[1];
 		var ranges = nlLearnerViewRecords.getTimeRanges();
@@ -551,7 +555,9 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			var rec = records[recid];
 			if(!rec) continue;
 			var statusid = rec.stats.status.id;
-			if (statusid == nlLearverViewHelper.STATUS_PENDING || statusid == nlLearverViewHelper.STATUS_STARTED) {
+			if (statusid == nlLearverViewHelper.STATUS_PENDING) {
+				doughnutChart.data[3] += 1;
+			} else if(statusid == nlLearverViewHelper.STATUS_STARTED) {
 				doughnutChart.data[2] += 1;
 			} else if (statusid == nlLearverViewHelper.STATUS_FAILED) {
 				doughnutChart.data[1] += 1;
@@ -575,7 +581,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 				if(isAssignedCountFound && isCompletedCountFound) break;
 			}
 		}
-		
+		$scope.tabData.columns = _getLearningStatusColumns();
 		doughnutChart.title = nl.t('Progress: {} of {} completed', learningCounts.completed, learningCounts.cntTotal);
 
 		timeChart.labels = [];
@@ -586,19 +592,46 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			timeChart.data[0].push(r.count);
 			timeChart.data[1].push(r.completed)
 		}
+
 	}
 
+	function _getLearningStatusColumns() {
+		var columns = [];
+		columns.push({id: 'cntTotal', name: 'Total learning records', type: 'number', showDesc: true, percid: 'percTotal', details: true, background: 'nl-bg-blue'});
+		columns.push({id: 'completed', name: 'Completed', type: 'number', showDesc: true, percid: 'percCompleted', details: true, indentation: 'padding-left-22'});
+		columns.push({id: 'certified', name: 'Certified', type: 'number', showDesc: true, percid: 'percCertified', indentation: 'padding-left-44'});
+		columns.push({id: 'failed', name: 'Failed', type: 'number', showDesc: true, percid: 'percFailed', indentation: 'padding-left-44'});
+		columns.push({id: 'started', name: 'Started', type: 'number',  percid: 'percStarted', showDesc: false, details: true, indentation: 'padding-left-22'});
+		if(Object.keys(customStates).length > 0) {
+			for(var key in customStates) columns.push({id: key, name: key, type: 'number', showDesc: true, indentation: 'padding-left-44'});
+		}
+		columns.push({id: 'pending', name: 'Pending', type: 'number', showDesc: true, percid: 'percPending', indentation: 'padding-left-22'});
+		return columns;
+		
+	}
+	
 	function _updateCoursesDetailsDict(record, detailsTabDict) {
 		var status = record.stats.status;
+		var statusStr = status.txt;
 		detailsTabDict.cntTotal += 1;
-		detailsTabDict.cntActive += 1;
 		if(status.id == nlLearverViewHelper.STATUS_DONE || status.id == nlLearverViewHelper.STATUS_PASSED || 
 			status.id == nlLearverViewHelper.STATUS_CERTIFIED) {
 			_updateCompletedUserDate(detailsTabDict, record);
 		} else if(status.id == nlLearverViewHelper.STATUS_FAILED) {
 			detailsTabDict.failed += 1;
 			detailsTabDict.completed += 1;
-		} else {
+		} else if(status.id == nlLearverViewHelper.STATUS_STARTED){
+			detailsTabDict.started += 1;
+			if(statusStr !== 'started') {
+				if(statusStr in detailsTabDict) {
+					detailsTabDict[statusStr] += 1;
+					customStates[statusStr] += 1;
+				} else {
+					detailsTabDict[statusStr] = 1;
+					customStates[statusStr] = 1;
+				}
+			}
+		}else{
 			detailsTabDict.pending += 1;
 		}
 		_updateOrgAndOuPercentages(detailsTabDict, record);
@@ -620,15 +653,17 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 	function _updateOrgAndOuPercentages(tableItem, record) {
 		tableItem.scorePerc += record.stats.percScore;
 		tableItem.timeSpent += record.stats.timeSpentSeconds;
-		if(tableItem.cntActive > 0) {
-			tableItem['percCompleted'] = Math.round(tableItem.completed*100/tableItem.cntActive);
-			tableItem['percCertified'] = Math.round(tableItem.certified*100/tableItem.cntActive);
-			tableItem['percFailed'] = Math.round(tableItem.failed*100/tableItem.cntActive);
-			tableItem['percPending'] = Math.round(tableItem.pending*100/tableItem.cntActive);
+		tableItem.percTotal = 100;
+		if(tableItem.cntTotal > 0) {
+			tableItem['percCompleted'] = Math.round(tableItem.completed*100/tableItem.cntTotal);
+			tableItem['percCertified'] = Math.round(tableItem.certified*100/tableItem.cntTotal);
+			tableItem['percFailed'] = Math.round(tableItem.failed*100/tableItem.cntTotal);
+			tableItem['percPending'] = Math.round(tableItem.pending*100/tableItem.cntTotal);
+			tableItem['percStarted'] = Math.round(tableItem.started*100/tableItem.cntTotal);
 			tableItem['avgScore'] = Math.round(tableItem.scorePerc/tableItem.completed);
-			tableItem['percCertInFirstAttempt'] = Math.round(tableItem.certInFirstAttempt/tableItem.cntActive);
-			tableItem['percCertInSecondAttempt'] = Math.round(tableItem.certInSecondAttempt/tableItem.cntActive);
-			tableItem['percCertInMoreAttempt'] = Math.round(tableItem.certInMoreAttempt/tableItem.cntActive);
+			tableItem['percCertInFirstAttempt'] = Math.round(tableItem.certInFirstAttempt/tableItem.cntTotal);
+			tableItem['percCertInSecondAttempt'] = Math.round(tableItem.certInSecondAttempt/tableItem.cntTotal);
+			tableItem['percCertInMoreAttempt'] = Math.round(tableItem.certInMoreAttempt/tableItem.cntTotal);
 		}
 	}
 

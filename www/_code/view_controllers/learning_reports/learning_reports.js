@@ -338,12 +338,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return (bodyElement[0].clientHeight - topElem[0].clientHeight-18);
 	};
 
-	$scope.onDetailsClick = function(e, item) {		
+	$scope.onDetailsClick = function(e, item, columns) {		
 		e.stopImmediatePropagation();
 		e.preventDefault();
 		var detailsDlg = nlDlg.create($scope);
 		detailsDlg.setCssClass('nl-heigth-max nl-width-max');
 		detailsDlg.scope.item = item;
+		detailsDlg.scope.columns = columns;
 		detailsDlg.scope.getRoundedPerc = function(divider, dividend) {
 			return Math.round((divider*100)/dividend);
 		}
@@ -870,11 +871,25 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _getDrillDownColumns() {
 		var columns = [];
-		columns.push({id: 'cntTotal', name: 'Active', type: 'number', smallScreen: true, descPerc: false});
-		columns.push({id: 'completed', name: 'Done', type: 'number', descPerc: true, descid: 'completedPerc'});
-		columns.push({id: 'failed', name: 'Failed', type: 'number', descPerc: true, descid: 'failedPerc'});
-		columns.push({id: 'pending', name: 'Pending', type: 'number', descPerc: true, descid: 'pendingPerc'});
-		columns.push({id: 'avgScore', name: 'Average score', type:'perc', descPerc: false});
+		var attrition = nlLrDrilldown.getAttritionObj();
+		var customStartedStates = nlLrDrilldown.getCustomStatusObj();
+		columns.push({id: 'cntTotal', name: 'Total', type: 'number', smallScreen: true, percid:'percTotal', background: 'bggrey', showInSmallScreen: true});
+		columns.push({id: 'cntInactive', name: 'Inactive', type: 'number', smallScreen: true, percid:'percInactive', background: 'nl-bg-blue', showInSmallScreen: true});
+		if(attrition.length > 0) {
+			columns.push({id: 'attrition', name: 'Attrition', type: 'number', smallScreen: true, details: true, indentation: 'padding-left-22'});
+			for(var i=0; i<attrition.length; i++) columns.push({id: attrition[i], name: attrition[i], type: 'number', smallScreen: true, details: true, indentation: 'padding-left-44'});
+		}
+		columns.push({id: 'doneInactive', name: 'Completed by inactive users', type: 'number', smallScreen: true, details: true, indentation: 'padding-left-22'});
+		columns.push({id: 'pendingInactive', name: 'Pending by inactive users', type: 'number', smallScreen: true, details: true, indentation: 'padding-left-22'});
+		columns.push({id: 'cntActive', name: 'Active', type: 'number', showDesc: true, percid: 'percActive', details: true, background: 'nl-bg-blue'});
+		columns.push({id: 'completed', name: 'Completed', type: 'number', showDesc: true, percid: 'percCompleted', details: true, indentation: 'padding-left-22'});
+		columns.push({id: 'certified', name: 'Certified', type: 'number', showDesc: true, percid: 'percCertified', indentation: 'padding-left-44'});
+		columns.push({id: 'failed', name: 'Failed', type: 'number', showDesc: true, percid: 'percFailed', indentation: 'padding-left-44'});
+		columns.push({id: 'started', name: 'Started', type: 'number', smallScreen: true, percid: 'percStarted', details: true, indentation: 'padding-left-22'});
+		if(customStartedStates.length > 0) {
+			for(var i=0; i<customStartedStates.length; i++) columns.push({id: customStartedStates[i], name: customStartedStates[i], type: 'number', smallScreen: true, showDesc: true, indentation: 'padding-left-44'});
+		}
+		columns.push({id: 'pending', name: 'Pending', type: 'number', percid: 'percPending', indentation: 'padding-left-22', showInSmallScreen: true});
 		return columns;
 	}
 

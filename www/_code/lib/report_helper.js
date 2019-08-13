@@ -396,8 +396,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         var now = new Date();
         if (cm.complete_before && _fromDate) {
             var complete_before = parseInt(cm.complete_before);
-            dueDate = _fromDate.setDate(_fromDate.getDate() + complete_before);
-            dueDate = new Date(dueDate);
+            dueDate = new Date(_fromDate.getTime()+complete_before*24*60*60*1000);
         } else if ((repcontent.content || {}).planning && cm.planned_date) {
             dueDate = cm.planned_date;
         }

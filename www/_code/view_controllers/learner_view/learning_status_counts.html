@@ -2,145 +2,27 @@
 .minw-details-number{
     width: 105px;
 }
+
+.padding-left-22{
+    padding-left: 22px;
+}
+
+.padding-left-44{
+    padding-left: 44px;
+}
+
 </style>
-<div class='row row-center padding0 margin0'>
-    <div class='col'>
-    <div class='row row-center padding-mid margin0' style='background-color: rgba(0, 0, 0, 0.2)'>
-        <div class='col'><b>Total learning records:</b></div>
-        <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
-            <div class='row row-center padding0 margin0 text-right  minw-details-number'>
-                <div class='col'><b>{{item.cntTotal}}</b></div>
-                <div class='col nl-perc-class text-left'>
-                <span  ng-show='attr == "learner"'>{{item.cntTotal > 0 ? "100%" : "0%"}}</span>
+<div class='padding-mid'>
+    <div class='row row-center padding0 margin0' ng-repeat='col in columns '>
+        <div class='col padding0'>
+            <div class='row row-center padding-small margin0 {{col.background}}'>
+                <div class='col'><b class='{{col.indentation}}'>{{col['name']}}</b></div>
+                <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
+                    <div class='row row-center padding0 margin0 text-right  minw-details-number'>
+                        <div class='col'><b>{{item[col.id] || '-'}}</b></div>
+                        <div class='col nl-perc-class text-left'>{{(col.percid && item[col.percid] > 0) ? item[col.percid]+'%' : ''}}</div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
-    <div ng-hide='attr == "learner"'>
-        <div class='row row-center padding-mid margin0 nl-bg-blue'>
-            <div class='col'><b>Inactive learning records: </b></div>
-            <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
-                <div class='row row-center padding0 margin0 text-right  minw-details-number'>
-                    <div class='col'><b>{{item.cntInactive}}</b></div>
-                    <div class='col nl-perc-class text-left'></div>
-                </div>
-            </div>
-        </div>
-        <div class='row row-center padding-mid margin0'>
-            <div class='col'>
-                <div style='width: 12px'></div>
-                <div style='padding-left: 12px'>Completed items of inactive users: </div>
-            </div>
-            <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
-                <div class='row row-center padding0 margin0 text-right  minw-details-number'>
-                    <div class='col'>{{item.doneInactive}}</div>
-                    <div class='col nl-perc-class text-left'></div>
-                </div>
-            </div>
-        </div>
-        <div class='row row-center padding-mid margin0'>
-            <div class='col'>
-                <div style='width: 12px'></div>
-                <div style='padding-left: 12px'>Pending items of inactive users: </div>
-            </div>
-            <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
-                <div class='row row-center padding0 margin0 text-right  minw-details-number'>
-                    <div class='col'>{{item.pendingInactive}}</div>
-                    <div class='col nl-perc-class text-left'></div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div ng-hide='attr == "learner"' class='row row-center padding-mid margin0  nl-bg-blue'>
-        <div class='col'><b>Active learning records:</b></div>
-        <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
-            <div class='row row-center padding0 margin0 text-right minw-details-number'>
-                <div class='col'><b>{{item.cntActive}}</b></div>
-                <div class='col nl-perc-class text-left'>{{item.cntActive > 0 ? "100%" : "0%"}}</div>
-            </div>
-        </div>
-    </div>
-    <div class='row row-center padding-mid margin0'>
-        <div class='col'>
-            <div style='width: 12px'></div>
-            <div style='padding-left: 12px'>All completed (including failed) learning records: </div>
-        </div>
-        <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
-            <div class='row row-center padding0 margin0 text-right minw-details-number'>
-                <div class='col'>{{item.completed}}</div>
-                <div class='col nl-perc-class text-left'>{{item.percCompleted}}%</div>
-            </div>
-        </div>
-    </div>
-    <div class='row row-center padding-mid margin0'>
-        <div class='col'>
-            <div style='width: 24px'></div>
-            <div style='padding-left: 24px'>Successfully completed lerning records: </div>
-        </div>
-        <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
-            <div class='row row-center padding0 margin0 text-right minw-details-number'>
-                <div class='col'>{{item.certified}}</div>
-                <div class='col nl-perc-class text-left'>{{item.percCertified}}%</div>
-            </div>
-        </div>
-    </div>
-    <div class='row row-center padding-mid margin0'>
-        <div class='col'>
-            <div style='width: 36px'></div>
-            <div style='padding-left: 36px'>Done in first attempt: </div>
-        </div>
-        <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
-            <div class='row row-center padding0 margin0 text-right minw-details-number'>
-                <div class='col'>{{item.certInFirstAttempt}}</div>
-                <div class='col nl-perc-class text-left'>{{item.percCertInFirstAttempt}}%</div>
-            </div>
-        </div>
-    </div>
-    <div class='row row-center padding-mid margin0'>
-        <div class='col'>
-            <div style='width: 36px'></div>
-            <div style='padding-left: 36px'>Done in second attempt: </div>
-        </div>
-        <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
-            <div class='row row-center padding0 margin0 text-right minw-details-number'>
-                <div class='col'>{{item.certInSecondAttempt}}</div>
-                <div class='col nl-perc-class text-left'>{{item.percCertInSecondAttempt}}%</div>
-            </div>
-        </div>
-    </div>
-    <div class='row row-center padding-mid margin0'>
-        <div class='col'>
-            <div style='width: 36px'></div>
-            <div style='padding-left: 36px'>Done after many attempt: </div>
-        </div>
-        <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
-            <div class='row row-center padding0 margin0 text-right minw-details-number'>
-                <div class='col'>{{item.certInMoreAttempt}}</div>
-                <div class='col nl-perc-class text-left'>{{item.percCertInMoreAttempt}}%</div>
-            </div>
-        </div>
-    </div>
-    <div class='row row-center padding-mid margin0'>
-        <div class='col'>
-            <div style='width: 24px'></div>
-            <div style='padding-left: 24px'>Failed learning records: </div>
-        </div>
-        <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
-            <div class='row row-center padding0 margin0 text-right minw-details-number'>
-                <div class='col'>{{item.failed}}</div>
-                <div class='col nl-perc-class text-left'>{{item.percFailed}}%</div>
-            </div>
-        </div>
-    </div>
-    <div class='row row-center padding-mid margin0'>
-        <div class='col'>
-            <div style='width: 12px'></div>
-            <div style='padding-left: 12px'>Pending learning records: </div>
-        </div>
-        <div class='{{$root.screenSize == "small" ? "" : "col"}}'>
-            <div class='row row-center padding0 margin0 text-right minw-details-number'>
-                <div class='col'>{{item.pending}}</div>
-                <div class='col nl-perc-class text-left'>{{item.percPending}}%</div>
             </div>
         </div>
     </div>
