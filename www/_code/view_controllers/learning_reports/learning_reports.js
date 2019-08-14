@@ -873,23 +873,23 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var columns = [];
 		var attrition = nlLrDrilldown.getAttritionObj();
 		var customStartedStates = nlLrDrilldown.getCustomStatusObj();
-		columns.push({id: 'cntTotal', name: 'Total', type: 'number', smallScreen: true, percid:'percTotal', background: 'bggrey', showInSmallScreen: true});
-		columns.push({id: 'cntInactive', name: 'Inactive', type: 'number', smallScreen: true, percid:'percInactive', background: 'nl-bg-blue', showInSmallScreen: true});
+		columns.push({id: 'cntTotal', name: 'Total', table: true, percid:'percTotal', smallScreen: true, background: 'bggrey'});
+		columns.push({id: 'cntInactive', name: 'Inactive', table: true, percid:'percInactive', smallScreen: true, background: 'nl-bg-blue'});
 		if(attrition.length > 0) {
-			columns.push({id: 'attrition', name: 'Attrition', type: 'number', smallScreen: true, details: true, indentation: 'padding-left-22'});
-			for(var i=0; i<attrition.length; i++) columns.push({id: attrition[i], name: attrition[i], type: 'number', smallScreen: true, details: true, indentation: 'padding-left-44'});
+			columns.push({id: 'attrition', name: 'Attrition', percid: 'percAttrition', indentation: 'padding-left-22'});
+			for(var i=0; i<attrition.length; i++) columns.push({id: attrition[i], name: attrition[i], percid:'perc'+attrition[i], indentation: 'padding-left-44'});
 		}
-		columns.push({id: 'doneInactive', name: 'Completed by inactive users', type: 'number', smallScreen: true, details: true, indentation: 'padding-left-22'});
-		columns.push({id: 'pendingInactive', name: 'Pending by inactive users', type: 'number', smallScreen: true, details: true, indentation: 'padding-left-22'});
-		columns.push({id: 'cntActive', name: 'Active', type: 'number', showDesc: true, percid: 'percActive', details: true, background: 'nl-bg-blue'});
-		columns.push({id: 'completed', name: 'Completed', type: 'number', showDesc: true, percid: 'percCompleted', details: true, indentation: 'padding-left-22'});
-		columns.push({id: 'certified', name: 'Certified', type: 'number', showDesc: true, percid: 'percCertified', indentation: 'padding-left-44'});
-		columns.push({id: 'failed', name: 'Failed', type: 'number', showDesc: true, percid: 'percFailed', indentation: 'padding-left-44'});
-		columns.push({id: 'started', name: 'Started', type: 'number', smallScreen: true, percid: 'percStarted', details: true, indentation: 'padding-left-22'});
+		columns.push({id: 'doneInactive', name: 'Completed by inactive users', percid: 'percDoneInactive', indentation: 'padding-left-22'});
+		columns.push({id: 'pendingInactive', name: 'Pending by inactive users', percid:'percPendingInactive', indentation: 'padding-left-22'});
+		columns.push({id: 'cntActive', name: 'Active', percid: 'percActive', background: 'nl-bg-blue'});
+		columns.push({id: 'completed', name: 'Completed', percid: 'percCompleted', smallScreen: true, indentation: 'padding-left-22'});
+		columns.push({id: 'certified', name: 'Certified', percid: 'percCertified', table: true, indentation: 'padding-left-44'});
+		columns.push({id: 'failed', name: 'Failed', percid: 'percFailed', table: true, indentation: 'padding-left-44'});
+		columns.push({id: 'started', name: 'Started', percid: 'percStarted', smallScreen: true, indentation: 'padding-left-22'});
 		if(customStartedStates.length > 0) {
-			for(var i=0; i<customStartedStates.length; i++) columns.push({id: customStartedStates[i], name: customStartedStates[i], type: 'number', smallScreen: true, showDesc: true, indentation: 'padding-left-44'});
+			for(var i=0; i<customStartedStates.length; i++) columns.push({id: customStartedStates[i], name: customStartedStates[i], percid:'perc'+customStartedStates[i], table: true, indentation: 'padding-left-44'});
 		}
-		columns.push({id: 'pending', name: 'Pending', type: 'number', percid: 'percPending', indentation: 'padding-left-22', showInSmallScreen: true});
+		columns.push({id: 'pending', name: 'Pending', smallScreen: true, percid: 'percPending', table: true, indentation: 'padding-left-22'});
 		return columns;
 	}
 

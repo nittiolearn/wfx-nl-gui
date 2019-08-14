@@ -213,7 +213,8 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
             percCompleteStr: '' + stainf.progPerc + ' %',
             percCompleteDesc: stainf.progDesc,
             nScore: stainf.nTotalQuizScore, nMaxScore: stainf.nTotalQuizMaxScore,
-            feedbackScore: stainf.feedbackScore
+            feedbackScore: stainf.feedbackScore,
+            progressPerc: stainf.progPerc
         };
         stats.avgAttempts = stats.nLessonsAttempted ? Math.round(stainf.nQuizAttempts/stats.nLessonsAttempted*10)/10 : 0;
         stats.timeSpentStr = nl.fmt2('{} minutes online learning and {} minutes instructor led', 

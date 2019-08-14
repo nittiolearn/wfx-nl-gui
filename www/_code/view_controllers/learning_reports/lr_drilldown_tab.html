@@ -12,7 +12,7 @@
             </div>
         </div>
         <div ng-repeat='col in drilldown.columns track by $index'
-            class='minw-number text-center' ng-hide='col.details || ($root.screenSize == "small" && !col.showInSmallScreen)'>
+            class='minw-number text-center' ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
             <div class='{{col.styleTd}}'>{{col.name}}</div>
         </div>
     </div>
@@ -33,7 +33,7 @@
             </div>
         </div>
         <div ng-repeat='col in drilldown.columns track by $index'
-            class='minw-number text-center'  ng-hide='col.details || ($root.screenSize == "small" && !col.showInSmallScreen)'>
+            class='minw-number text-center'  ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
             <div class='row row-center text-right'>
                 <div class='col'>{{rec[col.id] || '-'}}</div>
                 <div class='col nl-perc-class text-left'>{{(col.percid && rec[col.percid]) ? rec[col.percid]+'%' : ''}}</div>

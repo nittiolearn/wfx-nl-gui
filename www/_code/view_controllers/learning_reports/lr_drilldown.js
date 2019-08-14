@@ -58,7 +58,9 @@ function(nlLrHelper) {
             });
           
         items.sort(function(first, second) {
-            return first[1] - second[1];
+            if(first[1] < second[1]) return 1;
+            if(first[1] > second[1]) return -1;
+            if(first[1] == second[1]) return 0;
         });
         var ret = [];
         for(var i=0; i<items.length; i++) {
@@ -124,9 +126,7 @@ function(nlLrHelper) {
             statsCountObj['started'] = 1;
             if(statusStr !== 'started') {
                 if(!(statusStr in _customStartedStatusObj)) 
-                    _customStartedStatusObj[statusStr] = 1;
-                else
-                    _customStartedStatusObj[statusStr] += 1;
+                    _customStartedStatusObj[statusStr] = record.stats.progressPerc;
             }
             return;
         } else if(statusStr.indexOf('attrition') == 0) {
@@ -134,10 +134,8 @@ function(nlLrHelper) {
             statsCountObj['attrition'] = 1;
             statsCountObj['cntActive'] = 0;
             statsCountObj['cntInactive'] = 1;
-            if(!(statusStr in _attritionObj))  
-                _attritionObj[statusStr] = 1;
-            else 
-                _attritionObj[statusStr] += 1;
+            if(!(statusStr in _attritionObj))
+                _attritionObj[statusStr] = record.stats.progressPerc;
             return;
         }
         statsCountObj['completed'] = 1;
@@ -146,15 +144,7 @@ function(nlLrHelper) {
             statsCountObj['failed'] = 1;
             return;
         }
-
 		statsCountObj['certified'] = 1;
-		if(record.stats.avgAttempts == 1) {
-			statsCountObj['certInFirstAttempt'] = 1;
-		} else if(record.stats.avgAttempts > 1 && record.stats.avgAttempts <= 2) {
-			statsCountObj['certInSecondAttempt'] = 1;
-		} else {
-			statsCountObj['certInMoreAttempt'] = 1;
-		}
 	}
 }];
 
@@ -190,14 +180,17 @@ function StatsCounts(nl) {
     var _statusCountTree = {}; //Is an object {0: {cnt: {}, children:{subgorg1: {cnt: {}, children: {ou1: {cnt: {}}}}}}}
     var self = this;
 
-    var statsCountItem = {cntTotal: 0, cntActive: 0, cntInactive: 0, doneInactive: 0, percActive: 0, percInactive: 0, pendingInactive: 0, 
-                          completed: 0, certified: 0, pending: 0, failed: 0, percCompleted: 0, percCertified: 0, percPending: 0, percFailed: 0, 
-                          certInFirstAttempt: 0, certInSecondAttempt: 0, certInMoreAttempt:0, 
-                          percCertInFirstAttempt: 0, percCertInSecondAttempt: 0, percCertInMoreAttempt: 0,
-                          percScore: 0, avgScore: 0, timeSpent: 0, isOpen: false, started: 0, percAttrition: 0, percTotal: 100};
-    
+    var statsCountItem = {cntTotal: 0, cntActive: 0, cntInactive: 0, doneInactive: 0, pendingInactive: 0, 
+                          percTotal: 0, percActive: 0, percInactive: 0, percDoneInactive:0, percPendingInactive: 0,
+                          completed: 0, certified: 0, pending: 0, failed: 0, started: 0, 
+                          percCompleted: 0, percCertified: 0, percPending: 0, percFailed: 0, percStarted: 0,
+                          percScore: 0, avgScore: 0, timeSpent: 0, isOpen: false};
+    var defaultStates = angular.copy(statsCountItem);
+    var _dynamicStates = {};
+
     this.clear = function() {
         _statusCountTree = {};
+        _dynamicStates = {};
     };
 
     this.statsCountDict = function() {
@@ -232,7 +225,7 @@ function StatsCounts(nl) {
         stats['indentation'] = 44;
         stats['name'] = ouid;
         ous[ouid] = {cnt: angular.copy(stats)};
-        return ous[ouid].cnt;        
+        return ous[ouid].cnt;  
     }
 
     this.updateRootCount = function(contentid, statusCnt, name) {
@@ -256,27 +249,36 @@ function StatsCounts(nl) {
     function _updateStatsCount(updatedStats, statusCnt) { 
         //updatedStats is object fetched from _statusCountTree. Value from statusCnt object are added to updatedStats
         for(var key in statusCnt) {
-            if(!(key in updatedStats)) updatedStats[key] = 0;
+            if(!(key in updatedStats)) {
+                _dynamicStates[key] = true;
+                updatedStats[key] = 0;
+            }
             updatedStats[key] += statusCnt[key];
+        }
+        for(var key in _dynamicStates) {
+            if(!(key in defaultStates)) {
+                var attr = 'perc'+key;
+                updatedStats[attr] = Math.round(updatedStats[key]*100/updatedStats.cntTotal);
+            }
         }
         _updateStatsPercs(updatedStats);
     }
 
     function _updateStatsPercs(updatedStats) {
-        updatedStats.percActive = Math.round(updatedStats.cntActive*100/updatedStats.cntTotal);
-        updatedStats.percInactive = Math.round(updatedStats.cntInactive*100/updatedStats.cntTotal);
-        updatedStats.percAttrition = Math.round(updatedStats.attrition*100/updatedStats.cntTotal)
         if(updatedStats.cntTotal > 0) {
+            updatedStats.percTotal = Math.round(updatedStats.cntTotal*100/updatedStats.cntTotal)
+            updatedStats.percActive = Math.round(updatedStats.cntActive*100/updatedStats.cntTotal);
+            updatedStats.percInactive = Math.round(updatedStats.cntInactive*100/updatedStats.cntTotal);
+            updatedStats.percDoneInactive = Math.round(updatedStats.doneInactive*100/updatedStats.cntTotal);
+            updatedStats.percPendingInactive = Math.round(updatedStats.pendingInactive*100/updatedStats.cntTotal);
             updatedStats.percCompleted = Math.round(updatedStats.completed*100/updatedStats.cntTotal);
             updatedStats.percCertified = Math.round(updatedStats.certified*100/updatedStats.cntTotal);
             updatedStats.percFailed = Math.round(updatedStats.failed*100/updatedStats.cntTotal);
             updatedStats.percPending = Math.round(updatedStats.pending*100/updatedStats.cntTotal);
             updatedStats.percStarted = Math.round(updatedStats.started*100/updatedStats.cntTotal);
             updatedStats.avgScore = (updatedStats.percScore != 0 && updatedStats.completed != 0) ? Math.round(updatedStats.percScore/updatedStats.completed) : 0;
-            updatedStats.percCertInFirstAttempt = Math.round(updatedStats.certInFirstAttempt/updatedStats.cntTotal);
-            updatedStats.percCertInSecondAttempt = Math.round(updatedStats.certInSecondAttempt/updatedStats.cntTotal);
-            updatedStats.percCertInMoreAttempt = Math.round(updatedStats.certInMoreAttempt/updatedStats.cntTotal);
             updatedStats.timeSpentInMins = Math.round(updatedStats.timeSpent/60);
+            if(updatedStats.attrition) updatedStats['percAttrition'] = Math.round(updatedStats.attrition*100/updatedStats.cntTotal)
         }
     }
 }
