@@ -14,8 +14,8 @@
     }];
     
     //-------------------------------------------------------------------------------------------------
-    var NlLearnerViewRecords = ['nl', 'nlLearverViewHelper', 'nlLearnerAssignment', 'nlLearnerCourseRecords', 'nlReportHelper', 'nlLrHelper',
-    function(nl, nlLearverViewHelper, nlLearnerAssignment, nlLearnerCourseRecords, nlReportHelper, nlLrHelper) {
+    var NlLearnerViewRecords = ['nl', 'nlLearnerAssignment', 'nlLearnerCourseRecords', 'nlReportHelper',
+    function(nl, nlLearnerAssignment, nlLearnerCourseRecords, nlReportHelper) {
         var self = this;
         
         var _records = {};
@@ -71,7 +71,7 @@
         };
 
         this.asList = function() {
-            var ret = nlLearverViewHelper.dictToList(_records);
+            var ret = nl.utils.dictToList(_records);
             ret.sort(function(a, b) {
                 return (b.stats.status.id - a.stats.status.id);
             });
@@ -181,9 +181,9 @@
             stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
             repcontent.statusinfo = stainf.itemIdToInfo;
 
-            stats.status = nlLrHelper.getStatusInfoFromStr(stainf.status);
+            stats.status = nlReportHelper.getStatusInfoFromStr(stainf.status);
             var _statusStr = stats.status.txt;
-            if(stats.status.id == nlLrHelper.STATUS_STARTED) 
+            if(stats.status.id == nlReportHelper.STATUS_STARTED) 
                 stats.status.txt = 'started'; 
             else if (_statusStr.indexOf('attrition') == 0)
                 stats.status.txt = 'failed'; 
@@ -247,7 +247,7 @@
             if (!raw_record.completed) {
                 raw_record._percStr = '';
                 raw_record._statusStr = raw_record.started ? 'started' : 'pending';
-                stats.status = nlLearverViewHelper.statusInfos[_getModuleStatus(stats, repcontent, raw_record)];
+                stats.status = nlReportHelper.statusInfos[_getModuleStatus(stats, repcontent, raw_record)];
             } else {
                 var score = repcontent.selfLearningMode ? 0 : parseInt(repcontent.score || 0);
                 if (score > maxScore) score = maxScore; // Some 3 year old bug where this happened - just for sake of old record!
@@ -269,7 +269,7 @@
                     stats.nLessonsPassed++;
                 else 
                     stats.nLessonsFailed++;
-                stats.status = repcontent.selfLearningMode ? nlLearverViewHelper.statusInfos[nlLearverViewHelper.STATUS_DONE] : nlLearverViewHelper.statusInfos[_getModuleStatus(stats, repcontent, raw_record)];
+                stats.status = repcontent.selfLearningMode ? nlReportHelper.statusInfos[nlReportHelper.STATUS_DONE] : nlReportHelper.statusInfos[_getModuleStatus(stats, repcontent, raw_record)];
                 stats.percCompleteStr = 'Completed';
                 stats.percCompleteDesc = 'Module completed';
                 repcontent.maxScore = maxScore;
@@ -292,7 +292,7 @@
             var submissionAfterEndtime = raw_record.submissionAfterEndtime;
             if(not_before && not_before > curDate) {
                 return {type: "upcoming"};
-            } else if(_isEndState(stats.status.txt)) {
+            } else if(nlReportHelper.isEndCourseState(stats.status.txt)) {
                 if(type == 'module') {
                     return {type: "past", button: "REVIEW", url: nl.fmt2('/lesson/view_report_assign/{}', raw_record.id)};
                 } else {
@@ -311,15 +311,11 @@
                 }
             }else{
                 if(type == 'module') {
-                    return {type: "active", button: stats.status.id == nlLrHelper.STATUS_STARTED ? "CONTINUE" : "START", url: nl.fmt2('/lesson/do_report_assign/{}', raw_record.id)};
+                    return {type: "active", button: stats.status.id == nlReportHelper.STATUS_STARTED ? "CONTINUE" : "START", url: nl.fmt2('/lesson/do_report_assign/{}', raw_record.id)};
                 } else {
-                    return {type: "active", button: stats.status.id == nlLrHelper.STATUS_STARTED ? "CONTINUE" : "START", url: nl.fmt2('#/course_view?id={}&mode=do', raw_record.id)};
+                    return {type: "active", button: stats.status.id == nlReportHelper.STATUS_STARTED ? "CONTINUE" : "START", url: nl.fmt2('#/course_view?id={}&mode=do', raw_record.id)};
                 }
             }
-        }
-
-        function _isEndState(status) {
-            return (status == 'failed' || status == 'certified' || status == 'passed' || status == 'done');
         }
 
         function _getCanRedoCourse(repcontent, stats) {
@@ -399,20 +395,20 @@
         }
         function _getModuleStatus(stats, rep, report) {
             var scorePerc = (rep.score/rep.maxScore)*100;
-            if (!rep.started) return nlLearverViewHelper.STATUS_PENDING;
-            if (rep.started && !report.completed) return nlLearverViewHelper.STATUS_STARTED;
-            if (rep.passScore && scorePerc < rep.passScore) return nlLearverViewHelper.STATUS_FAILED;
-            if (report.completed) return nlLearverViewHelper.STATUS_DONE;
-            return nlLearverViewHelper.STATUS_PASSED;
+            if (!rep.started) return nlReportHelper.STATUS_PENDING;
+            if (rep.started && !report.completed) return nlReportHelper.STATUS_STARTED;
+            if (rep.passScore && scorePerc < rep.passScore) return nlReportHelper.STATUS_FAILED;
+            if (report.completed) return nlReportHelper.STATUS_DONE;
+            return nlReportHelper.STATUS_PASSED;
         }
     
         function _getStatusId(stats, started) {
-            if (stats.percComplete == 0 && !started) return nlLearverViewHelper.STATUS_PENDING;
-            if (stats.percComplete < 100) return nlLearverViewHelper.STATUS_STARTED;
-            if (stats.nLessonsFailed > 0) return nlLearverViewHelper.STATUS_FAILED;
-            if (stats.nCerts > 0) return nlLearverViewHelper.STATUS_CERTIFIED;
-            if (stats.nMaxScore == 0) return nlLearverViewHelper.STATUS_DONE;
-            return nlLearverViewHelper.STATUS_PASSED;
+            if (stats.percComplete == 0 && !started) return nlReportHelper.STATUS_PENDING;
+            if (stats.percComplete < 100) return nlReportHelper.STATUS_STARTED;
+            if (stats.nLessonsFailed > 0) return nlReportHelper.STATUS_FAILED;
+            if (stats.nCerts > 0) return nlReportHelper.STATUS_CERTIFIED;
+            if (stats.nMaxScore == 0) return nlReportHelper.STATUS_DONE;
+            return nlReportHelper.STATUS_PASSED;
         }
 
     }];

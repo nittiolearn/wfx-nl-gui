@@ -13,15 +13,15 @@ var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
 }];
 
-var NlLrSummaryStats = ['nl', 'nlLrHelper',
-function(nl, nlLrHelper) {
+var NlLrSummaryStats = ['nl', 'nlLrHelper', 'nlReportHelper',
+function(nl, nlLrHelper, nlReportHelper) {
 	this.getSummaryStats = function() {
-		return new SummaryStats(nl, nlLrHelper);
+		return new SummaryStats(nl, nlLrHelper, nlReportHelper);
 	};
 }];
 
 //-------------------------------------------------------------------------------------------------
-function SummaryStats(nl, nlLrHelper) {
+function SummaryStats(nl, nlLrHelper, nlReportHelper) {
     
     var _metas = nlLrHelper.getMetaHeaders(true);
     var _orgDict = {};
@@ -49,7 +49,7 @@ function SummaryStats(nl, nlLrHelper) {
     };
     
     this.asList = function() {
-        var ret = nlLrHelper.dictToList(this.getStatsData());
+        var ret = nl.utils.dictToList(this.getStatsData());
         ret.sort(function(a, b) {
             if (a.assigned == b.assigned) return (b.perc - a.perc);
             return (b.assigned - a.assigned);
@@ -79,9 +79,9 @@ function SummaryStats(nl, nlLrHelper) {
 
         statsObj.assigned += delta;
         var stats = report.stats;
-        if (stats.status.id == nlLrHelper.STATUS_PENDING) statsObj.pending += delta;
-        else if (stats.status.id == nlLrHelper.STATUS_STARTED) statsObj.started += delta;
-        else if (stats.status.id == nlLrHelper.STATUS_FAILED) statsObj.failed += delta;
+        if (stats.status.id == nlReportHelper.STATUS_PENDING) statsObj.pending += delta;
+        else if (stats.status.id == nlReportHelper.STATUS_STARTED) statsObj.started += delta;
+        else if (stats.status.id == nlReportHelper.STATUS_FAILED) statsObj.failed += delta;
         else statsObj.done += delta;
         statsObj.perc = statsObj.assigned > 0 ? Math.round(statsObj.done/statsObj.assigned*100) : 0;
         statsObj.percStr = statsObj.assigned > 0 ? statsObj.perc + ' %' : '';    	

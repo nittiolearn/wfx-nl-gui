@@ -10,8 +10,8 @@ function module_init() {
 }
 //-------------------------------------------------------------------------------------------------
 
-var NlLrDrilldownSrv = ['nlLrHelper',
-function(nlLrHelper) {
+var NlLrDrilldownSrv = ['nlReportHelper',
+function(nlReportHelper) {
     var _orgToSubOrgDict = {};
     var _attritionObj = {};
     var _customStartedStatusObj = {};
@@ -105,7 +105,7 @@ function(nlLrHelper) {
                 _attritionObj[statusStr] += 1;
             return;
         }
-        if(status.id == nlLrHelper.STATUS_PENDING || status.id == nlLrHelper.STATUS_STARTED) {
+        if(status.id == nlReportHelper.STATUS_PENDING || status.id == nlReportHelper.STATUS_STARTED) {
 			statsCountObj['pendingInactive'] = 1;
             return;
         }
@@ -117,11 +117,11 @@ function(nlLrHelper) {
         var statusStr = status['txt'];
 		statsCountObj['cntActive'] = 1;
         statsCountObj['timeSpent'] = record.stats.timeSpentSeconds;
-        if(status.id == nlLrHelper.STATUS_PENDING || statusStr == 'started') {
+        if(status.id == nlReportHelper.STATUS_PENDING || statusStr == 'started') {
             statsCountObj['pending'] = 1;
             return;
         }
-        if(status.id == nlLrHelper.STATUS_STARTED) {
+        if(status.id == nlReportHelper.STATUS_STARTED) {
             statsCountObj[statusStr] = 1;
             statsCountObj['started'] = 1;
             if(statusStr !== 'started') {
@@ -140,7 +140,7 @@ function(nlLrHelper) {
         }
         statsCountObj['completed'] = 1;
         statsCountObj['percScore'] = record.stats.percScore;
-        if(status.id == nlLrHelper.STATUS_FAILED) {
+        if(status.id == nlReportHelper.STATUS_FAILED) {
             statsCountObj['failed'] = 1;
             return;
         }

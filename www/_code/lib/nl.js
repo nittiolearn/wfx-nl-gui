@@ -56,6 +56,8 @@ function(nlLog, $http, $q, $timeout, $location, $window, $rootScope) {
         return this.fmt.fmt2(arguments);
     };
 
+    this.utils = new Utils();
+
     //---------------------------------------------------------------------------------------------
     // Cache Factory
     this.createCache = function(cacheMaxSize, cacheLowWaterMark, onRemoveFn) {
@@ -321,6 +323,15 @@ function Formatter() {
         var s = "000" + num;
         return s.substr(s.length-3);
     }
+}
+
+//-------------------------------------------------------------------------------------------------
+function Utils() {
+    this.dictToList = function(d) {
+    var ret = [];
+    for(var k in d) ret.push(d[k]);
+    return ret;
+    };
 }
 
 //-------------------------------------------------------------------------------------------------

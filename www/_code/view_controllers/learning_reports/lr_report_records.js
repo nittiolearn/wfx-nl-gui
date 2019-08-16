@@ -14,8 +14,8 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrCourseRecords', 'nlLrFilter', 'nlLrAssignmentRecords', 'nlCourse', 'nlExpressionProcessor', 'nlReportHelper',
-function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLrAssignmentRecords, nlCourse, nlExpressionProcessor, nlReportHelper) {
+var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrCourseRecords', 'nlLrFilter', 'nlLrAssignmentRecords', 'nlReportHelper',
+function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLrAssignmentRecords, nlReportHelper) {
     var self = this;
     
     var _records = {};
@@ -90,7 +90,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
     };
 
     this.asList = function() {
-        var ret = nlLrHelper.dictToList(_records);
+        var ret = nl.utils.dictToList(_records);
         ret.sort(function(a, b) {
             return (b.stats.status.id - a.stats.status.id);
         });
@@ -244,7 +244,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         
         report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
         report.urlTitle = nl.t('View report');
-        stats.status = nlLrHelper.getStatusInfoFromStr(stainf.status);
+        stats.status = nlReportHelper.getStatusInfoFromStr(stainf.status);
         var ret = {raw_record: report, repcontent: repcontent, course: course, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
@@ -319,7 +319,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         if (!report.completed) {
             report._percStr = '';
             report._statusStr = report.started ? 'started' : 'pending';
-            stats.status = nlLrHelper.statusInfos[_getModuleStatus(stats, repcontent, report)];
+            stats.status = nlReportHelper.statusInfos[_getModuleStatus(stats, repcontent, report)];
         } else {
             var score = repcontent.selfLearningMode ? 0 : parseInt(repcontent.score || 0);
             if (score > maxScore) score = maxScore; // Some 3 year old bug where this happened - just for sake of old record!
@@ -337,7 +337,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
             stats.nMaxScore = maxScore;
             stats.percScore = stats.nMaxScore ? Math.round(stats.nScore/stats.nMaxScore*100) : 0;
             stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '0%';
-            stats.status = repcontent.selfLearningMode ? nlLrHelper.statusInfos[nlLrHelper.STATUS_DONE] : nlLrHelper.statusInfos[_getModuleStatus(stats, repcontent, report)];
+            stats.status = repcontent.selfLearningMode ? nlReportHelper.statusInfos[nlReportHelper.STATUS_DONE] : nlReportHelper.statusInfos[_getModuleStatus(stats, repcontent, report)];
             repcontent.maxScore = maxScore;
             repcontent.score = score;
             report.urlTitle = nl.t('View report');
@@ -348,8 +348,8 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
             }
         }
 
-        stats.percCompleteStr = stats.status.id == nlLrHelper.STATUS_PENDING ? '0%'
-            : stats.status.id == nlLrHelper.STATUS_STARTED ? 'Started' : '100%';
+        stats.percCompleteStr = stats.status.id == nlReportHelper.STATUS_PENDING ? '0%'
+            : stats.status.id == nlReportHelper.STATUS_STARTED ? 'Started' : '100%';
         stats.percCompleteDesc = '';
         var ret = {raw_record: report, repcontent: repcontent, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
@@ -385,11 +385,11 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
 
     function _getModuleStatus(stats, rep, report) {
         var scorePerc = (rep.score/rep.maxScore)*100;
-        if (!rep.started) return nlLrHelper.STATUS_PENDING;
-        if (rep.started && !report.completed) return nlLrHelper.STATUS_STARTED;
-        if (rep.passScore && scorePerc < rep.passScore) return nlLrHelper.STATUS_FAILED;
-        if (report.completed) return nlLrHelper.STATUS_DONE;
-        return nlLrHelper.STATUS_PASSED;
+        if (!rep.started) return nlReportHelper.STATUS_PENDING;
+        if (rep.started && !report.completed) return nlReportHelper.STATUS_STARTED;
+        if (rep.passScore && scorePerc < rep.passScore) return nlReportHelper.STATUS_FAILED;
+        if (report.completed) return nlReportHelper.STATUS_DONE;
+        return nlReportHelper.STATUS_PASSED;
     }
 }];
 

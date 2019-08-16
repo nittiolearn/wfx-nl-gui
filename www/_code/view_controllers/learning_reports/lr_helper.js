@@ -15,43 +15,6 @@ function($stateProvider, $urlRouterProvider) {
 
 //-------------------------------------------------------------------------------------------------
 var NlLrHelper = ['nlGroupInfo', function NlLrHelper(nlGroupInfo) {
-    this.STATUS_PENDING = 0;
-    this.STATUS_STARTED = 1;
-    this.STATUS_DONE = 2;
-    this.STATUS_PASSED = 3;
-    this.STATUS_FAILED = 4;
-    this.STATUS_CERTIFIED = 5;
-
-    this.statusInfos = [
-        {id: this.STATUS_PENDING, txt: 'pending', icon: 'ion-ios-circle-filled fgrey'},
-        {id: this.STATUS_STARTED, txt: 'started', icon: 'ion-ios-circle-filled fgreen'},
-        {id: this.STATUS_DONE, txt: 'done', icon: 'ion-checkmark-circled fgreen'},
-        {id: this.STATUS_PASSED, txt: 'passed', icon: 'ion-checkmark-circled fgreen'},
-        {id: this.STATUS_FAILED, txt: 'failed', icon: 'icon ion-close-circled forange'},
-        {id: this.STATUS_CERTIFIED, txt: 'certified', icon: 'icon ion-android-star fgreen'}];
-
-    this.getStatusInfoFromStr = function(statusStr) {
-        if (!statusStr) return this.statusInfos[this.STATUS_PENDING];
-        for (var i=0; i<this.statusInfos.length; i++) {
-            var item = this.statusInfos[i];
-            if (item.txt == statusStr) return item;
-        }
-        var statusId = statusStr.indexOf('attrition') == 0 ? this.STATUS_FAILED : this.STATUS_STARTED;
-        var ret = angular.copy(this.statusInfos[statusId]);
-        ret.txt = statusStr;
-        return ret;
-    }
-        
-    this.isDone = function(statusInfo) {
-        return statusInfo.id != this.STATUS_PENDING && statusInfo.id != this.STATUS_STARTED;
-    };
-
-    this.dictToList = function(d) {
-        var ret = [];
-        for(var k in d) ret.push(d[k]);
-        return ret;
-    };
-
     this.getMetadataDict = function(user) {
     	return _getMetadataDict(user);
     };

@@ -12,8 +12,7 @@ function module_init() {
 	.directive('nlLearnerSection', LearnerSectionDirective)
 	.directive('nlLearningStatusCounts', LearningStatusCountsDirective)
 	.controller('nl.LearnerViewCtrl', LearnerViewCtrl)
-	.service('nlLearnerView', NlLearnerView)
-	.service('nlLearverViewHelper', NlLearnerViewHelperSrv);
+	.service('nlLearnerView', NlLearnerView);
 }
 	
 var configFn = ['$stateProvider', '$urlRouterProvider',
@@ -101,11 +100,11 @@ function(nl, $scope, nlLearnerView) {
 
 //-------------------------------------------------------------------------------------------------
 
-var NlLearnerView = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlLearverViewHelper',
+var NlLearnerView = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlReportHelper',
 'nlLearnerViewRecords', 'nlTopbarSrv', 'nlCardsSrv', 'nlLearnerAssignment', 'nlLearnerCourseRecords', 'nlAnnouncementSrv',
-function(nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper, nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv, nlLearnerAssignment, nlLearnerCourseRecords, nlAnnouncementSrv) {
+function(nl, nlDlg, nlRouter, nlServerApi, nlReportHelper, nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv, nlLearnerAssignment, nlLearnerCourseRecords, nlAnnouncementSrv) {
 	this.create = function($scope) {
-		return new NlLearnerViewImpl($scope, nl, nlDlg, this, nlRouter, nlServerApi, nlLearverViewHelper,
+		return new NlLearnerViewImpl($scope, nl, nlDlg, this, nlRouter, nlServerApi, nlReportHelper,
 			nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv, nlLearnerAssignment, nlLearnerCourseRecords, nlAnnouncementSrv);
 	};
 
@@ -120,34 +119,7 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlLearverViewHelper, nlLearnerViewRec
 
 }];
 
-var NlLearnerViewHelperSrv = [function() {
-	this.STATUS_PENDING = 0;
-	this.STATUS_STARTED = 1;
-	this.STATUS_DONE = 2;
-	this.STATUS_PASSED = 3;
-	this.STATUS_FAILED = 4;
-	this.STATUS_CERTIFIED = 5;
-
-	this.statusInfos = [
-		{id: this.STATUS_PENDING, txt: 'pending', icon: 'ion-ios-circle-filled fgrey'},
-		{id: this.STATUS_STARTED, txt: 'started', icon: 'ion-ios-circle-filled fgreen'},
-		{id: this.STATUS_DONE, txt: 'done', icon: 'ion-checkmark-circled fgreen'},
-		{id: this.STATUS_PASSED, txt: 'passed', icon: 'ion-checkmark-circled fgreen'},
-		{id: this.STATUS_FAILED, txt: 'failed', icon: 'icon ion-close-circled forange'},
-		{id: this.STATUS_CERTIFIED, txt: 'certified', icon: 'icon ion-android-star fgreen'}];
-		
-	this.isDone = function(statusInfo) {
-		return statusInfo.id != this.STATUS_PENDING && statusInfo.id != this.STATUS_STARTED;
-	};
-
-	this.dictToList = function(d) {
-		var ret = [];
-		for(var k in d) ret.push(d[k]);
-		return ret;
-	};
-}];
-
-function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerApi, nlLearverViewHelper, 
+function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerApi, nlReportHelper, 
 	nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv, nlLearnerAssignment, nlLearnerCourseRecords, nlAnnouncementSrv) {
 	var self = this;
 	var _fetchChunk = 100;
@@ -457,7 +429,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			var type = record.recStateObj.type;
 			var statusid = record.stats.status.id;
 			var isActive = type == 'active';
-			var isStarted = isActive && statusid == nlLearverViewHelper.STATUS_STARTED;
+			var isStarted = isActive && statusid == nlReportHelper.STATUS_STARTED;
 			var doesPassFilter = (filter == 'all') ||
 				(filter == 'active' && isActive) ||
 				(filter == 'started' && isStarted);
@@ -551,11 +523,11 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			var rec = records[recid];
 			if(!rec) continue;
 			var statusid = rec.stats.status.id;
-			if (statusid == nlLearverViewHelper.STATUS_PENDING) {
+			if (statusid == nlReportHelper.STATUS_PENDING) {
 				doughnutChart.data[3] += 1;
-			} else if(statusid == nlLearverViewHelper.STATUS_STARTED) {
+			} else if(statusid == nlReportHelper.STATUS_STARTED) {
 				doughnutChart.data[2] += 1;
-			} else if (statusid == nlLearverViewHelper.STATUS_FAILED) {
+			} else if (statusid == nlReportHelper.STATUS_FAILED) {
 				doughnutChart.data[1] += 1;
 			} else  {
 				doughnutChart.data[0] += 1;
@@ -606,13 +578,13 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 	function _updateCoursesDetailsDict(record, detailsTabDict) {
 		var status = record.stats.status;
 		detailsTabDict.cntTotal += 1;
-		if(status.id == nlLearverViewHelper.STATUS_DONE || status.id == nlLearverViewHelper.STATUS_PASSED || 
-			status.id == nlLearverViewHelper.STATUS_CERTIFIED) {
+		if(status.id == nlReportHelper.STATUS_DONE || status.id == nlReportHelper.STATUS_PASSED || 
+			status.id == nlReportHelper.STATUS_CERTIFIED) {
 			_updateCompletedUserDate(detailsTabDict, record);
-		} else if(status.id == nlLearverViewHelper.STATUS_FAILED) {
+		} else if(status.id == nlReportHelper.STATUS_FAILED) {
 			detailsTabDict.failed += 1;
 			detailsTabDict.completed += 1;
-		} else if(status.id == nlLearverViewHelper.STATUS_STARTED){
+		} else if(status.id == nlReportHelper.STATUS_STARTED){
 			detailsTabDict.started += 1;
 		}else{
 			detailsTabDict.pending += 1;
@@ -649,7 +621,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 	}
 
 	function _getCourseEndedTime(rep) {
-		if (!nlLearverViewHelper.isDone(rep.stats.status)) return null;
+		if (!nlReportHelper.isDone(rep.stats.status)) return null;
 		return rep.raw_record.updated;
 	}
 }
