@@ -14,8 +14,8 @@
     }];
     
     //-------------------------------------------------------------------------------------------------
-    var NlLearnerViewRecords = ['nl', 'nlLearverViewHelper', 'nlLearnerAssignment', 'nlLearnerCourseRecords',
-    function(nl, nlLearverViewHelper, nlLearnerAssignment, nlLearnerCourseRecords) {
+    var NlLearnerViewRecords = ['nl', 'nlLearverViewHelper', 'nlLearnerAssignment', 'nlLearnerCourseRecords', 'nlReportHelper', 'nlLrHelper',
+    function(nl, nlLearverViewHelper, nlLearnerAssignment, nlLearnerCourseRecords, nlReportHelper, nlLrHelper) {
         var self = this;
         
         var _records = {};
@@ -134,151 +134,64 @@
         };
 
         
-        function _processCourseReport(raw_record) {
-            var repcontent = _updateCommonParams(raw_record, 'course');
+        function _processCourseReport(report) {
+            var repcontent = _updateCommonParams(report, 'course');
             if(!repcontent.content) repcontent.content = {};
             var user = _userInfo;
-            var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
-                timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
-                internalIdentifier:raw_record.id, nCerts: 0, iltTimeSpent: 0, iltTotalTime: 0, isAttemptsAvailable: 0};
-                
-            var started = false;
-            var isTrainerControlled = false;
-            var latestMilestone = null;
-            repcontent['id'] = raw_record.id;
 
-            var statusinfo = repcontent.statusinfo || {};
-            if (!repcontent.lessonReports) repcontent.lessonReports = {};
-            var lessonReps = repcontent.lessonReports;
-            repcontent.latestLessonReports = angular.copy(repcontent.lessonReports);
-
-            stats.nOthers = 0;
-            stats.nOthersDone = 0;
-            var course = nlLearnerCourseRecords.getRecord(raw_record.lesson_id);
-            raw_record.canReview = true;
-            if(!course || !course.is_published) raw_record.canReview = false;
-            var courseAssignment = nlLearnerAssignment.getRecord('course_assignment:'+raw_record.assignment) || {};
+            var course = nlLearnerCourseRecords.getRecord(report.lesson_id);
+            if (!course) course = {};
+            report.canReview = true;
+            if(!course.is_published) report.canReview = false;
+            var courseAssignment = nlLearnerAssignment.getRecord('course_assignment:'+report.assignment) || {};
             if (!courseAssignment.info) courseAssignment.info = {};
-            if (!course) course = nlLearnerCourseRecords.getCourseInfoFromReport(raw_record, repcontent);
-            var contentmetadata = 'contentmetadata' in course ? course.contentmetadata : {};
-            raw_record._grade = contentmetadata.grade || '';
-            raw_record.subject = contentmetadata.subject || ''; 
             if(courseAssignment) {
-                raw_record.not_after = courseAssignment.info['not_after'];
-                raw_record.not_before = courseAssignment.info['not_before'];
-                raw_record.submissionAfterEndtime = courseAssignment.info['submissionAfterEndtime'] || false;
-                raw_record.assign_remarks = courseAssignment.info['remarks'];
-                raw_record.assigned_to = courseAssignment.info['assigned_to'];
-                raw_record.authorname = courseAssignment.info['courseauthor'];
+                report.not_after = courseAssignment.info['not_after'];
+                report.not_before = courseAssignment.info['not_before'];
+                report.submissionAfterEndtime = courseAssignment.info['submissionAfterEndtime'] || false;
+                report.assign_remarks = courseAssignment.info['remarks'];
+                report.assigned_to = courseAssignment.info['assigned_to'];
+                report.authorname = courseAssignment.info['courseauthor'];
             }
-            var milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
-            repcontent.content.modules = course.content.modules || [];
-            for(var i=0; i<course.content.modules.length; i++) {
-                var elem = course.content.modules[i];
-                if(elem.type != 'milestone') continue;
-                isTrainerControlled = true;
-                if(elem.id in milestone) {
-                    started = true;
-                    latestMilestone = milestone[elem.id];
-                    latestMilestone['perc'] = elem.completionPerc;
-                    latestMilestone['name'] = elem.name;
-                }
-            }
-
-            for (var i=0; i<repcontent.content.modules.length; i++) {
-                var type = repcontent.content.modules[i].type;
-                if(type == 'certificate' || type == 'module') continue;
-                if(type == 'link' || type == 'info') {
-                    stats.nOthers++;
-                    var cid = repcontent.content.modules[i].id;
-                    var sinfo = statusinfo[cid];
-                    if (sinfo && sinfo.status == 'done') {
-                        stats.nOthersDone++;
-                        started = true;
-                    }
-                } else if(type == 'lesson'){
-                    stats.nLessons++;
-                    var lid = repcontent.content.modules[i].id;
-                    var rep = lessonReps[lid];
-                    if (!rep) continue;
-                    var pastLessonReport = (repcontent['pastLessonReports']) ? angular.copy(repcontent['pastLessonReports'][lid]) : null;
-                    if(pastLessonReport) {
-                        rep = _getMaxScoredReport(rep, pastLessonReport);
-                        lessonReps[lid] = rep; 
-                    }
-                    started = true;
-                    if (!rep.selfLearningMode && rep.attempt) {
-                        stats.nAttempts += rep.attempt;
-                        stats.nLessonsAttempted++;
-                    }
-                    stats.timeSpentSeconds += rep.timeSpentSeconds || 0;
-                    if (!rep.completed) continue;
-                    if (rep.selfLearningMode) {
-                        rep.maxScore = 0;
-                        rep.score = 0;
-                    }
-                    if (rep.maxScore) {
-                        stats.nScore += rep.score;
-                        stats.nMaxScore += rep.maxScore;
-                        stats.nQuiz++;
-                    }
-                    var perc = rep.maxScore ? Math.round(rep.score / rep.maxScore * 100) : 100;
-                    if (!rep.passScore || perc >= rep.passScore) stats.nLessonsPassed++;
-                    else stats.nLessonsFailed++;    
-                }
-            }
-
-            stats.nLessonsDone = stats.nLessonsPassed + stats.nLessonsFailed;
-            var RELATIVE_LESSON_WEIGHT=1;
-            var weightedProgressMax = stats.nLessons*RELATIVE_LESSON_WEIGHT + stats.nOthers;
-            var weightedProgress = stats.nLessonsDone*RELATIVE_LESSON_WEIGHT + stats.nOthersDone;
-
-            if(isTrainerControlled) {
-                if(latestMilestone) {
-                    stats.percComplete = latestMilestone['perc'];
-                    stats.percCompleteStr = '' + stats.percComplete + ' %';
-                    stats.percCompleteDesc = nl.fmt2('{}', latestMilestone['name']);
-                } else {
-                    stats.percComplete = '';
-                    stats.percCompleteStr = '';
-                    stats.percCompleteDesc = nl.fmt2('Milestone is not marked');
-                }
-            } else {
-                stats.percComplete = weightedProgressMax ? Math.round(weightedProgress/weightedProgressMax*100) : 100;
-                stats.percCompleteStr = '' + stats.percComplete + ' %';
-                
-                var plural = stats.nLessons > 1 ? 'modules' : 'module';
-                var modulesCompleted = stats.nLessons ? nl.fmt2('{} of {} {}', stats.nLessonsDone, stats.nLessons, plural) : '';
-                plural = stats.nOthers > 1 ? 'other items' : 'other item';
-                var othersCompleted = stats.nOthers ? nl.fmt2('{} of {} {}', stats.nOthersDone, stats.nOthers, plural) : '';
-                var delim = modulesCompleted && othersCompleted ? ' and ' : '';
-                stats.percCompleteDesc = nl.fmt2('{}{}{} completed', modulesCompleted, delim, othersCompleted);    
-            }
-            
-            stats.avgAttempts = stats.nLessonsAttempted ? Math.round(stats.nAttempts/stats.nLessonsAttempted*10)/10 : '';
-            stats.percScore = stats.nMaxScore ? Math.round(stats.nScore/stats.nMaxScore*100) : 0;
-            stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
+            var repHelper = nlReportHelper.getCourseStatusHelper(report, _userInfo.groupinfo, courseAssignment, course);
+            var stainf = repHelper.getCourseStatus();
     
-            stats.timeSpentStr = Math.ceil((stats.timeSpentSeconds+stats.iltTimeSpent)/60);
+            var contentmetadata = 'contentmetadata' in course ? course.contentmetadata : {};
+            report._grade = contentmetadata.grade || '';
+            report.subject = contentmetadata.subject || ''; 
+            
+            var stats = {nLessonsAttempted: stainf.nPassedQuizes+stainf.nFailedQuizes,
+                internalIdentifier:report.id,
+                timeSpentSeconds: stainf.onlineTimeSpentSeconds, 
+                iltTimeSpent: stainf.iltTimeSpent, 
+                iltTotalTime: stainf.iltTotalTime,
+                percCompleteStr: '' + stainf.progPerc + ' %',
+                percCompleteDesc: stainf.progDesc,
+                nScore: stainf.nTotalQuizScore, nMaxScore: stainf.nTotalQuizMaxScore,
+                feedbackScore: stainf.feedbackScore,
+                progressPerc: stainf.progPerc
+            };
+
+    
+            stats.timeSpentStr = Math.ceil((stats.timeSpentSeconds*60)+stats.iltTimeSpent);
             stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
                 : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
-            if(raw_record.completed) {
-                raw_record.url = nl.fmt2('#/course_view?id={}&mode=report_view_my', raw_record.id);
-            } else {
-                raw_record.url = nl.fmt2('#/course_view?id={}&mode=do', raw_record.id);
-            }
-            var moduleLen = repcontent.content.modules.length;
-            var lastItem = repcontent.content.modules[moduleLen - 1];
-            if(lastItem && lastItem.type == 'certificate' && _isConditionMet(lastItem, repcontent)) {
-                stats.status = nlLearverViewHelper.statusInfos[nlLearverViewHelper.STATUS_CERTIFIED];
-            } else {
-                stats.status = nlLearverViewHelper.statusInfos[_getStatusId(stats, started)];                
-            }
 
-            _updateDateFormats(raw_record);
-            var ret = {raw_record: raw_record, repcontent: repcontent, user: user, stats: stats,
-                recStateObj: _getRecordState(repcontent, raw_record, stats, 'course'),
-                detailsavps : _getRecordAvps(repcontent, raw_record, 'course'), type: 'course'
+            stats.percScore = stats.nMaxScore ? Math.round(100.0*stats.nScore/stats.nMaxScore) : 0;
+            stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
+            repcontent.statusinfo = stainf.itemIdToInfo;
+
+            stats.status = nlLrHelper.getStatusInfoFromStr(stainf.status);
+            var _statusStr = stats.status.txt;
+            if(stats.status.id == nlLrHelper.STATUS_STARTED) 
+                stats.status.txt = 'started'; 
+            else if (_statusStr.indexOf('attrition') == 0)
+                stats.status.txt = 'failed'; 
+
+            _updateDateFormats(report);
+            var ret = {raw_record: report, repcontent: repcontent, user: user, stats: stats,
+                recStateObj: _getRecordState(repcontent, report, stats, 'course'),
+                detailsavps : _getRecordAvps(repcontent, report, 'course'), type: 'course'
                 };
             return ret;
         }
@@ -379,39 +292,42 @@
             var submissionAfterEndtime = raw_record.submissionAfterEndtime;
             if(not_before && not_before > curDate) {
                 return {type: "upcoming"};
-            } else if(stats.status.txt == "certified" || stats.status.txt == "completed" || stats.status.txt == "failed" 
-                    || stats.status.txt == "done" || stats.status.txt == "passed") {
+            } else if(_isEndState(stats.status.txt)) {
                 if(type == 'module') {
-                    return {type: "past", button: "REVIEW", url: nl.fmt2('/lesson/view_report_assign/{}', repcontent.id)};
+                    return {type: "past", button: "REVIEW", url: nl.fmt2('/lesson/view_report_assign/{}', raw_record.id)};
                 } else {
                     var canRetry = _getCanRedoCourse(repcontent, stats);
                     if(canRetry) {
-                        return {type: "past", button: "REWORK", url: nl.fmt2('#/course_view?id={}&mode=do', repcontent.id)};
+                        return {type: "past", button: "REWORK", url: nl.fmt2('#/course_view?id={}&mode=do', raw_record.id)};
                     } else {
-                        return {type: "past", button: "REVIEW", url: nl.fmt2('#/course_view?id={}&mode=report_view_my', repcontent.id)};
+                        return {type: "past", button: "REVIEW", url: nl.fmt2('#/course_view?id={}&mode=report_view_my', raw_record.id)};
                     }    
                 }
             } else if(not_after && not_after < curDate && !submissionAfterEndtime){
                 if(type == 'module') {
                     return {type: "past"};
                 } else {
-                    return {type: "past", button: "REVIEW", url: nl.fmt2('#/course_view?id={}&mode=report_view_my', repcontent.id)};
+                    return {type: "past", button: "REVIEW", url: nl.fmt2('#/course_view?id={}&mode=report_view_my', raw_record.id)};
                 }
             }else{
                 if(type == 'module') {
-                    return {type: "active", button: stats.status.txt == "started" ? "CONTINUE" : "START", url: nl.fmt2('/lesson/do_report_assign/{}', repcontent.id)};
+                    return {type: "active", button: stats.status.id == nlLrHelper.STATUS_STARTED ? "CONTINUE" : "START", url: nl.fmt2('/lesson/do_report_assign/{}', raw_record.id)};
                 } else {
-                    return {type: "active", button: stats.status.txt == "started" ? "CONTINUE" : "START", url: nl.fmt2('#/course_view?id={}&mode=do', repcontent.id)};
+                    return {type: "active", button: stats.status.id == nlLrHelper.STATUS_STARTED ? "CONTINUE" : "START", url: nl.fmt2('#/course_view?id={}&mode=do', raw_record.id)};
                 }
             }
         }
 
+        function _isEndState(status) {
+            return (status == 'failed' || status == 'certified' || status == 'passed' || status == 'done');
+        }
+
         function _getCanRedoCourse(repcontent, stats) {
             var lessonReps = repcontent.lessonReports || {};
-            var statusInfos = repcontent.statusinfo || {};
+            var modules = repcontent.content.modules || [];
             var canRetry = false;
-            for(var i=repcontent.content.modules.length-1; i>=0; i--) {
-                var module = repcontent.content.modules[i];
+            for(var i=modules.length-1; i>=0; i--) {
+                var module = modules[i];
                 if(module.type != "lesson") continue;
                 if(module.type == "lesson") {
                     if(module.maxAttempts == 0) {
@@ -433,53 +349,6 @@
             return canRetry;
         }
 
-        function _isConditionMet(lastItem, repcontent) {
-            var prereqs = lastItem.start_after || [];
-            var lessonReports = repcontent.lessonReports || {};
-            var statusinfo = repcontent.statusinfo || {};
-            if(prereqs.length == 0) return true;
-            for(var i=0; i<prereqs.length; i++) {
-                var p = prereqs[i];
-                var cmid = p.module;
-                var prereqScore = null;
-                if (cmid in lessonReports && lessonReports[cmid].completed) {
-                    var lessonReport = lessonReports[cmid];
-                    var scores = _getScores(lessonReport, true);
-                    prereqScore = scores.maxScore > 0 ? Math.round((scores.score/scores.maxScore)*100) : 100;
-                } else if (cmid in statusinfo && statusinfo[cmid].status == 'done') {
-                    prereqScore = 100;
-                }
-                if (prereqScore === null) return false;
-                var limitMin = p.min_score || null;
-                var limitMax = p.max_score || null;
-                if (limitMin && prereqScore < limitMin) return false;
-                if (limitMax && prereqScore > limitMax) return false;
-            }
-            return true;
-        }
-
-        function _getScores(lessonReport, defaultZero) {
-            var ret = {};
-            var sl = lessonReport.selfLearningMode;
-            if (defaultZero || 'maxScore' in lessonReport) ret.maxScore = parseInt(sl ? 0 : lessonReport.maxScore||0);
-            if (defaultZero || 'score' in lessonReport) ret.score = parseInt(sl ? 0 : lessonReport.score||0);
-            return ret;
-        }
-        
-        function _getMaxScoredReport(rep, pastLessonReport) {
-            var maxScoredReport = rep;
-            var totalTimeSpent = 'timeSpentSeconds' in  rep ? rep['timeSpentSeconds'] : 0;
-            for(var i=0; i<pastLessonReport.length; i++) {
-                var pastRep = pastLessonReport[i];
-                totalTimeSpent += pastRep['timeSpentSeconds'];
-                if(pastRep.score < maxScoredReport.score) continue;
-                maxScoredReport = pastRep;
-            }
-            maxScoredReport['timeSpentSeconds'] = totalTimeSpent;
-            maxScoredReport['attempt'] = rep['attempt'];
-            return maxScoredReport;
-        }
-    
         function _updateCommonParams(raw_record, ctypestr) {
             var repcontent = angular.fromJson(raw_record.content);
             raw_record.gradeLabel = _userInfo.groupinfo.gradelabel;
@@ -508,7 +377,7 @@
             nl.fmt.addAvp(avps, 'ASSIGNED TO', assignedTo);
             if(type == 'course') {
                 nl.fmt.addAvp(avps, _userInfo.groupinfo.gradelabel.toUpperCase() , contentmetadata.grade || '-');
-                nl.fmt.addAvp(avps, _userInfo.groupinfo.subjectlabel.toUpperCase() , contentmetadata.subject || '-');    
+                nl.fmt.addAvp(avps, _userInfo.groupinfo.subjectlabel.toUpperCase() , contentmetadata.subject || '-');
             } else {
                 nl.fmt.addAvp(avps, _userInfo.groupinfo.gradelabel.toUpperCase() , repcontent.grade || '-');
                 nl.fmt.addAvp(avps, _userInfo.groupinfo.subjectlabel.toUpperCase() , repcontent.subject || '-');

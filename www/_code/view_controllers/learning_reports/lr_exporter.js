@@ -592,7 +592,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 	function _updateCsvSessionRows1(statusinfo, defaultRowObj) {
         defaultRowObj._assignTypeStr = 'ILT session inside course';
         if (!statusinfo) return;
-        defaultRowObj._status = statusinfo.state;
+        defaultRowObj._status = statusinfo.state || 'pending';
         defaultRowObj.remarks = statusinfo.remarks || '';
         defaultRowObj._timeIltMins = statusinfo.iltTimeSpent || 0;
         defaultRowObj._timeIltTotalMins = statusinfo.iltTotalTime;
@@ -603,7 +603,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 	function _updateCsvRatingRows1(statusinfo, defaultRowObj) {
         defaultRowObj._assignTypeStr = 'Rating inside course';
         if (!statusinfo) return;
-        defaultRowObj._status = statusinfo.rating === 0 ? "0" : statusinfo.rating;
+        defaultRowObj._status = statusinfo.rating === 0 ? "0" : statusinfo.rating || 'pending';
         defaultRowObj._score = statusinfo.ratingScore === 0 ? "0" : statusinfo.score;
         defaultRowObj._passScoreStr = statusinfo.passScore || '';
         defaultRowObj.remarks = statusinfo.remarks || '';
@@ -623,7 +623,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 	function _updateCsvMilestoneRows1(item, statusinfo, defaultRowObj) {
         defaultRowObj._assignTypeStr = 'Milestone inside course';
         if (!statusinfo) return;
-        defaultRowObj._status = statusinfo.status;
+        defaultRowObj._status = statusinfo.status || 'pending';
         defaultRowObj._passScoreStr = item.completionPerc;
         defaultRowObj.remarks = statusinfo.remarks || '';
         defaultRowObj.ended = statusinfo.reached ? statusinfo.reached : '';
@@ -633,14 +633,14 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 	function _updateCsvInfoOrLinkRows1(item, statusinfo, defaultRowObj) {
         defaultRowObj._assignTypeStr = item.type == 'info' ? 'Info inside course' : 'Link inside course';
         if (!statusinfo) return;
-        defaultRowObj._status = statusinfo.status;
+        defaultRowObj._status = statusinfo.status || 'pending';
         defaultRowObj.updated = statusinfo.updated;
         defaultRowObj.remarks = statusinfo.remarks;
     }
 
 	function _updateCsvCertRows1(statusinfo, defaultRowObj) {
         defaultRowObj._assignTypeStr = 'Certificate inside course';
-        defaultRowObj._status = statusinfo.status;
+        defaultRowObj._status = statusinfo.status || 'pending';
     }
 
     function _checkFilter(filterItems, userField) {
