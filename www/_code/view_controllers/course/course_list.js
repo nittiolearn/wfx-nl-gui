@@ -676,9 +676,27 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
 			if (!_validateInfoModule(scope, module)) return false;
 			if (!_validateILTSession(scope, module)) return false;
 			if (!_validateMilestone(scope, module, modules)) return false;
-        }
+
+			if(!_validateCompletionPercentage(scope, module, courseContent)) return false;		
+		}
         return true;
     }
+
+	function _validateCompletionPercentage(scope, module, courseContent) {
+		var _allModules = courseContent.modules || [];
+		if(!module.completionPerc) return true;
+		if(module.completionPerc < 0 || module.completionPerc > 100) 
+			return _validateModuleFail(scope, module, 'Completion percentage should be in range of 0 - 100.', module);
+
+		for(var i=0; i<_allModules.length; i++) {
+			var item = _allModules[i];
+			if(!item.completionPerc) continue;
+			if(module.id == item.id) break;
+			if(item.completionPerc < module.completionPerc) continue;
+			return _validateModuleFail(scope, module, 'Completion percentage for this item should be greater than completion percentage of earlier items.', module);
+		}
+		return true;
+	}
 
     function _validateModuleType(scope, module) {
     	var moduleTypes = {'module': true, 'lesson': true, 'link': true, 'info':true, 'certificate': true, 'iltsession': true, 'milestone': true, 'rating': true, 'gate': true};
@@ -720,24 +738,10 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
     }
 
     function _validateMilestone(scope, module, modules) {
-    	if(module.type != 'milestone') return true;
-		if(!module.completionPerc) return _validateModuleFail(scope, module, '"completionPerc" is mandatory for "type": "milestone".');
-		return _checkMilestonePercentage(scope, module, modules);
+		if(module.type != 'milestone') return true;
+		return true;
     }
 	
-	function _checkMilestonePercentage(scope, module, allModules) {
-		for(var i=0; i<allModules.length; i++) {
-			var item = allModules[i];
-			if(item.type != 'milestone') continue;
-			if(item.completionPerc > 100)
-				return _validateModuleFail(scope, module, '"completionPerc" for this milestone should be between 0 to 100 for "type":"milestone".');
-			if(module.id == item.id) break;
-			if(item.completionPerc >= module.completionPerc) 
-				return _validateModuleFail(scope, module, '"completionPerc" for this milestone should be greater than completion percentage of earlier milestone item.');
-		}
-		return true
-	}
-
 	function _getParentId(idStr) {
         var parents = idStr.split('.');
         parents.pop(); // Remove the last entry
