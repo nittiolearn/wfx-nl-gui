@@ -19,11 +19,11 @@
 			<div class='nl-link-text nl-button-highlight' ng-click='bulkRatingMarker($event)'>Mark all</div>
 		</div>
 		<div class='row row-center padding0 margin0' ng-repeat='user in selectedRating["rating"]'>
-			<div class='row row-center padding0 margin0 row-wrap'>
+			<div class='row row-center padding0 margin0 row-wrap {{user.attrition ? "fgrey" : ""}}'>
                 <div ng-class='respCol211'class='padding-mid'>
                     <div class='row row-center padding0 margin0'>
-                        <div class='col' >{{user.name}} <span style='color:#838383'>({{user.userid}})</span></div>
-                        <div ng-if='selectedRating.ratingType === "select"' class='col padding0'>
+                        <div class='col' >{{user.name}} <span class='fgrey'>({{user.userid}})</span></div>
+                        <div ng-if='!user.attrition && selectedRating.ratingType === "select"' class='col padding0'>
                             <select ng-model='user.rating'
                                     ng-options='opt as opt.name for opt in selectedRating.ratingOptions track by opt.id'
                                     class='w100 {{fieldcls}}'
@@ -33,12 +33,13 @@
                                     placeholder='"Write remarks"'>
                             </select>
                         </div>
-                        <div ng-if='selectedRating.ratingType === "input"' class='col padding0'>
+                        <div ng-if='!user.attrition && selectedRating.ratingType === "input"' class='col padding0'>
                             <input type='number' ng-model='user.rating' min='0' max='100'></input>
                         </div>
+						<div ng-if='user.attrition' class='col padding0'>{{user.attritionStr}}</div>
                     </div>
                 </div>
-                <div ng-class='respCol211'class='padding-mid'>
+                <div ng-class='respCol211'class='padding-mid' ng-if='!user.attrition'>
 					<input type='text' ng-model='user.remarks' placeholder='Mention remarks for learner'></input>
                 </div>
 			</div>

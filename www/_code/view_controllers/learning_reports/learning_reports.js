@@ -873,23 +873,24 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var columns = [];
 		var attrition = nlLrDrilldown.getAttritionObj();
 		var customStartedStates = nlLrDrilldown.getCustomStatusObj();
-		columns.push({id: 'cntTotal', name: 'Total', table: true, percid:'percTotal', smallScreen: true, background: 'bggrey'});
-		columns.push({id: 'cntInactive', name: 'Inactive', table: true, percid:'percInactive', background: 'nl-bg-blue'});
+		columns.push({id: 'cntTotal', name: 'Total', table: true, percid:'percTotal', smallScreen: true, background: 'bggrey', showAlways: true});
+		columns.push({id: 'cntInactive', name: 'Inactive', table: true, percid:'percInactive', background: 'nl-bg-blue', showAlways: true});
 		if(attrition.length > 0) {
 			columns.push({id: 'attrition', name: 'Attrition', percid: 'percAttrition', indentation: 'padding-left-22'});
 			for(var i=0; i<attrition.length; i++) columns.push({id: attrition[i], name: attrition[i], percid:'perc'+attrition[i], indentation: 'padding-left-44'});
 		}
 		columns.push({id: 'doneInactive', name: 'Completed by inactive users', percid: 'percDoneInactive', indentation: 'padding-left-22'});
 		columns.push({id: 'pendingInactive', name: 'Pending by inactive users', percid:'percPendingInactive', indentation: 'padding-left-22'});
-		columns.push({id: 'cntActive', name: 'Active', percid: 'percActive', background: 'nl-bg-blue'});
-		columns.push({id: 'completed', name: 'Completed', percid: 'percCompleted', indentation: 'padding-left-22'});
+		columns.push({id: 'cntActive', name: 'Active', percid: 'percActive', background: 'nl-bg-blue', showAlways: true});
+		columns.push({id: 'completed', name: 'Completed', percid: 'percCompleted', indentation: 'padding-left-22', showAlways: true});
 		columns.push({id: 'certified', name: 'Certified', percid: 'percCertified', table: true, indentation: 'padding-left-44'});
 		columns.push({id: 'failed', name: 'Failed', percid: 'percFailed', table: true, indentation: 'padding-left-44'});
-		columns.push({id: 'started', name: 'Started', percid: 'percStarted', table: true, indentation: 'padding-left-22'});
+		columns.push({id: 'started', name: 'Started', percid: 'percStarted', table: true, indentation: 'padding-left-22', showAlways: true});
 		if(customStartedStates.length > 0) {
 			for(var i=0; i<customStartedStates.length; i++) columns.push({id: customStartedStates[i], name: customStartedStates[i], percid:'perc'+customStartedStates[i], table: true, indentation: 'padding-left-44'});
 		}
-		columns.push({id: 'pending', name: 'Pending', smallScreen: true, percid: 'percPending', table: true, indentation: 'padding-left-22'});
+		columns.push({id: 'pending', name: 'Pending', smallScreen: true, percid: 'percPending', table: true, indentation: 'padding-left-22', showAlways: true});
+		columns.push({id: 'avgScore', name: 'Avg Quiz score', table: true, background: 'nl-bg-blue', hidePerc:true});
 		return columns;
 	}
 
@@ -1274,16 +1275,20 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for(var key in learningRecords) {
 			var userAttendance = attendance[parseInt(key)] || [];
 			var user = learningRecords[key].user;
+			var stats = learningRecords[key].stats;
+			var attritionStr = learningRecords[key].stats.attritionStr || '';
+			var attrition = false;
 			for(var j=0; j<ret.length; j++) {
 				var notMarked = true;
 				for(var k=0; k<userAttendance.length; k++) {
 					if (ret[j].id == userAttendance[k].id) {
 						notMarked = false;
-						ret[j].newAttendance.push({id: parseInt(key), name: user.name, attendance: {id: userAttendance[k].attId}, remarks: userAttendance[k].remarks || '', userid: user.user_id});
+						ret[j].newAttendance.push({id: parseInt(key), name: user.name, attendance: {id: userAttendance[k].attId}, remarks: userAttendance[k].remarks || '', userid: user.user_id, attrition: attrition, attritionStr: attritionStr});
 						break;
 					}
 				}
-				if(notMarked) ret[j].newAttendance.push({id: parseInt(key), name: user.name, attendance: {id: ''}, userid: user.user_id, remarks: ''});
+				if(notMarked) ret[j].newAttendance.push({id: parseInt(key), name: user.name, attendance: {id: ''}, userid: user.user_id, remarks: '', attrition: attrition, attritionStr: attritionStr});
+				if(stats.attritedAt == ret[j].id) attrition = true;
 			}
 		}
 		for(var i=0; i<ret.length; i++) {
@@ -1413,7 +1418,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _getRatings(content, learningRecords, isFirstTime) {
 		var ret = [];
 		for(var i=0; i<content.modules.length; i++) {
-			if(content.modules[i].type != 'rating') continue; 
+			if(content.modules[i].type != 'rating') continue;
 			var item = content.modules[i];
 			var dict = {id: item.id, name:item.name, rating_type: item.rating_type, rating: [], ratingOptions: []};
 			_checkAndUpdateRatingParams(dict);
@@ -1422,9 +1427,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		
 		for(var key in learningRecords) {
 			var user = learningRecords[key].user;
+			var _statusinfo = learningRecords[key].repcontent.statusinfo;
+			var stats = learningRecords[key].stats;
 			for(var j=0; j<ret.length; j++) {
-				var statusinfo = learningRecords[key].repcontent.statusinfo[ret[j].id]
-				var ratingid = ret[j].rating_type;
+				var statusinfo = _statusinfo[ret[j].id];
+				var attrition = (statusinfo.status == 'waiting' && statusinfo.isAttrition) || false;
+				var attritionStr = stats.attritionStr || '';
 				if(statusinfo.status == 'pending') {
 					if(ret[j].ratingType == 'input') {
 						ret[j].rating.push({id: parseInt(key), name: user.name, rating: null, userid: user.user_id, remarks: statusinfo.remarks || ''});
@@ -1433,9 +1441,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					}
 				} else {
 					if(ret[j].ratingType == 'input') {
-						ret[j].rating.push({id: parseInt(key), name: user.name, rating: statusinfo.origScore, userid: user.user_id, remarks: statusinfo.remarks});
+						ret[j].rating.push({id: parseInt(key), name: user.name, rating: statusinfo.origScore, userid: user.user_id, attrition: attrition, attritionStr: attritionStr, remarks: statusinfo.remarks});
 					} else if(ret[j].ratingType == 'select') {
-						ret[j].rating.push({id: parseInt(key), name: user.name, rating: {id: statusinfo.origScore, name: statusinfo.rating}, userid: user.user_id, remarks: statusinfo.remarks});
+						ret[j].rating.push({id: parseInt(key), name: user.name, rating: {id: statusinfo.origScore, name: statusinfo.rating}, userid: user.user_id, attrition: attrition, attritionStr: attritionStr, remarks: statusinfo.remarks});
 					}
 				}
 			}
@@ -1514,7 +1522,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					e.preventDefault();
 					return nlDlg.popupAlert({title: 'Please select', template: 'Please select the attendance type to mark all'});
 				}
-				for(var i=0; i<dlgScope.selectedSession.newAttendance.length; i++) dlgScope.selectedSession.newAttendance[i].attendance = bulkMarkerDlg.scope.selectedMarkingType;
+				for(var i=0; i<dlgScope.selectedSession.newAttendance.length; i++) {
+					if(dlgScope.selectedSession.newAttendance[i].attrition) continue;
+					dlgScope.selectedSession.newAttendance[i].attendance = bulkMarkerDlg.scope.selectedMarkingType;
+				}
 			}
 
 			if(markType == 'rating') {
@@ -1523,6 +1534,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					return nlDlg.popupAlert({title: 'Please select', template: 'Please provide ratings to mark all'});
 				}
 				for(var i=0; i<dlgScope.selectedRating.rating.length; i++) {
+					if(dlgScope.selectedRating.rating[i].attrition) continue;
 					if(dlgScope.selectedRating.ratingType == 'select'){
 						dlgScope.selectedRating.rating[i].rating = bulkMarkerDlg.scope.selectedMarkingType;
 					} else {

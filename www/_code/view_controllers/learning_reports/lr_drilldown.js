@@ -276,7 +276,7 @@ function StatsCounts(nl) {
             updatedStats.percFailed = Math.round(updatedStats.failed*100/updatedStats.cntTotal);
             updatedStats.percPending = Math.round(updatedStats.pending*100/updatedStats.cntTotal);
             updatedStats.percStarted = Math.round(updatedStats.started*100/updatedStats.cntTotal);
-            updatedStats.avgScore = (updatedStats.percScore != 0 && updatedStats.completed != 0) ? Math.round(updatedStats.percScore/updatedStats.completed) : 0;
+            updatedStats.avgScore = (updatedStats.percScore != 0 && updatedStats.completed != 0) ? Math.round(updatedStats.percScore/updatedStats.completed)+'%' : 0;
             updatedStats.timeSpentInMins = Math.round(updatedStats.timeSpent/60);
             if(updatedStats.attrition) updatedStats['percAttrition'] = Math.round(updatedStats.attrition*100/updatedStats.cntTotal)
         }

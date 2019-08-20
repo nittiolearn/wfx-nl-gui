@@ -136,8 +136,9 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             nQuizes: 0, nQuizAttempts: 0, nPassedQuizes: 0, nFailedQuizes: 0, 
             nTotalQuizScore: 0, nTotalQuizMaxScore: 0,
             onlineTimeSpentSeconds: 0, iltTimeSpent: 0, iltTotalTime: 0,
-            feedbackScore: '',
+            feedbackScore: '', customScores: [], attritedAt: null, attritionStr: null,
         };
+
         var itemIdToInfo = ret.itemIdToInfo; // id: {status: , score: , rawStatus: }
         if (_modules.length <= 0) {
             return ret;
@@ -149,20 +150,29 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         for(var i=0; i<_modules.length; i++) {
             var cm = _modules[i];
             var itemInfo = {};
+            if (cm.isReattempt) ret['reattempt'] = false;
             itemIdToInfo[cm.id] = itemInfo;
             _getRawStatusOfItem(cm, itemInfo, itemIdToInfo);
             itemInfo.status = itemInfo.rawStatus;
+            if (itemInfo.customScore) {
+                var ret = {};
+                ret[cm.id] = itemInfo.customScore;
+                ret.customScores.push(ret);
+            }
             if (isAttrition) {
                 itemInfo.status = 'waiting';
                 itemInfo.isAttrition = true;
                 continue;
             }
+            if(itemInfo.reattempt) ret.reattempt = true;
             _updateStatusToWaitingIfNeeded(cm, itemInfo, itemIdToInfo);
             _updateStatusToDelayedIfNeeded(cm, itemInfo, itemIdToInfo, ret);
             _updateStatistics(itemInfo, ret);
             latestCustomStatus =  _updateCustomStatus(itemInfo, latestCustomStatus);
             if (itemInfo.isAttrition) {
                 isAttrition = true;
+                ret.attritedAt = cm.id;
+                ret.attritionStr = itemInfo.state;
                 itemInfo.status = 'attrition';
                 var suffix = itemInfo.customStatus ? '-' +  itemInfo.customStatus : '';
                 defaultCourseStatus = 'attrition' + suffix;
@@ -220,6 +230,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.score = itemInfo.rawStatus == 'success' ? 100 : null;
         itemInfo.remarks = sinfo.remarks || '';
         itemInfo.updated = nl.fmt.json2Date(sinfo.date || '');
+        if(cm.isReattempt && itemInfo.rawStatus != 'pending') itemInfo.reattempt = true;
     }
     
     function _getRawStatusOfLesson(cm, itemInfo) {
@@ -239,6 +250,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             itemInfo.score = null;
             return;
         }
+        if (cm.isReattempt) itemInfo.reattempt = true;
         if (linfo.selfLearningMode) {
             itemInfo.rawStatus = 'success';
             itemInfo.score = 100;
@@ -315,6 +327,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.marked = nl.fmt.json2Date(userCmAttendance.marked || '');
         itemInfo.updated = nl.fmt.json2Date(userCmAttendance.updated || '');
         if (grpAttendanceObj.isAttrition) itemInfo.isAttrition = true;
+        if (cm.isReattempt) itemInfo.reattempt = true;
     }
 
     function _getRawStatusOfRating(cm, itemInfo) {
@@ -326,6 +339,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             itemInfo.remarks = userCmRating.remarks || '';
             return;
         }
+        if (cm.isReattempt) itemInfo.reattempt = true;
         itemInfo.score = userCmRating.attId;
         itemInfo.rawStatus = (itemInfo.score <= grpRatingObj.lowPassScore) ? 'failed' :
             (itemInfo.score >= grpRatingObj.passScore) ? 'success' : 'partial_success';
@@ -351,6 +365,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.rawStatus = (cm.id in _milestone) && _milestone[cm.id].status == 'done' ?
             'success' : 'pending';
         itemInfo.score = itemInfo.rawStatus == 'pending' ? null : 100;
+        if (cm.isReattempt && itemInfo.rawStatus != 'pending') itemInfo.reattempt = true;
         itemInfo.remarks = (cm.id in _milestone) ? _milestone[cm.id].comment : "";
         itemInfo.reached = (_milestone[cm.id] && _milestone[cm.id].reached) ? nl.fmt.json2Date(_milestone[cm.id].reached) : "";
         itemInfo.updated = (_milestone[cm.id] && _milestone[cm.id].updated) ? nl.fmt.json2Date(_milestone[cm.id].updated) : "";
@@ -363,10 +378,12 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 		var payload = {strExpression: cm.gateFormula, dictAvps: dictAvps};
         nlExpressionProcessor.process(payload);
         itemInfo.score = payload.error ? null : payload.result;
+        if(cm.showInReport) itemInfo.customScores = itemInfo.score; 
         if (!itemInfo.score && itemInfo.score !== null) itemInfo.score = 0;
         if (itemInfo.score === true) itemInfo.score = 100;
         itemInfo.rawStatus = itemInfo.score >= cm.gatePassscore ? 'success' : 'failed';
         if (itemInfo.rawStatus == 'failed' && payload.inputNotDefined) itemInfo.rawStatus = 'pending';
+        if (cm.isReattempt && itemInfo.rawStatus != 'pending') itemInfo.reattempt = true;
         itemInfo.passScore = cm.gatePassscore;
     }
 

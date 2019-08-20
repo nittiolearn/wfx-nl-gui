@@ -214,8 +214,12 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
             percCompleteDesc: stainf.progDesc,
             nScore: stainf.nTotalQuizScore, nMaxScore: stainf.nTotalQuizMaxScore,
             feedbackScore: stainf.feedbackScore,
-            progressPerc: stainf.progPerc
+            progressPerc: stainf.progPerc,
+            customScores: stainf.customScores,
+            attritedAt: stainf.attritedAt,
+            attritionStr: stainf.attritionStr
         };
+
         stats.avgAttempts = stats.nLessonsAttempted ? Math.round(stainf.nQuizAttempts/stats.nLessonsAttempted*10)/10 : 0;
         stats.timeSpentStr = nl.fmt2('{} minutes online learning and {} minutes instructor led', 
             Math.ceil(stats.timeSpentSeconds/60), stats.iltTimeSpent);

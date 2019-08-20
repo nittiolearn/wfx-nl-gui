@@ -123,7 +123,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			'link': 'Link', 'info': 'Information', 'certificate': 'Certificate',
 			'iltsession': 'ILT session', 'milestone': 'Milestone', 'rating': 'Rating', 'gate': 'Gate'};
 		attr.values = ['module', 'lesson', 'info', 'certificate'];
-    	if (cm.type == 'link' || nlRouter.isPermitted(_userInfo, 'admin_user'))
+    	if (cm.type == 'link' || _debug)
 		   attr.values.push('link');
 		if (cm.type == 'iltsession' || (_groupInfo && _groupInfo.props.features['training'])) 
 			attr.values.push('iltsession');
@@ -339,12 +339,12 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'action', stored_at: 'module', fields: ['link'], type: 'lessonlink', text: 'Action'},
         {name: 'urlParams', stored_at: 'module', fields: ['link'], type: 'string', text: 'Url-Params'},
         {name: 'certificate_image', stored_at: 'module', fields: ['certificate'], type: 'string', text: 'Certificate image'},
+        {name: 'iltduration', stored_at: 'module', fields: ['iltsession'], text: 'Session duration (minutes)',type: 'number'},
         {name: 'trainer_notes', stored_at: 'module', fields: ['iltsession'], type: 'object_with_gui', contentType: 'object', text: 'Trainer notes'},
         {name: 'gateFormula', stored_at: 'module', fields: ['gate'], text: 'Formula',type: 'text'},
         {name: 'gatePassscore', stored_at: 'module', fields: ['gate'], text: 'Gate pass score',type: 'number', min:0, max:100},
         {name: 'start_after', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
         {name: 'canMarkAttendance', stored_at: 'module', text: 'Learner can mark attendance', type:'hidden', fields: ['iltsession']},
-        {name: 'iltduration', stored_at: 'module', fields: ['iltsession'], text: 'Session duration (minutes)',type: 'number'},
         {name: 'grp_depAttrs', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'group', text: 'Planning', debug: true},
         {name: 'start_date', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'date', text: 'Start date', group: 'grp_depAttrs', debug: true},
         {name: 'planned_date', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'date', text: 'Planned date', group: 'grp_depAttrs', debug: true},
@@ -355,6 +355,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'complete_before', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'number', text: 'Complete before', group: 'grp_additionalAttrs', min:0},
         {name: 'completionPerc', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Completion percentage',type: 'number', group: 'grp_additionalAttrs'},
         {name: 'customStatus', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'New status',type: 'string', group: 'grp_additionalAttrs'},
+        {name: 'showInReport', stored_at: 'module', fields: ['gate'], text: 'Show in report', desc: 'Show progress percentage in drilldown', type: 'boolean', group: 'grp_additionalAttrs'},
+        {name: 'isReattempt', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Mark as reattempt', desc: 'Mark this to indicate learner has reattempted', type: 'boolean', group: 'grp_additionalAttrs'},
         {name: 'maxAttempts', stored_at: 'module', fields: ['lesson'], type: 'number', text: 'Maximum attempts', group: 'grp_additionalAttrs'},
         {name: 'hide_remarks', stored_at: 'module', fields: ['info', 'link'], type: 'boolean', text: 'Disable remarks', group: 'grp_additionalAttrs'},
         {name: 'autocomplete', stored_at: 'module', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
@@ -404,7 +406,9 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         customStatus: 'For long form courses with distinct phases, a simple "pending" -> "started" -> "completed" workflow may be insufficient. In that case, custom status strings may be defined in the course and these are shown in the course report. For example a state transition like "pending" -> "class room training" -> "on the job training" -> "undergoing certification" -> "certified" may be implemented by specifying this attribute for the appropreate course items. The course report will accordingly show this as the status if the learner reached till this item.',
 		canMarkAttendance: 'Set this to allow learner to mark attendance.',
 		gateFormula: _getGateFormulaHelp(),
-		gatePassscore: 'Provide the pass score to mark status of item for learner.'
+		gatePassscore: 'Provide the pass score to mark status of item for learner.',
+		showInReport: 'Enable this to show the progress percentage on the drilldown table.',
+		isReattempt: 'Enable this to indicate learner has reattempted the course.'
     };
     
     function _getDescriptionHelp() {

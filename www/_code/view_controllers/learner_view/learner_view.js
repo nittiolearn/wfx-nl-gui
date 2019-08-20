@@ -565,12 +565,12 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 
 	function _getLearningStatusColumns() {
 		var columns = [];
-		columns.push({id: 'cntTotal', name: 'Total learning records', percid: 'percTotal', background: 'nl-bg-blue'});
-		columns.push({id: 'completed', name: 'Completed', percid: 'percCompleted', indentation: 'padding-left-22'});
+		columns.push({id: 'cntTotal', name: 'Total learning records', percid: 'percTotal', background: 'nl-bg-blue', showAlways: true});
+		columns.push({id: 'completed', name: 'Completed', percid: 'percCompleted', indentation: 'padding-left-22', showAlways: true});
 		columns.push({id: 'certified', name: 'Certified', percid: 'percCertified', indentation: 'padding-left-44'});
 		columns.push({id: 'failed', name: 'Failed', percid: 'percFailed', indentation: 'padding-left-44'});
-		columns.push({id: 'started', name: 'Started',  percid: 'percStarted', indentation: 'padding-left-22'});
-		columns.push({id: 'pending', name: 'Pending', percid: 'percPending', indentation: 'padding-left-22'});
+		columns.push({id: 'started', name: 'Started',  percid: 'percStarted', indentation: 'padding-left-22', showAlways: true});
+		columns.push({id: 'pending', name: 'Pending', percid: 'percPending', indentation: 'padding-left-22', showAlways: true});
 		return columns;
 		
 	}
