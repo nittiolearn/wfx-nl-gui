@@ -95,14 +95,15 @@ function(nlReportHelper) {
         var statsCountObj = {};
         statsCountObj['cntTotal'] = 1;
         if(record.user.state == 0) {
-            _updateInactiveUserData(record, statsCountObj);
+            _updateInactiveStatusCounts(record, statsCountObj);
         } else {
-            _updateActiveUserData(record, statsCountObj);
+            _updateActiveStatusCounts(record, statsCountObj);
         }
+        _updateCommonCountsData(record, statsCountObj);
         return statsCountObj;
     }
 
-    function _updateInactiveUserData(record, statsCountObj) {
+    function _updateInactiveStatusCounts(record, statsCountObj) {
        statsCountObj['cntInactive'] = 1;
         var status = record.stats.status;
         var statusStr = status['txt'];
@@ -122,40 +123,14 @@ function(nlReportHelper) {
         statsCountObj['doneInactive'] = 1;
 	}
 
-	function _updateActiveUserData(record, statsCountObj) {
+	function _updateActiveStatusCounts(record, statsCountObj) {
         var stats = record.stats;
         var status = stats.status;
         var statusStr = status['txt'];
-        var assignid = record.raw_record.assignment;
 		statsCountObj['cntActive'] = 1;
-        statsCountObj['timeSpent'] = record.stats.timeSpentSeconds;
         if(status.id == nlReportHelper.STATUS_PENDING) {
             statsCountObj['pending'] = 1;
             return;
-        }
-        
-        if(stats.customScores) {
-            for(var i=0; i<stats.customScores.length; i++) {
-                var obj = stats.customScores[i];
-                for(var key in obj) {
-                    if(key == 'name') continue;
-                    var uniqueKey = key+obj['name'];
-                    _customScoresIdToName[uniqueKey] = obj['name'];
-                    var  perc = 'computedPerc'+key+obj['name'];
-                    if(!(assignid in _customScoresIds)) {
-                        _customScoresIds[assignid] = {};
-                        _customScoresCnt[assignid] = {};
-                    }
-                    if(!(key in _customScoresIds[assignid])) {
-                        _customScoresIds[assignid][key] = obj[key];
-                        _customScoresCnt[assignid][key] = 1;
-                    } else {
-                        _customScoresIds[assignid][key] += obj[key]
-                        _customScoresCnt[assignid][key] += 1;
-                    }
-                    statsCountObj[perc] = Math.round((1.00*_customScoresIds[assignid][key])/_customScoresCnt[assignid][key])
-                }
-            }
         }
         if(status.id == nlReportHelper.STATUS_STARTED) {
             statsCountObj[statusStr] = 1;
@@ -186,6 +161,12 @@ function(nlReportHelper) {
         else 
             statsCountObj['certifiedInFirstAttempt'] = 1;
 	}
+
+    function _updateCommonCountsData(record, statsCountObj) {
+        statsCountObj['timeSpent'] = record.stats.timeSpentSeconds;
+        statsCountObj['customScores'] = stats.customScores || [];
+    }
+
 }];
 
 //-------------------------------------------------------------------------------------------------

@@ -7,6 +7,7 @@
 // records.
 // To begin with the status computation of course reports are available here.
 //
+// Allowed itemInfo.rawStatus: pending, started, failed, success, partial_success
 // Allowed item states: pending, started, failed, success, partial_success, waiting, delayed
 // Allowed course states: pending, started, failed, certified, passed, done, attrition*, custom-states
 // Attrition* are equivalent to failed
@@ -159,16 +160,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 itemInfo.isAttrition = true;
                 continue;
             }
-            if (cm.isReattempt && itemInfo.rawStatus != 'pending' && itemInfo.rawStatus != 'waiting') ret.reattempt = true;
+            if (cm.isReattempt && itemInfo.rawStatus != 'pending') ret.reattempt = true;
             _updateStatusToWaitingIfNeeded(cm, itemInfo, itemIdToInfo);
             _updateStatusToDelayedIfNeeded(cm, itemInfo, itemIdToInfo, ret);
             _updateStatistics(itemInfo, ret);
             latestCustomStatus =  _updateCustomStatus(itemInfo, latestCustomStatus);
-            if (itemInfo.customScore) {
-                var dict = {name: cm.name};
-                dict[cm.id] = itemInfo.customScore;
-                ret.customScores.push(dict);
-            }
             if (itemInfo.isAttrition) {
                 isAttrition = true;
                 ret.attritedAt = cm.id;
@@ -187,6 +183,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 }
                 if (bStarted) defaultCourseStatus = itemInfo.customStatus || 'started';
             }
+            if (cm.showInReport && _isEndItemState(itemInfo.status))
+                ret.customScores.push({name: cm.name, score: itemInfo.score});
         }
 
         _updateCourseLevelStatus(ret, isAttrition, defaultCourseStatus);
@@ -375,7 +373,6 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.score = payload.error ? null : payload.result;
         if (!itemInfo.score && itemInfo.score !== null) itemInfo.score = 0;
         if (itemInfo.score === true) itemInfo.score = 100;
-        if(cm.showInReport) itemInfo.customScore = itemInfo.score; 
         itemInfo.rawStatus = itemInfo.score >= cm.gatePassscore ? 'success' : 'failed';
         if (itemInfo.rawStatus == 'failed' && payload.inputNotDefined) itemInfo.rawStatus = 'pending';
         itemInfo.passScore = cm.gatePassscore;
