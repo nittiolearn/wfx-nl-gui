@@ -80,6 +80,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	var _userInfo = null;
 	var _groupInfo = null;
 	var _attendanceObj = {};
+	var _customScoresHeader = null;
 	this.show = function() {
 		nlRouter.initContoller($scope, '', _onPageEnter);
 	};
@@ -873,6 +874,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var columns = [];
 		var attrition = nlLrDrilldown.getAttritionObj();
 		var customStartedStates = nlLrDrilldown.getCustomStatusObj();
+		   _customScoresHeader = nlLrDrilldown.getCustomScoreIdsObj();
+		var isReattemptEnabled = nlLrReportRecords.isReattemptEnabled() || false;
 		columns.push({id: 'cntTotal', name: 'Total', table: true, percid:'percTotal', smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'cntInactive', name: 'Inactive', table: true, percid:'percInactive', background: 'nl-bg-blue', showAlways: true});
 		if(attrition.length > 0) {
@@ -884,6 +887,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push({id: 'cntActive', name: 'Active', percid: 'percActive', background: 'nl-bg-blue', showAlways: true});
 		columns.push({id: 'completed', name: 'Completed', percid: 'percCompleted', indentation: 'padding-left-22', showAlways: true});
 		columns.push({id: 'certified', name: 'Certified', percid: 'percCertified', table: true, indentation: 'padding-left-44'});
+		if(isReattemptEnabled) {
+			columns.push({id: 'certifiedInFirstAttempt', name: 'Certified in first attempt', percid: 'percCertifiedInFirstAttempt', table: true, indentation: 'padding-left-66'});
+			columns.push({id: 'certifiedInReattempt', name: 'Certified in Reattempt', percid: 'percCertifiedInReattempt', indentation: 'padding-left-66'});
+		}
 		columns.push({id: 'failed', name: 'Failed', percid: 'percFailed', table: true, indentation: 'padding-left-44'});
 		columns.push({id: 'started', name: 'Started', percid: 'percStarted', table: true, indentation: 'padding-left-22', showAlways: true});
 		if(customStartedStates.length > 0) {
@@ -891,6 +898,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		columns.push({id: 'pending', name: 'Pending', smallScreen: true, percid: 'percPending', table: true, indentation: 'padding-left-22', showAlways: true});
 		columns.push({id: 'avgScore', name: 'Avg Quiz score', table: true, background: 'nl-bg-blue', hidePerc:true});
+		for(var key in _customScoresHeader) columns.push({id: 'computedPerc'+key, name: 'Avg score of '+_customScoresHeader[key], table: true, background: 'nl-bg-blue', hidePerc:true});
 		return columns;
 	}
 
@@ -908,7 +916,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _onExport() {
 		if (nlLrFetcher.fetchInProgress()) return;
 		var reportRecords = nlLrReportRecords.asList();
-		nlLrExporter.export($scope, reportRecords, _isAdmin);
+		nlLrExporter.export($scope, reportRecords, _isAdmin, _customScoresHeader);
 	}
 	
 	function _onExportCustomReport() {

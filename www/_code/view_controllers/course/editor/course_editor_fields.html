@@ -12,7 +12,7 @@
 </style>
 <div class='row row-top row-wrap margin0 padding0'
      ng-repeat='attr in attrs'
-     ng-if='(!attr.fields || attr.fields.indexOf(values[attr.stored_at].type) >= 0) && (!attr.debug || editor.debug) && (!attr.group || editor.showGroup[attr.group])'>
+     ng-if='(!attr.fields || attr.fields.indexOf(values[attr.stored_at].type) >= 0) && (!attr.debug || editor.debug) && (!attr.etm || editor.etm) && (!attr.group || editor.showGroup[attr.group])'>
     <div class='w100 nl-link-text padding-mid' 
          ng-if='attr.type === "group"'
          ng-click='editor.showGroup[attr.name] = !editor.showGroup[attr.name]'

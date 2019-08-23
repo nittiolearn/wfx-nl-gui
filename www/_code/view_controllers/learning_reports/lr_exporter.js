@@ -21,6 +21,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     var ctx = {};
 	var _userInfo = null;
     var _metaFields = null;
+    var _customScoresHeader = null;
 
     function _getMetaHeaders(bOnlyMajor) {
         var headers = [];
@@ -39,8 +40,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     	_subjectlabel = userInfo.groupinfo.subjectlabel;
 	};
 	
-    this.export = function($scope, reportRecords, isAdmin) {
+    this.export = function($scope, reportRecords, isAdmin, customScoresHeader) {
         var dlg = nlDlg.create($scope);
+        _customScoresHeader = customScoresHeader || {};
         ctx = {};
 		dlg.scope.reptype = nlLrFilter.getType();
         dlg.setCssClass('nl-height-max nl-width-max');
@@ -256,6 +258,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         if (!filter.hideMetadata) for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
         if (filter.exportTypes.ids)
             headers = headers.concat(_idFields);
+        for(var key in _customScoresHeader) headers.push(_customScoresHeader[key]);
         return headers;
     };
     
@@ -279,6 +282,22 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         if (filter.exportTypes.ids)
             ret = ret.concat(['id=' + report.raw_record.id, 'id=' + report.raw_record.assignment, 
                 'id=' + report.raw_record.lesson_id]);
+        var customScores = report.stats.customScores || []; //customScores i array of objects [{_id6: 60, name: 'itemname'}]
+        for(var key in _customScoresHeader) {
+            var keyFound = false;
+            for(var i=0; i<customScores.length; i++) {
+                var itemObj = customScores[i];
+                for(var obj in itemObj) {
+                    if(obj == 'name') continue;
+                    var uniqueKey = obj+itemObj['name'];
+                    if(key == uniqueKey) {
+                        keyFound = true;
+                        ret.push(itemObj[obj]);
+                    }
+                }
+            }
+            if(!keyFound)ret.push('');
+        }
         return ret;
     }
     

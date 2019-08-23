@@ -41,13 +41,15 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	var _userInfo = null;
 	var _resourceDict = {};
 	var _groupInfo = null;
+	var _etm = null;
     this.init = function(_scope, _modeHandler, userInfo) {
 		nlGroupInfo.init().then(function() {
 			_groupInfo = nlGroupInfo.get();
 		});
         $scope = _scope;
         modeHandler = _modeHandler;
-        _userInfo = userInfo;
+		_userInfo = userInfo;
+		_etm = (_userInfo && _userInfo.groupinfo && _userInfo.groupinfo.features['etm']) || false;
 		var params = nl.location.search();
         if ('debug' in params) _debug = true;
         _updateCourseAndModuleAttrOptions(userInfo);
@@ -57,7 +59,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         	course_paramStore: {course: modeHandler.course, content: modeHandler.course.content, metadata: modeHandler.course.content.contentmetadata || {}},
             module_attributes: moduleAttrs,
             course: modeHandler.course,
-            debug: _debug,
+			debug: _debug,
+			etm: _etm,
             showGroup: {},
             onLaunch: _onLaunch,
             addModule: _addModule,
@@ -356,7 +359,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'completionPerc', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Completion percentage',type: 'number', group: 'grp_additionalAttrs'},
         {name: 'customStatus', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'New status',type: 'string', group: 'grp_additionalAttrs'},
         {name: 'showInReport', stored_at: 'module', fields: ['gate'], text: 'Show in report', desc: 'Show progress percentage in drilldown', type: 'boolean', group: 'grp_additionalAttrs'},
-        {name: 'isReattempt', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Mark as reattempt', desc: 'Mark this to indicate learner has reattempted', type: 'boolean', group: 'grp_additionalAttrs'},
+        {name: 'isReattempt', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Mark as reattempt', desc: 'Mark this to indicate learner has reattempted', type: 'boolean', group: 'grp_additionalAttrs', etm: true},
         {name: 'maxAttempts', stored_at: 'module', fields: ['lesson'], type: 'number', text: 'Maximum attempts', group: 'grp_additionalAttrs'},
         {name: 'hide_remarks', stored_at: 'module', fields: ['info', 'link'], type: 'boolean', text: 'Disable remarks', group: 'grp_additionalAttrs'},
         {name: 'autocomplete', stored_at: 'module', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
@@ -407,7 +410,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		canMarkAttendance: 'Set this to allow learner to mark attendance.',
 		gateFormula: _getGateFormulaHelp(),
 		gatePassscore: 'Provide the pass score to mark status of item for learner.',
-		showInReport: 'Enable this to show the progress percentage on the drilldown table.',
+		showInReport: 'Enable this to show the score of this gate item on the drilldown table.',
 		isReattempt: 'Enable this to indicate learner has reattempted the course.'
     };
     

@@ -16,10 +16,9 @@
             <div class='{{col.styleTd}}'>{{col.name}}</div>
         </div>
     </div>
-    <div class='row row-center margin0 padding-small'
-        ng-repeat='rec in drilldown.rows track by $index'
-        class='{{rec.isFolder ? "lnBlue2" : ""}} anim fade highlight'
-        ng-click='generateDrillDownArray(rec)'>
+    <div class='row row-center margin0 padding-small {{rec.isFolder ? "lnblue2" : ""}} anim fade highlight'
+         ng-repeat='rec in drilldown.rows track by $index'
+         ng-click='generateDrillDownArray(rec)'>
         <div class='col minw-name'>
             <div class='row row-center magin0 padding0'style='padding-left:{{rec.indentation}}px' >
                 <span class='padding-small' ng-show='rec.isFolder'>

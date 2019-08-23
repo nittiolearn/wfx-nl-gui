@@ -27,16 +27,22 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
     var _userInfo = null;
     var _nominatedUsers = null;
     var _attendanceObj = {};
+    var _isReattemptEnabled = false;
     this.init = function(userinfo) {
         _userInfo = userinfo;
         _records = {};
         _reminderDict = {};
         _nominatedUsers = {};
+        _isReattemptEnabled = false;
         _dates = {minUpdated: null, maxUpdated: null};
         _convertAttendanceArrayToObj(userinfo.groupinfo.attendance);
         if (!nlGroupInfo.isPastUserXlsConfigured()) _pastUserData = {};
     };
     
+    this.isReattemptEnabled = function() {
+        return _isReattemptEnabled;
+    };
+
     this.getReminderDict = function() {
         return _reminderDict;
     };
@@ -217,9 +223,13 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
             progressPerc: stainf.progPerc,
             customScores: stainf.customScores,
             attritedAt: stainf.attritedAt,
-            attritionStr: stainf.attritionStr
+            attritionStr: stainf.attritionStr,
         };
 
+        if('reattempt' in stainf) {
+            _isReattemptEnabled = true;
+            stats['reattempt'] = stainf['reattempt'];
+        }
         stats.avgAttempts = stats.nLessonsAttempted ? Math.round(stainf.nQuizAttempts/stats.nLessonsAttempted*10)/10 : 0;
         stats.timeSpentStr = nl.fmt2('{} minutes online learning and {} minutes instructor led', 
             Math.ceil(stats.timeSpentSeconds/60), stats.iltTimeSpent);

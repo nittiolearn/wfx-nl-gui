@@ -16,6 +16,9 @@ function(nlReportHelper) {
     var _attritionObj = {};
     var _customStartedStatusObj = {};
     var _isSubOrgEnabled = false;
+    var _customScoresIds = {};
+    var _customScoresCnt = {};
+    var _customScoresIdToName = {};
     var StatsCount = new StatsCounts();
 
     this.init = function(nlGroupInfo) {
@@ -26,7 +29,14 @@ function(nlReportHelper) {
     this.clearStatusCountTree = function() {
             _attritionObj = {};
             _customStartedStatusObj = {};
+            _customScoresIds = {};
+            _customScoresCnt = {};
+            _customScoresIdToName = {};
             StatsCount.clear();
+    };
+
+    this.getCustomScoreIdsObj = function() {
+        return _customScoresIdToName;
     };
 
     this.getStatsCountDict = function() {
@@ -83,8 +93,8 @@ function(nlReportHelper) {
 
     function _getStatusCountObj(record) {
         var statsCountObj = {};
-		statsCountObj['cntTotal'] = 1;
-         if(record.user.state == 0) {
+        statsCountObj['cntTotal'] = 1;
+        if(record.user.state == 0) {
             _updateInactiveUserData(record, statsCountObj);
         } else {
             _updateActiveUserData(record, statsCountObj);
@@ -113,13 +123,39 @@ function(nlReportHelper) {
 	}
 
 	function _updateActiveUserData(record, statsCountObj) {
-        var status = record.stats.status;
+        var stats = record.stats;
+        var status = stats.status;
         var statusStr = status['txt'];
+        var assignid = record.raw_record.assignment;
 		statsCountObj['cntActive'] = 1;
         statsCountObj['timeSpent'] = record.stats.timeSpentSeconds;
-        if(status.id == nlReportHelper.STATUS_PENDING || statusStr == 'started') {
+        if(status.id == nlReportHelper.STATUS_PENDING) {
             statsCountObj['pending'] = 1;
             return;
+        }
+        
+        if(stats.customScores) {
+            for(var i=0; i<stats.customScores.length; i++) {
+                var obj = stats.customScores[i];
+                for(var key in obj) {
+                    if(key == 'name') continue;
+                    var uniqueKey = key+obj['name'];
+                    _customScoresIdToName[uniqueKey] = obj['name'];
+                    var  perc = 'computedPerc'+key+obj['name'];
+                    if(!(assignid in _customScoresIds)) {
+                        _customScoresIds[assignid] = {};
+                        _customScoresCnt[assignid] = {};
+                    }
+                    if(!(key in _customScoresIds[assignid])) {
+                        _customScoresIds[assignid][key] = obj[key];
+                        _customScoresCnt[assignid][key] = 1;
+                    } else {
+                        _customScoresIds[assignid][key] += obj[key]
+                        _customScoresCnt[assignid][key] += 1;
+                    }
+                    statsCountObj[perc] = Math.round((1.00*_customScoresIds[assignid][key])/_customScoresCnt[assignid][key])
+                }
+            }
         }
         if(status.id == nlReportHelper.STATUS_STARTED) {
             statsCountObj[statusStr] = 1;
@@ -144,7 +180,11 @@ function(nlReportHelper) {
             statsCountObj['failed'] = 1;
             return;
         }
-		statsCountObj['certified'] = 1;
+        statsCountObj['certified'] = 1;
+        if (('reattempt' in stats) && stats.reattempt) 
+            statsCountObj['certifiedInReattempt'] = 1;
+        else 
+            statsCountObj['certifiedInFirstAttempt'] = 1;
 	}
 }];
 
@@ -182,7 +222,7 @@ function StatsCounts(nl) {
 
     var statsCountItem = {cntTotal: 0, cntActive: 0, cntInactive: 0, doneInactive: 0, pendingInactive: 0, 
                           percTotal: 0, percActive: 0, percInactive: 0, percDoneInactive:0, percPendingInactive: 0,
-                          completed: 0, certified: 0, pending: 0, failed: 0, started: 0, 
+                          completed: 0, certified: 0, certifiedInFirstAttempt: 0, certifiedInReattempt: 0, pending:0, failed: 0, started: 0, 
                           percCompleted: 0, percCertified: 0, percPending: 0, percFailed: 0, percStarted: 0,
                           percScore: 0, avgScore: 0, timeSpent: 0, isOpen: false};
     var defaultStates = angular.copy(statsCountItem);
@@ -249,6 +289,10 @@ function StatsCounts(nl) {
     function _updateStatsCount(updatedStats, statusCnt) { 
         //updatedStats is object fetched from _statusCountTree. Value from statusCnt object are added to updatedStats
         for(var key in statusCnt) {
+            if(key.indexOf('computedPerc') == 0) {
+                updatedStats[key] = statusCnt[key]+' %';
+                continue;
+            }
             if(!(key in updatedStats)) {
                 _dynamicStates[key] = true;
                 updatedStats[key] = 0;
@@ -276,8 +320,10 @@ function StatsCounts(nl) {
             updatedStats.percFailed = Math.round(updatedStats.failed*100/updatedStats.cntTotal);
             updatedStats.percPending = Math.round(updatedStats.pending*100/updatedStats.cntTotal);
             updatedStats.percStarted = Math.round(updatedStats.started*100/updatedStats.cntTotal);
-            updatedStats.avgScore = (updatedStats.percScore != 0 && updatedStats.completed != 0) ? Math.round(updatedStats.percScore/updatedStats.completed)+'%' : 0;
+            updatedStats.avgScore = (updatedStats.percScore != 0 && updatedStats.completed != 0) ? Math.round(updatedStats.percScore/updatedStats.completed)+' %' : 0;
             updatedStats.timeSpentInMins = Math.round(updatedStats.timeSpent/60);
+            updatedStats['percCertifiedInFirstAttempt'] = Math.round(updatedStats.certifiedInFirstAttempt*100/updatedStats.cntTotal)
+            updatedStats['percCertifiedInReattempt'] = Math.round(updatedStats.certifiedInReattempt*100/updatedStats.cntTotal)
             if(updatedStats.attrition) updatedStats['percAttrition'] = Math.round(updatedStats.attrition*100/updatedStats.cntTotal)
         }
     }
