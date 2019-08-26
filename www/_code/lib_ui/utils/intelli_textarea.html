@@ -1,0 +1,14 @@
+<div class='nl-intelli-textarea-container w-100 nl-fixed-width'>
+    <textarea rows="5" ng-model="model" ng-keydown="onKeyDown($event)"
+              ng-click="selectBoxIsShown = false;"
+              class="w100 nl-fixed-width"  id="nlIntellisenseTextarea" 
+              ng-class="{'nl-textarea-bgcolor': selectBoxIsShown == true}">
+    </textarea>
+
+    <select ng-model="intelliSelect" ng-show="selectBoxIsShown" size="5"
+            ng-keydown="keydownEvent=true" ng-change="onChange($event)" ng-keypress="onChange($event)"
+            ng-mouseup="onChange($event)"
+            class="nl-attached-drpdown" id="intelliSelect"
+            ng-options="opt as opt.name for opt in intellisenseOptions track by opt.val">
+    </select>
+</div>

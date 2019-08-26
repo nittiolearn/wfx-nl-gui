@@ -19,6 +19,7 @@
         .directive('nlInlineHelp', InlineHelpDirective)
         .directive('nlProgressBar', ProgressBarDirective)
         .directive('nlSummaryBox', SummaryBoxDirective)
+        .directive('nlIntelliTextarea', IntelliTextareaDirective)
         .filter('nlTrustUrl', TrustUrlFilter)
         .service('nlProgressLog', ProgressLogSrv);
     }
@@ -337,6 +338,68 @@
         };
         
     }
+
+    //-------------------------------------------------------------------------------------------------
+    var IntelliTextareaDirective = ['nl',
+    function(nl) {
+        return {
+            restrict: 'E',
+            scope: {
+                getoptions: '=',
+                values: '=',
+                storedat: '=',
+                model: '=',
+            },
+            templateUrl: 'lib_ui/utils/intelli_textarea.html',
+            link: function(scope, iElem, iAttrs) {
+                scope.selectBoxIsShown = false;
+                scope.options = scope.getoptions(scope.values[scope.storedat])
+                scope.onKeyDown = function(event) {
+                    _keydown(scope, event);
+                };
+                scope.onChange = function(event) {
+                    _change(scope, event);
+                };
+
+                function _keydown(scope, event) {
+                    var keyPressed = event.key;
+                    if (!(keyPressed in scope.options)) return;
+                    scope.intellisenseOptions = scope.options[keyPressed];
+                    var elem = document.getElementById('intelliSelect');
+                    scope.selectBoxIsShown = true;
+                    nl.timeout(function () { elem.focus(); }, 0);
+                }
+            
+                function _change(scope, event) {
+                    if(scope.keydownEvent === true){
+                        scope.keydownEvent = false;
+                        if (event === undefined) return;
+                        if(event.keyCode !== 13) return;
+                    }
+        
+                    if (scope.intelliSelect !== undefined) {
+                        var textareaElement = document.getElementById('nlIntellisenseTextarea');
+                        var startPosition = textareaElement.selectionStart;
+                        var endPosition = textareaElement.selectionEnd;
+                        var valueText = scope.model;
+                        scope.model = valueText.substring(0, startPosition - 1) + scope.intelliSelect.val + valueText.substring(endPosition, valueText.length);
+                        
+                        var newCursorPosition = startPosition + scope.intelliSelect.val.length -1;
+                        if (scope.intelliSelect.cursor) { newCursorPosition += scope.intelliSelect.cursor; }
+                        scope.selectBoxIsShown = false;
+                        scope.intelliSelect = undefined;
+                
+                        _updateCursor(document.getElementById('nlIntellisenseTextarea'), newCursorPosition);
+                    }
+                }
+            
+                function _updateCursor(elem, newCursorPosition) {
+                    elem.focus();
+                    nl.timeout(function () { elem.setSelectionRange(newCursorPosition, newCursorPosition);}, 0);
+                }
+            }
+        };    
+    }];
     
     //-------------------------------------------------------------------------------------------------
     module_init();

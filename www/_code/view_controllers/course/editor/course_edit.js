@@ -77,8 +77,30 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			treeOptions: _getTreeOptions(),
 			getUrl: _getLaunchUrl,
 			onFieldClick: _onFieldClick,
+			getIntelliTextOptions: _getIntelliTextOptions,
         };
-    };
+	};
+	
+	function _getIntelliTextOptions(cm) {
+		var ret = {
+			'$':[
+					{ "name": "max", "val": "$max{}", "cursor": -1 }, 
+					{ "name": "min", "val": "$min{}", "cursor": -1 },
+					{ "name": "sum", "val": "$sum{}", "cursor": -1 },
+					{ "name": "avg", "val": "$avg{}", "cursor": -1 },
+					{ "name": "avg_top", "val": "$avg_top{}", "cursor": -1 },
+				],
+			'_':[]
+		};
+        for(var i=0; i < _allModules.length; i++){
+			var m = _allModules[i];
+			if (m.type == 'module') continue;
+			if (m.id == cm.id) break;
+			var n = nl.fmt2('{} ({})', m.name, m.id);
+			ret['_'].push({name: n, val: m.id, cursor: 0});
+		}
+		return ret;
+	}
 
     this.getAllModules = function(bClear) {
     	if (bClear) _allModules = [];
@@ -349,7 +371,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'certificate_image', stored_at: 'module', fields: ['certificate'], type: 'string', text: 'Certificate image'},
         {name: 'iltduration', stored_at: 'module', fields: ['iltsession'], text: 'Session duration (minutes)',type: 'number'},
         {name: 'trainer_notes', stored_at: 'module', fields: ['iltsession'], type: 'object_with_gui', contentType: 'object', text: 'Trainer notes'},
-        {name: 'gateFormula', stored_at: 'module', fields: ['gate'], text: 'Formula',type: 'text'},
+        {name: 'gateFormula', stored_at: 'module', fields: ['gate'], text: 'Formula',type: 'intellitext'},
         {name: 'gatePassscore', stored_at: 'module', fields: ['gate'], text: 'Gate pass score',type: 'number', min:0, max:100},
         {name: 'start_after', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
         {name: 'canMarkAttendance', stored_at: 'module', text: 'Learner can mark attendance', type:'hidden', fields: ['iltsession']},
