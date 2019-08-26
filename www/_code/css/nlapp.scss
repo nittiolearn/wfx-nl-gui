@@ -3204,3 +3204,20 @@ a.enabled {
 .njsSlides .font-underline .secViewContent {text-decoration: underline;}
 .njsSlides .font-italic .secViewContent {font-style: italic;}
 
+.nl-intelli-textarea-container {
+  position:relative;
+  display: inline-block;
+  width: 100%;
+}
+.nl-textarea-bgcolor {
+  background-color: #EEEEFF;
+}
+.nl-attached-drpdown {
+  position: absolute;
+  width: 240px !important;
+  height: auto !important;
+  z-index: 100;
+  top:10%;
+  left:50%;
+  margin-left:-120px;
+}
