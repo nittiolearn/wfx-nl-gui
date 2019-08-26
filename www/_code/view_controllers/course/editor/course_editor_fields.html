@@ -146,8 +146,7 @@
         ng-if='attr.type == "intellitext"'
         class='nl-dlg-field-value padding-mid'>
         <nl-intelli-textarea getoptions='editor.getIntelliTextOptions' 
-                             values='values'
-                             storedat='attr.stored_at'
+                             getoptionsdata='values[attr.stored_at]'
                              model='values[attr.stored_at][attr.name]'>
         </nl-intelli-textarea>
     </div>

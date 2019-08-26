@@ -3204,20 +3204,19 @@ a.enabled {
 .njsSlides .font-underline .secViewContent {text-decoration: underline;}
 .njsSlides .font-italic .secViewContent {font-style: italic;}
 
-.nl-intelli-textarea-container {
+.nl-intelli-textarea {
   position:relative;
   display: inline-block;
   width: 100%;
-}
-.nl-textarea-bgcolor {
-  background-color: #EEEEFF;
-}
-.nl-attached-drpdown {
-  position: absolute;
-  width: 240px !important;
-  height: auto !important;
-  z-index: 100;
-  top:10%;
-  left:50%;
-  margin-left:-120px;
+  .inactive-bg {
+    background-color: $nlGrey3;
+  }
+  select {
+    position: absolute;
+    top:15%;
+    height: auto;
+    left: 5%;
+    width: 90%;
+    z-index: 1;
+  }
 }

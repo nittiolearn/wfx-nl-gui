@@ -84,18 +84,18 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	function _getIntelliTextOptions(cm) {
 		var ret = {
 			'$':[
-					{ "name": "max", "val": "$max{}", "cursor": -1 }, 
-					{ "name": "min", "val": "$min{}", "cursor": -1 },
-					{ "name": "sum", "val": "$sum{}", "cursor": -1 },
-					{ "name": "avg", "val": "$avg{}", "cursor": -1 },
-					{ "name": "avg_top", "val": "$avg_top{}", "cursor": -1 },
+					{ "name": "$max - maximum of given items", "val": "$max{}", "cursor": -1 }, 
+					{ "name": "$min - minimum of given items", "val": "$min{}", "cursor": -1 },
+					{ "name": "$sum - sum of given items", "val": "$sum{}", "cursor": -1 },
+					{ "name": "$avg - average of given items", "val": "$avg{}", "cursor": -1 },
+					{ "name": "$avg_top - average of top 'n' items", "val": "$avg_top{}", "cursor": -1 },
 				],
 			'_':[]
 		};
         for(var i=0; i < _allModules.length; i++){
 			var m = _allModules[i];
-			if (m.type == 'module') continue;
-			if (m.id == cm.id) break;
+			if (m.type === 'module') continue;
+			if (m.id === cm.id) break;
 			var n = nl.fmt2('{} ({})', m.name, m.id);
 			ret['_'].push({name: n, val: m.id, cursor: 0});
 		}
@@ -455,7 +455,10 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	
 	function _getGateFormulaHelp() {
 		return('<p>Insert formula to compute the gate value. The formula could be resulting in number (e.g. average rating) or a ' +
-				'true/false condition (e.g. average rating greater than 75). Syntax for writing formula is given below:</p>' +
+				'true/false condition (e.g. average rating greater than 75). The formula contains different predefined functions and the items available above the current gate item.</p>' + 
+				'<p><b>As you type <i class="nl-fixed-width fblue2">$</i>, a dropdown list will be shown with list of predefined functions.</b></p>' +
+				'<p><b>As you type <i class="nl-fixed-width fblue2">_</i>, a dropdown list will be shown with list of items above the current gate item.</b></p>' +
+				'<p>Syntax for writing formula is given below:</p>' +
 				'<ul>' + 
 				'<li><b>$max{_id1, _id2, _id3}</b>In this case gate score is considered as max score obtained among the item with given Unique ids. </li>' +
 				'<li><b>$min{_id1, _id2, _id3}</b>In this case gate score is considered as min score obtained among the item with given Unique ids. </li>' +

@@ -346,51 +346,49 @@
             restrict: 'E',
             scope: {
                 getoptions: '=',
-                values: '=',
-                storedat: '=',
-                model: '=',
+                getoptionsdata: '=',
+                    model: '=',
             },
             templateUrl: 'lib_ui/utils/intelli_textarea.html',
             link: function(scope, iElem, iAttrs) {
                 scope.selectBoxIsShown = false;
-                scope.options = scope.getoptions(scope.values[scope.storedat])
-                scope.onKeyDown = function(event) {
-                    _keydown(scope, event);
-                };
-                scope.onChange = function(event) {
-                    _change(scope, event);
-                };
-
-                function _keydown(scope, event) {
+                scope.options = scope.getoptions(scope.getoptionsdata);
+                scope.onTextAreaKeyDown = function(event) {
                     var keyPressed = event.key;
                     if (!(keyPressed in scope.options)) return;
                     scope.intellisenseOptions = scope.options[keyPressed];
                     var elem = document.getElementById('intelliSelect');
                     scope.selectBoxIsShown = true;
                     nl.timeout(function () { elem.focus(); }, 0);
-                }
+                };
             
-                function _change(scope, event) {
-                    if(scope.keydownEvent === true){
-                        scope.keydownEvent = false;
-                        if (event === undefined) return;
-                        if(event.keyCode !== 13) return;
+                scope.onSelectEvent = function(event, evttype) {
+                    console.log('onSelectEvent', evttype);
+                    if (evttype == 'keydown') scope.ignoreChangeEvent = !event || event.keyCode !== 13;
+                    else if (evttype == 'mousedown') {
+                        scope.ignoreChangeEvent = false;
+                        _onSelectChanged(scope);
+                    } else if (evttype == 'change') _onSelectChanged(scope);
+                }
+
+                function _onSelectChanged(scope, event) {
+                    if(scope.ignoreChangeEvent){
+                        scope.ignoreChangeEvent = false;
+                        return;
                     }
+                    if (!scope.intelliSelect) return;
         
-                    if (scope.intelliSelect !== undefined) {
-                        var textareaElement = document.getElementById('nlIntellisenseTextarea');
-                        var startPosition = textareaElement.selectionStart;
-                        var endPosition = textareaElement.selectionEnd;
-                        var valueText = scope.model;
-                        scope.model = valueText.substring(0, startPosition - 1) + scope.intelliSelect.val + valueText.substring(endPosition, valueText.length);
-                        
-                        var newCursorPosition = startPosition + scope.intelliSelect.val.length -1;
-                        if (scope.intelliSelect.cursor) { newCursorPosition += scope.intelliSelect.cursor; }
-                        scope.selectBoxIsShown = false;
-                        scope.intelliSelect = undefined;
-                
-                        _updateCursor(document.getElementById('nlIntellisenseTextarea'), newCursorPosition);
-                    }
+                    var textareaElement = document.getElementById('nlIntellisenseTextarea');
+                    var startPosition = textareaElement.selectionStart;
+                    var endPosition = textareaElement.selectionEnd;
+                    var valueText = scope.model;
+                    scope.model = valueText.substring(0, startPosition - 1) + scope.intelliSelect.val + valueText.substring(endPosition, valueText.length);
+                    
+                    var newCursorPosition = startPosition + scope.intelliSelect.val.length -1;
+                    if (scope.intelliSelect.cursor) { newCursorPosition += scope.intelliSelect.cursor; }
+                    scope.selectBoxIsShown = false;
+                    scope.intelliSelect = undefined;
+                    _updateCursor(document.getElementById('nlIntellisenseTextarea'), newCursorPosition);
                 }
             
                 function _updateCursor(elem, newCursorPosition) {
