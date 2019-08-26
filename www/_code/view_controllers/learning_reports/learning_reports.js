@@ -874,7 +874,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var columns = [];
 		var attrition = nlLrDrilldown.getAttritionObj();
 		var customStartedStates = nlLrDrilldown.getCustomStatusObj();
-		   _customScoresHeader = nlLrDrilldown.getCustomScoreIdsObj();
+		   _customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
 		var isReattemptEnabled = nlLrReportRecords.isReattemptEnabled() || false;
 		columns.push({id: 'cntTotal', name: 'Total', table: true, percid:'percTotal', smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'cntInactive', name: 'Inactive', table: true, percid:'percInactive', background: 'nl-bg-blue', showAlways: true});
@@ -898,7 +898,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		columns.push({id: 'pending', name: 'Pending', smallScreen: true, percid: 'percPending', table: true, indentation: 'padding-left-22', showAlways: true});
 		columns.push({id: 'avgScore', name: 'Avg Quiz score', table: true, background: 'nl-bg-blue', hidePerc:true});
-		for(var key in _customScoresHeader) columns.push({id: 'computedPerc'+key, name: 'Avg score of '+_customScoresHeader[key], table: true, background: 'nl-bg-blue', hidePerc:true});
+		for(var i=0; i<_customScoresHeader.length; i++) columns.push({id: 'perc'+_customScoresHeader[i], name: 'Avg score of '+_customScoresHeader[i], table: true, background: 'nl-bg-blue', hidePerc:true});
 		return columns;
 	}
 
@@ -916,6 +916,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _onExport() {
 		if (nlLrFetcher.fetchInProgress()) return;
 		var reportRecords = nlLrReportRecords.asList();
+		if(!_customScoresHeader) _customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
 		nlLrExporter.export($scope, reportRecords, _isAdmin, _customScoresHeader);
 	}
 	

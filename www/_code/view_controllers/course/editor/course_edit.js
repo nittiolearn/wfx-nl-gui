@@ -130,18 +130,18 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		   attr.values.push('link');
 		if (cm.type == 'iltsession' || (_groupInfo && _groupInfo.props.features['training'])) 
 			attr.values.push('iltsession');
-		if (cm.type == 'milestone' || (_groupInfo && _groupInfo.props.features['etm'])) 
+		if (cm.type == 'milestone' || _etm) 
 			attr.values.push('milestone');
-		if (cm.type == 'rating' || (_groupInfo && _groupInfo.props.features['etm'] && _groupInfo.props.ratings)) 
+		if (cm.type == 'rating' || _etm && _groupInfo.props.ratings) 
 			attr.values.push('rating');
-		if (cm.type == 'gate' || (_groupInfo && _groupInfo.props.features['etm'])) 
+		if (cm.type == 'gate' || _etm) 
 			attr.values.push('gate');
 		return;
 	}
 
 	var _ratings = [];
 	function _updateRatingDropdown(cm, attr) {
-		if (!_groupInfo || !_groupInfo.props.features['etm']) return;
+		if (!_etm || !_groupInfo) return;
 		if (attr.valueNamesUpdated) return;
 		_ratings = _groupInfo.props.ratings || [];
 		attr.valueNames = {};
@@ -154,7 +154,12 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		return;
 	}
 
-    function _onBooleanClick(e, attr, item) {
+	function _canShowReattempt(attr) {
+		if(attr.name != 'isReattempt') return true;
+		return _etm;
+	}
+
+	function _onBooleanClick(e, attr, item) {
         item[attr.name] = !item[attr.name];
         _onAttrChange(e, attr, item);
     }
@@ -359,7 +364,9 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'completionPerc', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Completion percentage',type: 'number', group: 'grp_additionalAttrs'},
         {name: 'customStatus', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'New status',type: 'string', group: 'grp_additionalAttrs'},
         {name: 'showInReport', stored_at: 'module', fields: ['gate'], text: 'Show in report', desc: 'Show progress percentage in the report', type: 'boolean', group: 'grp_additionalAttrs'},
-        {name: 'isReattempt', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Mark as reattempt', desc: 'Mark this to indicate learner has reattempted', type: 'boolean', group: 'grp_additionalAttrs', etm: true},
+		{name: 'isReattempt', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Mark as reattempt', desc: 'Mark this to indicate learner has reattempted', type: 'boolean', group: 'grp_additionalAttrs', 
+			canShow: function(attr) {return _canShowReattempt(attr);}
+		},
         {name: 'maxAttempts', stored_at: 'module', fields: ['lesson'], type: 'number', text: 'Maximum attempts', group: 'grp_additionalAttrs'},
         {name: 'hide_remarks', stored_at: 'module', fields: ['info', 'link'], type: 'boolean', text: 'Disable remarks', group: 'grp_additionalAttrs'},
         {name: 'autocomplete', stored_at: 'module', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},

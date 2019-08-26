@@ -21,7 +21,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     var ctx = {};
 	var _userInfo = null;
     var _metaFields = null;
-    var _customScoresHeader = null;
+    var _customScoresHeader = [];
 
     function _getMetaHeaders(bOnlyMajor) {
         var headers = [];
@@ -42,7 +42,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 	
     this.export = function($scope, reportRecords, isAdmin, customScoresHeader) {
         var dlg = nlDlg.create($scope);
-        _customScoresHeader = customScoresHeader || {};
+        _customScoresHeader = customScoresHeader || [];
         ctx = {};
 		dlg.scope.reptype = nlLrFilter.getType();
         dlg.setCssClass('nl-height-max nl-width-max');
@@ -252,13 +252,15 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var headers = ['User Id', 'User Name'];
         headers = headers.concat(['Course Name', 'Batch name', _gradelabel, _subjectlabel, 'Assigned On', 'Last Updated On', 
             'From', 'Till', 'Status', 'Progress', 'Progress Details', 'Quiz Attempts',
-            'Achieved %', 'Maximum Score', 'Achieved Score', 'Feedback score', 'Online Time Spent (minutes)', 'ILT time spent(minutes)', 'ILT total time(minutes)', 'Venue', 'Trainer name',]);
+            'Achieved %', 'Maximum Score', 'Achieved Score']);
+
+        for(var i=0; i<_customScoresHeader.length; i++) headers.push(_customScoresHeader[i]);
+        headers = headers.concat(['Feedback score', 'Online Time Spent (minutes)', 'ILT time spent(minutes)', 'ILT total time(minutes)', 'Venue', 'Trainer name']);
     	headers = headers.concat([ 'Infra Cost', 'Trainer Cost', 'Food Cost', 'Travel Cost', 'Misc Cost']);
         headers = headers.concat(['User state', 'Email Id', 'Org']);
         if (!filter.hideMetadata) for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
         if (filter.exportTypes.ids)
             headers = headers.concat(_idFields);
-        for(var key in _customScoresHeader) headers.push(_customScoresHeader[key]);
         return headers;
     };
     
@@ -271,8 +273,23 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         	report.raw_record.not_before ? nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_before)) : '', report.raw_record.not_after ? nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_after)) : '', 
             report.stats.status.txt, report.stats.percCompleteStr,
             report.stats.percCompleteDesc, report.stats.avgAttempts || '',
-            report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore, feedbackScore,
-            Math.ceil(report.stats.timeSpentSeconds/60), Math.ceil(report.stats.iltTimeSpent), report.stats.iltTotalTime]);
+            report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore]) 
+
+        var customScores = report.stats.customScores || []; //customScores is array of objects [{name: 'itemname', score: 12}]
+        for(var i=0; i<_customScoresHeader.length; i++) {
+            var keyFound = false;
+            var itemName = _customScoresHeader[i];
+            for(var n=0; n<customScores.length; n++) {
+                var itemObj = customScores[n];
+                if(itemObj.name != itemName) continue;
+                keyFound = true;
+                ret.push(itemObj.score);
+                break;
+            }
+            if(!keyFound) ret.push('');
+        }
+    
+        ret = ret.concat([feedbackScore, Math.ceil(report.stats.timeSpentSeconds/60), Math.ceil(report.stats.iltTimeSpent), report.stats.iltTotalTime]);
         ret = ret.concat([report.repcontent.iltVenue || '', report.repcontent.iltTrainerName || '', report.repcontent.iltCostInfra || '', report.repcontent.iltCostTrainer || '',
         			report.repcontent.iltCostFoodSta || '', report.repcontent.iltCostTravelAco || '', report.repcontent.iltCostMisc || '']);
         ret.push(report.user.state ? 'active' : 'inactive');        
@@ -282,22 +299,6 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         if (filter.exportTypes.ids)
             ret = ret.concat(['id=' + report.raw_record.id, 'id=' + report.raw_record.assignment, 
                 'id=' + report.raw_record.lesson_id]);
-        var customScores = report.stats.customScores || []; //customScores i array of objects [{_id6: 60, name: 'itemname'}]
-        for(var key in _customScoresHeader) {
-            var keyFound = false;
-            for(var i=0; i<customScores.length; i++) {
-                var itemObj = customScores[i];
-                for(var obj in itemObj) {
-                    if(obj == 'name') continue;
-                    var uniqueKey = obj+itemObj['name'];
-                    if(key == uniqueKey) {
-                        keyFound = true;
-                        ret.push(itemObj[obj]);
-                    }
-                }
-            }
-            if(!keyFound)ret.push('');
-        }
         return ret;
     }
     

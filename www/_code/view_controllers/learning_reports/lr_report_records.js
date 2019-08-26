@@ -28,12 +28,16 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
     var _nominatedUsers = null;
     var _attendanceObj = {};
     var _isReattemptEnabled = false;
+    var _customScoresHeaderArray = [];
+    var _customScoresHeaderObj = {};
     this.init = function(userinfo) {
         _userInfo = userinfo;
         _records = {};
         _reminderDict = {};
         _nominatedUsers = {};
         _isReattemptEnabled = false;
+        _customScoresHeaderArray = [];
+        _customScoresHeaderObj = {};
         _dates = {minUpdated: null, maxUpdated: null};
         _convertAttendanceArrayToObj(userinfo.groupinfo.attendance);
         if (!nlGroupInfo.isPastUserXlsConfigured()) _pastUserData = {};
@@ -43,6 +47,9 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         return _isReattemptEnabled;
     };
 
+    this.getCustomScoresHeader = function() {
+        return _customScoresHeaderArray;
+    }
     this.getReminderDict = function() {
         return _reminderDict;
     };
@@ -226,6 +233,15 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
             attritionStr: stainf.attritionStr,
         };
 
+        if(stainf.customScores.length != 0) {
+            for(var i=0; i<stainf.customScores.length; i++) {
+                var item = stainf.customScores[i];
+                if(!(item.name in _customScoresHeaderObj)) {
+                    _customScoresHeaderObj[item.name] = true;
+                    _customScoresHeaderArray.push(item.name);
+                }
+            }
+        }
         if('reattempt' in stainf) {
             _isReattemptEnabled = true;
             stats['reattempt'] = stainf['reattempt'];
