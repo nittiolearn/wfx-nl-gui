@@ -379,7 +379,9 @@
                     var startPosition = textareaElement.selectionStart;
                     var endPosition = textareaElement.selectionEnd;
                     var valueText = scope.model;
-                    scope.model = valueText.substring(0, startPosition - 1) + scope.intelliSelect.val + valueText.substring(endPosition, valueText.length);
+                    var removeChar = 1;
+                    if (!(valueText[startPosition-1] in scope.options)) removeChar = 0;
+                    scope.model = valueText.substring(0, startPosition - removeChar) + scope.intelliSelect.val + valueText.substring(endPosition, valueText.length);
                     
                     var newCursorPosition = startPosition + scope.intelliSelect.val.length -1;
                     if (scope.intelliSelect.cursor) { newCursorPosition += scope.intelliSelect.cursor; }
