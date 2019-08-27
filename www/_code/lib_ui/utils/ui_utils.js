@@ -363,12 +363,19 @@
                 };
             
                 scope.onSelectEvent = function(event, evttype) {
-                    if (evttype == 'keydown') scope.ignoreChangeEvent = event.keyCode !== 13;
-                    else if (evttype == 'mousedown') scope.ignoreChangeEvent = false;
+                    if (evttype == 'keydown') {
+                        //27: escape, 8: backspace, 46: delete, 13: enter
+                        if (event.keyCode == 27 || event.keyCode == 8 || event.keyCode == 46){
+                            scope.selectBoxIsShown = false;
+                            _focusTextarea();
+                            return;        
+                        }
+                        scope.ignoreChangeEvent = event.keyCode !== 13;
+                    } else if (evttype == 'mousedown') scope.ignoreChangeEvent = false;
                     if(!scope.ignoreChangeEvent) _onSelectChanged(scope);
                 }
 
-                function _onSelectChanged(scope, event) {
+                function _onSelectChanged(scope) {
                     if(scope.ignoreChangeEvent){
                         scope.ignoreChangeEvent = false;
                         return;
@@ -383,15 +390,17 @@
                     if (!(valueText[startPosition-1] in scope.options)) removeChar = 0;
                     scope.model = valueText.substring(0, startPosition - removeChar) + scope.intelliSelect.val + valueText.substring(endPosition, valueText.length);
                     
-                    var newCursorPosition = startPosition + scope.intelliSelect.val.length -1;
+                    var newCursorPosition = startPosition + scope.intelliSelect.val.length -removeChar;
                     if (scope.intelliSelect.cursor) { newCursorPosition += scope.intelliSelect.cursor; }
                     scope.selectBoxIsShown = false;
                     scope.intelliSelect = undefined;
-                    _updateCursor(document.getElementById('nlIntellisenseTextarea'), newCursorPosition);
+                    _focusTextarea(newCursorPosition);
                 }
             
-                function _updateCursor(elem, newCursorPosition) {
+                function _focusTextarea(newCursorPosition) {
+                    var elem = document.getElementById('nlIntellisenseTextarea');
                     elem.focus();
+                    if(!newCursorPosition) return;
                     nl.timeout(function () { elem.setSelectionRange(newCursorPosition, newCursorPosition);}, 0);
                 }
             }
