@@ -363,12 +363,9 @@
                 };
             
                 scope.onSelectEvent = function(event, evttype) {
-                    console.log('onSelectEvent', evttype);
-                    if (evttype == 'keydown') scope.ignoreChangeEvent = !event || event.keyCode !== 13;
-                    else if (evttype == 'mousedown') {
-                        scope.ignoreChangeEvent = false;
-                        _onSelectChanged(scope);
-                    } else if (evttype == 'change') _onSelectChanged(scope);
+                    if (evttype == 'keydown') scope.ignoreChangeEvent = event.keyCode !== 13;
+                    else if (evttype == 'mousedown') scope.ignoreChangeEvent = false;
+                    if(!scope.ignoreChangeEvent) _onSelectChanged(scope);
                 }
 
                 function _onSelectChanged(scope, event) {
