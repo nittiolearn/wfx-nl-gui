@@ -918,7 +918,20 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (nlLrFetcher.fetchInProgress()) return;
 		var reportRecords = nlLrReportRecords.asList();
 		if(!_customScoresHeader) _customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
-		nlLrExporter.export($scope, reportRecords, _isAdmin, _customScoresHeader);
+		_updateDrillDownTab();
+		var drillDownCols = _getDrillDownColumns();
+		var header = [];
+		for(var i=0; i<drillDownCols.length; i++) {
+			var col = drillDownCols[i]
+			if(col.table) header.push(col);
+		}
+		var headerArray = [{id: 'courseName', name: 'Course name'}]
+		if(nlGroupInfo.isSubOrgEnabled()) headerArray.push({id: 'subOrgId', name: 'Suborg Id'});
+		headerArray.push({id: 'organisationId', name: 'Organisation Id'});
+
+		header = headerArray.concat(header);
+		var drillDownStats = {statsCountDict: _statsCountDict, columns: header};
+		nlLrExporter.export($scope, reportRecords, _isAdmin, _customScoresHeader, drillDownStats);
 	}
 	
 	function _onExportCustomReport() {

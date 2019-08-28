@@ -22,6 +22,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 	var _userInfo = null;
     var _metaFields = null;
     var _customScoresHeader = [];
+    var _drillDownDict = {};
 
     function _getMetaHeaders(bOnlyMajor) {
         var headers = [];
@@ -40,14 +41,15 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     	_subjectlabel = userInfo.groupinfo.subjectlabel;
 	};
 	
-    this.export = function($scope, reportRecords, isAdmin, customScoresHeader) {
+    this.export = function($scope, reportRecords, isAdmin, customScoresHeader, drillDownDict) {
         var dlg = nlDlg.create($scope);
         _customScoresHeader = customScoresHeader || [];
+        _drillDownDict = drillDownDict || {}
         ctx = {};
 		dlg.scope.reptype = nlLrFilter.getType();
         dlg.setCssClass('nl-height-max nl-width-max');
         dlg.scope.export = {summary: true, user: true, module: (dlg.scope.reptype == 'module' || dlg.scope.reptype == 'module_assign' || dlg.scope.reptype  == 'module_self_assign') ? true : false, ids: true,
-            pageScore: false, feedback: false, courseDetails: false};
+            pageScore: false, feedback: false, courseDetails: false, drilldown: true};
         dlg.scope.data = {};
 		_setExportFilters(dlg, reportRecords);
         var filterData = dlg.scope.filtersData;
@@ -122,7 +124,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             	_createUserCsv(filter, reportRecords, zip, fileName, start, start+pending, expSummaryStats);
                 start += pending;
             }
-
+            if(filter.exportTypes.drilldown) _updateDrillDownRow();
 
             if (filter.exportTypes.summary) {
                 var records = expSummaryStats.asList();
@@ -165,6 +167,16 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                 }
 			} 
 
+			if (filter.exportTypes.drilldown && ctx.drillDownRow.length > 1) {
+                for(var start=0, i=1; start < ctx.drillDownRow.length; i++) {
+                    var pending = ctx.drillDownRow.length - start;
+                    pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
+                    var fileName = nl.fmt2('drill-down-stats-{}.csv', i);
+                    _createCsv(filter, ctx.drillDownRow, zip, fileName, start, start+pending);
+                    start += pending;
+                }
+			} 
+
             if (filter.exportTypes.feedback && ctx.feedbackRows.length > 1) {
                 for(var start=0, i=1; start < ctx.feedbackRows.length; i++) {
                     var pending = ctx.feedbackRows.length - start;
@@ -188,7 +200,42 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var content = rows.join(_CSV_DELIM);
         zip.file(fileName, content);
     }
-    
+
+
+    function _updateDrillDownRow() {
+        var drillDownStats = _drillDownDict.statsCountDict;
+        var headerDrillDownRow = _drillDownDict.columns;
+        for(var key in drillDownStats) {
+            var row = drillDownStats[key];
+            row.cnt['courseName'] = row.cnt.name;
+            ctx.drillDownRow.push(nlExporter.getCsvRow(headerDrillDownRow, row.cnt));
+            if(row.children) _updateSuborgRow(row.cnt.name, row.children, headerDrillDownRow);   
+        }
+    }
+
+    function _updateSuborgRow(courseName, suborgRow, headerDrillDownRow) {
+        for(var key in suborgRow) {
+            var row = suborgRow[key];
+            row.cnt['courseName'] = courseName;
+            if(!row.children) 
+                row.cnt['organisationId'] = row.cnt.name;
+            else 
+                row.cnt['subOrgId'] = row.cnt.name;
+            ctx.drillDownRow.push(nlExporter.getCsvRow(headerDrillDownRow, row.cnt));
+            if(row.children) _updateOrgRow(courseName, row.cnt.name, row.children, headerDrillDownRow);
+        }
+    }
+
+    function _updateOrgRow(courseName, subOrgId, orgRow, headerDrillDownRow) {
+        for(var key in orgRow) {
+            var row = orgRow[key];
+            row.cnt['courseName'] = courseName;
+            row.cnt['subOrgId'] = subOrgId;
+            row.cnt['organisationId'] = row.cnt.name;
+            ctx.drillDownRow.push(nlExporter.getCsvRow(headerDrillDownRow, row.cnt));
+        }
+    }
+
     function _createUserCsv(filter, records, zip, fileName, start, end, expSummaryStats) {
         var header = _getCsvHeader(filter);
         var rows = [nlExporter.getCsvString(header)];
@@ -329,6 +376,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         ctx.pScoreRows = [nlExporter.getCsvHeader(_hPageScores)];
         ctx.feedbackRows = [nlExporter.getCsvHeader(_hFeedback)];
         ctx.courseDetailsRow = [nlExporter.getCsvHeader(_hCourseDetailsRow)];
+        if(filter.exportTypes.drilldown) ctx.drillDownRow = [nlExporter.getCsvHeader(_drillDownDict.columns)];
         ctx.reports = reports;
         ctx.zip = new JSZip();
         ctx.pageCnt = 0;
