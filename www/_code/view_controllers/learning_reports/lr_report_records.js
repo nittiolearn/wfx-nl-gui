@@ -231,6 +231,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
             customScores: stainf.customScores,
             attritedAt: stainf.attritedAt,
             attritionStr: stainf.attritionStr,
+            delayDays: Math.round(stainf.delayDays || 0)
         };
 
         if(stainf.customScores.length != 0) {

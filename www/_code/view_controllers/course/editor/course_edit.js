@@ -1082,6 +1082,7 @@ function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm, _groupInfo) {
 		var items = cm.start_after || [];
 		for(var i=0; i<items.length; i++) {
 			var item = items[i];
+			if(!(item.module in idsToTypeMapping)) continue;
 			var dict = {module: {id: item.module, type: idsToTypeMapping[item.module].type, rating_type: idsToTypeMapping[item.module].rating_type}, min_score: item.min_score || '', 
 						max_score: item.max_score || '', error: ''};
 			if(idsToTypeMapping[item.module].type == 'lesson' || idsToTypeMapping[item.module].type == 'rating' || idsToTypeMapping[item.module].type == 'gate'){

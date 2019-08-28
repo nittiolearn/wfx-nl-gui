@@ -516,7 +516,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         }
         for(var i=0; i<_modules.length; i++) {
             var cm = _modules[i];
-            var itemInfo = itemIdToInfo[cm.id];
+            var itemInfo = ret.itemIdToInfo[cm.id];
             if (itemInfo.delayDays && itemInfo.delayDays > ret.delayDays)
                 ret.delayDays = itemInfo.delayDays;
         }
@@ -527,7 +527,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         var maxCompleteBefore = null;
         for(var i=0; i<_modules.length; i++) {
             var cm = _modules[i];
-            var itemInfo = itemIdToInfo[cm.id];
+            var itemInfo = ret.itemIdToInfo[cm.id];
             if (cm.complete_before) {
                 var complete_before = parseInt(cm.complete_before);
                 if (!maxCompleteBefore || complete_before > maxCompleteBefore)

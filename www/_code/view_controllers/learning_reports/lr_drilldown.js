@@ -155,6 +155,7 @@ function(nlReportHelper) {
     function _updateCommonCountsData(record, statsCountObj) {
         statsCountObj['timeSpent'] = record.stats.timeSpentSeconds;
         statsCountObj['customScores'] = record.stats.customScores || [];
+        statsCountObj['delayDays'] = record.stats.delayDays || 0;
     }
 }];
 
@@ -192,7 +193,7 @@ function StatsCounts(nl) {
 
     var statsCountItem = {cntTotal: 0, cntActive: 0, cntInactive: 0, doneInactive: 0, pendingInactive: 0, 
                           completed: 0, certified: 0, certifiedInFirstAttempt: 0, certifiedInReattempt: 0, pending:0, failed: 0, started: 0,
-                          percScore: 0, avgScore: 0, timeSpent: 0, isOpen: false};
+                          percScore: 0, avgScore: 0, delayDays: 0, timeSpent: 0, isOpen: false};
     var defaultStates = angular.copy(statsCountItem);
     var _dynamicStates = {};
     var _customScores = {};
@@ -311,6 +312,7 @@ function StatsCounts(nl) {
             updatedStats['percPending'] = Math.round(updatedStats.pending*100/updatedStats.cntTotal);
             updatedStats['percStarted'] = Math.round(updatedStats.started*100/updatedStats.cntTotal);
             updatedStats['avgScore'] = (updatedStats.percScore != 0 && updatedStats.completed != 0) ? Math.round(updatedStats.percScore/updatedStats.completed)+' %' : 0;
+            updatedStats['avgDelay'] = Math.round(updatedStats.delayDays/updatedStats.cntTotal);
             updatedStats['timeSpentInMins'] = Math.round(updatedStats.timeSpent/60);
             updatedStats['percCertifiedInFirstAttempt'] = Math.round(updatedStats.certifiedInFirstAttempt*100/updatedStats.cntTotal)
             updatedStats['percCertifiedInReattempt'] = Math.round(updatedStats.certifiedInReattempt*100/updatedStats.cntTotal)
