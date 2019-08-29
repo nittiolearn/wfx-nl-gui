@@ -942,11 +942,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
             $scope.editorCb.updateChildrenLinks(_allModules);
 			$scope.editorCb.showVisible(null);
 		}};
-		_organiseModuleDlg.show('view_controllers/course/editor/course_organiser.html', [], closeButton, false)
-		.then( function() { 
-			$scope.editorCb.onClick(e, cm);
-		});
-			
+		_organiseModuleDlg.show('view_controllers/course/editor/course_organiser.html', [], closeButton, false);
 	}
     
 	function _moveItem(movedItem, fromIndex, toIndex) {
