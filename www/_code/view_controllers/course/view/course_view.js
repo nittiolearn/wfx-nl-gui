@@ -407,7 +407,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         	},
         	getParent: function(cm) {
         		return nlTreeListSrv.getParent(cm);
-        	},
+            },
+            getRootItem: function() {
+                return nlTreeListSrv.getRootItem();
+            },
         	showVisible: function(cm) {
         	    $scope.showVisible(cm);
         	},
@@ -423,7 +426,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         			_confirmIframeClose(cm, function() {
             		_onLaunchImpl(cm);
         		});
-        	}
+            },
+            onClick: function(e, cm) {
+        	    $scope.onClick(e, cm);
+        	},
         };
         nlCourseEditor.init($scope, modeHandler, _userInfo);
     }

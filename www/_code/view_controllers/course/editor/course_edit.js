@@ -576,7 +576,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 
     function _deleteModule(e, cm) {
 		var msg = {title: 'Please confirm', 
-				   template: 'Are you sure you want to delete? This cannot be undone once you save.',
+				   template: 'All dependencies on this item will be lost once you delete. Are you sure you want to continue deletion?',
 				   okText: nl.t('Delete')};
 		nlDlg.popupConfirm(msg).then(function(res) {
 			if(!res) return;
@@ -597,6 +597,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	}
 	
 	function _saveCourse(e, bPublish, cm){
+		cm = $scope.editorCb.getRootItem() || cm;
 	    if(!_validateInputs(modeHandler.course, cm)) return;
 		if (!bPublish) {
 			_saveAfterValidateCourse(e, bPublish);
@@ -609,7 +610,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		nlDlg.popupConfirm(msg).then(function(res) {
 			if(!res) return;
 	    	_saveAfterValidateCourse(e, bPublish);
-		});		
+		});
 	}
 
     function _saveAfterValidateCourse(e, bPublish) {
@@ -743,9 +744,11 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         var errorLocation = {};
         var retData = {lessPara: true};
     	cm.textHtml = cm.text ? nlMarkup.getHtml(cm.text, retData): '';
-        var ret = _validateInputsImpl(data, cm, errorLocation);
+		var ret = _validateInputsImpl(data, cm, errorLocation);
+		if(!errorLocation.cm) errorLocation.cm = $scope.editorCb.getRootItem();
         if (!ret) {
-            nlDlg.popupAlert({title: nl.t('Error: {}', errorLocation.title), template:errorLocation.template});
+			$scope.ext.setCurrentItem(errorLocation.cm);
+			nlDlg.popupAlert({title: nl.t('Error: {}', errorLocation.title), template:errorLocation.template});
         }
         return ret;
     }
@@ -870,7 +873,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			var item = _allModules[i];
 			if(!item.completionPerc) continue;
 			if(module.id == item.id) break;
-			if(item.completionPerc < module.completionPerc) continue;
+			if(item.completionPerc <= module.completionPerc) continue;
 			return _validateFail(errorLocation, 'Completion percentage', 'Completion percentage for this item should be greater than completion percentage of earlier items.', module);
 		}
 		return true;
@@ -906,7 +909,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 
     function _validateFail(errorLocation, attr, errMsg, cm) {
         errorLocation.title = attr;
-        errorLocation.template = nl.fmt2('<p><b>Error:</b> {}</p>', errMsg);
+		errorLocation.cm = cm;
+		errorLocation.template = nl.fmt2('<p><b>Error:</b> {}</p>', errMsg);
         if(cm) {
             errorLocation.template += nl.fmt2('<p><b>Item:</b> {}</p>', cm.name);
         }
@@ -938,8 +942,12 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
             $scope.editorCb.updateChildrenLinks(_allModules);
 			$scope.editorCb.showVisible(null);
 		}};
-		_organiseModuleDlg.show('view_controllers/course/editor/course_organiser.html', [], closeButton, false);
-    }
+		_organiseModuleDlg.show('view_controllers/course/editor/course_organiser.html', [], closeButton, false)
+		.then( function() { 
+			$scope.editorCb.onClick(e, cm);
+		});
+			
+	}
     
 	function _moveItem(movedItem, fromIndex, toIndex) {
 		$scope.editorCb.moveItem(movedItem, fromIndex, toIndex, _allModules);
