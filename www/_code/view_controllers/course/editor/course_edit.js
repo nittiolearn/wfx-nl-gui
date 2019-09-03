@@ -576,7 +576,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 
     function _deleteModule(e, cm) {
 		var msg = {title: 'Please confirm', 
-				   template: 'All dependencies on this item will be lost once you delete. Are you sure you want to continue deletion?',
+				   template: 'All dependencies on this item will be lost once you delete. This cannot be undone once you save. Are you sure you want to continue?',
 				   okText: nl.t('Delete')};
 		nlDlg.popupConfirm(msg).then(function(res) {
 			if(!res) return;
