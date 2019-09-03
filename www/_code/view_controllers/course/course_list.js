@@ -50,9 +50,9 @@ function($stateProvider, $urlRouterProvider) {
 		}});
 }];
 
-var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlLrFetcher', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlChangeOwner',
-function(nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlChangeOwner) {
-	_listCtrlImpl('course', nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlChangeOwner);
+var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlLrFetcher', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner',
+function(nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner) {
+	_listCtrlImpl('course', nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner);
 }];
 
 var CourseAssignListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlLrFetcher', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse',
@@ -70,7 +70,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlDlg, nlCardsSrv, nlSe
 	_listCtrlImpl('report', nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse);
 }];
 
-function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlChangeOwner) {
+function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner) {
 	/* 
 	 * URLs handled
 	 * 'View published' : /course_list?type=course&my=0
@@ -654,19 +654,15 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
         if (modules.length < 1) return _validateFail(scope, 'content', 
             'Atleast one course module object is expected in the content');
 
-        var uniqueIds = {};
+		var uniqueIds = {};
+		uniqueIds['_root'] = 'module';
         for(var i=0; i<modules.length; i++){
             var module = modules[i];
             if (!module.id) return _validateModuleFail(scope, module, '"id" is mandatory');
             if (!module.name) return _validateModuleFail(scope, module, '"name" is mandatory');
             if (!module.type) return _validateModuleFail(scope, module, '"type" is mandatory');
-            if (module.id in uniqueIds) return _validateModuleFail(scope, module, '"id" has to be unique');
-            uniqueIds[module.id] = module.type;
-            var parentId = _getParentId(module.id);
-            if (parentId) {
-                if (!(parentId in uniqueIds)) return _validateModuleFail(scope, module, 'parent module needs to be above this module');
-                if (uniqueIds[parentId] != 'module') return _validateModuleFail(scope, module, 'parent needs to be of type "module"');
-            }
+			if (module.id in uniqueIds) return _validateModuleFail(scope, module, '"id" has to be unique');
+			if(uniqueIds[module.parentId] !== 'module') return _validateModuleFail(scope, module, 'parentId is invalid');
 
             if (!_validateModuleType(scope, module)) return false;
             if (!_validateModulePlan(scope, module)) return false;
@@ -676,26 +672,13 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
 			if (!_validateInfoModule(scope, module)) return false;
 			if (!_validateILTSession(scope, module)) return false;
 			if (!_validateMilestone(scope, module, modules)) return false;
+			if (!_validateRatingModule(scope, module)) return false;
+			if (!_validateGate(scope, module, uniqueIds)) return false;
+			if(!_validateCompletionPercentage(scope, module, courseContent)) return false;	
 
-			if(!_validateCompletionPercentage(scope, module, courseContent)) return false;		
+			uniqueIds[module.id] = module.type;
 		}
         return true;
-    }
-
-	function _validateCompletionPercentage(scope, module, courseContent) {
-		var _allModules = courseContent.modules || [];
-		if(!module.completionPerc) return true;
-		if(module.completionPerc < 0 || module.completionPerc > 100) 
-			return _validateModuleFail(scope, module, 'Completion percentage should be in range of 0 - 100.', module);
-
-		for(var i=0; i<_allModules.length; i++) {
-			var item = _allModules[i];
-			if(!item.completionPerc) continue;
-			if(module.id == item.id) break;
-			if(item.completionPerc < module.completionPerc) continue;
-			return _validateModuleFail(scope, module, 'Completion percentage for this item should be greater than completion percentage of earlier items.', module);
-		}
-		return true;
 	}
 
     function _validateModuleType(scope, module) {
@@ -740,14 +723,55 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
     function _validateMilestone(scope, module, modules) {
 		if(module.type != 'milestone') return true;
 		return true;
+	}
+	
+	function _validateCompletionPercentage(scope, module, courseContent) {
+		var _allModules = courseContent.modules || [];
+		if(!module.completionPerc) return true;
+		if(module.completionPerc < 0 || module.completionPerc > 100) 
+			return _validateModuleFail(scope, module, 'Completion percentage should be in range of 0 - 100.', module);
+
+		for(var i=0; i<_allModules.length; i++) {
+			var item = _allModules[i];
+			if(!item.completionPerc) continue;
+			if(module.id == item.id) break;
+			if(item.completionPerc < module.completionPerc) continue;
+			return _validateModuleFail(scope, module, 'Completion percentage for this item should be greater than completion percentage of earlier items.', module);
+		}
+		return true;
+	}
+
+	function _validateRatingModule(scope, module) {
+		if(module.type != 'rating') return true;
+		if(!module.rating_type) return _validateModuleFail(scope, module, '"rating_type" is mandatory for "type": "rating"');
+		
+		var flag = false;
+		for(var i=0; i < _userInfo.groupinfo.ratings.length; i++) {
+			if (module.rating_type === _userInfo.groupinfo.ratings[i].id) {
+				flag = true;
+				break;
+			}
+		}
+		if(!flag) return _validateModuleFail(scope, module, '"rating_type" is not valid');
+    	return true;
+	}
+
+	function _validateGate(scope, module, idsAboveGate) {
+    	if(module.type != 'gate') return true;
+		if(!module.gateFormula) return _validateModuleFail(scope, module, '"gateFormula" is mandatory for "type": "gate"');
+		if(!module.gatePassscore) return _validateModuleFail(scope, module, '"gatePassscore" is mandatory for "type": "gate"');
+
+		var idsAboveGateCopy = {};
+		for(var key in idsAboveGate) {
+			if (idsAboveGate[key] !== 'module') idsAboveGateCopy[key]= null; 
+		}
+
+		var payload = {strExpression: module.gateFormula, dictAvps: idsAboveGateCopy};
+		nlExpressionProcessor.process(payload);
+		if(payload.error) return _validateModuleFail(scope, module, payload.error);
+    	return true;
     }
 	
-	function _getParentId(idStr) {
-        var parents = idStr.split('.');
-        parents.pop(); // Remove the last entry
-        return parents.join('.');
-    }
-    
     function _validateModuleFail(scope, module, errMsg) {
     	return nlDlg.setFieldError(scope, 'content',
         	nl.t('{}: module - {}', nl.t(errMsg), angular.toJson(module)));
