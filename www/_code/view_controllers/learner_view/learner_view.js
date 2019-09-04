@@ -225,7 +225,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		ret.learningCounts = {};
 		ret.search = '';
 		ret.lastSeached = '';
-		ret.filter = 'all';
+		ret.filter = 'active';
 		ret.searchPlaceholder = 'Search';
 		ret.records = null; 
 		ret.recordsLen = 0;
