@@ -560,7 +560,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
 	}
 	
 	function _createCourse($scope) {
-		var courseContent = {"lastId": 0, "modules": [{"name": "Your first item", "type" : "info", "id": "_id0"}]};
+		var courseContent = {"lastId": 0, "modules": [{"name": "Your first item", "type" : "info", "id": "_id0", "parentId": "_root"}]};
 		var dlgScope = {error: {}, data: {
 			name: nl.t('New course'),
 			icon: 'icon:',
