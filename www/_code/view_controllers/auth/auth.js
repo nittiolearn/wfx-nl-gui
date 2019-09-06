@@ -389,17 +389,17 @@ var AuditCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg',
 function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
     $scope.data = {eventsTill: ''};
     $scope.error = {};
+    var urlParams = {};
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
+            var params = nl.location.search();
+            if (params.username) urlParams.username = params.username;
+            if (params.clientip) urlParams.clientip = params.clientip;
+            if (params.sessionid) urlParams.sessionid = params.sessionid;
+            if (params.type) urlParams.type = params.type;
             nl.log.debug('AuditCtrl:onPageEnter - enter');
             nl.pginfo.pageTitle = nl.t('Audit records');
-            _getAuditData(null).then(function(data) {
-                nl.log.debug('AuditCtrl:onPageEnter - done');
-                resolve(true);
-            }, function(reason) {
-                nl.log.warn('AuditCtrl:onPageEnter - loading failed');
-                resolve(false);
-            });
+            _getAuditData(null, false, resolve);
         });
     }
     nlRouter.initContoller($scope, '', _onPageEnter);
@@ -411,20 +411,27 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
         	return nlDlg.setFieldError($scope, 'eventsTill',
         		nl.t('Invalid date format'));
         }
-        nlDlg.showLoadingScreen();
-        _getAuditData(till).then(function() {
-            nlDlg.hideLoadingScreen();
-        });
+        _getAuditData(till, false);
     };
     
-    function _getAuditData(till) {
-        return nlServerApi.authGetAuditData(till).then(function(data) {
+    var _pageFetcher = nlServerApi.getPageFetcher();
+    function _getAuditData(till, fetchMore, resolve) {
+        if (!fetchMore) urlParams.updatedTill = till;
+        _pageFetcher.fetchPage(nlServerApi.authGetAuditData, urlParams, fetchMore, function(data) {
+            if (!data) {
+                if (resolve) resolve(false);
+                return;
+            }
             for (var i=0; i<data.length; i++) {
                 data[i].updated = nl.fmt.jsonDate2Str(data[i].updated, 'millisecond');
                 if (data[i].type in AUDIT_TYPES) data[i].type = AUDIT_TYPES[data[i].type];
             }
+            data = data.sort(function(a, b) {
+                // Reverse sorting
+                return (a.updated < b.updated ? 1 : -1);
+            });
             $scope.records = data;
-            nlDlg.popupStatus(nl.t('{} records received', data.length));
+            if (resolve) resolve(true);
         });
     }
     
