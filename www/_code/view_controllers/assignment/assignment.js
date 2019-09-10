@@ -43,6 +43,7 @@ function TypeHandler(nl, nlServerApi) {
 	this.custtype = null;
 	this.title = null;
 	this.max_delete = 50;
+	this.max2 = 500;
 
 	this.initFromUrl = function(userInfo) {
 		var params = nl.location.search();
@@ -50,6 +51,7 @@ function TypeHandler(nl, nlServerApi) {
 		this.custtype = ('custtype' in params) ? parseInt(params.custtype) : null;
 		this.title = params.title || null;
 		this.max_delete = params.max_delete || 50;
+		this.max2 = ('max2' in params) ? parseInt(params.max2) : 500;
 	};
 
     this.getListFnAndUpdateParams = function(params) {
@@ -141,12 +143,13 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlLrFetcher) {
     function _fetchMore() {
         _getDataFromServer(null, true);
     }
-    
+	
     var _pageFetcher = nlServerApi.getPageFetcher();
     var _resultList = [];
 	function _getDataFromServer(resolve, fetchMore) {
-        if (!fetchMore) _resultList = [];
+		if (!fetchMore) _resultList = [];
 	    var params = {};
+		if(fetchMore) params['max'] = mode.max2;
 		var listingFn = mode.getListFnAndUpdateParams(params);
         _pageFetcher.fetchPage(listingFn, params, fetchMore, function(results) {
             if (!results) {

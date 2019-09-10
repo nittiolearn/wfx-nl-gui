@@ -25,7 +25,7 @@ function($stateProvider, $urlRouterProvider) {
 var RecycleBinCtrl = ['nl', 'nlRouter', 'nlDlg', '$scope', 'nlCardsSrv', 
 'nlServerApi', 'nlGroupInfo',
 function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
-	var _params = {mine: true, restored: false, max_record: 50};
+	var _params = {mine: true, restored: false, max_record: 50, max2: 500};
     var _groupInfo = null;
     var _isAdmin = false;
 
@@ -38,6 +38,7 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
             _copyIf(params, _params, 'actiontype');
             _copyIntIf(params, _params, 'max_record');
             _copyBoolIf(params, _params, 'restored');
+            _copyIntIf(params, _params, 'max2');
             
             if (!_isAdmin) _params.mine = true;
 
@@ -150,6 +151,7 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
     function _getDataFromServer(resolve, fetchMore) {
         if (!fetchMore) _cards = {};
         var params = _getServerParams();
+        if(fetchMore) params['max'] = _params.max2 || 500;
         _pageFetcher.fetchPage(nlServerApi.recyclebinList, params, fetchMore, function(results) {
             if (!results) {
                 if (resolve) resolve(false);

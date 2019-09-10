@@ -60,7 +60,7 @@ function(nl, $filter) {
         if (cards.search) {
             if(!cards.search.placeholder)
                 cards.search.placeholder = 'Start typing to search';            
-            if (!cards.search.icon) cards.search.icon = 'ion-ios-search';
+            if (!cards.search.icon) cards.search.icon = cards.search.onSearch ? 'ion-funnel' : '';
         } 
         _updateInternal(cards);
     };
@@ -112,13 +112,17 @@ function(nl, $filter) {
         if (!cards.canFetchMore) {
             cards._internal.search.infotxt = cards.fetchInProgress 
                 ? nl.t('{} Fetching more.', msg1) 
-                : nl.t('{} Search complete.', msg1);
+                : nl.t('{} {}.', cards._internal.search.filter ? 'Search complete' : 'Fetch complete', msg1);
             cards._internal.search.infotxt2 = msg1;
             return _animateInfotext(cards, oldInfotxt);
         }
         cards._internal.search.cls = 'fgrey nl-link-text';
         cards._internal.search.showDetails = true;
-        cards._internal.search.infotxt = nl.t('{} <b>Search more <i class="icon ion-refresh"></i></b>.', msg1);
+        if(cards._internal.search.filter) 
+            cards._internal.search.infotxt = nl.t('{} <b>Search more <i class="icon ion-refresh"></i></b>.', msg1);
+        else 
+            cards._internal.search.infotxt = nl.t('{} <b>Fetch more <i class="icon ion-refresh"></i></b>.', msg1);
+
         cards._internal.search.infotxt2 = nl.t('{} Not found what you are looking for? Do you want to fetch more items from the server?', msg1);
         return _animateInfotext(cards, oldInfotxt);
     }
@@ -187,11 +191,7 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
                     nlDlg.popupAlert({title: '', template: text});
                     return;
                 }
-                nlDlg.popupConfirm({title: '', template: text, okText: 'Fetch more', cancelText: 'Close'})
-                .then(function(res) {
-                    if (!res) return;
-                    $scope.$parent.onCardInternalUrlClicked({}, 'fetch_more');
-                });
+                $scope.$parent.onCardInternalUrlClicked({}, 'fetch_more');
             };
 
             $scope.onCardInternalUrlClicked = function(card, internalUrl) {

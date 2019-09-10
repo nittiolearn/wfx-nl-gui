@@ -86,6 +86,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
 	var assignId = 0;
 	var _userInfo = null;
 	var _maxDelete = 50;
+	var _max2 = 500;
     var _metadataEnabled = false;
     var _searchMetadata = null;
     var _canManage = false;
@@ -155,6 +156,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
         _metadataEnabled = (type == 'course') && !my;
 		_searchMetadata = nlMetaDlg.getMetadataFromUrl();
 		_maxDelete = params.max_delete || 50;
+		_max2 = ('max2' in params) ? parseInt(params.max2) : 500;
 	}
 
 	function _getPageTitle() {
@@ -212,6 +214,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
 	function _getDataFromServer(resolve, fetchMore) {
         if (!fetchMore) _resultList = [];
         var params = {metadata: _searchMetadata};
+		if(fetchMore) params['max'] = _max2;
         var listingFn = _getListFnAndUpdateParams(params);
         _pageFetcher.fetchPage(listingFn, params, fetchMore, function(results) {
             if (!results) {

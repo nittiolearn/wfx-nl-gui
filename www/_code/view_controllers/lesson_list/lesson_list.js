@@ -106,6 +106,7 @@ function ModeHandler(nl, nlServerApi, nlMetaDlg) {
     this.searchMetadata = {};
     this.resultList = [];
     this.revstate = 1;
+    this.max2 = 500;
 
 	this.initFromUrl = function(params) {
 		if (!params) params = nl.location.search();
@@ -113,6 +114,7 @@ function ModeHandler(nl, nlServerApi, nlMetaDlg) {
 		self.revstate = ('revstate' in params) ? parseInt(params.revstate) : 1;
 		self.searchMetadata = (!params.showInDlg) ? nlMetaDlg.getMetadataFromUrl() : {};
 		self.title = params.title || null;
+		self.max2 = ('max2' in params) ? parseInt(params.max2) : 500;
 	};
 	
 	this.getListFnAndUpdateParams = function(params) {
@@ -194,7 +196,7 @@ this.showSelectDlg = function($scope, initialUserInfo) {
 this.show = function($scope, initialUserInfo, params) {
 	var _showInDlg = params && params.showInDlg;
 	var mode = new ModeHandler(nl, nlServerApi, nlMetaDlg);
-	var _userInfo = null;
+    var _userInfo = null;
     var _pageFetcher = nlServerApi.getPageFetcher();
 
 	function _onPageEnter(userInfo) {
@@ -317,6 +319,7 @@ this.show = function($scope, initialUserInfo, params) {
         var params = {};
         if (!fetchMore) mode.resultList = [];
         params.metadata = mode.searchMetadata;
+		if(fetchMore) params['max'] = mode.max2;
         var listingFn = mode.getListFnAndUpdateParams(params);
         _pageFetcher.fetchPage(listingFn, params, fetchMore, function(results) {
             if (!results) {

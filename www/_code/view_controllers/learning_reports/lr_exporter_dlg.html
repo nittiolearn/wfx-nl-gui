@@ -28,7 +28,7 @@
             <span>download course details</span>
         </div>
         <div class='padding-mid nl-link-text' 
-             ng-show='reptype == "module_assign" || reptype == "module"'
+             ng-show='reptype == "module_assign" || reptype == "module" || reptype == "module_self_assign"'
              ng-click='export.module = !export.module'>
             <i ng-show='export.module' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.module' class="fsh4 icon ion-android-checkbox-outline-blank"></i>

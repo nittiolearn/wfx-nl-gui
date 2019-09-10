@@ -58,9 +58,9 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
         if (params.cid)
             params.dlg.scope.dlgTitle = nl.t('Metadata: {}', params.card.title);
         else
-            params.dlg.scope.dlgTitle = nl.t('Advanced search');
+            params.dlg.scope.dlgTitle = nl.t('Advanced filter');
         params.dlg.scope.data = {};
-        params.dlg.scope.banner = params.config.banner;
+        params.dlg.scope.banner = 'Results are shown based filters selected below.';
         params.dlg.scope.canFetchMore = params.config.canFetchMore;
         
         nlDlg.showLoadingScreen();
@@ -132,13 +132,9 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
             }});
         }
         if (isSearch) {
-            buttons.push({ text : nl.t('Search'), onTap : function(e) {
+            buttons.push({ text : nl.t('Apply'), onTap : function(e) {
                 if (params.resolve) params.resolve({metadata: _getMetadata(params, false)});
             }});
-            if (params.dlg.scope.canFetchMore)
-                buttons.push({ text : nl.t('Fetch more'), onTap : function(e) {
-                    if (params.resolve) params.resolve({canFetchMore: true});
-                }});
         }
         var cancelButton = {text : nl.t('Close')};
         params.dlg.show('lib_ui/utils/contentmetadata_dlg.html', buttons, cancelButton);

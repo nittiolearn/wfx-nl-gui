@@ -137,7 +137,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                 }
             }
 
-            if (filter.exportTypes.module && (type == 'module' || type == 'module_assign')) {
+            if (filter.exportTypes.module && (type == 'module' || type == 'module_assign' || type == 'module_self_assign')) {
                 for(var start=0, i=1; start < ctx.moduleRows.length; i++) {
                     var pending = ctx.moduleRows.length - start;
                     pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
