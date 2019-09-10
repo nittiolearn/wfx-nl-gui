@@ -93,10 +93,7 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/auth_validate_reset_key.json', data);
     }
     
-    this.authGetAuditData = function(updatedTill, limitBy) {
-        var data = {};
-        if (updatedTill !== undefined && updatedTill !== null) data.updatedTill = updatedTill;
-        if (limitBy !== undefined && limitBy !== null) data.limitBy = limitBy;
+    this.authGetAuditData = function(data) {
         return server.post('_serverapi/auth_get_audit_data.json', data);
     };
     
