@@ -58,9 +58,9 @@ function(nl, nlDlg, nlServerApi, nlTreeSelect) {
         if (params.cid)
             params.dlg.scope.dlgTitle = nl.t('Metadata: {}', params.card.title);
         else
-            params.dlg.scope.dlgTitle = nl.t('Advanced filter');
+            params.dlg.scope.dlgTitle = nl.t('Advanced filters');
         params.dlg.scope.data = {};
-        params.dlg.scope.banner = 'Results are shown based filters selected below.';
+        params.dlg.scope.banner = 'Fetch data from server based on below filters:';
         params.dlg.scope.canFetchMore = params.config.canFetchMore;
         
         nlDlg.showLoadingScreen();

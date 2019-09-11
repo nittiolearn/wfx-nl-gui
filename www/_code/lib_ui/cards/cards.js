@@ -69,7 +69,7 @@ function(nl, $filter) {
         cards._internal.clickDebouncer.debounce(timeout, _updateInternal)(cards);
     };
 
-    var _MAX_VISIBLE = 100;
+    var _MAX_VISIBLE = 500;
     function _updateInternal(cards) {
         var filteredCards = cards.cardlist;
         if (cards.search) {
@@ -105,14 +105,22 @@ function(nl, $filter) {
             return _animateInfotext(cards, oldInfotxt);
         }
         var item = (total == 1) ? 'item' : 'items';
-        var match = (visible == 1) ? 'match' : 'matches';
-        var plus = matched > visible ? '+' : '';
-        msg1 = nl.t('Found <b>{}{}</b> {} from <b>{}</b> {} searched.', 
-            visible, plus, match, total, item);
+        if (!cards._internal.search.filter) {
+            if (visible < total) {
+                msg1 = nl.t('Showing <b>{}</b> of <b>{}</b> {}.', visible, total, item);
+            } else {
+                msg1 = nl.t('Showing <b>{}</b> {}.', visible, item);
+            }
+        } else {
+            var match = (visible == 1) ? 'match' : 'matches';
+            var plus = matched > visible ? '+' : '';
+            msg1 = nl.t('Found <b>{}{}</b> {} from <b>{}</b> {} searched.', 
+                visible, plus, match, total, item);
+        }
         if (!cards.canFetchMore) {
             cards._internal.search.infotxt = cards.fetchInProgress 
                 ? nl.t('{} Fetching more.', msg1) 
-                : nl.t('{} {}.', cards._internal.search.filter ? 'Search complete' : 'Fetch complete', msg1);
+                : nl.t('{} {}.', msg1, cards._internal.search.filter ? 'Search complete' : 'Fetch complete');
             cards._internal.search.infotxt2 = msg1;
             return _animateInfotext(cards, oldInfotxt);
         }
@@ -220,7 +228,7 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
 			$scope.searchKeyHandler = function(event) {
                 var MAX_KEYSEARCH_DELAY = 200;
                 if (event.which === 13) {
-                    $scope.onSearchButton();
+                    $scope.showResultDetails();
                     return;
                 }
                 nlCardsSrv.updateInternal($scope.cards, MAX_KEYSEARCH_DELAY);
