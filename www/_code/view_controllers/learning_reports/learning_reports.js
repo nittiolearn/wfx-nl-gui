@@ -117,7 +117,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		// Order is important
 		nlTreeListSrv.init(nl);
-		nlLrFilter.init(settings, _userInfo);
+		nlLrFilter.init(settings, _userInfo, nlGroupInfo);
 		nlLrCourseRecords.init();
 		nlLrAssignmentRecords.init();
 		nlLrReportRecords.init(_userInfo);
@@ -268,6 +268,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			id: 'modifyAssignment',
 			onClick : _onClickModifyAssignment,
 		}, {
+			title : 'Select and filter users',
+			icon : 'ion-ios-people',
+			id: 'selectUser',
+			onClick : _showRangeSelection,
+		}, {
 			title : 'Download report',
 			icon : 'ion-ios-cloud-download',
 			id: 'export',
@@ -280,7 +285,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			onClick : _onExportCustomReport
 		}];
 	}
-	
+
 	$scope.canShowToolbarIcon = function(tbid) {
 			var type = nlLrFilter.getType();
 		if (nlLrFetcher.fetchInProgress(true)) return false;
@@ -318,6 +323,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 
 		if (tbid == 'exportCustomReport') return (type == 'course') && ($scope.debug || _customReportTemplate);
+		if (tbid == 'selectUser') return (nlLrFilter.getType() == 'user');
 		return true;
 	};
 	

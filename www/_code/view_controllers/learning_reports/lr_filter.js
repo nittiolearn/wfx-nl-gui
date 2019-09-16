@@ -14,11 +14,11 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, nlRouter, nlGroupInfo) {
+var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDlg, nlRouter, nlOuUserSelect) {
 	var self = this;
 	// TODO-LATER: 'type' default should be 'all'
 	var _dataDefaults = {
-		type: 'course',		// all|module|course|trainig_kind|module_assign|course_assign|module_self_assign|training_batch
+		type: 'course',		// all|module|course|trainig_kind|module_assign|course_assign|module_self_assign|training_batch|user
 		timestamptype: 'created', // created|updated
 		assignor: 'all',	// all|me, will auomatically change to 'me' if assignment_manage permission is not there
 		parentonly: true,	// fetch only parent records or also records part containing course/training
@@ -26,24 +26,31 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 		title: null,		// Title for the page
 		showfilters: true,	// Should the initial fetch filter dialog be shown
 		showfilterjson: false, // Should json for additional filters be shown
-		debug: false //only for testing in debug mode
+		debug: false, //only for testing in debug mode
+		userSelection: false
 	};
 	var _data = null;
+	var _groupInfo = null;
 	
-    this.init = function(settings, userInfo) {
+    this.init = function(settings, userInfo, groupInfo) {
 		_data = {};
+		_groupInfo = groupInfo;
         var urlParams = nl.location.search();
 		_fillAttrs(_data, ['type'], [settings, urlParams, _dataDefaults]);
-        if (!_oneOf(_data.type, ['all', 'module', 'course', 'training_kind', 'module_assign', 'course_assign', 'module_self_assign', 'training_batch']))
+        if (!_oneOf(_data.type, ['all', 'module', 'course', 'training_kind', 'module_assign', 'course_assign', 'module_self_assign', 'training_batch', 'user']))
         	_data.type = 'course'; // TODO-LATER: should be 'all'
         _fillAttrs(_data, ['timestamptype', 'assignor', 'parentonly', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug'], 
         	[settings, urlParams, _dataDefaults]);
-        if (_oneOf(_data.type, ['module_assign', 'course_assign', 'training_batch']))
-        	_data.showfilters = false;
+        if (_oneOf(_data.type, ['module_assign', 'course_assign', 'training_batch', 'user']))
+			_data.showfilters = false;
+			
+		if (_oneOf(_data.type, ['user'])) _data.userSelection = true;
         if(_data.type == 'module') _data.parentonly = false;
         _toBool(_data, 'parentonly');
-        _toInt(_data, 'objid');
+		if(_data.type != 'user') _toInt(_data, 'objid');
+		
         _toBool(_data, 'showfilters');
+        _toBool(_data, 'userSelection');
         _toBool(_data, 'debug');
         if (!nlRouter.isPermitted(userInfo, 'assignment_manage')) _data.assignor = 'me';
     	_initDates();
@@ -58,6 +65,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 		else if (_data.type == 'course_assign') return 'Course assignment report';
 		else if (_data.type == 'module_self_assign') return 'Exploratory learning report';
 		else if (_data.type == 'training_batch') return 'Traning batch report';
+		else if (_data.type == 'user') return 'User report';
 		else return 'Learning report';
 	};
 	
@@ -81,12 +89,18 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
     	return _data.showfilters;
     };
 
-    this.show = function($scope) {
-    	if (!_data.showfilters) {
+	this.showUserSelection = function() {
+		return _data.userSelection;
+	};
+
+    var _ouUserSelector = null;
+
+	this.show = function($scope) {
+    	if (!(_data.showfilters || _data.userSelection)) {
     		return nl.q(function(resolve, reject) {
     			resolve(true);
     		});
-    	}
+		}
         var dlg = nlDlg.create($scope);
         dlg.setCssClass('nl-height-max nl-width-max');
 		dlg.scope.options = {
@@ -103,24 +117,54 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 			createdfrom: {name: 'From', help: 'Select the start of the timerange to featch reports.'},
 			createdtill: {name: 'Till', help: 'Select the end of the timerange to featch reports.'},
 			filterjson: {name: 'Additional filters', help: '<div>Provide additional filters as a json string. For example:</div>'
-					+ '<pre>' +  defaultFilterjson + '</pre>'}
+					+ '<pre>' +  defaultFilterjson + '</pre>'},
+			ouUserTree: {name: 'Select user', help: nl.t('Select the specific learner to fetch reports.')}
 		};
 		if (_data.showfilterjson && _data.filterjson === undefined) _data.filterjson = defaultFilterjson;
 		dlg.scope.showfilterjson = _data.showfilterjson;
-        dlg.scope.data = {timestamptype: {id: _data.timestamptype}, createdfrom: _data.createdfrom, createdtill: _data.createdtill, filterjson: _data.filterjson};
-        dlg.scope.error = {};
-        dlg.scope.dlgTitle = nl.t('Specify the range');
+
+		if(_data.userSelection) {
+			dlg.scope.singleSelect = true;
+			var grpinfo = _groupInfo.get();
+			var selectedUsers = {};
+			if(_data.type == 'user' && _data.objid) {
+				var userObj = grpinfo.derived.keyToUsers[_data.objid];
+				var selected = userObj.org_unit+'.'+userObj.id;
+					selectedUsers[selected] = true;	
+			}
+			_ouUserSelector = nlOuUserSelect.getOuUserSelector(dlg.scope, 
+				grpinfo, {}, {});
+			if(Object.keys(selectedUsers).length != 0) _ouUserSelector.updateSelectedIds(selectedUsers)
+		}
+		
+		dlg.scope.data = {timestamptype: {id: _data.timestamptype}, createdfrom: _data.createdfrom, createdtill: _data.createdtill, filterjson: _data.filterjson};
+		dlg.scope.error = {};
+		dlg.scope.userSelection = _data.userSelection;
+		dlg.scope.dlgTitle = nl.t('Specify the range');
+		if(_ouUserSelector) {
+			dlg.scope.data['ouUserTree'] = _ouUserSelector.getTreeSelect();
+		}
         var button = {text: nl.t('Fetch'), onTap: function(e){
             if (!_validateInputs(dlg.scope)) {
                 if (e) e.preventDefault();
                 return;
             }
-            var sd = dlg.scope.data;
-            _data.timestamptype = sd.timestamptype.id;
-            _data.createdtill = sd.createdtill;
-			_data.createdfrom = sd.createdfrom;
-			_data.filterjson = sd.filterjson;
-            return true;
+			var sd = dlg.scope.data;
+			if(_data.type == 'user') {
+				var selectedUsers = _ouUserSelector.getSelectedUsers();
+				var userObj = null;
+				for(var key in selectedUsers) {
+					userObj = selectedUsers[key].userObj;
+				}
+				_data.objid = userObj.username;
+				_data.userid = userObj.id;
+			} else {
+				_data.timestamptype = sd.timestamptype.id;
+				_data.createdtill = sd.createdtill;
+				_data.createdfrom = sd.createdfrom;
+				_data.filterjson = sd.filterjson;	
+			}
+			return true;
         }};
         var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
             return false;
@@ -130,7 +174,8 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 
  	this.getServerParams = function() {
 		var ret = {type: _data.type, assignor: _data.assignor, parentonly: _data.parentonly};
-		if (_data.type != 'all' && _data.objid) ret.objid = _data.objid; 
+		if (_data.type != 'all' && _data.objid) ret.objid = _data.objid;
+		if (_data.type == 'user') ret.userid = _data.userid;
 		if (_data.showfilters) {
 			if (_data.timestamptype == 'created') {
 				ret.createdtill = _data.createdtill;
@@ -164,7 +209,15 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', function(nl, nlDlg, 
 
     function _validateInputs(scope){
 		_data.filterobj = null;
-        scope.error = {};
+		scope.error = {};
+		if (_data.type == 'user') {
+			var selectedUsers = _ouUserSelector ? _ouUserSelector.getSelectedUsers() : {};
+			if (Object.keys(selectedUsers).length == 0) {
+				nlDlg.popupAlert({title: 'Please select user', template: 'Please select learner to fetch records'});
+				return false;
+			}
+			return true;
+		}
         if (!scope.data.createdfrom) return _validateFail(scope, 'createdfrom', 'From date is mandatory');
         if (!scope.data.createdtill) return _validateFail(scope, 'createdtill', 'Till date is mandatory');
 		if (scope.data.createdfrom >= scope.data.createdtill) return _validateFail(scope, 'createdtill', 'Till date should be later than from date');

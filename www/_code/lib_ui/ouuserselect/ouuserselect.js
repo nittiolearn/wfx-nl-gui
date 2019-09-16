@@ -162,6 +162,7 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect,
     var self = this;
     var _ouUserTree = {data: [], treeIsShown: false, showCounts: true,
         removeEmptyFolders: true, folderType: 'ou'};
+    if(parentScope.singleSelect) _ouUserTree['multiSelect'] = false;
     var _fullTreeData = [];
     var _filterTrees = null;
     

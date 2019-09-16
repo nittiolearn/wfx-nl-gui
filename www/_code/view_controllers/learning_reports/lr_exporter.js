@@ -49,7 +49,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 		dlg.scope.reptype = nlLrFilter.getType();
         dlg.setCssClass('nl-height-max nl-width-max');
         dlg.scope.export = {summary: true, user: true, module: (dlg.scope.reptype == 'module' || dlg.scope.reptype == 'module_assign' || dlg.scope.reptype  == 'module_self_assign') ? true : false, ids: true,
-            pageScore: false, feedback: false, courseDetails: false, drilldown: true};
+        indUser: (dlg.scope.reptype == 'user'), pageScore: false, feedback: false, courseDetails: false, drilldown: true};
         dlg.scope.data = {};
 		_setExportFilters(dlg, reportRecords);
         var filterData = dlg.scope.filtersData;
@@ -57,7 +57,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             text : nl.t('Download'),
             onTap : function(e) {
                 var exp = dlg.scope.export;
-                var selected = exp.summary || exp.user || exp.module;
+                var selected = exp.summary || exp.user || exp.module || exp.indUser;
                 if(!selected) {
                     dlg.scope.warn = 'Please select atleast one type of report to download';
                     if(e) e.preventDefault();
@@ -120,7 +120,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             for(var start=0, i=1; start < reportRecords.length; i++) {
                 var pending = reportRecords.length - start;
                 pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
-                var fileName = nl.fmt2('course-reports-{}.csv', i);
+                var fileName = type == 'user' ? nl.fmt2('user-reports-{}.csv', i) : nl.fmt2('course-reports-{}.csv', i);
             	_createUserCsv(filter, reportRecords, zip, fileName, start, start+pending, expSummaryStats);
                 start += pending;
             }
@@ -271,6 +271,11 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         }
         
         if (filter.exportTypes.user && (filter.reptype == 'course' || filter.reptype == 'course_assign')) {
+            var content = rows.join(_CSV_DELIM);
+            zip.file(fileName, content);
+        }
+
+        if (filter.exportTypes.indUser && (filter.reptype == 'user')) {
             var content = rows.join(_CSV_DELIM);
             zip.file(fileName, content);
         }
