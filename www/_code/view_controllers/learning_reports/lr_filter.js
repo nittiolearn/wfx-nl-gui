@@ -126,13 +126,15 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		if(_data.userSelection) {
 			dlg.scope.singleSelect = true;
 			var grpinfo = _groupInfo.get();
-			var userObj = grpinfo.derived.keyToUsers[_data.objid];
 			var selectedUsers = {};
-			var selected = userObj.org_unit+'.'+userObj.id;
-				selectedUsers[selected] = true;
+			if(_data.type == 'user' && _data.objid) {
+				var userObj = grpinfo.derived.keyToUsers[_data.objid];
+				var selected = userObj.org_unit+'.'+userObj.id;
+					selectedUsers[selected] = true;	
+			}
 			_ouUserSelector = nlOuUserSelect.getOuUserSelector(dlg.scope, 
 				grpinfo, {}, {});
-			_ouUserSelector.updateSelectedIds(selectedUsers)
+			if(Object.keys(selectedUsers).length != 0) _ouUserSelector.updateSelectedIds(selectedUsers)
 		}
 		
 		dlg.scope.data = {timestamptype: {id: _data.timestamptype}, createdfrom: _data.createdfrom, createdtill: _data.createdtill, filterjson: _data.filterjson};
@@ -148,7 +150,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
                 return;
             }
 			var sd = dlg.scope.data;
-			if(_data.userSelection) {
+			if(_data.type == 'user') {
 				var selectedUsers = _ouUserSelector.getSelectedUsers();
 				var userObj = null;
 				for(var key in selectedUsers) {
@@ -206,10 +208,10 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
     }
 
     function _validateInputs(scope){
-		var selectedUsers = _ouUserSelector.getSelectedUsers() || {};
 		_data.filterobj = null;
 		scope.error = {};
-		if (scope.userSelection) {
+		if (_data.type == 'user') {
+			var selectedUsers = _ouUserSelector ? _ouUserSelector.getSelectedUsers() : {};
 			if (Object.keys(selectedUsers).length == 0) {
 				nlDlg.popupAlert({title: 'Please select user', template: 'Please select learner to fetch records'});
 				return false;
