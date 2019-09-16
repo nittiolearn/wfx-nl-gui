@@ -1,20 +1,26 @@
 <nl-dlg dlgtitle='{{dlgTitle}}' show-help='0'>
 <nl-dlg-content>
-    <nl-dlg-row attr='timestamptype' data='data' help='help'>
-        <nl-select fieldmodel='timestamptype'></nl-select>
-    </nl-dlg-row>
+    <div ng-hide='userSelection'>
+        <nl-dlg-row attr='timestamptype' data='data' help='help'>
+            <nl-select fieldmodel='timestamptype'></nl-select>
+        </nl-dlg-row>
 
-    <nl-dlg-row attr='createdfrom' data='data' help='help'>
-        <nl-date-time-select fieldmodel='createdfrom' fieldCls='nl-dlg-field-value'></nl-date-time-select>
-    </nl-dlg-row>
+        <nl-dlg-row attr='createdfrom' data='data' help='help'>
+            <nl-date-time-select fieldmodel='createdfrom' fieldCls='nl-dlg-field-value'></nl-date-time-select>
+        </nl-dlg-row>
 
-    <nl-dlg-row attr='createdtill' data='data' help='help'>
-        <nl-date-time-select fieldmodel='createdtill' fieldCls='nl-dlg-field-value'></nl-date-time-select>
-    </nl-dlg-row>
-    
-    <nl-dlg-row ng-if='showfilterjson' attr='filterjson' data='data' help='help'>
-        <nl-textarea fieldmodel='filterjson' fieldCls='nl-dlg-field-value'></nl-textarea>
-    </nl-dlg-row>
+        <nl-dlg-row attr='createdtill' data='data' help='help'>
+            <nl-date-time-select fieldmodel='createdtill' fieldCls='nl-dlg-field-value'></nl-date-time-select>
+        </nl-dlg-row>
+        
+        <nl-dlg-row ng-if='showfilterjson' attr='filterjson' data='data' help='help'>
+            <nl-textarea fieldmodel='filterjson' fieldCls='nl-dlg-field-value'></nl-textarea>
+        </nl-dlg-row>
+    </div>
 
+	<nl-dlg-row ng-if='userSelection' attr='ouUserTree' data='data' help='help'>
+        <nl-tree-select info='data.ouUserTree' tabindex='0' autofocus='' fieldCls='nl-dlg-field-value'>
+        </nl-tree-select>
+	</nl-dlg-row>
 </nl-dlg-content>
 </nl-dlg>
