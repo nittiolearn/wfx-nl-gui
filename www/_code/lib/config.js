@@ -383,7 +383,7 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
         for(var uid in groupInfo.users) {
             var user = self.getUserObj(uid, grpid);
             if(canFilter) {
-                if(user.org_unit.indexOf(userObj.org_unit) == 0) udict[user.username] = user;
+                if(user.org_unit.indexOf(userObj.org_unit) == 0 || user.sec_ou_list.indexOf(userObj.org_unit) == 0) udict[user.username] = user;
             } else {
                 udict[user.username] = user;
             }
