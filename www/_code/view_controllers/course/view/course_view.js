@@ -199,7 +199,8 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         if (self.mode === MODES.REPORT_VIEW) {
             if (!rep || !rep.completed) return _popupAlert('Not completed', 
                 'This learning module is not yet completed. You may view the report once it is completed.');
-            return _redirectTo('/lesson/review_report_assign/{}', rep.reportId, newTab);
+            var func = self.urlModeStr != 'report_view_my' ? 'review_report_assign' : 'view_report_assign';
+            return _redirectTo('/lesson/' + func + '/{}', rep.reportId, newTab);
         }
         if (_redirectToLessonReport(rep, newTab, cm, bUpdate, scope)) return true;
     }
