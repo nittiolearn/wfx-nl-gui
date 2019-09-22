@@ -95,7 +95,7 @@
                 <!-- Images -->
                 <div class='row row-center padding0 margin0 row-wrap'>
                     <div class='announcement-res-holder padding' ng-repeat='res in announcement.resources'  ng-if='($root.announcement.mode == "pane" && $index == 0) || ($root.announcement.mode == "full")'>
-                        <img class='announcement-res' ng-if='res.type == "img"' src='{{res.url}}'/>
+                        <img class='announcement-res' ng-if='res.type == "img"' ng-src='{{res.url}}'/>
                         <div ng-if='res.type == "video"' nl-compile='res.markUpurl' class='nl-content-holder'></div>
                     </div>
                 </div>
