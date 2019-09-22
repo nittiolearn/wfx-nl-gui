@@ -84,7 +84,7 @@ input.nl-border-radius {
 					<div class='hintmsg padding-mid' ng-bind-html='hintmsg'></div>
 					<div class='padding-small'></div>
 				</div>
-			    <div class='row row-wrap row-top padding0 margin0 text-left'>
+			    <div ng-if='msgType != "login_otp" && msgType != "login_otp_received"' class='row row-wrap row-top padding0 margin0 text-left'>
 			        <div ng-class='resp2Col33' class='padding-mid'>
 			            <div class='padding-mid-v'>User ID</div></div>
 					<div ng-if='msgType != "pw_change" && msgType != "pw_reset"'
@@ -99,7 +99,7 @@ input.nl-border-radius {
 				</div>
 		
 			    <div class='row row-wrap row-top padding0 margin0 text-left'
-			         ng-if='msgType != "impersonate" &&  msgType != "pw_reset"'>
+			         ng-if='msgType != "impersonate" &&  msgType != "pw_reset" && msgType != "login_otp" && msgType != "login_otp_received"'>
 			        <div ng-class='resp2Col33' class='padding-mid'>
 			            <div class='padding-mid-v'>
 							<span ng-show='msgType == "pw_change"'>Current </span>Password
@@ -127,15 +127,53 @@ input.nl-border-radius {
 			                      ng-keypress="onVerifyNewPasswordEnter($event)"></nl-input>
 			        </div>
 			    </div>
-				<div ng-if='msgType != "impersonate" && msgType != "pw_change" && msgType != "pw_reset"'
+				<div ng-if='msgType != "impersonate" && msgType != "pw_change" && msgType != "pw_reset" && msgType != "login_otp" && msgType != "login_otp_received"'
 					 class='nl-link-text2 padding-mid text-left'
 			         ng-click='lostPassword()'>
 			         <div class='padding-mid-v'>Forgot Password?</div>
 			    </div>
-			    <div class='padding-mid'>
-				    <div class='nl-signin-button nl-link-text2'
-				    	 ng-click='loginWithSignInOrEnter()'>Sign in</div>
-			    </div>
+			    <div ng-if='msgType != "login_otp" && msgType != "login_otp_received"' class='padding-mid'>
+				    <div class='nl-signin-button nl-link-text2' ng-click='loginWithSignInOrEnter()'>Login</div>
+				</div>
+				<div ng-if='debug && msgType != "login_otp" && msgType != "login_otp_received"' class='padding-mid text-center'>
+					<div class='padding-mid-v'>OR</div>
+				</div>
+	
+				<div class='padding-mid' ng-if='debug && msgType != "login_otp" && msgType != "login_otp_received"'>
+					<div class='nl-signin-button nl-link-text2' ng-click='loginOTP()'>Login with OTP</div>
+				</div>
+		
+				<div ng-if='msgType == "login_otp"' 
+					class='row row-wrap row-top padding0 margin0 text-left'>
+					<div ng-class='resp2Col33' class='padding-mid'><div class='padding-mid-v'>User ID/ Mobile Number</div></div>
+					<div ng-class='resp2Col67' class='padding-mid-v'>
+						<nl-input fieldmodel='phonenumber' ng-keypress="isNumberKey($event, 10, 'phonenumber', requestOTP)" fieldtype='text' fieldcls='w100 nl-border-radius'></nl-input>
+					</div>
+				</div>
+	
+				<div class='padding-mid' ng-if='msgType == "login_otp"'>
+					<div class='nl-signin-button nl-link-text2' ng-click='requestOTP()'>Request OTP</div>
+				</div>
+
+				<div ng-if='msgType == "login_otp_received"' class='row row-wrap row-top padding0 margin0 text-left'>
+					<div ng-class='resp2Col33' class='padding-mid'><div class='padding-mid-v'>Enter OTP</div></div>
+					<div ng-class='resp2Col67' class='padding-mid-v'>
+						<nl-input fieldmodel='otp' ng-keypress="isNumberKey($event, 4, 'otp', loginWithOTP)" fieldtype='text'  fieldcls='w100 nl-border-radius'></nl-input>
+					</div>
+				</div>
+	
+				<div class='padding-mid' ng-if='msgType == "login_otp_received"'>
+					<div class='nl-signin-button nl-link-text2' ng-click='loginWithOTP()'>Login</div>
+				</div>
+	
+				<div ng-if='msgType == "login_otp" || msgType == "login_otp_received"' class='padding-mid text-center'>
+					<div class='padding-mid-v'>OR</div>
+				</div>
+					
+				<div class='padding-mid' ng-if='msgType == "login_otp" || msgType == "login_otp_received"'>
+					<div class='nl-signin-button nl-link-text2' ng-click='loginWithUserID()'>Login with User ID</div>
+				</div>
+				
 				</div>
 			</div>
 		</div>

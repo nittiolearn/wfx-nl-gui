@@ -103,6 +103,7 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
     var params = nl.location.search();
     _updateMsg(ctrlType == 'login' ? params.msg || '' : ctrlType);
 
+    $scope.debug = 'debug' in params;
     $scope.reset_key = params.reset_key || '';
     $scope.user_id = params.user_id || '';
     $scope.initDone = false;
@@ -235,6 +236,66 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
         }
     }    	
     
+    $scope.loginOTP = function() { _updateMsg('login_otp'); }
+    $scope.loginWithUserID = function() { _updateMsg('login_userid'); }
+
+    $scope.loginWithOTP = function() {
+        if($scope.data.otp.length !== 4) return nlDlg.setFieldError($scope, 'otp', nl.t('Please Enter a Valid OTP'));
+        nlDlg.showLoadingScreen();
+        nlServerApi.clearCache();
+        var phonenumber = "+91" + $scope.data.phonenumber;
+        var dataToServer = {phonenumber: phonenumber, otp: $scope.data.otp}
+        nlServerApi.authVerifyOTP(dataToServer).then(function(data) {
+            nlDlg.hideLoadingScreen();
+            if(data.type === 'error') return nlDlg.popupAlert({title: 'Error', template: data.message});
+            console.log(data);
+        });
+    }
+
+    $scope.isNumberKey = function(evt, len, fieldname, fn) {
+        if(evt.keyCode === 13) fn();
+        var value = $scope.data[fieldname];
+        var key = Number(evt.key)
+        if (isNaN(key) || evt.key===null || evt.key===' ' || (value && value.length >= len)) {
+            event.preventDefault();
+            event.stopPropagation();
+            return false;
+        }
+        return true;
+    }
+
+    $scope.requestOTP = function() {
+        if (!_validatePhoneNumber($scope)) return;
+        nlDlg.showLoadingScreen();
+        nlServerApi.clearCache();
+        var phonenumber = "+91" + $scope.data.phonenumber;
+        nlServerApi.authRequestOTP(phonenumber).then(function(data) {
+            nlDlg.hideLoadingScreen();
+            console.log(data);
+            if(data.type === 'error') return nlDlg.popupAlert({title: 'Error', template: 'Please Enter Valid Mobile Number'});
+            if(data.type === 'success') $scope.msgType = "login_otp_received"
+        }, function(err){ 
+            $scope.msg = err.message;
+            return nlDlg.popupAlert({title: 'Error', template: err.message});
+        });
+    }
+
+    function _validatePhoneNumber(scope) {
+        scope.error = {};
+        if (scope.data.phonenumber == '' || scope.data.phonenumber == undefined) {
+            return nlDlg.setFieldError(scope, 'phonenumber', nl.t('Phone Number is required'));
+        } else if (scope.data.phonenumber.length > 0) {
+            scope.data.phonenumber = scope.data.phonenumber.trim();
+            var num = scope.data.phonenumber.replace(/[^0-9]/g, "");
+            var firstChar = parseInt(num[0]);
+            if((num.match(/^(.)\1 $/) != null) || (num.length !== 10) || firstChar < 6) {
+                return nlDlg.setFieldError(scope, 'phonenumber', nl.t('Please Enter a Valid Phone Number'));
+            }
+        }
+        return true
+     }
+    
+
     function _updateMsg(msgType) {
         $scope.msgType = msgType;
         $scope.msgClass = 'nl-signin-msg';
