@@ -257,8 +257,10 @@ nlesson = function() {
         }
 
 		if (self.renderCtx.launchCtx() == 'do_assign') {
-			var submit = '<span onclick="javascript:submitReportAssign()" class="nl-link-img" style="padding: 8px" style="display:inline-block"><i class="ion-ios-checkmark icon"></i> submit</span>';
-			submit = njs_helper.fmt2('<div style="font-size:15G0%; line-height:1.5em">This is the end of this module. Click on the {} button if you have completed.</div>',
+            var submit = '<div class="row row-center margin0 padding0 nl-link-img nl-button" onclick="javascript:submitReportAssign()" style="width:fit-content;margin:auto;padding: 15px 25px; border-radius: 5px;">'
+                        +'<div><i class="ion-ios-checkmark icon" style="padding-right:16px"></i></div>'
+                        +'<div class="col">click here to submit</div></div>';
+			submit = njs_helper.fmt2('<div style="font-size:150%; line-height:1.5em">{}</div>',
 				submit);
 			var oPage = {type: 'text', sections: [{text: submit}]};
 			var po = new Page(self);
@@ -588,7 +590,7 @@ nlesson = function() {
 	function _shallShowZodi(lesson) {
 		var curPage = lesson.getCurrentPage();
 		if ('hint' in curPage.oPage && curPage.oPage.hint != '') return true;
-		if (curPage.getMaxScore() > 0) return true;
+		//if (curPage.getMaxScore() > 0) return true;
 		return false;
 	}
 
