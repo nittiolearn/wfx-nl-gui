@@ -865,7 +865,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			drillDownArray.push(root.cnt);
 			if(firstTimeGenerated && isSingleReport) root.cnt.isOpen = true;
 			if(root.cnt.isOpen) {
-				_addSuborgOrOusToArray(root.children, root.cnt.sortkey, isSingleReport, firstTimeGenerated);
+				_addSuborgOrOusToArray(root.children, root.cnt.sortkey, undefined, isSingleReport, firstTimeGenerated);
 			}
 		}
 		drillDownArray.sort(function(a, b) {
@@ -909,21 +909,19 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return columns;
 	}
 
-	function _addSuborgOrOusToArray(subOrgDict, sortkey) {
+	function _addSuborgOrOusToArray(subOrgDict, sortkey, subOrgName) {
 		for(var key in subOrgDict) {
 			var org = subOrgDict[key]
 				org.cnt['sortkey'] = sortkey+org.cnt.name;
 				org.cnt['orgname'] = org.cnt['name'];
-				if(nlGroupInfo.isSubOrgEnabled() && (org.cnt.name !== 'Others' && org.cnt.name.split('.').length > 2)) {
-					var orgname = org.cnt.name.split('.');
-					orgname.splice(0,2);
-					org.cnt['orgname'] = orgname.join('.');
-				} else {
-					org.cnt['orgname'] = org.cnt['name'];
+				if(nlGroupInfo.isSubOrgEnabled()){
+					if(subOrgName && org.cnt['name'].indexOf(subOrgName+'.') === 0) {
+						org.cnt['orgname'] = org.cnt['name'].slice(subOrgName.length+1);
+					}
 				}
 			drillDownArray.push(org.cnt);
 			if(org.cnt.isOpen && org.children) {
-				_addSuborgOrOusToArray(org.children, org.cnt.sortkey)
+				_addSuborgOrOusToArray(org.children, org.cnt.sortkey, org.cnt.name)
 			}
 		}
 	}
