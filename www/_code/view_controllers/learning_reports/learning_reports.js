@@ -860,7 +860,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				if(isSingleReport) continue;
 			} else {
 				root.cnt.style = 'nl-bg-blue';
-				root.cnt['sortkey'] = 1+root.cnt.name;
+				root.cnt['sortkey'] = 1+root.cnt.name+key;
 			}
 			drillDownArray.push(root.cnt);
 			if(firstTimeGenerated && isSingleReport) root.cnt.isOpen = true;
@@ -913,6 +913,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for(var key in subOrgDict) {
 			var org = subOrgDict[key]
 				org.cnt['sortkey'] = sortkey+org.cnt.name;
+				org.cnt['orgname'] = org.cnt['name'];
+				if(nlGroupInfo.isSubOrgEnabled() && (org.cnt.name !== 'Others' && org.cnt.name.split('.').length > 2)) {
+					var orgname = org.cnt.name.split('.');
+					orgname.splice(0,2);
+					org.cnt['orgname'] = orgname.join('.');
+				} else {
+					org.cnt['orgname'] = org.cnt['name'];
+				}
 			drillDownArray.push(org.cnt);
 			if(org.cnt.isOpen && org.children) {
 				_addSuborgOrOusToArray(org.children, org.cnt.sortkey)
