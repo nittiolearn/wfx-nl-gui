@@ -45,9 +45,13 @@ function(nl, $ionicPopup, $ionicLoading) {
     };
 
     this.popupStatus2 = function(params) {
-        var msg =  !params.icon ? params.msg
-            : nl.fmt2('<div class="row row-top padding0 margin0"><div class="fsh3 padding-small"><i class="icon {}"></i>' +
-                '</div><div class="col padding-mid">{}</div></div>', params.icon, params.msg);
+        var msg = params.msg;
+        if (params.icon) {
+            msg = msg ? nl.fmt2('<div>{}</div>', msg) : '';
+            msg = nl.fmt2('<div class="row row-center padding0 margin0">' +
+                '<i class="sbicon icon {}"></i>' +
+                '{}</div>', params.icon, msg);
+        }
         this.popupStatus(msg, params.popdownTime, params.cls, params.showClose);
     };
     

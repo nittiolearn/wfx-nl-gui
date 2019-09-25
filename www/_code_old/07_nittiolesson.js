@@ -259,7 +259,7 @@ nlesson = function() {
 		if (self.renderCtx.launchCtx() == 'do_assign') {
             var submit = '<div class="row row-center margin0 padding0 nl-link-img nl-button" onclick="javascript:submitReportAssign()" style="width:fit-content;margin:auto;padding: 15px 25px; border-radius: 5px;">'
                         +'<div><i class="ion-ios-checkmark icon" style="padding-right:16px"></i></div>'
-                        +'<div class="col">click here to submit</div></div>';
+                        +'<div class="col">Submit</div></div>';
 			submit = njs_helper.fmt2('<div style="font-size:150%; line-height:1.5em">{}</div>',
 				submit);
 			var oPage = {type: 'text', sections: [{text: submit}]};
@@ -2426,7 +2426,7 @@ function ModulePopupHadler() {
     	if (!section.oSection.popups) return false;
         if (g_lesson.renderCtx.launchCtx() != 'do_assign') return true;
         if (!section.page.pagetype.isInteractive(section)) return true;
-        if (g_lesson.oLesson.selfLearningMode) return true;
+        //if (g_lesson.oLesson.selfLearningMode) return true;
         return false;
     }
 }

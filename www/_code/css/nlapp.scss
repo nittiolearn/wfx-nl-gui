@@ -1080,7 +1080,6 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 #statusBox {
   z-index: 1000;
   cursor: pointer;
-  box-shadow: inset 0 0 2px $nlBlue1, 0 0 5px $nlBlue1;
   position: absolute;
   bottom: 1%;
   left: 1%;
@@ -1107,6 +1106,11 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
     color: $nlBlue1;
     padding: 4px 8px;
   }
+  .sbicon.icon {
+    font-size: 150%;
+    line-height: 0;
+    padding: 8px;
+  }
 }
 
 #statusBox.show_close {
@@ -1131,23 +1135,46 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 
 #statusBox.red {
   background: $nlRed;
-  box-shadow: inset 0 0 2px #FF0000, 0 0 5px $nlRed;
   
   .close_button {
     border: 2px solid $nlRed;
     box-shadow: inset 0 0 2px $nlRed, 0 0 5px $nlRed;
     color: $nlRed;
   }
+  .sbicon.icon {
+    font-size: 200%;
+  }
 }
 
 #statusBox.green {
   background: $nlGreen1;
-  box-shadow: inset 0 0 2px #FF0000, 0 0 5px $nlGreen1;
   
   .close_button {
     border: 2px solid $nlGreen1;
     box-shadow: inset 0 0 2px $nlGreen1, 0 0 5px $nlGreen1;
     color: $nlGreen1;
+  }
+}
+
+#statusBox.border_less_green {
+  background: none;
+  box-shadow: none;
+  .sbicon.icon {
+    font-size: 125%;
+    background-color: $nlGreen1;
+    color: white;
+    border-radius: 50%;
+  }
+}
+
+#statusBox.border_less_red {
+  background: none;
+  box-shadow: none;
+  .sbicon.icon {
+    font-size: 125%;
+    background-color: $nlRed;
+    color: white;
+    border-radius: 50%;
   }
 }
 

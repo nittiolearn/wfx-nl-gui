@@ -516,6 +516,7 @@ function _SyncManager_init(self) {
 	self.syncInProgress = false;
 	self.pendingRequests = [];
 	self.error = false;
+	self.processedBackgroundTask = false;
 }
 
 function _SyncManager_doNext(self) {
@@ -526,19 +527,21 @@ function _SyncManager_doNext(self) {
 			params.msg = 'Failure during save';
 			params.cls = 'red';
 			params.icon = 'ion-close-circled';
+			
 		} else {
 			params.msg = 'Saved';
 		}
 		self.error = false;
-		njs_helper.Dialog.popupStatus2(params);
+		if (!self.processedBackgroundTask) njs_helper.Dialog.popupStatus2(params);
 		return;
 	}
 
-	njs_helper.Dialog.popupStatus('Saving data to the server ...', false);
 	self.syncInProgress = true;
 	self.error = false;
 	
 	var currentReq = self.pendingRequests.shift();
+	if (!currentReq.backgroundTask) njs_helper.Dialog.popupStatus('Saving data to the server ...', false);
+	self.processedBackgroundTask = currentReq.backgroundTask;
 	var cb = function(data, errorType, errorMsg) {
 		if (errorType == njs_helper.Ajax.ERROR_NONE) {
 			return _SyncManager_doNextOnComplete(self, currentReq, data, false);

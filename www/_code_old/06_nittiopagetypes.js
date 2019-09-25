@@ -488,6 +488,21 @@ npagetypes = function() {
 		section.pgSecSticker.html(html);
 	}
 	
+	function _popupStatusTick() {
+		_popupStatus({msg: '', icon: 'ion-checkmark', cls: 'border_less_green'});
+	}
+
+	function _popupStatusCross(msg) {
+		if (!msg)  msg = 'Try again';
+		_popupStatus({msg: msg, icon: 'ion-close-circled', cls: 'red'});
+	}
+
+	function _popupStatus(params) {
+		if (!params.showClose) params.showClose = false;
+		params.popdownTime = params.showClose ? false : 2000; // TODO-NOW
+		njs_helper.Dialog.popupStatus2(params);
+	}
+		
 	//#############################################################################################
 	// Behaviour classes
 	//#############################################################################################
@@ -640,16 +655,8 @@ npagetypes = function() {
 
 			var pgSecView = section.pgSecView;
 			pgSecView.click(function() {
-				if(section.lesson.oLesson.selfLearningMode && !section.oSection.popups) {
-					if(_isCorrect(layout, secNo)) 
-						_showStickerCorrect(section);
-					else 
-						_showStickerWrong(section)
-					setTimeout(function() {
-						_hideSticker(section);
-					}, 3000);	
-
-				}
+				if(section.lesson.oLesson.selfLearningMode) _popupStatusTick();
+				else _popupStatusCross();
 				_BehMcq_onClick(pgSecView);
 			});
 			
@@ -1487,23 +1494,11 @@ npagetypes = function() {
 			e.stopImmediatePropagation();
 			section.pgSecView.answerStatus = correct;
 			var slm = section.lesson.oLesson.selfLearningMode;
+			if (slm) {
+				if (correct) _popupStatusTick();
+				else _popupStatusCross();
+			}
 			var moveNext = correct || !slm;
-			var params = {msg: 'The location you clicked is registered.', icon: 'ion-chatbubble', cls: 'hightlight'};
-			
-			if (slm && !correct){
-				params.msg = 'You clicked outside the correct location. Please try again.';
-				params.icon = 'ion-close-circled';
-				params.cls = 'highlight red';
-			}
-			if(slm && correct) {
-				_showStickerCorrect(section);
-				setTimeout(function() {
-					_hideSticker(section);
-				}, 3000);
-			} else {
-				_popupStatus(params);
-			}
-			_popupStatus(params);
 			if (!moveNext || (nclicks <= section.lesson.oLesson.blink_after && section.lesson.oLesson.selfLearningMode)) return;
 			var lesson = section.page.lesson;
 			var pageNo = lesson.getCurrentPageNo();
@@ -1512,12 +1507,6 @@ npagetypes = function() {
 			section.lesson.globals.slides.next(userOptions);
 		}
 
-		function _popupStatus(params) {
-			if (!params.showClose) params.showClose = false;
-			params.popdownTime = params.showClose ? false : 2000;
-			njs_helper.Dialog.popupStatus2(params);
-		}
-		
 		var _dragOffset = {x:0, y:0};
 		function _onDragStart(e, ui) {
 			_dragOffset = {x:e.offsetX, y:e.offsetY};
