@@ -370,7 +370,7 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
         var groupInfo = self.get(grpid);
         groupInfo.derived = {};
         // Update type names
-        var userObj = self.getMinimalUserObj(self.getUserObj(''+_userInfo.userid)); //get userObj odf logged in user
+        var loggedInUser = self.getUserObj(''+_userInfo.userid); //get userObj of logged in user
         var canFilter = (_userInfo.groupinfo.features.restrict_ous && !_userInfo.permissions['assignment_manage']); //filter users in ou if restrict_ous flag is enabled in group properties and to users without assignment manage perm
         var props = groupInfo.props || {};
         var typenames = props.usertypenames || {};
@@ -380,11 +380,10 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
         }
         // Update login id to user dict
         var udict = {};
+        var myOuList = _getMyOuList(loggedInUser);
         for(var uid in groupInfo.users) {
             var user = self.getUserObj(uid, grpid);
-            if(canFilter) {
-                if(user.org_unit.indexOf(userObj.org_unit) == 0 || user.sec_ou_list.indexOf(userObj.org_unit) == 0) udict[user.username] = user;
-            } else {
+            if (_canAddUser(canFilter, user, myOuList)) {
                 udict[user.username] = user;
             }
         }
@@ -394,6 +393,27 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
         var ouDict = {};
         _getOusAsDict(groupInfo.outree, ouDict);
         groupInfo.derived.ouDict = ouDict;
+    }
+
+    function _getMyOuList(loggedInUser) {
+        var myOuList = (loggedInUser.sec_ou_list || '').split(',');
+        myOuList.push(loggedInUser.org_unit);
+        var myOuList2 = [];
+        for (var i=0; i<myOuList.length; i++) {
+            var ou = myOuList[i].trim();
+            if (ou.length > 0) myOuList2.push(ou);
+        }
+        return myOuList2;
+    }
+
+    function _canAddUser(canFilter, user, myOuList) {
+        if (!canFilter) return true;
+        for (var i=0; i<myOuList.length; i++) {
+            var ou = user.org_unit.trim();
+            var myOu = myOuList[i];
+            if (ou == myOu || ou.indexOf(myOu + '.') == 0) return true;
+            }
+        return false;
     }
 
     function _updateGroupInfo(grpid) {

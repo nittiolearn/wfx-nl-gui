@@ -499,7 +499,7 @@ npagetypes = function() {
 
 	function _popupStatus(params) {
 		if (!params.showClose) params.showClose = false;
-		params.popdownTime = params.showClose ? false : 2000; // TODO-NOW
+		params.popdownTime = params.showClose ? false : 2000;
 		njs_helper.Dialog.popupStatus2(params);
 	}
 		
