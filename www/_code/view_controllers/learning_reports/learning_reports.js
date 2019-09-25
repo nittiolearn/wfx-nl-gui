@@ -865,7 +865,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			drillDownArray.push(root.cnt);
 			if(firstTimeGenerated && isSingleReport) root.cnt.isOpen = true;
 			if(root.cnt.isOpen) {
-				_addSuborgOrOusToArray(root.children, root.cnt.sortkey, undefined, isSingleReport, firstTimeGenerated);
+				_addSuborgOrOusToArray(root.children, root.cnt.sortkey);
 			}
 		}
 		drillDownArray.sort(function(a, b) {
@@ -911,17 +911,17 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _addSuborgOrOusToArray(subOrgDict, sortkey, subOrgName) {
 		for(var key in subOrgDict) {
-			var org = subOrgDict[key]
+			var org = subOrgDict[key];
 				org.cnt['sortkey'] = sortkey+org.cnt.name;
 				org.cnt['orgname'] = org.cnt['name'];
-				if(nlGroupInfo.isSubOrgEnabled()){
+				if(nlGroupInfo.isSubOrgEnabled()) {
 					if(subOrgName && org.cnt['name'].indexOf(subOrgName+'.') === 0) {
 						org.cnt['orgname'] = org.cnt['name'].slice(subOrgName.length+1);
 					}
 				}
 			drillDownArray.push(org.cnt);
 			if(org.cnt.isOpen && org.children) {
-				_addSuborgOrOusToArray(org.children, org.cnt.sortkey, org.cnt.name)
+				_addSuborgOrOusToArray(org.children, org.cnt.sortkey, org.cnt.name);
 			}
 		}
 	}
@@ -934,10 +934,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var drillDownCols = _getDrillDownColumns();
 		var header = [];
 		for(var i=0; i<drillDownCols.length; i++) {
-			var col = drillDownCols[i]
+			var col = drillDownCols[i];
 			if(col.table) header.push(col);
 		}
-		var headerArray = [{id: 'courseName', name: 'Course name'}]
+		var headerArray = [{id: 'courseName', name: 'Course name'}];
 		if(nlGroupInfo.isSubOrgEnabled()) headerArray.push({id: 'subOrgId', name: 'Suborg Id'});
 		headerArray.push({id: 'organisationId', name: 'Organisation Id'});
 
