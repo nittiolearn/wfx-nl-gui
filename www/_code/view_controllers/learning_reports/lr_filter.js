@@ -140,7 +140,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		dlg.scope.data = {timestamptype: {id: _data.timestamptype}, createdfrom: _data.createdfrom, createdtill: _data.createdtill, filterjson: _data.filterjson};
 		dlg.scope.error = {};
 		dlg.scope.userSelection = _data.userSelection;
-		dlg.scope.dlgTitle = nl.t('Specify the range');
+		dlg.scope.dlgTitle = nl.t('Filter reports');
 		if(_ouUserSelector) {
 			dlg.scope.data['ouUserTree'] = _ouUserSelector.getTreeSelect();
 		}
