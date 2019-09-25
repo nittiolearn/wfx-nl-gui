@@ -640,6 +640,16 @@ npagetypes = function() {
 
 			var pgSecView = section.pgSecView;
 			pgSecView.click(function() {
+				if(section.lesson.oLesson.selfLearningMode && !section.oSection.popups) {
+					if(_isCorrect(layout, secNo)) 
+						_showStickerCorrect(section);
+					else 
+						_showStickerWrong(section)
+					setTimeout(function() {
+						_hideSticker(section);
+					}, 3000);	
+
+				}
 				_BehMcq_onClick(pgSecView);
 			});
 			
@@ -1480,14 +1490,18 @@ npagetypes = function() {
 			var moveNext = correct || !slm;
 			var params = {msg: 'The location you clicked is registered.', icon: 'ion-chatbubble', cls: 'hightlight'};
 			
-			if (slm && correct) {
-				params.msg = 'You clicked on the correct location.';
-				params.icon = 'ion-checkmark-circled';
-				params.cls = 'highlight green';
-			} else if (slm && !correct){
+			if (slm && !correct){
 				params.msg = 'You clicked outside the correct location. Please try again.';
 				params.icon = 'ion-close-circled';
 				params.cls = 'highlight red';
+			}
+			if(slm && correct) {
+				_showStickerCorrect(section);
+				setTimeout(function() {
+					_hideSticker(section);
+				}, 3000);
+			} else {
+				_popupStatus(params);
 			}
 			_popupStatus(params);
 			if (!moveNext || (nclicks <= section.lesson.oLesson.blink_after && section.lesson.oLesson.selfLearningMode)) return;

@@ -332,8 +332,8 @@ $animation-duration: 200ms !default;
   background-color: $nlBlue1;
   border-radius: 50%;
   text-align: center;
-  font-size: 12px;
-  line-height: 150%;
+  font-size: 16px;
+  line-height: 125%;
   border: 2px solid #FFFFFF;
   padding: 0 4px;
 }
@@ -2810,7 +2810,7 @@ a.enabled {
 }
 
 #pgNo, #module_popup_pgNo {
-  padding: 8px 10px;
+  padding: 6px 10px;
   min-height: 36px;
   min-width: 36px;
 }
