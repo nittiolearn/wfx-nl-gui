@@ -50,7 +50,7 @@ function(nl) {
             item.selected = (selectedIds && selectedIds[item.id]) ? true : false;
             idParts.pop();
             var parentId = idParts.join('.');
-            if (parentId) {
+            if (parentId && itemDict[parentId]) {
                 var parent = itemDict[parentId];
                 parent.isFolder = true;
                 if (!('children' in parent)) parent.children = {};

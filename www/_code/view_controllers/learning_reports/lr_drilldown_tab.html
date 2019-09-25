@@ -25,7 +25,7 @@
                     <i ng-hide='rec.isOpen' class="icon ion-arrow-right-b bold fsh5"></i>
                     <i ng-show='rec.isOpen' class="icon ion-arrow-down-b bold fsh5"></i>
                 </span>
-                <div class='col'>{{rec.name}}</div>
+                <div class='col'>{{rec.isFolder ? rec.name : rec.orgname}}</div>
                 <span ng-click='onDetailsClick($event, rec, drilldown.columns)' class='nl-link-img'>
                     <i class="padding-mid icon ion-information-circled fsh4 nl-info-icon"></i>
                 </span> 
