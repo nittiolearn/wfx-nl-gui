@@ -38,6 +38,26 @@
 		    </nl-inline-help>
 		</div>
 	</div>
+	<div class='row row-top row-wrap margin0 padding-top' ng-if='debug'>
+		<div ng-class='resp2Col33'
+		     class='padding-mid' ng-click='data.showHelp["selectedContent"] = !data.showHelp["selectedContent"]'>
+		     <div class='row row-center row-wrap margin0 padding0'>
+	             <span class='col padding0'>Which content you want to translate</span>
+	             <i class='padding-mid nl-link-text icon fsh4 fgrey ion-ios-help'></i>
+		     </div>
+		</div>
+	    <div ng-class='resp2Col67' 
+	    	 class='nl-dlg-field-value padding-mid'>
+			 <nl-select fieldmodel='contentType'></nl-select>
+		</div>
+		<div class='w100 padding-mid' ng-if='data.showHelp["selectedContent"]'>
+		    <nl-inline-help>
+		        <div>
+			        <span>Select the content which you would like to translate (Text only, Voice Only, Both Text and Voice).</span>
+		        </div>
+		    </nl-inline-help>
+		</div>
+	</div>
     <div class='popup-buttons no-border'>
         <button ng-click='onTranslate()' class='button'>Translate</button>
         <button ng-click='onCancel()' class='button'>Cancel</button>

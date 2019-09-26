@@ -26,6 +26,8 @@ function($stateProvider, $urlRouterProvider) {
 //-------------------------------------------------------------------------------------------------
 var LessonTranslateCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlCardsSrv', 'nlLessonSelect', 'nlTreeSelect', 'nlServerApi',
 function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, nlServerApi) {
+    var params = nl.location.search();
+    $scope.debug = 'debug' in params;
     var markupSplitter = new MarkupSplitter(nl);
 	var _userInfo = null;
 	var _languageInfo = [];
@@ -33,7 +35,8 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 	var _translateDict = {};
 	var _translateArray = [];
 	var _preSelectedLessonId = null;
-	var _preSelectedLanguage = null;
+    var _preSelectedLanguage = null;
+    var _contenttype = '';
 	var _traslateLangTree = [{id:'bn', name:'Bengali', group:'Indian languages'},
 		{id:'gu', name:'Gujarati', group:'Indian languages'},
 		{id:'hi', name:'Hindi', group:'Indian languages'},
@@ -143,7 +146,8 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 		_userInfo = userInfo;
 		return nl.q(function (resolve, reject) {
 			$scope.userinfo = _userInfo;
-	        $scope.data = {showHelp: {}};
+            $scope.data = {showHelp: {}};
+            $scope.data.contentType = $scope.options.contentType[0];
 			nl.pginfo.pageTitle = nl.t('Translate module');
 	
 			if (_preSelectedLessonId) {
@@ -163,9 +167,15 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
     nlTreeSelect.updateSelectionTree(_languageInfo, arrayParams[1], 2);
     _languageInfo.treeIsShown = false;
     _languageInfo.multiSelect = false;
-	_languageInfo.fieldmodelid = 'language';
+    _languageInfo.fieldmodelid = 'language';
 
-	$scope.options = {language: _languageInfo};
+    $scope.options = {  language: _languageInfo, 
+                        contentType: [  
+                            {id: 'textvoice', name: 'Both Text and Voice'},
+                            {id: 'textonly', name: 'Text Only'},
+                            {id: 'voiceonly', name: 'Voice Only'}
+                        ]
+                    };
 
 	function _getContent(lessonId) {
 		return nl.q(function(resolve, reject) {
@@ -204,11 +214,13 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 	$scope.onTranslate = function() {
 		if(!$scope.data.selectedModule) return _errorMessage(nl.t('Please select the module to translate')); 
 		var lessonId = $scope.data.selectedModule.lessonId;
-
 		var targetLang = '';
 		var selectedLangs = nlTreeSelect.getSelectedIds(_languageInfo);
 		for (var key in selectedLangs) targetLang = selectedLangs[key].origId;
-		if(!targetLang) return _errorMessage(nl.t('Please select the target language'));
+        if(!targetLang) return _errorMessage(nl.t('Please select the target language'));
+        
+        if(!$scope.data.contentType) return _errorMessage(nl.t('Please select the contentType to translate')); 
+        _contenttype = $scope.data.contentType;
 
         nlDlg.popupStatus('Getting the module content ...', false);
 		nlDlg.showLoadingScreen();
@@ -291,6 +303,9 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 	}
 	
     function _addMarkupsToArrayAndDict(markup, typename, targetObjInfo) {
+        if( typename === 'page.pollyAutoVoice' && _contenttype['id'] === "textonly" ) return;
+        if( typename === 'page.autoVoice' && _contenttype['id'] === "textonly" ) return;
+        if(!( typename === 'page.autoVoice' || typename === 'page.pollyAutoVoice') && _contenttype['id'] === "voiceonly") return;
         targetObjInfo.splitArray = markupSplitter.split(markup);
         targetObjInfo.lastTranslatedPosition = -1;
         for(var i=0; i<targetObjInfo.splitArray.length; i++) {
@@ -313,7 +328,8 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 	function _createTranslationArrayFromLessonContent(oLesson) {
         _translateDict = {};
         _translateArray = [];
-		_addTxtToArrayAndDict(oLesson.name, 'module.name', {obj: oLesson});
+        if(_contenttype['id'] !== "voiceonly")
+		    _addTxtToArrayAndDict(oLesson.name, 'module.name', {obj: oLesson});
 		if(oLesson.description)
 			_addTxtToArrayAndDict(oLesson.description, 'module.description', {obj: oLesson});
         if(oLesson.forumTopic)
@@ -328,7 +344,8 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 
     function _createTranslationArrayFromPage(oLesson, page) {
         if(page.forumTopic)
-            _addTxtToArrayAndDict(page.forumTopic, 'page.forumTopic', {obj: page});
+            if(_contenttype['id'] !== "voiceonly")
+                _addTxtToArrayAndDict(page.forumTopic, 'page.forumTopic', {obj: page});
         if(page.autoVoice)
             _addMarkupsToArrayAndDict(page.autoVoice, 'page.autoVoice', {obj: page});
         if(page.autoVoicePolly) {
@@ -356,6 +373,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 	}
 
 	function _updateModule(translatedArray) {
+        var position = '';
 		for(var i=0; i<translatedArray.length; i++) {
 			var elem = _translateDict[i];
 			if (!elem) continue;
@@ -375,7 +393,12 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
                 targetObj.forumTopic = translated;
                 break;
             case 'page.pollyAutoVoice':
-                targetObj.text = translated;
+                if(position === elem.targetObjInfo.lastTranslatedPosition) {
+                    targetObj.text += "\r\n";
+                    targetObj.text += translated;
+                } else {
+                    targetObj.text = translated;
+                }
                 break;
 			case 'page.autoVoice':
 			    var markup = _getTranslatedMarkup(translated, elem);
@@ -390,7 +413,8 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
                 if (markup !== null) targetObj.text = markup;
                 if ('correctanswer' in targetObj) delete targetObj.correctanswer;
 				break;
-			}
+            }
+            position = elem.targetObjInfo.lastTranslatedPosition || '';
 		}
 	}
 	
