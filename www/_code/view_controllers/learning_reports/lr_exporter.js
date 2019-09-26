@@ -298,14 +298,15 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         zip.file(fileName, content);
     }
 
-    var _idFields = ['Report Id', 'Assign Id', 'Course Id'];
+    var _idFields = ['Report Id', 'Assign Id', 'Course/ Module Id'];
+
     function _getCsvHeader(filter) {
+        var type = nlLrFilter.getType();
         var mh = nlLrHelper.getMetaHeaders(false);
         var headers = ['User Id', 'User Name'];
         headers = headers.concat(['Course Name', 'Batch name', _gradelabel, _subjectlabel, 'Assigned On', 'Last Updated On', 
             'From', 'Till', 'Status', 'Progress', 'Progress Details', 'Quiz Attempts',
             'Achieved %', 'Maximum Score', 'Achieved Score']);
-
         for(var i=0; i<_customScoresHeader.length; i++) headers.push(_customScoresHeader[i]);
         headers = headers.concat(['Feedback score', 'Online Time Spent (minutes)', 'ILT time spent(minutes)', 'ILT total time(minutes)', 'Venue', 'Trainer name']);
     	headers = headers.concat([ 'Infra Cost', 'Trainer Cost', 'Food Cost', 'Travel Cost', 'Misc Cost']);
@@ -313,10 +314,12 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         if (!filter.hideMetadata) for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
         if (filter.exportTypes.ids)
             headers = headers.concat(_idFields);
+        if (type == 'user') headers.push('Type');
         return headers;
     };
     
     function _getCsvRow(filter, report) {
+        var type = nlLrFilter.getType();
         var feedbackScore = report.stats.feedbackScore || '';
         var mh = nlLrHelper.getMetaHeaders(false);
         var ret = [report.user.user_id, report.user.name];
@@ -351,27 +354,33 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         if (filter.exportTypes.ids)
             ret = ret.concat(['id=' + report.raw_record.id, 'id=' + report.raw_record.assignment, 
                 'id=' + report.raw_record.lesson_id]);
+        if (type == 'user') ret.push(report.raw_record.typeStr);
         return ret;
     }
     
     function  _getModuleCsvRow(filter, report) {
+        var type = nlLrFilter.getType();
         var mh = nlLrHelper.getMetaHeaders(false);
         var ret = [report.user.user_id, report.user.name];
-        ret = ret.concat([report.repcontent.name, report.raw_record._batchName, report.raw_record.grade || '',
-        	report.raw_record.subject || '', nl.fmt.date2Str(report.raw_record.created), nl.fmt.date2Str(report.raw_record.updated),
-        	report.raw_record.started || '-', report.raw_record.ended || '-',
-        	nl.fmt.json2Date(report.raw_record.not_before) || '', nl.fmt.json2Date(report.raw_record.not_after) || '', 
-            report.stats.status.txt, report.raw_record.completed ? '' + 100 + '%' : 0+'%',
-            report.stats.percCompleteDesc, report.raw_record.completed ? 1 : 0,
-            report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore,
-            Math.ceil(report.stats.timeSpentSeconds/60)]);
+        ret = ret.concat([report.repcontent.name, report.raw_record._batchName, report.raw_record._grade || '',
+        	report.raw_record.subject || '', nl.fmt.date2Str(report.raw_record.created), nl.fmt.date2Str(report.raw_record.updated)]);
+
+        ret = ret.concat([report.raw_record.not_before ? nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_before)) : '', report.raw_record.not_after ? nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_after)) : '', 
+                        report.stats.status.txt, report.raw_record.completed ? '' + 100 + '%' : 0+'%',
+                        report.stats.percCompleteDesc, report.raw_record.completed ? 1 : '',
+                        report.stats.percScoreStr || '', report.stats.nMaxScore || '', report.stats.nScore || '']);
+        for(var i=0; i<_customScoresHeader.length; i++) ret.push(' ');
+        ret = ret.concat([' ', Math.ceil(report.stats.timeSpentSeconds/60), ' ', ' ', ' ', ' ']);
+        ret = ret.concat([ ' ', ' ', ' ', ' ', ' ']);
         ret.push(report.user.state ? 'active' : 'inactive');
         ret.push(report.user.email);
         ret.push(report.user.org_unit);
-        for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id] || '');
+        if (!filter.hideMetadata) 
+            for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id] || '');
         if (filter.exportTypes.ids)
             ret = ret.concat(['id=' + report.raw_record.id, 'id=' + report.raw_record.assignment, 
                 'id=' + report.raw_record.lesson_id]);
+        if (type == 'user') ret.push(report.raw_record.typeStr);
         return ret;
     }
     

@@ -655,8 +655,10 @@ npagetypes = function() {
 
 			var pgSecView = section.pgSecView;
 			pgSecView.click(function() {
-				if(section.lesson.oLesson.selfLearningMode) _popupStatusTick();
-				else _popupStatusCross();
+				if(section.lesson.oLesson.selfLearningMode) {
+					if(_isCorrect(layout, secNo)) _popupStatusTick();
+					else _popupStatusCross();
+				}
 				_BehMcq_onClick(pgSecView);
 			});
 			

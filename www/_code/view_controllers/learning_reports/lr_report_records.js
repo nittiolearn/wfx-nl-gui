@@ -276,6 +276,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
         report.urlTitle = nl.t('View report');
         stats.status = nlReportHelper.getStatusInfoFromStr(stainf.status);
+        report.typeStr = 'Course';
         var ret = {raw_record: report, repcontent: repcontent, course: course, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
@@ -379,9 +380,10 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
             }
         }
 
-        stats.percCompleteStr = stats.status.id == nlReportHelper.STATUS_PENDING ? '0%'
-            : stats.status.id == nlReportHelper.STATUS_STARTED ? 'Started' : '100%';
+        stats.percCompleteStr = stats.status.id == nlReportHelper.STATUS_PENDING ? '0 %'
+            : stats.status.id == nlReportHelper.STATUS_STARTED ? 'Started' : '100 %';
         stats.percCompleteDesc = '';
+        report.typeStr = 'Module';
         var ret = {raw_record: report, repcontent: repcontent, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'), 
