@@ -254,6 +254,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         stats.percScore = stats.nMaxScore ? Math.round(100.0*stats.nScore/stats.nMaxScore) : 0;
         stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
         repcontent.statusinfo = stainf.itemIdToInfo;
+        repcontent.name = course.name;
  
         if(!nlReportHelper.isEndCourseState(stainf.status) && (nlLrFilter.getType() == 'course_assign')) {
             if(Object.keys(_reminderDict).length == 0) {
