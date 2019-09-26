@@ -36,7 +36,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 	var _translateArray = [];
 	var _preSelectedLessonId = null;
     var _preSelectedLanguage = null;
-    var _contenttype = '';
+    var _trFlags = null; // What all will be translated
 	var _traslateLangTree = [{id:'bn', name:'Bengali', group:'Indian languages'},
 		{id:'gu', name:'Gujarati', group:'Indian languages'},
 		{id:'hi', name:'Hindi', group:'Indian languages'},
@@ -220,7 +220,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
         if(!targetLang) return _errorMessage(nl.t('Please select the target language'));
         
         if(!$scope.data.contentType) return _errorMessage(nl.t('Please select the contentType to translate')); 
-        _contenttype = $scope.data.contentType;
+        _initTranslationFlags($scope.data.contentType);
 
         nlDlg.popupStatus('Getting the module content ...', false);
 		nlDlg.showLoadingScreen();
@@ -230,7 +230,22 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
                 _prepareAndTranslate(oLesson, targetLang);
             });
 		});
-	};
+    };
+    
+    function _initTranslationFlags(contenttype) {
+        var userSelected = contenttype['id'];
+        _trFlags = {
+			'module.name': (userSelected != 'voiceonly'),
+			'module.description': (userSelected != 'voiceonly'),
+            'module.forumTopic': (userSelected != 'voiceonly'),
+            'page.forumTopic': (userSelected != 'voiceonly'),
+			'page.hint': (userSelected != 'voiceonly'),
+            'section.text': (userSelected != 'voiceonly'),
+            
+            'page.pollyAutoVoice': (userSelected != 'textonly'),
+            'page.autoVoice': (userSelected != 'textonly')
+        };
+    }
 	
     function _prepareAndTranslate(oLesson, targetLang) {
         _createTranslationArrayFromLessonContent(oLesson);
@@ -297,15 +312,14 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 	}
 	
 	function _addTxtToArrayAndDict(txt, typename, targetObjInfo, pos) {
+        if (!_trFlags[typename]) return;
 		var info = {type: typename, targetObjInfo: targetObjInfo, pos: pos};
 		_translateDict[_translateArray.length]= info;
 		_translateArray.push(txt);
 	}
 	
     function _addMarkupsToArrayAndDict(markup, typename, targetObjInfo) {
-        if( typename === 'page.pollyAutoVoice' && _contenttype['id'] === "textonly" ) return;
-        if( typename === 'page.autoVoice' && _contenttype['id'] === "textonly" ) return;
-        if(!( typename === 'page.autoVoice' || typename === 'page.pollyAutoVoice') && _contenttype['id'] === "voiceonly") return;
+        if (!_trFlags[typename]) return;
         targetObjInfo.splitArray = markupSplitter.split(markup);
         targetObjInfo.lastTranslatedPosition = -1;
         for(var i=0; i<targetObjInfo.splitArray.length; i++) {
@@ -328,8 +342,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 	function _createTranslationArrayFromLessonContent(oLesson) {
         _translateDict = {};
         _translateArray = [];
-        if(_contenttype['id'] !== "voiceonly")
-		    _addTxtToArrayAndDict(oLesson.name, 'module.name', {obj: oLesson});
+        _addTxtToArrayAndDict(oLesson.name, 'module.name', {obj: oLesson});
 		if(oLesson.description)
 			_addTxtToArrayAndDict(oLesson.description, 'module.description', {obj: oLesson});
         if(oLesson.forumTopic)
@@ -344,8 +357,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 
     function _createTranslationArrayFromPage(oLesson, page) {
         if(page.forumTopic)
-            if(_contenttype['id'] !== "voiceonly")
-                _addTxtToArrayAndDict(page.forumTopic, 'page.forumTopic', {obj: page});
+            _addTxtToArrayAndDict(page.forumTopic, 'page.forumTopic', {obj: page});
         if(page.autoVoice)
             _addMarkupsToArrayAndDict(page.autoVoice, 'page.autoVoice', {obj: page});
         if(page.autoVoicePolly) {
@@ -373,7 +385,6 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 	}
 
 	function _updateModule(translatedArray) {
-        var position = '';
 		for(var i=0; i<translatedArray.length; i++) {
 			var elem = _translateDict[i];
 			if (!elem) continue;
@@ -393,12 +404,8 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
                 targetObj.forumTopic = translated;
                 break;
             case 'page.pollyAutoVoice':
-                if(position === elem.targetObjInfo.lastTranslatedPosition) {
-                    targetObj.text += "\r\n";
-                    targetObj.text += translated;
-                } else {
-                    targetObj.text = translated;
-                }
+			    var markup = _getTranslatedMarkup(translated, elem);
+			    if (markup !== null) targetObj.autoVoice = markup;
                 break;
 			case 'page.autoVoice':
 			    var markup = _getTranslatedMarkup(translated, elem);
@@ -414,7 +421,6 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
                 if ('correctanswer' in targetObj) delete targetObj.correctanswer;
 				break;
             }
-            position = elem.targetObjInfo.lastTranslatedPosition || '';
 		}
 	}
 	
