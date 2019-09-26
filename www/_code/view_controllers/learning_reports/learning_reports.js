@@ -156,16 +156,21 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 	
 	function _getUserColumns() {
+		var type = nlLrFilter.getType();
 		var columns = [];
-		columns.push({id: 'user.user_id', name: 'User Id', smallScreen: true});
-		columns.push({id: 'user.name', name: 'User Name'});
+		if(type != 'user') {
+			columns.push({id: 'user.user_id', name: 'User Id', smallScreen: true});
+			columns.push({id: 'user.name', name: 'User Name'});	
+		} else {
+			columns.push({id: 'raw_record.typeStr', name: 'Report type'});
+		}
 		columns.push({id: 'user.org_unit', name: 'Org'});
 		var mh = nlLrHelper.getMetaHeaders(true);
 		for(var i=0; i<mh.length; i++) {
 			columns.push({id: 'usermd.' + mh[i].id, name: mh[i].name});
 		}
-		if (!nlLrFilter.getObjectId()) {
-			columns.push({id: 'course.name', name: 'Course / module', mediumScreen: false});
+		if (!nlLrFilter.getObjectId() || type == 'user') {
+			columns.push({id: 'repcontent.name', name: 'Course / module', mediumScreen: false});
 		}
 		columns.push({id: 'stats.status.txt', name: 'Status', smallScreen: true, 
 			icon: 'stats.status.icon'});
@@ -614,8 +619,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _setSubTitle(anyRecord) {
 		nl.pginfo.pageSubTitle = '';
 		var objid = nlLrFilter.getObjectId();
+		var type = nlLrFilter.getType();
 		if (!objid || !anyRecord || !anyRecord.repcontent) return;
-		nl.pginfo.pageSubTitle = anyRecord.repcontent.name || '';
+		if (type == 'user') nl.pginfo.pageSubTitle = nl.t('({})', objid);
+		else nl.pginfo.pageSubTitle = anyRecord.repcontent.name || ''
 	}
 	
 	function _updateScope(avoidFlicker) {

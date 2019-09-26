@@ -65,7 +65,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		else if (_data.type == 'course_assign') return 'Course assignment report';
 		else if (_data.type == 'module_self_assign') return 'Exploratory learning report';
 		else if (_data.type == 'training_batch') return 'Traning batch report';
-		else if (_data.type == 'user') return 'User report';
+		else if (_data.type == 'user') return 'User reports';
 		else return 'Learning report';
 	};
 	
