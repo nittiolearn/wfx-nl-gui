@@ -447,7 +447,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
     $scope.expandedView = false; // true if tree + content area is shown
 	$scope.toggleSummaryBox = false;
     $scope.toggleText = 'Show summary';
-    $scope.scoreDict = {};
+    $scope.computedData = {};
 	if (nl.rootScope.screenSize != 'small') _openSummaryBox();
 	else _closeSummaryBox();
 	$scope.currentTreeState = false;
@@ -765,6 +765,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
             } else if (cm.start_date && cm.start_date > today) {
                 str = nl.t('<div class="padding-mid" style="font-size:120%; font-weight:bold">"{}" can be accessed only after {}</div>', 
                     cm.name, nl.fmt.fmtDateDelta(cm.start_date, today, 'date'));
+            } else if (dependencyArray.length == 0) {
+                str = '<div class="padding-mid" style="font-size:120%; font-weight:bold">Course dependency is incorrectly configured. Please check with your administrator.</div>';
             } else {
                 str = cm.dependencyType == 'atleastone'
                     ? '<div class="padding-mid" style="font-size:120%; font-weight:bold">This element is currently locked. It will be unlocked after atleast one of the following condition(s) are met</div>'
@@ -871,7 +873,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         reopener.reopenIfNeeded().then(function() {
             var repHelper = nlReportHelper.getCourseStatusHelperForCourseView(modeHandler.course, _userInfo.groupinfo);
             _statusInfo = repHelper.getCourseStatus();
-            if(_statusInfo.nTotalQuizMaxScore) $scope.scoreDict['avgQuizScore'] = Math.round(100*_statusInfo.nTotalQuizScore/_statusInfo.nTotalQuizMaxScore);
+            if(_statusInfo.nTotalQuizMaxScore) $scope.computedData['avgQuizScore'] = Math.round(100*_statusInfo.nTotalQuizScore/_statusInfo.nTotalQuizMaxScore);
             _updateItemData(nlTreeListSrv.getRootItem(), _statusInfo.itemIdToInfo);
 			$scope.rootStat = folderStats.get(nlTreeListSrv.getRootItem().id);
         });
@@ -1548,8 +1550,8 @@ function NlContainer(nl, $scope, modeHandler) {
         nl.log.debug('NlContainer.init: ', data);
     };
     
-    this.getScoreObj = function() {
-        return $scope.scoreDict;
+    this.getComputedData = function() {
+        return $scope.computedData;
     };
 
     this.getCourse = function() {

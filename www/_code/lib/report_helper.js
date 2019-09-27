@@ -382,13 +382,12 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
     function _updateStatusToWaitingIfNeeded(cm, itemInfo, itemIdToInfo) {
         itemInfo.origScore = itemInfo.score;
-        if (cm.type == 'certificate') {
         //This is to check if no dependancy is set for certificate show in locked state
-            if (!cm.start_after || cm.start_after.length == 0) {
+        if (cm.type == 'certificate' && (!cm.start_after || cm.start_after.length == 0)) {
                 itemInfo.status = 'waiting';
                 itemInfo.score = null;
+                itemInfo.prereqPending = true;
                 return;
-            }
         }
         var today = new Date();
         if ((repcontent.content || {}).planning && cm.start_date && cm.start_date > today) {
@@ -493,9 +492,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         }
         var cm = _modules[_modules.length -1];
         var itemInfo = ret.itemIdToInfo[cm.id];
-        if (cm.type == 'certificate' && (!('start_after' in cm) || cm.start_after.length == 0)) {
-            ret.status = 'started';
-        } else if (itemInfo.status == 'success' || itemInfo.status == 'partial_success') {
+        if (itemInfo.status == 'success' || itemInfo.status == 'partial_success') {
             ret.status = cm.type == 'certificate' ? 'certified' : 
                 'passScore' in itemInfo ? 'passed' : 'done';
         } else if (itemInfo.status == 'failed') {

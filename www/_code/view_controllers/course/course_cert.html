@@ -72,10 +72,11 @@
             <p class='fmttitle'>This is to certify that</p>
             <p class='fmtuser {{sample ? "sample": ""}}'>{{userName}}</p>
             <p class='fmttext'>
-                has successfully completed the online training module on
+                has successfully completed the online training module 
             </p>
-            <p class='fmtcourse'>{{courseName}}<span ng-show='avgQuizScore'> (average score {{avgQuizScore}} %)</span></p>
+            <p class='fmtcourse'>{{courseName}}</p>
             <p class='fmttext'>
+                <span ng-show='avgQuizScore'> with a score of {{avgQuizScore}}% </span>
                 on <span class='fmtdate {{sample ? "sample": ""}}'>{{completionTime | date : 'dd-MMMM-yyyy'}}</span>.
             </p>
          </div>
