@@ -140,7 +140,12 @@
             var user = _userInfo;
 
             var course = nlLearnerCourseRecords.getRecord(report.lesson_id);
-            if (!course) course = {};
+            if (!course) {
+                course = {};
+            } else {
+                repcontent.content.modules = course.content.modules;
+                repcontent.name = course.name;
+            }
             report.canReview = true;
             if(!course.is_published) report.canReview = false;
             var courseAssignment = nlLearnerAssignment.getRecord('course_assignment:'+report.assignment) || {};
