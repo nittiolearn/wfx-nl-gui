@@ -446,7 +446,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
     $scope.popupView = false;    // true if content area is popped out.
     $scope.expandedView = false; // true if tree + content area is shown
 	$scope.toggleSummaryBox = false;
-	$scope.toggleText = 'Show summary';
+    $scope.toggleText = 'Show summary';
+    $scope.scoreDict = {};
 	if (nl.rootScope.screenSize != 'small') _openSummaryBox();
 	else _closeSummaryBox();
 	$scope.currentTreeState = false;
@@ -870,6 +871,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         reopener.reopenIfNeeded().then(function() {
             var repHelper = nlReportHelper.getCourseStatusHelperForCourseView(modeHandler.course, _userInfo.groupinfo);
             _statusInfo = repHelper.getCourseStatus();
+            if(_statusInfo.nTotalQuizMaxScore) $scope.scoreDict['avgQuizScore'] = Math.round(100*_statusInfo.nTotalQuizScore/_statusInfo.nTotalQuizMaxScore);
             _updateItemData(nlTreeListSrv.getRootItem(), _statusInfo.itemIdToInfo);
 			$scope.rootStat = folderStats.get(nlTreeListSrv.getRootItem().id);
         });
@@ -1546,6 +1548,10 @@ function NlContainer(nl, $scope, modeHandler) {
         nl.log.debug('NlContainer.init: ', data);
     };
     
+    this.getScoreObj = function() {
+        return $scope.scoreDict;
+    };
+
     this.getCourse = function() {
         return modeHandler.course;
     };
