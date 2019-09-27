@@ -405,7 +405,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
                 break;
             case 'page.pollyAutoVoice':
 			    var markup = _getTranslatedMarkup(translated, elem);
-			    if (markup !== null) targetObj.autoVoice = markup;
+			    if (markup !== null) targetObj.text = markup;
                 break;
 			case 'page.autoVoice':
 			    var markup = _getTranslatedMarkup(translated, elem);
