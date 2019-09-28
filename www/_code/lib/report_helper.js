@@ -203,7 +203,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (_isCertificate(cm)) {
             var sinfo = _statusinfo[cm.id] || {};
             itemInfo.rawStatus = 'success';
-            itemInfo.updated = nl.fmt.json2Date(sinfo.date || '');
+            itemInfo.updated = _getUpdatedTimestamp(sinfo);
             itemInfo.score = 100;
         } else if (cm.type == 'info' || cm.type == 'link') {
             _getRawStatusOfInfo(cm, itemInfo);
@@ -224,12 +224,16 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         }
     }
 
+    function _getUpdatedTimestamp(sinfo) {
+        return sinfo.timestamp || nl.fmt.json2Date(sinfo.date || '');
+    }
+
     function _getRawStatusOfInfo(cm, itemInfo) {
         var sinfo = _statusinfo[cm.id] || {};
         itemInfo.rawStatus = sinfo.status == 'done' ? 'success' : 'pending';
         itemInfo.score = itemInfo.rawStatus == 'success' ? 100 : null;
         itemInfo.remarks = sinfo.remarks || '';
-        itemInfo.updated = nl.fmt.json2Date(sinfo.date || '');
+        itemInfo.updated = _getUpdatedTimestamp(sinfo);
     }
     
     function _getRawStatusOfLesson(cm, itemInfo) {

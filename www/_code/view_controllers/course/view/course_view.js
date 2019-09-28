@@ -968,9 +968,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
     
     function _updatedStatusinfo(cm, status, remarks, dontHide) {
         if (!('statusinfo' in modeHandler.course)) modeHandler.course.statusinfo = {};
+        var timestamp = new Date(); 
         modeHandler.course.statusinfo[cm.id] = {
             status: status ? 'done' : '',
-            date: nl.fmt.date2Str(new Date(), 'date'), 
+            timestamp: timestamp,
+            date: nl.fmt.date2Str(timestamp, 'date'),
             username: _userInfo.username,
             remarks: remarks
         };
