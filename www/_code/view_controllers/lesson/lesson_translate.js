@@ -37,6 +37,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 	var _preSelectedLessonId = null;
     var _preSelectedLanguage = null;
     var _trFlags = null; // What all will be translated
+    var _languageFlags = {hi:'Aditi'};  //Which languages will be generated aldo after translating them
 	var _traslateLangTree = [{id:'bn', name:'Bengali', group:'Indian languages'},
 		{id:'gu', name:'Gujarati', group:'Indian languages'},
 		{id:'hi', name:'Hindi', group:'Indian languages'},
@@ -211,10 +212,11 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
         treeArray.push({id: itemId, name: itemObj.name, origId: itemObj.id});
     }
 
+    var targetLang = '';
 	$scope.onTranslate = function() {
 		if(!$scope.data.selectedModule) return _errorMessage(nl.t('Please select the module to translate')); 
 		var lessonId = $scope.data.selectedModule.lessonId;
-		var targetLang = '';
+		targetLang = '';
 		var selectedLangs = nlTreeSelect.getSelectedIds(_languageInfo);
 		for (var key in selectedLangs) targetLang = selectedLangs[key].origId;
         if(!targetLang) return _errorMessage(nl.t('Please select the target language'));
@@ -252,7 +254,29 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
         _translateTexts(targetLang).then(function(translations) {
             _updateModule(translations);
             oLesson.lang = targetLang;
+            var pollyVoiceArray = _createVoiceAndUpdateLesson(oLesson);
+            getPollyVoiceAndCreateLesson(pollyVoiceArray, 0, oLesson);
+        });
+    }
 
+    function _createVoiceAndUpdateLesson(oLesson) {
+        var pollyVoiceArray = [];
+        for (var i=0; i< oLesson.pages.length; i++) {
+            if (oLesson.pages[i].autoVoicePolly) {
+                for(var j=0; j< oLesson.pages[i].autoVoicePolly.length; j++) {
+                    var pollyVoiceFragment = {
+                        "fragment": oLesson.pages[i].autoVoicePolly[j]
+                    };
+                    pollyVoiceArray.push(pollyVoiceFragment);
+                }
+            }
+        }
+        return pollyVoiceArray;
+    }
+
+    function getPollyVoiceAndCreateLesson(pollyVoiceArray, currentPos, oLesson) {
+        if(!(targetLang in _languageFlags)) currentPos = pollyVoiceArray.length;
+        if(currentPos >= pollyVoiceArray.length) {
             var data = {content:angular.toJson(oLesson), createNew: true};
             nlServerApi.lessonSave(data).then(function(newLessonId) {
                 $scope.newLessonId = newLessonId;
@@ -264,9 +288,22 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
                 copyLessonDlg.show('view_controllers/lesson_list/copy_lesson.html', [], closeButton);
                 nlDlg.hideLoadingScreen();
             });
-        });
+        } else {
+            var fragment = pollyVoiceArray[currentPos].fragment;
+            currentPos = currentPos+1;
+            var data = {text: fragment.text, voice_lang: fragment.lang, voice_id: fragment.voice,
+                rate: fragment.rate, pitch: fragment.pitch};
+            nlServerApi.getAudioUrl(data).then(function(result) {
+                fragment['mp3'] = result.url;
+                getPollyVoiceAndCreateLesson(pollyVoiceArray, currentPos, oLesson);
+                return;
+            }, function(err) {
+                nlDlg.popdownStatus(0);
+            });
+        }
     }
 
+    
     var _translations = [];
     var _MAX_CHARS_PER_SERVER_TRANSLATE_CALL = 10000;
     var _MAX_ITEMS_PER_SERVER_TRANSLATE_CALL = 100;
@@ -366,9 +403,17 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
                 var fragment = fragments[i];
                 if(fragment.text == "") continue;
                 if(fragment.type != 'audio') {
-                    fragment.type = 'ignore';
+                    if(targetLang in _languageFlags) {
+                        fragment.type = 'autovoice';
+                        fragment.voice = _languageFlags[targetLang];
+                    }
+                    else {
+                        fragment.type = 'ignore';
+                        fragment.voice = 'Aditi';
+                    }
                     fragment.lang = 'en-IN';
-                    fragment.voice = 'Aditi';
+                    fragment.pitch = 100;
+                    fragment.rate = 100;
                 }
                 _addMarkupsToArrayAndDict(fragment.text, 'page.pollyAutoVoice', {obj: fragment});
             }
@@ -405,11 +450,11 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
                 break;
             case 'page.pollyAutoVoice':
 			    var markup = _getTranslatedMarkup(translated, elem);
-			    if (markup !== null) targetObj.autoVoice = markup;
+			    if (markup !== null) targetObj.text = markup;
                 break;
 			case 'page.autoVoice':
-			    var markup = _getTranslatedMarkup(translated, elem);
-			    if (markup !== null) targetObj.autoVoice = "@voice(ignore)\n" + markup;
+                var markup = _getTranslatedMarkup(translated, elem);
+                if (markup !== null) targetObj.autoVoice = "@voice(ignore)\n" + markup; 
 				break;
 			case 'page.hint':
                 var markup = _getTranslatedMarkup(translated, elem);
