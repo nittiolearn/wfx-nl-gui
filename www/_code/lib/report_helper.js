@@ -201,7 +201,9 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.customStatus = cm.customStatus || null;
         itemInfo.completionPerc = cm.completionPerc || null;
         if (_isCertificate(cm)) {
+            var sinfo = _statusinfo[cm.id] || {};
             itemInfo.rawStatus = 'success';
+            itemInfo.updated = _getUpdatedTimestamp(sinfo);
             itemInfo.score = 100;
         } else if (cm.type == 'info' || cm.type == 'link') {
             _getRawStatusOfInfo(cm, itemInfo);
@@ -222,12 +224,16 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         }
     }
 
+    function _getUpdatedTimestamp(sinfo) {
+        return sinfo.timestamp || nl.fmt.json2Date(sinfo.date || '');
+    }
+
     function _getRawStatusOfInfo(cm, itemInfo) {
         var sinfo = _statusinfo[cm.id] || {};
         itemInfo.rawStatus = sinfo.status == 'done' ? 'success' : 'pending';
         itemInfo.score = itemInfo.rawStatus == 'success' ? 100 : null;
         itemInfo.remarks = sinfo.remarks || '';
-        itemInfo.updated = nl.fmt.json2Date(sinfo.date || '');
+        itemInfo.updated = _getUpdatedTimestamp(sinfo);
     }
     
     function _getRawStatusOfLesson(cm, itemInfo) {
@@ -380,6 +386,13 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
     function _updateStatusToWaitingIfNeeded(cm, itemInfo, itemIdToInfo) {
         itemInfo.origScore = itemInfo.score;
+        //This is to check if no dependancy is set for certificate show in locked state
+        if (cm.type == 'certificate' && (!cm.start_after || cm.start_after.length == 0)) {
+                itemInfo.status = 'waiting';
+                itemInfo.score = null;
+                itemInfo.prereqPending = true;
+                return;
+        }
         var today = new Date();
         if ((repcontent.content || {}).planning && cm.start_date && cm.start_date > today) {
             itemInfo.status = 'waiting';

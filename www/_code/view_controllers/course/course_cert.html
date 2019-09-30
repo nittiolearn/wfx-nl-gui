@@ -72,15 +72,16 @@
             <p class='fmttitle'>This is to certify that</p>
             <p class='fmtuser {{sample ? "sample": ""}}'>{{userName}}</p>
             <p class='fmttext'>
-                has successfully completed the online training module on
+                has successfully completed the online training module 
             </p>
             <p class='fmtcourse'>{{courseName}}</p>
             <p class='fmttext'>
+                <span ng-show='avgQuizScore'> with a score of {{avgQuizScore}}% </span>
                 on <span class='fmtdate {{sample ? "sample": ""}}'>{{completionTime | date : 'dd-MMMM-yyyy'}}</span>.
             </p>
          </div>
     </div>
-    <div ng-if='available'
+    <!--<div ng-if='available'
          class='dont-print padding-mid'>
         <div class='padding-mid'>
             <p>You could print or save as PDF. For a pretty print, you could use the below print options:</p>
@@ -93,7 +94,7 @@
         <div class='padding-mid text-center'>
             <button class='nl-button w100' ng-click='onPrint()'>Print</button>
         </div>
-    </div>
+    </div>-->
     <div ng-if='!available'
          class='cert'>
         <h3>Error</h3>

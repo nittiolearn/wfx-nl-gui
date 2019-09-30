@@ -55,6 +55,8 @@ function(nl, nlRouter, $scope, nlDlg, nlPrinter) {
         nlContainer.init({version: 0});
         
         var course = nlContainer.getCourse();
+        var courseData = nlContainer.getComputedData();
+        $scope.avgQuizScore = courseData['avgQuizScore'];
         if (!course || !course.content || !course.content.modules) return;
         $scope.courseName = course.name;
 

@@ -723,6 +723,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 	function _updateCsvCertRows1(statusinfo, defaultRowObj) {
         defaultRowObj._assignTypeStr = 'Certificate inside course';
         defaultRowObj._status = statusinfo.status || 'pending';
+        defaultRowObj.updated = statusinfo.updated ? statusinfo.updated : '';
     }
 
     function _checkFilter(filterItems, userField) {

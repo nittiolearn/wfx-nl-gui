@@ -446,7 +446,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
     $scope.popupView = false;    // true if content area is popped out.
     $scope.expandedView = false; // true if tree + content area is shown
 	$scope.toggleSummaryBox = false;
-	$scope.toggleText = 'Show summary';
+    $scope.toggleText = 'Show summary';
+    $scope.computedData = {};
 	if (nl.rootScope.screenSize != 'small') _openSummaryBox();
 	else _closeSummaryBox();
 	$scope.currentTreeState = false;
@@ -764,6 +765,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
             } else if (cm.start_date && cm.start_date > today) {
                 str = nl.t('<div class="padding-mid" style="font-size:120%; font-weight:bold">"{}" can be accessed only after {}</div>', 
                     cm.name, nl.fmt.fmtDateDelta(cm.start_date, today, 'date'));
+            } else if (dependencyArray.length == 0) {
+                str = '<div class="padding-mid" style="font-size:120%; font-weight:bold">Course dependency is incorrectly configured. Please check with your administrator.</div>';
             } else {
                 str = cm.dependencyType == 'atleastone'
                     ? '<div class="padding-mid" style="font-size:120%; font-weight:bold">This element is currently locked. It will be unlocked after atleast one of the following condition(s) are met</div>'
@@ -870,6 +873,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         reopener.reopenIfNeeded().then(function() {
             var repHelper = nlReportHelper.getCourseStatusHelperForCourseView(modeHandler.course, _userInfo.groupinfo);
             _statusInfo = repHelper.getCourseStatus();
+            if(_statusInfo.nTotalQuizMaxScore) $scope.computedData['avgQuizScore'] = Math.round(100*_statusInfo.nTotalQuizScore/_statusInfo.nTotalQuizMaxScore);
             _updateItemData(nlTreeListSrv.getRootItem(), _statusInfo.itemIdToInfo);
 			$scope.rootStat = folderStats.get(nlTreeListSrv.getRootItem().id);
         });
@@ -964,9 +968,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
     
     function _updatedStatusinfo(cm, status, remarks, dontHide) {
         if (!('statusinfo' in modeHandler.course)) modeHandler.course.statusinfo = {};
+        var timestamp = new Date(); 
         modeHandler.course.statusinfo[cm.id] = {
             status: status ? 'done' : '',
-            date: nl.fmt.date2Str(new Date(), 'date'), 
+            timestamp: timestamp,
+            date: nl.fmt.date2Str(timestamp, 'date'),
             username: _userInfo.username,
             remarks: remarks
         };
@@ -1546,6 +1552,10 @@ function NlContainer(nl, $scope, modeHandler) {
         nl.log.debug('NlContainer.init: ', data);
     };
     
+    this.getComputedData = function() {
+        return $scope.computedData;
+    };
+
     this.getCourse = function() {
         return modeHandler.course;
     };
