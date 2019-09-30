@@ -33,7 +33,7 @@ function(nl, nlDlg, nlResourceAddModifySrv) {
 			{id:'maxScore', name: nl.t('Maximum score'), type:'number', condition: 'isMaxScore'},
 			{id:'minPageTime', name: nl.t('Minimum time'), type:'number', min: 0},
 			{id:'forumTopic', name: nl.t('Discussion topic'), type:'string', condition: 'notPopup'},
-			{id:'hint', name: nl.t('Page hint'), type:'textarea', condition: 'notPopup'},
+			{id:'hint', name: nl.t('Page hint'), type:'textarea', condition: 'notPopupdebug'},
             {id:'bgimg', name: nl.t('Background image'), type:'image-select', canClear: true},
 			{id:'visibility', name: nl.t('Visibility'), type: 'select', condition: 'isBleedingEdge'},
 		   	{id: 'pageAnimation', name: nl.t('Page animation'), type:'select', condition: 'isAnimationShown'}];
@@ -107,7 +107,8 @@ function(nl, nlDlg, nlResourceAddModifySrv) {
 		pagePropsDlg.scope.data.canShow = function(condition, item) {
 			if (condition == 'isBleedingEdge') return (_moduleConfig.grpProps.isBleedingEdge);
 			if (condition == 'isMaxScore') return (_defMaxScore > 0);
-            if (condition == 'notPopup') return (!_isPopup && _isRaw);
+			if (condition == 'notPopup') return (!_isPopup);
+			if (condition == 'notPopupdebug') return (!_isPopup && _isRaw);
             if (condition == 'isAnimationShown') return pagePropsDlg.scope.showAnimScheme;
 			return true;
 		};
