@@ -37,7 +37,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 	var _preSelectedLessonId = null;
     var _preSelectedLanguage = null;
     var _trFlags = null; // What all will be translated
-    var _languageFlags = {hi:'Aditi'};  //Which languages will be generated aldo after translating them
+    var _languageFlags = {hi: {lang: 'en-IN', voice: 'Aditi'}};  //Which languages will be generated aldo after translating them
 	var _traslateLangTree = [{id:'bn', name:'Bengali', group:'Indian languages'},
 		{id:'gu', name:'Gujarati', group:'Indian languages'},
 		{id:'hi', name:'Hindi', group:'Indian languages'},
@@ -405,15 +405,16 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
                 if(fragment.type != 'audio') {
                     if(targetLang in _languageFlags) {
                         fragment.type = 'autovoice';
-                        fragment.voice = _languageFlags[targetLang];
+                        fragment.lang = _languageFlags[targetLang].lang;
+                        fragment.voice = _languageFlags[targetLang].voice;
                     }
                     else {
+                        fragment.lang = 'en-IN';
                         fragment.type = 'ignore';
                         fragment.voice = 'Aditi';
                     }
-                    fragment.lang = 'en-IN';
-                    fragment.pitch = 100;
-                    fragment.rate = 100;
+                    fragment.pitch = fragment.pitch || 100;
+                    fragment.rate = fragment.rate || 100;
                 }
                 _addMarkupsToArrayAndDict(fragment.text, 'page.pollyAutoVoice', {obj: fragment});
             }

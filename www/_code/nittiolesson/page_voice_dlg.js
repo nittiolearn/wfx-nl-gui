@@ -177,7 +177,6 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 	}
 	
 	function _getAudioUrlFromServer(fragments, currentPos, oPage, resolve) {
-		// TODO-NOW: API Key is to be generated from hello@nittio.com acnt
 		if(currentPos >= fragments.length) {
 			var msg = nl.fmt2('Processed {} audio fragments', fragments.length);
 			nlDlg.popupStatus(msg);
