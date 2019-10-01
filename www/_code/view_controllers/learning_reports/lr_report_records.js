@@ -30,6 +30,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
     var _isReattemptEnabled = false;
     var _customScoresHeaderArray = [];
     var _customScoresHeaderObj = {};
+    var _isNHT = false;
     this.init = function(userinfo) {
         _userInfo = userinfo;
         _records = {};
@@ -38,6 +39,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         _isReattemptEnabled = false;
         _customScoresHeaderArray = [];
         _customScoresHeaderObj = {};
+        _isNHT = false;
         _dates = {minUpdated: null, maxUpdated: null};
         _convertAttendanceArrayToObj(userinfo.groupinfo.attendance);
         if (!nlGroupInfo.isPastUserXlsConfigured()) _pastUserData = {};
@@ -58,6 +60,10 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         return _nominatedUsers;
     };
     
+    this.isNHT = function() {
+        return _isNHT;
+    }
+
     this.addRecord = function(report) {
         if (report.ctype == _nl.ctypes.CTYPE_COURSE)
             report = _processCourseReport(report);
@@ -206,14 +212,19 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         if (!user) return null;
         _nominatedUsers[user.id] = true;
         var course = nlLrCourseRecords.getRecord(report.lesson_id);
-        if (!course) course = {};
+        if (!course) {
+            course = {};
+        }
+        if (course.content && course.content.nht) {
+            _isNHT = true;
+            report.isNHT = true;
+        }
         report.canReview = true;
         if(!course.is_published) report.canReview = false;
         var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:'+report.assignment) || {};
         if (!courseAssignment.info) courseAssignment.info = {};
         var repHelper = nlReportHelper.getCourseStatusHelper(report, _userInfo.groupinfo, courseAssignment, course);
         var stainf = repHelper.getCourseStatus();
-
         var contentmetadata = 'contentmetadata' in course ? course.contentmetadata : {};
         report._grade = contentmetadata.grade || '';
         report.subject = contentmetadata.subject || ''; 

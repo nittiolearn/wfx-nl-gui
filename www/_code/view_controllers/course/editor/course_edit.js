@@ -175,6 +175,30 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		}
 		return;
 	}
+	var _userStates = [];
+	function _updateNewStatusDropdown(cm, attr) {
+		if (!_etm || !_groupInfo) return;
+		if (attr.valueNamesUpdated) return;
+		_userStates = _groupInfo.props.etmUserStates || [];
+		attr.valueNames = {};
+		attr.values = [];
+		for (var i=0; i<_userStates.length; i++) {
+			var r = _userStates[i];
+			attr.values.push(r.id);
+			attr.valueNames[r.id] = r.name;
+		}
+		return;
+	}
+
+	function _canShowNewState(attr) {
+		if (attr.name != 'customStatus') return true;
+		return (_etm && _groupInfo && ('etmUserStates' in _groupInfo.props));
+	}
+
+	function _canShowNHT(attr) {
+		if (attr.name != 'nht') return true;
+		return _etm;
+	}
 
 	function _canShowReattempt(attr) {
 		if(attr.name != 'isReattempt') return true;
@@ -322,6 +346,9 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'name', stored_at: 'course', text: 'Name', type: 'string', isTitle: true},
         {name: 'icon', stored_at: 'course', text: 'Image', type: 'icon', icon: true},
         {name: 'description', stored_at: 'course', text: 'Course description', type: 'text', maxlen: 100},
+		{name: 'nht', stored_at: 'content', text: 'New hire training', type: 'boolean', desc: 'This is an NHT course',
+			canShow: function(attr) {return _canShowNHT(attr);}
+		},
         {name: 'grp_additionalAttrs', stored_at: 'content', type: 'group', text: 'Advanced properties'},
     	{name: 'planning', stored_at: 'content', text:'Schedule planning', desc: 'Enable schedule planning for this course', group: 'grp_additionalAttrs', type: 'boolean', debug: true},
      	{name: 'hide_answers', stored_at: 'content', text:'Hide answers', desc: 'Disallow learners to view completed modules', group: 'grp_additionalAttrs', type: 'boolean'},
@@ -342,6 +369,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         name: 'Mandatory - enter a name for your course. It is recommended to keep the course name under 30 characters.',
         icon: 'Mandatory - enter a URL for the course icon that will be displayed when this course is searched. The default value is "icon:" which displays a default course icon.',
         description: 'Provide a short description which will help others in the group to understand the purpose of this course. It is recommended to keep the course description under 100 characters.',
+        nht: 'NHT courses allow modelling of learner states. Only courses for which this flag is enabled are considered in the NHT report tab of the learning report. ',
     	planning: 'Start and end dates are considered only if schedule planning is enabled.',
     	hide_answers: 'Enable this attribute if this course is for assessment purpose and you would like to disallow the learners to see the correct answers.',
     	custtype: 'You can define a custom type to help in searchability.',
@@ -384,7 +412,10 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'text', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'wikitext', valueName: 'textHtml', text: 'Description', group: 'grp_additionalAttrs'},
         {name: 'complete_before', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'number', text: 'Complete within', group: 'grp_additionalAttrs', min:0},
         {name: 'completionPerc', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Completion percentage',type: 'number', group: 'grp_additionalAttrs'},
-        {name: 'customStatus', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'New status',type: 'string', group: 'grp_additionalAttrs'},
+		{name: 'customStatus', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'New status',type: 'list', group: 'grp_additionalAttrs', 
+			valueNamesUpdated: false, valueNames: {}, values: [], 
+			updateDropdown: _updateNewStatusDropdown,
+			canShow: function(attr){return _canShowNewState(attr)}},
         {name: 'showInReport', stored_at: 'module', fields: ['gate'], text: 'Show in report', desc: 'Show progress percentage in the report', type: 'boolean', group: 'grp_additionalAttrs'},
 		{name: 'isReattempt', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Mark as reattempt', desc: 'Mark this to indicate learner has reattempted', type: 'boolean', group: 'grp_additionalAttrs', 
 			canShow: function(attr) {return _canShowReattempt(attr);}
@@ -615,7 +646,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 
     function _saveAfterValidateCourse(e, bPublish) {
         modeHandler.course.content.modules = [];
-        modeHandler.course.content.blended = false;
+		modeHandler.course.content.blended = false;
     	for(var i=0; i<_allModules.length; i++){
     	    var newModule = _getSavableModuleAttrs(_allModules[i]);
     	    if (newModule.type == 'iltsession' && !modeHandler.course.content.blended) modeHandler.course.content.blended = true;
