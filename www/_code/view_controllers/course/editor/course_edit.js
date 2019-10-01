@@ -45,6 +45,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     this.init = function(_scope, _modeHandler, userInfo) {
 		nlGroupInfo.init().then(function() {
 			_groupInfo = nlGroupInfo.get();
+			_initMilestoneDict();
 		});
         $scope = _scope;
         modeHandler = _modeHandler;
@@ -152,9 +153,9 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		   attr.values.push('link');
 		if (cm.type == 'iltsession' || (_groupInfo && _groupInfo.props.features['training'])) 
 			attr.values.push('iltsession');
-		if (cm.type == 'milestone' || _etm) 
+		if (cm.type == 'milestone' || _etm && _milestones)
 			attr.values.push('milestone');
-		if (cm.type == 'rating' || _etm && _groupInfo.props.ratings) 
+		if (cm.type == 'rating' || _etm && _groupInfo.props.ratings)
 			attr.values.push('rating');
 		if (cm.type == 'gate' || _etm) 
 			attr.values.push('gate');
@@ -172,6 +173,42 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			var r = _ratings[i];
 			attr.values.push(r.id);
 			attr.valueNames[r.id] = r.name;
+		}
+		return;
+	}
+
+	var _milestones = [];
+	var _milestoneDict = {};
+	function _initMilestoneDict() {
+		_milestones = _groupInfo.props.milestones ? angular.copy(_groupInfo.props.milestones) : [];
+		_milestoneDict = {};
+
+		for(var i=0; i< _milestones.length; i++) {
+			var item = _milestones[i];
+			item.index = i;
+			_milestoneDict[item.id] = item;
+		}
+	}
+
+	function _updateMilestoneDropdown(cm, attr) {
+		if (!_etm || !_groupInfo) return;
+		if (attr.valueNamesUpdated) return;
+		attr.valueNames = {};
+		attr.values = [];
+
+		var startIndex = 0;
+		for(var i=0; i< _allModules.length; i++) {
+			if(cm.id === _allModules[i].id) break;
+			if(_allModules[i].type !== 'milestone' || !_allModules[i].milestone_type) continue;
+			var milestoneItem = _milestoneDict[_allModules[i].milestone_type] || {};
+			if (!('index' in milestoneItem)) continue;
+			startIndex = milestoneItem.index + 1;
+		}
+
+		for (var i=startIndex; i<_milestones.length; i++) {
+			var m = _milestones[i];
+			attr.values.push(m.id);
+			attr.valueNames[m.id] = m.name;
 		}
 		return;
 	}
@@ -202,10 +239,13 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
             nlCourseCanvas.updateCanvasMode();
             return;
         } else if (attr.level == 'modules' && attr.name == 'type') {
-            attr.updateDropdown(item, attr);
+			attr.updateDropdown(item, attr);
             if (attr.name == 'type') _onElementTypeChange(e, item);
             return;
-        }
+        } else if (attr.level == 'modules' && attr.name == 'milestone_type') {
+			item.name = attr.valueNames[item.milestone_type];
+			return;
+		}
     }
 
 	function _onElementTypeChange(e, cm){
@@ -363,7 +403,11 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		{name: 'rating_type', stored_at: 'module', fields: ['rating'], type: 'list', text: 'Rating type',
 			// possible values will be updated in _updateRatingDropdown
 			valueNamesUpdated: false, valueNames: {}, values: [], 
-            updateDropdown: _updateRatingDropdown},
+			updateDropdown: _updateRatingDropdown},
+		{name: 'milestone_type', stored_at: 'module', fields: ['milestone'], type: 'list', text: 'Milestone type',
+			// possible values will be updated in _updateMilestoneDropdown
+			valueNamesUpdated: false, valueNames: {}, values: [], 
+            updateDropdown: _updateMilestoneDropdown},
         {name: 'refid', stored_at: 'module', fields: ['lesson'], type: 'lessonlink', contentType: 'integer', text: 'Module-id'},
 		{name: 'maxDuration', stored_at: 'module', fields: ['lesson'], type: 'string', contentType: 'integer', text: 'Time limit (minutes)'},
         {name: 'action', stored_at: 'module', fields: ['link'], type: 'lessonlink', text: 'Action'},
@@ -382,8 +426,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'reopen_on_fail', stored_at: 'module', fields: ['lesson'], type: 'object', text: 'Reopen on fail', contentType: 'object',group: 'grp_additionalAttrs'},
         {name: 'icon', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
         {name: 'text', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'wikitext', valueName: 'textHtml', text: 'Description', group: 'grp_additionalAttrs'},
-        {name: 'complete_before', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'number', text: 'Complete within', group: 'grp_additionalAttrs', min:0},
-        {name: 'completionPerc', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Completion percentage',type: 'number', group: 'grp_additionalAttrs'},
+		{name: 'complete_before', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'number', text: 'Complete within', group: 'grp_additionalAttrs', min:0}, 
+		{name: 'completionPerc', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Completion percentage',type: 'number', group: 'grp_additionalAttrs'},
         {name: 'customStatus', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'New status',type: 'string', group: 'grp_additionalAttrs'},
         {name: 'showInReport', stored_at: 'module', fields: ['gate'], text: 'Show in report', desc: 'Show progress percentage in the report', type: 'boolean', group: 'grp_additionalAttrs'},
 		{name: 'isReattempt', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Mark as reattempt', desc: 'Mark this to indicate learner has reattempted', type: 'boolean', group: 'grp_additionalAttrs', 
@@ -401,11 +445,12 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'posY', stored_at: 'module', type: 'number', text: 'Y Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate']},
         {name: 'bgimg', stored_at: 'module', type: 'string', text: 'Background image', group: 'grp_canvasAttrs', fields: ['module']},
         {name: 'bgcolor', stored_at: 'module', type: 'string', text: 'Background color', group: 'grp_canvasAttrs', fields: ['module']}
-    ];
+	];
     
     var _moduleAttrHelp = {
     	name: 'Name of the item to be displayed in the course tree.',
-    	type: 'Each item could be a Folder (containing other items), Module (a learning module/quiz), Certificate or Information (example a declaration).',
+		type: 'Each item could be a Folder (containing other items), Module (a learning module/quiz), Certificate or Information (example a declaration).',
+		milestone_type: 'Select the milestone type in the order available. You may skip a few types as well. On Selecting the Last available Milestone type, Milestone Type will be empty in further items in the same course to restrict the further usage of milestone' ,
     	refid: 'The id of the learning module/quiz to be launched. You could search for all approved modules by clicking on the search icon. Click on the link icon to preview the module.',
     	maxDuration: 'You may restrict the learner to complete the module within the specified time limit. This values is pre-filled with the estimated time of module if configured in the module. You could clear this field (or set it to 0) if you do not want any time limit set for the module.',
     	action: 'The action whose URL is used for the link. Click on the icon to view the link',
@@ -860,7 +905,26 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     }
     
     function _validateMilestoneModule(errorLocation, module) {
-    	if(module.type != 'milestone') return true;
+		if(module.type != 'milestone') return true;
+		if(!module.milestone_type) return _validateFail(errorLocation, 'Milestone type', 'Milestone type is mandatory.', module);
+
+		var moduleMilestoneIndex = (_milestoneDict[module.milestone_type] || {}).index || -1;
+		if (moduleMilestoneIndex < 0) {
+			return _validateFail(errorLocation, 'Milestone type', '"Milestone type" not defined.', module);
+		}
+		for(var i=0; i < _userInfo.groupinfo.milestones.length; i++) {
+			if (module.milestone_type === _userInfo.groupinfo.milestones[i].id) {
+				for(var j=0; j<_allModules.length; j++) {
+					var item = _allModules[j];
+					if(!item.milestone_type || item.type !== 'milestone') continue;
+					if(module.id == item.id) break;
+					var itemMilestoneIndex = _milestoneDict[item.milestone_type].index;
+					if (itemMilestoneIndex < moduleMilestoneIndex) continue;
+					return _validateFail(errorLocation, 'Milestone type', '"Milestone type" for this item should come after "Milestone Type" of earlier items.', module);
+				}
+				break;
+			}
+		}
     	return true;
     }
 	

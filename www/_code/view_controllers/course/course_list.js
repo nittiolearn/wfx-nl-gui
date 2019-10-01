@@ -96,6 +96,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
 		_canManage = nlRouter.isPermitted(_userInfo, 'assignment_manage');
+		_initMilestoneDict();
 		return nl.q(function(resolve, reject) {
 			_initParams();
 			nl.pginfo.pageTitle = _getPageTitle();
@@ -721,10 +722,42 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
     	if(module.type != 'iltsession') return true;
         if(!module.iltduration) return _validateModuleFail(scope, module, '"iltduration" is mandatory for "type": "iltsession"');
     	return true;
-    }
+	}
+	
+	
+	var _milestoneDict = {};
+	function _initMilestoneDict() {
+		_milestoneDict = {};
+		for(var i=0; i<  _userInfo.groupinfo.milestones.length; i++) {
+			var item = angular.copy( _userInfo.groupinfo.milestones[i]);
+			item.index = i;
+			_milestoneDict[item.id] = item;
+		}
+	}
 
     function _validateMilestone(scope, module, modules) {
 		if(module.type != 'milestone') return true;
+		if(!module.milestone_type) return _validateModuleFail(scope, module, '"milestone_type" is mandatory for "type": "milestone"');
+		var _allModules = modules || [];
+		var flag = false;
+
+		var moduleMilestoneIndex = (_milestoneDict[module.milestone_type] || {}).index || -1;
+
+		for(var i=0; i < _userInfo.groupinfo.milestones.length; i++) {
+			if (module.milestone_type === _userInfo.groupinfo.milestones[i].id) {
+				for(var j=0; j<_allModules.length; j++) {
+					var item = _allModules[j];
+					if(!item.milestone_type) continue;
+					if(module.id == item.id) break;
+					var itemMilestoneIndex = _milestoneDict[item.milestone_type].index;
+					if (itemMilestoneIndex < moduleMilestoneIndex) continue;
+					return _validateModuleFail(scope, module, 'Milestone Type for this item should come after Milestone Type of earlier items.', module);
+				}
+				flag = true;
+				break;
+			}
+		}
+		if(!flag) return _validateModuleFail(scope, module, '"milestone_type" is not valid');	
 		return true;
 	}
 	
