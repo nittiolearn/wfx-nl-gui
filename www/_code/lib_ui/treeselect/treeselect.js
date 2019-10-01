@@ -326,8 +326,9 @@ function(nl) {
 	        item.isSearchVisible = false; // Will be set to true when matched
         	// Will be made true later if child is searchVisible
         	if(item.isFolder) continue;
-	        var name = item.name.toLowerCase();
-            if(name.indexOf(searchText) == -1) continue;
+            var name = item.name.toLowerCase();
+            var username = item.userObj.username.toLowerCase();
+            if(name.indexOf(searchText) == -1 && username.indexOf(searchText) == -1) continue;
         	_makeParentVisible(treeSelectInfo, item);
 			item.isSearchVisible = true;
         }
