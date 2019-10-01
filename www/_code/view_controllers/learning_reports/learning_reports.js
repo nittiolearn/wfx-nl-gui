@@ -35,7 +35,7 @@ function module_init() {
 		'nl.learning_reports.lr_fetcher', 'nl.learning_reports.lr_exporter', 
 		'nl.learning_reports.lr_report_records', 'nl.learning_reports.lr_course_records',
 		'nl.learning_reports.lr_summary_stats', 'nl.learning_reports.lr_import', 'nl.learning_reports.lr_assignments',
-		'nl.learning_reports.lr_drilldown'])
+		'nl.learning_reports.lr_drilldown', 'nl.learning_reports.lr_nht_srv'])
 	.config(configFn)
 	.controller('nl.LearningReportsCtrl', LearningReportsCtrl)
 	.service('nlLearningReports', NlLearningReports);
@@ -61,22 +61,22 @@ function($scope, nlLearningReports) {
 	
 var NlLearningReports = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlGroupInfo', 'nlTable', 'nlSendAssignmentSrv',
 'nlLrHelper', 'nlReportHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlLrReportRecords', 'nlLrCourseRecords', 'nlLrSummaryStats', 'nlLrAssignmentRecords', 
-'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlCourse',
+'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlCourse', 'nlLrNht',
 function(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 	nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
-	nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse) {
+	nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht) {
 	this.create = function($scope, settings) {
 		if (!settings) settings = {};
 		return new NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
-			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse);
+			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht);
 	};
 }];
 	
 //-------------------------------------------------------------------------------------------------
 function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
-			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse) {
+			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht) {
 	var _userInfo = null;
 	var _groupInfo = null;
 	var _attendanceObj = {};
@@ -124,6 +124,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nlLrFetcher.init();
 		nlLrExporter.init(_userInfo);
 		nlLrDrilldown.init(nlGroupInfo);
+		nlLrNht.init(nlGroupInfo);
 		nl.pginfo.pageTitle = nlLrFilter.getTitle();
 		_initScope();
 	}
@@ -368,7 +369,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	$scope.generateDrillDownArray = function(item) {
 		if(!item.isFolder) return;
 		item.isOpen = !item.isOpen;
-		_generateDrillDownArray(false);
+		var selectedId = $scope.tabData.selectedTab.id;
+		if(selectedId == 'drilldown') {
+			$scope.drillDownInfo = {columns: _drillDownColumns, rows: _generateDrillDownArray(false, _statsCountDict, true)};
+		} else {
+			$scope.nhtInfo = {columns: _nhtColumns, rows: _generateDrillDownArray(false, _nhtStatsDict, false)};
+		}
 	};
 
 	$scope.generateBatchDataArray = function(item) {
@@ -418,7 +424,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			updated: false,
 			tables: []
 		}]};
-
 		ret.search = '';
 		ret.lastSeached = '';
 		ret.searchPlaceholder = 'Type the search words and press enter';
@@ -430,11 +435,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		ret.nothingToDisplay = false;
 		ret.onSearch = _onSearch;
 		ret.onTabSelect = _onTabSelect;
+		ret.isNHTAdded = false;
 		return ret;
 	}
 
 	function _someTabDataChanged() {
 		$scope.drillDownInfo = {};
+		$scope.nhtInfo = {};
 		var tabs = $scope.tabData.tabs;
 		for (var i=0; i<tabs.length; i++) {
 			tabs[i].updated = false;
@@ -487,8 +494,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			nlTable.updateTableObject($scope.otable, tabData.summaryStats);
 		} else if (tab.id == 'timesummary') {
 			_updateTimeSummaryTab();
-		} else if(tab.id == 'drilldown') {
+		} else if (tab.id == 'drilldown') {
 			_updateDrillDownTab();
+		} else if (tab.id == 'nht') {
+			_updateNhtTab()
 		}
 	}
 
@@ -626,16 +635,30 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 	
 	function _updateScope(avoidFlicker) {
-		nl.pginfo.pageTitle = nlLrFilter.getTitle();
-		
+		nl.pginfo.pageTitle = nlLrFilter.getTitle();	
 		$scope.fetchInProgress = nlLrFetcher.fetchInProgress(true);
 		$scope.canFetchMore = nlLrFetcher.canFetchMore();
-
+		_checkAndUpdateNHT();
 		var anyRecord = nlLrReportRecords.getAnyRecord();
 		_setSubTitle(anyRecord);
 		$scope.noDataFound = (anyRecord == null);
 		_someTabDataChanged();
 		_updateCurrentTab(avoidFlicker);
+
+	}
+
+	function _checkAndUpdateNHT() {
+		if(nlLrReportRecords.isNHT() && !$scope.tabData.isNHTAdded) {
+			$scope.tabData.tabs.splice(2, 0, {title : 'Click here to view New Hire Training status',
+												name: 'NHT',
+												icon : 'ion-filing',
+												id: 'nht',
+												updated: false,
+												tables: []
+											});
+			$scope.tabData.isNHTAdded = true;
+		}
+
 	}
 
 	function _initChartData() {
@@ -690,6 +713,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				colors: [_nl.colorsCodes.blue2]
 			}],
 			$scope.drillDownInfo = {};
+			$scope.nhtInfo = {};
 			$scope.batchinfo = {};
 	}
 	
@@ -843,7 +867,34 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	}
 
+	var _nhtStatsDict = {};
+	var _nhtColumns = [];
+	function _updateNhtTab() {
+		nlLrNht.clearStatusCountTree();
+		var records = $scope.tabData.records;
+		for(var i=0; i<records.length; i++) {
+			var record = records[i];
+			if(record.raw_record.isNHT)
+				nlLrNht.addCount(records[i]);
+		}
+		_nhtStatsDict = nlLrNht.getStatsCountDict();
+		_nhtColumns = _getNhtColumns();
+		$scope.nhtInfo = {columns: _nhtColumns, rows: _generateDrillDownArray(true, _nhtStatsDict, false)};
+	}
+
+	function _getNhtColumns() {
+		var columns = [];
+		var etmUserStates = _groupInfo.props.etmUserStates || [];
+		columns.push({id: 'cntTotal', name: 'Total agents', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
+		columns.push({id: 'batchTotal', name: 'Number of batches', table: true, hidePerc:true, showAlways: true});
+		columns.push({id: 'avgDelay', name: 'Average delay(In days)', hidePerc: true, table: true, showAlways: true});
+		columns.push({id: 'pending', name: 'Pending', hidePerc:true, table: true, showAlways: true});
+		for(var i=0; i<etmUserStates.length; i++) columns.push({id: etmUserStates[i].id, name: etmUserStates[i].name, hidePerc: true, showAlways: true, table: true});
+		return columns;
+	}
+
 	var _statsCountDict = {};
+	var _drillDownColumns = [];
 	function _updateDrillDownTab() {
 		nlLrDrilldown.clearStatusCountTree();
 		var records = $scope.tabData.records;
@@ -851,16 +902,16 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			nlLrDrilldown.addCount(records[i]);
 		}
 		_statsCountDict = nlLrDrilldown.getStatsCountDict();
-		_generateDrillDownArray(true);
+		_drillDownColumns = _getDrillDownColumns();
+		$scope.drillDownInfo = {columns: _drillDownColumns, rows: _generateDrillDownArray(true, _statsCountDict, true)};
 	}
 
 	var drillDownArray = [];
-	function _generateDrillDownArray(firstTimeGenerated) {
-		$scope.drillDownInfo = {};
+	function _generateDrillDownArray(firstTimeGenerated, statusDict, singleRepCheck) {
 		drillDownArray = [];
-		var isSingleReport = Object.keys(_statsCountDict).length <= 2 ? true : false;
-		for(var key in _statsCountDict) {
-			var root = _statsCountDict[key];
+		var isSingleReport = (singleRepCheck && Object.keys(statusDict).length <= 2) ? true : false;
+		for(var key in statusDict) {
+			var root = statusDict[key];
 			if(key == 0) {
 				root.cnt.style = 'nl-bg-dark-blue';
 				root.cnt['sortkey'] = 0+root.cnt.name;
@@ -880,8 +931,25 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if(b.sortkey.toLowerCase() > a.sortkey.toLowerCase()) return -1;
 			if(b.sortkey.toLowerCase() == a.sortkey.toLowerCase()) return 0;				
 		})
-		$scope.drillDownInfo = {columns: _getDrillDownColumns(), rows: drillDownArray};
+		return drillDownArray;
 	};
+
+	function _addSuborgOrOusToArray(subOrgDict, sortkey, subOrgName) {
+		for(var key in subOrgDict) {
+			var org = subOrgDict[key];
+				org.cnt['sortkey'] = sortkey+'.aa'+org.cnt.name;
+				org.cnt['orgname'] = org.cnt['name'];
+				if(nlGroupInfo.isSubOrgEnabled()) {
+					if(subOrgName && org.cnt['name'].indexOf(subOrgName+'.') === 0) {
+						org.cnt['orgname'] = org.cnt['name'].slice(subOrgName.length+1);
+					}
+				}
+			drillDownArray.push(org.cnt);
+			if(org.cnt.isOpen && org.children) {
+				_addSuborgOrOusToArray(org.children, org.cnt.sortkey, org.cnt.name);
+			}
+		}
+	}
 
 	function _getDrillDownColumns() {
 		var columns = [];
@@ -914,23 +982,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for(var i=0; i<_customScoresHeader.length; i++) columns.push({id: 'perc'+_customScoresHeader[i], name: 'Avg score of '+_customScoresHeader[i], table: true, background: 'nl-bg-blue', hidePerc:true});
 		columns.push({id: 'avgDelay', name: 'Avg Delay in days', table: true, background: 'nl-bg-blue', hidePerc:true});
 		return columns;
-	}
-
-	function _addSuborgOrOusToArray(subOrgDict, sortkey, subOrgName) {
-		for(var key in subOrgDict) {
-			var org = subOrgDict[key];
-				org.cnt['sortkey'] = sortkey+org.cnt.name;
-				org.cnt['orgname'] = org.cnt['name'];
-				if(nlGroupInfo.isSubOrgEnabled()) {
-					if(subOrgName && org.cnt['name'].indexOf(subOrgName+'.') === 0) {
-						org.cnt['orgname'] = org.cnt['name'].slice(subOrgName.length+1);
-					}
-				}
-			drillDownArray.push(org.cnt);
-			if(org.cnt.isOpen && org.children) {
-				_addSuborgOrOusToArray(org.children, org.cnt.sortkey, org.cnt.name);
-			}
-		}
 	}
 
 	function _onExport() {
