@@ -155,7 +155,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			attr.values.push('iltsession');
 		if (cm.type == 'milestone' || (_etm && _groupInfo.props.milestones))
 			attr.values.push('milestone');
-		if (cm.type == 'rating' || _etm && _groupInfo.props.ratings)
+		if (cm.type == 'rating' || (_etm && _groupInfo.props.ratings))
 			attr.values.push('rating');
 		if (cm.type == 'gate' || _etm) 
 			attr.values.push('gate');

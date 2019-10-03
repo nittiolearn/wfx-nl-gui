@@ -162,6 +162,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             }
             if (cm.isReattempt && itemInfo.rawStatus != 'pending') ret.reattempt = true;
             _updateStatusToWaitingIfNeeded(cm, itemInfo, itemIdToInfo);
+            _updateUnlockedTimeStamp(cm, itemInfo, itemIdToInfo);
             _updateStatusToDelayedIfNeeded(cm, itemInfo);
             _updateStatistics(itemInfo, ret);
             latestCustomStatus =  _updateCustomStatus(itemInfo, latestCustomStatus);
@@ -388,10 +389,10 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.origScore = itemInfo.score;
         //This is to check if no dependancy is set for certificate show in locked state
         if (cm.type == 'certificate' && (!cm.start_after || cm.start_after.length == 0)) {
-                itemInfo.status = 'waiting';
-                itemInfo.score = null;
-                itemInfo.prereqPending = true;
-                return;
+            itemInfo.status = 'waiting';
+            itemInfo.score = null;
+            itemInfo.prereqPending = true;
+            return;
         }
         var today = new Date();
         if ((repcontent.content || {}).planning && cm.start_date && cm.start_date > today) {
@@ -438,6 +439,27 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (pendCnt > 0) itemInfo.prereqPending = true;
         itemInfo.status = 'waiting';
         itemInfo.score = null;
+    }
+
+    function _updateUnlockedTimeStamp(cm, itemInfo, itemIdToInfo) {
+        if(itemInfo.status == 'waiting') return;
+        var isAndCondition = (cm.dependencyType == 'all');
+        if(!cm.start_after || cm.start_after.length == 0) {
+            itemInfo.unlockedOn = repcontent.started;
+            return;
+        }
+        var timeStampArray = [];
+        for(var i=0; i<cm.start_after.length; i++) {
+            var p = cm.start_after[i];
+            var preItem = itemIdToInfo[p.module] || null;
+            if (!preItem) continue;
+            if (preItem.updated) timeStampArray.push(preItem.updated);
+        }
+        if (timeStampArray.length == 0) return;
+        itemInfo.unlockedOn = isAndCondition ? new Date(Math.max.apply(null,timeStampArray)) : new Date(Math.min.apply(null,timeStampArray));
+        var minUnlockedTime = itemInfo.started || itemInfo.updated || null;
+        if (minUnlockedTime && minUnlockedTime < itemInfo.unlockedOn) itemInfo.unlockedOn = minUnlockedTime;
+        if (cm.type === 'gate' || cm.type === 'certificate' ) itemInfo.updated = itemInfo.unlockedOn;
     }
 
     function _updateStatusToDelayedIfNeeded(cm, itemInfo) {
@@ -505,6 +527,19 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             ret.status = 'failed';
         } else {
             ret.status = defaultCourseStatus;
+        }
+        if (!groupinfo.etmUserStates) return; 
+        if (!_isEndItemState(itemInfo.status)) return;
+        if (!itemInfo.unlockedOn) return;
+        ret.status = defaultCourseStatus;
+
+        var etmUserStates = groupinfo.etmUserStates;
+        var lastItem = etmUserStates[etmUserStates.length - 1];
+        var tenures = lastItem.tenures || [];
+        var diff = (new Date() - itemInfo.unlockedOn)/(24*60*60*1000);
+        for(var i=0; i<tenures.length; i++) {
+            var tenure = tenures[i];
+            if (tenure.after < diff) ret.status = tenure.id;
         }
    }
  
