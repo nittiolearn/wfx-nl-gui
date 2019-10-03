@@ -939,7 +939,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		if(module.type != 'milestone') return true;
 		if(!module.milestone_type) return _validateFail(errorLocation, 'Milestone type', 'Milestone type is mandatory.', module);
 
-		var moduleMilestoneIndex = (_milestoneDict[module.milestone_type] || {}).index || -1;
+		var moduleMilestoneIndex = module.milestone_type in _milestoneDict ? _milestoneDict[module.milestone_type].index : -1;
 		if (moduleMilestoneIndex < 0) {
 			return _validateFail(errorLocation, 'Milestone type', '"Milestone type" not defined.', module);
 		}

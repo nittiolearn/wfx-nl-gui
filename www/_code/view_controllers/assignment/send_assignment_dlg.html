@@ -55,8 +55,23 @@
 		<div style='padding:4px'>
 	        <nl-date-time-select fieldmodel='endtime'></nl-date-time-select>
 		</div>
-	</nl-dlg-row>
+        </nl-dlg-row>
 
+        <div ng-show='data.hasMilestone.status'>
+                <hr>
+                <div class='padding-mid fsh5'>Milestones:</div>
+        </div>
+        <div ng-show='data.hasMilestone.status' ng-repeat='item in data.milestoneItems'>
+                <nl-dlg-row data='data' help='help' attr='{{item.typeId}}'>
+                        <div style='padding:4px'>
+                        <nl-date-time-select fieldmodel='{{item.typeId}}'></nl-date-time-select>
+                        </div>
+                </nl-dlg-row>
+        </div>
+        <div ng-show='data.hasMilestone.status'>
+                <hr>
+        </div>
+        
 	<nl-dlg-row attr='submissionAfterEndtime' data='data' help='help'
          ng-show='assignInfo.enableSubmissionAfterEndtime && data.endtime'>
         <nl-checkbox fieldmodel='submissionAfterEndtime' 
