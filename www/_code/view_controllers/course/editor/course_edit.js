@@ -153,9 +153,9 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		   attr.values.push('link');
 		if (cm.type == 'iltsession' || (_groupInfo && _groupInfo.props.features['training'])) 
 			attr.values.push('iltsession');
-		if (cm.type == 'milestone' || _etm && _milestones)
+		if (cm.type == 'milestone' || (_etm && _milestones))
 			attr.values.push('milestone');
-		if (cm.type == 'rating' || _etm && _groupInfo.props.ratings)
+		if (cm.type == 'rating' || (_etm && _groupInfo.props.ratings))
 			attr.values.push('rating');
 		if (cm.type == 'gate' || _etm) 
 			attr.values.push('gate');

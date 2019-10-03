@@ -869,13 +869,25 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	var _nhtStatsDict = {};
 	var _nhtColumns = [];
+	var _nhtUniqueUserRecords = {};
 	function _updateNhtTab() {
 		nlLrNht.clearStatusCountTree();
 		var records = $scope.tabData.records;
+		_nhtUniqueUserRecords = {};
 		for(var i=0; i<records.length; i++) {
 			var record = records[i];
-			if(record.raw_record.isNHT)
-				nlLrNht.addCount(records[i]);
+			if(!record.raw_record.isNHT) continue;
+			if(!(record.user.user_id in _nhtUniqueUserRecords)) {
+				_nhtUniqueUserRecords[record.user.user_id] = record;
+				continue;
+			}	
+			var oldUserRecord = _nhtUniqueUserRecords[record.user.user_id];
+			if(oldUserRecord.repcontent.updated > record.repcontent.updated) continue;
+			_nhtUniqueUserRecords[record.user.user_id] = record;
+		}
+		for(var key in _nhtUniqueUserRecords) {
+			var record = _nhtUniqueUserRecords[key];
+				nlLrNht.addCount(record);
 		}
 		_nhtStatsDict = nlLrNht.getStatsCountDict();
 		_nhtColumns = _getNhtColumns();
@@ -884,12 +896,20 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _getNhtColumns() {
 		var columns = [];
+		var attrition = nlLrNht.getAttritionArray();
 		var etmUserStates = _groupInfo.props.etmUserStates || [];
-		columns.push({id: 'cntTotal', name: 'Total agents', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
-		columns.push({id: 'batchTotal', name: 'Number of batches', table: true, hidePerc:true, showAlways: true});
+		columns.push({id: 'cntTotal', name: 'Learners', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
+		columns.push({id: 'batchTotal', name: 'Batches', table: true, hidePerc:true, showAlways: true});
 		columns.push({id: 'avgDelay', name: 'Average delay(In days)', hidePerc: true, table: true, showAlways: true});
 		columns.push({id: 'pending', name: 'Pending', hidePerc:true, table: true, showAlways: true});
-		for(var i=0; i<etmUserStates.length; i++) columns.push({id: etmUserStates[i].id, name: etmUserStates[i].name, hidePerc: true, showAlways: true, table: true});
+		for(var i=0; i<etmUserStates.length; i++) {
+			var userState = etmUserStates[i];
+			columns.push({id: userState.id, name: userState.name, hidePerc: true, showAlways: true, table: true});
+			if(userState.tenures) {
+				for (var j=0; j<userState.tenures.length; j++) columns.push({id: userState.tenures[j].id, name: userState.tenures[j].name, hidePerc: true, showAlways: true, table: true});
+			}
+		}
+		for(var i=0; i<attrition.length; i++) columns.push({id: attrition[i], name: attrition[i], percid:'perc'+attrition[i], indentation: 'padding-left-44', table: true});
 		return columns;
 	}
 

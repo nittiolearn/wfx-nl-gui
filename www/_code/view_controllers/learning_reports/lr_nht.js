@@ -14,7 +14,7 @@ function(nl, nlReportHelper) {
     var _customStartedStatusObj = {};
     var _isSubOrgEnabled = false;
     var nhtCounts = new NhtCounts(nl);
-    var _batchCount = {};
+    var _attritionObj = {};
     this.init = function(nlGroupInfo) {
         _orgToSubOrgDict = nlGroupInfo.getOrgToSubOrgDict();
         _isSubOrgEnabled = nlGroupInfo.isSubOrgEnabled();
@@ -22,7 +22,7 @@ function(nl, nlReportHelper) {
 
     this.clearStatusCountTree = function() {
         _customStartedStatusObj = {};
-        _batchCount = {};
+        _attritionObj = {};
         nhtCounts.clear();
     };
 
@@ -30,13 +30,18 @@ function(nl, nlReportHelper) {
         return nhtCounts.statsCountDict();
     };
 
+    this.getAttritionArray = function() {
+        var array = _getSortedArrayFromObj(_attritionObj);
+        return array;
+    }
+
     this.addCount = function(record) {
         var assignment = record.raw_record.assignment;
         var ou = record.user.org_unit;
         var subOrg = _isSubOrgEnabled ? _orgToSubOrgDict[ou] : ou;
         if(!subOrg) subOrg = "Others";
         var statusCntObj = _getStatusCountObj(record);
-        _addCount(assignment, subOrg, _isSubOrgEnabled ? ou : '', statusCntObj, record.repcontent.name);
+        _addCount(assignment, subOrg, _isSubOrgEnabled ? ou : '', statusCntObj, record.repcontent.batchname || record.repcontent.name);
     }
 
     function _addCount(assignment, subOrg, ou, statusObj, name) {
@@ -70,7 +75,32 @@ function(nl, nlReportHelper) {
             statsCountObj['pending'] = 1;
             return;
         }
+        if(statusStr.indexOf('attrition') == 0) {
+            statsCountObj[statusStr] = 1;
+            statsCountObj['attrition'] = 1;
+            if(!(statusStr in _attritionObj))
+                _attritionObj[statusStr] = record.stats.progressPerc;
+            return;
+        }        
         statsCountObj[statusStr] = 1;
+    }
+
+    function _getSortedArrayFromObj(dict) {
+        var items = Object.keys(dict).map(function(key) {
+                return [key, dict[key]];
+            });
+          
+        items.sort(function(first, second) {
+            if(first[1] < second[1]) return 1;
+            if(first[1] > second[1]) return -1;
+            if(first[1] == second[1]) return 0;
+        });
+        var ret = [];
+        for(var i=0; i<items.length; i++) {
+            var array = items[i];
+            ret.push(array[0]);
+        }
+        return ret;
     }
 }];
 
