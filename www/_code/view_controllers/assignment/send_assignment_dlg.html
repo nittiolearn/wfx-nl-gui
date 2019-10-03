@@ -57,18 +57,15 @@
 		</div>
         </nl-dlg-row>
 
-        <div ng-show='data.hasMilestone.status'>
+        <div ng-show='data.milestoneItems.length > 0'>
                 <hr>
                 <div class='padding-mid fsh5'>Milestones:</div>
-        </div>
-        <div ng-show='data.hasMilestone.status' ng-repeat='item in data.milestoneItems'>
-                <nl-dlg-row data='data' help='help' attr='{{item.typeId}}'>
+                <nl-dlg-row ng-repeat='item in data.milestoneItems track by item.typeId'
+                        data='data' help='help' attr='{{item.typeId}}'>
                         <div style='padding:4px'>
                         <nl-date-time-select fieldmodel='{{item.typeId}}'></nl-date-time-select>
                         </div>
                 </nl-dlg-row>
-        </div>
-        <div ng-show='data.hasMilestone.status'>
                 <hr>
         </div>
         

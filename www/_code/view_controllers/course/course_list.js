@@ -728,8 +728,9 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlLrFetcher, nlD
 	var _milestoneDict = {};
 	function _initMilestoneDict() {
 		_milestoneDict = {};
-		for(var i=0; i<  _userInfo.groupinfo.milestones.length; i++) {
-			var item = angular.copy( _userInfo.groupinfo.milestones[i]);
+		var _milestones = _userInfo.groupinfo.milestones ? _userInfo.groupinfo.milestones : [];
+		for(var i=0; i<  _milestones.length; i++) {
+			var item = angular.copy( _milestones[i]);
 			item.index = i;
 			_milestoneDict[item.id] = item;
 		}

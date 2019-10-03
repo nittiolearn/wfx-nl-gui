@@ -185,6 +185,15 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 
         dlgScope.help = _getHelp();
 
+        dlgScope.data.milestoneItems = _updateMilestones(_assignInfo);
+        if(dlgScope.data.milestoneItems.length) {
+            for(var i=0; i< dlgScope.data.milestoneItems.length; i++) {
+                var ms = dlgScope.data.milestoneItems[i].typeId;
+                dlgScope.data[ms] = _assignInfo[ms] || '';
+                dlgScope.help[ms] =  {name: dlgScope.data.milestoneItems[i].name, help: nl.t('Please Enter the Due Date of the Milestone mentioned.')};
+            }
+        }
+
         dlgScope.data.onModifyDetails = function() {
             var modifyDlg = nlDlg.create(_parentScope);
             modifyDlg.setCssClass('nl-height-max nl-width-max');
@@ -211,7 +220,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			updateContentStr += '<p>You may update content to correct minor errors in the module content - example minor textual changes.</p>'; 
 			updateContentStr += '<p>If you need to remove some wrong questions, you may delete the page. Correcting the answer will not reevaluate users who have already completed.</p>'; 
 			updateContentStr += '<p>Learner who have already completed the module will not be able to redo based on updated content. ';
-			updateContentStr += 'Learners who have not done the assignment will see the updated content.</p>';
+            updateContentStr += 'Learners who have not done the assignment will see the updated content.</p>';
 		return {
 			ouUserTree: {name: 'Add users', help: nl.t('Select the organizations and if needed, the specific learners.')},
 			starttime: {name: 'From', help: nl.t('You may define the earliest date and time (upto minutes accuracy) from when the assignment is active. If not set, the assignment is active as soon as it is sent till the end time.')},
@@ -251,8 +260,15 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             [sendButton], cancelButton);
     }
 
+    function _validateFail(attr, errMsg) {
+    	return nlDlg.setFieldError(_dlg.scope, attr, errMsg);
+    }
+
     function _validateBeforeAssign() {
+        // TODO-NOW: truncate seconds part from all the date objects - call this before new/modify validates
+    	_dlg.scope.error = {};
     	if (_dlg.scope.assignInfo.showDateField && !_dlg.scope.data.starttime) {
+            // TODO-NOW return _validateFail('starttime', 'TODO - check');
             nlDlg.popupAlert({title:'Please select', template: 'Start date is mandatory and it can not be empty. Please select the start date'});
             return false;
     	}
@@ -266,6 +282,29 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         		: nl.t('Please select the users to send the assignment to.');
             nlDlg.popupAlert({title:'Please select', template: templateMsg});
             return false;
+        }
+        var msItems = _dlg.scope.data.milestoneItems;
+        if(msItems.length && ( !_dlg.scope.data.endtime || _dlg.scope.data.starttime > _dlg.scope.data.endtime)) {
+            nlDlg.popupAlert({title:'Please select',  template: 'End date is mandatory and it should be greater than start date.'});
+            return false;
+        }
+        for (var i=0; i< msItems.length; i++) {
+            var milestoneTypeid = msItems[i].typeId;
+            if(!_dlg.scope.data[milestoneTypeid]) {
+                nlDlg.popupAlert({title:'Please select', template: 'Due date is mandatory for all Milestone items and it can not be empty. Please select the due date for all milestone items.'});
+                return false;
+            }
+            var earlierDate = i>=1 ? _dlg.scope.data[msItems[i-1].typeId] : _dlg.scope.data.starttime;
+            if(_dlg.scope.data[milestoneTypeid] < earlierDate) {
+                nlDlg.popupAlert({title:'Please select due dates Appropriately', 
+                    template: 'Due date for milestone should be greater than start time and earlier milestones.'});
+                return false;
+            }
+            if( _dlg.scope.data[milestoneTypeid] > _dlg.scope.data.endtime) {
+                nlDlg.popupAlert({title:'Please select due dates Appropriately', 
+                    template: 'Due date for each Milestone items should be less than endtime.'});
+                return false;
+            }
         }
         return true;
     }
@@ -358,6 +397,18 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             ret[item.id] = {name: item.name, duration: item.iltduration};
         }
         return ret;
+    }
+
+    function _updateMilestones(_assignInfo) {
+        var milestoneItems = [];
+        if (_assignInfo.assigntype !== 'course') return milestoneItems;
+        var modules = _assignInfo.course.content.modules;
+        for(var i=0; i<modules.length; i++) {
+            var item = modules[i];
+            if(item.type != 'milestone') continue;
+            milestoneItems.push({name: item.name, duedate: item['milestone_' + item.id] || '', typeId: 'milestone_' + item.id});
+        }
+        return milestoneItems;
     }
 
     function _getMinimizedILT(modifiedILT) {
