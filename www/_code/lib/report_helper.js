@@ -86,6 +86,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     var _lessonReports = repcontent.lessonReports || {};
     var _pastLessonReports = repcontent.pastLessonReports || {};
     var _modifiedILT = ((courseAssign ? courseAssign.info : repcontent) || {}).modifiedILT || {};
+    var _msDates = (courseAssign.info || {}).msDates || {};
+    for (var key in _msDates) {
+        var d = _msDates[key];
+        _msDates[key] = nl.fmt.json2Date(d);
+    }
  
     var _modules = ((course || repcontent || {}).content || {}).modules || []; 
     var _fromDate = (courseAssign || {}).not_before ||  report.not_before || report.created;
@@ -466,9 +471,10 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         var dueDate = new Date();
         var now = _isEndItemState(itemInfo.status) ? itemInfo.updated : new Date();
         if (!now) return;
-        if (cm.complete_before && _fromDate) {
-            var complete_before = parseInt(cm.complete_before);
-            dueDate = new Date(_fromDate.getTime()+complete_before*24*60*60*1000);
+
+        if (cm.type == 'milestone') {
+            var msid = 'milestone_' + cm.id;
+            if (msid in _msDates) dueDate = _msDates[msid];
         } else if ((repcontent.content || {}).planning && cm.planned_date) {
             dueDate = cm.planned_date;
         }
@@ -572,24 +578,24 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
     function _updateCourseDelayForCompleted(ret) {
         var lastUpdated = null;
-        var maxCompleteBefore = null;
         for(var i=0; i<_modules.length; i++) {
             var cm = _modules[i];
             var itemInfo = ret.itemIdToInfo[cm.id];
-            if (cm.complete_before) {
-                var complete_before = parseInt(cm.complete_before);
-                if (!maxCompleteBefore || complete_before > maxCompleteBefore)
-                    maxCompleteBefore = complete_before;
-            }
             if (!itemInfo.updated) continue;
             if (!lastUpdated || itemInfo.updated > lastUpdated) {
                 lastUpdated = itemInfo.updated;
             }
         }
         if (!lastUpdated) return;
+
+        var maxCompleteBefore = null;
+        for (var key in _msDates) {
+            if (!maxCompleteBefore || _msDates[key] > maxCompleteBefore)
+                maxCompleteBefore = _msDates[key];
+        }
         var courseEndTime = (courseAssign || {}).not_after ||  report.not_after || null;
         if (!courseEndTime && maxCompleteBefore) {
-            courseEndTime = new Date(_fromDate.getTime()+maxCompleteBefore*24*60*60*1000);
+            courseEndTime = maxCompleteBefore;
         }
         if (!courseEndTime || courseEndTime >= lastUpdated) return;
         ret.delayDays = 1.0*(lastUpdated - courseEndTime)/1000.0/3600.0/24;
