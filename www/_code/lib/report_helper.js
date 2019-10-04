@@ -53,7 +53,7 @@ function(nl, nlCourse, nlExpressionProcessor) {
     };
 
     this.getCourseStatusHelper = function(report, groupinfo, courseAssign, course) {
-        return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, false, report, groupinfo, courseAssign, 'trainer');
+        return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, false, report, groupinfo, courseAssign, course, 'trainer');
     };
     this.getCourseStatusHelperForCourseView = function(report, groupinfo) {
         return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, true, report, groupinfo, null, null, 'learner');
@@ -87,7 +87,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     var _lessonReports = repcontent.lessonReports || {};
     var _pastLessonReports = repcontent.pastLessonReports || {};
     var _modifiedILT = ((courseAssign ? courseAssign.info : repcontent) || {}).modifiedILT || {};
-    var _msDates = (courseAssign.info || {}).msDates || {};
+    var _msDates = courseAssign && courseAssign.info && courseAssign.info.msDates ? courseAssign.info.msDates : {};
+
     for (var key in _msDates) {
         var d = _msDates[key];
         _msDates[key] = nl.fmt.json2Date(d);
@@ -232,7 +233,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     }
 
     function _getUpdatedTimestamp(sinfo) {
-        return sinfo.timestamp || nl.fmt.json2Date(sinfo.date || '');
+        return nl.fmt.json2Date(sinfo.timestamp || sinfo.date || '');
     }
 
     function _getRawStatusOfInfo(cm, itemInfo) {
@@ -455,18 +456,22 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if(itemInfo.status == 'waiting') return;
         var isAndCondition = (cm.dependencyType == 'all');
         if(!cm.start_after || cm.start_after.length == 0) {
-            itemInfo.unlockedOn = repcontent.started;
+            itemInfo.unlockedOn = _fromDate;
             return;
         }
-        var timeStampArray = [];
+        var unlockedTime = null;
         for(var i=0; i<cm.start_after.length; i++) {
             var p = cm.start_after[i];
             var preItem = itemIdToInfo[p.module] || null;
-            if (!preItem) continue;
-            if (preItem.updated) timeStampArray.push(preItem.updated);
+            if (!preItem || !preItem.updated) continue;
+            if (!unlockedTime) {
+                unlockedTime = preItem.updated;
+                continue;
+            }
+            if (isAndCondition && preItem.updated > unlockedTime) unlockedTime = preItem.updated;
+            if (!isAndCondition && preItem.updated < unlockedTime) unlockedTime = preItem.updated;
         }
-        if (timeStampArray.length == 0) return;
-        itemInfo.unlockedOn = isAndCondition ? new Date(Math.max.apply(null,timeStampArray)) : new Date(Math.min.apply(null,timeStampArray));
+        if (unlockedTime) itemInfo.unlockedOn = unlockedTime;
         var minUnlockedTime = itemInfo.started || itemInfo.updated || null;
         if (minUnlockedTime && minUnlockedTime < itemInfo.unlockedOn) itemInfo.unlockedOn = minUnlockedTime;
         if (cm.type === 'gate' || cm.type === 'certificate' ) itemInfo.updated = itemInfo.unlockedOn;
@@ -539,7 +544,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         } else {
             ret.status = defaultCourseStatus;
         }
-        if (!groupinfo.etmUserStates) return; 
+        if (!groupinfo.etmUserStates || groupinfo.etmUserStates.length === 0) return; 
         if (!_isEndItemState(itemInfo.status)) return;
         if (!itemInfo.unlockedOn) return;
         ret.status = defaultCourseStatus;

@@ -1741,6 +1741,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			remarks: launchType == 'module_assign' ? assignContent.assign_remarks : assignContent.remarks,
 			starttime: assignContent.not_before || '', 
 			endtime: assignContent.not_after || '', 
+			msDates: assignContent.msDates || null,
 			submissionAfterEndtime: assignContent.submissionAfterEndtime,
 			dontShowUsers: nominatedUsers};
 			
@@ -1757,6 +1758,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			assignInfo.iltCostFoodSta = assignContent.iltCostFoodSta || '';
 			assignInfo.iltCostTravelAco = assignContent.iltCostTravelAco || '';
 			assignInfo.iltCostMisc = assignContent.iltCostMisc || '';
+			assignInfo.course = nlLrCourseRecords.getRecord(assignContent.courseid);
 		}
 		nlSendAssignmentSrv.show($scope, assignInfo, _userInfo).then(function(result) {
 			if (!result) return;

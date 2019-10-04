@@ -32,6 +32,11 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlSendAssignmentSrv) {
     function _onPageEnter(userInfo) {
         _userInfo = userInfo;
         return nl.q(function(resolve, reject) {
+            nlDlg.popupStatus('Not Supported');
+            resolve(false);
+            return;
+
+            // TODO: remove all usages of this controller and the code
             var params = nl.location.search();
             _type = (params.type == 'course') ? 'course' : 'lesson';
             _dbid = params.id ? parseInt(params.id) : null;
@@ -186,9 +191,11 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         dlgScope.help = _getHelp();
 
         dlgScope.data.milestoneItems = _updateMilestones(_assignInfo);
+        var currentMsDates = _assignInfo.msDates || {};
+
         for(var i=0; i< dlgScope.data.milestoneItems.length; i++) {
             var ms = dlgScope.data.milestoneItems[i].typeId;
-            dlgScope.data[ms] = _assignInfo[ms] || '';
+            dlgScope.data[ms] = currentMsDates[ms] || '';
             dlgScope.help[ms] =  {name: dlgScope.data.milestoneItems[i].name, help: nl.t('Please Enter the Due Date of the Milestone mentioned.')};
         }
 
@@ -247,7 +254,11 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
     	if (_assignInfo.isModify) buttonName = nl.t('Modify');
         var sendButton = {text : buttonName, onTap : function(e) {
             if (_ouUserSelector) _selectedUsers = _ouUserSelector.getSelectedUsers(); 
-        	if (_assignInfo.isModify) return _modifyAssignment(e);
+            if(e) e.preventDefault(e);
+            truncateSecondsFromDate(_dlg.scope.data);
+            if (!_validateBeforeAssign(_dlg.scope.data)) return;
+
+            if (_assignInfo.isModify) return _modifyAssignment(e);
             _onSendAssignment(e);
         }};
         var cancelButton = {text : nl.t('Cancel'), onTap: function(e) {
@@ -258,22 +269,51 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             [sendButton], cancelButton);
     }
 
-    function _validateFail(attr, errMsg) {
-    	return nlDlg.setFieldError(_dlg.scope, attr, errMsg);
+    function truncateSecondsFromDate(params) {
+        if(params.starttime) params.starttime.setSeconds(0);
+        if(params.endtime) params.endtime.setSeconds(0);
+        var msItems = params.milestoneItems;
+        for (var i=0; i< msItems.length; i++) {
+            var milestoneTypeid = msItems[i].typeId;
+            if(params[milestoneTypeid]) params[milestoneTypeid].setSeconds(0);
+        }
     }
 
     function _validateBeforeAssign() {
-        // TODO-NOW: truncate seconds part from all the date objects - call this before new/modify validates
-    	_dlg.scope.error = {};
-    	if (_dlg.scope.assignInfo.showDateField && !_dlg.scope.data.starttime) {
-            // TODO-NOW return _validateFail('starttime', 'TODO - check');
-            nlDlg.popupAlert({title:'Please select', template: 'Start date is mandatory and it can not be empty. Please select the start date'});
-            return false;
-    	}
-    	if (_dlg.scope.assignInfo.showDateField && _dlg.scope.assignInfo.blended && !_dlg.scope.data.endtime) {
-            nlDlg.popupAlert({title:'Please select', template: 'End date is mandatory for ILT courses and it can not be empty. Please select the end date'});
-            return false;
-    	}
+        _dlg.scope.error = {};
+        if (_dlg.scope.assignInfo.showDateField) {
+            if (!_dlg.scope.data.starttime) {
+                return _validateFail('starttime', 'Start date/time is mandatory.');
+            }
+            var msItems = _dlg.scope.data.milestoneItems;
+            if ((_dlg.scope.assignInfo.blended || msItems.length) && !_dlg.scope.data.endtime) {
+                return _validateFail('endtime', 'End date/time is mandatory for ILT courses.');
+            }
+            if (_dlg.scope.data.endtime && _dlg.scope.data.starttime > _dlg.scope.data.endtime) {
+                return _validateFail('endtime', 'End date/time should be more than start and current date/time.');
+            }
+	        var maxduration = _dlg.scope.data.maxduration;
+	        maxduration = maxduration ? parseInt(maxduration) : 0;
+            if (_dlg.scope.data.endtime && maxduration) {
+                var minutes = Math.floor((_dlg.scope.data.endtime - _dlg.scope.data.starttime)/60000);
+                if (minutes < maxduration)
+                    return _validateFail('endtime', nl.fmt2('End date/time should be atleast {} minutes more than start date/time', maxduration));
+            }
+            for (var i=0; i< msItems.length; i++) {
+                var milestoneTypeid = msItems[i].typeId;
+                if(!_dlg.scope.data[milestoneTypeid]) {
+                    return _validateFail( milestoneTypeid, 'Milestone date is mandatory.');
+                }
+                var earlierDate = i>=1 ? _dlg.scope.data[msItems[i-1].typeId] : _dlg.scope.data.starttime;
+                if(_dlg.scope.data[milestoneTypeid] < earlierDate) {
+                    return _validateFail( milestoneTypeid, 'Milestone date should be greater than start time and earlier milestones.');
+                }
+                if( _dlg.scope.data[milestoneTypeid] > _dlg.scope.data.endtime) {
+                    return _validateFail( milestoneTypeid, 'Milestone date should be less than endtime.');
+                }
+            }
+        }
+
         if (!_dlg.scope.assignInfo.isModify && Object.keys(_selectedUsers).length == 0) {
         	var templateMsg = _assignInfo.assigntype == 'training' 
         		? nl.t('Please select the users to nominate.') 
@@ -281,32 +321,14 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             nlDlg.popupAlert({title:'Please select', template: templateMsg});
             return false;
         }
-        var msItems = _dlg.scope.data.milestoneItems;
-        if(msItems.length && ( !_dlg.scope.data.endtime || _dlg.scope.data.starttime > _dlg.scope.data.endtime)) {
-            nlDlg.popupAlert({title:'Please select',  template: 'End date is mandatory and it should be greater than start date.'});
-            return false;
-        }
-        for (var i=0; i< msItems.length; i++) {
-            var milestoneTypeid = msItems[i].typeId;
-            if(!_dlg.scope.data[milestoneTypeid]) {
-                nlDlg.popupAlert({title:'Please select', template: 'Due date is mandatory for all Milestone items and it can not be empty. Please select the due date for all milestone items.'});
-                return false;
-            }
-            var earlierDate = i>=1 ? _dlg.scope.data[msItems[i-1].typeId] : _dlg.scope.data.starttime;
-            if(_dlg.scope.data[milestoneTypeid] < earlierDate) {
-                nlDlg.popupAlert({title:'Please select due dates Appropriately', 
-                    template: 'Due date for milestone should be greater than start time and earlier milestones.'});
-                return false;
-            }
-            if( _dlg.scope.data[milestoneTypeid] > _dlg.scope.data.endtime) {
-                nlDlg.popupAlert({title:'Please select due dates Appropriately', 
-                    template: 'Due date for each Milestone items should be less than endtime.'});
-                return false;
-            }
-        }
         return true;
     }
     
+    function _validateFail(attr, errMsg) {
+        nlDlg.popupAlert({title:'Error', template: errMsg});
+    	return nlDlg.setFieldError(_dlg.scope, attr, errMsg);
+    }
+
     function _getOusAndUser() {
         var ret = {ous: [], userids: [], dispinfos: []};
         var ouDict = {};
@@ -327,7 +349,6 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
     // On modify and afterwards code
     //---------------------------------------------------------------------------------------------
 	function _modifyAssignment(e) {
-        if(e) e.preventDefault(e);
         var ouUserInfo = _getOusAndUser();
         
         var assignInfo = _dlg.scope.assignInfo;
@@ -366,15 +387,6 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 
 
     function _validateBeforeModify(params, assignInfo, onModifyFn) {
-    	if (assignInfo.showDateField && !params.not_before) {
-            nlDlg.popupAlert({title:'Please select', template: 'Start date is mandatory and it can not be empty. Please select the start date'});
-            return false;
-    	}
-    	if (assignInfo.showDateField && assignInfo.blended && !params.not_after) {
-            nlDlg.popupAlert({title:'Please select', template: 'End date is mandatory for ILT courses and it can not be empty. Please select the end date'});
-            return false;
-    	}
-    	if (!_asertStartEndDurations(params.not_before, params.not_after, params.max_duration, true)) return false;
     	if (params.atype == _nl.atypes.ATYPE_MODULE && params.update_content) {
 	    	var confirm = _getHelp().update_content.help;
 	    	confirm = nl.t('<div class="padding-mid fsh5">Updating the content could have undesired consequences. Are you sure you want to continue?</div><div class="padding-mid">{}</div>', confirm);
@@ -435,9 +447,6 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
     // On Send and afterwards code
     //---------------------------------------------------------------------------------------------
     function _onSendAssignment(e) {
-        if(e) e.preventDefault(e);
-        if (!_validateBeforeAssign(_dlg.scope.data)) return;
-        
         var ouUserInfo = !_dlg.scope.assignInfo.isModify ? _getOusAndUser() : null;
         var assignInfo = _dlg.scope.assignInfo;
         var data = {
@@ -458,7 +467,6 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 	        var endtime = _dlg.scope.data.endtime || '';
 	        var maxduration = _dlg.scope.data.maxduration;
 	        maxduration = maxduration ? parseInt(maxduration) : 0;
-	        if (!_asertStartEndDurations(starttime, endtime, maxduration)) return;
 	        if(starttime) starttime = nl.fmt.date2UtcStr(starttime, 'second');
 	        if(endtime) endtime = nl.fmt.date2UtcStr(endtime, 'second');
             data.not_before = starttime;
@@ -493,25 +501,6 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         var ret = sorted.join(', ');
         if (ret.length <= 100) return ret;
         return ret.substring(0, 100) + '...';
-    }
-
-    function _asertStartEndDurations(starttime, endtime, maxduration, isModify) {
-        if (!endtime) return true;
-        
-        var now = new Date();
-        if (!starttime || (!isModify && starttime < now)) starttime = now;
-
-        var minutes = Math.floor((endtime - starttime)/60000);
-        if (minutes >= maxduration) return true;
-        
-        if (maxduration == 0) {
-            nlDlg.popupAlert({title:'Alert message', 
-                template:'End date/time should be more than start and current date/time'});
-            return false;
-        }
-        nlDlg.popupAlert({title:'Alert message', 
-            template:nl.t('End date/time should be atleast {} minutes more than start and current date/time', maxduration)});
-        return false;
     }
 
     function _confirmAndSend(data, ouUserInfo) {
