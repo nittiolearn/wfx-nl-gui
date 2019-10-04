@@ -186,12 +186,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         dlgScope.help = _getHelp();
 
         dlgScope.data.milestoneItems = _updateMilestones(_assignInfo);
-        if(dlgScope.data.milestoneItems.length) {
-            for(var i=0; i< dlgScope.data.milestoneItems.length; i++) {
-                var ms = dlgScope.data.milestoneItems[i].typeId;
-                dlgScope.data[ms] = _assignInfo[ms] || '';
-                dlgScope.help[ms] =  {name: dlgScope.data.milestoneItems[i].name, help: nl.t('Please Enter the Due Date of the Milestone mentioned.')};
-            }
+        for(var i=0; i< dlgScope.data.milestoneItems.length; i++) {
+            var ms = dlgScope.data.milestoneItems[i].typeId;
+            dlgScope.data[ms] = _assignInfo[ms] || '';
+            dlgScope.help[ms] =  {name: dlgScope.data.milestoneItems[i].name, help: nl.t('Please Enter the Due Date of the Milestone mentioned.')};
         }
 
         dlgScope.data.onModifyDetails = function() {
@@ -356,7 +354,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			params.iltCostFoodSta = data.iltCostFoodSta;
 			params.iltCostTravelAco = data.iltCostTravelAco;
 			params.iltCostMisc = data.iltCostMisc;
-		}
+        }
+        _updateMilestoneDates(_dlg.scope, params);
 		_validateBeforeModify(params, assignInfo, function() {
 			if (params.not_before) params.not_before = nl.fmt.date2UtcStr(params.not_before, 'second');
 			if (params.not_after) params.not_after = nl.fmt.date2UtcStr(params.not_after, 'second');
@@ -411,6 +410,20 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         return milestoneItems;
     }
 
+    function _updateMilestoneDates(dlgScope, serverParams) {
+        var msDates = {};
+        var msItems = dlgScope.data.milestoneItems;
+        var bFound = false;
+        for(var i=0; i< msItems.length; i++) {
+            var ms = dlgScope.data.milestoneItems[i].typeId;
+            var msDate = dlgScope.data[ms] || '';
+            if (msDate) msDate = nl.fmt.date2UtcStr(msDate, 'second');
+            msDates[ms] = msDate;
+            bFound = true;
+        }
+        if (bFound) serverParams.msDates = msDates;
+    }
+    
     function _getMinimizedILT(modifiedILT) {
         var ret = {};
         for(var key in modifiedILT) {
@@ -471,6 +484,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 				data.iltCostMisc = _dlg.scope.data.iltCostMisc || '';
 			}
         }
+        _updateMilestoneDates(_dlg.scope, data);
         _confirmAndSend(data, ouUserInfo);
     }
     
