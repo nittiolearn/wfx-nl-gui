@@ -53,10 +53,10 @@ function(nl, nlCourse, nlExpressionProcessor) {
     };
 
     this.getCourseStatusHelper = function(report, groupinfo, courseAssign, course) {
-        return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, false, report, groupinfo, courseAssign, course);
+        return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, false, report, groupinfo, courseAssign, 'trainer');
     };
     this.getCourseStatusHelperForCourseView = function(report, groupinfo) {
-        return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, true, report, groupinfo, null, null);
+        return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, true, report, groupinfo, null, null, 'learner');
     };
 
     this.isEndItemState = function(status) {
@@ -68,7 +68,7 @@ function(nl, nlCourse, nlExpressionProcessor) {
     };
 }];
 
-function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, report, groupinfo, courseAssign, course) {
+function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, report, groupinfo, courseAssign, course, mode) {
     if (!report) report = {};
     _processCourseRecord(course);
 
@@ -81,6 +81,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
     //--------------------------------------------------------------------------------
     // Implementation
+    var _mode = mode;
     var repcontent = isCourseView ? report : angular.fromJson(report.content);
     var _statusinfo = repcontent.statusinfo || {};
     var _lessonReports = repcontent.lessonReports || {};
@@ -342,8 +343,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             return;
         }
         itemInfo.score = userCmRating.attId;
-        itemInfo.rawStatus = (itemInfo.score <= grpRatingObj.lowPassScore) ? 'failed' :
-            (itemInfo.score >= grpRatingObj.passScore) ? 'success' : 'partial_success';
+        if(_mode == 'learner' && grpRatingObj.hideRating)
+            itemInfo.rawStatus = 'success'
+        else
+            itemInfo.rawStatus = (itemInfo.score <= grpRatingObj.lowPassScore) ? 'failed' :
+                (itemInfo.score >= grpRatingObj.passScore) ? 'success' : 'partial_success';
         itemInfo.passScore = grpRatingObj.passScore;
         itemInfo.remarks = userCmRating.remarks || '';
         itemInfo.marked = nl.fmt.json2Date(userCmRating.marked || '');
@@ -353,6 +357,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
     function _computeRatingStringOnScore(ratingObj, score) {
         if(Object.keys(ratingObj).length == 0) return score;
+        if(_mode == 'learner' && ratingObj.hideRating) return 'Rating provided';
         if(ratingObj.type == 'number') return score;
         if(ratingObj.type == 'status' || ratingObj.type == 'select') {
             for(var i=0; i<ratingObj.values.length; i++) {

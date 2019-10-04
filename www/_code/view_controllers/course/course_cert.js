@@ -74,7 +74,7 @@ function(nl, nlRouter, $scope, nlDlg, nlPrinter) {
 	        var statusinfos = course.statusinfo || {};
 	        var statusinfo = statusinfos[cm.id] || {};
 	        if (statusinfo.status == 'done' || cm.state.status == 'success') {
-		        $scope.completionTime = nl.fmt.json2Date(statusinfo.date || course.updated);
+		        $scope.completionTime = cm.updated || nl.fmt.json2Date(statusinfo.date || course.updated);
 	        }
         }
         $scope.available = true;

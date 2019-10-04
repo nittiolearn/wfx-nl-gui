@@ -907,6 +907,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
     function _updateLinkData(cm, itemInfo) {
         cm.score = null;
         cm.time = null;
+        cm.updated = itemInfo.updated;
     }
     
     function _updateILTData(cm, itemInfo) {

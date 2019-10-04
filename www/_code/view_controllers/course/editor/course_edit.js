@@ -273,7 +273,9 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     }
 
 	function _onElementTypeChange(e, cm){
-        var childrenElem = [];
+		var childrenElem = [];
+		//For first time if gate is selected showInReport param is set to true;
+		if(cm.type == 'gate' && !('showInReport' in cm)) cm.showInReport = true;
         for(var i=0; i < _allModules.length; i++){
         	if (_isDescendantOf(_allModules[i], cm)) childrenElem.push(i);
         }
