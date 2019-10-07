@@ -1,0 +1,15 @@
+<nl-dlg dlgtitle='{{dlgTitle}}'>
+    <nl-dlg-help>
+        <p>Modify the advanced propeerties of particular user and press the Submit / Cancel button</p>
+    </nl-dlg-help>
+    <nl-dlg-content>
+        <nl-checkbox fieldmodel='isBleedingEdge' 
+                     fieldname='Is Bleeding Edge'
+                     fieldcls= 'padding-mid'
+                     fieldindex="0">
+        </nl-checkbox>
+    </nl-dlg-content>
+    
+    <p class="padding-mid">Override Permissions:</p>
+    <nl-textarea fieldmodel='permOverride'></nl-textarea>
+</nl-dlg>

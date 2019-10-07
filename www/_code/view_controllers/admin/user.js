@@ -35,9 +35,9 @@ function($stateProvider, $urlRouterProvider) {
 
 var AdminUserCtrl = ['nl', 'nlRouter', 'nlDlg', '$scope', 'nlCardsSrv',
 'nlGroupInfo', 'nlAdminUserExport', 'nlAdminUserImport', 'nlTreeSelect',
-'nlOuUserSelect',
+'nlOuUserSelect', 'nlServerApi',
 function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlGroupInfo,
-nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect) {
+nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi) {
 	var _userInfo = null;
 	var _groupInfo = null;
 	var _grpid = null;
@@ -101,9 +101,62 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect) {
             _export();
         } else if (linkid === 'adminuser_import') {
             _import();
-		}
-	};
-	
+        } else if (linkid === 'adminuser_resetpw') {
+            _resetPw(card);
+        } else if (linkid === 'adminuser_advancedProp') {
+            advancedProp(card);
+        }
+    };
+
+    function advancedProp(card) {
+        var advancedPropDlg = nlDlg.create($scope);
+        advancedPropDlg.setCssClass('nl-height-max nl-width-max');
+        advancedPropDlg.scope.error = {};
+        advancedPropDlg.scope.dlgTitle = nl.t('Modify Advanced User Properties');
+        
+        advancedPropDlg.scope.data = {isBleedingEdge: card.isBleedingEdge, permOverride: card.perm_override};
+        var submitButton = {text : nl.t('Submit'), onTap : function(e) {
+            var rows = [{'op': 'u', 'user_id': card.user_id, 
+                        'username': card.username, 'isBleedingEdge': advancedPropDlg.scope.data.isBleedingEdge,
+                        'perm_override': advancedPropDlg.scope.data.permOverride}];
+            nlDlg.showLoadingScreen();
+            nlServerApi.groupUpdateUsers(_groupInfo.id, rows).then(function(result) {
+                _onChangeDone();
+            }, function(e) {
+                nlDlg.popupStatus('Internal Error.');
+            })
+        }};
+        var cancelButton = {text : nl.t('Cancel')};
+        advancedPropDlg.show('view_controllers/admin/user_advanced_prop_dlg.html',
+                [submitButton], cancelButton);
+
+    }
+    
+    function _resetPw(card) {
+        var msg = {title: 'Please confirm user password reset', 
+                   template: 'Are you sure you want to reset the password of the user to same as the login id?'};
+        nlDlg.popupConfirm(msg).then(function(confirm) {
+            if (!confirm) return;
+            var rows = [{'op': 'E', 'user_id': card.user_id, 'username': card.username}];
+            nlDlg.showLoadingScreen();
+            nlServerApi.groupUpdateUsers(_groupInfo.id, rows).then(function() {
+                nlDlg.hideLoadingScreen();
+                _onChangeDone();
+            }, function(e) {
+                nlDlg.popupStatus('Internal Error. Not able to reset password. Please try later.');
+            });
+        });
+    }
+
+    function _onChangeDone() {
+        nlGroupInfo.init(true, _grpid).then(function() {
+            nlGroupInfo.update(_grpid);
+            _groupInfo = nlGroupInfo.get(_grpid);
+            _updateCards();
+            nlDlg.hideLoadingScreen();
+        });
+    }
+
 	function _getStaticCards() {
 		var ret = [];
 		var card = {title: nl.t('User Administration'), 
@@ -151,8 +204,11 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect) {
             title: user.name,
             internalUrl: 'adminuser_modify',
             icon: user.getIcon(),
-			help: desc,
-			children: []};
+            help: desc,
+            children: [],
+            user_id: user.user_id,
+            isBleedingEdge: user.isBleedingEdge,
+            perm_override: user.perm_override};
 
 		card.details = {help: '', avps: _getAvps(user)};
 		card.links = [];
@@ -161,7 +217,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect) {
 	}
 	
 	function  _getAvps(user) {
-		var avps = [];
+        var avps = [];
+        _populateLinks(avps);
         nl.fmt.addAvp(avps, 'First name', user.first_name);
         nl.fmt.addAvp(avps, 'Last name', user.last_name);
 		nl.fmt.addAvp(avps, 'Login id', user.username);
@@ -179,7 +236,16 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect) {
 		nl.fmt.addAvp(avps, 'Created on', user.created, 'date');
 		nl.fmt.addAvp(avps, 'Updated on', user.updated, 'date');
 		return avps;
-	}
+    }
+    
+    function _populateLinks(avps) {
+        var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
+        nl.fmt.addLinkToAvp(linkAvp, 'reset password', null, 'adminuser_resetpw');
+        var isAdminGroup = nlRouter.isPermitted(_userInfo, 'admin_group');
+        if(!isAdminGroup) return;
+        nl.fmt.addLinkToAvp(linkAvp, 'advanced properties', null, 'adminuser_advancedProp');
+    }
+
 
     function _createOrModify(card) {
         var dlg = nlDlg.create($scope);
