@@ -765,6 +765,7 @@ nlesson = function() {
         {name: 'maxScore', noCopyBack: true, noMinify: true},
         {name: 'pageMaxScore', noCopyBack: true, noMinify: true},
         {name: 'answerStatus', noMinify: true}, 
+        {name: 'voiceEnded', noMinify: true}, 
         {name: 'popupScore', noMinify: true}, 
         {name: 'popupMaxScore', noMinify: true}, 
         {name: 'answered', noMinify: true},
@@ -1605,7 +1606,7 @@ nlesson = function() {
         if (!mp3List && this.oPage.audioUrl) mp3List = [{mp3: this.oPage.audioUrl, delay: 0}];
         var audioHtml = '';
         if(mp3List) {
-            audioHtml = this.lesson.globals.audioManager.getButton(mp3List, this.getPageId());
+            audioHtml = this.lesson.globals.audioManager.getButton(mp3List, this.getPageId(), this.oPage);
         } else if (this.oPage.autoVoice) {
             this.autoVoiceButton = this.lesson.globals.autoVoice.getVoiceButton(this.oPage.autoVoice);
             if (this.autoVoiceButton) audioHtml = this.autoVoiceButton.html;

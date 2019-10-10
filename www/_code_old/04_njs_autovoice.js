@@ -380,7 +380,7 @@ function Voices() {
 function AudioManager() {
     var self = this;
     
-    this.getButton = function(audioUrlInfos, pageId) {
+    this.getButton = function(audioUrlInfos, pageId, opage) {
         _init();
         var info = _audioHolder[pageId];
         if (info) {
@@ -390,7 +390,7 @@ function AudioManager() {
         audioUrlInfos = _getValidUrlInfos(audioUrlInfos);
         if (!audioUrlInfos) return null;
         var button = _getVoiceButtonDom();
-        var info = _addPageAudio(audioUrlInfos, pageId, button);
+        var info = _addPageAudio(audioUrlInfos, pageId, button, opage);
         button.on('click', function () {
             _onButtonClick(info, audioUrlInfos, pageId, button);
         });
@@ -406,18 +406,18 @@ function AudioManager() {
         holder.html('');
     }
     
-    function _addPageAudio(audioUrlInfos, pageId, button) {
+    function _addPageAudio(audioUrlInfos, pageId, button, opage) {
         var holder = jQuery('#audioHolder');
         info = {audioUrlInfos: audioUrlInfos, button: button, pageId: pageId,
             playing: false, curFragment: 0};
         _audioHolder[pageId] = info;
-        _addAudioFragments(info, holder);
+        _addAudioFragments(info, holder, opage);
         _updateIcon(info);
         return info;
     }
 
     var runningFragmentId = 0;
-    function _addAudioFragments(info, holder) {
+    function _addAudioFragments(info, holder, opage) {
         for (var i=0; i<info.audioUrlInfos.length; i++) {
             var audioUrlInfo = info.audioUrlInfos[i];
             runningFragmentId++;
@@ -426,7 +426,7 @@ function AudioManager() {
             audioUrlInfo.status = 'loading'; // loading -> ready -> waiting -> playing
             var audio = jQuery(njs_helper.fmt2('<audio id="audfrg_{}" src="{}"/>', audioUrlInfo.fragmentid, audioUrlInfo.mp3));
             audioUrlInfo.audio = audio[0];
-            _registerAudioEvents(info, audioUrlInfo);
+            _registerAudioEvents(info, audioUrlInfo, opage);
             holder.append(audio);
         }
     }
@@ -468,7 +468,7 @@ function AudioManager() {
         return (_currentInfo && _currentInfo.pageId == info.pageId);
     }
 
-    function _registerAudioEvents(info, audioUrlInfo) {
+    function _registerAudioEvents(info, audioUrlInfo, opage) {
         var audio = audioUrlInfo.audio;
         var pageId = info.pageId;
         audio.addEventListener('canplay', function(e) {
@@ -492,6 +492,7 @@ function AudioManager() {
                 info.curFragment = 0;
                 _updateIcon(info);
                 info.playStarted = false;
+                opage['voiceEnded'] = 'ended';
                 return;
             } else if (_isCurrentInfo(info)) {
                 if (_getFragmentStatus(info) == 'loading') {
