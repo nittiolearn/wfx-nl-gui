@@ -101,7 +101,12 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
     			resolve(true);
     		});
 		}
-        var dlg = nlDlg.create($scope);
+		this.showDialog($scope, _data);
+	};
+
+	// This can be called independantly without init
+	this.showDialog = function($scope, dataParam) {
+		var dlg = nlDlg.create($scope);
         dlg.setCssClass('nl-height-max nl-width-max');
 		dlg.scope.options = {
 			timestamptype: [
@@ -120,15 +125,15 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 					+ '<pre>' +  defaultFilterjson + '</pre>'},
 			ouUserTree: {name: 'Select user', help: nl.t('Select the specific learner to fetch reports.')}
 		};
-		if (_data.showfilterjson && _data.filterjson === undefined) _data.filterjson = defaultFilterjson;
-		dlg.scope.showfilterjson = _data.showfilterjson;
+		if (dataParam.showfilterjson && dataParam.filterjson === undefined) dataParam.filterjson = defaultFilterjson;
+		dlg.scope.showfilterjson = dataParam.showfilterjson;
 
-		if(_data.userSelection) {
+		if(dataParam.userSelection) {
 			dlg.scope.singleSelect = true;
 			var grpinfo = _groupInfo.get();
 			var selectedUsers = {};
-			if(_data.type == 'user' && _data.objid) {
-				var userObj = grpinfo.derived.keyToUsers[_data.objid];
+			if(dataParam.type == 'user' && dataParam.objid) {
+				var userObj = grpinfo.derived.keyToUsers[dataParam.objid];
 				var selected = userObj.org_unit+'.'+userObj.id;
 					selectedUsers[selected] = true;	
 			}
@@ -137,32 +142,32 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 			if(Object.keys(selectedUsers).length != 0) _ouUserSelector.updateSelectedIds(selectedUsers)
 		}
 		
-		dlg.scope.data = {timestamptype: {id: _data.timestamptype}, createdfrom: _data.createdfrom, createdtill: _data.createdtill, filterjson: _data.filterjson};
+		dlg.scope.data = {timestamptype: {id: dataParam.timestamptype}, createdfrom: dataParam.createdfrom, createdtill: dataParam.createdtill, filterjson: dataParam.filterjson};
 		dlg.scope.error = {};
-		dlg.scope.userSelection = _data.userSelection;
+		dlg.scope.userSelection = dataParam.userSelection;
 		dlg.scope.dlgTitle = nl.t('Filter reports');
 		if(_ouUserSelector) {
 			dlg.scope.data['ouUserTree'] = _ouUserSelector.getTreeSelect();
 		}
         var button = {text: nl.t('Fetch'), onTap: function(e){
-            if (!_validateInputs(dlg.scope)) {
+            if (!_validateInputs(dlg.scope, dataParam)) {
                 if (e) e.preventDefault();
                 return;
             }
 			var sd = dlg.scope.data;
-			if(_data.type == 'user') {
+			if(dataParam.type == 'user') {
 				var selectedUsers = _ouUserSelector.getSelectedUsers();
 				var userObj = null;
 				for(var key in selectedUsers) {
 					userObj = selectedUsers[key].userObj;
 				}
-				_data.objid = userObj.username;
-				_data.userid = userObj.id;
+				dataParam.objid = userObj.username;
+				dataParam.userid = userObj.id;
 			} else {
-				_data.timestamptype = sd.timestamptype.id;
-				_data.createdtill = sd.createdtill;
-				_data.createdfrom = sd.createdfrom;
-				_data.filterjson = sd.filterjson;	
+				dataParam.timestamptype = sd.timestamptype.id;
+				dataParam.createdtill = sd.createdtill;
+				dataParam.createdfrom = sd.createdfrom;
+				dataParam.filterjson = sd.filterjson;	
 			}
 			return true;
         }};
@@ -207,10 +212,10 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
         _data.createdfrom = new Date(now - (6 * day));
     }
 
-    function _validateInputs(scope){
-		_data.filterobj = null;
+    function _validateInputs(scope, dataParam) {
+		dataParam.filterobj = null;
 		scope.error = {};
-		if (_data.type == 'user') {
+		if (dataParam.type == 'user') {
 			var selectedUsers = _ouUserSelector ? _ouUserSelector.getSelectedUsers() : {};
 			if (Object.keys(selectedUsers).length == 0) {
 				nlDlg.popupAlert({title: 'Please select user', template: 'Please select learner to fetch records'});
@@ -221,9 +226,9 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
         if (!scope.data.createdfrom) return _validateFail(scope, 'createdfrom', 'From date is mandatory');
         if (!scope.data.createdtill) return _validateFail(scope, 'createdtill', 'Till date is mandatory');
 		if (scope.data.createdfrom >= scope.data.createdtill) return _validateFail(scope, 'createdtill', 'Till date should be later than from date');
-		if (_data.showfilterjson && scope.data.filterjson) {
+		if (dataParam.showfilterjson && scope.data.filterjson) {
 			try {
-				_data.filterobj = angular.fromJson(scope.data.filterjson)
+				dataParam.filterobj = angular.fromJson(scope.data.filterjson)
 			}
 			catch (e) {
 				return _validateFail(scope, 'filterjson', 'JSON parse failed');

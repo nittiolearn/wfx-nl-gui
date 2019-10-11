@@ -421,7 +421,12 @@ function(nl, nlDlg, nlConfig, Upload) {
 		return server.post('_serverapi/learning_reports_get_list.json', data);
 	};
 	
-	this.learningReportsImport = function(data) {
+	this.learningReportsGetCompletedModuleList = function(data) {
+		//data = [mquery parameters]
+		return server.post('_serverapi/learning_reports_get_completed_module_list.json', data);
+	};
+
+    this.learningReportsImport = function(data) {
 		return server.post('_serverapi/learning_reports_import.json', data);
 	};
 

@@ -27,6 +27,7 @@
 //         nlLrFilter
 //           nlLrHelper
 //
+// All modules under "others" folder is for generating other kinds of reports.
 // n.lLrImportCtrl: the controller implemeting /#/lr_import (independant controller)
 
 //-------------------------------------------------------------------------------------------------
@@ -35,7 +36,8 @@ function module_init() {
 		'nl.learning_reports.lr_fetcher', 'nl.learning_reports.lr_exporter', 
 		'nl.learning_reports.lr_report_records', 'nl.learning_reports.lr_course_records',
 		'nl.learning_reports.lr_summary_stats', 'nl.learning_reports.lr_import', 'nl.learning_reports.lr_assignments',
-		'nl.learning_reports.lr_drilldown', 'nl.learning_reports.lr_nht_srv'])
+		'nl.learning_reports.lr_drilldown', 'nl.learning_reports.lr_nht_srv',
+		'nl.learning_reports.others.lr_completed_modules'])
 	.config(configFn)
 	.controller('nl.LearningReportsCtrl', LearningReportsCtrl)
 	.service('nlLearningReports', NlLearningReports);
