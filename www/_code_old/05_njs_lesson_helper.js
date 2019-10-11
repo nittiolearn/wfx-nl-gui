@@ -122,11 +122,9 @@ function SlideChangeChecker(lesson) {
     function _isPageCompleted(page, pgNo) {
     	var msgPrefix = pgNo ? njs_helper.fmt2('Page {} is not completed. ', pgNo) : '';
 		var oPage = page.oPage;
-        var isVoice = false;
-		if (page.oPage.autoVoicePolly) isVoice = true;
-		if (isVoice && (!oPage.voiceEnded || oPage.voiceEnded !='ended')) {
-    		var msg = 'Please wait/completely listen the audio.';
-    		return _error(njs_helper.fmt2('{} {}', 'Audio: ', msg));
+		if ((oPage.autoVoicePolly || oPage.audioUrl) && !oPage.voiceEnded) {
+    		var msg = 'Please listen the page audio before moving ahead.';
+    		return _error(njs_helper.fmt2('{} {}', msgPrefix, msg));
 		}
     	if (_slm && oPage.score != oPage.maxScore) {
     		var msg = 'Please provide correct answers before moving ahead.';

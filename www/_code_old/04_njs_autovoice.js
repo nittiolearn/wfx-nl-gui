@@ -492,7 +492,7 @@ function AudioManager() {
                 info.curFragment = 0;
                 _updateIcon(info);
                 info.playStarted = false;
-                opage['voiceEnded'] = 'ended';
+                opage.voiceEnded = true;
                 return;
             } else if (_isCurrentInfo(info)) {
                 if (_getFragmentStatus(info) == 'loading') {
