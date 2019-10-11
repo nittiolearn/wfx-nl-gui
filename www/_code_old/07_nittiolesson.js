@@ -1606,7 +1606,8 @@ nlesson = function() {
         if (!mp3List && this.oPage.audioUrl) mp3List = [{mp3: this.oPage.audioUrl, delay: 0}];
         var audioHtml = '';
         if(mp3List) {
-            audioHtml = this.lesson.globals.audioManager.getButton(mp3List, this.getPageId(), this.oPage);
+            var oPageForButton = this.lesson.renderCtx.launchMode() == 'do' ? this.oPage : null;
+            audioHtml = this.lesson.globals.audioManager.getButton(mp3List, this.getPageId(), oPageForButton);
         } else if (this.oPage.autoVoice) {
             this.autoVoiceButton = this.lesson.globals.autoVoice.getVoiceButton(this.oPage.autoVoice);
             if (this.autoVoiceButton) audioHtml = this.autoVoiceButton.html;

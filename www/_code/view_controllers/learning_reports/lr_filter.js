@@ -101,7 +101,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
     			resolve(true);
     		});
 		}
-		this.showDialog($scope, _data);
+		return this.showDialog($scope, _data);
 	};
 
 	// This can be called independantly without init
