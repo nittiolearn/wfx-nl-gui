@@ -208,7 +208,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
             var record = _records[recid];
             if (!record.isProcessed) {
                 record.user = nlGroupInfo.getUserObj(''+record.student);
-                if (!record.user) nlGroupInfo.getDefaultUser(repcontent.studentname || '');
+                if (!record.user) nlGroupInfo.getDefaultUser(nl.fmt2('(deleted) id={}', record.student));
                 record.isProcessed = true;
             }
 
