@@ -14,8 +14,8 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrCourseRecords', 'nlLrFilter', 'nlLrAssignmentRecords', 'nlReportHelper',
-function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLrAssignmentRecords, nlReportHelper) {
+var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrCourseRecords', 'nlLrFilter', 'nlLrAssignmentRecords', 'nlReportHelper', 'nlLrTransform',
+function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLrAssignmentRecords, nlReportHelper, nlLrTransform) {
     var self = this;
     
     var _records = {};
@@ -65,6 +65,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
     }
 
     this.addRecord = function(report) {
+        report = nlLrTransform.lrArrayToObj(report);
         if (report.ctype == _nl.ctypes.CTYPE_COURSE)
             report = _processCourseReport(report);
         else if (report.ctype == _nl.ctypes.CTYPE_MODULE)
@@ -407,7 +408,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
     }
 
     function _updateCommonParams(report, ctypestr) {
-        var repcontent = angular.fromJson(report.content);
+        var repcontent = report._transformVersion ? report.repcontent : angular.fromJson(report.content);
         nlLrAssignmentRecords.overrideAssignmentParameterInReport(report, repcontent);
         report.gradeLabel = _userInfo.groupinfo.gradelabel;
         report.subjectLabel = _userInfo.groupinfo.subjectlabel;

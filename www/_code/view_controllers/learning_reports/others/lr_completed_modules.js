@@ -21,11 +21,13 @@ function($stateProvider, $urlRouterProvider) {
 		}});
 }];
 
-var LearningReportsCompletedModulesCtrl = ['$scope', 'nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', 'nlLrFilter', 'nlServerApi', 'nlExporter',
-function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlExporter) {
+var LearningReportsCompletedModulesCtrl = ['$scope', 'nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', 'nlLrFilter', 
+'nlServerApi', 'nlExporter', 'nlLrTransform',
+function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlExporter, nlLrTransform) {
 	
     var _pageFetcher = null;
     var _limit = null;
+    var _debug = false;
     var _groupInfo = null;
     var _records = {};
     var _monthlyStats = {};
@@ -48,6 +50,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
         _pageFetcher = nlServerApi.getPageFetcher({defMax: 50, itemType: 'learning record'});
         var params = nl.location.search();
         _limit = ('limit' in params) ? parseInt(params.limit) : 5000;
+        _debug =  ('debug' in params);
         $scope.toolbar = _getToolbar();
 
         $scope.monthlyCounts = []; // {month, count}
@@ -108,6 +111,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
     function _fetchReports(fetchMore) {
         if (_pageFetcher.fetchInProgress()) return;
         var params = {updatedfrom: _filterData.createdfrom, updatedtill: _filterData.createdtill};
+        if (_debug) params.debug = true;
         _pageFetcher.fetchBatchOfPages(nlServerApi.learningReportsGetCompletedModuleList, params, fetchMore, 
         function(results, batchDone, promiseHolder) {
             if (!results) {
@@ -119,6 +123,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
     }
 
     function _addRecord(record) {
+        record = nlLrTransform.lrArrayToObj(record);
         record.updated = nl.fmt.json2Date(record.updated);
         record.created = nl.fmt.json2Date(record.created);
         if (record.id in _records && _records[record.id].updated > record.updated) return;

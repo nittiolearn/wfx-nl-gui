@@ -33,7 +33,7 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
 	angular.module('nl.learning_reports', ['nl.learning_reports.lr_helper', 'nl.learning_reports.lr_filter', 
-		'nl.learning_reports.lr_fetcher', 'nl.learning_reports.lr_exporter', 
+		'nl.learning_reports.lr_transform', 'nl.learning_reports.lr_fetcher', 'nl.learning_reports.lr_exporter', 
 		'nl.learning_reports.lr_report_records', 'nl.learning_reports.lr_course_records',
 		'nl.learning_reports.lr_summary_stats', 'nl.learning_reports.lr_import', 'nl.learning_reports.lr_assignments',
 		'nl.learning_reports.lr_drilldown', 'nl.learning_reports.lr_nht_srv',
