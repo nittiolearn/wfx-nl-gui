@@ -14,8 +14,8 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrCourseRecords', 'nlLrFilter', 'nlLrAssignmentRecords', 'nlReportHelper', 'nlLrTransform',
-function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLrAssignmentRecords, nlReportHelper, nlLrTransform) {
+var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrFilter', 'nlGetManyStore', 'nlReportHelper', 'nlLrTransform',
+function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStore, nlReportHelper, nlLrTransform) {
     var self = this;
     
     var _records = {};
@@ -212,7 +212,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         var user = _getStudentFromReport(report, repcontent);
         if (!user) return null;
         _nominatedUsers[user.id] = true;
-        var course = nlLrCourseRecords.getRecord(report.lesson_id);
+        var course = nlGetManyStore.getRecord(nlGetManyStore.getContentKeyFromReport(report));
         if (!course) {
             course = {};
         }
@@ -222,7 +222,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
         }
         report.canReview = true;
         if(!course.is_published) report.canReview = false;
-        var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:'+report.assignment) || {};
+        var courseAssignment = nlGetManyStore.getAssignmentRecordFromReport(report) || {};
         if (!courseAssignment.info) courseAssignment.info = {};
         var repHelper = nlReportHelper.getCourseStatusHelper(report, _userInfo.groupinfo, courseAssignment, course);
         var stainf = repHelper.getCourseStatus();
@@ -409,7 +409,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrCourseRecords, nlLrFilter, nlLr
 
     function _updateCommonParams(report, ctypestr) {
         var repcontent = report._transformVersion ? report.repcontent : angular.fromJson(report.content);
-        nlLrAssignmentRecords.overrideAssignmentParameterInReport(report, repcontent);
+        nlGetManyStore.overrideAssignmentParameterInReport(report, repcontent);
         report.gradeLabel = _userInfo.groupinfo.gradelabel;
         report.subjectLabel = _userInfo.groupinfo.subjectlabel;
         report.updated = nl.fmt.json2Date(report.updated);

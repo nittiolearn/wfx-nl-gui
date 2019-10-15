@@ -6,7 +6,7 @@
 	// 						   delegates to nlLearnerView service.
 
 function module_init() {
-	angular.module('nl.learner_view', ['nl.learner_view_records', 'nl.learner_view_assignments'])
+	angular.module('nl.learner_view', ['nl.learner_view_records'])
 	.config(configFn)
 	.directive('nlLearnerViewDir', nlLearnerViewDirDirective)
 	.directive('nlLearnerSection', LearnerSectionDirective)
@@ -101,11 +101,11 @@ function(nl, $scope, nlLearnerView) {
 //-------------------------------------------------------------------------------------------------
 
 var NlLearnerView = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlReportHelper',
-'nlLearnerViewRecords', 'nlTopbarSrv', 'nlCardsSrv', 'nlLearnerAssignment', 'nlLearnerCourseRecords', 'nlAnnouncementSrv',
-function(nl, nlDlg, nlRouter, nlServerApi, nlReportHelper, nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv, nlLearnerAssignment, nlLearnerCourseRecords, nlAnnouncementSrv) {
+'nlLearnerViewRecords', 'nlTopbarSrv', 'nlCardsSrv', 'nlCourse', 'nlGetManyStore', 'nlAnnouncementSrv',
+function(nl, nlDlg, nlRouter, nlServerApi, nlReportHelper, nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv) {
 	this.create = function($scope) {
 		return new NlLearnerViewImpl($scope, nl, nlDlg, this, nlRouter, nlServerApi, nlReportHelper,
-			nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv, nlLearnerAssignment, nlLearnerCourseRecords, nlAnnouncementSrv);
+			nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv);
 	};
 
 	this.initPageBgImg = function(data) {
@@ -120,14 +120,14 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlReportHelper, nlLearnerViewRecords,
 }];
 
 function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerApi, nlReportHelper, 
-	nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv, nlLearnerAssignment, nlLearnerCourseRecords, nlAnnouncementSrv) {
+	nlLearnerViewRecords, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv) {
 	var self = this;
 	var _fetchChunk = 100;
 	var _userInfo = null;
 	var _parent = false;
 	var _isHome = false;
 	var _enableAnnouncements = false; 
-	var _subFetcher = new subFetcher(nl, nlDlg, nlServerApi, nlLearnerAssignment, nlLearnerCourseRecords)
+	var _subFetcher = new subFetcher(nl, nlDlg, nlServerApi, nlCourse, nlGetManyStore);
 	this.show = function(enableAnnouncements) {
 		_enableAnnouncements = enableAnnouncements;
 		nlRouter.initContoller($scope, '', _onPageEnter);
@@ -172,6 +172,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		nlTopbarSrv.setPageMenus($scope.tabData.tabs, $scope.tabData.selectedTab.id);
 		_initChartData();
 		_onResize();
+		nlGetManyStore.init();
 	}
 
 	function _initChartData() {
@@ -626,21 +627,15 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 	}
 }
 
-var subFetcher = function(nl, nlDlg, nlServerApi, nlLearnerAssignment, nlLearnerCourseRecords) {
+var subFetcher = function(nl, nlDlg, nlServerApi, nlCourse, nlGetManyStore) {
 	var _pendingIds = {};
 	var self=this;
-	
+
 	this.markForFetching = function(reportRecord) {
-		if (reportRecord.assignment) {
-			// Not a self learning record
-	        var key = (reportRecord.ctype == _nl.ctypes.CTYPE_COURSE) ? 'course_assignment:{}' : 'assignment:{}';
-	        key = nl.fmt2(key, reportRecord.assignment);
-	        if (key && !nlLearnerAssignment.wasFetched(key)) _pendingIds[key] = true;
-		}
-    	if (reportRecord.ctype != _nl.ctypes.CTYPE_COURSE) return;
-    	var courseId = reportRecord.lesson_id;
-        key = nl.fmt2('course:{}', courseId);
-        if (courseId && !nlLearnerCourseRecords.wasFetched(courseId)) _pendingIds[key] = true;
+		var key = nlGetManyStore.getAssignmentKeyFromReport(reportRecord);
+		if (nlGetManyStore.isFetchPending(key)) _pendingIds[nlGetManyStore.keyStr(key)] = true;
+		key = nlGetManyStore.getContentKeyFromReport(reportRecord);
+		if (nlGetManyStore.isFetchPending(key)) _pendingIds[nlGetManyStore.keyStr(key)] = true;
 	};
 	
 	this.fetchPending = function() {
@@ -658,7 +653,7 @@ var subFetcher = function(nl, nlDlg, nlServerApi, nlLearnerAssignment, nlLearner
     
     this.getSubFetchedCourseRecord = function(cid) {
     	// Called from learner list views
-    	return nlLearnerCourseRecords.getRecord(cid);
+    	return nlGetManyStore.getRecord(nlGetManyStore.key('course', cid));
     };
     
     function _getReportRecord(repObj) {
@@ -684,18 +679,14 @@ var subFetcher = function(nl, nlDlg, nlServerApi, nlLearnerAssignment, nlLearner
                 if (resultObj.error) {
                 	nl.log.warn('Error fetching courseOrAssignGetMany object', resultObj);
                 	continue;
-                }
-            	var objId = parseInt(resultObj.id);
-                var key = nl.fmt2('{}:{}', resultObj.table, objId);
-                if (resultObj.table == 'course') {
-	                nlLearnerCourseRecords.addRecord(resultObj, objId);
-                } else if (resultObj.table == 'course_assignment') {
-                	resultObj.info = angular.fromJson(resultObj.info);
-                	nlLearnerAssignment.addRecord(resultObj, key);
-                } else {
-                	nlLearnerAssignment.addRecord(resultObj, key);
-                }
-                delete _pendingIds[key];
+				}
+				if (resultObj.table == 'course_assignment') {
+					resultObj.info = angular.fromJson(resultObj.info);
+				}
+				var record = (resultObj.table == 'course') ? _processCourseRecord(resultObj) : resultObj;
+				var key = nlGetManyStore.key(resultObj.table, resultObj.id);
+				nlGetManyStore.addRecord(key, record);
+                delete _pendingIds[nlGetManyStore.keyStr(key)];
             }
             startPos += results.length;
             _fetchInBatchs(recordinfos, startPos, onDoneCallback);
@@ -703,6 +694,46 @@ var subFetcher = function(nl, nlDlg, nlServerApi, nlLearnerAssignment, nlLearner
             onDoneCallback(false);
         });
 	}
+
+    function _processCourseRecord(course) {
+		course = nlCourse.migrateCourse(course);
+        var idToFullName = {};
+        var ret = {id: course.id, name: course.name || '',
+            certificates: [], lessons: [], nonLessons: [],
+            content: course.content, is_published: course.is_published || false};
+        ret.contentmetadata = course.content && course.content.contentmetadata ? course.content.contentmetadata : {};
+        var modules = (course.content || {}).modules || [];
+        for (var i=0; i<modules.length; i++) {
+            var m = modules[i];
+            if (!m.id) continue;
+            _updateIdToFullName(m, idToFullName);
+            if (m.type == 'lesson') ret.lessons.push({id: m.id, name:idToFullName[m.id]});
+            else if (m.type == 'certificate') ret.certificates.push(m.id);
+            else if (m.type != 'module') ret.nonLessons.push(m.id);
+        }
+        if (modules.length == 0) {
+        	// Can happen only if course is not found and report does not have content.
+        	// In this case, the status is pending. This will force it to such a status.
+        	ret.nonLessons.push('dummy'); 
+        }
+        return ret;
+    }
+    
+    var _DELIM = '.';
+    function _updateIdToFullName(m, idToFullName) {
+        var pid = _getParentId(m);
+        var prefix = pid && idToFullName[pid] ? idToFullName[pid] + _DELIM : '';
+        var myName = prefix + (m.name || '');
+        idToFullName[m.id] = myName;
+    }
+
+    function _getParentId(m) {
+        var parentId = m.parentId || '';
+        if (parentId) return parentId;
+        var parents = m.id.split(_DELIM);
+        parents.pop();
+        return (parents.length == 0) ? '' : parents.join(_DELIM);
+    }	
 }
 
 module_init();

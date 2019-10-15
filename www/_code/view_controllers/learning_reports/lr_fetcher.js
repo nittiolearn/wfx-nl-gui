@@ -13,12 +13,12 @@ var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
 }];
 
-var NlLrFetcher = ['nl', 'nlDlg', 'nlServerApi', 'nlLrFilter', 'nlLrReportRecords', 'nlLrCourseRecords', 'nlLrAssignmentRecords',
-function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecords, nlLrAssignmentRecords) {
+var NlLrFetcher = ['nl', 'nlDlg', 'nlServerApi', 'nlLrFilter', 'nlLrReportRecords', 'nlGetManyStore',
+function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlGetManyStore) {
 	
     var self = this;
     var _pageFetcher = null;
-    var _subFetcher = new SubFetcher(nl, nlDlg, nlServerApi, nlLrCourseRecords, nlLrAssignmentRecords);
+    var _subFetcher = new SubFetcher(nl, nlDlg, nlServerApi, nlGetManyStore);
 	var _limit = null;
 
 	this.init = function() {
@@ -30,6 +30,7 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecord
 	this.getSubFetcher = function() {
 		// Used in learner list views to patchup assignment content on to report content
 		// assignment.js (/#/assignment?type=new|past) and course_list.js (/#/course_report_list) for fetching needed assignment records
+        nlGetManyStore.init();
 		return _subFetcher;
 	};
 	
@@ -114,21 +115,14 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlLrCourseRecord
     //-----------------------------------------------------------------------------------
 }];
 
-function SubFetcher(nl, nlDlg, nlServerApi, nlLrCourseRecords, nlLrAssignmentRecords) {
+function SubFetcher(nl, nlDlg, nlServerApi, nlGetManyStore) {
 	var _pendingIds = {};
 	var self=this;
-	
 	this.markForFetching = function(reportRecord) {
-		if (reportRecord.assignment) {
-			// Not a self learning record
-	        var key = (reportRecord.ctype == _nl.ctypes.CTYPE_COURSE) ? 'course_assignment:{}' : 'assignment:{}';
-	        key = nl.fmt2(key, reportRecord.assignment);
-	        if (key && !nlLrAssignmentRecords.wasFetched(key)) _pendingIds[key] = true;
-		}
-    	if (reportRecord.ctype != _nl.ctypes.CTYPE_COURSE) return;
-    	var courseId = reportRecord.lesson_id;
-        key = nl.fmt2('course:{}', courseId);
-        if (courseId && !nlLrCourseRecords.wasFetched(courseId)) _pendingIds[key] = true;
+		var key = nlGetManyStore.getAssignmentKeyFromReport(reportRecord);
+		if (nlGetManyStore.isFetchPending(key)) _pendingIds[nlGetManyStore.keyStr(key)] = true;
+		key = nlGetManyStore.getContentKeyFromReport(reportRecord);
+		if (nlGetManyStore.isFetchPending(key)) _pendingIds[nlGetManyStore.keyStr(key)] = true;
 	};
 	
 	this.fetchPending = function() {
@@ -154,7 +148,7 @@ function SubFetcher(nl, nlDlg, nlServerApi, nlLrCourseRecords, nlLrAssignmentRec
 	        self.fetch(function() {
 	        	nlDlg.hideLoadingScreen();
 	        	for(var i=0; i<results.length; i++) {
-	        		nlLrAssignmentRecords.overrideAssignmentParameterInReport(_getReportRecord(results[i]), results[i]);
+	        		nlGetManyStore.overrideAssignmentParameterInReport(_getReportRecord(results[i]), results[i]);
 	        	}
 	        	onDoneFunction(results);
 	        });
@@ -163,7 +157,7 @@ function SubFetcher(nl, nlDlg, nlServerApi, nlLrCourseRecords, nlLrAssignmentRec
     
     this.getSubFetchedCourseRecord = function(cid) {
     	// Called from learner list views
-    	return nlLrCourseRecords.getRecord(cid);
+    	return nlGetManyStore.getRecord(nlGetManyStore.key('course', cid));
     };
     
     function _getReportRecord(repObj) {
@@ -190,21 +184,17 @@ function SubFetcher(nl, nlDlg, nlServerApi, nlLrCourseRecords, nlLrAssignmentRec
                 	nl.log.warn('Error fetching courseOrAssignGetMany object', resultObj);
                 	continue;
                 }
-            	var objId = parseInt(resultObj.id);
-                var key = nl.fmt2('{}:{}', resultObj.table, objId);
-                if (resultObj.table == 'course') {
-	                nlLrCourseRecords.addRecord(resultObj, objId);
-                } else if (resultObj.table == 'course_assignment') {
+                if (resultObj.table == 'course_assignment') {
                 	resultObj.info = angular.fromJson(resultObj.info);
                 	if (resultObj.info.not_before) resultObj.info.not_before = nl.fmt.json2Date(resultObj.info.not_before); 
                 	if (resultObj.info.not_after) resultObj.info.not_after = nl.fmt.json2Date(resultObj.info.not_after); 
-                	nlLrAssignmentRecords.addRecord(resultObj, key);
-                } else {
+                } else if (resultObj.table == 'assignment') {
                 	if (resultObj.not_before) resultObj.not_before = nl.fmt.json2Date(resultObj.not_before); 
                 	if (resultObj.not_after) resultObj.not_after = nl.fmt.json2Date(resultObj.not_after); 
-                	nlLrAssignmentRecords.addRecord(resultObj, key);
                 }
-                delete _pendingIds[key];
+                var key = nlGetManyStore.key(resultObj.table, resultObj.id);
+                nlGetManyStore.addRecord(key, resultObj);
+                delete _pendingIds[nlGetManyStore.keyStr(key)];
             }
             startPos += results.length;
             _fetchInBatchs(recordinfos, startPos, onDoneCallback);
