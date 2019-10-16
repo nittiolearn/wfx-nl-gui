@@ -127,7 +127,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 	var _parent = false;
 	var _isHome = false;
 	var _enableAnnouncements = false; 
-	var _subFetcher = new subFetcher(nl, nlDlg, nlServerApi, nlCourse, nlGetManyStore);
 	this.show = function(enableAnnouncements) {
 		_enableAnnouncements = enableAnnouncements;
 		nlRouter.initContoller($scope, '', _onPageEnter);
@@ -325,14 +324,9 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			}
 			var msg = nl.t('Fetching assignment and course information from server ...', results.length);
 			nlDlg.popupStatus(msg, false);
-			for(var i=0; i<results.length; i++) _subFetcher.markForFetching(results[i]);
-			if (_subFetcher.fetchPending()) {
-				_subFetcher.fetch(function(result2) {
-					_onFetchComplete(results);
-				});
-			} else {
+			nlGetManyStore.fetchReferredRecords(results, false, function() {
 				_onFetchComplete(results);
-			}
+			});
 		}, dontHideLoading);
 	}
 
@@ -625,115 +619,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		if (!nlReportHelper.isDone(rep.stats.status)) return null;
 		return rep.raw_record.updated;
 	}
-}
-
-var subFetcher = function(nl, nlDlg, nlServerApi, nlCourse, nlGetManyStore) {
-	var _pendingIds = {};
-	var self=this;
-
-	this.markForFetching = function(reportRecord) {
-		var key = nlGetManyStore.getAssignmentKeyFromReport(reportRecord);
-		if (nlGetManyStore.isFetchPending(key)) _pendingIds[nlGetManyStore.keyStr(key)] = true;
-		key = nlGetManyStore.getContentKeyFromReport(reportRecord);
-		if (nlGetManyStore.isFetchPending(key)) _pendingIds[nlGetManyStore.keyStr(key)] = true;
-	};
-	
-	this.fetchPending = function() {
-        return (Object.keys(_pendingIds).length > 0);
-	};
-	
-	this.fetch = function(onDoneCallback) {
-        var recordinfos = [];
-        for (var key in _pendingIds) {
-        	var parts = key.split(':');
-        	recordinfos.push({table: parts[0], id: parseInt(parts[1])});
-        }
-        _fetchInBatchs(recordinfos, 0, onDoneCallback);
-    };
-    
-    this.getSubFetchedCourseRecord = function(cid) {
-    	// Called from learner list views
-    	return nlGetManyStore.getRecord(nlGetManyStore.key('course', cid));
-    };
-    
-    function _getReportRecord(repObj) {
-    	var isCourseObj = 'courseid' in repObj; 
-    	return {ctype: isCourseObj ? _nl.ctypes.CTYPE_COURSE : repObj.ctype,
-			assigntype: isCourseObj ? _nl.atypes.ATYPE_COURSE : repObj.assigntype,
-			assignment: isCourseObj ? repObj.assignid : repObj.assignment,
-			lesson_id: isCourseObj ? repObj.courseid : repObj.lesson_id};
-    }
-    
-    var MAX_PER_BATCH = 50;
-    function _fetchInBatchs(recordinfos, startPos, onDoneCallback) {
-        var newRecordInfo = [];
-        var maxLen = recordinfos.length < startPos + MAX_PER_BATCH ? recordinfos.length : startPos + MAX_PER_BATCH;
-        for(var i=startPos; i<maxLen; i++) newRecordInfo.push(recordinfos[i]);
-        if (newRecordInfo.length == 0) {
-            onDoneCallback(true);
-            return;
-        }
-        nlServerApi.courseOrAssignGetMany(newRecordInfo).then(function(results) {
-            for(var i=0; i<results.length; i++) {
-                var resultObj = results[i];
-                if (resultObj.error) {
-                	nl.log.warn('Error fetching courseOrAssignGetMany object', resultObj);
-                	continue;
-				}
-				if (resultObj.table == 'course_assignment') {
-					resultObj.info = angular.fromJson(resultObj.info);
-				}
-				var record = (resultObj.table == 'course') ? _processCourseRecord(resultObj) : resultObj;
-				var key = nlGetManyStore.key(resultObj.table, resultObj.id);
-				nlGetManyStore.addRecord(key, record);
-                delete _pendingIds[nlGetManyStore.keyStr(key)];
-            }
-            startPos += results.length;
-            _fetchInBatchs(recordinfos, startPos, onDoneCallback);
-        }, function(error) {
-            onDoneCallback(false);
-        });
-	}
-
-    function _processCourseRecord(course) {
-		course = nlCourse.migrateCourse(course);
-        var idToFullName = {};
-        var ret = {id: course.id, name: course.name || '',
-            certificates: [], lessons: [], nonLessons: [],
-            content: course.content, is_published: course.is_published || false};
-        ret.contentmetadata = course.content && course.content.contentmetadata ? course.content.contentmetadata : {};
-        var modules = (course.content || {}).modules || [];
-        for (var i=0; i<modules.length; i++) {
-            var m = modules[i];
-            if (!m.id) continue;
-            _updateIdToFullName(m, idToFullName);
-            if (m.type == 'lesson') ret.lessons.push({id: m.id, name:idToFullName[m.id]});
-            else if (m.type == 'certificate') ret.certificates.push(m.id);
-            else if (m.type != 'module') ret.nonLessons.push(m.id);
-        }
-        if (modules.length == 0) {
-        	// Can happen only if course is not found and report does not have content.
-        	// In this case, the status is pending. This will force it to such a status.
-        	ret.nonLessons.push('dummy'); 
-        }
-        return ret;
-    }
-    
-    var _DELIM = '.';
-    function _updateIdToFullName(m, idToFullName) {
-        var pid = _getParentId(m);
-        var prefix = pid && idToFullName[pid] ? idToFullName[pid] + _DELIM : '';
-        var myName = prefix + (m.name || '');
-        idToFullName[m.id] = myName;
-    }
-
-    function _getParentId(m) {
-        var parentId = m.parentId || '';
-        if (parentId) return parentId;
-        var parents = m.id.split(_DELIM);
-        parents.pop();
-        return (parents.length == 0) ? '' : parents.join(_DELIM);
-    }	
 }
 
 module_init();

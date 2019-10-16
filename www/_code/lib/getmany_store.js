@@ -3,7 +3,6 @@
 //-------------------------------------------------------------------------------------------------
 // getmany_store.js: To store assignment and course items which a report record depends on
 // (i.e. records retreived by courseOrAssignGetMany)
-// Bring all SubFetcher code here in future.
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.getmany_store', [])
@@ -11,9 +10,12 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlGetManyStore = ['nl',
-function(nl) {
+var NlGetManyStore = ['nl', 'nlDlg', 'nlServerApi',
+function(nl, nlDlg, nlServerApi) {
+    var self = this;
     var _records = null;
+    var _subFetcher = new SubFetcher(nl, nlDlg, nlServerApi, this);
+    
     this.init = function() {
         _records = {'assignment': {}, 'course_assignment': {}, 'course': {}};
     };
@@ -21,10 +23,6 @@ function(nl) {
 
     this.key = function(table, id) {
         return {table: table, id: ''+id};
-    };
-
-    this.keyStr = function(key) {
-        return nl.fmt2('{}:{}', key.table, key.id);
     };
 
     this.getAssignmentKeyFromReport = function(reportRecord) {
@@ -42,9 +40,8 @@ function(nl) {
         return null;
     };
 
-    this.isFetchPending = function(key) {
-        if (!key) return false;
-        return !(key.id in _records[key.table]);
+    this.isKeyFound = function(key) {
+        return (key.id in _records[key.table]);
     };
 
     this.addRecord = function(key, record) {
@@ -67,8 +64,24 @@ function(nl) {
 		for (var itemid in records) return records[itemid];
     }
 
-    // Same is available in server side too (needs to be updated in the same way) - see ncourse.overrideAssignmentParameterInReport
-    this.overrideAssignmentParameterInReport = function(report, repcontent) {
+    this.updateAttendanceInRecord = function(key, attendance) {
+    	_records[key.table][key.id].attendance = attendance;
+    };
+
+    this.updateMilestoneInRecord = function(key, milestone) {
+    	_records[key.table][key.id].milestone = milestone;
+	};
+	
+	this.updateRatingInRecord = function(key, rating) {
+    	_records[key.table][key.id].rating = rating;
+	};
+
+    this.fetchReferredRecords = function(results, showLoadingScreen, onDoneFunction) {
+        return _subFetcher.fetchReferredRecords(results, showLoadingScreen, onDoneFunction);
+    };
+
+    // Same is available in server side too (needs to be updated in the same way) - see ncourse.overrideAssignmentParametersInRepContent
+    this.overrideAssignmentParametersInRepContent = function(report, repcontent) {
         var key = this.getAssignmentKeyFromReport(report);
         var assignInfo = this.getRecord(key);
         if (!assignInfo) return;
@@ -93,19 +106,7 @@ function(nl) {
         return repcontent;
     };
     
-    this.updateAttendanceInRecord = function(key, attendance) {
-    	_records[key.table][key.id].attendance = attendance;
-    };
-
-    this.updateMilestoneInRecord = function(key, milestone) {
-    	_records[key.table][key.id].milestone = milestone;
-	};
-	
-	this.updateRatingInRecord = function(key, rating) {
-    	_records[key.table][key.id].rating = rating;
-	};
-
-	function _copyAttrsIf(src, dest, attrs, defVals, destAttrs) {
+    function _copyAttrsIf(src, dest, attrs, defVals, destAttrs) {
         if (!destAttrs) destAttrs = attrs;
 		for (var i=0; i<attrs.length; i++) {
 			var attr = attrs[i];
@@ -117,58 +118,39 @@ function(nl) {
 }];
 
 function SubFetcher(nl, nlDlg, nlServerApi, nlGetManyStore) {
-	var _pendingIds = {};
-	var self=this;
-	this.markForFetching = function(reportRecord) {
-		var key = nlGetManyStore.getAssignmentKeyFromReport(reportRecord);
-		if (nlGetManyStore.isFetchPending(key)) _pendingIds[nlGetManyStore.keyStr(key)] = true;
-		key = nlGetManyStore.getContentKeyFromReport(reportRecord);
-		if (nlGetManyStore.isFetchPending(key)) _pendingIds[nlGetManyStore.keyStr(key)] = true;
-	};
-	
-	this.fetchPending = function() {
-        return (Object.keys(_pendingIds).length > 0);
-	};
-	
-	this.fetch = function(onDoneCallback) {
-        var recordinfos = [];
-        for (var key in _pendingIds) {
-        	var parts = key.split(':');
-        	recordinfos.push({table: parts[0], id: parseInt(parts[1])});
+    var _pendingKeys = {};
+    var _errorKeys = {};
+
+	this.fetchReferredRecords = function(results, showLoadingScreen, onDoneFunction) {
+        for (var i=0; i<results.length; i++) {
+            _markKeyForFetching(nlGetManyStore.getAssignmentKeyFromReport(results[i]));
+            _markKeyForFetching(nlGetManyStore.getContentKeyFromReport(results[i]));
         }
-        _fetchInBatchs(recordinfos, 0, onDoneCallback);
-    };
-    
-    this.subfetchAndOverride = function(results, onDoneFunction) {
-    	// Called from learner list views
-		for(var i=0; i<results.length; i++) this.markForFetching(_getReportRecord(results[i]));
-        if (!this.fetchPending()) return onDoneFunction(results);
-        
+        if (Object.keys(_pendingKeys).length == 0) return onDoneFunction();
+
+        var recordinfos = [];
+        for (var keyStr in _pendingKeys) recordinfos.push(_pendingKeys[keyStr]);
+
         nl.timeout(function() {
-        	nlDlg.showLoadingScreen();
-	        self.fetch(function() {
-	        	nlDlg.hideLoadingScreen();
-	        	for(var i=0; i<results.length; i++) {
-	        		nlGetManyStore.overrideAssignmentParameterInReport(_getReportRecord(results[i]), results[i]);
-	        	}
-	        	onDoneFunction(results);
+        	if (showLoadingScreen) nlDlg.showLoadingScreen();
+	        _fetchInBatchs(recordinfos, 0, function() {
+	        	if (showLoadingScreen) nlDlg.hideLoadingScreen();
+	        	onDoneFunction();
 	        });
         });
     };
     
-    this.getSubFetchedCourseRecord = function(cid) {
-    	// Called from learner list views
-    	return nlGetManyStore.getRecord(nlGetManyStore.key('course', cid));
-    };
-    
-    function _getReportRecord(repObj) {
-    	var isCourseObj = 'courseid' in repObj; 
-    	return {ctype: isCourseObj ? _nl.ctypes.CTYPE_COURSE : repObj.ctype,
-			assigntype: isCourseObj ? _nl.atypes.ATYPE_COURSE : repObj.assigntype,
-			assignment: isCourseObj ? repObj.assignid : repObj.assignment,
-			lesson_id: isCourseObj ? repObj.courseid : repObj.lesson_id};
+	function _markKeyForFetching(key) {
+        var keyStr = _keyStr(key);
+        if (!keyStr || keyStr in _errorKeys || nlGetManyStore.isKeyFound(key)) return;
+		_pendingKeys[keyStr] = key;
+	}
+
+    function _keyStr(key) {
+        if (!key) return null;
+        return nl.fmt2('{}:{}', key.table, key.id);
     }
-    
+	
     var MAX_PER_BATCH = 50;
     function _fetchInBatchs(recordinfos, startPos, onDoneCallback) {
         var newRecordInfo = [];
@@ -195,14 +177,14 @@ function SubFetcher(nl, nlDlg, nlServerApi, nlGetManyStore) {
                 }
                 var key = nlGetManyStore.key(resultObj.table, resultObj.id);
                 nlGetManyStore.addRecord(key, resultObj);
-                delete _pendingIds[nlGetManyStore.keyStr(key)];
+                delete _pendingKeys[_keyStr(key)];
             }
             startPos += results.length;
             _fetchInBatchs(recordinfos, startPos, onDoneCallback);
         }, function(error) {
             onDoneCallback(false);
         });
-	}
+    }
 }
 
 //-------------------------------------------------------------------------------------------------

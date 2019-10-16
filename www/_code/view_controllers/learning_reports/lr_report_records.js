@@ -409,7 +409,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStore, nlRepor
 
     function _updateCommonParams(report, ctypestr) {
         var repcontent = report._transformVersion ? report.repcontent : angular.fromJson(report.content);
-        nlGetManyStore.overrideAssignmentParameterInReport(report, repcontent);
+        nlGetManyStore.overrideAssignmentParametersInRepContent(report, repcontent);
         report.gradeLabel = _userInfo.groupinfo.gradelabel;
         report.subjectLabel = _userInfo.groupinfo.subjectlabel;
         report.updated = nl.fmt.json2Date(report.updated);

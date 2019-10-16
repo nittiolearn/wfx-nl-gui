@@ -99,16 +99,16 @@ function TypeHandler(nl, nlServerApi) {
 }
 
 //-----------------------------------------------------------------------------------------------------
-var AssignmentDeskCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlLrFetcher',
-function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlLrFetcher) {
+var AssignmentDeskCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlGetManyStore',
+function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlGetManyStore) {
 
 	var mode = new TypeHandler(nl, nlServerApi);
 	var _userInfo = null;
-	var _subFetcher = nlLrFetcher.getSubFetcher();
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
 		return nl.q(function(resolve, reject) {
+			nlGetManyStore.init();
 			mode.initFromUrl(_userInfo);
 			nl.pginfo.pageTitle = mode.pageTitle();
 			$scope.cards = {
@@ -156,23 +156,32 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlLrFetcher) {
                 if (resolve) resolve(false);
                 return;
             }
-            function _afterSubFetching(updatedResults) {
-	            _resultList = _resultList.concat(updatedResults);
-	            nlCardsSrv.updateCards($scope.cards, {
-	                cardlist: _getCards(_userInfo, _resultList),
-	                canFetchMore: _pageFetcher.canFetchMore()
-	            });
-	            if (resolve) resolve(true);
-            }
-
 			if (mode.type != TYPES.NEW && mode.type != TYPES.PAST) {
-				_afterSubFetching(results);
+				_afterSubFetching(results, resolve);
 			} else {
-				_subFetcher.subfetchAndOverride(results, _afterSubFetching);
+				_subfetchAndOverride(results, resolve);
 			}
         });
 	}
 	
+	function _subfetchAndOverride(results, resolve) {
+        nlGetManyStore.fetchReferredRecords(results, true, function() {
+            for(var i=0; i<results.length; i++) {
+                nlGetManyStore.overrideAssignmentParametersInRepContent(results[i], results[i]);
+            }
+            _afterSubFetching(results, resolve);
+        });
+	}
+
+	function _afterSubFetching(updatedResults, resolve) {
+		_resultList = _resultList.concat(updatedResults);
+		nlCardsSrv.updateCards($scope.cards, {
+			cardlist: _getCards(_userInfo, _resultList),
+			canFetchMore: _pageFetcher.canFetchMore()
+		});
+		if (resolve) resolve(true);
+	}
+
 	function _getCards(userInfo, resultList) {
 		var cards = [];
 		for (var i = 0; i < resultList.length; i++) {
