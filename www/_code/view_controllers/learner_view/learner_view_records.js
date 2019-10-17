@@ -14,8 +14,8 @@
     }];
     
     //-------------------------------------------------------------------------------------------------
-    var NlLearnerViewRecords = ['nl', 'nlLearnerAssignment', 'nlLearnerCourseRecords', 'nlReportHelper',
-    function(nl, nlLearnerAssignment, nlLearnerCourseRecords, nlReportHelper) {
+    var NlLearnerViewRecords = ['nl', 'nlGetManyStore', 'nlReportHelper',
+    function(nl, nlGetManyStore, nlReportHelper) {
         var self = this;
         
         var _records = {};
@@ -139,7 +139,7 @@
             if(!repcontent.content) repcontent.content = {};
             var user = _userInfo;
 
-            var course = nlLearnerCourseRecords.getRecord(report.lesson_id);
+            var course = nlGetManyStore.getRecord(nlGetManyStore.getContentKeyFromReport(report));
             if (!course) {
                 course = {};
             } else {
@@ -148,7 +148,7 @@
             }
             report.canReview = true;
             if(!course.is_published) report.canReview = false;
-            var courseAssignment = nlLearnerAssignment.getRecord('course_assignment:'+report.assignment) || {};
+            var courseAssignment = nlGetManyStore.getAssignmentRecordFromReport(report) || {};
             if (!courseAssignment.info) courseAssignment.info = {};
             if(courseAssignment) {
                 report.not_after = courseAssignment.info['not_after'];
@@ -211,7 +211,7 @@
                 timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
                 internalIdentifier:raw_record.id, nCerts: 0, nLessonsDone: 0, done: 0};            
 
-            var moduleAssignment = nlLearnerAssignment.getRecord('assignment:'+raw_record.assignment) || null;
+            var moduleAssignment = nlGetManyStore.getAssignmentRecordFromReport(raw_record) || null;
             if(moduleAssignment) {
                 raw_record.not_after = moduleAssignment['not_after'];
                 raw_record.not_before = moduleAssignment['not_before'];

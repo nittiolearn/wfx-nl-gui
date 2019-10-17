@@ -190,6 +190,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 				ret.updatedfrom = _data.createdfrom;
 			}
 		}
+		if (_data.debug) ret.debug = true;
 		if (_data.filterobj) ret.filters = _data.filterobj;
 		return ret;
 	};

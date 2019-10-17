@@ -23,7 +23,7 @@
 // nlLearningReports
 //   nlLrFetcher, nlLrExporter
 //     nlLrReportRecords
-//       nlSummaryStats, nlLrCourseRecords
+//       nlSummaryStats
 //         nlLrFilter
 //           nlLrHelper
 //
@@ -33,9 +33,8 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
 	angular.module('nl.learning_reports', ['nl.learning_reports.lr_helper', 'nl.learning_reports.lr_filter', 
-		'nl.learning_reports.lr_fetcher', 'nl.learning_reports.lr_exporter', 
-		'nl.learning_reports.lr_report_records', 'nl.learning_reports.lr_course_records',
-		'nl.learning_reports.lr_summary_stats', 'nl.learning_reports.lr_import', 'nl.learning_reports.lr_assignments',
+		'nl.learning_reports.lr_transform', 'nl.learning_reports.lr_fetcher', 'nl.learning_reports.lr_exporter', 
+		'nl.learning_reports.lr_report_records', 'nl.learning_reports.lr_summary_stats', 'nl.learning_reports.lr_import',
 		'nl.learning_reports.lr_drilldown', 'nl.learning_reports.lr_nht_srv',
 		'nl.learning_reports.others.lr_completed_modules'])
 	.config(configFn)
@@ -62,23 +61,23 @@ function($scope, nlLearningReports) {
 }];
 	
 var NlLearningReports = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlGroupInfo', 'nlTable', 'nlSendAssignmentSrv',
-'nlLrHelper', 'nlReportHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlLrReportRecords', 'nlLrCourseRecords', 'nlLrSummaryStats', 'nlLrAssignmentRecords', 
+'nlLrHelper', 'nlReportHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlLrReportRecords', 'nlLrSummaryStats', 'nlGetManyStore', 
 'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlCourse', 'nlLrNht',
 function(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
-	nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
-	nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht) {
+	nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
+	nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht) {
 	this.create = function($scope, settings) {
 		if (!settings) settings = {};
 		return new NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
-			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
-			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht);
+			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
+			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht);
 	};
 }];
 	
 //-------------------------------------------------------------------------------------------------
 function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
-			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrCourseRecords, nlLrSummaryStats,
-			$scope, settings, nlLrAssignmentRecords, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht) {
+			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
+			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht) {
 	var _userInfo = null;
 	var _groupInfo = null;
 	var _attendanceObj = {};
@@ -118,10 +117,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_customReportTemplate = nlGroupInfo.getCustomReportTemplate();
 
 		// Order is important
+		nlGetManyStore.init();
 		nlTreeListSrv.init(nl);
 		nlLrFilter.init(settings, _userInfo, nlGroupInfo);
-		nlLrCourseRecords.init();
-		nlLrAssignmentRecords.init();
 		nlLrReportRecords.init(_userInfo);
 		nlLrFetcher.init();
 		nlLrExporter.init(_userInfo);
@@ -301,11 +299,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (tbid == 'tbfilter') return nlLrFilter.isFilterShown();
 		if (tbid == 'content') return (nlLrFilter.getType() == 'module_assign' || nlLrFilter.getType() == 'course_assign');
 		if (tbid == 'attendance') {
-			var content = nlLrCourseRecords.getContentOfCourseAssignment();
+			var content = _getContentOfCourseAssignment();
 			return content && content.blended ? true : false;
 		}
 		if (tbid == 'rating') {
-			var content = nlLrCourseRecords.getContentOfCourseAssignment();
+			var content = _getContentOfCourseAssignment();
 			if(!content) return false;
 			for(var i=0; i<content.modules.length; i++) {
 				if(content.modules[i].type == 'rating') return true;
@@ -322,7 +320,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 
 		if (tbid == 'milestone') {
-			var content = nlLrCourseRecords.getContentOfCourseAssignment();
+			var content = _getContentOfCourseAssignment();
 			if(!content) return false;
 			for(var i=0; i<content.modules.length; i++) {
 				if(content.modules[i].type == 'milestone') return true;
@@ -384,6 +382,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		item.isOpen = !item.isOpen;
 		_generateBatchDataArray(false);
 	};
+
+	function _getContentOfCourseAssignment() {
+		if(nlLrFilter.getType() != 'course_assign') return null;
+		var course = nlGetManyStore.getAnyRecord('course');
+		if (!course || !course.content) return null;
+		return course.content;
+	}
 
 	function _isReminderNotificationEnabled() {
 		var props = nlGroupInfo.get().props;
@@ -1048,10 +1053,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	var rating = null;
 	var allModules = [];
 
+	function _getCourseAssignmnt() {
+		return nlGetManyStore.getRecord(nlGetManyStore.key('course_assignment', nlLrFilter.getObjectId()));
+	}
+
 	function _onCourseAssignView() {
-		var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:' + nlLrFilter.getObjectId());
+		var courseAssignment = _getCourseAssignmnt();
 		var learningRecords = nlLrReportRecords.getRecords();
-		var content = nlLrCourseRecords.getContentOfCourseAssignment();
+		var content = _getContentOfCourseAssignment();
 			attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
 			attendance.not_attended = attendance.not_attended || {};
 			milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
@@ -1209,7 +1218,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	//Mark milestone for items inside the course
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _onClickOnMarkMilestone() {
-		var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:' + nlLrFilter.getObjectId());
+		var courseAssignment = _getCourseAssignmnt();
 		milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
 		nlDlg.preventMultiCalls(true, _showMilestoneMarker);
 	}
@@ -1219,7 +1228,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _showMilestoneMarker() {
 		var milestoneDlg = nlDlg.create($scope);
 		milestoneDlg.setCssClass('nl-height-max nl-width-max');
-		var content = nlLrCourseRecords.getContentOfCourseAssignment();
+		var content = _getContentOfCourseAssignment();
 		milestoneDlg.scope.milestones = _getMilestoneItems(content);
 		milestoneDlg.scope.selectedItem = milestoneDlg.scope.milestones[0];
 		oldMilestone = angular.copy(milestone);
@@ -1286,8 +1295,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	//Mark attendance related code
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _onClickOnMarkAttendance() {
-		var data = {assignid: nlLrFilter.getObjectId()};
-		var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:' + nlLrFilter.getObjectId());
+		var courseAssignment = _getCourseAssignmnt();
 		attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
 		attendance = nlCourse.migrateCourseAttendance(attendance);
 		nlDlg.preventMultiCalls(true, _showAttendanceMarker);
@@ -1297,7 +1305,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _showAttendanceMarker() {
 		var markAttendanceDlg = nlDlg.create($scope);
 		markAttendanceDlg.setCssClass('nl-height-max nl-width-max');
-		var content = nlLrCourseRecords.getContentOfCourseAssignment();
+		var content = _getContentOfCourseAssignment();
 		var learningRecords = nlLrReportRecords.getRecords();
 		markAttendanceDlg.scope.attendanceOptions = _userInfo.groupinfo.attendance;
 		markAttendanceDlg.scope.sessions = _getIltSessions(content, learningRecords);
@@ -1425,8 +1433,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	var oldRating = {};
 	var ratingUpdated = false;
 	function _onClickOnMarkRatings() {
-		var data = {assignid: nlLrFilter.getObjectId()};
-		var courseAssignment = nlLrAssignmentRecords.getRecord('course_assignment:' + nlLrFilter.getObjectId());
+		var courseAssignment = _getCourseAssignmnt();
 		rating = courseAssignment.rating ? angular.fromJson(courseAssignment.rating) : {};
 		nlDlg.preventMultiCalls(true, _showRatingMarker);
 	}
@@ -1434,7 +1441,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _showRatingMarker() {
 		var ratingDlg = nlDlg.create($scope);
 		ratingDlg.setCssClass('nl-height-max nl-width-max');
-		var content = nlLrCourseRecords.getContentOfCourseAssignment();
+		var content = _getContentOfCourseAssignment();
 		var learningRecords = nlLrReportRecords.getRecords();
 		ratingDlg.scope.ratings = _getRatings(content, learningRecords, 'true');
 		ratingDlg.scope.selectedRating = ratingDlg.scope.ratings[0];
@@ -1684,18 +1691,18 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var srvUpdateFn = null;
 				if(result && (paramName == 'attendance')) {
 					attendance = result;
-					srvUpdateFn = nlLrAssignmentRecords.updateAttendanceInRecord;
+					srvUpdateFn = nlGetManyStore.updateAttendanceInRecord;
 				}
 				if(result && (paramName == 'rating')) {
 					rating = result;
-					srvUpdateFn = nlLrAssignmentRecords.updateRatingInRecord;
+					srvUpdateFn = nlGetManyStore.updateRatingInRecord;
 				}
 				if(result && (paramName == 'milestone')) {
 					milestone = result;
-					srvUpdateFn = nlLrAssignmentRecords.updateMilestoneInRecord;
+					srvUpdateFn = nlGetManyStore.updateMilestoneInRecord;
 				}
 				var jsonStr = angular.toJson(result);
-				srvUpdateFn('course_assignment:' + nlLrFilter.getObjectId(), jsonStr);
+				srvUpdateFn(nlGetManyStore.key('course_assignment', nlLrFilter.getObjectId()), jsonStr);
 				_updateReportRecords();
 			});
 		}};
@@ -1717,13 +1724,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var key = '';
 		var enableSubmissionAfterEndtime = false;
 		if (launchType == 'module_assign') {
-			key = 'assignment:{}';
+			key = 'assignment';
 			enableSubmissionAfterEndtime = true;
 		} else if (launchType == 'course_assign') {
-			key = 'course_assignment:{}';
+			key = 'course_assignment';
 		}
-		key = nl.fmt2(key, nlLrFilter.getObjectId());
-		var assignRec = nlLrAssignmentRecords.getRecord(key);
+		key = nlGetManyStore.key(key, nlLrFilter.getObjectId());
+		var assignRec = nlGetManyStore.getRecord(key);
 		if (!assignRec) {
 			nlDlg.popupAlert({title: 'Error', template: 'Cannot get the assignment information.'});
 			return;
@@ -1760,7 +1767,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			assignInfo.iltCostFoodSta = assignContent.iltCostFoodSta || '';
 			assignInfo.iltCostTravelAco = assignContent.iltCostTravelAco || '';
 			assignInfo.iltCostMisc = assignContent.iltCostMisc || '';
-			assignInfo.course = nlLrCourseRecords.getRecord(assignContent.courseid);
+			assignInfo.course = nlGetManyStore.getRecord(nlGetManyStore.key('course', assignContent.courseid));
 		}
 		nlSendAssignmentSrv.show($scope, assignInfo, _userInfo).then(function(result) {
 			if (!result) return;
@@ -1789,7 +1796,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if(result.selectedusers.length > 0) {
 				nl.window.location.reload();
 			} else {
-				nlLrAssignmentRecords.addRecord(assignRec, key);
+				nlGetManyStore.addRecord(key, assignRec);
 				_updateReportRecords();
 			}
 		});
