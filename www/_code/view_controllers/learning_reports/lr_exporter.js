@@ -497,7 +497,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         for(var i=0; i<mh.length; i++)
             currentPageRecord[mh[i].id] = rep[mh[i].id];
 
-        if (content.learningData) {
+        if (report.raw_record._transformVersion) {
+            _processPageScoreAndFeedbackFromTransformedObj(currentPageRecord, content, filter);
+        } else if (content.learningData) {
             _processReportRecordPageData(currentPageRecord, content, filter);
         } else {
             _processReportRecordPageDataOld(currentPageRecord, content, filter);
@@ -511,6 +513,41 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     		score += feedback[i];
     	}
     	return (score/feedback.length);
+    }
+
+    function _processPageScoreAndFeedbackFromTransformedObj(currentPageRecord, content, filter) {
+        if (filter.exportTypes.pageScore) {
+            _processPageScoresFromTransformedObj(currentPageRecord, content['_pageQuizScores']);
+        }
+        if (filter.exportTypes.feedback) {
+            _processFeedbacksFromTransformedObj(currentPageRecord, content['_pageFeedbacks']);
+        }
+    }
+
+    function _processPageScoresFromTransformedObj(currentPageRecord, items) {
+        for(var i=0; i<items.length; i++) {
+            var item = items[i];
+            currentPageRecord.page = item.pgNo;
+            currentPageRecord.title = item.title;
+            currentPageRecord.score = item.score;
+            currentPageRecord.maxScore = item.maxScore;
+            ctx.pageCnt++;
+            currentPageRecord.pos = ctx.pageCnt;
+            ctx.pScoreRows.push(nlExporter.getItemRow(_hPageScores, currentPageRecord));
+        }
+    }
+
+    function _processFeedbacksFromTransformedObj(currentPageRecord, items) {
+        for(var i=0; i<items.length; i++) {
+            var item = items[i];
+            currentPageRecord.page = item.pgNo;
+            currentPageRecord.title = item.title;
+            currentPageRecord.question = item.question;
+            currentPageRecord.response = item.response;
+            ctx.feedbackCnt++;
+            currentPageRecord.pos = ctx.feedbackCnt;
+            ctx.feedbackRows.push(nlExporter.getItemRow(_hFeedback, currentPageRecord));
+        }
     }
 
     function _processReportRecordPageData(currentPageRecord, content, filter, rep) {
