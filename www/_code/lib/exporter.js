@@ -35,11 +35,29 @@ function(nl, nlDlg) {
     };
 
     this.getCsvHeader = function(headers) {
-        return _getCsvString(_getHeaderRow(headers));
+        return _getCsvString(this.getHeaderRow(headers));
     };
     
+    this.getHeaderRow = function(headers) {
+        var row = [];
+        for(var i=0; i<headers.length; i++) {
+            row.push(headers[i].name);
+        }
+        return row;
+    };
+
     this.getCsvRow = function(headers, row) {
-        return _getCsvString(_getItemRow(headers, row));
+        return _getCsvString(this.getItemRow(headers, row));
+    };
+
+    this.getItemRow = function(headers, item) {
+        var row = [];
+        for(var i=0; i<headers.length; i++) {
+            var attr = headers[i].id;
+            var val = _fmtValue(item[attr], headers[i].fmt) || '';
+            row.push(val);
+        }
+        return row;
     };
 
     this.getCsvString = function(row, attrName) {
@@ -55,6 +73,7 @@ function(nl, nlDlg) {
     };
 
     this.MAX_RECORDS_PER_CSV = 50000;
+    this.MAX_RECORDS_PER_XLS = 200000; // TODO-NOW: Test and release
     
     // Data should be array of array of strings
     this.exportArrayTableToCsv = function(fileName, data, pl, resolve, reject) {
@@ -156,24 +175,6 @@ function(nl, nlDlg) {
         return '"' + data.replace(/\"/g, '""') + '"';
     }
     
-    function _getHeaderRow(headers) {
-        var row = [];
-        for(var i=0; i<headers.length; i++) {
-            row.push(headers[i].name);
-        }
-        return row;
-    }
-
-    function _getItemRow(headers, item) {
-        var row = [];
-        for(var i=0; i<headers.length; i++) {
-            var attr = headers[i].id;
-            var val = _fmtValue(item[attr], headers[i].fmt) || '';
-            row.push(val);
-        }
-        return row;
-    }
-
     function _fmtValue(val, fmt) {
         if (!val) return val;
         if (fmt == 'idstr') return 'id=' + val;
@@ -191,6 +192,7 @@ function(nl, nlDlg) {
 
 //-------------------------------------------------------------------------------------------------
 function XlsxUpdater(nl, nlDlg, nlExporter) {
+    var self = this;
 
     this.getContenFromUrl = function(inputXlsUrl) {
         return nl.q(function(resolve, reject) {
@@ -216,8 +218,7 @@ function XlsxUpdater(nl, nlDlg, nlExporter) {
             var reader = new FileReader();
             reader.onload = function (loadEvent) {
                 var binContent = loadEvent.target.result;
-                var wb = XLSX.read(ab2s(binContent), {type: 'binary', cellDates:true});
-                resolve({sheets: wb.Sheets, sheetNames: wb.SheetNames});
+                resolve(self.loadXlsBinaryAsObject(binContent));
             };
             reader.onerror = function (e) {
                 return _errorResolve(resolve, nl.fmt2('Error loading xls file: {}', e));
@@ -226,7 +227,12 @@ function XlsxUpdater(nl, nlDlg, nlExporter) {
         });
     };
 
-    this.updateXlsxSheetAndDownload = function(zip, downloadFileName, positionOfSheetToUpdate, newContentOfSheet) {
+    this.loadXlsBinaryAsObject = function(binContent) {
+        var wb = XLSX.read(ab2s(binContent), {type: 'binary', cellDates:true});
+        return {sheets: wb.Sheets, sheetNames: wb.SheetNames};    
+    };
+
+    this.updateXlsxSheetAndDownload = function(xlsAsZip, positionOfSheetToUpdate, newContentOfSheet, downloadFileName) {
         return nl.q(function(resolve, reject) {
             var sheet = XLSX.utils.aoa_to_sheet(newContentOfSheet);
             var workbook = XLSX.utils.book_new();
@@ -235,12 +241,14 @@ function XlsxUpdater(nl, nlDlg, nlExporter) {
             JSZip.loadAsync(wbout).then(function(zip2) {
                 var f = zip2.file('xl/worksheets/sheet1.xml');
                 f.async('arraybuffer').then(function(content) {
-                    zip.file(nl.fmt2('xl/worksheets/sheet{}.xml', positionOfSheetToUpdate), content);
-                    nlExporter.saveZip(zip, downloadFileName, null, function(sizeKb) {
+                    xlsAsZip.file(nl.fmt2('xl/worksheets/sheet{}.xml', positionOfSheetToUpdate), content);
+                    if (!downloadFileName) return resolve(true);
+
+                    nlExporter.saveZip(xlsAsZip, downloadFileName, null, function(sizeKb) {
                         return resolve(true);
                     }, function(e) {
                         return _errorResolve(resolve, nl.fmt2('Error saving xlsx: {}', e));
-                    });
+                    }); 
                 }, function(e) {
                     return _errorResolve(resolve, nl.fmt2('Error getting content of new sheet: {}', e));
                 });

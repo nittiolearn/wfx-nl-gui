@@ -195,9 +195,10 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
     	return groupInfo && groupInfo.props && groupInfo.props.augmentedUserInfoXls;
     };
 
-    var DEFAULT_TEMPLATE = '/static/others/custom_report.xlsm?v={}';
+    this.DEFAULT_REPORT_PATH = '/static/others/report-templates/';
+    this.DEFAULT_CUSTOM_TEMPLATE = this.DEFAULT_REPORT_PATH + 'custom_report.xlsm?v={}';
     this.getDefaultCustomReportTemplate = function() {
-        return nl.fmt2(DEFAULT_TEMPLATE, NL_SERVER_INFO.versions.script);
+        return nl.fmt2(this.DEFAULT_CUSTOM_TEMPLATE, NL_SERVER_INFO.versions.script);
     };
     
     this.getCustomReportTemplate = function(groupInfo) {
