@@ -220,9 +220,14 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect,
         filterDlg.scope.options = {filterBasedOn: filterMode};
         filterDlg.scope.data.filterBasedOn = previousFilterMode;
         filterDlg.scope.filters = _filterTrees.getFilters();
-        var filterButton = {text : nl.t('Apply'), onTap : function(){
-        		previousFilterMode = filterDlg.scope.data.filterBasedOn;
-		    	manuallySelectedIdStr = filterDlg.scope.data.selectedIds;
+        var filterButton = {text : nl.t('Apply'), onTap : function(e){
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                if(!_validateInput(filterDlg))  {
+                    return;
+                }
+                previousFilterMode = filterDlg.scope.data.filterBasedOn;
+                manuallySelectedIdStr = filterDlg.scope.data.selectedIds;
         		_onFilterApply(e, filterDlg);
         	}};
         var resetButton = {text : nl.t('Reset'), onTap : function(){
@@ -232,7 +237,44 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect,
         filterDlg.show('lib_ui/ouuserselect/ouuserfilter_dlg.html',
             [filterButton, resetButton], cancelButton);
     }
-	    
+        
+    function _validateInput(filterDlg) {
+        if (filterDlg.scope.data.filterBasedOn.id == 'filter') return true;
+        var selectedIdTemp = angular.copy(filterDlg.scope.data.selectedIds.replace(/[\s\n\r]+/g, ","));
+        selectedIdTemp = selectedIdTemp.split(',');
+        var manualSelectedIds = {};
+        var errorArray = [];
+        for(var i=0; i<selectedIdTemp.length; i++) {
+            var selectedId = selectedIdTemp[i].trim();
+            selectedId = selectedId.split('.')[0];
+            if(selectedId in manualSelectedIds) errorArray.push({id:selectedIdTemp[i].trim(), msg:'This userid is repeated.'})
+            if (selectedId) manualSelectedIds[selectedId] = true;
+        }
+        
+        var selectedIds = {};
+        var properIds = {};
+        for(var i=0; i<_fullTreeData.length; i++) {
+            var treeItem = _fullTreeData[i];
+            if(treeItem.userObj == undefined) continue;
+            var userid = treeItem.userObj.username.split('.')[0];
+            if (userid in manualSelectedIds) {
+                properIds[userid] = true;
+                selectedIds[treeItem.id] = treeItem;
+            }
+        }
+        for(var key in manualSelectedIds) {
+            if(!(key in properIds)) errorArray.push({id: key, msg: 'This is not a valid userid.'})
+        }
+        filterDlg.scope.data.validSelectedIds = selectedIds;
+        if(errorArray.length == 0) return true;
+
+        var msg = '<div class="fsh6" style="min-width: 40vw">Error in provided userids string</div><div><ul>';
+        for(var i=0; i<errorArray.length; i++) msg += nl.t('<li class="padding-mid"><span style="font-weight:bold">{} : </span><span>{}</span>', errorArray[i].id, errorArray[i].msg); 
+        msg += '</ul></div>';
+        nlDlg.popupAlert({title: 'Error message', template: msg});
+        return false;
+    }
+
     function _onFilterApply(e, filterDlg) {
         _updateSelectionTree(_fullTreeData, {});
         var selectedIds = {};
@@ -245,25 +287,9 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect,
         		selectedIds[treeItem.id] = treeItem;
 	        }
 		}
-        if(filterDlg.scope.data.filterBasedOn.id == 'userids') {
-        	var selectedIdTemp = filterDlg.scope.data.selectedIds.replace(/[\s\n\r]+/g, ",");
-        	selectedIdTemp = selectedIdTemp.split(',');
-        	var manualSelectedIds = {};
-        	for(var i=0; i<selectedIdTemp.length; i++) {
-        		var selectedId = selectedIdTemp[i].trim();
-        		selectedId = selectedId.split('.')[0];
-        		if (selectedId) manualSelectedIds[selectedId] = true;
-        	}
-	    	
-	    	var selectedIds = {};
-	        for(var i=0; i<_fullTreeData.length; i++) {
-	        	var treeItem = _fullTreeData[i];
-	        	if(treeItem.userObj == undefined) continue;
-	        	if (treeItem.userObj.username.split('.')[0] in manualSelectedIds)
-	        		selectedIds[treeItem.id] = treeItem;
-	        }
-        }
+        if(filterDlg.scope.data.filterBasedOn.id == 'userids') selectedIds = filterDlg.scope.data.validSelectedIds;
         _updateSelectionTree(_fullTreeData, selectedIds);
+        filterDlg.scope.onCloseDlg();
     }
 
     function _onFilterReset(e, filterDlg) {

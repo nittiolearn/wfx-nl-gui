@@ -1222,19 +1222,22 @@ nl-cards {
   width: 100%;
 }
 
-.nl-card-header {
+.nl-card-text-section {
   position: absolute;
   left: 0;
   width: 100%;
   top: 50%;
-  height: 12%;
+  height: 40%;
+  text-align: left;
+  color: black;
+  overflow: hidden;
+}
+
+.nl-card-header {
   text-align: left;
   color: black;
   font-size: 130%;
-  padding: 16px;
-  white-space: nowrap;
-  text-overflow : ellipsis;
-  overflow : hidden;
+  padding: 4px 16px;
 }
 
 .nl-card-header.nl-card-fullDesc-title {
@@ -1279,11 +1282,6 @@ nl-cards {
 }
 
 .nl-card-desc {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  top: 62%;
-  height: 38%;
   padding: 0 16px 16px 16px;
   font-size: 100%;
   text-align: left;

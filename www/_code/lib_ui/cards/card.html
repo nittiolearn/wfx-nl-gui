@@ -1,8 +1,10 @@
 <nl-card-image ng-show='!card.fullDesc'
 	class='nl-card-img row row-center margin0 {{canCover() ? "cover" : ""}}'></nl-card-image>
-<nl-card-title></nl-card-title>
-<nl-card-desc ng-show='!card.fullDesc'></nl-card-desc>
-<div ng-show='card.fullDesc' class='nl-card-fullDesc' nl-compile='card.help'></div>
+<div class='nl-card-text-section'>
+	<nl-card-title></nl-card-title>
+	<nl-card-desc ng-show='!card.fullDesc'></nl-card-desc>
+	<div ng-show='card.fullDesc' class='nl-card-fullDesc' nl-compile='card.help'></div>
+</div>
 <div class='nl-card-links'>
 	<div class='nl-card-more-links'>
 	    <span ng-repeat='link in card.links' ng-click='onCardLinkClicked($event, card, link.id)'
