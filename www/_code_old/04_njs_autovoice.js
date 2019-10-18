@@ -387,7 +387,7 @@ function AudioManager() {
             _removeAudioFragments(info);
             delete _audioHolder[pageId];
         }
-        audioUrlInfos = _getValidUrlInfos(audioUrlInfos);
+        audioUrlInfos = _getValidUrlInfos(audioUrlInfos, opage);
         if (!audioUrlInfos) return null;
         var button = _getVoiceButtonDom();
         var info = _addPageAudio(audioUrlInfos, pageId, button, opage);
@@ -439,7 +439,7 @@ function AudioManager() {
         }
     }
     
-    function _getValidUrlInfos(audioUrlInfos) {
+    function _getValidUrlInfos(audioUrlInfos, opage) {
         var ret = [];
         for(var i=0; i<audioUrlInfos.length; i++) {
             var info = audioUrlInfos[i];
@@ -449,6 +449,7 @@ function AudioManager() {
             ret.push({mp3: mp3, delay: info.delay||0});
         }
         if (ret.length == 0) return null;
+        if (opage) opage['isVoiceButton'] = true;
         return ret;
     }
 

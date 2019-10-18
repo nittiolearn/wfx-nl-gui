@@ -31,8 +31,8 @@ function EditorFieldsDirective() {
 
 //-------------------------------------------------------------------------------------------------
 var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlLessonSelect', 
-'nlExportLevel', 'nlRouter', 'nlCourseCanvas', 'nlMarkup', 'nlTreeSelect', 'nlResourceAddModifySrv', 'nlGroupInfo', 'nlExpressionProcessor',
-function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCourseCanvas, nlMarkup, nlTreeSelect, nlResourceAddModifySrv, nlGroupInfo, nlExpressionProcessor) {
+'nlExportLevel', 'nlRouter', 'nlCourseCanvas', 'nlMarkup', 'nlTreeSelect', 'nlResourceAddModifySrv', 'nlGroupInfo', 'nlExpressionProcessor', 'nlOuUserSelect',
+function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCourseCanvas, nlMarkup, nlTreeSelect, nlResourceAddModifySrv, nlGroupInfo, nlExpressionProcessor, nlOuUserSelect) {
 
     var modeHandler = null;
     var $scope = null;
@@ -44,8 +44,10 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	var _etm = null;
     this.init = function(_scope, _modeHandler, userInfo) {
 		nlGroupInfo.init().then(function() {
+			nlGroupInfo.update();
 			_groupInfo = nlGroupInfo.get();
 			_initMilestoneDict();
+			$scope.editor.treeOptions = _getTreeOptions();
 		});
         $scope = _scope;
         modeHandler = _modeHandler;
@@ -351,6 +353,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	function _getTreeOptions() {
 		var selectedGrade = {};
 		var selectedSubject = {};
+		var selectedOus = {};
 		if(!('contentmetadata' in modeHandler.course.content)) modeHandler.course.content.contentmetadata = {};
 		if(modeHandler.course.content.contentmetadata.grade) {
 			selectedGrade[modeHandler.course.content.contentmetadata.grade] = true;
@@ -364,7 +367,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			selectedSubject[_userInfo.groupinfo.subjects[0]] = true;
 			modeHandler.course.content.contentmetadata.subject = _userInfo.groupinfo.subjects[0];
 		}
-       	var _gradeInfo = {data: nlTreeSelect.strArrayToTreeArray(_userInfo.groupinfo.grades || [])};
+
+		var _gradeInfo = {data: nlTreeSelect.strArrayToTreeArray(_userInfo.groupinfo.grades || [])};
         nlTreeSelect.updateSelectionTree(_gradeInfo, selectedGrade);
         _gradeInfo.treeIsShown = false;
         _gradeInfo.multiSelect = false;
@@ -381,7 +385,43 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		_subjectInfo.onSelectChange = function() {
 			modeHandler.course.content.contentmetadata.subject = Object.keys(nlTreeSelect.getSelectedIds(_subjectInfo))[0];
 		};
-		return {grade: _gradeInfo, subject: _subjectInfo};
+		var _ouList = {}
+		if(_groupInfo) {
+			if(modeHandler.course.content.oulist) {
+				var oulist = modeHandler.course.content.oulist || [];
+				for(var i=0; i<oulist.length; i++) selectedOus[oulist[i]] = true;
+			}
+			var outreeArray = _getOuTreeArray(_groupInfo.outree);
+			_ouList = {data: nlTreeSelect.strArrayToTreeArray(outreeArray || [])};
+			nlTreeSelect.updateSelectionTree(_ouList, selectedOus);
+			_ouList.treeIsShown = false;
+			_ouList.multiSelect = true;
+			_ouList.fieldmodelid = 'oulist';
+			_ouList.onSelectChange = function() {
+				modeHandler.course.content.oulist = [];
+				var selectedIds = nlTreeSelect.getSelectedIds(_ouList);
+				for(var key in selectedIds) modeHandler.course.content.oulist.push(key);
+			};
+		}
+		return {grade: _gradeInfo, subject: _subjectInfo, oulist: _ouList};
+	}
+
+	function _getOuTreeArray(outree) {
+		var outreeArray = [];
+		for(var i=0; i<outree.length; i++) {
+			var ou = outree[i];
+			outreeArray.push(ou.id);
+			if(ou.children) _getChildreOuTreeArray(ou.children, outreeArray);
+		}
+		return outreeArray;
+	}
+
+	function _getChildreOuTreeArray(outree, outreeArray) {
+		for(var i=0; i<outree.length; i++) {
+			var ou = outree[i];
+			outreeArray.push(ou.id);
+			if(ou.children) _getChildreOuTreeArray(ou.children, outreeArray);
+		}
 	}
 
     var _courseParams = [
@@ -394,7 +434,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'grp_additionalAttrs', stored_at: 'content', type: 'group', text: 'Advanced properties'},
     	{name: 'planning', stored_at: 'content', text:'Schedule planning', desc: 'Enable schedule planning for this course', group: 'grp_additionalAttrs', type: 'boolean', debug: true},
      	{name: 'hide_answers', stored_at: 'content', text:'Hide answers', desc: 'Disallow learners to view completed modules', group: 'grp_additionalAttrs', type: 'boolean'},
- 	  	{name: 'certificate', stored_at: 'content', text: 'Certificate configuration', type: 'hidden', group: 'grp_additionalAttrs'},
+		{name: 'oulist', stored_at: 'content', text: 'Publish for', type: 'tree-select', group: 'grp_additionalAttrs'},
+		{name: 'certificate', stored_at: 'content', text: 'Certificate configuration', type: 'hidden', group: 'grp_additionalAttrs'},
     	{name: 'custtype', stored_at: 'content', text: 'Custom type', type: 'number', group: 'grp_additionalAttrs'},
         {name: 'exportLevel', stored_at: 'content', text: 'Visibility', type: 'list', values: [], valueNames: {}, group: 'grp_additionalAttrs'},
         {name: 'contentmetadata', stored_at: 'metadata', text: 'Metadata', type: 'object', group: 'grp_additionalAttrs', debug: true},
@@ -421,7 +462,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         grp_canvasAttrs: 'Canvas mode is a visual represenation of course where laarning items are placed in the backdrop of an image. Learners will be able to navigate into the specific section in a more visual way.',
         canvasview: 'You can create a visual game like courses when you enable this mode. In this mode, learners will view the course items in a visual canvas instead of a structured tree. Each folder in the course will open into another canvas with the sub-items represented in the canvas.',
         bgimg: 'Select the background image to be displayed in the canvas.',
-        bgcolor: 'The background image is resized to retain aspect ratio. This could result in horizontal or vertical bands. You can choose the color of the bands to align with the edge of the image.'
+		bgcolor: 'The background image is resized to retain aspect ratio. This could result in horizontal or vertical bands. You can choose the color of the bands to align with the edge of the image.',
+		oulist : 'By default, published courses are visible to all trainers. You may restrict the visibality to trainers belonging to specific org units.'
     };
     
     var moduleAttrs = [
@@ -461,7 +503,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			valueNamesUpdated: false, valueNames: {}, values: [], 
 			updateDropdown: _updateNewStatusDropdown,
 			canShow: function(attr){return _canShowNewState(attr)}},
-        {name: 'showInReport', stored_at: 'module', fields: ['gate'], text: 'Show in report', desc: 'Show progress percentage in the report', type: 'boolean', group: 'grp_additionalAttrs'},
+        {name: 'showInReport', stored_at: 'module', fields: ['gate'], text: 'Show in the report', desc: 'Show score in the report', type: 'boolean', group: 'grp_additionalAttrs'},
 		{name: 'isReattempt', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Mark as reattempt', desc: 'Mark this to indicate learner has reattempted', type: 'boolean', group: 'grp_additionalAttrs', 
 			canShow: function(attr) {return _canShowReattempt(attr);}
 		},
@@ -685,9 +727,9 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 				   okText: nl.t('Publish')};
 		nlDlg.popupConfirm(msg).then(function(res) {
 			if(!res) return;
-	    	_saveAfterValidateCourse(e, bPublish);
-		});
-	}
+			_saveAfterValidateCourse(e, bPublish);
+		});	
+}
 
     function _saveAfterValidateCourse(e, bPublish) {
         modeHandler.course.content.modules = [];
