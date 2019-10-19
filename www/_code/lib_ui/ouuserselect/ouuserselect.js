@@ -13,6 +13,7 @@ function module_init() {
 var OuUserSelectSrv = ['nl', 'nlDlg', 'nlGroupInfo', 'nlTreeSelect',
 function(nl, nlDlg, nlGroupInfo, nlTreeSelect) {
     // selectedOus is an array of Strings
+    var _dontShowUsers = {};
     this.getOuTree = function(groupInfo, selectedOus, treeIsShown, multiSelect) {
         var ouTree = new OuTree(nl, nlDlg, nlTreeSelect);
         return ouTree.get(groupInfo, selectedOus, treeIsShown, multiSelect);
@@ -24,9 +25,15 @@ function(nl, nlDlg, nlGroupInfo, nlTreeSelect) {
     };
 
     this.getOuUserSelector = function(parentScope, groupInfo, selectedUsers, dontShowUsers, userListFilter) {
+        _dontShowUsers = dontShowUsers;
         return new OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, this, 
             parentScope, groupInfo, selectedUsers, dontShowUsers, userListFilter);
     };
+
+    this.getAlreadySelectedUsers = function() {
+        return _dontShowUsers;        
+    }
+
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -217,6 +224,7 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect,
         filterDlg.scope.ouUserTree = _ouUserTree;
         filterDlg.scope.data = {};
         filterDlg.scope.data.selectedIds = manuallySelectedIdStr;
+        filterDlg.scope.data.alreadySelectedUsers = _getSelectedUsersDict();
         filterDlg.scope.options = {filterBasedOn: filterMode};
         filterDlg.scope.data.filterBasedOn = previousFilterMode;
         filterDlg.scope.filters = _filterTrees.getFilters();
@@ -238,9 +246,17 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect,
             [filterButton, resetButton], cancelButton);
     }
         
+    function _getSelectedUsersDict() {
+        var selectedUsers = nlOuUserSelect.getAlreadySelectedUsers();
+        var selectedUsersDict = {};
+        for(var key in selectedUsers) selectedUsersDict[selectedUsers[key]] = true;
+        return selectedUsersDict;
+    }
+
     function _validateInput(filterDlg) {
         if (filterDlg.scope.data.filterBasedOn.id == 'filter') return true;
         var selectedIdTemp = angular.copy(filterDlg.scope.data.selectedIds.replace(/[\s\n\r]+/g, ","));
+        var alreadySelectedUsers = filterDlg.scope.data.alreadySelectedUsers;
         selectedIdTemp = selectedIdTemp.split(',');
         var manualSelectedIds = {};
         var errorArray = [];
@@ -263,7 +279,11 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect,
             }
         }
         for(var key in manualSelectedIds) {
-            if(!(key in properIds)) errorArray.push({id: key, msg: 'This is not a valid userid.'})
+            if(key in alreadySelectedUsers) {
+                errorArray.push({id: key, msg: 'Assignment is already assigned to this user.'});
+                continue;
+            }
+            if(!(key in properIds)) errorArray.push({id: key, msg: 'The user id is unknown or inactive.'});
         }
         filterDlg.scope.data.validSelectedIds = selectedIds;
         if(errorArray.length == 0) return true;

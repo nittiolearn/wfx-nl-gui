@@ -211,7 +211,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStore, nlRepor
         var repcontent = _updateCommonParams(report, 'course');
         var user = _getStudentFromReport(report, repcontent);
         if (!user) return null;
-        _nominatedUsers[user.id] = true;
+        _nominatedUsers[user.id] = user.user_id;
         var course = nlGetManyStore.getRecord(nlGetManyStore.getContentKeyFromReport(report));
         if (!course) {
             course = {};
@@ -304,7 +304,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStore, nlRepor
         var repcontent = _updateCommonParams(report, 'module');
         var user = _getStudentFromReport(report, repcontent);
         if (!user) return null;
-        _nominatedUsers[user.id] = true;
+        _nominatedUsers[user.id] = user.user_id;
         report.showModuleProps = true;
         report.studentname = user.name;
         report._user_id = user.user_id;
