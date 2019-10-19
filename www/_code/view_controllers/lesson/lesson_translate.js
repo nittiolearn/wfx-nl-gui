@@ -267,7 +267,9 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
                     var pollyVoiceFragment = {
                         "fragment": oLesson.pages[i].autoVoicePolly[j]
                     };
-                    pollyVoiceArray.push(pollyVoiceFragment);
+                    if(pollyVoiceFragment.fragment.lang && pollyVoiceFragment.fragment.text) {
+                        pollyVoiceArray.push(pollyVoiceFragment);
+                    }
                 }
             }
         }
