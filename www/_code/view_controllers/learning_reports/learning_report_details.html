@@ -52,10 +52,9 @@
     <div class='padding-mid' ng-class='$root.respCol422'><b>Till :</b></div>
     <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.not_after || '-'}}</div>
 
-    <div class='padding-mid' ng-class='$root.respCol422'><b>Progress:</b></div>
-    <div class='padding-mid' ng-class='$root.respCol422'>
-        <span>{{rec._raw.stats.percCompleteStr}}</span>
-        <span ng-show='rec._raw.stats.percCompleteDesc'> ({{rec._raw.stats.percCompleteDesc}})</span>
+    <div class='padding-mid' ng-class='$root.respCol422' ng-show='rec._raw.stats.percCompleteDesc'><b>Progress:</b></div>
+    <div class='padding-mid' ng-class='$root.respCol422' ng-show='rec._raw.stats.percCompleteDesc'>
+        <span > {{rec._raw.stats.percCompleteDesc}}</span>
     </div>
 
     <div class='padding-mid' ng-class='$root.respCol422'><b>Time spent:</b></div>

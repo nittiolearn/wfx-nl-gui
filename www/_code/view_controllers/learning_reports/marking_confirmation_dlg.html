@@ -16,24 +16,25 @@
 		<div class='row row-center padding0 margin0'>
 			<table class='nl-table nl-table-styled fsh6 padding-mid'>
 			    <tr>
-			        <th colspan=1>
-			            <span>Username</span>
+			        <th>
+			            <span ng-show='paramName != "milestone"'>Username</span>
+			            <span ng-show='paramName == "milestone"'>Milestone</span>
 			        </th>
-			        <th colspan=1>
+			        <th>
 			            <span>Status</span>
 			        </th>
-			        <th colspan=22>
+			        <th>
 			            <span>Remarks</span>
 			        </th>
 			    </tr>
 			    <tr ng-repeat='user in session.selectedUsers'>
-			        <td colspan=1>
+			        <td>
 			            <span>{{user.name}}</span>
 			        </td>
-			        <td colspan=1>
+			        <td>
 			            <span>{{user.status}}</span>
 			        </td>
-			        <td colspan=2>
+			        <td>
 			            <span>{{user.remarks}}</span>
 			        </td>
 			    </tr>

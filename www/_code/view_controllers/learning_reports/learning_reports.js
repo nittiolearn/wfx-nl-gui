@@ -175,8 +175,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		columns.push({id: 'stats.status.txt', name: 'Status', smallScreen: true, 
 			icon: 'stats.status.icon'});
-		columns.push({id: 'stats.percCompleteStr', name: 'Progress', mediumScreen: false,
-			styleTd: 'text-right'});
 
 		// Only search and details relevant columns
 		columns.push({id: 'user.email', name: 'Email Id', searchKey: 'email', 
@@ -913,7 +911,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var userState = etmUserStates[i];
 			columns.push({id: userState.id, name: userState.name, hidePerc: true, showAlways: true, table: true});
 			if(userState.tenures) {
-				for (var j=0; j<userState.tenures.length; j++) columns.push({id: userState.tenures[j].id, name: userState.tenures[j].name, hidePerc: true, showAlways: true, table: true});
+				for (var j=userState.tenures.length-1; j>=0; j--) columns.push({id: userState.tenures[j].id, name: userState.tenures[j].name, hidePerc: true, showAlways: true, table: true});
 			}
 		}
 		for(var i=0; i<attrition.length; i++) columns.push({id: attrition[i], name: attrition[i], percid:'perc'+attrition[i], indentation: 'padding-left-44', table: true});
@@ -1006,7 +1004,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		columns.push({id: 'pending', name: 'Pending', smallScreen: true, percid: 'percPending', table: true, indentation: 'padding-left-22', showAlways: true});
 		columns.push({id: 'avgScore', name: 'Avg Quiz score', table: true, background: 'nl-bg-blue', hidePerc:true});
-		for(var i=0; i<_customScoresHeader.length; i++) columns.push({id: 'perc'+_customScoresHeader[i], name: 'Avg score of '+_customScoresHeader[i], table: true, background: 'nl-bg-blue', hidePerc:true});
+		for(var i=0; i<_customScoresHeader.length; i++) columns.push({id: 'perc'+_customScoresHeader[i], name: _customScoresHeader[i], table: true, background: 'nl-bg-blue', hidePerc:true});
 		columns.push({id: 'avgDelay', name: 'Avg Delay in days', table: true, background: 'nl-bg-blue', hidePerc:true});
 		return columns;
 	}

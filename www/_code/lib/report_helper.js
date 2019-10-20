@@ -180,16 +180,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 itemInfo.status = 'attrition';
                 var suffix = itemInfo.customStatus ? '-' +  itemInfo.customStatus : '';
                 defaultCourseStatus = 'attrition' + suffix;
-            } else  if (_isStartedItemState(itemInfo.status)) {
-                var bStarted = false;
-                if (cm.type == 'iltsession') {
-                    bStarted = itemInfo.status != 'failed';
-                } else if (cm.type == 'milestone' || cm.type == 'module') {
-                    bStarted = false;
-                } else {
-                    bStarted = true;
+            } else  if (itemInfo.status != 'waiting' && cm.type != 'module' && cm.type != 'milestone') {
+                if (defaultCourseStatus == 'pending' && itemInfo.status != 'pending' && itemInfo.status != 'delayed') {
+                    defaultCourseStatus ='started';
                 }
-                if (bStarted) defaultCourseStatus = itemInfo.customStatus || 'started';
+                if (itemInfo.customStatus) defaultCourseStatus = itemInfo.customStatus;
             }
             if (cm.showInReport && _isEndItemState(itemInfo.status))
                 ret.customScores.push({name: cm.name, score: itemInfo.score});
@@ -620,10 +615,6 @@ function _isCertificate(cm) {
 
 function _isEndItemState(status) {
     return status == 'failed' || status == 'success' || status == 'partial_success' || status.indexOf('attrition') == 0;
-}
-
-function _isStartedItemState(status) {
-    return status == 'started' || _isEndItemState(status);
 }
 
 function _isEndCourseState(status) {
