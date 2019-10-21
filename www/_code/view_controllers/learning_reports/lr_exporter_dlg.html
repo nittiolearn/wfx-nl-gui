@@ -15,6 +15,12 @@
             <i ng-hide='export.drilldown' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
             <span>download drill down data</span>
         </div>
+        <div ng-show='showNhtCheckbox' class='padding-mid nl-link-text' 
+             ng-click='export.nht = !export.nht'>
+            <i ng-show='export.nht' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='export.nht' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>download nht data</span>
+        </div>
         <div ng-show='reptype == "user"' class='padding-mid nl-link-text' 
              ng-click='export.indUser = !export.indUser'>
             <i ng-show='export.indUser' class="fsh4 icon ion-android-checkbox-outline"></i>

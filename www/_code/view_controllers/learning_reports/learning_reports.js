@@ -1030,7 +1030,24 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		header = headerArray.concat(header);
 		var drillDownStats = {statsCountDict: _statsCountDict, columns: header};
-		nlLrExporter.export($scope, reportRecords, _isAdmin, _customScoresHeader, drillDownStats);
+		var nhtStats = null;
+		if(nlLrReportRecords.isNHT()) {
+			_updateNhtTab();
+			var nhtCols = _getNhtColumns();
+			var nhtHeader = [];
+			for(var i=0; i<nhtCols.length; i++) {
+				var col = nhtCols[i];
+				if(col.table) nhtHeader.push(col);
+			}
+			var nhtArray = [{id: 'all', name: 'All'}];
+			if(nlGroupInfo.isSubOrgEnabled()) nhtArray.push({id: 'subOrgId', name: 'Suborg Id'});
+			nhtArray.push({id: 'organisationId', name: 'Organisation Id'});		
+			nhtArray.push({id: 'batchName', name: 'Batch name'});		
+			nhtHeader = nhtArray.concat(nhtHeader);
+			nhtStats = {statsCountDict: _nhtStatsDict, columns: nhtHeader};	
+		}
+
+		nlLrExporter.export($scope, reportRecords, _isAdmin, _customScoresHeader, drillDownStats, nhtStats);
 	}
 	
 	function _onExportCustomReport() {
