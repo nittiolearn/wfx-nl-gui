@@ -226,6 +226,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStore, nlRepor
         if (!courseAssignment.info) courseAssignment.info = {};
         var repHelper = nlReportHelper.getCourseStatusHelper(report, _userInfo.groupinfo, courseAssignment, course);
         var stainf = repHelper.getCourseStatus();
+        var statusObj = nlReportHelper.getStatusInfoFromCourseStatsObj(stainf);
         var contentmetadata = 'contentmetadata' in course ? course.contentmetadata : {};
         report._grade = contentmetadata.grade || '';
         report.subject = contentmetadata.subject || ''; 
@@ -268,7 +269,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStore, nlRepor
         repcontent.statusinfo = stainf.itemIdToInfo;
         repcontent.name = course.name;
  
-        if(!nlReportHelper.isEndCourseState(stainf.status) && (nlLrFilter.getType() == 'course_assign')) {
+        if(!nlReportHelper.isEndStatusId(statusObj.id) && (nlLrFilter.getType() == 'course_assign')) {
             if(Object.keys(_reminderDict).length == 0) {
                 _reminderDict['name'] = repcontent.name;
                 _reminderDict['assigned_by'] = repcontent.sendername;

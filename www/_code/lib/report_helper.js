@@ -65,8 +65,8 @@ function(nl, nlCourse, nlExpressionProcessor) {
         return _isEndItemState(status);
     };
 
-    this.isEndCourseState = function(status) {
-        return _isEndCourseState(status);
+    this.isEndStatusId = function(statusId) {
+        return (statusId != this.STATUS_PENDING && statusId != this.STATUS_STARTED);
     };
 }];
 
@@ -347,13 +347,16 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             return;
         }
         itemInfo.score = userCmRating.attId;
-        if(_mode == 'learner' && grpRatingObj.hideRating)
-            itemInfo.rawStatus = 'success'
-        else
+        if(_mode == 'learner' && grpRatingObj.hideRating) {
+            itemInfo.rawStatus = 'success';
+            itemInfo.remarks = '';
+           
+        } else {
             itemInfo.rawStatus = (itemInfo.score <= grpRatingObj.lowPassScore) ? 'failed' :
                 (itemInfo.score >= grpRatingObj.passScore) ? 'success' : 'partial_success';
+            itemInfo.remarks = userCmRating.remarks || '';
+        }
         itemInfo.passScore = grpRatingObj.passScore;
-        itemInfo.remarks = userCmRating.remarks || '';
         itemInfo.marked = nl.fmt.json2Date(userCmRating.marked || '');
         itemInfo.updated = nl.fmt.json2Date(userCmRating.updated || '');
         itemInfo.rating = _computeRatingStringOnScore(grpRatingObj, itemInfo.score);

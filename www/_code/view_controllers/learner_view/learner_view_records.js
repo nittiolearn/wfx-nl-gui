@@ -297,7 +297,7 @@
             var submissionAfterEndtime = raw_record.submissionAfterEndtime;
             if(not_before && not_before > curDate) {
                 return {type: "upcoming"};
-            } else if(nlReportHelper.isEndCourseState(stats.status.txt)) {
+            } else if(nlReportHelper.isEndStatusId(stats.status.id)) {
                 if(type == 'module') {
                     return {type: "past", button: "REVIEW", url: nl.fmt2('/lesson/view_report_assign/{}', raw_record.id)};
                 } else {
