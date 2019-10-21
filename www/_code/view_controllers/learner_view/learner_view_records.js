@@ -186,7 +186,7 @@
             stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
             repcontent.statusinfo = stainf.itemIdToInfo;
 
-            stats.status = nlReportHelper.getStatusInfoFromStr(stainf.status);
+            stats.status = nlReportHelper.getStatusInfoFromCourseStatsObj(stainf);
             var _statusStr = stats.status.txt;
             if(stats.status.id == nlReportHelper.STATUS_STARTED) 
                 stats.status.txt = 'started'; 

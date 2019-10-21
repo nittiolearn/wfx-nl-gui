@@ -902,6 +902,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _getNhtColumns() {
 		var columns = [];
 		var attrition = nlLrNht.getAttritionArray();
+		_customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
 		var etmUserStates = _groupInfo.props.etmUserStates || [];
 		columns.push({id: 'cntTotal', name: 'Learners', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'batchTotal', name: 'Batches', table: true, hidePerc:true, showAlways: true});
@@ -914,7 +915,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				for (var j=userState.tenures.length-1; j>=0; j--) columns.push({id: userState.tenures[j].id, name: userState.tenures[j].name, hidePerc: true, showAlways: true, table: true});
 			}
 		}
+		columns.push({id: 'failed', name: 'Failed', hidePerc:true, table: true, showAlways: true});
 		for(var i=0; i<attrition.length; i++) columns.push({id: attrition[i], name: attrition[i], percid:'perc'+attrition[i], indentation: 'padding-left-44', table: true});
+		columns.push({id: 'avgScore', name: 'Avg Quiz score', table: true, background: 'nl-bg-blue', hidePerc:true});
+		for(var i=0; i<_customScoresHeader.length; i++) columns.push({id: 'perc'+_customScoresHeader[i], name: _customScoresHeader[i], table: true, background: 'nl-bg-blue', hidePerc:true});
 		return columns;
 	}
 
@@ -980,7 +984,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var columns = [];
 		var attrition = nlLrDrilldown.getAttritionObj();
 		var customStartedStates = nlLrDrilldown.getCustomStatusObj();
-		   _customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
+		_customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
 		var isReattemptEnabled = nlLrReportRecords.isReattemptEnabled() || false;
 		columns.push({id: 'cntTotal', name: 'Total', table: true, percid:'percTotal', smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'cntInactive', name: 'Inactive', table: true, percid:'percInactive', background: 'nl-bg-blue', showAlways: true});

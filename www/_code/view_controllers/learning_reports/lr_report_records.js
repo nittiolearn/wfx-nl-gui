@@ -288,7 +288,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStore, nlRepor
         
         report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
         report.urlTitle = nl.t('View report');
-        stats.status = nlReportHelper.getStatusInfoFromStr(stainf.status);
+        stats.status = nlReportHelper.getStatusInfoFromCourseStatsObj(stainf);
         report.typeStr = 'Course';
         var ret = {raw_record: report, repcontent: repcontent, course: course, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,

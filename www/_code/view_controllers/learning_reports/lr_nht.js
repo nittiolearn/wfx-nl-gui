@@ -63,6 +63,7 @@ function(nl, nlReportHelper) {
             _updateActiveStatusCounts(record, statsCountObj);
         }
         statsCountObj['delayDays'] = record.stats.delayDays || 0;
+        statsCountObj['customScores'] = record.stats.customScores || [];
         return statsCountObj;
     }
 
@@ -81,7 +82,15 @@ function(nl, nlReportHelper) {
             if(!(statusStr in _attritionObj))
                 _attritionObj[statusStr] = record.stats.progressPerc;
             return;
-        }        
+        }
+        if (status.id != nlReportHelper.STATUS_STARTED) {
+            statsCountObj['completed'] = 1;
+            statsCountObj['percScore'] = record.stats.percScore;
+            if(status.id == nlReportHelper.STATUS_FAILED) {
+                statsCountObj['failed'] = 1;
+                return;
+            }
+        }
         statsCountObj[statusStr] = 1;
     }
 
@@ -112,10 +121,15 @@ function NhtCounts(nl) {
     var _statusCountTree = {}; //Is an object {0: {cnt: {}, children:{subgorg1: {cnt: {}, children: {ou1: {cnt: {}}}}}}}
     var self = this;
 
-    var statsCountItem = {cntTotal: 0, batchIdDict: {}, batchTotal:0, delayDays: 0, pending:0, isOpen: false};
+    var statsCountItem = {cntTotal: 0, batchIdDict: {}, batchTotal:0, delayDays: 0, pending:0, failed: 0,
+        completed: 0, percScore: 0, isOpen: false};
+    var _customScores = {};
+    var _customScoresArray = [];
 
     this.clear = function() {
         _statusCountTree = {};
+        _customScores = {};
+        _customScoresArray = [];
     };
 
     this.statsCountDict = function() {
@@ -196,8 +210,27 @@ function NhtCounts(nl) {
         for(var key in statusCnt) {
             if(key == 'batchid') {
                 if(!(statusCnt[key] in updatedStats.batchIdDict)) {
-                    updatedStats.batchIdDict[statusCnt[key]] = true
+                    updatedStats.batchIdDict[statusCnt[key]] = true;
                     updatedStats['batchTotal'] += 1;
+                }
+                continue;
+            }
+            if(key == 'customScores') {
+                var customScores = statusCnt[key];
+                for(var i=0; i<customScores.length; i++) {
+                    var item = customScores[i];
+                    var cntid = item.name+'count';
+                    if(!(item.name in _customScores)) {
+                        _customScores[item.name] = true;
+                        _customScoresArray.push(item.name);
+                    }
+                    if(!(item.name in updatedStats)) {
+                        updatedStats[item.name] = item.score;
+                        updatedStats[cntid] = 1;
+                    } else {
+                        updatedStats[item.name] += item.score;
+                        updatedStats[cntid] += 1;
+                    }
                 }
                 continue;
             }
@@ -218,6 +251,14 @@ function NhtCounts(nl) {
     function _updateStatsPercs(updatedStats) {
         if(updatedStats.cntTotal > 0) {
             updatedStats['avgDelay'] = Math.round(updatedStats.delayDays/updatedStats.cntTotal);
+            updatedStats['avgScore'] = (updatedStats.percScore != 0 && updatedStats.completed != 0) ? Math.round(updatedStats.percScore/updatedStats.completed)+' %' : 0;
+        }
+        for(var i=0; i<_customScoresArray.length; i++) {
+            var itemName = _customScoresArray[i];
+            if(!(itemName in updatedStats)) continue;
+            var percid = 'perc'+itemName;
+            var count = itemName+'count';
+            updatedStats[percid] = Math.round(updatedStats[itemName]/updatedStats[count])+' %';
         }
     }
 }

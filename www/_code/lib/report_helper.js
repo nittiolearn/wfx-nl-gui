@@ -36,13 +36,15 @@ function(nl, nlCourse, nlExpressionProcessor) {
 		{id: this.STATUS_FAILED, txt: 'failed', icon: 'icon ion-close-circled forange'},
         {id: this.STATUS_CERTIFIED, txt: 'certified', icon: 'icon ion-android-star fgreen'}];
         
-    this.getStatusInfoFromStr = function(statusStr) {
+    this.getStatusInfoFromCourseStatsObj = function(courseStatusObj) {
+        var statusStr = courseStatusObj.status;
         if (!statusStr) return this.statusInfos[this.STATUS_PENDING];
         for (var i=0; i<this.statusInfos.length; i++) {
             var item = this.statusInfos[i];
             if (item.txt == statusStr) return item;
         }
         var statusId = statusStr.indexOf('attrition') == 0 ? this.STATUS_FAILED : this.STATUS_STARTED;
+        if (courseStatusObj.isCertified) statusId = this.STATUS_CERTIFIED;
         var ret = angular.copy(this.statusInfos[statusId]);
         ret.txt = statusStr;
         return ret;
@@ -145,6 +147,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             nTotalQuizScore: 0, nTotalQuizMaxScore: 0,
             onlineTimeSpentSeconds: 0, iltTimeSpent: 0, iltTotalTime: 0,
             feedbackScore: '', customScores: [], attritedAt: null, attritionStr: null,
+            isCertified: false
         };
 
         var itemIdToInfo = ret.itemIdToInfo; // id: {status: , score: , rawStatus: }
@@ -532,6 +535,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (itemInfo.status == 'success' || itemInfo.status == 'partial_success') {
             ret.status = cm.type == 'certificate' ? 'certified' : 
                 'passScore' in itemInfo ? 'passed' : 'done';
+            if (ret.status == 'certified') ret.isCertified = true;
         } else if (itemInfo.status == 'failed') {
             ret.status = 'failed';
         } else if (itemInfo.status == 'waiting' && !itemInfo.prereqPending) {

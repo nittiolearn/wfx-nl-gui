@@ -202,7 +202,7 @@ function StatsCounts(nl) {
     this.clear = function() {
         _statusCountTree = {};
         _dynamicStates = {};
-        _customScores = {}
+        _customScores = {};
         _customScoresArray = [];
     };
 
