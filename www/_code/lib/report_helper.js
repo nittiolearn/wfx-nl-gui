@@ -57,8 +57,8 @@ function(nl, nlCourse, nlExpressionProcessor) {
     this.getCourseStatusHelper = function(report, groupinfo, courseAssign, course) {
         return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, false, report, groupinfo, courseAssign, course, 'trainer');
     };
-    this.getCourseStatusHelperForCourseView = function(report, groupinfo) {
-        return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, true, report, groupinfo, null, null, 'learner');
+    this.getCourseStatusHelperForCourseView = function(report, groupinfo, isLearnerMode) {
+        return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, true, report, groupinfo, null, null, isLearnerMode ? 'learner' : 'trainer');
     };
 
     this.isEndItemState = function(status) {
@@ -70,7 +70,7 @@ function(nl, nlCourse, nlExpressionProcessor) {
     };
 }];
 
-function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, report, groupinfo, courseAssign, course, mode) {
+function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, report, groupinfo, courseAssign, course, launchMode) {
     if (!report) report = {};
     _processCourseRecord(course);
 
@@ -83,7 +83,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
     //--------------------------------------------------------------------------------
     // Implementation
-    var _mode = mode;
+    var _launchMode = launchMode;
     var repcontent = isCourseView ? report : angular.fromJson(report.content);
     var _statusinfo = repcontent.statusinfo || {};
     var _lessonReports = repcontent.lessonReports || {};
@@ -340,7 +340,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     function _getRawStatusOfRating(cm, itemInfo) {
         var userCmRating = _userRatingDict[cm.id] || {};
         var grpRatingObj = _grpRatingDict[cm.rating_type];
-        if(_mode == 'learner' && grpRatingObj.hideRating) itemInfo.hideRag = true;
+        if(_launchMode == 'learner' && grpRatingObj.hideRating) itemInfo.hideItem = true;
         if (!grpRatingObj || !userCmRating || (!('attId' in userCmRating)) || userCmRating.attId === "") {
             itemInfo.score = null;
             itemInfo.rawStatus = 'pending';
@@ -348,7 +348,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             return;
         }
         itemInfo.score = userCmRating.attId;
-        if(_mode == 'learner' && grpRatingObj.hideRating) {
+        if(itemInfo.hideItem) {
             itemInfo.rawStatus = 'success';
             itemInfo.remarks = '';
            
@@ -360,12 +360,13 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.passScore = grpRatingObj.passScore;
         itemInfo.marked = nl.fmt.json2Date(userCmRating.marked || '');
         itemInfo.updated = nl.fmt.json2Date(userCmRating.updated || '');
-        itemInfo.rating = _computeRatingStringOnScore(grpRatingObj, itemInfo.score);
+        itemInfo.rating = _computeRatingStringOnScore(grpRatingObj, itemInfo);
     }
 
-    function _computeRatingStringOnScore(ratingObj, score) {
+    function _computeRatingStringOnScore(ratingObj, itemInfo) {
+        var score = itemInfo.score;
         if(Object.keys(ratingObj).length == 0) return score;
-        if(_mode == 'learner' && ratingObj.hideRating) return 'Rating provided';
+        if(itemInfo.hideItem) return 'Rating provided';
         if(ratingObj.type == 'number') return score;
         if(ratingObj.type == 'status' || ratingObj.type == 'select') {
             for(var i=0; i<ratingObj.values.length; i++) {
