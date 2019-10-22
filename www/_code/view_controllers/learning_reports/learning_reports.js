@@ -916,7 +916,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}
 		}
 		columns.push({id: 'failed', name: 'Failed', hidePerc:true, table: true, showAlways: true});
-		for(var i=0; i<attrition.length; i++) columns.push({id: attrition[i], name: attrition[i], percid:'perc'+attrition[i], indentation: 'padding-left-44', table: true});
+		if(attrition.length > 0) {
+			columns.push({id: 'attrition', name: 'Attrition', hidePerc:true, table: true, showAlways: true});
+			for(var i=0; i<attrition.length; i++) columns.push({id: attrition[i], name: attrition[i], percid:'perc'+attrition[i], indentation: 'padding-left-44', table: true});
+		}
 		columns.push({id: 'avgScore', name: 'Avg Quiz score', table: true, background: 'nl-bg-blue', hidePerc:true});
 		for(var i=0; i<_customScoresHeader.length; i++) columns.push({id: 'perc'+_customScoresHeader[i], name: _customScoresHeader[i], table: true, background: 'nl-bg-blue', hidePerc:true});
 		return columns;
@@ -1295,7 +1298,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var oldObj = oldMilestone[newMilestone.id] || {};
 		if(!oldObj.status) oldObj['status'] = '';
 		if(!oldObj.comment) oldObj['comment'] = '';
-		var newStatus = newMilestone.milestoneObj.status ? 'done' : 'pending';
+		var newStatus = newMilestone.milestoneObj.status ? 'done' : oldObj['status'] == '' ? '' : 'pending';
 		var reached = oldObj.reached || null;
 		if(newMilestone.milestoneObj.status && oldObj.status != newStatus) reached = new Date();
 		var updated = oldObj.updated || null;

@@ -926,6 +926,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         cm.ratingStr = itemInfo.rating;
         cm.remarks = itemInfo.remarks || '';
         cm.marked = itemInfo.marked || '-';
+        cm.hideItem = itemInfo.hideRag || false;
     }
 
     function _updateMilestoneData(cm, itemInfo) {

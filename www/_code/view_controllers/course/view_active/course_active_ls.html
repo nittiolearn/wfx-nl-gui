@@ -11,7 +11,7 @@
 			</div>
 		</div>
 		<div ng-repeat='cm in modules' class='anim fade'
-			style='background-color: #FFFFFF; border-bottom: 1px solid #EFEFF5'>
+			style='background-color: #FFFFFF; border-bottom: 1px solid #EFEFF5' ng-hide='cm.hideItem'>
 	        <div ng-click='onRowClick($event, cm)'
 	        	class='row row-center row-wrap margin0 padding0 fdarkgrey1 {{ext.item.id == cm.id ? "item-selected" : ""}} {{cm.type != "certificate" ? "nl-link-text" : ""}}'>
 				<div ng-class='resp2Col67' class='margin0 padding-mid' style='padding-left: {{cm.indentationLevel*16 + 8}}px'>

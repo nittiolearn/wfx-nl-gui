@@ -340,6 +340,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     function _getRawStatusOfRating(cm, itemInfo) {
         var userCmRating = _userRatingDict[cm.id] || {};
         var grpRatingObj = _grpRatingDict[cm.rating_type];
+        if(_mode == 'learner' && grpRatingObj.hideRating) itemInfo.hideRag = true;
         if (!grpRatingObj || !userCmRating || (!('attId' in userCmRating)) || userCmRating.attId === "") {
             itemInfo.score = null;
             itemInfo.rawStatus = 'pending';
@@ -375,10 +376,12 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     }
 
     function _getRawStatusOfMilestone(cm, itemInfo) {
+        var _msKey = 'milestone__'+cm.id;
         itemInfo.rawStatus = (cm.id in _milestone) && _milestone[cm.id].status == 'done' ?
             'success' : 'pending';
         itemInfo.score = itemInfo.rawStatus == 'pending' ? null : 100;
         itemInfo.remarks = (cm.id in _milestone) ? _milestone[cm.id].comment : "";
+        itemInfo.planned = _msDates[_msKey] || '';
         itemInfo.reached = (_milestone[cm.id] && _milestone[cm.id].reached) ? nl.fmt.json2Date(_milestone[cm.id].reached) : "";
         itemInfo.updated = (_milestone[cm.id] && _milestone[cm.id].updated) ? nl.fmt.json2Date(_milestone[cm.id].updated) : "";
 
