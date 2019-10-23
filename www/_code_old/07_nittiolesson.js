@@ -98,7 +98,8 @@ nlesson = function() {
 	
 		this.showOrHideZodiIcon = Lesson_showOrHideZodiIcon;
 		this.showOrHideDoToggleIcon = Lesson_showOrHideDoToggleIcon;
-		this.showPageReport = Lesson_showPageReport;
+        this.showPageReport = Lesson_showPageReport;
+        this.showOrHideZoomIcon = Lesson_showOrHideZoomIcon;
 
 		this.search = Lesson_search;
 		
@@ -455,9 +456,10 @@ nlesson = function() {
 
 	function Lesson_postRender() {
 		var pgNo = this.getCurrentPageNo();
-		this.postRenderingQueue.postRenderPage(pgNo);
+        this.postRenderingQueue.postRenderPage(pgNo);
+        this.showOrHideZoomIcon();
 		this.showOrHideZodiIcon();
-		this.showOrHideDoToggleIcon();
+        this.showOrHideDoToggleIcon();
 		showCommentIndicator();
         _showOrHideToolbar();
 	}
@@ -585,7 +587,12 @@ nlesson = function() {
 		} else {
 			jQuery('#ask_zodi_icon').hide();		
 		}
-	}
+    }
+    
+    function Lesson_showOrHideZoomIcon() {
+        var isTouchDevice = window.nlapp.nl.utils.isTouchDevice();
+        if(! isTouchDevice) jQuery('#zoom_start_icon').hide();
+    }
 	
 	function _shallShowZodi(lesson) {
 		var curPage = lesson.getCurrentPage();

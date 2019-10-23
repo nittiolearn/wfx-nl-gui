@@ -332,6 +332,9 @@ function Utils() {
     for(var k in d) ret.push(d[k]);
     return ret;
     };
+    this.isTouchDevice = function() {
+        return ( 'ontouchstart' in window ) || ( navigator.maxTouchPoints > 0 ) || ( navigator.msMaxTouchPoints > 0 ); 
+    }
 }
 
 //-------------------------------------------------------------------------------------------------

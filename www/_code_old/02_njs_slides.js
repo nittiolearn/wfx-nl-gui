@@ -72,14 +72,63 @@ njs_slides = function() {
 				activeSlideSet.gotoPage(activeSlideSet.pages.length-1);
 			}
 		});
-		// Setup swipe event handlers
+
+		// Setup swipe event handlers and Zoom event handler
+		var zoomTapCount = 0;
+		var zoomVal = ["zoom-100", "zoom-120", "zoom-140", "zoom-160", "zoom-180", "zoom-200", "zoom-300"]; // TODO-NOW
+		var zoomClasses = zoomVal.join(' ');
+
 		window.nlapp.nl.rootScope.onSwipeLeft = function(event) {
-			activeSlideSet.next();
+			if ((jQuery(".inner_body").hasClass("zoom-120"))) return;
+			if ((jQuery("#module_popup_content").hasClass("zoom-120"))) return;
+			if(!zoomTapCount) activeSlideSet.next();
 		};
 		window.nlapp.nl.rootScope.onSwipeRight = function(event) {
-			activeSlideSet.prev();
+			if ((jQuery(".inner_body").hasClass("zoom-120"))) return;
+			if ((jQuery("#module_popup_content").hasClass("zoom-120"))) return;
+			if(!zoomTapCount) activeSlideSet.prev();
 		};
 
+		window.nlapp.nl.rootScope.zoomIn = function() {
+			if(!zoomTapCount) zoomTapCount = 1;
+			zoomTapCount += 1;
+			if (zoomTapCount >= zoomVal.length -1) jQuery("#zoomIn, #zoomChange .padding-small").hide();
+			jQuery(".inner_body, #module_popup_content").removeClass(zoomVal[zoomTapCount-1]);
+			jQuery(".inner_body, #module_popup_content").addClass(zoomVal[zoomTapCount]);
+		}
+
+		window.nlapp.nl.rootScope.zoomOut = function() {
+			if(!zoomTapCount) zoomTapCount = 1;
+			zoomTapCount -= 1;
+			if (zoomTapCount < zoomVal.length -1) jQuery("#zoomIn, #zoomChange .padding-small").show();
+			if (zoomTapCount < 0) {
+				zoomTapCount = 0; 
+				return;
+			}
+			jQuery(".inner_body, #module_popup_content").removeClass(zoomVal[zoomTapCount+1]);
+			jQuery(".inner_body, #module_popup_content").addClass(zoomVal[zoomTapCount]);
+			if (zoomTapCount == 0) _exitZoom();
+		}
+
+		window.nlapp.nl.rootScope.exitZoom = function() {
+			zoomTapCount = 0; 
+			_exitZoom();
+		}
+
+		function _exitZoom() {
+			jQuery(".inner_body, #module_popup_content").removeClass(zoomClasses);
+			jQuery("#nlZoombar").hide(200, 'swing', function() {
+				jQuery(".toolBar").show(300, 'swing');
+			});
+			jQuery(".body").removeClass("nl-overflow-auto nl-zoom-innerbody")
+			jQuery("#zoomChange").hide(0, 'linear', function() {
+				jQuery(".nl-topbar").show();
+				setTimeout(function() { 
+					if(jQuery("#module_popup_holder").css("display") == 'none')
+						$('#pageNoArea').show(); 
+				}, 400);
+			});
+		}
 	}
 
 	function SlideSet_init(me, slideSetDom, pageNo, navLeft, navRight) {
