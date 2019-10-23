@@ -8,12 +8,12 @@ function module_init() {
 }
 //-------------------------------------------------------------------------------------------------
 
-var NlLrNhtSrv = ['nl','nlReportHelper',
-function(nl, nlReportHelper) {
+var NlLrNhtSrv = ['nl','nlReportHelper', 'nlGetManyStore',
+function(nl, nlReportHelper, nlGetManyStore) {
     var _orgToSubOrgDict = {};
     var _customStartedStatusObj = {};
     var _isSubOrgEnabled = false;
-    var nhtCounts = new NhtCounts(nl);
+    var nhtCounts = new NhtCounts(nl, nlGetManyStore);
     var _attritionObj = {};
     this.init = function(nlGroupInfo) {
         _orgToSubOrgDict = nlGroupInfo.getOrgToSubOrgDict();
@@ -41,6 +41,7 @@ function(nl, nlReportHelper) {
         var subOrg = _isSubOrgEnabled ? _orgToSubOrgDict[ou] : ou;
         if(!subOrg) subOrg = "Others";
         var statusCntObj = _getStatusCountObj(record);
+        nhtCounts.updateBatch(assignment, record)
         _addCount(assignment, subOrg, _isSubOrgEnabled ? ou : '', statusCntObj, record.repcontent.batchname || record.repcontent.name);
     }
 
@@ -63,6 +64,7 @@ function(nl, nlReportHelper) {
             _updateActiveStatusCounts(record, statsCountObj);
         }
         statsCountObj['delayDays'] = record.stats.delayDays || 0;
+        statsCountObj['customScores'] = record.stats.customScores || [];
         return statsCountObj;
     }
 
@@ -81,7 +83,15 @@ function(nl, nlReportHelper) {
             if(!(statusStr in _attritionObj))
                 _attritionObj[statusStr] = record.stats.progressPerc;
             return;
-        }        
+        }
+        if (status.id != nlReportHelper.STATUS_STARTED) {
+            statsCountObj['completed'] = 1;
+            statsCountObj['percScore'] = record.stats.percScore;
+            if(status.id == nlReportHelper.STATUS_FAILED) {
+                statsCountObj['failed'] = 1;
+                return;
+            }
+        }
         statsCountObj[statusStr] = 1;
     }
 
@@ -108,14 +118,25 @@ function(nl, nlReportHelper) {
 // NhtCounts constructer which get update on each record read
 //-------------------------------------------------------------------------------------------------
 
-function NhtCounts(nl) {
+function NhtCounts(nl, nlGetManyStore) {
     var _statusCountTree = {}; //Is an object {0: {cnt: {}, children:{subgorg1: {cnt: {}, children: {ou1: {cnt: {}}}}}}}
     var self = this;
 
-    var statsCountItem = {cntTotal: 0, batchIdDict: {}, batchTotal:0, delayDays: 0, pending:0, isOpen: false};
+    var statsCountItem = {cntTotal: 0, batchIdDict: {}, batchTotal:0, delayDays: 0, pending:0, failed: 0,
+        completed: 0, percScore: 0, isOpen: false};
+    var _customScores = {};
+    var _customScoresArray = [];
+    var batches = {};
 
     this.clear = function() {
         _statusCountTree = {};
+        _customScores = {};
+        _customScoresArray = [];
+    };
+
+    this.updateBatch = function(batchid, report) {
+        if(batchid in batches) return;
+        batches[batchid] = report;
     };
 
     this.statsCountDict = function() {
@@ -188,7 +209,32 @@ function NhtCounts(nl) {
             updatedStats = self.getBatch(contentid, subOrgId, ouid, batchid, name);
         else 
             updatedStats = self.getOu(contentid, subOrgId, batchid, name, false);
+        _updateBatchInfo(updatedStats, batchid);
         _updateStatsCount(updatedStats, statusCnt);
+    }
+
+    function _updateBatchInfo(updatedStats, batchid) { 
+        if (updatedStats.propertiesUpdated) return;
+        var report = batches[batchid];
+        var courseAssignment = nlGetManyStore.getAssignmentRecordFromReport(report.raw_record) || {};
+        var course = nlGetManyStore.getRecord(nlGetManyStore.getContentKeyFromReport(report.raw_record));
+        var actualMsInfo = angular.fromJson(courseAssignment.milestone) || {};
+        var plannedMsInfo = courseAssignment.info.msDates;
+        var modules = course.content.modules || [];
+        updatedStats['start'] = report.not_before;
+        updatedStats['end'] = report.not_after;
+        for(var i=0; i<modules.length; i++) {
+            var item = modules[i]
+            if(item.type != 'milestone') continue;
+            var mstype = item.milestone_type;
+            if(!mstype) continue;
+            var plannedMs = plannedMsInfo['milestone_'+item.id] || '';
+            var actualMs = actualMsInfo[item.id] || {};
+            updatedStats[mstype+'planned'] = nl.fmt.fmtDateDelta(plannedMs, null, 'minutes');
+            updatedStats[mstype+'actual'] = nl.fmt.fmtDateDelta(actualMs.reached || '', null, 'minutes');
+        }
+        updatedStats.propertiesUpdated = true;
+        return;
     }
 
     function _updateStatsCount(updatedStats, statusCnt) { 
@@ -196,8 +242,27 @@ function NhtCounts(nl) {
         for(var key in statusCnt) {
             if(key == 'batchid') {
                 if(!(statusCnt[key] in updatedStats.batchIdDict)) {
-                    updatedStats.batchIdDict[statusCnt[key]] = true
+                    updatedStats.batchIdDict[statusCnt[key]] = true;
                     updatedStats['batchTotal'] += 1;
+                }
+                continue;
+            }
+            if(key == 'customScores') {
+                var customScores = statusCnt[key];
+                for(var i=0; i<customScores.length; i++) {
+                    var item = customScores[i];
+                    var cntid = item.name+'count';
+                    if(!(item.name in _customScores)) {
+                        _customScores[item.name] = true;
+                        _customScoresArray.push(item.name);
+                    }
+                    if(!(item.name in updatedStats)) {
+                        updatedStats[item.name] = item.score;
+                        updatedStats[cntid] = 1;
+                    } else {
+                        updatedStats[item.name] += item.score;
+                        updatedStats[cntid] += 1;
+                    }
                 }
                 continue;
             }
@@ -218,6 +283,14 @@ function NhtCounts(nl) {
     function _updateStatsPercs(updatedStats) {
         if(updatedStats.cntTotal > 0) {
             updatedStats['avgDelay'] = Math.round(updatedStats.delayDays/updatedStats.cntTotal);
+            updatedStats['avgScore'] = (updatedStats.percScore != 0 && updatedStats.completed != 0) ? Math.round(updatedStats.percScore/updatedStats.completed)+' %' : 0;
+        }
+        for(var i=0; i<_customScoresArray.length; i++) {
+            var itemName = _customScoresArray[i];
+            if(!(itemName in updatedStats)) continue;
+            var percid = 'perc'+itemName;
+            var count = itemName+'count';
+            updatedStats[percid] = Math.round(updatedStats[itemName]/updatedStats[count])+' %';
         }
     }
 }

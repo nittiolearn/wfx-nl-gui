@@ -226,6 +226,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStore, nlRepor
         if (!courseAssignment.info) courseAssignment.info = {};
         var repHelper = nlReportHelper.getCourseStatusHelper(report, _userInfo.groupinfo, courseAssignment, course);
         var stainf = repHelper.getCourseStatus();
+        var statusObj = nlReportHelper.getStatusInfoFromCourseStatsObj(stainf);
         var contentmetadata = 'contentmetadata' in course ? course.contentmetadata : {};
         report._grade = contentmetadata.grade || '';
         report.subject = contentmetadata.subject || ''; 
@@ -268,7 +269,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStore, nlRepor
         repcontent.statusinfo = stainf.itemIdToInfo;
         repcontent.name = course.name;
  
-        if(!nlReportHelper.isEndCourseState(stainf.status) && (nlLrFilter.getType() == 'course_assign')) {
+        if(!nlReportHelper.isEndStatusId(statusObj.id) && (nlLrFilter.getType() == 'course_assign')) {
             if(Object.keys(_reminderDict).length == 0) {
                 _reminderDict['name'] = repcontent.name;
                 _reminderDict['assigned_by'] = repcontent.sendername;
@@ -288,7 +289,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStore, nlRepor
         
         report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
         report.urlTitle = nl.t('View report');
-        stats.status = nlReportHelper.getStatusInfoFromStr(stainf.status);
+        stats.status = nlReportHelper.getStatusInfoFromCourseStatsObj(stainf);
         report.typeStr = 'Course';
         var ret = {raw_record: report, repcontent: repcontent, course: course, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,

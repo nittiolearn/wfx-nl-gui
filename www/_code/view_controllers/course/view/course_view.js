@@ -871,7 +871,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         var reopener = new Reopener(modeHandler, nlTreeListSrv, _userInfo, nl, nlDlg, 
             nlServerApi, _updatedStatusinfoAtServer);
         reopener.reopenIfNeeded().then(function() {
-            var repHelper = nlReportHelper.getCourseStatusHelperForCourseView(modeHandler.course, _userInfo.groupinfo);
+            var isLearnerView = modeHandler.mode == MODES.DO || modeHandler.urlModeStr == 'report_view_my';
+            var repHelper = nlReportHelper.getCourseStatusHelperForCourseView(modeHandler.course, _userInfo.groupinfo, isLearnerView);
             _statusInfo = repHelper.getCourseStatus();
             if(_statusInfo.nTotalQuizMaxScore) $scope.computedData['avgQuizScore'] = Math.round(100*_statusInfo.nTotalQuizScore/_statusInfo.nTotalQuizMaxScore);
             _updateItemData(nlTreeListSrv.getRootItem(), _statusInfo.itemIdToInfo);
@@ -926,6 +927,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         cm.ratingStr = itemInfo.rating;
         cm.remarks = itemInfo.remarks || '';
         cm.marked = itemInfo.marked || '-';
+        cm.hideItem = itemInfo.hideItem || false;
     }
 
     function _updateMilestoneData(cm, itemInfo) {

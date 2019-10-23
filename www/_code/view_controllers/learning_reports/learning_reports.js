@@ -175,8 +175,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		columns.push({id: 'stats.status.txt', name: 'Status', smallScreen: true, 
 			icon: 'stats.status.icon'});
-		columns.push({id: 'stats.percCompleteStr', name: 'Progress', mediumScreen: false,
-			styleTd: 'text-right'});
 
 		// Only search and details relevant columns
 		columns.push({id: 'user.email', name: 'Email Id', searchKey: 'email', 
@@ -373,7 +371,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if(selectedId == 'drilldown') {
 			$scope.drillDownInfo = {columns: _drillDownColumns, rows: _generateDrillDownArray(false, _statsCountDict, true)};
 		} else {
-			$scope.nhtInfo = {columns: _nhtColumns, rows: _generateDrillDownArray(false, _nhtStatsDict, false)};
+			$scope.nhtInfo = {columns: _nhtColumns, rows: _generateDrillDownArray(false, _nhtStatsDict, false, (nlLrFilter.getType() == "course_assign"))};
 		}
 	};
 
@@ -898,13 +896,16 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		_nhtStatsDict = nlLrNht.getStatsCountDict();
 		_nhtColumns = _getNhtColumns();
-		$scope.nhtInfo = {columns: _nhtColumns, rows: _generateDrillDownArray(true, _nhtStatsDict, false)};
+		$scope.nhtInfo = {columns: _nhtColumns, rows: _generateDrillDownArray(true, _nhtStatsDict, false, (nlLrFilter.getType() == "course_assign"))};
 	}
 
 	function _getNhtColumns() {
 		var columns = [];
 		var attrition = nlLrNht.getAttritionArray();
+		_customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
 		var etmUserStates = _groupInfo.props.etmUserStates || [];
+		var milestones = _groupInfo.props.milestones || [];
+		var statusDict = _getStatusDictFromArray();
 		columns.push({id: 'cntTotal', name: 'Learners', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'batchTotal', name: 'Batches', table: true, hidePerc:true, showAlways: true});
 		columns.push({id: 'avgDelay', name: 'Average delay(In days)', hidePerc: true, table: true, showAlways: true});
@@ -913,10 +914,29 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var userState = etmUserStates[i];
 			columns.push({id: userState.id, name: userState.name, hidePerc: true, showAlways: true, table: true});
 			if(userState.tenures) {
-				for (var j=0; j<userState.tenures.length; j++) columns.push({id: userState.tenures[j].id, name: userState.tenures[j].name, hidePerc: true, showAlways: true, table: true});
+				for (var j=userState.tenures.length-1; j>=0; j--) columns.push({id: userState.tenures[j].id, name: userState.tenures[j].name, hidePerc: true, showAlways: true, table: true});
 			}
 		}
-		for(var i=0; i<attrition.length; i++) columns.push({id: attrition[i], name: attrition[i], percid:'perc'+attrition[i], indentation: 'padding-left-44', table: true});
+		columns.push({id: 'failed', name: 'Failed', hidePerc:true, table: true, showAlways: true});
+		if(attrition.length > 0) {
+			columns.push({id: 'attrition', name: 'Attrition', hidePerc:true, table: true, showAlways: true});
+			for(var i=0; i<attrition.length; i++) {
+				var name = attrition[i];
+				var formattedName = _getFormattedName(name, statusDict);
+				columns.push({id: attrition[i], name: formattedName, percid:'perc'+attrition[i], indentation: 'padding-left-44', table: true});
+			}
+		}
+		columns.push({id: 'avgScore', name: 'Avg Quiz score', table: true, background: 'nl-bg-blue', hidePerc:true});
+		for(var i=0; i<_customScoresHeader.length; i++) columns.push({id: 'perc'+_customScoresHeader[i], name: _customScoresHeader[i], table: true, background: 'nl-bg-blue', hidePerc:true});
+		columns.push({id: 'start', name: 'Batch start', table: true, hidePerc:true, style:'min-width:fit-content'});
+		columns.push({id: 'end', name: 'Batch end', table: true, hidePerc:true, style:'min-width:fit-content'});
+		if(milestones.length > 0) {
+			for(var i=0; i<milestones.length; i++) {
+				var item = milestones[i];
+				columns.push({id: item.id+'planned', name: nl.t('{} planned', item.name), table: true, hidePerc:true, style:'min-width:fit-content'});
+				columns.push({id: item.id+'actual', name: nl.t('{} achieved', item.name), table: true, hidePerc:true, style:'min-width:fit-content'});	
+			}
+		}
 		return columns;
 	}
 
@@ -930,11 +950,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		_statsCountDict = nlLrDrilldown.getStatsCountDict();
 		_drillDownColumns = _getDrillDownColumns();
-		$scope.drillDownInfo = {columns: _drillDownColumns, rows: _generateDrillDownArray(true, _statsCountDict, true)};
+		$scope.drillDownInfo = {columns: _drillDownColumns, rows: _generateDrillDownArray(true, _statsCountDict, true, false)};
 	}
 
 	var drillDownArray = [];
-	function _generateDrillDownArray(firstTimeGenerated, statusDict, singleRepCheck) {
+	function _generateDrillDownArray(firstTimeGenerated, statusDict, singleRepCheck, showLeafOnly) {
 		drillDownArray = [];
 		var isSingleReport = (singleRepCheck && Object.keys(statusDict).length <= 2) ? true : false;
 		for(var key in statusDict) {
@@ -947,10 +967,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				root.cnt.style = 'nl-bg-blue';
 				root.cnt['sortkey'] = 1+root.cnt.name+key;
 			}
-			drillDownArray.push(root.cnt);
-			if(firstTimeGenerated && isSingleReport) root.cnt.isOpen = true;
-			if(root.cnt.isOpen) {
-				_addSuborgOrOusToArray(root.children, root.cnt.sortkey);
+			if(showLeafOnly) {
+				_addSuborgOrOusToArray(root.children, root.cnt.sortkey, null, showLeafOnly);
+			} else {
+				drillDownArray.push(root.cnt);
+				if(firstTimeGenerated && isSingleReport) root.cnt.isOpen = true;
+				if(root.cnt.isOpen) _addSuborgOrOusToArray(root.children, root.cnt.sortkey, null, showLeafOnly);
 			}
 		}
 		drillDownArray.sort(function(a, b) {
@@ -961,19 +983,24 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return drillDownArray;
 	};
 
-	function _addSuborgOrOusToArray(subOrgDict, sortkey, subOrgName) {
+	function _addSuborgOrOusToArray(subOrgDict, sortkey, subOrgName, showLeafOnly) {
 		for(var key in subOrgDict) {
 			var org = subOrgDict[key];
 				org.cnt['sortkey'] = sortkey+'.aa'+org.cnt.name;
 				org.cnt['orgname'] = org.cnt['name'];
 				if(nlGroupInfo.isSubOrgEnabled()) {
-					if(subOrgName && org.cnt['name'].indexOf(subOrgName+'.') === 0) {
-						org.cnt['orgname'] = org.cnt['name'].slice(subOrgName.length+1);
-					}
+					if(subOrgName && org.cnt['name'].indexOf(subOrgName+'.') === 0) org.cnt['orgname'] = org.cnt['name'].slice(subOrgName.length+1);
 				}
-			drillDownArray.push(org.cnt);
-			if(org.cnt.isOpen && org.children) {
-				_addSuborgOrOusToArray(org.children, org.cnt.sortkey, org.cnt.name);
+			if(showLeafOnly) {
+				if(!org.children) {
+					org.cnt.indentation = 0;
+					drillDownArray.push(org.cnt);
+				} else {
+					_addSuborgOrOusToArray(org.children, org.cnt.sortkey, org.cnt.name, showLeafOnly);
+				}
+			} else {
+				drillDownArray.push(org.cnt);
+				if(org.cnt.isOpen && org.children) _addSuborgOrOusToArray(org.children, org.cnt.sortkey, org.cnt.name, showLeafOnly);
 			}
 		}
 	}
@@ -982,13 +1009,18 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var columns = [];
 		var attrition = nlLrDrilldown.getAttritionObj();
 		var customStartedStates = nlLrDrilldown.getCustomStatusObj();
-		   _customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
+		var statusDict = _getStatusDictFromArray();
+		_customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
 		var isReattemptEnabled = nlLrReportRecords.isReattemptEnabled() || false;
 		columns.push({id: 'cntTotal', name: 'Total', table: true, percid:'percTotal', smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'cntInactive', name: 'Inactive', table: true, percid:'percInactive', background: 'nl-bg-blue', showAlways: true});
 		if(attrition.length > 0) {
 			columns.push({id: 'attrition', name: 'Attrition', percid: 'percAttrition', indentation: 'padding-left-22'});
-			for(var i=0; i<attrition.length; i++) columns.push({id: attrition[i], name: attrition[i], percid:'perc'+attrition[i], indentation: 'padding-left-44'});
+			for(var i=0; i<attrition.length; i++) {
+				var name = attrition[i];
+				var formattedName = _getFormattedName(name, statusDict);
+				columns.push({id: attrition[i], name: formattedName, percid:'perc'+attrition[i], indentation: 'padding-left-44'});
+			}
 		}
 		columns.push({id: 'doneInactive', name: 'Completed by inactive users', percid: 'percDoneInactive', indentation: 'padding-left-22'});
 		columns.push({id: 'pendingInactive', name: 'Pending by inactive users', percid:'percPendingInactive', indentation: 'padding-left-22'});
@@ -1002,13 +1034,38 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push({id: 'failed', name: 'Failed', percid: 'percFailed', table: true, indentation: 'padding-left-44'});
 		columns.push({id: 'started', name: 'Started', percid: 'percStarted', table: true, indentation: 'padding-left-22', showAlways: true});
 		if(customStartedStates.length > 0) {
-			for(var i=0; i<customStartedStates.length; i++) columns.push({id: customStartedStates[i], name: customStartedStates[i], percid:'perc'+customStartedStates[i], table: true, indentation: 'padding-left-44'});
+			for(var i=0; i<customStartedStates.length; i++) {
+				var id = 
+				columns.push({id: customStartedStates[i], name: statusDict[customStartedStates[i]], percid:'perc'+customStartedStates[i], table: true, indentation: 'padding-left-44'});
+			}
 		}
 		columns.push({id: 'pending', name: 'Pending', smallScreen: true, percid: 'percPending', table: true, indentation: 'padding-left-22', showAlways: true});
 		columns.push({id: 'avgScore', name: 'Avg Quiz score', table: true, background: 'nl-bg-blue', hidePerc:true});
-		for(var i=0; i<_customScoresHeader.length; i++) columns.push({id: 'perc'+_customScoresHeader[i], name: 'Avg score of '+_customScoresHeader[i], table: true, background: 'nl-bg-blue', hidePerc:true});
+		for(var i=0; i<_customScoresHeader.length; i++) columns.push({id: 'perc'+_customScoresHeader[i], name: _customScoresHeader[i], table: true, background: 'nl-bg-blue', hidePerc:true});
 		columns.push({id: 'avgDelay', name: 'Avg Delay in days', table: true, background: 'nl-bg-blue', hidePerc:true});
 		return columns;
+	}
+
+	function _getFormattedName(name, statusDict) {
+		var nameArray = name.split('-');
+		var first = nameArray[0].trim();
+		var firstletter = first.charAt(0).toUpperCase();
+		var newString = firstletter+first.substring(1);
+			newString = newString+'-'+statusDict[nameArray[1]];
+		return newString;
+	}
+
+	function _getStatusDictFromArray() {
+		var newStatus = _groupInfo.props.etmUserStates;
+		var ret = {};
+		for(var i=0; i<newStatus.length; i++) {
+			var userState = newStatus[i];
+			ret[userState.id] = userState.name;
+			if(userState.tenures) {
+				for (var j=userState.tenures.length-1; j>=0; j--) ret[userState.tenures[j].id] = userState.tenures[j].name;
+			}
+		}
+		return ret;
 	}
 
 	function _onExport() {
@@ -1028,7 +1085,24 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		header = headerArray.concat(header);
 		var drillDownStats = {statsCountDict: _statsCountDict, columns: header};
-		nlLrExporter.export($scope, reportRecords, _isAdmin, _customScoresHeader, drillDownStats);
+		var nhtStats = null;
+		if(nlLrReportRecords.isNHT()) {
+			_updateNhtTab();
+			var nhtCols = _getNhtColumns();
+			var nhtHeader = [];
+			for(var i=0; i<nhtCols.length; i++) {
+				var col = nhtCols[i];
+				if(col.table) nhtHeader.push(col);
+			}
+			var nhtArray = [{id: 'all', name: 'All'}];
+			if(nlGroupInfo.isSubOrgEnabled()) nhtArray.push({id: 'subOrgId', name: 'Suborg Id'});
+			nhtArray.push({id: 'organisationId', name: 'Organisation Id'});		
+			nhtArray.push({id: 'batchName', name: 'Batch name'});		
+			nhtHeader = nhtArray.concat(nhtHeader);
+			nhtStats = {statsCountDict: _nhtStatsDict, columns: nhtHeader};	
+		}
+
+		nlLrExporter.export($scope, reportRecords, _isAdmin, _customScoresHeader, drillDownStats, nhtStats);
 	}
 	
 	function _onExportCustomReport() {
@@ -1276,7 +1350,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var oldObj = oldMilestone[newMilestone.id] || {};
 		if(!oldObj.status) oldObj['status'] = '';
 		if(!oldObj.comment) oldObj['comment'] = '';
-		var newStatus = newMilestone.milestoneObj.status ? 'done' : 'pending';
+		var newStatus = newMilestone.milestoneObj.status ? 'done' : oldObj['status'] == '' ? '' : 'pending';
 		var reached = oldObj.reached || null;
 		if(newMilestone.milestoneObj.status && oldObj.status != newStatus) reached = new Date();
 		var updated = oldObj.updated || null;

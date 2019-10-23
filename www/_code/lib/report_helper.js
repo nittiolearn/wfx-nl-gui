@@ -36,15 +36,18 @@ function(nl, nlCourse, nlExpressionProcessor) {
 		{id: this.STATUS_FAILED, txt: 'failed', icon: 'icon ion-close-circled forange'},
         {id: this.STATUS_CERTIFIED, txt: 'certified', icon: 'icon ion-android-star fgreen'}];
         
-    this.getStatusInfoFromStr = function(statusStr) {
+    this.getStatusInfoFromCourseStatsObj = function(courseStatusObj) {
+        var statusStr = courseStatusObj.status;
         if (!statusStr) return this.statusInfos[this.STATUS_PENDING];
         for (var i=0; i<this.statusInfos.length; i++) {
             var item = this.statusInfos[i];
             if (item.txt == statusStr) return item;
         }
-        var statusId = statusStr.indexOf('attrition') == 0 ? this.STATUS_FAILED : this.STATUS_STARTED;
+        var statusId = statusStr.indexOf('attrition') == 0 ? this.STATUS_STARTED : this.STATUS_STARTED; //Curretly attrition is pending.
+        if (courseStatusObj.isCertified) statusId = this.STATUS_CERTIFIED;
         var ret = angular.copy(this.statusInfos[statusId]);
         ret.txt = statusStr;
+        if (statusStr.indexOf('attrition') == 0) ret.icon = 'icon ion-close-circled forange';
         return ret;
     }
         
@@ -55,20 +58,20 @@ function(nl, nlCourse, nlExpressionProcessor) {
     this.getCourseStatusHelper = function(report, groupinfo, courseAssign, course) {
         return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, false, report, groupinfo, courseAssign, course, 'trainer');
     };
-    this.getCourseStatusHelperForCourseView = function(report, groupinfo) {
-        return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, true, report, groupinfo, null, null, 'learner');
+    this.getCourseStatusHelperForCourseView = function(report, groupinfo, isLearnerMode) {
+        return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, true, report, groupinfo, null, null, isLearnerMode ? 'learner' : 'trainer');
     };
 
     this.isEndItemState = function(status) {
         return _isEndItemState(status);
     };
 
-    this.isEndCourseState = function(status) {
-        return _isEndCourseState(status);
+    this.isEndStatusId = function(statusId) {
+        return (statusId != this.STATUS_PENDING && statusId != this.STATUS_STARTED);
     };
 }];
 
-function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, report, groupinfo, courseAssign, course, mode) {
+function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, report, groupinfo, courseAssign, course, launchMode) {
     if (!report) report = {};
     _processCourseRecord(course);
 
@@ -81,7 +84,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
     //--------------------------------------------------------------------------------
     // Implementation
-    var _mode = mode;
+    var _launchMode = launchMode;
     var repcontent = isCourseView ? report : angular.fromJson(report.content);
     var _statusinfo = repcontent.statusinfo || {};
     var _lessonReports = repcontent.lessonReports || {};
@@ -145,6 +148,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             nTotalQuizScore: 0, nTotalQuizMaxScore: 0,
             onlineTimeSpentSeconds: 0, iltTimeSpent: 0, iltTotalTime: 0,
             feedbackScore: '', customScores: [], attritedAt: null, attritionStr: null,
+            isCertified: false
         };
 
         var itemIdToInfo = ret.itemIdToInfo; // id: {status: , score: , rawStatus: }
@@ -180,16 +184,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 itemInfo.status = 'attrition';
                 var suffix = itemInfo.customStatus ? '-' +  itemInfo.customStatus : '';
                 defaultCourseStatus = 'attrition' + suffix;
-            } else  if (_isStartedItemState(itemInfo.status)) {
-                var bStarted = false;
-                if (cm.type == 'iltsession') {
-                    bStarted = itemInfo.status != 'failed';
-                } else if (cm.type == 'milestone' || cm.type == 'module') {
-                    bStarted = false;
-                } else {
-                    bStarted = true;
+            } else  if (itemInfo.status != 'waiting' && cm.type != 'module' && cm.type != 'milestone') {
+                if (defaultCourseStatus == 'pending' && itemInfo.status != 'pending' && itemInfo.status != 'delayed') {
+                    defaultCourseStatus ='started';
                 }
-                if (bStarted) defaultCourseStatus = itemInfo.customStatus || 'started';
+                if (itemInfo.customStatus) defaultCourseStatus = itemInfo.customStatus;
             }
             if (cm.showInReport && _isEndItemState(itemInfo.status))
                 ret.customScores.push({name: cm.name, score: itemInfo.score});
@@ -342,6 +341,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     function _getRawStatusOfRating(cm, itemInfo) {
         var userCmRating = _userRatingDict[cm.id] || {};
         var grpRatingObj = _grpRatingDict[cm.rating_type];
+        if(_launchMode == 'learner' && grpRatingObj.hideRating) itemInfo.hideItem = true;
         if (!grpRatingObj || !userCmRating || (!('attId' in userCmRating)) || userCmRating.attId === "") {
             itemInfo.score = null;
             itemInfo.rawStatus = 'pending';
@@ -349,21 +349,25 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             return;
         }
         itemInfo.score = userCmRating.attId;
-        if(_mode == 'learner' && grpRatingObj.hideRating)
-            itemInfo.rawStatus = 'success'
-        else
+        if(itemInfo.hideItem) {
+            itemInfo.rawStatus = 'success';
+            itemInfo.remarks = '';
+           
+        } else {
             itemInfo.rawStatus = (itemInfo.score <= grpRatingObj.lowPassScore) ? 'failed' :
                 (itemInfo.score >= grpRatingObj.passScore) ? 'success' : 'partial_success';
+            itemInfo.remarks = userCmRating.remarks || '';
+        }
         itemInfo.passScore = grpRatingObj.passScore;
-        itemInfo.remarks = userCmRating.remarks || '';
         itemInfo.marked = nl.fmt.json2Date(userCmRating.marked || '');
         itemInfo.updated = nl.fmt.json2Date(userCmRating.updated || '');
-        itemInfo.rating = _computeRatingStringOnScore(grpRatingObj, itemInfo.score);
+        itemInfo.rating = _computeRatingStringOnScore(grpRatingObj, itemInfo);
     }
 
-    function _computeRatingStringOnScore(ratingObj, score) {
+    function _computeRatingStringOnScore(ratingObj, itemInfo) {
+        var score = itemInfo.score;
         if(Object.keys(ratingObj).length == 0) return score;
-        if(_mode == 'learner' && ratingObj.hideRating) return 'Rating provided';
+        if(itemInfo.hideItem) return 'Rating provided';
         if(ratingObj.type == 'number') return score;
         if(ratingObj.type == 'status' || ratingObj.type == 'select') {
             for(var i=0; i<ratingObj.values.length; i++) {
@@ -374,10 +378,12 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     }
 
     function _getRawStatusOfMilestone(cm, itemInfo) {
+        var _msKey = 'milestone__'+cm.id;
         itemInfo.rawStatus = (cm.id in _milestone) && _milestone[cm.id].status == 'done' ?
             'success' : 'pending';
         itemInfo.score = itemInfo.rawStatus == 'pending' ? null : 100;
         itemInfo.remarks = (cm.id in _milestone) ? _milestone[cm.id].comment : "";
+        itemInfo.planned = _msDates[_msKey] || '';
         itemInfo.reached = (_milestone[cm.id] && _milestone[cm.id].reached) ? nl.fmt.json2Date(_milestone[cm.id].reached) : "";
         itemInfo.updated = (_milestone[cm.id] && _milestone[cm.id].updated) ? nl.fmt.json2Date(_milestone[cm.id].updated) : "";
 
@@ -537,6 +543,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (itemInfo.status == 'success' || itemInfo.status == 'partial_success') {
             ret.status = cm.type == 'certificate' ? 'certified' : 
                 'passScore' in itemInfo ? 'passed' : 'done';
+            if (ret.status == 'certified') ret.isCertified = true;
         } else if (itemInfo.status == 'failed') {
             ret.status = 'failed';
         } else if (itemInfo.status == 'waiting' && !itemInfo.prereqPending) {
@@ -620,10 +627,6 @@ function _isCertificate(cm) {
 
 function _isEndItemState(status) {
     return status == 'failed' || status == 'success' || status == 'partial_success' || status.indexOf('attrition') == 0;
-}
-
-function _isStartedItemState(status) {
-    return status == 'started' || _isEndItemState(status);
 }
 
 function _isEndCourseState(status) {

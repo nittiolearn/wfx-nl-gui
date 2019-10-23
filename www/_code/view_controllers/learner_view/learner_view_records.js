@@ -186,7 +186,7 @@
             stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
             repcontent.statusinfo = stainf.itemIdToInfo;
 
-            stats.status = nlReportHelper.getStatusInfoFromStr(stainf.status);
+            stats.status = nlReportHelper.getStatusInfoFromCourseStatsObj(stainf);
             var _statusStr = stats.status.txt;
             if(stats.status.id == nlReportHelper.STATUS_STARTED) 
                 stats.status.txt = 'started'; 
@@ -297,7 +297,7 @@
             var submissionAfterEndtime = raw_record.submissionAfterEndtime;
             if(not_before && not_before > curDate) {
                 return {type: "upcoming"};
-            } else if(nlReportHelper.isEndCourseState(stats.status.txt)) {
+            } else if(nlReportHelper.isEndStatusId(stats.status.id)) {
                 if(type == 'module') {
                     return {type: "past", button: "REVIEW", url: nl.fmt2('/lesson/view_report_assign/{}', raw_record.id)};
                 } else {
@@ -406,16 +406,6 @@
             if (report.completed) return nlReportHelper.STATUS_DONE;
             return nlReportHelper.STATUS_PASSED;
         }
-    
-        function _getStatusId(stats, started) {
-            if (stats.percComplete == 0 && !started) return nlReportHelper.STATUS_PENDING;
-            if (stats.percComplete < 100) return nlReportHelper.STATUS_STARTED;
-            if (stats.nLessonsFailed > 0) return nlReportHelper.STATUS_FAILED;
-            if (stats.nCerts > 0) return nlReportHelper.STATUS_CERTIFIED;
-            if (stats.nMaxScore == 0) return nlReportHelper.STATUS_DONE;
-            return nlReportHelper.STATUS_PASSED;
-        }
-
     }];
     
     //-------------------------------------------------------------------------------------------------

@@ -23,6 +23,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     var _metaFields = null;
     var _customScoresHeader = [];
     var _drillDownDict = {};
+    var _nhtDict = {};
 
     function _getMetaHeaders(bOnlyMajor) {
         var headers = [];
@@ -41,7 +42,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     	_subjectlabel = userInfo.groupinfo.subjectlabel;
 	};
 	
-    this.export = function($scope, reportRecords, isAdmin, customScoresHeader, drillDownDict) {
+    this.export = function($scope, reportRecords, isAdmin, customScoresHeader, drillDownDict, nhtDict) {
         var dlg = nlDlg.create($scope);
         _customScoresHeader = customScoresHeader || [];
         _drillDownDict = drillDownDict || {}
@@ -50,6 +51,11 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         dlg.setCssClass('nl-height-max nl-width-max');
         dlg.scope.export = {summary: true, user: true, module: (dlg.scope.reptype == 'module' || dlg.scope.reptype == 'module_assign' || dlg.scope.reptype  == 'module_self_assign') ? true : false, ids: true,
         indUser: (dlg.scope.reptype == 'user'), pageScore: false, feedback: false, courseDetails: false, drilldown: true};
+        if (nhtDict) {
+            _nhtDict = nhtDict || {};
+            dlg.scope.showNhtCheckbox = true;
+            dlg.scope.export['nht'] = true;
+        }
         dlg.scope.data = {};
 		_setExportFilters(dlg, reportRecords);
         var filterData = dlg.scope.filtersData;
@@ -124,6 +130,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             	_createUserCsv(filter, reportRecords, start, start+pending, expSummaryStats);
                 start += pending;
             }
+            if(filter.exportTypes.drilldown) _updateDrillDownRow();
+            if(filter.exportTypes.nht) _updateNhtRow();
+
             var zipData = [];
             if (filter.exportTypes.user && (filter.reptype == 'course' || filter.reptype == 'course_assign')) {
                 zipData.push({aoa: ctx.courseReportRows , fileName: 'course-reports', fileExt: 'xlsx'});
@@ -133,7 +142,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                 zipData.push({aoa: ctx.courseReportRows, fileName: 'user-reports', fileExt: 'xlsx'});
             }
     
-            if(filter.exportTypes.drilldown) _updateDrillDownRow();
+            
             if (filter.exportTypes.summary) {
                 var records = expSummaryStats.asList();
                 var rows = _createSummaryCsv(records);
@@ -156,6 +165,10 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                 zipData.push({aoa: ctx.drillDownRow, fileName: 'drill-down-stats', fileExt: 'xlsx'});
 			} 
 
+			if (filter.exportTypes.nht && ctx.nhtRow.length > 1) {
+                zipData.push({aoa: ctx.nhtRow, fileName: 'nht-stats', fileExt: 'xlsx'});
+			} 
+
             if (filter.exportTypes.feedback && ctx.feedbackRows.length > 1) {
                 zipData.push({aoa: ctx.feedbackRows, fileName: 'feedback', fileExt: 'xlsx'});
             }
@@ -176,6 +189,58 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         zip.file(fileName, content);
     }
 
+    function _updateNhtRow() {
+        var nhtStats = _nhtDict.statsCountDict;
+        var nhtHeaderRow = _nhtDict.columns;
+        for(var key in nhtStats) {
+            var row = nhtStats[key];
+            row.cnt['all'] = row.cnt.name;
+            ctx.nhtRow.push(nlExporter.getItemRow(nhtHeaderRow, row.cnt));
+            if(row.children) _updateSuborgForNht(row.cnt.name, row.children, nhtHeaderRow);   
+        }
+    }
+
+
+    function _updateSuborgForNht(rootName, suborgRow, nhtHeaderRow) {
+        for(var key in suborgRow) {
+            var row = suborgRow[key];
+            row.cnt['all'] = rootName;
+            if(nlGroupInfo.isSubOrgEnabled()) 
+                row.cnt['subOrgId'] = row.cnt.name;
+            else 
+                row.cnt['organisationId'] = row.cnt.name;
+            ctx.nhtRow.push(nlExporter.getItemRow(nhtHeaderRow, row.cnt));
+            if(row.children) _updateOrgForNht(rootName, row.cnt.name, row.children, nhtHeaderRow);
+        }
+    }
+
+    function _updateOrgForNht(rootName, subOrgId, orgRow, nhtHeaderRow) {
+        for(var key in orgRow) {
+            var row = orgRow[key];
+            row.cnt['all'] = rootName;
+            if(nlGroupInfo.isSubOrgEnabled()) {
+                row.cnt['subOrgId'] = subOrgId;
+                row.cnt['organisationId'] = row.cnt.name;
+            } else {
+                row.cnt['organisationId'] = subOrgId;
+                row.cnt['batchName'] = row.cnt.name;
+            }
+            ctx.nhtRow.push(nlExporter.getItemRow(nhtHeaderRow, row.cnt));
+            if(row.children) _updateBatchRowForNht(rootName, subOrgId, row.cnt.name, row.children, nhtHeaderRow);
+        }
+    }
+
+    //This fuunction is only called if the suborg is enabled
+    function _updateBatchRowForNht(rootName, subOrgId, organisationId, batches, nhtHeaderRow) {
+        for(var key in batches) {
+            var row = batches[key];
+            row.cnt['all'] = rootName;
+            row.cnt['subOrgId'] = subOrgId;
+            row.cnt['organisationId'] = organisationId;
+            row.cnt['batchName'] = row.cnt.name;
+            ctx.nhtRow.push(nlExporter.getItemRow(nhtHeaderRow, row.cnt));
+        }
+    }
 
     function _updateDrillDownRow() {
         var drillDownStats = _drillDownDict.statsCountDict;
@@ -354,6 +419,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         ctx.feedbackRows = [nlExporter.getHeaderRow(_hFeedback)];
         ctx.courseDetailsRow = [nlExporter.getHeaderRow(_hCourseDetailsRow)];
         if(filter.exportTypes.drilldown) ctx.drillDownRow = [nlExporter.getHeaderRow(_drillDownDict.columns)];
+        if(filter.exportTypes.nht) ctx.nhtRow = [nlExporter.getHeaderRow(_nhtDict.columns)];
         ctx.reports = reports;
         ctx.zip = new JSZip();
         ctx.pageCnt = 0;
