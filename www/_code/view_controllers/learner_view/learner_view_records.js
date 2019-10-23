@@ -406,16 +406,6 @@
             if (report.completed) return nlReportHelper.STATUS_DONE;
             return nlReportHelper.STATUS_PASSED;
         }
-    
-        function _getStatusId(stats, started) {
-            if (stats.percComplete == 0 && !started) return nlReportHelper.STATUS_PENDING;
-            if (stats.percComplete < 100) return nlReportHelper.STATUS_STARTED;
-            if (stats.nLessonsFailed > 0) return nlReportHelper.STATUS_FAILED;
-            if (stats.nCerts > 0) return nlReportHelper.STATUS_CERTIFIED;
-            if (stats.nMaxScore == 0) return nlReportHelper.STATUS_DONE;
-            return nlReportHelper.STATUS_PASSED;
-        }
-
     }];
     
     //-------------------------------------------------------------------------------------------------

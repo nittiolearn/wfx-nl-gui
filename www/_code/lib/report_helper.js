@@ -43,10 +43,11 @@ function(nl, nlCourse, nlExpressionProcessor) {
             var item = this.statusInfos[i];
             if (item.txt == statusStr) return item;
         }
-        var statusId = statusStr.indexOf('attrition') == 0 ? this.STATUS_FAILED : this.STATUS_STARTED;
+        var statusId = statusStr.indexOf('attrition') == 0 ? this.STATUS_STARTED : this.STATUS_STARTED; //Curretly attrition is pending.
         if (courseStatusObj.isCertified) statusId = this.STATUS_CERTIFIED;
         var ret = angular.copy(this.statusInfos[statusId]);
         ret.txt = statusStr;
+        if (statusStr.indexOf('attrition') == 0) ret.icon = 'icon ion-close-circled forange';
         return ret;
     }
         

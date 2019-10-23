@@ -122,15 +122,7 @@ function(nlReportHelper) {
             statsCountObj['pending'] = 1;
             return;
         }
-        if(status.id == nlReportHelper.STATUS_STARTED) {
-            statsCountObj[statusStr] = 1;
-            statsCountObj['started'] = 1;
-            if(statusStr !== 'started') {
-                if(!(statusStr in _customStartedStatusObj)) 
-                    _customStartedStatusObj[statusStr] = record.stats.progressPerc;
-            }
-            return;
-        } else if(statusStr.indexOf('attrition') == 0) {
+        if(statusStr.indexOf('attrition') == 0) {
             statsCountObj[statusStr] = 1;
             statsCountObj['attrition'] = 1;
             statsCountObj['cntActive'] = 0;
@@ -139,6 +131,15 @@ function(nlReportHelper) {
                 _attritionObj[statusStr] = record.stats.progressPerc;
             return;
         }
+        if(status.id == nlReportHelper.STATUS_STARTED) {
+            statsCountObj[statusStr] = 1;
+            statsCountObj['started'] = 1;
+            if(statusStr !== 'started') {
+                if(!(statusStr in _customStartedStatusObj)) 
+                    _customStartedStatusObj[statusStr] = record.stats.progressPerc;
+            }
+            return;
+        } 
         statsCountObj['completed'] = 1;
         statsCountObj['percScore'] = record.stats.percScore;
         if(status.id == nlReportHelper.STATUS_FAILED) {
