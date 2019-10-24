@@ -216,6 +216,11 @@ nlesson = function() {
         self.globals.isPollyEnabled = (self.oLesson.autoVoiceProvider == 'polly');
         window.nlapp.NittioLesson.init(self.oLesson, moduleConfig,
             npagetypes.getInteractionsAndLayouts());
+        njs_slides.getZoomer().onZoomChange(function() {
+            var curPage = g_lesson.getCurrentPage();
+            if (!curPage) return;
+            curPage.adjustHtmlDom();
+        });
     }
 
     function Lesson_postInitDom() {

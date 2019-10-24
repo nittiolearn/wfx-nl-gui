@@ -2694,7 +2694,7 @@ a.enabled {
 /*
  * ToolBar
  */
-.toolBar, .zoomBar {
+.toolBar {
   position: absolute;
   top: 42px;
   right: 32px;
@@ -2815,7 +2815,7 @@ a.enabled {
 /*
  * Navigators and pageNo
  */
-#pageNoArea, .secNo, #zoomChange {
+#pageNoArea, .secNo {
   position: absolute;
   bottom: 4px;
   right: 4px;
@@ -2824,33 +2824,6 @@ a.enabled {
   height: auto;
   padding: 0;
   transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
-}
-
-#zoomChange {
-  right: 32px;
-  box-shadow: inset 0 0 5px $nlBlue1, 0 0 2px $nlBlue1;
-  padding: 3px 5px;
-  display:none;
-  i {
-    vertical-align: middle;
-  }
-  .zoom-variation {
-    text-align: center;
-    background-color: #FFFFFF;
-    border: 2px solid #FFFFFF;
-    border-radius: 10%;
-    height: 36px;
-    width: 36px;
-    cursor: pointer;
-    font-size: 21px;
-    display: inline-block;
-    
-    i {
-      color: $nlBlue1;
-      font-size: 32px;
-      cursor: pointer;
-    }
-  }
 }
 
 .navigator:hover {
@@ -2862,17 +2835,11 @@ a.enabled {
   background-color: $nlBlue2;
 }
 
-
-
-
-
-
-
-.toolbeltShown #pageNoArea, .toolbeltShown #zoomChange {
+.toolbeltShown #pageNoArea {
   right: 202px;
 }
 
-.nl-screen-small .toolbeltShown #pageNoArea, .nl-screen-small .toolbeltShown #zoomChange {
+.nl-screen-small .toolbeltShown #pageNoArea {
   right: 46px;
 }
 
@@ -3293,24 +3260,14 @@ a.enabled {
   height: 100% !important;
 }
 
-.zoom-120 {
-  width: 120% !important;
-  height: 120% !important;
+.zoom-125 {
+  width: 125% !important;
+  height: 125% !important;
 }
 
-.zoom-140 {
-  width: 140% !important;
-  height: 140% !important;
-}
-
-.zoom-160 {
-  width: 160% !important;
-  height: 160% !important;
-}
-
-.zoom-180 {
-  width: 180% !important;
-  height: 180% !important;
+.zoom-150 {
+  width: 150% !important;
+  height: 150% !important;
 }
 
 .zoom-200 {
@@ -3318,31 +3275,48 @@ a.enabled {
   height: 200% !important;
 }
 
+.zoom-250 {
+  width: 250% !important;
+  height: 250% !important;
+}
+
 .zoom-300 {
   width: 300% !important;
   height: 300% !important;
 }
 
-.nl-zoombar {
-  cursor: pointer;
-  &.zoomBar {
-    top: 1px;
-    background-color: #FFFFFF;
-  }
-  i {
-    display: inline-block;
-    padding: 0 5px 5px 10px;
-    font-size: 24px;
-    vertical-align: middle;
-  }
-  .zoom-statement {
-    padding: 5px 10px 5px 5px;
-    display:inline-block;
-    line-height: 32px;
+#nl-zoombar {
+  background-color: #FFFFFF;
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  border: 2px solid #FFFFFF;
+  border-radius: 16px;
+  z-index: 12;
+  width: auto;
+  height: auto;
+  padding: 0;
+  color: white;
+  background: $nlBlue1;
+  display: none;
+  .nl-zoom-button {
+    cursor: pointer;
+    border-radius: 16px;
+    padding: 10px;
+    .nl-zoom-btn-txt {
+      padding-left: 8px;
+    }
+    i {
+      font-size: 24px;
+    }
   }
 }
 
-.nl-zoom-innerbody {
+.nl-zoom-body {
   top: 2px !important;
   right: 2px;
+}
+
+.hideOnZoom {
+  display: none !important;
 }

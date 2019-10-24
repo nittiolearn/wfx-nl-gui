@@ -74,61 +74,14 @@ njs_slides = function() {
 		});
 
 		// Setup swipe event handlers and Zoom event handler
-		var zoomTapCount = 0;
-		var zoomVal = ["zoom-100", "zoom-120", "zoom-140", "zoom-160", "zoom-180", "zoom-200", "zoom-300"]; // TODO-NOW
-		var zoomClasses = zoomVal.join(' ');
-
 		window.nlapp.nl.rootScope.onSwipeLeft = function(event) {
-			if ((jQuery(".inner_body").hasClass("zoom-120"))) return;
-			if ((jQuery("#module_popup_content").hasClass("zoom-120"))) return;
-			if(!zoomTapCount) activeSlideSet.next();
+			if (_zoomer.isZoomed()) return;
+			activeSlideSet.next();
 		};
 		window.nlapp.nl.rootScope.onSwipeRight = function(event) {
-			if ((jQuery(".inner_body").hasClass("zoom-120"))) return;
-			if ((jQuery("#module_popup_content").hasClass("zoom-120"))) return;
-			if(!zoomTapCount) activeSlideSet.prev();
+			if (_zoomer.isZoomed()) return;
+			activeSlideSet.prev();
 		};
-
-		window.nlapp.nl.rootScope.zoomIn = function() {
-			if(!zoomTapCount) zoomTapCount = 1;
-			zoomTapCount += 1;
-			if (zoomTapCount >= zoomVal.length -1) jQuery("#zoomIn, #zoomChange .padding-small").hide();
-			jQuery(".inner_body, #module_popup_content").removeClass(zoomVal[zoomTapCount-1]);
-			jQuery(".inner_body, #module_popup_content").addClass(zoomVal[zoomTapCount]);
-		}
-
-		window.nlapp.nl.rootScope.zoomOut = function() {
-			if(!zoomTapCount) zoomTapCount = 1;
-			zoomTapCount -= 1;
-			if (zoomTapCount < zoomVal.length -1) jQuery("#zoomIn, #zoomChange .padding-small").show();
-			if (zoomTapCount < 0) {
-				zoomTapCount = 0; 
-				return;
-			}
-			jQuery(".inner_body, #module_popup_content").removeClass(zoomVal[zoomTapCount+1]);
-			jQuery(".inner_body, #module_popup_content").addClass(zoomVal[zoomTapCount]);
-			if (zoomTapCount == 0) _exitZoom();
-		}
-
-		window.nlapp.nl.rootScope.exitZoom = function() {
-			zoomTapCount = 0; 
-			_exitZoom();
-		}
-
-		function _exitZoom() {
-			jQuery(".inner_body, #module_popup_content").removeClass(zoomClasses);
-			jQuery("#nlZoombar").hide(200, 'swing', function() {
-				jQuery(".toolBar").show(300, 'swing');
-			});
-			jQuery(".body").removeClass("nl-overflow-auto nl-zoom-innerbody")
-			jQuery("#zoomChange").hide(0, 'linear', function() {
-				jQuery(".nl-topbar").show();
-				setTimeout(function() { 
-					if(jQuery("#module_popup_holder").css("display") == 'none')
-						$('#pageNoArea').show(); 
-				}, 400);
-			});
-		}
 	}
 
 	function SlideSet_init(me, slideSetDom, pageNo, navLeft, navRight) {
@@ -428,9 +381,89 @@ njs_slides = function() {
 	};}
 	
 	};
-	
+
+	function Zoomer() {
+
+		var _zoomChangeFn = null;
+		this.onZoomChange = function(zoomChangeFn) {
+			_zoomChangeFn = zoomChangeFn;
+			window.nlapp.nl.rootScope.zoomer = this;
+		};
+
+		var _isZoomed = false;
+		var _zoomLevel = 0;
+		var _zoomVal = ["zoom-100", "zoom-125", "zoom-150", "zoom-200", "zoom-250", "zoom-300"];
+		var _zoomPercs = ["100%", "125%", "150%", "200%", "250%", "300%"];
+		var _allZoomClasses = _zoomVal.join(' ');
+
+		this.isZoomed = function() {
+			return _isZoomed;
+		};
+
+		this.zoomEnter = function() {
+			jQuery(".toolBar").hide(200, 'swing');
+			jQuery("#nl-zoombar").show(300, 'swing');
+			jQuery(".body").addClass("nl-overflow-auto nl-zoom-body");
+			jQuery(".nl-topbar, #pageNoArea, #popupPageNoArea").addClass('hideOnZoom');
+			_isZoomed = true;
+			if (_zoomLevel == 0) _zoomLevel = 1;
+			_setZoomLevel();
+			if (_zoomChangeFn) _zoomChangeFn();
+		};
+
+		this.zoomExit = function() {
+			_clearZoomLevel();
+			jQuery("#nl-zoombar").hide();
+			jQuery(".toolBar").show(300, 'swing');
+			jQuery(".body").removeClass("nl-overflow-auto nl-zoom-body");
+			jQuery(".nl-topbar, #pageNoArea, #popupPageNoArea").removeClass('hideOnZoom');
+			_isZoomed = false;
+			if (_zoomChangeFn) _zoomChangeFn();
+		};
+
+		this.zoomIn = function() {
+			if (_zoomLevel >= _zoomVal.length -1) return;
+			_zoomLevel += 1;
+			_setZoomLevel();
+			if (_zoomChangeFn) _zoomChangeFn();
+		};
+
+		this.zoomOut = function() {
+			if (_zoomLevel <= 0) return;
+			_zoomLevel -= 1;
+			_setZoomLevel();
+			if (_zoomChangeFn) _zoomChangeFn();
+		}
+
+		function _setZoomLevel() {
+			_clearZoomLevel();
+			jQuery(".inner_body, #module_popup").addClass(_zoomVal[_zoomLevel]);
+			jQuery("#zoomPerc").text(_zoomPercs[_zoomLevel]);
+			if (_zoomLevel == _zoomVal.length -1) {
+				jQuery("#zoomIn").addClass('fgrey');
+			} else {
+				jQuery("#zoomIn").removeClass('fgrey');
+			}
+			if (_zoomLevel == 0) {
+				jQuery("#zoomOut").addClass('fgrey');
+			} else {
+				jQuery("#zoomOut").removeClass('fgrey');
+			}
+		}
+
+		function _clearZoomLevel() {
+			jQuery(".inner_body, #module_popup").removeClass(_allZoomClasses);
+		}
+	}
+
+	var _zoomer = new Zoomer();
+	function getZoomer() {
+		return _zoomer;
+	}
+
 	return {
 		SlideSet: SlideSet,
-		getActive: getActive
+		getActive: getActive,
+		getZoomer: getZoomer,
 	};
 }();
