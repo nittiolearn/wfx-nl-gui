@@ -403,7 +403,7 @@ njs_slides = function() {
 		this.zoomEnter = function() {
 			jQuery(".toolBar").hide(200, 'swing');
 			jQuery("#nl-zoombar").show(300, 'swing');
-			jQuery(".body").addClass("nl-overflow-auto nl-zoom-body");
+			jQuery(".body").addClass("nl-zoom-body");
 			jQuery(".nl-topbar, #pageNoArea, #popupPageNoArea").addClass('hideOnZoom');
 			_isZoomed = true;
 			if (_zoomLevel == 0) _zoomLevel = 1;
@@ -415,7 +415,7 @@ njs_slides = function() {
 			_clearZoomLevel();
 			jQuery("#nl-zoombar").hide();
 			jQuery(".toolBar").show(300, 'swing');
-			jQuery(".body").removeClass("nl-overflow-auto nl-zoom-body");
+			jQuery(".body").removeClass("nl-zoom-body");
 			jQuery(".nl-topbar, #pageNoArea, #popupPageNoArea").removeClass('hideOnZoom');
 			_isZoomed = false;
 			if (_zoomChangeFn) _zoomChangeFn();

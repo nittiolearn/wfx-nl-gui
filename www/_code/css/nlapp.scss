@@ -2645,7 +2645,6 @@ img.nl-full-width {
   right: 0;
   bottom: 0;
   transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
-  overflow: hidden;
 }
 
 #module_popup_holder {
@@ -3319,6 +3318,11 @@ a.enabled {
 .nl-zoom-body {
   top: 2px !important;
   right: 2px;
+  overflow: auto;
+}
+
+.nl-zoom-body .inner_body {
+  overflow: hidden;
 }
 
 .hideOnZoom {
