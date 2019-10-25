@@ -63,7 +63,7 @@ function(nl, nlDlg, nlServerApi) {
         dlg.setCssClass('nl-width-max');
         dlg.scope.error = {};
 		dlg.scope.dlgTitle = nl.t('Change ownership of {}{}',
-			contenttype == 'lesson' ? 'module' : 'course',
+			contenttype == 'lesson' ? 'module' : (contenttype == 'course_assignment') ? 'course assignment' : 'course',
 			contentid ? ' ' + contentid : 's');
         dlg.scope.isBulkOpt = isBulkOpt || false;
         dlg.scope.data = {};
@@ -121,7 +121,7 @@ function(nl, nlDlg, nlServerApi) {
     	nlServerApi.changeOwner(data).then(function(result) {
         	nlDlg.hideLoadingScreen();
     		if(result) {
-    			var param = dlgScope.data.contenttype == 'lesson' ? 'lesson' : 'course';
+    			var param = dlgScope.data.contenttype == 'lesson' ? 'lesson' : dlgScope.data.contenttype == 'course_assignment' ? 'course_assignment' : 'course';
     			param += (idArray.length > 1) ? 's are' : ' '+'is';
     			var msg = {title: nl.t('Owner modified'), template: nl.t('The owner of selected {} modified to {}', param, result.owner)};
     			if(dlgScope.isBulkOpt) {
