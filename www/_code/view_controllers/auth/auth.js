@@ -314,7 +314,7 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
             $scope.msg = 'Please reset your password.';
             nl.pginfo.pageTitle = nl.t('Reset password');
         } else if (msgType == 'impersonate') {
-            $scope.msg = 'Be care full. Ensure you logout as soon as the work is done';
+            $scope.msg = 'Be careful. Ensure you logout as soon as the work is done';
             nl.pginfo.pageTitle = nl.t('Impersonate as user');
         }
     }
