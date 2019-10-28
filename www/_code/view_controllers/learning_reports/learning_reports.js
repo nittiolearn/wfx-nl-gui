@@ -1056,7 +1056,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _getStatusDictFromArray() {
-		var newStatus = _groupInfo.props.etmUserStates;
+		var newStatus = _groupInfo.props.etmUserStates || [];
 		var ret = {};
 		for(var i=0; i<newStatus.length; i++) {
 			var userState = newStatus[i];
