@@ -653,7 +653,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _checkAndUpdateNHT() {
-		if(nlLrReportRecords.isNHT() && !$scope.tabData.isNHTAdded) {
+		var type = nlLrFilter.getType();
+		if(type != 'user' && nlLrReportRecords.isNHT() && !$scope.tabData.isNHTAdded) {
 			$scope.tabData.tabs.splice(2, 0, {title : 'Click here to view New Hire Training status',
 												name: 'NHT',
 												icon : 'ion-filing',
