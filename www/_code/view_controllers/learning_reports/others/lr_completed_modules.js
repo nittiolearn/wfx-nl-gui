@@ -112,9 +112,11 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
         if (_pageFetcher.fetchInProgress()) return;
         var params = {updatedfrom: _filterData.createdfrom, updatedtill: _filterData.createdtill};
         if (_debug) params.debug = true;
+        params._jsMaxRetries = 3;
         _pageFetcher.fetchBatchOfPages(nlServerApi.learningReportsGetCompletedModuleList, params, fetchMore, 
         function(results, batchDone, promiseHolder) {
             if (!results) {
+                nlDlg.popupAlert({title: 'Error', template: 'Error connecting to the server. Press the <i class="ion-refresh"></i> (fetch more) toolbar icon to resume fetching.'});
                 return;
             }
             for (var i=0; i<results.length; i++) _addRecord(results[i]);

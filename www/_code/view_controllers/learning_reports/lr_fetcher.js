@@ -71,11 +71,13 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlGetManyStore) 
 
     //-----------------------------------------------------------------------------------
     function _fetchReports(fetchMore, onDoneCallback) {
-    	var params = nlLrFilter.getServerParams();
+        var params = nlLrFilter.getServerParams();
+        params._jsMaxRetries = 3;
     	var dontHideLoading = true;
         _pageFetcher.fetchBatchOfPages(nlServerApi.learningReportsGetList, params, fetchMore, 
         function(results, batchDone, promiseHolder) {
             if (!results) {
+                nlDlg.popupAlert({title: 'Error', template: 'Error connecting to the server. Press the <i class="ion-refresh"></i> (fetch more) toolbar icon to resume fetching.'});
                 onDoneCallback(false);
                 return;
             }

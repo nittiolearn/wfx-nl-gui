@@ -855,7 +855,7 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload, brandingInfoHandler) {
     
     this.post = function(url, data, reloadUserInfo, noPopup, upload) {
         reloadUserInfo = (reloadUserInfo == true);
-        noPopup = (noPopup == true || g_noPopup == true);
+        noPopup = (noPopup == true || g_noPopup == true || data._jsMaxRetries);
         upload = (upload == true);
         var self = this;
         var progressFn = null;
@@ -984,7 +984,7 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload, brandingInfoHandler) {
         var errorMsg = data._errorMsg || ET_ERROR_MESSAGES[status];
         var extendedStatusCode = data._extendedStatusCode;
         var rejectData = errorMsg;
-        if (data._extendedStatusCode) rejectData = {msg: errorMsg, extendedStatusCode: extendedStatusCode}
+        if (data._extendedStatusCode) rejectData = {msg: errorMsg, extendedStatusCode: extendedStatusCode};
 
         nl.log.warn('_displayErrorMessage:', errorMsg, status);
         if (noPopup) {
@@ -1034,6 +1034,7 @@ function PageFetcher(nl, nlDlg, attrs) {
 
     var _fetchLimit = undefined;
     var _fetchedCount = 0;
+    var _retryCount = 0;
     this.fetchPage = function(listingFn, params, fetchMore, callback, dontHideLoading) {
         _fetchLimit = undefined;
         _fetchedCount = 0;
@@ -1044,8 +1045,10 @@ function PageFetcher(nl, nlDlg, attrs) {
     this.fetchBatchOfPages = function(listingFn, params, fetchMore, callback, fetchLimit, dontHideLoading) {
         _fetchLimit = fetchLimit;
         _fetchedCount = 0;
+        _retryCount = 0;
         nlDlg.showLoadingScreen();
         function _batchCallback(results, batchDone) {
+            if (_retryIfNeeded(results, batchDone)) return;
             var promiseHolder = {};
             callback(results, batchDone, promiseHolder);
             if (!results || batchDone) return;
@@ -1058,14 +1061,43 @@ function PageFetcher(nl, nlDlg, attrs) {
                 });
             }
         }
+
+        function _retryIfNeeded(results, batchDone) {
+            if (!params._jsMaxRetries) return false;
+            if (results) {
+                _retryCount = 0;
+                return false;
+            }
+            if (_retryCount >= params._jsMaxRetries) {
+                nlDlg.popdownStatus(0);
+                _fetchInProgress = false;
+                _canFetchMore = true;
+                return false;
+            }
+            var timeOut = _retryCount*2000;
+            _retryCount++;
+            if (timeOut == 0) {
+                _fetchPageImpl(listingFn, params, true, _batchCallback, dontHideLoading);
+            } else {
+                nl.timeout(function() {
+                    _fetchPageImpl(listingFn, params, true, _batchCallback, dontHideLoading);
+                }, timeOut);
+            }
+            return true;
+        }
+
         return _fetchPageImpl(listingFn, params, fetchMore, _batchCallback, dontHideLoading);
     };
 
+    var IN_PROG_MSG = 'Fetching from server ...';
+    var MORE_MSG = 'You could fetch more if needed.';
+    
     function _fetchPageImpl(listingFn, params, fetchMore, callback, dontHideLoading) {
         _fetchInProgress = true;
         if (!fetchMore) _nextStartPos = null;
         if (!params.max) params.max = _max;
         params.startpos = _nextStartPos;
+        if (!attrs.noStatus) nlDlg.popupStatus(IN_PROG_MSG, false);
         listingFn(params).then(function(resp) {
             if (!dontHideLoading && (!_blockTillDone || !resp.more)) nlDlg.hideLoadingScreen();
             _nextStartPos = resp.nextstartpos;
@@ -1073,16 +1105,17 @@ function PageFetcher(nl, nlDlg, attrs) {
             _fetchedCount += resp.resultset.length;
             var batchDone = _fetchLimit === undefined ? true
                 : !_canFetchMore || (_fetchLimit !== null && _fetchLimit <= _fetchedCount);
-            var msg = nl.t('Got {} {}(s) from the server.{}', _fetchedCount, _itemType, 
-                !batchDone ? ' Fetching more items ...' 
-                : _canFetchMore ? '  You could fetch more if needed.'
-                : '');
-            if (!attrs.noStatus) nlDlg.popupStatus(msg, batchDone ? undefined : false);
-            if (batchDone) _fetchInProgress = false;
+            if (batchDone) {
+                var msg = _canFetchMore ? MORE_MSG : '';
+                if (!attrs.noStatus) nlDlg.popupStatus(msg);
+                _fetchInProgress = false;
+            }
             callback(resp.resultset, batchDone);
         }, function(error) {
-            nlDlg.popdownStatus(0);
-            _fetchInProgress = false;
+            if (!('_jsMaxRetries' in params)) {
+                nlDlg.popdownStatus(0);
+                _fetchInProgress = false;
+            }
             callback(false);
         });
     }
