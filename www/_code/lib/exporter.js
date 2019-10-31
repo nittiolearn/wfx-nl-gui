@@ -73,7 +73,7 @@ function(nl, nlDlg) {
     };
 
     this.MAX_RECORDS_PER_CSV = 50000;
-    this.MAX_RECORDS_PER_XLS = 200000;
+    this.MAX_RECORDS_PER_XLS = 50000;
     
     // Data should be array of array of strings
     this.exportArrayTableToCsv = function(fileName, data, pl, resolve, reject) {

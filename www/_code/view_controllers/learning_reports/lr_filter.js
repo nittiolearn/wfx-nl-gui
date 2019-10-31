@@ -27,7 +27,8 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		showfilters: true,	// Should the initial fetch filter dialog be shown
 		showfilterjson: false, // Should json for additional filters be shown
 		debug: false, //only for testing in debug mode
-		userSelection: false
+		userSelection: false,
+		dontZip: false
 	};
 	var _data = null;
 	var _groupInfo = null;
@@ -39,7 +40,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		_fillAttrs(_data, ['type'], [settings, urlParams, _dataDefaults]);
         if (!_oneOf(_data.type, ['all', 'module', 'course', 'training_kind', 'module_assign', 'course_assign', 'module_self_assign', 'training_batch', 'user']))
         	_data.type = 'course'; // TODO-LATER: should be 'all'
-        _fillAttrs(_data, ['timestamptype', 'assignor', 'parentonly', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug'], 
+        _fillAttrs(_data, ['timestamptype', 'assignor', 'parentonly', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug', 'dontZip'], 
         	[settings, urlParams, _dataDefaults]);
         if (_oneOf(_data.type, ['module_assign', 'course_assign', 'training_batch', 'user']))
 			_data.showfilters = false;
@@ -52,6 +53,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
         _toBool(_data, 'showfilters');
         _toBool(_data, 'userSelection');
         _toBool(_data, 'debug');
+        _toBool(_data, 'dontZip');
         if (!nlRouter.isPermitted(userInfo, 'assignment_manage')) _data.assignor = 'me';
     	_initDates();
     };
@@ -71,6 +73,10 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 	
     this.getType = function() {
     	return _data.type;
+	};
+
+	this.canZip = function() {
+		return !_data.dontZip;
 	};
 
 	this.getTimestampType = function() {

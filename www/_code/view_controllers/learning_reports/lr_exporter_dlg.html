@@ -3,34 +3,20 @@
         <div class='padding-mid fsh4'>Download data in a zip file containing one or more of the following (please select atleast one): </div>
         <div class='padding-mid fsh6 forange2'
              ng-show='warn'>{{warn}}</div>
-        <div class='padding-mid nl-link-text' 
-             ng-click='export.summary = !export.summary'>
-            <i ng-show='export.summary' class="fsh4 icon ion-android-checkbox-outline"></i>
-            <i ng-hide='export.summary' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>download summary statistics</span>
-        </div>
-        <div class='padding-mid nl-link-text' 
-             ng-click='export.drilldown = !export.drilldown'>
-            <i ng-show='export.drilldown' class="fsh4 icon ion-android-checkbox-outline"></i>
-            <i ng-hide='export.drilldown' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>download drill down data</span>
-        </div>
-        <div ng-show='showNhtCheckbox' class='padding-mid nl-link-text' 
-             ng-click='export.nht = !export.nht'>
-            <i ng-show='export.nht' class="fsh4 icon ion-android-checkbox-outline"></i>
-            <i ng-hide='export.nht' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>download nht data</span>
-        </div>
-        <div ng-show='reptype == "user"' class='padding-mid nl-link-text' 
-             ng-click='export.indUser = !export.indUser'>
-            <i ng-show='export.indUser' class="fsh4 icon ion-android-checkbox-outline"></i>
-            <i ng-hide='export.indUser' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>download user reports</span>
-        </div>
+        <nl-dlg-row attr='exportFormat' data='data' help='help'>
+            <div class='nl-dlg-field-value padding0'>
+                <select ng-model='data.exportFormat' 
+                    ng-options='elem as elem.name group by elem.group for elem in options.exportFormat track by elem.id'
+                    style='height: 40px; width: 100%;'
+                    autofocus=''
+                    tabindex="{{fieldindex}}">
+                </select>
+            </div>
+        </nl-dlg-row>
         <div ng-show='reptype == "course" || reptype == "course_assign"' class='padding-mid nl-link-text' 
-             ng-click='export.user = !export.user'>
-            <i ng-show='export.user' class="fsh4 icon ion-android-checkbox-outline"></i>
-            <i ng-hide='export.user' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+             ng-click='export.course = !export.course'>
+            <i ng-show='export.course' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='export.course' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
             <span>download course reports</span>
         </div>
         <div ng-show='reptype == "course_assign" || reptype == "course"' 
@@ -58,6 +44,30 @@
             <i ng-show='export.feedback' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.feedback' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
             <span>download feedback</span>
+        </div>
+        <div ng-show='reptype == "user"' class='padding-mid nl-link-text' 
+             ng-click='export.indUser = !export.indUser'>
+            <i ng-show='export.indUser' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='export.indUser' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>download user reports</span>
+        </div>
+        <div ng-show='reptype != "user"' class='padding-mid nl-link-text' 
+             ng-click='export.summary = !export.summary'>
+            <i ng-show='export.summary' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='export.summary' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>download summary statistics</span>
+        </div>
+        <div class='padding-mid nl-link-text' 
+             ng-click='export.drilldown = !export.drilldown'>
+            <i ng-show='export.drilldown' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='export.drilldown' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>download drill down data</span>
+        </div>
+        <div ng-show='showNhtCheckbox' class='padding-mid nl-link-text' 
+             ng-click='export.nht = !export.nht'>
+            <i ng-show='export.nht' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='export.nht' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>download nht data</span>
         </div>
         <div class='row row-top row-wrap margin0 padding-mid'>
         	<span class='fsh4'>Filter data and download subset of records</span>
