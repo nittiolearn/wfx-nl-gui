@@ -683,7 +683,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     var _hCourseDetailsElem3 = [
         {id: '_reportId', name: 'Course report Id' },
         {id: '_assignId', name: 'Assign Id' },
-        {id: '_courseId', name: 'Course' },
+        {id: '_courseId', name: 'Course Id' },
         {id: '_moduleId', name: 'Module Id' },
         {id: '_moduleRepId', name: 'Module report Id' },
     ]
@@ -889,7 +889,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             _status: 'pending', remarks: '', _attempts: '', _percStr: '', _maxScore: '', _score: '', _passScoreStr: '', feedbackScore: '', 
             _timeMins: '', _timeIltMins: '', _timeIltTotalMins: '',
             _stateStr: report.user.state ? 'active' : 'inactive', _email: report.user.email, org_unit: report.user.org_unit,
-            _reportId: report.raw_record.id, _assignId: report.raw_record.assignment, _courseId: report.raw_record.lesson_id, _moduleId: '', _moduleRepId : ''};
+            _reportId: 'id=' +report.raw_record.id, _assignId: 'id=' +report.raw_record.assignment, _courseId: 'id=' +report.raw_record.lesson_id, _moduleId: '', _moduleRepId : ''};
         var modules = report.course.content.modules;
         for(var i=0; i<modules.length; i++) {
             var item = modules[i]
@@ -913,9 +913,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     
     function _updateCsvModuleRows1(report, item, statusinfo, defaultRowObj){
         defaultRowObj._assignTypeStr = 'Module inside course';
-        defaultRowObj._moduleId = item.refid;
+        defaultRowObj._moduleId = 'id=' +item.refid;
         if (!statusinfo) return;
-        defaultRowObj._moduleRepId = statusinfo.moduleRepId;
+        defaultRowObj._moduleRepId = 'id=' +statusinfo.moduleRepId;
         defaultRowObj.started = statusinfo.started || '';
         defaultRowObj.ended = statusinfo.ended || '';
         defaultRowObj.updated = statusinfo.ended || '';
