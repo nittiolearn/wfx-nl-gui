@@ -28,6 +28,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
     var _pageFetcher = null;
     var _limit = null;
     var _debug = false;
+    var _chunksize = 0;
     var _groupInfo = null;
     var _records = {};
     var _monthlyStats = {};
@@ -51,6 +52,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
         var params = nl.location.search();
         _limit = ('limit' in params) ? parseInt(params.limit) : 5000;
         _debug =  ('debug' in params);
+        _chunksize = ('chunksize' in params) ? parseInt(params.chunksize) : 0;
         $scope.toolbar = _getToolbar();
 
         $scope.monthlyCounts = []; // {month, count}
@@ -112,6 +114,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
         if (_pageFetcher.fetchInProgress()) return;
         var params = {updatedfrom: _filterData.createdfrom, updatedtill: _filterData.createdtill};
         if (_debug) params.debug = true;
+        if (_chunksize) params.chunksize = _chunksize;
         params._jsMaxRetries = 3;
         _pageFetcher.fetchBatchOfPages(nlServerApi.learningReportsGetCompletedModuleList, params, fetchMore, 
         function(results, batchDone, promiseHolder) {

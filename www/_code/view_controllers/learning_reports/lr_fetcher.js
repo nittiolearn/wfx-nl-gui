@@ -13,8 +13,8 @@ var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
 }];
 
-var NlLrFetcher = ['nl', 'nlDlg', 'nlServerApi', 'nlLrFilter', 'nlLrReportRecords', 'nlGetManyStore',
-function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlGetManyStore) {
+var NlLrFetcher = ['nl', 'nlDlg', 'nlServerApi', 'nlLrFilter', 'nlLrReportRecords', 'nlGetManyStore', 'nlLrTransform', 
+function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlGetManyStore, nlLrTransform) {
 	
     var self = this;
     var _pageFetcher = null;
@@ -75,11 +75,17 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlGetManyStore) 
         params._jsMaxRetries = 3;
     	var dontHideLoading = true;
         _pageFetcher.fetchBatchOfPages(nlServerApi.learningReportsGetList, params, fetchMore, 
-        function(results, batchDone, promiseHolder) {
+        function(results, batchDone, promiseHolder, rawResp) {
             if (!results) {
                 nlDlg.popupAlert({title: 'Error', template: 'Error connecting to the server. Press the <i class="ion-refresh"></i> (fetch more) toolbar icon to resume fetching.'});
                 onDoneCallback(false);
                 return;
+            }
+            if (rawResp.transform) {
+                var aoa = results;
+                results = [];
+                for (var i=0; i<aoa.length; i++)
+                    results.push(nlLrTransform.lrArrayToObj(aoa[i]));
             }
             _testCopyResults(results);
             promiseHolder.promise = nl.q(function(resolve, reject) {

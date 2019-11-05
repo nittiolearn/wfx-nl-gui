@@ -1047,10 +1047,10 @@ function PageFetcher(nl, nlDlg, attrs) {
         _fetchedCount = 0;
         _retryCount = 0;
         nlDlg.showLoadingScreen();
-        function _batchCallback(results, batchDone) {
+        function _batchCallback(results, batchDone, rawResp) {
             if (_retryIfNeeded(results, batchDone)) return;
             var promiseHolder = {};
-            callback(results, batchDone, promiseHolder);
+            callback(results, batchDone, promiseHolder, rawResp);
             if (!results || batchDone) return;
             if (!promiseHolder.promise)
                 _fetchPageImpl(listingFn, params, true, _batchCallback, dontHideLoading);
@@ -1110,7 +1110,7 @@ function PageFetcher(nl, nlDlg, attrs) {
                 if (!attrs.noStatus) nlDlg.popupStatus(msg);
                 _fetchInProgress = false;
             }
-            callback(resp.resultset, batchDone);
+            callback(resp.resultset, batchDone, resp);
         }, function(error) {
             if (!('_jsMaxRetries' in params)) {
                 nlDlg.popdownStatus(0);
