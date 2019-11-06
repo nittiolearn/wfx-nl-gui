@@ -40,10 +40,15 @@ function($stateProvider, $urlRouterProvider) {
     });
 }];
 
+//-------------------------------------------------------------------------------------------------
+var _statusInfo = {};
+var _userInfo = null;
+
+//-------------------------------------------------------------------------------------------------
 var MODES = {PRIVATE: 0, PUBLISHED: 1, REPORT_VIEW: 2, DO: 3, EDIT: 4};
 var MODE_NAMES = {'private': 0, 'published': 1, 'report_view': 2, 'do': 3, 'edit': 4};
 
-function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
+function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlReportHelper) {
     var self=this;
     this.mode = MODES.PRIVATE;
     this.urlModeStr = '';
@@ -146,10 +151,11 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
         // do mode
         nlDlg.showLoadingScreen();
         nlServerApi.courseCreateLessonReport(self.course.id, refid, cm.id, cm.attempt+1, cm.maxDuration||0, self.course.not_before||'', self.course.not_after||'', true)
-        .then(function(updatedCourseReport) {
+        .then(function(ret) {
             nlDlg.hideLoadingScreen();
             cm.attempt++;
-            self.course = updatedCourseReport;
+            self.course.lessonReports = ret.lessonReports;
+            self.course.pastLessonReports = ret.pastLessonReports;
             scope.updateAllItemData();
             reportInfo = self.course.lessonReports[cm.id];
             _redirectToLessonReport(reportInfo, newTab, cm, false, scope);
@@ -194,6 +200,16 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
                 cm.dependencyArray.push(str);
             }
         }
+    };
+
+    this.updateStatusInfo = function() {
+        var isLearnerView = self.mode == MODES.DO || self.urlModeStr == 'report_view_my';
+        var repHelper = nlReportHelper.getCourseStatusHelperForCourseView(self.course, _userInfo.groupinfo, isLearnerView);
+        _statusInfo = repHelper.getCourseStatus();
+    };
+
+    this.isCourseCompleted = function() {
+        return nlReportHelper.isCourseCompleted(_statusInfo);
     };
 
     // Private functions
@@ -255,9 +271,9 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope) {
 	        reportInfo.not_after = self.course.not_after || '';
             reportInfo.maxDuration = cm.maxDuration||0;
 	    	nlDlg.showLoadingScreen();
-			nlServerApi.courseUpdateLessonReportTimes(self.course.id, cm.id, reportInfo, modeHandler.course.completed).then(function(lessonReportInfo) {
+			nlServerApi.courseUpdateLessonReportTimes(self.course.id, cm.id, reportInfo, self.course.completed).then(function(lessonReportInfo) {
 		    	nlDlg.hideLoadingScreen();
-                self.course.lessonReports[cm.id] = lessonReportInfo
+                self.course.lessonReports[cm.id] = lessonReportInfo;
                 scope.updateAllItemData();
                 return _redirectTo(urlFmt, reportInfo.reportId, newTab);
 	        });
@@ -271,10 +287,9 @@ var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIfra
 'nlMarkup', 'nlTreeListSrv', 'nlTopbarSrv', 'nlReportHelper',
 function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlCourseCanvas, 
     nlServerApi, nlGroupInfo, nlSendAssignmentSrv, nlMarkup, nlTreeListSrv, nlTopbarSrv, nlReportHelper) {
-    var modeHandler = new ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope);
-    var nlContainer = new NlContainer(nl, nlDlg, nlServerApi, $scope, modeHandler, nlReportHelper);
+    var modeHandler = new ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlReportHelper);
+    var nlContainer = new NlContainer(nl, nlDlg, nlServerApi, $scope, modeHandler);
     nlContainer.setContainerInWindow();
-    var _userInfo = null;
     var _attendanceObj = {};
     $scope.MODES = MODES;
     var folderStats = new FolderStats($scope, modeHandler);
@@ -867,18 +882,14 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         if (!('maxAttempts' in cm) && cm.type == 'lesson') cm.maxAttempts = 1;
     }
 
-    var _statusInfo = null;
     function _updateAllItemData() {
         folderStats.clear();
         var reopener = new Reopener(modeHandler, nlTreeListSrv, _userInfo, nl, nlDlg, 
             nlServerApi, _updatedStatusinfoAtServer);
         reopener.reopenIfNeeded().then(function() {
-            var isLearnerView = modeHandler.mode == MODES.DO || modeHandler.urlModeStr == 'report_view_my';
-            var repHelper = nlReportHelper.getCourseStatusHelperForCourseView(modeHandler.course, _userInfo.groupinfo, isLearnerView);
-            _statusInfo = repHelper.getCourseStatus();
+            modeHandler.updateStatusInfo();
             var oldCompletedState = modeHandler.course.completed;
-            var newCompletedState = false;
-            if(_statusInfo.progPerc == 100 || _statusInfo.isCertified) newCompletedState = true;
+            var newCompletedState = modeHandler.isCourseCompleted();
             if(newCompletedState != oldCompletedState) {
                 nlServerApi.courseUpdateStatus(modeHandler.course.id, newCompletedState).then(function(result) {
                     modeHandler.course.completed = newCompletedState;
@@ -1008,14 +1019,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
     function _updatedStatusinfoAtServerImpl(bBlockUI, currentSaveNumber) {
         if (bBlockUI) nlDlg.showLoadingScreen();
         var repid = parseInt($scope.params.id);
-        var isLearnerView = modeHandler.mode == MODES.DO || modeHandler.urlModeStr == 'report_view_my';
-        var repHelper = nlReportHelper.getCourseStatusHelperForCourseView(modeHandler.course, _userInfo.groupinfo, isLearnerView);
-        var _statusInfo = repHelper.getCourseStatus();
-        var completed = modeHandler.course.completed;
-        if(_statusInfo.progPerc == 100 || _statusInfo.isCertified) completed = true;
+        modeHandler.updateStatusInfo();
+        var completed = modeHandler.isCourseCompleted();
         nlServerApi.courseReportUpdateStatus(repid, JSON.stringify(modeHandler.course.statusinfo), completed)
-        .then(function(courseReport) {
-            modeHandler.course.completed = courseReport.completed;
+        .then(function(status) {
+            modeHandler.course.completed = completed;
             if (currentSaveNumber > _saveDoneNumber)
                 _saveDoneNumber = currentSaveNumber;
             if (bBlockUI) nlDlg.hideLoadingScreen();
@@ -1544,7 +1552,7 @@ function Reopener(modeHandler, nlTreeListSrv, _userInfo, nl, nlDlg, nlServerApi,
         nlServerApi.courseCreateLessonReport(modeHandler.course.id, cm.refid, cm.id, cm.attempt+1, cm.maxDuration||0, modeHandler.course.not_before||'', modeHandler.course.not_after||'', false)
         .then(function(updatedCourseReport) {
             cm.attempt++;
-            modeHandler.course = updatedCourseReport;
+            modeHandler.course.lessonReports[cm.id] = lessonReportInfo;
             _createLessonReport(reopenLessons, pos+1, resolve);
         }, function(err) {
             nlDlg.hideLoadingScreen();
@@ -1554,7 +1562,7 @@ function Reopener(modeHandler, nlTreeListSrv, _userInfo, nl, nlDlg, nlServerApi,
 }
 
 //-------------------------------------------------------------------------------------------------
-function NlContainer(nl, nlDlg, nlServerApi, $scope, modeHandler, nlReportHelper) {
+function NlContainer(nl, nlDlg, nlServerApi, $scope, modeHandler) {
     this.setContainerInWindow = function() {
         nl.log.debug('setContainerInWindow called');
         nl.window.NITTIO_LEARN_CONTAINER = this;
@@ -1601,14 +1609,12 @@ function NlContainer(nl, nlDlg, nlServerApi, $scope, modeHandler, nlReportHelper
         if (lesson.passScore)  lessonReportInfo.passScore = lesson.passScore;
         if (lesson.selfLearningMode)  lessonReportInfo.selfLearningMode = lesson.selfLearningMode;
         if (_onSaveHandler) _onSaveHandler(lessonReportInfo);
-        var isLearnerView = modeHandler.mode == MODES.DO || modeHandler.urlModeStr == 'report_view_my';
-        var repHelper = nlReportHelper.getCourseStatusHelperForCourseView(modeHandler.course, modeHandler.userInfo.groupinfo, isLearnerView);
-        var _statusInfo = repHelper.getCourseStatus();
-        var data = {lessonId: reportId, bSubmit: bDone, content: prunedContent, completed: modeHandler.course.completed};
-        if(_statusInfo.progPerc == 100 || _statusInfo.isCertified) data['completed'] = true;
+        modeHandler.updateStatusInfo();
+        var data = {lessonId: reportId, bSubmit: bDone, content: prunedContent, 
+            completed: modeHandler.isCourseCompleted()};
         nlServerApi.courseSaveOrSubmitLessonReport(data).then(function(result) {
             if(!result) return;
-            modeHandler.course.completed = result.completed;
+            modeHandler.course.completed = data.completed;
             $scope.updateAllItemData();
         });
     };

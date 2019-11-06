@@ -2,8 +2,6 @@
 
 //-------------------------------------------------------------------------------------------------
 // expression_processor.js:
-// Remember to update nexpression_processor.py when ever updating this.
-//
 // Utilities for processing expressions used in Course Gate items. May be used in
 // other places. Current code has some security concerns as the expression is 
 // evaluated (eval statement) and could contain dangerous code!

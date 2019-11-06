@@ -66,6 +66,10 @@ function(nl, nlCourse, nlExpressionProcessor) {
         return _isEndItemState(status);
     };
 
+    this.isCourseCompleted = function(courseStatusObj) {
+        return _isEndCourseState(courseStatusObj, true);
+    };
+
     this.isEndStatusId = function(statusId) {
         return (statusId != this.STATUS_PENDING && statusId != this.STATUS_STARTED);
     };
@@ -567,7 +571,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
    }
  
     function _updateCourseProgress(ret) {
-        if (_isEndCourseState(ret.status)) {
+        if (_isEndCourseState(ret)) {
             ret.progPerc = 100;
         } else if (ret.status == 'pending') {
             ret.progPerc = 0;
@@ -581,7 +585,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
     function _updateCourseDelay(ret) {
         ret.delayDays = 0;
-        if (_isEndCourseState(ret.status)) {
+        if (_isEndCourseState(ret)) {
             _updateCourseDelayForCompleted(ret);
             return;
         }
@@ -629,8 +633,10 @@ function _isEndItemState(status) {
     return status == 'failed' || status == 'success' || status == 'partial_success' || status.indexOf('attrition') == 0;
 }
 
-function _isEndCourseState(status) {
-    return status == 'failed' || status == 'certified' || status == 'passed' || status == 'done';
+function _isEndCourseState(courseStatusObj, attritionIsEndState) {
+    var status = courseStatusObj.status;
+    if (attritionIsEndState && status.indexOf('attrition') == 0) return true;
+    return courseStatusObj.isCertified || status == 'failed' || status == 'certified' || status == 'passed' || status == 'done';
 }
 
 function _isAutoCompletingType(itemType) {
