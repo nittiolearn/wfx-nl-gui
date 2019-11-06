@@ -27,6 +27,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		showfilters: true,	// Should the initial fetch filter dialog be shown
 		showfilterjson: false, // Should json for additional filters be shown
 		debug: false, //only for testing in debug mode
+		chunksize: 50,
 		userSelection: false,
 		dontZip: false
 	};
@@ -40,7 +41,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		_fillAttrs(_data, ['type'], [settings, urlParams, _dataDefaults]);
         if (!_oneOf(_data.type, ['all', 'module', 'course', 'training_kind', 'module_assign', 'course_assign', 'module_self_assign', 'training_batch', 'user']))
         	_data.type = 'course'; // TODO-LATER: should be 'all'
-        _fillAttrs(_data, ['timestamptype', 'assignor', 'parentonly', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug', 'dontZip'], 
+        _fillAttrs(_data, ['timestamptype', 'assignor', 'parentonly', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug', 'chunksize', 'dontZip'], 
         	[settings, urlParams, _dataDefaults]);
         if (_oneOf(_data.type, ['module_assign', 'course_assign', 'training_batch', 'user']))
 			_data.showfilters = false;
@@ -52,7 +53,8 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		
         _toBool(_data, 'showfilters');
         _toBool(_data, 'userSelection');
-        _toBool(_data, 'debug');
+		_toBool(_data, 'debug');
+		_toInt(_data, 'chunksize');
         _toBool(_data, 'dontZip');
         if (!nlRouter.isPermitted(userInfo, 'assignment_manage')) _data.assignor = 'me';
     	_initDates();
@@ -197,6 +199,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 			}
 		}
 		if (_data.debug) ret.debug = true;
+		if (_data.chunksize) ret.chunksize = _data.chunksize;
 		if (_data.filterobj) ret.filters = _data.filterobj;
 		return ret;
 	};

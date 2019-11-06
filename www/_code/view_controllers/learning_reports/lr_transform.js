@@ -17,17 +17,27 @@ function($stateProvider, $urlRouterProvider) {
 //-------------------------------------------------------------------------------------------------
 var NlLrTransform = ['nl', function(nl) {
 	this.lrArrayToObj = function(lrArray) {
-		if (lrArray.updated) return lrArray; // This is not an array by a report object
+		if (lrArray.updated) return lrArray; // This is not an array but a report object
 		var lrObj = {'repcontent': {}};
-		// Needs improvement when next transform version is supproted.
-		var expectedLen = _common_attrs.length + _module_attrs.length;
-		if (lrArray.length != expectedLen || lrArray[0] != TRANSFORMER_VERSION) return lrObj;
+		if (!_validate(lrArray)) return lrObj;
 		var offset = 0;
 		_lrArrayToObjAttrs(_common_attrs, offset, lrArray, lrObj);
 		offset += _common_attrs.length;
+		if (lrArray.length <= offset) return lrObj;
 		_lrArrayToObjAttrs(_module_attrs, offset, lrArray, lrObj);
 		return lrObj;
 	};
+
+	function _validate(lrArray) {
+		if (lrArray.length < 1) return false;
+		var versions = lrArray[0].split('.');
+		// Needs improvement when next transform version is supproted.
+		if (versions.length != 2 || versions[0] != TRANSFORMER_VERSION) return false;
+		var expectedLen = _common_attrs.length;
+		if (versions[1] == WITH_CONTENT) expectedLen += _module_attrs.length;
+		if (lrArray.length != expectedLen) return false;
+		return true;
+	}
 
 	function _lrArrayToObjAttrs(attrs, offset, lrArray, lrObj) {
 		for (var i=0; i<attrs.length; i++) {
@@ -57,7 +67,9 @@ var NlLrTransform = ['nl', function(nl) {
 
 }];
 
-var TRANSFORMER_VERSION=1;
+var TRANSFORMER_VERSION='1';
+var WITH_CONTENT='content=y';
+var WITHOUT_CONTENT='content=n';
 var _common_attrs = [
     {'attr': '_transformVersion', 'type': 'version', 'fromVersion': 1},
     {'attr': 'id', 'type': 'report', 'fromVersion': 1},

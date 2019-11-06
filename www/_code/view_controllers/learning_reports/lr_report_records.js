@@ -14,8 +14,8 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrFilter', 'nlGetManyStore', 'nlReportHelper', 'nlLrTransform',
-function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStore, nlReportHelper, nlLrTransform) {
+var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrFilter', 'nlGetManyStore', 'nlReportHelper',
+function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStore, nlReportHelper) {
     var self = this;
     
     var _records = {};
@@ -65,7 +65,6 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStore, nlRepor
     }
 
     this.addRecord = function(report) {
-        report = nlLrTransform.lrArrayToObj(report);
         if (report.ctype == _nl.ctypes.CTYPE_COURSE)
             report = _processCourseReport(report);
         else if (report.ctype == _nl.ctypes.CTYPE_MODULE)
