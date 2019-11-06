@@ -139,14 +139,14 @@ function getScormLmsLessonMode() {
 
 //#############################################################################################
 var bDone = false;
-function saveLesson(url, params) {
+function saveLesson(url, params, prunedContent) {
     console.log('Save called: ', url);
     if (bDone) return true;
     if (url.indexOf('submit_report_') > 0) bDone = true;
     _updateScormPassScore(g_lesson.oLesson);
 
     if (g_nlPlayerType == 'normal') return false;
-    if (g_nlPlayerType == 'embedded') return _saveLessonEmbedded(bDone);
+    if (g_nlPlayerType == 'embedded') return _saveLessonEmbedded(prunedContent, bDone);
     if (g_nlPlayerType == 'sco') return _saveLessonSco(bDone);
 }
 
@@ -171,10 +171,10 @@ function _updateScormPassScore(lessonDict) {
     return true;
 }
 
-function _saveLessonEmbedded(bDone) {
+function _saveLessonEmbedded(prunedContent, bDone) {
     if (g_nlContainer)
-        g_nlContainer.save(parseInt(jQuery('#l_lessonId').val()), g_lesson.oLesson, bDone);
-    return false;
+        g_nlContainer.save(parseInt(jQuery('#l_lessonId').val()), g_lesson.oLesson, prunedContent, bDone);
+    return true;
 }
 
 function postSubmitLesson() {

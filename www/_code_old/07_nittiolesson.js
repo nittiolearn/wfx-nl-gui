@@ -1163,8 +1163,10 @@ nlesson = function() {
             _Lesson_saveUpdateVersion(lesson);
             ajaxParams.content = lesson.getContent();
         }
-		
-		if (njs_scorm.saveLesson(ajaxUrl, ajaxParams)) {
+        var unPrundedContent = ajaxParams.content;
+        var prunedContent = _Lesson_getPrunedContent(lesson, unPrundedContent);
+    
+		if (njs_scorm.saveLesson(ajaxUrl, ajaxParams, prunedContent)) {
             lesson.lastSavedContent = ajaxParams.content;
             return _onComplete(null, false);
 		}

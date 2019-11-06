@@ -184,9 +184,9 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/course_get_report.json', {repid: repid, mine: mine});
     };
     
-    this.courseReportUpdateStatus = function(repid, statusinfo) {
+    this.courseReportUpdateStatus = function(repid, statusinfo, completed) {
         // returns the updated course report object
-        return server.post('_serverapi/course_report_update_status.json', {repid: repid, statusinfo: statusinfo});
+        return server.post('_serverapi/course_report_update_status.json', {repid: repid, statusinfo: statusinfo, completed: completed});
     };
 
     this.courseCreateLessonReport = function(repid, refid, moduleid, attempt, maxDuration, starttime, endtime, updateStartTime) {
@@ -195,10 +195,10 @@ function(nl, nlDlg, nlConfig, Upload) {
             {repid: repid, refid: refid, moduleid: moduleid, attempt: attempt, maxDuration: maxDuration, not_before:starttime, not_after:endtime, updateStart: updateStartTime});
     };
 
-    this.courseUpdateLessonReportTimes = function(repid, moduleid, lessonreportinfo) {
+    this.courseUpdateLessonReportTimes = function(repid, moduleid, lessonreportinfo, completed) {
         // returns the updated course report object
         return server.post('_serverapi/course_update_lesson_report_times.json', 
-            {repid: repid, moduleid: moduleid, lessonreportinfo: lessonreportinfo, mine: true});
+            {repid: repid, moduleid: moduleid, lessonreportinfo: lessonreportinfo, mine: true, completed: completed});
     };
     
     this.courseUpdateParams = function(data){
@@ -206,6 +206,15 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/course_update_params.json', data);
 	};
 
+    this.courseSaveOrSubmitLessonReport = function(data) {
+        // returns the updated lessonReport
+        return server.post('_serverapi/course_save_or_submit_lesson_report.json', data);
+    };
+
+    this.courseUpdateStatus = function(repid, completed) {
+        // returns updated repObj
+        return server.post('_serverapi/course_update_status.json', {repid: repid, completed: completed});
+    }
     //---------------------------------------------------------------------------------------------
     // Forum methods
     //---------------------------------------------------------------------------------------------
