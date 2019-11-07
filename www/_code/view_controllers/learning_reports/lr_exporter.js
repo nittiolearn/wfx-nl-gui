@@ -915,7 +915,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         defaultRowObj._assignTypeStr = 'Module inside course';
         defaultRowObj._moduleId = 'id=' +item.refid;
         if (!statusinfo) return;
-        defaultRowObj._moduleRepId = 'id=' +statusinfo.moduleRepId;
+        defaultRowObj._moduleRepId = statusinfo.moduleRepId ? 'id=' +statusinfo.moduleRepId : '';
         defaultRowObj.started = statusinfo.started || '';
         defaultRowObj.ended = statusinfo.ended || '';
         defaultRowObj.updated = statusinfo.ended || '';
