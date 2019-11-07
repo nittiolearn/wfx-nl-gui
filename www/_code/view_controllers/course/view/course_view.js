@@ -839,7 +839,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
 	    var endtime = course['not_after'] && course['not_after'] != '' ? nl.fmt.json2Date(course.not_after) : '';
 	    if (endtime && (currentDate > endtime) && !course.submissionAfterEndtime){
 	        nlDlg.popupAlert({title: 'Alert text', template: 'Current time is greater than end time and mentioned for this course.'}).then(function(res) {
-				if(res) nl.window.location.href = '#/course_report_list';
+				if(res) nl.window.location.href = '#/';
 			});
 	    }
     }
