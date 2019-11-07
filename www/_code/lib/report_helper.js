@@ -258,6 +258,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         }
         itemInfo.nAttempts = linfo.attempt || null;
         itemInfo.timeSpentSeconds = linfo.timeSpentSeconds || 0;
+        itemInfo.moduleRepId = linfo.reportId || null;
         itemInfo.selfLearningMode = linfo.selfLearningMode || false;
         if (!linfo.completed) {
             itemInfo.rawStatus = 'started';
@@ -270,7 +271,6 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             itemInfo.started = nl.fmt.json2Date(linfo.started || '');
             itemInfo.ended = nl.fmt.json2Date(linfo.ended || '');
             itemInfo.updated = nl.fmt.json2Date(linfo.updated || '');
-            itemInfo.moduleRepId = linfo.reportId || null;
             itemInfo.feedbackScore = _getFeedbackScoreForModule(linfo.feedbackScore);
             itemInfo.feedbackScore = itemInfo.feedbackScore ? '' + Math.round(itemInfo.feedbackScore*10)/10 + '%' : '';
             return;
