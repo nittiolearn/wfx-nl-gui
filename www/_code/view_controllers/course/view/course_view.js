@@ -801,13 +801,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         }, dontUpdate);
     };
     
-    $scope.onClickOnAttended = function(cm) {
-    	if(!(cm.id in modeHandler.course.statusinfo))
-    		modeHandler.course.statusinfo[cm.id] = {};
-    	modeHandler.course.statusinfo[cm.id]['isAttendanceMarked'] = true;
-    	_updatedStatusinfoAtServer(true);
-    };
-    
     function _onLaunchImpl(cm) {
         if (cm.type === 'lesson') modeHandler.handleLessonLink(cm, false, $scope);
         else if(cm.type === 'link' || cm.type === 'certificate') modeHandler.handleLink(cm, false, $scope);
@@ -888,12 +881,14 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
             nlServerApi, _updatedStatusinfoAtServer);
         reopener.reopenIfNeeded().then(function() {
             modeHandler.updateStatusInfo();
-            var oldCompletedState = modeHandler.course.completed;
-            var newCompletedState = modeHandler.isCourseCompleted();
-            if(newCompletedState != oldCompletedState) {
-                nlServerApi.courseUpdateStatus(modeHandler.course.id, newCompletedState).then(function(result) {
-                    modeHandler.course.completed = newCompletedState;
-                })
+            if(modeHandler.mode == MODES.DO) {
+                var oldCompletedState = modeHandler.course.completed;
+                var newCompletedState = modeHandler.isCourseCompleted();
+                if(newCompletedState != oldCompletedState) {
+                    nlServerApi.courseUpdateStatus(modeHandler.course.id, newCompletedState).then(function(result) {
+                        modeHandler.course.completed = newCompletedState;
+                    })
+                }
             }
             if(_statusInfo.nTotalQuizMaxScore) $scope.computedData['avgQuizScore'] = Math.round(100*_statusInfo.nTotalQuizScore/_statusInfo.nTotalQuizMaxScore);
             _updateItemData(nlTreeListSrv.getRootItem(), _statusInfo.itemIdToInfo);
@@ -1000,8 +995,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
             username: _userInfo.username,
             remarks: remarks
         };
-        _updatedStatusinfoAtServer(false);
-        _updateAllItemData();
+        if(cm.type != 'certificate') _updatedStatusinfoAtServer(false);
         if (!dontHide) $scope.hidePopup(true);
     }
     
@@ -1021,8 +1015,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         var repid = parseInt($scope.params.id);
         modeHandler.updateStatusInfo();
         var completed = modeHandler.isCourseCompleted();
+        nlDlg.showLoadingScreen();
         nlServerApi.courseReportUpdateStatus(repid, JSON.stringify(modeHandler.course.statusinfo), completed)
         .then(function(status) {
+            nlDlg.hideLoadingScreen();
+            if(!status) return;
+            _updateAllItemData();
             modeHandler.course.completed = completed;
             if (currentSaveNumber > _saveDoneNumber)
                 _saveDoneNumber = currentSaveNumber;
@@ -1564,6 +1562,7 @@ function Reopener(modeHandler, nlTreeListSrv, _userInfo, nl, nlDlg, nlServerApi,
 
 //-------------------------------------------------------------------------------------------------
 function NlContainer(nl, nlDlg, nlServerApi, $scope, modeHandler) {
+    var self = this;
     this.setContainerInWindow = function() {
         nl.log.debug('setContainerInWindow called');
         nl.window.NITTIO_LEARN_CONTAINER = this;
@@ -1645,10 +1644,10 @@ function NlContainer(nl, nlDlg, nlServerApi, $scope, modeHandler) {
         if (_pendingSaveData) {
             var data = _pendingSaveData;
             _pendingSaveData = null;
-            this.save(data.reportId, data.lesson, data.prunedContent, data.bDone);
+            self.save(data.reportId, data.lesson, data.prunedContent, data.bDone);
         } else if (_closePending) {
             _closePending = false;
-            this.close();
+            self.close();
         }
     }
 }
