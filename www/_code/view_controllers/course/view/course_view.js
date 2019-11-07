@@ -1550,9 +1550,10 @@ function Reopener(modeHandler, nlTreeListSrv, _userInfo, nl, nlDlg, nlServerApi,
 
         var cm = reopenLessons[pos];
         nlServerApi.courseCreateLessonReport(modeHandler.course.id, cm.refid, cm.id, cm.attempt+1, cm.maxDuration||0, modeHandler.course.not_before||'', modeHandler.course.not_after||'', false)
-        .then(function(updatedCourseReport) {
+        .then(function(ret) {
             cm.attempt++;
-            modeHandler.course.lessonReports[cm.id] = lessonReportInfo;
+            modeHandler.course.lessonReports = ret.lessonReports;
+            modeHandler.course.pastLessonReports = ret.pastLessonReports;
             _createLessonReport(reopenLessons, pos+1, resolve);
         }, function(err) {
             nlDlg.hideLoadingScreen();
@@ -1595,8 +1596,17 @@ function NlContainer(nl, nlDlg, nlServerApi, $scope, modeHandler) {
     	return modeHandler.getModeName();
     };
     
+    var _saveOngoing = false;
+    var _pendingSaveData = null;
+    var _closePending = false;
     this.save = function(reportId, lesson, prunedContent, bDone) {
         if (modeHandler.mode != MODES.DO) return;
+        if (_saveOngoing) {
+            _pendingSaveData = {reportId: reportId, lesson: lesson, prunedContent: prunedContent, bDone: bDone};
+            return;
+        }
+        _saveOngoing = true;
+
         var completed = lesson.completed || bDone;
         var lessonReportInfo = {reportId: reportId, completed: completed, 
                             score: lesson.score, maxScore: lesson.maxScore};
@@ -1616,12 +1626,31 @@ function NlContainer(nl, nlDlg, nlServerApi, $scope, modeHandler) {
             if(!result) return;
             modeHandler.course.completed = data.completed;
             $scope.updateAllItemData();
+            _completePendingOperations();
+        }, function(err) {
+            _completePendingOperations();
         });
     };
 
     this.close = function() {
+        if (_saveOngoing) {
+            _closePending = true;
+            return;
+        }
         $scope.closeIFrame();
     };
+
+    function _completePendingOperations() {
+        _saveOngoing = false;
+        if (_pendingSaveData) {
+            var data = _pendingSaveData;
+            _pendingSaveData = null;
+            this.save(data.reportId, data.lesson, data.prunedContent, data.bDone);
+        } else if (_closePending) {
+            _closePending = false;
+            this.close();
+        }
+    }
 }
 
 //-------------------------------------------------------------------------------------------------
