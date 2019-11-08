@@ -13,12 +13,11 @@ var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
 }];
 
-var NlLrFetcher = ['nl', 'nlDlg', 'nlServerApi', 'nlLrFilter', 'nlLrReportRecords', 'nlGetManyStore', 'nlLrTransform', 
-function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlGetManyStore, nlLrTransform) {
+var NlLrFetcher = ['nl', 'nlDlg', 'nlServerApi', 'nlLrFilter', 'nlLrReportRecords', 'nlGetManyStore', 'nlLrTransform', 'nlGroupInfo',
+function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlGetManyStore, nlLrTransform, nlGroupInfo) {
 	
-    var self = this;
     var _pageFetcher = null;
-	var _limit = null;
+    var _limit = null;
 
 	this.init = function() {
 	    _pageFetcher = nlServerApi.getPageFetcher({defMax: 50, itemType: 'learning record'});
@@ -87,6 +86,7 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlGetManyStore, 
                 for (var i=0; i<aoa.length; i++)
                     results.push(nlLrTransform.lrArrayToObj(aoa[i]));
             }
+            if (nlLrFilter.getMyOu()) results = _filterMyOus(results);
             _testCopyResults(results);
             promiseHolder.promise = nl.q(function(resolve, reject) {
                 nlGetManyStore.fetchReferredRecords(results, false, function() {
@@ -95,6 +95,19 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlGetManyStore, 
                 });
             });
         }, _limit, dontHideLoading);
+    }
+
+    function _filterMyOus(results) {
+        var ret = [];
+        var myOu = nlLrFilter.getMyOu();
+        for (var i=0; i < results.length; i++) {
+            var report = results[i];
+            var user = nlGroupInfo.getUserObj(''+report.student);
+            if (!user || !user.org_unit) continue;
+            if (user.org_unit.indexOf(myOu) != 0) continue;
+            ret.push(report);
+        }
+        return ret;
     }
     
     //-----------------------------------------------------------------------------------

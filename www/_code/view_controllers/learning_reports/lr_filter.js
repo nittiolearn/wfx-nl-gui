@@ -15,8 +15,6 @@ function($stateProvider, $urlRouterProvider) {
 
 //-------------------------------------------------------------------------------------------------
 var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDlg, nlRouter, nlOuUserSelect) {
-	var self = this;
-	// TODO-LATER: 'type' default should be 'all'
 	var _dataDefaults = {
 		type: 'course',		// all|module|course|trainig_kind|module_assign|course_assign|module_self_assign|training_batch|user
 		timestamptype: 'created', // created|updated
@@ -34,14 +32,17 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 	};
 	var _data = null;
 	var _groupInfo = null;
+	var _userInfo = null;
+	var _myou = null;
 	
     this.init = function(settings, userInfo, groupInfo) {
 		_data = {};
 		_groupInfo = groupInfo;
+		_userInfo = userInfo;
         var urlParams = nl.location.search();
 		_fillAttrs(_data, ['type'], [settings, urlParams, _dataDefaults]);
         if (!_oneOf(_data.type, ['all', 'module', 'course', 'training_kind', 'module_assign', 'course_assign', 'module_self_assign', 'training_batch', 'user']))
-        	_data.type = 'course'; // TODO-LATER: should be 'all'
+        	_data.type = 'course';
         _fillAttrs(_data, ['timestamptype', 'myou', 'assignor', 'parentonly', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug', 'chunksize', 'dontZip'], 
         	[settings, urlParams, _dataDefaults]);
         if (_oneOf(_data.type, ['module_assign', 'course_assign', 'training_batch', 'user']))
@@ -103,6 +104,10 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		return _data.userSelection;
 	};
 
+	this.getMyOu = function() {
+		return _myou;
+	};
+
     var _ouUserSelector = null;
 
 	this.show = function($scope) {
@@ -140,15 +145,14 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 
 		if(dataParam.userSelection) {
 			dlg.scope.singleSelect = true;
-			var grpinfo = _groupInfo.get();
 			var selectedUsers = {};
 			if(dataParam.type == 'user' && dataParam.objid) {
-				var userObj = grpinfo.derived.keyToUsers[dataParam.objid];
+				var userObj = _groupInfo.derived.keyToUsers[dataParam.objid];
 				var selected = userObj.org_unit+'.'+userObj.id;
 					selectedUsers[selected] = true;	
 			}
 			_ouUserSelector = nlOuUserSelect.getOuUserSelector(dlg.scope, 
-				grpinfo, {}, {});
+				_groupInfo, {}, {});
 			if(Object.keys(selectedUsers).length != 0) _ouUserSelector.updateSelectedIds(selectedUsers)
 		}
 		
@@ -202,7 +206,8 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		}
 		if (_data.debug) ret.debug = true;
 		if (_data.chunksize) ret.chunksize = _data.chunksize;
-		if (_data.filterobj) ret.filters = _data.filterobj;
+		if (_data.myou) ret.filters = _addOusToFilters();
+		else if (_data.filterobj) ret.filters = _data.filterobj;
 		return ret;
 	};
 
@@ -213,9 +218,22 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 			tsStr,
             nl.fmt.fmtDateDelta(_data.createdfrom), 
             nl.fmt.fmtDateDelta(_data.createdtill));
-    };
+	};
 
-   function _initDates(){
+	function _addOusToFilters() {
+		var ret = [];
+		var custFilters = _data.filterobj || [];
+		for (var i=0; i<custFilters.length; i++) ret.push(custFilters[i]);
+		var me = (_groupInfo.derived.keyToUsers || {})[_userInfo.username];
+		_myou = me.org_unit;
+		var ouParts = (me.org_unit || '').split('.');
+		for (var i=0; i<ouParts.length && i<3; i++) {
+			ret.push({field: 'ou' + i, val: ouParts[i]});
+		}
+		return ret;
+	}
+
+	function _initDates(){
         var day = 24*60*60*1000; // 1 in ms
         var now = new Date();
         var offset = now.getTimezoneOffset()*60*1000; // in ms

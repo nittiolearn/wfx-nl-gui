@@ -91,8 +91,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_convertAttendanceArrayToObj(_userInfo.groupinfo.attendance);
 		return nl.q(function(resolve, reject) {
 			nlGroupInfo.init().then(function() {
-				_groupInfo = nlGroupInfo.get();
 				nlGroupInfo.update();
+				_groupInfo = nlGroupInfo.get();
 				_init();
 				resolve(true); // Has to be before next line for loading screen
 				_showRangeSelection();
@@ -119,7 +119,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		// Order is important
 		nlGetManyStore.init();
 		nlTreeListSrv.init(nl);
-		nlLrFilter.init(settings, _userInfo, nlGroupInfo);
+		nlLrFilter.init(settings, _userInfo, _groupInfo);
 		nlLrReportRecords.init(_userInfo);
 		nlLrFetcher.init();
 		nlLrExporter.init(_userInfo);
@@ -389,7 +389,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _isReminderNotificationEnabled() {
-		var props = nlGroupInfo.get().props;
+		var props = _groupInfo.props;
 		var isMailEnabled = false;
 		for(var i=0; i<props.taskNotifications.length; i++) {
 			if(props.taskNotifications[i] != 3) continue;

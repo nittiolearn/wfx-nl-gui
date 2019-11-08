@@ -125,7 +125,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         _dlg = nlDlg.create(_parentScope);
         nlDlg.showLoadingScreen();
         nlGroupInfo.init().then(function() {
-            nlGroupInfo.update2(_userInfo);
+            nlGroupInfo.updateRestrictedOuTree(_userInfo);
             var dontShowUsers = _assignInfo.dontShowUsers || {};
             if (_assignInfo.assigntype == 'training') _selectedUsers = {};
             _ouUserSelector = nlOuUserSelect.getOuUserSelector(_parentScope, 
