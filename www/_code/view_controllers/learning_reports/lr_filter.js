@@ -20,7 +20,8 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 	var _dataDefaults = {
 		type: 'course',		// all|module|course|trainig_kind|module_assign|course_assign|module_self_assign|training_batch|user
 		timestamptype: 'created', // created|updated
-		assignor: 'all',	// all|me, will auomatically change to 'me' if assignment_manage permission is not there
+		myou: false,		// Filter records to my ou level
+		assignor: 'all',	// all|me, will auomatically change to 'me' if assignment_manage permission is not there and myou is false
 		parentonly: true,	// fetch only parent records or also records part containing course/training
 		objid: null, 		// depending on type, will be interpretted as moduleid, courseid, ...
 		title: null,		// Title for the page
@@ -41,7 +42,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		_fillAttrs(_data, ['type'], [settings, urlParams, _dataDefaults]);
         if (!_oneOf(_data.type, ['all', 'module', 'course', 'training_kind', 'module_assign', 'course_assign', 'module_self_assign', 'training_batch', 'user']))
         	_data.type = 'course'; // TODO-LATER: should be 'all'
-        _fillAttrs(_data, ['timestamptype', 'assignor', 'parentonly', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug', 'chunksize', 'dontZip'], 
+        _fillAttrs(_data, ['timestamptype', 'myou', 'assignor', 'parentonly', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug', 'chunksize', 'dontZip'], 
         	[settings, urlParams, _dataDefaults]);
         if (_oneOf(_data.type, ['module_assign', 'course_assign', 'training_batch', 'user']))
 			_data.showfilters = false;
@@ -51,12 +52,13 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
         _toBool(_data, 'parentonly');
 		if(_data.type != 'user') _toInt(_data, 'objid');
 		
+		_toBool(_data, 'myou');
         _toBool(_data, 'showfilters');
         _toBool(_data, 'userSelection');
 		_toBool(_data, 'debug');
 		_toInt(_data, 'chunksize');
         _toBool(_data, 'dontZip');
-        if (!nlRouter.isPermitted(userInfo, 'assignment_manage')) _data.assignor = 'me';
+        if (!_data.myou && !nlRouter.isPermitted(userInfo, 'assignment_manage')) _data.assignor = 'me';
     	_initDates();
     };
     
@@ -238,7 +240,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		if (scope.data.createdfrom >= scope.data.createdtill) return _validateFail(scope, 'createdtill', 'Till date should be later than from date');
 		if (dataParam.showfilterjson && scope.data.filterjson) {
 			try {
-				dataParam.filterobj = angular.fromJson(scope.data.filterjson)
+				dataParam.filterobj = angular.fromJson(scope.data.filterjson);
 			}
 			catch (e) {
 				return _validateFail(scope, 'filterjson', 'JSON parse failed');
