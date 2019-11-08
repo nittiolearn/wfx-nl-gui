@@ -169,10 +169,6 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/course_get_my_report_list.json', data);
     };
 
-    this.courseGetAllReportList = function(data) {
-        return server.post('_serverapi/course_get_all_report_list.json', data);
-    };
-
     this.courseGetReport = function(repid, mine) {
         // returns the courseReport object
         return server.post('_serverapi/course_get_report.json', {repid: repid, mine: mine});
