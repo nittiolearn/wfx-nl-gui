@@ -17,12 +17,12 @@ var _nl = {
 		ATYPE_SELF_MODULE: 1,
 		ATYPE_COURSE: 2,
 		ATYPE_SELF_COURSE: 3, // future
-		ATYPE_TRAINING: 4
+		ATYPE_TRAINING: 4 // Depricated and not used
 	},
 	ctypes: {
 		CTYPE_MODULE: 0,
 		CTYPE_COURSE: 2,
-		CTYPE_TRAINING: 4 // future
+		CTYPE_TRAINING: 4 // Depricated and not used
     },
     colorsCodes: {
         done: '#007700',          // $nlGreen1

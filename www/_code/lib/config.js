@@ -30,11 +30,13 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
     };
 
     this.update = function(grpid) {
-        _updateGroupInfo(grpid);
+        // Update the complete ou tree without checking for restrict_ou permission
+        _updateBasedonPermAndGroupfeature(null, grpid); 
     };
 
-    this.update2 = function(_userInfo) {
-        _updateBasedonPermAndGroupfeature(_userInfo); //This is to update tree only for permitted users
+    this.updateRestrictedOuTree = function(_userInfo, grpid) {
+        // Update only parts of tree (or complete tree) based on permission as per restrict_ou feature 
+        _updateBasedonPermAndGroupfeature(_userInfo, grpid);
     };
 
     this.formatUserName = function(uInfo) {
@@ -370,9 +372,15 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
     function _updateBasedonPermAndGroupfeature(_userInfo, grpid) {
         var groupInfo = self.get(grpid);
         groupInfo.derived = {};
+        var myOuList = null;
+        //filter users in ou if restrict_ous flag is enabled in group properties and to users
+        // without assignment manage perm
+        if (_userInfo && _userInfo.groupinfo.features.restrict_ous && 
+            !_userInfo.permissions['assignment_manage']) {
+            var loggedInUser = self.getUserObj(''+_userInfo.userid);
+            myOuList = _getMyOuList(loggedInUser);
+        }
         // Update type names
-        var loggedInUser = self.getUserObj(''+_userInfo.userid); //get userObj of logged in user
-        var canFilter = (_userInfo.groupinfo.features.restrict_ous && !_userInfo.permissions['assignment_manage']); //filter users in ou if restrict_ous flag is enabled in group properties and to users without assignment manage perm
         var props = groupInfo.props || {};
         var typenames = props.usertypenames || {};
         groupInfo.derived.typeNameToUt = {};
@@ -381,10 +389,9 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
         }
         // Update login id to user dict
         var udict = {};
-        var myOuList = _getMyOuList(loggedInUser);
         for(var uid in groupInfo.users) {
             var user = self.getUserObj(uid, grpid);
-            if (_canAddUser(canFilter, user, myOuList)) {
+            if (_canAddUser(user, myOuList)) {
                 udict[user.username] = user;
             }
         }
@@ -407,38 +414,14 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
         return myOuList2;
     }
 
-    function _canAddUser(canFilter, user, myOuList) {
-        if (!canFilter) return true;
+    function _canAddUser(user, myOuList) {
+        if (!myOuList) return true;
         for (var i=0; i<myOuList.length; i++) {
             var ou = user.org_unit.trim();
             var myOu = myOuList[i];
             if (ou == myOu || ou.indexOf(myOu + '.') == 0) return true;
             }
         return false;
-    }
-
-    function _updateGroupInfo(grpid) {
-        var groupInfo = self.get(grpid);
-        groupInfo.derived = {};
-        // Update type names
-        var props = groupInfo.props || {};
-        var typenames = props.usertypenames || {};
-        groupInfo.derived.typeNameToUt = {};
-        for (var ut in typenames) {
-            groupInfo.derived.typeNameToUt[typenames[ut]] = parseInt(ut);
-        }
-        // Update login id to user dict
-        var udict = {};
-        for(var uid in groupInfo.users) {
-            var user = self.getUserObj(uid, grpid);
-            udict[user.username] = user;
-        }
-        groupInfo.derived.keyToUsers = udict;
-        
-        // Update ou ids to ous dict
-        var ouDict = {};
-        _getOusAsDict(groupInfo.outree, ouDict);
-        groupInfo.derived.ouDict = ouDict;
     }
 
     function _getOusAsDict(ouTree, ouDict) {

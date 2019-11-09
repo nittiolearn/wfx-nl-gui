@@ -163,20 +163,10 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/course_get_assignment_list.json', data);
     };
     
-	this.courseGetAssignmentReportList = function(data) {
-        // data: assignid, compact=true|false (false is default)
-        // returns list of courseReport objects
-        return server.post('_serverapi/course_get_assignment_report_list.json', data);
-    };
-
     this.courseGetMyReportList = function(data) {
         // data: search
         // returns list of courseReport objects
         return server.post('_serverapi/course_get_my_report_list.json', data);
-    };
-
-    this.courseGetAllReportList = function(data) {
-        return server.post('_serverapi/course_get_all_report_list.json', data);
     };
 
     this.courseGetReport = function(repid, mine) {

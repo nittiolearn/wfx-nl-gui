@@ -88,8 +88,7 @@ function(nl, nlDlg, nlServerApi) {
 		if (report.assigntype == _nl.atypes.ATYPE_COURSE) assignInfo = assignInfo.info;
         if (!assignInfo) return;
 
-        repcontent.batchname = (report.assigntype == _nl.atypes.ATYPE_TRAINING 
-            ? repcontent.trainingName : assignInfo.batchname) || '';
+        repcontent.batchname = assignInfo.batchname || '';
         repcontent.not_before = assignInfo.not_before;
         repcontent.not_after = assignInfo.not_after || '';
         repcontent.submissionAfterEndtime = assignInfo.submissionAfterEndtime;

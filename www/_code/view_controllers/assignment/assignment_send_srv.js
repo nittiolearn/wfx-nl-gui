@@ -125,7 +125,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         _dlg = nlDlg.create(_parentScope);
         nlDlg.showLoadingScreen();
         nlGroupInfo.init().then(function() {
-            nlGroupInfo.update2(_userInfo);
+            nlGroupInfo.updateRestrictedOuTree(_userInfo);
             var dontShowUsers = _assignInfo.dontShowUsers || {};
             if (_assignInfo.assigntype == 'training') _selectedUsers = {};
             _ouUserSelector = nlOuUserSelect.getOuUserSelector(_parentScope, 
@@ -451,8 +451,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         var assignInfo = _dlg.scope.assignInfo;
         var data = {
         	assigntype: assignInfo.assigntype == 'lesson' ? _nl.atypes.ATYPE_MODULE
-        				: assignInfo.assigntype == 'course' ? _nl.atypes.ATYPE_COURSE
-        				: _nl.atypes.ATYPE_TRAINING,
+        				: _nl.atypes.ATYPE_COURSE,
         	contentid: assignInfo.id,
         	assignid: assignInfo.assignid || 0,
             selectedusers: _getMinimalUserObjects(ouUserInfo.userids),
