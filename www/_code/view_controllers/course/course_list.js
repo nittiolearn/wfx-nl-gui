@@ -77,13 +77,11 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	 * 'Edit my' : /course_list?type=course&my=1
 	 * 'Assigned courses (sent by all)' : /course_assign_list
 	 * 'Assigned courses (sent by me)' : /course_assign_my_list
-	 * 'Report of assignment' : /course_list?type=report&assignid=xx
 	 * 'Report of user' : /course_list?type=report
 	 */
 	
 	var courseDict = {};
 	var my = false;
-	var assignId = 0;
 	var _userInfo = null;
 	var _maxDelete = 50;
 	var _max2 = 500;
@@ -156,7 +154,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		courseDict = {};
         var params = nl.location.search();
         my = ('my' in params) ? parseInt(params.my) == 1: false;
-        assignId = ('assignid' in params) ? parseInt(params.assignid) : 0;
         _metadataEnabled = (type == 'course') && !my;
 		_searchMetadata = nlMetaDlg.getMetadataFromUrl();
 		_maxDelete = params.max_delete || 50;
@@ -174,14 +171,12 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			return 	nl.t('Courses assigned by me');
 		}
 		if (type === 'report') {
-			return 	(assignId == 0) ? nl.t('My courses'): nl.t('Course assignment reports');
+			return 	nl.t('My courses');
 		}
 	}
 
 	function _getPageSubTitle(reports) {
-		if (type !== 'report' || assignId == 0) return nl.t('({})', nl.pginfo.username);
-		if (reports.length == 0) return '';
-		return nl.t('({})', reports[0].name);
+		return nl.t('({})', nl.pginfo.username);
 	}
 
 	function _onSearch(filter, searchCategory, onSearchParamChange) {
@@ -251,7 +246,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 
 	function _afterSubFetching(updatedResults, resolve) {
 		_resultList = _resultList.concat(updatedResults);
-		if (_resultList.length === 1 && type === 'report' && assignId === 0) {
+		if (_resultList.length === 1 && type === 'report') {
 			var url = nl.fmt2('/course_view?id={}&mode=do', _resultList[0].id);
 			nl.location.url(url);
 			nl.location.replace();
@@ -275,9 +270,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		} else if (type === 'assign_my') {
 		    params.mine = true;
 			listingFn = nlServerApi.courseGetAssignmentList;
-		} else if (type === 'report' && assignId !== 0) {
-            params.assignid = assignId;
-			listingFn = nlServerApi.courseGetAssignmentReportList;
 		} else {
             listingFn = nlServerApi.courseGetMyReportList;
 		}
@@ -399,8 +391,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			if (course && !course.error) {
 				report.content = course.content;
 			}
-			title = (assignId === 0) ? report.name : report.studentname;
-			var mode = (assignId === 0) ? 'do' : 'report_view';
+			title = report.name;
+			var mode = 'do';
 			var url = nl.fmt2('#/course_view?id={}&mode={}', 
 						report.id, mode);
 			help = '<div class="row row-center padding0 margin0"><i class="icon fsh4 padding-small {}"></i><span>{}</span></div>';
@@ -469,7 +461,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		nl.fmt.addAvp(avps, 'Submit after end time', report.submissionAfterEndtime || false, 'boolean');		
 		nl.fmt.addAvp(avps, 'Remarks', report.remarks);
         nl.fmt.addAvp(avps, 'Discussion forum', report.forum, 'boolean');
-        if(type != 'report' || assignId != 0) nl.fmt.addAvp(avps, 'Internal identifier', report.id);
+        if(type != 'report') nl.fmt.addAvp(avps, 'Internal identifier', report.id);
 		return avps;
 	}
 	

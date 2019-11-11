@@ -343,7 +343,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStore, nlRepor
             stats.nLessonsAttempted = 1;
             stats.nQuiz = 1;
             stats.avgAttempts = 1;
-            stats.timeSpentStr = Math.ceil(stats.timeSpentSeconds/60) + 'minutes';
+            stats.timeSpentStr = Math.ceil(stats.timeSpentSeconds/60) + ' minutes';
         }
         report.started = nl.fmt.json2Date(repcontent.started);
         report.ended = nl.fmt.json2Date(repcontent.ended);
