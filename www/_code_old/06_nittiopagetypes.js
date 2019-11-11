@@ -669,6 +669,7 @@ npagetypes = function() {
 		'onScore' : function(page) {
 			var answered = ANSWERED_NO;
 			var score = 0;
+			var answersArray = [];
 			for (var i = 0; i < page.sections.length; i++) {
 				var pgSecView = page.sections[i].pgSecView;
 				var oSection = page.sections[i].oSection;
@@ -679,10 +680,10 @@ npagetypes = function() {
 				
 				answered = ANSWERED_YES;
 				oSection.answer = 1;
-				
+				answersArray.push(oSection.text);
 				if (i == 1) score = page.getMaxScore();
 			}
-			return [answered, score];
+			return [answered, score, answersArray];
 		},
 		'adjustHtml' : function(section) {
 			_hideSticker(section);
@@ -1176,13 +1177,14 @@ npagetypes = function() {
 			var maxAnswers = 0;
 			var answered = 0;
 			var score = 0;
-
+			var answersArray = [];
 			var layout = _getLayoutOfPage(page);
 			for (var i = 0; i < page.sections.length; i++) {
 				if (!_isAnswer(layout, i)) continue;
 
 				maxAnswers++;
 				var answer = page.sections[i].pgSecText.val();
+				answersArray.push(answer);
 				if (typeof answer !== 'string') continue;
 
 				if (answer != '') answered++;
@@ -1200,7 +1202,7 @@ npagetypes = function() {
 			}
 			var maxScore = page.getMaxScore();
 			score = Math.round(maxScore/maxAnswers*score);
-			return [answered, score];
+			return [answered, score, answersArray];
 		},
 		'onRender' : function(section) {
 			var layout = _getLayoutOfSec(section);
@@ -1852,7 +1854,7 @@ npagetypes = function() {
 	function _BehQuestionnaire_updateAnswers(page) {
 	    page.oPage.feedback = [];
 		page.oPage.feedbackScore = [];
-	    
+		page.oPage.answersArray = [];
 	    var isQuestionnaire = (page.pagetype.interaction.id == 'QUESTIONNAIRE');
 		for (var i = 0; i < page.sections.length; i++) {
 			var section = page.sections[i];
@@ -1879,8 +1881,9 @@ npagetypes = function() {
 	            	}
             	}
             }
-            var answerText = _BehQuestionnaire_getAnswerText(elemVal, answerData);
-            
+			var answerText = _BehQuestionnaire_getAnswerText(elemVal, answerData);
+			page.oPage.answersArray.push(answerText);
+
             var question = secNo > 0 ? page.sections[secNo-1].oSection.text : '';
             question = njs_lesson_helper.formatTitle(question);
             if (answerData.type == 'text' || isQuestionnaire) {

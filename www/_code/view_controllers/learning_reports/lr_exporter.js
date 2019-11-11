@@ -646,7 +646,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             {id: 'page', name:'Page No'},
             {id: 'title', name:'Page Title'},
             {id: 'maxScore', name:'Maximum Score'},
-            {id: 'score', name:'Acheived Score'}];
+            {id: 'score', name:'Acheived Score'},
+            {id: 'answer', name:'Answers provided'}];
     var _h1Feedback = [
             {id: 'page', name:'Page No'},
             {id: 'title', name:'Page Title'},
@@ -764,10 +765,24 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     function _processPageScoresFromTransformedObj(currentPageRecord, items) {
         for(var i=0; i<items.length; i++) {
             var item = items[i];
+            if(item.maxScore == 0) continue;
             currentPageRecord.page = item.pgNo;
             currentPageRecord.title = item.title;
             currentPageRecord.score = item.score;
             currentPageRecord.maxScore = item.maxScore;
+            currentPageRecord.answer = '';
+            if(item.answersArray) {
+                var answersArray = item.answersArray;
+                if(answersArray.length == 1) {
+                    currentPageRecord.answer = answersArray[0];
+                } else {
+                    for(var j=0; j<answersArray.length; j++) {
+                        var str = answersArray[j];
+                        currentPageRecord.answer += nl.t('answer-{}:"{}"', j+1, str || " ");
+                        currentPageRecord.answer += ',';
+                    }
+                }
+            }
             ctx.pageCnt++;
             currentPageRecord.pos = ctx.pageCnt;
             if(_exportFormat == 'csv')
@@ -806,9 +821,22 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             var page = pages[i];
             currentPageRecord.page = page.pageNo;
             currentPageRecord.title = page.title || '';
-            if (filter.exportTypes.pageScore) {  
+            if (filter.exportTypes.pageScore && page.maxScore != 0) {
                 currentPageRecord.score = page.score || 0;
                 currentPageRecord.maxScore = page.maxScore || 0;
+                currentPageRecord.answer = '';
+                if(page.answersArray) {
+                    var answersArray = page.answersArray;
+                    if(answersArray.length == 1) {
+                        currentPageRecord.answer = answersArray[0];
+                    } else {
+                        for(var j=0; j<answersArray.length; j++) {
+                            var str = answersArray[j];
+                            currentPageRecord.answer += nl.t('answer-{}:"{}"', j+1, str || " ");
+                            currentPageRecord.answer += ',';
+                        }
+                    }
+                }
                 ctx.pageCnt++;
                 currentPageRecord.pos = ctx.pageCnt;
                 if(_exportFormat == 'csv')
@@ -870,6 +898,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             
             currentPageRecord.score = page.score || 0;
             currentPageRecord.maxScore = page.maxScore || 0;
+            currentPageRecord.answer = page.answerStr || '';
+
             ctx.pageCnt++;
             currentPageRecord.pos = ctx.pageCnt;
             if (_exportFormat == 'csv')

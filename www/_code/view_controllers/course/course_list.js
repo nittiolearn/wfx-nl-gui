@@ -347,7 +347,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
             card.links.push({id: 'course_assign', text: nl.t('assign')});
             card.links.push({id: 'course_report', text: nl.t('report')});
 		}
-		_addMetadataLink(card);
 		card.links.push({id: 'details', text: nl.t('details')});
 		return card;
 	}
@@ -385,8 +384,10 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		var isApproverInPublished = _userInfo.permissions.lesson_approve && !my;
 		if (!isAdmin && !isApproverInPublished) return;
 		var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
-		if (isAdmin) nl.fmt.addLinkToAvp(linkAvp, 'course modify', null, 'course_modify');
+		if(!my) nl.fmt.addLinkToAvp(linkAvp, 'copy', null, 'course_copy');
 		if(isApproverInPublished) nl.fmt.addLinkToAvp(linkAvp, 'change owner', null, 'change_owner');
+		if (isAdmin) nl.fmt.addLinkToAvp(linkAvp, 'course modify', null, 'course_modify');
+		if(_metadataEnabled && _canManage) _addMetadataLinkToDetails(linkAvp);
 	}
 
 	function _createReportCard(report, isReport) {
@@ -558,7 +559,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
                     description: course.description,
                     content: angular.toJson(course.content, 2)  
                 }};
-                _onCourseSave(null, $scope, dlgScope, null, false);
+                _onCourseSave(null, $scope, dlgScope, null, false, true);
             });
 		});
 
@@ -621,7 +622,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
         });
 	}
 	
-	function _onCourseSave(e, $scope, dlgScope, courseId, bPublish) {
+	function _onCourseSave(e, $scope, dlgScope, courseId, bPublish, isCopy) {
 	    if(!_validateInputs(dlgScope)) {
 	        if(e) e.preventDefault();
 	        return null;
@@ -637,21 +638,42 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		if (bPublish) modifiedData.publish = true;
 		var crModFn = (courseId != null) ? nlServerApi.courseModify: nlServerApi.courseCreate;
 		return crModFn(modifiedData).then(function(course) {
-			_onModifyDone(course, courseId, modifiedData, $scope);
+			_onModifyDone(course, courseId, modifiedData, $scope, isCopy);
 			return course.id;
 		});
 	}
 
-    function _onModifyDone(course, courseId, modifiedData, $scope) {
+    function _onModifyDone(course, courseId, modifiedData, $scope, isCopy) {
 		nlDlg.hideLoadingScreen();
-	    _updateCourseForTesting(course, modifiedData);
-	    var card = _createCourseCard(course);
-	    if (courseId !== null) {
-            var pos = _getCardPosition(course.id);
-            $scope.cards.cardlist.splice(pos, 1);
-	    }
+		_updateCourseForTesting(course, modifiedData);
+		if(isCopy) {
+			var copyCourseDlg = nlDlg.create($scope);
+			copyCourseDlg.scope.error = {};
+			copyCourseDlg.scope.dlgTitle = nl.t('Course copied');
+			copyCourseDlg.scope.courseid = course.id;
+			copyCourseDlg.scope.isPublishedMode = !my;
+			copyCourseDlg.scope.editCourse = function() {
+				nlDlg.closeAll();
+				var url = nl.fmt2('/course_view?id={}&mode=edit', course.id);
+				nl.location.url(url);
+			}
+			copyCourseDlg.scope.gotoMyCourses = function() {
+				nlDlg.closeAll();
+				var url = nl.fmt2('/course_list?my={}', 1);
+				nl.location.url(url);
+			}
+			var closeButton = {text : nl.t('Close'), onTap : function(e) {
+			}};
+			copyCourseDlg.show('view_controllers/course/course_copy.html', [], closeButton, true);	
+		}
+		if(isCopy && !my) return;
+		var card = _createCourseCard(course);
+		if (courseId !== null) {
+			var pos = _getCardPosition(course.id);
+			$scope.cards.cardlist.splice(pos, 1);
+		}
 		$scope.cards.cardlist.splice(0, 0, card);			
-        nlCardsSrv.updateCards($scope.cards);
+		nlCardsSrv.updateCards($scope.cards);	
 	}
 
     function _validateInputs(scope) {

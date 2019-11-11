@@ -784,7 +784,9 @@ nlesson = function() {
         {name: 'answered', noMinify: true},
         {name: 'remarks', noMinify: true},
         {name: 'notes', noMinify: true},
-        {name: 'feedback', noMinify: true}];
+        {name: 'feedback', noMinify: true},
+        {name: 'answersArray', noMinify: true}
+    ];
         
     var _ldSectionAttrList = [
         {name: 'sectionNumber', noCopyBack: true, noCopyFrom: true},
@@ -1787,7 +1789,9 @@ nlesson = function() {
         this.getMaxScore(); // For side effect of setting maxScore and popupMaxScore
         var scoreInfo = this.pagetype.getScoreFn()(this);
         oPage.answerStatus = scoreInfo[0];
-	    oPage.score = 'scoreOverride' in oPage ? oPage.scoreOverride : scoreInfo[1];
+        oPage.score = 'scoreOverride' in oPage ? oPage.scoreOverride : scoreInfo[1];
+        if(scoreInfo[2])
+            oPage.answersArray = scoreInfo[2];
         oPage.popupScore = 0;
 
         for (var i=0; i<this.sections.length; i++) {
