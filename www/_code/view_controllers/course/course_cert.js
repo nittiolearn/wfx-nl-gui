@@ -64,6 +64,7 @@ function(nl, nlRouter, $scope, nlDlg, nlPrinter) {
         if (!cm) return;
         if (cm.type != 'certificate') return;
         $scope.bgimg = cm.certificate_image || '';
+        if (_hideScore(cm)) $scope.avgQuizScore = null;
         
         if (nlContainer.getMode() == 'published') {
         	$scope.sample = true;
@@ -78,6 +79,11 @@ function(nl, nlRouter, $scope, nlDlg, nlPrinter) {
 	        }
         }
         $scope.available = true;
+    }
+
+    function _hideScore(cm) {
+        if (cm.certificate_format == 'no_score') return true;
+        return false;
     }
 }];
 

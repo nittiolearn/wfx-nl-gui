@@ -179,7 +179,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             _updateStatusToWaitingIfNeeded(cm, itemInfo, itemIdToInfo);
             _updateUnlockedTimeStamp(cm, itemInfo, itemIdToInfo);
             _updateStatusToDelayedIfNeeded(cm, itemInfo);
-            _updateStatistics(itemInfo, ret);
+            _updateStatistics(itemInfo, cm, ret);
             latestCustomStatus =  _updateCustomStatus(itemInfo, latestCustomStatus);
             if (itemInfo.isAttrition) {
                 isAttrition = true;
@@ -503,18 +503,19 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (itemInfo.status == 'pending') itemInfo.status = 'delayed';
     }
 
-    function _updateStatistics(itemInfo, ret) {
+    function _updateStatistics(itemInfo, cm, ret) {
         var isEnded = _isEndItemState(itemInfo.status);
         if (isEnded && itemInfo.completionPerc) ret.progPerc = itemInfo.completionPerc;
         var autoCompletingType = _isAutoCompletingType(itemInfo.type);
         if (!autoCompletingType) ret.nItems++;
         if (!autoCompletingType && isEnded) ret.nCompletedItems++;
-        _updateStatisticsOfQuiz(itemInfo, ret, isEnded);
+        _updateStatisticsOfQuiz(itemInfo, cm, ret, isEnded);
         _updateStatisticsOfTimeSpent(itemInfo, ret);
     }
 
-    function _updateStatisticsOfQuiz(itemInfo, ret, isEnded) {
+    function _updateStatisticsOfQuiz(itemInfo, cm, ret, isEnded) {
         if (itemInfo.type != 'lesson' || itemInfo.selfLearningMode || !itemInfo.maxScore) return;
+        if (cm.exclude_quiz) return;
         ret.nQuizes++;
         if (itemInfo.nAttempts) ret.nQuizAttempts += itemInfo.nAttempts;
         if (!isEnded) return;

@@ -18,7 +18,7 @@ function(nl) {
         return nl.fmt2(action.url, urlParams);
     };
 
-	var CURRENT_CONTENT_VERSION=3;    
+	var CURRENT_CONTENT_VERSION=4;    
     this.migrateCourse = function(course) {
         if (!course.content) course.content = {};
         if (course.content.contentVersion == CURRENT_CONTENT_VERSION) return course;
@@ -35,6 +35,7 @@ function(nl) {
                 // Not /#/course_cert as same URL (/) will not be loaded 
                 // in iframe by some browser
                 item.urlParams = '/default/home/#/course_cert';
+                if (!item.certificate_format) item.certificate_format = 'default';
             }
         }
         if (course.content.certificate) delete course.content.certificate;

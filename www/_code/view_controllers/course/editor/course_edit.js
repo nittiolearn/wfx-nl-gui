@@ -178,6 +178,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		}
 		return;
 	}
+
 	var _userStates = [];
 	function _updateNewStatusDropdown(cm, attr) {
 		if (!_etm || !_groupInfo) return;
@@ -191,6 +192,14 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			attr.valueNames[r.id] = r.name;
 		}
 		return;
+	}
+
+	function _updateCertificateFormatDropdown(cm, attr) {
+		if (attr.valueNamesUpdated) return;
+		attr.valueNamesUpdated = true;
+		attr.valueNames = {'default': 'Certificate with score if available',
+			'no_score': 'Certificate without score'};
+		attr.values = ['default', 'no_score'];
 	}
 
 	function _canShowNewState(attr) {
@@ -485,6 +494,10 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'action', stored_at: 'module', fields: ['link'], type: 'lessonlink', text: 'Action'},
         {name: 'urlParams', stored_at: 'module', fields: ['link'], type: 'string', text: 'Url-Params'},
         {name: 'certificate_image', stored_at: 'module', fields: ['certificate'], type: 'string', text: 'Certificate image'},
+		{name: 'certificate_format', stored_at: 'module', fields: ['certificate'], type: 'list', text: 'Certificate format',
+			// possible values will be updated in _updateCertificateFormatDropdown
+			valueNamesUpdated: false, valueNames: {}, values: [], 
+            updateDropdown: _updateCertificateFormatDropdown},
         {name: 'iltduration', stored_at: 'module', fields: ['iltsession'], text: 'Session duration (minutes)',type: 'number'},
         {name: 'trainer_notes', stored_at: 'module', fields: ['iltsession'], type: 'object_with_gui', contentType: 'object', text: 'Trainer notes'},
         {name: 'gateFormula', stored_at: 'module', fields: ['gate'], text: 'Formula',type: 'intellitext'},
@@ -495,21 +508,22 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'start_date', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'date', text: 'Start date', group: 'grp_depAttrs', debug: true},
         {name: 'planned_date', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'date', text: 'Planned date', group: 'grp_depAttrs', debug: true},
         {name: 'grp_additionalAttrs', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'group', text: 'Advanced properties'},
+        {name: 'maxAttempts', stored_at: 'module', fields: ['lesson'], type: 'number', text: 'Maximum attempts', group: 'grp_additionalAttrs'},
+        {name: 'exclude_quiz', stored_at: 'module', fields: ['lesson'], type: 'boolean', text: 'Exclude score',  desc: 'Exclude this score from course report average score', group: 'grp_additionalAttrs'},
         {name: 'reopen_on_fail', stored_at: 'module', fields: ['lesson'], type: 'object', text: 'Reopen on fail', contentType: 'object',group: 'grp_additionalAttrs'},
+        {name: 'showInReport', stored_at: 'module', fields: ['gate'], text: 'Show in the report', desc: 'Show score in the report', type: 'boolean', group: 'grp_additionalAttrs'},
+        {name: 'hide_remarks', stored_at: 'module', fields: ['info', 'link'], type: 'boolean', text: 'Disable remarks', group: 'grp_additionalAttrs'},
+        {name: 'autocomplete', stored_at: 'module', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
         {name: 'icon', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
         {name: 'text', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'wikitext', valueName: 'textHtml', text: 'Description', group: 'grp_additionalAttrs'},
-		{name: 'completionPerc', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Completion percentage',type: 'number', group: 'grp_additionalAttrs'},
+		{name: 'completionPerc', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Completion percentage',type: 'number', group: 'grp_additionalAttrs', debug: true},
 		{name: 'customStatus', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'New status',type: 'list', group: 'grp_additionalAttrs', 
 			valueNamesUpdated: false, valueNames: {}, values: [], 
 			updateDropdown: _updateNewStatusDropdown,
 			canShow: function(attr){return _canShowNewState(attr)}},
-        {name: 'showInReport', stored_at: 'module', fields: ['gate'], text: 'Show in the report', desc: 'Show score in the report', type: 'boolean', group: 'grp_additionalAttrs'},
 		{name: 'isReattempt', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Mark as reattempt', desc: 'Mark this to indicate learner has reattempted', type: 'boolean', group: 'grp_additionalAttrs', 
 			canShow: function(attr) {return _canShowReattempt(attr);}
 		},
-        {name: 'maxAttempts', stored_at: 'module', fields: ['lesson'], type: 'number', text: 'Maximum attempts', group: 'grp_additionalAttrs'},
-        {name: 'hide_remarks', stored_at: 'module', fields: ['info', 'link'], type: 'boolean', text: 'Disable remarks', group: 'grp_additionalAttrs'},
-        {name: 'autocomplete', stored_at: 'module', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
         {name: 'parentId', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'readonly', debug: true, text: 'Parent ID', group: 'grp_additionalAttrs', readonly: true}, 
         {name: 'id', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'readonly', text: 'Unique ID', group: 'grp_additionalAttrs', readonly: true}, 
         {name: 'dependencyType', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'readonly', text: 'Dependency type', group: 'grp_additionalAttrs', debug: true, readonly: true}, 
@@ -529,13 +543,15 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     	maxDuration: 'You may restrict the learner to complete the module within the specified time limit. This values is pre-filled with the estimated time of module if configured in the module. You could clear this field (or set it to 0) if you do not want any time limit set for the module.',
     	action: 'The action whose URL is used for the link. Click on the icon to view the link',
     	urlParams: 'The urlParams to append to the URL (see Dashboard create/modify dialog for more information).',
-    	certificate_image: 'Provide a background image for your certificates.',
+		certificate_image: 'Provide a background image for your certificates.',
+		certificate_format: 'Choose the format that best suites your needs.',
     	grp_depAttrs: 'Enabling this would display planning properties such as "Start date" and "Planned date".',
     	start_date: 'Earliest planned start date. Is applicable only if "planning" is set to true for the course.',
     	planned_date: 'Expected planned completion date. Is applicable only if "planning" is set to true for the course.',
     	grp_additionalAttrs: 'Enabling this would display additional properties depeneding on the selected "Element type" of the module.',
     	trainer_notes: 'You could attach a set of approved modules as trainer notes for current item. These trainer notes are visible only for the trainer not for learners.',
-    	start_after: 'You could specify a set of prerequisite conditions that have to be met for current item. Only after all the specified conditions are met, the curent item is made available to the learner. If the prerequisites are not met, this current item is shown in a locked state to the learner.',
+		start_after: 'You could specify a set of prerequisite conditions that have to be met for current item. Only after all the specified conditions are met, the curent item is made available to the learner. If the prerequisites are not met, this current item is shown in a locked state to the learner.',
+		exclude_quiz: 'By default, quiz scores are incldued while computing the average score that is shown in the course level report and in the certificate. Enable this check box if you would like this quiz to be excluded from average computation (e.g. this is a pre-quiz). You will still be able to see the score of this item in detailed course reports. This attribute has no effect on self learning modules as they do not have a score.',
     	reopen_on_fail: 'You could reopen a set of learning modules if the learner failed in the quiz. To do this, you need to configure this property on the quiz module. You can list the items (refered by their unique id) which have to be reopened if the learner failed to acheive minimum pass score in the current module. This property is a JSON string representing an array of strings: each string is unque id of the item that should be re-opened.<br> Example:<br></div><pre>["_id1", "_id2"]</pre></div>',
 		icon: 'Icon to be displayed for this item in the course tree. If not provided, this is derived from the type. "quiz" is a predefined icon.',
 		text: _getDescriptionHelp(),
@@ -828,7 +844,6 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         for(var i=0; i<attrs.length; i++){
             var attr = attrs[i];
             if (!(attr in allowedAttributes)) continue;
-            var allowedAttr = allowedAttributes[attr];
             if(cm[attr] === null || cm[attr] === undefined || cm[attr] === '') continue;
             editedModule[attr] = cm[attr];
         }
