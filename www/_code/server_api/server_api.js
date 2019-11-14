@@ -58,15 +58,15 @@ function(nl, nlDlg, nlConfig, Upload) {
     // Auth Module
     //---------------------------------------------------------------------------------------------
     this.authLogin = function(data) {
-        return _postAndSaveEula('_serverapi/auth_login.json', data, false);
+        return _postWithReoadUserData('_serverapi/auth_login.json', data, false);
     };
 
     this.authRequestOTP = function(phonenumber) {
-        return _postAndSaveEula('_serverapi/auth_request_otp.json', {phonenumber:phonenumber}, false);
+        return _postWithReoadUserData('_serverapi/auth_request_otp.json', {phonenumber:phonenumber}, false);
     };
 
     this.authVerifyOTP = function(data) {
-        return _postAndSaveEula('_serverapi/auth_verify_otp.json', data, false);
+        return _postWithReoadUserData('_serverapi/auth_verify_otp.json', data, false);
     };
 
     this.authLogout = function() {
@@ -85,12 +85,8 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/auth_pw_self_reset.json', data);
     };
 
-    this.authEulaAck = function() {
-        return server.post('_serverapi/auth_eula_ack.json', {});
-    };
-
     this.authImpersonate = function(username) {
-        return _postAndSaveEula('_serverapi/auth_impersonate.json', {username:username}, false);
+        return _postWithReoadUserData('_serverapi/auth_impersonate.json', {username:username}, false);
     };
 
     this.authImpersonateEnd = function() {
@@ -770,11 +766,12 @@ function(nl, nlDlg, nlConfig, Upload) {
     }
 
     function _ping() {
-        return _postAndSaveEula('_serverapi/auth_ping.json', {showExtendedStatusCode: true}, true);
+        return _postWithReoadUserData('_serverapi/auth_ping.json', {showExtendedStatusCode: true}, true);
     }
 
-    function _postAndSaveEula(url, data, noPopup) {
-        return _cachedPost("EULA_INFO", false, url, data, true, noPopup);
+    function _postWithReoadUserData(url, data, noPopup) {
+        var reloadUserInfo = true;
+        return server.post(url, data, reloadUserInfo, noPopup);
     }
 
     function _cachedPost(cacheKey, addTimestamp, url, data, reloadUserInfo, noPopup, upload, cachedValue) {
