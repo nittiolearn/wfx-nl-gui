@@ -150,7 +150,6 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCar
             cardlist: _getDashboardCards(userInfo, parent, cardListFromServer)
         };
         nlCardsSrv.initCards($scope.cards);
-        _eulaWarning();
     }
 
     function _getUnauthorizedCards(userInfo) {
@@ -197,14 +196,6 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCar
             card.links = [{id: 'details', text: nl.t('details')}];
         }
     }
-
-    function _eulaWarning() {
-        nlConfig.loadFromDb('EULA_INFO', function(eulaInfo) {
-            if (eulaInfo == null) {
-                userInfo = _defaultUserInfo();
-            }
-        });
-    }    
 };
 
 //-------------------------------------------------------------------------------------------------
