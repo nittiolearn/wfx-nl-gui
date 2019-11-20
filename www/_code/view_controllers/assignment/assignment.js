@@ -99,8 +99,8 @@ function TypeHandler(nl, nlServerApi) {
 }
 
 //-----------------------------------------------------------------------------------------------------
-var AssignmentDeskCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlGetManyStore',
-function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlGetManyStore) {
+var AssignmentDeskCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlGetManyStore', 'nlChangeOwner',
+function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlGetManyStore, nlChangeOwner) {
 
 	var mode = new TypeHandler(nl, nlServerApi);
 	var _userInfo = null;
@@ -133,7 +133,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlGetManyStore) {
             nl.window.location.href = url;
         } else if (internalUrl === 'fetch_more') {
             _fetchMore();
-        }
+        }  else if (internalUrl == 'change_owner') {
+			nlChangeOwner.show($scope, assignId, 'assignment', _userInfo); 
+		}
 	};
 	
     $scope.onCardLinkClicked = function(card, linkId) {
@@ -232,9 +234,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlGetManyStore) {
 			avps : _getAssignmentAvps(assignment)
 		};
 		card.links = [];
-		if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
-			card.links.push({id : 'view_content', text : nl.t('content')});
-		}
         card.links.push({id : 'details', text : nl.t('details')});
 		return card;
 	}
@@ -282,8 +281,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlGetManyStore) {
 		if (mode.type == TYPES.PAST) {
 			nl.fmt.addLinkToAvp(linkAvp, 'view report', nl.fmt2('/lesson/view_report_assign/{}', assignId));
 		} else if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
-			nl.fmt.addLinkToAvp(linkAvp, 'reports', nl.fmt2('/#/learning_reports?type=module_assign&objid={}', assignId));
 			nl.fmt.addLinkToAvp(linkAvp, 'content', nl.fmt2('/lesson/view_assign/{}', assignId));
+			nl.fmt.addLinkToAvp(linkAvp, 'change owner', null, 'change_owner');	
+			//Below is removed for now
+			//nl.fmt.addLinkToAvp(linkAvp, 'reports', nl.fmt2('/#/learning_reports?type=module_assign&objid={}', assignId));
 			nl.fmt.addLinkToAvp(linkAvp, 'delete', null, 'assign_delete');
 			if(!publish) nl.fmt.addLinkToAvp(linkAvp, 'publish', null, 'assign_publish');
 		} else {

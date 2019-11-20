@@ -556,7 +556,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 
     function _sendOrModifyNextBatch(ctx, resolve, serverFn, _dlg) {
         var msg = nl.t('Sent assignment to {} of {}', ctx.sentUserCnt, ctx.totalUsersCnt);
-        if(_dlg) msg = nl.t('Assignment modified, {}', ctx.totalUsersCnt > 0 ? nl.t('{} of {} users added to existing assignment', ctx.sentUserCnt, ctx.totalUsersCnt) : '' );
+        if(_dlg) msg = nl.t('Assignment modified {}', ctx.totalUsersCnt > 0 ? nl.t(', {} of {} users added to existing assignment', ctx.sentUserCnt, ctx.totalUsersCnt) : '' );
 
         if (ctx.pendingUsers.length == 0) {
             nlDlg.popupStatus(msg);
