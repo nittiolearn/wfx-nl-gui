@@ -154,9 +154,9 @@ function(nl) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var AppCtrl = ['nl', '$scope', '$anchorScroll', 'nlKeyboardHandler', 'nlAnnouncementSrv', 'nlRouter',
+var AppCtrl = ['nl', 'nlDlg', '$scope', '$anchorScroll', 'nlKeyboardHandler', 'nlAnnouncementSrv', 'nlRouter',
 'nlLogViewer', 'nlOldCodeBridge', 'nlTopbarSrv', 'nlServerSideUserSettings',
-function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRouter, nlLogViewer,
+function(nl, nlDlg, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRouter, nlLogViewer,
     nlOldCodeBridge, nlTopbarSrv, nlServerSideUserSettings) {
     nl.log.info('UserAgent: ', navigator.userAgent);
     if (NL_SERVER_INFO.oldCode) nlOldCodeBridge.expose();
@@ -193,6 +193,13 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
             topbarMenus = _updateTopbarMenus(userInfo);
         }
         nlTopbarSrv.setCommonMenus(topbarMenus);
+        // TODO-NOW: Needs update for app notification handling
+        nl.timeout(function() {
+            if (!nl.window.nittio_mobile_last_msg) return;
+            var appMsg = nl.window.nittio_mobile_last_msg;
+            nl.window.nittio_mobile_last_msg = null;
+            nlDlg.popupAlert({title: 'App Notification', template: appMsg});
+        }, 100);
         nl.log.debug('app:onPageEnter - done');
     };
     

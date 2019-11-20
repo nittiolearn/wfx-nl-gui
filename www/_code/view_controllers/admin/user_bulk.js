@@ -516,7 +516,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         var user = _groupInfo.derived.keyToUsers[row.username];
         if (row.state != 0 && row.state != 1)
             _throwException('Invalid state specified', row);
-        if (user.usertype <= nlGroupInfo.UT_PADMIN && row.state == 0) 
+        if (user && user.usertype <= nlGroupInfo.UT_PADMIN && row.state == 0) 
             _throwException('Admin or primary admin cannot be deactivated', row);
     };
 
