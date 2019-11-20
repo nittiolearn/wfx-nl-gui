@@ -5,7 +5,7 @@
 // Debugging utilities
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-    angular.module('nl.debug', ['nl.debugtemp'])
+    angular.module('nl.debug', ['nl.debugtemp', 'nl.nittio_mobile_sim'])
     .config(configFn)
     .controller('nl.DebugCtrl', DebugCtrl);
 }

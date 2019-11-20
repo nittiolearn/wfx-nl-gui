@@ -33,6 +33,25 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv) {
         nl.window.location.href = '/#' + nl.location.url();
         return;
     }
+
+    nl.appNotification.onNotification(function(data) {
+        var title = data.notif_title || 'Notification';
+        var template = nl.fmt2('<div class="padding-mid">{}</div>' +
+            '<div class="padding-mid">Would you like to navigate to the new page?</div>',
+            data.notif_body);
+        nlDlg.popupConfirm({title: title, template: template, 
+            okText: 'Yes', cancelText: 'No'}).then(function(result) {
+            if (!result) return;
+            var ctype = parseInt(data.ctype);
+            var repid = parseInt(data.repid);
+            if (ctype == _nl.ctypes.CTYPE_MODULE) {
+                var url = nl.fmt2('/lesson/do_report_assign/{}', repid);
+            } else {
+                var url = nl.fmt2('/#/course_view?mode=do&id={}', repid);
+            }
+            nl.window.location.href = url;
+        });
+    });
     
     var preservedSearchParams = null;
     this.initContoller = function($scope, pageUrl, pageEnterFn, pageLeaveFn) {
@@ -242,6 +261,7 @@ function Permission(nl) {
         '/impersonate': {login: true, permission: 'admin_impersonate_grp', termRestriction: TR_CLOSED},
         '/debug': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED},
         '/debugtemp': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED},
+        '/nittio_mobile_sim': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED},
         '/forum': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},
         '/course_list': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},
         '/course_assign_my_list': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},
