@@ -235,7 +235,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			remarks: {name: 'Remarks', help: nl.t('Add remarks if any that you want to share to the learners - e.g. submit before Friday.')},
 			forum: {name: 'Forum', help: nl.t('You could choose to allow learners to discuss with you in a discussion forum. Only the learners belonging to this batch and learning administrators will be able to post and view messages in this forum.')},
 			submissionAfterEndtime: {name: 'Submission after end time', help: nl.t('You can allow learners to submit assignment after the mentioned end time.')},
-			sendEmail: {name: 'Email notifications', help: nl.t('You could choose to send email notifications to the learners.')},
+			sendEmail: {name: 'Notifications', help: nl.t('You could choose to send notifications to the learners.')},
             batchParams: {name: 'Training details', help: nl.t('You may configure the training batch details.')},
             iltTrainerName: {name: 'Trainer name', help: nl.t('Provide trainer name to this training.')},
 			iltVenue: {name: 'Venue', help: nl.t('Configure venue of this training.')},
