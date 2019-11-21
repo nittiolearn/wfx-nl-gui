@@ -117,12 +117,27 @@ function(nl, nlDlg, nlServerApi) {
 		        }
 			}
     	};
-    	var data = {contentids: idArray, owner: dlgScope.data.username, contenttype: dlgScope.data.contenttype};
+		var data = {contentids: idArray, owner: dlgScope.data.username, contenttype: dlgScope.data.contenttype};
+		_serverCallImpl(dlgScope, data);
+	}
+	
+	function _serverCallImpl(dlgScope, data) {
     	nlServerApi.changeOwner(data).then(function(result) {
-        	nlDlg.hideLoadingScreen();
-    		if(result) {
+			nlDlg.hideLoadingScreen();
+			if(result.inprogress) {
+    			var msg = {title: nl.t('Changing owner is in progress'), template: nl.t('{}', result.inprogress)};
+				msg['okText'] = nl.t('Change');
+				nlDlg.popupConfirm(msg).then(function(res) {
+					if(res) {
+						nlDlg.showLoadingScreen()
+						data['bForce'] = true;
+						_serverCallImpl(dlgScope, data);
+					}
+				});
+				return;
+			} else {
     			var param = dlgScope.data.contenttype == 'lesson' ? 'lesson' : dlgScope.data.contenttype == 'course_assignment' ? 'course_assignment' : dlgScope.data.contenttype == 'assignment' ? 'module assignment' : 'course';
-    			param += (idArray.length > 1) ? 's are' : ' '+'is';
+    			param += (data.contentids.length > 1) ? 's are' : ' '+'is';
     			var msg = {title: nl.t('Owner modified'), template: nl.t('The owner of selected {} modified to {}', param, result.owner)};
     			if(dlgScope.isBulkOpt) {
     				msg['okText'] = nl.t('Change again');
@@ -142,7 +157,7 @@ function(nl, nlDlg, nlServerApi) {
     	}, function(e) {
 			_showChangeOwnerDlg(dlgScope.data.contentid, dlgScope.data.contenttype, dlgScope.isBulkOpt);
     	});
-    }
+	}
 }];
 
 //-------------------------------------------------------------------------------------------------
