@@ -275,7 +275,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
             return;
         } else if (attr.level == 'modules' && attr.name == 'type') {
 			attr.updateDropdown(item, attr);
-            if (attr.name == 'type') _onElementTypeChange(e, item);
+            if (attr.name == 'type') _onElementTypeChange(e, item, attr);
             return;
         } else if (attr.level == 'modules' && attr.name == 'milestone_type') {
 			item.name = attr.valueNames[item.milestone_type];
@@ -283,9 +283,11 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		}
     }
 
-	function _onElementTypeChange(e, cm){
+	function _onElementTypeChange(e, cm, attr){
 		var childrenElem = [];
 		//For first time if gate is selected showInReport param is set to true;
+		var courseContent = modeHandler.course.content;
+		cm.name = nl.t('{} {}', attr.valueNames[cm.type], courseContent.lastId);
 		if(cm.type == 'gate' && !('showInReport' in cm)) cm.showInReport = true;
         for(var i=0; i < _allModules.length; i++){
         	if (_isDescendantOf(_allModules[i], cm)) childrenElem.push(i);
@@ -476,11 +478,11 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     };
     
     var moduleAttrs = [
-        {name: 'name', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'string', text: 'Name'}, 
 		{name: 'type', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'list', text: 'Element type',
 			// possible values will be updated in _updateTypeDropdown
 			valueNamesUpdated: false, valueNames: {}, values: [], 
             updateDropdown: _updateTypeDropdown},
+		{name: 'refid', stored_at: 'module', fields: ['lesson'], type: 'lessonlink', contentType: 'integer', text: 'Module-id'},
 		{name: 'rating_type', stored_at: 'module', fields: ['rating'], type: 'list', text: 'Rating type',
 			// possible values will be updated in _updateRatingDropdown
 			valueNamesUpdated: false, valueNames: {}, values: [], 
@@ -488,8 +490,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		{name: 'milestone_type', stored_at: 'module', fields: ['milestone'], type: 'list', text: 'Milestone type',
 			// possible values will be updated in _updateMilestoneDropdown
 			valueNamesUpdated: false, valueNames: {}, values: [], 
-            updateDropdown: _updateMilestoneDropdown},
-        {name: 'refid', stored_at: 'module', fields: ['lesson'], type: 'lessonlink', contentType: 'integer', text: 'Module-id'},
+			updateDropdown: _updateMilestoneDropdown},
+		{name: 'name', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'string', text: 'Name'}, 
 		{name: 'maxDuration', stored_at: 'module', fields: ['lesson'], type: 'string', contentType: 'integer', text: 'Time limit (minutes)'},
         {name: 'action', stored_at: 'module', fields: ['link'], type: 'lessonlink', text: 'Action'},
         {name: 'urlParams', stored_at: 'module', fields: ['link'], type: 'string', text: 'Url-Params'},
@@ -515,7 +517,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'hide_remarks', stored_at: 'module', fields: ['info', 'link'], type: 'boolean', text: 'Disable remarks', group: 'grp_additionalAttrs'},
         {name: 'autocomplete', stored_at: 'module', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
         {name: 'icon', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
-        {name: 'text', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'wikitext', valueName: 'textHtml', text: 'Description', group: 'grp_additionalAttrs'},
+        {name: 'text', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'wikitext', valueName: 'textHtml', text: 'Description', group: 'grp_additionalAttrs', debug: true},
 		{name: 'completionPerc', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Completion percentage',type: 'number', group: 'grp_additionalAttrs', debug: true},
 		{name: 'customStatus', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'New status',type: 'list', group: 'grp_additionalAttrs', 
 			valueNamesUpdated: false, valueNames: {}, values: [], 
