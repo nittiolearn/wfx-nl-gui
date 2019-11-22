@@ -219,20 +219,19 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv) {
 
         if (userInfo.appType != 'android') return resolve(userInfo);
         if (userInfo.appVersion == '200') {
-            if (!_appNotificationEnaled(userInfo.groupinfo.notifyBy)) return resolve(userInfo);
+            var notifyBy = ('groupinfo' in userInfo && userInfo.groupinfo.notifyBy) ? userInfo.groupinfo.notifyBy : []; 
+            if (!_appNotificationEnaled(notifyBy)) return resolve(userInfo);
             _informedAppUpdate = true;
             _informAppUpdate(resolve, userInfo);
         }
     }
 
     function _informAppUpdate(resolve, userInfo) {
-        var msg = 'A major version update of the app is available. Kindly update the app from playstore.';
-        nlDlg.popupConfirm({title: 'New version is available', template: msg, 
-            okText: 'Update Now', cancelText: 'Update Later'}).then(function(result) {
-                if (!result) return resolve(userInfo);
-                nl.window.location.href = "https://play.google.com/store/apps/details?id=com.nittiolearn.live&hl=en_IN";
-                resolve(userInfo);
-            });
+        var msg = nl.t('A major version update of the app is available. Kindly update the app from playstore.');
+        var data = {title: 'New version is available', template: msg, okText: 'Ok'};
+        nlDlg.popupAlert(data).then(function(res) {
+            if(res) resolve(userInfo);
+        });
     }
 
     function _appNotificationEnaled(notifyBy) {
