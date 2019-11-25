@@ -390,12 +390,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _isReminderNotificationEnabled() {
 		var props = _groupInfo.props;
-		var isMailEnabled = false;
-		for(var i=0; i<props.taskNotifications.length; i++) {
-			if(props.taskNotifications[i] != 3) continue;
-			isMailEnabled = true;
-			break;
-		}
+        var isMailEnabled = (props['notifyBy'] || []).length > 0;
 		return isMailEnabled;
 	}
 

@@ -433,10 +433,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		}
 		card.details = {help: card.help, avps: _getReportAvps(report, isReport)};
 		card.links = [];
-		if (!isReport && _canManage) {
-			card.links.push({id:'change_owner', text: nl.t('change owner')});
-			card.links.push({id:'course_assign_delete', text: nl.t('delete')});
-		}
 		card.links.push({id: 'details', text: nl.t('details')});
 		return card;
 	}
@@ -444,6 +440,11 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	function  _getReportAvps(report, isReport) {
 		var assignedTo = report.assigned_to;
 		var avps = [];
+		if(!isReport && _canManage) {
+			var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
+			nl.fmt.addLinkToAvp(linkAvp, 'change owner', null, 'change_owner');
+			nl.fmt.addLinkToAvp(linkAvp, 'delete', null, 'course_assign_delete');	
+		}
 		var contentmetadata = report.content && report.content.contentmetadata ? report.content.contentmetadata : {};
 		nl.fmt.addAvp(avps, 'Name', report.name);
 		nl.fmt.addAvp(avps, 'Course Author', report.courseauthor);
