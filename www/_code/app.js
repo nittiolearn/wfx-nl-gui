@@ -173,8 +173,6 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
     nlLogViewer.showOnStartupIfRequired($scope);
     
     var homeUrl = '/#/home';
-    var welcomeUrl = '/#/welcome#home';
-
     $scope.homeMenuTitle = nl.t('Home');
     $scope.logedIn = false;
     $scope.homeUrl = homeUrl;

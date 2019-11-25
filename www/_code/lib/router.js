@@ -33,6 +33,26 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv) {
         nl.window.location.href = '/#' + nl.location.url();
         return;
     }
+
+    nl.appNotification.onNotification(function(data) {
+        var template = nl.fmt2('<div class="padding-mid fsh6">{}</div>' +
+            '<div class="padding-mid">{}</div>' +
+            '<div class="padding-mid"></div>' +
+            '<div class="padding-mid">Would you like to go to this assignment now?</div>',
+            data.notif_title, data.notif_body);
+        nlDlg.popupConfirm({title: 'Notification', template: template, 
+            okText: 'Yes', cancelText: 'No'}).then(function(result) {
+            if (!result) return;
+            var ctype = parseInt(data.ctype);
+            var repid = parseInt(data.repid);
+            if (ctype == _nl.ctypes.CTYPE_MODULE) {
+                var url = nl.fmt2('/lesson/do_report_assign/{}', repid);
+            } else {
+                var url = nl.fmt2('/#/course_view?mode=do&id={}', repid);
+            }
+            nl.window.location.href = url;
+        });
+    });
     
     var preservedSearchParams = null;
     this.initContoller = function($scope, pageUrl, pageEnterFn, pageLeaveFn) {
@@ -104,7 +124,7 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv) {
             nlDlg.hideLoadingScreen();
             return; // Empty page
         }
-        _getUserInfo(pageUrl).then(function(userInfo) {
+        _getUserInfo(pageUrl, function(userInfo) {
             _sendGoogleAnalytics(userInfo);
             nl.rootScope.pgBgimg = null;
             nl.pginfo.username = (userInfo.username == '') ? '' : userInfo.displayname;
@@ -168,9 +188,12 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv) {
         nlDlg.closeAll();
     }
     
-    function _getUserInfo(pageUrl) {
-        if (permission.isOpenPage(pageUrl)) return nlServerApi.getUserInfoFromCache();
-        return nlServerApi.getUserInfoFromCacheOrServer();
+    function _getUserInfo(pageUrl, resolve, reject) {
+        var promise = permission.isOpenPage(pageUrl) ? nlServerApi.getUserInfoFromCache()
+            : nlServerApi.getUserInfoFromCacheOrServer();
+        promise.then(function(userInfo) {
+            _informAppUpdateIfNeeded(userInfo, pageUrl, resolve);
+        }, reject);
     }
     
     function _done(rerouteToUrl) {
@@ -189,6 +212,34 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv) {
         return true;
     }
 
+    var _informedAppUpdate = false;
+    function _informAppUpdateIfNeeded(userInfo, pageUrl, resolve) {
+        if (_informedAppUpdate) return resolve(userInfo);
+        if (!permission.isUpdateCheckPage(pageUrl)) return resolve(userInfo);
+
+        if (userInfo.appType != 'android') return resolve(userInfo);
+        if (userInfo.appVersion == '200') {
+            var notifyBy = ('groupinfo' in userInfo && userInfo.groupinfo.notifyBy) ? userInfo.groupinfo.notifyBy : []; 
+            if (!_appNotificationEnaled(notifyBy)) return resolve(userInfo);
+            _informedAppUpdate = true;
+            _informAppUpdate(resolve, userInfo);
+        }
+    }
+
+    function _informAppUpdate(resolve, userInfo) {
+        var msg = nl.t('A major version update of the app is available. Kindly update the app from playstore.');
+        var data = {title: 'New version is available', template: msg, okText: 'Ok'};
+        nlDlg.popupAlert(data).then(function(res) {
+            if(res) resolve(userInfo);
+        });
+    }
+
+    function _appNotificationEnaled(notifyBy) {
+        for (var i=0; i<notifyBy.length; i++)
+            if (notifyBy[i] == 'app') return true;
+        return false;
+    }
+    
     function _sendGoogleAnalytics(userInfo, reqtype) {
         var userid = userInfo.nittioImpersonatedBy || userInfo.username || 'none';
         var useridParts = userid.split('.');
@@ -242,6 +293,7 @@ function Permission(nl) {
         '/impersonate': {login: true, permission: 'admin_impersonate_grp', termRestriction: TR_CLOSED},
         '/debug': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED},
         '/debugtemp': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED},
+        '/nittio_mobile_sim': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED},
         '/forum': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},
         '/course_list': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},
         '/course_assign_my_list': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},
@@ -294,9 +346,15 @@ function Permission(nl) {
     
     var openPages = {'/login_now': 1, '/logout_now': 1,  '/pw_reset': 1,
                      '/welcome': 1};
+    var updateCheckPages = {'/home': 1, '/learner_view': 1};
     this.isOpenPage = function(pageUrl) {
         var page = (pageUrl == '') ? nl.location.path() : pageUrl;
         return (page in openPages);
+    };
+
+    this.isUpdateCheckPage = function(pageUrl) {
+        var page = (pageUrl == '') ? nl.location.path() : pageUrl;
+        return (page in updateCheckPages);
     };
 
     this.getPermObj = function(permId) {

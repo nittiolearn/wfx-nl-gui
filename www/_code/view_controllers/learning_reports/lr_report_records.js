@@ -14,8 +14,8 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlLrReportRecords = ['nl', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrFilter', 'nlGetManyStore', 'nlReportHelper',
-function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStore, nlReportHelper) {
+var NlLrReportRecords = ['nl', 'nlRouter', 'nlDlg', 'nlGroupInfo', 'nlLrHelper', 'nlLrFilter', 'nlGetManyStore', 'nlReportHelper',
+function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStore, nlReportHelper) {
     var self = this;
     
     var _records = {};
@@ -31,6 +31,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStore, nlRepor
     var _customScoresHeaderArray = [];
     var _customScoresHeaderObj = {};
     var _isNHT = false;
+    var _canManage = false;
     this.init = function(userinfo) {
         _userInfo = userinfo;
         _records = {};
@@ -43,6 +44,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStore, nlRepor
         _dates = {minUpdated: null, maxUpdated: null};
         _convertAttendanceArrayToObj(userinfo.groupinfo.attendance);
         if (!nlGroupInfo.isPastUserXlsConfigured()) _pastUserData = {};
+        _canManage = nlRouter.isPermitted(_userInfo, 'assignment_manage');
     };
     
     this.isReattemptEnabled = function() {
@@ -387,7 +389,7 @@ function(nl, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStore, nlRepor
             repcontent.score = score;
             report.urlTitle = nl.t('View report');
             report.url = nl.fmt2('/lesson/review_report_assign/{}', report.id);
-            if(nlLrFilter.getType() == 'module_assign') {
+            if(nlLrFilter.getType() == 'module_assign' && _canManage && nlLrFilter.isDebugMode()) {
                 report.urlTitle1 = nl.t('Update');
                 report.url1 = nl.fmt2('/lesson/update_report_assign/{}', report.id);
             }
