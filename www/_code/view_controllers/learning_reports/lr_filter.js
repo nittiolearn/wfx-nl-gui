@@ -19,6 +19,13 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		type: 'course',		// all|module|course|trainig_kind|module_assign|course_assign|module_self_assign|training_batch|user
 		timestamptype: 'created', // created|updated
 		myou: false,		// Filter records to my ou level
+		myoulevel: null,	// null|1|2|3. For example assume myou = A.B.C.D.E;
+							// If null (default) all records with OU equal to or under A.B.C.D.E are shown
+							// If 1 all records with OU equal to or under A are shown
+							// If 2 all records with OU equal to or under A.B are shown
+							// If 3 all records with OU equal to or under A.B.C are shown
+		myoufilter: 3,		// 0|1|2|3. This decides the maximum filters applied to fetch records from
+							// server. 0 - least filtering; 3 highest filtering.
 		assignor: 'all',	// all|me, will auomatically change to 'me' if assignment_manage permission is not there and myou is false
 		parentonly: true,	// fetch only parent records or also records part containing course/training
 		objid: null, 		// depending on type, will be interpretted as moduleid, courseid, ...
@@ -43,7 +50,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		_fillAttrs(_data, ['type'], [settings, urlParams, _dataDefaults]);
         if (!_oneOf(_data.type, ['all', 'module', 'course', 'training_kind', 'module_assign', 'course_assign', 'module_self_assign', 'training_batch', 'user']))
         	_data.type = 'course';
-        _fillAttrs(_data, ['timestamptype', 'myou', 'assignor', 'parentonly', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug', 'chunksize', 'dontZip'], 
+        _fillAttrs(_data, ['timestamptype', 'myou', 'myoulevel', 'myoufilter', 'assignor', 'parentonly', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug', 'chunksize', 'dontZip'], 
         	[settings, urlParams, _dataDefaults]);
         if (_oneOf(_data.type, ['module_assign', 'course_assign', 'training_batch', 'user']))
 			_data.showfilters = false;
@@ -54,6 +61,8 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		if(_data.type != 'user') _toInt(_data, 'objid');
 		
 		_toBool(_data, 'myou');
+		_toInt(_data, 'myoulevel');
+		_toInt(_data, 'myoufilter');
         _toBool(_data, 'showfilters');
         _toBool(_data, 'userSelection');
 		_toBool(_data, 'debug');
@@ -227,7 +236,16 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		var me = (_groupInfo.derived.keyToUsers || {})[_userInfo.username];
 		_myou = me.org_unit;
 		var ouParts = (me.org_unit || '').split('.');
-		for (var i=0; i<ouParts.length && i<3; i++) {
+		if (_data.myoulevel !== null) {
+			if (_data.myoulevel > ouParts.length) _data.myoulevel = ouParts.length;
+			var ouParts1 = ouParts;
+			ouParts = [];
+			for (var i=0; i<_data.myoulevel; i++) ouParts.push(ouParts1[i]);
+			_myou = ouParts.join('.');
+			if (_data.myoufilter > _data.myoulevel) _data.myoufilter = _data.myoulevel;
+		}
+		if (_data.myoufilter > 3) _data.myoufilter = 3;
+		for (var i=0; i<ouParts.length && i<_data.myoufilter; i++) {
 			ret.push({field: 'ou' + i, val: ouParts[i]});
 		}
 		return ret;
