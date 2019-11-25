@@ -48,9 +48,9 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
     nlRouter.initContoller($scope, '', _onPageEnter);
 
     function _init() {
-        _pageFetcher = nlServerApi.getPageFetcher({defMax: 50, itemType: 'learning record'});
+        _pageFetcher = nlServerApi.getPageFetcher({defMax: 500, itemType: 'learning record'});
         var params = nl.location.search();
-        _limit = ('limit' in params) ? parseInt(params.limit) : 5000;
+        _limit = ('limit' in params) ? parseInt(params.limit) : 100000;
         _debug =  ('debug' in params);
         _chunksize = ('chunksize' in params) ? parseInt(params.chunksize) : 0;
         $scope.toolbar = _getToolbar();
