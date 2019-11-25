@@ -392,7 +392,7 @@ function AudioManager() {
         var button = _getVoiceButtonDom();
         var info = _addPageAudio(audioUrlInfos, pageId, button, opage);
         button.on('click', function () {
-            _onButtonClick(info, audioUrlInfos, pageId, button);
+            _onButtonClick(info);
         });
         return button;
     };
@@ -408,16 +408,16 @@ function AudioManager() {
     
     function _addPageAudio(audioUrlInfos, pageId, button, opage) {
         var holder = jQuery('#audioHolder');
-        info = {audioUrlInfos: audioUrlInfos, button: button, pageId: pageId,
+        info = {audioUrlInfos: audioUrlInfos, button: button, pageId: pageId, opage: opage,
             playing: false, curFragment: 0};
         _audioHolder[pageId] = info;
-        _addAudioFragments(info, holder, opage);
+        _addAudioFragments(info, holder);
         _updateIcon(info);
         return info;
     }
 
     var runningFragmentId = 0;
-    function _addAudioFragments(info, holder, opage) {
+    function _addAudioFragments(info, holder) {
         for (var i=0; i<info.audioUrlInfos.length; i++) {
             var audioUrlInfo = info.audioUrlInfos[i];
             runningFragmentId++;
@@ -426,7 +426,7 @@ function AudioManager() {
             audioUrlInfo.status = 'loading'; // loading -> ready -> waiting -> playing
             var audio = jQuery(njs_helper.fmt2('<audio id="audfrg_{}" src="{}"/>', audioUrlInfo.fragmentid, audioUrlInfo.mp3));
             audioUrlInfo.audio = audio[0];
-            _registerAudioEvents(info, audioUrlInfo, opage);
+            _registerAudioEvents(info, audioUrlInfo);
             holder.append(audio);
         }
     }
@@ -469,16 +469,15 @@ function AudioManager() {
         return (_currentInfo && _currentInfo.pageId == info.pageId);
     }
 
-    function _registerAudioEvents(info, audioUrlInfo, opage) {
+    function _registerAudioEvents(info, audioUrlInfo) {
         var audio = audioUrlInfo.audio;
-        var pageId = info.pageId;
+        audio.addEventListener('error', function(e) {
+            audioUrlInfo.loadError = true;
+            _onEventCanPlay(info, audioUrlInfo);
+        }, true);
         audio.addEventListener('canplay', function(e) {
-            if (audioUrlInfo.status != 'loading') return;
-            audioUrlInfo.status = 'ready';
-            if (info.curFragment == audioUrlInfo.fragmentpos) {
-                _updateIcon(info);
-                if (_canAutoPlay && _isCurrentInfo(info)) _waitFragment(info);
-            }
+            audioUrlInfo.loadError = false;
+            _onEventCanPlay(info, audioUrlInfo);
         }, true);
         audio.addEventListener('play', function(e) {
             audioUrlInfo.ignoreDelay = true;
@@ -486,25 +485,38 @@ function AudioManager() {
         audio.addEventListener('pause', function(e) {
         }, true);
         audio.addEventListener('ended', function(e) {
-            audioUrlInfo.status = 'ready';
-            audioUrlInfo.ignoreDelay = false;
-            info.curFragment++;
-            if (info.curFragment >= info.audioUrlInfos.length) {
-                info.curFragment = 0;
-                _updateIcon(info);
-                info.playStarted = false;
-                if(opage) opage.voiceEnded = true;
-                return;
-            } else if (_isCurrentInfo(info)) {
-                if (_getFragmentStatus(info) == 'loading') {
-                    _loadFragment(info);
-                    _updateIcon(info);
-                } else {
-                    _preDelayStartsNow();
-                    _waitFragment(info);
-                }
-            }
+            _onEventEnded(info, audioUrlInfo);
         }, true);
+    }
+    
+    function _onEventCanPlay(info, audioUrlInfo) {
+        if (audioUrlInfo.status != 'loading') return;
+        audioUrlInfo.status = 'ready';
+        if (info.curFragment == audioUrlInfo.fragmentpos) {
+            _updateIcon(info);
+            if (_canAutoPlay && _isCurrentInfo(info)) _waitFragment(info);
+        }
+    }
+
+    function _onEventEnded(info, audioUrlInfo) {
+        audioUrlInfo.status = 'ready';
+        audioUrlInfo.ignoreDelay = false;
+        info.curFragment++;
+        if (info.curFragment >= info.audioUrlInfos.length) {
+            info.curFragment = 0;
+            _updateIcon(info);
+            info.playStarted = false;
+            if(info.opage) info.opage.voiceEnded = true;
+            return;
+        } else if (_isCurrentInfo(info)) {
+            if (_getFragmentStatus(info) == 'loading') {
+                _loadFragment(info);
+                _updateIcon(info);
+            } else {
+                _preDelayStartsNow();
+                _waitFragment(info);
+            }
+        }
     }
     
     function _loadFragment(info) {
@@ -531,7 +543,16 @@ function AudioManager() {
         _preDelayStartsNow();
         audioUrlInfo.status = 'playing';
         _updateIcon(info);
-        audioUrlInfo.audio.play();
+        if (audioUrlInfo.loadError) {
+            _onEventEnded(info, audioUrlInfo);
+            return;
+        }
+        try{
+            audioUrlInfo.audio.play();
+        } catch (e){
+            console.error('audio.play failed:', audioUrlInfo, e);
+            _onEventEnded(info, audioUrlInfo);
+        }
     }
 
     function _pauseFragment(info) {
@@ -606,12 +627,11 @@ function AudioManager() {
         _currentInfo = null;
     };
     
-    function _onButtonClick(info, audioUrlInfos, pageId, button) {
+    function _onButtonClick(info) {
         _currentInfo = info;
         var status = _getFragmentStatus(info);
         if (status == 'loading') {
             njs_helper.Dialog.popupStatus('Audio is loading. Please wait ...');
-            _addPageAudio(audioUrlInfos, pageId, button); // Needed for mobile
         } else if (status == 'ready') {
             _canAutoPlay = true;
             _preDelayStartsNow(info.playStarted);
