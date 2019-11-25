@@ -138,12 +138,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 
     function _isAssignmentEnabled() {
 		var props = nlGroupInfo.get().props;
-		var isMailEnabled = false;
-		for(var i=0; i<props.taskNotifications.length; i++) {
-			if(props.taskNotifications[i] != 3) continue;
-			isMailEnabled = true;
-			break;
-		}
+        var isMailEnabled = (props['notifyBy'] || []).length > 0;
 		return isMailEnabled;
     }
     

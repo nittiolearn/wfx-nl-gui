@@ -104,9 +104,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlGetManyStore, n
 
 	var mode = new TypeHandler(nl, nlServerApi);
 	var _userInfo = null;
+    var _canManage = false;
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
+		_canManage = nlRouter.isPermitted(_userInfo, 'assignment_manage');
 		return nl.q(function(resolve, reject) {
 			nlGetManyStore.init();
 			mode.initFromUrl(_userInfo);
@@ -282,10 +284,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlGetManyStore, n
 			nl.fmt.addLinkToAvp(linkAvp, 'view report', nl.fmt2('/lesson/view_report_assign/{}', assignId));
 		} else if (mode.type == TYPES.MANAGE || mode.type == TYPES.SENT) {
 			nl.fmt.addLinkToAvp(linkAvp, 'content', nl.fmt2('/lesson/view_assign/{}', assignId));
-			nl.fmt.addLinkToAvp(linkAvp, 'change owner', null, 'change_owner');	
-			//Below is removed for now
-			//nl.fmt.addLinkToAvp(linkAvp, 'reports', nl.fmt2('/#/learning_reports?type=module_assign&objid={}', assignId));
-			nl.fmt.addLinkToAvp(linkAvp, 'delete', null, 'assign_delete');
+			if(_canManage) {
+				nl.fmt.addLinkToAvp(linkAvp, 'change owner', null, 'change_owner');	
+				nl.fmt.addLinkToAvp(linkAvp, 'delete', null, 'assign_delete');
+			}
 			if(!publish) nl.fmt.addLinkToAvp(linkAvp, 'publish', null, 'assign_publish');
 		} else {
 			nl.fmt.addLinkToAvp(linkAvp, 'do assignment', nl.fmt2('/lesson/do_report_assign/{}', assignId));
