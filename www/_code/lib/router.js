@@ -212,26 +212,27 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv) {
         return true;
     }
 
-    var _informedAppUpdate = false;
     function _informAppUpdateIfNeeded(userInfo, pageUrl, resolve) {
-        if (_informedAppUpdate) return resolve(userInfo);
         if (!permission.isUpdateCheckPage(pageUrl)) return resolve(userInfo);
-
         if (userInfo.appType != 'android') return resolve(userInfo);
         if (userInfo.appVersion == '200') {
             var notifyBy = ('groupinfo' in userInfo && userInfo.groupinfo.notifyBy) ? userInfo.groupinfo.notifyBy : []; 
             if (!_appNotificationEnaled(notifyBy)) return resolve(userInfo);
-            _informedAppUpdate = true;
             _informAppUpdate(resolve, userInfo);
+        } else {
+            resolve(userInfo);
         }
     }
 
+    var _informedAppUpdateAt = null;
     function _informAppUpdate(resolve, userInfo) {
+        var now = (new Date()).getTime();
+        if (_informedAppUpdateAt && (now - _informedAppUpdateAt) < 30000) return resolve(userInfo);
+        _informedAppUpdateAt = now;
         var msg = nl.t('A major version update of the app is available. Kindly update the app from playstore.');
-        var data = {title: 'New version is available', template: msg, okText: 'Ok'};
-        nlDlg.popupAlert(data).then(function(res) {
-            if(res) resolve(userInfo);
-        });
+        var data = {title: 'Update the App', template: msg};
+        nlDlg.popupAlert(data);
+        resolve(userInfo);
     }
 
     function _appNotificationEnaled(notifyBy) {
