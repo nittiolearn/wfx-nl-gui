@@ -201,7 +201,8 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
     };
 
  	this.getServerParams = function() {
-		var ret = {type: _data.type, assignor: _data.assignor, parentonly: _data.parentonly};
+		var ret = {type: _data.type, assignor: _data.assignor, parentonly: _data.parentonly,
+			myou: _data.myou};
 		if (_data.type != 'all' && _data.objid) ret.objid = _data.objid;
 		if (_data.type == 'user') ret.userid = _data.userid;
 		if (_data.showfilters) {
