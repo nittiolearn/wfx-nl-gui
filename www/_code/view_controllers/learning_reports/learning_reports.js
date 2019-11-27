@@ -1914,7 +1914,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			return;
 		}
 
-		var maxPerBatch = 500;
+		var maxPerBatch = 100;
 		var batchLength = reminderDict.users.length - startFrom;
 		if (batchLength > maxPerBatch) batchLength = maxPerBatch; 
 		var params = {name: reminderDict.name, assigned_by: reminderDict.assigned_by, 
