@@ -32,6 +32,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     var _customScoresHeaderObj = {};
     var _isNHT = false;
     var _canManage = false;
+    var _canSend = false;
     this.init = function(userinfo) {
         _userInfo = userinfo;
         _records = {};
@@ -45,6 +46,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         _convertAttendanceArrayToObj(userinfo.groupinfo.attendance);
         if (!nlGroupInfo.isPastUserXlsConfigured()) _pastUserData = {};
         _canManage = nlRouter.isPermitted(_userInfo, 'assignment_manage');
+        _canSend = nlRouter.isPermitted(_userInfo, 'assignment_send');
     };
     
     this.isReattemptEnabled = function() {
@@ -292,6 +294,13 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         report.urlTitle = nl.t('View report');
         stats.status = nlReportHelper.getStatusInfoFromCourseStatsObj(stainf);
         report.typeStr = 'Course';
+        if (_canManage) {
+            report.hideDeleteButton = false;
+        } else if (_canSend && _userInfo.userid == repcontent.sender) {
+            report.hideDeleteButton = false;
+        } else {
+            report.hideDeleteButton = true;
+        }
         var ret = {raw_record: report, repcontent: repcontent, course: course, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
@@ -399,6 +408,14 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             : stats.status.id == nlReportHelper.STATUS_STARTED ? 'Started' : '100 %';
         stats.percCompleteDesc = '';
         report.typeStr = 'Module';
+        if (_canManage) {
+            report.hideDeleteButton = false;
+        } else if (_canSend && _userInfo.userid == report.assignor) {
+            report.hideDeleteButton = false;
+        } else {
+            report.hideDeleteButton = true;
+        }
+
         var ret = {raw_record: report, repcontent: repcontent, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'), 

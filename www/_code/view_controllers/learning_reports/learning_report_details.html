@@ -24,7 +24,7 @@
         </div>
     </div>
 
-    <div class='padding-mid' ng-hide='rec._raw.raw_record.containerid'>
+    <div class='padding-mid' ng-hide='rec._raw.raw_record.containerid || rec._raw.raw_record.hideDeleteButton'>
         <div class='row row-center padding0 margin0 nl-link-text' ng-click='onItemClick(rec, "delete")'>
            <i class='ion-ios-trash icon nl-dlg-field-icon'></i>
            <span ng-show='$root.screenSize != "small"' class='padding-mid'>Delete</span>
