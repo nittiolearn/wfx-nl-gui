@@ -542,8 +542,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		};
 		nlDlg.popupConfirm(msg).then(function(result) {
 			if (!result) return;
-            nlDlg.showLoadingScreen();
-            nlServerApi.courseGet(card.courseId, false).then(function(course) {
+			nlDlg.showLoadingScreen();
+            nlServerApi.courseGet(card.courseId, !my).then(function(course) {
                 var courseName = course.name; 
                 courseName = (courseName.indexOf("Copy of") == 0) ? courseName : nl.t('Copy of {}', courseName);
                 var dlgScope = {error: {}, data: {
