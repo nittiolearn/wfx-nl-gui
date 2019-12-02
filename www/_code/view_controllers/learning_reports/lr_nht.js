@@ -219,7 +219,7 @@ function NhtCounts(nl, nlGetManyStore) {
         var courseAssignment = nlGetManyStore.getAssignmentRecordFromReport(report.raw_record) || {};
         var course = nlGetManyStore.getRecord(nlGetManyStore.getContentKeyFromReport(report.raw_record));
         var actualMsInfo = angular.fromJson(courseAssignment.milestone) || {};
-        var plannedMsInfo = courseAssignment.info.msDates;
+        var plannedMsInfo = courseAssignment.info.msDates || {};
         var modules = course.content.modules || [];
         updatedStats['start'] = report.not_before;
         updatedStats['end'] = report.not_after;
