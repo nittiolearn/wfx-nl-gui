@@ -1,0 +1,26 @@
+<nl-dlg dlgtitle='{{dlgTitle}}' show-help='0'>
+    <div class="padding-mid" ng-if='lstUidChanges.length == 1'>
+        Login user id of the below user will be changed.<br/>
+        Please review this carefully and type "<b>confirm</b>" in the box below to proceed.
+    </div>
+    <br/>
+    <div class="padding-mid" ng-if='lstUidChanges.length > 1'>
+        Login user id of {{lstUidChanges.length}} users will be changed.<br/>
+        Please review the list below carefully and type "<b>confirm</b>" in the box below to proceed.
+    </div>
+    <table class="padding-mid nl-table">
+        <thead>
+            <tr>
+                <th>Existing user_id</th>
+                <th>Modified user_id</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat='row in lstUidChanges'>
+                <td>{{row.oldUserId}}</td>
+                <td>{{row.newUserId}}</td>
+            </tr>
+        </tbody>
+    </table>
+    <nl-input fieldmodel='confirmModification' fieldtype='text'></nl-input>
+</nl-dlg>

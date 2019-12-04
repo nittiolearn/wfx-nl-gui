@@ -358,8 +358,14 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
             nlDlg.popupStatus('No changes to update');
             return;
         }
+        var lstUidChange = [];
+        if(dlgScope.data.user_id != user.user_id) {
+            var newUserId = dlgScope.data.user_id;
+            var oldUserId = user.user_id;
+            lstUidChange.push({newUserId:newUserId, oldUserId:oldUserId});
+        }
         nlDlg.showLoadingScreen();
-        nlAdminUserImport.updateServer([row]).then(function(errorCnt) {
+        nlAdminUserImport.updateServerAfterConfirmIfNeeded(lstUidChange, [row]).then(function(errorCnt) {
             nlDlg.hideLoadingScreen();
             if (errorCnt > 0) {
                 nlDlg.popupAlert({title: 'Processing Error', template: 'Server encountered error processing the request'});
