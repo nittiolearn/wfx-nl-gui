@@ -988,7 +988,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					if(subOrgName && org.cnt['name'].indexOf(subOrgName+'.') === 0) org.cnt['orgname'] = org.cnt['name'].slice(subOrgName.length+1);
 				}
 			if(showLeafOnly) {
-				if(!org.children) {
+				if(!org.children || Object.keys(org.children).length == 0) {
 					org.cnt.indentation = 0;
 					drillDownArray.push(org.cnt);
 				} else {
