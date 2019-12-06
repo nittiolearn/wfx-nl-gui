@@ -120,7 +120,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         _userInfo = userInfo;
         _grpid = grpid;
         var params = nl.location.search();
-        _canUpdateLoginId = 'debug' in params && nlRouter.isPermitted(_userInfo, 'nittio_support');
+        _canUpdateLoginId = nlRouter.isPermitted(_userInfo, 'admin_user');
     };
 
     this.importUsers = function($scope, chunkSize, debugLog) {
@@ -183,7 +183,8 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         self.showRowNumber = false;
         self.missingOus = {};
     };
-    
+
+    var lstUidChanges = [];        // [{oldUserId, newUserId},...] when user_id is modified
     function _onImport(e, dlgScope) {
         self.initImportOperation();
         if (e) e.preventDefault();
@@ -220,7 +221,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
                     _done(true);
                     return;
                 }
-                self.updateServer(rows, dlgScope.data.createMissingOus);
+                _updateServerAfterConfirmIfNeeded(false, rows, dlgScope.data.createMissingOus);
             }, function(e) {
                 _error(e);
             });
@@ -343,6 +344,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         }
         var end = start+PROCESS_CHUNK_SIZE;
         if (end > table.length) end = table.length;
+        lstUidChanges = [];
         for (var i=start; i<end; i++) {
             var row = table[i];
             self.statusCnts.total++;
@@ -489,6 +491,12 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         self.foundKeys[row.username] = true;
 
         var user = _groupInfo.derived.keyToUsers[row.username];
+
+        if(user && row.user_id != user.user_id) {
+            var newUserId = row.user_id;
+            var oldUserId = user.user_id;
+            lstUidChanges.push({newUserId:newUserId, oldUserId:oldUserId});
+        }
         if (user && user.usertype <= nlGroupInfo.UT_PADMIN && row.user_id != user.user_id) 
             _throwException('Cannot change loginid of this user', row);
         if (!_canUpdateLoginId && user && row.user_id != user.user_id)
@@ -673,7 +681,51 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         missingOus.sort();
         return nlServerApi.groupUpdateOrgTree(_groupInfo.id, missingOus);
     }
-    
+
+    this.updateServerAfterConfirmIfNeeded = _updateServerAfterConfirmIfNeeded;
+    function _updateServerAfterConfirmIfNeeded(lstUidChangeFromGui, rows, createMissingOus) {
+        var _parentScope = nl.rootScope;
+        if (lstUidChangeFromGui) lstUidChanges = lstUidChangeFromGui;
+        if (lstUidChanges.length == 0) {
+            return self.updateServer(rows, lstUidChangeFromGui.length ? false : createMissingOus)
+        }
+
+        return nl.q(function(resolve, reject) {
+            var userIdDlg = nlDlg.create(_parentScope);
+            userIdDlg.scope.error = {};
+            userIdDlg.scope.dlgTitle = nl.t('Modifying login user ids?');
+            userIdDlg.scope.lstUidChanges = lstUidChanges;
+            userIdDlg.scope.data = {};
+            userIdDlg.scope.data.error = {};
+            userIdDlg.scope.data.confirmModification = '';
+
+            var confirmBtnClick = false;
+            var confirmButton = {text : nl.t('Confirm'), onTap : function(e) {
+                if (userIdDlg.scope.data.confirmModification.toLowerCase().trim() != 'confirm') {
+                    if(e) e.preventDefault(e);
+                    nlDlg.setFieldError(userIdDlg.scope, 'confirmModification', nl.t('Please write "confirm" to proceed'));
+                    return;
+                }
+                confirmBtnClick = true;
+                if (lstUidChangeFromGui.length) nlDlg.showLoadingScreen();
+                self.updateServer(rows, lstUidChangeFromGui.length ? false : createMissingOus)
+                .then(function(errorCnt) {
+                    resolve(errorCnt);
+                });
+            }};
+            var closeButton = {text : nl.t('Cancel'), onTap : function(e) {
+                if(confirmBtnClick || lstUidChangeFromGui) return resolve(0);
+                self.setProgress('done');
+                self.reload = false;
+                var mesg = nl.fmt2('Modifications are denied', self.statusCnts.process, self.statusCnts.total);
+                self.pl.imp(mesg, angular.toJson(self.statusCnts, 2));
+                if(self.dlg) self.dlg.scope.running = false;
+                return resolve(0);
+            }};
+            userIdDlg.show('view_controllers/admin/user_id_dlg.html', [confirmButton], closeButton);
+        });
+    }
+
     function _updateChunkToServer(rows, resolve) {
         self.setProgress('uploadToServer', self.chunkStart, rows.length);
         if (self.chunkStart >= rows.length) {
