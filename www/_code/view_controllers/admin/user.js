@@ -359,7 +359,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
             return;
         }
         var lstUidChange = [];
-        if(dlgScope.data.user_id != user.user_id) {
+        if(user && dlgScope.data.user_id != user.user_id) {
             var newUserId = dlgScope.data.user_id;
             var oldUserId = user.user_id;
             lstUidChange.push({newUserId:newUserId, oldUserId:oldUserId});

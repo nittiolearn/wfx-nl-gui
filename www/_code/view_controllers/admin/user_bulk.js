@@ -316,6 +316,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
                     self.pl.debug('Header row processsed', angular.toJson(headerInfo, 2));
                     var data = [];
                     _processCsvRowsT(table, headerInfo, 1, data, resolve, reject);
+                    lstUidChanges = [];
                 } catch (e) {
                     reject(e);
                 }
@@ -344,7 +345,6 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         }
         var end = start+PROCESS_CHUNK_SIZE;
         if (end > table.length) end = table.length;
-        lstUidChanges = [];
         for (var i=start; i<end; i++) {
             var row = table[i];
             self.statusCnts.total++;
