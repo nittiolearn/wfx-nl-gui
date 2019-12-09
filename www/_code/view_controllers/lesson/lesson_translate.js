@@ -5,7 +5,8 @@
 // lesson translate module
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-	angular.module('nl.lessontranslate', []).config(configFn)
+    angular.module('nl.lessontranslate', []).config(configFn)
+    .service('nlLanguageTranslateSrv', LanguageTranslateSrv)
 	.controller('nl.LessonTranslateCtrl', LessonTranslateCtrl);
 };
 
@@ -22,23 +23,11 @@ function($stateProvider, $urlRouterProvider) {
 		}
 	});
 }];
-
 //-------------------------------------------------------------------------------------------------
-var LessonTranslateCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlCardsSrv', 'nlLessonSelect', 'nlTreeSelect', 'nlServerApi',
-function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, nlServerApi) {
-    var params = nl.location.search();
-    $scope.debug = 'debug' in params;
-    var markupSplitter = new MarkupSplitter(nl);
-	var _userInfo = null;
-	var _languageInfo = [];
-	var _scope = null;
-	var _translateDict = {};
-	var _translateArray = [];
-	var _preSelectedLessonId = null;
-    var _preSelectedLanguage = null;
-    var _trFlags = null; // What all will be translated
-    var _languageFlags = {hi: {lang: 'en-IN', voice: 'Aditi'}};  //Which languages will be generated aldo after translating them
-	var _traslateLangTree = [{id:'bn', name:'Bengali', group:'Indian languages'},
+var LanguageTranslateSrv = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    this.getTranslationLangs = function () {
+        return [{id:'bn', name:'Bengali', group:'Indian languages'},
 		{id:'gu', name:'Gujarati', group:'Indian languages'},
 		{id:'hi', name:'Hindi', group:'Indian languages'},
 		{id:'kn', name:'Kannada', group:'Indian languages'},
@@ -142,7 +131,25 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 		{id:'yi', name:'Yiddish'},
 		{id:'yo', name:'Yorubha'},
 		{id:'zu', name:'Zulu'}];
+    }
+}];
 
+//-------------------------------------------------------------------------------------------------
+var LessonTranslateCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlCardsSrv', 'nlLessonSelect', 'nlTreeSelect', 'nlServerApi', 'nlLanguageTranslateSrv',
+function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, nlServerApi, nlLanguageTranslateSrv) {
+    var params = nl.location.search();
+    $scope.debug = 'debug' in params;
+    var markupSplitter = new MarkupSplitter(nl);
+	var _userInfo = null;
+	var _languageInfo = [];
+	var _scope = null;
+	var _translateDict = {};
+	var _translateArray = [];
+	var _preSelectedLessonId = null;
+    var _preSelectedLanguage = null;
+    var _trFlags = null; // What all will be translated
+    var _languageFlags = {hi: {lang: 'en-IN', voice: 'Aditi'}};  //Which languages will be generated aldo after translating them
+	var _traslateLangTree = nlLanguageTranslateSrv.getTranslationLangs();
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
 		return nl.q(function (resolve, reject) {

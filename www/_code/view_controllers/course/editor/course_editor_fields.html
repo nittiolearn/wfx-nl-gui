@@ -10,7 +10,93 @@
 		padding: 0px 8px 20px 8px;
 	}
 </style>
-<div class='row row-top row-wrap margin0 padding0'
+<div ng-show='editor.course.content.targetLang.lang != "en"'>
+    <div ng-show='item.id == "_root"'>
+        <div ng class='row row-top row-wrap margin0 padding0'>
+            <div ng-class='$root.resp2Col33'
+                class='padding-mid'>
+                <div class='row row-center row-wrap margin0 padding0'>
+                    <span class='col padding0'>Name</span>
+                    <i class='padding-mid nl-link-text icon fsh4 fgrey ion-ios-help'></i>
+                </div>
+            </div>
+            <div ng-class='$root.resp2Col67'
+                class='nl-dlg-field-value padding-mid'>
+                <input type='text' class='w100'
+                    ng-model='editor.course.content.languageInfo.name'>
+            </div>
+        </div>
+        <div class='row row-top row-wrap margin0 padding0'>
+            <div ng-class='$root.resp2Col33'
+                class='padding-mid'>
+                <div class='row row-center row-wrap margin0 padding0'>
+                    <span class='col padding0'>Description</span>
+                    <i class='padding-mid nl-link-text icon fsh4 fgrey ion-ios-help'></i>
+                </div>
+            </div>
+            <div ng-class='$root.resp2Col67'
+                class='nl-dlg-field-value padding-mid'>
+                <textarea rows="5" ng-model='editor.course.content.languageInfo.description'
+                    class='w100'>
+                </textarea>
+            </div>
+        </div>
+    </div>
+    <div ng-show='item.id != "_root"'>
+        <div  class='row row-top row-wrap margin0 padding0'>
+            <div ng-class='$root.resp2Col33'
+                class='padding-mid'>
+                <div class='row row-center row-wrap margin0 padding0'>
+                    <span class='col padding0'>Name</span>
+                    <i class='padding-mid nl-link-text icon fsh4 fgrey ion-ios-help'></i>
+                </div>
+            </div>
+            <div ng-class='$root.resp2Col67'
+                class='nl-dlg-field-value padding-mid'>
+                <input type='text' class='w100'
+                    ng-model='editor.course.content.languageInfo[item.id].name'>
+            </div>
+        </div>
+        <div class='row row-top row-wrap margin0 padding0'>
+            <div ng-class='$root.resp2Col33'
+                class='padding-mid'>
+                <div class='row row-center row-wrap margin0 padding0'>
+                    <span class='col padding0'>Description</span>
+                    <i class='padding-mid nl-link-text icon fsh4 fgrey ion-ios-help'></i>
+                </div>
+            </div>
+            <div ng-class='$root.resp2Col67'
+                class='nl-dlg-field-value padding-mid'>
+                <textarea rows="5" ng-model='editor.course.content.languageInfo[item.id].description'
+                    class='w100'>
+                </textarea>
+            </div>
+        </div>
+        <div class='row row-top row-wrap margin0 padding0' ng-if='item.type == "lesson"'>
+            <div ng-class='$root.resp2Col33'
+                class='padding-mid'>
+                <div class='row row-center row-wrap margin0 padding0'>
+                    <span class='col padding0'>Module id</span>
+                    <i class='padding-mid nl-link-text icon fsh4 fgrey ion-ios-help'></i>
+                </div>
+            </div>
+            <div ng-class='$root.resp2Col67' 
+                class='nl-dlg-field-value padding-mid'>
+                <div class='row row-center padding0'>
+                    <input class='col' 
+                    ng-model='editor.course.content.languageInfo[item.id].refid' type='text'
+                    <i class='icon ion-android-open fsh4 padding-small nl-link-img'
+                    ng-click='editor.onLaunch($event, editor.course.content.languageInfo[item.id])'
+                    title='Preview'></i>
+                    <i class='icon ion-android-search fsh4 padding-small nl-link-img'
+                    ng-click='editor.searchLesson($event, editor.course.content.languageInfo[item.id])'
+                    title='Search modules'></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div ng-show='editor.course.content.targetLang.lang == "en"' class='row row-top row-wrap margin0 padding0'
      ng-repeat='attr in attrs'
      ng-if='(!attr.fields || attr.fields.indexOf(values[attr.stored_at].type) >= 0) && (!attr.debug || editor.debug) && (!attr.canShow || attr.canShow(attr)) && (!attr.group || editor.showGroup[attr.group])'>
     <div class='w100 nl-link-text padding-mid' 

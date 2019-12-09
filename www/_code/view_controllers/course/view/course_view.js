@@ -78,6 +78,9 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
 
     this.initTitle = function(course) {
         this.course = course;
+        if(!('targetLang' in course.content)) course.content['targetLang'] = {lang: 'en', name: 'English'};
+        if(!('languages' in course.content)) course.content['languages'] = [{lang: 'en', name: 'English'}];
+		if(!('languageInfo' in course.content)) course.content.languageInfo = {};
         nl.pginfo.pageTitle = course.name;
         if (this.mode === MODES.PRIVATE) {
             nl.pginfo.pageSubTitle = nl.t('(private)');

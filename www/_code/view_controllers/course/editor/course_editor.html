@@ -13,12 +13,14 @@
 <div ng-show='ext.item.id == "_root"' class='padding-mid'>
 	<nl-course-editor-fields attrs='editor.course_params'
 							 values='editor.course_paramStore'
-							 editor='editor'>
+							 editor='editor'
+							 item='ext.item'>
 	</nl-course-editor-fields>
 </div>
 <div ng-show='ext.item.id != "_root"' class='padding-mid'>
 	<nl-course-editor-fields attrs='editor.module_attributes'
 					 		 values='{"module": ext.item}'
-					 		 editor='editor'>
+					 		 editor='editor'
+							 item='ext.item'>
 	</nl-course-editor-fields>
 </div>
