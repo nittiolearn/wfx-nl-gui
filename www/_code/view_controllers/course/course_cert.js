@@ -24,8 +24,8 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlCourseCertCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlPrinter',
-function(nl, nlRouter, $scope, nlDlg, nlPrinter) {
+var NlCourseCertCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlPrinter',
+function(nl, nlRouter, $scope, nlServerApi, nlPrinter) {
     var nlContainer = null;
     $scope.available = false;
 	$scope.sample = false;
@@ -46,8 +46,11 @@ function(nl, nlRouter, $scope, nlDlg, nlPrinter) {
     };
 
     function _onPageEnterImpl(userInfo) {
+        var brandingInfo = nlServerApi.getBrandingInfo() || {};
 	    $scope.available = false;
+	    $scope.certlogo = brandingInfo.logoInContent;
 		$scope.sample = false;
+        $scope.isTouchDevice = nl.utils.isTouchDevice();
         $scope.userName = userInfo.displayname;
 
         nlContainer = nlRouter.discoverNlContainer();
