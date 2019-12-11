@@ -10,7 +10,7 @@
             <div ng-if='!expandedView' class='padding-small'>
                 <nl-course-view-icon ext='ext' cm='cm'></nl-course-view-icon>
             </div>
-            <div class='col'>{{cm.name}}</div>
+            <div class='col'>{{editor.course.content.targetLang.lang == "en" ? cm.name : editor.course.content.languageInfo[cm.id].name}}</div>
             <div ng-show='!ext.isEditorMode() || !expandedView' class='nl-link-img nl-link-text padding-small text-center rounded' style='width: 30px'
                  ng-click='onIconClick($event, cm)'>
                 <i ng-if='ext.isStaticMode()' class="icon fsh3 ion-information-circled fblue"></i>

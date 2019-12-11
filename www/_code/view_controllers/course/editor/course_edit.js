@@ -23,7 +23,8 @@ function EditorFieldsDirective() {
         attrs: '=',
         help: '=',
         values: '=',
-        editor: '='
+		editor: '=',
+		item: '='
     };
     var templateUrl = 'view_controllers/course/editor/course_editor_fields.html';
     return _nl.elemDirective(templateUrl, scope);
@@ -31,8 +32,8 @@ function EditorFieldsDirective() {
 
 //-------------------------------------------------------------------------------------------------
 var NlCourseEditorSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlLessonSelect', 
-'nlExportLevel', 'nlRouter', 'nlCourseCanvas', 'nlMarkup', 'nlTreeSelect', 'nlResourceAddModifySrv', 'nlGroupInfo', 'nlExpressionProcessor', 'nlOuUserSelect',
-function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCourseCanvas, nlMarkup, nlTreeSelect, nlResourceAddModifySrv, nlGroupInfo, nlExpressionProcessor, nlOuUserSelect) {
+'nlExportLevel', 'nlRouter', 'nlCourseCanvas', 'nlMarkup', 'nlTreeSelect', 'nlResourceAddModifySrv', 'nlGroupInfo', 'nlExpressionProcessor', 'nlOuUserSelect', 'nlLanguageTranslateSrv',
+function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCourseCanvas, nlMarkup, nlTreeSelect, nlResourceAddModifySrv, nlGroupInfo, nlExpressionProcessor, nlOuUserSelect, nlLanguageTranslateSrv) {
 
     var modeHandler = null;
     var $scope = null;
@@ -42,7 +43,9 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	var _resourceDict = {};
 	var _groupInfo = null;
 	var _etm = null;
-    this.init = function(_scope, _modeHandler, userInfo) {
+	var _languageTree = nlLanguageTranslateSrv.getTranslationLangs();
+
+	this.init = function(_scope, _modeHandler, userInfo) {
 		nlGroupInfo.init().then(function() {
 			nlGroupInfo.update();
 			_groupInfo = nlGroupInfo.get();
@@ -55,7 +58,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		_etm = (_userInfo && _userInfo.groupinfo && _userInfo.groupinfo.features['etm']) || false;
 		var params = nl.location.search();
         if ('debug' in params) _debug = true;
-        _updateCourseAndModuleAttrOptions(userInfo);
+		_updateCourseAndModuleAttrOptions(userInfo);
         $scope.editor = {
         	jsonTempStore: {},
         	course_params: _getCourseParams(),
@@ -81,8 +84,120 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			getUrl: _getLaunchUrl,
 			onFieldClick: _onFieldClick,
 			getIntelliTextOptions: _getIntelliTextOptions,
+			addLanguage: _showAddLanguageDlg,
+			removeLanguage: _removeLanguage,
+			onTargetLangChange: _onTargetLangChange,
+			canShowLangSection: false
         };
 	};
+
+	function _onTargetLangChange(selected) {
+		$scope.editor.course.content.targetLang = selected; 
+		$scope.editor.canShowLangSection = false;
+		var _course = modeHandler.course;
+		if (selected.lang == 'en') return;
+		var selectedLangInfo = _course.content.languageInfo[selected.lang] || {};
+		if(!('name' in selectedLangInfo)) selectedLangInfo.name = _course.name;
+		if(!('description' in selectedLangInfo)) selectedLangInfo.description = _course.description;
+		var modules = _course.content.modules;
+		for(var i=0; i<modules.length; i++) {
+			var cm = modules[i];
+			if(!(cm.id in selectedLangInfo)) {
+				selectedLangInfo[cm.id] = {name: cm.name, type: cm.type, description: cm.description};
+				if(cm.type == 'lesson') selectedLangInfo[cm.id].refid = ''; 
+			}
+		}
+		modeHandler.course.content.languageInfo[selected.lang] = selectedLangInfo;
+	}
+
+	function _removeLanguage(pos) {
+		var data = {title: 'Confirmation to remove', template: nl.t('Are you sure of removing this language?')};
+		nlDlg.popupConfirm(data).then(function(result) {
+			if(result) dlgScope.data.languages.splice(pos, 1);
+		});
+	}
+
+	function _showAddLanguageDlg(e) {
+		var content = modeHandler.course.content;
+		var langSelectionDlg = nlDlg.create($scope);
+		var dlgScope = langSelectionDlg.scope;
+		dlgScope.data = {};
+		dlgScope.funcs = {};
+		dlgScope.options = {};
+		dlgScope.data.dlgTitle = nl.t('Update course languages');
+		dlgScope.data.addedLangs = {};
+
+		_updateAddedLanguages(content, dlgScope);
+		_updateLanguageTree(dlgScope);
+
+		var okButton = {text: nl.t('Change'), onTap: function(e) {
+			e.preventDefault();
+			var language = _getValidatedInputs(dlgScope.data);
+			if(!language) return;
+			modeHandler.course.content.languages.push(language);
+			nlDlg.closeAll();
+		}};
+
+		var closeButton = {text: nl.t('Cancel')};
+		langSelectionDlg.show('view_controllers/course/editor/language_selection_dlg.html', [okButton], closeButton);	
+	}
+
+	function _getValidatedInputs(data) {
+		var selectedLang = null;
+		var selectedLangs = nlTreeSelect.getSelectedIds(data.languageInfo);
+		for (var key in selectedLangs) {
+			selectedLang = selectedLangs[key];
+		}
+		if(!selectedLang) {
+			nlDlg.popupAlert({title: 'Validation error', template: nl.t('Please select the language to add it as an course language')});
+			return false;
+		}	
+		return {lang: selectedLang.origId, name: selectedLang.name};
+	}
+
+	function _updateAddedLanguages(content, dlgScope) {
+		for(var i=0; i<content.languages.length; i++) {
+			var language = content.languages[i];
+			var langid = language.lang;
+			dlgScope.data.addedLangs[langid] = true;
+		}
+	}
+
+	function _updateLanguageTree(dlgScope) {
+		var arrayParams = _getLanguageTree(dlgScope);
+		var languageTreeInfo = {data: arrayParams[0] || []};
+		var selectedIds = arrayParams[1]
+		nlTreeSelect.updateSelectionTree(languageTreeInfo, {}, 0);
+		languageTreeInfo.treeIsShown = true;
+		languageTreeInfo.multiSelect = false;
+		languageTreeInfo.fieldmodelid = 'languageTreeInfo';
+		dlgScope.data.languageInfo =  languageTreeInfo; 
+	}
+
+	function _getLanguageTree(dlgScope) {
+        var insertedKeys = {};
+		var selectedLangId = {};
+		var addedLangs = dlgScope.data.addedLangs;
+		var treeArray = [];
+        for(var i=0; i<_languageTree.length; i++) {
+			var itemObj = _languageTree[i];
+			if(itemObj.id in addedLangs) continue;
+            _getIconNodeWithParents(itemObj, treeArray, insertedKeys, '', selectedLangId);
+        }
+        return [treeArray, selectedLangId];
+    }
+
+    function _getIconNodeWithParents(itemObj, treeArray, insertedKeys, _preSelectedLanguage, selectedLangId) {
+        if (itemObj.group && !insertedKeys[itemObj.group]) {
+        	insertedKeys[itemObj.group] = true;
+        	treeArray.push({id: itemObj.group, name: itemObj.group, isOpen: true});
+        }
+        var itemId = itemObj.group ? itemObj.group + '.' + itemObj.id : itemObj.id;
+        if(itemObj.id === _preSelectedLanguage) selectedLangId[itemId] = true;
+        if (insertedKeys[itemId]) return;
+    	insertedKeys[itemId] = true;        
+        treeArray.push({id: itemId, name: itemObj.name, origId: itemObj.id});
+    }
 	
 	function _getIntelliTextOptions(cm) {
 		var ret = {
@@ -453,6 +568,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     	{name: 'lastId', stored_at: 'content', text: 'Last Id', type: 'readonly', group: 'grp_additionalAttrs', debug: true},
         {name: 'modules', stored_at: 'content', text: 'Modules', type: 'hidden', group: 'grp_additionalAttrs', debug: true},
         {name: 'contentVersion', stored_at: 'content', text: 'Content Version', type: 'hidden', group: 'grp_additionalAttrs', debug: true},
+        {name: 'languages', stored_at: 'content', text: 'Content Version', type: 'hidden', group: 'grp_additionalAttrs', debug: true},
         {name: 'grp_canvasAttrs', stored_at: 'content', type: 'group', text: 'Canvas properties'},
         {name: 'canvasview', stored_at: 'content', type: 'boolean', text: 'Canvas mode', desc: 'View the course in a visual canvas mode', group: 'grp_canvasAttrs'},
         {name: 'bgimg', stored_at: 'content', type: 'string', text: 'Background image', group: 'grp_canvasAttrs'},

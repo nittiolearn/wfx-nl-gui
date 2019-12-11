@@ -1,5 +1,13 @@
 <div class='nl-thin-scroll'>
     <style>
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 1mm;
+                margin-top: 21mm;
+                margin-bottom: 21mm;
+            }
+        }
         .cert {
             position: relative;
         }
@@ -7,12 +15,19 @@
         	min-height: 90vh;
             width: 100%;
         }
+        .certlogo {
+            position: absolute;
+            top: 0;
+            height: 15%;
+            left: 0;
+            width: 100%;
+        }
         .content {
             position: absolute;
-            top: 45%;
+            top: 10%;
             left: 10%;
             width: 80%;
-            height: 35%;
+            height: 90%;
             overflow: hidden;
             font-family: Times New Roman, Verdana, Helvetica, Arial, sans-serif;
             text-align: center;
@@ -28,12 +43,12 @@
 
         @media print {
             .content {
-                font-size: 200% !important;
+                font-size: 180% !important;
             }
         }
 
         .nl-screen-large .content {
-            font-size: 200%;
+            font-size: 180%;
         }
 
         .dont-print {
@@ -68,20 +83,25 @@
          class='cert'>
          <div ng-if='!bgimg' class='minbgimg'></div>
          <img ng-if='bgimg' class='minbgimg' ng-src='{{bgimg}}'>
-         <div class='content'>
-            <p class='fmttitle'>This is to certify that</p>
-            <p class='fmtuser {{sample ? "sample": ""}}'>{{userName}}</p>
-            <p class='fmttext'>
-                has successfully completed the online training module 
-            </p>
-            <p class='fmtcourse'>{{courseName}}</p>
-            <p class='fmttext'>
-                <span ng-show='avgQuizScore'> with a score of {{avgQuizScore}}% </span>
-                on <span class='fmtdate {{sample ? "sample": ""}}'>{{completionTime | date : 'dd-MMMM-yyyy'}}</span>.
-            </p>
+         <div ng-if='certlogo' class='certlogo text-center'>
+            <img ng-src='{{certlogo}}' style='max-height: 100%; max-width: 100%'>
+         </div> 
+         <div class='content row row-center margin0 padding0'>
+            <div class='col padding0 margin0'>
+                <p class='fmttitle'>This is to certify that</p>
+                <p class='fmtuser {{sample ? "sample": ""}}'>{{userName}}</p>
+                <p class='fmttext'>
+                    has successfully completed the online training module 
+                </p>
+                <p class='fmtcourse'>{{courseName}}</p>
+                <p class='fmttext'>
+                    <span ng-show='avgQuizScore'> with a score of {{avgQuizScore}}% </span>
+                    on <span class='fmtdate {{sample ? "sample": ""}}'>{{completionTime | date : 'dd-MMMM-yyyy'}}</span>.
+                </p>
+            </div>
          </div>
     </div>
-    <!--<div ng-if='available'
+    <div ng-if='available && !isTouchDevice'
          class='dont-print padding-mid'>
         <div class='padding-mid'>
             <p>You could print or save as PDF. For a pretty print, you could use the below print options:</p>
@@ -94,7 +114,7 @@
         <div class='padding-mid text-center'>
             <button class='nl-button w100' ng-click='onPrint()'>Print</button>
         </div>
-    </div>-->
+    </div>
     <div ng-if='!available'
          class='cert'>
         <h3>Error</h3>
