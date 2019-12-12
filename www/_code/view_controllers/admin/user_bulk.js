@@ -562,20 +562,25 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         _throwException('Properly formed email address is mandatory', row);
     };
 
-    var MOBILE_REGEX = /^\+[0-9]+$/;
+    var MOBILE_REGEX = /^\+?[0-9]+$/;
     this.validateMobile = function(row) {
         if(!row.mobile) row.mobile = '';
-        row.mobile = row.mobile.trim();
-        if(!(row.mobile == '' || MOBILE_REGEX.test(row.mobile)))
-        _throwException('Mobile Number starts with character + and can have only characters 0-9 after it.', row);
+        if (!row.mobile) return;
+        parts = row.mobile.split(':');
+        if (parts.length > 2) _throwException('Mobile number not valid', row);
+        var mnumber = parts.length == 2 && parts[0] == 'm' ? parts[1] : parts[0];
+        mnumber = mnumber.trim();
+        if(!MOBILE_REGEX.test(mnumber)) _throwException('Mobile number not valid', row);
+        row.mobile = 'm:' + mnumber;
     };
 
-    var SECLOGIN_REGEX = /^\w*$/;
+    var SECLOGIN_REGEX = /^[a-z0-9_-]+$/;
     this.validateSeclogin = function(row) {
         if (!row.seclogin) row.seclogin= '';
         row.seclogin = row.seclogin.trim();
+        if (!row.seclogin) return;
         if(!SECLOGIN_REGEX.test(row.seclogin))
-            _throwException('Secondary login can have only characters from a-z or A-Z or 0-9 or special character _', row);
+            _throwException('Secondary login can have only characters from a-z, A-Z, 0-9, _ or -', row);
     };
     
     function _checkOu(ou, row) {
