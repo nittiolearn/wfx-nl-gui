@@ -92,7 +92,8 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
         if (!user || !user.state) return null;
         var userObj = {id: user.id, email: user.email, usertype: user.usertype, 
 			org_unit: user.org_unit, name: user.name, username: user.username,
-			first_name: user.first_name, last_name: user.last_name};
+            first_name: user.first_name, last_name: user.last_name,
+            mobile: user.mobile, seclogin: user.seclogin};
 		if (user.supervisor) userObj.supervisor = user.supervisor;
 		if (user.metadata) {
 	        var mdVals = angular.fromJson(user.metadata);
@@ -119,7 +120,9 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
             last_name: uInfo[this.LAST_NAME] || '',
             isBleedingEdge: uInfo[this.ISBLEEDINGEDGE] || false,
             perm_override: uInfo[this.PERM_OVERRIDE] || '',
-            metadata: uInfo[this.METADATA] || ''
+            metadata: uInfo[this.METADATA] || '',
+            mobile: uInfo[this.MOBILE] || '',
+            seclogin: uInfo[this.SECLOGIN] || '',
         };
         ret.id = parseInt(uid);
         ret.user_id = ret.username.substring(0, ret.username.indexOf('.'));
@@ -184,7 +187,8 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
     	var user = {user_id: userid, name: first_name, first_name: first_name, 
 	    	gid: groupInfo.grpid, username: nl.fmt2('{}.{}', userid, groupInfo.grpid), 
 	    	email: 'NA', state: 0, usertype: '(unknown)', last_name: '', org_unit: 'Others', id:0,
-	    	supervisor: '', doj: '', sec_ou_list: '', metaObj: {}, metadata:''};
+            supervisor: '', doj: '', sec_ou_list: '', metaObj: {}, metadata:'',
+            mobile: '', seclogin: ''};
 	    return user;
     };
     
@@ -245,12 +249,14 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
 	    {id: 'last_name', name: "Last name", optional: true},
 	    {id: 'email', name: "Email"},
 	    {id: 'state', name: "State", optional: true},
-	    {id: 'org_unit', name: "OU", oldnames: ["Class / user group"]},
+        {id: 'org_unit', name: "OU", oldnames: ["Class / user group"]},
+        {id: 'mobile', name: "Mobile"},
+        {id: 'seclogin', name: "Secondary Login"},
 	    {id: 'supervisor', name: "Supervisor", optional: true},
 	    {id: 'doj', name: "Joining date", optional: true},
 	    {id: 'sec_ou_list', name: "Sec OUs", oldnames: ["Secondary user groups"], optional: true},
 	    {id: 'created', name: "Created UTC Time", optional: true},
-	    {id: 'updated', name: "Updated UTC Time", optional: true}
+        {id: 'updated', name: "Updated UTC Time", optional: true},
 	];
 	
     function _xlsArrayToDict(groupInfo, xlsArray) {
@@ -288,7 +294,9 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
 	        if (!user.org_unit) user.org_unit = '';
 	        if (!user.supervisor) user.supervisor = '';
 	        if (!user.doj) user.doj = '';
-	        if (!user.sec_ou_list) user.sec_ou_list = '';
+            if (!user.sec_ou_list) user.sec_ou_list = '';
+            if (!user.mobile) user.mobile = '';
+            if (!user.seclogin) user.seclogin = '';
     		userDict[user.user_id] = user;
     	}
     	
@@ -344,6 +352,8 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
         self.METADATA = 12;
         self.SUPERVISOR = 13;
         self.DOJ = 14;
+        self.MOBILE = 15;
+        self.SECLOGIN = 16;
 
         // Generic user types    
         self.UT_NITTIOADMIN=10;

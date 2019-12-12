@@ -338,16 +338,18 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
         }
         var username = scope.data.username.toLowerCase();
         username = username.replace(/[^a-z0-9_-]/g, function(x) {
-            if (x == '.') return x;
+            if (x == '.' || x == '@') return x;
             return '';
         });
         scope.data.username = username;
-        var parts = username.split('.');
-        if (parts.length != 2) {
-        	return nlDlg.setFieldError(scope, 'username',
-        		nl.t('Username needs to be of format "userid.groupid"'));
+        if (fieldType == 'username' || $scope.msgType == 'impersonate') {
+            var parts = username.split('.');
+            if (parts.length != 2) {
+            	return nlDlg.setFieldError(scope, 'username',
+            		nl.t('Username needs to be of format "userid.groupid"'));
+            } 
+            return true;
         }
-        if (fieldType == 'username' || $scope.msgType == 'impersonate') return true;
 
         if (scope.data.password == '' && $scope.msgType != 'pw_reset') {
         	return nlDlg.setFieldError(scope, 'password',
