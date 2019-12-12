@@ -1,63 +1,12 @@
-<style>
-.dropbtn {
-  padding: 4px 8px;
-  font-size: 16px;
-  width: 100%;
-  height: 32px;
-  text-align: left;
-  border: 1px solid #CCCCDD;
-  color: #153673;
-  border-radius: 5px;
-}
-.dropdown {
-  position: relative;
-  display: inline-block;
-  width: 250px;
-  max-width: 250px;
-  min-height: 36px;
-  padding: 2px;
-}
-
-.dropdown-content {
-  display: block;
-  position: fixed;
-  top: 36px;
-  width: 250px;
-  max-width: 94vh;
-  max-height: 300px;
-  background-color: #FFFFFF;
-  z-index: 15;
-  border: 1px solid #CCCCDD;
-}
-
-.add-new-cls {
-  color: #2461cc;
-  background-color: #FFFFFF;
-  border-top: 1px solid #CCCCDD;
-  height: 36px;
-}
-.add-new-button-style{
-  border: 1px solid;
-  padding: 2px 30px;
-  border-radius: 15px;
-  background-color: #2461cc;;
-  color: #FFFFFF;
-}
-.selected {
-  background-color: #2461cc;
-  color: #FFFFFF;
-}
-</style>
 <div class='row row-center margin0 padding0'
 	 style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
     <div class='col text-center fsh3 padding0'>
     </div>
-
     <!-- course editor icons -->
-    <div class="dropdown">
-      <div class='row row-center padding0 margin0 dropbtn nl-link-text2' ng-click='editor.canShowLangSection = !editor.canShowLangSection'> 
-        <div class='col'>
-            <span> Language: {{editor.course.content.targetLang.name}} </span>
+    <div class="dropdown" ng-show='editor.canShowMultiLang()'>
+      <div class='row row-center margin0 dropbtn nl-link-text2' ng-click='editor.canShowLangSection = !editor.canShowLangSection'> 
+        <div class='col button-inner-style'>
+            <span> Language: {{editor.targetLang.name}} </span>
         </div>
         <span class="nl-link-text">
             <i ng-show='!editor.canShowLangSection' class='icon ion-chevron-down fsh5'></i>
@@ -65,12 +14,12 @@
         </span>
       </div>
       <div ng-show='editor.canShowLangSection' class="dropdown-content">
-        <div ng-repeat='item in editor.course.content.languages track by $index' class='nl-link-text2 {{item.lang == editor.course.content.targetLang.lang ? "selected" : ""}}' style='border-bottom: 2px solid #FFFFFF;padding: 2px 8px;'>
+        <div ng-repeat='item in editor.course.content.languages track by $index' class='nl-link-text2 {{item.lang == editor.targetLang.lang ? "dropdown-selected" : ""}}' style='border-bottom: 2px solid #FFFFFF;padding: 2px 8px;'>
           <div class='row row-center margin0 padding0'>
             <div class='col' ng-click='editor.onTargetLangChange(item)'>
                 {{item.name}}
-            </div>  
-            <div ng-show='item.lang != "en"'>
+            </div>
+            <div ng-hide='item.lang == "en" || editor.targetLang.lang == item.lang || !ext.isEditorMode()'>
               <span class="nl-toolbar-icon" title='Remove Language {{$index+1}}'
                   ng-click='editor.removeLanguage($index)'>
                   <i class='icon ion-ios-trash fsh2 fblue2'></i>
@@ -78,8 +27,7 @@
             </div>
           </div>
         </div>
-        <div ng-show='ext.isEditorMode()' class='add-new-cls nl-link-text' ng-click='editor.addLanguage()' style='padding: 4px 8px;'>
-            <i class="icon fsh5 ion-plus-round padding-mid"></i>
+        <div ng-show='ext.isEditorMode()' class='add-new-cls nl-link-text w100  text-center' ng-click='editor.addLanguage()' style='padding: 8px;'>
             <span class='add-new-button-style'> Add new </span>
         </div> 
       </div>
@@ -98,19 +46,19 @@
         <i class="icon fsh3 ion-ios-compose"></i>
     </span>
     <span title='Insert an item below the selected item'
-          ng-show='ext.isEditorMode() && !iframeUrl'
+          ng-show='ext.isEditorMode() && !iframeUrl && editor.targetLang.lang == "en"'
           class='nl-toolbar-icon'
           ng-click='editor.addModule($event, ext.item)'>
         <i class="icon fsh3 ion-ios-plus"></i>
     </span>
     <span title='Delete the selected item'
-          ng-show='ext.isEditorMode() && !iframeUrl && ext.item.id != "_root"'
+          ng-show='ext.isEditorMode() && !iframeUrl && ext.item.id != "_root" && editor.targetLang.lang == "en"'
           class='nl-toolbar-icon'
           ng-click='editor.deleteModule($event, ext.item)'>
         <i class="icon fsh3 ion-ios-trash"></i>
     </span>
     <span title='Reorder items'
-          ng-show='ext.isEditorMode() && !iframeUrl'
+          ng-show='ext.isEditorMode() && !iframeUrl && editor.targetLang.lang == "en"'
           class='nl-toolbar-icon'
           ng-click='editor.organiseModules($event, ext.item)'>
         <i class="icon fsh3 ion-shuffle"></i>
@@ -122,7 +70,7 @@
         <i class="icon material-icons">save</i>
     </span>
     <span title='Publish'
-          ng-show='ext.isEditorMode() && !iframeUrl'
+          ng-show='ext.isEditorMode() && !iframeUrl && editor.targetLang.lang == "en"'
           class='nl-toolbar-icon padding0'
           ng-click='editor.saveCourse($event, true, ext.item)'>
         <i class="icon fsh3 ion-checkmark-circled"></i>

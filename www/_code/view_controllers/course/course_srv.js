@@ -40,7 +40,8 @@ function(nl) {
         }
         if (course.content.certificate) delete course.content.certificate;
         course.content.contentVersion = CURRENT_CONTENT_VERSION;
-        return course;		
+        course.content.languages = [{lang:'en', name: "English"}]
+        return course;
     };
 
     var CURRENT_ATTENDANCE_VERSION = 1; //For course attendance version attendance register is 1 for now;

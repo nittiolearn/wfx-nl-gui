@@ -52,8 +52,11 @@
 	<div ng-show='ext.pastAttemptData.length > 0' class='row padding-small margin0'>
 		<nl-course-past-attempt-data class='col'></nl-course-past-attempt-data>
 	</div>
-	<div ng-show='ext.item.textHtml' class='row padding-small margin0'>
+	<div ng-show='courseContent.targetLang.lang == "en" && ext.item.textHtml' class='row padding-small margin0'>
 	    <div nl-compile='ext.item.textHtml' class='nl-content-holder col'></div>
+	</div>
+	<div ng-show='courseContent.targetLang.lang != "en"' class='row padding-small margin0'>
+		<div class='col'>{{courseContent.languageInfo[courseContent.targetLang.lang][ext.item.id].text}}</div>
 	</div>
 	<div class='row padding-small margin0'>
 	    <nl-course-review-remarks class='col'></nl-course-review-remarks>

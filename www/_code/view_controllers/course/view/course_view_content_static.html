@@ -12,7 +12,7 @@
                     <img ng-if='editor.course[attr.name] !== "icon:"' ng-src='{{editor.course[attr.name]}}' class='nl-100'/>
                     <div ng-if='editor.course[attr.name] == "icon:"' class='fsh4'><i class='fsh1 ion-ios-bookmarks fblue'></i></div>
                 </div>
-                <div ng-if='!attr.icon'>{{editor.course_paramStore[attr.stored_at][attr.name]}}</div>
+                <div ng-if='!attr.icon'>{{editor.targetLang.lang == "en" ? editor.course_paramStore[attr.stored_at][attr.name] : (editor.course.content.languageInfo[editor.targetLang.lang][attr.name] || editor.course_paramStore[attr.stored_at][attr.name])}}</div>
             </td>
         </tr>
     </table>
@@ -24,7 +24,7 @@
             <td>{{attr.text||attr.name}}</td>
             <td ng-show='attr.type == "wikitext"' nl-compile='ext.item[attr.valueName]' class='nl-content-holder'></td>
             <td ng-show='attr.type == "date"'>{{ext.item[attr.name] | nlDateTimeFormat:"date"}}</td>
-            <td ng-show='attr.type != "date" && attr.type != "wikitext"'>{{ext.item[attr.name]}}</td>
+            <td ng-show='attr.type != "date" && attr.type != "wikitext"'>{{editor.targetLang.lang == "en" ? ext.item[attr.name] : (editor.course.content.languageInfo[editor.targetLang.lang][ext.item.id][attr.name] || ext.item[attr.name])}}</td>
         </tr>
     </table>
 

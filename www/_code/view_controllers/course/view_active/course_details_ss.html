@@ -75,14 +75,17 @@
 	<div ng-show='ext.pastAttemptData.length > 0' class='row row-center row-justify-evenly margin0 padding0'>
 		<nl-course-past-attempt-data class='col'></nl-course-past-attempt-data>
 	</div>
-    <div ng-show='ext.item.textHtml' class='row row-center row-justify-evenly margin0 padding0'>
+    <div ng-show='courseContent.targetLang.lang == "en" && ext.item.textHtml' class='row row-center row-justify-evenly margin0 padding0'>
 		<div class='col'>
 			<div nl-compile='ext.item.textHtml' class='nl-content-holder'></div>
 		</div>
-    </div>
-    <div class='row row-center row-justify-evenly margin0 padding0'>
-			<div class='col'>
-				<nl-course-review-remarks></nl-course-review-remarks>
-		</div>
+	</div>
+	<div ng-show='courseContent.targetLang.lang != "en"' class='row padding-small margin0'>
+		<div class='col'>{{courseContent.languageInfo[courseContent.targetLang.lang][ext.item.id].text}}</div>
+	</div>
+	<div class='row row-center row-justify-evenly margin0 padding0'>
+		<div class='col'>
+			<nl-course-review-remarks></nl-course-review-remarks>
+	</div>
     </div>
 </div>

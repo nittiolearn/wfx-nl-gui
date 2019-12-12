@@ -288,6 +288,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             maxPerc = pastPerc;
             maxLinfo = pastRep;
         }
+        itemInfo.targetLang = maxLinfo.targetLang || {lang: 'en', name: 'English'};
         itemInfo.score = maxPerc;
         itemInfo.timeSpentSeconds = totalTimeSpent;
         itemInfo.maxScore = _getMaxScore(maxLinfo);
