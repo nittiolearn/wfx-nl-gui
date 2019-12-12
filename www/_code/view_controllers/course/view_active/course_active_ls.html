@@ -20,7 +20,7 @@
 			                <i ng-show="!cm.isOpen" class="icon ion-arrow-right-b bold fsh3"></i>
 			                <i ng-show="cm.isOpen" class="icon ion-arrow-down-b bold fsh3 ng-hide"></i>
 			            </div>
-						<div class='col padding0' style='font-size: 16px; padding-right: 8px'>{{cm.name}}</div>
+						<div class='col padding0' style='font-size: 16px; padding-right: 8px'>{{courseContent.targetLang.lang == "en" ? cm.name : (courseContent.languageInfo[courseContent.targetLang.lang][cm.id].name || cm.name)}}</div>
 						<div class=''>
 							<span class='padding' style='text-align:right'>
 								<i ng-if='!ext.isStaticMode() && cm.state.icon' class="icon fsh3 {{cm.state.icon}}"></i>

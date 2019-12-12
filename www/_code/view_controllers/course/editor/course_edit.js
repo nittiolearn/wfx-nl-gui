@@ -87,33 +87,53 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			addLanguage: _showAddLanguageDlg,
 			removeLanguage: _removeLanguage,
 			onTargetLangChange: _onTargetLangChange,
-			canShowLangSection: false
-        };
+			canShowLangSection: false,
+			targetLang: {lang: 'en', name: 'English'},
+			canShowMultiLang: _isMultiLangEnabled
+		};
 	};
 
-	function _onTargetLangChange(selected) {
-		$scope.editor.course.content.targetLang = selected; 
+	function _isMultiLangEnabled() {
+		return (_userInfo && _userInfo.groupinfo && _userInfo.groupinfo.features['multiLangCourse']) || false;
+	}
+	
+	function _onTargetLangChange(selected, initial) {
+        if(!initial && !_validateInputs(modeHandler.course, $scope.ext.item)) {
+			$scope.editor.canShowLangSection = false;
+            if(e) e.preventDefault();
+            return;
+        }
+		$scope.editor.targetLang = selected; 
 		$scope.editor.canShowLangSection = false;
 		var _course = modeHandler.course;
-		if (selected.lang == 'en') return;
+		if (selected.lang == 'en') {
+			nl.pginfo.pageTitle = modeHandler.course.name;
+			return;
+		}
 		var selectedLangInfo = _course.content.languageInfo[selected.lang] || {};
 		if(!('name' in selectedLangInfo)) selectedLangInfo.name = _course.name;
 		if(!('description' in selectedLangInfo)) selectedLangInfo.description = _course.description;
-		var modules = _course.content.modules;
+		var modules = _allModules;
 		for(var i=0; i<modules.length; i++) {
 			var cm = modules[i];
 			if(!(cm.id in selectedLangInfo)) {
-				selectedLangInfo[cm.id] = {name: cm.name, type: cm.type, description: cm.description};
-				if(cm.type == 'lesson') selectedLangInfo[cm.id].refid = ''; 
+				var defObject = {id: cm.id, name: cm.name, type: cm.type, text: cm.text || ''};
+				if(cm.type == 'lesson') defObject['refid'] = '';
+				selectedLangInfo[cm.id] = defObject;
 			}
 		}
 		modeHandler.course.content.languageInfo[selected.lang] = selectedLangInfo;
+		nl.pginfo.pageTitle = modeHandler.course.content.languageInfo[selected.lang].name;
 	}
 
 	function _removeLanguage(pos) {
 		var data = {title: 'Confirmation to remove', template: nl.t('Are you sure of removing this language?')};
 		nlDlg.popupConfirm(data).then(function(result) {
-			if(result) dlgScope.data.languages.splice(pos, 1);
+			if(result) {
+				var item = modeHandler.course.content.languages[pos];
+				if(item.lang in modeHandler.course.content.languageInfo) delete modeHandler.course.content.languageInfo[item.lang];
+				modeHandler.course.content.languages.splice(pos, 1);
+			}
 		});
 	}
 
@@ -167,10 +187,11 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		var arrayParams = _getLanguageTree(dlgScope);
 		var languageTreeInfo = {data: arrayParams[0] || []};
 		var selectedIds = arrayParams[1]
-		nlTreeSelect.updateSelectionTree(languageTreeInfo, {}, 0);
+		nlTreeSelect.updateSelectionTree(languageTreeInfo, {}, 2);
 		languageTreeInfo.treeIsShown = true;
 		languageTreeInfo.multiSelect = false;
 		languageTreeInfo.fieldmodelid = 'languageTreeInfo';
+		languageTreeInfo.sortLeafNodes = false;
 		dlgScope.data.languageInfo =  languageTreeInfo; 
 	}
 
@@ -850,7 +871,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	
 	function _saveCourse(e, bPublish, cm){
 		cm = $scope.editorCb.getRootItem() || cm;
-	    if(!_validateInputs(modeHandler.course, cm)) return;
+	    if(!_validateInputs(modeHandler.course, cm, true, bPublish)) return;
 		if (!bPublish) {
 			_saveAfterValidateCourse(e, bPublish);
 			return;
@@ -991,11 +1012,13 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		_organiseModules(e, cm);
 	};
 
-    function _validateInputs(data, cm) {
+    function _validateInputs(data, cm, onSave, bPublish) {
+		if(!onSave && $scope.editor.targetLang.lang != 'en') return true;
         var errorLocation = {};
         var retData = {lessPara: true};
     	cm.textHtml = cm.text ? nlMarkup.getHtml(cm.text, retData): '';
 		var ret = _validateInputsImpl(data, cm, errorLocation);
+		if(bPublish && 'languageInfo' in modeHandler.course.content) ret = _validateLanguageInfoImpl(errorLocation);
 		if(!errorLocation.cm) errorLocation.cm = $scope.editorCb.getRootItem();
         if (!ret) {
 			$scope.ext.setCurrentItem(errorLocation.cm);
@@ -1003,7 +1026,32 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         }
         return ret;
     }
-    
+	
+	function _validateLanguageInfoImpl(errorLocation) {
+		var languageInfo = modeHandler.course.content.languageInfo || {};
+		for(var lang in languageInfo) {
+			var language = languageInfo[lang];
+			for(var key in language) {
+				if(key == 'name' || key == 'description') continue;
+				var item = language[key];
+				if(item.type == 'lesson') {
+					if(!item.refid) {
+						var moduleName = _getLanguageName(lang);
+						return _validateFail(errorLocation, 'languageInfo', nl.t('Module id is mandatory for {} for language {}', item.name || item.id, moduleName));
+					}
+				}
+			}
+		}
+		return true;
+	}
+
+	function _getLanguageName(lang) {
+		for(var i=0; i<modeHandler.course.content.languages.length; i++) {
+			var language = modeHandler.course.content.languages[i];
+			if (language.lang == lang) return language.name;
+		}
+	}
+
     function _validateInputsImpl(data, cm, errorLocation) {
         if(!data.content) return _validateFail(errorLocation, 'Content', 'Course content is mandatory');
     	if (!data.content.modules) return _validateFail(errorLocation, 'Content', '"modules" field is expected in content');

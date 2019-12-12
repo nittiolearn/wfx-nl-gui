@@ -175,10 +175,10 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/course_report_update_status.json', {repid: repid, statusinfo: statusinfo, completed: completed});
     };
 
-    this.courseCreateLessonReport = function(repid, refid, moduleid, attempt, maxDuration, starttime, endtime, updateStartTime) {
+    this.courseCreateLessonReport = function(repid, refid, moduleid, attempt, maxDuration, starttime, endtime, updateStartTime, targetLang) {
         // returns the updated course report object
         return server.post('_serverapi/course_create_lesson_report.json', 
-            {repid: repid, refid: refid, moduleid: moduleid, attempt: attempt, maxDuration: maxDuration, not_before:starttime, not_after:endtime, updateStart: updateStartTime});
+            {repid: repid, refid: refid, moduleid: moduleid, attempt: attempt, maxDuration: maxDuration, not_before:starttime, not_after:endtime, updateStart: updateStartTime, targetLang: targetLang});
     };
 
     this.courseUpdateLessonReportTimes = function(repid, moduleid, lessonreportinfo, completed) {
@@ -201,6 +201,9 @@ function(nl, nlDlg, nlConfig, Upload) {
         // returns updated repObj
         return server.post('_serverapi/course_update_status.json', {repid: repid, completed: completed});
     }
+    this.courseUpdateReportLanguage = function(repid, lang) {
+        return server.post('_serverapi/course_update_report_language.json', {repid: repid, targetLang: lang});
+    } 
     //---------------------------------------------------------------------------------------------
     // Forum methods
     //---------------------------------------------------------------------------------------------

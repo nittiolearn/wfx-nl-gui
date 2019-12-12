@@ -1,0 +1,20 @@
+<nl-dlg dlgtitle='Select language' show-help='0'>
+<nl-dlg-content>
+<div class='padding'>
+    <div ng-show='error' class='padding-mid nl-dlg-field-errormsg' style= 'border: 1px dotted #2c44ff;border-radius: 5px;'>
+        {{error}}
+    </div>
+    <div ng-repeat='lang in data.languages'>
+        <div class='row row-center padding0 margin0 nl-link-text' ng-click='onLangSelected(lang)'>
+            <span class='padding-mid'>
+                <i ng-hide='lang.selected' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+                <i ng-show='lang.selected' class='fsh4 icon ion-android-checkbox-outline'></i>
+            </span>
+            <div class='col padding-mid fsh6'>
+                {{lang.name}}
+            </div>
+        </div>
+    </div>
+</div>
+</nl-dlg-content>
+</nl-dlg>

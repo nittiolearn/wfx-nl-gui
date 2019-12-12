@@ -1030,6 +1030,64 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 }
 
 /*-----------------------------------------------------------------------------------------*
+ * dropdown select styles
+ *-----------------------------------------------------------------------------------------*/
+ .dropbtn {
+   padding: 4px 8px;
+   font-size: 16px;
+   width: 100%;
+   height: 32px;
+   text-align: left;
+   border: 1px solid #CCCCDD;
+   color: $nlBlue1;
+   border-radius: 5px;
+   background: #FFFFFF;
+ }
+ .dropdown {
+   position: relative;
+   display: inline-block;
+   width: 250px;
+   max-width: 250px;
+   min-height: 36px;
+   padding: 2px;
+ }
+ 
+ .dropdown-content {
+   display: block;
+   position: fixed;
+   top: 36px;
+   width: 246px;
+   max-height: 300px;
+   background-color: #FFFFFF;
+   z-index: 15;
+   border: 1px solid #CCCCDD;
+ }
+ 
+ .add-new-cls {
+   color: $nlBlue2;
+   background-color: #FFFFFF;
+   border-top: 1px solid #CCCCDD;
+   height: 36px;
+ }
+ .add-new-button-style{
+   border: 1px solid;
+   padding: 2px 30px;
+   border-radius: 15px;
+   background-color: $nlBlue2;;
+   color: #FFFFFF;
+ }
+ .dropdown-selected {
+   background-color: $nlBlue2;
+   color: #FFFFFF;
+ }
+ 
+.button-inner-style{
+  height: 30px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+/*-----------------------------------------------------------------------------------------*
  * nl-form
  *-----------------------------------------------------------------------------------------*/
 .nl-form {

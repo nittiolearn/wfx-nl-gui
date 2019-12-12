@@ -6,6 +6,27 @@
 <div class='nl-full nl-thin-scroll bgdefault'>
 	<div class='row row-center padding-mid margin0' ng-show='!vp.i'>
 		<div class='col padding-mid'></div>
+		<div class="dropdown" ng-show='courseContent.languages.length > 1 && canShowMultiLang()'>
+			<div class='row row-center margin0 dropbtn nl-link-text2'
+				ng-click='courseContent.canShowLangSection = !courseContent.canShowLangSection'>
+				<div class='col button-inner-style'>
+					<span> Language: {{courseContent.targetLang.name}} </span>
+				</div>
+				<span class="nl-link-text">
+					<i ng-show='!courseContent.canShowLangSection' class='icon ion-chevron-down fsh5'></i>
+					<i ng-show='courseContent.canShowLangSection' class='icon ion-chevron-up fsh5'></i>
+				</span>
+			</div>
+			<div ng-show='courseContent.canShowLangSection' class="dropdown-content" style='top:44px'>
+				<div ng-repeat='item in courseContent.languages track by $index' class='nl-link-text2 {{item.lang == courseContent.targetLang.lang ? "dropdown-selected" : ""}}' style='border-bottom: 2px solid #FFFFFF;padding: 2px 8px;'>
+					<div class='row row-center margin0 padding0' ng-click='courseContent.canShowLangSection = !courseContent.canShowLangSection; onLanguageChange(item)'>
+						<div class='col' ng-click='courseContent.targetLang = item'>
+							{{item.name}}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 		<div style='padding-right: 10px'>
 	        <div class='lnblue2 text-center padding-mid'
 	        	ng-click='onToggleSummaryBox()'>
