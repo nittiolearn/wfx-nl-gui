@@ -21,7 +21,7 @@
 		                <i ng-show="cm.isOpen" class="icon ion-arrow-down-b bold fsh3 ng-hide"></i>
 		            </div>
 					<div style="max-height: 2.38em; overflow: hidden; font-size:16px;"
-						 class='col padding0'>{{courseContent.targetLang.lang == "en" ? cm.name : (courseContent.languageInfo[courseContent.targetLang.lang][cm.id].name || cm.name)}}
+						 class='col padding0'>{{courseContent.targetLang == "en" ? cm.name : (courseContent.languageInfo[courseContent.targetLang][cm.id].name || cm.name)}}
 					</div>
 					<span class='text-right' style='width: 24px'>
 						<i ng-if='!ext.isStaticMode() && cm.state.icon' class="icon fsh3 {{cm.state.icon}}"></i>

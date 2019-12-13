@@ -81,8 +81,10 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
         if(!('languages' in course.content)) course.content['languages'] = [{lang: 'en', name: 'English'}];
         if(!('languageInfo' in course.content)) course.content.languageInfo = {};
         nl.pginfo.pageTitle = course.name;
-        if ('targetLang' in course.content && course.content.targetLang.lang != 'en' ) 
-            nl.pginfo.pageTitle = course.content.languageInfo[course.content.targetLang.lang].name || course.name;
+        if ('targetLang' in course.content && course.content.targetLang != 'en' ) {
+            nl.pginfo.pageTitle = course.content.languageInfo[course.content.targetLang].name || course.name;
+        }
+
         
         if (this.mode === MODES.PRIVATE) {
             nl.pginfo.pageSubTitle = nl.t('(private)');
@@ -120,9 +122,9 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
         var self = this;
         if (!('refid' in cm)) return _popupAlert('Error', 'Link to the learning module is not specified');
         var refid = cm.refid;
-        var targetLang = $scope.courseContent.targetLang || {lang: 'en', name: 'English'};
-        if (targetLang.lang != 'en') {
-            var languageInfo = $scope.courseContent.languageInfo[targetLang.lang];
+        var targetLang = $scope.courseContent.targetLang || 'en';
+        if (targetLang != 'en') {
+            var languageInfo = $scope.courseContent.languageInfo[targetLang] || {};
             if(languageInfo[cm.id] && languageInfo[cm.id].refid) refid = languageInfo[cm.id].refid;
         }
         if (this.mode === MODES.PRIVATE || this.mode === MODES.EDIT || this.mode === MODES.PUBLISHED) {
@@ -160,7 +162,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
         
         // do mode
         nlDlg.showLoadingScreen();
-        var targetLang = $scope.courseContent.targetLang || {lang: 'en', name: 'English'}; 
+        var targetLang = $scope.courseContent.targetLang || 'en'; 
         nlServerApi.courseCreateLessonReport(self.course.id, refid, cm.id, cm.attempt+1, cm.maxDuration||0, self.course.not_before||'', self.course.not_after||'', true, targetLang)
         .then(function(ret) {
             nlDlg.hideLoadingScreen();
@@ -372,8 +374,12 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         if (modeHandler.mode == MODES.DO && $scope.courseContent.languages.length > 1 && !$scope.courseContent.targetLang) {
             _showDefaultLangSelectionDlg();
         }
-        if (modeHandler.mode != MODES.DO && !$scope.courseContent.targetLang) {
-            $scope.courseContent.targetLang = {lang: 'en', name: 'English'};
+        if (modeHandler.mode == MODES.DO && $scope.courseContent.languages.length > 1 &&  $scope.courseContent.targetLang) {
+            for(var i=0; i<$scope.courseContent.languages.length; i++) {
+                var language = $scope.courseContent.languages[i];
+                if (language.lang == $scope.courseContent.targetLang)
+                    $scope.targetLangName = language.name;
+            }
         }
         if ('forumRefid' in course) {
             $scope.forumInfo = {refid: course.forumRefid, secid: course.id};
@@ -399,6 +405,17 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         });
     }
 
+    function _canChangeLanguage() {
+        var modules = $scope.modules;
+        for(var i=0; i<modules.length; i++) {
+            var cm = modules[i];
+            if (cm.type != 'lesson') continue;
+            if (cm.state.status == 'started') 
+                return {error: 'You can change the language only after completing the modules you have already started. You may press the “try again” button on a module to view it in the newly selected language', name: cm.name};
+        }
+        return {state: true};
+    }
+    
     function _showDefaultLangSelectionDlg() {
         var _dlg = nlDlg.create($scope);
         _dlg.scope.data = {languages: $scope.courseContent.languages};
@@ -416,9 +433,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
 
     function _updateReportLanguage(selected) {
         nlDlg.showLoadingScreen();
-        nlServerApi.courseUpdateReportLanguage(modeHandler.course.id, selected).then(function(result) {
+        nlServerApi.courseUpdateReportLanguage(modeHandler.course.id, selected.lang).then(function(result) {
             nlDlg.hideLoadingScreen();
-            $scope.courseContent.targetLang = selected;
+            $scope.courseContent.targetLang = selected.lang;
+            $scope.targetLangName = selected.name;
         });
     }
 
@@ -526,18 +544,24 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
 	};
 
     $scope.onTargetLangChange = function(selected) {
-        $scope.courseContent.targetLang = selected;
+        $scope.courseContent.targetLang = selected.lang;
         $scope.canShowLangSection = !$scope.canShowLangSection;
     };
 
     $scope.onLanguageChange = function(selected) {
-        if(selected.lang != 'en') 
-            nl.pginfo.pageTitle = $scope.courseContent.languageInfo[selected.lang].name;
+        var lang = selected.lang;
+        if(lang != 'en' && $scope.courseContent.languageInfo[lang].name) 
+            nl.pginfo.pageTitle = $scope.courseContent.languageInfo[lang].name || $scope.courseContent.name;
         if (modeHandler.mode != MODES.DO) return;
+        var ret = _canChangeLanguage();
+        if (ret.error) {
+            return nlDlg.popupAlert({title: "Warning message", template: nl.t('{}', ret.error)} );
+        }
         _updateReportLanguage(selected);
     };
 
     $scope.canShowMultiLang = function() {
+        if(modeHandler.mode != MODES.DO) return false;
 		return (_userInfo && _userInfo.groupinfo && _userInfo.groupinfo.features['multiLangCourse']) || false;
     };
 
@@ -1604,7 +1628,7 @@ function Reopener(modeHandler, nlTreeListSrv, _userInfo, nl, nlDlg, nlServerApi,
         }
 
         var cm = reopenLessons[pos];
-        var targetLang = $scope.courseContent.targetLang || {lang: 'en', name: 'English'}; 
+        var targetLang = $scope.courseContent.targetLang || 'en';
         nlServerApi.courseCreateLessonReport(modeHandler.course.id, cm.refid, cm.id, cm.attempt+1, cm.maxDuration||0, modeHandler.course.not_before||'', modeHandler.course.not_after||'', false, targetLang)
         .then(function(ret) {
             cm.attempt++;

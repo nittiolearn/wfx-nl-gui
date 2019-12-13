@@ -88,7 +88,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			removeLanguage: _removeLanguage,
 			onTargetLangChange: _onTargetLangChange,
 			canShowLangSection: false,
-			targetLang: {lang: 'en', name: 'English'},
+			targetLang: 'en',
+			targetLangName: 'English',
 			canShowMultiLang: _isMultiLangEnabled
 		};
 	};
@@ -97,33 +98,40 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		return (_userInfo && _userInfo.groupinfo && _userInfo.groupinfo.features['multiLangCourse']) || false;
 	}
 	
-	function _onTargetLangChange(selected, initial) {
-        if(!initial && !_validateInputs(modeHandler.course, $scope.ext.item)) {
+	function _onTargetLangChange(selected) {
+        if(!_validateInputs(modeHandler.course, $scope.ext.item)) {
 			$scope.editor.canShowLangSection = false;
             if(e) e.preventDefault();
             return;
-        }
-		$scope.editor.targetLang = selected; 
+		}
+		var lang = selected.lang;
+		$scope.editor.targetLang = selected.lang; 
+		$scope.editor.targetLangName = selected.name;
 		$scope.editor.canShowLangSection = false;
 		var _course = modeHandler.course;
-		if (selected.lang == 'en') {
+		if (lang == 'en') {
 			nl.pginfo.pageTitle = modeHandler.course.name;
 			return;
 		}
-		var selectedLangInfo = _course.content.languageInfo[selected.lang] || {};
-		if(!('name' in selectedLangInfo)) selectedLangInfo.name = _course.name;
-		if(!('description' in selectedLangInfo)) selectedLangInfo.description = _course.description;
+		var selectedLangInfo = _course.content.languageInfo[lang] || {};
+		if(!('name' in selectedLangInfo) || !selectedLangInfo.name) selectedLangInfo.name = _course.name;
+		if(!('description' in selectedLangInfo) || !selectedLangInfo.description) selectedLangInfo.description = _course.description;
 		var modules = _allModules;
 		for(var i=0; i<modules.length; i++) {
 			var cm = modules[i];
-			if(!(cm.id in selectedLangInfo)) {
-				var defObject = {id: cm.id, name: cm.name, type: cm.type, text: cm.text || ''};
+			if (cm.id in selectedLangInfo) {
+				var itemInfo = selectedLangInfo[cm.id];
+					selectedLangInfo[cm.id].type = cm.type;
+				if (!itemInfo.name) 
+					selectedLangInfo[cm.id].name = cm.name;			
+			} else {
+				var defObject = {id: cm.id, type: cm.type, name: cm.name};
 				if(cm.type == 'lesson') defObject['refid'] = '';
-				selectedLangInfo[cm.id] = defObject;
+				selectedLangInfo[cm.id] = defObject;	
 			}
 		}
-		modeHandler.course.content.languageInfo[selected.lang] = selectedLangInfo;
-		nl.pginfo.pageTitle = modeHandler.course.content.languageInfo[selected.lang].name;
+		modeHandler.course.content.languageInfo[lang] = selectedLangInfo;
+		nl.pginfo.pageTitle = modeHandler.course.content.languageInfo[lang].name || _course.name;
 	}
 
 	function _removeLanguage(pos) {
@@ -1013,7 +1021,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	};
 
     function _validateInputs(data, cm, onSave, bPublish) {
-		if(!onSave && $scope.editor.targetLang.lang != 'en') return true;
+		if(!onSave && $scope.editor.targetLang != 'en') return true;
         var errorLocation = {};
         var retData = {lessPara: true};
     	cm.textHtml = cm.text ? nlMarkup.getHtml(cm.text, retData): '';
@@ -1032,8 +1040,12 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		for(var lang in languageInfo) {
 			var language = languageInfo[lang];
 			for(var key in language) {
-				if(key == 'name' || key == 'description') continue;
-				var item = language[key];
+				if(key == 'name' || key == 'description') {
+					if(modeHandler.course[key] == language[key]) delete language[key];
+					continue;
+				}
+				var item = angular.copy(language[key]);
+				_checkAndDeleteSimilarParam(language, item, key);
 				if(item.type == 'lesson') {
 					if(!item.refid) {
 						var moduleName = _getLanguageName(lang);
@@ -1043,6 +1055,17 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			}
 		}
 		return true;
+	}
+
+	function _checkAndDeleteSimilarParam(language, item, key) {
+		language[key] = {};
+		for(var i=0; i<_allModules.length; i++) {
+			var cm = _allModules[i];
+			if(cm.id != key) continue;
+			if(cm.name != item.name) language[key].name = item.name;
+			if(item.refid) language[key].refid = item.refid;
+			break;
+		}
 	}
 
 	function _getLanguageName(lang) {

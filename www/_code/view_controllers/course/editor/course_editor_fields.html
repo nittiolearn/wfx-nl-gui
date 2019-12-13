@@ -10,7 +10,7 @@
 		padding: 0px 8px 20px 8px;
 	}
 </style>
-<div ng-show='editor.targetLang.lang != "en"'>
+<div ng-show='editor.targetLang != "en"'>
     <div class='padding-mid'><nl-inline-help>
         Please select the primary language (English) to see all course attributes.
     </nl-inline-help></div>
@@ -25,7 +25,7 @@
             <div ng-class='$root.resp2Col67'
                 class='nl-dlg-field-value padding-mid'>
                 <input type='text' class='w100'
-                    ng-model='editor.course.content.languageInfo[editor.targetLang.lang].name'>
+                    ng-model='editor.course.content.languageInfo[editor.targetLang].name'>
             </div>
         </div>
         <div class='row row-top row-wrap margin0 padding0'>
@@ -37,7 +37,7 @@
             </div>
             <div ng-class='$root.resp2Col67'
                 class='nl-dlg-field-value padding-mid'>
-                <textarea rows="5" ng-model='editor.course.content.languageInfo[editor.targetLang.lang].description'
+                <textarea rows="5" ng-model='editor.course.content.languageInfo[editor.targetLang].description'
                     class='w100'>
                 </textarea>
             </div>
@@ -54,7 +54,7 @@
             <div ng-class='$root.resp2Col67'
                 class='nl-dlg-field-value padding-mid'>
                 <input type='text' class='w100' readonly
-                    ng-model='editor.course.content.languageInfo[editor.targetLang.lang][item.id].type'>
+                    ng-model='editor.course.content.languageInfo[editor.targetLang][item.id].type'>
             </div>
         </div>
         <div class='row row-top row-wrap margin0 padding0' ng-if='item.type == "lesson"'>
@@ -68,12 +68,12 @@
                 class='nl-dlg-field-value padding-mid'>
                 <div class='row row-center padding0'>
                     <input class='col' 
-                    ng-model='editor.course.content.languageInfo[editor.targetLang.lang][item.id].refid' type='text'>
+                    ng-model='editor.course.content.languageInfo[editor.targetLang][item.id].refid' type='text'>
                     <i class='icon ion-android-open fsh4 padding-small nl-link-img'
-                    ng-click='editor.onLaunch($event, editor.course.content.languageInfo[editor.targetLang.lang][item.id])'
+                    ng-click='editor.onLaunch($event, editor.course.content.languageInfo[editor.targetLang][item.id])'
                     title='Preview'></i>
                     <i class='icon ion-android-search fsh4 padding-small nl-link-img'
-                    ng-click='editor.searchLesson($event, editor.course.content.languageInfo[editor.targetLang.lang][item.id])'
+                    ng-click='editor.searchLesson($event, editor.course.content.languageInfo[editor.targetLang][item.id])'
                     title='Search modules'></i>
                 </div>
             </div>
@@ -88,12 +88,12 @@
             <div ng-class='$root.resp2Col67'
                 class='nl-dlg-field-value padding-mid'>
                 <input type='text' class='w100'
-                    ng-model='editor.course.content.languageInfo[editor.targetLang.lang][item.id].name'>
+                    ng-model='editor.course.content.languageInfo[editor.targetLang][item.id].name'>
             </div>
         </div>
     </div>
 </div>
-<div ng-show='editor.targetLang.lang == "en"' >
+<div ng-show='editor.targetLang == "en"' >
     <div class='row row-top row-wrap margin0 padding0'
         ng-repeat='attr in attrs'
         ng-if='(!attr.fields || attr.fields.indexOf(values[attr.stored_at].type) >= 0) && (!attr.debug || editor.debug) && (!attr.canShow || attr.canShow(attr)) && (!attr.group || editor.showGroup[attr.group])'>

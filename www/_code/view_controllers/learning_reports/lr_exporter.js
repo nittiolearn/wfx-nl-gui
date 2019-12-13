@@ -541,7 +541,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             ret = ret.concat(['id=' + report.raw_record.id, 'id=' + report.raw_record.assignment, 
                 'id=' + report.raw_record.lesson_id]);
         if (type == 'user') ret.push(report.raw_record.typeStr);
-        if ('targetLang' in report.repcontent) ret.push(report.repcontent.targetLang['name']);
+        if ('targetLang' in report.repcontent) ret.push(report.repcontent.targetLang);
         return ret;
     }
     
@@ -948,7 +948,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         defaultRowObj._assignTypeStr = 'Module inside course';
         defaultRowObj._moduleId = 'id=' +item.refid;
         if (!statusinfo) return;
-        defaultRowObj._language = statusinfo.targetLang ? statusinfo.targetLang.name : '';
+        defaultRowObj._language = statusinfo.targetLang || '';
         defaultRowObj._moduleRepId = statusinfo.moduleRepId ? 'id=' +statusinfo.moduleRepId : '';
         defaultRowObj.started = statusinfo.started || '';
         defaultRowObj.ended = statusinfo.ended || '';
