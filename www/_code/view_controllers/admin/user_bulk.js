@@ -441,6 +441,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         self.validateManagers(row);
         self.deleteUnwanted(row);
         self.validateRealChange(row);
+        self.validateSeclogin(row);
     }
 
     var _validOps = {'c': true, 'C': true, 'u': true, 'U': true, 'd': true, 'e': true, 'E': true, 'i': true};
@@ -561,13 +562,25 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         _throwException('Properly formed email address is mandatory', row);
     };
 
+    var MOBILE_REGEX = /^\+?[0-9]+$/;
     this.validateMobile = function(row) {
         if(!row.mobile) row.mobile = '';
-        row.mobile = row.mobile.replace(/[^0-9]/g, function(x) {
-            if (x == '+') return x;
-            return '';
-        });
-        row.mobile = row.mobile.trim();
+        if (!row.mobile) return;
+        parts = row.mobile.split(':');
+        if (parts.length > 2) _throwException('Mobile number not valid', row);
+        var mnumber = parts.length == 2 && parts[0] == 'm' ? parts[1] : parts[0];
+        mnumber = mnumber.trim();
+        if(!MOBILE_REGEX.test(mnumber)) _throwException('Mobile number not valid', row);
+        row.mobile = 'm:' + mnumber;
+    };
+
+    var SECLOGIN_REGEX = /^[a-z0-9_-]+$/;
+    this.validateSeclogin = function(row) {
+        if (!row.seclogin) row.seclogin= '';
+        row.seclogin = row.seclogin.trim();
+        if (!row.seclogin) return;
+        if(!SECLOGIN_REGEX.test(row.seclogin))
+            _throwException('Secondary login can have only characters from a-z, A-Z, 0-9, _ or -', row);
     };
     
     function _checkOu(ou, row) {
@@ -619,6 +632,8 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         if (user.first_name != row.first_name) return;
         if (user.last_name != row.last_name) return;
         if (user.metadata != row.metadata) return;
+        if (user.mobile != row.mobile) return;
+        if (user.seclogin != row.seclogin) return;
         if (self.pl) {
             self.pl.imp('Update with no change ignored', angular.toJson(row, 2));
         }

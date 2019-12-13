@@ -228,6 +228,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
         nl.fmt.addAvp(avps, 'OU', user.org_unit);
         nl.fmt.addAvp(avps, 'Secondary OUs', user.sec_ou_list);
         nl.fmt.addAvp(avps, 'Supervisor', user.supervisor);
+        nl.fmt.addAvp(avps, 'Mobile', user.mobile);
+        nl.fmt.addAvp(avps, 'Secondary Login', user.seclogin);
         nl.fmt.addAvp(avps, 'Date of joining', user.doj);
         var metadata = nlGroupInfo.getUserMetadata(user, _grpid);
         for(var i=0; i<metadata.length; i++) {
@@ -260,6 +262,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
             first_name: '',
             last_name: '',
             email: '',
+            mobile: '',
+            seclogin: '',
             state: dlg.scope.options.state[0]};
             
         var user = null;
@@ -278,6 +282,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
             dlg.scope.data.state = {id: user.state, name: user.getStateStr()};
             dlg.scope.data.org_unit = _getOuTree(user.org_unit, false, false);
             dlg.scope.data.sec_ou_list = _getOuTree(user.sec_ou_list, false, true);
+            dlg.scope.data.mobile = user.mobile;
+            dlg.scope.data.seclogin = user.seclogin;
             dlg.scope.data.supervisor = user.supervisor;
             try {
 	            dlg.scope.data.doj = user.doj ? nl.fmt.json2Date(user.doj) : null;
@@ -344,6 +350,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
             first_name: d.first_name, last_name: d.last_name, email: d.email, 
             org_unit: _getTreeSelection(d.org_unit), 
             sec_ou_list: _getTreeSelection(d.sec_ou_list),
+            seclogin: d.seclogin,
+            mobile: d.mobile,
             supervisor: d.supervisor,
             doj: d.doj ? nl.fmt.date2Str(d.doj, 'date') : '',
             metadata: _getMetadataJson(dlgScope)
@@ -384,7 +392,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
         if(!_validateField(nlAdminUserImport.validateState, row, dlgScope, 'state')) return false;
         if(!_validateField(nlAdminUserImport.validateNames, row, dlgScope, 'first_name')) return false;
         if(!_validateField(nlAdminUserImport.validateEmail, row, dlgScope, 'email')) return false;
-        if(!_validateField(nlAdminUserImport.validateMobile, row, dlgScope, '')) return false;
+        if(!_validateField(nlAdminUserImport.validateMobile, row, dlgScope, 'mobile')) return false;
+        if(!_validateField(nlAdminUserImport.validateSeclogin, row, dlgScope, 'seclogin')) return false;
         if(!_validateField(nlAdminUserImport.validateOu, row, dlgScope, 'org_unit')) return false;
         if(!_validateField(nlAdminUserImport.validateSecOu, row, dlgScope, 'sec_ou_list')) return false;
         if(!_validateField(nlAdminUserImport.validateManagers, row, dlgScope, 'supervisor')) return false;
