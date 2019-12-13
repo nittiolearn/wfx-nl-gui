@@ -99,15 +99,14 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	}
 	
 	function _onTargetLangChange(selected) {
+		$scope.editor.canShowLangSection = false;
         if(!_validateInputs(modeHandler.course, $scope.ext.item)) {
-			$scope.editor.canShowLangSection = false;
             if(e) e.preventDefault();
             return;
 		}
 		var lang = selected.lang;
 		$scope.editor.targetLang = selected.lang; 
 		$scope.editor.targetLangName = selected.name;
-		$scope.editor.canShowLangSection = false;
 		var _course = modeHandler.course;
 		if (lang == 'en') {
 			nl.pginfo.pageTitle = modeHandler.course.name;
@@ -160,6 +159,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			var language = _getValidatedInputs(dlgScope.data);
 			if(!language) return;
 			modeHandler.course.content.languages.push(language);
+			_onTargetLangChange(language);
 			nlDlg.closeAll();
 		}};
 

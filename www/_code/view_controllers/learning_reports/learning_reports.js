@@ -203,8 +203,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if (!res) return;
 			var repid = report._raw.raw_record.id;
 			nlDlg.showLoadingScreen();
-			nlServerApi.learningReportDelete({repid: repid}).then(function(statusInfo) {
+			nlServerApi.learningReportDelete({repids: [repid]}).then(function(statusInfo) {
 				nlDlg.hideLoadingScreen();
+				var status = statusInfo.resultset[0];
+				if (!status.status) {
+					nlDlg.popupAlert({title: 'Error', template: nl.fmt2('Error deleting at the server: {}', status.error)});
+					return;
+				}
 				nlLrReportRecords.removeRecord(repid);
 				_updateScope();
 			});
