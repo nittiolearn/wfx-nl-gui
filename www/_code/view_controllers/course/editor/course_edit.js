@@ -900,7 +900,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		    modeHandler.course.content.modules.push(newModule);
 		}
 		var oldLangInfo = _pruneLanguageInfo();
-		var contentJson = objToJson(modeHandler.course.content);
+		var contentJson = _objToJson(modeHandler.course.content);
 		if (oldLangInfo) modeHandler.course.content.languageInfo = oldLangInfo;
         var modifiedData = {
 			name: modeHandler.course.name, 

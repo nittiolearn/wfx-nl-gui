@@ -78,10 +78,10 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
 
     this.initTitle = function(course) {
         this.course = course;
-        if(!('languages' in course.content)) course.content['languages'] = [{lang: 'en', name: 'English'}];
-        if(!('languageInfo' in course.content)) course.content.languageInfo = {};
+        if(!course.content.languages) course.content.languages = [{lang: 'en', name: 'English'}];
+        if(!course.content.languageInfo) course.content.languageInfo = {};
         nl.pginfo.pageTitle = course.name;
-        if ('targetLang' in course.content && course.content.targetLang != 'en' ) {
+        if (course.content.targetLang && course.content.targetLang != 'en' ) {
             nl.pginfo.pageTitle = course.content.languageInfo[course.content.targetLang].name || course.name;
         }
 
