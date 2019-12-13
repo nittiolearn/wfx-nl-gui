@@ -566,7 +566,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     this.validateMobile = function(row) {
         if(!row.mobile) row.mobile = '';
         if (!row.mobile) return;
-        parts = row.mobile.split(':');
+        var parts = row.mobile.split(':');
         if (parts.length > 2) _throwException('Mobile number not valid', row);
         var mnumber = parts.length == 2 && parts[0] == 'm' ? parts[1] : parts[0];
         mnumber = mnumber.trim();
