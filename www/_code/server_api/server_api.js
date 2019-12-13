@@ -670,6 +670,7 @@ function(nl, nlDlg, nlConfig, Upload) {
 		return server.post('_serverapi/resource_modify_attrs.json', data);
     };
     
+    // TODO-NOW: remove after resumable upload works
     this.resourceUpload = function(data, urltype) {
         // Upload a resource - could be basic upload or upload and do something more based
         // on url type

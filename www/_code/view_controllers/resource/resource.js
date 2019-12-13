@@ -138,6 +138,8 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
 //-------------------------------------------------------------------------------------------------
 var PdfUploadCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'Upload', 'nlPdf', 'nlProgressFn',
 function(nl, nlRouter, $scope, nlServerApi, nlDlg, Upload, nlPdf, nlProgressFn) {
+    // TODO-NOW: Remove the code around resumeable_upload later
+    var _resumableUploader = ('resumeable_upload' in nl.location.search()) ? new ResumableUploader(nl, nlServerApi) : nlServerApi;
     var _template = 0;
     var uploadDlg = nlDlg.create($scope);
     uploadDlg.setCssClass('nl-height-max nl-width-max');
@@ -261,7 +263,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, Upload, nlPdf, nlProgressFn) 
                             singlepage: uploadDlg.scope.data.singlePage ? 1 : 0};
                 data.progressFn = nlProgressFn.onProgress;
                 
-                nlServerApi.resourceUploadPdf(data).then(function success(newLessonId) {
+                _resumableUploader.resourceUploadPdf(data).then(function success(newLessonId) {
                     resolve(newLessonId);
                 }, function error(msg) {
                     reject();
@@ -290,6 +292,8 @@ var ResourceUploaderSrv = ['nl', 'nlServerApi', 'nlDlg', 'nlProgressFn',
 function(nl, nlServerApi, nlDlg, nlProgressFn) {
 
     var imageShrinker = new ImageShrinker(nl, nlDlg);
+    // TODO-NOW: Remove the code around resumeable_upload later
+    var _resumableUploader = ('resumeable_upload' in nl.location.search()) ? new ResumableUploader(nl, nlServerApi) : nlServerApi;
 
     var _restypeToAcceptString = {
         Image: 'image/*', 
@@ -409,7 +413,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
             data.insertfrom = resourceInfoDict.insertfrom || '/';
             data.progressFn = nlProgressFn.onProgress;
             nlDlg.popupStatus(nl.t('uploading {}', fileInfo.resource.name), false);
-            nlServerApi.resourceUpload(data).then(function success(resinfo) {
+            _resumableUploader.resourceUpload(data).then(function success(resinfo) {
                 resourceInfos.push(resinfo);
                 _uploadNextReource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resourceInfoDict, resolve, reject);
             }, function error(msg) {
@@ -609,6 +613,51 @@ function ImageShrinker(nl, nlDlg) {
         return new File([uInt8Array], fileName, {type: contentType});
     }
 }
+
+//-------------------------------------------------------------------------------------------------
+function ResumableUploader(nl, nlServerApi) {
+
+    this.resourceUploadPdf = function(data) {
+        return this.resourceUpload(data, 'upload_pdf');
+    };
+
+    this.resourceUpload = function(data, urltype) {
+        return nl.q(function(resolve, reject) {
+            _resourceUploadImpl(data, urltype, resolve, reject);
+        });
+    };
+
+    function _resourceUploadImpl(data, urltype, resolve, reject) {
+        // Upload a resource - could be basic upload or upload and do something more based
+        // on url type
+        // TODO-NOW: Handle urltype
+        if (urltype === undefined) urltype = 'upload';
+
+        nlServerApi.executeRestApi('_serverapi/resource_get_resumable_upload_url.json',
+            {
+                name: data.resource.name,
+                contenttype: data.resource.type,
+                contentlength: data.resource.size
+            }).then(function(result) {
+                console.log('Success:', result);
+                resolve({});
+            });
+        /*
+        return nl.q(function(resolve, reject) {
+            server.post(, {urltype: urltype})
+            .then(function(uploadUrl) {
+                var reloadUserInfo = false;
+                var noPopup = false;
+                var upload = true;
+                server.post(uploadUrl, data, reloadUserInfo, noPopup, upload)
+                .then(resolve, reject);
+            }, reject);
+        });
+        */
+    }
+}
+
+
 
 //-------------------------------------------------------------------------------------------------
 module_init();
