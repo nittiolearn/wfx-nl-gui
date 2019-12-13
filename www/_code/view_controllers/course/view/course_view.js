@@ -371,16 +371,18 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         _initAttributesDicts(course);
         $scope.courseContent = course.content;
         $scope.planning = course.content.planning;
-        if (modeHandler.mode == MODES.DO && $scope.courseContent.languages.length > 1 && !$scope.courseContent.targetLang) {
-            _showDefaultLangSelectionDlg();
-        }
-        if (modeHandler.mode == MODES.DO && $scope.courseContent.languages.length > 1 &&  $scope.courseContent.targetLang) {
-            for(var i=0; i<$scope.courseContent.languages.length; i++) {
-                var language = $scope.courseContent.languages[i];
-                if (language.lang == $scope.courseContent.targetLang)
-                    $scope.targetLangName = language.name;
+        if (modeHandler.mode == MODES.DO && $scope.courseContent.languages.length > 1) {
+            if (!$scope.courseContent.targetLang) {
+                // First time
+                _showDefaultLangSelectionDlg();
+            } else {
+                for (var i=0; i<$scope.courseContent.languages.length; i++) {
+                    var language = $scope.courseContent.languages[i];
+                    if (language.lang == $scope.courseContent.targetLang)
+                        $scope.targetLangName = language.name;
+                }
             }
-        }
+        } 
         if ('forumRefid' in course) {
             $scope.forumInfo = {refid: course.forumRefid, secid: course.id};
         } else {
@@ -542,11 +544,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
 		if($scope.toggleSummaryBox) _closeSummaryBox();
 		else _openSummaryBox();
 	};
-
-    $scope.onTargetLangChange = function(selected) {
-        $scope.courseContent.targetLang = selected.lang;
-        $scope.canShowLangSection = !$scope.canShowLangSection;
-    };
 
     $scope.onLanguageChange = function(selected) {
         var lang = selected.lang;

@@ -113,25 +113,22 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			nl.pginfo.pageTitle = modeHandler.course.name;
 			return;
 		}
-		var selectedLangInfo = _course.content.languageInfo[lang] || {};
-		if(!('name' in selectedLangInfo) || !selectedLangInfo.name) selectedLangInfo.name = _course.name;
-		if(!('description' in selectedLangInfo) || !selectedLangInfo.description) selectedLangInfo.description = _course.description;
+		if (!(lang in _course.content.languageInfo)) _course.content.languageInfo[lang] = {};
+		var selectedLangInfo = _course.content.languageInfo[lang];
+		if(!selectedLangInfo.name) selectedLangInfo.name = _course.name;
+		if(!selectedLangInfo.description) selectedLangInfo.description = _course.description;
 		var modules = _allModules;
 		for(var i=0; i<modules.length; i++) {
 			var cm = modules[i];
-			if (cm.id in selectedLangInfo) {
-				var itemInfo = selectedLangInfo[cm.id];
-					selectedLangInfo[cm.id].type = cm.type;
-				if (!itemInfo.name) 
-					selectedLangInfo[cm.id].name = cm.name;			
-			} else {
-				var defObject = {id: cm.id, type: cm.type, name: cm.name};
-				if(cm.type == 'lesson') defObject['refid'] = '';
-				selectedLangInfo[cm.id] = defObject;	
-			}
+
+			if (!selectedLangInfo[cm.id]) selectedLangInfo[cm.id] = {};
+			var itemInfo = selectedLangInfo[cm.id];
+			itemInfo.id = cm.id;
+			itemInfo.type = cm.type;
+			if (!itemInfo.name) itemInfo.name = cm.name;
+			if(cm.type == 'lesson' && !itemInfo.refid) itemInfo.refid = '';
 		}
-		modeHandler.course.content.languageInfo[lang] = selectedLangInfo;
-		nl.pginfo.pageTitle = modeHandler.course.content.languageInfo[lang].name || _course.name;
+		nl.pginfo.pageTitle = selectedLangInfo.name || _course.name;
 	}
 
 	function _removeLanguage(pos) {
@@ -892,7 +889,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			if(!res) return;
 			_saveAfterValidateCourse(e, bPublish);
 		});	
-}
+	}
 
     function _saveAfterValidateCourse(e, bPublish) {
         modeHandler.course.content.modules = [];
@@ -902,12 +899,15 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     	    if (newModule.type == 'iltsession' && !modeHandler.course.content.blended) modeHandler.course.content.blended = true;
 		    modeHandler.course.content.modules.push(newModule);
 		}
+		var oldLangInfo = _pruneLanguageInfo();
+		var contentJson = objToJson(modeHandler.course.content);
+		if (oldLangInfo) modeHandler.course.content.languageInfo = oldLangInfo;
         var modifiedData = {
-                        name: modeHandler.course.name, 
-                        icon: modeHandler.course.icon, 
-                        description: modeHandler.course.description,
-                        content: _objToJson(modeHandler.course.content) 
-                    };
+			name: modeHandler.course.name, 
+			icon: modeHandler.course.icon, 
+			description: modeHandler.course.description,
+			content: contentJson 
+		};
         if(modeHandler.course.id) modifiedData.courseid = modeHandler.course.id;
         modifiedData.publish = bPublish;
         _modifyAndUpdateToServer(modifiedData);    
@@ -1026,7 +1026,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         var retData = {lessPara: true};
     	cm.textHtml = cm.text ? nlMarkup.getHtml(cm.text, retData): '';
 		var ret = _validateInputsImpl(data, cm, errorLocation);
-		if(bPublish && 'languageInfo' in modeHandler.course.content) ret = _validateLanguageInfoImpl(errorLocation);
+		if(bPublish) ret = ret && _validateLanguageInfoImpl(errorLocation);
 		if(!errorLocation.cm) errorLocation.cm = $scope.editorCb.getRootItem();
         if (!ret) {
 			$scope.ext.setCurrentItem(errorLocation.cm);
@@ -1036,36 +1036,58 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     }
 	
 	function _validateLanguageInfoImpl(errorLocation) {
-		var languageInfo = modeHandler.course.content.languageInfo || {};
+		var languageInfo = modeHandler.course.content.languageInfo;
+		if (!languageInfo) return true;
 		for(var lang in languageInfo) {
-			var language = languageInfo[lang];
-			for(var key in language) {
-				if(key == 'name' || key == 'description') {
-					if(modeHandler.course[key] == language[key]) delete language[key];
-					continue;
-				}
-				var item = angular.copy(language[key]);
-				_checkAndDeleteSimilarParam(language, item, key);
-				if(item.type == 'lesson') {
-					if(!item.refid) {
-						var moduleName = _getLanguageName(lang);
-						return _validateFail(errorLocation, 'languageInfo', nl.t('Module id is mandatory for {} for language {}', item.name || item.id, moduleName));
-					}
-				}
+			var langInfo = languageInfo[lang];
+			for(var key in langInfo) {
+				if(key == 'name' || key == 'description') continue;
+				if (langInfo[key].type != 'lesson') continue;
+				if (langInfo[key].refid) continue;
+				var moduleName = _getLanguageName(lang);
+				return _validateFail(errorLocation, 'languageInfo', nl.t('Module id is mandatory for {} for language {}', item.name || item.id, moduleName));
 			}
 		}
 		return true;
 	}
 
-	function _checkAndDeleteSimilarParam(language, item, key) {
-		language[key] = {};
+	function _pruneLanguageInfo() {
+		var unprunedLangInfo = modeHandler.course.content.languageInfo;
+		if (!unprunedLangInfo) return unprunedLangInfo;
+		var prunedLangInfo = angular.copy(unprunedLangInfo);
+		modeHandler.course.content.languageInfo = prunedLangInfo;
+
+		var cmidToCm = {};
 		for(var i=0; i<_allModules.length; i++) {
 			var cm = _allModules[i];
-			if(cm.id != key) continue;
-			if(cm.name != item.name) language[key].name = item.name;
-			if(item.refid) language[key].refid = item.refid;
-			break;
+			cmidToCm[cm.id] = cm;
 		}
+
+		for(var lang in unprunedLangInfo) {
+			var langInfo = unprunedLangInfo[lang];
+			for(var key in langInfo) {
+				if(key == 'name' || key == 'description') {
+					if(modeHandler.course[key] == langInfo[key]) delete prunedLangInfo[lang][key];
+					continue;
+				}
+				var cm = cmidToCm[key];
+				if (!cm) {
+					delete prunedLangInfo[lang][key];
+					continue;
+				}
+				var item = langInfo[key];
+				if (!item.refid && (!cm.name || cm.name == item.name)) {
+					delete prunedLangInfo[lang][key];
+					continue;
+				}
+
+				prunedLangInfo[lang][key] = {};
+				var prunedItem = prunedLangInfo[lang][key];
+				if (item.refid) prunedItem.refid = item.refid;
+				if(item.name && cm.name != item.name) prunedItem.name = item.name;
+			}
+		}
+		return unprunedLangInfo;
 	}
 
 	function _getLanguageName(lang) {
