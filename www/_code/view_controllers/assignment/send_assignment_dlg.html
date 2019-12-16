@@ -35,6 +35,10 @@
 		<nl-input fieldmodel='batchname' fieldtype='text' fieldCls='w100'></nl-input>
 	</nl-dlg-row>
 
+	<nl-dlg-row ng-show='options.batchtype' attr='batchtype' data='data' help='help'>
+                <nl-select fieldmodel='batchtype'></nl-select>
+	</nl-dlg-row>
+
 	<nl-dlg-row ng-show='assignInfo.isModify' attr='Already added users'>
 		<div>{{addedUserStr}}</div>
 	</nl-dlg-row>

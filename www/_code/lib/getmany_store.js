@@ -89,6 +89,7 @@ function(nl, nlDlg, nlServerApi) {
         if (!assignInfo) return;
 
         repcontent.batchname = assignInfo.batchname || '';
+        if (assignInfo.batchtype) repcontent.batchtype = assignInfo.batchtype;
         repcontent.not_before = assignInfo.not_before;
         repcontent.not_after = assignInfo.not_after || '';
         repcontent.submissionAfterEndtime = assignInfo.submissionAfterEndtime;

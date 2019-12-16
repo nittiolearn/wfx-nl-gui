@@ -188,7 +188,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 itemInfo.status = 'attrition';
                 var suffix = itemInfo.customStatus ? '-' +  itemInfo.customStatus : '';
                 defaultCourseStatus = 'attrition' + suffix;
-            } else  if (itemInfo.status != 'waiting' && cm.type != 'module' && cm.type != 'milestone') {
+            } else  if (itemInfo.status != 'waiting' && cm.type != 'module') {
                 if (defaultCourseStatus == 'pending' && itemInfo.status != 'pending' && itemInfo.status != 'delayed') {
                     defaultCourseStatus ='started';
                 }

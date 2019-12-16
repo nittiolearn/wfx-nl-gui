@@ -173,6 +173,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             update_content: false,
             modifiedILT: _assignInfo.modifiedILT || {},
         };
+        if (_assignInfo.batchtype) dlgScope.data.batchtype = {id: _assignInfo.batchtype, name: _assignInfo.batchtype};
         if(!_assignInfo.batchname) {
 		    var	d = nl.fmt.date2Str(new Date(), 'date');
 		    dlgScope.data.batchname = nl.t('{} - Batch', d);
@@ -184,6 +185,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         }
 
         dlgScope.help = _getHelp();
+        _updateBatchType(dlgScope); 
 
         dlgScope.data.milestoneItems = _updateMilestones(_assignInfo);
         var currentMsDates = _assignInfo.msDates || {};
@@ -208,6 +210,21 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             modifyDlg.show('view_controllers/assignment/modify_training_details_dlg.html',
                 [], cancelButton);
         }
+    }
+
+    function _updateBatchType(dlgScope) {
+        var groupInfo = nlGroupInfo.get();
+        var batchtype = 'batchtype' in groupInfo.props ? groupInfo.props.batchtype : [];
+        if (batchtype.length == 0) return;
+        var options = [];
+        var uniqueItemDict = {}
+        for (var i=0; i<batchtype.length; i++) {
+            var type = batchtype[i];
+            if(type in uniqueItemDict) continue;
+            options.push({id: type, name: type});
+            uniqueItemDict[type] = true;
+        }
+        dlgScope.options.batchtype = options;
     }
 
 	function _getHelp() {
@@ -240,7 +257,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			iltCostTravelAco: {name: 'Travel and Accomodation cost', help: nl.t(' Configure the travel and accomodation cost.')},
 			iltCostMisc: {name: 'Miscellaneous cost', help: nl.t(' Configure the miscellaneous cost.')},
 			batchname: {name: 'Batch name', help: nl.t('This is an batch name mentioned while sending an assignemnt.')},
-			update_content: {name: 'Update content', help: updateContentStr}
+			update_content: {name: 'Update content', help: updateContentStr},
+			batchtype: {name: 'Batch type', help: nl.t('This is an batch type mentioned while sending an assignemnt.')},
 		};
 	}
 
@@ -316,6 +334,12 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             nlDlg.popupAlert({title:'Please select', template: templateMsg});
             return false;
         }
+
+        if (_dlg.scope.options.batchtype && !_dlg.scope.data.batchtype) {
+        	var templateMsg = nl.t('Please select batch type for this assignment.');
+            nlDlg.popupAlert({title:'Please select', template: templateMsg});
+            return false;
+        }
         return true;
     }
     
@@ -355,6 +379,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			max_duration: data.maxduration, learnmode: data.showAnswers.id,
             update_content: data.update_content,
             sendemail: data.sendEmail || false, selectedusers: []};
+        if (data.batchtype) params.batchtype = data.batchtype.id;
 		if(ouUserInfo.userids.length > 0) {
             params['selectedusers'] = _getMinimalUserObjects(ouUserInfo.userids),
             params['oustr'] = _getOrgUnitStr(ouUserInfo.ous);
@@ -455,7 +480,9 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             forum: _dlg.scope.data.forum || false,
             sendemail: _dlg.scope.data.sendEmail || false,
             batchname: _dlg.scope.data.batchname || ''};
-		
+
+        if (_dlg.scope.data.batchtype) data.batchtype = _dlg.scope.data.batchtype.id;
+        
         if (data.assigntype == _nl.atypes.ATYPE_MODULE  || data.assigntype == _nl.atypes.ATYPE_COURSE) {
 	        var starttime = _dlg.scope.data.starttime || '';
 	        var endtime = _dlg.scope.data.endtime || '';

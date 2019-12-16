@@ -434,6 +434,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         report.updated = nl.fmt.json2Date(report.updated);
         report.created = nl.fmt.json2Date(report.created);
         report._batchName = repcontent.batchname || '';
+        if (repcontent.batchtype) report._batchtype = repcontent.batchtype;
         report.assign_remarks = (report.ctype == _nl.ctypes.CTYPE_COURSE ? repcontent.remarks : repcontent.assign_remarks) || '';
         report.not_before = repcontent.not_before || '';
         report.not_after = repcontent.not_after || '';

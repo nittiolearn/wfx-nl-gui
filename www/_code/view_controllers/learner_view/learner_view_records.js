@@ -359,6 +359,7 @@
             raw_record.not_before = repcontent.not_before || '';
             raw_record.not_after = repcontent.not_after || '';
             raw_record.submissionAfterEndtime = repcontent.submissionAfterEndtime || false;
+            if (repcontent.batchtype) raw_record.batchtype = repcontent.batchtype;
             return repcontent;
         }
 
@@ -384,6 +385,7 @@
                 nl.fmt.addAvp(avps, _userInfo.groupinfo.subjectlabel.toUpperCase() , repcontent.subject || '-');
             }
             nl.fmt.addAvp(avps, 'BATCH NAME', repcontent.batchname);
+            if (repcontent.batchtype) nl.fmt.addAvp(avps, 'BATCH TYPE', repcontent.batchtype);
             nl.fmt.addAvp(avps, 'ASSIGNED ON', raw_record.created, 'date');
             nl.fmt.addAvp(avps, 'UPDATED ON', raw_record.updated, 'date');    
             if(type == 'module') {

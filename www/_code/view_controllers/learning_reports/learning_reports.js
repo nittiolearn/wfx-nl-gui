@@ -554,6 +554,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for (var i=0; i<searchInfo.length; i++) {
 			var searchElem = searchInfo[i];
 			if (_isFoundInAnyOfAttrs(searchElem, repcontent, ['name', 'batchname'])) continue;
+			if (_isFoundInAnyOfAttrs(searchElem, repcontent, ['name', 'batchtype'])) continue;
 			if (_isFoundInAnyOfAttrs(searchElem, raw_record, ['subject', '_grade'])) continue;
 			if (_isFoundInAnyOfAttrs(searchElem, user, ['username', 'name', 'email', 'org_unit'])) continue;
 			if (_isFoundInAnyOfAttrs(searchElem, usermeta, mdKeys)) continue;
@@ -907,6 +908,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var etmUserStates = _groupInfo.props.etmUserStates || [];
 		var milestones = _groupInfo.props.milestones || [];
 		var statusDict = _getStatusDictFromArray();
+		columns.push({id: 'batchtype', name: 'Batch type', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'cntTotal', name: 'Learners', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'batchTotal', name: 'Batches', table: true, hidePerc:true, showAlways: true});
 		columns.push({id: 'avgDelay', name: 'Average delay(In days)', hidePerc: true, table: true, showAlways: true});
@@ -1098,7 +1100,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var nhtArray = [{id: 'all', name: 'All'}];
 			if(nlGroupInfo.isSubOrgEnabled()) nhtArray.push({id: 'subOrgId', name: 'Suborg Id'});
 			nhtArray.push({id: 'organisationId', name: 'Organisation Id'});		
-			nhtArray.push({id: 'batchName', name: 'Batch name'});		
+			nhtArray.push({id: 'batchName', name: 'Batch name'});
 			nhtHeader = nhtArray.concat(nhtHeader);
 			nhtStats = {statsCountDict: _nhtStatsDict, columns: nhtHeader};	
 		}
@@ -1829,6 +1831,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			submissionAfterEndtime: assignContent.submissionAfterEndtime,
 			dontShowUsers: nominatedUsers};
 			
+		if (assignContent.batchtype) assignInfo.batchtype = assignContent.batchtype;
 		if (launchType == 'module_assign') {
 			assignInfo.esttime = assignContent.max_duration;
 			assignInfo.learnmode = assignContent.learnmode; // TODO: This is not shown in GUI due to error.
@@ -1848,6 +1851,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if (!result) return;
 			
 			assignContent.batchname = result.batchname;
+			if(result.batchtype) assignContent.batchtype = result.batchtype;
 			assignContent.not_before = result.not_before || '';
 			assignContent.not_after = result.not_after || '';
 			assignContent.submissionAfterEndtime = result.submissionAfterEndtime;

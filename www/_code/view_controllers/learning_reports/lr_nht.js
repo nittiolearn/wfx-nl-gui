@@ -42,16 +42,16 @@ function(nl, nlReportHelper, nlGetManyStore) {
         if(!subOrg) subOrg = "Others";
         var statusCntObj = _getStatusCountObj(record);
         nhtCounts.updateBatch(assignment, record)
-        _addCount(assignment, subOrg, _isSubOrgEnabled ? ou : '', statusCntObj, record.repcontent.batchname || record.repcontent.name);
+        _addCount(assignment, subOrg, _isSubOrgEnabled ? ou : '', statusCntObj, record.repcontent.batchname || record.repcontent.name, record.repcontent.batchtype || '');
     }
 
-    function _addCount(assignment, subOrg, ou, statusObj, name) {
+    function _addCount(assignment, subOrg, ou, statusObj, name, batchtype) {
         nhtCounts.updateRootCount(0, statusObj);
         nhtCounts.updateSuborgCount(0, subOrg, statusObj);
         if(_isSubOrgEnabled) {
             nhtCounts.updateOuCount(0, subOrg, ou, statusObj);
         }
-        nhtCounts.updateBatchCount(0, subOrg, _isSubOrgEnabled ? ou : null, assignment, statusObj, name);
+        nhtCounts.updateBatchCount(0, subOrg, _isSubOrgEnabled ? ou : null, assignment, statusObj, name, batchtype);
     }
 
     function _getStatusCountObj(record) {
@@ -164,23 +164,26 @@ function NhtCounts(nl, nlGetManyStore) {
         return suborgs[subOrgId].cnt;
     };
 
-    this.getOu = function(rootId, subOrgId, ouid, isName, isFolder) {
+    this.getOu = function(rootId, subOrgId, ouid, isName, isFolder, batchtype) {
         var  ous = _statusCountTree[rootId].children[subOrgId].children;
         if (ouid in ous) return ous[ouid].cnt;
         var stats = angular.copy(statsCountItem);
         stats['isFolder'] = isFolder;
         stats['indentation'] = 44;
         stats['name'] = isName ? isName : ouid;
+        if (isName)
+            stats['batchtype'] = batchtype;
         ous[ouid] = {cnt: angular.copy(stats), children: {}};
         return ous[ouid].cnt;  
     };
 
-    this.getBatch = function(rootId, subOrgId, ouid, batchid, name) {
+    this.getBatch = function(rootId, subOrgId, ouid, batchid, name, batchtype) {
         var batch = _statusCountTree[rootId].children[subOrgId].children[ouid].children;
         if (batchid in batch) return batch[batchid].cnt;
         var stats = angular.copy(statsCountItem);
         stats['indentation'] = 66;
         stats['name'] = name;
+        stats['batchtype'] = batchtype || '';
         batch[batchid] = {cnt: angular.copy(stats)};
         return batch[batchid].cnt; 
     };
@@ -203,12 +206,12 @@ function NhtCounts(nl, nlGetManyStore) {
         _updateStatsCount(updatedStats, statusCnt);
     } 
 
-    this.updateBatchCount = function(contentid, subOrgId, ouid, batchid, statusCnt, name) {
+    this.updateBatchCount = function(contentid, subOrgId, ouid, batchid, statusCnt, name, batchtype) {
         var updatedStats = null;
         if(ouid)
-            updatedStats = self.getBatch(contentid, subOrgId, ouid, batchid, name);
+            updatedStats = self.getBatch(contentid, subOrgId, ouid, batchid, name, batchtype);
         else 
-            updatedStats = self.getOu(contentid, subOrgId, batchid, name, false);
+            updatedStats = self.getOu(contentid, subOrgId, batchid, name, false, batchtype);
         _updateBatchInfo(updatedStats, batchid);
         _updateStatsCount(updatedStats, statusCnt);
     }

@@ -41,6 +41,11 @@
     <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.raw_record._batchName}}</div>
 </div>
 
+<div ng-show='rec._raw.raw_record._batchtype' class='row row-top row-wrap margin0 padding0 fsh5'>
+    <div class='padding-mid' ng-class='$root.respCol422'><b>Batch type:</b></div>
+    <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.raw_record._batchtype}}</div>
+</div>
+
 <div class='row row-top row-wrap margin0 padding0'>
     <div class='padding-mid' ng-class='$root.respCol422'><b>Assigned on:</b></div>
     <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.created}}</div>
