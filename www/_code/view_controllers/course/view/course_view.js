@@ -122,14 +122,16 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
         var self = this;
         if (!('refid' in cm)) return _popupAlert('Error', 'Link to the learning module is not specified');
         var refid = cm.refid;
-        var targetLang = $scope.courseContent.targetLang || 'en';
-        if (targetLang != 'en') {
-            var languageInfo = $scope.courseContent.languageInfo[targetLang] || {};
-            if(languageInfo[cm.id] && languageInfo[cm.id].refid) refid = languageInfo[cm.id].refid;
-        }
         if (this.mode === MODES.PRIVATE || this.mode === MODES.EDIT || this.mode === MODES.PUBLISHED) {
+            var targetLang = $scope.editor.targetLang;
+            var languageInfo = $scope.editor.course.content.languageInfo[targetLang] || {};
+            if (targetLang != 'en' && languageInfo[cm.id] && languageInfo[cm.id].refid) refid = languageInfo[cm.id].refid;
             var urlFmt = '/lesson/view/{}';
             return _redirectTo(urlFmt, refid, newTab);
+        } else {
+            var targetLang = $scope.courseContent.targetLang || 'en';
+            var languageInfo = $scope.courseContent.languageInfo[targetLang] || {};
+            if (targetLang != 'en' && languageInfo[cm.id] && languageInfo[cm.id].refid) refid = languageInfo[cm.id].refid;
         }
 
         var reportInfo = (cm.id in self.course.lessonReports) ? self.course.lessonReports[cm.id] : null;

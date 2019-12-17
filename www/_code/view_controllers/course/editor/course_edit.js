@@ -98,10 +98,10 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		return (_userInfo && _userInfo.groupinfo && _userInfo.groupinfo.features['multiLangCourse']) || false;
 	}
 	
-	function _onTargetLangChange(selected) {
+	function _onTargetLangChange(e, selected) {
 		$scope.editor.canShowLangSection = false;
         if(!_validateInputs(modeHandler.course, $scope.ext.item)) {
-            if(e) e.preventDefault();
+			if(e) e.preventDefault();
             return;
 		}
 		var lang = selected.lang;
@@ -110,6 +110,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		var _course = modeHandler.course;
 		if (lang == 'en') {
 			nl.pginfo.pageTitle = modeHandler.course.name;
+			if ($scope.ext.item.id != '_root')
+				$scope.editorCb.onClick(e, $scope.ext.item);
 			return;
 		}
 		if (!(lang in _course.content.languageInfo)) _course.content.languageInfo[lang] = {};
@@ -128,6 +130,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			if(cm.type == 'lesson' && !itemInfo.refid) itemInfo.refid = '';
 		}
 		nl.pginfo.pageTitle = selectedLangInfo.name || _course.name;
+		var _cm = selectedLangInfo[$scope.ext.item.id];
+		if ($scope.ext.item.id != '_root') $scope.editorCb.onClick(e, _cm);
 	}
 
 	function _removeLanguage(pos) {
@@ -1045,7 +1049,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 				if (langInfo[key].type != 'lesson') continue;
 				if (langInfo[key].refid) continue;
 				var moduleName = _getLanguageName(lang);
-				return _validateFail(errorLocation, 'languageInfo', nl.t('Module id is mandatory for {} for language {}', item.name || item.id, moduleName));
+				return _validateFail(errorLocation, 'languageInfo', nl.t('Module id is mandatory for {} for language {}', langInfo[key].name, moduleName));
 			}
 		}
 		return true;

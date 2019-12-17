@@ -16,7 +16,7 @@
       <div ng-show='editor.canShowLangSection' class="dropdown-content">
         <div ng-repeat='item in editor.course.content.languages track by $index' class='nl-link-text2 {{item.lang == editor.targetLang ? "dropdown-selected" : ""}}' style='border-bottom: 2px solid #FFFFFF;padding: 2px 8px;'>
           <div class='row row-center margin0 padding0'>
-            <div class='col' ng-click='editor.onTargetLangChange(item)'>
+            <div class='col' ng-click='editor.onTargetLangChange($event, item)'>
                 {{item.name}}
             </div>
             <div ng-hide='item.lang == "en" || editor.targetLang == item.lang || !ext.isEditorMode()'>

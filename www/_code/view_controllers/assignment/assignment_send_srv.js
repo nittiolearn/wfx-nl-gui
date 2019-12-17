@@ -213,6 +213,9 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
     }
 
     function _updateBatchType(dlgScope) {
+        if (dlgScope.assignInfo.assigntype != 'course') return;
+        var content = dlgScope.assignInfo.course.content;
+        if (!content.nht) return;
         var groupInfo = nlGroupInfo.get();
         var batchtype = 'batchtype' in groupInfo.props ? groupInfo.props.batchtype : [];
         if (batchtype.length == 0) return;
