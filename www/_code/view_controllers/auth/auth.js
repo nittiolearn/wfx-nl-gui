@@ -453,8 +453,10 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
     $scope.data = {eventsTill: ''};
     $scope.error = {};
     var urlParams = {};
+    var _grpAdmin = false;
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
+            _grpAdmin = userInfo.permissions.nittio_support || false;
             var params = nl.location.search();
             if (params.username) urlParams.username = params.username;
             if (params.clientip) urlParams.clientip = params.clientip;
@@ -479,23 +481,35 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
     
     var _pageFetcher = nlServerApi.getPageFetcher();
     function _getAuditData(till, fetchMore, resolve) {
-        if (!fetchMore) urlParams.updatedTill = till;
+        if (!fetchMore) {
+            urlParams.updatedTill = till;
+            $scope.records = [];
+        }
         _pageFetcher.fetchPage(nlServerApi.authGetAuditData, urlParams, fetchMore, function(data) {
             if (!data) {
                 if (resolve) resolve(false);
                 return;
             }
             for (var i=0; i<data.length; i++) {
+                if (!_grpAdmin && _isImpersonateRecord(data[i])) continue;
                 data[i].updated = nl.fmt.jsonDate2Str(data[i].updated, 'millisecond');
                 if (data[i].type in AUDIT_TYPES) data[i].type = AUDIT_TYPES[data[i].type];
+                $scope.records.push(data[i]);
             }
-            data = data.sort(function(a, b) {
+            $scope.records = $scope.records.sort(function(a, b) {
                 // Reverse sorting
                 return (a.updated < b.updated ? 1 : -1);
             });
-            $scope.records = data;
             if (resolve) resolve(true);
         });
+    }
+
+    function _isImpersonateRecord(record) {
+        // 4: 'IMPERSONATE', 5: 'IMPERSONATE_FAILED', 6: 'IMPERSONATE_END'
+        if (record.type == 4 || record.type == 5 || record.type == 6) return true;
+        // Old logout records also had impersonator related information.
+        if (record.description.toLowerCase().indexOf('impersonator') > 0) return true;
+        return false;
     }
     
 }];
