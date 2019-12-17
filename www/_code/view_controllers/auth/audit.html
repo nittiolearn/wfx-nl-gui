@@ -1,28 +1,40 @@
 <div class='nl-thin-scroll nl-full'>
-<span class='nl-dlg-field-name'>Events Till</span>
-<span class='nl-dlg-field-value'>
-    <input type='text' ng-model='data.eventsTill' placeholder='YYYY-MM-DD hh:mm:ss.sss (in your local time)' title='YYYY-MM-DD hh:mm:ss.sss (in your local time zone)'
-           ng-class='{"nl-dlg-field-error": error.eventsTill}' tabindex='0' autofocus>
-    <button ng-click='onRetreive()'>Retreive</button>
-    <div ng-show='error.eventsTill' class='nl-dlg-field-errormsg'>{{error.eventsTill}}</div>
-</span>
 
-<table class='nl-table nl-table-styled'>
-    <tr>
-        <th>User Name</th>
-        <th>Event Time</th>
-        <th>Client IP</th>
-        <th>Session Id</th>
-        <th>Type</th>
-        <th>Description</th>
-    </tr>
-    <tr ng-repeat='record in records'>
-        <td>{{record.username}}</td>
-        <td>{{record.updated}}</td>
-        <td>{{record.clientip}}</td>
-        <td>{{record.sessionid}}</td>
-        <td>{{record.type}}</td>
-        <td>{{record.description}}</td>
-    </tr>
-</table>
+    <div class='row row-center margin0 padding0'
+         style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
+       <div class='col text-center fsh3 padding0'>
+       </div>
+       <span ng-repeat='tb in toolbar'
+             ng-show='canShowToolBar(tb)'
+             title='{{tb.title}}'
+             class='nl-toolbar-icon {{getToolbarCls(tb)}}'
+             ng-click='tb.onClick()'>
+           <i class="icon {{tb.icon}}"></i>
+       </span>
+   </div>
+   
+   <div class='padding-mid'>
+        <div class='row row-center margin0 padding0'>
+            <input class='col padding-mid'
+                ng-model='search.filter'
+                placeholder='{{search.placeholder}}'
+                ng-keydown='searchKeyHandler($event)'>
+        </div>
+        <div class='padding-small'></div>
+        <div class='fgrey fsmall1'>
+            <span>Showing {{displayRecords.length}} items.</span>
+            <span ng-hide='canFetchMore'>Fetch complete.</span>
+            <span ng-show='canFetchMore'>You could fetch more from server.</span>
+        </div>
+        <div class='padding-mid'></div>
+        <table class='nl-table nl-table-styled'>
+            <tr>
+                <th ng-repeat='col in tableColumnHeaders'>{{col.name}}</th>
+            </tr>
+            <tr ng-repeat='record in displayRecords'>
+                <td ng-repeat='col in tableColumnHeaders'>{{record[col.id]}}</td>
+            </tr>
+        </table>
+   </div>
+
 </div>

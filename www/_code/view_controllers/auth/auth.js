@@ -4,14 +4,13 @@
 // auth.js: Controllers for authentication related functions
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-    angular.module('nl.auth', ['nl.auth.serverside_user_settings'])
+    angular.module('nl.auth', ['nl.auth.serverside_user_settings', 'nl.auth.audit'])
     .config(configFn)
     .controller('nl.auth.LoginCtrl', LoginCtrl)
     .controller('nl.auth.LogoutCtrl', LogoutCtrl)
     .controller('nl.auth.ImpersonateCtrl', ImpersonateCtrl)
     .controller('nl.auth.PwChangeCtrl', PwChangeCtrl)
     .controller('nl.auth.PwResetCtrl', PwResetCtrl)
-    .controller('nl.auth.AuditCtrl', AuditCtrl)
     .service('nlPwLostHandler', nlPwLostHandler);
 }
 
@@ -60,15 +59,6 @@ function($stateProvider) {
             'appContent' : {
                 templateUrl : 'view_controllers/auth/login.html',
                 controller : 'nl.auth.PwResetCtrl'
-            }
-        }
-    });
-    $stateProvider.state('app.audit', {
-        url : '^/audit',
-        views : {
-            'appContent' : {
-                templateUrl : 'view_controllers/auth/audit.html',
-                controller : 'nl.auth.AuditCtrl'
             }
         }
     });
@@ -440,78 +430,6 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
         });
     }
     nlRouter.initContoller($scope, '', _onPageEnter);
-}];
-
-//-------------------------------------------------------------------------------------------------
-// Same object is defined in server side. Please update in both places.
-var AUDIT_TYPES = {1: 'LOGIN', 2: 'LOGIN_FAILED', 3: 'LOGOUT', 4: 'IMPERSONATE', 5: 'IMPERSONATE_FAILED',
-    6: 'IMPERSONATE_END', 7: 'LOGIN_USER_DISABLED', 8: 'LOGIN_GROUP_DISABLED', 9: 'LOGIN_IP_RESTRICTED',
-    10: 'LOGIN_TERM_RESTRICTED', 11: 'LOGIN_PW_EXPIRED'};
-
-var AuditCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
-    $scope.data = {eventsTill: ''};
-    $scope.error = {};
-    var urlParams = {};
-    var _grpAdmin = false;
-    function _onPageEnter(userInfo) {
-        return nl.q(function(resolve, reject) {
-            _grpAdmin = userInfo.permissions.nittio_support || false;
-            var params = nl.location.search();
-            if (params.username) urlParams.username = params.username;
-            if (params.clientip) urlParams.clientip = params.clientip;
-            if (params.sessionid) urlParams.sessionid = params.sessionid;
-            if (params.type) urlParams.type = params.type;
-            nl.log.debug('AuditCtrl:onPageEnter - enter');
-            nl.pginfo.pageTitle = nl.t('Audit records');
-            _getAuditData(null, false, resolve);
-        });
-    }
-    nlRouter.initContoller($scope, '', _onPageEnter);
-    
-    $scope.onRetreive = function() {
-        $scope.error = {};
-        var till = ($scope.data.eventsTill != '') ? new Date($scope.data.eventsTill) : null;
-        if (till != null && isNaN(till.valueOf())) {
-        	return nlDlg.setFieldError($scope, 'eventsTill',
-        		nl.t('Invalid date format'));
-        }
-        _getAuditData(till, false);
-    };
-    
-    var _pageFetcher = nlServerApi.getPageFetcher();
-    function _getAuditData(till, fetchMore, resolve) {
-        if (!fetchMore) {
-            urlParams.updatedTill = till;
-            $scope.records = [];
-        }
-        _pageFetcher.fetchPage(nlServerApi.authGetAuditData, urlParams, fetchMore, function(data) {
-            if (!data) {
-                if (resolve) resolve(false);
-                return;
-            }
-            for (var i=0; i<data.length; i++) {
-                if (!_grpAdmin && _isImpersonateRecord(data[i])) continue;
-                data[i].updated = nl.fmt.jsonDate2Str(data[i].updated, 'millisecond');
-                if (data[i].type in AUDIT_TYPES) data[i].type = AUDIT_TYPES[data[i].type];
-                $scope.records.push(data[i]);
-            }
-            $scope.records = $scope.records.sort(function(a, b) {
-                // Reverse sorting
-                return (a.updated < b.updated ? 1 : -1);
-            });
-            if (resolve) resolve(true);
-        });
-    }
-
-    function _isImpersonateRecord(record) {
-        // 4: 'IMPERSONATE', 5: 'IMPERSONATE_FAILED', 6: 'IMPERSONATE_END'
-        if (record.type == 4 || record.type == 5 || record.type == 6) return true;
-        // Old logout records also had impersonator related information.
-        if (record.description.toLowerCase().indexOf('impersonator') > 0) return true;
-        return false;
-    }
-    
 }];
 
 //-------------------------------------------------------------------------------------------------

@@ -1,0 +1,18 @@
+<nl-dlg dlgtitle='Filter records' show-help='0'>
+<nl-dlg-content>
+    <div ng-hide='userSelection'>
+        <nl-dlg-row attr='updatedTill' data='data' help='help'>
+            <nl-date-time-select fieldmodel='updatedTill' fieldCls='nl-dlg-field-value'></nl-date-time-select>
+        </nl-dlg-row>
+        <nl-dlg-row ng-if='show.type' attr='type' data='data' help='help'>
+            <nl-select fieldmodel='type'></nl-select>
+        </nl-dlg-row>
+        <nl-dlg-row ng-if='show.username' attr='username' data='data' help='help'>
+            <nl-input fieldmodel='username' fieldCls='nl-dlg-field-value'></nl-input>
+        </nl-dlg-row>
+        <nl-dlg-row ng-if='show.clientip' attr='clientip' data='data' help='help'>
+            <nl-input fieldmodel='clientip' fieldCls='nl-dlg-field-value'></nl-input>
+        </nl-dlg-row>
+    </div>
+</nl-dlg-content>
+</nl-dlg>
