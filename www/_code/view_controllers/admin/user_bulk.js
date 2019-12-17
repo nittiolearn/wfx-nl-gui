@@ -566,21 +566,21 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     this.validateMobile = function(row) {
         if(!row.mobile) row.mobile = '';
         if (!row.mobile) return;
-        var parts = row.mobile.split(':');
-        if (parts.length > 2) _throwException('Mobile number not valid', row);
-        var mnumber = parts.length == 2 && parts[0] == 'm' ? parts[1] : parts[0];
-        mnumber = mnumber.trim();
-        if(!MOBILE_REGEX.test(mnumber)) _throwException('Mobile number not valid', row);
-        row.mobile = 'm:' + mnumber;
+        row.mobile = row.mobile.replace(/\s/g, '');
+        row.mobile = row.mobile.indexOf('m:') === 0 ? row.mobile.replace('m:', '') : row.mobile;
+
+        if(!MOBILE_REGEX.test(row.mobile)) _throwException('Mobile number not valid', row);
     };
 
-    var SECLOGIN_REGEX = /^[a-z0-9_-]+$/;
+    var SECLOGIN_REGEX = /^[a-zA-Z0-9_-]+$/;
     this.validateSeclogin = function(row) {
         if (!row.seclogin) row.seclogin= '';
-        row.seclogin = row.seclogin.trim();
         if (!row.seclogin) return;
+        row.seclogin = row.seclogin.replace(/\s/g, '');
+        row.seclogin = row.seclogin.indexOf('id:') === 0 ? row.seclogin.replace('id:', '') : row.seclogin;
+        
         if(!SECLOGIN_REGEX.test(row.seclogin))
-            _throwException('Secondary login can have only characters from a-z, A-Z, 0-9, _ or -', row);
+            _throwException('Secondary login can have only characters from a-z, A-Z, 0-9, _, -. ( optional: It can start with id:) ', row);
     };
     
     function _checkOu(ou, row) {

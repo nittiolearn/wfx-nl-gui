@@ -124,6 +124,8 @@ function(nl, nlServerApi, nlImporter, nlGroupCache) {
             mobile: uInfo[this.MOBILE] || '',
             seclogin: uInfo[this.SECLOGIN] || '',
         };
+        ret.seclogin = ret.seclogin ? 'id:' + ret.seclogin : '';
+        ret.mobile = ret.mobile ? 'm:' + ret.mobile : '';
         ret.id = parseInt(uid);
         ret.user_id = ret.username.substring(0, ret.username.indexOf('.'));
         ret.created = nl.fmt.json2Date(ret.created);
