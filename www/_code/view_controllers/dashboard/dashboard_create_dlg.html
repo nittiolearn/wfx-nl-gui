@@ -64,7 +64,6 @@
             <tr><td>res.list</td><td>/#/resource_list?type=all{}</td><td>admin_user</td><td></td></tr>
             <tr><td>admin.view</td><td>/#/admin_user?{}</td><td>admin_user</td><td></td></tr>
             <tr><td>admin.termauth</td><td>/admin_user/term_authorization/</td><td>admin_terminal</td><td></td></tr>
-            <tr><td>admin.audit</td><td>/#/audit</td><td>admin_user</td><td></td></tr>
             <tr><td>admin.impersonate</td><td>/#/impersonate</td><td>admin_impersonate_grp</td><td></td></tr>
             <tr><td>admin.recycle</td><td>/#/recycle</td><td>lesson_approve</td><td></td></tr>
             <tr><td>admin.subgroupview</td><td>/admin_group/group_view/selfadmin</td><td>nittio_support</td><td></td></tr>
@@ -79,6 +78,26 @@
         <table class='nl-table nl-table-styled'>
             <tr><th>Action</th><th>URL</th><th>Permission</th><th>Remarks</th></tr>
             <tr><td>dashboard.home </td><td>/#/home?{}</td><td>basic_access</td><td>Specify "parent=xxx" to launch one card of dashboard in a sperate page where each link becomes a card.</td></tr>
+            <tr><td>admin.audit</td><td>/#/audit?{}</td><td>admin_user</td>
+                <td>
+                    <p>urlParams could have one or more of attributes (to fiter only records that match the criteria): </p>
+                    <p>"max=500&type=x&username=learner1.teststart&clientip=1.1.1.1&sessionid=xxx"</p>
+                    <p>Though possible, it is not typical to create a dashboard which fixes the "username", "clientip" and "sesssionid". These are for test proposes only. It is good idea to fix "max=500". "type" could be customized as below:</p>
+                    <ul>
+                        <li><b>"type=1"</b>: to view only successful LOGIN records</li>
+                        <li><b>"type=2"</b>: to view only LOGIN_FAILED records</li>
+                        <li><b>"type=3"</b>: to view only LOGOUT records</li>
+                        <li><b>"type=4"</b>: to view only successful IMPERSONATE records</li>
+                        <li><b>"type=5"</b>: to view only IMPERSONATE_FAILED records</li>
+                        <li><b>"type=6"</b>: to view only IMPERSONATE_END records</li>
+                        <li><b>"type=7"</b>: to view only LOGIN_USER_DISABLED records</li>
+                        <li><b>"type=8"</b>: to view only LOGIN_GROUP_DISABLED records</li>
+                        <li><b>"type=9"</b>: to view only LOGIN_IP_RESTRICTED records</li>
+                        <li><b>"type=10"</b>: to view only LOGIN_TERM_RESTRICTED records</li>
+                        <li><b>"type=11"</b>: to view only LOGIN_PW_EXPIRED records</li>
+                    </ul>
+                </td>
+            </tr>
             <tr><td>lesson.view </td><td>/lesson/view/{}</td><td>lesson_view</td><td>Direct link to module. urlParams is the lessonId.</td></tr>
             <tr><td>lesson.self_assign </td><td>/lesson/do_report_selfassign?{}</td><td>lesson_view</td><td>Self assign module and start learning. urlParams is of form 'lessonid=nnnn&force=0|1'.</td></tr>
             <tr><td>lesson.view_approved </td><td>/#/lesson_list?type=approved&?{}</td><td>lesson_view</td><td>View approved list</td></tr>
