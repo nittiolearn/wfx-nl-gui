@@ -511,6 +511,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
             onClick: function(e, cm) {
         	    $scope.onClick(e, cm);
         	},
+            onIconClick: function(e, cm) {
+        	    $scope.onIconClick(e, cm);
+            }
         };
         nlCourseEditor.init($scope, modeHandler, _userInfo);
     }

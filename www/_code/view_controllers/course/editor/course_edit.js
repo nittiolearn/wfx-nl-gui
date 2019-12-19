@@ -111,7 +111,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		if (lang == 'en') {
 			nl.pginfo.pageTitle = modeHandler.course.name;
 			if ($scope.ext.item.id != '_root')
-				$scope.editorCb.onClick(e, $scope.ext.item);
+				$scope.editorCb.onIconClick(e, $scope.ext.item);
 			return;
 		}
 		if (!(lang in _course.content.languageInfo)) _course.content.languageInfo[lang] = {};
@@ -130,8 +130,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			if(cm.type == 'lesson' && !itemInfo.refid) itemInfo.refid = '';
 		}
 		nl.pginfo.pageTitle = selectedLangInfo.name || _course.name;
-		var _cm = selectedLangInfo[$scope.ext.item.id];
-		if ($scope.ext.item.id != '_root') $scope.editorCb.onClick(e, _cm);
+		if ($scope.ext.item.id != '_root') $scope.editorCb.onIconClick(e, $scope.ext.item);
 	}
 
 	function _removeLanguage(pos) {
