@@ -163,7 +163,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			var language = _getValidatedInputs(dlgScope.data);
 			if(!language) return;
 			modeHandler.course.content.languages.push(language);
-			_onTargetLangChange(language);
+			_onTargetLangChange(e, language);
 			nlDlg.closeAll();
 		}};
 
@@ -1268,6 +1268,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         var modules = _allModules || [];
         for(var i=0; i<modules.length; i++) {
 			var item = modules[i];
+			if(item.type == 'module') continue;
             if(item.id == cm.id) break;
 			ret[item.id] = null;
 		}
