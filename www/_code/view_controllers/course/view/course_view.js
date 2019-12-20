@@ -1630,7 +1630,7 @@ function Reopener(modeHandler, nlTreeListSrv, _userInfo, nl, nlDlg, nlServerApi,
         }
 
         var cm = reopenLessons[pos];
-        var targetLang = $scope.courseContent.targetLang || 'en';
+        var targetLang = modeHandler.course.content.targetLang || 'en';
         nlServerApi.courseCreateLessonReport(modeHandler.course.id, cm.refid, cm.id, cm.attempt+1, cm.maxDuration||0, modeHandler.course.not_before||'', modeHandler.course.not_after||'', false, targetLang)
         .then(function(ret) {
             cm.attempt++;
