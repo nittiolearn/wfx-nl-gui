@@ -572,15 +572,16 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         if(!MOBILE_REGEX.test(row.mobile)) _throwException('Mobile number not valid', row);
     };
 
-    var SECLOGIN_REGEX = /^[a-zA-Z0-9_-]+$/;
+    var SECLOGIN_REGEX = /^[a-z0-9_-]+$/;
     this.validateSeclogin = function(row) {
         if (!row.seclogin) row.seclogin= '';
         if (!row.seclogin) return;
         row.seclogin = row.seclogin.replace(/\s/g, '');
+        row.seclogin = row.seclogin.toLowerCase();
         row.seclogin = row.seclogin.indexOf('id:') === 0 ? row.seclogin.replace('id:', '') : row.seclogin;
         
         if(!SECLOGIN_REGEX.test(row.seclogin))
-            _throwException('Secondary login can have only characters from a-z, A-Z, 0-9, _, -. ( optional: It can start with id:) ', row);
+            _throwException('Secondary login can have only characters from a-z, 0-9, _, -. ( optional: It can start with id:) ', row);
     };
     
     function _checkOu(ou, row) {
