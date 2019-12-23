@@ -1,3 +1,23 @@
+<style>
+ .marker-select-dropdown {
+   display: block;
+   max-height: 300px;
+   background-color: #FFFFFF;
+   z-index: 15;
+   border: 1px solid #CCCCDD;
+ }
+
+ .marker-dropbtn {
+   width: 100%;
+   height: 32px;
+   text-align: left;
+   border: 1px solid #CCCCDD;
+   color: $nlBlue1;
+   border-radius: 5px;
+   background: #FFFFFF;
+ }
+
+</style>
 <nl-dlg dlgTitle='Provide ratings' show-help='0'>
 <nl-dlg-content>
 
@@ -18,9 +38,9 @@
 			<div class='col padding-mid fsh4'>Mark  the learner ratings for {{selectedRating.name}}</div>
 			<div class='nl-link-text nl-button-highlight' ng-click='bulkRatingMarker($event)'>Mark all</div>
 		</div>
-		<div class='row row-center padding0 margin0' ng-repeat='user in selectedRating["rating"]'>
-			<div class='row row-center padding0 margin0 row-wrap {{user.attrition ? "fgrey" : ""}}'>
-                <div ng-class='respCol211'class='padding-mid'>
+		<div class='row padding0 margin0' ng-repeat='user in selectedRating["rating"]'>
+			<div class='row padding0 margin0 row-wrap {{user.attrition ? "fgrey" : ""}}'>
+                <div ng-class='respCol211' class='padding-mid'>
                     <div class='row row-center padding0 margin0'>
                         <div class='col' >{{user.name}} <span class='fgrey'>({{user.userid}})</span></div>
                         <div ng-if='!user.attrition && selectedRating.ratingType === "select"' class='col padding0'>
@@ -39,8 +59,31 @@
 						<div ng-if='user.attrition' class='col padding0'>{{user.attritionStr}}</div>
                     </div>
                 </div>
-                <div ng-class='respCol211'class='padding-mid' ng-if='!user.attrition'>
+                <div ng-if='!user.remarkOptions && !user.attrition' ng-class='respCol211' class='padding-mid'>
 					<input type='text' ng-model='user.remarks' placeholder='Mention remarks for learner'></input>
+                </div>
+                <div ng-if='user.remarkOptions && !user.attrition' ng-class='respCol211' class='col-center padding-mid'>
+					<div class='row row-center padding0 margin0 marker-dropbtn nl-link-text2' ng-click='user.canShow = !user.canShow'>
+						<div class='col button-inner-style'>
+							<span>{{user.remarks}}</span>
+						</div>
+						<span class="nl-link-text">
+							<i ng-show='!user.canShow' class='icon ion-chevron-down fsh5 padding-mid'></i>
+							<i ng-show='user.canShow' class='icon ion-chevron-up fsh5 padding-mid'></i>
+						</span>
+					</div>
+					<div ng-show='user.canShow' class="marker-select-dropdown">
+						<div ng-repeat='item in user.remarkOptions track by $index' class='nl-link-text2' style='border-bottom: 2px solid #FFFFFF;padding: 2px 8px;'>
+						<div class='row row-center margin0 padding0' ng-click='onDropdownItemSelected(user, item)'>
+							<span title='Select the remark {{$index+1}}'>
+								<i ng-show='item.selected' class="icon ion-android-checkbox-outline"></i>
+								<i ng-show='!item.selected' class="icon ion-android-checkbox-outline-blank"></i>
+							</span>
+							<div class='col'>
+								{{item.name}}
+							</div>
+						</div>
+					</div>
                 </div>
 			</div>
 		</div>

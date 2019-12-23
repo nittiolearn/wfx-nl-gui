@@ -1533,6 +1533,16 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			});
 		};
 
+		ratingDlg.scope.onDropdownItemSelected = function(user, item) {
+			item.selected = !item.selected;
+			user.remarks = '';
+			for(var i=0; i<user.remarkOptions.length; i++) {
+				var remark = user.remarkOptions[i];
+				if(remark.selected) user.remarks += remark.name + ', ';
+			}
+			
+		}
+
 		var okButton = {text: nl.t('Provide rating'), onTap: function(e) {
 			var updatedSessionsList = [];
 				rating = {};
@@ -1545,6 +1555,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					var userRating = ratingItem.rating[j];
 					if(ratingItem.ratingType == 'input' && ((userRating.rating != 0 && (!userRating.rating || userRating.rating === null)) && !userRating.remarks)) continue;
 					if(ratingItem.ratingType == 'select' && ((userRating.rating.id != 0 && !userRating.rating.id) && !userRating.remarks)) continue;
+					if(ratingItem.ratingType == 'select' && (userRating.remarkOptions && userRating.remarkOptions.length > 0)) {
+						if(!_validateRating(userRating)) {
+							return nlDlg.popupAlert({title: 'Validation error', template: nl.t('Remarks mandatory for {}', userRating.name)})
+						}
+					}
 					_updateRatingDelta(updatedSessionsList[i], userRating);
 				}
 			}
@@ -1568,6 +1583,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}};
 		ratingDlg.show('view_controllers/learning_reports/mark_rating_dlg.html',
 		[okButton], cancelButton);
+	}
+
+	function _validateRating(userRating) {
+		if(userRating.rating.id != 100 && (!userRating.remarks || userRating.remarks == '')) return false;
+		return true;
 	}
 
 	function _updateRatingDelta(updateSessionList, newRatingPerItem) {
@@ -1608,10 +1628,22 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		if(!(repid in rating)) rating[repid] = [];
 		if(updateSessionList.rating_type == 'input') 
-			rating[repid].push({id: sessionid, attId: (newRatingPerItem.rating === 0) ? 0 : newRatingPerItem.rating, remarks: newRatingPerItem.remarks || '', marked: marked, updated: updated});
+			rating[repid].push({id: sessionid, attId: (newRatingPerItem.rating === 0) ? 0 : newRatingPerItem.rating, remarks: [newRatingPerItem.remarks] || '', marked: marked, updated: updated});
 
-		if(updateSessionList.rating_type == 'select')
-			rating[repid].push({id: sessionid, attId: newRatingPerItem.rating.id, remarks: newRatingPerItem.remarks || '', marked: marked, updated: updated});
+		if(updateSessionList.rating_type == 'select') {
+			var _userRating = {id: sessionid, attId: newRatingPerItem.rating.id, marked: marked, updated: updated}
+			if(newRatingPerItem.remarkOptions && newRatingPerItem.remarkOptions.length > 0) {
+				var _remarkArray = [];
+				for(var i=0; i<newRatingPerItem.remarkOptions.length; i++) {
+					var remark = newRatingPerItem.remarkOptions[i];
+					if(remark.selected) _remarkArray.push(remark.name);
+				}
+				_userRating.remarks = _remarkArray;
+			} else {
+				_userRating.remarks = [newRatingPerItem.remarks];
+			}
+			rating[repid].push(_userRating);
+		}
 	}
 
 	function _getRatings(content, learningRecords, isFirstTime) {
@@ -1619,7 +1651,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for(var i=0; i<content.modules.length; i++) {
 			if(content.modules[i].type != 'rating') continue;
 			var item = content.modules[i];
-			var dict = {id: item.id, name:item.name, rating_type: item.rating_type, rating: [], ratingOptions: []};
+			var dict = {id: item.id, name:item.name, rating_type: item.rating_type, rating: [], ratingOptions: [], remarkOptions: []};
 			_checkAndUpdateRatingParams(dict);
 			ret.push(dict);
 		}
@@ -1636,13 +1668,23 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					if(ret[j].ratingType == 'input') {
 						ret[j].rating.push({id: parseInt(key), name: user.name, rating: null, userid: user.user_id, remarks: statusinfo.remarks || ''});
 					} else if(ret[j].ratingType == 'select') {
-						ret[j].rating.push({id: parseInt(key), name: user.name, rating: {id: ''}, userid: user.user_id, remarks: statusinfo.remarks || ''});
+						var userObj = {id: parseInt(key), name: user.name, rating: {id: ''}, userid: user.user_id, remarks: nl.fmt.arrayToString(statusinfo.remarks || '')}
+						if(ret[j].remarkOptions.length > 0) {
+							userObj['remarkOptions'] = angular.copy(ret[j].remarkOptions);
+							_updateSelectedRating(statusinfo.remarks, userObj['remarkOptions']);
+						}
+						ret[j].rating.push(userObj);
 					}
 				} else {
 					if(ret[j].ratingType == 'input') {
 						ret[j].rating.push({id: parseInt(key), name: user.name, rating: statusinfo.origScore, userid: user.user_id, attrition: attrition, attritionStr: attritionStr, remarks: statusinfo.remarks});
 					} else if(ret[j].ratingType == 'select') {
-						ret[j].rating.push({id: parseInt(key), name: user.name, rating: {id: statusinfo.origScore, name: statusinfo.rating}, userid: user.user_id, attrition: attrition, attritionStr: attritionStr, remarks: statusinfo.remarks});
+						var userObj = {id: parseInt(key), name: user.name, rating: {id: statusinfo.origScore, name: statusinfo.rating}, userid: user.user_id, attrition: attrition, attritionStr: attritionStr, remarks: nl.fmt.arrayToString(statusinfo.remarks || '')}
+						if(ret[j].remarkOptions.length > 0) {
+							userObj['remarkOptions'] = angular.copy(ret[j].remarkOptions);
+							_updateSelectedRating(statusinfo.remarks, userObj['remarkOptions']);
+						}
+						ret[j].rating.push(userObj);
 					}
 				}
 			}
@@ -1661,6 +1703,17 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return ret;
 	}
 
+	function _updateSelectedRating(remarks, remarkOptions) {
+		if (!Array.isArray(remarks)) return;
+		for(var i=0; i<remarks.length; i++) {
+			var remark = remarks[i];
+			for(var j=0; j<remarkOptions.length; j++) {
+				var option = remarkOptions[j];
+				if(remark == option.name) option.selected = true;
+			}
+		}
+	}
+
 	function _checkAndUpdateRatingParams(item) {
 		for(var i=0; i<_groupInfo.props.ratings.length; i++) {
 			var rating = _groupInfo.props.ratings[i];
@@ -1674,6 +1727,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				item.ratingType = 'select';
 				for(var k=0; k<rating.values.length; k++) {
 					item.ratingOptions.push({id: rating.values[k]['p'], name: rating.values[k]['v']});
+				}
+				if (rating.remarks && rating.remarks.length > 0) {
+					for (var l=0; l<rating.remarks.length; l++) {
+						var remark = rating.remarks[l];
+						item.remarkOptions.push({id:l, name:remark, selected:false});
+					}
 				}
 			}
 		}
