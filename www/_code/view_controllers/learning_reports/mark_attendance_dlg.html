@@ -36,8 +36,17 @@
 						</div>
 					</div>
 				</div>
-				<div ng-class='respCol211' class='padding-mid fsh4' ng-if='!user.attrition'>
+				<div ng-class='respCol211' class='padding-mid fsh4' ng-show='!user.remarkOptions && !user.attrition'>
 					<input type='text' ng-model='user.remarks' placeholder='Mention remarks for learner'></input>
+				</div>
+				<div ng-class='respCol211' class='padding-mid fsh4' ng-if='user.remarkOptions && !user.attrition'>
+					<select ng-model='user.remarks' 
+							ng-options='opt as opt.name for opt in user.remarkOptions track by opt.id'
+							class='w100 {{fieldcls}}'
+							autofocus=''
+							tabindex="{{tabindex}}"
+							style='min-height: 34px'>
+					</select>
 				</div>
 			</div>
 		</div>

@@ -1410,6 +1410,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				for(var j=0; j<session.newAttendance.length; j++) {
 					var userSessionAttendance = session.newAttendance[j];
 					if(userSessionAttendance.attendance.id == '' && userSessionAttendance.remarks == '') continue;
+					if(!_validateAttendance(userSessionAttendance)) {
+						nlDlg.popupAlert({title: 'Error', template: nl.t('Remarks mandatory for {}', userSessionAttendance.name)});
+						return;
+					}
 					_updateAttendanceDelta(updatedSessionsList[i], userSessionAttendance);
 				}
 			}
@@ -1435,6 +1439,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		[okButton], cancelButton);
 	}
 
+	function _validateAttendance(userSessionAttendance) {
+		var remarks = (userSessionAttendance.remarkOptions && userSessionAttendance.remarkOptions.length > 0) ? userSessionAttendance.remarks.id : (userSessionAttendance.remarks || '');
+		if (userSessionAttendance.attendance.id == '') return true;
+		if (userSessionAttendance.attendance.id != "attended" && (!remarks || remarks == "")) return false;
+		return true;
+	}
+
 	var attendanceUpdated = false; //This flag is to check whether the trainer had done changes to mark or not
 
 	function _updateAttendanceDelta(updateSessionList, newAttendancePerSession) {
@@ -1452,20 +1463,25 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if(!oldAttendancePerSession.remarks) oldAttendancePerSession['remarks'] = '';
 		var marked = oldAttendancePerSession.marked || null;
 		var updated = oldAttendancePerSession.updated || null;
-		if(oldAttendancePerSession.attId != newAttendancePerSession.attendance.id || oldAttendancePerSession.remarks !== newAttendancePerSession.remarks) {
+		var _remarks = (newAttendancePerSession.remarkOptions && newAttendancePerSession.remarkOptions.length > 0) ? newAttendancePerSession.remarks.name : (newAttendancePerSession.remarks || "");
+		if(oldAttendancePerSession.attId != newAttendancePerSession.attendance.id || oldAttendancePerSession.remarks !== _remarks) {
 			updateSessionList.selectedUsers.push({name: newAttendancePerSession.name, 
 				status: (newAttendancePerSession.attendance.id in _attendanceObj) ? _attendanceObj[newAttendancePerSession.attendance.id].name : '', 
-				remarks: newAttendancePerSession.remarks || ""});
+				remarks: _remarks});
 			attendanceUpdated = true;
 			updated = new Date();
 			if (oldAttendancePerSession.attId != newAttendancePerSession.attendance.id) marked = updated;
 		}
 		if(!(repid in attendance)) attendance[repid] = [];
-		attendance[repid].push({id: sessionid, attId: newAttendancePerSession.attendance.id, remarks: newAttendancePerSession.remarks, updated: updated, marked: marked});
+		var userAttendance = {id: sessionid, attId: newAttendancePerSession.attendance.id, updated: updated, marked: marked, remarks: _remarks}
+		attendance[repid].push(userAttendance);
 	}
 
 	function _getIltSessions(content, learningRecords, type) {
 		var ret = [];
+		var remarks = _groupInfo.props.attendanceRemarks || [];
+		var _remarkOptions = [];
+		for(var i=0; i<remarks.length; i++) _remarkOptions.push({id: remarks[i], name: remarks[i]})
 		for(var i=0; i<content.modules.length; i++) {
 			if(content.modules[i].type != 'iltsession') continue; 
 			var item = content.modules[i];
@@ -1483,11 +1499,25 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				for(var k=0; k<userAttendance.length; k++) {
 					if (ret[j].id == userAttendance[k].id) {
 						notMarked = false;
-						ret[j].newAttendance.push({id: parseInt(key), name: user.name, attendance: {id: userAttendance[k].attId}, remarks: userAttendance[k].remarks || '', userid: user.user_id, attrition: attrition, attritionStr: attritionStr});
+						var attendanceObj = {id: parseInt(key), name: user.name, attendance: {id: userAttendance[k].attId}, 
+											remarks: userAttendance[k].remarks || '', userid: user.user_id, attrition: attrition, 
+											attritionStr: attritionStr}
+						if(_remarkOptions.length > 0) {
+							attendanceObj.remarkOptions = angular.copy(_remarkOptions);
+							attendanceObj.remarks = {name: userAttendance[k].remarks, id: userAttendance[k].remarks};
+						}
+						ret[j].newAttendance.push(attendanceObj);
 						break;
 					}
 				}
-				if(notMarked) ret[j].newAttendance.push({id: parseInt(key), name: user.name, attendance: {id: ''}, userid: user.user_id, remarks: '', attrition: attrition, attritionStr: attritionStr});
+				if(notMarked) {
+					var attendanceObj = {id: parseInt(key), name: user.name, attendance: {id: ''}, userid: user.user_id, remarks: '', attrition: attrition, attritionStr: attritionStr}
+					if(_remarkOptions.length > 0) {
+						attendanceObj.remarkOptions = angular.copy(_remarkOptions);
+						attendanceObj.remarks = {id: '', name: ''};
+					}
+					ret[j].newAttendance.push(attendanceObj);
+				}
 				if(stats.attritedAt == ret[j].id) attrition = true;
 			}
 		}
