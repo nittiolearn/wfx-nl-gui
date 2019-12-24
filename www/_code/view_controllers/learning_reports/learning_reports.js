@@ -1390,6 +1390,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		oldAttendance = {};
 		oldAttendance = angular.copy(attendance);
 		markAttendanceDlg.scope.onClick = function(session) {
+			var currentSession = markAttendanceDlg.scope.selectedSession;
+			if(session.sessionNo > currentSession.sessionNo) {
+				var ret = _checkIfCurrentSessionIsCompletelyMarked(markAttendanceDlg.scope, currentSession, session)
+				if(!ret.status) {
+					nlDlg.popupAlert({title: 'Alert message', 
+						template: ret.msg})
+					return;	
+				}
+			}
 			markAttendanceDlg.scope.selectedSession = session;
 		};
 		
@@ -1411,7 +1420,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					var userSessionAttendance = session.newAttendance[j];
 					if(userSessionAttendance.attendance.id == '' && userSessionAttendance.remarks == '') continue;
 					if(!_validateAttendance(userSessionAttendance)) {
-						nlDlg.popupAlert({title: 'Error', template: nl.t('Remarks mandatory for {}', userSessionAttendance.name)});
+						nlDlg.popupAlert({title: 'Error', template: nl.t('Remarks mandatory for {} of {}', userSessionAttendance.name, session.name)});
 						return;
 					}
 					_updateAttendanceDelta(updatedSessionsList[i], userSessionAttendance);
@@ -1437,6 +1446,35 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}};
 		markAttendanceDlg.show('view_controllers/learning_reports/mark_attendance_dlg.html',
 		[okButton], cancelButton);
+	}
+
+	function _checkIfCurrentSessionIsCompletelyMarked(dlgScope, currentSession, selectedSession) {
+		var currentSessionAttendance = currentSession.newAttendance;
+		var sessions = dlgScope.sessions;
+		for(var i=0; i<currentSessionAttendance.length; i++) {
+			var userSession = currentSessionAttendance[i];
+			var attendance = userSession.attendance;
+			if(attendance.id == "" && !userSession.attrition) {
+				return {status: false, msg: nl.t('<div class="padding-mid fsh6"><p style="line-height:30px">You are not allowed mark learners in <b>{}</b> unless you completely mark <b>{}</b> learners</p></div>', selectedSession.name, currentSession.name)};
+			}
+		}
+		var pendingSession = null;
+		for(var i=0; i<sessions.length; i++) {
+			var session = sessions[i];
+			if(session.sessionNo == selectedSession.sessionNo) {
+				pendingSession = selectedSession;			
+				break;
+			}
+			for(var j=0; j<session.newAttendance.length; j++) {
+				var userSession = session.newAttendance[j];
+				var attendance = userSession.attendance;
+				if(attendance.id == "" && !userSession.attrition) pendingSession = session;
+			}
+			if(pendingSession) break;
+		}
+		if(pendingSession.sessionNo < selectedSession.sessionNo)
+			return {status: false, msg: nl.t('<div class="padding-mid fsh6"><p style="line-height:30px">You are not allowed to mark learners in <b>{}</b> unless you mark learners of <b>{}</b>. Please click on the <b>{}</b> and try marking attedance.</p></div>', selectedSession.name, pendingSession.name, pendingSession.name)};
+		return {status: true};
 	}
 
 	function _validateAttendance(userSessionAttendance) {
@@ -1485,7 +1523,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for(var i=0; i<content.modules.length; i++) {
 			if(content.modules[i].type != 'iltsession') continue; 
 			var item = content.modules[i];
-			ret.push({id: item.id, name:item.name, newAttendance: []});
+			ret.push({id: item.id, name:item.name, sessionNo: i, newAttendance: []});
 		}
 		
 		for(var key in learningRecords) {
@@ -1587,7 +1625,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					if(ratingItem.ratingType == 'select' && ((userRating.rating.id != 0 && !userRating.rating.id) && !userRating.remarks)) continue;
 					if(ratingItem.ratingType == 'select' && (userRating.remarkOptions && userRating.remarkOptions.length > 0)) {
 						if(!_validateRating(userRating)) {
-							return nlDlg.popupAlert({title: 'Validation error', template: nl.t('Remarks mandatory for {}', userRating.name)})
+							return nlDlg.popupAlert({title: 'Validation error', template: nl.t('Remarks mandatory for {} of {}', userRating.name, ratingItem.name)})
 						}
 					}
 					_updateRatingDelta(updatedSessionsList[i], userRating);
