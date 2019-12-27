@@ -1297,6 +1297,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _onClickOnMarkMilestone() {
 		var courseAssignment = _getCourseAssignmnt();
 		milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
+		attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
+		attendance = nlCourse.migrateCourseAttendance(attendance);
+		rating = courseAssignment.rating ? angular.fromJson(courseAssignment.rating) : {};
 		nlDlg.preventMultiCalls(true, _showMilestoneMarker);
 	}
 
@@ -1311,6 +1314,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		oldMilestone = angular.copy(milestone);
 
 		milestoneDlg.scope.onClick = function(selectedItem) {
+			var currentMilestone = milestoneDlg.scope.selectedItem;
+			delete selectedItem.error;
+			if(selectedItem.milestoneNo > currentMilestone.milestoneNo) {
+				var ret = _checkMilestoneIsMarked(milestoneDlg.scope, currentMilestone, selectedItem);
+				if(!ret.status)
+					selectedItem.error = ret.name;
+			}
 			milestoneDlg.scope.selectedItem = selectedItem;
 		};
 
@@ -1338,15 +1348,90 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	}
 
+	function _checkMilestoneIsMarked(dlgScope, currentMilestone, selectedMilestone) {
+		if(!currentMilestone.milestoneObj.status) return {status: false, name: currentMilestone.name};
+		var milestones = dlgScope.milestones;
+		var pendingMilestone = null;
+		for(var i=0; i<milestones.length; i++) {
+			var milestone = milestones[i];
+			if(milestone.milestoneNo == selectedMilestone.milestoneNo) {
+				pendingMilestone = milestone;
+				break;
+			} else if(milestone.milestoneNo < selectedMilestone.milestoneNo && !currentMilestone.milestoneObj.status) {
+				pendingMilestone = milestone;
+				break;
+			}
+		}
+		if(pendingMilestone.milestoneNo != selectedMilestone.milestoneNo) 
+			return {status: false, name: pendingMilestone.name}
+		return {status: true};
+	}
+	
 	function _getMilestoneItems(content) {
 		var ret = [];
+		var learningRecords = nlLrReportRecords.getRecords();
+		var sessions = _getIltSessions(content, learningRecords);
+		var ratings = _getRatings(content, learningRecords, 'true');
+		var iltAndRatingIds = {};
 		for(var i=0; i<content.modules.length; i++) {
-			if(content.modules[i].type != 'milestone') continue; 
 			var item = content.modules[i];
+			if(item.type == 'iltsession' || item.type == 'rating') iltAndRatingIds[item.id] = true;
+			if(item.type != 'milestone') continue; 
 			var _milestone = milestone[item.id] || {};
-			ret.push({id: item.id, name:item.name, milestoneObj: {status: _milestone.status == 'done' ? true : false, comment:  _milestone.comment || ''}});
+			ret.push({id: item.id, earlierItemIds: angular.copy(iltAndRatingIds), canMarkMilestone:true,  milestoneNo:i, name:item.name, 
+						milestoneObj: {status: _milestone.status == 'done' ? true : false, comment:  _milestone.comment || ''}, pendingIlts: [], pendingRatings: []});
+			iltAndRatingIds = {};
+		}
+
+		for(var i=0; i<ret.length; i++) {
+			var _milestone = ret[i];
+			var earlierSessions = _getEarlierItems(sessions, _milestone.earlierItemIds);
+			//Check for earllier attendance items.
+			for(var j=0; j<earlierSessions.length; j++) {
+				var newAttendance = earlierSessions[j].newAttendance;
+				for(var k=0; k<newAttendance.length; k++) {
+					var userAttendance = newAttendance[k].attendance;
+					if(userAttendance.id == "" && !newAttendance[k].attrition) {
+						ret[i].pendingIlts.push(earlierSessions[j].name)
+						ret[i].canMarkMilestone = false;
+						break;
+					}
+				}
+			}
+		}
+		//check for earlier ratings
+		for(var i=0; i<ret.length; i++) {
+			var _milestone = ret[i];
+			var earlierItems = _getEarlierItems(ratings, _milestone.earlierItemIds);
+			for(var j=0; j<earlierItems.length; j++) {
+				var _ratings = earlierItems[j].rating;
+				for(var k=0; k<_ratings.length; k++) {
+					var userRating = _ratings[k].rating;
+					if(earlierItems[j].ratingType == 'input') {
+						if(!userRating && !_ratings[k].attrition) {
+							ret[i].pendingRatings.push(earlierItems[j].name)
+							ret[i].canMarkMilestone = false;
+							break;	
+						}
+					}
+					if(earlierItems[j].ratingType == 'select') {
+						if(userRating.id == "" && !_ratings[k].attrition) {
+							ret[i].pendingRatings.push(earlierItems[j].name)
+							ret[i].canMarkMilestone = false;
+							break;	
+						}	
+					}
+				}
+			}
 		}
 		return ret;
+	}
+
+	function _getEarlierItems(sessions, earlierItemIds) {
+		var ret = [];
+		for(var i=0; i<sessions.length; i++) 
+			if(sessions[i].id in earlierItemIds) ret.push(sessions[i]);
+		return ret; //returns earlier or in between items.
 	}
 
 	function _updateMilestoneDelta(updateMilestoneList, newMilestone) {
@@ -1451,11 +1536,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _checkIfCurrentSessionIsCompletelyMarked(dlgScope, currentSession, selectedSession) {
 		var currentSessionAttendance = currentSession.newAttendance;
 		var sessions = dlgScope.sessions;
+		var msg = '<div class="padding-mid fsh6"><p style="line-height:30px">Please mark attendance for all learners in all the earlier sessions before marking attendance for this session.</p></div>';
 		for(var i=0; i<currentSessionAttendance.length; i++) {
 			var userSession = currentSessionAttendance[i];
 			var attendance = userSession.attendance;
 			if(attendance.id == "" && !userSession.attrition) {
-				return {status: false, msg: nl.t('<div class="padding-mid fsh6"><p style="line-height:30px">You are not allowed mark learners in <b>{}</b> unless you completely mark <b>{}</b> learners</p></div>', selectedSession.name, currentSession.name)};
+				return {status: false, msg: msg};
 			}
 		}
 		var pendingSession = null;
@@ -1473,14 +1559,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if(pendingSession) break;
 		}
 		if(pendingSession.sessionNo < selectedSession.sessionNo)
-			return {status: false, msg: nl.t('<div class="padding-mid fsh6"><p style="line-height:30px">You are not allowed to mark learners in <b>{}</b> unless you mark learners of <b>{}</b>. Please click on the <b>{}</b> and try marking attedance.</p></div>', selectedSession.name, pendingSession.name, pendingSession.name)};
+			return {status: false, msg: msg};
 		return {status: true};
 	}
 
 	function _validateAttendance(userSessionAttendance) {
 		var remarks = (userSessionAttendance.remarkOptions && userSessionAttendance.remarkOptions.length > 0) ? userSessionAttendance.remarks.id : (userSessionAttendance.remarks || '');
 		if (userSessionAttendance.attendance.id == '') return true;
-		if (userSessionAttendance.attendance.id != "attended" && (!remarks || remarks == "")) return false;
+		var selectedAttendance = _attendanceObj[userSessionAttendance.attendance.id] || {};
+		if (selectedAttendance.timePerc != 100 && (!remarks || remarks == "")) return false;
 		return true;
 	}
 
@@ -1519,7 +1606,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var ret = [];
 		var remarks = _groupInfo.props.attendanceRemarks || [];
 		var _remarkOptions = [];
-		for(var i=0; i<remarks.length; i++) _remarkOptions.push({id: remarks[i], name: remarks[i]})
+		if(remarks.length > 0) {
+			_remarkOptions.push({id: '', name: ''});
+			for(var i=0; i<remarks.length; i++) _remarkOptions.push({id: remarks[i], name: remarks[i]})
+		}
 		for(var i=0; i<content.modules.length; i++) {
 			if(content.modules[i].type != 'iltsession') continue; 
 			var item = content.modules[i];
@@ -1603,12 +1693,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		ratingDlg.scope.onDropdownItemSelected = function(user, item) {
 			item.selected = !item.selected;
-			user.remarks = '';
+			var remarks = [];
 			for(var i=0; i<user.remarkOptions.length; i++) {
 				var remark = user.remarkOptions[i];
-				if(remark.selected) user.remarks += remark.name + ', ';
+				if(remark.selected) remarks.push(remark.name);
 			}
-			
+			user.remarks = nl.fmt.arrayToString(remarks);
 		}
 
 		var okButton = {text: nl.t('Provide rating'), onTap: function(e) {
@@ -1654,6 +1744,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _validateRating(userRating) {
+		if(userRating.rating.id == "") return true;
 		if(userRating.rating.id != 100 && (!userRating.remarks || userRating.remarks == '')) return false;
 		return true;
 	}

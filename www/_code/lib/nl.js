@@ -309,15 +309,7 @@ function Formatter() {
 	};
 
     this.arrayToString = function(attr) {
-        var pos = 1
-        if(!Array.isArray(attr)) return attr;
-        var str = '';
-        for(var i=0; i<attr.length; i++) {
-            str += attr[i];
-            if (pos < attr.length) str += ','
-            pos++;
-        }
-        return str;
+        return (attr && Array.isArray(attr)) ? attr.join(',') : attr;
     };
 
     function _fmt2Impl(strFmt, args) {
