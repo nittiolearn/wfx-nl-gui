@@ -1297,6 +1297,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _onClickOnMarkMilestone() {
 		var courseAssignment = _getCourseAssignmnt();
 		milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
+		attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
+		attendance = nlCourse.migrateCourseAttendance(attendance);
+		rating = courseAssignment.rating ? angular.fromJson(courseAssignment.rating) : {};
 		nlDlg.preventMultiCalls(true, _showMilestoneMarker);
 	}
 
@@ -1311,6 +1314,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		oldMilestone = angular.copy(milestone);
 
 		milestoneDlg.scope.onClick = function(selectedItem) {
+			var currentMilestone = milestoneDlg.scope.selectedItem;
+			delete selectedItem.error;
+			if(selectedItem.milestoneNo > currentMilestone.milestoneNo) {
+				var ret = _checkMilestoneIsMarked(milestoneDlg.scope, currentMilestone, selectedItem);
+				if(!ret.status)
+					selectedItem.error = ret.name;
+			}
 			milestoneDlg.scope.selectedItem = selectedItem;
 		};
 
@@ -1338,15 +1348,90 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	}
 
+	function _checkMilestoneIsMarked(dlgScope, currentMilestone, selectedMilestone) {
+		if(!currentMilestone.milestoneObj.status) return {status: false, name: currentMilestone.name};
+		var milestones = dlgScope.milestones;
+		var pendingMilestone = null;
+		for(var i=0; i<milestones.length; i++) {
+			var milestone = milestones[i];
+			if(milestone.milestoneNo == selectedMilestone.milestoneNo) {
+				pendingMilestone = milestone;
+				break;
+			} else if(milestone.milestoneNo < selectedMilestone.milestoneNo && !currentMilestone.milestoneObj.status) {
+				pendingMilestone = milestone;
+				break;
+			}
+		}
+		if(pendingMilestone.milestoneNo != selectedMilestone.milestoneNo) 
+			return {status: false, name: pendingMilestone.name}
+		return {status: true};
+	}
+	
 	function _getMilestoneItems(content) {
 		var ret = [];
+		var learningRecords = nlLrReportRecords.getRecords();
+		var sessions = _getIltSessions(content, learningRecords);
+		var ratings = _getRatings(content, learningRecords, 'true');
+		var iltAndRatingIds = {};
 		for(var i=0; i<content.modules.length; i++) {
-			if(content.modules[i].type != 'milestone') continue; 
 			var item = content.modules[i];
+			if(item.type == 'iltsession' || item.type == 'rating') iltAndRatingIds[item.id] = true;
+			if(item.type != 'milestone') continue; 
 			var _milestone = milestone[item.id] || {};
-			ret.push({id: item.id, name:item.name, milestoneObj: {status: _milestone.status == 'done' ? true : false, comment:  _milestone.comment || ''}});
+			ret.push({id: item.id, earlierItemIds: angular.copy(iltAndRatingIds), canMarkMilestone:true,  milestoneNo:i, name:item.name, 
+						milestoneObj: {status: _milestone.status == 'done' ? true : false, comment:  _milestone.comment || ''}, pendingIlts: [], pendingRatings: []});
+			iltAndRatingIds = {};
+		}
+
+		for(var i=0; i<ret.length; i++) {
+			var _milestone = ret[i];
+			var earlierSessions = _getEarlierItems(sessions, _milestone.earlierItemIds);
+			//Check for earllier attendance items.
+			for(var j=0; j<earlierSessions.length; j++) {
+				var newAttendance = earlierSessions[j].newAttendance;
+				for(var k=0; k<newAttendance.length; k++) {
+					var userAttendance = newAttendance[k].attendance;
+					if(userAttendance.id == "" && !newAttendance[k].attrition) {
+						ret[i].pendingIlts.push(earlierSessions[j].name)
+						ret[i].canMarkMilestone = false;
+						break;
+					}
+				}
+			}
+		}
+		//check for earlier ratings
+		for(var i=0; i<ret.length; i++) {
+			var _milestone = ret[i];
+			var earlierItems = _getEarlierItems(ratings, _milestone.earlierItemIds);
+			for(var j=0; j<earlierItems.length; j++) {
+				var _ratings = earlierItems[j].rating;
+				for(var k=0; k<_ratings.length; k++) {
+					var userRating = _ratings[k].rating;
+					if(earlierItems[j].ratingType == 'input') {
+						if(!userRating && !_ratings[k].attrition) {
+							ret[i].pendingRatings.push(earlierItems[j].name)
+							ret[i].canMarkMilestone = false;
+							break;	
+						}
+					}
+					if(earlierItems[j].ratingType == 'select') {
+						if(userRating.id == "" && !_ratings[k].attrition) {
+							ret[i].pendingRatings.push(earlierItems[j].name)
+							ret[i].canMarkMilestone = false;
+							break;	
+						}	
+					}
+				}
+			}
 		}
 		return ret;
+	}
+
+	function _getEarlierItems(sessions, earlierItemIds) {
+		var ret = [];
+		for(var i=0; i<sessions.length; i++) 
+			if(sessions[i].id in earlierItemIds) ret.push(sessions[i]);
+		return ret; //returns earlier or in between items.
 	}
 
 	function _updateMilestoneDelta(updateMilestoneList, newMilestone) {
@@ -1390,6 +1475,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		oldAttendance = {};
 		oldAttendance = angular.copy(attendance);
 		markAttendanceDlg.scope.onClick = function(session) {
+			var currentSession = markAttendanceDlg.scope.selectedSession;
+			if(session.sessionNo > currentSession.sessionNo) {
+				var ret = _checkIfCurrentSessionIsCompletelyMarked(markAttendanceDlg.scope, currentSession, session)
+				if(!ret.status) {
+					nlDlg.popupAlert({title: 'Alert message', 
+						template: ret.msg})
+					return;	
+				}
+			}
 			markAttendanceDlg.scope.selectedSession = session;
 		};
 		
@@ -1410,6 +1504,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				for(var j=0; j<session.newAttendance.length; j++) {
 					var userSessionAttendance = session.newAttendance[j];
 					if(userSessionAttendance.attendance.id == '' && userSessionAttendance.remarks == '') continue;
+					if(!_validateAttendance(userSessionAttendance)) {
+						nlDlg.popupAlert({title: 'Error', template: nl.t('Remarks mandatory for {} of {}', userSessionAttendance.name, session.name)});
+						return;
+					}
 					_updateAttendanceDelta(updatedSessionsList[i], userSessionAttendance);
 				}
 			}
@@ -1435,6 +1533,44 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		[okButton], cancelButton);
 	}
 
+	function _checkIfCurrentSessionIsCompletelyMarked(dlgScope, currentSession, selectedSession) {
+		var currentSessionAttendance = currentSession.newAttendance;
+		var sessions = dlgScope.sessions;
+		var msg = '<div class="padding-mid fsh6"><p style="line-height:30px">Please mark attendance for all learners in all the earlier sessions before marking attendance for this session.</p></div>';
+		for(var i=0; i<currentSessionAttendance.length; i++) {
+			var userSession = currentSessionAttendance[i];
+			var attendance = userSession.attendance;
+			if(attendance.id == "" && !userSession.attrition) {
+				return {status: false, msg: msg};
+			}
+		}
+		var pendingSession = null;
+		for(var i=0; i<sessions.length; i++) {
+			var session = sessions[i];
+			if(session.sessionNo == selectedSession.sessionNo) {
+				pendingSession = selectedSession;			
+				break;
+			}
+			for(var j=0; j<session.newAttendance.length; j++) {
+				var userSession = session.newAttendance[j];
+				var attendance = userSession.attendance;
+				if(attendance.id == "" && !userSession.attrition) pendingSession = session;
+			}
+			if(pendingSession) break;
+		}
+		if(pendingSession.sessionNo < selectedSession.sessionNo)
+			return {status: false, msg: msg};
+		return {status: true};
+	}
+
+	function _validateAttendance(userSessionAttendance) {
+		var remarks = (userSessionAttendance.remarkOptions && userSessionAttendance.remarkOptions.length > 0) ? userSessionAttendance.remarks.id : (userSessionAttendance.remarks || '');
+		if (userSessionAttendance.attendance.id == '') return true;
+		var selectedAttendance = _attendanceObj[userSessionAttendance.attendance.id] || {};
+		if (selectedAttendance.timePerc != 100 && (!remarks || remarks == "")) return false;
+		return true;
+	}
+
 	var attendanceUpdated = false; //This flag is to check whether the trainer had done changes to mark or not
 
 	function _updateAttendanceDelta(updateSessionList, newAttendancePerSession) {
@@ -1452,24 +1588,32 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if(!oldAttendancePerSession.remarks) oldAttendancePerSession['remarks'] = '';
 		var marked = oldAttendancePerSession.marked || null;
 		var updated = oldAttendancePerSession.updated || null;
-		if(oldAttendancePerSession.attId != newAttendancePerSession.attendance.id || oldAttendancePerSession.remarks !== newAttendancePerSession.remarks) {
+		var _remarks = (newAttendancePerSession.remarkOptions && newAttendancePerSession.remarkOptions.length > 0) ? newAttendancePerSession.remarks.name : (newAttendancePerSession.remarks || "");
+		if(oldAttendancePerSession.attId != newAttendancePerSession.attendance.id || oldAttendancePerSession.remarks !== _remarks) {
 			updateSessionList.selectedUsers.push({name: newAttendancePerSession.name, 
 				status: (newAttendancePerSession.attendance.id in _attendanceObj) ? _attendanceObj[newAttendancePerSession.attendance.id].name : '', 
-				remarks: newAttendancePerSession.remarks || ""});
+				remarks: _remarks});
 			attendanceUpdated = true;
 			updated = new Date();
 			if (oldAttendancePerSession.attId != newAttendancePerSession.attendance.id) marked = updated;
 		}
 		if(!(repid in attendance)) attendance[repid] = [];
-		attendance[repid].push({id: sessionid, attId: newAttendancePerSession.attendance.id, remarks: newAttendancePerSession.remarks, updated: updated, marked: marked});
+		var userAttendance = {id: sessionid, attId: newAttendancePerSession.attendance.id, updated: updated, marked: marked, remarks: _remarks}
+		attendance[repid].push(userAttendance);
 	}
 
 	function _getIltSessions(content, learningRecords, type) {
 		var ret = [];
+		var remarks = _groupInfo.props.attendanceRemarks || [];
+		var _remarkOptions = [];
+		if(remarks.length > 0) {
+			_remarkOptions.push({id: '', name: ''});
+			for(var i=0; i<remarks.length; i++) _remarkOptions.push({id: remarks[i], name: remarks[i]})
+		}
 		for(var i=0; i<content.modules.length; i++) {
 			if(content.modules[i].type != 'iltsession') continue; 
 			var item = content.modules[i];
-			ret.push({id: item.id, name:item.name, newAttendance: []});
+			ret.push({id: item.id, name:item.name, sessionNo: i, newAttendance: []});
 		}
 		
 		for(var key in learningRecords) {
@@ -1483,11 +1627,25 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				for(var k=0; k<userAttendance.length; k++) {
 					if (ret[j].id == userAttendance[k].id) {
 						notMarked = false;
-						ret[j].newAttendance.push({id: parseInt(key), name: user.name, attendance: {id: userAttendance[k].attId}, remarks: userAttendance[k].remarks || '', userid: user.user_id, attrition: attrition, attritionStr: attritionStr});
+						var attendanceObj = {id: parseInt(key), name: user.name, attendance: {id: userAttendance[k].attId}, 
+											remarks: userAttendance[k].remarks || '', userid: user.user_id, attrition: attrition, 
+											attritionStr: attritionStr}
+						if(_remarkOptions.length > 0) {
+							attendanceObj.remarkOptions = angular.copy(_remarkOptions);
+							attendanceObj.remarks = {name: userAttendance[k].remarks, id: userAttendance[k].remarks};
+						}
+						ret[j].newAttendance.push(attendanceObj);
 						break;
 					}
 				}
-				if(notMarked) ret[j].newAttendance.push({id: parseInt(key), name: user.name, attendance: {id: ''}, userid: user.user_id, remarks: '', attrition: attrition, attritionStr: attritionStr});
+				if(notMarked) {
+					var attendanceObj = {id: parseInt(key), name: user.name, attendance: {id: ''}, userid: user.user_id, remarks: '', attrition: attrition, attritionStr: attritionStr}
+					if(_remarkOptions.length > 0) {
+						attendanceObj.remarkOptions = angular.copy(_remarkOptions);
+						attendanceObj.remarks = {id: '', name: ''};
+					}
+					ret[j].newAttendance.push(attendanceObj);
+				}
 				if(stats.attritedAt == ret[j].id) attrition = true;
 			}
 		}
@@ -1533,6 +1691,16 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			});
 		};
 
+		ratingDlg.scope.onDropdownItemSelected = function(user, item) {
+			item.selected = !item.selected;
+			var remarks = [];
+			for(var i=0; i<user.remarkOptions.length; i++) {
+				var remark = user.remarkOptions[i];
+				if(remark.selected) remarks.push(remark.name);
+			}
+			user.remarks = nl.fmt.arrayToString(remarks);
+		}
+
 		var okButton = {text: nl.t('Provide rating'), onTap: function(e) {
 			var updatedSessionsList = [];
 				rating = {};
@@ -1545,6 +1713,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					var userRating = ratingItem.rating[j];
 					if(ratingItem.ratingType == 'input' && ((userRating.rating != 0 && (!userRating.rating || userRating.rating === null)) && !userRating.remarks)) continue;
 					if(ratingItem.ratingType == 'select' && ((userRating.rating.id != 0 && !userRating.rating.id) && !userRating.remarks)) continue;
+					if(ratingItem.ratingType == 'select' && (userRating.remarkOptions && userRating.remarkOptions.length > 0)) {
+						if(!_validateRating(userRating)) {
+							return nlDlg.popupAlert({title: 'Validation error', template: nl.t('Remarks mandatory for {} of {}', userRating.name, ratingItem.name)})
+						}
+					}
 					_updateRatingDelta(updatedSessionsList[i], userRating);
 				}
 			}
@@ -1568,6 +1741,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}};
 		ratingDlg.show('view_controllers/learning_reports/mark_rating_dlg.html',
 		[okButton], cancelButton);
+	}
+
+	function _validateRating(userRating) {
+		if(userRating.rating.id == "") return true;
+		if(userRating.rating.id != 100 && (!userRating.remarks || userRating.remarks == '')) return false;
+		return true;
 	}
 
 	function _updateRatingDelta(updateSessionList, newRatingPerItem) {
@@ -1608,10 +1787,22 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		if(!(repid in rating)) rating[repid] = [];
 		if(updateSessionList.rating_type == 'input') 
-			rating[repid].push({id: sessionid, attId: (newRatingPerItem.rating === 0) ? 0 : newRatingPerItem.rating, remarks: newRatingPerItem.remarks || '', marked: marked, updated: updated});
+			rating[repid].push({id: sessionid, attId: (newRatingPerItem.rating === 0) ? 0 : newRatingPerItem.rating, remarks: [newRatingPerItem.remarks] || '', marked: marked, updated: updated});
 
-		if(updateSessionList.rating_type == 'select')
-			rating[repid].push({id: sessionid, attId: newRatingPerItem.rating.id, remarks: newRatingPerItem.remarks || '', marked: marked, updated: updated});
+		if(updateSessionList.rating_type == 'select') {
+			var _userRating = {id: sessionid, attId: newRatingPerItem.rating.id, marked: marked, updated: updated}
+			if(newRatingPerItem.remarkOptions && newRatingPerItem.remarkOptions.length > 0) {
+				var _remarkArray = [];
+				for(var i=0; i<newRatingPerItem.remarkOptions.length; i++) {
+					var remark = newRatingPerItem.remarkOptions[i];
+					if(remark.selected) _remarkArray.push(remark.name);
+				}
+				_userRating.remarks = _remarkArray;
+			} else {
+				_userRating.remarks = [newRatingPerItem.remarks];
+			}
+			rating[repid].push(_userRating);
+		}
 	}
 
 	function _getRatings(content, learningRecords, isFirstTime) {
@@ -1619,7 +1810,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for(var i=0; i<content.modules.length; i++) {
 			if(content.modules[i].type != 'rating') continue;
 			var item = content.modules[i];
-			var dict = {id: item.id, name:item.name, rating_type: item.rating_type, rating: [], ratingOptions: []};
+			var dict = {id: item.id, name:item.name, rating_type: item.rating_type, rating: [], ratingOptions: [], remarkOptions: []};
 			_checkAndUpdateRatingParams(dict);
 			ret.push(dict);
 		}
@@ -1636,13 +1827,23 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					if(ret[j].ratingType == 'input') {
 						ret[j].rating.push({id: parseInt(key), name: user.name, rating: null, userid: user.user_id, remarks: statusinfo.remarks || ''});
 					} else if(ret[j].ratingType == 'select') {
-						ret[j].rating.push({id: parseInt(key), name: user.name, rating: {id: ''}, userid: user.user_id, remarks: statusinfo.remarks || ''});
+						var userObj = {id: parseInt(key), name: user.name, rating: {id: ''}, userid: user.user_id, remarks: nl.fmt.arrayToString(statusinfo.remarks || '')}
+						if(ret[j].remarkOptions.length > 0) {
+							userObj['remarkOptions'] = angular.copy(ret[j].remarkOptions);
+							_updateSelectedRating(statusinfo.remarks, userObj['remarkOptions']);
+						}
+						ret[j].rating.push(userObj);
 					}
 				} else {
 					if(ret[j].ratingType == 'input') {
 						ret[j].rating.push({id: parseInt(key), name: user.name, rating: statusinfo.origScore, userid: user.user_id, attrition: attrition, attritionStr: attritionStr, remarks: statusinfo.remarks});
 					} else if(ret[j].ratingType == 'select') {
-						ret[j].rating.push({id: parseInt(key), name: user.name, rating: {id: statusinfo.origScore, name: statusinfo.rating}, userid: user.user_id, attrition: attrition, attritionStr: attritionStr, remarks: statusinfo.remarks});
+						var userObj = {id: parseInt(key), name: user.name, rating: {id: statusinfo.origScore, name: statusinfo.rating}, userid: user.user_id, attrition: attrition, attritionStr: attritionStr, remarks: nl.fmt.arrayToString(statusinfo.remarks || '')}
+						if(ret[j].remarkOptions.length > 0) {
+							userObj['remarkOptions'] = angular.copy(ret[j].remarkOptions);
+							_updateSelectedRating(statusinfo.remarks, userObj['remarkOptions']);
+						}
+						ret[j].rating.push(userObj);
 					}
 				}
 			}
@@ -1661,6 +1862,17 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return ret;
 	}
 
+	function _updateSelectedRating(remarks, remarkOptions) {
+		if (!Array.isArray(remarks)) return;
+		for(var i=0; i<remarks.length; i++) {
+			var remark = remarks[i];
+			for(var j=0; j<remarkOptions.length; j++) {
+				var option = remarkOptions[j];
+				if(remark == option.name) option.selected = true;
+			}
+		}
+	}
+
 	function _checkAndUpdateRatingParams(item) {
 		for(var i=0; i<_groupInfo.props.ratings.length; i++) {
 			var rating = _groupInfo.props.ratings[i];
@@ -1674,6 +1886,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				item.ratingType = 'select';
 				for(var k=0; k<rating.values.length; k++) {
 					item.ratingOptions.push({id: rating.values[k]['p'], name: rating.values[k]['v']});
+				}
+				if (rating.remarks && rating.remarks.length > 0) {
+					for (var l=0; l<rating.remarks.length; l++) {
+						var remark = rating.remarks[l];
+						item.remarkOptions.push({id:l, name:remark, selected:false});
+					}
 				}
 			}
 		}

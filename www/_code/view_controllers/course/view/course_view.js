@@ -511,6 +511,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
             onClick: function(e, cm) {
         	    $scope.onClick(e, cm);
         	},
+            onIconClick: function(e, cm) {
+        	    $scope.onIconClick(e, cm);
+            }
         };
         nlCourseEditor.init($scope, modeHandler, _userInfo);
     }
@@ -1627,8 +1630,13 @@ function Reopener(modeHandler, nlTreeListSrv, _userInfo, nl, nlDlg, nlServerApi,
         }
 
         var cm = reopenLessons[pos];
-        var targetLang = $scope.courseContent.targetLang || 'en';
-        nlServerApi.courseCreateLessonReport(modeHandler.course.id, cm.refid, cm.id, cm.attempt+1, cm.maxDuration||0, modeHandler.course.not_before||'', modeHandler.course.not_after||'', false, targetLang)
+        var targetLang = modeHandler.course.content.targetLang || 'en';
+        var refid = cm.refid;
+        if (targetLang != 'en') {
+            var languageInfo = modeHandler.course.content.languageInfo[targetLang] || {};
+            if (languageInfo[cm.id] && languageInfo[cm.id].refid) refid = languageInfo[cm.id].refid;
+        }
+        nlServerApi.courseCreateLessonReport(modeHandler.course.id, refid, cm.id, cm.attempt+1, cm.maxDuration||0, modeHandler.course.not_before||'', modeHandler.course.not_after||'', false, targetLang)
         .then(function(ret) {
             cm.attempt++;
             modeHandler.course.lessonReports = ret.lessonReports;

@@ -308,6 +308,10 @@ function Formatter() {
 		return ret + '</div>';
 	};
 
+    this.arrayToString = function(attr) {
+        return (attr && Array.isArray(attr)) ? attr.join(',') : attr;
+    };
+
     function _fmt2Impl(strFmt, args) {
         var i = 0;
         return strFmt.replace(/{}/g, function() {

@@ -980,7 +980,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         defaultRowObj._status = statusinfo.rating === 0 ? "0" : statusinfo.rating || 'pending';
         defaultRowObj._score = statusinfo.ratingScore === 0 ? "0" : statusinfo.score;
         defaultRowObj._passScoreStr = statusinfo.passScore || '';
-        defaultRowObj.remarks = statusinfo.remarks || '';
+        defaultRowObj.remarks = nl.fmt.arrayToString(statusinfo.remarks || '');
         defaultRowObj.ended = statusinfo.marked;
         defaultRowObj.updated = statusinfo.updated;
 	}
