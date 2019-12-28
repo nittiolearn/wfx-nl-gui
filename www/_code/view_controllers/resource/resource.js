@@ -622,12 +622,38 @@ function ImageShrinker(nl, nlDlg) {
 
 //-------------------------------------------------------------------------------------------------
 function ResumableUploader(nl, nlServerApi, nlDlg) {
+    this.resourceUpload = function(data) {
+        var impl = new ResumableUploaderImpl(nl, nlServerApi, nlDlg, this);
+        return impl.resourceUpload(data);
+    };
+    this.popupRetryDlg = function(onRetry, onCancel) {
+        _waiting.push({onRetry: onRetry, onCancel: onCancel});
+        if (_waiting.length > 1) return;
+        var msg = 'Upload is interrupted due to slow network. Check your network and press resume to continue the upload.';
+        nlDlg.popupConfirm({title: 'Upload Interrupted', template: msg, 
+            okText: 'Resume', cancelText: 'Cancel'}).then(function(result) {
+            _callAllWaiting(result ? true : false);
+        });
+    };
 
+    var _waiting = [];
+    function _callAllWaiting(isRetry) {
+        var waiting = _waiting;
+        _waiting = [];
+        for(var i=0; i<waiting.length; i++) {
+            if (isRetry) waiting[i].onRetry();
+            else waiting[i].onCancel('Upload is cancelled');
+        }
+    }
+}
+
+function ResumableUploaderImpl(nl, nlServerApi, nlDlg, resumableUploader) {
     var _state = {};
     var CHUNK_SIZE = 2*1024*1024;
     
     this.resourceUpload = function(data) {
         return nl.q(function(resolve, reject) {
+            _state.retryCount = 0;
             _getResumableResourceUrl(data, function(result) {
                 _state.start = 0;
                 _state.retryCount = 0;
@@ -645,6 +671,12 @@ function ResumableUploader(nl, nlServerApi, nlDlg) {
     };
 
     function _getResumableResourceUrl(data, resolve, reject) {
+        _retryAfterTimeout(function() {
+            _getResumableResourceUrlImpl(data, resolve, reject);
+        }, reject);
+    }
+
+    function _getResumableResourceUrlImpl(data, resolve, reject) {
         nlServerApi.executeRestApi('_serverapi/resource_get_resumable_upload_url.json',
         {
             name: data.resource.name,
@@ -653,8 +685,8 @@ function ResumableUploader(nl, nlServerApi, nlDlg) {
         }).then(function(result) {
             if (!result.location) reject('Not able to get the url to upload.');
             resolve(result);
-        }, function(err) {
-            reject(nl.fmt2('Getting upload url failed. {}', err));
+        }, function() {
+            _getResumableResourceUrl(data, resolve, reject);
         });
     }
 
@@ -703,7 +735,7 @@ function ResumableUploader(nl, nlServerApi, nlDlg) {
     function _retryUploadOfNextChunk(data, resolve, reject) {
         _retryAfterTimeout(function() {
             _retryUploadOfNextChunkImpl(data, resolve, reject);
-        });
+        }, reject);
     }
 
     function _retryUploadOfNextChunkImpl(data, resolve, reject) {
@@ -742,7 +774,7 @@ function ResumableUploader(nl, nlServerApi, nlDlg) {
     function _retrySaveToDB(resolve, reject) {
         _retryAfterTimeout(function() {
             _retrySaveToDBImpl(resolve, reject);
-        });
+        }, reject);
     }
 
     function _retrySaveToDBImpl(resolve, reject) {
@@ -752,26 +784,24 @@ function ResumableUploader(nl, nlServerApi, nlDlg) {
         });
     }
 
-    function _retryAfterTimeout(fn) {
+    function _retryAfterTimeout(onRetry, onCancel) {
         if (_state.retryCount > 3) {
-            return _popupRetryDlg(fn);
+            return _popupRetryDlg(onRetry, onCancel);
         }
         var timeout = _state.retryCount == 0 ? 0 : _state.retryCount == 1 ? 2000 : 5000;
         nl.timeout(function() {
             _state.retryCount++;
-            fn();
+            onRetry();
         }, timeout);
     }
 
-    function _popupRetryDlg(onResumeFn) {
-        var msg = 'Upload is interrupted due to slow network. Check your network and press resume to continue the upload.';
-        nlDlg.popupConfirm({title: 'Upload Interrupted', template: msg, 
-            okText: 'Resume', cancelText: 'Cancel'}).then(function(result) {
-            if (!result) return reject('Upload is cancelled');
+    function _popupRetryDlg(onRetry, onCancel) {
+        resumableUploader.popupRetryDlg(function() {
             _state.retryCount = 0;
-            onResumeFn();
-        });
+            onRetry();
+        }, onCancel);
     }
+
 }
 
 //-------------------------------------------------------------------------------------------------
