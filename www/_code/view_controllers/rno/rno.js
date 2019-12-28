@@ -3,6 +3,7 @@
 //-------------------------------------------------------------------------------------------------
 // rno.js:
 // rno - Rating and observation module
+// TODO-LATER: Remove this all together
 //-------------------------------------------------------------------------------------------------
 function module_init() {
 	angular.module('nl.rno', ['nl.rno_stats'])

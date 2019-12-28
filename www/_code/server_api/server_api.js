@@ -44,10 +44,10 @@ function(nl, nlDlg, nlConfig, Upload) {
         return _getUserInfoFromCacheOrServer(this);
     };
     
-    this.executeRestApi = function(url, data) {
+    this.executeRestApi = function(url, data, reloadUserInfo, noPopup) {
         // open API to execute any REST API (used from debug.js)
         // return: result of REST API
-        return server.post(url, data);
+        return server.post(url, data, reloadUserInfo, noPopup);
     };
     
     this.getBrandingInfo = function() {
@@ -670,7 +670,7 @@ function(nl, nlDlg, nlConfig, Upload) {
 		return server.post('_serverapi/resource_modify_attrs.json', data);
     };
     
-    // TODO-NOW: remove after resumable upload works
+    // TODO-LATER: remove after moving PDF upload and autovoice to "gcsresumable"
     this.resourceUpload = function(data, urltype) {
         // Upload a resource - could be basic upload or upload and do something more based
         // on url type

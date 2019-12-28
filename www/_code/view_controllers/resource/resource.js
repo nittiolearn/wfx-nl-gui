@@ -138,8 +138,6 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
 //-------------------------------------------------------------------------------------------------
 var PdfUploadCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'Upload', 'nlPdf', 'nlProgressFn',
 function(nl, nlRouter, $scope, nlServerApi, nlDlg, Upload, nlPdf, nlProgressFn) {
-    // TODO-NOW: Remove the code around resumeable_upload later
-    var _resumableUploader = ('resumeable_upload' in nl.location.search()) ? new ResumableUploader(nl, nlServerApi) : nlServerApi;
     var _template = 0;
     var uploadDlg = nlDlg.create($scope);
     uploadDlg.setCssClass('nl-height-max nl-width-max');
@@ -263,7 +261,8 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, Upload, nlPdf, nlProgressFn) 
                             singlepage: uploadDlg.scope.data.singlePage ? 1 : 0};
                 data.progressFn = nlProgressFn.onProgress;
                 
-                _resumableUploader.resourceUploadPdf(data).then(function success(newLessonId) {
+                // TODO-LATER: Use resumeable_upload later
+                nlServerApi.resourceUploadPdf(data).then(function success(newLessonId) {
                     resolve(newLessonId);
                 }, function error(msg) {
                     reject();
@@ -292,8 +291,15 @@ var ResourceUploaderSrv = ['nl', 'nlServerApi', 'nlDlg', 'nlProgressFn',
 function(nl, nlServerApi, nlDlg, nlProgressFn) {
 
     var imageShrinker = new ImageShrinker(nl, nlDlg);
-    // TODO-NOW: Remove the code around resumeable_upload later
-    var _resumableUploader = ('resumeable_upload' in nl.location.search()) ? new ResumableUploader(nl, nlServerApi) : nlServerApi;
+    // TODO-LATER: Remove 'old_upload' code after Feb 2020.
+    // prerequisites for removal: 
+    // a. handling upload from local machine
+    // b. remove all rno code
+    // c. refactor pdf upload
+    // d. refactor polly autovoice
+    var localHost = nl.window.location.protocol.toLowerCase() == 'http:';
+    var oldUpload = ('old_upload' in nl.location.search());
+    var _resumableUploader = localHost || oldUpload ? nlServerApi : new ResumableUploader(nl, nlServerApi, nlDlg);
 
     var _restypeToAcceptString = {
         Image: 'image/*', 
@@ -366,11 +372,11 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         var self = this;
         return nl.q(function(resolve, reject) {
             var resourceInfos = [];
-            _uploadNextReource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resourceInfoDict, resolve, reject);
+            _uploadNextResource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resourceInfoDict, resolve, reject);
         });
     };
 
-    function _uploadNextReource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resourceInfoDict, resolve, reject) {
+    function _uploadNextResource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resourceInfoDict, resolve, reject) {
         if (resourceList.length == 0) {
             resolve(resourceInfos);
             return;
@@ -415,9 +421,9 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
             nlDlg.popupStatus(nl.t('uploading {}', fileInfo.resource.name), false);
             _resumableUploader.resourceUpload(data).then(function success(resinfo) {
                 resourceInfos.push(resinfo);
-                _uploadNextReource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resourceInfoDict, resolve, reject);
+                _uploadNextResource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resourceInfoDict, resolve, reject);
             }, function error(msg) {
-                reject(nl.t('Uploading {} failed:', fileInfo.resource.name, msg));
+                reject(nl.t('Uploading {} failed: {}', fileInfo.resource.name, msg));
             });
         });
     }
@@ -615,49 +621,158 @@ function ImageShrinker(nl, nlDlg) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function ResumableUploader(nl, nlServerApi) {
+function ResumableUploader(nl, nlServerApi, nlDlg) {
 
-    this.resourceUploadPdf = function(data) {
-        return this.resourceUpload(data, 'upload_pdf');
-    };
-
-    this.resourceUpload = function(data, urltype) {
+    var _state = {};
+    var CHUNK_SIZE = 2*1024*1024;
+    
+    this.resourceUpload = function(data) {
         return nl.q(function(resolve, reject) {
-            _resourceUploadImpl(data, urltype, resolve, reject);
-        });
-    };
-
-    function _resourceUploadImpl(data, urltype, resolve, reject) {
-        // Upload a resource - could be basic upload or upload and do something more based
-        // on url type
-        // TODO-NOW: Handle urltype
-        if (urltype === undefined) urltype = 'upload';
-
-        nlServerApi.executeRestApi('_serverapi/resource_get_resumable_upload_url.json',
-            {
-                name: data.resource.name,
-                contenttype: data.resource.type,
-                contentlength: data.resource.size
-            }).then(function(result) {
-                console.log('Success:', result);
-                resolve({});
-            });
-        /*
-        return nl.q(function(resolve, reject) {
-            server.post(, {urltype: urltype})
-            .then(function(uploadUrl) {
-                var reloadUserInfo = false;
-                var noPopup = false;
-                var upload = true;
-                server.post(uploadUrl, data, reloadUserInfo, noPopup, upload)
-                .then(resolve, reject);
+            _getResumableResourceUrl(data, function(result) {
+                _state.start = 0;
+                _state.retryCount = 0;
+                _state.resumableUrl = result.location;
+                _state.gcsUri = result.gcsUri;
+                _resourceUploadNextChunk(data, function(data2) {
+                    nlDlg.popupStatus(nl.fmt2('{} uploaded', data.resource.name));
+                    resolve(data2);
+                }, function(err) {
+                    nlDlg.popdownStatus(0);
+                    reject(err);
+                });
             }, reject);
         });
-        */
+    };
+
+    function _getResumableResourceUrl(data, resolve, reject) {
+        nlServerApi.executeRestApi('_serverapi/resource_get_resumable_upload_url.json',
+        {
+            name: data.resource.name,
+            contenttype: data.resource.type,
+            contentlength: data.resource.size
+        }).then(function(result) {
+            if (!result.location) reject('Not able to get the url to upload.');
+            resolve(result);
+        }, function(err) {
+            reject(nl.fmt2('Getting upload url failed. {}', err));
+        });
+    }
+
+    function _resourceUploadNextChunk(data, resolve, reject) {
+        if (_state.start >= data.resource.size) {
+            return reject('Failed to upload - too many chunks.');
+        }
+        var chunkSize = (data.resource.size - _state.start);
+        if (chunkSize > CHUNK_SIZE) chunkSize = CHUNK_SIZE;
+        _state.end = _state.start + chunkSize;
+        
+        if (chunkSize > data.resource.size) chunkSize = data.resource.size;
+        var contentRange = nl.fmt2('bytes {}-{}/{}', _state.start, _state.end-1, data.resource.size);
+        var fileChunk = data.resource.slice(_state.start, _state.end);
+        fileChunk.name = data.resource.name;
+        var req = {
+            method: 'PUT',
+            url: _state.resumableUrl,
+            headers: {
+                'Content-Type'  : data.resource.type,
+                'Content-Range' : contentRange,
+                'Access-Control-Allow-Origin': '*'
+            },
+            data: fileChunk
+        };
+        nl.http(req).then(function(success) {
+            _resourceSaveToDB(data, success.data, resolve, reject);
+        }, function(errorResp) {
+            if (errorResp.status == 308) {
+                _handle308AndUploadNextChunk(errorResp, data, resolve, reject);
+            } else {
+                _retryUploadOfNextChunk(data, resolve, reject);
+            }
+        });
+    }
+
+    function _handle308AndUploadNextChunk(resp, data, resolve, reject) {
+        var headers = resp.headers();
+        _state.start = 'range' in headers ? parseInt(headers['range'].split('-')[1])+1 : 0;
+        _state.retryCount = 0;
+        var perc = parseInt(100.0*_state.start/data.resource.size);
+        nlDlg.popupStatus(nl.fmt2('{} - {}% uploaded', data.resource.name, perc), false);
+        _resourceUploadNextChunk(data, resolve, reject);
+    }
+
+    function _retryUploadOfNextChunk(data, resolve, reject) {
+        _retryAfterTimeout(function() {
+            _retryUploadOfNextChunkImpl(data, resolve, reject);
+        });
+    }
+
+    function _retryUploadOfNextChunkImpl(data, resolve, reject) {
+        var req = {
+            method: 'PUT',
+            url: _state.resumableUrl,
+            headers: {
+                'Content-Range' : 'bytes */*'
+            }
+        };
+        nl.http(req).then(function(success) {
+            _resourceSaveToDB(data, success.data, resolve, reject);
+        }, function(retryResponse) {
+            if (retryResponse.status == 308) {
+                return _handle308AndUploadNextChunk(retryResponse, data, resolve, reject);
+            }
+            _retryUploadOfNextChunk(data, resolve, reject);
+        });
+    }
+
+    function _resourceSaveToDB(data, resInfo, resolve, reject) {
+        nlDlg.popupStatus(nl.fmt2('{} uploaded. Processing ...', data.resource.name), false);
+        _state.dbData = {resInfo: resInfo, data: {
+            'info': data['info'] || '',
+            'keywords': data['keywords'] || '',
+            'gcsUri': _state.gcsUri || '',
+            'restype': data['restype'] || '',
+            'filename': data.resource.name || '',
+            'insertfrom' : data['insertfrom'] || '',
+            'shared' : data['shared'] || ''
+        }};
+        _state.retryCount = 0;
+        _retrySaveToDB(resolve, reject);
+    }
+
+    function _retrySaveToDB(resolve, reject) {
+        _retryAfterTimeout(function() {
+            _retrySaveToDBImpl(resolve, reject);
+        });
+    }
+
+    function _retrySaveToDBImpl(resolve, reject) {
+        nlServerApi.executeRestApi('_serverapi/resource_save_to_db', _state.dbData, false, true)
+        .then(resolve, function() {
+            _retrySaveToDB(resolve, reject);
+        });
+    }
+
+    function _retryAfterTimeout(fn) {
+        if (_state.retryCount > 3) {
+            return _popupRetryDlg(fn);
+        }
+        var timeout = _state.retryCount == 0 ? 0 : _state.retryCount == 1 ? 2000 : 5000;
+        nl.timeout(function() {
+            _state.retryCount++;
+            fn();
+        }, timeout);
+    }
+
+    function _popupRetryDlg(onResumeFn) {
+        var msg = 'Upload is interrupted due to slow network. Check your network and press resume to continue the upload.';
+        nlDlg.popupConfirm({title: 'Upload Interrupted', template: msg, 
+            okText: 'Resume', cancelText: 'Cancel'}).then(function(result) {
+            if (!result) return reject('Upload is cancelled');
+            _state.retryCount = 0;
+            onResumeFn();
+        });
     }
 }
-
-
 
 //-------------------------------------------------------------------------------------------------
 module_init();
