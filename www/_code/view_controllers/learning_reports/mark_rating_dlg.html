@@ -21,7 +21,7 @@
 <nl-dlg dlgTitle='Provide ratings' show-help='0'>
 <nl-dlg-content>
 
-<div class='row row-top padding0 margin0'>
+<div class='row row-top row-stretch padding0 margin0'>
 	<div class='col' style='padding-right:0px; max-width: 250px'>
 		<div class='padding-mid fsh4'>Ratings</div>
 		<div ng-repeat='rating in ratings'
@@ -33,7 +33,12 @@
 			</div>
 		</div>
 	</div>
-	<div class='col nl-left-tabbed-content'>
+	<div class='col nl-left-tabbed-content' ng-show='!selectedRating.canMarkRating'>
+		<div class='padding-mid' style='line-height: 175%'>
+			You cannot mark rating for this item, unless milestone <b>{{selectedRating.error}}</b> is marked as reached.
+		</div>
+	</div>
+	<div class='col nl-left-tabbed-content' ng-show='selectedRating.canMarkRating'>
 		<div class='row row-center padding-0 margin0'>
 			<div class='col padding-mid fsh4'>Mark  the learner ratings for {{selectedRating.name}}</div>
 			<div class='nl-link-text nl-button-highlight' ng-click='bulkRatingMarker($event)'>Mark all</div>

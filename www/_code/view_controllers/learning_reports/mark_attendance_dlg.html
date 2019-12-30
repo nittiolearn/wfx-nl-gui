@@ -1,6 +1,6 @@
 <nl-dlg dlgTitle='Mark attendance' show-help='0'>
 <nl-dlg-content>
-<div class='row row-top padding0 margin0'>
+<div class='row row-top row-stretch padding0 margin0'>
 	<div class='col' style='padding-right:0px; max-width: 250px'>
 		<div class='padding-mid fsh4'>Sessions</div>
 		<div ng-repeat='session in sessions'
@@ -12,7 +12,7 @@
 			</div>
 		</div>
 	</div>
-	<div class='col nl-left-tabbed-content'>
+	<div class='col nl-left-tabbed-content' ng-show='selectedSession.canMarkAttendance'>
 		<div class='row row-center padding-0 margin0'>
 			<div class='col padding-mid fsh4'>Mark  the learner attendance for {{selectedSession.name}}</div>
 			<div class='nl-link-text nl-button-highlight' ng-click='bulkAttendanceMarker($event)'>Mark all</div>
@@ -49,6 +49,11 @@
 					</select>
 				</div>
 			</div>
+		</div>
+	</div>
+	<div class='col nl-left-tabbed-content' ng-show='!selectedSession.canMarkAttendance'>
+		<div class='padding-mid' style='line-height: 175%'>
+			You cannot mark attendance unless milestone <b>{{selectedSession.error}}</b> is marked as reached.
 		</div>
 	</div>
 </div>

@@ -1316,11 +1316,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		milestoneDlg.scope.onClick = function(selectedItem) {
 			var currentMilestone = milestoneDlg.scope.selectedItem;
 			delete selectedItem.error;
-			if(selectedItem.milestoneNo > currentMilestone.milestoneNo) {
-				var ret = _checkMilestoneIsMarked(milestoneDlg.scope, currentMilestone, selectedItem);
-				if(!ret.status)
-					selectedItem.error = ret.name;
-			}
+			var ret = _checkMilestoneIsMarked(milestoneDlg.scope, selectedItem);
+			if(!ret.status)
+				selectedItem.error = ret.name;
 			milestoneDlg.scope.selectedItem = selectedItem;
 		};
 
@@ -1348,30 +1346,26 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	}
 
-	function _checkMilestoneIsMarked(dlgScope, currentMilestone, selectedMilestone) {
-		if(!currentMilestone.milestoneObj.status) return {status: false, name: currentMilestone.name};
-		var milestones = dlgScope.milestones;
+	function _checkMilestoneIsMarked(dlgScope, selectedMilestone) {
+		var _milestones = dlgScope.milestones;
 		var pendingMilestone = null;
-		for(var i=0; i<milestones.length; i++) {
-			var milestone = milestones[i];
-			if(milestone.milestoneNo == selectedMilestone.milestoneNo) {
-				pendingMilestone = milestone;
+		for(var i=0; i<_milestones.length; i++) {
+			var _milestone = _milestones[i];
+			if(_milestone.milestoneNo == selectedMilestone.milestoneNo) {
+				pendingMilestone = _milestone;
 				break;
-			} else if(milestone.milestoneNo < selectedMilestone.milestoneNo && !currentMilestone.milestoneObj.status) {
-				pendingMilestone = milestone;
+			} else if(_milestone.milestoneNo < selectedMilestone.milestoneNo && !_milestone.milestoneObj.status) {
+				pendingMilestone = _milestone;
 				break;
 			}
 		}
-		if(pendingMilestone.milestoneNo != selectedMilestone.milestoneNo) 
+		if(pendingMilestone && pendingMilestone.milestoneNo != selectedMilestone.milestoneNo) 
 			return {status: false, name: pendingMilestone.name}
 		return {status: true};
 	}
 	
-	function _getMilestoneItems(content) {
+	function _getMilestoneItems(content, getOnlyMilestone) {
 		var ret = [];
-		var learningRecords = nlLrReportRecords.getRecords();
-		var sessions = _getIltSessions(content, learningRecords);
-		var ratings = _getRatings(content, learningRecords, 'true');
 		var iltAndRatingIds = {};
 		for(var i=0; i<content.modules.length; i++) {
 			var item = content.modules[i];
@@ -1382,7 +1376,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 						milestoneObj: {status: _milestone.status == 'done' ? true : false, comment:  _milestone.comment || ''}, pendingIlts: [], pendingRatings: []});
 			iltAndRatingIds = {};
 		}
+		
+		if (getOnlyMilestone) return ret;
 
+		var learningRecords = nlLrReportRecords.getRecords();
+		var sessions = _getIltSessions(content, learningRecords);
+		var ratings = _getRatings(content, learningRecords, 'true');
 		for(var i=0; i<ret.length; i++) {
 			var _milestone = ret[i];
 			var earlierSessions = _getEarlierItems(sessions, _milestone.earlierItemIds);
@@ -1458,6 +1457,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _onClickOnMarkAttendance() {
 		var courseAssignment = _getCourseAssignmnt();
+		milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
 		attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
 		attendance = nlCourse.migrateCourseAttendance(attendance);
 		nlDlg.preventMultiCalls(true, _showAttendanceMarker);
@@ -1477,7 +1477,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		markAttendanceDlg.scope.onClick = function(session) {
 			var currentSession = markAttendanceDlg.scope.selectedSession;
 			if(session.sessionNo > currentSession.sessionNo) {
-				var ret = _checkIfCurrentSessionIsCompletelyMarked(markAttendanceDlg.scope, currentSession, session)
+				var ret = _checkIfCurrentSessionIsCompletelyMarked(markAttendanceDlg.scope, currentSession, session);
 				if(!ret.status) {
 					nlDlg.popupAlert({title: 'Alert message', 
 						template: ret.msg})
@@ -1602,18 +1602,37 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		attendance[repid].push(userAttendance);
 	}
 
+	function _getAboveMilestone(milestonesItems, milestoneid) {
+		for(var i=0; i<milestonesItems.length; i++) {
+			var _ms = milestonesItems[i];
+			if(_ms.id == milestoneid) return _ms;
+		}
+	}
+
 	function _getIltSessions(content, learningRecords, type) {
 		var ret = [];
+		var learningRecords = nlLrReportRecords.getRecords();
+		var milestoneItems = _getMilestoneItems(content, true);
 		var remarks = _groupInfo.props.attendanceRemarks || [];
 		var _remarkOptions = [];
 		if(remarks.length > 0) {
 			_remarkOptions.push({id: '', name: ''});
 			for(var i=0; i<remarks.length; i++) _remarkOptions.push({id: remarks[i], name: remarks[i]})
 		}
+		var lastMilestone = null;
 		for(var i=0; i<content.modules.length; i++) {
+			if(content.modules[i].type == 'milestone') lastMilestone = content.modules[i];
 			if(content.modules[i].type != 'iltsession') continue; 
 			var item = content.modules[i];
-			ret.push({id: item.id, name:item.name, sessionNo: i, newAttendance: []});
+			var dict = {id: item.id, name:item.name, sessionNo: i, newAttendance: [], canMarkAttendance: true};
+			if(lastMilestone) {
+				var aboveMilestone = _getAboveMilestone(milestoneItems, lastMilestone.id);
+				if(!aboveMilestone.milestoneObj.status) {
+					dict.canMarkAttendance = false;
+					dict.error = aboveMilestone.name;
+				}	
+			}
+			ret.push(dict);
 		}
 		
 		for(var key in learningRecords) {
@@ -1649,6 +1668,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				if(stats.attritedAt == ret[j].id) attrition = true;
 			}
 		}
+
 		for(var i=0; i<ret.length; i++) {
 			var newAttendance = ret[i].newAttendance;
 			newAttendance.sort(function(a, b) {
@@ -1669,6 +1689,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	var ratingUpdated = false;
 	function _onClickOnMarkRatings() {
 		var courseAssignment = _getCourseAssignmnt();
+		milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
 		rating = courseAssignment.rating ? angular.fromJson(courseAssignment.rating) : {};
 		nlDlg.preventMultiCalls(true, _showRatingMarker);
 	}
@@ -1744,7 +1765,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _validateRating(userRating) {
-		if(userRating.rating.id == "") return true;
+		if(userRating.rating.id === "") return true;
 		if(userRating.rating.id != 100 && (!userRating.remarks || userRating.remarks == '')) return false;
 		return true;
 	}
@@ -1807,11 +1828,23 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _getRatings(content, learningRecords, isFirstTime) {
 		var ret = [];
+		var learningRecords = nlLrReportRecords.getRecords();
+		var milestoneItems = _getMilestoneItems(content, true);
+		var lastMilestone = null;
 		for(var i=0; i<content.modules.length; i++) {
+			if(content.modules[i].type == 'milestone') lastMilestone = content.modules[i];
 			if(content.modules[i].type != 'rating') continue;
 			var item = content.modules[i];
-			var dict = {id: item.id, name:item.name, rating_type: item.rating_type, rating: [], ratingOptions: [], remarkOptions: []};
+			var dict = {id: item.id, name:item.name, rating_type: item.rating_type, rating: [], 
+						ratingOptions: [], remarkOptions: [], canMarkRating: true};
 			_checkAndUpdateRatingParams(dict);
+			if(lastMilestone) {
+				var aboveMilestone = _getAboveMilestone(milestoneItems, lastMilestone.id);
+				if(!aboveMilestone.milestoneObj.status) {
+					dict.canMarkRating = false;
+					dict.error = aboveMilestone.name;
+				}	
+			}
 			ret.push(dict);
 		}
 		
