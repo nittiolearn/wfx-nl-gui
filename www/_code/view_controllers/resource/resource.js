@@ -413,6 +413,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
                         keywords: keyword || "", 
                         info: angular.toJson(compInfo, 2),
                         resid: resid,
+                        batchMode: resourceInfoDict.batchMode || false,
                         shared: resourceInfoDict.shared
                         };
             if (fileInfo.reskey) data.reskey = fileInfo.reskey;
@@ -622,7 +623,10 @@ function ImageShrinker(nl, nlDlg) {
 
 //-------------------------------------------------------------------------------------------------
 function ResumableUploader(nl, nlServerApi, nlDlg) {
+
+    var _batchMode = false;
     this.resourceUpload = function(data) {
+        _batchMode = data.batchMode || false; 
         var impl = new ResumableUploaderImpl(nl, nlServerApi, nlDlg, this);
         return impl.resourceUpload(data);
     };
@@ -632,6 +636,7 @@ function ResumableUploader(nl, nlServerApi, nlDlg) {
         var msg = 'Upload is interrupted due to slow network. Check your network and press resume to continue the upload.';
         nlDlg.popupConfirm({title: 'Upload Interrupted', template: msg, 
             okText: 'Resume', cancelText: 'Cancel'}).then(function(result) {
+            if (!_batchMode) nlDlg.showLoadingScreen();
             _callAllWaiting(result ? true : false);
         });
     };
@@ -661,9 +666,11 @@ function ResumableUploaderImpl(nl, nlServerApi, nlDlg, resumableUploader) {
                 _state.gcsUri = result.gcsUri;
                 _resourceUploadNextChunk(data, function(data2) {
                     nlDlg.popupStatus(nl.fmt2('{} uploaded', data.resource.name));
+                    if (!data.batchMode) nlDlg.hideLoadingScreen();
                     resolve(data2);
                 }, function(err) {
                     nlDlg.popdownStatus(0);
+                    if (!data.batchMode) nlDlg.hideLoadingScreen();
                     reject(err);
                 });
             }, reject);
@@ -682,7 +689,7 @@ function ResumableUploaderImpl(nl, nlServerApi, nlDlg, resumableUploader) {
             name: data.resource.name,
             contenttype: data.resource.type,
             contentlength: data.resource.size
-        }).then(function(result) {
+        }, false, true).then(function(result) {
             if (!result.location) reject('Not able to get the url to upload.');
             resolve(result);
         }, function() {
@@ -763,6 +770,7 @@ function ResumableUploaderImpl(nl, nlServerApi, nlDlg, resumableUploader) {
             'keywords': data['keywords'] || '',
             'gcsUri': _state.gcsUri || '',
             'restype': data['restype'] || '',
+            'reskey': data['reskey'] || '',
             'filename': data.resource.name || '',
             'insertfrom' : data['insertfrom'] || '',
             'shared' : data['shared'] || ''

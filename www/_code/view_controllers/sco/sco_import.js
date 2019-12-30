@@ -695,7 +695,7 @@ function ScormImporter(nl, nlDlg, $scope, nlServerApi, nlResourceUploader, nlPro
             return;
         }
         attempts++;
-        nlResourceUploader.uploadInSequence([resInfo], 'SCORM', null, null, {insertfrom: '/sco_import/'})
+        nlResourceUploader.uploadInSequence([resInfo], 'SCORM', null, null, {insertfrom: '/sco_import/', batchMode: true})
         .then(function(resInfos) {
             resolve(resInfos);
         }, function(msg) {
