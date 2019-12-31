@@ -1414,7 +1414,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 						}
 					}
 					if(earlierItems[j].ratingType == 'select') {
-						if(userRating.id == "" && !_ratings[k].attrition) {
+						if(userRating.id === "" && !_ratings[k].attrition) {
 							ret[i].pendingRatings.push(earlierItems[j].name)
 							ret[i].canMarkMilestone = false;
 							break;	
