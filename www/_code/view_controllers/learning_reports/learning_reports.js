@@ -1778,6 +1778,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for(var i=0; i<oldRatingPerUserReport.length; i++) {
 			var itemRating = oldRatingPerUserReport[i];
 			if(itemRating.id != sessionid) continue;
+			var _remark = angular.copy(itemRating.remarks);
+			_remark = nl.fmt.arrayToString(itemRating.remarks);
+			itemRating.remarks = _remark;
 			oldRatingPerItem = itemRating;
 			break;
 		}
@@ -1807,8 +1810,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 
 		if(!(repid in rating)) rating[repid] = [];
-		if(updateSessionList.rating_type == 'input') 
-			rating[repid].push({id: sessionid, attId: (newRatingPerItem.rating === 0) ? 0 : newRatingPerItem.rating, remarks: [newRatingPerItem.remarks] || '', marked: marked, updated: updated});
+		if(updateSessionList.rating_type == 'input') {
+			var _remarks = []; 
+			if(Array.isArray(newRatingPerItem.remarks)) 
+				_remarks = newRatingPerItem.remarks;
+			else 
+				_remarks = [newRatingPerItem.remarks]
+			rating[repid].push({id: sessionid, attId: (newRatingPerItem.rating === 0) ? 0 : newRatingPerItem.rating, remarks: _remarks, marked: marked, updated: updated});
+		}
 
 		if(updateSessionList.rating_type == 'select') {
 			var _userRating = {id: sessionid, attId: newRatingPerItem.rating.id, marked: marked, updated: updated}
@@ -1858,7 +1867,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var attritionStr = stats.attritionStr || '';
 				if(statusinfo.status == 'pending') {
 					if(ret[j].ratingType == 'input') {
-						ret[j].rating.push({id: parseInt(key), name: user.name, rating: null, userid: user.user_id, remarks: statusinfo.remarks || ''});
+						ret[j].rating.push({id: parseInt(key), name: user.name, rating: null, userid: user.user_id, remarks: nl.fmt.arrayToString(statusinfo.remarks || '')});
 					} else if(ret[j].ratingType == 'select') {
 						var userObj = {id: parseInt(key), name: user.name, rating: {id: ''}, userid: user.user_id, remarks: nl.fmt.arrayToString(statusinfo.remarks || '')}
 						if(ret[j].remarkOptions.length > 0) {
@@ -1869,7 +1878,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					}
 				} else {
 					if(ret[j].ratingType == 'input') {
-						ret[j].rating.push({id: parseInt(key), name: user.name, rating: statusinfo.origScore, userid: user.user_id, attrition: attrition, attritionStr: attritionStr, remarks: statusinfo.remarks});
+						ret[j].rating.push({id: parseInt(key), name: user.name, rating: statusinfo.origScore, userid: user.user_id, attrition: attrition, attritionStr: attritionStr, remarks: nl.fmt.arrayToString(statusinfo.remarks || '')});
 					} else if(ret[j].ratingType == 'select') {
 						var userObj = {id: parseInt(key), name: user.name, rating: {id: statusinfo.origScore, name: statusinfo.rating}, userid: user.user_id, attrition: attrition, attritionStr: attritionStr, remarks: nl.fmt.arrayToString(statusinfo.remarks || '')}
 						if(ret[j].remarkOptions.length > 0) {
