@@ -1406,19 +1406,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var _ratings = earlierItems[j].rating;
 				for(var k=0; k<_ratings.length; k++) {
 					var userRating = _ratings[k].rating;
-					if(earlierItems[j].ratingType == 'input') {
-						if(!userRating && !_ratings[k].attrition) {
-							ret[i].pendingRatings.push(earlierItems[j].name)
-							ret[i].canMarkMilestone = false;
-							break;	
-						}
-					}
-					if(earlierItems[j].ratingType == 'select') {
-						if(userRating.id === "" && !_ratings[k].attrition) {
-							ret[i].pendingRatings.push(earlierItems[j].name)
-							ret[i].canMarkMilestone = false;
-							break;	
-						}	
+					if(earlierItems[j].ratingType == 'select') userRating = userRating.id;
+					else if (earlierItems[j].ratingType != 'input') continue;
+					if(!userRating && userRating !== 0 && !_ratings[k].attrition) {
+						ret[i].pendingRatings.push(earlierItems[j].name);
+						ret[i].canMarkMilestone = false;
+						break;	
 					}
 				}
 			}
