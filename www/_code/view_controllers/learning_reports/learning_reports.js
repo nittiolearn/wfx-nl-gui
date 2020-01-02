@@ -1602,7 +1602,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	}
 
-	function _getIltSessions(content, learningRecords, type) {
+	function _getIltSessions(content, learningRecords) {
 		var ret = [];
 		var learningRecords = nlLrReportRecords.getRecords();
 		var milestoneItems = _getMilestoneItems(content, true);
@@ -1684,6 +1684,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var courseAssignment = _getCourseAssignmnt();
 		milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
 		rating = courseAssignment.rating ? angular.fromJson(courseAssignment.rating) : {};
+		attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
+		attendance = nlCourse.migrateCourseAttendance(attendance);
 		nlDlg.preventMultiCalls(true, _showRatingMarker);
 	}
 
@@ -1832,9 +1834,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var ret = [];
 		var learningRecords = nlLrReportRecords.getRecords();
 		var milestoneItems = _getMilestoneItems(content, true);
+		var sessions = _getIltSessions(content, learningRecords);
 		var lastMilestone = null;
+		var previousILTItem = null;
 		for(var i=0; i<content.modules.length; i++) {
 			if(content.modules[i].type == 'milestone') lastMilestone = content.modules[i];
+			if(content.modules[i].type == 'iltsession') previousILTItem = content.modules[i]
 			if(content.modules[i].type != 'rating') continue;
 			var item = content.modules[i];
 			var dict = {id: item.id, name:item.name, rating_type: item.rating_type, rating: [], 
@@ -1847,38 +1852,66 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					dict.error = aboveMilestone.name;
 				}	
 			}
+			if(previousILTItem) dict.previousILT = previousILTItem;
 			ret.push(dict);
 		}
-		
+		var _sessionsDict = {};
+		for(var i=0; i<sessions.length; i++) {
+			var _session = sessions[i];
+			if(!(_session.id in _sessionsDict)) _sessionsDict[_session.id] = {};
+			for(var j=0; j<_session.newAttendance.length; j++) {
+				var _userObj = _session.newAttendance[j];
+				if(_userObj.attendance.id === '') {
+					_sessionsDict[_session.id][_userObj.id] = {timePerc: '', name: _session.name};
+				} else {
+					_sessionsDict[_session.id][_userObj.id] = {timePerc: (_userObj.attendance.id in _attendanceObj) ? _attendanceObj[_userObj.attendance.id].timePerc : 0 , name: _session.name};
+				}
+			}
+		}
 		for(var key in learningRecords) {
 			var user = learningRecords[key].user;
+			var repid = parseInt(key);
 			var _statusinfo = learningRecords[key].repcontent.statusinfo;
 			var stats = learningRecords[key].stats;
 			for(var j=0; j<ret.length; j++) {
+				var ratingItem = ret[j];
 				var statusinfo = _statusinfo[ret[j].id];
 				var attrition = (statusinfo.status == 'waiting' && statusinfo.isAttrition) || false;
 				var attritionStr = stats.attritionStr || '';
+				var iltStats = _sessionsDict[ratingItem.previousILT.id][repid];
+				var _dict = {id: repid, name: user.name, userid: user.user_id, remarks: nl.fmt.arrayToString(statusinfo.remarks || ''), attrition: attrition, attritionStr: attritionStr};
+				if(iltStats.timePerc === '') {
+					_dict.canRate = false;
+					_dict.errorStr = nl.t('Mark attendance for {}.', iltStats.name)
+				} else if (iltStats.timePerc === 0) {
+					_dict.canRate = false;
+					_dict.errorStr = nl.t('Learner is absent for {} cannot provide rating.', iltStats.name)
+				} else {
+					_dict.canRate = true;
+				}
 				if(statusinfo.status == 'pending') {
 					if(ret[j].ratingType == 'input') {
-						ret[j].rating.push({id: parseInt(key), name: user.name, rating: null, userid: user.user_id, remarks: nl.fmt.arrayToString(statusinfo.remarks || '')});
+						_dict.rating = null;
+						ret[j].rating.push(_dict);
 					} else if(ret[j].ratingType == 'select') {
-						var userObj = {id: parseInt(key), name: user.name, rating: {id: ''}, userid: user.user_id, remarks: nl.fmt.arrayToString(statusinfo.remarks || '')}
+						_dict.rating = {id: ''};
 						if(ret[j].remarkOptions.length > 0) {
-							userObj['remarkOptions'] = angular.copy(ret[j].remarkOptions);
-							_updateSelectedRating(statusinfo.remarks, userObj['remarkOptions']);
+							_dict['remarkOptions'] = angular.copy(ret[j].remarkOptions);
+							_updateSelectedRating(statusinfo.remarks, _dict['remarkOptions']);
 						}
-						ret[j].rating.push(userObj);
+						ret[j].rating.push(_dict);
 					}
 				} else {
 					if(ret[j].ratingType == 'input') {
-						ret[j].rating.push({id: parseInt(key), name: user.name, rating: statusinfo.origScore, userid: user.user_id, attrition: attrition, attritionStr: attritionStr, remarks: nl.fmt.arrayToString(statusinfo.remarks || '')});
+						_dict.rating = statusinfo.origScore;
+						ret[j].rating.push(_dict);
 					} else if(ret[j].ratingType == 'select') {
-						var userObj = {id: parseInt(key), name: user.name, rating: {id: statusinfo.origScore, name: statusinfo.rating}, userid: user.user_id, attrition: attrition, attritionStr: attritionStr, remarks: nl.fmt.arrayToString(statusinfo.remarks || '')}
+						_dict.rating = {id: statusinfo.origScore, name: statusinfo.rating};
 						if(ret[j].remarkOptions.length > 0) {
-							userObj['remarkOptions'] = angular.copy(ret[j].remarkOptions);
-							_updateSelectedRating(statusinfo.remarks, userObj['remarkOptions']);
+							_dict['remarkOptions'] = angular.copy(ret[j].remarkOptions);
+							_updateSelectedRating(statusinfo.remarks, _dict['remarkOptions']);
 						}
-						ret[j].rating.push(userObj);
+						ret[j].rating.push(_dict);
 					}
 				}
 			}
@@ -1986,7 +2019,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					return nlDlg.popupAlert({title: 'Please select', template: 'Please provide ratings to mark all'});
 				}
 				for(var i=0; i<dlgScope.selectedRating.rating.length; i++) {
-					if(dlgScope.selectedRating.rating[i].attrition) continue;
+					if(dlgScope.selectedRating.rating[i].attrition || !dlgScope.selectedRating.rating[i].canRate) continue;
 					if(dlgScope.selectedRating.ratingType == 'select'){
 						dlgScope.selectedRating.rating[i].rating = bulkMarkerDlg.scope.selectedMarkingType;
 					} else {
