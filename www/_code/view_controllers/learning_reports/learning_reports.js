@@ -1408,7 +1408,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					var userRating = _ratings[k].rating;
 					if(earlierItems[j].ratingType == 'select') userRating = userRating.id;
 					else if (earlierItems[j].ratingType != 'input') continue;
-					if(!userRating && userRating !== 0 && !_ratings[k].attrition) {
+					if(!userRating && userRating !== 0 && !_ratings[k].attrition && _ratings[k].canRate ) {
 						ret[i].pendingRatings.push(earlierItems[j].name);
 						ret[i].canMarkMilestone = false;
 						break;	
