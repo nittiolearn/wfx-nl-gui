@@ -44,11 +44,11 @@
 			<div class='nl-link-text nl-button-highlight' ng-click='bulkRatingMarker($event)'>Mark all</div>
 		</div>
 		<div class='row padding0 margin0' ng-repeat='user in selectedRating["rating"]'>
-			<div class='row padding0 margin0 row-wrap {{user.attrition ? "fgrey" : ""}}'>
+			<div class='row padding0 margin0 row-wrap {{(user.attrition || user.canRate !== "attended") ? "fgrey" : ""}}'>
                 <div ng-class='respCol211' class='padding-mid'>
                     <div class='row row-center padding0 margin0'>
                         <div class='col' >{{user.name}} <span class='fgrey'>({{user.userid}})</span></div>
-                        <div ng-if='!user.attrition && selectedRating.ratingType === "select"' class='col padding0'>
+                        <div ng-if='!user.attrition && user.canRate == "attended" && selectedRating.ratingType === "select"' class='col padding0'>
                             <select ng-model='user.rating'
                                     ng-options='opt as opt.name for opt in selectedRating.ratingOptions track by opt.id'
                                     class='w100 {{fieldcls}}'
@@ -58,16 +58,17 @@
                                     placeholder='"Write remarks"'>
                             </select>
                         </div>
-                        <div ng-if='!user.attrition && selectedRating.ratingType === "input"' class='col padding0'>
+                        <div ng-if='!user.attrition && user.canRate == "attended" && selectedRating.ratingType === "input"' class='col padding0'>
                             <input type='number' ng-model='user.rating' min='0' max='100'></input>
                         </div>
 						<div ng-if='user.attrition' class='col padding0'>{{user.attritionStr}}</div>
-                    </div>
+						<div ng-if='user.canRate !== "attended" && !user.attrition' class='col padding-mid'>{{user.errorStr}}</div>
+                    </div> 
                 </div>
-                <div ng-if='!user.remarkOptions && !user.attrition' ng-class='respCol211' class='padding-mid'>
+                <div ng-if='!user.remarkOptions && !user.attrition && user.canRate === "attended"' ng-class='respCol211' class='padding-mid'>
 					<input type='text' ng-model='user.remarks' placeholder='Mention remarks for learner'></input>
                 </div>
-                <div ng-if='user.remarkOptions && !user.attrition' ng-class='respCol211' class='col-center padding-mid'>
+                <div ng-if='user.remarkOptions && !user.attrition && user.canRate === "attended"' ng-class='respCol211' class='col-center padding-mid'>
 					<div class='row row-center padding0 margin0 marker-dropbtn nl-link-text2' ng-click='user.canShow = !user.canShow'>
 						<div class='col button-inner-style'>
 							<span>{{user.remarks}}</span>
