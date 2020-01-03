@@ -1057,10 +1057,11 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
    position: fixed;
    top: 36px;
    width: 246px;
-   max-height: 300px;
+   max-height: 50vh;
    background-color: #FFFFFF;
    z-index: 15;
    border: 1px solid #CCCCDD;
+   overflow: auto;
  }
  
  .add-new-cls {
@@ -1086,6 +1087,10 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+}
+
+.nl-border-right {
+  border-right: 1px dotted rgba(0, 0, 0, 0.1);
 }
 /*-----------------------------------------------------------------------------------------*
  * nl-form
@@ -1575,9 +1580,9 @@ nl-summary-box.small-summary-box {
 
 .nl-left-tab {
   border-radius: 8px 0px 0px 8px;
-  border-top: 1px dotted rgba(0, 0, 0, 0.05);
-  border-left: 1px dotted rgba(0, 0, 0, 0.05);
-  border-bottom: 1px dotted rgba(0, 0, 0, 0.05);
+  border-top: 1px dotted rgba(0, 0, 0, 0.1);
+  border-left: 1px dotted rgba(0, 0, 0, 0.1);
+  border-bottom: 1px dotted rgba(0, 0, 0, 0.1);
 }
 
 .nl-left-tab-selected {

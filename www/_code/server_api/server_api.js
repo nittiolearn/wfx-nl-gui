@@ -480,6 +480,19 @@ function(nl, nlDlg, nlConfig, Upload) {
 	};
 
     //---------------------------------------------------------------------------------------------
+	// group_settings entities
+    //---------------------------------------------------------------------------------------------
+	this.getGroupSettings = function(data) {
+        // data = {settings_type: 'xx'}; returns group_settings object
+        return server.post('_serverapi/group_settings_get.json', data);				
+	};
+
+	this.updateGroupSettings = function(data) {
+        // data = {settings_type: 'xx', info: obj}; returns True or error
+        return server.post('_serverapi/group_settings_update.json', data);				
+	};
+
+    //---------------------------------------------------------------------------------------------
 	// lesson entities
     //---------------------------------------------------------------------------------------------
 	this.lessonGetApprovedList = function(data) {

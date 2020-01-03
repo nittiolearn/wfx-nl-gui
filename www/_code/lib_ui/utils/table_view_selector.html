@@ -1,0 +1,23 @@
+<div class='dropdown'>
+    <div class="row row-center margin0 dropbtn nl-link-text2" ng-click="onSelectClick()"> 
+        <div class="col button-inner-style">
+            <span class="ng-binding"> {{selected.name}} </span>
+        </div>
+        <span>
+            <i ng-show="!isOpen" class="icon ion-chevron-down fsh5 ng-hide"></i>
+            <i ng-show="isOpen" class="icon ion-chevron-up fsh5"></i>
+        </spa>
+    </div>
+    <div ng-show='isOpen' class="dropdown-content">
+        <div ng-repeat='option in options track by $index'
+             class='nl-link-text2 padding-mid {{selected.id == option.id ? "dropdown-selected" : ""}}'
+             style='border-bottom: 2px solid #FFFFFF;padding: 2px 8px;'
+             ng-click="onOptionSelect(option)">
+            {{option.name}}
+        </div>
+        <div ng-show='config.canEdit' class='add-new-cls nl-link-text w100 text-center'
+             ng-click='onCustomizeViews()' style='padding: 8px;'>
+            <span class='add-new-button-style'> Cusomize Views </span>
+        </div> 
+      </div>
+</div>

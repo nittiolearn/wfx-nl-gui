@@ -1,38 +1,30 @@
-<div class='nl-thin-scroll nl-full padding'>
-    <h1>Testing expression_processor.js</h1>
-    <h2>{{exp_test_data.succ}} of {{exp_test_data.payloads.length}} testcases successful.</h2>
-
-    <div ng-repeat='payload in exp_test_data.payloads' class='padding'>
-        <h4>Test case #{{$index+1}}:</h4>
-        <table class='nl-table nl-table-styled'>
-            <tr ng-repeat='attr in exp_test_attrs'>
-                <th>{{attr}}</th>
-                <td>{{payload[attr]}}</td>
-            </tr>
-        </table>
-    </div>
-
-    <div class='padding fsh5 text-center'>
-        <div ng-show='screenSize == "small"'>Small Screen Size</div>
-        <div ng-show='screenSize == "medium"'>Medium Screen Size</div>
-        <div ng-show='screenSize == "large"'>Large Screen Size</div>
-    </div>
-    <div class='row row-wrap row-top padding0 margin0'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Spinner</div>
-        <div ng-class='resp2Col67' class='padding0'>
-            <nl-select fieldmodel='spinner'></nl-select>
+<div class='nl-learning-report-body padding-small nl-thin-scroll' style='position:absolute; width: 100%; height: 100%'>
+        <div class='row row-center margin0 padding0'
+            style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
+            <nl-table-view-selector config=tableViewConfig></nl-table-view-selector>
+            <span ng-repeat='tb in toolbar'
+                title='{{tb.title}}'
+                class='nl-toolbar-icon'
+                ng-show='canShowToolbarIcon(tb.id)'
+                ng-click='tb.onClick()'>
+                <i class="icon {{tb.icon}}">{{tb.icon_content}}</i>
+            </span>
         </div>
-    </div>
-    
-    <div class='row row-wrap row-top padding0 margin0'>
-        <div ng-class='resp2Col33' class='nl-dlg-field-name'>Duration (ms)</div>
-        <div ng-class='resp2Col67' class='padding0'>
-            <nl-input fieldmodel='duration' fieldtype='number' fieldcls='w100'></nl-input>
+        <div class='padding-mid' style='position: absolute; top: 36px; bottom: 0; left: 0; right: 0; height: auto; width: auto; overflow: auto'>
+                <table>
+                    <tr>
+                        <th ng-repeat='col in columns track by $index' class='padding-small' style='border: 1px solid black'>
+                            {{col.name}}
+                        </th>
+                    </tr>
+                    <tr ng-repeat='row in data track by $index'>
+                        <td ng-repeat='col in columns track by $index' class='padding-small' style='border: 1px solid black'>
+                            {{row[col.id]}}
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </div>
-    </div>
-
-    <div class='padding-mid'></div>
-    <div class='row row-wrap row-top padding-mid margin0'>
-        <div class='nl-button padding-mid w100' ng-click='showLoading()'>Show loading</div>
     </div>
 </div>
+    
