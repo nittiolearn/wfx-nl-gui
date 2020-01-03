@@ -384,6 +384,18 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
     function _getRawStatusOfMilestone(cm, itemInfo) {
         var _msKey = 'milestone__'+cm.id;
+        var repid = report.id;
+        var markedMilestone = _milestone[cm.id] || {};
+        if('learnersDict' in markedMilestone && markedMilestone.learnersDict[repid]) {
+            var learnerDict = markedMilestone.learnersDict[repid] || {}
+            itemInfo.rawStatus = learnerDict.marked == 'done' ? 'success' : 'pending';
+            itemInfo.score = itemInfo.rawStatus == 'pending' ? null : 100;
+            itemInfo.remarks = learnerDict.remarks || "";
+            itemInfo.planned = _msDates[_msKey] || '';
+            itemInfo.reached = (learnerDict.reached) ? nl.fmt.json2Date(learnerDict.reached) : "";
+            itemInfo.updated = (learnerDict.updated) ? nl.fmt.json2Date(learnerDict.updated) : "";
+            return
+        }
         itemInfo.rawStatus = (cm.id in _milestone) && _milestone[cm.id].status == 'done' ?
             'success' : 'pending';
         itemInfo.score = itemInfo.rawStatus == 'pending' ? null : 100;
@@ -391,7 +403,6 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.planned = _msDates[_msKey] || '';
         itemInfo.reached = (_milestone[cm.id] && _milestone[cm.id].reached) ? nl.fmt.json2Date(_milestone[cm.id].reached) : "";
         itemInfo.updated = (_milestone[cm.id] && _milestone[cm.id].updated) ? nl.fmt.json2Date(_milestone[cm.id].updated) : "";
-
     }
 
     function _getRawStatusOfGate(cm, itemInfo, itemIdToInfo) {

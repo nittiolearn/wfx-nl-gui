@@ -24,7 +24,7 @@
 		</div>
 		<div ng-show='selectedItem.canMarkMilestone && !selectedItem.error' class='row row-top padding-mid margin0 row-wrap'>
 			<div class='col'>
-				<span ng-click='selectedItem.milestoneObj.status = !selectedItem.milestoneObj.status' class='nl-link-text'>
+				<span ng-click='selectedItem.milestoneObj.status = !selectedItem.milestoneObj.status;' class='nl-link-text'>
 					<i ng-show='selectedItem.milestoneObj.status' class="icon ion-android-checkbox-outline black"></i>
 					<i ng-hide='selectedItem.milestoneObj.status' class="icon ion-android-checkbox-outline-blank black"></i>
 					<span>Check this to mark milestone as completed</span>
@@ -41,11 +41,48 @@
 			<ul class='padding-mid'>
 				<li ng-repeat='name in selectedItem.pendingIlts'>
 					Attendance is not marked for all learners for <b>{{name}}</b>
-				</li>				
+				</li>
 				<li ng-repeat='name in selectedItem.pendingRatings'>
 					Ratings are not provided for all learners for items <b>{{name}}</b>
 				</li>
 			</ul>
+		</div>
+		<div ng-if='selectedItem.milestoneObj.status' >
+			<div class='row row-center row-wrap padding-0 margin0'>
+				<div ng-class='respCol211'> 
+					<div class='padding-mid fsh6'>Mark  the learner milestone</div>
+				</div>
+				<div ng-class='respCol211'> 
+					<div class='row row-center margin0 padding0'>
+						<div class='col'></div>
+						<div class='nl-link-text nl-button-highlight' ng-click='markOrUnmarkAll(selectedItem, true)'>Mark all</div>
+						<span class='padding-small'></span>
+						<div class='nl-link-text nl-button-highlight' ng-click='markOrUnmarkAll(selectedItem, false)'>Unmark all</div>
+					</div>
+				</div>
+			</div>
+			<div class='row padding0 margin0' ng-repeat='user in selectedItem.learnersList'>
+				<div class='row padding0 margin0 row-wrap {{user.attrition ? "fgrey" : ""}}'>
+					<div ng-class='respCol211' class='padding-mid'>
+						<div class='row row-center padding0 margin0'>
+							<div class='col {{!user.attrition ? "nl-link-text" : "fgrey"}}' ng-click='toggleLearnerMilestone(user)'>
+								<span ng-if='!user.attrition'>
+									<i ng-show='user.marked' class="icon ion-android-checkbox-outline black"></i>
+									<i ng-hide='user.marked' class="icon ion-android-checkbox-outline-blank black"></i>
+								</span>
+								{{user.name}} 
+								<span class='fgrey'>({{user.userid}})</span>
+							</div>
+						</div>
+					</div>
+					<div ng-if='!user.attrition' ng-class='respCol211' class='padding-mid'>
+						<input type='text' ng-model='user.remarks' placeholder='Mention remarks for learner'></input>
+					</div>
+					<div ng-class='respCol211' ng-if='user.attrition' class='padding-mid fgrey'>
+						<div class='padding-mid'>{{user.attritionStr}}</div>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>
