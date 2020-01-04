@@ -908,9 +908,23 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var etmUserStates = _groupInfo.props.etmUserStates || [];
 		var milestones = _groupInfo.props.milestones || [];
 		var statusDict = _getStatusDictFromArray();
-		columns.push({id: 'batchtype', name: 'Batch type', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
-		columns.push({id: 'cntTotal', name: 'Learners', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
-		columns.push({id: 'batchTotal', name: 'Batches', table: true, hidePerc:true, showAlways: true});
+		columns.push({id: 'cntTotal', name: 'Head Count', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
+		columns.push({id: 'batchStatus', name: 'Batch Status', table: true, hidePerc:true, smallScreen: true, showAlways: true});
+		columns.push({id: 'batchName', name: 'Batch', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
+		columns.push({id: 'partner', name: 'Partner', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
+		columns.push({id: 'lob', name: 'LOB', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
+
+		if(attrition.length > 0) {
+			for(var i=0; i<attrition.length; i++) {
+				var name = attrition[i];
+				var formattedName = _getFormattedName(name, statusDict);
+				columns.push({id: attrition[i], name: formattedName, percid:'perc'+attrition[i], indentation: 'padding-left-44', table: true});
+			}
+			columns.push({id: 'attrition', name: 'Attrition', hidePerc:true, table: true, showAlways: true});
+		}
+
+		columns.push({id: 'batchtype', name: 'Batch Type', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
+		columns.push({id: 'trainer', name: 'Trainer', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'avgDelay', name: 'Average delay(In days)', hidePerc: true, table: true, showAlways: true});
 		columns.push({id: 'pending', name: 'Pending', hidePerc:true, table: true, showAlways: true});
 		for(var i=0; i<etmUserStates.length; i++) {
@@ -921,14 +935,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}
 		}
 		columns.push({id: 'failed', name: 'Failed', hidePerc:true, table: true, showAlways: true});
-		if(attrition.length > 0) {
-			columns.push({id: 'attrition', name: 'Attrition', hidePerc:true, table: true, showAlways: true});
-			for(var i=0; i<attrition.length; i++) {
-				var name = attrition[i];
-				var formattedName = _getFormattedName(name, statusDict);
-				columns.push({id: attrition[i], name: formattedName, percid:'perc'+attrition[i], indentation: 'padding-left-44', table: true});
-			}
-		}
 		columns.push({id: 'avgScore', name: 'Avg Quiz score', table: true, background: 'nl-bg-blue', hidePerc:true});
 		for(var i=0; i<_customScoresHeader.length; i++) columns.push({id: 'perc'+_customScoresHeader[i], name: _customScoresHeader[i], table: true, background: 'nl-bg-blue', hidePerc:true});
 		columns.push({id: 'start', name: 'Batch start', table: true, hidePerc:true, style:'min-width:fit-content'});
@@ -940,6 +946,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				columns.push({id: item.id+'actual', name: nl.t('{} achieved', item.name), table: true, hidePerc:true, style:'min-width:fit-content'});	
 			}
 		}
+
+		// Hidden columns
+		columns.push({id: 'batchTotal', name: 'Batches', table: false, hidePerc:true, showAlways: true});
 		return columns;
 	}
 
@@ -1054,7 +1063,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var first = nameArray[0].trim();
 		var firstletter = first.charAt(0).toUpperCase();
 		var newString = firstletter+first.substring(1);
-			newString = newString+'-'+statusDict[nameArray[1]];
+			newString = newString+' during '+statusDict[nameArray[1]];
 		return newString;
 	}
 

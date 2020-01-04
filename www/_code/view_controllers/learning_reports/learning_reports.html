@@ -7,6 +7,9 @@
 .minw-name{
     min-width: 300px;
 }
+.nht-col1-w{
+    min-width: 100px;
+}
 .nl-bg-dark-blue {
     background-color:#CCCCDD;     
 }
@@ -254,7 +257,7 @@
             </div>
             <div ng-if='tabData.selectedTab.id == "nht"  && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
-                <nl-lr-drilldown-tab drilldown='nhtInfo'></nl-lr-drilldown-tab>
+                <nl-lr-nht-tab drilldown='nhtInfo'></nl-lr-nht-tab>
             </div>
         </div>
     </div>

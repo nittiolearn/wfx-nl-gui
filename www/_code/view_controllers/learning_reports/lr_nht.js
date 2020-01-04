@@ -4,24 +4,23 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.learning_reports.lr_nht_srv', [])
-    .service('nlLrNht', NlLrNhtSrv);
+    .service('nlLrNht', NlLrNhtSrv)
+    .directive('nlLrNhtTab', NlLrNhtDirective);
 }
 //-------------------------------------------------------------------------------------------------
-
+var _isSubOrgEnabled = false;
 var NlLrNhtSrv = ['nl','nlReportHelper', 'nlGetManyStore',
 function(nl, nlReportHelper, nlGetManyStore) {
     var _orgToSubOrgDict = {};
-    var _customStartedStatusObj = {};
-    var _isSubOrgEnabled = false;
-    var nhtCounts = new NhtCounts(nl, nlGetManyStore);
+    var nhtCounts = null;
     var _attritionObj = {};
     this.init = function(nlGroupInfo) {
+        nhtCounts = new NhtCounts(nl, nlGetManyStore, nlGroupInfo);
         _orgToSubOrgDict = nlGroupInfo.getOrgToSubOrgDict();
         _isSubOrgEnabled = nlGroupInfo.isSubOrgEnabled();
     };
 
     this.clearStatusCountTree = function() {
-        _customStartedStatusObj = {};
         _attritionObj = {};
         nhtCounts.clear();
     };
@@ -37,21 +36,30 @@ function(nl, nlReportHelper, nlGetManyStore) {
 
     this.addCount = function(record) {
         var assignment = record.raw_record.assignment;
-        var ou = record.user.org_unit;
-        var subOrg = _isSubOrgEnabled ? _orgToSubOrgDict[ou] : ou;
-        if(!subOrg) subOrg = "Others";
+        var batchInfo = _getNhtBatchInfo(record);
         var statusCntObj = _getStatusCountObj(record);
-        nhtCounts.updateBatch(assignment, record)
-        _addCount(assignment, subOrg, _isSubOrgEnabled ? ou : '', statusCntObj, record.repcontent.batchname || record.repcontent.name, record.repcontent.batchtype || '');
+        nhtCounts.updateBatch(assignment, record);
+        _addCount(batchInfo, statusCntObj);
     }
 
-    function _addCount(assignment, subOrg, ou, statusObj, name, batchtype) {
-        nhtCounts.updateRootCount(0, statusObj);
-        nhtCounts.updateSuborgCount(0, subOrg, statusObj);
-        if(_isSubOrgEnabled) {
-            nhtCounts.updateOuCount(0, subOrg, ou, statusObj);
-        }
-        nhtCounts.updateBatchCount(0, subOrg, _isSubOrgEnabled ? ou : null, assignment, statusObj, name, batchtype);
+    function _getNhtBatchInfo(record) {
+        var ou = record.user.org_unit;
+        var subOrg = _orgToSubOrgDict[ou] || 'Others';
+        var part2 = ou;
+        if (ou == subOrg) part2 = 'Others';
+        else if (ou.indexOf(subOrg) == 0) part2 = ou.substring(subOrg.length+1);
+        var subOrgParts = subOrg.split('.');
+        return {partner: subOrgParts[subOrgParts.length -1], lob: part2,
+            batchName: record.repcontent.batchname || record.repcontent.name,
+            batchType: record.repcontent.batchtype || '',
+            batchId: record.raw_record.assignment};
+    }
+
+    function _addCount(batchInfo, statusObj) {
+        nhtCounts.updateRootCount(statusObj);
+        if (_isSubOrgEnabled) nhtCounts.updateSuborgCount(batchInfo, statusObj);
+        nhtCounts.updateOuCount(batchInfo, statusObj);
+        nhtCounts.updateBatchCount(batchInfo, statusObj);
     }
 
     function _getStatusCountObj(record) {
@@ -115,10 +123,34 @@ function(nl, nlReportHelper, nlGetManyStore) {
 }];
 
 //-------------------------------------------------------------------------------------------------
+// NlLrNht directive to display Nht tab
+//-------------------------------------------------------------------------------------------------
+var NlLrNhtDirective = [
+function() {
+    return {
+        restrict: 'E',
+        transclude: true,
+        templateUrl: 'view_controllers/learning_reports/lr_nht_tab.html',
+        scope: {
+            drilldown: '='
+        },
+        link: function($scope, iElem, iAttrs) {
+            $scope.generateDrillDownArray = function(item) {
+                $scope.$parent.$parent.generateDrillDownArray(item);
+            };
+
+            $scope.onDetailsClick = function(e, item, columns) {
+                $scope.$parent.$parent.onDetailsClick(e, item, columns);
+            };
+        }
+    }
+}];
+
+//-------------------------------------------------------------------------------------------------
 // NhtCounts constructer which get update on each record read
 //-------------------------------------------------------------------------------------------------
 
-function NhtCounts(nl, nlGetManyStore) {
+function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
     var _statusCountTree = {}; //Is an object {0: {cnt: {}, children:{subgorg1: {cnt: {}, children: {ou1: {cnt: {}}}}}}}
     var self = this;
 
@@ -144,75 +176,89 @@ function NhtCounts(nl, nlGetManyStore) {
         return _statusCountTree;
     };
 
-    this.getRoot = function(rootId, name) {
+    this.getRoot = function() {
+        var rootId = 0;
         if (rootId in _statusCountTree) return _statusCountTree[rootId].cnt;
         var stats = angular.copy(statsCountItem);
-            stats['isFolder'] = true;
-            stats['name'] = rootId == 0 ? 'All' : name;
+        stats['isFolder'] = true;
+        stats['name'] = 'All';
+        stats['partner'] = 'All';
+        stats['lob'] = '';
+        stats['batchName'] = '';
         _statusCountTree[rootId] = {cnt: stats, children: {}};
         return _statusCountTree[rootId].cnt;
     };
 
-    this.getSuborg = function(rootId, subOrgId, isFolder) {
-        var  suborgs = _statusCountTree[rootId].children;
+    var INDENDATION = 12;
+    this.getSuborg = function(batchInfo) {
+        var rootItem = _statusCountTree[0];
+        var suborgs = rootItem.children;
+        var subOrgId = batchInfo.partner;
         if (subOrgId in suborgs) return suborgs[subOrgId].cnt;
         var stats = angular.copy(statsCountItem);
         stats['isFolder'] = true;
-        stats['indentation'] = 24;
-        stats['name'] = subOrgId;
+        stats['indentation'] = INDENDATION;
+        stats['name'] = batchInfo.partner;
+        stats['partner'] = batchInfo.partner;
+        stats['lob'] = '';
+        stats['batchName'] = '';
         suborgs[subOrgId] = {cnt: stats, children: {}};
         return suborgs[subOrgId].cnt;
     };
 
-    this.getOu = function(rootId, subOrgId, ouid, isName, isFolder, batchtype) {
-        var  ous = _statusCountTree[rootId].children[subOrgId].children;
-        if (ouid in ous) return ous[ouid].cnt;
+    this.getOu = function(batchInfo) {
+        var rootItem = _statusCountTree[0];
+        var ous = rootItem.children;
+        if (_isSubOrgEnabled) ous = ous[batchInfo.partner].children;
+        if (batchInfo.lob in ous) return ous[batchInfo.lob].cnt;
         var stats = angular.copy(statsCountItem);
-        stats['isFolder'] = isFolder;
-        stats['indentation'] = 44;
-        stats['name'] = isName ? isName : ouid;
-        if (isName)
-            stats['batchtype'] = batchtype;
-        ous[ouid] = {cnt: angular.copy(stats), children: {}};
-        return ous[ouid].cnt;  
+        stats['isFolder'] = true;
+        stats['indentation'] = (_isSubOrgEnabled ? 2 : 1)*INDENDATION;
+        stats['name'] = batchInfo.lob;
+        stats['partner'] = batchInfo.partner;
+        stats['lob'] = batchInfo.lob;
+        stats['batchName'] = '';
+        stats['batchtype'] = '';
+        ous[batchInfo.lob] = {cnt: angular.copy(stats), children: {}};
+        return ous[batchInfo.lob].cnt;
     };
 
-    this.getBatch = function(rootId, subOrgId, ouid, batchid, name, batchtype) {
-        var batch = _statusCountTree[rootId].children[subOrgId].children[ouid].children;
-        if (batchid in batch) return batch[batchid].cnt;
+    this.getBatch = function(batchInfo) {
+        var rootItem = _statusCountTree[0];
+        var ous = rootItem.children;
+        if (_isSubOrgEnabled) ous = ous[batchInfo.partner].children;
+        var batches = ous[batchInfo.lob].children;
+        if (batchInfo.batchId in batches) return batches[batchInfo.batchId].cnt;
         var stats = angular.copy(statsCountItem);
-        stats['indentation'] = 66;
-        stats['name'] = name;
-        stats['batchtype'] = batchtype || '';
-        batch[batchid] = {cnt: angular.copy(stats)};
-        return batch[batchid].cnt; 
+        stats['isFolder'] = false;
+        stats['indentation'] = (_isSubOrgEnabled ? 3 : 2)*INDENDATION;
+        stats['name'] = batchInfo.batchName;
+        stats['partner'] = batchInfo.partner;
+        stats['lob'] = batchInfo.lob;
+        stats['batchName'] = batchInfo.batchName;
+        stats['batchtype'] = batchInfo.batchType || '';
+        batches[batchInfo.batchId] = {cnt: angular.copy(stats)};
+        return batches[batchInfo.batchId].cnt; 
     };
 
-    this.updateRootCount = function(contentid, statusCnt, name) {
-        //contentid = 0 for updating all item in the _statusCountTree. contentid = courseid/lesson_id for all other records.
-        var updatedStats = self.getRoot(contentid, name);
+    this.updateRootCount = function(statusCnt) {
+        var updatedStats = self.getRoot();
         _updateStatsCount(updatedStats, statusCnt);
     }
 
-    this.updateSuborgCount = function(contentid, subOrgId, statusCnt, isFolder) {
-        //isFolder is false, then there is no suborg enabled for group. This object is considered as ou.
-        var updatedStats = self.getSuborg(contentid, subOrgId, isFolder);
+    this.updateSuborgCount = function(batchInfo, statusCnt) {
+        var updatedStats = self.getSuborg(batchInfo);
         _updateStatsCount(updatedStats, statusCnt);
     }
 
-    this.updateOuCount = function(contentid, subOrgId, ouid, statusCnt) {
-        //This happens only if the suborg is enabled for group.
-        var updatedStats = self.getOu(contentid, subOrgId, ouid, null, true);
+    this.updateOuCount = function(batchInfo, statusCnt) {
+        var updatedStats = self.getOu(batchInfo);
         _updateStatsCount(updatedStats, statusCnt);
     } 
 
-    this.updateBatchCount = function(contentid, subOrgId, ouid, batchid, statusCnt, name, batchtype) {
-        var updatedStats = null;
-        if(ouid)
-            updatedStats = self.getBatch(contentid, subOrgId, ouid, batchid, name, batchtype);
-        else 
-            updatedStats = self.getOu(contentid, subOrgId, batchid, name, false, batchtype);
-        _updateBatchInfo(updatedStats, batchid);
+    this.updateBatchCount = function(batchInfo, statusCnt) {
+        var updatedStats = self.getBatch(batchInfo);
+        _updateBatchInfo(updatedStats, batchInfo.batchId);
         _updateStatsCount(updatedStats, statusCnt);
     }
 
@@ -226,6 +272,10 @@ function NhtCounts(nl, nlGetManyStore) {
         var modules = course.content.modules || [];
         updatedStats['start'] = report.not_before;
         updatedStats['end'] = report.not_after;
+        updatedStats.trainer = report.repcontent.iltTrainerName || ''; 
+        updatedStats.batchStatus = '';
+        var grpMilestoneDict = _getGroupMilestonesAsDict();
+        var allMilestonesReached = true;
         for(var i=0; i<modules.length; i++) {
             var item = modules[i]
             if(item.type != 'milestone') continue;
@@ -235,9 +285,22 @@ function NhtCounts(nl, nlGetManyStore) {
             var actualMs = actualMsInfo[item.id] || {};
             updatedStats[mstype+'planned'] = nl.fmt.fmtDateDelta(plannedMs, null, 'minutes');
             updatedStats[mstype+'actual'] = nl.fmt.fmtDateDelta(actualMs.reached || '', null, 'minutes');
+            if (!actualMs.reached) allMilestonesReached = false;
+            var grpMileStoneObj = grpMilestoneDict[mstype];
+            if (actualMs.reached && grpMileStoneObj && grpMileStoneObj.batch_status)
+                updatedStats.batchStatus = grpMileStoneObj.batch_status;
         }
+        if (allMilestonesReached) updatedStats.batchStatus = 'Closed';
         updatedStats.propertiesUpdated = true;
         return;
+    }
+
+    function  _getGroupMilestonesAsDict() {
+        var groupInfo = nlGroupInfo.get();
+        var milestones = groupInfo.props.milestones || [];
+        var ret = {};
+        for(var i=0; i<milestones.length; i++) ret[milestones[i].id] = milestones[i];
+        return ret;
     }
 
     function _updateStatsCount(updatedStats, statusCnt) { 
@@ -284,6 +347,7 @@ function NhtCounts(nl, nlGetManyStore) {
     }
 
     function _updateStatsPercs(updatedStats) {
+        if (!updatedStats.batchName) updatedStats.batchName = updatedStats.batchTotal;
         if(updatedStats.cntTotal > 0) {
             updatedStats['avgDelay'] = Math.round(updatedStats.delayDays/updatedStats.cntTotal);
             updatedStats['avgScore'] = (updatedStats.percScore != 0 && updatedStats.completed != 0) ? Math.round(updatedStats.percScore/updatedStats.completed)+' %' : 0;

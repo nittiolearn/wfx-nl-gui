@@ -1,0 +1,33 @@
+<div class='margin0 padding0' style='padding-bottom: 3px;'>
+    <div class='row row-center margin0 padding-small bgblue fwhite'>
+        <div class='col nht-col1-w'></div>
+        <div ng-repeat='col in drilldown.columns track by $index'
+            class='minw-number text-center' ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
+            <div class='{{col.styleTd}}'>{{col.name}}</div>
+        </div>
+    </div>
+    <div class='row row-center margin0 padding-small {{rec.isFolder ? "lnblue2" : ""}} anim fade highlight'
+         ng-repeat='rec in drilldown.rows track by $index'
+         ng-click='generateDrillDownArray(rec)'>
+        <div class='col nht-col1-w'>
+            <div class='row row-center magin0 padding0'style='padding-left:{{rec.indentation}}px' >
+                <span class='padding-small' ng-show='rec.isFolder'>
+                    <i ng-hide='rec.isOpen' class="icon ion-arrow-right-b bold fsh5"></i>
+                    <i ng-show='rec.isOpen' class="icon ion-arrow-down-b bold fsh5"></i>
+                </span>
+                <div class='col padding0 margin0'>
+                </div>
+                <span ng-click='onDetailsClick($event, rec, drilldown.columns)' class='nl-link-img'>
+                    <i class="padding-mid icon ion-information-circled fsh4 nl-info-icon"></i>
+                </span> 
+            </div>
+        </div>
+        <div ng-repeat='col in drilldown.columns track by $index'
+            class='minw-number text-center'  ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
+            <div class='row row-center {{!col.hidePerc ? "text-right" : "text-center"}}'>
+                <div class='col'>{{rec[col.id] || '-'}}</div>
+                <div class='col nl-perc-class text-left' ng-if='!col.hidePerc'>{{(col.percid && rec[col.percid]) ? rec[col.percid]+'%' : ''}}</div>
+            </div>
+        </div>
+    </div>
+</div>

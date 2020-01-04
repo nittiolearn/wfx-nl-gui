@@ -89,7 +89,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     //--------------------------------------------------------------------------------
     // Implementation
     var _launchMode = launchMode;
-    var repcontent = isCourseView ? report : angular.fromJson(report.content);
+    var repcontent = isCourseView ? report : angular.fromJson(report.content || '{}');
     var _statusinfo = repcontent.statusinfo || {};
     var _lessonReports = repcontent.lessonReports || {};
     var _pastLessonReports = repcontent.pastLessonReports || {};
@@ -152,7 +152,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             nTotalQuizScore: 0, nTotalQuizMaxScore: 0,
             onlineTimeSpentSeconds: 0, iltTimeSpent: 0, iltTotalTime: 0,
             feedbackScore: '', customScores: [], attritedAt: null, attritionStr: null,
-            isCertified: false
+            isCertified: false, batchStatus: ''
         };
 
         var itemIdToInfo = ret.itemIdToInfo; // id: {status: , score: , rawStatus: }

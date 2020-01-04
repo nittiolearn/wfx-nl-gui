@@ -220,7 +220,7 @@
 
         _dlg.scope.onColumnSelect = function() {
             var column = _dlg.scope.data.selectedColumn;
-            if (column.selected) return;
+            if (!column || column.selected) return;
             column.selected = true;
             _dlg.scope.selectedColumns.push(column);
             _updateNotSelectedColumns();
