@@ -1455,6 +1455,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}
 		}
 
+		var disableMilestoneMarking = {};
 		for(var key in learningRecords) {
 			var repid = parseInt(key);
 			var user = learningRecords[key].user;
@@ -1463,10 +1464,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var item = ret[j];
 				var _markedMilestone = milestone[item.id] || {};
 				var _learnersDict = _markedMilestone.learnersDict || {};
-				var msUserObj = {id: repid, milestoneid: item.id, name: user.name, userid: userid}
+				var msUserObj = {id: repid, milestoneid: item.id, name: user.name, userid: userid, }
 				if (userid in item.attritedLearners) {
 					msUserObj.attrition = true;
 					msUserObj.attritionStr = nl.t('Learner {} earlier, milestone marking is disabled', item.attritedLearners[userid])
+				} else if(repid in disableMilestoneMarking) {
+					msUserObj.attrition = true;
+					msUserObj.attritionStr = nl.t('Earlier milestone for learner is not marked', item.attritedLearners[userid])
 				} else {
 					if (repid in _learnersDict) {
 						msUserObj.marked = _learnersDict[repid].marked == 'done' ? true : false;
@@ -1476,6 +1480,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 						msUserObj.remarks = '';
 					}
 				}
+				if (repid in _learnersDict && !_learnersDict[repid].marked) disableMilestoneMarking[repid] = true;
 				item.learnersList.push(msUserObj);
 			}
 		}

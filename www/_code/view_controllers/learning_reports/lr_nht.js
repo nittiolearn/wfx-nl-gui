@@ -272,7 +272,7 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
         var modules = course.content.modules || [];
         updatedStats['start'] = report.not_before;
         updatedStats['end'] = report.not_after;
-        updatedStats.trainer = report.repcontent.iltTrainerName || ''; 
+        updatedStats['trainer'] = report.repcontent.iltTrainerName || report.repcontent.sendername; 
         updatedStats.batchStatus = '';
         var grpMilestoneDict = _getGroupMilestonesAsDict();
         var allMilestonesReached = true;
