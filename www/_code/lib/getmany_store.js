@@ -120,14 +120,21 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         var courseAssignment = this.getAssignmentRecordFromReport(reportRecord) || {};
         if (!courseAssignment.id) return {};
         if (courseAssignment.id in _msInfoCache) return _msInfoCache[courseAssignment.id];
-        var course = this.getRecord(this.getContentKeyFromReport(reportRecord));
-        var actualMsInfo = angular.fromJson(courseAssignment.milestone) || {};
-        var plannedMsInfo = courseAssignment.info.msDates || {};
-        var modules = course.content.modules || [];
-        var ret = {};
+        var ret = {batchStatus: ''};
         _msInfoCache[courseAssignment.id] = ret;
-        ret.batchStatus = '';
+
         var grpMilestoneDict = _getGroupMilestonesAsDict();
+        if (!grpMilestoneDict) return ret;
+
+        var course = this.getRecord(this.getContentKeyFromReport(reportRecord));
+        var modules = course && course.cotent ? course.content.modules : null;
+        if (!modules) return ret;
+
+        var plannedMsInfo = courseAssignment.info ? courseAssignment.info.msDates : null;
+        if (!plannedMsInfo) return ret;
+        
+        var actualMsInfo = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
+        
         var allMilestonesReached = true;
         for(var i=0; i<modules.length; i++) {
             var item = modules[i]
@@ -149,7 +156,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
 
     function  _getGroupMilestonesAsDict() {
         var groupInfo = nlGroupInfo.get();
-        var milestones = groupInfo.props.milestones || [];
+        if (!groupInfo.props.milestones) return null;
+        var milestones = groupInfo.props.milestones;
         var ret = {};
         for(var i=0; i<milestones.length; i++) ret[milestones[i].id] = milestones[i];
         return ret;
