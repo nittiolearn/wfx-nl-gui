@@ -138,7 +138,7 @@ function() {
         transclude: true,
         templateUrl: 'view_controllers/learning_reports/lr_nht_tab.html',
         scope: {
-            drilldown: '='
+            nht: '='
         },
         link: function($scope, iElem, iAttrs) {
             $scope.generateDrillDownArray = function(item) {

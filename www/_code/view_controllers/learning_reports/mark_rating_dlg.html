@@ -61,7 +61,7 @@
                         <div ng-if='!user.attrition && user.canRate == "attended" && selectedRating.ratingType === "input"' class='col padding0'>
                             <input type='number' ng-model='user.rating' min='0' max='100'></input>
                         </div>
-						<div ng-if='user.attrition' class='col padding0'>{{user.attritionStr}}</div>
+						<div ng-if='user.attrition' class='col padding0'>{{user.attritionStr || user.disableMarkingStr}}</div>
 						<div ng-if='user.canRate !== "attended" && !user.attrition' class='col padding-mid'>{{user.errorStr}}</div>
                     </div> 
                 </div>

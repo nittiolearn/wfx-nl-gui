@@ -32,7 +32,7 @@
 									style='min-height: 34px'
 									placeholder='"Write remarks"'>
 							</select>
-							<span ng-if='user.attrition'>{{user.attritionStr}}</span>
+							<span ng-if='user.attrition'>{{user.attritionStr || user.disableMarkingStr}}</span>
 						</div>
 					</div>
 				</div>
