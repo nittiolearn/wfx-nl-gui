@@ -29,6 +29,7 @@ function(nl, nlReportHelper, nlGetManyStore) {
         return nhtCounts.statsCountDict();
     };
 
+    // TODO-LATER: Remove if not used
     this.getAttritionArray = function() {
         var array = _getSortedArrayFromObj(_attritionObj);
         return array;
@@ -56,10 +57,10 @@ function(nl, nlReportHelper, nlGetManyStore) {
     }
 
     function _addCount(batchInfo, statusObj) {
+        nhtCounts.updateBatchCount(batchInfo, statusObj);
         nhtCounts.updateRootCount(statusObj);
         if (_isSubOrgEnabled) nhtCounts.updateSuborgCount(batchInfo, statusObj);
         nhtCounts.updateOuCount(batchInfo, statusObj);
-        nhtCounts.updateBatchCount(batchInfo, statusObj);
     }
 
     function _getStatusCountObj(record) {
@@ -99,6 +100,11 @@ function(nl, nlReportHelper, nlGetManyStore) {
                 statsCountObj['failed'] = 1;
                 return;
             }
+        }
+        if (stats.isCertified) {
+            statsCountObj['certified'] = 1;
+            if (stats.reattempt) statsCountObj['certifiedSecondAttempt'] = 1;
+            else statsCountObj['certifiedFirstAttempt'] = 1;
         }
         statsCountObj[statusStr] = 1;
     }
@@ -154,8 +160,9 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
     var _statusCountTree = {}; //Is an object {0: {cnt: {}, children:{subgorg1: {cnt: {}, children: {ou1: {cnt: {}}}}}}}
     var self = this;
 
-    var statsCountItem = {cntTotal: 0, batchIdDict: {}, batchTotal:0, delayDays: 0, pending:0, failed: 0,
-        completed: 0, percScore: 0, isOpen: false};
+    var statsCountItem = {cntTotal: 0, cntCompletedTotal: 0, batchIdDict: {}, batchTotal:0, delayDays: 0, pending:0, failed: 0,
+        completed: 0, certifiedFirstAttempt: 0, certifiedSecondAttempt: 0, certified: 0, 
+        percScore: 0, isOpen: false};
     var _customScores = {};
     var _customScoresArray = [];
     var batches = {};
@@ -177,8 +184,24 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
     };
 
     this.getRoot = function() {
-        var rootId = 0;
-        if (rootId in _statusCountTree) return _statusCountTree[rootId].cnt;
+        return _getRootItem().cnt;
+    };
+
+    this.getSuborg = function(batchInfo) {
+        return _getSuborgItem(batchInfo).cnt;
+    };
+
+    this.getOu = function(batchInfo) {
+        return _getOuItem(batchInfo).cnt;
+    };
+
+    this.getBatch = function(batchInfo) {
+        return _getBatchItem(batchInfo).cnt;
+    };
+
+    function _getRootItem() {
+            var rootId = 0;
+        if (rootId in _statusCountTree) return _statusCountTree[rootId];
         var stats = angular.copy(statsCountItem);
         stats['isFolder'] = true;
         stats['name'] = 'All';
@@ -186,15 +209,15 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
         stats['lob'] = '';
         stats['batchName'] = '';
         _statusCountTree[rootId] = {cnt: stats, children: {}};
-        return _statusCountTree[rootId].cnt;
-    };
+        return _statusCountTree[rootId];
+    }
 
     var INDENDATION = 12;
-    this.getSuborg = function(batchInfo) {
-        var rootItem = _statusCountTree[0];
-        var suborgs = rootItem.children;
+    function _getSuborgItem(batchInfo) {
+        var parent = _getRootItem();
+        var suborgs = parent.children;
         var subOrgId = batchInfo.partner;
-        if (subOrgId in suborgs) return suborgs[subOrgId].cnt;
+        if (subOrgId in suborgs) return suborgs[subOrgId];
         var stats = angular.copy(statsCountItem);
         stats['isFolder'] = true;
         stats['indentation'] = INDENDATION;
@@ -203,14 +226,13 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
         stats['lob'] = '';
         stats['batchName'] = '';
         suborgs[subOrgId] = {cnt: stats, children: {}};
-        return suborgs[subOrgId].cnt;
+        return suborgs[subOrgId];
     };
 
-    this.getOu = function(batchInfo) {
-        var rootItem = _statusCountTree[0];
-        var ous = rootItem.children;
-        if (_isSubOrgEnabled) ous = ous[batchInfo.partner].children;
-        if (batchInfo.lob in ous) return ous[batchInfo.lob].cnt;
+    function _getOuItem(batchInfo) {
+        var parent = _isSubOrgEnabled ? _getSuborgItem(batchInfo) : _getRootItem();
+        var ous = parent.children;
+        if (batchInfo.lob in ous) return ous[batchInfo.lob];
         var stats = angular.copy(statsCountItem);
         stats['isFolder'] = true;
         stats['indentation'] = (_isSubOrgEnabled ? 2 : 1)*INDENDATION;
@@ -220,15 +242,13 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
         stats['batchName'] = '';
         stats['batchtype'] = '';
         ous[batchInfo.lob] = {cnt: angular.copy(stats), children: {}};
-        return ous[batchInfo.lob].cnt;
+        return ous[batchInfo.lob];
     };
-
-    this.getBatch = function(batchInfo) {
-        var rootItem = _statusCountTree[0];
-        var ous = rootItem.children;
-        if (_isSubOrgEnabled) ous = ous[batchInfo.partner].children;
-        var batches = ous[batchInfo.lob].children;
-        if (batchInfo.batchId in batches) return batches[batchInfo.batchId].cnt;
+    
+    function _getBatchItem(batchInfo) {
+        var parent = _getOuItem(batchInfo);
+        var batches = parent.children;
+        if (batchInfo.batchId in batches) return batches[batchInfo.batchId];
         var stats = angular.copy(statsCountItem);
         stats['isFolder'] = false;
         stats['indentation'] = (_isSubOrgEnabled ? 3 : 2)*INDENDATION;
@@ -238,69 +258,41 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
         stats['batchName'] = batchInfo.batchName;
         stats['batchtype'] = batchInfo.batchType || '';
         batches[batchInfo.batchId] = {cnt: angular.copy(stats)};
-        return batches[batchInfo.batchId].cnt; 
+        return batches[batchInfo.batchId]; 
     };
 
     this.updateRootCount = function(statusCnt) {
         var updatedStats = self.getRoot();
         _updateStatsCount(updatedStats, statusCnt);
-    }
+    };
 
     this.updateSuborgCount = function(batchInfo, statusCnt) {
         var updatedStats = self.getSuborg(batchInfo);
         _updateStatsCount(updatedStats, statusCnt);
-    }
+    };
 
     this.updateOuCount = function(batchInfo, statusCnt) {
         var updatedStats = self.getOu(batchInfo);
         _updateStatsCount(updatedStats, statusCnt);
-    } 
+    };
 
     this.updateBatchCount = function(batchInfo, statusCnt) {
         var updatedStats = self.getBatch(batchInfo);
-        _updateBatchInfo(updatedStats, batchInfo.batchId);
+        _updateBatchInfo(updatedStats, batchInfo.batchId, statusCnt);
+        if (updatedStats.batchStatus == 'Closed') statusCnt['cntCompletedTotal'] = 1;
         _updateStatsCount(updatedStats, statusCnt);
-    }
+    };
 
     function _updateBatchInfo(updatedStats, batchid) { 
         if (updatedStats.propertiesUpdated) return;
+        updatedStats.propertiesUpdated = true;
         var report = batches[batchid];
-        var courseAssignment = nlGetManyStore.getAssignmentRecordFromReport(report.raw_record) || {};
-        var course = nlGetManyStore.getRecord(nlGetManyStore.getContentKeyFromReport(report.raw_record));
-        var actualMsInfo = angular.fromJson(courseAssignment.milestone) || {};
-        var plannedMsInfo = courseAssignment.info.msDates || {};
-        var modules = course.content.modules || [];
+        var msInfo = nlGetManyStore.getBatchMilestoneInfo(report.raw_record);
+        for (var key in msInfo) updatedStats[key] = msInfo[key];
         updatedStats['start'] = report.not_before;
         updatedStats['end'] = report.not_after;
         updatedStats['trainer'] = report.repcontent.iltTrainerName || report.repcontent.sendername; 
-        updatedStats.batchStatus = '';
-        var grpMilestoneDict = _getGroupMilestonesAsDict();
-        var allMilestonesReached = true;
-        for(var i=0; i<modules.length; i++) {
-            var item = modules[i]
-            if(item.type != 'milestone') continue;
-            var mstype = item.milestone_type;
-            if(!mstype) continue;
-            var plannedMs = plannedMsInfo['milestone_'+item.id] || '';
-            var actualMs = actualMsInfo[item.id] || {};
-            updatedStats[mstype+'planned'] = nl.fmt.fmtDateDelta(plannedMs, null, 'minutes');
-            updatedStats[mstype+'actual'] = nl.fmt.fmtDateDelta(actualMs.reached || '', null, 'minutes');
-            if (!actualMs.reached) allMilestonesReached = false;
-            var grpMileStoneObj = grpMilestoneDict[mstype];
-            if (actualMs.reached && grpMileStoneObj && grpMileStoneObj.batch_status)
-                updatedStats.batchStatus = grpMileStoneObj.batch_status;
-        }
-        if (allMilestonesReached) updatedStats.batchStatus = 'Closed';
-        updatedStats.propertiesUpdated = true;
         return;
-    }
-
-    function  _getGroupMilestonesAsDict() {
-        var groupInfo = nlGroupInfo.get();
-        var milestones = groupInfo.props.milestones || [];
-        var ret = {};
-        for(var i=0; i<milestones.length; i++) ret[milestones[i].id] = milestones[i];
-        return ret;
     }
 
     function _updateStatsCount(updatedStats, statusCnt) { 
@@ -346,8 +338,24 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
         }
     }
 
+    function _getReachedCertification(updatedStats) {
+        var ret = 0;
+        // TODO: hardcoding in the state names!!!
+        var attrs = ['certified', 'failed', 'attrition-certification', 'attrition-recertification'];
+        for(var i=0; i<attrs.length; i++) {
+            if (!(attrs[i] in updatedStats)) continue;
+            ret += updatedStats[attrs[i]];
+        }
+        return ret;
+    }
+
     function _updateStatsPercs(updatedStats) {
         if (!updatedStats.batchName) updatedStats.batchName = updatedStats.batchTotal;
+        if (updatedStats['cntCompletedTotal'])
+            updatedStats['batchThroughput'] = '' + Math.round(100*updatedStats['certified']/updatedStats['cntCompletedTotal']) + ' %';
+        var reachedCertification = _getReachedCertification(updatedStats);
+        if (reachedCertification)
+            updatedStats['batchFirstPass'] = '' + Math.round(100*updatedStats['certifiedFirstAttempt']/reachedCertification) + ' %';
         if(updatedStats.cntTotal > 0) {
             updatedStats['avgDelay'] = Math.round(updatedStats.delayDays/updatedStats.cntTotal);
             updatedStats['avgScore'] = (updatedStats.percScore != 0 && updatedStats.completed != 0) ? Math.round(updatedStats.percScore/updatedStats.completed)+' %' : 0;

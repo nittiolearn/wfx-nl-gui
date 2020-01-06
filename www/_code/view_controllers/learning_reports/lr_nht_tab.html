@@ -2,7 +2,7 @@
     <div class='row row-center margin0 padding-small bgblue fwhite'>
         <div class='col nht-col1-w'></div>
         <div ng-repeat='col in drilldown.columns track by $index'
-            class='minw-number text-center' ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
+            class='minw-number text-center' ng-if='col.canShow && ($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
             <div class='{{col.styleTd}}'>{{col.name}}</div>
         </div>
     </div>
@@ -23,7 +23,7 @@
             </div>
         </div>
         <div ng-repeat='col in drilldown.columns track by $index'
-            class='minw-number text-center'  ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
+            class='minw-number text-center'  ng-if='col.canShow && ($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
             <div class='row row-center {{!col.hidePerc ? "text-right" : "text-center"}}'>
                 <div class='col'>{{rec[col.id] || '-'}}</div>
                 <div class='col nl-perc-class text-left' ng-if='!col.hidePerc'>{{(col.percid && rec[col.percid]) ? rec[col.percid]+'%' : ''}}</div>

@@ -431,6 +431,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}]};
 		ret.search = '';
 		ret.lastSeached = '';
+		ret.filter = {};
 		ret.searchPlaceholder = 'Type the search words and press enter';
 		ret.records = null; 
 		ret.summaryStats = null;
@@ -439,6 +440,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		ret.processingOnging = true;
 		ret.nothingToDisplay = false;
 		ret.onSearch = _onSearch;
+		ret.onFilter = _onFilter;
 		ret.onTabSelect = _onTabSelect;
 		ret.isNHTAdded = false;
 		return ret;
@@ -502,7 +504,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		} else if (tab.id == 'drilldown') {
 			_updateDrillDownTab();
 		} else if (tab.id == 'nht') {
-			_updateNhtTab()
+			_updateNhtTab();
 		}
 	}
 
@@ -515,14 +517,33 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_updateCurrentTab();
 	}
 
+	function _onFilter() {
+		var dlg = nlDlg.create($scope);
+		dlg.scope.data = {batchStatus: {id: $scope.tabData.filter.closed_batches ? 'closed' : 'running'}};
+		dlg.scope.options = {batchStatus: [{id: 'running', name: 'Running Batches'}, 
+			{id: 'closed', name: 'Closed Batches'}]};
+		dlg.scope.help = {batchStatus: {name: 'Batch Status', help: 'Select running or closed batches'}};
+		var okButton = {text: nl.t('Apply'), onTap: function(e) {
+			$scope.tabData.filter.closed_batches = dlg.scope.data.batchStatus.id == 'closed';
+			_someTabDataChanged();
+			_updateCurrentTab();
+		}};
+
+		var cancelButton = {text: nl.t('Close')};
+		dlg.show('view_controllers/learning_reports/lr_records_filter_dlg.html',
+			[okButton], cancelButton);
+	}
+
 	function _getFilteredRecords(summaryStats) {
 		var records = nlLrReportRecords.getRecords();
 		var tabData = $scope.tabData;
+		var filterInfo = _getFilterInfo(tabData);
 		var searchInfo = _getSearchInfo(tabData);
 		var filteredRecords  = [];
 		for (var recid in records) {
 			var record = records[recid];
-			if (!_doesPassFilter(record, searchInfo)) continue;
+			if (!_doesPassFilter(tabData, record, filterInfo)) continue;
+			if (!_doesPassSearch(record, searchInfo)) continue;
 			filteredRecords.push(record);
 			summaryStats.addToStats(record);
 		}
@@ -543,8 +564,22 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return ret;
 	}
 
-	function _doesPassFilter(record, searchInfo) {
-		if (searchInfo.length == 0) return true;
+	function _getFilterInfo(tabData) {
+		if (!tabData.isNHTAdded) return {};
+		var filter = tabData.filter;
+		if (!filter.closed_batches) filter.closed_batches = false;
+		return filter;
+	}
+
+	function _doesPassFilter(tabData, record, filterInfo) {
+		if (!tabData.isNHTAdded) return true;
+		var msInfo = nlGetManyStore.getBatchMilestoneInfo(record.raw_record);
+		if (filterInfo.closed_batches) return msInfo.batchStatus == 'Closed';
+		return msInfo.batchStatus != 'Closed';		
+	}
+
+	function _doesPassSearch(record, searchInfo) {
+			if (searchInfo.length == 0) return true;
 		var repcontent = record.repcontent || {};
 		var raw_record = record.raw_record || {};
 		var user = record.user || {};
@@ -875,8 +910,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	var _nhtStatsDict = {};
-	var _nhtColumns = [];
+	var _nhtColumns = null;
 	var _nhtUniqueUserRecords = {};
+	var _nhtColumnsSelectedInView = null;
 	function _updateNhtTab() {
 		nlLrNht.clearStatusCountTree();
 		var records = $scope.tabData.records;
@@ -897,8 +933,41 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				nlLrNht.addCount(record);
 		}
 		_nhtStatsDict = nlLrNht.getStatsCountDict();
-		_nhtColumns = _getNhtColumns();
+		_initNhtColumns();
 		$scope.nhtInfo = {columns: _nhtColumns, rows: _generateDrillDownArray(true, _nhtStatsDict, false, (nlLrFilter.getType() == "course_assign"))};
+	}
+
+	function _initNhtColumns() {
+		_nhtColumns = _getNhtColumns();
+		_updateNhtColumns();
+        $scope.nhtViewSelectorConfig = {
+            canEdit: nlRouter.isPermitted(_userInfo, 'assignment_manage'),
+            tableType: 'nht_views',
+            allColumns: _nhtColumns,
+            onViewChange: function(selectedColumns) {
+				_nhtColumnsSelectedInView = {};
+				for(var i=0; i<selectedColumns.length; i++) {
+					var col = selectedColumns[i];
+					_nhtColumnsSelectedInView[col.id] = true;
+				}
+				_someTabDataChanged();
+				_updateCurrentTab();
+            }
+        };
+	}
+
+	function _updateNhtColumns() {
+		var isClosedBatches = $scope.tabData.filter.closed_batches;
+		for(var i=0; i<_nhtColumns.length; i++) {
+			var col = _nhtColumns[i];
+			var notApplicable = isClosedBatches && col.showIn == 'running' ||
+				!isClosedBatches && col.showIn == 'closed';
+			if (notApplicable) {
+				col.canShow = false;
+				continue;
+			}
+			col.canShow = !_nhtColumnsSelectedInView || _nhtColumnsSelectedInView[col.id];
+		}
 	}
 
 	function _getNhtColumns() {
@@ -914,40 +983,50 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push({id: 'partner', name: 'Partner', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'lob', name: 'LOB', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 
-		if(attrition.length > 0) {
-			for(var i=0; i<attrition.length; i++) {
-				var name = attrition[i];
-				var formattedName = _getFormattedName(name, statusDict);
-				columns.push({id: attrition[i], name: formattedName, percid:'perc'+attrition[i], indentation: 'padding-left-44', table: true});
-			}
-			columns.push({id: 'attrition', name: 'Attrition', hidePerc:true, table: true, showAlways: true});
+		for(var i=0; i<etmUserStates.length; i++) {
+			var userState = etmUserStates[i];
+			columns.push({id: 'attrition-' + userState.id, 
+				name: 'Attrition during ' + userState.name, hidePerc:true, table: true, showAlways: true});
 		}
+		columns.push({id: 'attrition', name: 'Total Attrition', hidePerc:true, table: true, showAlways: true});
 
 		columns.push({id: 'batchtype', name: 'Batch Type', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'trainer', name: 'Trainer', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
-		columns.push({id: 'avgDelay', name: 'Average delay(In days)', hidePerc: true, table: true, showAlways: true});
-		columns.push({id: 'pending', name: 'Pending', hidePerc:true, table: true, showAlways: true});
+
+		for(var i=0; i<milestones.length; i++) {
+			var item = milestones[i];
+			columns.push({id: item.id+'planned', name: nl.t('Planned {} date', item.name), table: true, hidePerc:true, style:'min-width:fit-content'});
+		}
+
+		for(var i=0; i<milestones.length; i++) {
+			var item = milestones[i];
+			columns.push({id: item.id+'actual', name: nl.t('Actual {} date', item.name), table: true, hidePerc:true, style:'min-width:fit-content'});	
+		}
+
 		for(var i=0; i<etmUserStates.length; i++) {
 			var userState = etmUserStates[i];
-			columns.push({id: userState.id, name: userState.name, hidePerc: true, showAlways: true, table: true});
+			columns.push({id: userState.id, name: nl.t('In {} Count',userState.name), showIn: 'running', hidePerc: true, showAlways: true, table: true});
 			if(userState.tenures) {
-				for (var j=userState.tenures.length-1; j>=0; j--) columns.push({id: userState.tenures[j].id, name: userState.tenures[j].name, hidePerc: true, showAlways: true, table: true});
-			}
-		}
-		columns.push({id: 'failed', name: 'Failed', hidePerc:true, table: true, showAlways: true});
-		columns.push({id: 'avgScore', name: 'Avg Quiz score', table: true, background: 'nl-bg-blue', hidePerc:true});
-		for(var i=0; i<_customScoresHeader.length; i++) columns.push({id: 'perc'+_customScoresHeader[i], name: _customScoresHeader[i], table: true, background: 'nl-bg-blue', hidePerc:true});
-		columns.push({id: 'start', name: 'Batch start', table: true, hidePerc:true, style:'min-width:fit-content'});
-		columns.push({id: 'end', name: 'Batch end', table: true, hidePerc:true, style:'min-width:fit-content'});
-		if(milestones.length > 0) {
-			for(var i=0; i<milestones.length; i++) {
-				var item = milestones[i];
-				columns.push({id: item.id+'planned', name: nl.t('{} planned', item.name), table: true, hidePerc:true, style:'min-width:fit-content'});
-				columns.push({id: item.id+'actual', name: nl.t('{} achieved', item.name), table: true, hidePerc:true, style:'min-width:fit-content'});	
+				for (var j=userState.tenures.length-1; j>=0; j--) columns.push({id: userState.tenures[j].id, name: nl.t('In {} Count', userState.tenures[j].name), showIn: 'closed', hidePerc: true, showAlways: true, table: true});
 			}
 		}
 
+		columns.push({id: 'certifiedFirstAttempt', name: 'Certified in Fisrt Attempt', hidePerc: true, table: true, showAlways: true});
+		columns.push({id: 'certifiedSecondAttempt', name: 'Certified in 2nd Attempt', hidePerc: true, table: true, showAlways: true});
+		columns.push({id: 'certified', name: 'Total Certified', hidePerc: true, table: true, showAlways: true});
+		columns.push({id: 'failed', name: 'Total Not Certified', hidePerc:true, table: true, showAlways: true});
+		columns.push({id: 'batchFirstPass', name: 'First Pass Percentage', showIn: 'closed', hidePerc: true, table: true, showAlways: true});
+		columns.push({id: 'batchThroughput', name: 'Batch Throughput', showIn: 'closed', hidePerc: true, table: true, showAlways: true});
+
+		// Others - not asked by customer but may be needed
+		columns.push({id: 'avgDelay', name: 'Average delay(In days)', hidePerc: true, table: true, showAlways: true});
+		columns.push({id: 'avgScore', name: 'Avg Quiz score', table: true, background: 'nl-bg-blue', hidePerc:true});
+		for(var i=0; i<_customScoresHeader.length; i++) columns.push({id: 'perc'+_customScoresHeader[i], name: _customScoresHeader[i], table: true, background: 'nl-bg-blue', hidePerc:true});
+
 		// Hidden columns
+		columns.push({id: 'start', name: 'Batch start date', table: false, hidePerc:true, style:'min-width:fit-content'});
+		columns.push({id: 'end', name: 'Batch end date', table: false, hidePerc:true, style:'min-width:fit-content'});
+		columns.push({id: 'pending', name: 'Pending', hidePerc:true, table: false, showAlways: true});
 		columns.push({id: 'batchTotal', name: 'Batches', table: false, hidePerc:true, showAlways: true});
 		return columns;
 	}
@@ -1100,10 +1179,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var nhtStats = null;
 		if(nlLrReportRecords.isNHT()) {
 			_updateNhtTab();
-			var nhtCols = _getNhtColumns();
 			var nhtHeader = [];
-			for(var i=0; i<nhtCols.length; i++) {
-				var col = nhtCols[i];
+			for(var i=0; i<_nhtColumns.length; i++) {
+				var col = _nhtColumns[i];
 				if(col.table) nhtHeader.push(col);
 			}
 			var nhtArray = [{id: 'all', name: 'All'}];

@@ -48,7 +48,7 @@ function(nl, nlRouter, $scope) {
         $scope.data = _generateRandomData($scope.columns);
         $scope.tableViewConfig = {
             canEdit: nlRouter.isPermitted(userInfo, 'assignment_manage'),
-            tableType: 'nht_views_running_batches', // or could be nht_views_completed_batches
+            tableType: 'nht_views',
             allColumns: _getOptionalColumns(),
             onViewChange: function(selectedColumns) {
                 $scope.columns = _mergeColumns(selectedColumns);

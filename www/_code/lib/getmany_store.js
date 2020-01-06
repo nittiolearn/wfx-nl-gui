@@ -10,8 +10,8 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlGetManyStore = ['nl', 'nlDlg', 'nlServerApi',
-function(nl, nlDlg, nlServerApi) {
+var NlGetManyStore = ['nl', 'nlDlg', 'nlServerApi', 'nlGroupInfo',
+function(nl, nlDlg, nlServerApi, nlGroupInfo) {
     var self = this;
     var _records = null;
     var _subFetcher = new SubFetcher(nl, nlDlg, nlServerApi, this);
@@ -113,7 +113,47 @@ function(nl, nlDlg, nlServerApi) {
 			if (attr in src) dest[destAttrs[i]] = src[attr];
 			else if (defVals[i] !== undefined) dest[attr] = defVals[i];
 		}
-	}
+    }
+
+    var _msInfoCache = {};
+    this.getBatchMilestoneInfo = function(reportRecord) {
+        var courseAssignment = this.getAssignmentRecordFromReport(reportRecord) || {};
+        if (!courseAssignment.id) return {};
+        if (courseAssignment.id in _msInfoCache) return _msInfoCache[courseAssignment.id];
+        var course = this.getRecord(this.getContentKeyFromReport(reportRecord));
+        var actualMsInfo = angular.fromJson(courseAssignment.milestone) || {};
+        var plannedMsInfo = courseAssignment.info.msDates || {};
+        var modules = course.content.modules || [];
+        var ret = {};
+        _msInfoCache[courseAssignment.id] = ret;
+        ret.batchStatus = '';
+        var grpMilestoneDict = _getGroupMilestonesAsDict();
+        var allMilestonesReached = true;
+        for(var i=0; i<modules.length; i++) {
+            var item = modules[i]
+            if(item.type != 'milestone') continue;
+            var mstype = item.milestone_type;
+            if(!mstype) continue;
+            var plannedMs = plannedMsInfo['milestone_'+item.id] || '';
+            var actualMs = actualMsInfo[item.id] || {};
+            ret[mstype+'planned'] = nl.fmt.fmtDateDelta(plannedMs, null, 'minutes');
+            ret[mstype+'actual'] = nl.fmt.fmtDateDelta(actualMs.reached || '', null, 'minutes');
+            if (!actualMs.reached) allMilestonesReached = false;
+            var grpMileStoneObj = grpMilestoneDict[mstype];
+            if (actualMs.reached && grpMileStoneObj && grpMileStoneObj.batch_status)
+                ret.batchStatus = grpMileStoneObj.batch_status;
+        }
+        if (allMilestonesReached) ret.batchStatus = 'Closed';
+        return ret;
+    };
+
+    function  _getGroupMilestonesAsDict() {
+        var groupInfo = nlGroupInfo.get();
+        var milestones = groupInfo.props.milestones || [];
+        var ret = {};
+        for(var i=0; i<milestones.length; i++) ret[milestones[i].id] = milestones[i];
+        return ret;
+    }
 
 }];
 

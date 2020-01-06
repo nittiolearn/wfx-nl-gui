@@ -152,7 +152,9 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             nTotalQuizScore: 0, nTotalQuizMaxScore: 0,
             onlineTimeSpentSeconds: 0, iltTimeSpent: 0, iltTotalTime: 0,
             feedbackScore: '', customScores: [], attritedAt: null, attritionStr: null,
-            isCertified: false, batchStatus: ''
+            isCertified: false 
+            // Also may have has following:
+            // reattempt: true/false
         };
 
         var itemIdToInfo = ret.itemIdToInfo; // id: {status: , score: , rawStatus: }

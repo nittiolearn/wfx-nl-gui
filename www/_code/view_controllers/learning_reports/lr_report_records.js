@@ -247,7 +247,8 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             customScores: stainf.customScores,
             attritedAt: stainf.attritedAt,
             attritionStr: stainf.attritionStr,
-            delayDays: Math.round(stainf.delayDays || 0)
+            delayDays: Math.round(stainf.delayDays || 0),
+            isCertified: stainf.isCertified
         };
 
         if(stainf.customScores.length != 0) {

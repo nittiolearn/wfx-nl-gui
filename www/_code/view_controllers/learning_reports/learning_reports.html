@@ -49,6 +49,8 @@
                     <span class='padding-mid'>More available.</span>
                 </span>
             </div>
+            <nl-table-view-selector ng-show='nhtViewSelectorConfig && tabData.selectedTab.id == "nht"  && !tabData.processingOnging'
+                config=nhtViewSelectorConfig></nl-table-view-selector>
             <span ng-repeat='tb in toolbar'
                 title='{{tb.title}}'
                 class='nl-toolbar-icon'
@@ -73,6 +75,10 @@
                 <div class='padding-small'></div>
                 <i class='nl-link-text icon fsh4 fblue padding-mid ion-ios-search'
                     ng-click='tabData.onSearch(null)'>
+                </i>
+                <div ng-if='tabData.isNHTAdded' class='padding-small'></div>
+                <i ng-if='tabData.isNHTAdded' class='nl-link-text icon fsh4 fblue padding-mid ion-funnel'
+                   ng-click='tabData.onFilter(null)'>
                 </i>
             </div>
         </div>
