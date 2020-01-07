@@ -354,7 +354,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return (bodyElement[0].clientHeight - topElem[0].clientHeight-18);
 	};
 
-	$scope.onDetailsClick = function(e, item, columns) {		
+	$scope.onDetailsClick = function(e, item, columns) {
 		e.stopImmediatePropagation();
 		e.preventDefault();
 		var detailsDlg = nlDlg.create($scope);
@@ -373,10 +373,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if(!item.isFolder) return;
 		item.isOpen = !item.isOpen;
 		var selectedId = $scope.tabData.selectedTab.id;
+		var tableTitle = $scope.tabData.filter.closed_batches ? 'Closed Batches' : 'Running Batches';
 		if(selectedId == 'drilldown') {
 			$scope.drillDownInfo = {columns: _drillDownColumns, rows: _generateDrillDownArray(false, _statsCountDict, true)};
 		} else {
-			$scope.nhtInfo = {columns: _nhtColumns, rows: _generateDrillDownArray(false, _nhtStatsDict, false, (nlLrFilter.getType() == "course_assign"))};
+			$scope.nhtInfo = {columns: _nhtColumns, tableTitle: tableTitle, rows: _generateDrillDownArray(false, _nhtStatsDict, false, (nlLrFilter.getType() == "course_assign"))};
 		}
 	};
 
@@ -443,6 +444,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		ret.onFilter = _onFilter;
 		ret.onTabSelect = _onTabSelect;
 		ret.isNHTAdded = false;
+		ret.isFilterApplied = false;
 		return ret;
 	}
 
@@ -663,6 +665,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	
 	function _updateReportRecords() {
 		nlLrReportRecords.updateReportRecords();
+		nlGetManyStore.clearMsInfoCache();
 		_updateScope();
 	}
 	
@@ -681,6 +684,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.canFetchMore = nlLrFetcher.canFetchMore();
 		_checkAndUpdateNHT();
 		var anyRecord = nlLrReportRecords.getAnyRecord();
+		if(nlLrFilter.getType() == 'course_assign') {
+			var batchInfo = nlGetManyStore.getBatchMilestoneInfo(anyRecord.raw_record);
+			$scope.tabData.filter.closed_batches = batchInfo.batchStatus == 'Closed';
+		}
 		_setSubTitle(anyRecord);
 		$scope.noDataFound = (anyRecord == null);
 		_someTabDataChanged();
@@ -699,6 +706,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 												tables: []
 											});
 			$scope.tabData.isNHTAdded = true;
+			$scope.tabData.isFilterApplied = true;
 		}
 
 	}
@@ -934,7 +942,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		_nhtStatsDict = nlLrNht.getStatsCountDict();
 		_initNhtColumns();
-		var tableTitle = $scope.tabData.filter.closed_batches ? 'Closed batches' : 'Running batches';
+		var tableTitle = $scope.tabData.filter.closed_batches ? 'Closed Batches' : 'Running Batches';
 		$scope.nhtInfo = {columns: _nhtColumns, tableTitle: tableTitle, rows: _generateDrillDownArray(true, _nhtStatsDict, false, (nlLrFilter.getType() == "course_assign"))};
 	}
 
@@ -1185,11 +1193,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var col = _nhtColumns[i];
 				if(col.canShow) nhtHeader.push(col);
 			}
-			var nhtArray = [{id: 'all', name: 'All'}];
-			if(nlGroupInfo.isSubOrgEnabled()) nhtArray.push({id: 'subOrgId', name: 'Suborg Id'});
-			nhtArray.push({id: 'organisationId', name: 'Organisation Id'});		
-			nhtArray.push({id: 'batchName', name: 'Batch name'});
-			nhtHeader = nhtArray.concat(nhtHeader);
 			nhtStats = {statsCountDict: _nhtStatsDict, columns: nhtHeader};	
 		}
 
@@ -1270,7 +1273,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for(var key in _attendanceObj) ret.push({attr: key, title: _attendanceObj[key].name, type: 'string'});
 		ret = ret.concat([{attr:'success', title: 'Success', type:'string'}, {attr:'partial_success', title: 'Partially done', type:'string'}, 
 				{attr:'failed', title: 'Failed', type:'string'}, {attr:'started', title: 'Started', type: 'string'}, 
-				{attr:'pending', title: 'Pending', type: 'string'}, {attr:'total', title: 'Total', type:'total'}]);
+				{attr:'pending', title: 'Pending', type: 'string'}, {attr:'attrition', title: 'Earlier attrition', type: 'string'}, {attr:'total', title: 'Total', type:'total'}]);
 		return ret;
 	}
 	
@@ -1292,16 +1295,16 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	};
 
-	var _lessonLabels = ['done', 'failed', 'stated', 'pending'];
-	var _LessonColours = [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.started, _nl.colorsCodes.pending];
-	var _infoLabels = ['done', 'pending'];
-	var _infoColours = [_nl.colorsCodes.done, _nl.colorsCodes.pending];
-	var _milestoneLabels = ['done', 'pending'];
-	var _milestoneColors = [_nl.colorsCodes.done, _nl.colorsCodes.pending]
-	var _RatingLabels = ['done', 'partial', 'failed', 'pending'];
-	var _RatingColors = [_nl.colorsCodes.done, _nl.colorsCodes.started, _nl.colorsCodes.failed, _nl.colorsCodes.pending]
-	var _GateLabels = ['done', 'failed', 'pending'];
-	var _GateColors = [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.pending];
+	var _lessonLabels = ['done', 'failed', 'stated', 'pending', 'attrition'];
+	var _LessonColours = [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.started, _nl.colorsCodes.pending, _nl.colorsCodes.waiting];
+	var _infoLabels = ['done', 'pending', 'attrition'];
+	var _infoColours = [_nl.colorsCodes.done, _nl.colorsCodes.pending, _nl.colorsCodes.waiting];
+	var _milestoneLabels = ['done', 'pending', 'attrition'];
+	var _milestoneColors = [_nl.colorsCodes.done, _nl.colorsCodes.pending, _nl.colorsCodes.waiting]
+	var _RatingLabels = ['done', 'partial', 'failed', 'pending', 'attrition'];
+	var _RatingColors = [_nl.colorsCodes.done, _nl.colorsCodes.started, _nl.colorsCodes.failed, _nl.colorsCodes.pending, _nl.colorsCodes.waiting]
+	var _GateLabels = ['done', 'failed', 'pending', 'attrition'];
+	var _GateColors = [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.pending, _nl.colorsCodes.waiting];
 	function _updateChartInfo(dlgScope, learningRecords) {
 		if(dlgScope.selectedSession.type == 'lesson') {
 			var ret = {labels: _lessonLabels, colours: _LessonColours};
@@ -1320,23 +1323,27 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			data.push(dlgScope.selectedSession.pending.length);
 			iltColors.push(_nl.colorsCodes.pending);
 			iltLabels.push('pending');
+			data.push(dlgScope.selectedSession.attrition.length);
+			iltColors.push(_nl.colorsCodes.waiting);
+			iltLabels.push('attrition');
 			dlgScope.chartInfo = {labels: iltLabels, colours: iltColors, data: data};
 		} else if(dlgScope.selectedSession.type == 'rating') {
 			var ret = {labels: _RatingLabels, colours: _RatingColors};
 			ret.data = [dlgScope.selectedSession.success.length, dlgScope.selectedSession.partial_success.length,
-						dlgScope.selectedSession.failed.length, dlgScope.selectedSession.pending.length];
+						dlgScope.selectedSession.failed.length, dlgScope.selectedSession.pending.length,
+						dlgScope.selectedSession.attrition.length];
 			dlgScope.chartInfo = ret;
 		} else if(dlgScope.selectedSession.type == 'milestone') {
 			var ret = {labels: _milestoneLabels, colours: _milestoneColors};
-				ret.data = [dlgScope.selectedSession.success.length, dlgScope.selectedSession.pending.length];
+				ret.data = [dlgScope.selectedSession.success.length, dlgScope.selectedSession.pending.length, dlgScope.selectedSession.attrition.length];
 				dlgScope.chartInfo = ret;
 		} else if(dlgScope.selectedSession.type == 'gate') {
 			var ret = {labels: _GateLabels, colours: _GateColors};
-				ret.data = [dlgScope.selectedSession.success.length, dlgScope.selectedSession.failed.length, dlgScope.selectedSession.pending.length];
+				ret.data = [dlgScope.selectedSession.success.length, dlgScope.selectedSession.failed.length, dlgScope.selectedSession.pending.length, dlgScope.selectedSession.attrition.length];
 				dlgScope.chartInfo = ret;		
 		} else {
 			var ret = {labels: _infoLabels, colours: _infoColours};
-			ret.data = [dlgScope.selectedSession.success.length, dlgScope.selectedSession.pending.length];
+			ret.data = [dlgScope.selectedSession.success.length, dlgScope.selectedSession.pending.length, dlgScope.selectedSession.attrition.length];
 			dlgScope.chartInfo = ret;        	
 		}
 	}
@@ -1350,6 +1357,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if(item.type == 'module') continue;
 			item.total = total;
 			item['pending'] = [];
+			item['attrition'] = [];
 			
 			if(item.type == 'iltsession') {
 				for(var key in _attendanceObj) item[key] = [];
@@ -1366,9 +1374,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for(var key in learningRecords) {
 			var repcontent = learningRecords[key].repcontent;
 			var courseItemStatusInfos = repcontent.statusinfo || {};
+			var attritionVal = 0;
 			for(var j=0; j<ret.length; j++) {
 				if(ret[j].type == 'module') continue;
 				var courseItemStatusInfo = courseItemStatusInfos[ret[j].id] || {};
+				if(courseItemStatusInfo.isAttrition && attritionVal > 0) {
+					ret[j]['attrition'].push({id: parseInt(key), name: learningRecords[key].user.name});
+					continue;
+				}
+				if(courseItemStatusInfo.isAttrition && attritionVal === 0) attritionVal++;
 				var courseItemStatus = courseItemStatusInfo.status || 'pending'; 
 				var bucket = ret[j].type == 'iltsession' ? courseItemStatusInfo.stateStr : courseItemStatus;
 				if (courseItemStatus == 'pending' || courseItemStatus == 'waiting' || courseItemStatus == 'delayed'
@@ -1504,10 +1518,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 							_milestone.attritedLearners[newAttendance[k].userid] = newAttendance[k].attritionStr || groupAttendendanceObj.name;
 							continue;
 						}
-						if(!_milestone.canMarkMilestone) continue;
 						if(userAttendance.id == "") {
 							_milestone.pendingIlts.push(earlierSessions[j].name);
 							_milestone.canMarkMilestone = false;
+							break;
 						}
 	
 					}

@@ -114,8 +114,11 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
 			else if (defVals[i] !== undefined) dest[attr] = defVals[i];
 		}
     }
-
     var _msInfoCache = {};
+    this.clearMsInfoCache = function() {
+        _msInfoCache = {};
+    }
+
     this.getBatchMilestoneInfo = function(reportRecord) {
         var courseAssignment = this.getAssignmentRecordFromReport(reportRecord) || {};
         if (!courseAssignment.id) return {};
@@ -127,11 +130,13 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         if (!grpMilestoneDict) return ret;
 
         var course = this.getRecord(this.getContentKeyFromReport(reportRecord));
-        var modules = course && course.cotent ? course.content.modules : null;
+        var modules = course && course.content ? course.content.modules : null;
         if (!modules) return ret;
 
         var plannedMsInfo = courseAssignment.info ? courseAssignment.info.msDates : null;
         if (!plannedMsInfo) return ret;
+        if (Object.keys(plannedMsInfo).length == 0) return ret;
+        ret.batchStatus = 'Pending';
         
         var actualMsInfo = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
         

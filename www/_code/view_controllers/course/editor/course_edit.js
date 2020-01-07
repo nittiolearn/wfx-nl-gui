@@ -328,8 +328,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		if (!_etm || !_groupInfo) return;
 		if (attr.valueNamesUpdated) return;
 		_userStates = _groupInfo.props.etmUserStates || [];
-		attr.valueNames = {};
-		attr.values = [];
+		attr.valueNames = {'':' '};
+		attr.values = [''];
 		for (var i=0; i<_userStates.length; i++) {
 			var r = _userStates[i];
 			attr.values.push(r.id);

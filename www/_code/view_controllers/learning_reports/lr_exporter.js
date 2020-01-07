@@ -292,60 +292,36 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var nhtHeaderRow = _nhtDict.columns;
         for(var key in nhtStats) {
             var row = nhtStats[key];
-            row.cnt['all'] = row.cnt.name;
-            if (_exportFormat == 'csv') 
-                ctx.nhtRow.push(nlExporter.getCsvRow(nhtHeaderRow, row.cnt));
-            else
-                ctx.nhtRow.push(nlExporter.getItemRow(nhtHeaderRow, row.cnt));
-            if(row.children) _updateSuborgForNht(row.cnt.name, row.children, nhtHeaderRow);   
+            if(row.children) _updateSuborgForNht(row.children, nhtHeaderRow);   
         }
     }
 
 
-    function _updateSuborgForNht(rootName, suborgRow, nhtHeaderRow) {
+    function _updateSuborgForNht(suborgRow, nhtHeaderRow) {
         for(var key in suborgRow) {
             var row = suborgRow[key];
-            row.cnt['all'] = rootName;
-            if(nlGroupInfo.isSubOrgEnabled()) 
-                row.cnt['subOrgId'] = row.cnt.name;
-            else 
-                row.cnt['organisationId'] = row.cnt.name;
-            if(_exportFormat == 'csv')
-                ctx.nhtRow.push(nlExporter.getCsvRow(nhtHeaderRow, row.cnt));
-            else 
-                ctx.nhtRow.push(nlExporter.getItemRow(nhtHeaderRow, row.cnt));
-
-            if(row.children) _updateOrgForNht(rootName, row.cnt.name, row.children, nhtHeaderRow);
+            if(row.children) _updateOrgForNht(row.children, nhtHeaderRow);
         }
     }
 
-    function _updateOrgForNht(rootName, subOrgId, orgRow, nhtHeaderRow) {
+    function _updateOrgForNht(orgRow, nhtHeaderRow) {
         for(var key in orgRow) {
             var row = orgRow[key];
-            row.cnt['all'] = rootName;
-            if(nlGroupInfo.isSubOrgEnabled()) {
-                row.cnt['subOrgId'] = subOrgId;
-                row.cnt['organisationId'] = row.cnt.name;
+            if(row.children) {
+                _updateBatchRowForNht(row.children, nhtHeaderRow);
             } else {
-                row.cnt['organisationId'] = subOrgId;
-                row.cnt['batchName'] = row.cnt.name;
+                if (_exportFormat == 'csv') 
+                    ctx.nhtRow.push(nlExporter.getCsvRow(nhtHeaderRow, row.cnt));
+                else
+                    ctx.nhtRow.push(nlExporter.getItemRow(nhtHeaderRow, row.cnt));
             }
-            if (_exportFormat == 'csv') 
-                ctx.nhtRow.push(nlExporter.getCsvRow(nhtHeaderRow, row.cnt));
-            else
-                ctx.nhtRow.push(nlExporter.getItemRow(nhtHeaderRow, row.cnt));
-            if(row.children) _updateBatchRowForNht(rootName, subOrgId, row.cnt.name, row.children, nhtHeaderRow);
         }
     }
 
     //This fuunction is only called if the suborg is enabled
-    function _updateBatchRowForNht(rootName, subOrgId, organisationId, batches, nhtHeaderRow) {
+    function _updateBatchRowForNht(batches, nhtHeaderRow) {
         for(var key in batches) {
             var row = batches[key];
-            row.cnt['all'] = rootName;
-            row.cnt['subOrgId'] = subOrgId;
-            row.cnt['organisationId'] = organisationId;
-            row.cnt['batchName'] = row.cnt.name;
             if(_exportFormat == 'csv') 
                 ctx.nhtRow.push(nlExporter.getCsvRow(nhtHeaderRow, row.cnt));
             else 

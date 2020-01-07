@@ -111,7 +111,8 @@
             ******************************************************************* -->
             <div  ng-if='tabData.nothingToDisplay'
                 class='anim-enter fade fsh5 padding'>
-                No data is available to display.
+                <span>No data is available to display.</span>
+                <span ng-show='tabData.isFilterApplied'>Check for applied filters by clicking on the filter button.</span>
             </div>
             <!-- **************************************************************
                 Overview tab
