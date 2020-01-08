@@ -2107,16 +2107,21 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 						disableMarkingStr = nl.t('Earlier milestone for this learner is not marked');
 					}
 				}
-				var iltStats = _sessionsDict[ratingItem.previousILT.id][repid];
-				var _dict = {id: repid, name: user.name, userid: user.user_id, remarks: nl.fmt.arrayToString(statusinfo.remarks || ''), attrition: attrition, attritionStr: attritionStr, disableMarkingStr: disableMarkingStr};
-				if(iltStats.timePerc === '') {
-					_dict.canRate = 'pending';
-					_dict.errorStr = nl.t('Attedance not marked.')
-				} else if (iltStats.timePerc === 0) {
-					_dict.canRate = 'not_attended';
-					_dict.errorStr = nl.t('Learner not attended')
-				} else {
-					_dict.canRate = 'attended';
+				var _dict = {id: repid, name: user.name, userid: user.user_id,
+					remarks: nl.fmt.arrayToString(statusinfo.remarks || ''), 
+					attrition: attrition, attritionStr: attritionStr, disableMarkingStr: disableMarkingStr,
+					canRate: 'attended'};
+				if(ratingItem.previousILT) {
+					var iltStats = _sessionsDict[ratingItem.previousILT.id][repid];
+					if(iltStats.timePerc === '') {
+						_dict.canRate = 'pending';
+						_dict.errorStr = nl.t('Attendance not marked.')
+					} else if (iltStats.timePerc === 0) {
+						_dict.canRate = 'not_attended';
+						_dict.errorStr = nl.t('Learner not attended')
+					} else {
+						_dict.canRate = 'attended';
+					}
 				}
 				if(statusinfo.status == 'pending') {
 					if(ret[j].ratingType == 'input') {
