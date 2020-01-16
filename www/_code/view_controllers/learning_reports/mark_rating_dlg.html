@@ -1,7 +1,7 @@
 <style>
  .marker-select-dropdown {
    display: block;
-   max-height: 300px;
+   max-height: 160px;
    background-color: #FFFFFF;
    z-index: 15;
    border: 1px solid #CCCCDD;
@@ -78,7 +78,7 @@
 							<i ng-show='user.canShow' class='icon ion-chevron-up fsh5 padding-mid'></i>
 						</span>
 					</div>
-					<div ng-show='user.canShow' class="marker-select-dropdown">
+					<div ng-show='user.canShow' class="marker-select-dropdown nl-thin-scroll">
 						<div ng-repeat='item in user.remarkOptions track by $index' class='nl-link-text2' style='border-bottom: 2px solid #FFFFFF;padding: 2px 8px;'>
 						<div class='row row-center margin0 padding0' ng-click='onDropdownItemSelected(user, item)'>
 							<span title='Select the remark {{$index+1}}'>
