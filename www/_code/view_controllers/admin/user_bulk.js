@@ -449,7 +449,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         if (!(row.op in _validOps))
             _throwException('Invalid operation specified', row);
         if (row.op == 'd' && !nlRouter.isPermitted(_userInfo, 'admin_group'))
-            _throwException('Modify with state=1 instead of delete', row);
+            _throwException('Deactivate the user instead of deleting', row);
         if (row.op == 'i') row.ignore = true;
     };
     
