@@ -392,8 +392,16 @@ $animation-duration: 200ms !default;
 //-----------------------------------------------------------------------------------------
 // nl specific styling - lib_ui modules
 //-----------------------------------------------------------------------------------------
+.nl-border {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
 .nl-border-bottom {
-  border-bottom: 1px dotted black;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.nl-border-right {
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .nl-green {
@@ -1089,9 +1097,6 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   overflow: hidden;
 }
 
-.nl-border-right {
-  border-right: 1px dotted rgba(0, 0, 0, 0.1);
-}
 /*-----------------------------------------------------------------------------------------*
  * nl-form
  *-----------------------------------------------------------------------------------------*/
@@ -2340,6 +2345,10 @@ img.nl-full-width {
   
 .fsh6 {
   font-size: 120%;
+}
+
+.fbold {
+  font-weight: bold;
 }
 
 .fsmall1 {

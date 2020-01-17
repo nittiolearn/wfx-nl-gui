@@ -39,60 +39,7 @@
 		</div>
 	</div>
 	<div class='col nl-left-tabbed-content' ng-show='selectedRating.canMarkRating'>
-		<div class='row row-center padding-0 margin0'>
-			<div class='col padding-mid fsh4'>Mark  the learner ratings for {{selectedRating.name}}</div>
-			<div class='nl-link-text nl-button-highlight' ng-click='bulkRatingMarker($event)'>Mark all</div>
-		</div>
-		<div class='row padding0 margin0' ng-repeat='user in selectedRating["rating"]'>
-			<div class='row padding0 margin0 row-wrap {{(user.attrition || user.canRate !== "attended") ? "fgrey" : ""}}'>
-                <div ng-class='respCol211' class='padding-mid'>
-                    <div class='row row-center padding0 margin0'>
-                        <div class='col' >{{user.name}} <span class='fgrey'>({{user.userid}})</span></div>
-                        <div ng-if='!user.attrition && user.canRate == "attended" && selectedRating.ratingType === "select"' class='col padding0'>
-                            <select ng-model='user.rating'
-                                    ng-options='opt as opt.name for opt in selectedRating.ratingOptions track by opt.id'
-                                    class='w100 {{fieldcls}}'
-                                    autofocus=''
-                                    tabindex="{{tabindex}}"
-                                    style='min-height: 34px'
-                                    placeholder='"Write remarks"'>
-                            </select>
-                        </div>
-                        <div ng-if='!user.attrition && user.canRate == "attended" && selectedRating.ratingType === "input"' class='col padding0'>
-                            <input type='number' ng-model='user.rating' min='0' max='100'></input>
-                        </div>
-						<div ng-if='user.attrition' class='col padding0'>{{user.attritionStr || user.disableMarkingStr}}</div>
-						<div ng-if='user.canRate !== "attended" && !user.attrition' class='col padding-mid'>{{user.errorStr}}</div>
-                    </div> 
-                </div>
-                <div ng-if='!user.remarkOptions && !user.attrition && user.canRate === "attended"' ng-class='respCol211' class='padding-mid'>
-					<input type='text' ng-model='user.remarks' placeholder='Mention remarks for learner'></input>
-                </div>
-                <div ng-if='user.remarkOptions && !user.attrition && user.canRate === "attended"' ng-class='respCol211' class='col-center padding-mid'>
-					<div class='row row-center padding0 margin0 marker-dropbtn nl-link-text2' ng-click='user.canShow = !user.canShow'>
-						<div class='col button-inner-style'>
-							<span>{{user.remarks}}</span>
-						</div>
-						<span class="nl-link-text">
-							<i ng-show='!user.canShow' class='icon ion-chevron-down fsh5 padding-mid'></i>
-							<i ng-show='user.canShow' class='icon ion-chevron-up fsh5 padding-mid'></i>
-						</span>
-					</div>
-					<div ng-show='user.canShow' class="marker-select-dropdown">
-						<div ng-repeat='item in user.remarkOptions track by $index' class='nl-link-text2' style='border-bottom: 2px solid #FFFFFF;padding: 2px 8px;'>
-						<div class='row row-center margin0 padding0' ng-click='onDropdownItemSelected(user, item)'>
-							<span title='Select the remark {{$index+1}}'>
-								<i ng-show='item.selected' class="icon ion-android-checkbox-outline"></i>
-								<i ng-show='!item.selected' class="icon ion-android-checkbox-outline-blank"></i>
-							</span>
-							<div class='col'>
-								{{item.name}}
-							</div>
-						</div>
-					</div>
-                </div>
-			</div>
-		</div>
+		<mark-rating-tab selecteditem='selectedRating' readonly='false'></mark-rating-tab>
 	</div>
 </div>
 </nl-dlg-content>

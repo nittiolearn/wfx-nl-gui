@@ -218,6 +218,12 @@ function Formatter() {
         return ret;
     };
 
+
+    this.date2StrDDMMYY = function(d, accuracy) {
+        if (accuracy === undefined) accuracy = 'minute';
+        return  _fmt2Impl('{}-{}-{}', [_pad2(d.getDate()), _pad2(d.getMonth()+1), d.getFullYear()]);
+    };
+
     this.date2UtcStr = function(d, accuracy) {
         if (accuracy === undefined) accuracy = 'minute';
         var ret = _fmt2Impl('{}-{}', [d.getUTCFullYear(), _pad2(d.getUTCMonth()+1)]);

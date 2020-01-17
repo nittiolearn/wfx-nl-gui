@@ -13,43 +13,7 @@
 		</div>
 	</div>
 	<div class='col nl-left-tabbed-content' ng-show='selectedSession.canMarkAttendance'>
-		<div class='row row-center padding-0 margin0'>
-			<div class='col padding-mid fsh4'>Mark  the learner attendance for {{selectedSession.name}}</div>
-			<div class='nl-link-text nl-button-highlight' ng-click='bulkAttendanceMarker($event)'>Mark all</div>
-		</div>
-		<div class='row row-center padding0 margin0' ng-repeat='user in selectedSession["newAttendance"]'>
-			<div class='row row-center padding0 margin0 row-wrap {{user.attrition ? "fgrey" : ""}}'>
-				<div ng-class='respCol211'class='padding-mid'>
-					<div class='row row-center padding0 margin0'>
-						<div class='col' >{{user.name}} <span class='fgrey'>({{user.userid}})</span></div>
-						<div class='col padding0'>
-							<select ng-model='user.attendance' 
-									ng-if='!user.attrition'
-									ng-options='opt as opt.name for opt in attendanceOptions track by opt.id'
-									class='w100 {{fieldcls}}'
-									autofocus=''
-									tabindex="{{tabindex}}"
-									style='min-height: 34px'
-									placeholder='"Write remarks"'>
-							</select>
-							<span ng-if='user.attrition'>{{user.attritionStr || user.disableMarkingStr}}</span>
-						</div>
-					</div>
-				</div>
-				<div ng-class='respCol211' class='padding-mid fsh4' ng-show='!user.remarkOptions && !user.attrition'>
-					<input type='text' ng-model='user.remarks' placeholder='Mention remarks for learner'></input>
-				</div>
-				<div ng-class='respCol211' class='padding-mid fsh4' ng-if='user.remarkOptions && !user.attrition'>
-					<select ng-model='user.remarks' 
-							ng-options='opt as opt.name for opt in user.remarkOptions track by opt.id'
-							class='w100 {{fieldcls}}'
-							autofocus=''
-							tabindex="{{tabindex}}"
-							style='min-height: 34px'>
-					</select>
-				</div>
-			</div>
-		</div>
+		<mark-attendance-tab selecteditem='selectedSession' readonly='false'></mark-attendance-tab>	
 	</div>
 	<div class='col nl-left-tabbed-content' ng-show='!selectedSession.canMarkAttendance'>
 		<div class='padding-mid' style='line-height: 175%'>
