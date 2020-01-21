@@ -1,4 +1,4 @@
-<div class='row row-center padding-0 margin0' ng-if='!readonly'>
+<div class='row row-center padding-0 margin0'>
     <div class='col padding-mid fsh4'>Mark  the learner attendance for {{selecteditem.name}}</div>
     <div class='nl-link-text nl-button-highlight' ng-click='bulkAttendanceMarker($event)'>Mark all</div>
 </div>
@@ -9,7 +9,7 @@
                 <div class='col' >{{user.name}} <span class='fgrey'>({{user.userid}})</span></div>
                 <div class='col padding0'>
                     <select ng-model='user.attendance' 
-                            ng-if='!readonly && !user.attrition'
+                            ng-if='!user.attrition'
                             ng-options='opt as opt.name for opt in selecteditem.attendanceOptions track by opt.id'
                             class='w100 {{fieldcls}}'
                             autofocus=''
@@ -18,24 +18,20 @@
                             placeholder='"Write remarks"'>
                     </select>
                     <span ng-if='user.attrition'>{{user.attritionStr || user.disableMarkingStr}}</span>
-                    <span ng-if='!user.attrition && readonly'>{{user.attendance.name}}</span>
                 </div>
             </div>
         </div>
         <div ng-class='$root.respCol211' class='padding-mid' ng-show='!user.remarkOptions && !user.attrition'>
-            <input ng-if='!readonly' type='text' ng-model='user.remarks' placeholder='Mention remarks for learner'></input>
-            <div ng-if='readonly'>{{user.remmarks}}</div>
+            <input type='text' ng-model='user.remarks' placeholder='Mention remarks for learner'></input>
         </div>
         <div ng-class='$root.respCol211' class='padding-mid' ng-if='user.remarkOptions && !user.attrition'>
-            <select ng-if='!readonly' 
-                    ng-model='user.remarks' 
+            <select ng-model='user.remarks' 
                     ng-options='opt as opt.name for opt in user.remarkOptions track by opt.id'
                     class='w100 {{fieldcls}}'
                     autofocus=''
                     tabindex="{{tabindex}}"
                     style='min-height: 34px'>
             </select>
-            <div ng-if='readonly'>{{user.remarks.id}}</div>
         </div>
     </div>
 </div>

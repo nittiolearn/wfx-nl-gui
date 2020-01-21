@@ -65,16 +65,15 @@ function() {
         transclude: true,
         templateUrl: 'view_controllers/learning_reports/mark_milestone_tab.html',
         scope: {
-			selecteditem: '=',
-			readonly: '='
+			selecteditem: '='
         },
         link: function($scope, iElem, iAttrs) {
             $scope.toggleLearnerMilestone = function(user) {
-                $scope.$parent.$parent.toggleLearnerMilestone(user);
+                $scope.$parent.$parent.$parent.$parent.toggleLearnerMilestone(user);
             };
 
             $scope.markOrUnmarkAll = function(item, status) {
-                $scope.$parent.$parent.markOrUnmarkAll(item, status);
+                $scope.$parent.$parent.$parent.$parent.markOrUnmarkAll(item, status);
             };
         }
     }
@@ -87,8 +86,7 @@ function() {
 		transclude: true,
 		templateUrl: 'view_controllers/learning_reports/mark_rating_tab.html',
 		scope: {
-			selecteditem: '=',
-			readonly: '='
+			selecteditem: '='
 		},
 		link: function($scope, iElem, iAttrs) {
 			$scope.onDropdownItemSelected = function(user, item) {
@@ -108,12 +106,11 @@ var NlMarkAttendanceTabDirective = [
 			transclude: true,
 			templateUrl: 'view_controllers/learning_reports/mark_attendance_tab.html',
 			scope: {
-				selecteditem: '=',
-				readonly: '='
+				selecteditem: '='
 			},
 			link: function($scope, iElem, iAttrs) {
 				$scope.bulkAttendanceMarker = function(e) {
-					$scope.$parent.$parent.bulkAttendanceMarker(e);
+					$scope.$parent.$parent.$parent.$parent.bulkAttendanceMarker(e);
 				};
 			}
 		}

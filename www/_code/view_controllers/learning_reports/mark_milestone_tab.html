@@ -1,4 +1,4 @@
-<div ng-if='!readonly' class='row row-center row-wrap padding-0 margin0'>
+<div class='row row-center row-wrap padding-0 margin0'>
     <div ng-class='$root.respCol211' class='fsh5'> 
         Mark learner specific milestone status
     </div>
@@ -12,35 +12,27 @@
     </div>
 </div>
 
-<div>PUT A SEARCH BOX here - show max of 100 learners in table</div>
-<table class='nl-table {{readonly ? "nl-table-styled" : ""}}' style='min-width: 600px'>
+<table class='nl-table' style='min-width: 600px'>
     <tr>
         <th></th>
         <th>Learner Name</th>
         <th>Learner Id</th>
-        <th ng-if='readonly'>Milestone status</th>
         <th>Remarks</th>
     </tr>
-    <tr class='{{user.attrition ? "fgrey" : readonly ? "" : "nl-link-text"}}'
+    <tr class='{{user.attrition ? "fgrey" : "nl-link-text"}}'
          ng-repeat='user in selecteditem.learnersList'
-         ng-click='!readonly && !user.attrition && toggleLearnerMilestone(user)'>
+         ng-click='!user.attrition && toggleLearnerMilestone(user)'>
         <td>
-            <i ng-show='!readonly && !user.attrition && user.marked' class="icon ion-android-checkbox-outline"></i>
-            <i ng-show='!readonly && !user.attrition && !user.marked' class="icon ion-android-checkbox-outline-blank"></i>
-            <i ng-show='readonly && user.marked' class="icon ion-checkmark-circled fgreen fsh4" title='Milestone reached'></i>
-            <i ng-show='readonly && !user.marked' class="icon ion-close-circled forange3 fsh4" title='Milestone pending'></i>
+            <i ng-show='!user.attrition && user.marked' class="icon ion-android-checkbox-outline"></i>
+            <i ng-show='!user.attrition && !user.marked' class="icon ion-android-checkbox-outline-blank"></i>
         </td>
         <td>{{user.name}}</td>
         <td class='fsmall1'>{{user.userid}}</td>
-        <td ng-if='readonly'>
-            
-        </td>
         <td>
-            <input ng-if='!readonly && !user.attrition' type='text' ng-model='user.remarks'
+            <input ng-if='!user.attrition' type='text' ng-model='user.remarks'
                    ng-click='return 0'
                    placeholder='Mention remarks for learner'></input>
             <div ng-if='user.attrition' style='padding:4px;'>{{user.attritionStr}}</div>
-            <div ng-if='readonly && !user.attrition' style='padding:4px;'>{{user.remarks}}</div>
        </td>
     </tr>
 </table>

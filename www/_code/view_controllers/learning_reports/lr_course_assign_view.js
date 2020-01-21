@@ -20,39 +20,71 @@ function(nl, nlDlg, nlTreeListSrv) {
 		dlg.setCssClass('nl-height-max nl-width-max');
 		dlg.scope.dlgTitle = courseAssignment.info.name;
         _showVisible(dlg, modules);
-        dlg.scope.search = '';
+        dlg.scope.search = {searchStr: ''};
 		dlg.scope.selectedModule = null; //dlg.scope.modules[0];
         _udpateSelectedModuleInfo(dlg, getModuleInfoFn);
 		dlg.scope.onClick = function(e, cm) {
+            if (!cm) return;
+            var lastSelectedModule = dlg.scope.selectedModule;
 			dlg.scope.selectedModule = cm;
 			if(cm.type === 'module') {
+                _initScope(dlg);
 				nlTreeListSrv.toggleItem(cm);
 				_showVisible(dlg, modules);
 				return;
             }
+            if (lastSelectedModule && lastSelectedModule.id == cm.id) return;
             _udpateSelectedModuleInfo(dlg, getModuleInfoFn);
+        };
+        dlg.scope.getUrl = function(lessonId) {
+			return nl.fmt2('/lesson/view/{}', lessonId);
 		};
-		var cancelButton = {text: nl.t('Close')};
+        
+        dlg.scope.onSearchKey = function(event) {
+            if (event && event.which === 13) {
+                dlg.scope.onSearch(event);
+            }
+        };
+
+        dlg.scope.onSearch = function(event) {
+            _udpateSelectedModuleInfoWithSearch(dlg);
+        };
+
+        var cancelButton = {text: nl.t('Close')};
 		dlg.show('view_controllers/learning_reports/lr_course_assign_view.html',
 			[], cancelButton);
     };
 
-    var MAX_LIST_SIZE =  5; // TODO-NOW
-    function _udpateSelectedModuleInfo(dlg, getModuleInfoFn) {
+    function _initScope(dlg) {
         dlg.scope.visibleUsers = [];
         dlg.scope.chartInfo = null;
         dlg.scope.chartData = [];
         dlg.scope.chartTotal = 0;
         dlg.scope.moreAvailable = false;
+        dlg.scope.totalUserCount = 0;
+    }
 
-        var cm = dlg.scope.selectedModule;
-        var moduleInfo = getModuleInfoFn(cm);
-        if (!cm || !moduleInfo) return;
+    var _moduleInfo = null;
+    var MAX_LIST_SIZE = 100;
+    // TODO-NOW:
+    // Make sure the status strings are specific to item type (change mainly in lesson_reports.js)
+    // Milestone date and remarks are not coming properly (selectedModule.itemDict in html not correct)
+    // Show score for lessons with score (maxScore > 0) by setting showScore and filling the values in lesson_reports.js
+    // Show remarks for ilt, rating, info, link by setting showRemarks and filling the values in lesson_reports.js
+    function _udpateSelectedModuleInfo(dlg, getModuleInfoFn) {
+        _moduleInfo = getModuleInfoFn(dlg.scope.selectedModule);
+        _udpateSelectedModuleInfoWithSearch(dlg);
+    }
+
+    function _udpateSelectedModuleInfoWithSearch(dlg) {
+        _initScope(dlg);
+        if (!_moduleInfo) return;
         var statusCounts = {};
-        var users = moduleInfo.records;
+        var users = _moduleInfo.records;
+        dlg.scope.totalUserCount =  users.length;
         for (var i=0; i<users.length; i++) {
             var user = users[i];
-            if (!_isSearchPass(user, dlg.scope.search)) continue;
+            if (!_isSearchPass(user, dlg.scope.search.searchStr)) continue;
             if (dlg.scope.visibleUsers.length < MAX_LIST_SIZE)
                 dlg.scope.visibleUsers.push(user);
             else dlg.scope.moreAvailable = true;
@@ -62,13 +94,13 @@ function(nl, nlDlg, nlTreeListSrv) {
             dlg.scope.chartTotal++;
         }
         if (!dlg.scope.chartTotal) return;
-        _updateChartInfoAndData(dlg, statusCounts, moduleInfo.internalStatusToStatusStrs);
+        _updateChartInfoAndData(dlg, statusCounts, _moduleInfo.internalStatusToStatusStrs);
     }
 
     function _isSearchPass(user, search) {
         if (!search) return true;
         var search = search.toLowerCase();
-        if (_searchInAttrs(user, search.toLowerCase(), ['name', 'status', 'remarks'])) return true;
+        if (_searchInAttrs(user, search.toLowerCase(), ['name', 'id', 'statusStr', 'remarks'])) return true;
         return false;
     }
 

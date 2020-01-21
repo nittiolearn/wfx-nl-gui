@@ -38,7 +38,7 @@
 		<div class='nl-thin-scroll'>
 		    <div ng-repeat='cm in modules' class='row row-center margin0' ng-show='cm.visible' style='padding: 8px'>
 		        <div style='width: {{cm.indentationLevel*16}}px'></div>
-		        <div class='row row-center margin0 padding-mid nl-cv-item nl-link-text {{selectedSession.id == cm.id ? "selected" : ""}}'
+		        <div class='row row-center margin0 padding-mid nl-cv-item nl-link-text {{selectedModule.id == cm.id ? "selected" : ""}}'
 		             ng-click='onClick($event, cm)'>
 		            <div ng-show='cm.type == "module"' style='width: 20px'>
 		                <i ng-show='!cm.isOpen' class="icon ion-arrow-right-b bold fsh3"></i>
@@ -49,125 +49,153 @@
 		    </div>
 		</div>
 	</div>
-	<div ng-if='!selectedSession' class='fsh5 padding-mid'>
+	<div ng-if='!selectedModule' class='fsh5 padding-mid'>
 		Please select the course element to view the status.
 	</div>
-	<div class='col margin0 padding0' ng-if='selectedSession'>
-		<div class='row row-center margin0 padding0 nl-border-bottom'>
-			<div ng-if='!(selectedSession.type == "module" || selectedSession.type == "certificate")' ng-class='respCol221'
-				class='padding' style='text-align: -webkit-center;'>
-				<div style='width: 150px; height: 150px'>
-					<canvas class='chart chart-doughnut'
-							style='height:150px; width:150px'
-							chart-data='chartInfo.data'
-							chart-labels='chartInfo.labels'
-							chart-colours='chartInfo.colours'>
-					</canvas> 
+	<div ng-if='selectedModule && selectedModule.type == "module"' class='fsh5 padding-mid'>
+		Folder:  {{selectedModule.name}}
+	</div>
+	<div ng-if='selectedModule' class='col margin0 padding0'>
+		<div ng-if='chartInfo'>
+			<div class='row row-center margin0 padding0'>
+				<div class='col padding'>
+					<div style='width: 150px; height: 150px'>
+						<canvas class='chart chart-doughnut'
+								style='height:150px; width:150px'
+								chart-data='chartInfo.data'
+								chart-labels='chartInfo.labels'
+								chart-colours='chartInfo.colours'>
+						</canvas> 
+					</div>
 				</div>
-			</div>
-			<div ng-class='respCol221'>
-				<div class='padding-mid' ng-hide='selectedSession.type == "module" ||  selectedSession.type == "certificate"'>
-					<table class='nl-table'>
-						<tr ng-repeat='item in allowedAttrs' ng-if='selectedSession[item.attr].length > 0'>
-							<td class='nl-border' ng-show='item.type == "string"'>{{item.title}}</td>
-							<td class='nl-border' colspan='1' ng-show='item.type == "string"' style='text-align: right'>{{selectedSession[item.attr].length || '-'}}</td>
+				<div class='col padding'>
+					<table class='nl-table nl-table-styled'>
+						<tr ng-repeat='item in chartData'>
+							<td>{{item.name}}</td>
+							<td>{{item.val}}</td>
 						</tr>
 						<tr>
-							<td class='nl-border'><b>Total</b></td>
-							<td class='nl-border' colspan='1' style='text-align: right'>
-								<b>{{selectedSession.total || '-'}}</b>
-							</td>
+							<td class='fbold'>Total</td>
+							<td class='fbold'>{{chartTotal}}</td>
 						</tr>
 					</table>
 				</div>
 			</div>
+			<div class='nl-border-bottom'></div>
+			<div class='padding-mid'></div>
 		</div>
-		<div ng-if='selectedSession.type == "lesson"' class="padding-mid">
-			<a ng-href='{{getUrl(selectedSession.refid)}}'
-				target='_blank'
-				class='nl-link-text nl-button-highlight padding-mid'>
-				<span class="col text-center">View Module Content</span>
-			</a>
-		</div>
-		<div ng-show='selectedSession.type == "iltsession"' class="padding-mid ng-binding">
-			<span class='fbold'>Session duration:</span><span>{{selectedSession.iltduration}} (minutes)</span>
-		</div>
-		<div ng-show='selectedSession.text' class='row row-center padding-mid'>		
+	
+		<div ng-if='selectedModule.type == "lesson"'>
 			<div class='padding-mid'>
-				<div nl-compile='selectedSession.textHtml' class='nl-content-holder'></div>
-			</div>
-		</div>		
-		<div ng-show='selectedSession.trainer_notes.length > 0'>
-			<div class="padding-mid ng-binding fbold">Trainer notes:</div>
-			<div ng-repeat='notes in selectedSession.trainer_notes' 
-				class='row row-center padding-mid margin0 nl-border'>
-				<div class='col'> {{notes.name}}</div>
-				<div class="nl-link-text nl-button-highlight" style='padding-top: 0px'>
-					<a ng-href='{{getUrl(notes.id)}}'
-						target='_blank'
-						class='row row-center margin0 padding0'>
-						<span class="col text-center">View</span>
-					</a>
-				</div>
-			</div>
-		</div>
-		<div ng-if='selectedSession.type == "certificate"'
-			style='position: relative;'>
-			<div ng-if='!selectedSession.certificate_image' class='minbgimg'></div>
-			<img ng-if='selectedSession.certificate_image' class='minbgimg' ng-src='{{selectedSession.certificate_image}}'>
-			<div class='content'>
-				<p class='fmttitle'>This is to certify that</p>
-				<p class='fmtuser {{sample ? "sample": ""}}'>user name</p>
-				<p class='fmttext'>
-				has successfully completed the online training module on
-				</p>
-				<p style='font-weight: 900'>{{dlgTitle}}</p>
-				<p>
-				on <span class='fmtdate {{sample ? "sample": ""}}'>{{ss | date : 'dd-MMMM-yyyy'}}</span>.
-				</p>
-			</div>
-		</div>
-		<div class='row row-center padding-mid margin0 fsh6'>
-			Detailed learner status:
-		</div>
-		<div class='margin0 padding-mid' ng-if='selectedSession.type == "milestone"'>
-			<div ng-if='selectedSession.itemDict.milestoneObj.status'>
-				<div class='padding-mid fsh6'>The milestone is marked as reached at <b>{{selectedSession.itemDict.milestoneObj.reached}}</b></div>
-				<div class='padding-mid'> <span><b> Milestone remark: </b></span> <span>{{selectedSession.itemDict.milestoneObj.comment}}</span></div>
-				<mark-milestone-tab selecteditem='selectedSession.itemDict' readonly='true' class='w100'></mark-milestone-tab>
-			</div>
-			<div ng-if='!selectedSession.itemDict.milestoneObj.status' class='fsh6'>
-				Milestone is not marked as achieved.
-			</div>
-		</div>
-		<div class='padding-mid' ng-if='selectedSession.type == "rating"'>
-			<mark-rating-tab selecteditem='selectedSession.itemDict' readonly='true' class='w100'></mark-rating-tab>
-		</div>
-		<div class='padding-mid' ng-if='selectedSession.type == "iltsession"'>
-			<mark-attendance-tab selecteditem='selectedSession.itemDict' readonly='true' class='w100'></mark-attendance-tab>
-		</div>
-		<div class='padding-mid' ng-if='selectedSession.type == "lesson" || selectedSession.type == "info" 
-				|| selectedSession.type == "link" || selectedSession.type == "gate" || selectedSession.type == "certificate"'>
-			<div ng-repeat='user in selectedSession.itemDict' 
-				class='row padding0 margin0 row-wrap'>
-				<div ng-class='respCol221' class='padding-mid'>
-					<div class='row row-center padding0 margin0'>
-						<div class='col' >{{user.name}} <span class='fgrey'>({{user.userid}})</span></div>
-					</div>
-				</div>
-				<div ng-if='selectedSession.type == "lesson" || selectedSession.type == "gate"' ng-class='respCol221' class='padding-mid'>
-					<div class='row row-center padding0 margin0'>
-						<div class='col' >{{user.status}}</div>
-						<div class='col' >{{user.score}}</div>
-					</div>
-				</div>
-				<div ng-if='selectedSession.type == "info" || selectedSession.type == "link" || selectedSession.type == "certificate"' ng-class='respCol221' class='padding-mid'>
-					<div class='row row-center padding0 margin0'>
-						<div class='col' >{{user.status}}</div>
-						<div class='col' >{{user.remarks}}</div>
+				<div class="row row-center margin0 padding-mid">
+					<div class='col padding-mid fsh5'>{{selectedModule.name}}</div>
+					<div class="nl-link-text nl-button-highlight" style='padding-top: 0px'>
+						<a ng-href='{{getUrl(selectedModule.refid)}}'
+							target='_blank'
+							class='row row-center margin0 padding0'>
+							<span class="col text-center">View Module</span>
+						</a>
 					</div>
 				</div>
 			</div>
+			<div class='nl-border-bottom'></div>
+			<div class='padding-mid'></div>
+		</div>
+
+		<div ng-if='selectedModule.type == "iltsession"'>
+			<div class='padding-mid'>
+				<span class='fbold'>Session duration:</span><span>{{selectedModule.iltduration}} (minutes)</span>
+				<div ng-show='selectedModule.trainer_notes.length > 0'>
+					<div class="padding-mid"></div>
+					<div class="fbold">Trainer notes:</div>
+					<div ng-repeat='notes in selectedModule.trainer_notes' 
+						class='row row-center padding-mid margin0'>
+						<div class='col padding-mid'>{{notes.name}}</div>
+						<div class="nl-link-text nl-button-highlight" style='padding-top: 0px'>
+							<a ng-href='{{getUrl(notes.id)}}'
+								target='_blank'
+								class='row row-center margin0 padding0'>
+								<span class="col text-center">View</span>
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class='nl-border-bottom'></div>
+			<div class='padding-mid'></div>
+		</div>
+
+		<div ng-if='selectedModule.type == "milestone"'>
+			<div class='padding-mid'>
+				<div ng-if='!selectedModule.itemDict.milestoneObj.status' class='padding-mid fsh6'>
+					Milestone is not reached.
+				</div>
+				<div ng-if='selectedModule.itemDict.milestoneObj.status'
+					class='padding-mid fsh6'>
+					The milestone was reached on <b>{{selectedModule.itemDict.milestoneObj.reached}}</b>
+				</div>
+				<div class='padding-mid'> <span><b> Milestone remark: </b></span> <span>{{selectedModule.itemDict.milestoneObj.comment}}</span></div>
+			</div>
+			<div class='nl-border-bottom'></div>
+			<div class='padding-mid'></div>
+		</div>
+
+		<div ng-if='totalUserCount > 0'>
+			<div class='row row-center margin0 padding-mid'>
+				<input ng-model='search.searchStr'
+					   ng-keydown='onSearchKey($event)'
+					   class='col padding-mid'
+					   placeholder='Search user or status and press enter'>
+				<div class='padding-mid'>
+					<div class="nl-link-text nl-button-highlight" style='padding-top: 0px'
+						 ng-click='onSearch($event)'>
+						<span class="col text-center">Search</span>
+					</div>
+				</div>
+			</div>
+			<div class='padding-mid fgrey fsmall1'>
+				Showing {{visibleUsers.length}} of {{chartTotal}} items.
+			</div>
+		</div>
+
+		<div ng-if='visibleUsers.length > 0' class='padding-mid'>
+			<table class='nl-table nl-table-styled'>
+				<tr>
+					<th>
+						Learner Name
+					</th>
+					<th>
+						Learner Id
+					</th>
+					<th>
+						Status
+					</th>
+					<th ng-if='showScore'>
+						Score
+					</th>
+					<th ng-if='showRemarks'>
+						Remarks
+					</th>
+				</tr>
+				<tr ng-repeat='user in visibleUsers track by $index'>
+					<td>
+						{{user.name}}
+					</td>
+					<td>
+						{{user.id}}
+					</td>
+					<td>
+						{{user.statusStr}}
+					</td>
+					<td ng-if='showScore'>
+						{{user.score || '-'}}
+					</td>
+					<td ng-if='showRemarks'>
+						{{user.remarks || ''}}
+					</td>
+				</tr>
+
+			</table>
 		</div>
 	</div>
 </div>
