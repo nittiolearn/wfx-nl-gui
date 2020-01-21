@@ -32,13 +32,15 @@
         </td>
         <td>{{user.name}}</td>
         <td class='fsmall1'>{{user.userid}}</td>
-        <td ng-if='readonly'>{{user.attritionStr}}</td>
+        <td ng-if='readonly'>
+            
+        </td>
         <td>
             <input ng-if='!readonly && !user.attrition' type='text' ng-model='user.remarks'
                    ng-click='return 0'
                    placeholder='Mention remarks for learner'></input>
-            <div ng-if='!readonly && user.attrition'>{{user.attritionStr}}</div>
-            <div ng-if='readonly'>{{user.remarks}}</div>
-        </td>
+            <div ng-if='user.attrition' style='padding:4px;'>{{user.attritionStr}}</div>
+            <div ng-if='readonly && !user.attrition' style='padding:4px;'>{{user.remarks}}</div>
+       </td>
     </tr>
 </table>

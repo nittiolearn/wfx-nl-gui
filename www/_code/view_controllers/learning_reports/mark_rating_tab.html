@@ -2,64 +2,73 @@
     <div class='col padding-mid fsh4'>Mark  the learner ratings for {{selecteditem.name}}</div>
     <div class='nl-link-text nl-button-highlight' ng-click='bulkRatingMarker($event)'>Mark all</div>
 </div>
-<div class='row padding0 margin0' ng-repeat='user in selecteditem["rating"]'>
-    <div class='row padding0 margin0 row-wrap {{((user.attrition || user.canRate !== "attended") && !readonly) ? "fgrey" : ""}}'>
-        <div ng-class='$root.respCol211' class='padding-mid'>
-            <div class='row row-center padding0 margin0'>
-                <div class='col' >{{user.name}} <span class='fgrey'>({{user.userid}})</span></div>
-                <div ng-if='!readonly && !user.attrition && user.canRate == "attended" && selecteditem.ratingType === "select"' class='col padding0'>
-                    <select ng-if='!readonly' ng-model='user.rating'
-                            ng-options='opt as opt.name for opt in selecteditem.ratingOptions track by opt.id'
-                            class='w100 {{fieldcls}}'
-                            autofocus=''
-                            tabindex="{{tabindex}}"
-                            style='min-height: 34px'
-                            placeholder='"Write remarks"'>
-                    </select>
-                </div>
-                <div ng-if='!user.attrition && user.canRate == "attended" && selecteditem.ratingType === "input"' class='col padding0'>
-                    <input ng-if='!readonly' type='number' ng-model='user.rating' min='0' max='100'></input>
-                    <div ng-if='readonly'>{{user.rating}} </div> 
-                </div>
-                <div ng-if='user.attrition && !readonly' class='col padding0'>{{user.attritionStr || user.disableMarkingStr}}</div>
-                <div ng-if='user.canRate !== "attended" && !user.attrition && !readonly' class='col padding-mid'>{{user.errorStr}}</div>
-                <div ng-if='readonly && user.canRate !== "attended" && !user.attrition' class='col padding0'> Pending </div>
-                <div ng-if='readonly && user.attrition' class='col padding0'> Earlier attrition </div>
-                <div ng-if='readonly && !user.attrition && user.canRate == "attended" && selecteditem.ratingType === "select"' 
-                    class='col padding0'>{{user.rating.name}}
-                </div>
-            </div> 
-        </div>
-        <div ng-if='!user.remarkOptions && !user.attrition && user.canRate === "attended"' ng-class='$root.respCol211' class='padding-mid'>
-            <input ng-if='!readonly' type='text' ng-model='user.remarks' placeholder='Mention remarks for learner'></input>
-            <div ng-if='readonly'>{{user.remarks}}</div>
-        </div>
-        <div ng-if='user.remarkOptions && !user.attrition && user.canRate === "attended"' ng-class='$root.respCol211' class='col-center padding-mid'>
-            <div ng-if='!readonly' class='row row-center padding0 margin0 marker-dropbtn nl-link-text2' ng-click='user.canShow = !user.canShow'>
-                <div class='col' style='height: 30px;text-overflow: ellipsis;overflow: hidden;line-height: 20px'>
-                    <span>{{user.remarks}}</span>
-                </div>
-                <span class="nl-link-text">
-                    <i ng-show='!user.canShow' class='icon ion-chevron-down fsh5 padding-mid'></i>
-                    <i ng-show='user.canShow' class='icon ion-chevron-up fsh5 padding-mid'></i>
-                </span>
+
+<table class='nl-table {{readonly ? "nl-table-styled" : ""}}' style='min-width: 600px'>
+    <tr>
+        <th>Learner Name</th>
+        <th>Learner Id</th>
+        <th style='width: 200px; min-width: 150px'>Rating</th>
+        <th>Remarks</th>
+    </tr>
+    <tr class='{{((user.attrition || user.canRate !== "attended") && !readonly) ? "fgrey" : readonly ? "" : "nl-link-text"}}'
+        ng-repeat='user in selecteditem.rating'>
+        <td>{{user.name}}</td>
+        <td class='fsmall1'>{{user.userid}}</td>
+        <td style='width: 200px; min-width: 150px'>
+            <div ng-if='!readonly && !user.attrition && user.canRate == "attended" && selecteditem.ratingType === "select"'>
+                <select ng-if='!readonly' ng-model='user.rating'
+                        ng-options='opt as opt.name for opt in selecteditem.ratingOptions track by opt.id'
+                        class='{{fieldcls}}'
+                        autofocus=''
+                        tabindex="{{tabindex}}"
+                        style='min-height: 34px'
+                        placeholder='"Write remarks"'>
+                </select>
             </div>
-            <div ng-show='!readonly && user.canShow' class="marker-select-dropdown">
-                <div ng-repeat='item in user.remarkOptions track by $index' class='nl-link-text2' style='border-bottom: 2px solid #FFFFFF;padding: 2px 8px;'>
-                    <div class='row row-center margin0 padding0' ng-click='onDropdownItemSelected(user, item)'>
-                        <span title='Select the remark {{$index+1}}'>
-                            <i ng-show='item.selected' class="icon ion-android-checkbox-outline"></i>
-                            <i ng-show='!item.selected' class="icon ion-android-checkbox-outline-blank"></i>
-                        </span>
-                        <div class='col'>
-                            {{item.name}}
+            <div ng-if='!user.attrition && user.canRate == "attended" && selecteditem.ratingType === "input"'>
+                <input ng-if='!readonly' type='number' ng-model='user.rating' min='0' max='100'></input>
+                <div ng-if='readonly'>{{user.rating}} </div> 
+            </div>
+            <div ng-if='user.attrition && !readonly'>{{user.attritionStr || user.disableMarkingStr}}</div>
+            <div ng-if='user.canRate !== "attended" && !user.attrition && !readonly'>{{user.errorStr}}</div>
+            <div ng-if='readonly && user.canRate !== "attended" && !user.attrition'> Pending </div>
+            <div ng-if='readonly && user.attrition'> Earlier attrition </div>
+            <div ng-if='readonly && !user.attrition && user.canRate == "attended" && selecteditem.ratingType === "select"'>
+                {{user.rating.name}}
+            </div>
+        </td>
+        <td>
+            <div ng-if='!user.remarkOptions && !user.attrition && user.canRate === "attended"'>
+                <input ng-if='!readonly' type='text' ng-model='user.remarks' placeholder='Mention remarks for learner'></input>
+                <div ng-if='readonly'>{{user.remarks}}</div>
+            </div>
+            <div ng-if='user.remarkOptions && !user.attrition && user.canRate === "attended"'>
+                <div ng-if='!readonly' class='row row-center padding0 margin0 marker-dropbtn nl-link-text2' ng-click='user.canShow = !user.canShow'>
+                    <div class='col' style='max-height: 28px;text-overflow: ellipsis;overflow: hidden;line-height: 20px'>
+                        <span>{{user.remarks}}</span>
+                    </div>
+                    <span class="nl-link-text">
+                        <i ng-if='!user.canShow' class='icon ion-chevron-down fsh5 padding-mid'></i>
+                        <i ng-if='user.canShow' class='icon ion-chevron-up fsh5 padding-mid'></i>
+                    </span>
+                </div>
+                <div ng-if='!readonly && user.canShow' class="marker-select-dropdown">
+                    <div ng-repeat='item in user.remarkOptions track by $index' class='nl-link-text2' style='border-bottom: 2px solid #FFFFFF;padding: 2px 8px;'>
+                        <div class='row row-center margin0 padding0' ng-click='onDropdownItemSelected(user, item)'>
+                            <span title='Select the remark {{$index+1}}'>
+                                <i ng-if='item.selected' class="icon ion-android-checkbox-outline"></i>
+                                <i ng-if='!item.selected' class="icon ion-android-checkbox-outline-blank"></i>
+                            </span>
+                            <div class='col'>
+                                {{item.name}}
+                            </div>
                         </div>
                     </div>
                 </div>
+                <div ng-if='readonly' class='padding-mid'>
+                    <span>{{user.remarks}}</span>
+                </div>
             </div>
-            <div ng-if='readonly' class='padding-mid'>
-                <span>{{user.remarks}}</span>
-            </div>
-        </div>
-    </div>
-</div>
+        </td>
+    </tr>
+</table>

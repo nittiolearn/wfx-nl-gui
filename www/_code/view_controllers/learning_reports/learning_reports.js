@@ -1470,6 +1470,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var total = Object.keys(learningRecords).length;
 		for(var i=0; i<allModules.length; i++) {
 			var item = allModules[i];
+			delete item.itemDict;
 			ret.push(item);
 			if(item.type == 'module') continue;
 			item.total = total;
