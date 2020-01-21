@@ -36,7 +36,8 @@ function module_init() {
 		'nl.learning_reports.lr_transform', 'nl.learning_reports.lr_fetcher', 'nl.learning_reports.lr_exporter', 
 		'nl.learning_reports.lr_report_records', 'nl.learning_reports.lr_summary_stats', 'nl.learning_reports.lr_import',
 		'nl.learning_reports.lr_drilldown', 'nl.learning_reports.lr_nht_srv',
-		'nl.learning_reports.others.lr_completed_modules'])
+		'nl.learning_reports.others.lr_completed_modules',
+		'nl.learning_reports.lr_course_assign_view'])
 	.config(configFn)
 	.controller('nl.LearningReportsCtrl', LearningReportsCtrl)
 	.service('nlLearningReports', NlLearningReports)
@@ -126,22 +127,22 @@ function($scope, nlLearningReports) {
 	
 var NlLearningReports = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlGroupInfo', 'nlTable', 'nlSendAssignmentSrv',
 'nlLrHelper', 'nlReportHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlLrReportRecords', 'nlLrSummaryStats', 'nlGetManyStore', 
-'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlCourse', 'nlLrNht',
+'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlCourse', 'nlLrNht', 'nlLrCourseAssignView',
 function(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 	nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
-	nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht) {
+	nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrCourseAssignView) {
 	this.create = function($scope, settings) {
 		if (!settings) settings = {};
 		return new NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
-			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht);
+			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrCourseAssignView);
 	};
 }];
 	
 //-------------------------------------------------------------------------------------------------
 function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
-			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht) {
+			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrCourseAssignView) {
 	var _userInfo = null;
 	var _groupInfo = null;
 	var _attendanceObj = {};
@@ -452,10 +453,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	};
 
 	function _getContentOfCourseAssignment() {
-		if(nlLrFilter.getType() != 'course_assign') return null;
-		var course = nlGetManyStore.getAnyRecord('course');
-		if (!course || !course.content) return null;
-		return course.content;
+        if(nlLrFilter.getType() != 'course_assign') return null;
+        var course = nlGetManyStore.getAnyRecord('course');
+        if (!course || !course.content) return null;
+        return course.content;
 	}
 
 	function _isReminderNotificationEnabled() {
@@ -1279,295 +1280,81 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			nlDlg.preventMultiCalls(true, _onCourseAssignView);
 		}
 	}
+
+	function _onCourseAssignView() {
+		var modules = (_getContentOfCourseAssignment() || {}).modules || [];
+		var courseAssign = _getCourseAssignmnt();
+		nlLrCourseAssignView.show($scope, modules || [], courseAssign, function(cm) {
+			if (!cm) return null;
+			var moduleInfo = {records: [], internalStatusToStatusStrs: {}};
+			var internalStatusMap = {}; // {statusInteral: {statusDsplay1: true, statusDisplay2: true}}
+			if (cm.type == 'module') return;
+			var learningRecords = nlLrReportRecords.getRecords();
+			for (var key in learningRecords) {
+				_updateModuleInfo(learningRecords[key], moduleInfo, internalStatusMap, cm);
+			}
+			for(var statusId in internalStatusMap) {
+				moduleInfo.internalStatusToStatusStrs[statusId] = [];
+				for (var statusDispName in internalStatusMap[statusId]) {
+					moduleInfo.internalStatusToStatusStrs[statusId].push(statusDispName);
+				}
+			}
+			return moduleInfo;
+		});
+	}
+
+	function _updateModuleInfo(lr, moduleInfo, internalStatusMap, cm) {
+		var recordItem = {name: lr.user.name, id: lr.user.user_id};
+		moduleInfo.records.push(recordItem);
+		var itemStatus = lr.repcontent.statusinfo[cm.id];
+		recordItem.statusStr = _getDisplayStr(itemStatus.status);
+		if (!(itemStatus.status in internalStatusMap)) {
+			internalStatusMap[itemStatus.status] = {};
+		}
+		internalStatusMap[itemStatus.status][recordItem.statusStr] = true;
+
+		// TODO-NOW
+		if (cm.type == 'lesson') {
+		} else if (cm.type == 'certificate') {
+		} else if (cm.type == 'gate') {
+		} else if (cm.type == 'info' || cm.type == 'link') {
+		} else if (cm.type == 'iltsession') {
+		} else if (cm.type == 'rating') {
+		} else if (cm.type == 'milestone') {
+		}
+	}
+
+	var _statusDisplayStrs = {
+		'success' : 'Done',
+		'failed' : 'Failed',
+		'pending' : 'Pending',
+		'waiting' : 'Waiting',
+		'delayed' : 'Pending',
+		'started' : 'Started'
+	};
+
+	function _getDisplayStr(status) {
+		if (status in _statusDisplayStrs) return _statusDisplayStrs[status];
+		return status;
+	}
 	
-	var attendance = null;
-	var milestone = null;
-	var rating = null;
-	var allModules = [];
+	var g_attendance = null;
+	var g_milestone = null;
+	var g_rating = null;
 
 	function _getCourseAssignmnt() {
 		return nlGetManyStore.getRecord(nlGetManyStore.key('course_assignment', nlLrFilter.getObjectId()));
 	}
 
-	function _onCourseAssignView() {
-		var courseAssignment = _getCourseAssignmnt();
-		var learningRecords = nlLrReportRecords.getRecords();
-		var content = _getContentOfCourseAssignment();
-			attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
-			attendance = nlCourse.migrateCourseAttendance(attendance);
-			milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
-			rating = courseAssignment.rating ? angular.fromJson(courseAssignment.rating) : {};
-			allModules = [];
-		for(var i=0; i<content.modules.length; i++) {
-			var module = angular.copy(content.modules[i]);
-			_initModule(module);
-			allModules.push(module);
-		}
-		content.modules = allModules;
-		var assignStatsViewerDlg = nlDlg.create($scope);
-		assignStatsViewerDlg.setCssClass('nl-height-max nl-width-max');
-		assignStatsViewerDlg.scope.dlgTitle = courseAssignment.info.name;
-		assignStatsViewerDlg.scope.modules = _getSessionsAndModules(assignStatsViewerDlg.scope, learningRecords);
-		assignStatsViewerDlg.scope.selectedSession = null; //assignStatsViewerDlg.scope.modules[0];
-		assignStatsViewerDlg.scope.allowedAttrs = _getAllowedAttrs();
-		assignStatsViewerDlg.scope.onClick = function(e, cm) {
-			assignStatsViewerDlg.scope.selectedSession = cm;
-			if(cm.type === 'module') {
-				nlTreeListSrv.toggleItem(cm);
-				_showVisible(assignStatsViewerDlg);
-				return;
-			}
-			if(!cm.itemDict) _updateSelectedItemUsers(assignStatsViewerDlg.scope, cm);
-			assignStatsViewerDlg.scope.selectedSession = cm;
-			_updateChartInfo(assignStatsViewerDlg.scope, learningRecords);
-		};
-
-		assignStatsViewerDlg.scope.getUrl = function(lessonId) {
-			return nl.fmt2('/lesson/view/{}', lessonId);
-		};
-
-		var cancelButton = {text: nl.t('Close')};
-		assignStatsViewerDlg.show('view_controllers/learning_reports/assignment_stats_viewer_dlg.html',
-			[], cancelButton);
-	}
-
-	function _updateSelectedItemUsers(dlgScope, item) {
-		if(item.type == 'module') return;
-		if(item.type == 'iltsession') {
-			var _iltSessions = dlgScope.courseItemDict.sessions;
-			for(var i=0; i<_iltSessions.length; i++) {
-				if (_iltSessions[i].id == item.id) {
-					item.itemDict = _iltSessions[i];
-					break;
-				}
-			}
-		} else if (item.type == 'rating') {
-			var _ratings = dlgScope.courseItemDict.ratings;
-			for(var i=0; i<_ratings.length; i++) {
-				if (_ratings[i].id == item.id) {
-					item.itemDict = _ratings[i];
-					break;
-				}
-			}			
-		}  else if (item.type == 'milestone') {
-			var _milestones = dlgScope.courseItemDict.milestones;
-			for(var i=0; i<_milestones.length; i++) {
-				if (_milestones[i].id == item.id) {
-					item.itemDict = _milestones[i];
-					break;
-				}
-			}	
-		} else {
-			var items = dlgScope.courseItemDict[item.type];
-			item.itemDict = items[item.id];
-		}
-
-
-	}
-
-	function _getAllowedAttrs() {
-		var ret = [];
-		for(var key in uniqueRatingValues) ret.push({attr: key, title: key, type: 'string'})
-		for(var key in _attendanceObj) ret.push({attr: key, title: _attendanceObj[key].name, type: 'string'});
-		ret = ret.concat([{attr:'success', title: 'Success', type:'string'}, {attr:'acheived', title: 'Acheived', type:'string'}, {attr:'partial_success', title: 'Partially done', type:'string'}, 
-				{attr:'failed', title: 'Failed', type:'string'}, {attr:'started', title: 'Started', type: 'string'}, 
-				{attr:'pending', title: 'Pending', type: 'string'}, {attr:'attrition', title: 'Earlier attrition', type: 'string'}, {attr:'total', title: 'Total', type:'total'}]);
-		return ret;
-	}
-
-	function _initModule(cm) {
-		nlTreeListSrv.addItem(cm);
-		var retData = {lessPara: true};
-		cm.textHtml = cm.text ? nlMarkup.getHtml(cm.text, retData): '';
-		cm.planned_date = cm.planned_date ? nl.fmt.json2Date(cm.planned_date) : null;
-		cm.start_date = cm.start_date ? nl.fmt.json2Date(cm.start_date) : null;
-		if (!('maxAttempts' in cm) && cm.type == 'lesson') cm.maxAttempts = 1;
-	}
-
-	function _showVisible(assignStatsViewerDlg) {
-		assignStatsViewerDlg.scope.modules = [];
-		for(var i=0; i<allModules.length; i++) {
-			var cm=allModules[i];
-			if (!cm.visible) continue;
-			assignStatsViewerDlg.scope.modules.push(cm);
-		}
-	};
-
-	var _lessonLabels = ['done', 'failed', 'stated', 'pending', 'attrition'];
-	var _LessonColours = [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.started, _nl.colorsCodes.pending, _nl.colorsCodes.waiting];
-	var _infoLabels = ['done', 'pending', 'attrition'];
-	var _infoColours = [_nl.colorsCodes.done, _nl.colorsCodes.pending, _nl.colorsCodes.waiting];
-	var _milestoneLabels = ['done', 'pending', 'attrition'];
-	var _milestoneColors = [_nl.colorsCodes.done, _nl.colorsCodes.pending, _nl.colorsCodes.waiting]
-	var _GateLabels = ['done', 'failed', 'pending', 'attrition'];
-	var _GateColors = [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.pending, _nl.colorsCodes.waiting];
-	function _updateChartInfo(dlgScope, learningRecords) {
-		if(dlgScope.selectedSession.type == 'lesson') {
-			var ret = {labels: _lessonLabels, colours: _LessonColours};
-			ret.data = [dlgScope.selectedSession.success.length, dlgScope.selectedSession.failed.length,
-						dlgScope.selectedSession.started.length, dlgScope.selectedSession.pending.length, dlgScope.selectedSession.attrition.length];
-			dlgScope.chartInfo = ret;
-		} else if(dlgScope.selectedSession.type == 'iltsession') {
-			var iltLabels = [];
-			var iltColors = [];
-			var data = [];
-			for(var key in _attendanceObj) {
-				iltLabels.push(_attendanceObj[key].name);
-				data.push(dlgScope.selectedSession[key].length);
-				iltColors.push(_attendanceObj[key].timePerc == 100 ? _nl.colorsCodes.done : (_attendanceObj[key].timePerc > 0 && _attendanceObj[key].timePerc < 100) ?  _nl.colorsCodes.started : _nl.colorsCodes.failed);
-			}
-			data.push(dlgScope.selectedSession.pending.length);
-			iltColors.push(_nl.colorsCodes.pending);
-			iltLabels.push('pending');
-			data.push(dlgScope.selectedSession.attrition.length);
-			iltColors.push(_nl.colorsCodes.waiting);
-			iltLabels.push('attrition');
-			dlgScope.chartInfo = {labels: iltLabels, colours: iltColors, data: data};
-		} else if(dlgScope.selectedSession.type == 'rating') {
-			var selected = dlgScope.selectedSession;
-			var ratingLabels = [];
-			var ratingColors = [];
-			var data = [];
-			for(var key in selected.ratingObj) {
-				var val = selected.ratingObj[key];
-				data.push(dlgScope.selectedSession[key].length)
-				ratingLabels.push(key);
-				if(val === 100 || val == 'success') {
-					ratingColors.push(_nl.colorsCodes.done);
-				} else if (val === 0 || val == 'failed') {
-					ratingColors.push(_nl.colorsCodes.failed);
-				} else {
-					ratingColors.push(_nl.colorsCodes.started);
-				}
-
-			}
-			data.push(dlgScope.selectedSession.pending.length);
-			ratingColors.push(_nl.colorsCodes.pending);
-			ratingLabels.push('pending');
-			data.push(dlgScope.selectedSession.attrition.length);
-			ratingColors.push(_nl.colorsCodes.waiting);
-			ratingLabels.push('attrition');
-			dlgScope.chartInfo = {labels: ratingLabels, colours: ratingColors, data: data};
-		} else if(dlgScope.selectedSession.type == 'milestone') {
-			var ret = {labels: _milestoneLabels, colours: _milestoneColors};
-				ret.data = [dlgScope.selectedSession.acheived.length, dlgScope.selectedSession.pending.length, dlgScope.selectedSession.attrition.length];
-				dlgScope.chartInfo = ret;
-		} else if(dlgScope.selectedSession.type == 'gate') {
-			var ret = {labels: _GateLabels, colours: _GateColors};
-				ret.data = [dlgScope.selectedSession.success.length, dlgScope.selectedSession.failed.length, dlgScope.selectedSession.pending.length, dlgScope.selectedSession.attrition.length];
-				dlgScope.chartInfo = ret;		
-		} else {
-			var ret = {labels: _infoLabels, colours: _infoColours};
-			ret.data = [dlgScope.selectedSession.success.length, dlgScope.selectedSession.pending.length, dlgScope.selectedSession.attrition.length];
-			dlgScope.chartInfo = ret;        	
-		}
-	}
-	var _lessonModules = [];
-	function _getSessionsAndModules(dlgScope, learningRecords) {
-		var ret = [];
-		var content = _getContentOfCourseAssignment();
-		dlgScope.courseItemDict = _getMilestoneItems(content, false, true);
-		var total = Object.keys(learningRecords).length;
-		for(var i=0; i<allModules.length; i++) {
-			var item = allModules[i];
-			delete item.itemDict;
-			ret.push(item);
-			if(item.type == 'module') continue;
-			item.total = total;
-			item['pending'] = [];
-			item['attrition'] = [];
-			if(item.type == 'iltsession') {
-				for(var key in _attendanceObj) item[key] = [];
-			} else if (item.type == 'rating') {
-				var _ratingObj = _getRatingStrings(item);
-					item['ratingObj'] = _ratingObj;
-				for(var key in _ratingObj) item[key] = [];
-			} else if (item.type == 'milestone') {
-				item['acheived'] = [];
-			} else {
-				item['success'] = [];
-				if(item.type == 'lesson' || item.type == 'gate') {
-					item['failed'] = [];
-					if(item.type == 'lesson') item['started'] = [];
-					else if (item.type == 'rating') item['partial_success'] = [];
-				}
-			}
-		}
-	
-		for(var key in learningRecords) {
-			var repcontent = learningRecords[key].repcontent;
-			var courseItemStatusInfos = repcontent.statusinfo || {};
-			var attritionVal = 0;
-			for(var j=0; j<ret.length; j++) {
-				if(ret[j].type == 'module') continue;
-				var courseItemStatusInfo = courseItemStatusInfos[ret[j].id] || {};
-				if(ret[j].type == 'lesson' || ret[j].type == 'info' || ret[j].type == 'link' 
-					|| ret[j].type == 'gate' || ret[j].type == 'certificate') _updateItemInItemDict(dlgScope, ret[j].type, ret[j].id, courseItemStatusInfo, learningRecords[key], attritionVal);
-				if(courseItemStatusInfo.isAttrition && attritionVal > 0) {
-					ret[j]['attrition'].push({id: parseInt(key), name: learningRecords[key].user.name});
-					continue;
-				}
-				if(courseItemStatusInfo.isAttrition && attritionVal === 0) attritionVal++;
-				var courseItemStatus = courseItemStatusInfo.status || 'pending'; 
-				var bucket =  courseItemStatus;
-				if(ret[j].type == 'iltsession') {
-					bucket = courseItemStatusInfo.stateStr || courseItemStatus;
-				} else if (ret[j].type == 'rating' && ret[j].rating_type != 'number') {
-					bucket = courseItemStatusInfo.rating || courseItemStatus;
-				} else if (ret[j].type == 'milestone') {
-					bucket = courseItemStatusInfo.status == 'success' ? 'acheived' : 'pending';
-				}
-				if (courseItemStatus == 'pending' || courseItemStatus == 'waiting' || courseItemStatus == 'delayed'
-					|| !bucket || !(bucket in ret[j])) bucket = 'pending';
-				ret[j][bucket].push({id: parseInt(key), name: learningRecords[key].user.name, userid: learningRecords[key].user.user_id});
-			}
-		}
-		return ret;
-	}
-
-	function _updateItemInItemDict(dlgScope, attr, itemId, courseItemStatusInfo, record, attritionval) {
-		var status = attritionval > 0 ? 'Earlier attrition' : courseItemStatusInfo.rawStatus;
-		if(status == 'pending') status = 'Pending';
-		if(status == 'success') status = 'Success';
-		if(status == 'failed') status = 'Failed';
-		if(status == 'waiting') status = 'Waiting';
-		var dict = {id: record.raw_record.id, name: record.user.name, userid: record.user.user_id, status: status};
-		if(attr == 'lesson' || attr == 'certificate') {
-			dict.score = courseItemStatusInfo.score || '';
-			dict.passScore = courseItemStatusInfo.passScore|| '';
-		}
-		if(!(attr in dlgScope.courseItemDict)) dlgScope.courseItemDict[attr] = {};
-		if(!(itemId in  dlgScope.courseItemDict[attr])) dlgScope.courseItemDict[attr][itemId] = [];
-		dlgScope.courseItemDict[attr][itemId].push(dict);
-	}
-
-	var uniqueRatingValues = {};
-	function _getRatingStrings(item) {
-		var ret = {};
-		for(var i=0; i<_groupInfo.props.ratings.length; i++) {
-			var _rating = _groupInfo.props.ratings[i];
-			if(item.rating_type == _rating.id) {
-				if(_rating.type == 'number') {
-					return {success: 'success', partial_success: 'partial_success', failed: 'failed'};
-				} else if (_rating.type == 'status' || _rating.type == 'select') {
-					for(var k=0; k<_rating.values.length; k++) {
-						uniqueRatingValues[_rating.values[k]['v']] = true;
-						ret[_rating.values[k]['v']] = _rating.values[k]['p'];
-					}
-				}
-				return ret;
-			}
-		}
-	}
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	//Mark milestone for items inside the course
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _onClickOnMarkMilestone() {
 		var courseAssignment = _getCourseAssignmnt();
-		milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
-		attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
-		attendance = nlCourse.migrateCourseAttendance(attendance);
-		rating = courseAssignment.rating ? angular.fromJson(courseAssignment.rating) : {};
+		g_milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
+		g_attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
+		g_attendance = nlCourse.migrateCourseAttendance(g_attendance);
+		g_rating = courseAssignment.rating ? angular.fromJson(courseAssignment.rating) : {};
 		nlDlg.preventMultiCalls(true, _showMilestoneMarker);
 	}
 
@@ -1579,7 +1366,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var content = _getContentOfCourseAssignment();
 		milestoneDlg.scope.milestones = _getMilestoneItems(content);
 		milestoneDlg.scope.selectedItem = milestoneDlg.scope.milestones[0];
-		oldMilestone = angular.copy(milestone);
+		oldMilestone = angular.copy(g_milestone);
 
 		milestoneDlg.scope.onClick = function(selectedItem) {
 			var currentMilestone = milestoneDlg.scope.selectedItem;
@@ -1604,7 +1391,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		var okButton = {text: nl.t('Update milestone'), onTap: function(e) {
 			var updateMilestoneList = [];
-				milestone = {};
+				g_milestone = {};
 				e.preventDefault();
 				milestoneUpdated = false;
 			for(var i=0; i<milestoneDlg.scope.milestones.length; i++) {
@@ -1613,11 +1400,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				_updateMilestoneDelta(updateMilestoneList[i], _milestone)
 				if(!_milestone.milestoneObj.status) continue;
 				var _learnersList = _milestone.learnersList; 
-				if(milestone[_milestone.id]) {
+				if(g_milestone[_milestone.id]) {
 					for(var j=0; j<_learnersList.length; j++) {
 						var learnerMilestone = _learnersList[j];
 						if(learnerMilestone.attrition) continue;
-						_updateLearnerMilestoneDelta(updateMilestoneList[i], milestone[_milestone.id], learnerMilestone);
+						_updateLearnerMilestoneDelta(updateMilestoneList[i], g_milestone[_milestone.id], learnerMilestone);
 					}
 				}
 			}
@@ -1625,7 +1412,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				return nlDlg.popupAlert({title: 'Alert message', template: 'You have not made any changes. Please update milestone markings or press cancel in the milestone marking dialog if you do not wish to make any change.'});
 			}
 			nl.timeout(function() {
-				_markingConfirmationDlg(milestoneDlg.scope, updateMilestoneList, 'milestone', milestone);
+				_markingConfirmationDlg(milestoneDlg.scope, updateMilestoneList, 'milestone', g_milestone);
 			});
 		}};
 		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
@@ -1661,7 +1448,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var item = content.modules[i];
 			if(item.type == 'iltsession' || item.type == 'rating') iltAndRatingIds[item.id] = true;
 			if(item.type != 'milestone') continue; 
-			var _milestone = milestone[item.id] || {};
+			var _milestone = g_milestone[item.id] || {};
 			ret.push({id: item.id, earlierItemIds: angular.copy(iltAndRatingIds), canMarkMilestone:true,  milestoneNo:i, name:item.name, 
 						milestoneObj: {status: _milestone.status == 'done' ? true : false, comment:  _milestone.comment || '',
 						reached: _milestone.reached ? nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(_milestone.reached || ''), null, 'date') : '', updated: _milestone.updated ? nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(_milestone.updated || ''), null, 'date'): ''}, 
@@ -1722,7 +1509,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var userid = user.user_id;
 			for(var j=0; j<ret.length; j++) {
 				var item = ret[j];
-				var _markedMilestone = milestone[item.id] || {};
+				var _markedMilestone = g_milestone[item.id] || {};
 				var _learnersDict = _markedMilestone.learnersDict || {};
 				var msUserObj = {id: repid, milestoneid: item.id, name: user.name, userid: userid}
 				if (repid in disableMilestoneMarking) {
@@ -1787,8 +1574,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			milestoneUpdated = true;
 			updated = new Date();
 		}
-		if(updated || milestone.id in oldMilestone)
-			milestone[newMilestone.id] = {status: newMilestone.milestoneObj.status ? 'done' : 'pending', comment: newMilestone.milestoneObj.comment, updated: updated, reached: reached};
+		if(updated || newMilestone.id in oldMilestone)
+			g_milestone[newMilestone.id] = {status: newMilestone.milestoneObj.status ? 'done' : 'pending', comment: newMilestone.milestoneObj.comment, updated: updated, reached: reached};
 	}
 
 	function _updateLearnerMilestoneDelta(updateMilestoneList, currentMilestone, updatedLearnerMilestone) {
@@ -1820,9 +1607,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _onClickOnMarkAttendance() {
 		var courseAssignment = _getCourseAssignmnt();
-		milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
-		attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
-		attendance = nlCourse.migrateCourseAttendance(attendance);
+		g_milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
+		g_attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
+		g_attendance = nlCourse.migrateCourseAttendance(g_attendance);
 		nlDlg.preventMultiCalls(true, _showAttendanceMarker);
 	}
 
@@ -1836,7 +1623,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		markAttendanceDlg.scope.sessions = _getIltSessions(content, learningRecords);
 		markAttendanceDlg.scope.selectedSession = markAttendanceDlg.scope.sessions[0];
 		oldAttendance = {};
-		oldAttendance = angular.copy(attendance);
+		oldAttendance = angular.copy(g_attendance);
 		markAttendanceDlg.scope.onClick = function(session) {
 			var currentSession = markAttendanceDlg.scope.selectedSession;
 			if(session.sessionNo > currentSession.sessionNo) {
@@ -1858,7 +1645,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		var okButton = {text: nl.t('Mark attendance'), onTap: function(e) {
 			var updatedSessionsList = [];
-				attendance = {};
+				g_attendance = {};
 				attendanceUpdated = false;
 				e.preventDefault();
 			for(var i=0; i<markAttendanceDlg.scope.sessions.length; i++) {
@@ -1887,7 +1674,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				updatedSessionsList[i].selectedUsers = selectedUsers;
 			}
 			nl.timeout(function() {
-				_markingConfirmationDlg(markAttendanceDlg.scope, updatedSessionsList, 'attendance', attendance);
+				_markingConfirmationDlg(markAttendanceDlg.scope, updatedSessionsList, 'attendance', g_attendance);
 			});
 		}};
 		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
@@ -1960,9 +1747,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			updated = new Date();
 			if (oldAttendancePerSession.attId != newAttendancePerSession.attendance.id) marked = updated;
 		}
-		if(!(repid in attendance)) attendance[repid] = [];
+		if(!(repid in g_attendance)) g_attendance[repid] = [];
 		var userAttendance = {id: sessionid, attId: newAttendancePerSession.attendance.id, updated: updated, marked: marked, remarks: _remarks}
-		attendance[repid].push(userAttendance);
+		g_attendance[repid].push(userAttendance);
 	}
 
 	function _getAboveMilestone(milestonesItems, milestoneid) {
@@ -2002,7 +1789,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		
 		for(var key in learningRecords) {
-			var userAttendance = attendance[parseInt(key)] || [];
+			var userAttendance = g_attendance[parseInt(key)] || [];
 			var user = learningRecords[key].user;
 			var stats = learningRecords[key].stats;
 			var attritionStr = learningRecords[key].stats.attritionStr || '';
@@ -2074,10 +1861,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	var ratingUpdated = false;
 	function _onClickOnMarkRatings() {
 		var courseAssignment = _getCourseAssignmnt();
-		milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
-		rating = courseAssignment.rating ? angular.fromJson(courseAssignment.rating) : {};
-		attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
-		attendance = nlCourse.migrateCourseAttendance(attendance);
+		g_milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
+		g_rating = courseAssignment.rating ? angular.fromJson(courseAssignment.rating) : {};
+		g_attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
+		g_attendance = nlCourse.migrateCourseAttendance(g_attendance);
 		nlDlg.preventMultiCalls(true, _showRatingMarker);
 	}
 
@@ -2089,7 +1876,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		ratingDlg.scope.ratings = _getRatings(content, learningRecords, 'true');
 		ratingDlg.scope.selectedRating = ratingDlg.scope.ratings[0];
 		oldRating = {};
-		oldRating = angular.copy(rating);
+		oldRating = angular.copy(g_rating);
 		ratingDlg.scope.onClick = function(item) {
 			ratingDlg.scope.selectedRating = item;
 		};
@@ -2111,7 +1898,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		var okButton = {text: nl.t('Provide rating'), onTap: function(e) {
 			var updatedSessionsList = [];
-				rating = {};
+				g_rating = {};
 				ratingUpdated = false;
 				e.preventDefault();
 			for(var i=0; i<ratingDlg.scope.ratings.length; i++) {
@@ -2142,7 +1929,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				updatedSessionsList[i].selectedUsers = selectedUsers;
 			}
 			nl.timeout(function() {
-				_markingConfirmationDlg(ratingDlg.scope, updatedSessionsList, 'rating', rating);
+				_markingConfirmationDlg(ratingDlg.scope, updatedSessionsList, 'rating', g_rating);
 			});
 		}};
 		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
@@ -2196,14 +1983,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}
 		}
 
-		if(!(repid in rating)) rating[repid] = [];
+		if(!(repid in g_rating)) g_rating[repid] = [];
 		if(updateSessionList.rating_type == 'input') {
 			var _remarks = []; 
 			if(Array.isArray(newRatingPerItem.remarks)) 
 				_remarks = newRatingPerItem.remarks;
 			else 
 				_remarks = [newRatingPerItem.remarks]
-			rating[repid].push({id: sessionid, attId: (newRatingPerItem.rating === 0) ? 0 : newRatingPerItem.rating, remarks: _remarks, marked: marked, updated: updated});
+			g_rating[repid].push({id: sessionid, attId: (newRatingPerItem.rating === 0) ? 0 : newRatingPerItem.rating, remarks: _remarks, marked: marked, updated: updated});
 		}
 
 		if(updateSessionList.rating_type == 'select') {
@@ -2218,7 +2005,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			} else {
 				_userRating.remarks = [newRatingPerItem.remarks];
 			}
-			rating[repid].push(_userRating);
+			g_rating[repid].push(_userRating);
 		}
 	}
 
@@ -2449,8 +2236,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		confirmationDlg.scope.markedSessions = markedSessions;
 		confirmationDlg.scope.paramName = paramName;
 		if(paramName == 'attendance') {
-			if(!('attendance_version' in attendance)) 
-			attendance['attendance_version'] = nlCourse.getAttendanceVersion();
+			if(!('attendance_version' in g_attendance)) 
+			g_attendance['attendance_version'] = nlCourse.getAttendanceVersion();
 		}
 		var buttonText = nl.t('Confirm {}', paramName);
 		var okButton = {text: buttonText, onTap: function(e) {
@@ -2461,15 +2248,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				nlDlg.closeAll();
 				var srvUpdateFn = null;
 				if(result && (paramName == 'attendance')) {
-					attendance = result;
+					g_attendance = result;
 					srvUpdateFn = nlGetManyStore.updateAttendanceInRecord;
 				}
 				if(result && (paramName == 'rating')) {
-					rating = result;
+					g_rating = result;
 					srvUpdateFn = nlGetManyStore.updateRatingInRecord;
 				}
 				if(result && (paramName == 'milestone')) {
-					milestone = result;
+					g_milestone = result;
 					srvUpdateFn = nlGetManyStore.updateMilestoneInRecord;
 				}
 				var jsonStr = angular.toJson(result);
