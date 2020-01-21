@@ -1,6 +1,6 @@
 <div ng-if='!readonly' class='row row-center row-wrap padding-0 margin0'>
-    <div ng-class='$root.respCol211'> 
-        <div class='padding-mid fsh6'>Mark  the learner milestone</div>
+    <div ng-class='$root.respCol211' class='fsh5'> 
+        Mark learner specific milestone status
     </div>
     <div ng-class='$root.respCol211'> 
         <div class='row row-center margin0 padding0'>
@@ -11,34 +11,34 @@
         </div>
     </div>
 </div>
-<div class='row padding0 margin0' ng-repeat='user in selecteditem.learnersList'>
-    <div class='row padding0 margin0 row-wrap {{user.attrition ? "fgrey" : ""}}'>
-        <div ng-class='$root.respCol211' class='padding-mid'>
-            <div class='row row-center padding0 margin0'>
-                <div ng-if='!readonly' class='col {{!user.attrition ? "nl-link-text" : "fgrey"}}' ng-click='toggleLearnerMilestone(user)'>
-                    <span ng-if='!user.attrition'>
-                        <i ng-show='user.marked' class="icon ion-android-checkbox-outline"></i>
-                        <i ng-hide='user.marked' class="icon ion-android-checkbox-outline-blank"></i>
-                    </span>
-                    {{user.name}} 
-                    <span class='fgrey'>({{user.userid}})</span>
-                </div>
-                <div ng-if='readonly'>
-                    <span>
-                        <i ng-show='user.marked' class="icon ion-checkmark-circled fgreen fsh4" title='Milestone reached'></i>
-                        <i ng-hide='user.marked' class="icon ion-close-circled forange3 fsh4" title='Milestone pending'></i>
-                    </span>
-                    {{user.name}} 
-                    <span class='fgrey'>({{user.userid}})</span>
-                </div>
-            </div>
-        </div>
-        <div ng-if='!user.attrition' ng-class='$root.respCol211' class='padding-mid'>
-            <input ng-if='!readonly' type='text' ng-model='user.remarks' placeholder='Mention remarks for learner'></input>
+
+<div>PUT A SEARCH BOX here - show max of 100 learners in table</div>
+<table class='nl-table {{readonly ? "nl-table-styled" : ""}}' style='min-width: 600px'>
+    <tr>
+        <th></th>
+        <th>Learner Name</th>
+        <th>Learner Id</th>
+        <th ng-if='readonly'>Milestone status</th>
+        <th>Remarks</th>
+    </tr>
+    <tr class='{{user.attrition ? "fgrey" : readonly ? "" : "nl-link-text"}}'
+         ng-repeat='user in selecteditem.learnersList'
+         ng-click='!readonly && !user.attrition && toggleLearnerMilestone(user)'>
+        <td>
+            <i ng-show='!readonly && !user.attrition && user.marked' class="icon ion-android-checkbox-outline"></i>
+            <i ng-show='!readonly && !user.attrition && !user.marked' class="icon ion-android-checkbox-outline-blank"></i>
+            <i ng-show='readonly && user.marked' class="icon ion-checkmark-circled fgreen fsh4" title='Milestone reached'></i>
+            <i ng-show='readonly && !user.marked' class="icon ion-close-circled forange3 fsh4" title='Milestone pending'></i>
+        </td>
+        <td>{{user.name}}</td>
+        <td class='fsmall1'>{{user.userid}}</td>
+        <td ng-if='readonly'>{{user.attritionStr}}</td>
+        <td>
+            <input ng-if='!readonly && !user.attrition' type='text' ng-model='user.remarks'
+                   ng-click='return 0'
+                   placeholder='Mention remarks for learner'></input>
+            <div ng-if='!readonly && user.attrition'>{{user.attritionStr}}</div>
             <div ng-if='readonly'>{{user.remarks}}</div>
-        </div>
-        <div ng-class='$root.respCol211' ng-if='user.attrition' class='padding-mid fgrey'>
-            <div>{{user.attritionStr}}</div>
-        </div>
-    </div>
-</div>
+        </td>
+    </tr>
+</table>

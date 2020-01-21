@@ -33,8 +33,8 @@
 </style>
 <nl-dlg dlgTitle='{{dlgTitle}}' show-close='1' show-help='0'>
 <nl-dlg-content>
-<div class='row row-top row-wrap row-stretch padding0 margin0'>
-	<div style='width:{{screenSize == "small" ? "100": "25"}}%; border-right: 1px solid rgba(0, 0, 0, 0.1)'>
+<div class='row row-top row-stretch padding0 margin0' style='min-width: 600px'>
+	<div style='width: 25%; min-width: 100px; border-right: 1px solid rgba(0, 0, 0, 0.1)'>
 		<div class='nl-thin-scroll'>
 		    <div ng-repeat='cm in modules' class='row row-center margin0' ng-show='cm.visible' style='padding: 8px'>
 		        <div style='width: {{cm.indentationLevel*16}}px'></div>
@@ -52,7 +52,7 @@
 	<div ng-if='!selectedSession' class='fsh5 padding-mid'>
 		Please select the course element to view the status.
 	</div>
-	<div class='col margin0 padding0'  ng-if='selectedSession'>
+	<div class='col margin0 padding0' ng-if='selectedSession'>
 		<div class='row row-center margin0 padding0 nl-border-bottom'>
 			<div ng-if='!(selectedSession.type == "module" || selectedSession.type == "certificate")' ng-class='respCol221'
 				class='padding' style='text-align: -webkit-center;'>
@@ -173,16 +173,3 @@
 </div>
 </nl-dlg-content>
 </nl-dlg>
-<!---
-				<div class='nl-link-text' ng-repeat='state in allowedAttrs' ng-if='selectedSession[state.attr] && selectedSession[state.attr].length > 0' 
-					ng-click='state.canShow = !state.canShow' style='border: 1px solid #FFFFFF'>
-					<div class='row row-center margin0 fsh5 padding-mid' style='background: #CCCCDD'>
-						<div class='col'>{{state.title}}</div>
-						<span>{{selectedSession[state.attr].length}}</span>
-					</div>
-					<div class='row row-center margin0' 
-						 ng-repeat='user in selectedSession[state.attr]' ng-show='state.canShow'>
-						<div class='col padding-mid'>{{user.name}}</div>
-					</div>
-				</div>
--->
