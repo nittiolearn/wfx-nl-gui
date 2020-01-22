@@ -369,6 +369,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.marked = nl.fmt.json2Date(userCmRating.marked || '');
         itemInfo.updated = nl.fmt.json2Date(userCmRating.updated || '');
         itemInfo.rating = _computeRatingStringOnScore(grpRatingObj, itemInfo);
+        itemInfo.ratingString = (grpRatingObj.type == 'status' || grpRatingObj.type == 'select');
     }
 
     function _computeRatingStringOnScore(ratingObj, itemInfo) {

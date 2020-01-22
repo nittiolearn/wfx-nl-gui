@@ -104,7 +104,7 @@
 
 		<div ng-if='selectedModule.type == "iltsession"'>
 			<div class='padding-mid'>
-				<span class='fbold'>Session duration:</span><span>{{selectedModule.iltduration}} (minutes)</span>
+				<span class='fbold'>Session duration: </span><span> {{selectedModule.iltduration}} (minutes)</span>
 				<div ng-show='selectedModule.trainer_notes.length > 0'>
 					<div class="padding-mid"></div>
 					<div class="fbold">Trainer notes:</div>
@@ -127,14 +127,14 @@
 
 		<div ng-if='selectedModule.type == "milestone"'>
 			<div class='padding-mid'>
-				<div ng-if='!selectedModule.itemDict.milestoneObj.status' class='padding-mid fsh6'>
+				<div ng-if='!selectedModule.milestoneObj.status' class='padding-mid fsh6'>
 					Milestone is not reached.
 				</div>
-				<div ng-if='selectedModule.itemDict.milestoneObj.status'
+				<div ng-if='selectedModule.milestoneObj.status'
 					class='padding-mid fsh6'>
-					The milestone was reached on <b>{{selectedModule.itemDict.milestoneObj.reached}}</b>
+					The milestone was reached on <b>{{selectedModule.milestoneObj.reached}}</b>
 				</div>
-				<div class='padding-mid'> <span><b> Milestone remark: </b></span> <span>{{selectedModule.itemDict.milestoneObj.comment}}</span></div>
+				<div ng-if='selectedModule.milestoneObj.status' class='padding-mid'> <span><b> Milestone remark: </b></span> <span>{{selectedModule.milestoneObj.comment}}</span></div>
 			</div>
 			<div class='nl-border-bottom'></div>
 			<div class='padding-mid'></div>
@@ -170,10 +170,10 @@
 					<th>
 						Status
 					</th>
-					<th ng-if='showScore'>
+					<th ng-if='seletedModule.showScore'>
 						Score
 					</th>
-					<th ng-if='showRemarks'>
+					<th ng-if='selectedModule.showRemarks'>
 						Remarks
 					</th>
 				</tr>
@@ -187,10 +187,10 @@
 					<td>
 						{{user.statusStr}}
 					</td>
-					<td ng-if='showScore'>
+					<td ng-if='selectedModule.showScore'>
 						{{user.score || '-'}}
 					</td>
-					<td ng-if='showRemarks'>
+					<td ng-if='selectedModule.showRemarks'>
 						{{user.remarks || ''}}
 					</td>
 				</tr>

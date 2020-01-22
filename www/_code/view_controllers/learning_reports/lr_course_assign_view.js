@@ -66,11 +66,6 @@ function(nl, nlDlg, nlTreeListSrv) {
 
     var _moduleInfo = null;
     var MAX_LIST_SIZE = 100;
-    // TODO-NOW:
-    // Make sure the status strings are specific to item type (change mainly in lesson_reports.js)
-    // Milestone date and remarks are not coming properly (selectedModule.itemDict in html not correct)
-    // Show score for lessons with score (maxScore > 0) by setting showScore and filling the values in lesson_reports.js
-    // Show remarks for ilt, rating, info, link by setting showRemarks and filling the values in lesson_reports.js
     function _udpateSelectedModuleInfo(dlg, getModuleInfoFn) {
         _moduleInfo = getModuleInfoFn(dlg.scope.selectedModule);
         _udpateSelectedModuleInfoWithSearch(dlg);
@@ -120,7 +115,8 @@ function(nl, nlDlg, nlTreeListSrv) {
         {attr:'started', color: _nl.colorsCodes.started},
         {attr:'pending', color: _nl.colorsCodes.pending},
         {attr:'waiting', color: _nl.colorsCodes.waiting},
-        {attr:'attrition', color: _nl.colorsCodes.waiting}
+        {attr:'attrition', color: _nl.colorsCodes.waiting},
+        {attr:'delayed', color: _nl.colorsCodes.waiting}
     ];
 
     function _updateChartInfoAndData(dlg, statusCounts, internalStatusDict) {

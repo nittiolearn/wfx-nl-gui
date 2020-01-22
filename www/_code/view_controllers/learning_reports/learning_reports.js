@@ -1281,11 +1281,20 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _onCourseAssignView() {
 		var modules = (_getContentOfCourseAssignment() || {}).modules || [];
 		var courseAssign = _getCourseAssignmnt();
+			g_milestone = courseAssign.milestone ? angular.fromJson(courseAssign.milestone) : {};
 		nlLrCourseAssignView.show($scope, modules || [], courseAssign, function(cm) {
 			if (!cm) return null;
 			var moduleInfo = {records: [], internalStatusToStatusStrs: {}};
 			var internalStatusMap = {}; // {statusInteral: {statusDsplay1: true, statusDisplay2: true}}
 			if (cm.type == 'module') return;
+			if (cm.type == 'milestone') {
+				cm.milestoneObj = {};
+				var _milestone = g_milestone[cm.id] || {};
+				cm.milestoneObj['comment'] = _milestone.comment;
+				cm.milestoneObj['status'] = _milestone.status == 'done' ? true : false;
+				cm.milestoneObj['reached'] = _milestone.reached ? nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(_milestone.reached || '')) : '';
+			}
+			if(cm.type == 'milestone' || cm.type == 'rating' || cm.type == 'iltsession') cm.showRemarks = true;
 			var learningRecords = nlLrReportRecords.getRecords();
 			for (var key in learningRecords) {
 				_updateModuleInfo(learningRecords[key], moduleInfo, internalStatusMap, cm);
@@ -1305,20 +1314,31 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		moduleInfo.records.push(recordItem);
 		var itemStatus = lr.repcontent.statusinfo[cm.id];
 		recordItem.statusStr = _getDisplayStr(itemStatus.status);
+		// TODO-NOW
+		if (cm.type == 'lesson') {
+			if(itemStatus.maxScore > 0) {
+				cm.showScore = true;
+				recordItem.score = itemStatus.score || '';
+			}
+		} else if (cm.type == 'certificate') {
+		} else if (cm.type == 'gate') {
+			recordItem.score = itemStatus.score || '';
+		} else if (cm.type == 'info' || cm.type == 'link') {
+		} else if (cm.type == 'iltsession' && itemStatus.state) {
+			recordItem.statusStr = itemStatus.state;
+			recordItem.remarks = itemStatus.remarks || '';
+		} else if (cm.type == 'rating') {
+			recordItem.remarks = nl.fmt.arrayToString(itemStatus.remarks);
+			if (itemStatus.ratingString) recordItem.statusStr = itemStatus.rating;
+		} else if (cm.type == 'milestone') {
+			recordItem.remarks = itemStatus.remarks || '';
+			if (itemStatus.status == 'success') recordItem.statusStr = 'Achieved';
+		}
+
 		if (!(itemStatus.status in internalStatusMap)) {
 			internalStatusMap[itemStatus.status] = {};
 		}
 		internalStatusMap[itemStatus.status][recordItem.statusStr] = true;
-
-		// TODO-NOW
-		if (cm.type == 'lesson') {
-		} else if (cm.type == 'certificate') {
-		} else if (cm.type == 'gate') {
-		} else if (cm.type == 'info' || cm.type == 'link') {
-		} else if (cm.type == 'iltsession') {
-		} else if (cm.type == 'rating') {
-		} else if (cm.type == 'milestone') {
-		}
 	}
 
 	var _statusDisplayStrs = {
@@ -1327,7 +1347,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		'pending' : 'Pending',
 		'waiting' : 'Waiting',
 		'delayed' : 'Pending',
-		'started' : 'Started'
+		'started' : 'Started',
+		'partial_success': 'Partial success'
 	};
 
 	function _getDisplayStr(status) {

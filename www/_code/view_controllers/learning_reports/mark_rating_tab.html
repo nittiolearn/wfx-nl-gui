@@ -10,7 +10,7 @@
         <th style='width: 200px; min-width: 150px'>Rating</th>
         <th>Remarks</th>
     </tr>
-    <tr class='{{(user.attrition || user.canRate !== "attended") ? "fgrey" : "nl-link-text"}}'
+    <tr class='{{(user.attrition || user.canRate !== "attended") ? "fgrey" : ""}}'
         ng-repeat='user in selecteditem.rating'>
         <td>{{user.name}}</td>
         <td class='fsmall1'>{{user.userid}}</td>

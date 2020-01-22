@@ -30,7 +30,7 @@
         <td class='fsmall1'>{{user.userid}}</td>
         <td>
             <input ng-if='!user.attrition' type='text' ng-model='user.remarks'
-                   ng-click='return 0'
+                   ng-click='$event.stopImmediatePropagation(); $event.preventDefault();'
                    placeholder='Mention remarks for learner'></input>
             <div ng-if='user.attrition' style='padding:4px;'>{{user.attritionStr}}</div>
        </td>
