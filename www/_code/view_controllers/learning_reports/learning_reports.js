@@ -1294,7 +1294,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				cm.milestoneObj['status'] = _milestone.status == 'done' ? true : false;
 				cm.milestoneObj['reached'] = _milestone.reached ? nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(_milestone.reached || '')) : '';
 			}
-			if(cm.type == 'milestone' || cm.type == 'rating' || cm.type == 'iltsession') cm.showRemarks = true;
+			if(cm.type == 'milestone' || cm.type == 'rating' || cm.type == 'iltsession' 
+				|| cm.type == 'info' || cm.type == 'link') cm.showRemarks = true;
 			var learningRecords = nlLrReportRecords.getRecords();
 			for (var key in learningRecords) {
 				_updateModuleInfo(learningRecords[key], moduleInfo, internalStatusMap, cm);
@@ -1314,26 +1315,37 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		moduleInfo.records.push(recordItem);
 		var itemStatus = lr.repcontent.statusinfo[cm.id];
 		recordItem.statusStr = _getDisplayStr(itemStatus.status);
-		// TODO-NOW
-		if (cm.type == 'lesson') {
-			if(itemStatus.maxScore > 0) {
+		if (itemStatus.status == 'waiting' && itemStatus.isAttrition) {
+			recordItem.statusStr = 'Earlier attrition';
+		}else {
+			if (cm.type == 'lesson') {
+				if(itemStatus.maxScore > 0) {
+					cm.showScore = true;
+					recordItem.score = itemStatus.score || '';
+					if (itemStatus.status == 'success') recordItem.statusStr = 'Passed';
+				}
+			} else if (cm.type == 'certificate') {
+				if (itemStatus.status == 'success') recordItem.statusStr = 'Certified';
+			} else if (cm.type == 'gate') {
 				cm.showScore = true;
 				recordItem.score = itemStatus.score || '';
+				if (itemStatus.status == 'success') recordItem.statusStr = 'Passed';
+			} else if (cm.type == 'info' || cm.type == 'link') {
+			} else if (cm.type == 'iltsession' && itemStatus.state) {
+				recordItem.statusStr = itemStatus.state;
+			} else if (cm.type == 'rating') {
+				itemStatus.remarks = nl.fmt.arrayToString(itemStatus.remarks);
+				if (itemStatus.ratingString) {
+					recordItem.statusStr = itemStatus.rating;
+				} else {
+					if (itemStatus.status == 'success') recordItem.statusStr = 'Passed';
+				}
+			} else if (cm.type == 'milestone') {
+				recordItem.remarks = itemStatus.remarks || '';
+				if (itemStatus.status == 'success') recordItem.statusStr = 'Achieved';
 			}
-		} else if (cm.type == 'certificate') {
-		} else if (cm.type == 'gate') {
-			recordItem.score = itemStatus.score || '';
-		} else if (cm.type == 'info' || cm.type == 'link') {
-		} else if (cm.type == 'iltsession' && itemStatus.state) {
-			recordItem.statusStr = itemStatus.state;
-			recordItem.remarks = itemStatus.remarks || '';
-		} else if (cm.type == 'rating') {
-			recordItem.remarks = nl.fmt.arrayToString(itemStatus.remarks);
-			if (itemStatus.ratingString) recordItem.statusStr = itemStatus.rating;
-		} else if (cm.type == 'milestone') {
-			recordItem.remarks = itemStatus.remarks || '';
-			if (itemStatus.status == 'success') recordItem.statusStr = 'Achieved';
 		}
+		if (cm.showRemarks) recordItem.remarks = itemStatus.remarks;
 
 		if (!(itemStatus.status in internalStatusMap)) {
 			internalStatusMap[itemStatus.status] = {};
@@ -1345,7 +1357,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		'success' : 'Done',
 		'failed' : 'Failed',
 		'pending' : 'Pending',
-		'waiting' : 'Waiting',
+		'waiting' : 'Locked',
 		'delayed' : 'Pending',
 		'started' : 'Started',
 		'partial_success': 'Partial success'

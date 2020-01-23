@@ -1,24 +1,25 @@
 <div class='row row-center padding-0 margin0'>
-    <div class='col padding-mid fsh4'>Mark  the learner ratings for {{selecteditem.name}}</div>
+    <div class='col padding0 fsh4'>Mark  the learner ratings for {{selecteditem.name}}</div>
     <div class='nl-link-text nl-button-highlight' ng-click='bulkRatingMarker($event)'>Mark all</div>
 </div>
 
-<table class='nl-table' style='min-width: 600px'>
+<table class='nl-table' style='min-width: 650px'>
     <tr>
-        <th>Learner Name</th>
-        <th>Learner Id</th>
-        <th style='width: 200px; min-width: 150px'>Rating</th>
-        <th>Remarks</th>
+        <th style='width: 150px;'>Learner Name</th>
+        <th style='width: 150px;'>Learner Id</th>
+        <th style='width: 150px; min-width: 150px'>Rating</th>
+        <th style='min-width: 200px'>Remarks</th>
     </tr>
     <tr class='{{(user.attrition || user.canRate !== "attended") ? "fgrey" : ""}}'
+        style='height:34px;'
         ng-repeat='user in selecteditem.rating'>
         <td>{{user.name}}</td>
         <td class='fsmall1'>{{user.userid}}</td>
-        <td style='width: 200px; min-width: 150px'>
+        <td>
             <div ng-if='!user.attrition && user.canRate == "attended" && selecteditem.ratingType === "select"'>
                 <select ng-model='user.rating'
                         ng-options='opt as opt.name for opt in selecteditem.ratingOptions track by opt.id'
-                        class='{{fieldcls}}'
+                        class='{{fieldcls}} w100'
                         autofocus=''
                         tabindex="{{tabindex}}"
                         style='min-height: 34px'
@@ -28,8 +29,6 @@
             <div ng-if='!user.attrition && user.canRate == "attended" && selecteditem.ratingType === "input"'>
                 <input type='number' ng-model='user.rating' min='0' max='100'></input>
             </div>
-            <div ng-if='user.attrition'>{{user.attritionStr || user.disableMarkingStr}}</div>
-            <div ng-if='user.canRate !== "attended" && !user.attrition'>{{user.errorStr}}</div>
         </td>
         <td>
             <div ng-if='!user.remarkOptions && !user.attrition && user.canRate === "attended"'>
@@ -59,6 +58,8 @@
                     </div>
                 </div>
             </div>
+            <div ng-if='user.attrition'>{{user.attritionStr || user.disableMarkingStr}}</div>
+            <div ng-if='!user.attrition && user.canRate !== "attended"'>{{user.errorStr}}</div>
         </td>
     </tr>
 </table>

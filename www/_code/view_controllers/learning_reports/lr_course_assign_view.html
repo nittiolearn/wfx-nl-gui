@@ -58,7 +58,7 @@
 	<div ng-if='selectedModule' class='col margin0 padding0'>
 		<div ng-if='chartInfo'>
 			<div class='row row-center margin0 padding0'>
-				<div class='col padding'>
+				<div class='col padding-mid'>
 					<div style='width: 150px; height: 150px'>
 						<canvas class='chart chart-doughnut'
 								style='height:150px; width:150px'
@@ -68,7 +68,7 @@
 						</canvas> 
 					</div>
 				</div>
-				<div class='col padding'>
+				<div class='col padding-mid'>
 					<table class='nl-table nl-table-styled'>
 						<tr ng-repeat='item in chartData'>
 							<td>{{item.name}}</td>
@@ -170,7 +170,7 @@
 					<th>
 						Status
 					</th>
-					<th ng-if='seletedModule.showScore'>
+					<th ng-if='selectedModule.showScore'>
 						Score
 					</th>
 					<th ng-if='selectedModule.showRemarks'>
@@ -188,7 +188,7 @@
 						{{user.statusStr}}
 					</td>
 					<td ng-if='selectedModule.showScore'>
-						{{user.score || '-'}}
+						{{user.score || '-'}} {{user.score ? '%' : ''}}
 					</td>
 					<td ng-if='selectedModule.showRemarks'>
 						{{user.remarks || ''}}

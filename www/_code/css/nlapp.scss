@@ -553,6 +553,16 @@ tr.summary {
   }
 }
 
+.nl-link-text-without-background {
+  cursor: pointer;
+  &, a, &:visited {
+    color: #000077;
+    text-decoration: none;
+  }
+  &:focus, &:active {
+    background-color: #FFFFFF;
+  }
+}
 .nl-link-text {
   &, a, &:visited {
     color: #000077;

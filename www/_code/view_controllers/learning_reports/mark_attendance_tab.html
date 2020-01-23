@@ -3,10 +3,10 @@
     <div class='nl-link-text nl-button-highlight' ng-click='bulkAttendanceMarker($event)'>Mark all</div>
 </div>
 <div class='row row-center padding0 margin0' ng-repeat='user in selecteditem["newAttendance"]'>
-    <div class='row row-center padding0 margin0 row-wrap {{user.attrition ? "fgrey" : ""}}'>
+    <div class='row row-center padding0 margin0 {{user.attrition ? "fgrey" : "row-wrap"}}'>
         <div ng-class='$root.respCol211'class='padding-mid'>
             <div class='row row-center padding0 margin0'>
-                <div class='col' >{{user.name}} <span class='fgrey'>({{user.userid}})</span></div>
+                <div class='col padding0' >{{user.name}} <span class='fgrey'>({{user.userid}})</span></div>
                 <div class='col padding0'>
                     <select ng-model='user.attendance' 
                             ng-if='!user.attrition'
@@ -17,11 +17,10 @@
                             style='min-height: 34px'
                             placeholder='"Write remarks"'>
                     </select>
-                    <span ng-if='user.attrition'>{{user.attritionStr || user.disableMarkingStr}}</span>
                 </div>
             </div>
         </div>
-        <div ng-class='$root.respCol211' class='padding-mid' ng-show='!user.remarkOptions && !user.attrition'>
+        <div ng-class='$root.respCol211' class='padding-mid' ng-if='!user.remarkOptions && !user.attrition'>
             <input type='text' ng-model='user.remarks' placeholder='Mention remarks for learner'></input>
         </div>
         <div ng-class='$root.respCol211' class='padding-mid' ng-if='user.remarkOptions && !user.attrition'>
@@ -32,6 +31,9 @@
                     tabindex="{{tabindex}}"
                     style='min-height: 34px'>
             </select>
+        </div>
+        <div ng-if='user.attrition' ng-class='$root.respCol211' class='padding-mid'>
+            <span>{{user.attritionStr || user.disableMarkingStr}}</span>
         </div>
     </div>
 </div>

@@ -19,7 +19,7 @@
         <th>Learner Id</th>
         <th>Remarks</th>
     </tr>
-    <tr class='{{user.attrition ? "fgrey" : "nl-link-text"}}'
+    <tr class='{{user.attrition ? "fgrey" : "nl-link-text-without-background"}}'
          ng-repeat='user in selecteditem.learnersList'
          ng-click='!user.attrition && toggleLearnerMilestone(user)'>
         <td>
