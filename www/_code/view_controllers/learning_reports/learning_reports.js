@@ -2102,7 +2102,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					remarks: nl.fmt.arrayToString(statusinfo.remarks || ''), 
 					attrition: attrition, attritionStr: attritionStr, disableMarkingStr: disableMarkingStr,
 					canRate: 'attended'};
-				if(ratingItem.previousILT) {
+				if(ratingItem.rating_type != 'rag' && ratingItem.previousILT) {
 					var iltStats = _sessionsDict[ratingItem.previousILT.id][repid];
 					if(iltStats.timePerc === '') {
 						_dict.canRate = 'pending';
