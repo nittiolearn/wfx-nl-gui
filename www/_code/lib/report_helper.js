@@ -179,6 +179,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             }
             if (cm.isReattempt && itemInfo.rawStatus != 'pending') ret.reattempt = true;
             _updateStatusToWaitingIfNeeded(cm, itemInfo, itemIdToInfo);
+            if((cm.hide_locked && itemInfo.status == 'waiting') || itemInfo.hideItem) continue;
             _updateUnlockedTimeStamp(cm, itemInfo, itemIdToInfo);
             _updateStatusToDelayedIfNeeded(cm, itemInfo);
             _updateStatistics(itemInfo, cm, ret);
@@ -348,7 +349,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     function _getRawStatusOfRating(cm, itemInfo) {
         var userCmRating = _userRatingDict[cm.id] || {};
         var grpRatingObj = _grpRatingDict[cm.rating_type];
-        if(_launchMode == 'learner' && grpRatingObj.hideRating) itemInfo.hideItem = true;
+        if(grpRatingObj.hideRating) itemInfo.hideItem = true;
         if (!grpRatingObj || !userCmRating || (!('attId' in userCmRating)) || userCmRating.attId === "") {
             itemInfo.score = null;
             itemInfo.rawStatus = 'pending';

@@ -985,6 +985,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
             return;
         }
         var itemInfo = itemIdToInfo[cm.id] || {};
+        cm.hideItem = (cm.hide_locked && itemInfo.status == 'waiting');
         if (cm.type === 'info' || cm.type === 'link' || cm.type === 'certificate') {
             _updateLinkData(cm, itemInfo);
         } else if (cm.type === 'iltsession') {
@@ -1064,6 +1065,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         else if (folderStat.started + folderStat.failed + folderStat.success > 0) status = 'started';
         else status = 'pending';
         _updateState(cm, status);
+        cm.hideItem = (folderStat.total == 0); //Hide the empty folder 
         cm.totalItems = folderStat.total;
         cm.completedItems = folderStat.completedItems;
     }
