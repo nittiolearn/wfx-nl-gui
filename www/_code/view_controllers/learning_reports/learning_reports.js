@@ -1479,7 +1479,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if(item.type == 'iltsession' || item.type == 'rating') iltAndRatingIds[item.id] = true;
 			if(item.type != 'milestone') continue; 
 			var _milestone = g_milestone[item.id] || {};
-			ret.push({id: item.id, earlierItemIds: angular.copy(iltAndRatingIds), canMarkMilestone:true,  milestoneNo:i, name:item.name, 
+			ret.push({id: item.id, hide_locked: item.hide_locked || false, earlierItemIds: angular.copy(iltAndRatingIds), canMarkMilestone:true,  milestoneNo:i, name:item.name, 
 						milestoneObj: {status: _milestone.status == 'done' ? true : false, comment:  _milestone.comment || '',
 						reached: _milestone.reached ? nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(_milestone.reached || ''), null, 'date') : '', updated: _milestone.updated ? nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(_milestone.updated || ''), null, 'date'): ''}, 
 						pendingIlts: [], pendingRatings: [], learnersList:[], attritedLearners:{}, learnersDict: _milestone.learnersDict || {}, unmarkedUsers: {}});
@@ -1498,12 +1498,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					var newAttendance = earlierSessions[j].newAttendance;
 					for(var k=0; k<newAttendance.length; k++) {
 						var userAttendance = newAttendance[k].attendance;
+						if(newAttendance[k].not_applicable) continue;
 						var groupAttendendanceObj = _attendanceObj[userAttendance.id] || {};
 						if(newAttendance[k].attrition || groupAttendendanceObj.isAttrition) {
 							_milestone.attritedLearners[newAttendance[k].userid] = newAttendance[k].attritionStr || groupAttendendanceObj.name;
 							continue;
 						}
-						if(userAttendance.id == "") {
+						if(userAttendance.id === "") {
 							_milestone.pendingIlts.push(earlierSessions[j].name);
 							_milestone.canMarkMilestone = false;
 							break;
@@ -1520,6 +1521,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					var _ratings = earlierItems[j].rating;
 					for(var k=0; k<_ratings.length; k++) {
 						var userRating = _ratings[k].rating;
+						if(_ratings[k].not_applicable) continue;
 						if(earlierItems[j].ratingType == 'select') userRating = userRating.id;
 						else if (earlierItems[j].ratingType != 'input') continue;
 						if(!userRating && userRating !== 0 && !_ratings[k].attrition && _ratings[k].canRate != 'not_attended') {
@@ -1536,12 +1538,22 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for(var key in learningRecords) {
 			var repid = parseInt(key);
 			var user = learningRecords[key].user;
+			var statusinfo = learningRecords[key].repcontent.statusinfo;
 			var userid = user.user_id;
 			for(var j=0; j<ret.length; j++) {
 				var item = ret[j];
+				var itemStatus = statusinfo[item.id];
 				var _markedMilestone = g_milestone[item.id] || {};
 				var _learnersDict = _markedMilestone.learnersDict || {};
-				var msUserObj = {id: repid, milestoneid: item.id, name: user.name, userid: userid}
+				var msUserObj = {id: repid, milestoneid: item.id, name: user.name, userid: userid};
+				//TODO-NAVEEN: Check this code after release
+				if(!(repid in disableMilestoneMarking) && !(userid in item.attritedLearners) 
+					&& (item.hide_locked && itemStatus.status == 'waiting')) {
+					msUserObj.attrition = true;
+					msUserObj.attritionStr = nl.t('Not applicable');
+					item.learnersList.push(msUserObj);
+					continue;
+				}
 				if (repid in disableMilestoneMarking) {
 					msUserObj.attrition = true;
 					msUserObj.attritionStr = nl.t('Earlier milestone for learner is not marked', item.attritedLearners[userid]);
@@ -1562,7 +1574,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 						msUserObj._remark = _markedMilestone.remarks;
 					}
 				}
-				if ((repid in _learnersDict) && (_learnersDict[repid].marked == "pending")) {
+				if ((repid in _learnersDict) && (_learnersDict[repid].marked == "pending")) { //code to disable marking individual learner if earlier item is not marked
 					disableMilestoneMarking[repid] = true;
 					item.unmarkedUsers[repid] = true;
 				}
@@ -1807,7 +1819,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				previousMilestoneIds[item.id] = true;
 			}
 			if(item.type != 'iltsession') continue; 
-			var dict = {id: item.id, name:item.name, sessionNo: i, newAttendance: [], canMarkAttendance: true, previousMs: angular.copy(previousMilestoneIds), attendanceOptions: _userInfo.groupinfo.attendance};
+			var dict = {id: item.id, hide_locked: item.hide_locked || false, name:item.name, sessionNo: i, newAttendance: [], canMarkAttendance: true, previousMs: angular.copy(previousMilestoneIds), attendanceOptions: _userInfo.groupinfo.attendance};
 			if(lastMilestone) {
 				var aboveMilestone = _getAboveMilestone(milestoneItems, lastMilestone.id);
 				if(!aboveMilestone.milestoneObj.status) {
@@ -1822,44 +1834,53 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var userAttendance = g_attendance[parseInt(key)] || [];
 			var user = learningRecords[key].user;
 			var stats = learningRecords[key].stats;
+			var statusinfo = learningRecords[key].repcontent.statusinfo;
 			var attritionStr = learningRecords[key].stats.attritionStr || '';
 			var disableMarkingStr = '';
 			var attrition = false;
 			var repid = parseInt(key);
 			for(var j=0; j<ret.length; j++) {
 				var notMarked = true;
-				if(!attrition) {
-					var  canMarkLearner = _canMarkLearner(milestoneItems, ret[j].previousMs, repid);
-					if(!canMarkLearner) {
-						attrition = true;
-						disableMarkingStr = nl.t('Earlier milestone for this learner is not marked');
+				var itemStatus = statusinfo[ret[j].id];
+				if(!attrition && ret[j].hide_locked && itemStatus.status == 'waiting') {
+					var attendanceObj = {id: repid, name: user.name, attendance: {id: ''}, userid: user.user_id, remarks: '', 
+										 disableMarkingStr: nl.t('Not applicable'), 
+										 canMarkLearner: false, not_applicable: true};
+					ret[j].newAttendance.push(attendanceObj);
+				} else {
+					if(!attrition) {
+						var  canMarkLearner = _canMarkLearner(milestoneItems, ret[j].previousMs, repid);
+						if(!canMarkLearner) {
+							attrition = true;
+							disableMarkingStr = nl.t('Earlier milestone for this learner is not marked');
+						}
 					}
-				}
-				for(var k=0; k<userAttendance.length; k++) {
-					if (ret[j].id == userAttendance[k].id) {
-						notMarked = false;
-						var name = userAttendance[k].attId in _attendanceObj ? _attendanceObj[userAttendance[k].attId].name : userAttendance[k].attId;
-						var attendanceObj = {id: repid, name: user.name, attendance: {id: userAttendance[k].attId, name: name}, 
-											remarks: userAttendance[k].remarks || '', userid: user.user_id, attrition: attrition, 
-											attritionStr: attritionStr, disableMarkingStr: disableMarkingStr}
+					for(var k=0; k<userAttendance.length; k++) {
+						if (ret[j].id == userAttendance[k].id) {
+							notMarked = false;
+							var name = userAttendance[k].attId in _attendanceObj ? _attendanceObj[userAttendance[k].attId].name : userAttendance[k].attId;
+							var attendanceObj = {id: repid, name: user.name, attendance: {id: userAttendance[k].attId, name: name}, 
+												remarks: userAttendance[k].remarks || '', userid: user.user_id, attrition: attrition, 
+												attritionStr: attritionStr, disableMarkingStr: disableMarkingStr, canMarkLearner: canMarkLearner}
+							if(_remarkOptions.length > 0) {
+								attendanceObj.remarkOptions = angular.copy(_remarkOptions);
+								attendanceObj.remarks = {name: userAttendance[k].remarks, id: userAttendance[k].remarks};
+							}
+							ret[j].newAttendance.push(attendanceObj);
+							break;
+						}
+					}
+					if(notMarked) {
+						var attendanceObj = {id: repid, name: user.name, attendance: {id: ''}, userid: user.user_id, remarks: '', 
+											 attrition: attrition, attritionStr: attritionStr, canMarkLearner: canMarkLearner};
 						if(_remarkOptions.length > 0) {
 							attendanceObj.remarkOptions = angular.copy(_remarkOptions);
-							attendanceObj.remarks = {name: userAttendance[k].remarks, id: userAttendance[k].remarks};
+							attendanceObj.remarks = {id: '', name: ''};
 						}
 						ret[j].newAttendance.push(attendanceObj);
-						break;
 					}
+					if(stats.attritedAt == ret[j].id) attrition = true;	
 				}
-				if(notMarked) {
-					var attendanceObj = {id: repid, name: user.name, attendance: {id: ''}, userid: user.user_id, remarks: '', 
-										 attrition: attrition, attritionStr: attritionStr, canMarkLearner: canMarkLearner};
-					if(_remarkOptions.length > 0) {
-						attendanceObj.remarkOptions = angular.copy(_remarkOptions);
-						attendanceObj.remarks = {id: '', name: ''};
-					}
-					ret[j].newAttendance.push(attendanceObj);
-				}
-				if(stats.attritedAt == ret[j].id) attrition = true;
 			}
 		}
 
@@ -2053,7 +2074,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}
 			if(item.type == 'iltsession') previousILTItem = content.modules[i]
 			if(item.type != 'rating') continue;
-			var dict = {id: item.id, name:item.name, rating_type: item.rating_type, rating: [], 
+			var dict = {id: item.id, hide_locked: item.hide_locked, name:item.name, rating_type: item.rating_type, rating: [], 
 						ratingOptions: [], remarkOptions: [], canMarkRating: true, previousMs: angular.copy(previousMilestoneIds)};
 			_checkAndUpdateRatingParams(dict);
 			if(lastMilestone) {
@@ -2091,53 +2112,60 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var attrition = (statusinfo.status == 'waiting' && statusinfo.isAttrition) || false;
 				var attritionStr = stats.attritionStr || '';
 				var disableMarkingStr = '';
-				if(!attrition) {
-					var canMarkLearner = _canMarkLearner(milestoneItems, ret[j].previousMs, repid);
-					if(!canMarkLearner) {
-						attrition = true;
-						disableMarkingStr = nl.t('Earlier milestone for this learner is not marked');
-					}
-				}
-				var _dict = {id: repid, name: user.name, userid: user.user_id,
-					remarks: nl.fmt.arrayToString(statusinfo.remarks || ''), 
-					attrition: attrition, attritionStr: attritionStr, disableMarkingStr: disableMarkingStr,
-					canRate: 'attended'};
-				if(ratingItem.rating_type != 'rag' && ratingItem.previousILT) {
-					var iltStats = _sessionsDict[ratingItem.previousILT.id][repid];
-					if(iltStats.timePerc === '') {
-						_dict.canRate = 'pending';
-						_dict.errorStr = nl.t('Attendance not marked.')
-					} else if (iltStats.timePerc === 0) {
-						_dict.canRate = 'not_attended';
-						_dict.errorStr = nl.t('Learner not attended')
-					} else {
-						_dict.canRate = 'attended';
-					}
-				}
-				if(statusinfo.status == 'pending') {
-					if(ret[j].ratingType == 'input') {
-						_dict.rating = null;
-						ret[j].rating.push(_dict);
-					} else if(ret[j].ratingType == 'select') {
-						_dict.rating = {id: ''};
-						if(ret[j].remarkOptions.length > 0) {
-							_dict['remarkOptions'] = angular.copy(ret[j].remarkOptions);
-							_updateSelectedRating(statusinfo.remarks, _dict['remarkOptions']);
-						}
-						ret[j].rating.push(_dict);
-					}
+				if(!attrition && ratingItem.hide_locked && statusinfo.status == 'waiting') {
+					var _dict = {id: repid, name: user.name, userid: user.user_id,
+								attrition: false, errorStr: nl.t('Not applicable'),
+								canRate: 'not_attended', not_applicable: true};					
+					ret[j].rating.push(_dict);
 				} else {
-					if(ret[j].ratingType == 'input') {
-						_dict.rating = statusinfo.origScore;
-						ret[j].rating.push(_dict);
-					} else if(ret[j].ratingType == 'select') {
-						_dict.rating = {id: statusinfo.origScore, name: statusinfo.rating};
-						if(ret[j].remarkOptions.length > 0) {
-							_dict['remarkOptions'] = angular.copy(ret[j].remarkOptions);
-							_updateSelectedRating(statusinfo.remarks, _dict['remarkOptions']);
+					if(!attrition) {
+						var canMarkLearner = _canMarkLearner(milestoneItems, ret[j].previousMs, repid);
+						if(!canMarkLearner) {
+							attrition = true;
+							disableMarkingStr = nl.t('Earlier milestone for this learner is not marked');
 						}
-						ret[j].rating.push(_dict);
 					}
+					var _dict = {id: repid, name: user.name, userid: user.user_id,
+						remarks: nl.fmt.arrayToString(statusinfo.remarks || ''), 
+						attrition: attrition, attritionStr: attritionStr, disableMarkingStr: disableMarkingStr,
+						canRate: 'attended'};
+					if(ratingItem.rating_type != 'rag' && ratingItem.previousILT) {
+						var iltStats = _sessionsDict[ratingItem.previousILT.id][repid];
+						if(iltStats.timePerc === '') {
+							_dict.canRate = 'pending';
+							_dict.errorStr = nl.t('Attendance not marked.')
+						} else if (iltStats.timePerc === 0) {
+							_dict.canRate = 'not_attended';
+							_dict.errorStr = nl.t('Learner not attended')
+						} else {
+							_dict.canRate = 'attended';
+						}
+					}
+					if(statusinfo.status == 'pending') {
+						if(ret[j].ratingType == 'input') {
+							_dict.rating = null;
+							ret[j].rating.push(_dict);
+						} else if(ret[j].ratingType == 'select') {
+							_dict.rating = {id: ''};
+							if(ret[j].remarkOptions.length > 0) {
+								_dict['remarkOptions'] = angular.copy(ret[j].remarkOptions);
+								_updateSelectedRating(statusinfo.remarks, _dict['remarkOptions']);
+							}
+							ret[j].rating.push(_dict);
+						}
+					} else {
+						if(ret[j].ratingType == 'input') {
+							_dict.rating = statusinfo.origScore;
+							ret[j].rating.push(_dict);
+						} else if(ret[j].ratingType == 'select') {
+							_dict.rating = {id: statusinfo.origScore, name: statusinfo.rating};
+							if(ret[j].remarkOptions.length > 0) {
+								_dict['remarkOptions'] = angular.copy(ret[j].remarkOptions);
+								_updateSelectedRating(statusinfo.remarks, _dict['remarkOptions']);
+							}
+							ret[j].rating.push(_dict);
+						}
+					}						
 				}
 			}
 		}

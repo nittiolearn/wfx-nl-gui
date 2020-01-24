@@ -3,13 +3,13 @@
     <div class='nl-link-text nl-button-highlight' ng-click='bulkAttendanceMarker($event)'>Mark all</div>
 </div>
 <div class='row row-center padding0 margin0' ng-repeat='user in selecteditem["newAttendance"]'>
-    <div class='row row-center padding0 margin0 {{user.attrition ? "fgrey" : "row-wrap"}}'>
+    <div class='row row-center padding0 margin0 {{(user.attrition || !user.canMarkLearner) ? "fgrey" : "row-wrap"}}'>
         <div ng-class='$root.respCol211'class='padding-mid'>
             <div class='row row-center padding0 margin0'>
                 <div class='col padding0' >{{user.name}} <span class='fgrey'>({{user.userid}})</span></div>
                 <div class='col padding0'>
                     <select ng-model='user.attendance' 
-                            ng-if='!user.attrition'
+                            ng-if='!user.attrition && user.canMarkLearner'
                             ng-options='opt as opt.name for opt in selecteditem.attendanceOptions track by opt.id'
                             class='w100 {{fieldcls}}'
                             autofocus=''
@@ -20,10 +20,10 @@
                 </div>
             </div>
         </div>
-        <div ng-class='$root.respCol211' class='padding-mid' ng-if='!user.remarkOptions && !user.attrition'>
+        <div ng-class='$root.respCol211' class='padding-mid' ng-if='!user.remarkOptions && !user.attrition && user.canMarkLearner'>
             <input type='text' ng-model='user.remarks' placeholder='Mention remarks for learner'></input>
         </div>
-        <div ng-class='$root.respCol211' class='padding-mid' ng-if='user.remarkOptions && !user.attrition'>
+        <div ng-class='$root.respCol211' class='padding-mid' ng-if='user.remarkOptions && !user.attrition && user.canMarkLearner'>
             <select ng-model='user.remarks' 
                     ng-options='opt as opt.name for opt in user.remarkOptions track by opt.id'
                     class='w100 {{fieldcls}}'
@@ -32,7 +32,7 @@
                     style='min-height: 34px'>
             </select>
         </div>
-        <div ng-if='user.attrition' ng-class='$root.respCol211' class='padding-mid'>
+        <div ng-if='user.attrition || !user.canMarkLearner' ng-class='$root.respCol211' class='padding-mid'>
             <span>{{user.attritionStr || user.disableMarkingStr}}</span>
         </div>
     </div>

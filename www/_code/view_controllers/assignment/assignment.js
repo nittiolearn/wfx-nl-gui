@@ -312,7 +312,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlGetManyStore, n
 				}
                 nlCardsSrv.updateCards($scope.cards, {cardlist: cardlist});
 				nlDlg.closeAll();
-				//_reloadFromServer(); TODO- CHECK later commented when delete assignment in batches is introduced. Uncomment if really required
+				//_reloadFromServer(); TODO-LATER commented when delete assignment in batches is introduced. Uncomment if really required
 			});
 		});
 	}

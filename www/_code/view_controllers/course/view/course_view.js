@@ -985,7 +985,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
             return;
         }
         var itemInfo = itemIdToInfo[cm.id] || {};
-        cm.hideItem = (cm.hide_locked && itemInfo.status == 'waiting');
+        cm.hideItem = (modeHandler.mode == MODES.DO || modeHandler.mode == MODES.REPORT_VIEW) && (cm.hide_locked && itemInfo.status == 'waiting');
         if (cm.type === 'info' || cm.type === 'link' || cm.type === 'certificate') {
             _updateLinkData(cm, itemInfo);
         } else if (cm.type === 'iltsession') {
