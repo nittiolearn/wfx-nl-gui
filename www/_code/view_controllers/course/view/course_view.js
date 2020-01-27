@@ -1027,7 +1027,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         cm.ratingStr = itemInfo.rating;
         cm.remarks = itemInfo.remarks || '';
         cm.marked = itemInfo.marked || '-';
-        cm.hideItem = itemInfo.hideItem || false;
+        cm.hideItem = ((modeHandler.mode == MODES.DO || modeHandler.mode == MODES.REPORT_VIEW) && itemInfo.hideItem) || false;
     }
 
     function _updateMilestoneData(cm, itemInfo) {

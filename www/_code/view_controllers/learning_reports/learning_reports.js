@@ -1341,11 +1341,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					if (itemStatus.status == 'success') recordItem.statusStr = 'Passed';
 				}
 			} else if (cm.type == 'milestone') {
-				recordItem.remarks = itemStatus.remarks || '';
-				if (itemStatus.status == 'success') recordItem.statusStr = 'Achieved';
+				if (itemStatus.status == 'success' || itemStatus.status == 'pending') {
+					recordItem.statusStr = 'Achieved';
+					recordItem.remarks = itemStatus.remarks || '';
+				}
 			}
 		}
-		if (cm.showRemarks) recordItem.remarks = itemStatus.remarks;
+		if (cm.showRemarks && cm.type != 'milestone') recordItem.remarks = itemStatus.remarks;
 
 		if (!(itemStatus.status in internalStatusMap)) {
 			internalStatusMap[itemStatus.status] = {};
@@ -1540,6 +1542,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var user = learningRecords[key].user;
 			var statusinfo = learningRecords[key].repcontent.statusinfo;
 			var userid = user.user_id;
+			var attritionStr = '';
 			for(var j=0; j<ret.length; j++) {
 				var item = ret[j];
 				var itemStatus = statusinfo[item.id];
@@ -1547,7 +1550,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var _learnersDict = _markedMilestone.learnersDict || {};
 				var msUserObj = {id: repid, milestoneid: item.id, name: user.name, userid: userid};
 				//TODO-NAVEEN: Check this code after release
-				if(!(repid in disableMilestoneMarking) && !(userid in item.attritedLearners) 
+				if(!(repid in disableMilestoneMarking) && !itemStatus.iAttrition
 					&& (item.hide_locked && itemStatus.status == 'waiting')) {
 					msUserObj.attrition = true;
 					msUserObj.attritionStr = nl.t('Not applicable');
@@ -1556,9 +1559,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				}
 				if (repid in disableMilestoneMarking) {
 					msUserObj.attrition = true;
-					msUserObj.attritionStr = nl.t('Earlier milestone for learner is not marked', item.attritedLearners[userid]);
+					msUserObj.attritionStr = nl.t('Earlier milestone for learner is not marked');
 					item.unmarkedUsers[repid] = true;
-				} else if(userid in item.attritedLearners) {
+				} else if(itemStatus.isAttrition) {
 					msUserObj.attrition = true;
 					msUserObj.attritionStr = nl.t('Learner {} earlier, milestone marking is disabled', item.attritedLearners[userid]);
 				} else {
