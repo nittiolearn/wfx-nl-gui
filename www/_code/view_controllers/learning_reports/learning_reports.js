@@ -1341,10 +1341,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					if (itemStatus.status == 'success') recordItem.statusStr = 'Passed';
 				}
 			} else if (cm.type == 'milestone') {
-				if (itemStatus.status == 'success' || itemStatus.status == 'pending') {
-					recordItem.statusStr = 'Achieved';
+				if (itemStatus.status == 'success') recordItem.statusStr = 'Achieved';
+				if (itemStatus.status == 'success' || itemStatus.status == 'pending')
 					recordItem.remarks = itemStatus.remarks || '';
-				}
 			}
 		}
 		if (cm.showRemarks && cm.type != 'milestone') recordItem.remarks = itemStatus.remarks;
@@ -1507,6 +1506,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 							continue;
 						}
 						if(userAttendance.id === "") {
+							if(_milestone.milestoneObj.status) _milestone.unmarkedUsers[newAttendance[k].userid] = 'Earlier items not marked';
 							_milestone.pendingIlts.push(earlierSessions[j].name);
 							_milestone.canMarkMilestone = false;
 							break;
@@ -1525,8 +1525,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 						var userRating = _ratings[k].rating;
 						if(_ratings[k].not_applicable) continue;
 						if(earlierItems[j].ratingType == 'select') userRating = userRating.id;
-						else if (earlierItems[j].ratingType != 'input') continue;
+						else if (earlierItems[j].rating_type == 'rag') continue;
 						if(!userRating && userRating !== 0 && !_ratings[k].attrition && _ratings[k].canRate != 'not_attended') {
+							if(_milestone.milestoneObj.status) _milestone.unmarkedUsers[_ratings[k].id] = 'Earlier items not marked';
 							ret[i].pendingRatings.push(earlierItems[j].name);
 							ret[i].canMarkMilestone = false;
 							break;	
@@ -1542,7 +1543,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var user = learningRecords[key].user;
 			var statusinfo = learningRecords[key].repcontent.statusinfo;
 			var userid = user.user_id;
-			var attritionStr = '';
 			for(var j=0; j<ret.length; j++) {
 				var item = ret[j];
 				var itemStatus = statusinfo[item.id];
@@ -1557,6 +1557,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					item.learnersList.push(msUserObj);
 					continue;
 				}
+				if(repid in item.unmarkedUsers) {
+					disableMilestoneMarking[repid] = true;
+					msUserObj.attrition = true;
+					msUserObj.attritionStr = item.unmarkedUsers[repid];
+					item.learnersList.push(msUserObj);
+					continue;
+				}
 				if (repid in disableMilestoneMarking) {
 					msUserObj.attrition = true;
 					msUserObj.attritionStr = nl.t('Earlier milestone for learner is not marked');
@@ -1568,13 +1575,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					if (repid in _learnersDict) {
 						msUserObj.marked = _learnersDict[repid].marked == 'done' ? true : false;
 						msUserObj.remarks = _learnersDict[repid].remarks;
-						msUserObj._remark = _learnersDict[repid].remarks;
 						msUserObj._updated =_learnersDict[repid].updated;
 						msUserObj._reached =_learnersDict[repid].reached;
 					} else {
 						msUserObj.marked = _markedMilestone.status == 'done' ? true : false;
 						msUserObj.remarks = '';
-						msUserObj._remark = _markedMilestone.remarks;
 					}
 				}
 				if ((repid in _learnersDict) && (_learnersDict[repid].marked == "pending")) { //code to disable marking individual learner if earlier item is not marked
@@ -1735,7 +1740,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for(var i=0; i<currentSessionAttendance.length; i++) {
 			var userSession = currentSessionAttendance[i];
 			var attendance = userSession.attendance;
-			if(attendance.id == "" && !userSession.attrition) {
+			if(attendance.id == "") {
+				if(!userSession.attrition && !userSession.not_applicable)
 				return {status: false, msg: msg};
 			}
 		}

@@ -165,9 +165,15 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         var latestCustomStatus = '';
         var defaultCourseStatus = 'pending';
         var isAttrition = false;
+        var earlierAttendance = null;
+        var earlierRating = null;
+        var earlierMilestone = null;
         for(var i=0; i<_modules.length; i++) {
             var cm = _modules[i];
             var itemInfo = {};
+            if (cm.type == 'iltsession') earlierAttendance = cm;
+            if (cm.type == 'rating' && cm.rating_type != 'rag') earlierRating = cm;
+            if (cm.type == 'milestone') earlierMilestone = cm;
             if (cm.isReattempt) ret['reattempt'] = false;
             itemIdToInfo[cm.id] = itemInfo;
             _getRawStatusOfItem(cm, itemInfo, itemIdToInfo);
@@ -179,7 +185,12 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             }
             if (cm.isReattempt && itemInfo.rawStatus != 'pending') ret.reattempt = true;
             _updateStatusToWaitingIfNeeded(cm, itemInfo, itemIdToInfo);
-            if((cm.hide_locked && itemInfo.status == 'waiting') || itemInfo.hideItem) continue;
+            // TODO-NOW: Similar implementation of how the trainer does.
+            //_updateItemToLocked(cm, itemInfo, itemIdToInfo, earlierAttendance, earlierRating, earlierMilestone); 
+            if((cm.hide_locked && itemInfo.status == 'waiting') || itemInfo.hideItem) {
+                itemInfo.hideItem = true;
+                continue;
+            }
             _updateUnlockedTimeStamp(cm, itemInfo, itemIdToInfo);
             _updateStatusToDelayedIfNeeded(cm, itemInfo);
             _updateStatistics(itemInfo, cm, ret);
@@ -207,6 +218,24 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         ret.feedbackScore = _getFeedbackScoreForCourse(_lessonReports);
         ret.feedbackScore = ret.feedbackScore ? '' + Math.round(ret.feedbackScore*10)/10 + '%' : '';
         return ret;
+    }
+
+    function _updateItemToLocked(cm, itemInfo, itemIdToInfo, earlierAttendance, earlierRating, earlierMilestone) {
+        if(cm.type != 'iltsession' || cm.type != 'rating' || cm.type != 'milestone') return;
+        if(earlierAttendance) {
+            var previousIlt = itemIdToInfo[earlierAttendance.id];
+            if(previousIlt.status === 'pending' || previousIlt.score === 0) itemInfo.status = 'waiting';
+        }
+
+        if(earlierRating) {
+            var previousRating = itemIdToInfo[earlierRating.id];
+            if(previousRating.status === 'pending' || previousRating.score === '') itemInfo.status = 'waiting';
+        }
+
+        if(earlierMilestone) {
+            var previousMilestone = itemIdToInfo[earlierMilestone.id];
+            if(previousMilestone.status === 'pending' || previousMilestone.score === '') itemInfo.status = 'waiting';
+        }
     }
 
     function _getRawStatusOfItem(cm, itemInfo, itemIdToInfo) {

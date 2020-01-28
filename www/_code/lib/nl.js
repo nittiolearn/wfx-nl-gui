@@ -218,10 +218,10 @@ function Formatter() {
         return ret;
     };
 
-
-    this.date2StrDDMMYY = function(d, accuracy) {
-        if (accuracy === undefined) accuracy = 'minute';
-        return  _fmt2Impl('{}-{}-{}', [_pad2(d.getDate()), _pad2(d.getMonth()+1), d.getFullYear()]);
+    var monthObj = {1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun', 7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'};
+    this.date2StrDDMMYY = function(d) {
+        if (!d) return '';
+        return  _fmt2Impl('{}-{}-{}', [_pad2(d.getDate()), monthObj[d.getMonth()+1], d.getFullYear()]);
     };
 
     this.date2UtcStr = function(d, accuracy) {

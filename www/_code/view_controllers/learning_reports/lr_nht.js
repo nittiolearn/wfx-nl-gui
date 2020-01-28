@@ -69,6 +69,9 @@ function(nl, nlReportHelper, nlGetManyStore) {
         statsCountObj['batchid'] = record.raw_record.assignment;
         if(record.user.state == 0) {
             statsCountObj['cntInactive'] = 1;
+            statsCountObj['attrition'] = 1;
+            statsCountObj['percScore'] = record.stats.percScore;
+
         } else {
             _updateActiveStatusCounts(record, statsCountObj);
         }

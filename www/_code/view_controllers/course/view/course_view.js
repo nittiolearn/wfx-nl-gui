@@ -985,7 +985,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
             return;
         }
         var itemInfo = itemIdToInfo[cm.id] || {};
-        cm.hideItem = (modeHandler.mode == MODES.DO || modeHandler.mode == MODES.REPORT_VIEW) && (cm.hide_locked && itemInfo.status == 'waiting');
+        cm.hideItem = (modeHandler.mode == MODES.DO || modeHandler.mode == MODES.REPORT_VIEW) && itemInfo.hideItem;
         if (cm.type === 'info' || cm.type === 'link' || cm.type === 'certificate') {
             _updateLinkData(cm, itemInfo);
         } else if (cm.type === 'iltsession') {
@@ -1027,7 +1027,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         cm.ratingStr = itemInfo.rating;
         cm.remarks = itemInfo.remarks || '';
         cm.marked = itemInfo.marked || '-';
-        cm.hideItem = ((modeHandler.mode == MODES.DO || modeHandler.mode == MODES.REPORT_VIEW) && itemInfo.hideItem) || false;
     }
 
     function _updateMilestoneData(cm, itemInfo) {
@@ -1065,7 +1064,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         else if (folderStat.started + folderStat.failed + folderStat.success > 0) status = 'started';
         else status = 'pending';
         _updateState(cm, status);
-        cm.hideItem = (folderStat.total == 0); //Hide the empty folder 
+        cm.hideItem = (folderStat.total == 0 || folderStat.total == folderStat.waiting); //Hide the empty folder 
         cm.totalItems = folderStat.total;
         cm.completedItems = folderStat.completedItems;
     }

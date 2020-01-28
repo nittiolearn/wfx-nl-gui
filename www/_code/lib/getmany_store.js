@@ -148,8 +148,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
             if(!mstype) continue;
             var plannedMs = plannedMsInfo['milestone_'+item.id] || '';
             var actualMs = actualMsInfo[item.id] || {};
-            ret[mstype+'planned'] = nl.fmt.fmtDateDelta(plannedMs, null, 'minutes');
-            ret[mstype+'actual'] = nl.fmt.fmtDateDelta(actualMs.reached || '', null, 'minutes');
+            ret[mstype+'planned'] = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(plannedMs || '', 'date'));
+            ret[mstype+'actual'] = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(actualMs.reached || '', 'date'));
             if (!actualMs.reached) allMilestonesReached = false;
             var grpMileStoneObj = grpMilestoneDict[mstype];
             if (actualMs.reached && grpMileStoneObj && grpMileStoneObj.batch_status)

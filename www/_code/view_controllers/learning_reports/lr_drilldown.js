@@ -111,6 +111,7 @@ function(nlReportHelper) {
             return;
         }
         statsCountObj['doneInactive'] = 1;
+        statsCountObj['percScore'] = record.stats.percScore;
 	}
 
 	function _updateActiveStatusCounts(record, statsCountObj) {
