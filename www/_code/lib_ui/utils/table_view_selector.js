@@ -250,6 +250,7 @@
             _updateCurrentView();
             var serverViewsOld = _arrayToDict(_groupSettings.get($scope.config.tableType));
             var guiViews = _arrayToDict(_dlg.scope.views);
+            var lastSelectedView = angular.copy(_dlg.scope.selectedView);
             nl.timeout(function() {
                 nlDlg.showLoadingScreen();
                 _groupSettings.reload($scope.config.tableType, function(serverViewsLatest) {
@@ -268,6 +269,12 @@
                     serverViewsLatest = _dictToSortedArray(serverViewsLatest);
                     _groupSettings.update($scope.config.tableType, serverViewsLatest)
                     .then(function() {
+                        for(var i=0; i<serverViewsLatest.length; i++) {
+                            if(lastSelectedView.id == serverViewsLatest[i].id) {
+                                $scope.onOptionSelect(serverViewsLatest[i]);
+                                break;
+                            }
+                        }
                         nlDlg.hideLoadingScreen();
                     });
                 });

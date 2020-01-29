@@ -1,7 +1,7 @@
 <div class='margin0 padding0' style='padding-bottom: 3px;'>
     <div class='row row-center margin0 padding-small bgblue fwhite'>
         <div class='col nht-col1-w fsh5'>{{nht.tableTitle}}</div>
-        <div ng-repeat='col in nht.columns track by $index'
+        <div ng-repeat='col in nht.selectedColumns track by $index'
             class='minw-number text-center' ng-if='col.canShow && ($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
             <div class='{{col.styleTd}}'>{{col.name}}</div>
         </div>
@@ -22,7 +22,7 @@
                 </span> 
             </div>
         </div>
-        <div ng-repeat='col in nht.columns track by $index'
+        <div ng-repeat='col in nht.selectedColumns track by $index'
             class='minw-number text-center'  ng-if='col.canShow && ($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
             <div class='row row-center {{!col.hidePerc ? "text-right" : "text-center"}}'>
                 <div class='col'>{{rec[col.id] || '-'}}</div>

@@ -149,10 +149,14 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
             var plannedMs = plannedMsInfo['milestone_'+item.id] || '';
             var actualMs = actualMsInfo[item.id] || {};
             ret[mstype+'planned'] = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(plannedMs || '', 'date'));
+            if (!allMilestonesReached) continue;
+            if(!actualMs.reached || actualMs.status != 'done') {
+                allMilestonesReached = false;
+                continue;
+            }
             ret[mstype+'actual'] = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(actualMs.reached || '', 'date'));
-            if (!actualMs.reached) allMilestonesReached = false;
             var grpMileStoneObj = grpMilestoneDict[mstype];
-            if (actualMs.reached && grpMileStoneObj && grpMileStoneObj.batch_status)
+            if (grpMileStoneObj && grpMileStoneObj.batch_status)
                 ret.batchStatus = grpMileStoneObj.batch_status;
         }
         if (allMilestonesReached) ret.batchStatus = 'Closed';

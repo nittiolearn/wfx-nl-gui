@@ -13,7 +13,6 @@ var NlLrNhtSrv = ['nl','nlReportHelper', 'nlGetManyStore',
 function(nl, nlReportHelper, nlGetManyStore) {
     var _orgToSubOrgDict = {};
     var nhtCounts = null;
-    var _attritionObj = {};
     this.init = function(nlGroupInfo) {
         nhtCounts = new NhtCounts(nl, nlGetManyStore, nlGroupInfo);
         _orgToSubOrgDict = nlGroupInfo.getOrgToSubOrgDict();
@@ -21,19 +20,12 @@ function(nl, nlReportHelper, nlGetManyStore) {
     };
 
     this.clearStatusCountTree = function() {
-        _attritionObj = {};
         nhtCounts.clear();
     };
 
     this.getStatsCountDict = function() {
         return nhtCounts.statsCountDict();
     };
-
-    // TODO-LATER: Remove if not used
-    this.getAttritionArray = function() {
-        var array = _getSortedArrayFromObj(_attritionObj);
-        return array;
-    }
 
     this.addCount = function(record) {
         var assignment = record.raw_record.assignment;
@@ -67,14 +59,7 @@ function(nl, nlReportHelper, nlGetManyStore) {
         var statsCountObj = {};
         statsCountObj['cntTotal'] = 1;
         statsCountObj['batchid'] = record.raw_record.assignment;
-        if(record.user.state == 0) {
-            statsCountObj['cntInactive'] = 1;
-            statsCountObj['attrition'] = 1;
-            statsCountObj['percScore'] = record.stats.percScore;
-
-        } else {
-            _updateActiveStatusCounts(record, statsCountObj);
-        }
+        _updateActiveStatusCounts(record, statsCountObj);
         statsCountObj['delayDays'] = record.stats.delayDays || 0;
         statsCountObj['customScores'] = record.stats.customScores || [];
         return statsCountObj;
@@ -85,20 +70,20 @@ function(nl, nlReportHelper, nlGetManyStore) {
         var status = stats.status;
         var statusStr = status['txt'];
         statsCountObj['cntActive'] = 1;
+
         if(status.id == nlReportHelper.STATUS_PENDING) {
-            statsCountObj['pending'] = 1;
+            if(record.user.state != 0) statsCountObj['pending'] = 1;
+            else statsCountObj['attrition'] = 1; 
             return;
         }
         if(statusStr.indexOf('attrition') == 0) {
             statsCountObj[statusStr] = 1;
             statsCountObj['attrition'] = 1;
-            if(!(statusStr in _attritionObj))
-                _attritionObj[statusStr] = record.stats.progressPerc;
             return;
         }
         if (status.id != nlReportHelper.STATUS_STARTED) {
-            statsCountObj['completed'] = 1;
             statsCountObj['percScore'] = record.stats.percScore;
+            statsCountObj['completed'] = 1;
             if(status.id == nlReportHelper.STATUS_FAILED) {
                 statsCountObj['failed'] = 1;
                 return;
@@ -110,24 +95,7 @@ function(nl, nlReportHelper, nlGetManyStore) {
             else statsCountObj['certifiedFirstAttempt'] = 1;
         }
         statsCountObj[statusStr] = 1;
-    }
-
-    function _getSortedArrayFromObj(dict) {
-        var items = Object.keys(dict).map(function(key) {
-                return [key, dict[key]];
-            });
-          
-        items.sort(function(first, second) {
-            if(first[1] < second[1]) return 1;
-            if(first[1] > second[1]) return -1;
-            if(first[1] == second[1]) return 0;
-        });
-        var ret = [];
-        for(var i=0; i<items.length; i++) {
-            var array = items[i];
-            ret.push(array[0]);
-        }
-        return ret;
+        if(record.user.state == 0) statsCountObj['attrition'] = 1;
     }
 }];
 

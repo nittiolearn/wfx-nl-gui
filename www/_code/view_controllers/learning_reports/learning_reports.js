@@ -1005,11 +1005,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_nhtStatsDict = nlLrNht.getStatsCountDict();
 		_initNhtColumns();
 		var tableTitle = $scope.tabData.filter.closed_batches ? 'Closed Batches' : 'Running Batches';
-		$scope.nhtInfo = {columns: _nhtColumns, tableTitle: tableTitle, rows: _generateDrillDownArray(true, _nhtStatsDict, false, (nlLrFilter.getType() == "course_assign"))};
+		$scope.nhtInfo = {columns: _nhtColumns, selectedColumns: _selectedColumns || _nhtColumns, tableTitle: tableTitle, rows: _generateDrillDownArray(true, _nhtStatsDict, false, (nlLrFilter.getType() == "course_assign"))};
 	}
 
+	var _selectedColumns = null;
 	function _initNhtColumns() {
-		_nhtColumns = _getNhtColumns();
+		_nhtColumns = _getNhtColumns();		
 		_updateNhtColumns();
         $scope.nhtViewSelectorConfig = {
             canEdit: nlRouter.isPermitted(_userInfo, 'assignment_manage'),
@@ -1017,6 +1018,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
             allColumns: _nhtColumns,
             onViewChange: function(selectedColumns) {
 				_nhtColumnsSelectedInView = {};
+				_selectedColumns = selectedColumns;
 				for(var i=0; i<selectedColumns.length; i++) {
 					var col = selectedColumns[i];
 					_nhtColumnsSelectedInView[col.id] = true;
@@ -1039,11 +1041,22 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}
 			col.canShow = !_nhtColumnsSelectedInView || _nhtColumnsSelectedInView[col.id];
 		}
+		if(_selectedColumns) {
+			for(var i=0; i<_selectedColumns.length; i++) {
+				var col = _selectedColumns[i];
+				var notApplicable = isClosedBatches && col.showIn == 'running' ||
+					!isClosedBatches && col.showIn == 'closed';
+				if (notApplicable) {
+					col.canShow = false;
+					continue;
+				}
+				col.canShow = !_nhtColumnsSelectedInView || _nhtColumnsSelectedInView[col.id];
+			}	
+		}
 	}
 
 	function _getNhtColumns() {
 		var columns = [];
-		var attrition = nlLrNht.getAttritionArray();
 		_customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
 		var etmUserStates = _groupInfo.props.etmUserStates || [];
 		var milestones = _groupInfo.props.milestones || [];
@@ -1054,7 +1067,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push({id: 'partner', name: 'Partner', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'lob', name: 'LOB', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 
-		for(var i=0; i<etmUserStates.length; i++) {
+		for(var i=0; i<etmUserStates.length-1; i++) {
 			var userState = etmUserStates[i];
 			columns.push({id: 'attrition-' + userState.id, 
 				name: 'Attrition during ' + userState.name, hidePerc:true, table: true, showAlways: true});
@@ -1212,8 +1225,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var nameArray = name.split('-');
 		var first = nameArray[0].trim();
 		var firstletter = first.charAt(0).toUpperCase();
+		nameArray.splice(0, 1);
+		var statusStr = nameArray.join('-');
 		var newString = firstletter+first.substring(1);
-			newString = newString+' during '+statusDict[nameArray[1]];
+			newString = newString+' during '+statusDict[statusStr];
 		return newString;
 	}
 
@@ -1637,7 +1652,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var oldMilestoneObj = learnersDict[repid] || {};
 		if(!oldMilestoneObj.marked) oldMilestoneObj['marked'] = '';
 		if(!oldMilestoneObj.remarks) oldMilestoneObj['remarks'] = '';
-		var newStatus = updatedLearnerMilestone.marked ? 'done' : updatedLearnerMilestone.marked == '' ? '' : 'pending';
+		var newStatus = updatedLearnerMilestone.marked ? 'done' : 'pending';
 		var reached = oldMilestoneObj.reached || null;
 		if(updatedLearnerMilestone.marked && oldMilestoneObj.marked != newStatus) reached = new Date();
 		var updated = oldMilestoneObj.updated || !(repid in learnersDict) ? new Date() : null;
@@ -1684,6 +1699,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					return;	
 				}
 			}
+			session.canMarkAttendance = true;
 			markAttendanceDlg.scope.selectedSession = session;
 		};
 		
@@ -1704,7 +1720,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				for(var j=0; j<session.newAttendance.length; j++) {
 					var userSessionAttendance = session.newAttendance[j];
 					if(userSessionAttendance.attendance.id == '' && userSessionAttendance.remarks == '') continue;
-					if(!_validateAttendance(userSessionAttendance)) {
+					if(session.canMarkAttendance && !_validateAttendance(userSessionAttendance)) {
 						nlDlg.popupAlert({title: 'Error', template: nl.t('Remarks mandatory for {} of {}', userSessionAttendance.name, session.name)});
 						return;
 					}
@@ -1740,8 +1756,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for(var i=0; i<currentSessionAttendance.length; i++) {
 			var userSession = currentSessionAttendance[i];
 			var attendance = userSession.attendance;
-			if(attendance.id == "") {
-				if(!userSession.attrition && !userSession.not_applicable)
+			if(attendance.id == "" && userSession.canMarkLearner) {
+				if(!userSession.attrition && !userSession.not_applicable && userSession.canMarkLearner)
 				return {status: false, msg: msg};
 			}
 		}
@@ -1755,7 +1771,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			for(var j=0; j<session.newAttendance.length; j++) {
 				var userSession = session.newAttendance[j];
 				var attendance = userSession.attendance;
-				if(attendance.id == "" && !userSession.attrition) pendingSession = session;
+				if(attendance.id == "" && !userSession.attrition && !userSession.not_applicable && userSession.canMarkLearner) pendingSession = session;
 			}
 			if(pendingSession) break;
 		}
@@ -1834,7 +1850,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				if(!aboveMilestone.milestoneObj.status) {
 					dict.canMarkAttendance = false;
 					dict.error = aboveMilestone.name;
-				}	
+				};
 			}
 			ret.push(dict);
 		}
@@ -1968,8 +1984,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					var userRating = ratingItem.rating[j];
 					if(ratingItem.ratingType == 'input' && ((userRating.rating != 0 && (!userRating.rating || userRating.rating === null)) && !userRating.remarks)) continue;
 					if(ratingItem.ratingType == 'select' && ((userRating.rating.id != 0 && !userRating.rating.id) && !userRating.remarks)) continue;
-					if(ratingItem.ratingType == 'select' && (userRating.remarkOptions && userRating.remarkOptions.length > 0)) {
-						if(!_validateRating(userRating)) {
+					if(ratingItem.rating_type == 'rag' && (userRating.remarkOptions && userRating.remarkOptions.length > 0)) {
+						if(userRating.canRate == 'attended' && !_validateRating(userRating)) {
 							return nlDlg.popupAlert({title: 'Validation error', template: nl.t('Remarks mandatory for {} of {}', userRating.name, ratingItem.name)})
 						}
 					}
@@ -2083,7 +2099,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}
 			if(item.type == 'iltsession') previousILTItem = content.modules[i]
 			if(item.type != 'rating') continue;
-			var dict = {id: item.id, hide_locked: item.hide_locked, name:item.name, rating_type: item.rating_type, rating: [], 
+			var dict = {id: item.id, hide_locked: item.hide_locked, name:item.name, rating_type: item.rating_type, rating: [],
 						ratingOptions: [], remarkOptions: [], canMarkRating: true, previousMs: angular.copy(previousMilestoneIds)};
 			_checkAndUpdateRatingParams(dict);
 			if(lastMilestone) {
@@ -2124,7 +2140,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				if(!attrition && ratingItem.hide_locked && statusinfo.status == 'waiting') {
 					var _dict = {id: repid, name: user.name, userid: user.user_id,
 								attrition: false, errorStr: nl.t('Not applicable'),
-								canRate: 'not_attended', not_applicable: true};					
+								canRate: 'not_attended', not_applicable: true};
 					ret[j].rating.push(_dict);
 				} else {
 					if(!attrition) {
