@@ -236,7 +236,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
     function _updateRatingtoLocked(cm, itemInfo, itemIdToInfo, earlierAttendance, earlierMilestone) {
         if(cm.type != 'rating') return;
-        if(earlierAttendance) {
+        if(earlierAttendance && cm.rating_type != 'rag') {
             var previousIlt = itemIdToInfo[earlierAttendance.id];
             if(previousIlt.rawStatus === 'pending' || !previousIlt.score) itemInfo.status = 'waiting';
         }
@@ -404,7 +404,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     function _getRawStatusOfRating(cm, itemInfo) {
         var userCmRating = _userRatingDict[cm.id] || {};
         var grpRatingObj = _grpRatingDict[cm.rating_type];
-        if(grpRatingObj.hideRating) itemInfo.hideItem = true;
+        if(_launchMode == 'learner' && grpRatingObj.hideRating) itemInfo.hideItem = true;
         itemInfo.remarks = userCmRating.remarks || '';
         if (!grpRatingObj || !userCmRating || (!('attId' in userCmRating)) || userCmRating.attId === "") {
             itemInfo.score = null;

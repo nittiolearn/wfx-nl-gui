@@ -439,14 +439,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if(selectedId == 'drilldown') {
 			$scope.drillDownInfo = {columns: _drillDownColumns, rows: _generateDrillDownArray(false, _statsCountDict, true)};
 		} else {
-			$scope.nhtInfo = {columns: _nhtColumns, tableTitle: tableTitle, rows: _generateDrillDownArray(false, _nhtStatsDict, false, (nlLrFilter.getType() == "course_assign"))};
+			$scope.nhtInfo = {columns: _nhtColumns, selectedColumns: _selectedColumns || _nhtColumns, tableTitle: tableTitle, rows: _generateDrillDownArray(false, _nhtStatsDict, false, (nlLrFilter.getType() == "course_assign"))};
 		}
-	};
-
-	$scope.generateBatchDataArray = function(item) {
-		if(!item.isFolder) return;
-		item.isOpen = !item.isOpen;
-		_generateBatchDataArray(false);
 	};
 
 	function _getContentOfCourseAssignment() {
@@ -1321,6 +1315,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					moduleInfo.internalStatusToStatusStrs[statusId].push(statusDispName);
 				}
 			}
+			moduleInfo.records.sort(function(a, b) {
+				if(b.name.toLowerCase() < a.name.toLowerCase()) return 1;
+				if(b.name.toLowerCase() > a.name.toLowerCase()) return -1;
+				if(b.name.toLowerCase() == a.name.toLowerCase()) return 0;				
+			});
 			return moduleInfo;
 		});
 	}
@@ -1350,7 +1349,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				recordItem.statusStr = itemStatus.state;
 			} else if (cm.type == 'rating') {
 				itemStatus.remarks = nl.fmt.arrayToString(itemStatus.remarks);
-				if (itemStatus.ratingString) {
+				if (itemStatus.ratingString && itemStatus.status != 'waiting' && itemStatus.status != 'delayed') {
 					recordItem.statusStr = itemStatus.rating;
 				} else {
 					if (itemStatus.status == 'success') recordItem.statusStr = 'Passed';
@@ -1699,7 +1698,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					return;	
 				}
 			}
-			session.canMarkAttendance = true;
 			markAttendanceDlg.scope.selectedSession = session;
 		};
 		
@@ -1844,7 +1842,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				previousMilestoneIds[item.id] = true;
 			}
 			if(item.type != 'iltsession') continue; 
-			var dict = {id: item.id, hide_locked: item.hide_locked || false, name:item.name, sessionNo: i, newAttendance: [], canMarkAttendance: true, previousMs: angular.copy(previousMilestoneIds), attendanceOptions: _userInfo.groupinfo.attendance};
+			var dict = {id: item.id, hide_locked: item.hide_locked || false, name:item.name, sessionNo: i, newAttendance: [], canMarkAttendance: true, previousMs: angular.copy(previousMilestoneIds), attendanceOptions: _userInfo.groupinfo.attendance, canMarkAttendance: true};
 			if(lastMilestone) {
 				var aboveMilestone = _getAboveMilestone(milestoneItems, lastMilestone.id);
 				if(!aboveMilestone.milestoneObj.status) {

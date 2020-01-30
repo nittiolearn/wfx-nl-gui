@@ -86,6 +86,7 @@ function(nl, nlReportHelper, nlGetManyStore) {
             statsCountObj['completed'] = 1;
             if(status.id == nlReportHelper.STATUS_FAILED) {
                 statsCountObj['failed'] = 1;
+                if(record.user.state == 0) statsCountObj['attrition'] = 1;
                 return;
             }
         }
