@@ -1563,7 +1563,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var _markedMilestone = g_milestone[item.id] || {};
 				var _learnersDict = _markedMilestone.learnersDict || {};
 				var msUserObj = {id: repid, milestoneid: item.id, name: user.name, userid: userid};
-				//TODO-NAVEEN: Check this code after release
+
 				if(!(repid in disableMilestoneMarking) && !itemStatus.iAttrition
 					&& (item.hide_locked && itemStatus.status == 'waiting')) {
 					msUserObj.attrition = true;

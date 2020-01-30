@@ -953,7 +953,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 	function _updateCsvRatingRows1(statusinfo, defaultRowObj) {
         defaultRowObj._assignTypeStr = 'Rating inside course';
         if (!statusinfo) return;
-        defaultRowObj._status = statusinfo.rating === 0 ? "0" : statusinfo.rating || 'pending';
+        defaultRowObj._status = statusinfo.status == 'pending' || statusinfo.status == 'waiting' ? statusinfo.status
+            : statusinfo.rating === 0 ? "0" : statusinfo.rating || 'pending';
         defaultRowObj._score = statusinfo.ratingScore === 0 ? "0" : statusinfo.score;
         defaultRowObj._passScoreStr = statusinfo.passScore || '';
         defaultRowObj.remarks = nl.fmt.arrayToString(statusinfo.remarks || '');
@@ -974,9 +975,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         defaultRowObj._assignTypeStr = 'Milestone inside course';
         if (!statusinfo) return;
         defaultRowObj._status = statusinfo.status || 'pending';
-        defaultRowObj._passScoreStr = item.completionPerc;
+        defaultRowObj._passScoreStr = statusinfo.status == 'done' ? item.completionPerc : '';
         defaultRowObj.remarks = statusinfo.remarks || '';
-        defaultRowObj.ended = statusinfo.reached ? statusinfo.reached : '';
+        defaultRowObj.ended = (statusinfo.status == 'done' && statusinfo.reached) ? statusinfo.reached : '';
         defaultRowObj.updated = statusinfo.updated ? statusinfo.updated : '';
 	}
 

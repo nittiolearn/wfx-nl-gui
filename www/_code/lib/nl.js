@@ -219,10 +219,19 @@ function Formatter() {
     };
 
     var monthObj = {1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun', 7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'};
+
     this.date2StrDDMMYY = function(d) {
         if (!d) return '';
-        return  _fmt2Impl('{}-{}-{}', [_pad2(d.getDate()), monthObj[d.getMonth()+1], d.getFullYear()]);
+        var shortYear = getYearMini(d);        
+        return  _fmt2Impl('{}-{}-{}', [_pad2(d.getDate()), monthObj[d.getMonth()+1], shortYear]);
     };
+
+    function getYearMini(d) {
+        var xdate = new Date(d);
+        var year = xdate.getFullYear();
+        if(year > 2000) 
+            return (xdate.getYear() - 100);
+    }
 
     this.date2UtcStr = function(d, accuracy) {
         if (accuracy === undefined) accuracy = 'minute';
