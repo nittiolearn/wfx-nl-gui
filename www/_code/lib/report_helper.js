@@ -165,15 +165,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         var latestCustomStatus = '';
         var defaultCourseStatus = 'pending';
         var isAttrition = false;
-        var earlierAttendance = null;
-        var earlierRating = null;
-        var earlierMilestone = null;
+        var earlierTrainerItems = {};
+
         for(var i=0; i<_modules.length; i++) {
             var cm = _modules[i];
             var itemInfo = {};
-            if (cm.type == 'iltsession') earlierAttendance = cm;
-            if (cm.type == 'rating' && cm.rating_type != 'rag') earlierRating = cm; //Dependency check no done for the rag item.
-            if (cm.type == 'milestone') earlierMilestone = cm;
             if (cm.isReattempt) ret['reattempt'] = false;
             itemIdToInfo[cm.id] = itemInfo;
             _getRawStatusOfItem(cm, itemInfo, itemIdToInfo);
@@ -185,8 +181,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             }
             if (cm.isReattempt && itemInfo.rawStatus != 'pending') ret.reattempt = true;
             _updateStatusToWaitingIfNeeded(cm, itemInfo, itemIdToInfo);
-            // TODO-NOW: Similar implementation of how the trainer does.
-            _updateItemToLocked(cm, itemInfo, itemIdToInfo, earlierAttendance, earlierRating, earlierMilestone); 
+            _updateItemToLocked(cm, itemInfo, earlierTrainerItems); 
             if((cm.hide_locked && itemInfo.status == 'waiting') || itemInfo.hideItem) {
                 itemInfo.hideItem = true;
                 continue;
@@ -220,48 +215,37 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         return ret;
     }
 
-    function _updateItemToLocked(cm, itemInfo, itemIdToInfo, earlierAttendance, earlierRating, earlierMilestone) {
-        if(cm.type == 'iltsession') _updateILTtoLocked(cm, itemInfo, itemIdToInfo, earlierMilestone);
-        if(cm.type == 'rating') _updateRatingtoLocked(cm, itemInfo, itemIdToInfo, earlierAttendance, earlierMilestone);
-        if(cm.type == 'milestone') _updateMilestonetoLocked(cm, itemInfo, itemIdToInfo, earlierAttendance, earlierRating, earlierMilestone);
-    }
-
-    function _updateILTtoLocked(cm, itemInfo, itemIdToInfo, earlierMilestone) {
-        if(cm.type != 'iltsession') return;
-        if(earlierMilestone) {
-            var previousMilestone = itemIdToInfo[earlierMilestone.id];
-            if(previousMilestone.rawStatus === 'pending') itemInfo.status = 'waiting';
+    function _updateItemToLocked(cm, itemInfo, earlierTrainerItems) {
+        if(cm.type == 'iltsession') {
+            _updateILTtoLocked(cm, itemInfo, earlierTrainerItems);
+            earlierTrainerItems.iltsession = itemInfo;
+        } else if(cm.type == 'rating') {
+            _updateRatingtoLocked(cm, itemInfo, earlierTrainerItems);
+            earlierTrainerItems.rating = itemInfo;
+        } else if(cm.type == 'milestone') {
+            _updateMilestonetoLocked(cm, itemInfo, earlierTrainerItems);
+            earlierTrainerItems.milestone = itemInfo;
         }
     }
 
-    function _updateRatingtoLocked(cm, itemInfo, itemIdToInfo, earlierAttendance, earlierMilestone) {
-        if(cm.type != 'rating') return;
-        if(earlierAttendance && cm.rating_type != 'rag') {
-            var previousIlt = itemIdToInfo[earlierAttendance.id];
-            if(previousIlt.rawStatus === 'pending' || !previousIlt.score) itemInfo.status = 'waiting';
-        }
-        if(earlierMilestone) {
-            var previousMilestone = itemIdToInfo[earlierMilestone.id];
-            if(previousMilestone.rawStatus === 'pending') itemInfo.status = 'waiting';
-        }
+    function _pendingOrWaiting(itemInfo) {
+        return itemInfo && (itemInfo.rawStatus === 'pending' || itemInfo.status === 'waiting');
     }
 
-    function _updateMilestonetoLocked(cm, itemInfo, itemIdToInfo, earlierAttendance, earlierRating, earlierMilestone) {
-        if(cm.type != 'milestone') return;
-        if(earlierAttendance) {
-            var previousIlt = itemIdToInfo[earlierAttendance.id];
-            if(previousIlt.rawStatus === 'pending') itemInfo.status = 'waiting';
-        }
+    function _updateILTtoLocked(cm, itemInfo, earlierTrainerItems) {
+        if(_pendingOrWaiting(earlierTrainerItems.milestone)) itemInfo.status = 'waiting';
+        if(_pendingOrWaiting(earlierTrainerItems.iltsession)) itemInfo.status = 'waiting';
+    }
 
-        if(earlierRating) {
-            var previousRating = itemIdToInfo[earlierRating.id];
-            if(previousRating.rawStatus === 'pending') itemInfo.status = 'waiting';
-        }
+    function _updateRatingtoLocked(cm, itemInfo, earlierTrainerItems) {
+        if(_pendingOrWaiting(earlierTrainerItems.milestone)) itemInfo.status = 'waiting';
+        if(cm.rating_type != 'rag' && _pendingOrWaiting(earlierTrainerItems.iltsession)) itemInfo.status = 'waiting';
+    }
 
-        if(earlierMilestone) {
-            var previousMilestone = itemIdToInfo[earlierMilestone.id];
-            if(previousMilestone.status === 'pending') itemInfo.status = 'waiting';
-        }
+    function _updateMilestonetoLocked(cm, itemInfo, earlierTrainerItems) {
+        if(_pendingOrWaiting(earlierTrainerItems.milestone)) itemInfo.status = 'waiting';
+        if(_pendingOrWaiting(earlierTrainerItems.iltsession)) itemInfo.status = 'waiting';
+        if(_pendingOrWaiting(earlierTrainerItems.rating)) itemInfo.status = 'waiting';
     }
 
     function _getRawStatusOfItem(cm, itemInfo, itemIdToInfo) {

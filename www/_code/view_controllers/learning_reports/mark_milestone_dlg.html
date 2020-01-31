@@ -22,19 +22,10 @@
 				<textarea placeholder='Provide your remarks for this milestone' ng-model='selectedItem.milestoneObj.comment' rows='3'></textarea>
 			</div>
 		</div>
-		<div ng-if='selectedItem.milestoneObj.status || (selectedItem.canMarkMilestone && !selectedItem.error)' class='row row-top padding-mid margin0 row-wrap'>
-			<div class='col'>
-				<span ng-click='selectedItem.milestoneObj.status = !selectedItem.milestoneObj.status;' class='nl-link-text'>
-					<i ng-show='selectedItem.milestoneObj.status' class="icon ion-android-checkbox-outline black"></i>
-					<i ng-hide='selectedItem.milestoneObj.status' class="icon ion-android-checkbox-outline-blank black"></i>
-					<span>Check this to mark milestone as completed</span>
-				</span>
-			</div>
-		</div>
-		<div ng-if='!selectedItem.milestoneObj.status && selectedItem.error' class='padding-mid' style='line-height: 175%'>
+		<div ng-if='selectedItem.error' class='padding-mid' style='line-height: 175%'>
 			You cannot mark this milestone as completed as the milestone <b>{{selectedItem.error}}</b>. is not marked as reached.
 		</div>
-		<div ng-if='!selectedItem.milestoneObj.status && !selectedItem.error && !selectedItem.canMarkMilestone' style='line-height: 175%'> 
+		<div ng-if='!selectedItem.error && !selectedItem.canMarkMilestone' style='line-height: 175%'> 
 			<div class='padding-mid'>
 				You cannot mark this milestone as completed as below prerequisites are not met:
 			</div>
@@ -47,7 +38,16 @@
 				</li>
 			</ul>
 		</div>
-		<div ng-if='selectedItem.milestoneObj.status'>
+		<div ng-if='!selectedItem.error && selectedItem.canMarkMilestone' class='row row-top padding-mid margin0 row-wrap'>
+			<div class='col'>
+				<span ng-click='selectedItem.milestoneObj.status = !selectedItem.milestoneObj.status;' class='nl-link-text'>
+					<i ng-show='selectedItem.milestoneObj.status' class="icon ion-android-checkbox-outline black"></i>
+					<i ng-hide='selectedItem.milestoneObj.status' class="icon ion-android-checkbox-outline-blank black"></i>
+					<span>Check this to mark milestone as completed</span>
+				</span>
+			</div>
+		</div>
+		<div ng-if='!selectedItem.error && selectedItem.canMarkMilestone && selectedItem.milestoneObj.status'>
 			<mark-milestone-tab selecteditem='selectedItem'></mark-milestone-tab>
 		</div>
 	</div>

@@ -119,6 +119,10 @@ function(nl, nlDlg, nlTreeListSrv) {
         {attr:'delayed', color: _nl.colorsCodes.waiting}
     ];
 
+    var _fixedStatusColors = {
+        'Amber' : _nl.colorsCodes.pending
+    };
+
     function _updateChartInfoAndData(dlg, statusCounts, internalStatusDict) {
         dlg.scope.chartInfo = {labels: [], colours: [], data: []};
         dlg.scope.chartData = [];
@@ -130,7 +134,8 @@ function(nl, nlDlg, nlTreeListSrv) {
                 if (!statusCounts[statusStr]) continue;
                 dlg.scope.chartData.push({name: statusStr, val: statusCounts[statusStr]});
                 dlg.scope.chartInfo.labels.push(statusStr);
-                dlg.scope.chartInfo.colours.push(statusInfo.color);
+                var color = (statusStr in _fixedStatusColors) ? _fixedStatusColors[statusStr] : statusInfo.color;
+                dlg.scope.chartInfo.colours.push(color);
                 dlg.scope.chartInfo.data.push(statusCounts[statusStr]);
             }
         }
