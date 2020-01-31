@@ -1,8 +1,8 @@
 <nl-dlg dlgTitle='Mark milestone' show-help='0'>
 <nl-dlg-content>
 
-<div class='row row-top row-stretch padding0 margin0'>
-	<div class='col' style='padding-right:0px; max-width: 250px; min-width: 125x'>
+<div class='row row-top row-stretch padding0 margin0 nl-85vh'>
+	<div class='col nl-thin-scroll-mh100' style='padding-right:0px; max-width: 250px; min-width: 125x'>
 		<div class='padding-mid fsh4'>Milestone</div>
 		<div ng-repeat='milestone in milestones'
 			class='nl-link-text {{milestone.id == selectedItem.id ? "nl-left-tab-selected" : "nl-left-tab"}} padding-small'>
@@ -13,7 +13,7 @@
 			</div>
 		</div>
 	</div>
-	<div class='col nl-left-tabbed-content'>
+	<div class='col nl-left-tabbed-content nl-thin-scroll-mh100'>
 		<div class='row row-center padding-0 margin0'>
 			<div class='col padding-mid fsh4'>Update status for {{selectedItem.name}}</div>
 		</div>

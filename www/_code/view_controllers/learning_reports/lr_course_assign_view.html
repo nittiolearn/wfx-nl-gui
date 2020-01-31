@@ -33,9 +33,10 @@
 </style>
 <nl-dlg dlgTitle='{{dlgTitle}}' show-close='1' show-help='0'>
 <nl-dlg-content>
-<div class='row row-top row-stretch padding0 margin0' style='min-width: 600px'>
-	<div style='width: 25%; min-width: 100px; border-right: 1px solid rgba(0, 0, 0, 0.1)'>
-		<div class='nl-thin-scroll'>
+<div class='row row-top row-stretch padding0 margin0 nl-85vh' style='min-width: 600px;'>
+	<div style='width: 25%; min-width: 100px; border-right: 1px solid rgba(0, 0, 0, 0.1)'
+		 class='nl-thin-scroll-mh100'>
+		<div>
 		    <div ng-repeat='cm in modules' class='row row-center margin0' ng-show='cm.visible' style='padding: 8px'>
 		        <div style='width: {{cm.indentationLevel*16}}px'></div>
 		        <div class='row row-center margin0 padding-mid nl-cv-item nl-link-text {{selectedModule.id == cm.id ? "selected" : ""}}'
@@ -52,10 +53,7 @@
 	<div ng-if='!selectedModule' class='fsh5 padding-mid'>
 		Please select the course element to view the status.
 	</div>
-	<div ng-if='selectedModule && selectedModule.type == "module"' class='fsh5 padding-mid'>
-		Folder:  {{selectedModule.name}}
-	</div>
-	<div ng-if='selectedModule' class='col margin0 padding0'>
+	<div ng-if='selectedModule' class='col margin0 padding0 nl-thin-scroll-mh100'>
 		<div ng-if='chartInfo'>
 			<div class='row row-center margin0 padding0'>
 				<div class='col padding-mid'>
@@ -85,21 +83,25 @@
 			<div class='padding-mid'></div>
 		</div>
 	
+		<div ng-if='selectedModule.type == "module"' class='fsh5 padding-mid'>
+			Folder:  {{selectedModule.name}}
+		</div>
+
 		<div ng-if='selectedModule.type == "lesson"'>
-			<div class='padding-mid'>
-				<div class="row row-center margin0 padding-mid">
-					<div class='col padding-mid fsh5'>{{selectedModule.name}}</div>
-					<div class="nl-link-text nl-button-highlight" style='padding-top: 0px'>
-						<a ng-href='{{getUrl(selectedModule.refid)}}'
-							target='_blank'
-							class='row row-center margin0 padding0'>
-							<span class="col text-center">View Module</span>
-						</a>
-					</div>
+		<div class='padding-mid'>
+			<div class="row row-center margin0 padding-mid">
+				<div class='col padding-mid fsh5'>{{selectedModule.name}}</div>
+				<div class="nl-link-text nl-button-highlight" style='padding-top: 0px'>
+					<a ng-href='{{getUrl(selectedModule.refid)}}'
+						target='_blank'
+						class='row row-center margin0 padding0'>
+						<span class="col text-center">View Module</span>
+					</a>
 				</div>
 			</div>
-			<div class='nl-border-bottom'></div>
-			<div class='padding-mid'></div>
+		</div>
+		<div class='nl-border-bottom'></div>
+		<div class='padding-mid'></div>
 		</div>
 
 		<div ng-if='selectedModule.type == "iltsession"'>
