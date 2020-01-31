@@ -1089,7 +1089,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}
 		}
 
-		columns.push({id: 'certifiedFirstAttempt', name: 'Certified in Fisrt Attempt', hidePerc: true, table: true, showAlways: true});
+		columns.push({id: 'certifiedFirstAttempt', name: 'Certified in First Attempt', hidePerc: true, table: true, showAlways: true});
 		columns.push({id: 'certifiedSecondAttempt', name: 'Certified in 2nd Attempt', hidePerc: true, table: true, showAlways: true});
 		columns.push({id: 'certified', name: 'Total Certified', hidePerc: true, table: true, showAlways: true});
 		columns.push({id: 'failed', name: 'Total Not Certified', hidePerc:true, table: true, showAlways: true});

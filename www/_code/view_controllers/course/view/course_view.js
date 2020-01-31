@@ -1064,7 +1064,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         else if (folderStat.started + folderStat.failed + folderStat.success > 0) status = 'started';
         else status = 'pending';
         _updateState(cm, status);
-        cm.hideItem = (modeHandler.mode == MODES.DO || modeHandler.mode == MODES.REPORT_VIEW) && (folderStat.total == 0 || folderStat.total == folderStat.waiting); //Hide the empty folder in do and report_view
+        cm.hideItem = (modeHandler.mode == MODES.DO || modeHandler.mode == MODES.REPORT_VIEW) && (folderStat.total == 0); //Hide the empty folder in do and report_view
         cm.totalItems = folderStat.total;
         cm.completedItems = folderStat.completedItems;
     }
@@ -1133,9 +1133,8 @@ function FolderStats($scope, modeHandler) {
     this.get = function(cmid) {
         if (cmid in _folderStats) return _folderStats[cmid];
         var folderStat = {success: 0, failed: 0, 
-            started: 0, pending: 0, delayed: 0, waiting: 0,
+            started: 0, pending: 0, delayed: 0, waiting: 0, hidden: 0,
             scoreCount: 0, score: 0, maxScore: 0, perc: 0,
-
             time: 0,
             completedItems: 0, folderCount: 0};
         _folderStats[cmid] = folderStat;
@@ -1150,6 +1149,7 @@ function FolderStats($scope, modeHandler) {
         folderStat.pending += childStat.pending;
         folderStat.delayed += childStat.delayed;
         folderStat.waiting += childStat.waiting;
+        folderStat.hidden += childStat.hidden;
         folderStat.scoreCount += childStat.scoreCount;
         folderStat.score += childStat.score;
         folderStat.maxScore += childStat.maxScore;
@@ -1158,7 +1158,8 @@ function FolderStats($scope, modeHandler) {
     };
 
     this.updateForLeaf = function(folderStat, cm) {
-        if (cm.state.status == 'waiting') folderStat.waiting += 1;
+        if (cm.hideItem) folderStat.hidden += 1;
+        else if (cm.state.status == 'waiting') folderStat.waiting += 1;
         else if (cm.state.status == 'delayed') folderStat.delayed += 1;
         else if (cm.state.status == 'pending') folderStat.pending += 1;
         else if (cm.state.status == 'started') folderStat.started += 1;
