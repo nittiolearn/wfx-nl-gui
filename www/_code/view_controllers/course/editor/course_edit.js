@@ -419,13 +419,36 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
             return;
         } else if (attr.level == 'modules' && attr.name == 'type') {
 			attr.updateDropdown(item, attr);
-            if (attr.name == 'type') _onElementTypeChange(e, item, attr);
+			if (attr.name == 'type') _onElementTypeChange(e, item, attr);
             return;
         } else if (attr.level == 'modules' && attr.name == 'milestone_type') {
 			item.name = attr.valueNames[item.milestone_type];
 			return;
 		}
     }
+
+	var dependancyTypeToSuported = {'lesson': {'min_score': true, 'max_score': true}, 
+									'info': {},
+									'link': {},
+									'certificate': {},
+									'iltsession': {'iltCondition' : true},
+									'milestone': {},
+									'rating': {'min_score': true, 'max_score': true},
+									'gate': {'min_score': true, 'max_score': true}
+								};
+
+	function _updateDependancyAttrs(cm, start_after) {
+		var type = cm.type;
+		for(var j=0; j<start_after.length; j++) {
+			var item = start_after[j];
+			if (cm.id != item.module) continue;
+			var attrSupportedDict = dependancyTypeToSuported[type];
+			for(var key in item) {
+				if(key == 'module') continue;
+				if(!attrSupportedDict[key]) delete item[key];
+			}
+		}
+	}
 
 	function _onElementTypeChange(e, cm, attr){
 		var childrenElem = [];
@@ -434,7 +457,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		cm.name = nl.t('{} {}', attr.valueNames[cm.type], courseContent.lastId);
 		if(cm.type == 'gate' && !('showInReport' in cm)) cm.showInReport = true;
         for(var i=0; i < _allModules.length; i++){
-        	if (_isDescendantOf(_allModules[i], cm)) childrenElem.push(i);
+			if (_isDescendantOf(_allModules[i], cm)) childrenElem.push(i);
+			if(_allModules[i].start_after && _allModules[i].start_after.length > 0) _updateDependancyAttrs(cm, _allModules[i].start_after);
         }
 		if(cm.type !== 'module' && childrenElem.length > 1){
 			var msg = {title: 'Please confirm', 
@@ -901,6 +925,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     function _saveAfterValidateCourse(e, bPublish) {
         modeHandler.course.content.modules = [];
 		modeHandler.course.content.blended = false;
+
     	for(var i=0; i<_allModules.length; i++){
     	    var newModule = _getSavableModuleAttrs(_allModules[i]);
     	    if (newModule.type == 'iltsession' && !modeHandler.course.content.blended) modeHandler.course.content.blended = true;

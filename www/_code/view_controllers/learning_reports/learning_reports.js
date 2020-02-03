@@ -1520,6 +1520,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			for(var i=0; i<ret.length; i++) {
 				var _milestone = ret[i];
 				var aboveMilestone = i > 0 ? ret[i-1] : null;
+				if (aboveMilestone && aboveMilestone.attritedLearners) _milestone.attritedLearners = aboveMilestone.attritedLearners; //update next milestone with attrited ccurrent learners.
 				if (aboveMilestone && (!aboveMilestone.canMarkMilestone || aboveMilestone.error)) {
 					_milestone.error = aboveMilestone['name'];
 					//_milestone.canMarkMilestone = false;
@@ -1537,7 +1538,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 							_milestone.attritedLearners[newAttendance[k].userid] = newAttendance[k].attritionStr || groupAttendendanceObj.name;
 							continue;
 						}
-						if(userAttendance.id === "" && userAttendance.canMarkLearner) {
+						if(userAttendance.id === "" && newAttendance[k].canMarkLearner) {
 							if(_milestone.milestoneObj.status) _milestone.unmarkedUsers[newAttendance[k].userid] = 'Earlier items not marked';
 							_milestone.pendingIlts.push(earlierSessions[j].name);
 							_milestone.canMarkMilestone = false;
@@ -1578,7 +1579,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var _learnersDict = _markedMilestone.learnersDict || {};
 				var msUserObj = {id: repid, milestoneid: item.id, name: user.name, userid: userid};
 
-				if(!(repid in disableMilestoneMarking) && !itemStatus.iAttrition
+				if(!(repid in disableMilestoneMarking) && !itemStatus.isAttrition
 					&& (item.hide_locked && itemStatus.status == 'waiting')) {
 					msUserObj.attrition = true;
 					msUserObj.attritionStr = nl.t('Not applicable');
@@ -2128,10 +2129,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if(!(_session.id in _sessionsDict)) _sessionsDict[_session.id] = {};
 			for(var j=0; j<_session.newAttendance.length; j++) {
 				var _userObj = _session.newAttendance[j];
-				if(_userObj.attendance.id === '') {
-					_sessionsDict[_session.id][_userObj.id] = {timePerc: '', name: _session.name};
+				if(_userObj.attendance.id === '' && _userObj.canMarkLearner) {
+					_sessionsDict[_session.id][_userObj.id] = {timePerc: '', name: _session.name, not_applicable: _userObj.not_applicable || false};
 				} else {
-					_sessionsDict[_session.id][_userObj.id] = {timePerc: (_userObj.attendance.id in _attendanceObj) ? _attendanceObj[_userObj.attendance.id].timePerc : 0 , name: _session.name};
+					_sessionsDict[_session.id][_userObj.id] = {timePerc: (_userObj.attendance.id in _attendanceObj) ? _attendanceObj[_userObj.attendance.id].timePerc : 0 , name: _session.name, not_applicable: _userObj.not_applicable || false};
 				}
 			}
 		}
@@ -2146,7 +2147,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var attrition = (statusinfo.status == 'waiting' && statusinfo.isAttrition) || false;
 				var attritionStr = stats.attritionStr || '';
 				var disableMarkingStr = '';
-				if(!attrition && ratingItem.hide_locked && statusinfo.status == 'waiting') {
+				var _learnerEarlierIltStats = ratingItem.previousILT ? _sessionsDict[ratingItem.previousILT.id][repid] : {};
+
+				if(!attrition && ratingItem.hide_locked && statusinfo.status == 'waiting' && _learnerEarlierIltStats.not_applicable) {
 					var _dict = {id: repid, name: user.name, userid: user.user_id,
 								attrition: false, errorStr: nl.t('Not applicable'),
 								canRate: 'not_attended', not_applicable: true};
@@ -2167,10 +2170,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 						var iltStats = _sessionsDict[ratingItem.previousILT.id][repid];
 						if(iltStats.timePerc === '') {
 							_dict.canRate = 'pending';
-							_dict.errorStr = nl.t('Attendance not marked.')
+							_dict.errorStr = nl.t('Attendance not marked.');
 						} else if (iltStats.timePerc === 0) {
 							_dict.canRate = 'not_attended';
-							_dict.errorStr = nl.t('Learner not attended')
+							_dict.errorStr = nl.t('Learner not attended');
 						} else {
 							_dict.canRate = 'attended';
 						}

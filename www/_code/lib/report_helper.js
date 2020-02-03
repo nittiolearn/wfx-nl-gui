@@ -229,7 +229,13 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     }
 
     function _pendingOrWaiting(itemInfo) {
-        return itemInfo && (itemInfo.rawStatus === 'pending' || itemInfo.status === 'waiting');
+        return  itemInfo && (itemInfo.rawStatus === 'pending' || itemInfo.status === 'waiting');
+    }
+
+    function _pendingOrWaitingForRating(ratingItemInfo, iltItemInfo) {
+        var setToLocked = (iltItemInfo && (iltItemInfo.rawStatus === 'pending' || iltItemInfo.status === 'waiting')) && 
+                          (ratingItemInfo && (ratingItemInfo.rawStatus === 'pending' || ratingItemInfo.status === 'waiting'));
+        return setToLocked;
     }
 
     function _updateILTtoLocked(cm, itemInfo, earlierTrainerItems) {
@@ -245,7 +251,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     function _updateMilestonetoLocked(cm, itemInfo, earlierTrainerItems) {
         if(_pendingOrWaiting(earlierTrainerItems.milestone)) itemInfo.status = 'waiting';
         if(_pendingOrWaiting(earlierTrainerItems.iltsession)) itemInfo.status = 'waiting';
-        if(_pendingOrWaiting(earlierTrainerItems.rating)) itemInfo.status = 'waiting';
+        if(_pendingOrWaitingForRating(earlierTrainerItems.rating, earlierTrainerItems.iltsession)) itemInfo.status = 'waiting';
     }
 
     function _getRawStatusOfItem(cm, itemInfo, itemIdToInfo) {
