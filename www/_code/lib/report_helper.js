@@ -177,6 +177,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             if (isAttrition) {
                 itemInfo.status = 'waiting';
                 itemInfo.isAttrition = true;
+                if (cm.hide_locked) itemInfo.hideItem = true;
                 continue;
             }
             if (cm.isReattempt && itemInfo.rawStatus != 'pending') ret.reattempt = true;
@@ -245,7 +246,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
     function _updateRatingtoLocked(cm, itemInfo, earlierTrainerItems) {
         if(_pendingOrWaiting(earlierTrainerItems.milestone)) itemInfo.status = 'waiting';
-        if(cm.rating_type != 'rag' && _pendingOrWaiting(earlierTrainerItems.iltsession)) itemInfo.status = 'waiting';
+        if(cm.rating_type != 'rag' && (_pendingOrWaiting(earlierTrainerItems.iltsession) || (earlierTrainerItems.iltsession && (earlierTrainerItems.iltsession.status === 'failed')))) itemInfo.status = 'waiting';
     }
 
     function _updateMilestonetoLocked(cm, itemInfo, earlierTrainerItems) {

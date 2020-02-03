@@ -427,25 +427,34 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		}
     }
 
-	var dependancyTypeToSuported = {'lesson': {'min_score': true, 'max_score': true}, 
-									'info': {},
-									'link': {},
-									'certificate': {},
-									'iltsession': {'iltCondition' : true},
-									'milestone': {},
-									'rating': {'min_score': true, 'max_score': true},
-									'gate': {'min_score': true, 'max_score': true}
-								};
+	var _startAfterTypeToSuported = {
+		'lesson': {'min_score': true, 'max_score': true},
+		'info': {},
+		'link': {},
+		'certificate': {},
+		'iltsession': {'iltCondition' : true},
+		'milestone': {},
+		'rating': {'min_score': true, 'max_score': true},
+		'gate': {'min_score': true, 'max_score': true}
+	};
 
-	function _updateDependancyAttrs(cm, start_after) {
-		var type = cm.type;
-		for(var j=0; j<start_after.length; j++) {
-			var item = start_after[j];
-			if (cm.id != item.module) continue;
-			var attrSupportedDict = dependancyTypeToSuported[type];
-			for(var key in item) {
+	function _pruneStartAfter(cm, cmidToCm) {
+		cmidToCm[cm.id] = cm;
+		var sa = cm.start_after;
+		if (!sa || sa.length == 0) return;
+		var newSa = [];
+		cm.start_after = newSa;
+		for(var i=0; i<sa.length; i++) {
+			var saItem = sa[i];
+			if (saItem.module == cm.id) continue;
+			var saCm = cmidToCm[saItem.module];
+			if (!saCm) continue;
+			var typeSupported = _startAfterTypeToSuported[saCm.type];
+			if (!typeSupported) continue;
+			newSa.push(saItem);
+			for (var key in saItem) {
 				if(key == 'module') continue;
-				if(!attrSupportedDict[key]) delete item[key];
+				if(!typeSupported[key]) delete saItem[key];
 			}
 		}
 	}
@@ -458,7 +467,6 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		if(cm.type == 'gate' && !('showInReport' in cm)) cm.showInReport = true;
         for(var i=0; i < _allModules.length; i++){
 			if (_isDescendantOf(_allModules[i], cm)) childrenElem.push(i);
-			if(_allModules[i].start_after && _allModules[i].start_after.length > 0) _updateDependancyAttrs(cm, _allModules[i].start_after);
         }
 		if(cm.type !== 'module' && childrenElem.length > 1){
 			var msg = {title: 'Please confirm', 
@@ -926,12 +934,14 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         modeHandler.course.content.modules = [];
 		modeHandler.course.content.blended = false;
 
-    	for(var i=0; i<_allModules.length; i++){
+		var cmidToCm = {};
+		for(var i=0; i<_allModules.length; i++){
     	    var newModule = _getSavableModuleAttrs(_allModules[i]);
-    	    if (newModule.type == 'iltsession' && !modeHandler.course.content.blended) modeHandler.course.content.blended = true;
+			_pruneStartAfter(newModule, cmidToCm);
+			if (newModule.type == 'iltsession' && !modeHandler.course.content.blended) modeHandler.course.content.blended = true;
 		    modeHandler.course.content.modules.push(newModule);
 		}
-		var oldLangInfo = _pruneLanguageInfo();
+		var oldLangInfo = _pruneLanguageInfo(cmidToCm);
 		var contentJson = _objToJson(modeHandler.course.content);
 		if (oldLangInfo) modeHandler.course.content.languageInfo = oldLangInfo;
         var modifiedData = {
@@ -1017,7 +1027,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     }
 	
     function _getSavableModuleAttrs(cm) {
-        var allowedAttributes = allowedModuleAttrs[cm.type] || [];
+        var allowedAttributes = allowedModuleAttrs[cm.type] || {};
     	var attrs = Object.keys(allowedAttributes);
         var editedModule = {};
         for(var i=0; i<attrs.length; i++){
@@ -1083,17 +1093,11 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		return true;
 	}
 
-	function _pruneLanguageInfo() {
+	function _pruneLanguageInfo(cmidToCm) {
 		var unprunedLangInfo = modeHandler.course.content.languageInfo;
 		if (!unprunedLangInfo) return unprunedLangInfo;
 		var prunedLangInfo = angular.copy(unprunedLangInfo);
 		modeHandler.course.content.languageInfo = prunedLangInfo;
-
-		var cmidToCm = {};
-		for(var i=0; i<_allModules.length; i++) {
-			var cm = _allModules[i];
-			cmidToCm[cm.id] = cm;
-		}
 
 		for(var lang in unprunedLangInfo) {
 			var langInfo = unprunedLangInfo[lang];
