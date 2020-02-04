@@ -1064,7 +1064,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         else if (folderStat.started + folderStat.failed + folderStat.success > 0) status = 'started';
         else status = 'pending';
         _updateState(cm, status);
-        cm.hideItem = (modeHandler.mode == MODES.DO || modeHandler.mode == MODES.REPORT_VIEW) && (folderStat.total == 0 || folderStat.total == folderStat.hidden); //Hide the empty folder in do and report_view
+        cm.hideItem = (modeHandler.mode == MODES.DO || modeHandler.mode == MODES.REPORT_VIEW) && (folderStat.total == 0); //Hide the empty folder in do and report_view
         cm.totalItems = folderStat.total;
         cm.completedItems = folderStat.completedItems;
     }
