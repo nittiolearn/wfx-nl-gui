@@ -1,8 +1,8 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// user.js:
-// user administration module
+// group.js:
+// group administration module
 //-------------------------------------------------------------------------------------------------
 function module_init() {
 	angular.module('nl.group', [])
@@ -53,9 +53,17 @@ function(nl, nlRouter, nlDlg, $scope, nlServerApi, nlExporter, nlCardsSrv) {
 	
     function _getToolbar() {
         return [{
-            title : 'Export group data',
-            icon : 'ion-ios-cloud-download',
-            onClick : _onExport
+            title: 'Create group',
+            icon: 'ion-ios-plus',
+            onClick: _onCreate
+        }, {
+            title: 'Export group data',
+            icon: 'ion-ios-cloud-download',
+            onClick: _onExport
+        }, {
+            title: 'Import group data',
+            icon: 'ion-ios-cloud-upload',
+            onClick: _onImport
         }];
     }
 
@@ -93,16 +101,21 @@ function(nl, nlRouter, nlDlg, $scope, nlServerApi, nlExporter, nlCardsSrv) {
 
     function _getAvps(item) {
         var avps = [];
+
+        var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
+        nl.fmt.addLinkToAvp(linkAvp, 'modify', nl.fmt2('/admin_group/group_mod//{}', item.id));
+        nl.fmt.addLinkToAvp(linkAvp, 'users', nl.fmt2('/#/admin_user?grpid={}', item.grpid));
         nl.fmt.addAvp(avps, 'Description', item.description);
         nl.fmt.addAvp(avps, 'Primary Admin Email', item.padminemail);
         nl.fmt.addAvp(avps, 'Org Tree', item.org_tree);
         nl.fmt.addAvp(avps, 'Properties', item.props);
         nl.fmt.addAvp(avps, 'Created', item.created, 'date');
         nl.fmt.addAvp(avps, 'Updated', item.updated, 'date');
+        nl.fmt.addAvp(avps, 'Internal identifier', item.id);
         return avps;
     }
     
-	function _onExport() {
+    function _onExport() {
 	    if (!_fetchDone) {
 	        nlDlg.popupAlert({title: 'Please wait', template: 'Data is still being fetched from server. You will be able to export the data to a file once all the data is fetched from server'});
 	        return;
@@ -143,6 +156,15 @@ function(nl, nlRouter, nlDlg, $scope, nlServerApi, nlExporter, nlCardsSrv) {
             reject(e);
         }
     }
+
+    function _onImport() {
+        nl.window.open('/admin_group/group_bulkupdate?import');
+    }
+
+    function _onCreate() {
+        nl.window.open('/admin_group/group_create');
+    }
+
 }];
 
 module_init();
