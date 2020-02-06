@@ -237,6 +237,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
         }
 		nl.fmt.addAvp(avps, 'Created on', user.created, 'date');
 		nl.fmt.addAvp(avps, 'Updated on', user.updated, 'date');
+        nl.fmt.addAvp(avps, 'Internal identifier', user.id);
 		return avps;
     }
     

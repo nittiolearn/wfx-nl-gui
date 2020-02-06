@@ -28,6 +28,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 							// server. 0 - least filtering; 3 highest filtering.
 		assignor: 'all',	// all|me, will auomatically change to 'me' if assignment_manage permission is not there and myou is false
 		parentonly: true,	// fetch only parent records or also records part containing course/training
+		repsubtype: '',		// may be provided in the URL
 		objid: null, 		// depending on type, will be interpretted as moduleid, courseid, ...
 		title: null,		// Title for the page
 		showfilters: true,	// Should the initial fetch filter dialog be shown
@@ -50,7 +51,8 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		_fillAttrs(_data, ['type'], [settings, urlParams, _dataDefaults]);
         if (!_oneOf(_data.type, ['all', 'module', 'course', 'training_kind', 'module_assign', 'course_assign', 'module_self_assign', 'training_batch', 'user']))
         	_data.type = 'course';
-        _fillAttrs(_data, ['timestamptype', 'myou', 'myoulevel', 'myoufilter', 'assignor', 'parentonly', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug', 'chunksize', 'dontZip'], 
+		_fillAttrs(_data, ['timestamptype', 'myou', 'myoulevel', 'myoufilter', 'assignor', 'parentonly',
+			'repsubtype', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug', 'chunksize', 'dontZip'], 
         	[settings, urlParams, _dataDefaults]);
         if (_oneOf(_data.type, ['module_assign', 'course_assign', 'training_batch', 'user']))
 			_data.showfilters = false;
@@ -216,8 +218,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		}
 		if (_data.debug) ret.debug = true;
 		if (_data.chunksize) ret.chunksize = _data.chunksize;
-		if (_data.myou) ret.filters = _addOusToFilters();
-		else if (_data.filterobj) ret.filters = _data.filterobj;
+		ret.filters = _getOusPlusRepSubTypePlusCusomFilters();
 		return ret;
 	};
 
@@ -230,10 +231,12 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
             nl.fmt.fmtDateDelta(_data.createdtill));
 	};
 
-	function _addOusToFilters() {
+	function _getOusPlusRepSubTypePlusCusomFilters() {
 		var ret = [];
 		var custFilters = _data.filterobj || [];
 		for (var i=0; i<custFilters.length; i++) ret.push(custFilters[i]);
+		if (_data.repsubtype) ret.push({field: 'repsubtype', val: _data.repsubtype});
+		if (!_data.myou) return ret;
 		var me = (_groupInfo.derived.keyToUsers || {})[_userInfo.username];
 		_myou = me.org_unit;
 		var ouParts = (me.org_unit || '').split('.');
