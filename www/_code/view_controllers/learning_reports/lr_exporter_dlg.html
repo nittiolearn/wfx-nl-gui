@@ -57,7 +57,7 @@
             <i ng-hide='export.summary' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
             <span>download summary statistics</span>
         </div>
-        <div class='padding-mid nl-link-text' 
+        <div ng-show='showDrillDownCheckbox' class='padding-mid nl-link-text' 
              ng-click='export.drilldown = !export.drilldown'>
             <i ng-show='export.drilldown' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.drilldown' class="fsh4 icon ion-android-checkbox-outline-blank"></i>

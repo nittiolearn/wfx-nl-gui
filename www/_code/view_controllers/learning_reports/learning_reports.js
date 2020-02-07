@@ -165,7 +165,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	// Private members
-	var _isAdmin = false;
 	var _customReportTemplate = '';
 
 	function _convertAttendanceArrayToObj(attendanceArray) {
@@ -175,7 +174,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _init() {
-		_isAdmin = nlRouter.isPermitted(_userInfo, 'admin_user');
 		_customReportTemplate = nlGroupInfo.getCustomReportTemplate();
 
 		// Order is important
@@ -206,15 +204,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			metas: nlLrHelper.getMetaHeaders(false)
 		};
 		nlTable.initTableObject($scope.utable);
-		$scope.otable = {
-			search: {disabled : true},
-			columns: _getOrgColumns(),
-			styleTable: 'nl-table-styled2 compact',
-			getSummaryRow: _getOrgSummaryRow
-		};
-		nlTable.initTableObject($scope.otable);
-		$scope.tabData = _initTabData($scope.utable, $scope.otable);
-		$scope.selectedTable = $scope.otable;
+		$scope.tabData = _initTabData($scope.utable);
 		_initChartData();
 	}
 	
@@ -278,25 +268,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		});
 	}
 			
-	function _getOrgColumns() {
-		var columns = [];
-		var mh = nlLrHelper.getMetaHeaders(true);
-		columns.push({id: 'org', name: 'Org', smallScreen: true});
-		for(var i=0; i<mh.length; i++) {
-			columns.push({id: mh[i].id, name: mh[i].name});
-		}
-		columns.push({id: 'assigned', name: 'Total', searchable: false, styleTd: 'text-right'});
-		columns.push({id: 'done', name: 'Completed', searchable: false, styleTd: 'text-right'});
-		columns.push({id: 'failed', name: 'Failed', searchable: false, styleTd: 'text-right'});
-		columns.push({id: 'started', name: 'Started', searchable: false, styleTd: 'text-right'});
-		columns.push({id: 'pending', name: 'Pending', searchable: false, styleTd: 'text-right'});
-		return columns;
-	}
-
-	function _getOrgSummaryRow(records) {
-		return $scope.tabData.summaryStatSummaryRow;
-	}
-
 	function _getToolbar() {
 		return [{
 			title : 'Fetch more records in the currently selected date time range',
@@ -456,36 +427,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return isMailEnabled;
 	}
 
-	function _initTabData(utable, otable) {
-		var ret =  {tabs: [{
-			title : 'Click here to see reports overview',
-			name: 'Overview',
-			icon : 'ion-stats-bars',
-			id: 'overview',
-			updated: false,
-			tables: []
-		}, {
-			title : 'Click here to view course-wise progress',
-			name: 'Drill down',
-			icon : 'ion-social-buffer',
-			id: 'drilldown',
-			updated: false,
-			tables: []
-		}, {
-			title : 'Click here to view learning records',
-			name: 'Learning records',
-			icon : 'ion-ios-compose',
-			id: 'learningrecords',
-			updated: false,
-			tables: [utable]
-		},{
-			title : 'Click here to view time summary',
-			name: 'Time summary',
-			icon : 'ion-clock',
-			id: 'timesummary',
-			updated: false,
-			tables: []
-		}]};
+	function _initTabData(utable) {
+		var ret =  {tabs: [], utable: utable};
+		ret.isNHTAdded = false;
+		ret.isFilterApplied = false;
+		ret.isDrillDownAdded = false;
+		_updateTabs(ret);
+
 		ret.search = '';
 		ret.lastSeached = '';
 		ret.filter = {};
@@ -499,11 +447,65 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		ret.onSearch = _onSearch;
 		ret.onFilter = _onFilter;
 		ret.onTabSelect = _onTabSelect;
-		ret.isNHTAdded = false;
-		ret.isFilterApplied = false;
 		return ret;
 	}
 
+	function _updateTabs(tabData) {
+		tabData.tabs = [];
+		var tabs = tabData.tabs;
+		tabs.push({
+			title : 'Click here to see reports overview',
+			name: 'Overview',
+			icon : 'ion-stats-bars',
+			id: 'overview',
+			updated: false,
+			tables: []
+		});
+		if (tabData.isNHTAdded) {
+			tabs.push({
+				title : 'Click here to view course-wise progress',
+				name: 'Drill down',
+				icon : 'ion-social-buffer',
+				id: 'drilldown',
+				updated: false,
+				tables: []
+			});
+		}
+		if (tabData.isDrillDownAdded) {
+			tabs.push({
+				title : 'Click here to view New Hire Training status',
+				name: 'NHT',
+				icon : 'ion-filing',
+				id: 'nht',
+				updated: false,
+				tables: []
+			});
+		}
+		tabs.push({
+			title : 'Click here to view learning records',
+			name: 'Learning records',
+			icon : 'ion-ios-compose',
+			id: 'learningrecords',
+			updated: false,
+			tables: [tabData.utable]
+		});
+		tabs.push({
+			title : 'Click here to view time summary',
+			name: 'Time summary',
+			icon : 'ion-clock',
+			id: 'timesummary',
+			updated: false,
+			tables: []
+		});
+
+		if (!tabData.selectedTab) return;
+		for(var i=0; i<tabs.length; i++) {
+			if (tabData.selectedTab.id != tabs[i].id) continue;
+			tabData.selectedTab = tabs[i]; // Reset the new object (updated attribute many change)
+			break;
+		}
+	}
+	
 	function _someTabDataChanged() {
 		$scope.drillDownInfo = {};
 		$scope.nhtInfo = {};
@@ -555,8 +557,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			_updateOverviewTab(tabData.summaryStatSummaryRow);
 		} else if (tab.id == 'learningrecords') {
 			nlTable.updateTableObject($scope.utable, tabData.records);
-		} else if (tab.id == 'organisations') {
-			nlTable.updateTableObject($scope.otable, tabData.summaryStats);
 		} else if (tab.id == 'timesummary') {
 			_updateTimeSummaryTab();
 		} else if (tab.id == 'drilldown') {
@@ -754,15 +754,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _checkAndUpdateNHT() {
 		var type = nlLrFilter.getType();
 		if(type != 'user' && nlLrReportRecords.isNHT() && !$scope.tabData.isNHTAdded) {
-			$scope.tabData.tabs.splice(2, 0, {title : 'Click here to view New Hire Training status',
-												name: 'NHT',
-												icon : 'ion-filing',
-												id: 'nht',
-												updated: false,
-												tables: []
-											});
 			$scope.tabData.isNHTAdded = true;
 			$scope.tabData.isFilterApplied = true;
+			_updateTabs($scope.tabData);
+		}
+		if(nlLrReportRecords.isNonNHT() && !$scope.tabData.isDrillDownAdded) {
+			$scope.tabData.isDrillDownAdded = true;
+			_updateTabs($scope.tabData);
 		}
 
 	}
@@ -1243,19 +1241,24 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (nlLrFetcher.fetchInProgress()) return;
 		var reportRecords = nlLrReportRecords.asList();
 		if(!_customScoresHeader) _customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
-		_updateDrillDownTab();
-		var drillDownCols = _getDrillDownColumns();
-		var header = [];
-		for(var i=0; i<drillDownCols.length; i++) {
-			var col = drillDownCols[i];
-			if(col.table) header.push(col);
-		}
-		var headerArray = [{id: 'courseName', name: 'Course name'}];
-		if(nlGroupInfo.isSubOrgEnabled()) headerArray.push({id: 'subOrgId', name: 'Suborg Id'});
-		headerArray.push({id: 'organisationId', name: 'Organisation Id'});
 
-		header = headerArray.concat(header);
-		var drillDownStats = {statsCountDict: _statsCountDict, columns: header};
+		var drillDownStats = null;
+		if(nlLrReportRecords.isNonNHT()) {
+			_updateDrillDownTab();
+			var drillDownCols = _getDrillDownColumns();
+			var header = [];
+			for(var i=0; i<drillDownCols.length; i++) {
+				var col = drillDownCols[i];
+				if(col.table) header.push(col);
+			}
+			var headerArray = [{id: 'courseName', name: 'Course name'}];
+			if(nlGroupInfo.isSubOrgEnabled()) headerArray.push({id: 'subOrgId', name: 'Suborg Id'});
+			headerArray.push({id: 'organisationId', name: 'Organisation Id'});
+
+			header = headerArray.concat(header);
+			drillDownStats = {statsCountDict: _statsCountDict, columns: header};
+		}
+
 		var nhtStats = null;
 		if(nlLrReportRecords.isNHT()) {
 			_updateNhtTab();
@@ -1267,7 +1270,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			nhtStats = {statsCountDict: _nhtStatsDict, columns: nhtHeader};	
 		}
 
-		nlLrExporter.export($scope, reportRecords, _isAdmin, _customScoresHeader, drillDownStats, nhtStats);
+		nlLrExporter.export($scope, reportRecords, _customScoresHeader, drillDownStats, nhtStats);
 	}
 	
 	function _onExportCustomReport() {

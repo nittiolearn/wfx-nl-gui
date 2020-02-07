@@ -44,16 +44,20 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     	_subjectlabel = userInfo.groupinfo.subjectlabel;
 	};
 	
-    this.export = function($scope, reportRecords, isAdmin, customScoresHeader, drillDownDict, nhtDict) {
+    this.export = function($scope, reportRecords, customScoresHeader, drillDownDict, nhtDict) {
         var dlg = nlDlg.create($scope);
         _canzip = nlLrFilter.canZip();
         _customScoresHeader = customScoresHeader || [];
-        _drillDownDict = drillDownDict || {}
         ctx = {};
 		dlg.scope.reptype = nlLrFilter.getType();
         dlg.setCssClass('nl-height-max nl-width-max');
         dlg.scope.export = {summary: false, course: (dlg.scope.reptype == 'course' || dlg.scope.reptype == 'course_assign') ? true : false, module: (dlg.scope.reptype == 'module' || dlg.scope.reptype == 'module_assign' || dlg.scope.reptype  == 'module_self_assign') ? true : false, ids: true,
-                            indUser: (dlg.scope.reptype == 'user'), pageScore: false, feedback: false, courseDetails: false, drilldown: false};
+                            indUser: (dlg.scope.reptype == 'user'), pageScore: false, feedback: false, courseDetails: false};
+        if (drillDownDict) {
+            _drillDownDict = drillDownDict || {};
+            dlg.scope.showDrillDownCheckbox = true;
+            dlg.scope.export['drilldown'] = false;
+        }
         if (nhtDict) {
             _nhtDict = nhtDict || {};
             dlg.scope.showNhtCheckbox = (dlg.scope.reptype != "user");
