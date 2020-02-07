@@ -1,19 +1,27 @@
 <nl-dlg dlgTitle='Mark attendance' show-help='0'>
 <nl-dlg-content>
 <div class='row row-top row-stretch padding0 margin0 nl-85vh'>
-	<div class='col nl-thin-scroll-mh100' style='padding-right:0px; max-width: 250px; min-width: 125x'>
+	<div class='col nl-thin-scroll-mh100' style='padding-right:0px; max-width: 250px; min-width: 125px'>
 		<div class='padding-mid fsh4'>Sessions</div>
-		<div ng-repeat='session in sessions'
-			class='nl-link-text {{session.id == selectedSession.id ? "nl-left-tab-selected" : "nl-left-tab"}} padding-small'>
-			<div class='padding-mid' 
-				ng-click='onClick(session)'
-				style='position:relative'>
-				{{session.name}}
+		<div ng-repeat='session in sessions'>
+			<div class='nl-link-text {{session.id == selectedSession.id ? "nl-left-tab-selected" : "nl-left-tab"}} padding-small'>
+				<div class='padding-mid' 
+					ng-click='onClick(session)'
+					style='position:relative'>
+					{{session.name}}
+				</div>
+			</div>
+			<!--TODO-NOW Handle if for below element -->
+			<div class="nl-left-tab padding-small forange">
+				<div class='padding-mid' ng-click='onClick(session, true)'>
+					{{selectedSession.attachedSession.reason || 'Additional Session Day'}}
+				</div>
 			</div>
 		</div>
 	</div>
-	<div class='col nl-left-tabbed-content nl-thin-scroll-mh100' ng-show='selectedSession.canMarkAttendance'>
-		<mark-attendance-tab selecteditem='selectedSession'></mark-attendance-tab>	
+	<div class='col nl-left-tabbed-content nl-thin-scroll-mh100' ng-show='selectedSession.canMarkAttendance'
+		style="min-width:500px;">
+		<mark-attendance-tab selecteditem='selectedSession' canshowdate='canShowDate'></mark-attendance-tab>	
 	</div>
 	<div class='col nl-left-tabbed-content' ng-show='!selectedSession.canMarkAttendance'>
 		<div class='padding-mid' style='line-height: 175%'>

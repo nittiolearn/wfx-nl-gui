@@ -106,7 +106,8 @@ var NlMarkAttendanceTabDirective = [
 			transclude: true,
 			templateUrl: 'view_controllers/learning_reports/mark_attendance_tab.html',
 			scope: {
-				selecteditem: '='
+				selecteditem: '=',
+				canshowdate: '='
 			},
 			link: function($scope, iElem, iAttrs) {
 				$scope.bulkAttendanceMarker = function(e) {
@@ -1527,7 +1528,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					continue;
 				}
 				var earlierSessions = _getEarlierItems(sessions, _milestone.earlierItemIds);
-				//Check for earllier attendance items.
+				//Check for earlier attendance items.
 				for(var j=0; j<earlierSessions.length; j++) {
 					var newAttendance = earlierSessions[j].newAttendance;
 					for(var k=0; k<newAttendance.length; k++) {
@@ -1700,19 +1701,25 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		markAttendanceDlg.scope.attendanceOptions = _userInfo.groupinfo.attendance;
 		markAttendanceDlg.scope.sessions = _getIltSessions(content, learningRecords);
 		markAttendanceDlg.scope.selectedSession = markAttendanceDlg.scope.sessions[0];
+		markAttendanceDlg.scope.canShowDate = _groupInfo.props.etmAsd || false;
 		oldAttendance = {};
 		oldAttendance = angular.copy(g_attendance);
-		markAttendanceDlg.scope.onClick = function(session) {
-			var currentSession = markAttendanceDlg.scope.selectedSession;
-			if(session.sessionNo > currentSession.sessionNo) {
-				var ret = _checkIfCurrentSessionIsCompletelyMarked(markAttendanceDlg.scope, currentSession, session);
-				if(!ret.status) {
-					nlDlg.popupAlert({title: 'Alert message', 
-						template: ret.msg})
-					return;	
+		markAttendanceDlg.scope.onClick = function(session, isAttachedSession) {
+			if(!isAttachedSession){
+				var currentSession = markAttendanceDlg.scope.selectedSession;
+				if(session.sessionNo > currentSession.sessionNo) {
+					var ret = _checkIfCurrentSessionIsCompletelyMarked(markAttendanceDlg.scope, currentSession, session);
+					if(!ret.status) {
+						nlDlg.popupAlert({title: 'Alert message', 
+							template: ret.msg})
+						return;	
+					}
 				}
+				markAttendanceDlg.scope.selectedSession = session;
+			} else {
+				// TODO-NOW: For the attached session. Do it from scratch
+				markAttendanceDlg.scope.selectedSession = session;
 			}
-			markAttendanceDlg.scope.selectedSession = session;
 		};
 		
 		markAttendanceDlg.scope.bulkAttendanceMarker = function(e) {
@@ -1797,6 +1804,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (userSessionAttendance.attendance.id == '') return true;
 		var selectedAttendance = _attendanceObj[userSessionAttendance.attendance.id] || {};
 		if (selectedAttendance.timePerc != 100 && (!remarks || remarks == "")) return false;
+		var attendedDate = userSessionAttendance.attendedDate;
+		//TODO-NOW: Do the validation for attendedDate
 		return true;
 	}
 
@@ -1856,7 +1865,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				previousMilestoneIds[item.id] = true;
 			}
 			if(item.type != 'iltsession') continue; 
-			var dict = {id: item.id, hide_locked: item.hide_locked || false, name:item.name, sessionNo: i, newAttendance: [], canMarkAttendance: true, previousMs: angular.copy(previousMilestoneIds), attendanceOptions: _userInfo.groupinfo.attendance, canMarkAttendance: true};
+			var dict = {id: item.id, hide_locked: item.hide_locked || false, name:item.name, sessionNo: i, newAttendance: [], canMarkAttendance: true, previousMs: angular.copy(previousMilestoneIds), attendanceOptions: _userInfo.groupinfo.attendance, canMarkAttendance: true,
+						attendanceDate: item.attendanceDate || null};
 			if(lastMilestone) {
 				var aboveMilestone = _getAboveMilestone(milestoneItems, lastMilestone.id);
 				if(!aboveMilestone.milestoneObj.status || !aboveMilestone.canMarkMilestone) {
@@ -2331,6 +2341,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		confirmationDlg.setCssClass('nl-height-max nl-width-max');
 		confirmationDlg.scope.markedSessions = markedSessions;
 		confirmationDlg.scope.paramName = paramName;
+		confirmationDlg.scope.canShowDate =dlgScope.canShowDate;
 		if(paramName == 'attendance') {
 			if(!('attendance_version' in g_attendance)) 
 			g_attendance['attendance_version'] = nlCourse.getAttendanceVersion();

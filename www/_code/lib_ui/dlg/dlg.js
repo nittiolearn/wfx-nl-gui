@@ -472,6 +472,7 @@ function _formFieldDirectiveImpl(nl, nlDlg, tagName, templateUrl, transclude) {
             fieldname: '@',
             fieldmodel: '@',
             fieldmodel2: '@',
+            fieldmodelbyref: '=',
             fieldtype: '@',
             fieldcls: '@',
             fieldindex: '@',
@@ -480,6 +481,7 @@ function _formFieldDirectiveImpl(nl, nlDlg, tagName, templateUrl, transclude) {
             fieldminvalue: '@'
         },
         link: function($scope, iElem, iAttrs) {
+            if(!$scope.fieldmodel) return;
             nl.log.debug('linking field: ', $scope.fieldmodel);
             if (!tagName) tagName= [];
             if (!Array.isArray(tagName)) tagName = [tagName];

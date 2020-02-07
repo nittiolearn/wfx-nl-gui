@@ -1,4 +1,4 @@
-<div class='nl-dlg-field-value nl-xxx-select'>
+<div class='nl-dlg-field-value nl-xxx-select {{fieldcls}}' ng-show='fieldmodel'>
     <div class='row row-center margin0 padding-small nl-link-text'
          ion-datetime-picker date
          autofocus=''
@@ -13,3 +13,18 @@
     </div>
 </div>
 <div ng-show='$parent.error[fieldmodel]' class='nl-dlg-field-errormsg'>{{$parent.error[fieldmodel]}}</div>
+
+<div class="nl-dlg-field-value nl-xxx-select {{fieldcls}}" ng-show='!fieldmodel'>
+    <div class='row row-center margin0 padding-small nl-link-text'
+        ion-datetime-picker date
+        autofocus=''
+        tabindex="{{fieldindex || 0}}"
+        ng-model="fieldmodelbyref">
+        <div class='col margin0 padding0'>{{fieldmodelbyref | nlDateTimeFormat:'date'}}</div>
+        <i ng-show='fieldmodelbyref'
+            class='icon ion-ios-close nl-dlg-field-icon forange2'
+            ng-click='fieldmodelbyref=null; $event.stopImmediatePropagation()'>
+        </i>                
+        <i class='icon ion-ios-calendar nl-dlg-field-icon'></i>
+    </div>
+</div>

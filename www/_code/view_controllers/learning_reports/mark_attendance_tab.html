@@ -1,10 +1,60 @@
 <div class='row row-center padding-0 margin0'>
-    <div class='col padding-mid fsh4'>Mark  the learner attendance for {{selecteditem.name}}</div>
+    <!-- TODO-NOW: work on ng-if to display different heading for the below 2 elements and uncomment them and remove the one line below it-->
+    <!-- <div class='col padding-mid fsh4' ng-if="">Mark  the learner attendance for {{selecteditem.name}}</div> -->
+    <!-- <div class='col padding-mid fsh4' ng-if="isAttachedSessionActive">{{selecteditem.attachedSession.reason || 'Additional Session Day'}}</div> -->
+    <div class='col padding-mid fsh4'>Additional Session Day</div>
+    
+    <div class='col padding0 ' style="max-width:180px; padding-right: 10px;" ng-if='canshowdate'>
+        <nl-date-select fieldmodelbyref='selecteditem.attendanceDate' fieldcls='padding0 padding-small-left'></nl-date-select>
+    </div>
     <div class='nl-link-text nl-button-highlight' ng-click='bulkAttendanceMarker($event)'>Mark all</div>
 </div>
+<div class='row padding-mid margin0 margin-bottom-3' ng-if='canshowdate'>
+    <!-- TODO-NOW: attach a ng-click event on Add session  -->
+    <div class='padding-small nl-link-text nl-button-highlight' >Add session</div>
+    <div class="padding-small"></div>
+    <!-- TODO-NOW: work on ng-if for below element display , also attach a ng-click event-->
+    <div class='padding-small nl-link-text nl-button-highlight' ng-if='isAttachedSessionActive'>
+        Remove session
+    </div>
+</div>
+
+<!-- TODO-NOW: handlle the ng-if of below element -->
+<!-- <div class="row padding-mid margin0" ng-if='isAttachedSessionActive'> -->
+<div class="padding-mid margin0">
+    <div class="row row-center padding0 margin0">
+        <div class="col padding0-x">Reason</div>
+        <div class="col col-67 padding-mid-left">Remarks</div>
+    </div>
+    <div class="row row-center padding0 margin0">
+        <div class="col padding0">
+            <div  class='nl-dlg-field-value padding0 padding-small-v'>
+                <select>
+                    <option value="weekoff">Week off</option>
+                    <option value="paidleave">Paid Leave</option>
+                    <option value="cancelled">Cancelled</option>
+                    <option value="extension">Extension</option>
+                </select>
+                <!-- <select ng-model='$parent.data[fieldmodel]' 
+                        ng-change='onFieldChange(fieldmodel)'
+                        ng-options='elem as elem.name group by elem.group for elem in $parent.options[fieldmodel] track by elem.id'
+                        class='{{fieldcls}}'
+                        autofocus=''
+                        tabindex="{{fieldindex}}">
+                </select> -->
+                <!-- <div ng-show='$parent.error[fieldmodel]' class='nl-dlg-field-errormsg'>{{$parent.error[fieldmodel]}}</div> -->
+            </div>
+        </div>
+        <div class="col col-67 padding0 padding-mid-left">
+            <!-- Bind ng-model with the input -->
+            <input type='text' placeholder='Mention remarks'></input>
+        </div>
+    </div>
+</div>
+
 <div class='row row-center padding0 margin0' ng-repeat='user in selecteditem["newAttendance"]'>
     <div class='row row-center padding0 margin0 {{(user.attrition || !user.canMarkLearner) ? "fgrey" : "row-wrap"}}'>
-        <div ng-class='$root.respCol211'class='padding-mid'>
+        <div ng-class='$root.respCol211' class='padding-mid'>
             <div class='row row-center padding0 margin0'>
                 <div class='col padding0' >{{user.name}} <span class='fgrey'>({{user.userid}})</span></div>
                 <div class='col padding0'>
