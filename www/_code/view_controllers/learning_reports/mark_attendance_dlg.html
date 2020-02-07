@@ -8,7 +8,7 @@
 				<div class='padding-mid' 
 					ng-click='onClick(session)'
 					style='position:relative'>
-					{{session.name}}
+					{{session.asdSession == true ? session.reason.name : session.name}}
 				</div>
 			</div>
 		</div>
