@@ -42,8 +42,7 @@ function module_init() {
 	.controller('nl.LearningReportsCtrl', LearningReportsCtrl)
 	.service('nlLearningReports', NlLearningReports)
 	.directive('markMilestoneTab', NlMarkMilestoneTabDirective)
-	.directive('markRatingTab', NlMarkRatingTabDirective)
-	.directive('markAttendanceTab', NlMarkAttendanceTabDirective);
+	.directive('markRatingTab', NlMarkRatingTabDirective);
 }
 
 var configFn = ['$stateProvider', '$urlRouterProvider',
@@ -99,24 +98,6 @@ function() {
 	}
 }];
 
-var NlMarkAttendanceTabDirective = [
-	function() {
-		return {
-			restrict: 'E',
-			transclude: true,
-			templateUrl: 'view_controllers/learning_reports/mark_attendance_tab.html',
-			scope: {
-				selecteditem: '=',
-				canshowdate: '='
-			},
-			link: function($scope, iElem, iAttrs) {
-				$scope.bulkAttendanceMarker = function(e) {
-					$scope.$parent.$parent.$parent.$parent.bulkAttendanceMarker(e);
-				};
-			}
-		}
-	}];
-	
 var LearningReportsCtrl = ['$scope', 'nlLearningReports',
 function($scope, nlLearningReports) {
 	var reportView = nlLearningReports.create($scope);
@@ -1704,7 +1685,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		markAttendanceDlg.scope.attendanceOptions = _userInfo.groupinfo.attendance;
 		markAttendanceDlg.scope.sessions = _getIltSessions(content, learningRecords);
 		markAttendanceDlg.scope.selectedSession = markAttendanceDlg.scope.sessions[0];
-		markAttendanceDlg.scope.canShowDate = _groupInfo.props.etmAsd || false;
+		markAttendanceDlg.scope.canShowDate = _groupInfo.props.etmAsd.length > 0 || false;
 		oldAttendance = {};
 		oldAttendance = angular.copy(g_attendance);
 		markAttendanceDlg.scope.onClick = function(session, isAttachedSession) {
@@ -1736,7 +1717,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				g_attendance = {};
 				attendanceUpdated = false;
 				e.preventDefault();
-			for(var i=0; i<markAttendanceDlg.scope.sessions.length; i++) {
+			for (var i = 0; i < markAttendanceDlg.scope.sessions.length; i++) {
 				var session = markAttendanceDlg.scope.sessions[i];
 				updatedSessionsList.push({id: session.id, name:session.name, isUpdated: false, selectedUsers: []});
 				for(var j=0; j<session.newAttendance.length; j++) {

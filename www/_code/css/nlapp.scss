@@ -511,13 +511,26 @@ tr.summary {
   max-width: 200px;
 }
 
+.nl-max-250 {
+  max-width:250px;
+}
+
 .nl-max-300 {
   max-width: 300px;
+}
+
+.nl-min-125 {
+  min-width: 125px;
 }
 
 .nl-min-200 {
   min-width: 200px;
 }
+
+.nl-min-500 {
+  min-width: 500px;
+}
+
 
 .nl-menuitems {
   text-align: right;
@@ -2220,6 +2233,10 @@ img.nl-full-width {
   padding-left: 0;
 }
 
+.padding0-right {
+  padding-right:0;
+}
+
 .padding-small {
     padding: 4px;
 }
@@ -2235,6 +2252,10 @@ img.nl-full-width {
 
 .padding-mid {
     padding: 8px;
+}
+
+.padding-mid-right {
+  padding-right: 8px;
 }
 
 .padding-small-v {

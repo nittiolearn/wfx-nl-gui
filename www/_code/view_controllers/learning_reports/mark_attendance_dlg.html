@@ -1,7 +1,7 @@
 <nl-dlg dlgTitle='Mark attendance' show-help='0'>
 <nl-dlg-content>
 <div class='row row-top row-stretch padding0 margin0 nl-85vh'>
-	<div class='col nl-thin-scroll-mh100' style='padding-right:0px; max-width: 250px; min-width: 125px'>
+	<div class='col nl-thin-scroll-mh100 padding0-right nl-max-250 nl-min-125'>
 		<div class='padding-mid fsh4'>Sessions</div>
 		<div ng-repeat='session in sessions'>
 			<div class='nl-link-text {{session.id == selectedSession.id ? "nl-left-tab-selected" : "nl-left-tab"}} padding-small'>
@@ -19,9 +19,87 @@
 			</div>
 		</div>
 	</div>
-	<div class='col nl-left-tabbed-content nl-thin-scroll-mh100' ng-show='selectedSession.canMarkAttendance'
-		style="min-width:500px;">
-		<mark-attendance-tab selecteditem='selectedSession' canshowdate='canShowDate'></mark-attendance-tab>	
+	<div class='col nl-left-tabbed-content nl-thin-scroll-mh100 nl-min-500' ng-show='selectedSession.canMarkAttendance'>
+		<div class='row row-center padding-0 margin0'>
+			<div class='col padding-mid fsh4' ng-if="!etmAsdActive">Mark  the learner attendance for {{selectedSession.name}}</div>
+			<div class='col padding-mid fsh4' ng-model="" ng-if="etmAsdActive">{{selectedSession.attachedSession.reason || 'Additional Session Day'}}</div>
+			
+			<div class='col nl-max-200 padding0 padding-mid-right'  ng-if='canShowDate'>
+				<nl-date-select fieldmodelbyref='selectedSession.attendanceDate' fieldcls='padding0 padding-small-left'></nl-date-select>
+			</div>
+			<div class='nl-link-text nl-button-highlight' ng-click='bulkAttendanceMarker($event)'>Mark all</div>
+		</div>
+		<div class='row padding-mid margin0 margin-bottom-3' ng-if='canShowDate'>
+			<!-- TODO-NOW: attach a ng-click event on Add session  -->
+			<div class='padding-small nl-link-text nl-button-highlight' >Add session</div>
+			<div class="padding-small"></div>
+			<!-- TODO-NOW: work on ng-if for below element display , also attach a ng-click event-->
+			<div class='padding-small nl-link-text nl-button-highlight' ng-if='etmAsdActive'>
+				Remove session
+			</div>
+		</div>
+			
+			<!-- TODO-NOW: handlle the ng-if of below element -->
+			<!-- <div class="row padding-mid margin0" ng-if='etmAsdActive'> -->
+		<div class="padding-mid margin0">
+			<div class="row row-center padding0 margin0">
+				<div class="col padding0-x">Reason</div>
+				<div class="col col-67 padding-mid-left">Remarks</div>
+			</div>
+			<div class="row row-center padding0 margin0">
+				<div class="col padding0">
+					<!-- TODO-NOW: get the options from the group properties  and change accordingly-->
+					<div class="nl-dlg-field-value padding0 padding-small-v">
+						<select>
+							<option value="weekoff">Week off</option>
+							<option value="paidleave">Paid Leave</option>
+							<option value="cancelled">Cancelled</option>
+							<option value="extension">Extension</option>
+						</select>
+					</div>
+				</div>
+				<div class="col col-67 padding0 padding-mid-left">
+					<!-- Bind ng-model with the input -->
+					<input type='text' placeholder='Mention remarks'></input>
+				</div>
+			</div>
+		</div>
+			
+		<div class='row row-center padding0 margin0' ng-repeat='user in selectedSession["newAttendance"]'>
+			<div class='row row-center padding0 margin0 {{(user.attrition || !user.canMarkLearner) ? "fgrey" : "row-wrap"}}'>
+				<div ng-class='$root.respCol211' class='padding-mid'>
+					<div class='row row-center padding0 margin0'>
+						<div class='col padding0' >{{user.name}} <span class='fgrey'>({{user.userid}})</span></div>
+						<div class='col padding0'>
+							<select ng-model='user.attendance' 
+									ng-if='!user.attrition && user.canMarkLearner'
+									ng-options='opt as opt.name for opt in selectedSession.attendanceOptions track by opt.id'
+									class='w100 {{fieldcls}}'
+									autofocus=''
+									tabindex="{{tabindex}}"
+									style='min-height: 34px'
+									placeholder='"Write remarks"'>
+							</select>
+						</div>
+					</div>
+				</div>
+				<div ng-class='$root.respCol211' class='padding-mid' ng-if='!user.remarkOptions && !user.attrition && user.canMarkLearner'>
+					<input type='text' ng-model='user.remarks' placeholder='Mention remarks for learner'></input>
+				</div>
+				<div ng-class='$root.respCol211' class='padding-mid' ng-if='user.remarkOptions && !user.attrition && user.canMarkLearner'>
+					<select ng-model='user.remarks' 
+							ng-options='opt as opt.name for opt in user.remarkOptions track by opt.id'
+							class='w100 {{fieldcls}}'
+							autofocus=''
+							tabindex="{{tabindex}}"
+							style='min-height: 34px'>
+					</select>
+				</div>
+				<div ng-if='user.attrition || !user.canMarkLearner' ng-class='$root.respCol211' class='padding-mid'>
+					<span>{{user.attritionStr || user.disableMarkingStr}}</span>
+				</div>
+			</div>
+		</div>
 	</div>
 	<div class='col nl-left-tabbed-content' ng-show='!selectedSession.canMarkAttendance'>
 		<div class='padding-mid' style='line-height: 175%'>
