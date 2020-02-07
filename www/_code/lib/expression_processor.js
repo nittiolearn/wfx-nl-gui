@@ -28,7 +28,7 @@ function(nl) {
     };
 
     //-------------------------------------------------------------------------------------------------
-    // Test code
+    // Test code: Uncomment the call this method in the end of this module for testing
     this.test = function() {
         var dictAvps = {};
         for(var i=0; i<100; i++) dictAvps[nl.fmt2('_id{}', i)] = i > 50 ? null : i;
@@ -47,6 +47,7 @@ function(nl) {
             [3, '$min{_id3, _id4, _id5,_id17,_id3}'],
             [32, '$sum{_id3, _id4, _id5,_id17,_id3}'],
             [6.4, '$avg{_id3, _id4, _id5,_id17,_id3}'],
+            [4, '$min_top{4, _id3, _id4, _id6,_id17, _id11}'],
             [11.5, '$avg_top{2, _id3, _id4, _id6,_id17,_id3}'],
             [10.5, '$avg_top{2,_id3, _id4, _id5} + _id6'],
             [false, '($max{_id1,_id2} <= $avg_top{2, _id3, _id4, _id5} or _id6) and ($min{_id7, _id8} + $max{_id9, _id10} < $avg{_id11, _id12, _id13, _id14})'],
@@ -56,12 +57,18 @@ function(nl) {
         ];
 
         var ret = {succ: 0, payloads: []};
+        var failCount = 0;
         for(var i=0; i<testcases.length; i++) {
             var tc = testcases[i];
             var payload = _testcase(tc[1], tc[0], dictAvps);
             ret.payloads.push(payload);
             if (payload['status']) ret.succ += 1;
+            else {
+                failCount++;
+                console.log(nl.fmt2('Testcase-{}: failed', i), payload);
+            }
         }
+        console.log(nl.fmt2('Test Summary: {} executed, {} failed.', testcases.length, failCount));
         return ret;
     };
 
@@ -146,6 +153,7 @@ function(nl) {
         '$cnt(': '_ExpressionProcessor_cnt(',
         '$avg(': '_ExpressionProcessor_avg(',
         '$avg_top(': '_ExpressionProcessor_avg_top(',
+        '$min_top(': '_ExpressionProcessor_min_top(',
     };
 
     function _ExpressionProcessor_min(inputArgs) {
@@ -206,9 +214,28 @@ function(nl) {
         return _ExpressionProcessor_avg(newArray, true);
     }
 
+    function _ExpressionProcessor_min_top(inputArgs) {
+        _ExpressionProcessor_check(inputArgs, 'min_top');
+        var nElems = inputArgs[0];
+        if (nElems < 2) throw(nl.fmt2('$min_top first argument should be at least 2, {} given.', nElems));
+        if (inputArgs.length < nElems+1) throw(nl.fmt2('$min_top({}, ...) function takes atleast {} argument, {} given.', nElems, nElems+1, inputArgs.length));
+
+        inputArgs.splice(0, 1);
+        inputArgs.sort(function(a, b) {
+            return (b || 0) - (a || 0);
+        });
+        var newArray = [];
+        for(var i=0; i<nElems; i++) {
+            newArray.push(inputArgs[i]);
+        }
+        return _ExpressionProcessor_min(newArray, true);
+    }
+
     function _ExpressionProcessor_check(inputArgs, fn) {
         if (inputArgs.length < 2) throw(nl.fmt2('{} function takes atleast 2 argument, {} given.', fn, inputArgs.length));
     }
+
+    // this.test();
 }];
 
 //-------------------------------------------------------------------------------------------------
