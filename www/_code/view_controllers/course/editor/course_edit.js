@@ -236,6 +236,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 					{ "name": "$sum - sum of given items", "val": "$sum{}", "cursor": -1 },
 					{ "name": "$avg - average of given items", "val": "$avg{}", "cursor": -1 },
 					{ "name": "$avg_top - average of top 'n' items", "val": "$avg_top{}", "cursor": -1 },
+					{ "name": "$min_top - minimum of top 'n' items", "val": "$min_top{}", "cursor": -1 },
 				],
 			'_':[]
 		};
@@ -781,6 +782,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 				'<li><b>$min{_id1, _id2, _id3}</b>In this case gate score is considered as min score obtained among the item with given Unique ids. </li>' +
 				'<li><b>$sum{_id1, _id2, _id3}</b>In this case gate score is considered as sum of score obtained by item with given Unique ids. </li>' +
 				'<li><b>$avg{_id1, _id2, _id3}</b>In this case gate score is considered as average of score obtained by item with given Unique ids. </li>' +
+				'<li><b>$min_top{4, _id1, _id2, _id3, _id4, _id5}</b>In this case gate score is considered as minimum of highest top four score obtained by item with given Unique ids (i.e. the second lowest of the 5 items).</li>' +
 				'<li><b>$avg_top{2, _id1, _id2, _id3}</b>In this case gate score is considered as average of highest top two score obtained by item with given Unique ids. </li>' +
 				'<li><b>$avg_top{2, _id1, _id2, _id3} + _id6 </b>In this case gate score is considered as sum of average of highest top two score obtained by item with Unique id "_id1", "_id2", "_id3" and score of item with Unique id "_id6".</li></ul>' +
 				'<div class="padding-mid"></div>'+
