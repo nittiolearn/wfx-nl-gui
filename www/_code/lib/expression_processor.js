@@ -47,9 +47,14 @@ function(nl) {
             [3, '$min{_id3, _id4, _id5,_id17,_id3}'],
             [32, '$sum{_id3, _id4, _id5,_id17,_id3}'],
             [6.4, '$avg{_id3, _id4, _id5,_id17,_id3}'],
-            [4, '$min_top{4, _id3, _id4, _id6,_id17, _id11}'],
             [11.5, '$avg_top{2, _id3, _id4, _id6,_id17,_id3}'],
             [10.5, '$avg_top{2,_id3, _id4, _id5} + _id6'],
+            [6, '$nth_min{3, _id3, _id6, _id4, _id17, _id11}'],
+            [4, '$nth_min{2, _id0, _id6, _id4,_id17, _id11}'],
+            [0, '$nth_min{2, _id0, _id0, _id4,_id17, _id11}'],
+            [7.5, '$if{$nth_min{2, _id1, _id2, _id3, _id4, _id5} > 0, $avg{_id6, _id7, _id8, _id9}, 0}'],
+            [0, '$if{$nth_min{3, _id1, _id2, _id3, _id4, _id5} > 3, $avg{_id6, _id7, _id8, _id9}, 0}'],
+            [2, '$if{_id55, 1, 2}'],
             [false, '($max{_id1,_id2} <= $avg_top{2, _id3, _id4, _id5} or _id6) and ($min{_id7, _id8} + $max{_id9, _id10} < $avg{_id11, _id12, _id13, _id14})'],
 
             [false, '$max{_id51,_id52} < $avg_top{2, _id53, _id54, _id55} or _id56 or ($cnt{_id56, _id57} + $sum{_id56, _id57} < 0)'],
@@ -153,7 +158,8 @@ function(nl) {
         '$cnt(': '_ExpressionProcessor_cnt(',
         '$avg(': '_ExpressionProcessor_avg(',
         '$avg_top(': '_ExpressionProcessor_avg_top(',
-        '$min_top(': '_ExpressionProcessor_min_top(',
+        '$nth_min(': '_ExpressionProcessor_nth_min(',
+        '$if(': '_ExpressionProcessor_if(',
     };
 
     function _ExpressionProcessor_min(inputArgs) {
@@ -214,28 +220,30 @@ function(nl) {
         return _ExpressionProcessor_avg(newArray, true);
     }
 
-    function _ExpressionProcessor_min_top(inputArgs) {
-        _ExpressionProcessor_check(inputArgs, 'min_top');
+    function _ExpressionProcessor_nth_min(inputArgs) {
+        _ExpressionProcessor_check(inputArgs, 'nth_min');
         var nElems = inputArgs[0];
-        if (nElems < 2) throw(nl.fmt2('$min_top first argument should be at least 2, {} given.', nElems));
-        if (inputArgs.length < nElems+1) throw(nl.fmt2('$min_top({}, ...) function takes atleast {} argument, {} given.', nElems, nElems+1, inputArgs.length));
+        if (nElems < 2) throw(nl.fmt2('$nth_min first argument should be at least 2, {} given.', nElems));
+        if (inputArgs.length < nElems+1) throw(nl.fmt2('$nth_min({}, ...) function takes atleast {} argument, {} given.', nElems, nElems+1, inputArgs.length));
 
         inputArgs.splice(0, 1);
         inputArgs.sort(function(a, b) {
-            return (b || 0) - (a || 0);
+            return (a || 0) - (b || 0);
         });
-        var newArray = [];
-        for(var i=0; i<nElems; i++) {
-            newArray.push(inputArgs[i]);
-        }
-        return _ExpressionProcessor_min(newArray, true);
+        return inputArgs[nElems-1] || 0;
+    }
+
+    function _ExpressionProcessor_if(inputArgs) {
+        _ExpressionProcessor_check(inputArgs, 'if');
+        if (inputArgs.length != 3) throw(nl.fmt2('$if(...) function takes 3 arguments, {} given.', inputArgs.length));
+        return inputArgs[0] ? inputArgs[1] : inputArgs[2];
     }
 
     function _ExpressionProcessor_check(inputArgs, fn) {
         if (inputArgs.length < 2) throw(nl.fmt2('{} function takes atleast 2 argument, {} given.', fn, inputArgs.length));
     }
 
-    // this.test();
+    // console.log('Test details: ', this.test());
 }];
 
 //-------------------------------------------------------------------------------------------------
