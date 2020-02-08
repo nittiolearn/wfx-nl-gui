@@ -10,8 +10,20 @@
 </div>
 <div class='row row-top padding0 margin0'
 	ng-repeat='session in markedSessions'>
+	<div class='col' ng-show='session.selectedUsers.length <= 0 && paramName != "milestone" && session.isSessionDateUpdate'>
+		<span class='fsh6'><b>{{session.name}}: </b></span> <span>{{session.sessiondate}} </span> <br> 
+	</div>	
 	<div class='col' ng-show='session.selectedUsers.length > 0'>
-		<div ng-show='paramName != "milestone"' class='fsh6'><span class='fsh6'>{{session.name}}:</span> {{session.selectedUsers.length}} user{{session.selectedUsers.length > 1 ? 's' : ''}} selected</div>
+		<div ng-show='paramName != "milestone"' class='fsh6'>
+			<div class="row">
+				<div class="col">
+					<span class='fsh6'>{{session.name}}:</span> 
+					{{session.selectedUsers.length}} user{{session.selectedUsers.length > 1 ? 's' : ''}} selected
+				</div>
+				<div class="col nl-text-right">
+					<span>{{session.sessiondate}} </span>
+				</div>
+			</div>
 		<div class='padding-small'></div>
 		<div class='row row-center padding0 margin0'>
 			<table class='nl-table nl-table-styled fsh6 padding-mid'>

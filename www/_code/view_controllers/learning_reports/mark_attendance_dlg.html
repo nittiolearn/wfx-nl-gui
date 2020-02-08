@@ -16,7 +16,7 @@
 	<div class='col nl-left-tabbed-content nl-thin-scroll-mh100 nl-min-500' ng-show='selectedSession.canMarkAttendance'>
 		<div class='row row-center padding-0 margin0'>
 			<div class='col padding-mid fsh4' ng-if="!selectedSession.asdSession">Mark  the learner attendance for {{selectedSession.name}}</div>
-			<div class='col padding-mid fsh4' ng-if="selectedSession.asdSession">{{selectedSession.name || selectedSession.reason.name}}</div>
+			<div class='col padding-mid fsh4' ng-if="selectedSession.asdSession">{{selectedSession.reason.name || selectedSession.name}}</div>
 			
 			<div class='col nl-max-200 padding0 padding-mid-right'  ng-if='canShowDate'>
 				<nl-date-select fieldmodelbyref='selectedSession.attendanceDate' fieldcls='padding0 padding-small-left'></nl-date-select>

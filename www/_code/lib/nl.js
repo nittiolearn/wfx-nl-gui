@@ -205,6 +205,7 @@ function Formatter() {
     };
     
     this.date2Str = function(d, accuracy) {
+        if(!d) return '';
     	if (accuracy === undefined) accuracy = 'minute';
         var ret = _fmt2Impl('{}-{}', [d.getFullYear(), _pad2(d.getMonth()+1)]);
         if (accuracy === 'month') return ret;
