@@ -1,77 +1,76 @@
 <nl-dlg dlgTitle='Confirmation dialog' show-help='0'>
-<nl-dlg-content>
-<div class='padding-mid fsh6'>
-     <div class='padding-mid-v fyellow row row-center margin0 padding0'>
-        <i class="fsh2 icon ion-alert-circled"></i> 
-        <div class='col padding margin0'>
-            You have done following changes. If you are sure of these changes, please click on confirm button to save changes.
-        </div>
-     </div>
-</div>
-<div class='row row-top padding0 margin0'
-	ng-repeat='session in markedSessions'>
-	<div class='col' ng-show='session.selectedUsers.length <= 0 && paramName != "milestone" && session.isSessionDateUpdate'>
-		<span class='fsh6'><b>{{session.name}}: </b></span> <span>{{session.sessiondate}} </span> <br> 
-	</div>	
-	<div class='col' ng-show='session.selectedUsers.length > 0'>
-		<div ng-show='paramName != "milestone"' class='fsh6'>
-			<div class="row">
-				<div class="col">
-					<span class='fsh6'>{{session.name}}:</span> 
-					{{session.selectedUsers.length}} user{{session.selectedUsers.length > 1 ? 's' : ''}} selected
-				</div>
-				<div class="col nl-text-right">
-					<span>{{session.sessiondate}} </span>
-				</div>
-			</div>
-		<div class='padding-small'></div>
-		<div class='row row-center padding0 margin0'>
-			<table class='nl-table nl-table-styled fsh6 padding-mid'>
-			    <tr>
-			        <th>
-			            <span ng-show='paramName != "milestone"'>Username</span>
-			            <span ng-show='paramName == "milestone"'>Milestone</span>
-			        </th>
-			        <th>
-			            <span>Status</span>
-			        </th>
-			        <th>
-			            <span>Remarks</span>
-			        </th>
-			    </tr>
-			    <tr ng-repeat='user in session.selectedUsers'>
-			        <td>
-			            <span>{{user.name}}</span>
-			        </td>
-			        <td>
-			            <span>{{user.status}}</span>
-			        </td>
-			        <td>
-			            <span>{{user.remarks}}</span>
-			        </td>
-			    </tr>
-			</table>
-		</div>
-		</div>
+    <nl-dlg-content>
+    <div class='padding-mid fsh6'>
+         <div class='padding-mid-v fyellow row row-center margin0 padding0'>
+            <i class="fsh2 icon ion-alert-circled"></i> 
+            <div class='col padding margin0'>
+                You have done following changes. If you are sure of these changes, please click on confirm button to save changes.
+            </div>
+         </div>
 	</div>
-</div>
+	
+	<div ng-if="removeSessions.status" class="row roe-top padding-mid margin0">
+        <table class='nl-table nl-table-styled fsh6 padding-mid'>
+            <tr>
+                <th>
+                    <span>Removed Session{{removeSessions.removeSessionInfo.length > 1 ? 's': ''}}: {{removeSessions.removeSessionInfo.length}}</span>
+                </th>
+            </tr>
+            <tr ng-repeat='removedSession in removeSessions.removeSessionInfo'>
+                <td>
+                    <span>{{removedSession.name}}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
 
-<div ng-if="removeSessions.status" class="row row-top padding0 margin0 fsh6">
-	{{removeSessions.removeSessionInfo.length}} Session{{removeSessions.removeSessionInfo.length > 1 ? 's': ''}} removed
-</div>
-<div ng-if="removeSessions.status" class="row roe-top padding0 margin0">
-	<table class='nl-table nl-table-styled fsh6 padding-mid'>
-		<tr>
-			<th>
-				<span>Removed Session name</span>
-			</th>
-		</tr>
-		<tr ng-repeat='removedSession in removeSessions.removeSessionInfo'>
-			<td>
-				<span>{{removedSession.name}}</span>
-			</td>
-		</tr>
-	</table>
-</div>
-</nl-dlg-content>
-</nl
+    <div class='row row-top padding0 margin0'
+        ng-repeat='session in markedSessions'>
+        <div class='col' ng-show='session.selectedUsers.length <= 0 && paramName != "milestone" && session.dateupdated'>
+            <span class='fsh6'><b>{{session.name}}: </b></span> <span>{{session.sessiondate}} </span> <br> 
+        </div>	
+        <div class='col' ng-show='session.selectedUsers.length > 0'>
+            <div ng-show='paramName != "milestone"' class='fsh6'>
+                <div class="row">
+                    <div class="col">
+                        <span class='fsh6'>{{session.name}}:</span> 
+                        {{session.selectedUsers.length}} user{{session.selectedUsers.length > 1 ? 's' : ''}} selected
+                    </div>
+                    <div class="col nl-text-right">
+                        <span>{{session.sessiondate}} </span>
+                    </div>
+				</div>
+            </div>
+            <div class='padding-small'></div>
+            <div class='row row-center padding0 margin0'>
+				<table class='nl-table nl-table-styled fsh6 padding-mid'>
+					<tr>
+						<th>
+							<span ng-show='paramName != "milestone"'>Username</span>
+							<span ng-show='paramName == "milestone"'>Milestone</span>
+						</th>
+						<th>
+							<span>Status</span>
+						</th>
+						<th>
+							<span>Remarks</span>
+						</th>
+					</tr>
+					<tr ng-repeat='user in session.selectedUsers'>
+						<td>
+							<span>{{user.name}}</span>
+						</td>
+						<td>
+							<span>{{user.status}}</span>
+						</td>
+						<td>
+							<span>{{user.remarks}}</span>
+						</td>
+					</tr>
+				</table>
+            </div>
+        </div>
+    </div>
+    
+    </nl-dlg-content>
+</nl-dlg>
