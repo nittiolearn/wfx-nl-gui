@@ -244,34 +244,39 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     }
 
     function _pendingOrWaitingForRating(ratingItemInfo, iltItemInfo) {
+        // TODO-NOW: Does not seem right. Naveen please check.
         var setToLocked = (iltItemInfo && (iltItemInfo.rawStatus === 'pending' || iltItemInfo.status === 'waiting')) && 
                           (ratingItemInfo && (ratingItemInfo.rawStatus === 'pending' || ratingItemInfo.status === 'waiting'));
         return setToLocked;
     }
 
     function _updateILTtoLocked(cm, itemInfo, earlierTrainerItems) {
-        if(_pendingOrWaiting(earlierTrainerItems.milestone)) itemInfo.status = 'waiting';
-        if(_pendingOrWaiting(earlierTrainerItems.iltsession)) itemInfo.status = 'waiting';
+        if(_pendingOrWaiting(earlierTrainerItems.milestone) ||
+            _pendingOrWaiting(earlierTrainerItems.iltsession)) itemInfo.status = 'waiting';
+        var earlier = earlierTrainerItems.iltsession;
+        if (cm.asdSession && earlier && earlier.maxTimePerc > cm.maxTimePerc) {
+            cm.maxTimePerc = earlier.maxTimePerc;
+            // Needed for computing rating and startAfter dependancies
+        }
     }
 
     function _updateRatingtoLocked(cm, itemInfo, earlierTrainerItems) {
-        if(_pendingOrWaiting(earlierTrainerItems.milestone)) itemInfo.status = 'waiting';
-        // TODO-NOW: needs update
-        if(cm.rating_type != 'rag' && (_pendingOrWaiting(earlierTrainerItems.iltsession) || (earlierTrainerItems.iltsession && (earlierTrainerItems.iltsession.status === 'failed')))) itemInfo.status = 'waiting';
-    }
-
-    function TODO-NOW() {
-        cm.maxTimePerc = cm.timePerc;
-        var kids = cm.children || [];
-        for(var i=0; i<kids.length; i++) {
-            kids.
+        if(_pendingOrWaiting(earlierTrainerItems.milestone)) {
+            itemInfo.status = 'waiting';
+            return;
         }
-        if (cm.children) {
-            for 
+        if(cm.rating_type == 'rag' || !earlierTrainerItems.iltsession) return;
+        if (_pendingOrWaiting(earlierTrainerItems.iltsession)) {
+            itemInfo.status = 'waiting';
+            return;
         }
-
+        // Check if not marked attended in earlier fixed session or its children
+        var sess = earlierTrainerItems.iltsession;
+        if (sess.maxTimePerc == 0) {
+            itemInfo.status = 'waiting';
+            return;
+        }
     }
-
 
     function _updateMilestonetoLocked(cm, itemInfo, earlierTrainerItems) {
         if(_pendingOrWaiting(earlierTrainerItems.milestone)) itemInfo.status = 'waiting';
@@ -404,7 +409,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             itemInfo.iltTotalTime = cm.iltduration;
             return;
         }
-        itemInfo.score = grpAttendanceObj.timePerc;
+        itemInfo.score = grpAttendanceObj.timePerc || 0;
+        itemInfo.maxTimePerc = itemInfo.score; // Needed for computing max across additional sessions
         itemInfo.rawStatus = itemInfo.score == 100 ? 'success' : itemInfo.score == 0 ? 'failed' : 'partial_success';
         itemInfo.iltTotalTime = cm.iltduration;
         itemInfo.iltTimeSpent = ((grpAttendanceObj.timePerc/100)*cm.iltduration);
@@ -727,11 +733,6 @@ function AsdModules() {
     function _addAsdItems(modules, asdList, parentFixedSession) {
         if (!asdList || !asdList.asd) return;
         var asd = asdList.asd;
-        var parentsKids = null;
-        if (parentFixedSession) {
-            parentFixedSession.children = [];
-            parentsKids = parentFixedSession.children;
-        }
         for(var i=0; i<asd.length; i++) {
             var item = asd[i];
             item.type = 'iltsession';
@@ -739,7 +740,6 @@ function AsdModules() {
             item.parentId = parentFixedSession ? parentFixedSession.parentId : '_root';
             item.asdSession = true;
             modules.push(item);
-            if (parentsKids) parentsKids.push(item);
         }
     }
 
