@@ -55,8 +55,13 @@ function(nl, nlCourse, nlExpressionProcessor) {
         return statusInfo.id != this.STATUS_PENDING && statusInfo.id != this.STATUS_STARTED;
     };
 
-    this.getCourseStatusHelper = function(report, groupinfo, courseAssign, course) {
-        return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, false, report, groupinfo, courseAssign, course, 'trainer');
+    this.getAsdUpdatedModules = function(modules, attendance) {
+        var asdModules = new AsdModules();
+        return asdModules.getAsdUpdatedModules(modules, attendance);
+    };
+
+    this.getCourseStatusHelper = function(report, groupinfo, courseAssign, course, modules) {
+        return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, false, report, groupinfo, courseAssign, course, modules, 'trainer');
     };
     this.getCourseStatusHelperForCourseView = function(report, groupinfo, isLearnerMode) {
         return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, true, report, groupinfo, null, null, isLearnerMode ? 'learner' : 'trainer');
@@ -75,7 +80,7 @@ function(nl, nlCourse, nlExpressionProcessor) {
     };
 }];
 
-function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, report, groupinfo, courseAssign, course, launchMode) {
+function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, report, groupinfo, courseAssign, course, modules, launchMode) {
     if (!report) report = {};
     _processCourseRecord(course);
 
@@ -101,7 +106,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         _msDates[key] = nl.fmt.json2Date(d);
     }
  
-    var _modules = ((course || repcontent || {}).content || {}).modules || []; 
+    var _modules = modules;
     var _fromDate = (courseAssign || {}).not_before ||  report.not_before || report.created;
     if (_fromDate) _fromDate = nl.fmt.json2Date(_fromDate);
     var _userAttendanceDict = {};
@@ -127,6 +132,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         _userRatingDict = _arrayToDict(rating[report.id]);
         _grpAttendanceDict = _arrayToDict((groupinfo || {}).attendance);
         _grpRatingDict = _arrayToDict((groupinfo || {}).ratings);
+        if (!_modules) {
+            _modules = angular.copy(((course || repcontent || {}).content || {}).modules || []); 
+            var asdModules = new AsdModules();
+            _modules = asdModules.getAsdUpdatedModules(_modules, attendance);
+        }
     }
 
     function _arrayToDict(inputArray) {
@@ -246,8 +256,22 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
     function _updateRatingtoLocked(cm, itemInfo, earlierTrainerItems) {
         if(_pendingOrWaiting(earlierTrainerItems.milestone)) itemInfo.status = 'waiting';
+        // TODO-NOW: needs update
         if(cm.rating_type != 'rag' && (_pendingOrWaiting(earlierTrainerItems.iltsession) || (earlierTrainerItems.iltsession && (earlierTrainerItems.iltsession.status === 'failed')))) itemInfo.status = 'waiting';
     }
+
+    function TODO-NOW() {
+        cm.maxTimePerc = cm.timePerc;
+        var kids = cm.children || [];
+        for(var i=0; i<kids.length; i++) {
+            kids.
+        }
+        if (cm.children) {
+            for 
+        }
+
+    }
+
 
     function _updateMilestonetoLocked(cm, itemInfo, earlierTrainerItems) {
         if(_pendingOrWaiting(earlierTrainerItems.milestone)) itemInfo.status = 'waiting';
@@ -681,6 +705,45 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (!courseEndTime || courseEndTime >= lastUpdated) return;
         ret.delayDays = 1.0*(lastUpdated - courseEndTime)/1000.0/3600.0/24;
     }
+}
+
+//-------------------------------------------------------------------------------------------------
+function AsdModules() {
+    this.getAsdUpdatedModules = function(modules, attendance) {
+        if(!attendance) return modules;
+        var _sessionInfos = attendance.sessionInfos || null;
+        if (!_sessionInfos) return modules;
+        var asdAddedModules = [];
+        _addAsdItems(asdAddedModules, _sessionInfos['_root'], null);
+        for(var i=0; i<modules.length; i++) {
+            var cm = modules[i];
+            asdAddedModules.push(cm);
+            if (cm.type != 'iltsession') continue;
+            _addAsdItems(asdAddedModules, _sessionInfos[cm.id], cm);
+        }
+        return asdAddedModules;
+    }
+
+    function _addAsdItems(modules, asdList, parentFixedSession) {
+        if (!asdList || !asdList.asd) return;
+        var asd = asdList.asd;
+        var parentsKids = null;
+        if (parentFixedSession) {
+            parentFixedSession.children = [];
+            parentsKids = parentFixedSession.children;
+        }
+        for(var i=0; i<asd.length; i++) {
+            var item = asd[i];
+            item.type = 'iltsession';
+            item.iltduration = parentFixedSession ? parentFixedSession.iltduration : 480;
+            item.parentId = parentFixedSession ? parentFixedSession.parentId : '_root';
+            item.asdSession = true;
+            modules.push(item);
+            if (parentsKids) parentsKids.push(item);
+        }
+    }
+
+
 }
 
 //-------------------------------------------------------------------------------------------------

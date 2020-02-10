@@ -6,7 +6,7 @@
 		<div ng-repeat='session in sessions track by $index'>
 			<div class='nl-link-text {{session.id == selectedSession.id ? "nl-left-tab-selected" : "nl-left-tab"}} padding-small'>
 				<div class='padding-mid' 
-					ng-click='onClick(session)'
+					ng-click='onClick(session, $index)'
 					style='position:relative'>
 					{{session.asdSession ? session.reason.name : session.name}}
 				</div>
@@ -24,9 +24,13 @@
 			<div class='nl-link-text nl-button-highlight' ng-click='bulkAttendanceMarker($event)'>Mark all</div>
 		</div>
 		<div class='row padding-mid margin0 margin-bottom-3' ng-if='canShowDate'>
-			<!-- TODO-NOW: attach a ng-click event on Add session  -->
 			<div class='padding-small nl-link-text nl-button-highlight' 
 				ng-click= 'onClickAddAsd(selectedSession)'>Add session
+			</div>
+			<div class="padding-small"></div>
+			<div ng-if='selectedSession.sessionNo == 1' 
+				 class='padding-small nl-link-text nl-button-highlight' 
+				ng-click= 'onClickAddAsd(selectedSession, true)'>Add above
 			</div>
 			<div class="padding-small"></div>
 			<div class='padding-small nl-link-text nl-button-highlight' 

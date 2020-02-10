@@ -1281,7 +1281,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var content = _getContentOfCourseAssignment() || {};
 		var milestoneIdDict = _arrayToDict(_getMilestoneItems(content));
 	
-		var modules = content.modules || [];
+		var modules = nlReportHelper.getAsdUpdatedModules(content.modules || [], g_attendance);
 		nlLrCourseAssignView.show($scope, modules || [], courseAssign, function(cm) {
 			if (!cm) return null;
 			var moduleInfo = {records: [], internalStatusToStatusStrs: {}};
@@ -1694,20 +1694,22 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		oldSessionsAttendance = _getSessionsAttendance(markAttendanceDlg.scope.sessions);
 		oldAttendance.lastAsdId = g_attendance.lastAsdId || 0;
 		removeSessions = {status: false, removeSessionInfo : []};
-		markAttendanceDlg.scope.onClick = function(session) {
+		var lastIndex = null;
+		markAttendanceDlg.scope.onClick = function(session, index) {
 			var currentSession = markAttendanceDlg.scope.selectedSession;
-			if(session.sessionNo > currentSession.sessionNo) {
-				var ret = _checkIfCurrentSessionIsCompletelyMarked(markAttendanceDlg.scope, currentSession, session);
+			if(index > lastIndex) {
+				var ret = _checkIfCurrentSessionIsCompletelyMarked(markAttendanceDlg.scope, currentSession, session, index, lastIndex);
 				if(!ret.status) {
 					nlDlg.popupAlert({title: 'Alert message', 
 						template: ret.msg})
 					return;	
 				}
 			}
+			lastIndex = index;
 			markAttendanceDlg.scope.selectedSession = session;
 		};
 
-		markAttendanceDlg.scope.onClickAddAsd = function(selectedSession) {
+		markAttendanceDlg.scope.onClickAddAsd = function(selectedSession, addAbove) {
 			oldAttendance.lastAsdId++;
 			var attendanceUserList = angular.copy(selectedSession.newAttendance);
 			_updateUserAttendanceList(attendanceUserList);
@@ -1719,7 +1721,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 						attendanceDate: null, asdSession: true, reason: _groupInfo.props.etmAsd[0], reasonOptions: _groupInfo.props.etmAsd};
 			for(var i=0; i<markAttendanceDlg.scope.sessions.length; i++) {
 				if (selectedSession.id == markAttendanceDlg.scope.sessions[i].id) {
-					markAttendanceDlg.scope.sessions.splice(i+1, 0, dict);
+					var posToAddItem = addAbove ? i : i+1;
+					markAttendanceDlg.scope.sessions.splice(posToAddItem, 0, dict);
 					break;
 				}
 			}
@@ -1765,10 +1768,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				}
 				
 				// TODO=NOW: change the name from obj to something else in below 3 statements
-				var obj = {id: session.id, name:session.name, isUpdated: false, selectedUsers: []};
-				if(markAttendanceDlg.scope.canShowDate) obj['sessiondate'] = session.attendanceDate;
-				updatedSessionsList.push(obj);
+				var sessionObj = {id: session.id, name:session.name, isUpdated: false, selectedUsers: []};
+				if(markAttendanceDlg.scope.canShowDate) sessionObj['sessiondate'] = session.attendanceDate;
 
+				updatedSessionsList.push(sessionObj);
 				if (session.canMarkAttendance && session.hasOwnProperty('attendanceDate')) {
 					if(!_validateAttendanceDate(lastILTDate, session.attendanceDate, oldSessionsAttendance[session.id])) {
 						nlDlg.popupAlert({title: 'Error', template: nl.t('Attendance date is mandatory for {}', session.name)});
@@ -1779,8 +1782,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				}
 
 				if(session.asdSession) {
+					if (!lastFixedId) {
+						lastFixedId = '_root';
+						if(!(lastFixedId in g_attendance.sessionInfos)) g_attendance.sessionInfos[lastFixedId] = {};
+					}
 					if(!('asd' in g_attendance.sessionInfos[lastFixedId])) g_attendance.sessionInfos[lastFixedId]['asd'] = [];
-					g_attendance.sessionInfos[lastFixedId]['asd'].push({id: session.id, name: session.name, sessiondate: session.attendanceDate ? nl.fmt.date2Str(session.attendanceDate, 'date') : null, reason: session.reason, remark: session.remark});
+					g_attendance.sessionInfos[lastFixedId]['asd'].push({id: session.id, name: session.reason.name, sessiondate: session.attendanceDate ? nl.fmt.date2Str(session.attendanceDate, 'date') : null, reason: session.reason, remark: session.remark});
 				}
 
 				for(var j=0; j<session.newAttendance.length; j++) {
@@ -1823,6 +1830,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for(var i=0; i<attendanceUserList.length; i++) {
 			attendanceUserList[i].attendance = {id: ''};
 			attendanceUserList[i].remarks = '';
+			attendanceUserList[i].attendance = {id: "notapplicable", name: 'Not applicable', timePerc: 0};
 		}
 	}
 
@@ -1834,7 +1842,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return false;
 	}
 
-	function _checkIfCurrentSessionIsCompletelyMarked(dlgScope, currentSession, selectedSession) {
+	function _checkIfCurrentSessionIsCompletelyMarked(dlgScope, currentSession, selectedSession, currentIndex, lastIndex) {
 		var currentSessionAttendance = currentSession.newAttendance;
 		var sessions = dlgScope.sessions;
 		var msg = '<div class="padding-mid fsh6"><p style="line-height:30px">Please mark attendance for all learners in all the earlier sessions before marking attendance for this session.</p></div>';
@@ -1843,24 +1851,24 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var attendance = userSession.attendance;
 			if(attendance.id == "" && userSession.canMarkLearner) {
 				if(!userSession.attrition && !userSession.not_applicable && userSession.canMarkLearner)
-				return {status: false, msg: msg};
+					return {status: false, msg: msg};
 			}
 		}
 		var pendingSession = null;
+		var pendingIndex = null;
 		for(var i=0; i<sessions.length; i++) {
 			var session = sessions[i];
-			if(session.sessionNo == selectedSession.sessionNo) {
-				pendingSession = selectedSession;			
-				break;
-			}
 			for(var j=0; j<session.newAttendance.length; j++) {
 				var userSession = session.newAttendance[j];
 				var attendance = userSession.attendance;
-				if(attendance.id == "" && !userSession.attrition && !userSession.not_applicable && userSession.canMarkLearner) pendingSession = session;
+				if(attendance.id == "" && !userSession.attrition && !userSession.not_applicable && userSession.canMarkLearner) {
+					pendingIndex = i;
+					pendingSession = session;
+				}
 			}
 			if(pendingSession) break;
 		}
-		if(pendingSession.sessionNo < selectedSession.sessionNo)
+		if(pendingIndex < currentIndex)
 			return {status: false, msg: msg};
 		return {status: true};
 	}
@@ -1920,6 +1928,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return sessionsDate;
 	}
 
+	var sessionNo = 1;
 	function _getIltSessions(content, learningRecords) {
 		var ret = [];
 		var milestoneItems = _getMilestoneItems(content, true);
@@ -1931,7 +1940,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		var lastMilestone = null;
 		var previousMilestoneIds = {};
-		var sessionNo = 1;
+		var rootUpdated = false;
+			sessionNo = 1;
 		for(var i=0; i<content.modules.length; i++) {
 			var item = content.modules[i];
 			if(item.type == 'milestone') {
@@ -1941,7 +1951,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if(item.type != 'iltsession') continue;
 			var sessionInfos = g_attendance.sessionInfos || {};
 			var sessionInfo = sessionInfos[item.id] || {};
-			var dict = {id: item.id, hide_locked: item.hide_locked || false, name:item.name, sessionNo: sessionNo, newAttendance: [], canMarkAttendance: true, 
+			var dict = {id: item.id, hide_locked: item.hide_locked || false, name:item.name, newAttendance: [], canMarkAttendance: true, 
 						previousMs: angular.copy(previousMilestoneIds), attendanceOptions: _userInfo.groupinfo.attendance, canMarkAttendance: true,
 						attendanceDate: nl.fmt.json2Date(sessionInfo.sessiondate || '')};
 			if(lastMilestone) {
@@ -1951,21 +1961,16 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					dict.error = aboveMilestone.name;
 				};
 			}
+			if(!rootUpdated && sessionInfos['_root']) {
+				rootUpdated = true;
+				var rootSessionInfo = sessionInfos['_root'];
+				_updateAsdOnRead(ret, rootSessionInfo, dict);
+			}
+			dict.sessionNo = sessionNo;
 			ret.push(dict);
-			sessionNo++;
+			sessionNo = sessionNo++;
 			if('asd' in sessionInfo && _groupInfo.props.etmAsd) {
-				for(var j=0; j<sessionInfo.asd.length; j++) {
-					var copyOfDict = angular.copy(dict);
-					copyOfDict.id = sessionInfo.asd[j].id;
-					copyOfDict.name = sessionInfo.asd[j].name;
-					copyOfDict.remarks = sessionInfo.asd[j].remarks || '';
-					copyOfDict.reasonOptions = _groupInfo.props.etmAsd || [];
-					copyOfDict.reason = sessionInfo.asd[j].reason ? sessionInfo.asd[j].reason : _groupInfo.props.etmAsd[0];
-					copyOfDict.asdSession = true;
-					copyOfDict.attendanceDate = nl.fmt.json2Date(sessionInfo.asd[j].sessiondate || '');
-					ret.push(copyOfDict);
-					sessionNo++;
-				}
+				_updateAsdOnRead(ret, sessionInfo, dict);
 			}
 		}
 		
@@ -2033,6 +2038,22 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		return ret;
 	}
+
+	function _updateAsdOnRead(ret, sessionInfo, dict) {
+		for(var j=0; j<sessionInfo.asd.length; j++) {
+			var copyOfDict = angular.copy(dict);
+			copyOfDict.id = sessionInfo.asd[j].id;
+			copyOfDict.name = sessionInfo.asd[j].name;
+			copyOfDict.remarks = sessionInfo.asd[j].remarks || '';
+			copyOfDict.reasonOptions = _groupInfo.props.etmAsd || [];
+			copyOfDict.reason = sessionInfo.asd[j].reason ? sessionInfo.asd[j].reason : _groupInfo.props.etmAsd[0];
+			copyOfDict.asdSession = true;
+			copyOfDict.sessionNo = sessionNo;
+			copyOfDict.attendanceDate = nl.fmt.json2Date(sessionInfo.asd[j].sessiondate || '');
+			ret.push(copyOfDict);
+			sessionNo = sessionNo++;
+		}
+	}	
 
 	function _canMarkLearner(milestoneItems, previousMs, repid) {
 		for(var i=0; i<milestoneItems.length; i++) {
