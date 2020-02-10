@@ -27,7 +27,7 @@
     <div class='row row-top padding0 margin0'
         ng-repeat='session in markedSessions'>
         <div class='col' ng-show='session.selectedUsers.length <= 0 && paramName != "milestone" && session.dateupdated'>
-            <span class='fsh6'><b>{{session.name}}: </b></span> <span>{{session.sessiondate}} </span> <br> 
+            <span class='fsh6'><b>{{session.name}}: </b></span> <span>{{session.sessiondate | nlDateTimeFormat:"date"}} </span> <br> 
         </div>	
         <div class='col' ng-show='session.selectedUsers.length > 0'>
             <div ng-show='paramName != "milestone"' class='fsh6'>
@@ -37,7 +37,7 @@
                         {{session.selectedUsers.length}} user{{session.selectedUsers.length > 1 ? 's' : ''}} selected
                     </div>
                     <div class="col nl-text-right">
-                        <span>{{session.sessiondate}} </span>
+                        <span>{{session.sessiondate | nlDateTimeFormat:"date"}} </span>
                     </div>
 				</div>
             </div>

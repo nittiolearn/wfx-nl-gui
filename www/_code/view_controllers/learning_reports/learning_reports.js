@@ -1789,7 +1789,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 						if(!(lastFixedId in g_attendance.sessionInfos)) g_attendance.sessionInfos[lastFixedId] = {};
 					}
 					if(!('asd' in g_attendance.sessionInfos[lastFixedId])) g_attendance.sessionInfos[lastFixedId]['asd'] = [];
-					g_attendance.sessionInfos[lastFixedId]['asd'].push({id: session.id, name: session.reason.name, sessiondate: session.attendanceDate ? nl.fmt.date2Str(session.attendanceDate, 'date') : null, reason: session.reason, remark: session.remark});
+					var asdName = session.reason.name + (session.remarks ? ': ' + session.remarks : '');
+					g_attendance.sessionInfos[lastFixedId]['asd'].push({id: session.id, name: asdName , sessiondate: session.attendanceDate ? nl.fmt.date2Str(session.attendanceDate, 'date') : null, reason: session.reason, remarks: session.remarks});
 				}
 
 				for(var j=0; j<session.newAttendance.length; j++) {
@@ -1944,7 +1945,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var lastMilestone = null;
 		var previousMilestoneIds = {};
 		var rootUpdated = false;
-			sessionNo = 1;
+		sessionNo = 1;
 		for(var i=0; i<content.modules.length; i++) {
 			var item = content.modules[i];
 			if(item.type == 'milestone') {
@@ -1971,7 +1972,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}
 			dict.sessionNo = sessionNo;
 			ret.push(dict);
-			sessionNo = sessionNo++;
+			sessionNo++;
 			if('asd' in sessionInfo && _groupInfo.props.etmAsd) {
 				_updateAsdOnRead(ret, sessionInfo, dict);
 			}
@@ -2396,7 +2397,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		if(markType == 'attendance') {
 			bulkMarkerDlg.scope.selectedItem = dlgScope.selectedSession;
-			bulkMarkerDlg.scope.markingOptions = angular.copy(_userInfo.groupinfo.attendance);
+			bulkMarkerDlg.scope.markingOptions = dlgScope.selectedSession.asdSession ? _attendanceOptionsAsd : _attendanceOptions;
 			bulkMarkerDlg.scope.selectedMarkingType = null;	
 			bulkMarkerDlg.scope.rating_type = 'select';
 			bulkMarkerDlg.scope.data = {ratingNumber: '', bulkMarkStr: 'Mark all learners attendance as'};	
