@@ -443,7 +443,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			updated: false,
 			tables: []
 		});
-		if (tabData.isNHTAdded) {
+		if (tabData.isDrillDownAdded) {
 			tabs.push({
 				title : 'Click here to view course-wise progress',
 				name: 'Drill down',
@@ -453,7 +453,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				tables: []
 			});
 		}
-		if (tabData.isDrillDownAdded) {
+		if (tabData.isNHTAdded) {
 			tabs.push({
 				title : 'Click here to view New Hire Training status',
 				name: 'NHT',
@@ -1678,6 +1678,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	var oldAttendance = {};
 	var oldSessionsAttendance = {};
+	var attendanceUpdated = false; //This flag is to check whether the trainer had done changes to mark or not
+	var removeSessions = {status: false, removeSessionInfo : []};
 	function _showAttendanceMarker() {
 		var markAttendanceDlg = nlDlg.create($scope);
 		markAttendanceDlg.setCssClass('nl-height-max nl-width-max');
@@ -1691,6 +1693,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		oldAttendance = angular.copy(g_attendance);
 		oldSessionsAttendance = _getSessionsAttendance(markAttendanceDlg.scope.sessions);
 		oldAttendance.lastAsdId = g_attendance.lastAsdId || 0;
+		removeSessions = {status: false, removeSessionInfo : []};
 		markAttendanceDlg.scope.onClick = function(session) {
 			var currentSession = markAttendanceDlg.scope.selectedSession;
 			if(session.sessionNo > currentSession.sessionNo) {
@@ -1708,9 +1711,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			oldAttendance.lastAsdId++;
 			var attendanceUserList = angular.copy(selectedSession.newAttendance);
 			_updateUserAttendanceList(attendanceUserList);
+			var attendanceOptions = angular.copy(_userInfo.groupinfo.attendance);
+			attendanceOptions.push({timePerc: 0, id: "notapplicable", name: 'Not Applicable (Extension)'});
 			var dict = {id: oldAttendance.lastAsdId, hide_locked: false, name:_groupInfo.props.etmAsd[0].name || _groupInfo.props.etmAsd[0].id,
 						newAttendance: attendanceUserList, canMarkAttendance: true, 
-						previousMs: selectedSession.previousMs, attendanceOptions: _userInfo.groupinfo.attendance, canMarkAttendance: true,
+						previousMs: selectedSession.previousMs, attendanceOptions: attendanceOptions, canMarkAttendance: true,
 						attendanceDate: null, asdSession: true, reason: _groupInfo.props.etmAsd[0], reasonOptions: _groupInfo.props.etmAsd};
 			for(var i=0; i<markAttendanceDlg.scope.sessions.length; i++) {
 				if (selectedSession.id == markAttendanceDlg.scope.sessions[i].id) {
@@ -1723,14 +1728,17 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		markAttendanceDlg.scope.onClickRemoveAsd = function(selectedSession) {
 			var msg = {title: 'Alert message', template: nl.t('Do you really want to remove the selectedSession {}', selectedSession.name)};
 			nlDlg.popupConfirm(msg).then(function(result) {
-				if(result) {
-					for(var i=0; i<markAttendanceDlg.scope.sessions.length; i++) {
-						if (selectedSession.id == markAttendanceDlg.scope.sessions[i].id) {
-							markAttendanceDlg.scope.sessions.splice(i, 1);
-							markAttendanceDlg.scope.selectedSession = markAttendanceDlg.scope.sessions[i-1];
-							break;
-						}
-					}		
+				if(!result) return;
+
+				for(var i=0; i<markAttendanceDlg.scope.sessions.length; i++) {
+					if (selectedSession.id != markAttendanceDlg.scope.sessions[i].id) continue;	
+					var removedSession = {name: markAttendanceDlg.scope.sessions[i].name, attendanceDate: markAttendanceDlg.scope.sessions[i].attendanceDate};
+					markAttendanceDlg.scope.sessions.splice(i, 1);
+					markAttendanceDlg.scope.selectedSession = markAttendanceDlg.scope.sessions[i-1];
+					if(!(selectedSession.id in oldSessionsAttendance)) break;
+					removeSessions.status = true;
+					removeSessions.removeSessionInfo.push(removedSession);
+					break;
 				}
 			});
 		}
@@ -1745,7 +1753,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			g_attendance = {};
 			if(markAttendanceDlg.scope.canShowDate) 
 				g_attendance = {sessionInfos: {}, lastAsdId: oldAttendance.lastAsdId};
-			attendanceUpdated = false;
+			attendanceUpdated = removeSessions.status || false;
 			e.preventDefault();
 			var lastFixedId = null;
 			var lastILTDate = null;
@@ -1786,13 +1794,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				}
 				if(updatedSessionsList[i].sessiondate != oldSessionsAttendance[session.id]) {
 					attendanceUpdated = true;
-					updatedSessionsList[i].isSessionDateUpdate = true;
-					// updatedSessionsList[i].selectedUsers
-					// {name: newAttendancePerSession.name, 
-					// 	status: (newAttendancePerSession.attendance.id in _attendanceObj) ? _attendanceObj[newAttendancePerSession.attendance.id].name : '', 
-					// 	remarks: _remarks}
 				}
-				lastILTDate = session.attendanceDate;
+				if (!(session.asdSession)) lastILTDate = session.attendanceDate;
 			}
 			if(!attendanceUpdated) {
 				return nlDlg.popupAlert({title: 'Alert message', template: 'You have not made any changes. Please update attendance markings or press cancel in the attendance dialog if you do not wish to make any change.'});
@@ -1806,7 +1809,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				});
 				updatedSessionsList[i].selectedUsers = selectedUsers;
 			}
-			console.log('length',updatedSessionsList);
 			nl.timeout(function() {
 				_markingConfirmationDlg(markAttendanceDlg.scope, updatedSessionsList, 'attendance', g_attendance);
 			});
@@ -1820,15 +1822,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _updateUserAttendanceList(attendanceUserList) {
 		for(var i=0; i<attendanceUserList.length; i++) {
 			attendanceUserList[i].attendance = {id: ''};
+			attendanceUserList[i].remarks = '';
 		}
 	}
 
 	function _validateAttendanceDate(lastILTDate, attendedDate, oldSessionDate) {
-		if(!attendedDate) {
-			if(oldSessionDate) return false;
-		}
 		if(!lastILTDate) return true;
-		// lastILTDate = new Date(lastILTDate);
+		if(!attendedDate && oldSessionDate) return false;
 		if(lastILTDate < attendedDate) return true;
 		if(!( attendedDate && oldSessionDate)) return true;
 		return false;
@@ -1872,8 +1872,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (selectedAttendance.timePerc != 100 && (!remarks || remarks == "")) return false;
 		return true;
 	}
-
-	var attendanceUpdated = false; //This flag is to check whether the trainer had done changes to mark or not
 
 	function _updateAttendanceDelta(updateSessionList, newAttendancePerSession) {
 		var repid = newAttendancePerSession.id;
@@ -2436,6 +2434,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		confirmationDlg.scope.markedSessions = markedSessions;
 		confirmationDlg.scope.paramName = paramName;
 		confirmationDlg.scope.canShowDate =dlgScope.canShowDate;
+		confirmationDlg.scope.removeSessions = removeSessions;
 		if(paramName == 'attendance') {
 			if(!('attendance_version' in g_attendance)) 
 			g_attendance['attendance_version'] = nlCourse.getAttendanceVersion();
