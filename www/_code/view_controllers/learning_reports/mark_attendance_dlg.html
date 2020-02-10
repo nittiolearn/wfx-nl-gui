@@ -4,7 +4,9 @@
 	<div class='col nl-thin-scroll-mh100 padding0-right nl-max-250 nl-min-125'>
 		<div class='padding-mid fsh4'>Sessions</div>
 		<div ng-repeat='session in sessions track by $index'>
-			<div class='nl-link-text {{session.id == selectedSession.id ? "nl-left-tab-selected" : "nl-left-tab"}} padding-small'>
+			<div class='nl-link-text 
+			{{session.id == selectedSession.id ? "nl-left-tab-selected" : "nl-left-tab"}} padding-small
+			{{session.asdSession ? "forange3" : ""}}'>
 				<div class='padding-mid' 
 					ng-click='onClick(session, $index)'
 					style='position:relative'>
@@ -33,9 +35,10 @@
 				ng-click= 'onClickAddAsd(selectedSession, true)'>Add above
 			</div>
 			<div class="padding-small"></div>
-			<div class='padding-small nl-link-text nl-button-highlight' 
+			<div class='padding-small nl-link-text nl-button-highlight forange3' 
 				ng-if='selectedSession.asdSession' 
-				ng-click='onClickRemoveAsd(selectedSession)'>
+				ng-click='onClickRemoveAsd(selectedSession)'
+				style="background-color: #CCCCDD;">
 				Remove session
 			</div>
 		</div>
@@ -70,9 +73,8 @@
 							<select ng-model='user.attendance' 
 									ng-if='!user.attrition && user.canMarkLearner'
 									ng-options='opt as opt.name for opt in selectedSession.attendanceOptions track by opt.id'
-									class='w100 {{fieldcls}}'
+									class='w100 '
 									autofocus=''
-									tabindex="{{tabindex}}"
 									style='min-height: 34px'
 									placeholder='"Write remarks"'>
 							</select>
@@ -85,7 +87,7 @@
 				<div ng-class='$root.respCol211' class='padding-mid' ng-if='user.remarkOptions && !user.attrition && user.canMarkLearner'>
 					<select ng-model='user.remarks' 
 							ng-options='opt as opt.name for opt in user.remarkOptions track by opt.id'
-							class='w100 {{fieldcls}}'
+							class='w100'
 							autofocus=''
 							tabindex="{{tabindex}}"
 							style='min-height: 34px'>
