@@ -18,7 +18,7 @@
             </tr>
             <tr ng-repeat='removedSession in removeSessions.removeSessionInfo'>
                 <td>
-                    <span>{{removedSession.name}}</span>
+                    <span class="forange3">{{removedSession.name}}</span>
                 </td>
             </tr>
         </table>
@@ -27,11 +27,11 @@
     <div class='row row-top padding0 margin0'
         ng-repeat='session in markedSessions'>
         <div class='col' ng-show='session.selectedUsers.length <= 0 && paramName != "milestone" && session.isdateUpdated'>
-            <span class='fsh6'><b>{{session.name}}: </b></span> <span>{{session.sessiondate | nlDateTimeFormat:"date"}} </span> <br> 
+            <span class='fsh6 padding-mid'><b class='fsh6'>{{session.name}}: </b></span> <span class='fsh6'>{{session.sessiondate | nlDateTimeFormat:"date"}} </span> <br> 
         </div>	
         <div class='col' ng-show='session.selectedUsers.length > 0'>
             <div ng-show='paramName != "milestone"' class='fsh6'>
-                <div class="row">
+                <div class="row padding0">
                     <div class="col">
                         <span class='fsh6'>{{session.name}}:</span> 
                         {{session.selectedUsers.length}} user{{session.selectedUsers.length > 1 ? 's' : ''}} selected
@@ -43,7 +43,7 @@
             </div>
             <div class='padding-small'></div>
             <div class='row row-center padding0 margin0'>
-				<table class='nl-table nl-table-styled fsh6 padding-mid'>
+            <table class='nl-table nl-table-styled fsh6 padding-mid {{ session.asdSession ? "nl-border-forange3" : ""}}'>
 					<tr>
 						<th>
 							<span ng-show='paramName != "milestone"'>Username</span>

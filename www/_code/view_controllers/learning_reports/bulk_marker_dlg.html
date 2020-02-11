@@ -16,6 +16,16 @@
     <div ng-if='rating_type == "input"'>
         <input ng-model='data.ratingNumber' type='number' min='0' max='100'></div>
     </div>
+    <select ng-if='remarksOptions' ng-model='data.remarks' 
+            ng-options='opt as opt.name for opt in remarksOptions track by opt.id'
+            class='w100'
+            autofocus=''
+            tabindex=""
+            style='min-height: 34px'>
+    </select>
+    <div ng-if='remarksOptions.length == 0'>
+        <input ng-model='data.remarks'></div>
+    </div>
 </div>
 </nl-dlg-content>    
 </nl-dlg>

@@ -1806,6 +1806,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 						return;
 					}
 					_updateAttendanceDelta(updatedSessionsList[i], userSessionAttendance);	
+					if(session.asdSession && session.id == updatedSessionsList[i].id) {
+						updatedSessionsList[i].asdSession = true;
+					}
 				}
 				if((updatedSessionsList[i].sessiondate != oldSessionsAttendance[session.id]) && (updatedSessionsList[i].sessiondate != null)) {
 					isAsdUpdated = true;
@@ -1844,7 +1847,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _updateUserAttendanceList(attendanceUserList) {
 		for(var i=0; i<attendanceUserList.length; i++) {
 			attendanceUserList[i].attendance = {id: ''};
-			attendanceUserList[i].remarks = '';
+			attendanceUserList[i].remarks = (attendanceUserList[i].remarkOptions && attendanceUserList[i].remarkOptions.length > 0) ? {id: "", name: ""} : '';
 			attendanceUserList[i].attendance = {id: "notapplicable", name: 'Not applicable', timePerc: 0};
 		}
 	}
@@ -2416,7 +2419,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			bulkMarkerDlg.scope.markingOptions = dlgScope.selectedSession.asdSession ? _attendanceOptionsAsd : _attendanceOptions;
 			bulkMarkerDlg.scope.selectedMarkingType = null;	
 			bulkMarkerDlg.scope.rating_type = 'select';
-			bulkMarkerDlg.scope.data = {ratingNumber: '', bulkMarkStr: 'Mark all learners attendance as'};	
+			bulkMarkerDlg.scope.remarksOptions = dlgScope.selectedSession.newAttendance[0].remarkOptions || '';
+			var selectedRemarks = angular.copy(dlgScope.selectedSession.newAttendance[0].remarkOptions[0]) || '';
+			bulkMarkerDlg.scope.data = {ratingNumber: '', bulkMarkStr: 'Mark all learners attendance as', remarks: selectedRemarks};
 		}
 
 		bulkMarkerDlg.scope.selectForBulkMarking = function(opt) {
@@ -2444,6 +2449,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					if(dlgScope.selectedSession.newAttendance[i].attrition ||
 						!dlgScope.selectedSession.newAttendance[i].canMarkLearner) continue;
 					dlgScope.selectedSession.newAttendance[i].attendance = bulkMarkerDlg.scope.selectedMarkingType;
+					dlgScope.selectedSession.newAttendance[i].remarks = bulkMarkerDlg.scope.data.remarks;
 				}
 			}
 
