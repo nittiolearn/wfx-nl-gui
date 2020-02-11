@@ -283,7 +283,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         stats.percScore = stats.nMaxScore ? Math.round(100.0*stats.nScore/stats.nMaxScore) : 0;
         stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
         repcontent.statusinfo = stainf.itemIdToInfo;
-        repcontent.name = course.name;
+        if(course.name) repcontent.name = course.name;
  
         if(!nlReportHelper.isEndStatusId(statusObj.id) && (nlLrFilter.getType() == 'course_assign')) {
             if(Object.keys(_reminderDict).length == 0) {

@@ -1759,10 +1759,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			g_attendance = {};
 			if(markAttendanceDlg.scope.canShowDate) 
 				g_attendance = {sessionInfos: {}, lastAsdId: oldAttendance.lastAsdId};
-			attendanceUpdated = removeSessions.status || false;
+			attendanceUpdated = false;
 			e.preventDefault();
 			var lastFixedId = null;
 			var lastILTDate = null;
+			var isAsdUpdated = false;
+			var asdUpdate = {};
 			for (var i = 0; i < markAttendanceDlg.scope.sessions.length; i++) {
 				var session = markAttendanceDlg.scope.sessions[i];
 				if (!session.asdSession) {
@@ -1770,19 +1772,18 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					g_attendance.sessionInfos[session.id] = {};
 				}
 				
-				var sessionObj = {id: session.id, name:session.name, isUpdated: false, selectedUsers: []};
+				var sessionObj = {id: session.id, name:session.name, isUpdated: false, selectedUsers: [], isdateUpdated: false};
 				if(markAttendanceDlg.scope.canShowDate) sessionObj['sessiondate'] = session.attendanceDate;
 
 				updatedSessionsList.push(sessionObj);
 				if (session.canMarkAttendance && session.hasOwnProperty('attendanceDate')) {
-					if(!_validateAttendanceDate(lastILTDate, session.attendanceDate, oldSessionsAttendance[session.id])) {
-						nlDlg.popupAlert({title: 'Error', template: nl.t('Attendance date is mandatory for {}', session.name)});
+					if(!_validateAttendanceDate(lastILTDate, session.attendanceDate, oldSessionsAttendance[session.id], session.name)) {
 						return;
 					}
 					if (!session.asdSession && g_attendance.sessionInfos)
 						g_attendance.sessionInfos[session.id]['sessiondate'] = nl.fmt.date2Str(session.attendanceDate || null, 'date');
 				}
-
+				
 				if(session.asdSession) {
 					if (!lastFixedId) {
 						lastFixedId = '_root';
@@ -1791,6 +1792,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					if(!('asd' in g_attendance.sessionInfos[lastFixedId])) g_attendance.sessionInfos[lastFixedId]['asd'] = [];
 					var asdName = session.reason.name + (session.remarks ? ': ' + session.remarks : '');
 					g_attendance.sessionInfos[lastFixedId]['asd'].push({id: session.id, name: asdName , sessiondate: session.attendanceDate ? nl.fmt.date2Str(session.attendanceDate, 'date') : null, reason: session.reason, remarks: session.remarks});
+					if(session.name != asdName) {
+						isAsdUpdated = true;
+						asdUpdate[session.id] = true;
+					}
 				}
 
 				for(var j=0; j<session.newAttendance.length; j++) {
@@ -1802,16 +1807,22 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					}
 					_updateAttendanceDelta(updatedSessionsList[i], userSessionAttendance);	
 				}
-				if(updatedSessionsList[i].sessiondate != oldSessionsAttendance[session.id]) {
-					attendanceUpdated = true;
-					updatedSessionsList[i].dateupdated = true;
+				if((updatedSessionsList[i].sessiondate != oldSessionsAttendance[session.id]) && (updatedSessionsList[i].sessiondate != null)) {
+					isAsdUpdated = true;
+					updatedSessionsList[i].isdateUpdated = true;
 				}
 				if (!(session.asdSession)) lastILTDate = session.attendanceDate;
 			}
-			if(!attendanceUpdated) {
+
+			if(!(attendanceUpdated || isAsdUpdated || removeSessions.status)) {
 				return nlDlg.popupAlert({title: 'Alert message', template: 'You have not made any changes. Please update attendance markings or press cancel in the attendance dialog if you do not wish to make any change.'});
 			}
+			
 			for(var i=0; i<updatedSessionsList.length; i++) {
+				if(attendanceUpdated && !updatedSessionsList[i].sessiondate && updatedSessionsList[i].selectedUsers.length > 0) {
+					return nlDlg.popupAlert({title: 'Alert message', template: 'Please choose the date appropriately for the session: ' + updatedSessionsList[i].name});
+				}	
+
 				var selectedUsers = updatedSessionsList[i].selectedUsers || [];
 				selectedUsers.sort(function(a, b) {
 					if(b.name.toLowerCase() < a.name.toLowerCase()) return 1;
@@ -1838,11 +1849,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	}
 
-	function _validateAttendanceDate(lastILTDate, attendedDate, oldSessionDate) {
+	function _validateAttendanceDate(lastILTDate, attendedDate, oldSessionDate, name) {
+		if(!attendedDate && oldSessionDate) {
+			nlDlg.popupAlert({title: 'Error', template: nl.t('Attendance date is mandatory for {}.', name)});
+			return false;
+		}
 		if(!lastILTDate) return true;
-		if(!attendedDate && oldSessionDate) return false;
-		if(lastILTDate < attendedDate) return true;
-		if(!( attendedDate && oldSessionDate)) return true;
+		if(attendedDate && (lastILTDate.getTime() < attendedDate.getTime())) return true;
+		if(!attendedDate && !oldSessionDate) return true;
+		nlDlg.popupAlert({title: 'Error', template: nl.t('Attendance date of {} should be greater than previous fixed session.', name)});
 		return false;
 	}
 
@@ -1900,8 +1915,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if(!oldAttendancePerSession.remarks) oldAttendancePerSession['remarks'] = '';
 		var marked = oldAttendancePerSession.marked || null;
 		var updated = oldAttendancePerSession.updated || null;
-		var _remarks = (newAttendancePerSession.remarkOptions && newAttendancePerSession.remarkOptions.length > 0) ? newAttendancePerSession.remarks.name : (newAttendancePerSession.remarks || "");
-		if(oldAttendancePerSession.attId != newAttendancePerSession.attendance.id || oldAttendancePerSession.remarks !== _remarks) {
+		var _remarks = (newAttendancePerSession.remarkOptions && newAttendancePerSession.remarkOptions.length > 0) ? newAttendancePerSession.remarks.name || '' : (newAttendancePerSession.remarks || "");
+		if(oldAttendancePerSession.attId != newAttendancePerSession.attendance.id || oldAttendancePerSession.remarks != _remarks) {
 			updateSessionList.selectedUsers.push({name: newAttendancePerSession.name, 
 				status: (newAttendancePerSession.attendance.id in _attendanceObj) ? _attendanceObj[newAttendancePerSession.attendance.id].name : '', 
 				remarks: _remarks});
@@ -2053,6 +2068,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			copyOfDict.reason = sessionInfo.asd[j].reason ? sessionInfo.asd[j].reason : _groupInfo.props.etmAsd[0];
 			copyOfDict.asdSession = true;
 			copyOfDict.sessionNo = sessionNo;
+			copyOfDict.attendanceOptions =  _attendanceOptionsAsd;
 			copyOfDict.attendanceDate = nl.fmt.json2Date(sessionInfo.asd[j].sessiondate || '');
 			ret.push(copyOfDict);
 			sessionNo = sessionNo++;
@@ -2298,7 +2314,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 						if(iltStats.timePerc === '') {
 							_dict.canRate = 'pending';
 							_dict.errorStr = nl.t('Attendance not marked.');
-						} else if (iltStats.timePerc === 0) {
+						} else if (iltStats.timePerc === 0 && iltStats.maxTimePerc === 0) {
 							_dict.canRate = 'not_attended';
 							_dict.errorStr = nl.t('Learner not attended');
 						} else {
