@@ -104,7 +104,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
             return nlServerApi.courseGet(this.courseId, this.mode === MODES.PUBLISHED);
         }
         if (this.mode === MODES.REPORT_VIEW && this.urlModeStr != 'report_view_my') {
-            return nlGroupInfo.init().then(function() {
+            return nlGroupInfo.init1().then(function() {
                 return nlServerApi.courseGetReport(self.courseId, false);
             });
         }

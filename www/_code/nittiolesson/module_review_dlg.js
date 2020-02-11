@@ -25,7 +25,7 @@ function(nl, nlDlg, nlTreeSelect, nlGroupInfo, nlOuUserSelect, nlServerApi) {
 
 	this.sendForReview = function(lessonId) {
 		return nl.q(function(resolve, reject) {
-			nlGroupInfo.init().then(function() {
+			nlGroupInfo.init2().then(function() {
 				_sendForReview(lessonId, resolve);
 			});
 		});	

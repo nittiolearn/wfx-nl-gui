@@ -272,7 +272,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
                 resolve();
                 return;
             }
-            nlGroupInfo.init(true, _grpid).then(function() {
+            nlGroupInfo.init3(_grpid).then(function() {
                 nlGroupInfo.update(_grpid);
                 _groupInfo = nlGroupInfo.get(_grpid);
                 _doneImpl(validateOnly);

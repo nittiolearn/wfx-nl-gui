@@ -54,7 +54,6 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 
             var params = nl.location.search();
             _grpid = params.grpid || null;
-            var clean = ('clean' in params);
             var max = ('max' in params) ? parseInt(params.max) : null;
             if ('chunksize' in params) _chunksize = parseInt(params.chunksize);
             if ('debuglog' in params) _debuglog = true;
@@ -66,7 +65,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
                 return;
             }
 
-		    nlGroupInfo.init(true, _grpid, clean, max).then(function() {
+		    nlGroupInfo.init3(_grpid, max).then(function() {
 		        nlGroupInfo.update(_grpid);
 		        _groupInfo = nlGroupInfo.get(_grpid);
 		        if (_groupInfo.cacheDirty) {
@@ -149,7 +148,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
     }
 
     function _onChangeDone() {
-        nlGroupInfo.init(true, _grpid).then(function() {
+        nlGroupInfo.init3(_grpid).then(function() {
             nlGroupInfo.update(_grpid);
             _groupInfo = nlGroupInfo.get(_grpid);
             _updateCards();

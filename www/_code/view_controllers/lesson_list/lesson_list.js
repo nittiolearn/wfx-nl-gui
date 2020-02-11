@@ -212,7 +212,7 @@ this.show = function($scope, initialUserInfo, params) {
             mode.metadataEnabled = (mode.mode == MODES.APPROVED) ||
                 (mode.mode == MODES.MANAGE) ||
                 (mode.mode == MODES.SENDASSIGNMENT);
-	        nlGroupInfo.init().then(function() {
+	        nlGroupInfo.init1().then(function() {
 	            _getDataFromServer(resolve);
 			});
 		});
@@ -773,7 +773,7 @@ function(nl, nlDlg, nlServerApi, nlExportLevel, nlGroupInfo, nlTreeSelect, nlOuU
             _initDlg(approveDlg, groupExportLevel, lessonId);
             nlDlg.showLoadingScreen();
     
-            nlGroupInfo.init().then(function() {
+            nlGroupInfo.init1().then(function() {
                 nlGroupInfo.update();
                 nlServerApi.lessonPreApproveCheck(lessonId).then(function(data) {
                     nlDlg.hideLoadingScreen();

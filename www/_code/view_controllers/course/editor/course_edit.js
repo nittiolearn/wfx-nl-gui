@@ -40,13 +40,12 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     var _allModules = [];
     var _debug = null;
 	var _userInfo = null;
-	var _resourceDict = {};
 	var _groupInfo = null;
 	var _etm = null;
 	var _languageTree = nlLanguageTranslateSrv.getTranslationLangs();
 
 	this.init = function(_scope, _modeHandler, userInfo) {
-		nlGroupInfo.init().then(function() {
+		nlGroupInfo.init1().then(function() {
 			nlGroupInfo.update();
 			_groupInfo = nlGroupInfo.get();
 			_initMilestoneDict();

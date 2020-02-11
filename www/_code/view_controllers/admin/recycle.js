@@ -45,7 +45,7 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
             $scope.cards = {search: {onSearch: _onSearch}};
             nlCardsSrv.initCards($scope.cards);
             nl.pginfo.pageTitle = nl.t('Archived items');
-            nlGroupInfo.init().then(function() {
+            nlGroupInfo.init2().then(function() {
                 _groupInfo = nlGroupInfo.get();
                 _getDataFromServer(resolve);
             });
