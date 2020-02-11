@@ -41,7 +41,7 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 	function _fetchFromServer(context, resolve, reject) {
 		progressTracker.serverCall(context.grpCache);
 		var data = {versionstamps: context.grpCache.versionstamps, max: context.max,
-			skipUsers: skipUsers};
+			skipUsers: context.skipUsers};
 		if (context.grpid) data.grpid = context.grpid;
 		nlServerApi.groupGetInfo3(data).then(function(serverResult) {
 			_mergeGrpCache(context, serverResult, function() {
@@ -87,7 +87,7 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 		var versionstamps = grpCache.versionstamps || {};
 		var dataReceived = grpCache.dataReceived || {};
 		if (Object.keys(versionstamps).length < 2) return false;
-		if (skipUsers) return 'b0' in grpCache.dataReceived;
+		if (context.skipUsers) return 'b0' in grpCache.dataReceived;
 		for (var k in versionstamps) {
 			if (!versionstamps[k] || !dataReceived[k]) return false;
 		}
@@ -95,13 +95,13 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 	}
 	
 	function _getConsolidatedData(grpCache) {
-		if (! 'b0' in grpCache.dataReceived) return {};
+		if (!('b0' in grpCache.dataReceived)) return {};
 		var ret = grpCache.dataReceived['b0'];
 		ret['users'] = {};
 		var nBuckets = Object.keys(grpCache.versionstamps).length;
 		for (var b=1; b<nBuckets; b++) {
 			var bucketid = 'b' + b;
-			if (! bucketid in grpCache.dataReceived) return {};
+			if (!(bucketid in grpCache.dataReceived)) continue;
 			var bucketUsers = grpCache.dataReceived[bucketid].users;
 			_consolidateUsers(ret['users'], bucketUsers);			
 		}

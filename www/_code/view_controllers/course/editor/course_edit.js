@@ -45,7 +45,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	var _languageTree = nlLanguageTranslateSrv.getTranslationLangs();
 
 	this.init = function(_scope, _modeHandler, userInfo) {
-		nlGroupInfo.init1().then(function() {
+		var promise = nlGroupInfo.init1();
+		promise.then(function() {
 			nlGroupInfo.update();
 			_groupInfo = nlGroupInfo.get();
 			_initMilestoneDict();
@@ -91,6 +92,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			targetLangName: 'English',
 			canShowMultiLang: _isMultiLangEnabled
 		};
+		return promise;
 	};
 
 	function _isMultiLangEnabled() {
@@ -501,7 +503,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 
 	function _editAttribute(e, cm, attr) {
 		if (attr.name == 'start_after') {
-			var dlg = new StartAfterDlg(nl, nlDlg, $scope, _allModules, cm, _groupInfo);
+			var dlg = new StartAfterDlg(nl, nlDlg, $scope, _allModules, cm);
 			dlg.show();
 		}
 		if (attr.name == 'trainer_notes') {
@@ -1442,11 +1444,10 @@ function TrainerNotesDlg(nl, nlDlg, $scope, _allModules, cm, nlLessonSelect, _us
 }
 
 //-------------------------------------------------------------------------------------------------
-function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm, _groupInfo) {
+function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm) {
 
 	var dlg = nlDlg.create($scope);
 	var idsToTypeMapping = {};
-	var _groupInfo = _groupInfo;
 	this.show = function() {
 		dlg.setCssClass('nl-height-max nl-width-max');
 		dlg.scope.dlgTitle = nl.t('Configure dependencies');

@@ -333,8 +333,16 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
             $scope.showStatusIcon = modeHandler.shallShowScore();
             var courseId = parseInt($scope.params.id);
             modeHandler.getCourse().then(function(course) {
-                _onCourseRead(course);
-                resolve(true);
+                var possiblePromise = _onCourseRead(course);
+                if (possiblePromise) {
+                    // Will be the flow in course editor/published mode where
+                    // editor service does nlGroupInfo.init1
+                    possiblePromise.then(function() {
+                        resolve(true);
+                    }, function() {
+                        resolve(false);
+                    });
+                } else resolve(true);
             }, function(error) {
                 resolve(false);
             });
@@ -370,7 +378,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
 		course = nlCourse.migrateCourse(course);
         modeHandler.initTitle(course);
         nlCourseCanvas.init($scope, modeHandler, nlTreeListSrv, _userInfo);
-        _initAttributesDicts(course);
+        var possiblePromise = _initAttributesDicts(course);
         $scope.courseContent = course.content;
         $scope.planning = course.content.planning;
         if (modeHandler.mode == MODES.DO && $scope.courseContent.languages.length > 1) {
@@ -407,6 +415,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
             $scope.ext.setCurrentItem(nlTreeListSrv.getRootItem());
             _showVisible();
         });
+        return possiblePromise;
     }
 
     function _canChangeLanguage() {
@@ -481,7 +490,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
 	}
 
     function _initAttributesDicts() {
-        if (!$scope.ext.isStaticMode()) return;
+        if (!$scope.ext.isStaticMode()) return null;
         $scope.editorCb = {
         	initModule: function(cm) {
                 _initModule(cm);
@@ -515,7 +524,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         	    $scope.onIconClick(e, cm);
             }
         };
-        nlCourseEditor.init($scope, modeHandler, _userInfo);
+        return nlCourseEditor.init($scope, modeHandler, _userInfo);
     }
 
     // One or more of the below panes could be visible at any time

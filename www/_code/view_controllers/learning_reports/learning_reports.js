@@ -133,7 +133,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_userInfo = userInfo;
 		_initAttendanceOptions(_userInfo.groupinfo.attendance);
 		return nl.q(function(resolve, reject) {
-			nlGroupInfo.init().then(function() {
+			nlGroupInfo.init2().then(function() {
 				nlGroupInfo.update();
 				_groupInfo = nlGroupInfo.get();
 				_init();

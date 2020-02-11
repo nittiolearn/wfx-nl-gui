@@ -762,7 +762,6 @@ var ExportLevelSrv = [function() {
 var ApproveDlgSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlExportLevel', 
 'nlGroupInfo', 'nlTreeSelect', 'nlOuUserSelect',
 function(nl, nlDlg, nlServerApi, nlExportLevel, nlGroupInfo, nlTreeSelect, nlOuUserSelect) {
-    var _filterTrees = null;
     var _nextPage = null;
     var _reload = null;
 	this.show = function(parentScope, groupExportLevel, lessonId, nextPage, reload) {
@@ -784,30 +783,6 @@ function(nl, nlDlg, nlServerApi, nlExportLevel, nlGroupInfo, nlTreeSelect, nlOuU
         });
 	};
 
-    function _filterArrayToDict(filters) {
-        var ret = {};
-        for(var key in filters) {
-            var values = filters[key];
-            ret[key] = {};
-            for (var i=0; i<values.length; i++) {
-                ret[key][values[i]] = true;
-            }
-        }
-        return ret;
-    }
-    
-    function _filterDictToArray(filters) {
-        var ret = {};
-        for(var key in filters) {
-            var values = filters[key];
-            ret[key] = [];
-            for (var key1 in values) {
-                ret[key].push(key1);
-            }
-        }
-        return ret;
-    }
-
     function _getSelectedOusFromTree(treeInfo) {
         var selected = nlTreeSelect.getSelectedIds(treeInfo);
         var ret = [];
@@ -827,10 +802,7 @@ function(nl, nlDlg, nlServerApi, nlExportLevel, nlGroupInfo, nlTreeSelect, nlOuU
 	}
 
 	function _onPreApproveDone(data, approveDlg, groupExportLevel) {
-        var filterValues = _filterArrayToDict(data.usermetadata || {});
-        _filterTrees = nlOuUserSelect.getMetadataFilterTrees(filterValues, false);
-        approveDlg.scope.data.filters = _filterTrees.getFilters();
-
+        approveDlg.scope.data.filters = [];
         var groupInfo = nlGroupInfo.get();
         approveDlg.scope.data.org_unit = nlOuUserSelect.getOuTree(groupInfo, 
             data.selectedOus, false, true);
@@ -843,12 +815,10 @@ function(nl, nlDlg, nlServerApi, nlExportLevel, nlGroupInfo, nlTreeSelect, nlOuU
 
 	function _onApproveClick(e, approveDlg, resolve) {
 		if (e) e.preventDefault();
-        var filterValues = _filterDictToArray(_filterTrees.getSelectedFilters());
 		var data = {
 			lessonid: approveDlg.lessonId,
             exportLevel: approveDlg.scope.data.exportLevel.id,
-            selectedOus: _getSelectedOusFromTree(approveDlg.scope.data.org_unit),
-            usermetadata: filterValues
+            selectedOus: _getSelectedOusFromTree(approveDlg.scope.data.org_unit)
 		};
         nlDlg.showLoadingScreen();
 		nlServerApi.lessonApprove(data).then(function(status) {
