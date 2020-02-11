@@ -26,7 +26,7 @@
 
     <div class='row row-top padding0 margin0'
         ng-repeat='session in markedSessions'>
-        <div class='col' ng-show='session.selectedUsers.length <= 0 && paramName != "milestone" && session.dateupdated'>
+        <div class='col' ng-show='session.selectedUsers.length <= 0 && paramName != "milestone" && session.isdateUpdated'>
             <span class='fsh6'><b>{{session.name}}: </b></span> <span>{{session.sessiondate | nlDateTimeFormat:"date"}} </span> <br> 
         </div>	
         <div class='col' ng-show='session.selectedUsers.length > 0'>

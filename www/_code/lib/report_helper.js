@@ -64,7 +64,7 @@ function(nl, nlCourse, nlExpressionProcessor) {
         return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, false, report, groupinfo, courseAssign, course, modules, 'trainer');
     };
     this.getCourseStatusHelperForCourseView = function(report, groupinfo, isLearnerMode) {
-        return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, true, report, groupinfo, null, null, isLearnerMode ? 'learner' : 'trainer');
+        return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, true, report, groupinfo, null, null, null, isLearnerMode ? 'learner' : 'trainer');
     };
 
     this.isEndItemState = function(status) {
@@ -243,19 +243,12 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         return  itemInfo && (itemInfo.rawStatus === 'pending' || itemInfo.status === 'waiting');
     }
 
-    function _pendingOrWaitingForRating(ratingItemInfo, iltItemInfo) {
-        // TODO-NOW: Does not seem right. Naveen please check.
-        var setToLocked = (iltItemInfo && (iltItemInfo.rawStatus === 'pending' || iltItemInfo.status === 'waiting')) && 
-                          (ratingItemInfo && (ratingItemInfo.rawStatus === 'pending' || ratingItemInfo.status === 'waiting'));
-        return setToLocked;
-    }
-
     function _updateILTtoLocked(cm, itemInfo, earlierTrainerItems) {
         if(_pendingOrWaiting(earlierTrainerItems.milestone) ||
             _pendingOrWaiting(earlierTrainerItems.iltsession)) itemInfo.status = 'waiting';
         var earlier = earlierTrainerItems.iltsession;
-        if (cm.asdSession && earlier && earlier.maxTimePerc > cm.maxTimePerc) {
-            cm.maxTimePerc = earlier.maxTimePerc;
+        if (cm.asdSession && earlier && earlier.maxTimePerc > itemInfo.maxTimePerc) {
+            itemInfo.maxTimePerc = earlier.maxTimePerc;
             // Needed for computing rating and startAfter dependancies
         }
     }
@@ -266,13 +259,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             return;
         }
         if(cm.rating_type == 'rag' || !earlierTrainerItems.iltsession) return;
-        if (_pendingOrWaiting(earlierTrainerItems.iltsession)) {
-            itemInfo.status = 'waiting';
-            return;
-        }
-        // Check if not marked attended in earlier fixed session or its children
-        var sess = earlierTrainerItems.iltsession;
-        if (sess.maxTimePerc == 0) {
+        if (earlierTrainerItems.iltsession.maxTimePerc == 0) {
             itemInfo.status = 'waiting';
             return;
         }
@@ -280,8 +267,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
     function _updateMilestonetoLocked(cm, itemInfo, earlierTrainerItems) {
         if(_pendingOrWaiting(earlierTrainerItems.milestone)) itemInfo.status = 'waiting';
-        if(_pendingOrWaiting(earlierTrainerItems.iltsession)) itemInfo.status = 'waiting';
-        if(_pendingOrWaitingForRating(earlierTrainerItems.rating, earlierTrainerItems.iltsession)) itemInfo.status = 'waiting';
+        else if(_pendingOrWaiting(earlierTrainerItems.iltsession)) itemInfo.status = 'waiting';
+        else if(_pendingOrWaiting(earlierTrainerItems.rating)) itemInfo.status = 'waiting';
     }
 
     function _getRawStatusOfItem(cm, itemInfo, itemIdToInfo) {
@@ -402,6 +389,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     function _getRawStatusOfIltSession(cm, itemInfo) {
         var userCmAttendance = _userAttendanceDict[cm.id] || {};
         var grpAttendanceObj = _grpAttendanceDict[userCmAttendance.attId];
+        itemInfo.maxTimePerc = 0;
         cm.iltduration = (cm.id in _modifiedILT) ? _modifiedILT[cm.id] : cm.iltduration;
         if (!userCmAttendance || !grpAttendanceObj) {
             itemInfo.score = null;
