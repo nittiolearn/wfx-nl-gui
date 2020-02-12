@@ -1785,8 +1785,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				}
 				
 				if(session.asdSession) {
-					if(!session.reason.remarksOptional) {
-						nlDlg.popupAlert({title: 'Error', template: nl.t('Remarks mandatory for {}', session.name)});
+					var asdName = session.reason.name + (session.remarks ? ': ' + session.remarks : '');
+					if(!session.reason.remarksOptional && !session.remarks) {
+						nlDlg.popupAlert({title: 'Error', template: nl.t('Remarks mandatory for {}', asdName)});
 						return;
 					}
 					if (!lastFixedId) {
@@ -1794,7 +1795,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 						if(!(lastFixedId in g_attendance.sessionInfos)) g_attendance.sessionInfos[lastFixedId] = {};
 					}
 					if(!('asd' in g_attendance.sessionInfos[lastFixedId])) g_attendance.sessionInfos[lastFixedId]['asd'] = [];
-					var asdName = session.reason.name + (session.remarks ? ': ' + session.remarks : '');
 					sessionObj.name = asdName;
 					g_attendance.sessionInfos[lastFixedId]['asd'].push({id: session.id, name: asdName , sessiondate: session.attendanceDate ? nl.fmt.date2Str(session.attendanceDate, 'date') : null, reason: session.reason, remarks: session.remarks});
 					if(session.name != asdName) {
