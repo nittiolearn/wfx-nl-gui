@@ -1785,6 +1785,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				}
 				
 				if(session.asdSession) {
+					if(!session.reason.remarksOptional) {
+						nlDlg.popupAlert({title: 'Error', template: nl.t('Remarks mandatory for {}', session.name)});
+						return;
+					}
 					if (!lastFixedId) {
 						lastFixedId = '_root';
 						if(!(lastFixedId in g_attendance.sessionInfos)) g_attendance.sessionInfos[lastFixedId] = {};
@@ -1907,6 +1911,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var remarks = (userSessionAttendance.remarkOptions && userSessionAttendance.remarkOptions.length > 0) ? userSessionAttendance.remarks.id : (userSessionAttendance.remarks || '');
 		if (userSessionAttendance.attendance.id == '' || userSessionAttendance.attendance.id == 'notapplicable') return true;
 		var selectedAttendance = _attendanceObj[userSessionAttendance.attendance.id] || {};
+		if(selectedAttendance.remarksOptional) return true;
 		if (selectedAttendance.timePerc != 100 && (!remarks || remarks == "")) return false;
 		return true;
 	}
@@ -2417,11 +2422,32 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _showbulkMarkerDlg(dlgScope, markType) {
 		var bulkMarkerDlg = nlDlg.create(dlgScope);
 		if(markType == 'rating') {
+			var _ratingRemarkOptions = dlgScope.selectedRating.remarkOptions;
 			bulkMarkerDlg.scope.selectedItem = dlgScope.selectedRating;
 			bulkMarkerDlg.scope.markingOptions = dlgScope.selectedRating.ratingOptions;
 			bulkMarkerDlg.scope.rating_type = dlgScope.selectedRating.ratingType;
+			if(_ratingRemarkOptions.length > 0) {
+				bulkMarkerDlg.scope.remarksOptions = _ratingRemarkOptions;
+				bulkMarkerDlg.scope.isRatingRemarkOptions = true;
+				for(var i=0; i< _ratingRemarkOptions.length; i++) {
+					_ratingRemarkOptions[i].selected = false;
+				}
+			} else {
+				bulkMarkerDlg.scope.remarksOptions = '';
+				bulkMarkerDlg.scope.isRatingRemarkOptions = false;
+			}
 			bulkMarkerDlg.scope.selectedMarkingType = null;
-			bulkMarkerDlg.scope.data = {ratingNumber: '', bulkMarkStr: 'Mark all learners rating as'};	
+			var selectedRemarks = '';
+			bulkMarkerDlg.scope.data = {ratingNumber: '', bulkMarkStr: 'Mark all learners rating as', remarks: selectedRemarks};
+			bulkMarkerDlg.scope.onItemSelected = function(item) {
+				item.selected = !item.selected;
+				var remarks = [];
+				for(var i=0; i<bulkMarkerDlg.scope.remarksOptions.length; i++) {
+					var remark = bulkMarkerDlg.scope.remarksOptions[i];
+					if(remark.selected) remarks.push(remark.name);
+				}
+				bulkMarkerDlg.scope.data.remarks = nl.fmt.arrayToString(remarks);
+			}
 		}
 
 		if(markType == 'attendance') {
@@ -2475,6 +2501,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					} else {
 						dlgScope.selectedRating.rating[i].rating = bulkMarkerDlg.scope.data.ratingNumber;
 					}
+					dlgScope.selectedRating.rating[i].remarks = bulkMarkerDlg.scope.data.remarks;
 				}
 			}
 			bulkMarkerDlg.scope.onCloseDlg();
