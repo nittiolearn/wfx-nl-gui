@@ -404,6 +404,10 @@ $animation-duration: 200ms !default;
   border-right: 1px solid rgba(0, 0, 0, 0.08);
 }
 
+.nl-border-forange3 {
+  border: 2px solid $nlOrange3;
+}
+
 .nl-green {
   color: $nlGreen1;
 }
