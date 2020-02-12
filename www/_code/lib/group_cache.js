@@ -11,15 +11,15 @@ function module_init() {
 //-------------------------------------------------------------------------------------------------
 var NlGroupCache = ['nl', 'nlServerApi', 'nlConfig', 'nlDlg',
 function(nl, nlServerApi, nlConfig, nlDlg) {
-	var self = this;
 	var progressTracker = new ProgressTracker(nl, nlDlg);
 
-    this.get = function(reload, grpid, max) {
-    	var context = {grpid: grpid, max: max, dbkey: _dbkey(grpid), grpCache: _defGrpCache()};
+    this.get = function(skipUsers, reload, grpid, max) {
+		var context = {grpid: grpid, max: max, dbkey: _dbkey(grpid), grpCache: _defGrpCache(),
+			skipUsers: skipUsers};
     	return nl.q(function(resolve, reject) {
 			nlConfig.loadFromDb(context.dbkey, function(data) {
 				context.grpCache = data || _defGrpCache();
-				if (!reload && _isUptodate(context.grpCache)) {
+				if (!reload && _isUptodate(context)) {
 					return resolve(_getConsolidatedData(context.grpCache));
 				}
 	    		_fetchFromServer(context, function(grpCache) {
@@ -40,11 +40,12 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 
 	function _fetchFromServer(context, resolve, reject) {
 		progressTracker.serverCall(context.grpCache);
-		var data = {versionstamps: context.grpCache.versionstamps, max: context.max};
+		var data = {versionstamps: context.grpCache.versionstamps, max: context.max,
+			skipUsers: context.skipUsers};
 		if (context.grpid) data.grpid = context.grpid;
 		nlServerApi.groupGetInfo3(data).then(function(serverResult) {
 			_mergeGrpCache(context, serverResult, function() {
-				if (_isUptodate(context.grpCache)) return resolve(context.grpCache);
+				if (_isUptodate(context)) return resolve(context.grpCache);
 				_fetchFromServer(context, resolve, reject);
 			});
 		}, function(error) {
@@ -79,12 +80,14 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 		grpCache.clientUpdated = (new Date()).getTime();
 	}
 
-	function _isUptodate(grpCache) {
+	function _isUptodate(context) {
+		var grpCache = context.grpCache;
 		if (!grpCache.cacheTtlMills || !grpCache.clientUpdated) return false;
 		if ((new Date()).getTime() - grpCache.clientUpdated > grpCache.cacheTtlMills) return false;
 		var versionstamps = grpCache.versionstamps || {};
 		var dataReceived = grpCache.dataReceived || {};
 		if (Object.keys(versionstamps).length < 2) return false;
+		if (context.skipUsers) return 'b0' in grpCache.dataReceived;
 		for (var k in versionstamps) {
 			if (!versionstamps[k] || !dataReceived[k]) return false;
 		}
@@ -92,13 +95,13 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 	}
 	
 	function _getConsolidatedData(grpCache) {
-		if (! 'b0' in grpCache.dataReceived) return {};
+		if (!('b0' in grpCache.dataReceived)) return {};
 		var ret = grpCache.dataReceived['b0'];
 		ret['users'] = {};
 		var nBuckets = Object.keys(grpCache.versionstamps).length;
 		for (var b=1; b<nBuckets; b++) {
 			var bucketid = 'b' + b;
-			if (! bucketid in grpCache.dataReceived) return {};
+			if (!(bucketid in grpCache.dataReceived)) continue;
 			var bucketUsers = grpCache.dataReceived[bucketid].users;
 			_consolidateUsers(ret['users'], bucketUsers);			
 		}

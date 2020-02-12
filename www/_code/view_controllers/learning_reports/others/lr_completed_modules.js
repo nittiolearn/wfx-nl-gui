@@ -34,7 +34,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
     var _monthlyStats = {};
 	function _onPageEnter(userInfo) {
 		return nl.q(function(resolve, reject) {
-			nlGroupInfo.init().then(function() {
+			nlGroupInfo.init2().then(function() {
 				nlGroupInfo.update();
                 _groupInfo = nlGroupInfo.get();
                 _init();

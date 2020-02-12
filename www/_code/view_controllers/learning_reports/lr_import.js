@@ -64,7 +64,7 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
 		return nl.q(function(resolve, reject) {
-            nlGroupInfo.init().then(function() {
+            nlGroupInfo.init2().then(function() {
 		        nlGroupInfo.update();
 		        _groupInfo = nlGroupInfo.get();
 		        if (!nlGroupInfo.isPastUserXlsConfigured(_groupInfo)) {
