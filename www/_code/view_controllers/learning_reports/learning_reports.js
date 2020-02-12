@@ -1757,9 +1757,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var okButton = {text: nl.t('Mark attendance'), onTap: function(e) {
 			var updatedSessionsList = [];
 			g_attendance = {};
-			if(markAttendanceDlg.scope.canShowDate) 
-				g_attendance = {sessionInfos: {}, lastAsdId: oldAttendance.lastAsdId};
-			attendanceUpdated = false;
+			var etmAsdEnabled = markAttendanceDlg.scope.canShowDate || false;
+			if(etmAsdEnabled) g_attendance = {sessionInfos: {}, lastAsdId: oldAttendance.lastAsdId};
+			attendanceUpdated = removeSessions.status || false;
 			e.preventDefault();
 			var lastFixedId = null;
 			var lastILTDate = null;
@@ -1767,16 +1767,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var asdUpdate = {};
 			for (var i = 0; i < markAttendanceDlg.scope.sessions.length; i++) {
 				var session = markAttendanceDlg.scope.sessions[i];
-				if (!session.asdSession) {
+				if (!session.asdSession && etmAsdEnabled) {
 					lastFixedId = session.id;
 					g_attendance.sessionInfos[session.id] = {};
 				}
-				
-				var sessionObj = {id: session.id, name:session.name, isUpdated: false, selectedUsers: [], isdateUpdated: false};
+				var sessionObj = {id: session.id, name: session.name, isUpdated: false, selectedUsers: [], isdateUpdated: false};
 				if(markAttendanceDlg.scope.canShowDate) sessionObj['sessiondate'] = session.attendanceDate;
 
 				updatedSessionsList.push(sessionObj);
-				if (session.canMarkAttendance && session.hasOwnProperty('attendanceDate')) {
+				if (etmAsdEnabled && session.canMarkAttendance && session.hasOwnProperty('attendanceDate')) {
 					if(!_validateAttendanceDate(lastILTDate, session.attendanceDate, oldSessionsAttendance[session.id], session.name)) {
 						return;
 					}
@@ -1791,9 +1790,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					}
 					if(!('asd' in g_attendance.sessionInfos[lastFixedId])) g_attendance.sessionInfos[lastFixedId]['asd'] = [];
 					var asdName = session.reason.name + (session.remarks ? ': ' + session.remarks : '');
+					sessionObj.name = asdName;
 					g_attendance.sessionInfos[lastFixedId]['asd'].push({id: session.id, name: asdName , sessiondate: session.attendanceDate ? nl.fmt.date2Str(session.attendanceDate, 'date') : null, reason: session.reason, remarks: session.remarks});
 					if(session.name != asdName) {
 						isAsdUpdated = true;
+						updatedSessionsList[i].isAsdUpdated = true;
+						updatedSessionsList[i].reason = session.reason.name;
+						updatedSessionsList[i].remarks = session.remarks;
 						asdUpdate[session.id] = true;
 					}
 				}
@@ -1817,12 +1820,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				if (!(session.asdSession)) lastILTDate = session.attendanceDate;
 			}
 
-			if(!(attendanceUpdated || isAsdUpdated || removeSessions.status)) {
+			if(!(attendanceUpdated || isAsdUpdated)) {
 				return nlDlg.popupAlert({title: 'Alert message', template: 'You have not made any changes. Please update attendance markings or press cancel in the attendance dialog if you do not wish to make any change.'});
 			}
 			
 			for(var i=0; i<updatedSessionsList.length; i++) {
-				if(attendanceUpdated && !updatedSessionsList[i].sessiondate && updatedSessionsList[i].selectedUsers.length > 0) {
+				if(etmAsdEnabled && attendanceUpdated && !updatedSessionsList[i].sessiondate && updatedSessionsList[i].selectedUsers.length > 0 ) {
 					return nlDlg.popupAlert({title: 'Alert message', template: 'Please choose the date appropriately for the session: ' + updatedSessionsList[i].name});
 				}	
 
@@ -1880,6 +1883,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var pendingIndex = null;
 		for(var i=0; i<sessions.length; i++) {
 			var session = sessions[i];
+			if (i == currentIndex) {
+				pendingIndex = i;
+				break;
+			}
 			for(var j=0; j<session.newAttendance.length; j++) {
 				var userSession = session.newAttendance[j];
 				var attendance = userSession.attendance;
@@ -2247,13 +2254,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var previousILTItem = null;
 		var milestoneItems = _getMilestoneItems(content, true);
 		var previousMilestoneIds = {};
-		for(var i=0; i<content.modules.length; i++) {
-			var item = content.modules[i];
+		var _modules = nlReportHelper.getAsdUpdatedModules(content.modules || [], g_attendance)
+		for(var i=0; i<_modules.length; i++) {
+			var item = _modules[i];
 			if(item.type == 'milestone') {
 				previousMilestoneIds[item.id] = true;
-				lastMilestone = content.modules[i];
+				lastMilestone = item;
 			}
-			if(item.type == 'iltsession') previousILTItem = content.modules[i]
+			if(item.type == 'iltsession') previousILTItem = item;
 			if(item.type != 'rating') continue;
 			var dict = {id: item.id, hide_locked: item.hide_locked, name:item.name, rating_type: item.rating_type, rating: [],
 						ratingOptions: [], remarkOptions: [], canMarkRating: true, previousMs: angular.copy(previousMilestoneIds)};
@@ -2314,10 +2322,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 						canRate: 'attended'};
 					if(ratingItem.rating_type != 'rag' && ratingItem.previousILT) {
 						var iltStats = _sessionsDict[ratingItem.previousILT.id][repid];
+						var _lastILTStatusInfo = _statusinfo[ratingItem.previousILT.id];
 						if(iltStats.timePerc === '') {
 							_dict.canRate = 'pending';
 							_dict.errorStr = nl.t('Attendance not marked.');
-						} else if (iltStats.timePerc === 0 && iltStats.maxTimePerc === 0) {
+						} else if (iltStats.timePerc === 0 && _lastILTStatusInfo.maxTimePerc === 0) {
 							_dict.canRate = 'not_attended';
 							_dict.errorStr = nl.t('Learner not attended');
 						} else {
