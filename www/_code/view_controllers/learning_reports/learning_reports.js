@@ -2502,11 +2502,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				for(var i=0; i<dlgScope.selectedRating.rating.length; i++) {
 					if(dlgScope.selectedRating.rating[i].attrition || dlgScope.selectedRating.rating[i].canRate == 'pending' || dlgScope.selectedRating.rating[i].canRate == 'not_attended') continue;
 					if(dlgScope.selectedRating.ratingType == 'select'){
-						dlgScope.selectedRating.rating[i].rating = bulkMarkerDlg.scope.selectedMarkingType;
+						dlgScope.selectedRating.rating[i].rating = bulkMarkerDlg.scope.selectedMarkingType || {id: ''};
 					} else {
 						dlgScope.selectedRating.rating[i].rating = bulkMarkerDlg.scope.data.ratingNumber;
 					}
 					dlgScope.selectedRating.rating[i].remarks = bulkMarkerDlg.scope.data.remarks;
+					dlgScope.selectedRating.rating[i].remarkOptions = bulkMarkerDlg.scope.remarksOptions;
 				}
 			}
 			bulkMarkerDlg.scope.onCloseDlg();
