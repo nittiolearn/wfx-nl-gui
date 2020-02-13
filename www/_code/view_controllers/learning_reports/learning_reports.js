@@ -2455,8 +2455,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			bulkMarkerDlg.scope.markingOptions = dlgScope.selectedSession.asdSession ? _attendanceOptionsAsd : _attendanceOptions;
 			bulkMarkerDlg.scope.selectedMarkingType = null;	
 			bulkMarkerDlg.scope.rating_type = 'select';
-			bulkMarkerDlg.scope.remarksOptions = dlgScope.selectedSession.newAttendance[0].remarkOptions || '';
-			var selectedRemarks = angular.copy(dlgScope.selectedSession.newAttendance[0].remarkOptions[0]) || '';
+			if(dlgScope.selectedSession.newAttendance[0].remarkOptions) {
+				bulkMarkerDlg.scope.remarksOptions = dlgScope.selectedSession.newAttendance[0].remarkOptions;
+				var selectedRemarks = angular.copy(dlgScope.selectedSession.newAttendance[0].remarkOptions[0]);
+			} else {
+				bulkMarkerDlg.scope.remarksOptions = '';
+				var selectedRemarks = '';
+			}
 			bulkMarkerDlg.scope.data = {ratingNumber: '', bulkMarkStr: 'Mark all learners attendance as', remarks: selectedRemarks};
 		}
 
