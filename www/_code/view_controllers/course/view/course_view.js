@@ -398,8 +398,14 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         } else {
             $scope.forumInfo = {refid: 0};
         }
-        var modules = course.content.modules;
-	    var allModules = nlCourseEditor.getAllModules(true);
+        var modules = angular.copy(course.content.modules);
+        var allModules = nlCourseEditor.getAllModules(true);
+        if (modeHandler.mode == MODES.DO || modeHandler.mode == MODES.REPORT_VIEW) {
+            var courseAssignment = modeHandler.course;
+            var _attendance = courseAssignment.content.attendance ? angular.fromJson(courseAssignment.content.attendance) : {};
+                _attendance = nlCourse.migrateCourseAttendance(_attendance);
+                modules = nlReportHelper.getAsdUpdatedModules(modules || [], _attendance);
+        }
         for(var i=0; i<modules.length; i++) {
             var module = angular.copy(modules[i]);
             var userRecords = [];
