@@ -1868,7 +1868,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			return false;
 		}
 		if(!lastILTDate) return true;
-		if(attendedDate && (lastILTDate.getTime() < attendedDate.getTime())) return true;
+		if(attendedDate && (nl.fmt.date2Str(lastILTDate, 'date') < nl.fmt.date2Str(attendedDate, 'date'))) return true;
 		if(!attendedDate && !oldSessionDate) return true;
 		nlDlg.popupAlert({title: 'Error', template: nl.t('Attendance date of {} should be greater than previous fixed session.', name)});
 		return false;
