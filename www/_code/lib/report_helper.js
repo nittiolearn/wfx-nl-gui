@@ -720,6 +720,7 @@ function AsdModules() {
 
     function _addAsdItems(modules, asdList, parentFixedSession) {
         if (!asdList || !asdList.asd) return;
+        if (parentFixedSession) parentFixedSession.asdChildren = [];
         var asd = asdList.asd;
         for(var i=0; i<asd.length; i++) {
             var item = asd[i];
@@ -728,6 +729,7 @@ function AsdModules() {
             item.parentId = parentFixedSession ? parentFixedSession.parentId : '_root';
             item.asdSession = true;
             modules.push(item);
+            if(parentFixedSession) parentFixedSession.asdChildren.push(item);
         }
     }
 
