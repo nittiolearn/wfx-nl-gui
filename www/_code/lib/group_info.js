@@ -20,7 +20,6 @@ function(nl, nlImporter, nlGroupCache) {
     var _groupInfos = {};
     this.init1 = function() {
         // Init only group data: least time consuming
-        // TODO-NOW: Change false to true
         return _initImpl(true);
     };
 
