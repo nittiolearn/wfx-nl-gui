@@ -87,7 +87,7 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 		var versionstamps = grpCache.versionstamps || {};
 		var dataReceived = grpCache.dataReceived || {};
 		if (Object.keys(versionstamps).length < 2) return false;
-		if (context.skipUsers) return 'b0' in grpCache.dataReceived;
+		if (context.skipUsers) return dataReceived['b0'] ? true : false;
 		for (var k in versionstamps) {
 			if (!versionstamps[k] || !dataReceived[k]) return false;
 		}
@@ -101,8 +101,8 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 		var nBuckets = Object.keys(grpCache.versionstamps).length;
 		for (var b=1; b<nBuckets; b++) {
 			var bucketid = 'b' + b;
-			if (!(bucketid in grpCache.dataReceived)) continue;
-			var bucketUsers = grpCache.dataReceived[bucketid].users;
+			if (!grpCache.dataReceived[bucketid]) continue;
+			var bucketUsers = grpCache.dataReceived[bucketid].users; // Was crashing here
 			_consolidateUsers(ret['users'], bucketUsers);			
 		}
 		return ret;

@@ -24,6 +24,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     var _customScoresHeader = [];
     var _drillDownDict = {};
     var _nhtDict = {};
+    var _iltBatchDict = {};
     var _canzip = true;
     var _exportFormat = 'xlsx';
 
@@ -44,7 +45,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     	_subjectlabel = userInfo.groupinfo.subjectlabel;
 	};
 	
-    this.export = function($scope, reportRecords, customScoresHeader, drillDownDict, nhtDict) {
+    this.export = function($scope, reportRecords, customScoresHeader, drillDownDict, nhtDict, iltBatchStats) {
         var dlg = nlDlg.create($scope);
         _canzip = nlLrFilter.canZip();
         _customScoresHeader = customScoresHeader || [];
@@ -62,6 +63,11 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             _nhtDict = nhtDict || {};
             dlg.scope.showNhtCheckbox = (dlg.scope.reptype != "user");
             dlg.scope.export['nht'] = false;
+        }
+        if (iltBatchStats) {
+            _iltBatchDict = iltBatchStats || {};
+            dlg.scope.showIltBatchCheckbox = (dlg.scope.reptype == 'course_assign');
+            dlg.scope.export['iltBatch'] = false;
         }
         dlg.scope.data = {};
         dlg.scope.help = _getHelp();
@@ -148,6 +154,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 		    var expSummaryStats = nlLrSummaryStats.getSummaryStats();
             if(filter.exportTypes.drilldown) _updateDrillDownRow();    
             if(filter.exportTypes.nht) _updateNhtRow();
+            if(filter.exportTypes.iltBatch) _updateIltBatchRow();
             if(_exportFormat == 'csv') {
                 for(var start=0, i=1; start < reportRecords.length; i++) {
                     var pending = reportRecords.length - start;
@@ -217,6 +224,16 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                     }
                 } 
                
+                if (filter.exportTypes.iltBatch && ctx.iltBatchRow.length > 1) {
+                    for(var start=0, i=1; start < ctx.iltBatchRow.length; i++) {
+                        var pending = ctx.iltBatchRow.length - start;
+                        pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
+                        var fileName = nl.fmt2('attendance-batch-stats-{}.csv', i);
+                        _createCsv(filter, ctx.iltBatchRow, zip, fileName, start, start+pending);
+                        start += pending;
+                    }
+                } 
+               
                 if (filter.exportTypes.feedback && ctx.feedbackRows.length > 1) {
                     for(var start=0, i=1; start < ctx.feedbackRows.length; i++) {
                         var pending = ctx.feedbackRows.length - start;
@@ -269,6 +286,10 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 
                 if (filter.exportTypes.nht && ctx.nhtRow.length > 1) {
                     zipData.push({aoa: ctx.nhtRow, fileName: 'nht-stats', fileExt: 'xlsx'});
+                } 
+
+                if (filter.exportTypes.iltBatch && ctx.iltBatchRow.length > 1) {
+                    zipData.push({aoa: ctx.iltBatchRow, fileName: 'attendance-batch-stats', fileExt: 'xlsx'});
                 } 
 
                 if (filter.exportTypes.feedback && ctx.feedbackRows.length > 1) {
@@ -373,6 +394,17 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                 ctx.drillDownRow.push(nlExporter.getCsvRow(_drillDownDict.columns, row.cnt));
             else
                 ctx.drillDownRow.push(nlExporter.getItemRow(_drillDownDict.columns, row.cnt));
+        }
+    }
+
+    function _updateIltBatchRow() {
+        var iltBatchArray = _iltBatchDict.statsCountArray;
+        for(var i=0; i<iltBatchArray.length; i++) {
+            var row = iltBatchArray[i];
+            if (_exportFormat == 'csv') 
+                ctx.iltBatchRow.push(nlExporter.getCsvRow(_iltBatchDict.columns, row));
+            else 
+                ctx.iltBatchRow.push(nlExporter.getItemRow(_iltBatchDict.columns, row));
         }
     }
 
@@ -561,6 +593,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             ctx.courseDetailsRow = [nlExporter.getCsvHeader(_hCourseDetailsRow)];
             if(filter.exportTypes.drilldown) ctx.drillDownRow = [nlExporter.getCsvHeader(_drillDownDict.columns)];
             if(filter.exportTypes.nht) ctx.nhtRow = [nlExporter.getCsvHeader(_nhtDict.columns)];
+            if(filter.exportTypes.iltBatch) ctx.iltBatchRow = [nlExporter.getCsvHeader(_iltBatchDict.columns)];
         } else {
             ctx.courseReportRows = [_getCsvHeader(filter)];
             ctx.moduleRows = [nlExporter.getHeaderRow(_hModuleRow)];
@@ -569,6 +602,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             ctx.courseDetailsRow = [nlExporter.getHeaderRow(_hCourseDetailsRow)];
             if(filter.exportTypes.drilldown) ctx.drillDownRow = [nlExporter.getHeaderRow(_drillDownDict.columns)];
             if(filter.exportTypes.nht) ctx.nhtRow = [nlExporter.getHeaderRow(_nhtDict.columns)];    
+            if(filter.exportTypes.iltBatch) ctx.iltBatchRow = [nlExporter.getHeaderRow(_iltBatchDict.columns)];
         }
         ctx.reports = reports;
         ctx.zip = new JSZip();
