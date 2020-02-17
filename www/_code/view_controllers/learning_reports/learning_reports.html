@@ -51,6 +51,8 @@
             </div>
             <nl-table-view-selector ng-show='nhtViewSelectorConfig && tabData.selectedTab.id == "nht"  && !tabData.processingOnging'
                 config=nhtViewSelectorConfig></nl-table-view-selector>
+            <nl-table-view-selector ng-show='lrViewSelectorConfig && tabData.selectedTab.id == "learningrecords" && !tabData.processingOnging'
+                config=lrViewSelectorConfig></nl-table-view-selector>
             <span ng-repeat='tb in toolbar'
                 title='{{tb.title}}'
                 class='nl-toolbar-icon'

@@ -183,7 +183,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_initChartData();
 	}
 	
+	function _isLrCustomized() {
+		var type = nlLrFilter.getType();
+		if (type != 'course' && type != 'course_assign') return false;
+		return true;
+	}
+
 	function _getUserColumns() {
+		if(_isLrCustomized()) return _getLrColumns();
 		var type = nlLrFilter.getType();
 		var columns = [];
 		if(type != 'user') {
@@ -210,7 +217,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			smallScreen: false, mediumScreen: false, largeScreen: false});
 		return columns;
 	}
-	
+
 	function _userRowClickHandler(rec, action) {
 		if (action == 'delete') {
 			return _deleteReport(rec);
@@ -531,7 +538,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (tab.id == 'overview') {
 			_updateOverviewTab(tabData.summaryStatSummaryRow);
 		} else if (tab.id == 'learningrecords') {
-			nlTable.updateTableObject($scope.utable, tabData.records);
+			_updateLearningRecordsTab(tabData);
 		} else if (tab.id == 'timesummary') {
 			_updateTimeSummaryTab();
 		} else if (tab.id == 'drilldown') {
@@ -539,6 +546,91 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		} else if (tab.id == 'nht') {
 			_updateNhtTab();
 		}
+	}
+
+	function _updateLearningRecordsTab(tabData) {
+		nlTable.updateTableObject($scope.utable, tabData.records);
+		if (!_isLrCustomized()) return;
+		var columns = _getLrColumns();		
+		$scope.lrViewSelectorConfig = {
+			canEdit: nlRouter.isPermitted(_userInfo, 'assignment_manage'),
+			tableType: 'lr_views',
+			allColumns: columns,
+			onViewChange: function(selectedColumns) {
+				console.log(selectedColumns);
+/* 				_nhtColumnsSelectedInView = {};
+				_selectedColumns = selectedColumns;
+				for(var i=0; i<selectedColumns.length; i++) {
+					var col = selectedColumns[i];
+					_nhtColumnsSelectedInView[col.id] = true;
+				}
+				_someTabDataChanged();
+				_updateCurrentTab();
+ */			}
+		}
+	}
+
+	function _getLrColumns() {
+		var type = nlLrFilter.getType();
+		var columns = [];
+		if(type != 'user') {
+		columns.push(_col('user.user_id', 'User Ids', true));
+		columns.push(_col('user.name', 'User Name', true));
+		} else  {
+			columns.push(_col('raw_record.typeStr', 'Report type', true));
+		}
+		columns.push(_col('user.org_unit', 'Org', true));
+		if (!nlLrFilter.getObjectId() || type == 'user') {
+			columns.push(_col('repcontent.name', 'Course / module', true));		// TODO-NOW: ask if only course need to be shown or module too
+		}
+		
+		columns.push(_col('raw_record._batchName', 'Batch Name', true));
+		columns.push(_col('raw_record._grade', 'Grade', true));
+		columns.push(_col('raw_record.subject', 'Subject', true));
+		columns.push(_col('repcontent.created', 'Assigned On', true));
+		columns.push(_col('repcontent.updated', 'Last Updated On', true));
+		columns.push(_col('repcontent.not_before', 'From', true));
+		columns.push(_col('repcontent.not_after', 'Till', true));
+		columns.push(_col('stats.status.txt', 'Status', true));		// TODO-NOW: after course/module to show
+		columns.push(_col('stats.status.txt', 'Status', true));		// TODO-NOW: after org
+		columns.push(_col('stats.progressPerc','Progress', true));
+		columns.push(_col('stats.percCompleteDesc', 'Progress Details', true));
+		columns.push({id: 'stats.avgAttempts', name: 'Quiz Attempts'});
+		columns.push({id: 'stats.percScore', name: 'Achieved %'});
+		columns.push(_col('stats.nMaxScore', 'Maximum Score', true));
+		columns.push({id: 'stats.nScore', name: 'Achieved Score'});
+		columns.push(_col('stats.feedbackScore', 'Feedback Score', true));
+		columns.push({id: 'stats.timeSpentSeconds', name: 'Online Time Spent (minutes)'});	// solve it after multplying the value by 60
+		columns.push(_col('stats.iltTimeSpent', 'ILT time Spent (minutes)', true));
+		columns.push(_col('stats.iltTotalTime', 'ILT total Time (minutes)', true));
+		columns.push(_col('repcontent.iltVenue', 'Venue', true));
+		columns.push(_col('repcontent.iltTrainerName','Trainer Name', true));
+		columns.push(_col('repcontent.iltCostInfra', 'Infra Cost', true));
+		columns.push(_col('repcontent.iltCostTrainer', 'Trainer Cost', true));
+		columns.push(_col('repcontent.iltCostFoodSta', 'Food Cost', true));
+		columns.push(_col('repcontent.iltCostTravelAco', 'Travel Cost', true));
+		columns.push(_col('repcontent.iltCostMisc', 'Misc Cost', true));
+		columns.push(_col('user.isActive()', 'User state', true));
+		columns.push(_col('user.email', 'Email id', true, 'email'));		// column used for search
+		columns.push(_col('user.org_unit()', 'Org', true));
+		columns.push(_col('user.isActive()', 'User state', true));
+		columns.push(_col('user.isActive()', 'User state', true));
+		columns.push({id: 'stats.internalIdentifier', name: 'Report Id'});
+		columns.push({id: 'repcontent.assignid', name: 'Assign Id'});
+		columns.push({id: 'repcontent.courseid', name: 'Course/ Module Id'});	//TODO-NOW:works for course id, ask what to do with modules?
+		columns.push({id: 'course.content.languages[0].name', name: 'Language'});	// TODO-NOW: ask from where to take the value of language?
+
+		// Only search and details relevant columns
+		columns.push(_col('user.username', 'Login id', false, 'login'));
+
+		return columns;
+
+	}
+	
+	function _col(id, name, show, searchKey=undefined) {
+		var __column = { id: id, name: name, smallScreen: show, mediumScreen: show, largeScreen: show};
+		if(searchKey) __column.searchKey = searchKey;
+		return __column;
 	}
 
 	function _onSearch(event) {
