@@ -124,11 +124,11 @@ function DbAttendanceObject(courseAssignment, ctx) {
 		cm.learningRecords = [];
 		for (var i=0; i<ctx.learningRecords.length; i++) {
 			var lr = ctx.learningRecords[i];
+			var statusinfo = lr.repcontent.statusinfo;
 			// TODO-NOW: Try getting this too from report helper!
 			var userSessionAttendance = (_userAttendaces[lr.id] || {})[cm.id] || {};
 			var report = {learnername: lr.user.name, learnerid: lr.user.user_id, 
 				attendance: {id: userSessionAttendance.attId} , remarks: {id: userSessionAttendance.remarks}};
-			if ()
 			cm.learningRecords.push(report);
 		}
 	};
