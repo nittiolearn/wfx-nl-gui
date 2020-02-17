@@ -1817,7 +1817,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			_updateUserAttendanceList(attendanceUserList);
 			var dict = {id: oldAttendance.lastAsdId, hide_locked: false, name:_groupInfo.props.etmAsd[0].name || _groupInfo.props.etmAsd[0].id,
 						newAttendance: attendanceUserList, canMarkAttendance: true, 
-						previousMs: selectedSession.previousMs, attendanceOptions: _attendanceOptionsAsd, canMarkAttendance: true,
+						previousMs: selectedSession.previousMs, attendanceOptions: _attendanceOptionsAsd,
 						attendanceDate: null, asdSession: true, reason: _groupInfo.props.etmAsd[0], reasonOptions: _groupInfo.props.etmAsd};
 			for(var i=0; i<markAttendanceDlg.scope.sessions.length; i++) {
 				if (selectedSession.id == markAttendanceDlg.scope.sessions[i].id) {
@@ -1951,8 +1951,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _updateUserAttendanceList(attendanceUserList) {
 		for(var i=0; i<attendanceUserList.length; i++) {
 			attendanceUserList[i].attendance = {id: ''};
-			attendanceUserList[i].remarks = (attendanceUserList[i].remarkOptions && attendanceUserList[i].remarkOptions.length > 0) ? {id: "", name: ""} : '';
-			attendanceUserList[i].attendance = {id: "notapplicable", name: 'Not applicable', timePerc: 0};
+			if(attendanceUserList[i].canMarkLearner){
+				attendanceUserList[i].remarks = (attendanceUserList[i].remarkOptions && attendanceUserList[i].remarkOptions.length > 0) ? {id: "", name: ""} : '';
+				attendanceUserList[i].attendance = {id: "notapplicable", name: 'Not applicable', timePerc: 0};
+			}
 		}
 	}
 
@@ -1962,7 +1964,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			return false;
 		}
 		if(!lastILTDate) return true;
-		if(attendedDate && (lastILTDate.getTime() < attendedDate.getTime())) return true;
+		if(attendedDate && (nl.fmt.date2Str(lastILTDate, 'date') < nl.fmt.date2Str(attendedDate, 'date'))) return true;
 		if(!attendedDate && !oldSessionDate) return true;
 		nlDlg.popupAlert({title: 'Error', template: nl.t('Attendance date of {} should be greater than previous fixed session.', name)});
 		return false;
@@ -2007,9 +2009,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var remarks = (userSessionAttendance.remarkOptions && userSessionAttendance.remarkOptions.length > 0) ? userSessionAttendance.remarks.id : (userSessionAttendance.remarks || '');
 		if (userSessionAttendance.attendance.id == '' || userSessionAttendance.attendance.id == 'notapplicable') return true;
 		var selectedAttendance = _attendanceObj[userSessionAttendance.attendance.id] || {};
-		if(selectedAttendance.remarksOptional) return true;
-		if (selectedAttendance.timePerc != 100 && (!remarks || remarks == "")) return false;
-		return true;
+		return remarks || selectedAttendance.remarksOptional ? true: false;
 	}
 
 	function _updateAttendanceDelta(updateSessionList, newAttendancePerSession) {
@@ -2551,8 +2551,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			bulkMarkerDlg.scope.markingOptions = dlgScope.selectedSession.asdSession ? _attendanceOptionsAsd : _attendanceOptions;
 			bulkMarkerDlg.scope.selectedMarkingType = null;	
 			bulkMarkerDlg.scope.rating_type = 'select';
-			bulkMarkerDlg.scope.remarksOptions = dlgScope.selectedSession.newAttendance[0].remarkOptions || '';
-			var selectedRemarks = angular.copy(dlgScope.selectedSession.newAttendance[0].remarkOptions[0]) || '';
+
+			var selectedRemarks = '';
+			bulkMarkerDlg.scope.remarksOptions = '';
+			if(dlgScope.selectedSession.newAttendance[0].remarkOptions) {
+				bulkMarkerDlg.scope.remarksOptions = dlgScope.selectedSession.newAttendance[0].remarkOptions;
+				selectedRemarks = angular.copy(dlgScope.selectedSession.newAttendance[0].remarkOptions[0]);
+			}
 			bulkMarkerDlg.scope.data = {ratingNumber: '', bulkMarkStr: 'Mark all learners attendance as', remarks: selectedRemarks};
 		}
 
@@ -2593,11 +2598,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				for(var i=0; i<dlgScope.selectedRating.rating.length; i++) {
 					if(dlgScope.selectedRating.rating[i].attrition || dlgScope.selectedRating.rating[i].canRate == 'pending' || dlgScope.selectedRating.rating[i].canRate == 'not_attended') continue;
 					if(dlgScope.selectedRating.ratingType == 'select'){
-						dlgScope.selectedRating.rating[i].rating = bulkMarkerDlg.scope.selectedMarkingType;
+						dlgScope.selectedRating.rating[i].rating = bulkMarkerDlg.scope.selectedMarkingType || {id: ''};
 					} else {
 						dlgScope.selectedRating.rating[i].rating = bulkMarkerDlg.scope.data.ratingNumber;
 					}
 					dlgScope.selectedRating.rating[i].remarks = bulkMarkerDlg.scope.data.remarks;
+					dlgScope.selectedRating.rating[i].remarkOptions = bulkMarkerDlg.scope.remarksOptions;
 				}
 			}
 			bulkMarkerDlg.scope.onCloseDlg();
