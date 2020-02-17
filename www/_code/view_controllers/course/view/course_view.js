@@ -318,7 +318,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         _convertAttendanceArrayToObj(_userInfo.groupinfo.attendance);
         return nl.q(function(resolve, reject) {
             $scope.ext.setUpdateStatusFn(_updatedStatusinfo);
-			nlTreeListSrv.init(nl);
             nlTreeListSrv.clear();
             $scope.params = nl.location.search();
             if (!('id' in $scope.params) || !modeHandler.initMode(userInfo)) {
@@ -1416,17 +1415,18 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
 //-------------------------------------------------------------------------------------------------
 // TreeList class changed to treeList Service
 //-------------------------------------------------------------------------------------------------
-var TreeListSrv = ['nl', function(nl) {
+var TreeListSrv = [function() {
 	var ID_ATTR = 'id';
 	var DELIM = '.';
-	var VISIBLE_ON_OPEN = 1;
+	var VISIBLE_ON_OPEN = 1; // Only top level visible by default
     var rootItem = {type: 'module', name: 'Summary', id: '_root'};
 
-	this.init = function(nl, ID_ATTR, DELIM, VISIBLE_ON_OPEN) {
-	    if (ID_ATTR === undefined) ID_ATTR = 'id';
-	    if (DELIM === undefined) DELIM = '.';
-	    if (VISIBLE_ON_OPEN === undefined) VISIBLE_ON_OPEN = 1; // Only top level visible by default
-	};
+    this.createNew = function() {
+        // The service is one global having the state stored in the
+        // service oject itself and is useful for course_view.js usage.
+        // For usage in dialog boxes, create a new object of this kind!
+        return new TreeListSrv[0]();
+    };
 
     this.clear = function() {
         this.items = {};

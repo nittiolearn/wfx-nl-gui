@@ -11,10 +11,13 @@ function module_init() {
 var NlLrCourseAssignView = ['nl', 'nlDlg', 'nlTreeListSrv',
 function(nl, nlDlg, nlTreeListSrv) {
 
+    var _myTreeListSrv = nlTreeListSrv.createNew();
+
     this.show = function($scope, modules, courseAssignment, getModuleInfoFn) {
         modules = angular.copy(modules);
+        _myTreeListSrv.clear();
 		for(var i=0; i<modules.length; i++) {
-            nlTreeListSrv.addItem(modules[i]);
+            _myTreeListSrv.addItem(modules[i]);
 		}
         var dlg = nlDlg.create($scope);
 		dlg.setCssClass('nl-height-max nl-width-max');
@@ -29,7 +32,7 @@ function(nl, nlDlg, nlTreeListSrv) {
 			dlg.scope.selectedModule = cm;
 			if(cm.type === 'module') {
                 _initScope(dlg);
-				nlTreeListSrv.toggleItem(cm);
+				_myTreeListSrv.toggleItem(cm);
 				_showVisible(dlg, modules);
 				return;
             }

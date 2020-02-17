@@ -531,8 +531,8 @@ tr.summary {
   min-width: 200px;
 }
 
-.nl-min-500 {
-  min-width: 500px;
+.nl-min-750 {
+  min-width: 750px;
 }
 
 .nl-text-right {
@@ -958,6 +958,11 @@ nl-dlg-help, .nl-dlg-help {
   }
 }
 
+.nl-dlg.nl-no-vscroll {
+  .popup-body {
+    overflow-y: hidden;
+  }
+}
 .nl-dlg.nl-max {
   .popup {
     max-width: 99vw;

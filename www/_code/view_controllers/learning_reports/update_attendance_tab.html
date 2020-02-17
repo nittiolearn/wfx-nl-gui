@@ -1,0 +1,99 @@
+<div class='row row-center padding0 margin0'>
+	<div class='col padding0'></div>
+
+	<div ng-if='isEtmAsd && selectedModule.id == firstSessionId'
+		 class='nl-link-text nl-button-lowlight padding-small'
+		 ng-click='addAsdSession($event, null)'>Add session above</div>
+	<div ng-if='isEtmAsd && selectedModule.id == firstSessionId' class='padding-small'></div>
+
+	<div ng-if='isEtmAsd && selectedModule.asdSession'
+		 class='nl-link-text nl-button-lowlight padding-small'
+		 ng-click='removeAsdSession($event, selectedModule)'>Remove session</div>
+	<div ng-if='isEtmAsd && selectedModule.asdSession' class='padding-small'></div>
+
+	<div ng-if='isEtmAsd'
+		 class='nl-link-text nl-button-highlight padding-small'
+		 ng-click='addAsdSession($event, selectedModule)'>Add session</div>
+	<div ng-if='isEtmAsd' class='padding-small'></div>
+
+	<div ng-if='isEtmAsd' class='nl-min-200'>
+		<nl-date-select fieldmodelbyref='selectedModule.sessiondate'></nl-date-select>
+	</div>
+	<div ng-if='isEtmAsd' class='padding-small'></div>
+
+	<div class='nl-link-text nl-button-highlight' ng-click='bulkAttendanceMarker($event)'>Mark all</div>
+</div>
+
+<div ng-if='selectedModule.asdSession' class="padding-small"></div>
+<div ng-if='selectedModule.asdSession' class="row row-center margin0 padding0">
+	<div class="col padding0 nl-dlg-field-value">
+		<select ng-model='selectedModule.reason' 
+				ng-options='opt as opt.name for opt in options.reason track by opt.id'
+				class='w100'
+				autofocus=''
+				tabindex=""
+				style='min-height: 34px'>
+		</select>
+	</div>
+	<div class="col col-67 padding0 padding-mid-left">
+		<input type='text' placeholder='Mention remarks' ng-model='selectedModule.remarks'></input>
+	</div>
+</div>
+
+
+Learner Name	Learner Id	Status	Remarks
+
+<table class='nl-table nl-table-styled'>
+	<tr>
+		<th>
+			Learner Name
+		</th>
+		<th>
+			Learner Id
+		</th>
+		<th>
+			Attendance Status
+		</th>
+		<th>
+			Remarks
+		</th>
+	</tr>
+	<tr ng-repeat='report in selectedModule.learningRecords'>
+		<td>
+			{{report.learnername}}
+		</td>
+		<td>
+			{{report.learnerid}}
+		</td>
+		<td class='nl-dlg-field-value'>
+			<select ng-model='report.attendance' 
+				ng-if='!report.lockedMessage'
+				ng-options='opt as opt.name for opt in options.attendance track by opt.id'
+				autofocus=''
+				tabindex='0'>
+			</select>
+		</td>
+		<td>
+			<div ng-if='report.lockedMessage'
+				 class='nl-dlg-field-value'>
+				 {{report.lockedMessage}}
+			</div>
+			<div ng-if='!report.lockedMessage && options.attendanceRemarks'
+				 class='nl-dlg-field-value'>
+				 <select ng-model='report.remarks' 
+					ng-options='opt as opt.name for opt in options.attendanceRemarks track by opt.id'
+					autofocus=''
+					tabindex='0'>
+				</select>
+			</div>
+			<div ng-if='!report.lockedMessage && !options.attendanceRemarks'
+				 class='nl-dlg-field-value'>
+				 <input ng-model='report.remarks.id' 
+					autofocus=''
+					tabindex='0'
+					placeholder='Provide remarks'>
+			</div>
+		</td>
+	</tr>
+</table>
+<div class='fsh5'>Attendance Tab: TODO</div>
