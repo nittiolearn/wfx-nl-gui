@@ -69,6 +69,12 @@
             <i ng-hide='export.nht' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
             <span>download nht data</span>
         </div>
+        <div ng-show='showIltBatchCheckbox' class='padding-mid nl-link-text' 
+             ng-click='export.iltBatch = !export.iltBatch'>
+            <i ng-show='export.iltBatch' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='export.iltBatch' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>download attendance batch</span>
+        </div>
         <div class='row row-top row-wrap margin0 padding-mid'>
         	<span class='fsh4'>Filter data and download subset of records</span>
         </div>

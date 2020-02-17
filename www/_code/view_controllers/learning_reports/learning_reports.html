@@ -7,6 +7,12 @@
 .minw-name{
     min-width: 300px;
 }
+
+.minw-string{
+    width: 150px;
+    min-width: 150px;
+}
+
 .nht-col1-w{
     min-width: 100px;
 }
@@ -257,6 +263,27 @@
             <div ng-if='tabData.selectedTab.id == "nht"  && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
                 <nl-lr-nht-tab nht='nhtInfo'></nl-lr-nht-tab>
+            </div>
+            <div ng-if='tabData.selectedTab.id == "iltbatchdata"  && !tabData.processingOnging'
+                class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
+                <div class='margin0 padding0' style='padding-bottom: 3px;'>
+                    <div class='row row-center margin0 padding-small bgblue fwhite'>
+                        <div ng-repeat='col in iltBatchInfo.columns track by $index'
+                            class='{{col.class}} text-center'>
+                            <div class='{{col.styleTd}}'>{{col.name || '-'}}</div>
+                        </div>
+                    </div>
+                    <div class='row row-center margin0 padding-small {{rec.isFolder ? "lnblue2" : ""}} anim fade highlight'
+                        ng-repeat='rec in iltBatchInfo.rows track by $index'
+                        style='height: 36px; border-bottom: 1px dotted rgba(125, 125, 125, 0.5)'>
+                        <div ng-repeat='col in iltBatchInfo.columns track by $index'
+                            class='{{col.class}} text-center'>
+                            <div class='row row-center'>
+                                <div class='col'>{{rec[col.id] || '-'}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>            
             </div>
         </div>
     </div>
