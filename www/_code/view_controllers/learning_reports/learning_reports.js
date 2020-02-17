@@ -177,6 +177,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			clickHandler: _userRowClickHandler,
 			metas: nlLrHelper.getMetaHeaders(false)
 		};
+		if(_isLrCustomized()) $scope.utable.styleDetail = 'nl-max-1100';
 		nlTable.initTableObject($scope.utable);
 		$scope.tabData = _initTabData($scope.utable);
 		_initChartData();
@@ -185,7 +186,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _isLrCustomized() {
 		var type = nlLrFilter.getType();
 		if (type != 'course' && type != 'course_assign') return false;
-		return true;
+		return nlLrFilter.isDebugMode();
 	}
 
 	function _getUserColumns() {
@@ -610,16 +611,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('repcontent.updated', 'Last Updated On', true));
 		columns.push(_col('repcontent.not_before', 'From', true));
 		columns.push(_col('repcontent.not_after', 'Till', true));
-		columns.push(_col('stats.status.txt', 'Status', true));		// TODO-NOW: after course/module to show
-		columns.push(_col('stats.status.txt', 'Status', true));		// TODO-NOW: after org
+		columns.push(_col('stats.status.txt', 'Status', true));	
 		columns.push(_col('stats.progressPerc','Progress', true));
 		columns.push(_col('stats.percCompleteDesc', 'Progress Details', true));
-		columns.push({id: 'stats.avgAttempts', name: 'Quiz Attempts'});
-		columns.push({id: 'stats.percScore', name: 'Achieved %'});
+		columns.push(_col('stats.avgAttempts', 'Quiz Attempts', true));
+		columns.push(_col('stats.percScore', 'Achieved %', true));
 		columns.push(_col('stats.nMaxScore', 'Maximum Score', true));
-		columns.push({id: 'stats.nScore', name: 'Achieved Score'});
+		columns.push(_col('stats.nScore', 'Achieved Score', true));
 		columns.push(_col('stats.feedbackScore', 'Feedback Score', true));
-		columns.push({id: 'stats.timeSpentSeconds', name: 'Online Time Spent (minutes)'});	// solve it after multplying the value by 60
+		columns.push(_col('stats.timeSpentSeconds', 'Online Time Spent (minutes)', true));  // solve it after multplying the value by 60 before displaying
 		columns.push(_col('stats.iltTimeSpent', 'ILT time Spent (minutes)', true));
 		columns.push(_col('stats.iltTotalTime', 'ILT total Time (minutes)', true));
 		columns.push(_col('repcontent.iltVenue', 'Venue', true));
@@ -632,22 +632,19 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('user.isActive()', 'User state', true));
 		columns.push(_col('user.email', 'Email id', true, 'email'));		// column used for search
 		columns.push(_col('user.org_unit()', 'Org', true));
-		columns.push(_col('user.isActive()', 'User state', true));
-		columns.push(_col('user.isActive()', 'User state', true));
-		columns.push({id: 'stats.internalIdentifier', name: 'Report Id'});
-		columns.push({id: 'repcontent.assignid', name: 'Assign Id'});
-		columns.push({id: 'repcontent.courseid', name: 'Course/ Module Id'});	//TODO-NOW:works for course id, ask what to do with modules?
-		columns.push({id: 'course.content.languages[0].name', name: 'Language'});	// TODO-NOW: ask from where to take the value of language?
+		columns.push(_col('stats.internalIdentifier', 'Report Id', true));
+		columns.push(_col('repcontent.assignid', 'Assign Id', true));
+		columns.push(_col('repcontent.courseid', 'Course/ Module Id', true));	//TODO-NOW:works for course id, ask what to do with modules?
+		columns.push(_col('course.content.languages[0].name', 'Language', true)); // TODO-NOW: ask from where to take the value of language?
 
 		// Only search and details relevant columns
 		columns.push(_col('user.username', 'Login id', false, 'login'));
-
 		return columns;
 
 	}
 	
 	function _col(id, name, show, searchKey) {
-		var __column = { id: id, name: name, smallScreen: show, mediumScreen: show, largeScreen: show};
+		var __column = { id: id, name: name, smallScreen: show, mediumScreen: show, largeScreen: show, styleTd: 'minw-number nl-text-center'};
 		if(searchKey) __column.searchKey = searchKey;
 		return __column;
 	}
