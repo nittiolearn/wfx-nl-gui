@@ -627,7 +627,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	}
 	
-	function _col(id, name, show, searchKey=undefined) {
+	function _col(id, name, show, searchKey) {
 		var __column = { id: id, name: name, smallScreen: show, mediumScreen: show, largeScreen: show};
 		if(searchKey) __column.searchKey = searchKey;
 		return __column;
