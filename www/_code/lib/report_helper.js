@@ -171,7 +171,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             nTotalQuizScore: 0, nTotalQuizMaxScore: 0,
             onlineTimeSpentSeconds: 0, iltTimeSpent: 0, iltTotalTime: 0,
             feedbackScore: '', customScores: [], attritedAt: null, attritionStr: null,
-            isCertified: false 
+            isCertified: false, certid: null 
             // Also may have has following:
             // reattempt: true/false
         };
@@ -214,6 +214,9 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             _updateUnlockedTimeStamp(cm, itemInfo, itemIdToInfo);
             _updateStatusToDelayedIfNeeded(cm, itemInfo);
             _updateStatistics(itemInfo, cm, ret);
+            if (cm.type == 'certificate') {
+                ret['certid'] = cm.id;
+            }
             latestCustomStatus =  _updateCustomStatus(itemInfo, latestCustomStatus);
             if (itemInfo.isAttrition) {
                 isAttrition = true;
@@ -294,6 +297,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             var sinfo = _statusinfo[cm.id] || {};
             itemInfo.rawStatus = 'success';
             itemInfo.updated = _getUpdatedTimestamp(sinfo);
+            itemInfo.expire_after = cm.certificate_expire_after || null;
             itemInfo.score = 100;
         } else if (cm.type == 'info' || cm.type == 'link') {
             _getRawStatusOfInfo(cm, itemInfo);
@@ -728,6 +732,7 @@ function AsdModules() {
             var cm = modules[i];
             asdAddedModules.push(cm);
             if (cm.type != 'iltsession') continue;
+            cm.sessiondate = _sessionInfos && _sessionInfos[cm.id] ? _sessionInfos[cm.id].sessiondate : null;
             _addAsdItems(asdAddedModules, _sessionInfos[cm.id], cm);
         }
         return asdAddedModules;
@@ -757,11 +762,11 @@ function AsdModules() {
         item.hide_locked = parentFixedSession ? parentFixedSession.hide_locked : false;
         if (parentFixedSession && parentFixedSession.start_after)
             item.start_after = angular.copy(parentFixedSession.start_after);
+            item.sessiondate = item.sessiondate || null;
         if(parentFixedSession) parentFixedSession.asdChildren.push(item);
         return item;
     }
 }
-
 //-------------------------------------------------------------------------------------------------
 function _getItemName(cm) {
     if (!cm.asdSession) return cm.name || cm.id;
