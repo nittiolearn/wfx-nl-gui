@@ -1,10 +1,104 @@
-<div class='fsh2'>TODO-NOW - Update1 Rating Tab</div>
-<div class='padding' ng-repeat='i in [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100]'>
-    <p class='fsh4 padding-mid-v'>Point #{{i}}:</p>
-    <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-    </p> 
-    <p>
-        Curabitur pretium tincidunt lacus. Nulla gravida orci a odio. Nullam varius, turpis et commodo pharetra, est eros bibendum elit, nec luctus magna felis sollicitudin mauris. Integer in mauris eu nibh euismod gravida. Duis ac tellus et risus vulputate vehicula. Donec lobortis risus a elit. Etiam tempor. Ut ullamcorper, ligula eu tempor congue, eros est euismod turpis, id tincidunt sapien risus a quam. Maecenas fermentum consequat mi. Donec fermentum. Pellentesque malesuada nulla a mi. Duis sapien sem, aliquet nec, commodo eget, consequat quis, neque. Aliquam faucibus, elit ut dictum aliquet, felis nisl adipiscing sapien, sed malesuada diam lacus eget erat. Cras mollis scelerisque nunc. Nullam arcu. Aliquam consequat. Curabitur augue lorem, dapibus quis, laoreet et, pretium ac, nisi. Aenean magna nisl, mollis quis, molestie eu, feugiat in, orci. In hac habitasse platea dictumst.
-    </p>
+<div ng-if='selectedModule.lockedOnItem' class='fsh6'>
+    You can update the rating only after all earlier items are completed.
+    Please update <b>{{getItemName(selectedModule.lockedOnItem)}}</b> first.
+</div>
+
+<div ng-if='!selectedModule.lockedOnItem'>
+    <div class='row row-center padding0 margin0'>
+        <div class='col padding0'></div>
+        <div class='nl-link-text nl-button-highlight' ng-click='showBulkRatingMarker($event)'>Mark all</div>
+    </div>
+    
+    <div class='padding-small'>
+    </div>
+    <table class='nl-table nl-table-styled'>
+        <tr>
+            <th style='width: 20%;'>
+                Learner Name
+            </th>
+            <th style='width: 20%;'>
+                Learner Id
+            </th>
+            <th style='width: 20%;'>
+                Rating
+            </th>
+            <th>
+                Remarks
+            </th>
+        </tr>
+        <tr ng-repeat='report in selectedModule.learningRecords'
+            ng-show='bulkMarker.showRating || !report.bulkEntry'
+            class='{{report.bulkEntry ? "alternate" : report.lockedMessage ? "fgrey" : ""}}'>
+            <td>
+                {{report.learnername}}
+            </td>
+            <td>
+                {{report.learnerid}}
+            </td>
+            <td class='nl-dlg-field-value'>
+                <select ng-model='report.rating'
+                    ng-if='!report.lockedMessage && selectedModule.ratingType === "select"'
+                    ng-options='opt as opt.name for opt in selectedModule.ratingOptions track by opt.id'
+                    autofocus=''
+                    tabindex='0'>
+                </select>
+                <input ng-if='!report.lockedMessage && selectedModule.ratingType === "input"'
+                       type='number' ng-model='report.rating.id' min='0' max='100'></input>
+                <div ng-if='report.bulkEntry && report.error' class='nl-dlg-field-errormsg'>
+                    {{report.error}}
+                </div>
+            </td>
+            <td>
+                <div ng-if='report.lockedMessage'
+                     class='nl-dlg-field-value'>
+                     {{report.lockedMessage}}
+                </div>
+                <div ng-if='!report.lockedMessage && report.ratingRemarksOptions'
+                     class='nl-dlg-field-value'>
+                    <div class='row row-center padding0 margin0 marker-dropbtn nl-link-text2' ng-click='report.showRatingsOptions = !report.showRatingsOptions'>
+                        <div class='col' style='max-height: 28px;text-overflow: ellipsis;overflow: hidden;line-height: 20px'>
+                            <span>{{report.remarksStr}}</span>
+                        </div>
+                        <span class="nl-link-text">
+                            <i ng-if='!report.showRatingsOptions' class='icon ion-chevron-down fsh5 padding-mid'></i>
+                            <i ng-if='report.showRatingsOptions' class='icon ion-chevron-up fsh5 padding-mid'></i>
+                        </span>
+                    </div>
+                    <div ng-if='report.showRatingsOptions' class="marker-select-dropdown">
+                        <div ng-repeat='opt in report.ratingRemarksOptions track by $index' class='nl-link-text2' style='border-bottom: 2px solid #FFFFFF;padding: 2px 8px;'>
+                            <div class='row row-center margin0 padding0' ng-click='onRatingRemarksClick($event, report, opt)'>
+                                <span title='Select the remark {{$index+1}}'>
+                                    <i ng-if='opt.selected' class="icon ion-android-checkbox-outline"></i>
+                                    <i ng-if='!opt.selected' class="icon ion-android-checkbox-outline-blank"></i>
+                                </span>
+                                <div class='col'>
+                                    {{opt.name}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div ng-if='!report.lockedMessage && !report.ratingRemarksOptions'
+                     class='nl-dlg-field-value'>
+                     <input ng-model='report.remarksStr' 
+                        type='text' 
+                        autofocus=''
+                        tabindex='0'
+                        placeholder='Provide remarks'>
+                </div>
+				<div ng-if='!report.lockedMessage && report.validationErrorMsg' class='nl-dlg-field-errormsg'>
+					{{report.validationErrorMsg}}
+				</div>
+                <div ng-if='report.bulkEntry' class='row row-center padding-mid margin0'>
+                        <div class='col padding0'></div>
+                    
+                        <div class='nl-link-text nl-button-lowlight padding-small'
+                             ng-click='hideBulkRatingMarker($event)'>Cancel</div>
+                        <div class='padding-small'></div>
+                        <div class='nl-link-text nl-button-highlight padding-small'
+                             ng-click='bulkRatingMarker($event)'>Mark All</div>
+                </div>
+            </td>
+        </tr>
+    </table>
 </div>
