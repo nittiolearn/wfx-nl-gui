@@ -24,6 +24,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     var _customScoresHeader = [];
     var _drillDownDict = {};
     var _nhtDict = {};
+    var _lrDict = {};
     var _iltBatchDict = {};
     var _canzip = true;
     var _exportFormat = 'xlsx';
@@ -45,7 +46,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     	_subjectlabel = userInfo.groupinfo.subjectlabel;
 	};
 	
-    this.export = function($scope, reportRecords, customScoresHeader, drillDownDict, nhtDict, iltBatchStats) {
+    this.export = function($scope, reportRecords, customScoresHeader, drillDownDict, nhtDict, iltBatchStats, lrDict) {
         var dlg = nlDlg.create($scope);
         _canzip = nlLrFilter.canZip();
         _customScoresHeader = customScoresHeader || [];
@@ -63,6 +64,11 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             _nhtDict = nhtDict || {};
             dlg.scope.showNhtCheckbox = (dlg.scope.reptype != "user");
             dlg.scope.export['nht'] = false;
+        }
+        if (lrDict) {
+            _lrDict = lrDict || {};
+            dlg.scope.showLrCheckbox = (dlg.scope.reptype == 'course_assign' || dlg.scope.reptype == 'course');
+            dlg.scope.export['lr'] = false;
         }
         if (iltBatchStats) {
             _iltBatchDict = iltBatchStats || {};
@@ -155,6 +161,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             if(filter.exportTypes.drilldown) _updateDrillDownRow();    
             if(filter.exportTypes.nht) _updateNhtRow();
             if(filter.exportTypes.iltBatch) _updateIltBatchRow();
+            if(filter.exportTypes.lr) _updateLrRow(reportRecords);
             if(_exportFormat == 'csv') {
                 for(var start=0, i=1; start < reportRecords.length; i++) {
                     var pending = reportRecords.length - start;
@@ -234,6 +241,16 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                     }
                 } 
                
+                if (filter.exportTypes.lr && ctx.lrRow.length > 1) {
+                    for(var start=0, i=1; start < ctx.lrRow.length; i++) {
+                        var pending = ctx.lrRow.length - start;
+                        pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
+                        var fileName = nl.fmt2('learning-reports-{}.csv', i);
+                        _createCsv(filter, ctx.lrRow, zip, fileName, start, start+pending);
+                        start += pending;
+                    }
+                } 
+
                 if (filter.exportTypes.feedback && ctx.feedbackRows.length > 1) {
                     for(var start=0, i=1; start < ctx.feedbackRows.length; i++) {
                         var pending = ctx.feedbackRows.length - start;
@@ -292,6 +309,10 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                     zipData.push({aoa: ctx.iltBatchRow, fileName: 'attendance-batch-stats', fileExt: 'xlsx'});
                 } 
 
+                if (filter.exportTypes.lr && (filter.reptype == 'course' || filter.reptype == 'course_assign')) {
+                    zipData.push({aoa: ctx.lrRow , fileName: 'learning-reports', fileExt: 'xlsx'});
+                }
+        
                 if (filter.exportTypes.feedback && ctx.feedbackRows.length > 1) {
                     zipData.push({aoa: ctx.feedbackRows, fileName: 'feedback', fileExt: 'xlsx'});
                 }
@@ -310,6 +331,16 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         for (var i=start; i<end; i++) rows.push(records[i]);
         var content = rows.join(_CSV_DELIM);
         zip.file(fileName, content);
+    }
+
+    function _updateLrRow(reports) {
+        var lrHeaderRow = _lrDict.columns;
+        for(var i=0; i<reports.length; i++) {
+            if (_exportFormat == 'csv') 
+                ctx.lrRow.push(nlExporter.getCsvRow(lrHeaderRow, reports[i]));
+            else
+                ctx.lrRow.push(nlExporter.getItemRow(lrHeaderRow, reports[i]));
+        }
     }
 
     function _updateNhtRow() {
@@ -343,7 +374,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         }
     }
 
-    //This fuunction is only called if the suborg is enabled
+    //This function is only called if the suborg is enabled
     function _updateBatchRowForNht(batches, nhtHeaderRow) {
         for(var key in batches) {
             var row = batches[key];
@@ -594,6 +625,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             if(filter.exportTypes.drilldown) ctx.drillDownRow = [nlExporter.getCsvHeader(_drillDownDict.columns)];
             if(filter.exportTypes.nht) ctx.nhtRow = [nlExporter.getCsvHeader(_nhtDict.columns)];
             if(filter.exportTypes.iltBatch) ctx.iltBatchRow = [nlExporter.getCsvHeader(_iltBatchDict.columns)];
+            if(filter.exportTypes.lr) ctx.lrRow = [nlExporter.getCsvHeader(_lrDict.columns)];
         } else {
             ctx.courseReportRows = [_getCsvHeader(filter)];
             ctx.moduleRows = [nlExporter.getHeaderRow(_hModuleRow)];
@@ -603,6 +635,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             if(filter.exportTypes.drilldown) ctx.drillDownRow = [nlExporter.getHeaderRow(_drillDownDict.columns)];
             if(filter.exportTypes.nht) ctx.nhtRow = [nlExporter.getHeaderRow(_nhtDict.columns)];    
             if(filter.exportTypes.iltBatch) ctx.iltBatchRow = [nlExporter.getHeaderRow(_iltBatchDict.columns)];
+            if(filter.exportTypes.lr) ctx.lrRow = [nlExporter.getHeaderRow(_lrDict.columns)];
         }
         ctx.reports = reports;
         ctx.zip = new JSZip();

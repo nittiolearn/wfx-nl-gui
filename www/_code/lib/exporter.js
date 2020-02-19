@@ -54,11 +54,23 @@ function(nl, nlDlg) {
         var row = [];
         for(var i=0; i<headers.length; i++) {
             var attr = headers[i].id;
-            var val = _fmtValue(item[attr], headers[i].fmt) || '';
+            var val;
+            if(attr.indexOf('.') != -1) {
+                var attrValue = _getAttrValue(attr.split('.'), item);
+                val = _fmtValue(attrValue, headers[i].fmt) || '';
+            } else 
+                val = _fmtValue(item[attr], headers[i].fmt) || '';
             row.push(val);
         }
         return row;
     };
+
+    function  _getAttrValue(attr, item) {
+        var attrCheck = attr[0];
+        if(attr.length == 0)
+            return item;
+        return _getAttrValue(attr.slice(1), item[attrCheck]);
+    }
 
     this.getCsvString = function(row, attrName) {
         return _getCsvString(row, attrName);

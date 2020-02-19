@@ -215,7 +215,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 if (itemInfo.customStatus) defaultCourseStatus = itemInfo.customStatus;
             }
             if (cm.showInReport && _isEndItemState(itemInfo.status))
-                ret.customScores.push({name: cm.name, score: itemInfo.score});
+                ret.customScores.push({name: cm.name, score: itemInfo.score, id: cm.id});
         }
 
         _updateCourseLevelStatus(ret, isAttrition, defaultCourseStatus);

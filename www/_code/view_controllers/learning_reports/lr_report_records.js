@@ -249,6 +249,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         var stats = {nLessonsAttempted: stainf.nPassedQuizes+stainf.nFailedQuizes,
             internalIdentifier:report.id,
             timeSpentSeconds: stainf.onlineTimeSpentSeconds, 
+            timeSpentMinutes: Math.ceil(stainf.onlineTimeSpentSeconds/60),
             iltTimeSpent: stainf.iltTimeSpent, 
             iltTotalTime: stainf.iltTotalTime,
             percCompleteStr: '' + stainf.progPerc + ' %',
@@ -260,7 +261,8 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             attritedAt: stainf.attritedAt,
             attritionStr: stainf.attritionStr,
             delayDays: Math.round(stainf.delayDays || 0),
-            isCertified: stainf.isCertified
+            isCertified: stainf.isCertified,
+            customScoreDict: {}
         };
 
         if(stainf.customScores.length != 0) {
@@ -269,6 +271,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
                 if(!(item.name in _customScoresHeaderObj)) {
                     _customScoresHeaderObj[item.name] = true;
                     _customScoresHeaderArray.push(item.name);
+                    stats.customScoreDict[item.id] = stainf.itemIdToInfo[item.id].score;
                 }
             }
         }

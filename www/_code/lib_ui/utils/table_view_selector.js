@@ -13,7 +13,8 @@
     var TableViewSelector = ['nl', 'nlDlg', 'nlServerApi',
     function(nl, nlDlg, nlServerApi) {
         var _groupSettings = new GroupSettings(nl, nlDlg, nlServerApi);
-        var _defaultOption = {id: null, name: 'All Columns', columns: null};
+        var _defaultOption = {id: null, name: 'Default View', columns: null};
+        var _allOption = {id: null, name: 'All Columns', columns: null};
         var _loading = {id: null, name: 'Loading ...', columns: null};
 
         function _onDirectiveLink($scope, iElem, iAttrs) {
@@ -44,14 +45,15 @@
         function _initScope($scope) {
             $scope.isOpen = false;
             $scope.selected = _defaultOption;
-            $scope.options = [_loading];
+            $scope.options = [_allOption, _loading];
         }
 
         function _loadOptionsIfNeeded($scope) {
             if (!$scope.config) return;
             _groupSettings.load($scope.config.tableType, function(options) {
                 if (!options) return _initScope($scope);
-                $scope.options = [_defaultOption];
+                if ($scope.config.defaultViewColumns) $scope.options = [$scope.config.defaultViewColumns, _allOption];
+                else $scope.options = [_defaultOption, _allOption];
                 for (var i=0; i<options.length; i++) {
                     $scope.options.push(options[i]);
                 }
