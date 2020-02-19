@@ -65,11 +65,11 @@ function(nl, nlDlg) {
         return row;
     };
 
-    function  _getAttrValue(attr, item) {
-        var attrCheck = attr[0];
-        if(attr.length == 0)
-            return item;
-        return _getAttrValue(attr.slice(1), item[attrCheck]);
+    function  _getAttrValue(attrAsArray, item) {
+        if (!item || attrAsArray.length == 0) return '';
+        var part1 = item[attrAsArray[0]];
+        if(attrAsArray.length == 1) return part1;
+        return _getAttrValue(attrAsArray.slice(1), part1);
     }
 
     this.getCsvString = function(row, attrName) {
