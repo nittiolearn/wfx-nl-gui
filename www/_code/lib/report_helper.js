@@ -60,6 +60,15 @@ function(nl, nlCourse, nlExpressionProcessor) {
         return asdModules.getAsdUpdatedModules(modules, attendance);
     };
 
+    this.getAsdItem = function(asdItemFromDb, parentFixedSession) {
+        var asdModules = new AsdModules();
+        return asdModules.getAsdItem(asdItemFromDb, parentFixedSession);
+    };
+
+    this.getItemName = function(cm) {
+        return _getItemName(cm);
+    };
+
     this.getCourseStatusHelper = function(report, groupinfo, courseAssign, course, modules) {
         return new CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, false, report, groupinfo, courseAssign, course, modules, 'trainer');
     };
@@ -162,7 +171,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             nTotalQuizScore: 0, nTotalQuizMaxScore: 0,
             onlineTimeSpentSeconds: 0, iltTimeSpent: 0, iltTotalTime: 0,
             feedbackScore: '', customScores: [], attritedAt: null, attritionStr: null,
-            isCertified: false 
+            isCertified: false, certid: null 
             // Also may have has following:
             // reattempt: true/false
         };
@@ -186,6 +195,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             itemInfo.status = itemInfo.rawStatus;
             if (isAttrition) {
                 itemInfo.status = 'waiting';
+                // TODO-NOW: try using this across every place (course_view and course assign view - eye icon)
+                // update lockedMsg correctly in different places
+                // See the code that shows locked reason in course_view.js
+                // var atritedCm = itemIdToInfo[ret.attritedAt];
+                // itemInfo.lockedMsg = nl.fmt2('Marked as {} at {}', ret.attritionStr, _getItemName(atritedCm));
                 itemInfo.isAttrition = true;
                 if (cm.hide_locked) itemInfo.hideItem = true;
                 continue;
@@ -200,6 +214,9 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             _updateUnlockedTimeStamp(cm, itemInfo, itemIdToInfo);
             _updateStatusToDelayedIfNeeded(cm, itemInfo);
             _updateStatistics(itemInfo, cm, ret);
+            if (cm.type == 'certificate') {
+                ret['certid'] = cm.id;
+            }
             latestCustomStatus =  _updateCustomStatus(itemInfo, latestCustomStatus);
             if (itemInfo.isAttrition) {
                 isAttrition = true;
@@ -280,6 +297,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             var sinfo = _statusinfo[cm.id] || {};
             itemInfo.rawStatus = 'success';
             itemInfo.updated = _getUpdatedTimestamp(sinfo);
+            itemInfo.expire_after = cm.certificate_expire_after || null;
             itemInfo.score = 100;
         } else if (cm.type == 'info' || cm.type == 'link') {
             _getRawStatusOfInfo(cm, itemInfo);
@@ -387,8 +405,9 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     }
 
     function _getRawStatusOfIltSession(cm, itemInfo) {
-        var userCmAttendance = _userAttendanceDict[cm.id] || {};
-        var grpAttendanceObj = _grpAttendanceDict[userCmAttendance.attId];
+        var userCmAttendance = _userAttendanceDict[cm.id];
+        itemInfo.attId = (userCmAttendance || {}).attId || null;
+        var grpAttendanceObj = _grpAttendanceDict[itemInfo.attId];
         itemInfo.maxTimePerc = 0;
         cm.iltduration = (cm.id in _modifiedILT) ? _modifiedILT[cm.id] : cm.iltduration;
         if (!userCmAttendance || !grpAttendanceObj) {
@@ -713,33 +732,47 @@ function AsdModules() {
             var cm = modules[i];
             asdAddedModules.push(cm);
             if (cm.type != 'iltsession') continue;
+            cm.sessiondate = _sessionInfos && _sessionInfos[cm.id] ? _sessionInfos[cm.id].sessiondate : null;
             _addAsdItems(asdAddedModules, _sessionInfos[cm.id], cm);
         }
         return asdAddedModules;
-    }
+    };
+
+    this.getAsdItem = function(asdItemFromDb, parentFixedSession) {
+        return _getAsdItem(asdItemFromDb, parentFixedSession);
+    };
 
     function _addAsdItems(modules, asdList, parentFixedSession) {
         if (!asdList || !asdList.asd) return;
         if (parentFixedSession) parentFixedSession.asdChildren = [];
         var asd = asdList.asd;
         for(var i=0; i<asd.length; i++) {
-            var item = asd[i];
-            item.type = 'iltsession';
-            item.iltduration = parentFixedSession ? parentFixedSession.iltduration : 480;
-            item.parentId = parentFixedSession ? parentFixedSession.parentId : '_root';
-            item.hide_locked = parentFixedSession ? parentFixedSession.hide_locked : false;
-            if (parentFixedSession && parentFixedSession.start_after)
-                item.start_after = angular.copy(parentFixedSession.start_after);
-            item.asdSession = true;
+            var item = _getAsdItem(asd[i], parentFixedSession);
             modules.push(item);
-            if(parentFixedSession) parentFixedSession.asdChildren.push(item);
         }
     }
 
-
+    function _getAsdItem(asdItemFromDb, parentFixedSession) {
+        var item = angular.copy(asdItemFromDb);
+        item.type = 'iltsession';
+        item.asdSession = true;
+        item.name = _getItemName(item);
+        item.iltduration = parentFixedSession ? parentFixedSession.iltduration : 480;
+        item.parentId = parentFixedSession ? parentFixedSession.parentId : '_root';
+        item.hide_locked = parentFixedSession ? parentFixedSession.hide_locked : false;
+        if (parentFixedSession && parentFixedSession.start_after)
+            item.start_after = angular.copy(parentFixedSession.start_after);
+            item.sessiondate = item.sessiondate || null;
+        if(parentFixedSession) parentFixedSession.asdChildren.push(item);
+        return item;
+    }
+}
+//-------------------------------------------------------------------------------------------------
+function _getItemName(cm) {
+    if (!cm.asdSession) return cm.name || cm.id;
+    return cm.reason.name + (cm.remarks ? ': ' + cm.remarks : '');
 }
 
-//-------------------------------------------------------------------------------------------------
 function _isCertificate(cm) {
     return (cm.type == 'certificate' ||
         (cm.type == 'link' && (cm.urlParams|| '').indexOf('course_cert') >= 0));

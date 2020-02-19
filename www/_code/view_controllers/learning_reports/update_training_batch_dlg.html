@@ -4,7 +4,7 @@
 	<!------------------------------------------------------------------------------------- 
 		Left Pane with TreeList of Items
 	-------------------------------------------------------------------------------------->
-	<div class='nl-thin-scroll-mh100 nl-max-300 nl-min-200'>
+	<div class='nl-thin-scroll-mh100 nl-max-300 nl-min-200 nl-border-right'>
 		<div class='nl-dlg-field-value padding-mid'
 			 ng-show='options.dlgtype.length > 1'>
 			<select ng-model='data.dlgtype' 
@@ -24,8 +24,16 @@
 					<i ng-show='cm.isOpen' class="icon ion-arrow-down-b bold fsh3"></i>
 				</div>
 				<div class='col'>
-					<span ng-if='!cm.asdSession'>{{cm.name}}</span>
-					<span ng-if='cm.asdSession' class='forange3'>{{cm.reason.name + (cm.remarks ? (': ' + cm.remarks) : '')}}</span>
+					<span class='{{cm.asdSession ? "forange2" : ""}}'>{{getItemName(cm)}}</span>
+				</div>
+				<div ng-show='cm.lockedOnItem' style='width: 20px'>
+					<i class="icon ion-locked fgrey fsh5"></i>
+				</div>
+				<div ng-show='cm.validationErrorMsg' style='width: 20px'>
+					<i class="icon icon ion-close-circled forange fsh5"></i>
+				</div>
+				<div ng-show='!cm.validationErrorMsg && cm.isMarkingComplete' style='width: 20px'>
+					<i class="icon ion-checkmark-circled fgreen fsh5"></i>
 				</div>
 			</div>
 		</div>
@@ -34,20 +42,17 @@
 	<!------------------------------------------------------------------------------------- 
 		Right Pane with Content for selected item
 	-------------------------------------------------------------------------------------->
-	<div class='nl-left-tabbed-content col padding-mid nl-thin-scroll-mh100 nl-min-750'>
+	<div class='col padding-mid nl-thin-scroll-mh100 nl-min-750'>
 		<div ng-if='!selectedModule || selectedModule.type == "module"' class='fsh5'>
 			 Please select an item to update.
 		</div>
-		<div ng-if='selectedModule.editingLockedMsg' class='fsh5'>
-			{{selectedModule.editingLockedMsg}}
-		</div>
-		<div ng-if='!selectedModule.editingLockedMsg && selectedModule.type == "iltsession"'
+		<div ng-if='selectedModule.type == "iltsession"'
 			 ng-include='"view_controllers/learning_reports/update_attendance_tab.html"'>
 		</div>
-		<div ng-if='!selectedModule.editingLockedMsg && selectedModule.type == "rating"'
+		<div ng-if='selectedModule.type == "rating"'
 			 ng-include='"view_controllers/learning_reports/update_rating_tab.html"'>
 		</div>
-		<div ng-if='!selectedModule.editingLockedMsg && selectedModule.type == "milestone"'
+		<div ng-if='selectedModule.type == "milestone"'
 			 ng-include='"view_controllers/learning_reports/update_milestone_tab.html"'>
 		</div>
 	</div>

@@ -262,7 +262,8 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             attritionStr: stainf.attritionStr,
             delayDays: Math.round(stainf.delayDays || 0),
             isCertified: stainf.isCertified,
-            customScoreDict: {}
+            customScoreDict: {},
+            certid: stainf.certid
         };
 
         if(stainf.customScores.length != 0) {
@@ -309,6 +310,22 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
         report.urlTitle = nl.t('View report');
         stats.status = nlReportHelper.getStatusInfoFromCourseStatsObj(stainf);
+
+        if ((stainf.status == 'certified' || stainf.isCertified) && stats.certid) {
+            var certInfo = stainf.itemIdToInfo[stats.certid];
+            stats.certifiedOn = nl.fmt.fmtDateDelta(nl.fmt.json2Date(certInfo.updated), null, 'minute');
+            if (certInfo.expire_after) {
+                var expireDays = parseInt(certInfo.expire_after);
+                var expireOn = new Date(certInfo.updated);
+                expireOn.setDate(expireOn.getDate() + expireDays);
+                if(new Date() < expireOn) {
+                    stats.certValid = nl.fmt.fmtDateDelta(expireOn, null, 'minute');
+                } else {
+                    stats.status = nlReportHelper.statusInfos[nlReportHelper.STATUS_FAILED];
+                    stats.status.txt = 'Certificate expired';
+                }
+            }
+        }
         report.typeStr = 'Course';
         if (_canManage) {
             report.hideDeleteButton = false;

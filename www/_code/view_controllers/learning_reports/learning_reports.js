@@ -1350,6 +1350,21 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	//ILTBatch tab
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	function _updateSessionDates(sessionInfo, sessionDates) {
+		var sessionDate =  sessionInfo.sessiondate || '';
+		if(sessionDate) sessionDates[sessionDate] = true;
+
+	}
+
+	function _updateAsdSessionDates(cm, sessionDates) {
+		var sessionInfos = g_attendance.sessionInfos || {};
+		var sessionInfo = sessionInfos[cm.id];
+		for(var j=0; j<sessionInfo.asd.length; j++) {
+			var session = sessionInfo.asd[j];
+			_updateSessionDates(session, sessionDates);
+		}
+	}
+
 	function _updateILTBatch() {
 		var records = $scope.tabData.records;
 		var content = _getContentOfCourseAssignment();
@@ -1357,6 +1372,21 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			g_attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
 			g_attendance = nlCourse.migrateCourseAttendance(g_attendance);
 		var asdAddedModules = nlReportHelper.getAsdUpdatedModules(content.modules || [], g_attendance)
+		var sessionDates = {};
+		var iltSessions = [];
+
+		for(var i=0; i<asdAddedModules.length; i++) {
+			var cm = asdAddedModules[i];
+			if (cm.type != 'iltsession') continue;
+			iltSessions.push(cm);
+			if (cm.asdChildren && cm.asdChildren.length > 0) _updateAsdSessionDates(cm, sessionDates);
+			if(!cm.asdSession) {
+				var sessionInfos = g_attendance.sessionInfos || {};
+				var sessionInfo = sessionInfos[cm.id];
+				_updateSessionDates(sessionInfo, sessionDates);
+			}
+		}
+
 		var userObj = {};
 		var iltBatchInfoRow = [];
 		var _orgToSubOrgDict = nlGroupInfo.getOrgToSubOrgDict();		
@@ -1364,24 +1394,23 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			userObj = {};
 			var record = records[i];
 			userObj.name = record.user.name;
-			userObj.coursename = record.repcontent.name;  //Show only after the feature is enabled for the type=course
-			userObj.batchname = record.repcontent.batchname;  //Show only after the feature is enabled for the type=course
+			userObj.coursename = record.repcontent.name;
+			userObj.batchname = record.repcontent.batchname;
 			userObj.not_before = record.not_before ? nl.fmt.fmtDateDelta(record.raw_record.not_before, null, 'date') : '';  //Show only after the feature is enabled for the type=course
 			userObj.not_after = record.not_after ? nl.fmt.fmtDateDelta(record.raw_record.not_after, null, 'date') : '';  //Show only after the feature is enabled for the type=course
 			userObj.learner_status = (record.user.state == 0) ? nl.t('Inactive') : nl.t('Active')
 			var _statusInfos = record.repcontent.statusinfo;
 			_updateLobInUserobj(_orgToSubOrgDict, record.user.org_unit, userObj);
-			for(var j=0; j<asdAddedModules.length; j++) {
-				var cm = asdAddedModules[j];
-				if (cm.type != 'iltsession' || cm.asdSession) continue;
+			for(var j=0; j<iltSessions.length; j++) {
+				var cm = iltSessions[j];
 				var sessionInfo = _statusInfos[cm.id];
-				userObj[cm.id] = sessionInfo.state || '-';
-				if(sessionInfo.score === 100) continue;
-				if(cm.asdChildren && cm.asdChildren.length > 0) _updateStateViaChildrenAsd(cm, userObj, _statusInfos);
+				var sessionDate =  nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(cm.sessiondate || ''), null, 'date');
+				if (sessionDate)
+					userObj[sessionDate] = sessionInfo.state || '-';
 			}
 			iltBatchInfoRow.push(userObj);
 		};
-		$scope.iltBatchInfo = {columns: _getILTColumns(content), rows: iltBatchInfoRow};
+		$scope.iltBatchInfo = {columns: _getILTColumns(sessionDates), rows: iltBatchInfoRow};
 	}
 
 	function _updateLobInUserobj(orgToSubOrgDict, ou, userObj) {
@@ -1392,21 +1421,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		userObj.lob = part2;
 	}
 
-	function _updateStateViaChildrenAsd(cm, userObj, _statusInfos) {
-		var asdChildren = cm.asdChildren;
-		var cmStatus = _statusInfos[cm.id];
-		var maxScore = cmStatus.score;
-		for(var k=0; k<asdChildren.length; k++) {
-			var asd = asdChildren[k];
-			var _statusInfo = _statusInfos[asd.id];
-			if (maxScore > _statusInfo.score) continue;
-			maxScore = _statusInfo.score;
-			userObj[cm.id] = _statusInfo.state;
-		}
-	}
-
-	function _getILTColumns(content) {
-		var sessionInfos = g_attendance.sessionInfos || {};
+	function _getILTColumns(sessionDates) {
 		var headerRow = [];
 		headerRow.push({id: 'name', name: nl.t('Learner name'), class: 'minw-string'});
 		headerRow.push({id: 'lob', name: nl.t('LOB'), class: 'minw-string'});
@@ -1415,11 +1430,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		headerRow.push({id: 'not_before', name: nl.t('Start date'), class: 'minw-number'});
 		headerRow.push({id: 'not_after', name: nl.t('End date'), class: 'minw-number'});
 		headerRow.push({id: 'learner_status', name: nl.t('Status'), class: 'minw-number'});
-		for(var i=0; i<content.modules.length; i++) {
-			var cm = content.modules[i];
-			var sessionInfo = sessionInfos[cm.id] || {};
-			if(cm.type != 'iltsession') continue;
-			headerRow.push({id: cm.id, name: sessionInfo.sessiondate ? nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(sessionInfo.sessiondate || ''), null, 'date') : '-', class: 'minw-number'});
+		for(var key in sessionDates) {
+			var date = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(key || ''), null, 'date');
+			headerRow.push({id: date, name: date, class: 'minw-number'});
 		}
 		return headerRow;
 	}

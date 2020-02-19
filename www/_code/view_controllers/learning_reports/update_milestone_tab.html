@@ -1,1 +1,84 @@
-<div class='fsh5'>TODO-NOW - Update Milestone Tab</div>
+<div class='nl-dlg-field-name'>
+    Milestone Remarks:
+</div>
+<div class='nl-dlg-field-value'>
+    <input type='text' ng-model='selectedModule.comment'>
+</div>
+<div class='padding-small'></div>
+
+<div ng-if='selectedModule.lockedOnItem' class='fsh6'>
+    You can mark this milestone only after all earlier items are completed.
+    Please update <b>{{getItemName(selectedModule.lockedOnItem)}}</b> first.
+</div>
+<div ng-if='!selectedModule.lockedOnItem' class='padding-mid'>
+    <div ng-click='selectedModule.milestoneMarked = !selectedModule.milestoneMarked;' class='nl-link-text fsh5'>
+        <i ng-show='selectedModule.milestoneMarked' class="icon ion-android-checkbox-outline black fsh6"></i>
+        <i ng-hide='selectedModule.milestoneMarked' class="icon ion-android-checkbox-outline-blank fsh6"></i>
+        <span>Check this to mark this milestone as completed</span>
+    </div>
+    <div class='padding-small'></div>
+
+
+    <div class='row row-center padding0 margin0'
+         ng-show='selectedModule.milestoneMarked'>
+		<div class='col padding0'></div>
+		<div class='nl-link-text nl-button-lowlight' ng-click='milestoneUnmarkAll($event, selectedModule)'>Unmark all</div>
+        <div class='padding-small'></div>
+		<div class='nl-link-text nl-button-highlight' ng-click='milestoneMarkAll($event, selectedModule)'>Mark all</div>
+	</div>
+    <div class='padding-small'></div>
+
+    <table class='nl-table nl-table-styled'
+           ng-show='selectedModule.milestoneMarked'>
+        <tr>
+            <th style='width: 50px;'>
+            </th>
+            <th style='width: 20%;'>
+                Learner Name
+            </th>
+            <th style='width: 20%;'>
+                Learner Id
+            </th>
+            <th>
+                Remarks
+            </th>
+        </tr>
+        <tr ng-repeat='report in selectedModule.learningRecords'
+            ng-show='!report.bulkEntry'
+            class='{{report.lockedMessage ? "fgrey" : "nl-link-text"}}'
+            ng-click='report.milestoneMarked = !report.milestoneMarked;'>
+            <td>
+                <div class='nl-link-text fsh5' ng-hide='report.lockedMessage'>
+                    <i ng-show='report.milestoneMarked' class="icon ion-android-checkbox-outline black fsh6"></i>
+                    <i ng-hide='report.milestoneMarked' class="icon ion-android-checkbox-outline-blank fsh6"></i>
+                </div>
+            </td>
+            <td>
+                {{report.learnername}}
+            </td>
+            <td>
+                {{report.learnerid}}
+            </td>
+            <td>
+                <div ng-if='report.lockedMessage'
+                     class='nl-dlg-field-value'>
+                     {{report.lockedMessage}}
+                </div>
+                <div ng-if='!report.lockedMessage'
+                     class='nl-dlg-field-value'>
+                     <input ng-model='report.remarks' 
+                        type='text' 
+                        autofocus=''
+                        tabindex='0'
+                        ng-click='$event.stopImmediatePropagation(); $event.preventDefault();'
+                        placeholder='Provide remarks'>
+                </div>
+				<div ng-if='!report.lockedMessage && report.validationErrorMsg' class='nl-dlg-field-errormsg'>
+					{{report.validationErrorMsg}}
+				</div>
+            </td>
+        </tr>
+    </table>
+
+</div>
+
