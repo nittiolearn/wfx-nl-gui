@@ -434,6 +434,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         var grpRatingObj = _grpRatingDict[cm.rating_type];
         if(_launchMode == 'learner' && grpRatingObj.hideRating) itemInfo.hideItem = true;
         itemInfo.remarks = userCmRating.remarks || '';
+        itemInfo.otherRemarks = userCmRating.otherRemarks || '';
         if (!grpRatingObj || !userCmRating || (!('attId' in userCmRating)) || userCmRating.attId === "") {
             itemInfo.score = null;
             itemInfo.rawStatus = 'pending';
@@ -450,7 +451,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.marked = nl.fmt.json2Date(userCmRating.marked || '');
         itemInfo.updated = nl.fmt.json2Date(userCmRating.updated || '');
         itemInfo.rating = _computeRatingStringOnScore(grpRatingObj, itemInfo);
-        itemInfo.ratingString = (grpRatingObj.type == 'status' || grpRatingObj.type == 'select');
+        itemInfo.ratingString = (grpRatingObj.type == 'select');
     }
 
     function _computeRatingStringOnScore(ratingObj, itemInfo) {
@@ -458,7 +459,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if(Object.keys(ratingObj).length == 0) return score;
         if(itemInfo.hideItem && _launchMode == 'learner') return 'Rating provided';
         if(ratingObj.type == 'number') return score;
-        if(ratingObj.type == 'status' || ratingObj.type == 'select') {
+        if(ratingObj.type == 'select') {
             for(var i=0; i<ratingObj.values.length; i++) {
                 var val = ratingObj.values[i];
                 if(val.p == score) return val.v;
