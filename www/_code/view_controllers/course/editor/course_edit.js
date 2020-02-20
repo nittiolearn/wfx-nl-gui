@@ -467,7 +467,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		//For first time if gate is selected showInReport param is set to true;
 		var courseContent = modeHandler.course.content;
 		cm.name = nl.t('{} {}', attr.valueNames[cm.type], courseContent.lastId);
-		if(cm.type == 'gate' && !('showInReport' in cm)) cm.showInReport = true;
+		if((cm.type == 'gate' || cm.type == 'rating') && !('showInReport' in cm)) cm.showInReport = true;
         for(var i=0; i < _allModules.length; i++){
 			if (_isDescendantOf(_allModules[i], cm)) childrenElem.push(i);
         }
@@ -695,7 +695,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'exclude_quiz', stored_at: 'module', fields: ['lesson'], type: 'boolean', text: 'Exclude score',  desc: 'Exclude this score from course report average score', group: 'grp_additionalAttrs'},
         {name: 'hide_locked', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'boolean', text: 'Hide if locked', desc: 'Hide this item in learner/report view if item state is locked.', group: 'grp_additionalAttrs'},
         {name: 'reopen_on_fail', stored_at: 'module', fields: ['lesson'], type: 'object', text: 'Reopen on fail', contentType: 'object',group: 'grp_additionalAttrs'},
-        {name: 'showInReport', stored_at: 'module', fields: ['gate'], text: 'Show in the report', desc: 'Show score in the report', type: 'boolean', group: 'grp_additionalAttrs'},
+        {name: 'showInReport', stored_at: 'module', fields: ['gate', 'rating'], text: 'Show in the report', desc: 'Show score in the report', type: 'boolean', group: 'grp_additionalAttrs'},
         {name: 'hide_remarks', stored_at: 'module', fields: ['info', 'link'], type: 'boolean', text: 'Disable remarks', group: 'grp_additionalAttrs'},
         {name: 'autocomplete', stored_at: 'module', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
         {name: 'icon', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},

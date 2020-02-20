@@ -202,6 +202,7 @@ function Searcher(nl, nlDlg, info) {
         var screenSize = nl.rootScope.screenSize;
         for(var i=0; i<info.columns.length; i++) {
             var col = info.columns[i];
+            if ('allScreens' in col) continue;
             col.canShow = screenSize == 'small' ? col.smallScreen :
                 screenSize == 'medium' ? col.mediumScreen : col.largeScreen;
         }

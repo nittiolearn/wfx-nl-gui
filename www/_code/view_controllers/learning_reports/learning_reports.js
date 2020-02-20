@@ -156,21 +156,23 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nlLrFilter.init(settings, _userInfo, _groupInfo);
 		nlLrReportRecords.init(_userInfo);
 		nlLrFetcher.init();
-		nlLrExporter.init(_userInfo);
+		nlLrExporter.init(_userInfo, _groupInfo);
 		nlLrDrilldown.init(nlGroupInfo);
 		nlLrNht.init(nlGroupInfo);
 		nl.pginfo.pageTitle = nlLrFilter.getTitle();
 		_initScope();
 	}
 
+	var _lrColumns = null;
 	function _initScope() {
 		$scope.debug = nlLrFilter.isDebugMode();
 		$scope.toolbar = _getToolbar();
 		$scope.learningRecords = nlLrReportRecords.getRecords();
 		$scope.metaHeaders = nlLrHelper.getMetaHeaders(true);
+		_lrColumns =_getUserColumns();
 		$scope.utable = {
 			search: {disabled : true},
-			columns: _getUserColumns(),
+			columns: _lrColumns,
 			styleTable: 'nl-table-styled2 compact',
 			onRowClick: 'expand',
 			detailsTemplate: 'view_controllers/learning_reports/learning_report_details.html',
@@ -479,14 +481,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			updated: false,
 			tables: [tabData.utable]
 		});
-		tabs.push({
-			title : 'Click here to view time summary',
-			name: 'Time summary',
-			icon : 'ion-clock',
-			id: 'timesummary',
-			updated: false,
-			tables: []
-		});
 		if (nlLrFilter.getType() == 'course_assign' && (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0)) {
 			tabs.push({
 				title : 'Click here to view attendance summary',
@@ -497,6 +491,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				tables: []
 			});	
 		}
+		tabs.push({
+			title : 'Click here to view time summary',
+			name: 'Time summary',
+			icon : 'ion-clock',
+			id: 'timesummary',
+			updated: false,
+			tables: []
+		});
 		if (!tabData.selectedTab) return;
 		for(var i=0; i<tabs.length; i++) {
 			if (tabData.selectedTab.id != tabs[i].id) continue;
@@ -571,81 +573,105 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _updateLearningRecordsTab(tabData) {
 		nlTable.updateTableObject($scope.utable, tabData.records);
 		if (!_isLrCustomized()) return;
-		var columns = _getLrColumns();		
 		$scope.lrViewSelectorConfig = {
 			canEdit: nlRouter.isPermitted(_userInfo, 'assignment_manage'),
 			tableType: 'lr_views',
-			allColumns: columns,
+			allColumns: _getLrColumns(),
+			defaultViewColumns: {id: null, name: 'Default View', columns: [,"user.user_id", "user.name", "stats.status.txt", "user.org_unit"]},
 			onViewChange: function(selectedColumns) {
-				console.log(selectedColumns);
-/* 				_nhtColumnsSelectedInView = {};
-				_selectedColumns = selectedColumns;
+				var selectedColsDict = {};
 				for(var i=0; i<selectedColumns.length; i++) {
 					var col = selectedColumns[i];
-					_nhtColumnsSelectedInView[col.id] = true;
+					selectedColsDict[col.id] = true;
 				}
-				_someTabDataChanged();
-				_updateCurrentTab();
- */			}
+				var defaultCols = _getLrColumns();
+				for(var i=0; i<defaultCols.length; i++) {
+					var col = defaultCols[i];
+					if (col.id in selectedColsDict) col.canShow = true
+					else col.canShow = false;
+				}
+				$scope.utable.columns = defaultCols;
+				nlTable.updateTableObject($scope.utable, tabData.records);
+			}
 		}
 	}
 
 	function _getLrColumns() {
+		_customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
+		var mh = nlLrHelper.getMetaHeaders(false);
 		var type = nlLrFilter.getType();
 		var columns = [];
 		if(type != 'user') {
-		columns.push(_col('user.user_id', 'User Ids', true));
-		columns.push(_col('user.name', 'User Name', true));
+			columns.push(_col('user.user_id', 'User Ids', true));
+			columns.push(_col('user.name', 'User Name', true));
 		} else  {
 			columns.push(_col('raw_record.typeStr', 'Report type', true));
 		}
-		columns.push(_col('user.org_unit', 'Org', true));
 		if (!nlLrFilter.getObjectId() || type == 'user') {
-			columns.push(_col('repcontent.name', 'Course / module', true));		// TODO-NOW: ask if only course need to be shown or module too
+			columns.push(_col('repcontent.name', 'Course / module', true));
 		}
+
+		columns.push(_col('raw_record._batchName', 'Batch Name', false));
+		columns.push(_col('raw_record._grade', _userInfo.groupinfo.gradelabel, false));
+		columns.push(_col('raw_record.subject', _userInfo.groupinfo.subjectlabel, false));
+		columns.push(_col('created', 'Assigned On', false));
+		columns.push(_col('updated', 'Last Updated On', false));
+		columns.push(_col('not_before', 'From', false));
+		columns.push(_col('not_after', 'Till', false));
+		columns.push(_col('stats.status.txt', 'Status', true, null, 'stats.status.icon'));
+		columns.push(_col('stats.progressPerc','Progress', false));		//stats.percCompleteStr
+		columns.push(_col('stats.percCompleteDesc', 'Progress Details', false));
+		columns.push(_col('stats.avgAttempts', 'Quiz Attempts', false));
+		columns.push(_col('stats.percScore', 'Achieved %', false));		//stats.percScoreStr
+		columns.push(_col('stats.nMaxScore', 'Maximum Score', false));
+		columns.push(_col('stats.nScore', 'Achieved Score', false));
 		
-		columns.push(_col('raw_record._batchName', 'Batch Name', true));
-		columns.push(_col('raw_record._grade', 'Grade', true));
-		columns.push(_col('raw_record.subject', 'Subject', true));
-		columns.push(_col('repcontent.created', 'Assigned On', true));
-		columns.push(_col('repcontent.updated', 'Last Updated On', true));
-		columns.push(_col('repcontent.not_before', 'From', true));
-		columns.push(_col('repcontent.not_after', 'Till', true));
-		columns.push(_col('stats.status.txt', 'Status', true));	
-		columns.push(_col('stats.progressPerc','Progress', true));
-		columns.push(_col('stats.percCompleteDesc', 'Progress Details', true));
-		columns.push(_col('stats.avgAttempts', 'Quiz Attempts', true));
-		columns.push(_col('stats.percScore', 'Achieved %', true));
-		columns.push(_col('stats.nMaxScore', 'Maximum Score', true));
-		columns.push(_col('stats.nScore', 'Achieved Score', true));
-		columns.push(_col('stats.feedbackScore', 'Feedback Score', true));
-		columns.push(_col('stats.timeSpentSeconds', 'Online Time Spent (minutes)', true));  // solve it after multplying the value by 60 before displaying
-		columns.push(_col('stats.iltTimeSpent', 'ILT time Spent (minutes)', true));
-		columns.push(_col('stats.iltTotalTime', 'ILT total Time (minutes)', true));
-		columns.push(_col('repcontent.iltVenue', 'Venue', true));
-		columns.push(_col('repcontent.iltTrainerName','Trainer Name', true));
-		columns.push(_col('repcontent.iltCostInfra', 'Infra Cost', true));
-		columns.push(_col('repcontent.iltCostTrainer', 'Trainer Cost', true));
-		columns.push(_col('repcontent.iltCostFoodSta', 'Food Cost', true));
-		columns.push(_col('repcontent.iltCostTravelAco', 'Travel Cost', true));
-		columns.push(_col('repcontent.iltCostMisc', 'Misc Cost', true));
-		columns.push(_col('user.isActive()', 'User state', true));
-		columns.push(_col('user.email', 'Email id', true, 'email'));		// column used for search
-		columns.push(_col('user.org_unit()', 'Org', true));
-		columns.push(_col('stats.internalIdentifier', 'Report Id', true));
-		columns.push(_col('repcontent.assignid', 'Assign Id', true));
-		columns.push(_col('repcontent.courseid', 'Course/ Module Id', true));	//TODO-NOW:works for course id, ask what to do with modules?
-		columns.push(_col('course.content.languages[0].name', 'Language', true)); // TODO-NOW: ask from where to take the value of language?
+		for(var i=0; i<_customScoresHeader.length; i++) {
+			columns.push(_col('stats.customScoreDict.' + _customScoresHeader[i].id, _customScoresHeader[i], false));		//TODO-NOW Test this. Can be buggy value.
+		}
+
+		columns.push(_col('stats.feedbackScore', 'Feedback Score', false));
+		columns.push(_col('stats.timeSpentMinutes', 'Online Time Spent (minutes)', false));
+		columns.push(_col('stats.iltTimeSpent', 'ILT time Spent (minutes)', false));
+		columns.push(_col('stats.iltTotalTime', 'ILT total Time (minutes)', false));
+		columns.push(_col('repcontent.iltVenue', 'Venue', false));
+		columns.push(_col('repcontent.iltTrainerName','Trainer Name', false));
+		columns.push(_col('repcontent.iltCostInfra', 'Infra Cost', false));
+		columns.push(_col('repcontent.iltCostTrainer', 'Trainer Cost', false));
+		columns.push(_col('repcontent.iltCostFoodSta', 'Food Cost', false));
+		columns.push(_col('repcontent.iltCostTravelAco', 'Travel Cost', false));
+		columns.push(_col('repcontent.iltCostMisc', 'Misc Cost', false));
+		columns.push(_col('user.isActive()', 'User state', false));		// TODO-NOW: what to use instead od isActive in _lr
+		columns.push(_col('user.email', 'Email id', false, 'email'));		// column used for search
+		columns.push(_col('user.org_unit', 'Org', true));
+
+		for(var i=0; i<mh.length; i++) {
+			var keyName = 'usermd.' + mh[i].id;
+			columns.push(_col(keyName, mh[i].name, false));
+		}
+
+		// Id's are always exported, So the below 3 fields.
+		columns.push(_col('stats.internalIdentifier', 'Report Id', false));
+		columns.push(_col('repcontent.assignid', 'Assign Id', false));
+		columns.push(_col('repcontent.courseid', 'Course Id', false));	//TODO-NOW:works for course id, For modules its empty value
+		
+		if (type == 'user') columns.push(_col('raw_record.typeStr', 'Type', false));
+
+		// TODO-NOW: Language is there only for the lesson type(not available for all the lessons as well). It is not available at the course level
+		// Ask whether should we add this or not .
+		// columns.push(_col('', 'Language', false));
 
 		// Only search and details relevant columns
 		columns.push(_col('user.username', 'Login id', false, 'login'));
-		return columns;
+		_lrColumns = columns;
+		return _lrColumns;
 
 	}
 	
-	function _col(id, name, show, searchKey) {
-		var __column = { id: id, name: name, smallScreen: show, mediumScreen: show, largeScreen: show, styleTd: 'minw-number nl-text-center'};
+	function _col(id, name, show, searchKey, icon) {
+		var __column = { id: id, name: name, allScreens: true, canShow:show, styleTd: 'minw-number nl-text-center'};
 		if(searchKey) __column.searchKey = searchKey;
+		if(icon) __column.icon = icon;
 		return __column;
 	}
 
@@ -1348,6 +1374,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var asdAddedModules = nlReportHelper.getAsdUpdatedModules(content.modules || [], g_attendance)
 		var sessionDates = {};
 		var iltSessions = [];
+		var	sessionInfos = g_attendance.sessionInfos || {};	
+		if ('_root' in sessionInfos) {
+			var rootAsds = sessionInfos['_root'].asd;
+			for(var i=0; i<rootAsds.length; i++) {
+				_updateSessionDates(rootAsds[i], sessionDates)			
+			}
+		}
 
 		for(var i=0; i<asdAddedModules.length; i++) {
 			var cm = asdAddedModules[i];
@@ -1379,6 +1412,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var cm = iltSessions[j];
 				var sessionInfo = _statusInfos[cm.id];
 				var sessionDate =  nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(cm.sessiondate || ''), null, 'date');
+				if (sessionInfo.stateStr == 'notapplicable' || !sessionInfo.state) continue;
 				if (sessionDate)
 					userObj[sessionDate] = sessionInfo.state || '-';
 			}
@@ -1404,8 +1438,23 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		headerRow.push({id: 'not_before', name: nl.t('Start date'), class: 'minw-number'});
 		headerRow.push({id: 'not_after', name: nl.t('End date'), class: 'minw-number'});
 		headerRow.push({id: 'learner_status', name: nl.t('Status'), class: 'minw-number'});
-		for(var key in sessionDates) {
-			var date = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(key || ''), null, 'date');
+		var sessionDatesArray = [];
+		for(var key in sessionDates) sessionDatesArray.push(nl.fmt.json2Date(key) || '');
+		sessionDatesArray.sort(function(a, b) {
+			var key1 = new Date(a);
+			var key2 = new Date(b);
+		
+			if (key1 < key2) {
+				return -1;
+			} else if (key1 == key2) {
+				return 0;
+			} else {
+				return 1;
+			}
+		});	
+
+		for(var i=0; i<sessionDatesArray.length; i++) {
+			var date = nl.fmt.date2StrDDMMYY(sessionDatesArray[i], null, 'date');
 			headerRow.push({id: date, name: date, class: 'minw-number'});
 		}
 		return headerRow;
@@ -1446,12 +1495,19 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			nhtStats = {statsCountDict: _nhtStatsDict, columns: nhtHeader};	
 		}
 		var iltBatchStats = null;
-		if (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0) {
+		if (nlLrFilter.getType() == 'course_assign' && _groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0) {
 			_updateILTBatch();
-			var content = _getContentOfCourseAssignment();
-			iltBatchStats = {statsCountArray: $scope.iltBatchInfo.rows, columns: _getILTColumns(content)};
+			iltBatchStats = {statsCountArray: $scope.iltBatchInfo.rows, columns: $scope.iltBatchInfo.columns};
 		}
-		nlLrExporter.export($scope, reportRecords, _customScoresHeader, drillDownStats, nhtStats, iltBatchStats);
+
+		var lrStats = null;
+		var lrHeader = [];
+		for(var i=0; i<_lrColumns.length; i++) {
+			var col = _lrColumns[i];
+			if(col.canShow) lrHeader.push(col);
+		}
+		lrStats = {columns: lrHeader};
+		nlLrExporter.export($scope, reportRecords, _customScoresHeader, drillDownStats, nhtStats, iltBatchStats, lrStats);
 	}
 	
 	function _onExportCustomReport() {
