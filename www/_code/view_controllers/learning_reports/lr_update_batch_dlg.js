@@ -1,14 +1,14 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// lr_trainer_dlgs.js: Attendance marking dialog for the trainer.
+// lr_update_batch_dlg.js: Attendance/Rating/Milestone marking dialog for the trainer.
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-	angular.module('nl.learning_reports.lr_trainer_dlgs', [])
-	.service('nlLrTrainerDlgs', NlLrTrainerDlgs);
+	angular.module('nl.learning_reports.lr_update_batch_dlg', [])
+	.service('nlLrUpdateBatchDlg', NlLrUpdateBatchDlg);
 }
 
-var NlLrTrainerDlgs = ['nl', 'nlDlg', 'nlTreeListSrv', 'nlCourse', 'nlReportHelper', 'nlLrCourseAssignView',
+var NlLrUpdateBatchDlg = ['nl', 'nlDlg', 'nlTreeListSrv', 'nlCourse', 'nlReportHelper', 'nlLrCourseAssignView',
 function(nl, nlDlg, nlTreeListSrv, nlCourse, nlReportHelper, nlLrCourseAssignView) {
 
 this.getCourseAssignView = function() {
@@ -614,7 +614,7 @@ function UpdateTrainingBatchDlg($scope, ctx) {
 		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
 			_onCancel(e, batchDlg.scope);
 		}};
-		batchDlg.show('view_controllers/learning_reports/update_training_batch_dlg.html',
+		batchDlg.show('view_controllers/learning_reports/lr_update_batch_dlg.html',
 		[okButton], cancelButton);
 
 	};
@@ -643,7 +643,7 @@ function UpdateTrainingBatchDlg($scope, ctx) {
 			return nlReportHelper.getItemName(cm);
 		};
 
-		// Used in update_training_batch_dlg.html
+		// Used in lr_update_batch_dlg.html
 		dlgScope.onDlgTypeChange = function(e) {
 			_onDlgTypeChange(dlgScope);
 		};
@@ -651,7 +651,7 @@ function UpdateTrainingBatchDlg($scope, ctx) {
 			_onLeftPaneItemClick(dlgScope, cm);
 		};
 
-		// Used in update_attendance_tab.html
+		// Used in lr_update_batch_attendance.html
 		dlgScope.addAsdSession = function(e, cm) {
 			_addAsdSession(dlgScope, cm);
 		};
@@ -669,7 +669,7 @@ function UpdateTrainingBatchDlg($scope, ctx) {
 			_bulkMarker(dlgScope, 'showAttendance');
 		};
 
-		// Used in update_rating_tab.html
+		// Used in lr_update_batch_rating.html
 		dlgScope.showBulkRatingMarker = function(e) {
 			_showBulkMarker(dlgScope, 'showRating');
 		};
@@ -683,7 +683,7 @@ function UpdateTrainingBatchDlg($scope, ctx) {
 			ctx.dbRating.updateRemarksOptionsAndStr(report, opt);
 		};
 
-		// Used in update_milestone_tab.html
+		// Used in lr_update_batch_milestone.html
 		dlgScope.milestoneMarkAll = function(e, selectedModule) {
 			ctx.dbMilestone.markAll(selectedModule, true);
 		};

@@ -47,13 +47,13 @@
 			 Please select an item to update.
 		</div>
 		<div ng-if='selectedModule.type == "iltsession"'
-			 ng-include='"view_controllers/learning_reports/update_attendance_tab.html"'>
+			 ng-include='"view_controllers/learning_reports/lr_update_batch_attendance.html"'>
 		</div>
 		<div ng-if='selectedModule.type == "rating"'
-			 ng-include='"view_controllers/learning_reports/update_rating_tab.html"'>
+			 ng-include='"view_controllers/learning_reports/lr_update_batch_rating.html"'>
 		</div>
 		<div ng-if='selectedModule.type == "milestone"'
-			 ng-include='"view_controllers/learning_reports/update_milestone_tab.html"'>
+			 ng-include='"view_controllers/learning_reports/lr_update_batch_milestone.html"'>
 		</div>
 	</div>
 
@@ -61,7 +61,7 @@
 		Confirmation Page
 	-------------------------------------------------------------------------------------->
 	<div ng-if='showConfirmationPage' class='nl-thin-scroll-mh100 w100 padding-mid'>
-		<div ng-include='"view_controllers/learning_reports/update_training_batch_confirm.html"'>
+		<div ng-include='"view_controllers/learning_reports/lr_update_batch_confirm.html"'>
 		</div>
 	</div>
 </div>

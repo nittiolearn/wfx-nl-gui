@@ -37,7 +37,7 @@ function module_init() {
 		'nl.learning_reports.lr_report_records', 'nl.learning_reports.lr_summary_stats', 'nl.learning_reports.lr_import',
 		'nl.learning_reports.lr_drilldown', 'nl.learning_reports.lr_nht_srv',
 		'nl.learning_reports.others.lr_completed_modules',
-		'nl.learning_reports.lr_course_assign_view', 'nl.learning_reports.lr_trainer_dlgs'])
+		'nl.learning_reports.lr_course_assign_view', 'nl.learning_reports.lr_update_batch_dlg'])
 	.config(configFn)
 	.controller('nl.LearningReportsCtrl', LearningReportsCtrl)
 	.service('nlLearningReports', NlLearningReports)
@@ -106,22 +106,22 @@ function($scope, nlLearningReports) {
 	
 var NlLearningReports = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlGroupInfo', 'nlTable', 'nlSendAssignmentSrv',
 'nlLrHelper', 'nlReportHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlLrReportRecords', 'nlLrSummaryStats', 'nlGetManyStore', 
-'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlCourse', 'nlLrNht', 'nlLrTrainerDlgs',
+'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlCourse', 'nlLrNht', 'nlLrUpdateBatchDlg',
 function(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 	nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
-	nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrTrainerDlgs) {
+	nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg) {
 	this.create = function($scope, settings) {
 		if (!settings) settings = {};
 		return new NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
-			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrTrainerDlgs);
+			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg);
 	};
 }];
 	
 //-------------------------------------------------------------------------------------------------
 function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
-			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrTrainerDlgs) {
+			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg) {
 	var _userInfo = null;
 	var _groupInfo = null;
 	var _customScoresHeader = null;
@@ -1481,7 +1481,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var milestoneIdDict = _arrayToDict(_getMilestoneItems(content));
 	
 		var modules = nlReportHelper.getAsdUpdatedModules(content.modules || [], g_attendance);
-		var nlLrCourseAssignView = nlLrTrainerDlgs.getCourseAssignView();
+		var nlLrCourseAssignView = nlLrUpdateBatchDlg.getCourseAssignView();
 		nlLrCourseAssignView.show($scope, modules || [], courseAssign, function(cm) {
 			if (!cm) return null;
 			var moduleInfo = {records: [], internalStatusToStatusStrs: {}};
@@ -1888,7 +1888,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _showUpdateTrainingBatchDlg() {
 		var courseAssignment = _getCourseAssignmnt();
 		var content = _getContentOfCourseAssignment() || {};
-		nlLrTrainerDlgs.showUpdateTrainingBatchDlg($scope, courseAssignment, content.modules, 
+		nlLrUpdateBatchDlg.showUpdateTrainingBatchDlg($scope, courseAssignment, content.modules, 
 			nlLrReportRecords.getRecords(), _groupInfo);
 	}
 
