@@ -156,7 +156,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nlLrFilter.init(settings, _userInfo, _groupInfo);
 		nlLrReportRecords.init(_userInfo);
 		nlLrFetcher.init();
-		nlLrExporter.init(_userInfo);
+		nlLrExporter.init(_userInfo, _groupInfo);
 		nlLrDrilldown.init(nlGroupInfo);
 		nlLrNht.init(nlGroupInfo);
 		nl.pginfo.pageTitle = nlLrFilter.getTitle();
@@ -481,14 +481,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			updated: false,
 			tables: [tabData.utable]
 		});
-		tabs.push({
-			title : 'Click here to view time summary',
-			name: 'Time summary',
-			icon : 'ion-clock',
-			id: 'timesummary',
-			updated: false,
-			tables: []
-		});
 		if (nlLrFilter.getType() == 'course_assign' && (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0)) {
 			tabs.push({
 				title : 'Click here to view attendance summary',
@@ -499,6 +491,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				tables: []
 			});	
 		}
+		tabs.push({
+			title : 'Click here to view time summary',
+			name: 'Time summary',
+			icon : 'ion-clock',
+			id: 'timesummary',
+			updated: false,
+			tables: []
+		});
 		if (!tabData.selectedTab) return;
 		for(var i=0; i<tabs.length; i++) {
 			if (tabData.selectedTab.id != tabs[i].id) continue;
@@ -1472,7 +1472,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			nhtStats = {statsCountDict: _nhtStatsDict, columns: nhtHeader};	
 		}
 		var iltBatchStats = null;
-		if (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0) {
+		if (nlLrFilter.getType() == 'course_assign' && _groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0) {
 			_updateILTBatch();
 			var content = _getContentOfCourseAssignment();
 			iltBatchStats = {statsCountArray: $scope.iltBatchInfo.rows, columns: _getILTColumns(content)};
@@ -1485,7 +1485,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if(col.canShow) lrHeader.push(col);
 		}
 		lrStats = {columns: lrHeader};
-
 		nlLrExporter.export($scope, reportRecords, _customScoresHeader, drillDownStats, nhtStats, iltBatchStats, lrStats);
 	}
 	

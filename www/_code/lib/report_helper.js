@@ -770,6 +770,7 @@ function AsdModules() {
 //-------------------------------------------------------------------------------------------------
 function _getItemName(cm) {
     if (!cm.asdSession) return cm.name || cm.id;
+    if(!('reason' in cm)) return cm.name;
     return cm.reason.name + (cm.remarks ? ': ' + cm.remarks : '');
 }
 
