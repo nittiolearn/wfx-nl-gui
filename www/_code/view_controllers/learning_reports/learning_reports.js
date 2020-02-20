@@ -1374,6 +1374,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var asdAddedModules = nlReportHelper.getAsdUpdatedModules(content.modules || [], g_attendance)
 		var sessionDates = {};
 		var iltSessions = [];
+		var	sessionInfos = g_attendance.sessionInfos || {};	
+		if ('_root' in sessionInfos) {
+			var rootAsds = sessionInfos['_root'].asd;
+			for(var i=0; i<rootAsds.length; i++) {
+				_updateSessionDates(rootAsds[i], sessionDates)			
+			}
+		}
 
 		for(var i=0; i<asdAddedModules.length; i++) {
 			var cm = asdAddedModules[i];
@@ -1405,6 +1412,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var cm = iltSessions[j];
 				var sessionInfo = _statusInfos[cm.id];
 				var sessionDate =  nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(cm.sessiondate || ''), null, 'date');
+				if (sessionInfo.stateStr == 'notapplicable' || !sessionInfo.state) continue;
 				if (sessionDate)
 					userObj[sessionDate] = sessionInfo.state || '-';
 			}
@@ -1430,8 +1438,23 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		headerRow.push({id: 'not_before', name: nl.t('Start date'), class: 'minw-number'});
 		headerRow.push({id: 'not_after', name: nl.t('End date'), class: 'minw-number'});
 		headerRow.push({id: 'learner_status', name: nl.t('Status'), class: 'minw-number'});
-		for(var key in sessionDates) {
-			var date = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(key || ''), null, 'date');
+		var sessionDatesArray = [];
+		for(var key in sessionDates) sessionDatesArray.push(nl.fmt.json2Date(key) || '');
+		sessionDatesArray.sort(function(a, b) {
+			var key1 = new Date(a);
+			var key2 = new Date(b);
+		
+			if (key1 < key2) {
+				return -1;
+			} else if (key1 == key2) {
+				return 0;
+			} else {
+				return 1;
+			}
+		});	
+
+		for(var i=0; i<sessionDatesArray.length; i++) {
+			var date = nl.fmt.date2StrDDMMYY(sessionDatesArray[i], null, 'date');
 			headerRow.push({id: date, name: date, class: 'minw-number'});
 		}
 		return headerRow;
@@ -1474,8 +1497,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var iltBatchStats = null;
 		if (nlLrFilter.getType() == 'course_assign' && _groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0) {
 			_updateILTBatch();
-			var content = _getContentOfCourseAssignment();
-			iltBatchStats = {statsCountArray: $scope.iltBatchInfo.rows, columns: _getILTColumns(content)};
+			iltBatchStats = {statsCountArray: $scope.iltBatchInfo.rows, columns: $scope.iltBatchInfo.columns};
 		}
 
 		var lrStats = null;
