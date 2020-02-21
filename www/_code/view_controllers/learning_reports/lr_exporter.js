@@ -13,8 +13,8 @@ var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
 }];
 
-var NlLrExporter = ['nl', 'nlDlg', 'nlRouter', 'nlExporter', 'nlOrgMdMoreFilters', 'nlLrHelper', 'nlLrSummaryStats', 'nlGroupInfo', 'nlLrFilter',
-function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSummaryStats, nlGroupInfo, nlLrFilter) {
+var NlLrExporter = ['nl', 'nlDlg', 'nlRouter', 'nlExporter', 'nlOrgMdMoreFilters', 'nlLrHelper', 'nlLrSummaryStats', 'nlGroupInfo', 'nlLrFilter', 'nlReportHelper', 'nlGetManyStore', 'nlCourse',
+function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSummaryStats, nlGroupInfo, nlLrFilter, nlReportHelper, nlGetManyStore, nlCourse) {
     var _gradelabel = '';
     var _subjectlabel = '';
 
@@ -28,6 +28,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     var _iltBatchDict = {};
     var _canzip = true;
     var _exportFormat = 'xlsx';
+    var _groupInfo = null;
 
     function _getMetaHeaders(bOnlyMajor) {
         var headers = [];
@@ -39,9 +40,10 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         return headers;
     }
 
-	this.init = function(userInfo) {
+	this.init = function(userInfo, groupInfo) {
     	_metaFields = _getMetaHeaders();
-    	_userInfo = userInfo;
+        _userInfo = userInfo;
+        _groupInfo = groupInfo;
     	_gradelabel = userInfo.groupinfo.gradelabel;
     	_subjectlabel = userInfo.groupinfo.subjectlabel;
 	};
@@ -970,7 +972,14 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             _timeMins: '', _timeIltMins: '', _timeIltTotalMins: '',
             _stateStr: report.user.state ? 'active' : 'inactive', _email: report.user.email, org_unit: report.user.org_unit,
             _reportId: 'id=' +report.raw_record.id, _assignId: 'id=' +report.raw_record.assignment, _courseId: 'id=' +report.raw_record.lesson_id, _moduleId: '', _moduleRepId : ''};
+
         var modules = report.course.content.modules;
+        if (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0) {
+            var courseAssign = nlGetManyStore.getRecord(nlGetManyStore.key('course_assignment', report.raw_record.assignment));
+            var g_attendance = courseAssign.attendance ? angular.fromJson(courseAssign.attendance) : {};
+                g_attendance = nlCourse.migrateCourseAttendance(g_attendance);
+                modules = nlReportHelper.getAsdUpdatedModules(modules || [], g_attendance);    
+        }
         for(var i=0; i<modules.length; i++) {
             var item = modules[i]
             if(item.type == 'module') continue;

@@ -349,10 +349,21 @@ function Formatter() {
 //-------------------------------------------------------------------------------------------------
 function Utils() {
     this.dictToList = function(d) {
-    var ret = [];
-    for(var k in d) ret.push(d[k]);
-    return ret;
+        var ret = [];
+        for(var k in d) ret.push(d[k]);
+        return ret;
     };
+
+    this.arrayToDictById = function(inputArray) {
+        var ret = {};
+        if (!inputArray) return ret;
+        for (var i=0; i< inputArray.length; i++) {
+            var item = inputArray[i];
+            ret[item.id] = item;
+        }
+        return ret;
+    };
+
     this.isTouchDevice = function() {
         return ( 'ontouchstart' in window ) || ( navigator.maxTouchPoints > 0 ) || ( navigator.msMaxTouchPoints > 0 ); 
     }

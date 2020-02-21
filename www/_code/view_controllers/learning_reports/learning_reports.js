@@ -37,7 +37,7 @@ function module_init() {
 		'nl.learning_reports.lr_report_records', 'nl.learning_reports.lr_summary_stats', 'nl.learning_reports.lr_import',
 		'nl.learning_reports.lr_drilldown', 'nl.learning_reports.lr_nht_srv',
 		'nl.learning_reports.others.lr_completed_modules',
-		'nl.learning_reports.lr_course_assign_view', 'nl.learning_reports.lr_trainer_dlgs'])
+		'nl.learning_reports.lr_course_assign_view', 'nl.learning_reports.lr_update_batch_dlg'])
 	.config(configFn)
 	.controller('nl.LearningReportsCtrl', LearningReportsCtrl)
 	.service('nlLearningReports', NlLearningReports)
@@ -106,22 +106,22 @@ function($scope, nlLearningReports) {
 	
 var NlLearningReports = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlGroupInfo', 'nlTable', 'nlSendAssignmentSrv',
 'nlLrHelper', 'nlReportHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlLrReportRecords', 'nlLrSummaryStats', 'nlGetManyStore', 
-'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlCourse', 'nlLrNht', 'nlLrTrainerDlgs',
+'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlCourse', 'nlLrNht', 'nlLrUpdateBatchDlg',
 function(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 	nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
-	nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrTrainerDlgs) {
+	nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg) {
 	this.create = function($scope, settings) {
 		if (!settings) settings = {};
 		return new NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
-			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrTrainerDlgs);
+			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg);
 	};
 }];
 	
 //-------------------------------------------------------------------------------------------------
 function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
 			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
-			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrTrainerDlgs) {
+			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg) {
 	var _userInfo = null;
 	var _groupInfo = null;
 	var _customScoresHeader = null;
@@ -156,7 +156,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nlLrFilter.init(settings, _userInfo, _groupInfo);
 		nlLrReportRecords.init(_userInfo);
 		nlLrFetcher.init();
-		nlLrExporter.init(_userInfo);
+		nlLrExporter.init(_userInfo, _groupInfo);
 		nlLrDrilldown.init(nlGroupInfo);
 		nlLrNht.init(nlGroupInfo);
 		nl.pginfo.pageTitle = nlLrFilter.getTitle();
@@ -481,14 +481,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			updated: false,
 			tables: [tabData.utable]
 		});
-		tabs.push({
-			title : 'Click here to view time summary',
-			name: 'Time summary',
-			icon : 'ion-clock',
-			id: 'timesummary',
-			updated: false,
-			tables: []
-		});
 		if (nlLrFilter.getType() == 'course_assign' && (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0)) {
 			tabs.push({
 				title : 'Click here to view attendance summary',
@@ -499,6 +491,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				tables: []
 			});	
 		}
+		tabs.push({
+			title : 'Click here to view time summary',
+			name: 'Time summary',
+			icon : 'ion-clock',
+			id: 'timesummary',
+			updated: false,
+			tables: []
+		});
 		if (!tabData.selectedTab) return;
 		for(var i=0; i<tabs.length; i++) {
 			if (tabData.selectedTab.id != tabs[i].id) continue;
@@ -1394,6 +1394,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var asdAddedModules = nlReportHelper.getAsdUpdatedModules(content.modules || [], g_attendance)
 		var sessionDates = {};
 		var iltSessions = [];
+		var	sessionInfos = g_attendance.sessionInfos || {};	
+		if ('_root' in sessionInfos) {
+			var rootAsds = sessionInfos['_root'].asd;
+			for(var i=0; i<rootAsds.length; i++) {
+				_updateSessionDates(rootAsds[i], sessionDates)			
+			}
+		}
 
 		for(var i=0; i<asdAddedModules.length; i++) {
 			var cm = asdAddedModules[i];
@@ -1425,6 +1432,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var cm = iltSessions[j];
 				var sessionInfo = _statusInfos[cm.id];
 				var sessionDate =  nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(cm.sessiondate || ''), null, 'date');
+				if (sessionInfo.stateStr == 'notapplicable' || !sessionInfo.state) continue;
 				if (sessionDate)
 					userObj[sessionDate] = sessionInfo.state || '-';
 			}
@@ -1450,8 +1458,23 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		headerRow.push({id: 'not_before', name: nl.t('Start date'), class: 'minw-number'});
 		headerRow.push({id: 'not_after', name: nl.t('End date'), class: 'minw-number'});
 		headerRow.push({id: 'learner_status', name: nl.t('Status'), class: 'minw-number'});
-		for(var key in sessionDates) {
-			var date = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(key || ''), null, 'date');
+		var sessionDatesArray = [];
+		for(var key in sessionDates) sessionDatesArray.push(nl.fmt.json2Date(key) || '');
+		sessionDatesArray.sort(function(a, b) {
+			var key1 = new Date(a);
+			var key2 = new Date(b);
+		
+			if (key1 < key2) {
+				return -1;
+			} else if (key1 == key2) {
+				return 0;
+			} else {
+				return 1;
+			}
+		});	
+
+		for(var i=0; i<sessionDatesArray.length; i++) {
+			var date = nl.fmt.date2StrDDMMYY(sessionDatesArray[i], null, 'date');
 			headerRow.push({id: date, name: date, class: 'minw-number'});
 		}
 		return headerRow;
@@ -1492,10 +1515,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			nhtStats = {statsCountDict: _nhtStatsDict, columns: nhtHeader};	
 		}
 		var iltBatchStats = null;
-		if (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0) {
+		if (nlLrFilter.getType() == 'course_assign' && _groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0) {
 			_updateILTBatch();
-			var content = _getContentOfCourseAssignment();
-			iltBatchStats = {statsCountArray: $scope.iltBatchInfo.rows, columns: _getILTColumns(content)};
+			iltBatchStats = {statsCountArray: $scope.iltBatchInfo.rows, columns: $scope.iltBatchInfo.columns};
 		}
 
 		var lrStats = null;
@@ -1505,7 +1527,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if(col.canShow) lrHeader.push(col);
 		}
 		lrStats = {columns: lrHeader};
-
 		nlLrExporter.export($scope, reportRecords, _customScoresHeader, drillDownStats, nhtStats, iltBatchStats, lrStats);
 	}
 	
@@ -1536,7 +1557,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var milestoneIdDict = _arrayToDict(_getMilestoneItems(content));
 	
 		var modules = nlReportHelper.getAsdUpdatedModules(content.modules || [], g_attendance);
-		var nlLrCourseAssignView = nlLrTrainerDlgs.getCourseAssignView();
+		var nlLrCourseAssignView = nlLrUpdateBatchDlg.getCourseAssignView();
 		nlLrCourseAssignView.show($scope, modules || [], courseAssign, function(cm) {
 			if (!cm) return null;
 			var moduleInfo = {records: [], internalStatusToStatusStrs: {}};
@@ -1943,7 +1964,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _showUpdateTrainingBatchDlg() {
 		var courseAssignment = _getCourseAssignmnt();
 		var content = _getContentOfCourseAssignment() || {};
-		nlLrTrainerDlgs.showUpdateTrainingBatchDlg($scope, courseAssignment, content.modules, 
+		nlLrUpdateBatchDlg.showUpdateTrainingBatchDlg($scope, courseAssignment, content.modules, 
 			nlLrReportRecords.getRecords(), _groupInfo);
 	}
 

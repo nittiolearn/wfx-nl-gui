@@ -78,6 +78,14 @@
                         </div>
                     </div>
                 </div>
+                <div ng-if='!report.lockedMessage && report.ratingRemarksOptions && report.showOtherRemarks'
+                     class='nl-dlg-field-value'>
+                     <input ng-model='report.otherRemarks' 
+                        type='text' 
+                        autofocus=''
+                        tabindex='0'
+                        placeholder='Provide additional remarks'>
+                </div>
                 <div ng-if='!report.lockedMessage && !report.ratingRemarksOptions'
                      class='nl-dlg-field-value'>
                      <input ng-model='report.remarksStr' 
