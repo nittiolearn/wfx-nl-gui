@@ -117,7 +117,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     };
     
     this.getRecords = function() {
-        console.log('TODO-NOW: ' , _records);
         return _records;
     };
 
