@@ -171,7 +171,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             nTotalQuizScore: 0, nTotalQuizMaxScore: 0,
             onlineTimeSpentSeconds: 0, iltTimeSpent: 0, iltTotalTime: 0,
             feedbackScore: '', customScores: [], attritedAt: null, attritionStr: null,
-            isCertified: false, certid: null 
+            isCertified: false, certid: null,
+            customScoreDict: {}
             // Also may have has following:
             // reattempt: true/false
         };
@@ -231,8 +232,18 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 }
                 if (itemInfo.customStatus) defaultCourseStatus = itemInfo.customStatus;
             }
-            if (cm.showInReport && _isEndItemState(itemInfo.status))
-                ret.customScores.push({name: cm.name, score: itemInfo.score, id: cm.id});
+            if (cm.showInReport && _isEndItemState(itemInfo.status)) {
+                var score = itemInfo.score;
+                var customScoreType = null;
+                if(cm.rating_type == 'rag') {
+                    score = itemInfo.rating;
+                    customScoreType = 'rag';
+                }
+                var customScoreItemObj = {name: cm.name, score: score};
+                if(customScoreType) customScoreItemObj['type'] = customScoreType;
+                ret.customScores.push(customScoreItemObj);
+                ret.customScoreDict[cm.name] =  score;
+            }
         }
 
         _updateCourseLevelStatus(ret, isAttrition, defaultCourseStatus);

@@ -464,7 +464,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 
 	function _onElementTypeChange(e, cm, attr){
 		var childrenElem = [];
-		//For first time if gate is selected showInReport param is set to true;
+		//For first time if gate or rating is selected showInReport param is set to true;
 		var courseContent = modeHandler.course.content;
 		cm.name = nl.t('{} {}', attr.valueNames[cm.type], courseContent.lastId);
 		if((cm.type == 'gate' || cm.type == 'rating') && !('showInReport' in cm)) cm.showInReport = true;

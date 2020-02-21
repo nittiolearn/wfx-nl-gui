@@ -149,6 +149,7 @@ function(nl, nlImporter, nlGroupCache) {
             nl.url.resUrl('ball-grey.png');};
         ret.getStateStr = function() { return ret.state ? nl.t('Active') : nl.t('Inactive');};
         ret.getUtStr = function() { return _getUtStr(ret.usertype, grpid);};
+        ret.stateStr = ret.state ? 'active' : 'inactive';
         return ret;
     };
 

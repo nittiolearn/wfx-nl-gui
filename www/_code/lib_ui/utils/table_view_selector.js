@@ -13,7 +13,7 @@
     var TableViewSelector = ['nl', 'nlDlg', 'nlServerApi',
     function(nl, nlDlg, nlServerApi) {
         var _groupSettings = new GroupSettings(nl, nlDlg, nlServerApi);
-        var _defaultOption = {id: null, name: 'Default View', columns: null};
+        var _defaultOption = {id: 'default', name: 'Default', columns: null};
         var _allOption = {id: null, name: 'All Columns', columns: null};
         var _loading = {id: null, name: 'Loading ...', columns: null};
 

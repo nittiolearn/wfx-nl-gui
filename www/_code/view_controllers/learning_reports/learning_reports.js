@@ -402,7 +402,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if(selectedId == 'drilldown') {
 			$scope.drillDownInfo = {columns: _drillDownColumns, rows: _generateDrillDownArray(false, _statsCountDict, true)};
 		} else {
-			$scope.nhtInfo = {columns: _nhtColumns, selectedColumns: _selectedColumns || _nhtColumns, tableTitle: tableTitle, rows: _generateDrillDownArray(false, _nhtStatsDict, false, (nlLrFilter.getType() == "course_assign"))};
+			$scope.nhtInfo = {columns: _nhtColumns, selectedColumns: _selectedNhtColumns || _nhtColumns, tableTitle: tableTitle, rows: _generateDrillDownArray(false, _nhtStatsDict, false, (nlLrFilter.getType() == "course_assign"))};
 		}
 	};
 
@@ -577,7 +577,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			canEdit: nlRouter.isPermitted(_userInfo, 'assignment_manage'),
 			tableType: 'lr_views',
 			allColumns: _getLrColumns(),
-			defaultViewColumns: {id: null, name: 'Default View', columns: [,"user.user_id", "user.name", "stats.status.txt", "user.org_unit"]},
+			defaultViewColumns: {id: 'default', name: 'Default', columns: ["user.user_id", "user.name", "repcontent.name", "stats.status.txt", "user.org_unit"]},
 			onViewChange: function(selectedColumns) {
 				var selectedColsDict = {};
 				for(var i=0; i<selectedColumns.length; i++) {
@@ -601,48 +601,45 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var mh = nlLrHelper.getMetaHeaders(false);
 		var type = nlLrFilter.getType();
 		var columns = [];
+		var courseNameDisplay = false;
 		if(type != 'user') {
-			columns.push(_col('user.user_id', 'User Ids', true));
+			columns.push(_col('user.user_id', 'User Id', true));
 			columns.push(_col('user.name', 'User Name', true));
 		} else  {
 			columns.push(_col('raw_record.typeStr', 'Report type', true));
 		}
-		if (!nlLrFilter.getObjectId() || type == 'user') {
-			columns.push(_col('repcontent.name', 'Course / module', true));
-		}
-
-		columns.push(_col('raw_record._batchName', 'Batch Name', false));
+		if (!nlLrFilter.getObjectId() || type == 'user') courseNameDisplay = true;
+		columns.push(_col('repcontent.name', 'Course Name', courseNameDisplay));
+		columns.push(_col('raw_record._batchName', 'Batch name', false));
 		columns.push(_col('raw_record._grade', _userInfo.groupinfo.gradelabel, false));
 		columns.push(_col('raw_record.subject', _userInfo.groupinfo.subjectlabel, false));
 		columns.push(_col('created', 'Assigned On', false));
 		columns.push(_col('updated', 'Last Updated On', false));
 		columns.push(_col('not_before', 'From', false));
 		columns.push(_col('not_after', 'Till', false));
-		columns.push(_col('stats.status.txt', 'Status', true, null, 'stats.status.icon'));
-		columns.push(_col('stats.progressPerc','Progress', false));		//stats.percCompleteStr
+		columns.push(_col('stats.status.txt', 'Status', true, 'stats.status.icon'));
+		columns.push(_col('stats.percCompleteStr','Progress', false));
 		columns.push(_col('stats.percCompleteDesc', 'Progress Details', false));
 		columns.push(_col('stats.avgAttempts', 'Quiz Attempts', false));
-		columns.push(_col('stats.percScore', 'Achieved %', false));		//stats.percScoreStr
+		columns.push(_col('stats.percScoreStr', 'Achieved %', false));
 		columns.push(_col('stats.nMaxScore', 'Maximum Score', false));
 		columns.push(_col('stats.nScore', 'Achieved Score', false));
 		
-		for(var i=0; i<_customScoresHeader.length; i++) {
-			columns.push(_col('stats.customScoreDict.' + _customScoresHeader[i].id, _customScoresHeader[i], false));		//TODO-NOW Test this. Can be buggy value.
-		}
+		for(var i=0; i< _customScoresHeader.length; i++) columns.push(_col('stats.customScoreDict.' + _customScoresHeader[i], _customScoresHeader[i], false));
 
-		columns.push(_col('stats.feedbackScore', 'Feedback Score', false));
+		columns.push(_col('stats.feedbackScore', 'Feedback score', false));
 		columns.push(_col('stats.timeSpentMinutes', 'Online Time Spent (minutes)', false));
-		columns.push(_col('stats.iltTimeSpent', 'ILT time Spent (minutes)', false));
-		columns.push(_col('stats.iltTotalTime', 'ILT total Time (minutes)', false));
+		columns.push(_col('stats.iltTimeSpent', 'ILT time spent(minutes)', false));
+		columns.push(_col('stats.iltTotalTime', 'ILT total time(minutes)', false));
 		columns.push(_col('repcontent.iltVenue', 'Venue', false));
-		columns.push(_col('repcontent.iltTrainerName','Trainer Name', false));
+		columns.push(_col('repcontent.iltTrainerName','Trainer name', false));
 		columns.push(_col('repcontent.iltCostInfra', 'Infra Cost', false));
 		columns.push(_col('repcontent.iltCostTrainer', 'Trainer Cost', false));
 		columns.push(_col('repcontent.iltCostFoodSta', 'Food Cost', false));
 		columns.push(_col('repcontent.iltCostTravelAco', 'Travel Cost', false));
 		columns.push(_col('repcontent.iltCostMisc', 'Misc Cost', false));
-		columns.push(_col('user.isActive()', 'User state', false));		// TODO-NOW: what to use instead od isActive in _lr
-		columns.push(_col('user.email', 'Email id', false, 'email'));		// column used for search
+		columns.push(_col('user.stateStr', 'User state', false));
+		columns.push(_col('user.email', 'Email Id', false));
 		columns.push(_col('user.org_unit', 'Org', true));
 
 		for(var i=0; i<mh.length; i++) {
@@ -653,24 +650,18 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		// Id's are always exported, So the below 3 fields.
 		columns.push(_col('stats.internalIdentifier', 'Report Id', false));
 		columns.push(_col('repcontent.assignid', 'Assign Id', false));
-		columns.push(_col('repcontent.courseid', 'Course Id', false));	//TODO-NOW:works for course id, For modules its empty value
+		columns.push(_col('repcontent.courseid', 'Course/ Module Id', false));	//TODO-NOW:works for course id, For modules its empty value
 		
 		if (type == 'user') columns.push(_col('raw_record.typeStr', 'Type', false));
 
-		// TODO-NOW: Language is there only for the lesson type(not available for all the lessons as well). It is not available at the course level
-		// Ask whether should we add this or not .
-		// columns.push(_col('', 'Language', false));
-
-		// Only search and details relevant columns
-		columns.push(_col('user.username', 'Login id', false, 'login'));
+		columns.push(_col('repcontent.targetLang', 'Language', false));
 		_lrColumns = columns;
 		return _lrColumns;
 
 	}
 	
-	function _col(id, name, show, searchKey, icon) {
+	function _col(id, name, show, icon) {
 		var __column = { id: id, name: name, allScreens: true, canShow:show, styleTd: 'minw-number nl-text-center'};
-		if(searchKey) __column.searchKey = searchKey;
 		if(icon) __column.icon = icon;
 		return __column;
 	}
@@ -1087,6 +1078,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	var _nhtUniqueUserRecords = {};
 	var _nhtColumnsSelectedInView = null;
 	function _updateNhtTab() {
+		_initNhtColumns();
 		nlLrNht.clearStatusCountTree();
 		var records = $scope.tabData.records;
 		_nhtUniqueUserRecords = {};
@@ -1106,30 +1098,50 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				nlLrNht.addCount(record);
 		}
 		_nhtStatsDict = nlLrNht.getStatsCountDict();
-		_initNhtColumns();
 		var tableTitle = $scope.tabData.filter.closed_batches ? 'Closed Batches' : 'Running Batches';
-		$scope.nhtInfo = {columns: _nhtColumns, selectedColumns: _selectedColumns || _nhtColumns, tableTitle: tableTitle, rows: _generateDrillDownArray(true, _nhtStatsDict, false, (nlLrFilter.getType() == "course_assign"))};
+		$scope.nhtInfo = {columns: _nhtColumns, selectedColumns: _selectedNhtColumns || _nhtColumns, tableTitle: tableTitle, rows: _generateDrillDownArray(true, _nhtStatsDict, false, (nlLrFilter.getType() == "course_assign"))};
 	}
 
-	var _selectedColumns = null;
+    function _arrayToDictById(inputArray) {
+        var ret = {};
+        if (!inputArray) return ret;
+        for (var i=0; i< inputArray.length; i++) {
+            var item = inputArray[i];
+            ret[item.id] = item;
+        }
+        return ret;
+	};
+	
+	var _selectedNhtColumns = null;
 	function _initNhtColumns() {
-		_nhtColumns = _getNhtColumns();		
+		var defColumns = ["cntTotal", "batchStatus", "batchName", "partner", "lob", "trainer", "avgDelay"];
+		_nhtColumns = _getNhtColumns();
+		if (!_selectedNhtColumns) {
+			var nhtColumnsDict = _arrayToDictById(_nhtColumns);
+			_selectedNhtColumns = [];
+			for(var i=0;i<defColumns.length;i++) {
+				var colid = defColumns[i];
+				if (!(colid in nhtColumnsDict)) continue;
+				_selectedNhtColumns.push(nhtColumnsDict[colid]);
+			}
+		}
 		_updateNhtColumns();
         $scope.nhtViewSelectorConfig = {
             canEdit: nlRouter.isPermitted(_userInfo, 'assignment_manage'),
             tableType: 'nht_views',
-            allColumns: _nhtColumns,
+			allColumns: _nhtColumns,
+			defaultViewColumns: {id: 'default', name: 'Default', columns: defColumns},
             onViewChange: function(selectedColumns) {
 				_nhtColumnsSelectedInView = {};
-				_selectedColumns = selectedColumns;
+				_selectedNhtColumns = selectedColumns;
 				for(var i=0; i<selectedColumns.length; i++) {
 					var col = selectedColumns[i];
 					_nhtColumnsSelectedInView[col.id] = true;
 				}
 				_someTabDataChanged();
 				_updateCurrentTab();
-            }
-        };
+			}
+		};
 	}
 
 	function _updateNhtColumns() {
@@ -1144,9 +1156,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}
 			col.canShow = !_nhtColumnsSelectedInView || _nhtColumnsSelectedInView[col.id];
 		}
-		if(_selectedColumns) {
-			for(var i=0; i<_selectedColumns.length; i++) {
-				var col = _selectedColumns[i];
+		if(_selectedNhtColumns) {
+			for(var i=0; i<_selectedNhtColumns.length; i++) {
+				var col = _selectedNhtColumns[i];
 				var notApplicable = isClosedBatches && col.showIn == 'running' ||
 					!isClosedBatches && col.showIn == 'closed';
 				if (notApplicable) {
@@ -1161,6 +1173,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _getNhtColumns() {
 		var columns = [];
 		_customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
+		var customScoresHeaderWithType = nlLrReportRecords.getCustomScoresHeaderWithType();
 		var etmUserStates = _groupInfo.props.etmUserStates || [];
 		var milestones = _groupInfo.props.milestones || [];
 		var statusDict = _getStatusDictFromArray();
@@ -1208,7 +1221,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		// Others - not asked by customer but may be needed
 		columns.push({id: 'avgDelay', name: 'Average delay(In days)', hidePerc: true, table: true, showAlways: true});
 		columns.push({id: 'avgScore', name: 'Avg Quiz score', table: true, background: 'nl-bg-blue', hidePerc:true});
-		for(var i=0; i<_customScoresHeader.length; i++) columns.push({id: 'perc'+_customScoresHeader[i], name: _customScoresHeader[i], table: true, background: 'nl-bg-blue', hidePerc:true});
+		for(var i=0; i<_customScoresHeader.length; i++) {
+			if (customScoresHeaderWithType[_customScoresHeader[i]] == 'rag') continue;
+			columns.push({id: 'perc'+_customScoresHeader[i], name: _customScoresHeader[i], table: true, background: 'nl-bg-blue', hidePerc:true});
+		}
 
 		// Hidden columns
 		columns.push({id: 'start', name: 'Batch start date', table: false, hidePerc:true, style:'min-width:fit-content'});
@@ -1289,6 +1305,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var customStartedStates = nlLrDrilldown.getCustomStatusObj();
 		var statusDict = _getStatusDictFromArray();
 		_customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
+		var customScoresHeaderWithType = nlLrReportRecords.getCustomScoresHeaderWithType();
 		var isReattemptEnabled = nlLrReportRecords.isReattemptEnabled() || false;
 		columns.push({id: 'cntTotal', name: 'Total', table: true, percid:'percTotal', smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'cntInactive', name: 'Inactive', table: true, percid:'percInactive', background: 'nl-bg-blue', showAlways: true});
@@ -1319,7 +1336,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		columns.push({id: 'pending', name: 'Pending', smallScreen: true, percid: 'percPending', table: true, indentation: 'padding-left-22', showAlways: true});
 		columns.push({id: 'avgScore', name: 'Avg Quiz score', table: true, background: 'nl-bg-blue', hidePerc:true});
-		for(var i=0; i<_customScoresHeader.length; i++) columns.push({id: 'perc'+_customScoresHeader[i], name: _customScoresHeader[i], table: true, background: 'nl-bg-blue', hidePerc:true});
+		for(var i=0; i<_customScoresHeader.length; i++) {
+			if (customScoresHeaderWithType[_customScoresHeader[i]] == 'rag') continue;
+			columns.push({id: 'perc'+_customScoresHeader[i], name: _customScoresHeader[i], table: true, background: 'nl-bg-blue', hidePerc:true});
+		}
 		columns.push({id: 'avgDelay', name: 'Avg Delay in days', table: true, background: 'nl-bg-blue', hidePerc:true});
 		return columns;
 	}

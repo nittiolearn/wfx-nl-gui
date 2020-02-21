@@ -57,7 +57,12 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
 
     this.getCustomScoresHeader = function() {
         return _customScoresHeaderArray;
-    }
+    };
+
+    this.getCustomScoresHeaderWithType = function() {
+        return _customScoresHeaderObj;
+    };
+
     this.getReminderDict = function() {
         return _reminderDict;
     };
@@ -112,6 +117,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     };
     
     this.getRecords = function() {
+        console.log('TODO-NOW: ' , _records);
         return _records;
     };
 
@@ -262,7 +268,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             attritionStr: stainf.attritionStr,
             delayDays: Math.round(stainf.delayDays || 0),
             isCertified: stainf.isCertified,
-            customScoreDict: {},
+            customScoreDict: stainf.customScoreDict,
             certid: stainf.certid
         };
 
@@ -270,9 +276,9 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             for(var i=0; i<stainf.customScores.length; i++) {
                 var item = stainf.customScores[i];
                 if(!(item.name in _customScoresHeaderObj)) {
-                    _customScoresHeaderObj[item.name] = true;
+                    _customScoresHeaderObj[item.name] = item.type ? item.type : true;
                     _customScoresHeaderArray.push(item.name);
-                    stats.customScoreDict[item.id] = stainf.itemIdToInfo[item.id].score;
+                    stats.customScoreDict[item.name] = item.score;
                 }
             }
         }
@@ -452,6 +458,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
 
         var ret = {raw_record: report, repcontent: repcontent, user: user,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
+            user_state: user.state ? 'active' : 'inactive',
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'), 
             updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
             not_before: report.not_before ? nl.fmt.fmtDateDelta(report.not_before, null, 'minute') : '',
