@@ -54,12 +54,9 @@ function(nl, nlDlg) {
         var row = [];
         for(var i=0; i<headers.length; i++) {
             var attr = headers[i].id;
-            var val;
-            if(attr.indexOf('.') != -1) {
-                var attrValue = _getAttrValue(attr.split('.'), item);
-                val = _fmtValue(attrValue, headers[i].fmt) || '';
-            } else 
-                val = _fmtValue(item[attr], headers[i].fmt) || '';
+            var attrValue = item[attr];
+            if(attr.indexOf('.') != -1) attrValue = _getAttrValue(attr.split('.'), item);
+            var val = _fmtValue(attrValue, headers[i].fmt) || '';
             row.push(val);
         }
         return row;
@@ -67,9 +64,9 @@ function(nl, nlDlg) {
 
     function  _getAttrValue(attrAsArray, item) {
         if (!item || attrAsArray.length == 0) return '';
-        var part1 = item[attrAsArray[0]];
-        if(attrAsArray.length == 1) return part1;
-        return _getAttrValue(attrAsArray.slice(1), part1);
+        var attrValue = item[attrAsArray[0]];
+        if(attrAsArray.length == 1) return attrValue;
+        return _getAttrValue(attrAsArray.slice(1), attrValue);
     }
 
     this.getCsvString = function(row, attrName) {
