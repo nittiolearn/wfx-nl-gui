@@ -430,13 +430,23 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		if (tabData.isNHTAdded) {
 			tabs.push({
-				title : 'Click here to view New Hire Training status',
-				name: 'NHT',
+				title : 'Click here to view batch summary',
+				name: 'Batches',
 				icon : 'ion-filing',
 				id: 'nht',
 				updated: false,
 				tables: []
 			});
+		}
+		if (nlLrFilter.getType() == 'course_assign' && (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0)) {
+			tabs.push({
+				title : 'Click here to view attendance summary',
+				name: 'Attendance',
+				icon : 'ion-person-stalker',
+				id: 'iltbatchdata',
+				updated: false,
+				tables: []
+			});	
 		}
 		tabs.push({
 			title : 'Click here to view learning records',
@@ -446,16 +456,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			updated: false,
 			tables: [tabData.utable]
 		});
-		if (nlLrFilter.getType() == 'course_assign' && (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0)) {
-			tabs.push({
-				title : 'Click here to view attendance summary',
-				name: 'Attendance summary',
-				icon : 'ion-ios-people',
-				id: 'iltbatchdata',
-				updated: false,
-				tables: []
-			});	
-		}
 		tabs.push({
 			title : 'Click here to view time summary',
 			name: 'Time summary',
