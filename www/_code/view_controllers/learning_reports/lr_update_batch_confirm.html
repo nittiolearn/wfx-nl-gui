@@ -23,9 +23,10 @@
             <th style='width: 20%;'>
                 Learner Id
             </th>
-            <th style='width: 20%;' ng-if='change.cm.type != "milestone"'>
+            <th style='width: 20%;'>
                 <span ng-if='change.cm.type == "iltsession"'>Attendance Status</span>
                 <span ng-if='change.cm.type == "rating"'>Rating</span>
+                <span ng-if='change.cm.type == "milestone"'>Milestone Status</span>
             </th>
             <th>
                 Remarks
@@ -38,17 +39,18 @@
             <td>
                 {{lrChange.lr.learnerid}}
             </td>
-            <td ng-if='change.cm.type != "milestone"'>
+            <td>
                 <span ng-if='change.cm.type == "iltsession"'>{{lrChange.lr.attendance.name}}</span>
                 <span ng-if='change.cm.type == "rating" && change.cm.ratingType !== "input"'>{{lrChange.lr.rating.name}}</span>
                 <span ng-if='change.cm.type == "rating" && change.cm.ratingType === "input"'>{{lrChange.lr.rating.id}}</span>
+                <span ng-if='change.cm.type == "milestone"'>{{lrChange.lr.milestoneMarked ? 'Reached' : ''}}</span>
             </td>
             <td>
                 <div ng-if='change.cm.type == "iltsession"'>{{lrChange.lr.remarks.id}}</div>
                 <div ng-if='change.cm.type == "rating"'>{{lrChange.lr.remarksStr}}</div>
                 <div ng-if='change.cm.type == "rating" && lrChange.lr.showOtherRemarks'
                      class='padding-mid-v fsmall2'>{{lrChange.lr.otherRemarks}}</div>
-                <div ng-if='change.cm.type == "milestone"'>Milestone</div>
+                <div ng-if='change.cm.type == "milestone"'>{{lrChange.lr.remarks}}</div>
             </td>
         </tr>
     </table>

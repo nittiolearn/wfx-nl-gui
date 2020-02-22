@@ -29,12 +29,20 @@
 	
 		<div class='nl-link-text nl-button-highlight' ng-click='showBulkAttendanceMarker($event)'>Mark all</div>
 	</div>
-	
+	<div ng-if='selectedModule.validationErrorMsg' class='row row-center padding0 margin0'>
+		<div class='col padding0'></div>
+		<div class='nl-dlg-field-errormsg'> 
+			{{selectedModule.dateValidationError}}
+		</div>
+		<div style='width:102px'></div>
+	</div>
+
 	<div ng-if='selectedModule.asdSession' class="padding-small"></div>
 	<div ng-if='selectedModule.asdSession' class="row row-center margin0 padding0">
 		<div class="col padding0 nl-dlg-field-value">
 			<select ng-model='selectedModule.reason' 
 					ng-options='opt as opt.name for opt in options.reason track by opt.id'
+					ng-change='changeSessionReason($event, selectedModule)'
 					class='w100'
 					autofocus=''
 					tabindex=""

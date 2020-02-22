@@ -220,6 +220,7 @@ body {
   font-stretch: inherit;
   line-height: inherit;
   font-family: Verdana, Helvetica, Arial, sans-serif;
+  word-break: break-all;
 }
 
 .nl-cursive-font {
@@ -532,6 +533,10 @@ tr.summary {
 
 .nl-min-200 {
   min-width: 200px;
+}
+
+.nl-min-300 {
+  min-width: 300px;
 }
 
 .nl-min-750 {
@@ -2041,6 +2046,12 @@ img.nl-icon {
 
 .nl-cv-item.selected {
   background-color: $nlGrey2;
+}
+
+.nl-cv-item-text {
+  min-width: 50%;
+  max-height: 5em;
+  overflow: hidden;
 }
 
 nl-course-canvas-view .holder1 {

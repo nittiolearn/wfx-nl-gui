@@ -4,7 +4,7 @@
 	<!------------------------------------------------------------------------------------- 
 		Left Pane with TreeList of Items
 	-------------------------------------------------------------------------------------->
-	<div ng-if='!showConfirmationPage' class='nl-thin-scroll-mh100 nl-max-300 nl-min-200 nl-border-right'>
+	<div ng-if='!showConfirmationPage' class='nl-thin-scroll-mh100 nl-min-300 nl-max-300 nl-border-right'>
 		<div class='nl-dlg-field-value padding-mid'
 			 ng-show='options.dlgtype.length > 1'>
 			<select ng-model='data.dlgtype' 
@@ -23,17 +23,18 @@
 					<i ng-show='!cm.isOpen' class="icon ion-arrow-right-b bold fsh3"></i>
 					<i ng-show='cm.isOpen' class="icon ion-arrow-down-b bold fsh3"></i>
 				</div>
-				<div class='col'>
-					<span class='{{cm.asdSession ? "forange2" : ""}}'>{{getItemName(cm)}}</span>
+				<div class='col nl-cv-item-text {{cm.asdSession ? "forange2" : ""'>
+					<span>{{getItemName(cm)}}</span>
 				</div>
-				<div ng-show='cm.lockedOnItem' style='width: 20px'>
-					<i class="icon ion-locked fgrey fsh5"></i>
-				</div>
-				<div ng-show='cm.validationErrorMsg' style='width: 20px'>
-					<i class="icon icon ion-close-circled forange fsh5"></i>
-				</div>
-				<div ng-show='!cm.validationErrorMsg && cm.isMarkingComplete' style='width: 20px'>
-					<i class="icon ion-checkmark-circled fgreen fsh5"></i>
+				<div ng-show='cm.type != "module"' class='fsh5' style='width: 20px'>
+					<i ng-show='cm.lockedOnItem || cm.allLrsLocked'
+					   class="icon ion-locked fgrey"></i>
+					<i ng-show='!cm.lockedOnItem && !cm.allLrsLocked && cm.validationErrorMsg'
+					   class="icon icon ion-close-circled forange"></i>
+					<i ng-show='!cm.lockedOnItem && !cm.allLrsLocked && !cm.validationErrorMsg && cm.isMarkingComplete'
+					   class="icon ion-checkmark-circled fgreen"></i>
+					<i ng-show='!cm.lockedOnItem && !cm.allLrsLocked && !cm.validationErrorMsg && !cm.isMarkingComplete'
+					   class="ion-ios-circle-filled fyellow"></i>
 				</div>
 			</div>
 		</div>
