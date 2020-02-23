@@ -132,8 +132,11 @@ function DbAttendanceObject(courseAssignment, ctx) {
 
 	this.updateItem = function(cm) {
 		if (_etmAsd.length > 0) {
-			var sessionInfo = _sessionInfos[cm.id] || {};
-			cm.sessiondate = nl.fmt.json2Date(sessionInfo.sessiondate || '');
+			if (!cm.sessiondate) {
+				var sessionInfo = _sessionInfos[cm.id] || {};
+				cm.sessiondate = sessionInfo.sessiondate;
+			}
+			cm.sessiondate = nl.fmt.json2Date(cm.sessiondate || '');
 		}
 		cm.attendanceOptions = cm.asdSession ? _attendanceOptionsAsd : _attendanceOptions;
 		cm.attendanceRemarksOptions = _remOptions;
@@ -147,17 +150,21 @@ function DbAttendanceObject(courseAssignment, ctx) {
 				var itemInfo = lr.repcontent.statusinfo[cm.id] || {};
 				itemLr.attendance = _attendanceOptionsDict[itemInfo.attId] || {id: itemInfo.attId || ''};
 				itemLr.remarks = {id: itemInfo.remarks || ''};
+				itemLr.updated = itemInfo.updated || null;
+				itemLr.marked = itemInfo.marked || null;
 			}
 		}
 	};
 
-	this.addAsdSession = function(parentFixedSession) {
+	this.addAsdSession = function(addAfterCm) {
 		if (_etmAsd.length == 0) return;
 		_lastAsdId++;
 		var item = {id: '_asdsession' + _lastAsdId, reason: _etmAsd[0], remarks: ''};
 		item = nlReportHelper.getAsdItem(item);
-		if (parentFixedSession) item.parentId = parentFixedSession.parentId;
-		ctx.addModule(item, parentFixedSession);
+		item.parentId = addAfterCm ? addAfterCm.parentId : '_root';
+		item.parentFixedSessionId = !addAfterCm ? '_root'
+			: !addAfterCm.asdSession ? addAfterCm.id : addAfterCm.parentFixedSessionId;
+		ctx.addModule(item, addAfterCm);
 		this.updateItem(item);
 		this.changeSessionReason(item);
 		return item;
@@ -258,9 +265,59 @@ function DbAttendanceObject(courseAssignment, ctx) {
 	};
 
 	this.updateLrChanges = function(lr, oldLr, lrChanges) {
+		lr.updated = oldLr.updated;
+		lr.marked = oldLr.marked;
 		if (lr.attendance.id == oldLr.attendance.id && lr.remarks.id == oldLr.remarks.id) return;
+		lr.updated = new Date();
+		if (lr.attendance.id != oldLr.attendance.id) lr.marked = lr.updated;
 		lrChanges.push({lr: lr});
 	};
+
+	this.getObjToSave = function() {
+		var objToSave = {attendance_version: nlCourse.getAttendanceVersion()};
+		if (_etmAsd.length > 0) {
+			objToSave.sessionInfos = {};
+			objToSave.lastAsdId = _lastAsdId;
+		}
+		var sessionInfos = objToSave.sessionInfos;
+		for (var i = 0; i < ctx.modulesToSave.length; i++) {
+			var cm = ctx.modulesToSave[i];
+			if (cm.type != 'iltsession') continue;
+			if (_etmAsd.length > 0) _updateSessionInfos(sessionInfos, cm);
+			_updateLrs(objToSave, cm);
+		}
+	};
+
+	function _updateSessionInfos(sessionInfos, cm) {
+		var sessiondate = cm.sessiondate ? nl.fmt.date2Str(cm.sessiondate, 'date') : '';
+		var key = cm.asdSession ? cm.parentFixedSessionId : cm.id;
+		if (!(key in sessionInfos)) sessionInfos[key] = {};
+		var sessionInfo = sessionInfos[key];
+		if (!cm.asdSession) {
+			sessionInfo.sessiondate = sessiondate;
+		} else {
+			if (!('asd' in sessionInfo)) sessionInfo.asd = [];
+			sessionInfo.asd.push({
+				reason: cm.reason || {id: ''},
+				remarks: cm.remarks || '',
+				sessiondate: sessiondate,
+				id: cm.id,
+				name: nlReportHelper.getItemName(cm)
+			});
+		}
+	}
+
+	function _updateLrs(objToSave, cm) {
+		for (var i = 0; i < cm.learningRecords.length; i++) {
+			var lr = cm.learningRecords[i];
+			if (lr.bulkEntry) continue;
+			if (!(lr.id in objToSave)) objToSave[lr.id] = [];
+			var lrInDb = objToSave[lr.id];
+			var dbItem = {id: cm.id, updated: lr.updated || null, marked: lr.marked || null,
+				attId: lr.attendance.id, remarks: lr.remarks.id};
+			lrInDb.push(dbItem);
+		}
+	}
 
 	// Private data
 	var _etmAsd = [];
@@ -340,7 +397,6 @@ function DbRatingObject(courseAssignment, ctx) {
 				}
 			}
 		}
-
 	}
 
 	this.updateItem = function(cm) {
@@ -360,6 +416,8 @@ function DbRatingObject(courseAssignment, ctx) {
 			itemLr.remarks = Array.isArray(itemInfo.remarks || '') ? itemInfo.remarks : [itemInfo.remarks||''];
 			itemLr.otherRemarks = itemInfo.otherRemarks;
 			_initRemarksOptions(itemLr, ratingConfig);
+			itemLr.updated = itemInfo.updated || null;
+			itemLr.marked = itemInfo.marked || null;
 		}
 	};
 
@@ -436,11 +494,37 @@ function DbRatingObject(courseAssignment, ctx) {
 	};
 
 	this.updateLrChanges = function(lr, oldLr, lrChanges) {
+		lr.updated = oldLr.updated;
+		lr.marked = oldLr.marked;
 		if (lr.rating.id == oldLr.rating.id && lr.remarksStr == oldLr.remarksStr &&
 			(!lr.showOtherRemarks || lr.otherRemarks == oldLr.otherRemarks)) return;
+
+		lr.updated = new Date();
+		if (lr.rating.id != oldLr.rating.id) lr.marked = lr.updated;
 		lrChanges.push({lr: lr});
 	};
 
+	this.getObjToSave = function() {
+		var objToSave = {};
+		for (var i = 0; i < ctx.modulesToSave.length; i++) {
+			var cm = ctx.modulesToSave[i];
+			if (cm.type != 'rating') continue;
+			_updateLrs(objToSave, cm);
+		}
+	};
+
+	function _updateLrs(objToSave, cm) {
+		for (var i = 0; i < cm.learningRecords.length; i++) {
+			var lr = cm.learningRecords[i];
+			if (lr.bulkEntry) continue;
+			if (!(lr.id in objToSave)) objToSave[lr.id] = [];
+			var lrInDb = objToSave[lr.id];
+			var dbItem = {id: cm.id, updated: lr.updated || null, marked: lr.marked || null,
+				attId: lr.rating.id, remarks: lr.remarks || null, otherRemarks: lr.otherRemarks || null};
+			lrInDb.push(dbItem);
+		}
+	}
+	
 	// Private members
 	var _dbobj = {};
 	var _ratingDict = null;
@@ -457,12 +541,18 @@ function DbMilestoneObject(courseAssignment, ctx) {
 	this.updateItem = function(cm) {
 		var milestoneInfo = _dbobj[cm.id] || {};
 		cm.comment = milestoneInfo.comment || '';
-		cm.milestoneMarked = milestoneInfo.status == 'done' ? true : false
+		cm.milestoneMarked = milestoneInfo.status == 'done' ? true : false;
+		var msInfoFromDb = _dbobj[cm.id] || {};
+		cm.updated = nl.fmt.json2Date(msInfoFromDb.updated);
+		cm.reached = nl.fmt.json2Date(msInfoFromDb.reached);
+		
 		for (var i=0; i<ctx.lrArray.length; i++) {
 			var lr = ctx.lrArray[i];
 			var itemLr = cm.learningRecords[i];
 			var itemInfo = lr.bulkEntry ? {} : lr.repcontent.statusinfo[cm.id] || {};
 			itemLr.remarks = itemInfo.remarks == cm.comment ? '' : itemInfo.remarks;
+			itemLr.updated = itemInfo.updated || null;
+			itemLr.reached = itemInfo.reached || null;
 			itemLr.milestoneMarked = itemInfo.reached ? true : false;
 		}
 	};
@@ -483,19 +573,60 @@ function DbMilestoneObject(courseAssignment, ctx) {
 	};
 
 	this.updateCmChanges = function(cm, oldCm, cmChanges) {
+		cm.updated = oldCm.updated;
+		cm.reached = oldCm.reached;
 		if (cm.comment != oldCm.comment) {
 			cmChanges.push({attr: 'Milestone Reamrks', val: cm.comment});
+			cm.updated = new Date();
 		}
 		if (cm.lockedOnItem) return;
 		if (cm.milestoneMarked != oldCm.milestoneMarked) {
 			cmChanges.push({attr: 'Milestone Status', val: cm.milestoneMarked ? 'Reached' : 'Not Reached'});
+			cm.updated = new Date();
+			cm.reached = cm.milestoneMarked ? cm.updated : null;
 		}
 	};
 
 	this.updateLrChanges = function(lr, oldLr, lrChanges) {
+		lr.updated = oldLr.updated;
+		lr.reached = oldLr.reached;
+		lr.marked = oldLr.marked;
 		if (lr.milestoneMarked == oldLr.milestoneMarked && lr.remarks == oldLr.remarks) return;
+		lr.updated = new Date();
+		if (lr.milestoneMarked != oldLr.milestoneMarked) {
+			lr.reached = lr.milestoneMarked ? lr.updated : null;
+			lr.marked = lr.milestoneMarked ? 'done' : 'pending';
+		}
 		lrChanges.push({lr: lr});
 	};
+
+	this.getObjToSave = function() {
+		var objToSave = {};
+		for (var i = 0; i < ctx.modulesToSave.length; i++) {
+			var cm = ctx.modulesToSave[i];
+			if (cm.type != 'milestone') continue;
+			var msInfo =  {status: cm.milestoneMarked ? 'done' : 'pending',
+				comment: cm.comment,
+				updated: cm.updated || null,
+				reached: cm.reached || null,
+				learnersDict: {}
+			};
+			objToSave[cm.id] = msInfo;
+			_updateLrs(msInfo.learnersDict, cm);
+		}
+	};
+
+	function _updateLrs(learnersDict, cm) {
+		for (var i = 0; i < cm.learningRecords.length; i++) {
+			var lr = cm.learningRecords[i];
+			if (lr.bulkEntry) continue;
+			if (!(lr.id in learnersDict)) learnersDict[lr.id] = [];
+			var lrInDb = learnersDict[lr.id];
+			var dbItem = {updated: lr.updated || null, marked: lr.marked || 'pending',
+				remarks: lr.remarks || '', reached: lr.reached || null};
+			lrInDb.push(dbItem);
+		}
+	}
 
 	// Private members
 	var _dbobj = {};
@@ -640,8 +771,8 @@ function UpdateTrainingBatchDlg($scope, ctx) {
 		};
 
 		// Used in lr_update_batch_attendance.html
-		dlgScope.addAsdSession = function(e, cm) {
-			_addAsdSession(dlgScope, cm);
+		dlgScope.addAsdSession = function(e, addAfterCm) {
+			_addAsdSession(dlgScope, addAfterCm);
 		};
 		dlgScope.removeAsdSession = function(e, cm) {
 			_removeAsdSession(dlgScope, cm);
@@ -735,8 +866,8 @@ function UpdateTrainingBatchDlg($scope, ctx) {
 		_makeVisible(parent, true);
 	}
 
-	function _addAsdSession(dlgScope, cm) {
-		var newCm = ctx.dbAttendance.addAsdSession(cm);
+	function _addAsdSession(dlgScope, addAfterCm) {
+		var newCm = ctx.dbAttendance.addAsdSession(addAfterCm);
 		newCm.canShowInModuleList = true;
 		_myTreeListSrv.addItem(newCm);
 		newCm.visible = true;
@@ -818,12 +949,14 @@ function UpdateTrainingBatchDlg($scope, ctx) {
 
 	function _findChanges() {
 		var changes = [];
+		ctx.modulesToSave = [];
 		var oldModules = nl.utils.arrayToDictById(ctx.oldModules);
 		for (var i=0; i<ctx.modules.length; i++) {
 			var cm = ctx.modules[i];
 			var oldCm = oldModules[cm.id];
 			if (!oldCm) {
 				changes.push({cm: cm, type: 'New session added'});
+				ctx.modulesToSave.push(cm);
 				continue;
 			}
 
@@ -854,18 +987,21 @@ function UpdateTrainingBatchDlg($scope, ctx) {
 				if (lrChanges.length > 0) change.lrChanges = lrChanges;
 				changes.push(change);
 			}
+			cm.lockedOnItem ? ctx.modulesToSave.push(oldCm) : ctx.modulesToSave.push(cm);
 			delete oldModules[cm.id];
 		}
 		for (var cmid in oldModules) {
 			changes.push({cm: oldModules[cmid], type: 'Session deleted'});
 		}
 		return changes;
-
 	}
 
 	function _onUpdateButtonClickAfterConfirm(e, dlgScope) {
+		var attendanceDbObj = ctx.dbAttendance.getObjToSave();
+		var ratingDbObj = ctx.dbRating.getObjToSave();
+		var milestoneDbObj = ctx.dbMilestone.getObjToSave();
 		// TODO-NOW: DB save to be done
-		// Ensure locked items are not saved
+		e.preventDefault();
 	}
 
 }

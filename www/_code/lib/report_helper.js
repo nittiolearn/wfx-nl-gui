@@ -771,6 +771,7 @@ function AsdModules() {
         item.name = _getItemName(item);
         item.iltduration = parentFixedSession ? parentFixedSession.iltduration : 480;
         item.parentId = parentFixedSession ? parentFixedSession.parentId : '_root';
+        item.parentFixedSessionId = parentFixedSession ? parentFixedSession.id : '_root';
         item.hide_locked = parentFixedSession ? parentFixedSession.hide_locked : false;
         if (parentFixedSession && parentFixedSession.start_after)
             item.start_after = angular.copy(parentFixedSession.start_after);
