@@ -64,6 +64,14 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
 		for (var itemid in records) return records[itemid];
     }
 
+    this.updateTrainerObjsInRecord = function(key, data) {
+        // TODO-LATER: after v166: remove next 3 methods
+        var record = _records[key.table][key.id];
+    	record.attendance = angular.toJson(data.attendance);
+    	record.rating = angular.toJson(data.rating);
+    	record.milestone = angular.toJson(data.milestone);
+    };
+
     this.updateAttendanceInRecord = function(key, attendance) {
     	_records[key.table][key.id].attendance = attendance;
     };

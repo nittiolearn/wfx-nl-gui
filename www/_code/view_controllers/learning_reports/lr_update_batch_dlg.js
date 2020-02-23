@@ -15,10 +15,12 @@ this.getCourseAssignView = function() {
 	return nlLrCourseAssignView;
 };
 
-this.showUpdateTrainingBatchDlg = function($scope, courseAssignment, modules, learningRecords, groupInfo) {
+this.showUpdateTrainingBatchDlg = function($scope, courseAssignment, modules, learningRecords, groupInfo, launchType) {
 	var ctx = _getContext(courseAssignment, modules, learningRecords, groupInfo);
-	var dlg = new UpdateTrainingBatchDlg($scope, ctx);
-	dlg.show();
+	return nl.q(function(resolve, reject) {
+		var dlg = new UpdateTrainingBatchDlg($scope, ctx, resolve);
+		dlg.show(launchType);
+	});
 }
 
 function _getContext(courseAssignment, modules, learningRecords, groupInfo) {
@@ -286,6 +288,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			if (_etmAsd.length > 0) _updateSessionInfos(sessionInfos, cm);
 			_updateLrs(objToSave, cm);
 		}
+		return objToSave;
 	};
 
 	function _updateSessionInfos(sessionInfos, cm) {
@@ -511,6 +514,7 @@ function DbRatingObject(courseAssignment, ctx) {
 			if (cm.type != 'rating') continue;
 			_updateLrs(objToSave, cm);
 		}
+		return objToSave;
 	};
 
 	function _updateLrs(objToSave, cm) {
@@ -519,8 +523,9 @@ function DbRatingObject(courseAssignment, ctx) {
 			if (lr.bulkEntry) continue;
 			if (!(lr.id in objToSave)) objToSave[lr.id] = [];
 			var lrInDb = objToSave[lr.id];
+			var remarks = lr.ratingRemarksOptions ? lr.remarks : lr.remarksStr;
 			var dbItem = {id: cm.id, updated: lr.updated || null, marked: lr.marked || null,
-				attId: lr.rating.id, remarks: lr.remarks || null, otherRemarks: lr.otherRemarks || null};
+				attId: lr.rating.id, remarks: remarks || null, otherRemarks: lr.otherRemarks || null};
 			lrInDb.push(dbItem);
 		}
 	}
@@ -590,7 +595,7 @@ function DbMilestoneObject(courseAssignment, ctx) {
 	this.updateLrChanges = function(lr, oldLr, lrChanges) {
 		lr.updated = oldLr.updated;
 		lr.reached = oldLr.reached;
-		lr.marked = oldLr.marked;
+		lr.marked = lr.reached ? 'done' : 'pending';
 		if (lr.milestoneMarked == oldLr.milestoneMarked && lr.remarks == oldLr.remarks) return;
 		lr.updated = new Date();
 		if (lr.milestoneMarked != oldLr.milestoneMarked) {
@@ -614,17 +619,16 @@ function DbMilestoneObject(courseAssignment, ctx) {
 			objToSave[cm.id] = msInfo;
 			_updateLrs(msInfo.learnersDict, cm);
 		}
+		return objToSave;
 	};
 
 	function _updateLrs(learnersDict, cm) {
 		for (var i = 0; i < cm.learningRecords.length; i++) {
 			var lr = cm.learningRecords[i];
 			if (lr.bulkEntry) continue;
-			if (!(lr.id in learnersDict)) learnersDict[lr.id] = [];
-			var lrInDb = learnersDict[lr.id];
 			var dbItem = {updated: lr.updated || null, marked: lr.marked || 'pending',
 				remarks: lr.remarks || '', reached: lr.reached || null};
-			lrInDb.push(dbItem);
+			learnersDict[lr.id] = dbItem;
 		}
 	}
 
@@ -719,14 +723,14 @@ function Validator(ctx) {
 }
 
 //-------------------------------------------------------------------------------------------------
-function UpdateTrainingBatchDlg($scope, ctx) {
+function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 	var _myTreeListSrv = nlTreeListSrv.createNew();
 	var _validator = new Validator(ctx);
 
-	this.show = function() {
+	this.show = function(launchType) {
 		var batchDlg = nlDlg.create($scope);
 		batchDlg.setCssClass('nl-height-max nl-width-max nl-no-vscroll');
-		_initScope(batchDlg.scope);
+		_initScope(batchDlg.scope, launchType);
 		var okButton = {text: nl.t('Update'), onTap: function(e) {
 			_onUpdateButtonClick(e, batchDlg.scope);
 		}};
@@ -738,15 +742,27 @@ function UpdateTrainingBatchDlg($scope, ctx) {
 
 	};
 
-	function _initScope(dlgScope) {
+	function _initScope(dlgScope, launchType) {
+		var dlgtypeOptsDict = {
+			'iltsession': 'Attendance items',
+			'rating': 'Rating items',
+			'milestone': 'Milestone items'
+		};
 		var dlgtypeOpts = [];
+		var dlgtypeDefault = null;
+
 		if (Object.keys(ctx.trainerItemTypes).length > 1) dlgtypeOpts.push({id: 'all', name: 'All trainer items'});
-		if (ctx.trainerItemTypes.iltsession) dlgtypeOpts.push({id: 'iltsession', name: 'Attendance items'});
-		if (ctx.trainerItemTypes.rating) dlgtypeOpts.push({id: 'rating', name: 'Rating items'});
-		if (ctx.trainerItemTypes.milestone) dlgtypeOpts.push({id: 'milestone', name: 'Milestone items'});
+		var supportedCmType = ['iltsession', 'rating', 'milestone'];
+		for(var i=0; i<supportedCmType.length; i++) {
+			var cmtype = supportedCmType[i];
+			if (!ctx.trainerItemTypes[cmtype]) continue;
+			var item = {id: cmtype, name: dlgtypeOptsDict[cmtype]};
+			dlgtypeOpts.push(item);
+			if (launchType == cmtype) dlgtypeDefault = item;
+		}
 		dlgScope.options = {dlgtype: dlgtypeOpts, modulesSearch: '', 
 			reason: ctx.dbAttendance.getEtmAsd()};
-		dlgScope.data = {dlgtype: dlgScope.options.dlgtype[0]};
+		dlgScope.data = {dlgtype: dlgtypeDefault || dlgScope.options.dlgtype[0]};
 		dlgScope.isEtmAsd = ctx.dbAttendance.getEtmAsd().length > 0;
 		dlgScope.firstSessionId = ctx.dbAttendance.getFirstSessionId();
 		dlgScope.bulkMarker = {showAttendance: false, showRating: false};
@@ -916,11 +932,12 @@ function UpdateTrainingBatchDlg($scope, ctx) {
 			dlgScope.showConfirmationPage = false;
 			return;
 		}
+		resolve(null);
 	}
 
 	function _onUpdateButtonClick(e, dlgScope) {
 		if (dlgScope.showConfirmationPage) {
-			_onUpdateButtonClickAfterConfirm(e, dlgScope)
+			_onUpdateButtonClickAfterConfirm(e, dlgScope);
 			return;
 		}
 		e.preventDefault();
@@ -997,11 +1014,12 @@ function UpdateTrainingBatchDlg($scope, ctx) {
 	}
 
 	function _onUpdateButtonClickAfterConfirm(e, dlgScope) {
-		var attendanceDbObj = ctx.dbAttendance.getObjToSave();
-		var ratingDbObj = ctx.dbRating.getObjToSave();
-		var milestoneDbObj = ctx.dbMilestone.getObjToSave();
-		// TODO-NOW: DB save to be done
-		e.preventDefault();
+		var ret = {
+			attendance: ctx.dbAttendance.getObjToSave(),
+			rating: ctx.dbRating.getObjToSave(),
+			milestone: ctx.dbMilestone.getObjToSave()
+		};
+		resolve(ret);
 	}
 
 }

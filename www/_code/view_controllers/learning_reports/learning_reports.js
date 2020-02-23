@@ -1607,6 +1607,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	//Mark milestone for items inside the course
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _onClickOnMarkMilestone() {
+		// TODO-NOW: Change
+		// return _onUpdateTrainingBatch('milestone');
 		var courseAssignment = _getCourseAssignmnt();
 		g_milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
 		g_attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
@@ -1905,18 +1907,33 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	}
 
-	function _onUpdateTrainingBatch() {
-		nlDlg.preventMultiCalls(true, _showUpdateTrainingBatchDlg);
+	function _onUpdateTrainingBatch(launchType) {
+		nlDlg.preventMultiCalls(true, function() {
+			_showUpdateTrainingBatchDlg(launchType);
+		});
 	}
 
-	function _showUpdateTrainingBatchDlg() {
+	function _showUpdateTrainingBatchDlg(launchType) {
 		var courseAssignment = _getCourseAssignmnt();
 		var content = _getContentOfCourseAssignment() || {};
 		nlLrUpdateBatchDlg.showUpdateTrainingBatchDlg($scope, courseAssignment, content.modules, 
-			nlLrReportRecords.getRecords(), _groupInfo);
+			nlLrReportRecords.getRecords(), _groupInfo, launchType)
+		.then(function(data) {
+			if (!data) return;
+			data.assignid = nlLrFilter.getObjectId();
+			nlDlg.showLoadingScreen();
+			nlServerApi.courseUpdateParams(data).then(function(result) {
+				nlDlg.hideLoadingScreen();
+				var key = nlGetManyStore.key('course_assignment', nlLrFilter.getObjectId());
+				nlGetManyStore.updateTrainerObjsInRecord(key, data);
+				_updateReportRecords();
+			});
+		});
 	}
 
 	function _onClickOnMarkAttendance() {
+		// TODO-NOW: Change
+		// return _onUpdateTrainingBatch('iltsession');
 		var courseAssignment = _getCourseAssignmnt();
 		g_milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
 		g_attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
@@ -2346,6 +2363,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	var oldRating = {};
 	var ratingUpdated = false;
 	function _onClickOnMarkRatings() {
+		// TODO-NOW: Change
+		// return _onUpdateTrainingBatch('rating');
 		var courseAssignment = _getCourseAssignmnt();
 		g_milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
 		g_rating = courseAssignment.rating ? angular.fromJson(courseAssignment.rating) : {};
