@@ -942,6 +942,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         pending: {icon: 'ion-ios-circle-filled fyellow', title: 'pending'},
         started: {icon: 'ion-ios-circle-filled fgreen2', title: 'started'},
         failed:  {icon: 'icon ion-close-circled forange', title: 'failed'},
+        expired:  {icon: 'icon ion-close-circled forange', title: 'certificate expired'},
         success: {icon: 'ion-checkmark-circled fgreen', title: 'done'},
         partial_success: {icon: 'ion-checkmark-circled fyellow', title: 'partially done'} // Only folder status
     };
@@ -1000,8 +1001,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         }
         var itemInfo = itemIdToInfo[cm.id] || {};
         cm.hideItem = (modeHandler.mode == MODES.DO || modeHandler.mode == MODES.REPORT_VIEW) && itemInfo.hideItem;
-        if (cm.type === 'info' || cm.type === 'link' || cm.type === 'certificate') {
+        if (cm.type === 'info' || cm.type === 'link') {
             _updateLinkData(cm, itemInfo);
+        } else if (cm.type === 'certificate') {
+            _updateCertificateData(cm, itemInfo);
         } else if (cm.type === 'iltsession') {
 			_updateILTData(cm, itemInfo);
         } else if (cm.type === 'milestone') {
@@ -1025,6 +1028,26 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         cm.updated = itemInfo.updated;
     }
     
+    function _updateCertificateData(cm, itemInfo) {
+        cm.score = null;
+        cm.time = null;
+        cm.updated = itemInfo.updated;
+        var stainf = _statusInfo;
+        if ((stainf.status == 'certified' || stainf.isCertified) && stainf.certid) {
+            var certInfo = stainf.itemIdToInfo[stainf.certid];
+            cm.certifiedOn = nl.fmt.fmtDateDelta(nl.fmt.json2Date(certInfo.updated), null, 'minute');
+            if (certInfo.expire_after) {
+                var expireDays = parseInt(certInfo.expire_after);
+                var expireOn = new Date(certInfo.updated);
+                expireOn.setDate(expireOn.getDate() + expireDays);
+                if(new Date() < expireOn) 
+                    cm.certValid = nl.fmt.fmtDateDelta(expireOn, null, 'minute');
+                else 
+                    itemInfo.status = 'expired';
+            }
+        }
+    }
+
     function _updateILTData(cm, itemInfo) {
         cm.remarks = itemInfo.remarks || '';
         cm.timeMins = itemInfo.iltTimeSpent || '-';
@@ -1311,6 +1334,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
         if (!cm || (cm.type != 'lesson' && cm.type != 'link' && cm.type != 'certificate')) return false;
         if (this.isStaticMode()) return true;
         if (this.hideReviewButton(cm)) return false;
+        if (modeHandler.mode == MODES.DO && cm.type == 'certificate' && cm.state.status == 'expired') return false;
         if (modeHandler.mode == MODES.DO) return true;
         return (cm.state.status == 'success' || cm.state.status == 'failed');
 	};

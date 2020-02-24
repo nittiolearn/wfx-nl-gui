@@ -1329,7 +1329,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var sessionInfo = sessionInfos[cm.id];
 		for(var j=0; j<sessionInfo.asd.length; j++) {
 			var session = sessionInfo.asd[j];
-			_updateSessionDates(session, sessionDates);
+			if(session)
+				_updateSessionDates(session, sessionDates);
 		}
 	}
 
@@ -1358,7 +1359,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if(!cm.asdSession) {
 				var sessionInfos = g_attendance.sessionInfos || {};
 				var sessionInfo = sessionInfos[cm.id];
-				_updateSessionDates(sessionInfo, sessionDates);
+				if(sessionInfo)
+					_updateSessionDates(sessionInfo, sessionDates);
 			}
 		}
 

@@ -308,6 +308,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             var sinfo = _statusinfo[cm.id] || {};
             itemInfo.rawStatus = 'success';
             itemInfo.updated = _getUpdatedTimestamp(sinfo);
+            itemInfo.unlocked_next = itemInfo.updated;
             itemInfo.expire_after = cm.certificate_expire_after || null;
             itemInfo.score = 100;
         } else if (cm.type == 'info' || cm.type == 'link') {
@@ -339,6 +340,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.score = itemInfo.rawStatus == 'success' ? 100 : null;
         itemInfo.remarks = sinfo.remarks || '';
         itemInfo.updated = _getUpdatedTimestamp(sinfo);
+        itemInfo.unlocked_next = itemInfo.updated;
     }
     
     function _getRawStatusOfLesson(cm, itemInfo) {
@@ -365,6 +367,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             itemInfo.started = nl.fmt.json2Date(linfo.started || '');
             itemInfo.ended = nl.fmt.json2Date(linfo.ended || '');
             itemInfo.updated = nl.fmt.json2Date(linfo.updated || '');
+            itemInfo.unlocked_next = itemInfo.updated ? itemInfo.updated : nl.fmt.json2Date(linfo.ended || '');
             itemInfo.feedbackScore = _getFeedbackScoreForModule(linfo.feedbackScore);
             itemInfo.feedbackScore = itemInfo.feedbackScore ? '' + Math.round(itemInfo.feedbackScore*10)/10 + '%' : '';
             return;
@@ -391,6 +394,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.started = nl.fmt.json2Date(maxLinfo.started || '');
         itemInfo.ended = nl.fmt.json2Date(maxLinfo.ended || '');
         itemInfo.updated = nl.fmt.json2Date(maxLinfo.updated || '');
+        itemInfo.unlocked_next = itemInfo.updated ? itemInfo.updated : nl.fmt.json2Date(linfo.ended || '');
         itemInfo.moduleRepId = maxLinfo.reportId || null;
         itemInfo.rawStatus = (!itemInfo.maxScore) ? 'success' : (itemInfo.maxScore && (itemInfo.score >= itemInfo.passScore)) ? 'success' : 'failed';
         itemInfo.feedbackScore = _getFeedbackScoreForModule(maxLinfo.feedbackScore);
@@ -437,6 +441,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.remarks = userCmAttendance.remarks || '';
         itemInfo.marked = nl.fmt.json2Date(userCmAttendance.marked || '');
         itemInfo.updated = nl.fmt.json2Date(userCmAttendance.updated || '');
+        itemInfo.unlocked_next = itemInfo.marked;
         if (grpAttendanceObj.isAttrition) itemInfo.isAttrition = true;
     }
 
@@ -463,6 +468,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.updated = nl.fmt.json2Date(userCmRating.updated || '');
         itemInfo.rating = _computeRatingStringOnScore(grpRatingObj, itemInfo);
         itemInfo.ratingString = (grpRatingObj.type == 'select');
+        itemInfo.unlocked_next = itemInfo.marked;
     }
 
     function _computeRatingStringOnScore(ratingObj, itemInfo) {
@@ -490,6 +496,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             itemInfo.planned = _msDates[_msKey] || '';
             itemInfo.reached = (learnerDict.reached) ? nl.fmt.json2Date(learnerDict.reached) : "";
             itemInfo.updated = (learnerDict.updated) ? nl.fmt.json2Date(learnerDict.updated) : "";
+            itemInfo.unlocked_next = itemInfo.reached;
             return
         }
         itemInfo.rawStatus = (cm.id in _milestone) && _milestone[cm.id].status == 'done' ?
@@ -499,6 +506,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.planned = _msDates[_msKey] || '';
         itemInfo.reached = (_milestone[cm.id] && _milestone[cm.id].reached) ? nl.fmt.json2Date(_milestone[cm.id].reached) : "";
         itemInfo.updated = (_milestone[cm.id] && _milestone[cm.id].updated) ? nl.fmt.json2Date(_milestone[cm.id].updated) : "";
+        itemInfo.unlocked_next = itemInfo.reached;
     }
 
     function _getRawStatusOfGate(cm, itemInfo, itemIdToInfo) {
@@ -581,18 +589,21 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         for(var i=0; i<cm.start_after.length; i++) {
             var p = cm.start_after[i];
             var preItem = itemIdToInfo[p.module] || null;
-            if (!preItem || !preItem.updated) continue;
+            if (!preItem || !preItem.unlocked_next) continue;
             if (!unlockedTime) {
-                unlockedTime = preItem.updated;
+                unlockedTime = preItem.unlocked_next;
                 continue;
             }
-            if (isAndCondition && preItem.updated > unlockedTime) unlockedTime = preItem.updated;
-            if (!isAndCondition && preItem.updated < unlockedTime) unlockedTime = preItem.updated;
+            if (isAndCondition && preItem.unlocked_next > unlockedTime) unlockedTime = preItem.unlocked_next;
+            if (!isAndCondition && preItem.unlocked_next < unlockedTime) unlockedTime = preItem.unlocked_next;
         }
         if (unlockedTime) itemInfo.unlockedOn = unlockedTime;
-        var minUnlockedTime = itemInfo.started || itemInfo.updated || null;
+        var minUnlockedTime = itemInfo.started || itemInfo.unlocked_next || null;
         if (minUnlockedTime && minUnlockedTime < itemInfo.unlockedOn) itemInfo.unlockedOn = minUnlockedTime;
-        if (cm.type === 'gate' || cm.type === 'certificate' ) itemInfo.updated = itemInfo.unlockedOn;
+        if (cm.type === 'gate' || cm.type === 'certificate' ) {
+            itemInfo.updated = itemInfo.unlockedOn;
+            itemInfo.unlocked_next = itemInfo.unlockedOn;
+        }
     }
 
     function _updateStatusToDelayedIfNeeded(cm, itemInfo) {
