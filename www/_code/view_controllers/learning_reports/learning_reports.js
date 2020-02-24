@@ -234,11 +234,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			id: 'content',
 			onClick : _onViewContent
 		}, {
-			title : 'Update Training Batch',
-			icon : 'ion-gear-b',
-			id: 'update_batch',
-			onClick : _onUpdateTrainingBatch
-		}, {
 			title : 'Mark attendance',
 			icon : 'ion-person-stalker',
 			id: 'attendance',
@@ -288,9 +283,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (tbid == 'tbfetchmore') return nlLrFetcher.canFetchMore();
 		if (tbid == 'tbfilter') return nlLrFilter.isFilterShown();
 		if (tbid == 'content') return (nlLrFilter.getType() == 'module_assign' || nlLrFilter.getType() == 'course_assign');
-		if (tbid == 'update_batch') {
-			return nlLrFilter.isDebugMode();
-		}
 		if (tbid == 'attendance') {
 			var content = _getContentOfCourseAssignment();
 			return content && content.blended ? true : false;
@@ -1602,8 +1594,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	//Mark milestone for items inside the course
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _onClickOnMarkMilestone() {
-		// TODO-NOW: Change
-		// return _onUpdateTrainingBatch('milestone');
+		return _onUpdateTrainingBatch('milestone');
+		// TODO-LATER-1150: Remove unused code
 		var courseAssignment = _getCourseAssignmnt();
 		g_milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
 		g_attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
@@ -1927,8 +1919,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _onClickOnMarkAttendance() {
-		// TODO-NOW: Change
-		// return _onUpdateTrainingBatch('iltsession');
+		return _onUpdateTrainingBatch('iltsession');
+		// TODO-LATER-1150: Remove unused code
 		var courseAssignment = _getCourseAssignmnt();
 		g_milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
 		g_attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
@@ -2358,8 +2350,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	var oldRating = {};
 	var ratingUpdated = false;
 	function _onClickOnMarkRatings() {
-		// TODO-NOW: Change
-		// return _onUpdateTrainingBatch('rating');
+		return _onUpdateTrainingBatch('rating');
+		// TODO-LATER-1150: Remove unused code
 		var courseAssignment = _getCourseAssignmnt();
 		g_milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
 		g_rating = courseAssignment.rating ? angular.fromJson(courseAssignment.rating) : {};
