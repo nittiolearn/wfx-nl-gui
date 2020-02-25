@@ -58,7 +58,7 @@
                     <span class='padding-mid'>More available.</span>
                 </span>
             </div>
-            <nl-table-view-selector ng-show='nhtViewSelectorConfig && tabData.selectedTab.id == "nht"  && !tabData.processingOnging'
+            <nl-table-view-selector ng-show='nhtViewSelectorConfig && (tabData.selectedTab.id == "nhtrunning" || tabData.selectedTab.id == "nhtclosed")  && !tabData.processingOnging'
                 config=nhtViewSelectorConfig></nl-table-view-selector>
             <nl-table-view-selector ng-show='lrViewSelectorConfig && tabData.selectedTab.id == "learningrecords" && !tabData.processingOnging'
                 config=lrViewSelectorConfig></nl-table-view-selector>
@@ -87,10 +87,6 @@
                 <i class='nl-link-text icon fsh4 fblue padding-mid ion-ios-search'
                     ng-click='tabData.onSearch(null)'>
                 </i>
-                <div ng-if='tabData.isNHTAdded' class='padding-small'></div>
-                <i ng-if='tabData.isNHTAdded' class='nl-link-text icon fsh4 fblue padding-mid ion-funnel'
-                   ng-click='tabData.onFilter(null)'>
-                </i>
             </div>
         </div>
     </div>
@@ -102,14 +98,17 @@
         <div style='padding-right:0px'>
             <div ng-repeat='tb in tabData.tabs'
                 class='nl-link-text {{(tb.id == tabData.selectedTab.id) ? "nl-left-tab-selected" : "nl-left-tab"}}'>
-                <div class='padding-mid' 
+                <div class='padding-mid row row-center margin0' 
                     ng-click='tabData.onTabSelect(tb)'
-                    style='position:relative'>
-                    <span title='{{tb.title}}'
-                        class='nl-toolbar-icon no-hover'>
-                        <i class="icon {{tb.icon}}"></i>
-                    </span>
-                    <span ng-show='screenSize == "large"'>{{tb.name}}</span>
+                    style='position:relative'
+                    title='{{tb.title}}'>
+                    <div>
+                        <span class='nl-toolbar-icon no-hover row row-top padding0 margin0'>
+                            <i ng-if='tb.icon' class="icon {{tb.icon}}"></i>
+                            <i ng-if='tb.iconsuperscript' class="iconsuperscript">{{tb.iconsuperscript}}</i>
+                        </span>
+                    </div>
+                    <div ng-show='screenSize == "large"'>{{tb.name}}</div>
                 </div>
             </div>
         </div>
@@ -265,7 +264,7 @@
                 class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
                 <nl-lr-drilldown-tab drilldown='drillDownInfo'></nl-lr-drilldown-tab>
             </div>
-            <div ng-if='tabData.selectedTab.id == "nht"  && !tabData.processingOnging'
+            <div ng-if='(tabData.selectedTab.id == "nhtrunning" || tabData.selectedTab.id == "nhtclosed") && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
                 <nl-lr-nht-tab nht='nhtInfo'></nl-lr-nht-tab>
             </div>

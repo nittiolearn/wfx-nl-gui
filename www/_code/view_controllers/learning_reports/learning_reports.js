@@ -394,7 +394,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		ret.processingOnging = true;
 		ret.nothingToDisplay = false;
 		ret.onSearch = _onSearch;
-		ret.onFilter = _onFilter;
 		ret.onTabSelect = _onTabSelect;
 		return ret;
 	}
@@ -402,6 +401,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _updateTabs(tabData) {
 		tabData.tabs = [];
 		var tabs = tabData.tabs;
+		var _nhtBatchStates = nlGetManyStore.getNhtBatchStates();
 		tabs.push({
 			title : 'Click here to see reports overview',
 			name: 'Overview',
@@ -421,20 +421,36 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			});
 		}
 		if (tabData.isNHTAdded) {
-			tabs.push({
-				title : 'Click here to view batch summary',
-				name: 'Batches',
-				icon : 'ion-filing',
-				id: 'nht',
-				updated: false,
-				tables: []
-			});
+			if (_nhtBatchStates.running) {
+				tabs.push({
+					title : 'Click here to view running batch summary',
+					name: 'Running Batches',
+					icon : 'ion-filing',
+					iconsuperscript : 'R',
+					id: 'nhtrunning',
+					updated: false,
+					tables: []
+				});	
+			} 
+			if (_nhtBatchStates.closed) {
+				tabs.push({
+					title : 'Click here to view closed batch summary',
+					name: 'Closed Batches',
+					icon : 'ion-filing',
+					iconsuperscript : 'C',
+					id: 'nhtclosed',
+					updated: false,
+					tables: []
+				});	
+			}
+			if(Object.keys(_nhtBatchStates).length == 0) tabData.isNHTAdded = false;
 		}
+
 		if (nlLrFilter.getType() == 'course_assign' && (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0)) {
 			tabs.push({
 				title : 'Click here to view attendance summary',
 				name: 'Attendance',
-				icon : 'ion-person-stalker',
+				icon: 'ion-person-stalker',
 				id: 'iltbatchdata',
 				updated: false,
 				tables: []
@@ -477,6 +493,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _onTabSelect(tab) {
 		$scope.tabData.selectedTab = tab;
+		if (tab.updated) return;
+		if(tab.id == 'nhtrunning') {
+			$scope.tabData.filter.closed_batches = false;
+			_someTabDataChanged();
+		} else if (tab.id == 'nhtclosed') {
+			$scope.tabData.filter.closed_batches = true;
+			_someTabDataChanged();
+		}
 		_updateCurrentTab();
 	}
 
@@ -508,8 +532,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var summaryStats = nlLrSummaryStats.getSummaryStats();
 			tabData.records = _getFilteredRecords(summaryStats);
 			tabData.summaryStats = summaryStats.asList();
-
 			tabData.summaryStatSummaryRow = _getSummaryStatSummaryRow(tabData.summaryStats);
+			_checkAndUpdateNHT();
 		}
 		
 		if (tab.id == 'overview') {
@@ -520,7 +544,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			_updateTimeSummaryTab();
 		} else if (tab.id == 'drilldown') {
 			_updateDrillDownTab();
-		} else if (tab.id == 'nht') {
+		} else if (tab.id == 'nhtrunning') {
+			_updateNhtTab();
+		}else if (tab.id == 'nhtclosed') {
 			_updateNhtTab();
 		} else if (tab.id == 'iltbatchdata') {
 			_updateILTBatch();
@@ -625,23 +651,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_updateCurrentTab();
 	}
 
-	function _onFilter() {
-		var dlg = nlDlg.create($scope);
-		dlg.scope.data = {batchStatus: {id: $scope.tabData.filter.closed_batches ? 'closed' : 'running'}};
-		dlg.scope.options = {batchStatus: [{id: 'running', name: 'Running Batches'}, 
-			{id: 'closed', name: 'Closed Batches'}]};
-		dlg.scope.help = {batchStatus: {name: 'Batch Status', help: 'Select running or closed batches'}};
-		var okButton = {text: nl.t('Apply'), onTap: function(e) {
-			$scope.tabData.filter.closed_batches = dlg.scope.data.batchStatus.id == 'closed';
-			_someTabDataChanged();
-			_updateCurrentTab();
-		}};
-
-		var cancelButton = {text: nl.t('Close')};
-		dlg.show('view_controllers/learning_reports/lr_records_filter_dlg.html',
-			[okButton], cancelButton);
-	}
-
 	function _getFilteredRecords(summaryStats) {
 		var records = nlLrReportRecords.getRecords();
 		var tabData = $scope.tabData;
@@ -650,6 +659,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var filteredRecords  = [];
 		for (var recid in records) {
 			var record = records[recid];
+			if (record.raw_record.isNHT) nlGetManyStore.getBatchMilestoneInfo(record.raw_record);	
 			if (!_doesPassFilter(tabData, record, filterInfo)) continue;
 			if (!_doesPassSearch(record, searchInfo)) continue;
 			filteredRecords.push(record);
@@ -675,12 +685,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _getFilterInfo(tabData) {
 		if (!tabData.isNHTAdded) return {};
 		var filter = tabData.filter;
-		if (!filter.closed_batches) filter.closed_batches = false;
+		if (!('closed_batches' in filter)) return {};
+		if (filter.closed_batches) filter.closed_batches = true;
 		return filter;
 	}
 
 	function _doesPassFilter(tabData, record, filterInfo) {
-		if (!tabData.isNHTAdded) return true;
+		if (!record.raw_record.isNHT) return true;
+		if (!('closed_batches' in filterInfo)) return true;
 		var msInfo = nlGetManyStore.getBatchMilestoneInfo(record.raw_record);
 		if (filterInfo.closed_batches) return msInfo.batchStatus == 'Closed';
 		return msInfo.batchStatus != 'Closed';		
@@ -790,10 +802,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.canFetchMore = nlLrFetcher.canFetchMore();
 		_checkAndUpdateNHT();
 		var anyRecord = nlLrReportRecords.getAnyRecord();
-		if(anyRecord && nlLrFilter.getType() == 'course_assign') {
-			var batchInfo = nlGetManyStore.getBatchMilestoneInfo(anyRecord.raw_record);
-			$scope.tabData.filter.closed_batches = batchInfo.batchStatus == 'Closed';
-		}
 		_setSubTitle(anyRecord);
 		$scope.noDataFound = (anyRecord == null);
 		_someTabDataChanged();

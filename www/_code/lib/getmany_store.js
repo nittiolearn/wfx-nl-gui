@@ -123,10 +123,15 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
 		}
     }
     var _msInfoCache = {};
+    var _nhtBatchStatus = {};
     this.clearMsInfoCache = function() {
         _msInfoCache = {};
+        _nhtBatchStatus = {};
     }
 
+    this.getNhtBatchStates = function() {
+        return _nhtBatchStatus;
+    }
     this.getBatchMilestoneInfo = function(reportRecord) {
         var courseAssignment = this.getAssignmentRecordFromReport(reportRecord) || {};
         if (!courseAssignment.id) return {};
@@ -179,7 +184,12 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         }
         ret.lastPlanned = lastPlanned;
         ret.lastActual = lastActual;
-        if (allMilestonesReached) ret.batchStatus = 'Closed';
+        if (allMilestonesReached) {
+            ret.batchStatus = 'Closed';
+            _nhtBatchStatus.closed = true;
+        } else {
+            _nhtBatchStatus.running = true;
+        }
         return ret;
     };
 

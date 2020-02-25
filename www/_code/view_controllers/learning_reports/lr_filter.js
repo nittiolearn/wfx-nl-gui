@@ -174,7 +174,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		}
 		
 		dlg.scope.data = {timestamptype: {id: dataParam.timestamptype}, createdfrom: dataParam.createdfrom, createdtill: dataParam.createdtill, filterjson: dataParam.filterjson};
-		if(dataParam.type == 'course' && !_groupInfo.props.features.etm) {
+		if(dataParam.type == 'course' && ((_groupInfo.props || {}).features || {}).etm) {
 			dlg.scope.data.repsubtype = {id: dataParam.repsubtype || ''};
 			dlg.scope.showReportType = true;
 		}
