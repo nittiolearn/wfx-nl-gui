@@ -173,7 +173,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.utable = {
 			search: {disabled : true},
 			columns: _lrColumns,
-			styleTable: 'nl-table-styled2 compact',
+			styleTable: 'nl-table nl-table-styled3',
+			styleHeader: ' ',
 			onRowClick: 'expand',
 			detailsTemplate: 'view_controllers/learning_reports/learning_report_details.html',
 			clickHandler: _userRowClickHandler,
@@ -413,7 +414,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (tabData.isDrillDownAdded) {
 			tabs.push({
 				title : 'Click here to view course-wise progress',
-				name: 'Drill down',
+				name: 'Drill Down',
 				icon : 'ion-social-buffer',
 				id: 'drilldown',
 				updated: false,
@@ -424,7 +425,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if (_nhtBatchStates.running) {
 				tabs.push({
 					title : 'Click here to view running batch summary',
-					name: 'Running Batches',
+					name: 'Running NHT Batches',
 					icon : 'ion-filing',
 					iconsuperscript : 'R',
 					id: 'nhtrunning',
@@ -435,7 +436,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if (_nhtBatchStates.closed) {
 				tabs.push({
 					title : 'Click here to view closed batch summary',
-					name: 'Closed Batches',
+					name: 'Closed NHT Batches',
 					icon : 'ion-filing',
 					iconsuperscript : 'C',
 					id: 'nhtclosed',
@@ -448,8 +449,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		if (nlLrFilter.getType() == 'course_assign' && (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0)) {
 			tabs.push({
-				title : 'Click here to view attendance summary',
-				name: 'Attendance',
+				title : 'Click here to view NHT batch attendance summary',
+				name: 'NHT Batch Attendance',
 				icon: 'ion-person-stalker',
 				id: 'iltbatchdata',
 				updated: false,
@@ -458,7 +459,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		tabs.push({
 			title : 'Click here to view learning records',
-			name: 'Learning records',
+			name: 'Learning Records',
 			icon : 'ion-ios-compose',
 			id: 'learningrecords',
 			updated: false,
@@ -466,7 +467,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		});
 		tabs.push({
 			title : 'Click here to view time summary',
-			name: 'Time summary',
+			name: 'Time Summary',
 			icon : 'ion-clock',
 			id: 'timesummary',
 			updated: false,

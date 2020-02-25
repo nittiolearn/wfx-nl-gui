@@ -38,8 +38,8 @@
          Tool bar and title
     ******************************************************************* -->
     <div class='nl-topsection'>
-        <div class='row row-center margin0 padding0'
-            style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
+        <div class='row row-center margin0 padding0 bb1'
+            style='height: 36px; overflow: hidden;'>
             <div class='col text-center fsh6 padding-mid' style='height: 36px; overflow: hidden'>
                 <span ng-show='filterStr && screenSize != "small"'>{{filterStr}}</span>
                 <span ng-show='fetchInProgress' class='forange fsh6 anim fade'
@@ -91,31 +91,29 @@
         </div>
     </div>
     <div class='padding-small'></div>
-    <div class='row row-top row-stretch padding0 margin0 ' style='border-top: 1px solid #CCCCDD'>
+    <div class='row row-top row-stretch padding0 margin0'>
         <!-- **************************************************************
             Left tabs
         ******************************************************************* -->
         <div style='padding-right:0px'>
             <div ng-repeat='tb in tabData.tabs'
-                class='nl-link-text {{(tb.id == tabData.selectedTab.id) ? "nl-left-tab-selected" : "nl-left-tab"}}'>
+                 class='nl-link-text {{(tb.id == tabData.selectedTab.id) ? "nl-left-tab-selected" : "nl-left-tab"}}'
+                 title='{{tb.name}}'>
                 <div class='padding-mid row row-center margin0' 
-                    ng-click='tabData.onTabSelect(tb)'
-                    style='position:relative'
-                    title='{{tb.title}}'>
+                    ng-click='tabData.onTabSelect(tb)'>
                     <div>
                         <span class='nl-toolbar-icon no-hover row row-top padding0 margin0'>
                             <i ng-if='tb.icon' class="icon {{tb.icon}}"></i>
                             <i ng-if='tb.iconsuperscript' class="iconsuperscript">{{tb.iconsuperscript}}</i>
                         </span>
                     </div>
-                    <div ng-show='screenSize == "large"'>{{tb.name}}</div>
                 </div>
             </div>
         </div>
         <!-- **************************************************************
             Content area
         ******************************************************************* -->
-        <div class='col nl-left-tabbed-content sandbox padding0' style='overflow: auto; height: {{getContTabHeight($event)}}px'>
+        <div class='col nl-left-tabbed-content bt1 sandbox padding0' style='overflow: auto; height: {{getContTabHeight($event)}}px'>
             <!-- **************************************************************
                 Overview tab
             ******************************************************************* -->
@@ -225,7 +223,7 @@
                 Learning records tab
             ******************************************************************* -->
             <div ng-if='tabData.selectedTab.id == "learningrecords" && !tabData.processingOnging'
-                class='anim-enter1 flyfrom-l padding-mid'>
+                class='anim-enter1 flyfrom-t padding-mid'>
                 <nl-table info='utable'></nl-table>
                  <div ng-show='tabData.records.length > 100' class='padding-mid' style='color: #858888; font-weight: bold'>
                     Showing {{utable._internal.visibleRecs.length}} of {{tabData.records.length}} items. Search if you are looking for specific item.

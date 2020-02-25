@@ -67,14 +67,14 @@
 					</div>
 				</div>
 				<div class='col padding-mid'>
-					<table class='nl-table nl-table-styled'>
+					<table class='nl-table nl-table-styled3'>
 						<tr ng-repeat='item in chartData'>
 							<td>{{item.name}}</td>
 							<td>{{item.val}}</td>
 						</tr>
 						<tr>
-							<td class='fbold'>Total</td>
-							<td class='fbold'>{{chartTotal}}</td>
+							<th>Total</th>
+							<th>{{chartTotal}}</th>
 						</tr>
 					</table>
 				</div>
@@ -161,7 +161,7 @@
 		</div>
 
 		<div ng-if='visibleUsers.length > 0' class='padding-mid'>
-			<table class='nl-table nl-table-styled'>
+			<table class='nl-table nl-table-styled3'>
 				<tr>
 					<th>
 						Learner Name
