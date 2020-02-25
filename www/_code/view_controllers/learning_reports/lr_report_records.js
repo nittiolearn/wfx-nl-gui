@@ -271,6 +271,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             certid: stainf.certid
         };
 
+        if (stainf.inductionDropOut) stats.inductionDropOut = true;
         if(stainf.customScores.length != 0) {
             for(var i=0; i<stainf.customScores.length; i++) {
                 var item = stainf.customScores[i];

@@ -57,11 +57,16 @@ function(nl, nlReportHelper, nlGetManyStore) {
 
     function _getStatusCountObj(record) {
         var statsCountObj = {};
-        statsCountObj['cntTotal'] = 1;
+        var stats = record.stats;
         statsCountObj['batchid'] = record.raw_record.assignment;
+        statsCountObj['delayDays'] = stats.delayDays || 0;
+        statsCountObj['customScores'] = stats.customScores || [];
+        if (stats.inductionDropOut) {
+                statsCountObj['inductionDropOut'] = 1;
+            return statsCountObj;
+        }
+        statsCountObj['cntTotal'] = 1;
         _updateActiveStatusCounts(record, statsCountObj);
-        statsCountObj['delayDays'] = record.stats.delayDays || 0;
-        statsCountObj['customScores'] = record.stats.customScores || [];
         return statsCountObj;
     }
 
@@ -263,6 +268,22 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
         for (var key in msInfo) updatedStats[key] = msInfo[key];
         updatedStats['start'] = report.not_before;
         updatedStats['end'] = report.not_after;
+        var firstPlanned = msInfo.firstPlanned;
+        var lastPlanned = msInfo.lastPlanned;
+        var firstActual = msInfo.firstActual;
+        var lastActual = msInfo.lastActual;
+        if (firstPlanned && lastPlanned) {
+            var first = new Date(firstPlanned);
+            var last = new Date(lastPlanned);
+            var diffTime = last - first;
+            updatedStats['plannedCycle'] = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        }
+        if (firstActual && lastActual) {
+            var first = new Date(firstActual);
+            var last = new Date(lastActual);
+            var diffTime = last - first;
+            updatedStats['actualCycle'] = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        }
         updatedStats['trainer'] = report.repcontent.iltTrainerName || report.repcontent.sendername; 
         return;
     }
@@ -326,8 +347,13 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
         if (updatedStats['cntCompletedTotal'])
             updatedStats['batchThroughput'] = '' + Math.round(100*updatedStats['certified']/updatedStats['cntCompletedTotal']) + ' %';
         var reachedCertification = _getReachedCertification(updatedStats);
-        if (reachedCertification)
+        var notCertified = reachedCertification - (updatedStats['certifiedFirstAttempt'] + updatedStats['certifiedSecondAttempt']);
+        if (reachedCertification) {
             updatedStats['batchFirstPass'] = '' + Math.round(100*updatedStats['certifiedFirstAttempt']/reachedCertification) + ' %';
+            updatedStats['certificationThroughput'] = '' + Math.round(100*(updatedStats['certifiedFirstAttempt']+updatedStats['certifiedSecondAttempt'])/reachedCertification) + ' %';
+            updatedStats['notCertified'] = '' + Math.round(100*notCertified/reachedCertification) + ' %';
+        }
+
         if(updatedStats.cntTotal > 0) {
             updatedStats['avgDelay'] = Math.round(updatedStats.delayDays/updatedStats.cntTotal);
             updatedStats['avgScore'] = (updatedStats.percScore != 0 && updatedStats.completed != 0) ? Math.round(updatedStats.percScore/updatedStats.completed)+' %' : 0;

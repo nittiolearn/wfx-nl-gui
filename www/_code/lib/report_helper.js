@@ -172,7 +172,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             onlineTimeSpentSeconds: 0, iltTimeSpent: 0, iltTotalTime: 0,
             feedbackScore: '', customScores: [], attritedAt: null, attritionStr: null,
             isCertified: false, certid: null,
-            customScoreDict: {}
+            customScoreDict: {},
+            inductionDropOut: null
             // Also may have has following:
             // reattempt: true/false
         };
@@ -219,6 +220,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 ret['certid'] = cm.id;
             }
             latestCustomStatus =  _updateCustomStatus(itemInfo, latestCustomStatus);
+            if (itemInfo.inductionDropOut) ret.inductionDropOut = true;
             if (itemInfo.isAttrition) {
                 isAttrition = true;
                 ret.attritedAt = cm.id;
@@ -443,6 +445,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.updated = nl.fmt.json2Date(userCmAttendance.updated || '');
         itemInfo.unlocked_next = itemInfo.marked;
         if (grpAttendanceObj.isAttrition) itemInfo.isAttrition = true;
+        if (grpAttendanceObj.id == 'induction_dropout') itemInfo.inductionDropOut = true;
     }
 
     function _getRawStatusOfRating(cm, itemInfo) {

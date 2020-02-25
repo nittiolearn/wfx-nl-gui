@@ -1131,6 +1131,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push({id: 'partner', name: 'Partner', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'lob', name: 'LOB', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 
+		columns.push({id: 'inductionDropOut', name: 'Induction drop out', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
+
 		for(var i=0; i<etmUserStates.length-1; i++) {
 			var userState = etmUserStates[i];
 			columns.push({id: 'attrition-' + userState.id, 
@@ -1162,7 +1164,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push({id: 'certifiedFirstAttempt', name: 'Certified in First Attempt', hidePerc: true, table: true, showAlways: true});
 		columns.push({id: 'certifiedSecondAttempt', name: 'Certified in 2nd Attempt', hidePerc: true, table: true, showAlways: true});
 		columns.push({id: 'certified', name: 'Total Certified', hidePerc: true, table: true, showAlways: true});
-		columns.push({id: 'failed', name: 'Total Not Certified', hidePerc:true, table: true, showAlways: true});
+		columns.push({id: 'notCertified', name: 'Not certified', hidePerc: true, table: true, showAlways: true});
+		columns.push({id: 'certificationThroughput', name: 'certification throughput', hidePerc: true, table: true, showAlways: true});
+
+		columns.push({id: 'failed', name: 'Total Not Certified', hidePerc:true, table: false, showAlways: true}); //This is not asked by abrar
 		columns.push({id: 'batchFirstPass', name: 'First Pass Percentage', showIn: 'closed', hidePerc: true, table: true, showAlways: true});
 		columns.push({id: 'batchThroughput', name: 'Batch Throughput', showIn: 'closed', hidePerc: true, table: true, showAlways: true});
 
@@ -1173,6 +1178,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if (customScoresHeaderWithType[_customScoresHeader[i]] == 'rag') continue;
 			columns.push({id: 'perc'+_customScoresHeader[i], name: _customScoresHeader[i], table: true, background: 'nl-bg-blue', hidePerc:true});
 		}
+		columns.push({id: 'plannedCycle', name: 'Planned cycle time', hidePerc: true, table: true, showAlways: true});
+		columns.push({id: 'actualCycle', name: 'Actual cycle time', hidePerc: true, table: true, showAlways: true});
 
 		// Hidden columns
 		columns.push({id: 'start', name: 'Batch start date', table: false, hidePerc:true, style:'min-width:fit-content'});
