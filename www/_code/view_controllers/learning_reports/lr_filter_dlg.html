@@ -13,6 +13,10 @@
             <nl-date-time-select fieldmodel='createdtill' fieldCls='nl-dlg-field-value'></nl-date-time-select>
         </nl-dlg-row>
         
+        <nl-dlg-row ng-if="showReportType" attr='repsubtype' data='data' help='help'>
+            <nl-select fieldmodel='repsubtype'></nl-select>
+        </nl-dlg-row>
+
         <nl-dlg-row ng-if='showfilterjson' attr='filterjson' data='data' help='help'>
             <nl-textarea fieldmodel='filterjson' fieldCls='nl-dlg-field-value'></nl-textarea>
         </nl-dlg-row>

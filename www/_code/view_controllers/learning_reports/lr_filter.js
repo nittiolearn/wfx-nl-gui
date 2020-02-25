@@ -138,6 +138,11 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 			timestamptype: [
 				{id: 'created', name: 'Creation timestamp of the learning record'},
 				{id: 'updated', name: 'Last updated timestamp of the learning record'}
+			],
+			repsubtype: [
+				{id: '', name: 'All'},
+				{id: 'nht', name: 'NHT'},
+				{id: 'lms', name: 'LMS'}
 			]
 		};
 		var defaultFilterjson = '[{"field": "completed", "val": true}]';
@@ -145,8 +150,9 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 			timestamptype: {name: 'Fetch based on', help: '<div class="padding-mid">If you are unsure, stick to the defaults.</div>'
 				+ '<ul><li class="padding-small">You may fetch based on <b>creation timestamp</b> if would like to see what happened to assignments sent during a timeframe. This will include lerning records that were assigned within the timerange and got updated during or after the given timerange.</li>'
 				+ '<li class="padding-small">You may fetch based on <b>last updated timestamp</b> if would like to view the learning activities during a timeframe. This include learning records that were assigned before or within the timerange but were updated within the timerange. </li></ul>'},
-			createdfrom: {name: 'From', help: 'Select the start of the timerange to featch reports.'},
-			createdtill: {name: 'Till', help: 'Select the end of the timerange to featch reports.'},
+			createdfrom: {name: 'From', help: 'Select the start of the timerange to fetch reports.'},
+			createdtill: {name: 'Till', help: 'Select the end of the timerange to fetch reports.'},
+			repsubtype: {name: 'Report Type', help: '<div>Select the report type.</div>'},
 			filterjson: {name: 'Additional filters', help: '<div>Provide additional filters as a json string. For example:</div>'
 					+ '<pre>' +  defaultFilterjson + '</pre>'},
 			ouUserTree: {name: 'Select user', help: nl.t('Select the specific learner to fetch reports.')}
@@ -168,6 +174,10 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		}
 		
 		dlg.scope.data = {timestamptype: {id: dataParam.timestamptype}, createdfrom: dataParam.createdfrom, createdtill: dataParam.createdtill, filterjson: dataParam.filterjson};
+		if(dataParam.type == 'course' && !_groupInfo.props.features.etm) {
+			dlg.scope.data.repsubtype = {id: dataParam.repsubtype || ''};
+			dlg.scope.showReportType = true;
+		}
 		dlg.scope.error = {};
 		dlg.scope.userSelection = dataParam.userSelection;
 		dlg.scope.dlgTitle = nl.t('Filter reports');
@@ -192,6 +202,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 				dataParam.timestamptype = sd.timestamptype.id;
 				dataParam.createdtill = sd.createdtill;
 				dataParam.createdfrom = sd.createdfrom;
+				dataParam.repsubtype = sd.repsubtype ? sd.repsubtype.id : sd.repsubtype;
 				dataParam.filterjson = sd.filterjson;	
 			}
 			return true;
@@ -218,7 +229,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		}
 		if (_data.debug) ret.debug = true;
 		if (_data.chunksize) ret.chunksize = _data.chunksize;
-		ret.filters = _getOusPlusRepSubTypePlusCusomFilters();
+		ret.filters = _getOusPlusRepSubTypePlusCustomFilters();
 		return ret;
 	};
 
@@ -231,7 +242,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
             nl.fmt.fmtDateDelta(_data.createdtill));
 	};
 
-	function _getOusPlusRepSubTypePlusCusomFilters() {
+	function _getOusPlusRepSubTypePlusCustomFilters() {
 		var ret = [];
 		var custFilters = _data.filterobj || [];
 		for (var i=0; i<custFilters.length; i++) ret.push(custFilters[i]);

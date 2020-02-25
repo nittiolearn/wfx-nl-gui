@@ -3,7 +3,7 @@
         <div class='col nht-col1-w fsh5'>{{nht.tableTitle}}</div>
         <div ng-repeat='col in nht.selectedColumns track by $index'
             class='minw-number text-center' ng-if='col.canShow && ($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
-            <div class='{{col.styleTd}}'>{{col.name}}</div>
+            <div class='{{col.styleTd}} nl-word-break'>{{col.name}}</div>
         </div>
     </div>
     <div class='row row-center margin0 padding-small {{rec.isFolder ? "lnblue2" : ""}} anim fade highlight'

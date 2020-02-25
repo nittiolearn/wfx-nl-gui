@@ -38,11 +38,8 @@ function(nl, nlReportHelper, nlGetManyStore) {
     function _getNhtBatchInfo(record) {
         var ou = record.user.org_unit;
         var subOrg = _orgToSubOrgDict[ou] || 'Others';
-        var part2 = ou;
-        if (ou == subOrg) part2 = 'Others';
-        else if (ou.indexOf(subOrg) == 0) part2 = ou.substring(subOrg.length+1);
         var subOrgParts = subOrg.split('.');
-        return {partner: subOrgParts[subOrgParts.length -1], lob: part2,
+        return {partner: subOrgParts[subOrgParts.length -1], lob: record.course.contentmetadata.subject,
             batchName: record.repcontent.batchname || record.repcontent.name,
             batchType: record.repcontent.batchtype || '',
             batchId: record.raw_record.assignment};

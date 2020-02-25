@@ -234,11 +234,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			id: 'content',
 			onClick : _onViewContent
 		}, {
-			title : 'Update Training Batch',
-			icon : 'ion-gear-b',
-			id: 'update_batch',
-			onClick : _onUpdateTrainingBatch
-		}, {
 			title : 'Mark attendance',
 			icon : 'ion-person-stalker',
 			id: 'attendance',
@@ -288,9 +283,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (tbid == 'tbfetchmore') return nlLrFetcher.canFetchMore();
 		if (tbid == 'tbfilter') return nlLrFilter.isFilterShown();
 		if (tbid == 'content') return (nlLrFilter.getType() == 'module_assign' || nlLrFilter.getType() == 'course_assign');
-		if (tbid == 'update_batch') {
-			return nlLrFilter.isDebugMode();
-		}
 		if (tbid == 'attendance') {
 			var content = _getContentOfCourseAssignment();
 			return content && content.blended ? true : false;
@@ -619,7 +611,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 	
 	function _col(id, name, hideInMode, icon) {
-		var __column = { id: id, name: name, allScreens: true, canShow:true, hideInMode: hideInMode, styleTd: 'minw-number nl-text-center'};
+		var __column = { id: id, name: name, allScreens: true, canShow:true, hideInMode: hideInMode, styleTd: 'minw-number nl-text-center nl-word-break'};
 		if(icon) __column.icon = icon;
 		return __column;
 	}
@@ -1129,7 +1121,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push({id: 'batchStatus', name: 'Batch Status', table: true, hidePerc:true, smallScreen: true, showAlways: true});
 		columns.push({id: 'batchName', name: 'Batch', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'partner', name: 'Partner', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
-		columns.push({id: 'lob', name: 'LOB', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
+		columns.push({id: 'lob', name: _groupInfo.props.subjectlabel || 'lob', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 
 		columns.push({id: 'inductionDropOut', name: 'Induction drop out', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 
@@ -1384,7 +1376,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			userObj.not_after = record.not_after ? nl.fmt.fmtDateDelta(record.raw_record.not_after, null, 'date') : '';  //Show only after the feature is enabled for the type=course
 			userObj.learner_status = (record.user.state == 0) ? nl.t('Inactive') : nl.t('Active')
 			var _statusInfos = record.repcontent.statusinfo;
-			_updateLobInUserobj(_orgToSubOrgDict, record.user.org_unit, userObj);
+			userObj.lob = record.course.contentmetadata.subject;
 			for(var j=0; j<iltSessions.length; j++) {
 				var cm = iltSessions[j];
 				var sessionInfo = _statusInfos[cm.id];
@@ -1398,18 +1390,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.iltBatchInfo = {columns: _getILTColumns(sessionDates), rows: iltBatchInfoRow};
 	}
 
-	function _updateLobInUserobj(orgToSubOrgDict, ou, userObj) {
-        var subOrg = orgToSubOrgDict[ou] || 'Others';
-        var part2 = ou;
-        if (ou == subOrg) part2 = 'Others';
-		else if (ou.indexOf(subOrg) == 0) part2 = ou.substring(subOrg.length+1);
-		userObj.lob = part2;
-	}
-
 	function _getILTColumns(sessionDates) {
 		var headerRow = [];
+		var lobTitle = _groupInfo.props.subjectlabel || 'lob';
 		headerRow.push({id: 'name', name: nl.t('Learner name'), class: 'minw-string'});
-		headerRow.push({id: 'lob', name: nl.t('LOB'), class: 'minw-string'});
+		headerRow.push({id: 'lob', name: nl.t(lobTitle), class: 'minw-string'});
 		headerRow.push({id: 'coursename', name: nl.t('Course name'), table: false, class: 'minw-string'});
 		headerRow.push({id: 'batchname', name: nl.t('Batch name'), table: false, class: 'minw-string'});
 		headerRow.push({id: 'not_before', name: nl.t('Start date'), class: 'minw-number'});
@@ -1616,8 +1601,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	//Mark milestone for items inside the course
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _onClickOnMarkMilestone() {
-		// TODO-NOW: Change
-		// return _onUpdateTrainingBatch('milestone');
+		return _onUpdateTrainingBatch('milestone');
+		// TODO-LATER-1150: Remove unused code
 		var courseAssignment = _getCourseAssignmnt();
 		g_milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
 		g_attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
@@ -1941,8 +1926,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _onClickOnMarkAttendance() {
-		// TODO-NOW: Change
-		// return _onUpdateTrainingBatch('iltsession');
+		return _onUpdateTrainingBatch('iltsession');
+		// TODO-LATER-1150: Remove unused code
 		var courseAssignment = _getCourseAssignmnt();
 		g_milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
 		g_attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
@@ -2372,8 +2357,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	var oldRating = {};
 	var ratingUpdated = false;
 	function _onClickOnMarkRatings() {
-		// TODO-NOW: Change
-		// return _onUpdateTrainingBatch('rating');
+		return _onUpdateTrainingBatch('rating');
+		// TODO-LATER-1150: Remove unused code
 		var courseAssignment = _getCourseAssignmnt();
 		g_milestone = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
 		g_rating = courseAssignment.rating ? angular.fromJson(courseAssignment.rating) : {};
