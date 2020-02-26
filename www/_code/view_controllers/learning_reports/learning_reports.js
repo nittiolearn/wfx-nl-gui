@@ -169,7 +169,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.toolbar = _getToolbar();
 		$scope.learningRecords = nlLrReportRecords.getRecords();
 		$scope.metaHeaders = nlLrHelper.getMetaHeaders(true);
-		_lrColumns = _getLrColumns();
+		_lrColumns = _selectedLrCols || _getLrColumns();
 		$scope.utable = {
 			search: {disabled : true},
 			columns: _lrColumns,
@@ -554,16 +554,19 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	}
 
+	var _selectedLrCols = null;
+	var _defaultLrCol = ["user.user_id", "user.name", "repcontent.name", "user.org_unit", "stats.status.txt"];
+	var _lastSelectedCols = null;
 	function _updateLearningRecordsTab(tabData) {
-		var defaultCol = ["user.user_id", "user.name", "repcontent.name", "user.org_unit", "stats.status.txt"];
-		_lrSelectedColumns(defaultCol);
+		_lrSelectedColumns(_lastSelectedCols || _defaultLrCol);
 		nlTable.updateTableObject($scope.utable, tabData.records);
 		$scope.lrViewSelectorConfig = {
 			canEdit: nlRouter.isPermitted(_userInfo, 'assignment_manage'),
 			tableType: 'lr_views',
 			allColumns: _getLrColumns(),
-			defaultViewColumns: {id: 'default', name: 'Default', columns: defaultCol},
+			defaultViewColumns: {id: 'default', name: 'Default', columns: _defaultLrCol},
 			onViewChange: function(selectedColumns) {
+				_lastSelectedCols = selectedColumns;
 				_lrSelectedColumns(selectedColumns);
 				nlTable.updateTableObject($scope.utable, tabData.records);
 			}
@@ -579,6 +582,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			ret.push(lrColumnsDict[colid]);
 		}
 		$scope.utable.columns = ret;
+		_selectedLrCols = ret;
 	}
 
 	function _getLrColumns() {
@@ -1475,13 +1479,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			iltBatchStats = {statsCountArray: $scope.iltBatchInfo.rows, columns: $scope.iltBatchInfo.columns};
 		}
 
-		var lrStats = null;
-		var lrHeader = [];
-		for(var i=0; i<_lrColumns.length; i++) {
-			var col = _lrColumns[i];
-			if(col.canShow) lrHeader.push(col);
+		if(!_selectedLrCols) {
+			_lrSelectedColumns(_defaultLrCol)
 		}
-		lrStats = {columns: lrHeader};
+		var lrStats = {columns: _selectedLrCols};
 		nlLrExporter.export($scope, reportRecords, _customScoresHeader, drillDownStats, nhtStats, iltBatchStats, lrStats);
 	}
 	

@@ -235,16 +235,25 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 if (itemInfo.customStatus) defaultCourseStatus = itemInfo.customStatus;
             }
             if (cm.showInReport && _isEndItemState(itemInfo.status)) {
-                var score = itemInfo.score;
-                var customScoreType = null;
-                if(cm.rating_type == 'rag') {
-                    score = itemInfo.rating;
-                    customScoreType = 'rag';
+                var isCustomScoreNameUnique = true;
+                for(var j=0; j<ret.customScores.length; j++) {
+                    if(cm.name == ret.customScores[j].name) {
+                        isCustomScoreNameUnique = false;
+                        break;
+                    }
                 }
-                var customScoreItemObj = {name: cm.name, score: score};
-                if(customScoreType) customScoreItemObj['type'] = customScoreType;
-                ret.customScores.push(customScoreItemObj);
-                ret.customScoreDict[cm.name] =  score;
+                if(isCustomScoreNameUnique) {
+                    var score = itemInfo.score;
+                    var customScoreType = null;
+                    if(cm.rating_type == 'rag') {
+                        score = itemInfo.rating;
+                        customScoreType = 'rag';
+                    }
+                    var customScoreItemObj = {name: cm.name, score: score};
+                    if(customScoreType) customScoreItemObj['type'] = customScoreType;
+                    ret.customScores.push(customScoreItemObj);
+                    ret.customScoreDict[cm.name] =  score;
+                }
             }
         }
 
