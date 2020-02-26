@@ -324,9 +324,8 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
                 var expireDays = parseInt(certInfo.expire_after);
                 var expireOn = new Date(certInfo.updated);
                 expireOn.setDate(expireOn.getDate() + expireDays);
-                if(new Date() < expireOn) {
-                    stats.certValid = nl.fmt.fmtDateDelta(expireOn, null, 'minute');
-                } else {
+                stats.certValid = nl.fmt.fmtDateDelta(expireOn, null, 'minute');
+                if(new Date() > expireOn) {
                     stats.status = nlReportHelper.statusInfos[nlReportHelper.STATUS_FAILED];
                     stats.status.txt = 'Certificate expired';
                 }

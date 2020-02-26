@@ -1374,7 +1374,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		var userObj = {};
 		var iltBatchInfoRow = [];
-		var _orgToSubOrgDict = nlGroupInfo.getOrgToSubOrgDict();		
 		for(var i=0; i<records.length; i++) {
 			userObj = {};
 			var record = records[i];
@@ -1390,12 +1389,17 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var cm = iltSessions[j];
 				var sessionInfo = _statusInfos[cm.id];
 				var sessionDate =  nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(cm.sessiondate || ''), null, 'date');
-				if (sessionInfo.stateStr == 'notapplicable' || !sessionInfo.state) continue;
+				if (sessionInfo.stateStr == 'notapplicable' || !sessionInfo.state || sessionInfo.status == 'waiting') continue;
 				if (sessionDate)
 					userObj[sessionDate] = sessionInfo.state || '-';
 			}
 			iltBatchInfoRow.push(userObj);
 		};
+		iltBatchInfoRow.sort(function(a, b) {
+			if(b.name.toLowerCase() < a.name.toLowerCase()) return 1;
+			if(b.name.toLowerCase() > a.name.toLowerCase()) return -1;
+			if(b.name.toLowerCase() == a.name.toLowerCase()) return 0;				
+		});
 		$scope.iltBatchInfo = {columns: _getILTColumns(sessionDates), rows: iltBatchInfoRow};
 	}
 

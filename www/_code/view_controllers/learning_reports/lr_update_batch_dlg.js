@@ -227,18 +227,20 @@ function DbAttendanceObject(courseAssignment, ctx) {
 
 	this.validateLr = function(lr, cm, lrBlocker) {
 		var attendanceConfig = _attendanceOptionsDict[lr.attendance.id] || {};
-		if (!lr.attendance.id) cm.isMarkingComplete = false;
-		else cm.someAtdFilled = true;
+		if (!cm.asdSession) lrBlocker.lastSessionAttended = false;
 		if (_etmAsd.length > 0) {
 			var lrAtdMarked = lr.attendance.id && lr.attendance.id != 'notapplicable';
 			var sessionDate = nl.fmt.date2Str(cm.sessiondate, 'date');
 			if (sessionDate && sessionDate in lrBlocker.atdMarkedDates) {
 				var markedAt = nlReportHelper.getItemName(lrBlocker.atdMarkedDates[sessionDate]);
 				lr.lockedMessage = nl.fmt2('Attendance already marked at {}', markedAt);
+				return;
 			} else if (sessionDate && lrAtdMarked) {
 				lrBlocker.atdMarkedDates[sessionDate] = cm;
 			}
 		}
+		if (!lr.attendance.id) cm.isMarkingComplete = false;
+		else cm.someAtdFilled = true;
 		if (attendanceConfig.isAttrition || attendanceConfig.id == 'certified') {
 			lr.cantProceedMessage = nl.fmt2('Marked {} at {}', attendanceConfig.name, nlReportHelper.getItemName(cm));
 			if (!lrBlocker.all) lrBlocker.all = lr;
@@ -247,9 +249,8 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			lr.validationErrorMsg = 'Remarks mandatory';
 			if (!cm.validationErrorMsg) cm.validationErrorMsg = nl.fmt2('{}: Remarks mandatory', nlReportHelper.getItemName(cm));
 		}
-		if (!cm.asdSession) lrBlocker.lastSessionAttended = false;
-		if (lrBlocker.lastSessionAttended) return;
-		lrBlocker.lastSessionAttended = (attendanceConfig.timePerc || 0) > 0;
+		if (!lrBlocker.lastSessionAttended)
+			lrBlocker.lastSessionAttended = (attendanceConfig.timePerc || 0) > 0;
 	};
 
 	this.postValidateCm = function(cm, cmValidationCtx) {

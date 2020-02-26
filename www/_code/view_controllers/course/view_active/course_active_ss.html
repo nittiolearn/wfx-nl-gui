@@ -23,6 +23,10 @@
 					<div style="max-height: 2.38em; overflow: hidden; font-size:16px;"
 						 class='col padding0'>{{courseContent.targetLang == "en" ? cm.name : (courseContent.languageInfo[courseContent.targetLang][cm.id].name || cm.name)}}
 					</div>
+					<div class='col padding0 forange2' ng-if='cm.type == "certificate" && cm.state.status == "expired"' 
+						style="max-height: 2.38em; overflow: hidden; font-size:16px;">
+						Certificate expired
+					</div>
 					<span class='text-right' style='width: 24px'>
 						<i ng-if='!ext.isStaticMode() && cm.state.icon' class="icon fsh3 {{cm.state.icon}}"></i>
 					</span>
