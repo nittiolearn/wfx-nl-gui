@@ -42,7 +42,8 @@ $nlGrey4:                         #f5f5f5 !default; // Lightest of light greys
 $nlDaryGrey1:                     #575B5E !default; // Darkest of dark greys
 $nlDaryGrey2:                     #707172 !default; // Lightest of dark greys
 
-$nlBorderGrey:                    #EEEEEE !default;
+$nlBorderGrey1:                    #EEEEEE !default;
+$nlBorderGrey2:                    #CCCCCC !default;
 
 // The path for our ionicons font files, relative to the built CSS in www/css
 $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
@@ -465,34 +466,36 @@ $animation-duration: 200ms !default;
 }
 
 .nl-table-styled3 {
-  border: 1px solid $nlBorderGrey;
+  border: 1px solid $nlBorderGrey2;
   margin: 0;
-  td, th {
-    text-align: left;
-  }
-  td {
+  text-align: left;
+  tr {
     background-color: white;
-    border-bottom: 1px solid $nlBorderGrey;
   }
-  &.no-bb td {
-    border-bottom: none;
-  }
-  th {
+  tr.header {
     background-color: $nlGrey4;
     color: $nlDaryGrey1;
-    border-bottom: 1px solid $nlBorderGrey;
+    font-weight: bold;
+    border-bottom: 1px solid $nlBorderGrey2;
   }
-  tr.alternate td {
+  tr.alternate {
     background-color: $nlGrey3;
   }
-
-}
-
-.nl-table-styled3.hover {
-  &:hover, &:focus, &:active {
-    background-color: $nlGrey2;
+  tr.clickable {
+    cursor: pointer;
+  }
+  tr.hover {
+    &:hover, &:focus, &:active {
+      background-color: $nlGrey2;
+    }
+  }
+  &.rowlines {
+    tr {
+      border-bottom: 1px solid $nlBorderGrey2;
+    }
   }
 }
+
 
 .no-border {
   tr { border: none;}
@@ -522,10 +525,6 @@ tr.header {
 tr.summary {
   background: $nlBlue3;
   color: white;
-}
-
-.nl-word-break {
-  word-break: break-word;
 }
 
 .nl-16 {
@@ -614,6 +613,37 @@ tr.summary {
 
 .nl-overflow-auto {
   overflow-y: auto;
+}
+
+.nl-show-tooltip {
+  position: relative;
+  &:hover .nl-tooltip {
+    display: block;
+  }
+  .nl-tooltip {
+    display: none;
+    z-index: 99999;
+    position: absolute;
+    top: 1em;
+    left: 110%;
+    border-radius: 4px;  
+    color: white;
+    background-color: $nlBlue1;
+    white-space: nowrap;
+    padding: 8px;
+    font-weight: bold;
+  }
+
+  .nl-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 100%;
+    margin-top: -6px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: transparent $nlBlue1 transparent transparent;
+  }
 }
 
 //-----------------------------------------------------------------------------------------
@@ -1709,23 +1739,23 @@ nl-summary-box.small-summary-box {
 }
 
 .nl-left-tabbed-content {
-  border-left: 1px solid $nlBorderGrey;
+  border-left: 1px solid $nlBorderGrey1;
   padding-left: 0;
 }
 
 .nl-left-tab {
   border-radius: 8px 0px 0px 8px;
-  border-top: 1px solid $nlBorderGrey;
-  border-left: 1px solid $nlBorderGrey;
-  border-bottom: 1px solid $nlBorderGrey;
+  border-top: 1px solid $nlBorderGrey1;
+  border-left: 1px solid $nlBorderGrey1;
+  border-bottom: 1px solid $nlBorderGrey1;
 }
 
 .bt1 {
-  border-top: 1px solid $nlBorderGrey;
+  border-top: 1px solid $nlBorderGrey1;
 }
 
 .bb1 {
-  border-bottom: 1px solid $nlBorderGrey;
+  border-bottom: 1px solid $nlBorderGrey1;
 }
 
 .nl-left-tab-selected {

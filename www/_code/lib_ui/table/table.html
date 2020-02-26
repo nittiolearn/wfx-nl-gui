@@ -14,10 +14,10 @@
 </div>
 <div ng-transclude></div>
 <table class='{{info.styleTable}}'>
-    <tr class='{{info.styleHeader}}'>
-        <th ng-repeat='col in info.columns track by $index'
+    <tr class='header {{info.styleHeader}}'>
+        <td ng-repeat='col in info.columns track by $index'
             ng-show='col.canShow'
-            class='{{col.styleTd}}'>{{col.name}}</th>
+            class='{{col.styleTd}}'>{{col.name}}</td>
     </tr>
     <tr ng-show='info._internal.summaryRow'
          class='{{info.styleSummary}}'>

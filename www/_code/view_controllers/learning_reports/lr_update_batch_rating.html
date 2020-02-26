@@ -11,20 +11,20 @@
     
     <div class='padding-small'>
     </div>
-    <table class='nl-table nl-table-styled3 no-bb hover'>
-        <tr>
-            <th style='width: 20%;'>
+    <table class='nl-table nl-table-styled3'>
+        <tr class='header'>
+            <td style='width: 20%;'>
                 Learner Name
-            </th>
-            <th style='width: 20%;'>
+            </td>
+            <td style='width: 20%;'>
                 Learner Id
-            </th>
-            <th style='width: 20%;'>
+            </td>
+            <td style='width: 20%;'>
                 Rating
-            </th>
-            <th>
+            </td>
+            <td>
                 Remarks
-            </th>
+            </td>
         </tr>
         <tr ng-repeat='report in selectedModule.learningRecords'
             ng-show='bulkMarker.showRating || !report.bulkEntry'

@@ -221,7 +221,7 @@ function Searcher(nl, nlDlg, info) {
     self.getFieldValue = function(record, fieldId) {
         if(!record) return '';
         var pos = fieldId.indexOf('.');
-        if (pos < 0) return record[fieldId] || '';
+        if (pos < 0) return record[fieldId] ? record[fieldId] : record[fieldId] === 0 ? '0' : '';
         var left = fieldId.substring(0, pos);
         var right = fieldId.substring(pos+1);
         return self.getFieldValue(record[left], right);

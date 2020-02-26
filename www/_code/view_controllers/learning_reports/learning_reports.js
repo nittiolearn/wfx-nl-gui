@@ -173,7 +173,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.utable = {
 			search: {disabled : true},
 			columns: _lrColumns,
-			styleTable: 'nl-table nl-table-styled3',
+			styleTable: 'nl-table nl-table-styled3 rowlines',
 			styleHeader: ' ',
 			onRowClick: 'expand',
 			detailsTemplate: 'view_controllers/learning_reports/learning_report_details.html',
@@ -642,7 +642,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 	
 	function _col(id, name, hideInMode, icon) {
-		var __column = { id: id, name: name, allScreens: true, canShow:true, hideInMode: hideInMode, styleTd: 'minw-number nl-text-center nl-word-break'};
+		var __column = { id: id, name: name, allScreens: true, canShow:true, hideInMode: hideInMode, styleTd: 'minw-number nl-text-center'};
 		if(icon) __column.icon = icon;
 		return __column;
 	}

@@ -15,22 +15,22 @@
         </div>
     </div>
 
-    <table ng-if='change.lrChanges' class='nl-table nl-table-styled3'>
-        <tr>
-            <th style='width: 20%;'>
+    <table ng-if='change.lrChanges' class='nl-table nl-table-styled3 rowlines'>
+        <tr class='header'>
+            <td style='width: 20%;'>
                 Learner Name
-            </th>
-            <th style='width: 20%;'>
+            </td>
+            <td style='width: 20%;'>
                 Learner Id
-            </th>
-            <th style='width: 20%;'>
+            </td>
+            <td style='width: 20%;'>
                 <span ng-if='change.cm.type == "iltsession"'>Attendance Status</span>
                 <span ng-if='change.cm.type == "rating"'>Rating</span>
                 <span ng-if='change.cm.type == "milestone"'>Milestone Status</span>
-            </th>
-            <th>
+            </td>
+            <td>
                 Remarks
-            </th>
+            </td>
         </tr>
         <tr ng-repeat='lrChange in change.lrChanges'>
             <td>

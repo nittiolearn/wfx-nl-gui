@@ -1,6 +1,5 @@
 <style>
 .minw-number {
-    width: 120px;
     min-width: 120px;
 }
 
@@ -16,9 +15,6 @@
     overflow: hidden;    
 }
 
-.nht-col1-w {
-    min-width: 100px;
-}
 .nl-bg-dark-blue {
     background-color:#CCCCDD;     
 }
@@ -97,10 +93,9 @@
         ******************************************************************* -->
         <div style='padding-right:0px'>
             <div ng-repeat='tb in tabData.tabs'
-                 class='nl-link-text {{(tb.id == tabData.selectedTab.id) ? "nl-left-tab-selected" : "nl-left-tab"}}'
-                 title='{{tb.name}}'>
+                 class='nl-link-text nl-show-tooltip {{(tb.id == tabData.selectedTab.id) ? "nl-left-tab-selected" : "nl-left-tab"}}'>
                 <div class='padding-mid row row-center margin0' 
-                    ng-click='tabData.onTabSelect(tb)'>
+                     ng-click='tabData.onTabSelect(tb)'>
                     <div>
                         <span class='nl-toolbar-icon no-hover row row-top padding0 margin0'>
                             <i ng-if='tb.icon' class="icon {{tb.icon}}"></i>
@@ -108,6 +103,7 @@
                         </span>
                     </div>
                 </div>
+                <div class='nl-tooltip'>{{tb.name}}</div>
             </div>
         </div>
         <!-- **************************************************************
@@ -115,7 +111,7 @@
         ******************************************************************* -->
         <div class='col nl-left-tabbed-content bt1 sandbox padding0' style='overflow: auto; height: {{getContTabHeight($event)}}px'>
             <!-- **************************************************************
-                Overview tab
+                Nothing to display tab
             ******************************************************************* -->
             <div  ng-if='tabData.nothingToDisplay'
                 class='anim-enter fade fsh5 padding'>
@@ -225,7 +221,7 @@
             <div ng-if='tabData.selectedTab.id == "learningrecords" && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-t padding-mid'>
                 <nl-table info='utable'></nl-table>
-                 <div ng-show='tabData.records.length > 100' class='padding-mid' style='color: #858888; font-weight: bold'>
+                 <div ng-show='tabData.records.length > 100' class='padding-mid-v fgrey'>
                     Showing {{utable._internal.visibleRecs.length}} of {{tabData.records.length}} items. Search if you are looking for specific item.
                 </div>
            </div>
@@ -262,30 +258,32 @@
                 class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
                 <nl-lr-drilldown-tab drilldown='drillDownInfo'></nl-lr-drilldown-tab>
             </div>
+            <!-- **************************************************************
+                NHT Batches tab
+            ******************************************************************* -->
             <div ng-if='(tabData.selectedTab.id == "nhtrunning" || tabData.selectedTab.id == "nhtclosed") && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
                 <nl-lr-nht-tab nht='nhtInfo'></nl-lr-nht-tab>
             </div>
+            <!-- **************************************************************
+                NHT Batch Attendance tab
+            ******************************************************************* -->
             <div ng-if='tabData.selectedTab.id == "iltbatchdata"  && !tabData.processingOnging'
-                class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
-                <div class='margin0 padding0' style='padding-bottom: 3px;'>
-                    <div class='row row-center margin0 padding-small bgblue fwhite'>
-                        <div ng-repeat='col in iltBatchInfo.columns track by $index'
-                            class='{{col.class}} text-center'>
-                            <div class='{{col.styleTd}}'>{{col.name || '-'}}</div>
-                        </div>
-                    </div>
-                    <div class='row row-center margin0 padding-small {{rec.isFolder ? "lnblue2" : ""}} anim fade highlight'
-                        ng-repeat='rec in iltBatchInfo.rows track by $index'
-                        style='height: 36px; border-bottom: 1px dotted rgba(125, 125, 125, 0.5)'>
-                        <div ng-repeat='col in iltBatchInfo.columns track by $index'
-                            class='{{col.class}} text-center'>
-                            <div class='row row-center'>
-                                <div class='col'>{{rec[col.id] || '-'}}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>            
+                class='padding-mid anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
+                <table class='nl-table nl-table-styled3 rowlines'>
+                    <tr class='header'>
+                        <td ng-repeat='col in iltBatchInfo.columns track by $index'
+                            class='{{col.class}}'>
+                            <div>{{col.name || '-'}}</div>
+                        </td>
+                    </tr>
+                    <tr ng-repeat='rec in iltBatchInfo.rows track by $index'>
+                        <td ng-repeat='col in iltBatchInfo.columns track by $index'
+                            class='{{col.class}}'>
+                            {{rec[col.id] || '-'}}
+                        </td>
+                    </tr>
+                </table>            
             </div>
         </div>
     </div>
