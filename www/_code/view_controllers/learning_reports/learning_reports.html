@@ -83,6 +83,10 @@
                 <i class='nl-link-text icon fsh4 fblue padding-mid ion-ios-search'
                     ng-click='tabData.onSearch(null)'>
                 </i>
+                <div ng-if='canShowFilterDialog' class='padding-small'></div>
+                <i ng-if='canShowFilterDialog' class='nl-link-text icon fsh4 fblue padding-mid ion-funnel'
+                   ng-click='tabData.onFilter(null)'>
+                </i>
             </div>
         </div>
     </div>
@@ -259,11 +263,18 @@
                 <nl-lr-drilldown-tab drilldown='drillDownInfo'></nl-lr-drilldown-tab>
             </div>
             <!-- **************************************************************
-                NHT Batches tab
+                NHT Running Batches tab
             ******************************************************************* -->
-            <div ng-if='(tabData.selectedTab.id == "nhtrunning" || tabData.selectedTab.id == "nhtclosed") && !tabData.processingOnging'
+            <div ng-if='tabData.selectedTab.id == "nhtrunning" && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
-                <nl-lr-nht-tab nht='nhtInfo'></nl-lr-nht-tab>
+                <nl-lr-nht-tab nht='nhtRunningInfo'></nl-lr-nht-tab>
+            </div>
+            <!-- **************************************************************
+                NHT Closed Batches tab
+            ******************************************************************* -->
+            <div ng-if='tabData.selectedTab.id == "nhtclosed" && !tabData.processingOnging'
+                class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
+                <nl-lr-nht-tab nht='nhtClosedInfo'></nl-lr-nht-tab>
             </div>
             <!-- **************************************************************
                 NHT Batch Attendance tab

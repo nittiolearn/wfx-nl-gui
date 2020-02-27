@@ -208,15 +208,17 @@ function DbAttendanceObject(courseAssignment, ctx) {
 	this.validateCm = function(cm, cmValidationCtx) {
 		cm.someAtdFilled = false;
 		cm.dateValidationError = null;
+		cm.dateValidationErrorIfSomeAtdFilled = null;
 		if (_etmAsd.length == 0) return;
 		if (!cm.sessiondate) {
-			cm.dateValidationError = 'Date mandatory';
+			cm.dateValidationErrorIfSomeAtdFilled = 'Date mandatory';
 			return;
 		}
 		var myDate = nl.fmt.date2Str(cm.sessiondate, 'date');
 		var lastDate = cmValidationCtx.lastFixedSessionDate || null;
 		if (lastDate && myDate <= lastDate) {
 			cm.dateValidationError = nl.fmt2('Date must be later than date specified in {}', cmValidationCtx.lastFixedSessionDateCmName);
+			cm.validationErrorMsg = nl.fmt2('{}: {}', nlReportHelper.getItemName(cm), cm.dateValidationError);
 			return;
 		}
 		if (!cm.asdSession) {
@@ -254,8 +256,9 @@ function DbAttendanceObject(courseAssignment, ctx) {
 	};
 
 	this.postValidateCm = function(cm, cmValidationCtx) {
-		if (!cm.someAtdFilled) cm.dateValidationError = null;
-		if (!cm.dateValidationError) return;
+		if (!cm.someAtdFilled) cm.dateValidationErrorIfSomeAtdFilled = null;
+		if (!cm.dateValidationErrorIfSomeAtdFilled) return;
+		cm.dateValidationError = cm.dateValidationErrorIfSomeAtdFilled;
 		cm.validationErrorMsg = nl.fmt2('{}: {}', nlReportHelper.getItemName(cm), cm.dateValidationError);
 	}
 	

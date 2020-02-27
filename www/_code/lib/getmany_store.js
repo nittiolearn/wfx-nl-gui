@@ -124,7 +124,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
     }
     var _msInfoCache = {};
     var _nhtBatchStatus = {};
-    this.clearMsInfoCache = function() {
+    this.clearCache = function() {
         _msInfoCache = {};
         _nhtBatchStatus = {};
     }
@@ -135,7 +135,12 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
     this.getBatchMilestoneInfo = function(reportRecord) {
         var courseAssignment = this.getAssignmentRecordFromReport(reportRecord) || {};
         if (!courseAssignment.id) return {};
-        if (courseAssignment.id in _msInfoCache) return _msInfoCache[courseAssignment.id];
+        if (courseAssignment.id in _msInfoCache) {
+            var msInfo = _msInfoCache[courseAssignment.id];
+            if(msInfo.batchStatus == 'Closed') _nhtBatchStatus.closed = true;
+            else _nhtBatchStatus.running = true;
+            return _msInfoCache[courseAssignment.id];
+        }
         var ret = {batchStatus: ''};
         _msInfoCache[courseAssignment.id] = ret;
 

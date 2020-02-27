@@ -1,0 +1,30 @@
+<nl-dlg dlgtitle='Filter items' show-help='0'>
+	<nl-dlg-content>
+		<table class='nl-table'>
+			<tr ng-if='options.suborg'>
+				<td class='nl-dlg-field-name'>
+					{{help.suborg.name}}
+				</td>
+				<td class='nl-dlg-field-value'>
+					<nl-select fieldmodel='suborg'></nl-select>
+				</td>
+			</tr>
+			<tr ng-if='options.subject'>
+				<td class='nl-dlg-field-name'>
+					{{help.subject.name}}
+				</td>
+				<td class='nl-dlg-field-value'>
+					<nl-select fieldmodel='subject'></nl-select>
+				</td>
+			</tr>
+			<tr ng-if='options.grade'>
+				<td class='nl-dlg-field-name'>
+					{{help.grade.name}}
+				</td>
+				<td class='nl-dlg-field-value'>
+					<nl-select fieldmodel='grade'></nl-select>
+				</td>
+			</tr>
+		</table>
+	</nl-dlg-content>
+</nl-dlg>
