@@ -399,80 +399,37 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return ret;
 	}
 
+	function _getTabObject(title, name, icon, id, updated, tables, iconsuperscript) {
+		return {
+			title: title, name: name, icon: icon, id: id, updated: updated, tables: tables, iconsuperscript: iconsuperscript
+		};
+	}
+	
 	function _updateTabs(tabData) {
 		tabData.tabs = [];
 		var tabs = tabData.tabs;
 		var _nhtBatchStates = nlGetManyStore.getNhtBatchStates();
-		tabs.push({
-			title : 'Click here to see reports overview',
-			name: 'Overview',
-			icon : 'ion-stats-bars',
-			id: 'overview',
-			updated: false,
-			tables: []
-		});
-		if (tabData.isDrillDownAdded) {
-			tabs.push({
-				title : 'Click here to view course-wise progress',
-				name: 'Drill Down',
-				icon : 'ion-social-buffer',
-				id: 'drilldown',
-				updated: false,
-				tables: []
-			});
+		if(nlLrFilter.getType() == 'course' && nlLrFilter.getMode() == 'cert_report') {
+			tabs.push( _getTabObject('Click here to view Completed courses', 'Certificates', 'ion-trophy', 'certificate', false,[]));
+		} else {
+			
+			tabs.push( _getTabObject('Click here to see reports overview', 'Overview', 'ion-stats-bars', 'overview', false,[]));
+		
+			if (tabData.isDrillDownAdded) tabs.push( _getTabObject('Click here to see course-wise progress', 'Drill Down', 'ion-social-buffer', 'drilldown', false,[]));
+			if (tabData.isNHTAdded) {
+				if (_nhtBatchStates.running) 
+					tabs.push( _getTabObject('Click here to view running batch summary', 'Running NHT Batches', 'ion-filing', 'nhtrunning', false, [], 'R')); 
+				if (_nhtBatchStates.closed)
+					tabs.push( _getTabObject('Click here to view closed batch summary', 'Closed NHT Batches', 'ion-filing', 'nhtclosed', false, [], 'C'));
+				if(Object.keys(_nhtBatchStates).length == 0) tabData.isNHTAdded = false;
+			}	
+			if (nlLrFilter.getType() == 'course_assign' && (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0)) 
+				tabs.push( _getTabObject('Click here to view NHT batch attendance summary', 'NHT Batch Attendance', 'ion-person-stalker', 'iltbatchdata', false,[]));
+			
+			tabs.push( _getTabObject('Click here to view learning records', 'Learning Records', 'ion-ios-compose', 'learningrecords', false, [tabData.utable]));
+			tabs.push( _getTabObject('Click here to view time summary', 'Time Summary', 'ion-clock', 'timesummary', false, []));
+	
 		}
-		if (tabData.isNHTAdded) {
-			if (_nhtBatchStates.running) {
-				tabs.push({
-					title : 'Click here to view running batch summary',
-					name: 'Running NHT Batches',
-					icon : 'ion-filing',
-					iconsuperscript : 'R',
-					id: 'nhtrunning',
-					updated: false,
-					tables: []
-				});	
-			} 
-			if (_nhtBatchStates.closed) {
-				tabs.push({
-					title : 'Click here to view closed batch summary',
-					name: 'Closed NHT Batches',
-					icon : 'ion-filing',
-					iconsuperscript : 'C',
-					id: 'nhtclosed',
-					updated: false,
-					tables: []
-				});	
-			}
-			if(Object.keys(_nhtBatchStates).length == 0) tabData.isNHTAdded = false;
-		}
-
-		if (nlLrFilter.getType() == 'course_assign' && (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0)) {
-			tabs.push({
-				title : 'Click here to view NHT batch attendance summary',
-				name: 'NHT Batch Attendance',
-				icon: 'ion-person-stalker',
-				id: 'iltbatchdata',
-				updated: false,
-				tables: []
-			});	
-		}
-		tabs.push({
-			title : 'Click here to view learning records',
-			name: 'Learning Records',
-			icon : 'ion-ios-compose',
-			id: 'learningrecords',
-			updated: false,
-			tables: [tabData.utable]
-		});
-		tabs.push({
-			title : 'Click here to view time summary',
-			name: 'Time Summary',
-			icon : 'ion-clock',
-			id: 'timesummary',
-			updated: false,
-			tables: []
-		});
 		if (!tabData.selectedTab) return;
 		for(var i=0; i<tabs.length; i++) {
 			if (tabData.selectedTab.id != tabs[i].id) continue;
@@ -551,6 +508,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			_updateNhtTab();
 		} else if (tab.id == 'iltbatchdata') {
 			_updateILTBatch();
+		} else if (tab.id == 'certificate') {
+			_updateCertificateTab();
 		}
 	}
 
@@ -1327,6 +1286,42 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		return ret;
 	}
+
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	// Certificate tab
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	function _updateCertificateTab() {
+		var records = $scope.tabData.records;
+		var userDict = {};
+		var userObj = {}
+		var courseId = null;
+		var certDict = {};
+
+		for(var i=0; i<records.length; i++) {
+			userObj = {};
+			var record = records[i];
+			if(!record.user.state) continue;
+
+			var userId = record.user.user_id;
+			courseId = record.raw_record.lesson_id;
+			if(!userDict[userId]) userDict[userId] = {name: record.user.name, user_id: record.user.user_id, certificates :{}};
+			userObj = userDict[userId];
+
+			if(!certDict[courseId]) certDict[courseId] = {name: record.repcontent.name, valid: 0, expired: 0};
+			if(!(courseId in userObj.certificates)) {
+				userObj.certificates[courseId] = {name: record.repcontent.name, expireOn:record.stats.expireOn, certExpired: record.stats.certExpired};
+				if(record.stats.certExpired) certDict[courseId].expired += 1;
+				else certDict[courseId].valid += 1;
+
+			} else if(userObj.certificates[courseId].expireOn < record.stats.expireOn) {
+				userObj.certificates[courseId].expireOn = record.stats.expireOn;
+				// if(record.stats.certExpired) certDict[courseId].expired += 1;	//TODO-NOW: if earlier expired, then valid, so increse the count of valid and decrease the count of expired
+			}
+		};
+		console.log(userDict);
+	}
+
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	//ILTBatch tab
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------

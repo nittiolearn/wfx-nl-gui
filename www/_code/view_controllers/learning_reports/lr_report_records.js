@@ -325,9 +325,11 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
                 var expireOn = new Date(certInfo.updated);
                 expireOn.setDate(expireOn.getDate() + expireDays);
                 stats.certValid = nl.fmt.fmtDateDelta(expireOn, null, 'minute');
+                stats.expireOn = expireOn;
                 if(new Date() > expireOn) {
                     stats.status = nlReportHelper.statusInfos[nlReportHelper.STATUS_FAILED];
                     stats.status.txt = 'Certificate expired';
+                    stats.certExpired = true;
                 }
             }
         }
