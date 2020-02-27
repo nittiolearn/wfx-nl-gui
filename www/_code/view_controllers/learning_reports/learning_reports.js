@@ -464,10 +464,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			_updateDrillDownTab();
 		} else if (tab.id == 'nhtrunning') {
 			_updateRunningNhtTab();
-		}else if (tab.id == 'nhtclosed') {
+		} else if (tab.id == 'nhtclosed') {
 			_updateClosedNhtTab();
 		} else if (tab.id == 'iltbatchdata') {
 			_updateILTBatch();
+		} else if (tab.id == 'certificate') {
+			_updateCertificateTab();
 		}
 	}
 
@@ -1358,7 +1360,40 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	// Certificate tab
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	function _updateCertificateTab() {
+		var records = $scope.tabData.records;
+		var userDict = {};
+		var userObj = {}
+		var courseId = null;
+		var certDict = {};
 
+		for(var i=0; i<records.length; i++) {
+			userObj = {};
+			var record = records[i];
+			if(!record.user.state) continue;
+
+			var userId = record.user.user_id;
+			courseId = record.raw_record.lesson_id;
+			if(!userDict[userId]) userDict[userId] = {name: record.user.name, user_id: record.user.user_id, certificates :{}};
+			userObj = userDict[userId];
+
+			if(!certDict[courseId]) certDict[courseId] = {name: record.repcontent.name, valid: 0, expired: 0};
+			if(!(courseId in userObj.certificates)) {
+				userObj.certificates[courseId] = {name: record.repcontent.name, expireOn:record.stats.expireOn, certExpired: record.stats.certExpired};
+				if(record.stats.certExpired) certDict[courseId].expired += 1;
+				else certDict[courseId].valid += 1;
+
+			} else if(userObj.certificates[courseId].expireOn < record.stats.expireOn) {
+				userObj.certificates[courseId].expireOn = record.stats.expireOn;
+				// if(record.stats.certExpired) certDict[courseId].expired += 1;	//TODO-NOW: if earlier expired, then valid, so increse the count of valid and decrease the count of expired
+			}
+		};
+		console.log(userDict);
+	}
+
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _onExport() {
 		if (nlLrFetcher.fetchInProgress()) return;
 		var reportRecords = nlLrReportRecords.asList();
@@ -2909,9 +2944,8 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 	this.update = function() {
 		tabData.tabs = [];
 		var tabs = tabData.tabs;
-		// TODO-NOW-DEEPTI: put in check around mode==cert_status
-		if (false) { /* mode == cert_status) */
-			// Add Certificate tab
+		if (nlLrFilter.getMode() == 'cert_report') {
+			_addCertificateTab(tabs);
 		} else {
 			_addOverviewTabs(tabs);
 			_addDrilldownTab(tabs);
@@ -3004,6 +3038,17 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 			name: 'Time Summary',
 			icon : 'ion-clock',
 			id: 'timesummary',
+			updated: false,
+			tables: []
+		});
+	}
+
+	function _addCertificateTab(tabs) {
+		tabs.push({
+			title : 'Click here to view certification status',
+			name: 'Certificates',
+			icon : 'ion-trophy',
+			id: 'certificate',
 			updated: false,
 			tables: []
 		});
