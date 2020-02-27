@@ -124,6 +124,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg) {
 	var _userInfo = null;
 	var _groupInfo = null;
+	var _recordsFilter = null;
 	var _customScoresHeader = null;
 	this.show = function() {
 		nlRouter.initContoller($scope, '', _onPageEnter);
@@ -136,6 +137,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			nlGroupInfo.init2().then(function() {
 				nlGroupInfo.update();
 				_groupInfo = nlGroupInfo.get();
+				_recordsFilter = new RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, _onApplyFilter);
 				_init();
 				resolve(true); // Has to be before next line for loading screen
 				_showRangeSelection();
@@ -159,6 +161,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nlLrExporter.init(_userInfo, _groupInfo);
 		nlLrDrilldown.init(nlGroupInfo);
 		nlLrNht.init(nlGroupInfo);
+		_recordsFilter.init();
 		nl.pginfo.pageTitle = nlLrFilter.getTitle();
 		_initScope();
 	}
@@ -182,7 +185,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		};
 		$scope.utable.styleDetail = 'nl-max-1100';
 		nlTable.initTableObject($scope.utable);
-		$scope.tabData = _initTabData($scope.utable);
+		_initTabData($scope.utable);
 		_initChartData();
 	}
 	
@@ -374,12 +377,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return isMailEnabled;
 	}
 
+	var _tabManager = null;
 	function _initTabData(utable) {
-		var ret =  {tabs: [], utable: utable};
-		ret.isNHTAdded = false;
+		$scope.tabData =  {tabs: [], utable: utable};
+		_tabManager = new LrTabManager($scope.tabData, nlGetManyStore, nlLrFilter, _groupInfo);
+
+		var ret = $scope.tabData;
 		ret.isFilterApplied = false;
-		ret.isDrillDownAdded = false;
-		_updateTabs(ret);
+		_updateTabs();
 
 		ret.search = '';
 		ret.lastSeached = '';
@@ -392,90 +397,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		ret.processingOnging = true;
 		ret.nothingToDisplay = false;
 		ret.onSearch = _onSearch;
+		ret.onFilter = _recordsFilter.showFilterDialog;
 		ret.onTabSelect = _onTabSelect;
-		return ret;
 	}
 
-	function _updateTabs(tabData) {
-		tabData.tabs = [];
-		var tabs = tabData.tabs;
-		var _nhtBatchStates = nlGetManyStore.getNhtBatchStates();
-		tabs.push({
-			title : 'Click here to see reports overview',
-			name: 'Overview',
-			icon : 'ion-stats-bars',
-			id: 'overview',
-			updated: false,
-			tables: []
-		});
-		if (tabData.isDrillDownAdded) {
-			tabs.push({
-				title : 'Click here to view course-wise progress',
-				name: 'Drill Down',
-				icon : 'ion-social-buffer',
-				id: 'drilldown',
-				updated: false,
-				tables: []
-			});
-		}
-		if (tabData.isNHTAdded) {
-			if (_nhtBatchStates.running) {
-				tabs.push({
-					title : 'Click here to view running batch summary',
-					name: 'Running NHT Batches',
-					icon : 'ion-filing',
-					iconsuperscript : 'R',
-					id: 'nhtrunning',
-					updated: false,
-					tables: []
-				});	
-			} 
-			if (_nhtBatchStates.closed) {
-				tabs.push({
-					title : 'Click here to view closed batch summary',
-					name: 'Closed NHT Batches',
-					icon : 'ion-filing',
-					iconsuperscript : 'C',
-					id: 'nhtclosed',
-					updated: false,
-					tables: []
-				});	
-			}
-			if(Object.keys(_nhtBatchStates).length == 0) tabData.isNHTAdded = false;
-		}
-
-		if (nlLrFilter.getType() == 'course_assign' && (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0)) {
-			tabs.push({
-				title : 'Click here to view NHT batch attendance summary',
-				name: 'NHT Batch Attendance',
-				icon: 'ion-person-stalker',
-				id: 'iltbatchdata',
-				updated: false,
-				tables: []
-			});	
-		}
-		tabs.push({
-			title : 'Click here to view learning records',
-			name: 'Learning Records',
-			icon : 'ion-ios-compose',
-			id: 'learningrecords',
-			updated: false,
-			tables: [tabData.utable]
-		});
-		tabs.push({
-			title : 'Click here to view time summary',
-			name: 'Time Summary',
-			icon : 'ion-clock',
-			id: 'timesummary',
-			updated: false,
-			tables: []
-		});
-		if (!tabData.selectedTab) return;
-		for(var i=0; i<tabs.length; i++) {
-			if (tabData.selectedTab.id != tabs[i].id) continue;
-			tabData.selectedTab = tabs[i]; // Reset the new object (updated attribute many change)
-			break;
-		}
+	function _updateTabs() {
+		_tabManager.update();
 	}
 	
 	function _someTabDataChanged() {
@@ -483,8 +410,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.nhtRunningInfo = {};
 		$scope.nhtClosedInfo = {};
 		$scope.iltBatchInfo = {};
-		$scope.tabData.isNHTAdded = false;
-		nlGetManyStore.clearBatchStatus();
 		var tabs = $scope.tabData.tabs;
 		for (var i=0; i<tabs.length; i++) {
 			tabs[i].updated = false;
@@ -526,8 +451,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			tabData.records = _getFilteredRecords(summaryStats);
 			tabData.summaryStats = summaryStats.asList();
 			tabData.summaryStatSummaryRow = _getSummaryStatSummaryRow(tabData.summaryStats);
-			_checkAndUpdateNHT();
-
+			_updateTabs();
 		}
 		
 		if (tab.id == 'overview') {
@@ -649,16 +573,20 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_updateCurrentTab();
 	}
 
+	function _onApplyFilter() {
+		_someTabDataChanged();
+		_updateCurrentTab();
+	}
+
 	function _getFilteredRecords(summaryStats) {
 		var records = nlLrReportRecords.getRecords();
 		var tabData = $scope.tabData;
-		var filterInfo = _getFilterInfo(tabData);
 		var searchInfo = _getSearchInfo(tabData);
 		var filteredRecords  = [];
 		for (var recid in records) {
 			var record = records[recid];
 			if (record.raw_record.isNHT) nlGetManyStore.getBatchMilestoneInfo(record.raw_record);	
-			//if (!_doesPassFilter(tabData, record, filterInfo)) continue;
+			if (!_recordsFilter.doesPassFilter(record)) continue;
 			if (!_doesPassSearch(record, searchInfo)) continue;
 			filteredRecords.push(record);
 			summaryStats.addToStats(record);
@@ -678,22 +606,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if (e) ret.push(e);
 		}
 		return ret;
-	}
-
-	function _getFilterInfo(tabData) {
-		if (!tabData.isNHTAdded) return {};
-		var filter = tabData.filter;
-		if (!('closed_batches' in filter)) return {};
-		if (filter.closed_batches) filter.closed_batches = true;
-		return filter;
-	}
-
-	function _doesPassFilter(tabData, record, filterInfo) {
-		if (!record.raw_record.isNHT) return true;
-		if (!('closed_batches' in filterInfo)) return true;
-		var msInfo = nlGetManyStore.getBatchMilestoneInfo(record.raw_record);
-		if (filterInfo.closed_batches) return msInfo.batchStatus == 'Closed';
-		return msInfo.batchStatus != 'Closed';		
 	}
 
 	function _doesPassSearch(record, searchInfo) {
@@ -757,6 +669,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nlLrFilter.show($scope).then(function(status) {
 			if (!status) return;
 			nlLrReportRecords.reset();
+			nlGetManyStore.clearCache();
 			_updateTimeRangeStr();
 			_getDataFromServer();
 		});
@@ -781,7 +694,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	
 	function _updateReportRecords() {
 		nlLrReportRecords.updateReportRecords();
-		nlGetManyStore.clearMsInfoCache();
+		nlGetManyStore.clearCache();
 		_updateScope();
 	}
 	
@@ -798,38 +711,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nl.pginfo.pageTitle = nlLrFilter.getTitle();	
 		$scope.fetchInProgress = nlLrFetcher.fetchInProgress(true);
 		$scope.canFetchMore = nlLrFetcher.canFetchMore();
-		//$scope.tabData = _initTabData($scope.utable);
-		_checkAndUpdateNHT();
+		_updateTabs();
 		var anyRecord = nlLrReportRecords.getAnyRecord();
 		_setSubTitle(anyRecord);
 		$scope.noDataFound = (anyRecord == null);
 		_someTabDataChanged();
 		_updateCurrentTab(avoidFlicker);
 
-	}
-
-	function _checkAndUpdateNHT() {
-		var type = nlLrFilter.getType();
-		if(type != 'user' && nlLrReportRecords.isNHT() && !$scope.tabData.isNHTAdded) {
-			$scope.tabData.isNHTAdded = true;
-			$scope.tabData.isFilterApplied = true;
-			_updateTabs($scope.tabData);
-		}
-		// Drilldown is added in both NHT and non-NHT scenarios
-		if(/*nlLrReportRecords.isNonNHT() && */!$scope.tabData.isDrillDownAdded) {
-			$scope.tabData.isDrillDownAdded = true;
-			_updateTabs($scope.tabData);
-		}
-
-		var selectedTab =$scope.tabData.selectedTab;
-		var tabFound = false;
-		for(var i=0; i<$scope.tabData.tabs.length; i++) {
-			var tab = $scope.tabData.tabs[i];
-			if(selectedTab.id != tab.id) continue;
-			tabFound = true;
-			break;
-		}
-		if (!tabFound) $scope.tabData.selectedTab = $scope.tabData.tabs[0];
 	}
 
 	function _initChartData() {
@@ -1043,35 +931,43 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	//Running NHT tab
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
-	var _nhtRunningStatsDict = {};
 	var _nhtColumns = null;
-	var _nhtUniqueUserRecords = {};
 	var _nhtColumnsSelectedInView = null;
+
 	function _updateRunningNhtTab() {
+		$scope.nhtRunningInfo = _getNhtTab(true);
+	}
+
+	function _updateClosedNhtTab() {
+		$scope.nhtClosedInfo = _getNhtTab(false);
+	}
+
+	function _getNhtTab(isRunning) {
 		_initNhtColumns();
 		nlLrNht.clearStatusCountTree();
 		var records = $scope.tabData.records;
-		_nhtUniqueUserRecords = {};
+		var reportDict = {};
 		for(var i=0; i<records.length; i++) {
 			var record = records[i];
 			if(!record.raw_record.isNHT) continue;
 			var msInfo = nlGetManyStore.getBatchMilestoneInfo(record.raw_record);
-			if(msInfo.batchStatus == 'Closed') continue;
-			if(!(record.user.user_id in _nhtUniqueUserRecords)) {
-				_nhtUniqueUserRecords[record.user.user_id] = record;
+			if(isRunning && msInfo.batchStatus == 'Closed' ||
+				!isRunning && msInfo.batchStatus != 'Closed') continue;
+			if(!(record.user.user_id in reportDict)) {
+				reportDict[record.user.user_id] = record;
 				continue;
 			}	
-			var oldUserRecord = _nhtUniqueUserRecords[record.user.user_id];
+			var oldUserRecord = reportDict[record.user.user_id];
 			if(oldUserRecord.repcontent.updated > record.repcontent.updated) continue;
-			_nhtUniqueUserRecords[record.user.user_id] = record;
+			reportDict[record.user.user_id] = record;
 		}
-		for(var key in _nhtUniqueUserRecords) {
-			var record = _nhtUniqueUserRecords[key];
+		for(var key in reportDict) {
+			var record = reportDict[key];
 				nlLrNht.addCount(record);
 		}
-		_nhtRunningStatsDict = nlLrNht.getStatsCountDict();
-		var tableTitle = 'Running Batches';
-		$scope.nhtRunningInfo = {columns: _nhtColumns, selectedColumns: _selectedNhtColumns || _nhtColumns, tableTitle: tableTitle, rows: _generateDrillDownArray(true, _nhtRunningStatsDict, false, (nlLrFilter.getType() == "course_assign"), true)};
+		return {columns: _nhtColumns,  selectedColumns: _selectedNhtColumns || _nhtColumns,
+			rows: _generateDrillDownArray(true, nlLrNht.getStatsCountDict(), false, 
+				(nlLrFilter.getType() == "course_assign"), true)};
 	}
 
 	var _selectedNhtColumns = null;
@@ -1136,35 +1032,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	//Closed NHT tab
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 
-	var _nhtClosedStatsDict = {};
-	var _nhtClosedUniqueUserRecords = {};
-	function _updateClosedNhtTab() {
-		_initNhtColumns();
-		nlLrNht.clearStatusCountTree();
-		var records = $scope.tabData.records;
-		_nhtClosedUniqueUserRecords = {};
-		for(var i=0; i<records.length; i++) {
-			var record = records[i];
-			if(!record.raw_record.isNHT) continue;
-			var msInfo = nlGetManyStore.getBatchMilestoneInfo(record.raw_record);
-			if(msInfo.batchStatus != 'Closed') continue;
-			if(!(record.user.user_id in _nhtClosedUniqueUserRecords)) {
-				_nhtClosedUniqueUserRecords[record.user.user_id] = record;
-				continue;
-			}
-			var oldUserRecord = _nhtClosedUniqueUserRecords[record.user.user_id];
-			if(oldUserRecord.repcontent.updated > record.repcontent.updated) continue;
-			_nhtClosedUniqueUserRecords[record.user.user_id] = record;
-		}
-		for(var key in _nhtClosedUniqueUserRecords) {
-			var record = _nhtClosedUniqueUserRecords[key];
-				nlLrNht.addCount(record);
-		}
-		_nhtClosedStatsDict = nlLrNht.getStatsCountDict();
-		var tableTitle = 'Closed Batches';
-		$scope.nhtClosedInfo = {columns: _nhtColumns, selectedColumns: _selectedNhtColumns || _nhtColumns, tableTitle: tableTitle, rows: _generateDrillDownArray(true, _nhtClosedStatsDict, false, (nlLrFilter.getType() == "course_assign"), true)};
-	}
-
 	function _getNhtColumns() {
 		var columns = [];
 		_customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
@@ -1176,7 +1043,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push({id: 'batchStatus', name: 'Batch Status', table: true, hidePerc:true, smallScreen: true, showAlways: true});
 		columns.push({id: 'batchName', name: 'Batch', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'partner', name: 'Center', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
-		columns.push({id: 'lob', name: _groupInfo.props.subjectlabel || 'lob', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
+		columns.push({id: 'lob', name: _groupInfo.props.subjectlabel || 'LOB', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 
 		columns.push({id: 'inductionDropOut', name: 'Induction drop out', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 
@@ -1280,7 +1147,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if(b.sortkey.toLowerCase() < a.sortkey.toLowerCase()) return 1;
 			if(b.sortkey.toLowerCase() > a.sortkey.toLowerCase()) return -1;
 			if(b.sortkey.toLowerCase() == a.sortkey.toLowerCase()) return 0;				
-		})
+		});
 		return drillDownArray;
 	};
 
@@ -1436,11 +1303,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			userObj.learner_status = (record.user.state == 0) ? nl.t('Inactive') : nl.t('Active')
 			var _statusInfos = record.repcontent.statusinfo;
 			userObj.lob = record.course.contentmetadata.subject;
+			var isCertified = false;
 			for(var j=0; j<iltSessions.length; j++) {
 				var cm = iltSessions[j];
 				var sessionInfo = _statusInfos[cm.id];
+				if (isCertified) continue;
+				isCertified = (sessionInfo.attId == 'certified');
 				var sessionDate =  nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(cm.sessiondate || ''), null, 'date');
-				if (sessionInfo.stateStr == 'notapplicable' || !sessionInfo.state || sessionInfo.status == 'waiting') continue;
+				if (sessionInfo.stateStr == 'notapplicable' 
+					|| !sessionInfo.state || sessionInfo.status == 'waiting') continue;
 				if (sessionDate)
 					userObj[sessionDate] = sessionInfo.state || '-';
 			}
@@ -1494,32 +1365,36 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if(!_customScoresHeader) _customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
 
 		var drillDownStats = null;
-		if(nlLrReportRecords.isNHT() || nlLrReportRecords.isNonNHT()) {
-			_updateDrillDownTab();
-			var drillDownCols = _getDrillDownColumns();
-			var header = [];
-			for(var i=0; i<drillDownCols.length; i++) {
-				var col = drillDownCols[i];
-				if(col.table) header.push(col);
-			}
-			var headerArray = [{id: 'courseName', name: 'Course name'}];
-			if(nlGroupInfo.isSubOrgEnabled()) headerArray.push({id: 'subOrgId', name: 'Suborg Id'});
-			headerArray.push({id: 'organisationId', name: 'Organisation Id'});
-
-			header = headerArray.concat(header);
-			drillDownStats = {statsCountDict: _statsCountDict, columns: header};
+		_updateDrillDownTab();
+		var drillDownCols = _getDrillDownColumns();
+		var header = [];
+		for(var i=0; i<drillDownCols.length; i++) {
+			var col = drillDownCols[i];
+			if(col.table) header.push(col);
 		}
+		var headerArray = [{id: 'courseName', name: 'Course name'}];
+		if(nlGroupInfo.isSubOrgEnabled()) headerArray.push({id: 'subOrgId', name: 'Suborg Id'});
+		headerArray.push({id: 'organisationId', name: 'Organisation Id'});
 
-		var nhtStats = null;
-		if(nlLrReportRecords.isNHT()) {
-			_updateRunningNhtTab();
-			var nhtHeader = [];
+		header = headerArray.concat(header);
+		drillDownStats = {statsCountDict: _statsCountDict, columns: header};
+
+		var nhtStats = {};
+		var batchStatus = nlGetManyStore.getNhtBatchStates();
+		if (batchStatus.running || batchStatus.closed) {
+			if (batchStatus.running) {
+				_updateRunningNhtTab();
+				nhtStats.running = $scope.nhtRunningInfo.rows;
+			}
+			if (batchStatus.closed) {
+				_updateClosedNhtTab();
+				nhtStats.closed = $scope.nhtClosedInfo.rows;
+			}
+			nhtStats.columns = [];
 			for(var i=0; i<_nhtColumns.length; i++) {
 				var col = _nhtColumns[i];
-				if(col.canShow) nhtHeader.push(col);
+				if(col.canShow) nhtStats.columns.push(col);
 			}
-			_updateClosedNhtTab();
-			nhtStats = {runningStatsCountDict: $scope.nhtRunningInfo.rows, closedStatsCountDict: $scope.nhtClosedInfo.rows, columns: nhtHeader};	
 		}
 		var iltBatchStats = null;
 		if (nlLrFilter.getType() == 'course_assign' && _groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0) {
@@ -3028,6 +2903,220 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 };
 
+//-------------------------------------------------------------------------------------------------
+function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
+
+	this.update = function() {
+		tabData.tabs = [];
+		var tabs = tabData.tabs;
+		// TODO-NOW-DEEPTI: put in check around mode==cert_status
+		if (false) { /* mode == cert_status) */
+			// Add Certificate tab
+		} else {
+			_addOverviewTabs(tabs);
+			_addDrilldownTab(tabs);
+			_addNhtTabs(tabs);
+			_addAttendanceTab(tabs);
+			_addLrTab(tabs);
+			_addTimeSummaryTab(tabs);
+		}
+		_updateSelectedTab(tabs);
+	};
+
+	function _addOverviewTabs(tabs) {
+		tabs.push({
+			title : 'Click here to see reports overview',
+			name: 'Overview',
+			icon : 'ion-stats-bars',
+			id: 'overview',
+			updated: false,
+			tables: []
+		});
+	}
+
+	function _addDrilldownTab(tabs) {
+		tabs.push({
+			title : 'Click here to view course-wise progress',
+			name: 'Drill Down',
+			icon : 'ion-social-buffer',
+			id: 'drilldown',
+			updated: false,
+			tables: []
+		});
+	}
+
+	function _addNhtTabs(tabs) {
+		var type = nlLrFilter.getType();
+		if (type == 'user') return;
+
+		var batchStatus = nlGetManyStore.getNhtBatchStates();
+		if(batchStatus.running) {
+			tabs.push({
+				title : 'Click here to view running batch summary',
+				name: 'Running NHT Batches',
+				icon : 'ion-filing',
+				iconsuperscript : 'R',
+				id: 'nhtrunning',
+				updated: false,
+				tables: []
+			});	
+		} 
+		if (batchStatus.closed) {
+			tabs.push({
+				title : 'Click here to view closed batch summary',
+				name: 'Closed NHT Batches',
+				icon : 'ion-filing',
+				iconsuperscript : 'C',
+				id: 'nhtclosed',
+				updated: false,
+				tables: []
+			});	
+		}
+	}
+
+	function _addAttendanceTab(tabs) {
+		if (nlLrFilter.getType() != 'course_assign' || 
+			!_groupInfo.props.etmAsd || _groupInfo.props.etmAsd.length == 0) return;
+		tabs.push({
+			title : 'Click here to view NHT batch attendance summary',
+			name: 'NHT Batch Attendance',
+			icon: 'ion-person-stalker',
+			id: 'iltbatchdata',
+			updated: false,
+			tables: []
+		});	
+	}
+
+	function _addLrTab(tabs) {
+		tabs.push({
+			title : 'Click here to view learning records',
+			name: 'Learning Records',
+			icon : 'ion-ios-compose',
+			id: 'learningrecords',
+			updated: false,
+			tables: [tabData.utable]
+		});
+	}
+
+	function _addTimeSummaryTab(tabs) {
+		tabs.push({
+			title : 'Click here to view time summary',
+			name: 'Time Summary',
+			icon : 'ion-clock',
+			id: 'timesummary',
+			updated: false,
+			tables: []
+		});
+	}
+
+	function _updateSelectedTab(tabs) {
+		if (!tabData.selectedTab) return;
+		for(var i=0; i<tabs.length; i++) {
+			if (tabData.selectedTab.id != tabs[i].id) continue;
+			tabData.selectedTab = tabs[i]; // Reset the new object (updated attribute many change)
+			break;
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
+function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, onApplyFilterFn) {
+
+	var _filterInfo = null;
+	var _orgToSubOrg = {};
+	var _subOrgArray = null;
+	var _subjectArray = null;
+	var _gradeArray = null;
+	$scope.canShowFilterDialog = false;
+
+	this.init = function() {
+		var type = nlLrFilter.getType();
+		if (type != 'user' && nlGroupInfo.isSubOrgEnabled()) {
+			_orgToSubOrg = nlGroupInfo.getOrgToSubOrgDict();
+			_subOrgArray = _initSubOrgs();
+			$scope.canShowFilterDialog = true;
+		}
+		if ((type == 'course' || type == 'module') && !nlLrFilter.getObjectId()) {
+			_subjectArray = _initOptionsArray(_groupInfo.props.subjects);
+			_gradeArray = _initOptionsArray(_groupInfo.props.grades);
+			$scope.canShowFilterDialog = true;
+		}
+
+		_filterInfo = {
+			suborg: {id: _subOrgArray ? _subOrgArray[0].id : ''},
+			subject: {id: _subjectArray ? _subjectArray[0].id : ''},
+			grade: {id: _gradeArray ? _gradeArray[0].id : ''}
+		};
+	};
+
+	this.showFilterDialog = function() {
+		var dlg = nlDlg.create($scope);
+		dlg.scope.isSubOrgEnabled = nlGroupInfo.isSubOrgEnabled();
+		dlg.scope.data = _filterInfo;
+		dlg.scope.options = {suborg: _subOrgArray, subject: _subjectArray, grade: _gradeArray};
+		dlg.scope.help = {
+			suborg: {name: 'Center', help: 'Filter the report records based on their organization unit'},
+			subject: {name: _groupInfo.props.subjectlabel},
+			grade: {name: _groupInfo.props.gradelabel},
+		};
+		var okButton = {text: nl.t('Apply'), onTap: function(e) {
+			onApplyFilterFn();
+		}};
+
+		var cancelButton = {text: nl.t('Close')};
+		dlg.show('view_controllers/learning_reports/lr_records_filter_dlg.html',
+			[okButton], cancelButton);
+	};
+
+	this.doesPassFilter = function(record) {
+		if (_filterInfo.subject.id && _filterFail('subject', record.raw_record.subject)) return false;
+		if (_filterInfo.grade.id && _filterFail('grade', record.raw_record._grade)) return false;
+		if (_filterInfo.suborg.id && _filterFail('suborg', _orgToSubOrg[record.user.org_unit] || 'Others')) return false;
+		return true;
+	};
+
+	function _filterFail(filtAttr, recordVal) {
+		var filtVal = _filterInfo[filtAttr].id;
+		return (filtVal != recordVal);
+	}
+
+	function _initSubOrgs() {
+		var subOrgDict = {};
+		for (var key in _orgToSubOrg) {
+			var subOrg = _orgToSubOrg[key] || 'Others';
+			if (subOrg in subOrgDict) continue;
+			var subOrgParts = subOrg.split('.');
+			var center = subOrgParts[subOrgParts.length -1];
+			subOrgDict[subOrg] = center;
+		}
+		var arr = [];
+		for(var key in subOrgDict) arr.push({id: key, name: subOrgDict[key]});
+		return _initOptionsArray2(arr);
+	}
+
+	function _initOptionsArray(arr) {
+		arr = arr || [];
+		var ret = [];
+		for (var i=0; i<arr.length; i++) {
+			ret.push({id: arr[i], name: arr[i]});
+		}
+		return _initOptionsArray2(ret);
+	}
+
+	function _initOptionsArray2(arr) {
+		arr.sort(function(a, b) {
+			var aName = a.name.toLowerCase();
+			var bName = b.name.toLowerCase();
+			if(aName > bName) return 1;
+			if(aName < bName) return -1;
+			return 0;
+		});
+		var allEntry = {id: '', name: 'All'};
+		arr.splice(0, 0, allEntry);
+		return arr;
+	}
+	
+}
 //-------------------------------------------------------------------------------------------------
 module_init();
 })();

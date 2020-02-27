@@ -12,7 +12,7 @@
             ng-repeat='rec in nht.rows track by $index'
             ng-click='generateDrillDownArray(rec)'>
             <td style='min-width: 50px;'>
-                <div class='row row-center magin0 padding0'style='padding-left:{{rec.indentation}}px' >
+                <div class='row row-center magin0 padding0'>
                     <span ng-click='onDetailsClick($event, rec, nht.columns)' class='nl-link-text'>
                         <i class="padding-mid icon ion-information-circled fsh4 nl-info-icon"></i>
                     </span>

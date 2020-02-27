@@ -124,13 +124,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
     }
     var _msInfoCache = {};
     var _nhtBatchStatus = {};
-    this.clearMsInfoCache = function() {
+    this.clearCache = function() {
         _msInfoCache = {};
-    }
-
-    this.clearBatchStatus = function() {
         _nhtBatchStatus = {};
-    };
+    }
 
     this.getNhtBatchStates = function() {
         return _nhtBatchStatus;

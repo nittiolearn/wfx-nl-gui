@@ -83,6 +83,10 @@
                 <i class='nl-link-text icon fsh4 fblue padding-mid ion-ios-search'
                     ng-click='tabData.onSearch(null)'>
                 </i>
+                <div ng-if='canShowFilterDialog' class='padding-small'></div>
+                <i ng-if='canShowFilterDialog' class='nl-link-text icon fsh4 fblue padding-mid ion-funnel'
+                   ng-click='tabData.onFilter(null)'>
+                </i>
             </div>
         </div>
     </div>

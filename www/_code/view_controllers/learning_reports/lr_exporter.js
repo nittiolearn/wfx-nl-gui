@@ -62,10 +62,13 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             dlg.scope.showDrillDownCheckbox = true;
             dlg.scope.export['drilldown'] = false;
         }
-        if (nhtDict) {
-            _nhtDict = nhtDict || {};
-            dlg.scope.showNhtCheckbox = (dlg.scope.reptype != "user");
+        _nhtDict = nhtDict || {};
+        if (nhtDict.running) {
+            dlg.scope.showNhtRunningCheckbox = (dlg.scope.reptype != "user");
             dlg.scope.export['nhtRunning'] = false;
+        }
+        if (nhtDict.closed) {
+            dlg.scope.showNhtClosedCheckbox = (dlg.scope.reptype != "user");
             dlg.scope.export['nhtClosed'] = false;
         }
         if (lrDict) {
@@ -163,11 +166,11 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 		    var expSummaryStats = nlLrSummaryStats.getSummaryStats();
             if(filter.exportTypes.drilldown) _updateDrillDownRow();    
             if(filter.exportTypes.nhtRunning) {
-                var nhtStats = _nhtDict.runningStatsCountDict;
+                var nhtStats = _nhtDict.running;
                 _updateNhtRow(nhtStats, ctx.nhtRunningRow);
             }
             if(filter.exportTypes.nhtClosed) {
-                var nhtStats = _nhtDict.closedStatsCountDict;
+                var nhtStats = _nhtDict.closed;
                 _updateNhtRow(nhtStats, ctx.nhtClosedRow);
             }
             if(filter.exportTypes.iltBatch) _updateIltBatchRow();
