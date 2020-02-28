@@ -30,8 +30,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     var _isReattemptEnabled = false;
     var _customScoresHeaderArray = [];
     var _customScoresHeaderObj = {};
-    var _isNHT = false;
-    var _isNonNHT = false;
     var _canManage = false;
     var _canSend = false;
     this.init = function(userinfo) {
@@ -42,8 +40,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         _isReattemptEnabled = false;
         _customScoresHeaderArray = [];
         _customScoresHeaderObj = {};
-        _isNHT = false;
-        _isNonNHT = false;
         _dates = {minUpdated: null, maxUpdated: null};
         _convertAttendanceArrayToObj(userinfo.groupinfo.attendance);
         if (!nlGroupInfo.isPastUserInfosConfigured()) _pastUserData = {};
@@ -71,14 +67,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         return _nominatedUsers;
     };
     
-    this.isNHT = function() {
-        return _isNHT;
-    }
-
-    this.isNonNHT = function() {
-        return _isNonNHT;
-    }
-
     this.addRecord = function(report) {
         if (report.ctype == _nl.ctypes.CTYPE_COURSE)
             report = _processCourseReport(report);
@@ -112,8 +100,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         _records = {};
         _reminderDict = {};
         _nominatedUsers = {};
-        _isNHT = false;
-        _isNonNHT = false;
     };
     
     this.getRecords = function() {
@@ -232,14 +218,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         if (!course) {
             course = {};
         }
-        if (course.content) {
-            if (course.content.nht) {
-                _isNHT = true;
-                report.isNHT = true;
-            } else {
-                _isNonNHT = true;
-            }
-        }
+        if (course.content && course.content.nht) report.isNHT = true;
         report.canReview = true;
         if(!course.is_published) report.canReview = false;
         var courseAssignment = nlGetManyStore.getAssignmentRecordFromReport(report) || {};
@@ -271,6 +250,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             certid: stainf.certid
         };
 
+        if (stainf.inductionDropOut) stats.inductionDropOut = true;
         if(stainf.customScores.length != 0) {
             for(var i=0; i<stainf.customScores.length; i++) {
                 var item = stainf.customScores[i];
@@ -323,11 +303,12 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
                 var expireDays = parseInt(certInfo.expire_after);
                 var expireOn = new Date(certInfo.updated);
                 expireOn.setDate(expireOn.getDate() + expireDays);
-                if(new Date() < expireOn) {
-                    stats.certValid = nl.fmt.fmtDateDelta(expireOn, null, 'minute');
-                } else {
+                stats.certValid = nl.fmt.fmtDateDelta(expireOn, null, 'minute');
+                stats.expireOn = expireOn;
+                if(new Date() > expireOn) {
                     stats.status = nlReportHelper.statusInfos[nlReportHelper.STATUS_FAILED];
                     stats.status.txt = 'Certificate expired';
+                    stats.certExpired = true;
                 }
             }
         }
@@ -353,7 +334,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         var repcontent = _updateCommonParams(report, 'module');
         var user = _getStudentFromReport(report, repcontent);
         if (!user) return null;
-        _isNonNHT = true;
         _nominatedUsers[user.id] = user.user_id;
         report.showModuleProps = true;
         report.studentname = user.name;

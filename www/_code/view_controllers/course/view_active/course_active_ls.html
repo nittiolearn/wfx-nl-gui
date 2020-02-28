@@ -36,13 +36,16 @@
 					<div class='row row-center text-center row-justify-evenly padding-mid margin0'>
 						<div style='min-width:100px;' class='padding-mid text-center'>
 							<div ng-show='(cm.type != "module" && cm.maxScore > 0) || (cm.type == "module" && (cm.completedItems == cm.totalItems) && (cm.stats.maxScore > 0))'
-								class='row row-center text-center padding0 mmargin0'>
+								class='row row-center text-center padding0 margin0'>
 								<span style='width:100%;font-size:12px;' class='text-center '>Score</span>
 							</div>
 							<div class='row row-center text-center padding0 margin0'>
 								<span ng-if='cm.type != "module" && cm.maxScore > 0' style='width:100%; font-weight: 600;'>{{cm.perc || "0"}}%</span>
 								<span ng-if='cm.type == "module" && (cm.completedItems == cm.totalItems) && (cm.stats.maxScore > 0)' style='width:100%; font-weight: 600;'>{{cm.stats.perc}}%</span>
 							</div>
+						</div>
+						<div class='col padding0 forange2' ng-if='cm.type == "certificate" && cm.state.status == "expired"'>
+							Certificate expired
 						</div>
 						<div class='col padding0' ng-show='cm.type == "module"'>
 							<div class='row row-center margin0 padding0'>

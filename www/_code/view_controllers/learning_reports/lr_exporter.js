@@ -62,10 +62,14 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             dlg.scope.showDrillDownCheckbox = true;
             dlg.scope.export['drilldown'] = false;
         }
-        if (nhtDict) {
-            _nhtDict = nhtDict || {};
-            dlg.scope.showNhtCheckbox = (dlg.scope.reptype != "user");
-            dlg.scope.export['nht'] = false;
+        _nhtDict = nhtDict || {};
+        if (nhtDict.running) {
+            dlg.scope.showNhtRunningCheckbox = (dlg.scope.reptype != "user");
+            dlg.scope.export['nhtRunning'] = false;
+        }
+        if (nhtDict.closed) {
+            dlg.scope.showNhtClosedCheckbox = (dlg.scope.reptype != "user");
+            dlg.scope.export['nhtClosed'] = false;
         }
         if (lrDict) {
             _lrDict = lrDict || {};
@@ -161,7 +165,14 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             var type = nlLrFilter.getType();
 		    var expSummaryStats = nlLrSummaryStats.getSummaryStats();
             if(filter.exportTypes.drilldown) _updateDrillDownRow();    
-            if(filter.exportTypes.nht) _updateNhtRow();
+            if(filter.exportTypes.nhtRunning) {
+                var nhtStats = _nhtDict.running;
+                _updateNhtRow(nhtStats, ctx.nhtRunningRow);
+            }
+            if(filter.exportTypes.nhtClosed) {
+                var nhtStats = _nhtDict.closed;
+                _updateNhtRow(nhtStats, ctx.nhtClosedRow);
+            }
             if(filter.exportTypes.iltBatch) _updateIltBatchRow();
             if(filter.exportTypes.lr) _updateLrRow(reportRecords);
             if(_exportFormat == 'csv') {
@@ -223,16 +234,26 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                     }
                 } 
 
-                if (filter.exportTypes.nht && ctx.nhtRow.length > 1) {
-                    for(var start=0, i=1; start < ctx.nhtRow.length; i++) {
-                        var pending = ctx.nhtRow.length - start;
+                if (filter.exportTypes.nhtRunning && ctx.nhtRunningRow.length > 1) {
+                    for(var start=0, i=1; start < ctx.nhtRunningRow.length; i++) {
+                        var pending = ctx.nhtRunningRow.length - start;
                         pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
-                        var fileName = nl.fmt2('nht-stats-{}.csv', i);
-                        _createCsv(filter, ctx.nhtRow, zip, fileName, start, start+pending);
+                        var fileName = nl.fmt2('nht-running-stats-{}.csv', i);
+                        _createCsv(filter, ctx.nhtRunningRow, zip, fileName, start, start+pending);
                         start += pending;
                     }
                 } 
                
+                if (filter.exportTypes.nhtClosed && ctx.nhtClosedRow.length > 1) {
+                    for(var start=0, i=1; start < ctx.nhtClosedRow.length; i++) {
+                        var pending = ctx.nhtClosedRow.length - start;
+                        pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
+                        var fileName = nl.fmt2('nht-closed-stats-{}.csv', i);
+                        _createCsv(filter, ctx.nhtClosedRow, zip, fileName, start, start+pending);
+                        start += pending;
+                    }
+                } 
+
                 if (filter.exportTypes.iltBatch && ctx.iltBatchRow.length > 1) {
                     for(var start=0, i=1; start < ctx.iltBatchRow.length; i++) {
                         var pending = ctx.iltBatchRow.length - start;
@@ -303,8 +324,12 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                     zipData.push({aoa: ctx.drillDownRow, fileName: 'drill-down-stats', fileExt: 'xlsx'});
                 } 
 
-                if (filter.exportTypes.nht && ctx.nhtRow.length > 1) {
-                    zipData.push({aoa: ctx.nhtRow, fileName: 'nht-stats', fileExt: 'xlsx'});
+                if (filter.exportTypes.nhtRunning && ctx.nhtRunningRow.length > 1) {
+                    zipData.push({aoa: ctx.nhtRunningRow, fileName: 'nht-running-stats', fileExt: 'xlsx'});
+                } 
+
+                if (filter.exportTypes.nhtClosed && ctx.nhtClosedRow.length > 1) {
+                    zipData.push({aoa: ctx.nhtClosedRow, fileName: 'nht-closed-stats', fileExt: 'xlsx'});
                 } 
 
                 if (filter.exportTypes.iltBatch && ctx.iltBatchRow.length > 1) {
@@ -344,49 +369,24 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                 ctx.lrRow.push(nlExporter.getItemRow(lrHeaderRow, reports[i]));
         }
     }
+//-------------------------------------------------------------------------------------------------
+// Update NHT row while exporting
+//-------------------------------------------------------------------------------------------------
 
-    function _updateNhtRow() {
-        var nhtStats = _nhtDict.statsCountDict;
+    function _updateNhtRow(nhtStatsArray, nhtInfo) {
         var nhtHeaderRow = _nhtDict.columns;
-        for(var key in nhtStats) {
-            var row = nhtStats[key];
-            if(row.children) _updateSuborgForNht(row.children, nhtHeaderRow);   
-        }
-    }
-
-
-    function _updateSuborgForNht(suborgRow, nhtHeaderRow) {
-        for(var key in suborgRow) {
-            var row = suborgRow[key];
-            if(row.children) _updateOrgForNht(row.children, nhtHeaderRow);
-        }
-    }
-
-    function _updateOrgForNht(orgRow, nhtHeaderRow) {
-        for(var key in orgRow) {
-            var row = orgRow[key];
-            if(row.children) {
-                _updateBatchRowForNht(row.children, nhtHeaderRow);
-            } else {
-                if (_exportFormat == 'csv') 
-                    ctx.nhtRow.push(nlExporter.getCsvRow(nhtHeaderRow, row.cnt));
-                else
-                    ctx.nhtRow.push(nlExporter.getItemRow(nhtHeaderRow, row.cnt));
-            }
-        }
-    }
-
-    //This function is only called if the suborg is enabled
-    function _updateBatchRowForNht(batches, nhtHeaderRow) {
-        for(var key in batches) {
-            var row = batches[key];
-            if(_exportFormat == 'csv') 
-                ctx.nhtRow.push(nlExporter.getCsvRow(nhtHeaderRow, row.cnt));
+        for(var i=0; i<nhtStatsArray.length; i++) {
+            var row = nhtStatsArray[i];
+            if (_exportFormat == 'csv') 
+                nhtInfo.push(nlExporter.getCsvRow(nhtHeaderRow, row));
             else 
-                ctx.nhtRow.push(nlExporter.getItemRow(nhtHeaderRow, row.cnt));
+                nhtInfo.push(nlExporter.getItemRow(nhtHeaderRow, row));
         }
     }
 
+//-------------------------------------------------------------------------------------------------
+// Update drilldown row while exporting
+//-------------------------------------------------------------------------------------------------
     function _updateDrillDownRow() {
         var drillDownStats = _drillDownDict.statsCountDict;
         for(var key in drillDownStats) {
@@ -625,7 +625,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             ctx.feedbackRows = [nlExporter.getCsvHeader(_hFeedback)];
             ctx.courseDetailsRow = [nlExporter.getCsvHeader(_hCourseDetailsRow)];
             if(filter.exportTypes.drilldown) ctx.drillDownRow = [nlExporter.getCsvHeader(_drillDownDict.columns)];
-            if(filter.exportTypes.nht) ctx.nhtRow = [nlExporter.getCsvHeader(_nhtDict.columns)];
+            if(filter.exportTypes.nhtRunning) ctx.nhtRunningRow = [nlExporter.getCsvHeader(_nhtDict.columns)];
+            if(filter.exportTypes.nhtClosed) ctx.nhtClosedRow = [nlExporter.getCsvHeader(_nhtDict.columns)];
             if(filter.exportTypes.iltBatch) ctx.iltBatchRow = [nlExporter.getCsvHeader(_iltBatchDict.columns)];
             if(filter.exportTypes.lr) ctx.lrRow = [nlExporter.getCsvHeader(_lrDict.columns)];
         } else {
@@ -635,7 +636,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             ctx.feedbackRows = [nlExporter.getHeaderRow(_hFeedback)];
             ctx.courseDetailsRow = [nlExporter.getHeaderRow(_hCourseDetailsRow)];
             if(filter.exportTypes.drilldown) ctx.drillDownRow = [nlExporter.getHeaderRow(_drillDownDict.columns)];
-            if(filter.exportTypes.nht) ctx.nhtRow = [nlExporter.getHeaderRow(_nhtDict.columns)];    
+            if(filter.exportTypes.nhtRunning) ctx.nhtRunningRow = [nlExporter.getHeaderRow(_nhtDict.columns)];    
+            if(filter.exportTypes.nhtClosed) ctx.nhtClosedRow = [nlExporter.getHeaderRow(_nhtDict.columns)];
             if(filter.exportTypes.iltBatch) ctx.iltBatchRow = [nlExporter.getHeaderRow(_iltBatchDict.columns)];
             if(filter.exportTypes.lr) ctx.lrRow = [nlExporter.getHeaderRow(_lrDict.columns)];
         }

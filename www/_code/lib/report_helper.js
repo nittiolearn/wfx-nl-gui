@@ -172,7 +172,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             onlineTimeSpentSeconds: 0, iltTimeSpent: 0, iltTotalTime: 0,
             feedbackScore: '', customScores: [], attritedAt: null, attritionStr: null,
             isCertified: false, certid: null,
-            customScoreDict: {}
+            customScoreDict: {},
+            inductionDropOut: null
             // Also may have has following:
             // reattempt: true/false
         };
@@ -219,6 +220,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 ret['certid'] = cm.id;
             }
             latestCustomStatus =  _updateCustomStatus(itemInfo, latestCustomStatus);
+            if (itemInfo.inductionDropOut) ret.inductionDropOut = true;
             if (itemInfo.isAttrition) {
                 isAttrition = true;
                 ret.attritedAt = cm.id;
@@ -233,16 +235,25 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 if (itemInfo.customStatus) defaultCourseStatus = itemInfo.customStatus;
             }
             if (cm.showInReport && _isEndItemState(itemInfo.status)) {
-                var score = itemInfo.score;
-                var customScoreType = null;
-                if(cm.rating_type == 'rag') {
-                    score = itemInfo.rating;
-                    customScoreType = 'rag';
+                var isCustomScoreNameUnique = true;
+                for(var j=0; j<ret.customScores.length; j++) {
+                    if(cm.name == ret.customScores[j].name) {
+                        isCustomScoreNameUnique = false;
+                        break;
+                    }
                 }
-                var customScoreItemObj = {name: cm.name, score: score};
-                if(customScoreType) customScoreItemObj['type'] = customScoreType;
-                ret.customScores.push(customScoreItemObj);
-                ret.customScoreDict[cm.name] =  score;
+                if(isCustomScoreNameUnique) {
+                    var score = itemInfo.score;
+                    var customScoreType = null;
+                    if(cm.rating_type == 'rag') {
+                        score = itemInfo.rating;
+                        customScoreType = 'rag';
+                    }
+                    var customScoreItemObj = {name: cm.name, score: score};
+                    if(customScoreType) customScoreItemObj['type'] = customScoreType;
+                    ret.customScores.push(customScoreItemObj);
+                    ret.customScoreDict[cm.name] =  score;
+                }
             }
         }
 
@@ -255,9 +266,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     }
 
     function _updateItemToLocked(cm, itemInfo, earlierTrainerItems) {
+        if (earlierTrainerItems.isMarkedCertified) itemInfo.isMarkedCertified = true;
         if(cm.type == 'iltsession') {
             _updateILTtoLocked(cm, itemInfo, earlierTrainerItems);
             earlierTrainerItems.iltsession = itemInfo;
+            if (itemInfo.attId == 'certified') earlierTrainerItems.isMarkedCertified = true;
         } else if(cm.type == 'rating') {
             _updateRatingtoLocked(cm, itemInfo, earlierTrainerItems);
             earlierTrainerItems.rating = itemInfo;
@@ -443,6 +456,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.updated = nl.fmt.json2Date(userCmAttendance.updated || '');
         itemInfo.unlocked_next = itemInfo.marked;
         if (grpAttendanceObj.isAttrition) itemInfo.isAttrition = true;
+        if (grpAttendanceObj.id == 'induction_dropout') itemInfo.inductionDropOut = true;
     }
 
     function _getRawStatusOfRating(cm, itemInfo) {

@@ -123,14 +123,24 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
 		}
     }
     var _msInfoCache = {};
-    this.clearMsInfoCache = function() {
+    var _nhtBatchStatus = {};
+    this.clearCache = function() {
         _msInfoCache = {};
+        _nhtBatchStatus = {};
     }
 
+    this.getNhtBatchStates = function() {
+        return _nhtBatchStatus;
+    }
     this.getBatchMilestoneInfo = function(reportRecord) {
         var courseAssignment = this.getAssignmentRecordFromReport(reportRecord) || {};
         if (!courseAssignment.id) return {};
-        if (courseAssignment.id in _msInfoCache) return _msInfoCache[courseAssignment.id];
+        if (courseAssignment.id in _msInfoCache) {
+            var msInfo = _msInfoCache[courseAssignment.id];
+            if(msInfo.batchStatus == 'Closed') _nhtBatchStatus.closed = true;
+            else _nhtBatchStatus.running = true;
+            return _msInfoCache[courseAssignment.id];
+        }
         var ret = {batchStatus: ''};
         _msInfoCache[courseAssignment.id] = ret;
 
@@ -149,6 +159,9 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         var actualMsInfo = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
         
         var allMilestonesReached = true;
+        var firstMsUpdated = false;
+        var lastPlanned = null;
+        var lastActual = null;
         for(var i=0; i<modules.length; i++) {
             var item = modules[i]
             if(item.type != 'milestone') continue;
@@ -156,18 +169,32 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
             if(!mstype) continue;
             var plannedMs = plannedMsInfo['milestone_'+item.id] || '';
             var actualMs = actualMsInfo[item.id] || {};
+            if (!firstMsUpdated) {
+                firstMsUpdated = true;
+                ret.firstPlanned = nl.fmt.json2Date(plannedMs || '', 'date');
+                ret.firstActual = nl.fmt.json2Date(actualMs.reached || '', 'date');
+            }
             ret[mstype+'planned'] = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(plannedMs || '', 'date'));
+            lastPlanned = plannedMs;
             if (!allMilestonesReached) continue;
             if(!actualMs.reached || actualMs.status != 'done') {
                 allMilestonesReached = false;
                 continue;
             }
+            lastActual = nl.fmt.json2Date(actualMs.reached || '', 'date');
             ret[mstype+'actual'] = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(actualMs.reached || '', 'date'));
             var grpMileStoneObj = grpMilestoneDict[mstype];
             if (grpMileStoneObj && grpMileStoneObj.batch_status)
                 ret.batchStatus = grpMileStoneObj.batch_status;
         }
-        if (allMilestonesReached) ret.batchStatus = 'Closed';
+        ret.lastPlanned = lastPlanned;
+        ret.lastActual = lastActual;
+        if (allMilestonesReached) {
+            ret.batchStatus = 'Closed';
+            _nhtBatchStatus.closed = true;
+        } else {
+            _nhtBatchStatus.running = true;
+        }
         return ret;
     };
 

@@ -21,7 +21,18 @@ this.showUpdateTrainingBatchDlg = function($scope, courseAssignment, modules, le
 		var dlg = new UpdateTrainingBatchDlg($scope, ctx, resolve);
 		dlg.show(launchType);
 	});
-}
+};
+
+this.getTrainerItemInfos = function(courseAssignment, modules, learningRecords, groupInfo) {
+	var ctx = _getContext(courseAssignment, modules, learningRecords, groupInfo);
+	var ret = {};
+	for(var i=0; i<ctx.modules.length; i++) {
+		var cm = ctx.modules[i];
+		ret[cm.id] = cm;
+	}
+	ret.allModules = nlReportHelper.getAsdUpdatedModules(modules || [], ctx.dbAttendance.getDbObj());
+	return ret;
+};
 
 function _getContext(courseAssignment, modules, learningRecords, groupInfo) {
 	var ctx = {learningRecords: learningRecords, groupInfo: groupInfo};
@@ -208,15 +219,17 @@ function DbAttendanceObject(courseAssignment, ctx) {
 	this.validateCm = function(cm, cmValidationCtx) {
 		cm.someAtdFilled = false;
 		cm.dateValidationError = null;
+		cm.dateValidationErrorIfSomeAtdFilled = null;
 		if (_etmAsd.length == 0) return;
 		if (!cm.sessiondate) {
-			cm.dateValidationError = 'Date mandatory';
+			cm.dateValidationErrorIfSomeAtdFilled = 'Date mandatory';
 			return;
 		}
 		var myDate = nl.fmt.date2Str(cm.sessiondate, 'date');
 		var lastDate = cmValidationCtx.lastFixedSessionDate || null;
 		if (lastDate && myDate <= lastDate) {
 			cm.dateValidationError = nl.fmt2('Date must be later than date specified in {}', cmValidationCtx.lastFixedSessionDateCmName);
+			cm.validationErrorMsg = nl.fmt2('{}: {}', nlReportHelper.getItemName(cm), cm.dateValidationError);
 			return;
 		}
 		if (!cm.asdSession) {
@@ -227,18 +240,20 @@ function DbAttendanceObject(courseAssignment, ctx) {
 
 	this.validateLr = function(lr, cm, lrBlocker) {
 		var attendanceConfig = _attendanceOptionsDict[lr.attendance.id] || {};
-		if (!lr.attendance.id) cm.isMarkingComplete = false;
-		else cm.someAtdFilled = true;
+		if (!cm.asdSession) lrBlocker.lastSessionAttended = false;
 		if (_etmAsd.length > 0) {
 			var lrAtdMarked = lr.attendance.id && lr.attendance.id != 'notapplicable';
 			var sessionDate = nl.fmt.date2Str(cm.sessiondate, 'date');
 			if (sessionDate && sessionDate in lrBlocker.atdMarkedDates) {
 				var markedAt = nlReportHelper.getItemName(lrBlocker.atdMarkedDates[sessionDate]);
 				lr.lockedMessage = nl.fmt2('Attendance already marked at {}', markedAt);
+				return;
 			} else if (sessionDate && lrAtdMarked) {
 				lrBlocker.atdMarkedDates[sessionDate] = cm;
 			}
 		}
+		if (!lr.attendance.id) cm.isMarkingComplete = false;
+		else cm.someAtdFilled = true;
 		if (attendanceConfig.isAttrition || attendanceConfig.id == 'certified') {
 			lr.cantProceedMessage = nl.fmt2('Marked {} at {}', attendanceConfig.name, nlReportHelper.getItemName(cm));
 			if (!lrBlocker.all) lrBlocker.all = lr;
@@ -247,14 +262,14 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			lr.validationErrorMsg = 'Remarks mandatory';
 			if (!cm.validationErrorMsg) cm.validationErrorMsg = nl.fmt2('{}: Remarks mandatory', nlReportHelper.getItemName(cm));
 		}
-		if (!cm.asdSession) lrBlocker.lastSessionAttended = false;
-		if (lrBlocker.lastSessionAttended) return;
-		lrBlocker.lastSessionAttended = (attendanceConfig.timePerc || 0) > 0;
+		if (!lrBlocker.lastSessionAttended)
+			lrBlocker.lastSessionAttended = (attendanceConfig.timePerc || 0) > 0;
 	};
 
 	this.postValidateCm = function(cm, cmValidationCtx) {
-		if (!cm.someAtdFilled) cm.dateValidationError = null;
-		if (!cm.dateValidationError) return;
+		if (!cm.someAtdFilled) cm.dateValidationErrorIfSomeAtdFilled = null;
+		if (!cm.dateValidationErrorIfSomeAtdFilled) return;
+		cm.dateValidationError = cm.dateValidationErrorIfSomeAtdFilled;
 		cm.validationErrorMsg = nl.fmt2('{}: {}', nlReportHelper.getItemName(cm), cm.dateValidationError);
 	}
 	

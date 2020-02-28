@@ -67,14 +67,14 @@
 					</div>
 				</div>
 				<div class='col padding-mid'>
-					<table class='nl-table nl-table-styled'>
+					<table class='nl-table nl-table-styled3 rowlines'>
 						<tr ng-repeat='item in chartData'>
 							<td>{{item.name}}</td>
 							<td>{{item.val}}</td>
 						</tr>
-						<tr>
-							<td class='fbold'>Total</td>
-							<td class='fbold'>{{chartTotal}}</td>
+						<tr class='header'>
+							<td>Total</td>
+							<td>{{chartTotal}}</td>
 						</tr>
 					</table>
 				</div>
@@ -161,23 +161,23 @@
 		</div>
 
 		<div ng-if='visibleUsers.length > 0' class='padding-mid'>
-			<table class='nl-table nl-table-styled'>
-				<tr>
-					<th>
+			<table class='nl-table nl-table-styled3 rowlines'>
+				<tr class='header'>
+					<td>
 						Learner Name
-					</th>
-					<th>
+					</td>
+					<td>
 						Learner Id
-					</th>
-					<th>
+					</td>
+					<td>
 						Status
-					</th>
+					</td>
 					<th ng-if='selectedModule.showScore'>
 						Score
-					</th>
+					</td>
 					<th ng-if='selectedModule.showRemarks'>
 						Remarks
-					</th>
+					</td>
 				</tr>
 				<tr ng-repeat='user in visibleUsers track by $index'>
 					<td>

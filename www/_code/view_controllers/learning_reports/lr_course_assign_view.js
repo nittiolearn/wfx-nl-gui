@@ -20,7 +20,7 @@ function(nl, nlDlg, nlTreeListSrv) {
             _myTreeListSrv.addItem(modules[i]);
 		}
         var dlg = nlDlg.create($scope);
-		dlg.setCssClass('nl-height-max nl-width-max');
+		dlg.setCssClass('nl-height-max nl-width-max  nl-no-vscroll');
 		dlg.scope.dlgTitle = courseAssignment.info.name;
         _showVisible(dlg, modules);
         dlg.scope.search = {searchStr: ''};
