@@ -17,6 +17,7 @@ function($stateProvider, $urlRouterProvider) {
 var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDlg, nlRouter, nlOuUserSelect) {
 	var _dataDefaults = {
 		type: 'course',		// all|module|course|trainig_kind|module_assign|course_assign|module_self_assign|training_batch|user
+		mode: null,			// cert_report
 		timestamptype: 'created', // created|updated
 		myou: false,		// Filter records to my ou level
 		myoulevel: null,	// null|1|2|3. For example assume myou = A.B.C.D.E;
@@ -47,11 +48,11 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		_data = {};
 		_groupInfo = groupInfo;
 		_userInfo = userInfo;
-        var urlParams = nl.location.search();
+		var urlParams = nl.location.search();
 		_fillAttrs(_data, ['type'], [settings, urlParams, _dataDefaults]);
         if (!_oneOf(_data.type, ['all', 'module', 'course', 'training_kind', 'module_assign', 'course_assign', 'module_self_assign', 'training_batch', 'user']))
         	_data.type = 'course';
-		_fillAttrs(_data, ['timestamptype', 'myou', 'myoulevel', 'myoufilter', 'assignor', 'parentonly',
+		_fillAttrs(_data, ['timestamptype', 'mode', 'myou', 'myoulevel', 'myoufilter', 'assignor', 'parentonly',
 			'repsubtype', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug', 'chunksize', 'dontZip'], 
         	[settings, urlParams, _dataDefaults]);
         if (_oneOf(_data.type, ['module_assign', 'course_assign', 'training_batch', 'user']))
@@ -61,6 +62,8 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
         if(_data.type == 'module') _data.parentonly = false;
         _toBool(_data, 'parentonly');
 		if(_data.type != 'user') _toInt(_data, 'objid');
+		if (_data.mode != 'cert_report' || _data.type != 'course') _data.mode = null;
+		if (_data.mode == 'cert_report') _data.timestamptype = 'updated';
 		
 		_toBool(_data, 'myou');
 		_toInt(_data, 'myoulevel');
@@ -91,6 +94,10 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
     	return _data.type;
 	};
 
+	this.getMode = function() {
+		return _data.mode;
+	};
+	
 	this.canZip = function() {
 		return !_data.dontZip;
 	};
@@ -174,7 +181,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		}
 		
 		dlg.scope.data = {timestamptype: {id: dataParam.timestamptype}, createdfrom: dataParam.createdfrom, createdtill: dataParam.createdtill, filterjson: dataParam.filterjson};
-		if(dataParam.type == 'course' && ((_groupInfo.props || {}).features || {}).etm) {
+		if(dataParam.mode != 'cert_report' && dataParam.type == 'course' && ((_groupInfo.props || {}).features || {}).etm) {
 			dlg.scope.data.repsubtype = {id: dataParam.repsubtype || ''};
 			dlg.scope.showReportType = true;
 		}
@@ -247,6 +254,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		var custFilters = _data.filterobj || [];
 		for (var i=0; i<custFilters.length; i++) ret.push(custFilters[i]);
 		if (_data.repsubtype) ret.push({field: 'repsubtype', val: _data.repsubtype});
+		if (_data.mode == 'cert_report') ret.push({field: 'completed', val: true});
 		if (!_data.myou) return ret;
 		var me = (_groupInfo.derived.keyToUsers || {})[_userInfo.username];
 		_myou = me.org_unit;
