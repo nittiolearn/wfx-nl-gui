@@ -189,6 +189,9 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
     }
     //-----------------------------------------------------------------------------------
     function _onExport() {
+    }
+
+    function _onExportImpl() {
         var zip = new JSZip();
         _addOverviewFile(zip);
 
@@ -218,6 +221,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
             var record = _records[recid];
             if (!record.isProcessed) {
                 record.user = nlGroupInfo.getUserObj(''+record.student);
+                if (!record.user) record.user = _pastUserData[repcontent.studentname];
                 if (!record.user) record.user = nlGroupInfo.getDefaultUser(nl.fmt2('id={}', record.student));
                 record.isProcessed = true;
             }

@@ -46,7 +46,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         _isNonNHT = false;
         _dates = {minUpdated: null, maxUpdated: null};
         _convertAttendanceArrayToObj(userinfo.groupinfo.attendance);
-        if (!nlGroupInfo.isPastUserXlsConfigured()) _pastUserData = {};
+        if (!nlGroupInfo.isPastUserInfosConfigured()) _pastUserData = {};
         _canManage = nlRouter.isPermitted(_userInfo, 'assignment_manage');
         _canSend = nlRouter.isPermitted(_userInfo, 'assignment_send');
     };
@@ -200,7 +200,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             _pastUserDataFetchInitiated = true;
             nlDlg.popupStatus('Fetching additional user information ...', false);
             nlDlg.showLoadingScreen();
-            nlGroupInfo.fetchPastUserXls().then(function(result) {
+            nlGroupInfo.fetchPastUserInfos().then(function(result) {
                 _pastUserData = result || {};
                 for (var i=0; i<_postProcessRecords.length; i++)
                     self.addRecord(_postProcessRecords[i]);

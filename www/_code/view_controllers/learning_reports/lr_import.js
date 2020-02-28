@@ -67,12 +67,12 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
             nlGroupInfo.init2().then(function() {
 		        nlGroupInfo.update();
 		        _groupInfo = nlGroupInfo.get();
-		        if (!nlGroupInfo.isPastUserXlsConfigured(_groupInfo)) {
+		        if (!nlGroupInfo.isPastUserInfosConfigured(_groupInfo)) {
 		        	resolve(true);
 		        	return;
 		        }
 	        	nlDlg.popupStatus('Geting past user info ...', false);
-	        	nlGroupInfo.fetchPastUserXls(_groupInfo).then(function(result) {
+	        	nlGroupInfo.fetchPastUserInfos(_groupInfo).then(function(result) {
 		        	nlDlg.popdownStatus(0);
 		        	if (!result) {
 		        		resolve(false);

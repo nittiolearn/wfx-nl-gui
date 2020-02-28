@@ -75,10 +75,11 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 		            msg += 'Currently <b>{}</b> users are loaded.';
 		            nlDlg.popupAlert({title: 'Warning', template: nl.fmt2(msg, userCnt)});
 		        }
-                nlAdminUserImport.init(_groupInfo, _userInfo, _grpid);
-                nl.pginfo.pageTitle = nl.t('User administration: {}', _groupInfo.name);
-                _updateCards();
-                resolve(true);
+                nlAdminUserImport.init(_groupInfo, _userInfo, _grpid).then(function() {
+                    nl.pginfo.pageTitle = nl.t('User administration: {}', _groupInfo.name);
+                    _updateCards();
+                    resolve(true);
+                });
             }, function(err) {
                 resolve(false);
             });

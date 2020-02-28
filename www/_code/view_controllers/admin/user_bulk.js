@@ -112,6 +112,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     var _grpid = null;
     var _groupInfo = null;
     var _userInfo = null;
+    var _pastUserData = {};
     var _SERVER_CHUNK_SIZE = 100;
     var _canUpdateLoginId = false;
     
@@ -119,8 +120,13 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         _groupInfo = groupInfo;
         _userInfo = userInfo;
         _grpid = grpid;
-        var params = nl.location.search();
         _canUpdateLoginId = nlRouter.isPermitted(_userInfo, 'admin_user');
+        console.log('TODO-NOW: Before past users', new Date());
+        return nlGroupInfo.fetchPastUserInfos(_groupInfo).then(function(result) {
+            _pastUserData = result || {};
+            console.log('TODO-NOW: Loaded past users', new Date(), _pastUserData);
+            return true;
+        });
     };
 
     this.importUsers = function($scope, chunkSize, debugLog) {

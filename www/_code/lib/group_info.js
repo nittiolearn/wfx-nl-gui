@@ -212,9 +212,9 @@ function(nl, nlImporter, nlGroupCache) {
     	return _userTableAttrs;
     };
     
-    this.isPastUserXlsConfigured = function(groupInfo) {
+    this.isPastUserInfosConfigured = function(groupInfo) {
     	if (!groupInfo) groupInfo = self.get();
-    	return groupInfo && groupInfo.props && groupInfo.props.augmentedUserInfoXls;
+    	return groupInfo && groupInfo.props && groupInfo.props.pastUserInfos;
     };
 
     this.DEFAULT_REPORT_PATH = '/static/others/report-templates/';
@@ -229,31 +229,42 @@ function(nl, nlImporter, nlGroupCache) {
         return groupInfo.props.customReportTemplate || '';
     };
     
-    this.fetchPastUserXls = function(groupInfo) {
+    this.fetchPastUserInfos = function(groupInfo) {
     	if (!groupInfo) groupInfo = self.get();
         return nl.q(function(resolve, reject) {
-        	if (!self.isPastUserXlsConfigured(groupInfo)) {
-        		resolve(false);
+            var userDict = {};
+
+        	if (!self.isPastUserInfosConfigured(groupInfo)) {
+        		resolve(userDict);
         		return;
-        	}
-        	nl.http.get(groupInfo.props.augmentedUserInfoXls, {responseType: "arraybuffer"})
-        	.then(function(result) {
-        		var xlscfg = {singleSheet: true, toJsonConfig: {header:1}};
-        		nlImporter.readXlsFromArrayBuffer(result.data, xlscfg).then(function(result2) {
-        			result2 = _xlsArrayToDict(groupInfo, result2);
-        			resolve(result2);
-        		}, function(e) {
-		        	var msg = nl.t('Error reading past users xls: {}', e||'');
-		        	nlDlg.popupAlert({title: 'Error', template: msg});
-        			resolve(false);
-        		});
-        	}, function(e) {
-	        	var msg = nl.t('Error fetching past users file: {}', e.data||'');
-	        	nlDlg.popupAlert({title: 'Error', template: msg});
-	        	resolve(false);
-        	});
+            }
+            var pastUserInfos = groupInfo.props.pastUserInfos;
+            _fetchPastUserInfos(groupInfo, pastUserInfos, 0, userDict, function(userDict2) {
+                resolve(userDict2);
+            });
         });
     };
+
+    function _fetchPastUserInfos(groupInfo, pastUserInfos, pos, userDict, resolve) {
+        if (pos >= pastUserInfos.length) return resolve(userDict);
+        var xlscfg = {singleSheet: true, toJsonConfig: {header:1}};
+        var fName = pastUserInfos[pos];
+        nl.http.get(fName, {responseType: "arraybuffer"})
+        .then(function(result) {
+            nlImporter.readXlsFromArrayBuffer(result.data, xlscfg).then(function(rows) {
+                _xlsArrayToDict(groupInfo, rows, userDict);
+                _fetchPastUserInfos(groupInfo, pastUserInfos, pos+1, userDict, resolve);
+            }, function(e) {
+                var msg = nl.t('Error reading past users file: {}', e||'');
+                nlDlg.popupAlert({title: 'Error', template: msg});
+                resolve(userDict);
+            });
+        }, function(e) {
+            var msg = nl.t('Error fetching past users file: {}', e.data||'');
+            nlDlg.popupAlert({title: 'Error', template: msg});
+            resolve(userDict);
+        });
+    }
 
 	var _userTableAttrs = [
 	    {id: 'op', name: "Operation"},
@@ -275,9 +286,8 @@ function(nl, nlImporter, nlGroupCache) {
         {id: 'updated', name: "Updated UTC Time", optional: true},
 	];
 	
-    function _xlsArrayToDict(groupInfo, xlsArray) {
-    	var userDict = {};
-    	if (xlsArray.length < 1) return userDict;
+    function _xlsArrayToDict(groupInfo, xlsArray, userDict) {
+    	if (xlsArray.length < 1) return;
 	    var userHeaders = _arrayToDictNameToId(_userTableAttrs);
 	    var metaHeaders = _arrayToDictNameToId((groupInfo.props || {}).usermetadatafields || []);
     	var headerRow = xlsArray[0];
@@ -315,8 +325,6 @@ function(nl, nlImporter, nlGroupCache) {
             if (!user.seclogin) user.seclogin = '';
     		userDict[user.user_id] = user;
     	}
-    	
-    	return userDict;
     }
     
     function _arrayToDictNameToId(arrayInput) {

@@ -59,6 +59,7 @@ function(nl, nlDlg) {
     }
     
     function _splitIntoRows(content) {
+        // TODO-NOW: try optimizing here
         content = content.replace(/\r/g, '');
         return content.split('\n');
     }
