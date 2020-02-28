@@ -21,7 +21,18 @@ this.showUpdateTrainingBatchDlg = function($scope, courseAssignment, modules, le
 		var dlg = new UpdateTrainingBatchDlg($scope, ctx, resolve);
 		dlg.show(launchType);
 	});
-}
+};
+
+this.getTrainerItemInfos = function(courseAssignment, modules, learningRecords, groupInfo) {
+	var ctx = _getContext(courseAssignment, modules, learningRecords, groupInfo);
+	var ret = {};
+	for(var i=0; i<ctx.modules.length; i++) {
+		var cm = ctx.modules[i];
+		ret[cm.id] = cm;
+	}
+	ret.allModules = nlReportHelper.getAsdUpdatedModules(modules || [], ctx.dbAttendance.getDbObj());
+	return ret;
+};
 
 function _getContext(courseAssignment, modules, learningRecords, groupInfo) {
 	var ctx = {learningRecords: learningRecords, groupInfo: groupInfo};

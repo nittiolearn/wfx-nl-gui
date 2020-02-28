@@ -266,9 +266,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     }
 
     function _updateItemToLocked(cm, itemInfo, earlierTrainerItems) {
+        if (earlierTrainerItems.isMarkedCertified) itemInfo.isMarkedCertified = true;
         if(cm.type == 'iltsession') {
             _updateILTtoLocked(cm, itemInfo, earlierTrainerItems);
             earlierTrainerItems.iltsession = itemInfo;
+            if (itemInfo.attId == 'certified') earlierTrainerItems.isMarkedCertified = true;
         } else if(cm.type == 'rating') {
             _updateRatingtoLocked(cm, itemInfo, earlierTrainerItems);
             earlierTrainerItems.rating = itemInfo;

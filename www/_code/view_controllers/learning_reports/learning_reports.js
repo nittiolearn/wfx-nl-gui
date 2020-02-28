@@ -1428,28 +1428,22 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _onCourseAssignView() {
 		var courseAssign = _getCourseAssignmnt();
-		g_milestone = courseAssign.milestone ? angular.fromJson(courseAssign.milestone) : {};
-		g_attendance = courseAssign.attendance ? angular.fromJson(courseAssign.attendance) : {};
-		g_attendance = nlCourse.migrateCourseAttendance(g_attendance);
-		g_rating = courseAssign.rating ? angular.fromJson(courseAssign.rating) : {};
 		var content = _getContentOfCourseAssignment() || {};
-		var milestoneIdDict = _arrayToDict(_getMilestoneItems(content));
-	
-		var modules = nlReportHelper.getAsdUpdatedModules(content.modules || [], g_attendance);
 		var nlLrCourseAssignView = nlLrUpdateBatchDlg.getCourseAssignView();
-		nlLrCourseAssignView.show($scope, modules || [], courseAssign, function(cm) {
+		var trainerItemsInfos = nlLrUpdateBatchDlg.getTrainerItemInfos(courseAssign,
+			content.modules, nlLrReportRecords.getRecords(), _groupInfo);
+		nlLrCourseAssignView.show($scope, trainerItemsInfos.allModules, courseAssign, function(cm) {
 			if (!cm) return null;
 			var moduleInfo = {records: [], internalStatusToStatusStrs: {}};
 			var internalStatusMap = {}; // {statusInteral: {statusDsplay1: true, statusDisplay2: true}}
 			if (cm.type == 'module') return;
 			if (cm.type == 'milestone') {
 				cm.milestoneObj = {};
-				var _milestone = g_milestone[cm.id] || {};
-				cm.milestoneObj['comment'] = _milestone.comment;
-				var msInfo = (milestoneIdDict[cm.id] || {});
-				var locked  = msInfo.error || !msInfo,canMarkMilestone;
-				cm.milestoneObj['status'] = _milestone.status == 'done' && !locked ? true : false;
-				cm.milestoneObj['reached'] = _milestone.reached && !locked ? nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(_milestone.reached || '')) : '';
+				var trainerItemsInfo = trainerItemsInfos[cm.id] || {};
+				cm.milestoneObj['comment'] = trainerItemsInfo.comment;
+				cm.milestoneObj['status'] = trainerItemsInfo.milestoneMarked;
+				cm.milestoneObj['reached'] = trainerItemsInfo.reached && trainerItemsInfo.milestoneMarked 
+					? nl.fmt.date2StrDDMMYY(trainerItemsInfo.reached) : '';
 			}
 			if(cm.type == 'milestone' || cm.type == 'rating' || cm.type == 'iltsession' 
 				|| cm.type == 'info' || cm.type == 'link') cm.showRemarks = true;
@@ -1481,6 +1475,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		if (itemStatus.status == 'waiting' && itemStatus.isAttrition) {
 			recordItem.statusStr = 'Earlier attrition';
+		} else if ((itemStatus.status == 'waiting' || itemStatus.status == 'pending') && itemStatus.isMarkedCertified) {
+			recordItem.statusStr = 'Earlier certified';
 		} else if (itemStatus.status == 'waiting') {
 			recordItem.remarks = '';
 		} else if (itemStatus.status == 'delayed') {
