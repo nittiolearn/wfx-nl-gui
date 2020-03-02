@@ -269,7 +269,6 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (earlierTrainerItems.isMarkedCertified) itemInfo.isMarkedCertified = true;
         if(cm.type == 'iltsession') {
             _updateILTtoLocked(cm, itemInfo, earlierTrainerItems);
-            earlierTrainerItems.iltsession = itemInfo;
             if (itemInfo.attId == 'certified') earlierTrainerItems.isMarkedCertified = true;
         } else if(cm.type == 'rating') {
             _updateRatingtoLocked(cm, itemInfo, earlierTrainerItems);
@@ -284,14 +283,46 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         return  itemInfo && (itemInfo.rawStatus === 'pending' || itemInfo.status === 'waiting');
     }
 
+    function _pendingOrWaitingIlt(earlierTrainerItems) {
+        return  (earlierTrainerItems.asdCombinedStatus === 'pending' || earlierTrainerItems.asdCombinedStatus === 'waiting');
+    }
+
+    function _computeCombinedStatusAndTimePerc(cm, itemInfo, earlierTrainerItems) {
+        if (!earlierTrainerItems.atdMarkedDates) earlierTrainerItems.atdMarkedDates = {};
+        var itemStatus = itemInfo.status;
+        var sessionDate = cm.sessiondate ? nl.fmt.date2Str(
+            nl.fmt.json2Date(cm.sessiondate || ''), 'date') : null;
+        if (sessionDate && (sessionDate in earlierTrainerItems.atdMarkedDates)) {
+            itemStatus = 'notapplicable';
+        } else if (sessionDate && itemInfo.attId && itemInfo.attId != 'notapplicable') {
+            earlierTrainerItems.atdMarkedDates[sessionDate] = true;
+        }
+        if (!cm.asdSession) {
+            // Fixed ILT Session
+            earlierTrainerItems.asdCombinedStatus = itemStatus;
+            earlierTrainerItems.maxTimePerc = itemInfo.maxTimePerc;
+            return;
+        }
+        if (!earlierTrainerItems.asdCombinedStatus) {
+            // ASD ILT Session which is above the first ILT session
+            return;
+        }
+
+        // ASD ILT Session which is not above the first ILT session
+        var currentIsMax = false;
+        if (itemInfo.maxTimePerc > earlierTrainerItems.maxTimePerc) {
+            earlierTrainerItems.maxTimePerc = itemInfo.maxTimePerc;
+            currentIsMax = true;
+        }
+        itemInfo.maxTimePerc = earlierTrainerItems.maxTimePerc;
+        if (earlierTrainerItems.asdCombinedStatus != 'locked' && currentIsMax)
+            earlierTrainerItems.asdCombinedStatus = itemStatus;
+    }
+
     function _updateILTtoLocked(cm, itemInfo, earlierTrainerItems) {
         if(_pendingOrWaiting(earlierTrainerItems.milestone) ||
-            _pendingOrWaiting(earlierTrainerItems.iltsession)) itemInfo.status = 'waiting';
-        var earlier = earlierTrainerItems.iltsession;
-        if (cm.asdSession && earlier && earlier.maxTimePerc > itemInfo.maxTimePerc) {
-            itemInfo.maxTimePerc = earlier.maxTimePerc;
-            // Needed for computing rating and startAfter dependancies
-        }
+            _pendingOrWaitingIlt(earlierTrainerItems)) itemInfo.status = 'waiting';
+        _computeCombinedStatusAndTimePerc(cm, itemInfo, earlierTrainerItems);
     }
 
     function _updateRatingtoLocked(cm, itemInfo, earlierTrainerItems) {
@@ -299,8 +330,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             itemInfo.status = 'waiting';
             return;
         }
-        if(cm.rating_type == 'rag' || !earlierTrainerItems.iltsession) return;
-        if (earlierTrainerItems.iltsession.maxTimePerc == 0) {
+        if(cm.rating_type == 'rag') return;
+        if (earlierTrainerItems.maxTimePerc == 0) {
             itemInfo.status = 'waiting';
             return;
         }
@@ -308,7 +339,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
     function _updateMilestonetoLocked(cm, itemInfo, earlierTrainerItems) {
         if(_pendingOrWaiting(earlierTrainerItems.milestone)) itemInfo.status = 'waiting';
-        else if(_pendingOrWaiting(earlierTrainerItems.iltsession)) itemInfo.status = 'waiting';
+        else if(_pendingOrWaitingIlt(earlierTrainerItems)) itemInfo.status = 'waiting';
         else if(_pendingOrWaiting(earlierTrainerItems.rating)) itemInfo.status = 'waiting';
     }
 
@@ -577,7 +608,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 if (preItem.status != 'failed') isConditionFailed = true;
             } else if (p.min_score && preItem.score < p.min_score) {
                 isConditionFailed = true;
-            } else if (p.max_score && preItem.score > p.max_score) {
+                // TODO-NOW: rounddown?
+            } else if (p.max_score && preItem.score >= p.max_score) {
                 isConditionFailed = true;
             }
             if (isConditionFailed) failCnt++;

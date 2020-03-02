@@ -67,13 +67,18 @@ njsPageOrg = function() {
 
 		_pageOrgCopyPasteField.on('paste',function(e) {
             var clipboard = e.clipboardData || window.clipboardData || e.originalEvent.clipboardData;
-            var clip = clipboard && clipboard.getData('text/plain') || null;
+			var clip = clipboard && clipboard.getData('text/plain') || null;
+			clip = JSON.parse(clip);
 			onPaste(clip);
 		});
 	}
 
 	function _getSelectedContent() {
-		return nlesson.theLesson.pages[g_pageOverviewPageNo].copyContent();
+		var copiedObj = {};
+		for(var key in g_pageOverViewPageNoDict) {
+			copiedObj[key] = nlesson.theLesson.pages[key].copyContent();
+		}
+		return JSON.stringify(copiedObj);
 	}
 	
 	function _closeOrganizer() {
@@ -182,26 +187,28 @@ njsPageOrg = function() {
 	}
 
 	var g_pageOverviewPageNo = -1;
+	var g_pageOverViewPageNoDict = {};
 
 	function onRowClick(pageNo) {
 		var bChecked = (pageNo >= 0 && jQuery('#page_org_row_sel_' + pageNo).is(":checked"));
 
-		if (g_pageOverviewPageNo >= 0) {
-			jQuery('#page_org_row_' + g_pageOverviewPageNo).removeClass('selected');
-			jQuery('#page_org_row_sel_' + g_pageOverviewPageNo).prop('checked', false);
-		}
-
 		if (!bChecked) {
-			g_pageOverviewPageNo = -1;
-			_enableButtonsPerState(g_pageOverviewPageNo);
-			return;
+			jQuery('#page_org_row_' + pageNo).removeClass('selected');
+			jQuery('#page_org_row_sel_' + pageNo).prop('checked', false);
+			if (pageNo in g_pageOverViewPageNoDict) delete g_pageOverViewPageNoDict[pageNo];
+			if (g_pageOverviewPageNo == -1) {
+				g_pageOverviewPageNo = -1;
+				_enableButtonsPerState(g_pageOverviewPageNo);
+				return;
+			} 	
+		} else {
+			g_pageOverviewPageNo = pageNo;
+			g_pageOverViewPageNoDict[pageNo] = true;
+			_getPageRow(pageNo).addClass('selected');
+			jQuery('#page_org_row_sel_' + pageNo).prop('checked', true);	
 		}
-
-		g_pageOverviewPageNo = pageNo;
-		_getPageRow(pageNo).addClass('selected');
-		jQuery('#page_org_row_sel_' + g_pageOverviewPageNo).prop('checked', true);
 		_ensureFocusOfCopyPasteField();
-		_enableButtonsPerState(g_pageOverviewPageNo);
+		_enableButtonsPerState(pageNo);
 	}
 
 	function scrollToElem(elem, parent, smooth) {
@@ -244,16 +251,23 @@ njsPageOrg = function() {
 			page_org_icon_up : false,
 			page_org_icon_down : false,
 		};
-
+		jQuery("#page_org_icon_up").hide();
+		jQuery("#page_org_icon_down").hide();
+		if (Object.keys(g_pageOverViewPageNoDict).length > 1 || Object.keys(g_pageOverViewPageNoDict).length == 0) {
+			_enableButtons(buttonStates);
+			return;
+		}
 		if (pageNo < 0) {
 			return _enableButtons(buttonStates);
 		}
 
 		var lesson = nlesson.theLesson;
 		if (pageNo > 0) {
+			jQuery("#page_org_icon_up").show();
 			buttonStates['page_org_icon_up'] = true;
 		}
 		if (pageNo < lesson.pages.length - 1) {
+			jQuery("#page_org_icon_down").show();
 			buttonStates['page_org_icon_down'] = true;
 		}
 		return _enableButtons(buttonStates);
@@ -302,51 +316,102 @@ njsPageOrg = function() {
 	function onCut() {
 		var lesson = nlesson.theLesson;
 		var curPos = g_pageOverviewPageNo;
-		cutPage(lesson, curPos);
+			cutPage(lesson);
 
 		var selectedPage = g_pageOverviewPageNo;
-		if (selectedPage > lesson.pages.length - 1) {
-			selectedPage--;
+		if (selectedPage >= lesson.pages.length) {
+			selectedPage = lesson.pages.length - 1;
 		}
-		_reinitRows(lesson, curPos, lesson.pages.length, selectedPage);
+		_reinitRows(lesson, 0, lesson.pages.length + Object.keys(g_pageOverViewPageNoDict).length, selectedPage, 'cut');
 	}
 
 	function cutPage(lesson, curPos) {
-
 		if (lesson.pages.length <= 1) {
 			alert('Sorry, you cannot delete/cut the last page');
 			return false;
 		}
-
-		if (!confirm(njs_helper.fmt2('Are you sure you want to delete/cut page {}?', curPos + 1))) {
+		if (lesson.pages.length == Object.keys(g_pageOverViewPageNoDict).length) {
+			alert('Sorry, you cannot delete/cut all the pages');
 			return false;
 		}
-
-		lesson.cutPage(curPos);
+		if (!confirm(njs_helper.fmt2('Are you sure you want to delete/cut page selected pages?'))) return false;
+		var cutItems = 0;
+		for(var key in g_pageOverViewPageNoDict) {
+			var key = parseInt(key);
+				key = key-cutItems;
+			lesson.cutPage(key);
+			cutItems++;
+		}
 		lesson.updateContent();
+	}
+
+	function selectDeselectAll(canMark) {
+		var pages = nlesson.theLesson.pages;
+		var bChecked = canMark;
+		for (var i=0; i<pages.length; i++) {
+			var pageNo = i;
+			if (!bChecked) {
+				jQuery('#page_org_row_' + pageNo).removeClass('selected');
+				jQuery('#page_org_row_sel_' + pageNo).prop('checked', false);
+				if (pageNo in g_pageOverViewPageNoDict) delete g_pageOverViewPageNoDict[pageNo];
+			} else {
+				g_pageOverviewPageNo = pageNo;
+				g_pageOverViewPageNoDict[pageNo] = true;
+				_getPageRow(pageNo).addClass('selected');
+				jQuery('#page_org_row_sel_' + pageNo).prop('checked', true);	
+			}	
+		}
+		_ensureFocusOfCopyPasteField();
+		_enableButtonsPerState();
 	}
 
 	function onPaste(clip) {
 		var lesson = nlesson.theLesson;
-		if (!lesson.pastePage(g_pageOverviewPageNo, clip)) {
+		if (Object.keys(g_pageOverViewPageNoDict).length == 0 || Object.keys(clip).length == 0) {
 			alert('Please cut or copy a page before pasting it.');
 			return false;
 		}
+		var pageNo = g_pageOverviewPageNo;
+		for(var key in clip) {
+			if (!lesson.pastePage(pageNo, clip[key])) {
+				alert('Please cut or copy a page before pasting it.');
+				return false;
+			}
+			pageNo = pageNo + 1;
+		}
 		var selectedPage = g_pageOverviewPageNo + 1;
 		lesson.updateContent();
-		_reinitRows(lesson, selectedPage, lesson.pages.length - 1, selectedPage);
+		_reinitRows(lesson, selectedPage, lesson.pages.length - 1, selectedPage, 'paste');
 	}
 
-	function _reinitRows(lesson, start, end, selectedPage) {
-		for (var i = start; i <= end; i++) {
-			_getPageRow(i).remove();
-			if (i >= lesson.pages.length)
-				continue;
-			var before = _getPageRow(i - 1);
-			var current = _createPageRowObject(lesson.pages, i);
-			current.insertAfter(before);
+	function _reinitRows(lesson, start, end, selectedPage, type) {
+		if(type == 'cut') {
+			var before = _getPageRow(-1);
+			for (var key in g_pageOverViewPageNoDict) _getPageRow(key).remove();
+			for (var i = start; i <= end; i++) {
+				// if (i in g_pageOverViewPageNoDict)
+				_getPageRow(i).remove();
+				if (i >= lesson.pages.length)
+					continue;
+				var current = _createPageRowObject(lesson.pages, i);
+				current.insertAfter(before);
+				before = current;
+			}	
+			
+		} else {
+			for (var i = start; i <= end; i++) {
+				_getPageRow(i).remove();
+				if (i >= lesson.pages.length)
+					continue;
+				var before = _getPageRow(i - 1);
+				var current = _createPageRowObject(lesson.pages, i);
+				current.insertAfter(before);
+			}	
 		}
-		clickRow(selectedPage);
+		if (type != 'paste') {
+			g_pageOverViewPageNoDict = {};
+			clickRow(selectedPage);
+		}
 
 		jQuery('#page_org_pages').html(lesson.pages.length);
 		jQuery('#page_org_maxscore').html(lesson.oLesson.maxScore);
@@ -362,5 +427,6 @@ njsPageOrg = function() {
 		onPageClick : onPageClick,
 		onSwap : onSwap,
 		cutPage : cutPage,
+		selectDeselectAll : selectDeselectAll,
 	};
 }();
