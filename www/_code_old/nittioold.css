@@ -678,7 +678,7 @@ td.submitselection{
   text-align: left;
 }
 
-#page_org tr.selected {
+.page_org_table tr.selected {
   background-color: #EEEEFF;
 }
 
