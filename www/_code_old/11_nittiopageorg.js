@@ -162,7 +162,13 @@ njsPageOrg = function() {
 	}
 
 	function _createPageRow(pages, i) {
-		var templ = '<tr class="normal" id="page_org_row_{pageNo}"><td><input type="checkbox" id="page_org_row_sel_{pageNo}" onclick="njsPageOrg.onRowClick({pageNo});"></input></td><td>{page}</td><td class="score">{maxScore}</td><td class="more">{more}</td></tr>';
+		var templ = 
+			'<tr class="clickable hover" id="page_org_row_{pageNo}">'
+				+ '<td><input type="checkbox" id="page_org_row_sel_{pageNo}" onclick="njsPageOrg.onRowClick({pageNo});"></input></td>'
+				+ '<td class="text-right">{page}</td>'
+				+ '<td class="text-right">{maxScore}</td>'
+				+ '<td class="more">{more}</td>'
+			+ '</tr>';
 		var rowDetails = {};
 		rowDetails.pageNo = i;
 		rowDetails.page = _makePageNoLink(i);
