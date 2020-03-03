@@ -163,11 +163,11 @@ njsPageOrg = function() {
 
 	function _createPageRow(pages, i) {
 		var templ = 
-			'<tr class="clickable hover" id="page_org_row_{pageNo}">'
-				+ '<td><input type="checkbox" id="page_org_row_sel_{pageNo}" onclick="njsPageOrg.onRowClick({pageNo});"></input></td>'
-				+ '<td class="text-right">{page}</td>'
-				+ '<td class="text-right">{maxScore}</td>'
-				+ '<td class="more">{more}</td>'
+			'<tr class="clickable" id="page_org_row_{pageNo}">'
+				+ '<td><input type="checkbox" id="page_org_row_sel_{pageNo}" onclick="njsPageOrg.onCheckBoxClick({pageNo});"></input></td>'
+				+ '<td class="text-right" onclick="njsPageOrg.onRowClick({pageNo});">{page}</td>'
+				+ '<td class="text-right" onclick="njsPageOrg.onRowClick({pageNo});">{maxScore}</td>'
+				+ '<td class="more" onclick="njsPageOrg.onRowClick({pageNo});">{more}</td>'
 			+ '</tr>';
 		var rowDetails = {};
 		rowDetails.pageNo = i;
@@ -195,9 +195,8 @@ njsPageOrg = function() {
 	var g_pageOverviewPageNo = -1;
 	var g_pageOverViewPageNoDict = {};
 
-	function onRowClick(pageNo) {
+	function onCheckBoxClick(pageNo) {
 		var bChecked = (pageNo >= 0 && jQuery('#page_org_row_sel_' + pageNo).is(":checked"));
-
 		if (!bChecked) {
 			jQuery('#page_org_row_' + pageNo).removeClass('selected');
 			jQuery('#page_org_row_sel_' + pageNo).prop('checked', false);
@@ -216,6 +215,34 @@ njsPageOrg = function() {
 		_ensureFocusOfCopyPasteField();
 		_enableButtonsPerState(pageNo);
 	}
+
+	function onRowClick(pageNo) {
+		var bChecked = (pageNo >= 0 && jQuery('#page_org_row_sel_' + pageNo).is(":checked"));
+		if (g_pageOverviewPageNo >= 0) {
+			jQuery('#page_org_row_' + g_pageOverviewPageNo).removeClass('selected');
+			jQuery('#page_org_row_sel_' + g_pageOverviewPageNo).prop('checked', false);
+		}
+		if (Object.keys(g_pageOverViewPageNoDict).length > 0) {
+			for(var key in g_pageOverViewPageNoDict) {
+				jQuery('#page_org_row_' + key).removeClass('selected');
+				jQuery('#page_org_row_sel_' + key).prop('checked', false);	
+			}
+			g_pageOverViewPageNoDict = {};
+		}
+
+		// if (!bChecked) {
+		// 	g_pageOverviewPageNo = -1;
+		// 	_enableButtonsPerState(g_pageOverviewPageNo);
+		// 	return;
+		// }
+
+		g_pageOverviewPageNo = pageNo;
+		g_pageOverViewPageNoDict[pageNo] = true;
+		_getPageRow(pageNo).addClass('selected');
+		jQuery('#page_org_row_sel_' + g_pageOverviewPageNo).prop('checked', true);
+		_ensureFocusOfCopyPasteField();
+		_enableButtonsPerState(g_pageOverviewPageNo);
+	}	
 
 	function scrollToElem(elem, parent, smooth) {
 		var scrollTop = parent.scrollTop();
@@ -430,6 +457,7 @@ njsPageOrg = function() {
 	return {
 		showOrganizer : showOrganizer,
 		onRowClick : onRowClick,
+		onCheckBoxClick : onCheckBoxClick,
 		onPageClick : onPageClick,
 		onSwap : onSwap,
 		cutPage : cutPage,
