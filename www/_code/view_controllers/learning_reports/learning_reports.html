@@ -296,6 +296,13 @@
                     </tr>
                 </table>            
             </div>
+            <!-- **************************************************************
+                Certificate tab
+            ******************************************************************* -->
+            <div ng-if='tabData.selectedTab.id == "certificate"  && !tabData.processingOnging'
+                class='padding-mid anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'
+                ng-include='"view_controllers/learning_reports/lr_certificate_tabdata.html"'>
+            </div>
         </div>
     </div>
 </div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
