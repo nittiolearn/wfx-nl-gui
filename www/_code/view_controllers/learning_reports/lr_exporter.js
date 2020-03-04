@@ -1026,6 +1026,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         if (!statusinfo) return;
         defaultRowObj._status = statusinfo.state || 'pending';
         defaultRowObj.remarks = statusinfo.remarks || '';
+        if (statusinfo.otherRemarks) defaultRowObj.remarks = nl.fmt2('{} ({})', defaultRowObj.remarks, statusinfo.otherRemarks);
         defaultRowObj._timeIltMins = statusinfo.iltTimeSpent || 0;
         defaultRowObj._timeIltTotalMins = statusinfo.iltTotalTime;
         defaultRowObj.ended = statusinfo.marked;
@@ -1040,6 +1041,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         defaultRowObj._score = statusinfo.ratingScore === 0 ? "0" : statusinfo.score;
         defaultRowObj._passScoreStr = statusinfo.passScore || '';
         defaultRowObj.remarks = nl.fmt.arrayToString(statusinfo.remarks || '');
+        if (statusinfo.otherRemarks) defaultRowObj.remarks = nl.fmt2('{} ({})', defaultRowObj.remarks, statusinfo.otherRemarks);
         defaultRowObj.ended = statusinfo.marked;
         defaultRowObj.updated = statusinfo.updated;
 	}

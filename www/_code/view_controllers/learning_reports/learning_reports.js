@@ -1530,9 +1530,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		} else if (cm.type == 'info' || cm.type == 'link') {
 		} else if (cm.type == 'iltsession') {
 			if (itemStatus.state) recordItem.statusStr = itemStatus.state;
+			if (itemStatus.otherRemarks) recordItem.remarks = nl.fmt2('{} ({})', recordItem.remarks, itemStatus.otherRemarks);
 		} else if (cm.type == 'rating') {
 			if (itemStatus.ratingString) recordItem.statusStr = itemStatus.rating;
 			else if (itemStatus.status == 'success') recordItem.statusStr = 'Passed';
+			if (itemStatus.otherRemarks) recordItem.remarks = nl.fmt2('{} ({})', recordItem.remarks, itemStatus.otherRemarks);
 		} else if (cm.type == 'milestone') {
 			if (itemStatus.status == 'success') recordItem.statusStr = 'Achieved';
 		}
