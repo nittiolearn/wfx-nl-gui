@@ -734,14 +734,13 @@ function Validator(ctx) {
 				lr.lockedMessage = lrBlocker.ms.cantProceedMessage;
 				if (!lrBlocker.all) lrBlocker.all = lrBlocker.ms;
 			}
+			if (!lr.lockedMessage && lr.locked_waiting) lr.lockedMessage = 'Not applicable';
 			if (lr.lockedMessage) continue;
 			cm.allLrsLocked = false;
 
 			if (cm.type == 'iltsession') ctx.dbAttendance.validateLr(lr, cm, lrBlocker);
 			else if (cm.type == 'rating') ctx.dbRating.validateLr(lr, cm, lrBlocker);
 			else if (cm.type == 'milestone') ctx.dbMilestone.validateLr(lr, cm, lrBlocker);
-
-			if (lr.locked_waiting) lr.lockedMessage = 'Not applicable';
 		}
 	}
 
