@@ -470,7 +470,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		} else if (tab.id == 'iltbatchdata') {
 			_updateILTBatch();
 		} else if (tab.id == 'certificate') {
-			var certHandler = new CertificateHandler($scope);
+			var certHandler = new CertificateHandler(nl, _groupInfo, $scope);
 			certHandler.updateCertificateTab();
 		}
 	}
@@ -1363,100 +1363,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
-	// Certificate tab
-	//---------------------------------------------------------------------------------------------------------------------------------------------------------
-	function CertificateHandler($scope) { 
-
-		this.userDict = {};
-
-		this.getExportData = function() {
-			_updateCertificateTab(this.userDict);
-			return {statsCountArray: _exportCertificateRows(this.userDict), columns: _exportCertificateColumns()};
-		}
-
-		this.updateCertificateTab = function() {
-			_updateCertificateTab(this.userDict);
-		};
-
-		function _updateCertificateTab(userDict) {
-			var records = $scope.tabData.records;
-			var userObj = {};
-			var courseId = null;
-			var certDict = {};
-	
-			for(var i=0; i<records.length; i++) {
-				userObj = {};
-				var record = records[i];
-				if(!(record.stats.certid)) continue;
-				var certificateRows = [];
-				if(!record.user.state) continue;
-	
-				var userId = record.user.user_id;
-				courseId = record.raw_record.lesson_id;
-				if(!userDict[userId]) userDict[userId] = {name: record.user.name, user_id: record.user.user_id, 
-														_grade: record.raw_record._grade, subject: record.raw_record.subject, 
-														certificates :{}};
-				userObj = userDict[userId];
-	
-				if(!certDict[courseId]) certDict[courseId] = {name: record.repcontent.name, _grade: record.raw_record._grade, 
-															subject: record.raw_record.subject, valid: 0, expired: 0};
-				if(!(courseId in userObj.certificates)) {
-					userObj.certificates[courseId] = {name: record.repcontent.name, expireOn:record.stats.expireOn, certExpired: record.stats.certExpired || null};
-					if(record.stats.certExpired) certDict[courseId].expired += 1;
-					else certDict[courseId].valid += 1;
-	
-				} else if(userObj.certificates[courseId].expireOn < record.stats.expireOn) {
-					if(userObj.certificates[courseId].certExpired && !record.stats.certExpired) {
-						certDict[courseId].valid += 1;
-						certDict[courseId].expired -= 1;
-					}
-					userObj.certificates[courseId].expireOn = record.stats.expireOn;
-				}
-			};
-			for(var id in certDict) certificateRows.push(certDict[id]);		
-			$scope.certificateInfo = {columns: _getCertificateColumns(), rows: certificateRows};
-		}
-
-		function _getCertificateColumns() {
-			var headerRow = [];
-			headerRow.push({id: 'name', name: nl.t('Certificate name'), class: 'minw-string'});
-			headerRow.push({id: '_grade', name: nl.t(_groupInfo.props.gradelabel), class: 'minw-string nl-text-center'});
-			headerRow.push({id: 'subject', name: nl.t(_groupInfo.props.subjectlabel), class: 'minw-string nl-text-center'});
-			headerRow.push({id: 'valid', name: nl.t('Valid Certificates'), class: 'minw-number nl-text-center'});
-			headerRow.push({id: 'expired', name: nl.t('Expired Certificates'), class: 'minw-number nl-text-center'});
-			return headerRow;
-		}
-
-		function _exportCertificateRows(userDict) {
-			var certificateRows = [];
-			for(var userid in userDict) {
-				var userObj = userDict[userid];
-				for(var certid in userObj.certificates) {
-					var expireOn = nl.fmt.date2Str(userObj.certificates[certid].expireOn || null, 'date');
-					certificateRows.push({user_id: userObj.user_id, name: userObj.name, 
-										_grade: userObj._grade,
-										subject: userObj.subject,
-										certificate_name: userObj.certificates[certid].name,
-										certificate_expiary: expireOn});
-				}
-			}
-			return certificateRows;
-		}
-
-		function _exportCertificateColumns() {
-			var headerRow = [];
-			headerRow.push({id: 'user_id', name: nl.t('User id'), class: 'minw-string'});
-			headerRow.push({id: 'name', name: nl.t('User name'), class: 'minw-number nl-text-center'});
-			headerRow.push({id: '_grade', name: nl.t(_groupInfo.props.gradelabel), class: 'minw-string nl-text-center'});
-			headerRow.push({id: 'subject', name: nl.t(_groupInfo.props.subjectlabel), class: 'minw-string nl-text-center'});
-			headerRow.push({id: 'certificate_name', name: nl.t('Certificate'), class: 'minw-string nl-text-center'});
-			headerRow.push({id: 'certificate_expiary', name: nl.t('Expiary Date'), class: 'minw-string nl-text-center'});
-			return headerRow;
-		}
-	
-	}
-
-	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _onExport() {
 		if (nlLrFetcher.fetchInProgress()) return;
 		var reportRecords = nlLrReportRecords.asList();
@@ -1507,7 +1413,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		var certificateStats = null;
 		if (nlLrFilter.getType() == 'course' && nlLrFilter.getMode() == 'cert_report') {
-			var certHandler = new CertificateHandler($scope);
+			var certHandler = new CertificateHandler(nl, _groupInfo, $scope);
 			certificateStats = certHandler.getExportData();
 		}
 
@@ -3006,6 +2912,100 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 };
 
+//---------------------------------------------------------------------------------------------------------------------------------------------------------
+// Certificate tab
+//---------------------------------------------------------------------------------------------------------------------------------------------------------
+function CertificateHandler(nl, _groupInfo, $scope) { 
+
+	this.userDict = {};
+
+	this.getExportData = function() {
+		_updateCertificateTab(this.userDict);
+		return {statsCountArray: _exportCertificateRows(this.userDict), columns: _exportCertificateColumns()};
+	}
+
+	this.updateCertificateTab = function() {
+		_updateCertificateTab(this.userDict);
+	};
+
+	function _updateCertificateTab(userDict) {
+		var records = $scope.tabData.records;
+		var userObj = {};
+		var courseId = null;
+		var certDict = {};
+
+		for(var i=0; i<records.length; i++) {
+			userObj = {};
+			var record = records[i];
+			if(!(record.stats.certid)) continue;
+			var certificateRows = [];
+			if(!record.user.state) continue;
+
+			var userId = record.user.user_id;
+			courseId = record.raw_record.lesson_id;
+			if(!userDict[userId]) userDict[userId] = {name: record.user.name, user_id: record.user.user_id, 
+													_grade: record.raw_record._grade, subject: record.raw_record.subject, 
+													certificates :{}};
+			userObj = userDict[userId];
+
+			if(!certDict[courseId]) certDict[courseId] = {name: record.repcontent.name, _grade: record.raw_record._grade, 
+														subject: record.raw_record.subject, valid: 0, expired: 0};
+			if(!(courseId in userObj.certificates)) {
+				userObj.certificates[courseId] = {name: record.repcontent.name, expireOn:record.stats.expireOn, 
+					certExpired: record.stats.certExpired || null};
+				if(record.stats.certExpired) certDict[courseId].expired += 1;
+				else certDict[courseId].valid += 1;
+
+			} else if(userObj.certificates[courseId].expireOn < record.stats.expireOn) {
+				if(userObj.certificates[courseId].certExpired && !record.stats.certExpired) {
+					certDict[courseId].valid += 1;
+					certDict[courseId].expired -= 1;
+				}
+				userObj.certificates[courseId].expireOn = record.stats.expireOn;
+			}
+		};
+		for(var id in certDict) certificateRows.push(certDict[id]);		
+		$scope.certificateInfo = {columns: _getCertificateColumns(), rows: certificateRows};
+	}
+
+	function _getCertificateColumns() {
+		var headerRow = [];
+		headerRow.push({id: 'name', name: nl.t('Certificate name'), class: 'minw-string'});
+		headerRow.push({id: '_grade', name: nl.t(_groupInfo.props.gradelabel), class: 'minw-string nl-text-center'});
+		headerRow.push({id: 'subject', name: nl.t(_groupInfo.props.subjectlabel), class: 'minw-string nl-text-center'});
+		headerRow.push({id: 'valid', name: nl.t('Valid Certificates'), class: 'minw-number nl-text-center'});
+		headerRow.push({id: 'expired', name: nl.t('Expired Certificates'), class: 'minw-number nl-text-center'});
+		return headerRow;
+	}
+
+	function _exportCertificateRows(userDict) {
+		var certificateRows = [];
+		for(var userid in userDict) {
+			var userObj = userDict[userid];
+			for(var certid in userObj.certificates) {
+				var expireOn = nl.fmt.date2Str(userObj.certificates[certid].expireOn || null, 'date');
+				certificateRows.push({user_id: userObj.user_id, name: userObj.name, 
+									_grade: userObj._grade,
+									subject: userObj.subject,
+									certificate_name: userObj.certificates[certid].name,
+									certificate_expiary: expireOn});
+			}
+		}
+		return certificateRows;
+	}
+
+	function _exportCertificateColumns() {
+		var headerRow = [];
+		headerRow.push({id: 'user_id', name: nl.t('User id'), class: 'minw-string'});
+		headerRow.push({id: 'name', name: nl.t('User name'), class: 'minw-number nl-text-center'});
+		headerRow.push({id: '_grade', name: nl.t(_groupInfo.props.gradelabel), class: 'minw-string nl-text-center'});
+		headerRow.push({id: 'subject', name: nl.t(_groupInfo.props.subjectlabel), class: 'minw-string nl-text-center'});
+		headerRow.push({id: 'certificate_name', name: nl.t('Certificate'), class: 'minw-string nl-text-center'});
+		headerRow.push({id: 'certificate_expiary', name: nl.t('Expiary Date'), class: 'minw-string nl-text-center'});
+		return headerRow;
+	}
+
+}
 //-------------------------------------------------------------------------------------------------
 function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 

@@ -35,6 +35,8 @@ this.getTrainerItemInfos = function(courseAssignment, modules, learningRecords, 
 };
 
 function _getContext(courseAssignment, modules, learningRecords, groupInfo) {
+	if (!courseAssignment) courseAssignment = {};
+	if (!modules) modules = [];
 	var ctx = {learningRecords: learningRecords, groupInfo: groupInfo};
 	ctx.dbAttendance = new DbAttendanceObject(courseAssignment, ctx);
 	ctx.dbRating = new DbRatingObject(courseAssignment, ctx);
