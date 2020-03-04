@@ -19,7 +19,7 @@
             <i ng-hide='export.certificate' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
             <span>Certificates</span>
         </div>
-        <div ng-show='(reptype == "course" || reptype == "course_assign") && !certmode' class='padding-mid nl-link-text' 
+        <div ng-show='reptype == "course" || reptype == "course_assign"' class='padding-mid nl-link-text' 
              ng-click='export.course = !export.course'>
             <i ng-show='export.course' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.course' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
@@ -31,7 +31,7 @@
             <i ng-hide='export.lr' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
             <span>download course report (columns selected in learning report tab)</span>
         </div>
-        <div ng-show='(reptype == "course_assign" || reptype == "course") && !certmode' 
+        <div ng-show='reptype == "course_assign" || reptype == "course"'
              ng-click='export.courseDetails = !export.courseDetails'  class='padding-mid nl-link-text'>
             <i ng-show='export.courseDetails' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.courseDetails' class="fsh4 icon ion-android-checkbox-outline-blank"></i>

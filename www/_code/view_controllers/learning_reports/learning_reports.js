@@ -1387,15 +1387,19 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			for(var i=0; i<records.length; i++) {
 				userObj = {};
 				var record = records[i];
+				if(!(record.stats.certid)) continue;
 				var certificateRows = [];
 				if(!record.user.state) continue;
 	
 				var userId = record.user.user_id;
 				courseId = record.raw_record.lesson_id;
-				if(!userDict[userId]) userDict[userId] = {name: record.user.name, user_id: record.user.user_id, certificates :{}};
+				if(!userDict[userId]) userDict[userId] = {name: record.user.name, user_id: record.user.user_id, 
+														_grade: record.raw_record._grade, subject: record.raw_record.subject, 
+														certificates :{}};
 				userObj = userDict[userId];
 	
-				if(!certDict[courseId]) certDict[courseId] = {name: record.repcontent.name, valid: 0, expired: 0};
+				if(!certDict[courseId]) certDict[courseId] = {name: record.repcontent.name, _grade: record.raw_record._grade, 
+															subject: record.raw_record.subject, valid: 0, expired: 0};
 				if(!(courseId in userObj.certificates)) {
 					userObj.certificates[courseId] = {name: record.repcontent.name, expireOn:record.stats.expireOn, certExpired: record.stats.certExpired || null};
 					if(record.stats.certExpired) certDict[courseId].expired += 1;
@@ -1416,6 +1420,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		function _getCertificateColumns() {
 			var headerRow = [];
 			headerRow.push({id: 'name', name: nl.t('Certificate name'), class: 'minw-string'});
+			headerRow.push({id: '_grade', name: nl.t(_groupInfo.props.gradelabel), class: 'minw-string nl-text-center'});
+			headerRow.push({id: 'subject', name: nl.t(_groupInfo.props.subjectlabel), class: 'minw-string nl-text-center'});
 			headerRow.push({id: 'valid', name: nl.t('Valid Certificates'), class: 'minw-number nl-text-center'});
 			headerRow.push({id: 'expired', name: nl.t('Expired Certificates'), class: 'minw-number nl-text-center'});
 			return headerRow;
@@ -1428,6 +1434,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				for(var certid in userObj.certificates) {
 					var expireOn = nl.fmt.date2Str(userObj.certificates[certid].expireOn || null, 'date');
 					certificateRows.push({user_id: userObj.user_id, name: userObj.name, 
+										_grade: userObj._grade,
+										subject: userObj.subject,
 										certificate_name: userObj.certificates[certid].name,
 										certificate_expiary: expireOn});
 				}
@@ -1439,6 +1447,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var headerRow = [];
 			headerRow.push({id: 'user_id', name: nl.t('User id'), class: 'minw-string'});
 			headerRow.push({id: 'name', name: nl.t('User name'), class: 'minw-number nl-text-center'});
+			headerRow.push({id: '_grade', name: nl.t(_groupInfo.props.gradelabel), class: 'minw-string nl-text-center'});
+			headerRow.push({id: 'subject', name: nl.t(_groupInfo.props.subjectlabel), class: 'minw-string nl-text-center'});
 			headerRow.push({id: 'certificate_name', name: nl.t('Certificate'), class: 'minw-string nl-text-center'});
 			headerRow.push({id: 'certificate_expiary', name: nl.t('Expiary Date'), class: 'minw-string nl-text-center'});
 			return headerRow;
@@ -3002,6 +3012,7 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 		var tabs = tabData.tabs;
 		if (nlLrFilter.getMode() == 'cert_report') {
 			_addCertificateTab(tabs);
+			_addLrTab(tabs);
 		} else {
 			_addOverviewTabs(tabs);
 			_addDrilldownTab(tabs);

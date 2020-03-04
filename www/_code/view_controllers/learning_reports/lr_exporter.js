@@ -76,7 +76,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         }
         if (lrDict) {
             _lrDict = lrDict || {};
-            dlg.scope.showLrCheckbox = !dlg.scope.certmode ? (dlg.scope.reptype == 'course_assign' || dlg.scope.reptype == 'course'): false;
+            dlg.scope.showLrCheckbox = dlg.scope.reptype == 'course_assign' || dlg.scope.reptype == 'course';
             dlg.scope.export['lr'] = false;
         }
         if (certificateDict) {
