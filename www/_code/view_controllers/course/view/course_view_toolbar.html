@@ -64,13 +64,13 @@
         <i class="icon fsh3 ion-shuffle"></i>
     </span>
     <span title='Save'
-          ng-show='ext.isEditorMode() && !iframeUrl'
+          ng-show='ext.isEditorMode() && !iframeUrl && canShowSaveAndPublish'
           class='nl-toolbar-icon padding0'
           ng-click='editor.saveCourse($event, false, ext.item)'>
         <i class="icon material-icons">save</i>
     </span>
     <span title='Publish'
-          ng-show='ext.isEditorMode() && !iframeUrl && editor.targetLang == "en"'
+          ng-show='ext.isEditorMode() && !iframeUrl && editor.targetLang == "en" && canShowSaveAndPublish'
           class='nl-toolbar-icon padding0'
           ng-click='editor.saveCourse($event, true, ext.item)'>
         <i class="icon fsh3 ion-checkmark-circled"></i>

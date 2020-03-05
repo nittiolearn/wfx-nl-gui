@@ -116,11 +116,13 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/course_get_list.json', data);
     };
     
-    this.courseGet = function(courseId, published) {
+    this.courseGet = function(courseId, published, restoreid) {
         // return: course object
-        return server.post('_serverapi/course_get.json', {courseid: courseId, published: published});
+        var data = {courseid: courseId, published: published};
+        if(restoreid) data.restoreid = restoreid;
+        return server.post('_serverapi/course_get.json', data);
     };
-    
+
     this.courseOrAssignGetMany = function(recordinfos) {
         // return: course, course_assignment and module assignment objects
         return server.post('_serverapi/course_or_assign_get_many.json', {recordinfos: recordinfos});

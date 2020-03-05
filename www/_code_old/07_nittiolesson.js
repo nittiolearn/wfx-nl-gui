@@ -2208,13 +2208,13 @@ function SectionSelectionHandler(lesson) {
     };
 
     var _allTools = [];        
-    this.setupToolbelt = function(lessonId, canApprove, isRaw) {
+    this.setupToolbelt = function(lessonId, canApprove, isRaw, viewDeleted) {
         if (lesson.renderCtx.launchMode() != 'edit') return;
 
         _allTools.push({id: 'edit_icon_change_mode', grpid: 'module', grp: 'Module', icon: 'ion-ios-eye', name:'Preview', shortcut: ' (Alt+T)', onclick: _fn(on_changemode)});
         _allTools.push({id: 'edit_icon_props', grpid: 'module', grp: 'Module', icon:'ion-ios-gear', name: 'Module Properties', title:'Update module name and other module level properties', onclick: on_props});
-        _allTools.push({id: 'edit_icon_save', grpid: 'module', grp: 'Module', icon: 'save', font:'material', font:'material-icons', name:'Save', shortcut: ' (Ctrl+S)', onclick: on_save});
-        if (canApprove && lessonId > 0)
+        if(!viewDeleted) _allTools.push({id: 'edit_icon_save', grpid: 'module', grp: 'Module', icon: 'save', font:'material', font:'material-icons', name:'Save', shortcut: ' (Ctrl+S)', onclick: on_save});
+        if (!viewDeleted && canApprove && lessonId > 0)
             _allTools.push({id: 'edit_icon_approve', grpid: 'module', grp: 'Module', icon:'ion-ios-checkmark',  name:'Approve',  title:'Approve the module and make it available to other authors', onclick: _fn(on_approve, lessonId)});
 
         _allTools.push({id: 'edit_icon_addpage', grpid: 'pages', grp: 'Page', icon:'ion-ios-plus', name:'Add Page', title:'Add a new page', shortcut: ' (Alt+Insert)', onclick: on_addpage});
