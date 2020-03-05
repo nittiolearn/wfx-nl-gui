@@ -64,9 +64,21 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
 			_restore(card);
         } else if (linkid === 'fetch_more') {
             _fetchMore();
-		}
+		} else if (linkid === 'view') {
+            _viewWithOutRestore(card);
+        }
 	};
-	
+
+    function _viewWithOutRestore(card) {
+        if (card.entitytype == 'lesson') {
+            var url = nl.fmt2('/lesson/edit/{}?restoreid={}', card.entityid, card.id);
+            nl.window.open(url, '_blank');
+        } else if (card.entitytype == 'course') {
+            var url = nl.fmt2('#/course_view?id={}&mode=edit&restoreid={}', card.entityid, card.id);
+            nl.window.open(url, '_blank');
+        }
+    }
+    
     function _onSearch(filter) {
         var dlg = nlDlg.create($scope);
         dlg.scope.canFetchMore = _pageFetcher.canFetchMore();
@@ -220,10 +232,14 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
             internalUrl: 'recyclebin_restore',
             icon2: _getTypeIcon(item.entitytype),
 			help: desc,
-			children: []};
+            children: [],
+            entitytype: item.entitytype,
+            entityid: item.entityid,
+        };
 
 		card.details = {help: '', avps: _getAvps(item)};
-		card.links = [];
+        card.links = [];
+        if (item.entitytype == 'course' || item.entitytype == 'lesson')card.links.push({id: 'view', text: 'view'});
 		card.links.push({id: 'details', text: nl.t('details')});
 		return card;
 	}
