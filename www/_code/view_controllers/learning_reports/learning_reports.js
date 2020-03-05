@@ -149,6 +149,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	// Private members
 	var _customReportTemplate = '';
+	var _certHandler = new CertificateHandler(nl, $scope);
 
 	function _init() {
 		_customReportTemplate = nlGroupInfo.getCustomReportTemplate();
@@ -156,14 +157,20 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		// Order is important
 		nlGetManyStore.init();
 		nlLrFilter.init(settings, _userInfo, _groupInfo);
-		nlLrReportRecords.init(_userInfo);
+		nlLrReportRecords.init(_userInfo, _canAddReportRecord);
 		nlLrFetcher.init();
 		nlLrExporter.init(_userInfo, _groupInfo);
 		nlLrDrilldown.init(nlGroupInfo);
 		nlLrNht.init(nlGroupInfo);
+		_certHandler.init(_groupInfo);
 		_recordsFilter.init();
 		nl.pginfo.pageTitle = nlLrFilter.getTitle();
 		_initScope();
+	}
+
+	function _canAddReportRecord(report) {
+		if (nlLrFilter.getMode() == 'cert_report') return _certHandler.canAddReportRecord(report);
+		return true;
 	}
 
 	var _lrColumns = null;
@@ -470,8 +477,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		} else if (tab.id == 'iltbatchdata') {
 			_updateILTBatch();
 		} else if (tab.id == 'certificate') {
-			var certHandler = new CertificateHandler(nl, _groupInfo, $scope);
-			certHandler.updateCertificateTab();
+			_certHandler.updateCertificateTab();
 		}
 	}
 
@@ -1413,8 +1419,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		var certificateStats = null;
 		if (nlLrFilter.getType() == 'course' && nlLrFilter.getMode() == 'cert_report') {
-			var certHandler = new CertificateHandler(nl, _groupInfo, $scope);
-			certificateStats = certHandler.getExportData();
+			certificateStats = _certHandler.getExportData();
 		}
 
 		nlLrExporter.export($scope, reportRecords, _customScoresHeader, drillDownStats, nhtStats, iltBatchStats, lrStats, certificateStats);
@@ -2915,17 +2920,26 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 //---------------------------------------------------------------------------------------------------------------------------------------------------------
 // Certificate tab
 //---------------------------------------------------------------------------------------------------------------------------------------------------------
-function CertificateHandler(nl, _groupInfo, $scope) { 
+function CertificateHandler(nl, $scope) { 
 
-	this.userDict = {};
+	var _groupInfo= null;
+	this.init = function(groupInfo) {
+		_groupInfo = groupInfo;
+	};
+
+	this.canAddReportRecord = function(record) {
+		return record.stats.certid && record.user.state;
+	};
 
 	this.getExportData = function() {
-		_updateCertificateTab(this.userDict);
-		return {statsCountArray: _exportCertificateRows(this.userDict), columns: _exportCertificateColumns()};
-	}
+		var userDict = {};
+		_updateCertificateTab(userDict);
+		return {statsCountArray: _exportCertificateRows(userDict), columns: _exportCertificateColumns()};
+	};
 
 	this.updateCertificateTab = function() {
-		_updateCertificateTab(this.userDict);
+		var userDict = {};
+		_updateCertificateTab(userDict);
 	};
 
 	function _updateCertificateTab(userDict) {
@@ -2937,9 +2951,7 @@ function CertificateHandler(nl, _groupInfo, $scope) {
 		for(var i=0; i<records.length; i++) {
 			userObj = {};
 			var record = records[i];
-			if(!(record.stats.certid)) continue;
 			var certificateRows = [];
-			if(!record.user.state) continue;
 
 			var userId = record.user.user_id;
 			courseId = record.raw_record.lesson_id;
@@ -2988,7 +3000,7 @@ function CertificateHandler(nl, _groupInfo, $scope) {
 									_grade: userObj._grade,
 									subject: userObj.subject,
 									certificate_name: userObj.certificates[certid].name,
-									certificate_expiary: expireOn});
+									certificate_expiry: expireOn});
 			}
 		}
 		return certificateRows;
@@ -3001,7 +3013,7 @@ function CertificateHandler(nl, _groupInfo, $scope) {
 		headerRow.push({id: '_grade', name: nl.t(_groupInfo.props.gradelabel), class: 'minw-string nl-text-center'});
 		headerRow.push({id: 'subject', name: nl.t(_groupInfo.props.subjectlabel), class: 'minw-string nl-text-center'});
 		headerRow.push({id: 'certificate_name', name: nl.t('Certificate'), class: 'minw-string nl-text-center'});
-		headerRow.push({id: 'certificate_expiary', name: nl.t('Expiary Date'), class: 'minw-string nl-text-center'});
+		headerRow.push({id: 'certificate_expiry', name: nl.t('Expiry Date'), class: 'minw-string nl-text-center'});
 		return headerRow;
 	}
 

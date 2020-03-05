@@ -348,8 +348,7 @@ njsPageOrg = function() {
 
 	function onCut() {
 		var lesson = nlesson.theLesson;
-		var curPos = g_pageOverviewPageNo;
-			cutPage(lesson);
+		cutPage(lesson);
 
 		var selectedPage = g_pageOverviewPageNo;
 		if (selectedPage >= lesson.pages.length) {
@@ -367,14 +366,19 @@ njsPageOrg = function() {
 			alert('Sorry, you cannot delete/cut all the pages');
 			return false;
 		}
+		
 		if (!confirm(njs_helper.fmt2('Are you sure you want to delete/cut page selected pages?'))) return false;
-		var cutItems = 0;
-		for(var key in g_pageOverViewPageNoDict) {
-			var key = parseInt(key);
-				key = key-cutItems;
-			lesson.cutPage(key);
-			cutItems++;
-		}
+		if(Number.isInteger(curPos)) {
+            lesson.cutPage(curPos);
+        } else {
+            var cutItems = 0;
+            for(var key in g_pageOverViewPageNoDict) {
+                var key = parseInt(key);
+                    key = key-cutItems;
+                lesson.cutPage(key);
+                cutItems++;
+            }   
+        }
 		lesson.updateContent();
 	}
 

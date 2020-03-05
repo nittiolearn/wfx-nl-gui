@@ -123,6 +123,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     var _grpAttendanceDict = {};
     var _grpRatingDict = {};
     var _milestone = {};
+    var _isNHT = false;
 
     function _init() {
         var attendance = {};
@@ -146,6 +147,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             var asdModules = new AsdModules();
             _modules = asdModules.getAsdUpdatedModules(_modules, attendance);
         }
+        _isNHT = ((course || repcontent || {}).content || {}).nht ? true : false; 
     }
 
     function _arrayToDict(inputArray) {
@@ -740,7 +742,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         } else {
             ret.status = defaultCourseStatus;
         }
-        if (!groupinfo.etmUserStates || groupinfo.etmUserStates.length === 0) return; 
+        if (!_isNHT || !groupinfo.etmUserStates || groupinfo.etmUserStates.length === 0) return; 
         if (!_isEndItemState(itemInfo.status)) return;
         if (!itemInfo.unlockedOn) return;
         ret.status = defaultCourseStatus;
