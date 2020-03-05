@@ -74,7 +74,7 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
             var url = nl.fmt2('/lesson/edit/{}?restoreid={}', card.entityid, card.id);
             nl.window.open(url, '_blank');
         } else if (card.entitytype == 'course') {
-            var url = nl.fmt2('#/course_view?id={}&mode=edit&restoreId={}', card.entityid, card.id);
+            var url = nl.fmt2('#/course_view?id={}&mode=edit&restoreid={}', card.entityid, card.id);
             nl.window.open(url, '_blank');
         }
     }

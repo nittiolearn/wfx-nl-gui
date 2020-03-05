@@ -56,7 +56,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
     this.course = null;
     this.debug = false;
     this.userInfo = null;
-    this.restoreId = null;
+    this.restoreid = null;
     this.initMode = function(userInfo) {
         this.userInfo = userInfo;
         var params = nl.location.search();
@@ -68,7 +68,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
         this.mode = MODE_NAMES[modeStr];
         if (!('id' in params)) return false;
         this.courseId = parseInt(params.id);
-        if ('restoreId' in params) this.restoreId = parseInt(params.restoreId);
+        if ('restoreid' in params) this.restoreid = parseInt(params.restoreid);
         return true;
     };
     
@@ -103,7 +103,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
     
     this.getCourse = function() {
         if (this.mode === MODES.PRIVATE || this.mode === MODES.EDIT || this.mode === MODES.PUBLISHED) {
-            return nlServerApi.courseGet(this.courseId, this.mode === MODES.PUBLISHED, this.restoreId);
+            return nlServerApi.courseGet(this.courseId, this.mode === MODES.PUBLISHED, this.restoreid);
         }
 
         if (this.mode === MODES.REPORT_VIEW && this.urlModeStr != 'report_view_my') {
