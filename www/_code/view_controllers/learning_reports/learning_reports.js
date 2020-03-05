@@ -2928,7 +2928,7 @@ function CertificateHandler(nl, $scope) {
 	};
 
 	this.canAddReportRecord = function(record) {
-		return record.stats.certid && record.user.state;
+		return record.stats.certid && record.stats.isCertified && record.user.state;
 	};
 
 	this.getExportData = function() {
