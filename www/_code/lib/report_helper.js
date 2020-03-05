@@ -485,6 +485,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.state = grpAttendanceObj.name;
         itemInfo.stateStr = grpAttendanceObj.id;
         itemInfo.remarks = userCmAttendance.remarks || '';
+        itemInfo.otherRemarks = userCmAttendance.otherRemarks || '';
         itemInfo.marked = nl.fmt.json2Date(userCmAttendance.marked || '');
         itemInfo.updated = nl.fmt.json2Date(userCmAttendance.updated || '');
         _ctx.unlockNext[cm.id] = itemInfo.marked;
