@@ -200,15 +200,16 @@ njsPageOrg = function() {
 		var bChecked = (pageNo >= 0 && jQuery('#page_org_row_sel_' + pageNo).is(":checked"));
 		if (event) event.stopImmediatePropagation();
 		if (!bChecked) {
-			jQuery('#page_org_row_' + pageNo).removeClass('selected');
 			jQuery('#page_org_row_sel_' + pageNo).prop('checked', false);
 			if (pageNo in g_pageOverViewPageNoDict) delete g_pageOverViewPageNoDict[pageNo];
-			if (g_pageOverviewPageNo == -1) {
+			if (pageNo == g_pageOverviewPageNo) {
 				g_pageOverviewPageNo = -1;
+				jQuery('#page_org_row_' + pageNo).removeClass('selected');
 				_enableButtonsPerState(g_pageOverviewPageNo);
 				return;
 			} 	
 		} else {
+			if (g_pageOverviewPageNo != -1) jQuery('#page_org_row_' + g_pageOverviewPageNo).removeClass('selected');
 			g_pageOverviewPageNo = pageNo;
 			g_pageOverViewPageNoDict[pageNo] = true;
 			_getPageRow(pageNo).addClass('selected');
@@ -276,37 +277,12 @@ njsPageOrg = function() {
 	}
 
 	function _enableButtonsPerState(pageNo) {
-		var buttonStates = {
-			page_org_icon_up : false,
-			page_org_icon_down : false,
-		};
 		jQuery("#page_org_icon_up").hide();
 		jQuery("#page_org_icon_down").hide();
-		if (Object.keys(g_pageOverViewPageNoDict).length > 1 || Object.keys(g_pageOverViewPageNoDict).length == 0) {
-			_enableButtons(buttonStates);
-			return;
-		}
-		if (pageNo < 0) {
-			return _enableButtons(buttonStates);
-		}
-
+		if (pageNo < 0 || Object.keys(g_pageOverViewPageNoDict).length != 1) return;
 		var lesson = nlesson.theLesson;
-		if (pageNo > 0) {
-			jQuery("#page_org_icon_up").show();
-			buttonStates['page_org_icon_up'] = true;
-		}
-		if (pageNo < lesson.pages.length - 1) {
-			jQuery("#page_org_icon_down").show();
-			buttonStates['page_org_icon_down'] = true;
-		}
-		return _enableButtons(buttonStates);
-	}
-
-	function _enableButtons(buttonStates) {
-		for (var button in buttonStates) {
-			nittio.enableButton(button, buttonStates[button]);
-		}
-		return true;
+		if (pageNo > 0) jQuery("#page_org_icon_up").show();
+		if (pageNo < lesson.pages.length - 1) jQuery("#page_org_icon_down").show();
 	}
 
 	function onNavigateToPage() {
@@ -406,6 +382,10 @@ njsPageOrg = function() {
 			return false;
 		}
 		var pageNo = g_pageOverviewPageNo;
+		if (pageNo == -1) {
+			alert('Please select a page below which you would like to paste.');
+			return false;
+		}
 		for(var key in clip) {
 			if (!lesson.pastePage(pageNo, clip[key])) {
 				alert('Please cut or copy a page before pasting it.');
@@ -442,11 +422,7 @@ njsPageOrg = function() {
 				current.insertAfter(before);
 			}	
 		}
-		if (type != 'paste') {
-			g_pageOverViewPageNoDict = {};
-			clickRow(selectedPage);
-		}
-
+		clickRow(selectedPage);
 		jQuery('#page_org_pages').html(lesson.pages.length);
 		jQuery('#page_org_maxscore').html(lesson.oLesson.maxScore);
 	}
