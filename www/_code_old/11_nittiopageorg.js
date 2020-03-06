@@ -133,6 +133,14 @@ njsPageOrg = function() {
 		onSwap(false);
 	}
 
+	function onKeySelectAll() {
+		selectDeselectAll(true);
+	}
+
+	function onKeyDeselectAll() {
+		selectDeselectAll(false);
+	}
+
 	function bindHotkeys() {
 		nittio.bindHotkey('body', 'pageOrg', 'up', onKeyUp);
 		nittio.bindHotkey('body', 'pageOrg', 'down', onKeyDown);
@@ -140,9 +148,20 @@ njsPageOrg = function() {
 		nittio.bindHotkey('body', 'pageOrg', 'pagedown', onKeyPageDown);
 		nittio.bindHotkey('body', 'pageOrg', 'home', onKeyHome);
 		nittio.bindHotkey('body', 'pageOrg', 'end', onKeyEnd);
-		nittio.bindHotkey('body', 'pageOrg', 'Ctrl+up', onKeyCtrlUp);
-		nittio.bindHotkey('body', 'pageOrg', 'Ctrl+down', onKeyCtrlDown);
+		nittio.bindHotkey('body', 'pageOrg', 'ctrl+up', onKeyCtrlUp);
+		nittio.bindHotkey('body', 'pageOrg', 'cmd+up', onKeyCtrlUp);
+		nittio.bindHotkey('body', 'pageOrg', 'meta+up', onKeyCtrlUp);
+		nittio.bindHotkey('body', 'pageOrg', 'ctrl+down', onKeyCtrlDown);
+		nittio.bindHotkey('body', 'pageOrg', 'cmd+down', onKeyCtrlDown);
+		nittio.bindHotkey('body', 'pageOrg', 'meta+down', onKeyCtrlDown);
 		nittio.bindHotkey('body', 'pageOrg', 'return', onNavigateToPage);
+
+		nittio.bindHotkey('body', 'pageOrg', 'ctrl+a', onKeySelectAll);
+		nittio.bindHotkey('body', 'pageOrg', 'cmd+a', onKeySelectAll);
+		nittio.bindHotkey('body', 'pageOrg', 'meta+a', onKeySelectAll);
+		nittio.bindHotkey('body', 'pageOrg', 'ctrl+d', onKeyDeselectAll);
+		nittio.bindHotkey('body', 'pageOrg', 'cmd+d', onKeyDeselectAll);
+		nittio.bindHotkey('body', 'pageOrg', 'meta+d', onKeyDeselectAll);
 	}
 
 	function unbindHotkeys() {
@@ -277,14 +296,34 @@ njsPageOrg = function() {
 	}
 
 	function _enableButtonsPerState(pageNo) {
+		var buttonStates = {
+			page_org_icon_up : false,
+			page_org_icon_down : false,
+		};
 		jQuery("#page_org_icon_up").hide();
 		jQuery("#page_org_icon_down").hide();
-		if (pageNo < 0 || Object.keys(g_pageOverViewPageNoDict).length != 1) return;
+		if (pageNo < 0 || Object.keys(g_pageOverViewPageNoDict).length != 1) {
+			_updateButtons(buttonStates);
+			return;
+		}
 		var lesson = nlesson.theLesson;
-		if (pageNo > 0) jQuery("#page_org_icon_up").show();
-		if (pageNo < lesson.pages.length - 1) jQuery("#page_org_icon_down").show();
+		if (pageNo > 0) {
+			jQuery("#page_org_icon_up").show();
+			buttonStates['page_org_icon_up'] = true;
+		}
+		if (pageNo < lesson.pages.length - 1) {
+			jQuery("#page_org_icon_down").show();
+			buttonStates['page_org_icon_down'] = true;
+		}
+		_updateButtons(buttonStates);
 	}
 
+	function _updateButtons(buttonStates) {
+		for (var button in buttonStates) {
+			nittio.enableButton(button, buttonStates[button]);
+		}
+	}
+	
 	function onNavigateToPage() {
 		if (g_pageOverviewPageNo < 0)
 			return true;
@@ -358,16 +397,23 @@ njsPageOrg = function() {
 	function selectDeselectAll(canMark) {
 		var pages = nlesson.theLesson.pages;
 		var bChecked = canMark;
+		if (g_pageOverviewPageNo != -1) {
+			jQuery('#page_org_row_' + g_pageOverviewPageNo).removeClass('selected');
+		}
+		g_pageOverViewPageNoDict = {};
+		if (bChecked) {
+			_getPageRow(pages.length-1).addClass('selected');
+			g_pageOverviewPageNo = pages.length-1;
+		} else {
+			g_pageOverviewPageNo = -1;
+		}
+
 		for (var i=0; i<pages.length; i++) {
 			var pageNo = i;
 			if (!bChecked) {
-				jQuery('#page_org_row_' + pageNo).removeClass('selected');
 				jQuery('#page_org_row_sel_' + pageNo).prop('checked', false);
-				if (pageNo in g_pageOverViewPageNoDict) delete g_pageOverViewPageNoDict[pageNo];
 			} else {
-				g_pageOverviewPageNo = pageNo;
 				g_pageOverViewPageNoDict[pageNo] = true;
-				_getPageRow(pageNo).addClass('selected');
 				jQuery('#page_org_row_sel_' + pageNo).prop('checked', true);	
 			}	
 		}
