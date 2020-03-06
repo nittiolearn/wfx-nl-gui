@@ -1046,8 +1046,8 @@ nlesson = function() {
 		this.lastSavedContent = jQuery('#l_content').val();
 		var lesson = this;
 		window.onbeforeunload = function(e) {
-			var lessonId = jQuery('#l_lessonId').val();
-			if (nittio.getOnLeaveCheck() && lessonId != "0") {
+            var lessonId = jQuery('#l_lessonId').val();
+			if (nittio.getOnLeaveCheck() && lessonId != "0" && !lesson.oLesson.restoreid) {
 				lesson.stopAudio();
 		        lesson.globals.animationManager.clearAnimations();
 				if ((lesson.renderCtx.launchCtx() != 'do_review') && (lesson.lastSavedContent != lesson.getContent())) {

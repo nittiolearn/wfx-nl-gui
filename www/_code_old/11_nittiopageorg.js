@@ -84,6 +84,7 @@ njsPageOrg = function() {
 	function _closeOrganizer() {
 		_pageOrgDlg.close();
 		unbindHotkeys();
+		g_pageOverViewPageNoDict = {};
 		nlesson.theLesson.reinitSlides();
 		g_onDoneFn();
 		g_onDoneFn = '';
@@ -163,11 +164,11 @@ njsPageOrg = function() {
 
 	function _createPageRow(pages, i) {
 		var templ = 
-			'<tr class="clickable" id="page_org_row_{pageNo}">'
-				+ '<td><input type="checkbox" id="page_org_row_sel_{pageNo}" onclick="njsPageOrg.onCheckBoxClick({pageNo});"></input></td>'
-				+ '<td class="text-right" onclick="njsPageOrg.onRowClick({pageNo});">{page}</td>'
-				+ '<td class="text-right" onclick="njsPageOrg.onRowClick({pageNo});">{maxScore}</td>'
-				+ '<td class="more" onclick="njsPageOrg.onRowClick({pageNo});">{more}</td>'
+			'<tr class="clickable" id="page_org_row_{pageNo}" onclick="njsPageOrg.onRowClick({pageNo});">'
+				+ '<td><input type="checkbox" id="page_org_row_sel_{pageNo}" onclick="njsPageOrg.onCheckBoxClick({pageNo}, event);"></input></td>'
+				+ '<td class="text-right">{page}</td>'
+				+ '<td class="text-right">{maxScore}</td>'
+				+ '<td class="more">{more}</td>'
 			+ '</tr>';
 		var rowDetails = {};
 		rowDetails.pageNo = i;
@@ -178,12 +179,12 @@ njsPageOrg = function() {
 	}
 
 	function _makePageNoLink(pageNo) {
-		return njs_helper.fmt2('<span class="njsLink" onclick="njsPageOrg.onPageClick({});">{}</span>', pageNo, pageNo + 1);
+		return njs_helper.fmt2('<span class="njsLink" onclick="njsPageOrg.onPageClick({}, event);">{}</span>', pageNo, pageNo + 1);
 	}
 
 	function _makeMoreLink(pageNo, str) {
 		str = _escapeAndTrim(str);
-		return njs_helper.fmt2('<span class="njsLink" onclick="njsPageOrg.onPageClick({});">{}</span>', pageNo, str);
+		return njs_helper.fmt2('<span class="njsLink" onclick="njsPageOrg.onPageClick({}, event);">{}</span>', pageNo, str);
 	}
 
 	function _escapeAndTrim(str) {
@@ -195,8 +196,9 @@ njsPageOrg = function() {
 	var g_pageOverviewPageNo = -1;
 	var g_pageOverViewPageNoDict = {};
 
-	function onCheckBoxClick(pageNo) {
+	function onCheckBoxClick(pageNo, event) {
 		var bChecked = (pageNo >= 0 && jQuery('#page_org_row_sel_' + pageNo).is(":checked"));
+		if (event) event.stopImmediatePropagation();
 		if (!bChecked) {
 			jQuery('#page_org_row_' + pageNo).removeClass('selected');
 			jQuery('#page_org_row_sel_' + pageNo).prop('checked', false);
@@ -217,7 +219,6 @@ njsPageOrg = function() {
 	}
 
 	function onRowClick(pageNo) {
-		var bChecked = (pageNo >= 0 && jQuery('#page_org_row_sel_' + pageNo).is(":checked"));
 		if (g_pageOverviewPageNo >= 0) {
 			jQuery('#page_org_row_' + g_pageOverviewPageNo).removeClass('selected');
 			jQuery('#page_org_row_sel_' + g_pageOverviewPageNo).prop('checked', false);
@@ -230,19 +231,14 @@ njsPageOrg = function() {
 			g_pageOverViewPageNoDict = {};
 		}
 
-		// if (!bChecked) {
-		// 	g_pageOverviewPageNo = -1;
-		// 	_enableButtonsPerState(g_pageOverviewPageNo);
-		// 	return;
-		// }
-
 		g_pageOverviewPageNo = pageNo;
 		g_pageOverViewPageNoDict[pageNo] = true;
 		_getPageRow(pageNo).addClass('selected');
 		jQuery('#page_org_row_sel_' + g_pageOverviewPageNo).prop('checked', true);
 		_ensureFocusOfCopyPasteField();
 		_enableButtonsPerState(g_pageOverviewPageNo);
-	}	
+	}
+	
 
 	function scrollToElem(elem, parent, smooth) {
 		var scrollTop = parent.scrollTop();
@@ -319,10 +315,11 @@ njsPageOrg = function() {
 		return onPageClick(g_pageOverviewPageNo);
 	}
 
-	function onPageClick(pageNo) {
+	function onPageClick(pageNo, event) {
 		var lesson = nlesson.theLesson;
 		_closeOrganizer();
 		if (pageNo != lesson.globals.slides.getCurPageNo()) lesson.globals.slides.gotoPage(pageNo);
+		if (event) event.stopImmediatePropagation();
 		return true;
 	}
 

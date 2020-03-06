@@ -382,7 +382,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         nlCourseCanvas.init($scope, modeHandler, nlTreeListSrv, _userInfo);
         var possiblePromise = _initAttributesDicts(course);
         $scope.courseContent = course.content;
-        $scope.canShowSaveAndPublish = !course.deleted;
+        $scope.canShowSaveAndPublish = modeHandler.restoreid ? false : true;
         $scope.planning = course.content.planning;
         if (modeHandler.mode == MODES.DO && $scope.courseContent.languages.length > 1) {
             if (!$scope.courseContent.targetLang) {
