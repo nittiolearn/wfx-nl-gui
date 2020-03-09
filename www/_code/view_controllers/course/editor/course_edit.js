@@ -921,7 +921,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	
 	function _saveCourse(e, bPublish, cm){
 		cm = $scope.editorCb.getRootItem() || cm;
-	    if(!_validateInputs(modeHandler.course, cm, true, bPublish)) return;
+		if(!_validateInputs(modeHandler.course, cm, true, bPublish)) return;
 		if (!bPublish) {
 			_saveAfterValidateCourse(e, bPublish);
 			return;

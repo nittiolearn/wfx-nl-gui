@@ -56,6 +56,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
     this.course = null;
     this.debug = false;
     this.userInfo = null;
+    this.restoreid = null;
     this.initMode = function(userInfo) {
         this.userInfo = userInfo;
         var params = nl.location.search();
@@ -67,6 +68,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
         this.mode = MODE_NAMES[modeStr];
         if (!('id' in params)) return false;
         this.courseId = parseInt(params.id);
+        if ('restoreid' in params) this.restoreid = parseInt(params.restoreid);
         return true;
     };
     
@@ -101,8 +103,9 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
     
     this.getCourse = function() {
         if (this.mode === MODES.PRIVATE || this.mode === MODES.EDIT || this.mode === MODES.PUBLISHED) {
-            return nlServerApi.courseGet(this.courseId, this.mode === MODES.PUBLISHED);
+            return nlServerApi.courseGet(this.courseId, this.mode === MODES.PUBLISHED, this.restoreid);
         }
+
         if (this.mode === MODES.REPORT_VIEW && this.urlModeStr != 'report_view_my') {
             return nlGroupInfo.init1().then(function() {
                 return nlServerApi.courseGetReport(self.courseId, false);
@@ -379,6 +382,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         nlCourseCanvas.init($scope, modeHandler, nlTreeListSrv, _userInfo);
         var possiblePromise = _initAttributesDicts(course);
         $scope.courseContent = course.content;
+        $scope.canShowSaveAndPublish = modeHandler.restoreid ? false : true;
         $scope.planning = course.content.planning;
         if (modeHandler.mode == MODES.DO && $scope.courseContent.languages.length > 1) {
             if (!$scope.courseContent.targetLang) {

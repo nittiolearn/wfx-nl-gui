@@ -27,13 +27,13 @@
 					<span>{{getItemName(cm)}}</span>
 				</div>
 				<div ng-show='cm.type != "module"' class='fsh5' style='width: 20px'>
-					<i ng-show='cm.lockedOnItem || cm.allLrsLocked'
+					<i ng-show='cm.lockedOnItem'
 					   class="icon ion-locked fgrey"></i>
-					<i ng-show='!cm.lockedOnItem && !cm.allLrsLocked && cm.validationErrorMsg'
+					<i ng-show='!cm.lockedOnItem && cm.validationErrorMsg'
 					   class="icon icon ion-close-circled forange"></i>
-					<i ng-show='!cm.lockedOnItem && !cm.allLrsLocked && !cm.validationErrorMsg && cm.isMarkingComplete'
+					<i ng-show='!cm.lockedOnItem && !cm.validationErrorMsg && cm.isMarkingComplete'
 					   class="icon ion-checkmark-circled fgreen"></i>
-					<i ng-show='!cm.lockedOnItem && !cm.allLrsLocked && !cm.validationErrorMsg && !cm.isMarkingComplete'
+					<i ng-show='!cm.lockedOnItem && !cm.validationErrorMsg && !cm.isMarkingComplete'
 					   class="ion-ios-circle-filled fyellow"></i>
 				</div>
 			</div>

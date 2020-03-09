@@ -84,6 +84,7 @@ njsPageOrg = function() {
 	function _closeOrganizer() {
 		_pageOrgDlg.close();
 		unbindHotkeys();
+		g_pageOverViewPageNoDict = {};
 		nlesson.theLesson.reinitSlides();
 		g_onDoneFn();
 		g_onDoneFn = '';
@@ -132,6 +133,14 @@ njsPageOrg = function() {
 		onSwap(false);
 	}
 
+	function onKeySelectAll() {
+		selectDeselectAll(true);
+	}
+
+	function onKeyDeselectAll() {
+		selectDeselectAll(false);
+	}
+
 	function bindHotkeys() {
 		nittio.bindHotkey('body', 'pageOrg', 'up', onKeyUp);
 		nittio.bindHotkey('body', 'pageOrg', 'down', onKeyDown);
@@ -139,9 +148,20 @@ njsPageOrg = function() {
 		nittio.bindHotkey('body', 'pageOrg', 'pagedown', onKeyPageDown);
 		nittio.bindHotkey('body', 'pageOrg', 'home', onKeyHome);
 		nittio.bindHotkey('body', 'pageOrg', 'end', onKeyEnd);
-		nittio.bindHotkey('body', 'pageOrg', 'Ctrl+up', onKeyCtrlUp);
-		nittio.bindHotkey('body', 'pageOrg', 'Ctrl+down', onKeyCtrlDown);
+		nittio.bindHotkey('body', 'pageOrg', 'ctrl+up', onKeyCtrlUp);
+		nittio.bindHotkey('body', 'pageOrg', 'cmd+up', onKeyCtrlUp);
+		nittio.bindHotkey('body', 'pageOrg', 'meta+up', onKeyCtrlUp);
+		nittio.bindHotkey('body', 'pageOrg', 'ctrl+down', onKeyCtrlDown);
+		nittio.bindHotkey('body', 'pageOrg', 'cmd+down', onKeyCtrlDown);
+		nittio.bindHotkey('body', 'pageOrg', 'meta+down', onKeyCtrlDown);
 		nittio.bindHotkey('body', 'pageOrg', 'return', onNavigateToPage);
+
+		nittio.bindHotkey('body', 'pageOrg', 'ctrl+a', onKeySelectAll);
+		nittio.bindHotkey('body', 'pageOrg', 'cmd+a', onKeySelectAll);
+		nittio.bindHotkey('body', 'pageOrg', 'meta+a', onKeySelectAll);
+		nittio.bindHotkey('body', 'pageOrg', 'ctrl+d', onKeyDeselectAll);
+		nittio.bindHotkey('body', 'pageOrg', 'cmd+d', onKeyDeselectAll);
+		nittio.bindHotkey('body', 'pageOrg', 'meta+d', onKeyDeselectAll);
 	}
 
 	function unbindHotkeys() {
@@ -162,7 +182,13 @@ njsPageOrg = function() {
 	}
 
 	function _createPageRow(pages, i) {
-		var templ = '<tr class="normal" id="page_org_row_{pageNo}"><td><input type="checkbox" id="page_org_row_sel_{pageNo}" onclick="njsPageOrg.onRowClick({pageNo});"></input></td><td>{page}</td><td class="score">{maxScore}</td><td class="more">{more}</td></tr>';
+		var templ = 
+			'<tr class="clickable" id="page_org_row_{pageNo}" onclick="njsPageOrg.onRowClick({pageNo});">'
+				+ '<td><input type="checkbox" id="page_org_row_sel_{pageNo}" onclick="njsPageOrg.onCheckBoxClick({pageNo}, event);"></input></td>'
+				+ '<td class="text-right">{page}</td>'
+				+ '<td class="text-right">{maxScore}</td>'
+				+ '<td class="more">{more}</td>'
+			+ '</tr>';
 		var rowDetails = {};
 		rowDetails.pageNo = i;
 		rowDetails.page = _makePageNoLink(i);
@@ -172,12 +198,12 @@ njsPageOrg = function() {
 	}
 
 	function _makePageNoLink(pageNo) {
-		return njs_helper.fmt2('<span class="njsLink" onclick="njsPageOrg.onPageClick({});">{}</span>', pageNo, pageNo + 1);
+		return njs_helper.fmt2('<span class="njsLink" onclick="njsPageOrg.onPageClick({}, event);">{}</span>', pageNo, pageNo + 1);
 	}
 
 	function _makeMoreLink(pageNo, str) {
 		str = _escapeAndTrim(str);
-		return njs_helper.fmt2('<span class="njsLink" onclick="njsPageOrg.onPageClick({});">{}</span>', pageNo, str);
+		return njs_helper.fmt2('<span class="njsLink" onclick="njsPageOrg.onPageClick({}, event);">{}</span>', pageNo, str);
 	}
 
 	function _escapeAndTrim(str) {
@@ -189,19 +215,20 @@ njsPageOrg = function() {
 	var g_pageOverviewPageNo = -1;
 	var g_pageOverViewPageNoDict = {};
 
-	function onRowClick(pageNo) {
+	function onCheckBoxClick(pageNo, event) {
 		var bChecked = (pageNo >= 0 && jQuery('#page_org_row_sel_' + pageNo).is(":checked"));
-
+		if (event) event.stopImmediatePropagation();
 		if (!bChecked) {
-			jQuery('#page_org_row_' + pageNo).removeClass('selected');
 			jQuery('#page_org_row_sel_' + pageNo).prop('checked', false);
 			if (pageNo in g_pageOverViewPageNoDict) delete g_pageOverViewPageNoDict[pageNo];
-			if (g_pageOverviewPageNo == -1) {
+			if (pageNo == g_pageOverviewPageNo) {
 				g_pageOverviewPageNo = -1;
+				jQuery('#page_org_row_' + pageNo).removeClass('selected');
 				_enableButtonsPerState(g_pageOverviewPageNo);
 				return;
 			} 	
 		} else {
+			if (g_pageOverviewPageNo != -1) jQuery('#page_org_row_' + g_pageOverviewPageNo).removeClass('selected');
 			g_pageOverviewPageNo = pageNo;
 			g_pageOverViewPageNoDict[pageNo] = true;
 			_getPageRow(pageNo).addClass('selected');
@@ -210,6 +237,28 @@ njsPageOrg = function() {
 		_ensureFocusOfCopyPasteField();
 		_enableButtonsPerState(pageNo);
 	}
+
+	function onRowClick(pageNo) {
+		if (g_pageOverviewPageNo >= 0) {
+			jQuery('#page_org_row_' + g_pageOverviewPageNo).removeClass('selected');
+			jQuery('#page_org_row_sel_' + g_pageOverviewPageNo).prop('checked', false);
+		}
+		if (Object.keys(g_pageOverViewPageNoDict).length > 0) {
+			for(var key in g_pageOverViewPageNoDict) {
+				jQuery('#page_org_row_' + key).removeClass('selected');
+				jQuery('#page_org_row_sel_' + key).prop('checked', false);	
+			}
+			g_pageOverViewPageNoDict = {};
+		}
+
+		g_pageOverviewPageNo = pageNo;
+		g_pageOverViewPageNoDict[pageNo] = true;
+		_getPageRow(pageNo).addClass('selected');
+		jQuery('#page_org_row_sel_' + g_pageOverviewPageNo).prop('checked', true);
+		_ensureFocusOfCopyPasteField();
+		_enableButtonsPerState(g_pageOverviewPageNo);
+	}
+	
 
 	function scrollToElem(elem, parent, smooth) {
 		var scrollTop = parent.scrollTop();
@@ -253,14 +302,10 @@ njsPageOrg = function() {
 		};
 		jQuery("#page_org_icon_up").hide();
 		jQuery("#page_org_icon_down").hide();
-		if (Object.keys(g_pageOverViewPageNoDict).length > 1 || Object.keys(g_pageOverViewPageNoDict).length == 0) {
-			_enableButtons(buttonStates);
+		if (pageNo < 0 || Object.keys(g_pageOverViewPageNoDict).length != 1) {
+			_updateButtons(buttonStates);
 			return;
 		}
-		if (pageNo < 0) {
-			return _enableButtons(buttonStates);
-		}
-
 		var lesson = nlesson.theLesson;
 		if (pageNo > 0) {
 			jQuery("#page_org_icon_up").show();
@@ -270,26 +315,26 @@ njsPageOrg = function() {
 			jQuery("#page_org_icon_down").show();
 			buttonStates['page_org_icon_down'] = true;
 		}
-		return _enableButtons(buttonStates);
+		_updateButtons(buttonStates);
 	}
 
-	function _enableButtons(buttonStates) {
+	function _updateButtons(buttonStates) {
 		for (var button in buttonStates) {
 			nittio.enableButton(button, buttonStates[button]);
 		}
-		return true;
 	}
-
+	
 	function onNavigateToPage() {
 		if (g_pageOverviewPageNo < 0)
 			return true;
 		return onPageClick(g_pageOverviewPageNo);
 	}
 
-	function onPageClick(pageNo) {
+	function onPageClick(pageNo, event) {
 		var lesson = nlesson.theLesson;
 		_closeOrganizer();
 		if (pageNo != lesson.globals.slides.getCurPageNo()) lesson.globals.slides.gotoPage(pageNo);
+		if (event) event.stopImmediatePropagation();
 		return true;
 	}
 
@@ -315,8 +360,7 @@ njsPageOrg = function() {
 
 	function onCut() {
 		var lesson = nlesson.theLesson;
-		var curPos = g_pageOverviewPageNo;
-			cutPage(lesson);
+		cutPage(lesson);
 
 		var selectedPage = g_pageOverviewPageNo;
 		if (selectedPage >= lesson.pages.length) {
@@ -334,30 +378,42 @@ njsPageOrg = function() {
 			alert('Sorry, you cannot delete/cut all the pages');
 			return false;
 		}
+		
 		if (!confirm(njs_helper.fmt2('Are you sure you want to delete/cut page selected pages?'))) return false;
-		var cutItems = 0;
-		for(var key in g_pageOverViewPageNoDict) {
-			var key = parseInt(key);
-				key = key-cutItems;
-			lesson.cutPage(key);
-			cutItems++;
-		}
+		if(Number.isInteger(curPos)) {
+            lesson.cutPage(curPos);
+        } else {
+            var cutItems = 0;
+            for(var key in g_pageOverViewPageNoDict) {
+                var key = parseInt(key);
+                    key = key-cutItems;
+                lesson.cutPage(key);
+                cutItems++;
+            }   
+        }
 		lesson.updateContent();
 	}
 
 	function selectDeselectAll(canMark) {
 		var pages = nlesson.theLesson.pages;
 		var bChecked = canMark;
+		if (g_pageOverviewPageNo != -1) {
+			jQuery('#page_org_row_' + g_pageOverviewPageNo).removeClass('selected');
+		}
+		g_pageOverViewPageNoDict = {};
+		if (bChecked) {
+			_getPageRow(pages.length-1).addClass('selected');
+			g_pageOverviewPageNo = pages.length-1;
+		} else {
+			g_pageOverviewPageNo = -1;
+		}
+
 		for (var i=0; i<pages.length; i++) {
 			var pageNo = i;
 			if (!bChecked) {
-				jQuery('#page_org_row_' + pageNo).removeClass('selected');
 				jQuery('#page_org_row_sel_' + pageNo).prop('checked', false);
-				if (pageNo in g_pageOverViewPageNoDict) delete g_pageOverViewPageNoDict[pageNo];
 			} else {
-				g_pageOverviewPageNo = pageNo;
 				g_pageOverViewPageNoDict[pageNo] = true;
-				_getPageRow(pageNo).addClass('selected');
 				jQuery('#page_org_row_sel_' + pageNo).prop('checked', true);	
 			}	
 		}
@@ -372,6 +428,10 @@ njsPageOrg = function() {
 			return false;
 		}
 		var pageNo = g_pageOverviewPageNo;
+		if (pageNo == -1) {
+			alert('Please select a page below which you would like to paste.');
+			return false;
+		}
 		for(var key in clip) {
 			if (!lesson.pastePage(pageNo, clip[key])) {
 				alert('Please cut or copy a page before pasting it.');
@@ -408,11 +468,7 @@ njsPageOrg = function() {
 				current.insertAfter(before);
 			}	
 		}
-		if (type != 'paste') {
-			g_pageOverViewPageNoDict = {};
-			clickRow(selectedPage);
-		}
-
+		clickRow(selectedPage);
 		jQuery('#page_org_pages').html(lesson.pages.length);
 		jQuery('#page_org_maxscore').html(lesson.oLesson.maxScore);
 	}
@@ -424,6 +480,7 @@ njsPageOrg = function() {
 	return {
 		showOrganizer : showOrganizer,
 		onRowClick : onRowClick,
+		onCheckBoxClick : onCheckBoxClick,
 		onPageClick : onPageClick,
 		onSwap : onSwap,
 		cutPage : cutPage,

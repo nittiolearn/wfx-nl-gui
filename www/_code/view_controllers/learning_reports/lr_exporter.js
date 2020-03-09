@@ -26,6 +26,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     var _nhtDict = {};
     var _lrDict = {};
     var _iltBatchDict = {};
+    var _certificateDict = {};
     var _canzip = true;
     var _exportFormat = 'xlsx';
     var _groupInfo = null;
@@ -48,33 +49,40 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     	_subjectlabel = userInfo.groupinfo.subjectlabel;
 	};
 	
-    this.export = function($scope, reportRecords, customScoresHeader, drillDownDict, nhtDict, iltBatchStats, lrDict) {
+    this.export = function($scope, reportRecords, customScoresHeader, drillDownDict, nhtDict, iltBatchStats, lrDict, certificateDict) {
         var dlg = nlDlg.create($scope);
         _canzip = nlLrFilter.canZip();
         _customScoresHeader = customScoresHeader || [];
         ctx = {};
-		dlg.scope.reptype = nlLrFilter.getType();
+        dlg.scope.reptype = nlLrFilter.getType();
+        dlg.scope.certmode = false;
+        if (dlg.scope.reptype == 'course' && nlLrFilter.getMode() == 'cert_report') dlg.scope.certmode = true;
         dlg.setCssClass('nl-height-max nl-width-max');
         dlg.scope.export = {summary: false, course: (dlg.scope.reptype == 'course' || dlg.scope.reptype == 'course_assign') ? true : false, module: (dlg.scope.reptype == 'module' || dlg.scope.reptype == 'module_assign' || dlg.scope.reptype  == 'module_self_assign') ? true : false, ids: true,
                             indUser: (dlg.scope.reptype == 'user'), pageScore: false, feedback: false, courseDetails: false};
         if (drillDownDict) {
             _drillDownDict = drillDownDict || {};
-            dlg.scope.showDrillDownCheckbox = true;
+            dlg.scope.showDrillDownCheckbox = !dlg.scope.certmode ? true : false;
             dlg.scope.export['drilldown'] = false;
         }
         _nhtDict = nhtDict || {};
         if (nhtDict.running) {
-            dlg.scope.showNhtRunningCheckbox = (dlg.scope.reptype != "user");
+            dlg.scope.showNhtRunningCheckbox = !dlg.scope.certmode ? (dlg.scope.reptype != "user") : false;
             dlg.scope.export['nhtRunning'] = false;
         }
         if (nhtDict.closed) {
-            dlg.scope.showNhtClosedCheckbox = (dlg.scope.reptype != "user");
+            dlg.scope.showNhtClosedCheckbox = !dlg.scope.certmode ? (dlg.scope.reptype != "user") : false;
             dlg.scope.export['nhtClosed'] = false;
         }
         if (lrDict) {
             _lrDict = lrDict || {};
-            dlg.scope.showLrCheckbox = (dlg.scope.reptype == 'course_assign' || dlg.scope.reptype == 'course');
+            dlg.scope.showLrCheckbox = dlg.scope.reptype == 'course_assign' || dlg.scope.reptype == 'course';
             dlg.scope.export['lr'] = false;
+        }
+        if (certificateDict) {
+            _certificateDict = certificateDict || {};
+            dlg.scope.showCertificateCheckbox = dlg.scope.certmode;
+            dlg.scope.export['certificate'] = true;
         }
         if (iltBatchStats) {
             _iltBatchDict = iltBatchStats || {};
@@ -175,6 +183,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             }
             if(filter.exportTypes.iltBatch) _updateIltBatchRow();
             if(filter.exportTypes.lr) _updateLrRow(reportRecords);
+            if(filter.exportTypes.certificate) _updateCertificateRow();
             if(_exportFormat == 'csv') {
                 for(var start=0, i=1; start < reportRecords.length; i++) {
                     var pending = reportRecords.length - start;
@@ -264,6 +273,16 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                     }
                 } 
                
+                if (filter.exportTypes.certificate && ctx.certificateRow.length > 1) {
+                    for(var start=0, i=1; start < ctx.certificateRow.length; i++) {
+                        var pending = ctx.certificateRow.length - start;
+                        pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
+                        var fileName = nl.fmt2('certificates-{}.csv', i);
+                        _createCsv(filter, ctx.certificateRow, zip, fileName, start, start+pending);
+                        start += pending;
+                    }
+                } 
+               
                 if (filter.exportTypes.lr && ctx.lrRow.length > 1) {
                     for(var start=0, i=1; start < ctx.lrRow.length; i++) {
                         var pending = ctx.lrRow.length - start;
@@ -334,6 +353,10 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 
                 if (filter.exportTypes.iltBatch && ctx.iltBatchRow.length > 1) {
                     zipData.push({aoa: ctx.iltBatchRow, fileName: 'attendance-batch-stats', fileExt: 'xlsx'});
+                } 
+
+                if (filter.exportTypes.certificate && ctx.certificateRow.length > 1) {
+                    zipData.push({aoa: ctx.certificateRow, fileName: 'certificates', fileExt: 'xlsx'});
                 } 
 
                 if (filter.exportTypes.lr && (filter.reptype == 'course' || filter.reptype == 'course_assign')) {
@@ -438,6 +461,17 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                 ctx.iltBatchRow.push(nlExporter.getCsvRow(_iltBatchDict.columns, row));
             else 
                 ctx.iltBatchRow.push(nlExporter.getItemRow(_iltBatchDict.columns, row));
+        }
+    }
+
+    function _updateCertificateRow() {
+        var certificateArray = _certificateDict.statsCountArray;
+        for(var i=0; i<certificateArray.length; i++) {
+            var row = certificateArray[i];
+            if (_exportFormat == 'csv') 
+                ctx.certificateRow.push(nlExporter.getCsvRow(_certificateDict.columns, row));
+            else 
+                ctx.certificateRow.push(nlExporter.getItemRow(_certificateDict.columns, row));
         }
     }
 
@@ -628,6 +662,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             if(filter.exportTypes.nhtRunning) ctx.nhtRunningRow = [nlExporter.getCsvHeader(_nhtDict.columns)];
             if(filter.exportTypes.nhtClosed) ctx.nhtClosedRow = [nlExporter.getCsvHeader(_nhtDict.columns)];
             if(filter.exportTypes.iltBatch) ctx.iltBatchRow = [nlExporter.getCsvHeader(_iltBatchDict.columns)];
+            if(filter.exportTypes.certificate) ctx.certificateRow = [nlExporter.getCsvHeader(_certificateDict.columns)];
             if(filter.exportTypes.lr) ctx.lrRow = [nlExporter.getCsvHeader(_lrDict.columns)];
         } else {
             ctx.courseReportRows = [_getCsvHeader(filter)];
@@ -639,6 +674,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             if(filter.exportTypes.nhtRunning) ctx.nhtRunningRow = [nlExporter.getHeaderRow(_nhtDict.columns)];    
             if(filter.exportTypes.nhtClosed) ctx.nhtClosedRow = [nlExporter.getHeaderRow(_nhtDict.columns)];
             if(filter.exportTypes.iltBatch) ctx.iltBatchRow = [nlExporter.getHeaderRow(_iltBatchDict.columns)];
+            if(filter.exportTypes.certificate) ctx.certificateRow = [nlExporter.getHeaderRow(_certificateDict.columns)];
             if(filter.exportTypes.lr) ctx.lrRow = [nlExporter.getHeaderRow(_lrDict.columns)];
         }
         ctx.reports = reports;
@@ -1026,6 +1062,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         if (!statusinfo) return;
         defaultRowObj._status = statusinfo.state || 'pending';
         defaultRowObj.remarks = statusinfo.remarks || '';
+        if (statusinfo.otherRemarks) defaultRowObj.remarks = nl.fmt2('{} ({})', defaultRowObj.remarks, statusinfo.otherRemarks);
         defaultRowObj._timeIltMins = statusinfo.iltTimeSpent || 0;
         defaultRowObj._timeIltTotalMins = statusinfo.iltTotalTime;
         defaultRowObj.ended = statusinfo.marked;
@@ -1040,6 +1077,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         defaultRowObj._score = statusinfo.ratingScore === 0 ? "0" : statusinfo.score;
         defaultRowObj._passScoreStr = statusinfo.passScore || '';
         defaultRowObj.remarks = nl.fmt.arrayToString(statusinfo.remarks || '');
+        if (statusinfo.otherRemarks) defaultRowObj.remarks = nl.fmt2('{} ({})', defaultRowObj.remarks, statusinfo.otherRemarks);
         defaultRowObj.ended = statusinfo.marked;
         defaultRowObj.updated = statusinfo.updated;
 	}

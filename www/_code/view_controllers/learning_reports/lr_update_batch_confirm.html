@@ -47,6 +47,8 @@
             </td>
             <td>
                 <div ng-if='change.cm.type == "iltsession"'>{{lrChange.lr.remarks.id}}</div>
+                <div ng-if='change.cm.type == "iltsession" && lrChange.lr.otherRemarks'
+                     class='padding-mid-v fsmall2'>{{lrChange.lr.otherRemarks}}</div>
                 <div ng-if='change.cm.type == "rating"'>{{lrChange.lr.remarksStr}}</div>
                 <div ng-if='change.cm.type == "rating" && lrChange.lr.showOtherRemarks'
                      class='padding-mid-v fsmall2'>{{lrChange.lr.otherRemarks}}</div>

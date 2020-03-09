@@ -1046,8 +1046,8 @@ nlesson = function() {
 		this.lastSavedContent = jQuery('#l_content').val();
 		var lesson = this;
 		window.onbeforeunload = function(e) {
-			var lessonId = jQuery('#l_lessonId').val();
-			if (nittio.getOnLeaveCheck() && lessonId != "0") {
+            var lessonId = jQuery('#l_lessonId').val();
+			if (nittio.getOnLeaveCheck() && lessonId != "0" && !lesson.oLesson.restoreid) {
 				lesson.stopAudio();
 		        lesson.globals.animationManager.clearAnimations();
 				if ((lesson.renderCtx.launchCtx() != 'do_review') && (lesson.lastSavedContent != lesson.getContent())) {
@@ -2213,8 +2213,8 @@ function SectionSelectionHandler(lesson) {
 
         _allTools.push({id: 'edit_icon_change_mode', grpid: 'module', grp: 'Module', icon: 'ion-ios-eye', name:'Preview', shortcut: ' (Alt+T)', onclick: _fn(on_changemode)});
         _allTools.push({id: 'edit_icon_props', grpid: 'module', grp: 'Module', icon:'ion-ios-gear', name: 'Module Properties', title:'Update module name and other module level properties', onclick: on_props});
-        _allTools.push({id: 'edit_icon_save', grpid: 'module', grp: 'Module', icon: 'save', font:'material', font:'material-icons', name:'Save', shortcut: ' (Ctrl+S)', onclick: on_save});
-        if (canApprove && lessonId > 0)
+        if(!lesson.oLesson.restoreid) _allTools.push({id: 'edit_icon_save', grpid: 'module', grp: 'Module', icon: 'save', font:'material', font:'material-icons', name:'Save', shortcut: ' (Ctrl+S)', onclick: on_save});
+        if (!lesson.oLesson.restoreid && canApprove && lessonId > 0)
             _allTools.push({id: 'edit_icon_approve', grpid: 'module', grp: 'Module', icon:'ion-ios-checkmark',  name:'Approve',  title:'Approve the module and make it available to other authors', onclick: _fn(on_approve, lessonId)});
 
         _allTools.push({id: 'edit_icon_addpage', grpid: 'pages', grp: 'Page', icon:'ion-ios-plus', name:'Add Page', title:'Add a new page', shortcut: ' (Alt+Insert)', onclick: on_addpage});

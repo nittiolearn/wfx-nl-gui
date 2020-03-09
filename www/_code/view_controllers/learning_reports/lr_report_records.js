@@ -31,7 +31,8 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     var _customScoresHeaderObj = {};
     var _canManage = false;
     var _canSend = false;
-    this.init = function(userinfo, groupInfo) {
+    var _canAddReportRecord = null;
+    this.init = function(userinfo, groupInfo, canAddReportRecord) {
         _userInfo = userinfo;
         _records = {};
         _reminderDict = {};
@@ -44,6 +45,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         _canManage = nlRouter.isPermitted(_userInfo, 'assignment_manage');
         _canSend = nlRouter.isPermitted(_userInfo, 'assignment_send');
         _pastUserInfosFetcher.init(groupInfo);
+        _canAddReportRecord = canAddReportRecord || function() {return true;};
     };
     
     this.isReattemptEnabled = function() {
@@ -74,6 +76,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         else 
             return null;
         if (!report) return null;
+        if (!_canAddReportRecord(report)) return null;
         var rid = report.raw_record.id;
         _records[rid] = report;
         if (!_dates.minUpdated || _dates.minUpdated > report.raw_record.updated) _dates.minUpdated = report.raw_record.updated;

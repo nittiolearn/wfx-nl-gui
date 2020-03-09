@@ -104,6 +104,15 @@
 						tabindex='0'>
 					</select>
 				</div>
+                <div ng-if='!report.lockedMessage && selectedModule.attendanceRemarksOptions && report.remarks.id == "Other"'
+                     class='nl-dlg-field-value'>
+                     <input ng-model='report.otherRemarks' 
+                        type='text' 
+                        autofocus=''
+                        tabindex='0'
+                        placeholder='Provide additional remarks'>
+                </div>
+			</div>
 				<div ng-if='!report.lockedMessage && !selectedModule.attendanceRemarksOptions'
 					 class='nl-dlg-field-value'>
 					 <input ng-model='report.remarks.id' 

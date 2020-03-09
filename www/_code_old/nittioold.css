@@ -669,80 +669,17 @@ td.submitselection{
 /*----------------------------------------------------------------------------------------------------------------------
  * page organizer stuff
  * --------------------------------------------------------------------------------------------------------------------*/
-#page_org > div {
-  position: absolute;
-}
-
-#page_org_content {
-  position: absolute;
-  left: 1%;
-  width: 96%;
-  top: 1%;
-  bottom: 0;
-}
-
-#page_org_header {
-  position: absolute;
-  top: 0;
-  bottom: 90px;
-  width: 100%;
-}
-
-#page_org_body {
-  position: absolute;
-  top: 90px;
-  bottom: 0;
-  width: 100%;
-  overflow: auto; 
-}
-
-#page_org table {
-  width: 100%;
-  vertical-align: top;
-}
-
-#page_org td {
-  vertical-align: top;
-  padding: 5px;
-  text-align: right;
-}
-
-#page_org td.done {
-  text-align: center;
+ #page_org td {
+  padding: 8px;
 }
 
 #page_org td.more {
-  width: 90%;
+  width: 80%;
   text-align: left;
-  padding-left: 10px;
 }
 
-#page_org td.maxScore {
-  padding-right: 30px;
-}
-
-#page_org tr{
-  border-bottom: 1px groove black;
-}
-
-#page_org tr.normal:hover{
-  background-color: #EFDFFF;
-}
-
-#page_org tr.selected, #page_org tr.selected:hover {
-  background-color: #AAAAFF;
-}
-
-#page_org .bold {
-  font-weight:900;
-}
-  
-#page_org .normal {
-  font-weight:400;
-}
-
-.horiz_space {
-  height: 10px;
+.page_org_table tr.selected {
+  background-color: #EEEEFF;
 }
 
 .njs_dialog_toolbar {
