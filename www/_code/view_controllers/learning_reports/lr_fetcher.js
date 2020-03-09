@@ -48,7 +48,7 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlGetManyStore, 
             }
             for (var i=0; i<results.length; i++) nlLrReportRecords.addRecord(results[i]);
             nlLrReportRecords.postProcessRecordsIfNeeded().then(function() {
-	            onDoneCallback(results);
+	            onDoneCallback(true);
             });
         });
     };

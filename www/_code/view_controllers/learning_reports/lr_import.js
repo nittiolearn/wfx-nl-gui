@@ -40,7 +40,7 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
 	        _onImport();
 	    };
 	
-		_data.pastUserInfo = null;
+		_data.pastUserInfosFetcher = nlGroupInfo.getPastUserInfosFetcher();
 	    _data.pl= nlProgressLog.create($scope);
 	    _data.pl.showLogDetails(true);
 	    if (!_ENABLE_DEBUG) _data.pl.hideDebugAndInfoLogs();
@@ -67,18 +67,10 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
             nlGroupInfo.init2().then(function() {
 		        nlGroupInfo.update();
 		        _groupInfo = nlGroupInfo.get();
-		        if (!nlGroupInfo.isPastUserInfosConfigured(_groupInfo)) {
-		        	resolve(true);
-		        	return;
-		        }
+				_data.pastUserInfosFetcher.init(_groupInfo, true);
 	        	nlDlg.popupStatus('Geting past user info ...', false);
-	        	nlGroupInfo.fetchPastUserInfos(_groupInfo).then(function(result) {
+	        	_data.pastUserInfosFetcher.fetchAllPastUsersFiles(false).then(function(result) {
 		        	nlDlg.popdownStatus(0);
-		        	if (!result) {
-		        		resolve(false);
-		        		return;
-		        	}
-		        	_data.pastUserInfo = result;
 		        	resolve(true);
 	        	});
             }, function(err) {
@@ -282,7 +274,7 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
 	function _getDbRecord(current, reportRecordInfo, moduleInfos) {
 		var username = reportRecordInfo.user_id + '.' + _groupInfo.grpid;
         var user = _groupInfo.derived.keyToUsers[username];
-        if (!user) user = _data.pastUserInfo[reportRecordInfo.user_id];
+        if (!user) user = _data.pastUserInfosFetcher.getUserObj(null, reportRecordInfo.user_id);
         if (!user && _data.pl) _data.pl.warn(nl.fmt2('User {} not found.', reportRecordInfo.user_id));
 		current.dbRec = {student: user ? user.id : 0, 
 			created: reportRecordInfo.from, updated: reportRecordInfo.till, 

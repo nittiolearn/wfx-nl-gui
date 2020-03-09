@@ -21,8 +21,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     var _records = {};
     var _reminderDict = {};
     var _dates = {};
-    var _pastUserData = null;
-    var _pastUserDataFetchInitiated = false;
+    var _pastUserInfosFetcher = nlGroupInfo.getPastUserInfosFetcher();
     var _postProcessRecords = [];
     var _userInfo = null;
     var _nominatedUsers = null;
@@ -32,7 +31,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     var _customScoresHeaderObj = {};
     var _canManage = false;
     var _canSend = false;
-    this.init = function(userinfo) {
+    this.init = function(userinfo, groupInfo) {
         _userInfo = userinfo;
         _records = {};
         _reminderDict = {};
@@ -42,9 +41,9 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         _customScoresHeaderObj = {};
         _dates = {minUpdated: null, maxUpdated: null};
         _convertAttendanceArrayToObj(userinfo.groupinfo.attendance);
-        if (!nlGroupInfo.isPastUserInfosConfigured()) _pastUserData = {};
         _canManage = nlRouter.isPermitted(_userInfo, 'assignment_manage');
         _canSend = nlRouter.isPermitted(_userInfo, 'assignment_send');
+        _pastUserInfosFetcher.init(groupInfo);
     };
     
     this.isReattemptEnabled = function() {
@@ -179,32 +178,32 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     
     this.postProcessRecordsIfNeeded = function() {
         return nl.q(function(resolve, reject) {
-            if (_pastUserData || _postProcessRecords.length == 0 || _pastUserDataFetchInitiated) {
-                resolve(true);
-                return;
-            }
-            _pastUserDataFetchInitiated = true;
             nlDlg.popupStatus('Fetching additional user information ...', false);
             nlDlg.showLoadingScreen();
-            nlGroupInfo.fetchPastUserInfos().then(function(result) {
-                _pastUserData = result || {};
-                for (var i=0; i<_postProcessRecords.length; i++)
-                    self.addRecord(_postProcessRecords[i]);
-                _postProcessRecords = [];
-                nlDlg.popdownStatus(0);
-                resolve(true);
-            });
+            _fetchNextPastUsersFileAndPostProcess(resolve);
         });
     };
+
+    function _fetchNextPastUsersFileAndPostProcess(resolve) {
+        if (_postProcessRecords.length == 0 || !_pastUserInfosFetcher.canFetchMore()) {
+            nlDlg.popdownStatus(0);
+            return resolve(true);
+        }
+        _pastUserInfosFetcher.fetchNextPastUsersFile().then(function(canFetchMore) {
+            var postProcessRecords = _postProcessRecords;
+            _postProcessRecords = [];
+            for (var i=0; i<postProcessRecords.length; i++) self.addRecord(postProcessRecords[i]);
+            _fetchNextPastUsersFileAndPostProcess(resolve);
+        });
+    }
     
     function _getStudentFromReport(report, repcontent) {
         var user = nlGroupInfo.getUserObj(''+report.student);
-        if (!user && !_pastUserData) {
+        if (!user && _pastUserInfosFetcher.canFetchMore()) {
             _postProcessRecords.push(report);
             return null;
         }
-
-        if (!user) user = _pastUserData[repcontent.studentname];
+        if (!user) user = _pastUserInfosFetcher.getUserObj(report.student, repcontent.studentname);
         if (!user) user = nlGroupInfo.getDefaultUser(repcontent.studentname || '');
         return user;
     }

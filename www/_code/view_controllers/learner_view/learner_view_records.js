@@ -129,11 +129,6 @@
             return ranges;
         };
         
-        this.postProcessRecordsIfNeeded = function() {
-            // Kept to satisfy signature of fetcher
-        };
-
-        
         function _processCourseReport(report) {
             var repcontent = _updateCommonParams(report, 'course');
             if(!repcontent.content) repcontent.content = {};

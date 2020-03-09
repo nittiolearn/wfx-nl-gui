@@ -30,6 +30,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
     var _debug = false;
     var _chunksize = 0;
     var _groupInfo = null;
+    var _pastUserInfosFetcher = nlGroupInfo.getPastUserInfosFetcher();
     var _records = {};
     var _monthlyStats = {};
 	function _onPageEnter(userInfo) {
@@ -37,6 +38,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
 			nlGroupInfo.init2().then(function() {
 				nlGroupInfo.update();
                 _groupInfo = nlGroupInfo.get();
+                _pastUserInfosFetcher.init(_groupInfo);
                 _init();
                 resolve(true); // Has to be before next line for loading screen
 				_showRangeSelection();
@@ -189,12 +191,12 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
     }
     //-----------------------------------------------------------------------------------
     function _onExport() {
+        _updateUserInfoInReports(_records, _onExportImpl);
     }
 
     function _onExportImpl() {
         var zip = new JSZip();
         _addOverviewFile(zip);
-
         var headers = [
             {id: '', name: 'User Id', fmt: _fmtUserId}, 
             {id: '', name: 'User Name', fmt: _fmtUserName}, 
@@ -219,13 +221,6 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
 
         for (var recid in _records) {
             var record = _records[recid];
-            if (!record.isProcessed) {
-                record.user = nlGroupInfo.getUserObj(''+record.student);
-                if (!record.user) record.user = _pastUserData[repcontent.studentname];
-                if (!record.user) record.user = nlGroupInfo.getDefaultUser(nl.fmt2('id={}', record.student));
-                record.isProcessed = true;
-            }
-
             var row = [];
             for (var i=0; i<headers.length; i++) {
                 var header = headers[i];
@@ -246,6 +241,27 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
             _addCsvFile(zip, nl.fmt2('completed-modules-{}.csv', chunkCount), csvRows);
         }
         nlExporter.saveZip(zip, 'completed_modules.zip');
+    }
+
+    function _updateUserInfoInReports(records, onDoneFn) {
+        var canFetchMore =  _pastUserInfosFetcher.canFetchMore();
+        var pendingRecords = {};
+        for (var recid in records) {
+            var record = records[recid];
+            if (record.isProcessed) continue;
+            record.user = nlGroupInfo.getUserObj(''+record.student);
+            if (!record.user) record.user = _pastUserInfosFetcher.getUserObj(record.student);
+            if (!record.user) {
+                if (canFetchMore) pendingRecords[recid] = record;
+                else record.user = nlGroupInfo.getDefaultUser(nl.fmt2('id={}', record.student));
+            }
+            if (record.user) record.isProcessed = true;
+        }
+        if (Object.keys(pendingRecords).length == 0) return onDoneFn();
+        _pastUserInfosFetcher.fetchNextPastUsersFile().then(function(canFetchMore) {
+            _updateUserInfoInReports(pendingRecords, onDoneFn);
+        });
+
     }
 
     function _addOverviewFile(zip) {

@@ -42,12 +42,13 @@ function(nl, nlDlg) {
         };
         reader.onload = function (loadEvent) {
             var content = loadEvent.target.result;
-            var rows = _splitIntoRows(content);
+            var rows = content.split('\n');
             var table = [];
             var error = false;
             var cols = null;
             for(var i=0; i<rows.length; i++) {
-                var cells = _splitIntoCells(rows[i]);
+                var row = rows[i].replace(/\r/g, '');
+                var cells = _splitIntoCells(row);
                 if (!cells) continue;
                 if (cols === null) cols = cells.length;
                 if (cols !== cells.length && !config.ignore_column_count) error = 'Not all rows have same number of columns';

@@ -9,8 +9,8 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlGroupInfo = ['nl', 'nlImporter', 'nlGroupCache',
-function(nl, nlImporter, nlGroupCache) {
+var NlGroupInfo = ['nl', 'nlDlg', 'nlImporter', 'nlGroupCache',
+function(nl, nlDlg, nlImporter, nlGroupCache) {
     var self = this;
     
     this.get = function(grpid) {
@@ -208,15 +208,6 @@ function(nl, nlImporter, nlGroupCache) {
 	    return user;
     };
     
-    this.getUserTableAttrs = function() {
-    	return _userTableAttrs;
-    };
-    
-    this.isPastUserInfosConfigured = function(groupInfo) {
-    	if (!groupInfo) groupInfo = self.get();
-    	return groupInfo && groupInfo.props && groupInfo.props.pastUserInfos;
-    };
-
     this.DEFAULT_REPORT_PATH = '/static/others/report-templates/';
     this.DEFAULT_CUSTOM_TEMPLATE = this.DEFAULT_REPORT_PATH + 'custom_report.xlsm?v={}';
     this.getDefaultCustomReportTemplate = function() {
@@ -229,109 +220,18 @@ function(nl, nlImporter, nlGroupCache) {
         return groupInfo.props.customReportTemplate || '';
     };
     
-    this.fetchPastUserInfos = function(groupInfo) {
-    	if (!groupInfo) groupInfo = self.get();
-        return nl.q(function(resolve, reject) {
-            var userDict = {};
-
-        	if (!self.isPastUserInfosConfigured(groupInfo)) {
-        		resolve(userDict);
-        		return;
-            }
-            var pastUserInfos = groupInfo.props.pastUserInfos;
-            _fetchPastUserInfos(groupInfo, pastUserInfos, 0, userDict, function(userDict2) {
-                resolve(userDict2);
-            });
-        });
+    this.getPastUserInfosFetcher = function() {
+        return new PastUserInfosFetcher(nl, nlDlg, nlImporter, this);
     };
 
-    function _fetchPastUserInfos(groupInfo, pastUserInfos, pos, userDict, resolve) {
-        if (pos >= pastUserInfos.length) return resolve(userDict);
-        var xlscfg = {singleSheet: true, toJsonConfig: {header:1}};
-        var fName = pastUserInfos[pos];
-        nl.http.get(fName, {responseType: "arraybuffer"})
-        .then(function(result) {
-            nlImporter.readXlsFromArrayBuffer(result.data, xlscfg).then(function(rows) {
-                _xlsArrayToDict(groupInfo, rows, userDict);
-                _fetchPastUserInfos(groupInfo, pastUserInfos, pos+1, userDict, resolve);
-            }, function(e) {
-                var msg = nl.t('Error reading past users file: {}', e||'');
-                nlDlg.popupAlert({title: 'Error', template: msg});
-                resolve(userDict);
-            });
-        }, function(e) {
-            var msg = nl.t('Error fetching past users file: {}', e.data||'');
-            nlDlg.popupAlert({title: 'Error', template: msg});
-            resolve(userDict);
-        });
-    }
-
-	var _userTableAttrs = [
-	    {id: 'op', name: "Operation"},
-	    {id: 'username', name: "Key", optional: true},
-	    {id: 'user_id', name: "User Id"},
-	    {id: 'gid', name: "Group Id", optional: true},
-	    {id: 'usertype', name: "User Type"},
-	    {id: 'first_name', name: "First name"},
-	    {id: 'last_name', name: "Last name", optional: true},
-	    {id: 'email', name: "Email"},
-	    {id: 'state', name: "State", optional: true},
-        {id: 'org_unit', name: "OU", oldnames: ["Class / user group"]},
-        {id: 'mobile', name: "Mobile", optional: true},
-        {id: 'seclogin', name: "Secondary Login", optional: true},
-	    {id: 'supervisor', name: "Supervisor", optional: true},
-	    {id: 'doj', name: "Joining date", optional: true},
-	    {id: 'sec_ou_list', name: "Sec OUs", oldnames: ["Secondary user groups"], optional: true},
-	    {id: 'created', name: "Created UTC Time", optional: true},
-        {id: 'updated', name: "Updated UTC Time", optional: true},
-	];
-	
-    function _xlsArrayToDict(groupInfo, xlsArray, userDict) {
-    	if (xlsArray.length < 1) return;
-	    var userHeaders = _arrayToDictNameToId(_userTableAttrs);
-	    var metaHeaders = _arrayToDictNameToId((groupInfo.props || {}).usermetadatafields || []);
-    	var headerRow = xlsArray[0];
-    	var headerInfo = [];
-    	for(var i=0; i<headerRow.length; i++) {
-    		if (headerRow[i] in userHeaders) headerInfo.push({type: 'user', id: userHeaders[headerRow[i]]});
-    		else if (headerRow[i] in metaHeaders) headerInfo.push({type: 'meta', id: metaHeaders[headerRow[i]]});
-    		else headerInfo.push({type: 'other', id: headerRow[i]});
-    	}
-
-    	for (var i=1; i<xlsArray.length; i++) {
-    		var row = xlsArray[i];
-    		var user = {id: 0, metadataObj: {}, others: {}};
-    		for (var j=0; j<row.length; j++) {
-    			var info = headerInfo[j];
-    			if (info.type == 'user') user[info.id] = row[j];
-    			else if (info.type == 'meta') user.metadataObj[info.id] = row[j];
-    			else user.others[info.id] = row[j];
-    		}
-    		if (!user.user_id) continue;
-	        user.id = 0;
-	        user.gid = groupInfo.grpid;
-	        user.username = nl.fmt2('{}.{}', user.user_id, groupInfo.grpid);
-	        if (!user.last_name) user.last_name = '';
-	        if (!user.first_name) user.first_name = user.user_id;
-	        user.name = self.formatUserNameFromObj(user);
-	        if (!user.email) user.email = 'NA';
-	        if (!user.state) user.state = 0;
-	        if (!user.usertype) user.usertype = '';
-	        if (!user.org_unit) user.org_unit = '';
-	        if (!user.supervisor) user.supervisor = '';
-	        if (!user.doj) user.doj = '';
-            if (!user.sec_ou_list) user.sec_ou_list = '';
-            if (!user.mobile) user.mobile = '';
-            if (!user.seclogin) user.seclogin = '';
-    		userDict[user.user_id] = user;
-    	}
-    }
-    
-    function _arrayToDictNameToId(arrayInput) {
-    	var ret = {};
-    	for(var i=0; i<arrayInput.length; i++) ret[arrayInput[i].name] = arrayInput[i].id;
-    	return ret;
-    }
+    this.getUserTableHeaders = function(grpid) {
+        var headers = angular.copy(_userTableAttrs);
+        var metadata = this.getUserMetadata(null, grpid);
+        for(var i=0; i<metadata.length; i++)
+            headers.splice(_insertMetadataAt+i, 0, {id: metadata[i].id, 
+                name: metadata[i].name, optional: true, metadata: true});
+        return headers;
+    };
     
     //##################################################################################################
     function _getUtIcon(ut) {
@@ -515,6 +415,168 @@ function(nl, nlImporter, nlGroupCache) {
             _addSubTreeToSubOrg(ou.children[i], suborgId, orgToSubOrgMapping);
     }
 }];
+
+//-------------------------------------------------------------------------------------------------
+function PastUserInfosFetcher(nl, nlDlg, nlImporter, nlGroupInfo) {
+    var _groupInfo = null;
+    var _pastUsersIdToObj = {};
+    var _pastUsersUserIdToObj = {}; // For imported users and if buildUserIdDict is set
+    var _pendingArchived = [];
+    var _pendingImported = [];
+    var _buildUserIdDict = false;
+
+    // groupInfo.props.pastUserInfos is None or {archived: [url1, url2, ...], imported: [url1, ...]}
+    this.init = function(groupInfo, buildUserIdDict) {
+        if (buildUserIdDict) _buildUserIdDict = true;
+        _groupInfo = groupInfo || nlGroupInfo.get();
+        _pastUsersIdToObj = {};
+        _pastUsersUserIdToObj = {};
+        var pastUserInfos = _groupInfo.props.pastUserInfos || {};
+        _pendingArchived = pastUserInfos.archived || [];
+        _pendingImported = pastUserInfos.imported || [];
+    };
+
+    this.getUserObj = function(uid, user_id) {
+        var ret = uid ? _pastUsersIdToObj[uid] || null : null;
+        if (ret) return ret;
+        return user_id ? _pastUsersUserIdToObj[user_id] || null : null;
+    };
+
+    this.canFetchMore = function(archivedOnly) {
+        return _pendingArchived.length > 0 || (!archivedOnly && _pendingImported.length > 0);
+    };
+
+    this.fetchNextPastUsersFile = function(archivedOnly) {
+        return nl.q(function(resolve, reject) {
+            _fetchNextPastUsersFile(archivedOnly, resolve);
+        });
+    };
+
+    this.fetchAllPastUsersFiles = function(archivedOnly) {
+        return nl.q(function(resolve, reject) {
+            _fetchRestOfPastUsersFiles(archivedOnly, true, resolve);
+        });
+    };
+
+    function _fetchRestOfPastUsersFiles(archivedOnly, bMore, resolve) {
+        if (!bMore) return resolve(false);
+        _fetchNextPastUsersFile(archivedOnly, function(bMore2) {
+            _fetchRestOfPastUsersFiles(archivedOnly, bMore2, resolve);
+        });
+    }
+
+    function _fetchNextPastUsersFile(archivedOnly, resolve) {
+        var pendingList = _pendingArchived;
+        var isArchivedList = true;
+        if (pendingList.length == 0 && !archivedOnly) {
+            pendingList = _pendingImported;
+            isArchivedList = false;
+        }
+        if (pendingList.length == 0) return resolve(false);
+        var fName = pendingList.shift();
+        var xlscfg = {singleSheet: true, toJsonConfig: {header:1}};
+        nl.http.get(fName, {responseType: "arraybuffer"})
+        .then(function(result) {
+            nlImporter.readXlsFromArrayBuffer(result.data, xlscfg).then(function(rows) {
+                _xlsArrayToDict(rows, isArchivedList);
+                return resolve(true);
+            }, function(e) {
+                var msg = nl.t('Error reading past users file: {}', e||'');
+                nlDlg.popupAlert({title: 'Error', template: msg});
+                resolve(false);
+            });
+        }, function(e) {
+            var msg = nl.t('Error fetching past users file: {}', e.data||'');
+            nlDlg.popupAlert({title: 'Error', template: msg});
+            resolve(false);
+        });
+    }
+    
+    function _xlsArrayToDict(xlsArray, isArchivedList) {
+    	if (xlsArray.length < 1) return;
+	    var userHeaders = _arrayToDictNameToId(_userTableAttrs);
+	    var metaHeaders = _arrayToDictNameToId((_groupInfo.props || {}).usermetadatafields || []);
+    	var headerRow = xlsArray[0];
+    	var headerInfo = [];
+    	for(var i=0; i<headerRow.length; i++) {
+    		if (headerRow[i] in userHeaders) headerInfo.push({type: 'user', id: userHeaders[headerRow[i]]});
+    		else if (headerRow[i] in metaHeaders) headerInfo.push({type: 'meta', id: metaHeaders[headerRow[i]]});
+    		else headerInfo.push({type: 'other', id: headerRow[i]});
+    	}
+
+    	for (var i=1; i<xlsArray.length; i++) {
+    		var row = xlsArray[i];
+    		var user = {id: 0, metadataObj: {}, others: {}};
+    		for (var j=0; j<row.length; j++) {
+    			var info = headerInfo[j];
+    			if (info.type == 'user') user[info.id] = row[j];
+    			else if (info.type == 'meta') user.metadataObj[info.id] = row[j];
+    			else user.others[info.id] = row[j];
+    		}
+            if (!user.user_id) continue;
+            if (isArchivedList) user.archived = true;
+            else user.imported = true;
+            if (user.archived && !user.id) continue;
+            if (user.imported && (user.user_id in _pastUsersUserIdToObj)) continue;
+            _updateUserId(user);
+
+            if (user.archived) _pastUsersIdToObj[user.id] = user;
+            if ((user.imported || _buildUserIdDict) && !(user.user_id in _pastUsersUserIdToObj))
+                _pastUsersUserIdToObj[user.user_id] = user;
+
+            user.gid = _groupInfo.grpid;
+	        user.username = nl.fmt2('{}.{}', user.user_id, _groupInfo.grpid);
+	        if (!user.last_name) user.last_name = '';
+	        if (!user.first_name) user.first_name = user.user_id;
+	        user.name = nlGroupInfo.formatUserNameFromObj(user);
+	        if (!user.email) user.email = 'NA';
+	        if (!user.state) user.state = 0;
+	        if (!user.usertype) user.usertype = '';
+	        if (!user.org_unit) user.org_unit = '';
+	        if (!user.supervisor) user.supervisor = '';
+	        if (!user.doj) user.doj = '';
+            if (!user.sec_ou_list) user.sec_ou_list = '';
+            if (!user.mobile) user.mobile = '';
+            if (!user.seclogin) user.seclogin = '';
+    	}
+    }
+    
+    function _arrayToDictNameToId(arrayInput) {
+    	var ret = {};
+    	for(var i=0; i<arrayInput.length; i++) ret[arrayInput[i].name] = arrayInput[i].id;
+    	return ret;
+    }
+    
+    function _updateUserId(user) {
+        if (user.id && user.id.indexOf('id=') == 0) user.id = user.id.substring(3);
+        if (user.id) user.id = parseInt(user.id);
+        else user.id = 0;
+    }
+
+}
+
+//-------------------------------------------------------------------------------------------------
+var _insertMetadataAt = 10;
+var _userTableAttrs = [
+    {id: 'op', name: "Operation"},
+    {id: 'username', name: "Key", optional: true},
+    {id: 'user_id', name: "User Id"},
+    {id: 'gid', name: "Group Id", optional: true},
+    {id: 'usertype', name: "User Type"},
+    {id: 'first_name', name: "First name"},
+    {id: 'last_name', name: "Last name", optional: true},
+    {id: 'email', name: "Email"},
+    {id: 'state', name: "State", optional: true},
+    {id: 'org_unit', name: "OU", oldnames: ["Class / user group"]},
+    {id: 'mobile', name: "Mobile", optional: true},
+    {id: 'seclogin', name: "Secondary Login", optional: true},
+    {id: 'supervisor', name: "Supervisor", optional: true},
+    {id: 'doj', name: "Joining date", optional: true},
+    {id: 'sec_ou_list', name: "Sec OUs", oldnames: ["Secondary user groups"], optional: true},
+    {id: 'created', name: "Created UTC Time", optional: true},
+    {id: 'updated', name: "Updated UTC Time", optional: true},
+    {id: 'id', name: "Internal Id", optional: true},
+];
 
 //-------------------------------------------------------------------------------------------------
 module_init();

@@ -11,17 +11,6 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var _insertMetadataAt = 10;
-
-function _getHeadersWithMetadata(nlGroupInfo, grpid) {
-    var headers = angular.copy(nlGroupInfo.getUserTableAttrs());
-    var metadata = nlGroupInfo.getUserMetadata(null, grpid);
-    for(var i=0; i<metadata.length; i++)
-        headers.splice(_insertMetadataAt+i, 0, {id: metadata[i].id, 
-            name: metadata[i].name, optional: true, metadata: true});
-    return headers;
-}
-
 function _getHeaderNameToInfo(headers) {
     var ret = {};
     for(var i=0; i<headers.length; i++) {
@@ -55,6 +44,9 @@ function(nl, nlDlg, nlGroupInfo, nlExporter) {
         },
         doj: function(user) {
             return user.doj ? 'date:' + user.doj : '';
+        },
+        id: function(user) {
+            return 'id=' + user.id;
         }
     };
     
@@ -68,7 +60,7 @@ function(nl, nlDlg, nlGroupInfo, nlExporter) {
 
     var DELIM = '\n';
     function _export(groupInfo, grpid, resolve) {
-        var headers = _getHeadersWithMetadata(nlGroupInfo, grpid);
+        var headers = nlGroupInfo.getUserTableHeaders(grpid);
         var csv = nlExporter.getCsvString(headers, 'name');
         for(var key in groupInfo.derived.keyToUsers) {
             var user = groupInfo.derived.keyToUsers[key];
@@ -112,19 +104,17 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     var _grpid = null;
     var _groupInfo = null;
     var _userInfo = null;
-    var _pastUserData = {};
     var _SERVER_CHUNK_SIZE = 100;
     var _canUpdateLoginId = false;
+    var _pastUserInfosFetcher = nlGroupInfo.getPastUserInfosFetcher();
     
     this.init = function(groupInfo, userInfo, grpid) {
         _groupInfo = groupInfo;
         _userInfo = userInfo;
         _grpid = grpid;
         _canUpdateLoginId = nlRouter.isPermitted(_userInfo, 'admin_user');
-        console.log('TODO-NOW: Before past users', new Date());
-        return nlGroupInfo.fetchPastUserInfos(_groupInfo).then(function(result) {
-            _pastUserData = result || {};
-            console.log('TODO-NOW: Loaded past users', new Date(), _pastUserData);
+        _pastUserInfosFetcher.init(_groupInfo, true);
+        return _pastUserInfosFetcher.fetchAllPastUsersFiles(true).then(function() {
             return true;
         });
     };
@@ -374,7 +364,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         var row = table[0];
         var ret = [];
         var found = {};
-        var headers = _getHeadersWithMetadata(nlGroupInfo, _grpid);
+        var headers = nlGroupInfo.getUserTableHeaders(_grpid);
         var headerNameToInfo = _getHeaderNameToInfo(headers);
         for(var i=0; i<row.length; i++) {
             var col = row[i].toLowerCase().trim();
@@ -484,12 +474,16 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
 	            _throwException('User id and username mis match. Please have same username and user id', row);
             if (row.username in _groupInfo.derived.keyToUsers)
                 _throwException('User id already exists', row);
+            if (_pastUserInfosFetcher.getUserObj(null, row.user_id))
+                _throwException('User id already exists in archived list', row);
         }
         if (row.op == 'u' || row.op == 'U') {
             var newUserName = row.user_id + '.' + row.gid;
-            if (newUserName != row.username &&
-                newUserName in _groupInfo.derived.keyToUsers) {
-                _throwException('User id already exists', row);
+            if (newUserName != row.username) {
+                if (newUserName in _groupInfo.derived.keyToUsers)
+                    _throwException('User id already exists', row);
+                if (_pastUserInfosFetcher.getUserObj(null, row.user_id))
+                    _throwException('User id already exists in archived list', row);
             }
         }
         

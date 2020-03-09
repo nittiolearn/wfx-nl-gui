@@ -156,7 +156,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		// Order is important
 		nlGetManyStore.init();
 		nlLrFilter.init(settings, _userInfo, _groupInfo);
-		nlLrReportRecords.init(_userInfo);
+		nlLrReportRecords.init(_userInfo, _groupInfo);
 		nlLrFetcher.init();
 		nlLrExporter.init(_userInfo, _groupInfo);
 		nlLrDrilldown.init(nlGroupInfo);
