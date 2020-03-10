@@ -262,7 +262,7 @@ nlesson = function() {
             self.pages.push(po);
         }
 
-		if (self.renderCtx.launchCtx() == 'do_assign') {
+		if (self.renderCtx.launchCtx() == 'do_assign' && njs_scorm.getScormLmsLessonMode() === null) {
             var submit = '<div class="row row-center margin0 padding0 nl-link-img nl-button" onclick="javascript:submitReportAssign()" style="width:fit-content;margin:auto;padding: 15px 25px; border-radius: 5px;">'
                         +'<div><i class="ion-ios-checkmark icon" style="padding-right:16px"></i></div>'
                         +'<div class="col">Submit</div></div>';
