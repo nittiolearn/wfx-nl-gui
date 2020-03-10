@@ -59,12 +59,6 @@ function(nl, nlDlg) {
         reader.readAsText(file);
     }
     
-    function _splitIntoRows(content) {
-        // TODO-NOW: try optimizing here
-        content = content.replace(/\r/g, '');
-        return content.split('\n');
-    }
-    
     function _splitIntoCells(row) {
         var cells = row.split(',');
         var ret = [];
