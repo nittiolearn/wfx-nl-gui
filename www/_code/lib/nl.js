@@ -90,8 +90,6 @@ function(nlLog, $http, $q, $timeout, $location, $window, $rootScope) {
     	if (!(key in iFrameLoadedHandlers)) return;
     	iFrameLoadedHandlers[key](key);
     };
-    
-    this.appNotification = new AppNotificationHandler();
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -680,33 +678,6 @@ function _Debouncer(nl) {
     };
 }
 
-//-------------------------------------------------------------------------------------------------
-function AppNotificationHandler() {
-    this.onNotification = function(handlerFn) {
-        _handlerFn = handlerFn;
-        if (_lastMessage) _handlerFn(_lastMessage);
-        _lastMessage = null;
-    };
-
-    var _handlerFn = null;
-    var _lastMessage = null;
-    window.addEventListener('message', function(event) {
-        if (!event || !event.data) return;
-        var data = null;
-        try {
-            data = angular.fromJson(event.data);
-        } catch(e) {
-            return;
-        }
-        if (!data.nittio_mobile_msginfo) return;
-        if (!_handlerFn) {
-            _lastMessage = data;
-            return;
-        }
-        _handlerFn(data);
-    });
-
-}
 //-------------------------------------------------------------------------------------------------
 module_init();
 })();
