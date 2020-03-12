@@ -23,8 +23,8 @@ function UrlString(location) {
     this.init();
 }
 
-var NlRouter = ['nl', 'nlDlg', 'nlServerApi', 'nlMarkup', '$state', 'nlTopbarSrv',
-function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv) {
+var NlRouter = ['nl', 'nlDlg', 'nlServerApi', 'nlMarkup', '$state', 'nlTopbarSrv', 'nlMobileConnector',
+function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnector) {
     var permission = new Permission(nl);
     var defaultFn = function() {return function(resolve, reject) {resolve(true);};};
 
@@ -34,7 +34,7 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv) {
         return;
     }
 
-    nl.appNotification.onNotification(function(data) {
+    nlMobileConnector.onNavigateToLrMsgFromNittioMobile(function(data) {
         var template = nl.fmt2('<div class="padding-mid fsh6">{}</div>' +
             '<div class="padding-mid">{}</div>' +
             '<div class="padding-mid"></div>' +

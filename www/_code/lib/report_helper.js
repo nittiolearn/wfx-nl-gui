@@ -202,7 +202,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             itemInfo.status = itemInfo.rawStatus;
             if (isAttrition) {
                 itemInfo.status = 'waiting';
-                // TODO-NOW: try using this across every place (course_view and course assign view - eye icon)
+                // TODO-LATER: try using this across every place (course_view and course assign view - eye icon)
                 // update lockedMsg correctly in different places
                 // See the code that shows locked reason in course_view.js
                 // var atritedCm = itemIdToInfo[ret.attritedAt];
@@ -625,7 +625,6 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 if (preItem.status != 'failed') isConditionFailed = true;
             } else if (p.min_score && preItem.score < p.min_score) {
                 isConditionFailed = true;
-                // TODO-NOW: rounddown?
             } else if (p.max_score && preItem.score >= p.max_score) {
                 isConditionFailed = true;
             }

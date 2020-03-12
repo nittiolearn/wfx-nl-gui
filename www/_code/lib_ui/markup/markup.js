@@ -22,7 +22,7 @@ function (nlMarkup) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlMarkupSrv = ['nl', function (nl) {
+var NlMarkupSrv = ['nl', 'nlMobileConnector', function (nl, nlMobileConnector) {
 
 var parentStack = new ParentStack();
 var _gid = 0;
@@ -243,9 +243,17 @@ function _handleLink(line) {
         if (link == '') return '';
         var title = 'text' in avpairs ? avpairs['text'] : link;
         var newTab = 'popup' in avpairs && avpairs['popup'] == "1" ? ' target="_blank"' : '';
+        if (nlMobileConnector.isRunningUnderMobileApp()) {
+            link = nl.fmt2("'{}'", link);
+            return nl.fmt2('<span class="nl-link-text" onclick="window.openLinkInMobile({})">{}</span>', link, title);
+        }
         return nl.fmt2('<a{} href="{}">{}</a>', newTab, link, title);
     });
 }
+
+window.openLinkInMobile = function(url) {
+    nlMobileConnector.sendMsgToNittioMobile('launch_link', {url: url});
+};
 
 function _breakWikiMarkup(line) {
     var ret = {};

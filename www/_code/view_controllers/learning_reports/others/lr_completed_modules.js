@@ -22,8 +22,8 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 var LearningReportsCompletedModulesCtrl = ['$scope', 'nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', 'nlLrFilter', 
-'nlServerApi', 'nlExporter', 'nlLrTransform',
-function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlExporter, nlLrTransform) {
+'nlServerApi', 'nlExporter',
+function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlExporter) {
 	
     var _pageFetcher = null;
     var _limit = null;
@@ -130,7 +130,6 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
     }
 
     function _addRecord(record) {
-        record = nlLrTransform.lrArrayToObj(record);
         record.updated = nl.fmt.json2Date(record.updated);
         record.created = nl.fmt.json2Date(record.created);
         if (record.id in _records && _records[record.id].updated > record.updated) return;

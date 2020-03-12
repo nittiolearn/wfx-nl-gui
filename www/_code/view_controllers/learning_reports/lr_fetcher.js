@@ -13,8 +13,8 @@ var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
 }];
 
-var NlLrFetcher = ['nl', 'nlDlg', 'nlServerApi', 'nlLrFilter', 'nlLrReportRecords', 'nlGetManyStore', 'nlLrTransform', 'nlGroupInfo',
-function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlGetManyStore, nlLrTransform, nlGroupInfo) {
+var NlLrFetcher = ['nl', 'nlDlg', 'nlServerApi', 'nlLrFilter', 'nlLrReportRecords', 'nlGetManyStore', 'nlGroupInfo',
+function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlGetManyStore, nlGroupInfo) {
 	
     var _pageFetcher = null;
     var _limit = null;
@@ -79,12 +79,6 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlGetManyStore, 
                 nlDlg.popupAlert({title: 'Error', template: 'Error connecting to the server. Press the <i class="ion-refresh"></i> (fetch more) toolbar icon to resume fetching.'});
                 onDoneCallback(false);
                 return;
-            }
-            if (rawResp.transform) {
-                var aoa = results;
-                results = [];
-                for (var i=0; i<aoa.length; i++)
-                    results.push(nlLrTransform.lrArrayToObj(aoa[i]));
             }
             if (nlLrFilter.getMyOu()) results = _filterMyOus(results);
             _testCopyResults(results);
