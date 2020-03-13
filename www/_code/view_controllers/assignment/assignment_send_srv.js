@@ -178,6 +178,12 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 		    var	d = nl.fmt.date2Str(new Date(), 'date');
 		    dlgScope.data.batchname = nl.t('{} - Batch', d);
         }
+		var props = nlGroupInfo.get().props;
+        if (props.features && props.features.virtualILT) {
+            dlgScope.data.virtualILT = true;
+            dlgScope.data.useSameUrlForAll = true;
+        }
+        _sessionDetails.init();
         dlgScope.data.isEmailNotificationEnable = function() {
             var selectedUsers = _ouUserSelector.getSelectedUsers() || {};
             if(Object.keys(selectedUsers).length != 0) return true;
@@ -343,6 +349,23 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             nlDlg.popupAlert({title:'Please select', template: templateMsg});
             return false;
         }
+
+        if (_dlg.scope.data.onlineSessions.length > 0) {
+            var lastSession = null;
+            for (var i=0; i<_dlg.scope.data.onlineSessions.length; i++) {
+                var session = _dlg.scope.data.onlineSessions[i];
+                if(!session.start) {
+                    nlDlg.popupAlert({title:'Please select', template: 'Please select the start date for all sessions'});
+                    return false;
+                }
+                if (!session.duration) {
+                    nlDlg.popupAlert({title:'Please select', template: nl.t('Please select the session duration for {}', session.name)});
+                    return false;
+                }
+                if (!lastSession) continue;
+                lastSession = session;
+            }
+        }
         return true;
     }
     
@@ -367,6 +390,60 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         return ret;
     }
 
+    //---------------------------------------------------------------------------------------------
+    // session and online meeting details
+    //---------------------------------------------------------------------------------------------
+    function SessionDetails() {
+        this.init = function() {
+            var modules = _assignInfo.course.content.modules;
+            var modifiedILT = _dlg.scope.assignInfo.modifiedILT || {};
+            var oldSessionDetails = {}
+                oldSessionDetails = nlCourse.migrateModifiedILT(modifiedILT) || {};
+            var onlineSessions = [];
+            for (var i=0; i<modules.length; i++) {
+                var cm = modules[i];
+                if (cm.type != 'iltsession') continue;
+                var oldSession = null;
+                if (cm.id in oldSessionDetails) oldSession = oldSessionDetails[cm.id];
+                var dict = {id: cm.id, name: cm.name};
+                dict.start = oldSession && oldSession.start ? oldSession.start : new Date();
+                dict.duration = oldSession && oldSession.duration ? oldSession.duration : cm.iltduration;
+                if (_dlg.scope.data.virtualILT) {
+                    if (onlineSessions.length == 0) dict.canShowUrlField = true;
+                    dict.url = oldSession && oldSession.url ? oldSession.url : '';
+                    dict.notes = oldSession && oldSession.notes ? oldSession.notes : '';    
+                }
+                onlineSessions.push(dict);
+            }
+            _dlg.scope.data.onlineSessions = onlineSessions;
+        }
+
+        this.getMinimizedSessionDetails = function() {
+            var onlineSessions = _dlg.scope.data.onlineSessions || [];
+            var useSameUrlForAll = _dlg.scope.data.useSameUrlForAll;
+            var ret = {};
+            var firstSession = null;
+            for (var i=0; i<onlineSessions.length; i++) {
+                var session = onlineSessions[i];
+                var newILT = {duration: session.duration, start: session.start};
+                if (_dlg.scope.data.virtualILT) {
+                    if (!firstSession) firstSession = session;
+                    if (useSameUrlForAll) {
+                        newILT.url = firstSession.url; 
+                        newILT.notes = firstSession.notes;    
+                    } else {
+                        if (session.canShowUrlField) {
+                            newILT.url = firstSession.url; 
+                            newILT.notes = firstSession.notes;    
+                        }
+                    }
+                }
+                ret[session.id] = newILT;
+            }
+            ret.session_version = nlCourse.getSessionVersion();
+            return ret;
+        }
+    }
     //---------------------------------------------------------------------------------------------
     // On modify and afterwards code
     //---------------------------------------------------------------------------------------------

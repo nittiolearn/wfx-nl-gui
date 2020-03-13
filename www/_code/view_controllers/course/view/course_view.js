@@ -1335,7 +1335,15 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
 
 	this.canShowLaunch = function(cm) {
         if (cm && cm.state.status == "waiting") return true;
+<<<<<<< HEAD
+        if (!cm || (cm.type != 'lesson' && cm.type != 'link' && cm.type != 'certificate' && cm.type != 'iltsession')) return false;
+        if (cm.type == 'iltsession') {
+            if (modeHandler.mode == MODES.DO && cm.url && cm.state.status == 'pending') return true;
+            return false;
+        }
+=======
         if (!cm || (cm.type != 'lesson' && cm.type != 'link' && cm.type != 'certificate')) return false;
+>>>>>>> af5cd94ee46e0aa624cbcc9b5961967c955b4102
         if (this.isStaticMode()) return true;
         if (this.hideReviewButton(cm)) return false;
         if (modeHandler.mode == MODES.DO && cm.type == 'certificate' && cm.state.status == 'expired') return false;
