@@ -93,6 +93,23 @@ function(nl) {
         return _getStatusOfModule(lastModule, modules, statusInfo, lessonReports);
     };
 
+    var CURRENT_COURSE_SESSION_VERSION = 1; //For course attendance version attendance register is 1 for now;
+    this.getSessionVersion = function() {
+        return CURRENT_COURSE_SESSION_VERSION;
+    };
+
+    this.migrateModifiedILT = function(modifiedILT) {
+        //Earlier the modifiedILT stored in the course assignment is of {_id0:480, _id1: 360};
+        //Migrated version of modifiedILT is {_id0: {duration:480, url:'meeting link url', start: dateOBj, notes: ''}, _id1: {duration: 360, url: '', notes: '', start: dateOBJ}}
+        if (Object.keys(modifiedILT).length == 0) return modifiedILT;
+        if (modifiedILT.session_version && modifiedILT.session_version == CURRENT_COURSE_SESSION_VERSION) return modifiedILT;
+        var newModifiedILT = {session_version: CURRENT_COURSE_SESSION_VERSION};
+        for (var key in modifiedILT) {
+            newModifiedILT[key] = {duration: modifiedILT[key], url: null, notes: null, start: null};
+        }
+        return newModifiedILT;
+    };
+
 	function _getStatusOfModule(module, modules, statusInfo, lessonReports, score) {
 		if (score === undefined) score = null;
         if (module['type'] == 'certificate' || module['type'] == 'module' || 
