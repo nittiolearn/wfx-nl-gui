@@ -1,7 +1,3 @@
-<div ng-show='ext.item.type == "iltsession" && ext.item.notes'>
-    <div><b>Notes:</b></div>
-    <div ng-bind-html='ext.item.notes'class='padding-small-v'></div>
-</div>
 <div ng-show='ext.canShowRemarks()'>
     <div class='padding-small'></div>
     <div ng-show='!ext.canUpdateStatus() && ext.data.remarks'>

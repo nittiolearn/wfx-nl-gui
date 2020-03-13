@@ -73,12 +73,6 @@
 
 		<div ng-if='selectedModule.type == "iltsession"'>
 			<div class='padding-mid'>
-				<div class="row row-center margin0 padding-mid" ng-if='selectedModule.url'>
-					<div class='col padding-mid fsh5'></div>
-					<div class="nl-link-text nl-button-highlight" ng-click='launchMeeting(selectedModule)'>
-						<div style='padding:0 15px'>Start meeting</div>
-					</div>
-				</div>
 				<span class='fbold'>Session duration: </span><span> {{selectedModule.iltduration}} (minutes)</span>
 				<div ng-show='selectedModule.trainer_notes.length > 0'>
 					<div class="padding-mid"></div>

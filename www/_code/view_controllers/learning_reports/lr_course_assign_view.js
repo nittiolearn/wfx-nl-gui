@@ -42,14 +42,7 @@ function(nl, nlDlg, nlTreeListSrv) {
         dlg.scope.getUrl = function(lessonId) {
 			return nl.fmt2('/lesson/view/{}', lessonId);
 		};
-
-        dlg.scope.launchMeeting = function(selectedModule) {
-            var msg = nl.t('Please copy the neccesary info for logging in login credentials are <b>{}</b.', selectedModule.notes);
-            nlDlg.popupConfirm({title: nl.t('Start session'), template: msg, okText: nl.t('Start')}).then(function(res) {
-                if (res) nl.window.open(selectedModule.url,'_blank');
-            });    
-        };
-
+        
         dlg.scope.onSearchKey = function(event) {
             if (event && event.which === 13) {
                 dlg.scope.onSearch(event);

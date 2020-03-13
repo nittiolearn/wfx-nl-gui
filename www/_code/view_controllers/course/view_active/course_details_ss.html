@@ -54,10 +54,6 @@
 		<div class='col'><b>Ended</b></div>
 		<div class='col'>{{ext.item.ended | date : 'dd-MMM-yy' || "--"}}</div>
 	</div>
-	<div ng-show='ext.item.start' class='row row-center row-justify-evenly padding0 margin0'>
-		<div class='col'><b>Starts on</b></div>
-		<div class='col'>{{ext.item.start | date : 'dd-MMM-yy' || "--"}}</div>
-	</div>
 	<div ng-show='ext.item.maxScore' class='row row-center row-justify-evenly padding0 margin0'>
 		<div class='col'><b>Score</b></div>
 		<div class='col'>{{ext.item.perc}}% ({{ext.item.score || 0}} / {{ext.item.maxScore}})</div>

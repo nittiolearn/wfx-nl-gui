@@ -108,7 +108,6 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     var _lessonReports = repcontent.lessonReports || {};
     var _pastLessonReports = repcontent.pastLessonReports || {};
     var _modifiedILT = ((courseAssign ? courseAssign.info : repcontent) || {}).modifiedILT || {};
-        _modifiedILT = nlCourse.migrateModifiedILT(_modifiedILT);
     var _msDates = courseAssign && courseAssign.info && courseAssign.info.msDates ? courseAssign.info.msDates : {};
 
     for (var key in _msDates) {
@@ -473,11 +472,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.attId = (userCmAttendance || {}).attId || null;
         var grpAttendanceObj = _grpAttendanceDict[itemInfo.attId];
         itemInfo.maxTimePerc = 0;
-        var modifiedSession = _modifiedILT[cm.id] || {};
-        cm.iltduration = modifiedSession.duration || cm.iltduration;
-        itemInfo.start = nl.fmt.fmtDateDelta(modifiedSession.start || _fromDate, null, 'minute');
-        itemInfo.notes = modifiedSession.notes || '';
-        itemInfo.url = modifiedSession.url || null;
+        cm.iltduration = (cm.id in _modifiedILT) ? _modifiedILT[cm.id] : cm.iltduration;
         if (!userCmAttendance || !grpAttendanceObj) {
             itemInfo.score = null;
             itemInfo.rawStatus = 'pending';
