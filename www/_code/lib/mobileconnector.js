@@ -21,7 +21,7 @@ function(nl, nlConfig) {
     };
 
     this.isRunningUnderMobileApp = function() {
-        if (!_mobileAppInfo.appversion) return;
+        if (!_mobileAppInfo.appversion) return false;
         var iab = ((webkit || {}).messageHandlers || {}).cordova_iab;
         return iab;
     };
@@ -63,17 +63,16 @@ function(nl, nlConfig) {
     var cacheKey = "MOBILE_APP_INFO";
     function _onInitMobileFromNittioMobile(data) {
         _mobileAppInfo = data.nittio_mobile_msginfo;
-        _settings[settingName] = val;
         nlConfig.saveToDb(cacheKey, _mobileAppInfo, function(res) {
         });
     }
 
     function _init() {
         nlConfig.loadFromDb(cacheKey, function(result) {
-            _mobileAppInfo = result || {};
-            _handlerFns.init_mobile_app = _onInitMobileFromNittioMobile;
-            window.addEventListener('message', _onMsgFromNittioMobile);        
+            if(!(_mobileAppInfo)) _mobileAppInfo = result || {};
         });
+        _handlerFns.init_mobile_app = _onInitMobileFromNittioMobile;
+        window.addEventListener('message', _onMsgFromNittioMobile);
     }
     _init();
 
