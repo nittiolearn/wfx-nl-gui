@@ -44,7 +44,9 @@ function(nl, nlDlg, nlTreeListSrv) {
 		};
 
         dlg.scope.launchMeeting = function(selectedModule) {
-            var msg = nl.t('Please copy the neccesary info for logging in login credentials are <b>{}</b.', selectedModule.notes);
+            var msg = '<h4>Would you like to start/join the online meeting?</h4>';
+            if (selectedModule.notes) msg = msg + '<p>Meeting Login notes: </p>' + 
+                nl.t('<p><b>{}</b>.</p>', selectedModule.notes);
             nlDlg.popupConfirm({title: nl.t('Start session'), template: msg, okText: nl.t('Start')}).then(function(res) {
                 if (res) nl.window.open(selectedModule.url,'_blank');
             });    

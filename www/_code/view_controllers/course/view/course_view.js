@@ -122,8 +122,16 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
     };
     
     this.handleILTLink = function(cm, newTab, scope) {
-        var msg = nl.t('Please copy the neccesary info for logging in login credentials are <b>{}</b.', cm.notes);
+        var msg = '<h4>Would you like to join the online meeting?</h4>';
+        if (cm.notes) msg = msg + '<p>Meeting Login notes: </p>' + 
+            nl.t('<p><b>{}</b>.</p>', cm.notes);
+        // TODO-NOW: 
+        // if !cm.joinTime && currentTime > cm.start - 30min && currentTime < cm.start + duration + 30min:
+        // then cm.joinTime = currentTime;
+        // (also save this to server and load this in report_helper
+        // We will use this in next release to make some report
         nlDlg.popupConfirm({title: nl.t('Join meeting'), template: msg, okText: nl.t('Join')}).then(function(res) {
+            // TODO-NOW
             if (res) nl.window.open(cm.url,'_blank');
         });
     };
@@ -1339,7 +1347,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
         }
         if (cm.state.status == 'waiting') return 'Know more';
         if (this.isStaticMode() || cm.type =='link' || cm.type =='certificate') return 'View';
-        if (modeHandler.mode == MODES.DO && cm.type == 'iltsession' && cm.state.status == 'pending') return 'Join meeting';
+        if (modeHandler.mode == MODES.DO && cm.type == 'iltsession' && cm.state.status == 'pending') return 'Join';
         if (modeHandler.mode == MODES.DO && cm.state.status == 'started') return 'Continue';
         if (cm.state.status == 'success' || cm.state.status == 'failed') return 'Review';
         return 'Start';

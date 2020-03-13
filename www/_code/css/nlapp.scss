@@ -2517,7 +2517,10 @@ img.nl-full-width {
   border-bottom: 2px solid;
 }
 
-.nl-bbgrey {
+.nl-b-grey {
+  border: 1px solid $nlBorderGrey2;
+}
+.nl-bb-grey {
   border-bottom: 1px solid $nlBorderGrey2;
 }
 //---------------------------------------------------------------------------

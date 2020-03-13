@@ -350,19 +350,18 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
         }
 
         if (_dlg.scope.data.onlineSessions.length > 0) {
-            var lastSession = null;
             for (var i=0; i<_dlg.scope.data.onlineSessions.length; i++) {
                 var session = _dlg.scope.data.onlineSessions[i];
                 if(!session.start) {
-                    nlDlg.popupAlert({title:'Please select', template: 'Please select the start date for all sessions'});
+                    nlDlg.popupAlert({title:'Please select', template: nl.t('Please select the start date for{}', session.name)});
                     return false;
                 }
                 if (!session.duration) {
                     nlDlg.popupAlert({title:'Please select', template: nl.t('Please select the session duration for {}', session.name)});
                     return false;
                 }
-                if (!lastSession) continue;
-                lastSession = session;
+                // TODO-NOW: If url is defined, check if it a proper URL
+                // https://stackoverflow.com/questions/5717093/check-if-a-javascript-string-is-a-url/49849482
             }
         }
         return true;
@@ -397,7 +396,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
             var modules = _assignInfo.course.content.modules;
             var modifiedILT = _dlg.scope.assignInfo.modifiedILT || {};
             var oldSessionDetails = {}
-                oldSessionDetails = nlCourse.migrateModifiedILT(modifiedILT) || {};
+            oldSessionDetails = nlCourse.migrateModifiedILT(modifiedILT) || {};
             var onlineSessions = [];
             for (var i=0; i<modules.length; i++) {
                 var cm = modules[i];
@@ -408,7 +407,6 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
                 dict.start = oldSession && oldSession.start ? oldSession.start : new Date();
                 dict.duration = oldSession && oldSession.duration ? oldSession.duration : cm.iltduration;
                 if (_dlg.scope.data.virtualILT) {
-                    if (onlineSessions.length == 0) dict.canShowUrlField = true;
                     dict.url = oldSession && oldSession.url ? oldSession.url : '';
                     dict.notes = oldSession && oldSession.notes ? oldSession.notes : '';    
                 }
@@ -427,15 +425,9 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
                 var newILT = {duration: session.duration, start: session.start};
                 if (_dlg.scope.data.virtualILT) {
                     if (!firstSession) firstSession = session;
-                    if (useSameUrlForAll) {
-                        newILT.url = firstSession.url; 
-                        newILT.notes = firstSession.notes;    
-                    } else {
-                        if (session.canShowUrlField) {
-                            newILT.url = firstSession.url; 
-                            newILT.notes = firstSession.notes;    
-                        }
-                    }
+                    var copyFrom = useSameUrlForAll ? firstSession : session;
+                    if (copyFrom.url) newILT.url = copyFrom.url;
+                    if (copyFrom.notes) newILT.notes = copyFrom.notes;
                 }
                 ret[session.id] = newILT;
             }
