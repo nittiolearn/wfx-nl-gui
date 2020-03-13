@@ -121,13 +121,6 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
         return _redirectTo('{}', url, newTab);
     };
     
-    this.handleILTLink = function(cm, newTab, scope) {
-        var msg = nl.t('Please copy the neccesary info for logging in login credentials are <b>{}</b.', cm.notes);
-        nlDlg.popupConfirm({title: nl.t('Join meeting'), template: msg, okText: nl.t('Join')}).then(function(res) {
-            if (res) nl.window.open(cm.url,'_blank');
-        });
-    };
-
     this.handleLessonLink = function(cm, newTab, scope) {
         var self = this;
         if (!('refid' in cm)) return _popupAlert('Error', 'Link to the learning module is not specified');
@@ -912,7 +905,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
     function _onLaunchImpl(cm) {
         if (cm.type === 'lesson') modeHandler.handleLessonLink(cm, false, $scope);
         else if(cm.type === 'link' || cm.type === 'certificate') modeHandler.handleLink(cm, false, $scope);
-        else if (cm.type === 'iltsession') modeHandler.handleILTLink(cm, false, $scope);
     }
 
     $scope.onReattempt = function(e, cm) {
@@ -1064,9 +1056,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         cm.remarks = itemInfo.remarks || '';
         cm.timeMins = itemInfo.iltTimeSpent || '-';
         cm.marked = itemInfo.marked || '-';
-        cm.start = itemInfo.start;
-        cm.url = itemInfo.url;
-        cm.notes = itemInfo.notes;
     }
  
     function _updateGateData(cm, itemInfo) {
@@ -1339,7 +1328,6 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
         }
         if (cm.state.status == 'waiting') return 'Know more';
         if (this.isStaticMode() || cm.type =='link' || cm.type =='certificate') return 'View';
-        if (modeHandler.mode == MODES.DO && cm.type == 'iltsession' && cm.state.status == 'pending') return 'Join meeting';
         if (modeHandler.mode == MODES.DO && cm.state.status == 'started') return 'Continue';
         if (cm.state.status == 'success' || cm.state.status == 'failed') return 'Review';
         return 'Start';
@@ -1347,11 +1335,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
 
 	this.canShowLaunch = function(cm) {
         if (cm && cm.state.status == "waiting") return true;
-        if (!cm || (cm.type != 'lesson' && cm.type != 'link' && cm.type != 'certificate' && cm.type != 'iltsession')) return false;
-        if (cm.type == 'iltsession') {
-            if (cm.url && cm.state.status == 'pending') return true;
-            return false;
-        }
+        if (!cm || (cm.type != 'lesson' && cm.type != 'link' && cm.type != 'certificate')) return false;
         if (this.isStaticMode()) return true;
         if (this.hideReviewButton(cm)) return false;
         if (modeHandler.mode == MODES.DO && cm.type == 'certificate' && cm.state.status == 'expired') return false;
