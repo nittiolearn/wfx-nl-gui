@@ -33,14 +33,24 @@
                 <div class='padding-mid'><input ng-model='session.duration' type='number' fieldCls='w100'></input></div>
             </div>
         </div>
-        <div class='row row-center row-wrap padding0 margin0' ng-if='data.virtualILT'>
-            <div ng-class='respCol221' class='padding0'>
-                <div class='padding-mid fgrey fsmall1'>Online meeting url</div>
-                <div class='padding-mid'><input ng-model='session.url' type='text' fieldCls='w100'></input></div>
+        <div>
+            <div class='row row-center row-wrap padding0 margin0' ng-if='session.canShowUrlField'>
+                <div ng-class='respCol221' class='padding0'>
+                    <div class='padding-mid fgrey fsmall1'>Online meeting url</div>
+                    <div class='padding-mid'><input ng-model='session.url' type='text' fieldCls='w100'></input></div>
+                </div>
+                <div ng-class='respCol221' class='padding0'>
+                    <div class='padding-mid fgrey fsmall1'>Meeting invitation notes</div>
+                    <div class='padding-mid'><input ng-model='session.notes' type='text' fieldCls='w100'></input></div>
+                </div>
             </div>
-            <div ng-class='respCol221' class='padding0'>
-                <div class='padding-mid fgrey fsmall1'>Meeting invitation notes</div>
-                <div class='padding-mid'><input ng-model='session.notes' type='text' fieldCls='w100'></input></div>
+            <div class='row row-center row-wrap padding-mid margin0 nl-link-text2' ng-if='session.canShowUrlField'
+                ng-click='data.useSameUrlForAll = !data.useSameUrlForAll'>
+                <span>
+                    <i ng-show='data.useSameUrlForAll' class="icon ion-android-checkbox-outline"></i>
+                    <i ng-hide='data.useSameUrlForAll' class="icon ion-android-checkbox-outline-blank"></i>
+                    Use same url for all sessions
+                </span>
             </div>
         </div>
     </div>

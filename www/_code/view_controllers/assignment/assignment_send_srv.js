@@ -181,7 +181,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
 		    dlgScope.data.batchname = nl.t('{} - Batch', d);
         }
 		var props = nlGroupInfo.get().props;
-        if (props.features && props.features.virtualILT) dlgScope.data.virtualILT = true;
+        if (props.features && props.features.virtualILT) {
+            dlgScope.data.virtualILT = true;
+            dlgScope.data.useSameUrlForAll = true;
+        }
         _sessionDetails.init();
         dlgScope.data.isEmailNotificationEnable = function() {
             var selectedUsers = _ouUserSelector.getSelectedUsers() || {};
@@ -354,6 +357,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
                     nlDlg.popupAlert({title:'Please select', template: 'Please select the start date for all sessions'});
                     return false;
                 }
+                if (!session.duration) {
+                    nlDlg.popupAlert({title:'Please select', template: nl.t('Please select the session duration for {}', session.name)});
+                    return false;
+                }
                 if (!lastSession) continue;
                 lastSession = session;
             }
@@ -401,6 +408,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
                 dict.start = oldSession && oldSession.start ? oldSession.start : new Date();
                 dict.duration = oldSession && oldSession.duration ? oldSession.duration : cm.iltduration;
                 if (_dlg.scope.data.virtualILT) {
+                    if (onlineSessions.length == 0) dict.canShowUrlField = true;
                     dict.url = oldSession && oldSession.url ? oldSession.url : '';
                     dict.notes = oldSession && oldSession.notes ? oldSession.notes : '';    
                 }
@@ -411,15 +419,25 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
 
         this.getMinimizedSessionDetails = function() {
             var onlineSessions = _dlg.scope.data.onlineSessions || [];
+            var useSameUrlForAll = _dlg.scope.data.useSameUrlForAll;
             var ret = {};
+            var firstSession = null;
             for (var i=0; i<onlineSessions.length; i++) {
                 var session = onlineSessions[i];
-                var newILT = {duration: session.duration, start: session.start}
+                var newILT = {duration: session.duration, start: session.start};
                 if (_dlg.scope.data.virtualILT) {
-                    newILT.url = session.url; 
-                    newILT.notes = session.notes;
+                    if (!firstSession) firstSession = session;
+                    if (useSameUrlForAll) {
+                        newILT.url = firstSession.url; 
+                        newILT.notes = firstSession.notes;    
+                    } else {
+                        if (session.canShowUrlField) {
+                            newILT.url = firstSession.url; 
+                            newILT.notes = firstSession.notes;    
+                        }
+                    }
                 }
-                ret[cm.id] = newILT;
+                ret[session.id] = newILT;
             }
             ret.session_version = nlCourse.getSessionVersion();
             return ret;

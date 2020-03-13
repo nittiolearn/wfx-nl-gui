@@ -1349,7 +1349,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
         if (cm && cm.state.status == "waiting") return true;
         if (!cm || (cm.type != 'lesson' && cm.type != 'link' && cm.type != 'certificate' && cm.type != 'iltsession')) return false;
         if (cm.type == 'iltsession') {
-            if (cm.url && cm.state.status == 'pending') return true;
+            if (modeHandler.mode == MODES.DO && cm.url && cm.state.status == 'pending') return true;
             return false;
         }
         if (this.isStaticMode()) return true;
