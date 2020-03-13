@@ -86,8 +86,8 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlSendAssignmentSrv) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var SendAssignmentSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlGroupInfo', 'nlOuUserSelect',
-function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
+var SendAssignmentSrv = ['nl', 'nlDlg', 'nlServerApi', 'nlGroupInfo', 'nlOuUserSelect', 'nlCourse',
+function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
     //---------------------------------------------------------------------------------------------
     // Main Assignment Dialog
     //---------------------------------------------------------------------------------------------
@@ -110,7 +110,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
     var _dlg = null;
     var _ouUserSelector = null;
     var _selectedUsers = {};
-
+    var _sessionDetails = null;
     //---------------------------------------------------------------------------------------------
     // Constants
     //---------------------------------------------------------------------------------------------
@@ -123,6 +123,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
     //---------------------------------------------------------------------------------------------
     function _impl(resolve, reject) {
         _dlg = nlDlg.create(_parentScope);
+        _sessionDetails = new SessionDetails();
         nlDlg.showLoadingScreen();
         nlGroupInfo.init2().then(function() {
             nlGroupInfo.updateRestrictedOuTree(_userInfo);
@@ -172,6 +173,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             courseContent: (_assignInfo.course && _assignInfo.course.content) ? _assignInfo.course.content : null,
             update_content: false,
             modifiedILT: _assignInfo.modifiedILT || {},
+            onlineSessions: []
         };
         if (_assignInfo.batchtype) dlgScope.data.batchtype = {id: _assignInfo.batchtype, name: _assignInfo.batchtype};
         if(!_assignInfo.batchname) {
@@ -209,9 +211,6 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
             modifyDlg.scope.assignInfo = _assignInfo;
             modifyDlg.scope.data = dlgScope.data;
             modifyDlg.scope.help = dlgScope.help;
-            if(Object.keys(modifyDlg.scope.data.modifiedILT).length == 0) {
-                modifyDlg.scope.data.modifiedILT = _getModifiedILT(_assignInfo);
-            }
             var cancelButton = {text : nl.t('Modify')};
             modifyDlg.show('view_controllers/assignment/modify_training_details_dlg.html',
                 [], cancelButton);
@@ -467,7 +466,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 
 		if (assignInfo.blended) {
             params.blended = true;
-            params.modifiedILT = _getMinimizedILT(data.modifiedILT);
+            params.modifiedILT = _sessionDetails.getMinimizedSessionDetails();
 			params.iltTrainerName = data.iltTrainerName;
 			params.iltVenue = data.iltVenue;
 			params.iltCostInfra = data.iltCostInfra;
@@ -499,17 +498,6 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
     	}
     }
     
-    function _getModifiedILT(assignInfo) {
-        var ret = {};
-        var modules = assignInfo.course.content.modules;
-        for(var i=0; i<modules.length; i++) {
-            var item = modules[i];
-            if(item.type != 'iltsession') continue;
-            ret[item.id] = {name: item.name, duration: item.iltduration};
-        }
-        return ret;
-    }
-
     function _updateMilestones(_assignInfo) {
         var milestoneItems = [];
         if (_assignInfo.assigntype !== 'course') return milestoneItems;
@@ -536,13 +524,6 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
         if (bFound) serverParams.msDates = msDates;
     }
     
-    function _getMinimizedILT(modifiedILT) {
-        var ret = {};
-        for(var key in modifiedILT) {
-            ret[key] = modifiedILT[key].duration;
-        }
-        return ret;
-    }
     //---------------------------------------------------------------------------------------------
     // On Send and afterwards code
     //---------------------------------------------------------------------------------------------
@@ -579,8 +560,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect) {
 			}
 			if (assignInfo.blended && data.assigntype == _nl.atypes.ATYPE_COURSE) {
                 data.blended = true;
-                if(Object.keys(_dlg.scope.data.modifiedILT).length > 0) {
-                    data.modifiedILT = _getMinimizedILT(_dlg.scope.data.modifiedILT);
+                if(_dlg.scope.data.onlineSessions.length > 0) {
+                    data.modifiedILT = _sessionDetails.getMinimizedSessionDetails();
                 } else {
                     data.modifiedILT = {};
                 }

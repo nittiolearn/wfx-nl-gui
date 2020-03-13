@@ -1444,6 +1444,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _onCourseAssignView() {
 		var courseAssign = _getCourseAssignmnt();
+		var modifiedILT = courseAssign.info ? courseAssign.info.modifiedILT : {};
+		modifiedILT = nlCourse.migrateModifiedILT(modifiedILT);
 		var content = _getContentOfCourseAssignment() || {};
 		var nlLrCourseAssignView = nlLrUpdateBatchDlg.getCourseAssignView();
 		var trainerItemsInfos = nlLrUpdateBatchDlg.getTrainerItemInfos(courseAssign,
@@ -1461,6 +1463,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				cm.milestoneObj['reached'] = trainerItemsInfo.reached && trainerItemsInfo.milestoneMarked 
 					? nl.fmt.date2StrDDMMYY(trainerItemsInfo.reached) : '';
 			}
+			if (cm.type == 'iltsession') {
+				var modifiedSession = modifiedILT[cm.id] || {};
+				if (modifiedSession.url) {
+					cm.start = modifiedSession.start || null;
+					cm.url = modifiedSession.url || null;
+					cm.notes = modifiedSession.notes || null;	
+				}
+			}
+
 			if(cm.type == 'milestone' || cm.type == 'rating' || cm.type == 'iltsession' 
 				|| cm.type == 'info' || cm.type == 'link') cm.showRemarks = true;
 			var learningRecords = nlLrReportRecords.getRecords();
@@ -2813,7 +2824,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			assignInfo.learnmode = assignContent.learnmode; // TODO: This is not shown in GUI due to error.
 		} else {
 			assignInfo.blended = assignContent.blended || false;
-			assignInfo.modifiedILT = _getModifiedILT(assignContent.modifiedILT, record.course.content);
+			assignInfo.modifiedILT = assignContent.modifiedILT;
 			assignInfo.iltTrainerName = assignContent.iltTrainerName || '';
 			assignInfo.iltVenue = assignContent.iltVenue || '';
 			assignInfo.iltCostInfra = assignContent.iltCostInfra || '';
@@ -2855,18 +2866,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				_updateReportRecords();
 			}
 		});
-	}
-
-	function _getModifiedILT(modifiedILT, content) {
-		if(!modifiedILT) return {};
-		var ret = {};
-		if (!content || !content.modules) return ret;
-		for(var i=0; i<content.modules.length; i++) {
-			var item = content.modules[i];
-			if(item.type != 'iltsession') continue;
-			ret[item.id] = {name: item.name, duration: item.id in modifiedILT ? modifiedILT[item.id] : item.iltduration};
-		}
-		return ret;
 	}
 
 	function _onClickOnReminderNotification() {
