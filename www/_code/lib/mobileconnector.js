@@ -26,8 +26,16 @@ function(nl, nlConfig) {
         return iab;
     };
 
+    this.launchLinkInNewTab = function(url) {
+        if (this.isRunningUnderMobileApp())
+            _sendMsgToNittioMobile('launch_link', {url: url});
+        else {
+            nl.window.open(url,'_blank');            
+        }
+    };
+
     // msgtype supported: 'launch_link'
-    this.sendMsgToNittioMobile = function(msgtype, payload) {
+    function _sendMsgToNittioMobile(msgtype, payload) {
         var iab = ((webkit || {}).messageHandlers || {}).cordova_iab;
         if (!iab) return;
         var msg = {msgtype: msgtype, payload: payload, nittioapp_msginfo: {}};

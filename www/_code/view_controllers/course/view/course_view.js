@@ -48,7 +48,7 @@ var _userInfo = null;
 var MODES = {PRIVATE: 0, PUBLISHED: 1, REPORT_VIEW: 2, DO: 3, EDIT: 4};
 var MODE_NAMES = {'private': 0, 'published': 1, 'report_view': 2, 'do': 3, 'edit': 4};
 
-function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlReportHelper) {
+function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlReportHelper, nlMobileConnector) {
     var self=this;
     this.mode = MODES.PRIVATE;
     this.urlModeStr = '';
@@ -131,8 +131,8 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
         // (also save this to server and load this in report_helper
         // We will use this in next release to make some report
         nlDlg.popupConfirm({title: nl.t('Join meeting'), template: msg, okText: nl.t('Join')}).then(function(res) {
-            // TODO-NOW
-            if (res) nl.window.open(cm.url,'_blank');
+            if (!res) return;
+            nlMobileConnector.launchLinkInNewTab(cm.url);
         });
     };
 
@@ -317,10 +317,10 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
 //-------------------------------------------------------------------------------------------------
 var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg',
 'nlCourseEditor', 'nlCourseCanvas', 'nlServerApi', 'nlGroupInfo', 'nlSendAssignmentSrv',
-'nlMarkup', 'nlTreeListSrv', 'nlTopbarSrv', 'nlReportHelper',
+'nlMarkup', 'nlTreeListSrv', 'nlTopbarSrv', 'nlReportHelper', 'nlMobileConnector',
 function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlCourseCanvas, 
-    nlServerApi, nlGroupInfo, nlSendAssignmentSrv, nlMarkup, nlTreeListSrv, nlTopbarSrv, nlReportHelper) {
-    var modeHandler = new ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlReportHelper);
+    nlServerApi, nlGroupInfo, nlSendAssignmentSrv, nlMarkup, nlTreeListSrv, nlTopbarSrv, nlReportHelper, nlMobileConnector) {
+    var modeHandler = new ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlReportHelper, nlMobileConnector);
     var nlContainer = new NlContainer(nl, nlDlg, nlServerApi, $scope, modeHandler);
     nlContainer.setContainerInWindow();
     var _attendanceObj = {};

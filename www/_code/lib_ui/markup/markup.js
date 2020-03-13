@@ -252,7 +252,7 @@ function _handleLink(line) {
 }
 
 window.openLinkInMobile = function(url) {
-    nlMobileConnector.sendMsgToNittioMobile('launch_link', {url: url});
+    nlMobileConnector.launchLinkInNewTab(url);
 };
 
 function _breakWikiMarkup(line) {
