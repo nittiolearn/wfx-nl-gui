@@ -360,13 +360,23 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
                     nlDlg.popupAlert({title:'Please select', template: nl.t('Please select the session duration for {}', session.name)});
                     return false;
                 }
-                // TODO-NOW: If url is defined, check if it a proper URL
-                // https://stackoverflow.com/questions/5717093/check-if-a-javascript-string-is-a-url/49849482
+                if (i == 0 && _dlg.scope.data.virtualILT) {
+                    if(!_validateMeetingLink(session.url)) {
+                        nlDlg.popupAlert({title:'Please select', template: nl.t('Provided meeting link is not correct. Please provide a proper meeting link')});
+                        return false;    
+                    }
+                }
             }
         }
         return true;
     }
     
+    function _validateMeetingLink(url) {
+        if (!url) return true;
+        var res = url.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
+        return (res !== null)    
+    }
+
     function _validateFail(attr, errMsg) {
         nlDlg.popupAlert({title:'Error', template: errMsg});
     	return nlDlg.setFieldError(_dlg.scope, attr, errMsg);

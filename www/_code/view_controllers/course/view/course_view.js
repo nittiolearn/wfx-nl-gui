@@ -121,20 +121,32 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
         return _redirectTo('{}', url, newTab);
     };
     
-    this.handleILTLink = function(cm, newTab, scope) {
+    this.handleILTLink = function(cm, newTab, scope, _updatedStatusinfoAtServer) {
         var msg = '<h4>Would you like to join the online meeting?</h4>';
         if (cm.notes) msg = msg + '<p>Meeting Login notes: </p>' + 
             nl.t('<p><b>{}</b>.</p>', cm.notes);
-        // TODO-NOW: 
-        // if !cm.joinTime && currentTime > cm.start - 30min && currentTime < cm.start + duration + 30min:
-        // then cm.joinTime = currentTime;
-        // (also save this to server and load this in report_helper
-        // We will use this in next release to make some report
         nlDlg.popupConfirm({title: nl.t('Join meeting'), template: msg, okText: nl.t('Join')}).then(function(res) {
             if (!res) return;
+            var iltStatus = self.course.statusinfo && cm.id in self.course.statusinfo ? self.course.statusinfo[cm.id] : {};
+            if (!iltStatus.joinTime) {
+                if (self.canShowJoinMeetingButton(cm)) {
+                    self.course.statusinfo[cm.id] = {joinTime: nl.fmt.date2UtcStr(new Date(), 'second')};
+                    _updatedStatusinfoAtServer(false);
+                }
+            }
             nlMobileConnector.launchLinkInNewTab(cm.url);
         });
     };
+
+    this.canShowJoinMeetingButton = function(cm) {
+        var currentTime = new Date();
+        var startTime = angular.copy(cm.start);
+            startTime = new Date(startTime);
+        var actualMeetingStart = new Date (startTime.getTime() - (30*60000));
+        var actualMeetingEnd = new Date(startTime.getTime()+((cm.iltduration+30)*60000));
+        if (currentTime > actualMeetingStart && currentTime < actualMeetingEnd) return true;
+        return false;
+    }
 
     this.handleLessonLink = function(cm, newTab, scope) {
         var self = this;
@@ -920,7 +932,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
     function _onLaunchImpl(cm) {
         if (cm.type === 'lesson') modeHandler.handleLessonLink(cm, false, $scope);
         else if(cm.type === 'link' || cm.type === 'certificate') modeHandler.handleLink(cm, false, $scope);
-        else if (cm.type === 'iltsession') modeHandler.handleILTLink(cm, false, $scope);
+        else if (cm.type === 'iltsession') modeHandler.handleILTLink(cm, false, $scope, _updatedStatusinfoAtServer);
     }
 
     $scope.onReattempt = function(e, cm) {
@@ -1357,8 +1369,8 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
         if (cm && cm.state.status == "waiting") return true;
         if (!cm || (cm.type != 'lesson' && cm.type != 'link' && cm.type != 'certificate' && cm.type != 'iltsession')) return false;
         if (cm.type == 'iltsession') {
-            if (modeHandler.mode == MODES.DO && cm.url && cm.state.status == 'pending') return true;
-            return false;
+            if (modeHandler.mode != MODES.DO || !cm.url || cm.state.status != 'pending')  return false
+            return modeHandler.canShowJoinMeetingButton(cm);
         }
         if (this.isStaticMode()) return true;
         if (this.hideReviewButton(cm)) return false;

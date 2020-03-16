@@ -478,6 +478,9 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.start = nl.fmt.fmtDateDelta(modifiedSession.start || _fromDate, null, 'minute');
         itemInfo.notes = modifiedSession.notes || '';
         itemInfo.url = modifiedSession.url || null;
+        var iltStatusInfo = _statusinfo[cm.id] || {};
+        if (iltStatusInfo.joinTime) itemInfo.joinTime = nl.fmt.json2Date(iltStatusInfo.joinTime);
+
         if (!userCmAttendance || !grpAttendanceObj) {
             itemInfo.score = null;
             itemInfo.rawStatus = 'pending';
