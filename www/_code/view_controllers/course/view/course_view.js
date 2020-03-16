@@ -129,7 +129,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
             if (!res) return;
             var iltStatus = self.course.statusinfo && cm.id in self.course.statusinfo ? self.course.statusinfo[cm.id] : {};
             if (!iltStatus.joinTime) {
-                if (self.canShowJoinMeetingButton(cm)) {
+                if (self.canJoinMeeting(cm)) {
                     self.course.statusinfo[cm.id] = {joinTime: nl.fmt.date2UtcStr(new Date(), 'second')};
                     _updatedStatusinfoAtServer(false);
                 }
@@ -138,12 +138,13 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
         });
     };
 
-    this.canShowJoinMeetingButton = function(cm) {
+    this.canJoinMeeting = function(cm) {
+        if (!cm.start || !cm.url) return false;
         var currentTime = new Date();
         var startTime = angular.copy(cm.start);
             startTime = new Date(startTime);
         var actualMeetingStart = new Date (startTime.getTime() - (30*60000));
-        var actualMeetingEnd = new Date(startTime.getTime()+((cm.iltduration+30)*60000));
+        var actualMeetingEnd = new Date(startTime.getTime()+((cm.timeMins+30)*60000));
         if (currentTime > actualMeetingStart && currentTime < actualMeetingEnd) return true;
         return false;
     }
@@ -1369,8 +1370,8 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
         if (cm && cm.state.status == "waiting") return true;
         if (!cm || (cm.type != 'lesson' && cm.type != 'link' && cm.type != 'certificate' && cm.type != 'iltsession')) return false;
         if (cm.type == 'iltsession') {
-            if (modeHandler.mode != MODES.DO || !cm.url || cm.state.status != 'pending')  return false
-            return modeHandler.canShowJoinMeetingButton(cm);
+            if (modeHandler.mode == MODES.DO && cm.url && cm.state.status == 'pending')  return true;
+            return false;
         }
         if (this.isStaticMode()) return true;
         if (this.hideReviewButton(cm)) return false;
