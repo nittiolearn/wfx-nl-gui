@@ -185,7 +185,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
             dlgScope.data.virtualILT = true;
             dlgScope.data.useSameUrlForAll = true;
         }
-        _sessionDetails.init();
+
+        if (_assignInfo.assigntype == 'course') _sessionDetails.init();
         dlgScope.data.isEmailNotificationEnable = function() {
             var selectedUsers = _ouUserSelector.getSelectedUsers() || {};
             if(Object.keys(selectedUsers).length != 0) return true;
