@@ -247,10 +247,15 @@ function DbAttendanceObject(courseAssignment, ctx) {
 	function _isOnlineSession(cm) {
 		var modifiedILT = ctx.modifiedILT;
 		var modifiedParams = modifiedILT[cm.id] || {};
-		var current = new Date();
-		var start = modifiedParams.start ? new Date(modifiedParams.start) : '';
 		if (!modifiedParams.url) return false;
-		if (current > start) return true;
+		if (!modifiedParams.start) return true;
+		var iltduration = modifiedParams.duration || cm.iltduration;
+		var starttime = angular.copy(modifiedParams.start);
+			starttime = new Date(starttime);
+		var actualMeetingEnd = new Date(starttime.getTime()+(iltduration*60000));
+		var current = new Date();
+		if (current > actualMeetingEnd) return true;
+		return false;
 	}
 
 	this.validateLr = function(lr, cm, lrBlocker) {
