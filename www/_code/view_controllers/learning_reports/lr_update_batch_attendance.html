@@ -26,7 +26,9 @@
 			<nl-date-select fieldmodelbyref='selectedModule.sessiondate'></nl-date-select>
 		</div>
 		<div ng-if='isEtmAsd' class='padding-small'></div>
-	
+
+		<div ng-if='selectedModule.canShowAutoFillButton' class='nl-link-text nl-button-highlight' ng-click='onAutoFillAttendance(selectedModule)'>Autofill</div>	
+		<div ng-if='selectedModule.canShowAutoFillButton' class='padding-small'></div>
 		<div class='nl-link-text nl-button-highlight' ng-click='showBulkAttendanceMarker($event)'>Mark all</div>
 	</div>
 	<div ng-if='selectedModule.validationErrorMsg' class='row row-center padding0 margin0'>

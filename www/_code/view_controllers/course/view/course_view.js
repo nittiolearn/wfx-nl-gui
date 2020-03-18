@@ -144,7 +144,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
         var startTime = angular.copy(cm.start);
             startTime = new Date(startTime);
         var actualMeetingStart = new Date (startTime.getTime() - (30*60000));
-        var actualMeetingEnd = new Date(startTime.getTime()+((cm.timeMins+30)*60000));
+        var actualMeetingEnd = new Date(startTime.getTime()+((cm.duration+30)*60000));
         if (currentTime > actualMeetingStart && currentTime < actualMeetingEnd) return true;
         return false;
     }
@@ -1083,6 +1083,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
 
     function _updateILTData(cm, itemInfo) {
         cm.remarks = itemInfo.remarks || '';
+        cm.duration = itemInfo.iltTotalTime;
         cm.timeMins = itemInfo.iltTimeSpent || '-';
         cm.marked = itemInfo.marked || '-';
         cm.start = itemInfo.start;
