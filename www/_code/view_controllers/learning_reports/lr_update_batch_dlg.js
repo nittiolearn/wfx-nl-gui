@@ -118,6 +118,7 @@ function _getContext(courseAssignment, modules, learningRecords, groupInfo) {
 				if ('locked_waiting' in addAfterCm) report.locked_waiting = addAfterCm.locked_waiting;
 			} else {
 				var itemInfo = lr.bulkEntry ? {} : lr.repcontent.statusinfo[cm.id] || {};
+				if (cm.type == 'iltsession' && itemInfo.joinTime) report.joinTime = itemInfo.joinTime;
 				if(cm.hide_locked && itemInfo.status == 'waiting') report.locked_waiting = true;
 			}
 			if (lr.bulkEntry) report.bulkEntry = true;
@@ -224,6 +225,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 		cm.someAtdFilled = false;
 		cm.dateValidationError = null;
 		cm.dateValidationErrorIfSomeAtdFilled = null;
+		cm.canShowAutoFillButton = _isOnlineSession(cm);
 		if (_etmAsd.length == 0) return;
 		if (!cm.sessiondate) {
 			cm.dateValidationErrorIfSomeAtdFilled = 'Date mandatory';
@@ -240,6 +242,15 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			cmValidationCtx.lastFixedSessionDate = myDate;
 			cmValidationCtx.lastFixedSessionDateCmName = nlReportHelper.getItemName(cm);
 		}
+	}
+
+	function _isOnlineSession(cm) {
+		var modifiedILT = ctx.modifiedILT;
+		var modifiedParams = modifiedILT[cm.id] || {};
+		var current = new Date();
+		var start = modifiedParams.start ? new Date(modifiedParams.start) : '';
+		if (!modifiedParams.url) return false;
+		if (current > start) return true;
 	}
 
 	this.validateLr = function(lr, cm, lrBlocker) {
@@ -379,6 +390,8 @@ function DbAttendanceObject(courseAssignment, ctx) {
 		_etmAsd = ctx.groupInfo.props.etmAsd || [];
 		_dbobj = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
 		_dbobj = nlCourse.migrateCourseAttendance(_dbobj);
+		var modifiedILT = (courseAssignment && courseAssignment.info) ? courseAssignment.info.modifiedILT : {};
+		ctx.modifiedILT = nlCourse.migrateModifiedILT(modifiedILT);
 		_sessionInfos = _dbobj.sessionInfos || {};
 		_lastAsdId = _dbobj.lastAsdId || 0;
 		_initAttendanceOptions();
@@ -386,11 +399,15 @@ function DbAttendanceObject(courseAssignment, ctx) {
 	}
 
 	function _initAttendanceOptions() {
+		ctx.firstPresentOption = null;
+		ctx.firstAbsentOption = null;	
 		_attendanceOptionsAsd = ctx.groupInfo.props.attendance || []; 
 		for (var i=0; i<_attendanceOptionsAsd.length; i++) {
 			var item = _attendanceOptionsAsd[i];
 			_attendanceOptionsDict[item.id] = item;
 			if (item.id === 'notapplicable') continue;
+			if (!ctx.firstPresentOption && item.timePerc == 100) ctx.firstPresentOption = item;
+			if (!ctx.firstAbsentOption && !item.isAttrition && item.timePerc == 0) ctx.firstAbsentOption = item;
 			_attendanceOptions.push(item);
 		}
 	}
@@ -400,7 +417,10 @@ function DbAttendanceObject(courseAssignment, ctx) {
 		if (!opts || opts.length == 0) return null;
 		var ret = [];
 		ret.push({id: '', name: ''});
-		for(var i=0; i<opts.length; i++) ret.push({id: opts[i], name: opts[i]});
+		for(var i=0; i<opts.length; i++) {
+			if (opts[i] == 'Other') ctx.otherOptionConfigured = true;
+			ret.push({id: opts[i], name: opts[i]});
+		}
 		return ret;
 	}
 
@@ -855,6 +875,11 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 			_bulkMarker(dlgScope, 'showAttendance');
 		};
 
+		// Auto fill attendance based on the joinTime for online sessions
+		dlgScope.onAutoFillAttendance = function(cm) {
+			_autoFillAttendance(dlgScope);
+		}
+
 		// Used in lr_update_batch_rating.html
 		dlgScope.showBulkRatingMarker = function(e) {
 			_showBulkMarker(dlgScope, 'showRating');
@@ -876,6 +901,33 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 		dlgScope.milestoneUnmarkAll = function(e, selectedModule) {
 			ctx.dbMilestone.markAll(selectedModule, false);
 		};
+	}
+
+	function _autoFillAttendance(dlgScope) {
+		var cm = dlgScope.selectedModule;
+		if (!cm) return;
+		for(var i=0; i<cm.learningRecords.length; i++) {
+			var lr = cm.learningRecords[i];
+			if (lr.bulkEntry || lr.lockedMessage) continue;
+			if (lr.joinTime) {
+				var jointime = nl.fmt.fmtDateDelta(lr.joinTime, null, 'minute')
+				lr.attendance = ctx.firstPresentOption;
+				if (ctx.otherOptionConfigured) {
+					lr.remarks = {id: 'Other', name: nl.t('Other')};
+					lr.otherRemarks = nl.t('Joined online meeting at {}', jointime);	
+				} else {
+					lr.remarks = nl.t('Joined online meeting at {}', jointime);
+				}
+			} else {
+				lr.attendance = ctx.firstAbsentOption;
+				if (ctx.otherOptionConfigured) {
+					lr.remarks = {id: 'Other', name: nl.t('Other')};
+					lr.otherRemarks = nl.t('Did not join the meeting');	
+				} else {
+					lr.remarks = {id: 'Did not join the meeting'};
+				}
+			}
+		}
 	}
 
 	function _onDlgTypeChange(dlgScope, newCm) {
