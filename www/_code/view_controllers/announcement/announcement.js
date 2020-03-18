@@ -164,7 +164,7 @@ function(nl, nlDlg, nlServerApi, nlResourceAddModifySrv, nlUserSettings, nlMarku
         nl.rootScope.announcement = _data;
         _data.userClosedPaneTime = false;
         _data.mode = mode;  // none|pane|full
-        _data.isAdmin = userInfo.permissions && userInfo.permissions.lesson_approve;
+        _data.isAdmin = userInfo.permissions && userInfo.permissions.announcement_manage;
         _setFeatureEnabled();
         if (nl.rootScope.screenSize == 'small' && _data.mode == 'pane') _data.mode = 'none';
         _oldScreenState = nl.rootScope.screenSize;
