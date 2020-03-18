@@ -916,7 +916,7 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 					lr.remarks = {id: 'Other', name: nl.t('Other')};
 					lr.otherRemarks = nl.t('Joined online meeting at {}', jointime);	
 				} else {
-					lr.remarks = nl.t('Joined online meeting at {}', jointime);
+					lr.remarks = {id: nl.t('Joined online meeting at {}', jointime)};
 				}
 			} else {
 				lr.attendance = ctx.firstAbsentOption;
