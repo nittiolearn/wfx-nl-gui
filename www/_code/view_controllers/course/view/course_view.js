@@ -128,14 +128,14 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
         nlDlg.popupConfirm({title: nl.t('Join meeting'), template: msg, okText: nl.t('Join')}).then(function(res) {
             if (!res) return;
             var iltStatus = self.course.statusinfo && cm.id in self.course.statusinfo ? self.course.statusinfo[cm.id] : {};
+            var canJoin = self.canJoinMeeting(cm);
+            if (!canJoin) {
+                nlDlg.popupAlert({title: 'Session expired', template: 'Session has expired you cannot join the session now'});
+                return;
+            }
             if (!iltStatus.joinTime) {
-                if (self.canJoinMeeting(cm)) {
-                    self.course.statusinfo[cm.id] = {joinTime: nl.fmt.date2UtcStr(new Date(), 'second')};
-                    _updatedStatusinfoAtServer(false);
-                } else {
-                    nlDlg.popupAlert({title: 'Session expired', template: 'Session has expired you cannot join the session now'});
-                    return;
-                }
+                self.course.statusinfo[cm.id] = {joinTime: nl.fmt.date2UtcStr(new Date(), 'second')};
+                _updatedStatusinfoAtServer(false);
             }
             nlMobileConnector.launchLinkInNewTab(cm.url);
         });
