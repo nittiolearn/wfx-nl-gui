@@ -341,11 +341,12 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         }
         var end = start+PROCESS_CHUNK_SIZE;
         if (end > table.length) end = table.length;
+        var csvHeader = table[0];
         for (var i=start; i<end; i++) {
             var row = table[i];
             self.statusCnts.total++;
             if (self.pl) self.pl.debug(nl.fmt2('Validating row {} of {}', i+1, table.length), angular.toJson(row, 2));
-            row = _getRowObj(row, headerInfo, i);
+            row = _getRowObj(row, headerInfo, i, csvHeader);
             if (row == null) {
                 self.statusCnts.ignore++;
                 if (self.pl) self.pl.debug('Validated row - ignoring');
@@ -368,6 +369,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         var headerNameToInfo = _getHeaderNameToInfo(headers);
         for(var i=0; i<row.length; i++) {
             var col = row[i].toLowerCase().trim();
+            if (!col) continue;
             if (!(col in headerNameToInfo))
                 _throwException(nl.fmt2('Unknown header: {}', col)); 
             var info = headerNameToInfo[col];
@@ -386,11 +388,12 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         return ret;
     }
 
-    function _getRowObj(row, headerInfo, pos) {
+    function _getRowObj(row, headerInfo, pos, csvHeader) {
         var ret = {pos: pos+1};
         for(var i=0; i<row.length; i++) {
             if (i>headerInfo.length-1) break;
             var colInfo = headerInfo[i];
+            if (row[i] && !csvHeader[i]) _throwException(nl.fmt2('Header missing for item "{}" in row {}', row[i], ret.pos));
             ret[colInfo.id] = row[i];
         }
         for(var i=0; i<headerInfo.length; i++) {

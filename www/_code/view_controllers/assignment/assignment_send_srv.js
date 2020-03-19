@@ -374,8 +374,9 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
     
     function _validateMeetingLink(url) {
         if (!url) return true;
-        var res = url.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
-        return (res !== null)    
+        var pattern = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
+        if (pattern.test(url)) return true;
+        return false;        
     }
 
     function _validateFail(attr, errMsg) {

@@ -128,18 +128,21 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
         nlDlg.popupConfirm({title: nl.t('Join meeting'), template: msg, okText: nl.t('Join')}).then(function(res) {
             if (!res) return;
             var iltStatus = self.course.statusinfo && cm.id in self.course.statusinfo ? self.course.statusinfo[cm.id] : {};
+            var canJoin = self.canJoinMeeting(cm);
+            if (!canJoin) {
+                nlDlg.popupAlert({title: 'Session expired', template: 'Session has expired you cannot join the session now'});
+                return;
+            }
             if (!iltStatus.joinTime) {
-                if (self.canJoinMeeting(cm)) {
-                    self.course.statusinfo[cm.id] = {joinTime: nl.fmt.date2UtcStr(new Date(), 'second')};
-                    _updatedStatusinfoAtServer(false);
-                }
+                self.course.statusinfo[cm.id] = {joinTime: nl.fmt.date2UtcStr(new Date(), 'second')};
+                _updatedStatusinfoAtServer(false);
             }
             nlMobileConnector.launchLinkInNewTab(cm.url);
         });
     };
 
     this.canJoinMeeting = function(cm) {
-        if (!cm.start || !cm.url) return false;
+        if (!cm.start) return true;
         var currentTime = new Date();
         var startTime = angular.copy(cm.start);
             startTime = new Date(startTime);
@@ -1371,7 +1374,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
         if (cm && cm.state.status == "waiting") return true;
         if (!cm || (cm.type != 'lesson' && cm.type != 'link' && cm.type != 'certificate' && cm.type != 'iltsession')) return false;
         if (cm.type == 'iltsession') {
-            if (modeHandler.mode == MODES.DO && cm.url && cm.state.status == 'pending')  return true;
+            if (modeHandler.mode == MODES.DO && cm.url && modeHandler.canJoinMeeting(cm))  return true;
             return false;
         }
         if (this.isStaticMode()) return true;
